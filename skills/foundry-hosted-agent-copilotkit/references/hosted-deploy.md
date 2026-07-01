@@ -5,13 +5,36 @@ Responses) is published as an **Azure AI Foundry hosted agent**. This runs from
 `hosted/` and needs an Azure subscription + a Foundry-enabled tenant. The SAME
 `build_hosted_agent()` runs locally for development via `azd ai agent run`.
 
+## Bootstrap `hosted/` — use the real scaffolder, don't hand-write it
+
+```bash
+azd ai agent sample list                  # discover starter manifests
+azd ai agent init -m <manifest-url>       # scaffolds hosted/: main.py, agent.yaml,
+                                           # azure.yaml, requirements.txt, Dockerfile, infra/
+```
+
+Read the generated files rather than assuming package/class names from memory:
+- `ResponsesHostServer` may live in a package separate from `agent-framework-foundry`
+  (e.g. an `agent-framework-foundry-hosting`-style package) — check the generated
+  `requirements.txt` and `main.py`'s imports.
+- `FoundryChatClient` may be importable from `agent_framework.foundry` or from
+  `agent_framework_foundry` depending on version — match whichever the generated
+  scaffold uses.
+- The generated `requirements.txt` may need an explicit `mcp` package pin (the
+  hosting package can import `from mcp import McpError` without pulling `mcp`
+  in transitively on a remote build) — verify by actually building/running, not
+  by assumption.
+
 ## Prerequisites
 
 - `az login` into the **tenant that owns the Foundry project** (a 403 on
   `Microsoft.MachineLearningServices/workspaces/agents/action` means the wrong
-  tenant).
+  tenant — and in a shared/sandboxed environment, re-check `az account show`
+  before assuming this is a code bug, since the default subscription can drift
+  mid-session).
 - The azd `azure.ai.agents` extension:
-  `azd extension install azure.ai.agents` (the template pins `>=0.1.0-preview`).
+  `azd extension install azure.ai.agents` (pin a version compatible with your
+  scaffold).
 - An `azd` environment with a region/model selected.
 
 ## Deploy
@@ -21,40 +44,45 @@ cd hosted
 azd env new <env-name>            # first time
 azd env set AZURE_LOCATION <region>
 # (model deployment name comes from hosted/azure.yaml `deployments` + agent.yaml)
-make up        # == azd up : provision + remote-build the image + publish the agent
+azd up             # provision + remote-build the image + publish the agent
 ```
 
-`make up` builds the image with **remote build** (so no local Docker needed) from
-the template root context (so the shared `src/agent.py` is included), provisions
-the model deployment declared in `hosted/azure.yaml`, and publishes the hosted
-agent described by `agent.yaml` / `agent.manifest.yaml`.
+`azd up` builds the image with **remote build** (so no local Docker needed) from
+the appropriate build context (make sure the shared `src/agent.py` is included in
+that context if it lives outside `hosted/`), provisions the model deployment
+declared in `hosted/azure.yaml`, and publishes the hosted agent described by
+`agent.yaml` / `agent.manifest.yaml`.
 
 ## Gotchas (also in troubleshooting.md)
 
-- **Docker Hub rate limit** on build → the Dockerfiles use `mcr.microsoft.com`
-  base images. Keep it that way.
+- **Docker Hub rate limit** on build → use `mcr.microsoft.com` base images in
+  every Dockerfile.
 - **helloworld placeholder deployed** → you ran `azd provision` only; run
-  `make up` (provision + deploy).
+  `azd up` (provision + deploy).
 - **401 "audience is incorrect"** at runtime → the agent must request the
-  `https://ai.azure.com/.default` audience (the template's `build_hosted_agent`
-  already does).
+  `https://ai.azure.com/.default` audience.
+- **`ModuleNotFoundError: No module named 'mcp'`** on a hosted container that
+  crashes at boot (surfaces as HTTP 424 `session_not_ready` on invoke) → pin
+  `mcp` explicitly in `requirements.txt`, since it can be an undeclared
+  transitive dependency of the hosting package.
 
 ## Prove the hosted agent (live)
 
 Deployment SUCCESS is not proof. Run the agent (e.g. via the VS Code Foundry
 toolkit `azd ai agent run`, or the Foundry portal playground) and confirm that
 **one consequential action pauses for human approval** before executing — the
-same HITL contract you verified locally with `make smoke`.
+same HITL contract you verified locally with your smoke test.
 
 ## Connecting a frontend to the hosted agent (the light bridge)
 
 In production the chat UI does NOT run the agent — it talks to the deployed Foundry
-hosted agent through the **light bridge** (`backend/bridge_app.py`, the
-`backend/Dockerfile` default). Deploy the bridge as a Container App and point the
-CopilotKit runtime's `AG_UI_BACKEND_URL` at it; set `FOUNDRY_PROJECT_ENDPOINT` +
-`HOSTED_AGENT_NAME` (the deployed agent) on the bridge so `HostedProxyAgent` can reach
-it keyless. Run a single replica (per-thread conversation/session cache is
-in-memory) or externalise the cache. The CopilotKit `route.ts` bridge is unchanged.
+hosted agent through the **light bridge** you wrote (`backend/`, a
+`mcr.microsoft.com`-based Dockerfile). Deploy the bridge as a Container App and
+point the CopilotKit runtime's backend URL at it; set whatever settings your
+bridge needs to reach the deployed agent keyless (e.g. a Foundry project
+endpoint + the hosted agent's name) so it can forward turns and
+`mcp_approval_response`s without a stored key. Run a single replica if your
+bridge keeps any per-thread cache in-memory, or externalise that cache.
 
-For the local dev loop, `make local` runs the SAME agent locally via
-`azd ai agent run` and points the bridge (`bridge_app:app`) at it — no mock.
+For the local dev loop, run the SAME agent locally via `azd ai agent run` and
+point your bridge at its local URL — no mock.

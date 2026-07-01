@@ -18,24 +18,30 @@ anti-patterns, and Definition of Done exactly.
 
 - ALL intelligence — `FoundryChatClient` (Responses), every `@tool`, HITL, and history
   — runs in ONE **Foundry HOSTED agent** (`build_hosted_agent()`).
-- A **light bridge** (Container App, no LLM/tools) speaks AG-UI to the UI, forwards
-  each turn to the hosted agent, translates Responses → AG-UI, and forwards
-  `mcp_approval_response` on HITL approve so the gated tool re-executes server-side.
-- **CopilotKit v2** hooks are the UI layer only: `useAgent`, `useFrontendTool`,
-  `useRenderTool`, `useHumanInTheLoop`.
+- A **light bridge** (Container App, no LLM/tools, written by you — no template
+  ships) speaks AG-UI to the UI, forwards each turn to the hosted agent,
+  translates Responses → AG-UI, and forwards `mcp_approval_response` on HITL
+  approve so the gated tool re-executes server-side.
+- **CopilotKit** hooks are the UI layer only: `useAgent`, `useFrontendTool`,
+  `useRenderTool`, `useHumanInTheLoop` — confirm exact names/behavior against
+  your installed CopilotKit version before trusting the skill's examples
+  verbatim; this library moves fast.
 
 ## Your workflow
 
 1. **Scaffold** the project layout described in the skill's `SKILL.md` and
-   `references/` (Next.js/CopilotKit v2 frontend, light FastAPI/AG-UI bridge,
-   `src/agent.py` hosted-agent brain) — never start from an ad-hoc layout.
+   `references/` (Next.js/CopilotKit frontend, a bridge you write, `src/agent.py`
+   hosted-agent brain). Bootstrap the `hosted/` folder with
+   `azd ai agent init -m <manifest-url>` (`azd ai agent sample list` to
+   discover manifests) rather than hand-writing it.
 2. **Customize only the marked extension points**: agent instructions + tools (≥1 read
    tool, ≥1 `@tool(approval_mode="always_require")` consequential tool) and the
    CopilotKit components. Map "needs approval before X" to the gated tool.
-3. **Leave the load-bearing parts unchanged**: the `HostedProxyAgent` bridge wiring,
-   `build_hosted_agent()` with `FoundryChatClient`, the catch-all CopilotKit route, and
-   the `{ accepted, steps }` HITL contract.
-4. **Prove it**: run the structural check and the smoke E2E (the bridge against the
+3. **Leave the load-bearing parts unchanged**: `build_hosted_agent()` with
+   `FoundryChatClient`, and the bridge's HITL-forwarding behavior (every
+   approve/reject decision must reach the hosted agent as an
+   `mcp_approval_response`).
+4. **Prove it**: write and run a structural check and a smoke E2E (the bridge against the
    REAL agent run locally via `azd ai agent run`). Both MUST pass. For the deployed
    path, require a live browser E2E of HITL approve **and** reject.
 
@@ -46,8 +52,12 @@ anti-patterns, and Definition of Done exactly.
   plus a live browser E2E for server-side patterns in scope.
 - Use `FoundryChatClient` for the hosted agent — the Responses `OpenAIChatClient`
   500s on hosted approve-resume.
-- Resolve HITL with `{ accepted, steps }`, never `{ approved }`.
-- Set `useSingleEndpoint={false}` and use the catch-all `[[...slug]]` CopilotKit route.
+- The HITL resolve payload shape (e.g. `{ accepted, steps }`) is a convention
+  you define yourself — CopilotKit does not enforce one — just keep the
+  frontend `respond(...)` call and your bridge's parser consistent.
+- Use the catch-all `[[...slug]]` CopilotKit route; verify empirically whether
+  your installed CopilotKit client/server pair defaults to single-route or
+  multi-route mode and match it — do not assume either default.
 - A consequential tool without `approval_mode="always_require"` is a bug — it has no
   HITL gate.
 - Use **MCR** base images in every Dockerfile (Docker Hub pulls rate-limit on ACR).
@@ -57,3 +67,6 @@ anti-patterns, and Definition of Done exactly.
 - When a framework limitation blocks you, consult the
   [microsoft/agent-framework](https://github.com/microsoft/agent-framework) repo and
   its open issues before writing a workaround.
+- Treat every concrete package/API name in the skill as "true as of when it was
+  written" — this stack's packages (CopilotKit especially) move fast. Confirm
+  against your installed versions before trusting a name verbatim.

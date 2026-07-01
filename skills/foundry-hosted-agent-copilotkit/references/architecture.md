@@ -4,27 +4,40 @@
 with a CopilotKit UI showing rich generative UI — tool-render cards, human-in-the-
 loop approval, shared/predictive state.
 
+> **No template ships with this skill.** Every symbol below (`HostedProxyAgent`,
+> `bridge_app.py`, etc.) is illustrative naming for a design you implement
+> yourself, verified live once (see `REVIEW_NOTES`-style evidence in your own
+> build), not a package or file you can import. Bootstrap `hosted/` with
+> `azd ai agent init -m <manifest-url>` (`azd ai agent sample list` to discover
+> manifests) rather than hand-writing it — this generates the currently-correct
+> `main.py`/`agent.yaml`/`azure.yaml`/`Dockerfile`/`infra/` for your installed
+> `azd` Foundry extension version.
+
 **Why a bridge at all:** you **cannot** point `@ag-ui/client` at a deployed hosted
 agent — its endpoint speaks the OpenAI **Responses** protocol, not AG-UI. AND the
 framework's *native* path (`add_agent_framework_fastapi_endpoint(FoundryAgent(...))`)
 resolves the HITL `confirm_changes` **locally** and never forwards the approval, so
 the gated tool **does not re-execute** (verified live). So the bridge is a small
-hand-rolled forwarder: it translates Responses→AG-UI AND forwards the HITL decision
-as an `mcp_approval_response`, which re-executes the tool server-side.
+forwarder: it translates Responses→AG-UI AND forwards the HITL decision
+as an `mcp_approval_response`, which re-executes the tool server-side. You can
+implement this bridge either by wrapping a `SupportsAgentRun` shim and feeding it
+into `add_agent_framework_fastapi_endpoint` (nontrivial for a pure proxy — see
+below), or by hand-rolling a FastAPI endpoint that emits AG-UI events directly
+using the `ag-ui-protocol` package's `ag_ui.core` classes (verified working
+end-to-end against a real local hosted agent).
 
 ```
- Browser — Next.js + CopilotKit (v2 hooks)
+ Browser — Next.js + CopilotKit
    useAgent / useFrontendTool / useRenderTool / useHumanInTheLoop
-   app/api/copilotkit/[[...slug]]/route.ts  (CopilotSseRuntime + HttpAgent)
+   app/api/copilotkit/[[...slug]]/route.ts  (CopilotKit runtime handler + HttpAgent)
         │  AG-UI / SSE
         ▼
- BRIDGE  (Container App — backend/bridge_app.py)
-   LOCAL/DEPLOYED: HostedProxyAgent (SupportsAgentRun) — forwards each turn to the
-              hosted agent (hosted_client, streaming Responses), translates → AG-UI
-              (text, tool cards, confirm_changes), and forwards mcp_approval_response
-              on approve (bridge_app patches neutralise ag-ui's local interception).
-   LOCAL DEV: `azd ai agent run` runs the agent on your machine; bridge → DIRECT
-              mode (HOSTED_AGENT_DIRECT_URL). DEPLOYED: bridge → platform mode. No mock.
+ BRIDGE  (Container App — backend/, you write this)
+   LOCAL/DEPLOYED: forwards each turn to the hosted agent (streaming Responses),
+              translates → AG-UI (text, tool cards, an approval-request card), and
+              forwards mcp_approval_response on approve.
+   LOCAL DEV: `azd ai agent run` runs the agent on your machine; point the bridge
+              at its local URL. DEPLOYED: bridge points at the platform endpoint. No mock.
         │  POST .../agents/<name>/endpoint/protocols/openai/responses (stream)
         ▼
  FOUNDRY HOSTED AGENT  (the brain — azd → host: azure.ai.agent)
@@ -32,42 +45,41 @@ as an `mcp_approval_response`, which re-executes the tool server-side.
    ALL @tools + @tool(approval_mode="always_require") HITL + history server-side
 ```
 
-## Validated live (deployed agent agentic-copilot-foundry, swec-proj-default)
+## Validated live (a real local hosted agent via `azd ai agent run`)
 
 - Read tool → runs server-side; tool-render card in AG-UI.
-- HITL trigger → `mcp_approval_request` → bridge surfaces `confirm_changes` (pause).
+- HITL trigger → `mcp_approval_request` → bridge surfaces an approval card (pause).
 - **Approve → bridge sends `mcp_approval_response{approve:true}` → tool re-executes
-  server-side, state changes (100→125).** No "No tool output found".
+  server-side, in-memory state changes.** No "No tool output found".
 - Reject → `approve:false` → tool does NOT execute (state unchanged).
-- Two gotchas found live: the bridge must NOT send `x-ms-user-isolation-key`
-  (deployed agents use Entra isolation → 400); and `build_hosted_agent` MUST use
-  `FoundryChatClient` (Chat Completions 500s on hosted approve-resume).
+- Gotchas found live: the bridge must NOT send `x-ms-user-isolation-key`
+  (deployed agents use Entra isolation → 400); `build_hosted_agent` MUST use
+  `FoundryChatClient` (Chat Completions 500s on hosted approve-resume); and a
+  shared/sandboxed `az` CLI session can silently drift to a different default
+  subscription mid-session — re-check `az account show` before assuming a 403
+  is a code bug.
 
-## Why the bridge is the MINIMUM (native-path test matrix)
+## Why a bridge is necessary (native-path test matrix)
 
-Is the hand-rolled bridge over-engineering? We tested every alternative against the
-real agent on the **latest** packages (agent-framework-core 1.9.0,
-agent-framework-foundry 1.8.2, agent-framework-ag-ui 1.0.0rc5). `make smoke` = 15
-assertions (read, HITL pause, approve re-executes, reject, C9, C10).
+Is a hand-rolled/forwarding bridge over-engineering? Prior testing against a real
+agent (packages: agent-framework-core 1.9.0, agent-framework-foundry 1.8.2,
+agent-framework-ag-ui 1.0.0rc5) found:
 
 | Configuration | Result |
 | --- | --- |
-| **Bridge (HostedProxyAgent + 2 patches)** | **15/15** ✓ |
-| Bridge, HITL approval routing patch removed | approve does NOT change state ✗ — patch REQUIRED |
-| Bridge, `DISABLE_C9_SPLIT=1` | C9 fails (snapshot lumps multiple tool_calls) ✗ — split REQUIRED |
+| **Bridge that forwards HITL + splits multi-tool snapshots** | all assertions pass ✓ |
+| Bridge, HITL approval routing removed | approve does NOT change state ✗ — routing REQUIRED |
+| Bridge, multi-tool snapshot split disabled | multi-tool-call assertion fails ✗ — split REQUIRED (re-check if your CopilotKit version still needs this; the newest client renders all tool calls) |
 | Native `add_agent_framework_fastapi_endpoint(FoundryAgent(...))` | 400 "Hosted agents can only be called through the agent endpoint" ✗ |
-| Native + `allow_preview=True` | surfaces the approval, but **approve does NOT re-execute** (state unchanged); C9 fails ✗ |
-| Native + `allow_preview=True` + the 2 patches | **still** approve does NOT re-execute ✗ |
+| Native + `allow_preview=True` | surfaces the approval, but **approve does NOT re-execute** (state unchanged) ✗ |
+| Native + `allow_preview=True` + local patches to the ag-ui approval-resolution functions | **still** approve does NOT re-execute ✗ |
 
 **Conclusion:** the native `FoundryAgent` client has no client-side
 `mcp_approval_response` — it cannot complete hosted HITL no matter how it's
-configured. We still use `agent-framework-ag-ui` (`add_agent_framework_fastapi_endpoint`)
-for the AG-UI translation; we just feed it a `SupportsAgentRun` shim
-(`HostedProxyAgent`) that forwards the approval, plus two ag-ui patches `make smoke`
-proves are load-bearing. Nothing else is hand-rolled. **Tracked upstream as
+configured. **Tracked upstream as
 [microsoft/agent-framework#6652](https://github.com/microsoft/agent-framework/issues/6652)** —
-re-run this matrix on each package bump and retire the shim + the HITL-routing patch
-the moment #6652 closes (the native `FoundryAgent` path then suffices).
+re-run this matrix on each package bump; if #6652 is closed, re-test whether the
+native `FoundryAgent` path now suffices before building any forwarder at all.
 
 ## Client choice (the load-bearing rule)
 
@@ -76,12 +88,11 @@ the moment #6652 closes (the native `FoundryAgent` path then suffices).
   the gated tool. Chat Completions 500s on resume here.
 - **Local dev → `azd ai agent run`**: the Foundry extension runs the REAL agent
   (`ResponsesHostServer` + `FoundryChatClient`) on your machine, connected to your
-  Foundry project's model. `make smoke`/`make local` point the bridge at it in DIRECT
-  mode (`HOSTED_AGENT_DIRECT_URL` → POST `/responses` with `previous_response_id`
-  chaining), so it drives the SAME `HostedProxyAgent` path as production. No mock —
-  needs `az login` + a provisioned project (`make up` once).
+  Foundry project's model, at a local URL (e.g. `http://localhost:8088/responses`).
+  Point your bridge at it directly — same bridge code, no mock — needs `az login`
+  + a provisioned project.
 
-## File map
+## File map (a reasonable layout — adapt as needed)
 
 ```
 <app>/
@@ -89,30 +100,27 @@ the moment #6652 closes (the native `FoundryAgent` path then suffices).
 │   └── agent.py        ONE agent. build_hosted_agent() → FoundryChatClient
 │                       (the single brain — same code local + deployed). Read tools
 │                       + ≥1 @tool(approval_mode="always_require").
-├── backend/            THE BRIDGE (deployed Container App).
-│   ├── bridge_app.py        AG-UI endpoint → HostedProxyAgent (DIRECT local /
-│   │                        platform deployed). + SSE keepalive + optional API key.
-│   ├── hosted_proxy.py      HostedProxyAgent: forward turns + translate Responses →
-│   │                        AG-UI; surface confirm_changes; forward mcp_approval_response.
-│   ├── hosted_client.py     streaming Responses driver: platform (conversation +
-│   │                        agent_session_id, keyless) OR DIRECT (local azd ai agent run).
-│   ├── requirements.txt     bridge deps only (httpx pin; no foundry/openai — runs no model).
-│   └── Dockerfile           MCR base; deploys uvicorn bridge_app:app.
-├── hosted/             azd → Foundry HOSTED agent (Responses) — the deployed brain.
+├── backend/            THE BRIDGE (deployed Container App) — you write this.
+│   └── bridge_app.py (+ helpers)  AG-UI endpoint that forwards turns + translates
+│                       Responses → AG-UI; surfaces an approval card; forwards
+│                       mcp_approval_response. + SSE keepalive + optional API key.
+├── hosted/             Bootstrap via `azd ai agent init` — azd → Foundry HOSTED
+│   │                   agent (Responses) — the deployed brain.
 │   ├── azure.yaml      host: azure.ai.agent; azure.ai.agents pinned; context=root.
-│   └── responses/      main.py = ResponsesHostServer(build_hosted_agent()), …
-├── frontend/           Next.js + CopilotKit v2 (useAgent/useFrontendTool/
+│   └── responses/      main.py = ResponsesHostServer(build_hosted_agent()) — confirm
+│                       which package ships `ResponsesHostServer` for your installed
+│                       version (may be a separate `*-foundry-hosting` package).
+├── frontend/           Next.js + CopilotKit (useAgent/useFrontendTool/
 │                       useRenderTool/useHumanInTheLoop).
-├── scripts/            verify.sh (structural), smoke.py (E2E vs the real local agent),
-│                       lib-agentrun.sh (azd ai agent run + bridge DIRECT).
-└── Makefile(+.targets) preflight / local / verify / smoke / up / deploy / clean.
+└── scripts/            verify.sh (structural), smoke.py (E2E vs the real local agent),
+                         a browser E2E script (e.g. Playwright).
 ```
 
 ## Proving it (Definition of Done)
 
-`azd` SUCCESS / a server starting is **not** proof. Done = `make verify` +
-`make smoke` (the bridge against the REAL agent run locally via `azd ai agent run`)
+`azd` SUCCESS / a server starting is **not** proof. Done = your structural check +
+your smoke test (the bridge against the REAL agent run locally via `azd ai agent run`)
 green, AND — because the deployed path drives a server-side agent — a **live**
-browser E2E: deploy with `azd`, run the bridge with `HOSTED_AGENT_NAME` set, and
+browser E2E: deploy, run the bridge pointed at the deployed agent, and
 confirm read + HITL approve (tool re-executes, state changes) **and** reject (no
 change) in a real browser.
