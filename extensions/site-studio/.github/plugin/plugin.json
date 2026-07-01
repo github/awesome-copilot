@@ -15,19 +15,5 @@
     "site-builder"
   ],
   "logo": "assets/preview.png",
-  "x-awesome-copilot": {
-    "screenshots": {
-      "icon": {
-        "path": "assets/preview.png",
-        "type": "image/png"
-      },
-      "gallery": [
-        {
-          "path": "assets/preview.png",
-          "type": "image/png"
-        }
-      ]
-    }
-  },
   "extensions": "."
 }

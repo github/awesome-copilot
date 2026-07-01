@@ -107,8 +107,24 @@ jobs:
               errors+=("\`$ext_dir\`: missing required \`assets/preview.png\`.")
             fi
 
-            # Extension manifest is validated by the build system (npm run build).
-            # This workflow focuses on structural requirements (presence of required files).
+            # Validate convention-based plugin.json fields
+            logo=$(node -e "const fs = require('fs'); const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(m.logo || '');" "$ext_dir/.github/plugin/plugin.json")
+            if [ "$logo" != "assets/preview.png" ]; then
+              errors+=("\`$ext_dir/.github/plugin/plugin.json\`: logo must be exactly \`assets/preview.png\` (convention), got \`$logo\`.")
+            fi
+
+            extensions=$(node -e "const fs = require('fs'); const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(m.extensions || '');" "$ext_dir/.github/plugin/plugin.json")
+            if [ "$extensions" != "." ]; then
+              errors+=("\`$ext_dir/.github/plugin/plugin.json\`: extensions field must be exactly \`.\" (extension convention), got \`$extensions\`.")
+            fi
+
+            has_x_awesome=$(node -e "const fs = require('fs'); const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(m['x-awesome-copilot'] ? 'yes' : 'no');" "$ext_dir/.github/plugin/plugin.json")
+            if [ "$has_x_awesome" = "yes" ]; then
+              errors+=("\`$ext_dir/.github/plugin/plugin.json\`: x-awesome-copilot field must not be present (use convention-based logo instead).")
+            fi
+
+            # Extension manifest detailed validation is done by npm run plugin:validate
+            # This workflow focuses on structural requirements (presence of required files)
           done
 
           if [ "${#errors[@]}" -ne 0 ]; then

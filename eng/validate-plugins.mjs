@@ -293,38 +293,21 @@ function validateExtensionManifest(folderName) {
   const keywordsError = validateKeywords(parsed.keywords ?? parsed.tags);
   if (keywordsError) errors.push(keywordsError);
 
-  if (parsed.logo !== undefined && typeof parsed.logo !== "string") {
-    errors.push("logo must be a string");
-  } else if (typeof parsed.logo === "string") {
+  // Extension convention: logo must be exactly "assets/preview.png"
+  if (parsed.logo !== "assets/preview.png") {
+    errors.push('logo must be exactly "assets/preview.png" (extension convention)');
+  } else {
     validateExtensionScreenshotPath(extensionDir, parsed.logo, "logo", errors);
   }
 
-  const screenshots = parsed?.["x-awesome-copilot"]?.screenshots;
-  if (screenshots !== undefined) {
-    if (typeof screenshots !== "object" || screenshots === null) {
-      errors.push("x-awesome-copilot.screenshots must be an object");
-    } else {
-      if (screenshots.icon !== undefined) {
-        const iconPath = typeof screenshots.icon === "string" ? screenshots.icon : screenshots.icon?.path;
-        validateExtensionScreenshotPath(extensionDir, iconPath, "x-awesome-copilot.screenshots.icon", errors);
-      }
-      if (screenshots.gallery !== undefined) {
-        const galleryEntries = Array.isArray(screenshots.gallery) ? screenshots.gallery : [screenshots.gallery];
-        galleryEntries.forEach((entry, index) => {
-          const galleryPath = typeof entry === "string" ? entry : entry?.path;
-          validateExtensionScreenshotPath(
-            extensionDir,
-            galleryPath,
-            `x-awesome-copilot.screenshots.gallery[${index}]`,
-            errors
-          );
-        });
-      }
-    }
+  // Extension convention: x-awesome-copilot must not be present
+  if (parsed["x-awesome-copilot"] !== undefined) {
+    errors.push("x-awesome-copilot field must not be present (use convention-based logo instead)");
   }
 
-  if (parsed.logo === undefined && screenshots?.icon === undefined && screenshots?.gallery === undefined) {
-    errors.push("at least one visual must be defined via logo or x-awesome-copilot.screenshots");
+  // Extension convention: extensions field must be "."
+  if (parsed.extensions !== ".") {
+    errors.push('extensions field must be exactly "." (extension convention)');
   }
 
   return { errors, plugin: parsedPlugin };

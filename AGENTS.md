@@ -86,8 +86,13 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 
 - Each extension folder must include `extension.mjs`
 - Extension metadata must live at `.github/plugin/plugin.json`
-- Extension `plugin.json` should include `name`, `description`, and `version` (plus optional `author`, `keywords`, and `logo`)
-- Prefer screenshot conventions from `assets/` (`icon.*`, `preview.*`) and use `x-awesome-copilot.screenshots` only for overrides
+- Extension `plugin.json` **must** follow the convention:
+  - `name`, `description`, `version` are required
+  - `logo` **must** be exactly `"assets/preview.png"` (enforced convention)
+  - `extensions` **must** be exactly `"."` (per [copilot-agent-runtime#9929](https://github.com/github/copilot-agent-runtime/pull/9929))
+  - Optional: `author`, `keywords` fields
+  - **Must not** include `x-awesome-copilot` field (use convention-based `assets/preview.png` only)
+- Each extension must have `assets/preview.png` as the primary visual asset
 - Do not add `canvas.json`; website metadata is sourced from `.github/plugin/plugin.json`
 
 #### Hook Folders (hooks/\*/README.md)

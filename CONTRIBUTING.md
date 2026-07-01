@@ -143,10 +143,15 @@ Skills are self-contained folders in the `skills/` directory that include a `SKI
 Canvas extensions live in `extensions/<extension-id>/` and are installable through plugin metadata.
 
 1. **Create/update extension metadata**: Add `.github/plugin/plugin.json` in the extension folder
-2. **Use plugin-style metadata**: Include `name`, `description`, `version`, and optional `author`, `keywords`, `logo`
-3. **Screenshots**: Prefer conventions in `assets/` (`icon.*`, `preview.*`); use `x-awesome-copilot.screenshots` only for overrides
-4. **Keep names stable**: The manifest `name` should match the extension folder name for install consistency
-5. **Do not add `canvas.json`**: Extension website metadata is now sourced from `.github/plugin/plugin.json`
+2. **Use convention-based metadata**: Follow the extension plugin.json structure:
+   - Required: `name` (matching folder name), `description`, `version`
+   - Optional: `author`, `keywords`
+   - `logo` **must** be exactly `"assets/preview.png"` (enforced convention)
+   - `extensions` **must** be exactly `"."` (per [copilot-agent-runtime#9929](https://github.com/github/copilot-agent-runtime/pull/9929))
+   - **Never** include `x-awesome-copilot` field (use convention-based assets only)
+3. **Screenshot requirements**: Create `assets/preview.png` as your primary visual
+4. **Do not add `canvas.json`**: Extension website metadata is now sourced from `.github/plugin/plugin.json`
+5. **Validate before submitting**: Run `npm run plugin:validate` to check compliance with conventions
 
 ### Adding Plugins
 
