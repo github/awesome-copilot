@@ -8,7 +8,7 @@ const { question, answer, index } = Astro.props;
 const panelId = `faq-panel-${index}`;
 const buttonId = `faq-btn-${index}`;
 ---
-<div class="accordion-item">
+<div class="accordion-item" data-faq-item>
   <button
     id={buttonId}
     class="accordion-trigger"
@@ -32,32 +32,6 @@ const buttonId = `faq-btn-${index}`;
     <p class="answer">{answer}</p>
   </div>
 </div>
-
-<script is:inline>
-  (function() {
-    const triggers = document.querySelectorAll('.accordion-trigger');
-    triggers.forEach(trigger => {
-      trigger.addEventListener('click', () => {
-        const expanded = trigger.getAttribute('aria-expanded') === 'true';
-        const panelId = trigger.getAttribute('aria-controls');
-        const panel = document.getElementById(panelId);
-
-        triggers.forEach(t => {
-          if (t !== trigger) {
-            t.setAttribute('aria-expanded', 'false');
-            t.classList.remove('is-open');
-            const p = document.getElementById(t.getAttribute('aria-controls'));
-            if (p) p.hidden = true;
-          }
-        });
-
-        trigger.setAttribute('aria-expanded', String(!expanded));
-        trigger.classList.toggle('is-open', !expanded);
-        if (panel) panel.hidden = expanded;
-      });
-    });
-  })();
-</script>
 
 <style>
   .accordion-item {
@@ -95,7 +69,7 @@ const buttonId = `faq-btn-${index}`;
     transition: transform var(--motion-fast), color var(--motion-fast);
   }
   .icon svg { display: block; }
-  .accordion-trigger.is-open .icon {
+  .accordion-trigger[aria-expanded="true"] .icon {
     transform: rotate(180deg);
   }
   .accordion-panel {

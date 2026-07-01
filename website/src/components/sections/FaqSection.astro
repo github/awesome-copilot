@@ -9,24 +9,24 @@ import Container from '../ui/Container.astro';
 
 const faqItems = [
   {
-    question: 'What platforms do you support?',
-    answer: 'We support GitHub Copilot on VS Code, Visual Studio, JetBrains IDEs, Neovim, and any editor that supports the Copilot extension. Our agents and instructions work across all platforms where Copilot runs.'
+    question: 'What can I find in this repository?',
+    answer: 'The repo collects Copilot agents, custom instructions, skills, hooks, workflows, plugins, and tools. Each resource is meant to be copied, installed, or adapted for real Copilot workflows.'
   },
   {
-    question: 'Is there a free tier?',
-    answer: 'Yes. The marketplace and all public resources are free to browse. Some advanced agents and private team instructions may require a subscription, but the core catalog is always open source.'
+    question: 'What is the difference between agents, instructions, and skills?',
+    answer: 'Agents define a specialized Copilot role, instructions add project or language guidance, and skills bundle repeatable workflows with their own instructions and supporting files.'
   },
   {
-    question: 'Can I cancel anytime?',
-    answer: 'Absolutely. There are no long-term contracts. You can cancel your subscription at any time from your account settings, and you will retain access until the end of your current billing period.'
+    question: 'How do plugins fit into the catalog?',
+    answer: 'Plugins group related agents, commands, and skills so teams can install a complete Copilot setup instead of collecting separate files by hand.'
   },
   {
-    question: 'Do you offer refunds?',
-    answer: 'We offer refunds within 14 days of purchase if you are not satisfied. Just contact support and we will process it — no questions asked.'
+    question: 'Can I contribute my own resource?',
+    answer: 'Yes. Add the resource in the matching folder, follow the front matter rules, run the validation commands, and update the generated README with the build script before opening a pull request.'
   },
   {
-    question: 'How do I upgrade my plan?',
-    answer: 'You can upgrade from your account dashboard at any time. The change takes effect immediately, and you will be charged a prorated amount for the remainder of the billing cycle.'
+    question: 'How do I check that a contribution is valid?',
+    answer: 'Run npm run build, npm run skill:validate for skills, npm run plugin:validate for plugins, and bash eng/fix-line-endings.sh before submitting changes.'
   }
 ];
 ---
@@ -34,8 +34,8 @@ const faqItems = [
   <Container>
     <div class="faq-header">
       <p class="faq-kicker">$ cat ~/faq.md</p>
-      <h2 id="faq-title">Frequently Asked Questions</h2>
-      <p class="faq-subtitle">Got questions? We've got answers.</p>
+      <h2 id="faq-title">Common repo questions</h2>
+      <p class="faq-subtitle">Quick answers for people browsing, installing, or contributing resources.</p>
     </div>
     <div class="faq-list" role="list">
       {faqItems.map((item, index) => (
@@ -80,3 +80,20 @@ const faqItems = [
     margin-inline: auto;
   }
 </style>
+
+<script is:inline>
+  (function() {
+    var list = document.querySelector('.faq-list');
+    if (!list) return;
+    list.addEventListener('click', function(event) {
+      var trigger = event.target.closest('.accordion-trigger');
+      if (!trigger) return;
+      var expanded = trigger.getAttribute('aria-expanded') === 'true';
+      var panelId = trigger.getAttribute('aria-controls');
+      var panel = document.getElementById(panelId);
+      trigger.setAttribute('aria-expanded', String(!expanded));
+      trigger.classList.toggle('is-open', !expanded);
+      if (panel) panel.hidden = expanded;
+    });
+  })();
+</script>

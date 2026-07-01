@@ -3,9 +3,11 @@ import Icon from '../ui/Icon.astro';
 import { REPO, SITE } from '../../config/site';
 ---
 <footer class="footer">
-  <p>
-    <strong>{SITE.title}</strong> · static-first Astro implementation
-  </p>
+  <div class="footer-brand">
+    <strong>{SITE.title}</strong>
+    <span class="tagline">open-source Copilot resources</span>
+  </div>
+  <span class="footer-slogan">EVG en el mapa</span>
   <nav aria-label="Footer links" class="footer-links">
     <a href={REPO.url} rel="noopener noreferrer">
       <Icon name="github" size={14} />
@@ -29,13 +31,29 @@ import { REPO, SITE } from '../../config/site';
     font-size: 0.8rem;
   }
 
-  p {
-    margin: 0;
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
   }
 
-  strong {
+  .footer-brand strong {
     color: var(--color-text);
     font-family: var(--font-heading);
+  }
+
+  .tagline {
+    font-size: 0.75rem;
+    opacity: 0.9;
+  }
+
+  .footer-slogan {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--color-muted);
+    opacity: 0.75;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   .footer-links {
@@ -60,6 +78,12 @@ import { REPO, SITE } from '../../config/site';
     .footer {
       flex-direction: column;
       align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .footer-slogan {
+      order: -1;
+      align-self: flex-end;
     }
 
     .footer-links {

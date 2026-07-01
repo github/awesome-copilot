@@ -1,5 +1,5 @@
 ---
-// Back to Top Button Component
+// Back to Top — 8-bit CLI style
 ---
 
 <button
@@ -9,7 +9,7 @@
   aria-label="Back to top"
   title="Back to top"
 >
-  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">
     <path d="M18 15l-6-6-6 6"/>
   </svg>
 </button>
@@ -24,7 +24,6 @@
       document.body.appendChild(button);
     }
 
-    // Show/hide button based on scroll position
     function toggleVisibility() {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
       if (scrollY > 400) {
@@ -34,7 +33,6 @@
       }
     }
 
-    // Scroll to top with smooth behavior
     function scrollToTop() {
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       window.scrollTo({
@@ -43,7 +41,6 @@
       });
     }
 
-    // Throttled scroll handler
     let ticking = false;
     window.addEventListener('scroll', () => {
       if (!ticking) {
@@ -55,10 +52,7 @@
       }
     }, { passive: true });
 
-    // Click handler
     button.addEventListener('click', scrollToTop);
-
-    // Initial check
     toggleVisibility();
   })();
 </script>
@@ -68,67 +62,74 @@
     position: fixed;
     bottom: 24px;
     right: 24px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--color-accent);
-    color: white;
-    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 0;
+    background: var(--color-bg-elevated);
+    color: var(--color-muted);
+    border: 1px solid var(--color-border-soft);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(20px) scale(0.8);
+    transform: translateY(12px);
     transition:
-      background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(133, 52, 243, 0.4);
+      border-color var(--motion-fast),
+      color var(--motion-fast),
+      opacity var(--motion-fast),
+      transform var(--motion-fast),
+      visibility var(--motion-fast);
+    box-shadow: 4px 4px 0 var(--color-black);
     z-index: 9999;
+    font-family: var(--font-mono);
+    padding: 0;
   }
 
   .back-to-top.visible {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 
   .back-to-top:hover {
-    background: var(--color-accent-hover);
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 6px 20px rgba(133, 52, 243, 0.5);
+    color: var(--color-green);
+    border-color: var(--color-green);
+    box-shadow: 4px 4px 0 rgb(0 0 0 / 80%), 0 0 12px rgb(144 255 177 / 12%);
   }
 
   .back-to-top:active {
-    transform: translateY(0) scale(0.95);
+    transform: translateY(2px);
+    box-shadow: 2px 2px 0 var(--color-black);
   }
 
   .back-to-top:focus-visible {
-    outline: 2px solid rgb(255 255 255 / 35%);
+    outline: 2px solid var(--color-green);
     outline-offset: 2px;
   }
 
-  /* Mobile adjustments */
+  .back-to-top .btn-icon {
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* Mobile */
   @media (max-width: 768px) {
     .back-to-top {
       bottom: 16px;
       right: 16px;
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
     }
   }
 
-  /* Respect reduced motion */
+  /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .back-to-top {
-      transition: opacity 0.2s ease;
+      transition: opacity 0.01ms ease;
       transform: none;
     }
-
     .back-to-top.visible {
       transform: none;
     }
