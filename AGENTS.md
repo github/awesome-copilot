@@ -21,6 +21,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 ├── hooks/            # Automated workflow hooks (folders with README.md + hooks.json)
 ├── workflows/        # Agentic Workflows (.md files for GitHub Actions automation)
 ├── plugins/          # Installable plugin packages (folders with plugin.json)
+├── extensions/       # Canvas extensions (each with extension.mjs and plugin metadata)
 ├── docs/             # Documentation for different resource types
 ├── eng/              # Build and automation scripts
 └── scripts/          # Utility scripts
@@ -80,6 +81,14 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 - Bundled assets should be referenced in the SKILL.md instructions
 - Asset files should be reasonably sized (under 5MB per file)
 - Skills follow the [Agent Skills specification](https://agentskills.io/specification)
+
+#### Canvas Extensions (extensions/\*)
+
+- Each extension folder must include `extension.mjs`
+- Extension metadata must live at `.github/plugin/plugin.json`
+- Extension `plugin.json` should include `name`, `description`, and `version` (plus optional `author`, `keywords`, and `logo`)
+- Prefer screenshot conventions from `assets/` (`icon.*`, `preview.*`) and use `x-awesome-copilot.screenshots` only for overrides
+- Do not add `canvas.json`; website metadata is sourced from `.github/plugin/plugin.json`
 
 #### Hook Folders (hooks/\*/README.md)
 
@@ -159,6 +168,14 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 4. Run `npm run plugin:validate` to validate the plugin structure
 5. Run `npm run build` to update README.md and marketplace.json
 6. Verify the plugin appears in `.github/plugin/marketplace.json`
+
+**For Canvas Extensions:**
+
+1. Create/update the extension in `extensions/<extension-id>/` with `extension.mjs`
+2. Add `.github/plugin/plugin.json` metadata (name/description/version and optional logo/keywords/author)
+3. Add screenshots to `assets/` using convention-based names, or use `x-awesome-copilot.screenshots` for explicit overrides
+4. Run `npm run plugin:validate` to validate plugin and extension metadata
+5. Run `npm run build` to regenerate website data and marketplace output
 
 **For External Plugins:**
 

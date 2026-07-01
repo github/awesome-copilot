@@ -1,6 +1,5 @@
 {
-  "id": "site-studio",
-  "name": "Site Studio",
+  "name": "site-studio",
   "description": "Plan, draft, and track a personal website section by section — a shared canvas where you and your agent author content, watch progress, and review every change.",
   "version": "1.0.0",
   "keywords": [
@@ -11,14 +10,19 @@
     "section-planning",
     "site-builder"
   ],
-  "screenshots": {
-    "icon": {
-      "path": "assets/preview.png",
-      "type": "image/png"
-    },
-    "gallery": {
-      "path": "assets/preview.png",
-      "type": "image/png"
+  "logo": "assets/preview.png",
+  "x-awesome-copilot": {
+    "screenshots": {
+      "icon": {
+        "path": "assets/preview.png",
+        "type": "image/png"
+      },
+      "gallery": [
+        {
+          "path": "assets/preview.png",
+          "type": "image/png"
+        }
+      ]
     }
   }
 }

@@ -6,6 +6,7 @@ import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
+const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 
 // Validation functions
 function validateName(name, folderName) {
@@ -77,6 +78,29 @@ function sortPluginEntries(entries) {
   return [...entries].sort((left, right) => left.localeCompare(right));
 }
 
+function parseJsonFile(filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  } catch (err) {
+    return { parseError: err.message };
+  }
+}
+
+function getExtensionFolderNames() {
+  if (!fs.existsSync(EXTENSIONS_DIR)) {
+    return [];
+  }
+
+  return fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
+    .filter((entry) => {
+      if (!entry.isDirectory()) return false;
+      const extensionEntryPoint = path.join(EXTENSIONS_DIR, entry.name, "extension.mjs");
+      return fs.existsSync(extensionEntryPoint);
+    })
+    .map((entry) => entry.name)
+    .sort();
+}
+
 function validateSpecPaths(plugin) {
   const errors = [];
   const specs = {
@@ -131,9 +155,51 @@ function validateSpecPaths(plugin) {
   return errors;
 }
 
+function validateCuratedPluginExtensionRefs(plugin) {
+  const errors = [];
+  const extensionRefs = plugin?.["x-awesome-copilot"]?.extensions;
+  if (extensionRefs === undefined) {
+    return errors;
+  }
+
+  if (!Array.isArray(extensionRefs)) {
+    errors.push('x-awesome-copilot.extensions must be an array');
+    return errors;
+  }
+
+  if (!arraysEqual(extensionRefs, sortPluginEntries(extensionRefs))) {
+    errors.push('x-awesome-copilot.extensions must be sorted alphabetically');
+  }
+
+  const knownExtensions = new Set(getExtensionFolderNames());
+  for (let i = 0; i < extensionRefs.length; i++) {
+    const ref = extensionRefs[i];
+    if (typeof ref !== "string") {
+      errors.push(`x-awesome-copilot.extensions[${i}] must be a string`);
+      continue;
+    }
+    if (!ref.startsWith("./extensions/")) {
+      errors.push(`x-awesome-copilot.extensions[${i}] must start with "./extensions/"`);
+      continue;
+    }
+
+    const normalized = ref.replace(/^\.\/extensions\//, "").replace(/\/$/, "");
+    if (!normalized) {
+      errors.push(`x-awesome-copilot.extensions[${i}] must include an extension folder name`);
+      continue;
+    }
+    if (!knownExtensions.has(normalized)) {
+      errors.push(`x-awesome-copilot.extensions[${i}] source not found: extensions/${normalized}`);
+    }
+  }
+
+  return errors;
+}
+
 function validatePlugin(folderName) {
   const pluginDir = path.join(PLUGINS_DIR, folderName);
   const errors = [];
+  let parsedPlugin = null;
 
   // Rule 1: Must have .github/plugin/plugin.json
   const pluginJsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
@@ -153,9 +219,10 @@ function validatePlugin(folderName) {
   try {
     const raw = fs.readFileSync(pluginJsonPath, "utf-8");
     plugin = JSON.parse(raw);
+    parsedPlugin = plugin;
   } catch (err) {
     errors.push(`failed to parse plugin.json: ${err.message}`);
-    return errors;
+    return { errors, plugin: parsedPlugin };
   }
 
   // Rule 3 & 4: name, description, version
@@ -176,35 +243,118 @@ function validatePlugin(folderName) {
   const specErrors = validateSpecPaths(plugin);
   errors.push(...specErrors);
 
-  return errors;
+  const extensionRefErrors = validateCuratedPluginExtensionRefs(plugin);
+  errors.push(...extensionRefErrors);
+
+  return { errors, plugin: parsedPlugin };
+}
+
+function validateExtensionScreenshotPath(extensionDir, pathValue, fieldName, errors) {
+  if (!pathValue || typeof pathValue !== "string") {
+    errors.push(`${fieldName} must be a string path`);
+    return;
+  }
+
+  const normalizedPath = pathValue.replace(/^\.\/+/, "");
+  const absolutePath = path.join(extensionDir, normalizedPath);
+  if (!fs.existsSync(absolutePath)) {
+    errors.push(`${fieldName} not found: ${normalizedPath}`);
+  }
+}
+
+function validateExtensionManifest(folderName) {
+  const extensionDir = path.join(EXTENSIONS_DIR, folderName);
+  const errors = [];
+  let parsedPlugin = null;
+
+  const pluginJsonPath = path.join(extensionDir, ".github/plugin", "plugin.json");
+  if (!fs.existsSync(pluginJsonPath)) {
+    errors.push("missing required file: .github/plugin/plugin.json");
+    return { errors, plugin: parsedPlugin };
+  }
+
+  const parsed = parseJsonFile(pluginJsonPath);
+  if (parsed.parseError) {
+    errors.push(`failed to parse plugin.json: ${parsed.parseError}`);
+    return { errors, plugin: parsedPlugin };
+  }
+
+  parsedPlugin = parsed;
+
+  const nameErrors = validateName(parsed.name, folderName);
+  errors.push(...nameErrors);
+
+  const descError = validateDescription(parsed.description);
+  if (descError) errors.push(descError);
+
+  const versionError = validateVersion(parsed.version);
+  if (versionError) errors.push(versionError);
+
+  const keywordsError = validateKeywords(parsed.keywords ?? parsed.tags);
+  if (keywordsError) errors.push(keywordsError);
+
+  if (parsed.logo !== undefined && typeof parsed.logo !== "string") {
+    errors.push("logo must be a string");
+  } else if (typeof parsed.logo === "string") {
+    validateExtensionScreenshotPath(extensionDir, parsed.logo, "logo", errors);
+  }
+
+  const screenshots = parsed?.["x-awesome-copilot"]?.screenshots;
+  if (screenshots !== undefined) {
+    if (typeof screenshots !== "object" || screenshots === null) {
+      errors.push("x-awesome-copilot.screenshots must be an object");
+    } else {
+      if (screenshots.icon !== undefined) {
+        const iconPath = typeof screenshots.icon === "string" ? screenshots.icon : screenshots.icon?.path;
+        validateExtensionScreenshotPath(extensionDir, iconPath, "x-awesome-copilot.screenshots.icon", errors);
+      }
+      if (screenshots.gallery !== undefined) {
+        const galleryEntries = Array.isArray(screenshots.gallery) ? screenshots.gallery : [screenshots.gallery];
+        galleryEntries.forEach((entry, index) => {
+          const galleryPath = typeof entry === "string" ? entry : entry?.path;
+          validateExtensionScreenshotPath(
+            extensionDir,
+            galleryPath,
+            `x-awesome-copilot.screenshots.gallery[${index}]`,
+            errors
+          );
+        });
+      }
+    }
+  }
+
+  if (parsed.logo === undefined && screenshots?.icon === undefined && screenshots?.gallery === undefined) {
+    errors.push("at least one visual must be defined via logo or x-awesome-copilot.screenshots");
+  }
+
+  return { errors, plugin: parsedPlugin };
 }
 
 // Main validation function
 function validatePlugins() {
-  if (!fs.existsSync(PLUGINS_DIR)) {
-    console.log("No plugins directory found - validation skipped");
-    return true;
-  }
+  const pluginDirs = fs.existsSync(PLUGINS_DIR)
+    ? fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+    : [];
+  const extensionDirs = getExtensionFolderNames();
 
-  const pluginDirs = fs
-    .readdirSync(PLUGINS_DIR, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .map((d) => d.name);
-
-  if (pluginDirs.length === 0) {
-    console.log("No plugin directories found - validation skipped");
+  if (pluginDirs.length === 0 && extensionDirs.length === 0) {
+    console.log("No plugins or extension plugin manifests found - validation skipped");
     return true;
   }
 
   console.log(`Validating ${pluginDirs.length} plugins...\n`);
+  console.log(`Validating ${extensionDirs.length} extensions as plugin sources...\n`);
 
   let hasErrors = false;
   const seenNames = new Set();
+  const localPluginNames = [];
 
   for (const dir of pluginDirs) {
     console.log(`Validating ${dir}...`);
 
-    const errors = validatePlugin(dir);
+    const { errors, plugin } = validatePlugin(dir);
 
     if (errors.length > 0) {
       console.error(`❌ ${dir}:`);
@@ -214,18 +364,47 @@ function validatePlugins() {
       console.log(`✅ ${dir} is valid`);
     }
 
-    // Rule 10: duplicate names
-    if (seenNames.has(dir)) {
-      console.error(`❌ Duplicate plugin name "${dir}"`);
+    if (plugin?.name) {
+      if (seenNames.has(plugin.name)) {
+        console.error(`❌ Duplicate plugin name "${plugin.name}"`);
+        hasErrors = true;
+      } else {
+        seenNames.add(plugin.name);
+        localPluginNames.push(plugin.name);
+      }
+    }
+  }
+
+  if (extensionDirs.length > 0) {
+    console.log("");
+  }
+
+  for (const dir of extensionDirs) {
+    console.log(`Validating extension ${dir}...`);
+    const { errors, plugin } = validateExtensionManifest(dir);
+
+    if (errors.length > 0) {
+      console.error(`❌ extension ${dir}:`);
+      errors.forEach((e) => console.error(`   - ${e}`));
       hasErrors = true;
     } else {
-      seenNames.add(dir);
+      console.log(`✅ extension ${dir} is valid`);
+    }
+
+    if (plugin?.name) {
+      if (seenNames.has(plugin.name)) {
+        console.error(`❌ Duplicate plugin name "${plugin.name}"`);
+        hasErrors = true;
+      } else {
+        seenNames.add(plugin.name);
+        localPluginNames.push(plugin.name);
+      }
     }
   }
 
   console.log("\nValidating external plugin catalog...");
   const { plugins: externalPlugins, errors: externalErrors, warnings: externalWarnings } = readExternalPlugins({
-    localPluginNames: pluginDirs,
+    localPluginNames,
     policy: "marketplace",
   });
 
@@ -240,7 +419,7 @@ function validatePlugins() {
   }
 
   if (!hasErrors) {
-    console.log(`\n✅ All ${pluginDirs.length} plugins and the external catalog are valid`);
+    console.log(`\n✅ All ${pluginDirs.length} plugins, ${extensionDirs.length} extensions, and the external catalog are valid`);
   }
 
   return !hasErrors;

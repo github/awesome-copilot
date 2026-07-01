@@ -1,6 +1,5 @@
 {
-  "id": "color-orb",
-  "name": "Color Orb",
+  "name": "color-orb",
   "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
   "version": "1.0.0",
   "author": {
@@ -15,14 +14,19 @@
     "sse-events",
     "visual-feedback"
   ],
-  "screenshots": {
-    "icon": {
-      "path": "assets/preview.png",
-      "type": "image/png"
-    },
-    "gallery": {
-      "path": "assets/preview.png",
-      "type": "image/png"
+  "logo": "assets/preview.png",
+  "x-awesome-copilot": {
+    "screenshots": {
+      "icon": {
+        "path": "assets/preview.png",
+        "type": "image/png"
+      },
+      "gallery": [
+        {
+          "path": "assets/preview.png",
+          "type": "image/png"
+        }
+      ]
     }
   }
 }
