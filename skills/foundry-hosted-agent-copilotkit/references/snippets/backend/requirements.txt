@@ -1,0 +1,10 @@
+# Bridge dependencies only — no foundry/openai/agent-framework packages here;
+# this process runs no model and executes no tools. Versions below were the
+# last known-good combination verified live; check for newer releases before
+# using as-is.
+fastapi==0.138.0
+uvicorn[standard]==0.49.0
+httpx==0.28.1
+ag-ui-protocol==0.1.19
+azure-identity==1.25.3
+pydantic==2.13.4
