@@ -40,14 +40,17 @@ passes for the patterns in scope. Never declare success on an unverified build.
 
 ## 0. Orient
 
-- `LOAD references/architecture.md` — hosted-first topology; what lives where; the
-  native-path test matrix proving why the hand-rolled bridge is the minimum.
-- `LOAD references/patterns-7.md` — the 7 AG-UI dojo patterns on this stack
-  (Agentic Chat, Backend Tool Rendering, HITL, Tool-Based Generative UI, Agentic
-  Generative UI, Shared State, Predictive State) with source citations.
-- `LOAD references/troubleshooting.md` — every known trap → symptom → fix.
-- `LOAD references/hosted-deploy.md` — Foundry hosted-agent deploy gotchas (azd,
-  remote build, dependency pinning).
+- `LOAD` [`references/architecture.md`](references/architecture.md) — hosted-first
+  topology; what lives where; the native-path test matrix proving why the
+  hand-rolled bridge is the minimum.
+- `LOAD` [`references/patterns-7.md`](references/patterns-7.md) — the 7 AG-UI
+  dojo patterns on this stack (Agentic Chat, Backend Tool Rendering, HITL,
+  Tool-Based Generative UI, Agentic Generative UI, Shared State, Predictive
+  State) with source citations.
+- `LOAD` [`references/troubleshooting.md`](references/troubleshooting.md) —
+  every known trap → symptom → fix.
+- `LOAD` [`references/hosted-deploy.md`](references/hosted-deploy.md) — Foundry
+  hosted-agent deploy gotchas (azd, remote build, dependency pinning).
 
 Read all four reference docs before writing any code; they encode the
 load-bearing rules, the framework traps, and the Definition of Done that keep
