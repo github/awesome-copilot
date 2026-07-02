@@ -1,5 +1,5 @@
 ---
-name: microservices-architect
+name: Microservices Architect
 description: Guides architecture decisions including domain decomposition, API contracts, and sync vs async communication.
 model: gpt-4
 tools:
