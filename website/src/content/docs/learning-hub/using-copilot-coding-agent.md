@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-07-02
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -234,6 +234,30 @@ Also, add a test for the Retry-After header value.
 ```
 
 The agent will read your feedback, make changes, and push new commits to the same PR.
+
+### Driving a PR to Green with the CLI
+
+If you have the Copilot CLI installed, you can let the CLI autonomously fix CI failures and drive the PR through review without continuous manual intervention. In v1.0.66+, the `/pr auto` command starts a **self-paced loop** that addresses one failing check at a time, paces itself around CI run times, and stops when the PR is green or a human decision is needed:
+
+```
+/pr auto
+```
+
+For fully unattended operation, `/pr automerge` keeps going until the PR is actually merged:
+
+```
+/pr automerge
+```
+
+You can manage or stop a running loop at any time with `/loop` or `/every`. The loop surfaces blockers (failing tests, required reviewers, merge conflicts) that need your attention, rather than silently stalling.
+
+| Command | Behavior |
+|---------|----------|
+| `/pr auto` | Fixes CI failures one at a time; stops when PR is ready to merge |
+| `/pr automerge` | Continues until the PR is merged |
+| `/loop` | View and manage active loops |
+
+This is especially useful after the coding agent opens a PR — instead of checking back periodically, you can hand the final push to green to the CLI.
 
 ## Agent Skills and the Coding Agent
 
