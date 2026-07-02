@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-25
+lastUpdated: 2026-06-30
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -402,6 +402,16 @@ A: Yes, since v1.0.44. You can include multiple slash commands in a single messa
 **Q: Should skills include code examples?**
 
 A: Yes, for clarity. Show examples of desired output format, patterns to follow, or anti-patterns to avoid. For complex schemas or formats, consider bundling them as reference files rather than inline examples.
+
+**Q: How do I review agent-proposed skill changes?**
+
+A: In v1.0.66+, the agent can propose draft skill additions or improvements as it discovers reusable patterns during a session. Review each draft interactively with:
+
+```
+/chronicle skills review
+```
+
+This opens a review flow where you can accept, reject, or defer each proposed change — giving you full control over how your skill library evolves. No changes are applied until you approve them.
 
 ## Common Pitfalls to Avoid
 

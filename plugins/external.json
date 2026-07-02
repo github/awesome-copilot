@@ -235,8 +235,8 @@
   },
   {
     "name": "dotnet-test",
-    "description": "Skills for running, writing, diagnosing, and migrating .NET tests: test execution, filtering, platform detection, coverage analysis, and MSTest workflows.",
-    "version": "0.1.0",
+    "description": "Polyglot unit-test generation via a multi-agent Research-Plan-Implement pipeline — writes and runs tests for .NET/C#, Python, TypeScript/JavaScript, Java, Go, Ruby, Rust, C++, Kotlin, Swift, and PowerShell. Plus .NET-focused test execution, coverage and CRAP analysis, testability review, platform detection, and MSTest/xUnit migration.",
+    "version": "0.2.0",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -244,13 +244,15 @@
     "homepage": "https://github.com/dotnet/skills",
     "keywords": [
       "dotnet",
+      "polyglot",
       "testing",
-      "mstest",
-      "xunit",
-      "nunit",
       "test-generation",
-      "coverage",
-      "migration"
+      "unit-tests",
+      "python",
+      "typescript",
+      "java",
+      "go",
+      "rust"
     ],
     "license": "MIT",
     "repository": "https://github.com/dotnet/skills",
@@ -311,7 +313,7 @@
   {
     "name": "gh-skills-builder",
     "description": "Repo: https://github.com/arilivigni/gh-skills-builder\nThis plugin is for people that want to create a GitHub Skills exercise which are self-paced learning GitHub within GitHub.\nhttps://learn.github.com/skills\nexamples:\nhttps://github.com/skills/agent-orchestration-build-your-ai-dream-team\nhttps://github.com/skills/agentic-workflows-that-read-the-room",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "author": {
       "name": "Ari LiVigni",
       "url": "https://github.com/arilivigni"
@@ -330,8 +332,8 @@
     "source": {
       "source": "github",
       "repo": "arilivigni/gh-skills-builder",
-      "ref": "v1.0.1",
-      "sha": "198dadd8c1a8a9fd2820e121b4baad80b0729e75"
+      "ref": "v1.0.2",
+      "sha": "7728119398f97c7f5e990cd9e0c59bc1b43eebc3"
     }
   },
   {
