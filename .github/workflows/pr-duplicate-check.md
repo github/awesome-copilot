@@ -1,9 +1,8 @@
 ---
 description: 'Checks PRs for potential duplicate agents, instructions, skills, and workflows already in the repository'
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
-    forks: ["*"]
   roles: all
 permissions:
   contents: read
