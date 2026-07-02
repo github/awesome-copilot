@@ -1,0 +1,83 @@
+---
+/**
+ * Stats bar showing resource counts from manifest data.
+ *
+ * Each stat is a labelled number rendered alongside an icon.
+ */
+import Container from '../ui/Container.astro';
+import Icon from '../ui/Icon.astro';
+
+export interface StatItem {
+  label: string;
+  value: number;
+  icon: string;
+}
+
+export interface Props {
+  stats: StatItem[];
+}
+
+const { stats } = Astro.props;
+---
+<section class="stats" aria-label="Resource counts">
+  <Container>
+    <div class="stats-grid" role="list">
+      {stats.map((stat) => (
+        <div class="stat" role="listitem">
+          <span class="stat-icon" aria-hidden="true">
+            <Icon name={stat.icon} size={20} />
+          </span>
+          <span class="stat-value">{stat.value.toLocaleString()}</span>
+          <span class="stat-label">{stat.label}</span>
+        </div>
+      ))}
+    </div>
+  </Container>
+</section>
+
+<style>
+  .stats {
+    padding-block: var(--space-8);
+    border-top: 1px solid var(--color-border-soft);
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-6);
+    text-align: center;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .stat-icon {
+    color: var(--color-muted);
+  }
+
+  .stat-value {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--color-text);
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

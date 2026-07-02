@@ -1,0 +1,133 @@
+---
+/**
+ * Homepage hero section.
+ *
+ * Renders the main heading, subtitle, and a primary CTA (GitHub link).
+ */
+import Container from '../ui/Container.astro';
+import Icon from '../ui/Icon.astro';
+import { REPO } from '../../config/site';
+
+export interface Props {
+  title: string;
+  subtitle: string;
+}
+
+const { title, subtitle } = Astro.props;
+---
+<section class="hero" aria-labelledby="hero-heading">
+  <Container>
+    <div class="hero-inner">
+      <h1 id="hero-heading" class="hero-title">
+        <span class="gradient-text">{title}</span>
+      </h1>
+      <p class="hero-subtitle">
+        {subtitle}
+      </p>
+      <div class="hero-cta">
+        <a class="hero-btn" href={REPO.url} rel="noopener noreferrer">
+          <Icon name="github" size={18} />
+          STAR ON GITHUB →
+        </a>
+        <a class="hero-btn hero-btn--ghost" href="#search-section">
+          <Icon name="search" size={16} />
+          SEARCH RESOURCES
+        </a>
+      </div>
+    </div>
+  </Container>
+</section>
+
+<style>
+  .hero {
+    padding-block: clamp(3rem, 8vw, 7rem) clamp(2rem, 4vw, 4rem);
+    text-align: center;
+  }
+
+  .hero-inner {
+    max-width: 68ch;
+    margin-inline: auto;
+  }
+
+  .hero-title {
+    margin: 0 0 1rem;
+    font-family: var(--font-heading);
+    font-size: clamp(2.4rem, 6vw, 4.8rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .gradient-text {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary) 0%,
+      var(--color-blue) 35%,
+      var(--color-green) 70%,
+      var(--color-yellow) 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-subtitle {
+    margin: 0 0 2.5rem;
+    color: var(--color-muted);
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    line-height: 1.6;
+    text-wrap: balance;
+  }
+
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+  }
+
+  .hero-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    border: 2px solid var(--color-primary);
+    border-radius: 0;
+    background: var(--color-primary);
+    color: var(--color-black);
+    padding: 0.75rem 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    box-shadow: 4px 4px 0 var(--color-black);
+    transition: transform var(--motion-fast), box-shadow var(--motion-fast);
+  }
+
+  .hero-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 var(--color-black);
+  }
+
+  .hero-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--color-black);
+  }
+
+  .hero-btn--ghost {
+    background: transparent;
+    color: var(--color-green);
+    border-color: var(--color-border);
+  }
+
+  .hero-btn--ghost:hover {
+    background: rgb(144 255 177 / 10%);
+  }
+
+  .hero-btn:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 35%);
+    outline-offset: 2px;
+  }
+</style>

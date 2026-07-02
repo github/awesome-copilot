@@ -1,0 +1,95 @@
+---
+import Icon from '../ui/Icon.astro';
+import { REPO, SITE } from '../../config/site';
+---
+<footer class="footer">
+  <div class="footer-brand">
+    <strong>{SITE.title}</strong>
+    <span class="tagline">open-source Copilot resources</span>
+  </div>
+  <span class="footer-slogan">EVG en el mapa</span>
+  <nav aria-label="Footer links" class="footer-links">
+    <a href={REPO.url} rel="noopener noreferrer">
+      <Icon name="github" size={14} />
+      {REPO.owner}/{REPO.name}
+    </a>
+    <a href="#top">
+      $ back to top <Icon name="arrow-right" size={14} />
+    </a>
+  </nav>
+</footer>
+
+<style>
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--color-border-soft);
+    padding: 2rem clamp(1rem, 2.4vw, 2rem);
+    color: var(--color-muted);
+    font-size: 0.8rem;
+  }
+
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .footer-brand strong {
+    color: var(--color-text);
+    font-family: var(--font-heading);
+  }
+
+  .tagline {
+    font-size: 0.75rem;
+    opacity: 0.9;
+  }
+
+  .footer-slogan {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--color-muted);
+    opacity: 0.75;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .footer-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--color-primary);
+    font-weight: 800;
+  }
+
+  a:hover {
+    color: var(--color-green);
+  }
+
+  @media (max-width: 640px) {
+    .footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .footer-slogan {
+      order: -1;
+      align-self: flex-end;
+    }
+
+    .footer-links {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  }
+</style>

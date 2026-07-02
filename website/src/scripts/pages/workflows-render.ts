@@ -4,7 +4,6 @@ import {
   getGitHubUrl,
   getLastUpdatedHtml,
 } from '../utils';
-import { renderEmptyStateHtml, renderSharedCardHtml } from './card-render';
 
 export interface RenderableWorkflow {
   title: string;
@@ -15,6 +14,15 @@ export interface RenderableWorkflow {
 }
 
 export type WorkflowSortOption = 'title' | 'lastUpdated';
+
+function getStableAccent(item: RenderableWorkflow): string {
+  const accents = ['purple', 'blue', 'green', 'yellow'];
+  let hash = 0;
+  for (const char of item.path || item.title) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return accents[hash % accents.length];
+}
 
 export function sortWorkflows<T extends RenderableWorkflow>(
   items: T[],
@@ -35,32 +43,37 @@ export function renderWorkflowsHtml(
   items: RenderableWorkflow[]
 ): string {
   if (items.length === 0) {
-    return renderEmptyStateHtml('No workflows found', 'Try adjusting the selected filters.');
+    return `
+      <div class="empty-state">
+        <h3>No workflows found</h3>
+        <p>Try adjusting the selected filters.</p>
+      </div>
+    `;
   }
 
   return items
     .map((item) => {
-      const metaHtml = `
-        ${item.triggers
-          .map((trigger) => `<span class="resource-tag tag-trigger">${escapeHtml(trigger)}</span>`)
-          .join('')}
-        ${getLastUpdatedHtml(item.lastUpdated)}
+      return `
+        <article class="resource-item resource-card resource-card--${getStableAccent(item)}" data-path="${escapeHtml(item.path)}" role="listitem">
+          <button type="button" class="resource-card__preview resource-preview" aria-label="Preview ${escapeHtml(item.title)}">
+            <div class="resource-card__topline">
+              <span class="badge badge--purple">workflow</span>
+            </div>
+            <div class="resource-card__body">
+              <h2 class="resource-card__title">${escapeHtml(item.title)}</h2>
+              <p class="resource-card__description">${escapeHtml(item.description || 'No description')}</p>
+              <div class="resource-card__tags resource-meta">
+                ${item.triggers.map((trigger) => `<span>${escapeHtml(trigger)}</span>`).join('')}
+                ${getLastUpdatedHtml(item.lastUpdated)}
+              </div>
+            </div>
+          </button>
+          <div class="resource-card__footer resource-actions">
+            ${getActionButtonsHtml(item.path)}
+            <a href="${getGitHubUrl(item.path)}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
+          </div>
+        </article>
       `;
-
-      const actionsHtml = `
-        ${getActionButtonsHtml(item.path)}
-        <a href="${getGitHubUrl(item.path)}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
-      `;
-
-      return renderSharedCardHtml({
-        title: item.title,
-        description: item.description || 'No description',
-        articleAttributes: {
-          'data-path': item.path,
-        },
-        metaHtml,
-        actionsHtml,
-      });
     })
     .join('');
 }

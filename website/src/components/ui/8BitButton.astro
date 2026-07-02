@@ -1,0 +1,273 @@
+---
+export interface Props {
+  href?: string;
+  variant?: 'default' | 'secondary' | 'ghost' | 'link';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  ariaLabel?: string;
+}
+
+const { href, variant = 'default', size = 'md', type = 'button', disabled = false, ariaLabel } = Astro.props;
+const Tag = href ? 'a' : 'button';
+---
+
+<span class:list={['bit-btn', `bit-btn--${variant}`, `bit-btn--${size}`]}>
+  <Tag
+    class="bit-btn-inner"
+    href={href}
+    type={Tag === 'button' ? type : undefined}
+    disabled={Tag === 'button' ? disabled : undefined}
+    aria-label={ariaLabel}
+  >
+    <slot />
+
+    {variant !== 'ghost' && variant !== 'link' && size !== 'icon' && (
+      <>
+        <div class="px-top-l" />
+        <div class="px-top-r" />
+        <div class="px-bottom-l" />
+        <div class="px-bottom-r" />
+        <div class="px-tl" />
+        <div class="px-tr" />
+        <div class="px-bl" />
+        <div class="px-br" />
+        <div class="px-left" />
+        <div class="px-right" />
+
+        {variant !== 'secondary' && (
+          <>
+            <div class="px-shadow-top" />
+            <div class="px-shadow-top-l" />
+            <div class="px-shadow-bottom" />
+            <div class="px-shadow-bottom-r" />
+          </>
+        )}
+      </>
+    )}
+
+    {size === 'icon' && (
+      <>
+        <div class="px-icon-top" />
+        <div class="px-icon-bottom" />
+        <div class="px-icon-top-l" />
+        <div class="px-icon-bottom-l" />
+        <div class="px-icon-top-r" />
+        <div class="px-icon-bottom-r" />
+      </>
+    )}
+  </Tag>
+</span>
+
+<style>
+  .bit-btn {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .bit-btn-inner {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1;
+    transition: transform var(--motion-fast), background var(--motion-fast), color var(--motion-fast);
+    text-decoration: none;
+    color: inherit;
+    touch-action: manipulation;
+  }
+
+  .bit-btn-inner:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 35%);
+    outline-offset: 2px;
+  }
+
+  /* Variant: default */
+  .bit-btn--default .bit-btn-inner {
+    background: var(--color-text);
+    color: var(--color-bg);
+  }
+  .bit-btn--default .bit-btn-inner:hover {
+    background: var(--color-primary-strong);
+  }
+
+  /* Variant: secondary */
+  .bit-btn--secondary .bit-btn-inner {
+    background: var(--color-blue);
+    color: white;
+  }
+  .bit-btn--secondary .bit-btn-inner:hover {
+    background: rgb(45 140 255 / 80%);
+  }
+
+  /* Variant: ghost */
+  .bit-btn--ghost .bit-btn-inner {
+    background: transparent;
+    color: var(--color-green);
+  }
+  .bit-btn--ghost .bit-btn-inner:hover {
+    background: rgb(144 255 177 / 15%);
+  }
+
+  /* Variant: link */
+  .bit-btn--link .bit-btn-inner {
+    background: transparent;
+    color: var(--color-blue);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .bit-btn--link .bit-btn-inner:hover {
+    color: var(--color-primary);
+  }
+
+  /* Size: sm */
+  .bit-btn--sm .bit-btn-inner {
+    min-height: 2.75rem;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.86rem;
+  }
+
+  /* Size: md */
+  .bit-btn--md .bit-btn-inner {
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Size: lg */
+  .bit-btn--lg .bit-btn-inner {
+    min-height: 3.25rem;
+    padding: 0.8rem 1.35rem;
+    font-size: 0.98rem;
+  }
+
+  /* Size: icon */
+  .bit-btn--icon .bit-btn-inner {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    margin: 0 0.25rem;
+  }
+
+  /* Active state */
+  .bit-btn-inner:active {
+    transform: translateY(2px);
+  }
+  .bit-btn-inner:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none;
+  }
+
+  /* Pixelated border pieces - default colors */
+  .bit-btn--default .px-top-l,
+  .bit-btn--default .px-top-r,
+  .bit-btn--default .px-bottom-l,
+  .bit-btn--default .px-bottom-r,
+  .bit-btn--default .px-tl,
+  .bit-btn--default .px-tr,
+  .bit-btn--default .px-bl,
+  .bit-btn--default .px-br,
+  .bit-btn--default .px-left,
+  .bit-btn--default .px-right {
+    background: var(--color-text);
+  }
+
+  .bit-btn--default .px-shadow-top,
+  .bit-btn--default .px-shadow-top-l,
+  .bit-btn--default .px-shadow-bottom,
+  .bit-btn--default .px-shadow-bottom-r {
+    background: rgb(255 255 255 / 20%);
+  }
+
+  .bit-btn--secondary .px-top-l,
+  .bit-btn--secondary .px-top-r,
+  .bit-btn--secondary .px-bottom-l,
+  .bit-btn--secondary .px-bottom-r,
+  .bit-btn--secondary .px-tl,
+  .bit-btn--secondary .px-tr,
+  .bit-btn--secondary .px-bl,
+  .bit-btn--secondary .px-br,
+  .bit-btn--secondary .px-left,
+  .bit-btn--secondary .px-right {
+    background: var(--color-blue);
+  }
+
+  .bit-btn--ghost .px-top-l,
+  .bit-btn--ghost .px-top-r,
+  .bit-btn--ghost .px-bottom-l,
+  .bit-btn--ghost .px-bottom-r,
+  .bit-btn--ghost .px-tl,
+  .bit-btn--ghost .px-tr,
+  .bit-btn--ghost .px-bl,
+  .bit-btn--ghost .px-br,
+  .bit-btn--ghost .px-left,
+  .bit-btn--ghost .px-right,
+  .bit-btn--ghost .px-shadow-top,
+  .bit-btn--ghost .px-shadow-top-l,
+  .bit-btn--ghost .px-shadow-bottom,
+  .bit-btn--ghost .px-shadow-bottom-r,
+  .bit-btn--link .px-top-l,
+  .bit-btn--link .px-top-r,
+  .bit-btn--link .px-bottom-l,
+  .bit-btn--link .px-bottom-r,
+  .bit-btn--link .px-tl,
+  .bit-btn--link .px-tr,
+  .bit-btn--link .px-bl,
+  .bit-btn--link .px-br,
+  .bit-btn--link .px-left,
+  .bit-btn--link .px-right,
+  .bit-btn--link .px-shadow-top,
+  .bit-btn--link .px-shadow-top-l,
+  .bit-btn--link .px-shadow-bottom,
+  .bit-btn--link .px-shadow-bottom-r {
+    display: none;
+  }
+
+  .bit-btn--icon .px-icon-top,
+  .bit-btn--icon .px-icon-bottom {
+    background: var(--color-text);
+  }
+  .bit-btn--icon .px-icon-top-l,
+  .bit-btn--icon .px-icon-bottom-l,
+  .bit-btn--icon .px-icon-top-r,
+  .bit-btn--icon .px-icon-bottom-r {
+    background: var(--color-text);
+  }
+
+  /* Border piece positioning */
+  .px-top-l { position: absolute; top: -6px; left: 6px; width: 50%; height: 6px; }
+  .px-top-r { position: absolute; top: -6px; right: 6px; width: 50%; height: 6px; }
+  .px-bottom-l { position: absolute; bottom: -6px; left: 6px; width: 50%; height: 6px; }
+  .px-bottom-r { position: absolute; bottom: -6px; right: 6px; width: 50%; height: 6px; }
+  .px-tl { position: absolute; top: 0; left: 0; width: 6px; height: 6px; }
+  .px-tr { position: absolute; top: 0; right: 0; width: 6px; height: 6px; }
+  .px-bl { position: absolute; bottom: 0; left: 0; width: 6px; height: 6px; }
+  .px-br { position: absolute; bottom: 0; right: 0; width: 6px; height: 6px; }
+  .px-left { position: absolute; top: 6px; left: -6px; width: 6px; height: calc(100% - 12px); }
+  .px-right { position: absolute; top: 6px; right: -6px; width: 6px; height: calc(100% - 12px); }
+
+  .px-shadow-top { position: absolute; top: 0; left: 0; width: 100%; height: 6px; }
+  .px-shadow-top-l { position: absolute; top: 6px; left: 0; width: 12px; height: 6px; }
+  .px-shadow-bottom { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; }
+  .px-shadow-bottom-r { position: absolute; bottom: 6px; right: 0; width: 12px; height: 6px; }
+
+  .px-icon-top { position: absolute; top: 0; left: 0; width: 100%; height: 5px; }
+  @media (min-width: 768px) { .px-icon-top { height: 6px; } }
+  .px-icon-bottom { position: absolute; bottom: 0; width: 100%; height: 5px; }
+  @media (min-width: 768px) { .px-icon-bottom { height: 6px; } }
+  .px-icon-top-l { position: absolute; top: 4px; left: -4px; width: 5px; height: 50%; }
+  @media (min-width: 768px) { .px-icon-top-l { width: 6px; } }
+  .px-icon-bottom-l { position: absolute; bottom: 4px; left: -4px; width: 5px; height: 50%; }
+  @media (min-width: 768px) { .px-icon-bottom-l { width: 6px; } }
+  .px-icon-top-r { position: absolute; top: 4px; right: -4px; width: 5px; height: 50%; }
+  @media (min-width: 768px) { .px-icon-top-r { width: 6px; } }
+  .px-icon-bottom-r { position: absolute; bottom: 4px; right: -4px; width: 5px; height: 50%; }
+  @media (min-width: 768px) { .px-icon-bottom-r { width: 6px; } }
+</style>

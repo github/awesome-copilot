@@ -1,0 +1,142 @@
+---
+/**
+ * Search bar input component.
+ *
+ * Used by the homepage for global search across all resource types.
+ * The actual search logic is wired by search-client.ts at runtime.
+ */
+import Icon from '../ui/Icon.astro';
+
+export interface Props {
+  /** The element ID for the search input. */
+  id?: string;
+  /** Placeholder text. */
+  placeholder?: string;
+  /** Label for screen readers. */
+  label?: string;
+}
+
+const {
+  id = 'global-search',
+  placeholder = 'Search agents, skills, instructions, tools…',
+  label = 'Search resources',
+} = Astro.props;
+---
+<div class="search-section" id="search-section">
+  <div class="container">
+    <div class="search-wrapper" role="search">
+      <label for={id} class="search-label">{label}</label>
+      <div class="search-box">
+        <span class="search-icon" aria-hidden="true">
+          <Icon name="search" size={18} />
+        </span>
+        <input
+          id={id}
+          class="search-input"
+          type="search"
+          placeholder={placeholder}
+          autocomplete="off"
+          aria-describedby={`${id}-status`}
+        />
+      </div>
+      <div
+        id={`${id}-status`}
+        class="search-status"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
+      <div
+        id={`${id}-results`}
+        class="search-results"
+        role="listbox"
+        aria-label="Search results"
+      ></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .search-section {
+    padding-block: var(--space-8);
+    background: var(--color-bg-soft);
+    border-top: 1px solid var(--color-border-soft);
+  }
+
+  .search-wrapper {
+    position: relative;
+    max-width: 680px;
+    margin-inline: auto;
+  }
+
+  .search-label {
+    display: block;
+    margin-bottom: var(--space-3);
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text);
+    text-align: center;
+  }
+
+  .search-box {
+    position: relative;
+  }
+
+  .search-icon {
+    position: absolute;
+    inset: 0 auto 0 0.9rem;
+    display: flex;
+    align-items: center;
+    color: var(--color-muted);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-bg-elevated);
+    padding: 0.85rem 1rem 0.85rem 2.8rem;
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    transition: border-color var(--motion-fast);
+  }
+
+  .search-input::placeholder {
+    color: var(--color-subtle);
+  }
+
+  .search-input:focus-visible {
+    border-color: var(--color-primary);
+    outline: 2px solid rgb(255 255 255 / 35%);
+    outline-offset: 2px;
+    box-shadow: var(--shadow-primary);
+  }
+
+  .search-input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .search-status {
+    margin-top: var(--space-2);
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--color-muted);
+    min-height: 1.3rem;
+  }
+
+  .search-results {
+    position: absolute;
+    inset: 100% 0 auto;
+    z-index: 5;
+    max-height: 420px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-bg-elevated);
+    box-shadow: var(--shadow-card);
+    display: none;
+  }
+</style>

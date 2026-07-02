@@ -29,6 +29,15 @@ export interface RenderableTool {
 
 export type ToolSortOption = "featured" | "title";
 
+function getStableAccent(tool: RenderableTool): string {
+  const accents = ['purple', 'blue', 'green', 'yellow'];
+  let hash = 0;
+  for (const char of tool.id || tool.name) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return accents[hash % accents.length];
+}
+
 export function sortTools<T extends RenderableTool>(
   tools: T[],
   sort: ToolSortOption
@@ -71,9 +80,17 @@ function getToolActionLink(
   className: string
 ): string {
   if (!href) return "";
-  return `<a href="${sanitizeToolUrl(
-    href
-  )}" class="${className}" target="_blank" rel="noopener">${label}</a>`;
+  const safeHref = sanitizeToolUrl(href);
+  if (safeHref === "#") return "";
+  try {
+    const protocol = new URL(safeHref).protocol;
+    const isWeb = protocol === "http:" || protocol === "https:";
+    const target = isWeb ? ' target="_blank"' : "";
+    const rel = isWeb ? ' rel="noopener"' : "";
+    return `<a href="${safeHref}" class="${className}"${target}${rel}>${label}</a>`;
+  } catch {
+    return "";
+  }
 }
 
 export function renderToolsHtml(
@@ -92,10 +109,10 @@ export function renderToolsHtml(
     .map((tool) => {
       const badges: string[] = [];
       if (tool.featured) {
-        badges.push('<span class="tool-badge featured">Featured</span>');
+        badges.push('<span>Featured</span>');
       }
       badges.push(
-        `<span class="tool-badge category">${escapeHtml(tool.category)}</span>`
+        `<span>${escapeHtml(tool.category)}</span>`
       );
 
       const features =
@@ -120,9 +137,9 @@ export function renderToolsHtml(
 
       const tags =
         tool.tags && tool.tags.length > 0
-          ? `<div class="tool-tags">
+          ? `<div class="resource-card__tags tool-tags">
           ${tool.tags
-            .map((tag) => `<span class="tool-tag">${escapeHtml(tag)}</span>`)
+            .map((tag) => `<span>${escapeHtml(tag)}</span>`)
             .join("")}
         </div>`
           : "";
@@ -133,10 +150,10 @@ export function renderToolsHtml(
           <div class="tool-config-wrapper">
             <pre><code>${escapeHtml(tool.configuration.content)}</code></pre>
           </div>
-          <button class="copy-config-btn" data-config="${encodeURIComponent(
+          <button type="button" class="copy-config-btn" data-config="${encodeURIComponent(
             tool.configuration.content
-          )}">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          )}" aria-label="Copy configuration for ${escapeHtml(tool.name)}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/>
               <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/>
             </svg>
@@ -179,24 +196,27 @@ export function renderToolsHtml(
 
       const actionsHtml =
         actions.length > 0
-          ? `<div class="tool-actions">${actions.join("")}</div>`
+          ? `<div class="resource-card__footer tool-actions">${actions.join("")}</div>`
           : "";
 
       return `
-      <div class="tool-card">
-        <div class="tool-header">
-          <h2>${escapeHtml(tool.name)}</h2>
-          <div class="tool-badges">
+      <article class="resource-card resource-card--${getStableAccent(tool)} tool-card" role="listitem">
+        <div class="resource-card__topline tool-header">
+          <span class="badge badge--blue">tool</span>
+          <div class="resource-card__tags tool-badges">
             ${badges.join("")}
           </div>
         </div>
-        <p class="tool-description">${formatMultilineText(tool.description)}</p>
+        <div class="resource-card__body">
+          <h2 class="resource-card__title">${escapeHtml(tool.name)}</h2>
+          <p class="resource-card__description tool-description">${formatMultilineText(tool.description)}</p>
+        </div>
         ${features}
         ${requirements}
         ${config}
         ${tags}
         ${actionsHtml}
-      </div>
+      </article>
     `;
     })
     .join("");

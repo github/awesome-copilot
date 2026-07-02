@@ -157,13 +157,13 @@ After trusting the folder, you can sign in with your GitHub account.
 
 Now that you're signed in, let's verify that Copilot CLI is working for you. In the terminal, start the CLI if you haven't already:
 
-```bash
+```bash frame="none"
 > Say hello and tell me what you can help with
 ```
 
 After you receive a response, you can exit the CLI:
 
-```bash
+```bash frame="none"
 > /exit
 ```
 
@@ -199,7 +199,7 @@ python book_app.py list
 
 Navigate back to the repository root first (if you ran Step 2):
 
-```bash
+```bash frame="none"
 cd ../..   # Back to the repository root if needed
 copilot 
 > What does @samples/book-app-project/book_app.py do?
@@ -211,7 +211,7 @@ If you see an error, check the [troubleshooting section](#troubleshooting) below
 
 Once you're done you can exit the Copilot CLI:
 
-```bash
+```bash frame="none"
 > /exit
 ```
 
@@ -252,7 +252,7 @@ curl -fsSL https://gh.io/copilot-install | bash
 
 Re-authenticate:
 
-```bash
+```bash frame="none"
 copilot
 > /login
 ```
@@ -265,7 +265,7 @@ Manually visit [github.com/login/device](https://github.com/login/device) and en
 
 Simply run `/login` again:
 
-```bash
+```bash frame="none"
 copilot
 > /login
 ```

@@ -1,0 +1,270 @@
+---
+/**
+ * Resource card — renders a single ResultItem inside a catalog listing.
+ *
+ * Exposes data attributes so client scripts can wire click-to-modal and
+ * action handlers (install, download, share, GitHub).
+ */
+import type { ResultItem } from '../../lib/types';
+import Badge from '../ui/Badge.astro';
+import Icon from '../ui/Icon.astro';
+
+export interface Props {
+  item: ResultItem;
+  index?: number;
+}
+
+const { item, index = 0 } = Astro.props;
+
+// Accent colour token used for the card border and badge.
+const accentLabel = item.accent ?? 'purple';
+---
+<!--
+  The card is a focusable listitem. Keyboard users can press Space or Enter to open
+  the file-viewer modal (the JS click handler fires on the card element).
+-->
+<div
+  class="resource-card"
+  role="listitem"
+  tabindex="0"
+  aria-label={`Open ${item.title}`}
+  data-result-index={index}
+  data-path={item.detail ?? ''}
+  data-id={item.id ?? ''}
+  style={`--card-accent: var(--color-${accentLabel})`}
+>
+  <!-- Header area -->
+  <div class="card-header">
+    <div class="card-labels">
+      <Badge tone={accentLabel}>{item.label}</Badge>
+      {item.model && <Badge tone="neutral">{item.model}</Badge>}
+    </div>
+    <!-- Actions row -->
+    <div class="card-actions resource-actions">
+      {item.actions?.includes('install') && (
+        <button
+          class="action-btn"
+          data-action="install"
+          data-path={item.detail ?? ''}
+          title="Install in VS Code"
+          aria-label={`Install ${item.title} in VS Code`}
+        >
+          <Icon name="vscode" size={14} />
+        </button>
+      )}
+      {item.actions?.includes('download') && (
+        <button
+          class="action-btn"
+          data-action="download"
+          data-path={item.detail ?? ''}
+          title="Download file"
+          aria-label={`Download ${item.title}`}
+        >
+          <Icon name="download" size={14} />
+        </button>
+      )}
+      {item.actions?.includes('share') && (
+        <button
+          class="action-btn"
+          data-action="share"
+          data-path={item.detail ?? ''}
+          title="Copy share link"
+          aria-label={`Share ${item.title}`}
+        >
+          <Icon name="share" size={14} />
+        </button>
+      )}
+      {item.actions?.includes('github') && item.detail && (
+        <a
+          class="action-btn"
+          href={`https://github.com/github/awesome-copilot/blob/main/${item.detail}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="View on GitHub"
+          aria-label={`View ${item.title} on GitHub (opens in new tab)`}
+        >
+          <Icon name="github" size={14} />
+        </a>
+      )}
+    </div>
+  </div>
+
+  <!-- Body -->
+  <h3 class="card-title">
+    <span class="card-title-text">{item.title}</span>
+  </h3>
+  <p class="card-description">{item.description}</p>
+
+  <!-- Tags -->
+  {item.tags.length > 0 && (
+    <div class="card-tags">
+      {item.tags.map((tag) => (
+        <span class="card-tag">{tag}</span>
+      ))}
+    </div>
+  )}
+
+  <!-- Footer metadata -->
+  <div class="card-meta">
+    {item.items != null && (
+      <span class="card-meta-item">
+        {item.items} {item.items === 1 ? 'item' : 'items'}
+      </span>
+    )}
+    {item.category && (
+      <span class="card-meta-item">{item.category}</span>
+    )}
+  </div>
+</div>
+
+<script>
+  /**
+   * Keyboard activation for resource cards.
+   *
+   * Cards are focusable divs (tabindex="0") wired with JS click handlers by the
+   * catalog page. Native buttons fire on Space/Enter automatically; divs do not,
+   * so we replicate that behaviour here so keyboard users can open the modal.
+   */
+  document.querySelectorAll<HTMLDivElement>('.resource-card[tabindex]').forEach((card) => {
+    card.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault(); // prevent page scroll on Space
+        card.click();
+      }
+    });
+  });
+</script>
+
+<style>
+  .resource-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background:
+      linear-gradient(135deg, rgb(255 255 255 / 1.5%), rgb(255 255 255 / 0%)),
+      var(--color-bg-elevated);
+    padding: var(--space-5);
+    cursor: pointer;
+    transition:
+      border-color var(--motion-fast),
+      box-shadow var(--motion-fast),
+      transform var(--motion-fast);
+  }
+
+  .resource-card:hover {
+    box-shadow: 0 4px 16px rgb(0 0 0 / 30%);
+    transform: translateY(-1px);
+  }
+
+  /* Keyboard focus matches hover treatment so intent is always visible. */
+  .resource-card:focus-visible {
+    outline: 2px solid var(--card-accent);
+    outline-offset: 2px;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 30%);
+  }
+
+  /* ── Header ─────────────────────────────── */
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .card-labels {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-1);
+    background: var(--color-surface-2);
+    color: var(--color-muted);
+    cursor: pointer;
+    transition: color var(--motion-fast), border-color var(--motion-fast);
+    text-decoration: none;
+    font-size: inherit;
+    padding: 0;
+  }
+
+  .action-btn:hover {
+    color: var(--color-text);
+    border-color: var(--color-border);
+  }
+
+  /* ── Body ───────────────────────────────── */
+  .card-title {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1.3;
+  }
+
+  .card-description {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Tags ───────────────────────────────── */
+  .card-tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .card-tag {
+    display: inline-block;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-1);
+    background: var(--color-surface-2);
+    padding: 0.15rem 0.5rem;
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    color: var(--color-muted);
+    white-space: nowrap;
+  }
+
+  /* ── Meta ────────────────────────────────── */
+  .card-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: auto;
+    font-size: 0.75rem;
+    color: var(--color-subtle);
+  }
+
+  .card-meta-item {
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-1);
+    padding: 0.1rem 0.45rem;
+    font-family: var(--font-mono);
+  }
+</style>

@@ -5,7 +5,7 @@
 import { FuzzySearch, type SearchableItem } from "../search";
 import { fetchData, debounce } from "../utils";
 import { createChoices, getChoicesValues, type Choices } from "../choices";
-import { setupModal } from "../modal";
+import { setupModal, openFileModal } from "../modal";
 import {
   getRecipeResultsCountText,
   renderCookbookSectionsHtml,
@@ -56,8 +56,8 @@ export async function initSamplesPage(): Promise<void> {
             ...recipe,
             title: recipe.name,
             cookbookId: cookbook.id,
-          } as SearchableItem & { cookbookId: string })
-      )
+          }) as SearchableItem & { cookbookId: string },
+      ),
     );
     search = new FuzzySearch(allRecipes);
 
@@ -100,7 +100,7 @@ function setupFilters(): void {
 
   // Language filter
   const languageSelect = document.getElementById(
-    "filter-language"
+    "filter-language",
   ) as HTMLSelectElement;
   if (languageSelect) {
     // Get unique languages across all cookbooks
@@ -137,7 +137,7 @@ function setupFilters(): void {
       samplesData.filters.tags.map((tag) => ({ value: tag, label: tag })),
       "value",
       "label",
-      true
+      true,
     );
 
     tagSelect.addEventListener("change", () => {
@@ -157,7 +157,7 @@ function setupFilters(): void {
  */
 function setupSearch(): void {
   const searchInput = document.getElementById(
-    "search-input"
+    "search-input",
   ) as HTMLInputElement;
   if (!searchInput) return;
 
@@ -166,7 +166,7 @@ function setupSearch(): void {
     debounce(() => {
       renderCookbooks();
       updateResultsCount();
-    }, 200)
+    }, 200),
   );
 }
 
@@ -178,7 +178,7 @@ function clearFilters(): void {
   selectedTags = [];
 
   const languageSelect = document.getElementById(
-    "filter-language"
+    "filter-language",
   ) as HTMLSelectElement;
   if (languageSelect) languageSelect.value = "";
 
@@ -188,7 +188,7 @@ function clearFilters(): void {
   }
 
   const searchInput = document.getElementById(
-    "search-input"
+    "search-input",
   ) as HTMLInputElement;
   if (searchInput) searchInput.value = "";
 
@@ -203,7 +203,7 @@ function getFilteredRecipes(): CookbookRecipeMatch[] {
   if (!samplesData || !search) return [];
 
   const searchInput = document.getElementById(
-    "search-input"
+    "search-input",
   ) as HTMLInputElement;
   const query = searchInput?.value.trim() || "";
 
@@ -215,7 +215,7 @@ function getFilteredRecipes(): CookbookRecipeMatch[] {
     results = searchResults.map((item) => {
       const recipe = item as SearchableItem & { cookbookId: string };
       const cookbook = samplesData!.cookbooks.find(
-        (c) => c.id === recipe.cookbookId
+        (c) => c.id === recipe.cookbookId,
       )!;
       return {
         cookbook,
@@ -226,21 +226,21 @@ function getFilteredRecipes(): CookbookRecipeMatch[] {
   } else {
     // No search query - return all recipes
     results = samplesData.cookbooks.flatMap((cookbook) =>
-      cookbook.recipes.map((recipe) => ({ cookbook, recipe }))
+      cookbook.recipes.map((recipe) => ({ cookbook, recipe })),
     );
   }
 
   // Apply language filter using per-recipe languages array
   if (selectedLanguage) {
     results = results.filter(({ recipe }) =>
-      recipe.languages.includes(selectedLanguage!)
+      recipe.languages.includes(selectedLanguage!),
     );
   }
 
   // Apply tag filter
   if (selectedTags.length > 0) {
     results = results.filter(({ recipe }) =>
-      selectedTags.some((tag) => recipe.tags.includes(tag))
+      selectedTags.some((tag) => recipe.tags.includes(tag)),
     );
   }
 
@@ -290,13 +290,13 @@ function setupRecipeListeners(): void {
 
   // Language tab clicks
   document.querySelectorAll(".lang-tab").forEach((tab) => {
-    tab.addEventListener("click", (e) => {
+    tab.addEventListener("click", () => {
       const langId = (tab as HTMLElement).dataset.lang;
       if (langId) {
         selectedLanguage = langId;
         // Update language filter select
         const languageSelect = document.getElementById(
-          "filter-language"
+          "filter-language",
         ) as HTMLSelectElement;
         if (languageSelect) languageSelect.value = langId;
         renderCookbooks();
@@ -311,10 +311,9 @@ function setupRecipeListeners(): void {
  */
 async function showRecipeContent(
   filePath: string,
-  type: "recipe" | "example"
+  type: "recipe" | "example",
 ): Promise<void> {
   // Use existing modal infrastructure
-  const { openFileModal } = await import("../modal");
   await openFileModal(filePath, type);
 }
 

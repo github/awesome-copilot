@@ -13,6 +13,7 @@ const { filename, data } = Astro.props;
 ---
 
 <script
+  is:inline
   id={getEmbeddedDataElementId(filename)}
   type="application/json"
   set:html={serializeEmbeddedData(data)}

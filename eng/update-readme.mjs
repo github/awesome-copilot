@@ -131,12 +131,10 @@ function extractTitle(filePath) {
       const frontmatter = parseFrontmatter(filePath);
 
       if (frontmatter) {
-        // Check for name field
+        // Check for name field — use as-is from YAML frontmatter,
+        // preserving original capitalisation and hyphens.
         if (frontmatter.name && typeof frontmatter.name === "string") {
-          return frontmatter.name
-            .split("-")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ");
+          return frontmatter.name;
         }
       }
 

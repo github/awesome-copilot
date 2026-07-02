@@ -93,6 +93,11 @@ const languageOptions = Array.from(
     }
 
     .lang-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.75rem;
+      min-height: 2.75rem;
       padding: 8px 12px;
       border: 1px solid var(--color-border);
       border-radius: var(--border-radius);
@@ -101,7 +106,15 @@ const languageOptions = Array.from(
       cursor: pointer;
       font-family: 'Monaspace Argon NF', monospace;
       font-size: 18px;
-      transition: all var(--transition);
+      transition:
+        background-color var(--transition),
+        border-color var(--transition),
+        color var(--transition);
+    }
+
+    .lang-tab:focus-visible {
+      outline: 2px solid rgb(255 255 255 / 35%);
+      outline-offset: 2px;
     }
 
     .lang-tab:hover {
@@ -128,7 +141,9 @@ const languageOptions = Array.from(
       border: 1px solid var(--color-border);
       border-radius: var(--border-radius-lg);
       padding: 24px;
-      transition: all var(--transition);
+      transition:
+        border-color var(--transition),
+        box-shadow var(--transition);
     }
 
     .recipe-card:hover {

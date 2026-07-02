@@ -1,0 +1,77 @@
+/*
+ * Design Tokens — visual foundation for the Awesome Copilot website.
+ *
+ * Ported from the awesome-copilot-jh retro-futuristic design system.
+ * All component styles reference these custom properties exclusively.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── Palette ─────────────────────────────────────────────── */
+  --color-bg: #0a0d0d;
+  --color-bg-elevated: #101314;
+  --color-bg-soft: #121016;
+  --color-surface: #0b0e0e;
+  --color-surface-2: #15191a;
+  --color-text: #f5f7f7;
+  --color-muted: #a7adb2;
+  --color-subtle: #7a838b;
+  --color-border: rgb(255 255 255 / 22%);
+  --color-border-soft: rgb(255 255 255 / 15%);
+  --color-primary: #a970ff;
+  --color-primary-strong: #8f4dff;
+  --color-blue: #2d8cff;
+  --color-green: #90ffb1;
+  --color-yellow: #ffc057;
+  --color-danger: #ff507c;
+  --color-cyan: #00d9ff;
+  --color-orange: #ff9f43;
+  --color-black: #050707;
+
+  /* ── Typography ──────────────────────────────────────────── */
+  --font-heading: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  /* ── Radii ───────────────────────────────────────────────── */
+  --radius-1: 4px;
+  --radius-2: 8px;
+  --radius-3: 12px;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  --shadow-card: 0 8px 18px rgb(0 0 0 / 42%);
+  --shadow-primary: 0 0 14px rgb(169 112 255 / 14%);
+
+  /* ── Spacing scale ───────────────────────────────────────── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  --container: 1760px;
+
+  /* ── Motion ──────────────────────────────────────────────── */
+  --motion-fast: 140ms ease;
+
+  /* ── Accessibility ───────────────────────────────────────── */
+  --focus-ring: 0 0 0 3px rgb(144 255 177 / 28%);
+}
+
+/* ── Reduced motion ────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,148 @@
+---
+export interface Props {
+  href?: string;
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  size?: 'sm' | 'md';
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  ariaLabel?: string;
+  id?: string;
+  target?: '_self' | '_blank' | '_parent' | '_top';
+  rel?: string;
+}
+
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  type = 'button',
+  disabled = false,
+  ariaLabel,
+  id,
+  target,
+  rel,
+} = Astro.props;
+---
+
+{
+  href ? (
+    <a
+      class:list={['button', `button--${variant}`, `button--${size}`]}
+      href={href}
+      target={target}
+      rel={rel}
+      aria-label={ariaLabel}
+      id={id}
+    >
+      <slot />
+    </a>
+  ) : (
+    <button
+      class:list={['button', `button--${variant}`, `button--${size}`]}
+      type={type}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      id={id}
+    >
+      <slot />
+    </button>
+  )
+}
+
+<style>
+  .button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border: 2px solid transparent;
+    border-radius: 0;
+    box-shadow: 3px 3px 0 var(--color-black);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-weight: 900;
+    line-height: 1.15;
+    transition:
+      background var(--motion-fast),
+      border-color var(--motion-fast),
+      box-shadow var(--motion-fast),
+      color var(--motion-fast),
+      transform var(--motion-fast);
+    text-decoration: none;
+    white-space: nowrap;
+    align-self: center;
+    touch-action: manipulation;
+  }
+
+  .button--primary {
+    background: var(--color-primary);
+    color: var(--color-black);
+    border-color: var(--color-primary);
+  }
+
+  .button--primary:hover {
+    background: var(--color-primary-strong);
+    border-color: var(--color-primary-strong);
+  }
+
+  .button--secondary {
+    background: transparent;
+    color: var(--color-blue);
+    border-color: var(--color-blue);
+  }
+
+  .button--secondary:hover {
+    background: var(--color-blue);
+    color: var(--color-black);
+  }
+
+  .button--ghost {
+    background: transparent;
+    color: var(--color-green);
+    border-color: var(--color-border-soft);
+  }
+
+  .button--ghost:hover {
+    background: rgb(144 255 177 / 15%);
+  }
+
+  .button--danger {
+    background: var(--color-danger);
+    color: white;
+    border-color: var(--color-danger);
+  }
+
+  .button--danger:hover {
+    background: rgb(255 80 124 / 85%);
+  }
+
+  .button--sm {
+    min-height: 2.75rem;
+    padding: 0.65rem 0.95rem;
+    font-size: 0.92rem;
+  }
+
+  .button--md {
+    min-height: 3rem;
+    padding: 0.75rem 1.1rem;
+    font-size: 0.98rem;
+  }
+
+  .button:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 35%);
+    outline-offset: 2px;
+    box-shadow: 4px 4px 0 var(--color-black);
+  }
+
+  .button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--color-black);
+  }
+
+  .button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none;
+  }
+</style>

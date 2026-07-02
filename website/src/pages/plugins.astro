@@ -1,92 +1,496 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import pluginsData from '../../public/data/plugins.json';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import Card from '../components/ui/Card.astro';
+import Icon from '../components/ui/Icon.astro';
+import InlineAlert from '../components/ui/InlineAlert.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
-import EmbeddedPageData from '../components/EmbeddedPageData.astro';
-import PageHeader from '../components/PageHeader.astro';
 import BackToTop from '../components/BackToTop.astro';
-import Modal from '../components/Modal.astro';
-import { renderPluginsHtml, sortPlugins } from '../scripts/pages/plugins-render';
+import pluginsData from '../../public/data/plugins.json';
 
-const initialItems = sortPlugins(pluginsData.items, 'title');
+const rawItems = pluginsData.items;
+const externalCount = rawItems.filter((item) => item.external).length;
+const itemCount = rawItems.reduce((total, item) => total + item.itemCount, 0);
+const tags = [...new Set(rawItems.flatMap((item) => item.tags))].sort();
 ---
 
-<StarlightPage frontmatter={{ title: 'Plugins', description: 'Curated plugins of agents, hooks, and skills for specific workflows', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content" class="plugins-page listing-cards-page">
-    <PageHeader title="Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" icon="plug" />
-
-    <div class="page-content">
-      <div class="container">
-        <div class="how-to-access">
-          <p><strong>Awesome Copilot is a default plugin marketplace</strong> — no setup required. Access it directly from your tools:</p>
-          <ul>
-            <li><strong>GitHub Copilot CLI</strong>: Type <code>/plugin marketplace browse awesome-copilot</code> in a Copilot session</li>
-            <li><strong>VS Code</strong>: Type <code>@agentPlugins</code> in the Extensions search view, or open the Command Palette and run <code>Chat: Plugins</code></li>
-          </ul>
-          <p>Install any plugin with: <code>copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code></p>
+<BaseLayout title="Plugins · Awesome GitHub Copilot" description="Curated plugins of agents, hooks, and skills for specific workflows">
+  <section id="plugins" class="section" aria-labelledby="plugins-title">
+    <Container>
+      <Card class="console-header-card">
+        <div class="console-summary-text">
+          <p class="console-eyebrow">/plugins · fuzzy search + on-demand details</p>
+          <h1 id="plugins-title" class="console-title">Plugin marketplace console</h1>
+          <p class="console-description">Browse curated plugin collections and external submissions through lightweight cards that open internal detail views.</p>
         </div>
 
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} plugins</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort &amp; Filter</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="filter-tag">Tag:</label>
-                    <select id="filter-tag" multiple aria-label="Filter by tag"></select>
-                  </div>
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" aria-label="Sort plugins">
-                      <option value="title">Title</option>
-                      <option value="lastUpdated">Recently Updated</option>
-                    </select>
-                  </div>
-                  <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
-                </div>
-              </div>
-            </details>
+        <dl class="console-stats-grid" aria-label="Plugin stats">
+          <div class="console-stat-card console-stat-card--active"><dd>{rawItems.length}</dd><dt>plugins</dt></div>
+          <div class="console-stat-card"><dd>{itemCount}</dd><dt>resources</dt></div>
+          <div class="console-stat-card"><dd>{externalCount}</dd><dt>external</dt></div>
+        </dl>
+      </Card>
+
+      <div class="plugin-access-section">
+        <div class="plugin-access-row">
+          <div class="plugin-access-alert">
+            <InlineAlert type="success" title="Default marketplace">
+              No setup required. Access it directly from GitHub Copilot CLI or VS Code.
+            </InlineAlert>
+          </div>
+
+          <div class="plugin-commands">
+            <div class="plugin-command-row">
+              <span class="plugin-command-prompt">&gt;</span>
+              <code class="plugin-command">/plugin marketplace browse awesome-copilot</code>
+            </div>
+            <div class="plugin-command-row">
+              <span class="plugin-command-prompt">&gt;</span>
+              <code class="plugin-command">copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code>
+            </div>
           </div>
         </div>
-        <div class="resource-list" id="resource-list" role="list" set:html={renderPluginsHtml(initialItems)}></div>
-        <ContributeCTA resourceType="plugins" />
       </div>
-    </div>
-  </div>
+
+      <div class="console-filter-bar" id="filters-bar">
+        <label class="console-search-control">
+          <span aria-hidden="true" class="console-prompt">&gt;</span>
+          <span class="sr-only">Search plugins</span>
+          <input id="plugin-search" type="search" placeholder="search plugins…" aria-label="Search plugins" autocomplete="off" />
+          <Icon name="search" size={16} />
+        </label>
+
+        <button class="console-toggle" type="button" data-filter-param="external" aria-pressed="false" aria-label="Toggle external plugins only filter">
+          <Icon name="filter-alt" size={15} />
+          <span>external</span>
+        </button>
+
+        <div class="console-select-control console-select-control--wide console-tag-selector" id="tag-selector" data-filter-param="tag" data-available-tags={tags.join(',')}>
+          <span class="console-prompt" aria-hidden="true">&gt;</span>
+          <span class="console-tag-selector__tags" id="tag-selector-tags"></span>
+          <input type="text" id="tag-selector-input" placeholder="tag: all" autocomplete="off" aria-label="Filter plugins by tag" />
+          <div class="console-tag-selector__dropdown" id="tag-selector-dropdown"></div>
+        </div>
+
+        <label class="console-select-control console-select-control--sort" for="sort-select">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: all</span></span>
+          <select id="sort-select" data-filter-param="sort" data-default-value="title" aria-label="Sort plugins">
+            <option value="title">Name (A-Z)</option>
+            <option value="lastUpdated">Recently Updated</option>
+          </select>
+        </label>
+
+        <button class="console-reset-control" type="button" aria-label="Clear filters" id="filter-clear"><Icon name="delete" size={15} /></button>
+      </div>
+
+      <section class="marketplace-results" aria-label="Matching plugins">
+        <div class="results-meta"><p id="resource-count">Loading plugins...</p></div>
+      </section>
+
+      <div id="plugin-grid" class="resource-grid" role="list"></div>
+      <div id="plugin-load-sentinel" class="agent-load-sentinel" aria-hidden="true"></div>
+      <button id="plugin-load-more" class="filter-clear agent-load-more" type="button" hidden>Load more plugins</button>
+
+      <div id="empty-state" class="empty-state" hidden>
+        <h3>No plugins found</h3>
+        <p>Try adjusting your search or filters.</p>
+        <button id="empty-clear" class="filter-clear" type="button">Clear all filters</button>
+      </div>
+
+      <div id="plugin-search-results" class="search-results-dropdown" role="listbox" aria-label="Search results"></div>
+      <div id="plugin-search-status" class="search-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <ContributeCTA resourceType="plugins" />
+    </Container>
+  </section>
 
   <BackToTop />
-  <Modal />
-  <EmbeddedPageData filename="plugins.json" data={pluginsData} />
+</BaseLayout>
 
-  <script>
-    import '../scripts/listing-flyouts';
-    import '../scripts/pages/plugins';
-  </script>
+<script>
+  import { initResourceCatalog, stableAccent, type CatalogClientItem } from '../scripts/resource-catalog';
+  import { updateQueryParams, getQueryParamValues } from '../scripts/url-state';
+  import type { PluginItem } from '../lib/upstream-types';
 
-  <style>
-    .how-to-access {
-      background: var(--sl-color-bg-nav);
-      border: 1px solid var(--sl-color-hairline);
-      border-radius: 0.5rem;
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.9rem;
-      line-height: 1.6;
+  function authorName(item: PluginItem): string {
+    const author = item.author as unknown;
+    if (typeof author === 'string') return author;
+    if (author && typeof author === 'object' && 'name' in author) return String((author as { name?: string }).name ?? '');
+    return '';
+  }
+
+  function toClientItem(item: PluginItem): CatalogClientItem {
+    return {
+      id: item.id,
+      title: item.name,
+      label: item.external ? 'external' : `${item.itemCount} resources`,
+      description: item.description,
+      tags: [item.external ? 'external' : 'curated', ...item.tags].slice(0, 5),
+      accent: stableAccent(item.id),
+      href: `/plugin/${encodeURIComponent(item.id)}/`,
+      detail: item.path,
+      sortDate: item.lastUpdated,
+      sortTitle: item.name,
+      filters: { tag: item.tags, external: item.external ? ['1'] : [] },
+      searchText: item.searchText || `${item.name} ${item.description} ${item.tags.join(' ')} ${authorName(item)}`,
+    };
+  }
+
+  (async () => {
+    // Initialize custom dropdowns for single-select controls
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
+
+    const { applyAndRender } = await initResourceCatalog<PluginItem>({
+      dataUrl: 'data/plugins.json',
+      gridSelector: '#plugin-grid',
+      countSelector: '#resource-count',
+      emptySelector: '#empty-state',
+      searchInputSelector: '#plugin-search',
+      searchResultsSelector: '#plugin-search-results',
+      searchStatusSelector: '#plugin-search-status',
+      loadMoreSelector: '#plugin-load-more',
+      loadSentinelSelector: '#plugin-load-sentinel',
+      clearSelector: '#filter-clear',
+      emptyClearSelector: '#empty-clear',
+      resourceName: 'plugin',
+      resourceNamePlural: 'plugins',
+      defaultSort: 'title',
+      filterConfigs: [
+        { param: 'external', label: 'External', type: 'flag' },
+        { param: 'tag', label: 'Tag', type: 'multi' },
+        { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' },
+      ],
+      toClientItem,
+    });
+
+    // ── Custom tag selector wiring ───────────────────────────
+    const tagSelector = document.getElementById('tag-selector');
+    const tagInput = document.getElementById('tag-selector-input') as HTMLInputElement | null;
+    const tagTags = document.getElementById('tag-selector-tags');
+    const tagDropdown = document.getElementById('tag-selector-dropdown');
+    const allTags: string[] = tagSelector?.dataset.availableTags?.split(',').filter(Boolean) || [];
+    let selectedTags: string[] = getQueryParamValues('tag');
+    let highlightIndex = -1;
+
+    function renderTagChips(): void {
+      if (!tagTags) return;
+      tagTags.innerHTML = selectedTags.map(tag =>
+        `<span class="console-tag-selector__tag">${tag}<button class="console-tag-selector__tag-remove" data-tag="${tag}" aria-label="Remove ${tag} tag">×</button></span>`
+      ).join('');
+      if (tagInput) tagInput.placeholder = selectedTags.length > 0 ? '' : 'tag: all';
     }
-    .how-to-access p { margin: 0 0 0.5rem; }
-    .how-to-access p:last-child { margin-bottom: 0; }
-    .how-to-access ul {
-      margin: 0.25rem 0 0.5rem 1.25rem;
-      padding: 0;
+
+    function updateTagFilter(): void {
+      updateQueryParams({ setAll: { tag: selectedTags } });
+      renderTagChips();
+      applyAndRender();
     }
-    .how-to-access li { margin: 0.2rem 0; }
-    .how-to-access code {
-      background: var(--sl-color-bg-inline-code);
-      padding: 0.1em 0.35em;
-      border-radius: 0.2rem;
-      font-size: 0.85em;
+
+    function showDropdown(query: string): void {
+      if (!tagDropdown) return;
+      const matches = allTags
+        .filter(t => !selectedTags.includes(t) && t.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 20);
+      if (matches.length === 0) {
+        tagDropdown.classList.remove('open');
+        return;
+      }
+      highlightIndex = -1;
+      tagDropdown.innerHTML = matches.map((tag, idx) =>
+        `<div class="console-tag-selector__dropdown-item" data-index="${idx}" data-tag="${tag}">${tag}</div>`
+      ).join('');
+      tagDropdown.classList.add('open');
     }
-  </style>
-</StarlightPage>
+
+    function selectTag(tag: string): void {
+      if (!selectedTags.includes(tag)) {
+        selectedTags.push(tag);
+        updateTagFilter();
+      }
+      if (tagInput) tagInput.value = '';
+      if (tagDropdown) tagDropdown.classList.remove('open');
+    }
+
+    function removeTag(tag: string): void {
+      selectedTags = selectedTags.filter(t => t !== tag);
+      updateTagFilter();
+    }
+
+    // Initial render from URL
+    renderTagChips();
+
+    // Click on tag chip remove button
+    tagTags?.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('.console-tag-selector__tag-remove') as HTMLElement | null;
+      if (btn?.dataset.tag) removeTag(btn.dataset.tag);
+    });
+
+    // Typing in input
+    tagInput?.addEventListener('input', () => {
+      showDropdown(tagInput.value.trim());
+    });
+
+    // Focus shows all tags if empty
+    tagInput?.addEventListener('focus', () => {
+      if (tagInput.value.trim() === '') showDropdown('');
+    });
+
+    // Blur hides dropdown (with small delay to allow click)
+    tagInput?.addEventListener('blur', () => {
+      setTimeout(() => tagDropdown?.classList.remove('open'), 150);
+    });
+
+    // Click on dropdown item
+    tagDropdown?.addEventListener('mousedown', (e) => {
+      const item = (e.target as HTMLElement).closest('.console-tag-selector__dropdown-item') as HTMLElement | null;
+      if (item?.dataset.tag) {
+        e.preventDefault();
+        selectTag(item.dataset.tag);
+        tagInput?.focus();
+      }
+    });
+
+    // Keyboard navigation
+    tagInput?.addEventListener('keydown', (e) => {
+      const items = tagDropdown?.querySelectorAll('.console-tag-selector__dropdown-item');
+      if (!items || items.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        highlightIndex = Math.min(highlightIndex + 1, items.length - 1);
+        updateHighlight(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        highlightIndex = Math.max(highlightIndex - 1, 0);
+        updateHighlight(items);
+      } else if (e.key === 'Enter' && highlightIndex >= 0) {
+        e.preventDefault();
+        const tag = items[highlightIndex]?.getAttribute('data-tag');
+        if (tag) selectTag(tag);
+      } else if (e.key === 'Escape') {
+        tagDropdown?.classList.remove('open');
+      } else if (e.key === 'Backspace' && tagInput.value === '' && selectedTags.length > 0) {
+        selectedTags.pop();
+        updateTagFilter();
+      }
+    });
+
+    function updateHighlight(items: NodeListOf<Element>): void {
+      items.forEach((item, idx) => {
+        item.classList.toggle('console-tag-selector__dropdown-item--highlighted', idx === highlightIndex);
+      });
+    }
+
+    // Click on container focuses input
+    tagSelector?.addEventListener('click', (e) => {
+      if (e.target === tagSelector || e.target === tagTags) {
+        tagInput?.focus();
+      }
+    });
+
+    // Wire clear button to also reset tags
+    document.getElementById('filter-clear')?.addEventListener('click', () => {
+      selectedTags = [];
+      renderTagChips();
+    });
+    document.getElementById('empty-clear')?.addEventListener('click', () => {
+      selectedTags = [];
+      renderTagChips();
+    });
+  })();
+</script>
+
+<style>
+  .plugin-access-section {
+    margin: var(--space-4) 0 var(--space-5);
+  }
+
+  .plugin-access-row {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .plugin-access-alert {
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .plugin-access-alert :global(.inline-alert) {
+    height: 100%;
+  }
+
+  .plugin-commands {
+    flex: 1;
+    min-width: 280px;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    padding: var(--space-4);
+    font-family: var(--font-mono);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-3);
+  }
+
+  .plugin-command-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .plugin-command-prompt {
+    color: var(--color-green);
+    font-weight: 800;
+    font-size: 0.875rem;
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .plugin-command {
+    color: var(--color-text);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-1);
+    padding: 0.5rem 0.75rem;
+    flex: 1;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    .plugin-access-row {
+      flex-direction: column;
+    }
+  }
+
+  /* ── Tag Selector (custom text-input multi-select) ───────── */
+  .console-tag-selector {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 3.25rem;
+    padding: 0.5rem 0.95rem;
+    flex-wrap: wrap;
+    cursor: text;
+  }
+
+  .console-tag-selector__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .console-tag-selector__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid var(--color-border-soft);
+    background: var(--color-surface-2);
+    color: var(--color-text);
+    padding: 0.2rem 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+    cursor: default;
+    image-rendering: pixelated;
+    shape-rendering: crispEdges;
+  }
+
+  .console-tag-selector__tag-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border: none;
+    background: transparent;
+    color: var(--color-muted);
+    cursor: pointer;
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+  }
+
+  .console-tag-selector__tag-remove:hover {
+    color: var(--color-danger);
+  }
+
+  .console-tag-selector {
+    position: relative;
+  }
+
+  .console-tag-selector:focus-within {
+    border-color: var(--color-subtle);
+    background: rgb(255 255 255 / 3%);
+    box-shadow: 4px 4px 0 var(--color-black);
+  }
+
+  .console-tag-selector input {
+    flex: 1;
+    min-width: 6rem;
+    border: none;
+    background: transparent;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    line-height: 1.35;
+    padding: 0.25rem 0;
+  }
+
+  .console-tag-selector input:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 35%);
+    outline-offset: 2px;
+  }
+
+  .console-tag-selector input::placeholder {
+    color: var(--color-muted);
+  }
+
+  .console-tag-selector__dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    border: 4px solid var(--color-border);
+    border-radius: 0;
+    background: var(--color-bg-elevated);
+    box-shadow: 4px 4px 0 var(--color-black);
+    color: var(--color-text);
+    z-index: 100;
+    max-height: 220px;
+    overflow-y: auto;
+    image-rendering: pixelated;
+    shape-rendering: crispEdges;
+  }
+
+  .console-tag-selector__dropdown.open {
+    display: block;
+  }
+
+  .console-tag-selector__dropdown-item {
+    padding: 0.65rem 0.95rem;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background var(--motion-fast);
+  }
+
+  .console-tag-selector__dropdown-item:hover,
+  .console-tag-selector__dropdown-item--highlighted {
+    background: var(--color-surface-2);
+  }
+
+  .console-tag-selector__dropdown-item--selected {
+    color: var(--color-green);
+    font-weight: 800;
+  }
+</style>

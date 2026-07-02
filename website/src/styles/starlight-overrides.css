@@ -1,24 +1,46 @@
 /* Brand color overrides for Starlight */
-/* Purple (#8534F3) and Orange (#FE4C25) theme */
+/* Retro terminal theme ported from awesome-copilot-jh */
+
+/* Prevent initial green Starlight accent flash before route-scoped selectors settle. */
+:root {
+  --sl-color-accent-high: var(--color-blue);
+  --sl-color-text-accent: var(--color-primary);
+  --learning-hub-accent: var(--color-primary);
+  --learning-hub-accent-rgb: 169 112 255;
+  --learning-hub-accent-alt: var(--color-blue);
+  --learning-hub-accent-alt-rgb: 45 140 255;
+}
 
 /* ── Dark theme (default) ─────────────────────────────────── */
-:root {
-  --sl-color-accent-low: #1a0d33;
-  --sl-color-accent: #8534f3;
-  --sl-color-accent-high: #c9a5fa;
-  --sl-color-text-accent: #c9a5fa;
+:root:has(link[rel="canonical"][href*="/learning-hub/"]) {
+  --sl-color-accent-low: rgb(169 112 255 / 14%);
+  --sl-color-accent: var(--color-primary);
+  --sl-color-accent-high: var(--color-blue);
+  --sl-color-text-accent: var(--color-primary);
+  --learning-hub-accent: var(--color-primary);
+  --learning-hub-accent-rgb: 169 112 255;
+  --learning-hub-accent-alt: var(--color-blue);
+  --learning-hub-accent-alt-rgb: 45 140 255;
 
-  --sl-color-white: #f0f0f5;
-  --sl-color-gray-1: #d0d0da;
-  --sl-color-gray-2: #9898a6;
-  --sl-color-gray-3: #60607a;
-  --sl-color-gray-4: #30304a;
-  --sl-color-gray-5: #1a1a2e;
-  --sl-color-gray-6: #0d0d12;
-  --sl-color-black: #0d0d12;
+  --sl-color-white: var(--color-text);
+  --sl-color-gray-1: #d8dddf;
+  --sl-color-gray-2: var(--color-muted);
+  --sl-color-gray-3: var(--color-subtle);
+  --sl-color-gray-4: #30383a;
+  --sl-color-gray-5: var(--color-surface-2);
+  --sl-color-gray-6: var(--color-bg-elevated);
+  --sl-color-black: var(--color-bg);
+  --sl-color-bg: var(--color-bg);
+  --sl-color-bg-nav: var(--color-bg-elevated);
+  --sl-color-bg-sidebar: var(--color-bg-elevated);
+  --sl-color-hairline: var(--color-border-soft);
+  --sl-color-hairline-light: var(--color-border-soft);
+  --sl-color-hairline-shade: var(--color-border);
 
-  --sl-font-system: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
+  --sl-font-system: var(--font-mono);
+  --sl-font-system-mono: var(--font-mono);
+  --sl-content-width: 80rem;
+  --sl-sidebar-width: 18.75rem;
 }
 
 /* ── Light theme ───────────────────────────────────────────── */
@@ -41,11 +63,6 @@
   --sl-color-black: #fafafa;
 }
 
-:root[data-theme="light"] header.header {
-  background: rgba(250, 250, 250, 0.6) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-}
-
 /* ── Sidebar readability ───────────────────────────────────── */
 nav[aria-label="Main"] a {
   font-weight: 500 !important;
@@ -55,50 +72,6 @@ nav[aria-label="Main"] a[aria-current="page"] {
   color: var(--sl-color-text-invert) !important;
   font-weight: 600 !important;
   border-inline-start-color: var(--sl-color-accent) !important;
-}
-
-/* ── Header brand styling ──────────────────────────────────── */
-.site-title {
-  font-weight: 700 !important;
-}
-header .site-title:hover {
-  color: var(--sl-color-accent-high) !important;
-}
-
-/* ── Unified background ─────────────────────────────────────── */
-/* Clean header - solid background */
-header.header {
-  background: var(--sl-color-gray-6) !important;
-  border-bottom: 1px solid var(--sl-color-gray-5) !important;
-  z-index: 1000;
-  position: relative;
-}
-
-/* Header inner content for alignment */
-header.header .header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 100%;
-}
-
-header.header .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Hide social icons in header - GitHub link moved to hero */
-header .social-icons {
-  display: none !important;
-}
-
-/* Move theme toggle inside header - align with header elements */
-.theme-toggle-container {
-  position: fixed !important;
-  top: 12px !important;
-  right: 80px !important;
-  z-index: 1001;
 }
 
 /* On custom splash pages, body already has the gradient bg.
@@ -209,7 +182,11 @@ main:has(#main-content) > .content-panel:has(h1#_top) {
   line-height: 1.4;
   cursor: pointer;
   user-select: none;
-  transition: all 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
   border: 1px solid var(--sl-color-gray-5);
   color: var(--sl-color-gray-2);
   background: transparent;
@@ -223,7 +200,7 @@ main:has(#main-content) > .content-panel:has(h1#_top) {
 
 /* Keyboard focus ring for pill filters */
 #starlight__search .pagefind-ui__filter-checkbox:focus-visible + .pagefind-ui__filter-label {
-  outline: 2px solid var(--sl-color-accent);
+  outline: 2px solid rgb(255 255 255 / 35%);
   outline-offset: 2px;
 }
 
@@ -236,4 +213,520 @@ main:has(#main-content) > .content-panel:has(h1#_top) {
 
 #starlight__search .pagefind-ui__filter-checkbox:checked + .pagefind-ui__filter-label:hover {
   opacity: 0.9;
+}
+
+/* ── Learning Hub docs shell ────────────────────────────────── */
+/* Starlight owns the content model; these overrides reshape the docs UI
+   to match the awesome-copilot-jh Learning Hub visual language. */
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) body {
+  background:
+    radial-gradient(circle at 82% 10%, rgb(169 112 255 / 5%), transparent 26rem),
+    radial-gradient(circle at 18% 28%, rgb(45 140 255 / 3%), transparent 24rem),
+    var(--color-bg);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(rgb(255 255 255 / 2%) 1px, transparent 1px);
+  background-size: 100% 32px;
+  mask-image: linear-gradient(to bottom, #000 0 18%, transparent 78%);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .main-frame {
+  background: var(--color-bg);
+  min-width: 0;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) main {
+  flex: 1 1 auto !important;
+  min-width: 0;
+  padding: 0 !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .lg\:sl-flex {
+  align-items: flex-start;
+  gap: clamp(1.25rem, 2vw, 1.75rem);
+  min-height: calc(100vh - var(--site-header-height, 4.25rem));
+  padding: clamp(1.5rem, 3vw, 2.25rem) clamp(1.25rem, 3vw, 2.25rem) 0;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sidebar-pane {
+  border-right: 1px solid var(--color-border) !important;
+  background: var(--color-bg-elevated) !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sidebar-content {
+  gap: 0.62rem !important;
+  padding: 1.35rem 1.15rem !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[aria-label="Main"] > ul > li > details > summary,
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[aria-label="Main"] > ul > li > a {
+  color: var(--learning-hub-accent) !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[aria-label="Main"] a,
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[aria-label="Main"] summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  color: var(--color-muted) !important;
+  padding: 0.35rem 0.65rem !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[aria-label="Main"] a:hover {
+  border-color: var(--color-border-soft);
+  background: rgb(255 255 255 / 4%);
+  color: var(--color-text) !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[aria-label="Main"] a[aria-current="page"] {
+  border-color: var(--color-primary) !important;
+  background: var(--color-primary) !important;
+  color: var(--color-black) !important;
+  box-shadow: none;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[aria-label="Main"] a[aria-current="page"] :is(span, .group-label, .large, svg) {
+  color: var(--color-black) !important;
+  fill: currentColor !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[aria-label="Main"] :is(a, summary):focus-visible {
+  outline: 2px solid rgb(255 255 255 / 35%);
+  outline-offset: 2px;
+}
+
+
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0 !important;
+  padding: 0 !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel + .content-panel {
+  padding-top: 0 !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel > .sl-container {
+  width: 100%;
+  max-width: var(--sl-content-width);
+  margin-inline: 0 !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel:first-of-type > .sl-container,
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel:nth-of-type(2) > .sl-container {
+  position: relative;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-card);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel:first-of-type > .sl-container {
+  border-bottom: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-2) var(--radius-2) 0 0;
+  padding: clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem) 1.25rem;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel:nth-of-type(2) > .sl-container {
+  border-top: 0;
+  border-radius: 0 0 var(--radius-2) var(--radius-2);
+  padding: 1.25rem clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel:first-of-type > .sl-container::before {
+  content: "$ cat ~/docs/learning-hub";
+  display: block;
+  margin-bottom: 0.75rem;
+  color: var(--color-green);
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) h1 {
+  color: var(--color-text) !important;
+  font-family: var(--font-heading);
+  font-size: clamp(2.1rem, 4.4vw, 3.25rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content {
+  color: var(--color-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content :is(h2, h3, h4):not(:where(.not-content *)) {
+  scroll-margin-top: calc(var(--site-header-height, 4.25rem) + var(--sl-mobile-toc-height) + 1rem);
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  letter-spacing: -0.035em;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content h2:not(:where(.not-content *)) {
+  border-top: 1px solid var(--color-border-soft);
+  padding-top: 1.4rem;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content a:not(:where(.not-content *)) {
+  color: var(--learning-hub-accent-alt);
+  text-decoration-color: rgb(var(--learning-hub-accent-alt-rgb) / 45%);
+  text-underline-offset: 0.2em;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content a:hover:not(:where(.not-content *)) {
+  color: var(--color-blue);
+  text-decoration-color: var(--color-blue);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content pre:not(:where(.not-content *)),
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code figure.frame {
+  border: 2px solid var(--color-border);
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgb(var(--learning-hub-accent-rgb) / 6%), transparent 28%),
+    var(--color-black);
+  box-shadow:
+    4px 4px 0 var(--color-black),
+    inset 0 0 0 1px rgb(var(--learning-hub-accent-rgb) / 12%);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content pre:not(:where(.not-content *)) {
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content pre code:not(:where(.not-content *)),
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code pre code {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code {
+  margin-block: 1.5rem;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code figure.frame {
+  position: relative;
+  overflow: hidden;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code figure.frame .header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 2.4rem;
+  border-bottom: 2px solid var(--color-border);
+  background: var(--color-surface-2);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code figure.frame .header::before {
+  content: none;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code figure.frame:not(:is(
+  .is-terminal,
+  :has(pre[data-language="json"]),
+  :has(pre[data-language="yaml"]),
+  :has(pre[data-language="yml"]),
+  :has(pre[data-language="toml"]),
+  :has(pre[data-language="typescript"]),
+  :has(pre[data-language="ts"]),
+  :has(pre[data-language="javascript"]),
+  :has(pre[data-language="js"]),
+  :has(pre[data-language="css"]),
+  :has(pre[data-language="html"]),
+  :has(pre[data-language="xml"]),
+  :has(pre[data-language="diff"])
+)) .header:empty {
+  display: none;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code figure.frame:is(
+  .is-terminal,
+  :has(pre[data-language="json"]),
+  :has(pre[data-language="yaml"]),
+  :has(pre[data-language="yml"]),
+  :has(pre[data-language="toml"]),
+  :has(pre[data-language="typescript"]),
+  :has(pre[data-language="ts"]),
+  :has(pre[data-language="javascript"]),
+  :has(pre[data-language="js"]),
+  :has(pre[data-language="css"]),
+  :has(pre[data-language="html"]),
+  :has(pre[data-language="xml"]),
+  :has(pre[data-language="diff"])
+) .header {
+  padding-left: 4.25rem;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code figure.frame:is(
+  .is-terminal,
+  :has(pre[data-language="json"]),
+  :has(pre[data-language="yaml"]),
+  :has(pre[data-language="yml"]),
+  :has(pre[data-language="toml"]),
+  :has(pre[data-language="typescript"]),
+  :has(pre[data-language="ts"]),
+  :has(pre[data-language="javascript"]),
+  :has(pre[data-language="js"]),
+  :has(pre[data-language="css"]),
+  :has(pre[data-language="html"]),
+  :has(pre[data-language="xml"]),
+  :has(pre[data-language="diff"])
+) .header::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  width: 11px;
+  height: 11px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: var(--color-yellow);
+  box-shadow:
+    18px 0 0 var(--color-green),
+    36px 0 0 var(--color-danger);
+  z-index: 1;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code figure.frame pre {
+  margin: 0;
+  padding: 1rem 1.1rem 1.1rem;
+  background: var(--color-black) !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code figure.frame.is-terminal pre {
+  border-left: 0;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code figure.frame.is-terminal .ec-line:first-child .code::before {
+  content: none;
+  color: var(--learning-hub-accent);
+  font-weight: 900;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .expressive-code .copy button {
+  border: 1px solid var(--color-border-soft) !important;
+  border-radius: 0 !important;
+  background: var(--color-bg-elevated) !important;
+  color: var(--learning-hub-accent) !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content table:not(:where(.not-content *)) {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 2px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-bg-elevated);
+  box-shadow: 4px 4px 0 var(--color-black);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content th:not(:where(.not-content *)) {
+  border-bottom: 2px solid var(--color-border);
+  background: rgb(var(--learning-hub-accent-rgb) / 12%);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content :is(th, td):not(:where(.not-content *)) {
+  border-color: var(--color-border-soft);
+  padding: 0.85rem 1rem;
+  vertical-align: top;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content tr:nth-child(even) td:not(:where(.not-content *)) {
+  background: rgb(255 255 255 / 2.5%);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content td:first-child:not(:where(.not-content *)) {
+  color: var(--color-text);
+  font-weight: 800;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content :not(pre) > code:not(:where(.not-content *)) {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-1);
+  background: var(--color-bg-elevated);
+  padding: 0.15rem 0.4rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content blockquote:not(:where(.not-content *)),
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content .starlight-aside:not(:where(.not-content *)) {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-1);
+  background: rgb(255 255 255 / 4%);
+  color: var(--color-muted);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar {
+  flex: 0 0 clamp(15rem, 18vw, 18rem);
+  width: clamp(15rem, 18vw, 18rem);
+  border-left: 0 !important;
+  background: transparent;
+  padding: 0 !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel {
+  position: sticky;
+  top: calc(var(--site-header-height, 4.25rem) + 1.875rem);
+  max-height: calc(100vh - var(--site-header-height, 4.25rem) - 1.875rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel > .sl-container {
+  max-width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  background: var(--color-bg-elevated);
+  padding: clamp(1.35rem, 2vw, 1.75rem);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel h2 {
+  margin: 0 0 0.75rem !important;
+  color: var(--learning-hub-accent) !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel ul ul {
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-left: 0.85rem;
+  border-left: 2px solid var(--color-border-soft);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel ul ul li {
+  position: relative;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel ul ul a {
+  padding-left: 0.6rem;
+  font-size: 0.82rem !important;
+  color: var(--color-muted) !important;
+  opacity: 0.85;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel ul ul a::before {
+  content: "›";
+  position: absolute;
+  left: 0;
+  color: var(--learning-hub-accent);
+  font-size: 0.65rem;
+  line-height: 1.5;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel ul ul a:hover {
+  color: var(--color-text) !important;
+  opacity: 1;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel li {
+  margin: 0 !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel a {
+  display: flex;
+  align-items: center;
+  min-height: 1.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-1);
+  padding: 0.1rem 0.2rem;
+  color: var(--color-muted) !important;
+  font-size: 0.88rem !important;
+  font-weight: 700;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel a:hover {
+  color: var(--color-text) !important;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel a:focus-visible {
+  outline: 2px solid rgb(255 255 255 / 35%);
+  outline-offset: 2px;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel a[aria-current="true"] {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-bg) !important;
+  box-shadow: 4px 0 0 var(--color-primary);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .pagination-links a {
+  border: 2px solid var(--color-border-soft);
+  border-radius: 0;
+  background: var(--color-surface-2);
+  box-shadow: 3px 3px 0 var(--color-black);
+  color: var(--color-text);
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .pagination-links a:hover {
+  border-color: var(--learning-hub-accent-alt);
+  background: rgb(var(--learning-hub-accent-alt-rgb) / 14%);
+}
+
+@media (max-width: 72rem) {
+  html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .lg\:sl-flex {
+    padding-inline: 1.25rem;
+  }
+
+  html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 50rem) {
+  html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sidebar-pane {
+    background: var(--color-bg) !important;
+  }
+
+  html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel:first-of-type {
+    padding-top: 1.25rem !important;
+  }
 }

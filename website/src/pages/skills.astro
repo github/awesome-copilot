@@ -1,53 +1,130 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import Card from '../components/ui/Card.astro';
+import Icon from '../components/ui/Icon.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
-import PageHeader from '../components/PageHeader.astro';
-import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import BackToTop from '../components/BackToTop.astro';
-import Modal from '../components/Modal.astro';
 import skillsData from '../../public/data/skills.json';
-import { renderSkillsHtml, sortSkills } from '../scripts/pages/skills-render';
 
-const initialItems = sortSkills(skillsData.items, 'title');
+const rawItems = skillsData.items;
+const assetEnabledCount = rawItems.filter((item) => item.hasAssets).length;
+const bundledFileCount = rawItems.reduce((total, item) => total + item.files.length, 0);
 ---
 
-<StarlightPage frontmatter={{ title: 'Skills', description: 'Self-contained agent skills with instructions and bundled resources', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content" class="skills-page listing-cards-page">
-    <PageHeader title="Skills" description="Self-contained agent skills with instructions and bundled resources" icon="lightning" />
-
-    <div class="page-content">
-      <div class="container">
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} skills</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" aria-label="Sort by">
-                      <option value="title">Name (A-Z)</option>
-                      <option value="lastUpdated">Recently Updated</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </details>
-          </div>
+<BaseLayout title="Skills · Awesome GitHub Copilot" description="Self-contained agent skills with instructions and bundled resources">
+  <section id="skills" class="section" aria-labelledby="skills-title">
+    <Container>
+      <Card class="console-header-card">
+        <div class="console-summary-text">
+          <p class="console-eyebrow">/skills · fuzzy search + on-demand details</p>
+          <h1 id="skills-title" class="console-title">Skills marketplace console</h1>
+          <p class="console-description">Browse self-contained agent skills without mounting the full catalog up front.</p>
         </div>
-        <div class="resource-list" id="resource-list" role="list" set:html={renderSkillsHtml(initialItems)}></div>
-        <ContributeCTA resourceType="skills" />
+
+        <dl class="console-stats-grid" aria-label="Skill stats">
+          <div class="console-stat-card console-stat-card--active"><dd>{rawItems.length}</dd><dt>skills</dt></div>
+          <div class="console-stat-card"><dd>{assetEnabledCount}</dd><dt>with assets</dt></div>
+          <div class="console-stat-card"><dd>{bundledFileCount}</dd><dt>bundled files</dt></div>
+        </dl>
+      </Card>
+
+      <div class="console-filter-bar" id="filters-bar">
+        <label class="console-search-control">
+          <span aria-hidden="true" class="console-prompt">&gt;</span>
+          <span class="sr-only">Search skills</span>
+          <input id="skill-search" type="search" placeholder="search skills…" aria-label="Search skills" autocomplete="off" />
+          <Icon name="search" size={16} />
+        </label>
+
+        <button class="console-toggle" type="button" data-filter-param="hasAssets" aria-pressed="false" aria-label="Toggle skills with assets only filter">
+          <Icon name="filter-alt" size={15} />
+          <span>with assets</span>
+        </button>
+
+        <label class="console-select-control console-select-control--sort" for="sort-select">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: all</span></span>
+          <select id="sort-select" data-filter-param="sort" data-default-value="title" aria-label="Sort skills">
+            <option value="title">Name (A-Z)</option>
+            <option value="lastUpdated">Recently Updated</option>
+          </select>
+        </label>
+
+        <button class="console-reset-control" type="button" aria-label="Clear filters" id="filter-clear"><Icon name="delete" size={15} /></button>
       </div>
-    </div>
-  </div>
+
+      <section class="marketplace-results" aria-label="Matching skills">
+        <div class="results-meta"><p id="resource-count">Loading skills...</p></div>
+      </section>
+
+      <div id="skill-grid" class="resource-grid" role="list"></div>
+      <div id="skill-load-sentinel" class="agent-load-sentinel" aria-hidden="true"></div>
+      <button id="skill-load-more" class="filter-clear agent-load-more" type="button" hidden>Load more skills</button>
+
+      <div id="empty-state" class="empty-state" hidden>
+        <h3>No skills found</h3>
+        <p>Try adjusting your search or filters.</p>
+        <button id="empty-clear" class="filter-clear" type="button">Clear all filters</button>
+      </div>
+
+      <div id="skill-search-results" class="search-results-dropdown" role="listbox" aria-label="Search results"></div>
+      <div id="skill-search-status" class="search-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <ContributeCTA resourceType="skills" />
+    </Container>
+  </section>
 
   <BackToTop />
-  <Modal />
+</BaseLayout>
 
-  <EmbeddedPageData filename="skills.json" data={skillsData} />
-  <script>
-    import '../scripts/listing-flyouts';
-    import '../scripts/pages/skills';
-  </script>
-</StarlightPage>
+<script>
+  import { initResourceCatalog, stableAccent, type CatalogClientItem } from '../scripts/resource-catalog';
+  import type { SkillItem } from '../lib/upstream-types';
+
+  function toClientItem(item: SkillItem): CatalogClientItem {
+    const label = item.hasAssets ? `${item.assetCount} assets` : 'skill';
+    return {
+      id: item.id,
+      title: item.title,
+      label,
+      description: item.description || 'No description',
+      tags: ([item.category, item.hasAssets ? 'assets' : 'single file', `${item.files.length} files`].filter(Boolean) as string[]),
+      accent: stableAccent(item.id),
+      href: `/skill/${encodeURIComponent(item.id)}/`,
+      detail: item.skillFile,
+      sortDate: item.lastUpdated,
+      filters: {
+        hasAssets: item.hasAssets ? ['1'] : [],
+      },
+      searchText: `${item.title} ${item.description} ${item.category} ${item.assets.join(' ')}`,
+    };
+  }
+
+  (async () => {
+    // Initialize custom dropdowns for single-select controls
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
+
+    initResourceCatalog<SkillItem>({
+      dataUrl: 'data/skills.json',
+      gridSelector: '#skill-grid',
+      countSelector: '#resource-count',
+      emptySelector: '#empty-state',
+      searchInputSelector: '#skill-search',
+      searchResultsSelector: '#skill-search-results',
+      searchStatusSelector: '#skill-search-status',
+      loadMoreSelector: '#skill-load-more',
+      loadSentinelSelector: '#skill-load-sentinel',
+      clearSelector: '#filter-clear',
+      emptyClearSelector: '#empty-clear',
+      resourceName: 'skill',
+      resourceNamePlural: 'skills',
+      defaultSort: 'title',
+      filterConfigs: [
+        { param: 'hasAssets', label: 'Has Assets', type: 'flag' },
+        { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' },
+      ],
+      toClientItem,
+    });
+  })();
+</script>

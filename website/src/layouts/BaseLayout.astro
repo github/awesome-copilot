@@ -1,0 +1,92 @@
+---
+import Navigation from '../components/layout/Navigation.astro';
+import Footer from '../components/layout/Footer.astro';
+import { SITE } from '../config/site';
+import '../styles/global.css';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  canonicalUrl?: string;
+  socialTitle?: string;
+  socialDescription?: string;
+  socialImage?: string;
+  socialImageAlt?: string;
+  socialType?: 'website' | 'article';
+}
+
+const {
+  title = `${SITE.title} · GitHub Copilot resource console`,
+  description = SITE.description,
+  canonicalUrl,
+  socialTitle = title,
+  socialDescription = description,
+  socialImage = new URL(SITE.socialImage, SITE.url).toString(),
+  socialImageAlt = description,
+  socialType = 'website',
+} = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    {canonicalUrl ? <link rel="canonical" href={canonicalUrl} /> : null}
+    <meta property="og:title" content={socialTitle} />
+    <meta property="og:description" content={socialDescription} />
+    <meta property="og:type" content={socialType} />
+    <meta property="og:site_name" content={SITE.title} />
+    {canonicalUrl ? <meta property="og:url" content={canonicalUrl} /> : null}
+    {socialImage ? <meta property="og:image" content={socialImage} /> : null}
+    {socialImage ? <meta property="og:image:width" content="1200" /> : null}
+    {socialImage ? <meta property="og:image:height" content="630" /> : null}
+    {socialImageAlt ? <meta property="og:image:alt" content={socialImageAlt} /> : null}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={socialTitle} />
+    <meta name="twitter:description" content={socialDescription} />
+    {socialImage ? <meta name="twitter:image" content={socialImage} /> : null}
+    {socialImageAlt ? <meta name="twitter:image:alt" content={socialImageAlt} /> : null}
+    <meta name="theme-color" content={SITE.themeColor} />
+    <link rel="icon" href={SITE.favicon} type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+    <style is:inline>
+      /* Critical CSS for stat cards to prevent FOUC */
+      .console-stat-card {
+        --stat-border: var(--color-subtle);
+        position: relative;
+        display: grid;
+        align-content: center;
+        gap: 0.3rem;
+        width: 9.15rem;
+        min-height: 6rem;
+        border: 4px solid var(--stat-border);
+        border-radius: 0;
+        background: var(--color-surface-2);
+        box-shadow: 4px 4px 0 var(--color-black);
+        padding: 1rem 1rem 0.9rem 1.2rem;
+        image-rendering: pixelated;
+        shape-rendering: crispEdges;
+      }
+      .console-stat-card--active {
+        --stat-border: var(--color-subtle);
+        background: var(--color-surface-2);
+        box-shadow: 4px 4px 0 var(--color-black);
+      }
+    </style>
+  </head>
+  <body id="top">
+    <a class="skip-link" href="#main-content">Skip to Main Content</a>
+    <Navigation />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

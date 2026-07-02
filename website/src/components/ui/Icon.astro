@@ -1,0 +1,110 @@
+---
+/**
+ * Pixel-art SVG icon component.
+ *
+ * Icons are 24×24 pixel-grid SVGs rendered with crispEdges for a
+ * retro-futuristic console aesthetic.
+ */
+export interface Props {
+  name: string;
+  label?: string;
+  size?: number;
+}
+
+const { name, label, size = 20 } = Astro.props;
+
+const paths: Record<string, string> = {
+  brand:
+    'M12 3h3v3h3v3h3v6h-3v3h-3v3H9v-3H6v-3H3V9h3V6h3V3h3Zm0 4H9v3H7v4h2v3h6v-3h2v-4h-2V7h-3Z',
+  github:
+    'M12 .5a12 12 0 0 0-3.8 23.39c.6.11.82-.26.82-.58v-2.04c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.08 1.83 2.82 1.3 3.5.99.11-.78.43-1.3.78-1.6-2.66-.31-5.46-1.34-5.46-5.94 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.53.12-3.18 0 0 1.01-.32 3.3 1.23a11.44 11.44 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.25 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.62-2.81 5.63-5.49 5.93.44.38.83 1.11.83 2.24v3.32c0 .32.21.7.83.58A12 12 0 0 0 12 .5Z',
+  search:
+    'M7 4h7v2h2v7h-2v2h-2v2h2v2h2v2h-3v-2h-2v-2H9v-2H7v-2H5V6h2V4Zm1 3v5h5V7H8Z',
+  copy: 'M7 4h11v11h-3v3H4V7h3V4Zm2 3h6V6H9v1Zm-3 3v6h6v-6H6Zm8 3h2V9h-2v4Z',
+  check: 'M9 18H7v-2H5v-3h3v2h2v-2h2v-2h2V9h2V7h3v3h-2v2h-2v2h-2v2h-2v2H9Z',
+  x: 'M5 5h4v3h2v2h2V8h2V5h4v4h-3v2h-2v2h2v2h3v4h-4v-3h-2v-2h-2v2H9v3H5v-4h3v-2h2v-2H8V9H5V5Z',
+  bolt: 'M12 2h5l-3 7h4L9 22l2-9H6l6-11Z',
+  robot:
+    'M10 3h4v3h4v3h2v8h-2v2H6v-2H4V9h2V6h4V3Zm-2 7v7h8v-7H8Zm2 2h2v3h-2v-3Zm4 0h2v3h-2v-3Z',
+  arrow: 'M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z',
+  'arrow-left': 'M20 11H9V8H6v2H4v4h2v2h3v-3h11v-2Z',
+  'arrow-right': 'M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z',
+  menu: 'M4 6h16v3H4V6Zm0 5h16v3H4v-3Zm0 5h16v3H4v-3Z',
+  agents:
+    'M9 3h6v3h3v3h2v8h-2v2H6v-2H4V9h2V6h3V3Zm-1 7v6h8v-6H8Zm1 2h2v2H9v-2Zm4 0h2v2h-2v-2Z',
+  instructions:
+    'M6 3h9l3 3v15H6V3Zm2 3v12h8V8h-3V6H8Zm1 4h6v2H9v-2Zm0 4h5v2H9v-2Z',
+  skills:
+    'M11 3h2v4h4v2h-4v4h-2V9H7V7h4V3Zm-6 9h5v5H5v-5Zm9 3h5v5h-5v-5Z',
+  hooks:
+    'M6 4h8v3h-2v4h3v-2h3v4h-3v2h-3v5H8v-5H6v-4h2V7H6V4Zm4 3v4h2V7h-2Z',
+  workflows:
+    'M5 4h6v6H9v2h6v-2h-2V4h6v6h-2v4H9v2h2v4H5v-6h2v-4H5V4Zm2 2v2h2V6H7Zm8 0v2h2V6h-2Zm-8 10v2h2v-2H7Z',
+  plugins:
+    'M8 3h3v4h2V3h3v4h2v5h-3v3h3v3h-3v3h-3v-3H9v3H6v-3H3v-3h3v-3H3V7h5V3Zm1 7v5h6v-5H9Z',
+  tools:
+    'M4 5h16v10H4V5Zm2 2v6h12V7H6Zm2 11h8v2H8v-2Zm1-9h2v2H9V9Zm3 0h4v2h-4V9Z',
+  learning:
+    'M5 4h7v3h2V4h5v15h-6v2h-2v-2H5V4Zm2 3v9h4V7H7Zm7 2v7h3V7h-3v2Z',
+  open: 'M5 5h8v3H8v8h8v-5h3v8H5V5Zm9-2h7v7h-3V8h-2V6h-2V3Z',
+  download:
+    'M11 3h3v8h3l-5 6-5-6h3V3h1Zm-6 15h14v3H5v-3Z',
+  docs: 'M5 4h10l4 4v12H5V4Zm3 4h5V6H8v2Zm0 4h8v2H8v-2Zm0 4h6v2H8v-2Z',
+  filter: 'M4 5h16v3h-2v2h-4v8l-4 2v-10H6V8H4V5Z',
+  star: 'M11 3h2v4h4v2h3v3h-5v3h-2v3h-2v-3H9v-3H4V9h3V7h4V3Z',
+  delete:
+    'M7 4h10v2h5v3h-2v11h-2v2H6v-2H4V9H2V6h5V4Zm2 3v10h8V7H9Zm1 2h2v6h-2V9Zm4 0h2v6h-2V9Z',
+  archive:
+    'M4 5h16v3h-2v2H6V8H4V5Zm2 5v9h12v-9H6Zm4 2h4v2h-4v-2Z',
+  share:
+    'M18 8h3v3h-3v2h-2v2h-2v2h-2v2h-2v2H8v-2H6v-2H4v-2H2v-3h3v2h2v2h2v2h2v-2h2v-2h2v-2h2V8Zm-4-4h4v4h-4V4Z',
+  close:
+    'M5 5h4v3h2v2h2V8h2V5h4v4h-3v2h-2v2h2v2h3v4h-4v-3h-2v-2h-2v2H9v3H5v-4h3v-2h2v-2H8V9H5V5Z',
+  terminal:
+    'M3 5h18v14H3V5Zm2 3v8h14V8H5Zm2 2h2v2H7v-2Zm3 3h5v2h-5v-2Z',
+  task_alt:
+    'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
+  warning:
+    'M11 3h2v2h2v4h2v4h2v6H5v-6h2V9h2V5h2V3Zm0 6v5h2V9h-2Zm0 7v2h2v-2h-2Z',
+  error: 'M7 4h10v2h2v10h-2v2H7v-2H5V6h2V4Zm2 4v2h6V8H9Zm0 4v2h6v-2H9Z',
+  info: 'M9 4h6v2h2v12h-2v2H9v-2H7V6h2V4Zm2 3v2h2V7h-2Zm0 4v6h2v-6h-2Z',
+  dot: 'M10 10h4v4h-4v-4Z',
+  'filter-alt': 'M4 5h16v2h-2v3h-4v8H9v-8H5V7H4V5Zm2 2v2h4v8h2v-8h4V7H6Z',
+  'keyboard-arrow-down': 'M7 9h2v2h2v2h2v-2h2V9h2v2h-2v2h-2v2h-2v2h-2v-2H9v-2H7v-2H5V9h2Z',
+} as const;
+---
+
+{
+  label ? (
+    <svg
+      role="img"
+      aria-label={label}
+      class="icon"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d={paths[name] ?? paths.bolt}></path>
+    </svg>
+  ) : (
+    <svg
+      aria-hidden="true"
+      class="icon"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d={paths[name] ?? paths.bolt}></path>
+    </svg>
+  )
+}
+
+<style>
+  .icon {
+    display: inline-block;
+    flex: none;
+    shape-rendering: crispEdges;
+  }
+</style>

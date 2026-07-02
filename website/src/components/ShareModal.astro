@@ -1,0 +1,182 @@
+<dialog
+  id="share-modal"
+  class="share-modal-dialog"
+  aria-labelledby="share-modal-title"
+  aria-modal="true"
+>
+  <div class="share-modal-panel pixel-panel">
+    <div class="share-modal-header">
+      <div>
+        <p class="share-modal-kicker">Share</p>
+        <h2 id="share-modal-title" class="share-modal-title">Share this resource</h2>
+      </div>
+      <button
+        type="button"
+        class="share-modal-close"
+        id="share-modal-close"
+        aria-label="Close dialog"
+      >
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/>
+        </svg>
+      </button>
+    </div>
+
+    <p id="share-modal-desc" class="share-modal-desc">
+      Share this page or copy the canonical link.
+    </p>
+
+    <section class="share-modal-actions" aria-label="Share targets">
+      <a id="share-modal-x" class="share-target share-target--x" href="#" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+          <path d="M18.244 2H21.5l-7.11 8.128L22.75 22h-6.547l-5.126-6.709L5.21 22H1.952l7.605-8.693L1.5 2h6.713l4.634 6.117L18.244 2Zm-1.142 18h1.804L7.228 3.896H5.292L17.102 20Z"/>
+        </svg>
+        <span>Share on X</span>
+      </a>
+
+      <a id="share-modal-whatsapp" class="share-target share-target--whatsapp" href="#" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+          <path d="M12.04 2C6.52 2 2.04 6.48 2.04 12c0 1.77.46 3.5 1.34 5.02L2 22l5.12-1.33A9.94 9.94 0 0 0 12.04 22c5.52 0 10-4.48 10-10s-4.48-10-10-10Zm0 18.18a8.13 8.13 0 0 1-4.14-1.13l-.3-.18-3.04.79.81-2.96-.2-.31a8.13 8.13 0 1 1 6.87 3.79Zm4.46-6.05c-.24-.12-1.4-.69-1.62-.77-.22-.08-.38-.12-.54.12-.16.24-.62.77-.76.93-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.95-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.01-.36.1-.48.1-.1.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.48-.4-.4-.54-.4h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2 0 1.18.86 2.32.98 2.48.12.16 1.68 2.56 4.08 3.59.57.24 1.02.38 1.37.48.58.18 1.1.16 1.52.1.46-.07 1.4-.57 1.6-1.12.2-.55.2-1.02.14-1.12-.06-.1-.22-.16-.46-.28Z"/>
+        </svg>
+        <span>Share on WhatsApp</span>
+      </a>
+
+      <a id="share-modal-linkedin" class="share-target share-target--linkedin" href="#" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+          <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5ZM.5 8h4V23h-4V8Zm6.5 0h3.83v2.05h.05c.53-1 1.84-2.05 3.79-2.05 4.05 0 4.8 2.67 4.8 6.14V23h-4v-6.95c0-1.66-.03-3.79-2.31-3.79-2.31 0-2.67 1.8-2.67 3.67V23H7V8Z"/>
+        </svg>
+        <span>Share on LinkedIn</span>
+      </a>
+
+      <button id="share-modal-copy" type="button" class="share-target share-target--copy">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path d="M9 9.75A2.75 2.75 0 0 1 11.75 7h6.5A2.75 2.75 0 0 1 21 9.75v8.5A2.75 2.75 0 0 1 18.25 21h-6.5A2.75 2.75 0 0 1 9 18.25v-8.5Z" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M15 7V5.75A2.75 2.75 0 0 0 12.25 3h-6.5A2.75 2.75 0 0 0 3 5.75v8.5A2.75 2.75 0 0 0 5.75 17H9" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        <span>Copy link</span>
+      </button>
+    </section>
+  </div>
+</dialog>
+
+<style>
+  .share-modal-dialog {
+    border: none;
+    padding: 0;
+    background: transparent;
+    max-width: 100%;
+    width: min(420px, calc(100vw - 24px));
+  }
+
+  .share-modal-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .share-modal-dialog[open] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .share-modal-panel {
+    position: relative;
+    overflow: hidden;
+    border: 4px solid var(--color-border-soft);
+    border-radius: 0;
+    background: var(--color-bg-elevated);
+    box-shadow: 4px 4px 0 var(--color-black);
+    padding: 24px;
+    width: 100%;
+  }
+
+  .share-modal-header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .share-modal-kicker {
+    margin: 0 0 0.35rem;
+    color: var(--color-green);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .share-modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .share-modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--color-border-soft);
+    background: var(--color-surface-1);
+    color: var(--color-text);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .share-modal-close:hover {
+    background: var(--color-surface-2);
+  }
+
+  .share-modal-desc {
+    margin: 0 0 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+  }
+
+  .share-modal-actions {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .share-target {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.75rem;
+    border: 2px solid var(--color-border-soft);
+    background: var(--color-bg);
+    box-shadow: 2px 2px 0 var(--color-black);
+    color: var(--color-text);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    justify-content: flex-start;
+    min-height: 52px;
+    padding: 0.85rem 0.95rem;
+    text-decoration: none;
+  }
+
+  .share-target:hover {
+    background: var(--color-surface-2);
+  }
+
+  .share-target--x svg {
+    color: var(--color-text);
+  }
+
+  .share-target--whatsapp svg {
+    color: #25d366;
+  }
+
+  .share-target--linkedin svg {
+    color: #0a66c2;
+  }
+
+  .share-target--copy svg {
+    color: var(--color-primary);
+  }
+</style>

@@ -50,7 +50,7 @@ Let's start by walking through a scenario that modifies code, generates tests, r
 
 Instead of switching between your editor, terminal, test runner, and GitHub UI and losing context each time, you can combine all your tools in one terminal session. We'll break down this pattern in the [Integration Pattern](#the-integration-pattern-for-power-users) section below.
 
-```bash
+```bash frame="none"
 # Start Copilot in interactive mode
 copilot
 
@@ -133,7 +133,7 @@ Here's the mental model for combining everything:
 
 Real-world bug fixing with full tool integration:
 
-```bash
+```bash frame="none"
 copilot
 
 # PHASE 1: Understand the bug from GitHub (MCP provides this)
@@ -247,7 +247,7 @@ git commit -m "Update book collection methods"
 
 When joining a new project, combine context, agents, and MCP to ramp up fast:
 
-```bash
+```bash frame="none"
 # Start Copilot in interactive mode
 copilot
 
@@ -288,7 +288,7 @@ Patterns and habits that make your workflows more effective.
 
 Always gather context before asking for analysis:
 
-```bash
+```bash frame="none"
 # Good
 > Get the details of issue #42
 > /agent
@@ -306,7 +306,7 @@ Always gather context before asking for analysis:
 
 Each tool has a sweet spot:
 
-```bash
+```bash frame="none"
 # Agents: Specialized personas you explicitly activate
 > /agent
 # Select python-reviewer
@@ -327,7 +327,7 @@ Each tool has a sweet spot:
 
 Use `/rename` to label your session (makes it easy to find in history) and `/exit` to end it cleanly:
 
-```bash
+```bash frame="none"
 # Good: One feature per session
 > /rename list-unread-feature
 # Work on list unread

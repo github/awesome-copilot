@@ -1,53 +1,558 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+/**
+ * Agents catalog page — visual shell ported from awesome-copilot-jh base UI.
+ *
+ * Retains upstream data adapters, fuzzy search, filter logic, URL sync, and modal.
+ * Visual structure: console header card, pixel stat cards, terminal filter bar,
+ * 3-column pixel card grid — all using base class names.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import Card from '../components/ui/Card.astro';
+import Badge from '../components/ui/Badge.astro';
+import Icon from '../components/ui/Icon.astro';
+import ResourceModal from '../components/resource/ResourceModal.astro';
 import agentsData from '../../public/data/agents.json';
-import ContributeCTA from '../components/ContributeCTA.astro';
-import EmbeddedPageData from '../components/EmbeddedPageData.astro';
-import PageHeader from '../components/PageHeader.astro';
-import BackToTop from '../components/BackToTop.astro';
-import Modal from '../components/Modal.astro';
-import { renderAgentsHtml, sortAgents } from '../scripts/pages/agents-render';
+import type { AgentItem } from '../lib/upstream-types';
 
-const initialItems = sortAgents(agentsData.items, 'title');
+/* ── Read upstream data for static stats ──── */
+const rawItems = (agentsData as { items: AgentItem[] }).items;
+
+/* ── Compute stats ────────────────────────── */
+const toolEnabledCount = rawItems.filter(a => (a.tools ?? []).length > 0).length;
+const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
+
 ---
 
-<StarlightPage frontmatter={{ title: 'Custom Agents', description: 'Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content" class="agents-page listing-cards-page">
-    <PageHeader title="Custom Agents" description="Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains" icon="robot" />
-
-    <div class="page-content">
-      <div class="container">
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} agents</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" aria-label="Sort by">
-                      <option value="title">Name (A-Z)</option>
-                      <option value="lastUpdated">Recently Updated</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </details>
-          </div>
+<BaseLayout title="Custom Agents · Awesome GitHub Copilot" description="Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains">
+  <section id="agents" class="section" aria-labelledby="agents-title">
+    <Container>
+      <!-- Console header card -->
+      <Card class="console-header-card">
+        <div class="console-summary-text">
+          <p class="console-eyebrow">/agents · fuzzy search + URL-synced filters</p>
+          <h1 id="agents-title" class="console-title">Agent marketplace console</h1>
+          <p class="console-description">Filter by model, tools and handoffs. Open any resource in a keyboard-safe file modal.</p>
         </div>
-        <div class="resource-list" id="resource-list" role="list" set:html={renderAgentsHtml(initialItems)}></div>
-        <ContributeCTA resourceType="agents" />
+
+        <dl class="console-stats-grid" aria-label="Agent stats">
+          <div class="console-stat-card console-stat-card--active"><dd>{rawItems.length}</dd><dt>agents</dt></div>
+          <div class="console-stat-card"><dd>{toolEnabledCount}</dd><dt>tool-enabled</dt></div>
+          <div class="console-stat-card"><dd>{handoffCount}</dd><dt>handoff chains</dt></div>
+        </dl>
+      </Card>
+
+      <!-- Filter bar -->
+      <div class="console-filter-bar">
+        <label class="console-search-control">
+          <span aria-hidden="true" class="console-prompt">&gt;</span>
+          <span class="sr-only">Search agents</span>
+          <input id="agent-search" type="search" placeholder="search agents…" aria-label="Search agents" autocomplete="off" />
+          <Icon name="search" size={16} />
+        </label>
+
+        <label class="console-select-control console-select-control--active" for="filter-model">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="model">model: all</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
+          <select id="filter-model" data-filter-param="model" multiple aria-label="Filter agents by model">
+            <option value="">All Models</option>
+          </select>
+        </label>
+
+        <button class="console-toggle" type="button" data-filter-param="hasMcpServers" aria-pressed="false" aria-label="Toggle MCP servers only filter">
+          <Icon name="filter-alt" size={15} />
+          <span>MCP servers</span>
+        </button>
+
+        <button class="console-toggle" type="button" data-filter-param="handoffs" aria-pressed="false" aria-label="Toggle handoffs only filter">
+          <Icon name="filter-alt" size={15} />
+          <span>handoffs only</span>
+        </button>
+
+        <label class="console-select-control console-select-control--sort" for="sort-select">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: Recently Updated</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
+          <select id="sort-select" data-filter-param="sort" data-default-value="lastUpdated" aria-label="Sort agents">
+            <option value="lastUpdated">Recently Updated</option>
+            <option value="title">Name (A-Z)</option>
+          </select>
+        </label>
+
+        <button class="console-reset-control" type="button" aria-label="Clear filters" id="filter-clear"><Icon name="delete" size={15} /></button>
       </div>
-    </div>
-  </div>
 
-  <BackToTop />
-  <Modal />
-  <EmbeddedPageData filename="agents.json" data={agentsData} />
+      <!-- Results meta -->
+      <section class="marketplace-results" aria-label="Matching agents">
+        <div class="results-meta">
+          <p id="resource-count">{rawItems.length} agents</p>
+        </div>
+      </section>
 
-  <script>
-    import '../scripts/listing-flyouts';
-    import '../scripts/pages/agents';
-  </script>
-</StarlightPage>
+      <!-- Results grid -->
+      <div id="agent-grid" class="resource-grid"></div>
+      <div id="agent-load-sentinel" class="agent-load-sentinel" aria-hidden="true"></div>
+      <button id="agent-load-more" class="filter-clear agent-load-more" type="button" hidden>Load more agents</button>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="empty-state" hidden>
+        <h3>No agents found</h3>
+        <p>Try adjusting your search or filters.</p>
+        <button id="empty-clear" class="filter-clear" type="button">Clear all filters</button>
+      </div>
+
+      <!-- Search results dropdown -->
+      <div id="agent-search-results" class="search-results-dropdown" role="listbox" aria-label="Search results"></div>
+      <div id="agent-search-status" class="search-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    </Container>
+  </section>
+
+  <ResourceModal />
+</BaseLayout>
+
+<script>
+  import { initSearch, createSearch } from '../scripts/search-client';
+  import {
+    readFiltersFromUrl,
+    applyFilters,
+    clearAllFilters,
+    describeFilters,
+    type FilterConfig,
+    type ActiveFilters,
+  } from '../scripts/filters';
+  import { initModalFromHash } from '../scripts/modal-client';
+  import { getQueryParam, updateQueryParams } from '../scripts/url-state';
+  import { toggleFlag } from '../scripts/filters';
+  import type { Accent, ResultItem } from '../lib/types';
+  import type { AgentItem } from '../lib/upstream-types';
+
+  const AGENT_ACCENTS: Accent[] = ['purple', 'blue', 'green', 'yellow'];
+  const INITIAL_RENDER_COUNT = 36;
+  const RENDER_BATCH_SIZE = 24;
+
+  interface AgentsData {
+    items: AgentItem[];
+  }
+
+  type AgentClientItem = Pick<ResultItem, 'id' | 'title' | 'label' | 'description' | 'tags' | 'accent' | 'detail' | 'model' | 'tools'> & {
+    filterModel: string;
+    filterTools: string[];
+    filterHandoffs: boolean;
+    sortDate: string;
+  };
+
+  function getModel(item: AgentItem): string {
+    return item.model && Array.isArray(item.model) && item.model.length > 0 ? item.model.join(', ') : '(none)';
+  }
+
+  function getStableAccent(item: AgentItem): Accent {
+    const source = item.id || item.filename || item.title;
+    let hash = 0;
+    for (const char of source) {
+      hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    }
+    return AGENT_ACCENTS[hash % AGENT_ACCENTS.length];
+  }
+
+  function buildLabel(item: AgentItem): string {
+    if (item.hasHandoffs) return 'handoff enabled';
+    if ((item.tools ?? []).length > 0) return 'tool-enabled';
+    if (item.model) return 'model configured';
+    return 'agent';
+  }
+
+  function buildTags(item: AgentItem): string[] {
+    const tools = item.tools ?? [];
+    const tags = [getModel(item), ...tools.slice(0, 3)];
+    if (tools.length > 3) tags.push(`+${tools.length - 3} more`);
+    if (item.hasHandoffs) tags.push('handoffs');
+    return tags;
+  }
+
+  function toClientItem(item: AgentItem): AgentClientItem {
+    const model = getModel(item);
+    return {
+      id: item.id,
+      title: item.title,
+      label: buildLabel(item),
+      description: item.description,
+      tags: buildTags(item),
+      accent: getStableAccent(item),
+      detail: item.path,
+      model,
+      tools: item.tools,
+      filterModel: model,
+      filterTools: item.tools ?? [],
+      filterHandoffs: item.hasHandoffs,
+      sortDate: item.lastUpdated ?? '',
+    };
+  }
+
+  function escapeHtml(value: string): string {
+    return value.replace(/[&<>'"]/g, (char) => {
+      switch (char) {
+        case '&': return '&amp;';
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case "'": return '&#39;';
+        case '"': return '&quot;';
+        default: return char;
+      }
+    });
+  }
+
+  async function loadAgentItems(): Promise<AgentClientItem[]> {
+    const response = await fetch('/data/agents.json');
+    if (!response.ok) throw new Error(`Failed to load agents data: ${response.status}`);
+    const data = await response.json() as AgentsData;
+    return data.items.map(toClientItem);
+  }
+
+  function sortItems(list: AgentClientItem[], sortBy: string): AgentClientItem[] {
+    const sorted = [...list];
+    if (sortBy === 'lastUpdated') {
+      sorted.sort((a, b) => b.sortDate.localeCompare(a.sortDate));
+    } else {
+      sorted.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return sorted;
+  }
+
+  /* ── Resolver for filter matching ───────── */
+  function resolver(item: AgentClientItem): Record<string, string[]> {
+    return {
+      model: [item.filterModel],
+      hasMcpServers: item.filterTools.length > 0 ? ['1'] : [],
+      handoffs: item.filterHandoffs ? ['1'] : [],
+    };
+  }
+
+  function renderGrid(grid: HTMLElement | null, filtered: AgentClientItem[], visibleCount: number): void {
+    if (!grid) return;
+
+    grid.innerHTML = filtered
+      .slice(0, visibleCount)
+      .map((item) => {
+        const accent = escapeHtml(item.accent ?? 'purple');
+        const path = escapeHtml(item.detail ?? '');
+        const id = item.id ?? '';
+        return `
+          <a class="resource-card resource-card--${accent}" role="listitem" data-path="${path}" data-id="${escapeHtml(id)}" href="/agent/${encodeURIComponent(id)}/">
+            <span class="resource-card__topline">
+              <span class="badge badge--${accent}">${escapeHtml(item.label)}</span>
+            </span>
+            <span class="resource-card__body">
+              <span class="resource-card__title">${escapeHtml(item.title)}</span>
+              <span class="resource-card__description">${escapeHtml(item.description)}</span>
+            </span>
+            <span class="resource-card__footer">
+              <span class="resource-card__tags">${item.tags.slice(0, 3).map(tag => `<span class="badge badge--neutral">${escapeHtml(tag)}</span>`).join('')}</span>
+              <span class="resource-card__cta">Open details <svg aria-hidden="true" class="icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="shape-rendering:crispEdges"><path d="M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z"/></svg></span>
+            </span>
+          </a>`;
+      })
+      .join('');
+  }
+
+  async function initAgentsCatalog(): Promise<void> {
+    const grid = document.getElementById('agent-grid');
+    const countEl = document.getElementById('resource-count');
+    const emptyState = document.getElementById('empty-state');
+    const loadSentinel = document.getElementById('agent-load-sentinel');
+    const loadMore = document.getElementById('agent-load-more') as HTMLButtonElement | null;
+    const filterClear = document.getElementById('filter-clear');
+    const emptyClear = document.getElementById('empty-clear');
+
+    if (countEl) countEl.textContent = 'Loading agents...';
+
+    let items: AgentClientItem[];
+    try {
+      items = await loadAgentItems();
+    } catch (error) {
+      console.error(error);
+      if (countEl) countEl.textContent = 'Failed to load agents';
+      if (emptyState) emptyState.hidden = false;
+      return;
+    }
+
+    const models = [...new Set(items.map(a => a.filterModel))].sort();
+
+    const modelSelect = document.getElementById('filter-model') as HTMLSelectElement | null;
+    if (modelSelect) {
+      modelSelect.innerHTML = '<option value="">All Models</option>' +
+        models.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+    }
+
+    const filterConfigs: FilterConfig[] = [
+      { param: 'model', label: 'Model', type: 'multi', options: models.map(m => ({ value: m, label: m })) },
+      { param: 'hasMcpServers', label: 'MCP Servers', type: 'flag', options: [] },
+      { param: 'handoffs', label: 'Has Handoffs', type: 'flag', options: [] },
+      { param: 'sort', label: 'Sort', type: 'single', options: [
+        { value: 'title', label: 'Name (A-Z)' },
+        { value: 'lastUpdated', label: 'Recently Updated' },
+      ]},
+    ];
+
+    // Initialize custom dropdowns for single-select controls
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
+
+    // Wire event listeners for selects and toggles
+    const sortSelect = document.getElementById('sort-select') as HTMLSelectElement | null;
+    const mcpToggle = document.querySelector<HTMLButtonElement>('[data-filter-param="hasMcpServers"]');
+    const handoffsToggle = document.querySelector<HTMLButtonElement>('[data-filter-param="handoffs"]');
+
+    modelSelect?.addEventListener('change', () => {
+      const selected = Array.from(modelSelect.selectedOptions).map(o => o.value).filter(Boolean);
+      updateQueryParams({ setAll: { model: selected } });
+      applyAndRender();
+    });
+
+    sortSelect?.addEventListener('change', () => {
+      const value = sortSelect.value;
+      updateQueryParams({ set: { sort: value || null } });
+      applyAndRender();
+    });
+
+    mcpToggle?.addEventListener('click', () => {
+      const active = mcpToggle.getAttribute('aria-pressed') === 'true';
+      toggleFlag('hasMcpServers', active);
+      applyAndRender();
+    });
+
+    handoffsToggle?.addEventListener('click', () => {
+      const active = handoffsToggle.getAttribute('aria-pressed') === 'true';
+      toggleFlag('handoffs', active);
+      applyAndRender();
+    });
+
+    const engine = createSearch<AgentClientItem>(items);
+    let currentItems: AgentClientItem[] = [];
+    let visibleCount = INITIAL_RENDER_COUNT;
+    let currentTotal = items.length;
+    let currentFilterDesc = '';
+
+    function updateProgressiveRender(): void {
+      const visibleItems = Math.min(visibleCount, currentItems.length);
+      renderGrid(grid, currentItems, visibleItems);
+
+      if (countEl) {
+        const base = `Showing ${visibleItems} of ${currentItems.length} matching agent${currentItems.length === 1 ? '' : 's'} (${currentTotal} total)`;
+        countEl.textContent = currentFilterDesc ? `${base} · ${currentFilterDesc}` : base;
+      }
+
+      if (loadMore) {
+        loadMore.hidden = visibleItems >= currentItems.length;
+        loadMore.textContent = `Load more agents (${visibleItems}/${currentItems.length})`;
+      }
+
+      if (loadSentinel) loadSentinel.hidden = visibleItems >= currentItems.length;
+    }
+
+    function showNextBatch(): void {
+      if (visibleCount >= currentItems.length) return;
+      visibleCount = Math.min(visibleCount + RENDER_BATCH_SIZE, currentItems.length);
+      updateProgressiveRender();
+    }
+
+    function applyAndRender(): void {
+      const filters = readFiltersFromUrl(filterConfigs);
+      const query = getQueryParam('q') ?? '';
+
+      let filtered = query
+        ? engine.search(query).filter((r): r is AgentClientItem => r != null)
+        : [...items];
+
+      const { results, total } = applyFilters(filtered, filters, resolver);
+      const sortBy = filters.single['sort'] || 'lastUpdated';
+      const sorted = sortItems(results, sortBy);
+      const filterDesc = describeFilters(filters, filterConfigs);
+      currentItems = sorted;
+      visibleCount = INITIAL_RENDER_COUNT;
+      currentTotal = total;
+      currentFilterDesc = filterDesc;
+
+      updateProgressiveRender();
+
+      if (emptyState) emptyState.hidden = sorted.length > 0;
+      if (grid) grid.style.display = sorted.length > 0 ? '' : 'none';
+
+      updateFilterDisplays(filters);
+    }
+
+    function updateFilterDisplays(filters: ActiveFilters): void {
+      const modelDisplay = document.querySelector<HTMLElement>('.filter-display[data-param="model"]');
+      const sortDisplay = document.querySelector<HTMLElement>('.filter-display[data-param="sort"]');
+      const mcpToggleBtn = document.querySelector<HTMLButtonElement>('[data-filter-param="hasMcpServers"]');
+      const handoffsToggleBtn = document.querySelector<HTMLButtonElement>('[data-filter-param="handoffs"]');
+
+      if (modelDisplay) {
+        const vals = filters.multi['model'] ?? [];
+        modelDisplay.textContent = vals.length > 0 ? `model: ${vals.join(', ')}` : 'model: all';
+      }
+      if (sortDisplay) {
+        const val = filters.single['sort'] || 'lastUpdated';
+        const label = val === 'title' ? 'Name (A-Z)' : 'Recently Updated';
+        sortDisplay.textContent = `sort: ${label}`;
+      }
+      if (mcpToggleBtn) {
+        const active = filters.flags['hasMcpServers'] === true;
+        mcpToggleBtn.setAttribute('aria-pressed', String(active));
+        if (active) mcpToggleBtn.classList.add('console-toggle--active');
+        else mcpToggleBtn.classList.remove('console-toggle--active');
+      }
+      if (handoffsToggleBtn) {
+        const active = filters.flags['handoffs'] === true;
+        handoffsToggleBtn.setAttribute('aria-pressed', String(active));
+        if (active) handoffsToggleBtn.classList.add('console-toggle--active');
+        else handoffsToggleBtn.classList.remove('console-toggle--active');
+      }
+    }
+
+    loadMore?.addEventListener('click', showNextBatch);
+
+    if (loadSentinel && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries.some(entry => entry.isIntersecting)) showNextBatch();
+      }, { rootMargin: '320px' });
+      observer.observe(loadSentinel);
+    }
+
+    function doClear(): void {
+      clearAllFilters(filterConfigs);
+      applyAndRender();
+    }
+    filterClear?.addEventListener('click', doClear);
+    emptyClear?.addEventListener('click', doClear);
+
+    initSearch<AgentClientItem>(engine, {
+      inputSelector: '#agent-search',
+      resultsSelector: '#agent-search-results',
+      statusSelector: '#agent-search-status',
+      minLength: 1,
+      maxResults: 40,
+    }, {
+      render(item, idx, _query, highlight) {
+        const title = highlight(item.title, _query);
+        const desc = highlight(
+          item.description.length > 100 ? `${item.description.slice(0, 100)}…` : item.description,
+          _query,
+        );
+        return `
+          <div class="search-result" data-result-index="${idx}" role="option" aria-selected="false">
+            <span class="search-result-title">${title}</span>
+            <span class="search-result-desc">${desc}</span>
+          </div>`;
+      },
+      onSelect(_item) {
+        applyAndRender();
+        const resultsEl = document.querySelector('#agent-search-results') as HTMLElement;
+        if (resultsEl) resultsEl.style.display = 'none';
+      },
+      statusText(query, resultCount, totalCount) {
+        if (!query) return '';
+        if (resultCount === 0) return `No agents match "${query}"`;
+        return `${resultCount} of ${totalCount} agents match "${query}"`;
+      },
+    });
+
+    initModalFromHash();
+    applyAndRender();
+  }
+
+  initAgentsCatalog();
+</script>
+
+<style is:global>
+  /* ── Search results dropdown ────────────── */
+  .search-results-dropdown {
+    position: absolute;
+    z-index: 10;
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-bg-elevated);
+    box-shadow: var(--shadow-card);
+    display: none;
+  }
+  .search-status {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--color-muted);
+    min-height: 1.2rem;
+  }
+
+  /* ── Search result rows in dropdown ─────── */
+  .search-result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--color-border-soft);
+    cursor: pointer;
+    transition: background var(--motion-fast);
+  }
+  .search-result:last-child { border-bottom: none; }
+  .search-result:hover,
+  .search-result--active { background: var(--color-surface-2); }
+  .search-result-title {
+    font-weight: 700;
+    font-family: var(--font-heading);
+    font-size: 0.92rem;
+    color: var(--color-text);
+  }
+  .search-result-desc {
+    width: 100%;
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    margin-top: 0.15rem;
+  }
+  .search-result mark {
+    background: var(--color-primary);
+    color: var(--color-black);
+    padding: 0 0.15rem;
+    border-radius: 2px;
+  }
+
+  /* ── Empty state ──────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: var(--space-12) var(--space-4);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-2);
+    background: var(--color-bg-elevated);
+    margin-top: var(--space-4);
+  }
+  .empty-state h3 {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    color: var(--color-text);
+  }
+  .empty-state p {
+    margin: 0 0 1rem;
+    color: var(--color-muted);
+  }
+  .filter-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    border: 2px solid var(--color-green);
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-green);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 900;
+    box-shadow: 3px 3px 0 var(--color-black);
+    transition: background var(--motion-fast);
+  }
+  .filter-clear:hover { background: var(--color-green); color: var(--color-black); }
+  .filter-clear:focus-visible { outline: 2px solid rgb(255 255 255 / 35%); outline-offset: 2px; }
+</style>

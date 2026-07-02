@@ -1,0 +1,27 @@
+---
+export interface Props {
+  class?: string;
+  highlighted?: boolean;
+}
+
+const { highlighted = false } = Astro.props;
+---
+<div class:list={['card', Astro.props.class, { 'card--highlighted': highlighted }]}>
+  <slot />
+</div>
+
+<style>
+  .card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 1.8%), rgb(255 255 255 / 0%)),
+      var(--color-bg-elevated);
+    box-shadow: var(--shadow-card);
+  }
+
+  .card--highlighted {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px rgb(169 112 255 / 16%), var(--shadow-card);
+  }
+</style>

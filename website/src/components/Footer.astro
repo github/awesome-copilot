@@ -17,6 +17,7 @@ import ThemeToggle from "./ThemeToggle.astro";
   {
     config.credits && (
       <a class="kudos sl-flex" href="https://starlight.astro.build">
+        {/* @ts-ignore — Starlight i18n key exists at runtime but isn't in the generated I18nKeys union yet. */}
         <Icon name={"starlight"} /> {Astro.locals.t("starlight:builtWithStarlight.label")}
       </a>
     )

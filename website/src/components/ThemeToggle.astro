@@ -6,6 +6,7 @@
   <button
     id="theme-toggle"
     class="theme-toggle"
+    type="button"
     aria-label="Toggle theme"
     title="Change theme"
   >
@@ -79,6 +80,8 @@
       // Highlight active icon
       const themeToggle = document.querySelector('.theme-toggle');
       themeToggle?.setAttribute('data-active', String(index));
+      themeToggle?.setAttribute('aria-label', `Toggle theme. Current theme: ${theme}`);
+      themeToggle?.setAttribute('title', `Current theme: ${theme}`);
     }
 
     function cycleTheme() {
@@ -121,13 +124,16 @@
     display: flex;
     position: relative;
     width: 108px;
-    height: 36px;
-    padding: 3px;
-    border: 1px solid var(--color-border);
-    border-radius: 20px;
+    min-height: 44px;
+    padding: 4px;
+    border: 2px solid var(--color-border);
+    border-radius: 24px;
     background: var(--color-bg-secondary);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease;
     overflow: hidden;
   }
 
@@ -136,7 +142,7 @@
   }
 
   .theme-toggle:focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid rgb(255 255 255 / 35%);
     outline-offset: 2px;
   }
 
@@ -145,10 +151,10 @@
     align-items: center;
     justify-content: center;
     width: 36px;
-    height: 30px;
-    border-radius: 16px;
+    min-height: 36px;
+    border-radius: 18px;
     color: var(--color-text-muted);
-    transition: all 0.2s ease;
+    transition: color 0.2s ease;
     z-index: 1;
     font-weight: 400;
   }

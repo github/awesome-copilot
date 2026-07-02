@@ -58,7 +58,7 @@ Without extensions, your browser is still useful, but with them, it becomes a po
 Let's see MCP in action right now, before configuring anything.
 The GitHub MCP server is included by default. Try this:
 
-```bash
+```bash frame="none"
 copilot
 > List the recent commits in this repository
 ```
@@ -71,7 +71,7 @@ If Copilot returns real commit data, you've just seen MCP in action. That's the 
 
 Use `/mcp show` to see which MCP servers are configured and whether they're enabled:
 
-```bash
+```bash frame="none"
 copilot
 
 > /mcp show
@@ -101,14 +101,14 @@ MCP Servers:
 Here's the difference MCP makes in practice:
 
 **Without MCP:**
-```bash
+```bash frame="none"
 > What's in GitHub issue #42?
 
 "I don't have access to GitHub. You'll need to copy and paste the issue content."
 ```
 
 **With MCP:**
-```bash
+```bash frame="none"
 > What's in GitHub issue #42 of this repository?
 
 Issue #42: Login fails with special characters
@@ -257,7 +257,7 @@ The [Microsoft Learn MCP Server](https://github.com/microsoftdocs/mcp) is a good
 
 Instead of editing your JSON config file manually, you can install it in one command:
 
-```bash
+```bash frame="none"
 copilot
 
 > /plugin install microsoftdocs/mcp
@@ -270,7 +270,7 @@ This adds the server and its associated agent skills automatically. The skills i
 - **microsoft-skill-creator**: A meta-skill for generating custom skills about Microsoft technologies
 
 **Usage:**
-```bash
+```bash frame="none"
 copilot
 
 > What's the recommended way to deploy a Python app to Azure App Service? Search Microsoft Learn.
@@ -300,7 +300,7 @@ You can control which URLs are accessible via `~/.copilot/config.json` (general 
 ```
 
 **Usage:**
-```bash
+```bash frame="none"
 copilot
 
 > Fetch and summarize the README from https://github.com/facebook/react
@@ -383,7 +383,7 @@ The GitHub MCP server is **built-in**. If you logged into Copilot (which you did
 - **Local dev container (Docker)**: Run `gh auth login` after the container starts, then restart Copilot.
 
 **Troubleshooting authentication:**
-```bash
+```bash frame="none"
 # Check if you're authenticated
 gh auth status
 
@@ -405,7 +405,7 @@ copilot
 | **Code search** | Search code across repositories |
 | **Actions** | Query workflow runs and status |
 
-```bash
+```bash frame="none"
 copilot
 
 # See recent activity in this repo
@@ -445,7 +445,7 @@ Found 1 file:
 
 Once configured, the filesystem MCP provides tools that Copilot can use automatically:
 
-```bash
+```bash frame="none"
 copilot
 
 > How many Python files are in the book-app-project directory?
@@ -474,7 +474,7 @@ Found 2 functions without type hints:
 
 ### Context7 Server
 
-```bash
+```bash frame="none"
 copilot
 
 > What are the best practices for using pytest fixtures?
@@ -519,7 +519,7 @@ Best practices:
 
 **Custom MCP Server**: If you built the book-lookup server from the [Custom MCP Server Guide](https://github.com/github/copilot-cli-for-beginners/blob/main/06-mcp-servers/mcp-custom-server.md), you can query your book collection directly:
 
-```bash
+```bash frame="none"
 copilot
 
 > Look up information about "1984" using the book lookup server. Search for books by George Orwell
@@ -527,7 +527,7 @@ copilot
 
 **Microsoft Learn MCP**: If you installed the [Microsoft Learn MCP server](#microsoft-learn-mcp-server), you can look up official Microsoft documentation directly:
 
-```bash
+```bash frame="none"
 copilot
 
 > How do I configure managed identity for an Azure Function? Search Microsoft Learn.
@@ -535,7 +535,7 @@ copilot
 
 **Web Fetch**: Use the built-in `web_fetch` tool to pull in content from any URL:
 
-```bash
+```bash frame="none"
 copilot
 
 > Fetch and summarize the README from https://github.com/facebook/react
@@ -567,7 +567,7 @@ Each example below is self-contained. **Pick one that interests you, or read the
 
 #### Exploring the Book App with Multiple MCP Servers
 
-```bash
+```bash frame="none"
 copilot
 
 # Step 1: Use filesystem MCP to explore the book app
@@ -629,7 +629,7 @@ This works best on your own fork or repository where you have write access:
 
 > 💡 **Don't worry if you can't try this right now.** If you're on a read-only clone, you'll practice this in the assignment. For now, just read through to understand the flow.
 
-```bash
+```bash frame="none"
 copilot
 
 > Get the details of GitHub issue #1
@@ -661,7 +661,7 @@ All 8 tests passed ✓
 
 #### Book App Health Dashboard
 
-```bash
+```bash frame="none"
 copilot
 
 > Give me a health report for the book app project:
@@ -715,7 +715,7 @@ Now it's your turn! Complete these exercises to practice using MCP servers with 
 
 Start by seeing what MCP servers are available:
 
-```bash
+```bash frame="none"
 copilot
 
 > /mcp show
@@ -729,7 +729,7 @@ You should see the GitHub server listed as enabled. If not, run `/login` to auth
 
 If you've configured the filesystem server, use it to explore the book app:
 
-```bash
+```bash frame="none"
 copilot
 
 > How many Python files are in samples/book-app-project/?
@@ -746,7 +746,7 @@ copilot
 
 Use the built-in GitHub MCP to explore this course repository:
 
-```bash
+```bash frame="none"
 copilot
 
 > List the last 5 commits in this repository
@@ -764,7 +764,7 @@ copilot
 
 Now combine filesystem and GitHub MCP in a single session:
 
-```bash
+```bash frame="none"
 copilot
 
 > Read samples/book-app-project/data.json and tell me what books are
@@ -804,7 +804,7 @@ Practice using MCP servers together on the book app project. Complete these step
 <summary>💡 Hints (click to expand)</summary>
 
 **Step 1: Verify MCP**
-```bash
+```bash frame="none"
 copilot
 > /mcp show
 # Should show "github" as enabled
@@ -865,7 +865,7 @@ Use `/mcp show` to see the current configuration.
 
 **"GitHub authentication failed"** - The built-in GitHub MCP uses your `/login` credentials. Try:
 
-```bash
+```bash frame="none"
 copilot
 > /login
 ```
@@ -879,7 +879,7 @@ npx -y @modelcontextprotocol/server-github
 ```
 
 **MCP tools not available** - Make sure the server is enabled:
-```bash
+```bash frame="none"
 copilot
 
 > /mcp show

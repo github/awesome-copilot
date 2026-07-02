@@ -1,277 +1,155 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import toolsData from '../../public/data/tools.json';
-import Modal from '../components/Modal.astro';
-import ContributeCTA from "../components/ContributeCTA.astro";
-import EmbeddedPageData from "../components/EmbeddedPageData.astro";
-import PageHeader from "../components/PageHeader.astro";
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import Card from '../components/ui/Card.astro';
+import Icon from '../components/ui/Icon.astro';
+import ContributeCTA from '../components/ContributeCTA.astro';
 import BackToTop from '../components/BackToTop.astro';
-import { renderToolsHtml, sortTools } from "../scripts/pages/tools-render";
+import toolsData from '../../public/data/tools.json';
 
-const initialItems = sortTools(
-  toolsData.items.map((item) => ({
-    ...item,
-    title: item.name,
-  })),
-  "title"
-);
+const rawItems = toolsData.items;
+const featuredCount = rawItems.filter((item) => item.featured).length;
+const categories = toolsData.filters.categories;
 ---
 
-<StarlightPage frontmatter={{ title: 'Tools', description: 'MCP servers and developer tools for GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content">
-    <PageHeader title="Tools" description="MCP servers and developer tools for GitHub Copilot" icon="wrench" />
-
-    <div class="page-content">
-      <div class="container">
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div id="results-count" class="results-count" aria-live="polite">{initialItems.length} tools</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort &amp; Filter</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="filter-category">Category:</label>
-                    <select id="filter-category" class="filter-select" aria-label="Filter by category">
-                      <option value="">All Categories</option>
-                      {toolsData.filters.categories.map((category) => (
-                        <option value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" class="filter-select" aria-label="Sort tools">
-                      <option value="featured">Featured First</option>
-                      <option value="title">Title</option>
-                    </select>
-                  </div>
-                  <button id="clear-filters" class="btn btn-secondary btn-small">Clear</button>
-                </div>
-              </div>
-            </details>
-          </div>
+<BaseLayout title="Tools · Awesome GitHub Copilot" description="MCP servers and developer tools for GitHub Copilot">
+  <section id="tools" class="section" aria-labelledby="tools-title">
+    <Container>
+      <Card class="console-header-card">
+        <div class="console-summary-text">
+          <p class="console-eyebrow">/tools · fuzzy search + on-demand details</p>
+          <h1 id="tools-title" class="console-title">Tools marketplace console</h1>
+          <p class="console-description">Filter Copilot-ready tools by category, then inspect capabilities and configuration in a dedicated internal detail UI.</p>
         </div>
 
-        <div id="tools-list" role="list" set:html={renderToolsHtml(initialItems)}></div>
+        <dl class="console-stats-grid" aria-label="Tool stats">
+          <div class="console-stat-card console-stat-card--active"><dd>{rawItems.length}</dd><dt>tools</dt></div>
+          <div class="console-stat-card"><dd>{featuredCount}</dd><dt>featured</dt></div>
+          <div class="console-stat-card"><dd>{categories.length}</dd><dt>categories</dt></div>
+        </dl>
+      </Card>
 
-        <div class="coming-soon">
-          <h2>More Tools Coming Soon</h2>
-          <p>
-            We're working on additional tools to enhance your GitHub Copilot
-            experience. Check back soon!
-          </p>
-        </div>
-        <ContributeCTA resourceType="tools" />
+      <div class="console-filter-bar" id="filters-bar">
+        <label class="console-search-control">
+          <span aria-hidden="true" class="console-prompt">&gt;</span>
+          <span class="sr-only">Search tools</span>
+          <input id="tool-search" type="search" placeholder="search tools…" aria-label="Search tools" autocomplete="off" />
+          <Icon name="search" size={16} />
+        </label>
+
+        <label class="console-select-control console-select-control--wide console-select-control--active" for="filter-category">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="category">category: all</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
+          <select id="filter-category" data-filter-param="category" aria-label="Filter tools by category">
+            <option value="">All Categories</option>
+            {categories.map((category) => <option value={category}>{category}</option>)}
+          </select>
+        </label>
+
+        <label class="console-select-control console-select-control--sort" for="sort-select">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: Featured First</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
+          <select id="sort-select" data-filter-param="sort" data-default-value="featured" aria-label="Sort tools">
+            <option value="featured">Featured First</option>
+            <option value="title">Title</option>
+          </select>
+        </label>
+
+        <button class="console-reset-control" type="button" aria-label="Clear filters" id="filter-clear"><Icon name="delete" size={15} /></button>
       </div>
-    </div>
-  </div>
 
-  <Modal />
+      <section class="marketplace-results" aria-label="Matching tools">
+        <div class="results-meta"><p id="resource-count">Loading tools...</p></div>
+      </section>
+
+      <div id="tool-grid" class="resource-grid" role="list"></div>
+      <div id="tool-load-sentinel" class="agent-load-sentinel" aria-hidden="true"></div>
+      <button id="tool-load-more" class="filter-clear agent-load-more" type="button" hidden>Load more tools</button>
+
+      <div id="empty-state" class="empty-state" hidden>
+        <h3>No tools found</h3>
+        <p>Try adjusting your search or filters.</p>
+        <button id="empty-clear" class="filter-clear" type="button">Clear all filters</button>
+      </div>
+
+      <div id="tool-search-results" class="search-results-dropdown" role="listbox" aria-label="Search results"></div>
+      <div id="tool-search-status" class="search-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <Card class="coming-soon-card">
+        <h2>More Tools Coming Soon</h2>
+        <p>We're working on additional tools to enhance your GitHub Copilot experience. Check back soon!</p>
+      </Card>
+
+      <ContributeCTA resourceType="tools" />
+    </Container>
+  </section>
+
   <BackToTop />
-  <EmbeddedPageData filename="tools.json" data={toolsData} />
+</BaseLayout>
 
-  <style is:global>
-    .empty-state {
-      text-align: center;
-      padding: 48px;
-      background-color: var(--color-bg-secondary);
-      border-radius: var(--border-radius-lg);
-    }
+<script>
+  import { initResourceCatalog, stableAccent, type CatalogClientItem } from '../scripts/resource-catalog';
+  import type { ToolItem } from '../lib/upstream-types';
 
-    .empty-state h3 {
-      color: var(--color-text-muted);
-      margin-bottom: 8px;
-    }
+  function toClientItem(item: ToolItem): CatalogClientItem {
+    return {
+      id: item.id,
+      title: item.name,
+      label: item.featured ? 'featured' : item.category,
+      description: item.description,
+      tags: [item.category, ...item.tags].slice(0, 5),
+      accent: stableAccent(item.id),
+      href: `/tool/${encodeURIComponent(item.id)}/`,
+      detail: item.configuration?.type ?? item.category,
+      sortTitle: item.name,
+      filters: {
+        category: [item.category],
+        featured: item.featured ? ['true'] : [],
+      },
+      searchText: `${item.name} ${item.description} ${item.category} ${item.tags.join(' ')} ${item.features.join(' ')} ${item.requirements.join(' ')}`,
+    };
+  }
 
-    .empty-state p {
-      color: var(--color-text-muted);
-    }
+  (async () => {
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
 
-    .tool-card {
-      background-color: var(--color-card-bg);
-      border: 1px solid var(--color-border);
-      border-radius: var(--border-radius-lg);
-      padding: 32px;
-      margin-bottom: 24px;
-    }
+    initResourceCatalog<ToolItem>({
+      dataUrl: 'data/tools.json',
+      gridSelector: '#tool-grid',
+      countSelector: '#resource-count',
+      emptySelector: '#empty-state',
+      searchInputSelector: '#tool-search',
+      searchResultsSelector: '#tool-search-results',
+      searchStatusSelector: '#tool-search-status',
+      loadMoreSelector: '#tool-load-more',
+      loadSentinelSelector: '#tool-load-sentinel',
+      clearSelector: '#filter-clear',
+      emptyClearSelector: '#empty-clear',
+      resourceName: 'tool',
+      resourceNamePlural: 'tools',
+      defaultSort: 'featured',
+      filterConfigs: [
+        { param: 'category', label: 'Category', type: 'single' },
+        { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'featured' },
+      ],
+      toClientItem,
+    });
+  })();
+</script>
 
-    .tool-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
+<style>
+  .coming-soon-card {
+    margin-top: var(--space-6);
+    text-align: center;
+  }
 
-    .tool-header h2 {
-      margin: 0;
-      font-size: 24px;
-      color: var(--color-text-emphasis);
-    }
+  .coming-soon-card h2 {
+    margin: 0 0 var(--space-2);
+  }
 
-    .tool-badges {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .tool-badge {
-      padding: 4px 12px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-
-    .tool-badge.featured {
-      background-color: var(--color-primary);
-      color: white;
-    }
-
-    .tool-badge.category {
-      background-color: var(--color-purple-light);
-      color: var(--color-purple-dark);
-    }
-
-    .tool-description {
-      color: var(--color-text-secondary);
-      font-size: 16px;
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-
-    .tool-section {
-      margin-top: 24px;
-    }
-
-    .tool-section h3 {
-      margin-bottom: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--color-text-emphasis);
-    }
-
-    .tool-section ul {
-      margin: 0;
-      padding-left: 24px;
-      color: var(--color-text-muted);
-    }
-
-    .tool-section li {
-      margin-bottom: 8px;
-    }
-
-    .tool-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 20px;
-    }
-
-    .tool-tag {
-      background-color: var(--color-bg-secondary);
-      color: var(--color-text-muted);
-      padding: 4px 12px;
-      border-radius: 16px;
-      font-size: 12px;
-      border: 1px solid var(--color-border);
-    }
-
-    .tool-config {
-      margin-top: 24px;
-    }
-
-    .tool-config h3 {
-      margin-bottom: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--color-text-emphasis);
-    }
-
-    .tool-config-wrapper {
-      position: relative;
-    }
-
-    .tool-config pre {
-      background-color: var(--color-bg-secondary);
-      border: 1px solid var(--color-border);
-      border-radius: var(--border-radius);
-      padding: 16px;
-      overflow-x: auto;
-      margin: 0;
-    }
-
-    .tool-config code {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--color-text-primary);
-      white-space: pre;
-    }
-
-    .tool-actions {
-      margin-top: 24px;
-      padding-top: 24px;
-      border-top: 1px solid var(--color-border);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .coming-soon {
-      text-align: center;
-      padding: 48px;
-      background-color: var(--color-bg-secondary);
-      border: 1px dashed var(--color-border);
-      border-radius: var(--border-radius-lg);
-    }
-
-    .coming-soon h2 {
-      color: var(--color-text-muted);
-      margin-bottom: 8px;
-    }
-
-    .coming-soon p {
-      color: var(--color-text-muted);
-    }
-
-    .copy-config-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      font-size: 13px;
-      background-color: var(--color-bg-primary);
-      border: 1px solid var(--color-border);
-      border-radius: var(--border-radius);
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      margin-top: 12px;
-      transition: all 0.2s;
-    }
-
-    .copy-config-btn:hover {
-      background-color: var(--color-bg-secondary);
-      color: var(--color-text-primary);
-      border-color: var(--color-text-muted);
-    }
-
-    .copy-config-btn.copied {
-      background-color: var(--color-success);
-      color: white;
-      border-color: var(--color-success);
-    }
-
-    /* Search highlight */
-    .search-highlight {
-      background-color: var(--color-warning);
-      color: var(--color-text-emphasis);
-      padding: 0 2px;
-      border-radius: 2px;
-    }
-  </style>
-
-  <script>
-    import '../scripts/listing-flyouts';
-    import '../scripts/pages/tools';
-  </script>
-</StarlightPage>
+  .coming-soon-card p {
+    margin: 0;
+    color: var(--color-muted);
+  }
+</style>

@@ -1,0 +1,168 @@
+---
+/**
+ * Grid of navigation cards for each resource section.
+ *
+ * Each card links to a resource page with icon, title (including count),
+ * description, and accent colour treatment.
+ */
+import type { ResourceCard } from '../../lib/types';
+import Icon from '../ui/Icon.astro';
+
+export interface Props {
+  cards: ResourceCard[];
+}
+
+const { cards } = Astro.props;
+
+/** Map ResourceCard icon names to the Icon component's SVGs. */
+const ICON_MAP: Record<string, string> = {
+  agent: 'agents',
+  instruction: 'instructions',
+  skill: 'skills',
+  hook: 'hooks',
+  workflow: 'workflows',
+  plugin: 'plugins',
+  tool: 'tools',
+  user: 'robot',
+  docs: 'docs',
+};
+---
+<section class="section-cards" aria-labelledby="browse-heading">
+  <div class="container">
+    <h2 id="browse-heading" class="section-heading">Browse Resources</h2>
+    <div class="cards-grid">
+      {cards.map((card, i) => (
+        <a
+          class="section-card"
+          href={card.href}
+          style={`--animation-delay: ${i * 50}ms; --accent: var(--color-${card.accent})`}
+        >
+          <span class="section-card-icon" aria-hidden="true">
+            <Icon name={ICON_MAP[card.icon] ?? card.icon} size={36} />
+          </span>
+          <div class="section-card-content">
+            <h3>{card.title}</h3>
+            <p>{card.description}</p>
+          </div>
+          <span class="section-card-arrow" aria-hidden="true">
+            <Icon name="arrow-right" size={14} />
+          </span>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .section-cards {
+    padding-block: var(--space-16);
+  }
+
+  .section-heading {
+    margin: 0 0 var(--space-8);
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--color-text);
+    text-align: center;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .section-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background:
+      linear-gradient(135deg, rgb(255 255 255 / 2%), rgb(255 255 255 / 0%)),
+      var(--color-bg-elevated);
+    padding: var(--space-5) var(--space-5);
+    text-decoration: none;
+    transition:
+      border-color var(--motion-fast),
+      transform var(--motion-fast),
+      box-shadow var(--motion-fast);
+    opacity: 0;
+    animation: card-slide-in 0.4s ease-out forwards;
+    animation-delay: var(--animation-delay, 0ms);
+  }
+
+  .section-card:hover {
+    border-color: var(--accent, var(--color-primary));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgb(0 0 0 / 40%);
+  }
+
+  .section-card-icon {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-1);
+    background: var(--color-surface-2);
+    color: var(--accent, var(--color-primary));
+  }
+
+  .section-card-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .section-card-content h3 {
+    margin: 0 0 0.25rem;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .section-card-content p {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--color-muted);
+    line-height: 1.45;
+  }
+
+  .section-card-arrow {
+    flex: none;
+    color: var(--color-muted);
+    transition: color var(--motion-fast), transform var(--motion-fast);
+  }
+
+  .section-card:hover .section-card-arrow {
+    color: var(--accent, var(--color-primary));
+    transform: translateX(3px);
+  }
+
+  @keyframes card-slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 780px) {
+    .cards-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+  }
+
+  @media (max-width: 500px) {
+    .cards-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

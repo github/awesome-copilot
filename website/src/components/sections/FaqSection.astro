@@ -1,0 +1,99 @@
+---
+/**
+ * FAQ section — ported from awesome-copilot-jh base UI.
+ *
+ * Renders the accordion FAQ list with terminal kicker.
+ */
+import Accordion from '../ui/Accordion.astro';
+import Container from '../ui/Container.astro';
+
+const faqItems = [
+  {
+    question: 'What can I find in this repository?',
+    answer: 'The repo collects Copilot agents, custom instructions, skills, hooks, workflows, plugins, and tools. Each resource is meant to be copied, installed, or adapted for real Copilot workflows.'
+  },
+  {
+    question: 'What is the difference between agents, instructions, and skills?',
+    answer: 'Agents define a specialized Copilot role, instructions add project or language guidance, and skills bundle repeatable workflows with their own instructions and supporting files.'
+  },
+  {
+    question: 'How do plugins fit into the catalog?',
+    answer: 'Plugins group related agents, commands, and skills so teams can install a complete Copilot setup instead of collecting separate files by hand.'
+  },
+  {
+    question: 'Can I contribute my own resource?',
+    answer: 'Yes. Add the resource in the matching folder, follow the front matter rules, run the validation commands, and update the generated README with the build script before opening a pull request.'
+  },
+  {
+    question: 'How do I check that a contribution is valid?',
+    answer: 'Run npm run build, npm run skill:validate for skills, npm run plugin:validate for plugins, and bash eng/fix-line-endings.sh before submitting changes.'
+  }
+];
+---
+<section class="faq-section" aria-labelledby="faq-title">
+  <Container>
+    <div class="faq-header">
+      <p class="faq-kicker">$ cat ~/faq.md</p>
+      <h2 id="faq-title">Common repo questions</h2>
+      <p class="faq-subtitle">Quick answers for people browsing, installing, or contributing resources.</p>
+    </div>
+    <div class="faq-list" role="list">
+      {faqItems.map((item, index) => (
+        <Accordion question={item.question} answer={item.answer} index={index} />
+      ))}
+    </div>
+  </Container>
+</section>
+
+<style>
+  .faq-section {
+    padding-block: 4rem 5rem;
+    border-top: 1px solid var(--color-border-soft);
+  }
+  .faq-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .faq-kicker {
+    margin: 0 0 0.75rem;
+    color: var(--color-green);
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+  .faq-header h2 {
+    margin: 0 0 0.6rem;
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1.06;
+  }
+  .faq-subtitle {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
+    line-height: 1.55;
+  }
+  .faq-list {
+    max-width: 800px;
+    margin-inline: auto;
+  }
+</style>
+
+<script is:inline>
+  (function() {
+    var list = document.querySelector('.faq-list');
+    if (!list) return;
+    list.addEventListener('click', function(event) {
+      var trigger = event.target.closest('.accordion-trigger');
+      if (!trigger) return;
+      var expanded = trigger.getAttribute('aria-expanded') === 'true';
+      var panelId = trigger.getAttribute('aria-controls');
+      var panel = document.getElementById(panelId);
+      trigger.setAttribute('aria-expanded', String(!expanded));
+      trigger.classList.toggle('is-open', !expanded);
+      if (panel) panel.hidden = expanded;
+    });
+  })();
+</script>

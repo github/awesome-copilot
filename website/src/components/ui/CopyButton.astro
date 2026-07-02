@@ -1,0 +1,59 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  ariaLabel: string;
+  label?: string;
+  iconSize?: number;
+  class?: string;
+}
+
+const { ariaLabel, label = 'Copy command', iconSize = 14, class: className } = Astro.props;
+---
+
+<button class:list={['copy-button', className]} type="button" data-copy-code aria-label={ariaLabel}>
+  <Icon name="copy" size={iconSize} />
+  <span>{label}</span>
+</button>
+
+<style>
+  .copy-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-width: auto;
+    min-height: 2.25rem;
+    border: 2px solid var(--color-border-soft);
+    border-radius: var(--radius-1);
+    background: rgb(21 25 26 / 72%);
+    color: var(--color-text);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    padding: 0.4rem 0.75rem;
+    text-transform: uppercase;
+    touch-action: manipulation;
+    transition: background var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
+  }
+
+  .copy-button:hover,
+  .copy-button[data-copied="true"] {
+    border-color: var(--color-border);
+    background: rgb(29 35 38 / 92%);
+    color: var(--color-text);
+  }
+
+  .copy-button:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 35%);
+    outline-offset: 2px;
+    border-color: var(--color-border);
+  }
+
+  .copy-button:active {
+    transform: translate(1px, 1px);
+  }
+</style>

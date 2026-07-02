@@ -1,0 +1,154 @@
+---
+import Icon from './Icon.astro';
+import type { Accent } from '../../lib/types';
+
+interface Props {
+  title: string;
+  description: string;
+  href: string;
+  icon: string;
+  accent: Accent;
+  /** Section name for CTA (e.g. "Skills"). Falls back to title if omitted. */
+  label?: string;
+}
+
+const { title, description, href, icon, accent, label } = Astro.props;
+const ctaLabel = label ?? title;
+
+const ACCENT_CSS: Record<Accent, string> = {
+  purple: 'var(--color-primary)',
+  blue:   'var(--color-blue)',
+  green:  'var(--color-green)',
+  yellow: 'var(--color-yellow)',
+  danger: 'var(--color-danger)',
+  cyan:   'var(--color-cyan)',
+  orange: 'var(--color-orange)',
+  neutral:'var(--color-muted)',
+};
+---
+
+<article class="retro-card" style={`--card-accent: ${ACCENT_CSS[accent]}`}>
+  <a href={href} class="retro-card__link">
+    <div class="retro-card__body">
+      <h3>{title}</h3>
+      <p>{description}</p>
+      <span class="retro-card__learn">Open {ctaLabel}<Icon name="arrow" size={13} /></span>
+    </div>
+    <span class:list={['retro-card__glyph', `retro-card__glyph--${accent}`]} aria-hidden="true">
+      <Icon name={icon} size={28} />
+    </span>
+  </a>
+</article>
+
+<style>
+  .retro-card {
+    display: flex;
+    height: 100%;
+    min-width: 0;
+    padding-inline: 4px;
+    background: var(--color-bg-elevated);
+  }
+
+  .retro-card__link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: 1fr;
+    gap: 1rem;
+    align-items: stretch;
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+    min-height: 9.75rem;
+    border-top: 2px solid var(--color-border-soft);
+    border-bottom: 2px solid var(--color-border-soft);
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    padding: 1.25rem 1.25rem 1.25rem 1.6rem;
+    background: var(--color-bg-elevated);
+    color: inherit;
+    text-decoration: none;
+    transition: background var(--motion-fast), border-color var(--motion-fast);
+  }
+
+  .retro-card__link::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-left: 2px solid var(--color-border-soft);
+    border-right: 2px solid var(--color-border-soft);
+    margin-left: -2px;
+    margin-right: -2px;
+    pointer-events: none;
+    transition: border-color var(--motion-fast);
+  }
+
+  .retro-card__link:hover {
+    background: rgb(255 255 255 / 4%);
+    border-color: var(--color-border);
+  }
+
+  .retro-card__link:hover::before {
+    border-color: var(--color-border);
+  }
+
+  .retro-card__link:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 35%);
+    outline-offset: 2px;
+  }
+
+  .retro-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+
+  h3 {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .retro-card__learn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin-top: auto;
+    color: var(--card-accent, var(--color-primary));
+    font-size: 0.88rem;
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+  }
+
+  .retro-card__learn :global(.icon) { transition: transform var(--motion-fast); }
+  .retro-card__link:hover .retro-card__learn :global(.icon),
+  .retro-card__link:focus-visible .retro-card__learn :global(.icon) { transform: translateX(2px); }
+
+  .retro-card__glyph {
+    display: grid;
+    place-items: center;
+    width: 2.65rem;
+    height: 2.65rem;
+    border-radius: var(--radius-1);
+    align-self: start;
+    justify-self: end;
+    line-height: 0;
+    color: var(--card-accent, var(--color-muted));
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-soft);
+  }
+</style>

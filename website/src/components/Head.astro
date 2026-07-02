@@ -1,13 +1,18 @@
 ---
+import starlightOverrides from '../styles/starlight-overrides.css?raw';
 import Default from '@astrojs/starlight/components/Head.astro';
 const { head, entry } = Astro.locals.starlightRoute;
 const basePath = import.meta.env.BASE_URL;
 
-const getMetaContent = (key: string, attribute: 'name' | 'property' = 'name') =>
-  head.find((tag) => tag.tag === 'meta' && tag.attrs?.[attribute] === key)?.attrs?.content;
+const getMetaContent = (key: string, attribute: 'name' | 'property' = 'name'): string | undefined => {
+  const content = head.find((tag) => tag.tag === 'meta' && tag.attrs?.[attribute] === key)?.attrs?.content;
+  return typeof content === 'string' ? content : undefined;
+};
 
-const getLinkHref = (rel: string) =>
-  head.find((tag) => tag.tag === 'link' && tag.attrs?.rel === rel)?.attrs?.href;
+const getLinkHref = (rel: string): string | undefined => {
+  const href = head.find((tag) => tag.tag === 'link' && tag.attrs?.rel === rel)?.attrs?.href;
+  return typeof href === 'string' ? href : undefined;
+};
 
 const twitterTitle = entry.data.title;
 const description =
@@ -36,14 +41,15 @@ const twitterDomain =
     : undefined;
 ---
 
+<style is:inline set:html={starlightOverrides}></style>
 <Default><slot /></Default>
-{twitterTitle && <meta name="twitter:title" content={twitterTitle} />}
-{description && <meta name="twitter:description" content={description} />}
-{canonicalUrl && <meta property="twitter:url" content={canonicalUrl} />}
-{twitterDomain && <meta property="twitter:domain" content={twitterDomain} />}
-{socialImageUrl && <meta property="og:image:secure_url" content={socialImageUrl} />}
-{socialImageType && <meta property="og:image:type" content={socialImageType} />}
-{socialImageAlt && <meta name="twitter:image:alt" content={socialImageAlt} />}
+{twitterTitle ? <meta name="twitter:title" content={twitterTitle} /> : null}
+{description ? <meta name="twitter:description" content={description} /> : null}
+{canonicalUrl ? <meta name="twitter:url" content={canonicalUrl} /> : null}
+{twitterDomain ? <meta name="twitter:domain" content={twitterDomain} /> : null}
+{socialImageUrl ? <meta property="og:image:secure_url" content={socialImageUrl} /> : null}
+{socialImageType ? <meta property="og:image:type" content={socialImageType} /> : null}
+{socialImageAlt ? <meta name="twitter:image:alt" content={socialImageAlt} /> : null}
 
 <!-- Theme initialization script (runs early to prevent flash) -->
 <script is:inline>
@@ -64,11 +70,9 @@ const twitterDomain =
 <script is:inline define:vars={{ basePath }}>
   // basePath setup for runtime use
   document.addEventListener('DOMContentLoaded', () => {
-    document.body.dataset.basePath = basePath;
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    document.body.dataset.basePath = basePath;
+    if (document.body) {
+      document.body.dataset.basePath = basePath;
+    }
   });
 </script>
 {import.meta.env.PROD && (

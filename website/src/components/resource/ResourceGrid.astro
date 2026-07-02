@@ -1,0 +1,43 @@
+---
+/**
+ * Resource grid layout — renders a responsive CSS grid of cards.
+ *
+ * Reusable by all catalog pages (agents, skills, instructions, hooks,
+ * workflows, plugins, tools).
+ *
+ * Uses a named slot so pages can pass both the resource cards and an
+ * empty-state fallback when there are no results.
+ */
+export interface Props {
+  /** Optional HTML id for the grid container. */
+  id?: string;
+  /** Optional additional CSS classes. */
+  class?: string;
+}
+
+const { id, class: className } = Astro.props;
+---
+<div class:list={['resource-grid', className]} id={id} role="list">
+  <slot />
+</div>
+
+<style>
+  .resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  @media (max-width: 780px) {
+    .resource-grid {
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+  }
+
+  @media (max-width: 500px) {
+    .resource-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

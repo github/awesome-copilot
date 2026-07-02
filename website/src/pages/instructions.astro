@@ -1,58 +1,533 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+/**
+ * Instructions catalog page — visual shell matching agents.astro pattern.
+ *
+ * Mirrors agents.astro: cards navigate to a query-param detail UI.
+ * Visual structure: console header card, pixel stat cards, terminal filter bar,
+ * 3-column pixel card grid — all using base class names from global.css.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import Card from '../components/ui/Card.astro';
+import Icon from '../components/ui/Icon.astro';
 import instructionsData from '../../public/data/instructions.json';
-import ContributeCTA from '../components/ContributeCTA.astro';
-import EmbeddedPageData from '../components/EmbeddedPageData.astro';
-import PageHeader from '../components/PageHeader.astro';
-import BackToTop from '../components/BackToTop.astro';
-import Modal from '../components/Modal.astro';
-import { renderInstructionsHtml, sortInstructions } from '../scripts/pages/instructions-render';
 
-const initialItems = sortInstructions(instructionsData.items, 'title');
+const rawItems = instructionsData.items;
+
+const withExtensions = rawItems.filter(i => (i.extensions ?? []).length > 0).length;
+const withApplyTo = rawItems.filter(i => (i.applyTo ?? '').length > 0 && i.applyTo !== '**').length;
+const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g, '\\u003c');
 ---
 
-<StarlightPage frontmatter={{ title: 'Instructions', description: 'Coding standards and best practices for GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content" class="instructions-page listing-cards-page">
-    <PageHeader title="Instructions" description="Coding standards and best practices for GitHub Copilot" icon="document" />
-
-    <div class="page-content">
-      <div class="container">
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} instructions</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort &amp; Filter</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="filter-extension">File Extension:</label>
-                    <select id="filter-extension" multiple aria-label="Filter by file extension"></select>
-                  </div>
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" aria-label="Sort by">
-                      <option value="title">Name (A-Z)</option>
-                      <option value="lastUpdated">Recently Updated</option>
-                    </select>
-                  </div>
-                  <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
-                </div>
-              </div>
-            </details>
-          </div>
+<BaseLayout title="Custom Instructions · Awesome GitHub Copilot" description="Coding standards and best practices for GitHub Copilot">
+  <section id="instructions" class="section" aria-labelledby="instructions-title">
+    <Container>
+      <!-- Console header card -->
+      <Card class="console-header-card">
+        <div class="console-summary-text">
+          <p class="console-eyebrow">/instructions · fuzzy search + URL-synced filters</p>
+          <h1 id="instructions-title" class="console-title">Instruction standards console</h1>
+          <p class="console-description">Filter by file extension. Open any resource in a keyboard-safe file modal.</p>
         </div>
-        <div class="resource-list" id="resource-list" role="list" set:html={renderInstructionsHtml(initialItems)}></div>
-        <ContributeCTA resourceType="instructions" />
+
+        <dl class="console-stats-grid" aria-label="Instruction stats">
+          <div class="console-stat-card console-stat-card--active"><dd>{rawItems.length}</dd><dt>instructions</dt></div>
+          <div class="console-stat-card"><dd>{withExtensions}</dd><dt>with extensions</dt></div>
+          <div class="console-stat-card"><dd>{withApplyTo}</dd><dt>scoped patterns</dt></div>
+        </dl>
+      </Card>
+
+      <!-- Filter bar -->
+      <div class="console-filter-bar">
+        <label class="console-search-control">
+          <span aria-hidden="true" class="console-prompt">&gt;</span>
+          <span class="sr-only">Search instructions</span>
+          <input id="instruction-search" type="search" placeholder="search instructions…" aria-label="Search instructions" autocomplete="off" />
+          <Icon name="search" size={16} />
+        </label>
+
+        <label class="console-select-control console-select-control--wide console-select-control--active" for="filter-extension">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="extension">extension: all</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
+          <select id="filter-extension" data-filter-param="extension" multiple aria-label="Filter instructions by extension">
+            <option value="">All Extensions</option>
+          </select>
+        </label>
+
+        <label class="console-select-control console-select-control--sort" for="sort-select">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: Name (A-Z)</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
+          <select id="sort-select" data-filter-param="sort" data-default-value="title" aria-label="Sort instructions">
+            <option value="title">Name (A-Z)</option>
+            <option value="lastUpdated">Recently Updated</option>
+          </select>
+        </label>
+
+        <button class="console-reset-control" type="button" aria-label="Clear filters" id="filter-clear"><Icon name="delete" size={15} /></button>
       </div>
-    </div>
-  </div>
 
-  <BackToTop />
-  <Modal />
-  <EmbeddedPageData filename="instructions.json" data={instructionsData} />
+      <!-- Results meta -->
+      <section class="marketplace-results" aria-label="Matching instructions">
+        <div class="results-meta">
+          <p id="resource-count">{rawItems.length} matching instructions · debounce 200ms · q/extension/sort in URL</p>
+        </div>
+      </section>
 
-  <script>
-    import '../scripts/listing-flyouts';
-    import '../scripts/pages/instructions';
-  </script>
-</StarlightPage>
+      <!-- Results grid -->
+      <div id="instruction-grid" class="resource-grid"></div>
+      <div id="instruction-load-sentinel" class="agent-load-sentinel" aria-hidden="true"></div>
+      <button id="instruction-load-more" class="filter-clear agent-load-more" type="button" hidden>Load more instructions</button>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="empty-state" hidden>
+        <h3>No instructions found</h3>
+        <p>Try adjusting your search or filters.</p>
+        <button id="empty-clear" class="filter-clear" type="button">Clear all filters</button>
+      </div>
+
+      <!-- Search results dropdown -->
+      <div id="instruction-search-results" class="search-results-dropdown" role="listbox" aria-label="Search results"></div>
+      <div id="instruction-search-status" class="search-status" role="status" aria-live="polite" aria-atomic="true"></div>
+      <script is:inline id="instructions-data" type="application/json" set:html={serializedInstructionsData}></script>
+
+    </Container>
+  </section>
+</BaseLayout>
+
+<script>
+  import { initSearch, createSearch } from '../scripts/search-client';
+  import {
+    readFiltersFromUrl,
+    applyFilters,
+    clearAllFilters,
+    describeFilters,
+    type FilterConfig,
+    type ActiveFilters,
+  } from '../scripts/filters';
+  import { getQueryParam, updateQueryParams } from '../scripts/url-state';
+  import type { Accent } from '../lib/types';
+
+  const INSTRUCTION_ACCENTS: Accent[] = ['purple', 'blue', 'green', 'yellow'];
+  const INITIAL_RENDER_COUNT = 36;
+  const RENDER_BATCH_SIZE = 24;
+
+  interface InstructionRaw {
+    id: string;
+    title: string;
+    description: string;
+    path: string;
+    filename: string;
+    extensions: string[];
+    applyTo?: string | string[] | null;
+    applyToPatterns?: string[];
+    lastUpdated?: string | null;
+  }
+
+  interface InstructionsData {
+    items: InstructionRaw[];
+    filters: { extensions: string[] };
+  }
+
+  type InstructionClientItem = {
+    id: string;
+    title: string;
+    label: string;
+    description: string;
+    tags: string[];
+    accent: Accent;
+    detail: string;
+    filterExtension: string[];
+    sortDate: string;
+  };
+
+  function getStableAccent(item: InstructionRaw): Accent {
+    const source = item.id || item.filename || item.title;
+    let hash = 0;
+    for (const char of source) {
+      hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    }
+    return INSTRUCTION_ACCENTS[hash % INSTRUCTION_ACCENTS.length];
+  }
+
+  function buildLabel(item: InstructionRaw): string {
+    const exts = item.extensions ?? [];
+    if (exts.length === 1) return exts[0];
+    if (exts.length > 0) return `${exts.length} extensions`;
+    if (item.applyTo === '**') return 'global';
+    if ((item.applyToPatterns ?? []).length > 0) return 'scoped';
+    return 'instruction';
+  }
+
+  function buildTags(item: InstructionRaw): string[] {
+    const tags: string[] = [];
+    const exts = item.extensions ?? [];
+    tags.push(...exts.slice(0, 4).map(e => `.${e}`));
+    if (exts.length > 4) tags.push(`+${exts.length - 4} more`);
+    const applyToValues = Array.isArray(item.applyTo) ? item.applyTo : [item.applyTo ?? ''];
+    const applyStr = applyToValues.find(value => value && value !== '**') ?? '';
+    if (applyStr && applyStr !== '**') tags.push(applyStr.length > 24 ? `${applyStr.slice(0, 24)}…` : applyStr);
+    return tags;
+  }
+
+  function toClientItem(item: InstructionRaw): InstructionClientItem {
+    return {
+      id: item.id,
+      title: item.title,
+      label: buildLabel(item),
+      description: item.description,
+      tags: buildTags(item),
+      accent: getStableAccent(item),
+      detail: item.path,
+      filterExtension: item.extensions ?? [],
+      sortDate: item.lastUpdated ?? '',
+    };
+  }
+
+  function escapeHtml(value: unknown): string {
+    return String(value ?? '').replace(/[&<>'"]/g, (char) => {
+      switch (char) {
+        case '&': return '&amp;';
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case "'": return '&#39;';
+        case '"': return '&quot;';
+        default: return char;
+      }
+    });
+  }
+
+  async function loadInstructionItems(): Promise<InstructionClientItem[]> {
+    const embeddedData = document.getElementById('instructions-data')?.textContent;
+    if (embeddedData) {
+      const data = JSON.parse(embeddedData) as InstructionsData;
+      return data.items.map(toClientItem);
+    }
+
+    const response = await fetch('/data/instructions.json');
+    if (!response.ok) throw new Error(`Failed to load instructions data: ${response.status}`);
+    const data = await response.json() as InstructionsData;
+    return data.items.map(toClientItem);
+  }
+
+  function sortItems(list: InstructionClientItem[], sortBy: string): InstructionClientItem[] {
+    const sorted = [...list];
+    if (sortBy === 'lastUpdated') {
+      sorted.sort((a, b) => b.sortDate.localeCompare(a.sortDate));
+    } else {
+      sorted.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return sorted;
+  }
+
+  function resolver(item: InstructionClientItem): Record<string, string[]> {
+    return {
+      extension: item.filterExtension.length > 0 ? item.filterExtension : ['(none)'],
+    };
+  }
+
+  function renderGrid(grid: HTMLElement | null, filtered: InstructionClientItem[], visibleCount: number): void {
+    if (!grid) return;
+
+    grid.innerHTML = filtered
+      .slice(0, visibleCount)
+      .map((item) => {
+        const accent = escapeHtml(item.accent ?? 'purple');
+        const path = escapeHtml(item.detail ?? '');
+        const id = item.id ?? '';
+        return `
+          <a class="resource-card resource-card--${accent}" role="listitem" data-path="${path}" data-id="${escapeHtml(id)}" href="/instruction/${encodeURIComponent(id)}/">
+            <span class="resource-card__topline">
+              <span class="badge badge--${accent}">${escapeHtml(item.label)}</span>
+            </span>
+            <span class="resource-card__body">
+              <span class="resource-card__title">${escapeHtml(item.title)}</span>
+              <span class="resource-card__description">${escapeHtml(item.description)}</span>
+            </span>
+            <span class="resource-card__footer">
+              <span class="resource-card__tags">${item.tags.slice(0, 3).map(tag => `<span class="badge badge--neutral">${escapeHtml(tag)}</span>`).join('')}</span>
+              <span class="resource-card__cta">Open details <svg aria-hidden="true" class="icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="shape-rendering:crispEdges"><path d="M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z"/></svg></span>
+            </span>
+          </a>`;
+      })
+      .join('');
+  }
+
+  async function initInstructionsCatalog(): Promise<void> {
+    const grid = document.getElementById('instruction-grid');
+    const countEl = document.getElementById('resource-count');
+    const emptyState = document.getElementById('empty-state');
+    const loadSentinel = document.getElementById('instruction-load-sentinel');
+    const loadMore = document.getElementById('instruction-load-more') as HTMLButtonElement | null;
+    const filterClear = document.getElementById('filter-clear');
+    const emptyClear = document.getElementById('empty-clear');
+
+    if (countEl) countEl.textContent = 'Loading instructions...';
+
+    let items: InstructionClientItem[];
+    try {
+      items = await loadInstructionItems();
+    } catch (error) {
+      console.error(error);
+      if (countEl) countEl.textContent = 'Failed to load instructions';
+      if (emptyState) emptyState.hidden = false;
+      return;
+    }
+
+    const extensions = [...new Set(items.flatMap(i => i.filterExtension))].sort();
+    const extOptions = extensions.map(e => ({ value: e, label: `.${e}` }));
+
+    const extSelect = document.getElementById('filter-extension') as HTMLSelectElement | null;
+    if (extSelect) {
+      extSelect.innerHTML = '<option value="">All Extensions</option>' +
+        extOptions.map(opt => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.label)}</option>`).join('');
+    }
+
+    const filterConfigs: FilterConfig[] = [
+      { param: 'extension', label: 'Extension', type: 'multi', options: extOptions },
+      { param: 'sort', label: 'Sort', type: 'single', options: [
+        { value: 'title', label: 'Name (A-Z)' },
+        { value: 'lastUpdated', label: 'Recently Updated' },
+      ]},
+    ];
+
+    // Initialize custom dropdowns for single-select controls
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
+
+    // Wire event listeners for selects
+    const sortSelect = document.getElementById('sort-select') as HTMLSelectElement | null;
+
+    extSelect?.addEventListener('change', () => {
+      const selected = Array.from(extSelect.selectedOptions).map(o => o.value).filter(Boolean);
+      updateQueryParams({ setAll: { extension: selected } });
+      applyAndRender();
+    });
+
+    sortSelect?.addEventListener('change', () => {
+      const value = sortSelect.value;
+      updateQueryParams({ set: { sort: value || null } });
+      applyAndRender();
+    });
+
+    const engine = createSearch<InstructionClientItem>(items);
+    let currentItems: InstructionClientItem[] = [];
+    let visibleCount = INITIAL_RENDER_COUNT;
+    let currentTotal = items.length;
+    let currentFilterDesc = '';
+
+    function updateProgressiveRender(): void {
+      const visibleItems = Math.min(visibleCount, currentItems.length);
+      renderGrid(grid, currentItems, visibleItems);
+
+      if (countEl) {
+        const base = `Showing ${visibleItems} of ${currentItems.length} matching instruction${currentItems.length === 1 ? '' : 's'} (${currentTotal} total)`;
+        countEl.textContent = currentFilterDesc ? `${base} · ${currentFilterDesc}` : base;
+      }
+
+      if (loadMore) {
+        loadMore.hidden = visibleItems >= currentItems.length;
+        loadMore.textContent = `Load more instructions (${visibleItems}/${currentItems.length})`;
+      }
+
+      if (loadSentinel) loadSentinel.hidden = visibleItems >= currentItems.length;
+    }
+
+    function showNextBatch(): void {
+      if (visibleCount >= currentItems.length) return;
+      visibleCount = Math.min(visibleCount + RENDER_BATCH_SIZE, currentItems.length);
+      updateProgressiveRender();
+    }
+
+    function applyAndRender(): void {
+      const filters = readFiltersFromUrl(filterConfigs);
+      const query = getQueryParam('q') ?? '';
+
+      let filtered = query
+        ? engine.search(query).filter((r): r is InstructionClientItem => r != null)
+        : [...items];
+
+      const { results, total } = applyFilters(filtered, filters, resolver);
+      const sortBy = filters.single['sort'] || 'title';
+      const sorted = sortItems(results, sortBy);
+      const filterDesc = describeFilters(filters, filterConfigs);
+      currentItems = sorted;
+      visibleCount = INITIAL_RENDER_COUNT;
+      currentTotal = total;
+      currentFilterDesc = filterDesc;
+
+      updateProgressiveRender();
+
+      if (emptyState) emptyState.hidden = sorted.length > 0;
+      if (grid) grid.style.display = sorted.length > 0 ? '' : 'none';
+
+      updateFilterDisplays(filters);
+    }
+
+    function updateFilterDisplays(filters: ActiveFilters): void {
+      const extDisplay = document.querySelector<HTMLElement>('.filter-display[data-param="extension"]');
+      const sortDisplay = document.querySelector<HTMLElement>('.filter-display[data-param="sort"]');
+
+      if (extDisplay) {
+        const vals = filters.multi['extension'] ?? [];
+        extDisplay.textContent = vals.length > 0 ? `extension: ${vals.join(', ')}` : 'extension: all';
+      }
+      if (sortDisplay) {
+        const val = filters.single['sort'] || 'title';
+        const label = val === 'title' ? 'Name (A-Z)' : 'Recently Updated';
+        sortDisplay.textContent = `sort: ${label}`;
+      }
+    }
+
+    loadMore?.addEventListener('click', showNextBatch);
+
+    if (loadSentinel && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries.some(entry => entry.isIntersecting)) showNextBatch();
+      }, { rootMargin: '320px' });
+      observer.observe(loadSentinel);
+    }
+
+
+
+    function doClear(): void {
+      clearAllFilters(filterConfigs);
+      applyAndRender();
+    }
+    filterClear?.addEventListener('click', doClear);
+    emptyClear?.addEventListener('click', doClear);
+
+    initSearch<InstructionClientItem>(engine, {
+      inputSelector: '#instruction-search',
+      resultsSelector: '#instruction-search-results',
+      statusSelector: '#instruction-search-status',
+      minLength: 1,
+      maxResults: 40,
+    }, {
+      render(item, idx, _query, highlight) {
+        const title = highlight(item.title, _query);
+        const desc = highlight(
+          item.description.length > 100 ? `${item.description.slice(0, 100)}…` : item.description,
+          _query,
+        );
+        return `
+          <div class="search-result" data-result-index="${idx}" role="option" aria-selected="false">
+            <span class="search-result-title">${title}</span>
+            <span class="search-result-desc">${desc}</span>
+          </div>`;
+      },
+      onSelect(_item) {
+        applyAndRender();
+        const resultsEl = document.querySelector('#instruction-search-results') as HTMLElement;
+        if (resultsEl) resultsEl.style.display = 'none';
+      },
+      statusText(query, resultCount, totalCount) {
+        if (!query) return '';
+        if (resultCount === 0) return `No instructions match "${query}"`;
+        return `${resultCount} of ${totalCount} instructions match "${query}"`;
+      },
+    });
+
+    applyAndRender();
+  }
+
+  initInstructionsCatalog();
+</script>
+
+<style is:global>
+  /* ── Search results dropdown ────────────── */
+  .search-results-dropdown {
+    position: absolute;
+    z-index: 10;
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-bg-elevated);
+    box-shadow: var(--shadow-card);
+    display: none;
+  }
+  .search-status {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--color-muted);
+    min-height: 1.2rem;
+  }
+
+  /* ── Search result rows in dropdown ─────── */
+  .search-result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--color-border-soft);
+    cursor: pointer;
+    transition: background var(--motion-fast);
+  }
+  .search-result:last-child { border-bottom: none; }
+  .search-result:hover,
+  .search-result--active { background: var(--color-surface-2); }
+  .search-result-title {
+    font-weight: 700;
+    font-family: var(--font-heading);
+    font-size: 0.92rem;
+    color: var(--color-text);
+  }
+  .search-result-desc {
+    width: 100%;
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    margin-top: 0.15rem;
+  }
+  .search-result mark {
+    background: var(--color-primary);
+    color: var(--color-black);
+    padding: 0 0.15rem;
+    border-radius: 2px;
+  }
+
+  /* ── Empty state ──────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: var(--space-12) var(--space-4);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-2);
+    background: var(--color-bg-elevated);
+    margin-top: var(--space-4);
+  }
+  .empty-state h3 {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    color: var(--color-text);
+  }
+  .empty-state p {
+    margin: 0 0 1rem;
+    color: var(--color-muted);
+  }
+  .filter-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    border: 2px solid var(--color-green);
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-green);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 900;
+    box-shadow: 3px 3px 0 var(--color-black);
+    transition: background var(--motion-fast);
+  }
+  .filter-clear:hover { background: var(--color-green); color: var(--color-black); }
+  .filter-clear:focus-visible { outline: 2px solid rgb(255 255 255 / 35%); outline-offset: 2px; }
+
+  /* ── Resource card interactivity ──────── */
+  .resource-card {
+    cursor: pointer;
+  }
+</style>

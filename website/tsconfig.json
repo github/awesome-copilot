@@ -1,3 +1,5 @@
 {
-  "extends": "astro/tsconfigs/base"
+  // "strict" enables strictNullChecks, which Astro docs recommend for projects
+  // using content collections and Zod schema validation.
+  "extends": "astro/tsconfigs/strict",
 }

@@ -30,6 +30,26 @@ const VSCODE_INSTALL_CONFIG: Record<
     baseUrl: "https://aka.ms/awesome-copilot/install/agent",
     scheme: "chat-agent",
   },
+  skills: {
+    baseUrl: "https://aka.ms/awesome-copilot/install/skill",
+    scheme: "chat-skill",
+  },
+  skill: {
+    baseUrl: "https://aka.ms/awesome-copilot/install/skill",
+    scheme: "chat-skill",
+  },
+  hook: {
+    baseUrl: "https://aka.ms/awesome-copilot/install/hook",
+    scheme: "chat-hook",
+  },
+  workflow: {
+    baseUrl: "https://aka.ms/awesome-copilot/install/workflow",
+    scheme: "chat-workflow",
+  },
+  plugin: {
+    baseUrl: "https://aka.ms/awesome-copilot/install/plugin",
+    scheme: "chat-plugin",
+  },
 };
 
 /**
@@ -80,6 +100,15 @@ export interface ZipDownloadFile {
   path: string;
 }
 
+function targetInstallPath(repoPath: string): string {
+  if (repoPath.startsWith('agents/')) return `.github/${repoPath}`;
+  if (repoPath.startsWith('instructions/')) return `.github/${repoPath}`;
+  if (repoPath.startsWith('skills/')) return `.github/${repoPath}`;
+  if (repoPath.startsWith('hooks/')) return `.github/${repoPath}`;
+  if (repoPath.startsWith('workflows/')) return `.github/${repoPath}`;
+  return repoPath;
+}
+
 function triggerBlobDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -101,7 +130,6 @@ export async function downloadZipBundle(
 
   const JSZip = await loadJSZip();
   const zip = new JSZip();
-  const folder = zip.folder(bundleName);
 
   const fetchPromises = files.map(async (file) => {
     try {
@@ -109,7 +137,7 @@ export async function downloadZipBundle(
       if (!response.ok) return null;
 
       return {
-        name: file.name,
+        zipPath: targetInstallPath(file.path),
         content: await response.text(),
       };
     } catch {
@@ -121,8 +149,8 @@ export async function downloadZipBundle(
   let addedFiles = 0;
 
   for (const result of results) {
-    if (result && folder) {
-      folder.file(result.name, result.content);
+    if (result) {
+      zip.file(result.zipPath, result.content);
       addedFiles++;
     }
   }
@@ -193,6 +221,23 @@ export function getVSCodeInstallUrl(
   }/install?url=${encodeURIComponent(rawUrl)}`;
 
   return `${config.baseUrl}?url=${encodeURIComponent(innerUrl)}`;
+}
+
+/**
+ * Generate direct VS Code protocol URL (e.g. vscode:chat-agent/install?url=...)
+ * Use this for anchor hrefs so the browser shows the native protocol handler dialog.
+ */
+export function getVSCodeProtocolUrl(
+  type: string,
+  filePath: string,
+  insiders = false
+): string | null {
+  const config = VSCODE_INSTALL_CONFIG[type];
+  if (!config) return null;
+
+  const rawUrl = `${REPO_BASE_URL}/${filePath}`;
+  const vscodeScheme = insiders ? "vscode-insiders" : "vscode";
+  return `${vscodeScheme}:${config.scheme}/install?url=${encodeURIComponent(rawUrl)}`;
 }
 
 /**
@@ -517,33 +562,34 @@ export function getInstallDropdownHtml(
   filePath: string,
   small = false
 ): string {
-  const vscodeUrl = getVSCodeInstallUrl(type, filePath, false);
-  const insidersUrl = getVSCodeInstallUrl(type, filePath, true);
+  const vscodeUrl = getVSCodeProtocolUrl(type, filePath, false);
+  const insidersUrl = getVSCodeProtocolUrl(type, filePath, true);
 
   if (!vscodeUrl) return "";
 
   const sizeClass = small ? "install-dropdown-small" : "";
   const uniqueId = `install-${filePath.replace(/[^a-zA-Z0-9]/g, "-")}`;
+  const menuId = `${uniqueId}-menu`;
 
   return `
     <div class="install-dropdown ${sizeClass}" id="${uniqueId}" data-install-scope="list">
       <a href="${vscodeUrl}" class="btn btn-primary ${
     small ? "btn-small" : ""
-  } install-btn-main" target="_blank" rel="noopener">
+  } install-btn-main" data-vscode-install-link>
         Install
       </a>
       <button type="button" class="btn btn-primary ${
         small ? "btn-small" : ""
-      } install-btn-toggle" aria-label="Install options" aria-expanded="false">
-        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+      } install-btn-toggle" aria-label="Install options" aria-expanded="false" aria-controls="${menuId}">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
           <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/>
         </svg>
       </button>
-      <div class="install-dropdown-menu">
-        <a href="${vscodeUrl}" target="_blank" rel="noopener">
+      <div class="install-dropdown-menu" id="${menuId}">
+        <a href="${vscodeUrl}" data-vscode-install-link>
           VS Code
         </a>
-        <a href="${insidersUrl}" target="_blank" rel="noopener">
+        <a href="${insidersUrl}" data-vscode-install-link>
           VS Code Insiders
         </a>
       </div>
@@ -570,6 +616,9 @@ export function setupDropdownCloseHandlers(): void {
       ) as HTMLButtonElement | null;
       const menuLink = target.closest(
         ".install-dropdown-menu a"
+      ) as HTMLAnchorElement | null;
+      const protocolLink = target.closest(
+        "a[data-vscode-install-link]"
       ) as HTMLAnchorElement | null;
 
       if (dropdown) {
@@ -600,6 +649,16 @@ export function setupDropdownCloseHandlers(): void {
             ".install-btn-toggle"
           );
           toggleBtn?.setAttribute("aria-expanded", "false");
+          if (protocolLink) {
+            e.preventDefault();
+            window.location.href = protocolLink.href;
+          }
+          return;
+        }
+
+        if (protocolLink) {
+          e.preventDefault();
+          window.location.href = protocolLink.href;
           return;
         }
 
@@ -628,17 +687,17 @@ export function getActionButtonsHtml(filePath: string, small = false): string {
   const iconSize = small ? 14 : 16;
 
   return `
-    <button class="btn btn-secondary ${btnClass} action-download" data-path="${escapeHtml(
+    <button type="button" class="btn btn-secondary ${btnClass} action-download" data-path="${escapeHtml(
     filePath
-  )}" title="Download file">
-      <svg viewBox="0 0 16 16" width="${iconSize}" height="${iconSize}" fill="currentColor">
+  )}" title="Download file" aria-label="Download file">
+      <svg viewBox="0 0 16 16" width="${iconSize}" height="${iconSize}" fill="currentColor" aria-hidden="true">
         <path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"/>
       </svg>
     </button>
-    <button class="btn btn-secondary ${btnClass} action-share" data-path="${escapeHtml(
+    <button type="button" class="btn btn-secondary ${btnClass} action-share" data-path="${escapeHtml(
     filePath
-  )}" title="Copy link">
-      <svg viewBox="0 0 16 16" width="${iconSize}" height="${iconSize}" fill="currentColor">
+  )}" title="Copy file link" aria-label="Copy file link">
+      <svg viewBox="0 0 16 16" width="${iconSize}" height="${iconSize}" fill="currentColor" aria-hidden="true">
         <path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-.025 5.45a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 1 1-2.83-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25z"/>
       </svg>
     </button>

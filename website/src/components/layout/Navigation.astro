@@ -1,0 +1,232 @@
+---
+import { primaryNav } from '../../config/nav';
+import { SITE } from '../../config/site';
+import BitButton from '../ui/8BitButton.astro';
+import Icon from '../ui/Icon.astro';
+
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+
+const navRouteAliases: Record<string, string[]> = {
+  '/agents': ['/agent'],
+  '/instructions': ['/instruction'],
+  '/skills': ['/skill'],
+  '/hooks': ['/hook'],
+  '/workflows': ['/workflow'],
+  '/plugins': ['/plugin'],
+  '/tools': ['/tool'],
+};
+
+function isNavItemActive(itemHref: string, pathname: string): boolean {
+  const href = itemHref.replace(/\/$/, '') || '/';
+  const activePrefixes = [href, ...(navRouteAliases[href] ?? [])];
+
+  return activePrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+---
+<header class="site-header">
+  <a class="brand" href="/" aria-label={`${SITE.title} home`}>
+    <span class="brand-mark" aria-hidden="true">
+      <img src={SITE.favicon} alt="" width="28" height="28" />
+    </span>
+    <span class="brand-name">GitHub Copilot</span>
+    <span class="brand-badge">Awesome</span>
+  </a>
+
+  <button
+    class="menu-button"
+    type="button"
+    aria-label="Open navigation"
+    aria-expanded="false"
+    aria-controls="primary-navigation"
+  >
+    <Icon name="menu" size={18} />
+    <span class="sr-only" data-menu-label>Open navigation</span>
+  </button>
+
+  <nav id="primary-navigation" class="nav" aria-label="Primary navigation">
+    {
+      primaryNav.map((item) => {
+        const href = item.href.replace(/\/$/, '') || '/';
+        const active = isNavItemActive(item.href, currentPath);
+        return (
+          <a
+            class:list={['nav-link', { 'nav-link--active': active }]}
+            href={item.href}
+            aria-current={active ? 'page' : undefined}
+          >
+            {active ? `$ ${item.label}` : item.label}
+          </a>
+        );
+      })
+    }
+  </nav>
+
+  <BitButton
+    href="https://github.com/github/awesome-copilot"
+    variant="secondary"
+    size="sm"
+    ariaLabel="Open GitHub repository"
+  >
+    <Icon name="github" size={16} />
+    GITHUB ->
+  </BitButton>
+</header>
+
+<script>
+  const header = document.querySelector('.site-header');
+  const button = header?.querySelector('.menu-button');
+  const buttonLabel = header?.querySelector('[data-menu-label]');
+  const nav = header?.querySelector('#primary-navigation');
+
+  button?.addEventListener('click', () => {
+    const expanded = button.getAttribute('aria-expanded') === 'true';
+    const nextExpanded = !expanded;
+    const nextLabel = nextExpanded ? 'Close navigation' : 'Open navigation';
+    button.setAttribute('aria-expanded', String(nextExpanded));
+    button.setAttribute('aria-label', nextLabel);
+    if (buttonLabel) buttonLabel.textContent = nextLabel;
+    nav?.toggleAttribute('data-open', nextExpanded);
+  });
+
+  nav?.addEventListener('click', (event) => {
+    if (event.target instanceof HTMLAnchorElement) {
+      button?.setAttribute('aria-expanded', 'false');
+      button?.setAttribute('aria-label', 'Open navigation');
+      if (buttonLabel) buttonLabel.textContent = 'Open navigation';
+      nav?.removeAttribute('data-open');
+    }
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4.25rem;
+    border-bottom: 1px solid var(--color-border-soft);
+    background: rgb(10 13 13 / 88%);
+    padding-inline: clamp(1rem, 2.4vw, 1.5rem);
+    backdrop-filter: blur(16px);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: fit-content;
+  }
+
+  .brand-mark {
+    display: flex;
+    align-items: center;
+    line-height: 0;
+  }
+
+  .brand-name {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-badge {
+    border-radius: var(--radius-1);
+    background: var(--color-primary);
+    color: var(--color-black);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.85rem, 1.4vw, 1.35rem);
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--color-muted);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    transition: color var(--motion-fast);
+  }
+
+  .nav-link:hover,
+  .nav-link--active {
+    color: var(--color-green);
+  }
+
+  .menu-button {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-1);
+    background: transparent;
+    color: var(--color-text);
+    padding: 0.55rem;
+    cursor: pointer;
+  }
+
+  .menu-button:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 35%);
+    outline-offset: 2px;
+  }
+
+  .site-header > :global(.bit-btn .bit-btn-inner) {
+    min-height: 2.4rem;
+    padding: 0.42rem 0.74rem;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 1100px) {
+    .nav {
+      position: absolute;
+      inset: 4rem 1rem auto 1rem;
+      display: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2);
+      background: var(--color-bg-elevated);
+      padding: 1rem;
+      box-shadow: var(--shadow-card);
+    }
+
+    .nav[data-open] {
+      display: grid;
+    }
+
+    .menu-button {
+      display: inline-flex;
+    }
+
+    .site-header :global(.bit-btn) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .brand-name {
+      font-size: 1.08rem;
+    }
+
+    .brand-badge {
+      display: none;
+    }
+
+    .nav {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

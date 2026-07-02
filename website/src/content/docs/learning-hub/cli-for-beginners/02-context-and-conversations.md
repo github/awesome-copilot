@@ -60,7 +60,7 @@ The `@` symbol references files and directories in your prompts. It's how you te
 
 You can try this with any file on your computer:
 
-```bash
+```bash frame="none"
 copilot
 
 # Point at any file you have
@@ -70,7 +70,7 @@ copilot
 ```
 
 > 💡 **Don't have a project handy?** Create a quick test file:
-> ```bash
+> ```bash frame="none"
 > echo "def greet(name): return 'Hello ' + name" > test.py
 > copilot
 > > What does @test.py do?
@@ -86,7 +86,7 @@ copilot
 
 ### Reference a Single File
 
-```bash
+```bash frame="none"
 copilot
 
 > Explain what @samples/book-app-project/utils.py does
@@ -107,7 +107,7 @@ copilot
 
 ### Reference Multiple Files
 
-```bash
+```bash frame="none"
 copilot
 
 > Compare @samples/book-app-project/book_app.py and @samples/book-app-project/books.py for consistency
@@ -115,7 +115,7 @@ copilot
 
 ### Reference an Entire Directory
 
-```bash
+```bash frame="none"
 copilot
 
 > Review all files in @samples/book-app-project/ for error handling
@@ -131,7 +131,7 @@ This is where context becomes a superpower. Single-file analysis is useful. Cros
 
 ### Demo: Find Bugs That Span Multiple Files
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/book_app.py @samples/book-app-project/books.py
@@ -140,7 +140,7 @@ copilot
 ```
 
 > 💡 **Advanced Option**: For security-focused cross-file analysis, try the Python security examples:
-> ```bash
+> ```bash frame="none"
 > > @samples/buggy-code/python/user_service.py @samples/buggy-code/python/payment_processor.py
 > > Find security vulnerabilities that span BOTH files
 > ```
@@ -197,7 +197,7 @@ Cross-Module Analysis
 
 New to a project? Learn about it quickly using Copilot CLI.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/
@@ -226,7 +226,7 @@ Priority fix: Consolidate duplicate display functions and add input validation.
 
 ### Example 1: Code Review with Context
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/books.py Review this file for potential bugs
@@ -242,7 +242,7 @@ copilot
 
 ### Example 2: Understanding a Codebase
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/books.py What does this module do?
@@ -269,7 +269,7 @@ copilot
 
 ### Example 3: Multi-File Refactoring
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/book_app.py @samples/book-app-project/utils.py
@@ -288,7 +288,7 @@ Sessions are automatically saved as you work. You can resume previous sessions t
 
 Every conversation is automatically saved. Just exit normally:
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/ Let's improve error handling across all modules
@@ -329,7 +329,7 @@ copilot --resume abc123
 
 Give sessions meaningful names so you can find them later:
 
-```bash
+```bash frame="none"
 copilot
 
 > /rename book-app-review
@@ -340,7 +340,7 @@ copilot
 
 As you add files and conversation, Copilot CLI's [context window](https://github.com/github/copilot-cli-for-beginners/blob/main/GLOSSARY.md#context-window) fills up. Two commands help you stay in control:
 
-```bash
+```bash frame="none"
 copilot
 
 > /context
@@ -362,7 +362,7 @@ Context usage: 45,000 / 128,000 tokens (35%)
 
 Imagine this workflow across multiple days:
 
-```bash
+```bash frame="none"
 # Monday: Start book app review
 copilot
 
@@ -383,7 +383,7 @@ Quality Issues Found:
 > /exit
 ```
 
-```bash
+```bash frame="none"
 # Wednesday: Resume exactly where you left off
 copilot --continue
 
@@ -442,7 +442,7 @@ For power users, Copilot CLI supports wildcard patterns and image references:
 | `@**/test_*.py` | Recursive wildcard: find all test files anywhere |
 | `@image.png` | Image file for UI review |
 
-```bash
+```bash frame="none"
 copilot
 
 > Find all TODO comments in @samples/book-app-project/**/*.py
@@ -450,7 +450,7 @@ copilot
 
 ### View Session Info
 
-```bash
+```bash frame="none"
 copilot
 
 > /session
@@ -462,7 +462,7 @@ copilot
 
 ### Share Your Session
 
-```bash
+```bash frame="none"
 copilot
 
 > /share file ./my-session.md
@@ -484,7 +484,7 @@ The magic happens when you have multi-turn conversations that build on each othe
 
 #### Example: Progressive Enhancement
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/books.py Review the BookCollection class
@@ -530,7 +530,7 @@ Every AI has a "context window," which is the amount of text it can consider at 
 
 #### What Happens at the Limit
 
-```bash
+```bash frame="none"
 copilot
 
 > /context
@@ -554,7 +554,7 @@ Context limit reached. Older context will be summarized.
 
 When your context is getting full but you don't want to lose the conversation, `/compact` summarizes your history to free up tokens:
 
-```bash
+```bash frame="none"
 copilot
 
 > /compact
@@ -644,7 +644,7 @@ Less specific ──────────────────────
 
 #### Practical Example: Staged Context Loading
 
-```bash
+```bash frame="none"
 copilot
 
 # Step 1: Start with structure
@@ -672,7 +672,7 @@ This staged approach keeps context focused and efficient.
 
 You can include images in your conversations using the `@` syntax, or simply **paste from your clipboard** (Cmd+V / Ctrl+V). Copilot CLI can analyze screenshots, mockups, and diagrams to help with UI debugging, design implementation, and error analysis.
 
-```bash
+```bash frame="none"
 copilot
 
 > @images/screenshot.png What is happening in this image?
@@ -700,7 +700,7 @@ Time to apply your context and session management skills.
 
 The course includes sample files you can review directly. Start copilot and run the prompt shown next:
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/ Give me a code quality review of this project
@@ -715,7 +715,7 @@ copilot
 
 ### Session Workflow
 
-```bash
+```bash frame="none"
 copilot
 
 > /rename book-app-review
@@ -738,7 +738,7 @@ copilot --continue
 After completing the demos, try these variations:
 
 1. **Cross-File Challenge**: Analyze how book_app.py and books.py work together:
-   ```bash
+   ```bash frame="none"
    copilot
    > @samples/book-app-project/book_app.py @samples/book-app-project/books.py
    > What's the relationship between these files? Are there any code smells?
@@ -774,7 +774,7 @@ The hands-on examples focused on code quality reviews and input validation. Now 
 <summary>💡 Hints (click to expand)</summary>
 
 **Getting started:**
-```bash
+```bash frame="none"
 cd /path/to/copilot-cli-for-beginners
 copilot
 > @samples/book-app-project/books.py @samples/book-app-project/book_app.py Trace how a book goes from user input to being saved in data.json.
@@ -819,7 +819,7 @@ Then resume with: `copilot --continue`
 
 **"File not found" errors** - Make sure you're in the correct directory:
 
-```bash
+```bash frame="none"
 pwd  # Check current directory
 ls   # List files
 
@@ -831,7 +831,7 @@ copilot
 
 **"Permission denied"** - Add the directory to your allowed list:
 
-```bash
+```bash frame="none"
 copilot --add-dir /path/to/directory
 
 # Or in a session:

@@ -1,0 +1,22 @@
+---
+export interface Props {
+  narrow?: boolean;
+}
+
+const { narrow = false } = Astro.props;
+---
+<div class:list={['container', { 'container--narrow': narrow }]}>
+  <slot />
+</div>
+
+<style>
+  .container {
+    width: min(100%, var(--container));
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 1.8vw, 1.5rem);
+  }
+
+  .container--narrow {
+    width: min(100%, 1280px);
+  }
+</style>

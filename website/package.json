@@ -18,6 +18,7 @@
   "author": "GitHub",
   "license": "MIT",
   "dependencies": {
+    "@astrojs/check": "^0.9.9",
     "@astrojs/sitemap": "^3.7.2",
     "@astrojs/starlight": "^0.41.1",
     "astro": "^7.0.3",
@@ -26,6 +27,7 @@
     "gray-matter": "^4.0.3",
     "jszip": "^3.10.1",
     "marked": "^18.0.2",
-    "shiki": "^4.0.2"
+    "shiki": "^4.0.2",
+    "typescript": "^5.9.3"
   }
 }
