@@ -260,8 +260,6 @@ The agent can then query your database, analyze query plans, and suggest optimiz
 | Quick analysis, simple tasks | Claude Haiku or GPT-4.1-mini |
 | Large codebase understanding | Models with larger context windows |
 
-> **New model (v1.0.67)**: **Claude Sonnet 5** is now available as the highest-capability model in the picker. Use it for agents that require the deepest reasoning — security audits, architecture reviews, and tasks where quality matters more than speed.
-
 ### Organizing Agents in Your Repository
 
 ```
