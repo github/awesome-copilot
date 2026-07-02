@@ -2,8 +2,7 @@
   "name": "awesome-copilot",
   "metadata": {
     "description": "Community-driven collection of GitHub Copilot plugins, agents, prompts, and skills",
-    "version": "1.0.0",
-    "pluginRoot": "./plugins"
+    "version": "1.0.0"
   },
   "owner": {
     "name": "GitHub",
@@ -11,8 +10,14 @@
   },
   "plugins": [
     {
+      "name": "accessibility-kanban",
+      "source": "extensions/accessibility-kanban",
+      "description": "Kanban board to manage accessibility issues, allow you to plan, track, and complete remediation work.",
+      "version": "1.0.0"
+    },
+    {
       "name": "acreadiness-cockpit",
-      "source": "acreadiness-cockpit",
+      "source": "plugins/acreadiness-cockpit",
       "description": "Drive Microsoft AgentRC from Copilot chat: assess AI readiness, generate Copilot instructions (flat or nested with applyTo globs for monorepos), and manage policies. Produces a self-contained static HTML dashboard at reports/index.html.",
       "version": "1.0.0"
     },
@@ -72,31 +77,37 @@
     },
     {
       "name": "ai-team-orchestration",
-      "source": "ai-team-orchestration",
+      "source": "plugins/ai-team-orchestration",
       "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
       "version": "1.0.0"
     },
     {
+      "name": "arcade-canvas",
+      "source": "extensions/arcade-canvas",
+      "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
+      "version": "1.0.0"
+    },
+    {
       "name": "arize-ax",
-      "source": "arize-ax",
+      "source": "plugins/arize-ax",
       "description": "Arize AX platform skills for LLM observability, evaluation, and optimization. Includes trace export, instrumentation, datasets, experiments, evaluators, AI provider integrations, annotations, prompt optimization, and deep linking to the Arize UI.",
       "version": "1.0.0"
     },
     {
       "name": "automate-this",
-      "source": "automate-this",
+      "source": "plugins/automate-this",
       "description": "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription.",
       "version": "1.0.0"
     },
     {
       "name": "awesome-copilot",
-      "source": "awesome-copilot",
+      "source": "plugins/awesome-copilot",
       "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills.",
       "version": "1.1.0"
     },
     {
       "name": "aws-cloud-development",
-      "source": "aws-cloud-development",
+      "source": "plugins/aws-cloud-development",
       "description": "Comprehensive AWS cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
       "version": "1.0.0"
     },
@@ -127,13 +138,19 @@
     },
     {
       "name": "azure-cloud-development",
-      "source": "azure-cloud-development",
+      "source": "plugins/azure-cloud-development",
       "description": "Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
       "version": "1.0.1"
     },
     {
+      "name": "backlog-swipe-triage",
+      "source": "extensions/backlog-swipe-triage",
+      "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
+      "version": "1.0.0"
+    },
+    {
       "name": "cast-imaging",
-      "source": "cast-imaging",
+      "source": "plugins/cast-imaging",
       "description": "A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging.",
       "version": "1.0.0"
     },
@@ -163,26 +180,38 @@
       }
     },
     {
+      "name": "chromium-control-canvas",
+      "source": "extensions/chromium-control-canvas",
+      "description": "Opens a real Chromium window you can navigate and interact with from a Copilot canvas control panel and agent actions.",
+      "version": "1.0.0"
+    },
+    {
       "name": "clojure-interactive-programming",
-      "source": "clojure-interactive-programming",
+      "source": "plugins/clojure-interactive-programming",
       "description": "Tools for REPL-first Clojure workflows featuring Clojure instructions, the interactive programming chat mode and supporting guidance.",
       "version": "1.0.0"
     },
     {
       "name": "cms-development",
-      "source": "cms-development",
+      "source": "plugins/cms-development",
       "description": "Skills for CMS development across themes, plugins, admin tooling, media workflows, markdown rendering, and static export pipelines.",
       "version": "1.1.0"
     },
     {
+      "name": "color-orb",
+      "source": "extensions/color-orb",
+      "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
+      "version": "1.0.0"
+    },
+    {
       "name": "context-engineering",
-      "source": "context-engineering",
+      "source": "plugins/context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
       "version": "1.0.0"
     },
     {
       "name": "context-matic",
-      "source": "context-matic",
+      "source": "plugins/context-matic",
       "description": "Coding agents hallucinate APIs. ContextMatic gives them curated, versioned API and SDK docs. Ask your agent to \"integrate the payments API\" and it guesses — falling back on outdated training data and generic patterns that don't match your actual SDK. ContextMatic solves this by giving the agent deterministic, version-aware, SDK-native context at the exact moment it's needed.",
       "version": "0.1.0"
     },
@@ -213,19 +242,19 @@
     },
     {
       "name": "copilot-sdk",
-      "source": "copilot-sdk",
+      "source": "plugins/copilot-sdk",
       "description": "Build applications with the GitHub Copilot SDK across multiple programming languages. Includes comprehensive instructions for C#, Go, Node.js/TypeScript, and Python to help you create AI-powered applications.",
       "version": "1.0.0"
     },
     {
       "name": "csharp-dotnet-development",
-      "source": "csharp-dotnet-development",
+      "source": "plugins/csharp-dotnet-development",
       "description": "Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices.",
       "version": "1.1.0"
     },
     {
       "name": "database-data-management",
-      "source": "database-data-management",
+      "source": "plugins/database-data-management",
       "description": "Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices.",
       "version": "1.0.0"
     },
@@ -280,14 +309,20 @@
     },
     {
       "name": "dataverse-sdk-for-python",
-      "source": "dataverse-sdk-for-python",
+      "source": "plugins/dataverse-sdk-for-python",
       "description": "Comprehensive collection for building production-ready Python integrations with Microsoft Dataverse. Includes official documentation, best practices, advanced features, file operations, and code generation prompts.",
       "version": "1.0.0"
     },
     {
       "name": "devops-oncall",
-      "source": "devops-oncall",
+      "source": "plugins/devops-oncall",
       "description": "A focused set of prompts, instructions, and a chat mode to help triage incidents and respond quickly with DevOps tools and Azure resources.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "diagram-viewer",
+      "source": "extensions/diagram-viewer",
+      "description": "Render diagrams, click nodes to drill down, and view agent-generated explanations directly in the canvas.",
       "version": "1.0.0"
     },
     {
@@ -377,13 +412,13 @@
     },
     {
       "name": "doublecheck",
-      "source": "doublecheck",
+      "source": "plugins/doublecheck",
       "description": "Three-layer verification pipeline for AI output. Extracts claims, finds sources, and flags hallucination risks so humans can verify before acting.",
       "version": "1.0.0"
     },
     {
       "name": "edge-ai-tasks",
-      "source": "edge-ai-tasks",
+      "source": "plugins/edge-ai-tasks",
       "description": "Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai",
       "version": "1.0.0"
     },
@@ -415,21 +450,27 @@
     },
     {
       "name": "ember",
-      "source": "ember",
+      "source": "plugins/ember",
       "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
       "version": "1.0.0"
     },
     {
       "name": "eyeball",
-      "source": "eyeball",
+      "source": "plugins/eyeball",
       "description": "Document analysis with inline source screenshots. When you ask Copilot to analyze a document, Eyeball generates a Word doc where every factual claim includes a highlighted screenshot from the source material so you can verify it with your own eyes.",
       "version": "1.0.0"
     },
     {
       "name": "fastah-ip-geo-tools",
-      "source": "fastah-ip-geo-tools",
+      "source": "plugins/fastah-ip-geo-tools",
       "description": "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.",
       "version": "0.0.9"
+    },
+    {
+      "name": "feedback-themes",
+      "source": "extensions/feedback-themes",
+      "description": "Explore grouped customer feedback signals by impact and drill into a theme to guide product next steps.",
+      "version": "1.0.0"
     },
     {
       "name": "figma",
@@ -455,21 +496,27 @@
     },
     {
       "name": "flowstudio-power-automate",
-      "source": "flowstudio-power-automate",
+      "source": "plugins/flowstudio-power-automate",
       "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
       "version": "2.0.0"
     },
     {
       "name": "frontend-web-dev",
-      "source": "frontend-web-dev",
+      "source": "plugins/frontend-web-dev",
       "description": "Essential prompts, instructions, and chat modes for modern frontend web development including React, Angular, Vue, TypeScript, and CSS frameworks.",
       "version": "1.0.0"
     },
     {
       "name": "gem-team",
-      "source": "gem-team",
+      "source": "plugins/gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.",
       "version": "1.66.0"
+    },
+    {
+      "name": "gesture-review",
+      "source": "extensions/gesture-review",
+      "description": "Review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
+      "version": "1.0.0"
     },
     {
       "name": "gh-skills-builder",
@@ -557,31 +604,31 @@
     },
     {
       "name": "go-mcp-development",
-      "source": "go-mcp-development",
+      "source": "plugins/go-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Go using the official github.com/modelcontextprotocol/go-sdk. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
       "version": "1.0.0"
     },
     {
       "name": "java-development",
-      "source": "java-development",
+      "source": "plugins/java-development",
       "description": "Comprehensive collection of prompts and instructions for Java development including Spring Boot, Quarkus, testing, documentation, and best practices.",
       "version": "1.0.0"
     },
     {
       "name": "java-mcp-development",
-      "source": "java-mcp-development",
+      "source": "plugins/java-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration.",
       "version": "1.0.0"
     },
     {
       "name": "kotlin-mcp-development",
-      "source": "kotlin-mcp-development",
+      "source": "plugins/kotlin-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Kotlin using the official io.modelcontextprotocol:kotlin-sdk library. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
       "version": "1.0.0"
     },
     {
       "name": "mcp-m365-copilot",
-      "source": "mcp-m365-copilot",
+      "source": "plugins/mcp-m365-copilot",
       "description": "Comprehensive collection for building declarative agents with Model Context Protocol integration for Microsoft 365 Copilot",
       "version": "1.0.0"
     },
@@ -687,79 +734,79 @@
     },
     {
       "name": "napkin",
-      "source": "napkin",
+      "source": "plugins/napkin",
       "description": "Visual whiteboard collaboration for Copilot CLI. Opens an interactive whiteboard in your browser where you can draw, sketch, and add sticky notes — then share everything back with Copilot. Copilot sees your drawings and responds with analysis, suggestions, and ideas.",
       "version": "1.0.0"
     },
     {
       "name": "noob-mode",
-      "source": "noob-mode",
+      "source": "plugins/noob-mode",
       "description": "Plain-English translation layer for non-technical Copilot CLI users. Translates every approval prompt, error message, and technical output into clear, jargon-free English with color-coded risk indicators.",
       "version": "1.0.0"
     },
     {
       "name": "openapi-to-application-csharp-dotnet",
-      "source": "openapi-to-application-csharp-dotnet",
+      "source": "plugins/openapi-to-application-csharp-dotnet",
       "description": "Generate production-ready .NET applications from OpenAPI specifications. Includes ASP.NET Core project scaffolding, controller generation, entity framework integration, and C# best practices.",
       "version": "1.0.0"
     },
     {
       "name": "openapi-to-application-go",
-      "source": "openapi-to-application-go",
+      "source": "plugins/openapi-to-application-go",
       "description": "Generate production-ready Go applications from OpenAPI specifications. Includes project scaffolding, handler generation, middleware setup, and Go best practices for REST APIs.",
       "version": "1.0.0"
     },
     {
       "name": "openapi-to-application-java-spring-boot",
-      "source": "openapi-to-application-java-spring-boot",
+      "source": "plugins/openapi-to-application-java-spring-boot",
       "description": "Generate production-ready Spring Boot applications from OpenAPI specifications. Includes project scaffolding, REST controller generation, service layer organization, and Spring Boot best practices.",
       "version": "1.0.0"
     },
     {
       "name": "openapi-to-application-nodejs-nestjs",
-      "source": "openapi-to-application-nodejs-nestjs",
+      "source": "plugins/openapi-to-application-nodejs-nestjs",
       "description": "Generate production-ready NestJS applications from OpenAPI specifications. Includes project scaffolding, controller and service generation, TypeScript best practices, and enterprise patterns.",
       "version": "1.0.0"
     },
     {
       "name": "openapi-to-application-python-fastapi",
-      "source": "openapi-to-application-python-fastapi",
+      "source": "plugins/openapi-to-application-python-fastapi",
       "description": "Generate production-ready FastAPI applications from OpenAPI specifications. Includes project scaffolding, route generation, dependency injection, and Python best practices for async APIs.",
       "version": "1.0.0"
     },
     {
       "name": "oracle-to-postgres-migration-expert",
-      "source": "oracle-to-postgres-migration-expert",
+      "source": "plugins/oracle-to-postgres-migration-expert",
       "description": "Expert agent for Oracle-to-PostgreSQL application migrations in .NET solutions. Performs code edits, runs commands, and invokes extension tools to migrate .NET/Oracle data access patterns to PostgreSQL.",
       "version": "1.0.0"
     },
     {
       "name": "ospo-sponsorship",
-      "source": "ospo-sponsorship",
+      "source": "plugins/ospo-sponsorship",
       "description": "Tools and resources for Open Source Program Offices (OSPOs) to identify, evaluate, and manage sponsorship of open source dependencies through GitHub Sponsors, Open Collective, and other funding platforms.",
       "version": "1.0.0"
     },
     {
       "name": "partners",
-      "source": "partners",
+      "source": "plugins/partners",
       "description": "Custom agents that have been created by GitHub partners",
       "version": "1.0.0"
     },
     {
       "name": "pcf-development",
-      "source": "pcf-development",
+      "source": "plugins/pcf-development",
       "description": "Complete toolkit for developing custom code components using Power Apps Component Framework for model-driven and canvas apps",
       "version": "1.0.0"
     },
     {
       "name": "phoenix",
-      "source": "phoenix",
+      "source": "plugins/phoenix",
       "description": "Phoenix AI observability skills for LLM application debugging, evaluation, and tracing. Includes CLI debugging tools, LLM evaluation workflows, and OpenInference tracing instrumentation.",
       "version": "1.0.0"
     },
     {
       "name": "php-mcp-development",
-      "source": "php-mcp-development",
+      "source": "plugins/php-mcp-development",
       "description": "Comprehensive resources for building Model Context Protocol servers using the official PHP SDK with attribute-based discovery, including best practices, project generation, and expert assistance",
       "version": "1.0.0"
     },
@@ -793,97 +840,109 @@
     },
     {
       "name": "power-apps-code-apps",
-      "source": "power-apps-code-apps",
+      "source": "plugins/power-apps-code-apps",
       "description": "Complete toolkit for Power Apps Code Apps development including project scaffolding, development standards, and expert guidance for building code-first applications with Power Platform integration.",
       "version": "1.0.0"
     },
     {
       "name": "power-bi-development",
-      "source": "power-bi-development",
+      "source": "plugins/power-bi-development",
       "description": "Comprehensive Power BI development resources including data modeling, DAX optimization, performance tuning, visualization design, security best practices, and DevOps/ALM guidance for building enterprise-grade Power BI solutions.",
       "version": "1.0.0"
     },
     {
       "name": "power-platform-architect",
-      "source": "power-platform-architect",
+      "source": "plugins/power-platform-architect",
       "description": "Solution Architect for the Microsoft Power Platform, turning business requirements into functioning Power Platform solution architectures.",
       "version": "1.0.0"
     },
     {
       "name": "power-platform-mcp-connector-development",
-      "source": "power-platform-mcp-connector-development",
+      "source": "plugins/power-platform-mcp-connector-development",
       "description": "Complete toolkit for developing Power Platform custom connectors with Model Context Protocol integration for Microsoft Copilot Studio",
       "version": "1.0.0"
     },
     {
       "name": "project-documenter",
-      "source": "project-documenter",
+      "source": "plugins/project-documenter",
       "description": "Generate professional project documentation with draw.io architecture diagrams and Word (.docx) output with embedded images. Automatically discovers any project's technology stack and produces Markdown, diagrams, PNG exports, and a formatted Word document.",
       "version": "1.0.0"
     },
     {
       "name": "project-planning",
-      "source": "project-planning",
+      "source": "plugins/project-planning",
       "description": "Tools and guidance for software project planning, feature breakdown, epic management, implementation planning, and task organization for development teams.",
       "version": "1.0.0"
     },
     {
       "name": "python-mcp-development",
-      "source": "python-mcp-development",
+      "source": "plugins/python-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Python using the official SDK with FastMCP. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
       "version": "1.0.0"
     },
     {
       "name": "react18-upgrade",
-      "source": "react18-upgrade",
+      "source": "plugins/react18-upgrade",
       "description": "Enterprise React 18 migration toolkit with specialized agents and skills for upgrading React 16/17 class-component codebases to React 18.3.1. Includes auditor, dependency surgeon, class component migration specialist, automatic batching fixer, and test guardian.",
       "version": "1.0.0"
     },
     {
       "name": "react19-upgrade",
-      "source": "react19-upgrade",
+      "source": "plugins/react19-upgrade",
       "description": "Enterprise React 19 migration toolkit with specialized agents and skills for upgrading React 18 codebases to React 19. Includes auditor, dependency surgeon, source code migrator, and test guardian. Handles removal of deprecated APIs including ReactDOM.render, forwardRef, defaultProps, legacy context, string refs, and more.",
       "version": "1.0.0"
     },
     {
+      "name": "release-notes-showcase",
+      "source": "extensions/release-notes-showcase",
+      "description": "Compose and refine launch-ready release notes with contributor callouts and export-friendly output.",
+      "version": "1.0.0"
+    },
+    {
       "name": "roundup",
-      "source": "roundup",
+      "source": "plugins/roundup",
       "description": "Self-configuring status briefing generator. Learns your communication style from examples, discovers your data sources, and produces draft updates for any audience on demand.",
       "version": "1.0.0"
     },
     {
       "name": "ruby-mcp-development",
-      "source": "ruby-mcp-development",
+      "source": "plugins/ruby-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol servers in Ruby using the official MCP Ruby SDK gem with Rails integration support.",
       "version": "1.0.0"
     },
     {
       "name": "rug-agentic-workflow",
-      "source": "rug-agentic-workflow",
+      "source": "plugins/rug-agentic-workflow",
       "description": "Three-agent workflow for orchestrated software delivery with an orchestrator plus implementation and QA subagents.",
       "version": "1.0.0"
     },
     {
       "name": "rust-mcp-development",
-      "source": "rust-mcp-development",
+      "source": "plugins/rust-mcp-development",
       "description": "Build high-performance Model Context Protocol servers in Rust using the official rmcp SDK with async/await, procedural macros, and type-safe implementations.",
       "version": "1.0.0"
     },
     {
       "name": "salesforce-development",
-      "source": "salesforce-development",
+      "source": "plugins/salesforce-development",
       "description": "Complete Salesforce agentic development environment covering Apex & Triggers, Flow automation, Lightning Web Components, Aura components, and Visualforce pages.",
       "version": "1.1.0"
     },
     {
       "name": "security-best-practices",
-      "source": "security-best-practices",
+      "source": "plugins/security-best-practices",
       "description": "Security frameworks, accessibility guidelines, performance optimization, and code quality best practices for building secure, maintainable, and high-performance applications.",
       "version": "1.0.0"
     },
     {
+      "name": "site-studio",
+      "source": "extensions/site-studio",
+      "description": "Plan, draft, and track a personal website section by section — a shared canvas where you and your agent author content, watch progress, and review every change.",
+      "version": "1.0.0"
+    },
+    {
       "name": "skill-image-gen",
-      "source": "skill-image-gen",
+      "source": "plugins/skill-image-gen",
       "description": "Generate images using AI directly from your coding workflow. Supports OpenAI (gpt-image-2) and Google Gemini. BYO API key — the skill guides you through setup on first use.",
       "version": "1.0.0"
     },
@@ -913,7 +972,7 @@
     },
     {
       "name": "software-engineering-team",
-      "source": "software-engineering-team",
+      "source": "plugins/software-engineering-team",
       "description": "7 specialized agents covering the full software development lifecycle from UX design and architecture to security and DevOps.",
       "version": "1.0.0"
     },
@@ -943,37 +1002,37 @@
     },
     {
       "name": "structured-autonomy",
-      "source": "structured-autonomy",
+      "source": "plugins/structured-autonomy",
       "description": "Premium planning, thrifty implementation",
       "version": "1.0.0"
     },
     {
       "name": "swift-mcp-development",
-      "source": "swift-mcp-development",
+      "source": "plugins/swift-mcp-development",
       "description": "Comprehensive collection for building Model Context Protocol servers in Swift using the official MCP Swift SDK with modern concurrency features.",
       "version": "1.0.0"
     },
     {
       "name": "technical-spike",
-      "source": "technical-spike",
+      "source": "plugins/technical-spike",
       "description": "Tools for creation, management and research of technical spikes to reduce unknowns and assumptions before proceeding to specification and implementation of solutions.",
       "version": "1.0.0"
     },
     {
       "name": "testing-automation",
-      "source": "testing-automation",
+      "source": "plugins/testing-automation",
       "description": "Comprehensive collection for writing tests, test automation, and test-driven development including unit tests, integration tests, and end-to-end testing strategies.",
       "version": "1.0.0"
     },
     {
       "name": "typescript-mcp-development",
-      "source": "typescript-mcp-development",
+      "source": "plugins/typescript-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in TypeScript/Node.js using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
       "version": "1.0.0"
     },
     {
       "name": "typespec-m365-copilot",
-      "source": "typespec-m365-copilot",
+      "source": "plugins/typespec-m365-copilot",
       "description": "Comprehensive collection of prompts, instructions, and resources for building declarative agents and API plugins using TypeSpec for Microsoft 365 Copilot extensibility.",
       "version": "1.0.0"
     },
@@ -1090,7 +1149,7 @@
     },
     {
       "name": "visual-pr",
-      "source": "visual-pr",
+      "source": "plugins/visual-pr",
       "description": "Capture, annotate, and embed screenshots and animated GIF demos in pull request descriptions. Includes Playwright-based UI capture, PIL image annotations, PR embedding workflows for GitHub and Azure DevOps, and screen recording with variable timing.",
       "version": "1.0.0"
     },
@@ -1118,6 +1177,12 @@
         "source": "github",
         "repo": "microsoft/What-I-Did-Copilot"
       }
+    },
+    {
+      "name": "where-was-i",
+      "source": "extensions/where-was-i",
+      "description": "Reconstruct your dev context (branch, commits, uncommitted work, PR clues) and trigger a resume prompt to continue quickly.",
+      "version": "1.0.0"
     },
     {
       "name": "winappcli",

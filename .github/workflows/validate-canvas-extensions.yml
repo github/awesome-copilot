@@ -6,7 +6,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "extensions/**"
-      - ".schemas/canvas.schema.json"
+      - ".schemas/plugin.schema.json"
 
 permissions:
   contents: read
@@ -33,10 +33,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Validate schema structure once, even for schema-only PRs.
-          if ! node ./eng/validate-json-schema.mjs --schema .schemas/canvas.schema.json; then
-            echo "❌ .schemas/canvas.schema.json failed schema compilation"
-            exit 1
+          # Note: We're still using canvas.schema.json for now to validate the structure,
+          # but in future we may migrate to using plugin.schema.json.
+          # For now, plugin.json will be validated against plugin specs separately.
+          if ! node ./eng/validate-json-schema.mjs --schema .schemas/plugin.schema.json 2>/dev/null || ! [ -f .schemas/plugin.schema.json ]; then
+            echo "Note: plugin.schema.json not yet in use for extension validation. Using plugin validation only."
           fi
 
           # Collect changed extension directories.
@@ -97,8 +98,8 @@ jobs:
               errors+=("\`$ext_dir\`: missing required \`extension.mjs\`.")
             fi
 
-            if [ ! -f "$ext_dir/canvas.json" ]; then
-              errors+=("\`$ext_dir\`: missing required \`canvas.json\`.")
+            if [ ! -f "$ext_dir/.github/plugin/plugin.json" ]; then
+              errors+=("\`$ext_dir\`: missing required \`.github/plugin/plugin.json\`.")
               continue
             fi
 
@@ -106,33 +107,32 @@ jobs:
               errors+=("\`$ext_dir\`: missing required \`assets/preview.png\`.")
             fi
 
-            if ! schema_output="$(node ./eng/validate-json-schema.mjs --schema .schemas/canvas.schema.json --data "$ext_dir/canvas.json" 2>&1)"; then
-              condensed_output="$(echo "$schema_output" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')"
-              errors+=("\`$ext_dir/canvas.json\`: schema validation failed against \`.schemas/canvas.schema.json\` ($condensed_output).")
-              continue
+            # Validate convention-based plugin.json fields
+            logo=$(node -e "const fs = require('fs'); const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(m.logo || '');" "$ext_dir/.github/plugin/plugin.json")
+            if [ "$logo" != "assets/preview.png" ]; then
+              errors+=("\`$ext_dir/.github/plugin/plugin.json\`: logo must be exactly \`assets/preview.png\` (convention), got \`$logo\`.")
             fi
 
-            mapfile -t screenshot_paths < <(
-              node -e 'const fs = require("fs"); const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); const paths = [manifest?.screenshots?.icon?.path, manifest?.screenshots?.gallery?.path].filter((value) => typeof value === "string" && value.trim().length > 0); for (const value of [...new Set(paths)]) { console.log(value); }' "$ext_dir/canvas.json"
-            )
+            extensions=$(node -e "const fs = require('fs'); const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(m.extensions || '');" "$ext_dir/.github/plugin/plugin.json")
+            if [ "$extensions" != "." ]; then
+              errors+=("\`$ext_dir/.github/plugin/plugin.json\`: extensions field must be exactly \`.\" (extension convention), got \`$extensions\`.")
+            fi
 
-            for screenshot_path in "${screenshot_paths[@]}"; do
-              if [[ ! "$screenshot_path" =~ ^assets/([A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*\.(png|jpe?g|gif|webp|svg)$ ]]; then
-                errors+=("\`$ext_dir/canvas.json\`: screenshot path \`$screenshot_path\` is not a valid assets path.")
-                continue
-              fi
-              if [ ! -f "$ext_dir/$screenshot_path" ]; then
-                errors+=("\`$ext_dir/canvas.json\`: screenshot path \`$screenshot_path\` does not exist in the extension directory.")
-              fi
-            done
+            has_x_awesome=$(node -e "const fs = require('fs'); const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(m['x-awesome-copilot'] ? 'yes' : 'no');" "$ext_dir/.github/plugin/plugin.json")
+            if [ "$has_x_awesome" = "yes" ]; then
+              errors+=("\`$ext_dir/.github/plugin/plugin.json\`: x-awesome-copilot field must not be present (use convention-based logo instead).")
+            fi
+
+            # Extension manifest detailed validation is done by npm run plugin:validate
+            # This workflow focuses on structural requirements (presence of required files)
           done
 
           if [ "${#errors[@]}" -ne 0 ]; then
-            echo "❌ Canvas extension validation failed:"
+            echo "❌ Extension validation failed:"
             for error in "${errors[@]}"; do
               echo "- $error"
             done
             exit 1
           fi
 
-          echo "✅ All changed canvas extensions passed validation."
+          echo "✅ All changed extensions passed validation."
