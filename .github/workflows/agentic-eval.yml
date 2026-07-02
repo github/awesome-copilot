@@ -1,0 +1,28 @@
+name: Agentic Evaluation (PR)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  agentic-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate skills
+        run: npm run skill:validate
+
+      - name: Run agentic-eval (stub runner)
+        run: pwsh -File .github/scripts/run-agentic-eval.ps1

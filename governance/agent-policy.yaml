@@ -1,0 +1,60 @@
+# Agent policy for awesome-copilot
+version: 1
+name: default-agent-policy
+
+# Allowed skills (explicit allow-list)
+allowed_skills:
+  - acquire-codebase-knowledge
+  - ai-ready
+  - agent-governance
+  - audit-integrity
+  - agentic-eval
+  - agent-supply-chain
+  - arize-instrumentation
+
+# Explicitly blocked or restricted skills
+blocked_skills:
+  - auto-apply-code-changes-unreviewed
+
+# Tool restrictions and capability tiers
+tool_restrictions:
+  shell: 'allowed-with-review'        # shell access requires review for write/change ops
+  network: 'restricted'               # external network calls require allowlist
+  external_api_calls: 'whitelist-only'
+
+# Secrets handling rules
+secrets_handling:
+  forbid:
+    - writing_secrets_to_repo
+    - printing_secrets_in_logs
+    - committing_keys_or_tokens
+  require:
+    - use_vault_for_creds
+    - mask_secrets_in_outputs
+
+# Non-negotiables enforced by CI / gates
+non_negotiables:
+  - always_attach_evidence: true      # include provenance for automated changes
+  - self_critique_required: true     # agents must run self-eval before applying changes
+  - human_review_for_high_risk: true # high-risk changes must have human approval
+
+# Evaluation gates and thresholds (1-10 scale)
+evaluation_gates:
+  agentic_eval_threshold: 8          # must meet or exceed to auto-apply changes
+
+# CI enforcement rules
+ci_rules:
+  block_merge_on_policy_violation: true
+  fail_on_severity: 'high'
+
+# Review and escalation process
+review_process:
+  owner_roles:
+    - repo-admin
+    - security-owner
+  escalation: |
+    If an automated agent flags a high-severity policy violation, open an issue tagged 'agent-policy-violation' and notify owners. Do not merge until resolved.
+
+# Notes
+# - Keep this file under repository governance and sync with org-wide defaults.
+# - Update allowed_skills as new vetted skills are approved.
