@@ -177,8 +177,8 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 **For Canvas Extensions:**
 
 1. Create/update the extension in `extensions/<extension-id>/` with `extension.mjs`
-2. Add `.github/plugin/plugin.json` metadata (name/description/version and optional logo/keywords/author)
-3. Add screenshots to `assets/` using convention-based names, or use `x-awesome-copilot.screenshots` for explicit overrides
+2. Add `.github/plugin/plugin.json` metadata (required: `name`, `description`, `version`, `logo: "assets/preview.png"`, `extensions: "."`; optional: `author`, `keywords`)
+3. Ensure `assets/preview.png` exists as the primary visual asset
 4. Run `npm run plugin:validate` to validate plugin and extension metadata
 5. Run `npm run build` to regenerate website data and marketplace output
 
