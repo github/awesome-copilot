@@ -6,42 +6,64 @@ import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import PageHeader from '../components/PageHeader.astro';
 import BackToTop from '../components/BackToTop.astro';
 import Modal from '../components/Modal.astro';
-import { renderWorkflowsHtml, sortWorkflows } from '../scripts/pages/workflows-render';
+import { renderWorkflowsHtml, sortWorkflows, humanizeTrigger, workflowTriggers } from '../scripts/pages/workflows-render';
 
 const initialItems = sortWorkflows(workflowsData.items, 'title');
+
+// Triggers become the quick filters, ordered by frequency.
+const triggerCounts = new Map<string, number>();
+for (const item of workflowsData.items) {
+  for (const trigger of workflowTriggers(item)) {
+    triggerCounts.set(trigger, (triggerCounts.get(trigger) ?? 0) + 1);
+  }
+}
+const topTriggers = [...triggerCounts.entries()]
+  .sort((a, b) => b[1] - a[1])
+  .map(([key]) => key);
 ---
 
 <StarlightPage frontmatter={{ title: 'Agentic Workflows', description: 'AI-powered repository automations that run coding agents in GitHub Actions', template: 'splash', prev: false, next: false, editUrl: false }}>
   <div id="main-content" class="workflows-page listing-cards-page">
-    <PageHeader title="Agentic Workflows" description="AI-powered repository automations that run coding agents in GitHub Actions" icon="workflow" />
+    <PageHeader title="Agentic Workflows" description="AI-powered repository automations that run coding agents in GitHub Actions" icon="workflow" accent="automation" />
 
     <div class="page-content">
       <div class="container">
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} workflows</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort &amp; Filter</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="filter-trigger">Trigger:</label>
-                    <select id="filter-trigger" multiple aria-label="Filter by trigger"></select>
-                  </div>
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" aria-label="Sort by">
-                      <option value="title">Name (A-Z)</option>
-                      <option value="lastUpdated">Recently Updated</option>
-                    </select>
-                  </div>
-                  <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
-                </div>
-              </div>
-            </details>
+        <div class="filter-bar" data-accent="automation">
+          <div class="filter-bar-search">
+            <svg class="filter-bar-search-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+            <input
+              id="listing-search"
+              type="search"
+              class="filter-bar-input"
+              placeholder="Search workflows by name, description, or trigger"
+              aria-label="Search workflows"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="filter-bar-controls">
+            <div class="facet-chips" role="group" aria-label="Filter by trigger">
+              {topTriggers.map((trigger) => (
+                <button type="button" class="facet-chip" data-facet-group="trigger" data-facet-value={trigger} aria-pressed="false">{humanizeTrigger(trigger)}</button>
+              ))}
+            </div>
+
+            <label class="filter-bar-sort">
+              <span class="sr-only">Sort workflows</span>
+              <select id="sort-select" aria-label="Sort workflows">
+                <option value="title">Name (A-Z)</option>
+                <option value="lastUpdated">Recently updated</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="filter-bar-meta">
+            <span class="results-count" id="results-count" aria-live="polite">{initialItems.length} workflows</span>
+            <button type="button" class="filter-bar-clear" id="clear-filters" hidden>Clear filters</button>
           </div>
         </div>
-        <div class="resource-list" id="resource-list" role="list" set:html={renderWorkflowsHtml(initialItems)}></div>
+
+        <div class="resource-list rcard-grid" id="resource-list" role="list" set:html={renderWorkflowsHtml(initialItems)}></div>
         <ContributeCTA resourceType="workflows" />
       </div>
     </div>

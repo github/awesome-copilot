@@ -24,7 +24,13 @@ export default defineConfig({
       title: "Awesome GitHub Copilot",
       favicon: "/images/favicon.svg",
       description: siteDescription,
-      social: [],
+      social: [
+        {
+          icon: "github",
+          label: "View on GitHub",
+          href: "https://github.com/github/awesome-copilot",
+        },
+      ],
       head: [
         {
           tag: "meta",

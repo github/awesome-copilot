@@ -13,6 +13,7 @@ import {
 } from '../utils';
 import { openCardDetailsModal, setupModal } from '../modal';
 import {
+  filterAgents,
   renderAgentsHtml,
   sortAgents,
   type AgentSortOption,
@@ -31,16 +32,38 @@ interface AgentsData {
 let allItems: Agent[] = [];
 let agentByPath = new Map<string, Agent>();
 let currentSort: AgentSortOption = 'title';
+let currentQuery = '';
+let activeFamilies = new Set<string>();
+let activeCapabilities = new Set<string>();
 let resourceListHandlersReady = false;
 let modalReady = false;
 
+function hasActiveFilters(): boolean {
+  return (
+    currentQuery.trim() !== '' ||
+    activeFamilies.size > 0 ||
+    activeCapabilities.size > 0
+  );
+}
+
 function applyFiltersAndRender(): void {
   const countEl = document.getElementById('results-count');
-  const results = sortAgents(allItems, currentSort);
+  const clearBtn = document.getElementById('clear-filters');
+
+  const filtered = filterAgents(allItems, {
+    query: currentQuery,
+    families: [...activeFamilies],
+    capabilities: [...activeCapabilities],
+  });
+  const results = sortAgents(filtered, currentSort);
 
   renderItems(results);
+
   if (countEl) {
     countEl.textContent = `${results.length} agent${results.length === 1 ? '' : 's'}`;
+  }
+  if (clearBtn) {
+    clearBtn.hidden = !hasActiveFilters();
   }
 }
 
@@ -137,17 +160,92 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
 
 function syncUrlState(): void {
   updateQueryParams({
-    q: '',
-    model: [],
-    tool: [],
-    handoffs: false,
+    q: currentQuery.trim(),
+    model: [...activeFamilies],
+    cap: [...activeCapabilities],
     sort: currentSort === 'title' ? '' : currentSort,
+  });
+}
+
+function setupFilterBar(): void {
+  const searchInput = document.getElementById('listing-search') as HTMLInputElement | null;
+  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement | null;
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.facet-chip'));
+  const clearBtn = document.getElementById('clear-filters') as HTMLButtonElement | null;
+
+  // Hydrate state from the URL so shared/bookmarked filters survive reloads.
+  const initialQuery = getQueryParam('q');
+  if (initialQuery && searchInput) {
+    currentQuery = initialQuery;
+    searchInput.value = initialQuery;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  activeFamilies = new Set(params.getAll('model'));
+  activeCapabilities = new Set(params.getAll('cap'));
+
+  const initialSort = getQueryParam('sort');
+  if (initialSort === 'lastUpdated') {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
+  }
+
+  chips.forEach((chip) => {
+    const family = chip.dataset.family;
+    const capability = chip.dataset.capability;
+    const isActive =
+      (family && activeFamilies.has(family)) ||
+      (capability && activeCapabilities.has(capability));
+    chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+
+    chip.addEventListener('click', () => {
+      const pressed = chip.getAttribute('aria-pressed') === 'true';
+      const next = !pressed;
+      chip.setAttribute('aria-pressed', next ? 'true' : 'false');
+
+      if (family) {
+        if (next) activeFamilies.add(family);
+        else activeFamilies.delete(family);
+      } else if (capability) {
+        if (next) activeCapabilities.add(capability);
+        else activeCapabilities.delete(capability);
+      }
+
+      applyFiltersAndRender();
+      syncUrlState();
+    });
+  });
+
+  let searchTimer: number | undefined;
+  searchInput?.addEventListener('input', () => {
+    window.clearTimeout(searchTimer);
+    searchTimer = window.setTimeout(() => {
+      currentQuery = searchInput.value;
+      applyFiltersAndRender();
+      syncUrlState();
+    }, 150);
+  });
+
+  sortSelect?.addEventListener('change', () => {
+    currentSort = sortSelect.value as AgentSortOption;
+    applyFiltersAndRender();
+    syncUrlState();
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    currentQuery = '';
+    activeFamilies.clear();
+    activeCapabilities.clear();
+    if (searchInput) searchInput.value = '';
+    chips.forEach((chip) => chip.setAttribute('aria-pressed', 'false'));
+    applyFiltersAndRender();
+    syncUrlState();
+    searchInput?.focus();
   });
 }
 
 export async function initAgentsPage(): Promise<void> {
   const list = document.getElementById('resource-list');
-  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
 
   if (!modalReady) {
     setupModal();
@@ -165,17 +263,7 @@ export async function initAgentsPage(): Promise<void> {
   allItems = data.items;
   agentByPath = new Map(allItems.map((item) => [item.path, item]));
 
-  const initialSort = getQueryParam('sort');
-  if (initialSort === 'lastUpdated') {
-    currentSort = initialSort;
-    if (sortSelect) sortSelect.value = initialSort;
-  }
-
-  sortSelect?.addEventListener('change', () => {
-    currentSort = sortSelect.value as AgentSortOption;
-    applyFiltersAndRender();
-    syncUrlState();
-  });
+  setupFilterBar();
 
   applyFiltersAndRender();
   setupDropdownCloseHandlers();

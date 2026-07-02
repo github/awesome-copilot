@@ -1,105 +1,91 @@
 /**
  * Tools page functionality
  */
+import { escapeHtml } from "../utils";
+import { openCardDetailsModal } from "../modal";
+import { initListingPage } from "./listing-controller";
 import {
-  fetchData,
-  getQueryParam,
-  updateQueryParams,
-} from "../utils";
-import {
+  renderToolModalLinks,
   renderToolsHtml,
   sortTools,
+  toolCategories,
+  toolSearchText,
+  type RenderableTool,
   type ToolSortOption,
 } from "./tools-render";
 
-export interface Tool {
-  id: string;
-  name: string;
-  title: string;
-  description: string;
-  category: string;
-  featured: boolean;
-  requirements: string[];
-  features: string[];
-  links: {
-    blog?: string;
-    vscode?: string;
-    "vscode-insiders"?: string;
-    "visual-studio"?: string;
-    github?: string;
-    documentation?: string;
-    marketplace?: string;
-    npm?: string;
-    pypi?: string;
-  };
-  configuration?: {
-    type: string;
-    content: string;
-  };
-  tags: string[];
+interface Tool extends RenderableTool {}
+
+const COPY_SVG =
+  '<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>';
+
+function buildSection(heading: string, items: string[]): string {
+  if (!items.length) return "";
+  return `<div class="tool-section"><h3>${heading}</h3><ul>${items
+    .map((entry) => `<li>${escapeHtml(entry)}</li>`)
+    .join("")}</ul></div>`;
 }
 
-interface ToolsData {
-  items: Tool[];
-  filters: {
-    categories: string[];
-    tags: string[];
-  };
-}
-
-let allItems: Tool[] = [];
-let currentFilters = {
-  categories: [] as string[],
-};
-let currentSort: ToolSortOption = "featured";
-let copyHandlersReady = false;
-let initialized = false;
-
-function sortItems(items: Tool[]): Tool[] {
-  return sortTools(items, currentSort);
-}
-
-function getCountText(resultsCount: number): string {
-  if (currentFilters.categories.length === 0) {
-    return `${resultsCount} tool${resultsCount === 1 ? "" : "s"}`;
+function openToolDetailsModal(item: Tool, trigger?: HTMLElement): void {
+  const badges: string[] = [];
+  if (item.category) {
+    badges.push(`<span class="resource-tag">${escapeHtml(item.category)}</span>`);
+  }
+  if (item.featured) {
+    badges.push('<span class="resource-tag tag-featured">Featured</span>');
   }
 
-  return `${resultsCount} of ${allItems.length} tools (filtered by ${currentFilters.categories.length} categor${currentFilters.categories.length === 1 ? "y" : "ies"})`;
-}
+  const sections: string[] = [
+    buildSection("Features", item.features ?? []),
+    buildSection("Requirements", item.requirements ?? []),
+  ];
 
-function applyFiltersAndRender(): void {
-  const countEl = document.getElementById("results-count");
-  let results = [...allItems];
-
-  if (currentFilters.categories.length > 0) {
-    results = results.filter((item) =>
-      currentFilters.categories.includes(item.category)
+  if (item.configuration?.content) {
+    const encoded = encodeURIComponent(item.configuration.content);
+    sections.push(
+      `<div class="tool-config"><h3>Configuration</h3><div class="tool-config-wrapper"><pre><code>${escapeHtml(
+        item.configuration.content
+      )}</code></pre></div><button class="copy-config-btn" type="button" data-config="${encoded}">${COPY_SVG}<span>Copy configuration</span></button></div>`
     );
   }
 
-  results = sortItems(results);
+  const tagsHtml = item.tags?.length
+    ? `<div class="tool-tags">${item.tags
+        .map((tag) => `<span class="tool-tag">${escapeHtml(tag)}</span>`)
+        .join("")}</div>`
+    : "";
 
-  renderTools(results);
-  if (countEl) countEl.textContent = getCountText(results.length);
-}
+  const detailsHtml = `
+    <div class="resource-details-body modal-card-details-body tool-details-modal">
+      <div class="resource-details-content">
+        <p class="resource-details-description">${escapeHtml(
+          item.description || "No description"
+        )}</p>
+        ${
+          badges.length
+            ? `<div class="resource-meta resource-details-meta">${badges.join(
+                ""
+              )}</div>`
+            : ""
+        }
+        ${sections.filter(Boolean).join("")}
+        ${tagsHtml}
+        <div class="resource-actions resource-details-actions">${renderToolModalLinks(
+          item
+        )}</div>
+      </div>
+    </div>`;
 
-function renderTools(tools: Tool[]): void {
-  const container = document.getElementById("tools-list");
-  if (!container) return;
-  container.innerHTML = renderToolsHtml(tools);
-}
-
-function syncUrlState(): void {
-  updateQueryParams({
-    q: "",
-    category: currentFilters.categories,
-    sort: currentSort === "featured" ? "" : currentSort,
+  openCardDetailsModal({
+    title: item.name,
+    description: item.description || "No description",
+    detailsHtml,
+    trigger,
   });
 }
 
+/** Delegated handler for the bespoke copy-configuration button (modal only). */
 function setupCopyConfigHandlers(): void {
-  if (copyHandlersReady) return;
-
   document.addEventListener("click", async (event) => {
     const button = (event.target as HTMLElement).closest(
       ".copy-config-btn"
@@ -110,15 +96,10 @@ function setupCopyConfigHandlers(): void {
     const config = decodeURIComponent(button.dataset.config || "");
     try {
       await navigator.clipboard.writeText(config);
-      button.classList.add("copied");
       const originalHtml = button.innerHTML;
-      button.innerHTML = `
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/>
-        </svg>
-        Copied!
-      `;
-      setTimeout(() => {
+      button.classList.add("copied");
+      button.innerHTML = `${COPY_SVG}<span>Copied!</span>`;
+      window.setTimeout(() => {
         button.classList.remove("copied");
         button.innerHTML = originalHtml;
       }, 2000);
@@ -126,86 +107,18 @@ function setupCopyConfigHandlers(): void {
       console.error("Failed to copy:", err);
     }
   });
-
-  copyHandlersReady = true;
 }
 
-export async function initToolsPage(): Promise<void> {
-  if (initialized) return;
-  initialized = true;
+setupCopyConfigHandlers();
 
-  const categoryFilter = document.getElementById(
-    "filter-category"
-  ) as HTMLSelectElement;
-  const clearFiltersBtn = document.getElementById("clear-filters");
-  const sortSelect = document.getElementById("sort-select") as HTMLSelectElement;
-
-  const data = await fetchData<ToolsData>("tools.json");
-  if (!data || !data.items) {
-    const container = document.getElementById("tools-list");
-    if (container)
-      container.innerHTML =
-        '<div class="empty-state"><h3>Failed to load tools</h3></div>';
-    return;
-  }
-
-  // Map items to include title for FuzzySearch
-  allItems = data.items.map((item) => ({
-    ...item,
-    title: item.name, // FuzzySearch uses title
-  }));
-
-  // Populate category filter
-  if (categoryFilter && data.filters.categories) {
-    categoryFilter.innerHTML =
-      '<option value="">All Categories</option>' +
-      data.filters.categories
-        .map(
-          (c) => `<option value="${c}">${c}</option>`
-        )
-        .join("");
-
-    const initialCategory = getQueryParam("category");
-    if (initialCategory && data.filters.categories.includes(initialCategory)) {
-      currentFilters.categories = [initialCategory];
-      categoryFilter.value = initialCategory;
-    }
-
-    categoryFilter.addEventListener("change", () => {
-      currentFilters.categories = categoryFilter.value
-        ? [categoryFilter.value]
-        : [];
-      applyFiltersAndRender();
-      syncUrlState();
-    });
-  }
-
-  const initialSort = getQueryParam("sort");
-  if (initialSort === "title") {
-    currentSort = initialSort;
-    if (sortSelect) sortSelect.value = initialSort;
-  }
-  sortSelect?.addEventListener("change", () => {
-    currentSort = sortSelect.value as ToolSortOption;
-    applyFiltersAndRender();
-    syncUrlState();
-  });
-
-  applyFiltersAndRender();
-  syncUrlState();
-
-  // Clear filters
-  clearFiltersBtn?.addEventListener("click", () => {
-    currentFilters = { categories: [] };
-    currentSort = "featured";
-    if (categoryFilter) categoryFilter.value = "";
-    if (sortSelect) sortSelect.value = "featured";
-    applyFiltersAndRender();
-    syncUrlState();
-  });
-
-  setupCopyConfigHandlers();
-}
-
-// Auto-initialize when DOM is ready
-document.addEventListener("DOMContentLoaded", initToolsPage);
+initListingPage<Tool>({
+  dataFile: "tools.json",
+  keyOf: (item) => item.id,
+  search: toolSearchText,
+  facetValues: (item) => ({ category: toolCategories(item) }),
+  sort: (items, sort) => sortTools(items, sort as ToolSortOption),
+  render: renderToolsHtml,
+  noun: "tool",
+  defaultSort: "featured",
+  openModal: openToolDetailsModal,
+});

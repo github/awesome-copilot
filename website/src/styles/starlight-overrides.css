@@ -88,17 +88,61 @@ header.header .header-actions {
   gap: 12px;
 }
 
-/* Hide social icons in header - GitHub link moved to hero */
+/* GitHub link — sits far-right in the header action cluster */
 header .social-icons {
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+}
+header .social-icons a {
+  color: var(--sl-color-gray-2);
+  padding: 8px;
+  border-radius: 999px;
+  line-height: 0;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+header .social-icons a:hover {
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-5);
+}
+header .social-icons svg {
+  width: 20px;
+  height: 20px;
+}
+/* Starlight draws a divider after social icons to separate the theme
+   dropdown; that dropdown is hidden here, so drop the dangling line. */
+header .social-icons::after {
   display: none !important;
 }
 
-/* Move theme toggle inside header - align with header elements */
+/* Single-icon theme toggle rides in the header flow, left of GitHub */
 .theme-toggle-container {
-  position: fixed !important;
-  top: 12px !important;
-  right: 80px !important;
+  position: static !important;
+  display: flex !important;
+  align-items: center;
   z-index: 1001;
+}
+
+/* Keep the action cluster (theme toggle + GitHub) visible on every
+   viewport — Starlight hides it below `md` by default, but this site
+   surfaces those controls in the header on mobile too. */
+header .right-group {
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 50rem) {
+  /* Free up room so the long site title isn't truncated on phones. */
+  .site-title {
+    font-size: var(--sl-text-lg) !important;
+  }
+  header.header .header,
+  header.header {
+    gap: 8px;
+  }
 }
 
 /* On custom splash pages, body already has the gradient bg.

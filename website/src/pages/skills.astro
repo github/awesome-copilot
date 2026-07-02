@@ -6,37 +6,65 @@ import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import BackToTop from '../components/BackToTop.astro';
 import Modal from '../components/Modal.astro';
 import skillsData from '../../public/data/skills.json';
-import { renderSkillsHtml, sortSkills } from '../scripts/pages/skills-render';
+import { renderSkillsHtml, skillAssetKinds, sortSkills } from '../scripts/pages/skills-render';
 
 const initialItems = sortSkills(skillsData.items, 'title');
+
+// Bundled-resource kinds (scripts, references, assets, …) become quick filters.
+const kindCounts = new Map<string, number>();
+for (const item of skillsData.items) {
+  for (const kind of skillAssetKinds(item)) {
+    kindCounts.set(kind, (kindCounts.get(kind) ?? 0) + 1);
+  }
+}
+const topKinds = [...kindCounts.entries()]
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 8)
+  .map(([key]) => key);
 ---
 
 <StarlightPage frontmatter={{ title: 'Skills', description: 'Self-contained agent skills with instructions and bundled resources', template: 'splash', prev: false, next: false, editUrl: false }}>
   <div id="main-content" class="skills-page listing-cards-page">
-    <PageHeader title="Skills" description="Self-contained agent skills with instructions and bundled resources" icon="lightning" />
+    <PageHeader title="Skills" description="Self-contained agent skills with instructions and bundled resources" icon="lightning" accent="power" />
 
     <div class="page-content">
       <div class="container">
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} skills</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" aria-label="Sort by">
-                      <option value="title">Name (A-Z)</option>
-                      <option value="lastUpdated">Recently Updated</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </details>
+        <div class="filter-bar" data-accent="power">
+          <div class="filter-bar-search">
+            <svg class="filter-bar-search-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+            <input
+              id="listing-search"
+              type="search"
+              class="filter-bar-input"
+              placeholder="Search skills by name, description, or bundled resource"
+              aria-label="Search skills"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="filter-bar-controls">
+            <div class="facet-chips" role="group" aria-label="Filter by bundled resource">
+              {topKinds.map((kind) => (
+                <button type="button" class="facet-chip" data-facet-group="resource" data-facet-value={kind} aria-pressed="false">{kind}</button>
+              ))}
+            </div>
+
+            <label class="filter-bar-sort">
+              <span class="sr-only">Sort skills</span>
+              <select id="sort-select" aria-label="Sort skills">
+                <option value="title">Name (A-Z)</option>
+                <option value="lastUpdated">Recently updated</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="filter-bar-meta">
+            <span class="results-count" id="results-count" aria-live="polite">{initialItems.length} skills</span>
+            <button type="button" class="filter-bar-clear" id="clear-filters" hidden>Clear filters</button>
           </div>
         </div>
-        <div class="resource-list" id="resource-list" role="list" set:html={renderSkillsHtml(initialItems)}></div>
+
+        <div class="resource-list rcard-grid" id="resource-list" role="list" set:html={renderSkillsHtml(initialItems)}></div>
         <ContributeCTA resourceType="skills" />
       </div>
     </div>

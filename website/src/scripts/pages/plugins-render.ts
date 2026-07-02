@@ -3,7 +3,16 @@ import {
   getGitHubUrl,
   sanitizeUrl,
 } from '../utils';
-import { renderEmptyStateHtml, renderSharedCardHtml } from './card-render';
+import {
+  FACT_ICONS,
+  GITHUB_MARK,
+  TYPE_ICONS,
+  renderResourceGridHtml,
+  type RCardFact,
+  type RCardModel,
+} from './resource-card';
+
+const CLIPBOARD_SVG = `<svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M5.75 1a.75.75 0 0 0-.75.75V3h6V1.75a.75.75 0 0 0-.75-.75h-4.5ZM11 3v-.75A.75.75 0 0 1 11.75 1.5h.5A1.75 1.75 0 0 1 14 3.25v10A1.75 1.75 0 0 1 12.25 15h-8.5A1.75 1.75 0 0 1 2 13.25v-10A1.75 1.75 0 0 1 3.75 1.5h.5A.75.75 0 0 1 5 2.25V3H3.75a.25.25 0 0 0-.25.25v10c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-10a.25.25 0 0 0-.25-.25H11Z"/></svg>`;
 
 interface PluginAuthor {
   name: string;
@@ -47,54 +56,93 @@ export function sortPlugins<T extends RenderablePlugin>(
   });
 }
 
-function getExternalPluginUrl(plugin: RenderablePlugin): string {
+/** Source facet value: "external" for third-party plugins, else "local". */
+export function pluginSource(item: RenderablePlugin): string[] {
+  return [item.external === true ? 'external' : 'local'];
+}
+
+export function pluginSearchText(item: RenderablePlugin): string {
+  return [
+    item.name,
+    item.description ?? '',
+    item.author?.name ?? '',
+    (item.tags ?? []).join(' '),
+  ].join(' ');
+}
+
+export function getExternalPluginUrl(plugin: RenderablePlugin): string {
   if (plugin.source?.source === 'github' && plugin.source.repo) {
     const base = `https://github.com/${plugin.source.repo}`;
-    return plugin.source.path && plugin.source.path !== '/' ? `${base}/tree/main/${plugin.source.path}` : base;
+    return plugin.source.path && plugin.source.path !== '/'
+      ? `${base}/tree/main/${plugin.source.path}`
+      : base;
   }
 
   return sanitizeUrl(plugin.repository || plugin.homepage);
 }
 
 export function renderPluginsHtml(items: RenderablePlugin[]): string {
-  if (items.length === 0) {
-    return renderEmptyStateHtml('No plugins found', 'Try different tags or clear the current filters');
-  }
+  const models: RCardModel[] = items.map((item) => {
+    const isExternal = item.external === true;
+    const safeName = escapeHtml(item.name);
 
-  return items
-    .map((item) => {
-      const isExternal = item.external === true;
-      const metaTag = isExternal
-        ? '<span class="resource-tag resource-tag-external">🔗 External</span>'
-        : `<span class="resource-tag">${item.itemCount} items</span>`;
-      const authorTag =
-        isExternal && item.author?.name
-          ? `<span class="resource-tag">by ${escapeHtml(item.author.name)}</span>`
-          : '';
-      const githubHref = isExternal
-        ? escapeHtml(getExternalPluginUrl(item))
-        : getGitHubUrl(item.path);
-      const metaHtml = `
-        ${metaTag}
-        ${authorTag}
-        ${item.tags?.slice(0, 4).map((tag) => `<span class="resource-tag">${escapeHtml(tag)}</span>`).join('') || ''}
-        ${item.tags && item.tags.length > 4 ? `<span class="resource-tag">+${item.tags.length - 4} more</span>` : ''}
-      `;
+    const badge = isExternal
+      ? { text: 'External', title: 'Third-party plugin' }
+      : null;
 
-      const actionsHtml = `
-        <a href="${githubHref}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="${isExternal ? 'View repository' : 'View on GitHub'}">${isExternal ? 'Repository' : 'GitHub'}</a>
-      `;
-
-      return renderSharedCardHtml({
-        title: item.name,
-        description: item.description || 'No description',
-        articleClassName: isExternal ? 'resource-item-external' : '',
-        articleAttributes: {
-          'data-path': item.path,
-        },
-        metaHtml,
-        actionsHtml,
+    const facts: RCardFact[] = [];
+    if (!isExternal) {
+      facts.push({
+        icon: FACT_ICONS.items,
+        label: `${item.itemCount} item${item.itemCount === 1 ? '' : 's'}`,
       });
-    })
-    .join('');
+    } else if (item.author?.name) {
+      facts.push({ icon: FACT_ICONS.author, label: `by ${item.author.name}` });
+    }
+
+    const tagCount = item.tags?.length ?? 0;
+    if (tagCount > 0) {
+      facts.push({
+        icon: FACT_ICONS.tag,
+        label: `${tagCount} tag${tagCount === 1 ? '' : 's'}`,
+      });
+    }
+
+    const actionsHtml = isExternal
+      ? `
+        <a href="${escapeHtml(
+          getExternalPluginUrl(item)
+        )}" class="btn btn-primary btn-small" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="View repository" aria-label="View ${safeName} repository">
+          Repository
+        </a>
+      `
+      : `
+        <button type="button" class="btn btn-primary btn-small copy-plugin-install-btn" data-plugin-name="${safeName}" title="Copy install command" aria-label="Copy install command for ${safeName}">
+          ${CLIPBOARD_SVG}<span>Copy install</span>
+        </button>
+        <a href="${getGitHubUrl(
+          item.path
+        )}" class="btn btn-secondary btn-small action-github rcard-lead" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View on GitHub" aria-label="View ${safeName} on GitHub">
+          ${GITHUB_MARK}
+        </a>
+      `;
+
+    return {
+      accent: 'extension',
+      icon: TYPE_ICONS.plug,
+      title: item.name,
+      description: item.description || 'No description',
+      path: item.path,
+      articleClassName: isExternal ? 'resource-item-external' : '',
+      badge,
+      facts,
+      actionsHtml,
+    };
+  });
+
+  return renderResourceGridHtml(
+    models,
+    'No plugins match your filters',
+    'Try a different search term or clear the active filters.'
+  );
 }

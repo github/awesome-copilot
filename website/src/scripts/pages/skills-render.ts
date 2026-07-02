@@ -1,9 +1,12 @@
+import { escapeHtml, getGitHubUrl, getLastUpdatedHtml } from '../utils';
 import {
-  escapeHtml,
-  getGitHubUrl,
-  getLastUpdatedHtml,
-} from "../utils";
-import { renderEmptyStateHtml, renderSharedCardHtml } from "./card-render";
+  FACT_ICONS,
+  GITHUB_MARK,
+  TYPE_ICONS,
+  renderResourceGridHtml,
+  type RCardFact,
+  type RCardModel,
+} from './resource-card';
 
 export interface RenderableSkillFile {
   name: string;
@@ -40,61 +43,66 @@ export function sortSkills<T extends RenderableSkill>(
   });
 }
 
-export function renderSkillsHtml(items: RenderableSkill[]): string {
-  if (items.length === 0) {
-    return renderEmptyStateHtml("No skills found", "No skills are available right now.");
+/** Top-level bundled resource kinds (scripts, references, assets, …). */
+export function skillAssetKinds(item: RenderableSkill): string[] {
+  const kinds = new Set<string>();
+  for (const file of item.files ?? []) {
+    const name = file.name ?? '';
+    const slash = name.indexOf('/');
+    if (slash > 0) kinds.add(name.slice(0, slash).toLowerCase());
   }
+  return [...kinds];
+}
 
-  return items
-    .map((item) => {
-      const metaHtml = `
-        ${
-          item.hasAssets
-            ? `<span class="resource-tag tag-assets">${item.assetCount} asset${
-                item.assetCount === 1 ? "" : "s"
-              }</span>`
-            : ""
-        }
-        <span class="resource-tag">${item.files.length} file${
-          item.files.length === 1 ? "" : "s"
-        }</span>
-        ${getLastUpdatedHtml(item.lastUpdated)}
-      `;
+export function skillSearchText(item: RenderableSkill): string {
+  return [item.title, item.description ?? '', item.id, skillAssetKinds(item).join(' ')].join(' ');
+}
 
-      const actionsHtml = `
-        <button class="btn btn-secondary copy-install-btn" data-skill-id="${escapeHtml(
-          item.id
-        )}" title="Copy install command">
-          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
-            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/>
-            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/>
-          </svg>
-          Copy Install
-        </button>
-        <button class="btn btn-primary download-skill-btn" data-skill-id="${escapeHtml(
-          item.id
-        )}" title="Download as ZIP">
-          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-            <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/>
-            <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/>
-          </svg>
-          Download
-        </button>
-        <a href="${getGitHubUrl(
-          item.path
-        )}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
-      `;
+const CLIPBOARD_SVG = `<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>`;
+const DOWNLOAD_SVG = `<svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"/></svg>`;
 
-      return renderSharedCardHtml({
-        title: item.title,
-        description: item.description || "No description",
-        articleAttributes: {
-          "data-path": item.skillFile,
-          "data-skill-id": item.id,
-        },
-        metaHtml,
-        actionsHtml,
+export function renderSkillsHtml(items: RenderableSkill[]): string {
+  const models: RCardModel[] = items.map((item) => {
+    const facts: RCardFact[] = [
+      { icon: FACT_ICONS.file, label: `${item.files.length} file${item.files.length === 1 ? '' : 's'}` },
+    ];
+    if (item.hasAssets) {
+      facts.push({
+        icon: FACT_ICONS.asset,
+        label: `${item.assetCount} asset${item.assetCount === 1 ? '' : 's'}`,
       });
-    })
-    .join("");
+    }
+
+    const safeTitle = escapeHtml(item.title);
+    const skillId = escapeHtml(item.id);
+    const actionsHtml = `
+      <button type="button" class="btn btn-primary btn-small copy-install-btn" data-skill-id="${skillId}" title="Copy install command" aria-label="Copy install command for ${safeTitle}">
+        ${CLIPBOARD_SVG}<span>Copy install</span>
+      </button>
+      <button type="button" class="download-skill-btn rcard-icon-btn rcard-lead" data-skill-id="${skillId}" title="Download as ZIP" aria-label="Download ${safeTitle} as ZIP">
+        ${DOWNLOAD_SVG}
+      </button>
+      <a href="${getGitHubUrl(item.path)}" class="action-github" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View on GitHub" aria-label="View ${safeTitle} on GitHub">
+        ${GITHUB_MARK}
+      </a>
+    `;
+
+    return {
+      accent: 'power',
+      icon: TYPE_ICONS.lightning,
+      title: item.title,
+      description: item.description || 'No description',
+      path: item.skillFile,
+      attributes: { 'data-skill-id': item.id },
+      facts,
+      lastUpdatedHtml: getLastUpdatedHtml(item.lastUpdated),
+      actionsHtml,
+    };
+  });
+
+  return renderResourceGridHtml(
+    models,
+    'No skills match your filters',
+    'Try a different search term or clear the active filters.'
+  );
 }

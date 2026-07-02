@@ -1,23 +1,26 @@
 ---
 import Icon from './Icon.astro';
 
+type Accent = 'ai' | 'docs' | 'power' | 'automation' | 'extension' | 'dev' | 'learn';
+
 interface Props {
   title: string;
   description: string;
   icon?: 'robot' | 'document' | 'lightning' | 'hook' | 'workflow' | 'plug' | 'wrench' | 'book';
+  accent?: Accent;
 }
 
-const { title, description, icon } = Astro.props;
+const { title, description, icon, accent } = Astro.props;
 const contributingUrl = 'https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md';
 ---
 
-<div class="page-header">
+<div class="page-header" data-accent={accent}>
   <div class="container">
     <div class="page-header-row">
-      <div>
+      <div class="page-header-lede">
         <h1>
-          {icon && <Icon name={icon} size={28} />}
-          <Fragment set:html={title} />
+          {icon && <span class="page-header-icon"><Icon name={icon} size={24} /></span>}
+          <span class="page-header-title"><Fragment set:html={title} /></span>
         </h1>
         <p><slot><Fragment set:html={description} /></slot></p>
       </div>
@@ -33,6 +36,33 @@ const contributingUrl = 'https://github.com/github/awesome-copilot/blob/main/CON
   .page-header h1 {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
+
+  .page-header-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: none;
+    border-radius: 14px;
+    color: var(--accent-color, var(--sl-color-accent));
+    background: color-mix(in srgb, var(--accent-color, var(--sl-color-accent)) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-color, var(--sl-color-accent)) 32%, transparent);
+  }
+
+  /* Accent-tinted heading matches the landing category cards, but uses the
+     theme-aware TEXT token so it stays AA-legible in light mode. */
+  .page-header[data-accent] .page-header-title {
+    color: var(--accent-text);
+  }
+
+  .page-header[data-accent='ai'] { --accent-color: var(--category-ai); --accent-text: var(--category-ai-text); }
+  .page-header[data-accent='docs'] { --accent-color: var(--category-docs); --accent-text: var(--category-docs-text); }
+  .page-header[data-accent='power'] { --accent-color: var(--category-power); --accent-text: var(--category-power-text); }
+  .page-header[data-accent='automation'] { --accent-color: var(--category-automation); --accent-text: var(--category-automation-text); }
+  .page-header[data-accent='extension'] { --accent-color: var(--category-extension); --accent-text: var(--category-extension-text); }
+  .page-header[data-accent='dev'] { --accent-color: var(--category-dev); --accent-text: var(--category-dev-text); }
+  .page-header[data-accent='learn'] { --accent-color: var(--category-learn); --accent-text: var(--category-learn-text); }
 </style>

@@ -1,64 +1,69 @@
 ---
-// Theme Toggle Component - 3 state slider: Auto | Dark | Light
+// Theme Toggle Component — single icon that cycles Dark → Light → Auto.
+// Shows the icon for the active theme; a11y label announces current + next.
 ---
 
 <div class="theme-toggle-container">
   <button
     id="theme-toggle"
     class="theme-toggle"
+    type="button"
     aria-label="Toggle theme"
     title="Change theme"
   >
     <span class="theme-icon moon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
       </svg>
     </span>
     <span class="theme-icon auto" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 2v10l4.5 4.5"/>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="4" width="20" height="14" rx="2"/>
+        <path d="M8 21h8M12 18v3"/>
       </svg>
     </span>
     <span class="theme-icon sun" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3"/>
-        <line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/>
-        <line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4.5"/>
+        <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
       </svg>
     </span>
-    <span class="theme-slider"></span>
   </button>
 </div>
 
 <script>
-  (function() {
-    // Move theme toggle to body level to escape any stacking contexts
+  (function () {
     const container = document.querySelector('.theme-toggle-container');
-    if (container && container.parentElement !== document.body) {
-      document.body.appendChild(container);
+    // Place the toggle in the header's action cluster, just left of the
+    // GitHub social icon, so flexbox lays them out together. Fall back to
+    // <body> if the header isn't present (keeps the button usable).
+    if (container) {
+      const social = document.querySelector('header .social-icons');
+      if (social && social.parentElement) {
+        social.parentElement.insertBefore(container, social);
+      } else if (container.parentElement !== document.body) {
+        document.body.appendChild(container);
+      }
     }
 
     const STORAGE_KEY = 'awesome-copilot-theme';
     const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
-    const themes = ['dark', 'auto', 'light'];
-    const icons = ['moon', 'auto', 'sun'];
+    const themes = ['dark', 'light', 'auto'];
+    const labels: Record<string, string> = {
+      dark: 'Dark',
+      light: 'Light',
+      auto: 'Auto (system)',
+    };
 
     function getThemeIndex() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored && themes.includes(stored)) {
         return themes.indexOf(stored);
       }
-      // Default to light theme
-      return 2;
+      // No stored preference → follow system (auto).
+      return themes.indexOf('auto');
     }
 
     function applyTheme(index: number) {
@@ -70,31 +75,27 @@
         html.setAttribute('data-theme', theme);
       }
 
-      // Move slider
-      const slider = toggle?.querySelector('.theme-slider') as HTMLElement;
-      if (slider) {
-        slider.style.transform = `translateX(${index * 100}%)`;
+      if (toggle) {
+        toggle.setAttribute('data-theme-mode', theme);
+        const next = themes[(index + 1) % themes.length];
+        toggle.setAttribute(
+          'aria-label',
+          `Theme: ${labels[theme]}. Activate to switch to ${labels[next]}.`
+        );
+        toggle.setAttribute('title', `Theme: ${labels[theme]}`);
       }
-
-      // Highlight active icon
-      const themeToggle = document.querySelector('.theme-toggle');
-      themeToggle?.setAttribute('data-active', String(index));
     }
 
     function cycleTheme() {
-      const currentIndex = getThemeIndex();
-      const nextIndex = (currentIndex + 1) % themes.length;
+      const nextIndex = (getThemeIndex() + 1) % themes.length;
       localStorage.setItem(STORAGE_KEY, themes[nextIndex]);
       applyTheme(nextIndex);
     }
 
-    // Initialize
     applyTheme(getThemeIndex());
 
-    // Click handler
     toggle?.addEventListener('click', cycleTheme);
 
-    // Keyboard shortcut
     document.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'L') {
         e.preventDefault();
@@ -102,10 +103,9 @@
       }
     });
 
-    // Listen for system theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (localStorage.getItem(STORAGE_KEY) === 'auto') {
-        applyTheme(1); // auto
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if ((localStorage.getItem(STORAGE_KEY) || 'auto') === 'auto') {
+        applyTheme(themes.indexOf('auto'));
       }
     });
   })();
@@ -118,53 +118,52 @@
   }
 
   .theme-toggle {
-    display: flex;
-    position: relative;
-    width: 108px;
-    height: 36px;
-    padding: 3px;
-    border: 1px solid var(--color-border);
-    border-radius: 20px;
-    background: var(--color-bg-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border: none;
+    border-radius: var(--radius-pill, 999px);
+    background: transparent;
+    color: var(--sl-color-gray-2);
     cursor: pointer;
-    transition: all 0.2s ease;
-    overflow: hidden;
+    line-height: 0;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      transform 0.1s ease;
   }
 
   .theme-toggle:hover {
-    border-color: var(--color-accent);
+    color: var(--sl-color-white);
+    background: var(--sl-color-gray-5);
+  }
+
+  .theme-toggle:active {
+    transform: scale(0.9);
   }
 
   .theme-toggle:focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--sl-color-accent);
     outline-offset: 2px;
   }
 
   .theme-icon {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 30px;
-    border-radius: 16px;
-    color: var(--color-text-muted);
-    transition: all 0.2s ease;
-    z-index: 1;
-    font-weight: 400;
+    line-height: 0;
   }
 
-  .theme-icon.moon { color: #9898a6; }
-  .theme-icon.auto { color: #9898a6; }
-  .theme-icon.sun { color: #9898a6; }
-
-  .theme-toggle[data-active="0"] .moon,
-  .theme-toggle[data-active="1"] .auto,
-  .theme-toggle[data-active="2"] .sun {
-    color: var(--color-text);
-    font-weight: 700;
+  /* Show only the icon for the active theme mode. */
+  .theme-toggle[data-theme-mode='dark'] .moon,
+  .theme-toggle[data-theme-mode='light'] .sun,
+  .theme-toggle[data-theme-mode='auto'] .auto {
+    display: inline-flex;
   }
 
-  .theme-slider {
-    display: none;
+  /* Fallback before JS runs: show the moon so the button is never empty. */
+  .theme-toggle:not([data-theme-mode]) .moon {
+    display: inline-flex;
   }
 </style>

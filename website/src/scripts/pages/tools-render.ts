@@ -1,9 +1,17 @@
 import { escapeHtml } from "../utils";
+import {
+  FACT_ICONS,
+  GITHUB_MARK,
+  TYPE_ICONS,
+  renderResourceGridHtml,
+  type RCardFact,
+  type RCardModel,
+} from "./resource-card";
 
 export interface RenderableTool {
   id: string;
   name: string;
-  title: string;
+  title?: string;
   description: string;
   category: string;
   featured: boolean;
@@ -39,15 +47,25 @@ export function sortTools<T extends RenderableTool>(
       if (!a.featured && b.featured) return 1;
     }
 
-    return a.title.localeCompare(b.title);
+    return a.name.localeCompare(b.name);
   });
 }
 
-function formatMultilineText(text: string): string {
-  return escapeHtml(text).replace(/\r?\n/g, "<br>");
+export function toolCategories(item: RenderableTool): string[] {
+  return item.category ? [item.category] : [];
 }
 
-function sanitizeToolUrl(url: string): string {
+export function toolSearchText(item: RenderableTool): string {
+  return [
+    item.name,
+    item.description ?? "",
+    item.category ?? "",
+    (item.tags ?? []).join(" "),
+    (item.features ?? []).join(" "),
+  ].join(" ");
+}
+
+export function sanitizeToolUrl(url: string): string {
   try {
     const protocol = new URL(url).protocol;
     if (
@@ -65,139 +83,92 @@ function sanitizeToolUrl(url: string): string {
   return "#";
 }
 
-function getToolActionLink(
-  href: string | undefined,
-  label: string,
-  className: string
-): string {
-  if (!href) return "";
-  return `<a href="${sanitizeToolUrl(
-    href
-  )}" class="${className}" target="_blank" rel="noopener">${label}</a>`;
+// Ordered by how we surface the primary card action + modal link buttons.
+const LINK_DEFS: { key: keyof RenderableTool["links"]; label: string }[] = [
+  { key: "vscode", label: "Install in VS Code" },
+  { key: "vscode-insiders", label: "VS Code Insiders" },
+  { key: "visual-studio", label: "Visual Studio" },
+  { key: "marketplace", label: "Marketplace" },
+  { key: "npm", label: "npm" },
+  { key: "pypi", label: "PyPI" },
+  { key: "documentation", label: "Docs" },
+  { key: "blog", label: "Blog" },
+  { key: "github", label: "GitHub" },
+];
+
+/** Best single call-to-action for the card, plus the key it consumed. */
+function primaryToolLink(
+  tool: RenderableTool
+): { key: string; label: string; href: string } | null {
+  for (const { key, label } of LINK_DEFS) {
+    const href = tool.links[key];
+    if (href) return { key, label, href };
+  }
+  return null;
 }
 
-export function renderToolsHtml(
-  tools: RenderableTool[]
-): string {
-  if (tools.length === 0) {
-    return `
-      <div class="empty-state">
-        <h3>No tools found</h3>
-        <p>Try a different category or clear the current filters</p>
-      </div>
-    `;
-  }
+/** All link buttons for the details modal. */
+export function renderToolModalLinks(tool: RenderableTool): string {
+  return LINK_DEFS.map(({ key, label }) => {
+    const href = tool.links[key];
+    if (!href) return "";
+    const primary = key === "vscode" ? "btn btn-primary" : "btn btn-secondary";
+    return `<a class="${primary}" href="${sanitizeToolUrl(
+      href
+    )}" target="_blank" rel="noopener">${label}</a>`;
+  })
+    .filter(Boolean)
+    .join("");
+}
 
-  return tools
-    .map((tool) => {
-      const badges: string[] = [];
-      if (tool.featured) {
-        badges.push('<span class="tool-badge featured">Featured</span>');
-      }
-      badges.push(
-        `<span class="tool-badge category">${escapeHtml(tool.category)}</span>`
-      );
+export function renderToolsHtml(tools: RenderableTool[]): string {
+  const models: RCardModel[] = tools.map((tool) => {
+    const safeName = escapeHtml(tool.name);
+    const facts: RCardFact[] = [];
+    if (tool.featured) {
+      facts.push({ icon: FACT_ICONS.star, label: "Featured" });
+    }
+    if (tool.features?.length) {
+      facts.push({
+        icon: FACT_ICONS.feature,
+        label: `${tool.features.length} feature${
+          tool.features.length === 1 ? "" : "s"
+        }`,
+      });
+    }
 
-      const features =
-        tool.features && tool.features.length > 0
-          ? `<div class="tool-section">
-          <h3>Features</h3>
-          <ul>${tool.features
-            .map((feature) => `<li>${escapeHtml(feature)}</li>`)
-            .join("")}</ul>
-        </div>`
-          : "";
+    const primary = primaryToolLink(tool);
+    const primaryHtml = primary
+      ? `<a href="${sanitizeToolUrl(
+          primary.href
+        )}" class="btn btn-primary btn-small" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${escapeHtml(
+          primary.label
+        )}">${escapeHtml(primary.label)}</a>`
+      : "";
 
-      const requirements =
-        tool.requirements && tool.requirements.length > 0
-          ? `<div class="tool-section">
-          <h3>Requirements</h3>
-          <ul>${tool.requirements
-            .map((requirement) => `<li>${escapeHtml(requirement)}</li>`)
-            .join("")}</ul>
-        </div>`
-          : "";
-
-      const tags =
-        tool.tags && tool.tags.length > 0
-          ? `<div class="tool-tags">
-          ${tool.tags
-            .map((tag) => `<span class="tool-tag">${escapeHtml(tag)}</span>`)
-            .join("")}
-        </div>`
-          : "";
-
-      const config = tool.configuration
-        ? `<div class="tool-config">
-          <h3>Configuration</h3>
-          <div class="tool-config-wrapper">
-            <pre><code>${escapeHtml(tool.configuration.content)}</code></pre>
-          </div>
-          <button class="copy-config-btn" data-config="${encodeURIComponent(
-            tool.configuration.content
-          )}">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/>
-              <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/>
-            </svg>
-            Copy Configuration
-          </button>
-        </div>`
+    const githubHref = tool.links.github;
+    const githubHtml =
+      githubHref && primary?.key !== "github"
+        ? `<a href="${sanitizeToolUrl(
+            githubHref
+          )}" class="btn btn-secondary btn-small action-github rcard-lead" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View on GitHub" aria-label="View ${safeName} on GitHub">${GITHUB_MARK}</a>`
         : "";
 
-      const actions = [
-        getToolActionLink(tool.links.blog, "📖 Blog", "btn btn-secondary"),
-        getToolActionLink(
-          tool.links.marketplace,
-          "🏪 Marketplace",
-          "btn btn-secondary"
-        ),
-        getToolActionLink(tool.links.npm, "📦 npm", "btn btn-secondary"),
-        getToolActionLink(tool.links.pypi, "🐍 PyPI", "btn btn-secondary"),
-        getToolActionLink(
-          tool.links.documentation,
-          "📚 Docs",
-          "btn btn-secondary"
-        ),
-        getToolActionLink(tool.links.github, "GitHub", "btn btn-secondary"),
-        getToolActionLink(
-          tool.links.vscode,
-          "Install in VS Code",
-          "btn btn-primary"
-        ),
-        getToolActionLink(
-          tool.links["vscode-insiders"],
-          "VS Code Insiders",
-          "btn btn-outline"
-        ),
-        getToolActionLink(
-          tool.links["visual-studio"],
-          "Visual Studio",
-          "btn btn-outline"
-        ),
-      ].filter(Boolean);
+    return {
+      accent: "dev",
+      icon: TYPE_ICONS.wrench,
+      title: tool.name,
+      description: tool.description || "No description",
+      path: tool.id,
+      badge: tool.category ? { text: tool.category } : null,
+      facts,
+      actionsHtml: `${primaryHtml}${githubHtml}`,
+    };
+  });
 
-      const actionsHtml =
-        actions.length > 0
-          ? `<div class="tool-actions">${actions.join("")}</div>`
-          : "";
-
-      return `
-      <div class="tool-card">
-        <div class="tool-header">
-          <h2>${escapeHtml(tool.name)}</h2>
-          <div class="tool-badges">
-            ${badges.join("")}
-          </div>
-        </div>
-        <p class="tool-description">${formatMultilineText(tool.description)}</p>
-        ${features}
-        ${requirements}
-        ${config}
-        ${tags}
-        ${actionsHtml}
-      </div>
-    `;
-    })
-    .join("");
+  return renderResourceGridHtml(
+    models,
+    "No tools match your filters",
+    "Try a different search term or clear the active filters."
+  );
 }

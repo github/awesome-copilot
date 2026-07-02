@@ -4,7 +4,12 @@ import {
   getGitHubUrl,
   getLastUpdatedHtml,
 } from '../utils';
-import { renderEmptyStateHtml, renderSharedCardHtml } from './card-render';
+import {
+  GITHUB_MARK,
+  TYPE_ICONS,
+  renderResourceGridHtml,
+  type RCardModel,
+} from './resource-card';
 
 export interface RenderableWorkflow {
   title: string;
@@ -15,6 +20,22 @@ export interface RenderableWorkflow {
 }
 
 export type WorkflowSortOption = 'title' | 'lastUpdated';
+
+const TRIGGER_LABELS: Record<string, string> = {
+  schedule: 'Scheduled',
+  workflow_dispatch: 'Manual',
+  issues: 'On issues',
+  slash_command: 'Slash command',
+  roles: 'Roles',
+};
+
+/** Human-friendly label for a raw trigger key. */
+export function humanizeTrigger(trigger: string): string {
+  return (
+    TRIGGER_LABELS[trigger] ??
+    trigger.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
+  );
+}
 
 export function sortWorkflows<T extends RenderableWorkflow>(
   items: T[],
@@ -31,36 +52,56 @@ export function sortWorkflows<T extends RenderableWorkflow>(
   });
 }
 
-export function renderWorkflowsHtml(
-  items: RenderableWorkflow[]
-): string {
-  if (items.length === 0) {
-    return renderEmptyStateHtml('No workflows found', 'Try adjusting the selected filters.');
-  }
+export function workflowTriggers(item: RenderableWorkflow): string[] {
+  return item.triggers ?? [];
+}
 
-  return items
-    .map((item) => {
-      const metaHtml = `
-        ${item.triggers
-          .map((trigger) => `<span class="resource-tag tag-trigger">${escapeHtml(trigger)}</span>`)
-          .join('')}
-        ${getLastUpdatedHtml(item.lastUpdated)}
-      `;
+export function workflowSearchText(item: RenderableWorkflow): string {
+  return [
+    item.title,
+    item.description ?? '',
+    (item.triggers ?? []).map(humanizeTrigger).join(' '),
+    (item.triggers ?? []).join(' '),
+  ].join(' ');
+}
 
-      const actionsHtml = `
-        ${getActionButtonsHtml(item.path)}
-        <a href="${getGitHubUrl(item.path)}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
-      `;
+export function renderWorkflowsHtml(items: RenderableWorkflow[]): string {
+  const models: RCardModel[] = items.map((item) => {
+    const triggers = item.triggers ?? [];
+    const badge = triggers.length
+      ? {
+          text: humanizeTrigger(triggers[0]),
+          title: triggers.map(humanizeTrigger).join(', '),
+          moreCount: triggers.length - 1,
+        }
+      : null;
 
-      return renderSharedCardHtml({
-        title: item.title,
-        description: item.description || 'No description',
-        articleAttributes: {
-          'data-path': item.path,
-        },
-        metaHtml,
-        actionsHtml,
-      });
-    })
-    .join('');
+    const actionsHtml = `
+      ${getActionButtonsHtml(item.path, true)}
+      <a href="${getGitHubUrl(
+        item.path
+      )}" class="btn btn-secondary btn-small action-github" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View on GitHub" aria-label="View ${escapeHtml(
+        item.title
+      )} on GitHub">
+        ${GITHUB_MARK}
+      </a>
+    `;
+
+    return {
+      accent: 'automation',
+      icon: TYPE_ICONS.workflow,
+      title: item.title,
+      description: item.description || 'No description',
+      path: item.path,
+      badge,
+      lastUpdatedHtml: getLastUpdatedHtml(item.lastUpdated),
+      actionsHtml,
+    };
+  });
+
+  return renderResourceGridHtml(
+    models,
+    'No workflows match your filters',
+    'Try a different search term or clear the active filters.'
+  );
 }

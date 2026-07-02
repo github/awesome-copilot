@@ -33,6 +33,10 @@ const base = import.meta.env.BASE_URL;
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="hero-heading">
       <div class="container">
+        <span class="hero-chip">
+          <Icon name="lightning" size={15} />
+          Curated by the community
+        </span>
         <h1 id="hero-heading">
           <span class="gradient-text">Awesome GitHub Copilot</span>
         </h1>
@@ -40,16 +44,23 @@ const base = import.meta.env.BASE_URL;
           Community-contributed agents, instructions, and skills to enhance your
           GitHub Copilot experience
         </p>
-        <p>
-          <a href="https://github.com/github/awesome-copilot/" target="_blank" rel="noopener noreferrer">
-            View the Awesome Copilot repository on GitHub
+        <div class="hero-actions">
+          <a href="#browse" class="btn btn-primary">
+            Browse resources
           </a>
-        </p>
+          <a href={`${base}learning-hub/`} class="btn btn-secondary">
+            Explore the Learning Hub
+          </a>
+        </div>
       </div>
     </section>
 
     <!-- Quick Links -->
-    <section class="quick-links" aria-labelledby="quick-links-heading">
+    <section
+      id="browse"
+      class="quick-links"
+      aria-labelledby="quick-links-heading"
+    >
       <h2 id="quick-links-heading" class="sr-only">Browse Resources</h2>
       <div class="container">
         <div class="cards-grid">

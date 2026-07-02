@@ -13,53 +13,58 @@ const initialItems = sortTools(
     ...item,
     title: item.name,
   })),
-  "title"
+  "featured"
 );
 ---
 
 <StarlightPage frontmatter={{ title: 'Tools', description: 'MCP servers and developer tools for GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content">
-    <PageHeader title="Tools" description="MCP servers and developer tools for GitHub Copilot" icon="wrench" />
+  <div id="main-content" class="tools-page listing-cards-page">
+    <PageHeader title="Tools" description="MCP servers and developer tools for GitHub Copilot" icon="wrench" accent="dev" />
 
     <div class="page-content">
       <div class="container">
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div id="results-count" class="results-count" aria-live="polite">{initialItems.length} tools</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort &amp; Filter</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="filter-category">Category:</label>
-                    <select id="filter-category" class="filter-select" aria-label="Filter by category">
-                      <option value="">All Categories</option>
-                      {toolsData.filters.categories.map((category) => (
-                        <option value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" class="filter-select" aria-label="Sort tools">
-                      <option value="featured">Featured First</option>
-                      <option value="title">Title</option>
-                    </select>
-                  </div>
-                  <button id="clear-filters" class="btn btn-secondary btn-small">Clear</button>
-                </div>
-              </div>
-            </details>
+        <div class="filter-bar" data-accent="dev">
+          <div class="filter-bar-search">
+            <svg class="filter-bar-search-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+            <input
+              id="listing-search"
+              type="search"
+              class="filter-bar-input"
+              placeholder="Search tools by name, description, category, or feature"
+              aria-label="Search tools"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="filter-bar-controls">
+            <div class="facet-chips" role="group" aria-label="Filter by category">
+              {toolsData.filters.categories.map((category) => (
+                <button type="button" class="facet-chip" data-facet-group="category" data-facet-value={category} aria-pressed="false">{category}</button>
+              ))}
+            </div>
+
+            <label class="filter-bar-sort">
+              <span class="sr-only">Sort tools</span>
+              <select id="sort-select" aria-label="Sort tools">
+                <option value="featured">Featured first</option>
+                <option value="title">Name (A-Z)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="filter-bar-meta">
+            <span class="results-count" id="results-count" aria-live="polite">{initialItems.length} tools</span>
+            <button type="button" class="filter-bar-clear" id="clear-filters" hidden>Clear filters</button>
           </div>
         </div>
 
-        <div id="tools-list" set:html={renderToolsHtml(initialItems)}></div>
+        <div class="resource-list rcard-grid" id="resource-list" role="list" set:html={renderToolsHtml(initialItems)}></div>
 
         <div class="coming-soon">
-          <h2>More Tools Coming Soon</h2>
+          <h2>More tools coming soon</h2>
           <p>
             We're working on additional tools to enhance your GitHub Copilot
-            experience. Check back soon!
+            experience. Check back soon.
           </p>
         </div>
         <ContributeCTA resourceType="tools" />
@@ -72,157 +77,13 @@ const initialItems = sortTools(
   <EmbeddedPageData filename="tools.json" data={toolsData} />
 
   <style is:global>
-    .empty-state {
-      text-align: center;
-      padding: 48px;
-      background-color: var(--color-bg-secondary);
-      border-radius: var(--border-radius-lg);
-    }
-
-    .empty-state h3 {
-      color: var(--color-text-muted);
-      margin-bottom: 8px;
-    }
-
-    .empty-state p {
-      color: var(--color-text-muted);
-    }
-
-    .tool-card {
-      background-color: var(--color-card-bg);
-      border: 1px solid var(--color-border);
-      border-radius: var(--border-radius-lg);
-      padding: 32px;
-      margin-bottom: 24px;
-    }
-
-    .tool-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .tool-header h2 {
-      margin: 0;
-      font-size: 24px;
-      color: var(--color-text-emphasis);
-    }
-
-    .tool-badges {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .tool-badge {
-      padding: 4px 12px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-
-    .tool-badge.featured {
-      background-color: var(--color-primary);
-      color: white;
-    }
-
-    .tool-badge.category {
-      background-color: var(--color-purple-light);
-      color: var(--color-purple-dark);
-    }
-
-    .tool-description {
-      color: var(--color-text-secondary);
-      font-size: 16px;
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-
-    .tool-section {
-      margin-top: 24px;
-    }
-
-    .tool-section h3 {
-      margin-bottom: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--color-text-emphasis);
-    }
-
-    .tool-section ul {
-      margin: 0;
-      padding-left: 24px;
-      color: var(--color-text-muted);
-    }
-
-    .tool-section li {
-      margin-bottom: 8px;
-    }
-
-    .tool-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 20px;
-    }
-
-    .tool-tag {
-      background-color: var(--color-bg-secondary);
-      color: var(--color-text-muted);
-      padding: 4px 12px;
-      border-radius: 16px;
-      font-size: 12px;
-      border: 1px solid var(--color-border);
-    }
-
-    .tool-config {
-      margin-top: 24px;
-    }
-
-    .tool-config h3 {
-      margin-bottom: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--color-text-emphasis);
-    }
-
-    .tool-config-wrapper {
-      position: relative;
-    }
-
-    .tool-config pre {
-      background-color: var(--color-bg-secondary);
-      border: 1px solid var(--color-border);
-      border-radius: var(--border-radius);
-      padding: 16px;
-      overflow-x: auto;
-      margin: 0;
-    }
-
-    .tool-config code {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--color-text-primary);
-      white-space: pre;
-    }
-
-    .tool-actions {
-      margin-top: 24px;
-      padding-top: 24px;
-      border-top: 1px solid var(--color-border);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
     .coming-soon {
       text-align: center;
       padding: 48px;
       background-color: var(--color-bg-secondary);
       border: 1px dashed var(--color-border);
       border-radius: var(--border-radius-lg);
+      margin-top: 32px;
     }
 
     .coming-soon h2 {
@@ -232,6 +93,77 @@ const initialItems = sortTools(
 
     .coming-soon p {
       color: var(--color-text-muted);
+    }
+
+    /* Details-modal sections (reused for the tool detail view) */
+    .tool-details-modal .tool-section {
+      margin-top: 20px;
+    }
+
+    .tool-details-modal .tool-section h3,
+    .tool-details-modal .tool-config h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: var(--color-text-emphasis);
+    }
+
+    .tool-details-modal .tool-section ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    .tool-details-modal .tool-section li {
+      margin-bottom: 6px;
+    }
+
+    .tool-details-modal .tool-config {
+      margin-top: 20px;
+    }
+
+    .tool-details-modal .tool-config-wrapper {
+      position: relative;
+    }
+
+    .tool-details-modal .tool-config pre {
+      background-color: var(--color-bg-secondary);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    .tool-details-modal .tool-config code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--color-text-primary);
+      white-space: pre;
+    }
+
+    .tool-details-modal .tool-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .tool-details-modal .tool-tag {
+      background-color: var(--color-bg-secondary);
+      color: var(--color-text-muted);
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      border: 1px solid var(--color-border);
+    }
+
+    .tool-details-modal .resource-tag.tag-featured {
+      background-color: color-mix(in srgb, var(--category-dev, #60a5fa) 16%, transparent);
+      color: var(--category-dev, #60a5fa);
+      border-color: color-mix(in srgb, var(--category-dev, #60a5fa) 32%, transparent);
     }
 
     .copy-config-btn {
@@ -259,6 +191,22 @@ const initialItems = sortTools(
       background-color: var(--color-success);
       color: white;
       border-color: var(--color-success);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      background-color: var(--color-bg-secondary);
+      border-radius: var(--border-radius-lg);
+    }
+
+    .empty-state h3 {
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      color: var(--color-text-muted);
     }
 
     /* Search highlight */

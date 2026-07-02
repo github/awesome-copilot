@@ -1,10 +1,12 @@
+import { escapeHtml, getGitHubHandle, getGitHubUrl } from "../utils";
 import {
-  escapeHtml,
-  getGitHubHandle,
-  getGitHubUrl,
-  getLastUpdatedHtml,
-} from "../utils";
-import { renderEmptyStateHtml, renderSharedCardHtml } from "./card-render";
+  FACT_ICONS,
+  GITHUB_MARK,
+  TYPE_ICONS,
+  renderResourceGridHtml,
+  type RCardFact,
+  type RCardModel,
+} from "./resource-card";
 
 export interface RenderableExtension {
   id: string;
@@ -59,93 +61,97 @@ export function sortExtensions<T extends RenderableExtension>(
   });
 }
 
+export function getExtensionInstallUrl(item: RenderableExtension): string {
+  return (
+    item.installUrl ||
+    (item.path && item.ref
+      ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
+          /\\/g,
+          "/"
+        )}`
+      : "")
+  );
+}
+
+export function getExtensionSourceUrl(item: RenderableExtension): string {
+  return item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
+}
+
+export function extensionAuthorHandle(item: RenderableExtension): string {
+  const authorName = item.author?.name;
+  const authorUrl = item.author?.url;
+  if (!authorName) return "";
+  return authorUrl ? getGitHubHandle(authorUrl, authorName) : authorName;
+}
+
+export function extensionSource(item: RenderableExtension): string[] {
+  return item.external ? ["external"] : ["local"];
+}
+
+export function extensionSearchText(item: RenderableExtension): string {
+  return [
+    item.name,
+    item.description ?? "",
+    item.author?.name ?? "",
+    (item.keywords ?? []).join(" "),
+    item.external ? "external" : "local",
+  ].join(" ");
+}
+
 export function renderExtensionsHtml(items: RenderableExtension[]): string {
-  if (items.length === 0) {
-    return renderEmptyStateHtml(
-      "No extensions found",
-      "No canvas extensions are available right now."
-    );
-  }
+  const models: RCardModel[] = items.map((item) => {
+    const safeName = escapeHtml(item.name);
+    const installUrl = getExtensionInstallUrl(item);
+    const sourceUrl = getExtensionSourceUrl(item);
 
-  return items
-    .map((item) => {
-      const installUrl =
-        item.installUrl ||
-        (item.path && item.ref
-          ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
-             /\\/g,
-             "/"
-           )}`
-          : "");
-      const sourceUrl =
-        item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
+    const mediaHtml = item.imageUrl
+      ? `<img src="${escapeHtml(item.imageUrl)}" alt="" loading="lazy" />`
+      : undefined;
 
-      const previewMediaHtml = item.imageUrl
-        ? `<div class="resource-thumbnail-btn" data-extension-id="${escapeHtml(item.id)}" aria-hidden="true">
-            <img class="resource-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />
-           </div>`
-        : `<div class="resource-thumbnail resource-thumbnail-placeholder" aria-hidden="true">Canvas</div>`;
-
-      const infoExtraHtml = `
-        <div class="resource-keywords">
-          ${
-           item.keywords && item.keywords.length > 0
-             ? item.keywords
-                 .map((kw) => `<span class="keyword-tag">${escapeHtml(kw)}</span>`)
-                 .join("")
-             : ""
-          }
-        </div>
-      `;
-
-      const authorName = item.author?.name;
-      const authorUrl = item.author?.url;
-      const authorHandle =
-        authorName && authorUrl
-          ? getGitHubHandle(authorUrl, authorName)
-          : authorName || "";
-      const authorHtml = authorName
-        ? `<span class="resource-tag resource-author" title="${escapeHtml(
-            authorName
-          )}">by ${escapeHtml(authorHandle || authorName)}</span>`
-        : "";
-
-      const metaHtml = `
-        ${item.external ? '<span class="resource-tag">External</span>' : ""}
-        ${authorHtml}
-        ${getLastUpdatedHtml(item.lastUpdated)}
-      `;
-
-      const actionsHtml = `
-        <button
-          class="btn btn-primary btn-small copy-install-url-btn"
-          data-install-url="${escapeHtml(installUrl)}"
-          title="Copy install URL"
-          ${installUrl ? "" : "disabled"}
-        >
-          Copy URL
-        </button>
-        ${
-          sourceUrl
-           ? `<a href="${escapeHtml(
-               sourceUrl
-             )}" class="btn btn-secondary btn-small" target="_blank" rel="noopener noreferrer" title="View source">Source</a>`
-           : ""
-        }
-      `;
-
-      return renderSharedCardHtml({
-        title: item.name,
-        description: item.description || "Canvas extension",
-        previewMediaHtml,
-        infoExtraHtml,
-        metaHtml,
-        actionsHtml,
-        articleAttributes: {
-          id: item.id,
-          "data-extension-id": item.id,
-        },
+    const facts: RCardFact[] = [];
+    const handle = extensionAuthorHandle(item);
+    if (handle) {
+      facts.push({ icon: FACT_ICONS.author, label: `by ${handle}` });
+    }
+    if (item.keywords?.length) {
+      facts.push({
+        icon: FACT_ICONS.tag,
+        label: `${item.keywords.length} keyword${
+          item.keywords.length === 1 ? "" : "s"
+        }`,
       });
-    })
-    .join("");
+    }
+
+    const installHtml = `<button type="button" class="btn btn-primary btn-small copy-install-url-btn" data-install-url="${escapeHtml(
+      installUrl
+    )}" ${
+      installUrl ? "" : "disabled"
+    } onclick="event.stopPropagation()" title="Copy install URL"><span>Copy URL</span></button>`;
+
+    const sourceHtml = sourceUrl
+      ? `<a href="${escapeHtml(
+          sourceUrl
+        )}" class="btn btn-secondary btn-small action-github rcard-lead" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="View source" aria-label="View ${safeName} source">${GITHUB_MARK}</a>`
+      : "";
+
+    return {
+      accent: "extension",
+      icon: TYPE_ICONS.browser,
+      title: item.name,
+      description: item.description || "Canvas extension",
+      path: item.id,
+      badge: item.external ? { text: "External" } : null,
+      facts,
+      actionsHtml: `${installHtml}${sourceHtml}`,
+      attributes: { "data-extension-id": item.id },
+      articleClassName: item.external ? "resource-item-external" : undefined,
+      mediaHtml,
+    };
+  });
+
+  return renderResourceGridHtml(
+    models,
+    "No extensions found",
+    "No canvas extensions match your filters."
+  );
 }
