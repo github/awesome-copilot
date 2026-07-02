@@ -1,0 +1,40 @@
+{
+  "name": "security-skills-toolkit",
+  "description": "Security skills toolkit: secretless-auth migrations, container vulnerability patching, and MSAL.JS migration skills.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "secretless-auth",
+    "managed-identity",
+    "toolkit"
+  ],
+  "agents": [
+    "./agents/sst-security-skills-orchestrator.md"
+  ],
+  "skills": [
+    "./skills/sst-cognitive-secretless-auth/",
+    "./skills/sst-container-vulnerability-patching/",
+    "./skills/sst-cosmosdb-secretless-auth/",
+    "./skills/sst-eventhub-secretless-auth/",
+    "./skills/sst-general-security-helper/",
+    "./skills/sst-msaljs-migration-angular-v2-to-v3/",
+    "./skills/sst-msaljs-migration-angular-v3-to-v4/",
+    "./skills/sst-msaljs-migration-angular-v4-to-v5/",
+    "./skills/sst-msaljs-migration-browser-v2-to-v3/",
+    "./skills/sst-msaljs-migration-browser-v3-to-v4/",
+    "./skills/sst-msaljs-migration-browser-v4-to-v5/",
+    "./skills/sst-msaljs-migration-node-v2-to-v3/",
+    "./skills/sst-msaljs-migration-node-v3-to-v5/",
+    "./skills/sst-msaljs-migration-react-v3-to-v5/",
+    "./skills/sst-msaljs-migration/",
+    "./skills/sst-redis-secretless-auth/",
+    "./skills/sst-servicebus-secretless-auth/",
+    "./skills/sst-sql-secretless-auth/",
+    "./skills/sst-storage-secretless-auth/"
+  ]
+}
