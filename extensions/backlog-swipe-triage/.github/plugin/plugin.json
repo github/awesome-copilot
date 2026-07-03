@@ -1,6 +1,5 @@
 {
-  "id": "backlog-swipe-triage",
-  "name": "Backlog Swipe Triage",
+  "name": "backlog-swipe-triage",
   "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
   "version": "1.0.0",
   "author": {
@@ -15,14 +14,6 @@
     "swipe-interface",
     "workflow-automation"
   ],
-  "screenshots": {
-    "icon": {
-      "path": "assets/preview.png",
-      "type": "image/png"
-    },
-    "gallery": {
-      "path": "assets/preview.png",
-      "type": "image/png"
-    }
-  }
+  "logo": "assets/preview.png",
+  "extensions": "."
 }

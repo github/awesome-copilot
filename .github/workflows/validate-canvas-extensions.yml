@@ -6,7 +6,6 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "extensions/**"
-      - ".schemas/canvas.schema.json"
 
 permissions:
   contents: read
@@ -29,110 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      - name: Validate changed canvas extensions
+      - name: Validate changed extensions
         run: |
           set -euo pipefail
-
-          # Validate schema structure once, even for schema-only PRs.
-          if ! node ./eng/validate-json-schema.mjs --schema .schemas/canvas.schema.json; then
-            echo "❌ .schemas/canvas.schema.json failed schema compilation"
-            exit 1
-          fi
-
-          # Collect changed extension directories.
-          # Use null-terminated (-z) output from git diff so filenames containing newlines
-          # or other special characters are read atomically (matches the pattern in skill-check.yml).
-          # Each extracted name is then validated against a strict allowlist regex before use,
-          # rejecting anything containing shell metacharacters ($, (, ), spaces, etc.).
-          declare -A seen_dirs=()
-          changed_extensions=()
-          errors=()
-
-          while IFS= read -r -d '' file; do
-            case "$file" in
-              extensions/*)
-                ext_name="${file#extensions/}"
-                ext_name="${ext_name%%/*}"
-
-                if [ "$ext_name" = "external-assets" ]; then
-                  continue
-                fi
-
-                # Allowlist: extension directory names must be lowercase alphanumeric + hyphens only.
-                # Fail for disallowed names so a PR cannot bypass validation by using a nonconforming folder.
-                if [[ ! "$ext_name" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
-                  errors+=("\`extensions/$ext_name\`: invalid extension directory name (must match ^[a-z0-9][a-z0-9-]*$).")
-                  continue
-                fi
-
-                if [ -z "${seen_dirs[$ext_name]+x}" ]; then
-                  seen_dirs["$ext_name"]=1
-                  changed_extensions+=("extensions/$ext_name")
-                fi
-                ;;
-            esac
-          done < <(git diff --name-only -z "origin/${{ github.base_ref }}...HEAD")
-
-          if [ "${#changed_extensions[@]}" -eq 0 ]; then
-            if [ "${#errors[@]}" -ne 0 ]; then
-              echo "❌ Canvas extension validation failed:"
-              for error in "${errors[@]}"; do
-                echo "- $error"
-              done
-              exit 1
-            fi
-            echo "No canvas extension directories changed — skipping validation."
-            exit 0
-          fi
-
-          echo "Validating ${#changed_extensions[@]} extension(s): ${changed_extensions[*]}"
-
-          for ext_dir in "${changed_extensions[@]}"; do
-            if [ ! -d "$ext_dir" ]; then
-              echo "$ext_dir no longer exists (deleted?), skipping."
-              continue
-            fi
-
-            if [ ! -f "$ext_dir/extension.mjs" ]; then
-              errors+=("\`$ext_dir\`: missing required \`extension.mjs\`.")
-            fi
-
-            if [ ! -f "$ext_dir/canvas.json" ]; then
-              errors+=("\`$ext_dir\`: missing required \`canvas.json\`.")
-              continue
-            fi
-
-            if [ ! -f "$ext_dir/assets/preview.png" ]; then
-              errors+=("\`$ext_dir\`: missing required \`assets/preview.png\`.")
-            fi
-
-            if ! schema_output="$(node ./eng/validate-json-schema.mjs --schema .schemas/canvas.schema.json --data "$ext_dir/canvas.json" 2>&1)"; then
-              condensed_output="$(echo "$schema_output" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')"
-              errors+=("\`$ext_dir/canvas.json\`: schema validation failed against \`.schemas/canvas.schema.json\` ($condensed_output).")
-              continue
-            fi
-
-            mapfile -t screenshot_paths < <(
-              node -e 'const fs = require("fs"); const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); const paths = [manifest?.screenshots?.icon?.path, manifest?.screenshots?.gallery?.path].filter((value) => typeof value === "string" && value.trim().length > 0); for (const value of [...new Set(paths)]) { console.log(value); }' "$ext_dir/canvas.json"
-            )
-
-            for screenshot_path in "${screenshot_paths[@]}"; do
-              if [[ ! "$screenshot_path" =~ ^assets/([A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*\.(png|jpe?g|gif|webp|svg)$ ]]; then
-                errors+=("\`$ext_dir/canvas.json\`: screenshot path \`$screenshot_path\` is not a valid assets path.")
-                continue
-              fi
-              if [ ! -f "$ext_dir/$screenshot_path" ]; then
-                errors+=("\`$ext_dir/canvas.json\`: screenshot path \`$screenshot_path\` does not exist in the extension directory.")
-              fi
-            done
-          done
-
-          if [ "${#errors[@]}" -ne 0 ]; then
-            echo "❌ Canvas extension validation failed:"
-            for error in "${errors[@]}"; do
-              echo "- $error"
-            done
-            exit 1
-          fi
-
-          echo "✅ All changed canvas extensions passed validation."
+          npm run plugin:validate
