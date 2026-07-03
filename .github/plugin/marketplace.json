@@ -198,6 +198,32 @@
       "version": "1.1.0"
     },
     {
+      "name": "cockroachdb",
+      "description": "Connect GitHub Copilot to your CockroachDB clusters: run and explore SQL through MCP, with DBA/Developer/Operator agents, CockroachDB best-practice skills, and safety hooks that block destructive statements.",
+      "version": "0.1.4",
+      "author": {
+        "name": "Cockroach Labs",
+        "url": "https://github.com/cockroachdb"
+      },
+      "repository": "https://github.com/cockroachdb/copilot-plugin",
+      "license": "Apache-2.0",
+      "keywords": [
+        "cockroachdb",
+        "database",
+        "sql",
+        "distributed-sql",
+        "postgres-compatible",
+        "mcp",
+        "migration"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "cockroachdb/copilot-plugin",
+        "ref": "v0.1.4",
+        "sha": "0874b16210768d54b273c1395d9715bc8638b347"
+      }
+    },
+    {
       "name": "color-orb",
       "source": "extensions/color-orb",
       "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
@@ -383,8 +409,8 @@
     },
     {
       "name": "dotnet-test",
-      "description": "Skills for running, writing, diagnosing, and migrating .NET tests: test execution, filtering, platform detection, coverage analysis, and MSTest workflows.",
-      "version": "0.1.0",
+      "description": "Polyglot unit-test generation via a multi-agent Research-Plan-Implement pipeline — writes and runs tests for .NET/C#, Python, TypeScript/JavaScript, Java, Go, Ruby, Rust, C++, Kotlin, Swift, and PowerShell. Plus .NET-focused test execution, coverage and CRAP analysis, testability review, platform detection, and MSTest/xUnit migration.",
+      "version": "0.2.0",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -392,13 +418,15 @@
       "homepage": "https://github.com/dotnet/skills",
       "keywords": [
         "dotnet",
+        "polyglot",
         "testing",
-        "mstest",
-        "xunit",
-        "nunit",
         "test-generation",
-        "coverage",
-        "migration"
+        "unit-tests",
+        "python",
+        "typescript",
+        "java",
+        "go",
+        "rust"
       ],
       "license": "MIT",
       "repository": "https://github.com/dotnet/skills",
@@ -616,6 +644,12 @@
       "name": "java-mcp-development",
       "source": "plugins/java-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "java-modernization-studio",
+      "source": "extensions/java-modernization-studio",
+      "description": "Drive the GitHub Copilot App Modernization for Java workflow from an interactive canvas: environment readiness, repo assessment, prioritized plan and progress, validation gates, and one-click predefined-task runs grounded in the repo's real artifacts.",
       "version": "1.0.0"
     },
     {
@@ -1020,6 +1054,12 @@
       "name": "testing-automation",
       "source": "plugins/testing-automation",
       "description": "Comprehensive collection for writing tests, test automation, and test-driven development including unit tests, integration tests, and end-to-end testing strategies.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "token-pacman",
+      "source": "extensions/token-pacman",
+      "description": "Visualizes live session AI-credit usage as a Pac-Man board with pellets, ghosts, fruit milestones, and game-over limits.",
       "version": "1.0.0"
     },
     {
