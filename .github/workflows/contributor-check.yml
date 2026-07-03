@@ -192,17 +192,21 @@ jobs:
           profile="${{ steps.results.outputs.profile }}"
           cred="${{ steps.results.outputs.credential }}"
           marker="<!-- agt-contributor-check -->"
-          comment_id=$(
+          comment_ids=$(
             gh api "repos/${{ github.repository }}/issues/$number/comments" --paginate \
-              --arg marker "$marker" \
-              --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains($marker))) | .id' \
-              | head -n 1
+              | jq -r --arg marker "$marker" '.[] | select((.user.login // "") == "github-actions[bot]" and ((.body // "") | contains($marker))) | .id'
           )
+          comment_id=$(printf "%s\n" "$comment_ids" | sed -n '1p')
 
           if [ "$risk" != "MEDIUM" ] && [ "$risk" != "HIGH" ]; then
             if [ -n "$comment_id" ]; then
-              gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" \
-                || echo "Comment $comment_id could not be deleted; continuing because the comment may have already been removed or changed."
+              # Keep one canonical comment thread by removing all matching comments
+              # when risk drops below MEDIUM.
+              while IFS= read -r id; do
+                [ -z "$id" ] && continue
+                gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$id" \
+                  || echo "Comment $id could not be deleted; continuing because the comment may have already been removed or changed."
+              done <<< "$comment_ids"
             fi
             exit 0
           fi
@@ -226,6 +230,11 @@ jobs:
 
           if [ -n "$comment_id" ]; then
             gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$comment_id" -f body="$body"
+            # Clean up any stale duplicates after updating the canonical comment.
+            printf "%s\n" "$comment_ids" | sed '1d' | while IFS= read -r id; do
+              [ -z "$id" ] && continue
+              gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$id" >/dev/null 2>&1 || true
+            done
           else
             gh api --method POST "repos/${{ github.repository }}/issues/$number/comments" -f body="$body"
           fi

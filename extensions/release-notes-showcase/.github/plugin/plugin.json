@@ -1,0 +1,19 @@
+{
+  "name": "release-notes-showcase",
+  "description": "Compose and refine launch-ready release notes with contributor callouts and export-friendly output.",
+  "version": "1.0.0",
+  "author": {
+    "name": "James Montemagno",
+    "url": "https://github.com/jamesmontemagno"
+  },
+  "keywords": [
+    "changelog",
+    "contributor-callouts",
+    "email-export",
+    "launch-summary",
+    "product-updates",
+    "release-notes"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

@@ -1,4 +1,10 @@
-import { escapeHtml, getGitHubUrl, getLastUpdatedHtml } from "../utils";
+import {
+  escapeHtml,
+  getGitHubHandle,
+  getGitHubUrl,
+  getLastUpdatedHtml,
+  sanitizeUrl,
+} from "../utils";
 import { renderEmptyStateHtml, renderSharedCardHtml } from "./card-render";
 
 export interface RenderableExtension {
@@ -31,9 +37,12 @@ export interface RenderableExtension {
   } | null;
   imageUrl?: string | null;
   assetPath?: string | null;
+  pluginName?: string | null;
+  installCommand?: string | null;
   installUrl?: string | null;
   sourceUrl?: string | null;
   external?: boolean;
+  author?: { name: string; url?: string } | null;
 }
 
 export type ExtensionSortOption = "title" | "lastUpdated";
@@ -71,6 +80,9 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
              "/"
            )}`
           : "");
+      const installCommand =
+        item.installCommand ||
+        (item.pluginName ? `copilot plugin install ${item.pluginName}@awesome-copilot` : "");
       const sourceUrl =
         item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
 
@@ -92,16 +104,43 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
         </div>
       `;
 
+      const authorName = item.author?.name;
+      const authorUrl = item.author?.url;
+      const authorHandle =
+        authorName && authorUrl
+          ? getGitHubHandle(authorUrl, authorName)
+          : authorName || "";
+      const authorHtml = authorName
+        ? `<span class="resource-tag resource-author">by ${
+            authorUrl
+              ? `<a href="${escapeHtml(
+                  sanitizeUrl(authorUrl)
+                )}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(
+                  authorName
+                )}">${escapeHtml(authorHandle)}</a>`
+              : escapeHtml(authorName)
+          }</span>`
+        : "";
+
       const metaHtml = `
         ${item.external ? '<span class="resource-tag">External</span>' : ""}
+        ${authorHtml}
         ${getLastUpdatedHtml(item.lastUpdated)}
       `;
 
       const actionsHtml = `
         <button
           class="btn btn-primary btn-small copy-install-url-btn"
+          data-install-command="${escapeHtml(installCommand)}"
+          title="Copy plugin install command"
+          ${installCommand ? "" : "disabled"}
+        >
+          Copy Install
+        </button>
+        <button
+          class="btn btn-secondary btn-small copy-install-url-btn"
           data-install-url="${escapeHtml(installUrl)}"
-          title="Copy install URL"
+          title="Copy fallback URL install target"
           ${installUrl ? "" : "disabled"}
         >
           Copy URL

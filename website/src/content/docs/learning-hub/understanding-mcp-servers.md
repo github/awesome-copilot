@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-01
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -121,6 +121,16 @@ This guided flow is the recommended way to add new MCP servers, especially for s
 **type** (remote servers): The transport type for remote MCP servers (`http` or `sse`). This field can now be omitted — the CLI defaults to `http` when no type is specified, simplifying remote server configuration.
 
 **deferTools** *(optional, v1.0.63+)*: When set to `false`, the server's tools are always available even when tool search is enabled. By default, tool search can hide rarely-used MCP tools to reduce context noise; setting `deferTools: false` on a server prevents its tools from being deferred, keeping them permanently in the tool list.
+
+### Allowing MCP Server Instructions
+
+By default, Copilot CLI limits which MCP server instructions are injected into the system prompt, to avoid noisy or unexpected instructions from servers you may not have fully reviewed. You can opt in to include instructions from **all** connected MCP servers with the `--allow-all-mcp-server-instructions` flag *(v1.0.66+)*:
+
+```bash
+copilot --allow-all-mcp-server-instructions
+```
+
+Use this only with servers you fully trust, since their instructions can influence how Copilot responds throughout the entire session. For most projects, the default behavior is sufficient — only enable this if a specific server requires it (for example, an internal tool whose instructions you control).
 
 ### Managing Persistent MCP Configuration via Server RPCs
 
@@ -284,6 +294,8 @@ For example, a PostgreSQL server that can't connect because `DATABASE_URL` is no
 /mcp show              # list all servers and their status
 /mcp show postgres     # inspect a specific server
 ```
+
+**Toggling servers on and off** (v1.0.66+): From the `/mcp` list view, you can **enable or disable individual MCP servers** without editing your config file. Select a server in the list and toggle it — disabled servers won't start in future sessions and their tools won't be available to agents. This is useful for temporarily disabling a server that's causing slowdowns or errors without removing it from your configuration entirely.
 
 **Common causes and fixes**:
 

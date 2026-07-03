@@ -1,0 +1,19 @@
+{
+  "name": "where-was-i",
+  "description": "Reconstruct your dev context (branch, commits, uncommitted work, PR clues) and trigger a resume prompt to continue quickly.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Aaron Powell",
+    "url": "https://github.com/aaronpowell"
+  },
+  "keywords": [
+    "branch-state",
+    "developer-context",
+    "git-history",
+    "interrupt-recovery",
+    "pull-request-context",
+    "resume-work"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

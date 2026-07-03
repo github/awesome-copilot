@@ -1,0 +1,19 @@
+{
+  "name": "diagram-viewer",
+  "description": "Render diagrams, click nodes to drill down, and view agent-generated explanations directly in the canvas.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Aaron Powell",
+    "url": "https://github.com/aaronpowell"
+  },
+  "keywords": [
+    "architecture-mapping",
+    "canvas-navigation",
+    "exploratory-analysis",
+    "interactive-diagrams",
+    "node-drilldown",
+    "relationship-visualization"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

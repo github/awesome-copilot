@@ -12,9 +12,11 @@ import {
   copyToClipboard,
   fetchData,
   formatRelativeTime,
+  getGitHubHandle,
   getGitHubUrl,
   getQueryParam,
   getQueryParamValues,
+  sanitizeUrl,
   showToast,
   updateQueryParams,
 } from "../utils";
@@ -73,6 +75,13 @@ function getInstallUrl(item: Extension): string {
           "/"
         )}`
       : "")
+  );
+}
+
+function getInstallCommand(item: Extension): string {
+  return (
+    item.installCommand ||
+    (item.pluginName ? `copilot plugin install ${item.pluginName}@awesome-copilot` : "")
   );
 }
 
@@ -178,6 +187,24 @@ function openDetailsModal(
   if (item.external) {
     metaParts.push('<span class="resource-tag">External</span>');
   }
+  if (item.author?.name) {
+    const authorName = item.author.name;
+    const authorUrl = item.author.url;
+    const authorHandle = authorUrl
+      ? getGitHubHandle(authorUrl, authorName)
+      : authorName;
+    metaParts.push(
+      authorUrl
+        ? `<span class="resource-author">by <a href="${escapeHtml(
+            sanitizeUrl(authorUrl)
+          )}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(
+            authorName
+          )}">${escapeHtml(authorHandle)}</a></span>`
+        : `<span class="resource-author">by ${escapeHtml(
+            authorName
+          )}</span>`
+    );
+  }
   if (item.lastUpdated) {
     metaParts.push(
       `<span class="last-updated">Updated ${escapeHtml(
@@ -187,6 +214,7 @@ function openDetailsModal(
   }
 
   const installUrl = getInstallUrl(item);
+  const installCommand = getInstallCommand(item);
   const sourceUrl = getSourceUrl(item);
   const detailsHtml = `
     <div class="extension-details-body">
@@ -203,16 +231,18 @@ function openDetailsModal(
           ""
         )}</div>
         <div class="resource-actions extension-details-actions">
-          <button id="extension-details-install" class="btn btn-primary btn-small" type="button" data-install-url="${escapeHtml(
+          <button id="extension-details-install" class="btn btn-primary btn-small" type="button" data-install-command="${escapeHtml(
+            installCommand
+          )}" ${installCommand ? "" : "disabled"}>Copy Install</button>
+          <button id="extension-details-copy-url" class="btn btn-secondary btn-small" type="button" data-install-url="${escapeHtml(
             installUrl
-          )}" ${installUrl ? "" : "disabled"}>Install</button>
-          ${
-            sourceUrl
-              ? `<a id="extension-details-source" class="btn btn-secondary btn-small" href="${escapeHtml(
-                  sourceUrl
-                )}" target="_blank" rel="noopener noreferrer">Source</a>`
-              : ""
-          }
+          )}" ${installUrl ? "" : "disabled"}>Copy URL</button>
+          ${sourceUrl
+      ? `<a id="extension-details-source" class="btn btn-secondary btn-small" href="${escapeHtml(
+        sourceUrl
+      )}" target="_blank" rel="noopener noreferrer">Source</a>`
+      : ""
+    }
         </div>
       </div>
     </div>
@@ -284,14 +314,20 @@ function setupActionHandlers(list: HTMLElement | null): void {
     if (!installButton) return;
 
     event.stopPropagation();
+    const installCommand = installButton.dataset.installCommand || "";
     const installUrl = installButton.dataset.installUrl || "";
-    if (!installUrl) {
-      showToast("No install URL available for this extension", "error");
+    const contentToCopy = installCommand || installUrl;
+    if (!contentToCopy) {
+      showToast("No install target available for this extension", "error");
       return;
     }
-    const success = await copyToClipboard(installUrl);
+    const success = await copyToClipboard(contentToCopy);
     showToast(
-      success ? "Extension URL copied!" : "Failed to copy extension URL",
+      success
+        ? installCommand
+          ? "Install command copied!"
+          : "Extension URL copied!"
+        : "Failed to copy install target",
       success ? "success" : "error"
     );
     return;
@@ -351,7 +387,25 @@ function setupActionHandlers(list: HTMLElement | null): void {
       "#extension-details-install"
     ) as HTMLButtonElement | null;
     if (detailsInstallButton) {
-      const installUrl = detailsInstallButton.dataset.installUrl || "";
+      const installCommand = detailsInstallButton.dataset.installCommand || "";
+      if (!installCommand) {
+        showToast("No plugin install command available for this extension", "error");
+        return;
+      }
+
+      const success = await copyToClipboard(installCommand);
+      showToast(
+        success ? "Install command copied!" : "Failed to copy install command",
+        success ? "success" : "error"
+      );
+      return;
+    }
+
+    const detailsCopyUrlButton = target.closest(
+      "#extension-details-copy-url"
+    ) as HTMLButtonElement | null;
+    if (detailsCopyUrlButton) {
+      const installUrl = detailsCopyUrlButton.dataset.installUrl || "";
       if (!installUrl) {
         showToast("No install URL available for this extension", "error");
         return;

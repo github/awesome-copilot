@@ -38,6 +38,10 @@ function resolveSource(relPath) {
     const skillName = relPath.replace(/^\.\/skills\//, "").replace(/\/$/, "");
     return path.join(ROOT_FOLDER, "skills", skillName);
   }
+  if (relPath.startsWith("./extensions/")) {
+    const extensionName = relPath.replace(/^\.\/extensions\//, "").replace(/\/$/, "");
+    return path.join(ROOT_FOLDER, "extensions", extensionName);
+  }
   return null;
 }
 
@@ -56,6 +60,7 @@ function materializePlugins() {
 
   let totalAgents = 0;
   let totalSkills = 0;
+  let totalExtensions = 0;
   let warnings = 0;
   let errors = 0;
 
@@ -119,6 +124,27 @@ function materializePlugins() {
       }
     }
 
+    // Process extension references from x-awesome-copilot.extensions
+    const extensionRefs = Array.isArray(metadata?.["x-awesome-copilot"]?.extensions)
+      ? metadata["x-awesome-copilot"].extensions
+      : [];
+    for (const relPath of extensionRefs) {
+      const src = resolveSource(relPath);
+      if (!src) {
+        console.warn(`  ⚠ ${pluginName}: Unknown extension path format: ${relPath}`);
+        warnings++;
+        continue;
+      }
+      if (!fs.existsSync(src) || !fs.statSync(src).isDirectory()) {
+        console.warn(`  ⚠ ${pluginName}: Extension source directory not found: ${src}`);
+        warnings++;
+        continue;
+      }
+      const dest = path.join(pluginPath, relPath.replace(/^\.\//, "").replace(/\/$/, ""));
+      copyDirRecursive(src, dest);
+      totalExtensions++;
+    }
+
     // Rewrite plugin.json to use folder paths instead of individual file paths.
     // On staged, paths like ./agents/foo.md point to individual source files.
     // On main, after materialization, we only need the containing directory.
@@ -139,6 +165,13 @@ function materializePlugins() {
       changed = true;
     }
 
+    if (Array.isArray(rewritten?.["x-awesome-copilot"]?.extensions) &&
+      rewritten["x-awesome-copilot"].extensions.length > 0) {
+      rewritten["x-awesome-copilot"].extensions =
+        rewritten["x-awesome-copilot"].extensions.map((p) => p.replace(/\/$/, ""));
+      changed = true;
+    }
+
     if (changed) {
       fs.writeFileSync(pluginJsonPath, JSON.stringify(rewritten, null, 2) + "\n", "utf8");
     }
@@ -146,12 +179,13 @@ function materializePlugins() {
     const counts = [];
     if (metadata.agents?.length) counts.push(`${metadata.agents.length} agents`);
     if (metadata.skills?.length) counts.push(`${metadata.skills.length} skills`);
+    if (extensionRefs.length) counts.push(`${extensionRefs.length} extensions`);
     if (counts.length) {
       console.log(`✓ ${pluginName}: ${counts.join(", ")}`);
     }
   }
 
-  console.log(`\nDone. Copied ${totalAgents} agents, ${totalSkills} skills.`);
+  console.log(`\nDone. Copied ${totalAgents} agents, ${totalSkills} skills, ${totalExtensions} extensions.`);
   if (warnings > 0) {
     console.log(`${warnings} warning(s).`);
   }
