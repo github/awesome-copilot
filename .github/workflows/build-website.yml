@@ -12,7 +12,6 @@ on:
       - hooks
       - workflows
       - extensions
-      - .schemas/canvas.schema.json
 
 permissions:
   contents: read

@@ -6,7 +6,6 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "extensions/**"
-      - ".schemas/plugin.schema.json"
 
 permissions:
   contents: read
@@ -29,110 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      - name: Validate changed canvas extensions
+      - name: Validate changed extensions
         run: |
           set -euo pipefail
-
-          # Note: We're still using canvas.schema.json for now to validate the structure,
-          # but in future we may migrate to using plugin.schema.json.
-          # For now, plugin.json will be validated against plugin specs separately.
-          if ! node ./eng/validate-json-schema.mjs --schema .schemas/plugin.schema.json 2>/dev/null || ! [ -f .schemas/plugin.schema.json ]; then
-            echo "Note: plugin.schema.json not yet in use for extension validation. Using plugin validation only."
-          fi
-
-          # Collect changed extension directories.
-          # Use null-terminated (-z) output from git diff so filenames containing newlines
-          # or other special characters are read atomically (matches the pattern in skill-check.yml).
-          # Each extracted name is then validated against a strict allowlist regex before use,
-          # rejecting anything containing shell metacharacters ($, (, ), spaces, etc.).
-          declare -A seen_dirs=()
-          changed_extensions=()
-          errors=()
-
-          while IFS= read -r -d '' file; do
-            case "$file" in
-              extensions/*)
-                ext_name="${file#extensions/}"
-                ext_name="${ext_name%%/*}"
-
-                if [ "$ext_name" = "external-assets" ]; then
-                  continue
-                fi
-
-                # Allowlist: extension directory names must be lowercase alphanumeric + hyphens only.
-                # Fail for disallowed names so a PR cannot bypass validation by using a nonconforming folder.
-                if [[ ! "$ext_name" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
-                  errors+=("\`extensions/$ext_name\`: invalid extension directory name (must match ^[a-z0-9][a-z0-9-]*$).")
-                  continue
-                fi
-
-                if [ -z "${seen_dirs[$ext_name]+x}" ]; then
-                  seen_dirs["$ext_name"]=1
-                  changed_extensions+=("extensions/$ext_name")
-                fi
-                ;;
-            esac
-          done < <(git diff --name-only -z "origin/${{ github.base_ref }}...HEAD")
-
-          if [ "${#changed_extensions[@]}" -eq 0 ]; then
-            if [ "${#errors[@]}" -ne 0 ]; then
-              echo "❌ Canvas extension validation failed:"
-              for error in "${errors[@]}"; do
-                echo "- $error"
-              done
-              exit 1
-            fi
-            echo "No canvas extension directories changed — skipping validation."
-            exit 0
-          fi
-
-          echo "Validating ${#changed_extensions[@]} extension(s): ${changed_extensions[*]}"
-
-          for ext_dir in "${changed_extensions[@]}"; do
-            if [ ! -d "$ext_dir" ]; then
-              echo "$ext_dir no longer exists (deleted?), skipping."
-              continue
-            fi
-
-            if [ ! -f "$ext_dir/extension.mjs" ]; then
-              errors+=("\`$ext_dir\`: missing required \`extension.mjs\`.")
-            fi
-
-            if [ ! -f "$ext_dir/.github/plugin/plugin.json" ]; then
-              errors+=("\`$ext_dir\`: missing required \`.github/plugin/plugin.json\`.")
-              continue
-            fi
-
-            if [ ! -f "$ext_dir/assets/preview.png" ]; then
-              errors+=("\`$ext_dir\`: missing required \`assets/preview.png\`.")
-            fi
-
-            # Validate convention-based plugin.json fields
-            logo=$(node -e "const fs = require('fs'); const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(m.logo || '');" "$ext_dir/.github/plugin/plugin.json")
-            if [ "$logo" != "assets/preview.png" ]; then
-              errors+=("\`$ext_dir/.github/plugin/plugin.json\`: logo must be exactly \`assets/preview.png\` (convention), got \`$logo\`.")
-            fi
-
-            extensions=$(node -e "const fs = require('fs'); const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(m.extensions || '');" "$ext_dir/.github/plugin/plugin.json")
-            if [ "$extensions" != "." ]; then
-              errors+=("\`$ext_dir/.github/plugin/plugin.json\`: extensions field must be exactly \`.\" (extension convention), got \`$extensions\`.")
-            fi
-
-            has_x_awesome=$(node -e "const fs = require('fs'); const m = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(m['x-awesome-copilot'] ? 'yes' : 'no');" "$ext_dir/.github/plugin/plugin.json")
-            if [ "$has_x_awesome" = "yes" ]; then
-              errors+=("\`$ext_dir/.github/plugin/plugin.json\`: x-awesome-copilot field must not be present (use convention-based logo instead).")
-            fi
-
-            # Extension manifest detailed validation is done by npm run plugin:validate
-            # This workflow focuses on structural requirements (presence of required files)
-          done
-
-          if [ "${#errors[@]}" -ne 0 ]; then
-            echo "❌ Extension validation failed:"
-            for error in "${errors[@]}"; do
-              echo "- $error"
-            done
-            exit 1
-          fi
-
-          echo "✅ All changed extensions passed validation."
+          npm run plugin:validate
