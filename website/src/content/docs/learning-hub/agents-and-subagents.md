@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-01
+lastUpdated: 2026-07-03
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -45,6 +45,7 @@ Subagents are useful because they are not just "the same agent in another tab." 
 - **Parallelism**: multiple subagents can work at the same time when tasks do not conflict.
 - **Controlled synthesis**: the parent agent decides what gets brought back into the main conversation.
 - **Alternative model selection**: the subagent can use a different AI model to perform a task, so while our main agent might be using a generalist model, a subagent could be configured to use a more specialized one for code review or research.
+- **Inherited tool restrictions** *(v1.0.67+)*: when a custom agent with limited tool access (e.g., read-only tools) spawns subagents, those subagents **inherit** the parent's tool restrictions. This means a security-scoped agent stays security-scoped throughout its entire delegation chain — subagents cannot silently gain access to tools the parent doesn't have.
 
 That isolation is one of the main reasons subagents can outperform a single monolithic agent on larger tasks.
 
@@ -211,6 +212,10 @@ No. They can run sequentially when one step depends on another, or in parallel w
 **Can I control how many subagents run simultaneously?**
 
 Yes. In v1.0.66+, usage-based billing users can configure **subagent concurrency and depth limits** directly from `/settings`. The concurrency limit controls how many subagents run in parallel; the depth limit controls how many levels deep delegation can chain (preventing runaway recursive subagent trees). These settings give you predictable control over resource consumption during complex orchestrated tasks.
+
+**Do custom agents' tool restrictions apply to their subagents?**
+
+Yes, since v1.0.67+. When a custom agent with a restricted tool set (for example, only `read` and `search`) spawns a subagent, the subagent inherits those same restrictions. In v1.0.68+, this inheritance is also preserved when the subagent itself launches further nested subagents. This is an important security guarantee: a read-only reviewer agent cannot accidentally or intentionally gain write access just by delegating to a subagent. Design your agents' tool lists with this in mind — the restrictions you set on a parent agent act as a security boundary for the entire delegation tree it controls.
 
 ## Next steps
 
