@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  copilot-requests: write
 tools:
   bash: ["curl", "gh"]
   edit:
