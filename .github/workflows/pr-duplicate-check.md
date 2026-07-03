@@ -4,9 +4,11 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened]
   roles: all
+checkout: false
 permissions:
   contents: read
   pull-requests: read
+  copilot-requests: write
 tools:
   github:
     toolsets: [repos, pull_requests]
