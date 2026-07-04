@@ -14,10 +14,27 @@ const contextCache = new Map(); // instanceId → contextData
 
 const isWindows = process.platform === "win32";
 
-// Derive repo root from extension location (.github/extensions/where-was-i/)
+// Fallback repo root derived from extension location. Only used when the
+// session's real working directory is unavailable (see captureCwd below).
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const REPO_ROOT = join(__dirname, "..", "..", "..");
+
+// The canvas request context reports the active session's working directory —
+// the actual repo checkout or worktree the user opened the canvas in. This is
+// what git commands must run against; REPO_ROOT (the extension's install dir)
+// and session.workspacePath (the session-state folder) are NOT the repo, which
+// is why the board previously showed an empty branch as "detached HEAD".
+let workspaceCwd = null;
+
+function captureCwd(ctx) {
+    const dir = ctx?.session?.workingDirectory;
+    if (typeof dir === "string" && dir.trim()) workspaceCwd = dir;
+}
+
+function repoCwd() {
+    return workspaceCwd || REPO_ROOT;
+}
 
 // --- Shell helpers ---
 
@@ -34,7 +51,7 @@ function run(cmd, cwd) {
 }
 
 async function gatherContext(cwd) {
-    cwd = cwd || REPO_ROOT;
+    cwd = cwd || repoCwd();
     const authorCmd = isWindows
         ? 'git log --oneline -5 --format="%h %s" --author="$(git config user.name)"'
         : 'git log --oneline -5 --format="%h %s" --author="$(git config user.name)"';
@@ -605,7 +622,7 @@ async function startServer(instanceId, sessionRef, cwd, workspacePath) {
         }
 
         if (url.pathname === "/refresh" && req.method === "POST") {
-            const data = await gatherContext(cwd);
+            const data = await gatherContext(repoCwd());
             contextCache.set(instanceId, data);
             await saveContext(workspacePath, data);
             broadcast(instanceId, data);
@@ -672,7 +689,8 @@ const session = await joinSession({
                     name: "refresh",
                     description: "Re-gather all git/project context and push updates to the canvas",
                     handler: async (ctx) => {
-                        const data = await gatherContext(REPO_ROOT);
+                        captureCwd(ctx);
+                        const data = await gatherContext(repoCwd());
                         contextCache.set(ctx.instanceId, data);
                         if (sessionRef) await saveContext(sessionRef.workspacePath, data);
                         broadcast(ctx.instanceId, data);
@@ -713,16 +731,20 @@ const session = await joinSession({
                 },
             ],
             open: async (ctx) => {
+                captureCwd(ctx);
                 let entry = servers.get(ctx.instanceId);
                 if (!entry) {
-                    entry = await startServer(ctx.instanceId, sessionRef, REPO_ROOT, sessionRef?.workspacePath);
+                    entry = await startServer(ctx.instanceId, sessionRef, repoCwd(), sessionRef?.workspacePath);
                     servers.set(ctx.instanceId, entry);
                 }
 
-                // Load persisted context or gather fresh
+                // Load persisted context or gather fresh. Re-gather when the
+                // saved context is missing or has no branch (e.g. it was saved
+                // before the working directory was known), so the board never
+                // opens stuck on a stale "detached HEAD".
                 let data = await loadContext(sessionRef?.workspacePath);
-                if (!data) {
-                    data = await gatherContext(REPO_ROOT);
+                if (!data || !data.branch) {
+                    data = await gatherContext(repoCwd());
                     await saveContext(sessionRef?.workspacePath, data);
                 }
                 contextCache.set(ctx.instanceId, data);

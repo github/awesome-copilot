@@ -14,10 +14,26 @@ const VALID_COLUMNS = new Set(COLUMNS);
 
 let repoInfoCache = null;
 let githubTokenCache;
-let sessionRef = null;
+let workspaceCwd = null;
+
+// The canvas request context reports the active session's *working directory*
+// (i.e. the repo checkout). Note this is different from `session.workspacePath`,
+// which points at the session-state folder (~/.copilot/session-state/<id>) and is
+// NOT a git repo — using it for git resolution is what caused the board to fail
+// with "Unable to detect the current repository from this workspace."
+function setWorkspaceCwd(dir) {
+  if (typeof dir !== "string" || !dir.trim() || dir === workspaceCwd) return;
+  workspaceCwd = dir;
+  repoInfoCache = null;
+  githubTokenCache = undefined;
+}
+
+function captureCwd(ctx) {
+  setWorkspaceCwd(ctx?.session?.workingDirectory);
+}
 
 function getWorkspaceCwd() {
-  return sessionRef?.workspacePath || process.cwd();
+  return workspaceCwd || process.cwd();
 }
 
 // ─── Repo resolution ───
@@ -61,12 +77,12 @@ function parseRepoFromRemoteUrl(remoteUrl) {
 function candidateCwds(preferredCwd) {
   const candidates = [
     preferredCwd,
-    sessionRef?.workspacePath,
+    workspaceCwd,
+    process.cwd(),
     __dirname,
     path.dirname(__dirname),
     path.dirname(path.dirname(__dirname)),
     path.dirname(path.dirname(path.dirname(__dirname))),
-    process.cwd(),
   ].filter(Boolean);
   return [...new Set(candidates)];
 }
@@ -564,7 +580,8 @@ const canvas = createCanvas({
       name: "get_state",
       description: "Get the current board state including open repository issues and selected label filters.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      async handler() {
+      async handler(ctx) {
+        captureCwd(ctx);
         return refreshIssuesSafe();
       },
     },
@@ -580,8 +597,9 @@ const canvas = createCanvas({
         required: ["issue_number", "column"],
         additionalProperties: false,
       },
-      handler({ input }) {
-        const { issue } = moveIssue(input.issue_number, input.column);
+      handler(ctx) {
+        captureCwd(ctx);
+        const { issue } = moveIssue(ctx.input.issue_number, ctx.input.column);
         return { issue, state: currentState() };
       },
     },
@@ -620,8 +638,9 @@ const canvas = createCanvas({
         required: ["issues"],
         additionalProperties: false,
       },
-      handler({ input }) {
-        return replaceIssues(input.issues);
+      handler(ctx) {
+        captureCwd(ctx);
+        return replaceIssues(ctx.input.issues);
       },
     },
     {
@@ -635,21 +654,24 @@ const canvas = createCanvas({
         required: ["labels"],
         additionalProperties: false,
       },
-      handler({ input }) {
-        return setSelectedLabels(input.labels);
+      handler(ctx) {
+        captureCwd(ctx);
+        return setSelectedLabels(ctx.input.labels);
       },
     },
     {
       name: "reset_state",
       description: "Reset all cards to backlog and clear label filters, then refresh from live repo issues.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      async handler() {
+      async handler(ctx) {
+        captureCwd(ctx);
         resetBoard();
         return refreshIssuesSafe();
       },
     },
   ],
-  async open() {
+  async open(ctx) {
+    captureCwd(ctx);
     const state = await refreshIssuesSafe();
     broadcast("state", state);
     return {
@@ -662,7 +684,7 @@ const canvas = createCanvas({
 
 // ─── Join session (tools + canvas) ───
 
-const session = await joinSession({
+await joinSession({
   canvases: [canvas],
   tools: [
     {
@@ -702,5 +724,3 @@ const session = await joinSession({
     },
   ],
 });
-
-sessionRef = session;
