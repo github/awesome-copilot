@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-30
+lastUpdated: 2026-07-04
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -469,6 +469,14 @@ You can also press **x** on a highlighted session in the session picker (`--resu
 
 In the session picker, press **`s`** to cycle the sort order: relevance, last used, created, or name. The picker also shows the branch name and idle/in-use status for each session.
 
+In v1.0.68+, a dedicated **sessions screen** is available from within an active session, letting you browse all backgrounded and recently active sessions and switch to one on the fly — without restarting the CLI with `copilot --resume`. Open it with the `/sessions` command:
+
+```
+/sessions           # open the in-session sessions browser
+```
+
+This is especially useful when you're running parallel sessions on different features and need to jump between them quickly.
+
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
 
 ```
@@ -494,6 +502,8 @@ The `/fork` command (v1.0.45+) copies the current session into a **new independe
 ```
 
 After forking, the new session is immediately active. Both sessions share the same history up to the fork point but accumulate changes independently from that moment forward. Use `/fork` to experiment with a risky refactor without abandoning your current working session. Since v1.0.47, forked sessions display their **origin session** name in the sessions dialog, making it easy to trace which session a fork came from.
+
+> **Slash-command alias completion** (v1.0.68+): When you type a slash command that has an alias (such as `/br` to reach `/branch`, or `/mo` for `/move`), the CLI now shows the alias as an inline completion suggestion. This works for all built-in commands with aliases, making it faster to discover and type abbreviated forms without memorising the full alias list.
 
 The `/cd` command changes the working directory for the current session. Since v1.0.65, the working directory **persists when you resume a session** — if you restart the CLI and resume, you return to the same directory automatically. Changing directory also triggers discovery of custom agents in the new location, so switching to a different project loads its agents without a restart:
 
@@ -603,7 +613,7 @@ The `/context` command shows a visualization of the current conversation's conte
 /context
 ```
 
-The `/usage` command displays session metrics such as the number of tokens consumed, API calls made, and any quota information for the current session. In v1.0.64+, `/usage` also shows per-model token totals when you have used multiple models in a session:
+The `/usage` command displays session metrics such as the number of tokens consumed, API calls made, and any quota information for the current session. In v1.0.64+, `/usage` also shows per-model token totals when you have used multiple models in a session. In v1.0.68+, `/usage` also includes **plan budget details** when a session budget is configured via `sessionLimits` — showing consumed and remaining budget at a glance:
 
 ```
 /usage
@@ -619,7 +629,7 @@ The `/compact` command summarizes the conversation history to free up context wi
 
 > **ACP sessions (v1.0.39+)**: The `/compact`, `/context`, `/usage`, and `/env` commands are now available in ACP (Agent Coordination Protocol) sessions, allowing remote ACP clients to surface session details and manage context from within their own automated workflows.
 
-The `/statusline` command (with `/footer` as an alias) lets you control which items appear in the terminal status bar. You can show or hide individual indicators like the working directory, current branch, effort level, context window usage, quota, and **active account username** (v1.0.43+). The **changes** toggle shows a running count of added/removed lines for the session — useful when tracking the scope of an ongoing edit. In v1.0.65+, there is also an opt-in **CI check status** indicator that shows the passing/running/failing state of CI checks for the current branch — enable it from the `/statusline` menu:
+The `/statusline` command (with `/footer` as an alias) lets you control which items appear in the terminal status bar. You can show or hide individual indicators like the working directory, current branch, effort level, context window usage, quota, and **active account username** (v1.0.43+). The **changes** toggle shows a running count of added/removed lines for the session — useful when tracking the scope of an ongoing edit. In v1.0.65+, there is also an opt-in **CI check status** indicator that shows the passing/running/failing state of CI checks for the current branch — enable it from the `/statusline` menu. In v1.0.68+, a **plan budget** indicator is also available when session limits are configured, showing your remaining session budget in the footer:
 
 ```
 /statusline             # show the statusline configuration menu
