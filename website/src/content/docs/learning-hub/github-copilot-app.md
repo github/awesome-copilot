@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-07-05
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -87,6 +87,8 @@ For a hands-on guide to building canvases with `/create-canvas`, see [Working wi
 - Can automatically merge when all conditions are met
 
 You control the automation level—decide whether Agent Merge should just run CI, address feedback, or go all the way to merging. It's a way to let Copilot handle the tedious parts of the review and merge process.
+
+**`/pr auto` self-paced loop** *(v1.0.66+)*: The `/pr auto` command now runs as a self-paced loop — fixing one issue per run, then automatically pacing itself around CI checks to keep driving the PR toward green. It continues iterating without requiring manual re-triggering. Use `/pr automerge` to go a step further: it keeps going until the PR is fully merged. You can manage or stop either loop at any time from `/loop` or `/every`.
 
 ## Who is the Copilot app for?
 
@@ -276,7 +278,8 @@ Enable Agent Merge to automate routine PR workflows:
 2. Specify what automations to enable (run CI, address feedback, merge)
 3. Create a session to implement a feature
 4. When the PR is created, Agent Merge monitors it
-5. It runs CI, waits for reviews, addresses feedback, and merges when ready
+5. `/pr auto` runs a self-paced loop, fixing one issue per run and pacing around CI checks
+6. Use `/pr automerge` to keep going until the PR is merged; manage the loop from `/loop` or `/every`
 
 ## Next Steps
 

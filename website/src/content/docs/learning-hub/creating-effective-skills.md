@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-30
+lastUpdated: 2026-07-05
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -412,6 +412,17 @@ A: In v1.0.66+, the agent can propose draft skill additions or improvements as i
 ```
 
 This opens a review flow where you can accept, reject, or defer each proposed change — giving you full control over how your skill library evolves. No changes are applied until you approve them.
+
+**Q: How does Copilot decide which skills to load from a large library?**
+
+A: By default, Copilot CLI uses embeddings-based retrieval to dynamically select which skills are relevant to the current task (v1.0.66+). You can control this with the `--dynamic-retrieval` flag:
+
+```bash
+copilot --dynamic-retrieval skills=on   # enable dynamic skill retrieval (default)
+copilot --dynamic-retrieval skills=off  # always load all skills into context
+```
+
+You can also set this persistently via the `dynamicRetrieval` key in CLI settings. Dynamic retrieval is useful when you have a large number of skills and want to keep context lean — only the most relevant skills are loaded per turn. Turning it off ensures every skill is always available but uses more context budget.
 
 ## Common Pitfalls to Avoid
 
