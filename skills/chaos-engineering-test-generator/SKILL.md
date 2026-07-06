@@ -37,7 +37,7 @@ Generates ready-to-apply experiment definitions for:
 - **AWS FIS**: experiment templates for EC2 instance/AZ failure, network latency, and API throttling simulation.
 
 ### 3. Blast radius and safety controls
-Every generated experiment includes: a scoped selector (namespace/label/percentage of replicas, never "all"), a `duration`, and abort conditions tied to a monitored metric (e.g., abort if error rate > X% or latency p99 > Y ms). The skill defaults to the smallest blast radius that can still test the hypothesis and flags anything wider as "requires explicit approval."
+Every generated experiment includes: a scoped selector (namespace/label/percentage of replicas; avoid targeting all replicas by default unless explicitly approved), a `duration`, and abort conditions tied to a monitored metric (e.g., abort if error rate > X% or latency p99 > Y ms). The skill defaults to the smallest blast radius that can still test the hypothesis and flags anything wider as "requires explicit approval."
 
 ### 4. Steady-state and observability hooks
 Suggests the Prometheus queries, dashboards, or health-check endpoints to watch before, during, and after the experiment, and generates a short "steady-state definition" the team can check against post-experiment.
