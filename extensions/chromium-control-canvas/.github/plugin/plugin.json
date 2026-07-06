@@ -1,6 +1,5 @@
 {
-  "id": "chromium-control-canvas",
-  "name": "Chromium Control Canvas",
+  "name": "chromium-control-canvas",
   "description": "Opens a real Chromium window you can navigate and interact with from a Copilot canvas control panel and agent actions.",
   "version": "1.0.0",
   "author": {
@@ -16,14 +15,6 @@
     "ui-testing",
     "web-navigation"
   ],
-  "screenshots": {
-    "icon": {
-      "path": "assets/preview.png",
-      "type": "image/png"
-    },
-    "gallery": {
-      "path": "assets/preview.png",
-      "type": "image/png"
-    }
-  }
+  "logo": "assets/preview.png",
+  "extensions": "."
 }

@@ -1,11 +1,14 @@
 ---
 description: 'Checks PRs for potential duplicate agents, instructions, skills, and workflows already in the repository'
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
+  roles: all
+checkout: false
 permissions:
   contents: read
   pull-requests: read
+  copilot-requests: write
 tools:
   github:
     toolsets: [repos, pull_requests]

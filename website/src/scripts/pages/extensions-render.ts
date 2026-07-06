@@ -37,6 +37,8 @@ export interface RenderableExtension {
   } | null;
   imageUrl?: string | null;
   assetPath?: string | null;
+  pluginName?: string | null;
+  installCommand?: string | null;
   installUrl?: string | null;
   sourceUrl?: string | null;
   external?: boolean;
@@ -78,6 +80,9 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
              "/"
            )}`
           : "");
+      const installCommand =
+        item.installCommand ||
+        (item.pluginName ? `copilot plugin install ${item.pluginName}@awesome-copilot` : "");
       const sourceUrl =
         item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
 
@@ -126,8 +131,16 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
       const actionsHtml = `
         <button
           class="btn btn-primary btn-small copy-install-url-btn"
+          data-install-command="${escapeHtml(installCommand)}"
+          title="Copy plugin install command"
+          ${installCommand ? "" : "disabled"}
+        >
+          Copy Install
+        </button>
+        <button
+          class="btn btn-secondary btn-small copy-install-url-btn"
           data-install-url="${escapeHtml(installUrl)}"
-          title="Copy install URL"
+          title="Copy fallback URL install target"
           ${installUrl ? "" : "disabled"}
         >
           Copy URL

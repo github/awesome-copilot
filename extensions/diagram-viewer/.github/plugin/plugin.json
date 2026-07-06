@@ -1,6 +1,5 @@
 {
-  "id": "diagram",
-  "name": "Diagram Explorer",
+  "name": "diagram-viewer",
   "description": "Render diagrams, click nodes to drill down, and view agent-generated explanations directly in the canvas.",
   "version": "1.0.0",
   "author": {
@@ -15,14 +14,6 @@
     "node-drilldown",
     "relationship-visualization"
   ],
-  "screenshots": {
-    "icon": {
-      "path": "assets/preview.png",
-      "type": "image/png"
-    },
-    "gallery": {
-      "path": "assets/preview.png",
-      "type": "image/png"
-    }
-  }
+  "logo": "assets/preview.png",
+  "extensions": "."
 }
