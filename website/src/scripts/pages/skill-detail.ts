@@ -23,6 +23,13 @@ interface CachedFile {
   rawText?: string;
 }
 
+interface FileDescriptor {
+  path: string;
+  name: string;
+  lang: string;
+  kind: string;
+}
+
 let highlighterPromise: Promise<
   (code: string, lang: string) => Promise<string>
 > | null = null;
@@ -54,6 +61,7 @@ function initSkillDetail(): void {
   const currentNameEl = root.querySelector<HTMLElement>(
     "[data-current-file-name]"
   );
+  const fileSelect = root.querySelector<HTMLSelectElement>("[data-file-select]");
   const githubLink = root.querySelector<HTMLAnchorElement>("[data-file-github]");
   const skillFilePath = browser?.dataset.skillFile ?? "";
   const githubBase = browser?.dataset.githubBase ?? "";
@@ -72,9 +80,23 @@ function initSkillDetail(): void {
     });
   }
 
-  const fileButtons = Array.from(
-    root.querySelectorAll<HTMLButtonElement>(".skill-file-item")
-  );
+  // Build the canonical file list from the <select> options. Single-file skills
+  // have no select, so fall back to just the embedded SKILL.md.
+  const fileDescriptors: FileDescriptor[] = fileSelect
+    ? Array.from(fileSelect.options).map((opt) => ({
+        path: opt.value,
+        name: opt.dataset.fileName ?? opt.value,
+        lang: opt.dataset.fileLang ?? "text",
+        kind: opt.dataset.fileKind ?? "other",
+      }))
+    : [
+        {
+          path: skillFilePath,
+          name: currentNameEl?.textContent?.trim() || skillFilePath,
+          lang: "markdown",
+          kind: "markdown",
+        },
+      ];
 
   const setStatus = (message: string | null): void => {
     if (!statusEl) return;
@@ -87,13 +109,8 @@ function initSkillDetail(): void {
     statusEl.textContent = message;
   };
 
-  const setActiveButton = (path: string): void => {
-    fileButtons.forEach((btn) => {
-      const isActive = btn.dataset.filePath === path;
-      btn.classList.toggle("active", isActive);
-      if (isActive) btn.setAttribute("aria-current", "true");
-      else btn.removeAttribute("aria-current");
-    });
+  const setActive = (path: string): void => {
+    if (fileSelect && fileSelect.value !== path) fileSelect.value = path;
   };
 
   async function renderFile(
@@ -134,7 +151,7 @@ function initSkillDetail(): void {
   ): Promise<void> {
     if (!contentEl) return;
     activePath = path;
-    setActiveButton(path);
+    setActive(path);
     if (currentNameEl) currentNameEl.textContent = name;
     if (githubLink && githubBase) githubLink.href = `${githubBase}/${path}`;
 
@@ -160,17 +177,17 @@ function initSkillDetail(): void {
   }
 
   // --- File selection ---
-  fileButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const path = btn.dataset.filePath ?? "";
-      if (!path || path === activePath) return;
-      void selectFile(
-        path,
-        btn.dataset.fileName ?? path,
-        btn.dataset.fileLang ?? "text",
-        btn.dataset.fileKind ?? "other"
-      );
-    });
+  fileSelect?.addEventListener("change", () => {
+    const opt = fileSelect.selectedOptions[0];
+    if (!opt) return;
+    const path = opt.value;
+    if (!path || path === activePath) return;
+    void selectFile(
+      path,
+      opt.dataset.fileName ?? path,
+      opt.dataset.fileLang ?? "text",
+      opt.dataset.fileKind ?? "other"
+    );
   });
 
   // --- Copy current file contents ---
@@ -221,9 +238,9 @@ function initSkillDetail(): void {
     ?.addEventListener("click", async (event) => {
       const btn = event.currentTarget as HTMLButtonElement;
       const skillId = root.dataset.skillId ?? "skill";
-      const files: ZipDownloadFile[] = fileButtons.map((b) => ({
-        name: b.dataset.fileName ?? "",
-        path: b.dataset.filePath ?? "",
+      const files: ZipDownloadFile[] = fileDescriptors.map((d) => ({
+        name: d.name,
+        path: d.path,
       }));
       if (files.length === 0) {
         showToast("No files found for this skill.", "error");
@@ -264,15 +281,9 @@ function initSkillDetail(): void {
   const hashMatch = window.location.hash.match(/^#file=(.+)$/);
   if (hashMatch) {
     const wanted = decodeURIComponent(hashMatch[1]);
-    const btn = fileButtons.find((b) => b.dataset.filePath === wanted);
-    if (btn && wanted !== activePath) {
-      void selectFile(
-        wanted,
-        btn.dataset.fileName ?? wanted,
-        btn.dataset.fileLang ?? "text",
-        btn.dataset.fileKind ?? "other",
-        false
-      );
+    const desc = fileDescriptors.find((d) => d.path === wanted);
+    if (desc && wanted !== activePath) {
+      void selectFile(desc.path, desc.name, desc.lang, desc.kind, false);
     }
   }
 }

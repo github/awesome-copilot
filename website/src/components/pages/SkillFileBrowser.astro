@@ -34,10 +34,33 @@ const sortedFiles = [...files].sort((a, b) => {
   return a.name.localeCompare(b.name);
 });
 
-function formatSize(size?: number): string {
-  if (!size && size !== 0) return "";
-  if (size < 1024) return `${size} B`;
-  return `${(size / 1024).toFixed(size < 10240 ? 1 : 0)} KB`;
+const otherFiles = sortedFiles.filter((f) => f.path !== skillFilePath);
+const rootFiles = otherFiles.filter((f) => !f.name.includes("/"));
+
+// Group nested files by their top-level folder for optgroup rendering.
+const folderGroups = new Map<string, SkillBrowserFile[]>();
+for (const file of otherFiles) {
+  const slash = file.name.indexOf("/");
+  if (slash === -1) continue;
+  const folder = file.name.slice(0, slash);
+  const bucket = folderGroups.get(folder) ?? [];
+  bucket.push(file);
+  folderGroups.set(folder, bucket);
+}
+const sortedFolders = [...folderGroups.keys()].sort((a, b) =>
+  a.localeCompare(b)
+);
+
+const hasMultipleFiles = sortedFiles.length > 1;
+
+function optionAttrs(file: SkillBrowserFile) {
+  const meta = getFileMeta(file.name);
+  return {
+    value: file.path,
+    "data-file-name": file.name,
+    "data-file-lang": meta.lang,
+    "data-file-kind": meta.kind,
+  };
 }
 ---
 
@@ -48,39 +71,43 @@ function formatSize(size?: number): string {
   data-github-base={githubBase}
   data-skill-file={skillFilePath}
 >
-  <nav class="skill-file-list" aria-label="File list">
-    <div class="skill-file-list-heading">Files ({sortedFiles.length})</div>
-    <ul>
-      {
-        sortedFiles.map((file) => {
-          const meta = getFileMeta(file.name);
-          const isSkill = file.path === skillFilePath;
-          return (
-            <li>
-              <button
-                type="button"
-                class:list={["skill-file-item", { active: isSkill }]}
-                data-file-path={file.path}
-                data-file-name={file.name}
-                data-file-lang={meta.lang}
-                data-file-kind={meta.kind}
-                aria-current={isSkill ? "true" : undefined}
-              >
-                <span class="skill-file-name">{file.name}</span>
-                {file.size !== undefined && (
-                  <span class="skill-file-size">{formatSize(file.size)}</span>
-                )}
-              </button>
-            </li>
-          );
-        })
-      }
-    </ul>
-  </nav>
-
   <div class="skill-file-view">
     <header class="skill-file-view-header">
-      <code class="skill-file-current" data-current-file-name>{skillFileName}</code>
+      {
+        hasMultipleFiles ? (
+          <div class="skill-file-picker">
+            <label class="skill-file-picker-label" for="skill-file-select">
+              File
+            </label>
+            <select
+              id="skill-file-select"
+              class="skill-file-select"
+              data-file-select
+              aria-label="Select a file to view"
+            >
+              <option {...optionAttrs({ name: skillFileName, path: skillFilePath })} selected>
+                {skillFileName}
+              </option>
+              {rootFiles.map((file) => (
+                <option {...optionAttrs(file)}>{file.name}</option>
+              ))}
+              {sortedFolders.map((folder) => (
+                <optgroup label={`${folder}/`}>
+                  {folderGroups.get(folder)!.map((file) => (
+                    <option {...optionAttrs(file)}>
+                      {file.name.slice(folder.length + 1)}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <code class="skill-file-current" data-current-file-name>
+            {skillFileName}
+          </code>
+        )
+      }
       <div class="skill-file-view-actions">
         <button
           type="button"

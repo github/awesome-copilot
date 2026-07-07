@@ -3859,70 +3859,7 @@ header .theme-toggle-container {
 }
 
 .skill-file-browser {
-  display: grid;
-  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
-  gap: 1.25rem;
-  align-items: start;
-}
-.skill-file-list {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-bg-secondary);
-  overflow: hidden;
-}
-.skill-file-list-heading {
-  padding: 0.6rem 0.85rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-muted);
-  border-bottom: 1px solid var(--color-border);
-}
-.skill-file-list ul {
-  list-style: none;
-  margin: 0;
-  padding: 0.35rem;
-  max-height: 32rem;
-  overflow-y: auto;
-}
-.skill-file-list li {
-  margin: 0;
-}
-.skill-file-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.4rem 0.55rem;
-  text-align: left;
-  background: none;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--color-text);
-  font-size: 0.85rem;
-}
-.skill-file-item:hover {
-  background: var(--color-bg-tertiary);
-}
-.skill-file-item.active {
-  background: var(--color-accent-soft, var(--color-bg-tertiary));
-  color: var(--color-text-emphasis);
-  font-weight: 600;
-}
-.skill-file-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.8rem;
-}
-.skill-file-size {
-  flex-shrink: 0;
-  font-size: 0.72rem;
-  color: var(--color-text-muted);
+  display: block;
 }
 .skill-file-view {
   min-width: 0;
@@ -3939,6 +3876,45 @@ header .theme-toggle-container {
   padding: 0.55rem 0.85rem;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg-tertiary);
+}
+.skill-file-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.skill-file-picker-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.skill-file-select {
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  padding: 0.35rem 2rem 0.35rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.82rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%23656d76' stroke-width='1.5'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+}
+.skill-file-select:hover {
+  border-color: var(--color-text-muted);
+}
+.skill-file-select:focus-visible {
+  outline: 2px solid var(--color-accent, #6b21c8);
+  outline-offset: 1px;
 }
 .skill-file-current {
   overflow: hidden;
@@ -3974,10 +3950,13 @@ header .theme-toggle-container {
 }
 
 @media (max-width: 700px) {
-  .skill-file-browser {
-    grid-template-columns: 1fr;
+  .skill-file-view-header {
+    flex-wrap: wrap;
   }
-  .skill-file-list ul {
-    max-height: 16rem;
+  .skill-file-picker {
+    flex-basis: 100%;
+  }
+  .skill-file-select {
+    flex: 1 1 auto;
   }
 }
