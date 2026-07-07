@@ -3938,8 +3938,6 @@ header .theme-toggle-container {
 }
 .skill-file-content {
   padding: 1.25rem;
-  max-height: 40rem;
-  overflow: auto;
 }
 .skill-file-content .shiki,
 .skill-file-content .skill-file-plain {
