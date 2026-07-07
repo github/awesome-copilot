@@ -3802,3 +3802,182 @@ header .theme-toggle-container {
     position: static;
   }
 }
+
+/* --- Skill detail: install command + file browser --- */
+.skill-detail-page .skill-install {
+  display: grid;
+  gap: 0.75rem;
+}
+.skill-detail-page .skill-install-label {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+.skill-detail-page .skill-install-command {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+.skill-detail-page .skill-install-command code {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  background: none;
+  padding: 0;
+}
+.skill-detail-page .skill-install-copy {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.skill-detail-page .skill-install-copy:hover {
+  color: var(--color-text-emphasis);
+  background: var(--color-bg-secondary);
+}
+.skill-detail-page .skill-download-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.skill-file-browser {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+.skill-file-list {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+.skill-file-list-heading {
+  padding: 0.6rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+.skill-file-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem;
+  max-height: 32rem;
+  overflow-y: auto;
+}
+.skill-file-list li {
+  margin: 0;
+}
+.skill-file-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+.skill-file-item:hover {
+  background: var(--color-bg-tertiary);
+}
+.skill-file-item.active {
+  background: var(--color-accent-soft, var(--color-bg-tertiary));
+  color: var(--color-text-emphasis);
+  font-weight: 600;
+}
+.skill-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.8rem;
+}
+.skill-file-size {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+.skill-file-view {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+.skill-file-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-tertiary);
+}
+.skill-file-current {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  background: none;
+  padding: 0;
+}
+.skill-file-view-actions {
+  display: inline-flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.skill-file-content {
+  padding: 1.25rem;
+  max-height: 40rem;
+  overflow: auto;
+}
+.skill-file-content .shiki,
+.skill-file-content .skill-file-plain {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  overflow-x: auto;
+}
+.skill-file-status {
+  padding: 0.85rem 1.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 700px) {
+  .skill-file-browser {
+    grid-template-columns: 1fr;
+  }
+  .skill-file-list ul {
+    max-height: 16rem;
+  }
+}

@@ -1,0 +1,123 @@
+---
+import { getFileMeta } from "../../lib/file-types";
+
+export interface SkillBrowserFile {
+  name: string;
+  path: string;
+  size?: number;
+}
+
+export interface SkillFileBrowserProps {
+  files: SkillBrowserFile[];
+  /** Full repo path of the SKILL.md file, e.g. skills/foo/SKILL.md */
+  skillFilePath: string;
+  /** Display name of the SKILL.md file, e.g. SKILL.md */
+  skillFileName: string;
+  /** Pre-rendered HTML for SKILL.md (shown by default) */
+  skillMarkdownHtml: string;
+  /** GitHub blob base, e.g. https://github.com/github/awesome-copilot/blob/main */
+  githubBase: string;
+}
+
+const {
+  files,
+  skillFilePath,
+  skillFileName,
+  skillMarkdownHtml,
+  githubBase,
+} = Astro.props as SkillFileBrowserProps;
+
+// SKILL.md first, then everything else alphabetically by name.
+const sortedFiles = [...files].sort((a, b) => {
+  if (a.path === skillFilePath) return -1;
+  if (b.path === skillFilePath) return 1;
+  return a.name.localeCompare(b.name);
+});
+
+function formatSize(size?: number): string {
+  if (!size && size !== 0) return "";
+  if (size < 1024) return `${size} B`;
+  return `${(size / 1024).toFixed(size < 10240 ? 1 : 0)} KB`;
+}
+---
+
+<section
+  class="skill-file-browser"
+  aria-label="Skill files"
+  data-file-browser
+  data-github-base={githubBase}
+  data-skill-file={skillFilePath}
+>
+  <nav class="skill-file-list" aria-label="File list">
+    <div class="skill-file-list-heading">Files ({sortedFiles.length})</div>
+    <ul>
+      {
+        sortedFiles.map((file) => {
+          const meta = getFileMeta(file.name);
+          const isSkill = file.path === skillFilePath;
+          return (
+            <li>
+              <button
+                type="button"
+                class:list={["skill-file-item", { active: isSkill }]}
+                data-file-path={file.path}
+                data-file-name={file.name}
+                data-file-lang={meta.lang}
+                data-file-kind={meta.kind}
+                aria-current={isSkill ? "true" : undefined}
+              >
+                <span class="skill-file-name">{file.name}</span>
+                {file.size !== undefined && (
+                  <span class="skill-file-size">{formatSize(file.size)}</span>
+                )}
+              </button>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </nav>
+
+  <div class="skill-file-view">
+    <header class="skill-file-view-header">
+      <code class="skill-file-current" data-current-file-name>{skillFileName}</code>
+      <div class="skill-file-view-actions">
+        <button
+          type="button"
+          class="btn btn-secondary btn-small"
+          data-action="copy-file"
+          title="Copy file contents"
+        >
+          <svg
+            viewBox="0 0 16 16"
+            width="14"
+            height="14"
+            fill="currentColor"
+            aria-hidden="true"
+            ><path
+              d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"
+            ></path><path
+              d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"
+            ></path></svg
+          >
+          Copy
+        </button>
+        <a
+          class="btn btn-secondary btn-small"
+          data-file-github
+          href={`${githubBase}/${skillFilePath}`}
+          target="_blank"
+          rel="noopener"
+          title="View file on GitHub">GitHub</a
+        >
+      </div>
+    </header>
+
+    <div
+      class="skill-file-content article-content"
+      data-file-content
+      set:html={skillMarkdownHtml}
+    />
+    <div class="skill-file-status" data-file-status hidden></div>
+  </div>
+</section>

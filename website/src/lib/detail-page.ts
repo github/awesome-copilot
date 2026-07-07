@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import matter from "gray-matter";
 
@@ -46,8 +45,11 @@ export interface DetailPageData {
   lastUpdated: string | null;
 }
 
-// Repo root, resolved relative to this module (website/src/lib/ -> repo root).
-const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+// Repo root. Astro runs (both `dev` and `build`) execute with the website/
+// directory as the working directory, so the repo root is its parent. This is
+// resolved from the working directory rather than `import.meta.url` because the
+// latter is unreliable once this module is bundled during a production build.
+const repoRoot = path.resolve(process.cwd(), "..");
 
 function buildInstallUrl(
   filePath: string,
@@ -61,7 +63,9 @@ function buildInstallUrl(
   return `${baseUrl}?url=${encodeURIComponent(innerUrl)}`;
 }
 
-function formatLastUpdated(lastUpdated?: string | null): string | null {
+export function formatLastUpdated(
+  lastUpdated?: string | null
+): string | null {
   return lastUpdated
     ? new Date(lastUpdated).toLocaleDateString(undefined, {
         year: "numeric",

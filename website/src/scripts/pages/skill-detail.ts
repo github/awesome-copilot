@@ -1,0 +1,286 @@
+/**
+ * Client behaviour for the skill detail page.
+ *
+ * Skills differ from agents/instructions: they are multi-file bundles installed
+ * with the GitHub CLI. This script wires up the file browser (SKILL.md is
+ * embedded at build time; other files are lazily fetched and rendered — markdown
+ * via `marked`, code via a lazily-imported Shiki, everything else as plain
+ * text), plus the "copy install command", "Download ZIP", copy-file and Share
+ * actions. Deep links use the existing `#file=<path>` hash convention.
+ */
+import { marked } from "marked";
+import {
+  copyToClipboard,
+  downloadZipBundle,
+  escapeHtml,
+  getRawGitHubUrl,
+  showToast,
+  type ZipDownloadFile,
+} from "../utils";
+
+interface CachedFile {
+  html: string;
+  rawText?: string;
+}
+
+let highlighterPromise: Promise<
+  (code: string, lang: string) => Promise<string>
+> | null = null;
+
+/**
+ * Lazily load Shiki and return a highlight helper. Falls back to plain,
+ * escaped `<pre>` output if Shiki (or the requested language) is unavailable.
+ */
+function loadHighlighter() {
+  highlighterPromise ??= import("shiki").then(({ codeToHtml }) => {
+    return async (code: string, lang: string) => {
+      try {
+        return await codeToHtml(code, { lang, theme: "github-light" });
+      } catch {
+        return `<pre class="skill-file-plain"><code>${escapeHtml(code)}</code></pre>`;
+      }
+    };
+  });
+  return highlighterPromise;
+}
+
+function initSkillDetail(): void {
+  const root = document.querySelector<HTMLElement>("[data-skill-detail]");
+  if (!root) return;
+
+  const browser = root.querySelector<HTMLElement>("[data-file-browser]");
+  const contentEl = root.querySelector<HTMLElement>("[data-file-content]");
+  const statusEl = root.querySelector<HTMLElement>("[data-file-status]");
+  const currentNameEl = root.querySelector<HTMLElement>(
+    "[data-current-file-name]"
+  );
+  const githubLink = root.querySelector<HTMLAnchorElement>("[data-file-github]");
+  const skillFilePath = browser?.dataset.skillFile ?? "";
+  const githubBase = browser?.dataset.githubBase ?? "";
+
+  const cache = new Map<string, CachedFile>();
+  let activePath = skillFilePath;
+
+  // Seed the cache with the build-time rendered SKILL.md and its raw source.
+  if (contentEl) {
+    const rawSkill =
+      root.querySelector<HTMLTextAreaElement>("[data-raw-markdown]")?.value ??
+      "";
+    cache.set(skillFilePath, {
+      html: contentEl.innerHTML,
+      rawText: rawSkill,
+    });
+  }
+
+  const fileButtons = Array.from(
+    root.querySelectorAll<HTMLButtonElement>(".skill-file-item")
+  );
+
+  const setStatus = (message: string | null): void => {
+    if (!statusEl) return;
+    if (!message) {
+      statusEl.hidden = true;
+      statusEl.textContent = "";
+      return;
+    }
+    statusEl.hidden = false;
+    statusEl.textContent = message;
+  };
+
+  const setActiveButton = (path: string): void => {
+    fileButtons.forEach((btn) => {
+      const isActive = btn.dataset.filePath === path;
+      btn.classList.toggle("active", isActive);
+      if (isActive) btn.setAttribute("aria-current", "true");
+      else btn.removeAttribute("aria-current");
+    });
+  };
+
+  async function renderFile(
+    path: string,
+    name: string,
+    lang: string,
+    kind: string
+  ): Promise<CachedFile> {
+    const cached = cache.get(path);
+    if (cached) return cached;
+
+    setStatus("Loading…");
+    const response = await fetch(getRawGitHubUrl(path));
+    if (!response.ok) throw new Error(`Failed to load ${name}`);
+    const rawText = await response.text();
+
+    let html: string;
+    if (kind === "markdown") {
+      html = marked.parse(rawText, { async: false }) as string;
+    } else if (kind === "code") {
+      const highlight = await loadHighlighter();
+      html = await highlight(rawText, lang);
+    } else {
+      html = `<pre class="skill-file-plain"><code>${escapeHtml(rawText)}</code></pre>`;
+    }
+
+    const entry: CachedFile = { html, rawText };
+    cache.set(path, entry);
+    return entry;
+  }
+
+  async function selectFile(
+    path: string,
+    name: string,
+    lang: string,
+    kind: string,
+    updateHash = true
+  ): Promise<void> {
+    if (!contentEl) return;
+    activePath = path;
+    setActiveButton(path);
+    if (currentNameEl) currentNameEl.textContent = name;
+    if (githubLink && githubBase) githubLink.href = `${githubBase}/${path}`;
+
+    try {
+      const entry = await renderFile(path, name, lang, kind);
+      contentEl.innerHTML = entry.html;
+      setStatus(null);
+    } catch {
+      contentEl.innerHTML = "";
+      setStatus(null);
+      const url = githubBase ? `${githubBase}/${path}` : "#";
+      contentEl.innerHTML = `<p class="detail-empty">Couldn't load this file. <a href="${escapeHtml(
+        url
+      )}" target="_blank" rel="noopener">View it on GitHub</a>.</p>`;
+    }
+
+    if (updateHash) {
+      const newHash = `#file=${encodeURIComponent(path)}`;
+      if (window.location.hash !== newHash) {
+        history.replaceState(null, "", newHash);
+      }
+    }
+  }
+
+  // --- File selection ---
+  fileButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const path = btn.dataset.filePath ?? "";
+      if (!path || path === activePath) return;
+      void selectFile(
+        path,
+        btn.dataset.fileName ?? path,
+        btn.dataset.fileLang ?? "text",
+        btn.dataset.fileKind ?? "other"
+      );
+    });
+  });
+
+  // --- Copy current file contents ---
+  root
+    .querySelector<HTMLButtonElement>("[data-action='copy-file']")
+    ?.addEventListener("click", async () => {
+      let entry = cache.get(activePath);
+      if (!entry?.rawText) {
+        try {
+          const response = await fetch(getRawGitHubUrl(activePath));
+          if (response.ok) {
+            const rawText = await response.text();
+            entry = { html: entry?.html ?? "", rawText };
+            cache.set(activePath, entry);
+          }
+        } catch {
+          /* handled below */
+        }
+      }
+      if (!entry?.rawText) {
+        showToast("Nothing to copy", "error");
+        return;
+      }
+      const success = await copyToClipboard(entry.rawText);
+      showToast(
+        success ? "File copied!" : "Failed to copy file",
+        success ? "success" : "error"
+      );
+    });
+
+  // --- Copy install command ---
+  const installBlock = root.querySelector<HTMLElement>("[data-install-command]");
+  root
+    .querySelector<HTMLButtonElement>("[data-action='copy-install']")
+    ?.addEventListener("click", async () => {
+      const command = installBlock?.dataset.installCommand ?? "";
+      if (!command) return;
+      const success = await copyToClipboard(command);
+      showToast(
+        success ? "Install command copied!" : "Failed to copy",
+        success ? "success" : "error"
+      );
+    });
+
+  // --- Download ZIP bundle ---
+  root
+    .querySelector<HTMLButtonElement>("[data-action='download-zip']")
+    ?.addEventListener("click", async (event) => {
+      const btn = event.currentTarget as HTMLButtonElement;
+      const skillId = root.dataset.skillId ?? "skill";
+      const files: ZipDownloadFile[] = fileButtons.map((b) => ({
+        name: b.dataset.fileName ?? "",
+        path: b.dataset.filePath ?? "",
+      }));
+      if (files.length === 0) {
+        showToast("No files found for this skill.", "error");
+        return;
+      }
+
+      const originalContent = btn.innerHTML;
+      btn.disabled = true;
+      btn.textContent = "Preparing…";
+      try {
+        await downloadZipBundle(skillId, files);
+        showToast("Download started!", "success");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Download failed.";
+        showToast(message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+      }
+    });
+
+  // --- Share (deep link to the active file) ---
+  root
+    .querySelector<HTMLButtonElement>("[data-action='share']")
+    ?.addEventListener("click", async () => {
+      const url = `${window.location.origin}${window.location.pathname}#file=${encodeURIComponent(
+        activePath
+      )}`;
+      const success = await copyToClipboard(url);
+      showToast(
+        success ? "Link copied!" : "Failed to copy link",
+        success ? "success" : "error"
+      );
+    });
+
+  // --- Honour a #file= deep link on load ---
+  const hashMatch = window.location.hash.match(/^#file=(.+)$/);
+  if (hashMatch) {
+    const wanted = decodeURIComponent(hashMatch[1]);
+    const btn = fileButtons.find((b) => b.dataset.filePath === wanted);
+    if (btn && wanted !== activePath) {
+      void selectFile(
+        wanted,
+        btn.dataset.fileName ?? wanted,
+        btn.dataset.fileLang ?? "text",
+        btn.dataset.fileKind ?? "other",
+        false
+      );
+    }
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initSkillDetail, {
+    once: true,
+  });
+} else {
+  initSkillDetail();
+}
