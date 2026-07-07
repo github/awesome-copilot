@@ -1,0 +1,25 @@
+---
+export type SidebarChipsProps = {
+  title: string;
+  items: string[];
+};
+
+const { title, items } = Astro.props as SidebarChipsProps;
+---
+
+<div>
+  <dt>{title}</dt>
+  <dd>
+    {
+      items.length ? (
+        <div class="detail-chips">
+          {items.map((item) => (
+            <span class={`resource-tag tag-${title.toLowerCase()}`}>{item}</span>
+          ))}
+        </div>
+      ) : (
+        <span class="detail-none">Not specified</span>
+      )
+    }
+  </dd>
+</div>
