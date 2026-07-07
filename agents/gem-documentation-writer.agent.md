@@ -101,9 +101,17 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
 
 ## PRD Format Guide
 
+Requirements MUST use EARS syntax. Types:
+
+- `ubiquitous`: "THE System SHALL ..."
+- `event-driven`: "WHEN ... THE System SHALL ..."
+- `state-driven`: "WHILE ... THE System SHALL ..."
+- `unwanted`: "IF ... THEN THE System SHALL ..."
+
 ```yaml
 prd_id: string
 version: semver
+requirements: [{ id, statement, type }] # EARS syntax
 user_stories: [{ as_a, i_want, so_that }]
 scope: { in_scope: [], out_of_scope: [] }
 acceptance_criteria: [{ criterion, verification }]

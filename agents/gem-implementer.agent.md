@@ -41,10 +41,14 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Read tokens from `DESIGN.md` (UI tasks only).
   - Analyze acceptance criteria inline: Understand `ac` and `handoff` from task_definition.
   - Skill Invocation: If `task_definition.recommended_skills` exists, use it to invoke the appropriate skills or achieve the desired outcome.
-- Bug-Fix Mode Branch:
-  - If `task_definition.debugger_diagnosis` exists → follow Bug-Fix Mode (see Rules).
-- TDD Cycle (Red → Green → Refactor → Verify) for standard/feature tasks:
-  - Red: Create/update tests for new & correct expected behavior, including edge cases.
+- TDD Cycle (Red → Green → Refactor → Verify):
+  - Red: Create/update tests. Cover ALL applicable categories:
+    - happy-path
+    - invariant (multi-input assertions)
+    - boundary (null, empty, limits)
+    - error-path (types, messages)
+    - input-variation (typical, atypical, extreme; minimum 3 distinct values)
+- state-transition (legal, illegal, idempotency)
   - Green: Write minimal code to pass.
     - Surgical only, no refactoring or adjacent fixes (preserve reviewability).
     - Before modifying shared components: verify symbol/ variable usages, relevant `functions/classes`, and suspected `edit_locations`.
@@ -109,19 +113,5 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Contract tasks: write contract tests before business logic.
 - Must meet all acceptance_criteria. Use existing tech stack. YAGNI, KISS, DRY, FP.
 - Scope discipline: track out-of-scope items in `learn` array; do NOT fix them.
-
-#### Bug-Fix Mode
-
-When `task_definition.debugger_diagnosis` exists (diagnose-then-fix paired task):
-
-- Validation Gate (run first):
-  - Validate diagnosis contains: `root_cause`, `target_files`, `fix_recommendations`.
-  - If any field missing → return `needs_revision` immediately. Do NOT proceed.
-  - Use `implementation_handoff` as the authoritative work scope.
-- Execution:
-  - Update/create test that reproduces the bug (asserts correct behavior).
-  - Verify test fails before fix.
-  - Implement minimal_change to pass the test.
-  - Run regression tests:verify fix doesn't break existing functionality.
 
 </rules>

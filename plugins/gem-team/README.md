@@ -82,7 +82,7 @@ After the first install, commit the generated APM files that belong to your repo
 ### Specialist Agent Team
 
 - **16 focused agents**: Planner, Researcher, Implementer, Implementer-Mobile, Reviewer, Critic, Debugger, Browser Tester, Mobile Tester, Devops, Documentation Writer, Designer, Designer-Mobile, Code Simplifier, Skill Creator: plus the Orchestrator who coordinates them all.
-- **TDD by default**: Implementers follow Red-Green-Refactor. Bug-fix mode requires debugger diagnosis before touching code.
+- **TDD by default**: Implementers follow Red-Green-Refactor with 6-category test coverage (happy path, invariants, boundaries, error paths, input variation, state transitions). Bug-fix mode requires debugger diagnosis before touching code.
 - **Diagnose-then-fix**: Debugger diagnoses → Implementer fixes → Reviewer re-verifies. Enforced at planner, orchestrator, implementer, and reviewer levels.
 
 ### Context & Knowledge Management
@@ -92,7 +92,7 @@ After the first install, commit the generated APM files that belong to your repo
 - **Stable cache**: High-confidence facts (≥0.90, stable, ≥3 uses) promoted to durable cache. Auto-eviction after 90 days unused.
 - **Reuse notes**: Trusted file paths and patterns that agents skip re-verifying.
 - **Skill extraction**: High-confidence workflows become reusable `SKILL.md` playbooks via gem-skill-creator.
-- **PRD management**: Structured product requirements with acceptance criteria, decisions, and change history.
+- **PRD management**: Structured product requirements with EARS syntax, acceptance criteria, decisions, and change history.
 
 ### Quality & Verification
 
@@ -207,6 +207,7 @@ Phase 2: Plan
     • TRIVIAL → tiny checklist
     • LOW → lightweight in-memory plan
     • MEDIUM/HIGH → durable planner-generated plan
+    • Analyze requirements for inconsistencies (MEDIUM/HIGH)
     • Validate higher-risk plans before execution
     ↓
 Phase 3: Execute
@@ -253,13 +254,13 @@ Replace these with equivalent models from your own provider if needed.
 
 ### Quality and review
 
-| Agent               | Description                                                                                                                                                                                                                                   |
-| :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **REVIEWER**        | Reviews implementation quality, security, maintainability, contracts, and test coverage. Plan validation (lightweight/full). Wave integration checks. OWASP + secrets + mobile 8-vector security scan. Accessibility audit (none/basic/full). |
-| **CRITIC**          | Challenges assumptions, finds edge cases, flags over-engineering or missed constraints. Evaluates decomposition, dependencies, complexity, coupling, and future-proofing. Offers alternatives, not just criticism.                            |
-| **DEBUGGER**        | Root-cause analysis, stack trace diagnosis, regression bisection, error reproduction. Prove-It pattern (reproduction test first). Never implements fixes.                                                                                     |
-| **BROWSER TESTER**  | E2E browser checks, UI flow validation, visual regression (screenshot comparison), console/network capture, a11y audit. Configurable thresholds.                                                                                              |
-| **CODE SIMPLIFIER** | Removes dead code, reduces cyclomatic complexity, consolidates duplicates, improves naming. Preserves behavior: runs tests after each change. Chesterton's Fence principle.                                                                   |
+| Agent               | Description                                                                                                                                                                                                                                                |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **REVIEWER**        | Reviews implementation quality, security, maintainability, contracts, and test coverage. Plan validation (lightweight/full). Wave integration checks. OWASP + secrets + mobile 8-vector security scan. Accessibility audit (none/basic/full).              |
+| **CRITIC**          | Reviews PRD requirements for inconsistencies & ambiguities. Challenges assumptions, finds edge cases, flags over-engineering or missed constraints. Evaluates decomposition, dependencies, complexity, coupling, and future-proofing. Offers alternatives. |
+| **DEBUGGER**        | Root-cause analysis, stack trace diagnosis, regression bisection, error reproduction. Asks for clarification when input insufficient. Prove-It pattern (reproduction test first). Never implements fixes.                                                  |
+| **BROWSER TESTER**  | E2E browser checks, UI flow validation, visual regression (screenshot comparison), console/network capture, a11y audit. Configurable thresholds.                                                                                                           |
+| **CODE SIMPLIFIER** | Removes dead code, reduces cyclomatic complexity, consolidates duplicates, improves naming. Preserves behavior: runs tests after each change. Chesterton's Fence principle.                                                                                |
 
 ### Specialized agents
 

@@ -79,13 +79,15 @@ IMPORTANT: Do not delegate any part of Phase 0. Complete it yourself.
     - If no `plan_id` → generate `YYYYMMDD-kebab-case` and treat as new_task.
   - Read scoped memory from repo/session/global only for relevant `facts`, `patterns`, `gotchas`, `failure_modes`, `decisions`, and `conventions`.
   - Gray Areas: Identify ambiguities, missing scope, decision blockers.
-  - Complexity
-    - Classify by actual scope, uncertainty, and blast radius.
-    - If `orchestrator.default_complexity_threshold` is set, treat it as the minimum complexity floor, not the final classification.
-    - TRIVIAL: single obvious mechanical task; direct delegation target is obvious; no durable plan artifact; minimal blast radius.
-    - LOW: small bounded task; may involve 1–2 files or simple subagent help; known pattern; minimal blast radius; uses in-memory plan only.
-    - MEDIUM: multiple files/modules; new or changed pattern; moderate uncertainty; integration or regression risk; requires durable plan/context envelope.
-    - HIGH: architecture/cross-domain change; API/schema/auth/data-flow/migration impact; high uncertainty or broad regressions possible; requires planner + reviewer, and critic for architecture/contract/breaking changes.
+  - Complexity (intent-based default: skip full classification for clear intents)
+    - Intent default: If detected intent is `bug-fix`/`debug` → LOW, `known-fix`/`docs`/`config` → TRIVIAL, `research`/`explore` → LOW. Explicit user qualifier overrides (e.g. "this is HIGH risk" or "complex refactor") always wins.
+    - Full classification (run only if no intent match):
+      - Classify by actual scope, uncertainty, and blast radius.
+      - If `orchestrator.default_complexity_threshold` is set, treat it as the minimum complexity floor, not the final classification.
+      - TRIVIAL: single obvious mechanical task; direct delegation target is obvious; no durable plan artifact; minimal blast radius.
+      - LOW: small bounded task; may involve 1–2 files or simple subagent help; known pattern; minimal blast radius; uses in-memory plan only.
+      - MEDIUM: multiple files/modules; new or changed pattern; moderate uncertainty; integration or regression risk; requires durable plan/context envelope.
+      - HIGH: architecture/cross-domain change; API/schema/auth/data-flow/migration impact; high uncertainty or broad regressions possible; requires planner + reviewer, and critic for architecture/contract/breaking changes.
   - Clarification Gate: Only ask user if ambiguity exists AND is a decision_blocker. Document assumptions for non-blocking gray areas and proceed.
 
 ### Phase 1: Route
@@ -110,7 +112,7 @@ Routing matrix:
   - Delegate to `gem-planner` with `task_clarifications`, relevant context, `memory_seed`, and `config_snapshot`.
   - Request plan validation:
     - Complexity=MEDIUM:
-      - Delegate to `gem-reviewer(plan)` with `review_depth: lightweight`.
+      - Delegate to `gem-reviewer(plan)`.
     - Complexity=HIGH or `planner.enable_critic_for` satisfies:
       - In parallel, delegate to `gem-critic(plan)`, only if: High-risk signal exists: `architecture`, `contract_change`, `breaking_change`, `api_change`, `schema_change`, `auth_change`, `data_flow_change`, `migration`, `security_sensitive`, or `cross_domain_impact`.
   - If validation fails:

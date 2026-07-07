@@ -1,14 +1,10 @@
 {
-  "name": "gem-team",
-  "version": "1.78.0",
-  "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
   "author": {
-    "name": "mubaidr",
     "email": "mubaidr@gmail.com",
+    "name": "mubaidr",
     "url": "https://github.com/mubaidr"
   },
-  "license": "Apache-2.0",
-  "repository": "https://github.com/mubaidr/gem-team",
+  "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
   "homepage": "https://github.com/mubaidr/gem-team",
   "keywords": [
     "multi-agent",
@@ -21,5 +17,9 @@
     "code-review",
     "prd",
     "mobile"
-  ]
+  ],
+  "license": "Apache-2.0",
+  "name": "gem-team",
+  "repository": "https://github.com/mubaidr/gem-team",
+  "version": "1.80.0"
 }

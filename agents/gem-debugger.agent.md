@@ -40,6 +40,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
+  - Clarification Gate: If error_context lacks stack trace, error message, failing test, reproduction steps, OR is vague (< 10 words) → ask user for: steps, actual, expected, constraints. Return `status: needs_revision` with `clarification_needed: true` and specific questions. Do not guess or proceed on insufficient info.
   - Then identify failure symptoms and reproduction conditions.
 - Reproduce: Read error logs, stack traces, failing test output.
 - Diagnose (bounded to error context only: no open-ended exploration):
@@ -85,6 +86,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
 {
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
+  "clarification_needed": "boolean",  # true when input insufficient
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "root_cause": "string",
   "target_files": ["string"],
