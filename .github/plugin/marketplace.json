@@ -931,6 +931,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "repo-actions-hub",
+      "source": "extensions/repo-actions-hub",
+      "description": "Browse repository GitHub Actions workflows, inspect recent runs, and trigger manual workflow_dispatch runs from a Copilot canvas.",
+      "version": "1.0.0"
+    },
+    {
       "name": "roundup",
       "source": "plugins/roundup",
       "description": "Self-configuring status briefing generator. Learns your communication style from examples, discovers your data sources, and produces draft updates for any audience on demand.",
