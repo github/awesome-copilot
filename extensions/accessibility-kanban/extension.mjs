@@ -684,7 +684,7 @@ const canvas = createCanvas({
 
 // ─── Join session (tools + canvas) ───
 
-await joinSession({
+const session = await joinSession({
   canvases: [canvas],
   tools: [
     {
