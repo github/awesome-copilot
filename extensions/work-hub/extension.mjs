@@ -54,16 +54,35 @@ function readBody(req) {
     });
 }
 
+function normalizePromptText(value) {
+    return String(value || "").replace(/\r?\n/g, " ").trim();
+}
+
+function escapePromptValue(value) {
+    return normalizePromptText(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
 function broadcast(entry, event, data) {
     const body = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-    for (const client of entry.clients) client.write(body);
+    for (const client of entry.clients) {
+        try {
+            client.write(body);
+        } catch {
+            entry.clients.delete(client);
+            try {
+                client.end();
+            } catch {
+                // Ignore cleanup failures for already-disconnected SSE clients.
+            }
+        }
+    }
 }
 
 async function requestItemSession(input = {}) {
-    const repo = String(input.repo || "");
+    const repo = normalizePromptText(input.repo);
     const number = Number(input.number);
     const type = input.type === "pr" ? "pr" : "issue";
-    const title = String(input.title || "").slice(0, 160);
+    const title = normalizePromptText(String(input.title || "").slice(0, 160));
     if (!repo.includes("/") || !number) throw new Error("A repo slug and number are required.");
     if (!sessionRef) throw new Error("Session bridge is unavailable.");
 
@@ -72,19 +91,21 @@ async function requestItemSession(input = {}) {
 
     const ref = type === "pr" ? "pull request" : "issue";
     const mode = requested === "spec" && type === "pr" ? "plan" : requested;
+    const safeRepo = escapePromptValue(repo);
+    const safeTitleSuffix = title ? ` ("${escapePromptValue(title)}")` : "";
     let prompt;
     let label;
     if (mode === "cloud") {
-        prompt = `Create a cloud coding session for issue #${number} in ${repo}${title ? ` ("${title}")` : ""}. Do not create a local session. First call list_projects and find the configured project whose GitHub repo is exactly "${repo}". If no configured project exists, tell me plainly that this repo is not configured for cloud sessions. If it exists, call create_session with execution_location "cloud", notify_on_idle "once", a short name based on issue #${number}, and kickoff mode "autopilot". The kickoff prompt should tell the cloud agent to read the GitHub issue, understand the requirements, implement the fix end-to-end in that repository, run the existing validation, and report blockers or the resulting PR/session status.`;
+        prompt = `Create a cloud coding session for issue #${number} in "${safeRepo}"${safeTitleSuffix}. Do not create a local session. First call list_projects and find the configured project whose GitHub repo is exactly "${safeRepo}". If no configured project exists, tell me plainly that this repo is not configured for cloud sessions. If it exists, call create_session with execution_location "cloud", notify_on_idle "once", a short name based on issue #${number}, and kickoff mode "autopilot". The kickoff prompt should tell the cloud agent to read the GitHub issue, understand the requirements, implement the fix end-to-end in that repository, run the existing validation, and report blockers or the resulting PR/session status.`;
         label = "cloud";
     } else if (mode === "implement") {
-        prompt = `Open a new coding session for ${ref} #${number} in ${repo}${title ? ` ("${title}")` : ""}. Use the appropriate session-creation tool for the ${repo} project in interactive/implementation mode, and have it begin implementing the ${ref} directly (reading the ${ref} first for context).`;
+        prompt = `Open a new coding session for ${ref} #${number} in "${safeRepo}"${safeTitleSuffix}. Use the appropriate session-creation tool for the "${safeRepo}" project in interactive/implementation mode, and have it begin implementing the ${ref} directly (reading the ${ref} first for context).`;
         label = "build";
     } else if (mode === "spec") {
-        prompt = `Open a new coding session for issue #${number} in ${repo}${title ? ` ("${title}")` : ""}. Use the appropriate session-creation tool for the ${repo} project in plan mode. Do NOT implement code — instead have it refine and sharpen the issue's specification: read the issue, clarify goals, scope, acceptance criteria, edge cases, and open questions, then propose an updated, well-structured spec and offer to post it back as a comment on the issue.`;
+        prompt = `Open a new coding session for issue #${number} in "${safeRepo}"${safeTitleSuffix}. Use the appropriate session-creation tool for the "${safeRepo}" project in plan mode. Do NOT implement code — instead have it refine and sharpen the issue's specification: read the issue, clarify goals, scope, acceptance criteria, edge cases, and open questions, then propose an updated, well-structured spec and offer to post it back as a comment on the issue.`;
         label = "spec-refinement";
     } else {
-        prompt = `Open a new coding session for ${ref} #${number} in ${repo}${title ? ` ("${title}")` : ""}. Use the appropriate session-creation tool for the ${repo} project, kick it off in plan mode, and have it start by understanding the ${ref} and proposing an implementation plan.`;
+        prompt = `Open a new coding session for ${ref} #${number} in "${safeRepo}"${safeTitleSuffix}. Use the appropriate session-creation tool for the "${safeRepo}" project, kick it off in plan mode, and have it start by understanding the ${ref} and proposing an implementation plan.`;
         label = "planning";
     }
     await sessionRef.send(prompt);
@@ -148,9 +169,11 @@ async function handleRequest(entry, req, res) {
             const id = String(input.sessionId || "");
             if (!id) throw new Error("A sessionId is required.");
             if (!sessionRef) throw new Error("Session bridge is unavailable.");
-            const where = input.repo ? ` in ${input.repo}` : "";
-            const branchNote = input.branch ? ` on branch "${input.branch}"` : "";
-            const prompt = `I want to jump to my active coding session${where}${branchNote} to triage it. Call list_sessions_and_chats, find the session whose project_repo matches "${input.repo || ""}"${input.branch ? ` and whose path/branch matches "${input.branch}"` : ""}, then call navigate_to with that session's id. (The session-store id is ${id}, but use the id from list_sessions_and_chats since the app navigation id can differ.) If no matching session is found, tell me it may have been closed.`;
+            const repo = normalizePromptText(input.repo);
+            const branch = normalizePromptText(input.branch);
+            const where = repo ? ` in ${repo}` : "";
+            const branchNote = branch ? ` on branch "${escapePromptValue(branch)}"` : "";
+            const prompt = `I want to jump to my active coding session${where}${branchNote} to triage it. Call list_sessions_and_chats, find the session whose project_repo matches "${escapePromptValue(repo)}"${branch ? ` and whose path/branch matches "${escapePromptValue(branch)}"` : ""}, then call navigate_to with that session's id. (The session-store id is ${id}, but use the id from list_sessions_and_chats since the app navigation id can differ.) If no matching session is found, tell me it may have been closed.`;
             await sessionRef.send(prompt);
             return writeJson(res, { ok: true, message: "Jumping to that session…" });
         }
@@ -160,7 +183,7 @@ async function handleRequest(entry, req, res) {
             if (!sessionRef) throw new Error("Session bridge is unavailable.");
             const list = Array.isArray(input.sessions) ? input.sessions.filter((s) => s && s.repo) : [];
             if (!list.length) throw new Error("No sessions were provided to clean up.");
-            const lines = list.slice(0, 40).map((s, i) => `${i + 1}. repo "${s.repo}"${s.branch ? `, branch "${s.branch}"` : ""}${s.summary ? ` — ${s.summary}` : ""}${s.ageLabel ? ` (last active ${s.ageLabel} ago)` : ""}${s.archived ? " [ARCHIVED: worktree already removed]" : ""}`).join("\n");
+            const lines = list.slice(0, 40).map((s, i) => `${i + 1}. repo "${escapePromptValue(s.repo)}"${s.branch ? `, branch "${escapePromptValue(s.branch)}"` : ""}${s.summary ? ` — summary "${escapePromptValue(s.summary)}"` : ""}${s.ageLabel ? ` (last active "${escapePromptValue(s.ageLabel)}" ago)` : ""}${s.archived ? " [ARCHIVED: worktree already removed]" : ""}`).join("\n");
             const prompt = `I want to clean up ${list.length} old coding session${list.length === 1 ? "" : "s"} from Work Hub. For each one below, call list_sessions_and_chats and match the real app session by project_repo (and branch/path where given), then show me exactly which app sessions you'll delete and ask me to confirm before calling delete_item. Never delete without my explicit confirmation, and skip any that don't clearly match or that appear to have uncommitted work worth keeping. Items marked [ARCHIVED] no longer have a worktree and are very likely already closed — if you can't find a matching live session for one, tell me it's already gone rather than treating it as an error.\n\nSessions to clean up:\n${lines}`;
             await sessionRef.send(prompt);
             return writeJson(res, { ok: true, message: `Requested cleanup of ${list.length} session${list.length === 1 ? "" : "s"} (pending your confirmation).` });

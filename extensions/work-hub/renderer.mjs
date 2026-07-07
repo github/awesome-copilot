@@ -606,7 +606,7 @@ function itemHtml(it, opts = {}) {
   const badges = (it.tags || []).map((t) => '<span class="badge ' + esc(t) + '">' + esc(t.replace(/-/g, " ")) + '</span>').join("");
   const rank = opts.rank ? '<span class="score">#' + opts.rank + '</span>' : "";
   const right = opts.planned ? '<span class="score">' + esc(opts.planned) + ' min</span>' : '<span class="score">' + esc(it.minutes) + ' min</span>';
-  const link = it.url ? '<a href="' + esc(it.url) + '" target="_blank" rel="noreferrer">' + esc(it.title) + '</a>' : esc(it.title);
+  const link = it.url ? '<a href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer">' + esc(it.title) + '</a>' : esc(it.title);
   const actionable = (it.kind === "pr" || it.kind === "issue") && it.number;
   const jumpable = it.kind === "session" && it.sessionId;
   const attrs = actionable ? ' class="card item actionable kind-' + esc(it.kind) + '" data-item-repo="' + esc(it.repo) + '" data-item-type="' + esc(it.kind) + '" data-item-number="' + esc(it.number) + '"' : ' class="card item kind-' + esc(it.kind) + '"';
@@ -868,10 +868,10 @@ function repoHtml(r) {
     ...r.prs.map((p) => ({ t: "PR #" + p.number + " " + p.title, u: p.url, m: p.author, type: "pr", n: p.number })),
     ...r.issues.map((i) => ({ t: "Issue #" + i.number + " " + i.title, u: i.url, m: i.author, type: "issue", n: i.number })),
   ];
-  const subHtml = sub.length ? sub.slice(0, 12).map((s) => '<div class="sub-item actionable-sub" data-open-repo="' + esc(r.slug) + '" data-open-type="' + esc(s.type) + '" data-open-number="' + esc(s.n) + '"><span class="sub-link">' + esc(s.t) + '</span><span class="sub-right"><span class="tiny">' + esc(s.m) + '</span><a class="sub-gh" href="' + esc(s.u) + '" target="_blank" rel="noreferrer" title="Open on GitHub">↗</a></span></div>').join("") : '<div class="tiny">No open PRs or issues.</div>';
+  const subHtml = sub.length ? sub.slice(0, 12).map((s) => '<div class="sub-item actionable-sub" data-open-repo="' + esc(r.slug) + '" data-open-type="' + esc(s.type) + '" data-open-number="' + esc(s.n) + '"><span class="sub-link">' + esc(s.t) + '</span><span class="sub-right"><span class="tiny">' + esc(s.m) + '</span><a class="sub-gh" href="' + esc(s.u) + '" target="_blank" rel="noopener noreferrer" title="Open on GitHub">↗</a></span></div>').join("") : '<div class="tiny">No open PRs or issues.</div>';
   const local = r.localGit && r.localGit.available ? ((r.localGit.branchLine || "git").replace(/^## /, "") + " · " + (r.localGit.dirtyCount || 0) + " changed") : "no local checkout";
   return '<article class="card repo-card" data-repo="' + esc(r.slug) + '">' +
-    '<div class="repo-head"><div><a class="repo-title" href="' + esc(r.url) + '" target="_blank" rel="noreferrer">' + esc(r.slug) + '</a>' + (r.isPrivate ? ' <span class="badge">private</span>' : "") + '<div class="tiny" style="margin-top:2px">' + esc(r.description || r.language || r.defaultBranch) + '</div></div>' +
+    '<div class="repo-head"><div><a class="repo-title" href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">' + esc(r.slug) + '</a>' + (r.isPrivate ? ' <span class="badge">private</span>' : "") + '<div class="tiny" style="margin-top:2px">' + esc(r.description || r.language || r.defaultBranch) + '</div></div>' +
     '<span class="pill tone-' + esc(r.status.tone) + '"><span class="dot"></span>' + esc(r.status.label) + '</span></div>' +
     '<div class="repo-metrics">' + metric(r.openPrCount, "PRs") + metric(r.openIssueCount, "Issues") + metric(r.needsHumanPrCount, "Review") + metric(r.releaseAgeLabel, "Release") + '</div>' +
     '<div class="tiny">' + esc(r.status.detail) + '</div>' +
@@ -907,10 +907,10 @@ function openRepoDetail(slug) {
   const r = m.repos.find((x) => x.slug === slug); if (!r) return;
   const rel = r.latestRelease;
   const deployHtml = r.deployments && r.deployments.length
-    ? r.deployments.map((d) => '<div class="deploy-row"><div>' + (d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noreferrer"><strong>' + esc(d.environment) + '</strong></a>' : '<strong>' + esc(d.environment) + '</strong>') + '<div class="tiny">ref ' + esc(d.ref || "—") + '</div></div><div style="text-align:right"><span class="deploy-state ' + esc(d.state) + '">' + esc(d.state) + '</span><div class="tiny">' + esc(ageLabelClient(d.ageDays)) + ' ago</div></div></div>').join("")
+    ? r.deployments.map((d) => '<div class="deploy-row"><div>' + (d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noopener noreferrer"><strong>' + esc(d.environment) + '</strong></a>' : '<strong>' + esc(d.environment) + '</strong>') + '<div class="tiny">ref ' + esc(d.ref || "—") + '</div></div><div style="text-align:right"><span class="deploy-state ' + esc(d.state) + '">' + esc(d.state) + '</span><div class="tiny">' + esc(ageLabelClient(d.ageDays)) + ' ago</div></div></div>').join("")
     : '<div class="tiny">No deployments found.</div>';
-  const prHtml = r.prs.length ? r.prs.map((p) => '<div class="detail-item actionable-sub" data-open-repo="' + esc(r.slug) + '" data-open-type="pr" data-open-number="' + p.number + '"><div class="di-head"><strong>#' + p.number + '</strong> ' + esc(p.title) + '<a class="sub-gh" href="' + esc(p.url) + '" target="_blank" rel="noreferrer" title="Open on GitHub">↗</a></div><div class="tiny">' + esc(p.author) + ' · ' + esc(p.reviewDecision) + (p.failingChecks ? ' · ⚠ checks failing' : '') + (p.isDraft ? ' · draft' : '') + ' · <span class="di-cta">View &amp; act →</span></div></div>').join("") : '<div class="tiny">No open PRs.</div>';
-  const issueHtml = r.issues.length ? r.issues.map((i) => '<div class="detail-item actionable-sub" data-open-repo="' + esc(r.slug) + '" data-open-type="issue" data-open-number="' + i.number + '"><div class="di-head"><strong>#' + i.number + '</strong> ' + esc(i.title) + '<a class="sub-gh" href="' + esc(i.url) + '" target="_blank" rel="noreferrer" title="Open on GitHub">↗</a></div><div class="tiny">' + esc(i.author) + ' · ' + i.comments + ' comments' + (i.assignedToJames ? ' · assigned to you' : '') + ' · <span class="di-cta">View &amp; act →</span></div></div>').join("") : '<div class="tiny">No open issues.</div>';
+  const prHtml = r.prs.length ? r.prs.map((p) => '<div class="detail-item actionable-sub" data-open-repo="' + esc(r.slug) + '" data-open-type="pr" data-open-number="' + p.number + '"><div class="di-head"><strong>#' + p.number + '</strong> ' + esc(p.title) + '<a class="sub-gh" href="' + esc(p.url) + '" target="_blank" rel="noopener noreferrer" title="Open on GitHub">↗</a></div><div class="tiny">' + esc(p.author) + ' · ' + esc(p.reviewDecision) + (p.failingChecks ? ' · ⚠ checks failing' : '') + (p.isDraft ? ' · draft' : '') + ' · <span class="di-cta">View &amp; act →</span></div></div>').join("") : '<div class="tiny">No open PRs.</div>';
+  const issueHtml = r.issues.length ? r.issues.map((i) => '<div class="detail-item actionable-sub" data-open-repo="' + esc(r.slug) + '" data-open-type="issue" data-open-number="' + i.number + '"><div class="di-head"><strong>#' + i.number + '</strong> ' + esc(i.title) + '<a class="sub-gh" href="' + esc(i.url) + '" target="_blank" rel="noopener noreferrer" title="Open on GitHub">↗</a></div><div class="tiny">' + esc(i.author) + ' · ' + i.comments + ' comments' + (i.assignedToJames ? ' · assigned to you' : '') + ' · <span class="di-cta">View &amp; act →</span></div></div>').join("") : '<div class="tiny">No open issues.</div>';
   const g = r.localGit || {};
   const localHtml = g.available
     ? '<div class="tiny">Branch: <strong>' + esc((g.branchLine || "").replace(/^## /, "") || "?") + '</strong></div><div class="detail-metrics" style="margin-top:8px">' + metric(g.dirtyCount || 0, "changed") + metric(g.ahead || 0, "ahead") + metric(g.behind || 0, "behind") + metric(ageLabelClient(g.lastCommitAgeDays), "last commit") + '</div><div class="tiny" style="margin-top:6px">' + esc(g.path || "") + '</div>'
@@ -923,13 +923,13 @@ function openRepoDetail(slug) {
     '<div class="drawer-head"><div><h2>' + esc(r.slug) + '</h2><div class="tiny">' + esc(r.description || r.language || r.defaultBranch) + '</div></div><button class="close-x" id="detailClose">✕</button></div>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px">' +
       '<span class="pill tone-' + esc(r.status.tone) + '"><span class="dot"></span>' + esc(r.status.label) + '</span>' +
-      '<a class="btn" href="' + esc(r.url) + '" target="_blank" rel="noreferrer">Open on GitHub ↗</a>' +
+      '<a class="btn" href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">Open on GitHub ↗</a>' +
       (r.isPrivate ? '<span class="badge">private</span>' : '') + (r.language ? '<span class="badge">' + esc(r.language) + '</span>' : '') + '<span class="badge">★ ' + (r.stars || 0) + '</span>' +
     '</div>' +
     '<div class="tiny" style="margin-top:8px">' + esc(r.status.detail) + '</div>' +
     '<section><h3>Overview</h3><div class="detail-metrics">' + metric(r.openPrCount, "Open PRs") + metric(r.openIssueCount, "Open issues") + metric(r.needsHumanPrCount, "Need review") + metric(ageLabelClient(r.pushedAgeDays), "Last push") + '</div></section>' +
     '<section><h3>Deployments</h3>' + deployHtml + '</section>' +
-    '<section><h3>Latest release</h3>' + (rel ? '<div class="detail-item">' + (rel.url ? '<a href="' + esc(rel.url) + '" target="_blank" rel="noreferrer"><strong>' + esc(rel.tagName || rel.name) + '</strong></a>' : '<strong>' + esc(rel.tagName || rel.name) + '</strong>') + '<div class="tiny">' + esc(rel.kind) + ' · ' + esc(ageLabelClient(r.releaseAgeDays)) + ' ago</div></div>' : '<div class="tiny">No release or tag found.</div>') + '</section>' +
+    '<section><h3>Latest release</h3>' + (rel ? '<div class="detail-item">' + (rel.url ? '<a href="' + esc(rel.url) + '" target="_blank" rel="noopener noreferrer"><strong>' + esc(rel.tagName || rel.name) + '</strong></a>' : '<strong>' + esc(rel.tagName || rel.name) + '</strong>') + '<div class="tiny">' + esc(rel.kind) + ' · ' + esc(ageLabelClient(r.releaseAgeDays)) + ' ago</div></div>' : '<div class="tiny">No release or tag found.</div>') + '</section>' +
     '<section><h3>Open PRs (' + r.prs.length + ')</h3>' + prHtml + '</section>' +
     '<section><h3>Open issues (' + r.issues.length + ')</h3>' + issueHtml + '</section>' +
     '<section><h3>Local checkout</h3>' + localHtml + '</section>' +
@@ -1012,7 +1012,7 @@ function renderItemPane(it) {
 
 async function runAct(act, it, btn) {
   const status = $("actStatus");
-  if (act === "open-gh") { window.open(it.url, "_blank", "noreferrer"); return; }
+  if (act === "open-gh") { window.open(it.url, "_blank", "noopener,noreferrer"); return; }
   if (act === "create-session") {
     const mode = btn && ["implement", "spec", "cloud"].includes(btn.dataset.mode) ? btn.dataset.mode : "plan";
     const label = mode === "implement" ? "build" : mode === "spec" ? "spec-refinement" : mode === "cloud" ? "cloud" : "planning";
