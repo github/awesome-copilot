@@ -105,7 +105,17 @@ async function pathExists(path) {
 }
 
 async function findFirst(root, names) {
+    let rootEntries;
     for (const name of names) {
+        if (name.startsWith("*.")) {
+            rootEntries ??= await readdir(root, { withFileTypes: true });
+            const suffix = name.slice(1).toLowerCase();
+            const match = rootEntries.find((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(suffix));
+            if (match) {
+                return join(root, match.name);
+            }
+            continue;
+        }
         const path = join(root, name);
         if (await pathExists(path)) {
             return path;

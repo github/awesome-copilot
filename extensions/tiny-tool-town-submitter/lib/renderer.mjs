@@ -323,7 +323,12 @@ export function renderHtml() {
     </section>
   </main>
   <script>
-    const token = new URLSearchParams(location.search).get("token");
+    const tokenParam = new URLSearchParams(location.search).get("token");
+    const token = tokenParam || sessionStorage.getItem("tiny-tool-town-submitter-token") || "";
+    if (tokenParam) {
+      sessionStorage.setItem("tiny-tool-town-submitter-token", tokenParam);
+      history.replaceState(null, "", location.pathname + location.hash);
+    }
     let currentState = null;
     let saveTimer = null;
     let generatedDescriptions = [];
