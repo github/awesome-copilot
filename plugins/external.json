@@ -157,7 +157,7 @@
   {
     "name": "datadog",
     "description": "Use Datadog directly in Copilot / VS Code through a preconfigured Datadog MCP server. Query logs, metrics, traces, dashboards, and more through natural conversation.",
-    "version": "0.7.15",
+    "version": "0.7.21",
     "author": {
       "name": "Datadog",
       "url": "https://www.datadoghq.com/"
@@ -175,7 +175,7 @@
     "source": {
       "source": "github",
       "repo": "datadog-labs/vscode-plugin",
-      "sha": "b003fcad48c3a935ffe04b6218f5cf58fe2b6760"
+      "sha": "ae77972f050575c0e41b690ccc484aa0a287e9c8"
     }
   },
   {
