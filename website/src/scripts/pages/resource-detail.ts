@@ -1,14 +1,15 @@
 /**
- * Client behaviour for the agent detail page.
+ * Shared client behaviour for resource detail pages (agents, instructions, ...).
  *
  * The heavy lifting (metadata, rendered documentation) is done at build time,
- * so this only wires up the install split-button dropdown plus the Download
- * and Share actions in the sidebar Actions card.
+ * so this only wires up the install split-button dropdown plus the Download,
+ * Copy markdown, and Share actions in the sidebar Actions card. Any detail page
+ * that renders a root element with `data-resource-detail` gets this behaviour.
  */
 import { copyToClipboard, downloadFile, showToast } from "../utils";
 
-function initAgentDetail(): void {
-  const root = document.querySelector<HTMLElement>("[data-agent-detail]");
+function initResourceDetail(): void {
+  const root = document.querySelector<HTMLElement>("[data-resource-detail]");
   if (!root) return;
 
   const filePath = root.dataset.path;
@@ -88,7 +89,9 @@ function initAgentDetail(): void {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initAgentDetail, { once: true });
+  document.addEventListener("DOMContentLoaded", initResourceDetail, {
+    once: true,
+  });
 } else {
-  initAgentDetail();
+  initResourceDetail();
 }

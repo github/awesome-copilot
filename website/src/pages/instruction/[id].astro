@@ -6,30 +6,28 @@ import { marked } from 'marked';
 import matter from 'gray-matter';
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import BackToTop from '../../components/BackToTop.astro';
-import agentsData from '../../../public/data/agents.json';
+import instructionsData from '../../../public/data/instructions.json';
 
-interface AgentItem {
+interface InstructionItem {
   id: string;
   title: string;
   description?: string;
-  model?: string | string[];
-  tools?: string[];
-  hasHandoffs?: boolean;
-  handoffs?: string[];
-  mcpServers?: string[];
+  applyTo?: string | string[] | null;
+  applyToPatterns?: string[];
+  extensions?: string[];
   path: string;
   filename?: string;
   lastUpdated?: string | null;
 }
 
 export function getStaticPaths() {
-  return (agentsData.items as AgentItem[]).map((item) => ({
+  return (instructionsData.items as InstructionItem[]).map((item) => ({
     params: { id: item.id },
     props: { item },
   }));
 }
 
-const { item } = Astro.props as { item: AgentItem };
+const { item } = Astro.props as { item: InstructionItem };
 
 // --- Install / source URL helpers (kept in sync with src/scripts/utils.ts) ---
 const RAW_BASE = 'https://raw.githubusercontent.com/github/awesome-copilot/main';
@@ -38,15 +36,15 @@ const GITHUB_BASE = 'https://github.com/github/awesome-copilot/blob/main';
 function vscodeInstallUrl(filePath: string, insiders = false): string {
   const rawUrl = `${RAW_BASE}/${filePath}`;
   const scheme = insiders ? 'vscode-insiders' : 'vscode';
-  const innerUrl = `${scheme}:chat-agent/install?url=${encodeURIComponent(rawUrl)}`;
-  return `https://aka.ms/awesome-copilot/install/agent?url=${encodeURIComponent(innerUrl)}`;
+  const innerUrl = `${scheme}:chat-instructions/install?url=${encodeURIComponent(rawUrl)}`;
+  return `https://aka.ms/awesome-copilot/install/instructions?url=${encodeURIComponent(innerUrl)}`;
 }
 
 const vscodeUrl = vscodeInstallUrl(item.path, false);
 const insidersUrl = vscodeInstallUrl(item.path, true);
 const githubUrl = `${GITHUB_BASE}/${item.path}`;
 
-// --- Read + render the agent markdown at build time ---
+// --- Read + render the instruction markdown at build time ---
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
 let markdownHtml = '';
 let frontmatterText = '';
@@ -61,14 +59,12 @@ try {
   markdownHtml = '';
 }
 
-const models = Array.isArray(item.model)
-  ? item.model
-  : item.model
-    ? [item.model]
-    : [];
-const tools = item.tools ?? [];
-const handoffs = item.handoffs ?? [];
-const mcpServers = item.mcpServers ?? [];
+const applyToList = Array.isArray(item.applyTo)
+  ? item.applyTo
+  : item.applyTo
+    ? [item.applyTo]
+    : item.applyToPatterns ?? [];
+const extensions = item.extensions ?? [];
 
 const lastUpdated = item.lastUpdated
   ? new Date(item.lastUpdated).toLocaleDateString(undefined, {
@@ -86,7 +82,7 @@ const lastUpdated = item.lastUpdated
       <nav class="detail-breadcrumbs" aria-label="Breadcrumb">
         <a href="/">Home</a>
         <span aria-hidden="true">/</span>
-        <a href="/agents/">Agents</a>
+        <a href="/instructions/">Instructions</a>
         <span aria-hidden="true">/</span>
         <span aria-current="page">{item.title}</span>
       </nav>
@@ -110,7 +106,7 @@ const lastUpdated = item.lastUpdated
           )}
         </main>
 
-        <aside class="detail-sidebar" aria-label="Agent details">
+        <aside class="detail-sidebar" aria-label="Instruction details">
           <section class="detail-card detail-actions-card" data-actions>
             <div class="install-dropdown" data-install-menu>
               <a class="btn btn-primary install-btn-main" href={vscodeUrl} target="_blank" rel="noopener">
@@ -144,45 +140,25 @@ const lastUpdated = item.lastUpdated
             <h2>Details</h2>
             <dl class="detail-meta">
               <div>
-                <dt>Model</dt>
+                <dt>Applies to</dt>
                 <dd>
-                  {models.length ? (
+                  {applyToList.length ? (
                     <div class="detail-chips">
-                      {models.map((m) => <span class="resource-tag tag-model">{m}</span>)}
+                      {applyToList.map((pattern) => <span class="resource-tag"><code>{pattern}</code></span>)}
                     </div>
-                  ) : <span class="detail-none">Not specified</span>}
+                  ) : <span class="detail-none">All files</span>}
                 </dd>
               </div>
-              <div>
-                <dt>Handoffs</dt>
-                <dd>
-                  {handoffs.length ? (
-                    <div class="detail-chips">
-                      {handoffs.map((h) => <span class="resource-tag tag-handoffs">{h}</span>)}
-                    </div>
-                  ) : item.hasHandoffs ? <span class="resource-tag tag-handoffs">enabled</span> : <span class="detail-none">None</span>}
-                </dd>
-              </div>
-              {mcpServers.length > 0 && (
+              {extensions.length > 0 && (
                 <div>
-                  <dt>MCP servers</dt>
+                  <dt>Extensions</dt>
                   <dd>
                     <div class="detail-chips">
-                      {mcpServers.map((s) => <span class="resource-tag">{s}</span>)}
+                      {extensions.map((ext) => <span class="resource-tag tag-extension">{ext}</span>)}
                     </div>
                   </dd>
                 </div>
               )}
-              <div>
-                <dt>Tools ({tools.length})</dt>
-                <dd>
-                  {tools.length ? (
-                    <div class="detail-chips">
-                      {tools.map((t) => <span class="resource-tag">{t}</span>)}
-                    </div>
-                  ) : <span class="detail-none">None</span>}
-                </dd>
-              </div>
               <div>
                 <dt>Source</dt>
                 <dd><code class="detail-path">{item.path}</code></dd>
