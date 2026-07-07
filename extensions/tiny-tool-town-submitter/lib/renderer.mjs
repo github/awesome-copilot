@@ -101,6 +101,28 @@ input:hover, textarea:hover, select:hover { border-color: color-mix(in srgb, var
 input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent); }
 textarea { resize: vertical; min-height: 92px; }
 .hint { color: var(--text-color-muted, #656d76); font-size: 11px; margin-top: 4px; }
+.field-label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 5px; }
+.field-label-row label { margin: 0; }
+button.generate-button {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px;
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border-color-default, #d0d7de));
+  color: var(--accent); font-size: 11px;
+}
+.description-options { display: none; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 10px; }
+.description-options.visible { display: grid; }
+.description-option {
+  display: flex; min-width: 0; flex-direction: column; padding: 12px;
+  border: 1px solid var(--border-color-default, #d0d7de); border-radius: 9px;
+  background: color-mix(in srgb, var(--background-color-default, #fff) 94%, var(--accent-muted));
+}
+.description-option-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
+.description-option-head strong { font-size: 12px; }
+.word-count { color: var(--text-color-muted, #656d76); font-size: 10px; white-space: nowrap; }
+.description-option p {
+  flex: 1; margin: 0 0 10px; color: var(--text-color-muted, #656d76);
+  font-size: 11px; line-height: 16px;
+}
+.description-option button { align-self: flex-start; padding: 5px 8px; font-size: 11px; }
 .checklist { display: grid; gap: 9px; margin-top: 4px; }
 .checkline {
   display: flex; gap: 9px; align-items: flex-start; margin: 0; padding: 10px 12px;
@@ -189,6 +211,7 @@ button:disabled { opacity: .55; cursor: wait; }
   .grid { grid-template-columns: 1fr; }
   .span-2 { grid-column: auto; }
   .theme-workbench { grid-template-columns: 1fr; }
+  .description-options { grid-template-columns: 1fr; }
   .actions { align-items: stretch; flex-direction: column; }
 }
 `;
@@ -231,7 +254,14 @@ export function renderHtml() {
         <div class="grid">
           <div><label class="required" for="name">Tool name</label><input id="name" name="name" required /></div>
           <div><label class="required" for="tagline">One-line description</label><input id="tagline" name="tagline" maxlength="100" required /><div id="taglineHint" class="hint"></div></div>
-          <div class="span-2"><label class="required" for="description">Tell us about your tool</label><textarea id="description" name="description" required></textarea></div>
+          <div class="span-2">
+            <div class="field-label-row">
+              <label class="required" for="description">Tell us about your tool</label>
+              <button id="generateDescriptionsButton" class="generate-button" type="button"><span aria-hidden="true">✦</span> Generate options</button>
+            </div>
+            <textarea id="description" name="description" required></textarea>
+            <div id="descriptionOptions" class="description-options" aria-live="polite"></div>
+          </div>
           <div class="span-2"><label class="required" for="githubUrl">GitHub repository URL</label><input id="githubUrl" name="githubUrl" type="url" required /></div>
           <div><label for="websiteUrl">Website or demo URL</label><input id="websiteUrl" name="websiteUrl" type="url" /></div>
           <div><label for="thumbnailUrl">Thumbnail image URL</label><input id="thumbnailUrl" name="thumbnailUrl" type="url" /><div class="hint">PNG, JPG, WebP, or GIF; ideally at least 960x540.</div></div>
@@ -296,6 +326,7 @@ export function renderHtml() {
     const token = new URLSearchParams(location.search).get("token");
     let currentState = null;
     let saveTimer = null;
+    let generatedDescriptions = [];
     const fields = ["name", "tagline", "description", "githubUrl", "websiteUrl", "thumbnailUrl", "author", "authorGitHub", "tags", "language", "license", "theme"];
     const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
     const themePalettes = {
@@ -344,6 +375,19 @@ export function renderHtml() {
       element.className = "message " + type;
     }
 
+    function renderDescriptionOptions(options) {
+      generatedDescriptions = Array.isArray(options) ? options : [];
+      const container = document.getElementById("descriptionOptions");
+      container.classList.toggle("visible", generatedDescriptions.length > 0);
+      container.innerHTML = generatedDescriptions.map((option) =>
+        '<article class="description-option">' +
+          '<div class="description-option-head"><strong>' + escapeHtml(option.label) + '</strong><span class="word-count">' + escapeHtml(option.wordCount) + ' words</span></div>' +
+          '<p>' + escapeHtml(option.description) + '</p>' +
+          '<button type="button" data-apply-description="' + escapeHtml(option.id) + '">Use this option</button>' +
+        '</article>'
+      ).join("");
+    }
+
     function applyThemePreview() {
       const selected = document.getElementById("theme").value || "None (site default)";
       const palette = themePalettes[selected] || themePalettes["None (site default)"];
@@ -380,6 +424,7 @@ export function renderHtml() {
 
     function render(state) {
       currentState = state;
+      renderDescriptionOptions([]);
       const blocking = state.recommendations.filter((item) => item.severity === "blocking").length;
       const ready = blocking === 0;
       const status = document.getElementById("status");
@@ -443,6 +488,36 @@ export function renderHtml() {
       } finally {
         button.disabled = false;
       }
+    });
+
+    document.getElementById("generateDescriptionsButton").addEventListener("click", async () => {
+      const button = document.getElementById("generateDescriptionsButton");
+      button.disabled = true;
+      setMessage("Asking Copilot for short, balanced, and detailed options…");
+      try {
+        await save();
+        const result = await api("/generate-descriptions", {
+          method: "POST",
+          body: JSON.stringify({ metadata: collectMetadata() }),
+        });
+        renderDescriptionOptions(result.options);
+        setMessage("Choose an option below to apply it to your draft.", "success");
+      } catch (error) {
+        setMessage(error.message, "error");
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    document.getElementById("descriptionOptions").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-apply-description]");
+      if (!button) return;
+      const option = generatedDescriptions.find((candidate) => candidate.id === button.dataset.applyDescription);
+      if (!option) return;
+      const textarea = document.getElementById("description");
+      textarea.value = option.description;
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      setMessage(option.label + " description applied to the draft.", "success");
     });
 
     document.getElementById("sessionButton").addEventListener("click", async () => {

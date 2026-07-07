@@ -7,6 +7,7 @@ The canvas also checks public-repository readiness, detects missing README guida
 ## Actions
 
 - **Re-scan repository** refreshes detected metadata and readiness findings.
+- **Generate options** uses the Copilot SDK to draft short, balanced, and detailed listing descriptions that can be reviewed before applying.
 - **Start improvement session** hands selected findings to a new local project session.
 - **Submit to Tiny Tool Town** checks required confirmations, searches for an existing submission, and creates the public issue through GitHub CLI.
 

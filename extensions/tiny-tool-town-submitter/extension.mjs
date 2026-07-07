@@ -5,6 +5,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { CopilotClient, RuntimeConnection } from "@github/copilot-sdk";
 import { CanvasError, createCanvas, joinSession } from "@github/copilot-sdk/extension";
 import {
     buildIssueBody,
@@ -12,6 +13,7 @@ import {
     resolveRepoRoot,
     validateSubmission,
 } from "./lib/analyzer.mjs";
+import { generateDescriptionOptions } from "./lib/copy-generator.mjs";
 import { renderHtml } from "./lib/renderer.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -21,6 +23,8 @@ const states = new Map();
 const ISSUE_REPOSITORY = "shanselman/TinyToolTown";
 const MAX_REQUEST_BYTES = 1024 * 256;
 let activeSession;
+let copyClient;
+let copyClientPromise;
 let persisted = { repositories: {} };
 let persistenceLoaded = false;
 
@@ -111,8 +115,19 @@ async function inspect(repoPath, { preserveDraft = true } = {}) {
     return fresh;
 }
 
+function repoPathFromContext(ctx) {
+    const repoPath = ctx.input?.repoPath || ctx.session?.workingDirectory;
+    if (!repoPath) {
+        throw new CanvasError(
+            "repository_unavailable",
+            "The active session did not provide a repository path. Open the canvas from a project session or pass repoPath explicitly.",
+        );
+    }
+    return repoPath;
+}
+
 async function stateFor(repoPath) {
-    const root = await resolveRepoRoot(repoPath || process.cwd());
+    const root = await resolveRepoRoot(repoPath);
     return states.get(root) || inspect(root);
 }
 
@@ -151,6 +166,60 @@ async function persistState(state) {
         submission: state.submission || null,
     };
     await savePersistence();
+}
+
+async function getCopyClient() {
+    if (!copyClientPromise) {
+        copyClient = new CopilotClient({
+            connection: RuntimeConnection.forStdio({
+                path: process.env.COPILOT_CLI_PATH || process.execPath,
+            }),
+            logLevel: "error",
+        });
+        copyClientPromise = copyClient.start()
+            .then(() => copyClient)
+            .catch((error) => {
+                copyClient = undefined;
+                copyClientPromise = undefined;
+                throw error;
+            });
+    }
+    return copyClientPromise;
+}
+
+async function stopCopyClient() {
+    const client = copyClient;
+    copyClient = undefined;
+    copyClientPromise = undefined;
+    if (client) {
+        await client.stop();
+    }
+}
+
+async function generateIsolatedDescriptionOptions(state) {
+    const client = await getCopyClient();
+    const session = await client.createSession({
+        workingDirectory: state.repoPath,
+        availableTools: [],
+        systemMessage: {
+            mode: "append",
+            content: "This is an isolated copywriting session. Never use tools or perform side effects. Return only the requested JSON.",
+        },
+    });
+    const sessionId = session.sessionId;
+    try {
+        return await generateDescriptionOptions(session, structuredClone(state.metadata));
+    } finally {
+        await session.disconnect();
+        try {
+            await client.deleteSession(sessionId);
+        } catch (error) {
+            await activeSession?.log(
+                `Tiny Tool Town Submitter could not delete copy session ${sessionId}: ${error instanceof Error ? error.message : String(error)}`,
+                { level: "warning" },
+            );
+        }
+    }
 }
 
 function titleFor(metadata) {
@@ -311,6 +380,14 @@ async function handleRequest(entry, req, res) {
             sendJson(res, 200, publicState(state));
             return;
         }
+        if (url.pathname === "/generate-descriptions" && req.method === "POST") {
+            const body = await readJson(req);
+            applyMetadata(state, body.metadata);
+            await persistState(state);
+            const options = await generateIsolatedDescriptionOptions(state);
+            sendJson(res, 200, { options });
+            return;
+        }
         if (url.pathname === "/submit" && req.method === "POST") {
             const body = await readJson(req);
             sendJson(res, 200, await submitIssue(state, body.metadata, body.confirm));
@@ -399,7 +476,7 @@ activeSession = await joinSession({
                         properties: { repoPath: { type: "string" } },
                         additionalProperties: false,
                     },
-                    handler: async (ctx) => publicState(await inspect(ctx.input?.repoPath || process.cwd(), { preserveDraft: false })),
+                    handler: async (ctx) => publicState(await inspect(repoPathFromContext(ctx), { preserveDraft: false })),
                 },
                 {
                     name: "update_submission",
@@ -414,7 +491,7 @@ activeSession = await joinSession({
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
-                        const state = await stateFor(ctx.input?.repoPath);
+                        const state = await stateFor(repoPathFromContext(ctx));
                         applyMetadata(state, ctx.input.metadata);
                         await persistState(state);
                         return publicState(state);
@@ -438,13 +515,13 @@ activeSession = await joinSession({
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
-                        const state = await stateFor(ctx.input?.repoPath);
+                        const state = await stateFor(repoPathFromContext(ctx));
                         return requestImprovementSession(state, ctx.input.recommendationIds);
                     },
                 },
             ],
             open: async (ctx) => {
-                const repoPath = await resolveRepoRoot(ctx.input?.repoPath || process.cwd());
+                const repoPath = await resolveRepoRoot(repoPathFromContext(ctx));
                 await stateFor(repoPath);
                 let entry = servers.get(ctx.instanceId);
                 if (entry && entry.repoPath !== repoPath) {
@@ -471,4 +548,12 @@ activeSession = await joinSession({
             },
         }),
     ],
+});
+
+activeSession.on("session.shutdown", () => {
+    void stopCopyClient();
+});
+
+process.once("SIGTERM", () => {
+    void stopCopyClient().finally(() => process.exit(0));
 });
