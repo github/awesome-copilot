@@ -455,16 +455,13 @@ async function triggerWorkflow(entry, input) {
     const ref = typeof input?.ref === "string" && input.ref.trim() ? input.ref.trim() : state.repo.defaultBranch;
     const inputs = sanitizeInputs(input?.inputs);
     const args = ["workflow", "run", String(workflowDetails.workflow.id), "--ref", ref, "-R", state.repo.nameWithOwner];
-    let stdin = "";
 
-    if (Object.keys(inputs).length > 0) {
-        args.push("--json");
-        stdin = JSON.stringify(inputs);
+    for (const [key, value] of Object.entries(inputs)) {
+        args.push("-f", `${key}=${String(value)}`);
     }
 
     const { stdout } = await runGh(args, {
         cwd: state.repo.cwd,
-        stdin,
     });
 
     await session.log(`Triggered workflow '${workflowDetails.workflow.name}' on ${state.repo.nameWithOwner}.`, {
@@ -684,8 +681,15 @@ function escapeRegExp(value) {
 }
 
 function toWorkflowFileUrl(repo, workflowPath) {
-    const normalizedPath = String(workflowPath || "").replace(/^\/+/, "");
-    return `${repo.url}/blob/${encodeURIComponent(repo.defaultBranch)}/${normalizedPath}`;
+    const normalizedPath = String(workflowPath || "")
+        .replace(/\\/g, "/")
+        .replace(/^\/+/, "");
+    const encodedPath = normalizedPath
+        .split("/")
+        .filter(Boolean)
+        .map((segment) => encodeURIComponent(segment))
+        .join("/");
+    return `${repo.url}/blob/${encodeURIComponent(repo.defaultBranch)}/${encodedPath}`;
 }
 
 function runGh(args, options = {}) {
@@ -1092,20 +1096,20 @@ function renderHtml(instanceId) {
         </div>
       </div>
       <div class="segmented-control mobile-only" role="tablist" aria-label="Repo actions hub sections" style="margin-bottom: 16px;">
-        <button class="segment-button active" id="tab-actions" type="button" role="tab" aria-selected="true">Actions</button>
-        <button class="segment-button" id="tab-runs" type="button" role="tab" aria-selected="false">Recent runs</button>
+        <button class="segment-button active" id="tab-actions" type="button" role="tab" aria-selected="true" aria-controls="actions-panel">Actions</button>
+        <button class="segment-button" id="tab-runs" type="button" role="tab" aria-selected="false" aria-controls="runs-panel">Recent runs</button>
       </div>
       <div id="repo"></div>
       <div class="status-message" id="status-message"></div>
       <div class="content-grid">
-        <div id="actions-panel" class="tab-panel">
+        <div id="actions-panel" class="tab-panel" role="tabpanel" aria-labelledby="tab-actions">
           <div class="section-header">
             <h2>Actions</h2>
             <div class="muted">Browse workflows, inspect details, and start manual runs.</div>
           </div>
           <div id="workflows"></div>
         </div>
-        <div id="runs-panel" class="tab-panel">
+        <div id="runs-panel" class="tab-panel" role="tabpanel" aria-labelledby="tab-runs">
           <div class="section-header">
             <h2>Recent runs</h2>
             <div class="muted">Review the latest workflow activity and open detailed run results.</div>
