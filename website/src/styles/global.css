@@ -3696,6 +3696,7 @@ header .theme-toggle-container {
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: 8px;
+  min-width: 0;
 }
 .resource-detail-page .detail-card h2 {
   margin: 0 0 1rem;
@@ -3705,6 +3706,10 @@ header .theme-toggle-container {
 .resource-detail-page .detail-actions-card {
   display: grid;
   gap: 0.75rem;
+  min-width: 0;
+}
+.resource-detail-page .detail-actions-card > * {
+  min-width: 0;
 }
 .resource-detail-page .detail-actions-card .install-dropdown {
   display: flex;
@@ -3807,6 +3812,7 @@ header .theme-toggle-container {
 .skill-detail-page .skill-install {
   display: grid;
   gap: 0.75rem;
+  min-width: 0;
 }
 .skill-detail-page .skill-install-label {
   margin: 0;
@@ -3820,6 +3826,7 @@ header .theme-toggle-container {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
   padding: 0.5rem 0.5rem 0.5rem 0.75rem;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border);
