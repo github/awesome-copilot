@@ -1,9 +1,4 @@
 ---
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { marked } from "marked";
-import matter from "gray-matter";
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import BackToTop from "../../components/BackToTop.astro";
 import agentsData from "../../../public/data/agents.json";
@@ -14,6 +9,7 @@ import Breadcrumb from "../../components/pages/Breadcrumb.astro";
 import Main from "../../components/pages/Main.astro";
 import InstallButtons from "../../components/pages/InstallButtons.astro";
 import Sidebar from "../../components/pages/Sidebar.astro";
+import { loadDetailPage } from "../../lib/detail-page";
 
 interface AgentItem extends HeaderItem {
   id: string;
@@ -38,36 +34,15 @@ export function getStaticPaths() {
 
 const { item } = Astro.props as { item: AgentItem };
 
-// --- Install / source URL helpers (kept in sync with src/scripts/utils.ts) ---
-const RAW_BASE =
-  "https://raw.githubusercontent.com/github/awesome-copilot/main";
-const GITHUB_BASE = "https://github.com/github/awesome-copilot/blob/main";
-
-function vscodeInstallUrl(filePath: string, insiders = false): string {
-  const rawUrl = `${RAW_BASE}/${filePath}`;
-  const scheme = insiders ? "vscode-insiders" : "vscode";
-  const innerUrl = `${scheme}:chat-agent/install?url=${encodeURIComponent(rawUrl)}`;
-  return `https://aka.ms/awesome-copilot/install/agent?url=${encodeURIComponent(innerUrl)}`;
-}
-
-const vscodeUrl = vscodeInstallUrl(item.path, false);
-const insidersUrl = vscodeInstallUrl(item.path, true);
-const githubUrl = `${GITHUB_BASE}/${item.path}`;
-
-// --- Read + render the agent markdown at build time ---
-const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
-let markdownHtml = "";
-let frontmatterText = "";
-let rawMarkdown = "";
-try {
-  const raw = fs.readFileSync(path.join(repoRoot, item.path), "utf-8");
-  rawMarkdown = raw;
-  const parsed = matter(raw);
-  frontmatterText = parsed.matter?.trim() ?? "";
-  markdownHtml = marked.parse(parsed.content, { async: false }) as string;
-} catch {
-  markdownHtml = "";
-}
+const {
+  vscodeUrl,
+  insidersUrl,
+  githubUrl,
+  markdownHtml,
+  frontmatterText,
+  rawMarkdown,
+  lastUpdated,
+} = loadDetailPage(item, "agent");
 
 const models = Array.isArray(item.model)
   ? item.model
@@ -77,14 +52,6 @@ const models = Array.isArray(item.model)
 const tools = item.tools ?? [];
 const handoffs = item.handoffs ?? [];
 const mcpServers = item.mcpServers ?? [];
-
-const lastUpdated = item.lastUpdated
-  ? new Date(item.lastUpdated).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
-  : null;
 ---
 
 <StarlightPage
