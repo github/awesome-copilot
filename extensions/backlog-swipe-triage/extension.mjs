@@ -32,6 +32,7 @@ const filterSchema = {
     additionalProperties: false,
 };
 let activeSession = null;
+let workspaceCwd = null;
 const MAX_REQUEST_BODY_BYTES = 1024 * 1024;
 
 let storage = { boards: {} };
@@ -70,6 +71,17 @@ async function persistStorage() {
 
 function normalizeText(value, fallback = "") {
     return typeof value === "string" ? value.trim() : fallback;
+}
+
+function captureCwd(ctx) {
+    const dir = ctx?.session?.workingDirectory;
+    if (typeof dir === "string" && dir.trim()) {
+        workspaceCwd = dir;
+    }
+}
+
+function repoCwd() {
+    return workspaceCwd || process.cwd();
 }
 
 function escapeHtml(value) {
@@ -397,7 +409,7 @@ async function closeGithubIssue(board, item, note) {
         args.push("--comment", comment);
     }
     try {
-        await runGh(args, activeSession?.workspacePath || process.cwd());
+        await runGh(args, repoCwd());
     } catch (error) {
         const stderr = normalizeText(error?.stderr || "");
         if (stderr.toLowerCase().includes("already closed")) {
@@ -418,7 +430,7 @@ async function commentGithubIssue(board, item, note) {
         return;
     }
     try {
-        await runGh(["issue", "comment", issueNumber, "--repo", repo, "--body", comment], activeSession?.workspacePath || process.cwd());
+        await runGh(["issue", "comment", issueNumber, "--repo", repo, "--body", comment], repoCwd());
     } catch (error) {
         const stderr = normalizeText(error?.stderr || "");
         throw new Error(stderr || `Failed to comment on issue #${issueNumber} in ${repo}.`);
@@ -511,10 +523,10 @@ function pruneDecisionsForCurrentItems(board) {
 }
 
 async function syncBoardFromRepo(board, filtersInput) {
-    const workspacePath = activeSession?.workspacePath;
+    const cwd = repoCwd();
     let repo = normalizeText(board.repo);
-    if (!repo && workspacePath) {
-        const repoData = await runGhJson(["repo", "view", "--json", "nameWithOwner"], workspacePath);
+    if (!repo && workspaceCwd) {
+        const repoData = await runGhJson(["repo", "view", "--json", "nameWithOwner"], cwd);
         repo = normalizeText(repoData?.nameWithOwner);
     }
     if (!repo) {
@@ -535,7 +547,7 @@ async function syncBoardFromRepo(board, filtersInput) {
             "--json",
             "number,title,url,labels,assignees,createdAt,updatedAt,author,body",
         ],
-        workspacePath || process.cwd(),
+        cwd,
     );
 
     const filteredIssues = Array.isArray(issues) ? sortIssues(issues.filter((issue) => issueMatchesFilters(issue, filters)), filters.sortBy) : [];
@@ -1998,6 +2010,7 @@ const session = await joinSession({
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
+                        captureCwd(ctx);
                         await ensureStorageLoaded();
                         const board = getOrCreateBoard(normalizeText(ctx.input?.boardId, "default"));
                         const title = normalizeText(ctx.input?.title);
@@ -2043,6 +2056,7 @@ const session = await joinSession({
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
+                        captureCwd(ctx);
                         await ensureStorageLoaded();
                         const boardId = normalizeText(ctx.input?.boardId, "default");
                         const board = getOrCreateBoard(boardId);
@@ -2072,6 +2086,7 @@ const session = await joinSession({
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
+                        captureCwd(ctx);
                         await ensureStorageLoaded();
                         const board = getOrCreateBoard(normalizeText(ctx.input?.boardId, "default"));
                         const itemId = normalizeText(ctx.input?.itemId);
@@ -2113,6 +2128,7 @@ const session = await joinSession({
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
+                        captureCwd(ctx);
                         await ensureStorageLoaded();
                         const board = getOrCreateBoard(normalizeText(ctx.input?.boardId, "default"));
                         return buildBoardState(board);
@@ -2120,6 +2136,7 @@ const session = await joinSession({
                 },
             ],
             open: async (ctx) => {
+                captureCwd(ctx);
                 await ensureStorageLoaded();
                 const boardId = normalizeText(ctx.input?.boardId, "default");
                 const board = getOrCreateBoard(boardId);
