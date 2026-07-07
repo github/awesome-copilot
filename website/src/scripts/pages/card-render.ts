@@ -36,7 +36,7 @@ export function renderSharedCardHtml(item: SharedCardRenderItem): string {
     : "resource-item";
 
   return `
-    <article class="${articleClass}" role="${escapeHtml(role)}"${item.tabIndex !== undefined ? ` tabindex="${String(item.tabIndex)}"` : ""}${renderAttributes(item.articleAttributes)}>
+    <div class="${articleClass}" role="${escapeHtml(role)}"${item.tabIndex !== undefined ? ` tabindex="${String(item.tabIndex)}"` : ""}${renderAttributes(item.articleAttributes)}>
       <button type="button" class="resource-preview">
         ${item.previewMediaHtml || ""}
         <div class="resource-info">
@@ -49,6 +49,6 @@ export function renderSharedCardHtml(item: SharedCardRenderItem): string {
         </div>
       </button>
       ${item.actionsHtml ? `<div class="resource-actions">${item.actionsHtml}</div>` : ""}
-    </article>
+    </div>
   `;
 }
