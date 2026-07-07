@@ -622,7 +622,7 @@ async function startServer(instanceId, sessionRef, cwd, workspacePath) {
         }
 
         if (url.pathname === "/refresh" && req.method === "POST") {
-            const data = await gatherContext(repoCwd());
+            const data = await gatherContext(cwd);
             contextCache.set(instanceId, data);
             await saveContext(workspacePath, data);
             broadcast(instanceId, data);
