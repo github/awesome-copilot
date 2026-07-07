@@ -1057,6 +1057,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "tiny-tool-town-submitter",
+      "source": "extensions/tiny-tool-town-submitter",
+      "description": "Inspect a repository, improve Tiny Tool Town readiness, submit its listing issue, and launch remediation work.",
+      "version": "1.0.0"
+    },
+    {
       "name": "token-pacman",
       "source": "extensions/token-pacman",
       "description": "Visualizes live session AI-credit usage as a Pac-Man board with pellets, ghosts, fruit milestones, and game-over limits.",
