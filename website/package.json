@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "a11y": "node ./scripts/a11y-audit.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -27,5 +28,9 @@
     "jszip": "^3.10.1",
     "marked": "^18.0.2",
     "shiki": "^4.0.2"
+  },
+  "devDependencies": {
+    "axe-core": "^4.10.2",
+    "playwright": "^1.49.0"
   }
 }
