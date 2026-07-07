@@ -32,7 +32,6 @@ const filterSchema = {
     additionalProperties: false,
 };
 let activeSession = null;
-let workspaceCwd = null;
 const MAX_REQUEST_BODY_BYTES = 1024 * 1024;
 
 let storage = { boards: {} };
@@ -75,13 +74,11 @@ function normalizeText(value, fallback = "") {
 
 function captureCwd(ctx) {
     const dir = ctx?.session?.workingDirectory;
-    if (typeof dir === "string" && dir.trim()) {
-        workspaceCwd = dir;
-    }
+    return typeof dir === "string" && dir.trim() ? dir : null;
 }
 
-function repoCwd() {
-    return workspaceCwd || process.cwd();
+function cwdForContext(ctx) {
+    return captureCwd(ctx) || servers.get(ctx?.instanceId)?.cwd || null;
 }
 
 function escapeHtml(value) {
@@ -397,7 +394,7 @@ async function runGh(args, cwd) {
     return result.stdout;
 }
 
-async function closeGithubIssue(board, item, note) {
+async function closeGithubIssue(board, item, note, cwd = process.cwd()) {
     const issueNumber = normalizeText(item?.number);
     const repo = normalizeText(board?.repo || item?.repo);
     if (!issueNumber || !repo) {
@@ -409,7 +406,7 @@ async function closeGithubIssue(board, item, note) {
         args.push("--comment", comment);
     }
     try {
-        await runGh(args, repoCwd());
+        await runGh(args, cwd);
     } catch (error) {
         const stderr = normalizeText(error?.stderr || "");
         if (stderr.toLowerCase().includes("already closed")) {
@@ -419,7 +416,7 @@ async function closeGithubIssue(board, item, note) {
     }
 }
 
-async function commentGithubIssue(board, item, note) {
+async function commentGithubIssue(board, item, note, cwd = process.cwd()) {
     const repo = normalizeText(board?.repo || item?.repo);
     const issueNumber = extractIssueNumber(item);
     const comment = normalizeText(note);
@@ -430,7 +427,7 @@ async function commentGithubIssue(board, item, note) {
         return;
     }
     try {
-        await runGh(["issue", "comment", issueNumber, "--repo", repo, "--body", comment], repoCwd());
+        await runGh(["issue", "comment", issueNumber, "--repo", repo, "--body", comment], cwd);
     } catch (error) {
         const stderr = normalizeText(error?.stderr || "");
         throw new Error(stderr || `Failed to comment on issue #${issueNumber} in ${repo}.`);
@@ -522,10 +519,10 @@ function pruneDecisionsForCurrentItems(board) {
     }
 }
 
-async function syncBoardFromRepo(board, filtersInput) {
-    const cwd = repoCwd();
+async function syncBoardFromRepo(board, filtersInput, cwd = null) {
+    const commandCwd = cwd || process.cwd();
     let repo = normalizeText(board.repo);
-    if (!repo && workspaceCwd) {
+    if (!repo && cwd) {
         const repoData = await runGhJson(["repo", "view", "--json", "nameWithOwner"], cwd);
         repo = normalizeText(repoData?.nameWithOwner);
     }
@@ -547,7 +544,7 @@ async function syncBoardFromRepo(board, filtersInput) {
             "--json",
             "number,title,url,labels,assignees,createdAt,updatedAt,author,body",
         ],
-        cwd,
+        commandCwd,
     );
 
     const filteredIssues = Array.isArray(issues) ? sortIssues(issues.filter((issue) => issueMatchesFilters(issue, filters)), filters.sortBy) : [];
@@ -1855,6 +1852,7 @@ async function handleServerRequest(instanceId, req, res) {
     await ensureStorageLoaded();
     const board = getOrCreateBoard(entry.boardId);
     board.title = entry.title;
+    const cwd = entry.cwd || null;
 
     if (req.method === "GET" && req.url === "/") {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -1878,7 +1876,7 @@ async function handleServerRequest(instanceId, req, res) {
             if (payload?.resetDecisions === true) {
                 resetBoardDecisions(board);
             }
-            await syncBoardFromRepo(board, payload?.filters);
+            await syncBoardFromRepo(board, payload?.filters, cwd);
             await persistStorage();
             res.setHeader("Content-Type", "application/json; charset=utf-8");
             res.end(JSON.stringify(buildBoardState(board)));
@@ -1917,10 +1915,10 @@ async function handleServerRequest(instanceId, req, res) {
             return;
         }
         if (decision === "close") {
-            await closeGithubIssue(board, item, payload?.note);
+            await closeGithubIssue(board, item, payload?.note, cwd || process.cwd());
         }
         if (payload?.quickResponse === true && decision !== "close" && normalizeText(payload?.note)) {
-            await commentGithubIssue(board, item, payload?.note);
+            await commentGithubIssue(board, item, payload?.note, cwd || process.cwd());
         }
         if (decision === "assign_agent") {
             const sessionStatus = await startImplementationSession(board, item, payload?.agent, payload?.note);
@@ -1944,7 +1942,7 @@ async function handleServerRequest(instanceId, req, res) {
     res.end("Not found");
 }
 
-async function startServer(instanceId) {
+async function startServer(instanceId, cwd) {
     const server = createServer((req, res) => {
         handleServerRequest(instanceId, req, res).catch((error) => {
             if (res.headersSent) {
@@ -1958,7 +1956,7 @@ async function startServer(instanceId) {
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const address = server.address();
     const port = typeof address === "object" && address ? address.port : 0;
-    return { server, url: `http://127.0.0.1:${port}/` };
+    return { server, url: `http://127.0.0.1:${port}/`, cwd };
 }
 
 const session = await joinSession({
@@ -2010,7 +2008,7 @@ const session = await joinSession({
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
-                        captureCwd(ctx);
+                        const cwd = cwdForContext(ctx);
                         await ensureStorageLoaded();
                         const board = getOrCreateBoard(normalizeText(ctx.input?.boardId, "default"));
                         const title = normalizeText(ctx.input?.title);
@@ -2021,7 +2019,7 @@ const session = await joinSession({
                         if (repo) {
                             board.repo = repo;
                         }
-                        await syncBoardFromRepo(board, ctx.input?.filters);
+                        await syncBoardFromRepo(board, ctx.input?.filters, cwd);
                         await persistStorage();
                         return buildBoardState(board);
                     },
@@ -2056,7 +2054,6 @@ const session = await joinSession({
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
-                        captureCwd(ctx);
                         await ensureStorageLoaded();
                         const boardId = normalizeText(ctx.input?.boardId, "default");
                         const board = getOrCreateBoard(boardId);
@@ -2086,7 +2083,7 @@ const session = await joinSession({
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
-                        captureCwd(ctx);
+                        const cwd = cwdForContext(ctx);
                         await ensureStorageLoaded();
                         const board = getOrCreateBoard(normalizeText(ctx.input?.boardId, "default"));
                         const itemId = normalizeText(ctx.input?.itemId);
@@ -2096,10 +2093,10 @@ const session = await joinSession({
                             throw new Error(`Item "${itemId}" not found`);
                         }
                         if (decision === "close") {
-                            await closeGithubIssue(board, item, ctx.input?.note);
+                            await closeGithubIssue(board, item, ctx.input?.note, cwd || process.cwd());
                         }
                         if (ctx.input?.commentOnIssue === true && decision !== "close" && normalizeText(ctx.input?.note)) {
-                            await commentGithubIssue(board, item, ctx.input?.note);
+                            await commentGithubIssue(board, item, ctx.input?.note, cwd || process.cwd());
                         }
                         if (decision === "assign_agent") {
                             const sessionStatus = await startImplementationSession(board, item, ctx.input?.agent, ctx.input?.note);
@@ -2128,7 +2125,6 @@ const session = await joinSession({
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
-                        captureCwd(ctx);
                         await ensureStorageLoaded();
                         const board = getOrCreateBoard(normalizeText(ctx.input?.boardId, "default"));
                         return buildBoardState(board);
@@ -2136,7 +2132,8 @@ const session = await joinSession({
                 },
             ],
             open: async (ctx) => {
-                captureCwd(ctx);
+                let entry = servers.get(ctx.instanceId);
+                const cwd = cwdForContext(ctx);
                 await ensureStorageLoaded();
                 const boardId = normalizeText(ctx.input?.boardId, "default");
                 const board = getOrCreateBoard(boardId);
@@ -2156,17 +2153,17 @@ const session = await joinSession({
                     setBoardItems(board, ctx.input.items, true);
                     await persistStorage();
                 } else if (syncFromRepo) {
-                    await syncBoardFromRepo(board, board.filters);
+                    await syncBoardFromRepo(board, board.filters, cwd);
                     await persistStorage();
                 }
 
-                let entry = servers.get(ctx.instanceId);
                 if (!entry) {
-                    entry = await startServer(ctx.instanceId);
+                    entry = await startServer(ctx.instanceId, cwd);
                     servers.set(ctx.instanceId, entry);
                 }
                 entry.boardId = boardId;
                 entry.title = title;
+                entry.cwd = cwd;
                 return {
                     title,
                     status: "Swipe to triage backlog",
