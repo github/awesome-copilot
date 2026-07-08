@@ -1,0 +1,19 @@
+{
+  "name": "tiny-tool-town-submitter",
+  "description": "Inspect a repository, improve Tiny Tool Town readiness, submit its listing issue, and launch remediation work.",
+  "version": "1.0.0",
+  "author": {
+    "name": "James Montemagno",
+    "url": "https://github.com/jamesmontemagno"
+  },
+  "keywords": [
+    "github-issues",
+    "open-source",
+    "project-readiness",
+    "repository-analysis",
+    "submission-workflow",
+    "tiny-tool-town"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}
