@@ -11,6 +11,7 @@ const EXTENSION_NAME = "accessibility-kanban";
 const STATE_FILE_PREFIX = "repository-issues-kanban-state";
 const COLUMNS = ["backlog", "plan", "ready", "implement", "done"];
 const VALID_COLUMNS = new Set(COLUMNS);
+const REFRESH_ISSUES_ERROR = "Unable to refresh issues right now. Please try again.";
 
 let repoInfoCache = null;
 let githubTokenCache;
@@ -197,7 +198,7 @@ function normalizeState(rawState, repoInfo = getRepoInfo()) {
 
   return {
     repo,
-    error: repoInfo.error || rawState?.error || null,
+    error: repoInfo.error || (rawState?.error === REFRESH_ISSUES_ERROR ? REFRESH_ISSUES_ERROR : null),
     updatedAt: rawState?.updatedAt || new Date().toISOString(),
     generation: rawState?.generation || Date.now(),
     columns: Array.isArray(rawState?.columns) && rawState.columns.length ? rawState.columns : COLUMNS,
@@ -453,9 +454,10 @@ async function refreshIssuesSafe() {
     broadcast("state", merged);
     return merged;
   } catch (error) {
+    console.error("[accessibility-kanban] Failed to refresh issues", error);
     const failed = {
       ...state,
-      error: error instanceof Error ? error.message : String(error),
+      error: REFRESH_ISSUES_ERROR,
     };
     saveState(failed);
     broadcast("state", failed);
