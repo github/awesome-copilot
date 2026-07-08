@@ -1285,6 +1285,12 @@
         "repo": "microsoft/win-dev-skills",
         "path": "plugins/winui"
       }
+    },
+    {
+      "name": "work-hub",
+      "source": "extensions/work-hub",
+      "description": "Generic cross-repo command center canvas for GitHub Copilot with onboarding, focus planning, repo health, work signals, and session cleanup.",
+      "version": "1.0.0"
     }
   ]
 }
