@@ -15,11 +15,11 @@ DO NOT USE FOR: domain registration/purchase, SSL certificate management, hostin
 
 Before executing any API commands, verify credentials are configured:
 
-1. **Check for existing config** — look for `~/.namecheap-api`
+1. **Check for existing config** — look for `~/.namecheap-api` and ensure `NAMECHEAP_API_KEY` is exported in the user's shell
 2. If not configured, guide the user through setup:
    a. **Show public IP** — run `python3 namecheap.py public-ip` to display the user's public IP
    b. **Instruct IP whitelisting** — tell the user to go to https://ap.www.namecheap.com/settings/tools/apiaccess/, enable API (select ON), and whitelist the displayed IP
-   c. **Have the user run setup themselves** — ask the user to run `python3 namecheap.py setup` directly **in their own terminal**. The script prompts for the username and reads the API key with a hidden prompt (`getpass`), writes `~/.namecheap-api` with `chmod 600`, and validates the connection. **Never ask the user to paste their API key into the chat, and never log, echo, or display the API key value.** If you cannot run an interactive terminal for the user, instruct them to run `setup` themselves, or to export `NAMECHEAP_API_USER` and `NAMECHEAP_API_KEY` as environment variables in their own shell — rather than collecting the secret via `ask_user`.
+   c. **Have the user run setup themselves** — ask the user to run `python3 namecheap.py setup` directly **in their own terminal**. The script prompts for the username, reads the API key with a hidden prompt (`getpass`), saves only the username to `~/.namecheap-api` with `chmod 600`, and validates the connection without writing the API key to disk. **Never ask the user to paste their API key into the chat, and never log, echo, or display the API key value.** After setup, the user must export `NAMECHEAP_API_KEY` in their own shell before running API commands. If you cannot run an interactive terminal for the user, instruct them to run `setup` themselves, or to export `NAMECHEAP_API_USER` and `NAMECHEAP_API_KEY` in their own shell — rather than collecting the secret via `ask_user`.
    d. **Confirm** — once the user reports setup succeeded, proceed with DNS operations.
 
 ### DNS Operations
@@ -102,7 +102,7 @@ python3 namecheap.py domains.ns.update --domain example.com --nameserver ns1.exa
 
 ## Behavior
 
-- **Always check credentials first.** Before any API operation, verify `~/.namecheap-api` exists and is readable. If not, run the setup flow.
+- **Always check credentials first.** Before any API operation, verify `~/.namecheap-api` exists and is readable, and that `NAMECHEAP_API_KEY` is set in the current shell. If not, run the setup flow and have the user export the API key.
 - **Show current records before modifying.** Before adding or removing records, always fetch and display the current DNS records so the user can confirm the change.
 - **Use `ask_user` to confirm destructive changes.** Before removing records or replacing all records with `setHosts`, confirm with the user.
 - **The Namecheap `setHosts` API replaces ALL records.** Never call `domains.dns.setHosts` directly unless you have fetched all existing records first. Use `dns.addHost` and `dns.removeHost` for safe single-record operations — they handle the fetch-modify-write cycle internally.
@@ -111,14 +111,13 @@ python3 namecheap.py domains.ns.update --domain example.com --nameserver ns1.exa
 
 ## Credential Storage
 
-Credentials are stored in `~/.namecheap-api`:
+The Namecheap username is stored in `~/.namecheap-api`:
 
 ```bash
 NAMECHEAP_API_USER="username"
-NAMECHEAP_API_KEY="api-key-here"
 ```
 
-This file must have `600` permissions (owner read/write only). Alternatively, the script reads credentials from the `NAMECHEAP_API_USER` and `NAMECHEAP_API_KEY` environment variables, which take precedence over the file when both are set.
+This file must have `600` permissions (owner read/write only). The API key is **not** stored on disk; the script reads `NAMECHEAP_API_KEY` from the environment and uses it only in memory. `NAMECHEAP_API_USER` may be supplied either in the file or in the environment, and environment variables take precedence when both are set. If a legacy `NAMECHEAP_API_KEY` line already exists in `~/.namecheap-api`, it should be removed after the user exports the key securely in their shell.
 
 ## Supported Record Types
 

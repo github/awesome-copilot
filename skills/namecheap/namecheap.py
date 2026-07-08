@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Namecheap API CLI wrapper for DNS management.
 
-Uses only the Python standard library (no third-party dependencies). Credentials
-are read from ``~/.namecheap-api`` (or env vars) and are never passed on the
-command line, so they cannot leak via ``ps``/shell history.
+Uses only the Python standard library (no third-party dependencies). The
+username can be cached in ``~/.namecheap-api`` while the API key is read from
+the ``NAMECHEAP_API_KEY`` environment variable (or prompted during setup) and
+is never passed on the command line, so it cannot leak via ``ps``/shell
+history.
 """
 
 import argparse
@@ -75,45 +77,105 @@ class NamecheapError(Exception):
 
 # --- Configuration --------------------------------------------------------
 
+def _redact_sensitive_text(text):
+    text = re.sub(r'(?i)(ApiKey=)[^&\s]+', r"\1[REDACTED]", text)
+    text = re.sub(r'(?i)(NAMECHEAP_API_KEY\s*=\s*"?)[^"\n]+("?)', r"\1[REDACTED]\2", text)
+    return text
+
+def _read_config_values():
+    """Return shell-style KEY="value" pairs from the local config file."""
+    if not os.path.isfile(CONFIG_FILE):
+        return {}
+
+    with open(CONFIG_FILE, "r", encoding="utf-8") as fh:
+        content = fh.read()
+
+    pattern = re.compile(r'^\s*([A-Z_]+)\s*=\s*"?([^"\n]*)"?\s*$', re.MULTILINE)
+    return {m.group(1): m.group(2) for m in pattern.finditer(content)}
+
+
 def load_config():
-    """Return (api_user, api_key), preferring env vars then the config file."""
+    """Return (api_user, api_key), preferring env vars for sensitive values."""
     api_user = os.environ.get("NAMECHEAP_API_USER")
     api_key = os.environ.get("NAMECHEAP_API_KEY")
-    if api_user and api_key:
-        return api_user, api_key
 
-    if os.path.isfile(CONFIG_FILE):
-        with open(CONFIG_FILE, "r", encoding="utf-8") as fh:
-            content = fh.read()
-        # File uses shell-style KEY="value" lines for backward compatibility.
-        pattern = re.compile(r'^\s*([A-Z_]+)\s*=\s*"?([^"\n]*)"?\s*$', re.MULTILINE)
-        values = {m.group(1): m.group(2) for m in pattern.finditer(content)}
-        api_user = api_user or values.get("NAMECHEAP_API_USER")
-        api_key = api_key or values.get("NAMECHEAP_API_KEY")
+    values = _read_config_values()
+    api_user = api_user or values.get("NAMECHEAP_API_USER")
 
     return api_user, api_key
+
+
+def has_legacy_api_key():
+    """Return True when a legacy clear-text API key is still present on disk."""
+    return bool(_read_config_values().get("NAMECHEAP_API_KEY"))
+
+
+def save_config(api_user):
+    with open(CONFIG_FILE, "w", encoding="utf-8") as fh:
+        fh.write("# Cached Namecheap username for this skill.\n")
+        fh.write("# Export NAMECHEAP_API_KEY in your shell before running API commands.\n")
+        fh.write(f'NAMECHEAP_API_USER="{api_user}"\n')
+    os.chmod(CONFIG_FILE, stat.S_IRUSR | stat.S_IWUSR)  # 600
+
+
+def print_safe_api_failure(prefix, public_ip=None):
+    err(prefix)
+    print("Please verify:")
+    print("  1. API access is enabled (ON) at the Namecheap settings page")
+    if public_ip:
+        print(f"  2. IP address {public_ip} is whitelisted")
+    else:
+        print("  2. Your current public IP is whitelisted")
+    print("  3. Your username and API key are correct")
+
+
+def print_safe_namecheap_error(exc):
+    message = _redact_sensitive_text(str(exc)).strip()
+    if message:
+        err(f"API returned error: {message}")
+    else:
+        err("API returned an error.")
+
+
+def print_safe_runtime_error(exc):
+    if isinstance(exc, urllib.error.URLError):
+        err("Network error while contacting Namecheap or resolving your public IP.")
+        return
+    if isinstance(exc, OSError):
+        err(f"Could not read or update {CONFIG_FILE}.")
+        return
+    if isinstance(exc, ET.ParseError):
+        err("Received an invalid XML response from the Namecheap API.")
+        return
+    if isinstance(exc, json.JSONDecodeError):
+        err("Could not parse the JSON input file that was provided.")
+        return
+    err("The operation failed.")
+
+
+def print_credential_help(legacy_key_present=False):
+    err("Namecheap API credentials are not configured.")
+    print()
+    print("Run 'python3 namecheap.py setup' to save your Namecheap username.")
+    print("Then export NAMECHEAP_API_KEY in your own shell before running API commands.")
+    print()
+    print("You need:")
+    print("  1. Your Namecheap username")
+    print("  2. An API key from: https://ap.www.namecheap.com/settings/tools/apiaccess/")
+    print("  3. Your public IP whitelisted in the API settings")
+    if legacy_key_present:
+        print()
+        warn(f"A legacy API key entry in {CONFIG_FILE} is ignored for security reasons.")
+        print("Remove the NAMECHEAP_API_KEY line from that file after exporting the key securely.")
 
 
 def check_credentials():
     api_user, api_key = load_config()
+    legacy_key_present = has_legacy_api_key()
     if not api_user or not api_key:
-        err("Namecheap API credentials not configured.")
-        print()
-        print("Run 'python3 namecheap.py setup' to configure your credentials.")
-        print()
-        print("You need:")
-        print("  1. Your Namecheap username")
-        print("  2. An API key from: https://ap.www.namecheap.com/settings/tools/apiaccess/")
-        print("  3. Your public IP whitelisted in the API settings")
+        print_credential_help(legacy_key_present)
         sys.exit(1)
     return api_user, api_key
-
-
-def save_config(api_user, api_key):
-    with open(CONFIG_FILE, "w", encoding="utf-8") as fh:
-        fh.write(f'NAMECHEAP_API_USER="{api_user}"\n')
-        fh.write(f'NAMECHEAP_API_KEY="{api_key}"\n')
-    os.chmod(CONFIG_FILE, stat.S_IRUSR | stat.S_IWUSR)  # 600
 
 
 # --- Networking -----------------------------------------------------------
@@ -224,23 +286,38 @@ def cmd_setup(_args):
     print()
 
     existing_user, existing_key = load_config()
-    if existing_user and existing_key:
-        info(f"Existing configuration found for user: {existing_user}")
-        print("\nTesting API connection...")
-        try:
-            api_request("domains.getList", {"PageSize": "1"})
-            success("API connection successful!")
-        except Exception as exc:  # noqa: BLE001
-            err(f"API connection failed: {exc}")
+    if has_legacy_api_key():
+        warn(f"A legacy API key was found in {CONFIG_FILE} and will no longer be used.")
+        print("Run setup to rewrite the file without the API key, then export NAMECHEAP_API_KEY securely.")
         print()
-        answer = input("Update stored credentials? [y/N]: ").strip().lower()
+
+    if existing_user:
+        info(f"Existing configuration found for user: {existing_user}")
+        if existing_key:
+            print("\nTesting API connection...")
+            try:
+                api_request("domains.getList", {"PageSize": "1"})
+                success("API connection successful!")
+            except NamecheapError:
+                print_safe_api_failure("API connection failed.", public_ip)
+            except (urllib.error.URLError, OSError, ET.ParseError, json.JSONDecodeError) as exc:
+                print_safe_runtime_error(exc)
+        else:
+            info("No NAMECHEAP_API_KEY environment variable is set yet.")
+            print("The setup flow will validate the API key you enter, but it will not write the key to disk.")
+        print()
+        answer = input("Update saved username or validate a new API key? [y/N]: ").strip().lower()
         if answer not in ("y", "yes"):
             info("Keeping existing credentials.")
             return
         print()
 
     print("Enter your Namecheap credentials:\n")
-    api_user = input("  API Username: ").strip()
+    prompt = "  API Username"
+    if existing_user:
+        prompt += f" [{existing_user}]"
+    prompt += ": "
+    api_user = input(prompt).strip() or existing_user or ""
     api_key = getpass.getpass("  API Key (hidden): ").strip()
     print()
 
@@ -248,8 +325,9 @@ def cmd_setup(_args):
         err("Both username and API key are required.")
         sys.exit(1)
 
-    save_config(api_user, api_key)
-    success(f"Credentials saved to {CONFIG_FILE}")
+    save_config(api_user)
+    success(f"Username saved to {CONFIG_FILE}")
+    info("The API key was not written to disk. Export NAMECHEAP_API_KEY in your shell for future commands.")
     print("\nTesting API connection...")
     try:
         # Use the just-entered credentials directly for the validation call.
@@ -257,12 +335,10 @@ def cmd_setup(_args):
         os.environ["NAMECHEAP_API_KEY"] = api_key
         api_request("domains.getList", {"PageSize": "1"})
         success("API connection successful!")
-    except Exception as exc:  # noqa: BLE001
-        warn("API connection failed. Please verify:")
-        print("  1. API access is enabled (ON) at the Namecheap settings page")
-        print(f"  2. IP address {public_ip} is whitelisted")
-        print("  3. Your API key is correct")
-        print(f"  (details: {exc})")
+    except NamecheapError:
+        print_safe_api_failure("API connection failed.", public_ip)
+    except (urllib.error.URLError, OSError, ET.ParseError, json.JSONDecodeError) as exc:
+        print_safe_runtime_error(exc)
 
 
 def cmd_domains_list(args):
@@ -682,13 +758,13 @@ def main(argv=None):
     try:
         args.func(args)
     except NamecheapError as exc:
-        err(f"API returned error: {exc}")
+        print_safe_namecheap_error(exc)
         return 1
     except urllib.error.URLError as exc:
-        err(f"Network error: {exc}")
+        print_safe_runtime_error(exc)
         return 1
     except (OSError, ET.ParseError, json.JSONDecodeError) as exc:
-        err(str(exc))
+        print_safe_runtime_error(exc)
         return 1
     return 0
 
