@@ -3808,13 +3808,13 @@ header .theme-toggle-container {
   }
 }
 
-/* --- Bundle detail (skill/hook): install command + file browser --- */
-.bundle-detail-page .skill-install {
+/* --- Detail install slot (skill/hook/workflow): install command + downloads --- */
+.detail-actions-card .skill-install {
   display: grid;
   gap: 0.75rem;
   min-width: 0;
 }
-.bundle-detail-page .skill-install-label {
+.detail-actions-card .skill-install-label {
   margin: 0;
   font-size: 0.8rem;
   font-weight: 600;
@@ -3822,7 +3822,7 @@ header .theme-toggle-container {
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
 }
-.bundle-detail-page .skill-install-command {
+.detail-actions-card .skill-install-command {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -3832,7 +3832,7 @@ header .theme-toggle-container {
   border: 1px solid var(--color-border);
   border-radius: 6px;
 }
-.bundle-detail-page .skill-install-command code {
+.detail-actions-card .skill-install-command code {
   flex: 1;
   min-width: 0;
   overflow-x: auto;
@@ -3841,7 +3841,7 @@ header .theme-toggle-container {
   background: none;
   padding: 0;
 }
-.bundle-detail-page .skill-install-copy {
+.detail-actions-card .skill-install-copy {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -3853,11 +3853,11 @@ header .theme-toggle-container {
   border-radius: 4px;
   cursor: pointer;
 }
-.bundle-detail-page .skill-install-copy:hover {
+.detail-actions-card .skill-install-copy:hover {
   color: var(--color-text-emphasis);
   background: var(--color-bg-secondary);
 }
-.bundle-detail-page .skill-download-btn {
+.detail-actions-card .skill-download-btn {
   width: 100%;
   display: inline-flex;
   align-items: center;
@@ -3865,11 +3865,14 @@ header .theme-toggle-container {
   gap: 0.4rem;
 }
 
-.bundle-detail-page .skill-install-note {
+.detail-actions-card .skill-install-note {
   margin: 0;
   font-size: 0.85rem;
   line-height: 1.5;
   color: var(--color-text-muted);
+}
+.detail-actions-card .skill-install-note a {
+  color: var(--color-text-accent);
 }
 
 .skill-file-browser {

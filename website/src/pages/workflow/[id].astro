@@ -1,64 +1,44 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import BackToTop from "../../components/BackToTop.astro";
-import hooksData from "../../../public/data/hooks.json";
+import workflowsData from "../../../public/data/workflows.json";
 import RawMarkdown from "../../components/pages/RawMarkdown.astro";
 import type { HeaderItem } from "../../components/pages/Header.astro";
 import DetailHeader from "../../components/pages/Header.astro";
 import Breadcrumb from "../../components/pages/Breadcrumb.astro";
+import Main from "../../components/pages/Main.astro";
 import Sidebar from "../../components/pages/Sidebar.astro";
-import FileBrowser from "../../components/pages/FileBrowser.astro";
 import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
 
 const GITHUB_BASE = "https://github.com/github/awesome-copilot/blob/main";
 
-interface HookFile {
-  name: string;
-  path: string;
-  size?: number;
-}
-
-interface HookItem extends HeaderItem {
+interface WorkflowItem extends HeaderItem {
   id: string;
   title: string;
   description?: string;
   path: string;
-  readmeFile: string;
-  readmeFileName?: string;
-  files: HookFile[];
-  hooks: string[];
-  tags: string[];
-  assets: string[];
+  triggers: string[];
   lastUpdated?: string | null;
 }
 
 export function getStaticPaths() {
-  return (hooksData.items as HookItem[]).map((item) => ({
+  return (workflowsData.items as WorkflowItem[]).map((item) => ({
     params: { id: item.id },
     props: { item },
   }));
 }
 
-const { item } = Astro.props as { item: HookItem };
+const { item } = Astro.props as { item: WorkflowItem };
 
 const { markdownHtml, frontmatterText, rawMarkdown } = readResourceMarkdown(
-  item.readmeFile
+  item.path
 );
 const lastUpdated = formatLastUpdated(item.lastUpdated);
 const githubUrl = `${GITHUB_BASE}/${item.path}`;
-const readmeFileName = item.readmeFileName ?? "README.md";
 
-const fileCount = item.files.length;
 const chips: { title: string; items: string[] }[] = [];
-if (item.hooks.length > 0) {
-  chips.push({ title: "Hook events", items: item.hooks });
-}
-chips.push({
-  title: "Files",
-  items: [`${fileCount} file${fileCount === 1 ? "" : "s"}`],
-});
-if (item.tags.length > 0) {
-  chips.push({ title: "Tags", items: item.tags });
+if (item.triggers.length > 0) {
+  chips.push({ title: "Triggers", items: item.triggers });
 }
 ---
 
@@ -74,17 +54,16 @@ if (item.tags.length > 0) {
 >
   <div
     id="main-content"
-    class="resource-detail-page hook-detail-page"
-    data-file-browser-page
-    data-bundle-id={item.id}
-    data-path={item.readmeFile}
+    class="resource-detail-page"
+    data-resource-detail
+    data-path={item.path}
   >
     <RawMarkdown markdown={rawMarkdown} />
     <div class="container">
       <Breadcrumb
         paths={[
           { name: "Home", href: "/" },
-          { name: "Hooks", href: "/hooks/" },
+          { name: "Agentic Workflows", href: "/workflows/" },
         ]}
         title={item.title}
       />
@@ -92,15 +71,7 @@ if (item.tags.length > 0) {
       <DetailHeader item={item} />
 
       <div class="detail-layout">
-        <main class="detail-main">
-          <FileBrowser
-            files={item.files}
-            primaryPath={item.readmeFile}
-            primaryName={readmeFileName}
-            primaryHtml={markdownHtml}
-            githubBase={GITHUB_BASE}
-          />
-        </main>
+        <Main markdownHtml={markdownHtml} githubUrl={githubUrl} />
 
         <Sidebar
           item={item}
@@ -110,15 +81,19 @@ if (item.tags.length > 0) {
           chips={chips}
         >
           <div class="skill-install" slot="install">
-            <p class="skill-install-label">Install this hook</p>
+            <p class="skill-install-label">Install this workflow</p>
             <p class="skill-install-note">
-              Hooks are multi-file bundles with no CLI installer. Download the
-              ZIP and copy the files into your project's hooks directory.
+              Install the <code>gh aw</code> CLI (<code
+                >gh extension install github/gh-aw</code
+              >), then copy this file into <code>.github/workflows/</code> and run
+              <code>gh aw compile</code> to generate the lock file. See the
+              <a href="/learning-hub/agentic-workflows/">Agentic Workflows guide</a
+              > for full setup steps.
             </p>
             <button
               type="button"
               class="btn btn-primary skill-download-btn"
-              data-action="download-zip"
+              data-action="download"
             >
               <svg
                 viewBox="0 0 16 16"
@@ -132,7 +107,14 @@ if (item.tags.length > 0) {
                   d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"
                 ></path></svg
               >
-              Download ZIP
+              Download workflow
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary skill-download-btn"
+              data-action="copy-markdown"
+            >
+              Copy markdown
             </button>
           </div>
         </Sidebar>
@@ -143,6 +125,6 @@ if (item.tags.length > 0) {
   <BackToTop />
 
   <script>
-    import "../../scripts/pages/file-browser";
+    import "../../scripts/pages/resource-detail";
   </script>
 </StarlightPage>
