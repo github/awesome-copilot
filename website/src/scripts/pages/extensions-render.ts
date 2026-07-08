@@ -83,11 +83,15 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
              "/"
            )}`
           : "");
-      const installCommand =
-        item.installCommand ||
-        (item.pluginName ? `copilot plugin install ${item.pluginName}@awesome-copilot` : "");
       const sourceUrl =
         item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
+      const pluginId = item.pluginName || item.id;
+      const ghappInstallUrl =
+        !item.external && pluginId
+          ? `ghapp://plugins/install?source=${encodeURIComponent(
+              `${pluginId}@awesome-copilot`
+            )}`
+          : "";
 
       const previewMediaHtml = item.imageUrl
         ? `<div class="resource-thumbnail-btn" aria-hidden="true">
@@ -126,14 +130,17 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
       `;
 
       const actionsHtml = `
-        <button
-          class="btn btn-primary btn-small copy-install-url-btn"
-          data-install-command="${escapeHtml(installCommand)}"
-          title="Copy plugin install command"
-          ${installCommand ? "" : "disabled"}
+        ${
+          ghappInstallUrl
+            ? `<a
+          class="btn btn-primary btn-small"
+          href="${escapeHtml(ghappInstallUrl)}"
+          title="Install in the GitHub Copilot app"
         >
-          Copy Install
-        </button>
+          Install in Copilot app
+        </a>`
+            : ""
+        }
         <button
           class="btn btn-secondary btn-small copy-install-url-btn"
           data-install-url="${escapeHtml(installUrl)}"
