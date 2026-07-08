@@ -1277,6 +1277,9 @@ function generateCanvasManifest(gitDates, commitSha) {
     );
     const extensionName = normalizeText(pluginJson.name, normalizeText(packageJson.name, dir.name));
     const extensionVersion = normalizeText(pluginJson.version, normalizeText(packageJson.version, "1.0.0"));
+    const readmeFile = fs.existsSync(path.join(extensionDir, "README.md"))
+      ? `${relPath}/README.md`
+      : null;
     const screenshots = resolveExtensionScreenshots(pluginJson, extensionDir, relPath, commitSha);
     const canvasFiles = getExtensionCanvasFiles(extensionDir);
     const canvases = [];
@@ -1305,6 +1308,7 @@ function generateCanvasManifest(gitDates, commitSha) {
         pluginName: extensionName,
         name: canvasName,
         version: extensionVersion,
+        readmeFile,
         description: canvasDescription,
         path: relPath,
         ref: commitSha,
@@ -1380,6 +1384,7 @@ function generateCanvasManifest(gitDates, commitSha) {
             pluginName: null,
             name,
             version: normalizeText(ext?.version, "1.0.0"),
+            readmeFile: null,
             description: normalizeText(ext?.description, "External canvas extension"),
             path: null,
             ref: null,

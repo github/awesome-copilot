@@ -3945,6 +3945,52 @@ header .theme-toggle-container {
 .detail-actions-card .skill-install-note a {
   color: var(--color-text-accent);
 }
+.detail-actions-card .skill-install-url-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* --- Extension detail preview gallery --- */
+.extension-gallery .extension-gallery-main {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-bg-tertiary);
+}
+.extension-gallery .extension-gallery-main img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.extension-gallery .extension-gallery-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.extension-gallery .extension-gallery-thumb {
+  padding: 0;
+  width: 88px;
+  height: 64px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-bg-tertiary);
+  cursor: pointer;
+}
+.extension-gallery .extension-gallery-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.extension-gallery .extension-gallery-thumb:hover {
+  border-color: var(--color-text-muted);
+}
+.extension-gallery .extension-gallery-thumb.active {
+  border-color: var(--color-text-accent);
+  box-shadow: 0 0 0 1px var(--color-text-accent);
+}
 
 .skill-file-browser {
   display: block;

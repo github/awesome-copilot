@@ -95,6 +95,23 @@ function initResourceDetail(): void {
       });
     });
 
+  // --- Copy install URL (fallback install target) ---
+  root
+    .querySelectorAll<HTMLElement>("[data-action='copy-install-url']")
+    .forEach((el) => {
+      el.addEventListener("click", async (e) => {
+        e.preventDefault();
+        closeMenu();
+        const url = el.dataset.installUrl ?? "";
+        if (!url) return;
+        const success = await copyToClipboard(url);
+        showToast(
+          success ? "Install URL copied!" : "Failed to copy URL",
+          success ? "success" : "error"
+        );
+      });
+    });
+
   // --- Share ---
   const shareBtn = root.querySelector<HTMLButtonElement>(
     "[data-action='share']"

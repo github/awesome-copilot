@@ -47,6 +47,10 @@ export interface RenderableExtension {
 
 export type ExtensionSortOption = "title" | "lastUpdated";
 
+export function getExtensionDetailUrl(id: string): string {
+  return `/extension/${id}/`;
+}
+
 export function sortExtensions<T extends RenderableExtension>(
   items: T[],
   sort: ExtensionSortOption
@@ -87,7 +91,7 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
         item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
 
       const previewMediaHtml = item.imageUrl
-        ? `<div class="resource-thumbnail-btn" data-extension-id="${escapeHtml(item.id)}" aria-hidden="true">
+        ? `<div class="resource-thumbnail-btn" aria-hidden="true">
             <img class="resource-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />
            </div>`
         : `<div class="resource-thumbnail resource-thumbnail-placeholder" aria-hidden="true">Canvas</div>`;
@@ -157,6 +161,7 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
       return renderSharedCardHtml({
         title: item.name,
         description: item.description || "Canvas extension",
+        href: getExtensionDetailUrl(item.id),
         previewMediaHtml,
         infoExtraHtml,
         metaHtml,
