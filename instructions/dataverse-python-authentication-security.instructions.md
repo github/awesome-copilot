@@ -1,5 +1,6 @@
 ---
 applyTo: '**'
+description: 'Authentication and security patterns for the Dataverse SDK for Python, including OAuth setup and credential handling.'
 ---
 
 # Dataverse SDK for Python — Authentication & Security Patterns

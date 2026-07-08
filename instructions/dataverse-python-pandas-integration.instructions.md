@@ -1,3 +1,8 @@
+---
+applyTo: '**'
+description: 'Integrating the Dataverse SDK for Python with pandas DataFrames for data science and analysis workflows.'
+---
+
 # Dataverse SDK for Python - Pandas Integration Guide
 
 ## Overview

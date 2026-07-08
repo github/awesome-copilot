@@ -1,5 +1,6 @@
 ---
 applyTo: '**'
+description: 'Official quickstart guidance and copyable snippets for the Dataverse SDK for Python (preview).'
 ---
 # Dataverse SDK for Python — Official Quickstart
 

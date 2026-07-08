@@ -1,3 +1,8 @@
+---
+applyTo: '**'
+description: 'File upload operations, chunking strategies, and practical real-world examples using the Dataverse SDK for Python.'
+---
+
 # Dataverse SDK for Python - File Operations & Practical Examples
 
 ## Overview

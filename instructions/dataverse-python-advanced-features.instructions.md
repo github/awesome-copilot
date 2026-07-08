@@ -1,3 +1,8 @@
+---
+applyTo: '**'
+description: 'Advanced Dataverse SDK for Python features including enums, complex filtering, SQL queries, metadata operations, and production patterns.'
+---
+
 # Dataverse SDK for Python - Advanced Features Guide
 
 ## Overview

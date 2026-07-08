@@ -1,5 +1,6 @@
 ---
 applyTo: '**'
+description: 'Complete package and module reference for the Dataverse SDK for Python.'
 ---
 # Dataverse SDK for Python — Complete Module Reference
 

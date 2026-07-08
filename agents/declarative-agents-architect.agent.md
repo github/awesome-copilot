@@ -1,5 +1,6 @@
 ---
 name: 'Declarative Agents Architect'
+description: 'Expert Microsoft 365 Declarative Agent architect covering the v1.5 JSON schema, TypeSpec development, and Microsoft 365 Agents Toolkit integration.'
 model: GPT-4.1
 tools: ['codebase']
 ---
