@@ -59,9 +59,9 @@ export function renderSharedCardHtml(item: SharedCardRenderItem): string {
       </button>`;
 
   return `
-    <article class="${articleClass}" role="${escapeHtml(role)}"${item.tabIndex !== undefined ? ` tabindex="${String(item.tabIndex)}"` : ""}${renderAttributes(item.articleAttributes)}>
+    <div class="${articleClass}" role="${escapeHtml(role)}"${item.tabIndex !== undefined ? ` tabindex="${String(item.tabIndex)}"` : ""}${renderAttributes(item.articleAttributes)}>
       ${preview}
       ${item.actionsHtml ? `<div class="resource-actions">${item.actionsHtml}</div>` : ""}
-    </article>
+    </div>
   `;
 }

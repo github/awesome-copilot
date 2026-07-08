@@ -662,16 +662,16 @@ body:has(#main-content) {
 
 .btn-primary {
   background: var(--color-accent);
-  color: var(--sl-color-text-invert) !important;
+  color: #fff !important;
   border-color: transparent;
   font-weight: 600;
 }
 
 .btn-primary:hover {
-  background: var(--color-accent-hover);
+  background: #7326d6;
   transform: translateY(-1px);
   box-shadow: var(--shadow-glow);
-  color: white;
+  color: #fff;
 }
 
 .btn-secondary {
