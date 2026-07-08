@@ -3940,6 +3940,9 @@ header .theme-toggle-container {
 .skill-file-content {
   padding: 1.25rem;
 }
+.skill-file-content.is-code {
+  padding: 0;
+}
 .skill-file-content .shiki,
 .skill-file-content .skill-file-plain {
   margin: 0;
@@ -3947,6 +3950,11 @@ header .theme-toggle-container {
   border-radius: 6px;
   font-size: 0.82rem;
   overflow-x: auto;
+}
+.skill-file-content.is-code .shiki,
+.skill-file-content.is-code .skill-file-plain {
+  border: 0;
+  border-radius: 0;
 }
 .skill-file-status {
   padding: 0.85rem 1.25rem;

@@ -158,9 +158,11 @@ function initSkillDetail(): void {
     try {
       const entry = await renderFile(path, name, lang, kind);
       contentEl.innerHTML = entry.html;
+      contentEl.classList.toggle("is-code", kind === "code");
       setStatus(null);
     } catch {
       contentEl.innerHTML = "";
+      contentEl.classList.remove("is-code");
       setStatus(null);
       const url = githubBase ? `${githubBase}/${path}` : "#";
       contentEl.innerHTML = `<p class="detail-empty">Couldn't load this file. <a href="${escapeHtml(
