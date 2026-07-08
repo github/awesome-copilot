@@ -3903,6 +3903,7 @@ header .theme-toggle-container {
   min-width: 0;
   max-width: 100%;
   flex: 0 1 auto;
+  margin: 0;
   padding: 0.35rem 2rem 0.35rem 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: 6px;
