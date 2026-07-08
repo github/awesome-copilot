@@ -2,7 +2,7 @@
   "name": "awesome-copilot",
   "version": "1.0.0",
   "description": "Enhance your GitHub Copilot experience with community-contributed instructions, prompts, agents, and skills.",
-  "main": "./eng/update-readme.js",
+  "main": "./eng/update-readme.mjs",
   "private": true,
   "scripts": {
     "start": "npm run build",
