@@ -28,7 +28,7 @@ Both halves are required: `approval_mode="always_require"` on the tool AND `requ
 AITool[] tools = [new ApprovalRequiredAIFunction(AIFunctionFactory.Create(ApproveExpenseReport))];
 var baseAgent = openAIChatClient.AsAIAgent(name: "assistant", instructions: "...", tools: tools);
 var agent = new ServerFunctionApprovalAgent(baseAgent, jsonOptions.SerializerOptions);
-app.MapAGUIServer("/", agent);
+app.MapAGUI("/", agent);
 
 internal sealed class ServerFunctionApprovalAgent(AIAgent inner, JsonSerializerOptions json)
     : DelegatingAIAgent(inner)
