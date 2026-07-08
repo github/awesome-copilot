@@ -5,7 +5,7 @@ description: 'Ongoing development guidance for agentic web apps that pair a Copi
 
 # Developing with CopilotKit + AG-UI + Azure AI Foundry Hosted Agents
 
-Use this skill for development work inside an EXISTING application built on this stack: a React/Next.js frontend using CopilotKit, connected over the AG-UI protocol to a Microsoft Agent Framework (MAF) agent (Python or .NET) that runs as — or is being developed against — an Azure AI Foundry hosted agent.
+Use this skill for development work inside an EXISTING application built on this stack: a React/Next.js frontend using CopilotKit, connected over the AG-UI protocol to a Microsoft Agent Framework (MAF) agent (Python or .NET) that runs as — or is being developed against — an Azure AI Foundry hosted agent (paid Azure service; usage may incur costs).
 
 Do NOT use this skill to scaffold a new project. Dedicated scaffolders exist (the CopilotKit CLI, `azd ai agent init`); use those, then return here for everything that follows: adding tools, gating them behind approvals, generative UI, shared state, debugging, dependency upgrades, and deploying agent updates.
 
