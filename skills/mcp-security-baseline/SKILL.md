@@ -8,7 +8,6 @@ description: |
   - Verifying auth, session, rate-limiting, and input-validation controls on a network-exposed server
   - Reviewing MCP client code that handles untrusted server responses and session IDs
   - Requests like "review this MCP server for security" or "is my MCP server implementation secure?"
-keywords: [mcp, security, baseline, code-review, owasp, rce, authentication]
 ---
 
 # MCP Security Baseline Review
@@ -16,7 +15,7 @@ keywords: [mcp, security, baseline, code-review, owasp, rce, authentication]
 ## Process
 
 ### Step 1 — Classify the target
-- Check **MCP protocol version 2025-03-26 or later**. Flag older versions as a finding but continue the review.
+- Check **MCP protocol version [2025-03-26](https://modelcontextprotocol.io/specification/2025-03-26) or later**. Flag older versions as a finding but continue the review.
 - Determine whether the target is a **server** or **client**.
 - Classify transport as **network-exposed** or **local-only** using the transport reference below.
 - Record transport, protocol version, and whether sessions exist.
