@@ -362,13 +362,38 @@ function sendJson(res, statusCode, value) {
     res.end(JSON.stringify(value));
 }
 
+async function closeServerEntry(entry) {
+    if (!entry?.server?.listening) return;
+    await new Promise((resolve, reject) => {
+        entry.server.close((error) => error ? reject(error) : resolve());
+    });
+}
+
+async function closeCanvasServer(instanceId) {
+    const entry = servers.get(instanceId);
+    if (entry) {
+        servers.delete(instanceId);
+        await closeServerEntry(entry);
+    }
+}
+
+async function closeAllCanvasServers() {
+    const entries = [...servers.values()];
+    servers.clear();
+    await Promise.all(entries.map((entry) => closeServerEntry(entry)));
+}
+
 async function handleRequest(entry, req, res) {
     const url = new URL(req.url || "/", entry.url);
     if (url.pathname === "/" && req.method === "GET") {
+        const nonce = randomUUID().replaceAll("-", "");
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader("Cache-Control", "no-store");
-        res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src https: data:");
-        res.end(renderHtml());
+        res.setHeader(
+            "Content-Security-Policy",
+            `default-src 'self'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; connect-src 'self'; img-src https: data:; base-uri 'none'; form-action 'none'`,
+        );
+        res.end(renderHtml(nonce));
         return;
     }
     if (url.searchParams.get("token") !== entry.token) {
@@ -542,8 +567,7 @@ activeSession = await joinSession({
                 await stateFor(repoPath);
                 let entry = servers.get(ctx.instanceId);
                 if (entry && entry.repoPath !== repoPath) {
-                    servers.delete(ctx.instanceId);
-                    await new Promise((resolve) => entry.server.close(resolve));
+                    await closeCanvasServer(ctx.instanceId);
                     entry = null;
                 }
                 if (!entry) {
@@ -557,20 +581,28 @@ activeSession = await joinSession({
                 };
             },
             onClose: async (ctx) => {
-                const entry = servers.get(ctx.instanceId);
-                if (entry) {
-                    servers.delete(ctx.instanceId);
-                    await new Promise((resolve) => entry.server.close(resolve));
-                }
+                await closeCanvasServer(ctx.instanceId);
             },
         }),
     ],
 });
 
+async function shutdownExtension() {
+    await Promise.all([
+        stopCopyClient(),
+        closeAllCanvasServers(),
+    ]);
+}
+
 activeSession.on("session.shutdown", () => {
-    void stopCopyClient();
+    void shutdownExtension().catch((error) => {
+        void activeSession?.log(
+            `Tiny Tool Town Submitter shutdown cleanup failed: ${error instanceof Error ? error.message : String(error)}`,
+            { level: "warning" },
+        );
+    });
 });
 
 process.once("SIGTERM", () => {
-    void stopCopyClient().finally(() => process.exit(0));
+    void shutdownExtension().finally(() => process.exit(0));
 });

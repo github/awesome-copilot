@@ -378,7 +378,7 @@ export function validateSubmission(metadata, facts) {
             errors.push("Thumbnail URL must be valid.");
         }
     }
-    if (!THEMES.includes(metadata?.theme || "")) errors.push("Choose a supported page theme.");
+    if (metadata?.theme && !THEMES.includes(metadata.theme)) errors.push("Choose a supported page theme.");
     if (!metadata?.confirmations?.freeOpenSource) errors.push("Confirm that the tool is free and open source.");
     if (!metadata?.confirmations?.notEnterpriseSaas) errors.push("Confirm that the tool is not enterprise software or paid SaaS.");
     if (!metadata?.confirmations?.publicAndWorks) errors.push("Confirm that the repository is public and the tool works.");

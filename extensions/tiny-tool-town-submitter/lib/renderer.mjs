@@ -71,6 +71,9 @@ h1 { margin: 3px 0 6px; font-size: 30px; line-height: 36px; letter-spacing: -.02
 }
 .metric { position: relative; overflow: hidden; padding: 15px 17px; box-shadow: 0 5px 16px color-mix(in srgb, var(--text-color-default, #1f2328) 4%, transparent); }
 .metric::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--metric-color, var(--accent)); }
+.metric.success { --metric-color: var(--success); }
+.metric.danger { --metric-color: var(--danger); }
+.metric.warning { --metric-color: var(--warning); }
 .metric strong { display: block; font-size: 19px; margin-top: 2px; }
 .metric span { display: flex; align-items: center; gap: 6px; color: var(--text-color-muted, #656d76); font-size: 12px; }
 .metric-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--metric-color, var(--accent)); }
@@ -216,14 +219,14 @@ button:disabled { opacity: .55; cursor: wait; }
 }
 `;
 
-export function renderHtml() {
+export function renderHtml(nonce = "") {
     return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tiny Tool Town Submitter</title>
-  <style>${STYLE}</style>
+  <style nonce="${nonce}">${STYLE}</style>
 </head>
 <body>
   <main class="shell">
@@ -279,7 +282,7 @@ export function renderHtml() {
               <div id="themeSwatches" class="theme-swatches" aria-label="Selected theme colors"></div>
             </div>
             <div id="themePreview" class="theme-preview" aria-label="Selected Tiny Tool Town theme preview">
-              <div class="preview-browser"><i></i><i></i><i></i><span>tinytooltown.com/tools/preview</span></div>
+              <div class="preview-browser"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span>tinytooltown.com/tools/preview</span></div>
               <div class="preview-card">
                 <div id="previewThemeName" class="preview-kicker">Site default</div>
                 <h3 id="previewName">Your tiny tool</h3>
@@ -322,7 +325,7 @@ export function renderHtml() {
       </div>
     </section>
   </main>
-  <script>
+  <script nonce="${nonce}">
     const tokenParam = new URLSearchParams(location.search).get("token");
     const token = tokenParam || sessionStorage.getItem("tiny-tool-town-submitter-token") || "";
     if (tokenParam) {
@@ -422,9 +425,13 @@ export function renderHtml() {
         ["Primary", palette.primary],
         ["Accent", palette.accent],
       ];
-      document.getElementById("themeSwatches").innerHTML = swatches.map(([name, color]) =>
-        '<div class="theme-swatch" title="' + escapeHtml(name + ": " + color) + '"><span class="swatch-color" style="background:' + escapeHtml(color) + '"></span><span class="swatch-name">' + escapeHtml(name) + '</span></div>'
+      const swatchesElement = document.getElementById("themeSwatches");
+      swatchesElement.innerHTML = swatches.map(([name, color], index) =>
+        '<div class="theme-swatch" title="' + escapeHtml(name + ": " + color) + '"><span class="swatch-color" data-swatch="' + index + '"></span><span class="swatch-name">' + escapeHtml(name) + '</span></div>'
       ).join("");
+      swatches.forEach(([, color], index) => {
+        swatchesElement.querySelector('[data-swatch="' + index + '"]').style.background = color;
+      });
     }
 
     function render(state) {
@@ -438,11 +445,11 @@ export function renderHtml() {
       document.getElementById("repoPath").textContent = state.repoPath;
       const facts = state.facts;
       document.getElementById("summary").innerHTML = [
-        ["README", facts.hasReadme ? "Found" : "Missing", facts.hasReadme ? "var(--success)" : "var(--danger)"],
-        ["License file", facts.licensePath ? "Found" : "Missing", facts.licensePath ? "var(--success)" : "var(--danger)"],
-        ["Showcase image", facts.hasThumbnail ? "Found" : "Missing", facts.hasThumbnail ? "var(--success)" : "var(--warning)"],
-        ["GitHub visibility", facts.isPrivate === false ? "Public" : facts.isPrivate === true ? "Private" : "Unverified", facts.isPrivate === false ? "var(--success)" : facts.isPrivate === true ? "var(--danger)" : "var(--warning)"],
-      ].map(([label, value, color]) => '<div class="metric" style="--metric-color:' + color + '"><span><i class="metric-dot"></i>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>').join("");
+        ["README", facts.hasReadme ? "Found" : "Missing", facts.hasReadme ? "success" : "danger"],
+        ["License file", facts.licensePath ? "Found" : "Missing", facts.licensePath ? "success" : "danger"],
+        ["Showcase image", facts.hasThumbnail ? "Found" : "Missing", facts.hasThumbnail ? "success" : "warning"],
+        ["GitHub visibility", facts.isPrivate === false ? "Public" : facts.isPrivate === true ? "Private" : "Unverified", facts.isPrivate === false ? "success" : facts.isPrivate === true ? "danger" : "warning"],
+      ].map(([label, value, tone]) => '<div class="metric ' + escapeHtml(tone) + '"><span><i class="metric-dot" aria-hidden="true"></i>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>').join("");
 
       for (const id of fields) {
         const element = document.getElementById(id);
