@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-30
+lastUpdated: 2026-07-08
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -402,6 +402,19 @@ A: Yes, since v1.0.44. You can include multiple slash commands in a single messa
 **Q: Should skills include code examples?**
 
 A: Yes, for clarity. Show examples of desired output format, patterns to follow, or anti-patterns to avoid. For complex schemas or formats, consider bundling them as reference files rather than inline examples.
+
+**Q: What is dynamic retrieval and how does it affect skills?**
+
+A: Dynamic retrieval (v1.0.66+) uses embeddings-based search to automatically surface relevant skills based on semantic similarity between your conversation and skill descriptions. When enabled, Copilot can invoke skills automatically — even without an explicit `/skill-name` command — by matching your intent against skill descriptions.
+
+Control it with the `--dynamic-retrieval` flag:
+
+```bash
+copilot --dynamic-retrieval skills=on    # enable embeddings-based skill discovery
+copilot --dynamic-retrieval skills=off   # rely on explicit invocations only
+```
+
+Or toggle the `dynamicRetrieval` setting via `/settings` inside an interactive session to persist your preference. Most teams leave it on for broader automatic skill discovery. If you find skills being invoked unexpectedly, turning it off gives you full manual control.
 
 **Q: How do I review agent-proposed skill changes?**
 
