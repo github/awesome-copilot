@@ -3808,13 +3808,13 @@ header .theme-toggle-container {
   }
 }
 
-/* --- Skill detail: install command + file browser --- */
-.skill-detail-page .skill-install {
+/* --- Bundle detail (skill/hook): install command + file browser --- */
+.bundle-detail-page .skill-install {
   display: grid;
   gap: 0.75rem;
   min-width: 0;
 }
-.skill-detail-page .skill-install-label {
+.bundle-detail-page .skill-install-label {
   margin: 0;
   font-size: 0.8rem;
   font-weight: 600;
@@ -3822,7 +3822,7 @@ header .theme-toggle-container {
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
 }
-.skill-detail-page .skill-install-command {
+.bundle-detail-page .skill-install-command {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -3832,7 +3832,7 @@ header .theme-toggle-container {
   border: 1px solid var(--color-border);
   border-radius: 6px;
 }
-.skill-detail-page .skill-install-command code {
+.bundle-detail-page .skill-install-command code {
   flex: 1;
   min-width: 0;
   overflow-x: auto;
@@ -3841,7 +3841,7 @@ header .theme-toggle-container {
   background: none;
   padding: 0;
 }
-.skill-detail-page .skill-install-copy {
+.bundle-detail-page .skill-install-copy {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -3853,16 +3853,23 @@ header .theme-toggle-container {
   border-radius: 4px;
   cursor: pointer;
 }
-.skill-detail-page .skill-install-copy:hover {
+.bundle-detail-page .skill-install-copy:hover {
   color: var(--color-text-emphasis);
   background: var(--color-bg-secondary);
 }
-.skill-detail-page .skill-download-btn {
+.bundle-detail-page .skill-download-btn {
   width: 100%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
+}
+
+.bundle-detail-page .skill-install-note {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
 }
 
 .skill-file-browser {

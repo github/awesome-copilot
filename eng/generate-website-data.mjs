@@ -251,6 +251,10 @@ function generateHooksData(gitDates) {
       .replace(/\\/g, "/");
     const readmeRelativePath = `${relativePath}/README.md`;
 
+    // Get all files in the hook folder recursively (for the file browser and
+    // ZIP download on the detail page).
+    const files = getFolderFiles(hookPath, relativePath);
+
     // Track unique values
     (metadata.hooks || []).forEach((h) => allHookTypes.add(h));
     (metadata.tags || []).forEach((t) => allTags.add(t));
@@ -262,8 +266,10 @@ function generateHooksData(gitDates) {
       hooks: metadata.hooks || [],
       tags: metadata.tags || [],
       assets: metadata.assets || [],
+      files,
       path: relativePath,
       readmeFile: readmeRelativePath,
+      readmeFileName: "README.md",
       lastUpdated: gitDates.get(readmeRelativePath) || null,
     });
   }
@@ -465,7 +471,7 @@ function generateSkillsData(gitDates) {
         .replace(/\\/g, "/");
 
       // Get all files in the skill folder recursively
-      const files = getSkillFiles(skillPath, relativePath);
+      const files = getFolderFiles(skillPath, relativePath);
 
       // Get last updated from SKILL.md file
       const skillFilePath = `${relativePath}/SKILL.md`;
@@ -511,9 +517,9 @@ function generateSkillsData(gitDates) {
 }
 
 /**
- * Get all files in a skill folder recursively
+ * Get all files in a resource folder (skill or hook) recursively.
  */
-function getSkillFiles(skillPath, relativePath) {
+function getFolderFiles(skillPath, relativePath) {
   const files = [];
 
   function walkDir(dir, relDir) {

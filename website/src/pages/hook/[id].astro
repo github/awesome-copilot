@@ -1,7 +1,7 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import BackToTop from "../../components/BackToTop.astro";
-import skillsData from "../../../public/data/skills.json";
+import hooksData from "../../../public/data/hooks.json";
 import RawMarkdown from "../../components/pages/RawMarkdown.astro";
 import type { HeaderItem } from "../../components/pages/Header.astro";
 import DetailHeader from "../../components/pages/Header.astro";
@@ -11,52 +11,54 @@ import FileBrowser from "../../components/pages/FileBrowser.astro";
 import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
 
 const GITHUB_BASE = "https://github.com/github/awesome-copilot/blob/main";
-const REPO_IDENTIFIER = "github/awesome-copilot";
 
-interface SkillFile {
+interface HookFile {
   name: string;
   path: string;
   size?: number;
 }
 
-interface SkillItem extends HeaderItem {
+interface HookItem extends HeaderItem {
   id: string;
   title: string;
   description?: string;
   path: string;
-  skillFile: string;
-  files: SkillFile[];
-  hasAssets?: boolean;
-  assetCount?: number;
+  readmeFile: string;
+  readmeFileName?: string;
+  files: HookFile[];
+  hooks: string[];
+  tags: string[];
+  assets: string[];
   lastUpdated?: string | null;
 }
 
 export function getStaticPaths() {
-  return (skillsData.items as SkillItem[]).map((item) => ({
+  return (hooksData.items as HookItem[]).map((item) => ({
     params: { id: item.id },
     props: { item },
   }));
 }
 
-const { item } = Astro.props as { item: SkillItem };
+const { item } = Astro.props as { item: HookItem };
 
 const { markdownHtml, frontmatterText, rawMarkdown } = readResourceMarkdown(
-  item.skillFile
+  item.readmeFile
 );
 const lastUpdated = formatLastUpdated(item.lastUpdated);
 const githubUrl = `${GITHUB_BASE}/${item.path}`;
-const installCommand = `gh skills install ${REPO_IDENTIFIER} ${item.id}`;
-const skillFileName = item.skillFile.split("/").pop() ?? "SKILL.md";
+const readmeFileName = item.readmeFileName ?? "README.md";
 
 const fileCount = item.files.length;
-const chips: { title: string; items: string[] }[] = [
-  { title: "Files", items: [`${fileCount} file${fileCount === 1 ? "" : "s"}`] },
-];
-if (item.hasAssets && item.assetCount) {
-  chips.push({
-    title: "Assets",
-    items: [`${item.assetCount} asset${item.assetCount === 1 ? "" : "s"}`],
-  });
+const chips: { title: string; items: string[] }[] = [];
+if (item.hooks.length > 0) {
+  chips.push({ title: "Hook events", items: item.hooks });
+}
+chips.push({
+  title: "Files",
+  items: [`${fileCount} file${fileCount === 1 ? "" : "s"}`],
+});
+if (item.tags.length > 0) {
+  chips.push({ title: "Tags", items: item.tags });
 }
 ---
 
@@ -72,17 +74,17 @@ if (item.hasAssets && item.assetCount) {
 >
   <div
     id="main-content"
-    class="resource-detail-page skill-detail-page bundle-detail-page"
+    class="resource-detail-page hook-detail-page bundle-detail-page"
     data-file-browser-page
     data-bundle-id={item.id}
-    data-path={item.skillFile}
+    data-path={item.readmeFile}
   >
     <RawMarkdown markdown={rawMarkdown} />
     <div class="container">
       <Breadcrumb
         paths={[
           { name: "Home", href: "/" },
-          { name: "Skills", href: "/skills/" },
+          { name: "Hooks", href: "/hooks/" },
         ]}
         title={item.title}
       />
@@ -93,8 +95,8 @@ if (item.hasAssets && item.assetCount) {
         <main class="detail-main">
           <FileBrowser
             files={item.files}
-            primaryPath={item.skillFile}
-            primaryName={skillFileName}
+            primaryPath={item.readmeFile}
+            primaryName={readmeFileName}
             primaryHtml={markdownHtml}
             githubBase={GITHUB_BASE}
           />
@@ -108,30 +110,11 @@ if (item.hasAssets && item.assetCount) {
           chips={chips}
         >
           <div class="skill-install" slot="install">
-            <p class="skill-install-label">Install with the GitHub CLI</p>
-            <div class="skill-install-command" data-install-command={installCommand}>
-              <code>{installCommand}</code>
-              <button
-                type="button"
-                class="skill-install-copy"
-                data-action="copy-install"
-                title="Copy install command"
-                aria-label="Copy install command"
-              >
-                <svg
-                  viewBox="0 0 16 16"
-                  width="15"
-                  height="15"
-                  fill="currentColor"
-                  aria-hidden="true"
-                  ><path
-                    d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"
-                  ></path><path
-                    d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"
-                  ></path></svg
-                >
-              </button>
-            </div>
+            <p class="skill-install-label">Install this hook</p>
+            <p class="skill-install-note">
+              Hooks are multi-file bundles with no CLI installer. Download the
+              ZIP and copy the files into your project's hooks directory.
+            </p>
             <button
               type="button"
               class="btn btn-primary skill-download-btn"

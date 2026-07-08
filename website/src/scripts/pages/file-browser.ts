@@ -1,8 +1,9 @@
 /**
- * Client behaviour for the skill detail page.
+ * Client behaviour for multi-file bundle detail pages (skills and hooks).
  *
- * Skills differ from agents/instructions: they are multi-file bundles installed
- * with the GitHub CLI. This script wires up the file browser (SKILL.md is
+ * Skills and hooks are multi-file bundles: there is no single-command CLI
+ * install for hooks, and skills install with the GitHub CLI. This script wires
+ * up the shared file browser (the primary file — SKILL.md or README.md — is
  * embedded at build time; other files are lazily fetched and rendered — markdown
  * via `marked`, code via a lazily-imported Shiki, everything else as plain
  * text), plus the "copy install command", "Download ZIP", copy-file and Share
@@ -51,8 +52,8 @@ function loadHighlighter() {
   return highlighterPromise;
 }
 
-function initSkillDetail(): void {
-  const root = document.querySelector<HTMLElement>("[data-skill-detail]");
+function initFileBrowser(): void {
+  const root = document.querySelector<HTMLElement>("[data-file-browser-page]");
   if (!root) return;
 
   const browser = root.querySelector<HTMLElement>("[data-file-browser]");
@@ -63,25 +64,25 @@ function initSkillDetail(): void {
   );
   const fileSelect = root.querySelector<HTMLSelectElement>("[data-file-select]");
   const githubLink = root.querySelector<HTMLAnchorElement>("[data-file-github]");
-  const skillFilePath = browser?.dataset.skillFile ?? "";
+  const primaryFilePath = browser?.dataset.primaryFile ?? "";
   const githubBase = browser?.dataset.githubBase ?? "";
 
   const cache = new Map<string, CachedFile>();
-  let activePath = skillFilePath;
+  let activePath = primaryFilePath;
 
-  // Seed the cache with the build-time rendered SKILL.md and its raw source.
+  // Seed the cache with the build-time rendered primary file and its raw source.
   if (contentEl) {
-    const rawSkill =
+    const rawPrimary =
       root.querySelector<HTMLTextAreaElement>("[data-raw-markdown]")?.value ??
       "";
-    cache.set(skillFilePath, {
+    cache.set(primaryFilePath, {
       html: contentEl.innerHTML,
-      rawText: rawSkill,
+      rawText: rawPrimary,
     });
   }
 
-  // Build the canonical file list from the <select> options. Single-file skills
-  // have no select, so fall back to just the embedded SKILL.md.
+  // Build the canonical file list from the <select> options. Single-file
+  // bundles have no select, so fall back to just the embedded primary file.
   const fileDescriptors: FileDescriptor[] = fileSelect
     ? Array.from(fileSelect.options).map((opt) => ({
         path: opt.value,
@@ -91,8 +92,8 @@ function initSkillDetail(): void {
       }))
     : [
         {
-          path: skillFilePath,
-          name: currentNameEl?.textContent?.trim() || skillFilePath,
+          path: primaryFilePath,
+          name: currentNameEl?.textContent?.trim() || primaryFilePath,
           lang: "markdown",
           kind: "markdown",
         },
@@ -239,13 +240,13 @@ function initSkillDetail(): void {
     .querySelector<HTMLButtonElement>("[data-action='download-zip']")
     ?.addEventListener("click", async (event) => {
       const btn = event.currentTarget as HTMLButtonElement;
-      const skillId = root.dataset.skillId ?? "skill";
+      const bundleId = root.dataset.bundleId ?? "bundle";
       const files: ZipDownloadFile[] = fileDescriptors.map((d) => ({
         name: d.name,
         path: d.path,
       }));
       if (files.length === 0) {
-        showToast("No files found for this skill.", "error");
+        showToast("No files found for this item.", "error");
         return;
       }
 
@@ -253,7 +254,7 @@ function initSkillDetail(): void {
       btn.disabled = true;
       btn.textContent = "Preparing…";
       try {
-        await downloadZipBundle(skillId, files);
+        await downloadZipBundle(bundleId, files);
         showToast("Download started!", "success");
       } catch (error) {
         const message =
@@ -291,9 +292,9 @@ function initSkillDetail(): void {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initSkillDetail, {
+  document.addEventListener("DOMContentLoaded", initFileBrowser, {
     once: true,
   });
 } else {
-  initSkillDetail();
+  initFileBrowser();
 }

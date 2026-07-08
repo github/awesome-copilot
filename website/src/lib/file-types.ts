@@ -1,8 +1,8 @@
 /**
- * Map a file name to a Shiki language id and a coarse "kind" used by the skill
- * file browser to decide how to render it (markdown prose, highlighted code, or
- * a plain fallback). Shared between the build-time SkillFileBrowser component
- * and the client-side skill-detail script, so both agree on languages.
+ * Map a file name to a Shiki language id and a coarse "kind" used by the file
+ * browser to decide how to render it (markdown prose, highlighted code, or
+ * a plain fallback). Shared between the build-time FileBrowser component
+ * and the client-side file-browser script, so both agree on languages.
  */
 
 export type FileKind = "markdown" | "code" | "other";

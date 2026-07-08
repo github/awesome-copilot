@@ -1,44 +1,39 @@
 ---
 import { getFileMeta } from "../../lib/file-types";
 
-export interface SkillBrowserFile {
+export interface BrowserFile {
   name: string;
   path: string;
   size?: number;
 }
 
-export interface SkillFileBrowserProps {
-  files: SkillBrowserFile[];
-  /** Full repo path of the SKILL.md file, e.g. skills/foo/SKILL.md */
-  skillFilePath: string;
-  /** Display name of the SKILL.md file, e.g. SKILL.md */
-  skillFileName: string;
-  /** Pre-rendered HTML for SKILL.md (shown by default) */
-  skillMarkdownHtml: string;
+export interface FileBrowserProps {
+  files: BrowserFile[];
+  /** Full repo path of the primary file, e.g. skills/foo/SKILL.md or hooks/foo/README.md */
+  primaryPath: string;
+  /** Display name of the primary file, e.g. SKILL.md or README.md */
+  primaryName: string;
+  /** Pre-rendered HTML for the primary file (shown by default) */
+  primaryHtml: string;
   /** GitHub blob base, e.g. https://github.com/github/awesome-copilot/blob/main */
   githubBase: string;
 }
 
-const {
-  files,
-  skillFilePath,
-  skillFileName,
-  skillMarkdownHtml,
-  githubBase,
-} = Astro.props as SkillFileBrowserProps;
+const { files, primaryPath, primaryName, primaryHtml, githubBase } =
+  Astro.props as FileBrowserProps;
 
-// SKILL.md first, then everything else alphabetically by name.
+// Primary file first, then everything else alphabetically by name.
 const sortedFiles = [...files].sort((a, b) => {
-  if (a.path === skillFilePath) return -1;
-  if (b.path === skillFilePath) return 1;
+  if (a.path === primaryPath) return -1;
+  if (b.path === primaryPath) return 1;
   return a.name.localeCompare(b.name);
 });
 
-const otherFiles = sortedFiles.filter((f) => f.path !== skillFilePath);
+const otherFiles = sortedFiles.filter((f) => f.path !== primaryPath);
 const rootFiles = otherFiles.filter((f) => !f.name.includes("/"));
 
 // Group nested files by their top-level folder for optgroup rendering.
-const folderGroups = new Map<string, SkillBrowserFile[]>();
+const folderGroups = new Map<string, BrowserFile[]>();
 for (const file of otherFiles) {
   const slash = file.name.indexOf("/");
   if (slash === -1) continue;
@@ -53,7 +48,7 @@ const sortedFolders = [...folderGroups.keys()].sort((a, b) =>
 
 const hasMultipleFiles = sortedFiles.length > 1;
 
-function optionAttrs(file: SkillBrowserFile) {
+function optionAttrs(file: BrowserFile) {
   const meta = getFileMeta(file.name);
   return {
     value: file.path,
@@ -66,27 +61,27 @@ function optionAttrs(file: SkillBrowserFile) {
 
 <section
   class="skill-file-browser"
-  aria-label="Skill files"
+  aria-label="Bundle files"
   data-file-browser
   data-github-base={githubBase}
-  data-skill-file={skillFilePath}
+  data-primary-file={primaryPath}
 >
   <div class="skill-file-view">
     <header class="skill-file-view-header">
       {
         hasMultipleFiles ? (
           <div class="skill-file-picker">
-            <label class="skill-file-picker-label" for="skill-file-select">
+            <label class="skill-file-picker-label" for="file-browser-select">
               File
             </label>
             <select
-              id="skill-file-select"
+              id="file-browser-select"
               class="skill-file-select"
               data-file-select
               aria-label="Select a file to view"
             >
-              <option {...optionAttrs({ name: skillFileName, path: skillFilePath })} selected>
-                {skillFileName}
+              <option {...optionAttrs({ name: primaryName, path: primaryPath })} selected>
+                {primaryName}
               </option>
               {rootFiles.map((file) => (
                 <option {...optionAttrs(file)}>{file.name}</option>
@@ -104,7 +99,7 @@ function optionAttrs(file: SkillBrowserFile) {
           </div>
         ) : (
           <code class="skill-file-current" data-current-file-name>
-            {skillFileName}
+            {primaryName}
           </code>
         )
       }
@@ -132,7 +127,7 @@ function optionAttrs(file: SkillBrowserFile) {
         <a
           class="btn btn-secondary btn-small"
           data-file-github
-          href={`${githubBase}/${skillFilePath}`}
+          href={`${githubBase}/${primaryPath}`}
           target="_blank"
           rel="noopener"
           title="View file on GitHub">GitHub</a
@@ -143,7 +138,7 @@ function optionAttrs(file: SkillBrowserFile) {
     <div
       class="skill-file-content article-content"
       data-file-content
-      set:html={skillMarkdownHtml}
+      set:html={primaryHtml}
     />
     <div class="skill-file-status" data-file-status hidden></div>
   </div>
