@@ -8,6 +8,7 @@ import DetailHeader from "../../components/pages/Header.astro";
 import Breadcrumb from "../../components/pages/Breadcrumb.astro";
 import Sidebar from "../../components/pages/Sidebar.astro";
 import IncludedItems from "../../components/pages/IncludedItems.astro";
+import PluginInstall from "../../components/pages/PluginInstall.astro";
 import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
 
 const GITHUB_TREE = "https://github.com/github/awesome-copilot/tree/main";
@@ -89,14 +90,8 @@ const githubUrl = isExternal
 
 // Install wiring
 const externalSourceRef = item.source?.repo || item.repository || "";
-const installSource = isExternal ? externalSourceRef : "github/awesome-copilot";
-const vscodeInstallUrl = isExternal
-  ? installSource
-    ? `vscode://chat-plugin/install?source=${encodeURIComponent(installSource)}`
-    : null
-  : `vscode://chat-plugin/install?source=github/awesome-copilot&plugin=${encodeURIComponent(item.id)}`;
 const installCommand = isExternal
-  ? ""
+  ? null
   : `copilot plugin install ${item.id}@awesome-copilot`;
 
 // The sidebar "Source" shows item.path; for external plugins that repo-relative
@@ -207,74 +202,17 @@ if (isExternal) {
           githubUrl={githubUrl}
           chips={chips}
         >
-          <div class="skill-install" slot="install">
-            <p class="skill-install-label">
-              {isExternal ? "Install this plugin" : "Install in VS Code"}
-            </p>
-            {
-              isExternal && (
-                <p class="skill-install-note">
-                  This plugin is maintained in an external repository. Installing
-                  it adds the third-party marketplace before installing.
-                </p>
-              )
-            }
-            {
-              vscodeInstallUrl && (
-                <a
-                  class="btn btn-primary skill-download-btn"
-                  href={vscodeInstallUrl}
-                >
-                  <svg
-                    viewBox="0 0 16 16"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    aria-hidden="true"
-                    ><path
-                      d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"
-                    /><path
-                      d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"
-                    /></svg
-                  >
-                  Install in VS Code
-                </a>
-              )
-            }
-            {
-              !isExternal && (
-                <>
-                  <p class="skill-install-label">Or install with the CLI</p>
-                  <div
-                    class="skill-install-command"
-                    data-install-command={installCommand}
-                  >
-                    <code>{installCommand}</code>
-                    <button
-                      type="button"
-                      class="skill-install-copy"
-                      data-action="copy-install"
-                      title="Copy install command"
-                      aria-label="Copy install command"
-                    >
-                      <svg
-                        viewBox="0 0 16 16"
-                        width="15"
-                        height="15"
-                        fill="currentColor"
-                        aria-hidden="true"
-                        ><path
-                          d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"
-                        /><path
-                          d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"
-                        /></svg
-                      >
-                    </button>
-                  </div>
-                </>
-              )
-            }
-          </div>
+          <PluginInstall
+            slot="install"
+            isExternal={isExternal}
+            pluginId={item.id}
+            externalSource={externalSourceRef || null}
+            installCommand={installCommand}
+            label={isExternal ? "Install this plugin" : "Install in VS Code"}
+            note={isExternal
+              ? "This plugin is maintained in an external repository. Installing it adds the third-party marketplace before installing."
+              : undefined}
+          />
         </Sidebar>
       </div>
     </div>
