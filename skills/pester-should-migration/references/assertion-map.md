@@ -124,7 +124,7 @@ New combinator assertions have no v5 equivalent but are handy in migrations:
 | `{ ... } \| Should -Throw 'msg'` | `{ ... } \| Should-Throw -ExceptionMessage 'msg'` | Param **renamed** from `-ExpectedMessage`. `-like` wildcards supported. |
 | `{ ... } \| Should -Throw -ErrorId 'X'` | `{ ... } \| Should-Throw -FullyQualifiedErrorId 'X'` | Param **renamed**. |
 | `{ ... } \| Should -Throw -ExceptionType ([T])` | `{ ... } \| Should-Throw -ExceptionType ([T])` | Same. |
-| `{ ... } \| Should -Not -Throw` | `{ ... }; <no throw assertion needed>` | There is no `Should-NotThrow`; a script block that must not throw simply runs. Assert on its result instead, or keep the classic `Should -Not -Throw`. |
+| `{ ... } \| Should -Not -Throw` | `& { ... }; <no throw assertion needed>` | There is no `Should-NotThrow`; a script block that must not throw simply runs. Assert on its result instead, or keep the classic `Should -Not -Throw`. |
 
 `Should-Throw` adds `-AllowNonTerminatingError` and returns the error record for
 further assertions: `$err = { throw 'boom' } | Should-Throw; $err.Exception.Message | Should-BeString '*boom*'`.
