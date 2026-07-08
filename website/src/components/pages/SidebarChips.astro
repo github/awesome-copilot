@@ -5,6 +5,10 @@ export type SidebarChipsProps = {
 };
 
 const { title, items } = Astro.props as SidebarChipsProps;
+const slug = title
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, "");
 ---
 
 <div>
@@ -14,7 +18,7 @@ const { title, items } = Astro.props as SidebarChipsProps;
       items.length ? (
         <div class="detail-chips">
           {items.map((item) => (
-            <span class={`resource-tag tag-${title.toLowerCase()}`}>{item}</span>
+            <span class={`resource-tag tag-${slug}`}>{item}</span>
           ))}
         </div>
       ) : (

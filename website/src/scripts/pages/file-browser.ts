@@ -20,9 +20,11 @@ import {
 } from "../utils";
 
 interface CachedFile {
-  html: string;
+  html?: string;
   rawText?: string;
 }
+
+type RenderedFile = CachedFile & { html: string };
 
 interface FileDescriptor {
   path: string;
@@ -43,7 +45,10 @@ function loadHighlighter() {
   highlighterPromise ??= import("shiki").then(({ codeToHtml }) => {
     return async (code: string, lang: string) => {
       try {
-        return await codeToHtml(code, { lang, theme: "github-light" });
+        return await codeToHtml(code, {
+          lang,
+          themes: { light: "github-light", dark: "github-dark" },
+        });
       } catch {
         return `<pre class="skill-file-plain"><code>${escapeHtml(code)}</code></pre>`;
       }
@@ -70,15 +75,12 @@ function initFileBrowser(): void {
   const cache = new Map<string, CachedFile>();
   let activePath = primaryFilePath;
 
-  // Seed the cache with the build-time rendered primary file and its raw source.
+  // Seed the cache with the primary file's raw source.
   if (contentEl) {
     const rawPrimary =
       root.querySelector<HTMLTextAreaElement>("[data-raw-markdown]")?.value ??
       "";
-    cache.set(primaryFilePath, {
-      html: contentEl.innerHTML,
-      rawText: rawPrimary,
-    });
+    cache.set(primaryFilePath, { rawText: rawPrimary });
   }
 
   // Build the canonical file list from the <select> options. Single-file
@@ -119,14 +121,17 @@ function initFileBrowser(): void {
     name: string,
     lang: string,
     kind: string
-  ): Promise<CachedFile> {
+  ): Promise<RenderedFile> {
     const cached = cache.get(path);
-    if (cached) return cached;
+    if (cached?.html !== undefined) return cached as RenderedFile;
 
-    setStatus("Loading…");
-    const response = await fetch(getRawGitHubUrl(path));
-    if (!response.ok) throw new Error(`Failed to load ${name}`);
-    const rawText = await response.text();
+    let rawText = cached?.rawText;
+    if (rawText === undefined) {
+      setStatus("Loading…");
+      const response = await fetch(getRawGitHubUrl(path));
+      if (!response.ok) throw new Error(`Failed to load ${name}`);
+      rawText = await response.text();
+    }
 
     let html: string;
     if (kind === "markdown") {
@@ -138,7 +143,7 @@ function initFileBrowser(): void {
       html = `<pre class="skill-file-plain"><code>${escapeHtml(rawText)}</code></pre>`;
     }
 
-    const entry: CachedFile = { html, rawText };
+    const entry: RenderedFile = { html, rawText };
     cache.set(path, entry);
     return entry;
   }
@@ -203,7 +208,7 @@ function initFileBrowser(): void {
           const response = await fetch(getRawGitHubUrl(activePath));
           if (response.ok) {
             const rawText = await response.text();
-            entry = { html: entry?.html ?? "", rawText };
+            entry = { ...entry, rawText };
             cache.set(activePath, entry);
           }
         } catch {
@@ -283,8 +288,15 @@ function initFileBrowser(): void {
   // --- Honour a #file= deep link on load ---
   const hashMatch = window.location.hash.match(/^#file=(.+)$/);
   if (hashMatch) {
-    const wanted = decodeURIComponent(hashMatch[1]);
-    const desc = fileDescriptors.find((d) => d.path === wanted);
+    let wanted: string | undefined;
+    try {
+      wanted = decodeURIComponent(hashMatch[1]);
+    } catch {
+      wanted = undefined;
+    }
+    const desc = wanted
+      ? fileDescriptors.find((d) => d.path === wanted)
+      : undefined;
     if (desc && wanted !== activePath) {
       void selectFile(desc.path, desc.name, desc.lang, desc.kind, false);
     }

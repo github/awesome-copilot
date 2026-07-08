@@ -37,8 +37,12 @@ let ghappUrl: string | null = null;
 
 if (isExternal) {
   if (externalSource) {
-    vscodeUrl = `vscode://chat-plugin/install?source=${externalSource}`;
-    insidersUrl = `vscode-insiders://chat-plugin/install?source=${externalSource}`;
+    vscodeUrl = `vscode://chat-plugin/install?source=${encodeURIComponent(
+      externalSource
+    )}`;
+    insidersUrl = `vscode-insiders://chat-plugin/install?source=${encodeURIComponent(
+      externalSource
+    )}`;
     ghappUrl = `ghapp://plugins/marketplace/add?source=${encodeURIComponent(
       externalSource
     )}`;

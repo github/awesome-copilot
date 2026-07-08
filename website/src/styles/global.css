@@ -4078,6 +4078,11 @@ header .theme-toggle-container {
   font-size: 0.82rem;
   overflow-x: auto;
 }
+:root[data-theme="dark"] .skill-file-content .shiki,
+:root[data-theme="dark"] .skill-file-content .shiki span {
+  background-color: var(--shiki-dark-bg) !important;
+  color: var(--shiki-dark) !important;
+}
 .skill-file-content.is-code .shiki,
 .skill-file-content.is-code .skill-file-plain {
   border: 0;
