@@ -486,7 +486,10 @@ export function renderHtml() {
       button.disabled = true;
       setMessage("Re-scanning repository…");
       try {
-        render(await api("/refresh", { method: "POST", body: "{}" }));
+        render(await api("/refresh", {
+          method: "POST",
+          body: JSON.stringify({ metadata: collectMetadata() }),
+        }));
         setMessage("Repository analysis refreshed.", "success");
       } catch (error) {
         setMessage(error.message, "error");

@@ -226,6 +226,19 @@ function titleFor(metadata) {
     return `[Tool] ${metadata.name.trim()}`;
 }
 
+function suppressGitHubMentions(value) {
+    return String(value || "").replace(/@(?=[A-Za-z0-9_-])/g, "@\u200B");
+}
+
+function publicIssueMetadata(metadata) {
+    return Object.fromEntries(
+        Object.entries(metadata).map(([field, value]) => [
+            field,
+            typeof value === "string" ? suppressGitHubMentions(value) : value,
+        ]),
+    );
+}
+
 async function submitIssue(state, metadata, confirmed) {
     if (confirmed !== true) {
         throw new CanvasError("confirmation_required", "Set confirm to true after reviewing the public issue contents.");
@@ -263,17 +276,18 @@ async function submitIssue(state, metadata, confirmed) {
         return { url: existing.url, existing: true, state: publicState(state) };
     }
 
+    const issueMetadata = publicIssueMetadata(submissionMetadata);
     const url = await runGh([
         "issue",
         "create",
         "--repo",
         ISSUE_REPOSITORY,
         "--title",
-        titleFor(submissionMetadata),
+        titleFor(issueMetadata),
         "--label",
         "new-tool",
         "--body",
-        buildIssueBody(submissionMetadata),
+        buildIssueBody(issueMetadata),
     ], state.repoPath);
     state.submission = {
         url,
@@ -376,7 +390,10 @@ async function handleRequest(entry, req, res) {
             return;
         }
         if (url.pathname === "/refresh" && req.method === "POST") {
-            state = await inspect(entry.repoPath, { preserveDraft: false });
+            const body = await readJson(req);
+            applyMetadata(state, body.metadata);
+            await persistState(state);
+            state = await inspect(entry.repoPath);
             sendJson(res, 200, publicState(state));
             return;
         }

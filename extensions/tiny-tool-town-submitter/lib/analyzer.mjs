@@ -262,11 +262,14 @@ function normalizeImageUrl(rawUrl, githubUrl, defaultBranch, readmePath, root) {
     if (/^https?:\/\//i.test(value)) return isLikelyBadge(value) ? "" : value;
     if (!githubUrl || value.startsWith("#")) return "";
 
-    const relativeReadmeDirectory = relative(root, resolve(readmePath, "..")).replaceAll("\\", "/");
+    const relativeReadmeDirectory = value.startsWith("/")
+        ? ""
+        : relative(root, resolve(readmePath, "..")).replaceAll("\\", "/");
     const imagePath = [relativeReadmeDirectory, value]
         .filter(Boolean)
         .join("/")
         .replace(/^\.\//, "")
+        .replace(/^\/+/, "")
         .replaceAll("\\", "/");
     return `${githubUrl.replace("github.com", "raw.githubusercontent.com")}/${defaultBranch}/${imagePath}`;
 }
