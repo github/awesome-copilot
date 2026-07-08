@@ -52,8 +52,11 @@ let keywordSelect: Choices;
 let currentFilters = {
   keywords: [] as string[],
 };
+const EXTENSION_QUERY_PARAM = "extension";
+let currentOpenExtensionId: string | null = null;
 let actionHandlersReady = false;
 let modalReady = false;
+let deepLinkObserverReady = false;
 
 function normalizeScreenshotEntries(value: unknown): ExtensionScreenshot[] {
   if (!value) return [];
@@ -170,6 +173,60 @@ function setSelectedGalleryImage(url: string, extensionName: string): void {
   });
 }
 
+function syncExtensionQueryParam(extensionId: string | null): void {
+  currentOpenExtensionId = extensionId;
+  updateQueryParams({
+    [EXTENSION_QUERY_PARAM]: extensionId ?? "",
+  });
+}
+
+function findExtensionTrigger(extensionId: string): HTMLElement | undefined {
+  const card = Array.from(
+    document.querySelectorAll<HTMLElement>(".resource-item[data-extension-id]")
+  ).find((item) => item.dataset.extensionId === extensionId);
+  return (
+    (card?.querySelector(".resource-preview") as HTMLElement | null) ||
+    card ||
+    undefined
+  );
+}
+
+function setupDeepLinkObserver(): void {
+  if (deepLinkObserverReady) return;
+
+  const modal = document.getElementById("file-modal");
+  if (!modal) return;
+
+  const observer = new MutationObserver(() => {
+    if (!modal.classList.contains("hidden") || !currentOpenExtensionId) {
+      return;
+    }
+
+    syncExtensionQueryParam(null);
+  });
+
+  observer.observe(modal, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+
+  deepLinkObserverReady = true;
+}
+
+function openInitialExtensionFromQuery(): void {
+  const extensionId = getQueryParam(EXTENSION_QUERY_PARAM);
+  if (!extensionId) {
+    return;
+  }
+
+  if (!extensionById.has(extensionId)) {
+    syncExtensionQueryParam(null);
+    return;
+  }
+
+  openDetailsModal(extensionId, undefined, findExtensionTrigger(extensionId));
+}
+
 function openDetailsModal(
   extensionId: string,
   preferredImageUrl?: string,
@@ -179,6 +236,8 @@ function openDetailsModal(
   if (!item) {
     return;
   }
+
+  syncExtensionQueryParam(extensionId);
 
   const keywordHtml = (item.keywords || [])
     .map((keyword) => `<span class="keyword-tag">${escapeHtml(keyword)}</span>`)
@@ -453,6 +512,7 @@ export async function initExtensionsPage(): Promise<void> {
     modalReady = true;
   }
 
+  setupDeepLinkObserver();
   setupActionHandlers(list as HTMLElement | null);
 
   const data = await fetchData<ExtensionsData>("extensions.json");
@@ -523,6 +583,7 @@ export async function initExtensionsPage(): Promise<void> {
 
   applySortAndRender();
   syncUrlState();
+  openInitialExtensionFromQuery();
 }
 
 // Auto-initialize when DOM is ready
