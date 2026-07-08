@@ -15,6 +15,7 @@ import {
   escapeHtml,
   getResourceIconSvg,
   sanitizeUrl,
+  isSafeRepoFilePath,
   REPO_IDENTIFIER,
 } from "./utils";
 
@@ -770,8 +771,19 @@ function handleHashChange(): void {
   const hash = window.location.hash;
 
   if (hash && hash.startsWith("#file=")) {
-    const filePath = decodeURIComponent(hash.slice(6));
-    if (filePath && filePath !== currentFilePath) {
+    let filePath: string | null = null;
+    try {
+      filePath = decodeURIComponent(hash.slice(6));
+    } catch {
+      filePath = null;
+    }
+    // Ignore malformed or traversal (`../`) paths to prevent client-side path
+    // traversal from loading arbitrary content into the modal.
+    if (
+      filePath &&
+      isSafeRepoFilePath(filePath) &&
+      filePath !== currentFilePath
+    ) {
       const type = getResourceType(filePath);
       openFileModal(filePath, type, false); // Don't update hash since we're responding to it
     }
