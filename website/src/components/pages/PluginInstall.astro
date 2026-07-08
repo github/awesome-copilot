@@ -52,7 +52,18 @@ if (isExternal) {
   )}`;
 }
 
-const primaryUrl = vscodeUrl ?? insidersUrl ?? ghappUrl;
+const ghappLabel = isExternal
+  ? "Open in GitHub Copilot app"
+  : "Install in GitHub Copilot app";
+
+const primaryUrl = ghappUrl ?? vscodeUrl ?? insidersUrl;
+const primaryLabel =
+  primaryUrl === ghappUrl
+    ? ghappLabel
+    : primaryUrl === vscodeUrl
+      ? "Install in VS Code"
+      : "Install in VS Code Insiders";
+const primaryIsGhapp = primaryUrl === ghappUrl;
 const heading = label ?? (isExternal ? "Install this plugin" : "Install");
 ---
 
@@ -65,9 +76,8 @@ const heading = label ?? (isExternal ? "Install this plugin" : "Install");
       <div class="install-dropdown" data-install-menu>
         <a
           class="btn btn-primary install-btn-main"
-          href={vscodeUrl ?? primaryUrl}
-          target="_blank"
-          rel="noopener"
+          href={primaryUrl}
+          {...(primaryIsGhapp ? {} : { target: "_blank", rel: "noopener" })}
         >
           <svg
             viewBox="0 0 24 24"
@@ -82,7 +92,7 @@ const heading = label ?? (isExternal ? "Install this plugin" : "Install");
           >
             <path d="M12 5v14M5 12h14" />
           </svg>
-          {vscodeUrl ? "Install in VS Code" : "Install"}
+          {primaryLabel}
         </a>
         <button
           type="button"
@@ -103,6 +113,14 @@ const heading = label ?? (isExternal ? "Install this plugin" : "Install");
           </svg>
         </button>
         <div class="install-dropdown-menu" role="menu">
+          {ghappUrl && (
+            <a href={ghappUrl} role="menuitem">
+              {ghappLabel}
+            </a>
+          )}
+          {ghappUrl && (vscodeUrl || insidersUrl) && (
+            <div class="dropdown-divider" />
+          )}
           {vscodeUrl && (
             <a href={vscodeUrl} target="_blank" rel="noopener" role="menuitem">
               Install in VS Code
@@ -112,14 +130,6 @@ const heading = label ?? (isExternal ? "Install this plugin" : "Install");
             <a href={insidersUrl} target="_blank" rel="noopener" role="menuitem">
               Install in VS Code Insiders
             </a>
-          )}
-          {ghappUrl && (
-            <>
-              <div class="dropdown-divider" />
-              <a href={ghappUrl} role="menuitem">
-                Open in GitHub Copilot app
-              </a>
-            </>
           )}
         </div>
       </div>
