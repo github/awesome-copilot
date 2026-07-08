@@ -3747,6 +3747,77 @@ header .theme-toggle-container {
   font-size: 1.35rem;
   color: var(--color-text-emphasis);
 }
+.resource-detail-page .included-items-hint {
+  margin: -0.5rem 0 1.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+.resource-detail-page .included-group {
+  margin-bottom: 1.5rem;
+}
+.resource-detail-page .included-group:last-child {
+  margin-bottom: 0;
+}
+.resource-detail-page .included-group-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+.resource-detail-page .included-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.resource-detail-page .included-entry {
+  margin: 0;
+}
+.resource-detail-page .included-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-bg-subtle, transparent);
+  color: var(--color-text);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.resource-detail-page .included-link:hover {
+  border-color: var(--color-accent, var(--sl-color-accent));
+  background: var(--sl-color-gray-6, rgba(0, 0, 0, 0.03));
+}
+.resource-detail-page .included-kind-badge {
+  flex: none;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15em 0.5em;
+  border-radius: 999px;
+  background: var(--sl-color-gray-6, rgba(0, 0, 0, 0.06));
+  color: var(--color-text-muted);
+}
+.resource-detail-page .included-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.resource-detail-page .included-external-hint {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
 .resource-detail-page .detail-meta {
   margin: 0;
   display: grid;

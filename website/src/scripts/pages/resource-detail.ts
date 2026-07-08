@@ -75,6 +75,26 @@ function initResourceDetail(): void {
       });
     });
 
+  // --- Copy install command (embedded at build time) ---
+  const installBlock = root.querySelector<HTMLElement>(
+    "[data-install-command]"
+  );
+  root
+    .querySelectorAll<HTMLElement>("[data-action='copy-install']")
+    .forEach((el) => {
+      el.addEventListener("click", async (e) => {
+        e.preventDefault();
+        closeMenu();
+        const command = installBlock?.dataset.installCommand ?? "";
+        if (!command) return;
+        const success = await copyToClipboard(command);
+        showToast(
+          success ? "Install command copied!" : "Failed to copy command",
+          success ? "success" : "error"
+        );
+      });
+    });
+
   // --- Share ---
   const shareBtn = root.querySelector<HTMLButtonElement>(
     "[data-action='share']"
