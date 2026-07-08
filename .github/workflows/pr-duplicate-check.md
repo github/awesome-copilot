@@ -3,7 +3,6 @@ description: 'Checks PRs for potential duplicate agents, instructions, skills, a
 on:
   pull_request_target:
     types: [opened, synchronize, reopened]
-  roles: all
 checkout: false
 permissions:
   contents: read
