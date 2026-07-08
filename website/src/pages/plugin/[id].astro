@@ -29,6 +29,7 @@ interface PluginSource {
   repo?: string;
   path?: string;
   ref?: string;
+  sha?: string;
 }
 
 interface PluginEntry extends HeaderItem {
@@ -38,6 +39,7 @@ interface PluginEntry extends HeaderItem {
   description?: string;
   path: string;
   readmeFile?: string | null;
+  version?: string | null;
   tags?: string[];
   itemCount: number;
   items: PluginItemRef[];
@@ -105,6 +107,9 @@ const sidebarItem =
     : item;
 
 const chips: { title: string; items: string[] }[] = [];
+if (item.version) {
+  chips.push({ title: "Version", items: [item.version] });
+}
 if (item.tags && item.tags.length > 0) {
   chips.push({ title: "Tags", items: item.tags });
 }
@@ -119,6 +124,18 @@ if (isExternal && item.author?.name) {
 }
 if (isExternal && item.license) {
   chips.push({ title: "License", items: [item.license] });
+}
+if (isExternal) {
+  const shortHash = (value: string) =>
+    /^[0-9a-f]{40}$/i.test(value) ? value.slice(0, 7) : value;
+  const ref = item.source?.ref;
+  const sha = item.source?.sha;
+  if (ref) {
+    chips.push({ title: "Ref", items: [shortHash(ref)] });
+  }
+  if (sha) {
+    chips.push({ title: "Commit", items: [shortHash(sha)] });
+  }
 }
 ---
 
