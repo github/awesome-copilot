@@ -162,7 +162,7 @@
       "name": "Datadog",
       "url": "https://www.datadoghq.com/"
     },
-    "repository": "https://github.com/datadog-labs/vscode-plugin",
+    "repository": "https://github.com/datadog-labs/copilot-plugin",
     "license": "Apache-2.0",
     "keywords": [
       "agent",
@@ -174,7 +174,7 @@
     ],
     "source": {
       "source": "github",
-      "repo": "datadog-labs/vscode-plugin",
+      "repo": "datadog-labs/copilot-plugin",
       "sha": "ae77972f050575c0e41b690ccc484aa0a287e9c8"
     }
   },
