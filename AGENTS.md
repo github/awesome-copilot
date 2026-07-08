@@ -50,6 +50,12 @@ npm run skill:validate
 
 # Create a new skill
 npm run skill:create -- --name <skill-name>
+
+# Validate agent files (*.agent.md)
+npm run agent:validate
+
+# Validate instruction files (*.instructions.md)
+npm run instruction:validate
 ```
 
 ## Development Workflow
@@ -202,6 +208,8 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 # Run all validation checks
 npm run plugin:validate
 npm run skill:validate
+npm run agent:validate
+npm run instruction:validate
 
 # Build and verify README generation
 npm run build
