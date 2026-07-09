@@ -246,6 +246,38 @@ test("Microsoft and partner items land in their home grids; My MCPs starts empty
     assert.match(html, /id="grid-mine"[^>]*><\/div>/, "the My MCPs grid must be empty at render");
 });
 
+test("catalog only emits inline icon color for strict hex brand colors", () => {
+    const html = renderCatalogHtml("test-instance", [
+        {
+            id: "safe",
+            apiName: "safe",
+            displayName: "Safe",
+            description: "",
+            iconUri: "https://example.com/safe.png",
+            brandColor: "#5059c9",
+            category: CATEGORY.partner,
+        },
+        {
+            id: "bad",
+            apiName: "bad",
+            displayName: "Bad",
+            description: "",
+            iconUri: "https://example.com/bad.png",
+            brandColor: "#5059c9;background-image:url(https://attacker.example/pixel);color:",
+            category: CATEGORY.partner,
+        },
+    ], {
+        filter: "",
+        category: "all",
+        source: "",
+        config: { gatewayName: "ns", resourceGroup: "rg" },
+    });
+
+    assert.match(html, /style="background:#5059c922"/, "valid hex colors should render as the icon background");
+    assert.doesNotMatch(html, /background-image/, "non-hex color payloads must not reach inline CSS");
+    assert.doesNotMatch(html, /attacker\.example/, "attacker-controlled CSS URLs must not render");
+});
+
 test("section heads are accessible toggle buttons", () => {
     const html = catalogHtmlFull();
     assert.match(

@@ -481,13 +481,20 @@ async function selectGateway(subscriptionId, resourceGroup, gatewayName) {
 // Catalog
 // ---------------------------------------------------------------------------
 
+const CSS_HEX_COLOR = /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?(?:[0-9a-fA-F]{2})?$/;
+
+function iconBackgroundStyle(brandColor) {
+    const color = String(brandColor || "").trim();
+    return CSS_HEX_COLOR.test(color) ? ` style="background:${color}22"` : "";
+}
+
 export function renderCatalogHtml(instanceId, catalog, { filter, category, source, config }, capabilityToken = "") {
     const renderItem = (c) => {
         // Items carry their home grid so hydrateState can move them into
         // "My MCPs" when added and back to Microsoft/Partner on remove.
         const home = c.category === CATEGORY.microsoft ? "microsoft" : "partner";
         const icon = c.iconUri
-            ? `<div class="item-icon"${c.brandColor ? ` style="background:${esc(c.brandColor)}22"` : ""}><img src="${esc(c.iconUri)}" alt=""></div>`
+            ? `<div class="item-icon"${iconBackgroundStyle(c.brandColor)}><img src="${esc(c.iconUri)}" alt=""></div>`
             : `<div class="item-icon">${esc(c.displayName.charAt(0))}</div>`;
         // Button state is hydrated client-side from /api/state on load.
         const btn = `<button class="item-add primary" data-api="${esc(c.apiName)}" data-name="${esc(c.displayName)}">Create and connect</button>`;
