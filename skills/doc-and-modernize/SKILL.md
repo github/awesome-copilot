@@ -68,7 +68,10 @@ that displaces reading the code on disk.
 
 1. **Establish identity first.** Run `git remote -v`, `git branch --show-current`,
    and `git log -1` so the document is anchored to a specific remote, branch, and
-   commit. A reader must be able to tell which snapshot this describes.
+   commit. A reader must be able to tell which snapshot this describes. Remote
+   URLs can contain embedded credentials (e.g. `https://<token>@github.com/...`)
+   — **redact any credentials/tokens** from the URL before recording it in the
+   document.
 2. **Detect, don't assume.** Read the real manifests (`go.mod`, `package.json`,
    `Cargo.toml`, `pyproject.toml`, `pom.xml`, etc.), the `Makefile`/task runner,
    CI config, and any repo-specific agent or contributor docs (`AGENTS.md`,
@@ -100,7 +103,11 @@ verification discipline.
   *enforced*** — i.e. whether any workflow is a **required status check /
   branch-protection rule** that actually blocks merges, versus one that merely
   runs — since that distinction is a manual, human-configured setting that
-  Modernization mode must surface, not assume. This inventory is the source of
+  Modernization mode must surface, not assume. Enforcement usually cannot be
+  determined from the local checkout alone: ask the user, or mark it
+  `[UNVERIFIED]` unless confirmed from an authoritative source (any remote
+  lookup is a flagged last resort, per the local-first rule above). This
+  inventory is the source of
   truth that downstream planning (Modernization mode) cites so its exit
   criteria are runnable, not aspirational. Detect these per-ecosystem (npm/yarn/
   pnpm, `make`, `just`, `cargo`, `go`, `poetry`/`tox`/`nox`, `gradle`/`maven`,
