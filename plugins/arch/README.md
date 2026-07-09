@@ -1,6 +1,6 @@
 # Arch Plugin
 
-Architecture and modernization toolkit for locally-cloned repositories. It produces a single, cited architecture document from the code on disk, and generates a phased modernization plan that automatically runs the research step first when no architecture document exists yet.
+Architecture and modernization toolkit for locally-cloned repositories. It produces a single, cited architecture document from the code on disk, and generates a phased modernization plan that automatically runs Documentation mode first when no architecture document exists yet.
 
 ## Installation
 

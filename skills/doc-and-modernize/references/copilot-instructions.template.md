@@ -127,7 +127,7 @@ a hard-coded old-branch link actively misleads the next agent/human.
 temporary weak state to stay runnable (permit-all shim, CSRF disabled, an open
 endpoint, a placeholder secret), record it with the phase that **closes** it and
 a by-design-until-phase-N note, and scope it as tightly as possible — this
-pre-empts recurring scanner/reviewer churn.
+preempts recurring scanner/reviewer churn.
 
 > **CI enforcement is a manual, human-only step.** An agent can author and run
 > the CI workflow, but making it a **required status check / branch-protection

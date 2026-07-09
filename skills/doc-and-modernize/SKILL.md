@@ -99,7 +99,7 @@ verification discipline.
   workflow(s) that run them and on what trigger. **Also record whether CI is
   *enforced*** — i.e. whether any workflow is a **required status check /
   branch-protection rule** that actually blocks merges, versus one that merely
-  runs — since that distinction is a manual, human-configured setting
+  runs — since that distinction is a manual, human-configured setting that
   Modernization mode must surface, not assume. This inventory is the source of
   truth that downstream planning (Modernization mode) cites so its exit
   criteria are runnable, not aspirational. Detect these per-ecosystem (npm/yarn/
@@ -200,7 +200,7 @@ faithfully.
 Generate a complete, actionable modernization plan for a legacy codebase. This
 skill focuses on the forward-looking work — what to modernize, why, in what
 order, and how — but it is **self-sufficient**: it ensures an architecture
-document exists first, producing one via the research workflow when needed.
+document exists first, producing one via Documentation mode when needed.
 
 **Assume dead-by-default.** People reach for modernization precisely because the
 old stack is hard or impossible to upgrade — EOL runtimes, uncompilable native

@@ -1,6 +1,6 @@
 {
   "name": "arch",
-  "description": "Architecture and modernization toolkit: produce a cited architecture document for a locally-cloned repo, and generate a phased modernization plan that auto-runs the research step when needed.",
+  "description": "Architecture and modernization toolkit: produce a cited architecture document for a locally-cloned repo, and generate a phased modernization plan that auto-runs Documentation mode when needed.",
   "version": "1.0.0",
   "keywords": [
     "architecture",
