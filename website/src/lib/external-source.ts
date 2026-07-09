@@ -18,7 +18,7 @@ export interface ExternalSource {
 const GITHUB_REPO_RE = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/;
 // Tags, branch names, or a 40-char commit SHA. Deliberately excludes
 // whitespace, "..", and characters that could break out of the path segment.
-const GITHUB_REF_RE = /^[A-Za-z0-9._/-]+$/;
+const GITHUB_REF_RE = /^(?!\/)(?!.*\/\/)(?!.*\.\.)(?!.*\/$)[A-Za-z0-9._/-]+$/;
 
 /**
  * Allow only http(s) URLs; return "#" for anything else (mirrors the
