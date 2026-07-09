@@ -7,11 +7,21 @@
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="Pull requests welcome">
 </p>
 
-Turn AI coding into an orchestrated loop: plan, build, review, debug.
+Turn AI coding into an orchestrated loop: plan, build, review, debug, learn - with smarter tool calling and leaner context.
 
-> Spec-driven multi-agent orchestration for software development, verification, debugging, and reusable project knowledge.
+> Spec-driven multi-agent orchestration for software development, verification, debugging, reusable knowledge, and context-bloat-free execution.
 
-**TL;DR:** Gem Team installs a coordinated set of specialist AI agents for planning, implementation, review, debugging, testing, documentation, design, DevOps, and skill extraction. It is designed for structured software delivery: clarify the goal, discover existing patterns, plan the work, execute in controlled waves, verify results, and persist useful learnings.
+**TL;DR:** Gem Team installs 16 specialist agents that turn AI coding into an engineering process. Plan, implement, review with structured waves, dependency resolution, integration gates, and progressive context management - all while avoiding context bloat, saving tokens via output hygiene and discovery depth scaling, and improving tool-calling precision through model routing and targeted context snapshots. Works with Copilot, Claude Code, Cursor, OpenCode, Codex, Gemini CLI, and Windsurf.
+
+## Why Gem Team?
+
+Gem Team wraps your AI with a disciplined engineering delivery system: plan, build, review, debug, learn. The [Features](#features) section below covers every capability in detail. Here's the gist:
+
+- **Better delivery flow**: spec-driven execution, wave-based parallelism, verification gates, resumable plans.
+- **Better code quality**: 16 specialist agents, TDD by default, diagnose-then-fix, security and accessibility audits.
+- **Better context management**: progressive context envelope, three-tier memory, skill extraction, PRD management - context bloat avoidance built in.
+- **Better cost control**: model routing, output hygiene, context pruning, discovery depth scaling - fewer tokens, same results.
+- **Better tool calling**: targeted context snapshots per agent, output hygiene rules - precision without prompt waste.
 
 ## Quick Start
 
@@ -47,6 +57,7 @@ After the first install, commit the generated APM files that belong to your repo
 ## Contents
 
 - [Why Gem Team?](#why-gem-team)
+- [Features](#features)
 - [Comparison](#comparison)
 - [Core Concepts](#core-concepts)
 - [Workflow](#workflow)
@@ -59,34 +70,75 @@ After the first install, commit the generated APM files that belong to your repo
 - [License](#license)
 - [Support](#support)
 
-## Why Gem Team?
+## Features
 
-### Better delivery flow
+### Intelligent Workflow Engine
 
-- **Spec-driven execution** — turns goals into scoped plans, tasks, checks, and evidence.
-- **Wave-based execution** — runs independent work in parallel while serializing true dependencies.
-- **Verification loops** — uses reviewers, testers, critics, and debuggers before final output.
-- **Resumable plans** — plan IDs, task artifacts, and context files make long tasks easier to pause, inspect, and continue.
+- **Phase-based predictable pipeline**: Init → Route → Plan → Execute → Output.
+- **Complexity-adaptive routing**: TRIVIAL tasks get one-shot delegation. LOW gets in-memory planning. MEDIUM/HIGH get durable plans, validation gates, and DAG-based wave execution.
+- **Integration gates**: Reviewer checks wave output before proceeding. MEDIUM gates on risk; HIGH gates every wave.
+- **Resumable plans**: Plan IDs, file-based artifacts, and context envelopes make long tasks pause, inspect, and continue cleanly.
 
-### Better code quality
+### Specialist Agent Team
 
-- **Specialist agents** — planning, implementation, debugging, review, testing, documentation, design, and DevOps are handled by focused roles.
-- **Pattern reuse** — researchers inspect the codebase first so agents follow existing architecture instead of inventing new patterns.
-- **Contract-first mindset** — encourages requirements, API contracts, tests, and acceptance criteria before implementation.
-- **Security-aware reviews** — reviewer and DevOps roles check for common security, secrets, PII, and deployment risks.
+- **16 focused agents**: Planner, Researcher, Implementer, Implementer-Mobile, Reviewer, Critic, Debugger, Browser Tester, Mobile Tester, Devops, Documentation Writer, Designer, Designer-Mobile, Code Simplifier, Skill Creator: plus the Orchestrator who coordinates them all.
+- **TDD by default**: Implementers follow Red-Green-Refactor with 6-category test coverage (happy path, invariants, boundaries, error paths, input variation, state transitions). Bug-fix mode requires debugger diagnosis before touching code.
+- **Diagnose-then-fix**: Debugger diagnoses → Implementer fixes → Reviewer re-verifies. Enforced at planner, orchestrator, implementer, and reviewer levels.
 
-### Better context management
+### Context & Knowledge Management
 
-- **Context envelope** — stores the active project summary, constraints, architecture notes, task registry, prior decisions, and reusable findings.
-- **File-based knowledge** — important outputs are written to durable files instead of being trapped in a single chat turn.
-- **Skill extraction** — high-confidence repeated workflows can become reusable `SKILL.md` playbooks.
-- **Memory discipline** — durable learnings are persisted only when useful and sufficiently reliable.
+- **Context envelope**: Progressive cache shared across all agents. Tech stack, conventions, constraints, architecture snapshot, research digest, prior decisions: enriched after each wave.
+- **Three-tier memory**: Repo (workspace-scoped), session (conversation-scoped), global (user-scoped). Confidence-gated persistence (≥0.85).
+- **Stable cache**: High-confidence facts (≥0.90, stable, ≥3 uses) promoted to durable cache. Auto-eviction after 90 days unused.
+- **Reuse notes**: Trusted file paths and patterns that agents skip re-verifying.
+- **Skill extraction**: High-confidence workflows become reusable `SKILL.md` playbooks via gem-skill-creator.
+- **PRD management**: Structured product requirements with EARS syntax, acceptance criteria, decisions, and change history.
 
-### Better cost control
+### Quality & Verification
 
-- **Model routing** — routine agents can use a fast cost-efficient model while planner, debugger, critic, and reviewer roles can use stronger reasoning models.
-- **Reduced redundant reading** — the context envelope and research digest prevent repeated source reads.
-- **Concise agent outputs** — agents are instructed to return actionable artifacts rather than verbose commentary.
+- **Plan validation**: Reviewer checks plan correctness, temporal paradoxes, wave ordering, and contract integrity.
+- **Critic review**: Challenges assumptions, finds edge cases, flags over-engineering: for HIGH complexity and architecture-impacting changes.
+- **Per-wave integration checks**: Reviewer verifies contracts, conflicts, and integration points after each wave.
+- **Security audits**: OWASP scanning, secrets/PII detection, mobile 8-vector scan (keychain, cert pinning, deep links, biometric auth, network security).
+- **Accessibility audits**: WCAG 2.1 AA contrast checks, ARIA labels, focus indicators, touch targets, reduced-motion support.
+- **Visual regression**: Screenshot comparison with configurable thresholds.
+- **Configurable audit depth**: `none`, `basic`, or `full` a11y scanning.
+
+### 🔧 Testing
+
+- **E2E browser testing**: Flow-based scenarios with setup, assertions, visual evidence, console/network capture.
+- **Mobile E2E testing**: iOS + Android with Detox, Maestro, Appium. Gesture testing, lifecycle testing, push notifications, device farm support.
+- **Performance testing**: Cold start TTI, memory profiling, frame rate analysis, bundle size tracking.
+- **Platform-specific testing**: Safe areas, keyboard behaviors, system permissions, dark mode, haptics, back button, battery optimization.
+
+### Design
+
+- **UI/UX design system creation**: Palettes, typography scales, spacing, shadows, design movements (brutalism, glassmorphism, minimalism, neo-brutalism, claymorphism, retro-futurism, maximalism).
+- **Mobile platform design**: iOS HIG, Android Material 3, safe areas, dynamic island, touch targets (44pt/48dp), platform-select pattern.
+- **Accessibility-first**: Contrast 4.5:1, touch targets, reduced-motion, semantic HTML/ARIA.
+- **Design output**: 9-section `DESIGN.md` with tokens, component specs, responsive behavior, agent prompt guide.
+
+### DevOps & Deployment
+
+- **Infrastructure provisioning**: Docker, Kubernetes, cloud (AWS/GCP/Azure).
+- **CI/CD pipeline management**: PR → staging → smoke → production flows.
+- **Approval gates**: Configurable per-environment approval requirements.
+- **Health checks**: Endpoint verification, resource monitoring, rollback strategies (rolling, blue-green, canary).
+- **Mobile deployment**: EAS Build/Update, Fastlane, TestFlight, Google Play phased rollouts.
+- **Idempotent operations**: All ops designed to be safe to re-run.
+
+### Cost Control
+
+- **Model routing**: Cheap models for routine work (implementer, docs). Strong models for planning, debugging, review, critique.
+- **Output hygiene**: Agents limited to native tool flags, pipe truncation, maxResults on searches.
+- **Context reuse**: Envelope filtered per-agent (only relevant sections).
+- **Budget controls**: Researcher has `max_searches`, `max_files_to_read`, `max_depth` per task.
+
+### Learning & Reuse
+
+- **Persist high-confidence learnings**: Facts, patterns, gotchas, failure modes, decisions ≥0.95 confidence automatically persisted.
+- **Batch delegation**: Product decisions → PRD. Technical decisions → AGENTS.md/architecture docs. Patterns → memory/envelope. Workflows → skills.
+- **Git checkpointing**: Optional wave-level commits on integration gate pass for clean audit trail and rollback diagnosis.
 
 ## Comparison
 
@@ -155,6 +207,7 @@ Phase 2: Plan
     • TRIVIAL → tiny checklist
     • LOW → lightweight in-memory plan
     • MEDIUM/HIGH → durable planner-generated plan
+    • Analyze requirements for inconsistencies (MEDIUM/HIGH)
     • Validate higher-risk plans before execution
     ↓
 Phase 3: Execute
@@ -192,34 +245,34 @@ Replace these with equivalent models from your own provider if needed.
 
 ### Core agents
 
-| Agent            | Description                                                                              |
-| :--------------- | :--------------------------------------------------------------------------------------- |
-| **ORCHESTRATOR** | Coordinates the workflow, delegates work, tracks plans, and enforces verification gates. |
-| **RESEARCHER**   | Explores the codebase, dependencies, architecture, existing patterns, and relevant docs. |
-| **PLANNER**      | Creates DAG-based execution plans, task waves, risk notes, and acceptance criteria.      |
-| **IMPLEMENTER**  | Implements features, fixes, refactors, and tests according to the approved plan.         |
+| Agent            | Description                                                                                                                                     |
+| :--------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ORCHESTRATOR** | Coordinates the workflow, delegates work, tracks plans, and enforces verification gates. Runs Phase 0–4 pipeline. Never executes work directly. |
+| **RESEARCHER**   | Explores codebase patterns, dependencies, architecture, and docs. Supports 5 modes (scan, deep, audit, trace, question) with budget controls.   |
+| **PLANNER**      | Creates DAG-based execution plans with task decomposition, wave scheduling, dependency mapping, risk analysis, and acceptance criteria.         |
+| **IMPLEMENTER**  | Implements features, fixes, and refactors using TDD (Red-Green-Refactor). Bug-fix mode requires debugger diagnosis. Surgical edits only.        |
 
 ### Quality and review
 
-| Agent               | Description                                                                                 |
-| :------------------ | :------------------------------------------------------------------------------------------ |
-| **REVIEWER**        | Reviews implementation quality, security, maintainability, contracts, and test coverage.    |
-| **CRITIC**          | Challenges assumptions, finds edge cases, and flags over-engineering or missed constraints. |
-| **DEBUGGER**        | Performs root-cause analysis, regression tracing, and targeted fix planning.                |
-| **BROWSER TESTER**  | Runs browser/E2E checks, validates UI behavior, and captures visual evidence.               |
-| **CODE SIMPLIFIER** | Removes dead code, reduces complexity, and improves maintainability.                        |
+| Agent               | Description                                                                                                                                                                                                                                                |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **REVIEWER**        | Reviews implementation quality, security, maintainability, contracts, and test coverage. Plan validation (lightweight/full). Wave integration checks. OWASP + secrets + mobile 8-vector security scan. Accessibility audit (none/basic/full).              |
+| **CRITIC**          | Reviews PRD requirements for inconsistencies & ambiguities. Challenges assumptions, finds edge cases, flags over-engineering or missed constraints. Evaluates decomposition, dependencies, complexity, coupling, and future-proofing. Offers alternatives. |
+| **DEBUGGER**        | Root-cause analysis, stack trace diagnosis, regression bisection, error reproduction. Asks for clarification when input insufficient. Prove-It pattern (reproduction test first). Never implements fixes.                                                  |
+| **BROWSER TESTER**  | E2E browser checks, UI flow validation, visual regression (screenshot comparison), console/network capture, a11y audit. Configurable thresholds.                                                                                                           |
+| **CODE SIMPLIFIER** | Removes dead code, reduces cyclomatic complexity, consolidates duplicates, improves naming. Preserves behavior: runs tests after each change. Chesterton's Fence principle.                                                                                |
 
 ### Specialized agents
 
-| Agent                  | Description                                                                                   |
-| :--------------------- | :-------------------------------------------------------------------------------------------- |
-| **DEVOPS**             | Handles deployment, CI/CD, infrastructure, containers, health checks, and rollback planning.  |
-| **DOCUMENTATION**      | Writes technical docs, READMEs, API docs, diagrams, and plan artifacts.                       |
-| **DESIGNER**           | Produces UI/UX guidance, layouts, interaction notes, visual polish, and accessibility checks. |
-| **IMPLEMENTER-MOBILE** | Implements native mobile work for React Native, Expo, Flutter, iOS, or Android.               |
-| **DESIGNER-MOBILE**    | Reviews mobile UX using platform conventions, safe areas, and accessibility requirements.     |
-| **MOBILE TESTER**      | Runs mobile E2E and device testing workflows such as Detox, Maestro, iOS, or Android checks.  |
-| **SKILL CREATOR**      | Extracts reusable `SKILL.md` files from repeated high-confidence workflows.                   |
+| Agent                  | Description                                                                                                                                                                                                            |
+| :--------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **DEVOPS**             | Infrastructure deployment, CI/CD pipelines, container management (Docker/K8s). Approval gates for prod. Health checks, rollback (rolling/blue-green/canary). Mobile deployment (EAS, Fastlane, TestFlight/Play Store). |
+| **DOCUMENTATION**      | Technical docs, READMEs, API docs, diagrams, walkthroughs. PRD authoring and maintenance. Context envelope updates. AGENTS.md management. Coverage matrices.                                                           |
+| **DESIGNER**           | UI/UX layouts, themes, color schemes, design systems. Create/validate modes. Design movements (brutalism, glassmorphism, minimalism, etc.). 9-section `DESIGN.md` output. WCAG 2.1 AA.                                 |
+| **IMPLEMENTER-MOBILE** | Mobile TDD for React Native, Expo, Flutter. Platform-specific code with Platform.select. SafeAreaView, FlatList, Reanimated. Bug-fix mode.                                                                             |
+| **DESIGNER-MOBILE**    | Mobile UI/UX for iOS (HIG) and Android (Material 3). Safe areas, touch targets (44pt/48dp), dynamic island, platform-specific specs.                                                                                   |
+| **MOBILE TESTER**      | Mobile E2E with Detox, Maestro, Appium. iOS + Android. Gesture, lifecycle, push notification, device farm testing. Performance (cold start, memory, frame rate).                                                       |
+| **SKILL CREATOR**      | Extracts reusable `SKILL.md` files from high-confidence (≥0.95, ≥2 uses) patterns. Creates scripts, references, and cross-linked assets.                                                                               |
 
 ## Installation
 
@@ -365,6 +418,7 @@ Gem Team can be configured with `.gem-team.yaml` in your project root.
 orchestrator:
   max_concurrent_agents: 2
   default_complexity_threshold: auto # auto | TRIVIAL | LOW | MEDIUM | HIGH
+  git_commit_on_gate_pass: true
 
 planning:
   enable_critic_for: [HIGH]
@@ -390,6 +444,7 @@ testing:
 | :------------------------------------------ | :----- | :------ | :----------------------------------------------------------------------- |
 | `orchestrator.max_concurrent_agents`        | number | `2`     | Maximum parallel agent executions.                                       |
 | `orchestrator.default_complexity_threshold` | enum   | `auto`  | Force complexity routing: `auto`, `TRIVIAL`, `LOW`, `MEDIUM`, or `HIGH`. |
+| `orchestrator.git_commit_on_gate_pass`      | bool   | `true`  | Git commit wave output when integration gate passes.                     |
 
 #### Planning
 

@@ -535,8 +535,8 @@
     {
       "name": "gem-team",
       "source": "plugins/gem-team",
-      "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.",
-      "version": "1.66.0"
+      "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
+      "version": "1.80.0"
     },
     {
       "name": "gesture-review",
