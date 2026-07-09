@@ -37,7 +37,12 @@ function githubHref(itemPath: string): string {
       normalized.startsWith("instructions/") ||
       normalized.startsWith("hooks/"));
   const repoPath = isRepoRelative ? normalized : `${pluginPath}/${normalized}`;
-  return `${githubBase}/${repoPath}`;
+  // GitHub uses /blob/ for files and /tree/ for directories; /tree/<ref>/<file>
+  // returns 404. Detect files by a trailing extension on the last path segment.
+  const lastSegment = repoPath.split("/").pop() ?? "";
+  const isFile = /\.[a-z0-9]+$/i.test(lastSegment);
+  const base = isFile ? githubBase.replace("/tree/", "/blob/") : githubBase;
+  return `${base}/${repoPath}`;
 }
 
 const grouped = KIND_ORDER.map((kind) => ({

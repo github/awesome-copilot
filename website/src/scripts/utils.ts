@@ -34,8 +34,18 @@ export function isSafeRepoFilePath(filePath: unknown): filePath is string {
   if (path.includes(":")) return false;
   // Reject backslashes; repo paths only ever use forward slashes.
   if (path.includes("\\")) return false;
-  // Reject parent-directory traversal segments.
-  if (path.split("/").some((segment) => segment === "..")) return false;
+  // Fail closed on percent-encoding: legitimate repo paths never contain "%",
+  // and encoded dot-segments (e.g. %2e%2e or double-encoded %252e%252e) could be
+  // normalized by the browser URL parser during fetch, reintroducing traversal.
+  if (path.includes("%")) return false;
+  // Reject traversal (".."), current-dir ("."), and empty segments (from "//").
+  if (
+    path
+      .split("/")
+      .some((segment) => segment === "" || segment === "." || segment === "..")
+  ) {
+    return false;
+  }
   return true;
 }
 
