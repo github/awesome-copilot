@@ -48,7 +48,7 @@ const { vscodeUrl, insidersUrl, rawMarkdown } = Astro.props as { vscodeUrl: stri
     <a href={insidersUrl} target="_blank" rel="noopener" role="menuitem"
       >Install in VS Code Insiders</a
     >
-    <div class="dropdown-divider"></div>
+    <div class="dropdown-divider" role="separator" aria-hidden="true"></div>
     <a href="#" role="menuitem" data-action="download">Download file</a>
     {
       rawMarkdown && (
