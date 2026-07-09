@@ -16,6 +16,7 @@ import {
   downloadZipBundle,
   escapeHtml,
   getRawGitHubUrl,
+  isSafeRepoFilePath,
   showToast,
   type ZipDownloadFile,
 } from "../utils";
@@ -32,6 +33,31 @@ interface FileDescriptor {
   name: string;
   lang: string;
   kind: string;
+}
+
+function encodeRepoPath(filePath: string): string {
+  return filePath.split("/").map(encodeURIComponent).join("/");
+}
+
+function getSafeGitHubFileUrl(
+  githubBase: string,
+  filePath: string
+): string | null {
+  if (!isSafeRepoFilePath(filePath)) return null;
+
+  try {
+    const base = new URL(githubBase);
+    if (base.protocol !== "https:" || base.hostname !== "github.com") return null;
+
+    base.pathname = `${base.pathname.replace(/\/+$/, "")}/${encodeRepoPath(
+      filePath
+    )}`;
+    base.search = "";
+    base.hash = "";
+    return base.toString();
+  } catch {
+    return null;
+  }
 }
 
 let highlighterPromise: Promise<
@@ -122,6 +148,29 @@ function initFileBrowser(): void {
     if (fileSelect && fileSelect.value !== path) fileSelect.value = path;
   };
 
+  const showLoadError = (fileUrl: string | null): void => {
+    contentEl?.replaceChildren();
+    contentEl?.classList.remove("is-code");
+    setStatus(null);
+    if (!contentEl) return;
+
+    const message = document.createElement("p");
+    message.className = "detail-empty";
+    message.append("Couldn't load this file.");
+
+    if (fileUrl) {
+      message.append(" ");
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = "View it on GitHub";
+      message.append(link, ".");
+    }
+
+    contentEl.append(message);
+  };
+
   async function renderFile(
     path: string,
     name: string,
@@ -162,10 +211,16 @@ function initFileBrowser(): void {
     updateHash = true
   ): Promise<void> {
     if (!contentEl) return;
+    const fileUrl = githubBase ? getSafeGitHubFileUrl(githubBase, path) : null;
+    if (!isSafeRepoFilePath(path)) {
+      showLoadError(null);
+      return;
+    }
+
     activePath = path;
     setActive(path);
     if (currentNameEl) currentNameEl.textContent = name;
-    if (githubLink && githubBase) githubLink.href = `${githubBase}/${path}`;
+    if (githubLink) githubLink.href = fileUrl ?? "#";
 
     try {
       const entry = await renderFile(path, name, lang, kind);
@@ -173,13 +228,7 @@ function initFileBrowser(): void {
       contentEl.classList.toggle("is-code", kind === "code");
       setStatus(null);
     } catch {
-      contentEl.innerHTML = "";
-      contentEl.classList.remove("is-code");
-      setStatus(null);
-      const url = githubBase ? `${githubBase}/${path}` : "#";
-      contentEl.innerHTML = `<p class="detail-empty">Couldn't load this file. <a href="${escapeHtml(
-        url
-      )}" target="_blank" rel="noopener">View it on GitHub</a>.</p>`;
+      showLoadError(fileUrl);
     }
 
     if (updateHash) {
