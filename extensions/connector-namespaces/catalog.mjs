@@ -10,6 +10,7 @@
 // the full set without an allowlist that has to be hand-maintained.
 
 import { listManagedApis } from "./armClient.mjs";
+import { CATEGORY } from "./categories.mjs";
 
 function isMcpServer(api) {
     const name = api.name || "";
@@ -28,7 +29,7 @@ function categoryFor(name, displayName) {
         d.startsWith("microsoft") ||
         d.startsWith("work iq") ||
         d.startsWith("dynamics 365");
-    return isMicrosoft ? "Microsoft" : "Partner connectors";
+    return isMicrosoft ? CATEGORY.microsoft : CATEGORY.partner;
 }
 
 let cachedCatalog = null;

@@ -73,6 +73,13 @@ function assertSafeMcpTarget(rawUrl) {
 // ARM helpers (using the shared token)
 // ---------------------------------------------------------------------------
 
+// ARM occasionally answers with a transient 5xx/429 (backend blip, throttling)
+// that clears on a retry. A single one of these shouldn't nuke a whole connect
+// flow, so arm() retries them a few times with backoff before surfacing.
+const ARM_TRANSIENT = new Set([429, 500, 502, 503, 504]);
+const ARM_MAX_ATTEMPTS = 3;
+const ARM_BACKOFF_MS = 500;
+
 async function arm(method, url, body) {
     const token = await getToken();
     const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
@@ -82,21 +89,30 @@ async function arm(method, url, body) {
     // redirect the call off ARM. assertArmHost throws unless fullUrl targets
     // https://management.azure.com/.
     const safeUrl = assertArmHost(fullUrl);
-    const res = await fetch(safeUrl, {
-        method,
-        headers,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
-    const text = await res.text();
-    let parsed;
-    try { parsed = text ? JSON.parse(text) : undefined; } catch { parsed = text; }
-    if (!res.ok) {
+
+    for (let attempt = 1; ; attempt++) {
+        const res = await fetch(safeUrl, {
+            method,
+            headers,
+            body: body !== undefined ? JSON.stringify(body) : undefined,
+        });
+        const text = await res.text();
+        let parsed;
+        try { parsed = text ? JSON.parse(text) : undefined; } catch { parsed = text; }
+        if (res.ok) return parsed;
+
         const msg = parsed?.error?.message ?? parsed?.message ?? text ?? `HTTP ${res.status}`;
         const err = new Error(`ARM ${method} ${res.status}: ${msg}`);
         err.status = res.status;
-        throw err;
+
+        // Every ARM call we make is idempotent (GET/PUT/DELETE) or a list-shaped
+        // POST (listConsentLinks, listApiKey) that returns the same value on
+        // retry, so retrying a transient failure can't spawn duplicate side
+        // effects. A 500 is never treated like a 404 elsewhere, so a blip can't
+        // trigger teardown of a live resource.
+        if (!ARM_TRANSIENT.has(res.status) || attempt >= ARM_MAX_ATTEMPTS) throw err;
+        await sleep(ARM_BACKOFF_MS * Math.pow(3, attempt - 1)); // 0.5s, then 1.5s
     }
-    return parsed;
 }
 
 // DELETE that tolerates "already gone" (404) but surfaces every other failure
@@ -261,14 +277,14 @@ export async function createConnection(config, apiName, displayName, location) {
 
 export async function getConsentUrl(config, connName, callbackUrl, oauthParam) {
     const param = oauthParam || { parameterName: "token", redirectUrl: callbackUrl };
-    const res = await arm("POST", `${gatewayId(config)}/connections/${connName}/listConsentLinks?api-version=${API_VERSION}`, {
+    const res = await arm("POST", `${gatewayId(config)}/connections/${armSegment(connName)}/listConsentLinks?api-version=${API_VERSION}`, {
         parameters: [{ parameterName: param.parameterName, redirectUrl: param.redirectUrl }],
     });
     return res?.value?.[0]?.link || null;
 }
 
 export async function getConnectionStatus(config, connName) {
-    const conn = await arm("GET", `${gatewayId(config)}/connections/${connName}?api-version=${API_VERSION}`);
+    const conn = await arm("GET", `${gatewayId(config)}/connections/${armSegment(connName)}?api-version=${API_VERSION}`);
     return conn?.properties?.statuses?.[0]?.status ?? conn?.properties?.overallStatus ?? "Unknown";
 }
 
@@ -310,7 +326,7 @@ export async function mintApiKey(config, configName) {
 }
 
 export async function getMcpEndpointUrl(config, configName) {
-    const cfg = await arm("GET", `${gatewayId(config)}/mcpserverConfigs/${configName}?api-version=${API_VERSION}`);
+    const cfg = await arm("GET", `${gatewayId(config)}/mcpserverConfigs/${armSegment(configName)}?api-version=${API_VERSION}`);
     return cfg?.properties?.mcpEndpointUrl || null;
 }
 
@@ -321,8 +337,15 @@ export async function getMcpEndpointUrl(config, configName) {
 async function readMcpConfigAt(path) {
     try {
         const raw = await fs.readFile(path, "utf8");
-        const parsed = JSON.parse(raw);
-        if (!parsed.mcpServers || typeof parsed.mcpServers !== "object") parsed.mcpServers = {};
+        let parsed = JSON.parse(raw);
+        // Reject arrays and primitives before treating this as a config object.
+        // JSON.parse can return either (a hand-edited "[]" or a bare number),
+        // and both break the write path: a string key set on an array is
+        // silently dropped by JSON.stringify (the new entry would vanish), and
+        // a primitive throws on property assignment. Fall back to a fresh
+        // object so writeMcpEntry always persists.
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) parsed = {};
+        if (!parsed.mcpServers || typeof parsed.mcpServers !== "object" || Array.isArray(parsed.mcpServers)) parsed.mcpServers = {};
         return parsed;
     } catch (e) {
         if (e.code === "ENOENT") return { mcpServers: {} };
@@ -330,7 +353,7 @@ async function readMcpConfigAt(path) {
     }
 }
 
-export async function writeMcpEntry(name, url, key, scope = "profile") {
+export async function writeMcpEntry(name, url, key, scope = "profile", meta = null) {
     assertSafeMcpTarget(url);
     const path = mcpConfigPath(scope);
     return withConfigLock(async () => {
@@ -342,6 +365,10 @@ export async function writeMcpEntry(name, url, key, scope = "profile") {
             args: [MCP_PROXY_PATH],
             env: { MCP_TARGET_URL: url, MCP_API_KEY: key },
         };
+        // Stamp ARM provenance as a sibling metadata key. The underscore prefix
+        // marks it as "metadata, not part of the MCP launch spec" — the CLI
+        // tolerates and preserves unknown sibling keys across restarts.
+        if (meta) cfg.mcpServers[name]._connectorNamespace = meta;
         // The file holds a long-lived API key — keep it and its directory
         // owner-only. chmod re-asserts 0600 when the file already existed
         // (writeFile mode only applies on create); it's a benign no-op on Windows.
@@ -403,6 +430,18 @@ export async function uninstallConnector(config, apiName) {
         }
     }
 
+    return { ok: true, removed: true };
+}
+
+// Local-only remove: drop just the CLI mcp entry, leaving the namespace
+// resources (mcpserverConfig + connection) intact. This is the default
+// "Remove" action — it unwires the connector from Copilot without deleting
+// anything on Azure. Fast and local; no armDelete, no convergence poll.
+export async function removeLocalEntry(config, apiName) {
+    const state = await getInstalledState(config);
+    const entry = state[apiName];
+    if (!entry) return { ok: true, removed: false };
+    if (entry.configName) await removeMcpEntry(entry.configName);
     return { ok: true, removed: true };
 }
 
@@ -472,12 +511,117 @@ export async function finishInstall(config, apiName, displayName, connName, loca
     }
     if (!endpointUrl) throw new Error(`MCP endpoint URL not available (connection status: ${status}).`);
 
-    // Mint key and write the CLI entry.
+    // Mint key and write the CLI entry, stamped with ARM provenance so the
+    // install can be recognised regardless of which connector namespace is
+    // active when state is next derived.
     const key = await mintApiKey(config, configName);
-    await writeMcpEntry(configName, endpointUrl, key, scope);
+    const gw = gatewayId(config);
+    await writeMcpEntry(configName, endpointUrl, key, scope, {
+        gatewayId: gw,
+        mcpServerConfigId: `${gw}/mcpserverConfigs/${armSegment(configName)}`,
+        connectionId: `${gw}/connections/${armSegment(connName)}`,
+        apiName,
+    });
 
     const warning = status === "Connected" ? undefined : `Connection ended in state "${status}". You may need to re-authenticate.`;
     return { ok: true, configName, connName, endpointUrl, scope, warning };
+}
+
+// ---------------------------------------------------------------------------
+// Re-authenticate pipeline (reuse the EXISTING connection + config)
+// ---------------------------------------------------------------------------
+
+// Re-run consent for a connector that's already installed, WITHOUT minting a new
+// connection or a new mcpserverConfig. This is what the "Re-authenticate" button
+// hits; wiring it to the plain install path is exactly what spawned duplicate
+// configs. We resolve the selected install-state candidate (post phase-1
+// selection, that's the config the local session actually points at), re-consent
+// its existing connection, and rebind THAT config locally.
+//
+// Falls back to a fresh installConnector only when there's genuinely nothing to
+// re-auth against: no known connection, or the stored connection was deleted
+// server-side (listConsentLinks 404s). In the 404 case we drop the orphaned
+// config + local entry first so the fallback install can't leave a duplicate.
+export async function reauthConnector(config, apiName, displayName, callbackBase, scope = "profile") {
+    const state = await getInstalledState(config);
+    const entry = state[apiName];
+    const connName = entry?.connectionName;
+
+    // Nothing installed to re-auth against — treat it as a first-time Connect.
+    if (!connName) {
+        return installConnector(config, apiName, displayName, callbackBase, scope);
+    }
+
+    const location = await getGatewayLocation(config);
+    const meta = await loadConnectorMeta(config, apiName, location);
+    const callbackUrl = `${callbackBase}${encodeURIComponent(connName)}`;
+    const oauthParam = findOAuthParam(meta, callbackUrl);
+
+    let consentUrl;
+    try {
+        consentUrl = await getConsentUrl(config, connName, callbackUrl, oauthParam);
+    } catch (err) {
+        // The stored connection is gone (deleted in the portal). Clean up the
+        // now-orphaned config + local entry, then fall through to a clean
+        // install so we don't strand a dead "Re-authenticate" tile.
+        if (err.status === 404) {
+            if (entry.configName) {
+                await armDelete(`${gatewayId(config)}/mcpserverConfigs/${armSegment(entry.configName)}?api-version=${API_VERSION}`).catch(() => {});
+                await removeMcpEntry(entry.configName).catch(() => {});
+            }
+            await deleteConnection(config, connName).catch(() => {});
+            return installConnector(config, apiName, displayName, callbackBase, scope);
+        }
+        throw err;
+    }
+
+    // Re-consent the existing connection; finish rebinds the SAME config.
+    // configName is carried through so the finish step never creates a new one.
+    if (consentUrl) {
+        return { needsConsent: true, consentUrl, connName, location, configName: entry.configName, reauth: true };
+    }
+
+    // Already consentable without a redirect — just rebind the existing config.
+    return finishReauth(config, apiName, displayName, connName, entry.configName, location, scope);
+}
+
+// Finish a re-auth: rebind an EXISTING mcpserverConfig to the local CLI. Unlike
+// finishInstall this never calls createMcpServerConfig, so a re-auth can't spawn
+// a duplicate — it reuses configName, mints a fresh key, and rewrites the entry.
+export async function finishReauth(config, apiName, displayName, connName, configName, location, scope = "profile") {
+    // Defensive: with no config to bind there's nothing to reuse — fall back to
+    // a normal finish (which creates one). Shouldn't happen on the reauth path.
+    if (!configName) {
+        return finishInstall(config, apiName, displayName, connName, location, scope);
+    }
+
+    // Wait for the re-consented connection to converge (up to ~20s).
+    let status = "Unknown";
+    for (let i = 0; i < 20; i++) {
+        status = await getConnectionStatus(config, connName);
+        if (status === "Connected") break;
+        await sleep(1000);
+    }
+
+    // Reuse the existing config's endpoint — poll a few times if it lags.
+    let endpointUrl = await getMcpEndpointUrl(config, configName);
+    for (let i = 0; !endpointUrl && i < 5; i++) {
+        await sleep(1000);
+        endpointUrl = await getMcpEndpointUrl(config, configName);
+    }
+    if (!endpointUrl) throw new Error(`MCP endpoint URL not available (connection status: ${status}).`);
+
+    const key = await mintApiKey(config, configName);
+    const gw = gatewayId(config);
+    await writeMcpEntry(configName, endpointUrl, key, scope, {
+        gatewayId: gw,
+        mcpServerConfigId: `${gw}/mcpserverConfigs/${armSegment(configName)}`,
+        connectionId: `${gw}/connections/${armSegment(connName)}`,
+        apiName,
+    });
+
+    const warning = status === "Connected" ? undefined : `Connection ended in state "${status}". You may need to re-authenticate.`;
+    return { ok: true, configName, connName, endpointUrl, scope, warning, reauth: true };
 }
 
 // ---------------------------------------------------------------------------
@@ -499,9 +643,18 @@ export async function getInstalledState(config) {
     const profileKeys = new Set(Object.keys(profileCfg.mcpServers ?? {}));
     const workspaceKeys = new Set(Object.keys(workspaceCfg.mcpServers ?? {}));
 
-    // Map apiName -> install state.
-    const byApi = {};
-    for (const cfg of configsRes.value ?? []) {
+    return deriveInstalledState(configsRes.value ?? [], connByName, profileKeys, workspaceKeys, wsPath);
+}
+
+// Pure derivation, split out so it can be unit-tested without live ARM.
+// A single apiName can have MULTIPLE gateway configs (a portal-side add, a
+// duplicate Connect, a re-auth that minted a fresh config). Collect every
+// config per apiName, then pick ONE deterministically instead of letting ARM
+// list order decide (last-wins) — that overwrite is what stranded a tile on
+// "Re-authenticate" while a sibling config was actually Connected.
+export function deriveInstalledState(configs, connByName, profileKeys, workspaceKeys, wsPath) {
+    const candidatesByApi = {};
+    for (const cfg of configs ?? []) {
         const connector = cfg.properties?.connectors?.[0];
         const apiName = connector?.name;
         if (!apiName) continue;
@@ -510,7 +663,7 @@ export async function getInstalledState(config) {
         const connectionStatus = conn?.properties?.statuses?.[0]?.status ?? conn?.properties?.overallStatus ?? "Unknown";
         const inWorkspace = workspaceKeys.has(cfg.name);
         const inProfile = profileKeys.has(cfg.name);
-        byApi[apiName] = {
+        (candidatesByApi[apiName] ??= []).push({
             installed: true,
             configName: cfg.name,
             connectionName: connName || null,
@@ -518,7 +671,20 @@ export async function getInstalledState(config) {
             inCli: inProfile || inWorkspace,
             cliScope: inWorkspace ? "workspace" : (inProfile ? "profile" : null),
             cliPath: inWorkspace ? wsPath : (inProfile ? PROFILE_MCP_PATH : null),
-        };
+        });
+    }
+
+    // Prefer the config the local session actually points at, and prefer a
+    // Connected one: inCli && Connected > inCli > Connected > any. First-seen
+    // wins ties so the choice is stable across refreshes. Keeps the flat
+    // one-entry-per-apiName shape the renderer + tests expect.
+    const rank = (e) => (e.inCli ? 2 : 0) + (e.connectionStatus === "Connected" ? 1 : 0);
+    const byApi = {};
+    for (const [apiName, list] of Object.entries(candidatesByApi)) {
+        let best = list[0];
+        for (const e of list) if (rank(e) > rank(best)) best = e;
+        // Internal-only signal for logging; the renderer ignores unknown fields.
+        byApi[apiName] = list.length > 1 ? { ...best, _configCount: list.length } : best;
     }
     return byApi;
 }

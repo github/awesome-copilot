@@ -15,7 +15,7 @@ import {
     createConnectorGateway,
     buildGatewayIdentity,
 } from "./armClient.mjs";
-import { installConnector, finishInstall, openInBrowser, openMcpConfigFile, getInstalledState, uninstallConnector, deleteConnection, prewarmMeta } from "./install.mjs";
+import { installConnector, finishInstall, reauthConnector, finishReauth, openInBrowser, openMcpConfigFile, getInstalledState, uninstallConnector, removeLocalEntry, deleteConnection, prewarmMeta } from "./install.mjs";
 
 const servers = new Map();
 const starting = new Map(); // instanceId → Promise<entry> while a server is binding
@@ -51,8 +51,38 @@ function parseBody(req) {
     });
 }
 
+// Blocks cross-site POSTs to /api/* so a random web page can't drive the user's
+// ARM operations through this loopback server (CSRF). Returns true only when the
+// request carries an explicit foreign-origin signal: an Origin header from a
+// different http(s) origin than ours, an opaque `null` origin (sandboxed iframe
+// / data: or blob: URI), or a Fetch-Metadata marker of cross-site/same-site. The
+// panel loads as a top-level http document, so its own fetches are same-origin
+// (Origin === our host, never "null"), and header-less callers (the node test
+// harness, non-browser clients) fall through as allowed, so nothing legit breaks.
+export function isCrossSiteRequest(req) {
+    const origin = req.headers.origin;
+    if (origin) {
+        if (origin === `http://${req.headers.host}`) return false; // our own loopback UI
+        if (origin === "null") return true;                        // opaque origin: sandboxed iframe / data: or blob: URI
+        if (/^https?:\/\//i.test(origin)) return true;             // a different web page
+        return false;                                              // non-web scheme (host webview)
+    }
+    const site = req.headers["sec-fetch-site"];
+    return site === "cross-site" || site === "same-site";
+}
+
 async function handleRequest(req, res, instanceId) {
     const url = new URL(req.url, "http://localhost");
+
+    // Reject cross-site attempts to invoke state-changing API routes (CSRF).
+    // Only POST /api/* is gated: GET navigations like the OAuth callback and the
+    // read routes are never blocked here.
+    if (req.method === "POST" && url.pathname.startsWith("/api/") && isCrossSiteRequest(req)) {
+        res.statusCode = 403;
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ error: "cross_site_blocked" }));
+        return;
+    }
 
     // --- API routes ---
 
@@ -193,12 +223,51 @@ async function handleRequest(req, res, instanceId) {
         return;
     }
 
+    if (req.method === "POST" && url.pathname === "/api/reauth") {
+        const body = await parseBody(req);
+        const config = getSessionConfig();
+        if (!config) { json(res, { error: "no_config" }); return; }
+        const { apiName, displayName } = body;
+        if (!apiName) { json(res, { error: "missing apiName" }); return; }
+        const serverEntry = servers.get(instanceId);
+        const port = serverEntry ? new URL(serverEntry.url).port : "0";
+        const callbackBase = `http://127.0.0.1:${port}/auth/callback/`;
+        try {
+            const result = await reauthConnector(config, apiName, displayName || apiName, callbackBase, "profile");
+            if (result && !result.error && !result.needsConsent) { pendingRestart = true; restartAcked = false; }
+            json(res, result);
+        } catch (err) {
+            json(res, { error: err.message });
+        }
+        return;
+    }
+
     if (req.method === "POST" && url.pathname === "/api/finish-install") {
         const body = await parseBody(req);
         const config = getSessionConfig();
         if (!config) { json(res, { error: "no_config" }); return; }
+        if (!body.apiName) { json(res, { error: "missing apiName" }); return; }
+        if (!body.connName) { json(res, { error: "missing connName" }); return; }
         try {
             const result = await finishInstall(config, body.apiName, body.displayName, body.connName, body.location, "profile");
+            if (result && !result.error) { pendingRestart = true; restartAcked = false; }
+            json(res, result);
+        } catch (err) {
+            json(res, { error: err.message });
+        }
+        return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/finish-reauth") {
+        const body = await parseBody(req);
+        const config = getSessionConfig();
+        if (!config) { json(res, { error: "no_config" }); return; }
+        if (!body.apiName) { json(res, { error: "missing apiName" }); return; }
+        if (!body.connName) { json(res, { error: "missing connName" }); return; }
+        try {
+            // configName may be absent when reauth fell back to a fresh install
+            // (stored connection was gone); finishReauth handles that defensively.
+            const result = await finishReauth(config, body.apiName, body.displayName, body.connName, body.configName, body.location, "profile");
             if (result && !result.error) { pendingRestart = true; restartAcked = false; }
             json(res, result);
         } catch (err) {
@@ -261,6 +330,23 @@ async function handleRequest(req, res, instanceId) {
         if (!body.apiName) { json(res, { error: "missing apiName" }); return; }
         try {
             const result = await uninstallConnector(config, body.apiName);
+            json(res, result);
+        } catch (err) {
+            json(res, { error: err.message });
+        }
+        return;
+    }
+
+    // Local-only remove: unwire the connector from Copilot's mcp config without
+    // deleting anything on the namespace. Mirrors /api/uninstall but calls the
+    // local-only primitive.
+    if (req.method === "POST" && url.pathname === "/api/remove-local") {
+        const body = await parseBody(req);
+        const config = getSessionConfig();
+        if (!config) { json(res, { error: "no_config" }); return; }
+        if (!body.apiName) { json(res, { error: "missing apiName" }); return; }
+        try {
+            const result = await removeLocalEntry(config, body.apiName);
             json(res, result);
         } catch (err) {
             json(res, { error: err.message });
@@ -337,8 +423,21 @@ async function handleRequest(req, res, instanceId) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.end(renderCatalogHtml(instanceId, catalog, { filter, category, source, config }));
     } catch (err) {
-        res.setHeader("Content-Type", "text/html; charset=utf-8");
-        res.end(renderErrorHtml(`Failed to fetch catalog: ${err.message}`));
+        // Trust-and-fallback: a saved namespace that can no longer be read
+        // (deleted, access revoked, a transient outage) should drop the user
+        // back to the picker, not a dead-end error page. Only if even the
+        // picker can't load its subscriptions do we surface the raw error.
+        try {
+            const subs = await listSubscriptions();
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.end(renderSetupHtml(subs, `couldn't open namespace ${config.gatewayName} .. pick another to continue.`));
+        } catch (subErr) {
+            // Both the namespace catalog and the subscription list failed. Surface
+            // the subscription error (the reason the picker itself can't render) and
+            // keep the original namespace error for context.
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.end(renderErrorHtml(`couldn't load subscriptions: ${subErr.message} .. opening namespace ${config.gatewayName} also failed: ${err.message}`));
+        }
     }
 }
 
