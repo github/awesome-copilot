@@ -1,6 +1,6 @@
 // Regression guards for install-state selection.
 //
-// Run: node --test .github/extensions/connector-namespaces/install.test.mjs
+// Run: node --test extensions/connector-namespaces/install.test.mjs
 //
 // These exist because getInstalledState used to collapse N gateway configs for
 // one apiName down to a single tile via ARM list order (last-wins). A portal

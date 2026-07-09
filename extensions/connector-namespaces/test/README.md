@@ -33,7 +33,7 @@ they can reproduce an MCP server issue locally.
 ## Run it
 
 ```bash
-node .github/extensions/connector-namespaces/test/smoke.mjs
+node extensions/connector-namespaces/test/smoke.mjs
 ```
 
 Options:
@@ -49,10 +49,10 @@ Examples:
 
 ```bash
 # just the three already-connected WorkIQ servers
-node .github/extensions/connector-namespaces/test/smoke.mjs --only=WorkIQMail,WorkIQSharePoint,WorkIQTeams
+node extensions/connector-namespaces/test/smoke.mjs --only=WorkIQMail,WorkIQSharePoint,WorkIQTeams
 
 # first 5 connectable servers, open any consent prompts
-node .github/extensions/connector-namespaces/test/smoke.mjs --limit=5 --open-consent
+node extensions/connector-namespaces/test/smoke.mjs --limit=5 --open-consent
 ```
 
 ## One-time consent, then headless forever

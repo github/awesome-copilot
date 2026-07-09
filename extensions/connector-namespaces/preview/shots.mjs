@@ -6,7 +6,7 @@
 //   2. restart banner visible -> click dismiss -> banner gone
 //
 // Requires the preview server to be running:
-//   node .github/extensions/connector-namespaces/preview/server.mjs
+//   node extensions/connector-namespaces/preview/server.mjs
 // And agent-browser installed:
 //   npm i -g agent-browser && agent-browser install
 //
@@ -45,13 +45,13 @@ async function main() {
     if (!hasAgentBrowser()) {
         console.log("agent-browser is not installed -> skipping screenshots.");
         console.log("Install it with:  npm i -g agent-browser && agent-browser install");
-        console.log("Then re-run:      node .github/extensions/connector-namespaces/preview/shots.mjs");
+        console.log("Then re-run:      node extensions/connector-namespaces/preview/shots.mjs");
         process.exit(0);
     }
 
     if (!(await serverUp())) {
         console.error("preview server is not reachable at " + BASE);
-        console.error("start it first:  node .github/extensions/connector-namespaces/preview/server.mjs");
+        console.error("start it first:  node extensions/connector-namespaces/preview/server.mjs");
         process.exit(1);
     }
 

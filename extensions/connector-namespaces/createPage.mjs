@@ -31,7 +31,7 @@ const REGIONS = [
 
 const DEFAULT_REGION = "eastus";
 
-export function renderCreateNamespaceHtml(subscriptions, preselectedSub = "") {
+export function renderCreateNamespaceHtml(subscriptions, preselectedSub = "", capabilityToken = "") {
     const subOptions = subscriptions.map((s) =>
         `<option value="${esc(s.id)}"${s.id === preselectedSub ? " selected" : ""}>${esc(s.name)} (${esc(s.id.slice(0, 8))}\u2026)</option>`
     ).join("");
@@ -134,6 +134,20 @@ export function renderCreateNamespaceHtml(subscriptions, preselectedSub = "") {
 <div class="progress" id="progress"></div>
 
 <script>
+const connectorNamespaceToken = ${JSON.stringify(capabilityToken)};
+const rawFetch = window.fetch.bind(window);
+window.fetch = (input, init = {}) => {
+    const url = typeof input === "string" ? input : input && input.url;
+    if (url && (url.startsWith("/api/") || url.startsWith("/oauth-status"))) {
+        const next = { ...init };
+        const headers = new Headers(next.headers || (typeof input !== "string" ? input.headers : undefined));
+        headers.set("x-connector-namespace-token", connectorNamespaceToken);
+        next.headers = headers;
+        return rawFetch(input, next);
+    }
+    return rawFetch(input, init);
+};
+
 const subSelect = document.getElementById("sub-select");
 const rgModeWrap = document.getElementById("rg-mode");
 const rgSelect = document.getElementById("rg-select");

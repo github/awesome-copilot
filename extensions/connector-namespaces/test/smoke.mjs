@@ -11,7 +11,7 @@
 // README.md.
 //
 // Usage:
-//   node .github/extensions/connector-namespaces/test/smoke.mjs [options]
+//   node extensions/connector-namespaces/test/smoke.mjs [options]
 //
 // Options:
 //   --only=a,b      only test these apiNames (comma-separated)

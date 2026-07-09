@@ -23,32 +23,14 @@ become available to the agent — without leaving the terminal.
 
 ## Install
 
-This extension lives in the private `serverless-paas-balam/polaris` repo, so
-installing it pulls the files through GitHub's API. Before you start, your
-Copilot CLI / `gh` login must be a member of the `serverless-paas-balam` org
-**with SAML SSO authorized**. Verify it in two seconds:
+Install it from the public Awesome Copilot repository:
 
 ```
-gh api /repos/serverless-paas-balam/polaris --jq .visibility
+install_extension https://github.com/github/awesome-copilot/tree/main/extensions/connector-namespaces
 ```
 
-If that prints `internal` (or `private`) you're set. If it returns `404`, your
-token isn't authorized yet — run `gh auth login`, approve the SSO prompt for the
-org, and retry. (GitHub returns `404`, not a permission error, when gating
-private-repo reads, so don't let the status code fool you.)
-
-### Option A — from the repo (recommended)
-
-Track `main` to get the latest committed version:
-
-```
-install_extension https://github.com/serverless-paas-balam/polaris/tree/main/.github/extensions/connector-namespaces
-```
-
-For a reproducible pin, swap `main` for a release tag — but only one cut
-**after** this extension landed on `main`. Run `git tag -l "v*"` and pick the
-newest. Tags `v1.4.0` and earlier predate this folder and will `404`, so don't
-pin to them. For an internal dev tool, tracking `main` is the safe default.
+For a reproducible install, swap `main` for a reviewed commit SHA from this
+repository.
 
 The destination **scope** is chosen at install time:
 
@@ -57,16 +39,6 @@ The destination **scope** is chosen at install time:
   personal tool.
 - **project** — installs into the current repo.
 - **session** — scoped to a single CLI session.
-
-### Option B — from a gist (no org SSO needed)
-
-If you can't SSO-authorize the org, a gist sidesteps the private-repo wall. The
-maintainer publishes a secret gist via **"Share extension as gist…"**; anyone
-with the link installs it with **"Install extension from gist…"** or:
-
-```
-install_extension https://gist.github.com/<owner>/<gist-id>
-```
 
 ## Usage
 
@@ -98,11 +70,11 @@ install_extension https://gist.github.com/<owner>/<gist-id>
 ## Privacy & security
 
 - Tokens are obtained through an interactive Azure sign-in (OAuth2 auth-code
-  with PKCE); no client secret is used. The refresh token is cached under your
-  Copilot home directory
+  with PKCE); no client secret is used. The refresh token and current ARM access
+  token are cached under your Copilot home directory
   (`~/.copilot/extensions/connector-namespaces/artifacts/auth-cache.json`,
   written with owner-only `0600` permissions) so you are not prompted to sign in
-  every session; access tokens are held in memory and never logged.
+  every session. Tokens are never logged.
 - All servers bind to loopback (`127.0.0.1`) and are never exposed externally.
 - ARM requests go only to `https://management.azure.com/`; path segments are
   validated to prevent SSRF-style host smuggling.

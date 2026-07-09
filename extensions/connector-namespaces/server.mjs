@@ -1,6 +1,7 @@
 // Loopback HTTP server — serves connector namespace picker + connector catalog UI.
 
 import { createServer } from "node:http";
+import { randomBytes } from "node:crypto";
 import { renderCatalogHtml, renderErrorHtml, renderSetupHtml } from "./renderer.mjs";
 import { renderCreateNamespaceHtml } from "./createPage.mjs";
 import { addConnector, removeConnector, getSessionConfig, saveConfig, clearConfig } from "./state.mjs";
@@ -23,6 +24,35 @@ const gatewayCache = new Map();
 const pendingOAuth = new Map(); // connName → timestamp
 
 const PENDING_OAUTH_TTL_MS = 15 * 60 * 1000;
+const CAPABILITY_TOKEN_HEADER = "x-connector-namespace-token";
+
+function createCapabilityToken() {
+    return randomBytes(32).toString("base64url");
+}
+
+export function isCanonicalHost(req, canonicalHost) {
+    return String(req.headers.host || "").toLowerCase() === String(canonicalHost || "").toLowerCase();
+}
+
+export function requiresCapabilityToken(pathname) {
+    return pathname.startsWith("/api/") || pathname === "/oauth-status" || pathname.startsWith("/auth/callback/");
+}
+
+export function hasCapabilityToken(req, url, expectedToken) {
+    if (!expectedToken) {
+        return false;
+    }
+    const header = req.headers[CAPABILITY_TOKEN_HEADER];
+    const headerToken = Array.isArray(header) ? header[0] : header;
+    return headerToken === expectedToken || url.searchParams.get("cn_token") === expectedToken;
+}
+
+function rejectForbidden(res, error) {
+    res.statusCode = 403;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ error }));
+}
+
 // Drop stale/abandoned consent markers so the map can't grow unbounded and a
 // brand-new install of the same connection can't observe a stale "done".
 function prunePendingOAuth() {
@@ -54,15 +84,16 @@ function parseBody(req) {
 // Blocks cross-site POSTs to /api/* so a random web page can't drive the user's
 // ARM operations through this loopback server (CSRF). Returns true only when the
 // request carries an explicit foreign-origin signal: an Origin header from a
-// different http(s) origin than ours, an opaque `null` origin (sandboxed iframe
-// / data: or blob: URI), or a Fetch-Metadata marker of cross-site/same-site. The
-// panel loads as a top-level http document, so its own fetches are same-origin
-// (Origin === our host, never "null"), and header-less callers (the node test
-// harness, non-browser clients) fall through as allowed, so nothing legit breaks.
-export function isCrossSiteRequest(req) {
+// different http(s) origin than the canonical loopback URL, an opaque `null`
+// origin (sandboxed iframe / data: or blob: URI), or a Fetch-Metadata marker of
+// cross-site/same-site. The panel loads as a top-level http document, so its own
+// fetches are same-origin (Origin === our canonical loopback origin, never
+// "null"), and header-less callers (the node test harness, non-browser clients)
+// fall through as allowed, so nothing legit breaks.
+export function isCrossSiteRequest(req, canonicalOrigin) {
     const origin = req.headers.origin;
     if (origin) {
-        if (origin === `http://${req.headers.host}`) return false; // our own loopback UI
+        if (origin === canonicalOrigin) return false;              // our own loopback UI
         if (origin === "null") return true;                        // opaque origin: sandboxed iframe / data: or blob: URI
         if (/^https?:\/\//i.test(origin)) return true;             // a different web page
         return false;                                              // non-web scheme (host webview)
@@ -71,16 +102,24 @@ export function isCrossSiteRequest(req) {
     return site === "cross-site" || site === "same-site";
 }
 
-async function handleRequest(req, res, instanceId) {
+async function handleRequest(req, res, instanceId, serverEntry) {
     const url = new URL(req.url, "http://localhost");
+
+    if (!isCanonicalHost(req, serverEntry.host)) {
+        rejectForbidden(res, "host_not_allowed");
+        return;
+    }
+
+    if (requiresCapabilityToken(url.pathname) && !hasCapabilityToken(req, url, serverEntry.token)) {
+        rejectForbidden(res, "missing_or_invalid_capability_token");
+        return;
+    }
 
     // Reject cross-site attempts to invoke state-changing API routes (CSRF).
     // Only POST /api/* is gated: GET navigations like the OAuth callback and the
     // read routes are never blocked here.
-    if (req.method === "POST" && url.pathname.startsWith("/api/") && isCrossSiteRequest(req)) {
-        res.statusCode = 403;
-        res.setHeader("Content-Type", "application/json");
-        res.end(JSON.stringify({ error: "cross_site_blocked" }));
+    if (req.method === "POST" && url.pathname.startsWith("/api/") && isCrossSiteRequest(req, serverEntry.origin)) {
+        rejectForbidden(res, "cross_site_blocked");
         return;
     }
 
@@ -210,11 +249,10 @@ async function handleRequest(req, res, instanceId) {
         if (!config) { json(res, { error: "no_config" }); return; }
         const { apiName, displayName } = body;
         if (!apiName) { json(res, { error: "missing apiName" }); return; }
-        const serverEntry = servers.get(instanceId);
-        const port = serverEntry ? new URL(serverEntry.url).port : "0";
+        const port = new URL(serverEntry.url).port;
         const callbackBase = `http://127.0.0.1:${port}/auth/callback/`;
         try {
-            const result = await installConnector(config, apiName, displayName || apiName, callbackBase, "profile");
+            const result = await installConnector(config, apiName, displayName || apiName, callbackBase, "profile", serverEntry.token);
             if (result && !result.error && !result.needsConsent) { pendingRestart = true; restartAcked = false; }
             json(res, result);
         } catch (err) {
@@ -229,11 +267,10 @@ async function handleRequest(req, res, instanceId) {
         if (!config) { json(res, { error: "no_config" }); return; }
         const { apiName, displayName } = body;
         if (!apiName) { json(res, { error: "missing apiName" }); return; }
-        const serverEntry = servers.get(instanceId);
-        const port = serverEntry ? new URL(serverEntry.url).port : "0";
+        const port = new URL(serverEntry.url).port;
         const callbackBase = `http://127.0.0.1:${port}/auth/callback/`;
         try {
-            const result = await reauthConnector(config, apiName, displayName || apiName, callbackBase, "profile");
+            const result = await reauthConnector(config, apiName, displayName || apiName, callbackBase, "profile", serverEntry.token);
             if (result && !result.error && !result.needsConsent) { pendingRestart = true; restartAcked = false; }
             json(res, result);
         } catch (err) {
@@ -389,7 +426,7 @@ async function handleRequest(req, res, instanceId) {
             const subs = await listSubscriptions();
             const preselected = url.searchParams.get("subscriptionId") || "";
             res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.end(renderCreateNamespaceHtml(subs, preselected));
+            res.end(renderCreateNamespaceHtml(subs, preselected, serverEntry.token));
         } catch (err) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             res.end(renderErrorHtml(`Failed to load subscriptions. Sign in to Azure when the browser opens, then reload this page.\n\n${err.message}`));
@@ -402,7 +439,7 @@ async function handleRequest(req, res, instanceId) {
         try {
             const subs = await listSubscriptions();
             res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.end(renderSetupHtml(subs));
+            res.end(renderSetupHtml(subs, "", serverEntry.token));
         } catch (err) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             res.end(renderErrorHtml(`Failed to load subscriptions. Sign in to Azure when the browser opens, then reload this page.\n\n${err.message}`));
@@ -421,7 +458,7 @@ async function handleRequest(req, res, instanceId) {
         // the Connect click doesn't pay for the slow swagger export.
         prewarmMeta(config, catalog.map((c) => c.apiName));
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        res.end(renderCatalogHtml(instanceId, catalog, { filter, category, source, config }));
+        res.end(renderCatalogHtml(instanceId, catalog, { filter, category, source, config }, serverEntry.token));
     } catch (err) {
         // Trust-and-fallback: a saved namespace that can no longer be read
         // (deleted, access revoked, a transient outage) should drop the user
@@ -430,7 +467,7 @@ async function handleRequest(req, res, instanceId) {
         try {
             const subs = await listSubscriptions();
             res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.end(renderSetupHtml(subs, `couldn't open namespace ${config.gatewayName} .. pick another to continue.`));
+            res.end(renderSetupHtml(subs, `couldn't open namespace ${config.gatewayName} .. pick another to continue.`, serverEntry.token));
         } catch (subErr) {
             // Both the namespace catalog and the subscription list failed. Surface
             // the subscription error (the reason the picker itself can't render) and
@@ -453,11 +490,21 @@ export function startServer(instanceId) {
     if (inflight) return inflight;
 
     const p = (async () => {
-        const server = createServer((req, res) => handleRequest(req, res, instanceId));
+        const entry = {
+            server: null,
+            url: "",
+            host: "",
+            origin: "",
+            token: createCapabilityToken(),
+        };
+        const server = createServer((req, res) => handleRequest(req, res, instanceId, entry));
+        entry.server = server;
         await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
         const address = server.address();
         const port = typeof address === "object" && address ? address.port : 0;
-        const entry = { server, url: `http://127.0.0.1:${port}/` };
+        entry.host = `127.0.0.1:${port}`;
+        entry.origin = `http://${entry.host}`;
+        entry.url = `${entry.origin}/`;
         servers.set(instanceId, entry);
         return entry;
     })();

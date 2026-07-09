@@ -1,6 +1,6 @@
 // Guards for the cross-site request gate on the loopback API server.
 //
-// Run: node --test .github/extensions/connector-namespaces/server.test.mjs
+// Run: node --test extensions/connector-namespaces/server.test.mjs
 //
 // The server binds an ephemeral 127.0.0.1 port and JSON-parses every POST body,
 // so without a check any web page the user visits could script-drive their ARM
@@ -13,7 +13,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { isCrossSiteRequest } from "./server.mjs";
+import { hasCapabilityToken, isCanonicalHost, isCrossSiteRequest, requiresCapabilityToken } from "./server.mjs";
 
 // Minimal request stub: only headers matter to the gate.
 function req(headers) {
@@ -22,11 +22,11 @@ function req(headers) {
 
 test("same-origin Origin (our own loopback UI) is allowed", () => {
     const r = req({ host: "127.0.0.1:54321", origin: "http://127.0.0.1:54321" });
-    assert.equal(isCrossSiteRequest(r), false);
+    assert.equal(isCrossSiteRequest(r, "http://127.0.0.1:54321"), false);
 });
 
 test("no headers at all (test harness / non-browser client) is allowed", () => {
-    assert.equal(isCrossSiteRequest(req({})), false);
+    assert.equal(isCrossSiteRequest(req({}), "http://127.0.0.1:54321"), false);
 });
 
 test("non-web-scheme Origin (host webview) is allowed", () => {
@@ -35,7 +35,7 @@ test("non-web-scheme Origin (host webview) is allowed", () => {
     // don't block them; only http(s) foreign origins and opaque `null` origins
     // are treated as hostile.
     const r = req({ host: "127.0.0.1:54321", origin: "app://obsidian.md" });
-    assert.equal(isCrossSiteRequest(r), false);
+    assert.equal(isCrossSiteRequest(r, "http://127.0.0.1:54321"), false);
 });
 
 test("opaque null Origin (sandboxed iframe / data: URI) is blocked", () => {
@@ -45,23 +45,29 @@ test("opaque null Origin (sandboxed iframe / data: URI) is blocked", () => {
     // attacker scripts from, and never our real top-level http panel (which
     // sends Origin: http://<host>), so we treat it as hostile.
     const r = req({ host: "127.0.0.1:54321", origin: "null" });
-    assert.equal(isCrossSiteRequest(r), true);
+    assert.equal(isCrossSiteRequest(r, "http://127.0.0.1:54321"), true);
 });
 
 test("foreign https Origin (a real web page) is blocked", () => {
     const r = req({ host: "127.0.0.1:54321", origin: "https://evil.example.com" });
-    assert.equal(isCrossSiteRequest(r), true);
+    assert.equal(isCrossSiteRequest(r, "http://127.0.0.1:54321"), true);
 });
 
 test("foreign http Origin on a different loopback port is blocked", () => {
     // A different local app on another 127.0.0.1 port is still cross-origin to us.
     const r = req({ host: "127.0.0.1:54321", origin: "http://127.0.0.1:9999" });
-    assert.equal(isCrossSiteRequest(r), true);
+    assert.equal(isCrossSiteRequest(r, "http://127.0.0.1:54321"), true);
+});
+
+test("same-origin check does not trust a DNS-rebound Host header", () => {
+    const r = req({ host: "attacker.example:54321", origin: "http://attacker.example:54321" });
+    assert.equal(isCanonicalHost(r, "127.0.0.1:54321"), false);
+    assert.equal(isCrossSiteRequest(r, "http://127.0.0.1:54321"), true);
 });
 
 test("Sec-Fetch-Site: cross-site (no Origin) is blocked", () => {
     const r = req({ host: "127.0.0.1:54321", "sec-fetch-site": "cross-site" });
-    assert.equal(isCrossSiteRequest(r), true);
+    assert.equal(isCrossSiteRequest(r, "http://127.0.0.1:54321"), true);
 });
 
 test("Sec-Fetch-Site: same-site (no Origin) is blocked", () => {
@@ -69,10 +75,33 @@ test("Sec-Fetch-Site: same-site (no Origin) is blocked", () => {
     // not same-origin request would be another local app on a sibling port —
     // exactly what we want to keep out.
     const r = req({ host: "127.0.0.1:54321", "sec-fetch-site": "same-site" });
-    assert.equal(isCrossSiteRequest(r), true);
+    assert.equal(isCrossSiteRequest(r, "http://127.0.0.1:54321"), true);
 });
 
 test("Sec-Fetch-Site: same-origin (no Origin) is allowed", () => {
     const r = req({ host: "127.0.0.1:54321", "sec-fetch-site": "same-origin" });
-    assert.equal(isCrossSiteRequest(r), false);
+    assert.equal(isCrossSiteRequest(r, "http://127.0.0.1:54321"), false);
+});
+
+test("state-changing and OAuth status routes require a capability token", () => {
+    assert.equal(requiresCapabilityToken("/api/install"), true);
+    assert.equal(requiresCapabilityToken("/oauth-status"), true);
+    assert.equal(requiresCapabilityToken("/auth/callback/conn"), true);
+    assert.equal(requiresCapabilityToken("/setup"), false);
+});
+
+test("capability token accepts the private header or OAuth callback query", () => {
+    const token = "secret-token";
+    assert.equal(
+        hasCapabilityToken(req({ "x-connector-namespace-token": token }), new URL("http://127.0.0.1/api/state"), token),
+        true,
+    );
+    assert.equal(
+        hasCapabilityToken(req({}), new URL(`http://127.0.0.1/auth/callback/conn?cn_token=${token}`), token),
+        true,
+    );
+    assert.equal(
+        hasCapabilityToken(req({ "x-connector-namespace-token": "wrong" }), new URL("http://127.0.0.1/api/state"), token),
+        false,
+    );
 });

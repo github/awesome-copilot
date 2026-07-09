@@ -280,7 +280,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px s
 // Setup / Namespace Picker
 // ---------------------------------------------------------------------------
 
-export function renderSetupHtml(subscriptions, notice = "") {
+export function renderSetupHtml(subscriptions, notice = "", capabilityToken = "") {
     const subOptions = subscriptions.map((s) =>
         `<option value="${s.id}">${esc(s.name)} (${s.id.slice(0, 8)}\u2026)</option>`
     ).join("");
@@ -339,6 +339,20 @@ ${notice ? `<div class="setup-notice">${esc(notice)}</div>` : ""}
     <div class="empty">Select a subscription to see available connector namespaces.</div>
 </div>
 <script>
+const connectorNamespaceToken = ${JSON.stringify(capabilityToken)};
+const rawFetch = window.fetch.bind(window);
+window.fetch = (input, init = {}) => {
+    const url = typeof input === "string" ? input : input && input.url;
+    if (url && (url.startsWith("/api/") || url.startsWith("/oauth-status"))) {
+        const next = { ...init };
+        const headers = new Headers(next.headers || (typeof input !== "string" ? input.headers : undefined));
+        headers.set("x-connector-namespace-token", connectorNamespaceToken);
+        next.headers = headers;
+        return rawFetch(input, next);
+    }
+    return rawFetch(input, init);
+};
+
 const subSelect = document.getElementById("sub-select");
 const gatewayList = document.getElementById("gateway-list");
 const gwFilter = document.getElementById("gw-filter");
@@ -467,7 +481,7 @@ async function selectGateway(subscriptionId, resourceGroup, gatewayName) {
 // Catalog
 // ---------------------------------------------------------------------------
 
-export function renderCatalogHtml(instanceId, catalog, { filter, category, source, config }) {
+export function renderCatalogHtml(instanceId, catalog, { filter, category, source, config }, capabilityToken = "") {
     const renderItem = (c) => {
         // Items carry their home grid so hydrateState can move them into
         // "My MCPs" when added and back to Microsoft/Partner on remove.
@@ -638,6 +652,20 @@ export function renderCatalogHtml(instanceId, catalog, { filter, category, sourc
 ${sectionsHtml}
 <div id="no-match" class="empty is-hidden"></div>
 <script>
+const connectorNamespaceToken = ${JSON.stringify(capabilityToken)};
+const rawFetch = window.fetch.bind(window);
+window.fetch = (input, init = {}) => {
+    const url = typeof input === "string" ? input : input && input.url;
+    if (url && (url.startsWith("/api/") || url.startsWith("/oauth-status"))) {
+        const next = { ...init };
+        const headers = new Headers(next.headers || (typeof input !== "string" ? input.headers : undefined));
+        headers.set("x-connector-namespace-token", connectorNamespaceToken);
+        next.headers = headers;
+        return rawFetch(input, next);
+    }
+    return rawFetch(input, init);
+};
+
 const input = document.getElementById("search");
 const noMatch = document.getElementById("no-match");
 

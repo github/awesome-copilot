@@ -7,7 +7,7 @@
 // the panel stayed stuck on "Re-authenticate". This test stubs ARM and proves
 // reauthConnector adopts the local session's connection and issues ZERO PUTs.
 //
-// Run: node --test .github/extensions/connector-namespaces/install.reauth.test.mjs
+// Run: node --test extensions/connector-namespaces/install.reauth.test.mjs
 
 import { test, after } from "node:test";
 import assert from "node:assert/strict";

@@ -5,7 +5,7 @@
 // /api/* endpoint the inline client script calls. Point any browser (or the
 // agent-browser driver in shots.mjs) at it to see exactly what ships.
 //
-// Run:  node .github/extensions/connector-namespaces/preview/server.mjs
+// Run:  node extensions/connector-namespaces/preview/server.mjs
 // Then open http://127.0.0.1:7331/ (catalog), /setup, /error.
 //
 // This process is NOT the JSON-RPC extension provider, so console.log here is
