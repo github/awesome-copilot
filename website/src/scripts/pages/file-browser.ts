@@ -5,9 +5,10 @@
  * install for hooks, and skills install with the GitHub CLI. This script wires
  * up the shared file browser (the primary file — SKILL.md or README.md — is
  * embedded at build time; other files are lazily fetched and rendered — markdown
- * via `marked`, code via a lazily-imported Shiki, everything else as plain
- * text), plus the "copy install command", "Download ZIP", copy-file and Share
- * actions. Deep links use the existing `#file=<path>` hash convention.
+ * via `marked`, code via a lazily-imported Shiki, images via their raw GitHub
+ * URL, everything else as plain text), plus the "copy install command",
+ * "Download ZIP", copy-file and Share actions. Deep links use the existing
+ * `#file=<path>` hash convention.
  */
 import { marked } from "marked";
 import { enhanceMarkdownA11y } from "../../lib/markdown-a11y";
@@ -33,6 +34,10 @@ interface FileDescriptor {
   name: string;
   lang: string;
   kind: string;
+}
+
+function isImageKind(kind: string): boolean {
+  return kind === "image";
 }
 
 function encodeRepoPath(filePath: string): string {
@@ -151,6 +156,7 @@ function initFileBrowser(): void {
   const showLoadError = (fileUrl: string | null): void => {
     contentEl?.replaceChildren();
     contentEl?.classList.remove("is-code");
+    contentEl?.classList.remove("is-image");
     setStatus(null);
     if (!contentEl) return;
 
@@ -179,6 +185,15 @@ function initFileBrowser(): void {
   ): Promise<RenderedFile> {
     const cached = cache.get(path);
     if (cached?.html !== undefined) return cached as RenderedFile;
+
+    if (isImageKind(kind)) {
+      const imageUrl = getRawGitHubUrl(path);
+      const entry: RenderedFile = {
+        html: `<img class="skill-file-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async">`,
+      };
+      cache.set(path, entry);
+      return entry;
+    }
 
     let rawText = cached?.rawText;
     if (rawText === undefined) {
@@ -226,6 +241,7 @@ function initFileBrowser(): void {
       const entry = await renderFile(path, name, lang, kind);
       contentEl.innerHTML = entry.html;
       contentEl.classList.toggle("is-code", kind === "code");
+      contentEl.classList.toggle("is-image", isImageKind(kind));
       setStatus(null);
     } catch {
       showLoadError(fileUrl);
@@ -257,8 +273,14 @@ function initFileBrowser(): void {
   root
     .querySelector<HTMLButtonElement>("[data-action='copy-file']")
     ?.addEventListener("click", async () => {
+      const activeDescriptor = fileDescriptors.find((d) => d.path === activePath);
+      if (activeDescriptor && isImageKind(activeDescriptor.kind)) {
+        showToast("Images can't be copied as text", "error");
+        return;
+      }
+
       let entry = cache.get(activePath);
-      if (!entry?.rawText) {
+      if (entry?.rawText === undefined) {
         try {
           const response = await fetch(getRawGitHubUrl(activePath));
           if (response.ok) {
@@ -270,7 +292,7 @@ function initFileBrowser(): void {
           /* handled below */
         }
       }
-      if (!entry?.rawText) {
+      if (entry?.rawText === undefined) {
         showToast("Nothing to copy", "error");
         return;
       }

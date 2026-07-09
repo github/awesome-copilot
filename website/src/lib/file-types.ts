@@ -1,11 +1,11 @@
 /**
  * Map a file name to a Shiki language id and a coarse "kind" used by the file
- * browser to decide how to render it (markdown prose, highlighted code, or
- * a plain fallback). Shared between the build-time FileBrowser component
+ * browser to decide how to render it (markdown prose, highlighted code, image,
+ * or a plain fallback). Shared between the build-time FileBrowser component
  * and the client-side file-browser script, so both agree on languages.
  */
 
-export type FileKind = "markdown" | "code" | "other";
+export type FileKind = "markdown" | "code" | "image" | "other";
 
 const EXT_LANG: Record<string, string> = {
   ts: "typescript",
@@ -75,6 +75,18 @@ const CODE_LANGS = new Set<string>([
   "docker",
 ]);
 
+const IMAGE_EXTS = new Set<string>([
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "svg",
+  "webp",
+  "avif",
+  "bmp",
+  "ico",
+]);
+
 export interface FileMeta {
   ext: string;
   lang: string;
@@ -89,7 +101,8 @@ export function getFileMeta(name: string): FileMeta {
       : (base.split(".").pop() ?? "").toLowerCase();
   const lang = EXT_LANG[ext] ?? "text";
   let kind: FileKind = "other";
-  if (ext === "md" || ext === "markdown") kind = "markdown";
+  if (IMAGE_EXTS.has(ext)) kind = "image";
+  else if (ext === "md" || ext === "markdown") kind = "markdown";
   else if (CODE_LANGS.has(lang)) kind = "code";
   return { ext, lang, kind };
 }

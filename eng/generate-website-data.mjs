@@ -565,7 +565,7 @@ function getAgentFiles(agentDir, pluginRootPath) {
  * Build a lookup index of resource id -> { title, url } for the kinds that have
  * dedicated detail pages, so plugin items can deep-link to them.
  */
-function buildResourceIndex({ agents, skills, instructions, hooks }) {
+function buildResourceIndex({ agents, skills, instructions, hooks, extensions }) {
   const toMap = (items, urlPrefix) => {
     const map = new Map();
     for (const item of items || []) {
@@ -577,12 +577,33 @@ function buildResourceIndex({ agents, skills, instructions, hooks }) {
     }
     return map;
   };
+  const extensionMap = new Map();
+  for (const item of extensions || []) {
+    if (!item?.id) continue;
+
+    const entry = {
+      title: item.name || item.title || item.id,
+      url: `/extension/${item.id}/`,
+    };
+    const keys = [
+      item.id,
+      item.extensionId,
+      item.path ? pluginItemCandidateId(item.path) : null,
+    ].filter(Boolean);
+
+    for (const key of keys) {
+      if (!extensionMap.has(key)) {
+        extensionMap.set(key, entry);
+      }
+    }
+  }
 
   return {
     agent: toMap(agents, "agent"),
     skill: toMap(skills, "skill"),
     instruction: toMap(instructions, "instruction"),
     hook: toMap(hooks, "hook"),
+    extension: extensionMap,
   };
 }
 
@@ -1772,23 +1793,24 @@ async function main() {
   const skills = skillsData.items;
   console.log(`✓ Generated ${skills.length} skills`);
 
-  const resourceIndex = buildResourceIndex({
-    agents,
-    skills,
-    instructions,
-    hooks,
-  });
-  const pluginsData = generatePluginsData(gitDates, resourceIndex);
-  const plugins = pluginsData.items;
-  console.log(
-    `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
-  );
-
   const extensionManifestData = generateCanvasManifest(gitDates, commitSha);
   const extensionsData = generateExtensionsData(extensionManifestData);
   const extensions = extensionsData.items;
   console.log(
     `✓ Generated ${extensions.length} extensions (${extensionsData.filters.keywords.length} keywords)`
+  );
+
+  const resourceIndex = buildResourceIndex({
+    agents,
+    skills,
+    instructions,
+    hooks,
+    extensions,
+  });
+  const pluginsData = generatePluginsData(gitDates, resourceIndex);
+  const plugins = pluginsData.items;
+  console.log(
+    `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
   );
 
   const toolsData = generateToolsData();

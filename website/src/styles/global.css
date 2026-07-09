@@ -4075,6 +4075,12 @@ header .theme-toggle-container {
 .skill-file-content {
   padding: 1.25rem;
 }
+.skill-file-content .skill-file-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
 .skill-file-content.is-code {
   padding: 0;
 }

@@ -96,7 +96,11 @@ export function readResourceMarkdown(filePath: string): {
     markdownHtml = enhanceMarkdownA11y(
       marked.parse(parsed.content, { async: false }) as string
     );
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `[detail-page] Failed to read or parse markdown for "${filePath}": ${message}`
+    );
     markdownHtml = "";
   }
   return { markdownHtml, frontmatterText, rawMarkdown };
