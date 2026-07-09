@@ -136,7 +136,7 @@ export async function downloadZipBundle(
 
       return {
         name: file.name,
-        content: await response.text(),
+        content: await response.arrayBuffer(),
       };
     } catch {
       return null;

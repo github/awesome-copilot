@@ -19,11 +19,28 @@ function initResourceDetail(): void {
   const toggle = dropdown?.querySelector<HTMLButtonElement>(
     "[data-install-toggle]"
   );
+  const menuItems = dropdown
+    ? Array.from(
+        dropdown.querySelectorAll<HTMLAnchorElement>(
+          ".install-dropdown-menu a[role='menuitem']"
+        )
+      )
+    : [];
 
-  const closeMenu = () => {
+  const closeMenu = (returnFocus = false) => {
     if (!dropdown) return;
     dropdown.classList.remove("open");
     toggle?.setAttribute("aria-expanded", "false");
+    if (returnFocus) {
+      toggle?.focus();
+    }
+  };
+
+  const openMenu = () => {
+    if (!dropdown) return;
+    dropdown.classList.add("open");
+    toggle?.setAttribute("aria-expanded", "true");
+    menuItems[0]?.focus();
   };
 
   toggle?.addEventListener("click", (e) => {
@@ -31,6 +48,52 @@ function initResourceDetail(): void {
     e.stopPropagation();
     const isOpen = dropdown!.classList.toggle("open");
     toggle.setAttribute("aria-expanded", String(isOpen));
+    if (isOpen) {
+      menuItems[0]?.focus();
+    }
+  });
+
+  toggle?.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openMenu();
+    }
+  });
+
+  menuItems.forEach((item, index) => {
+    item.addEventListener("keydown", (e) => {
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          menuItems[(index + 1) % menuItems.length]?.focus();
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          menuItems[
+            (index - 1 + menuItems.length) % menuItems.length
+          ]?.focus();
+          break;
+        case "Home":
+          e.preventDefault();
+          menuItems[0]?.focus();
+          break;
+        case "End":
+          e.preventDefault();
+          menuItems[menuItems.length - 1]?.focus();
+          break;
+        case "Escape":
+          e.preventDefault();
+          closeMenu(true);
+          break;
+        case "Tab":
+          closeMenu();
+          break;
+      }
+    });
+
+    item.addEventListener("click", () => {
+      closeMenu();
+    });
   });
 
   // Close the menu on outside click / Escape.
@@ -38,7 +101,9 @@ function initResourceDetail(): void {
     if (dropdown && !dropdown.contains(e.target as Node)) closeMenu();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeMenu();
+    if (e.key === "Escape" && dropdown?.classList.contains("open")) {
+      closeMenu(true);
+    }
   });
 
   // --- Download (also available as a menu item) ---
