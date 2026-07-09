@@ -123,7 +123,7 @@ const heading = label ?? (isExternal ? "Install this plugin" : "Install");
             </a>
           )}
           {ghappUrl && (vscodeUrl || insidersUrl) && (
-            <div class="dropdown-divider" />
+            <div class="dropdown-divider" role="separator" aria-hidden="true" />
           )}
           {vscodeUrl && (
             <a href={vscodeUrl} target="_blank" rel="noopener" role="menuitem">
