@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { marked } from "marked";
 import matter from "gray-matter";
+import { enhanceMarkdownA11y } from "./markdown-a11y";
 
 /**
  * Build-time helpers shared by the resource detail pages
@@ -92,7 +93,9 @@ export function readResourceMarkdown(filePath: string): {
     rawMarkdown = raw;
     const parsed = matter(raw);
     frontmatterText = parsed.matter?.trim() ?? "";
-    markdownHtml = marked.parse(parsed.content, { async: false }) as string;
+    markdownHtml = enhanceMarkdownA11y(
+      marked.parse(parsed.content, { async: false }) as string
+    );
   } catch {
     markdownHtml = "";
   }

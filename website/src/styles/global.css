@@ -2792,11 +2792,19 @@ body:has(#main-content) {
 
 .article-content a {
   color: var(--color-link);
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .article-content a:hover {
   color: var(--color-link-hover);
+  text-decoration: underline;
+}
+
+/* Beat the global `#main-content a { text-decoration: none }` reset so links
+   inside rendered docs and install notes stay distinguishable without relying
+   on color alone (WCAG 1.4.1 / axe link-in-text-block). */
+#main-content .article-content a,
+#main-content .skill-install-note a {
   text-decoration: underline;
 }
 

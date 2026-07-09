@@ -163,7 +163,7 @@ if (isExternal) {
       <DetailHeader item={headerItem} />
 
       <div class="detail-layout">
-        <main class="detail-main">
+        <div class="detail-main">
           {
             markdownHtml ? (
               <section class="detail-section" aria-labelledby="doc-heading">
@@ -193,7 +193,7 @@ if (isExternal) {
             pluginPath={item.path}
             githubBase={GITHUB_TREE}
           />
-        </main>
+        </div>
 
         <Sidebar
           item={sidebarItem}

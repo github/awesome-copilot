@@ -10,6 +10,7 @@
  * actions. Deep links use the existing `#file=<path>` hash convention.
  */
 import { marked } from "marked";
+import { enhanceMarkdownA11y } from "../../lib/markdown-a11y";
 import {
   copyToClipboard,
   downloadZipBundle,
@@ -45,12 +46,17 @@ function loadHighlighter() {
   highlighterPromise ??= import("shiki").then(({ codeToHtml }) => {
     return async (code: string, lang: string) => {
       try {
-        return await codeToHtml(code, {
+        const highlighted = await codeToHtml(code, {
           lang,
           themes: { light: "github-light", dark: "github-dark" },
         });
+        // Shiki emits a scrollable <pre>; make it keyboard focusable.
+        return highlighted.replace(
+          /<pre(?![^>]*\btabindex=)/,
+          '<pre tabindex="0"'
+        );
       } catch {
-        return `<pre class="skill-file-plain"><code>${escapeHtml(code)}</code></pre>`;
+        return `<pre tabindex="0" class="skill-file-plain"><code>${escapeHtml(code)}</code></pre>`;
       }
     };
   });
@@ -135,12 +141,12 @@ function initFileBrowser(): void {
 
     let html: string;
     if (kind === "markdown") {
-      html = marked.parse(rawText, { async: false }) as string;
+      html = enhanceMarkdownA11y(marked.parse(rawText, { async: false }) as string);
     } else if (kind === "code") {
       const highlight = await loadHighlighter();
       html = await highlight(rawText, lang);
     } else {
-      html = `<pre class="skill-file-plain"><code>${escapeHtml(rawText)}</code></pre>`;
+      html = `<pre tabindex="0" class="skill-file-plain"><code>${escapeHtml(rawText)}</code></pre>`;
     }
 
     const entry: RenderedFile = { html, rawText };

@@ -92,7 +92,7 @@ if (item.tags.length > 0) {
       <DetailHeader item={item} />
 
       <div class="detail-layout">
-        <main class="detail-main">
+        <div class="detail-main">
           <FileBrowser
             files={item.files}
             primaryPath={item.readmeFile}
@@ -100,7 +100,7 @@ if (item.tags.length > 0) {
             primaryHtml={markdownHtml}
             githubBase={GITHUB_BASE}
           />
-        </main>
+        </div>
 
         <Sidebar
           item={item}

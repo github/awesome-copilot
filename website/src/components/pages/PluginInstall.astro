@@ -145,7 +145,7 @@ const heading = label ?? (isExternal ? "Install this plugin" : "Install");
       <>
         <p class="skill-install-label">Or install with the CLI</p>
         <div class="skill-install-command" data-install-command={installCommand}>
-          <code>{installCommand}</code>
+          <code tabindex="0">{installCommand}</code>
           <button
             type="button"
             class="skill-install-copy"

@@ -90,7 +90,7 @@ if (item.hasAssets && item.assetCount) {
       <DetailHeader item={item} />
 
       <div class="detail-layout">
-        <main class="detail-main">
+        <div class="detail-main">
           <FileBrowser
             files={item.files}
             primaryPath={item.skillFile}
@@ -98,7 +98,7 @@ if (item.hasAssets && item.assetCount) {
             primaryHtml={markdownHtml}
             githubBase={GITHUB_BASE}
           />
-        </main>
+        </div>
 
         <Sidebar
           item={item}
@@ -110,7 +110,7 @@ if (item.hasAssets && item.assetCount) {
           <div class="skill-install" slot="install">
             <p class="skill-install-label">Install with the GitHub CLI</p>
             <div class="skill-install-command" data-install-command={installCommand}>
-              <code>{installCommand}</code>
+              <code tabindex="0">{installCommand}</code>
               <button
                 type="button"
                 class="skill-install-copy"
