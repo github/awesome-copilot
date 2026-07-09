@@ -3852,6 +3852,25 @@ header .theme-toggle-container {
   flex-wrap: wrap;
   gap: 0.35rem;
 }
+.resource-detail-page .resource-tag-link {
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.resource-detail-page .resource-tag-link:hover,
+.resource-detail-page .resource-tag-link:focus-visible {
+  color: var(--color-link);
+  border-color: var(--color-accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .resource-detail-page .resource-tag-link {
+    transition: none;
+  }
+}
 .resource-detail-page .detail-none {
   color: var(--color-text-muted);
   font-style: italic;

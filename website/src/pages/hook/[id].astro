@@ -49,7 +49,12 @@ const githubUrl = `${GITHUB_BASE}/${item.path}`;
 const readmeFileName = item.readmeFileName ?? "README.md";
 
 const fileCount = item.files.length;
-const chips: { title: string; items: string[] }[] = [];
+const chips: {
+  title: string;
+  items: string[];
+  filterBase?: string;
+  filterParam?: string;
+}[] = [];
 if (item.hooks.length > 0) {
   chips.push({ title: "Hook events", items: item.hooks });
 }
@@ -58,7 +63,12 @@ chips.push({
   items: [`${fileCount} file${fileCount === 1 ? "" : "s"}`],
 });
 if (item.tags.length > 0) {
-  chips.push({ title: "Tags", items: item.tags });
+  chips.push({
+    title: "Tags",
+    items: item.tags,
+    filterBase: "/hooks/",
+    filterParam: "tag",
+  });
 }
 ---
 
