@@ -3,6 +3,7 @@ import path from "node:path";
 import { marked } from "marked";
 import matter from "gray-matter";
 import { enhanceMarkdownA11y } from "./markdown-a11y";
+import { sanitizeHtml } from "./sanitize-html";
 
 /**
  * Build-time helpers shared by the resource detail pages
@@ -94,7 +95,7 @@ export function readResourceMarkdown(filePath: string): {
     const parsed = matter(raw);
     frontmatterText = parsed.matter?.trim() ?? "";
     markdownHtml = enhanceMarkdownA11y(
-      marked.parse(parsed.content, { async: false }) as string
+      sanitizeHtml(marked.parse(parsed.content, { async: false }) as string)
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

@@ -10,6 +10,7 @@ import Sidebar from "../../components/pages/Sidebar.astro";
 import IncludedItems from "../../components/pages/IncludedItems.astro";
 import PluginInstall from "../../components/pages/PluginInstall.astro";
 import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
+import { externalRepoUrl } from "../../lib/external-source";
 
 const GITHUB_TREE = "https://github.com/github/awesome-copilot/tree/main";
 
@@ -74,20 +75,16 @@ const { markdownHtml, frontmatterText, rawMarkdown } = readmePath
 
 const lastUpdated = formatLastUpdated(item.lastUpdated);
 
-function externalRepoUrl(): string {
-  if (item.source?.source === "github" && item.source.repo) {
-    const base = `https://github.com/${item.source.repo}`;
-    const ref = item.source.ref || item.source.sha;
-    if (item.source.path && item.source.path !== "/") {
-      return `${base}/tree/${ref || "main"}/${item.source.path}`;
-    }
-    return ref ? `${base}/tree/${ref}` : base;
-  }
-  return item.repository || item.homepage || GITHUB_TREE;
+function pluginRepoUrl(): string {
+  return externalRepoUrl(item.source, [
+    item.repository,
+    item.homepage,
+    GITHUB_TREE,
+  ]);
 }
 
 const githubUrl = isExternal
-  ? externalRepoUrl()
+  ? pluginRepoUrl()
   : `${GITHUB_TREE}/${item.path}`;
 
 // Install wiring

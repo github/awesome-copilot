@@ -12,6 +12,7 @@
  */
 import { marked } from "marked";
 import { enhanceMarkdownA11y } from "../../lib/markdown-a11y";
+import { sanitizeHtml } from "../../lib/sanitize-html";
 import {
   copyToClipboard,
   downloadZipBundle,
@@ -205,7 +206,9 @@ function initFileBrowser(): void {
 
     let html: string;
     if (kind === "markdown") {
-      html = enhanceMarkdownA11y(marked.parse(rawText, { async: false }) as string);
+      html = enhanceMarkdownA11y(
+        sanitizeHtml(marked.parse(rawText, { async: false }) as string)
+      );
     } else if (kind === "code") {
       const highlight = await loadHighlighter();
       html = await highlight(rawText, lang);
@@ -362,9 +365,10 @@ function initFileBrowser(): void {
       );
     });
 
-  // --- Honour a #file= deep link on load ---
-  const hashMatch = window.location.hash.match(/^#file=(.+)$/);
-  if (hashMatch) {
+  // --- Honour a #file= deep link (on load and on later hash navigation) ---
+  const selectFromHash = (updateHash: boolean): void => {
+    const hashMatch = window.location.hash.match(/^#file=(.+)$/);
+    if (!hashMatch) return;
     let wanted: string | undefined;
     try {
       wanted = decodeURIComponent(hashMatch[1]);
@@ -375,9 +379,17 @@ function initFileBrowser(): void {
       ? fileDescriptors.find((d) => d.path === wanted)
       : undefined;
     if (desc && wanted !== activePath) {
-      void selectFile(desc.path, desc.name, desc.lang, desc.kind, false);
+      void selectFile(desc.path, desc.name, desc.lang, desc.kind, updateHash);
     }
-  }
+  };
+
+  selectFromHash(false);
+
+  // React to same-page hash changes (address-bar edits, in-page anchor links,
+  // and browser back/forward navigation between shared #file= links).
+  window.addEventListener("hashchange", () => {
+    selectFromHash(false);
+  });
 }
 
 if (document.readyState === "loading") {

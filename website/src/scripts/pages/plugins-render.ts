@@ -1,8 +1,8 @@
 import {
   escapeHtml,
   getGitHubUrl,
-  sanitizeUrl,
 } from '../utils';
+import { externalRepoUrl } from '../../lib/external-source';
 import { renderEmptyStateHtml, renderSharedCardHtml } from './card-render';
 
 interface PluginAuthor {
@@ -14,6 +14,8 @@ interface PluginSource {
   source: string;
   repo?: string;
   path?: string;
+  ref?: string;
+  sha?: string;
 }
 
 export interface RenderablePlugin {
@@ -53,12 +55,7 @@ export function sortPlugins<T extends RenderablePlugin>(
 }
 
 function getExternalPluginUrl(plugin: RenderablePlugin): string {
-  if (plugin.source?.source === 'github' && plugin.source.repo) {
-    const base = `https://github.com/${plugin.source.repo}`;
-    return plugin.source.path && plugin.source.path !== '/' ? `${base}/tree/main/${plugin.source.path}` : base;
-  }
-
-  return sanitizeUrl(plugin.repository || plugin.homepage);
+  return externalRepoUrl(plugin.source, [plugin.repository, plugin.homepage]);
 }
 
 export function renderPluginsHtml(items: RenderablePlugin[]): string {

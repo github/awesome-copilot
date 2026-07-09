@@ -9,6 +9,7 @@ import Breadcrumb from "../../components/pages/Breadcrumb.astro";
 import Sidebar from "../../components/pages/Sidebar.astro";
 import PluginInstall from "../../components/pages/PluginInstall.astro";
 import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
+import { sanitizeHttpUrl } from "../../lib/external-source";
 
 const GITHUB_TREE = "https://github.com/github/awesome-copilot/tree/main";
 
@@ -62,6 +63,13 @@ const { item } = Astro.props as { item: ExtensionEntry };
 const headerItem = { ...item, title: item.title ?? item.name };
 
 const isExternal = item.external === true;
+
+// Allow only http(s) URLs from external/generated data in href/src contexts;
+// unsafe values collapse to "" so downstream truthiness guards still hold.
+const safeUrl = (value?: string | null): string => {
+  const sanitized = sanitizeHttpUrl(value);
+  return sanitized === "#" ? "" : sanitized;
+};
 const readmePath = item.readmeFile ?? null;
 const { markdownHtml, frontmatterText, rawMarkdown } = readmePath
   ? readResourceMarkdown(readmePath)
@@ -96,17 +104,19 @@ const galleryImages: string[] = (() => {
     const url = toRawAssetUrl(entry.path);
     if (url) images.push(url);
   }
-  return Array.from(new Set(images.filter(Boolean)));
+  return Array.from(new Set(images.map(safeUrl).filter(Boolean)));
 })();
 
-const installUrl =
+const installUrl = safeUrl(
   item.installUrl ||
-  (item.path && item.ref
-    ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
-        /\\/g,
-        "/"
-      )}`
-    : "");
+    (item.path && item.ref
+      ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
+          /\\/g,
+          "/"
+        )}`
+      : "")
+);
+const sourceUrl = safeUrl(item.sourceUrl);
 const installCommand =
   item.installCommand ||
   (item.pluginName
@@ -114,15 +124,15 @@ const installCommand =
     : "");
 
 const githubUrl = isExternal
-  ? item.sourceUrl || installUrl || GITHUB_TREE
+  ? sourceUrl || installUrl || GITHUB_TREE
   : item.path
     ? `${GITHUB_TREE}/${item.path}`
     : installUrl || GITHUB_TREE;
 
 // Sidebar "Source" shows item.path; external extensions have no repo path.
 const sidebarItem =
-  isExternal && (item.sourceUrl || installUrl)
-    ? { ...item, path: item.sourceUrl || installUrl }
+  isExternal && (sourceUrl || installUrl)
+    ? { ...item, path: sourceUrl || installUrl }
     : item;
 
 const shortHash = (value: string) =>

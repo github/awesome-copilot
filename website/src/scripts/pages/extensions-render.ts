@@ -4,7 +4,15 @@ import {
   getGitHubUrl,
   getLastUpdatedHtml,
 } from "../utils";
+import { sanitizeHttpUrl } from "../../lib/external-source";
 import { renderEmptyStateHtml, renderSharedCardHtml } from "./card-render";
+
+// Allow only http(s) URLs from external/generated data; unsafe values collapse
+// to "" so downstream truthiness guards (disabled buttons, omitted links) hold.
+function safeUrl(value?: string | null): string {
+  const sanitized = sanitizeHttpUrl(value);
+  return sanitized === "#" ? "" : sanitized;
+}
 
 export interface RenderableExtension {
   id: string;
@@ -75,16 +83,18 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
 
   return items
     .map((item) => {
-      const installUrl =
+      const installUrl = safeUrl(
         item.installUrl ||
-        (item.path && item.ref
-          ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
-             /\\/g,
-             "/"
-           )}`
-          : "");
-      const sourceUrl =
-        item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
+          (item.path && item.ref
+            ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
+                /\\/g,
+                "/"
+              )}`
+            : "")
+      );
+      const sourceUrl = safeUrl(
+        item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "")
+      );
       const pluginId = item.pluginName || item.id;
       const ghappInstallUrl =
         !item.external && pluginId
@@ -93,9 +103,10 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
             )}`
           : "";
 
-      const previewMediaHtml = item.imageUrl
+      const previewImageUrl = safeUrl(item.imageUrl);
+      const previewMediaHtml = previewImageUrl
         ? `<div class="resource-thumbnail-btn" aria-hidden="true">
-            <img class="resource-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />
+            <img class="resource-thumbnail" src="${escapeHtml(previewImageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />
            </div>`
         : `<div class="resource-thumbnail resource-thumbnail-placeholder" aria-hidden="true">Canvas</div>`;
 

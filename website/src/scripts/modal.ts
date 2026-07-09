@@ -18,6 +18,7 @@ import {
   isSafeRepoFilePath,
   REPO_IDENTIFIER,
 } from "./utils";
+import { externalRepoUrl } from "../lib/external-source";
 
 type ModalViewMode = "rendered" | "raw";
 
@@ -432,6 +433,8 @@ interface PluginSource {
   source: string;
   repo?: string;
   path?: string;
+  ref?: string;
+  sha?: string;
 }
 
 interface Plugin {
@@ -1174,14 +1177,9 @@ async function openPluginModal(
  * Get the best URL for an external plugin, preferring the deep path within the repo
  */
 function getExternalPluginUrl(plugin: Plugin): string {
-  if (plugin.source?.source === "github" && plugin.source.repo) {
-    const base = `https://github.com/${plugin.source.repo}`;
-    return plugin.source.path && plugin.source.path !== "/"
-      ? `${base}/tree/main/${plugin.source.path}`
-      : base;
-  }
-  // Sanitize URLs from JSON to prevent XSS via javascript:/data: schemes
-  return sanitizeUrl(plugin.repository || plugin.homepage);
+  // Sanitize URLs from JSON to prevent XSS via javascript:/data: schemes and
+  // pin GitHub links to the source's ref/sha when available.
+  return externalRepoUrl(plugin.source, [plugin.repository, plugin.homepage]);
 }
 
 /**
