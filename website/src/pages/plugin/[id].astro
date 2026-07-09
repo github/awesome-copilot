@@ -77,11 +77,11 @@ const lastUpdated = formatLastUpdated(item.lastUpdated);
 function externalRepoUrl(): string {
   if (item.source?.source === "github" && item.source.repo) {
     const base = `https://github.com/${item.source.repo}`;
+    const ref = item.source.ref || item.source.sha;
     if (item.source.path && item.source.path !== "/") {
-      const ref = item.source.ref || item.source.sha || "main";
-      return `${base}/tree/${ref}/${item.source.path}`;
+      return `${base}/tree/${ref || "main"}/${item.source.path}`;
     }
-    return base;
+    return ref ? `${base}/tree/${ref}` : base;
   }
   return item.repository || item.homepage || GITHUB_TREE;
 }

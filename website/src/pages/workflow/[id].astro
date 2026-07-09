@@ -11,6 +11,7 @@ import Sidebar from "../../components/pages/Sidebar.astro";
 import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
 
 const GITHUB_BASE = "https://github.com/github/awesome-copilot/blob/main";
+const workflowGuideHref = "/learning-hub/agentic-workflows/";
 
 interface WorkflowItem extends HeaderItem {
   id: string;
@@ -83,11 +84,12 @@ if (item.triggers.length > 0) {
           <div class="skill-install" slot="install">
             <p class="skill-install-label">Install this workflow</p>
             <p class="skill-install-note">
-              Install the <code>gh aw</code> CLI (<code
-                >gh extension install github/gh-aw</code
-              >), then copy this file into <code>.github/workflows/</code> and run
-              <code>gh aw compile</code> to generate the lock file. See the <a href="/learning-hub/agentic-workflows/">Agentic Workflows guide</a
-              > for full setup steps.
+              Install the <code>gh aw</code> CLI{" "}
+              (<code>gh extension install github/gh-aw</code>), then copy this
+              file into <code>.github/workflows/</code> and run{" "}
+              <code>gh aw compile</code> to generate the lock file. See the{" "}
+              <a href={workflowGuideHref}>Agentic Workflows guide</a>{" "}
+              for full setup steps.
             </p>
             <button
               type="button"
