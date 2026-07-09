@@ -3,7 +3,7 @@
 A generic, **stack-agnostic** catalog of migration hazards that are *predictable
 per ecosystem* but are routinely missed in a first-draft modernization plan.
 Every phase plan should be **red-teamed against this list before it is
-implemented** (see the `modernize` skill's pre-implementation red-team step).
+implemented** (see Modernization mode's pre-implementation red-team step).
 
 Each hazard is written as: **Trigger** (when it applies) → **Risk** (what breaks)
 → **Detection probe** (a concrete check you can run now) → **Plan action** (what
