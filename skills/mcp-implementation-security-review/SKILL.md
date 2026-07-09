@@ -1,7 +1,7 @@
 ---
-name: mcp-security-baseline
+name: mcp-implementation-security-review
 description: |
-  Review MCP (Model Context Protocol) server and client source code against a security baseline — authentication, sessions, rate limiting, input-schema validation, official-SDK usage, RCE vectors, and the OWASP MCP Top 10 — producing a report with file/line evidence. Use this skill when:
+  Review the implementation source code of MCP (Model Context Protocol) servers, clients, and tool handlers against a security baseline — authentication, sessions, rate limiting, input-schema validation, official-SDK usage, RCE vectors, and the OWASP MCP Top 10 — producing a report with file/line evidence. Use this skill when:
   - Reviewing an MCP server implementation for security before release
   - Checking a server against the baseline controls (MCP-01 to MCP-05) and the OWASP MCP Top 10
   - Auditing tools for RCE vectors (command/code injection, unsafe deserialization, path traversal, SSTI, dependency hijacking, SSRF)
@@ -10,7 +10,7 @@ description: |
   - Requests like "review this MCP server for security" or "is my MCP server implementation secure?"
 ---
 
-# MCP Security Baseline Review
+# MCP Implementation Security Review
 
 ## Process
 
