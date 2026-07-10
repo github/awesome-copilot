@@ -139,13 +139,7 @@
     },
     "repository": "https://github.com/gsemet/copilot-goal-skill",
     "license": "MIT",
-    "keywords": [
-      "goal",
-      "autonomous",
-      "inspector",
-      "builder",
-      "loop"
-    ],
+    "keywords": ["goal", "autonomous", "inspector", "builder", "loop"],
     "source": {
       "source": "github",
       "repo": "gsemet/copilot-goal-skill",
@@ -323,13 +317,7 @@
       "url": "https://www.figma.com"
     },
     "homepage": "https://github.com/figma/mcp-server-guide",
-    "keywords": [
-      "figma",
-      "design",
-      "mcp",
-      "ui",
-      "code-connect"
-    ],
+    "keywords": ["figma", "design", "mcp", "ui", "code-connect"],
     "repository": "https://github.com/figma/mcp-server-guide",
     "source": {
       "source": "github",
@@ -457,14 +445,7 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/microsoft/Build-CLI",
-    "keywords": [
-      "microsoft",
-      "build",
-      "ignite",
-      "events",
-      "sessions",
-      "learn"
-    ],
+    "keywords": ["microsoft", "build", "ignite", "events", "sessions", "learn"],
     "license": "Apache-2.0",
     "repository": "https://github.com/microsoft/Build-CLI",
     "source": {
@@ -481,12 +462,7 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/dotnet/modernize-dotnet",
-    "keywords": [
-      "modernization",
-      "upgrade",
-      "migration",
-      "dotnet"
-    ],
+    "keywords": ["modernization", "upgrade", "migration", "dotnet"],
     "license": "MIT",
     "repository": "https://github.com/dotnet/modernize-dotnet",
     "source": {
@@ -506,12 +482,7 @@
     "repository": "https://github.com/microsoft/modernize-java",
     "homepage": "https://github.com/microsoft/modernize-java",
     "license": "MIT",
-    "keywords": [
-      "java",
-      "modernization",
-      "upgrade",
-      "spring-boot"
-    ],
+    "keywords": ["java", "modernization", "upgrade", "spring-boot"],
     "source": {
       "source": "github",
       "repo": "microsoft/modernize-java",
@@ -703,7 +674,6 @@
     "source": {
       "source": "github",
       "repo": "vercel/vercel-plugin",
-      "path": "/",
       "sha": "6e51924cb249e2941de005d59f1ac6f768477b98"
     }
   },

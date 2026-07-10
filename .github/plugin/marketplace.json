@@ -1199,7 +1199,6 @@
       "source": {
         "source": "github",
         "repo": "vercel/vercel-plugin",
-        "path": "/",
         "sha": "6e51924cb249e2941de005d59f1ac6f768477b98"
       }
     },
