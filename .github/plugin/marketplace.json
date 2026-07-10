@@ -88,6 +88,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "arch",
+      "source": "plugins/arch",
+      "description": "Architecture and modernization toolkit: produce a cited architecture document for a locally-cloned repo, and generate a phased modernization plan that auto-runs Documentation mode when needed.",
+      "version": "1.0.0"
+    },
+    {
       "name": "arize-ax",
       "source": "plugins/arize-ax",
       "description": "Arize AX platform skills for LLM observability, evaluation, and optimization. Includes trace export, instrumentation, datasets, experiments, evaluators, AI provider integrations, annotations, prompt optimization, and deep linking to the Arize UI.",
