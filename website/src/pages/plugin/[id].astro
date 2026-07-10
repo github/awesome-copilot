@@ -1,0 +1,235 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import BackToTop from "../../components/BackToTop.astro";
+import pluginsData from "../../../public/data/plugins.json";
+import RawMarkdown from "../../components/pages/RawMarkdown.astro";
+import type { HeaderItem } from "../../components/pages/Header.astro";
+import DetailHeader from "../../components/pages/Header.astro";
+import Breadcrumb from "../../components/pages/Breadcrumb.astro";
+import Sidebar from "../../components/pages/Sidebar.astro";
+import IncludedItems from "../../components/pages/IncludedItems.astro";
+import PluginInstall from "../../components/pages/PluginInstall.astro";
+import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
+import { externalRepoUrl } from "../../lib/external-source";
+
+const GITHUB_TREE = "https://github.com/github/awesome-copilot/tree/main";
+
+interface PluginItemRef {
+  kind: string;
+  path: string;
+  title?: string;
+  detailUrl?: string | null;
+}
+
+interface PluginAuthor {
+  name: string;
+  url?: string;
+}
+
+interface PluginSource {
+  source: string;
+  repo?: string;
+  path?: string;
+  ref?: string;
+  sha?: string;
+}
+
+interface PluginEntry extends HeaderItem {
+  id: string;
+  name: string;
+  title?: string;
+  description?: string;
+  path: string;
+  readmeFile?: string | null;
+  version?: string | null;
+  tags?: string[];
+  itemCount: number;
+  items: PluginItemRef[];
+  external?: boolean;
+  generatedFromExtension?: boolean;
+  repository?: string | null;
+  homepage?: string | null;
+  author?: PluginAuthor | null;
+  source?: PluginSource | null;
+  license?: string | null;
+  lastUpdated?: string | null;
+}
+
+export function getStaticPaths() {
+  return (pluginsData.items as PluginEntry[]).map((item) => ({
+    params: { id: item.id },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props as { item: PluginEntry };
+
+// DetailHeader reads item.title; plugins only have a name.
+const headerItem = { ...item, title: item.title ?? item.name };
+
+const isExternal = item.external === true;
+const readmePath = item.readmeFile ?? null;
+const { markdownHtml, frontmatterText, rawMarkdown } = readmePath
+  ? readResourceMarkdown(readmePath)
+  : { markdownHtml: "", frontmatterText: "", rawMarkdown: "" };
+
+const lastUpdated = formatLastUpdated(item.lastUpdated);
+
+function pluginRepoUrl(): string {
+  return externalRepoUrl(item.source, [
+    item.repository,
+    item.homepage,
+    GITHUB_TREE,
+  ]);
+}
+
+const githubUrl = isExternal
+  ? pluginRepoUrl()
+  : `${GITHUB_TREE}/${item.path}`;
+
+// Install wiring
+const externalSourceRef = item.source?.repo || item.repository || "";
+const installCommand = isExternal
+  ? null
+  : `copilot plugin install ${item.id}@awesome-copilot`;
+
+// The sidebar "Source" shows item.path; for external plugins that repo-relative
+// path doesn't exist here, so surface the upstream source reference instead.
+const sidebarItem =
+  isExternal && externalSourceRef
+    ? { ...item, path: externalSourceRef }
+    : item;
+
+const chips: {
+  title: string;
+  items: string[];
+  filterBase?: string;
+  filterParam?: string;
+}[] = [];
+if (item.version) {
+  chips.push({ title: "Version", items: [item.version] });
+}
+if (item.tags && item.tags.length > 0) {
+  chips.push({
+    title: "Tags",
+    items: item.tags,
+    filterBase: "/plugins/",
+    filterParam: "tag",
+  });
+}
+if (!isExternal && item.itemCount > 0) {
+  chips.push({
+    title: "Bundled items",
+    items: [`${item.itemCount} item${item.itemCount === 1 ? "" : "s"}`],
+  });
+}
+if (isExternal && item.author?.name) {
+  chips.push({ title: "Author", items: [item.author.name] });
+}
+if (isExternal && item.license) {
+  chips.push({ title: "License", items: [item.license] });
+}
+if (isExternal) {
+  const shortHash = (value: string) =>
+    /^[0-9a-f]{40}$/i.test(value) ? value.slice(0, 7) : value;
+  const ref = item.source?.ref;
+  const sha = item.source?.sha;
+  if (ref) {
+    chips.push({ title: "Ref", items: [shortHash(ref)] });
+  }
+  if (sha) {
+    chips.push({ title: "Commit", items: [shortHash(sha)] });
+  }
+}
+---
+
+<StarlightPage
+  frontmatter={{
+    title: item.title ?? item.name,
+    description: item.description,
+    template: "splash",
+    prev: false,
+    next: false,
+    editUrl: false,
+  }}
+>
+  <div
+    id="main-content"
+    class="resource-detail-page plugin-detail-page"
+    data-resource-detail
+    data-path={item.readmeFile ?? item.path}
+  >
+    <RawMarkdown markdown={rawMarkdown} />
+    <div class="container">
+      <Breadcrumb
+        paths={[
+          { name: "Home", href: "/" },
+          { name: "Plugins", href: "/plugins/" },
+        ]}
+        title={item.title ?? item.name}
+      />
+
+      <DetailHeader item={headerItem} />
+
+      <div class="detail-layout">
+        <div class="detail-main">
+          {
+            markdownHtml ? (
+              <section class="detail-section" aria-labelledby="doc-heading">
+                <h2 id="doc-heading">Documentation</h2>
+                <div class="article-content" set:html={markdownHtml} />
+              </section>
+            ) : (
+              <section class="detail-section">
+                <h2>Overview</h2>
+                <p>{item.description}</p>
+                <p class="detail-empty">
+                  {isExternal
+                    ? "This is a third-party plugin hosted outside this repository."
+                    : "No README is bundled with this plugin."}{" "}
+                  View it{" "}
+                  <a href={githubUrl} target="_blank" rel="noopener">
+                    on GitHub
+                  </a>
+                  .
+                </p>
+              </section>
+            )
+          }
+
+          <IncludedItems
+            items={item.items}
+            pluginPath={item.path}
+            githubBase={GITHUB_TREE}
+          />
+        </div>
+
+        <Sidebar
+          item={sidebarItem}
+          lastUpdated={lastUpdated ?? undefined}
+          frontmatterText={frontmatterText || undefined}
+          githubUrl={githubUrl}
+          chips={chips}
+        >
+          <PluginInstall
+            slot="install"
+            isExternal={isExternal}
+            pluginId={item.id}
+            externalSource={externalSourceRef || null}
+            installCommand={installCommand}
+            label={isExternal ? "Install this plugin" : "Install"}
+            note={isExternal
+              ? "This plugin is maintained in an external repository. Installing it adds the third-party marketplace before installing."
+              : undefined}
+          />
+        </Sidebar>
+      </div>
+    </div>
+  </div>
+
+  <BackToTop />
+
+  <script>
+    import "../../scripts/pages/resource-detail";
+  </script>
+</StarlightPage>

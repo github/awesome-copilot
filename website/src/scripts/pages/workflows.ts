@@ -2,17 +2,12 @@
  * Workflows page functionality
  */
 import {
-  copyToClipboard,
-  escapeHtml,
   fetchData,
-  formatRelativeTime,
   getQueryParam,
   getQueryParamValues,
-  showToast,
   setupActionHandlers,
   updateQueryParams,
 } from '../utils';
-import { openCardDetailsModal, setupModal } from '../modal';
 import { clearSelectValues, getSelectValues, setSelectValues } from './select-utils';
 import {
   renderWorkflowsHtml,
@@ -36,14 +31,11 @@ interface WorkflowsData {
 }
 
 let allItems: Workflow[] = [];
-let workflowByPath = new Map<string, Workflow>();
 let triggerSelectEl: HTMLSelectElement | null = null;
 let currentFilters = {
   triggers: [] as string[],
 };
 let currentSort: WorkflowSortOption = 'title';
-let resourceListHandlersReady = false;
-let modalReady = false;
 
 function sortItems(items: Workflow[]): Workflow[] {
   return sortWorkflows(items, currentSort);
@@ -74,77 +66,6 @@ function renderItems(items: Workflow[]): void {
   list.innerHTML = renderWorkflowsHtml(items);
 }
 
-function openWorkflowDetailsModal(path: string, trigger?: HTMLElement): void {
-  const item = workflowByPath.get(path);
-  if (!item) {
-    return;
-  }
-
-  const metaParts: string[] = [];
-  if (item.lastUpdated) {
-    metaParts.push(
-      `<span class="last-updated">Updated ${escapeHtml(
-        formatRelativeTime(item.lastUpdated)
-      )}</span>`
-    );
-  }
-
-  const triggerTags = item.triggers
-    .map((triggerName) => `<span class="resource-tag tag-trigger">${escapeHtml(triggerName)}</span>`)
-    .join('');
-  const actionsHtml = `
-    <button id="workflow-details-copy-path" class="btn btn-secondary" type="button" data-workflow-path="${escapeHtml(
-      item.path
-    )}">Copy Path</button>
-    <button class="btn btn-secondary" type="button" data-open-file-path="${escapeHtml(
-      item.path
-    )}" data-open-file-type="workflow">Source</button>
-  `;
-
-  openCardDetailsModal({
-    title: item.title,
-    description: item.description || 'No description',
-    previewIcon: '⚡',
-    previewText: 'Workflow trigger details and source',
-    metaHtml: metaParts.join(''),
-    tagsHtml: triggerTags,
-    actionsHtml,
-    trigger,
-  });
-}
-
-function setupResourceListHandlers(list: HTMLElement | null): void {
-  if (!list || resourceListHandlersReady) return;
-
-  list.addEventListener('click', (event) => {
-    const target = event.target as HTMLElement;
-    if (target.closest('.resource-actions')) {
-      return;
-    }
-
-    const item = target.closest('.resource-item') as HTMLElement | null;
-    const button = item?.querySelector('.resource-preview') as HTMLElement | undefined;
-    const path = item?.dataset.path;
-    if (path) {
-      openWorkflowDetailsModal(path, button);
-    }
-  });
-
-  document.addEventListener('click', async (event) => {
-    const target = event.target as HTMLElement;
-    const copyPathButton = target.closest(
-      '#workflow-details-copy-path'
-    ) as HTMLButtonElement | null;
-    if (!copyPathButton) return;
-    const workflowPath = copyPathButton.dataset.workflowPath || '';
-    if (!workflowPath) return;
-    const success = await copyToClipboard(workflowPath);
-    showToast(success ? 'Path copied!' : 'Failed to copy path', success ? 'success' : 'error');
-  });
-
-  resourceListHandlersReady = true;
-}
-
 function syncUrlState(): void {
   updateQueryParams({
     q: '',
@@ -158,13 +79,6 @@ export async function initWorkflowsPage(): Promise<void> {
   const clearFiltersBtn = document.getElementById('clear-filters');
   const sortSelect = document.getElementById('sort-select') as HTMLSelectElement | null;
 
-  if (!modalReady) {
-    setupModal();
-    modalReady = true;
-  }
-
-  setupResourceListHandlers(list as HTMLElement | null);
-
   const data = await fetchData<WorkflowsData>('workflows.json');
   if (!data || !data.items) {
     if (list) list.innerHTML = '<div class="empty-state"><h3>Failed to load data</h3></div>';
@@ -172,7 +86,6 @@ export async function initWorkflowsPage(): Promise<void> {
   }
 
   allItems = data.items;
-  workflowByPath = new Map(allItems.map((item) => [item.path, item]));
 
   triggerSelectEl = document.getElementById('filter-trigger') as HTMLSelectElement | null;
   if (triggerSelectEl) {

@@ -1,0 +1,301 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import BackToTop from "../../components/BackToTop.astro";
+import extensionsData from "../../../public/data/extensions.json";
+import RawMarkdown from "../../components/pages/RawMarkdown.astro";
+import type { HeaderItem } from "../../components/pages/Header.astro";
+import DetailHeader from "../../components/pages/Header.astro";
+import Breadcrumb from "../../components/pages/Breadcrumb.astro";
+import Sidebar from "../../components/pages/Sidebar.astro";
+import PluginInstall from "../../components/pages/PluginInstall.astro";
+import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
+import { sanitizeHttpUrl } from "../../lib/external-source";
+
+const GITHUB_TREE = "https://github.com/github/awesome-copilot/tree/main";
+
+interface ExtensionScreenshot {
+  path?: string | null;
+  type?: string | null;
+}
+
+interface ExtensionAuthor {
+  name: string;
+  url?: string;
+}
+
+interface ExtensionEntry extends HeaderItem {
+  id: string;
+  canvasId?: string;
+  extensionId?: string;
+  extensionName?: string;
+  pluginName?: string | null;
+  name: string;
+  title?: string;
+  version?: string | null;
+  readmeFile?: string | null;
+  description?: string;
+  path?: string | null;
+  ref?: string | null;
+  lastUpdated?: string | null;
+  screenshots?: {
+    icon?: ExtensionScreenshot | null;
+    gallery?: ExtensionScreenshot | ExtensionScreenshot[] | null;
+  } | null;
+  imageUrl?: string | null;
+  assetPath?: string | null;
+  installUrl?: string | null;
+  installCommand?: string | null;
+  sourceUrl?: string | null;
+  external?: boolean;
+  author?: ExtensionAuthor | null;
+  keywords?: string[];
+}
+
+export function getStaticPaths() {
+  return (extensionsData.items as ExtensionEntry[]).map((item) => ({
+    params: { id: item.id },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props as { item: ExtensionEntry };
+
+const headerItem = { ...item, title: item.title ?? item.name };
+
+const isExternal = item.external === true;
+
+// Allow only http(s) URLs from external/generated data in href/src contexts;
+// unsafe values collapse to "" so downstream truthiness guards still hold.
+const safeUrl = (value?: string | null): string => {
+  const sanitized = sanitizeHttpUrl(value);
+  return sanitized === "#" ? "" : sanitized;
+};
+const readmePath = item.readmeFile ?? null;
+const { markdownHtml, frontmatterText, rawMarkdown } = readmePath
+  ? readResourceMarkdown(readmePath)
+  : { markdownHtml: "", frontmatterText: "", rawMarkdown: "" };
+
+const lastUpdated = formatLastUpdated(item.lastUpdated ?? null);
+
+// Resolve preview images (icon + gallery), converting repo paths to raw URLs.
+function toRawAssetUrl(assetPath?: string | null): string {
+  if (!assetPath) return "";
+  if (/^https?:\/\//i.test(assetPath)) return assetPath;
+  if (!item.ref) return "";
+  return `https://raw.githubusercontent.com/github/awesome-copilot/${item.ref}/${assetPath.replace(
+    /\\/g,
+    "/"
+  )}`;
+}
+
+function normalizeScreenshotEntries(
+  value: ExtensionScreenshot | ExtensionScreenshot[] | null | undefined
+): ExtensionScreenshot[] {
+  if (!value) return [];
+  return Array.isArray(value) ? value.filter(Boolean) : [value];
+}
+
+const galleryImages: string[] = (() => {
+  const images: string[] = [];
+  if (item.imageUrl) images.push(item.imageUrl);
+  const iconUrl = toRawAssetUrl(item.screenshots?.icon?.path);
+  if (iconUrl) images.push(iconUrl);
+  for (const entry of normalizeScreenshotEntries(item.screenshots?.gallery)) {
+    const url = toRawAssetUrl(entry.path);
+    if (url) images.push(url);
+  }
+  return Array.from(new Set(images.map(safeUrl).filter(Boolean)));
+})();
+
+const installUrl = safeUrl(
+  item.installUrl ||
+    (item.path && item.ref
+      ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
+          /\\/g,
+          "/"
+        )}`
+      : "")
+);
+const sourceUrl = safeUrl(item.sourceUrl);
+const installCommand =
+  item.installCommand ||
+  (item.pluginName
+    ? `copilot plugin install ${item.pluginName}@awesome-copilot`
+    : "");
+
+const githubUrl = isExternal
+  ? sourceUrl || installUrl || GITHUB_TREE
+  : item.path
+    ? `${GITHUB_TREE}/${item.path}`
+    : installUrl || GITHUB_TREE;
+
+// Sidebar "Source" shows item.path; external extensions have no repo path.
+const sidebarItem =
+  isExternal && (sourceUrl || installUrl)
+    ? { ...item, path: sourceUrl || installUrl }
+    : item;
+
+const shortHash = (value: string) =>
+  /^[0-9a-f]{40}$/i.test(value) ? value.slice(0, 7) : value;
+
+const chips: {
+  title: string;
+  items: string[];
+  filterBase?: string;
+  filterParam?: string;
+}[] = [];
+if (item.version) {
+  chips.push({ title: "Version", items: [item.version] });
+}
+if (item.canvasId) {
+  chips.push({ title: "Canvas ID", items: [item.canvasId] });
+}
+if (item.keywords && item.keywords.length > 0) {
+  chips.push({
+    title: "Keywords",
+    items: item.keywords,
+    filterBase: "/extensions/",
+    filterParam: "keyword",
+  });
+}
+if (item.author?.name) {
+  chips.push({ title: "Author", items: [item.author.name] });
+}
+if (!isExternal && item.ref) {
+  chips.push({ title: "Commit", items: [shortHash(item.ref)] });
+}
+---
+
+<StarlightPage
+  frontmatter={{
+    title: item.title ?? item.name,
+    description: item.description,
+    template: "splash",
+    prev: false,
+    next: false,
+    editUrl: false,
+  }}
+>
+  <div
+    id="main-content"
+    class="resource-detail-page extension-detail-page"
+    data-resource-detail
+    data-path={item.readmeFile ?? item.path ?? ""}
+  >
+    <RawMarkdown markdown={rawMarkdown} />
+    <div class="container">
+      <Breadcrumb
+        paths={[
+          { name: "Home", href: "/" },
+          { name: "Canvas Extensions", href: "/extensions/" },
+        ]}
+        title={item.title ?? item.name}
+      />
+
+      <DetailHeader item={headerItem} />
+
+      <div class="detail-layout">
+        <div class="detail-main">
+          {
+            galleryImages.length > 0 && (
+              <section class="detail-section extension-gallery">
+                <h2>Preview</h2>
+                <div class="extension-gallery-main">
+                  <img
+                    id="extension-gallery-image"
+                    src={galleryImages[0]}
+                    alt={`${item.name} preview`}
+                    loading="eager"
+                  />
+                </div>
+                {galleryImages.length > 1 && (
+                  <div class="extension-gallery-thumbs" role="list">
+                    {galleryImages.map((url, index) => (
+                      <button
+                        type="button"
+                        class={`extension-gallery-thumb${index === 0 ? " active" : ""}`}
+                        data-gallery-url={url}
+                        role="listitem"
+                        aria-label={`Show image ${index + 1}`}
+                        aria-current={index === 0 ? "true" : undefined}
+                      >
+                        <img src={url} alt={`Gallery image ${index + 1}`} loading="lazy" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )
+          }
+
+          {
+            markdownHtml ? (
+              <section class="detail-section" aria-labelledby="doc-heading">
+                <h2 id="doc-heading">Documentation</h2>
+                <div class="article-content" set:html={markdownHtml} />
+              </section>
+            ) : (
+              <section class="detail-section">
+                <h2>About</h2>
+                <p>{item.description}</p>
+                <p class="detail-empty">
+                  {isExternal
+                    ? "This is a third-party canvas extension hosted outside this repository."
+                    : "No README is bundled with this extension."}{" "}
+                  View it{" "}
+                  <a href={githubUrl} target="_blank" rel="noopener">
+                    on GitHub
+                  </a>
+                  .
+                </p>
+              </section>
+            )
+          }
+        </div>
+
+        <Sidebar
+          item={sidebarItem}
+          lastUpdated={lastUpdated ?? undefined}
+          frontmatterText={frontmatterText || undefined}
+          githubUrl={githubUrl}
+          chips={chips}
+        >
+          {
+            isExternal ? (
+              <div class="skill-install" slot="install">
+                <p class="skill-install-label">Install this extension</p>
+                <p class="skill-install-note">
+                  This extension is maintained in an external repository.
+                </p>
+                {installUrl && (
+                  <button
+                    type="button"
+                    class="btn btn-secondary skill-install-url-btn"
+                    data-action="copy-install-url"
+                    data-install-url={installUrl}
+                  >
+                    Copy install URL
+                  </button>
+                )}
+              </div>
+            ) : (
+              <PluginInstall
+                slot="install"
+                pluginId={item.pluginName ?? item.id}
+                installCommand={installCommand || null}
+                label="Install"
+              />
+            )
+          }
+        </Sidebar>
+      </div>
+    </div>
+  </div>
+
+  <BackToTop />
+
+  <script>
+    import "../../scripts/pages/resource-detail";
+    import "../../scripts/pages/extension-gallery";
+  </script>
+</StarlightPage>

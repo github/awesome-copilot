@@ -11,6 +11,12 @@ export interface SharedCardRenderItem {
   infoExtraHtml?: string;
   metaHtml?: string;
   actionsHtml?: string;
+  /**
+   * When provided, the card preview renders as a link to a dedicated detail
+   * page instead of a button that opens a modal. This enables real URL deep
+   * linking and native open-in-new-tab behaviour.
+   */
+  href?: string;
 }
 
 function renderAttributes(attributes?: Record<string, string>): string {
@@ -35,9 +41,7 @@ export function renderSharedCardHtml(item: SharedCardRenderItem): string {
     ? `resource-item ${item.articleClassName}`
     : "resource-item";
 
-  return `
-    <div class="${articleClass}" role="${escapeHtml(role)}"${item.tabIndex !== undefined ? ` tabindex="${String(item.tabIndex)}"` : ""}${renderAttributes(item.articleAttributes)}>
-      <button type="button" class="resource-preview">
+  const previewInner = `
         ${item.previewMediaHtml || ""}
         <div class="resource-info">
           <div class="resource-title">${escapeHtml(item.title)}</div>
@@ -46,8 +50,17 @@ export function renderSharedCardHtml(item: SharedCardRenderItem): string {
           <div class="resource-meta">
             ${item.metaHtml || ""}
           </div>
-        </div>
-      </button>
+        </div>`;
+
+  const preview = item.href
+    ? `<a class="resource-preview" href="${escapeHtml(item.href)}">${previewInner}
+      </a>`
+    : `<button type="button" class="resource-preview">${previewInner}
+      </button>`;
+
+  return `
+    <div class="${articleClass}" role="${escapeHtml(role)}"${item.tabIndex !== undefined ? ` tabindex="${String(item.tabIndex)}"` : ""}${renderAttributes(item.articleAttributes)}>
+      ${preview}
       ${item.actionsHtml ? `<div class="resource-actions">${item.actionsHtml}</div>` : ""}
     </div>
   `;

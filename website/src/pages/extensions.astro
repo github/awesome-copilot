@@ -5,7 +5,6 @@ import ContributeCTA from '../components/ContributeCTA.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import PageHeader from '../components/PageHeader.astro';
 import BackToTop from '../components/BackToTop.astro';
-import Modal from '../components/Modal.astro';
 import { renderExtensionsHtml, sortExtensions } from '../scripts/pages/extensions-render';
 
 const initialItems = sortExtensions(extensionsData.items, 'title');
@@ -53,7 +52,6 @@ const initialItems = sortExtensions(extensionsData.items, 'title');
   </div>
 
   <BackToTop />
-  <Modal />
   <EmbeddedPageData filename="extensions.json" data={extensionsData} />
 
   <script>

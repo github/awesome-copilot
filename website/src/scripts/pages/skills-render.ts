@@ -25,6 +25,13 @@ export interface RenderableSkill {
 
 export type SkillSortOption = "title" | "lastUpdated";
 
+/**
+ * Build the URL of a skill's dedicated detail page.
+ */
+export function getSkillDetailUrl(id: string): string {
+  return `/skill/${id}/`;
+}
+
 export function sortSkills<T extends RenderableSkill>(
   items: T[],
   sort: SkillSortOption
@@ -88,6 +95,7 @@ export function renderSkillsHtml(items: RenderableSkill[]): string {
       return renderSharedCardHtml({
         title: item.title,
         description: item.description || "No description",
+        href: getSkillDetailUrl(item.id),
         articleAttributes: {
           "data-path": item.skillFile,
           "data-skill-id": item.id,

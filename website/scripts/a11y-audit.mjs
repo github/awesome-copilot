@@ -36,6 +36,15 @@ const routes = [
   '/contributors/',
   '/learning-hub/cookbook/',
   '/learning-hub/github-copilot-app/',
+  // Representative dedicated detail pages (one per resource type) so the audit
+  // covers the shared detail layout, sidebar, install buttons, and file browser.
+  '/agent/accessibility/',
+  '/instruction/a11y/',
+  '/skill/acquire-codebase-knowledge/',
+  '/hook/dependency-license-checker/',
+  '/workflow/daily-issues-report/',
+  '/plugin/accessibility-kanban/',
+  '/extension/accessibility-kanban/',
 ];
 
 const themes = ['dark', 'light'];

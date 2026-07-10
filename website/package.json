@@ -25,6 +25,7 @@
     "choices.js": "^11.2.2",
     "front-matter": "^4.0.2",
     "gray-matter": "^4.0.3",
+    "isomorphic-dompurify": "^2.36.0",
     "jszip": "^3.10.1",
     "marked": "^18.0.2",
     "shiki": "^4.0.2"
