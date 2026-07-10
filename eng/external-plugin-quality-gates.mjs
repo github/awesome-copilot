@@ -140,7 +140,7 @@ function cloneSubmissionRepository(workDir, plugin) {
 // NOTE: Keep in sync with EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS in external-plugin-validation.mjs
 const PLUGIN_JSON_CANDIDATES = [
   [".github", "plugin", "plugin.json"],
-  [".plugins", "plugin.json"],
+  [".plugin", "plugin.json"],
   ["plugin.json"],
 ];
 
