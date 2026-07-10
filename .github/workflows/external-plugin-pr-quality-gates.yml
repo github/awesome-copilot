@@ -208,21 +208,22 @@ jobs:
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
+            const TRUNCATED_OUTPUT_MARKER = '\n...output truncated...';
             const truncateGateOutput = (rawOutput) => {
-              const normalized = String(rawOutput || '').trim();
+              const normalized = escapeHtml(String(rawOutput || '').trim());
               if (!normalized) {
                 return '_No output captured._';
               }
               if (normalized.length <= MAX_GATE_OUTPUT_CHARS) {
                 return normalized;
               }
-              return `${normalized.slice(0, MAX_GATE_OUTPUT_CHARS)}\n...output truncated...`;
+              return `${normalized.slice(0, Math.max(0, MAX_GATE_OUTPUT_CHARS - TRUNCATED_OUTPUT_MARKER.length))}${TRUNCATED_OUTPUT_MARKER}`;
             };
             const formatGateOutput = (pluginName, gateName, gateStatus, rawOutput) => {
               const summaryPluginName = escapeHtml(String(pluginName || 'unknown'));
               const summaryGateName = escapeHtml(String(gateName || 'gate'));
               const summaryGateStatus = escapeHtml(String(gateStatus || 'not_run'));
-              const output = escapeHtml(truncateGateOutput(rawOutput));
+              const output = truncateGateOutput(rawOutput);
               return [
                 '<details>',
                 `<summary>${summaryPluginName} - ${summaryGateName} (${summaryGateStatus})</summary>`,
