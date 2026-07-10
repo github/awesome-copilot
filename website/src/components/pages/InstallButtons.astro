@@ -1,0 +1,61 @@
+---
+const { vscodeUrl, insidersUrl, rawMarkdown } = Astro.props as { vscodeUrl: string; insidersUrl: string; rawMarkdown?: string };
+---
+
+<div class="install-dropdown" data-install-menu>
+  <a
+    class="btn btn-primary install-btn-main"
+    href={vscodeUrl}
+    target="_blank"
+    rel="noopener"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg
+    >
+    Install
+  </a>
+  <button
+    type="button"
+    class="btn btn-primary install-btn-toggle"
+    aria-label="More install options"
+    aria-haspopup="true"
+    aria-expanded="false"
+    data-install-toggle
+  >
+    <svg
+      viewBox="0 0 16 16"
+      width="12"
+      height="12"
+      fill="currentColor"
+      aria-hidden="true"
+      ><path
+        d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"
+      ></path></svg
+    >
+  </button>
+  <div class="install-dropdown-menu" role="menu">
+    <a href={vscodeUrl} target="_blank" rel="noopener" role="menuitem"
+      >Install in VS Code</a
+    >
+    <a href={insidersUrl} target="_blank" rel="noopener" role="menuitem"
+      >Install in VS Code Insiders</a
+    >
+    <div class="dropdown-divider" role="separator" aria-hidden="true"></div>
+    <a href="#" role="menuitem" data-action="download">Download file</a>
+    {
+      rawMarkdown && (
+        <a href="#" role="menuitem" data-action="copy-markdown">
+          Copy markdown
+        </a>
+      )
+    }
+  </div>
+</div>

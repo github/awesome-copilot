@@ -4,7 +4,6 @@ import ContributeCTA from '../components/ContributeCTA.astro';
 import PageHeader from '../components/PageHeader.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import BackToTop from '../components/BackToTop.astro';
-import Modal from '../components/Modal.astro';
 import skillsData from '../../public/data/skills.json';
 import { renderSkillsHtml, sortSkills } from '../scripts/pages/skills-render';
 
@@ -43,7 +42,6 @@ const initialItems = sortSkills(skillsData.items, 'title');
   </div>
 
   <BackToTop />
-  <Modal />
 
   <EmbeddedPageData filename="skills.json" data={skillsData} />
   <script>

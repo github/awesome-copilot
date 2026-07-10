@@ -15,8 +15,10 @@ import {
   escapeHtml,
   getResourceIconSvg,
   sanitizeUrl,
+  isSafeRepoFilePath,
   REPO_IDENTIFIER,
 } from "./utils";
+import { externalRepoUrl } from "../lib/external-source";
 
 type ModalViewMode = "rendered" | "raw";
 
@@ -431,6 +433,8 @@ interface PluginSource {
   source: string;
   repo?: string;
   path?: string;
+  ref?: string;
+  sha?: string;
 }
 
 interface Plugin {
@@ -770,8 +774,19 @@ function handleHashChange(): void {
   const hash = window.location.hash;
 
   if (hash && hash.startsWith("#file=")) {
-    const filePath = decodeURIComponent(hash.slice(6));
-    if (filePath && filePath !== currentFilePath) {
+    let filePath: string | null = null;
+    try {
+      filePath = decodeURIComponent(hash.slice(6));
+    } catch {
+      filePath = null;
+    }
+    // Ignore malformed or traversal (`../`) paths to prevent client-side path
+    // traversal from loading arbitrary content into the modal.
+    if (
+      filePath &&
+      isSafeRepoFilePath(filePath) &&
+      filePath !== currentFilePath
+    ) {
       const type = getResourceType(filePath);
       openFileModal(filePath, type, false); // Don't update hash since we're responding to it
     }
@@ -1162,14 +1177,9 @@ async function openPluginModal(
  * Get the best URL for an external plugin, preferring the deep path within the repo
  */
 function getExternalPluginUrl(plugin: Plugin): string {
-  if (plugin.source?.source === "github" && plugin.source.repo) {
-    const base = `https://github.com/${plugin.source.repo}`;
-    return plugin.source.path && plugin.source.path !== "/"
-      ? `${base}/tree/main/${plugin.source.path}`
-      : base;
-  }
-  // Sanitize URLs from JSON to prevent XSS via javascript:/data: schemes
-  return sanitizeUrl(plugin.repository || plugin.homepage);
+  // Sanitize URLs from JSON to prevent XSS via javascript:/data: schemes and
+  // pin GitHub links to the source's ref/sha when available.
+  return externalRepoUrl(plugin.source, [plugin.repository, plugin.homepage]);
 }
 
 /**

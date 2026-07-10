@@ -5,6 +5,11 @@ import {
 } from "../utils";
 import { renderEmptyStateHtml, renderSharedCardHtml } from "./card-render";
 
+export interface RenderableHookFile {
+  name: string;
+  path: string;
+}
+
 export interface RenderableHook {
   id: string;
   title: string;
@@ -14,10 +19,18 @@ export interface RenderableHook {
   hooks: string[];
   tags: string[];
   assets: string[];
+  files: RenderableHookFile[];
   lastUpdated?: string | null;
 }
 
 export type HookSortOption = "title" | "lastUpdated";
+
+/**
+ * Build the URL of a hook's dedicated detail page.
+ */
+export function getHookDetailUrl(id: string): string {
+  return `/hook/${id}/`;
+}
 
 export function sortHooks<T extends RenderableHook>(
   items: T[],
@@ -78,6 +91,7 @@ export function renderHooksHtml(items: RenderableHook[]): string {
       return renderSharedCardHtml({
         title: item.title,
         description: item.description || "No description",
+        href: getHookDetailUrl(item.id),
         articleAttributes: {
           "data-path": item.readmeFile,
           "data-hook-id": item.id,

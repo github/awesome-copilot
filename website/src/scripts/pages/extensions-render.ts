@@ -4,7 +4,15 @@ import {
   getGitHubUrl,
   getLastUpdatedHtml,
 } from "../utils";
+import { sanitizeHttpUrl } from "../../lib/external-source";
 import { renderEmptyStateHtml, renderSharedCardHtml } from "./card-render";
+
+// Allow only http(s) URLs from external/generated data; unsafe values collapse
+// to "" so downstream truthiness guards (disabled buttons, omitted links) hold.
+function safeUrl(value?: string | null): string {
+  const sanitized = sanitizeHttpUrl(value);
+  return sanitized === "#" ? "" : sanitized;
+}
 
 export interface RenderableExtension {
   id: string;
@@ -46,6 +54,10 @@ export interface RenderableExtension {
 
 export type ExtensionSortOption = "title" | "lastUpdated";
 
+export function getExtensionDetailUrl(id: string): string {
+  return `/extension/${id}/`;
+}
+
 export function sortExtensions<T extends RenderableExtension>(
   items: T[],
   sort: ExtensionSortOption
@@ -71,23 +83,30 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
 
   return items
     .map((item) => {
-      const installUrl =
+      const installUrl = safeUrl(
         item.installUrl ||
-        (item.path && item.ref
-          ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
-             /\\/g,
-             "/"
-           )}`
-          : "");
-      const installCommand =
-        item.installCommand ||
-        (item.pluginName ? `copilot plugin install ${item.pluginName}@awesome-copilot` : "");
-      const sourceUrl =
-        item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
+          (item.path && item.ref
+            ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
+                /\\/g,
+                "/"
+              )}`
+            : "")
+      );
+      const sourceUrl = safeUrl(
+        item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "")
+      );
+      const pluginId = item.pluginName || item.id;
+      const ghappInstallUrl =
+        !item.external && pluginId
+          ? `ghapp://plugins/install?source=${encodeURIComponent(
+              `${pluginId}@awesome-copilot`
+            )}`
+          : "";
 
-      const previewMediaHtml = item.imageUrl
-        ? `<div class="resource-thumbnail-btn" data-extension-id="${escapeHtml(item.id)}" aria-hidden="true">
-            <img class="resource-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />
+      const previewImageUrl = safeUrl(item.imageUrl);
+      const previewMediaHtml = previewImageUrl
+        ? `<div class="resource-thumbnail-btn" aria-hidden="true">
+            <img class="resource-thumbnail" src="${escapeHtml(previewImageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />
            </div>`
         : `<div class="resource-thumbnail resource-thumbnail-placeholder" aria-hidden="true">Canvas</div>`;
 
@@ -122,14 +141,17 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
       `;
 
       const actionsHtml = `
-        <button
-          class="btn btn-primary btn-small copy-install-url-btn"
-          data-install-command="${escapeHtml(installCommand)}"
-          title="Copy plugin install command"
-          ${installCommand ? "" : "disabled"}
+        ${
+          ghappInstallUrl
+            ? `<a
+          class="btn btn-primary btn-small"
+          href="${escapeHtml(ghappInstallUrl)}"
+          title="Install in the GitHub Copilot app"
         >
-          Copy Install
-        </button>
+          Install in Copilot app
+        </a>`
+            : ""
+        }
         <button
           class="btn btn-secondary btn-small copy-install-url-btn"
           data-install-url="${escapeHtml(installUrl)}"
@@ -150,6 +172,7 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
       return renderSharedCardHtml({
         title: item.name,
         description: item.description || "Canvas extension",
+        href: getExtensionDetailUrl(item.id),
         previewMediaHtml,
         infoExtraHtml,
         metaHtml,
