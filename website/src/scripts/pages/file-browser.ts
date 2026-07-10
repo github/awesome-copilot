@@ -113,12 +113,18 @@ function initFileBrowser(): void {
   const cache = new Map<string, CachedFile>();
   let activePath = primaryFilePath;
 
-  // Seed the cache with the primary file's raw source.
+  // Seed the cache with the primary file's raw source and its already-rendered
+  // HTML. The server-rendered primary view has frontmatter stripped (gray-matter),
+  // so caching the rendered HTML avoids re-parsing the raw (frontmatter-including)
+  // source if the user navigates away and back to the primary file.
   if (contentEl) {
     const rawPrimary =
       root.querySelector<HTMLTextAreaElement>("[data-raw-markdown]")?.value ??
       "";
-    cache.set(primaryFilePath, { rawText: rawPrimary });
+    cache.set(primaryFilePath, {
+      rawText: rawPrimary,
+      html: contentEl.innerHTML,
+    });
   }
 
   // Build the canonical file list from the <select> options. Single-file

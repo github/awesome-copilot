@@ -2804,7 +2804,8 @@ body:has(#main-content) {
    inside rendered docs and install notes stay distinguishable without relying
    on color alone (WCAG 1.4.1 / axe link-in-text-block). */
 #main-content .article-content a,
-#main-content .skill-install-note a {
+#main-content .skill-install-note a,
+#main-content .detail-empty a {
   text-decoration: underline;
 }
 

@@ -11,6 +11,7 @@ import FileBrowser from "../../components/pages/FileBrowser.astro";
 import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
 
 const GITHUB_BASE = "https://github.com/github/awesome-copilot/blob/main";
+const GITHUB_TREE_BASE = "https://github.com/github/awesome-copilot/tree/main";
 const REPO_IDENTIFIER = "github/awesome-copilot";
 
 interface SkillFile {
@@ -44,7 +45,7 @@ const { markdownHtml, frontmatterText, rawMarkdown } = readResourceMarkdown(
   item.skillFile
 );
 const lastUpdated = formatLastUpdated(item.lastUpdated);
-const githubUrl = `${GITHUB_BASE}/${item.path}`;
+const githubUrl = `${GITHUB_TREE_BASE}/${item.path}`;
 const installCommand = `gh skills install ${REPO_IDENTIFIER} ${item.id}`;
 const skillFileName = item.skillFile.split("/").pop() ?? "SKILL.md";
 
