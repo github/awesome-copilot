@@ -200,15 +200,37 @@ jobs:
               : qualityResult.overall_status === 'pass' || !shouldRun
                 ? '## ✅ External plugin PR checks passed'
                 : '## ⚠️ External plugin PR checks need maintainer follow-up';
+            const MAX_GATE_OUTPUT_CHARS = 2000;
+            const escapeHtml = (value) =>
+              String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            const TRUNCATED_OUTPUT_MARKER = '\n...output truncated...';
+            const truncateGateOutput = (rawOutput) => {
+              const normalized = escapeHtml(String(rawOutput || '').trim());
+              if (!normalized) {
+                return '_No output captured._';
+              }
+              if (normalized.length <= MAX_GATE_OUTPUT_CHARS) {
+                return normalized;
+              }
+              return `${normalized.slice(0, Math.max(0, MAX_GATE_OUTPUT_CHARS - TRUNCATED_OUTPUT_MARKER.length))}${TRUNCATED_OUTPUT_MARKER}`;
+            };
             const formatGateOutput = (pluginName, gateName, gateStatus, rawOutput) => {
-              const output = String(rawOutput || '').trim() || '_No output captured._';
+              const summaryPluginName = escapeHtml(String(pluginName || 'unknown'));
+              const summaryGateName = escapeHtml(String(gateName || 'gate'));
+              const summaryGateStatus = escapeHtml(String(gateStatus || 'not_run'));
+              const output = truncateGateOutput(rawOutput);
               return [
                 '<details>',
-                `<summary>${pluginName} — ${gateName} (${gateStatus || 'not_run'})</summary>`,
+                `<summary>${summaryPluginName} - ${summaryGateName} (${summaryGateStatus})</summary>`,
                 '',
-                '```text',
+                '<pre><code>',
                 output,
-                '```',
+                '</code></pre>',
                 '</details>',
               ].join('\n');
             };
