@@ -3,10 +3,7 @@ title: '04 · Create Specialized AI Assistants'
 description: 'Mirror the source chapter on custom agents and custom instructions for GitHub Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-19
----
-
-![Chapter 04: Agents and Custom Instructions](/images/learning-hub/copilot-cli-for-beginners/04/chapter-header.png)
+lastUpdated: 2026-07-10(/images/learning-hub/copilot-cli-for-beginners/04/chapter-header.png)
 
 > **What if you could hire a Python code reviewer, testing expert, and security reviewer... all in one tool?**
 
@@ -456,6 +453,22 @@ For teams that want more granular control, split instructions into topic-specifi
 > 💡 **Note**: Instruction files work with any language. This example uses Python to match our course project, but you can create similar files for TypeScript, Go, Rust, or any technology your team uses.
 
 **Finding community instruction files**: Browse [github/awesome-copilot](https://github.com/github/awesome-copilot) for pre-made instruction files covering .NET, Angular, Azure, Python, Docker, and many more technologies.
+
+#### Importing Other Files with `@`
+
+You can reference another file inside `AGENTS.md` or any instruction file using `@filepath` syntax. Copilot expands the reference and includes that file's content automatically, so you can keep your main file short while storing the details elsewhere:
+
+```markdown
+<!-- AGENTS.md -->
+# Project Instructions
+
+@.github/instructions/python-standards.instructions.md
+@.github/instructions/test-standards.instructions.md
+```
+
+This is handy when your instructions grow large. Split them into focused files and `@`-import them from a single `AGENTS.md`. The same syntax works inside `.github/copilot-instructions.md` and other instruction files too.
+
+> 💡 **Tip**: Use `@`-imports to share a common base file across multiple instruction files. For example, you could have a `@.github/instructions/shared-rules.md` that every other instruction file pulls in.
 
 ### Disabling Custom Instructions
 
