@@ -14,6 +14,30 @@
  */
 import DOMPurify from "isomorphic-dompurify";
 
+let noopenerHookInstalled = false;
+
+function ensureNoopenerHook(): void {
+  if (noopenerHookInstalled) return;
+  noopenerHookInstalled = true;
+
+  DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+    const el = node as unknown as {
+      tagName?: string;
+      getAttribute?: (name: string) => string | null;
+      setAttribute?: (name: string, value: string) => void;
+    };
+
+    if (el?.tagName !== "A") return;
+    if (el.getAttribute?.("target") !== "_blank") return;
+
+    const rel = el.getAttribute?.("rel") ?? "";
+    const tokens = new Set(rel.split(/\s+/).filter(Boolean));
+    tokens.add("noopener");
+    tokens.add("noreferrer");
+    el.setAttribute?.("rel", Array.from(tokens).join(" "));
+  });
+}
+
 /**
  * Sanitize a fragment of HTML produced from trusted-but-untrusted markdown,
  * stripping scripts, event handlers, and dangerous URL schemes while keeping
@@ -21,6 +45,7 @@ import DOMPurify from "isomorphic-dompurify";
  */
 export function sanitizeHtml(html: string): string {
   if (!html) return html;
+  ensureNoopenerHook();
   return DOMPurify.sanitize(html, {
     // Keep links that open in a new tab (target/rel) which some resource docs
     // author directly as raw HTML.
