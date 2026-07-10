@@ -138,7 +138,12 @@ const sidebarItem =
 const shortHash = (value: string) =>
   /^[0-9a-f]{40}$/i.test(value) ? value.slice(0, 7) : value;
 
-const chips: { title: string; items: string[] }[] = [];
+const chips: {
+  title: string;
+  items: string[];
+  filterBase?: string;
+  filterParam?: string;
+}[] = [];
 if (item.version) {
   chips.push({ title: "Version", items: [item.version] });
 }
@@ -146,7 +151,12 @@ if (item.canvasId) {
   chips.push({ title: "Canvas ID", items: [item.canvasId] });
 }
 if (item.keywords && item.keywords.length > 0) {
-  chips.push({ title: "Keywords", items: item.keywords });
+  chips.push({
+    title: "Keywords",
+    items: item.keywords,
+    filterBase: "/extensions/",
+    filterParam: "keyword",
+  });
 }
 if (item.author?.name) {
   chips.push({ title: "Author", items: [item.author.name] });

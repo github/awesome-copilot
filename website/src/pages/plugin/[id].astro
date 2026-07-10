@@ -100,12 +100,22 @@ const sidebarItem =
     ? { ...item, path: externalSourceRef }
     : item;
 
-const chips: { title: string; items: string[] }[] = [];
+const chips: {
+  title: string;
+  items: string[];
+  filterBase?: string;
+  filterParam?: string;
+}[] = [];
 if (item.version) {
   chips.push({ title: "Version", items: [item.version] });
 }
 if (item.tags && item.tags.length > 0) {
-  chips.push({ title: "Tags", items: item.tags });
+  chips.push({
+    title: "Tags",
+    items: item.tags,
+    filterBase: "/plugins/",
+    filterParam: "tag",
+  });
 }
 if (!isExternal && item.itemCount > 0) {
   chips.push({

@@ -88,7 +88,12 @@ const extensions = item.extensions ?? [];
           githubUrl={githubUrl}
           chips={[
             { title: "Applies to", items: applyToList },
-            { title: "Extensions", items: extensions },
+            {
+              title: "Extensions",
+              items: extensions,
+              filterBase: "/instructions/",
+              filterParam: "extension",
+            },
           ]}
         >
           <InstallButtons
