@@ -1,0 +1,20 @@
+{
+  "name": "arch",
+  "description": "Architecture and modernization toolkit: produce a cited architecture document for a locally-cloned repo, and generate a phased modernization plan that auto-runs Documentation mode when needed.",
+  "version": "1.0.0",
+  "keywords": [
+    "architecture",
+    "modernization",
+    "documentation",
+    "migration",
+    "onboarding"
+  ],
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "skills": [
+    "./skills/doc-and-modernize"
+  ]
+}
