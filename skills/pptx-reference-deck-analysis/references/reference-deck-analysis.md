@@ -1,4 +1,4 @@
-# PPTify Reference Deck Analysis Recipes
+# PPTX Reference Deck Analysis Recipes
 
 This file is static guidance for inspecting existing `.pptx` files and defining expected analysis outputs.
 
@@ -33,7 +33,7 @@ Produce a full JSON extraction including:
 
 Process a folder of decks to produce:
 
-- One `.pptify.json` file per deck
+- One `.pptx-spec.json` file per deck
 - A `manifest.json` to track outputs
 
 ### 4. Style Master Recipe
@@ -48,5 +48,5 @@ Run style-only analysis when you need design lock signals:
 
 This reference covers PPTX prompt context, extraction, folder batch analysis, and style-master inspection only.
 
-- Use `pptify-context-prep` for narrative/source preparation and design profile selection.
-- Use `pptify-visual-assets` for acquiring and placing icons, images, SVGs, and infographics.
+- Use `pptx-deck-context` for narrative/source preparation and design profile selection.
+- Use `pptx-visual-assets` for acquiring and placing icons, images, SVGs, and infographics.

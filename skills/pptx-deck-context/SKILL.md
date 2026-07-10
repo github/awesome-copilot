@@ -1,9 +1,9 @@
 ---
-name: pptify-context-prep
-description: "Prepare narrative framework, source material, and design context before authoring a pptify deck spec. Use when selecting a business/storytelling framework, converting documents, summarizing long sources, analyzing reference PPTX decks, or selecting and loading bundled design profiles."
+name: pptx-deck-context
+description: "Prepare the narrative, sources, and design context for an editable PPTX deck."
 ---
 
-# PPTify Context Prep
+# PPTX Deck Context
 
 Use this skill before writing a deck spec. It covers three parallel preparation tracks: **narrative framework** (the business story spine), **source context** (documents, research, reference PPTX), and **design context** (predefined style profiles in [`references/design-profiles.md`](references/design-profiles.md)).
 
@@ -52,12 +52,14 @@ Record the resolved framework in `summary.business_framework`, including source,
 - For long source documents, ask the user to convert to markdown or paste key sections directly.
 - If the source exceeds approximately 1,500 words or covers more than three distinct topics, ask the user to pre-summarize it using their preferred tool, such as an LLM API or summarization pipeline, and paste the result here before proceeding. Do not attempt to call external APIs directly.
 - Record the corpus path, summary path, source count, and source URLs in `summary.source_enrichment` so enrichment evidence survives review.
+- Create a stable source ID for each source. Plan a `source_ref` for each metric,
+  chart value, quotation, and factual claim that the deck will present.
 - Use summaries to identify audience, thesis, slide sequence, evidence, risks, and decision points.
 - Do not paste entire long documents into the deck spec; summarize into concise slide messages and cite sources in footers when needed.
 
 ## Reference PPTX
 
-- Implement the on-demand extraction contract in `pptify-reference-deck-analysis` with `python-pptx`, or unzip the `.pptx` file and parse its XML contents directly, to inspect production complexity, slide text, style, brand, template, and layout-rhythm facts.
+- Implement the on-demand extraction contract in `pptx-reference-deck-analysis` with `python-pptx`, or unzip the `.pptx` file and parse its XML contents directly, to inspect production complexity, slide text, style, brand, template, and layout-rhythm facts.
 - If reference PPTX inspection fails or returns no usable data, notify the user, skip reference-derived context, and proceed using the selected design profile as the sole design source. Document this in `summary.design_context`.
 - Use the extracted facts as agent context when the new deck should follow a source deck's language, slide count, topic sequence, executive tone, colors, fonts, template conventions, and layout rhythm.
 - When authoring the new spec, translate `brands.primary_color`, `brands.accent_colors`, `brands.fonts`, `template.slide_size`, `template.layout_usage`, and `layout.slides[*].dominant_flow` into explicit `layout_tree` primitives, colors, typography, spacing, and coordinates.
@@ -106,10 +108,13 @@ Profile descriptions are in [`references/design-profiles.md`](references/design-
 - Preserve important terminology, product names, metrics, dates, and user-provided wording.
 - Reduce dense narrative into executive slide titles plus short sections.
 - Track open assumptions in speaker notes or audit-facing summary fields instead of overcrowding slides.
+- Save a sources manifest with each source ID, title, path or URL, license when
+	known, and the object IDs that use it. This manifest supports later review and
+	correction without changing the slide layout.
 
 ## Restrictions
 
 - Do not copy external fonts, icon packs, photos, or binary assets unless their license and source are explicitly added.
-- Do not claim the output is a Primer, Fluent UI, or Awesome Copilot artifact; these are context sources for a new `pptify` deck.
-- Do not let source CSS override pptify quality gates: built decks still need zero content collisions and zero text overflows.
+- Do not claim the output is a Primer, Fluent UI, or Awesome Copilot artifact; these are context sources for a new PPTX deck.
+- Do not let source CSS override PPTX quality gates: built decks still need zero content collisions and zero text overflows.
 - Do not accept default PowerPoint theme colors, Calibri-only text boxes, plain white backgrounds, or placeholder-style bullet layouts as a finished design.

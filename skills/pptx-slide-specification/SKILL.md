@@ -1,9 +1,9 @@
 ---
-name: pptify-slide-spec
-description: "Author or repair coordinate-explicit pptify JSON deck specs. Use when writing layout_tree groups, objects, bboxes, tables, images, lines, shapes, type scale, or collision-safe content."
+name: pptx-slide-specification
+description: "Author or repair coordinate-explicit JSON specifications for editable PPTX decks."
 ---
 
-# PPTify Slide Spec
+# PPTX Slide Specification
 
 Use this skill when writing or repairing a coordinate-explicit JSON deck spec.
 
@@ -24,10 +24,41 @@ Author final coordinates directly in `layout_tree`; plugin scripts will not choo
 - Record design profile IDs, source URLs, and license IDs in `summary.design_context` when using design references.
 - Use `render_mode: "layout"` or omit it for generated decks. OOXML mode is only for extracted specs with `ooxml_elements`.
 - Every generated slide must include `layout_tree`; do not rely on shorthand layout specs.
+- Production decks must also include `summary.layout_policy` and
+  `summary.accessibility`. They define the usable content region and document
+  language before the PPTX is built.
+
+### Production Metadata
+
+Use this compact form for production decks. Values may change for a different
+slide size or an approved design system, but all values must be explicit.
+
+```json
+{
+  "summary": {
+    "layout_policy": {
+      "safe_margin": 0.5,
+      "content_bottom": 6.7,
+      "footer_top": 6.85,
+      "minimum_gap": 0.12
+    },
+    "accessibility": {
+      "language": "en-US",
+      "presentation_title": "Quarterly operating review"
+    }
+  }
+}
+```
+
+`content_bottom` must be lower than `footer_top`. Content objects must end at
+or above `content_bottom`. Footer objects may use the space from `footer_top`
+to the slide edge. A footer never overlaps content.
 
 ## Slide Fields
 
 - Each generated slide must include `id`, `title`, and `layout_tree`.
+- Production slides must include `accessibility.reading_order`, an ordered list
+  of meaningful object IDs. The order must follow the intended reading sequence.
 - Use `hidden: true` only for appendix/reference slides that should remain in the PPTX package but not appear during normal presentation.
 - Do not use `pattern`, `layout_pattern`, `composition.pattern`, `layout`, `sections`, `bullets`, `objects`, or `theme` as render-time shorthand. Decide all positions, sizes, z-order, colors, font sizes, and relationships in the JSON before rendering.
 - Do not overfill a slide: prefer three to five major content groups.
@@ -57,6 +88,8 @@ Author final coordinates directly in `layout_tree`; plugin scripts will not choo
 - Use a consistent column grid, e.g. 12 columns with 0.2–0.25 in gutters; align sibling cards to shared tops, widths, and heights.
 - Keep a vertical rhythm: title band first, then content below the title rule, e.g. y ≈ 1.3 in.
 - No `content` object may extend past the slide bounds (0,0)–(width,height) or into the safe margin.
+- A `footer` object may enter the declared footer rail. It must stay on the
+  slide canvas and cannot overlap a content object.
 
 ## Groups
 
@@ -73,10 +106,17 @@ Author final coordinates directly in `layout_tree`; plugin scripts will not choo
 - `classification` is `layout_design` for decorative/background objects, `content` for meaningful text, tables, lines, and media.
 - Shape names: `rect`, `round_rect`, `oval`, `triangle`, `diamond`, `hexagon`, `parallelogram`, `chevron`, `pentagon`, `trapezoid`, and arrow variants.
 - Shape content must include `content.shape`; text on a shape uses `content.text`. Image content uses `content.path`, `content.blob_base64`, and `content.alt`.
+- Meaningful images require `content.alt`. Decorative images must have
+  `classification: "layout_design"` and must not appear in the slide reading
+  order.
+- A sourced metric, chart value, quotation, or factual claim requires
+  `source_ref` with `source_id`, `locator`, `claim_type`, and
+  `verification_status`. Use `locator` for a page, figure, table, section, or
+  spreadsheet range.
 - Table content uses `content.rows`; make column widths sum to `bbox.width`, size rows for wrapped text, and split long tables with repeated headers.
 - Line content must include `content.x1`, `content.y1`, `content.x2`, and `content.y2`.
 - Connectors anchor to edge midpoints, leave a small node-border gap, and route around other nodes.
-- Do not use `chart` objects; render charts as primitives or embed a pre-rendered chart image via `content.path`.
+- Do not use `chart` objects. Build charts from editable text, shapes, lines, and tables. A chart image may support the slide, but it cannot be the only presentation of editable chart values or labels.
 
 ## Styling
 
@@ -87,7 +127,7 @@ Author final coordinates directly in `layout_tree`; plugin scripts will not choo
 - Use a consistent `z_index` stack: background band (0) < card/panel (1) < rule (2) < image/diagram (3) < body text (4) < label/badge (5) < callout/number (6). Decorative overlaps are allowed only when the lower object is `layout_design`.
 - When text sits on a shape or card, inset the text bbox by ≈0.1 in on each side from the shape bbox and size the text to that inner area, so on-card text never overflows the card.
 - Every normal content slide must include at least one `layout_design` object or style-derived visual structure such as an accent band, card shell, divider, signature shape, or image treatment.
-- If a vector-traced SVG is provided only for editability, keep the readable raster image in the visible slide and put the SVG on a separate hidden final slide.
+- Do not use a raster or SVG as the full content of a slide. When a source visual contains essential text, labels, numbers, or a legend, recreate that information with editable native objects. Keep the original visual only as an optional supporting asset or hidden reference.
 
 ### Type Scale
 
@@ -103,8 +143,14 @@ No renderer is bundled. Author the JSON spec **and** a small `python-pptx` build
 - Zero or shrink default text insets (`margin_left/right/top/bottom`), or subtract them from capacity estimates.
 - Set vertical anchor (`MSO_ANCHOR`) and horizontal alignment (`PP_ALIGN`) explicitly.
 - Map `style.font_size`→`Pt`, colors→`RGBColor`, `style.line_width`→`Pt`/`Emu`, dash→`MSO_LINE_DASH_STYLE`.
-- Preserve image aspect ratio (see pptify-visual-assets); do not stretch to a mismatched bbox.
+- Preserve image aspect ratio (see `pptx-visual-assets`); do not stretch to a mismatched bbox.
 - Mark hidden slides with `show="0"` and keep them last.
+- Reject every zero or negative bbox before adding a shape, line, image, table,
+  or text box. A valid ZIP package can still contain geometry that PowerPoint
+  will not open.
+- Write a small build manifest with the builder path, input spec path, output
+  PPTX path, slide count, and build warnings. Do not add a generic renderer only
+  to create this manifest.
 
 A JSON-audit pass can still overflow if the build script skips these text-frame controls.
 

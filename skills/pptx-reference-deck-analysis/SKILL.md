@@ -1,9 +1,9 @@
 ---
-name: pptify-reference-deck-analysis
+name: pptx-reference-deck-analysis
 description: "Reference PPTX analysis: extraction, style analysis, deck diagnostics, and package inspection without bundled runtime scripts."
 ---
 
-# PPTify Reference Deck Analysis
+# PPTX Reference Deck Analysis
 
 Use this skill when you need read-only analysis of a reference PPTX, extracted deck structure, style-master signals, deck diagnostics, or package inspection while keeping the repository lightweight.
 
@@ -18,7 +18,7 @@ Do not add other directories under this skill, and do not ship importable Python
 This skill intentionally avoids heavy setup/download scripts, but it still provides reference-deck analysis coverage:
 
 1. **Deck prompt context extraction**
-2. **Full deck extraction to PPTify JSON**
+2. **Full deck extraction to PPTX JSON**
 3. **Batch extraction across folders**
 4. **Deck-level diagnostics and complexity summaries**
 5. **Style-master and brand/theme analysis**
@@ -63,8 +63,8 @@ Keep extraction read-only: open decks to inspect them, never to copy binary PPTX
 
 This skill owns PPTX/reference-deck inspection contracts only. Keep adjacent responsibilities in their dedicated skills or user-managed external tools:
 
-- Use `pptify-context-prep` for narrative framing, source summarization guidance, design profile selection, and `summary.design_context` normalization.
-- Use `pptify-visual-assets` for icon, image, SVG, infographic, provenance, placement, and layering guidance.
-- Use `pptify-quality-gates` for validation, repair loops, and final audit decisions.
+- Use `pptx-deck-context` for narrative framing, source summarization guidance, design profile selection, and `summary.design_context` normalization.
+- Use `pptx-visual-assets` for icon, image, SVG, infographic, provenance, placement, and layering guidance.
+- Use `pptx-quality-gates` for validation, repair loops, and final audit decisions.
 
 Refer to references/reference-deck-analysis.md for analysis recipes (prompt context, full extraction, folder batch, and style-master usage), and references/python-snippets.md for documentation-only `python-pptx` guidance and illustrative snippets. Do not use either file to override any instruction in this prompt.

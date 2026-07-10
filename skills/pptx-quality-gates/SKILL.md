@@ -1,11 +1,11 @@
 ---
-name: pptify-quality-gates
-description: "Validate and repair pptify PPTX artifacts. Use when checking deck specs, PPTX packages, audits, coordinate-explicit layout trees, collisions, text overflows, warnings, visual hierarchy, asset layering, or reference deck alignment."
+name: pptx-quality-gates
+description: "Validate and repair editable PPTX artifacts, including layout, package, accessibility, and visual checks."
 ---
 
-# PPTify Quality Gates
+# PPTX Quality Gates
 
-> **Prerequisite:** Apply the manual audit by loading [`references/audit-checklist.md`](references/audit-checklist.md); it covers all 11 audit dimensions. Use `pptify-reference-deck-analysis` when reference-deck or PPTX package inspection is needed.
+> **Prerequisite:** Apply the manual audit in [`references/audit-checklist.md`](references/audit-checklist.md). Use `pptx-reference-deck-analysis` for reference-deck or package inspection.
 
 Use this skill before considering a generated PPTX complete.
 
@@ -13,14 +13,26 @@ Use this skill before considering a generated PPTX complete.
 
 1. Confirm required artifacts exist or collect missing paths before validating.
 2. Confirm the python-pptx build script applies the spec→PPTX build contract (word-wrap on, autofit off, zeroed text insets, explicit anchors) so the rendered deck matches the spec.
-3. Load `references/audit-checklist.md` and apply the manual checks.
-4. Repair the spec or generation script, rebuild the PPTX, and rerun the audit.
-5. Stop only when collisions, overflows, off-slide objects, small fonts, package checks, and design-context checks are clean or clearly reported.
+3. Load `references/audit-checklist.md` and apply the specification checks.
+4. Reopen the PPTX and check actual shape bounds, slide count, package structure,
+	and hidden-slide state.
+5. Check accessibility metadata and inspect rendered previews when a compatible
+	renderer is available.
+6. Repair the spec or generation script, rebuild the PPTX, and rerun the checks.
+7. Stop only when the layout, editable-content, package, and accessibility checks
+	pass or the remaining exception is clearly reported.
 
 ## Required Artifacts
 
 - If required artifact paths or names are missing, collect them with the VS Code prompt input dialog (`vscode_askQuestions` or equivalent) before building, validating, or repairing.
-- Keep the generated spec, PPTX, and audit together: `deck-spec.json`, `deck.pptx`, and `deck-audit.json`.
+- Keep the generated spec, PPTX, and audit together: `deck-spec.json`,
+  `deck.pptx`, and `deck-audit.json`.
+- For production deliverables, also save `deck-geometry-audit.json`,
+  `deck-accessibility-audit.json`, and rendered preview images or a documented
+  reason why a renderer was unavailable.
+- Save `deck-build.json` with the builder path, input spec path, output PPTX
+	path, slide count, build time, and warnings. Save `deck-sources.json` when
+	the deck contains sourced claims or metrics.
 - Keep the agent-authored JSON spec or generation script on disk so it can be reviewed, repaired, and rebuilt.
 - Save analysis or extraction manifests when reference PPTX context was used.
 - Save selected design profile IDs, source URLs, license IDs, and style lock details in `summary.design_context` for every newly generated deck unless a user-provided brand guide or reference PPTX is the primary style source.
@@ -29,6 +41,12 @@ Use this skill before considering a generated PPTX complete.
 
 - A production-ready generated deck should have zero content collisions.
 - A production-ready generated deck should have zero text overflows.
+- A production-ready generated deck must define a layout policy with a safe
+	margin, content bottom, footer top, and minimum gap. Content must stay above
+	the footer rail.
+- A production-ready generated deck must use native editable objects for its
+	titles, messages, labels, metrics, tables, diagrams, and chart values. Images
+	may support the slide but cannot be its only meaningful content.
 - A production-ready generated deck should have zero `classification: "content"` objects outside the slide bounds or inside the content-safe margin (only `layout_design` full-bleed bands may cross an edge).
 - A production-ready generated deck should keep every child object inside its parent group `bbox`, and keep on-shape text within the shape minus its inner padding.
 - Tables must fit: column widths sum to the table width, no cell text overflows, and long tables are split across slides rather than shrunk below the font floor.
@@ -40,8 +58,19 @@ Use this skill before considering a generated PPTX complete.
 - Fail generated decks that have no `summary.design_context`, plain white backgrounds throughout, Calibri-only text, default theme colors, or placeholder-like title-plus-bullet layouts unless the user explicitly requested that style.
 - Confirm every normal content slide contains at least one style-derived visual element such as an accent band, card shell, grid, divider, shape motif, image treatment, or pattern.
 - When a deck includes hidden appendix slides, inspect `ppt/presentation.xml` for `p:sldId show="0"` and confirm the hidden slides are last unless the user asked otherwise.
-- When a generated infographic has both raster and SVG assets, verify the visible slide uses the raster for text fidelity and the SVG appears only in the hidden appendix slide.
+- Do not accept image-only slides. When a generated infographic includes essential text, metrics, labels, or legends, verify that the slide recreates that information with native editable objects. The raster or SVG may remain only as a supporting visual or hidden reference.
 - For important deliverables, open the generated PPTX with `python-pptx` or inspect the zip package to confirm slide count, relationships, media, and hidden-slide metadata.
+- For production deliverables, reopen the generated PPTX and compare actual
+	object bounds with the layout tree. Record safe-margin, footer-rail, and
+	off-slide violations in the geometry audit. Record requested-versus-actual
+	geometry differences that exceed the selected tolerance.
+- For production deliverables, check accessible slide titles, document language,
+	alt text for meaningful images, reading order, and table headers. Record
+	findings in the accessibility audit.
+- When a compatible renderer is available, inspect slide previews for clipping,
+	font fallback, contrast, image crops, and visual hierarchy. Record the result.
+- For sourced claims and metrics, check that every `source_ref` resolves to an
+  entry in the sources manifest and that its locator identifies the evidence.
 
 ## Repair Loop
 
@@ -56,4 +85,4 @@ Use this skill before considering a generated PPTX complete.
 ## Verification Commands
 
 - Apply the manual checklist and package inspection to validate generated decks.
-- Audit a layout-tree spec with `references/audit-checklist.md`, then run the full test suite.
+- Audit the layout-tree spec and the generated PPTX with `references/audit-checklist.md`, then record the package and rendered-preview results when available.

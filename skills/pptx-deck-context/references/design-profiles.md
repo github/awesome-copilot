@@ -1,4 +1,4 @@
-# PPTify Design Profile Catalog
+# PPTX Design Profile Catalog
 
 **This is the bundled reference for design profiles.** Use it for all new decks. Design context is built-in and always available.
 
@@ -58,7 +58,7 @@
 **30 styles:** Glassmorphism, Neo-Brutalism, Bento Grid, Dark Academia, Gradient Mesh, Claymorphism, Swiss International, Aurora Neon Glow, Retro Y2K, Nordic Minimalism, Typographic Bold, Duotone Color Split, Monochrome Minimal, Cyberpunk Outline, Editorial Magazine, Pastel Soft UI, Dark Neon Miami, Hand-crafted Organic, Isometric 3D Flat, Vaporwave, Art Deco Luxe, Brutalist Newspaper, Stained Glass Mosaic, Liquid Blob Morphing, Memphis Pop Pattern, Dark Forest Nature, Architectural Blueprint, Maximalist Collage, SciFi Holographic Data, Risograph Print
 **Style families:** modern-ui, editorial, retro, technical, luxury, organic, experimental
 **Source inputs per style:** hex colors, font pairings, layout rules, signature elements, avoid lists
-**Agent rule:** Pick one style, lock its palette and typography, then translate visual effects into explicit pptify `layout_tree` primitives or documented raster accents. Do not mix styles accidentally.
+**Agent rule:** Pick one style, lock its palette and typography, then translate visual effects into explicit editable `layout_tree` primitives. Use raster assets only as supporting visuals. Do not mix styles accidentally.
 **Best for:** Choosing a predefined modern style from a broad catalog; generating multiple visual direction options before deck production
 
 ---

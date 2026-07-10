@@ -67,7 +67,7 @@ from pathlib import Path
 
 def download_image(url, out_path="assets/images/img1.jpg"):
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-    req = urllib.request.Request(url, headers={"User-Agent": "pptify/1.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "pptx-builder/1.0"})
     Path(out_path).write_bytes(urllib.request.urlopen(req, timeout=20).read())
     return {"url": url, "local_path": out_path}
 ```
@@ -78,38 +78,17 @@ def download_image(url, out_path="assets/images/img1.jpg"):
 
 ---
 
-## 3. Raster → SVG
+## 3. Vector Asset Decision
 
-**Wrap mode (default, no dependencies)** — embed the raster inside an SVG so it can live in an
-editable container:
+Use a true SVG only when it is already a clean vector asset or when the source
+contains no essential text or data that needs editing. Do not wrap a raster in
+an SVG and treat the result as editable.
 
-```python
-import base64, mimetypes
-from pathlib import Path
-
-def raster_to_svg_wrap(source, output_path):
-    src = Path(source)
-    mime = mimetypes.guess_type(src.name)[0] or "image/png"
-    b64 = base64.b64encode(src.read_bytes()).decode()
-    svg = (
-        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">'
-        f'<image xlink:href="data:{mime};base64,{b64}" /></svg>'
-    )
-    Path(output_path).write_text(svg, encoding="utf-8")
-    return {"source": source, "output_path": output_path, "mode": "wrap", "status": "ok"}
-```
-
-**Vector-trace mode (optional)** — only when a true vector result is needed and `vtracer` is
-available in the environment:
-
-```python
-# pip/uv add vtracer first; tracing can distort text.
-import vtracer
-vtracer.convert_image_to_svg_py("logo.png", "logo.svg")
-```
-
-- Vector tracing can lose or distort text. Keep the original raster on visible slides when text
-  fidelity matters, and place any traced SVG on a separate hidden appendix slide for reference.
+- Do not trace a raster merely to satisfy an editability requirement.
+- If an illustration contains essential text, recreate the text with native
+    PowerPoint objects.
+- Keep the original raster or a non-compliant SVG only as a supporting visual or
+    hidden reference.
 
 ---
 
@@ -148,7 +127,9 @@ def text_to_infographic(prompt, output_path, provider="openai",
 
 - Collect missing values via `vscode_askQuestions`: provider, prompt, model/deployment, size, output path.
 - Use `.env` or `az login` for auth; never ask for keys/tokens in chat or the dialog.
-- Prefer the raster output as the visible slide asset; add any vector trace as `hidden: true`.
+- Use generated art as a supporting visual. Recreate essential text, labels,
+  metrics, and steps with native PowerPoint objects. Add a vector asset only
+  when it is a clean, editable source.
 
 ---
 

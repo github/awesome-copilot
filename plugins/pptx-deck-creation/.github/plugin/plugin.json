@@ -1,0 +1,29 @@
+{
+  "name": "pptx-deck-creation",
+  "description": "Generate production-ready, editable PowerPoint (PPTX) decks from Copilot chat: narrative strategy, design-context selection, coordinate-explicit slide specs, visual asset planning, read-only reference-deck analysis, and audit-driven quality gates.",
+  "version": "1.0.0",
+  "author": {
+    "name": "kimtth"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "powerpoint",
+    "pptx",
+    "presentations",
+    "slide-decks",
+    "deck-generation",
+    "slide-design",
+    "document-generation"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/pptx-deck-context",
+    "./skills/pptx-slide-specification",
+    "./skills/pptx-visual-assets",
+    "./skills/pptx-reference-deck-analysis",
+    "./skills/pptx-quality-gates"
+  ]
+}

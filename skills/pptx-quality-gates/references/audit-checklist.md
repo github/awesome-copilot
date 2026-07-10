@@ -1,6 +1,7 @@
-# PPTify Manual Audit Checklist
+# PPTX Manual Audit Checklist
 
-Apply every check manually to `deck-spec.json` before considering a deck production-ready.
+Apply the specification checks before building. Reopen the PPTX for the final
+geometry, accessibility, package, and rendered-preview checks.
 
 ## 1. Content Collisions
 
@@ -44,7 +45,7 @@ Inspect `summary.design_context` in the spec root.
 
 - **Pass:** field present and contains `profile_id`, source URL, and license ID.
 - **Fail — any of the following:**
-  - `summary.design_context` absent -> load a design profile from [`references/design-profiles.md`](../../pptify-context-prep/references/design-profiles.md) in `pptify-context-prep` and rebuild.
+  - `summary.design_context` absent -> load a design profile from [`references/design-profiles.md`](../../pptx-deck-context/references/design-profiles.md) in `pptx-deck-context` and rebuild.
   - Plain white backgrounds throughout with no accent elements.
   - Calibri-only text with default theme colors across all slides.
   - All slides are title-plus-bullets only (no cards, shapes, rules, or image treatments).
@@ -75,7 +76,7 @@ For slides mixing image/SVG objects with text:
 
 - **Pass:** image/SVG `z_index` is lower than all overlapping text objects.
 - **Fail:** image covers text → lower `z_index`, adjust bbox, or reclassify as `classification: "layout_design"`.
-- When a generated infographic exists as both raster and SVG: the raster must be on the **visible** slide; the SVG must be in a **hidden appendix** slide only.
+- A visible slide must not rely on one raster or SVG as its complete content. Recreate essential titles, labels, metrics, chart values, and process steps with native editable objects. Keep the original raster or SVG only as a supporting visual or hidden reference.
 - **Image aspect ratio:** the object `bbox` aspect should match the image's native aspect (fit or crop-to-fill); a mismatched bbox stretches the image. Keep captions in adjacent space, not overlaid on the image.
 
 ## 9. Slide Bounds & Safe Margins
@@ -97,7 +98,57 @@ For every `kind: "table"` object:
 - **Pass:** column widths sum to the table `bbox.width`, each cell's wrapped text fits its row height at the cell font size, and row count is within the per-slide budget (≈8–10 body rows at 10–11 pt).
 - **Fail:** columns overflow the table width, cells clip, or the table is too tall → rebalance columns, raise row height, or split the table across slides (repeat the header).
 
+## 12. Native Editable Content
+
+For every visible slide, inspect the objects that carry the message.
+
+- **Pass:** titles, body text, metrics, labels, tables, charts, and process steps
+  are native editable PowerPoint objects. Images are supporting visuals only.
+- **Fail:** a single raster or SVG contains the only meaningful text, data,
+  explanation, chart values, or diagram labels → recreate that information with
+  editable text, shapes, lines, and tables.
+
+## 13. Post-Build Checks
+
+Reopen the generated PPTX and inspect the actual artifact.
+
+- **Geometry:** confirm the slide count, actual object bounds, safe margins,
+  footer rail, group containment, image placement, and hidden-slide state match
+  the specification. Record failures in the geometry audit.
+- **Accessibility:** confirm document language, unique accessible slide titles,
+  meaningful image alt text, reading order, and table headers. Record failures
+  in the accessibility audit.
+- **Rendered preview:** when a compatible renderer is available, inspect each
+  slide for clipping, font fallback, contrast, image crops, and visual hierarchy.
+  Record the renderer and the review result.
+
+## 14. Production Metadata and Source Lineage
+
+Inspect the summary and the objects that make factual claims.
+
+- **Layout policy:** `summary.layout_policy` names the safe margin, content
+  bottom, footer top, and minimum gap. Confirm `content_bottom` is lower than
+  `footer_top` and that content stays above the footer rail.
+- **Accessibility metadata:** `summary.accessibility` contains a document
+  language and presentation title. Each production slide supplies a reading
+  order for its meaningful objects.
+- **Source lineage:** each sourced metric, chart value, quotation, or factual
+  claim has a `source_ref` containing a source ID, locator, claim type, and
+  verification status. Confirm the source ID appears in the sources manifest.
+- **Build record:** the build manifest records the builder path, input spec,
+  output PPTX, slide count, time, and warnings.
+
+## 15. Positive Geometry
+
+Before and after build, inspect every object bbox and line endpoint.
+
+- **Pass:** every object has positive width and height. A line has a positive
+  bounding box after its endpoints are normalized.
+- **Fail:** a zero or negative dimension can produce a PPTX that passes a ZIP
+  check but fails to open in PowerPoint. Correct the source bbox before rebuild.
+
 ## Completion Criterion
 
-All 11 checks pass before delivery.
-Any failure triggers the repair loop in `pptify-quality-gates`: fix the spec, rebuild, and re-audit.
+All 15 checks pass before delivery, or each exception is documented with its
+slide ID, object ID, reason, owner, and review date. Any failure triggers the
+repair loop in `pptx-quality-gates`: fix the spec, rebuild, and re-audit.
