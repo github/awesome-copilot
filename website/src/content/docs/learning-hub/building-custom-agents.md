@@ -3,7 +3,7 @@ title: 'Building Custom Agents'
 description: 'Learn how to create specialized GitHub Copilot agents with custom personas, tool integrations, and domain expertise.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-06
+lastUpdated: 2026-07-10
 estimatedReadingTime: '10 minutes'
 tags:
   - agents
@@ -240,6 +240,28 @@ tools: ['codebase', 'terminal', 'postgres-mcp']
 ```
 
 The agent can then query your database, analyze query plans, and suggest optimizations—all within the conversation. For setup details, see [Understanding MCP Servers](../understanding-mcp-servers/).
+
+## Repository-Level Model and Effort Pinning (v1.0.70+)
+
+Beyond per-agent frontmatter settings, you can enforce a default model, reasoning effort level, and context tier across an entire repository using `.github/copilot/settings.json`. When a user opens the repository, these settings override their personal preferences — useful for ensuring all team members use an approved model and consistent quality settings:
+
+```json
+{
+  "model": "claude-sonnet-4",
+  "reasoningEffort": "medium",
+  "contextTier": "default"
+}
+```
+
+This file is trusted only when folder trust is confirmed, so users who haven't explicitly trusted the repository won't have these settings applied. Supported keys:
+
+| Key | Description | Example values |
+|-----|-------------|----------------|
+| `model` | Default model for sessions in this repo | `"claude-sonnet-4"`, `"gpt-4.1"` |
+| `reasoningEffort` | Default reasoning effort level | `"low"`, `"medium"`, `"high"` |
+| `contextTier` | Default context window size | `"default"`, `"long_context"` |
+
+> **Tip**: Use this alongside per-agent `reasoningEffort` frontmatter for fine-grained control — the repo-level setting becomes the baseline, and individual agents can override it up or down as needed.
 
 ## Best Practices
 

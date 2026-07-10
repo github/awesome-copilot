@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-10
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -184,7 +184,19 @@ Browse to the plugin via `@agentPlugins` in the Extensions search view or via **
 
 ## Managing Plugins
 
-Once installed, plugins are managed with a few simple commands:
+### The /plugins Dashboard (v1.0.69+)
+
+From inside an interactive Copilot CLI session, the `/plugins` command opens a dashboard for managing your installed plugins without leaving the conversation:
+
+```
+/plugins
+```
+
+The dashboard lets you browse all installed plugins, enable or disable individual plugins, reload plugin extensions without restarting your session, and view plugin details like version and included components. This is the fastest way to troubleshoot a plugin or temporarily disable one that's causing issues.
+
+### Command-line Management
+
+Outside of an interactive session, use these commands to manage plugins:
 
 ```bash
 # List all installed plugins
@@ -209,6 +221,21 @@ copilot --plugin-dir /path/to/my-plugin
 ```
 
 Plugins loaded this way appear in `/plugin list` under a separate **External Plugins** section, clearly distinguished from marketplace-installed plugins. This is useful for testing local plugins in development or loading private plugins that aren't published to any marketplace.
+
+### Pinning Plugins to a Specific Commit (v1.0.70+)
+
+For reproducible environments, you can pin a plugin to an exact commit SHA so it never changes unexpectedly:
+
+```json
+{
+  "source": {
+    "repo": "github/awesome-copilot",
+    "sha": "a1b2c3d4e5f6..."
+  }
+}
+```
+
+Add the `sha` field alongside the repository reference in your plugin source configuration. Pinned plugins won't be updated by `copilot plugin update` unless you explicitly change the SHA — giving you the same immutability guarantee you'd get from a lockfile.
 
 ### Where Plugins Are Stored
 
