@@ -33,7 +33,7 @@ function toast(msg, ms = 2600) {
     toast._t = setTimeout(() => (t.hidden = true), ms);
 }
 
-function clampSize(w, h, max = 1024) {
+function clampSize(w, h, max = 2048) {
     w = Math.max(1, Math.round(w));
     h = Math.max(1, Math.round(h));
     const longer = Math.max(w, h);
@@ -519,13 +519,18 @@ function syncDrawStage() {
     const longer = Math.max(state.width, state.height) || 1;
     const scale = Math.min(360, Math.max(200, longer)) / longer;
     const dispW = Math.max(1, Math.round(state.width * scale));
-    const dispH = Math.max(1, Math.round(state.height * scale));
+    // Drive the display size from the width plus the intrinsic aspect ratio and
+    // let height follow, so a narrow side panel (CSS max-width) shrinks the
+    // surface proportionally instead of stretching a fixed height.
+    const ratio = `${state.width} / ${state.height}`;
     drawCanvas.style.width = dispW + "px";
-    drawCanvas.style.height = dispH + "px";
+    drawCanvas.style.height = "auto";
+    drawCanvas.style.aspectRatio = ratio;
     drawCanvas.style.imageRendering = scale > 1.4 ? "pixelated" : "auto";
     const onion = $("onion-img");
     onion.style.width = dispW + "px";
-    onion.style.height = dispH + "px";
+    onion.style.height = "auto";
+    onion.style.aspectRatio = ratio;
     if (!$("draw-panel").hidden) syncOnion();
 }
 

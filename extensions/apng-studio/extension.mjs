@@ -27,6 +27,7 @@ const WEB_DIR = join(EXT_DIR, "web");
 const ARTIFACTS_DIR = join(EXT_DIR, "artifacts");
 const EXPORTS_DIR = join(ARTIFACTS_DIR, "exports");
 const DEFAULT_PROJECT = "default";
+const MAX_FRAMES = 600; // aggregate cap so a project can't exhaust the host on assemble
 
 let session;
 
@@ -180,6 +181,21 @@ function pngSize(buffer) {
             if (type !== "IHDR" || len !== 13) throw bad();
             width = buffer.readUInt32BE(off + 8);
             height = buffer.readUInt32BE(off + 8 + 4);
+            const bitDepth = buffer[off + 8 + 8];
+            const colorType = buffer[off + 8 + 9];
+            const compression = buffer[off + 8 + 10];
+            const filterMethod = buffer[off + 8 + 11];
+            const interlace = buffer[off + 8 + 12];
+            // The codec only handles 8-bit truecolor-with-alpha, non-interlaced
+            // PNGs with the standard compression/filter methods (which the
+            // renderer and the RGBA encoder always produce). Reject anything
+            // else rather than store a frame assembleApng would mis-encode.
+            if (bitDepth !== 8 || colorType !== 6 || compression !== 0 || filterMethod !== 0 || interlace !== 0) {
+                throw new CanvasError(
+                    "bad_frame",
+                    "Frame must be an 8-bit RGBA (non-interlaced) PNG."
+                );
+            }
             sawIHDR = true;
         } else if (type === "IDAT") {
             sawIDAT = true;
@@ -196,6 +212,9 @@ function pngSize(buffer) {
 // Lockless core: assumes the caller holds the project lock and passes the loaded
 // meta. Writes the frame file and appends the record (does not save/broadcast).
 async function addFrameToMeta(meta, buffer, opts = {}) {
+    if (meta.frames.length >= MAX_FRAMES) {
+        throw new CanvasError("too_many_frames", `An animation can have at most ${MAX_FRAMES} frames.`);
+    }
     const { width, height } = pngSize(buffer);
     if (width > 2048 || height > 2048) {
         throw new CanvasError("frame_too_large", `Frame is ${width}×${height}; the maximum is 2048×2048.`);
@@ -267,6 +286,9 @@ async function duplicateFrame(id, fid) {
         const meta = await loadProject(id);
         const i = meta.frames.findIndex((f) => f.id === String(fid));
         if (i < 0) return;
+        if (meta.frames.length >= MAX_FRAMES) {
+            throw new CanvasError("too_many_frames", `An animation can have at most ${MAX_FRAMES} frames.`);
+        }
         const nid = String(meta.counter++);
         await fs.copyFile(framePath(meta.id, fid), framePath(meta.id, nid));
         meta.frames.splice(i + 1, 0, normalizeFrame({ ...meta.frames[i], id: nid }));
@@ -296,7 +318,7 @@ async function setFrameProps(id, fid, props) {
     return withProjectLock(id, async () => {
         const meta = await loadProject(id);
         const f = meta.frames.find((x) => x.id === String(fid));
-        if (!f) return;
+        if (!f) throw new CanvasError("frame_not_found", `No frame with id "${fid}".`);
         applyFrameProps(f, props || {});
         await saveProject(meta);
         broadcast(meta.id);
@@ -666,11 +688,12 @@ async function startServer(entry) {
 const SHARE_TTL_MS = 10 * 60 * 1000;
 let shareServer = null; // single LAN-bound HTTP server, created on demand
 let shareServerStarting = null; // in-flight startup promise (dedupe concurrent starts)
-let shareServerIp = null; // resolved LAN IPv4 used to build share URLs
+let shareServerBindIp = null; // the private IPv4 the server is actually bound to
 const shares = new Map(); // projectId -> { token, expiresAt, timer }
 
-// Prefer an RFC1918 private address; skip CGNAT/VPN ranges (e.g. Tailscale
-// 100.64/10) unless nothing else is available.
+// Return a private (RFC1918) IPv4 address, or null. Public/VPN addresses are
+// intentionally excluded so the share listener is only ever bound to a LAN
+// interface.
 function lanIPv4() {
     const candidates = [];
     for (const addrs of Object.values(networkInterfaces())) {
@@ -680,13 +703,15 @@ function lanIPv4() {
     }
     const isPrivate = (ip) =>
         /^10\./.test(ip) || /^192\.168\./.test(ip) || /^172\.(1[6-9]|2\d|3[01])\./.test(ip);
-    return candidates.find(isPrivate) || candidates[0] || null;
+    return candidates.find(isPrivate) || null;
 }
 
 function shareUrlFor(projectId) {
     const s = shares.get(projectId);
     const { port } = shareServer.address();
-    return `http://${shareServerIp}:${port}/s?t=${s.token}`;
+    // Use the address the server is actually bound to, not a freshly resolved
+    // one, so the link always points where the listener is really accepting.
+    return `http://${shareServerBindIp}:${port}/s?t=${s.token}`;
 }
 
 // Resolve an active share from its token (constant-time compare), so tokens from
@@ -762,16 +787,32 @@ async function shareRequest(req, res) {
 // Start (or reuse) the single LAN share server. Concurrent callers share one
 // in-flight startup promise so two /share/start requests can't each bind a
 // separate listener and leak one.
-async function ensureShareServer() {
-    if (shareServer) return shareServer;
+async function ensureShareServer(bindIp) {
+    if (shareServer) {
+        // Reuse the running server, unless the LAN address changed and nothing
+        // is currently being shared — then rebind to the new private address.
+        if (shareServerBindIp === bindIp || shares.size > 0) return shareServer;
+        const old = shareServer;
+        shareServer = null;
+        shareServerStarting = null;
+        shareServerBindIp = null;
+        try {
+            old.close();
+        } catch {
+            /* already closing */
+        }
+    }
     if (!shareServerStarting) {
         shareServerStarting = (async () => {
             const server = createServer(shareRequest);
             await new Promise((resolve, reject) => {
                 server.once("error", reject);
-                server.listen(0, "0.0.0.0", resolve);
+                // Bind only to the private LAN address, not 0.0.0.0, so the
+                // listener is never exposed on public/VPN interfaces.
+                server.listen(0, bindIp, resolve);
             });
             shareServer = server;
+            shareServerBindIp = bindIp;
             return server;
         })().catch((err) => {
             shareServerStarting = null;
@@ -786,10 +827,10 @@ async function startShare(projectId) {
     if (!ip) {
         throw new CanvasError(
             "no_network",
-            "No local network address found. Connect to Wi-Fi to share to your phone."
+            "No local Wi-Fi/LAN address found. Connect to a local network to share to your phone."
         );
     }
-    await ensureShareServer();
+    await ensureShareServer(ip);
     // The canvas may have closed while the server was binding. If no open panel
     // still references this project, don't leave a share (or an idle LAN server)
     // behind.
@@ -799,7 +840,7 @@ async function startShare(projectId) {
             const server = shareServer;
             shareServer = null;
             shareServerStarting = null;
-            shareServerIp = null;
+            shareServerBindIp = null;
             try {
                 server.close();
             } catch {
@@ -808,7 +849,6 @@ async function startShare(projectId) {
         }
         throw new CanvasError("canvas_closed", "The canvas was closed before sharing started.");
     }
-    shareServerIp = ip;
     const existing = shares.get(projectId);
     if (existing?.timer) clearTimeout(existing.timer);
     const token = randomBytes(16).toString("hex");
@@ -829,7 +869,7 @@ function stopShare(projectId) {
         const server = shareServer;
         shareServer = null;
         shareServerStarting = null;
-        shareServerIp = null;
+        shareServerBindIp = null;
         try {
             server.close();
         } catch {
