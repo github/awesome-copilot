@@ -336,7 +336,7 @@ function placeVersionBits(m, version) {
     const size = m.length;
     const v = bchVersion(version);
     const bits = [];
-    for (let i = 17; i >= 0; i--) bits.push((v >> i) & 1);
+    for (let i = 0; i <= 17; i++) bits.push((v >> i) & 1); // least-significant bit first
     let idx = 0;
     for (let i = 0; i < 6; i++) {
         for (let j = 0; j < 3; j++) {

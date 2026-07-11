@@ -74,35 +74,65 @@ function log(message, level = "info") {
 
 // ---- project store (disk-backed, shared across instances) ---------------
 const projects = new Map(); // projectId -> meta
+const loadingProjects = new Map(); // projectId -> in-flight load Promise
+const projectLocks = new Map(); // projectId -> tail of the mutation queue
 const projectDir = (id) => join(ARTIFACTS_DIR, sanitizeId(id));
 const framePath = (id, fid) => join(projectDir(id), `frame-${sanitizeId(fid)}.png`);
+
+// Serialize the full load–mutate–save cycle for a project so concurrent panels
+// and agent actions cannot interleave (e.g. allocate the same counter value or
+// persist stale snapshots out of order).
+function withProjectLock(id, fn) {
+    const pid = sanitizeId(id);
+    const prev = projectLocks.get(pid) || Promise.resolve();
+    const next = prev.then(() => fn());
+    // Keep the chain going even if this task rejects; don't leak the rejection.
+    projectLocks.set(pid, next.then(() => {}, () => {}));
+    return next;
+}
 
 async function loadProject(id) {
     const pid = sanitizeId(id);
     if (projects.has(pid)) return projects.get(pid);
-    let meta;
+    // Dedupe concurrent first-time loads so every caller shares one meta object.
+    if (loadingProjects.has(pid)) return loadingProjects.get(pid);
+    const p = (async () => {
+        let meta;
+        try {
+            meta = JSON.parse(await fs.readFile(join(projectDir(pid), "project.json"), "utf8"));
+        } catch {
+            meta = null;
+        }
+        if (!meta || typeof meta !== "object") {
+            meta = { id: pid, name: pid, width: 256, height: 256, loops: 0, hiddenFirst: false, counter: 0, frames: [] };
+        }
+        meta.id = pid;
+        meta.frames = (Array.isArray(meta.frames) ? meta.frames : []).map(normalizeFrame);
+        meta.counter = Number.isFinite(meta.counter) ? meta.counter : meta.frames.length;
+        meta.width = clampDim(meta.width);
+        meta.height = clampDim(meta.height);
+        meta.loops = clampLoops(meta.loops);
+        meta.hiddenFirst = !!meta.hiddenFirst;
+        projects.set(pid, meta);
+        return meta;
+    })();
+    loadingProjects.set(pid, p);
     try {
-        meta = JSON.parse(await fs.readFile(join(projectDir(pid), "project.json"), "utf8"));
-    } catch {
-        meta = null;
+        return await p;
+    } finally {
+        loadingProjects.delete(pid);
     }
-    if (!meta || typeof meta !== "object") {
-        meta = { id: pid, name: pid, width: 256, height: 256, loops: 0, hiddenFirst: false, counter: 0, frames: [] };
-    }
-    meta.id = pid;
-    meta.frames = (Array.isArray(meta.frames) ? meta.frames : []).map(normalizeFrame);
-    meta.counter = Number.isFinite(meta.counter) ? meta.counter : meta.frames.length;
-    meta.width = clampDim(meta.width);
-    meta.height = clampDim(meta.height);
-    meta.loops = clampLoops(meta.loops);
-    meta.hiddenFirst = !!meta.hiddenFirst;
-    projects.set(pid, meta);
-    return meta;
 }
 
 async function saveProject(meta) {
-    await ensureDir(projectDir(meta.id));
-    await fs.writeFile(join(projectDir(meta.id), "project.json"), JSON.stringify(meta, null, 2));
+    const dir = projectDir(meta.id);
+    await ensureDir(dir);
+    // Write to a temp file then rename, so an interrupted write can never leave
+    // a truncated project.json for the next load to misread as empty.
+    const target = join(dir, "project.json");
+    const tmp = join(dir, `.project.${randomBytes(6).toString("hex")}.tmp`);
+    await fs.writeFile(tmp, JSON.stringify(meta, null, 2));
+    await fs.rename(tmp, target);
 }
 
 function publicState(meta) {
@@ -126,53 +156,61 @@ function publicState(meta) {
 
 // ---- mutations ----------------------------------------------------------
 async function addFrameBuffer(id, buffer, opts = {}) {
-    const meta = await loadProject(id);
-    const fid = String(meta.counter++);
-    await ensureDir(projectDir(meta.id));
-    await fs.writeFile(framePath(meta.id, fid), buffer);
-    meta.frames.push(
-        normalizeFrame({
-            id: fid,
-            delayNum: opts.delayNum != null ? opts.delayNum : opts.delayMs != null ? opts.delayMs : 120,
-            delayDen: opts.delayDen,
-            disposeOp: opts.disposeOp,
-            blendOp: opts.blendOp,
-        })
-    );
-    await saveProject(meta);
-    broadcast(meta.id);
-    return fid;
+    return withProjectLock(id, async () => {
+        const meta = await loadProject(id);
+        const fid = String(meta.counter++);
+        await ensureDir(projectDir(meta.id));
+        await fs.writeFile(framePath(meta.id, fid), buffer);
+        meta.frames.push(
+            normalizeFrame({
+                id: fid,
+                delayNum: opts.delayNum != null ? opts.delayNum : opts.delayMs != null ? opts.delayMs : 120,
+                delayDen: opts.delayDen,
+                disposeOp: opts.disposeOp,
+                blendOp: opts.blendOp,
+            })
+        );
+        await saveProject(meta);
+        broadcast(meta.id);
+        return fid;
+    });
 }
 
 async function moveFrame(id, fid, delta) {
-    const meta = await loadProject(id);
-    const i = meta.frames.findIndex((f) => f.id === String(fid));
-    const j = i + Math.sign(delta);
-    if (i < 0 || j < 0 || j >= meta.frames.length) return;
-    [meta.frames[i], meta.frames[j]] = [meta.frames[j], meta.frames[i]];
-    await saveProject(meta);
-    broadcast(meta.id);
+    return withProjectLock(id, async () => {
+        const meta = await loadProject(id);
+        const i = meta.frames.findIndex((f) => f.id === String(fid));
+        const j = i + Math.sign(delta);
+        if (i < 0 || j < 0 || j >= meta.frames.length) return;
+        [meta.frames[i], meta.frames[j]] = [meta.frames[j], meta.frames[i]];
+        await saveProject(meta);
+        broadcast(meta.id);
+    });
 }
 
 async function deleteFrame(id, fid) {
-    const meta = await loadProject(id);
-    const i = meta.frames.findIndex((f) => f.id === String(fid));
-    if (i < 0) return;
-    meta.frames.splice(i, 1);
-    await fs.rm(framePath(meta.id, fid), { force: true });
-    await saveProject(meta);
-    broadcast(meta.id);
+    return withProjectLock(id, async () => {
+        const meta = await loadProject(id);
+        const i = meta.frames.findIndex((f) => f.id === String(fid));
+        if (i < 0) return;
+        meta.frames.splice(i, 1);
+        await fs.rm(framePath(meta.id, fid), { force: true });
+        await saveProject(meta);
+        broadcast(meta.id);
+    });
 }
 
 async function duplicateFrame(id, fid) {
-    const meta = await loadProject(id);
-    const i = meta.frames.findIndex((f) => f.id === String(fid));
-    if (i < 0) return;
-    const nid = String(meta.counter++);
-    await fs.copyFile(framePath(meta.id, fid), framePath(meta.id, nid));
-    meta.frames.splice(i + 1, 0, normalizeFrame({ ...meta.frames[i], id: nid }));
-    await saveProject(meta);
-    broadcast(meta.id);
+    return withProjectLock(id, async () => {
+        const meta = await loadProject(id);
+        const i = meta.frames.findIndex((f) => f.id === String(fid));
+        if (i < 0) return;
+        const nid = String(meta.counter++);
+        await fs.copyFile(framePath(meta.id, fid), framePath(meta.id, nid));
+        meta.frames.splice(i + 1, 0, normalizeFrame({ ...meta.frames[i], id: nid }));
+        await saveProject(meta);
+        broadcast(meta.id);
+    });
 }
 
 // Apply a partial set of frame properties. `delayMs`/`fps` are conveniences that
@@ -193,41 +231,49 @@ function applyFrameProps(f, props) {
 }
 
 async function setFrameProps(id, fid, props) {
-    const meta = await loadProject(id);
-    const f = meta.frames.find((x) => x.id === String(fid));
-    if (!f) return;
-    applyFrameProps(f, props || {});
-    await saveProject(meta);
-    broadcast(meta.id);
+    return withProjectLock(id, async () => {
+        const meta = await loadProject(id);
+        const f = meta.frames.find((x) => x.id === String(fid));
+        if (!f) return;
+        applyFrameProps(f, props || {});
+        await saveProject(meta);
+        broadcast(meta.id);
+    });
 }
 
 async function setFramePropsAll(id, props) {
-    const meta = await loadProject(id);
-    for (const f of meta.frames) applyFrameProps(f, props || {});
-    await saveProject(meta);
-    broadcast(meta.id);
+    return withProjectLock(id, async () => {
+        const meta = await loadProject(id);
+        for (const f of meta.frames) applyFrameProps(f, props || {});
+        await saveProject(meta);
+        broadcast(meta.id);
+    });
 }
 
 async function clearFrames(id) {
-    const meta = await loadProject(id);
-    await Promise.all(meta.frames.map((f) => fs.rm(framePath(meta.id, f.id), { force: true })));
-    meta.frames = [];
-    await saveProject(meta);
-    broadcast(meta.id);
+    return withProjectLock(id, async () => {
+        const meta = await loadProject(id);
+        await Promise.all(meta.frames.map((f) => fs.rm(framePath(meta.id, f.id), { force: true })));
+        meta.frames = [];
+        await saveProject(meta);
+        broadcast(meta.id);
+    });
 }
 
 async function applySettings(id, { width, height, loops, name, hiddenFirst }) {
-    const meta = await loadProject(id);
-    if (meta.frames.length === 0) {
-        if (width != null) meta.width = clampDim(width);
-        if (height != null) meta.height = clampDim(height);
-    }
-    if (loops != null) meta.loops = clampLoops(loops);
-    if (typeof hiddenFirst === "boolean") meta.hiddenFirst = hiddenFirst;
-    if (typeof name === "string" && name.trim()) meta.name = name.trim().slice(0, 80);
-    await saveProject(meta);
-    broadcast(meta.id);
-    return meta;
+    return withProjectLock(id, async () => {
+        const meta = await loadProject(id);
+        if (meta.frames.length === 0) {
+            if (width != null) meta.width = clampDim(width);
+            if (height != null) meta.height = clampDim(height);
+        }
+        if (loops != null) meta.loops = clampLoops(loops);
+        if (typeof hiddenFirst === "boolean") meta.hiddenFirst = hiddenFirst;
+        if (typeof name === "string" && name.trim()) meta.name = name.trim().slice(0, 80);
+        await saveProject(meta);
+        broadcast(meta.id);
+        return meta;
+    });
 }
 
 async function assemble(id) {
@@ -286,8 +332,7 @@ function parseColor(input) {
 }
 
 // ---- HTTP server + SSE --------------------------------------------------
-const servers = new Map(); // instanceId -> { server, url, projectId }
-const sseClients = new Map(); // projectId -> Set<res>
+const servers = new Map(); // instanceId -> { instanceId, server, url, projectId, token, sse:Set<res> }
 
 // Resolve which project an action targets: an explicit projectId wins, else the
 // project bound to the invoking canvas instance, else the default project.
@@ -298,14 +343,27 @@ function resolveProjectId(ctx) {
     return DEFAULT_PROJECT;
 }
 
+// Constant-time compare for the per-server access token.
+function tokenMatches(provided, expected) {
+    if (typeof provided !== "string" || provided.length !== expected.length) return false;
+    try {
+        return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+    } catch {
+        return false;
+    }
+}
+
+// Push a "changed" event to every open panel of a project (across instances).
 function broadcast(projectId) {
-    const set = sseClients.get(sanitizeId(projectId));
-    if (!set) return;
-    for (const res of set) {
-        try {
-            res.write(`data: changed\n\n`);
-        } catch {
-            set.delete(res);
+    const pid = sanitizeId(projectId);
+    for (const entry of servers.values()) {
+        if (entry.projectId !== pid) continue;
+        for (const res of entry.sse) {
+            try {
+                res.write(`data: changed\n\n`);
+            } catch {
+                entry.sse.delete(res);
+            }
         }
     }
 }
@@ -363,13 +421,16 @@ async function readJson(req) {
     }
 }
 
-async function handleRequest(projectId, req, res) {
+async function handleRequest(entry, req, res) {
+    const projectId = entry.projectId;
     const url = new URL(req.url, "http://localhost");
     const path = url.pathname;
     const method = req.method || "GET";
 
     try {
-        // Static renderer assets.
+        // Static renderer assets are public (they carry no project data). The
+        // iframe is loaded with the token in its URL; app.js then reads it and
+        // attaches it to every data request below.
         if (method === "GET" && (path === "/" || path === "/index.html")) {
             return send(res, 200, CONTENT_TYPES[".html"], await fs.readFile(join(WEB_DIR, "index.html")));
         }
@@ -379,13 +440,21 @@ async function handleRequest(projectId, req, res) {
         }
         if (path === "/favicon.ico") return send(res, 204, "text/plain", "");
 
+        // Everything below reads or mutates project data. Require the per-server
+        // token so another local process or a cross-origin page that guesses the
+        // port cannot read state or drive mutations (e.g. /frames/clear).
+        if (!tokenMatches(url.searchParams.get("k") || "", entry.token)) {
+            return send(res, 403, "text/plain", "Forbidden");
+        }
+
         // State.
         if (method === "GET" && path === "/state") {
             const meta = await loadProject(projectId);
             return send(res, 200, "application/json", JSON.stringify(publicState(meta)));
         }
 
-        // Server-Sent Events.
+        // Server-Sent Events. Track the client on this instance so its canvas
+        // can end just its own streams on close without disturbing other panels.
         if (method === "GET" && path === "/events") {
             res.writeHead(200, {
                 "Content-Type": "text/event-stream",
@@ -393,10 +462,8 @@ async function handleRequest(projectId, req, res) {
                 Connection: "keep-alive",
             });
             res.write(": connected\n\n");
-            const pid = sanitizeId(projectId);
-            if (!sseClients.has(pid)) sseClients.set(pid, new Set());
-            sseClients.get(pid).add(res);
-            req.on("close", () => sseClients.get(pid)?.delete(res));
+            entry.sse.add(res);
+            req.on("close", () => entry.sse.delete(res));
             return;
         }
 
@@ -491,11 +558,15 @@ async function handleRequest(projectId, req, res) {
 }
 
 async function startServer(entry) {
-    const server = createServer((req, res) => handleRequest(entry.projectId, req, res));
+    entry.token = randomBytes(16).toString("hex");
+    entry.sse = new Set();
+    const server = createServer((req, res) => handleRequest(entry, req, res));
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const { port } = server.address();
     entry.server = server;
-    entry.url = `http://127.0.0.1:${port}/`;
+    // The token travels in the iframe URL; app.js reads it and attaches it to
+    // every data request so other local origins cannot reach project data.
+    entry.url = `http://127.0.0.1:${port}/?k=${entry.token}`;
     return entry;
 }
 
@@ -700,7 +771,12 @@ session = await joinSession({
                         // encoder in apng.mjs), so a lone frame still counts as animated.
                         const hidden = meta.hiddenFirst && meta.frames.length >= 2;
                         const animated = hidden ? meta.frames.slice(1) : meta.frames;
-                        const totalMs = animated.reduce((a, f) => a + frameMs(f), 0);
+                        // Sum exact numerator/denominator fractions, then convert
+                        // once, so the total matches the encoded timing rather than
+                        // accumulating per-frame rounding.
+                        const totalMs = Math.round(
+                            animated.reduce((a, f) => a + f.delayNum / f.delayDen, 0) * 1000
+                        );
                         return {
                             ...publicState(meta),
                             frameCount: meta.frames.length,
@@ -830,7 +906,7 @@ session = await joinSession({
                 }
                 let entry = servers.get(ctx.instanceId);
                 if (!entry) {
-                    entry = { instanceId: ctx.instanceId, projectId };
+                    entry = { instanceId: ctx.instanceId, projectId, sse: new Set() };
                     servers.set(ctx.instanceId, entry);
                     await startServer(entry);
                 } else {
@@ -846,13 +922,24 @@ session = await joinSession({
             },
             onClose: async (ctx) => {
                 const entry = servers.get(ctx.instanceId);
-                if (entry) {
-                    // Tear down this project's LAN share so the network-facing
-                    // server never outlives its canvas.
-                    stopShare(entry.projectId);
-                    servers.delete(ctx.instanceId);
-                    await new Promise((resolve) => entry.server.close(() => resolve()));
+                if (!entry) return;
+                servers.delete(ctx.instanceId);
+                // End this instance's SSE streams first, otherwise server.close()
+                // waits on the open /events response and never resolves.
+                for (const res of entry.sse) {
+                    try {
+                        res.end();
+                    } catch {
+                        /* already closed */
+                    }
                 }
+                entry.sse.clear();
+                // Only stop this project's LAN share when no other open panel
+                // still references the project, so closing one of two panels
+                // doesn't invalidate the other's phone link.
+                const stillOpen = [...servers.values()].some((e) => e.projectId === entry.projectId);
+                if (!stillOpen) stopShare(entry.projectId);
+                await new Promise((resolve) => entry.server.close(() => resolve()));
             },
         }),
     ],

@@ -4,8 +4,18 @@
 const $ = (id) => document.getElementById(id);
 const nonce = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
+// The server mints a per-session access token and passes it in this iframe's
+// URL. Attach it to every data request so other local origins that guess the
+// port cannot read state or drive mutations.
+const ACCESS_KEY = new URLSearchParams(location.search).get("k") || "";
+function withKey(path) {
+    const u = new URL(path, location.origin);
+    if (ACCESS_KEY) u.searchParams.set("k", ACCESS_KEY);
+    return u.pathname + u.search;
+}
+
 async function api(path, body) {
-    const res = await fetch(path, {
+    const res = await fetch(withKey(path), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body || {}),
@@ -45,7 +55,7 @@ function defaultDelay() {
 }
 
 async function refreshState() {
-    const res = await fetch("/state");
+    const res = await fetch(withKey("/state"));
     state = await res.json();
     assetNonce = nonce();
     render();
@@ -66,7 +76,7 @@ function renderPreview() {
     const has = state.frames.length > 0;
     empty.hidden = has;
     if (has) {
-        img.src = `/preview.png?n=${assetNonce}`;
+        img.src = withKey(`/preview.png?n=${assetNonce}`);
         img.hidden = false;
         img.classList.toggle("pixelated", Math.max(state.width, state.height) < 96);
     } else {
@@ -78,7 +88,9 @@ function renderMeta() {
     const n = state.frames.length;
     const hidden = state.hiddenFirst && n >= 2;
     const animated = hidden ? state.frames.slice(1) : state.frames;
-    const totalMs = animated.reduce((a, f) => a + (f.delayMs || 0), 0);
+    const totalMs = Math.round(
+        animated.reduce((a, f) => a + (f.delayNum || 0) / (f.delayDen || 1000), 0) * 1000
+    );
     $("meta-frames").textContent = `${n} frame${n === 1 ? "" : "s"}${hidden ? " · 1 static" : ""}`;
     $("meta-duration").textContent = `${(totalMs / 1000).toFixed(1)}s`;
     $("meta-loops").textContent = state.loops === 0 ? "loops ∞" : `loops ${state.loops}`;
@@ -127,7 +139,7 @@ function renderFrames() {
         const thumb = document.createElement("img");
         thumb.className = "frame-thumb";
         thumb.alt = `Frame ${i + 1}`;
-        thumb.src = `/frame?id=${encodeURIComponent(f.id)}&n=${assetNonce}`;
+        thumb.src = withKey(`/frame?id=${encodeURIComponent(f.id)}&n=${assetNonce}`);
         thumbWrap.appendChild(thumb);
         if (isStatic) {
             const badge = document.createElement("span");
@@ -342,7 +354,7 @@ $("btn-export").addEventListener("click", async () => {
     }
 });
 $("btn-download").addEventListener("click", async () => {
-    const res = await fetch(`/preview.png?n=${nonce()}`);
+    const res = await fetch(withKey(`/preview.png?n=${nonce()}`));
     const blob = await res.blob();
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -380,7 +392,7 @@ $("btn-share-stop").addEventListener("click", stopSharing);
 function openSharePanel(info) {
     $("share-panel").hidden = false;
     // Cache-bust the QR so a new token's code is fetched each time.
-    $("share-qr-img").src = `/share/qr.png?ts=${Date.now()}`;
+    $("share-qr-img").src = withKey(`/share/qr.png?ts=${Date.now()}`);
     const link = $("share-url");
     link.href = info.url;
     link.textContent = info.url.replace(/^https?:\/\//, "");
@@ -459,7 +471,7 @@ function drawContain(ctx, img, W, H) {
 }
 
 async function postFrame(blob, delayMs) {
-    const res = await fetch(`/frames?delayMs=${delayMs || 0}`, { method: "POST", body: blob });
+    const res = await fetch(withKey(`/frames?delayMs=${delayMs || 0}`), { method: "POST", body: blob });
     if (!res.ok) throw new Error(await res.text());
 }
 
@@ -525,7 +537,7 @@ function syncOnion() {
     const onion = $("onion-img");
     const lf = lastFrame();
     if ($("opt-onion").checked && lf) {
-        onion.src = `/frame?id=${encodeURIComponent(lf.id)}&n=${assetNonce}`;
+        onion.src = withKey(`/frame?id=${encodeURIComponent(lf.id)}&n=${assetNonce}`);
         onion.hidden = false;
     } else {
         onion.hidden = true;
@@ -539,7 +551,7 @@ function initDrawCanvas() {
     if ($("opt-from-last").checked && lf) {
         const img = new Image();
         img.onload = () => dctx.drawImage(img, 0, 0, drawCanvas.width, drawCanvas.height);
-        img.src = `/frame?id=${encodeURIComponent(lf.id)}&n=${assetNonce}`;
+        img.src = withKey(`/frame?id=${encodeURIComponent(lf.id)}&n=${assetNonce}`);
     }
     syncOnion();
 }
@@ -585,6 +597,7 @@ function endStroke() {
 }
 drawCanvas.addEventListener("pointerup", endStroke);
 drawCanvas.addEventListener("pointerleave", endStroke);
+drawCanvas.addEventListener("pointercancel", endStroke);
 
 $("btn-add-drawing").addEventListener("click", async () => {
     const blob = await new Promise((r) => drawCanvas.toBlob(r, "image/png"));
@@ -598,7 +611,7 @@ let eventSource = null;
 function connectEvents() {
     try {
         if (eventSource) eventSource.close();
-        eventSource = new EventSource("/events");
+        eventSource = new EventSource(withKey("/events"));
         eventSource.onmessage = () => refreshState();
     } catch (_) {
         eventSource = null; /* SSE unavailable; manual reload still works */

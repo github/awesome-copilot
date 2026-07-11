@@ -94,25 +94,25 @@
             <div class="subsection-title">Apply to all frames</div>
             <div class="apply-rows">
                 <span class="inline">
-                    <label class="mini">Delay</label>
+                    <label class="mini" for="in-delay-all">Delay</label>
                     <input type="number" id="in-delay-all" min="0" max="65535" step="10" value="120" />
-                    <label class="mini">ms</label>
+                    <span class="mini">ms</span>
                     <button class="btn btn-sm" id="btn-delay-all">Apply</button>
                 </span>
                 <span class="inline">
-                    <label class="mini">Frame rate</label>
+                    <label class="mini" for="in-fps">Frame rate</label>
                     <input type="number" id="in-fps" min="1" max="120" step="1" value="12" />
-                    <label class="mini">fps</label>
+                    <span class="mini">fps</span>
                     <button class="btn btn-sm" id="btn-fps">Set</button>
                 </span>
                 <span class="inline">
-                    <label class="mini">Dispose</label>
+                    <label class="mini" for="in-dispose-all">Dispose</label>
                     <select id="in-dispose-all">
                         <option value="0">None</option>
                         <option value="1">Background</option>
                         <option value="2">Previous</option>
                     </select>
-                    <label class="mini">Blend</label>
+                    <label class="mini" for="in-blend-all">Blend</label>
                     <select id="in-blend-all">
                         <option value="0">Source</option>
                         <option value="1">Over</option>
