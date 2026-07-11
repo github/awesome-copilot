@@ -8,7 +8,7 @@ This reference is the canonical delivery lifecycle for the Producer, Dev, and QA
 
 | Stage | Owner | Entry evidence | Exit evidence |
 |---|---|---|---|
-| Plan | Producer | Current project brief, open issues, constraints, and requested outcome | Sprint/task plan with acceptance criteria, owner, base, branch, exclusions, and required checks |
+| Plan | Producer | Current project brief, open issues, constraints, and requested outcome | Sprint/task plan with acceptance criteria, owner, target branch, base remote/ref, push remote, working branch, exclusions, and required checks |
 | Implement | Dev | Approved plan; clean-worktree preflight; feature branch created from the agreed base | Focused commits, implementation tests, committed progress/handoff context, and a pushed PR head |
 | Dev self-review | Dev | Plan, complete working diff, and test results | Recorded findings, fixes or dispositions, rerun checks, final candidate commit, and a SHA-bound PR handoff; this is an early filter only |
 | Independent review gate | Producer commissions; independent reviewer performs | PR, self-review packet, candidate SHA, plan, and risk-focused review scope | PR review/comment/check verdict tied to the exact SHA; no unresolved blocker or major finding, or a head-specific documented exemption |
@@ -32,7 +32,7 @@ This reference is the canonical delivery lifecycle for the Producer, Dev, and QA
 
 A commit cannot durably contain its own SHA. Before merge, put exact-SHA handoffs, independent verdicts, and QA acceptance in PR descriptions, reviews, comments, or check runs—not in a file committed to the application PR. Commit `progress.md` and `done.md` before the final candidate commit as context-only handoffs; they point to the PR as the live gate record and do not claim their own commit SHA.
 
-After regular merge and the smoke check, the Producer creates a separate docs-only closeout PR from updated `main`. It archives the accepted PR-head SHA and gate links, writes the QA sign-off record, and updates authoritative project status. After the closeout PR's final docs commit, post a head-specific exemption packet on that PR with its SHA, docs-only scope, reason, risk, checks, both gates marked exempt, and `no further closeout required`. Replace the packet if the closeout head changes.
+After regular merge and the smoke check, the Producer creates a separate docs-only closeout PR from the updated target branch recorded in the sprint plan. It archives the accepted PR-head SHA and gate links, writes the QA sign-off record, and updates authoritative project status. After the closeout PR's final docs commit, post a head-specific exemption packet on that PR with its SHA, docs-only scope, reason, risk, checks, both gates marked exempt, and `no further closeout required`. Replace the packet if the closeout head changes.
 
 The closeout PR itself is the terminal evidence: its merged PR state proves completion. No repository file records that closeout PR's own merge SHA or status, and no closeout-of-closeout PR is created.
 
@@ -46,7 +46,7 @@ Keep every transfer concise and structured:
 
 - **Owner / From / To**
 - **Sprint / Task**
-- **Branch**
+- **Target branch / Base ref / Working branch**
 - **Commit SHA**
 - **PR / Issues**
 - **Checks / Evidence**

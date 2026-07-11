@@ -20,12 +20,12 @@ The bundled skill's **Delivery Workflow** reference is canonical; it ships with 
 ## Workflow
 
 1. **Discover context** — read `PROJECT_BRIEF.md`, the sprint plan, repository instructions, and open issues before editing. If the plan is wrong, record the conflict and return it to the Producer; do not silently rewrite the plan.
-2. **Preflight safely** — run `git status --short` and stop if the worktree is not clean; preserve unknown work. Run `git fetch --prune origin`, then create the sprint branch explicitly from `origin/main`. If the branch exists, switch to it and verify its upstream and expected base instead of recreating it.
+2. **Preflight safely** — read the target branch, base remote, base ref, push remote, and working branch from the sprint plan; stop if any value is unresolved. Run `git status --short` and stop if the worktree is not clean; preserve unknown work. Fetch the recorded base remote, verify the recorded base ref, then create the recorded working branch from that ref without tracking the target branch. If the working branch exists, switch to it and verify its upstream and expected base instead of recreating it. Never substitute a default branch for the plan's base.
 3. **Detect capabilities** — confirm required mutation capabilities before promising file, issue, push, or PR actions; otherwise hand off exact payloads (see Capability Protocol).
 4. **Implement incrementally** — follow existing architecture and conventions, add the appropriate tests, run verified project checks, make focused commits, and update `docs/sprint-N/progress.md` after each phase.
 5. **Prepare durable context** — before the final candidate commit, update and commit `progress.md` and `done.md` without embedding a self-referential SHA. They point to the PR as the live gate record.
 6. **Self-review** — review the plan, complete diff, tests, and security/privacy impact with a find-problems framing. Fix or disposition findings, rerun affected checks, and make the final candidate commit. This never satisfies the independent review gate.
-7. **Handoff the PR** — push the final commit, then put the structured handoff packet on the PR with branch, exact pushed SHA, issues, checks/evidence, decisions, blockers, and next action. Create or update the PR when capable; otherwise hand off exact instructions without claiming completion.
+7. **Handoff the PR** — push the final commit to the plan's push remote, then put the structured handoff packet on the PR with target branch, base ref, working branch, exact pushed SHA, issues, checks/evidence, decisions, blockers, and next action. Create or update the PR against the recorded target branch when capable; otherwise hand off exact instructions without claiming completion.
 8. **Fix and re-verify** — address blocker/major review or QA findings on the same feature branch. Every new head requires fresh independent-review and QA evidence for that exact SHA.
 
 ## Capability Protocol

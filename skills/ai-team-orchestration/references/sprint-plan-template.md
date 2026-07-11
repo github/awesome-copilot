@@ -8,10 +8,15 @@ Save as `docs/sprint-N/plan.md`:
 # Sprint N — [Name]
 
 > Sprint Goal: [one sentence describing the deliverable]
-> Base: origin/main
-> Working branch: feature/sprint-N
+> Target branch: `<target-branch>`
+> Base remote: `<base-remote>`
+> Base ref: `<base-ref>`
+> Push remote: `<push-remote>`
+> Working branch: `<working-branch>`
 > Pull request: [URL or pending]
 > Estimated effort: [time estimate]
+
+> Producer: replace every angle-bracket placeholder above with the actual repository values before handoff. Do not assume a default branch. The base ref should identify the fetched remote-tracking branch for the target; the push remote may differ in a fork workflow.
 
 ## Prioritized Task List
 
@@ -62,12 +67,13 @@ Copy-paste this into the Dev Team chat to start execution:
 >
 > Start with a branch preflight. Run each step separately:
 > 1. Run `git status --short`. If it reports changes, stop and preserve them; do not reset or stash unknown work.
-> 2. Run `git fetch --prune origin`.
-> 3. Create the branch explicitly from the remote base without tracking `main`: `git switch --no-track --create feature/sprint-N origin/main`. If it already exists, switch to it and verify its expected base instead of recreating it.
+> 2. Read the target branch, base remote, base ref, push remote, and working branch from this plan. Stop if any value is missing or still contains an angle-bracket placeholder.
+> 3. Fetch and verify the recorded base: `git fetch --prune <base-remote>` then `git rev-parse --verify <base-ref>`.
+> 4. Create the recorded working branch from that exact ref without tracking the target branch: `git switch --no-track --create <working-branch> <base-ref>`. If the working branch already exists, switch to it and verify its expected base instead of recreating it.
 >
 > Implement and test incrementally. Reference issues in commits and the PR with `Refs #NN`; do not imply closure before QA verification. Update docs/sprint-N/progress.md after each phase.
 >
-> Before the final candidate commit, update and commit docs/sprint-N/progress.md and docs/sprint-N/done.md without embedding a self-referential SHA. Run Dev self-review on the complete diff, fix or disposition every finding, rerun affected checks, and make the final candidate commit. Push with `git push --set-upstream origin feature/sprint-N` when needed, then record the exact pushed SHA and structured handoff packet on the PR. Create/update the PR only after confirming the required GitHub capability; otherwise provide exact payload and commands for handoff.
+> Before the final candidate commit, update and commit docs/sprint-N/progress.md and docs/sprint-N/done.md without embedding a self-referential SHA. Run Dev self-review on the complete diff, fix or disposition every finding, rerun affected checks, and make the final candidate commit. Push with `git push --set-upstream <push-remote> <working-branch>` when needed, then record the exact pushed SHA and structured handoff packet on the PR. Create/update the PR against `<target-branch>` only after confirming the required GitHub capability; otherwise provide exact payload and commands for handoff.
 >
 > Follow Sections 12-15 of PROJECT_BRIEF.md. Never merge.
 ```
@@ -87,8 +93,11 @@ Create `docs/sprint-N/progress.md` at sprint start:
 
 | Field | Value |
 |---|---|
-| Base | `origin/main` at [SHA] |
-| Branch | `feature/sprint-N` |
+| Target branch | `<target-branch>` |
+| Base remote | `<base-remote>` |
+| Base ref | `<base-ref>` at [SHA] |
+| Push remote | `<push-remote>` |
+| Working branch | `<working-branch>` |
 | PR | [URL / pending] |
 | Commit under test | [live PR artifact; do not embed a file's own SHA] |
 | Test environment | [local/preview/device/runtime and relevant version] |
@@ -138,7 +147,9 @@ Write `docs/sprint-N/done.md` at sprint end:
 
 | Field | Value |
 |---|---|
-| Branch | `feature/sprint-N` |
+| Target branch | `<target-branch>` |
+| Base ref | `<base-ref>` |
+| Working branch | `<working-branch>` |
 | PR | [URL / pending] |
 | Commit under test | [record exact SHA in the PR handoff after final push] |
 | Test environment | [environment] |
@@ -179,7 +190,7 @@ Write `docs/sprint-N/done.md` at sprint end:
 
 - **Owner / From / To:** [owner] / Dev / Producer
 - **Sprint / Task:** [sprint and scope]
-- **Branch:** [branch]
+- **Target branch / Base ref / Working branch:** [target] / [base ref] / [working branch]
 - **Commit SHA:** [record exact pushed SHA in the PR packet, not in this committed file]
 - **PR / Issues:** [links or exact payload if mutation is unavailable]
 - **Checks / Evidence:** [summary]
@@ -233,7 +244,7 @@ If Dev pushes fixes, replace the commit SHA, rerun affected checks, and issue a 
 
 ## Post-Merge Closeout
 
-After regular merge and smoke, the Producer creates a docs-only branch from updated `main`, archives the QA packet above, updates `PROJECT_BRIEF.md` Sections 7 and 8, records the application PR/merge SHA and smoke result, and opens a docs-only closeout PR.
+After regular merge and smoke, the Producer creates a docs-only branch from the updated target branch recorded in the sprint plan, archives the QA packet above, updates `PROJECT_BRIEF.md` Sections 7 and 8, records the application PR/merge SHA and smoke result, and opens a docs-only closeout PR against that target branch.
 
 After its final docs commit, post this exemption packet on the closeout PR:
 

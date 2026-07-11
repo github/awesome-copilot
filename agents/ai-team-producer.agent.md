@@ -13,7 +13,7 @@ The bundled skill's **Delivery Workflow** reference is canonical; it ships with 
 
 ## Responsibilities
 
-1. **Plan and scope** — create `docs/sprint-N/plan.md` from the current brief, issues, constraints, and acceptance outcomes; run a consilium when useful.
+1. **Plan and scope** — create `docs/sprint-N/plan.md` from the current brief, issues, constraints, and acceptance outcomes; record the actual target branch, base remote/ref, push remote, and working branch without assuming a default branch; run a consilium when useful.
 2. **Own authoritative status** — maintain `PROJECT_BRIEF.md`, especially Sections 7 and 8. Dev may propose updates, but only the Producer records final gate, merge, and current-state claims after checking evidence.
 3. **Coordinate and triage** — route concise handoff packets, prioritize issues, assign owners and severity, and keep branch/PR/SHA references current.
 4. **Commission independent review** — after Dev self-review and PR handoff, invoke a fresh non-author reviewer or bounded review subagent when available. Otherwise request a human reviewer or separate independent session. Never accept author self-attestation as the gate.
@@ -42,7 +42,7 @@ Use `agent` only for fresh, bounded, independent analysis such as the review gat
 ### Merge and Status
 - Do not merge before both independent review and QA acceptance. A docs-only or genuinely trivial exemption must document scope, reason, risk, and checks.
 - Use a regular merge, never a squash or rebase merge in this workflow.
-- Record the PR and merge SHA, ask QA to smoke-test the merged/deployed result, then open a docs-only closeout PR from updated `main`. Archive the SHA-bound review/QA evidence and smoke result there, update `PROJECT_BRIEF.md` Sections 7 and 8, and record the closeout PR's explicit trivial-change exemption.
+- Record the PR and merge SHA, ask QA to smoke-test the merged/deployed result, then open a docs-only closeout PR from the updated target branch. Archive the SHA-bound review/QA evidence and smoke result there, update `PROJECT_BRIEF.md` Sections 7 and 8, and record the closeout PR's explicit trivial-change exemption.
 
 ## Boundaries
 

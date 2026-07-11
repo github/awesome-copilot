@@ -9,7 +9,7 @@ Lessons learned from real multi-agent projects. Each anti-pattern was encountere
 | Rebase or force-push a coordinated feature branch | Keep its published history stable; fix forward or revert, then use a regular merge | Rewriting commit IDs or shared refs invalidates recorded SHAs and complicates multi-session handoffs, review evidence, and recovery. |
 | Squash a reviewed sprint PR | Use a regular merge | Squashing is valid Git behavior, but this workflow preserves checkpoint and fix commits for auditability and targeted diagnosis. |
 | Share one working arrangement across concurrent agent sessions | Use a separate clone per team/session | Worktrees have separate working files and per-worktree indexes, but still share repository metadata. Separate clones reduce branch and repository-state coordination. |
-| Push directly to `main` | Feature branch → PR → gates → merge | Direct pushes bypass the review and QA evidence attached to a PR. |
+| Push directly to the target branch | Working branch → PR → gates → merge | Direct pushes bypass the review and QA evidence attached to a PR. |
 
 ## Team Roles
 
@@ -36,7 +36,7 @@ Lessons learned from real multi-agent projects. Each anti-pattern was encountere
 | Don't | Do Instead | Why |
 |-------|------------|-----|
 | Treat Dev self-review as the independent gate | Dev self-reviews, then Producer commissions a non-author reviewer | Self-review catches problems early but shares the author's assumptions and cannot establish independence. |
-| Make post-merge smoke the first behavioral test | QA accepts the exact PR head SHA or immutable preview before merge; smoke after merge | Pre-merge acceptance protects `main`; post-merge smoke only confirms integration or deployment. |
+| Make post-merge smoke the first behavioral test | QA accepts the exact PR head SHA or immutable preview before merge; smoke after merge | Pre-merge acceptance protects the target branch; post-merge smoke only confirms integration or deployment. |
 | Reuse gate evidence after the PR head changes | Issue fresh independent-review and QA evidence for every new head, or record a new head-specific docs-only/trivial exemption | SHA-bound evidence applies only to the exact commit it evaluated. |
 | Commit a sign-off that claims the application PR's current head SHA | Put live SHA-bound evidence on the PR, then archive it in a post-merge docs-only closeout PR | Committing a file changes the PR head, so a file cannot durably identify its own containing commit as already accepted. |
 | QA modifies application source | QA edits test automation and QA documentation, files issues, and lets Dev fix source on the same branch | QA can improve tests and evidence without becoming the implementation author. |

@@ -122,7 +122,7 @@ Before an implementation session finishes, Dev must:
 4. After the final commit is pushed, put the handoff packet on the PR with: owner/from/to, sprint/task, branch, exact commit SHA, PR/issues, checks/evidence, decisions, blockers, and next action.
 5. Propose any Sections 7 and 8 changes without claiming final sprint, gate, or merge state.
 
-Exact-SHA independent review and QA acceptance live in PR reviews, comments, or checks before merge. After regular merge and smoke, the Producer opens a docs-only closeout PR from updated `main` to archive QA/gate evidence, update authoritative Sections 7 and 8, and record the application PR and merge SHA. Repository files plus linked PR/issue artifacts—not chat memory—are the durable handoff.
+Exact-SHA independent review and QA acceptance live in PR reviews, comments, or checks before merge. After regular merge and smoke, the Producer opens a docs-only closeout PR from the updated target branch recorded in the sprint plan to archive QA/gate evidence, update authoritative Sections 7 and 8, and record the application PR and merge SHA. Repository files plus linked PR/issue artifacts—not chat memory—are the durable handoff.
 
 ## 13. Bug & Fix Tracking
 
@@ -140,11 +140,21 @@ Bugs are tracked as GitHub Issues on the repo. Single source of truth for all te
 
 ## 14. Multi-Repo Setup
 
-Use a separate clone per concurrent team/session to isolate working state and simplify handoffs. Everyone works on a feature or evidence branch and uses PRs; no direct changes to `main`.
+Use a separate clone per concurrent team/session to isolate working state and simplify handoffs. Everyone works on a working or evidence branch and uses PRs; no direct changes to the project's target branch.
+
+Record actual repository values when bootstrapping; none of these fields has an implicit default:
+
+| Field | Value |
+|---|---|
+| Target branch | `<target-branch>` |
+| Base remote | `<base-remote>` |
+| Base ref | `<base-ref>` |
+| Push remote | `<push-remote>` |
+| Working branch | `<working-branch>` |
 
 **Teams:**
 - Producer in a coordination clone (planning, gates, status, and merge)
-- Dev Team on `feature/sprint-N`
+- Dev Team on `<working-branch>` from the sprint plan
 - QA checks out the PR head or immutable preview; use `feature/qa-N` only for test/docs changes
 - DevOps role on `feature/devops-N` only when needed
 
@@ -153,14 +163,15 @@ Use a separate clone per concurrent team/session to isolate working state and si
 git clone <repo> <folder-name>
 cd <folder-name>
 git status --short
-git fetch --prune origin
-git switch --no-track --create <branch-name> origin/main
+git fetch --prune <base-remote>
+git rev-parse --verify <base-ref>
+git switch --no-track --create <working-branch> <base-ref>
 [run the verified project setup command, if any]
 ```
 
-If the branch already exists, switch to it and verify its expected upstream and base instead of recreating it. On first push, run `git push --set-upstream origin <branch-name>`. Stop when the worktree is not clean; preserve unknown work and resolve it before branching.
+If the working branch already exists, switch to it and verify its expected upstream and base instead of recreating it. On first push, run `git push --set-upstream <push-remote> <working-branch>`. Stop when the worktree is not clean; preserve unknown work and resolve it before branching. The base ref should identify the fetched remote-tracking branch for the target, while the push remote may differ in a fork workflow.
 
-**Branch strategy:** Stable feature branch → PR → independent review → QA on PR head → regular merge to `main`. This coordinated workflow avoids squash, rebase, and force-push because rewritten or collapsed history complicates multi-session handoffs and audit evidence.
+**Branch strategy:** Stable working branch → PR against `<target-branch>` → independent review → QA on PR head → regular merge to the target branch. This coordinated workflow avoids squash, rebase, and force-push because rewritten or collapsed history complicates multi-session handoffs and audit evidence.
 
 ## 15. Delivery & Review Gates
 
