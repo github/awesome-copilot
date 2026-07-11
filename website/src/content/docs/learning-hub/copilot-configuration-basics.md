@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-11
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -413,6 +413,23 @@ In addition to the main config file, GitHub Copilot CLI reads two optional per-p
 
 These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
 
+**Repository-pinned settings via `.github/copilot/settings.json`** *(v1.0.70+)*: A trusted repository can pin the model, reasoning effort level, and context tier for all sessions in that repository, and extend the URL, MCP server, and skill deny lists, by committing a `.github/copilot/settings.json` file:
+
+```json
+{
+  "model": "claude-sonnet-4.6",
+  "effortLevel": "high",
+  "contextTier": "long",
+  "denyList": {
+    "urls": ["*.internal.example.com"],
+    "mcpServers": ["untrusted-server"],
+    "skills": []
+  }
+}
+```
+
+When this file is present, the CLI applies these settings for any session rooted in the repository. This is useful for enforcing consistent AI settings across a team — for example, requiring a specific model for compliance workflows or capping effort level to control costs. The deny lists extend (not replace) your personal deny list configuration.
+
 > **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.copilot/agents/` for user-level agents, `~/.copilot/skills/` or `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
 
 ### Model Picker
@@ -591,6 +608,14 @@ The `/ask` command lets you ask a quick question without affecting your conversa
 ```
 /ask What does the `retry` utility in src/utils do?
 ```
+
+The `/refine` command *(v1.0.70+)* rewrites a rough, stream-of-consciousness prompt into a clearer, more structured one before sending it. Use it when you have a complex idea but want to improve how you express it to the model:
+
+```
+/refine
+```
+
+After typing your draft prompt and running `/refine`, the CLI returns a refined version you can edit further or send as-is. This is useful for complex feature requests or architectural discussions where precision matters.
 
 The `/env` command shows all loaded environment details — instructions, MCP servers, skills, agents, and plugins — in a single view. Use it to verify that the right resources are active for the current session:
 
