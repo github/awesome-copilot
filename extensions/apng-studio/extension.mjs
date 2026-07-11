@@ -156,13 +156,22 @@ async function loadProject(id) {
 
 async function saveProject(meta) {
     const dir = projectDir(meta.id);
-    await ensureDir(dir);
-    // Write to a temp file then rename, so an interrupted write can never leave
-    // a truncated project.json for the next load to misread as empty.
     const target = join(dir, "project.json");
     const tmp = join(dir, `.project.${randomBytes(6).toString("hex")}.tmp`);
-    await fs.writeFile(tmp, JSON.stringify(meta, null, 2));
-    await fs.rename(tmp, target);
+    try {
+        await ensureDir(dir);
+        // Write to a temp file then rename, so an interrupted write can never leave
+        // a truncated project.json for the next load to misread as empty.
+        await fs.writeFile(tmp, JSON.stringify(meta, null, 2));
+        await fs.rename(tmp, target);
+    } catch (err) {
+        // A failed persist must not leave the in-memory cache diverged from disk:
+        // evict it so the next access reloads authoritative state instead of the
+        // unsaved mutation, and remove any leftover temp file.
+        projects.delete(sanitizeId(meta.id));
+        await fs.rm(tmp, { force: true }).catch(() => {});
+        throw err;
+    }
 }
 
 function publicState(meta) {
@@ -259,20 +268,24 @@ async function addFrameToMeta(meta, buffer, opts = {}) {
     if (width > 2048 || height > 2048) {
         throw new CanvasError("frame_too_large", `Frame is ${width}×${height}; the maximum is 2048×2048.`);
     }
-    if (meta.frames.length === 0) {
-        // The first frame defines the canvas size; store the real dimensions so
-        // metadata and the on-disk PNG always agree.
-        meta.width = width;
-        meta.height = height;
-    } else if (width !== meta.width || height !== meta.height) {
+    if (meta.frames.length > 0 && (width !== meta.width || height !== meta.height)) {
         throw new CanvasError(
             "size_mismatch",
             `Frame is ${width}×${height}, but the animation is ${meta.width}×${meta.height}. All frames must share dimensions.`
         );
     }
-    const fid = String(meta.counter++);
+    // Write the file BEFORE mutating meta, so a failed write leaves the cached
+    // project untouched (nothing persisted, nothing to evict, counter intact).
+    const fid = String(meta.counter);
     await ensureDir(projectDir(meta.id));
     await fs.writeFile(framePath(meta.id, fid), buffer);
+    if (meta.frames.length === 0) {
+        // The first frame defines the canvas size; store the real dimensions so
+        // metadata and the on-disk PNG always agree.
+        meta.width = width;
+        meta.height = height;
+    }
+    meta.counter++;
     meta.frames.push(
         normalizeFrame({
             id: fid,
@@ -316,9 +329,11 @@ async function deleteFrame(id, fid) {
         const i = meta.frames.findIndex((f) => f.id === String(fid));
         if (i < 0) return;
         meta.frames.splice(i, 1);
-        await fs.rm(framePath(meta.id, fid), { force: true });
+        // Persist the removal before deleting the file (as clearFrames does) so an
+        // interrupted delete can't leave project.json referencing a missing PNG.
         await saveProject(meta);
         broadcast(meta.id);
+        await fs.rm(framePath(meta.id, fid), { force: true });
     });
 }
 
@@ -335,8 +350,11 @@ async function duplicateFrame(id, fid) {
         if (usedBytes(meta) + srcBytes > MAX_TOTAL_BYTES) {
             throw new CanvasError("project_too_large", `Frames would exceed the ${MAX_TOTAL_BYTES >> 20} MiB total limit.`);
         }
-        const nid = String(meta.counter++);
+        const nid = String(meta.counter);
+        // Copy the file before advancing the counter / inserting the record, so a
+        // failed copy leaves the cached project unchanged.
         await fs.copyFile(framePath(meta.id, fid), framePath(meta.id, nid));
+        meta.counter++;
         meta.frames.splice(i + 1, 0, normalizeFrame({ ...src, id: nid, bytes: srcBytes }));
         await saveProject(meta);
         broadcast(meta.id);
@@ -741,7 +759,13 @@ async function startServer(entry) {
     entry.token = randomBytes(16).toString("hex");
     entry.sse = new Set();
     const server = createServer((req, res) => handleRequest(entry, req, res));
-    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    await new Promise((resolve, reject) => {
+        server.once("error", reject);
+        server.listen(0, "127.0.0.1", () => {
+            server.removeListener("error", reject);
+            resolve();
+        });
+    });
     const { port } = server.address();
     entry.server = server;
     // The token travels in the iframe URL; app.js reads it and attaches it to
@@ -1161,7 +1185,15 @@ session = await joinSession({
                 if (!entry) {
                     entry = { instanceId: ctx.instanceId, projectId, sse: new Set() };
                     servers.set(ctx.instanceId, entry);
-                    await startServer(entry);
+                    try {
+                        await startServer(entry);
+                    } catch (err) {
+                        // Don't leave a half-open instance behind: a later open would
+                        // skip startup and return an undefined URL, and onClose would
+                        // dereference a missing server. Drop it so it can retry.
+                        servers.delete(ctx.instanceId);
+                        throw err;
+                    }
                 } else {
                     // Re-open: repoint the existing server at the requested
                     // project in place so the loopback URL stays stable.
@@ -1192,7 +1224,7 @@ session = await joinSession({
                 // doesn't invalidate the other's phone link.
                 const stillOpen = [...servers.values()].some((e) => e.projectId === entry.projectId);
                 if (!stillOpen) stopShare(entry.projectId);
-                await new Promise((resolve) => entry.server.close(() => resolve()));
+                if (entry.server) await new Promise((resolve) => entry.server.close(() => resolve()));
             },
         }),
     ],

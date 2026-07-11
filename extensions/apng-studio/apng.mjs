@@ -185,6 +185,15 @@ function frameParams(f) {
     };
 }
 
+// The APNG spec forbids APNG_DISPOSE_OP_PREVIOUS on the first fcTL (decoders
+// must treat it as BACKGROUND). Normalize it for whichever frame is composited
+// first so our output is well-defined instead of relying on decoder leniency.
+function firstFrameParams(f) {
+    const p = frameParams(f);
+    if (p.disposeOp === 2) p.disposeOp = 1;
+    return p;
+}
+
 /**
  * Assemble an APNG from a list of PNG frames.
  *
@@ -222,12 +231,13 @@ export function assembleApng(frames, options = {}) {
         // Default image = frame 0, with no fcTL, so it is not animated.
         parts.push(chunk("IDAT", parsed[0].idat));
         for (let i = 1; i < parsed.length; i++) {
-            parts.push(fcTLChunk(seq++, width, height, frameParams(frames[i])));
+            const params = i === 1 ? firstFrameParams(frames[i]) : frameParams(frames[i]);
+            parts.push(fcTLChunk(seq++, width, height, params));
             parts.push(fdATChunk(seq++, parsed[i].idat));
         }
     } else {
         // Frame 0 = default image AND first animation frame: fcTL then IDAT.
-        parts.push(fcTLChunk(seq++, width, height, frameParams(frames[0])));
+        parts.push(fcTLChunk(seq++, width, height, firstFrameParams(frames[0])));
         parts.push(chunk("IDAT", parsed[0].idat));
         // Remaining frames: fcTL then fdAT (each carries a sequence number).
         for (let i = 1; i < parsed.length; i++) {

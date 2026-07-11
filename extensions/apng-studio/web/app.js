@@ -33,6 +33,14 @@ function toast(msg, ms = 2600) {
     toast._t = setTimeout(() => (t.hidden = true), ms);
 }
 
+// Surface any otherwise-unhandled async-handler failure to the user instead of
+// letting it become a silent unhandled rejection with no feedback.
+if (typeof window !== "undefined") {
+    window.addEventListener("unhandledrejection", (e) => {
+        toast("Error: " + (e.reason?.message || e.reason || "something went wrong"));
+    });
+}
+
 function clampSize(w, h, max = 2048) {
     w = Math.max(1, Math.round(w));
     h = Math.max(1, Math.round(h));
@@ -56,6 +64,7 @@ function defaultDelay() {
 
 async function refreshState() {
     const res = await fetch(withKey("/state"));
+    if (!res.ok) throw new Error((await res.text()) || res.statusText);
     state = await res.json();
     assetNonce = nonce();
     render();
@@ -442,6 +451,7 @@ async function addFiles(files) {
         if (state.frames.length === 0) {
             const first = await createImageBitmap(files[0]);
             const { w, h } = clampSize(first.width, first.height);
+            first.close?.();
             await api("/settings", { width: w, height: h });
             await refreshState();
         }
@@ -457,7 +467,13 @@ async function addImageFile(file) {
     const c = document.createElement("canvas");
     c.width = state.width;
     c.height = state.height;
-    drawContain(c.getContext("2d"), bmp, state.width, state.height);
+    try {
+        drawContain(c.getContext("2d"), bmp, state.width, state.height);
+    } finally {
+        // Release the decoded bitmap right after the synchronous draw so a large
+        // batch doesn't retain native image memory until GC.
+        bmp.close?.();
+    }
     const blob = await new Promise((r) => c.toBlob(r, "image/png"));
     await postFrame(blob, defaultDelay());
 }
