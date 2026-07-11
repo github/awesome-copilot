@@ -1,7 +1,7 @@
 {
   "name": "ai-team-orchestration",
-  "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
-  "version": "1.0.0",
+  "description": "Run a role-separated AI development team with Producer, Dev, and QA agents, durable handoffs, independent review, PR-head acceptance, and controlled merge gates.",
+  "version": "2.0.0",
   "keywords": [
     "ai-team",
     "multi-agent",
