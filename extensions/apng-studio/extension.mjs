@@ -55,7 +55,12 @@ function normalizeFrame(f) {
         blendOp: clampBlend(f.blendOp),
     };
 }
-const sanitizeId = (s) => String(s || DEFAULT_PROJECT).replace(/[^\w.-]+/g, "_").slice(0, 64) || DEFAULT_PROJECT;
+const sanitizeId = (s) => {
+    const cleaned = String(s || DEFAULT_PROJECT).replace(/[^\w.-]+/g, "_").slice(0, 64);
+    // Reject "." and ".." (and empty) so a project id can never escape ARTIFACTS_DIR.
+    if (!cleaned || cleaned === "." || cleaned === "..") return DEFAULT_PROJECT;
+    return cleaned;
+};
 const sanitizeName = (s) => String(s || "animation").replace(/[^\w.-]+/g, "_").slice(0, 80) || "animation";
 const ensureDir = (d) => fs.mkdir(d, { recursive: true });
 
@@ -316,21 +321,45 @@ function send(res, status, type, body, extraHeaders) {
     res.end(body);
 }
 
-function readBody(req) {
+// Error carrying an explicit HTTP status (e.g. 400 bad JSON, 413 too large).
+class HttpError extends Error {
+    constructor(status, message) {
+        super(message);
+        this.status = status;
+    }
+}
+
+const MAX_JSON_BYTES = 1 << 20; // 1 MiB — mutation payloads are tiny
+const MAX_UPLOAD_BYTES = 40 << 20; // 40 MiB — a single decoded frame PNG
+
+function readBody(req, maxBytes) {
     return new Promise((resolve, reject) => {
         const chunks = [];
-        req.on("data", (c) => chunks.push(c));
-        req.on("end", () => resolve(Buffer.concat(chunks)));
+        let total = 0;
+        let over = false;
+        req.on("data", (c) => {
+            if (over) return; // past the limit: drain without buffering
+            total += c.length;
+            if (total > maxBytes) {
+                over = true;
+                reject(new HttpError(413, "Request body too large."));
+                return;
+            }
+            chunks.push(c);
+        });
+        req.on("end", () => {
+            if (!over) resolve(Buffer.concat(chunks));
+        });
         req.on("error", reject);
     });
 }
 async function readJson(req) {
-    const buf = await readBody(req);
+    const buf = await readBody(req, MAX_JSON_BYTES);
     if (!buf.length) return {};
     try {
         return JSON.parse(buf.toString("utf8"));
     } catch {
-        return {};
+        throw new HttpError(400, "Invalid JSON body.");
     }
 }
 
@@ -392,7 +421,7 @@ async function handleRequest(projectId, req, res) {
 
         // Add a frame (raw PNG body).
         if (method === "POST" && path === "/frames") {
-            const buf = await readBody(req);
+            const buf = await readBody(req, MAX_UPLOAD_BYTES);
             if (!buf.length) return send(res, 400, "text/plain", "empty body");
             const delayMs = url.searchParams.get("delayMs");
             const id = await addFrameBuffer(projectId, buf, { delayMs });
@@ -443,18 +472,20 @@ async function handleRequest(projectId, req, res) {
             }
         }
         if (method === "POST" && path === "/share/stop") {
-            stopShare();
+            stopShare(projectId);
             return send(res, 200, "application/json", "{}");
         }
         if (method === "GET" && path === "/share/qr.png") {
-            if (!share || Date.now() > share.expiresAt) {
+            const s = shares.get(projectId);
+            if (!s || Date.now() > s.expiresAt) {
                 return send(res, 409, "text/plain", "no active share");
             }
-            return send(res, 200, "image/png", Buffer.from(renderQrPng(shareLandingUrl())));
+            return send(res, 200, "image/png", Buffer.from(renderQrPng(shareUrlFor(projectId))));
         }
 
         return send(res, 404, "text/plain", "not found");
     } catch (err) {
+        if (err instanceof HttpError) return send(res, err.status, "text/plain", err.message);
         return send(res, 500, "text/plain", String(err && err.message ? err.message : err));
     }
 }
@@ -475,7 +506,9 @@ async function startServer(entry) {
 // expires. Mutation endpoints stay on the loopback server and are never
 // reachable from the network.
 const SHARE_TTL_MS = 10 * 60 * 1000;
-let share = null; // { server, ip, port, token, projectId, expiresAt, timer }
+let shareServer = null; // single LAN-bound HTTP server, created on demand
+let shareServerIp = null; // resolved LAN IPv4 used to build share URLs
+const shares = new Map(); // projectId -> { token, expiresAt, timer }
 
 // Prefer an RFC1918 private address; skip CGNAT/VPN ranges (e.g. Tailscale
 // 100.64/10) unless nothing else is available.
@@ -491,17 +524,28 @@ function lanIPv4() {
     return candidates.find(isPrivate) || candidates[0] || null;
 }
 
-function shareLandingUrl() {
-    return `http://${share.ip}:${share.port}/s?t=${share.token}`;
+function shareUrlFor(projectId) {
+    const s = shares.get(projectId);
+    const { port } = shareServer.address();
+    return `http://${shareServerIp}:${port}/s?t=${s.token}`;
 }
 
-function tokenValid(token) {
-    if (!share || typeof token !== "string" || token.length !== share.token.length) return false;
-    try {
-        return timingSafeEqual(Buffer.from(token), Buffer.from(share.token));
-    } catch {
-        return false;
+// Resolve an active share from its token (constant-time compare), so tokens from
+// one project's panel can never address another project's share.
+function shareForToken(token) {
+    if (typeof token !== "string" || !token) return null;
+    const tokenBuf = Buffer.from(token);
+    for (const [projectId, s] of shares) {
+        if (s.token.length !== token.length) continue;
+        let ok = false;
+        try {
+            ok = timingSafeEqual(tokenBuf, Buffer.from(s.token));
+        } catch {
+            ok = false;
+        }
+        if (ok) return { projectId, share: s };
     }
+    return null;
 }
 
 function shareLandingHtml(token) {
@@ -535,21 +579,23 @@ async function shareRequest(req, res) {
     try {
         const url = new URL(req.url, "http://localhost");
         const token = url.searchParams.get("t") || "";
-        if (!tokenValid(token)) return send(res, 403, "text/plain", "Invalid or expired link.");
-        if (Date.now() > share.expiresAt) {
-            stopShare();
+        const match = shareForToken(token);
+        if (!match) return send(res, 403, "text/plain", "Invalid or expired link.");
+        if (Date.now() > match.share.expiresAt) {
+            stopShare(match.projectId);
             return send(res, 410, "text/plain", "This link has expired.");
         }
         if (req.method === "GET" && (url.pathname === "/s" || url.pathname === "/s/")) {
             return send(res, 200, CONTENT_TYPES[".html"], shareLandingHtml(token));
         }
         if (req.method === "GET" && url.pathname === "/s/preview.png") {
-            const bytes = await assemble(share.projectId);
+            const bytes = await assemble(match.projectId);
             if (!bytes) return send(res, 204, "image/png", "");
             return send(res, 200, "image/png", Buffer.from(bytes));
         }
         return send(res, 404, "text/plain", "not found");
     } catch (err) {
+        if (err instanceof HttpError) return send(res, err.status, "text/plain", err.message);
         return send(res, 500, "text/plain", String(err && err.message ? err.message : err));
     }
 }
@@ -562,33 +608,40 @@ async function startShare(projectId) {
             "No local network address found. Connect to Wi-Fi to share to your phone."
         );
     }
-    if (!share) {
+    if (!shareServer) {
         const server = createServer(shareRequest);
         await new Promise((resolve, reject) => {
             server.once("error", reject);
             server.listen(0, "0.0.0.0", resolve);
         });
-        share = { server, port: server.address().port };
+        shareServer = server;
     }
-    share.ip = ip;
-    share.projectId = projectId;
-    share.token = randomBytes(16).toString("hex");
-    share.expiresAt = Date.now() + SHARE_TTL_MS;
-    if (share.timer) clearTimeout(share.timer);
-    share.timer = setTimeout(stopShare, SHARE_TTL_MS);
-    share.timer.unref?.();
-    return { url: shareLandingUrl(), expiresAt: share.expiresAt, ttlMs: SHARE_TTL_MS };
+    shareServerIp = ip;
+    const existing = shares.get(projectId);
+    if (existing?.timer) clearTimeout(existing.timer);
+    const token = randomBytes(16).toString("hex");
+    const expiresAt = Date.now() + SHARE_TTL_MS;
+    const timer = setTimeout(() => stopShare(projectId), SHARE_TTL_MS);
+    timer.unref?.();
+    shares.set(projectId, { token, expiresAt, timer });
+    return { url: shareUrlFor(projectId), expiresAt, ttlMs: SHARE_TTL_MS };
 }
 
-function stopShare() {
-    if (!share) return;
-    if (share.timer) clearTimeout(share.timer);
-    const server = share.server;
-    share = null;
-    try {
-        server.close();
-    } catch {
-        /* already closing */
+function stopShare(projectId) {
+    const s = shares.get(projectId);
+    if (!s) return;
+    if (s.timer) clearTimeout(s.timer);
+    shares.delete(projectId);
+    // Close the shared LAN server once nothing is being shared.
+    if (shares.size === 0 && shareServer) {
+        const server = shareServer;
+        shareServer = null;
+        shareServerIp = null;
+        try {
+            server.close();
+        } catch {
+            /* already closing */
+        }
     }
 }
 
@@ -643,7 +696,10 @@ session = await joinSession({
                     },
                     handler: async (ctx) => {
                         const meta = await loadProject(resolveProjectId(ctx));
-                        const animated = meta.hiddenFirst ? meta.frames.slice(1) : meta.frames;
+                        // hiddenFirst only takes effect with >=2 frames (matches the
+                        // encoder in apng.mjs), so a lone frame still counts as animated.
+                        const hidden = meta.hiddenFirst && meta.frames.length >= 2;
+                        const animated = hidden ? meta.frames.slice(1) : meta.frames;
                         const totalMs = animated.reduce((a, f) => a + frameMs(f), 0);
                         return {
                             ...publicState(meta),
@@ -791,9 +847,9 @@ session = await joinSession({
             onClose: async (ctx) => {
                 const entry = servers.get(ctx.instanceId);
                 if (entry) {
-                    // Tear down any LAN share that belongs to this project so the
-                    // network-facing server never outlives its canvas.
-                    if (share && share.projectId === entry.projectId) stopShare();
+                    // Tear down this project's LAN share so the network-facing
+                    // server never outlives its canvas.
+                    stopShare(entry.projectId);
                     servers.delete(ctx.instanceId);
                     await new Promise((resolve) => entry.server.close(() => resolve()));
                 }

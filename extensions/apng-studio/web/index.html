@@ -161,8 +161,8 @@
                     <input type="range" id="draw-size" min="1" max="48" value="6" />
                 </label>
                 <div class="tool-group" role="group" aria-label="Tool">
-                    <button class="btn btn-sm tool-btn active" id="tool-pen">Pen</button>
-                    <button class="btn btn-sm tool-btn" id="tool-eraser">Eraser</button>
+                    <button class="btn btn-sm tool-btn active" id="tool-pen" aria-pressed="true">Pen</button>
+                    <button class="btn btn-sm tool-btn" id="tool-eraser" aria-pressed="false">Eraser</button>
                 </div>
                 <button class="btn btn-sm" id="btn-fill">Fill</button>
                 <button class="btn btn-sm" id="btn-clear-draw">Clear</button>
@@ -182,7 +182,7 @@
         </div>
     </section>
 
-    <div class="toast" id="toast" hidden></div>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
     <script src="app.js"></script>
 </body>

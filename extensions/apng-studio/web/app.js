@@ -482,6 +482,8 @@ function setTool(t) {
     drawTool = t;
     $("tool-pen").classList.toggle("active", t === "pen");
     $("tool-eraser").classList.toggle("active", t === "eraser");
+    $("tool-pen").setAttribute("aria-pressed", String(t === "pen"));
+    $("tool-eraser").setAttribute("aria-pressed", String(t === "eraser"));
 }
 $("btn-clear-draw").addEventListener("click", () => {
     dctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);

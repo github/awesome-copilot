@@ -27,20 +27,20 @@ APNG Studio started as a hallway conversation. During a demo shift at the WeAreD
 
 ## Install
 
-### From Copilot CLI (recommended)
+### From GitHub Copilot (recommended)
 
-Ask Copilot to install it straight from this repo folder:
+Ask Copilot to install the committed extension URL:
 
+```text
+Install this extension: https://github.com/github/awesome-copilot/tree/main/extensions/apng-studio
 ```
-Install the canvas extension at
-https://github.com/AndreaGriffiths11/apng-studio
-```
 
-…or use the `install_extension` tool / command palette with this repository URL. Choose the scope you want:
+You can also copy the folder into one of these locations:
 
-- **User** — `$COPILOT_HOME/extensions/apng-studio/` (defaults to `~/.copilot/extensions/`), available in every project.
+- **User** — `~/.copilot/extensions/apng-studio/`, available in every project.
 - **Project** — `.github/extensions/apng-studio/` inside a repo, committed and shared with your team.
-- **Session** — loaded only for the current session.
+
+Reload extensions in the app, then open the `apng-studio` canvas.
 
 ### Manual
 
@@ -57,7 +57,7 @@ apng-studio/
     └── styles.css
 ```
 
-Then reload extensions. The `@github/copilot-sdk` import is resolved by the CLI — **do not** add a `package.json` or `node_modules` for it.
+Then reload extensions. The `@github/copilot-sdk` import is resolved by the host — **do not** add a `package.json` or `node_modules` for it.
 
 ## Open the canvas
 
