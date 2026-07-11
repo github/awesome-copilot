@@ -82,6 +82,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "apng-studio",
+      "source": "extensions/apng-studio",
+      "description": "Interactive GitHub Copilot canvas extension for building Animated PNG (APNG) files from frames. Draw or upload frames, tune per-frame timing and compositing, preview live, send the result to your phone by QR, and export an animated .png.",
+      "version": "1.0.0"
+    },
+    {
       "name": "arcade-canvas",
       "source": "extensions/arcade-canvas",
       "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
