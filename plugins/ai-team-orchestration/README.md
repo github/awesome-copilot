@@ -12,7 +12,7 @@ Run a role-separated AI development team with durable handoffs and explicit deli
 | **Dev Team** | `@ai-team-dev` | Stack-adaptive implementation, tests, self-review, fixes | Implements but never independently approves or merges its work |
 | **QA** (Ivy) | `@ai-team-qa` | PR-head acceptance, test automation, bug verification, smoke checks | May edit tests and QA docs, never application source |
 
-The agents intentionally omit the optional `tools` field. They inherit the user's enabled built-in, MCP, and extension tools instead of replacing that configuration with a plugin allowlist. Their operating boundaries are instructions enforced alongside normal trust, authentication, approval, and permission controls.
+The agents intentionally omit the optional `tools` and `model` fields. They inherit the user's enabled built-in, MCP, and extension tools instead of replacing that configuration with a plugin allowlist, and they leave `model` to the developer so each session can use its best available model. Their operating boundaries are instructions enforced alongside normal trust, authentication, approval, and permission controls.
 
 ### Skill
 

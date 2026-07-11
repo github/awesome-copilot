@@ -64,7 +64,7 @@ Keep these default perspectives, but tailor responsibilities to the actual proje
 | Visual/Experience | Milo | Presentation, interaction quality, accessibility, and polish, when present |
 | QA | Ivy | Behavioral testing, evidence, bug filing, and acceptance |
 | Product | Kira | User needs, workflows, mechanics, and feature specifications, when needed |
-| Delivery | Dash | Build, CI/CD, packaging, deployment, and operations, when needed |
+| DevOps | Dash | Build, CI/CD, packaging, deployment, and operations, when needed |
 
 ## 7. Sprint Status
 
@@ -146,7 +146,7 @@ Use a separate clone per concurrent team/session to isolate working state and si
 - Producer in a coordination clone (planning, gates, status, and merge)
 - Dev Team on `feature/sprint-N`
 - QA checks out the PR head or immutable preview; use `feature/qa-N` only for test/docs changes
-- Delivery role on `feature/delivery-N` only when needed
+- DevOps role on `feature/devops-N` only when needed
 
 **Setup:**
 ```text

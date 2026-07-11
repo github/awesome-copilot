@@ -190,6 +190,8 @@ Write `docs/sprint-N/done.md` at sprint end:
 
 ## QA Acceptance and Archive Template
 
+Archive this record as `docs/qa/sprint-N-signoff.md` through the docs-only closeout PR; the live acceptance stays on the PR before merge.
+
 ```markdown
 # QA Sprint N Sign-Off
 

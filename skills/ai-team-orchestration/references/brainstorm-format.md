@@ -14,15 +14,15 @@ This is a creative session — no idea is too wild in Phase 1.
 - Thinks about: user delight, accessibility, "would this be fun?"
 - Tendency: pushes for features that spark joy, pushes back on anything that feels like homework
 
-### Milo (Art/Visual Director)
+### Milo (Visual/Experience Director)
 - Thinks about: visual identity, cohesion, "does this look and feel right?"
 - Tendency: wants everything beautiful, sometimes at odds with engineering feasibility
 
-### Nova (Frontend Engineer)
+### Nova (Client/Interaction Engineer)
 - Thinks about: component architecture, state management, "can we actually build this?"
 - Tendency: pragmatic, flags scope risks, suggests simpler alternatives
 
-### Sage (Backend Engineer)
+### Sage (Core/Service Engineer)
 - Thinks about: data model, API design, security, "where do secrets live?"
 - Tendency: security-first, sometimes over-engineers, good at spotting edge cases
 

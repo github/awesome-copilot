@@ -18,6 +18,8 @@ This reference is the canonical delivery lifecycle for the Producer, Dev, and QA
 | Post-merge smoke check | QA, coordinated by Producer | Merged commit or deployed artifact and target environment | Smoke result tied to merge/deploy SHA and environment; regressions become issues and follow-up work |
 | Closeout | Producer | Merge result, review/QA PR artifacts, smoke evidence, and Dev handoff | Docs-only closeout PR archives QA/gate evidence and updates authoritative project status |
 
+> **Closeout is a post-lifecycle, docs-only follow-up, not a merge gate.** The eight-step lifecycle ends at the post-merge smoke check; closeout only archives the SHA-bound gate evidence and updates authoritative status after merge, so it never blocks a change.
+
 ## Gate Rules
 
 - Do not merge before both independent review and QA acceptance. The Producer may exempt a docs-only or genuinely trivial change only by recording the scope, reason, risk, and checks in the PR or handoff.

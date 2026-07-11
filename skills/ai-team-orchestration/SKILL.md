@@ -21,7 +21,7 @@ description: 'Bootstrap and run a multi-agent AI development team. Use when: sta
 | Visual/Experience Director | **Milo** | Presentation, interaction, visual identity | Design consistency, polish, accessibility |
 | Client/Interaction Engineer | **Nova** | User-facing and client-side behavior | State, components, interaction logic |
 | Core/Service Engineer | **Sage** | Domain logic, services, data, security | Contracts, integrations, infrastructure |
-| Delivery Engineer | **Dash** | CI/CD, packaging, deployment, operations | Pipelines, environments, observability |
+| DevOps Engineer | **Dash** | CI/CD, packaging, deployment, operations | Pipelines, environments, observability |
 | QA Engineer | **Ivy** | Behavioral tests, automation, exploratory testing | Evidence, bug filing, acceptance |
 
 The plugin bundles three real custom agents: Producer, Dev Team, and QA. Nova, Sage, and Milo are perspectives inside the Dev agent; Kira and Dash are optional planning perspectives, not separate bundled sessions. Customize perspectives for the project and omit those that do not apply.
@@ -46,7 +46,7 @@ The human (CEO) is the message bus between parallel chats:
 │ Sage     │ │          │ │        │
 │ Milo     │ │          │ │        │
 │          │ │PR head / │ │feature/│
-│ feature/ │ │preview   │ │delivery│
+│ feature/ │ │preview   │ │devops-N│
 │ sprint-N │ └──────────┘ └────────┘
 └──────────┘
 ```
