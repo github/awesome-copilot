@@ -518,8 +518,8 @@ function syncDrawStage() {
     }
     const longer = Math.max(state.width, state.height) || 1;
     const scale = Math.min(360, Math.max(200, longer)) / longer;
-    const dispW = Math.round(state.width * scale);
-    const dispH = Math.round(state.height * scale);
+    const dispW = Math.max(1, Math.round(state.width * scale));
+    const dispH = Math.max(1, Math.round(state.height * scale));
     drawCanvas.style.width = dispW + "px";
     drawCanvas.style.height = dispH + "px";
     drawCanvas.style.imageRendering = scale > 1.4 ? "pixelated" : "auto";
@@ -603,7 +603,14 @@ $("btn-add-drawing").addEventListener("click", async () => {
     const blob = await new Promise((r) => drawCanvas.toBlob(r, "image/png"));
     await postFrame(blob, defaultDelay());
     toast("Frame added");
-    if ($("opt-from-last").checked) initDrawCanvas();
+    if ($("opt-from-last").checked) {
+        // Pull the just-added frame into state before re-seeding the canvas, so
+        // "start from last frame" copies it instead of the previous frame (or a
+        // blank canvas on the first add), which the async SSE update may not
+        // have delivered yet.
+        await refreshState();
+        initDrawCanvas();
+    }
 });
 
 // ---- live updates -------------------------------------------------------

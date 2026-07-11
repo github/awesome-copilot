@@ -155,21 +155,81 @@ function publicState(meta) {
 }
 
 // ---- mutations ----------------------------------------------------------
+// Validate a PNG buffer and return its dimensions. Walks the chunk stream to
+// confirm it is structurally a PNG (IHDR first with length 13 and non-zero
+// dimensions, at least one IDAT, and IEND) so a malformed upload can't be
+// stored and then blow up APNG assembly later.
+const PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
+function pngSize(buffer) {
+    const bad = () => new CanvasError("bad_frame", "Frame is not a valid PNG image.");
+    if (!Buffer.isBuffer(buffer) || buffer.length < 8) throw bad();
+    for (let i = 0; i < 8; i++) {
+        if (buffer[i] !== PNG_SIGNATURE[i]) throw bad();
+    }
+    let off = 8;
+    let width = 0;
+    let height = 0;
+    let sawIHDR = false;
+    let sawIDAT = false;
+    let sawIEND = false;
+    while (off + 8 <= buffer.length) {
+        const len = buffer.readUInt32BE(off);
+        const type = buffer.toString("latin1", off + 4, off + 8);
+        if (off + 12 + len > buffer.length) throw bad(); // length + type + data + CRC
+        if (!sawIHDR) {
+            if (type !== "IHDR" || len !== 13) throw bad();
+            width = buffer.readUInt32BE(off + 8);
+            height = buffer.readUInt32BE(off + 8 + 4);
+            sawIHDR = true;
+        } else if (type === "IDAT") {
+            sawIDAT = true;
+        } else if (type === "IEND") {
+            sawIEND = true;
+            break;
+        }
+        off += 12 + len;
+    }
+    if (!sawIHDR || !sawIDAT || !sawIEND || width < 1 || height < 1) throw bad();
+    return { width, height };
+}
+
+// Lockless core: assumes the caller holds the project lock and passes the loaded
+// meta. Writes the frame file and appends the record (does not save/broadcast).
+async function addFrameToMeta(meta, buffer, opts = {}) {
+    const { width, height } = pngSize(buffer);
+    if (width > 2048 || height > 2048) {
+        throw new CanvasError("frame_too_large", `Frame is ${width}×${height}; the maximum is 2048×2048.`);
+    }
+    if (meta.frames.length === 0) {
+        // The first frame defines the canvas size; store the real dimensions so
+        // metadata and the on-disk PNG always agree.
+        meta.width = width;
+        meta.height = height;
+    } else if (width !== meta.width || height !== meta.height) {
+        throw new CanvasError(
+            "size_mismatch",
+            `Frame is ${width}×${height}, but the animation is ${meta.width}×${meta.height}. All frames must share dimensions.`
+        );
+    }
+    const fid = String(meta.counter++);
+    await ensureDir(projectDir(meta.id));
+    await fs.writeFile(framePath(meta.id, fid), buffer);
+    meta.frames.push(
+        normalizeFrame({
+            id: fid,
+            delayNum: opts.delayNum != null ? opts.delayNum : opts.delayMs != null ? opts.delayMs : 120,
+            delayDen: opts.delayDen,
+            disposeOp: opts.disposeOp,
+            blendOp: opts.blendOp,
+        })
+    );
+    return fid;
+}
+
 async function addFrameBuffer(id, buffer, opts = {}) {
     return withProjectLock(id, async () => {
         const meta = await loadProject(id);
-        const fid = String(meta.counter++);
-        await ensureDir(projectDir(meta.id));
-        await fs.writeFile(framePath(meta.id, fid), buffer);
-        meta.frames.push(
-            normalizeFrame({
-                id: fid,
-                delayNum: opts.delayNum != null ? opts.delayNum : opts.delayMs != null ? opts.delayMs : 120,
-                delayDen: opts.delayDen,
-                disposeOp: opts.disposeOp,
-                blendOp: opts.blendOp,
-            })
-        );
+        const fid = await addFrameToMeta(meta, buffer, opts);
         await saveProject(meta);
         broadcast(meta.id);
         return fid;
@@ -180,7 +240,9 @@ async function moveFrame(id, fid, delta) {
     return withProjectLock(id, async () => {
         const meta = await loadProject(id);
         const i = meta.frames.findIndex((f) => f.id === String(fid));
-        const j = i + Math.sign(delta);
+        const step = Math.sign(Number(delta));
+        if (!Number.isFinite(step) || step === 0) return;
+        const j = i + step;
         if (i < 0 || j < 0 || j >= meta.frames.length) return;
         [meta.frames[i], meta.frames[j]] = [meta.frames[j], meta.frames[i]];
         await saveProject(meta);
@@ -253,10 +315,13 @@ async function setFramePropsAll(id, props) {
 async function clearFrames(id) {
     return withProjectLock(id, async () => {
         const meta = await loadProject(id);
-        await Promise.all(meta.frames.map((f) => fs.rm(framePath(meta.id, f.id), { force: true })));
+        // Clear the in-memory list and persist it before deleting files, so a
+        // concurrent reader never sees a frame id whose PNG is already gone.
+        const ids = meta.frames.map((f) => f.id);
         meta.frames = [];
         await saveProject(meta);
         broadcast(meta.id);
+        await Promise.all(ids.map((fid) => fs.rm(framePath(meta.id, fid), { force: true })));
     });
 }
 
@@ -276,8 +341,9 @@ async function applySettings(id, { width, height, loops, name, hiddenFirst }) {
     });
 }
 
-async function assemble(id) {
-    const meta = await loadProject(id);
+// Assemble the APNG from a loaded project. Assumes the caller holds the project
+// lock so frame files can't be deleted mid-read.
+async function assembleFromMeta(meta) {
     if (meta.frames.length === 0) return null;
     const frames = [];
     for (const f of meta.frames) {
@@ -292,16 +358,25 @@ async function assemble(id) {
     return assembleApng(frames, { loops: meta.loops, hiddenFirst: meta.hiddenFirst });
 }
 
+// Serialize assembly with mutations so a concurrent clear/delete can't remove a
+// frame file while it is being read (which would otherwise 500 a preview,
+// phone request, or export).
+async function assemble(id) {
+    return withProjectLock(id, async () => assembleFromMeta(await loadProject(id)));
+}
+
 async function exportApng(id, filename) {
-    const bytes = await assemble(id);
-    if (!bytes) throw new CanvasError("no_frames", "Nothing to export — add at least one frame first.");
-    const meta = await loadProject(id);
-    await ensureDir(EXPORTS_DIR);
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-    const base = filename ? sanitizeName(filename.replace(/\.(a?png)$/i, "")) : `${sanitizeName(meta.name)}-${stamp}`;
-    const outPath = join(EXPORTS_DIR, `${base}.png`);
-    await fs.writeFile(outPath, bytes);
-    return { path: outPath, name: `${base}.png`, bytes: bytes.length };
+    return withProjectLock(id, async () => {
+        const meta = await loadProject(id);
+        const bytes = await assembleFromMeta(meta);
+        if (!bytes) throw new CanvasError("no_frames", "Nothing to export — add at least one frame first.");
+        await ensureDir(EXPORTS_DIR);
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+        const base = filename ? sanitizeName(filename.replace(/\.(a?png)$/i, "")) : `${sanitizeName(meta.name)}-${stamp}`;
+        const outPath = join(EXPORTS_DIR, `${base}.png`);
+        await fs.writeFile(outPath, bytes);
+        return { path: outPath, name: `${base}.png`, bytes: bytes.length };
+    });
 }
 
 // ---- colors (for agent-generated frames) --------------------------------
@@ -359,6 +434,12 @@ function broadcast(projectId) {
     for (const entry of servers.values()) {
         if (entry.projectId !== pid) continue;
         for (const res of entry.sse) {
+            // Drop responses that have already ended/reset rather than writing
+            // to a dead stream.
+            if (res.writableEnded || res.destroyed) {
+                entry.sse.delete(res);
+                continue;
+            }
             try {
                 res.write(`data: changed\n\n`);
             } catch {
@@ -463,7 +544,10 @@ async function handleRequest(entry, req, res) {
             });
             res.write(": connected\n\n");
             entry.sse.add(res);
-            req.on("close", () => entry.sse.delete(res));
+            const drop = () => entry.sse.delete(res);
+            req.on("close", drop);
+            res.on("close", drop);
+            res.on("error", drop);
             return;
         }
 
@@ -553,6 +637,9 @@ async function handleRequest(entry, req, res) {
         return send(res, 404, "text/plain", "not found");
     } catch (err) {
         if (err instanceof HttpError) return send(res, err.status, "text/plain", err.message);
+        // CanvasError is a user-facing validation error (bad frame, size
+        // mismatch, nothing to export), not a server fault.
+        if (err instanceof CanvasError) return send(res, 400, "text/plain", err.message);
         return send(res, 500, "text/plain", String(err && err.message ? err.message : err));
     }
 }
@@ -578,6 +665,7 @@ async function startServer(entry) {
 // reachable from the network.
 const SHARE_TTL_MS = 10 * 60 * 1000;
 let shareServer = null; // single LAN-bound HTTP server, created on demand
+let shareServerStarting = null; // in-flight startup promise (dedupe concurrent starts)
 let shareServerIp = null; // resolved LAN IPv4 used to build share URLs
 const shares = new Map(); // projectId -> { token, expiresAt, timer }
 
@@ -671,6 +759,28 @@ async function shareRequest(req, res) {
     }
 }
 
+// Start (or reuse) the single LAN share server. Concurrent callers share one
+// in-flight startup promise so two /share/start requests can't each bind a
+// separate listener and leak one.
+async function ensureShareServer() {
+    if (shareServer) return shareServer;
+    if (!shareServerStarting) {
+        shareServerStarting = (async () => {
+            const server = createServer(shareRequest);
+            await new Promise((resolve, reject) => {
+                server.once("error", reject);
+                server.listen(0, "0.0.0.0", resolve);
+            });
+            shareServer = server;
+            return server;
+        })().catch((err) => {
+            shareServerStarting = null;
+            throw err;
+        });
+    }
+    return shareServerStarting;
+}
+
 async function startShare(projectId) {
     const ip = lanIPv4();
     if (!ip) {
@@ -679,13 +789,24 @@ async function startShare(projectId) {
             "No local network address found. Connect to Wi-Fi to share to your phone."
         );
     }
-    if (!shareServer) {
-        const server = createServer(shareRequest);
-        await new Promise((resolve, reject) => {
-            server.once("error", reject);
-            server.listen(0, "0.0.0.0", resolve);
-        });
-        shareServer = server;
+    await ensureShareServer();
+    // The canvas may have closed while the server was binding. If no open panel
+    // still references this project, don't leave a share (or an idle LAN server)
+    // behind.
+    const stillOpen = [...servers.values()].some((e) => e.projectId === sanitizeId(projectId));
+    if (!stillOpen) {
+        if (shares.size === 0 && shareServer) {
+            const server = shareServer;
+            shareServer = null;
+            shareServerStarting = null;
+            shareServerIp = null;
+            try {
+                server.close();
+            } catch {
+                /* already closing */
+            }
+        }
+        throw new CanvasError("canvas_closed", "The canvas was closed before sharing started.");
     }
     shareServerIp = ip;
     const existing = shares.get(projectId);
@@ -707,6 +828,7 @@ function stopShare(projectId) {
     if (shares.size === 0 && shareServer) {
         const server = shareServer;
         shareServer = null;
+        shareServerStarting = null;
         shareServerIp = null;
         try {
             server.close();
@@ -827,13 +949,20 @@ session = await joinSession({
                     },
                     handler: async (ctx) => {
                         const id = resolveProjectId(ctx);
-                        const meta = await loadProject(id);
                         const color = parseColor(ctx.input?.color);
-                        const png = solidColorPng(meta.width, meta.height, color);
                         const { color: _c, projectId: _p, ...opts } = ctx.input || {};
                         if (opts.delayMs == null && opts.delayNum == null) opts.delayMs = 120;
-                        const fid = await addFrameBuffer(id, png, opts);
-                        return { frameId: fid, frameCount: meta.frames.length };
+                        // Read dimensions, render, and append under one lock so a
+                        // concurrent set_settings can't change the size between
+                        // rendering the PNG and recording the frame.
+                        return withProjectLock(id, async () => {
+                            const meta = await loadProject(id);
+                            const png = solidColorPng(meta.width, meta.height, color);
+                            const fid = await addFrameToMeta(meta, png, opts);
+                            await saveProject(meta);
+                            broadcast(meta.id);
+                            return { frameId: fid, frameCount: meta.frames.length };
+                        });
                     },
                 },
                 {
@@ -899,10 +1028,11 @@ session = await joinSession({
             ],
             open: async (ctx) => {
                 const projectId = sanitizeId(ctx.input?.projectId ?? DEFAULT_PROJECT);
-                const meta = await loadProject(projectId);
+                let meta = await loadProject(projectId);
                 if (ctx.input?.name && typeof ctx.input.name === "string") {
-                    meta.name = ctx.input.name.trim().slice(0, 80);
-                    await saveProject(meta);
+                    // Route the rename through the locked mutation path so it
+                    // can't race a concurrent save or skip the panel broadcast.
+                    meta = await applySettings(projectId, { name: ctx.input.name });
                 }
                 let entry = servers.get(ctx.instanceId);
                 if (!entry) {
