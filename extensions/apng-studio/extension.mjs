@@ -15,7 +15,7 @@ import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { join, extname } from "node:path";
 import { promises as fs } from "node:fs";
-import { randomBytes, timingSafeEqual } from "node:crypto";
+import { randomBytes, timingSafeEqual, createHash } from "node:crypto";
 import { networkInterfaces } from "node:os";
 
 import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
@@ -27,7 +27,8 @@ const WEB_DIR = join(EXT_DIR, "web");
 const ARTIFACTS_DIR = join(EXT_DIR, "artifacts");
 const EXPORTS_DIR = join(ARTIFACTS_DIR, "exports");
 const DEFAULT_PROJECT = "default";
-const MAX_FRAMES = 600; // aggregate cap so a project can't exhaust the host on assemble
+const MAX_FRAMES = 600; // count cap so a project can't accumulate unbounded frames
+const MAX_TOTAL_BYTES = 256 << 20; // 256 MiB of encoded frames — bounds assembly memory
 
 let session;
 
@@ -42,6 +43,7 @@ const clampDen = (n) => clampInt(n, 1, 65535, 1000);
 const clampDispose = (n, dflt = 0) => clampInt(n, 0, 2, dflt);
 const clampBlend = (n, dflt = 0) => clampInt(n, 0, 1, dflt);
 const frameMs = (f) => Math.round((f.delayNum / f.delayDen) * 1000);
+const usedBytes = (meta) => meta.frames.reduce((a, f) => a + (f.bytes || 0), 0);
 
 // Normalize a stored/incoming frame record to the full field set, migrating the
 // legacy { id, delayMs } shape to explicit delay numerator/denominator plus the
@@ -54,14 +56,24 @@ function normalizeFrame(f) {
         delayDen: clampDen(f.delayDen),
         disposeOp: clampDispose(f.disposeOp),
         blendOp: clampBlend(f.blendOp),
+        bytes: Number.isFinite(f.bytes) && f.bytes > 0 ? Math.floor(f.bytes) : 0,
     };
 }
+// Map a project id to a filesystem-safe key. Ids that are already safe (including
+// the legacy "default" and GUID-style ids) are used verbatim, so directories stay
+// stable across restarts/upgrades and re-sanitizing is a no-op. Only ids that
+// aren't filesystem-safe get a hash suffix — keyed on the raw id — so two distinct
+// unsafe ids ("foo/bar" vs "foo?bar") can never share a directory, lock, or entry.
+const SAFE_ID = /^[\w.-]{1,64}$/;
 const sanitizeId = (s) => {
-    const cleaned = String(s || DEFAULT_PROJECT).replace(/[^\w.-]+/g, "_").slice(0, 64);
-    // Reject "." and ".." (and empty) so a project id can never escape ARTIFACTS_DIR.
-    if (!cleaned || cleaned === "." || cleaned === "..") return DEFAULT_PROJECT;
-    return cleaned;
+    const raw = String(s ?? "") || DEFAULT_PROJECT;
+    if (raw !== "." && raw !== ".." && SAFE_ID.test(raw)) return raw;
+    const prefix = raw.replace(/[^\w.-]+/g, "_").slice(0, 40) || "p";
+    return `${prefix}-${createHash("sha256").update(raw).digest("hex").slice(0, 12)}`;
 };
+// Frame ids are internal monotonic counters, so a lightweight path-safe cleaner is
+// enough (and keeps frame filenames readable).
+const sanitizeFrameId = (s) => String(s).replace(/[^\w.-]+/g, "_").slice(0, 64) || "0";
 const sanitizeName = (s) => String(s || "animation").replace(/[^\w.-]+/g, "_").slice(0, 80) || "animation";
 const ensureDir = (d) => fs.mkdir(d, { recursive: true });
 
@@ -78,7 +90,7 @@ const projects = new Map(); // projectId -> meta
 const loadingProjects = new Map(); // projectId -> in-flight load Promise
 const projectLocks = new Map(); // projectId -> tail of the mutation queue
 const projectDir = (id) => join(ARTIFACTS_DIR, sanitizeId(id));
-const framePath = (id, fid) => join(projectDir(id), `frame-${sanitizeId(fid)}.png`);
+const framePath = (id, fid) => join(projectDir(id), `frame-${sanitizeFrameId(fid)}.png`);
 
 // Serialize the full load–mutate–save cycle for a project so concurrent panels
 // and agent actions cannot interleave (e.g. allocate the same counter value or
@@ -98,17 +110,34 @@ async function loadProject(id) {
     // Dedupe concurrent first-time loads so every caller shares one meta object.
     if (loadingProjects.has(pid)) return loadingProjects.get(pid);
     const p = (async () => {
-        let meta;
+        let meta = null;
         try {
             meta = JSON.parse(await fs.readFile(join(projectDir(pid), "project.json"), "utf8"));
-        } catch {
-            meta = null;
+        } catch (err) {
+            // Only a missing file means "new project". Any other read/parse failure
+            // (I/O error, corrupt JSON) must surface rather than masquerade as an
+            // empty project, or the next save would overwrite real data and leave
+            // the frame files orphaned.
+            if (!err || err.code !== "ENOENT") {
+                throw new CanvasError("project_unreadable", `Could not read project "${pid}": ${err?.message || err}`);
+            }
         }
         if (!meta || typeof meta !== "object") {
             meta = { id: pid, name: pid, width: 256, height: 256, loops: 0, hiddenFirst: false, counter: 0, frames: [] };
         }
         meta.id = pid;
         meta.frames = (Array.isArray(meta.frames) ? meta.frames : []).map(normalizeFrame);
+        // Backfill encoded sizes for frames persisted before byte-tracking so the
+        // aggregate budget reflects real disk usage after an upgrade.
+        for (const f of meta.frames) {
+            if (!f.bytes) {
+                try {
+                    f.bytes = (await fs.stat(framePath(pid, f.id))).size;
+                } catch {
+                    /* frame file gone: leave 0 */
+                }
+            }
+        }
         meta.counter = Number.isFinite(meta.counter) ? meta.counter : meta.frames.length;
         meta.width = clampDim(meta.width);
         meta.height = clampDim(meta.height);
@@ -163,6 +192,11 @@ function publicState(meta) {
 const PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
 function pngSize(buffer) {
     const bad = () => new CanvasError("bad_frame", "Frame is not a valid PNG image.");
+    // The internal encoder returns plain Uint8Arrays while HTTP uploads arrive as
+    // Buffers; view any Uint8Array as a Buffer (no copy) so both paths validate.
+    if (buffer instanceof Uint8Array && !Buffer.isBuffer(buffer)) {
+        buffer = Buffer.from(buffer.buffer, buffer.byteOffset, buffer.length);
+    }
     if (!Buffer.isBuffer(buffer) || buffer.length < 8) throw bad();
     for (let i = 0; i < 8; i++) {
         if (buffer[i] !== PNG_SIGNATURE[i]) throw bad();
@@ -215,6 +249,12 @@ async function addFrameToMeta(meta, buffer, opts = {}) {
     if (meta.frames.length >= MAX_FRAMES) {
         throw new CanvasError("too_many_frames", `An animation can have at most ${MAX_FRAMES} frames.`);
     }
+    if (usedBytes(meta) + buffer.length > MAX_TOTAL_BYTES) {
+        throw new CanvasError("project_too_large", `Frames would exceed the ${MAX_TOTAL_BYTES >> 20} MiB total limit.`);
+    }
+    // Resolve (and validate) timing before writing anything so a rejected timing
+    // combination can't leave an orphaned frame file / advanced counter behind.
+    const timing = resolveTiming(opts, null) || { delayNum: 120, delayDen: 1000 };
     const { width, height } = pngSize(buffer);
     if (width > 2048 || height > 2048) {
         throw new CanvasError("frame_too_large", `Frame is ${width}×${height}; the maximum is 2048×2048.`);
@@ -236,10 +276,11 @@ async function addFrameToMeta(meta, buffer, opts = {}) {
     meta.frames.push(
         normalizeFrame({
             id: fid,
-            delayNum: opts.delayNum != null ? opts.delayNum : opts.delayMs != null ? opts.delayMs : 120,
-            delayDen: opts.delayDen,
+            delayNum: timing.delayNum,
+            delayDen: timing.delayDen,
             disposeOp: opts.disposeOp,
             blendOp: opts.blendOp,
+            bytes: buffer.length,
         })
     );
     return fid;
@@ -289,27 +330,52 @@ async function duplicateFrame(id, fid) {
         if (meta.frames.length >= MAX_FRAMES) {
             throw new CanvasError("too_many_frames", `An animation can have at most ${MAX_FRAMES} frames.`);
         }
+        const src = meta.frames[i];
+        const srcBytes = src.bytes || (await fs.stat(framePath(meta.id, fid))).size;
+        if (usedBytes(meta) + srcBytes > MAX_TOTAL_BYTES) {
+            throw new CanvasError("project_too_large", `Frames would exceed the ${MAX_TOTAL_BYTES >> 20} MiB total limit.`);
+        }
         const nid = String(meta.counter++);
         await fs.copyFile(framePath(meta.id, fid), framePath(meta.id, nid));
-        meta.frames.splice(i + 1, 0, normalizeFrame({ ...meta.frames[i], id: nid }));
+        meta.frames.splice(i + 1, 0, normalizeFrame({ ...src, id: nid, bytes: srcBytes }));
         await saveProject(meta);
         broadcast(meta.id);
     });
 }
 
-// Apply a partial set of frame properties. `delayMs`/`fps` are conveniences that
-// resolve to delayNum/delayDen. Only provided fields change.
+// Frame timing may be given exactly one way: fps, delayMs, or delayNum/delayDen.
+// Combining modes (e.g. delayMs with delayDen, or fps with delayNum) used to be
+// applied field-by-field and silently produced hybrid delays, so a mixed request
+// is rejected here; the chosen mode resolves omitted parts against `base`.
+function resolveTiming(props, base) {
+    const hasFps = props.fps != null;
+    const hasMs = props.delayMs != null;
+    const hasFrac = props.delayNum != null || props.delayDen != null;
+    if ([hasFps, hasMs, hasFrac].filter(Boolean).length > 1) {
+        throw new CanvasError(
+            "timing_conflict",
+            "Set frame timing one way only: delayMs, or fps, or delayNum/delayDen — not a combination."
+        );
+    }
+    if (hasFps) return { delayNum: 1, delayDen: clampInt(props.fps, 1, 65535, base?.delayDen ?? 1000) };
+    if (hasMs) return { delayNum: clampInt(props.delayMs, 0, 65535, base?.delayNum ?? 120), delayDen: 1000 };
+    if (hasFrac) {
+        return {
+            delayNum: props.delayNum != null ? clampInt(props.delayNum, 0, 65535, base?.delayNum ?? 120) : base?.delayNum ?? 120,
+            delayDen: props.delayDen != null ? clampDen(props.delayDen) : base?.delayDen ?? 1000,
+        };
+    }
+    return null;
+}
+
+// Apply a partial set of frame properties. Timing (if any) is resolved as a single
+// mutually-exclusive mode; only provided fields change.
 function applyFrameProps(f, props) {
-    if (props.fps != null) {
-        f.delayNum = 1;
-        f.delayDen = clampInt(props.fps, 1, 65535, f.delayDen);
+    const t = resolveTiming(props, f);
+    if (t) {
+        f.delayNum = t.delayNum;
+        f.delayDen = t.delayDen;
     }
-    if (props.delayMs != null) {
-        f.delayNum = clampInt(props.delayMs, 0, 65535, f.delayNum);
-        f.delayDen = 1000;
-    }
-    if (props.delayNum != null) f.delayNum = clampInt(props.delayNum, 0, 65535, f.delayNum);
-    if (props.delayDen != null) f.delayDen = clampDen(props.delayDen);
     if (props.disposeOp != null) f.disposeOp = clampDispose(props.disposeOp, f.disposeOp);
     if (props.blendOp != null) f.blendOp = clampBlend(props.blendOp, f.blendOp);
 }
@@ -393,8 +459,13 @@ async function exportApng(id, filename) {
         const bytes = await assembleFromMeta(meta);
         if (!bytes) throw new CanvasError("no_frames", "Nothing to export — add at least one frame first.");
         await ensureDir(EXPORTS_DIR);
-        const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-        const base = filename ? sanitizeName(filename.replace(/\.(a?png)$/i, "")) : `${sanitizeName(meta.name)}-${stamp}`;
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 23);
+        // Generated names include milliseconds + a random suffix so two exports in
+        // the same second don't collide and silently overwrite each other; an
+        // explicit caller filename keeps its (intentional) overwrite behavior.
+        const base = filename
+            ? sanitizeName(filename.replace(/\.(a?png)$/i, ""))
+            : `${sanitizeName(meta.name)}-${stamp}-${randomBytes(3).toString("hex")}`;
         const outPath = join(EXPORTS_DIR, `${base}.png`);
         await fs.writeFile(outPath, bytes);
         return { path: outPath, name: `${base}.png`, bytes: bytes.length };
@@ -691,19 +762,31 @@ let shareServerStarting = null; // in-flight startup promise (dedupe concurrent 
 let shareServerBindIp = null; // the private IPv4 the server is actually bound to
 const shares = new Map(); // projectId -> { token, expiresAt, timer }
 
-// Return a private (RFC1918) IPv4 address, or null. Public/VPN addresses are
-// intentionally excluded so the share listener is only ever bound to a LAN
-// interface.
+// Best-guess private (RFC1918) LAN IPv4 to bind the share server to, or null.
+// Interfaces that are typically virtual (VPN/VM/container: utun, ipsec, tun/tap,
+// bridge, vmnet, docker, veth, wg, awdl…) are skipped, and real NICs (en*, eth*,
+// wl*) on common home/office ranges are preferred. This is a heuristic — on an
+// unusual multi-homed host it can still pick the wrong interface.
 function lanIPv4() {
-    const candidates = [];
-    for (const addrs of Object.values(networkInterfaces())) {
-        for (const a of addrs || []) {
-            if (a.family === "IPv4" && !a.internal) candidates.push(a.address);
-        }
-    }
     const isPrivate = (ip) =>
         /^10\./.test(ip) || /^192\.168\./.test(ip) || /^172\.(1[6-9]|2\d|3[01])\./.test(ip);
-    return candidates.find(isPrivate) || null;
+    const virtual = /^(utun|ipsec|ppp|tun|tap|awdl|llw|bridge|vmnet|vboxnet|docker|veth|wg|zt)/i;
+    const physical = /^(en|eth|wl|wlan)/i;
+    const cands = [];
+    for (const [name, addrs] of Object.entries(networkInterfaces())) {
+        for (const a of addrs || []) {
+            if (a.family !== "IPv4" || a.internal) continue;
+            if (!isPrivate(a.address)) continue;
+            if (virtual.test(name)) continue;
+            let score = 0;
+            if (physical.test(name)) score -= 100;
+            if (/^192\.168\./.test(a.address)) score -= 10;
+            else if (/^10\./.test(a.address)) score -= 5; // 172.16/12 is often Docker; least preferred
+            cands.push({ ip: a.address, score });
+        }
+    }
+    cands.sort((a, b) => a.score - b.score);
+    return cands.length ? cands[0].ip : null;
 }
 
 function shareUrlFor(projectId) {
@@ -978,9 +1061,9 @@ session = await joinSession({
                         properties: {
                             projectId: { type: "string" },
                             color: { type: "string", description: "Hex (#rrggbb / #rrggbbaa) or a color name." },
-                            delayMs: { type: "integer", minimum: 0, maximum: 65535, description: "Frame delay in ms." },
-                            delayNum: { type: "integer", minimum: 0, maximum: 65535, description: "Delay numerator (overrides delayMs)." },
-                            delayDen: { type: "integer", minimum: 1, maximum: 65535, description: "Delay denominator (default 1000)." },
+                            delayMs: { type: "integer", minimum: 0, maximum: 65535, description: "Frame delay in ms. Use one timing mode only." },
+                            delayNum: { type: "integer", minimum: 0, maximum: 65535, description: "Delay numerator; pair with delayDen. Use one timing mode only." },
+                            delayDen: { type: "integer", minimum: 1, maximum: 65535, description: "Delay denominator (default 1000). Use one timing mode only." },
                             disposeOp: { type: "integer", minimum: 0, maximum: 2, description: "0=None, 1=Background, 2=Previous." },
                             blendOp: { type: "integer", minimum: 0, maximum: 1, description: "0=Source, 1=Over." },
                         },
@@ -991,7 +1074,7 @@ session = await joinSession({
                         const id = resolveProjectId(ctx);
                         const color = parseColor(ctx.input?.color);
                         const { color: _c, projectId: _p, ...opts } = ctx.input || {};
-                        if (opts.delayMs == null && opts.delayNum == null) opts.delayMs = 120;
+                        if (opts.delayMs == null && opts.delayNum == null && opts.delayDen == null && opts.fps == null) opts.delayMs = 120;
                         // Read dimensions, render, and append under one lock so a
                         // concurrent set_settings can't change the size between
                         // rendering the PNG and recording the frame.
@@ -1008,7 +1091,7 @@ session = await joinSession({
                 {
                     name: "set_frame",
                     description:
-                        "Change timing/compositing for one frame (by frameId) or every frame (all: true). Timing: delayMs, or fps (exact frame rate), or delayNum/delayDen. Compositing: disposeOp (0=None,1=Background,2=Previous), blendOp (0=Source,1=Over).",
+                        "Change timing/compositing for one frame (by frameId) or every frame (all: true). Timing (choose exactly one mode): delayMs, or fps (exact frame rate), or delayNum/delayDen — combining modes is rejected. Compositing: disposeOp (0=None,1=Background,2=Previous), blendOp (0=Source,1=Over).",
                     inputSchema: {
                         type: "object",
                         properties: {
