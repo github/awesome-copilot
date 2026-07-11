@@ -119,15 +119,17 @@ Create `docs/sprint-N/progress.md` at sprint start:
 
 ## Gate Status & Evidence
 
+> This committed tracker is a pre-candidate snapshot. Keep every post-push gate below `pending` with evidence marked `live on PR after final push`; do not commit SHA-bound links to the application PR. The docs-only closeout PR archives the final links after merge and smoke.
+
 | Gate | Owner | Status | Evidence |
 |---|---|---|---|
 | Plan | Producer | pending/complete | [plan link] |
 | Implementation | Dev | pending/complete | [checks/progress] |
-| Dev self-review | Dev | pending/pass/changes required | [PR handoff link after final push] |
-| Independent review | Producer/reviewer | pending/pass/blocked/exempt | [SHA-bound PR artifact] |
-| QA acceptance | QA | pending/Ready for merge/Blocked | [SHA-bound PR artifact] |
-| Regular merge | Producer | pending/complete | [PR] |
-| Post-merge smoke | QA | pending/pass/blocked | [environment/result] |
+| Dev self-review | Dev | pending | live on PR after final push |
+| Independent review | Producer/reviewer | pending | live on PR after final push |
+| QA acceptance | QA | pending | live on PR after final push |
+| Regular merge | Producer | pending | live on PR after final push |
+| Post-merge smoke | QA | pending | archive through closeout PR |
 
 ## Notes
 
@@ -182,9 +184,9 @@ Write `docs/sprint-N/done.md` at sprint end:
 
 | Gate | Status | Evidence |
 |---|---|---|
-| Dev self-review | pending | [record on PR after final push] |
-| Independent review | pending | [SHA-bound PR artifact] |
-| QA acceptance | pending | [SHA-bound PR artifact] |
+| Dev self-review | pending | live on PR after final push |
+| Independent review | pending | live on PR after final push |
+| QA acceptance | pending | live on PR after final push |
 
 ## Handoff Packet
 

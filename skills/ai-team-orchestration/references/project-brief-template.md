@@ -116,13 +116,13 @@ Test:          [commands by test level]
 
 Before an implementation session finishes, Dev must:
 
-1. Update `docs/sprint-N/progress.md` with task, bug, decision, branch, PR, checks, and links to live gate evidence.
+1. Update `docs/sprint-N/progress.md` with task, bug, decision, branch, PR if already known, and checks available before the final candidate. Keep Dev self-review, independent review, QA, merge, and smoke rows explicitly `pending`; do not add post-push SHA-bound links to this application-PR commit.
 2. Write or update `docs/sprint-N/done.md` as the implementation handoff, including incomplete work and manual setup.
 3. Commit those context-only files before the final candidate commit. They must not claim their own SHA.
-4. After the final commit is pushed, put the handoff packet on the PR with: owner/from/to, sprint/task, branch, exact commit SHA, PR/issues, checks/evidence, decisions, blockers, and next action.
+4. After the final commit is pushed, put the handoff packet and all live gate links on the PR with: owner/from/to, sprint/task, branch, exact commit SHA, PR/issues, checks/evidence, decisions, blockers, and next action. Do not amend `progress.md` or `done.md` merely to copy those links, because that would create a new candidate SHA.
 5. Propose any Sections 7 and 8 changes without claiming final sprint, gate, or merge state.
 
-Exact-SHA independent review and QA acceptance live in PR reviews, comments, or checks before merge. After regular merge and smoke, the Producer opens a docs-only closeout PR from the updated target branch recorded in the sprint plan to archive QA/gate evidence, update authoritative Sections 7 and 8, and record the application PR and merge SHA. Repository files plus linked PR/issue artifacts—not chat memory—are the durable handoff.
+Exact-SHA handoff, independent review, and QA acceptance live in PR descriptions, reviews, comments, or checks before merge. After regular merge and smoke, the Producer opens a docs-only closeout PR from the updated target branch recorded in the sprint plan to replace pending gate rows with archived links, archive QA/gate evidence, update authoritative Sections 7 and 8, and record the application PR and merge SHA. Repository files plus linked PR/issue artifacts—not chat memory—are the durable handoff.
 
 ## 13. Bug & Fix Tracking
 
