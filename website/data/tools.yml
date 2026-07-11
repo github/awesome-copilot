@@ -463,3 +463,32 @@ tools:
       - verification
       - worktree
       - local-first
+
+  - id: data-olympus
+    name: Data Olympus
+    description: >-
+      Git-native, OKF-readable knowledge-base format and single-writer MCP server for coding agents.
+      It governs decisions rather than code: it serves engineering standards, architectural
+      decisions, and project knowledge as versioned Markdown and targets coding-intent-to-governing-rule
+      retrieval, surfacing the established standard or decision that should govern a choice. It layers
+      governance extensions on the OKF base: stable id, controlled type/status/tier, and supersedes chains.
+    category: MCP Servers
+    featured: false
+    requirements:
+      - Python 3.13 or higher
+      - uv
+    features:
+      - Coding-intent to governing-rule retrieval over engineering standards, architectural decisions, and project knowledge
+      - Governance extensions on the OKF base (stable id, controlled type/status/tier, and supersedes chains)
+      - Single-writer MCP pipeline (advisory locks, per-session worktrees, durable push queue) for governed multi-agent writes
+      - Git-native and OKF-readable (inherits OKF directory structure, frontmatter, reserved filenames, and link model)
+    links:
+      github: https://github.com/knaisoma/data-olympus
+      pypi: https://pypi.org/project/data-olympus/
+      documentation: https://github.com/knaisoma/data-olympus/blob/main/docs/quickstart.md
+    tags:
+      - mcp
+      - knowledge-base
+      - governance
+      - okf
+      - coding-agents
