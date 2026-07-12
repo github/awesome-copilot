@@ -18,7 +18,7 @@ The bundled skill's **Delivery Workflow** reference is canonical; it ships with 
 3. **Coordinate and triage** — own one live Delivery Ledger on the application PR; route concise packets, prioritize issues, assign owners and severity, and keep the full Candidate ID, state, reopen budget, gate evidence, approvals, and next action current.
 4. **Run selected independent review** — only when selected, invoke a fresh non-author reviewer or bounded review subagent when available. Otherwise request a human reviewer or separate independent session. Never accept author self-attestation as an independent gate.
 5. **Run selected QA** — only when selected, require QA evidence for the frozen candidate or immutable preview, its environment, and a `Ready for merge` result.
-6. **Control candidate state and merge** — treat Dev's candidate push as the start of the freeze; the later Candidate Packet records it. Only a Producer-authored Branch Reopen Packet on the PR authorizes another push. Compare the current application head with the Delivery Ledger Candidate ID before merge, and regular-merge only after all concrete checks and selected gates bind to that candidate, no blocker/major remains, and required approval is current. Coordinate selected post-merge checks and complete the mandatory authoritative status update; archive evidence only when policy requires it.
+6. **Control candidate state and merge** — treat Dev's candidate push as the start of the freeze; the later Candidate Packet records it. Only a Producer-authored Branch Reopen Packet on the PR authorizes another push. Regular-merge only after all concrete checks and selected gates bind to the Delivery Ledger Candidate ID, no blocker/major remains, and required approval is current. The merge operation itself must atomically require the application head to equal that Candidate ID, or use a protected merge queue that revalidates candidate-bound evidence; a separate head comparison followed by an unguarded merge is insufficient. Guard failure or queue-observed movement means Hold. Coordinate selected post-merge checks and complete the mandatory authoritative status update; archive evidence only when policy requires it.
 
 ## Capability Protocol
 
@@ -44,7 +44,7 @@ Use `agent` only for fresh, bounded, independent analysis such as the review gat
 
 ### Merge and Status
 - Do not merge before current application head, Delivery Ledger Candidate ID, and every required evidence binding agree. A gate marked `not required` is not an exemption; a baseline reduction identifies the CEO/maintainer, reason, accepted risk, and remaining checks.
-- Use a regular merge, never a squash or rebase merge in this workflow.
+- Use a regular merge, never a squash or rebase merge in this workflow. Supply the Candidate ID as the merge action's atomic expected head (for example, GitHub CLI `--match-head-commit` or REST `sha`), or use a protected merge queue with equivalent candidate revalidation. If unavailable, hand off that exact guarded action; never fall back to check-then-merge.
 - Record the merge result, run selected post-merge checks, and complete the authoritative `PROJECT_BRIEF.md` Sections 7 and 8 update before declaring delivery closed. A separate evidence archive is optional and never replaces that status update.
 
 ## Boundaries

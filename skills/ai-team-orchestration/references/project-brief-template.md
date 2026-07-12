@@ -193,7 +193,7 @@ The CEO/maintainer defines acceptable risk, final-approval authority, and the mi
 | QA acceptance | required / not required | QA | [candidate/environment/result] |
 | Post-merge smoke/deployment check | required / not required | [owner] | [merged artifact/environment/result] |
 | Final approval | Producer / CEO / both | [owner] | [approval mechanism] |
-| Freeze detection | [branch protection / stale-check dismissal / PR marker plus head comparison / other] | Producer | [how unexpected pushes block merge] |
+| Freeze detection | [atomic expected-head merge / protected merge queue with candidate revalidation / other equivalent] | Producer | [how merge rejects or requeues a head different from Candidate ID] |
 | Reopen budget | [positive integer; default 2] | Producer / CEO for increase | [count and Hold escalation] |
 
 - Select gates in proportion to risk. Code/config always has concrete evidence. High-risk triggers are authentication/authorization/identity; secrets or EUII/privacy; destructive or irreversible data changes; privileges/permissions/deployment/CI/CD/supply-chain; and declared project safety invariants. Each requires security-focused evidence or explicit CEO/maintainer risk acceptance. Unresolved blocker/major findings always block merge.
@@ -201,7 +201,7 @@ The CEO/maintainer defines acceptable risk, final-approval authority, and the mi
 - Dev captures the full tested local commit ID before push. The push freezes the application branch immediately. Dev then creates/updates the PR and posts a Candidate Packet only after the observed application PR head equals that captured ID; Producer independently verifies and records it in the Delivery Ledger. A mismatch means Hold. A block routes to Producer and does not reopen the branch.
 - Only a live Producer Branch Reopen Packet authorizes a scoped fix. A replacement candidate makes prior verdicts stale. An unaffected gate owner may carry forward only after reviewing the actual delta and posting a packet binding old/new Candidate IDs.
 - When independent review is selected, the reviewer is not an author and Dev self-review does not satisfy that gate. When QA is selected, QA evaluates the frozen candidate or immutable preview and records the environment.
-- Candidate ID is always the full Git commit object ID. Native reviews/checks may bind through platform metadata; every generic text artifact names it explicitly. Producer compares it with current application head before merge.
+- Candidate ID is always the full Git commit object ID. Native reviews/checks may bind through platform metadata; every generic text artifact names it explicitly. The merge action atomically requires that Candidate ID as its expected head, or uses a protected merge queue that revalidates candidate-bound evidence. A separate head comparison followed by an unguarded merge is insufficient.
 - No merge occurs until all planned checks and selected gates bind to that Candidate ID, no blocker/major remains, and required Producer/CEO approval is recorded.
 - Before promising an issue, PR, edit, command, push, or merge mutation, each role detects the required GitHub, edit, terminal, and authentication capability. If unavailable, provide the exact target, payload/instructions, required actor, and expected evidence, then explicitly hand off; never claim it happened.
 - After merge and selected post-merge checks, the Producer completes the mandatory authoritative Sections 7 and 8 update. Evidence archive is optional and never causes recursive archival work.

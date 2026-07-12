@@ -59,11 +59,10 @@ git remote get-url --push --all PUSH_REMOTE
 Each command returns exactly one effective URL equal to the plan. A missing remote may be added only after the user confirms the exact mapping:
 
 ```text
-git remote add -- BASE_REMOTE BASE_URL
-git remote add -- PUSH_REMOTE PUSH_URL
+git remote add -- REMOTE_NAME REMOTE_URL
 ```
 
-Rerun URL verification after adding a remote. Stop on mismatch, rewriting, or multiple URLs; do not repair with `remote set-url` automatically.
+Run that command once for each **distinct missing remote name-to-URL mapping**, substituting either the validated base mapping or push mapping. If `BASE_REMOTE` equals `PUSH_REMOTE`, their validated URLs also equal and the command runs at most once for that shared remote. If the names differ and both are missing, run it once for each. Rerun both URL-verification commands afterward. Stop on mismatch, rewriting, or multiple URLs; do not repair with `remote set-url` automatically.
 
 ### Fetch and verify the base
 

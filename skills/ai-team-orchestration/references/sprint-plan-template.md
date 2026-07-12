@@ -34,7 +34,7 @@ Save as `docs/sprint-N/plan.md`:
 | QA acceptance | required / not required | QA | [scenarios, environment, and result mechanism] |
 | Post-merge smoke/deployment check | required / not required | [owner] | [environment and result mechanism] |
 | Final approval | Producer / CEO / both | [owner] | [approval mechanism] |
-| Freeze detection | [branch protection / stale-check dismissal / PR marker plus head comparison / other] | Producer | [how an unexpected push blocks merge] |
+| Freeze detection | [atomic expected-head merge / protected merge queue with candidate revalidation / other equivalent] | Producer | [how merge rejects or requeues a head different from Candidate ID] |
 
 ## Baseline Override (Only When Needed)
 

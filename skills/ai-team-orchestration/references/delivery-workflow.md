@@ -32,7 +32,7 @@ The Producer records these typed fields before Dev handoff:
 - change class: `documentation-only` or `code/configuration`;
 - risk triggers or `none`;
 - at least one concrete command or named platform check for every code/configuration candidate;
-- independent review, QA, post-merge check, final approval, and freeze-detection policy;
+- independent review, QA, post-merge check, final approval, and atomic freeze/merge-guard policy;
 - reopen budget as a positive integer;
 - any baseline reduction with CEO/maintainer, reason, accepted risk, and remaining evidence.
 
@@ -102,6 +102,7 @@ Capability is not authority. The canonical decisions are:
 | Candidate ID | full tested local Git commit object ID captured before push and confirmed equal to the application PR head after push |
 | Prior evidence after a replacement candidate | stale by default; affected gates rerun; only that gate owner may carry forward after reviewing the delta |
 | Unexpected candidate movement after current evidence | Hold; merge decision reopens until head, ledger, checks, gates, and approvals are current |
+| Merge frozen application candidate | atomic expected-head guard equal to Candidate ID, or protected merge queue that revalidates candidate-bound evidence |
 | Destructive/privileged/credential-bearing/new external destination mutation | explicit user confirmation |
 | Reduce project gate baseline or skip high-risk treatment | CEO/maintainer explicit risk acceptance |
 | Reopen frozen application branch | Producer Branch Reopen Packet only |
@@ -119,7 +120,7 @@ Producer merges only when:
 - the required Producer/CEO approval is recorded;
 - the candidate remained frozen after the last current evidence.
 
-Use a regular merge. Run selected post-merge checks against the merged artifact.
+Use a regular merge, but make the merge operation itself atomically require the application head to equal the Delivery Ledger Candidate ID. For GitHub, use an expected-head merge such as `--match-head-commit <Candidate ID>` or the merge API's `sha` field. A protected merge queue is acceptable only when it revalidates candidate-bound checks and rejects or requeues unexpected head movement. A separate comparison immediately before an unguarded merge is insufficient. If the guard fails or the queue observes another head, move to Hold and reconcile the new candidate before any merge. Run selected post-merge checks against the merged artifact.
 
 The **Authoritative Status Update is always required** before closure. It updates PROJECT_BRIEF Sections 7 and 8 through a Producer-controlled change that follows repository branch policy. It may be prepared before merge when it does not claim unknown post-merge results, or land afterward through a coordination/docs PR.
 
@@ -148,6 +149,7 @@ An **Evidence Archive is optional**. Copy QA/review summaries into repository do
 - **Checks and selected gates:** [status plus immutable evidence IDs]
 - **Reopen count / budget:** [n / max]
 - **Approvals / overrides:** [links and owners]
+- **Atomic merge guard:** [expected-head mechanism or protected queue policy bound to Candidate ID]
 - **Next owner / action:** [owner and action]
 
 ### Branch Reopen Packet — Producer

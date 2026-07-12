@@ -71,10 +71,11 @@ Blocked evidence to the Producer. Do not authorize Dev or move the app branch.
 ### 6. Decide and merge
 
 ```
-@ai-team-producer Confirm current PR head equals the Delivery Ledger Candidate ID,
-all planned checks and selected gates bind to it, no blocker/major remains, and
-required approval is current. Regular-merge, run selected post-merge checks, and
-complete the authoritative project-status update.
+@ai-team-producer Confirm all planned checks and selected gates bind to the
+Delivery Ledger Candidate ID, no blocker/major remains, and required approval is
+current. Regular-merge with an atomic expected-head guard equal to that Candidate
+ID, or a protected queue that revalidates it. Guard failure means Hold. Then run
+selected post-merge checks and complete the authoritative project-status update.
 ```
 
 ## How It Works
