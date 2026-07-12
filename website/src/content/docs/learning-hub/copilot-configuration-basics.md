@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-09
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -206,6 +206,32 @@ In addition to repository-level skills, GitHub Copilot CLI supports **personal s
 ```
 
 The `~/.agents/skills/` path aligns with the VS Code GitHub Copilot for Azure extension's default skill discovery path, while `~/.copilot/skills/` matches the Copilot CLI configuration directory. Both are supported for personal skills.
+
+### Pinning Model and Effort via `.github/copilot/settings.json`
+
+*(v1.0.70+)* A **trusted repository** can pin the model, reasoning effort level, and context tier for all sessions working in that repository by adding a `.github/copilot/settings.json` file. This is a team governance feature that ensures everyone uses a consistent model configuration without relying on individual user settings:
+
+```json
+{
+  "model": "claude-sonnet-4",
+  "effortLevel": "high",
+  "contextTier": "full"
+}
+```
+
+**Supported fields**:
+
+| Field | Description | Example values |
+|-------|-------------|----------------|
+| `model` | The AI model to use for this repository | `"claude-sonnet-4"`, `"gpt-4.1"`, `"claude-sonnet-5"` |
+| `effortLevel` | Reasoning effort level | `"low"`, `"medium"`, `"high"` |
+| `contextTier` | How much context to include | `"default"`, `"full"` |
+
+In addition to model and effort settings, this file can also extend the URL, MCP server, and skill deny lists, allowing organizations to enforce access restrictions at the repository level.
+
+**Why use this**: Pin a model when your team has agreed on the right cost/quality tradeoff for a project. Pin a high effort level for codebases where mistakes are expensive. Deny lists let you block specific MCP servers or URLs that aren't appropriate for a given project's security posture.
+
+> **Trust requirement**: The repository must be explicitly trusted by the user for these settings to take effect. This prevents untrusted repositories from changing your model or access restrictions without your knowledge.
 
 ### Custom Agents
 
@@ -592,6 +618,14 @@ The `/ask` command lets you ask a quick question without affecting your conversa
 /ask What does the `retry` utility in src/utils do?
 ```
 
+The `/refine` command *(v1.0.70+)* rewrites a rough, stream-of-consciousness prompt into a clear, structured one before sending it to the agent:
+
+```
+/refine
+```
+
+Type your rough idea, and `/refine` transforms it into a precise, well-structured prompt. This is especially helpful for complex multi-step tasks where prompt clarity significantly affects output quality — for example, turning "um make the login thing work better with the existing setup" into a focused task description with clear scope and acceptance criteria.
+
 The `/env` command shows all loaded environment details — instructions, MCP servers, skills, agents, and plugins — in a single view. Use it to verify that the right resources are active for the current session:
 
 ```
@@ -696,6 +730,15 @@ copilot --autopilot --max-autopilot-continues 10 "Refactor the authentication mo
 ```
 
 Set it higher for long-running tasks, or lower for tasks where you want more frequent checkpoints. Setting it to `0` disables automatic continuation entirely.
+
+The `--sandbox` and `--no-sandbox` flags *(v1.0.70+)* turn the OS-level shell sandbox on or off for the current session only, without permanently changing your saved sandbox setting. This is useful with `-p` (prompt mode) when you need to temporarily adjust sandbox behavior for a specific automated task:
+
+```bash
+copilot --sandbox -p "Run the full test suite and fix any failures"
+copilot --no-sandbox -p "Set up development environment with system tools"
+```
+
+These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
