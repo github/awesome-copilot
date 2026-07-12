@@ -222,16 +222,6 @@ copilot plugin marketplace update
 copilot plugin uninstall my-plugin
 ```
 
-### Interactive Plugin Dashboard
-
-*(v1.0.69+)* The `/plugins` slash command opens an interactive **plugins dashboard** that lets you browse, enable, disable, and manage all installed plugins in one place — without using separate CLI subcommands:
-
-```
-/plugins
-```
-
-Use the dashboard for a visual overview of what's installed, check which agents and skills each plugin contributes, and quickly toggle plugins on or off. It's especially useful when you have many plugins installed and want to see what's active at a glance.
-
 ### Loading Plugins from a Local Directory
 
 You can load plugins directly from a local directory without installing them from a marketplace, using the `--plugin-dir` flag when starting Copilot:
