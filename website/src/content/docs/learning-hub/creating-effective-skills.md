@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-30
+lastUpdated: 2026-07-12
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -270,6 +270,7 @@ Use this skill when:
 - **Name descriptively**: Use clear, action-oriented names: `generate-tests`, not `helper`
 - **Keep assets lean**: Bundled files should be under 5 MB each
 - **Test thoroughly**: Verify skills work with different inputs and codebases
+- **Let Forge help** *(v1.0.70+)*: Copilot automatically creates draft skills when it detects repeatable workflow patterns in your sessions. Review and accept these drafts via `/chronicle skills review` to grow your skill library organically from real usage patterns.
 
 ### Writing Style Guidelines
 
@@ -405,7 +406,7 @@ A: Yes, for clarity. Show examples of desired output format, patterns to follow,
 
 **Q: How do I review agent-proposed skill changes?**
 
-A: In v1.0.66+, the agent can propose draft skill additions or improvements as it discovers reusable patterns during a session. Review each draft interactively with:
+A: In v1.0.66+, the agent can propose draft skill additions or improvements as it discovers reusable patterns during a session. In v1.0.70+, Copilot **automatically creates draft skills** when it detects a clear, repeatable workflow pattern — even without you asking. Review each draft interactively with:
 
 ```
 /chronicle skills review

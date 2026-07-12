@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-12
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -182,6 +182,25 @@ Or from an interactive session:
 
 Browse to the plugin via `@agentPlugins` in the Extensions search view or via **Chat: Plugins** in the Command Palette, then click **Install**.
 
+### The `/plugins` Dashboard *(v1.0.69+)*
+
+Inside an interactive Copilot CLI session, run `/plugins` to open a dashboard for managing your installed plugins without leaving the session:
+
+```
+/plugins
+```
+
+The `/plugins` dashboard shows all installed plugins, their versions, and their included components (agents, skills, hooks, MCP servers). From here you can:
+
+- **Browse** installed plugins and see what each one provides
+- **Enable or disable** individual plugins without uninstalling them
+- **Update** plugins to newer versions
+- **Uninstall** plugins you no longer need
+
+The `/plugins` dashboard is the recommended way to manage plugins during an interactive session — no need to open a separate terminal window or remember CLI subcommands.
+
+You can also run `/plugin list` to get a quick list of installed plugins while the agent is working (both `/plugins` and `/plugin list` can run mid-turn without interrupting the agent).
+
 ## Managing Plugins
 
 Once installed, plugins are managed with a few simple commands:
@@ -199,6 +218,24 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### Pinning Plugins to an Exact Commit *(v1.0.70+)*
+
+For reproducible environments, you can pin a plugin to a specific commit SHA using the `sha` field in your plugin source configuration. This ensures your team always uses an exact, immutable version of a plugin regardless of what gets published to the marketplace:
+
+```json
+{
+  "source": "github/awesome-copilot",
+  "sha": "a1b2c3d4e5f6..."
+}
+```
+
+Pin by SHA when:
+- You need **reproducible builds** (CI or controlled environments)
+- A plugin update introduced a breaking change and you want to stay on a known-good version
+- You're sharing a configuration across a team and want everyone on the same version
+
+Unlike version tags (which can be overwritten), a commit SHA is immutable — the pinned plugin will never change without you explicitly updating the SHA.
 
 ### Loading Plugins from a Local Directory
 
