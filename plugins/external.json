@@ -139,7 +139,13 @@
     },
     "repository": "https://github.com/gsemet/copilot-goal-skill",
     "license": "MIT",
-    "keywords": ["goal", "autonomous", "inspector", "builder", "loop"],
+    "keywords": [
+      "goal",
+      "autonomous",
+      "inspector",
+      "builder",
+      "loop"
+    ],
     "source": {
       "source": "github",
       "repo": "gsemet/copilot-goal-skill",
@@ -317,7 +323,13 @@
       "url": "https://www.figma.com"
     },
     "homepage": "https://github.com/figma/mcp-server-guide",
-    "keywords": ["figma", "design", "mcp", "ui", "code-connect"],
+    "keywords": [
+      "figma",
+      "design",
+      "mcp",
+      "ui",
+      "code-connect"
+    ],
     "repository": "https://github.com/figma/mcp-server-guide",
     "source": {
       "source": "github",
@@ -445,7 +457,14 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/microsoft/Build-CLI",
-    "keywords": ["microsoft", "build", "ignite", "events", "sessions", "learn"],
+    "keywords": [
+      "microsoft",
+      "build",
+      "ignite",
+      "events",
+      "sessions",
+      "learn"
+    ],
     "license": "Apache-2.0",
     "repository": "https://github.com/microsoft/Build-CLI",
     "source": {
@@ -462,7 +481,12 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/dotnet/modernize-dotnet",
-    "keywords": ["modernization", "upgrade", "migration", "dotnet"],
+    "keywords": [
+      "modernization",
+      "upgrade",
+      "migration",
+      "dotnet"
+    ],
     "license": "MIT",
     "repository": "https://github.com/dotnet/modernize-dotnet",
     "source": {
@@ -482,7 +506,12 @@
     "repository": "https://github.com/microsoft/modernize-java",
     "homepage": "https://github.com/microsoft/modernize-java",
     "license": "MIT",
-    "keywords": ["java", "modernization", "upgrade", "spring-boot"],
+    "keywords": [
+      "java",
+      "modernization",
+      "upgrade",
+      "spring-boot"
+    ],
     "source": {
       "source": "github",
       "repo": "microsoft/modernize-java",
@@ -565,6 +594,34 @@
       "source": "github",
       "repo": "SonarSource/sonarqube-agent-plugins",
       "ref": "2.2.0"
+    }
+  },
+  {
+    "name": "ui-theme-designer",
+    "description": "Equips AI coding agents with knowledge and tooling for working with UI theme designer, the SAP Design System, and SAP Fiori design tokens.",
+    "version": "2.0.0",
+    "author": {
+      "name": "SAP SE",
+      "url": "https://www.sap.com"
+    },
+    "repository": "https://github.com/SAP/ui-theme-designer-plugins-for-coding-agents",
+    "homepage": "https://github.com/SAP/ui-theme-designer-plugins-for-coding-agents",
+    "license": "Apache-2.0",
+    "keywords": [
+      "design-system",
+      "design-tokens",
+      "theming",
+      "ui5",
+      "sapui5",
+      "openui5",
+      "sap",
+      "web-development"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "SAP/ui-theme-designer-plugins-for-coding-agents",
+      "path": "plugins/ui-theme-designer",
+      "ref": "v2.0.0"
     }
   },
   {
