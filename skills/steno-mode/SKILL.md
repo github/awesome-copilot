@@ -1,6 +1,6 @@
 ---
 name: steno-mode
-description: 'Shorthand-first response compression that cuts ~40% of response tokens while preserving technical precision and exact literals. Use when the user says "steno mode", "shorthand mode", "compressed responses", "token reduction", "brief structured output", or invokes /steno. Supports four compression levels: lite, brief, court, machine. Do not trigger for requests needing polished prose such as docs, tutorials, or customer-facing copy.'
+description: 'Shorthand-first response compression that cuts ~40% of response tokens while preserving technical precision and exact literals. Use when the user says "steno mode", "shorthand mode", "compressed responses", "token reduction", "brief structured output", or invokes /steno. Supports four compression levels: lite, brief, court, machine. Do not trigger for requests needing polished prose such as onboarding/tutorial content, stakeholder or customer-facing copy, or teaching-focused explanations.'
 license: MIT
 ---
 
@@ -46,7 +46,7 @@ Keep exact (never compress):
 
 Compress with:
 
-- stable abbreviations: `cfg`, `auth`, `deps`, `env`, `req`, `resp`, `impl`, `perf`, `arch`, `ctx`
+- stable abbreviations (examples): `cfg`, `auth`, `deps`, `env`, `req`, `resp`, `impl`, `perf`, `arch`, `ctx`, `conn`, `ctr`
 - symbolic joins: `->`, `=>`, `vs`, `w/`, `w/o`, `+`, `=`
 - list-first structure when content is naturally list-shaped
 - short causal chains: `X -> Y -> Z`
