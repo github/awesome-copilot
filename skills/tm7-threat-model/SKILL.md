@@ -74,7 +74,9 @@ The file MUST start with this exact root element — **no `<?xml?>` declaration*
 ## File structure (correct order)
 
 A full tool export contains, in this order: `DrawingSurfaceList`, `MetaInformation`, `Notes`,
-`ThreatInstances`, then `ThreatMetaData` (which embeds the large generic `KnowledgeBase`).
+`ThreatInstances`, `ThreatMetaData` (often empty/self-closing), then the large generic
+`KnowledgeBase` as a **top-level sibling** (not nested inside `ThreatMetaData`), and finally
+`Profile`.
 
 ```xml
 <ThreatModel xmlns="..." xmlns:i="...">
@@ -100,15 +102,20 @@ A full tool export contains, in this order: `DrawingSurfaceList`, `MetaInformati
   <ThreatInstances>
     <!-- Threat entries -->
   </ThreatInstances>
-  <ThreatMetaData>
-    <!-- Threat category/property metadata + the embedded generic KnowledgeBase -->
-  </ThreatMetaData>
+  <ThreatMetaData/>
+  <KnowledgeBase z:Id="i21" xmlns:a="...ThreatModeling.KnowledgeBase" xmlns:z="...">
+    <!-- Generic SDL stencil/threat catalog — top-level sibling of ThreatMetaData -->
+  </KnowledgeBase>
+  <Profile>
+    <PromptedKb xmlns=""/>
+  </Profile>
 </ThreatModel>
 ```
 
 > The `<KnowledgeBase>` (the generic SDL stencil/threat catalog) is large but **required** —
-> the tool uses it to resolve every stencil `TypeId`. Reuse it verbatim from
-> `assets/example-minimal.tm7`; only add stencils whose `TypeId` already appears in that
+> the tool uses it to resolve every stencil `TypeId`. It is a **top-level sibling** placed after
+> `ThreatMetaData` and before `Profile`, **not** nested inside `ThreatMetaData`. Reuse it verbatim
+> from `assets/example-minimal.tm7`; only add stencils whose `TypeId` already appears in that
 > KnowledgeBase.
 
 ## Stencil elements
@@ -163,9 +170,9 @@ Each stencil in `<Borders>` is wrapped in `<a:KeyValueOfguidanyType>`:
 | `SE.P.TMCore.AzureEventHub` | Azure Event Hub |
 | `SE.P.TMCore.DynamicsCRM` | Dynamics CRM |
 | `SE.DS.TMCore.SQL` | SQL Database |
-| `SE.DS.TMCore.AzureCosmosDB` | Azure Cosmos DB |
+| `SE.DS.TMCore.AzureSQLDB` | Azure SQL Database |
 | `SE.EI.TMCore.Browser` | Browser |
-| `SE.EI.TMCore.HumanUser` | Human User |
+| `SE.EI.TMCore.Mobile` | Mobile Client |
 
 ## Data flow lines
 
@@ -178,7 +185,7 @@ Lines in `<Lines>` also use `<a:KeyValueOfguidanyType>`, with `i:type="Connector
     <GenericTypeId xmlns="...Abstracts">GE.DF</GenericTypeId>
     <Guid xmlns="...Abstracts">{line-guid}</Guid>
     <Properties xmlns="...Abstracts">...</Properties>
-    <TypeId xmlns="...Abstracts">SE.DF.TMCore.GenericDataFlow</TypeId>
+    <TypeId xmlns="...Abstracts">SE.DF.TMCore.Request</TypeId>
     <HandleX xmlns="...Abstracts">0</HandleX>
     <HandleY xmlns="...Abstracts">0</HandleY>
     <SourceGuid xmlns="...Abstracts">{source-stencil-guid}</SourceGuid>
@@ -282,7 +289,11 @@ Use the standard STRIDE categories for `UserThreatCategory`: **S**poofing, **T**
 6. **Dangling references** — a `Line`, threat `SourceGuid`/`TargetGuid`, or threat `FlowGuid`
    that points to a stencil/flow GUID that isn't actually defined in `<Borders>`/`<Lines>`.
    Every reference must resolve to an included element.
-7. **Missing `z:Id` reference attributes** on serialized objects.
+7. **Missing or duplicated `z:Id` reference attributes** — every serialized object needs a
+   `z:Id`, and each `z:Id` (e.g. `i1`, `i2`, `i10`) must be **unique** across the whole file.
+   When you duplicate a template block to add an element, always renumber its `z:Id` (and any
+   nested ones) to values not used elsewhere; reusing an id creates duplicate DataContract
+   object ids and makes deserialization fail.
 8. **Missing the `xmlns` on child elements** — each `GenericTypeId`, `Guid`, `Properties`,
    `TypeId`, etc. must carry its own
    `xmlns="http://schemas.datacontract.org/2004/07/ThreatModeling.Model.Abstracts"`.
@@ -297,5 +308,5 @@ project data) that opens cleanly in the tool: two stencils connected by one data
 STRIDE threat whose every reference resolves. Adapt the stencil types, names, properties,
 coordinates, data flows, and threats to the user's architecture, but **never** change the
 serialization format or namespace structure, and only use stencil `TypeId` values that already
-appear in its embedded `KnowledgeBase`. After generating, mentally diff your output's skeleton
+appear in its bundled `KnowledgeBase`. After generating, mentally diff your output's skeleton
 against the example to confirm every namespace, wrapper element, and GUID reference matches.
