@@ -1,6 +1,6 @@
 ---
 name: mdrr-web-reader
-description: 'Read public webpages through MDRR as Markdown or structured JSON with strict trust, fallback, and prompt-injection controls.'
+description: 'Save typically 90%+ of web-reading tokens by converting eligible public webpages into compact Markdown or structured JSON, while preserving strict privacy, prompt-injection defenses, trust validation, and automatic fallback to the original source.'
 license: MIT
 metadata:
   version: "0.1.0"
