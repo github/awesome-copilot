@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import os from "node:os";
 import path from "node:path";
 
@@ -23,6 +24,7 @@ const LOCAL_PROJECT_DIRS = [
     path.join(os.homedir(), "GitHub"),
 ];
 const WORKTREES_DIR = path.join(PROJECTS_DIR, "copilot-worktrees");
+const APP_DATA_DB_PATH = path.join(os.homedir(), ".copilot", "data.db");
 const SESSION_STORE_PATH = path.join(os.homedir(), ".copilot", "session-store.db");
 const ARTIFACT_DIR = path.join(os.homedir(), ".copilot", "extensions", "work-hub", "artifacts");
 const PREFERENCES_PATH = path.join(ARTIFACT_DIR, "preferences.json");
@@ -32,9 +34,15 @@ let cachedModel = null;
 let cachedAt = 0;
 let refreshPromise = null;
 let discoveryCache = { at: 0, value: null };
+let copilotSession = null;
 
 function nowMs() {
     return Date.now();
+}
+
+export function setCopilotSession(session) {
+    copilotSession = session || null;
+    invalidateCache();
 }
 
 export function daysSince(dateLike) {
@@ -341,6 +349,23 @@ export async function listAvailableRepos(force = false) {
 /* ---------------- sessions ---------------- */
 
 async function getCopilotSessions(repos) {
+    const appInventory = await getAppWorkspaceInventory(repos);
+    if (appInventory && (appInventory.inventory.length || !appInventory.errors.length)) {
+        const seen = new Set();
+        const perRepoCounts = new Map();
+        const sessions = [];
+        for (const item of appInventory.inventory) {
+            if (!item.repository) continue;
+            if (item.ageDays !== null && item.ageDays > 14) continue;
+            const key = `${item.repository}|${item.branch || ""}|${item.summary || ""}`;
+            const count = perRepoCounts.get(item.repository) || 0;
+            if (seen.has(key) || count >= 3) continue;
+            seen.add(key);
+            perRepoCounts.set(item.repository, count + 1);
+            sessions.push(item);
+        }
+        return { sessions, errors: appInventory.errors };
+    }
     if (!existsSync(SESSION_STORE_PATH)) {
         return { sessions: [], errors: [{ source: "copilot-sessions", message: "Session store was not found." }] };
     }
@@ -392,8 +417,152 @@ async function getCopilotSessions(repos) {
 function normalizeSessionRepo(repository, cwd, repos) {
     if (repository) return repository;
     if (!cwd) return null;
-    const match = repos.find((repo) => repo.path && (cwd === repo.path || cwd.startsWith(`${repo.path}/`)));
+    const normalizedCwd = normalizeFsPath(cwd);
+    const match = repos.find((repo) => {
+        const repoPath = normalizeFsPath(repo.path);
+        return repoPath && (normalizedCwd === repoPath || normalizedCwd.startsWith(`${repoPath}/`));
+    });
     return match ? match.slug : null;
+}
+
+function normalizeFsPath(value) {
+    return String(value || "").replaceAll("\\", "/").replace(/\/+$/, "");
+}
+
+function isSessionWorktree(cwd) {
+    const normalized = normalizeFsPath(cwd);
+    if (!normalized) return false;
+    return /\/copilot-worktrees\/[^/]+\/[^/]+$/i.test(normalized) || normalized.includes("/.copilot/repos/copilot-worktrees/");
+}
+
+function normalizeRuntimeSession(entry, repos) {
+    if (!entry || entry.isRemote) return null;
+    const context = entry.context || {};
+    const cwd = context.cwd || "";
+    const repository = normalizeSessionRepo(context.repository, cwd, repos);
+    if (!repository && !cwd) return null;
+    const updatedAt = entry.modifiedTime || entry.startTime || null;
+    const createdAt = entry.startTime || updatedAt;
+    const ageDays = daysSince(updatedAt);
+    const isWorktree = isSessionWorktree(cwd);
+    const exists = Boolean(cwd && existsSync(cwd));
+    return {
+        id: entry.sessionId,
+        cwd,
+        repository: repository || "(unmapped)",
+        branch: context.branch || "",
+        summary: (entry.name || entry.summary || context.branch || "Open session").split("\n")[0].slice(0, 100),
+        createdAt,
+        updatedAt,
+        ageDays,
+        ageLabel: ageDays === null ? "unknown" : ageLabel(ageDays),
+        bucket: stalenessBucket(ageDays),
+        isWorktree,
+        orphaned: isWorktree && !exists,
+        source: "app",
+    };
+}
+
+function appWorkspaceRepo(row, repos) {
+    if (row.github_owner && row.github_repo) return `${row.github_owner}/${row.github_repo}`;
+    return normalizeSessionRepo(row.source_pr_repo_full_name || row.source_issue_repo_full_name || row.created_pr_repo_full_name, row.path || row.main_repo_path, repos);
+}
+
+function normalizeAppWorkspace(row, repos) {
+    if (!row) return null;
+    const cwd = row.path || row.main_repo_path || "";
+    const repository = appWorkspaceRepo(row, repos);
+    const updatedAt = row.updated_at || row.created_at || null;
+    const ageDays = daysSince(updatedAt);
+    const isWorktree = row.workspace_type === "worktree" || isSessionWorktree(cwd);
+    const exists = Boolean(cwd && existsSync(cwd));
+    return {
+        id: row.id,
+        appSessionId: row.session_id || "",
+        cwd,
+        repository: repository || row.project_name || "(unmapped)",
+        branch: row.branch || "",
+        summary: (row.name || row.branch || "Open session").split("\n")[0].slice(0, 100),
+        createdAt: row.created_at,
+        updatedAt,
+        ageDays,
+        ageLabel: ageDays === null ? "unknown" : ageLabel(ageDays),
+        bucket: stalenessBucket(ageDays),
+        isWorktree,
+        orphaned: isWorktree && !exists,
+        source: "app",
+        projectName: row.project_name || "",
+        workspaceType: row.workspace_type || "",
+    };
+}
+
+function queryAppWorkspaces() {
+    if (!existsSync(APP_DATA_DB_PATH)) return null;
+    const db = new DatabaseSync(APP_DATA_DB_PATH, { readOnly: true });
+    try {
+        return db
+            .prepare(`
+                SELECT
+                    w.id,
+                    w.name,
+                    w.branch,
+                    w.created_at,
+                    w.updated_at,
+                    w.archived_at,
+                    w.session_id,
+                    w.workspace_type,
+                    w.source_pr_repo_full_name,
+                    w.source_issue_repo_full_name,
+                    w.created_pr_repo_full_name,
+                    p.github_owner,
+                    p.github_repo,
+                    p.name AS project_name,
+                    p.main_repo_path,
+                    wt.path
+                FROM workspaces w
+                LEFT JOIN projects p ON p.id = w.project_id
+                LEFT JOIN worktrees wt ON wt.id = w.worktree_id
+                WHERE w.archived_at IS NULL
+                ORDER BY w.updated_at DESC
+                LIMIT 500
+            `)
+            .all();
+    } finally {
+        db.close();
+    }
+}
+
+async function getAppWorkspaceInventory(repos) {
+    try {
+        const rows = queryAppWorkspaces();
+        if (!rows) return null;
+        const inventory = rows.map((row) => normalizeAppWorkspace(row, repos)).filter(Boolean);
+        return { inventory, errors: [] };
+    } catch (error) {
+        return { inventory: [], errors: [{ source: "app-sessions", message: `Could not read app workspace sessions: ${error.message}` }] };
+    }
+}
+
+async function getRuntimeSessionInventory(repos) {
+    if (!copilotSession?.rpc?.sessions?.list) return null;
+    try {
+        const result = await copilotSession.rpc.sessions.list({ source: "local", metadataLimit: 500, includeDetached: false });
+        const rows = Array.isArray(result?.sessions) ? result.sessions : [];
+        const seen = new Set();
+        const inventory = [];
+        for (const row of rows) {
+            const item = normalizeRuntimeSession(row, repos);
+            if (!item) continue;
+            const key = `${item.id}|${item.cwd}|${item.repository}|${item.branch}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            inventory.push(item);
+        }
+        inventory.sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+        return { inventory, errors: [] };
+    } catch (error) {
+        return { inventory: [], errors: [{ source: "copilot-sessions", message: `Could not list app sessions: ${error.message}` }] };
+    }
 }
 
 function stalenessBucket(ageDays) {
@@ -406,15 +575,20 @@ function stalenessBucket(ageDays) {
 
 // Full session inventory for the cleanup tab: no age filter, no per-repo cap.
 async function getSessionInventory(repos) {
+    const appInventory = await getAppWorkspaceInventory(repos);
+    if (appInventory && (appInventory.inventory.length || !appInventory.errors.length)) {
+        return appInventory;
+    }
+    const runtimeInventory = await getRuntimeSessionInventory(repos);
+    if (runtimeInventory && (runtimeInventory.inventory.length || !runtimeInventory.errors.length)) {
+        return runtimeInventory;
+    }
     if (!existsSync(SESSION_STORE_PATH)) {
         return { inventory: [], errors: [{ source: "copilot-sessions", message: "Session store was not found." }] };
     }
-    const repoList = repos.map((repo) => `'${repo.slug.replaceAll("'", "''")}'`).join(",") || "''";
     const query = [
         "SELECT id,cwd,repository,branch,summary,created_at,updated_at",
         "FROM sessions",
-        `WHERE repository IN (${repoList})`,
-        `OR cwd LIKE '${WORKTREES_DIR.replaceAll("'", "''")}/%'`,
         "ORDER BY updated_at DESC",
         "LIMIT 400",
     ].join(" ");
@@ -430,7 +604,7 @@ async function getSessionInventory(repos) {
         for (const row of rows) {
             const repository = normalizeSessionRepo(row.repository, row.cwd, repos);
             const ageDays = daysSince(row.updated_at);
-            const isWorktree = Boolean(row.cwd && row.cwd.startsWith(`${WORKTREES_DIR}/`));
+            const isWorktree = isSessionWorktree(row.cwd);
             const exists = Boolean(row.cwd && existsSync(row.cwd));
             const key = `${repository || row.cwd || ""}|${row.branch || ""}|${row.summary || ""}`;
             if (seen.has(key)) continue;
