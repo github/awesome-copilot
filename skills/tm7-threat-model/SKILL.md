@@ -30,12 +30,12 @@ When asked to produce a `.tm7` file:
    stencil and every flow. Never use human-readable ids like `users-browser`.
 3. **Lay out coordinates** (`Left`/`Top`/`Width`/`Height`) so stencils don't overlap.
 4. **Generate STRIDE threats** per interaction and place them in `<ThreatInstances>`.
-5. **Serialize** using the structure in this guide, mirroring `example-minimal.tm7`.
+5. **Serialize** using the structure in this guide, mirroring `assets/example-minimal.tm7`.
 6. **Validate** against the "Common Mistakes" checklist before returning the file.
 7. **Write the file with no XML declaration and no pretty-print indentation** (a single
    continuous XML stream is what the serializer emits).
 
-Always open [`example-minimal.tm7`](./example-minimal.tm7) first and adapt it — reuse its exact
+Always open [`assets/example-minimal.tm7`](./assets/example-minimal.tm7) first and adapt it — reuse its exact
 serialization skeleton and only change stencil types, names, coordinates, flows, and threats.
 
 ## CRITICAL: Serialization format
@@ -51,8 +51,14 @@ The file MUST start with this exact root element — **no `<?xml?>` declaration*
 **NEVER use:**
 - `<?xml version="1.0" encoding="utf-8"?>` — causes deserialization failure.
 - `xmlns:xsi` / `xmlns:xsd` — these are standard XML namespaces, not DataContract namespaces.
-- Custom elements such as `<MetaInformation>`, `<SecurityGaps>`, `<Mitigations>`,
-  `<Assumptions>` — they do not exist in the TM7 schema.
+- Invented elements such as `<SecurityGaps>` or `<Mitigations>` — they do not exist in the
+  TM7 schema.
+
+> **Note:** `<MetaInformation>` (with children like `<Owner>`, `<Contributors>`,
+> `<Reviewer>`, `<Assumptions>`, `<ExternalDependencies>`, `<HighLevelSystemDescription>`,
+> `<ThreatModelName>`), `<Notes>`, and `<KnowledgeBase>` **are** part of the real schema and
+> are emitted by the tool — keep them (see the structure below and `assets/example-minimal.tm7`).
+> Just don't invent elements that the tool never produces.
 
 ## Required namespace prefixes
 
@@ -66,6 +72,9 @@ The file MUST start with this exact root element — **no `<?xml?>` declaration*
 | `xmlns:c` | `http://www.w3.org/2001/XMLSchema` | Primitive type values |
 
 ## File structure (correct order)
+
+A full tool export contains, in this order: `DrawingSurfaceList`, `MetaInformation`, `Notes`,
+`ThreatInstances`, then `ThreatMetaData` (which embeds the large generic `KnowledgeBase`).
 
 ```xml
 <ThreatModel xmlns="..." xmlns:i="...">
@@ -84,14 +93,23 @@ The file MUST start with this exact root element — **no `<?xml?>` declaration*
       <Notes xmlns:a="...Arrays"/>
     </DrawingSurfaceModel>
   </DrawingSurfaceList>
+  <MetaInformation>
+    <!-- Owner, Contributors, Reviewer, Assumptions, ThreatModelName, etc. -->
+  </MetaInformation>
+  <Notes xmlns:a="...Arrays"/>
   <ThreatInstances>
     <!-- Threat entries -->
   </ThreatInstances>
   <ThreatMetaData>
-    <!-- Metadata for threat categories and properties -->
+    <!-- Threat category/property metadata + the embedded generic KnowledgeBase -->
   </ThreatMetaData>
 </ThreatModel>
 ```
+
+> The `<KnowledgeBase>` (the generic SDL stencil/threat catalog) is large but **required** —
+> the tool uses it to resolve every stencil `TypeId`. Reuse it verbatim from
+> `assets/example-minimal.tm7`; only add stencils whose `TypeId` already appears in that
+> KnowledgeBase.
 
 ## Stencil elements
 
@@ -186,46 +204,66 @@ Properties use typed `<a:anyType>` elements:
 
 ## Threat instances
 
-Threats go in `<ThreatInstances>` using `<KeyValueOfstringThreatpc_P0_PhBB>`:
+Threats go in `<ThreatInstances>` using `<a:KeyValueOfstringThreatpc_P0_PhOB>` (note the exact
+`PhOB` suffix). Unlike stencils, the threat `<a:Value>` fields are **`b:`-prefixed** (the
+`ThreatModeling.KnowledgeBase` namespace), and the `<a:Key>` is the literal concatenation
+`TH<id> + <SourceGuid> + <FlowGuid> + <TargetGuid>`:
 
 ```xml
-<ThreatInstances>
-  <KeyValueOfstringThreatpc_P0_PhBB xmlns:a="...Arrays">
-    <a:Key>{threat-guid}</a:Key>
-    <a:Value>
-      <ChangedBy/>
-      <Id>{threat-guid}</Id>
-      <Message>Description of the threat</Message>
-      <ModifiedAt>2025-01-01T00:00:00</ModifiedAt>
-      <Properties xmlns:b="...Arrays">
-        <b:KeyValueOfstringstring>
-          <b:Key>Title</b:Key>
-          <b:Value>Threat Title</b:Value>
-        </b:KeyValueOfstringstring>
-        <b:KeyValueOfstringstring>
-          <b:Key>UserThreatCategory</b:Key>
-          <b:Value>Spoofing</b:Value>
-        </b:KeyValueOfstringstring>
-        <b:KeyValueOfstringstring>
-          <b:Key>StateInformation</b:Key>
-          <b:Value>Not Started</b:Value>
-        </b:KeyValueOfstringstring>
-        <b:KeyValueOfstringstring>
-          <b:Key>Priority</b:Key>
-          <b:Value>High</b:Value>
-        </b:KeyValueOfstringstring>
-        <b:KeyValueOfstringstring>
-          <b:Key>InteractionString</b:Key>
-          <b:Value>Source &#8594; Target</b:Value>
-        </b:KeyValueOfstringstring>
-      </Properties>
-      <SourceGuid>{source-stencil-guid}</SourceGuid>
-      <State>AutoGenerated</State>
-      <TargetGuid>{target-stencil-guid}</TargetGuid>
+<ThreatInstances xmlns:a="...Arrays">
+  <a:KeyValueOfstringThreatpc_P0_PhOB>
+    <a:Key>TH117{source-guid}{flow-guid}{target-guid}</a:Key>
+    <a:Value xmlns:b="...KnowledgeBase">
+      <b:ChangedBy/>
+      <b:DrawingSurfaceGuid>{drawing-surface-guid}</b:DrawingSurfaceGuid>
+      <b:FlowGuid>{flow-guid}</b:FlowGuid>
+      <b:Id>32</b:Id>
+      <b:InteractionKey>{source-guid}:{flow-guid}:{target-guid}</b:InteractionKey>
+      <b:InteractionString i:nil="true"/>
+      <b:ModifiedAt>2025-01-01T00:00:00</b:ModifiedAt>
+      <b:Priority>High</b:Priority>
+      <b:Properties>
+        <a:KeyValueOfstringstring>
+          <a:Key>Title</a:Key>
+          <a:Value>An adversary may spoof the user and gain access</a:Value>
+        </a:KeyValueOfstringstring>
+        <a:KeyValueOfstringstring>
+          <a:Key>UserThreatCategory</a:Key>
+          <a:Value>Spoofing</a:Value>
+        </a:KeyValueOfstringstring>
+        <a:KeyValueOfstringstring>
+          <a:Key>UserThreatShortDescription</a:Key>
+          <a:Value>Spoofing is when a process or entity is something other than its claimed identity.</a:Value>
+        </a:KeyValueOfstringstring>
+        <a:KeyValueOfstringstring>
+          <a:Key>PossibleMitigations</a:Key>
+          <a:Value>Enable multi-factor authentication and least-privilege access control.</a:Value>
+        </a:KeyValueOfstringstring>
+        <a:KeyValueOfstringstring>
+          <a:Key>Priority</a:Key>
+          <a:Value>High</a:Value>
+        </a:KeyValueOfstringstring>
+        <a:KeyValueOfstringstring>
+          <a:Key>SDLPhase</a:Key>
+          <a:Value>Design</a:Value>
+        </a:KeyValueOfstringstring>
+      </b:Properties>
+      <b:SourceGuid>{source-stencil-guid}</b:SourceGuid>
+      <b:State>Mitigated</b:State>
+      <b:StateInformation i:nil="true"/>
+      <b:TargetGuid>{target-stencil-guid}</b:TargetGuid>
+      <b:Title i:nil="true"/>
+      <b:TypeId>TH117</b:TypeId>
+      <b:Upgraded>false</b:Upgraded>
+      <b:Wide>false</b:Wide>
     </a:Value>
-  </KeyValueOfstringThreatpc_P0_PhBB>
+  </a:KeyValueOfstringThreatpc_P0_PhOB>
 </ThreatInstances>
 ```
+
+**Every GUID must resolve:** `SourceGuid` and `TargetGuid` must equal `<a:Key>` values of real
+stencils in `<Borders>`, and `FlowGuid` must equal the `<a:Key>` of a real connector in
+`<Lines>`. Dangling references produce a model that opens with missing diagram elements.
 
 Use the standard STRIDE categories for `UserThreatCategory`: **S**poofing, **T**ampering,
 **R**epudiation, **I**nformation Disclosure, **D**enial of Service, **E**levation of Privilege.
@@ -236,21 +274,28 @@ Use the standard STRIDE categories for `UserThreatCategory`: **S**poofing, **T**
 2. **Using `xmlns:xsi` / `xmlns:xsd`** instead of DataContract namespaces.
 3. **Using simple element names** like `<Border>`, `<Line>`, `<Stencil>` — you must use the
    DataContract wrapper types such as `<a:KeyValueOfguidanyType>`.
-4. **Inventing custom elements** like `<MetaInformation>`, `<SecurityGaps>`, `<Mitigations>`,
-   `<Assumptions>` — these do not exist in the schema.
+4. **Inventing elements the tool never emits** like `<SecurityGaps>` or `<Mitigations>` — these
+   are not in the schema. (`<MetaInformation>`, `<Notes>`, and `<KnowledgeBase>` **are** valid
+   and must be preserved.)
 5. **Using human-readable GUIDs** like `users-browser` instead of real UUIDs
    (e.g. `148ade68-5c80-40f3-8e1f-4e2cabdb5991`).
-6. **Missing `z:Id` reference attributes** on serialized objects.
-7. **Missing the `xmlns` on child elements** — each `GenericTypeId`, `Guid`, `Properties`,
+6. **Dangling references** — a `Line`, threat `SourceGuid`/`TargetGuid`, or threat `FlowGuid`
+   that points to a stencil/flow GUID that isn't actually defined in `<Borders>`/`<Lines>`.
+   Every reference must resolve to an included element.
+7. **Missing `z:Id` reference attributes** on serialized objects.
+8. **Missing the `xmlns` on child elements** — each `GenericTypeId`, `Guid`, `Properties`,
    `TypeId`, etc. must carry its own
    `xmlns="http://schemas.datacontract.org/2004/07/ThreatModeling.Model.Abstracts"`.
-8. **Pretty-printing with indentation** — the correct output is a single continuous XML stream
+9. **Pretty-printing with indentation** — the correct output is a single continuous XML stream
    with no added newlines or indentation inside the content.
 
 ## Reference asset
 
-Always use [`example-minimal.tm7`](./example-minimal.tm7) in this skill's directory as the
-structural reference. Adapt the stencil types, names, properties, coordinates, data flows, and
-threats to the user's architecture, but **never** change the serialization format or namespace
-structure. After generating, mentally diff your output's skeleton against the example to confirm
-every namespace and wrapper element matches.
+Always use [`assets/example-minimal.tm7`](./assets/example-minimal.tm7) in this skill's
+directory as the structural reference. It is a fully synthetic, sanitized export (no personal or
+project data) that opens cleanly in the tool: two stencils connected by one data flow, with one
+STRIDE threat whose every reference resolves. Adapt the stencil types, names, properties,
+coordinates, data flows, and threats to the user's architecture, but **never** change the
+serialization format or namespace structure, and only use stencil `TypeId` values that already
+appear in its embedded `KnowledgeBase`. After generating, mentally diff your output's skeleton
+against the example to confirm every namespace, wrapper element, and GUID reference matches.
