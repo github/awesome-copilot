@@ -39,7 +39,7 @@ Use the `scripts/requirements.txt` file bundled with this skill for a pinned
 install instead, if preferred:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m pip install -r scripts/requirements.txt
 ```
 
 PyMuPDF (imported as `fitz`) is required separately because MarkItDown's PDF

@@ -192,8 +192,8 @@ def extract_images(xlsx_path: Path, img_dir: Path):
     written = {}
     with zipfile.ZipFile(xlsx_path) as z:
         names_in_zip = set(z.namelist())
-        for sheet_name, media_paths in sheet_media.items():
-            safe_name = _sanitize_filename_part(sheet_name)
+        for sheet_idx, (sheet_name, media_paths) in enumerate(sheet_media.items(), start=1):
+             safe_name = f"sheet{sheet_idx:03d}_{_sanitize_filename_part(sheet_name)}"
             files = []
             for idx, media_path in enumerate(media_paths, start=1):
                 if media_path not in names_in_zip:
