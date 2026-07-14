@@ -1,6 +1,6 @@
 ---
 name: migrating-oracle-to-postgres-stored-procedures
-description: 'Migrates Oracle PL/SQL stored procedures to PostgreSQL PL/pgSQL. Translates Oracle-specific syntax, preserves method signatures and type-anchored parameters, leverages orafce where appropriate, and applies COLLATE "C" for Oracle-compatible text sorting. Use when converting Oracle stored procedures or functions to PostgreSQL equivalents during a database migration.'
+description: 'Migrates Oracle PL/SQL stored procedures to PostgreSQL PL/pgSQL. Translates Oracle-specific syntax, preserves method signatures and type-anchored parameters, leverages orafce where appropriate, and applies explicit collation mapping (`COLLATE "C"` only when appropriate, locale collations when required). Use when converting Oracle stored procedures or functions to PostgreSQL equivalents during a database migration.'
 ---
 
 # Migrating Stored Procedures from Oracle to PostgreSQL
@@ -32,7 +32,11 @@ Apply these translation rules:
 - Do not prefix object names with schema names unless already present in the Oracle source.
 - Leave exception handling and rollback logic unchanged.
 - Do not generate `COMMENT` or `GRANT` statements.
-- Use `COLLATE "C"` when ordering by text fields for Oracle-compatible sorting.
+- Apply collation intentionally when ordering text:
+  - Use `COLLATE "C"` only when Oracle-compatible binary ordering is required and no other sort order is specified.
+  - If Oracle used explicit linguistic sorting (for example `NLS_SORT = French`), map to an explicit PostgreSQL locale collation instead of `"C"`.
+  - Use `SELECT collname, collprovider, collcollate, collctype FROM pg_collation ORDER BY collname;` to discover collations in the target environment.
+- Treat `UNION ALL` as a review checkpoint. Validate plan quality per branch and restructure if combined-branch planning causes regressions (for example, unexpected sequential scans on large tables).
 - Leverage the `orafce` extension when it improves clarity or fidelity.
 
 Consult the PostgreSQL table/view definitions at `.github/oracle-to-postgres-migration/DDL/Postgres/Tables and Views/` for target schema details.
