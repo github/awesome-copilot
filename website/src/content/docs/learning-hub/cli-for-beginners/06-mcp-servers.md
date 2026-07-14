@@ -3,7 +3,10 @@ title: '06 · Connect to GitHub, Databases & APIs'
 description: 'Mirror the source chapter on MCP servers and external integrations for GitHub Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-10(/images/learning-hub/copilot-cli-for-beginners/06/chapter-header.png)
+lastUpdated: 2026-07-10
+---
+
+![Chapter 06: MCP Servers](/images/learning-hub/copilot-cli-for-beginners/06/chapter-header.png)
 
 > **What if Copilot could read your GitHub issues, check your database, and create PRs... all from the terminal?**
 
