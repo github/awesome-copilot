@@ -10,7 +10,7 @@ copilot plugin install convert-to-md@awesome-copilot
 
 ## What's Included
 
-_Add your plugin contents here._
+This plugin includes Word, Excel, and PDF conversion skills, detailed below.
 
 ## Source
 
