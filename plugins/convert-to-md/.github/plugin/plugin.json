@@ -18,8 +18,8 @@
     "configuration"
   ],
   "skills": [
-    "./skills/convert-word-to-md/",
     "./skills/convert-excel-to-md/",
+    "./skills/convert-word-to-md/",
     "./skills/convert-pdf-to-md/"
   ]
 }
