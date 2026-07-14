@@ -13,17 +13,16 @@ jobs:
   check-line-endings:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Check for CRLF line endings in markdown files
         run: |
-          ! grep -l $'\r' $(find . -name "*.md")
-          if [ $? -eq 0 ]; then
+          CRLF_FILES=$(grep -rl $'\r' --include="*.md" . 2>/dev/null || true)
+          if [ -z "$CRLF_FILES" ]; then
             echo "✅ No CRLF line endings found in markdown files"
-            exit 0
           else
             echo "❌ CRLF line endings found in markdown files"
             echo "Files with CRLF line endings:"
-            grep -l $'\r' $(find . -name "*.md")
+            echo "$CRLF_FILES"
             exit 1
           fi
