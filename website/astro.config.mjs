@@ -76,6 +76,7 @@ export default defineConfig({
           items: [
             "learning-hub/github-copilot-app",
             "learning-hub/working-with-canvas-extensions",
+            "learning-hub/using-automations-in-copilot-app",
             "learning-hub/what-are-agents-skills-instructions",
             "learning-hub/agents-and-subagents",
             "learning-hub/understanding-copilot-context",
