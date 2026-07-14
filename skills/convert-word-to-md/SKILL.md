@@ -33,8 +33,8 @@ reasonably confident setup was already done.
 
 The conversion script lives at `scripts/convert_word_to_md.py`.
 
-**Output structure:** MarkItDown embeds images as a truncated placeholder
-(`![alt](data:image/png;base64...)`), NOT real image data, so the script
+**Output structure:** MarkItDown embeds images as a truncated `data:image/png;base64...` URI
+placeholder (not real image data), so the script
 extracts real images directly from the `.docx` and writes a self-contained
 folder per document instead of a single loose `.md` file:
 
