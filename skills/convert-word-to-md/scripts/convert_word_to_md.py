@@ -117,10 +117,13 @@ def _document_order_media(docx_path: Path):
         target = rel_map.get(rid)
         if not target or "media/" not in target:
             continue
+        import posixpath
         media_path = (
             target.lstrip("/")
             if target.startswith("/")
-            else target if target.startswith("word/") else f"word/{target}"
+            else posixpath.normpath(
+                 target if target.startswith("word/") else posixpath.join("word", target)
+             )
         )
         ordered_media.append((rid, media_path))
     return ordered_media
