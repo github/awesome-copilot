@@ -2,6 +2,9 @@
 // Styled to match the reference connector extension UI.
 
 import { CATEGORY } from "./categories.mjs";
+import { buildSandboxUrl } from "./sandbox.mjs";
+
+const CONNECT_ICON = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v3M10 2v3M4 5h8v1a4 4 0 0 1-4 4v4M6 14h4"/></svg>';
 
 // Official Azure Connector Namespace mark — a gray viewfinder frame wrapping
 // two interlocking blue-gradient chain links. Path + gradient data is lifted
@@ -190,9 +193,16 @@ h1 { font-size: 1.4rem; font-weight: 600; margin: 0; }
     min-width: 72px; text-align: center;
 }
 .item-add:hover { border-color: var(--accent); color: var(--accent); }
+.item-icon-action { min-width: 0; padding: .25rem .5rem; display: inline-flex; align-items: center; justify-content: center; }
+.item-icon-action svg { width: 13px; height: 13px; flex: none; }
 /* Quiet at rest so a long catalog isn't a wall of identical blue CTAs; the
    active row promotes its Connect button to filled accent on hover or focus. */
-.item-add.primary { background: transparent; border-color: var(--accent); color: var(--accent); }
+.item-add.primary {
+    min-width: 62px; padding: .2rem .5rem; font-size: .72rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: .3rem;
+    background: transparent; border-color: var(--accent); color: var(--accent);
+}
+.item-add.primary svg { width: 11px; height: 11px; flex: none; }
 .item:hover .item-add.primary, .item:focus-within .item-add.primary, .item-add.primary:hover, .item-add.primary:focus-visible { background: var(--accent); border-color: var(--accent); color: #fff; }
 /* Connected isn't an action — render it as a compact status tag, not a fake
    disabled button. Borderless success fill, pill radius, hugs its content. */
@@ -261,6 +271,20 @@ label { font-size: .82rem; font-weight: 600; display: block; margin-bottom: .3re
 .brand-loading { display: inline-flex; animation: brandPulse 1.1s ease-in-out infinite; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--color-focus-outline, var(--accent)); outline-offset: 2px; }
+@media (max-width: 520px) {
+    .item {
+        grid-template-columns: 40px minmax(0, 1fr);
+        align-items: start;
+    }
+    .item-icon { grid-column: 1; grid-row: 1 / span 2; }
+    .item-body { grid-column: 2; grid-row: 1; }
+    .item > .item-add, .item > .item-actions {
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: start;
+    }
+    .item-actions { flex-wrap: wrap; }
+}
 @media (prefers-reduced-motion: reduce) {
     /* Only tame transitions and scrolling under reduced motion. Every CSS
        animation in this canvas is a FUNCTIONAL loading indicator: the
@@ -497,9 +521,10 @@ export function renderCatalogHtml(instanceId, catalog, { filter, category, sourc
             ? `<div class="item-icon"${iconBackgroundStyle(c.brandColor)}><img src="${esc(c.iconUri)}" alt=""></div>`
             : `<div class="item-icon">${esc(c.displayName.charAt(0))}</div>`;
         // Button state is hydrated client-side from /api/state on load.
-        const btn = `<button class="item-add primary" data-api="${esc(c.apiName)}" data-name="${esc(c.displayName)}">Create and connect</button>`;
+        const btn = `<button class="item-add primary" data-api="${esc(c.apiName)}" data-name="${esc(c.displayName)}">${CONNECT_ICON}<span>Create and connect</span></button>`;
         const haystack = esc((c.displayName + " " + (c.description || "")).toLowerCase());
-        return `<div class="item" data-api-item="${esc(c.apiName)}" data-home-grid="${home}" data-search="${haystack}">${icon}<div class="item-body"><div class="item-name-row"><div class="item-name">${esc(c.displayName)}</div></div><div class="item-desc">${esc(c.description)}</div></div>${btn}</div>`;
+        const sandboxUrl = esc(buildSandboxUrl(config, c.apiName));
+        return `<div class="item" data-api-item="${esc(c.apiName)}" data-home-grid="${home}" data-search="${haystack}" data-sandbox-url="${sandboxUrl}">${icon}<div class="item-body"><div class="item-name-row"><div class="item-name">${esc(c.displayName)}</div></div><div class="item-desc">${esc(c.description)}</div></div>${btn}</div>`;
     };
 
     const byName = (a, b) => a.displayName.localeCompare(b.displayName);
@@ -568,13 +593,14 @@ export function renderCatalogHtml(instanceId, catalog, { filter, category, sourc
 /* main + caret read as one pill; the shared 1px border between them is the
    divider (caret overlaps main by -1px so borders don't double). */
 .split-remove { display:inline-flex; align-items:stretch; }
-.split-remove .split-main { border-top-right-radius:0; border-bottom-right-radius:0; }
+.split-remove .split-main { border-top-right-radius:0; border-bottom-right-radius:0; color:var(--danger); }
+.split-remove .split-main:hover { border-color:var(--danger); color:var(--danger); }
 .split-remove .split-caret {
-    min-width:0; padding:.25rem .45rem; margin-left:-1px;
+    min-width:0; padding:.2rem .3rem; margin-left:-1px;
     border-top-left-radius:0; border-bottom-left-radius:0;
     display:inline-flex; align-items:center; justify-content:center; line-height:1;
 }
-.split-remove .split-caret svg { display:block; width:10px; height:10px; }
+.split-remove .split-caret svg { display:block; width:8px; height:8px; }
 
 /* the menu is a native popover -> promoted to the top layer, so the scrolling
    catalog can't clip it. it's positioned under the caret in JS on toggle. */
@@ -675,6 +701,8 @@ window.fetch = (input, init = {}) => {
 
 const input = document.getElementById("search");
 const noMatch = document.getElementById("no-match");
+const connectIcon = ${JSON.stringify(CONNECT_ICON)};
+const removeIcon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4h11M6 1.75h4L10.75 4h-5.5L6 1.75ZM4.25 4l.6 9h6.3l.6-9M6.75 6.5v4M9.25 6.5v4"/></svg>';
 
 // Gateway header actions: open the connector gateway in the Azure portal, and
 // open the MCP config file this session writes connections into. Both shell out
@@ -776,10 +804,9 @@ function applyFilters() {
 }
 input.addEventListener("input", applyFilters);
 
-// Move added tiles into "My MCPs" and non-added back to their home grid,
-// keep each grid alphabetical, refresh counts, hide empty sections, and — once, on
-// the first hydrate — pick the steady vs first-run expand layout. Called at the end
-// of every hydrateState so connect/remove keeps everything in sync.
+// Move added tiles into "My MCPs" and non-added back to their home grid. My MCPs
+// puts fully connected entries first, then sorts each group alphabetically; the
+// catalog grids remain alphabetical.
 let sectionsInit = false;
 function updateSections() {
     const mineGrid = document.getElementById("grid-mine");
@@ -793,6 +820,10 @@ function updateSections() {
     // Re-sort each grid (appends from moves land out of order).
     document.querySelectorAll(".grid").forEach((grid) => {
         [...grid.querySelectorAll(".item")].sort((a, b) => {
+            if (grid.id === "grid-mine") {
+                const readyOrder = Number(b.dataset.connectionReady === "1") - Number(a.dataset.connectionReady === "1");
+                if (readyOrder) return readyOrder;
+            }
             const an = (a.querySelector(".item-name")?.textContent || "").toLowerCase();
             const bn = (b.querySelector(".item-name")?.textContent || "").toLowerCase();
             return an.localeCompare(bn);
@@ -1105,8 +1136,13 @@ async function hydrateState() {
     document.querySelectorAll(".item[data-api-item]").forEach(item => {
         const apiName = item.dataset.apiItem;
         const st = state[apiName];
-        if (st && st.installed) item.dataset.connected = "1";
-        else item.removeAttribute("data-connected");
+        if (st && st.installed) {
+            item.dataset.connected = "1";
+            item.dataset.connectionReady = st.connectionStatus === "Connected" && st.inCli ? "1" : "0";
+        } else {
+            item.removeAttribute("data-connected");
+            item.removeAttribute("data-connection-ready");
+        }
         // Tear down any prior action nodes (wrapped pair or a bare button) and
         // rebuild from scratch — reusing the old button breaks on re-hydrate
         // because it gets detached along with its wrapper.
@@ -1118,7 +1154,7 @@ async function hydrateState() {
 
         if (!st || !st.installed) {
             btn.className = "item-add primary";
-            btn.textContent = "Create and connect";
+            btn.innerHTML = connectIcon + "<span>Create and connect</span>";
             btn.title = "Create a new connection on your namespace and wire it into Copilot.";
             btn.dataset.api = apiName;
             btn.dataset.name = item.querySelector(".item-name")?.textContent ?? apiName;
@@ -1145,7 +1181,7 @@ async function hydrateState() {
             //  - inCli && !connected: it was wired locally but auth went stale.
             //    Label "Re-authenticate".
             btn.className = "item-add primary";
-            btn.textContent = st.inCli ? "Re-authenticate" : "Connect";
+            btn.innerHTML = st.inCli ? "Re-authenticate" : connectIcon + "<span>Connect</span>";
             btn.title = st.inCli
                 ? "Your session for this connector expired. Re-authenticate to keep using it."
                 : "This connector exists on your namespace but isn't wired into Copilot yet. Connect to add it.";
@@ -1157,11 +1193,37 @@ async function hydrateState() {
 
         const displayName = item.querySelector(".item-name")?.textContent ?? apiName;
 
+        const sandbox = document.createElement("button");
+        sandbox.type = "button";
+        sandbox.className = "item-add sandbox-btn item-icon-action";
+        sandbox.title = "Open this MCP in Connector Namespace playground";
+        sandbox.setAttribute("aria-label", "Open " + displayName + " in Connector Sandbox");
+        sandbox.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M6 2.5h4M7 2.5v4l-3.5 5.8a.8.8 0 0 0 .7 1.2h7.6a.8.8 0 0 0 .7-1.2L9 6.5v-4"/><path d="M5.4 10h5.2"/></svg>';
+        sandbox.onclick = async () => {
+            const url = item.dataset.sandboxUrl;
+            if (!url) { gwToast("Couldn't build the Sandbox link", true); return; }
+            sandbox.disabled = true;
+            try {
+                const response = await fetch("/api/open-url", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url }),
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!result.ok) throw new Error("open_failed");
+            } catch {
+                gwToast("Couldn't open Connector Sandbox", true);
+            } finally {
+                sandbox.disabled = false;
+            }
+        };
+
         // main "Remove" = local-only unlink; keeps the namespace resource.
         const remove = document.createElement("button");
-        remove.className = "item-add split-main";
+        remove.className = "item-add split-main item-icon-action";
         remove.title = "Remove from Copilot. Keeps the resource on your namespace.";
-        remove.textContent = "Remove";
+        remove.setAttribute("aria-label", "Remove " + displayName + " from Copilot");
+        remove.innerHTML = removeIcon;
         remove.onclick = () => onRemoveLocal(item, apiName);
 
         // caret opens a popover menu holding the destructive namespace delete.
@@ -1216,12 +1278,13 @@ async function hydrateState() {
         wrap.style.cssText = "display:flex;align-items:center;gap:.4rem;";
         // Connected is a state of the connector, so its tag rides inline next
         // to the name; only actionable controls (Connect / Re-authenticate,
-        // Remove) sit in the right-hand actions cluster.
+        // Sandbox, local unlink, namespace delete) sit in the actions cluster.
         if (connected && st.inCli) {
             item.querySelector(".item-name-row")?.appendChild(statusEl);
         } else {
             wrap.appendChild(statusEl);
         }
+        wrap.appendChild(sandbox);
         wrap.appendChild(splitWrap);
         item.appendChild(wrap);
     });
@@ -1251,7 +1314,7 @@ async function onRemoveLocal(item, apiName) {
     } catch (err) {
         toast("Remove failed: " + err.message, true);
         if (wrap) wrap.style.opacity = "1";
-        if (mainBtn) { mainBtn.disabled = false; mainBtn.textContent = "Remove"; }
+        if (mainBtn) { mainBtn.disabled = false; mainBtn.innerHTML = removeIcon; }
     }
 }
 
@@ -1269,7 +1332,7 @@ function ensureDeleteDialog() {
           '<h2 class="cn-dialog-title">Delete from namespace?</h2>' +
           '<p class="cn-dialog-body">This deletes the actual <strong id="cn-del-name">connector</strong> ' +
             "resource from your namespace on Azure. Everyone who uses this namespace loses it, and it can't be undone.</p>" +
-          '<p class="cn-dialog-note">This is different from Remove, which only unlinks the connector from ' +
+          '<p class="cn-dialog-note">This is different from the unlink button, which only removes the connector from ' +
             'Copilot and leaves the namespace resource in place.</p>' +
           '<div class="cn-dialog-actions">' +
             '<button value="cancel" class="cn-btn cn-btn-cancel">Cancel</button>' +
@@ -1317,7 +1380,7 @@ async function performNamespaceDelete({ apiName, item }) {
         toast("Delete failed: " + err.message, true);
         if (wrap) wrap.style.opacity = "1";
         btns.forEach((b) => { b.disabled = false; });
-        if (mainBtn) mainBtn.textContent = "Remove";
+        if (mainBtn) mainBtn.innerHTML = removeIcon;
     }
 }
 

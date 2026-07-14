@@ -31,6 +31,7 @@ export const gateways = [
 
 // Active namespace shown in the catalog header (config.gatewayName / resourceGroup).
 export const config = {
+    subscriptionId: "00000000-0000-0000-0000-000000000001",
     gatewayName: "contoso-ns",
     resourceGroup: "rg-connectors",
 };

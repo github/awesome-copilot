@@ -75,7 +75,7 @@ function catalogHtml() {
         filter: "",
         category: "all",
         source: "",
-        config: { gatewayName: "ns", resourceGroup: "rg" },
+        config: { subscriptionId: "sub", gatewayName: "ns", resourceGroup: "rg" },
     });
 }
 
@@ -215,7 +215,7 @@ function catalogHtmlFull() {
         filter: "",
         category: "all",
         source: "",
-        config: { gatewayName: "ns", resourceGroup: "rg" },
+        config: { subscriptionId: "sub", gatewayName: "ns", resourceGroup: "rg" },
     });
 }
 
@@ -270,7 +270,7 @@ test("catalog only emits inline icon color for strict hex brand colors", () => {
         filter: "",
         category: "all",
         source: "",
-        config: { gatewayName: "ns", resourceGroup: "rg" },
+        config: { subscriptionId: "sub", gatewayName: "ns", resourceGroup: "rg" },
     });
 
     assert.match(html, /style="background:#5059c922"/, "valid hex colors should render as the icon background");
@@ -308,4 +308,66 @@ test("the catalog header shows the active namespace and a switch-namespace butto
         /id="switch-ns"[^>]*onclick="[^"]*window\.location\.href='\/setup'/,
         "clicking switch namespace must navigate to the /setup picker",
     );
+});
+
+test("My MCP hydration adds a per-server Sandbox deep link", () => {
+    const html = catalogHtmlFull();
+    assert.match(
+        html,
+        /data-sandbox-url="https:\/\/connectors\.azure\.com\/sub\/rg\/ns\/mcp-playground\?server=azureblob"/,
+        "each connector tile must carry its namespace Sandbox URL",
+    );
+    assert.match(html, /sandbox\.className = "item-add sandbox-btn item-icon-action"/, "installed My MCPs must get the Sandbox action");
+    assert.match(html, /sandbox\.title = "Open this MCP in Connector Namespace playground"/, "the Sandbox icon should describe the Connector Namespace playground");
+    assert.match(html, /sandbox\.setAttribute\("aria-label", "Open " \+ displayName \+ " in Connector Sandbox"\)/, "the icon-only action needs an accessible label");
+    assert.doesNotMatch(html, /<span>Sandbox<\/span>/, "the compact action should show only the flask mark");
+    assert.ok(
+        html.indexOf('if (!st || !st.installed)') < html.indexOf('sandbox.className = "item-add sandbox-btn item-icon-action"'),
+        "the Sandbox action must be created only after the non-installed tile returns",
+    );
+});
+
+test("connect is more compact and local remove uses a clear accessible icon", () => {
+    const html = catalogHtmlFull();
+    const css = baseStyles();
+    assert.match(css, /\.item-add\.primary\s*\{[^}]*min-width:\s*62px;[^}]*font-size:\s*\.72rem;/, "Connect should use the compact primary-button sizing");
+    assert.match(html, /connectIcon \+ "<span>Connect<\/span>"/, "Connect should include the plug mark before its label");
+    assert.match(html, /remove\.className = "item-add split-main item-icon-action"/, "local remove should be compact");
+    assert.match(html, /remove\.setAttribute\("aria-label", "Remove " \+ displayName \+ " from Copilot"\)/, "the icon needs a connector-specific label");
+    assert.match(html, /const removeIcon = '[^']*M2\.5 4h11/, "the visible control should use a recognizable trash mark");
+    assert.match(html, /remove\.innerHTML = removeIcon/, "the visible control should use the remove mark");
+    assert.doesNotMatch(html, /remove\.textContent = "Remove"/, "the local action should not render a text label");
+    assert.match(html, /\.split-remove \.split-main \{[^}]*color:var\(--danger\)/, "the trash action should be red");
+    assert.match(html, /\.split-remove \.split-caret\s*\{[^}]*padding:\.2rem \.3rem/, "the destructive-options caret should stay narrow");
+    assert.match(html, /\.split-remove \.split-caret svg\s*\{[^}]*width:8px; height:8px;/, "the caret mark should match its smaller button");
+});
+
+test("My MCPs sorts fully connected entries before other installed resources", () => {
+    const html = catalogHtmlFull();
+    assert.match(
+        html,
+        /item\.dataset\.connectionReady = st\.connectionStatus === "Connected" && st\.inCli \? "1" : "0"/,
+        "hydration should mark resources that are connected and available in Copilot",
+    );
+    assert.match(
+        html,
+        /if \(grid\.id === "grid-mine"\)[\s\S]*Number\(b\.dataset\.connectionReady === "1"\) - Number\(a\.dataset\.connectionReady === "1"\)/,
+        "My MCPs should put fully connected entries first",
+    );
+});
+
+test("narrow connector cards keep the name above wrapped actions", () => {
+    const css = baseStyles();
+    assert.match(css, /@media \(max-width: 520px\)/, "catalog cards need a narrow-panel layout");
+    assert.match(
+        css,
+        /\.item\s*\{[^}]*grid-template-columns:\s*40px minmax\(0,\s*1fr\)/,
+        "narrow cards must preserve a real text column beside the icon",
+    );
+    assert.match(
+        css,
+        /\.item > \.item-add,\s*\.item > \.item-actions\s*\{[^}]*grid-row:\s*2/,
+        "actions must move below the connector name instead of squeezing it out",
+    );
+    assert.match(css, /\.item-actions\s*\{[^}]*flex-wrap:\s*wrap/, "narrow action rows must wrap");
 });

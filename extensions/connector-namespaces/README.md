@@ -49,13 +49,19 @@ The destination **scope** is chosen at install time:
    any time via **Change namespace**).
 3. Browse or filter the connector catalog, then **Connect**. A browser tab
    opens for Microsoft sign-in; complete it and the canvas updates on its own.
-4. Connected connectors are added to your CLI session so the agent can use
+4. Connected connectors move into **My MCPs**. Use **Sandbox** on a tile to open
+   that server directly in the namespace MCP playground.
+5. Connected connectors are added to your CLI session so the agent can use
    their tools.
+
+The extension also installs a `connector-sandbox` Agent Skill into
+`$COPILOT_HOME/skills/connector-sandbox/`. New GitHub Copilot sessions discover
+the skill and can open a named connector from **My MCPs** in Sandbox.
 
 ## How it works
 
-- `extension.mjs` — entry point; declares the canvas and a few agent-facing
-  actions (`add_connector`, `remove_connector`, `list_connectors`).
+- `extension.mjs` — entry point; declares the canvas and agent-facing actions,
+  including `open_sandbox`.
 - `server.mjs` — a loopback HTTP server (bound to `127.0.0.1` only) that serves
   the canvas UI and the JSON/OAuth endpoints the iframe calls.
 - `armClient.mjs` — thin ARM client (token via interactive Azure sign-in, public
@@ -64,6 +70,9 @@ The destination **scope** is chosen at install time:
 - `install.mjs` — the connect/install pipeline (managed-API connection, consent,
   best-effort rollback on cancel).
 - `renderer.mjs` — all canvas HTML/CSS/client JS.
+- `sandbox.mjs` — builds namespace playground links and resolves named My MCPs.
+- `skillInstaller.mjs` / `skills/connector-sandbox/` — installs the bundled
+  user skill so GitHub Copilot can open Sandbox by connector name.
 - `state.mjs` / `actions/` — saved-config persistence and the agent action
   handlers.
 

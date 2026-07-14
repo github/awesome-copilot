@@ -4,7 +4,9 @@ import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 import { startServer, stopServer } from "./server.mjs";
 import { loadSavedConfig, saveConfig, getSessionConfig, getAddedConnectors, addConnector, removeConnector } from "./state.mjs";
 import { fetchCatalog } from "./catalog.mjs";
-import { setWorkspaceRoot } from "./install.mjs";
+import { getInstalledState, openInBrowser, setWorkspaceRoot } from "./install.mjs";
+import { buildSandboxUrl, resolveSandboxConnector } from "./sandbox.mjs";
+import { installBundledSkill } from "./skillInstaller.mjs";
 
 // Load any previously saved connector namespace config on startup
 loadSavedConfig();
@@ -14,7 +16,7 @@ const session = await joinSession({
         createCanvas({
             id: "connector-namespaces",
             displayName: "MCP Connectors",
-            description: "Browse and add MCP connectors to your session \u2014 search by name or category, then add connectors to enable their tools.",
+            description: "Browse, connect, and open MCP connectors in the Azure Connector Namespace Sandbox.",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -48,6 +50,31 @@ const session = await joinSession({
                     description: "List all connectors currently added to the session",
                     handler: async () => ({ connectors: getAddedConnectors() }),
                 },
+                {
+                    name: "open_sandbox",
+                    description: "Open a named connector from My MCPs in the Azure Connector Namespace Sandbox",
+                    inputSchema: {
+                        type: "object",
+                        properties: {
+                            server: {
+                                type: "string",
+                                description: "Connector display name or server ID from My MCPs",
+                            },
+                        },
+                        required: ["server"],
+                    },
+                    handler: async (ctx) => {
+                        const config = getSessionConfig();
+                        if (!config) return { opened: false, reason: "no_namespace_configured" };
+                        const catalog = await fetchCatalog(config.subscriptionId, config.resourceGroup, config.gatewayName);
+                        const installedState = await getInstalledState(config);
+                        const resolved = resolveSandboxConnector(catalog, installedState, ctx.input.server);
+                        if (!resolved.connector) return { opened: false, ...resolved };
+                        const url = buildSandboxUrl(config, resolved.connector.id);
+                        openInBrowser(url);
+                        return { opened: true, server: resolved.connector, url };
+                    },
+                },
             ],
             open: async (ctx) => {
                 // If explicit input provided, use it and save for future
@@ -71,3 +98,12 @@ const session = await joinSession({
 
 // Tell the install pipeline where the workspace .mcp.json lives (if any).
 setWorkspaceRoot(session.workspacePath);
+
+try {
+    const skill = installBundledSkill();
+    if (skill.installed) {
+        await session.log("Installed the connector-sandbox skill. Start a new session to use it from GitHub Copilot.", { level: "info" });
+    }
+} catch (error) {
+    await session.log(`Could not install the connector-sandbox skill: ${error.message}`, { level: "warning" });
+}
