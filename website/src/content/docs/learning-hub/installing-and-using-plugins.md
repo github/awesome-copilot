@@ -222,16 +222,6 @@ copilot plugin marketplace update
 copilot plugin uninstall my-plugin
 ```
 
-### Interactive Plugins Dashboard
-
-*(v1.0.69+)* The **`/plugins` dashboard** provides an interactive UI for managing your installed plugins without leaving a session. Open it with:
-
-```
-/plugins
-```
-
-The dashboard shows all installed plugins, their versions, and their status. From here you can enable or disable individual plugins, trigger updates, and browse the marketplace — all without running separate CLI commands. It's especially useful mid-session when you want to quickly check what's installed or toggle a plugin without interrupting your workflow.
-
 ### Loading Plugins from a Local Directory
 
 You can load plugins directly from a local directory without installing them from a marketplace, using the `--plugin-dir` flag when starting Copilot:
