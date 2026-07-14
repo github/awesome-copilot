@@ -500,7 +500,7 @@ function resolvePluginItem(item, resourceIndex) {
 
   return {
     ...item,
-    title: match?.title || candidateId || item.path,
+    title: match?.title || item.title || candidateId || item.path,
     detailUrl: match?.url || null,
   };
 }
@@ -614,12 +614,37 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
         ];
       });
 
-      // Build items list from spec fields (agents, commands, skills)
+      // Parse mcpServers: supports a path to a .mcp.json file or an inline object
+      const mcpItems = [];
+      if (data.mcpServers) {
+        let mcpServersObj = null;
+        if (typeof data.mcpServers === "string") {
+          const mcpJsonPath = path.join(pluginDir, data.mcpServers.replace(/^\.\//, ""));
+          if (fs.existsSync(mcpJsonPath)) {
+            try {
+              const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, "utf-8"));
+              mcpServersObj = mcpJson.mcpServers || mcpJson;
+            } catch {
+              // ignore parse errors
+            }
+          }
+        } else if (typeof data.mcpServers === "object") {
+          mcpServersObj = data.mcpServers;
+        }
+        if (mcpServersObj) {
+          for (const serverName of Object.keys(mcpServersObj)) {
+            mcpItems.push({ kind: "mcp", path: serverName, title: serverName });
+          }
+        }
+      }
+
+      // Build items list from spec fields (agents, commands, skills, mcpServers)
       const items = [
         ...agentItems,
         ...(data.commands || []).map((p) => ({ kind: "prompt", path: p })),
         ...(data.skills || []).map((p) => ({ kind: "skill", path: p })),
         ...extensionItems,
+        ...mcpItems,
       ].map((item) => resolvePluginItem(item, resourceIndex));
 
       const tags = data.keywords || data.tags || [];
