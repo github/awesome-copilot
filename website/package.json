@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "a11y": "node ./scripts/a11y-audit.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -19,13 +20,18 @@
   "license": "MIT",
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",
-    "@astrojs/starlight": "^0.38.4",
-    "astro": "^6.1.9",
+    "@astrojs/starlight": "^0.41.1",
+    "astro": "^7.0.3",
     "choices.js": "^11.2.2",
     "front-matter": "^4.0.2",
     "gray-matter": "^4.0.3",
+    "isomorphic-dompurify": "^2.36.0",
     "jszip": "^3.10.1",
     "marked": "^18.0.2",
     "shiki": "^4.0.2"
+  },
+  "devDependencies": {
+    "axe-core": "^4.10.2",
+    "playwright": "^1.49.0"
   }
 }

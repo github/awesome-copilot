@@ -11,6 +11,7 @@ Thank you for your interest in contributing to the Awesome GitHub Copilot reposi
   - [Adding Instructions](#adding-instructions)
   - [Adding Agents](#adding-an-agent)
   - [Adding Skills](#adding-skills)
+  - [Adding Canvas Extensions](#adding-canvas-extensions)
   - [Adding Plugins](#adding-plugins)
   - [Adding Hooks](#adding-hooks)
   - [Adding Agentic Workflows](#adding-agentic-workflows)
@@ -137,6 +138,21 @@ Skills are self-contained folders in the `skills/` directory that include a `SKI
 3. **Add optional assets**: Keep bundled assets reasonably sized (under 5MB each) and reference them from `SKILL.md`
 4. **Validate and update docs**: Run `npm run skill:validate` and then `npm run build` to update the generated README tables
 
+### Adding Canvas Extensions
+
+Canvas extensions live in `extensions/<extension-id>/` and are installable through plugin metadata.
+
+1. **Create/update extension metadata**: Add `.github/plugin/plugin.json` in the extension folder
+2. **Use convention-based metadata**: Follow the extension plugin.json structure:
+   - Required: `name` (matching folder name), `description`, `version`
+   - Optional: `author`, `keywords`
+   - `logo` **must** be exactly `"assets/preview.png"` (enforced convention)
+   - `extensions` **must** be exactly `"."` (per [copilot-agent-runtime#9929](https://github.com/github/copilot-agent-runtime/pull/9929))
+   - **Never** include `x-awesome-copilot` field (use convention-based assets only)
+3. **Screenshot requirements**: Create `assets/preview.png` as your primary visual
+4. **Do not add `canvas.json`**: Extension website metadata is now sourced from `.github/plugin/plugin.json`
+5. **Validate before submitting**: Run `npm run plugin:validate` to check compliance with conventions
+
 ### Adding Plugins
 
 Plugins group related agents, commands, and skills around specific themes or workflows, making it easy for users to install comprehensive toolkits via GitHub Copilot CLI.
@@ -183,6 +199,7 @@ plugins/my-plugin-id/
 
 - **Declarative content**: Plugin content is specified via `agents`, `commands`, and `skills` arrays in plugin.json — source files live in top-level directories and are materialized into plugins by CI
 - **Valid references**: All paths referenced in plugin.json must point to existing source files in the repository
+- **Optional extension links**: Curated plugins can reference extensions using `x-awesome-copilot.extensions` with paths like `./extensions/<extension-id>`
 - **Instructions excluded**: Instructions are standalone resources and are not part of plugins
 - **Clear purpose**: The plugin should solve a specific problem or workflow
 - **Validate before submitting**: Run `npm run plugin:validate` to ensure your plugin is valid
@@ -231,7 +248,7 @@ The public-submission policy builds on those rules and also requires `license` p
 1. **Open an issue** using the external plugin issue form. Automation applies the `external-plugin` and `awaiting-review` labels.
 2. **Automated intake validation** checks that the required fields are present and correctly formatted for a GitHub-hosted plugin. Invalid submissions are labeled `requires-submitter-fixes` with a comment explaining what must be fixed before maintainer review.
 3. **Automated quality gates** run after metadata validation:
-   - `skill-validator check --plugin` against the submitted plugin path/ref/sha
+   - `vally lint` against the submitted plugin path/ref/sha
    - install smoke test via Copilot CLI against an ephemeral marketplace entry generated from the submission
 4. **Ready for maintainer review**: if metadata validation and quality gates pass, automation removes `awaiting-review` and adds `ready-for-review`.
 5. **Submitter-fix blocker**: if metadata is valid but quality gates fail, automation applies `requires-submitter-fixes` instead of advancing to human review.
@@ -246,7 +263,7 @@ The public-submission policy builds on those rules and also requires `license` p
 When a pull request updates `plugins/external.json` (for example, version updates for a previously approved listing), automation runs PR quality checks and posts the result directly on the PR:
 
 1. **Detect changed entries**: automation identifies added/updated external plugin entries in the PR.
-2. **Run quality gates**: automation runs install smoke tests and `skill-validator` checks against each changed plugin source ref/SHA/path.
+2. **Run quality gates**: automation runs install smoke tests and `vally lint` checks against each changed plugin source ref/SHA/path.
 3. **Post source links**: automation updates a bot comment with per-plugin results and direct GitHub tree links to each plugin source location.
 4. **Sync workflow-state labels on the PR**:
    - `ready-for-review` when all checks pass

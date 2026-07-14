@@ -57,9 +57,18 @@ function hasUnpinnedVersionIndicator(line) {
     return true;
   }
 
-  // pyproject/requirements style entries with broad lower-bound only specs.
+  // Python package install commands with broad lower-bound only specs.
   if (
-    /\b[A-Za-z0-9_.-]+\s*(>=|>|~=)\s*\d+(?:\.\d+){0,2}\b(?!\s*,\s*<)/.test(
+    /\b(?:pip|pip3|uv|uvx|poetry|pdm)\s+install\b[^\n#]*\b[a-z0-9][a-z0-9_.-]*(?:\[[A-Za-z0-9_,.-]+\])?\s*(>=|>|~=)\s*\d+(?:\.\d+){0,2}\b(?!\s*,\s*<)/i.test(
+      trimmed
+    )
+  ) {
+    return true;
+  }
+
+  // requirements/constraints style entries that contain only a dependency spec.
+  if (
+    /^\s*(?:-\s*)?(?:["'])?[a-z0-9][a-z0-9_.-]*(?:\[[A-Za-z0-9_,.-]+\])?(?:["'])?\s*(>=|>|~=)\s*\d+(?:\.\d+){0,2}\b(?!\s*,\s*<)(?:\s*(?:#.*)?)?$/.test(
       trimmed
     )
   ) {

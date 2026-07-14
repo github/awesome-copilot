@@ -266,19 +266,19 @@ export class PlanetGuardianScene extends BaseScene {
         this.load.image('def-swarmer', '../assets/defender/swarmer.png');
         this.load.image('def-baiter', '../assets/defender/baiter.png');
         // Sounds from OpenDefender
-        this.load.audio('snd_laser', '../assets/defender/sounds/sound_laser.wav');
-        this.load.audio('snd_enemydead', '../assets/defender/sounds/sound_enemydead.wav');
-        this.load.audio('snd_explode', '../assets/defender/sounds/sound_explode.wav');
-        this.load.audio('snd_playerdead', '../assets/defender/sounds/sound_playerdead.wav');
-        this.load.audio('snd_bonus', '../assets/defender/sounds/sound_bonus.wav');
-        this.load.audio('snd_humanoiddead', '../assets/defender/sounds/sound_humanoiddead.wav');
-        this.load.audio('snd_start', '../assets/defender/sounds/sound_start.wav');
-        this.load.audio('snd_thrust', '../assets/defender/sounds/sound_thurst.wav');
-        this.load.audio('snd_warning', '../assets/defender/sounds/sound_warning.wav');
-        this.load.audio('snd_baiterwarning', '../assets/defender/sounds/sound_baiterwarning.wav');
-        this.load.audio('snd_player1up', '../assets/defender/sounds/sound_player1up.wav');
-        this.load.audio('snd_enemyshoot', '../assets/defender/sounds/sound_enemyshoot.wav');
-        this.load.audio('snd_enemyshoot2', '../assets/defender/sounds/sound_enemyshoot2.wav');
+        this.load.audio('snd_laser', '../assets/defender/sounds/sound_laser.ogg');
+        this.load.audio('snd_enemydead', '../assets/defender/sounds/sound_enemydead.ogg');
+        this.load.audio('snd_explode', '../assets/defender/sounds/sound_explode.ogg');
+        this.load.audio('snd_playerdead', '../assets/defender/sounds/sound_playerdead.ogg');
+        this.load.audio('snd_bonus', '../assets/defender/sounds/sound_bonus.ogg');
+        this.load.audio('snd_humanoiddead', '../assets/defender/sounds/sound_humanoiddead.ogg');
+        this.load.audio('snd_start', '../assets/defender/sounds/sound_start.ogg');
+        this.load.audio('snd_thrust', '../assets/defender/sounds/sound_thurst.ogg');
+        this.load.audio('snd_warning', '../assets/defender/sounds/sound_warning.ogg');
+        this.load.audio('snd_baiterwarning', '../assets/defender/sounds/sound_baiterwarning.ogg');
+        this.load.audio('snd_player1up', '../assets/defender/sounds/sound_player1up.ogg');
+        this.load.audio('snd_enemyshoot', '../assets/defender/sounds/sound_enemyshoot.ogg');
+        this.load.audio('snd_enemyshoot2', '../assets/defender/sounds/sound_enemyshoot2.ogg');
     }
     create() {
         this.initBase();

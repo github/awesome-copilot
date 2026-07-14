@@ -23,7 +23,7 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 - Use data binding effectively with @bind.
 - Leverage Dependency Injection for services in Blazor.
 - Structure Blazor components and services following Separation of Concerns.
-- Always use the latest version C#, currently C# 13 features like record types, pattern matching, and global usings.
+- Always use the latest version C#, currently C# 14 features like record types, pattern matching, and global usings.
 
 ## Error Handling and Validation
 
@@ -58,13 +58,13 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 - Use HttpClient or other appropriate services to communicate with external APIs or your own backend.
 - Implement error handling for API calls using try-catch and provide proper user feedback in the UI.
 
-## Testing and Debugging in Visual Studio
+## Testing and Debugging
 
-- All unit testing and integration testing should be done in Visual Studio Enterprise.
+- All unit testing and integration testing should run cross-IDE (Visual Studio, VS Code, JetBrains Rider) so contributors aren't gated on a paid SKU.
 - Test Blazor components and services using xUnit, NUnit, or MSTest.
 - Use Moq or NSubstitute for mocking dependencies during tests.
-- Debug Blazor UI issues using browser developer tools and Visual Studio's debugging tools for backend and server-side issues.
-- For performance profiling and optimization, rely on Visual Studio's diagnostics tools.
+- Debug Blazor UI issues using browser developer tools, and use your IDE's debugger for backend and server-side issues.
+- For performance profiling and optimization, use your IDE's diagnostics tools or `dotnet-trace` / `dotnet-counters` for cross-platform profiling.
 
 ## Security and Authentication
 

@@ -11,6 +11,7 @@ on:
       - instructions
       - hooks
       - workflows
+      - extensions
 
 permissions:
   contents: read
