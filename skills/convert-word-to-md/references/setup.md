@@ -35,8 +35,8 @@ python -m ensurepip --upgrade
 python -m pip install "markitdown[docx]"
 ```
 
-Use the `scripts/requirements.txt` file bundled with this skill for a pinned
-install instead, if preferred:
+Use the `scripts/requirements.txt` file bundled with this skill for a requirements-file install
+ instead, if preferred:
 
 ```powershell
 python -m pip install -r scripts/requirements.txt
