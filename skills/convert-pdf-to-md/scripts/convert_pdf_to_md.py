@@ -104,7 +104,15 @@ def extract_images(fitz, pdf_path: Path, img_dir: Path):
 
     try:
         for page_index in range(len(doc)):
-            images = doc[page_index].get_images(full=True)
+            try:
+                 images = doc[page_index].get_images(full=True)
+            except Exception as exc:  # noqa: BLE001
+                 print(
+                     f"WARNING: failed to enumerate images on page {page_index + 1} "
+                     f"of {pdf_path}: {exc}",
+                     file=sys.stderr,
+                 )
+                 continue
             if not images:
                 continue
             page_files = []

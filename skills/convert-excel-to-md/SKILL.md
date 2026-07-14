@@ -43,8 +43,8 @@ self-contained folder per document:
 ```
 <name>/
     img/
-        Sheet1_img001.<ext>
-        Sheet2_img001.<ext>
+        sheet001_<sheetname>_img001.<ext>
+        sheet002_<sheetname>_img001.<ext>
         ...
     <name>.md          (each sheet's images appear right after its table,
                          under a "#### Images in this sheet" heading)
@@ -95,6 +95,7 @@ Markdown (and images), not to interpret the content.
 ## Deciding where output goes
 
 There's no single fixed output location — decide based on context:
+
 - If the user doesn't say where they want the output, default to creating
   the `<name>\` folder next to the source file (the script's default
   behavior) — this is the least surprising choice and keeps things easy to

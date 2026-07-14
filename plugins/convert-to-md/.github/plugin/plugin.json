@@ -1,0 +1,25 @@
+{
+  "name": "convert-to-md",
+  "description": "Converts Word (.docx), Excel (.xlsx), and PDF (.pdf) documents into Markdown for analysis, summarization, and extraction.",
+  "version": "1.0.1",
+  "author": {
+    "name": "Willie Yao",
+    "url": "https://github.com/1YaoWei0"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "convert-word-to-md",
+    "convert-excel-to-md",
+    "convert-pdf-to-md",
+    "copilot",
+    "agents",
+    "skills",
+    "configuration"
+  ],
+  "skills": [
+    "./skills/convert-word-to-md",
+    "./skills/convert-excel-to-md",
+    "./skills/convert-pdf-to-md"
+  ]
+}

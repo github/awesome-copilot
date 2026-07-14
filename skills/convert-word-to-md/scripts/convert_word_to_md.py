@@ -91,12 +91,18 @@ def _document_order_media(docx_path: Path):
     except (zipfile.BadZipFile, KeyError, OSError):
         return []
 
+    try:
+         rels_root = ET.fromstring(rels_xml)
+         doc_root = ET.fromstring(doc_xml)
+    except ET.ParseError:
+         return []
+
     rel_map = {}
-    for rel in ET.fromstring(rels_xml).findall(f"{{{_REL_NS}}}Relationship"):
+    for rel in rels_root.findall(f"{{{_REL_NS}}}Relationship"):
         rel_map[rel.get("Id")] = rel.get("Target")
 
     ordered_rel_ids = []
-    for elem in ET.fromstring(doc_xml).iter():
+    for elem in doc_root.iter():
         tag = elem.tag.rsplit("}", 1)[-1]
         if tag == "blip":
             rid = elem.get(f"{{{_R_NS}}}embed")
@@ -106,7 +112,6 @@ def _document_order_media(docx_path: Path):
             rid = None
         if rid:
             ordered_rel_ids.append(rid)
-
     ordered_media = []
     for rid in ordered_rel_ids:
         target = rel_map.get(rid)

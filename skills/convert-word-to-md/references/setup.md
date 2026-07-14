@@ -13,7 +13,7 @@ python --version
 - If this fails (command not found), install Python 3.10 or newer:
   - Windows: `winget install --id Python.Python.3.12 -e`
   - macOS: `brew install python@3.12`
-  - Linux (Debian/Ubuntu): `sudo apt-get update && sudo apt-get install -y python3 python3-pip`
+  - Linux (Debian/Ubuntu): `sudo apt-get update && sudo apt-get install -y python3 python3-pip python-is-python3`
 - If the reported version is older than 3.10, install a newer Python using
   the same command above (MarkItDown requires 3.10+).
 
