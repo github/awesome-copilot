@@ -22,13 +22,7 @@ New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilo
 | 📋 [Instructions](docs/README.instructions.md) | Coding standards applied automatically by file pattern | [All instructions →](https://awesome-copilot.github.com/instructions) |
 | 🎯 [Skills](docs/README.skills.md) | Self-contained folders with instructions and bundled assets | [All skills →](https://awesome-copilot.github.com/skills) |
 | 🔌 [Plugins](docs/README.plugins.md) | Curated bundles of agents and skills for specific workflows | [All plugins →](https://awesome-copilot.github.com/plugins) |
-| 🪝 [Hooks](docs/README.hooks.md) | Automated actions triggered during Copilot agent sessions | [All hooks →](https://awesome-copilot.github.com/hooks) |
-| ⚡ [Agentic Workflows](docs/README.workflows.md) | AI-powered GitHub Actions automations written in markdown | [All workflows →](https://awesome-copilot.github.com/workflows) |
 | 🍳 [Cookbook](cookbook/README.md) | Copy-paste-ready recipes for working with Copilot APIs | — |
-
-## 🛠️ Tools
-
-Looking at how to use Awesome Copilot? Check out the **[Tools section](https://awesome-copilot.github.com/tools)** of the website for MCP servers, editor integrations, and other developer tooling to get the most out of this collection.
 
 ## Install a Plugin
 
