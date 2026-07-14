@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-07-14
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -143,6 +143,16 @@ Or from a local path:
 copilot plugin marketplace add /path/to/local-marketplace
 ```
 
+### Removing a Marketplace
+
+*(v1.0.70+)* To unregister a marketplace you no longer need, use the `marketplace remove` subcommand:
+
+```bash
+copilot plugin marketplace remove my-old-marketplace
+```
+
+This removes the marketplace registration from your local configuration. Any plugins you already installed from that marketplace remain installed — only future installs and updates from that marketplace are affected.
+
 ### Sharing Marketplace Registrations Across a Team
 
 To automatically register an additional marketplace for everyone working in a repository, add an `extraKnownMarketplaces` entry to your `.github/copilot-settings.json` (or `config.json`):
@@ -221,6 +231,18 @@ copilot plugin marketplace update
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### Interactive Plugin Dashboard
+
+*(v1.0.69+)* From within an active Copilot CLI session, run `/plugins` to open an interactive TUI dashboard for managing your installed plugins:
+
+```
+/plugins
+```
+
+The `/plugins` dashboard lets you view all installed plugins, see which agents, skills, and hooks each plugin contributes, reload plugin extensions without restarting your session, and navigate to install or update actions — all without leaving your current session.
+
+> **Tip**: Plugin extensions (IDE integrations) can now be reloaded mid-session without restarting Copilot CLI. If you install or update a plugin that includes an extension, use `/plugins` to reload it immediately.
 
 ### Loading Plugins from a Local Directory
 
