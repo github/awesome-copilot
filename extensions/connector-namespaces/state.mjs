@@ -1,6 +1,6 @@
 // State management — persists gateway config and tracks added connectors.
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, unlinkSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, unlinkSync, chmodSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { armSegment } from "./armClient.mjs";
@@ -17,9 +17,8 @@ let savedConfig = null;
 // ---------------------------------------------------------------------------
 
 function ensureStorageDir() {
-    if (!existsSync(STORAGE_DIR)) {
-        mkdirSync(STORAGE_DIR, { recursive: true });
-    }
+    mkdirSync(STORAGE_DIR, { recursive: true, mode: 0o700 });
+    chmodSync(STORAGE_DIR, 0o700);
 }
 
 export function isValidConfig(data) {
@@ -65,7 +64,8 @@ export function saveConfig(config) {
     }
     ensureStorageDir();
     savedConfig = config;
-    writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
+    writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { encoding: "utf-8", mode: 0o600 });
+    chmodSync(CONFIG_FILE, 0o600);
 }
 
 export function clearConfig() {

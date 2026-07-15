@@ -3,15 +3,10 @@
 // Run: node --test extensions/connector-namespaces/renderer.test.mjs
 //
 // These tests exist because two UX bugs kept coming back:
-//   1. A `@media (prefers-reduced-motion: reduce)` rule that froze loading
-//      spinners. It shipped twice: first as animation-iteration-count: 1
-//      !important on the universal selector, then as
-//      `.brand-loading, .skeleton { animation: none !important }`. Both froze
-//      functional loaders — the latter made the "Change namespace" overlay
-//      logo look stuck. Every animation in this canvas IS a functional loader
-//      (brand-loading nav overlay, .si-spin sign-in spinner, .skeleton cards),
-//      so the reduced-motion block must never disable an animation at all. The
-//      guards below fail if any animation-killer reappears in that block.
+//   1. A `@media (prefers-reduced-motion: reduce)` rule froze functional
+//      loaders without a visible fallback. Reduced motion now stops the
+//      animation while forcing each loader into a visible static busy state;
+//      nearby text continues to communicate progress.
 //   2. The "Restart your Copilot session" banner ignoring Dismiss. The real
 //      root cause was CSS specificity: `.restart-banner{display:flex}` is an
 //      author rule with the same (0,1,0) specificity as the UA
@@ -31,8 +26,7 @@ import { CATEGORY } from "./categories.mjs";
 
 // Pull the balanced body of the prefers-reduced-motion media block out of a
 // stylesheet string (non-greedy regex can't handle the nested rule braces).
-// CSS comments are stripped so the "must not contain animation:none" guards
-// test actual declarations, not explanatory prose inside the block.
+// CSS comments are stripped so the guards test declarations rather than prose.
 function reducedMotionBlock(css) {
     const start = css.indexOf("@media (prefers-reduced-motion: reduce)");
     if (start === -1) return null;
