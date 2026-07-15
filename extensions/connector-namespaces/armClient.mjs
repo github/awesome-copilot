@@ -1,270 +1,151 @@
-// ARM API client — fetches real connector data via an interactive Azure sign-in.
+// ARM API client — fetches real connector data with Azure CLI credentials.
 
-import { createServer } from "node:http";
-import { createHash, randomBytes } from "node:crypto";
-import { spawn } from "node:child_process";
-import { platform, homedir } from "node:os";
-import { readFileSync, writeFileSync, mkdirSync, existsSync, chmodSync } from "node:fs";
-import { join } from "node:path";
+import { exec, execFile } from "node:child_process";
+import { constants as fsConstants, promises as fs } from "node:fs";
+import { homedir, platform } from "node:os";
+import { basename, delimiter, dirname, isAbsolute, join, resolve, sep } from "node:path";
+import { promisify } from "node:util";
 
 const API_VERSION = "2026-05-01-preview";
 const RG_API_VERSION = "2021-04-01";
 const MSI_API_VERSION = "2023-01-31";
 const SUBS_API_VERSION = "2020-01-01";
 
-// Azure CLI's well-known first-party public client. It already has an
-// http://localhost loopback redirect registered, so we can run an interactive
-// auth-code + PKCE sign-in against it with no app registration of our own. AAD
-// accepts any port on a loopback redirect for public clients, so there's no
-// secret to ship and nothing for a teammate to configure.
-const CLIENT_ID = "04b07795-8ddb-461a-bbee-02f9e1bf7b46";
-const AUTHORITY = "https://login.microsoftonline.com/organizations";
-// offline_access gets us a refresh token so we prompt the browser once per
-// session, then renew silently as the ARM token expires.
-const SCOPE = "https://management.azure.com/.default offline_access";
-const SIGN_IN_TIMEOUT_MS = 5 * 60 * 1000;
-
-const base64url = (buf) =>
-    buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-
-// Open a URL in the default browser without shelling out to az. rundll32's
-// FileProtocolHandler on Windows avoids cmd's `&` parsing on query strings.
-function openBrowser(url) {
-    const os = platform();
-    const [cmd, args] =
-        os === "win32"
-            ? ["rundll32", ["url.dll,FileProtocolHandler", url]]
-            : os === "darwin"
-              ? ["open", [url]]
-              : ["xdg-open", [url]];
-    try {
-        const child = spawn(cmd, args, { stdio: "ignore", detached: true });
-        child.on("error", () => {});
-        child.unref();
-    } catch {
-        // If launching a browser fails, the URL is printed below so the user
-        // can open it by hand (e.g. over SSH).
-    }
-}
-
-async function tokenRequest(form) {
-    const res = await fetch(`${AUTHORITY}/oauth2/v2.0/token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: form.toString(),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-        throw new Error(`Azure sign-in failed: ${data.error_description || data.error || res.status}`);
-    }
-    return {
-        token: data.access_token,
-        refreshToken: data.refresh_token,
-        // expires_in is seconds-from-now; store an absolute ms timestamp.
-        expiresAt: Date.now() + (Number(data.expires_in) || 3600) * 1000,
-    };
-}
-
-function exchangeCode(code, verifier, redirectUri) {
-    return tokenRequest(
-        new URLSearchParams({
-            client_id: CLIENT_ID,
-            grant_type: "authorization_code",
-            code,
-            redirect_uri: redirectUri,
-            code_verifier: verifier,
-            scope: SCOPE,
-        }),
-    );
-}
-
-function refreshAccessToken(refreshToken) {
-    return tokenRequest(
-        new URLSearchParams({
-            client_id: CLIENT_ID,
-            grant_type: "refresh_token",
-            refresh_token: refreshToken,
-            scope: SCOPE,
-        }),
-    );
-}
-
-// One interactive sign-in: start a loopback server on a random free port, open
-// the browser to the AAD authorize endpoint, capture the redirected code, and
-// exchange it for an ARM token.
-function interactiveSignIn() {
-    return new Promise((resolve, reject) => {
-        const verifier = base64url(randomBytes(32));
-        const challenge = base64url(createHash("sha256").update(verifier).digest());
-        const state = base64url(randomBytes(16));
-        let redirectUri = "";
-        let settled = false;
-        let authStarted = false;
-
-        // One handler shared by two loopback listeners (IPv4 + IPv6) on the same
-        // OS-chosen port. The redirect_uri uses "localhost" because that's the
-        // loopback host registered for the Azure CLI public client, and on
-        // Windows "localhost" can resolve to either 127.0.0.1 or ::1, so we
-        // listen on both stacks to guarantee the AAD redirect reaches us.
-        const handler = (req, res) => {
-            const reqUrl = new URL(req.url, "http://localhost");
-            if (reqUrl.pathname !== "/") {
-                res.writeHead(404).end();
-                return;
-            }
-            const code = reqUrl.searchParams.get("code");
-            const returnedState = reqUrl.searchParams.get("state");
-            res.writeHead(200, { "Content-Type": "text/html" });
-            res.end(
-                "<html><body style=\"font-family:system-ui,sans-serif;padding:2rem\">" +
-                    "<h2>Signed in to Azure</h2><p>You can close this tab and return to your terminal.</p>" +
-                    "</body></html>",
-            );
-            if (!code || returnedState !== state) {
-                finish(reject, new Error("Azure sign-in was cancelled or returned an unexpected response."));
-                return;
-            }
-            exchangeCode(code, verifier, redirectUri).then(
-                (auth) => finish(resolve, auth),
-                (err) => finish(reject, err),
-            );
-        };
-
-        const v4 = createServer(handler);
-        const v6 = createServer(handler);
-
-        const finish = (fn, arg) => {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timer);
-            for (const s of [v4, v6]) {
-                try {
-                    s.close();
-                } catch {
-                    // listener may never have bound (e.g. no IPv6 loopback); ignore.
-                }
-            }
-            fn(arg);
-        };
-
-        const timer = setTimeout(
-            () => finish(reject, new Error("Azure sign-in timed out. Run the action again to retry.")),
-            SIGN_IN_TIMEOUT_MS,
-        );
-
-        const startAuth = () => {
-            if (authStarted) return;
-            authStarted = true;
-            const authUrl =
-                `${AUTHORITY}/oauth2/v2.0/authorize?` +
-                new URLSearchParams({
-                    client_id: CLIENT_ID,
-                    response_type: "code",
-                    redirect_uri: redirectUri,
-                    response_mode: "query",
-                    scope: SCOPE,
-                    state,
-                    code_challenge: challenge,
-                    code_challenge_method: "S256",
-                    prompt: "select_account",
-                }).toString();
-            console.error(`\nSign in to Azure to load your connector namespaces:\n${authUrl}\n`);
-            openBrowser(authUrl);
-        };
-
-        // IPv4 is the primary listener and its errors are fatal. IPv6 is
-        // best-effort: machines without IPv6 loopback just use IPv4, so its
-        // bind errors are swallowed and we start sign-in once either settles.
-        v4.on("error", (err) => finish(reject, err));
-        v6.on("error", () => startAuth());
-
-        // Port 0 lets the OS pick a free port; loopback redirects accept any port.
-        v4.listen(0, "127.0.0.1", () => {
-            const { port } = v4.address();
-            redirectUri = `http://localhost:${port}`;
-            v6.listen(port, "::1", () => startAuth());
-        });
-    });
-}
-
-// One browser sign-in, then silent refresh-token renewals as the ARM access
-// token expires (~60-90min). Refresh 5min early. A single-flight guard makes
-// concurrent callers share one sign-in instead of opening two tabs.
-//
-// The cache is also persisted to disk so a process restart (CLI reload, host
-// recycle, crash) renews silently from the saved refresh token instead of
-// popping the browser again. Without this, every restart wiped the in-memory
-// token and forced a fresh interactive sign-in.
-const TOKEN_DIR = join(process.env.COPILOT_HOME || join(homedir(), ".copilot"), "extensions", "connector-namespaces", "artifacts");
-const TOKEN_FILE = join(TOKEN_DIR, "auth-cache.json");
-
-let s_auth = null; // { token, refreshToken, expiresAt }
-let s_authInFlight = null;
-let s_diskLoaded = false;
+const execFileAsync = promisify(execFile);
+const execAsync = promisify(exec);
+const ARM_RESOURCE = "https://management.azure.com/";
 const EXPIRY_SKEW_MS = 5 * 60 * 1000;
+const LEGACY_AUTH_CACHE = join(
+    process.env.COPILOT_HOME || join(homedir(), ".copilot"),
+    "extensions",
+    "connector-namespaces",
+    "artifacts",
+    "auth-cache.json",
+);
 
-function loadAuthCache() {
+let s_auth = null; // { token, expiresAt }
+let s_authInFlight = null;
+let s_legacyAuthCacheRemoved = false;
+
+export function parseAzureCliToken(stdout) {
+    let data;
     try {
-        if (existsSync(TOKEN_FILE)) {
-            const data = JSON.parse(readFileSync(TOKEN_FILE, "utf-8"));
-            if (data && typeof data.refreshToken === "string" && data.refreshToken.length > 0) {
-                return data;
-            }
-        }
+        data = JSON.parse(stdout);
     } catch {
-        // Corrupt or unreadable cache — ignore and sign in fresh.
+        throw new Error("Azure CLI returned invalid token JSON.");
     }
-    return null;
+    const token = data?.accessToken;
+    const epochSeconds = Number(data?.expires_on);
+    const expiresAt = Number.isFinite(epochSeconds) && epochSeconds > 0
+        ? epochSeconds * 1000
+        : Date.parse(data?.expiresOn);
+    if (typeof token !== "string" || token.length === 0 || !Number.isFinite(expiresAt)) {
+        throw new Error("Azure CLI returned an incomplete ARM token.");
+    }
+    return { token, expiresAt };
 }
 
-function saveAuthCache(auth) {
+async function removeLegacyAuthCache() {
+    if (s_legacyAuthCacheRemoved) return;
     try {
-        if (!existsSync(TOKEN_DIR)) {
-            mkdirSync(TOKEN_DIR, { recursive: true });
+        await fs.unlink(LEGACY_AUTH_CACHE);
+    } catch (error) {
+        if (error?.code !== "ENOENT") {
+            throw new Error(`Could not remove the legacy connector credential cache at ${LEGACY_AUTH_CACHE}: ${error.message}`);
         }
-        const payload = JSON.stringify(
-            { token: auth.token, refreshToken: auth.refreshToken, expiresAt: auth.expiresAt },
-            null,
-            2,
-        );
-        writeFileSync(TOKEN_FILE, payload, { encoding: "utf-8", mode: 0o600 });
-        chmodSync(TOKEN_FILE, 0o600);
-    } catch {
-        // Best-effort; the in-memory cache still serves this process.
     }
+    s_legacyAuthCacheRemoved = true;
 }
 
-// Pull the persisted token in once per process, before the first acquire.
-function hydrateFromDisk() {
-    if (s_diskLoaded) {
-        return;
+function windowsSystemExecutable(name) {
+    const comspec = process.env.ComSpec;
+    if (comspec && isAbsolute(comspec)) {
+        return name.toLowerCase() === "cmd.exe" ? comspec : join(dirname(comspec), name);
     }
-    s_diskLoaded = true;
-    if (!s_auth) {
-        const cached = loadAuthCache();
-        if (cached) {
-            s_auth = cached;
-        }
+    const systemRoot = process.env.SystemRoot;
+    if (systemRoot && isAbsolute(systemRoot)) return join(systemRoot, "System32", name);
+    throw new Error(`Could not resolve the Windows system executable ${name}.`);
+}
+
+async function trustedExecutablePath(path, expectedName, workspaceRoot = process.cwd()) {
+    if (!isAbsolute(path) || /["\r\n]/.test(path)) return null;
+    let candidate;
+    let workspace;
+    try {
+        [candidate, workspace] = await Promise.all([
+            fs.realpath(path),
+            fs.realpath(workspaceRoot),
+        ]);
+        if (!(await fs.stat(candidate)).isFile()) return null;
+        if (platform() !== "win32") await fs.access(candidate, fsConstants.X_OK);
+    } catch {
+        return null;
     }
+    const insensitive = platform() === "win32";
+    const normalize = (value) => insensitive ? value.toLowerCase() : value;
+    const normalizedCandidate = normalize(resolve(candidate));
+    const normalizedWorkspace = normalize(resolve(workspace));
+    const workspacePrefix = normalizedWorkspace.endsWith(sep)
+        ? normalizedWorkspace
+        : `${normalizedWorkspace}${sep}`;
+    if (
+        normalize(basename(candidate)) !== normalize(expectedName) ||
+        normalizedCandidate === normalizedWorkspace ||
+        normalizedCandidate.startsWith(workspacePrefix)
+    ) return null;
+    return candidate;
+}
+
+async function resolveWindowsAzureCli() {
+    const trustedCwd = homedir();
+    const { stdout } = await execFileAsync(
+        windowsSystemExecutable("where.exe"),
+        ["az.cmd"],
+        { cwd: trustedCwd, encoding: "utf8", windowsHide: true, timeout: 10_000, maxBuffer: 64 * 1024 },
+    );
+    for (const path of stdout.split(/\r?\n/).map((line) => line.trim())) {
+        if (/[%]/.test(path)) continue;
+        const candidate = await trustedExecutablePath(path, "az.cmd");
+        if (candidate) return candidate;
+    }
+    throw new Error("Azure CLI was not found outside the current workspace.");
+}
+
+export async function resolvePosixAzureCli(pathValue = process.env.PATH || "", workspaceRoot = process.cwd()) {
+    for (const directory of pathValue.split(delimiter)) {
+        const candidate = await trustedExecutablePath(resolve(directory || workspaceRoot, "az"), "az", workspaceRoot);
+        if (candidate) return candidate;
+    }
+    throw new Error("Azure CLI was not found outside the current workspace.");
 }
 
 async function acquireToken() {
-    if (s_auth?.refreshToken) {
-        try {
-            s_auth = await refreshAccessToken(s_auth.refreshToken);
-            saveAuthCache(s_auth);
-            return s_auth.token;
-        } catch {
-            // Refresh token expired or revoked — fall through to interactive.
-        }
+    await removeLegacyAuthCache();
+    try {
+        const windows = platform() === "win32";
+        const azureCli = windows ? await resolveWindowsAzureCli() : await resolvePosixAzureCli();
+        const options = { cwd: homedir(), encoding: "utf8", windowsHide: true, timeout: 60_000, maxBuffer: 1024 * 1024 };
+        const { stdout } = windows
+            ? await execAsync(
+                `"${azureCli}" account get-access-token --resource https://management.azure.com/ --output json --only-show-errors`,
+                { ...options, shell: windowsSystemExecutable("cmd.exe") },
+            )
+            : await execFileAsync(
+                azureCli,
+                ["account", "get-access-token", "--resource", ARM_RESOURCE, "--output", "json", "--only-show-errors"],
+                options,
+            );
+        s_auth = parseAzureCliToken(stdout);
+        return s_auth.token;
+    } catch (error) {
+        const detail = String(error?.stderr || error?.message || "").trim();
+        throw new Error(
+            `Azure CLI authentication failed. Install Azure CLI and run "az login" before opening the canvas.${detail ? ` ${detail}` : ""}`,
+        );
     }
-    s_auth = await interactiveSignIn();
-    saveAuthCache(s_auth);
-    return s_auth.token;
 }
 
 export async function getToken() {
-    hydrateFromDisk();
     if (s_auth && s_auth.expiresAt - EXPIRY_SKEW_MS > Date.now()) return s_auth.token;
     if (s_authInFlight) return s_authInFlight;
     s_authInFlight = acquireToken().finally(() => {
@@ -460,11 +341,11 @@ export async function listResourceGroups(subscriptionId) {
 }
 
 /**
- * Create (or update) a resource group. Idempotent PUT.
+ * Create a resource group without updating an existing group on a name race.
  */
 export async function createResourceGroup(subscriptionId, name, location) {
     const url = `https://management.azure.com/subscriptions/${armSegment(subscriptionId)}/resourcegroups/${armSegment(name)}?api-version=${RG_API_VERSION}`;
-    return armWrite("PUT", url, { location });
+    return armWrite("PUT", url, { location }, { "If-None-Match": "*" });
 }
 
 /**
@@ -521,7 +402,24 @@ export function buildGatewayIdentity(enableSystem, userAssignedIds = []) {
     return identity;
 }
 
-const TERMINAL_STATES = new Set(["Succeeded", "Failed", "Canceled"]);
+export async function waitForProvisioning(initialResult, gatewayName, fetchLatest, {
+    maxPolls = 60,
+    delay = () => sleep(3000),
+} = {}) {
+    let result = initialResult;
+    let state;
+    for (let poll = 0; poll <= maxPolls; poll++) {
+        state = result?.properties?.provisioningState;
+        if (state === "Succeeded") return result;
+        if (state === "Failed" || state === "Canceled") {
+            throw new Error(`Provisioning ${state} for "${gatewayName}".`);
+        }
+        if (poll === maxPolls) break;
+        await delay();
+        result = await fetchLatest();
+    }
+    throw new Error(`Provisioning timed out for "${gatewayName}" (last state: ${state ?? "unknown"}).`);
+}
 
 /**
  * Create a connector namespace and poll until the
@@ -532,19 +430,8 @@ export async function createConnectorGateway(subscriptionId, resourceGroup, gate
     const token = await getToken();
     const url = `${buildBaseUrl(subscriptionId, resourceGroup, gatewayName)}?api-version=${API_VERSION}`;
     const body = { location, properties: {}, identity };
-    let result = await armWrite("PUT", url, body, { "If-None-Match": "*" });
-    let state = result?.properties?.provisioningState;
-    // ~3 min ceiling (60 * 3s). connectorGateways usually settle in seconds.
-    for (let i = 0; i < 60 && state && !TERMINAL_STATES.has(state); i++) {
-        await sleep(3000);
-        result = await armFetch(url, token);
-        state = result?.properties?.provisioningState;
-    }
-    if (state === "Failed" || state === "Canceled") {
-        throw new Error(`Provisioning ${state} for "${gatewayName}".`);
-    }
-    if (state && !TERMINAL_STATES.has(state)) {
-        throw new Error(`Provisioning timed out for "${gatewayName}" (last state: ${state}).`);
-    }
-    return result;
+    const result = await armWrite("PUT", url, body, { "If-None-Match": "*" });
+    // ~3 min ceiling (60 * 3s). A 202 may have no body, so every state other
+    // than explicit Succeeded enters the polling path.
+    return waitForProvisioning(result, gatewayName, () => armFetch(url, token));
 }

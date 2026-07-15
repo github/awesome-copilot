@@ -24,8 +24,8 @@ import { deriveInstalledState, getConsentUrl, getConnectionStatus, getMcpEndpoin
 // source contract, so we assert it against the function body the same way
 // renderer.test.mjs guards its CSS/HTML strings.
 function functionBody(source, name) {
-    const sig = `export async function ${name}(`;
-    const start = source.indexOf(sig);
+    const exported = source.indexOf(`export async function ${name}(`);
+    const start = exported !== -1 ? exported : source.indexOf(`async function ${name}(`);
     if (start === -1) return null;
     const open = source.indexOf("{", start);
     if (open === -1) return null;
@@ -155,10 +155,14 @@ test("removeLocalEntry unlinks the local CLI entry via removeMcpEntry", () => {
 
 test("uninstallConnector deletes every duplicate namespace config", () => {
     const body = functionBody(installSource, "uninstallConnector");
+    const cleanup = functionBody(installSource, "cleanupConnectorResources");
     assert.ok(body, "uninstallConnector function not found in install.mjs");
+    assert.ok(cleanup, "cleanupConnectorResources function not found in install.mjs");
     assert.match(body, /entry\._candidates/, "namespace deletion must process duplicate configs");
-    assert.match(body, /for \(const configName of configNames\)/);
-    assert.match(body, /for \(const connectionName of connectionNames\)/);
+    assert.match(body, /cleanupConnectorResources\s*\(/, "uninstall must delegate all collected candidates to shared cleanup");
+    assert.match(cleanup, /deleteMcpServerConfigs\(config, configNames\)/);
+    assert.match(cleanup, /for \(const connectionName of connectionNames\)/);
+    assert.match(cleanup, /for \(const configName of configNames\)/);
 });
 
 test("removeLocalEntry never deletes the namespace resource (no armDelete)", () => {

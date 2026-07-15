@@ -6,9 +6,8 @@
 // (install.mjs, catalog.mjs, armClient.mjs) and drives the real
 // mcp-unwrap-proxy.mjs, so it exercises the exact path the Copilot CLI uses.
 //
-// Runs with nothing but `node` plus a one-time browser sign-in — no Copilot app
-// required — so it can be handed to someone else to reproduce MCP issues. See
-// README.md.
+// Runs with `node` and a signed-in Azure CLI — no Copilot app required — so it
+// can be handed to someone else to reproduce MCP issues. See README.md.
 //
 // Usage:
 //   node extensions/connector-namespaces/test/smoke.mjs [options]
@@ -144,7 +143,7 @@ async function main() {
     if (opts.only) servers = servers.filter((s) => opts.only.has(s.apiName));
     console.log(`${C.dim}${servers.length} Microsoft servers in catalog${C.reset}\n`);
 
-    const installedState = await getInstalledState(config).catch(() => ({}));
+    const installedState = await getInstalledState(config);
     const pending = readPending();
 
     const results = [];

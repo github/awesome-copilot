@@ -12,9 +12,22 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { EventEmitter } from "node:events";
 import { Readable } from "node:stream";
 
-import { hasCapabilityToken, isCanonicalHost, isCrossSiteRequest, parseBody, requiresCapabilityToken } from "./server.mjs";
+import {
+    getServerConfig,
+    hasCapabilityToken,
+    isCanonicalHost,
+    isCrossSiteRequest,
+    listenOnLoopback,
+    parseBody,
+    requiresCapabilityToken,
+    runIdempotentOperation,
+    startServer,
+    stopServer,
+} from "./server.mjs";
+import { isValidConfig } from "./state.mjs";
 
 // Minimal request stub: only headers matter to the gate.
 function req(headers) {
@@ -112,4 +125,81 @@ test("request bodies larger than 64 KiB are rejected", async () => {
         parseBody(Readable.from([Buffer.alloc(64 * 1024 + 1)])),
         (err) => err?.constructor?.name === "RequestBodyTooLargeError",
     );
+});
+
+test("saved namespace coordinates reject ARM path injection", () => {
+    assert.equal(isValidConfig({
+        subscriptionId: "f34b22a3-2202-4fb1-b040-1332bd928c84",
+        resourceGroup: "jack-sandboxgroup-rg",
+        gatewayName: "yeah-github-cli",
+    }), true);
+    assert.equal(isValidConfig({
+        subscriptionId: "bad/value",
+        resourceGroup: "rg",
+        gatewayName: "gw",
+    }), false);
+});
+
+test("idempotent mutations replay one in-flight result", async () => {
+    const operations = new Map();
+    let calls = 0;
+    const start = async () => {
+        calls++;
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        return { ok: true };
+    };
+    const [first, second] = await Promise.all([
+        runIdempotentOperation(operations, "install:request", start),
+        runIdempotentOperation(operations, "install:request", start),
+    ]);
+    assert.equal(calls, 1);
+    assert.deepEqual(first, { ok: true });
+    assert.deepEqual(second, { ok: true });
+    assert.deepEqual(await runIdempotentOperation(operations, "install:request", start), { ok: true });
+    assert.equal(calls, 1);
+});
+
+test("install rejects missing idempotency request ids before ARM work", async (t) => {
+    const instanceId = `request-id-${Date.now()}`;
+    t.after(() => stopServer(instanceId));
+    const entry = await startServer(instanceId, {
+        config: { subscriptionId: "sub", resourceGroup: "rg", gatewayName: "gw" },
+    });
+    const response = await fetch(`${entry.url}api/install`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-connector-namespace-token": entry.token,
+        },
+        body: JSON.stringify({ apiName: "test" }),
+    });
+    assert.deepEqual(await response.json(), { error: "invalid requestId" });
+});
+
+test("canvas servers keep independent active namespace configs", async (t) => {
+    const a = `state-a-${Date.now()}`;
+    const b = `state-b-${Date.now()}`;
+    t.after(async () => Promise.all([stopServer(a), stopServer(b)]));
+
+    const configA = { subscriptionId: "sub-a", resourceGroup: "rg-a", gatewayName: "gw-a" };
+    const configB = { subscriptionId: "sub-b", resourceGroup: "rg-b", gatewayName: "gw-b" };
+    await Promise.all([
+        startServer(a, { config: configA }),
+        startServer(b, { config: configB }),
+    ]);
+
+    assert.deepEqual(getServerConfig(a), configA);
+    assert.deepEqual(getServerConfig(b), configB);
+
+    // A rehydrate may carry a newer persisted default from panel B. Existing
+    // panel A must retain its own active namespace.
+    await startServer(a, { defaultConfig: configB });
+    assert.deepEqual(getServerConfig(a), configA);
+});
+
+test("loopback listen rejects bind errors", async () => {
+    const error = new Error("bind failed");
+    const server = new EventEmitter();
+    server.listen = () => queueMicrotask(() => server.emit("error", error));
+    await assert.rejects(listenOnLoopback(server), error);
 });

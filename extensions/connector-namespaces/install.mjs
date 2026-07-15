@@ -22,6 +22,7 @@ const STABLE_MCP_PROXY_PATH = join(COPILOT_HOME, "extensions", "connector-namesp
 //   profile   -> ~/.copilot/mcp-config.json   (private, follows you everywhere)
 //   workspace -> <repo>/.mcp.json             (shared with the repo, git-tracked)
 const PROFILE_MCP_PATH = join(COPILOT_HOME, "mcp-config.json");
+const PENDING_CLEANUP_DIR = join(COPILOT_HOME, "extensions", "connector-namespaces", "artifacts", "pending-cleanup");
 let s_workspaceRoot = null;
 
 export function setWorkspaceRoot(path) {
@@ -47,6 +48,79 @@ function withConfigLock(fn) {
     const run = s_configLock.then(fn, fn);
     s_configLock = run.then(() => {}, () => {});
     return run;
+}
+
+async function readPendingCleanups(gateway, apiName) {
+    let names;
+    try {
+        names = await fs.readdir(PENDING_CLEANUP_DIR);
+    } catch (error) {
+        if (error?.code === "ENOENT") return [];
+        throw error;
+    }
+
+    const records = [];
+    for (const name of names) {
+        if (!name.endsWith(".json")) continue;
+        const path = join(PENDING_CLEANUP_DIR, name);
+        let record;
+        try {
+            record = JSON.parse(await fs.readFile(path, "utf8"));
+        } catch (error) {
+            if (error?.code === "ENOENT") continue;
+            throw error;
+        }
+        if (!record || typeof record !== "object" || Array.isArray(record)) {
+            throw new Error("Pending connector cleanup data is invalid.");
+        }
+        if (record.gatewayId === gateway && record.apiName === apiName) {
+            records.push({ ...record, path });
+        }
+    }
+    return records;
+}
+
+async function getPendingCleanup(gateway, apiName) {
+    const records = await readPendingCleanups(gateway, apiName);
+    if (!records.length) return null;
+    return {
+        configNames: records.flatMap((record) => Array.isArray(record.configNames) ? record.configNames : []),
+        connectionNames: records.flatMap((record) => Array.isArray(record.connectionNames) ? record.connectionNames : []),
+        journalFiles: records.map((record) => record.path),
+    };
+}
+
+async function savePendingCleanup(record) {
+    await fs.mkdir(PENDING_CLEANUP_DIR, { recursive: true, mode: 0o700 });
+    await fs.chmod(PENDING_CLEANUP_DIR, 0o700).catch(() => {});
+    const id = randomBytes(16).toString("hex");
+    const tempPath = join(PENDING_CLEANUP_DIR, `${id}.tmp`);
+    const path = join(PENDING_CLEANUP_DIR, `${id}.json`);
+    await fs.writeFile(tempPath, JSON.stringify(record, null, 2) + "\n", { encoding: "utf8", mode: 0o600, flag: "wx" });
+    try {
+        await fs.chmod(tempPath, 0o600).catch(() => {});
+        await fs.rename(tempPath, path);
+        return path;
+    } catch (error) {
+        try {
+            await fs.unlink(tempPath);
+        } catch (cleanupError) {
+            if (cleanupError?.code !== "ENOENT") {
+                throw new AggregateError([error, cleanupError], "Failed to save connector cleanup retry data.");
+            }
+        }
+        throw error;
+    }
+}
+
+async function clearPendingCleanups(paths) {
+    for (const path of new Set(paths)) {
+        try {
+            await fs.unlink(path);
+        } catch (error) {
+            if (error?.code !== "ENOENT") throw error;
+        }
+    }
 }
 
 // Validate the MCP endpoint URL before persisting it alongside an API key. The
@@ -144,17 +218,17 @@ function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 const MANAGED_API_VERSION = "2022-09-01-preview";
 const metaCache = new Map(); // apiName + swagger requirement -> Promise<connector metadata>
 
-function loadConnectorMeta(config, apiName, location, requireSwagger = true) {
+export function loadConnectorMeta(config, apiName, location, requireSwagger = true) {
     const sub = armSegment(config.subscriptionId);
     const cacheKey = `${sub}:${location}:${apiName}:${requireSwagger}`;
     if (metaCache.has(cacheKey)) return metaCache.get(cacheKey);
     const promise = (async () => {
         const base = `/subscriptions/${sub}/providers/Microsoft.Web/locations/${armSegment(location)}/managedApis/${armSegment(apiName)}`;
-        const swaggerRequest = arm("GET", `${base}?api-version=${MANAGED_API_VERSION}&export=true`);
-        const [meta, swagger] = await Promise.all([
-            arm("GET", `${base}?api-version=${MANAGED_API_VERSION}`).catch(() => null),
-            requireSwagger ? swaggerRequest : swaggerRequest.catch(() => null),
-        ]);
+        const metaRequest = arm("GET", `${base}?api-version=${MANAGED_API_VERSION}`);
+        const swaggerRequest = requireSwagger
+            ? arm("GET", `${base}?api-version=${MANAGED_API_VERSION}&export=true`)
+            : Promise.resolve(undefined);
+        const [meta, swagger] = await Promise.all([metaRequest, swaggerRequest]);
         return {
             connectionParameters: meta?.properties?.connectionParameters ?? null,
             connectionParameterSets: meta?.properties?.connectionParameterSets ?? null,
@@ -293,11 +367,10 @@ export async function getConnectionStatus(config, connName) {
     return conn?.properties?.statuses?.[0]?.status ?? conn?.properties?.overallStatus ?? "Unknown";
 }
 
-export async function createMcpServerConfig(config, apiName, displayName, connName, location, opId) {
+export async function createMcpServerConfig(config, apiName, displayName, connName, location, opId, configName = generateName(displayName)) {
     if (!opId) {
         throw new Error(`Cannot configure "${displayName}" as an MCP server: no agentic operation was found in the connector's definition. The connector may not expose an MCP-streamable endpoint, or its swagger failed to load.`);
     }
-    const configName = generateName(displayName);
     const created = await arm("PUT", `${gatewayId(config)}/mcpserverConfigs/${configName}?api-version=${API_VERSION}`, {
         kind: "ManagedMcpServer",
         location,
@@ -393,8 +466,7 @@ export async function removeMcpEntry(name) {
         for (const scope of ["profile", "workspace"]) {
             let path;
             try { path = mcpConfigPath(scope); } catch { continue; }
-            let cfg;
-            try { cfg = await readMcpConfigAt(path); } catch { continue; }
+            const cfg = await readMcpConfigAt(path);
             if (Object.prototype.hasOwnProperty.call(cfg.mcpServers, name)) {
                 delete cfg.mcpServers[name];
                 await fs.writeFile(path, JSON.stringify(cfg, null, 2) + "\n", { encoding: "utf8", mode: 0o600 });
@@ -406,35 +478,63 @@ export async function removeMcpEntry(name) {
     });
 }
 
+async function deleteMcpServerConfigs(config, configNames) {
+    for (const configName of configNames) {
+        const url = `${gatewayId(config)}/mcpserverConfigs/${armSegment(configName)}?api-version=${API_VERSION}`;
+        await armDelete(url);
+        let pending = true;
+        for (let i = 0; i < 20; i++) {
+            try {
+                await arm("GET", url);
+            } catch (error) {
+                if (error?.status === 404) {
+                    pending = false;
+                    break;
+                }
+                throw error;
+            }
+            await sleep(750);
+        }
+        if (pending) throw new Error(`Timed out waiting for connector configuration "${configName}" deletion.`);
+    }
+}
+
+async function cleanupConnectorResources(config, apiName, configNames, connectionNames, priorJournalFiles = []) {
+    configNames = [...new Set(configNames.filter(Boolean))];
+    connectionNames = [...new Set(connectionNames.filter(Boolean))];
+    const gateway = gatewayId(config);
+    const journalFile = await savePendingCleanup({ gatewayId: gateway, apiName, configNames, connectionNames });
+    const journalFiles = [...priorJournalFiles, journalFile];
+
+    await deleteMcpServerConfigs(config, configNames);
+    for (const connectionName of connectionNames) {
+        await armDelete(`${gateway}/connections/${armSegment(connectionName)}?api-version=${API_VERSION}`);
+    }
+    for (const configName of configNames) {
+        await removeMcpEntry(configName);
+    }
+    await clearPendingCleanups(journalFiles);
+}
+
 // Remove an installed connector: delete its mcpserverConfig, its connection,
 // and its CLI entry. apiName is resolved against the current installed state.
 export async function uninstallConnector(config, apiName) {
     const state = await getInstalledState(config);
     const entry = state[apiName];
-    if (!entry) return { ok: true, removed: false };
+    const gateway = gatewayId(config);
+    const pending = await getPendingCleanup(gateway, apiName);
+    if (!entry && !pending) return { ok: true, removed: false };
 
-    const candidates = entry._candidates ?? [entry];
-    const configNames = [...new Set(candidates.map((candidate) => candidate.configName).filter(Boolean))];
-    const connectionNames = [...new Set(candidates.map((candidate) => candidate.connectionName).filter(Boolean))];
-
-    for (const configName of configNames) {
-        await removeMcpEntry(configName);
-        await armDelete(`${gatewayId(config)}/mcpserverConfigs/${armSegment(configName)}?api-version=${API_VERSION}`);
-    }
-    for (const connectionName of connectionNames) {
-        await armDelete(`${gatewayId(config)}/connections/${armSegment(connectionName)}?api-version=${API_VERSION}`).catch(() => {});
-    }
-
-    // The config DELETE is a long-running op — the resource keeps listing until
-    // it converges. Poll the gateway until it's gone so the client's next state
-    // refresh actually reports the connector as uninstalled (up to ~15s).
-    if (configNames.length) {
-        for (let i = 0; i < 20; i++) {
-            const list = await arm("GET", `${gatewayId(config)}/mcpserverConfigs?api-version=${API_VERSION}`).catch(() => ({ value: [] }));
-            if (!(list.value ?? []).some((item) => configNames.includes(item.name))) break;
-            await sleep(750);
-        }
-    }
+    const candidates = entry ? (entry._candidates ?? [entry]) : [];
+    const configNames = [
+        ...(pending?.configNames ?? []),
+        ...candidates.map((candidate) => candidate.configName),
+    ];
+    const connectionNames = [
+        ...(pending?.connectionNames ?? []),
+        ...candidates.map((candidate) => candidate.connectionName),
+    ];
+    await cleanupConnectorResources(config, apiName, configNames, connectionNames, pending?.journalFiles);
 
     return { ok: true, removed: true };
 }
@@ -460,8 +560,22 @@ export async function removeLocalEntry(config, apiName) {
 // returns to "Connect" and we don't leak a half-made connection on the namespace.
 export async function deleteConnection(config, connName) {
     if (!connName) return { ok: true, removed: false };
-    await armDelete(`${gatewayId(config)}/connections/${armSegment(connName)}?api-version=${API_VERSION}`).catch(() => {});
+    await armDelete(`${gatewayId(config)}/connections/${armSegment(connName)}?api-version=${API_VERSION}`);
     return { ok: true, removed: true };
+}
+
+async function throwAfterCleanup(error, cleanups) {
+    for (const cleanup of cleanups) {
+        try {
+            await cleanup();
+        } catch (cleanupError) {
+            throw new AggregateError(
+                [error, cleanupError],
+                `${error.message} Cleanup also failed: ${cleanupError.message}`,
+            );
+        }
+    }
+    throw error;
 }
 
 // ---------------------------------------------------------------------------
@@ -477,11 +591,22 @@ function oauthCallbackUrl(callbackBase, connName, capabilityToken = "") {
 }
 
 export async function installConnector(config, apiName, displayName, callbackBase, scope = "profile", capabilityToken = "") {
+    const pending = await getPendingCleanup(gatewayId(config), apiName);
+    if (pending) {
+        await cleanupConnectorResources(
+            config,
+            apiName,
+            pending.configNames,
+            pending.connectionNames,
+            pending.journalFiles,
+        );
+    }
     const location = await getGatewayLocation(config);
     const meta = await loadConnectorMeta(config, apiName, location);
 
     // 1. Create connection
     const connName = await createConnection(config, apiName, displayName, location);
+    let finishStarted = false;
     try {
         // The OAuth redirect must carry the connName so the loopback callback keys
         // pendingOAuth by the same value the client polls on.
@@ -492,6 +617,7 @@ export async function installConnector(config, apiName, displayName, callbackBas
         await sleep(800);
         const status = await getConnectionStatus(config, connName);
         if (status === "Connected") {
+            finishStarted = true;
             return await finishInstall(config, apiName, displayName, connName, location, scope);
         }
 
@@ -499,34 +625,36 @@ export async function installConnector(config, apiName, displayName, callbackBas
         const oauthParam = findOAuthParam(meta, callbackUrl);
         const consentUrl = await getConsentUrl(config, connName, callbackUrl, oauthParam);
         if (consentUrl) {
-            return { needsConsent: true, consentUrl, connName, location };
+            return { needsConsent: true, consentUrl, connName, location, freshConnection: true };
         }
 
         // 4. No consent link and not Connected — try to finish anyway.
+        finishStarted = true;
         return await finishInstall(config, apiName, displayName, connName, location, scope);
     } catch (error) {
-        await deleteConnection(config, connName);
-        throw error;
+        if (finishStarted) throw error;
+        return throwAfterCleanup(error, [() => deleteConnection(config, connName)]);
     }
 }
 
 export async function finishInstall(config, apiName, displayName, connName, location, scope = "profile") {
-    if (!location) location = await getGatewayLocation(config);
-    const meta = await loadConnectorMeta(config, apiName, location);
-
-    // Poll connection status up to ~20s for Connected.
-    let status = "Unknown";
-    for (let i = 0; i < 20; i++) {
-        status = await getConnectionStatus(config, connName);
-        if (status === "Connected") break;
-        await sleep(1000);
-    }
-
-    // Create MCP server config (endpoint URL comes back on the PUT response).
     let configName;
-    let endpointUrl;
     try {
-        ({ configName, endpointUrl } = await createMcpServerConfig(config, apiName, displayName, connName, location, meta.opId));
+        if (!location) location = await getGatewayLocation(config);
+        const meta = await loadConnectorMeta(config, apiName, location);
+
+        // Poll connection status up to ~20s for Connected.
+        let status = "Unknown";
+        for (let i = 0; i < 20; i++) {
+            status = await getConnectionStatus(config, connName);
+            if (status === "Connected") break;
+            await sleep(1000);
+        }
+
+        // Create MCP server config (endpoint URL comes back on the PUT response).
+        let endpointUrl;
+        configName = generateName(displayName);
+        ({ endpointUrl } = await createMcpServerConfig(config, apiName, displayName, connName, location, meta.opId, configName));
 
         // Endpoint URL can lag — poll the config a few times if missing.
         for (let i = 0; !endpointUrl && i < 5; i++) {
@@ -550,11 +678,12 @@ export async function finishInstall(config, apiName, displayName, connName, loca
         const warning = status === "Connected" ? undefined : `Connection ended in state "${status}". You may need to re-authenticate.`;
         return { ok: true, configName, connName, endpointUrl, scope, warning };
     } catch (error) {
+        const cleanups = [];
         if (configName) {
-            await armDelete(`${gatewayId(config)}/mcpserverConfigs/${armSegment(configName)}?api-version=${API_VERSION}`).catch(() => {});
+            cleanups.push(() => deleteMcpServerConfigs(config, [configName]));
         }
-        await deleteConnection(config, connName);
-        throw error;
+        cleanups.push(() => deleteConnection(config, connName));
+        return throwAfterCleanup(error, cleanups);
     }
 }
 
@@ -596,11 +725,12 @@ export async function reauthConnector(config, apiName, displayName, callbackBase
         // now-orphaned config + local entry, then fall through to a clean
         // install so we don't strand a dead "Re-authenticate" tile.
         if (err.status === 404) {
-            if (entry.configName) {
-                await armDelete(`${gatewayId(config)}/mcpserverConfigs/${armSegment(entry.configName)}?api-version=${API_VERSION}`).catch(() => {});
-                await removeMcpEntry(entry.configName).catch(() => {});
-            }
-            await deleteConnection(config, connName).catch(() => {});
+            await cleanupConnectorResources(
+                config,
+                apiName,
+                entry.configName ? [entry.configName] : [],
+                [connName],
+            );
             return installConnector(config, apiName, displayName, callbackBase, scope, capabilityToken);
         }
         throw err;
@@ -609,7 +739,7 @@ export async function reauthConnector(config, apiName, displayName, callbackBase
     // Re-consent the existing connection; finish rebinds the SAME config.
     // configName is carried through so the finish step never creates a new one.
     if (consentUrl) {
-        return { needsConsent: true, consentUrl, connName, location, configName: entry.configName, reauth: true };
+        return { needsConsent: true, consentUrl, connName, location, configName: entry.configName, reauth: true, freshConnection: false };
     }
 
     // Already consentable without a redirect — just rebind the existing config.
@@ -664,8 +794,8 @@ export async function getInstalledState(config) {
     const [configsRes, connectionsRes, profileCfg, workspaceCfg] = await Promise.all([
         arm("GET", `${gatewayId(config)}/mcpserverConfigs?api-version=${API_VERSION}`),
         arm("GET", `${gatewayId(config)}/connections?api-version=${API_VERSION}`),
-        readMcpConfigAt(PROFILE_MCP_PATH).catch(() => ({ mcpServers: {} })),
-        wsPath ? readMcpConfigAt(wsPath).catch(() => ({ mcpServers: {} })) : Promise.resolve({ mcpServers: {} }),
+        readMcpConfigAt(PROFILE_MCP_PATH),
+        wsPath ? readMcpConfigAt(wsPath) : Promise.resolve({ mcpServers: {} }),
     ]);
 
     const connByName = new Map();

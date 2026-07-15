@@ -3,13 +3,14 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
+import { armSegment } from "./armClient.mjs";
 
 const STORAGE_DIR = join(process.env.COPILOT_HOME || join(homedir(), ".copilot"), "extensions", "connector-namespaces", "artifacts");
 const CONFIG_FILE = join(STORAGE_DIR, "gateway-config.json");
 
-// In-memory state
+// Persisted default for newly opened canvas instances.
 const addedConnectors = new Map();
-let sessionConfig = null;
+let savedConfig = null;
 
 // ---------------------------------------------------------------------------
 // Persistent config (gateway selection)
@@ -21,14 +22,23 @@ function ensureStorageDir() {
     }
 }
 
-function isValidConfig(data) {
-    return (
+export function isValidConfig(data) {
+    const complete = (
         data != null &&
         typeof data === "object" &&
         typeof data.subscriptionId === "string" && data.subscriptionId.length > 0 &&
         typeof data.resourceGroup === "string" && data.resourceGroup.length > 0 &&
         typeof data.gatewayName === "string" && data.gatewayName.length > 0
     );
+    if (!complete) return false;
+    try {
+        armSegment(data.subscriptionId);
+        armSegment(data.resourceGroup);
+        armSegment(data.gatewayName);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export function loadSavedConfig() {
@@ -40,34 +50,33 @@ export function loadSavedConfig() {
             // masquerade as a valid selection, or the picker gets skipped and
             // the catalog is fetched with missing coordinates.
             if (isValidConfig(data)) {
-                sessionConfig = data;
+                savedConfig = data;
                 return data;
             }
         }
     } catch { /* ignore corrupt file */ }
-    sessionConfig = null;
+    savedConfig = null;
     return null;
 }
 
 export function saveConfig(config) {
+    if (!isValidConfig(config)) {
+        throw new Error("Invalid connector namespace configuration.");
+    }
     ensureStorageDir();
-    sessionConfig = config;
+    savedConfig = config;
     writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
 }
 
 export function clearConfig() {
-    sessionConfig = null;
+    savedConfig = null;
     // Remove the file outright rather than leaving a "{}" stub that a later
     // loadSavedConfig could misread as a valid selection.
     try { if (existsSync(CONFIG_FILE)) unlinkSync(CONFIG_FILE); } catch { /* ignore */ }
 }
 
-export function setSessionConfig(config) {
-    sessionConfig = config;
-}
-
-export function getSessionConfig() {
-    return sessionConfig;
+export function getSavedConfig() {
+    return savedConfig;
 }
 
 // ---------------------------------------------------------------------------

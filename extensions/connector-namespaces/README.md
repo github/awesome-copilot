@@ -6,16 +6,14 @@ session. Search by name or category, sign in to a connector, then restart the
 session to make its tools available to the agent.
 
 > The canvas talks to public Azure Resource Manager (`management.azure.com`)
-> using a token from an interactive Azure sign-in — a browser tab opens once per
-> session. No client secret is embedded in the extension; the refresh token is
-> cached locally (owner-only) so you are not prompted every session.
+> using the signed-in Azure CLI account. The extension does not register its own
+> Entra application or persist Azure credentials.
 
 ## Prerequisites
 
 - **GitHub Copilot CLI** (the host that loads canvas extensions).
-- **An Azure account.** The first time the canvas loads subscriptions, a browser
-  tab opens for Microsoft sign-in; after that the token is renewed silently for
-  the session. No Azure CLI required.
+- **Azure CLI**, signed in with `az login`. The extension asks Azure CLI for a
+  short-lived ARM access token and refreshes it through the same broker.
 - **An Azure subscription with a Connector Namespace** — resource type
   `Microsoft.Web/connectorGateways` (API version `2026-05-01-preview`). This is
   a preview resource provider; you must have access to it for the catalog to
@@ -43,10 +41,9 @@ The destination **scope** is chosen at install time:
 ## Usage
 
 1. Open the **MCP Connectors** canvas from Copilot CLI.
-2. On first run a browser tab opens for Microsoft sign-in; complete it and the
-   canvas loads your subscriptions. Pick an Azure **subscription** and a
-   **Connector Namespace**. The choice is saved for future sessions (change it
-   any time via **Change namespace**).
+2. The canvas loads subscriptions from your signed-in Azure CLI account. Pick an
+   Azure **subscription** and a **Connector Namespace**. The choice is saved for
+   future sessions (change it any time via **Change namespace**).
 3. Browse or filter the connector catalog, then **Connect**. A browser tab
    opens for Microsoft sign-in; complete it and the canvas updates on its own.
 4. Connected connectors move into **My MCPs**. Use **Sandbox** on a tile to open
@@ -63,8 +60,8 @@ an additional Agent Skill.
   native `connector_namespaces_open_playground` tool.
 - `server.mjs` — a loopback HTTP server (bound to `127.0.0.1` only) that serves
   the canvas UI and the JSON/OAuth endpoints the iframe calls.
-- `armClient.mjs` — thin ARM client (token via interactive Azure sign-in, public
-  ARM base only, SSRF-guarded path segments).
+- `armClient.mjs` — thin ARM client (token brokered by Azure CLI, public ARM
+  base only, SSRF-guarded path segments).
 - `catalog.mjs` — fetches and curates the connector list for a namespace.
 - `install.mjs` — the connect/install pipeline (managed-API connection, consent,
   best-effort rollback on cancel).
@@ -74,12 +71,9 @@ an additional Agent Skill.
 
 ## Privacy & security
 
-- Tokens are obtained through an interactive Azure sign-in (OAuth2 auth-code
-  with PKCE); no client secret is used. The refresh token and current ARM access
-  token are cached under your Copilot home directory
-  (`~/.copilot/extensions/connector-namespaces/artifacts/auth-cache.json`,
-  written with owner-only `0600` permissions) so you are not prompted to sign in
-  every session. Tokens are never logged.
+- ARM tokens come from `az account get-access-token`, stay in process memory,
+  and are never logged or written by the extension. Azure CLI owns sign-in and
+  credential storage.
 - All servers bind to loopback (`127.0.0.1`) and are never exposed externally.
 - ARM requests go only to `https://management.azure.com/`; path segments are
   validated to prevent SSRF-style host smuggling.

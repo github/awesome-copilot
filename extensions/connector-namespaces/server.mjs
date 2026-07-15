@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { randomBytes } from "node:crypto";
 import { renderCatalogHtml, renderErrorHtml, renderSetupHtml } from "./renderer.mjs";
 import { renderCreateNamespaceHtml } from "./createPage.mjs";
-import { addConnector, removeConnector, getSessionConfig, saveConfig, clearConfig } from "./state.mjs";
+import { addConnector, removeConnector, saveConfig, clearConfig } from "./state.mjs";
 import { fetchCatalog, invalidateCache } from "./catalog.mjs";
 import {
     listConnectorGateways,
@@ -24,8 +24,10 @@ const gatewayCache = new Map();
 const pendingOAuth = new Map(); // connName → timestamp
 
 const PENDING_OAUTH_TTL_MS = 15 * 60 * 1000;
+const MUTATION_REPLAY_TTL_MS = 15 * 60 * 1000;
 const CAPABILITY_TOKEN_HEADER = "x-connector-namespace-token";
 const MAX_REQUEST_BODY_BYTES = 64 * 1024;
+const REQUEST_ID = /^[0-9a-f]{32}$/;
 
 class RequestBodyTooLargeError extends Error {}
 
@@ -63,6 +65,17 @@ function prunePendingOAuth() {
     for (const [name, ts] of pendingOAuth) {
         if (now - ts > PENDING_OAUTH_TTL_MS) pendingOAuth.delete(name);
     }
+}
+
+export function runIdempotentOperation(operations, key, start, now = Date.now()) {
+    for (const [id, operation] of operations) {
+        if (operation.expiresAt <= now) operations.delete(id);
+    }
+    const existing = operations.get(key);
+    if (existing) return existing.promise;
+    const promise = Promise.resolve().then(start);
+    operations.set(key, { promise, expiresAt: now + MUTATION_REPLAY_TTL_MS });
+    return promise;
 }
 
 // Whether a connector was added during the life of THIS extension process.
@@ -144,7 +157,7 @@ async function handleRequest(req, res, instanceId, serverEntry) {
 
     if (req.method === "POST" && url.pathname === "/api/add") {
         const body = await parseBody(req);
-        const config = getSessionConfig();
+        const config = serverEntry.config;
         if (!config) { json(res, { added: false, reason: "no_config" }); return; }
         const catalog = await fetchCatalog(config.subscriptionId, config.resourceGroup, config.gatewayName);
         const connector = catalog.find((c) => c.id === body.id);
@@ -165,13 +178,16 @@ async function handleRequest(req, res, instanceId, serverEntry) {
             json(res, { error: "missing_fields" });
             return;
         }
-        saveConfig({ subscriptionId, resourceGroup, gatewayName });
+        const config = { subscriptionId, resourceGroup, gatewayName };
+        serverEntry.config = config;
+        saveConfig(config);
         invalidateCache();
         json(res, { ok: true });
         return;
     }
 
     if (req.method === "POST" && url.pathname === "/api/change-gateway") {
+        serverEntry.config = null;
         clearConfig();
         invalidateCache();
         json(res, { ok: true });
@@ -248,7 +264,9 @@ async function handleRequest(req, res, instanceId, serverEntry) {
             }
             const identity = buildGatewayIdentity(!!enableSystemIdentity, Array.isArray(userAssignedIds) ? userAssignedIds : []);
             await createConnectorGateway(subscriptionId, resourceGroup, name, { location: region, identity });
-            saveConfig({ subscriptionId, resourceGroup, gatewayName: name });
+            const config = { subscriptionId, resourceGroup, gatewayName: name };
+            serverEntry.config = config;
+            saveConfig(config);
             invalidateCache();
             gatewayCache.clear();
             json(res, { ok: true });
@@ -262,14 +280,19 @@ async function handleRequest(req, res, instanceId, serverEntry) {
 
     if (req.method === "POST" && url.pathname === "/api/install") {
         const body = await parseBody(req);
-        const config = getSessionConfig();
+        const config = serverEntry.config;
         if (!config) { json(res, { error: "no_config" }); return; }
-        const { apiName, displayName } = body;
+        const { apiName, displayName, requestId } = body;
         if (!apiName) { json(res, { error: "missing apiName" }); return; }
+        if (!REQUEST_ID.test(requestId || "")) { json(res, { error: "invalid requestId" }); return; }
         const port = new URL(serverEntry.url).port;
         const callbackBase = `http://127.0.0.1:${port}/auth/callback/`;
         try {
-            const result = await installConnector(config, apiName, displayName || apiName, callbackBase, "profile", serverEntry.token);
+            const result = await runIdempotentOperation(
+                serverEntry.operations,
+                `install:${requestId}`,
+                () => installConnector(config, apiName, displayName || apiName, callbackBase, "profile", serverEntry.token),
+            );
             if (result && !result.error && !result.needsConsent) { pendingRestart = true; restartAcked = false; }
             json(res, result);
         } catch (err) {
@@ -280,14 +303,19 @@ async function handleRequest(req, res, instanceId, serverEntry) {
 
     if (req.method === "POST" && url.pathname === "/api/reauth") {
         const body = await parseBody(req);
-        const config = getSessionConfig();
+        const config = serverEntry.config;
         if (!config) { json(res, { error: "no_config" }); return; }
-        const { apiName, displayName } = body;
+        const { apiName, displayName, requestId } = body;
         if (!apiName) { json(res, { error: "missing apiName" }); return; }
+        if (!REQUEST_ID.test(requestId || "")) { json(res, { error: "invalid requestId" }); return; }
         const port = new URL(serverEntry.url).port;
         const callbackBase = `http://127.0.0.1:${port}/auth/callback/`;
         try {
-            const result = await reauthConnector(config, apiName, displayName || apiName, callbackBase, "profile", serverEntry.token);
+            const result = await runIdempotentOperation(
+                serverEntry.operations,
+                `reauth:${requestId}`,
+                () => reauthConnector(config, apiName, displayName || apiName, callbackBase, "profile", serverEntry.token),
+            );
             if (result && !result.error && !result.needsConsent) { pendingRestart = true; restartAcked = false; }
             json(res, result);
         } catch (err) {
@@ -298,7 +326,7 @@ async function handleRequest(req, res, instanceId, serverEntry) {
 
     if (req.method === "POST" && url.pathname === "/api/finish-install") {
         const body = await parseBody(req);
-        const config = getSessionConfig();
+        const config = serverEntry.config;
         if (!config) { json(res, { error: "no_config" }); return; }
         if (!body.apiName) { json(res, { error: "missing apiName" }); return; }
         if (!body.connName) { json(res, { error: "missing connName" }); return; }
@@ -314,7 +342,7 @@ async function handleRequest(req, res, instanceId, serverEntry) {
 
     if (req.method === "POST" && url.pathname === "/api/finish-reauth") {
         const body = await parseBody(req);
-        const config = getSessionConfig();
+        const config = serverEntry.config;
         if (!config) { json(res, { error: "no_config" }); return; }
         if (!body.apiName) { json(res, { error: "missing apiName" }); return; }
         if (!body.connName) { json(res, { error: "missing connName" }); return; }
@@ -360,7 +388,7 @@ async function handleRequest(req, res, instanceId, serverEntry) {
     }
 
     if (req.method === "GET" && url.pathname === "/api/state") {
-        const config = getSessionConfig();
+        const config = serverEntry.config;
         if (!config) { json(res, { error: "no_config" }); return; }
         try {
             const state = await getInstalledState(config);
@@ -379,7 +407,7 @@ async function handleRequest(req, res, instanceId, serverEntry) {
 
     if (req.method === "POST" && url.pathname === "/api/uninstall") {
         const body = await parseBody(req);
-        const config = getSessionConfig();
+        const config = serverEntry.config;
         if (!config) { json(res, { error: "no_config" }); return; }
         if (!body.apiName) { json(res, { error: "missing apiName" }); return; }
         try {
@@ -396,7 +424,7 @@ async function handleRequest(req, res, instanceId, serverEntry) {
     // local-only primitive.
     if (req.method === "POST" && url.pathname === "/api/remove-local") {
         const body = await parseBody(req);
-        const config = getSessionConfig();
+        const config = serverEntry.config;
         if (!config) { json(res, { error: "no_config" }); return; }
         if (!body.apiName) { json(res, { error: "missing apiName" }); return; }
         try {
@@ -412,7 +440,7 @@ async function handleRequest(req, res, instanceId, serverEntry) {
     // yet, so /api/uninstall can't find it — delete the connection directly).
     if (req.method === "POST" && url.pathname === "/api/rollback-connection") {
         const body = await parseBody(req);
-        const config = getSessionConfig();
+        const config = serverEntry.config;
         if (!config) { json(res, { error: "no_config" }); return; }
         if (!body.connName) { json(res, { error: "missing connName" }); return; }
         try {
@@ -435,7 +463,7 @@ async function handleRequest(req, res, instanceId, serverEntry) {
 
     // --- Page routes ---
 
-    const config = getSessionConfig();
+    const config = serverEntry.config;
 
     // Create connector namespace page (reachable with or without a saved config)
     if (url.pathname === "/create") {
@@ -446,7 +474,7 @@ async function handleRequest(req, res, instanceId, serverEntry) {
             res.end(renderCreateNamespaceHtml(subs, preselected, serverEntry.token));
         } catch (err) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.end(renderErrorHtml(`Failed to load subscriptions. Sign in to Azure when the browser opens, then reload this page.\n\n${err.message}`));
+            res.end(renderErrorHtml(`Failed to load subscriptions. Run az login in a terminal, then reload this page.\n\n${err.message}`));
         }
         return;
     }
@@ -459,7 +487,7 @@ async function handleRequest(req, res, instanceId, serverEntry) {
             res.end(renderSetupHtml(subs, "", serverEntry.token));
         } catch (err) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.end(renderErrorHtml(`Failed to load subscriptions. Sign in to Azure when the browser opens, then reload this page.\n\n${err.message}`));
+            res.end(renderErrorHtml(`Failed to load subscriptions. Run az login in a terminal, then reload this page.\n\n${err.message}`));
         }
         return;
     }
@@ -500,9 +528,27 @@ function json(res, data) {
     res.end(JSON.stringify(data));
 }
 
-export function startServer(instanceId) {
+export function getServerConfig(instanceId) {
+    return servers.get(instanceId)?.config ?? null;
+}
+
+export function listenOnLoopback(server) {
+    return new Promise((resolve, reject) => {
+        const onError = (error) => reject(error);
+        server.once("error", onError);
+        server.listen(0, "127.0.0.1", () => {
+            server.removeListener("error", onError);
+            resolve();
+        });
+    });
+}
+
+export function startServer(instanceId, { config, defaultConfig } = {}) {
     const existing = servers.get(instanceId);
-    if (existing) return Promise.resolve(existing);
+    if (existing) {
+        if (config !== undefined) existing.config = config;
+        return Promise.resolve(existing);
+    }
     const inflight = starting.get(instanceId);
     if (inflight) return inflight;
 
@@ -513,6 +559,8 @@ export function startServer(instanceId) {
             host: "",
             origin: "",
             token: createCapabilityToken(),
+            config: config ?? defaultConfig ?? null,
+            operations: new Map(),
         };
         const server = createServer((req, res) => {
             handleRequest(req, res, instanceId, entry).catch((err) => {
@@ -525,7 +573,7 @@ export function startServer(instanceId) {
             });
         });
         entry.server = server;
-        await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+        await listenOnLoopback(server);
         const address = server.address();
         const port = typeof address === "object" && address ? address.port : 0;
         entry.host = `127.0.0.1:${port}`;
@@ -538,7 +586,8 @@ export function startServer(instanceId) {
     // same instance awaits this server instead of binding a second one and
     // leaking the first.
     starting.set(instanceId, p);
-    p.finally(() => { if (starting.get(instanceId) === p) starting.delete(instanceId); });
+    const clearStarting = () => { if (starting.get(instanceId) === p) starting.delete(instanceId); };
+    p.then(clearStarting, clearStarting);
     return p;
 }
 

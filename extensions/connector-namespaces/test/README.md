@@ -15,15 +15,14 @@ production breakages (the Logic Apps `$content` base64 envelope, SSE framing,
 proxy — hitting the raw endpoint would miss them, so we spawn the proxy on
 purpose.
 
-The whole point: it runs with **nothing but `node`** plus a one-time browser
-sign-in. No Copilot app, no canvas, no UI. Hand it to anyone (e.g. Arjun) and
-they can reproduce an MCP server issue locally.
+The whole point: it runs with **Node and Azure CLI**. No Copilot app, no
+canvas, no UI. Hand it to anyone (e.g. Arjun) and they can reproduce an MCP
+server issue locally.
 
 ## Prerequisites
 
-1. **An Azure account.** The harness gets an ARM token through an interactive
-   Azure sign-in (a browser tab opens once), exactly like the extension does. No
-   Azure CLI required.
+1. **Azure CLI signed in with `az login`.** The harness asks Azure CLI for the
+   same short-lived ARM token as the extension.
 2. **A gateway already picked once.** The harness reads gateway coordinates from
    `~/.copilot/extensions/connector-namespaces/artifacts/gateway-config.json`
    (`{ subscriptionId, resourceGroup, gatewayName }`). Pick a gateway once in

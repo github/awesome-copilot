@@ -80,6 +80,67 @@ function catalogHtml() {
     });
 }
 
+test("setup subscription label names its select", () => {
+    const html = renderSetupHtml([], "", "token");
+    assert.match(html, /<label for="sub-select">Subscription<\/label>/);
+});
+
+test("load-all and installed-state failures stay visible and fail closed", () => {
+    const setup = renderSetupHtml([], "", "token");
+    const catalog = catalogHtml();
+    assert.match(setup, /if \(data\.error\) throw new Error\(data\.error\)/, "Load all must enter its retryable failure path");
+    assert.match(setup, /if \(!await loadAll\(\)\) return/, "filtering must preserve the retry UI after Load all fails");
+    assert.match(
+        catalog,
+        /document\.querySelectorAll\("\.item-add"\)\.forEach\(button => \{ button\.disabled = true; \}\)/,
+        "actions must remain disabled until installed state is known",
+    );
+    assert.match(catalog, /Couldn't load connector state:/, "state failures must be shown to the user");
+});
+
+test("OAuth failures roll back only fresh connections and reconcile ambiguous finishes", () => {
+    const html = catalogHtml();
+    assert.match(html, /freshConnection = data\.freshConnection === true/);
+    assert.match(html, /if \(finishStarted && canReconcileFinish\)/, "only eligible finish failures may enter reconciliation");
+    assert.match(html, /reconcileFinishedInstall\(apiName, connName\)/);
+    assert.match(html, /!finishResponseReceived && complete/, "explicit finish errors must never be reclassified as success");
+    assert.match(html, /state\.connectionName === connName/, "ambiguous finishes must match the exact connection");
+    assert.match(html, /state\.connectionStatus === "Connected"/, "ambiguous finishes require a connected matching install");
+    assert.match(html, /if \(freshConnection && connName\)/, "definite pre-finish failures must clean up owned connections");
+    const reconciliation = html.slice(
+        html.indexOf("async function reconcileFinishedInstall"),
+        html.indexOf("async function recoverConnectorFailure"),
+    );
+    assert.doesNotMatch(reconciliation, /rollbackFreshConnection/, "ambiguous post-finish state must never delete a connection");
+    const connect = html.slice(html.indexOf("async function onConnect"), html.indexOf("async function onReauth"));
+    const reauth = html.slice(html.indexOf("async function onReauth"), html.indexOf("async function hydrateState"));
+    assert.match(connect, /finishResponseReceived,\s*true\s*\)/, "fresh Connect may reconcile an ambiguous finish");
+    assert.match(reauth, /finishResponseReceived,\s*freshConnection\s*\)/, "existing re-auth must not reuse its pre-existing state as proof of success");
+});
+
+test("failed install and re-auth requests always refresh fail-closed state", () => {
+    const html = catalogHtml();
+    const connectFailure = html.slice(html.indexOf("async function onConnect"), html.indexOf("async function onReauth"));
+    const reauthFailure = html.slice(html.indexOf("async function onReauth"), html.indexOf("async function hydrateState"));
+    assert.match(connectFailure, /await hydrateState\(\)/);
+    assert.match(reauthFailure, /await hydrateState\(\)/);
+    assert.doesNotMatch(html, /if \(cancelled \|\| finishStarted \|\| freshConnection\)/);
+    assert.match(connectFailure, /postIdempotentMutation\("\/api\/install"/);
+    assert.match(reauthFailure, /postIdempotentMutation\("\/api\/reauth"/);
+    assert.match(html, /for \(let attempt = 0; attempt < 2; attempt\+\+\)/, "ambiguous initial responses must replay the same request");
+    assert.match(html, /crypto\.getRandomValues\(bytes\)/, "every mutation needs a client-known replay id");
+});
+
+test("failed disconnect and namespace deletion refresh fail-closed state", () => {
+    const html = catalogHtml();
+    const disconnect = html.slice(html.indexOf("async function onRemoveLocal"), html.indexOf("function ensureDeleteDialog"));
+    const namespaceDelete = html.slice(html.indexOf("async function performNamespaceDelete"), html.indexOf("function waitForOAuth"));
+    assert.match(disconnect, /catch \(err\)[\s\S]*await hydrateState\(\)/);
+    assert.match(namespaceDelete, /catch \(err\)[\s\S]*await hydrateState\(\)/);
+    assert.doesNotMatch(disconnect, /mainBtn\.disabled = false/);
+    assert.doesNotMatch(namespaceDelete, /b\.disabled = false/);
+});
+
 test("baseStyles defines the spin keyframes", () => {
     assert.match(baseStyles(), /@keyframes spin\b/, "spinner keyframes must be defined");
 });

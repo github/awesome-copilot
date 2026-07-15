@@ -355,7 +355,7 @@ ${notice ? `<div class="setup-notice">${esc(notice)}</div>` : ""}
     <button id="create-ns-btn" class="create-link" type="button"><span class="plus">+</span><span>New connector namespace</span></button>
 </div>
 <div style="margin-bottom: 1rem;">
-    <label>Subscription</label>
+    <label for="sub-select">Subscription</label>
     <select id="sub-select">
         <option value="">-- Select subscription --</option>
         ${subOptions}
@@ -437,7 +437,7 @@ gwFilter.addEventListener("input", () => {
         const q = gwFilter.value.trim();
         // If user is typing and we only have partial results, load everything first
         if (q && hasMoreGateways && !loadedAll) {
-            await loadAll();
+            if (!await loadAll()) return;
         }
         renderGateways(gwFilter.value, hasMoreGateways && !loadedAll);
     }, 200);
@@ -475,23 +475,26 @@ async function loadAll() {
     try {
         const res = await fetch("/api/gateways?subscriptionId=" + encodeURIComponent(subId) + "&all=true");
         const data = await res.json();
-        if (requestSeq !== gatewayRequestSeq || subId !== subSelect.value) return;
-        if (data.gateways) {
-            allGateways = data.gateways.map(gw => {
-                const parts = gw.id.split("/");
-                return {
-                    subscriptionId: subId,
-                    resourceGroup: parts[parts.indexOf("resourceGroups") + 1] || "",
-                    name: gw.name || parts[parts.length - 1],
-                    location: gw.location || "",
-                };
-            });
-            renderGateways(gwFilter.value, false);
-            loadedAll = true;
-        }
+        if (requestSeq !== gatewayRequestSeq || subId !== subSelect.value) return false;
+        if (data.error) throw new Error(data.error);
+        if (!Array.isArray(data.gateways)) throw new Error("Invalid gateway response.");
+        allGateways = data.gateways.map(gw => {
+            const parts = gw.id.split("/");
+            return {
+                subscriptionId: subId,
+                resourceGroup: parts[parts.indexOf("resourceGroups") + 1] || "",
+                name: gw.name || parts[parts.length - 1],
+                location: gw.location || "",
+            };
+        });
+        loadedAll = true;
+        hasMoreGateways = false;
+        renderGateways(gwFilter.value, false);
+        return true;
     } catch (err) {
-        if (requestSeq !== gatewayRequestSeq) return;
+        if (requestSeq !== gatewayRequestSeq) return false;
         if (btn) { btn.textContent = "Failed \u2014 try again"; btn.disabled = false; }
+        return false;
     }
 }
 
@@ -898,6 +901,96 @@ function toast(msg, isError) {
     setTimeout(() => el.remove(), isError ? 8000 : 4000);
 }
 
+async function showConnectionSuccess(modal, item, message) {
+    if (modal) {
+        modal.success();
+        await new Promise((resolve) => setTimeout(resolve, 1600));
+        modal.close();
+    }
+    toast(message);
+    showRestartBanner();
+    if (item) item.style.opacity = "1";
+    await hydrateState();
+}
+
+async function rollbackFreshConnection(connName) {
+    const response = await fetch("/api/rollback-connection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connName })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+}
+
+async function reconcileFinishedInstall(apiName, connName) {
+    const response = await fetch("/api/state");
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    const state = data.state && data.state[apiName];
+    if (
+        state &&
+        state.installed &&
+        state.inCli &&
+        state.connectionName === connName &&
+        state.connectionStatus === "Connected"
+    ) return true;
+    // ARM list results are eventually consistent. Once finish has started, a
+    // negative state read cannot prove the connection is orphaned, so leave it
+    // intact and report the ambiguous result instead of risking data loss.
+    return false;
+}
+
+async function recoverConnectorFailure(error, apiName, connName, freshConnection, finishStarted, finishResponseReceived, canReconcileFinish) {
+    if (finishStarted && canReconcileFinish) {
+        try {
+            const complete = await reconcileFinishedInstall(apiName, connName);
+            // A parsed server error is definitive. Reconciliation is only allowed
+            // to recover success when the transport or response was ambiguous.
+            return { complete: !finishResponseReceived && complete, error };
+        } catch (verificationError) {
+            return {
+                complete: false,
+                error: new Error(error.message + " Unable to verify the final state: " + verificationError.message)
+            };
+        }
+    }
+    if (freshConnection && connName) {
+        try {
+            await rollbackFreshConnection(connName);
+        } catch (cleanupError) {
+            return {
+                complete: false,
+                error: new Error(error.message + " Cleanup also failed: " + cleanupError.message)
+            };
+        }
+    }
+    return { complete: false, error };
+}
+
+function createRequestId() {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function postIdempotentMutation(url, body) {
+    let lastError;
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            return await response.json();
+        } catch (error) {
+            lastError = error;
+        }
+    }
+    throw lastError;
+}
+
 document.querySelectorAll(".item-add.primary").forEach(btn => {
     btn.addEventListener("click", () => onConnect(btn));
 });
@@ -996,61 +1089,72 @@ async function onConnect(btn) {
 
     let modal = null;
     let pendingConn = null;
+    let freshConnection = false;
+    let finishStarted = false;
+    let finishResponseReceived = false;
     try {
-        const res = await fetch("/api/install", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ apiName, displayName, scope: installScope })
+        const data = await postIdempotentMutation("/api/install", {
+            apiName,
+            displayName,
+            scope: installScope,
+            requestId: createRequestId(),
         });
-        const data = await res.json();
         if (data.error) throw new Error(data.error);
 
         if (data.needsConsent) {
             pendingConn = data.connName;
+            freshConnection = data.freshConnection === true;
             modal = openSignInModal(displayName, data.consentUrl);
             await fetch("/api/open-url", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ url: data.consentUrl }) });
             await waitForOAuth(data.connName, 180000, modal);
             modal.finishing();
+            finishStarted = true;
             const finish = await fetch("/api/finish-install", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ apiName, displayName, connName: data.connName, location: data.location, scope: installScope })
             });
             const finishData = await finish.json();
+            finishResponseReceived = true;
             if (finishData.error) throw new Error(finishData.error);
             pendingConn = null;
-            modal.success();
-            await new Promise((r) => setTimeout(r, 1600));
         }
 
-        if (modal) modal.close();
-        toast('Connected "' + displayName + '". Restart your session to use its tools.');
-        showRestartBanner();
-        if (item) item.style.opacity = "1";
-        await hydrateState();
+        await showConnectionSuccess(modal, item, 'Connected "' + displayName + '". Restart your session to use its tools.');
     } catch (err) {
+        const recovery = await recoverConnectorFailure(
+            err,
+            apiName,
+            pendingConn,
+            freshConnection,
+            finishStarted,
+            finishResponseReceived,
+            true
+        );
+        if (recovery.complete) {
+            await showConnectionSuccess(modal, item, 'Connected "' + displayName + '". Restart your session to use its tools.');
+            return;
+        }
         if (modal) modal.close();
-        const cancelled = err && err.message === "cancelled";
-        if (!cancelled) toast("Connect failed: " + err.message, true);
+        const cancelled = recovery.error === err && err && err.message === "cancelled";
+        if (!cancelled) toast("Connect failed: " + recovery.error.message, true);
         if (cancelled && pendingConn) {
             await fetch("/api/rollback-connection", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ connName: pendingConn }) }).catch(() => {});
         }
         btn.disabled = false;
         btn.textContent = "Create and connect";
         if (item) item.style.opacity = "1";
-        if (cancelled) {
-            await hydrateState();
-            // hydrateState() tears down this tile's button and builds a fresh
-            // one, so the original btn is now detached. The modal also dropped
-            // focus to the body when it tried to restore to the (then-disabled)
-            // trigger. Re-focus the rebuilt Connect button so keyboard users
-            // keep their place after cancelling.
-            if (document.activeElement === document.body) {
-                const sel = window.CSS && CSS.escape ? CSS.escape(apiName) : apiName;
-                try {
-                    document.querySelector('.item[data-api-item="' + sel + '"] .item-add.primary')?.focus();
-                } catch { /* odd apiName -> invalid selector; cancel stays safe */ }
-            }
+        await hydrateState();
+        // hydrateState() tears down this tile's button and builds a fresh
+        // one, so the original btn is now detached. The modal also dropped
+        // focus to the body when it tried to restore to the (then-disabled)
+        // trigger. Re-focus the rebuilt Connect button so keyboard users
+        // keep their place after cancelling.
+        if (cancelled && document.activeElement === document.body) {
+            const sel = window.CSS && CSS.escape ? CSS.escape(apiName) : apiName;
+            try {
+                document.querySelector('.item[data-api-item="' + sel + '"] .item-add.primary')?.focus();
+            } catch { /* odd apiName -> invalid selector; cancel stays safe */ }
         }
     }
 }
@@ -1060,8 +1164,8 @@ async function onConnect(btn) {
 // instead of minting new ones. The finish step branches: if the server returned a
 // configName we rebind that exact config (/api/finish-reauth); if it didn't, the
 // stored connection was gone and reauth fell back to a fresh install, so we finish
-// via the normal install path. Unlike onConnect we never roll back on cancel — the
-// connection here is the user's pre-existing one, deleting it would be destructive.
+// via the normal install path. Only that explicitly marked fresh fallback can be
+// rolled back; a pre-existing reauth connection is never deleted.
 async function onReauth(btn) {
     const apiName = btn.dataset.api;
     const displayName = btn.dataset.name;
@@ -1077,20 +1181,27 @@ async function onReauth(btn) {
     btn.innerHTML = '<span style="display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;margin-right:.35rem;vertical-align:-2px;"></span>' + (isConnect ? "Connecting" : "Re-authenticating") + "\u2026";
 
     let modal = null;
+    let pendingConn = null;
+    let freshConnection = false;
+    let finishStarted = false;
+    let finishResponseReceived = false;
     try {
-        const res = await fetch("/api/reauth", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ apiName, displayName, scope: installScope })
+        const data = await postIdempotentMutation("/api/reauth", {
+            apiName,
+            displayName,
+            scope: installScope,
+            requestId: createRequestId(),
         });
-        const data = await res.json();
         if (data.error) throw new Error(data.error);
 
         if (data.needsConsent) {
+            pendingConn = data.connName;
+            freshConnection = data.freshConnection === true;
             modal = openSignInModal(displayName, data.consentUrl);
             await fetch("/api/open-url", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ url: data.consentUrl }) });
             await waitForOAuth(data.connName, 180000, modal);
             modal.finishing();
+            finishStarted = true;
             // configName present → rebind that config; absent → reauth fell back to
             // a fresh install (stored connection was gone), finish the install path.
             const finishUrl = data.configName ? "/api/finish-reauth" : "/api/finish-install";
@@ -1103,45 +1214,66 @@ async function onReauth(btn) {
                 body: JSON.stringify(finishBody)
             });
             const finishData = await finish.json();
+            finishResponseReceived = true;
             if (finishData.error) throw new Error(finishData.error);
-            modal.success();
-            await new Promise((r) => setTimeout(r, 1600));
+            pendingConn = null;
         }
 
-        if (modal) modal.close();
-        toast((isConnect ? 'Connected "' : 'Re-authenticated "') + displayName + '". Restart your session to use its tools.');
-        showRestartBanner();
-        if (item) item.style.opacity = "1";
-        await hydrateState();
+        await showConnectionSuccess(
+            modal,
+            item,
+            (isConnect ? 'Connected "' : 'Re-authenticated "') + displayName + '". Restart your session to use its tools.'
+        );
     } catch (err) {
+        const recovery = await recoverConnectorFailure(
+            err,
+            apiName,
+            pendingConn,
+            freshConnection,
+            finishStarted,
+            finishResponseReceived,
+            freshConnection
+        );
+        if (recovery.complete) {
+            await showConnectionSuccess(
+                modal,
+                item,
+                (isConnect ? 'Connected "' : 'Re-authenticated "') + displayName + '". Restart your session to use its tools.'
+            );
+            return;
+        }
         if (modal) modal.close();
-        const cancelled = err && err.message === "cancelled";
-        if (!cancelled) toast(verb + " failed: " + err.message, true);
+        const cancelled = recovery.error === err && err && err.message === "cancelled";
+        if (!cancelled) toast(verb + " failed: " + recovery.error.message, true);
         btn.disabled = false;
         btn.textContent = verb;
         if (item) item.style.opacity = "1";
-        if (cancelled) {
-            await hydrateState();
-            if (document.activeElement === document.body) {
-                const sel = window.CSS && CSS.escape ? CSS.escape(apiName) : apiName;
-                try {
-                    document.querySelector('.item[data-api-item="' + sel + '"] .item-add.primary')?.focus();
-                } catch { /* odd apiName -> invalid selector; cancel stays safe */ }
-            }
+        await hydrateState();
+        if (cancelled && document.activeElement === document.body) {
+            const sel = window.CSS && CSS.escape ? CSS.escape(apiName) : apiName;
+            try {
+                document.querySelector('.item[data-api-item="' + sel + '"] .item-add.primary')?.focus();
+            } catch { /* odd apiName -> invalid selector; cancel stays safe */ }
         }
     }
 }
 
 // Hydrate each connector tile from the connector namespace's true install state.
 async function hydrateState() {
+    // The static catalog buttons are only placeholders until the namespace's
+    // installed state is known. Keep every mutating action fail-closed.
+    document.querySelectorAll(".item-add").forEach(button => { button.disabled = true; });
     let state = {};
     try {
         const r = await fetch("/api/state");
         const d = await r.json();
-        if (d.error) return;
+        if (d.error) throw new Error(d.error);
         state = d.state || {};
         if (restartBanner) restartBanner.hidden = restartDismissed || !d.pendingRestart;
-    } catch { return; }
+    } catch (err) {
+        toast("Couldn't load connector state: " + err.message, true);
+        return false;
+    }
 
     document.querySelectorAll(".item[data-api-item]").forEach(item => {
         const apiName = item.dataset.apiItem;
@@ -1300,6 +1432,7 @@ async function hydrateState() {
     });
 
     updateSections();
+    return true;
 }
 
 let rmMenuSeq = 0;
@@ -1323,8 +1456,7 @@ async function onRemoveLocal(item, apiName) {
         await hydrateState();
     } catch (err) {
         toast("Disconnect failed: " + err.message, true);
-        if (wrap) wrap.style.opacity = "1";
-        if (mainBtn) { mainBtn.disabled = false; mainBtn.innerHTML = disconnectIcon; }
+        await hydrateState();
     }
 }
 
@@ -1388,9 +1520,7 @@ async function performNamespaceDelete({ apiName, item }) {
         await hydrateState();
     } catch (err) {
         toast("Delete failed: " + err.message, true);
-        if (wrap) wrap.style.opacity = "1";
-        btns.forEach((b) => { b.disabled = false; });
-        if (mainBtn) mainBtn.innerHTML = disconnectIcon;
+        await hydrateState();
     }
 }
 
