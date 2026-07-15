@@ -1,0 +1,24 @@
+{
+  "name": "convert-to-md",
+  "description": "A collection of Copilot skills that convert common document formats into Markdown so their contents can be accurately analyzed, summarized, searched, or extracted from. Just tell Copilot what you need — the right skill is invoked automatically and the conversion happens behind the scenes.",
+  "version": "1.0.1",
+  "keywords": [
+    "skills",
+    "configuration",
+    "copilot",
+    "convert-word-to-md",
+    "convert-excel-to-md",
+    "convert-pdf-to-md"
+  ],
+  "author": {
+    "name": "Willie Yao",
+    "url": "https://github.com/1YaoWei0"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "skills": [
+    "./skills/convert-excel-to-md",
+    "./skills/convert-pdf-to-md",
+    "./skills/convert-word-to-md"
+  ]
+}
