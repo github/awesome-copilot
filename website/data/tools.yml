@@ -477,7 +477,6 @@ tools:
     featured: false
     links:
       documentation: https://www.raumnebenan.de/ai-tools/
-      blog: https://www.raumnebenan.de/ai-tools/
     features:
       - "Tools: list articles, search, get by slug/UUID/tag, list categories/stories, get stories by category"
       - "Full article content returned as structured markdown with metadata"
