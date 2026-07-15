@@ -183,9 +183,15 @@ test("cross-process MCP config writes preserve every entry", async () => {
     const names = Array.from({ length: 8 }, (_, index) => `parallel-${index}`);
 
     const runWriter = (name) => new Promise((resolve, reject) => {
+        const metadata = {
+            gatewayId: "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Web/connectorGateways/gateway",
+            mcpServerConfigId: `/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Web/connectorGateways/gateway/mcpserverConfigs/${name}`,
+            connectionId: `/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Web/connectorGateways/gateway/connections/${name}`,
+            apiName: name,
+        };
         const script = [
             `import { writeMcpEntry } from ${JSON.stringify(installUrl)};`,
-            `await writeMcpEntry(${JSON.stringify(name)}, ${JSON.stringify(`https://example.com/${name}`)}, ${JSON.stringify(`key-${name}`)});`,
+            `await writeMcpEntry(${JSON.stringify(name)}, ${JSON.stringify(`https://example.com/${name}`)}, ${JSON.stringify(`key-${name}`)}, "profile", ${JSON.stringify(metadata)});`,
         ].join("\n");
         const child = spawn(process.execPath, ["--input-type=module", "--eval", script], {
             env: { ...process.env, COPILOT_HOME: TMP, HOME: TMP, USERPROFILE: TMP },
@@ -204,8 +210,11 @@ test("cross-process MCP config writes preserve every entry", async () => {
     const stored = JSON.parse(readFileSync(configPath, "utf8")).mcpServers;
     assert.deepEqual(Object.keys(stored).sort(), [...names].sort());
     for (const name of names) {
-        assert.equal(stored[name].command, process.execPath);
-        assert.equal(stored[name].env.MCP_API_KEY, `key-${name}`);
+        assert.equal(stored[name].url, `https://example.com/${name}`);
+        assert.equal(stored[name].headers["X-API-Key"], `key-${name}`);
+        assert.deepEqual(Object.keys(stored[name]).sort(), ["_connectorNamespace", "headers", "url"]);
+        assert.equal(stored[name]._connectorNamespace.apiName, name);
+        assert.match(stored[name]._connectorNamespace.gatewayId, /connectorGateways\/gateway$/);
     }
     assert.equal(existsSync(`${configPath}.lock`), false);
 

@@ -3,8 +3,8 @@
 // Standalone harness that proves the Microsoft first-party MCP servers behind a
 // connector gateway actually work end-to-end: connect -> initialize ->
 // tools/list -> a safe tools/call. It imports the extension's real pipeline
-// (install.mjs, catalog.mjs, armClient.mjs) and drives the real
-// mcp-unwrap-proxy.mjs, so it exercises the exact path the Copilot CLI uses.
+// (install.mjs, catalog.mjs, armClient.mjs) and connects through the same native
+// Streamable HTTP endpoint persisted for the Copilot CLI.
 //
 // Runs with `node` and a signed-in Azure CLI — no Copilot app required — so it
 // can be handed to someone else to reproduce MCP issues. See README.md.
@@ -35,6 +35,7 @@ import {
     mintApiKey,
     uninstallConnector,
     openInBrowser,
+    assertSafeMcpTarget,
 } from "../install.mjs";
 import { fetchCatalog } from "../catalog.mjs";
 import { probe } from "./mcp-probe.mjs";
@@ -78,13 +79,13 @@ function writePending(map) {
     chmodSync(PENDING_FILE, 0o600);
 }
 
-// Read MCP_TARGET_URL / MCP_API_KEY for an installed config from the CLI config.
+// Read the native HTTP MCP credentials from the CLI config.
 function credsFromCli(configName) {
     try {
         const cfg = JSON.parse(readFileSync(PROFILE_MCP_PATH, "utf-8"));
-        const env = cfg.mcpServers?.[configName]?.env;
-        if (env?.MCP_TARGET_URL && env?.MCP_API_KEY) {
-            return { url: env.MCP_TARGET_URL, key: env.MCP_API_KEY };
+        const entry = cfg.mcpServers?.[configName];
+        if (entry?.url && entry?.headers?.["X-API-Key"]) {
+            return { url: entry.url, key: entry.headers["X-API-Key"] };
         }
     } catch { /* ignore */ }
     return null;
@@ -218,6 +219,7 @@ async function main() {
                 results.push(record);
                 continue;
             }
+            assertSafeMcpTarget(creds.url);
 
             connectable++;
             const r = await probe({ ...server, displayName: label, url: creds.url, key: creds.key });
@@ -228,7 +230,6 @@ async function main() {
                 : `${tick(r.steps.toolsCall.ok)}${r.toolCalled ? ` ${C.dim}${r.toolCalled}${C.reset}` : ""}`;
             console.log(`  init ${tick(r.steps.initialize.ok)}  tools/list ${tick(r.steps.toolsList.ok)} ${C.dim}(${r.toolCount})${C.reset}  tools/call ${callLine}`);
             if (r.error) console.log(`  ${C.red}${logLine(r.error)}${C.reset}`);
-            if (!r.ok && r.proxyStderrTail) console.log(`  ${C.dim}${logLine(r.proxyStderrTail)}${C.reset}`);
 
         } catch (err) {
             record.error = String(err.message || err);
@@ -313,7 +314,6 @@ function renderLog(report) {
             lines.push(`   tools/call: ${tc.status}${p.toolCalled ? ` [${p.toolCalled}, ${p.toolSource}]` : ""}`);
             if (tc.error) lines.push(`     callError: ${tc.error}`);
             if (p.error) lines.push(`   probeError: ${p.error}`);
-            if (!p.ok && p.proxyStderrTail) lines.push(`   proxyStderr:\n     ${p.proxyStderrTail.replace(/\n/g, "\n     ")}`);
         }
         lines.push("");
     }

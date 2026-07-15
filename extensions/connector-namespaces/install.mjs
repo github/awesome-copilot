@@ -6,17 +6,9 @@ import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { homedir, platform } from "node:os";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { getToken, assertArmHost, armSegment, resolveSystemExecutable } from "./armClient.mjs";
 
-// Stdio shim the Copilot CLI spawns instead of connecting to the gateway's MCP
-// endpoint directly. The gateway wraps post-initialize responses (tools/list,
-// tools/call) in an Azure Logic Apps "$content" base64 envelope that the CLI's
-// HTTP MCP client cannot parse, so no tools load. The proxy unwraps it and
-// speaks clean JSON-RPC over stdio. See mcp-unwrap-proxy.mjs.
-const MCP_PROXY_PATH = join(dirname(fileURLToPath(import.meta.url)), "mcp-unwrap-proxy.mjs");
 const COPILOT_HOME = process.env.COPILOT_HOME || join(homedir(), ".copilot");
-const STABLE_MCP_PROXY_PATH = join(COPILOT_HOME, "extensions", "connector-namespaces", "artifacts", "mcp-unwrap-proxy.mjs");
 
 // Two scopes the Copilot CLI reads MCP servers from:
 //   profile   -> ~/.copilot/mcp-config.json   (private, follows you everywhere)
@@ -197,8 +189,8 @@ async function clearPendingCleanups(paths) {
 // Validate the MCP endpoint URL before persisting it alongside an API key. The
 // value comes from an authenticated ARM read of the user's own gateway, so this
 // is defense in depth: require https, reject embedded credentials, and block
-// obvious internal/link-local hosts. Mirrors the guard in mcp-unwrap-proxy.mjs.
-function assertSafeMcpTarget(rawUrl) {
+// obvious internal/link-local hosts.
+export function assertSafeMcpTarget(rawUrl) {
     let u;
     try { u = new URL(rawUrl); } catch { throw new Error("MCP endpoint URL is not a valid URL."); }
     if (u.protocol !== "https:") throw new Error("MCP endpoint URL must use https.");
@@ -524,15 +516,9 @@ export async function writeMcpEntry(name, url, key, scope = "profile", meta = nu
     const path = mcpConfigPath(scope);
     return withConfigLock(path, async () => {
         const cfg = await readMcpConfigAt(path);
-        await fs.mkdir(dirname(STABLE_MCP_PROXY_PATH), { recursive: true, mode: 0o700 });
-        await fs.copyFile(MCP_PROXY_PATH, STABLE_MCP_PROXY_PATH);
-        await fs.chmod(STABLE_MCP_PROXY_PATH, 0o600).catch(() => {});
-        // Route through the stdio unwrap-proxy rather than a direct { type: "http" }
-        // entry — the gateway's $content envelope breaks the CLI's HTTP MCP client.
         cfg.mcpServers[name] = {
-            command: process.execPath,
-            args: [STABLE_MCP_PROXY_PATH],
-            env: { MCP_TARGET_URL: url, MCP_API_KEY: key },
+            url,
+            headers: { "X-API-Key": key },
         };
         // Stamp ARM provenance as a sibling metadata key. The underscore prefix
         // marks it as "metadata, not part of the MCP launch spec" — the CLI

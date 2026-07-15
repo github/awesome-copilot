@@ -8,12 +8,10 @@ connect → initialize → tools/list → a safe tools/call
 ```
 
 It imports the `connector-namespaces` extension's real pipeline (`install.mjs`,
-`catalog.mjs`, `armClient.mjs`) and drives the **real** `mcp-unwrap-proxy.mjs`,
-so it exercises the exact code path the Copilot CLI uses. The recurring
-production breakages (the Logic Apps `$content` base64 envelope, SSE framing,
-`Mcp-Session-Id` tracking, the `TextOnlyContent` default) all live in that
-proxy — hitting the raw endpoint would miss them, so we spawn the proxy on
-purpose.
+`catalog.mjs`, `armClient.mjs`) and connects through the same native Streamable
+HTTP endpoint that the extension writes to the Copilot CLI config. The probe
+uses the configured `X-API-Key`, follows `Mcp-Session-Id`, and accepts standard
+JSON or SSE JSON-RPC responses.
 
 The whole point: it runs with **Node and Azure CLI**. No Copilot app, no
 canvas, no UI. Hand it to anyone (e.g. Arjun) and they can reproduce an MCP
@@ -109,8 +107,8 @@ they contain live endpoint URLs):
 
 Per server you get: classification, `initialize` pass/fail + latency, tool
 count, which tool was called and why, the call result preview or error, and a
-tail of the proxy's stderr on failure. API keys are redacted; endpoint URLs are
-not, which is why the reports stay out of git.
+direct transport error on failure. API keys are redacted; endpoint URLs are not,
+which is why the reports stay out of git.
 
 Exit code is **non-zero if any probed server failed a step**, so it's CI-usable.
 
@@ -119,7 +117,7 @@ Exit code is **non-zero if any probed server failed a step**, so it's CI-usable.
 | file | role |
 |---|---|
 | `smoke.mjs` | orchestrator — bootstrap, classify each server, probe, report |
-| `mcp-probe.mjs` | spawns the real proxy, drives the JSON-RPC handshake |
+| `mcp-probe.mjs` | drives the native Streamable HTTP JSON-RPC handshake |
 | `safe-tools.mjs` | curated safe-read-tool map + read-only heuristic + arg filler |
 | `reports/` | generated `.log` + `.json` artifacts (gitignored) |
 

@@ -97,18 +97,16 @@ test("POSIX Azure CLI resolution rejects workspace-controlled binaries", async (
     }
 });
 
-test("installer preserves capability tokens and persists a stable proxy", async () => {
+test("installer preserves capability tokens and persists direct HTTP entries", async () => {
     const source = await readFile(new URL("install.mjs", here), "utf8");
     const fallbacks = source.match(/installConnector\(config, apiName, displayName, callbackBase, scope, capabilityToken\)/g);
     assert.equal(fallbacks?.length, 1);
     assert.match(source, /reauthConnectorWithAttempts\([\s\S]*?capabilityToken,[\s\S]*?attemptedConfigNames/);
-    assert.match(source, /args: \[STABLE_MCP_PROXY_PATH\]/);
-    assert.match(source, /await fs\.copyFile\(MCP_PROXY_PATH, STABLE_MCP_PROXY_PATH\)/);
+    assert.match(source, /headers: \{ "X-API-Key": key \}/);
     assert.match(source, /const cacheKey = `\$\{sub\}:\$\{location\}:\$\{apiName\}:\$\{requireSwagger\}`/);
     assert.match(source, /throwAfterCleanup\(error, \[\(\) => deleteConnection\(config, connName\)\]\)/);
     assert.match(source, /freshConnection: true/);
     assert.match(source, /freshConnection: false/);
-    assert.match(source, /command: process\.execPath/);
     assert.match(source, /await fs\.open\(lockPath, "wx", 0o600\)/);
     assert.match(source, /await fs\.rename\(temporary, path\)/);
     assert.match(source, /resolveSystemExecutable\("rundll32\.exe"\)/);

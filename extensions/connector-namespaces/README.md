@@ -64,7 +64,7 @@ an additional Agent Skill.
   base only, SSRF-guarded path segments).
 - `catalog.mjs` — fetches and curates the connector list for a namespace.
 - `install.mjs` — the connect/install pipeline (managed-API connection, consent,
-  best-effort rollback on cancel).
+  rollback on cancel, and native HTTPS MCP config registration).
 - `renderer.mjs` — all canvas HTML/CSS/client JS.
 - `sandbox.mjs` — builds namespace playground links and resolves named My MCPs.
 - `state.mjs` — saved namespace and connector state.
@@ -77,6 +77,8 @@ an additional Agent Skill.
 - All servers bind to loopback (`127.0.0.1`) and are never exposed externally.
 - ARM requests go only to `https://management.azure.com/`; path segments are
   validated to prevent SSRF-style host smuggling.
+- The minted gateway API key is stored in the selected Copilot MCP config and
+  sent to its validated HTTPS endpoint as the `X-API-Key` header.
 
 ## License
 
