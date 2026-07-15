@@ -643,7 +643,8 @@
     "source": {
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
-      "path": "plugins/upgrade-agent"
+      "path": "plugins/upgrade-agent",
+      "sha": "7360a7e7df442761a36909de0e8fe5c3b00a01e7"
     }
   },
   {
