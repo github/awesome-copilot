@@ -463,3 +463,47 @@ tools:
       - verification
       - worktree
       - local-first
+
+  - id: raumnebenan-mcp
+    name: Raumnebenan MCP Server
+    description: >-
+      MCP server for actionable product thinking — structured guides and frameworks
+      for Product Owners, Designers, Business Analysts, and Agile Coaches. Covers
+      five knowledge areas: Foundation (vision, strategy, roadmaps), Sense (user research,
+      empathy mapping, Jobs-to-be-Done), Focus (Opportunity analysis, prioritization, Metrics),
+      Discover (usability testing, prototyping, design thinking), and Deliver (agile practices,
+      user stories). No API key required.
+    category: MCP Servers
+    featured: false
+    links:
+      documentation: https://www.raumnebenan.de/ai-tools/
+      blog: https://www.raumnebenan.de/ai-tools/
+    features:
+      - "Tools: list articles, search, get by slug/UUID/tag, list categories/stories, get stories by category"
+      - "Full article content returned as structured markdown with metadata"
+      - "5 knowledge areas: Foundation, Sense, Focus, Discover, Deliver"
+      - "Cross-linked articles via tags and related-article references"
+      - "No authentication required — remote HTTP server, zero setup"
+    configuration:
+      type: json
+      content: |
+        {
+          "servers": {
+            "raumnebenan-mcp": {
+              "url": "https://www.raumnebenan.de/mcp",
+              "type": "http"
+            }
+          }
+        }
+    tags:
+      - mcp
+      - product-thinking
+      - product-vision
+      - product-strategy
+      - product-roadmap
+      - usability
+      - design-thinking
+      - user-research
+      - prioritization
+      - agile-development
+      - co-creation-workshops
