@@ -327,17 +327,16 @@ test("My MCP hydration adds a per-server Sandbox deep link", () => {
     );
 });
 
-test("connect is more compact and local remove uses a clear accessible icon", () => {
+test("connect is compact and local disconnect is distinct from namespace deletion", () => {
     const html = catalogHtmlFull();
     const css = baseStyles();
     assert.match(css, /\.item-add\.primary\s*\{[^}]*min-width:\s*62px;[^}]*font-size:\s*\.72rem;/, "Connect should use the compact primary-button sizing");
     assert.match(html, /connectIcon \+ "<span>Connect<\/span>"/, "Connect should include the plug mark before its label");
-    assert.match(html, /remove\.className = "item-add split-main item-icon-action"/, "local remove should be compact");
-    assert.match(html, /remove\.setAttribute\("aria-label", "Remove " \+ displayName \+ " from Copilot"\)/, "the icon needs a connector-specific label");
-    assert.match(html, /const removeIcon = '[^']*M2\.5 4h11/, "the visible control should use a recognizable trash mark");
-    assert.match(html, /remove\.innerHTML = removeIcon/, "the visible control should use the remove mark");
-    assert.doesNotMatch(html, /remove\.textContent = "Remove"/, "the local action should not render a text label");
-    assert.match(html, /\.split-remove \.split-main \{[^}]*color:var\(--danger\)/, "the trash action should be red");
+    assert.match(html, /remove\.className = "item-add split-main item-icon-action"/, "local disconnect should be compact");
+    assert.match(html, /remove\.setAttribute\("aria-label", "Disconnect " \+ displayName \+ " from Copilot"\)/, "the icon needs a connector-specific label");
+    assert.match(html, /const disconnectIcon = '[^']*m2 2 12 12/, "the visible control should use a slashed plug mark");
+    assert.match(html, /remove\.innerHTML = disconnectIcon/, "the visible control should use the disconnect mark");
+    assert.doesNotMatch(html, /\.split-remove \.split-main \{[^}]*color:var\(--danger\)/, "disconnect should not look like destructive namespace deletion");
     assert.match(html, /\.split-remove \.split-caret\s*\{[^}]*padding:\.2rem \.3rem/, "the destructive-options caret should stay narrow");
     assert.match(html, /\.split-remove \.split-caret svg\s*\{[^}]*width:8px; height:8px;/, "the caret mark should match its smaller button");
 });

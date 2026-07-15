@@ -593,8 +593,7 @@ export function renderCatalogHtml(instanceId, catalog, { filter, category, sourc
 /* main + caret read as one pill; the shared 1px border between them is the
    divider (caret overlaps main by -1px so borders don't double). */
 .split-remove { display:inline-flex; align-items:stretch; }
-.split-remove .split-main { border-top-right-radius:0; border-bottom-right-radius:0; color:var(--danger); }
-.split-remove .split-main:hover { border-color:var(--danger); color:var(--danger); }
+.split-remove .split-main { border-top-right-radius:0; border-bottom-right-radius:0; }
 .split-remove .split-caret {
     min-width:0; padding:.2rem .3rem; margin-left:-1px;
     border-top-left-radius:0; border-bottom-left-radius:0;
@@ -702,7 +701,7 @@ window.fetch = (input, init = {}) => {
 const input = document.getElementById("search");
 const noMatch = document.getElementById("no-match");
 const connectIcon = ${JSON.stringify(CONNECT_ICON)};
-const removeIcon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4h11M6 1.75h4L10.75 4h-5.5L6 1.75ZM4.25 4l.6 9h6.3l.6-9M6.75 6.5v4M9.25 6.5v4"/></svg>';
+const disconnectIcon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5v3M9.5 2.5v3M3.5 5.5h8v1a4 4 0 0 1-4 4v3M5.5 13.5h4"/><path d="m2 2 12 12"/></svg>';
 
 // Gateway header actions: open the connector gateway in the Azure portal, and
 // open the MCP config file this session writes connections into. Both shell out
@@ -1218,12 +1217,12 @@ async function hydrateState() {
             }
         };
 
-        // main "Remove" = local-only unlink; keeps the namespace resource.
+        // Main action disconnects Copilot only; the namespace resource remains.
         const remove = document.createElement("button");
         remove.className = "item-add split-main item-icon-action";
-        remove.title = "Remove from Copilot. Keeps the resource on your namespace.";
-        remove.setAttribute("aria-label", "Remove " + displayName + " from Copilot");
-        remove.innerHTML = removeIcon;
+        remove.title = "Disconnect from Copilot. Keeps the resource on your namespace.";
+        remove.setAttribute("aria-label", "Disconnect " + displayName + " from Copilot");
+        remove.innerHTML = disconnectIcon;
         remove.onclick = () => onRemoveLocal(item, apiName);
 
         // caret opens a popover menu holding the destructive namespace delete.
@@ -1299,7 +1298,7 @@ let pendingDelete = null;
 async function onRemoveLocal(item, apiName) {
     const wrap = item.querySelector(".item-actions");
     const mainBtn = wrap?.querySelector(".split-main");
-    if (mainBtn) { mainBtn.disabled = true; mainBtn.textContent = "Removing\u2026"; }
+    if (mainBtn) { mainBtn.disabled = true; mainBtn.textContent = "Disconnecting\u2026"; }
     if (wrap) wrap.style.opacity = "0.6";
     try {
         const r = await fetch("/api/remove-local", {
@@ -1309,12 +1308,12 @@ async function onRemoveLocal(item, apiName) {
         });
         const d = await r.json();
         if (d.error) throw new Error(d.error);
-        toast("Removed from Copilot.");
+        toast("Disconnected from Copilot.");
         await hydrateState();
     } catch (err) {
-        toast("Remove failed: " + err.message, true);
+        toast("Disconnect failed: " + err.message, true);
         if (wrap) wrap.style.opacity = "1";
-        if (mainBtn) { mainBtn.disabled = false; mainBtn.innerHTML = removeIcon; }
+        if (mainBtn) { mainBtn.disabled = false; mainBtn.innerHTML = disconnectIcon; }
     }
 }
 
@@ -1380,7 +1379,7 @@ async function performNamespaceDelete({ apiName, item }) {
         toast("Delete failed: " + err.message, true);
         if (wrap) wrap.style.opacity = "1";
         btns.forEach((b) => { b.disabled = false; });
-        if (mainBtn) mainBtn.innerHTML = removeIcon;
+        if (mainBtn) mainBtn.innerHTML = disconnectIcon;
     }
 }
 
