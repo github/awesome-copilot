@@ -129,6 +129,49 @@ function extractMessages(contentType, body) {
     return [parsed];
 }
 
+function isJsonRpcNotification(message) {
+    return Boolean(
+        message &&
+        !Array.isArray(message) &&
+        message.jsonrpc === "2.0" &&
+        typeof message.method === "string" &&
+        message.id === undefined,
+    );
+}
+
+function isMatchingJsonRpcResponse(message, requestId) {
+    if (
+        !message ||
+        Array.isArray(message) ||
+        message.jsonrpc !== "2.0" ||
+        message.method !== undefined ||
+        !Object.is(message.id, requestId)
+    ) return false;
+    const hasResult = Object.prototype.hasOwnProperty.call(message, "result");
+    const hasError = Object.prototype.hasOwnProperty.call(message, "error");
+    if (hasResult === hasError) return false;
+    return !hasError || Boolean(
+        message.error &&
+        typeof message.error === "object" &&
+        !Array.isArray(message.error) &&
+        Number.isInteger(message.error.code) &&
+        typeof message.error.message === "string",
+    );
+}
+
+function emitValidMessages(messages, req, isNotification) {
+    let matched = false;
+    for (const message of messages) {
+        if (isJsonRpcNotification(message)) {
+            emit(message);
+        } else if (!isNotification && !matched && isMatchingJsonRpcResponse(message, req.id)) {
+            emit(message);
+            matched = true;
+        }
+    }
+    return isNotification || matched;
+}
+
 function forward(line) {
     let req;
     try {
@@ -176,14 +219,12 @@ function forward(line) {
                         }
                     } else {
                         const messages = extractMessages(res.headers["content-type"], body);
-                        if (!isNotification && messages.length === 0) {
+                        if (!emitValidMessages(messages, req, isNotification)) {
                             emit({
                                 jsonrpc: "2.0",
                                 id: req.id,
                                 error: { code: -32000, message: "Upstream returned an invalid JSON-RPC response" },
                             });
-                        } else {
-                            for (const msg of messages) emit(msg);
                         }
                     }
                     resolve();
@@ -206,9 +247,37 @@ function forward(line) {
 }
 
 const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });
-let requestQueue = Promise.resolve();
+let startupQueue = Promise.resolve();
+let sessionEstablished = false;
+const activeRequests = new Set();
+
+function startForward(line) {
+    const pending = forward(line).catch((error) => log(`forwarding failed: ${error}`));
+    activeRequests.add(pending);
+    pending.finally(() => activeRequests.delete(pending));
+    return pending;
+}
+
 rl.on("line", (line) => {
     const trimmed = line.trim();
-    if (trimmed) requestQueue = requestQueue.then(() => forward(trimmed));
+    if (!trimmed) return;
+    let method;
+    try {
+        method = JSON.parse(trimmed)?.method;
+    } catch {
+        return;
+    }
+    if (!sessionEstablished) {
+        startupQueue = startupQueue.then(() => startForward(trimmed));
+        if (method === "initialize") {
+            startupQueue = startupQueue.then(() => { sessionEstablished = true; });
+        }
+    } else {
+        startForward(trimmed);
+    }
 });
-rl.on("close", () => requestQueue.finally(() => process.exit(0)));
+rl.on("close", async () => {
+    await startupQueue;
+    await Promise.allSettled([...activeRequests]);
+    process.exit(0);
+});

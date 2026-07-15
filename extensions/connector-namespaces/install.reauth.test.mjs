@@ -11,6 +11,7 @@
 
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import { delimiter, join } from "node:path";
 import { tmpdir } from "node:os";
@@ -119,6 +120,97 @@ test("re-authenticate re-consents the existing connection and mints no new resou
         "must not touch the sibling connection conn-a",
     );
     assert.ok(!calls.some((c) => c.url.includes("export=true")), "reauth must not request unused swagger");
+});
+
+test("missing selected connection re-evaluates a valid duplicate before installing", async (t) => {
+    const configPath = join(TMP, "mcp-config.json");
+    writeFileSync(
+        configPath,
+        JSON.stringify({ mcpServers: { "api-dead": { type: "http", url: "https://example.com/mcp" } } }),
+    );
+    const config = { subscriptionId: "sub1", resourceGroup: "rg1", gatewayName: "gw1" };
+    const dead = { name: "api-dead", properties: { connectors: [{ name: "shared-api", connectionName: "conn-dead" }] } };
+    const live = { name: "api-live", properties: { connectors: [{ name: "shared-api", connectionName: "conn-live" }] } };
+    const calls = [];
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async (urlArg, opts = {}) => {
+        const url = String(urlArg);
+        const method = (opts.method || "GET").toUpperCase();
+        calls.push({ method, url });
+        const ok = (body) => ({ ok: true, status: 200, text: async () => JSON.stringify(body) });
+        if (method === "GET" && /\/mcpserverConfigs\?/.test(url)) return ok({ value: [dead, live] });
+        if (method === "GET" && /\/connections\?/.test(url)) {
+            return ok({ value: [
+                { name: "conn-dead", properties: { statuses: [{ status: "Unknown" }] } },
+                { name: "conn-live", properties: { statuses: [{ status: "Connected" }] } },
+            ] });
+        }
+        if (method === "GET" && /\/connectorGateways\/[^/?]+\?/.test(url)) return ok({ location: "eastus" });
+        if (method === "GET" && url.includes("/managedApis/shared-api")) {
+            return ok({ properties: { connectionParameters: { token: { type: "oauthSetting" } } } });
+        }
+        if (method === "POST" && url.includes("/connections/conn-dead/listConsentLinks")) {
+            return { ok: false, status: 404, text: async () => "gone" };
+        }
+        if (method === "POST" && url.includes("/connections/conn-live/listConsentLinks")) {
+            return ok({ value: [{ link: "https://consent.example/live" }] });
+        }
+        if (method === "DELETE" && url.includes("/mcpserverConfigs/api-dead")) return ok({});
+        if (method === "GET" && url.includes("/mcpserverConfigs/api-dead")) {
+            return { ok: false, status: 404, text: async () => "gone" };
+        }
+        if (method === "DELETE" && url.includes("/connections/conn-dead")) return ok({});
+        throw new Error(`unexpected ARM call: ${method} ${url}`);
+    };
+    t.after(() => {
+        globalThis.fetch = realFetch;
+        writeFileSync(configPath, JSON.stringify({ mcpServers: {} }));
+    });
+
+    const result = await reauthConnector(config, "shared-api", "Shared API", "https://cb/?c=");
+    assert.equal(result.needsConsent, true);
+    assert.equal(result.configName, "api-live");
+    assert.equal(result.connName, "conn-live");
+    assert.ok(calls.some((call) => call.url.includes("/connections/conn-dead/listConsentLinks")));
+    assert.ok(calls.some((call) => call.url.includes("/connections/conn-live/listConsentLinks")));
+    assert.equal(calls.some((call) => call.method === "PUT"), false, "valid siblings must prevent a fresh install");
+});
+
+test("cross-process MCP config writes preserve every entry", async () => {
+    const configPath = join(TMP, "mcp-config.json");
+    writeFileSync(configPath, JSON.stringify({ mcpServers: {} }));
+    const installUrl = new URL("./install.mjs", import.meta.url).href;
+    const names = Array.from({ length: 8 }, (_, index) => `parallel-${index}`);
+
+    const runWriter = (name) => new Promise((resolve, reject) => {
+        const script = [
+            `import { writeMcpEntry } from ${JSON.stringify(installUrl)};`,
+            `await writeMcpEntry(${JSON.stringify(name)}, ${JSON.stringify(`https://example.com/${name}`)}, ${JSON.stringify(`key-${name}`)});`,
+        ].join("\n");
+        const child = spawn(process.execPath, ["--input-type=module", "--eval", script], {
+            env: { ...process.env, COPILOT_HOME: TMP, HOME: TMP, USERPROFILE: TMP },
+            stdio: ["ignore", "ignore", "pipe"],
+        });
+        let stderr = "";
+        child.stderr.on("data", (chunk) => { stderr += chunk; });
+        child.once("error", reject);
+        child.once("exit", (code) => {
+            if (code === 0) resolve();
+            else reject(new Error(`config writer exited ${code}: ${stderr}`));
+        });
+    });
+
+    await Promise.all(names.map(runWriter));
+    const stored = JSON.parse(readFileSync(configPath, "utf8")).mcpServers;
+    assert.deepEqual(Object.keys(stored).sort(), [...names].sort());
+    for (const name of names) {
+        assert.equal(stored[name].command, process.execPath);
+        assert.equal(stored[name].env.MCP_API_KEY, `key-${name}`);
+    }
+    assert.equal(existsSync(`${configPath}.lock`), false);
+
+    await Promise.all(names.map((name) => removeMcpEntry(name)));
+    assert.deepEqual(JSON.parse(readFileSync(configPath, "utf8")).mcpServers, {});
 });
 
 test("connector metadata failures are evicted and retried", async (t) => {

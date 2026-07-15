@@ -7,7 +7,7 @@ import { randomBytes } from "node:crypto";
 import { homedir, platform } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getToken, assertArmHost, armSegment } from "./armClient.mjs";
+import { getToken, assertArmHost, armSegment, resolveSystemExecutable } from "./armClient.mjs";
 
 // Stdio shim the Copilot CLI spawns instead of connecting to the gateway's MCP
 // endpoint directly. The gateway wraps post-initialize responses (tools/list,
@@ -41,11 +41,82 @@ function mcpConfigPath(scope) {
     return PROFILE_MCP_PATH;
 }
 
-// Serialize every read-modify-write of the CLI MCP config so concurrent
-// connect/disconnect operations can't clobber each other's entries.
+const CONFIG_LOCK_TIMEOUT_MS = 10_000;
+const CONFIG_LOCK_STALE_MS = 30_000;
+
+// Serialize in-process writes, then hold an exclusive lock file so separate
+// Copilot sessions cannot overwrite each other's MCP config changes.
 let s_configLock = Promise.resolve();
-function withConfigLock(fn) {
-    const run = s_configLock.then(fn, fn);
+async function acquireConfigLock(path) {
+    const lockPath = `${path}.lock`;
+    await fs.mkdir(dirname(path), { recursive: true, mode: 0o700 });
+    const deadline = Date.now() + CONFIG_LOCK_TIMEOUT_MS;
+    for (;;) {
+        const owner = `${process.pid}:${randomBytes(12).toString("hex")}\n`;
+        try {
+            const handle = await fs.open(lockPath, "wx", 0o600);
+            await handle.writeFile(owner, "utf8");
+            return async () => {
+                await handle.close();
+                try {
+                    if (await fs.readFile(lockPath, "utf8") === owner) {
+                        await fs.unlink(lockPath);
+                    }
+                } catch (error) {
+                    if (error?.code !== "ENOENT") throw error;
+                }
+            };
+        } catch (error) {
+            if (error?.code !== "EEXIST") throw error;
+            try {
+                const stat = await fs.stat(lockPath);
+                if (Date.now() - stat.mtimeMs > CONFIG_LOCK_STALE_MS) {
+                    const stalePath = `${lockPath}.${process.pid}.${randomBytes(6).toString("hex")}.stale`;
+                    await fs.rename(lockPath, stalePath);
+                    await fs.unlink(stalePath);
+                    continue;
+                }
+            } catch (statError) {
+                if (statError?.code === "ENOENT") continue;
+                throw statError;
+            }
+            if (Date.now() >= deadline) {
+                throw new Error(`Timed out waiting for the MCP config lock at ${lockPath}.`);
+            }
+            await sleep(50);
+        }
+    }
+}
+
+export async function waitForConnected(config, connName, options = {}) {
+    const maxPolls = options.maxPolls ?? 20;
+    const delay = options.delay ?? sleep;
+    const getStatus = options.getStatus ?? getConnectionStatus;
+    let status = "Unknown";
+    for (let i = 0; i < maxPolls; i++) {
+        status = await getStatus(config, connName);
+        if (status === "Connected") return status;
+        if (i + 1 < maxPolls) await delay(1000);
+    }
+    throw new Error(`Connection ended in state "${status}".`);
+}
+
+function withConfigLock(path, fn) {
+    const run = s_configLock.then(async () => {
+        const release = await acquireConfigLock(path);
+        try {
+            return await fn();
+        } finally {
+            await release();
+        }
+    }, async () => {
+        const release = await acquireConfigLock(path);
+        try {
+            return await fn();
+        } finally {
+            await release();
+        }
+    });
     s_configLock = run.then(() => {}, () => {});
     return run;
 }
@@ -431,10 +502,27 @@ async function readMcpConfigAt(path) {
     }
 }
 
+async function writeMcpConfigAt(path, cfg) {
+    const directory = dirname(path);
+    const temporary = `${path}.${process.pid}.${randomBytes(6).toString("hex")}.tmp`;
+    await fs.mkdir(directory, { recursive: true, mode: 0o700 });
+    await fs.chmod(directory, 0o700).catch(() => {});
+    try {
+        await fs.writeFile(temporary, JSON.stringify(cfg, null, 2) + "\n", { encoding: "utf8", mode: 0o600 });
+        await fs.chmod(temporary, 0o600).catch(() => {});
+        await fs.rename(temporary, path);
+        await fs.chmod(path, 0o600).catch(() => {});
+    } finally {
+        await fs.unlink(temporary).catch((error) => {
+            if (error?.code !== "ENOENT") throw error;
+        });
+    }
+}
+
 export async function writeMcpEntry(name, url, key, scope = "profile", meta = null) {
     assertSafeMcpTarget(url);
     const path = mcpConfigPath(scope);
-    return withConfigLock(async () => {
+    return withConfigLock(path, async () => {
         const cfg = await readMcpConfigAt(path);
         await fs.mkdir(dirname(STABLE_MCP_PROXY_PATH), { recursive: true, mode: 0o700 });
         await fs.copyFile(MCP_PROXY_PATH, STABLE_MCP_PROXY_PATH);
@@ -442,7 +530,7 @@ export async function writeMcpEntry(name, url, key, scope = "profile", meta = nu
         // Route through the stdio unwrap-proxy rather than a direct { type: "http" }
         // entry — the gateway's $content envelope breaks the CLI's HTTP MCP client.
         cfg.mcpServers[name] = {
-            command: "node",
+            command: process.execPath,
             args: [STABLE_MCP_PROXY_PATH],
             env: { MCP_TARGET_URL: url, MCP_API_KEY: key },
         };
@@ -450,32 +538,28 @@ export async function writeMcpEntry(name, url, key, scope = "profile", meta = nu
         // marks it as "metadata, not part of the MCP launch spec" — the CLI
         // tolerates and preserves unknown sibling keys across restarts.
         if (meta) cfg.mcpServers[name]._connectorNamespace = meta;
-        // The file holds a long-lived API key — keep it and its directory
-        // owner-only. chmod re-asserts 0600 when the file already existed
-        // (writeFile mode only applies on create); it's a benign no-op on Windows.
-        await fs.mkdir(dirname(path), { recursive: true, mode: 0o700 });
-        await fs.writeFile(path, JSON.stringify(cfg, null, 2) + "\n", { encoding: "utf8", mode: 0o600 });
-        await fs.chmod(path, 0o600).catch(() => {});
+        await writeMcpConfigAt(path, cfg);
     });
 }
 
 // Remove the entry from whichever scope(s) it lives in.
 export async function removeMcpEntry(name) {
-    return withConfigLock(async () => {
-        let removed = false;
-        for (const scope of ["profile", "workspace"]) {
-            let path;
-            try { path = mcpConfigPath(scope); } catch { continue; }
+    let removed = false;
+    for (const scope of ["profile", "workspace"]) {
+        let path;
+        try { path = mcpConfigPath(scope); } catch { continue; }
+        const removedAtPath = await withConfigLock(path, async () => {
             const cfg = await readMcpConfigAt(path);
             if (Object.prototype.hasOwnProperty.call(cfg.mcpServers, name)) {
                 delete cfg.mcpServers[name];
-                await fs.writeFile(path, JSON.stringify(cfg, null, 2) + "\n", { encoding: "utf8", mode: 0o600 });
-                await fs.chmod(path, 0o600).catch(() => {});
-                removed = true;
+                await writeMcpConfigAt(path, cfg);
+                return true;
             }
-        }
-        return removed;
-    });
+            return false;
+        });
+        removed ||= removedAtPath;
+    }
+    return removed;
 }
 
 async function deleteMcpServerConfigs(config, configNames) {
@@ -644,12 +728,7 @@ export async function finishInstall(config, apiName, displayName, connName, loca
         const meta = await loadConnectorMeta(config, apiName, location);
 
         // Poll connection status up to ~20s for Connected.
-        let status = "Unknown";
-        for (let i = 0; i < 20; i++) {
-            status = await getConnectionStatus(config, connName);
-            if (status === "Connected") break;
-            await sleep(1000);
-        }
+        const status = await waitForConnected(config, connName);
 
         // Create MCP server config (endpoint URL comes back on the PUT response).
         let endpointUrl;
@@ -675,8 +754,7 @@ export async function finishInstall(config, apiName, displayName, connName, loca
             apiName,
         });
 
-        const warning = status === "Connected" ? undefined : `Connection ended in state "${status}". You may need to re-authenticate.`;
-        return { ok: true, configName, connName, endpointUrl, scope, warning };
+        return { ok: true, configName, connName, endpointUrl, scope };
     } catch (error) {
         const cleanups = [];
         if (configName) {
@@ -703,8 +781,14 @@ export async function finishInstall(config, apiName, displayName, connName, loca
 // server-side (listConsentLinks 404s). In the 404 case we drop the orphaned
 // config + local entry first so the fallback install can't leave a duplicate.
 export async function reauthConnector(config, apiName, displayName, callbackBase, scope = "profile", capabilityToken = "") {
+    return reauthConnectorWithAttempts(config, apiName, displayName, callbackBase, scope, capabilityToken, new Set());
+}
+
+async function reauthConnectorWithAttempts(config, apiName, displayName, callbackBase, scope, capabilityToken, attemptedConfigNames) {
     const state = await getInstalledState(config);
-    const entry = state[apiName];
+    const selected = state[apiName];
+    const candidates = selected?._candidates ?? (selected ? [selected] : []);
+    const entry = candidates.find((candidate) => !attemptedConfigNames.has(candidate.configName));
     const connName = entry?.connectionName;
 
     // Nothing installed to re-auth against — treat it as a first-time Connect.
@@ -725,13 +809,25 @@ export async function reauthConnector(config, apiName, displayName, callbackBase
         // now-orphaned config + local entry, then fall through to a clean
         // install so we don't strand a dead "Re-authenticate" tile.
         if (err.status === 404) {
+            attemptedConfigNames.add(entry.configName);
+            const siblingUsesConnection = candidates.some(
+                (candidate) => candidate.configName !== entry.configName && candidate.connectionName === connName,
+            );
             await cleanupConnectorResources(
                 config,
                 apiName,
                 entry.configName ? [entry.configName] : [],
-                [connName],
+                siblingUsesConnection ? [] : [connName],
             );
-            return installConnector(config, apiName, displayName, callbackBase, scope, capabilityToken);
+            return reauthConnectorWithAttempts(
+                config,
+                apiName,
+                displayName,
+                callbackBase,
+                scope,
+                capabilityToken,
+                attemptedConfigNames,
+            );
         }
         throw err;
     }
@@ -757,12 +853,7 @@ export async function finishReauth(config, apiName, displayName, connName, confi
     }
 
     // Wait for the re-consented connection to converge (up to ~20s).
-    let status = "Unknown";
-    for (let i = 0; i < 20; i++) {
-        status = await getConnectionStatus(config, connName);
-        if (status === "Connected") break;
-        await sleep(1000);
-    }
+    const status = await waitForConnected(config, connName);
 
     // Reuse the existing config's endpoint — poll a few times if it lags.
     let endpointUrl = await getMcpEndpointUrl(config, configName);
@@ -781,8 +872,7 @@ export async function finishReauth(config, apiName, displayName, connName, confi
         apiName,
     });
 
-    const warning = status === "Connected" ? undefined : `Connection ended in state "${status}". You may need to re-authenticate.`;
-    return { ok: true, configName, connName, endpointUrl, scope, warning, reauth: true };
+    return { ok: true, configName, connName, endpointUrl, scope, reauth: true };
 }
 
 // ---------------------------------------------------------------------------
@@ -836,14 +926,14 @@ export function deriveInstalledState(configs, connByName, profileKeys, workspace
     }
 
     // Prefer the config the local session actually points at, and prefer a
-    // Connected one: inCli && Connected > inCli > Connected > any. First-seen
-    // wins ties so the choice is stable across refreshes. Keeps the flat
+    // Connected one: inCli && Connected > inCli > Connected > any. Config name
+    // breaks ties so ARM list order cannot change the selected resource. Keeps the flat
     // one-entry-per-apiName shape the renderer + tests expect.
     const rank = (e) => (e.inCli ? 2 : 0) + (e.connectionStatus === "Connected" ? 1 : 0);
     const byApi = {};
     for (const [apiName, list] of Object.entries(candidatesByApi)) {
-        let best = list[0];
-        for (const e of list) if (rank(e) > rank(best)) best = e;
+        list.sort((a, b) => rank(b) - rank(a) || a.configName.localeCompare(b.configName));
+        const best = list[0];
         // Internal-only signal for logging; the renderer ignores unknown fields.
         byApi[apiName] = list.length > 1 ? { ...best, _configCount: list.length, _candidates: list } : best;
     }
@@ -854,7 +944,18 @@ export function deriveInstalledState(configs, connByName, profileKeys, workspace
 // Browser opener
 // ---------------------------------------------------------------------------
 
-export function openInBrowser(url) {
+async function launchDetached(command, args) {
+    await new Promise((resolve, reject) => {
+        const child = spawn(command, args, { detached: true, stdio: "ignore" });
+        child.once("error", reject);
+        child.once("spawn", () => {
+            child.unref();
+            resolve();
+        });
+    });
+}
+
+export async function openInBrowser(url) {
     // Only ever hand an http(s) URL to the OS shell — guards against the
     // consent URL being anything that could be reinterpreted as a command.
     let safe;
@@ -866,19 +967,16 @@ export function openInBrowser(url) {
         return;
     }
     const p = platform();
-    let child;
     if (p === "win32") {
         // rundll32 hands the URL to the default protocol handler as a single
         // literal argv with no shell parsing — avoids cmd.exe `start` metachar
         // and quoting pitfalls.
-        child = spawn("rundll32.exe", ["url.dll,FileProtocolHandler", safe], { detached: true, stdio: "ignore" });
+        await launchDetached(await resolveSystemExecutable("rundll32.exe"), ["url.dll,FileProtocolHandler", safe]);
     } else if (p === "darwin") {
-        child = spawn("open", [safe], { detached: true, stdio: "ignore" });
+        await launchDetached(await resolveSystemExecutable("open"), [safe]);
     } else {
-        child = spawn("xdg-open", [safe], { detached: true, stdio: "ignore" });
+        await launchDetached(await resolveSystemExecutable("xdg-open"), [safe]);
     }
-    child.on("error", () => {});
-    child.unref();
 }
 
 // ---------------------------------------------------------------------------
@@ -888,20 +986,17 @@ export function openInBrowser(url) {
 // Hand a local file path to the OS so it opens in the user's default handler
 // for that type (typically their editor for .json). Single literal argv on
 // every platform — no shell, so a path with spaces or metachars is safe.
-function openPath(filePath) {
+async function openPath(filePath) {
     const p = platform();
-    let child;
     if (p === "win32") {
         // FileProtocolHandler also accepts plain file paths and routes them to
         // the registered default app, same no-shell guarantee as openInBrowser.
-        child = spawn("rundll32.exe", ["url.dll,FileProtocolHandler", filePath], { detached: true, stdio: "ignore" });
+        await launchDetached(await resolveSystemExecutable("rundll32.exe"), ["url.dll,FileProtocolHandler", filePath]);
     } else if (p === "darwin") {
-        child = spawn("open", [filePath], { detached: true, stdio: "ignore" });
+        await launchDetached(await resolveSystemExecutable("open"), [filePath]);
     } else {
-        child = spawn("xdg-open", [filePath], { detached: true, stdio: "ignore" });
+        await launchDetached(await resolveSystemExecutable("xdg-open"), [filePath]);
     }
-    child.on("error", () => {});
-    child.unref();
 }
 
 // Open the MCP config this canvas writes to (the profile scope —
@@ -921,6 +1016,6 @@ export async function openMcpConfigFile() {
             return { ok: false, path, error: err.message };
         }
     }
-    openPath(path);
+    await openPath(path);
     return { ok: true, path };
 }

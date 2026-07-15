@@ -18,7 +18,7 @@ async function openPlayground(server, instanceId) {
     const resolved = resolveSandboxConnector(catalog, installedState, server);
     if (!resolved.connector) return { opened: false, ...resolved };
     const url = buildSandboxUrl(config, resolved.connector.id);
-    openInBrowser(url);
+    await openInBrowser(url);
     return { opened: true, server: resolved.connector, url };
 }
 

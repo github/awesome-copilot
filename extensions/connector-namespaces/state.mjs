@@ -69,10 +69,14 @@ export function saveConfig(config) {
 }
 
 export function clearConfig() {
-    savedConfig = null;
     // Remove the file outright rather than leaving a "{}" stub that a later
     // loadSavedConfig could misread as a valid selection.
-    try { if (existsSync(CONFIG_FILE)) unlinkSync(CONFIG_FILE); } catch { /* ignore */ }
+    try {
+        unlinkSync(CONFIG_FILE);
+    } catch (error) {
+        if (error?.code !== "ENOENT") throw error;
+    }
+    savedConfig = null;
 }
 
 export function getSavedConfig() {

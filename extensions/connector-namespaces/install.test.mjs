@@ -8,14 +8,14 @@
 // ARM happened to return last owned the tile, so a tile could show
 // "Re-authenticate" while a different config for the same connector was already
 // Connected. deriveInstalledState now picks deterministically:
-//   inCli && Connected > inCli > Connected > any, first-seen wins ties.
+//   inCli && Connected > inCli > Connected > any, configName wins ties.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { deriveInstalledState, getConsentUrl, getConnectionStatus, getMcpEndpointUrl } from "./install.mjs";
+import { deriveInstalledState, getConsentUrl, getConnectionStatus, getMcpEndpointUrl, waitForConnected } from "./install.mjs";
 
 // removeLocalEntry does file I/O (getInstalledState reads ARM + mcp configs,
 // removeMcpEntry edits them) and calls both as same-module functions, so there
@@ -101,6 +101,42 @@ test("inCli && Connected beats inCli-only", () => {
 
     assert.equal(state["api"].configName, "incli-connected");
     assert.equal(state["api"].connectionStatus, "Connected");
+});
+
+test("config name breaks equal-rank ties independently of ARM list order", () => {
+    const configs = [
+        cfg("z-config", "api", "connZ"),
+        cfg("a-config", "api", "connA"),
+    ];
+    const connByName = conns(["connZ", "Connected"], ["connA", "Connected"]);
+    const local = new Set(["z-config", "a-config"]);
+
+    const forward = deriveInstalledState(configs, connByName, local, new Set(), null);
+    const reverse = deriveInstalledState([...configs].reverse(), connByName, local, new Set(), null);
+
+    assert.equal(forward.api.configName, "a-config");
+    assert.equal(reverse.api.configName, "a-config");
+});
+
+test("connection convergence reports non-connected terminal results as failures", async () => {
+    const states = ["Connecting", "Error"];
+    const delays = [];
+    await assert.rejects(
+        waitForConnected({}, "conn", {
+            maxPolls: 2,
+            getStatus: async () => states.shift(),
+            delay: async (ms) => delays.push(ms),
+        }),
+        /Connection ended in state "Error"/,
+    );
+    assert.deepEqual(delays, [1000]);
+    assert.equal(
+        await waitForConnected({}, "conn", {
+            getStatus: async () => "Connected",
+            delay: async () => assert.fail("connected state must not sleep"),
+        }),
+        "Connected",
+    );
 });
 
 test("single config passes through with no _configCount", () => {

@@ -118,6 +118,16 @@ test("capability token accepts the private header or OAuth callback query", () =
         hasCapabilityToken(req({ "x-connector-namespace-token": "wrong" }), new URL("http://127.0.0.1/api/state"), token),
         false,
     );
+    assert.equal(
+        hasCapabilityToken(req({}), new URL(`http://127.0.0.1/api/state?cn_token=${token}`), token),
+        false,
+        "callback query tokens must not authorize API routes",
+    );
+    assert.equal(
+        hasCapabilityToken(req({}), new URL(`http://127.0.0.1/oauth-status?cn_token=${token}`), token),
+        false,
+        "callback query tokens must not authorize OAuth polling",
+    );
 });
 
 test("request bodies larger than 64 KiB are rejected", async () => {

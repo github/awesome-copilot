@@ -140,6 +140,8 @@ export function pickSafeTool(server, tools) {
     //    likely to actually succeed, so try those first.
     const candidate = (tool, requireEmpty) => {
         const nm = tool.name || "";
+        const annotations = tool.annotations || {};
+        if (annotations.readOnlyHint !== true || annotations.destructiveHint === true) return null;
         if (!READ_ONLY_NAME.test(nm)) return null;
         if (DENY_NAME.test(nm)) return null;
         const schema = tool.inputSchema || tool.input_schema || {};

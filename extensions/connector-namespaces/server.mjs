@@ -49,7 +49,10 @@ export function hasCapabilityToken(req, url, expectedToken) {
     }
     const header = req.headers[CAPABILITY_TOKEN_HEADER];
     const headerToken = Array.isArray(header) ? header[0] : header;
-    return headerToken === expectedToken || url.searchParams.get("cn_token") === expectedToken;
+    const callbackToken = url.pathname.startsWith("/auth/callback/")
+        ? url.searchParams.get("cn_token")
+        : null;
+    return headerToken === expectedToken || callbackToken === expectedToken;
 }
 
 function rejectForbidden(res, error) {
@@ -187,10 +190,14 @@ async function handleRequest(req, res, instanceId, serverEntry) {
     }
 
     if (req.method === "POST" && url.pathname === "/api/change-gateway") {
-        serverEntry.config = null;
-        clearConfig();
-        invalidateCache();
-        json(res, { ok: true });
+        try {
+            clearConfig();
+            serverEntry.config = null;
+            invalidateCache();
+            json(res, { ok: true });
+        } catch (err) {
+            json(res, { error: err.message });
+        }
         return;
     }
 
@@ -361,8 +368,12 @@ async function handleRequest(req, res, instanceId, serverEntry) {
     if (req.method === "POST" && url.pathname === "/api/open-url") {
         const body = await parseBody(req);
         if (!body.url || !/^https?:\/\//.test(body.url)) { json(res, { error: "invalid url" }); return; }
-        openInBrowser(body.url);
-        json(res, { ok: true });
+        try {
+            await openInBrowser(body.url);
+            json(res, { ok: true });
+        } catch (err) {
+            json(res, { error: err.message });
+        }
         return;
     }
 

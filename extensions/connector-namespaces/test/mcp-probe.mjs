@@ -202,5 +202,10 @@ export async function probe(server) {
     }
 
     out.ok = out.steps.initialize.ok && out.steps.toolsList.ok && out.steps.toolsCall.ok && !out.error;
+    out.status = !out.ok
+        ? "failed"
+        : out.steps.toolsCall.status === "skipped"
+            ? "skipped"
+            : "passed";
     return out;
 }

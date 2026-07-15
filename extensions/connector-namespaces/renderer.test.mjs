@@ -48,29 +48,6 @@ function reducedMotionBlock(css) {
     return null;
 }
 
-// Concatenate the contents of every <style> block in an HTML string, so CSS
-// assertions never accidentally match braces inside inline <script> JS.
-function styleCss(html) {
-    let out = "";
-    const re = /<style[^>]*>([\s\S]*?)<\/style>/g;
-    let m;
-    while ((m = re.exec(html)) !== null) out += `${m[1]}\n`;
-    return out;
-}
-
-// Return the bodies of every CSS rule whose selector text mentions `selector`.
-// Matches innermost `selector { body }` rules (bodies contain no nested braces),
-// which is all the .si-spin rules in this stylesheet are.
-function rulesTargeting(css, selector) {
-    const bodies = [];
-    const ruleRe = /([^{}]+)\{([^{}]*)\}/g;
-    let m;
-    while ((m = ruleRe.exec(css)) !== null) {
-        if (m[1].includes(selector)) bodies.push(m[2]);
-    }
-    return bodies;
-}
-
 function catalogHtml() {
     return renderCatalogHtml("test-instance", [], {
         filter: "",
@@ -145,88 +122,20 @@ test("baseStyles defines the spin keyframes", () => {
     assert.match(baseStyles(), /@keyframes spin\b/, "spinner keyframes must be defined");
 });
 
-test("reduced-motion block does not blanket-freeze animations", () => {
+test("reduced-motion block replaces infinite loaders with static busy states", () => {
     const block = reducedMotionBlock(baseStyles());
     assert.ok(block, "a prefers-reduced-motion media block must exist");
-
-    // The universal selector rule must not touch `animation` — that is exactly
-    // the blanket killer that froze spinners three times.
-    const universal = block.match(/\*\s*,\s*\*::before\s*,\s*\*::after\s*\{([^}]*)\}/);
-    assert.ok(universal, "reduced-motion block should still tame transitions on the universal selector");
-    assert.doesNotMatch(
-        universal[1],
-        /animation/,
-        "do NOT apply animation properties to the universal selector under reduced motion — it freezes loading spinners",
-    );
-
-    // Belt and suspenders: the specific properties that caused the freeze must
-    // not appear anywhere in the block. Every animation in this canvas is a
-    // functional loader, so the block must never disable, pause, or clamp ANY
-    // animation — not just on the universal selector. `animation: none` on
-    // `.brand-loading, .skeleton` is what froze the "Change namespace" overlay.
-    assert.doesNotMatch(block, /animation-iteration-count/, "animation-iteration-count freezes infinite spinners");
-    assert.doesNotMatch(block, /animation-duration/, "near-zero animation-duration freezes spinners");
-    assert.doesNotMatch(block, /animation\s*:\s*none/, "animation:none freezes functional loaders (this froze the Change-namespace overlay)");
-    assert.doesNotMatch(block, /animation-play-state\s*:\s*paused/, "pausing animations freezes loaders");
-    assert.doesNotMatch(block, /\.brand-loading\b/, "reduced-motion must not target the brand-loading nav overlay loader");
+    assert.match(block, /\.brand-loading, \.skeleton, \.si-spin, \.spin/);
+    assert.match(block, /animation:\s*none\s*!important/);
+    assert.match(block, /border-top-color:\s*currentColor\s*!important/);
+    assert.match(block, /\.brand-loading, \.skeleton\s*\{\s*opacity:\s*1;\s*transform:\s*none/);
 });
 
-test("catalog keeps functional loading spinners animated", () => {
+test("catalog keeps textual progress beside animated-default loaders", () => {
     const html = catalogHtml();
     assert.match(html, /\.si-spin\b[^}]*animation:\s*spin/, "install overlay spinner must use the spin animation");
     assert.match(html, /currentColor[^"]*animation:\s*spin/, "the Connect button spinner must use the spin animation");
     assert.match(html, /Connecting/, "the Connect button should show progress text alongside its spinner");
-});
-
-test("the functional sign-in spinner is never frozen anywhere", () => {
-    const css = baseStyles();
-
-    // The reduced-motion block may only tame transitions. It must never name
-    // the functional .si-spin sign-in spinner — freezing that is one of the
-    // bugs that has shipped before.
-    const block = reducedMotionBlock(css);
-    assert.ok(block, "a prefers-reduced-motion media block must exist");
-    assert.doesNotMatch(block, /\.si-spin\b/, "reduced-motion must not target the functional .si-spin spinner");
-
-    // No rule anywhere may stop .si-spin from animating. Walk every CSS rule
-    // whose selector mentions .si-spin and assert its body never disables the
-    // loop. Scan only <style> CSS so inline-script braces can't interfere.
-    const spinRules = rulesTargeting(styleCss(css + catalogHtml()), ".si-spin");
-    assert.ok(spinRules.length > 0, "a .si-spin rule must exist");
-    for (const body of spinRules) {
-        assert.doesNotMatch(body, /animation\s*:\s*none/, ".si-spin must never get animation:none");
-        assert.doesNotMatch(body, /animation-play-state\s*:\s*paused/, ".si-spin must never be paused");
-        assert.doesNotMatch(body, /animation-iteration-count\s*:\s*[01]\b/, ".si-spin must keep iterating");
-    }
-    // At least one .si-spin rule must actually drive the spin animation.
-    assert.ok(
-        spinRules.some((b) => /animation:\s*spin\b/.test(b)),
-        "the .si-spin rule must run the spin keyframes",
-    );
-});
-
-test("the brand-loading overlay loader is never frozen anywhere", () => {
-    const css = baseStyles();
-
-    // The "Change namespace" overlay shows .brand-loading running brandPulse.
-    // It froze in production because the reduced-motion block set
-    // `animation: none` on it. Mirror the .si-spin guard: the loader must keep
-    // animating and the reduced-motion block must never name it.
-    const block = reducedMotionBlock(css);
-    assert.ok(block, "a prefers-reduced-motion media block must exist");
-    assert.doesNotMatch(block, /\.brand-loading\b/, "reduced-motion must not target the .brand-loading overlay loader");
-
-    const brandRules = rulesTargeting(styleCss(css), ".brand-loading");
-    assert.ok(brandRules.length > 0, "a .brand-loading rule must exist");
-    for (const body of brandRules) {
-        assert.doesNotMatch(body, /animation\s*:\s*none/, ".brand-loading must never get animation:none");
-        assert.doesNotMatch(body, /animation-play-state\s*:\s*paused/, ".brand-loading must never be paused");
-        assert.doesNotMatch(body, /animation-iteration-count\s*:\s*[01]\b/, ".brand-loading must keep iterating");
-    }
-    assert.ok(
-        brandRules.some((b) => /animation:\s*brandPulse\b/.test(b)),
-        "the .brand-loading rule must run the brandPulse keyframes",
-    );
 });
 
 test("restart banner dismiss is sticky against a racing state refresh", () => {
@@ -287,6 +196,17 @@ test("create form invalidates pending checks immediately and uses unique identit
     assert.match(html, /clearTimeout\(nameTimer\);\s*checkSeq\+\+;/);
     assert.match(html, /ids\.map\(\(id, index\) =>/);
     assert.match(html, /id="uami-' \+ index/);
+});
+
+test("create form locks navigation and fields while provisioning", () => {
+    const html = renderCreateNamespaceHtml([{ id: "sub-1", name: "Sub One" }]);
+    assert.match(html, /for \(const control of document\.querySelectorAll\("button, input, select"\)\)/);
+    assert.match(html, /setFormLocked\(true\)/);
+    assert.match(html, /control\.disabled = true/);
+    assert.match(html, /document\.body\.setAttribute\("aria-busy"/);
+    assert.match(html, /finally \{\s*if \(creating\) setFormLocked\(true\)/);
+    assert.match(html, /if \(!creating\) window\.location\.href = "\/setup"/);
+    assert.match(html, /progress\.textContent = [^;]*request\.name/);
 });
 
 function catalogHtmlFull() {
@@ -432,7 +352,7 @@ test("My MCP hydration adds a per-server Sandbox deep link", () => {
     );
 });
 
-test("connect is compact and local disconnect is distinct from namespace deletion", () => {
+test("connect is compact and local disconnect appears only for local entries", () => {
     const html = catalogHtmlFull();
     const css = baseStyles();
     assert.match(css, /\.item-add\.primary\s*\{[^}]*min-width:\s*62px;[^}]*font-size:\s*\.72rem;/, "Connect should use the compact primary-button sizing");
@@ -441,6 +361,8 @@ test("connect is compact and local disconnect is distinct from namespace deletio
     assert.match(html, /remove\.setAttribute\("aria-label", "Disconnect " \+ displayName \+ " from Copilot"\)/, "the icon needs a connector-specific label");
     assert.match(html, /const disconnectIcon = '[^']*m2 2 12 12/, "the visible control should use a slashed plug mark");
     assert.match(html, /remove\.innerHTML = disconnectIcon/, "the visible control should use the disconnect mark");
+    assert.match(html, /if \(st\.inCli\) \{\s*remove = document\.createElement\("button"\)/, "remote-only resources must not offer local disconnect");
+    assert.match(html, /if \(remove\) splitWrap\.appendChild\(remove\)/, "namespace delete options must remain available without a disconnect button");
     assert.match(html, /\.split-remove \.split-main \{[^}]*color:var\(--danger\)/, "the disconnect icon should be red");
     assert.match(html, /\.split-remove \.split-caret\s*\{[^}]*padding:\.2rem \.3rem/, "the destructive-options caret should stay narrow");
     assert.match(html, /\.split-remove \.split-caret svg\s*\{[^}]*width:8px; height:8px;/, "the caret mark should match its smaller button");

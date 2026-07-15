@@ -49,9 +49,9 @@ test("deny-list terms beat read-looking prefixes", () => {
     const result = pickSafeTool(
         { apiName: "generic", displayName: "Generic" },
         [
-            { name: "GetAndDeleteMessage", inputSchema: { type: "object" } },
-            { name: "ListAndSendMail", inputSchema: { type: "object" } },
-            { name: "SearchRecords", inputSchema: { type: "object" } },
+            { name: "GetAndDeleteMessage", annotations: { readOnlyHint: true }, inputSchema: { type: "object" } },
+            { name: "ListAndSendMail", annotations: { readOnlyHint: true }, inputSchema: { type: "object" } },
+            { name: "SearchRecords", annotations: { readOnlyHint: true }, inputSchema: { type: "object" } },
         ],
     );
     assert.deepEqual(result, { tool: "SearchRecords", args: {}, source: "heuristic-noargs" });
@@ -106,7 +106,7 @@ test("heuristics prefer no-argument reads and return null when none are safe", (
                     properties: { query: { type: "string" } },
                 },
             },
-            { name: "ListRecords", inputSchema: { type: "object" } },
+            { name: "ListRecords", annotations: { readOnlyHint: true }, inputSchema: { type: "object" } },
         ],
     );
     assert.deepEqual(preferred, { tool: "ListRecords", args: {}, source: "heuristic-noargs" });
@@ -127,4 +127,24 @@ test("heuristics prefer no-argument reads and return null when none are safe", (
         null,
     );
     assert.equal(pickSafeTool({ apiName: "generic", displayName: "Generic" }, []), null);
+});
+
+test("heuristics require an explicit read-only non-destructive annotation", () => {
+    assert.equal(
+        pickSafeTool(
+            { apiName: "generic", displayName: "Generic" },
+            [
+                { name: "GetAndArchiveMessage", inputSchema: { type: "object" } },
+                { name: "ListAndApproveRequests", inputSchema: { type: "object" } },
+            ],
+        ),
+        null,
+    );
+    assert.equal(
+        pickSafeTool(
+            { apiName: "generic", displayName: "Generic" },
+            [{ name: "ListRecords", annotations: { readOnlyHint: true, destructiveHint: true }, inputSchema: { type: "object" } }],
+        ),
+        null,
+    );
 });

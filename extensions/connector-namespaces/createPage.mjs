@@ -160,6 +160,8 @@ const sysIdentity = document.getElementById("sys-identity");
 const uamiBox = document.getElementById("uami-box");
 const uamiToggle = document.getElementById("uami-toggle");
 const createBtn = document.getElementById("create-btn");
+const backBtn = document.getElementById("back-btn");
+const cancelBtn = document.getElementById("cancel-btn");
 const progress = document.getElementById("progress");
 
 let rgMode = "existing";
@@ -170,8 +172,23 @@ let checkSeq = 0;
 let resourceGroupsSeq = 0;
 let identitiesSeq = 0;
 
-document.getElementById("back-btn").onclick = () => { window.location.href = "/setup"; };
-document.getElementById("cancel-btn").onclick = () => { window.location.href = "/setup"; };
+backBtn.onclick = () => { if (!creating) window.location.href = "/setup"; };
+cancelBtn.onclick = () => { if (!creating) window.location.href = "/setup"; };
+
+function setFormLocked(locked) {
+    for (const control of document.querySelectorAll("button, input, select")) {
+        if (locked) {
+            if (control.dataset.preCreateDisabled === undefined) {
+                control.dataset.preCreateDisabled = control.disabled ? "1" : "0";
+            }
+            control.disabled = true;
+        } else {
+            control.disabled = control.dataset.preCreateDisabled === "1";
+            delete control.dataset.preCreateDisabled;
+        }
+    }
+    document.body.setAttribute("aria-busy", locked ? "true" : "false");
+}
 
 function escH(s) { return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
@@ -265,6 +282,8 @@ async function loadIdentities() {
     } catch (e) {
         if (seq !== identitiesSeq) return;
         uamiBox.innerHTML = '<div class="uami-empty">Error loading identities</div>';
+    } finally {
+        if (creating) setFormLocked(true);
     }
 }
 
@@ -337,8 +356,17 @@ async function runNameCheck() {
 // --- Create ---
 createBtn.onclick = async () => {
     if (createBtn.disabled) return;
+    const request = {
+        subscriptionId: subSelect.value,
+        resourceGroup: effectiveRg(),
+        createNewResourceGroup: rgMode === "new",
+        region: regionSelect.value,
+        name: nameInput.value.trim(),
+        enableSystemIdentity: sysIdentity.checked,
+        userAssignedIds: selectedUserAssignedIds(),
+    };
     creating = true;
-    refreshButton();
+    setFormLocked(true);
     createBtn.textContent = "Creating\u2026";
     progress.className = "progress";
     progress.style.display = "block";
@@ -347,20 +375,12 @@ createBtn.onclick = async () => {
         const res = await fetch("/api/create-namespace", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                subscriptionId: subSelect.value,
-                resourceGroup: effectiveRg(),
-                createNewResourceGroup: rgMode === "new",
-                region: regionSelect.value,
-                name: nameInput.value.trim(),
-                enableSystemIdentity: sysIdentity.checked,
-                userAssignedIds: selectedUserAssignedIds(),
-            }),
+            body: JSON.stringify(request),
         });
         const data = await res.json();
         if (data.ok) {
             progress.className = "progress success";
-            progress.textContent = "\u2713 Created \u201c" + nameInput.value.trim() + "\u201d. Opening\u2026";
+            progress.textContent = "\u2713 Created \u201c" + request.name + "\u201d. Opening\u2026";
             window.location.href = "/";
             return;
         }
@@ -371,6 +391,7 @@ createBtn.onclick = async () => {
         progress.textContent = "Failed to create connector namespace.";
     }
     creating = false;
+    setFormLocked(false);
     createBtn.textContent = "Create";
     refreshButton();
 };

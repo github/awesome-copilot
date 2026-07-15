@@ -58,10 +58,6 @@ async function removeLegacyAuthCache() {
 }
 
 function windowsSystemExecutable(name) {
-    const comspec = process.env.ComSpec;
-    if (comspec && isAbsolute(comspec)) {
-        return name.toLowerCase() === "cmd.exe" ? comspec : join(dirname(comspec), name);
-    }
     const systemRoot = process.env.SystemRoot;
     if (systemRoot && isAbsolute(systemRoot)) return join(systemRoot, "System32", name);
     throw new Error(`Could not resolve the Windows system executable ${name}.`);
@@ -117,6 +113,17 @@ export async function resolvePosixAzureCli(pathValue = process.env.PATH || "", w
         if (candidate) return candidate;
     }
     throw new Error("Azure CLI was not found outside the current workspace.");
+}
+
+export async function resolveSystemExecutable(name, workspaceRoot = process.cwd()) {
+    const candidates = platform() === "win32"
+        ? [windowsSystemExecutable(name)]
+        : [join("/usr/bin", name), join("/bin", name), join("/usr/local/bin", name)];
+    for (const path of candidates) {
+        const candidate = await trustedExecutablePath(path, name, workspaceRoot);
+        if (candidate) return candidate;
+    }
+    throw new Error(`Could not resolve the trusted system executable ${name}.`);
 }
 
 async function acquireToken() {

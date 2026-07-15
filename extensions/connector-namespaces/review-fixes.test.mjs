@@ -99,14 +99,19 @@ test("POSIX Azure CLI resolution rejects workspace-controlled binaries", async (
 
 test("installer preserves capability tokens and persists a stable proxy", async () => {
     const source = await readFile(new URL("install.mjs", here), "utf8");
-    const fallbacks = source.match(/return installConnector\(config, apiName, displayName, callbackBase, scope, capabilityToken\)/g);
-    assert.equal(fallbacks?.length, 2);
+    const fallbacks = source.match(/installConnector\(config, apiName, displayName, callbackBase, scope, capabilityToken\)/g);
+    assert.equal(fallbacks?.length, 1);
+    assert.match(source, /reauthConnectorWithAttempts\([\s\S]*?capabilityToken,[\s\S]*?attemptedConfigNames/);
     assert.match(source, /args: \[STABLE_MCP_PROXY_PATH\]/);
     assert.match(source, /await fs\.copyFile\(MCP_PROXY_PATH, STABLE_MCP_PROXY_PATH\)/);
     assert.match(source, /const cacheKey = `\$\{sub\}:\$\{location\}:\$\{apiName\}:\$\{requireSwagger\}`/);
     assert.match(source, /throwAfterCleanup\(error, \[\(\) => deleteConnection\(config, connName\)\]\)/);
     assert.match(source, /freshConnection: true/);
     assert.match(source, /freshConnection: false/);
+    assert.match(source, /command: process\.execPath/);
+    assert.match(source, /await fs\.open\(lockPath, "wx", 0o600\)/);
+    assert.match(source, /await fs\.rename\(temporary, path\)/);
+    assert.match(source, /resolveSystemExecutable\("rundll32\.exe"\)/);
 });
 
 test("smoke cleanup runs from finally and reports cleanup failures", async () => {
@@ -114,6 +119,11 @@ test("smoke cleanup runs from finally and reports cleanup failures", async () =>
     assert.match(source, /finally \{\s*if \(record\.cleanup\)/);
     assert.match(source, /record\.cleanupError/);
     assert.match(source, /failed\.length > 0 \|\| orchestrationErrors\.length > 0/);
+    assert.match(source, /probe\.status === "passed"/);
+    assert.match(source, /probe\.status === "skipped"/);
+    assert.match(source, /mode: 0o700/);
+    assert.match(source, /mode: 0o600/);
+    assert.match(source, /chmodSync\(PENDING_FILE, 0o600\)/);
 });
 
 test("test reports do not persist successful tool response content", async () => {

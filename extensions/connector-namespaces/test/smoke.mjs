@@ -18,7 +18,7 @@
 //   --open-consent  open consent URLs in the browser for servers that need it
 //   --no-cleanup    do not uninstall fresh keyless installs afterward
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -71,8 +71,11 @@ function readPending() {
 }
 
 function writePending(map) {
-    if (!existsSync(ARTIFACTS_DIR)) mkdirSync(ARTIFACTS_DIR, { recursive: true });
-    writeFileSync(PENDING_FILE, JSON.stringify(map, null, 2), "utf-8");
+    if (!existsSync(ARTIFACTS_DIR)) mkdirSync(ARTIFACTS_DIR, { recursive: true, mode: 0o700 });
+    chmodSync(ARTIFACTS_DIR, 0o700);
+    if (existsSync(PENDING_FILE)) chmodSync(PENDING_FILE, 0o600);
+    writeFileSync(PENDING_FILE, JSON.stringify(map, null, 2), { encoding: "utf-8", mode: 0o600 });
+    chmodSync(PENDING_FILE, 0o600);
 }
 
 // Read MCP_TARGET_URL / MCP_API_KEY for an installed config from the CLI config.
@@ -174,7 +177,7 @@ async function main() {
                 } else {
                     record.classification = "pending-consent";
                     console.log(`  ${C.yellow}PENDING_CONSENT${C.reset} still ${status}. Consent: ${pend.consentUrl}`);
-                    if (opts.openConsent) openInBrowser(pend.consentUrl);
+                    if (opts.openConsent) await openInBrowser(pend.consentUrl);
                     results.push(record);
                     continue;
                 }
@@ -201,7 +204,7 @@ async function main() {
                     };
                     writePending(pending);
                     console.log(`  ${C.yellow}NEEDS_CONSENT${C.reset} consent once, then re-run. URL:\n    ${res.consentUrl}`);
-                    if (opts.openConsent) openInBrowser(res.consentUrl);
+                    if (opts.openConsent) await openInBrowser(res.consentUrl);
                     results.push(record);
                     continue;
                 } else {
@@ -248,11 +251,12 @@ async function main() {
 
     // 3. Summary + report files.
     const probed = results.filter((r) => r.probe);
-    const passed = probed.filter((r) => r.probe.ok);
-    const failed = probed.filter((r) => !r.probe.ok);
+    const passed = probed.filter((r) => r.probe.status === "passed");
+    const failed = probed.filter((r) => r.probe.status === "failed");
+    const safeCallSkipped = probed.filter((r) => r.probe.status === "skipped");
     const orchestrationErrors = results.filter((r) => r.error || r.cleanupError);
     const needsConsent = results.filter((r) => r.classification === "needs-consent" || r.classification === "pending-consent");
-    const skipped = results.filter((r) => !r.probe && !needsConsent.includes(r));
+    const skipped = [...results.filter((r) => !r.probe && !needsConsent.includes(r)), ...safeCallSkipped];
 
     console.log(`${C.bold}Summary${C.reset}`);
     console.log(`  probed:        ${probed.length}`);
@@ -266,7 +270,8 @@ async function main() {
         for (const r of needsConsent) console.log(`    - ${r.displayName} (${r.apiName})`);
     }
 
-    if (!existsSync(REPORTS_DIR)) mkdirSync(REPORTS_DIR, { recursive: true });
+    if (!existsSync(REPORTS_DIR)) mkdirSync(REPORTS_DIR, { recursive: true, mode: 0o700 });
+    chmodSync(REPORTS_DIR, 0o700);
     const ts = new Date().toISOString().replace(/[:.]/g, "-");
     const jsonPath = join(REPORTS_DIR, `mcp-smoke-${ts}.json`);
     const logPath = join(REPORTS_DIR, `mcp-smoke-${ts}.log`);
@@ -277,8 +282,10 @@ async function main() {
         totals: { probed: probed.length, passed: passed.length, failed: failed.length, errors: orchestrationErrors.length, needsConsent: needsConsent.length, skipped: skipped.length },
         servers: results,
     };
-    writeFileSync(jsonPath, redact(JSON.stringify(report, null, 2)), "utf-8");
-    writeFileSync(logPath, redact(renderLog(report)), "utf-8");
+    writeFileSync(jsonPath, redact(JSON.stringify(report, null, 2)), { encoding: "utf-8", mode: 0o600 });
+    writeFileSync(logPath, redact(renderLog(report)), { encoding: "utf-8", mode: 0o600 });
+    chmodSync(jsonPath, 0o600);
+    chmodSync(logPath, 0o600);
 
     console.log(`\n  report: ${logPath}`);
     console.log(`  json:   ${jsonPath}`);

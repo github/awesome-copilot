@@ -289,16 +289,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px s
     .item-actions { flex-wrap: wrap; }
 }
 @media (prefers-reduced-motion: reduce) {
-    /* Only tame transitions and scrolling under reduced motion. Every CSS
-       animation in this canvas is a FUNCTIONAL loading indicator: the
-       .brand-loading nav overlay (shown while changing namespace), the
-       .si-spin sign-in/install spinner, and the .skeleton loading cards.
-       Freezing any of them mid-loop reads as a broken/stuck UI, not a calmer
-       one — the "Change namespace" overlay logo froze for exactly this
-       reason. The in-app webview reports prefers-reduced-motion: reduce, so
-       anything disabled here is disabled in the real product. Do NOT add
-       animation:none (or pause/iteration-count) for any loader here. */
     *, *::before, *::after { transition-duration: .001ms !important; scroll-behavior: auto !important; }
+    .brand-loading, .skeleton, .si-spin, .spin, [style*="animation:spin"] {
+        animation: none !important;
+    }
+    .brand-loading, .skeleton { opacity: 1; transform: none; }
+    .si-spin, .spin, [style*="animation:spin"] { border-top-color: currentColor !important; }
 }
 </style>`;
 }
@@ -1361,18 +1357,21 @@ async function hydrateState() {
         };
 
         // Main action disconnects Copilot only; the namespace resource remains.
-        const remove = document.createElement("button");
-        remove.className = "item-add split-main item-icon-action";
-        remove.title = "Disconnect from Copilot. Keeps the resource on your namespace.";
-        remove.setAttribute("aria-label", "Disconnect " + displayName + " from Copilot");
-        remove.innerHTML = disconnectIcon;
-        remove.onclick = () => onRemoveLocal(item, apiName);
+        let remove = null;
+        if (st.inCli) {
+            remove = document.createElement("button");
+            remove.className = "item-add split-main item-icon-action";
+            remove.title = "Disconnect from Copilot. Keeps the resource on your namespace.";
+            remove.setAttribute("aria-label", "Disconnect " + displayName + " from Copilot");
+            remove.innerHTML = disconnectIcon;
+            remove.onclick = () => onRemoveLocal(item, apiName);
+        }
 
         // caret opens a popover menu holding the destructive namespace delete.
         const menuId = "rm-menu-" + (++rmMenuSeq);
         const caret = document.createElement("button");
         caret.type = "button";
-        caret.className = "item-add split-caret";
+        caret.className = st.inCli ? "item-add split-caret" : "item-add item-icon-action";
         caret.setAttribute("aria-haspopup", "menu");
         caret.setAttribute("aria-expanded", "false");
         caret.setAttribute("aria-label", "More remove options");
@@ -1411,7 +1410,7 @@ async function hydrateState() {
 
         const splitWrap = document.createElement("div");
         splitWrap.className = "split-remove";
-        splitWrap.appendChild(remove);
+        if (remove) splitWrap.appendChild(remove);
         splitWrap.appendChild(caret);
         splitWrap.appendChild(menu);
 
