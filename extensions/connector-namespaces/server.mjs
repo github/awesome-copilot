@@ -25,6 +25,9 @@ const pendingOAuth = new Map(); // connName → timestamp
 
 const PENDING_OAUTH_TTL_MS = 15 * 60 * 1000;
 const CAPABILITY_TOKEN_HEADER = "x-connector-namespace-token";
+const MAX_REQUEST_BODY_BYTES = 64 * 1024;
+
+class RequestBodyTooLargeError extends Error {}
 
 function createCapabilityToken() {
     return randomBytes(32).toString("base64url");
@@ -70,11 +73,25 @@ function prunePendingOAuth() {
 let pendingRestart = false;
 let restartAcked = false;
 
-function parseBody(req) {
-    return new Promise((resolve) => {
+export function parseBody(req) {
+    return new Promise((resolve, reject) => {
         let data = "";
-        req.on("data", (chunk) => { data += chunk; });
+        let size = 0;
+        let settled = false;
+        req.on("data", (chunk) => {
+            if (settled) return;
+            size += Buffer.byteLength(chunk);
+            if (size > MAX_REQUEST_BODY_BYTES) {
+                settled = true;
+                data = "";
+                reject(new RequestBodyTooLargeError());
+                return;
+            }
+            data += chunk;
+        });
         req.on("end", () => {
+            if (settled) return;
+            settled = true;
             try { resolve(JSON.parse(data)); }
             catch { resolve({}); }
         });
@@ -497,7 +514,16 @@ export function startServer(instanceId) {
             origin: "",
             token: createCapabilityToken(),
         };
-        const server = createServer((req, res) => handleRequest(req, res, instanceId, entry));
+        const server = createServer((req, res) => {
+            handleRequest(req, res, instanceId, entry).catch((err) => {
+                if (res.writableEnded) return;
+                res.statusCode = err instanceof RequestBodyTooLargeError ? 413 : 500;
+                if (!(err instanceof RequestBodyTooLargeError)) {
+                    console.error("[connector-namespaces] request failed:", err);
+                }
+                json(res, { error: err instanceof RequestBodyTooLargeError ? "request_body_too_large" : "internal_error" });
+            });
+        });
         entry.server = server;
         await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
         const address = server.address();

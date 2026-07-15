@@ -54,7 +54,10 @@ function parseArgs(argv) {
     const opts = { only: null, limit: Infinity, openConsent: false, cleanup: true };
     for (const a of argv) {
         if (a.startsWith("--only=")) opts.only = new Set(a.slice(7).split(",").map((s) => s.trim()).filter(Boolean));
-        else if (a.startsWith("--limit=")) opts.limit = Number.parseInt(a.slice(8), 10) || Infinity;
+        else if (a.startsWith("--limit=")) {
+            const limit = Number.parseInt(a.slice(8), 10);
+            opts.limit = Number.isNaN(limit) ? Infinity : limit;
+        }
         else if (a === "--open-consent") opts.openConsent = true;
         else if (a === "--no-cleanup") opts.cleanup = false;
     }

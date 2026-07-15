@@ -15,11 +15,10 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-// Isolate the process home BEFORE importing install.mjs. PROFILE_MCP_PATH
-// (homedir-based) and armClient's TOKEN_DIR (COPILOT_HOME-based) are both bound at
-// module-eval time, so the env vars must be set first. Seed a non-expiring fake
-// token so getToken() never hits the network or an interactive sign-in, and a
-// profile mcp-config so the local config reads as inCli.
+// Isolate COPILOT_HOME before importing install.mjs because its paths are bound at
+// module-eval time. Seed a non-expiring fake token so getToken() never hits the
+// network or an interactive sign-in, and a profile config so the local entry
+// reads as inCli.
 const TMP = mkdtempSync(join(tmpdir(), "cn-reauth-"));
 process.env.COPILOT_HOME = TMP;
 process.env.USERPROFILE = TMP; // homedir() on Windows
@@ -32,10 +31,8 @@ writeFileSync(
     JSON.stringify({ token: "fake-token", refreshToken: "fake-refresh", expiresAt: Date.now() + 3600e3 }),
 );
 
-const dotCopilot = join(TMP, ".copilot");
-mkdirSync(dotCopilot, { recursive: true });
 writeFileSync(
-    join(dotCopilot, "mcp-config.json"),
+    join(TMP, "mcp-config.json"),
     JSON.stringify({ mcpServers: { "docusign-bbb": { type: "http", url: "https://example/mcp" } } }),
 );
 

@@ -19,7 +19,7 @@ const MCP_PROXY_PATH = join(dirname(fileURLToPath(import.meta.url)), "mcp-unwrap
 // Two scopes the Copilot CLI reads MCP servers from:
 //   profile   -> ~/.copilot/mcp-config.json   (private, follows you everywhere)
 //   workspace -> <repo>/.mcp.json             (shared with the repo, git-tracked)
-const PROFILE_MCP_PATH = join(homedir(), ".copilot", "mcp-config.json");
+const PROFILE_MCP_PATH = join(process.env.COPILOT_HOME || join(homedir(), ".copilot"), "mcp-config.json");
 let s_workspaceRoot = null;
 
 export function setWorkspaceRoot(path) {

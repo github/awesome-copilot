@@ -12,8 +12,9 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { Readable } from "node:stream";
 
-import { hasCapabilityToken, isCanonicalHost, isCrossSiteRequest, requiresCapabilityToken } from "./server.mjs";
+import { hasCapabilityToken, isCanonicalHost, isCrossSiteRequest, parseBody, requiresCapabilityToken } from "./server.mjs";
 
 // Minimal request stub: only headers matter to the gate.
 function req(headers) {
@@ -103,5 +104,12 @@ test("capability token accepts the private header or OAuth callback query", () =
     assert.equal(
         hasCapabilityToken(req({ "x-connector-namespace-token": "wrong" }), new URL("http://127.0.0.1/api/state"), token),
         false,
+    );
+});
+
+test("request bodies larger than 64 KiB are rejected", async () => {
+    await assert.rejects(
+        parseBody(Readable.from([Buffer.alloc(64 * 1024 + 1)])),
+        (err) => err?.constructor?.name === "RequestBodyTooLargeError",
     );
 });
