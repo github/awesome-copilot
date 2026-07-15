@@ -21,6 +21,7 @@ import { request as httpsRequest } from "node:https";
 import { createInterface } from "node:readline";
 
 const targetUrl = process.env.MCP_TARGET_URL;
+const UPSTREAM_TIMEOUT_MS = 60_000;
 if (!targetUrl) {
     process.stderr.write("[mcp-unwrap-proxy] MCP_TARGET_URL is required\n");
     process.exit(1);
@@ -133,57 +134,81 @@ function forward(line) {
     try {
         req = JSON.parse(line);
     } catch {
-        return;
+        return Promise.resolve();
     }
     const isNotification = req.id === undefined || req.id === null;
 
-    const headers = { ...baseHeaders };
-    if (sessionId) headers["Mcp-Session-Id"] = sessionId;
+    return new Promise((resolve) => {
+        const headers = { ...baseHeaders };
+        if (sessionId) headers["Mcp-Session-Id"] = sessionId;
 
-    const r = driver(
-        {
-            method: "POST",
-            hostname: url.hostname,
-            port: url.port || undefined,
-            path: url.pathname + url.search,
-            headers,
-        },
-        (res) => {
-            const sid = res.headers["mcp-session-id"];
-            if (sid) sessionId = sid;
-            let body = "";
-            res.setEncoding("utf8");
-            res.on("data", (c) => (body += c));
-            res.on("end", () => {
-                if (res.statusCode === 202 || body.length === 0) return; // accepted notification
-                if (res.statusCode >= 400) {
-                    log(`HTTP ${res.statusCode} for ${req.method}: ${body.slice(0, 200)}`);
-                    if (!isNotification) {
-                        emit({
-                            jsonrpc: "2.0",
-                            id: req.id,
-                            error: { code: -32000, message: `Upstream HTTP ${res.statusCode}` },
-                        });
+        const r = driver(
+            {
+                method: "POST",
+                hostname: url.hostname,
+                port: url.port || undefined,
+                path: url.pathname + url.search,
+                headers,
+            },
+            (res) => {
+                const sid = res.headers["mcp-session-id"];
+                if (sid) sessionId = sid;
+                let body = "";
+                res.setEncoding("utf8");
+                res.on("data", (c) => (body += c));
+                res.on("end", () => {
+                    if (res.statusCode >= 400) {
+                        log(`HTTP ${res.statusCode} for ${req.method}: ${body.slice(0, 200)}`);
+                        if (!isNotification) {
+                            emit({
+                                jsonrpc: "2.0",
+                                id: req.id,
+                                error: { code: -32000, message: `Upstream HTTP ${res.statusCode}` },
+                            });
+                        }
+                    } else if (res.statusCode === 202 || body.length === 0) {
+                        if (!isNotification) {
+                            emit({
+                                jsonrpc: "2.0",
+                                id: req.id,
+                                error: { code: -32000, message: "Upstream returned no JSON-RPC response" },
+                            });
+                        }
+                    } else {
+                        const messages = extractMessages(res.headers["content-type"], body);
+                        if (!isNotification && messages.length === 0) {
+                            emit({
+                                jsonrpc: "2.0",
+                                id: req.id,
+                                error: { code: -32000, message: "Upstream returned an invalid JSON-RPC response" },
+                            });
+                        } else {
+                            for (const msg of messages) emit(msg);
+                        }
                     }
-                    return;
-                }
-                for (const msg of extractMessages(res.headers["content-type"], body)) emit(msg);
-            });
-        },
-    );
-    r.on("error", (e) => {
-        log(`request error for ${req.method}: ${e}`);
-        if (!isNotification) {
-            emit({ jsonrpc: "2.0", id: req.id, error: { code: -32000, message: String(e) } });
-        }
+                    resolve();
+                });
+            },
+        );
+        r.on("error", (e) => {
+            log(`request error for ${req.method}: ${e}`);
+            if (!isNotification) {
+                emit({ jsonrpc: "2.0", id: req.id, error: { code: -32000, message: String(e) } });
+            }
+            resolve();
+        });
+        r.setTimeout(UPSTREAM_TIMEOUT_MS, () => {
+            r.destroy(new Error(`Upstream request timed out after ${UPSTREAM_TIMEOUT_MS}ms`));
+        });
+        r.write(line);
+        r.end();
     });
-    r.write(line);
-    r.end();
 }
 
 const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });
+let requestQueue = Promise.resolve();
 rl.on("line", (line) => {
     const trimmed = line.trim();
-    if (trimmed) forward(trimmed);
+    if (trimmed) requestQueue = requestQueue.then(() => forward(trimmed));
 });
-rl.on("close", () => process.exit(0));
+rl.on("close", () => requestQueue.finally(() => process.exit(0)));

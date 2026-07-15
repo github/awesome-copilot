@@ -167,6 +167,8 @@ let nameCheck = "idle"; // idle | checking | available | taken | error
 let creating = false;
 let nameTimer = null;
 let checkSeq = 0;
+let resourceGroupsSeq = 0;
+let identitiesSeq = 0;
 
 document.getElementById("back-btn").onclick = () => { window.location.href = "/setup"; };
 document.getElementById("cancel-btn").onclick = () => { window.location.href = "/setup"; };
@@ -224,38 +226,44 @@ subSelect.addEventListener("change", () => {
 });
 
 async function loadResourceGroups() {
+    const seq = ++resourceGroupsSeq;
     const sub = subSelect.value;
     if (!sub) { rgSelect.innerHTML = '<option value="">-- Select subscription first --</option>'; return; }
     rgSelect.innerHTML = '<option value="">Loading\u2026</option>';
     try {
         const res = await fetch("/api/resource-groups?subscriptionId=" + encodeURIComponent(sub));
         const data = await res.json();
+        if (seq !== resourceGroupsSeq || sub !== subSelect.value) return;
         if (data.error) { rgSelect.innerHTML = '<option value="">Error loading groups</option>'; return; }
         const opts = (data.resourceGroups || []).map((g) =>
             '<option value="' + escH(g.name) + '">' + escH(g.name) + ' (' + escH(g.location) + ')</option>'
         ).join("");
         rgSelect.innerHTML = '<option value="">-- Select resource group --</option>' + opts;
     } catch (e) {
+        if (seq !== resourceGroupsSeq) return;
         rgSelect.innerHTML = '<option value="">Error loading groups</option>';
     }
 }
 
 async function loadIdentities() {
+    const seq = ++identitiesSeq;
     const sub = subSelect.value;
     if (!sub) { uamiBox.innerHTML = '<div class="uami-empty">Select a subscription to list identities.</div>'; return; }
     uamiBox.innerHTML = '<div class="uami-empty">Loading identities\u2026</div>';
     try {
         const res = await fetch("/api/identities?subscriptionId=" + encodeURIComponent(sub));
         const data = await res.json();
+        if (seq !== identitiesSeq || sub !== subSelect.value) return;
         if (data.error) { uamiBox.innerHTML = '<div class="uami-empty">Error loading identities</div>'; return; }
         const ids = data.identities || [];
         if (!ids.length) { uamiBox.innerHTML = '<div class="uami-empty">No user-assigned identities in this subscription.</div>'; return; }
-        uamiBox.innerHTML = ids.map((id) =>
-            '<div class="uami-item"><input type="checkbox" class="uami-cb" value="' + escH(id.id) + '" id="uami-' + escH(id.name) + '">' +
-            '<label for="uami-' + escH(id.name) + '">' + escH(id.name) +
+        uamiBox.innerHTML = ids.map((id, index) =>
+            '<div class="uami-item"><input type="checkbox" class="uami-cb" value="' + escH(id.id) + '" id="uami-' + index + '">' +
+            '<label for="uami-' + index + '">' + escH(id.name) +
             ' <span class="meta">' + escH(id.resourceGroup) + ' \u2022 ' + escH(id.location) + '</span></label></div>'
         ).join("");
     } catch (e) {
+        if (seq !== identitiesSeq) return;
         uamiBox.innerHTML = '<div class="uami-empty">Error loading identities</div>';
     }
 }
@@ -273,6 +281,7 @@ regionSelect.addEventListener("change", refreshButton);
 
 function scheduleNameCheck() {
     clearTimeout(nameTimer);
+    checkSeq++;
     const err = nameError();
     if (err) {
         nameCheck = "idle";
@@ -296,7 +305,7 @@ function scheduleNameCheck() {
 }
 
 async function runNameCheck() {
-    const seq = ++checkSeq;
+    const seq = checkSeq;
     const sub = subSelect.value, rg = effectiveRg(), name = nameInput.value.trim();
     try {
         const res = await fetch("/api/check-name?subscriptionId=" + encodeURIComponent(sub) +

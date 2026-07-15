@@ -26,6 +26,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { baseStyles, renderCatalogHtml, renderSetupHtml } from "./renderer.mjs";
+import { renderCreateNamespaceHtml } from "./createPage.mjs";
 import { CATEGORY } from "./categories.mjs";
 
 // Pull the balanced body of the prefers-reduced-motion media block out of a
@@ -204,6 +205,29 @@ test("the setup picker surfaces a fallback notice only when given one", () => {
     assert.doesNotMatch(plain, /class="setup-notice"/, "no notice banner should render on a normal setup visit");
 });
 
+test("namespace choices are keyboard-accessible buttons", () => {
+    const html = renderSetupHtml([{ id: "sub-1", name: "Sub One" }]);
+    assert.match(html, /<button type="button" class="setup-card"/);
+    assert.doesNotMatch(html, /<div class="setup-card"/);
+    assert.match(html, /\.setup-card:focus-visible/);
+});
+
+test("setup and create loaders ignore stale subscription responses", () => {
+    const setup = renderSetupHtml([{ id: "sub-1", name: "Sub One" }]);
+    assert.match(setup, /requestSeq !== gatewayRequestSeq \|\| subId !== subSelect\.value/);
+
+    const create = renderCreateNamespaceHtml([{ id: "sub-1", name: "Sub One" }]);
+    assert.match(create, /seq !== resourceGroupsSeq \|\| sub !== subSelect\.value/);
+    assert.match(create, /seq !== identitiesSeq \|\| sub !== subSelect\.value/);
+});
+
+test("create form invalidates pending checks immediately and uses unique identity ids", () => {
+    const html = renderCreateNamespaceHtml([{ id: "sub-1", name: "Sub One" }]);
+    assert.match(html, /clearTimeout\(nameTimer\);\s*checkSeq\+\+;/);
+    assert.match(html, /ids\.map\(\(id, index\) =>/);
+    assert.match(html, /id="uami-' \+ index/);
+});
+
 function catalogHtmlFull() {
     // Non-empty fixture: one Microsoft item and one partner item, so the section
     // partition, the move-model grids, and the collapsible heads can be asserted.
@@ -266,6 +290,24 @@ test("catalog only emits inline icon color for strict hex brand colors", () => {
             brandColor: "#5059c9;background-image:url(https://attacker.example/pixel);color:",
             category: CATEGORY.partner,
         },
+        {
+            id: "short",
+            apiName: "short",
+            displayName: "Short",
+            description: "",
+            iconUri: "https://example.com/short.png",
+            brandColor: "#fff",
+            category: CATEGORY.partner,
+        },
+        {
+            id: "alpha",
+            apiName: "alpha",
+            displayName: "Alpha",
+            description: "",
+            iconUri: "https://example.com/alpha.png",
+            brandColor: "#5059c980",
+            category: CATEGORY.partner,
+        },
     ], {
         filter: "",
         category: "all",
@@ -276,6 +318,8 @@ test("catalog only emits inline icon color for strict hex brand colors", () => {
     assert.match(html, /style="background:#5059c922"/, "valid hex colors should render as the icon background");
     assert.doesNotMatch(html, /background-image/, "non-hex color payloads must not reach inline CSS");
     assert.doesNotMatch(html, /attacker\.example/, "attacker-controlled CSS URLs must not render");
+    assert.doesNotMatch(html, /background:#fff22/, "shorthand colors cannot be combined with an appended alpha");
+    assert.doesNotMatch(html, /background:#5059c98022/, "colors that already contain alpha cannot append another alpha");
 });
 
 test("section heads are accessible toggle buttons", () => {

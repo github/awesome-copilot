@@ -2,7 +2,7 @@
 
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 import { startServer, stopServer } from "./server.mjs";
-import { loadSavedConfig, saveConfig, getSessionConfig, getAddedConnectors, addConnector, removeConnector } from "./state.mjs";
+import { loadSavedConfig, saveConfig, getSessionConfig } from "./state.mjs";
 import { fetchCatalog } from "./catalog.mjs";
 import { getInstalledState, openInBrowser, setWorkspaceRoot } from "./install.mjs";
 import { buildSandboxUrl, resolveSandboxConnector } from "./sandbox.mjs";
@@ -54,30 +54,6 @@ const session = await joinSession({
                 },
             },
             actions: [
-                {
-                    name: "add_connector",
-                    description: "Add an MCP connector to the current session by ID",
-                    inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
-                    handler: async (ctx) => {
-                        const config = getSessionConfig();
-                        if (!config) return { added: false, reason: "no_gateway_configured" };
-                        const catalog = await fetchCatalog(config.subscriptionId, config.resourceGroup, config.gatewayName);
-                        const connector = catalog.find((c) => c.id === ctx.input.id);
-                        if (!connector) return { added: false, reason: "not_found" };
-                        return addConnector(connector);
-                    },
-                },
-                {
-                    name: "remove_connector",
-                    description: "Remove a previously added connector by ID",
-                    inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
-                    handler: async (ctx) => removeConnector(ctx.input.id),
-                },
-                {
-                    name: "list_connectors",
-                    description: "List all connectors currently added to the session",
-                    handler: async () => ({ connectors: getAddedConnectors() }),
-                },
                 {
                     name: "open_sandbox",
                     description: "Open a named connector from My MCPs in the Azure Connector Namespace Sandbox",

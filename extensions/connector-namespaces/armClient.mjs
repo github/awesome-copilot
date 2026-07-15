@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { createHash, randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
 import { platform, homedir } from "node:os";
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, chmodSync } from "node:fs";
 import { join } from "node:path";
 
 const API_VERSION = "2026-05-01-preview";
@@ -38,7 +38,9 @@ function openBrowser(url) {
               ? ["open", [url]]
               : ["xdg-open", [url]];
     try {
-        spawn(cmd, args, { stdio: "ignore", detached: true }).unref();
+        const child = spawn(cmd, args, { stdio: "ignore", detached: true });
+        child.on("error", () => {});
+        child.unref();
     } catch {
         // If launching a browser fails, the URL is printed below so the user
         // can open it by hand (e.g. over SSH).
@@ -166,7 +168,7 @@ function interactiveSignIn() {
                     code_challenge_method: "S256",
                     prompt: "select_account",
                 }).toString();
-            console.log(`\nSign in to Azure to load your connector namespaces:\n${authUrl}\n`);
+            console.error(`\nSign in to Azure to load your connector namespaces:\n${authUrl}\n`);
             openBrowser(authUrl);
         };
 
@@ -226,6 +228,7 @@ function saveAuthCache(auth) {
             2,
         );
         writeFileSync(TOKEN_FILE, payload, { encoding: "utf-8", mode: 0o600 });
+        chmodSync(TOKEN_FILE, 0o600);
     } catch {
         // Best-effort; the in-memory cache still serves this process.
     }
@@ -302,7 +305,7 @@ const ARM_SEGMENT = /^[A-Za-z0-9._()-]{1,256}$/;
 
 export function armSegment(value) {
     const s = String(value);
-    if (!ARM_SEGMENT.test(s)) {
+    if (s === "." || s === ".." || !ARM_SEGMENT.test(s)) {
         throw new Error(`Invalid ARM resource identifier: ${s}`);
     }
     return s;
@@ -419,12 +422,13 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Write helper (PUT/PATCH/DELETE) that mirrors armFetch's host guard but keeps
 // the parsed error body so callers can surface ARM's message verbatim.
-async function armWrite(method, url, body) {
+async function armWrite(method, url, body, extraHeaders = {}) {
     if (!url.startsWith(ARM_BASE)) {
         throw new Error(`Refusing to call non-ARM URL: ${url}`);
     }
     const token = await getToken();
     const headers = { Authorization: `Bearer ${token}` };
+    Object.assign(headers, extraHeaders);
     if (body !== undefined) headers["Content-Type"] = "application/json";
     const res = await fetch(url, {
         method,
@@ -520,7 +524,7 @@ export function buildGatewayIdentity(enableSystem, userAssignedIds = []) {
 const TERMINAL_STATES = new Set(["Succeeded", "Failed", "Canceled"]);
 
 /**
- * Create a connector namespace (idempotent PUT) and poll until the
+ * Create a connector namespace and poll until the
  * provisioningState reaches a terminal value. Throws on Failed/Canceled.
  * Returns the final resource object.
  */
@@ -528,7 +532,7 @@ export async function createConnectorGateway(subscriptionId, resourceGroup, gate
     const token = await getToken();
     const url = `${buildBaseUrl(subscriptionId, resourceGroup, gatewayName)}?api-version=${API_VERSION}`;
     const body = { location, properties: {}, identity };
-    let result = await armWrite("PUT", url, body);
+    let result = await armWrite("PUT", url, body, { "If-None-Match": "*" });
     let state = result?.properties?.provisioningState;
     // ~3 min ceiling (60 * 3s). connectorGateways usually settle in seconds.
     for (let i = 0; i < 60 && state && !TERMINAL_STATES.has(state); i++) {
@@ -538,6 +542,9 @@ export async function createConnectorGateway(subscriptionId, resourceGroup, gate
     }
     if (state === "Failed" || state === "Canceled") {
         throw new Error(`Provisioning ${state} for "${gatewayName}".`);
+    }
+    if (state && !TERMINAL_STATES.has(state)) {
+        throw new Error(`Provisioning timed out for "${gatewayName}" (last state: ${state}).`);
     }
     return result;
 }

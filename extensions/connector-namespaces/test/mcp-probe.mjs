@@ -191,7 +191,7 @@ export async function probe(server) {
             } else {
                 out.steps.toolsCall.status = "passed";
                 out.steps.toolsCall.ok = true;
-                out.steps.toolsCall.preview = summarizeResult(call.result);
+                out.steps.toolsCall.result = "response received";
             }
         }
     } catch (err) {

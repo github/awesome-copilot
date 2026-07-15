@@ -248,12 +248,15 @@ h1 { font-size: 1.4rem; font-weight: 600; margin: 0; }
 /* Setup page */
 .setup-card {
     display: flex; align-items: center; gap: 12px;
+    width: 100%; appearance: none; text-align: left; font: inherit;
+    background: transparent; color: inherit;
     padding: .65rem .75rem; border-radius: 4px;
     border: 1px solid var(--border); cursor: pointer;
     transition: background-color 80ms, border-color 80ms;
     margin-bottom: .35rem;
 }
 .setup-card:hover { background: var(--bg-hover); border-color: var(--accent); }
+.setup-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .setup-card-name { font-weight: 600; font-size: .9rem; }
 .setup-card-meta { font-size: .75rem; color: var(--fg-muted); }
 .loading { text-align: center; padding: 2rem; color: var(--fg-muted); font-size: .85rem; }
@@ -386,8 +389,10 @@ document.getElementById("create-ns-btn").addEventListener("click", () => {
 let allGateways = [];
 let hasMoreGateways = false;
 let loadedAll = false;
+let gatewayRequestSeq = 0;
 
 subSelect.addEventListener("change", async () => {
+    const requestSeq = ++gatewayRequestSeq;
     const subId = subSelect.value;
     allGateways = [];
     gwFilter.style.display = "none";
@@ -400,6 +405,7 @@ subSelect.addEventListener("change", async () => {
     try {
         const res = await fetch("/api/gateways?subscriptionId=" + encodeURIComponent(subId));
         const data = await res.json();
+        if (requestSeq !== gatewayRequestSeq || subId !== subSelect.value) return;
         if (data.error) { gatewayList.innerHTML = '<div class="empty" style="color:var(--danger);">' + escH(data.error) + '</div>'; return; }
         if (!data.gateways || data.gateways.length === 0) {
             gatewayList.innerHTML = '<div class="empty">No connector namespaces found in this subscription.</div>';
@@ -419,6 +425,7 @@ subSelect.addEventListener("change", async () => {
         loadedAll = !data.hasMore;
         renderGateways("", data.hasMore);
     } catch (err) {
+        if (requestSeq !== gatewayRequestSeq) return;
         gatewayList.innerHTML = '<div class="empty" style="color:var(--danger);">Error: ' + escH(err.message) + '</div>';
     }
 });
@@ -444,9 +451,9 @@ function renderGateways(filter, hasMore) {
         return;
     }
     let html = visible.map(gw =>
-        '<div class="setup-card" data-sub="' + escH(gw.subscriptionId) + '" data-rg="' + escH(gw.resourceGroup) + '" data-name="' + escH(gw.name) + '">' +
+        '<button type="button" class="setup-card" data-sub="' + escH(gw.subscriptionId) + '" data-rg="' + escH(gw.resourceGroup) + '" data-name="' + escH(gw.name) + '">' +
         '<div><div class="setup-card-name">' + escH(gw.name) + '</div>' +
-        '<div class="setup-card-meta">' + escH(gw.resourceGroup) + ' \u2022 ' + escH(gw.location) + '</div></div></div>'
+        '<div class="setup-card-meta">' + escH(gw.resourceGroup) + ' \u2022 ' + escH(gw.location) + '</div></div></button>'
     ).join("");
     if (hasMore) {
         html += '<button id="load-more" style="margin-top:.5rem;width:100%;padding:.5rem;border-radius:var(--btn-radius);border:1px solid var(--border-strong);background:var(--bg);color:var(--fg-muted);font-size:.82rem;cursor:pointer;font-family:inherit;">Load all namespaces\u2026</button>';
@@ -462,11 +469,13 @@ function renderGateways(filter, hasMore) {
 
 async function loadAll() {
     const subId = subSelect.value;
+    const requestSeq = gatewayRequestSeq;
     const btn = document.getElementById("load-more");
     if (btn) { btn.disabled = true; btn.textContent = "Loading\u2026"; }
     try {
         const res = await fetch("/api/gateways?subscriptionId=" + encodeURIComponent(subId) + "&all=true");
         const data = await res.json();
+        if (requestSeq !== gatewayRequestSeq || subId !== subSelect.value) return;
         if (data.gateways) {
             allGateways = data.gateways.map(gw => {
                 const parts = gw.id.split("/");
@@ -481,6 +490,7 @@ async function loadAll() {
             loadedAll = true;
         }
     } catch (err) {
+        if (requestSeq !== gatewayRequestSeq) return;
         if (btn) { btn.textContent = "Failed \u2014 try again"; btn.disabled = false; }
     }
 }
@@ -505,7 +515,7 @@ async function selectGateway(subscriptionId, resourceGroup, gatewayName) {
 // Catalog
 // ---------------------------------------------------------------------------
 
-const CSS_HEX_COLOR = /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?(?:[0-9a-fA-F]{2})?$/;
+const CSS_HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
 function iconBackgroundStyle(brandColor) {
     const color = String(brandColor || "").trim();

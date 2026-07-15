@@ -228,13 +228,19 @@ async function main() {
             if (r.error) console.log(`  ${C.red}${logLine(r.error)}${C.reset}`);
             if (!r.ok && r.proxyStderrTail) console.log(`  ${C.dim}${logLine(r.proxyStderrTail)}${C.reset}`);
 
-            if (record.cleanup) {
-                await uninstallConnector(config, server.apiName).catch(() => {});
-                console.log(`  ${C.dim}cleaned up fresh install${C.reset}`);
-            }
         } catch (err) {
             record.error = String(err.message || err);
             console.log(`  ${C.red}ERROR${C.reset} ${logLine(record.error).slice(0, 300)}`);
+        } finally {
+            if (record.cleanup) {
+                try {
+                    await uninstallConnector(config, server.apiName);
+                    console.log(`  ${C.dim}cleaned up fresh install${C.reset}`);
+                } catch (err) {
+                    record.cleanupError = String(err.message || err);
+                    console.log(`  ${C.red}CLEANUP ERROR${C.reset} ${logLine(record.cleanupError).slice(0, 300)}`);
+                }
+            }
         }
 
         results.push(record);
@@ -245,6 +251,7 @@ async function main() {
     const probed = results.filter((r) => r.probe);
     const passed = probed.filter((r) => r.probe.ok);
     const failed = probed.filter((r) => !r.probe.ok);
+    const orchestrationErrors = results.filter((r) => r.error || r.cleanupError);
     const needsConsent = results.filter((r) => r.classification === "needs-consent" || r.classification === "pending-consent");
     const skipped = results.filter((r) => !r.probe && !needsConsent.includes(r));
 
@@ -252,6 +259,7 @@ async function main() {
     console.log(`  probed:        ${probed.length}`);
     console.log(`  ${C.green}passed:        ${passed.length}${C.reset}`);
     console.log(`  ${C.red}failed:        ${failed.length}${C.reset}`);
+    console.log(`  ${C.red}errors:        ${orchestrationErrors.length}${C.reset}`);
     console.log(`  ${C.yellow}needs consent: ${needsConsent.length}${C.reset}`);
     console.log(`  skipped:       ${skipped.length}`);
     if (needsConsent.length) {
@@ -267,7 +275,7 @@ async function main() {
     const report = {
         timestamp: new Date().toISOString(),
         gateway: { gatewayName: config.gatewayName, resourceGroup: config.resourceGroup },
-        totals: { probed: probed.length, passed: passed.length, failed: failed.length, needsConsent: needsConsent.length, skipped: skipped.length },
+        totals: { probed: probed.length, passed: passed.length, failed: failed.length, errors: orchestrationErrors.length, needsConsent: needsConsent.length, skipped: skipped.length },
         servers: results,
     };
     writeFileSync(jsonPath, redact(JSON.stringify(report, null, 2)), "utf-8");
@@ -276,8 +284,8 @@ async function main() {
     console.log(`\n  report: ${logPath}`);
     console.log(`  json:   ${jsonPath}`);
 
-    // CI-friendly: non-zero if any probed server failed a step.
-    process.exit(failed.length > 0 ? 1 : 0);
+    // CI-friendly: non-zero if a probe or orchestration step failed.
+    process.exit(failed.length > 0 || orchestrationErrors.length > 0 ? 1 : 0);
 }
 
 function renderLog(report) {
@@ -289,6 +297,7 @@ function renderLog(report) {
         lines.push(`## ${s.displayName} (${s.apiName})`);
         lines.push(`   classification: ${s.classification}`);
         if (s.error) lines.push(`   error: ${s.error}`);
+        if (s.cleanupError) lines.push(`   cleanupError: ${s.cleanupError}`);
         if (s.probe) {
             const p = s.probe;
             lines.push(`   serverInfo: ${p.serverInfo || "-"}`);
@@ -296,7 +305,6 @@ function renderLog(report) {
             lines.push(`   tools/list: ${p.steps.toolsList.ok ? "PASS" : "FAIL"} — ${p.toolCount} tools`);
             const tc = p.steps.toolsCall;
             lines.push(`   tools/call: ${tc.status}${p.toolCalled ? ` [${p.toolCalled}, ${p.toolSource}]` : ""}`);
-            if (tc.preview) lines.push(`     preview: ${tc.preview}`);
             if (tc.error) lines.push(`     callError: ${tc.error}`);
             if (p.error) lines.push(`   probeError: ${p.error}`);
             if (!p.ok && p.proxyStderrTail) lines.push(`   proxyStderr:\n     ${p.proxyStderrTail.replace(/\n/g, "\n     ")}`);
@@ -304,7 +312,7 @@ function renderLog(report) {
         lines.push("");
     }
     const t = report.totals;
-    lines.push(`SUMMARY  probed=${t.probed} passed=${t.passed} failed=${t.failed} needsConsent=${t.needsConsent} skipped=${t.skipped}`);
+    lines.push(`SUMMARY  probed=${t.probed} passed=${t.passed} failed=${t.failed} errors=${t.errors} needsConsent=${t.needsConsent} skipped=${t.skipped}`);
     return lines.join("\n");
 }
 

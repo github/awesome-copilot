@@ -73,6 +73,7 @@ test("picks inCli+Connected over a not-inCli sibling that appears LAST (not last
     assert.equal(state["shared-api"].connectionStatus, "Connected");
     assert.equal(state["shared-api"].inCli, true);
     assert.equal(state["shared-api"]._configCount, 2);
+    assert.deepEqual(state["shared-api"]._candidates.map((item) => item.configName), ["good", "bad"]);
 });
 
 test("inCli beats a Connected-but-not-inCli sibling", () => {
@@ -148,6 +149,16 @@ test("removeLocalEntry unlinks the local CLI entry via removeMcpEntry", () => {
     const body = functionBody(installSource, "removeLocalEntry");
     assert.ok(body, "removeLocalEntry function not found in install.mjs");
     assert.match(body, /removeMcpEntry\s*\(/, "removeLocalEntry must call removeMcpEntry to drop the CLI entry");
+    assert.match(body, /entry\._candidates/, "removeLocalEntry must process duplicate CLI configs");
+    assert.match(body, /candidate\.inCli/, "removeLocalEntry must unlink every local candidate");
+});
+
+test("uninstallConnector deletes every duplicate namespace config", () => {
+    const body = functionBody(installSource, "uninstallConnector");
+    assert.ok(body, "uninstallConnector function not found in install.mjs");
+    assert.match(body, /entry\._candidates/, "namespace deletion must process duplicate configs");
+    assert.match(body, /for \(const configName of configNames\)/);
+    assert.match(body, /for \(const connectionName of connectionNames\)/);
 });
 
 test("removeLocalEntry never deletes the namespace resource (no armDelete)", () => {

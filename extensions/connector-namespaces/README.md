@@ -2,8 +2,8 @@
 
 A GitHub Copilot CLI **canvas extension** that lets you browse and add MCP
 connectors from an Azure **Connector Namespace** directly inside a Copilot CLI
-session. Search by name or category, sign in to a connector, and its tools
-become available to the agent — without leaving the terminal.
+session. Search by name or category, sign in to a connector, then restart the
+session to make its tools available to the agent.
 
 > The canvas talks to public Azure Resource Manager (`management.azure.com`)
 > using a token from an interactive Azure sign-in — a browser tab opens once per
@@ -51,8 +51,7 @@ The destination **scope** is chosen at install time:
    opens for Microsoft sign-in; complete it and the canvas updates on its own.
 4. Connected connectors move into **My MCPs**. Use **Sandbox** on a tile to open
    that server directly in the namespace MCP playground.
-5. Connected connectors are added to your CLI session so the agent can use
-   their tools.
+5. Restart the Copilot CLI session so the agent can load the connected tools.
 
 The extension registers the native `connector_namespaces_open_playground` tool,
 so GitHub Copilot can open a named connector from **My MCPs** without installing
@@ -71,8 +70,7 @@ an additional Agent Skill.
   best-effort rollback on cancel).
 - `renderer.mjs` — all canvas HTML/CSS/client JS.
 - `sandbox.mjs` — builds namespace playground links and resolves named My MCPs.
-- `state.mjs` / `actions/` — saved-config persistence and the agent action
-  handlers.
+- `state.mjs` — saved namespace and connector state.
 
 ## Privacy & security
 

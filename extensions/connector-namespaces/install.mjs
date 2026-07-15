@@ -15,11 +15,13 @@ import { getToken, assertArmHost, armSegment } from "./armClient.mjs";
 // HTTP MCP client cannot parse, so no tools load. The proxy unwraps it and
 // speaks clean JSON-RPC over stdio. See mcp-unwrap-proxy.mjs.
 const MCP_PROXY_PATH = join(dirname(fileURLToPath(import.meta.url)), "mcp-unwrap-proxy.mjs");
+const COPILOT_HOME = process.env.COPILOT_HOME || join(homedir(), ".copilot");
+const STABLE_MCP_PROXY_PATH = join(COPILOT_HOME, "extensions", "connector-namespaces", "artifacts", "mcp-unwrap-proxy.mjs");
 
 // Two scopes the Copilot CLI reads MCP servers from:
 //   profile   -> ~/.copilot/mcp-config.json   (private, follows you everywhere)
 //   workspace -> <repo>/.mcp.json             (shared with the repo, git-tracked)
-const PROFILE_MCP_PATH = join(process.env.COPILOT_HOME || join(homedir(), ".copilot"), "mcp-config.json");
+const PROFILE_MCP_PATH = join(COPILOT_HOME, "mcp-config.json");
 let s_workspaceRoot = null;
 
 export function setWorkspaceRoot(path) {
@@ -140,16 +142,18 @@ function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 // ---------------------------------------------------------------------------
 
 const MANAGED_API_VERSION = "2022-09-01-preview";
-const metaCache = new Map(); // apiName -> Promise<{ connectionParameters, connectionParameterSets, opId }>
+const metaCache = new Map(); // apiName + swagger requirement -> Promise<connector metadata>
 
-function loadConnectorMeta(config, apiName, location) {
-    if (metaCache.has(apiName)) return metaCache.get(apiName);
+function loadConnectorMeta(config, apiName, location, requireSwagger = true) {
+    const sub = armSegment(config.subscriptionId);
+    const cacheKey = `${sub}:${location}:${apiName}:${requireSwagger}`;
+    if (metaCache.has(cacheKey)) return metaCache.get(cacheKey);
     const promise = (async () => {
-        const sub = armSegment(config.subscriptionId);
         const base = `/subscriptions/${sub}/providers/Microsoft.Web/locations/${armSegment(location)}/managedApis/${armSegment(apiName)}`;
+        const swaggerRequest = arm("GET", `${base}?api-version=${MANAGED_API_VERSION}&export=true`);
         const [meta, swagger] = await Promise.all([
             arm("GET", `${base}?api-version=${MANAGED_API_VERSION}`).catch(() => null),
-            arm("GET", `${base}?api-version=${MANAGED_API_VERSION}&export=true`).catch(() => null),
+            requireSwagger ? swaggerRequest : swaggerRequest.catch(() => null),
         ]);
         return {
             connectionParameters: meta?.properties?.connectionParameters ?? null,
@@ -160,8 +164,8 @@ function loadConnectorMeta(config, apiName, location) {
     // Cache the in-flight promise so a fast Connect click reuses the prewarm
     // fetch instead of starting a second swagger export. Evict on hard failure
     // so a transient error doesn't poison the cache.
-    promise.catch(() => metaCache.delete(apiName));
-    metaCache.set(apiName, promise);
+    promise.catch(() => metaCache.delete(cacheKey));
+    metaCache.set(cacheKey, promise);
     return promise;
 }
 
@@ -172,7 +176,8 @@ function loadConnectorMeta(config, apiName, location) {
 // the servers nearest the top of the view warm first.
 export function prewarmMeta(config, apiNames, location) {
     Promise.resolve(location || getGatewayLocation(config)).then(async (loc) => {
-        const pending = apiNames.filter((name) => !metaCache.has(name));
+        const sub = armSegment(config.subscriptionId);
+        const pending = apiNames.filter((name) => !metaCache.has(`${sub}:${loc}:${name}:true`));
         const CONCURRENCY = 5;
         let next = 0;
         const worker = async () => {
@@ -358,11 +363,14 @@ export async function writeMcpEntry(name, url, key, scope = "profile", meta = nu
     const path = mcpConfigPath(scope);
     return withConfigLock(async () => {
         const cfg = await readMcpConfigAt(path);
+        await fs.mkdir(dirname(STABLE_MCP_PROXY_PATH), { recursive: true, mode: 0o700 });
+        await fs.copyFile(MCP_PROXY_PATH, STABLE_MCP_PROXY_PATH);
+        await fs.chmod(STABLE_MCP_PROXY_PATH, 0o600).catch(() => {});
         // Route through the stdio unwrap-proxy rather than a direct { type: "http" }
         // entry — the gateway's $content envelope breaks the CLI's HTTP MCP client.
         cfg.mcpServers[name] = {
             command: "node",
-            args: [MCP_PROXY_PATH],
+            args: [STABLE_MCP_PROXY_PATH],
             env: { MCP_TARGET_URL: url, MCP_API_KEY: key },
         };
         // Stamp ARM provenance as a sibling metadata key. The underscore prefix
@@ -405,27 +413,25 @@ export async function uninstallConnector(config, apiName) {
     const entry = state[apiName];
     if (!entry) return { ok: true, removed: false };
 
-    // Drop the local CLI entry first — fast and local.
-    if (entry.configName) await removeMcpEntry(entry.configName);
+    const candidates = entry._candidates ?? [entry];
+    const configNames = [...new Set(candidates.map((candidate) => candidate.configName).filter(Boolean))];
+    const connectionNames = [...new Set(candidates.map((candidate) => candidate.connectionName).filter(Boolean))];
 
-    // Delete the gateway mcpserverConfig. This is the resource that drives the
-    // "installed" flag, so a swallowed failure here is exactly what makes a
-    // removed tile look like it's still there — surface it (404 = already gone).
-    if (entry.configName) {
-        await armDelete(`${gatewayId(config)}/mcpserverConfigs/${armSegment(entry.configName)}?api-version=${API_VERSION}`);
+    for (const configName of configNames) {
+        await removeMcpEntry(configName);
+        await armDelete(`${gatewayId(config)}/mcpserverConfigs/${armSegment(configName)}?api-version=${API_VERSION}`);
     }
-    // The connection is secondary; best-effort delete.
-    if (entry.connectionName) {
-        await armDelete(`${gatewayId(config)}/connections/${armSegment(entry.connectionName)}?api-version=${API_VERSION}`).catch(() => {});
+    for (const connectionName of connectionNames) {
+        await armDelete(`${gatewayId(config)}/connections/${armSegment(connectionName)}?api-version=${API_VERSION}`).catch(() => {});
     }
 
     // The config DELETE is a long-running op — the resource keeps listing until
     // it converges. Poll the gateway until it's gone so the client's next state
     // refresh actually reports the connector as uninstalled (up to ~15s).
-    if (entry.configName) {
+    if (configNames.length) {
         for (let i = 0; i < 20; i++) {
             const list = await arm("GET", `${gatewayId(config)}/mcpserverConfigs?api-version=${API_VERSION}`).catch(() => ({ value: [] }));
-            if (!(list.value ?? []).some((c) => c.name === entry.configName)) break;
+            if (!(list.value ?? []).some((item) => configNames.includes(item.name))) break;
             await sleep(750);
         }
     }
@@ -441,7 +447,10 @@ export async function removeLocalEntry(config, apiName) {
     const state = await getInstalledState(config);
     const entry = state[apiName];
     if (!entry) return { ok: true, removed: false };
-    if (entry.configName) await removeMcpEntry(entry.configName);
+    const candidates = entry._candidates ?? [entry];
+    for (const candidate of candidates) {
+        if (candidate.inCli && candidate.configName) await removeMcpEntry(candidate.configName);
+    }
     return { ok: true, removed: true };
 }
 
@@ -473,28 +482,32 @@ export async function installConnector(config, apiName, displayName, callbackBas
 
     // 1. Create connection
     const connName = await createConnection(config, apiName, displayName, location);
+    try {
+        // The OAuth redirect must carry the connName so the loopback callback keys
+        // pendingOAuth by the same value the client polls on.
+        const callbackUrl = oauthCallbackUrl(callbackBase, connName, capabilityToken);
 
-    // The OAuth redirect must carry the connName so the loopback callback keys
-    // pendingOAuth by the same value the client polls on.
-    const callbackUrl = oauthCallbackUrl(callbackBase, connName, capabilityToken);
+        // 2. Quick wait for the connection to converge — some connectors come up
+        //    Connected without any OAuth (e.g. service principal / key based).
+        await sleep(800);
+        const status = await getConnectionStatus(config, connName);
+        if (status === "Connected") {
+            return await finishInstall(config, apiName, displayName, connName, location, scope);
+        }
 
-    // 2. Quick wait for the connection to converge — some connectors come up
-    //    Connected without any OAuth (e.g. service principal / key based).
-    await sleep(800);
-    const status = await getConnectionStatus(config, connName);
-    if (status === "Connected") {
-        return finishInstall(config, apiName, displayName, connName, location, scope);
+        // 3. Needs OAuth — derive the correct consent parameter from metadata.
+        const oauthParam = findOAuthParam(meta, callbackUrl);
+        const consentUrl = await getConsentUrl(config, connName, callbackUrl, oauthParam);
+        if (consentUrl) {
+            return { needsConsent: true, consentUrl, connName, location };
+        }
+
+        // 4. No consent link and not Connected — try to finish anyway.
+        return await finishInstall(config, apiName, displayName, connName, location, scope);
+    } catch (error) {
+        await deleteConnection(config, connName);
+        throw error;
     }
-
-    // 3. Needs OAuth — derive the correct consent parameter from metadata.
-    const oauthParam = findOAuthParam(meta, callbackUrl);
-    const consentUrl = await getConsentUrl(config, connName, callbackUrl, oauthParam);
-    if (consentUrl) {
-        return { needsConsent: true, consentUrl, connName, location };
-    }
-
-    // 4. No consent link and not Connected — try to finish anyway.
-    return finishInstall(config, apiName, displayName, connName, location, scope);
 }
 
 export async function finishInstall(config, apiName, displayName, connName, location, scope = "profile") {
@@ -510,29 +523,39 @@ export async function finishInstall(config, apiName, displayName, connName, loca
     }
 
     // Create MCP server config (endpoint URL comes back on the PUT response).
-    let { configName, endpointUrl } = await createMcpServerConfig(config, apiName, displayName, connName, location, meta.opId);
+    let configName;
+    let endpointUrl;
+    try {
+        ({ configName, endpointUrl } = await createMcpServerConfig(config, apiName, displayName, connName, location, meta.opId));
 
-    // Endpoint URL can lag — poll the config a few times if missing.
-    for (let i = 0; !endpointUrl && i < 5; i++) {
-        await sleep(1000);
-        endpointUrl = await getMcpEndpointUrl(config, configName);
+        // Endpoint URL can lag — poll the config a few times if missing.
+        for (let i = 0; !endpointUrl && i < 5; i++) {
+            await sleep(1000);
+            endpointUrl = await getMcpEndpointUrl(config, configName);
+        }
+        if (!endpointUrl) throw new Error(`MCP endpoint URL not available (connection status: ${status}).`);
+
+        // Mint key and write the CLI entry, stamped with ARM provenance so the
+        // install can be recognised regardless of which connector namespace is
+        // active when state is next derived.
+        const key = await mintApiKey(config, configName);
+        const gw = gatewayId(config);
+        await writeMcpEntry(configName, endpointUrl, key, scope, {
+            gatewayId: gw,
+            mcpServerConfigId: `${gw}/mcpserverConfigs/${armSegment(configName)}`,
+            connectionId: `${gw}/connections/${armSegment(connName)}`,
+            apiName,
+        });
+
+        const warning = status === "Connected" ? undefined : `Connection ended in state "${status}". You may need to re-authenticate.`;
+        return { ok: true, configName, connName, endpointUrl, scope, warning };
+    } catch (error) {
+        if (configName) {
+            await armDelete(`${gatewayId(config)}/mcpserverConfigs/${armSegment(configName)}?api-version=${API_VERSION}`).catch(() => {});
+        }
+        await deleteConnection(config, connName);
+        throw error;
     }
-    if (!endpointUrl) throw new Error(`MCP endpoint URL not available (connection status: ${status}).`);
-
-    // Mint key and write the CLI entry, stamped with ARM provenance so the
-    // install can be recognised regardless of which connector namespace is
-    // active when state is next derived.
-    const key = await mintApiKey(config, configName);
-    const gw = gatewayId(config);
-    await writeMcpEntry(configName, endpointUrl, key, scope, {
-        gatewayId: gw,
-        mcpServerConfigId: `${gw}/mcpserverConfigs/${armSegment(configName)}`,
-        connectionId: `${gw}/connections/${armSegment(connName)}`,
-        apiName,
-    });
-
-    const warning = status === "Connected" ? undefined : `Connection ended in state "${status}". You may need to re-authenticate.`;
-    return { ok: true, configName, connName, endpointUrl, scope, warning };
 }
 
 // ---------------------------------------------------------------------------
@@ -557,11 +580,11 @@ export async function reauthConnector(config, apiName, displayName, callbackBase
 
     // Nothing installed to re-auth against — treat it as a first-time Connect.
     if (!connName) {
-        return installConnector(config, apiName, displayName, callbackBase, scope);
+        return installConnector(config, apiName, displayName, callbackBase, scope, capabilityToken);
     }
 
     const location = await getGatewayLocation(config);
-    const meta = await loadConnectorMeta(config, apiName, location);
+    const meta = await loadConnectorMeta(config, apiName, location, false);
     const callbackUrl = oauthCallbackUrl(callbackBase, connName, capabilityToken);
     const oauthParam = findOAuthParam(meta, callbackUrl);
 
@@ -578,7 +601,7 @@ export async function reauthConnector(config, apiName, displayName, callbackBase
                 await removeMcpEntry(entry.configName).catch(() => {});
             }
             await deleteConnection(config, connName).catch(() => {});
-            return installConnector(config, apiName, displayName, callbackBase, scope);
+            return installConnector(config, apiName, displayName, callbackBase, scope, capabilityToken);
         }
         throw err;
     }
@@ -639,8 +662,8 @@ export async function finishReauth(config, apiName, displayName, connName, confi
 export async function getInstalledState(config) {
     const wsPath = s_workspaceRoot ? join(s_workspaceRoot, ".mcp.json") : null;
     const [configsRes, connectionsRes, profileCfg, workspaceCfg] = await Promise.all([
-        arm("GET", `${gatewayId(config)}/mcpserverConfigs?api-version=${API_VERSION}`).catch(() => ({ value: [] })),
-        arm("GET", `${gatewayId(config)}/connections?api-version=${API_VERSION}`).catch(() => ({ value: [] })),
+        arm("GET", `${gatewayId(config)}/mcpserverConfigs?api-version=${API_VERSION}`),
+        arm("GET", `${gatewayId(config)}/connections?api-version=${API_VERSION}`),
         readMcpConfigAt(PROFILE_MCP_PATH).catch(() => ({ mcpServers: {} })),
         wsPath ? readMcpConfigAt(wsPath).catch(() => ({ mcpServers: {} })) : Promise.resolve({ mcpServers: {} }),
     ]);
@@ -692,7 +715,7 @@ export function deriveInstalledState(configs, connByName, profileKeys, workspace
         let best = list[0];
         for (const e of list) if (rank(e) > rank(best)) best = e;
         // Internal-only signal for logging; the renderer ignores unknown fields.
-        byApi[apiName] = list.length > 1 ? { ...best, _configCount: list.length } : best;
+        byApi[apiName] = list.length > 1 ? { ...best, _configCount: list.length, _candidates: list } : best;
     }
     return byApi;
 }
@@ -713,16 +736,19 @@ export function openInBrowser(url) {
         return;
     }
     const p = platform();
+    let child;
     if (p === "win32") {
         // rundll32 hands the URL to the default protocol handler as a single
         // literal argv with no shell parsing — avoids cmd.exe `start` metachar
         // and quoting pitfalls.
-        spawn("rundll32.exe", ["url.dll,FileProtocolHandler", safe], { detached: true, stdio: "ignore" }).unref();
+        child = spawn("rundll32.exe", ["url.dll,FileProtocolHandler", safe], { detached: true, stdio: "ignore" });
     } else if (p === "darwin") {
-        spawn("open", [safe], { detached: true, stdio: "ignore" }).unref();
+        child = spawn("open", [safe], { detached: true, stdio: "ignore" });
     } else {
-        spawn("xdg-open", [safe], { detached: true, stdio: "ignore" }).unref();
+        child = spawn("xdg-open", [safe], { detached: true, stdio: "ignore" });
     }
+    child.on("error", () => {});
+    child.unref();
 }
 
 // ---------------------------------------------------------------------------
@@ -734,15 +760,18 @@ export function openInBrowser(url) {
 // every platform — no shell, so a path with spaces or metachars is safe.
 function openPath(filePath) {
     const p = platform();
+    let child;
     if (p === "win32") {
         // FileProtocolHandler also accepts plain file paths and routes them to
         // the registered default app, same no-shell guarantee as openInBrowser.
-        spawn("rundll32.exe", ["url.dll,FileProtocolHandler", filePath], { detached: true, stdio: "ignore" }).unref();
+        child = spawn("rundll32.exe", ["url.dll,FileProtocolHandler", filePath], { detached: true, stdio: "ignore" });
     } else if (p === "darwin") {
-        spawn("open", [filePath], { detached: true, stdio: "ignore" }).unref();
+        child = spawn("open", [filePath], { detached: true, stdio: "ignore" });
     } else {
-        spawn("xdg-open", [filePath], { detached: true, stdio: "ignore" }).unref();
+        child = spawn("xdg-open", [filePath], { detached: true, stdio: "ignore" });
     }
+    child.on("error", () => {});
+    child.unref();
 }
 
 // Open the MCP config this canvas writes to (the profile scope —
