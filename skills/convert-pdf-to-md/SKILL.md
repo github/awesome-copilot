@@ -1,6 +1,6 @@
 ---
 name: convert-pdf-to-md
-description: 'Converts PDF (.pdf) documents into Markdown so their contents can be accurately analyzed, summarized, searched, or extracted from. Use this skill whenever the user shares, references, or asks about a .pdf file — even if they don''t say "convert" or "markdown" explicitly. This includes requests to "read", "summarize", "review", "extract data from", "compare", or "analyze" a PDF report, paper, invoice, form, contract, or scanned document. Always run the bundled conversion script to produce Markdown first; do not attempt to parse PDF content directly or write ad-hoc extraction code. Also use this skill for batch requests involving a whole folder of PDF documents.'
+description: 'Converts PDF (.pdf) documents into Markdown so their contents can be accurately analyzed, summarized, searched, or extracted from. Use this skill whenever the user shares, references, or asks about a .pdf file — even if they don''t say "convert" or "markdown" explicitly. This includes requests to "read", "summarize", "review", "extract data from", "compare", or "analyze" a PDF report, paper, invoice, form, contract, or scanned document. Always run the bundled conversion script to produce Markdown first; do not attempt to parse PDF content directly or write ad-hoc extraction code. Also use this skill for batch requests involving a whole folder of PDF documents. IMPORTANT: When the user references a folder or set of documents containing multiple file types (.pdf, .docx, .xlsx), invoke ALL three sibling skills — convert-pdf-to-md, convert-word-to-md, and convert-excel-to-md — so no file type is silently skipped.'
 ---
 
 # Convert PDF to Markdown
@@ -18,6 +18,16 @@ open or parse the file directly.
 This skill only supports `.pdf` — that's MarkItDown's only PDF-family
 format, so there's no legacy format to worry about here (unlike Word's
 `.doc` or Excel's `.xls`).
+
+**Mixed file types:** When the user references a folder or set of documents
+containing multiple supported file types (`.pdf`, `.docx`, `.xlsx`), this
+skill handles only `.pdf` files. The agent MUST also invoke the sibling
+skills in parallel:
+- `convert-word-to-md` for any `.docx` files
+- `convert-excel-to-md` for any `.xlsx` files
+
+Never process a folder and silently skip a supported file type. All three
+skills must be invoked together when mixed types are present.
 
 ## Setup (once per environment)
 
@@ -92,16 +102,20 @@ Markdown (and images), not to interpret the content.
 
 ## Deciding where output goes
 
-There's no single fixed output location — decide based on context:
-- If the user doesn't say where they want the output, default to creating
-  the `<name>\` folder next to the source file (the script's default
-  behavior) — this is the least surprising choice and keeps things easy to
-  find.
-- If the user mentions a specific output location, a working directory, or
-  asks for a consolidated set of results, use `-o` to place it there.
-- For batch/folder requests, prefer `-o` pointing at a single parent
-  directory if the user seems to want the results gathered in one place;
-  otherwise let each `<name>\` folder land next to its source `.pdf`.
+**Default — always output next to the source file.** The `<name>/` folder
+is created in the same directory as the source `.pdf`. This is the required
+default for every case. Do NOT override it unless the user explicitly asks
+for a different location.
+
+**Only use `-o` when** the user explicitly provides an output path (e.g.,
+"save the output to `C:\output`", "put the results in `D:\work`"). Do NOT
+pass `-o` based on the agent's current working directory, the session state
+folder, or any implied location.
+
+**If the source file path cannot be fully resolved** — for example, the
+user provides only a filename with no directory, or the path is ambiguous —
+use `ask_user` to confirm the full absolute path before running the
+conversion. Never guess or assume the directory.
 
 ## Troubleshooting
 

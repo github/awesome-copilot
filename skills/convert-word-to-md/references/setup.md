@@ -31,16 +31,16 @@ python -m ensurepip --upgrade
 
 ## 3. Install MarkItDown with Word (.docx) support
 
-```powershell
-python -m pip install "markitdown[docx]"
-```
-
-Use the `scripts/requirements.txt` file bundled with this skill for a requirements-file install
- instead, if preferred:
+Use the `scripts/requirements.txt` file bundled with this skill to install a pinned,
+known-good version of the dependency:
 
 ```powershell
 python -m pip install -r scripts/requirements.txt
 ```
+
+This pulls in `markitdown[docx]` (MarkItDown's Word conversion dependency, which
+includes `mammoth` for `.docx` file parsing). No extra package is needed — this
+skill's script uses MarkItDown's built-in Word converter.
 
 ## 4. Verify the install
 

@@ -31,19 +31,15 @@ python -m ensurepip --upgrade
 
 ## 3. Install MarkItDown with Excel (.xlsx) support
 
-```powershell
-python -m pip install "markitdown[xlsx]"
-```
-
-Use the `scripts/requirements.txt` file bundled with this skill for a requirements-file install
- instead, if preferred:
+Use the `scripts/requirements.txt` file bundled with this skill to install a pinned,
+known-good version of the dependency:
 
 ```powershell
 python -m pip install -r scripts/requirements.txt
 ```
 
-This pulls in `pandas` and `openpyxl` (MarkItDown's XLSX table conversion
-dependencies). No extra package is needed for image extraction — this
+This pulls in `markitdown[xlsx]` (MarkItDown's XLSX table conversion
+dependencies, which include `pandas` and `openpyxl`). No extra package is needed for image extraction — this
 skill's script reads embedded images directly from the `.xlsx` zip
 structure using Python's built-in `zipfile` and `xml` modules.
 

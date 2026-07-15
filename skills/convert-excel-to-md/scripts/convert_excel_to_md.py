@@ -50,6 +50,7 @@ Exit codes:
 import argparse
 import posixpath
 import re
+import shutil
 import sys
 import zipfile
 from pathlib import Path
@@ -225,7 +226,7 @@ def insert_sheet_images(markdown_text: str, sheet_images) -> str:
     pieces = []
     last_end = 0
     for i, m in enumerate(matches):
-        sheet_name = m.group(1).strip()
+        sheet_name = m.group(1).removesuffix("\r")
         start = m.start()
         end = matches[i + 1].start() if i + 1 < len(matches) else len(markdown_text)
         pieces.append(markdown_text[last_end:start])
@@ -251,8 +252,12 @@ def convert_one(md, source: Path, dest_dir: Path) -> bool:
         return False
 
     try:
+        img_dir = dest_dir / "img"
+        if dest_dir.exists():
+            if img_dir.exists():
+              shutil.rmtree(img_dir)
         dest_dir.mkdir(parents=True, exist_ok=True)
-        sheet_images = extract_images(source, dest_dir / "img")
+        sheet_images = extract_images(source, img_dir)
         text = insert_sheet_images(result.text_content, sheet_images)
         md_path = dest_dir / f"{source.stem}.md"
         md_path.write_text(text, encoding="utf-8")
@@ -298,22 +303,26 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    MarkItDown = _import_markitdown()
-    md = MarkItDown()
+    #MarkItDown = _import_markitdown()
+    #md = MarkItDown()
 
     source = Path(args.input)
     if not source.exists():
         print(f"ERROR: Input path not found: {source}", file=sys.stderr)
         return EXIT_INVALID_INPUT
 
+    if source.is_file() and source.suffix.lower() != ".xlsx":
+         print(
+             f"ERROR: Unsupported file type '{source.suffix}'. "
+             "This skill only converts .xlsx files.",
+             file=sys.stderr,
+         )
+         return EXIT_INVALID_INPUT
+
+    MarkItDown = _import_markitdown()
+    md = MarkItDown()
+
     if source.is_file():
-        if source.suffix.lower() != ".xlsx":
-            print(
-                f"ERROR: Unsupported file type '{source.suffix}'. "
-                "This skill only converts .xlsx files.",
-                file=sys.stderr,
-            )
-            return EXIT_INVALID_INPUT
         dest_dir = Path(args.output) if args.output else source.parent / source.stem
         return EXIT_OK if convert_one(md, source, dest_dir) else EXIT_CONVERSION_FAILED
 

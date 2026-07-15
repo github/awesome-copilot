@@ -39,6 +39,7 @@ Exit codes:
 """
 import argparse
 import re
+import shutil
 import sys
 import zipfile
 from pathlib import Path
@@ -186,12 +187,23 @@ def convert_one(md, source: Path, dest_dir: Path) -> bool:
     Markdown file and an "img/" folder of extracted images. Returns True on
     success."""
     try:
-        result = md.convert(str(source))
+      result = md.convert(str(source))
+    except ImportError as exc:
+      print(
+        f"ERROR: A required dependency for converting '{source.name}' is not installed.\n"
+        f"  {exc}\n"
+        "See references/setup.md for this skill, or run:\n"
+        '    pip install "markitdown[docx]"',
+        file=sys.stderr,
+      )
+      sys.exit(EXIT_MISSING_DEPENDENCY)
     except Exception as exc:  # noqa: BLE001 - surface any conversion error
         print(f"FAILED  {source} -> {exc}", file=sys.stderr)
         return False
 
     try:
+        if dest_dir.exists():
+            shutil.rmtree(dest_dir)
         dest_dir.mkdir(parents=True, exist_ok=True)
         image_files = _extract_images(source, dest_dir / "img")
         text = _rewrite_image_refs(result.text_content, image_files)
@@ -238,22 +250,26 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    MarkItDown = _import_markitdown()
-    md = MarkItDown()
+    #MarkItDown = _import_markitdown()
+    #md = MarkItDown()
 
     source = Path(args.input)
     if not source.exists():
         print(f"ERROR: Input path not found: {source}", file=sys.stderr)
         return EXIT_INVALID_INPUT
 
+    if source.is_file() and source.suffix.lower() != ".docx":
+         print(
+             f"ERROR: Unsupported file type '{source.suffix}'. "
+             "This skill only converts .docx files.",
+             file=sys.stderr,
+         )
+         return EXIT_INVALID_INPUT
+
+    MarkItDown = _import_markitdown()
+    md = MarkItDown()
+
     if source.is_file():
-        if source.suffix.lower() != ".docx":
-            print(
-                f"ERROR: Unsupported file type '{source.suffix}'. "
-                "This skill only converts .docx files.",
-                file=sys.stderr,
-            )
-            return EXIT_INVALID_INPUT
         dest_dir = Path(args.output) if args.output else source.parent / source.stem
         return EXIT_OK if convert_one(md, source, dest_dir) else EXIT_CONVERSION_FAILED
 

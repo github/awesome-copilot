@@ -31,18 +31,15 @@ python -m ensurepip --upgrade
 
 ## 3. Install MarkItDown with PDF support, plus PyMuPDF for image extraction
 
-```powershell
-python -m pip install "markitdown[pdf]" pymupdf
-```
-
-Use the `scripts/requirements.txt` file bundled with this skill for a requirements-file install
- instead, if preferred:
+Use the `scripts/requirements.txt` file bundled with this skill to install pinned,
+known-good versions of the dependencies:
 
 ```powershell
 python -m pip install -r scripts/requirements.txt
 ```
 
-PyMuPDF (imported as `fitz`) is required separately because MarkItDown's PDF
+This pulls in `markitdown[pdf]` and `pymupdf>=1.24.0`. PyMuPDF (imported as `fitz`)
+is required separately because MarkItDown's PDF
 converter only extracts text and tables — it has no support for embedded
 images at all, so this skill's script extracts them itself.
 

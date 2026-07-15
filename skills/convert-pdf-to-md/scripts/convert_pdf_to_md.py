@@ -52,6 +52,8 @@ Exit codes:
 """
 import argparse
 import sys
+import hashlib
+import shutil
 from pathlib import Path
 
 EXIT_OK = 0
@@ -79,6 +81,7 @@ def _import_fitz():
     """Import PyMuPDF (module name 'fitz'), failing with a clear message if absent."""
     try:
         import fitz
+        import hashlib
         return fitz
     except ImportError:
         print(
@@ -91,53 +94,102 @@ def _import_fitz():
 
 
 def extract_images(fitz, pdf_path: Path, img_dir: Path):
-    """Extract embedded images from pdf_path, grouped by 1-based page number.
-    Returns {page_num: [filename, ...]} in per-page image order. Files are
-    named 'page{P:03d}_img{N:03d}.<ext>'. Corrupt/unreadable images are
-    skipped with a warning rather than aborting the whole conversion."""
-    written_by_page = {}
-    try:
-        doc = fitz.open(str(pdf_path))
-    except Exception as exc:  # noqa: BLE001
-        print(f"WARNING: could not open {pdf_path} for image extraction: {exc}", file=sys.stderr)
-        return written_by_page
+  """Extract embedded images from pdf_path, grouped by 1-based page number.
+  Returns {page_num: [filename, ...]} in per-page image order. Files are
+  named 'page{P:03d}_img{N:03d}.<ext>'. Corrupt/unreadable images are
+  skipped with a warning rather than aborting the whole conversion.
 
-    try:
-        for page_index in range(len(doc)):
-            try:
-                 images = doc[page_index].get_images(full=True)
-            except Exception as exc:  # noqa: BLE001
-                 print(
-                     f"WARNING: failed to enumerate images on page {page_index + 1} "
-                     f"of {pdf_path}: {exc}",
-                     file=sys.stderr,
-                 )
-                 continue
-            if not images:
-                continue
-            page_files = []
-            for img_idx, img in enumerate(images, start=1):
-                xref = img[0]
-                try:
-                    base_image = doc.extract_image(xref)
-                except Exception as exc:  # noqa: BLE001
-                    print(
-                        f"WARNING: failed to extract image xref={xref} on page "
-                        f"{page_index + 1} of {pdf_path}: {exc}",
-                        file=sys.stderr,
-                    )
-                    continue
-                ext = (base_image.get("ext") or "png").lower()
-                out_name = f"page{page_index + 1:03d}_img{img_idx:03d}.{ext}"
-                img_dir.mkdir(parents=True, exist_ok=True)
-                (img_dir / out_name).write_bytes(base_image["image"])
-                page_files.append(out_name)
-            if page_files:
-                written_by_page[page_index + 1] = page_files
-    finally:
-        doc.close()
-
+  Two sources are combined and deduplicated:
+    1. Image XObjects via page.get_images(full=True) -- covers most embedded
+     images in modern PDFs.
+    2. Inline image blocks via page.get_text("dict") -- covers images stored
+     directly in the page content stream, which get_images() misses entirely.
+  Deduplication is by image bytes hash so the same raster is never written twice
+  on the same page regardless of which source reported it."""
+  written_by_page = {}
+  try:
+    doc = fitz.open(str(pdf_path))
+  except Exception as exc:  # noqa: BLE001
+    print(f"WARNING: could not open {pdf_path} for image extraction: {exc}", file=sys.stderr)
     return written_by_page
+
+  try:
+    for page_index in range(len(doc)):
+      page = doc[page_index]
+      page_label = page_index + 1
+      seen_hashes: set = set()
+      raw_images: list[tuple[bytes, str]] = []  # (image_bytes, ext)
+
+      # --- Source 1: XObject images ---
+      try:
+        xobjects = page.get_images(full=True)
+      except Exception as exc:  # noqa: BLE001
+        print(
+          f"WARNING: failed to enumerate XObject images on page {page_label} "
+          f"of {pdf_path}: {exc}",
+          file=sys.stderr,
+        )
+        xobjects = []
+
+      for img in xobjects:
+        xref = img[0]
+        try:
+          base_image = doc.extract_image(xref)
+        except Exception as exc:  # noqa: BLE001
+          print(
+            f"WARNING: failed to extract XObject image xref={xref} on page "
+            f"{page_label} of {pdf_path}: {exc}",
+            file=sys.stderr,
+          )
+          continue
+        img_bytes = base_image.get("image") or b""
+        if not img_bytes:
+          continue
+        ext = (base_image.get("ext") or "png").lower()
+        raw_images.append((img_bytes, ext))
+
+      # --- Source 2: Inline images via get_text("dict") ---
+      try:
+        blocks = page.get_text("dict", flags=fitz.TEXT_PRESERVE_IMAGES).get("blocks", [])
+      except Exception as exc:  # noqa: BLE001
+        print(
+          f"WARNING: failed to extract text/image dict on page {page_label} "
+          f"of {pdf_path}: {exc}",
+          file=sys.stderr,
+        )
+        blocks = []
+
+      for block in blocks:
+        # Image blocks have type == 1
+        if block.get("type") != 1:
+          continue
+        img_bytes = block.get("image") or b""
+        if not img_bytes:
+          continue
+        # Derive extension from the block's "ext" key (fitz sets this)
+        ext = (block.get("ext") or "png").lower()
+        raw_images.append((img_bytes, ext))
+
+      # --- Write deduplicated images ---
+      page_files = []
+      img_idx = 1
+      for img_bytes, ext in raw_images:
+        h = hashlib.sha256(img_bytes).digest()
+        if h in seen_hashes:
+          continue
+        seen_hashes.add(h)
+        out_name = f"page{page_label:03d}_img{img_idx:03d}.{ext}"
+        img_dir.mkdir(parents=True, exist_ok=True)
+        (img_dir / out_name).write_bytes(img_bytes)
+        page_files.append(out_name)
+        img_idx += 1
+
+      if page_files:
+        written_by_page[page_label] = page_files
+  finally:
+    doc.close()
+
+  return written_by_page
 
 
 def build_image_appendix(written_by_page) -> str:
@@ -165,6 +217,8 @@ def convert_one(md, fitz, source: Path, dest_dir: Path) -> bool:
         return False
 
     try:
+        if dest_dir.exists():
+            shutil.rmtree(dest_dir)
         dest_dir.mkdir(parents=True, exist_ok=True)
         written_by_page = extract_images(fitz, source, dest_dir / "img")
         appendix = build_image_appendix(written_by_page)
@@ -214,23 +268,28 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    MarkItDown = _import_markitdown()
-    fitz = _import_fitz()
-    md = MarkItDown()
+    #MarkItDown = _import_markitdown()
+    #fitz = _import_fitz()
+    #md = MarkItDown()
 
     source = Path(args.input)
     if not source.exists():
         print(f"ERROR: Input path not found: {source}", file=sys.stderr)
         return EXIT_INVALID_INPUT
 
+    if source.is_file() and source.suffix.lower() != ".pdf":
+         print(
+             f"ERROR: Unsupported file type '{source.suffix}'. "
+             "This skill only converts .pdf files.",
+             file=sys.stderr,
+         )
+         return EXIT_INVALID_INPUT
+
+    MarkItDown = _import_markitdown()
+    fitz = _import_fitz()
+    md = MarkItDown()
+
     if source.is_file():
-        if source.suffix.lower() != ".pdf":
-            print(
-                f"ERROR: Unsupported file type '{source.suffix}'. "
-                "This skill only converts .pdf files.",
-                file=sys.stderr,
-            )
-            return EXIT_INVALID_INPUT
         dest_dir = Path(args.output) if args.output else source.parent / source.stem
         return EXIT_OK if convert_one(md, fitz, source, dest_dir) else EXIT_CONVERSION_FAILED
 
