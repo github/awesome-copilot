@@ -6,12 +6,40 @@ import { loadSavedConfig, saveConfig, getSessionConfig, getAddedConnectors, addC
 import { fetchCatalog } from "./catalog.mjs";
 import { getInstalledState, openInBrowser, setWorkspaceRoot } from "./install.mjs";
 import { buildSandboxUrl, resolveSandboxConnector } from "./sandbox.mjs";
-import { installBundledSkill } from "./skillInstaller.mjs";
 
 // Load any previously saved connector namespace config on startup
 loadSavedConfig();
 
+async function openPlayground(server) {
+    const config = getSessionConfig();
+    if (!config) return { opened: false, reason: "no_namespace_configured" };
+    const catalog = await fetchCatalog(config.subscriptionId, config.resourceGroup, config.gatewayName);
+    const installedState = await getInstalledState(config);
+    const resolved = resolveSandboxConnector(catalog, installedState, server);
+    if (!resolved.connector) return { opened: false, ...resolved };
+    const url = buildSandboxUrl(config, resolved.connector.id);
+    openInBrowser(url);
+    return { opened: true, server: resolved.connector, url };
+}
+
 const session = await joinSession({
+    tools: [
+        {
+            name: "connector_namespaces_open_playground",
+            description: "Open a named connector from My MCPs in the Azure Connector Namespace playground.",
+            parameters: {
+                type: "object",
+                properties: {
+                    server: {
+                        type: "string",
+                        description: "Connector display name or server ID from My MCPs",
+                    },
+                },
+                required: ["server"],
+            },
+            handler: async ({ server }) => JSON.stringify(await openPlayground(server)),
+        },
+    ],
     canvases: [
         createCanvas({
             id: "connector-namespaces",
@@ -63,17 +91,7 @@ const session = await joinSession({
                         },
                         required: ["server"],
                     },
-                    handler: async (ctx) => {
-                        const config = getSessionConfig();
-                        if (!config) return { opened: false, reason: "no_namespace_configured" };
-                        const catalog = await fetchCatalog(config.subscriptionId, config.resourceGroup, config.gatewayName);
-                        const installedState = await getInstalledState(config);
-                        const resolved = resolveSandboxConnector(catalog, installedState, ctx.input.server);
-                        if (!resolved.connector) return { opened: false, ...resolved };
-                        const url = buildSandboxUrl(config, resolved.connector.id);
-                        openInBrowser(url);
-                        return { opened: true, server: resolved.connector, url };
-                    },
+                    handler: async (ctx) => openPlayground(ctx.input.server),
                 },
             ],
             open: async (ctx) => {
@@ -98,12 +116,3 @@ const session = await joinSession({
 
 // Tell the install pipeline where the workspace .mcp.json lives (if any).
 setWorkspaceRoot(session.workspacePath);
-
-try {
-    const skill = installBundledSkill();
-    if (skill.installed) {
-        await session.log("Installed the connector-sandbox skill. Start a new session to use it from GitHub Copilot.", { level: "info" });
-    }
-} catch (error) {
-    await session.log(`Could not install the connector-sandbox skill: ${error.message}`, { level: "warning" });
-}
