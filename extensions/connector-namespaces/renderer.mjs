@@ -593,7 +593,8 @@ export function renderCatalogHtml(instanceId, catalog, { filter, category, sourc
 /* main + caret read as one pill; the shared 1px border between them is the
    divider (caret overlaps main by -1px so borders don't double). */
 .split-remove { display:inline-flex; align-items:stretch; }
-.split-remove .split-main { border-top-right-radius:0; border-bottom-right-radius:0; }
+.split-remove .split-main { border-top-right-radius:0; border-bottom-right-radius:0; color:var(--danger); }
+.split-remove .split-main:hover { border-color:var(--danger); color:var(--danger); }
 .split-remove .split-caret {
     min-width:0; padding:.2rem .3rem; margin-left:-1px;
     border-top-left-radius:0; border-bottom-left-radius:0;

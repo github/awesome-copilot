@@ -336,7 +336,7 @@ test("connect is compact and local disconnect is distinct from namespace deletio
     assert.match(html, /remove\.setAttribute\("aria-label", "Disconnect " \+ displayName \+ " from Copilot"\)/, "the icon needs a connector-specific label");
     assert.match(html, /const disconnectIcon = '[^']*m2 2 12 12/, "the visible control should use a slashed plug mark");
     assert.match(html, /remove\.innerHTML = disconnectIcon/, "the visible control should use the disconnect mark");
-    assert.doesNotMatch(html, /\.split-remove \.split-main \{[^}]*color:var\(--danger\)/, "disconnect should not look like destructive namespace deletion");
+    assert.match(html, /\.split-remove \.split-main \{[^}]*color:var\(--danger\)/, "the disconnect icon should be red");
     assert.match(html, /\.split-remove \.split-caret\s*\{[^}]*padding:\.2rem \.3rem/, "the destructive-options caret should stay narrow");
     assert.match(html, /\.split-remove \.split-caret svg\s*\{[^}]*width:8px; height:8px;/, "the caret mark should match its smaller button");
 });
