@@ -28,6 +28,7 @@
     "isomorphic-dompurify": "^2.36.0",
     "jszip": "^3.10.1",
     "marked": "^18.0.2",
+    "remark-github-admonitions-to-directives": "^2.1.0",
     "shiki": "^4.0.2"
   },
   "devDependencies": {
