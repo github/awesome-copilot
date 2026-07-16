@@ -447,7 +447,7 @@
   {
     "name": "modernize-dotnet",
     "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-    "version": "1.0.1157-preview1",
+    "version": "1.0.1161-preview1",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -464,7 +464,8 @@
     "source": {
       "source": "github",
       "repo": "dotnet/modernize-dotnet",
-      "path": "plugins/modernize-dotnet"
+      "path": "plugins/modernize-dotnet",
+      "sha": "ce4ec09678498da38099ca9169c1624c59c2a89a"
     }
   },
   {
