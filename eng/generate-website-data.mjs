@@ -1408,7 +1408,10 @@ function generateCanvasManifest(gitDates, commitSha) {
     warnings: externalPluginWarnings,
   } = readExternalPlugins({ policy: "marketplace" });
   externalPluginWarnings.forEach((warning) => console.warn(`Warning: ${warning}`));
-  externalPluginErrors.forEach((error) => console.warn(`Warning: ${error}`));
+  if (externalPluginErrors.length > 0) {
+    externalPluginErrors.forEach((error) => console.error(`Error: ${error}`));
+    throw new Error("External plugin validation failed");
+  }
 
   for (const ext of externalPlugins) {
     if (!hasCanvasKeyword(ext)) {
@@ -1441,7 +1444,8 @@ function generateCanvasManifest(gitDates, commitSha) {
     const pluginRoot = normalizeRepoRelativePath(source.path);
     const previewPath = joinRepoPath(pluginRoot, EXTERNAL_CANVAS_PREVIEW_PATH);
     const imageUrl = buildExternalRepoImageUrl(source.repo, locator, previewPath);
-    const installUrl = buildExternalRepoTreeUrl(source.repo, locator, pluginRoot);
+    const sourceUrl = buildExternalRepoTreeUrl(source.repo, locator, pluginRoot);
+    const externalSource = normalizeText(source.repo);
     const keywords = normalizeExternalKeywords(ext);
 
     items.push({
@@ -1473,9 +1477,10 @@ function generateCanvasManifest(gitDates, commitSha) {
       },
       imageUrl,
       assetPath: null,
-      installUrl,
+      installUrl: null,
       installCommand: null,
-      sourceUrl: installUrl,
+      sourceUrl,
+      externalSource,
       external: true,
       author: normalizeAuthor(ext?.author),
       keywords,
