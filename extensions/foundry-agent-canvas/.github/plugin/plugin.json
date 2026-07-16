@@ -1,0 +1,15 @@
+{
+  "name": "foundry-agent-canvas",
+  "description": "Design, configure, test, and deploy Microsoft Foundry hosted agents from an interactive Copilot canvas.",
+  "version": "1.0.0",
+  "keywords": [
+    "agent-builder",
+    "agent-inspector",
+    "azure-ai",
+    "foundry",
+    "hosted-agents",
+    "microsoft-foundry"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

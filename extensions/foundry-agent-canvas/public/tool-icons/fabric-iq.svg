@@ -1,0 +1,12 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="fabriciq" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#37C6B4"/>
+      <stop offset="1" stop-color="#0B7A63"/>
+    </linearGradient>
+  </defs>
+  <path d="M16 4 L22.2 10.2 L16 16.4 L9.8 10.2 Z" fill="url(#fabriciq)"/>
+  <path d="M9.4 10.6 L15.6 16.8 L9.4 23 L3.2 16.8 Z" fill="url(#fabriciq)" opacity="0.82"/>
+  <path d="M22.6 10.6 L28.8 16.8 L22.6 23 L16.4 16.8 Z" fill="url(#fabriciq)" opacity="0.82"/>
+  <path d="M16 17.2 L22.2 23.4 L16 29.6 L9.8 23.4 Z" fill="url(#fabriciq)" opacity="0.66"/>
+</svg>

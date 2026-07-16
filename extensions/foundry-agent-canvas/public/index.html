@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Foundry Agent Canvas</title>
+        <link rel="stylesheet" href="app.css" />
+    </head>
+    <body>
+        <main id="root" class="root"></main>
+
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+        <!-- Local Agent Inspector overlay (hidden until "Inspect locally") -->
+        <div id="inspectorView" class="inspector-view" hidden>
+            <div class="inspector-bar">
+                <button class="inspector-back" id="inspectorBack" type="button">
+                    <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="m15 5-1.4-1.4L7.2 10l6.4 6.4L15 15l-5-5 5-5Z"/></svg>
+                    Back
+                </button>
+                <span class="inspector-title">Agent Inspector</span>
+            </div>
+            <div class="inspector-status" id="inspectorStatus" hidden></div>
+            <div class="inspector-waiting" id="inspectorWaiting" hidden>
+                <div class="inspector-waiting-spinner"></div>
+                <span>Waiting for agent to start on port 8088…</span>
+            </div>
+            <iframe id="inspectorFrame" class="inspector-frame" title="Agent Inspector" src=""></iframe>
+        </div>
+
+        <template id="tpl-build">
+            <section class="layout">
+                <div class="panel-shell">
+                    <header class="project-bar">
+                        <div class="project-info">
+                            <span class="project-label">Microsoft Foundry Project</span>
+                            <span class="project-name">
+                                <span class="project-dot" aria-hidden="true"></span>
+                                <span id="projectName">Select a project</span>
+                            </span>
+                        </div>
+                        <div class="project-switch">
+                            <button class="icon-btn project-more" id="projectSwitch" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Switch project">
+                                <span class="fi fi-more" aria-hidden="true"></span>
+                            </button>
+                            <div class="project-menu" id="projectMenu" role="menu" hidden>
+                                <div class="pm-section pm-account">
+                                    <div class="pm-acc-head">
+                                        <div class="pm-id">
+                                            <span class="pm-id-avatar" id="pmAvatar">?</span>
+                                            <div class="pm-id-text">
+                                                <span class="pm-id-name" id="pmAccount">Not signed in</span>
+                                                <span class="pm-id-sub" id="pmTenant"></span>
+                                            </div>
+                                        </div>
+                                        <button class="pm-auth-btn" id="pmAuthBtn" type="button">Sign in</button>
+                                    </div>
+                                    <div class="pm-device" id="pmDevice" hidden>
+                                        <div class="pm-device-row" id="pmDeviceBody"></div>
+                                    </div>
+                                </div>
+
+                                <div class="menu-sep"></div>
+
+                                <div class="pm-section">
+                                    <button class="pm-acc" id="pmSubAcc" data-acc="sub" type="button" aria-expanded="false">
+                                        <span class="pm-acc-label">Subscription</span>
+                                        <span class="pm-acc-value" id="pmSubValue">-</span>
+                                        <span class="fi fi-chev pm-acc-chev" aria-hidden="true"></span>
+                                    </button>
+                                    <div class="pm-body" id="pmSubBody" hidden>
+                                        <input class="pm-search" id="pmSubSearch" type="text" placeholder="Search subscriptions" autocomplete="off" />
+                                        <div class="pm-list" id="pmSubList"></div>
+                                    </div>
+                                </div>
+
+                                <div class="menu-sep"></div>
+
+                                <div class="pm-section">
+                                    <button class="pm-acc" id="pmProjAcc" data-acc="proj" type="button" aria-expanded="true">
+                                        <span class="pm-acc-label">Project</span>
+                                        <span class="pm-acc-value" id="pmProjValue">-</span>
+                                        <span class="fi fi-chev pm-acc-chev" aria-hidden="true"></span>
+                                    </button>
+                                    <div class="pm-body" id="pmProjBody">
+                                        <input class="pm-search" id="pmProjSearch" type="text" placeholder="Search projects" autocomplete="off" />
+                                        <div class="pm-list" id="pmProjList"></div>
+                                        <button class="pm-create-project" id="createProjectLink" type="button">
+                                            <span>Create new project in Microsoft Foundry</span>
+                                            <span class="fi fi-open" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <section class="accordion-section init" id="initBlock" data-open="false" aria-label="Create new hosted agents">
+                        <button class="accordion-toggle init-toggle" id="initToggle" type="button" aria-expanded="false" aria-controls="initPanel">
+                            <span class="accordion-title">
+                                <span class="fi fi-num-1" aria-hidden="true"></span>
+                                <span>Create new Hosted Agents</span>
+                            </span>
+                            <span class="fi fi-chev accordion-chev init-chev" aria-hidden="true"></span>
+                        </button>
+                        <div class="init-panel" id="initPanel" hidden>
+                            <div class="init-content">
+                                <p class="section-caption">How would you like to get started?</p>
+                                <div class="start-options" role="group" aria-label="Create hosted agent options">
+                                    <button class="start-option is-selected" id="inspireIdea" type="button">
+                                        <span class="option-icon option-icon-purple"><span class="fi fi-sparkle" aria-hidden="true"></span></span>
+                                        <span class="option-title">Inspire me</span>
+                                    </button>
+                                    <button class="start-option" id="decideIdea" type="button">
+                                        <span class="option-icon option-icon-blue"><span class="fi fi-chat" aria-hidden="true"></span></span>
+                                        <span class="option-title">Help me decide</span>
+                                    </button>
+                                    <button class="start-option" id="helloWorldIdea" type="button">
+                                        <span class="option-icon option-icon-green"><span class="fi fi-code" aria-hidden="true"></span></span>
+                                        <span class="option-title">Hello world</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="preview-block">
+                                <span class="section-caption">Preview</span>
+                                <div class="preview-card">
+                                    <textarea class="init-prompt" id="initPrompt" rows="4" spellcheck="false"></textarea>
+                                    <div class="preview-actions">
+                                        <button class="start-link" id="initStart" type="button">
+                                            <span class="fi fi-send" aria-hidden="true"></span>
+                                            <span>Start</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="accordion-section fold" id="resourcesBlock" data-open="true" aria-label="Build current hosted agent">
+                        <button class="accordion-toggle fold-toggle" id="resourcesToggle" type="button" aria-expanded="true" aria-controls="resourcesPanel">
+                            <span class="accordion-title accordion-title--described">
+                                <span class="fi fi-num-2" aria-hidden="true"></span>
+                                <span class="accordion-title-copy">
+                                    <span>Build current Hosted Agent</span>
+                                    <span class="accordion-description">Switch to a new model, add tools and skills or apply guardrail to your current hosted agent.</span>
+                                </span>
+                            </span>
+                            <span class="fi fi-chev accordion-chev fold-chev" aria-hidden="true"></span>
+                        </button>
+                        <div class="fold-panel resources-panel" id="resourcesPanel">
+                            <div class="resource-list">
+                                <div class="model-select resource-select">
+                                    <div class="resource-row">
+                                        <button class="resource-trigger" id="modelAdd" type="button" aria-haspopup="menu" aria-expanded="false">
+                                            <span class="resource-label"><span class="fi fi-models" aria-hidden="true"></span><span>Models</span></span>
+                                            <span class="fi fi-chev resource-chev" aria-hidden="true"></span>
+                                        </button>
+                                        <button class="resource-refresh" id="deployRefresh" type="button" aria-label="Refresh models" title="Refresh models">
+                                            <span class="fi fi-refresh" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                    <div class="model-menu resource-menu" id="modelMenu" role="menu" aria-label="Deployed models" hidden>
+                                        <div class="menu-section">
+                                            <div id="deployList"></div>
+                                        </div>
+                                        <div class="menu-sep"></div>
+                                        <div class="menu-section">
+                                            <button class="menu-deploy" id="deployNewModelLink" type="button">
+                                                <span class="menu-deploy-title">Deploy new model in Microsoft Foundry</span>
+                                                <span class="fi fi-open chev-right" aria-hidden="true"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tool-select resource-select">
+                                    <div class="resource-row">
+                                        <button class="resource-trigger" id="toolAdd" type="button" aria-haspopup="menu" aria-expanded="false">
+                                            <span class="resource-label"><span class="fi fi-tools" aria-hidden="true"></span><span>Toolboxes</span></span>
+                                            <span class="fi fi-chev resource-chev" aria-hidden="true"></span>
+                                        </button>
+                                        <button class="resource-refresh" id="toolboxRefresh" type="button" aria-label="Refresh toolboxes" title="Refresh toolboxes">
+                                            <span class="fi fi-refresh" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                    <div class="model-menu tool-menu resource-menu" id="toolMenu" role="menu" aria-label="Deployed toolboxes" hidden>
+                                        <div class="menu-section">
+                                            <div id="toolboxList"></div>
+                                        </div>
+                                        <div class="menu-sep"></div>
+                                        <div class="menu-section">
+                                            <button class="menu-deploy" id="addToolboxLink" type="button">
+                                                <span class="menu-deploy-title">Add or Update Toolboxes in Microsoft Foundry</span>
+                                                <span class="fi fi-open chev-right" aria-hidden="true"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="skill-select resource-select">
+                                    <div class="resource-row">
+                                        <button class="resource-trigger" id="skillAdd" type="button" aria-haspopup="menu" aria-expanded="false">
+                                            <span class="resource-label"><span class="fi fi-skills" aria-hidden="true"></span><span>Skills</span></span>
+                                            <span class="fi fi-chev resource-chev" aria-hidden="true"></span>
+                                        </button>
+                                        <button class="resource-refresh" id="skillRefresh" type="button" aria-label="Refresh skills" title="Refresh skills">
+                                            <span class="fi fi-refresh" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                    <div class="model-menu resource-menu" id="skillMenu" role="menu" aria-label="Project skills" hidden>
+                                        <div class="menu-section">
+                                            <div id="skillList"></div>
+                                        </div>
+                                        <div class="menu-sep"></div>
+                                        <div class="menu-section">
+                                            <button class="menu-deploy" id="createSkillLink" type="button">
+                                                <span class="menu-deploy-title">Create new skill in Microsoft Foundry</span>
+                                                <span class="fi fi-open chev-right" aria-hidden="true"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="guardrail-select resource-select">
+                                    <div class="resource-row">
+                                        <button class="resource-trigger" id="guardrailAdd" type="button" aria-haspopup="menu" aria-expanded="false">
+                                            <span class="resource-label"><span class="fi fi-guardrails" aria-hidden="true"></span><span>Guardrails</span></span>
+                                            <span class="fi fi-chev resource-chev" aria-hidden="true"></span>
+                                        </button>
+                                        <button class="resource-refresh" id="guardrailRefresh" type="button" aria-label="Refresh guardrails" title="Refresh guardrails">
+                                            <span class="fi fi-refresh" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                    <div class="model-menu resource-menu" id="guardrailMenu" role="menu" aria-label="Project guardrails" hidden>
+                                        <div class="menu-section">
+                                            <div id="guardrailList"></div>
+                                        </div>
+                                        <div class="menu-sep"></div>
+                                        <div class="menu-section">
+                                            <button class="menu-deploy" id="createGuardrailLink" type="button">
+                                                <span class="menu-deploy-title">Create new guardrail in Microsoft Foundry</span>
+                                                <span class="fi fi-open chev-right" aria-hidden="true"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="accordion-section fold" id="deployBlock" data-open="true" aria-label="Deploy and test">
+                        <button class="accordion-toggle fold-toggle" id="deployToggle" type="button" aria-expanded="true" aria-controls="deployPanel">
+                            <span class="accordion-title">
+                                <span class="fi fi-num-3" aria-hidden="true"></span>
+                                <span>Deploy &amp; Test</span>
+                            </span>
+                            <span class="fi fi-chev accordion-chev fold-chev" aria-hidden="true"></span>
+                        </button>
+                        <div class="fold-panel deploy-panel" id="deployPanel">
+                            <div class="region-warn" id="regionWarn" role="alert" hidden>
+                                <span class="region-warn-ico">!</span>
+                                <div class="region-warn-text">
+                                    <strong id="regionWarnHead">Hosted agents aren't available in this project's region.</strong>
+                                    <span>Deploying to Foundry will fail. Switch to a project in a <a id="regionWarnLink" href="#" target="_blank" rel="noopener noreferrer">supported region</a>.</span>
+                                </div>
+                            </div>
+                            <div class="row-deploy">
+                                <button class="btn btn-deploy" id="deployBtn" type="button">
+                                    <span class="fi fi-rocket" aria-hidden="true"></span>
+                                    <span>Deploy to Foundry</span>
+                                </button>
+                                <button class="btn btn-inspect" id="inspectBtn" type="button">
+                                    <span class="fi fi-code" aria-hidden="true"></span>
+                                    <span>Inspect Locally</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </template>
+
+        <script src="app.js"></script>
+    </body>
+</html>

@@ -1,0 +1,7 @@
+{
+    "name": "foundry-agent-canvas",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Foundry Agent Canvas — a Copilot App canvas extension for building Microsoft Foundry agents, with live project model deployments, tool connections, and toolboxes."
+}

@@ -242,6 +242,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "connector-namespaces",
+      "source": "extensions/connector-namespaces",
+      "description": "Browse, connect, and open MCP connectors from an Azure Connector Namespace.",
+      "version": "1.1.0"
+    },
+    {
       "name": "context-engineering",
       "source": "plugins/context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
@@ -543,6 +549,12 @@
       "source": "plugins/flowstudio-power-automate",
       "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
       "version": "2.0.0"
+    },
+    {
+      "name": "foundry-agent-canvas",
+      "source": "extensions/foundry-agent-canvas",
+      "description": "Design, configure, test, and deploy Microsoft Foundry hosted agents from an interactive Copilot canvas.",
+      "version": "1.0.0"
     },
     {
       "name": "frontend-web-dev",
