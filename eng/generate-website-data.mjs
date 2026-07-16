@@ -25,12 +25,15 @@ import {
   parseSkillMetadata,
   parseYamlFile,
 } from "./yaml-parser.mjs";
+import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 
 const WEBSITE_DIR = path.join(ROOT_FOLDER, "website");
 const WEBSITE_DATA_DIR = path.join(WEBSITE_DIR, "public", "data");
 const WEBSITE_SOURCE_DATA_DIR = path.join(WEBSITE_DIR, "data");
+const EXTERNAL_CANVAS_KEYWORD = "canvas";
+const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
 
 /**
  * Ensure the output directory exists
@@ -95,6 +98,23 @@ function formatDisplayName(value) {
 
 function normalizeText(value, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
+}
+
+function normalizeRepoRelativePath(value) {
+  const normalized = normalizeText(value);
+  if (!normalized || normalized === "/") {
+    return "";
+  }
+
+  return normalized.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+}
+
+function joinRepoPath(...segments) {
+  return segments
+    .map((segment) => String(segment ?? "").trim())
+    .filter(Boolean)
+    .join("/")
+    .replace(/\/+/g, "/");
 }
 
 /**
@@ -1055,6 +1075,53 @@ function normalizeExternalScreenshotRole(value, ref) {
   };
 }
 
+function buildExternalRepoImageUrl(repo, locator, assetPath) {
+  if (!repo || !locator || !assetPath) {
+    return null;
+  }
+
+  const encodedPath = assetPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `https://raw.githubusercontent.com/${repo}/${locator}/${encodedPath}`;
+}
+
+function buildExternalRepoTreeUrl(repo, locator, pluginRoot) {
+  if (!repo) {
+    return null;
+  }
+
+  if (locator) {
+    const treePath = normalizeRepoRelativePath(pluginRoot);
+    const suffix = treePath ? `/${treePath}` : "";
+    return `https://github.com/${repo}/tree/${locator}${suffix}`;
+  }
+
+  return `https://github.com/${repo}`;
+}
+
+function hasCanvasKeyword(plugin) {
+  return (plugin?.keywords ?? []).some(
+    (keyword) => normalizeText(keyword).toLowerCase() === EXTERNAL_CANVAS_KEYWORD
+  );
+}
+
+function normalizeExternalKeywords(plugin) {
+  const source = Array.isArray(plugin?.keywords)
+    ? plugin.keywords
+    : Array.isArray(plugin?.tags)
+      ? plugin.tags
+      : [];
+
+  return [...new Set(
+    source
+      .filter((keyword) => typeof keyword === "string")
+      .map((keyword) => keyword.trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
+}
+
 function normalizeExtensionScreenshotRole(value, relPath, ref) {
   if (!value) return null;
   if (typeof value === "string") {
@@ -1318,6 +1385,88 @@ function generateCanvasManifest(gitDates, commitSha) {
     } catch (e) {
       console.warn(`Failed to parse external extensions: ${e.message}`);
     }
+  }
+
+  const seenExtensionIds = new Set(items.map((item) => String(item.id).toLowerCase()));
+  const {
+    plugins: externalPlugins,
+    errors: externalPluginErrors,
+    warnings: externalPluginWarnings,
+  } = readExternalPlugins({ policy: "marketplace" });
+  externalPluginWarnings.forEach((warning) => console.warn(`Warning: ${warning}`));
+  externalPluginErrors.forEach((error) => console.warn(`Warning: ${error}`));
+
+  for (const ext of externalPlugins) {
+    if (!hasCanvasKeyword(ext)) {
+      continue;
+    }
+
+    const name = normalizeText(ext?.name);
+    if (!name) {
+      continue;
+    }
+    const displayName = formatDisplayName(name);
+
+    const id = normalizeText(ext?.name).toLowerCase().replace(/\s+/g, "-");
+    if (seenExtensionIds.has(id)) {
+      continue;
+    }
+
+    const source = ext?.source;
+    if (source?.source !== "github" || !normalizeText(source?.repo)) {
+      console.warn(`Warning: skipping external canvas "${name}" due to missing GitHub source`);
+      continue;
+    }
+
+    const locator = normalizeText(source.sha) || normalizeText(source.ref);
+    if (!locator) {
+      console.warn(`Warning: skipping external canvas "${name}" because source.sha or source.ref is required`);
+      continue;
+    }
+
+    const pluginRoot = normalizeRepoRelativePath(source.path);
+    const previewPath = joinRepoPath(pluginRoot, EXTERNAL_CANVAS_PREVIEW_PATH);
+    const imageUrl = buildExternalRepoImageUrl(source.repo, locator, previewPath);
+    const installUrl = buildExternalRepoTreeUrl(source.repo, locator, pluginRoot);
+    const keywords = normalizeExternalKeywords(ext);
+
+    items.push({
+      id,
+      canvasId: id,
+      extensionId: id,
+      extensionName: name,
+      pluginName: null,
+      name: displayName,
+      version: normalizeText(ext?.version, "1.0.0"),
+      readmeFile: null,
+      description: normalizeText(ext?.description, "External canvas extension"),
+      path: null,
+      ref: null,
+      lastUpdated: null,
+      screenshots: {
+        icon: imageUrl
+          ? {
+            path: imageUrl,
+            type: getImageMimeType(EXTERNAL_CANVAS_PREVIEW_PATH),
+          }
+          : null,
+        gallery: imageUrl
+          ? {
+            path: imageUrl,
+            type: getImageMimeType(EXTERNAL_CANVAS_PREVIEW_PATH),
+          }
+          : null,
+      },
+      imageUrl,
+      assetPath: null,
+      installUrl,
+      installCommand: null,
+      sourceUrl: installUrl,
+      external: true,
+      author: normalizeAuthor(ext?.author),
+      keywords,
+    });
+    seenExtensionIds.add(id);
   }
 
   const sortedItems = items.sort((a, b) => a.name.localeCompare(b.name));
