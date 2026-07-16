@@ -10,10 +10,27 @@ This plugin orchestrates the complete workflow of assigning a GitHub issue to Co
 
 | Skill | Description |
 |-------|-------------|
-| **shepherd-task** | Orchestrator with bundled Bash/PowerShell scripts |
 | **shepherd-task-from-assignment-to-ready** | Phase 1: Assignment → CI passing → ready for review |
 | **shepherd-task-from-ready-to-merged-to-base** | Phase 2: Ready → code review resolution → merge |
 | **shepherd-task-approve-workflows-and-wait-for-completion** | Reusable sub-skill for workflow approval |
+
+## Installation
+
+### Step 1: Install skills
+
+```bash
+gh skill install github/awesome-copilot shepherd-task-from-assignment-to-ready
+gh skill install github/awesome-copilot shepherd-task-from-ready-to-merged-to-base
+gh skill install github/awesome-copilot shepherd-task-approve-workflows-and-wait-for-completion
+```
+
+### Step 2: Install orchestration scripts
+
+```bash
+./plugins/shepherd-task/scripts/install-task-shepherd.sh /path/to/your/repo
+```
+
+This copies only the scripts — skills are managed separately via `gh skill install`.
 
 ## Quick Start
 
@@ -27,6 +44,6 @@ This plugin orchestrates the complete workflow of assigning a GitHub issue to Co
 
 ## Requirements
 
-- `gh` CLI authenticated
+- `gh` CLI v2.90.0+ authenticated
 - `copilot` CLI installed
 - `jq` for log inspection
