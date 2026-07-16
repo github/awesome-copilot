@@ -130,7 +130,10 @@ function cloneSubmissionRepository(workDir, plugin) {
     throw new Error(`git checkout failed: ${checkout.output}`);
   }
 
-  return repoDir;
+  return {
+    repoDir,
+    fetchSpec,
+  };
 }
 
 // Ordered list of candidate locations for plugin.json, from most to least specific.
@@ -140,9 +143,16 @@ function cloneSubmissionRepository(workDir, plugin) {
 // NOTE: Keep in sync with EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS in external-plugin-validation.mjs
 const PLUGIN_JSON_CANDIDATES = [
   [".github", "plugin", "plugin.json"],
-  [".plugins", "plugin.json"],
+  [".plugin", "plugin.json"],
   ["plugin.json"],
 ];
+
+function toPosixPath(...segments) {
+  return segments
+    .filter((segment) => segment !== undefined && segment !== null && String(segment).length > 0)
+    .map((segment) => String(segment).replace(/\\/g, "/"))
+    .join("/");
+}
 
 function findPluginJson(pluginRoot) {
   for (const segments of PLUGIN_JSON_CANDIDATES) {
@@ -304,8 +314,160 @@ function runInstallSmokeGate(workDir, plugin) {
   }
 }
 
-function toOverallStatus(skillStatus, smokeStatus) {
-  const states = [skillStatus, smokeStatus];
+function isMissingPathAtLocator(output) {
+  const normalized = String(output ?? "").toLowerCase();
+  return (
+    normalized.includes("does not exist in") ||
+    normalized.includes("exists on disk, but not in") ||
+    (normalized.includes("path '") && normalized.includes("not in"))
+  );
+}
+
+function fetchLocatorIntoRepo(repoDir, locator) {
+  const result = runCommand("git", ["fetch", "--depth=1", "origin", locator], { cwd: repoDir });
+  if (result.exitCode === 0) {
+    return {
+      status: "pass",
+      output: "",
+    };
+  }
+
+  const status = classifySmokeFailure(result.output);
+  return {
+    status,
+    output: `git fetch failed for "${locator}": ${result.output}`,
+  };
+}
+
+function readPluginManifestAtLocator(repoDir, locator, normalizedPluginPath) {
+  const manifestCandidates = PLUGIN_JSON_CANDIDATES.map((segments) =>
+    toPosixPath(normalizedPluginPath, ...segments)
+  );
+
+  for (const manifestPath of manifestCandidates) {
+    const showResult = runCommand("git", ["show", `${locator}:${manifestPath}`], { cwd: repoDir });
+    if (showResult.exitCode === 0) {
+      const rawShow = spawnSync("git", ["show", `${locator}:${manifestPath}`], { cwd: repoDir, encoding: "utf8" });
+      const rawStdout = String(rawShow.stdout ?? "");
+
+      try {
+        return {
+          kind: "found",
+          manifestPath,
+          manifest: JSON.parse(rawStdout),
+        };
+      } catch (error) {
+        return {
+          kind: "invalid",
+          manifestPath,
+          message: `Invalid JSON in "${manifestPath}" at "${locator}": ${error.message}`,
+        };
+      }
+    }
+
+    if (isMissingPathAtLocator(showResult.output)) {
+      continue;
+    }
+
+    return {
+      kind: "infra_error",
+      message: `Unable to read "${manifestPath}" at "${locator}": ${showResult.output}`,
+    };
+  }
+
+  return {
+    kind: "not_found",
+    message: `No plugin.json found at "${locator}". Expected one of: ${manifestCandidates.join(", ")}`,
+  };
+}
+
+function runVersionMatchGate(repoDir, plugin, primaryFetchSpec) {
+  const expectedVersion = String(plugin?.version ?? "").trim();
+  const normalizedPluginPath = normalizePluginPath(plugin?.source?.path || "/");
+  const locators = [plugin?.source?.ref, plugin?.source?.sha]
+    .filter((value) => typeof value === "string" && value.trim().length > 0)
+    .map((value) => value.trim())
+    .filter((value, index, values) => values.indexOf(value) === index);
+
+  if (locators.length === 0) {
+    return {
+      status: "not_run",
+      output: "Version match gate skipped because neither source.ref nor source.sha was provided.",
+    };
+  }
+
+  const messages = [];
+  let hasFailure = false;
+  let hasInfraError = false;
+
+  for (const locator of locators) {
+    if (locator !== primaryFetchSpec) {
+      const fetchResult = fetchLocatorIntoRepo(repoDir, locator);
+      if (fetchResult.status === "fail") {
+        hasFailure = true;
+        messages.push(`- ${locator}: ${fetchResult.output}`);
+        continue;
+      }
+
+      if (fetchResult.status === "infra_error") {
+        hasInfraError = true;
+        messages.push(`- ${locator}: ${fetchResult.output}`);
+        continue;
+      }
+    }
+
+    const manifestResult = readPluginManifestAtLocator(repoDir, locator, normalizedPluginPath);
+    if (manifestResult.kind === "not_found" || manifestResult.kind === "invalid") {
+      hasFailure = true;
+      messages.push(`- ${locator}: ${manifestResult.message}`);
+      continue;
+    }
+
+    if (manifestResult.kind === "infra_error") {
+      hasInfraError = true;
+      messages.push(`- ${locator}: ${manifestResult.message}`);
+      continue;
+    }
+
+    const actualVersion = String(manifestResult.manifest?.version ?? "").trim();
+    if (!actualVersion) {
+      hasFailure = true;
+      messages.push(`- ${locator}: "${manifestResult.manifestPath}" is missing a non-empty "version" field.`);
+      continue;
+    }
+
+    if (actualVersion !== expectedVersion) {
+      hasFailure = true;
+      messages.push(
+        `- ${locator}: external.json version "${expectedVersion}" does not match "${manifestResult.manifestPath}" version "${actualVersion}".`
+      );
+      continue;
+    }
+
+    messages.push(`- ${locator}: matched version "${expectedVersion}" at "${manifestResult.manifestPath}".`);
+  }
+
+  if (hasFailure) {
+    return {
+      status: "fail",
+      output: messages.join("\n"),
+    };
+  }
+
+  if (hasInfraError) {
+    return {
+      status: "infra_error",
+      output: messages.join("\n"),
+    };
+  }
+
+  return {
+    status: "pass",
+    output: messages.join("\n"),
+  };
+}
+
+function toOverallStatus(states) {
   if (states.includes("infra_error")) {
     return "infra_error";
   }
@@ -334,25 +496,33 @@ export async function runExternalPluginQualityGates(plugin) {
     overall_status: "not_run",
     vally_lint_status: "not_run",
     smoke_status: "not_run",
+    version_match_status: "not_run",
     failure_class: "none",
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
+    version_match_output: "",
   };
 
   try {
-    const repoDir = cloneSubmissionRepository(workDir, plugin);
+    const { repoDir, fetchSpec } = cloneSubmissionRepository(workDir, plugin);
     const normalizedPluginPath = normalizePluginPath(plugin.source?.path || "/");
     const pluginRoot = normalizedPluginPath ? path.join(repoDir, normalizedPluginPath) : repoDir;
 
     if (!fs.existsSync(pluginRoot) || !fs.statSync(pluginRoot).isDirectory()) {
       result.vally_lint_status = "fail";
       result.smoke_status = "fail";
+      result.version_match_status = "fail";
       result.overall_status = "fail";
       result.failure_class = "submitter_fixes";
       result.summary = `Plugin path "${plugin.source?.path || "/"}" was not found in the submitted repository snapshot.`;
+      result.version_match_output = result.summary;
       return result;
     }
+
+    const versionMatchResult = runVersionMatchGate(repoDir, plugin, fetchSpec);
+    result.version_match_status = versionMatchResult.status;
+    result.version_match_output = versionMatchResult.output;
 
     const vallyResult = await runVallyLintGate(pluginRoot);
     result.vally_lint_status = vallyResult.status;
@@ -362,11 +532,12 @@ export async function runExternalPluginQualityGates(plugin) {
     result.smoke_status = smokeResult.status;
     result.smoke_output = smokeResult.output;
 
-    result.overall_status = toOverallStatus(result.vally_lint_status, result.smoke_status);
+    result.overall_status = toOverallStatus([result.vally_lint_status, result.smoke_status, result.version_match_status]);
     result.failure_class = toFailureClass(result.overall_status);
     result.summary = [
       `- vally lint: ${result.vally_lint_status}`,
       `- install smoke test: ${result.smoke_status}`,
+      `- version match: ${result.version_match_status}`,
       `- overall: ${result.overall_status}`,
     ].join("\n");
 

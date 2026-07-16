@@ -14,6 +14,7 @@ import {
     readConfig,
     getItemDetail,
     runItemAction,
+    setCopilotSession,
 } from "./data.mjs";
 import { renderHtml } from "./renderer.mjs";
 
@@ -374,3 +375,4 @@ sessionRef = await joinSession({
         }),
     ],
 });
+setCopilotSession(sessionRef);

@@ -2,7 +2,7 @@
 
 /**
  * Generate JSON metadata files for the GitHub Pages website.
- * This script extracts metadata from agents, instructions, skills, hooks, and plugins
+ * This script extracts metadata from agents, instructions, skills, and plugins
  * and writes them to website/data/ for client-side search and display.
  */
 
@@ -14,19 +14,15 @@ import {
   AGENTS_DIR,
   COOKBOOK_DIR,
   EXTENSIONS_DIR,
-  HOOKS_DIR,
   INSTRUCTIONS_DIR,
   PLUGINS_DIR,
   ROOT_FOLDER,
   SKILLS_DIR,
-  WORKFLOWS_DIR,
 } from "./constants.mjs";
 import { getGitFileDates } from "./utils/git-dates.mjs";
 import {
   parseFrontmatter,
-  parseHookMetadata,
   parseSkillMetadata,
-  parseWorkflowMetadata,
   parseYamlFile,
 } from "./yaml-parser.mjs";
 
@@ -212,130 +208,6 @@ function generateAgentsData(gitDates) {
 }
 
 /**
- * Generate hooks metadata
- */
-/**
- * Generate hooks metadata (similar to skills - folder-based)
- */
-function generateHooksData(gitDates) {
-  const hooks = [];
-
-  // Check if hooks directory exists
-  if (!fs.existsSync(HOOKS_DIR)) {
-    return {
-      items: hooks,
-      filters: {
-        hooks: [],
-        tags: [],
-      },
-    };
-  }
-
-  // Get all hook folders (directories)
-  const hookFolders = fs.readdirSync(HOOKS_DIR).filter((file) => {
-    const filePath = path.join(HOOKS_DIR, file);
-    return fs.statSync(filePath).isDirectory();
-  });
-
-  // Track all unique values for filters
-  const allHookTypes = new Set();
-  const allTags = new Set();
-
-  for (const folder of hookFolders) {
-    const hookPath = path.join(HOOKS_DIR, folder);
-    const metadata = parseHookMetadata(hookPath);
-    if (!metadata) continue;
-
-    const relativePath = path
-      .relative(ROOT_FOLDER, hookPath)
-      .replace(/\\/g, "/");
-    const readmeRelativePath = `${relativePath}/README.md`;
-
-    // Track unique values
-    (metadata.hooks || []).forEach((h) => allHookTypes.add(h));
-    (metadata.tags || []).forEach((t) => allTags.add(t));
-
-    hooks.push({
-      id: folder,
-      title: metadata.name,
-      description: metadata.description,
-      hooks: metadata.hooks || [],
-      tags: metadata.tags || [],
-      assets: metadata.assets || [],
-      path: relativePath,
-      readmeFile: readmeRelativePath,
-      lastUpdated: gitDates.get(readmeRelativePath) || null,
-    });
-  }
-
-  // Sort and return with filter metadata
-  const sortedHooks = hooks.sort((a, b) => a.title.localeCompare(b.title));
-
-  return {
-    items: sortedHooks,
-    filters: {
-      hooks: Array.from(allHookTypes).sort(),
-      tags: Array.from(allTags).sort(),
-    },
-  };
-}
-
-/**
- * Generate workflows metadata (flat .md files)
- */
-function generateWorkflowsData(gitDates) {
-  const workflows = [];
-
-  if (!fs.existsSync(WORKFLOWS_DIR)) {
-    return {
-      items: workflows,
-      filters: {
-        triggers: [],
-      },
-    };
-  }
-
-  const workflowFiles = fs.readdirSync(WORKFLOWS_DIR).filter((file) => {
-    return file.endsWith(".md") && file !== ".gitkeep";
-  });
-
-  const allTriggers = new Set();
-
-  for (const file of workflowFiles) {
-    const filePath = path.join(WORKFLOWS_DIR, file);
-    const metadata = parseWorkflowMetadata(filePath);
-    if (!metadata) continue;
-
-    const relativePath = path
-      .relative(ROOT_FOLDER, filePath)
-      .replace(/\\/g, "/");
-
-    (metadata.triggers || []).forEach((t) => allTriggers.add(t));
-
-    const id = path.basename(file, ".md");
-    workflows.push({
-      id,
-      title: metadata.name,
-      description: metadata.description,
-      triggers: metadata.triggers || [],
-      path: relativePath,
-      lastUpdated: gitDates.get(relativePath) || null,
-    });
-  }
-
-  const sortedWorkflows = workflows.sort((a, b) =>
-    a.title.localeCompare(b.title)
-  );
-
-  return {
-    items: sortedWorkflows,
-    filters: {
-      triggers: Array.from(allTriggers).sort(),
-    },
-  };
-}
-
-/**
  * Parse applyTo field into an array of patterns
  */
 function parseApplyToPatterns(applyTo) {
@@ -465,7 +337,7 @@ function generateSkillsData(gitDates) {
         .replace(/\\/g, "/");
 
       // Get all files in the skill folder recursively
-      const files = getSkillFiles(skillPath, relativePath);
+      const files = getFolderFiles(skillPath, relativePath);
 
       // Get last updated from SKILL.md file
       const skillFilePath = `${relativePath}/SKILL.md`;
@@ -511,9 +383,9 @@ function generateSkillsData(gitDates) {
 }
 
 /**
- * Get all files in a skill folder recursively
+ * Get all files in a resource folder (skill or hook) recursively.
  */
-function getSkillFiles(skillPath, relativePath) {
+function getFolderFiles(skillPath, relativePath) {
   const files = [];
 
   function walkDir(dir, relDir) {
@@ -556,9 +428,87 @@ function getAgentFiles(agentDir, pluginRootPath) {
 }
 
 /**
+ * Build a lookup index of resource id -> { title, url } for the kinds that have
+ * dedicated detail pages, so plugin items can deep-link to them.
+ */
+function buildResourceIndex({ agents, skills, instructions, extensions }) {
+  const toMap = (items, urlPrefix) => {
+    const map = new Map();
+    for (const item of items || []) {
+      if (!item?.id) continue;
+      map.set(item.id, {
+        title: item.title || item.id,
+        url: `/${urlPrefix}/${item.id}/`,
+      });
+    }
+    return map;
+  };
+  const extensionMap = new Map();
+  for (const item of extensions || []) {
+    if (!item?.id) continue;
+
+    const entry = {
+      title: item.name || item.title || item.id,
+      url: `/extension/${item.id}/`,
+    };
+    const keys = [
+      item.id,
+      item.extensionId,
+      item.path ? pluginItemCandidateId(item.path) : null,
+    ].filter(Boolean);
+
+    for (const key of keys) {
+      if (!extensionMap.has(key)) {
+        extensionMap.set(key, entry);
+      }
+    }
+  }
+
+  return {
+    agent: toMap(agents, "agent"),
+    skill: toMap(skills, "skill"),
+    instruction: toMap(instructions, "instruction"),
+    extension: extensionMap,
+  };
+}
+
+/**
+ * Derive the candidate resource id for a plugin item path (basename without a
+ * known resource extension), e.g. "./skills/foo/" -> "foo",
+ * "plugins/x/agents/bar.md" -> "bar".
+ */
+function pluginItemCandidateId(itemPath) {
+  const trimmed = String(itemPath || "")
+    .replace(/^\.\/+/, "")
+    .replace(/\/+$/, "");
+  const base = trimmed.split("/").pop() || "";
+  return base
+    .replace(/\.agent\.md$/i, "")
+    .replace(/\.prompt\.md$/i, "")
+    .replace(/\.instructions\.md$/i, "")
+    .replace(/\.md$/i, "");
+}
+
+/**
+ * Enrich a plugin item ({ kind, path }) with a display title and, when the item
+ * resolves to a known resource with a detail page, a detailUrl.
+ */
+function resolvePluginItem(item, resourceIndex) {
+  const candidateId = pluginItemCandidateId(item.path);
+  const lookup = resourceIndex?.[item.kind];
+  const match = lookup?.get(candidateId);
+
+  return {
+    ...item,
+    title: match?.title || item.title || candidateId || item.path,
+    detailUrl: match?.url || null,
+  };
+}
+
+/**
  * Generate plugins metadata
  */
-function generatePluginsData(gitDates) {
+function generatePluginsData(gitDates, resourceIndex = {}) {
   const plugins = [];
   const extensionEntriesByName = new Map();
 
@@ -594,16 +544,25 @@ function generatePluginsData(gitDates) {
           ? [...new Set(extensionPlugin.keywords.filter((keyword) => typeof keyword === "string").map((keyword) => keyword.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b))
           : [];
         const relPath = `extensions/${extensionDirName}`;
-        const extensionItem = {
-          kind: "extension",
-          path: relPath,
-        };
+        const extensionItem = resolvePluginItem(
+          {
+            kind: "extension",
+            path: relPath,
+          },
+          resourceIndex
+        );
+        const extReadmePath = path.join(extensionDir, "README.md");
+        const extReadmeFile = fs.existsSync(extReadmePath)
+          ? `${relPath}/README.md`
+          : null;
 
         extensionEntriesByName.set(pluginName, {
           id: pluginName,
           name: pluginName,
           description: pluginDescription,
           path: relPath,
+          readmeFile: extReadmeFile,
+          version: normalizeText(extensionPlugin.version, null),
           tags: extensionKeywords,
           itemCount: 1,
           items: [extensionItem],
@@ -655,22 +614,57 @@ function generatePluginsData(gitDates) {
         ];
       });
 
-      // Build items list from spec fields (agents, commands, skills)
+      // Parse mcpServers: supports a path to a .mcp.json file or an inline object
+      const mcpItems = [];
+      if (data.mcpServers) {
+        let mcpServersObj = null;
+        let mcpConfigPath = relPath;
+        if (typeof data.mcpServers === "string") {
+          const manifestMcpPath = data.mcpServers.replace(/^\.\//, "");
+          mcpConfigPath = manifestMcpPath ? `${relPath}/${manifestMcpPath}` : relPath;
+          const mcpJsonPath = path.join(pluginDir, manifestMcpPath);
+          if (fs.existsSync(mcpJsonPath)) {
+            try {
+              const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, "utf-8"));
+              mcpServersObj = mcpJson.mcpServers || mcpJson;
+            } catch {
+              // ignore parse errors
+            }
+          }
+        } else if (typeof data.mcpServers === "object") {
+          mcpServersObj = data.mcpServers;
+        }
+        if (mcpServersObj) {
+          for (const serverName of Object.keys(mcpServersObj)) {
+            mcpItems.push({ kind: "mcp", path: mcpConfigPath, title: serverName });
+          }
+        }
+      }
+
+      // Build items list from spec fields (agents, commands, skills, mcpServers)
       const items = [
         ...agentItems,
         ...(data.commands || []).map((p) => ({ kind: "prompt", path: p })),
         ...(data.skills || []).map((p) => ({ kind: "skill", path: p })),
         ...extensionItems,
-      ];
+        ...mcpItems,
+      ].map((item) => resolvePluginItem(item, resourceIndex));
 
       const tags = data.keywords || data.tags || [];
       const pluginName = data.name || dir.name;
+
+      const readmePath = path.join(pluginDir, "README.md");
+      const readmeFile = fs.existsSync(readmePath)
+        ? `${relPath}/README.md`
+        : null;
 
       plugins.push({
         id: dir.name,
         name: pluginName,
         description: data.description || "",
         path: relPath,
+        readmeFile,
+        version: normalizeText(data.version, null),
         tags: tags,
         itemCount: items.length,
         items: items,
@@ -720,6 +714,7 @@ function generatePluginsData(gitDates) {
             name: ext.name,
             description: ext.description || "",
             path: `plugins/${ext.name}`,
+            version: normalizeText(ext.version, null),
             tags: tags,
             itemCount: 0,
             items: [],
@@ -1196,6 +1191,9 @@ function generateCanvasManifest(gitDates, commitSha) {
     );
     const extensionName = normalizeText(pluginJson.name, normalizeText(packageJson.name, dir.name));
     const extensionVersion = normalizeText(pluginJson.version, normalizeText(packageJson.version, "1.0.0"));
+    const readmeFile = fs.existsSync(path.join(extensionDir, "README.md"))
+      ? `${relPath}/README.md`
+      : null;
     const screenshots = resolveExtensionScreenshots(pluginJson, extensionDir, relPath, commitSha);
     const canvasFiles = getExtensionCanvasFiles(extensionDir);
     const canvases = [];
@@ -1224,6 +1222,7 @@ function generateCanvasManifest(gitDates, commitSha) {
         pluginName: extensionName,
         name: canvasName,
         version: extensionVersion,
+        readmeFile,
         description: canvasDescription,
         path: relPath,
         ref: commitSha,
@@ -1299,6 +1298,7 @@ function generateCanvasManifest(gitDates, commitSha) {
             pluginName: null,
             name,
             version: normalizeText(ext?.version, "1.0.0"),
+            readmeFile: null,
             description: normalizeText(ext?.description, "External canvas extension"),
             path: null,
             ref: null,
@@ -1353,70 +1353,11 @@ function generateExtensionsData(extensionManifestData) {
 }
 
 /**
- * Generate tools metadata from website/data/tools.yml
- */
-function generateToolsData() {
-  const toolsFile = path.join(WEBSITE_SOURCE_DATA_DIR, "tools.yml");
-
-  if (!fs.existsSync(toolsFile)) {
-    console.warn("No tools.yml file found at", toolsFile);
-    return { items: [], filters: { categories: [], tags: [] } };
-  }
-
-  const data = parseYamlFile(toolsFile);
-
-  if (!data || !data.tools) {
-    return { items: [], filters: { categories: [], tags: [] } };
-  }
-
-  const allCategories = new Set();
-  const allTags = new Set();
-
-  const tools = data.tools.map((tool) => {
-    const category = tool.category || "Other";
-    allCategories.add(category);
-
-    const tags = tool.tags || [];
-    tags.forEach((t) => allTags.add(t));
-
-    return {
-      id: tool.id,
-      name: tool.name,
-      description: tool.description || "",
-      category: category,
-      featured: tool.featured || false,
-      requirements: tool.requirements || [],
-      features: tool.features || [],
-      links: tool.links || {},
-      configuration: tool.configuration || null,
-      tags: tags,
-    };
-  });
-
-  // Sort with featured first, then alphabetically
-  const sortedTools = tools.sort((a, b) => {
-    if (a.featured && !b.featured) return -1;
-    if (!a.featured && b.featured) return 1;
-    return a.name.localeCompare(b.name);
-  });
-
-  return {
-    items: sortedTools,
-    filters: {
-      categories: Array.from(allCategories).sort(),
-      tags: Array.from(allTags).sort(),
-    },
-  };
-}
-
-/**
  * Generate a combined index for search
  */
 function generateSearchIndex(
   agents,
   instructions,
-  hooks,
-  workflows,
   skills,
   plugins
 ) {
@@ -1446,33 +1387,6 @@ function generateSearchIndex(
       lastUpdated: instruction.lastUpdated,
       searchText: `${instruction.title} ${instruction.description} ${instruction.applyTo || ""
         }`.toLowerCase(),
-    });
-  }
-
-  for (const hook of hooks) {
-    index.push({
-      type: "hook",
-      id: hook.id,
-      title: hook.title,
-      description: hook.description,
-      path: hook.readmeFile,
-      lastUpdated: hook.lastUpdated,
-      searchText: `${hook.title} ${hook.description} ${hook.hooks.join(
-        " "
-      )} ${hook.tags.join(" ")}`.toLowerCase(),
-    });
-  }
-
-  for (const workflow of workflows) {
-    index.push({
-      type: "workflow",
-      id: workflow.id,
-      title: workflow.title,
-      description: workflow.description,
-      path: workflow.path,
-      lastUpdated: workflow.lastUpdated,
-      searchText: `${workflow.title} ${workflow.description
-        } ${workflow.triggers.join(" ")}`.toLowerCase(),
     });
   }
 
@@ -1645,8 +1559,6 @@ async function main() {
     [
       "agents/",
       "instructions/",
-      "hooks/",
-      "workflows/",
       "skills/",
       "extensions/",
       "plugins/",
@@ -1664,18 +1576,6 @@ async function main() {
     `✓ Generated ${agents.length} agents (${agentsData.filters.models.length} models, ${agentsData.filters.tools.length} tools)`
   );
 
-  const hooksData = generateHooksData(gitDates);
-  const hooks = hooksData.items;
-  console.log(
-    `✓ Generated ${hooks.length} hooks (${hooksData.filters.hooks.length} hook types, ${hooksData.filters.tags.length} tags)`
-  );
-
-  const workflowsData = generateWorkflowsData(gitDates);
-  const workflows = workflowsData.items;
-  console.log(
-    `✓ Generated ${workflows.length} workflows (${workflowsData.filters.triggers.length} triggers)`
-  );
-
   const instructionsData = generateInstructionsData(gitDates);
   const instructions = instructionsData.items;
   console.log(
@@ -1686,12 +1586,6 @@ async function main() {
   const skills = skillsData.items;
   console.log(`✓ Generated ${skills.length} skills`);
 
-  const pluginsData = generatePluginsData(gitDates);
-  const plugins = pluginsData.items;
-  console.log(
-    `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
-  );
-
   const extensionManifestData = generateCanvasManifest(gitDates, commitSha);
   const extensionsData = generateExtensionsData(extensionManifestData);
   const extensions = extensionsData.items;
@@ -1699,10 +1593,16 @@ async function main() {
     `✓ Generated ${extensions.length} extensions (${extensionsData.filters.keywords.length} keywords)`
   );
 
-  const toolsData = generateToolsData();
-  const tools = toolsData.items;
+  const resourceIndex = buildResourceIndex({
+    agents,
+    skills,
+    instructions,
+    extensions,
+  });
+  const pluginsData = generatePluginsData(gitDates, resourceIndex);
+  const plugins = pluginsData.items;
   console.log(
-    `✓ Generated ${tools.length} tools (${toolsData.filters.categories.length} categories)`
+    `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
   );
 
   const samplesData = generateSamplesData();
@@ -1719,8 +1619,6 @@ async function main() {
   const searchIndex = generateSearchIndex(
     agents,
     instructions,
-    hooks,
-    workflows,
     skills,
     plugins
   );
@@ -1730,16 +1628,6 @@ async function main() {
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "agents.json"),
     JSON.stringify(agentsData, null, 2)
-  );
-
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "hooks.json"),
-    JSON.stringify(hooksData, null, 2)
-  );
-
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "workflows.json"),
-    JSON.stringify(workflowsData, null, 2)
   );
 
   fs.writeFileSync(
@@ -1762,10 +1650,6 @@ async function main() {
     JSON.stringify(extensionsData, null, 2)
   );
 
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "tools.json"),
-    JSON.stringify(toolsData, null, 2)
-  );
 
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "samples.json"),
@@ -1784,11 +1668,8 @@ async function main() {
       agents: agents.length,
       instructions: instructions.length,
       skills: skills.length,
-      hooks: hooks.length,
-      workflows: workflows.length,
       plugins: plugins.length,
       extensions: extensions.length,
-      tools: tools.length,
       contributors: contributorCount,
       samples: samplesData.totalRecipes,
       total: searchIndex.length,

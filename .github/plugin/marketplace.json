@@ -82,9 +82,21 @@
       "version": "1.0.0"
     },
     {
+      "name": "apng-studio",
+      "source": "extensions/apng-studio",
+      "description": "Interactive GitHub Copilot app canvas extension for building Animated PNG (APNG) files from frames. Draw or upload frames, tune per-frame timing and compositing, preview live, send the result to your phone by QR, and export an animated .png.",
+      "version": "1.0.0"
+    },
+    {
       "name": "arcade-canvas",
       "source": "extensions/arcade-canvas",
       "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "arch",
+      "source": "plugins/arch",
+      "description": "Architecture and modernization toolkit: produce a cited architecture document for a locally-cloned repo, and generate a phased modernization plan that auto-runs Documentation mode when needed.",
       "version": "1.0.0"
     },
     {
@@ -230,6 +242,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "connector-namespaces",
+      "source": "extensions/connector-namespaces",
+      "description": "Browse, connect, and open MCP connectors from an Azure Connector Namespace.",
+      "version": "1.1.0"
+    },
+    {
       "name": "context-engineering",
       "source": "plugins/context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
@@ -240,6 +258,12 @@
       "source": "plugins/context-matic",
       "description": "Coding agents hallucinate APIs. ContextMatic gives them curated, versioned API and SDK docs. Ask your agent to \"integrate the payments API\" and it guesses — falling back on outdated training data and generic patterns that don't match your actual SDK. ContextMatic solves this by giving the agent deterministic, version-aware, SDK-native context at the exact moment it's needed.",
       "version": "0.1.0"
+    },
+    {
+      "name": "convert-to-md",
+      "source": "plugins/convert-to-md",
+      "description": "A collection of Copilot skills that convert common document formats into Markdown so their contents can be accurately analyzed, summarized, searched, or extracted from. Just tell Copilot what you need — the right skill is invoked automatically and the conversion happens behind the scenes.",
+      "version": "1.0.1"
     },
     {
       "name": "copilot-goal-skill",
@@ -547,7 +571,7 @@
     {
       "name": "gh-skills-builder",
       "description": "Repo: https://github.com/arilivigni/gh-skills-builder\nThis plugin is for people that want to create a GitHub Skills exercise which are self-paced learning GitHub within GitHub.\nhttps://learn.github.com/skills\nexamples:\nhttps://github.com/skills/agent-orchestration-build-your-ai-dream-team\nhttps://github.com/skills/agentic-workflows-that-read-the-room",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "author": {
         "name": "Ari LiVigni",
         "url": "https://github.com/arilivigni"
@@ -566,8 +590,8 @@
       "source": {
         "source": "github",
         "repo": "arilivigni/gh-skills-builder",
-        "ref": "v1.0.3",
-        "sha": "15c1a097ca554d9497f5722e4afb4661f3b73d2b"
+        "ref": "v1.0.4",
+        "sha": "6ec77a69d7203e5df01fd4caa4745089f6930f5d"
       }
     },
     {
@@ -1087,6 +1111,34 @@
       "version": "1.0.0"
     },
     {
+      "name": "ui-theme-designer",
+      "description": "Equips AI coding agents with knowledge and tooling for working with UI theme designer, the SAP Design System, and SAP Fiori design tokens.",
+      "version": "2.0.0",
+      "author": {
+        "name": "SAP SE",
+        "url": "https://www.sap.com"
+      },
+      "repository": "https://github.com/SAP/ui-theme-designer-plugins-for-coding-agents",
+      "homepage": "https://github.com/SAP/ui-theme-designer-plugins-for-coding-agents",
+      "license": "Apache-2.0",
+      "keywords": [
+        "design-system",
+        "design-tokens",
+        "theming",
+        "ui5",
+        "sapui5",
+        "openui5",
+        "sap",
+        "web-development"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "SAP/ui-theme-designer-plugins-for-coding-agents",
+        "path": "plugins/ui-theme-designer",
+        "ref": "v2.0.0"
+      }
+    },
+    {
       "name": "ui5",
       "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Create and validate UI5 projects, access API documentation, run UI5 linter, get development guidelines and best practices for UI5 development.",
       "version": "0.1.4",
@@ -1193,7 +1245,6 @@
       "source": {
         "source": "github",
         "repo": "vercel/vercel-plugin",
-        "path": "/",
         "sha": "6e51924cb249e2941de005d59f1ac6f768477b98"
       }
     },

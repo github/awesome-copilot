@@ -27,7 +27,7 @@ export const EXTERNAL_PLUGIN_POLICIES = Object.freeze({
 const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
   "plugin.json",
   ".github/plugin/plugin.json",
-  ".plugins/plugin.json",
+  ".plugin/plugin.json",
 ]);
 
 function resolvePolicy(policy) {

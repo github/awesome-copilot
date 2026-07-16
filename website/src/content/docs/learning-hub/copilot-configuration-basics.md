@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-06
+lastUpdated: 2026-07-13
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -206,6 +206,32 @@ In addition to repository-level skills, GitHub Copilot CLI supports **personal s
 ```
 
 The `~/.agents/skills/` path aligns with the VS Code GitHub Copilot for Azure extension's default skill discovery path, while `~/.copilot/skills/` matches the Copilot CLI configuration directory. Both are supported for personal skills.
+
+### Pinning Model and Effort via `.github/copilot/settings.json`
+
+*(v1.0.70+)* A **trusted repository** can pin the model, reasoning effort level, and context tier for all sessions working in that repository by adding a `.github/copilot/settings.json` file. This is a team governance feature that ensures everyone uses a consistent model configuration without relying on individual user settings:
+
+```json
+{
+  "model": "claude-sonnet-4",
+  "effortLevel": "high",
+  "contextTier": "full"
+}
+```
+
+**Supported fields**:
+
+| Field | Description | Example values |
+|-------|-------------|----------------|
+| `model` | The AI model to use for this repository | `"claude-sonnet-4"`, `"gpt-4.1"`, `"claude-sonnet-5"` |
+| `effortLevel` | Reasoning effort level | `"low"`, `"medium"`, `"high"` |
+| `contextTier` | How much context to include | `"default"`, `"full"` |
+
+In addition to model and effort settings, this file can also extend the URL, MCP server, and skill deny lists, allowing organizations to enforce access restrictions at the repository level.
+
+**Why use this**: Pin a model when your team has agreed on the right cost/quality tradeoff for a project. Pin a high effort level for codebases where mistakes are expensive. Deny lists let you block specific MCP servers or URLs that aren't appropriate for a given project's security posture.
+
+> **Trust requirement**: The repository must be explicitly trusted by the user for these settings to take effect. This prevents untrusted repositories from changing your model or access restrictions without your knowledge.
 
 ### Custom Agents
 
@@ -433,6 +459,17 @@ The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edi
 
 The settings dialog supports search — type to filter settings by name. Changes take effect immediately.
 
+*(v1.0.70+)* The `/settings` command and the `/model` command both support **`--repo` and `--local` flags** for explicitly scoping which layer of settings you want to view or edit:
+
+```
+/settings --repo    # view/edit repository-scoped settings
+/settings --local   # view/edit local (user-level) settings
+/model --repo       # view/edit the model pinned for this repository
+/model --local      # view/edit your personal model preference
+```
+
+These flags mirror the **Repo** and **Repo (local)** scope tabs available in the `/settings` dashboard (v1.0.71+), making it easier to manage per-repository vs. user-global configuration without ambiguity. In v1.0.71+, the `/settings` dashboard also shows **Repo** and **Repo (local)** tabs alongside the existing user-level view, giving you a unified place to see which settings are applied at each layer.
+
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
 
 | Command | Behaviour |
@@ -544,6 +581,16 @@ The `/pr auto` command *(v1.0.66+)* starts a self-paced automation loop that dri
 
 `/pr auto` is ideal when you have a PR with failing tests or linting errors — let it work through failures one at a time while you focus on other things. `/pr automerge` extends this further: it continues until all CI checks pass, required reviews are approved, and the PR is successfully merged. Both commands can be monitored and stopped from `/loop` or `/every`, which register the running automation as a scheduleable loop task.
 
+The `/delegate` command creates a **delegate PR** — a pull request that the coding agent works on autonomously. By default, the delegate PR targets your current branch. Use `--base` *(v1.0.69+)* to specify a different target base branch:
+
+```
+/delegate                      # create a delegate PR targeting the current branch
+/delegate --base main          # create a delegate PR targeting main
+/delegate --base release/2.0   # target a specific release branch
+```
+
+This is useful when you want to hand off a task to the coding agent on a specific branch — for example, backporting a fix to an older release branch or targeting a long-lived feature branch for automated work.
+
 The `/share html` command exports the current session — including conversation history and any research reports — as a **self-contained interactive HTML file**:
 
 ```
@@ -591,6 +638,14 @@ The `/ask` command lets you ask a quick question without affecting your conversa
 ```
 /ask What does the `retry` utility in src/utils do?
 ```
+
+The `/refine` command *(v1.0.70+)* rewrites a rough, stream-of-consciousness prompt into a clear, structured one before sending it to the agent:
+
+```
+/refine
+```
+
+Type your rough idea, and `/refine` transforms it into a precise, well-structured prompt. This is especially helpful for complex multi-step tasks where prompt clarity significantly affects output quality — for example, turning "um make the login thing work better with the existing setup" into a focused task description with clear scope and acceptance criteria.
 
 The `/env` command shows all loaded environment details — instructions, MCP servers, skills, agents, and plugins — in a single view. Use it to verify that the right resources are active for the current session:
 
@@ -658,7 +713,7 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 
 > **Enhanced autopilot (v1.0.64+)**: When autopilot mode is active — including when launched with `--autopilot` at startup or during automatic continuation turns — the agent automatically handles elicitation dialogs, `ask_user` prompts, sampling requests, and permission prompts without surfacing them as interactive dialogs. This means long-running automated sessions can proceed end-to-end without manual confirmation steps.
 
-> **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. Enable it from the session UI or with `/allow-all auto`.
+> **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
 
@@ -696,6 +751,15 @@ copilot --autopilot --max-autopilot-continues 10 "Refactor the authentication mo
 ```
 
 Set it higher for long-running tasks, or lower for tasks where you want more frequent checkpoints. Setting it to `0` disables automatic continuation entirely.
+
+The `--sandbox` and `--no-sandbox` flags *(v1.0.70+)* turn the OS-level shell sandbox on or off for the current session only, without permanently changing your saved sandbox setting. This is useful with `-p` (prompt mode) when you need to temporarily adjust sandbox behavior for a specific automated task:
+
+```bash
+copilot --sandbox -p "Run the full test suite and fix any failures"
+copilot --no-sandbox -p "Set up development environment with system tools"
+```
+
+These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 

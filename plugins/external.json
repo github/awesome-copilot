@@ -339,7 +339,7 @@
   {
     "name": "gh-skills-builder",
     "description": "Repo: https://github.com/arilivigni/gh-skills-builder\nThis plugin is for people that want to create a GitHub Skills exercise which are self-paced learning GitHub within GitHub.\nhttps://learn.github.com/skills\nexamples:\nhttps://github.com/skills/agent-orchestration-build-your-ai-dream-team\nhttps://github.com/skills/agentic-workflows-that-read-the-room",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "author": {
       "name": "Ari LiVigni",
       "url": "https://github.com/arilivigni"
@@ -358,8 +358,8 @@
     "source": {
       "source": "github",
       "repo": "arilivigni/gh-skills-builder",
-      "ref": "v1.0.3",
-      "sha": "15c1a097ca554d9497f5722e4afb4661f3b73d2b"
+      "ref": "v1.0.4",
+      "sha": "6ec77a69d7203e5df01fd4caa4745089f6930f5d"
     }
   },
   {
@@ -597,6 +597,34 @@
     }
   },
   {
+    "name": "ui-theme-designer",
+    "description": "Equips AI coding agents with knowledge and tooling for working with UI theme designer, the SAP Design System, and SAP Fiori design tokens.",
+    "version": "2.0.0",
+    "author": {
+      "name": "SAP SE",
+      "url": "https://www.sap.com"
+    },
+    "repository": "https://github.com/SAP/ui-theme-designer-plugins-for-coding-agents",
+    "homepage": "https://github.com/SAP/ui-theme-designer-plugins-for-coding-agents",
+    "license": "Apache-2.0",
+    "keywords": [
+      "design-system",
+      "design-tokens",
+      "theming",
+      "ui5",
+      "sapui5",
+      "openui5",
+      "sap",
+      "web-development"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "SAP/ui-theme-designer-plugins-for-coding-agents",
+      "path": "plugins/ui-theme-designer",
+      "ref": "v2.0.0"
+    }
+  },
+  {
     "name": "ui5",
     "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Create and validate UI5 projects, access API documentation, run UI5 linter, get development guidelines and best practices for UI5 development.",
     "version": "0.1.4",
@@ -703,7 +731,6 @@
     "source": {
       "source": "github",
       "repo": "vercel/vercel-plugin",
-      "path": "/",
       "sha": "6e51924cb249e2941de005d59f1ac6f768477b98"
     }
   },

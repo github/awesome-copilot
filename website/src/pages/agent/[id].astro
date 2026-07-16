@@ -1,0 +1,116 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import BackToTop from "../../components/BackToTop.astro";
+import agentsData from "../../../public/data/agents.json";
+import RawMarkdown from "../../components/pages/RawMarkdown.astro";
+import type { HeaderItem } from "../../components/pages/Header.astro";
+import DetailHeader from "../../components/pages/Header.astro";
+import Breadcrumb from "../../components/pages/Breadcrumb.astro";
+import Main from "../../components/pages/Main.astro";
+import InstallButtons from "../../components/pages/InstallButtons.astro";
+import Sidebar from "../../components/pages/Sidebar.astro";
+import { loadDetailPage } from "../../lib/detail-page";
+
+interface AgentItem extends HeaderItem {
+  id: string;
+  title: string;
+  description?: string;
+  model?: string | string[];
+  tools?: string[];
+  hasHandoffs?: boolean;
+  handoffs?: string[];
+  mcpServers?: string[];
+  path: string;
+  filename?: string;
+  lastUpdated?: string | null;
+}
+
+export function getStaticPaths() {
+  return (agentsData.items as AgentItem[]).map((item) => ({
+    params: { id: item.id },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props as { item: AgentItem };
+
+const {
+  vscodeUrl,
+  insidersUrl,
+  githubUrl,
+  markdownHtml,
+  frontmatterText,
+  rawMarkdown,
+  lastUpdated,
+} = loadDetailPage(item, "agent");
+
+const models = Array.isArray(item.model)
+  ? item.model
+  : item.model
+    ? [item.model]
+    : [];
+const tools = item.tools ?? [];
+const handoffs = item.handoffs ?? [];
+const mcpServers = item.mcpServers ?? [];
+---
+
+<StarlightPage
+  frontmatter={{
+    title: item.title,
+    description: item.description,
+    template: "splash",
+    prev: false,
+    next: false,
+    editUrl: false,
+  }}
+>
+  <div
+    id="main-content"
+    class="resource-detail-page"
+    data-resource-detail
+    data-path={item.path}
+  >
+    <RawMarkdown markdown={rawMarkdown} />
+    <div class="container">
+      <Breadcrumb
+        paths={[
+          { name: "Home", href: "/" },
+          { name: "Agents", href: "/agents/" },
+        ]}
+        title={item.title}
+      />
+
+      <DetailHeader item={item} />
+
+      <div class="detail-layout">
+        <Main markdownHtml={markdownHtml} githubUrl={githubUrl} />
+
+        <Sidebar
+          item={item}
+          lastUpdated={lastUpdated ?? undefined}
+          frontmatterText={frontmatterText || undefined}
+          githubUrl={githubUrl}
+          chips={[
+            { title: "Models", items: models },
+            { title: "Handoffs", items: handoffs },
+            { title: "MCP Servers", items: mcpServers },
+            { title: "Tools", items: tools },
+          ]}
+        >
+          <InstallButtons
+            vscodeUrl={vscodeUrl}
+            insidersUrl={insidersUrl}
+            rawMarkdown={rawMarkdown}
+            slot="install"
+          />
+        </Sidebar>
+      </div>
+    </div>
+  </div>
+
+  <BackToTop />
+
+  <script>
+    import "../../scripts/pages/resource-detail";
+  </script>
+</StarlightPage>

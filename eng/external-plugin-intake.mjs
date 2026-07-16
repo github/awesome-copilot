@@ -54,6 +54,13 @@ const FIELD_TITLES = Object.freeze({
 const LEGACY_FIELD_TITLES = Object.freeze({
   immutableRef: "Immutable ref to review",
 });
+const EXTERNAL_CANVAS_KEYWORD = "canvas";
+const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
+const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
+  ".github/plugin/plugin.json",
+  ".plugin/plugin.json",
+  "plugin.json",
+]);
 
 function normalizeMultilineText(value) {
   return String(value ?? "").replace(/\r\n/g, "\n");
@@ -114,6 +121,29 @@ function parseKeywords(value) {
     .filter(Boolean);
 
   return keywords.length > 0 ? keywords : undefined;
+}
+
+function hasCanvasKeyword(plugin) {
+  return (plugin?.keywords ?? []).some(
+    (keyword) => String(keyword).trim().toLowerCase() === EXTERNAL_CANVAS_KEYWORD,
+  );
+}
+
+function normalizeRepoRelativePath(value) {
+  const normalized = stripNoResponse(value);
+  if (!normalized || normalized === "/") {
+    return "";
+  }
+
+  return normalized.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+}
+
+function joinRepoPath(...segments) {
+  return segments
+    .map((segment) => String(segment ?? "").trim())
+    .filter(Boolean)
+    .join("/")
+    .replace(/\/+/g, "/");
 }
 
 function parseChecklist(value) {
@@ -231,6 +261,33 @@ async function fetchGitHubJson(apiPath, token) {
   }
 }
 
+function encodeRepoContentPath(value) {
+  return String(value)
+    .split("/")
+    .filter((segment) => segment.length > 0)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+}
+
+async function fetchGitHubFile(repo, filePath, ref, token) {
+  const encodedRepo = encodeRepoPath(repo);
+  const encodedPath = encodeRepoContentPath(filePath);
+  return fetchGitHubJson(
+    `/repos/${encodedRepo}/contents/${encodedPath}?ref=${encodeURIComponent(ref)}`,
+    token,
+  );
+}
+
+function decodeGitHubFileContent(fileResponse) {
+  const encodedContent = fileResponse?.data?.content;
+  if (!encodedContent || typeof encodedContent !== "string") {
+    return null;
+  }
+
+  const normalized = encodedContent.replace(/\n/g, "");
+  return Buffer.from(normalized, "base64").toString("utf8");
+}
+
 function encodeRepoPath(repo) {
   const [owner, name] = String(repo).split("/");
   return `${encodeURIComponent(owner ?? "")}/${encodeURIComponent(name ?? "")}`;
@@ -273,6 +330,7 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
         );
       }
     }
+
   }
 
   if (!ref) {
@@ -318,6 +376,102 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
     const statusText = tagResponse.status ? `HTTP ${tagResponse.status}` : "network error";
     warnings.push(
       `submission: could not verify tag "${ref}" in GitHub repository "${repo}" (${statusText}${tagResponse.reason ? ` — ${tagResponse.reason}` : ""}); a maintainer should re-run intake`,
+    );
+  }
+}
+
+async function validateCanvasPluginMetadata(plugin, errors, warnings, token) {
+  const repo = plugin?.source?.repo;
+  const sha = plugin?.source?.sha;
+  const ref = plugin?.source?.ref;
+  const releaseLocator = sha || ref;
+  const releaseLocatorDescription = sha ? `commit "${sha}"` : `ref "${ref}"`;
+  const pluginRoot = normalizeRepoRelativePath(plugin?.source?.path);
+
+  if (!releaseLocator) {
+    errors.push('submission: plugins tagged with "canvas" must provide "Ref to review" and/or "Commit SHA to review"');
+    return;
+  }
+
+  if (!repo) {
+    return;
+  }
+
+  let manifest = null;
+  let manifestPath = null;
+  let sawManifestApiError = false;
+
+  const manifestCandidates = EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS.map((relativePath) =>
+    joinRepoPath(pluginRoot, relativePath),
+  );
+
+  for (const candidatePath of manifestCandidates) {
+    const response = await fetchGitHubFile(repo, candidatePath, releaseLocator, token);
+    if (response.kind === "notFound") {
+      continue;
+    }
+
+    if (response.kind === "apiError") {
+      sawManifestApiError = true;
+      continue;
+    }
+
+    if (response.data?.type !== "file") {
+      continue;
+    }
+
+    const decoded = decodeGitHubFileContent(response);
+    if (!decoded) {
+      errors.push(`submission: could not decode plugin manifest "${candidatePath}" at ${releaseLocatorDescription}`);
+      return;
+    }
+
+    try {
+      manifest = JSON.parse(decoded);
+      manifestPath = candidatePath;
+      break;
+    } catch (error) {
+      errors.push(
+        `submission: plugin manifest "${candidatePath}" at ${releaseLocatorDescription} is not valid JSON (${error.message})`,
+      );
+      return;
+    }
+  }
+
+  if (!manifest) {
+    if (sawManifestApiError) {
+      warnings.push(
+        `submission: could not verify canvas plugin manifest in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
+      );
+      return;
+    }
+
+    const expectedPaths = manifestCandidates.map((candidatePath) => `"${candidatePath}"`).join(", ");
+    errors.push(
+      `submission: plugins tagged with "canvas" must include a manifest at one of ${expectedPaths} in ${releaseLocatorDescription}`,
+    );
+    return;
+  }
+
+  if (manifest.logo !== EXTERNAL_CANVAS_PREVIEW_PATH) {
+    errors.push(
+      `submission: plugins tagged with "canvas" must set "logo" to "${EXTERNAL_CANVAS_PREVIEW_PATH}" in "${manifestPath}"`,
+    );
+  }
+
+  const previewPath = joinRepoPath(pluginRoot, EXTERNAL_CANVAS_PREVIEW_PATH);
+  const previewResponse = await fetchGitHubFile(repo, previewPath, releaseLocator, token);
+  if (previewResponse.kind === "notFound") {
+    errors.push(
+      `submission: plugins tagged with "canvas" must include "${EXTERNAL_CANVAS_PREVIEW_PATH}" at ${releaseLocatorDescription}`,
+    );
+  } else if (previewResponse.kind === "apiError") {
+    warnings.push(
+      `submission: could not verify "${EXTERNAL_CANVAS_PREVIEW_PATH}" in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
+    );
+  } else if (previewResponse.data?.type !== "file") {
+    errors.push(
+      `submission: "${EXTERNAL_CANVAS_PREVIEW_PATH}" must be a file in ${releaseLocatorDescription}`,
     );
   }
 }
@@ -425,10 +579,12 @@ function normalizeQualityGateResult(rawResult) {
     overall_status: "not_run",
     vally_lint_status: "not_run",
     smoke_status: "not_run",
+    version_match_status: "not_run",
     failure_class: "none",
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
+    version_match_output: "",
   };
 
   if (!rawResult || typeof rawResult !== "object" || Array.isArray(rawResult)) {
@@ -444,6 +600,7 @@ function normalizeQualityGateResult(rawResult) {
 function buildQualityGatesCommentSection(qualityResult) {
   const vallyState = qualityResult.vally_lint_status || "not_run";
   const smokeState = qualityResult.smoke_status || "not_run";
+  const versionMatchState = qualityResult.version_match_status || "not_run";
   const summaryText = String(qualityResult.summary || "").trim() || "_No quality gate details were provided._";
 
   const sections = [
@@ -453,6 +610,7 @@ function buildQualityGatesCommentSection(qualityResult) {
     "|---|---|",
     `| vally lint | ${vallyState} |`,
     `| install smoke test | ${smokeState} |`,
+    `| version match | ${versionMatchState} |`,
     "",
     summaryText,
   ];
@@ -481,6 +639,21 @@ function buildQualityGatesCommentSection(qualityResult) {
       "",
       "```text",
       smokeOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
+
+  const versionMatchOutput = String(qualityResult.version_match_output || "").trim();
+  if (versionMatchOutput) {
+    sections.push(
+      "",
+      "<details>",
+      "<summary>Version match output</summary>",
+      "",
+      "```text",
+      versionMatchOutput,
       "```",
       "",
       "</details>",
@@ -587,6 +760,7 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
   const validationResult = validateExternalPlugin(parsed.plugin, 0, { policy: "publicSubmission" });
   errors.push(...validationResult.errors.map(toSubmissionError));
   warnings.push(...validationResult.warnings.map(toSubmissionError));
+  const isCanvasPlugin = hasCanvasKeyword(parsed.plugin);
 
   if (parsed.plugin?.name) {
     const matchingName = duplicateNames.find(
@@ -599,6 +773,10 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
 
   if (parsed.plugin?.source?.repo && (parsed.plugin?.source?.ref || parsed.plugin?.source?.sha)) {
     await validateRemoteRepository(parsed.plugin.source.repo, parsed.plugin.source, errors, warnings, token);
+  }
+
+  if (isCanvasPlugin) {
+    await validateCanvasPluginMetadata(parsed.plugin, errors, warnings, token);
   }
 
   const dedupedErrors = [...new Set(errors)];
@@ -668,6 +846,7 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
     errors: dedupedErrors,
     warnings: dedupedWarnings,
     plugin: parsed.plugin,
+    isCanvasPlugin,
     commentBody,
     commentMarker: marker,
   };
