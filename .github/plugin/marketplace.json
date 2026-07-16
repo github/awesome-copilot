@@ -72,7 +72,7 @@
         "source": "github",
         "repo": "johnpapa/ai-ready",
         "path": ".github/plugin",
-        "ref": "b993d6512c918d8a21a61b7931726f5980c3c920"
+        "ref": "v1.1.0"
       }
     },
     {
