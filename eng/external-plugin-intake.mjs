@@ -57,9 +57,9 @@ const LEGACY_FIELD_TITLES = Object.freeze({
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
 const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
 const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
-  "plugin.json",
   ".github/plugin/plugin.json",
   ".plugin/plugin.json",
+  "plugin.json",
 ]);
 
 function normalizeMultilineText(value) {
