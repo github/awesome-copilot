@@ -20,6 +20,12 @@ CI blocks on critical and serious violations. Minor and moderate best-practice i
 
 Authoring conventions: resource cards use `div[role="listitem"]` wrappers, not `<article>`; only add `role="list"` to containers whose direct children are list items; do not nest interactive controls inside another focusable element; `.btn-primary` and ToC links must meet WCAG AA (4.5:1) contrast in both light and dark themes.
 
+## Security hardening notes
+
+- The site ships with a baseline meta CSP and `referrer` policy in `src/components/Head.astro`.
+- Because the site is hosted on GitHub Pages, response headers are not controllable in-repo. For stricter enforcement (for example, header-based CSP with nonce/hashes), place the site behind infrastructure that can set HTTP security headers.
+- Markdown rendered for detail/file-browser experiences is sanitized with the shared `sanitizeHtml()` helper before insertion.
+
 ## Social preview cards (LinkedIn, etc.)
 
 Shared links render as large preview cards driven by Open Graph / Twitter meta tags.

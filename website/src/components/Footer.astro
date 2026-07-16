@@ -23,6 +23,13 @@ import ThemeToggle from "./ThemeToggle.astro";
   }
 
   <p class="made-by">Made with love by our amazing <a href="/contributors/">contributors</a></p>
+  <p class="legal-links">
+    <a href="https://github.com/site/terms" target="_blank" rel="noopener noreferrer">Terms</a>
+    <span aria-hidden="true">•</span>
+    <a href="https://github.com/site/privacy" target="_blank" rel="noopener noreferrer">Privacy</a>
+    <span aria-hidden="true">•</span>
+    <a href="https://github.com/security" target="_blank" rel="noopener noreferrer">Security</a>
+  </p>
 </footer>
 
 <ThemeToggle />
@@ -57,6 +64,17 @@ import ThemeToggle from "./ThemeToggle.astro";
     color: var(--sl-color-gray-3);
   }
 
+  .legal-links {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0 auto 1rem;
+    font-size: var(--sl-text-2xs);
+    color: var(--sl-color-gray-3);
+  }
+
   .kudos {
     align-items: center;
     gap: 0.5em;
@@ -81,7 +99,15 @@ import ThemeToggle from "./ThemeToggle.astro";
     transition: color 0.2s ease;
   }
 
-  .made-by a:hover {
+  .legal-links a {
+    color: var(--sl-color-gray-3);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+    transition: color 0.2s ease;
+  }
+
+  .made-by a:hover,
+  .legal-links a:hover {
     color: var(--sl-color-accent);
   }
 </style>
