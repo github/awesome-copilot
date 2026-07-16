@@ -242,6 +242,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "connector-namespaces",
+      "source": "extensions/connector-namespaces",
+      "description": "Browse, connect, and open MCP connectors from an Azure Connector Namespace.",
+      "version": "1.1.0"
+    },
+    {
       "name": "context-engineering",
       "source": "plugins/context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
@@ -565,7 +571,7 @@
     {
       "name": "gh-skills-builder",
       "description": "Repo: https://github.com/arilivigni/gh-skills-builder\nThis plugin is for people that want to create a GitHub Skills exercise which are self-paced learning GitHub within GitHub.\nhttps://learn.github.com/skills\nexamples:\nhttps://github.com/skills/agent-orchestration-build-your-ai-dream-team\nhttps://github.com/skills/agentic-workflows-that-read-the-room",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "author": {
         "name": "Ari LiVigni",
         "url": "https://github.com/arilivigni"
@@ -584,8 +590,8 @@
       "source": {
         "source": "github",
         "repo": "arilivigni/gh-skills-builder",
-        "ref": "v1.0.3",
-        "sha": "15c1a097ca554d9497f5722e4afb4661f3b73d2b"
+        "ref": "v1.0.4",
+        "sha": "6ec77a69d7203e5df01fd4caa4745089f6930f5d"
       }
     },
     {
