@@ -76,13 +76,39 @@ Requires GitHub CLI v2.90.0+.
 The scripts are not installable via `gh skill`. Either:
 - Clone this repository and run from `plugins/shepherd-task/scripts/`, or
 - Use the bundled installer to copy only the scripts into your repo:
-  ```bash
-  ./plugins/shepherd-task/scripts/install-task-shepherd.sh /path/to/your/repo
-  ```
+
+   Bash
+
+   ```bash
+   . ./plugins/shepherd-task/scripts/install-task-shepherd.sh /path/to/your/repo
+   ```
+   
+   PowerShell
+   
+   ```powershell
+   . .\plugins\shepherd-task\scripts\install-task-shepherd.ps1 \path\to\your\repo
+   ```
 
 The installer copies **only** the orchestration scripts — it does not duplicate the skills (those are managed by `gh skill install` above).
 
-> **Note:** There is no `gh skill uninstall` command. To remove installed skills, manually delete the skill directories from your agent's skills location.
+## Uninstallation
+
+There is no `gh skill uninstall` command. To remove installed skills, manually delete the skill directories from your agent's skills location.
+
+- Use the bundled uninstaller to remove the scripts from your repo.
+
+   Bash
+
+   ```bash
+   . ./plugins/shepherd-task/scripts/uninstall-task-shepherd.sh /path/to/your/repo
+   ```
+   
+   PowerShell
+   
+   ```powershell
+   . .\plugins\shepherd-task\scripts\uninstall-task-shepherd.ps1 \path\to\your\repo
+   ```
+
 
 ## How it works
 
