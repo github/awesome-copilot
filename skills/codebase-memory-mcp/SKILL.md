@@ -23,5 +23,5 @@ Use the configured Codebase Memory graph as a discovery accelerator, not as the 
 ## Safety and Fallbacks
 
 - Do not install Codebase Memory or another third-party skill from this workflow.
-- Do not call `delete_project`, ingest traces, update ADRs, or index a repository unless the user requested it or graph access is clearly required and the action has been announced.
+- Do not call `delete_project`, ingest traces, update ADRs, or index a repository unless the user explicitly requested or approved the action; announce it before execution.
 - Fall back to normal repository exploration when the MCP server, project, index, or required capability is unavailable; do not invent tool results or stop a task that can be completed safely without the graph.
