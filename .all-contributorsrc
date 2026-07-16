@@ -3569,6 +3569,15 @@
       "contributions": [
         "content"
       ]
+    },
+    {
+      "login": "1YaoWei0",
+      "name": "Willie Yao",
+      "avatar_url": "https://avatars.githubusercontent.com/u/83260369?v=4",
+      "profile": "https://1yaowei0.github.io/",
+      "contributions": [
+        "plugin"
+      ]
     }
   ]
 }
