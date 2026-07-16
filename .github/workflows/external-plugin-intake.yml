@@ -113,8 +113,9 @@ jobs:
               if (process.env.QUALITY_JOB_RESULT === 'failure' || process.env.QUALITY_JOB_RESULT === 'cancelled') {
                 qualityResult = {
                   overall_status: 'infra_error',
-                  skill_validator_status: 'infra_error',
+                  vally_lint_status: 'infra_error',
                   smoke_status: 'infra_error',
+                  version_match_status: 'infra_error',
                   failure_class: 'infra',
                   summary: 'Quality-gate workflow failed unexpectedly. Re-run intake to retry.',
                 };
@@ -123,8 +124,9 @@ jobs:
               } else {
                 qualityResult = {
                   overall_status: 'infra_error',
-                  skill_validator_status: 'infra_error',
+                  vally_lint_status: 'infra_error',
                   smoke_status: 'infra_error',
+                  version_match_status: 'infra_error',
                   failure_class: 'infra',
                   summary: 'Quality-gate workflow did not return results. Re-run intake to retry.',
                 };
