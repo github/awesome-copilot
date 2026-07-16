@@ -327,7 +327,7 @@ This repository provides a curated collection of agents, skills, and hooks desig
 
 ### Adding Hooks from This Repo
 
-1. Browse the [Hooks Directory](../../hooks/) for automation hooks
+1. Browse the [Hooks documentation](https://github.com/github/awesome-copilot/blob/main/docs/README.hooks.md) for automation hooks
 2. Copy the `hooks.json` content into a file in `.github/hooks/` in your repository
 3. Copy any referenced scripts alongside it
 4. The hooks will run automatically during coding agent sessions

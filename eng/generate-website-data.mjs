@@ -618,8 +618,11 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
       const mcpItems = [];
       if (data.mcpServers) {
         let mcpServersObj = null;
+        let mcpConfigPath = relPath;
         if (typeof data.mcpServers === "string") {
-          const mcpJsonPath = path.join(pluginDir, data.mcpServers.replace(/^\.\//, ""));
+          const manifestMcpPath = data.mcpServers.replace(/^\.\//, "");
+          mcpConfigPath = manifestMcpPath ? `${relPath}/${manifestMcpPath}` : relPath;
+          const mcpJsonPath = path.join(pluginDir, manifestMcpPath);
           if (fs.existsSync(mcpJsonPath)) {
             try {
               const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, "utf-8"));
@@ -633,7 +636,7 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
         }
         if (mcpServersObj) {
           for (const serverName of Object.keys(mcpServersObj)) {
-            mcpItems.push({ kind: "mcp", path: serverName, title: serverName });
+            mcpItems.push({ kind: "mcp", path: mcpConfigPath, title: serverName });
           }
         }
       }
