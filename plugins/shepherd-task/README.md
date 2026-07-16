@@ -59,6 +59,8 @@ PowerShell
 . .\plugins\shepherd-task\scripts\shepherd-task-given-list.ps1 13,4,5,6,7,8,9,10,11 edburns/2-build-out-demo edburns/Build26-BRK206-your-agent-anywhere-multiclient-multidevice-with-github-copilot-sdk
 ```
 
+This invocation was used to implement the issues in this Epic: https://github.com/edburns/Build26-BRK206-your-agent-anywhere-multiclient-multidevice-with-github-copilot-sdk/issues/2 .
+
 ## Installation
 
 ### Step 1: Install skills (via `gh skill`)
