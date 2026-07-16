@@ -7,6 +7,7 @@ import {
 import { renderEmptyStateHtml, renderSharedCardHtml } from './card-render';
 
 export interface RenderableWorkflow {
+  id: string;
   title: string;
   description?: string;
   path: string;
@@ -15,6 +16,13 @@ export interface RenderableWorkflow {
 }
 
 export type WorkflowSortOption = 'title' | 'lastUpdated';
+
+/**
+ * Build the URL of a workflow's dedicated detail page.
+ */
+export function getWorkflowDetailUrl(id: string): string {
+  return `/workflow/${id}/`;
+}
 
 export function sortWorkflows<T extends RenderableWorkflow>(
   items: T[],
@@ -55,6 +63,7 @@ export function renderWorkflowsHtml(
       return renderSharedCardHtml({
         title: item.title,
         description: item.description || 'No description',
+        href: getWorkflowDetailUrl(item.id),
         articleAttributes: {
           'data-path': item.path,
         },

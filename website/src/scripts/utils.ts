@@ -13,6 +13,42 @@ const REPO_GITHUB_URL = "https://github.com/github/awesome-copilot/blob/main";
  */
 export const REPO_IDENTIFIER = "github/awesome-copilot";
 
+/**
+ * Validate that a value is a safe, repo-relative file path before it is used to
+ * build a raw.githubusercontent.com URL.
+ *
+ * This blocks client-side path traversal (CSPT): without it, a value such as
+ * `../../../attacker/repo/main/evil.md` (typically supplied via the `#file=`
+ * deep-link hash) would resolve outside the awesome-copilot repo prefix once the
+ * URL is normalized by `fetch`, letting an attacker load arbitrary content that
+ * is then rendered into the page.
+ */
+export function isSafeRepoFilePath(filePath: unknown): filePath is string {
+  if (typeof filePath !== "string") return false;
+  const path = filePath.trim();
+  if (path === "") return false;
+  // Reject absolute and protocol-relative paths.
+  if (path.startsWith("/") || path.startsWith("\\")) return false;
+  // Reject anything with a URL scheme or Windows drive letter (colons never
+  // appear in legitimate repo file paths).
+  if (path.includes(":")) return false;
+  // Reject backslashes; repo paths only ever use forward slashes.
+  if (path.includes("\\")) return false;
+  // Fail closed on percent-encoding: legitimate repo paths never contain "%",
+  // and encoded dot-segments (e.g. %2e%2e or double-encoded %252e%252e) could be
+  // normalized by the browser URL parser during fetch, reintroducing traversal.
+  if (path.includes("%")) return false;
+  // Reject traversal (".."), current-dir ("."), and empty segments (from "//").
+  if (
+    path
+      .split("/")
+      .some((segment) => segment === "" || segment === "." || segment === "..")
+  ) {
+    return false;
+  }
+  return true;
+}
+
 // VS Code install URL configurations
 const VSCODE_INSTALL_CONFIG: Record<
   string,
@@ -110,7 +146,7 @@ export async function downloadZipBundle(
 
       return {
         name: file.name,
-        content: await response.text(),
+        content: await response.arrayBuffer(),
       };
     } catch {
       return null;
@@ -142,7 +178,7 @@ export async function fetchFileContent(
   filePath: string
 ): Promise<string | null> {
   try {
-    const response = await fetch(`${REPO_BASE_URL}/${filePath}`);
+    const response = await fetch(getRawGitHubUrl(filePath));
     if (!response.ok) throw new Error(`Failed to fetch ${filePath}`);
     return await response.text();
   } catch (error) {
@@ -185,6 +221,7 @@ export function getVSCodeInstallUrl(
 ): string | null {
   const config = VSCODE_INSTALL_CONFIG[type];
   if (!config) return null;
+  if (!isSafeRepoFilePath(filePath)) return null;
 
   const rawUrl = `${REPO_BASE_URL}/${filePath}`;
   const vscodeScheme = insiders ? "vscode-insiders" : "vscode";
@@ -206,6 +243,9 @@ export function getGitHubUrl(filePath: string): string {
  * Get raw GitHub URL for a file (for fetching content)
  */
 export function getRawGitHubUrl(filePath: string): string {
+  if (!isSafeRepoFilePath(filePath)) {
+    throw new Error(`Unsafe repository file path: ${filePath}`);
+  }
   return `${REPO_BASE_URL}/${filePath}`;
 }
 
@@ -214,7 +254,7 @@ export function getRawGitHubUrl(filePath: string): string {
  */
 export async function downloadFile(filePath: string): Promise<boolean> {
   try {
-    const response = await fetch(`${REPO_BASE_URL}/${filePath}`);
+    const response = await fetch(getRawGitHubUrl(filePath));
     if (!response.ok) throw new Error("Failed to fetch file");
 
     const content = await response.text();

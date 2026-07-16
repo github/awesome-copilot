@@ -1,0 +1,19 @@
+{
+  "name": "apng-studio",
+  "description": "Interactive GitHub Copilot app canvas extension for building Animated PNG (APNG) files from frames. Draw or upload frames, tune per-frame timing and compositing, preview live, send the result to your phone by QR, and export an animated .png.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Andrea Griffiths",
+    "url": "https://github.com/AndreaGriffiths11"
+  },
+  "keywords": [
+    "animated-png",
+    "apng",
+    "copilot-canvas",
+    "frame-animation",
+    "image-export",
+    "interactive-canvas"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

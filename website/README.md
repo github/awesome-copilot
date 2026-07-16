@@ -12,6 +12,14 @@ npm run website:dev     # generate data + start the dev server
 npm run website:build   # full production build
 ```
 
+## Accessibility
+
+The website has an automated axe-core + Playwright audit. Run it locally with `npm run website:a11y` from the repository root, or run `npm run a11y` from `website/` after building `dist` first.
+
+CI blocks on critical and serious violations. Minor and moderate best-practice issues are reported as non-blocking.
+
+Authoring conventions: resource cards use `div[role="listitem"]` wrappers, not `<article>`; only add `role="list"` to containers whose direct children are list items; do not nest interactive controls inside another focusable element; `.btn-primary` and ToC links must meet WCAG AA (4.5:1) contrast in both light and dark themes.
+
 ## Social preview cards (LinkedIn, etc.)
 
 Shared links render as large preview cards driven by Open Graph / Twitter meta tags.

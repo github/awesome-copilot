@@ -200,6 +200,40 @@ jobs:
               : qualityResult.overall_status === 'pass' || !shouldRun
                 ? '## ✅ External plugin PR checks passed'
                 : '## ⚠️ External plugin PR checks need maintainer follow-up';
+            const MAX_GATE_OUTPUT_CHARS = 2000;
+            const escapeHtml = (value) =>
+              String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            const TRUNCATED_OUTPUT_MARKER = '\n...output truncated...';
+            const truncateGateOutput = (rawOutput) => {
+              const normalized = escapeHtml(String(rawOutput || '').trim());
+              if (!normalized) {
+                return '_No output captured._';
+              }
+              if (normalized.length <= MAX_GATE_OUTPUT_CHARS) {
+                return normalized;
+              }
+              return `${normalized.slice(0, Math.max(0, MAX_GATE_OUTPUT_CHARS - TRUNCATED_OUTPUT_MARKER.length))}${TRUNCATED_OUTPUT_MARKER}`;
+            };
+            const formatGateOutput = (pluginName, gateName, gateStatus, rawOutput) => {
+              const summaryPluginName = escapeHtml(String(pluginName || 'unknown'));
+              const summaryGateName = escapeHtml(String(gateName || 'gate'));
+              const summaryGateStatus = escapeHtml(String(gateStatus || 'not_run'));
+              const output = truncateGateOutput(rawOutput);
+              return [
+                '<details>',
+                `<summary>${summaryPluginName} - ${summaryGateName} (${summaryGateStatus})</summary>`,
+                '',
+                '<pre><code>',
+                output,
+                '</code></pre>',
+                '</details>',
+              ].join('\n');
+            };
 
             const rows = checkedPlugins.length > 0
               ? checkedPlugins.map((entry) => {
@@ -211,6 +245,21 @@ jobs:
                   return `| ${name} | ${quality.vally_lint_status || 'not_run'} | ${quality.smoke_status || 'not_run'} | ${quality.overall_status || 'not_run'} | ${sourceCell} |`;
                 })
               : ['| _none_ | not_run | not_run | not_run | _n/a_ |'];
+            const failureDetails = checkedPlugins.flatMap((entry) => {
+              const name = String(entry?.name || 'unknown');
+              const quality = entry?.quality || {};
+              const shouldShowVally = quality.vally_lint_status === 'fail' || quality.vally_lint_status === 'infra_error' || String(quality.vally_lint_output || '').trim().length > 0;
+              const shouldShowSmoke = quality.smoke_status === 'fail' || quality.smoke_status === 'infra_error' || String(quality.smoke_output || '').trim().length > 0;
+
+              const details = [];
+              if (shouldShowVally) {
+                details.push(formatGateOutput(name, 'vally lint', quality.vally_lint_status, quality.vally_lint_output));
+              }
+              if (shouldShowSmoke) {
+                details.push(formatGateOutput(name, 'install smoke test', quality.smoke_status, quality.smoke_output));
+              }
+              return details;
+            });
 
             const body = [
               marker,
@@ -225,6 +274,14 @@ jobs:
               '|---|---|---|---|---|',
               ...rows,
               '',
+              ...(failureDetails.length > 0
+                ? [
+                    '### Gate output details',
+                    '',
+                    ...failureDetails,
+                    '',
+                  ]
+                : []),
               String(qualityResult.summary || '').trim() || '_No summary provided._',
             ].join('\n');
 

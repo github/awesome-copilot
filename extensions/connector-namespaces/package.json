@@ -1,0 +1,19 @@
+{
+  "name": "connector-namespaces",
+  "version": "1.1.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "Browse, connect, and open MCP connectors from your Azure Connector Namespace in Sandbox.",
+  "keywords": [
+    "azure",
+    "connector-namespace",
+    "mcp",
+    "mcp-connectors",
+    "model-context-protocol",
+    "tool-discovery"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@github/copilot-sdk": "1.0.6"
+  }
+}

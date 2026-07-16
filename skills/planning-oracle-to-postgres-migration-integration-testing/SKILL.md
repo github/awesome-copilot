@@ -31,6 +31,12 @@ Write a markdown plan covering:
 - Recommended test cases per artifact
 - Seed data requirements
 - Known Oracle→PostgreSQL behavioral differences to validate
+- Coverage mapping that ensures every database touchpoint has at least one test case (or a justified set of cases for high-risk methods)
+
+When defining recommended test cases, explicitly include:
+- Text parameter behavior for both empty string and `NULL`/missing values.
+- Datetime/timezone assertions, including round-trip and comparison behavior.
+- Cases where destination columns use `timestamp without time zone` or `timestamp(0)`, with explicit timezone-application expectations.
 
 ## Output
 

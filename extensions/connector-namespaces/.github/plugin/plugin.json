@@ -1,0 +1,19 @@
+{
+  "name": "connector-namespaces",
+  "description": "Browse, connect, and open MCP connectors from an Azure Connector Namespace.",
+  "version": "1.1.0",
+  "author": {
+    "name": "Alex Yang",
+    "url": "https://github.com/alexyaang"
+  },
+  "keywords": [
+    "azure",
+    "connector-namespace",
+    "mcp",
+    "mcp-connectors",
+    "model-context-protocol",
+    "tool-discovery"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

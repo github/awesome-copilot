@@ -2,7 +2,7 @@
   "name": "awesome-copilot",
   "version": "1.0.0",
   "description": "Enhance your GitHub Copilot experience with community-contributed instructions, prompts, agents, and skills.",
-  "main": "./eng/update-readme.js",
+  "main": "./eng/update-readme.mjs",
   "private": true,
   "scripts": {
     "start": "npm run build",
@@ -20,6 +20,7 @@
     "website:data": "node ./eng/generate-website-data.mjs",
     "website:dev": "npm run website:data && npm run --prefix website dev",
     "website:build": "npm run build && npm run website:data && npm run --prefix website build",
+    "website:a11y": "npm run website:build && npm run --prefix website a11y",
     "website:preview": "npm run --prefix website preview"
   },
   "repository": {

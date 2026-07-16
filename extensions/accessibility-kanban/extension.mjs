@@ -11,13 +11,30 @@ const EXTENSION_NAME = "accessibility-kanban";
 const STATE_FILE_PREFIX = "repository-issues-kanban-state";
 const COLUMNS = ["backlog", "plan", "ready", "implement", "done"];
 const VALID_COLUMNS = new Set(COLUMNS);
+const REFRESH_ISSUES_ERROR = "Unable to refresh issues right now. Please try again.";
 
 let repoInfoCache = null;
 let githubTokenCache;
-let sessionRef = null;
+let workspaceCwd = null;
+
+// The canvas request context reports the active session's *working directory*
+// (i.e. the repo checkout). Note this is different from `session.workspacePath`,
+// which points at the session-state folder (~/.copilot/session-state/<id>) and is
+// NOT a git repo — using it for git resolution is what caused the board to fail
+// with "Unable to detect the current repository from this workspace."
+function setWorkspaceCwd(dir) {
+  if (typeof dir !== "string" || !dir.trim() || dir === workspaceCwd) return;
+  workspaceCwd = dir;
+  repoInfoCache = null;
+  githubTokenCache = undefined;
+}
+
+function captureCwd(ctx) {
+  setWorkspaceCwd(ctx?.session?.workingDirectory);
+}
 
 function getWorkspaceCwd() {
-  return sessionRef?.workspacePath || process.cwd();
+  return workspaceCwd || process.cwd();
 }
 
 // ─── Repo resolution ───
@@ -61,12 +78,12 @@ function parseRepoFromRemoteUrl(remoteUrl) {
 function candidateCwds(preferredCwd) {
   const candidates = [
     preferredCwd,
-    sessionRef?.workspacePath,
+    workspaceCwd,
+    process.cwd(),
     __dirname,
     path.dirname(__dirname),
     path.dirname(path.dirname(__dirname)),
     path.dirname(path.dirname(path.dirname(__dirname))),
-    process.cwd(),
   ].filter(Boolean);
   return [...new Set(candidates)];
 }
@@ -181,7 +198,7 @@ function normalizeState(rawState, repoInfo = getRepoInfo()) {
 
   return {
     repo,
-    error: repoInfo.error || rawState?.error || null,
+    error: repoInfo.error || (rawState?.error === REFRESH_ISSUES_ERROR ? REFRESH_ISSUES_ERROR : null),
     updatedAt: rawState?.updatedAt || new Date().toISOString(),
     generation: rawState?.generation || Date.now(),
     columns: Array.isArray(rawState?.columns) && rawState.columns.length ? rawState.columns : COLUMNS,
@@ -437,9 +454,10 @@ async function refreshIssuesSafe() {
     broadcast("state", merged);
     return merged;
   } catch (error) {
+    console.error("[accessibility-kanban] Failed to refresh issues", error);
     const failed = {
       ...state,
-      error: error instanceof Error ? error.message : String(error),
+      error: REFRESH_ISSUES_ERROR,
     };
     saveState(failed);
     broadcast("state", failed);
@@ -564,7 +582,8 @@ const canvas = createCanvas({
       name: "get_state",
       description: "Get the current board state including open repository issues and selected label filters.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      async handler() {
+      async handler(ctx) {
+        captureCwd(ctx);
         return refreshIssuesSafe();
       },
     },
@@ -580,8 +599,9 @@ const canvas = createCanvas({
         required: ["issue_number", "column"],
         additionalProperties: false,
       },
-      handler({ input }) {
-        const { issue } = moveIssue(input.issue_number, input.column);
+      handler(ctx) {
+        captureCwd(ctx);
+        const { issue } = moveIssue(ctx.input.issue_number, ctx.input.column);
         return { issue, state: currentState() };
       },
     },
@@ -620,8 +640,9 @@ const canvas = createCanvas({
         required: ["issues"],
         additionalProperties: false,
       },
-      handler({ input }) {
-        return replaceIssues(input.issues);
+      handler(ctx) {
+        captureCwd(ctx);
+        return replaceIssues(ctx.input.issues);
       },
     },
     {
@@ -635,21 +656,24 @@ const canvas = createCanvas({
         required: ["labels"],
         additionalProperties: false,
       },
-      handler({ input }) {
-        return setSelectedLabels(input.labels);
+      handler(ctx) {
+        captureCwd(ctx);
+        return setSelectedLabels(ctx.input.labels);
       },
     },
     {
       name: "reset_state",
       description: "Reset all cards to backlog and clear label filters, then refresh from live repo issues.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      async handler() {
+      async handler(ctx) {
+        captureCwd(ctx);
         resetBoard();
         return refreshIssuesSafe();
       },
     },
   ],
-  async open() {
+  async open(ctx) {
+    captureCwd(ctx);
     const state = await refreshIssuesSafe();
     broadcast("state", state);
     return {
@@ -702,5 +726,3 @@ const session = await joinSession({
     },
   ],
 });
-
-sessionRef = session;

@@ -53,7 +53,7 @@ const languageOptions = Array.from(
 
     <div class="results-count" id="results-count" aria-live="polite">{getRecipeResultsCountText(samplesData.totalRecipes, samplesData.totalRecipes)}</div>
 
-    <div id="samples-list" role="list" set:html={renderCookbookSectionsHtml(initialRecipeMatches)}></div>
+    <div id="samples-list" set:html={renderCookbookSectionsHtml(initialRecipeMatches)}></div>
   </div>
 
   <Modal />

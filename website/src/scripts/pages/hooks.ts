@@ -2,16 +2,13 @@
  * Hooks page functionality
  */
 import {
-  escapeHtml,
   fetchData,
-  formatRelativeTime,
   getQueryParam,
   getQueryParamValues,
   showToast,
   downloadZipBundle,
   updateQueryParams,
 } from '../utils';
-import { openCardDetailsModal, setupModal } from '../modal';
 import { clearSelectValues, getSelectValues, setSelectValues } from './select-utils';
 import {
   renderHooksHtml,
@@ -30,14 +27,12 @@ interface HooksData {
 }
 
 let allItems: Hook[] = [];
-let hookById = new Map<string, Hook>();
 let tagSelectEl: HTMLSelectElement | null = null;
 let currentFilters = {
   tags: [] as string[],
 };
 let currentSort: HookSortOption = 'title';
 let resourceListHandlersReady = false;
-let modalReady = false;
 
 function sortItems(items: Hook[]): Hook[] {
   return sortHooks(items, currentSort);
@@ -111,57 +106,6 @@ async function downloadHook(hookId: string, btn: HTMLButtonElement): Promise<voi
   }
 }
 
-function openHookDetailsModal(hookId: string, trigger?: HTMLElement): void {
-  const item = hookById.get(hookId);
-  if (!item) {
-    return;
-  }
-
-  const metaParts = item.hooks.map(
-    (hookName) => `<span class="resource-tag tag-hook">${escapeHtml(hookName)}</span>`
-  );
-
-  if (item.assets.length > 0) {
-    metaParts.push(
-      `<span class="resource-tag tag-assets">${item.assets.length} asset${
-        item.assets.length === 1 ? '' : 's'
-      }</span>`
-    );
-  }
-
-  if (item.lastUpdated) {
-    metaParts.push(
-      `<span class="last-updated">Updated ${escapeHtml(
-        formatRelativeTime(item.lastUpdated)
-      )}</span>`
-    );
-  }
-
-  const tagHtml = item.tags
-    .map((tagText) => `<span class="resource-tag tag-tag">${escapeHtml(tagText)}</span>`)
-    .join('');
-
-  const actionsHtml = `
-    <button id="hook-details-download" class="btn btn-primary" type="button" data-hook-id="${escapeHtml(
-      item.id
-    )}">Download</button>
-    <button class="btn btn-secondary" type="button" data-open-file-path="${escapeHtml(
-      item.readmeFile
-    )}" data-open-file-type="hook">Source</button>
-  `;
-
-  openCardDetailsModal({
-    title: item.title,
-    description: item.description || 'No description',
-    previewIcon: '🪝',
-    previewText: 'Hook events and download options',
-    metaHtml: metaParts.join(''),
-    tagsHtml: tagHtml,
-    actionsHtml,
-    trigger,
-  });
-}
-
 function setupResourceListHandlers(list: HTMLElement | null): void {
   if (!list || resourceListHandlersReady) return;
 
@@ -169,32 +113,12 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
     const target = event.target as HTMLElement;
     const downloadButton = target.closest('.download-hook-btn') as HTMLButtonElement | null;
     if (downloadButton) {
+      event.preventDefault();
       event.stopPropagation();
       const hookId = downloadButton.dataset.hookId;
       if (hookId) downloadHook(hookId, downloadButton);
       return;
     }
-
-    if (target.closest('.resource-actions')) {
-      return;
-    }
-
-    const item = target.closest('.resource-item') as HTMLElement | null;
-    const button = item?.querySelector('.resource-preview') as HTMLElement | undefined;
-    const hookId = item?.dataset.hookId;
-    if (hookId) {
-      openHookDetailsModal(hookId, button);
-    }
-  });
-
-  document.addEventListener('click', (event) => {
-    const target = event.target as HTMLElement;
-    const modalDownloadButton = target.closest(
-      '#hook-details-download'
-    ) as HTMLButtonElement | null;
-    if (!modalDownloadButton) return;
-    const hookId = modalDownloadButton.dataset.hookId;
-    if (hookId) downloadHook(hookId, modalDownloadButton);
   });
 
   resourceListHandlersReady = true;
@@ -214,11 +138,6 @@ export async function initHooksPage(): Promise<void> {
   const clearFiltersBtn = document.getElementById('clear-filters');
   const sortSelect = document.getElementById('sort-select') as HTMLSelectElement | null;
 
-  if (!modalReady) {
-    setupModal();
-    modalReady = true;
-  }
-
   setupResourceListHandlers(list as HTMLElement | null);
 
   const data = await fetchData<HooksData>('hooks.json');
@@ -228,7 +147,6 @@ export async function initHooksPage(): Promise<void> {
   }
 
   allItems = data.items;
-  hookById = new Map(allItems.map((item) => [item.id, item]));
 
   tagSelectEl = document.getElementById('filter-tag') as HTMLSelectElement | null;
   if (tagSelectEl) {
