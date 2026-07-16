@@ -1080,11 +1080,15 @@ function buildExternalRepoImageUrl(repo, locator, assetPath) {
     return null;
   }
 
+  const encodedLocator = locator
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
   const encodedPath = assetPath
     .split("/")
     .map((segment) => encodeURIComponent(segment))
     .join("/");
-  return `https://raw.githubusercontent.com/${repo}/${locator}/${encodedPath}`;
+  return `https://raw.githubusercontent.com/${repo}/${encodedLocator}/${encodedPath}`;
 }
 
 function buildExternalRepoTreeUrl(repo, locator, pluginRoot) {
@@ -1094,15 +1098,25 @@ function buildExternalRepoTreeUrl(repo, locator, pluginRoot) {
 
   if (locator) {
     const treePath = normalizeRepoRelativePath(pluginRoot);
-    const suffix = treePath ? `/${treePath}` : "";
-    return `https://github.com/${repo}/tree/${locator}${suffix}`;
+    const encodedLocator = locator
+      .split("/")
+      .map((segment) => encodeURIComponent(segment))
+      .join("/");
+    const encodedTreePath = treePath
+      ? treePath
+        .split("/")
+        .map((segment) => encodeURIComponent(segment))
+        .join("/")
+      : null;
+    const suffix = encodedTreePath ? `/${encodedTreePath}` : "";
+    return `https://github.com/${repo}/tree/${encodedLocator}${suffix}`;
   }
 
   return `https://github.com/${repo}`;
 }
 
 function hasCanvasKeyword(plugin) {
-  return (plugin?.keywords ?? []).some(
+  return normalizeExternalKeywords(plugin).some(
     (keyword) => normalizeText(keyword).toLowerCase() === EXTERNAL_CANVAS_KEYWORD
   );
 }
