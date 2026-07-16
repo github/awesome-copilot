@@ -1,0 +1,25 @@
+{
+  "name": "shepherd-task",
+  "description": "End-to-end task shepherding system that automates the full lifecycle of GitHub issues through Copilot coding agent assignment, CI approval, code review resolution, and merge. Includes orchestration scripts for both Bash and PowerShell.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ed Burns"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "shepherd",
+    "task-automation",
+    "copilot-coding-agent",
+    "ci-cd",
+    "code-review",
+    "github-actions",
+    "workflow-approval",
+    "yolo"
+  ],
+  "skills": [
+    "./skills/shepherd-task-approve-workflows-and-wait-for-completion/",
+    "./skills/shepherd-task-from-assignment-to-ready/",
+    "./skills/shepherd-task-from-ready-to-merged-to-base/"
+  ]
+}
