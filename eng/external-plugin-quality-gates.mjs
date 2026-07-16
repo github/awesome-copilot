@@ -347,11 +347,14 @@ function readPluginManifestAtLocator(repoDir, locator, normalizedPluginPath) {
   for (const manifestPath of manifestCandidates) {
     const showResult = runCommand("git", ["show", `${locator}:${manifestPath}`], { cwd: repoDir });
     if (showResult.exitCode === 0) {
+      const rawShow = spawnSync("git", ["show", `${locator}:${manifestPath}`], { cwd: repoDir, encoding: "utf8" });
+      const rawStdout = String(rawShow.stdout ?? "");
+
       try {
         return {
           kind: "found",
           manifestPath,
-          manifest: JSON.parse(showResult.stdout),
+          manifest: JSON.parse(rawStdout),
         };
       } catch (error) {
         return {
