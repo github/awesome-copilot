@@ -425,10 +425,12 @@ function normalizeQualityGateResult(rawResult) {
     overall_status: "not_run",
     vally_lint_status: "not_run",
     smoke_status: "not_run",
+    version_match_status: "not_run",
     failure_class: "none",
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
+    version_match_output: "",
   };
 
   if (!rawResult || typeof rawResult !== "object" || Array.isArray(rawResult)) {
@@ -444,6 +446,7 @@ function normalizeQualityGateResult(rawResult) {
 function buildQualityGatesCommentSection(qualityResult) {
   const vallyState = qualityResult.vally_lint_status || "not_run";
   const smokeState = qualityResult.smoke_status || "not_run";
+  const versionMatchState = qualityResult.version_match_status || "not_run";
   const summaryText = String(qualityResult.summary || "").trim() || "_No quality gate details were provided._";
 
   const sections = [
@@ -453,6 +456,7 @@ function buildQualityGatesCommentSection(qualityResult) {
     "|---|---|",
     `| vally lint | ${vallyState} |`,
     `| install smoke test | ${smokeState} |`,
+    `| version match | ${versionMatchState} |`,
     "",
     summaryText,
   ];
@@ -481,6 +485,21 @@ function buildQualityGatesCommentSection(qualityResult) {
       "",
       "```text",
       smokeOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
+
+  const versionMatchOutput = String(qualityResult.version_match_output || "").trim();
+  if (versionMatchOutput) {
+    sections.push(
+      "",
+      "<details>",
+      "<summary>Version match output</summary>",
+      "",
+      "```text",
+      versionMatchOutput,
       "```",
       "",
       "</details>",
