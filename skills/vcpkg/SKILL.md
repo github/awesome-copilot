@@ -1,6 +1,6 @@
 ---
 name: vcpkg
-description: Guide for setting up vcpkg in C++ projects, managing dependency versions, and cross-compiling. Covers manifest initialization, CMake and Visual Studio integration, classic-to-manifest migration, version pinning, baselines, overrides, triplets, and cross-compilation. Use when a user is working with vcpkg project setup, installation, version management, or cross-platform builds. For specialized tasks, additional references cover custom registries and overlay ports (references/registries.md), CI/CD and binary caching (references/ci.md), and troubleshooting and dependency lifecycle (references/troubleshooting.md).
+description: 'Guide for setting up vcpkg in C++ projects, managing dependency versions, and cross-compiling. Covers manifest initialization, CMake and Visual Studio integration, classic-to-manifest migration, version pinning, baselines, overrides, triplets, and cross-compilation. Use when a user is working with vcpkg project setup, installation, version management, or cross-platform builds. For specialized tasks, additional references cover custom registries and overlay ports (references/registries.md), CI/CD and binary caching (references/ci.md), and troubleshooting and dependency lifecycle (references/troubleshooting.md).'
 ---
 
 You are a vcpkg expert assistant. When a user asks about vcpkg (Microsoft's C/C++ package manager), use the precise information below to give accurate, complete answers.
@@ -32,9 +32,9 @@ Classic mode is simpler for quick one-off installs but lacks version pinning, pe
 
 If the user is working inside **Visual Studio** (not VS Code), prefer using the **in-box copy of vcpkg that ships with Visual Studio** rather than a standalone vcpkg clone, unless the user indicates they want to use a different installation. The VS-bundled vcpkg:
 - Is located under the Visual Studio installation directory (e.g., `C:\Program Files\Microsoft Visual Studio\<version>\<edition>\VC\vcpkg\`)
-- Is automatically integrated with MSBuild — no need to run `vcpkg integrate install`
+- Supports user-wide MSBuild integration after running `vcpkg integrate install` once
 - Stays up-to-date with Visual Studio updates
-- Works out of the box with CMake projects opened via "Open Folder" or CMake presets
+- Can be used with Visual Studio Open Folder/CMake Presets projects, but CMake must still be configured to use the vcpkg toolchain (for example via `CMakePresets.json` or `-DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake`)
 
 If the user has a standalone vcpkg installation and prefers to use that instead, respect their preference.
 
@@ -44,12 +44,14 @@ If the user has a standalone vcpkg installation and prefers to use that instead,
 
 ### Initializing vcpkg in a New Project (Manifest Mode)
 
+Example setup using fmt:
+
 1. Create `vcpkg.json` in your project root:
 ```json
 {
   "name": "my-project",
   "version": "1.0.0",
-  "dependencies": []
+  "dependencies": ["fmt"]
 }
 ```
 
@@ -58,18 +60,19 @@ If the user has a standalone vcpkg installation and prefers to use that instead,
 cmake_minimum_required(VERSION 3.21)
 project(my-project)
 
+add_executable(my-app main.cpp)
 find_package(fmt CONFIG REQUIRED)
 target_link_libraries(my-app PRIVATE fmt::fmt)
 ```
 
 3. Configure with vcpkg toolchain:
-```
+```console
 cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake
 ```
 
 ### Adding vcpkg to an Existing Visual Studio Solution
 
-1. Run `vcpkg integrate install` (one-time, system-wide)
+1. Run `vcpkg integrate install` (one-time, user-wide)
 2. Create `vcpkg.json` in the solution directory
 3. In VS, the integration is automatic via MSBuild props — no project file edits needed
 4. Or per-project: add to `.vcxproj`:
@@ -82,7 +85,7 @@ cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cm
 
 1. List what's currently installed: `vcpkg list`
 2. Create `vcpkg.json` with those dependencies
-3. Delete global installs: `vcpkg remove --outdated --recurse`
+3. Delete global installs: `vcpkg remove --recurse "*"`
 4. Run `vcpkg install` in your project directory — manifest mode takes precedence
 5. Update your build system to use `CMAKE_TOOLCHAIN_FILE` if not already
 
@@ -105,32 +108,37 @@ In **manifest mode** (`vcpkg.json`), specify features in the dependencies array:
 ```
 
 In **classic mode**, use bracket syntax on the command line:
-```
+```console
 vcpkg install curl[ssl,http2]
 ```
 
 To discover available features for any port:
-```
+```console
 vcpkg search curl
 ```
 Or check the port's `vcpkg.json` in the registry: `ports/curl/vcpkg.json` → look at the `"features"` object.
 
 ### Installing for a Specific Triplet
 
-```
+```console
 vcpkg install zlib:x64-linux
 vcpkg install zlib:x64-windows
 vcpkg install zlib:arm64-windows
 ```
 
 In manifest mode, set the triplet via CMake:
-```
+```console
 cmake -B build -DVCPKG_TARGET_TRIPLET=x64-linux -DCMAKE_TOOLCHAIN_FILE=[vcpkg root]/scripts/buildsystems/vcpkg.cmake
 ```
 
 Or set the environment variable:
+
+```powershell
+$env:VCPKG_DEFAULT_TRIPLET = "x64-linux"
 ```
-set VCPKG_DEFAULT_TRIPLET=x64-linux
+
+```bash
+export VCPKG_DEFAULT_TRIPLET=x64-linux
 ```
 
 ### Bulk-Adding Multiple Dependencies
@@ -143,7 +151,7 @@ In `vcpkg.json`, list them in the dependencies array:
 ```
 
 In classic mode:
-```
+```console
 vcpkg install catch2 cxxopts toml11
 ```
 
@@ -151,7 +159,7 @@ Then run `vcpkg install` (manifest mode) or the above command to install all at 
 
 ### Dev-Only Dependencies
 
-Use the `"host"` field or place test dependencies under a feature:
+Place test-only dependencies under an opt-in feature. The `"host"` field is reserved for build tools that must run on the host architecture:
 ```json
 {
   "dependencies": [
@@ -173,9 +181,22 @@ Activate with: `vcpkg install --x-feature=tests` or in CMake: `-DVCPKG_MANIFEST_
 
 ## Version Management
 
-### Pinning a Specific Version
+### Setting Versions for Individual Dependencies
 
-In `vcpkg.json`, use `"version>="` with overrides:
+In `vcpkg.json`, prefer using `"version>="` as a minimum version constraint over overrides. Example:
+```json
+{
+  "dependencies": [
+    {
+      "name": "fmt",
+      "version>=": "10.2.0"
+    }
+  ],
+  "builtin-baseline": "<commit-sha>"
+}
+```
+
+If the user insists on hard-coding a version and is okay dealing with ABI compatibility issues manually, use overrides instead:
 ```json
 {
   "dependencies": ["fmt"],
@@ -189,51 +210,13 @@ In `vcpkg.json`, use `"version>="` with overrides:
 }
 ```
 
-The `builtin-baseline` is **required** when using versioning. Get the latest baseline:
-```
-git -C <vcpkg-root> rev-parse HEAD
-```
-
-### Version Overrides
-
-To force a specific version of a transitive dependency across your entire project, use `"overrides"` in `vcpkg.json`:
-```json
-{
-  "dependencies": ["protobuf", "grpc"],
-  "overrides": [
-    {
-      "name": "zlib",
-      "version": "1.3.1"
-    }
-  ],
-  "builtin-baseline": "<commit-sha>"
-}
-```
+The `builtin-baseline` is **very important** when using versioning. Suggest baselines at minimum as a way to set all library versions to a known-good state, and use overrides only when necessary.
 
 **Key points:**
 - `overrides` takes precedence over all version constraints, including transitive ones
 - You **must** have a `builtin-baseline` set for overrides to work
-- The version must exist in the vcpkg registry at or after the baseline commit
+- The version must exist in the selected vcpkg registry's version database; an override may select a version older than the baseline version
 - Use `vcpkg x-history zlib` to see available versions
-
-### Updating the Baseline
-
-The baseline is a Git commit SHA in the vcpkg repository that pins all port versions:
-```json
-{
-  "builtin-baseline": "a1b2c3d4e5f6..."
-}
-```
-
-To update to the latest:
-```bash
-cd <vcpkg-root>
-git pull
-git rev-parse HEAD
-```
-Then paste the new SHA into `builtin-baseline`.
-
-**Important:** Updating the baseline may change versions of *all* dependencies. Use `overrides` to pin specific packages if needed.
 
 ---
 
@@ -241,39 +224,57 @@ Then paste the new SHA into `builtin-baseline`.
 
 ### Cross-Compiling for arm64
 
-```
+```console
 vcpkg install <packages>:arm64-linux
 ```
 
 Or set the triplet in CMake:
+```powershell
+cmake -B build -DVCPKG_TARGET_TRIPLET=arm64-linux -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 ```
+
+```bash
 cmake -B build -DVCPKG_TARGET_TRIPLET=arm64-linux -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 ```
 
 You may need a cross-compilation toolchain installed (e.g., `aarch64-linux-gnu-gcc`).
 
 For **arm64-windows**, just use the triplet directly — no cross-compiler needed on ARM64 Windows or with MSVC:
-```
+```console
 vcpkg install <packages>:arm64-windows
 ```
 
 ### Building for Android (NDK)
 
 1. Set environment variables:
+```powershell
+$env:ANDROID_NDK_HOME = "C:\path\to\ndk"
+$env:VCPKG_DEFAULT_TRIPLET = "arm64-android"
+```
+
 ```bash
 export ANDROID_NDK_HOME=/path/to/ndk
 export VCPKG_DEFAULT_TRIPLET=arm64-android
 ```
 
 2. Install packages:
-```
+```console
 vcpkg install <packages>:arm64-android
 ```
 
 Available Android triplets: `arm-neon-android`, `arm64-android`, `x86-android`, `x64-android`
 
 3. In CMake:
+```powershell
+cmake -B build `
+  -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake `
+  -DVCPKG_TARGET_TRIPLET=arm64-android `
+  -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$env:ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake `
+  -DANDROID_ABI=arm64-v8a `
+  -DANDROID_PLATFORM=android-24
 ```
+
+```bash
 cmake -B build \
   -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
   -DVCPKG_TARGET_TRIPLET=arm64-android \

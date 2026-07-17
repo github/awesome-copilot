@@ -11,11 +11,10 @@ Build logs are stored at:
 
 Key log files:
 - `config-<triplet>-out.log` — CMake configure output
-- `build-<triplet>-out.log` — Build (compile) output
-- `install-<triplet>-out.log` — Install step output
-- `config-<triplet>-err.log` — CMake configure errors
-- `build-<triplet>-err.log` — Build errors
-- `package-<triplet>-out.log` — Packaging output
+- `build-<triplet>-<dbg|rel>-<out|err>.log` — common build logs
+- `install-<triplet>-<dbg|rel>-<out|err>.log` — common install logs
+
+Exact names vary by port and build helper; use the path vcpkg prints for the failing command.
 
 When a build fails, vcpkg prints the path to the relevant log. Start with the `-err.log` file for the failing step.
 
@@ -41,7 +40,7 @@ If CMake says `Could not find a package configuration file provided by "X"`:
 2. Run `vcpkg install` to reconcile (manifest mode auto-removes unused packages)
 
 In classic mode:
-```
+```console
 vcpkg remove boost-regex
 vcpkg remove boost-regex --recurse  # also removes dependents
 ```
@@ -63,8 +62,8 @@ Update the features in `vcpkg.json`:
 Then run `vcpkg install` — vcpkg will detect the feature change and rebuild.
 
 In classic mode:
-```
-vcpkg install curl[ssl,ssh]   # reinstalls with new features
+```console
+vcpkg install curl[ssl,ssh] --recurse   # permits rebuilding with the new feature set
 ```
 
 ### Replacing One Library with Another
@@ -75,6 +74,23 @@ vcpkg install curl[ssl,ssh]   # reinstalls with new features
 4. Update your source code: change `#include` directives, `find_package()` calls, and `target_link_libraries()` in CMakeLists.txt
 
 ### Cleaning the vcpkg Cache
+
+```powershell
+# Remove build trees (intermediate build files)
+Remove-Item -Recurse -Force <vcpkg-root>\buildtrees
+
+# Remove downloaded archives
+Remove-Item -Recurse -Force <vcpkg-root>\downloads
+
+# Remove installed packages (classic mode only)
+Remove-Item -Recurse -Force <vcpkg-root>\installed
+
+# Remove all package build artifacts
+vcpkg x-clean
+
+# In manifest mode, remove the local vcpkg_installed directory
+Remove-Item -Recurse -Force .\vcpkg_installed
+```
 
 ```bash
 # Remove build trees (intermediate build files)

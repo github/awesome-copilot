@@ -93,7 +93,9 @@ file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")
 ```
 
-Use it: `vcpkg install telemetry-sdk --overlay-ports=./my-overlays`
+Classic mode: `vcpkg install telemetry-sdk --overlay-ports=./my-overlays`
+
+Manifest mode: add `telemetry-sdk` to `vcpkg.json`, then run `vcpkg install --overlay-ports=./my-overlays`.
 Or in `vcpkg-configuration.json`:
 ```json
 {
@@ -105,7 +107,7 @@ Or in `vcpkg-configuration.json`:
 
 ## Default Features
 
-Set default features in `vcpkg.json` for a port so they're always enabled:
+Control whether a dependency's existing default features are enabled, and request additional features in a project manifest:
 ```json
 {
   "dependencies": [
