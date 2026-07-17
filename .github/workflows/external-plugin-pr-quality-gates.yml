@@ -158,6 +158,7 @@ jobs:
                 failure_class: 'infra',
                 checked_plugins: [],
                 version_match_status: 'infra_error',
+                canvas_structure_status: 'infra_error',
                 summary: 'External plugin PR change detection failed unexpectedly. Re-run this workflow.',
               };
             } else if (shouldRun) {
@@ -167,6 +168,7 @@ jobs:
                   failure_class: 'infra',
                   checked_plugins: [],
                   version_match_status: 'infra_error',
+                  canvas_structure_status: 'infra_error',
                   summary: 'External plugin PR quality checks failed unexpectedly. Re-run this workflow.',
                 };
               } else if (process.env.QUALITY_RESULT_JSON) {
@@ -177,6 +179,7 @@ jobs:
                   failure_class: 'infra',
                   checked_plugins: [],
                   version_match_status: 'infra_error',
+                  canvas_structure_status: 'infra_error',
                   summary: 'External plugin PR quality checks did not return a result payload.',
                 };
               }
@@ -245,15 +248,16 @@ jobs:
                   const sourceUrl = String(entry?.source_tree_url || '');
                   const locator = String(entry?.source?.sha || entry?.source?.ref || 'repository');
                   const sourceCell = sourceUrl ? `[${locator}](${sourceUrl})` : locator;
-                  return `| ${name} | ${quality.vally_lint_status || 'not_run'} | ${quality.smoke_status || 'not_run'} | ${quality.version_match_status || 'not_run'} | ${quality.overall_status || 'not_run'} | ${sourceCell} |`;
+                  return `| ${name} | ${quality.vally_lint_status || 'not_run'} | ${quality.smoke_status || 'not_run'} | ${quality.version_match_status || 'not_run'} | ${quality.canvas_structure_status || 'not_run'} | ${quality.overall_status || 'not_run'} | ${sourceCell} |`;
                 })
-              : ['| _none_ | not_run | not_run | not_run | not_run | _n/a_ |'];
+              : ['| _none_ | not_run | not_run | not_run | not_run | not_run | _n/a_ |'];
             const failureDetails = checkedPlugins.flatMap((entry) => {
               const name = String(entry?.name || 'unknown');
               const quality = entry?.quality || {};
               const shouldShowVally = quality.vally_lint_status === 'fail' || quality.vally_lint_status === 'infra_error' || String(quality.vally_lint_output || '').trim().length > 0;
               const shouldShowSmoke = quality.smoke_status === 'fail' || quality.smoke_status === 'infra_error' || String(quality.smoke_output || '').trim().length > 0;
               const shouldShowVersionMatch = quality.version_match_status === 'fail' || quality.version_match_status === 'infra_error' || String(quality.version_match_output || '').trim().length > 0;
+              const shouldShowCanvasStructure = quality.canvas_structure_status === 'fail' || quality.canvas_structure_status === 'infra_error' || String(quality.canvas_structure_output || '').trim().length > 0;
 
               const details = [];
               if (shouldShowVally) {
@@ -264,6 +268,9 @@ jobs:
               }
               if (shouldShowVersionMatch) {
                 details.push(formatGateOutput(name, 'version match', quality.version_match_status, quality.version_match_output));
+              }
+              if (shouldShowCanvasStructure) {
+                details.push(formatGateOutput(name, 'canvas structure', quality.canvas_structure_status, quality.canvas_structure_output));
               }
               return details;
             });
@@ -277,8 +284,8 @@ jobs:
               '',
               '### Per-plugin quality summary',
               '',
-              '| Plugin | vally lint | install smoke test | version match | overall | source tree |',
-              '|---|---|---|---|---|---|',
+              '| Plugin | vally lint | install smoke test | version match | canvas structure | overall | source tree |',
+              '|---|---|---|---|---|---|---|',
               ...rows,
               '',
               ...(failureDetails.length > 0

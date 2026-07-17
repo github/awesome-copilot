@@ -1,0 +1,18 @@
+{
+  "name": "color-orb",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "description": "Gives users a visual orb they can ask the agent to recolor while showing a live activity log in the canvas.",
+  "keywords": [
+    "color-picker",
+    "interactive-demo",
+    "agent-actions",
+    "realtime-updates",
+    "sse-events",
+    "visual-feedback"
+  ]
+}

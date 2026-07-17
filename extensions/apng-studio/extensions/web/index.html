@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>APNG Studio</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <header class="app-header">
+        <div>
+            <h1>APNG Studio</h1>
+            <p class="muted" id="subtitle">Assemble an animated PNG from frames.</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-sm" id="btn-reload"
+                title="Reload — re-sync frames and rebuild the preview">
+                <span class="reload-glyph" id="reload-glyph">↻</span> Reload
+            </button>
+            <span class="badge" id="mime-badge">image/apng</span>
+        </div>
+    </header>
+
+    <!-- Preview -->
+    <section class="card">
+        <div class="preview-wrap checker">
+            <img id="preview" alt="APNG preview" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />
+            <div class="empty-preview" id="empty-preview">
+                <span>No frames yet</span>
+                <small class="muted">Upload images or draw a frame below.</small>
+            </div>
+        </div>
+        <div class="preview-meta">
+            <span id="meta-frames">0 frames</span>
+            <span class="dot">·</span>
+            <span id="meta-duration">0.0s</span>
+            <span class="dot">·</span>
+            <span id="meta-loops">loops ∞</span>
+        </div>
+        <div class="row gap">
+            <button class="btn btn-primary" id="btn-export">Export .png</button>
+            <button class="btn" id="btn-download">Download</button>
+            <button class="btn" id="btn-share">Send to phone</button>
+            <button class="btn btn-ghost" id="btn-restart" title="Restart animation">↺ Replay</button>
+        </div>
+        <p class="saved-path muted" id="saved-path" hidden></p>
+
+        <!-- Send to phone -->
+        <div class="share-panel" id="share-panel" hidden>
+            <div class="share-qr checker">
+                <img id="share-qr-img" alt="QR code — scan with your phone camera to open the animation" />
+            </div>
+            <div class="share-body">
+                <div class="share-title">Scan with your phone camera</div>
+                <p class="muted tiny">Your phone must be on the same Wi‑Fi as this computer.</p>
+                <a class="share-url" id="share-url" href="#" target="_blank" rel="noopener"></a>
+                <div class="share-foot">
+                    <span class="muted tiny" id="share-expiry"></span>
+                    <button class="btn btn-sm btn-ghost" id="btn-share-stop">Stop</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Settings -->
+    <section class="card">
+        <div class="section-title">Settings</div>
+        <div class="settings-grid">
+            <label class="field">
+                <span>Width</span>
+                <input type="number" id="in-width" min="1" max="2048" step="1" />
+            </label>
+            <label class="field">
+                <span>Height</span>
+                <input type="number" id="in-height" min="1" max="2048" step="1" />
+            </label>
+            <label class="field">
+                <span>Loops <small class="muted">(0 = ∞)</small></span>
+                <input type="number" id="in-loops" min="0" max="65535" step="1" />
+            </label>
+            <div class="field">
+                <span>First frame</span>
+                <label class="chk" id="hidden-first-label">
+                    <input type="checkbox" id="in-hidden-first" /> Static fallback
+                </label>
+            </div>
+        </div>
+        <p class="muted tiny" id="dim-hint">Canvas size can only change while there are no frames.</p>
+        <p class="muted tiny" id="hidden-first-hint" hidden>
+            Frame&nbsp;1 is shown by viewers without APNG support and is not part of the loop.
+        </p>
+
+        <div class="subsection">
+            <div class="subsection-title">Apply to all frames</div>
+            <div class="apply-rows">
+                <span class="inline">
+                    <label class="mini" for="in-delay-all">Delay</label>
+                    <input type="number" id="in-delay-all" min="0" max="65535" step="10" value="120" />
+                    <span class="mini">ms</span>
+                    <button class="btn btn-sm" id="btn-delay-all">Apply</button>
+                </span>
+                <span class="inline">
+                    <label class="mini" for="in-fps">Frame rate</label>
+                    <input type="number" id="in-fps" min="1" max="120" step="1" value="12" />
+                    <span class="mini">fps</span>
+                    <button class="btn btn-sm" id="btn-fps">Set</button>
+                </span>
+                <span class="inline">
+                    <label class="mini" for="in-dispose-all">Dispose</label>
+                    <select id="in-dispose-all">
+                        <option value="0">None</option>
+                        <option value="1">Background</option>
+                        <option value="2">Previous</option>
+                    </select>
+                    <label class="mini" for="in-blend-all">Blend</label>
+                    <select id="in-blend-all">
+                        <option value="0">Source</option>
+                        <option value="1">Over</option>
+                    </select>
+                    <button class="btn btn-sm" id="btn-ops-all">Apply</button>
+                </span>
+            </div>
+            <details class="help">
+                <summary>What do dispose &amp; blend do?</summary>
+                <ul>
+                    <li><b>Blend · Source</b> replaces the canvas region with this frame (alpha included). <b>Over</b> composites this frame on top of what's already there — use it with transparency to build an image up frame by frame.</li>
+                    <li><b>Dispose · None</b> keeps the frame on screen for the next one. <b>Background</b> clears it to transparent first. <b>Previous</b> restores whatever was there before this frame.</li>
+                </ul>
+            </details>
+        </div>
+    </section>
+
+    <!-- Frames -->
+    <section class="card">
+        <div class="section-title row between">
+            <span>Frames</span>
+            <button class="btn btn-sm btn-ghost danger" id="btn-clear">Clear all</button>
+        </div>
+        <div class="frame-strip" id="frame-strip"></div>
+        <div class="empty-frames muted" id="empty-frames">Frames you add appear here in order.</div>
+    </section>
+
+    <!-- Add frames -->
+    <section class="card">
+        <div class="section-title">Add frames</div>
+        <div class="row gap wrap">
+            <button class="btn" id="btn-upload">⬆ Upload images</button>
+            <button class="btn" id="btn-toggle-draw">✎ Draw a frame</button>
+            <input type="file" id="file-input" accept="image/*" multiple hidden />
+        </div>
+
+        <!-- Draw panel -->
+        <div class="draw-panel" id="draw-panel" hidden>
+            <div class="draw-tools">
+                <label class="tool">
+                    <span>Color</span>
+                    <input type="color" id="draw-color" value="#3b82f6" />
+                </label>
+                <label class="tool">
+                    <span>Size</span>
+                    <input type="range" id="draw-size" min="1" max="48" value="6" />
+                </label>
+                <div class="tool-group" role="group" aria-label="Tool">
+                    <button class="btn btn-sm tool-btn active" id="tool-pen" aria-pressed="true">Pen</button>
+                    <button class="btn btn-sm tool-btn" id="tool-eraser" aria-pressed="false">Eraser</button>
+                </div>
+                <button class="btn btn-sm" id="btn-fill">Fill</button>
+                <button class="btn btn-sm" id="btn-clear-draw">Clear</button>
+            </div>
+            <div class="draw-options">
+                <label class="chk"><input type="checkbox" id="opt-onion" /> Onion skin</label>
+                <label class="chk"><input type="checkbox" id="opt-from-last" /> Start from last frame</label>
+            </div>
+            <div class="canvas-stage checker" id="canvas-stage">
+                <img id="onion-img" class="onion" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" hidden />
+                <canvas id="draw-canvas"></canvas>
+            </div>
+            <div class="row gap">
+                <button class="btn btn-primary btn-sm" id="btn-add-drawing">Add frame</button>
+                <button class="btn btn-sm btn-ghost" id="btn-cancel-draw">Close</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
