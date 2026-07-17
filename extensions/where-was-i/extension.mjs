@@ -318,28 +318,34 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
 
 .file-list { list-style: none; }
 .file-list li {
+  padding: 0;
+}
+.file-list .file-change {
   align-items: center;
+  background: transparent;
+  border: 0;
   border-radius: 6px;
+  color: var(--muted);
   display: flex;
   gap: 8px;
   font-family: var(--mono);
   font-size: 0.8rem;
+  text-align: left;
+  width: 100%;
   padding: 7px 8px;
-  color: var(--muted);
 }
-.file-list li.file-change {
+.file-list .file-change {
   cursor: pointer;
   transition: background 0.12s ease, color 0.12s ease;
 }
-.file-list li.file-change:hover,
-.file-list li.file-change:focus-visible {
+.file-list .file-change:hover,
+.file-list .file-change:focus-visible {
   background: color-mix(in srgb, var(--azure) 7%, transparent);
   color: var(--text);
   outline: none;
 }
-.file-list li.file-change::after {
+.file-list .view-diff {
   color: var(--meta);
-  content: "View diff";
   font-family: var(--sans);
   font-size: 0.7rem;
   margin-left: auto;
@@ -720,9 +726,12 @@ function render(data) {
           \${files.map(f => {
             const status = describeStatus(f.code);
             return \`
-            <li class="file-change" tabindex="0" data-path="\${escapeHtml(encodeURIComponent(f.path))}" onclick="showDiff(decodeURIComponent(this.dataset.path))" onkeydown="if(event.key === 'Enter' || event.key === ' ') showDiff(decodeURIComponent(this.dataset.path))">
-              <span class="status-badge \${status.kind}">\${status.label}</span>
-              <span class="file-path">\${escapeHtml(f.path)}</span>
+            <li>
+              <button type="button" class="file-change" data-path="\${escapeHtml(encodeURIComponent(f.path))}">
+                <span class="status-badge \${status.kind}">\${status.label}</span>
+                <span class="file-path">\${escapeHtml(f.path)}</span>
+                <span class="view-diff">View diff</span>
+              </button>
             </li>
           \`;
           }).join("")}
@@ -761,6 +770,15 @@ function render(data) {
       <p class="resume-hint">Sends your full context to the agent so it can help you pick up</p>
     </div>
   \`;
+  wireFileChangeButtons();
+}
+
+function wireFileChangeButtons() {
+  document.querySelectorAll(".file-change").forEach((button) => {
+    button.addEventListener("click", () => {
+      showDiff(decodeURIComponent(button.dataset.path));
+    });
+  });
 }
 
 async function doRefresh(btn) {
