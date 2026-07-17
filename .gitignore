@@ -24,3 +24,4 @@ website/public/llms.txt
 *.sln
 obj/
 bin/
+.impeccable

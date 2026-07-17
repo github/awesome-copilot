@@ -66,27 +66,27 @@ function aggregateResultStatus(pluginResults) {
   };
 }
 
-export function runExternalPluginPrQualityGates(plugins) {
+export async function runExternalPluginPrQualityGates(plugins) {
   if (!Array.isArray(plugins)) {
     throw new Error("plugins must be an array");
   }
 
-  const checkedPlugins = plugins.map((plugin) => {
-    const quality = runExternalPluginQualityGates(plugin);
+  const checkedPlugins = await Promise.all(plugins.map(async (plugin) => {
+    const quality = await runExternalPluginQualityGates(plugin);
     return {
       name: plugin?.name ?? "unknown",
       source: plugin?.source ?? {},
       source_tree_url: buildSourceTreeUrl(plugin),
       quality,
     };
-  });
+  }));
 
   const aggregate = aggregateResultStatus(checkedPlugins);
   const summary = checkedPlugins.length === 0
     ? "No changed external plugin entries were detected in plugins/external.json."
     : checkedPlugins
       .map((entry) =>
-        `- ${entry.name}: skill-validator=${entry.quality.skill_validator_status}, install-smoke=${entry.quality.smoke_status}, overall=${entry.quality.overall_status}`
+        `- ${entry.name}: vally-lint=${entry.quality.vally_lint_status}, install-smoke=${entry.quality.smoke_status}, version-match=${entry.quality.version_match_status}, overall=${entry.quality.overall_status}`
       )
       .join("\n");
 
@@ -120,6 +120,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 
   const plugins = JSON.parse(args["plugins-json"]);
-  const result = runExternalPluginPrQualityGates(plugins);
+  const result = await runExternalPluginPrQualityGates(plugins);
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }

@@ -1,0 +1,171 @@
+---
+/**
+ * Install actions for plugins and canvas extensions.
+ *
+ * Renders a split-button dropdown that deep-links into VS Code, VS Code
+ * Insiders, and the GitHub Copilot app, plus an optional CLI command block.
+ * The dropdown open/close is wired by resource-detail.ts via `data-install-menu`.
+ */
+export interface PluginInstallProps {
+  isExternal?: boolean;
+  /** awesome-copilot plugin id (internal installs). */
+  pluginId?: string | null;
+  /** Upstream marketplace source (owner/repo or git URL) for external installs. */
+  externalSource?: string | null;
+  /** CLI install command (internal only). */
+  installCommand?: string | null;
+  /** Heading shown above the buttons. */
+  label?: string;
+  /** Note shown for external installs. */
+  note?: string;
+}
+
+const {
+  isExternal = false,
+  pluginId = null,
+  externalSource = null,
+  installCommand = null,
+  label,
+  note,
+} = Astro.props as PluginInstallProps;
+
+const MARKETPLACE = "awesome-copilot";
+
+let vscodeUrl: string | null = null;
+let insidersUrl: string | null = null;
+let ghappUrl: string | null = null;
+
+if (isExternal) {
+  if (externalSource) {
+    vscodeUrl = `vscode://chat-plugin/install?source=${encodeURIComponent(
+      externalSource
+    )}`;
+    insidersUrl = `vscode-insiders://chat-plugin/install?source=${encodeURIComponent(
+      externalSource
+    )}`;
+    ghappUrl = `ghapp://plugins/marketplace/add?source=${encodeURIComponent(
+      externalSource
+    )}`;
+  }
+} else if (pluginId) {
+  const plugin = encodeURIComponent(pluginId);
+  vscodeUrl = `vscode://chat-plugin/install?source=github/awesome-copilot&plugin=${plugin}`;
+  insidersUrl = `vscode-insiders://chat-plugin/install?source=github/awesome-copilot&plugin=${plugin}`;
+  ghappUrl = `ghapp://plugins/install?source=${encodeURIComponent(
+    `${pluginId}@${MARKETPLACE}`
+  )}`;
+}
+
+const ghappLabel = isExternal
+  ? "Open in GitHub Copilot app"
+  : "Install in GitHub Copilot app";
+
+const primaryUrl = ghappUrl ?? vscodeUrl ?? insidersUrl;
+const primaryLabel =
+  primaryUrl === ghappUrl
+    ? ghappLabel
+    : primaryUrl === vscodeUrl
+      ? "Install in VS Code"
+      : "Install in VS Code Insiders";
+const primaryIsGhapp = primaryUrl === ghappUrl;
+const heading = label ?? (isExternal ? "Install this plugin" : "Install");
+---
+
+<div class="skill-install">
+  <p class="skill-install-label">{heading}</p>
+  {note && <p class="skill-install-note">{note}</p>}
+
+  {
+    primaryUrl && (
+      <div class="install-dropdown" data-install-menu>
+        <a
+          class="btn btn-primary install-btn-main"
+          href={primaryUrl}
+          {...(primaryIsGhapp ? {} : { target: "_blank", rel: "noopener" })}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          {primaryLabel}
+        </a>
+        <button
+          type="button"
+          class="btn btn-primary install-btn-toggle"
+          aria-label="More install options"
+          aria-haspopup="true"
+          aria-expanded="false"
+          data-install-toggle
+        >
+          <svg
+            viewBox="0 0 16 16"
+            width="12"
+            height="12"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z" />
+          </svg>
+        </button>
+        <div class="install-dropdown-menu" role="menu">
+          {ghappUrl && (
+            <a href={ghappUrl} role="menuitem">
+              {ghappLabel}
+            </a>
+          )}
+          {ghappUrl && (vscodeUrl || insidersUrl) && (
+            <div class="dropdown-divider" role="separator" aria-hidden="true" />
+          )}
+          {vscodeUrl && (
+            <a href={vscodeUrl} target="_blank" rel="noopener" role="menuitem">
+              Install in VS Code
+            </a>
+          )}
+          {insidersUrl && (
+            <a href={insidersUrl} target="_blank" rel="noopener" role="menuitem">
+              Install in VS Code Insiders
+            </a>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  {
+    installCommand && (
+      <>
+        <p class="skill-install-label">Or install with the CLI</p>
+        <div class="skill-install-command" data-install-command={installCommand}>
+          <code tabindex="0">{installCommand}</code>
+          <button
+            type="button"
+            class="skill-install-copy"
+            data-action="copy-install"
+            title="Copy install command"
+            aria-label="Copy install command"
+          >
+            <svg
+              viewBox="0 0 16 16"
+              width="15"
+              height="15"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z" />
+              <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z" />
+            </svg>
+          </button>
+        </div>
+      </>
+    )
+  }
+</div>

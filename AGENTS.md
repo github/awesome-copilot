@@ -21,6 +21,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 ├── hooks/            # Automated workflow hooks (folders with README.md + hooks.json)
 ├── workflows/        # Agentic Workflows (.md files for GitHub Actions automation)
 ├── plugins/          # Installable plugin packages (folders with plugin.json)
+├── extensions/       # Canvas extensions (each with extension.mjs and plugin metadata)
 ├── docs/             # Documentation for different resource types
 ├── eng/              # Build and automation scripts
 └── scripts/          # Utility scripts
@@ -80,6 +81,19 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 - Bundled assets should be referenced in the SKILL.md instructions
 - Asset files should be reasonably sized (under 5MB per file)
 - Skills follow the [Agent Skills specification](https://agentskills.io/specification)
+
+#### Canvas Extensions (extensions/\*)
+
+- Each extension folder must include `extension.mjs`
+- Extension metadata must live at `.github/plugin/plugin.json`
+- Extension `plugin.json` **must** follow the convention:
+  - `name`, `description`, `version` are required
+  - `logo` **must** be exactly `"assets/preview.png"` (enforced convention)
+  - `extensions` **must** be exactly `"."` (per [copilot-agent-runtime#9929](https://github.com/github/copilot-agent-runtime/pull/9929))
+  - Optional: `author`, `keywords` fields
+  - **Must not** include `x-awesome-copilot` field (use convention-based `assets/preview.png` only)
+- Each extension must have `assets/preview.png` as the primary visual asset
+- Do not add `canvas.json`; website metadata is sourced from `.github/plugin/plugin.json`
 
 #### Hook Folders (hooks/\*/README.md)
 
@@ -159,6 +173,14 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 4. Run `npm run plugin:validate` to validate the plugin structure
 5. Run `npm run build` to update README.md and marketplace.json
 6. Verify the plugin appears in `.github/plugin/marketplace.json`
+
+**For Canvas Extensions:**
+
+1. Create/update the extension in `extensions/<extension-id>/` with `extension.mjs`
+2. Add `.github/plugin/plugin.json` metadata (required: `name`, `description`, `version`, `logo: "assets/preview.png"`, `extensions: "."`; optional: `author`, `keywords`)
+3. Ensure `assets/preview.png` exists as the primary visual asset
+4. Run `npm run plugin:validate` to validate plugin and extension metadata
+5. Run `npm run build` to regenerate website data and marketplace output
 
 **For External Plugins:**
 

@@ -1,0 +1,19 @@
+{
+  "name": "token-pacman",
+  "description": "Visualizes live session AI-credit usage as a Pac-Man board with pellets, ghosts, fruit milestones, and game-over limits.",
+  "version": "1.0.0",
+  "author": {
+    "name": "James Montemagno",
+    "url": "https://github.com/jamesmontemagno"
+  },
+  "keywords": [
+    "ai-credits",
+    "copilot-canvas",
+    "interactive-canvas",
+    "pac-man",
+    "quota-tracking",
+    "session-usage"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

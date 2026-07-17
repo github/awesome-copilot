@@ -1,6 +1,5 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
-import Modal from "../components/Modal.astro";
 import Icon from "../components/Icon.astro";
 import BackToTop from "../components/BackToTop.astro";
 
@@ -117,44 +116,6 @@ const base = import.meta.env.BASE_URL;
             </div>
           </a>
           <a
-            href={`${base}hooks/`}
-            class="card card-with-count card-category-automation"
-            id="card-hooks"
-            style="--animation-delay: 150ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="hook" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Hooks</h3>
-              <p>Automated workflows triggered by agent events</p>
-            </div>
-            <div class="card-count" data-count="hooks" aria-label="Hook count">
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}workflows/`}
-            class="card card-with-count card-category-automation"
-            id="card-workflows"
-            style="--animation-delay: 200ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="workflow" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Workflows</h3>
-              <p>AI-powered automations for GitHub Actions</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="workflows"
-              aria-label="Workflow count"
-            >
-              -
-            </div>
-          </a>
-          <a
             href={`${base}plugins/`}
             class="card card-with-count card-category-extension"
             id="card-plugins"
@@ -197,23 +158,6 @@ const base = import.meta.env.BASE_URL;
             </div>
           </a>
           <a
-            href={`${base}tools/`}
-            class="card card-with-count card-category-dev"
-            id="card-tools"
-            style="--animation-delay: 350ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="wrench" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Tools</h3>
-              <p>MCP servers and developer tools</p>
-            </div>
-            <div class="card-count" data-count="tools" aria-label="Tool count">
-              -
-            </div>
-          </a>
-          <a
             href={`${base}learning-hub/`}
             class="card card-with-count card-category-learn"
             id="card-learning-hub"
@@ -231,8 +175,6 @@ const base = import.meta.env.BASE_URL;
       </div>
     </section>
   </div>
-
-  <Modal />
 
   <!-- Back to Top Button -->
   <BackToTop />

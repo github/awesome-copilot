@@ -1,0 +1,19 @@
+{
+  "name": "site-studio",
+  "description": "Plan, draft, and track a personal website section by section — a shared canvas where you and your agent author content, watch progress, and review every change.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ayan Gupta",
+    "url": "https://github.com/ayangupt"
+  },
+  "keywords": [
+    "agent-collaboration",
+    "content-authoring",
+    "personal-website",
+    "progress-tracking",
+    "section-planning",
+    "site-builder"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

@@ -2,7 +2,7 @@
 
 /**
  * Generate JSON metadata files for the GitHub Pages website.
- * This script extracts metadata from agents, instructions, skills, hooks, and plugins
+ * This script extracts metadata from agents, instructions, skills, and plugins
  * and writes them to website/data/ for client-side search and display.
  */
 
@@ -14,27 +14,26 @@ import {
   AGENTS_DIR,
   COOKBOOK_DIR,
   EXTENSIONS_DIR,
-  HOOKS_DIR,
   INSTRUCTIONS_DIR,
   PLUGINS_DIR,
   ROOT_FOLDER,
   SKILLS_DIR,
-  WORKFLOWS_DIR,
 } from "./constants.mjs";
 import { getGitFileDates } from "./utils/git-dates.mjs";
 import {
   parseFrontmatter,
-  parseHookMetadata,
   parseSkillMetadata,
-  parseWorkflowMetadata,
   parseYamlFile,
 } from "./yaml-parser.mjs";
+import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 
 const WEBSITE_DIR = path.join(ROOT_FOLDER, "website");
 const WEBSITE_DATA_DIR = path.join(WEBSITE_DIR, "public", "data");
 const WEBSITE_SOURCE_DATA_DIR = path.join(WEBSITE_DIR, "data");
+const EXTERNAL_CANVAS_KEYWORD = "canvas";
+const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
 
 /**
  * Ensure the output directory exists
@@ -99,6 +98,42 @@ function formatDisplayName(value) {
 
 function normalizeText(value, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
+}
+
+function normalizeRepoRelativePath(value) {
+  const normalized = normalizeText(value);
+  if (!normalized || normalized === "/") {
+    return "";
+  }
+
+  return normalized.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+}
+
+function joinRepoPath(...segments) {
+  return segments
+    .map((segment) => String(segment ?? "").trim())
+    .filter(Boolean)
+    .join("/")
+    .replace(/\/+/g, "/");
+}
+
+/**
+ * Normalize an author value (npm string form or { name, url } object) to
+ * { name, url? } | null. Returns null when no usable name is present.
+ */
+function normalizeAuthor(value) {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const name = value.trim();
+    return name ? { name } : null;
+  }
+  if (typeof value === "object") {
+    const name = normalizeText(value.name);
+    if (!name) return null;
+    const url = normalizeText(value.url);
+    return url ? { name, url } : { name };
+  }
+  return null;
 }
 
 /**
@@ -188,130 +223,6 @@ function generateAgentsData(gitDates) {
     filters: {
       models: ["(none)", ...Array.from(allModels).sort()],
       tools: Array.from(allTools).sort(),
-    },
-  };
-}
-
-/**
- * Generate hooks metadata
- */
-/**
- * Generate hooks metadata (similar to skills - folder-based)
- */
-function generateHooksData(gitDates) {
-  const hooks = [];
-
-  // Check if hooks directory exists
-  if (!fs.existsSync(HOOKS_DIR)) {
-    return {
-      items: hooks,
-      filters: {
-        hooks: [],
-        tags: [],
-      },
-    };
-  }
-
-  // Get all hook folders (directories)
-  const hookFolders = fs.readdirSync(HOOKS_DIR).filter((file) => {
-    const filePath = path.join(HOOKS_DIR, file);
-    return fs.statSync(filePath).isDirectory();
-  });
-
-  // Track all unique values for filters
-  const allHookTypes = new Set();
-  const allTags = new Set();
-
-  for (const folder of hookFolders) {
-    const hookPath = path.join(HOOKS_DIR, folder);
-    const metadata = parseHookMetadata(hookPath);
-    if (!metadata) continue;
-
-    const relativePath = path
-      .relative(ROOT_FOLDER, hookPath)
-      .replace(/\\/g, "/");
-    const readmeRelativePath = `${relativePath}/README.md`;
-
-    // Track unique values
-    (metadata.hooks || []).forEach((h) => allHookTypes.add(h));
-    (metadata.tags || []).forEach((t) => allTags.add(t));
-
-    hooks.push({
-      id: folder,
-      title: metadata.name,
-      description: metadata.description,
-      hooks: metadata.hooks || [],
-      tags: metadata.tags || [],
-      assets: metadata.assets || [],
-      path: relativePath,
-      readmeFile: readmeRelativePath,
-      lastUpdated: gitDates.get(readmeRelativePath) || null,
-    });
-  }
-
-  // Sort and return with filter metadata
-  const sortedHooks = hooks.sort((a, b) => a.title.localeCompare(b.title));
-
-  return {
-    items: sortedHooks,
-    filters: {
-      hooks: Array.from(allHookTypes).sort(),
-      tags: Array.from(allTags).sort(),
-    },
-  };
-}
-
-/**
- * Generate workflows metadata (flat .md files)
- */
-function generateWorkflowsData(gitDates) {
-  const workflows = [];
-
-  if (!fs.existsSync(WORKFLOWS_DIR)) {
-    return {
-      items: workflows,
-      filters: {
-        triggers: [],
-      },
-    };
-  }
-
-  const workflowFiles = fs.readdirSync(WORKFLOWS_DIR).filter((file) => {
-    return file.endsWith(".md") && file !== ".gitkeep";
-  });
-
-  const allTriggers = new Set();
-
-  for (const file of workflowFiles) {
-    const filePath = path.join(WORKFLOWS_DIR, file);
-    const metadata = parseWorkflowMetadata(filePath);
-    if (!metadata) continue;
-
-    const relativePath = path
-      .relative(ROOT_FOLDER, filePath)
-      .replace(/\\/g, "/");
-
-    (metadata.triggers || []).forEach((t) => allTriggers.add(t));
-
-    const id = path.basename(file, ".md");
-    workflows.push({
-      id,
-      title: metadata.name,
-      description: metadata.description,
-      triggers: metadata.triggers || [],
-      path: relativePath,
-      lastUpdated: gitDates.get(relativePath) || null,
-    });
-  }
-
-  const sortedWorkflows = workflows.sort((a, b) =>
-    a.title.localeCompare(b.title)
-  );
-
-  return {
-    items: sortedWorkflows,
-    filters: {
-      triggers: Array.from(allTriggers).sort(),
     },
   };
 }
@@ -446,7 +357,7 @@ function generateSkillsData(gitDates) {
         .replace(/\\/g, "/");
 
       // Get all files in the skill folder recursively
-      const files = getSkillFiles(skillPath, relativePath);
+      const files = getFolderFiles(skillPath, relativePath);
 
       // Get last updated from SKILL.md file
       const skillFilePath = `${relativePath}/SKILL.md`;
@@ -492,9 +403,9 @@ function generateSkillsData(gitDates) {
 }
 
 /**
- * Get all files in a skill folder recursively
+ * Get all files in a resource folder (skill or hook) recursively.
  */
-function getSkillFiles(skillPath, relativePath) {
+function getFolderFiles(skillPath, relativePath) {
   const files = [];
 
   function walkDir(dir, relDir) {
@@ -537,10 +448,89 @@ function getAgentFiles(agentDir, pluginRootPath) {
 }
 
 /**
+ * Build a lookup index of resource id -> { title, url } for the kinds that have
+ * dedicated detail pages, so plugin items can deep-link to them.
+ */
+function buildResourceIndex({ agents, skills, instructions, extensions }) {
+  const toMap = (items, urlPrefix) => {
+    const map = new Map();
+    for (const item of items || []) {
+      if (!item?.id) continue;
+      map.set(item.id, {
+        title: item.title || item.id,
+        url: `/${urlPrefix}/${item.id}/`,
+      });
+    }
+    return map;
+  };
+  const extensionMap = new Map();
+  for (const item of extensions || []) {
+    if (!item?.id) continue;
+
+    const entry = {
+      title: item.name || item.title || item.id,
+      url: `/extension/${item.id}/`,
+    };
+    const keys = [
+      item.id,
+      item.extensionId,
+      item.path ? pluginItemCandidateId(item.path) : null,
+    ].filter(Boolean);
+
+    for (const key of keys) {
+      if (!extensionMap.has(key)) {
+        extensionMap.set(key, entry);
+      }
+    }
+  }
+
+  return {
+    agent: toMap(agents, "agent"),
+    skill: toMap(skills, "skill"),
+    instruction: toMap(instructions, "instruction"),
+    extension: extensionMap,
+  };
+}
+
+/**
+ * Derive the candidate resource id for a plugin item path (basename without a
+ * known resource extension), e.g. "./skills/foo/" -> "foo",
+ * "plugins/x/agents/bar.md" -> "bar".
+ */
+function pluginItemCandidateId(itemPath) {
+  const trimmed = String(itemPath || "")
+    .replace(/^\.\/+/, "")
+    .replace(/\/+$/, "");
+  const base = trimmed.split("/").pop() || "";
+  return base
+    .replace(/\.agent\.md$/i, "")
+    .replace(/\.prompt\.md$/i, "")
+    .replace(/\.instructions\.md$/i, "")
+    .replace(/\.md$/i, "");
+}
+
+/**
+ * Enrich a plugin item ({ kind, path }) with a display title and, when the item
+ * resolves to a known resource with a detail page, a detailUrl.
+ */
+function resolvePluginItem(item, resourceIndex) {
+  const candidateId = pluginItemCandidateId(item.path);
+  const lookup = resourceIndex?.[item.kind];
+  const match = lookup?.get(candidateId);
+
+  return {
+    ...item,
+    title: match?.title || item.title || candidateId || item.path,
+    detailUrl: match?.url || null,
+  };
+}
+
+/**
  * Generate plugins metadata
  */
-function generatePluginsData(gitDates) {
+function generatePluginsData(gitDates, resourceIndex = {}) {
   const plugins = [];
+  const extensionEntriesByName = new Map();
 
   if (!fs.existsSync(PLUGINS_DIR)) {
     return { items: [], filters: { tags: [] } };
@@ -549,6 +539,62 @@ function generatePluginsData(gitDates) {
   const pluginDirs = fs
     .readdirSync(PLUGINS_DIR, { withFileTypes: true })
     .filter((d) => d.isDirectory());
+
+  if (fs.existsSync(EXTENSIONS_DIR)) {
+    const extensionDirs = fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
+      .filter((entry) => {
+        if (!entry.isDirectory()) return false;
+        return fs.existsSync(path.join(EXTENSIONS_DIR, entry.name, "extension.mjs"));
+      })
+      .map((entry) => entry.name)
+      .sort((a, b) => a.localeCompare(b));
+
+    for (const extensionDirName of extensionDirs) {
+      const extensionDir = path.join(EXTENSIONS_DIR, extensionDirName);
+      const pluginJsonPath = path.join(extensionDir, ".github", "plugin", "plugin.json");
+      if (!fs.existsSync(pluginJsonPath)) {
+        continue;
+      }
+
+      try {
+        const extensionPlugin = JSON.parse(fs.readFileSync(pluginJsonPath, "utf-8"));
+        const pluginName = normalizeText(extensionPlugin.name, extensionDirName);
+        const pluginDescription = normalizeText(extensionPlugin.description, "Canvas extension");
+        const extensionKeywords = Array.isArray(extensionPlugin.keywords)
+          ? [...new Set(extensionPlugin.keywords.filter((keyword) => typeof keyword === "string").map((keyword) => keyword.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b))
+          : [];
+        const relPath = `extensions/${extensionDirName}`;
+        const extensionItem = resolvePluginItem(
+          {
+            kind: "extension",
+            path: relPath,
+          },
+          resourceIndex
+        );
+        const extReadmePath = path.join(extensionDir, "README.md");
+        const extReadmeFile = fs.existsSync(extReadmePath)
+          ? `${relPath}/README.md`
+          : null;
+
+        extensionEntriesByName.set(pluginName, {
+          id: pluginName,
+          name: pluginName,
+          description: pluginDescription,
+          path: relPath,
+          readmeFile: extReadmeFile,
+          version: normalizeText(extensionPlugin.version, null),
+          tags: extensionKeywords,
+          itemCount: 1,
+          items: [extensionItem],
+          generatedFromExtension: true,
+          lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
+          searchText: `${pluginName} ${pluginDescription} ${extensionKeywords.join(" ")} canvas extension`.toLowerCase(),
+        });
+      } catch (e) {
+        console.warn(`Failed to parse extension plugin manifest for ${extensionDirName}: ${e.message}`);
+      }
+    }
+  }
 
   for (const dir of pluginDirs) {
     const pluginDir = path.join(PLUGINS_DIR, dir.name);
@@ -559,7 +605,18 @@ function generatePluginsData(gitDates) {
     try {
       const data = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
       const relPath = `plugins/${dir.name}`;
-      const dates = gitDates[relPath] || gitDates[`${relPath}/`] || {};
+      const extensionRefs = Array.isArray(data?.["x-awesome-copilot"]?.extensions)
+        ? data["x-awesome-copilot"].extensions
+        : [];
+      const extensionItems = extensionRefs
+        .map((entry) => normalizeText(entry))
+        .filter(Boolean)
+        .map((entry) => entry.replace(/^\.\/+/, "").replace(/\/$/, ""))
+        .filter((entry) => entry.startsWith("extensions/"))
+        .map((entry) => ({
+          kind: "extension",
+          path: entry,
+        }));
 
       const agentItems = (data.agents || []).flatMap((agent) => {
         const agentPath = agent.replace("./", "");
@@ -577,30 +634,72 @@ function generatePluginsData(gitDates) {
         ];
       });
 
-      // Build items list from spec fields (agents, commands, skills)
+      // Parse mcpServers: supports a path to a .mcp.json file or an inline object
+      const mcpItems = [];
+      if (data.mcpServers) {
+        let mcpServersObj = null;
+        let mcpConfigPath = relPath;
+        if (typeof data.mcpServers === "string") {
+          const manifestMcpPath = data.mcpServers.replace(/^\.\//, "");
+          mcpConfigPath = manifestMcpPath ? `${relPath}/${manifestMcpPath}` : relPath;
+          const mcpJsonPath = path.join(pluginDir, manifestMcpPath);
+          if (fs.existsSync(mcpJsonPath)) {
+            try {
+              const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, "utf-8"));
+              mcpServersObj = mcpJson.mcpServers || mcpJson;
+            } catch {
+              // ignore parse errors
+            }
+          }
+        } else if (typeof data.mcpServers === "object") {
+          mcpServersObj = data.mcpServers;
+        }
+        if (mcpServersObj) {
+          for (const serverName of Object.keys(mcpServersObj)) {
+            mcpItems.push({ kind: "mcp", path: mcpConfigPath, title: serverName });
+          }
+        }
+      }
+
+      // Build items list from spec fields (agents, commands, skills, mcpServers)
       const items = [
         ...agentItems,
         ...(data.commands || []).map((p) => ({ kind: "prompt", path: p })),
         ...(data.skills || []).map((p) => ({ kind: "skill", path: p })),
-      ];
+        ...extensionItems,
+        ...mcpItems,
+      ].map((item) => resolvePluginItem(item, resourceIndex));
 
       const tags = data.keywords || data.tags || [];
+      const pluginName = data.name || dir.name;
+
+      const readmePath = path.join(pluginDir, "README.md");
+      const readmeFile = fs.existsSync(readmePath)
+        ? `${relPath}/README.md`
+        : null;
 
       plugins.push({
         id: dir.name,
-        name: data.name || dir.name,
+        name: pluginName,
         description: data.description || "",
         path: relPath,
+        readmeFile,
+        version: normalizeText(data.version, null),
         tags: tags,
         itemCount: items.length,
         items: items,
-        lastUpdated: dates.lastModified || null,
-        searchText: `${data.name || dir.name} ${data.description || ""
+        lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
+        searchText: `${pluginName} ${data.description || ""
           } ${tags.join(" ")}`.toLowerCase(),
       });
+      extensionEntriesByName.delete(pluginName);
     } catch (e) {
       console.warn(`Failed to parse plugin: ${dir.name}`, e.message);
     }
+  }
+
+  for (const extensionPlugin of extensionEntriesByName.values()) {
+    plugins.push(extensionPlugin);
   }
 
   // Load external plugins from plugins/external.json
@@ -635,6 +734,7 @@ function generatePluginsData(gitDates) {
             name: ext.name,
             description: ext.description || "",
             path: `plugins/${ext.name}`,
+            version: normalizeText(ext.version, null),
             tags: tags,
             itemCount: 0,
             items: [],
@@ -975,6 +1075,155 @@ function normalizeExternalScreenshotRole(value, ref) {
   };
 }
 
+function buildExternalRepoImageUrl(repo, locator, assetPath) {
+  if (!repo || !locator || !assetPath) {
+    return null;
+  }
+
+  const encodedLocator = locator
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  const encodedPath = assetPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `https://raw.githubusercontent.com/${repo}/${encodedLocator}/${encodedPath}`;
+}
+
+function buildExternalRepoTreeUrl(repo, locator, pluginRoot) {
+  if (!repo) {
+    return null;
+  }
+
+  if (locator) {
+    const treePath = normalizeRepoRelativePath(pluginRoot);
+    const encodedLocator = locator
+      .split("/")
+      .map((segment) => encodeURIComponent(segment))
+      .join("/");
+    const encodedTreePath = treePath
+      ? treePath
+        .split("/")
+        .map((segment) => encodeURIComponent(segment))
+        .join("/")
+      : null;
+    const suffix = encodedTreePath ? `/${encodedTreePath}` : "";
+    return `https://github.com/${repo}/tree/${encodedLocator}${suffix}`;
+  }
+
+  return `https://github.com/${repo}`;
+}
+
+function hasCanvasKeyword(plugin) {
+  return normalizeExternalKeywords(plugin).some(
+    (keyword) => normalizeText(keyword).toLowerCase() === EXTERNAL_CANVAS_KEYWORD
+  );
+}
+
+function normalizeExternalKeywords(plugin) {
+  const source = Array.isArray(plugin?.keywords)
+    ? plugin.keywords
+    : Array.isArray(plugin?.tags)
+      ? plugin.tags
+      : [];
+
+  return [...new Set(
+    source
+      .filter((keyword) => typeof keyword === "string")
+      .map((keyword) => keyword.trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
+}
+
+function normalizeExtensionScreenshotRole(value, relPath, ref) {
+  if (!value) return null;
+  if (typeof value === "string") {
+    if (/^https?:\/\//i.test(value)) {
+      return {
+        path: null,
+        type: getImageMimeType(value),
+        imageUrl: value,
+      };
+    }
+
+    const normalized = value.replace(/\\/g, "/").replace(/^\.\/+/, "");
+    const repoPath = normalized.startsWith(`${relPath}/`) ? normalized : `${relPath}/${normalized}`;
+    return {
+      path: repoPath,
+      type: getImageMimeType(repoPath),
+      imageUrl: buildRepoImageUrl(repoPath, ref),
+    };
+  }
+
+  const pathValue = normalizeText(value.path);
+  const urlValue = normalizeText(value.url);
+  if (!pathValue && !urlValue) return null;
+  const pathEntry = pathValue
+    ? normalizeExtensionScreenshotRole(pathValue, relPath, ref)
+    : null;
+  const urlEntry = urlValue
+    ? normalizeExtensionScreenshotRole(urlValue, relPath, ref)
+    : null;
+
+  return {
+    path: pathEntry?.path || null,
+    type: normalizeText(value.type) || pathEntry?.type || urlEntry?.type || null,
+    imageUrl: urlEntry?.imageUrl || pathEntry?.imageUrl || null,
+  };
+}
+
+function resolveExtensionScreenshots(pluginJson, extensionDir, relPath, ref) {
+  const inferredAssets = getExtensionAssetInfo(extensionDir, relPath, ref);
+  const inferredIcon = inferredAssets?.screenshots?.icon
+    ? {
+      path: inferredAssets.screenshots.icon.path,
+      type: inferredAssets.screenshots.icon.type,
+      imageUrl: inferredAssets.screenshots.icon.path
+        ? buildRepoImageUrl(inferredAssets.screenshots.icon.path, ref)
+        : null,
+    }
+    : null;
+  const inferredGallery = inferredAssets?.screenshots?.gallery
+    ? {
+      path: inferredAssets.screenshots.gallery.path,
+      type: inferredAssets.screenshots.gallery.type,
+      imageUrl: inferredAssets.screenshots.gallery.path
+        ? buildRepoImageUrl(inferredAssets.screenshots.gallery.path, ref)
+        : null,
+    }
+    : null;
+
+  const logoEntry = normalizeExtensionScreenshotRole(pluginJson?.logo, relPath, ref);
+  const screenshotConfig = pluginJson?.["x-awesome-copilot"]?.screenshots || {};
+  const iconEntry = normalizeExtensionScreenshotRole(screenshotConfig.icon, relPath, ref);
+  const galleryRaw = screenshotConfig.gallery;
+  const firstGalleryEntry = Array.isArray(galleryRaw) ? galleryRaw[0] : galleryRaw;
+  const galleryEntry = normalizeExtensionScreenshotRole(firstGalleryEntry, relPath, ref);
+
+  const finalIcon = iconEntry || logoEntry || inferredIcon;
+  const finalGallery = galleryEntry || logoEntry || inferredGallery || finalIcon;
+
+  return {
+    screenshots: {
+      icon: finalIcon
+        ? {
+          path: finalIcon.path,
+          type: finalIcon.type,
+        }
+        : null,
+      gallery: finalGallery
+        ? {
+          path: finalGallery.path,
+          type: finalGallery.type,
+        }
+        : null,
+    },
+    assetPath: finalIcon?.path || inferredAssets?.assetPath || null,
+    imageUrl: finalIcon?.imageUrl || inferredAssets?.imageUrl || null,
+  };
+}
+
 function generateCanvasManifest(gitDates, commitSha) {
   const items = [];
 
@@ -1002,13 +1251,31 @@ function generateCanvasManifest(gitDates, commitSha) {
     const packageJson = fs.existsSync(packageJsonPath)
       ? JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"))
       : {};
-    const keywords = Array.isArray(packageJson.keywords)
-      ? [...new Set(packageJson.keywords.filter((keyword) => typeof keyword === "string").map((keyword) => keyword.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b))
-      : [];
-    const extensionDescription = normalizeText(packageJson.description, "Canvas extension");
-    const extensionName = normalizeText(packageJson.name, dir.name);
-    const extensionVersion = normalizeText(packageJson.version, "1.0.0");
-    const screenshots = getExtensionAssetInfo(extensionDir, relPath, commitSha);
+    const pluginJsonPath = path.join(extensionDir, ".github", "plugin", "plugin.json");
+    const pluginJson = fs.existsSync(pluginJsonPath)
+      ? JSON.parse(fs.readFileSync(pluginJsonPath, "utf-8"))
+      : {};
+    const keywordsSource = Array.isArray(pluginJson.keywords)
+      ? pluginJson.keywords
+      : Array.isArray(packageJson.keywords)
+        ? packageJson.keywords
+        : [];
+    const keywords = [...new Set(
+      keywordsSource
+        .filter((keyword) => typeof keyword === "string")
+        .map((keyword) => keyword.trim())
+        .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+    const extensionDescription = normalizeText(
+      pluginJson.description,
+      normalizeText(packageJson.description, "Canvas extension")
+    );
+    const extensionName = normalizeText(pluginJson.name, normalizeText(packageJson.name, dir.name));
+    const extensionVersion = normalizeText(pluginJson.version, normalizeText(packageJson.version, "1.0.0"));
+    const readmeFile = fs.existsSync(path.join(extensionDir, "README.md"))
+      ? `${relPath}/README.md`
+      : null;
+    const screenshots = resolveExtensionScreenshots(pluginJson, extensionDir, relPath, commitSha);
     const canvasFiles = getExtensionCanvasFiles(extensionDir);
     const canvases = [];
     for (const canvasFile of canvasFiles) {
@@ -1022,6 +1289,7 @@ function generateCanvasManifest(gitDates, commitSha) {
       /\\/g,
       "/"
     )}`;
+    const installCommand = `copilot plugin install ${extensionName}@awesome-copilot`;
 
     for (const canvas of canvasEntries) {
       const canvasId = normalizeText(canvas.id, dir.name);
@@ -1032,8 +1300,10 @@ function generateCanvasManifest(gitDates, commitSha) {
         canvasId,
         extensionId: dir.name,
         extensionName,
+        pluginName: extensionName,
         name: canvasName,
         version: extensionVersion,
+        readmeFile,
         description: canvasDescription,
         path: relPath,
         ref: commitSha,
@@ -1042,8 +1312,10 @@ function generateCanvasManifest(gitDates, commitSha) {
         imageUrl: screenshots?.imageUrl || null,
         assetPath: screenshots?.assetPath || null,
         installUrl,
+        installCommand,
         sourceUrl: null,
         external: false,
+        author: normalizeAuthor(pluginJson.author),
         keywords,
       });
     }
@@ -1104,8 +1376,10 @@ function generateCanvasManifest(gitDates, commitSha) {
             canvasId,
             extensionId: id,
             extensionName: name,
+            pluginName: null,
             name,
             version: normalizeText(ext?.version, "1.0.0"),
+            readmeFile: null,
             description: normalizeText(ext?.description, "External canvas extension"),
             path: null,
             ref: null,
@@ -1114,8 +1388,10 @@ function generateCanvasManifest(gitDates, commitSha) {
             imageUrl,
             assetPath,
             installUrl,
+            installCommand: null,
             sourceUrl: sourceUrl || null,
             external: true,
+            author: normalizeAuthor(ext?.author),
             keywords,
           });
         }
@@ -1123,6 +1399,93 @@ function generateCanvasManifest(gitDates, commitSha) {
     } catch (e) {
       console.warn(`Failed to parse external extensions: ${e.message}`);
     }
+  }
+
+  const seenExtensionIds = new Set(items.map((item) => String(item.id).toLowerCase()));
+  const {
+    plugins: externalPlugins,
+    errors: externalPluginErrors,
+    warnings: externalPluginWarnings,
+  } = readExternalPlugins({ policy: "marketplace" });
+  externalPluginWarnings.forEach((warning) => console.warn(`Warning: ${warning}`));
+  if (externalPluginErrors.length > 0) {
+    externalPluginErrors.forEach((error) => console.error(`Error: ${error}`));
+    throw new Error("External plugin validation failed");
+  }
+
+  for (const ext of externalPlugins) {
+    if (!hasCanvasKeyword(ext)) {
+      continue;
+    }
+
+    const name = normalizeText(ext?.name);
+    if (!name) {
+      continue;
+    }
+    const displayName = formatDisplayName(name);
+
+    const id = normalizeText(ext?.name).toLowerCase().replace(/\s+/g, "-");
+    if (seenExtensionIds.has(id)) {
+      continue;
+    }
+
+    const source = ext?.source;
+    if (source?.source !== "github" || !normalizeText(source?.repo)) {
+      console.warn(`Warning: skipping external canvas "${name}" due to missing GitHub source`);
+      continue;
+    }
+
+    const locator = normalizeText(source.sha) || normalizeText(source.ref);
+    if (!locator) {
+      console.warn(`Warning: skipping external canvas "${name}" because source.sha or source.ref is required`);
+      continue;
+    }
+
+    const pluginRoot = normalizeRepoRelativePath(source.path);
+    const previewPath = joinRepoPath(pluginRoot, EXTERNAL_CANVAS_PREVIEW_PATH);
+    const imageUrl = buildExternalRepoImageUrl(source.repo, locator, previewPath);
+    const sourceUrl = buildExternalRepoTreeUrl(source.repo, locator, pluginRoot);
+    const externalSource = normalizeText(source.repo);
+    const keywords = normalizeExternalKeywords(ext);
+
+    items.push({
+      id,
+      canvasId: id,
+      extensionId: id,
+      extensionName: name,
+      pluginName: null,
+      name: displayName,
+      version: normalizeText(ext?.version, "1.0.0"),
+      readmeFile: null,
+      description: normalizeText(ext?.description, "External canvas extension"),
+      path: null,
+      ref: null,
+      lastUpdated: null,
+      screenshots: {
+        icon: imageUrl
+          ? {
+            path: imageUrl,
+            type: getImageMimeType(EXTERNAL_CANVAS_PREVIEW_PATH),
+          }
+          : null,
+        gallery: imageUrl
+          ? {
+            path: imageUrl,
+            type: getImageMimeType(EXTERNAL_CANVAS_PREVIEW_PATH),
+          }
+          : null,
+      },
+      imageUrl,
+      assetPath: null,
+      installUrl: null,
+      installCommand: null,
+      sourceUrl,
+      externalSource,
+      external: true,
+      author: normalizeAuthor(ext?.author),
+      keywords,
+    });
+    seenExtensionIds.add(id);
   }
 
   const sortedItems = items.sort((a, b) => a.name.localeCompare(b.name));
@@ -1138,12 +1501,12 @@ function generateCanvasManifest(gitDates, commitSha) {
   };
 }
 
-function generateExtensionsData(canvasManifestData) {
-  if (!canvasManifestData || !Array.isArray(canvasManifestData.items)) {
+function generateExtensionsData(extensionManifestData) {
+  if (!extensionManifestData || !Array.isArray(extensionManifestData.items)) {
     return { items: [], filters: { keywords: [] } };
   }
 
-  const items = canvasManifestData.items.map((item) => ({
+  const items = extensionManifestData.items.map((item) => ({
     ...item,
     keywords: Array.isArray(item.keywords) ? item.keywords : [],
     screenshots: item.screenshots || { icon: null, gallery: null },
@@ -1157,133 +1520,12 @@ function generateExtensionsData(canvasManifestData) {
   return { items, filters };
 }
 
-function writePerExtensionCanvasManifests(canvasManifestData) {
-  const manifests = new Map();
-
-  function toExtensionRelativePath(assetPath, extensionId) {
-    const normalizedPath = normalizeText(assetPath).replace(/\\/g, "/");
-    if (!normalizedPath) return null;
-    const prefix = `extensions/${extensionId}/`;
-    return normalizedPath.startsWith(prefix)
-      ? normalizedPath.slice(prefix.length)
-      : normalizedPath;
-  }
-
-  function toRelativeScreenshots(screenshots, extensionId) {
-    if (!screenshots) return { icon: null, gallery: null };
-    const toRelativeEntry = (entry) =>
-      entry
-        ? {
-          ...entry,
-          path: toExtensionRelativePath(entry.path, extensionId),
-        }
-        : null;
-    return {
-      icon: toRelativeEntry(screenshots.icon),
-      gallery: toRelativeEntry(screenshots.gallery),
-    };
-  }
-
-  for (const item of canvasManifestData.items || []) {
-    if (!item || item.external || !item.extensionId || !item.path) {
-      continue;
-    }
-
-    // We assume one canvas per extension folder.
-    if (manifests.has(item.extensionId)) {
-      continue;
-    }
-
-    manifests.set(item.extensionId, {
-      id: item.canvasId || item.id,
-      name: item.name,
-      description: item.description || "Canvas extension",
-      version: item.version || "1.0.0",
-      keywords: Array.isArray(item.keywords)
-        ? [...new Set(item.keywords)].sort((a, b) => a.localeCompare(b))
-        : [],
-      screenshots: toRelativeScreenshots(
-        item.screenshots || { icon: null, gallery: null },
-        item.extensionId
-      ),
-    });
-  }
-
-  for (const [extensionId, manifest] of manifests.entries()) {
-    const canvasManifestPath = path.join(
-      EXTENSIONS_DIR,
-      extensionId,
-      "canvas.json"
-    );
-    fs.writeFileSync(canvasManifestPath, JSON.stringify(manifest, null, 2));
-  }
-}
-
-/**
- * Generate tools metadata from website/data/tools.yml
- */
-function generateToolsData() {
-  const toolsFile = path.join(WEBSITE_SOURCE_DATA_DIR, "tools.yml");
-
-  if (!fs.existsSync(toolsFile)) {
-    console.warn("No tools.yml file found at", toolsFile);
-    return { items: [], filters: { categories: [], tags: [] } };
-  }
-
-  const data = parseYamlFile(toolsFile);
-
-  if (!data || !data.tools) {
-    return { items: [], filters: { categories: [], tags: [] } };
-  }
-
-  const allCategories = new Set();
-  const allTags = new Set();
-
-  const tools = data.tools.map((tool) => {
-    const category = tool.category || "Other";
-    allCategories.add(category);
-
-    const tags = tool.tags || [];
-    tags.forEach((t) => allTags.add(t));
-
-    return {
-      id: tool.id,
-      name: tool.name,
-      description: tool.description || "",
-      category: category,
-      featured: tool.featured || false,
-      requirements: tool.requirements || [],
-      features: tool.features || [],
-      links: tool.links || {},
-      configuration: tool.configuration || null,
-      tags: tags,
-    };
-  });
-
-  // Sort with featured first, then alphabetically
-  const sortedTools = tools.sort((a, b) => {
-    if (a.featured && !b.featured) return -1;
-    if (!a.featured && b.featured) return 1;
-    return a.name.localeCompare(b.name);
-  });
-
-  return {
-    items: sortedTools,
-    filters: {
-      categories: Array.from(allCategories).sort(),
-      tags: Array.from(allTags).sort(),
-    },
-  };
-}
-
 /**
  * Generate a combined index for search
  */
 function generateSearchIndex(
   agents,
   instructions,
-  hooks,
-  workflows,
   skills,
   plugins
 ) {
@@ -1313,33 +1555,6 @@ function generateSearchIndex(
       lastUpdated: instruction.lastUpdated,
       searchText: `${instruction.title} ${instruction.description} ${instruction.applyTo || ""
         }`.toLowerCase(),
-    });
-  }
-
-  for (const hook of hooks) {
-    index.push({
-      type: "hook",
-      id: hook.id,
-      title: hook.title,
-      description: hook.description,
-      path: hook.readmeFile,
-      lastUpdated: hook.lastUpdated,
-      searchText: `${hook.title} ${hook.description} ${hook.hooks.join(
-        " "
-      )} ${hook.tags.join(" ")}`.toLowerCase(),
-    });
-  }
-
-  for (const workflow of workflows) {
-    index.push({
-      type: "workflow",
-      id: workflow.id,
-      title: workflow.title,
-      description: workflow.description,
-      path: workflow.path,
-      lastUpdated: workflow.lastUpdated,
-      searchText: `${workflow.title} ${workflow.description
-        } ${workflow.triggers.join(" ")}`.toLowerCase(),
     });
   }
 
@@ -1512,8 +1727,6 @@ async function main() {
     [
       "agents/",
       "instructions/",
-      "hooks/",
-      "workflows/",
       "skills/",
       "extensions/",
       "plugins/",
@@ -1531,18 +1744,6 @@ async function main() {
     `✓ Generated ${agents.length} agents (${agentsData.filters.models.length} models, ${agentsData.filters.tools.length} tools)`
   );
 
-  const hooksData = generateHooksData(gitDates);
-  const hooks = hooksData.items;
-  console.log(
-    `✓ Generated ${hooks.length} hooks (${hooksData.filters.hooks.length} hook types, ${hooksData.filters.tags.length} tags)`
-  );
-
-  const workflowsData = generateWorkflowsData(gitDates);
-  const workflows = workflowsData.items;
-  console.log(
-    `✓ Generated ${workflows.length} workflows (${workflowsData.filters.triggers.length} triggers)`
-  );
-
   const instructionsData = generateInstructionsData(gitDates);
   const instructions = instructionsData.items;
   console.log(
@@ -1553,23 +1754,23 @@ async function main() {
   const skills = skillsData.items;
   console.log(`✓ Generated ${skills.length} skills`);
 
-  const pluginsData = generatePluginsData(gitDates);
-  const plugins = pluginsData.items;
-  console.log(
-    `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
-  );
-
-  const canvasManifestData = generateCanvasManifest(gitDates, commitSha);
-  const extensionsData = generateExtensionsData(canvasManifestData);
+  const extensionManifestData = generateCanvasManifest(gitDates, commitSha);
+  const extensionsData = generateExtensionsData(extensionManifestData);
   const extensions = extensionsData.items;
   console.log(
     `✓ Generated ${extensions.length} extensions (${extensionsData.filters.keywords.length} keywords)`
   );
 
-  const toolsData = generateToolsData();
-  const tools = toolsData.items;
+  const resourceIndex = buildResourceIndex({
+    agents,
+    skills,
+    instructions,
+    extensions,
+  });
+  const pluginsData = generatePluginsData(gitDates, resourceIndex);
+  const plugins = pluginsData.items;
   console.log(
-    `✓ Generated ${tools.length} tools (${toolsData.filters.categories.length} categories)`
+    `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
   );
 
   const samplesData = generateSamplesData();
@@ -1586,8 +1787,6 @@ async function main() {
   const searchIndex = generateSearchIndex(
     agents,
     instructions,
-    hooks,
-    workflows,
     skills,
     plugins
   );
@@ -1597,16 +1796,6 @@ async function main() {
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "agents.json"),
     JSON.stringify(agentsData, null, 2)
-  );
-
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "hooks.json"),
-    JSON.stringify(hooksData, null, 2)
-  );
-
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "workflows.json"),
-    JSON.stringify(workflowsData, null, 2)
   );
 
   fs.writeFileSync(
@@ -1629,12 +1818,6 @@ async function main() {
     JSON.stringify(extensionsData, null, 2)
   );
 
-  writePerExtensionCanvasManifests(canvasManifestData);
-
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "tools.json"),
-    JSON.stringify(toolsData, null, 2)
-  );
 
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "samples.json"),
@@ -1653,11 +1836,8 @@ async function main() {
       agents: agents.length,
       instructions: instructions.length,
       skills: skills.length,
-      hooks: hooks.length,
-      workflows: workflows.length,
       plugins: plugins.length,
       extensions: extensions.length,
-      tools: tools.length,
       contributors: contributorCount,
       samples: samplesData.totalRecipes,
       total: searchIndex.length,

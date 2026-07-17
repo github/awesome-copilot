@@ -1,0 +1,19 @@
+{
+  "name": "release-notes-showcase",
+  "description": "Compose and refine launch-ready release notes with contributor callouts and export-friendly output.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Kayla Cinnamon",
+    "url": "https://github.com/cinnamon-msft"
+  },
+  "keywords": [
+    "changelog",
+    "contributor-callouts",
+    "email-export",
+    "launch-summary",
+    "product-updates",
+    "release-notes"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

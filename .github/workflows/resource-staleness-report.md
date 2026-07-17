@@ -4,6 +4,7 @@ on:
   schedule: weekly
 permissions:
   contents: read
+  copilot-requests: write
 tools:
   github:
     toolsets: [repos]

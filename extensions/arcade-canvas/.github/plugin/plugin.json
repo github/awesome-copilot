@@ -1,0 +1,19 @@
+{
+  "name": "arcade-canvas",
+  "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Dan Wahlin",
+    "url": "https://github.com/DanWahlin"
+  },
+  "keywords": [
+    "arcade-games",
+    "copilot-canvas",
+    "interactive-canvas",
+    "phaser",
+    "retro-games",
+    "session-breaks"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

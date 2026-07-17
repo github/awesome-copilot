@@ -1,0 +1,115 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import BackToTop from "../../components/BackToTop.astro";
+import instructionsData from "../../../public/data/instructions.json";
+import RawMarkdown from "../../components/pages/RawMarkdown.astro";
+import type { HeaderItem } from "../../components/pages/Header.astro";
+import DetailHeader from "../../components/pages/Header.astro";
+import Breadcrumb from "../../components/pages/Breadcrumb.astro";
+import Main from "../../components/pages/Main.astro";
+import InstallButtons from "../../components/pages/InstallButtons.astro";
+import Sidebar from "../../components/pages/Sidebar.astro";
+import { loadDetailPage } from "../../lib/detail-page";
+
+interface InstructionItem extends HeaderItem {
+  id: string;
+  title: string;
+  description?: string;
+  applyTo?: string | string[] | null;
+  applyToPatterns?: string[];
+  extensions?: string[];
+  path: string;
+  filename?: string;
+  lastUpdated?: string | null;
+}
+
+export function getStaticPaths() {
+  return (instructionsData.items as InstructionItem[]).map((item) => ({
+    params: { id: item.id },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props as { item: InstructionItem };
+
+const {
+  vscodeUrl,
+  insidersUrl,
+  githubUrl,
+  markdownHtml,
+  frontmatterText,
+  rawMarkdown,
+  lastUpdated,
+} = loadDetailPage(item, "instruction");
+
+const applyToList = Array.isArray(item.applyTo)
+  ? item.applyTo
+  : item.applyTo
+    ? [item.applyTo]
+    : (item.applyToPatterns ?? []);
+const extensions = item.extensions ?? [];
+---
+
+<StarlightPage
+  frontmatter={{
+    title: item.title,
+    description: item.description,
+    template: "splash",
+    prev: false,
+    next: false,
+    editUrl: false,
+  }}
+>
+  <div
+    id="main-content"
+    class="resource-detail-page"
+    data-resource-detail
+    data-path={item.path}
+  >
+    <RawMarkdown markdown={rawMarkdown} />
+    <div class="container">
+      <Breadcrumb
+        paths={[
+          { name: "Home", href: "/" },
+          { name: "Instructions", href: "/instructions/" },
+        ]}
+        title={item.title}
+      />
+
+      <DetailHeader item={item} />
+
+      <div class="detail-layout">
+        <Main markdownHtml={markdownHtml} githubUrl={githubUrl} />
+
+        <Sidebar
+          item={item}
+          lastUpdated={lastUpdated ?? undefined}
+          frontmatterText={frontmatterText || undefined}
+          githubUrl={githubUrl}
+          chips={[
+            { title: "Applies to", items: applyToList },
+            {
+              title: "Extensions",
+              items: extensions,
+              filterBase: "/instructions/",
+              filterParam: "extension",
+            },
+          ]}
+        >
+          <InstallButtons
+            vscodeUrl={vscodeUrl}
+            insidersUrl={insidersUrl}
+            rawMarkdown={rawMarkdown}
+            slot="install"
+          />
+        </Sidebar>
+      </div>
+    </div>
+  </div>
+
+  <BackToTop />
+
+  <script>
+    import "../../scripts/pages/resource-detail";
+  </script>
+</StarlightPage>

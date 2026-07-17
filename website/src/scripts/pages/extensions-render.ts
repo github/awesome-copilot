@@ -1,5 +1,18 @@
-import { escapeHtml, getGitHubUrl, getLastUpdatedHtml } from "../utils";
+import {
+  escapeHtml,
+  getGitHubHandle,
+  getGitHubUrl,
+  getLastUpdatedHtml,
+} from "../utils";
+import { sanitizeHttpUrl } from "../../lib/external-source";
 import { renderEmptyStateHtml, renderSharedCardHtml } from "./card-render";
+
+// Allow only http(s) URLs from external/generated data; unsafe values collapse
+// to "" so downstream truthiness guards (disabled buttons, omitted links) hold.
+function safeUrl(value?: string | null): string {
+  const sanitized = sanitizeHttpUrl(value);
+  return sanitized === "#" ? "" : sanitized;
+}
 
 export interface RenderableExtension {
   id: string;
@@ -31,12 +44,20 @@ export interface RenderableExtension {
   } | null;
   imageUrl?: string | null;
   assetPath?: string | null;
+  pluginName?: string | null;
+  installCommand?: string | null;
   installUrl?: string | null;
   sourceUrl?: string | null;
+  externalSource?: string | null;
   external?: boolean;
+  author?: { name: string; url?: string } | null;
 }
 
 export type ExtensionSortOption = "title" | "lastUpdated";
+
+export function getExtensionDetailUrl(id: string): string {
+  return `/extension/${id}/`;
+}
 
 export function sortExtensions<T extends RenderableExtension>(
   items: T[],
@@ -63,20 +84,37 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
 
   return items
     .map((item) => {
-      const installUrl =
+      const installUrl = safeUrl(
         item.installUrl ||
-        (item.path && item.ref
-          ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
-             /\\/g,
-             "/"
-           )}`
-          : "");
-      const sourceUrl =
-        item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
+          (item.path && item.ref
+            ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
+                /\\/g,
+                "/"
+              )}`
+            : "")
+      );
+      const sourceUrl = safeUrl(
+        item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "")
+      );
+      const externalSource = (item.externalSource || "").trim();
+      const pluginId = item.pluginName || item.id;
+      const ghappInstallUrl =
+        item.external
+          ? externalSource
+            ? `ghapp://plugins/marketplace/add?source=${encodeURIComponent(
+                externalSource
+              )}`
+            : ""
+          : pluginId
+            ? `ghapp://plugins/install?source=${encodeURIComponent(
+                `${pluginId}@awesome-copilot`
+              )}`
+            : "";
 
-      const previewMediaHtml = item.imageUrl
-        ? `<div class="resource-thumbnail-btn" data-extension-id="${escapeHtml(item.id)}" aria-hidden="true">
-            <img class="resource-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />
+      const previewImageUrl = safeUrl(item.imageUrl);
+      const previewMediaHtml = previewImageUrl
+        ? `<div class="resource-thumbnail-btn" aria-hidden="true">
+            <img class="resource-thumbnail" src="${escapeHtml(previewImageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />
            </div>`
         : `<div class="resource-thumbnail resource-thumbnail-placeholder" aria-hidden="true">Canvas</div>`;
 
@@ -92,20 +130,48 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
         </div>
       `;
 
+      const authorName = item.author?.name;
+      const authorUrl = item.author?.url;
+      const authorHandle =
+        authorName && authorUrl
+          ? getGitHubHandle(authorUrl, authorName)
+          : authorName || "";
+      const authorHtml = authorName
+        ? `<span class="resource-tag resource-author" title="${escapeHtml(
+            authorName
+          )}">by ${escapeHtml(authorHandle || authorName)}</span>`
+        : "";
+
       const metaHtml = `
         ${item.external ? '<span class="resource-tag">External</span>' : ""}
+        ${authorHtml}
         ${getLastUpdatedHtml(item.lastUpdated)}
       `;
 
       const actionsHtml = `
-        <button
-          class="btn btn-primary btn-small copy-install-url-btn"
+        ${
+          ghappInstallUrl
+            ? `<a
+          class="btn btn-primary btn-small"
+          href="${escapeHtml(ghappInstallUrl)}"
+          title="Install in the GitHub Copilot app"
+        >
+          Install in Copilot app
+        </a>`
+            : ""
+        }
+        ${
+          !item.external
+            ? `<button
+          class="btn btn-secondary btn-small copy-install-url-btn"
           data-install-url="${escapeHtml(installUrl)}"
-          title="Copy install URL"
+          title="Copy fallback URL install target"
           ${installUrl ? "" : "disabled"}
         >
           Copy URL
-        </button>
+        </button>`
+            : ""
+        }
         ${
           sourceUrl
            ? `<a href="${escapeHtml(
@@ -118,11 +184,11 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
       return renderSharedCardHtml({
         title: item.name,
         description: item.description || "Canvas extension",
+        href: getExtensionDetailUrl(item.id),
         previewMediaHtml,
         infoExtraHtml,
         metaHtml,
         actionsHtml,
-        tabIndex: 0,
         articleAttributes: {
           id: item.id,
           "data-extension-id": item.id,

@@ -40,6 +40,19 @@ export interface CookbookRecipeMatch {
   highlightedName?: string;
 }
 
+function buildCookbookRecipeUrl(
+  cookbookId: string,
+  languageId: string,
+  recipeId: string,
+  filePath?: string | null
+): string {
+  const basePath = `/learning-hub/cookbook/${encodeURIComponent(
+    cookbookId
+  )}/${encodeURIComponent(languageId)}/${encodeURIComponent(recipeId)}/`;
+  if (!filePath) return basePath;
+  return `${basePath}#file=${encodeURIComponent(filePath)}`;
+}
+
 export function getRecipeResultsCountText(
   filteredCount: number,
   totalCount: number
@@ -211,27 +224,32 @@ function renderRecipeCard(
         ${
           variant
             ? `
-          <button class="btn btn-secondary btn-small view-recipe-btn" data-doc="${escapeHtml(
-            variant.doc
+          <a class="btn btn-secondary btn-small" href="${buildCookbookRecipeUrl(
+            cookbook.id,
+            displayLanguage,
+            recipe.id
           )}">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-              <path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75zm0 5A.75.75 0 0 1 1.75 7h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 7.75zM1.75 12h12.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5z"/>
+            <path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75zm0 5A.75.75 0 0 1 1.75 7h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 7.75zM1.75 12h12.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5z"/>
             </svg>
             View Recipe
-          </button>
+          </a>
           ${
             variant.example
-              ? `
-            <button class="btn btn-secondary btn-small view-example-btn" data-example="${escapeHtml(
-              variant.example
+            ? `
+            <a class="btn btn-secondary btn-small" href="${buildCookbookRecipeUrl(
+            cookbook.id,
+            displayLanguage,
+            recipe.id,
+            variant.example
             )}">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-                <path d="M4.72 3.22a.75.75 0 0 1 1.06 0l3.5 3.5a.75.75 0 0 1 0 1.06l-3.5 3.5a.75.75 0 0 1-1.06-1.06L7.69 7.5 4.72 4.28a.75.75 0 0 1 0-1.06zm6.25 1.06L10.22 5l.75.75-2.25 2.25 2.25 2.25-.75.75-.75-.72L11.97 7.5z"/>
-              </svg>
-              View Example
-            </button>
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+              <path d="M4.72 3.22a.75.75 0 0 1 1.06 0l3.5 3.5a.75.75 0 0 1 0 1.06l-3.5 3.5a.75.75 0 0 1-1.06-1.06L7.69 7.5 4.72 4.28a.75.75 0 0 1 0-1.06zm6.25 1.06L10.22 5l.75.75-2.25 2.25 2.25 2.25-.75.75-.75-.72L11.97 7.5z"/>
+            </svg>
+            View Example
+            </a>
           `
-              : ""
+            : ""
           }
           <a href="https://github.com/github/awesome-copilot/blob/main/${escapeHtml(
             variant.doc
