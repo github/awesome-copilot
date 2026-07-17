@@ -1,7 +1,7 @@
 {
   "name": "java-modernization-studio",
   "description": "Drive the GitHub Copilot App Modernization for Java workflow from an interactive canvas: environment readiness, repo assessment, prioritized plan and progress, validation gates, and one-click predefined-task runs grounded in the repo's real artifacts.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Ayan Gupta",
     "url": "https://github.com/ayangupt"
