@@ -596,16 +596,16 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
     messages.push(`- ${locator}: found "${extensionsDir}" with entry point "${extensionEntryPoint}".`);
   }
 
-  if (hasFailure) {
+  if (hasInfraError) {
     return {
-      status: "fail",
+      status: "infra_error",
       output: messages.join("\n"),
     };
   }
 
-  if (hasInfraError) {
+  if (hasFailure) {
     return {
-      status: "infra_error",
+      status: "fail",
       output: messages.join("\n"),
     };
   }
