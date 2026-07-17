@@ -221,12 +221,14 @@ Use a baseline for the registry that resolves the dependency. For the builtin re
 vcpkg install <packages>:arm64-linux
 ```
 
-Or set the triplet in CMake:
+`VCPKG_TARGET_TRIPLET=arm64-linux` selects dependency binaries; it does not by itself switch your project compiler or sysroot. On non-ARM64 hosts, use an ARM64 cross toolchain.
+
+Configure CMake with vcpkg plus your cross toolchain:
 ```console
-cmake -B build -DVCPKG_TARGET_TRIPLET=arm64-linux -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=arm64-linux -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=<path-to-arm64-toolchain.cmake>
 ```
 
-You may need a cross-compilation toolchain installed (e.g., `aarch64-linux-gnu-gcc`).
+Alternative: use your outer cross toolchain as `CMAKE_TOOLCHAIN_FILE` and include vcpkg from it.
 
 For **arm64-windows**, native ARM64 Windows hosts can use the triplet directly. On x64 Windows hosts, install the Visual Studio MSVC ARM64 build tools component or the build will fail:
 ```console
