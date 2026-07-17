@@ -43,12 +43,12 @@ desks/<desk-name>/
    desks/<desk-name>/.signals/
    ```
 
-3. **Write the first journal entry.** The journal starts with:
+4. **Write the first journal entry.** The journal starts with:
    - What this desk is for (its focus/purpose)
    - What repos or work it covers (if applicable)
    - Any initial context the first session needs
 
-4. **Announce it.** Tell the operator what was created and what
+5. **Announce it.** Tell the operator what was created and what
    the desk's focus is.
 
 ## Session orientation
