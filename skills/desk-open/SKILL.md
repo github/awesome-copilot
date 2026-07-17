@@ -20,6 +20,7 @@ Given a workshop directory and a desk name, create:
 ```
 desks/<desk-name>/
   journal.md       # persistent memory — read at start, written at end
+  .signals/        # structured signal output (JSON) — dashboard reads this
 ```
 
 ## How to use
@@ -28,10 +29,12 @@ desks/<desk-name>/
    how the operator and other desks refer to this desk.
    Examples: `security-scan`, `api-review`, `ops`, `cloud-workshop`
 
-2. **Create the structure.** Make the directory and initial journal:
+2. **Create the structure.** Make the directory, initial journal,
+   and signals folder:
 
    ```
    desks/<desk-name>/journal.md
+   desks/<desk-name>/.signals/
    ```
 
 3. **Write the first journal entry.** The journal starts with:
