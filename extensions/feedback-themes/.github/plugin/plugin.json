@@ -1,7 +1,7 @@
 {
   "name": "feedback-themes",
   "description": "Explore grouped customer feedback signals by impact and drill into a theme to guide product next steps.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "Aaron Powell",
     "url": "https://github.com/aaronpowell"

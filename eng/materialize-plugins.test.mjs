@@ -32,13 +32,14 @@ test("materializeExtensionPlugin writes extension bundles to ./extensions and re
   fs.writeFileSync(path.join(pluginDir, "assets", "preview.png"), "fake-image-bytes");
 
   const result = materializeExtensionPlugin(pluginDir);
+  const bundleRoot = path.join(pluginDir, "extensions", "extension-plugin");
 
   assert.equal(result.skipped, false);
   assert.equal(result.manifestUpdated, true);
   assert.equal(result.movedEntries, 3);
-  assert.equal(fs.existsSync(path.join(pluginDir, "extensions", "extension.mjs")), true);
-  assert.equal(fs.existsSync(path.join(pluginDir, "extensions", "assets", "preview.png")), true);
-  assert.equal(fs.existsSync(path.join(pluginDir, "extensions", "README.md")), true);
+  assert.equal(fs.existsSync(path.join(bundleRoot, "extension.mjs")), true);
+  assert.equal(fs.existsSync(path.join(bundleRoot, "assets", "preview.png")), true);
+  assert.equal(fs.existsSync(path.join(bundleRoot, "README.md")), true);
   assert.equal(fs.existsSync(path.join(pluginDir, "extensions", ".github")), false);
   assert.equal(fs.existsSync(path.join(pluginDir, "extension.mjs")), false);
   assert.equal(fs.existsSync(path.join(pluginDir, "README.md")), false);

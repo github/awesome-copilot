@@ -83,8 +83,9 @@ export function materializeExtensionPlugin(extensionPath) {
   }
 
   const extensionContainerPath = path.join(extensionPath, "extensions");
+  const extensionBundlePath = path.join(extensionContainerPath, path.basename(extensionPath));
   fs.rmSync(extensionContainerPath, { recursive: true, force: true });
-  fs.mkdirSync(extensionContainerPath, { recursive: true });
+  fs.mkdirSync(extensionBundlePath, { recursive: true });
 
   let movedEntries = 0;
   for (const entry of fs.readdirSync(extensionPath, { withFileTypes: true })) {
@@ -94,7 +95,7 @@ export function materializeExtensionPlugin(extensionPath) {
 
     moveEntry(
       path.join(extensionPath, entry.name),
-      path.join(extensionContainerPath, entry.name)
+      path.join(extensionBundlePath, entry.name)
     );
     movedEntries++;
   }

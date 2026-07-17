@@ -1,7 +1,7 @@
 {
   "name": "backlog-swipe-triage",
   "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "James Montemagno",
     "url": "https://github.com/jamesmontemagno"
