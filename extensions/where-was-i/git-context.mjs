@@ -74,7 +74,7 @@ function assertRepositoryPath(root, path) {
     if (!relativePath || relativePath.startsWith("..") || isAbsolute(relativePath)) {
         throw new Error("The requested file must be inside the current worktree.");
     }
-    return { absolutePath, relativePath };
+    return { absolutePath, relativePath: relativePath.replaceAll("\\", "/") };
 }
 
 async function renderUntrackedFile(root, path) {
