@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { gatherGitContext } from "./git-context.mjs";
+import { gatherGitContext, getFileDiff } from "./git-context.mjs";
 
 function git(cwd, ...args) {
     return execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
@@ -54,6 +54,16 @@ test("gathers branch commits and every worktree change", async (t) => {
         context.branchCommits.map((commit) => commit.replace(/^[0-9a-f]+ /, "")),
         ["Add second feature commit", "Add first feature commit"],
     );
+    assert.equal(context.commitGraph[0].subject, "Add second feature commit");
+    assert.match(context.commitGraph[0].refs, /HEAD -> feature\/context/);
+    assert.deepEqual(
+        context.changes.map((change) => [change.code, change.path]),
+        [
+            ["M ", "staged.txt"],
+            [" M", "unstaged.txt"],
+            ["??", "untracked.txt"],
+        ],
+    );
     assert.match(context.uncommitted.join("\n"), /M  staged\.txt/);
     assert.match(context.uncommitted.join("\n"), / M unstaged\.txt/);
     assert.match(context.uncommitted.join("\n"), /\?\? untracked\.txt/);
@@ -61,4 +71,17 @@ test("gathers branch commits and every worktree change", async (t) => {
     assert.match(context.diffStat, /unstaged\.txt/);
     assert.match(context.stagedDiffStat, /staged\.txt/);
     assert.match(context.unstagedDiffStat, /unstaged\.txt/);
+
+    const stagedDiff = await getFileDiff(cwd, "staged.txt");
+    assert.equal(stagedDiff.code, "M ");
+    assert.match(stagedDiff.diff, /\+staged change/);
+
+    const unstagedDiff = await getFileDiff(cwd, "unstaged.txt");
+    assert.equal(unstagedDiff.code, " M");
+    assert.match(unstagedDiff.diff, /\+unstaged change/);
+
+    const untrackedDiff = await getFileDiff(cwd, "untracked.txt");
+    assert.equal(untrackedDiff.code, "??");
+    assert.match(untrackedDiff.diff, /new file mode 100644/);
+    assert.match(untrackedDiff.diff, /\+untracked change/);
 });
