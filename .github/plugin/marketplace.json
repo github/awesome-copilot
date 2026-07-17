@@ -161,6 +161,12 @@
       "version": "1.0.1"
     },
     {
+      "name": "backrooms-canvas",
+      "source": "extensions/backrooms-canvas",
+      "description": "Wander an endless first-person backrooms in a Copilot canvas while agents work; their status ghost-writes on the walls.",
+      "version": "1.0.0"
+    },
+    {
       "name": "cast-imaging",
       "source": "plugins/cast-imaging",
       "description": "A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging.",

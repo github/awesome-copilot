@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BackViews</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #101010; }
+    #app { position: relative; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+  /*
+   * Host shim. The game bundle (webview.js) was written for a VSCode webview:
+   * it calls acquireVsCodeApi() for state + host messaging and reads its
+   * material URIs off window.__BACKVIEWS_MATERIALS__. This block stands in for
+   * that host, backing state with localStorage and translating the canvas
+   * server's Server-Sent Events into the window `message` events the bundle
+   * already listens for. It MUST run before webview.js loads.
+   */
+  (() => {
+    const init = __BACKROOMS_INIT__;
+    const SETTINGS_KEY = "backviews.settings";
+    const STATE_KEY = "backviews.state";
+
+    // Material photo URIs the bundle patches over its procedural atlas.
+    window.__BACKVIEWS_MATERIALS__ = init.materials || {};
+
+    function readJson(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function writeJson(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch {
+        // Storage disabled or full: settings/position just do not persist.
+      }
+    }
+
+    // Effective settings: bundle defaults, then the player's saved menu
+    // choices, then any per-open overrides the agent requested win on top.
+    function currentSettings() {
+      const saved = readJson(SETTINGS_KEY) || {};
+      return { ...init.defaults, ...saved, ...(init.overrides || {}) };
+    }
+
+    function dispatch(message) {
+      window.postMessage(message, "*");
+    }
+
+    window.acquireVsCodeApi = () => ({
+      postMessage(message) {
+        if (!message || typeof message !== "object") {
+          return;
+        }
+        if (message.type === "ready") {
+          // Reply after the bundle has wired its own message listener.
+          setTimeout(() => {
+            dispatch({ type: "config", settings: currentSettings() });
+            if (init.job) {
+              dispatch({ type: "jobStatus", job: init.job });
+            }
+            if (init.session) {
+              dispatch({ type: "chatSession", session: init.session });
+            }
+          }, 0);
+        } else if (message.type === "updateSetting") {
+          const saved = readJson(SETTINGS_KEY) || {};
+          saved[message.key] = message.value;
+          writeJson(SETTINGS_KEY, saved);
+        }
+      },
+      getState() {
+        return readJson(STATE_KEY) || undefined;
+      },
+      setState(state) {
+        writeJson(STATE_KEY, state);
+      },
+    });
+
+    // Live host -> game channel: the server pushes agent activity over SSE and
+    // we forward it as the exact messages the bundle expects.
+    try {
+      const events = new EventSource("/events");
+      events.addEventListener("jobStatus", (event) => {
+        try {
+          dispatch({ type: "jobStatus", job: JSON.parse(event.data).job });
+        } catch {}
+      });
+      events.addEventListener("chatSession", (event) => {
+        try {
+          dispatch({ type: "chatSession", session: JSON.parse(event.data).session });
+        } catch {}
+      });
+      events.addEventListener("relocate", () => dispatch({ type: "relocate" }));
+      events.addEventListener("reload", () => window.location.reload());
+    } catch {
+      // No EventSource: the game still runs, just without live agent activity.
+    }
+  })();
+  </script>
+  <script src="./webview.js"></script>
+</body>
+</html>
