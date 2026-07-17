@@ -35,11 +35,14 @@ test("materializeExtensionPlugin writes extension bundles to ./extensions and re
 
   assert.equal(result.skipped, false);
   assert.equal(result.manifestUpdated, true);
-  assert.equal(result.copiedEntries, 3);
+  assert.equal(result.movedEntries, 3);
   assert.equal(fs.existsSync(path.join(pluginDir, "extensions", "extension.mjs")), true);
   assert.equal(fs.existsSync(path.join(pluginDir, "extensions", "assets", "preview.png")), true);
   assert.equal(fs.existsSync(path.join(pluginDir, "extensions", "README.md")), true);
   assert.equal(fs.existsSync(path.join(pluginDir, "extensions", ".github")), false);
+  assert.equal(fs.existsSync(path.join(pluginDir, "extension.mjs")), false);
+  assert.equal(fs.existsSync(path.join(pluginDir, "README.md")), false);
+  assert.equal(fs.existsSync(path.join(pluginDir, "assets")), false);
 
   const pluginManifest = JSON.parse(
     fs.readFileSync(path.join(pluginDir, ".github", "plugin", "plugin.json"), "utf8")

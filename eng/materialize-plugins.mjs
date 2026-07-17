@@ -24,15 +24,26 @@ function copyDirRecursive(src, dest) {
   }
 }
 
-function copyEntryRecursive(srcPath, destPath) {
+function moveEntry(srcPath, destPath) {
+  fs.mkdirSync(path.dirname(destPath), { recursive: true });
+  try {
+    fs.renameSync(srcPath, destPath);
+    return;
+  } catch (error) {
+    if (error?.code !== "EXDEV") {
+      throw error;
+    }
+  }
+
   const stats = fs.statSync(srcPath);
   if (stats.isDirectory()) {
     copyDirRecursive(srcPath, destPath);
+    fs.rmSync(srcPath, { recursive: true, force: true });
     return;
   }
 
-  fs.mkdirSync(path.dirname(destPath), { recursive: true });
   fs.copyFileSync(srcPath, destPath);
+  fs.rmSync(srcPath, { force: true });
 }
 
 /**
@@ -61,7 +72,7 @@ function resolveSource(relPath) {
 export function materializeExtensionPlugin(extensionPath) {
   const pluginJsonPath = path.join(extensionPath, ".github", "plugin", "plugin.json");
   if (!fs.existsSync(pluginJsonPath)) {
-    return { copiedEntries: 0, manifestUpdated: false, skipped: true };
+    return { movedEntries: 0, manifestUpdated: false, skipped: true };
   }
 
   let metadata;
@@ -75,17 +86,17 @@ export function materializeExtensionPlugin(extensionPath) {
   fs.rmSync(extensionContainerPath, { recursive: true, force: true });
   fs.mkdirSync(extensionContainerPath, { recursive: true });
 
-  let copiedEntries = 0;
+  let movedEntries = 0;
   for (const entry of fs.readdirSync(extensionPath, { withFileTypes: true })) {
     if (entry.name === ".github" || entry.name === "extensions") {
       continue;
     }
 
-    copyEntryRecursive(
+    moveEntry(
       path.join(extensionPath, entry.name),
       path.join(extensionContainerPath, entry.name)
     );
-    copiedEntries++;
+    movedEntries++;
   }
 
   let manifestUpdated = false;
@@ -97,7 +108,7 @@ export function materializeExtensionPlugin(extensionPath) {
     fs.writeFileSync(pluginJsonPath, JSON.stringify(metadata, null, 2) + "\n", "utf8");
   }
 
-  return { copiedEntries, manifestUpdated, skipped: false };
+  return { movedEntries, manifestUpdated, skipped: false };
 }
 
 function materializePlugins() {
@@ -261,8 +272,8 @@ function materializePlugins() {
         }
 
         totalExtensionPlugins++;
-        totalExtensionPluginEntries += result.copiedEntries;
-        console.log(`✓ ${dirName}: materialized extension bundle into ./extensions (${result.copiedEntries} entries)`);
+        totalExtensionPluginEntries += result.movedEntries;
+        console.log(`✓ ${dirName}: materialized extension bundle into ./extensions (${result.movedEntries} entries)`);
       } catch (err) {
         console.error(`Error: Failed to materialize extension plugin ${dirName}: ${err.message}`);
         errors++;
