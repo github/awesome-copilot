@@ -15,5 +15,5 @@
     "status-tracking"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

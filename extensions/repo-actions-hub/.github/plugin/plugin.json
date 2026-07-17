@@ -15,5 +15,5 @@
     "workflow-dispatch"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

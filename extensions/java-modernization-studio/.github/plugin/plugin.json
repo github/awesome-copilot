@@ -16,5 +16,5 @@
     "validation-gates"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

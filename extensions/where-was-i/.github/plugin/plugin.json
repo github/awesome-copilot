@@ -15,5 +15,5 @@
     "resume-work"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

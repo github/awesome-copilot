@@ -15,5 +15,5 @@
     "trend-discovery"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

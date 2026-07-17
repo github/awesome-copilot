@@ -309,9 +309,10 @@ function validateExtensionManifest(folderName) {
     errors.push('use "extensions" field (found misspelled "extenions")');
   }
 
-  // Extension convention: extensions field must be "extensions"
-  if (parsed.extensions !== "extensions") {
-    errors.push('extensions field must be exactly "extensions" (extension convention)');
+  // Extension convention: source manifests keep extensions at repository root.
+  // Materialization rewrites this to "extensions" on distribution branches.
+  if (parsed.extensions !== ".") {
+    errors.push('extensions field must be exactly "." in source manifests (extension convention)');
   }
 
   return { errors, plugin: parsedPlugin };

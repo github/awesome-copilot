@@ -90,15 +90,27 @@ function cleanPlugin(pluginPath) {
 }
 
 function cleanMaterializedExtensionPlugin(extensionPath) {
+  const pluginJsonPath = path.join(extensionPath, ".github", "plugin", "plugin.json");
+  let manifestUpdated = false;
+  if (fs.existsSync(pluginJsonPath)) {
+    const plugin = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
+    if (plugin.extensions === "extensions") {
+      plugin.extensions = ".";
+      fs.writeFileSync(pluginJsonPath, JSON.stringify(plugin, null, 2) + "\n", "utf8");
+      manifestUpdated = true;
+      console.log(`  Updated ${path.basename(extensionPath)}/.github/plugin/plugin.json`);
+    }
+  }
+
   const target = path.join(extensionPath, "extensions");
   if (!fs.existsSync(target) || !fs.statSync(target).isDirectory()) {
-    return 0;
+    return { removed: 0, manifestUpdated };
   }
 
   const count = countFiles(target);
   fs.rmSync(target, { recursive: true, force: true });
   console.log(`  Removed ${path.basename(extensionPath)}/extensions/ (${count} files)`);
-  return count;
+  return { removed: count, manifestUpdated };
 }
 
 function countFiles(dir) {
@@ -193,7 +205,11 @@ function main() {
         if (!fs.existsSync(path.join(extensionPath, "extension.mjs"))) {
           continue;
         }
-        total += cleanMaterializedExtensionPlugin(extensionPath);
+        const { removed, manifestUpdated } = cleanMaterializedExtensionPlugin(extensionPath);
+        total += removed;
+        if (manifestUpdated) {
+          manifestsUpdated++;
+        }
       }
     }
   }

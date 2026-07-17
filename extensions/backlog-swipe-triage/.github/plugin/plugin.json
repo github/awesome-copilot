@@ -15,5 +15,5 @@
     "workflow-automation"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

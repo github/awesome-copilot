@@ -15,5 +15,5 @@
     "pull-request-review"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

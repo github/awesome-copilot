@@ -15,5 +15,5 @@
     "relationship-visualization"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

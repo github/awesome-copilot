@@ -15,5 +15,5 @@
     "interactive-canvas"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

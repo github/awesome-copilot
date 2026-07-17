@@ -89,7 +89,7 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 - Extension `plugin.json` **must** follow the convention:
   - `name`, `description`, `version` are required
   - `logo` **must** be exactly `"assets/preview.png"` (enforced convention)
-  - `extensions` **must** be exactly `"extensions"` so extension bundles materialize into a dedicated container directory
+  - `extensions` **must** be exactly `"."` in source manifests (materialization rewrites this to `"extensions"` for distribution output)
   - Optional: `author`, `keywords` fields
   - **Must not** include `x-awesome-copilot` field (use convention-based `assets/preview.png` only)
 - Each extension must have `assets/preview.png` as the primary visual asset

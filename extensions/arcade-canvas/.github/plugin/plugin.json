@@ -15,5 +15,5 @@
     "session-breaks"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

@@ -15,5 +15,5 @@
     "tool-discovery"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

@@ -15,5 +15,5 @@
     "release-notes"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

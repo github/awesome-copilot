@@ -15,5 +15,5 @@
     "tiny-tool-town"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }

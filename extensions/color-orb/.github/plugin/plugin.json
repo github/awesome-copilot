@@ -15,5 +15,5 @@
     "visual-feedback"
   ],
   "logo": "assets/preview.png",
-  "extensions": "extensions"
+  "extensions": "."
 }
