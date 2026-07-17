@@ -1335,7 +1335,7 @@
       "name": "where-was-i",
       "source": "extensions/where-was-i",
       "description": "Reconstruct your dev context (branch, commits, uncommitted work, PR clues) and trigger a resume prompt to continue quickly.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "winappcli",

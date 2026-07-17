@@ -3,28 +3,15 @@
 
 import { createServer } from "node:http";
 import { execFile } from "node:child_process";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
+import { writeFile, mkdir } from "node:fs/promises";
+import { join } from "node:path";
+import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
+import { gatherGitContext } from "./git-context.mjs";
 
 const servers = new Map();
 const sseClients = new Map(); // instanceId → Set<res>
 const contextCache = new Map(); // instanceId → contextData
 
-const isWindows = process.platform === "win32";
-
-// Fallback repo root derived from extension location. Only used when the
-// session's real working directory is unavailable (see captureCwd below).
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const REPO_ROOT = join(__dirname, "..", "..", "..");
-
-// The canvas request context reports the active session's working directory —
-// the actual repo checkout or worktree the user opened the canvas in. This is
-// what git commands must run against; REPO_ROOT (the extension's install dir)
-// and session.workspacePath (the session-state folder) are NOT the repo, which
-// is why the board previously showed an empty branch as "detached HEAD".
 let workspaceCwd = null;
 
 function captureCwd(ctx) {
@@ -32,52 +19,61 @@ function captureCwd(ctx) {
     if (typeof dir === "string" && dir.trim()) workspaceCwd = dir;
 }
 
-function repoCwd() {
-    return workspaceCwd || REPO_ROOT;
+async function activeCwd(ctx) {
+    captureCwd(ctx);
+    if (!workspaceCwd && sessionRef) {
+        const snapshot = await sessionRef.rpc.metadata.snapshot();
+        const dir = snapshot?.workingDirectory;
+        if (typeof dir === "string" && dir.trim()) workspaceCwd = dir;
+    }
+    if (!workspaceCwd) {
+        throw new CanvasError(
+            "workspace_unavailable",
+            "No repository working directory is attached to this session.",
+        );
+    }
+    return workspaceCwd;
 }
 
-// --- Shell helpers ---
-
-function run(cmd, cwd) {
-    const shell = isWindows ? "powershell" : "bash";
-    const args = isWindows
-        ? ["-NoProfile", "-NoLogo", "-Command", cmd]
-        : ["-c", cmd];
-    return new Promise((resolve) => {
-        execFile(shell, args, { cwd, timeout: 15000, maxBuffer: 1024 * 256 }, (err, stdout) => {
-            resolve(err ? "" : (stdout || "").trim());
+function runGhJson(cwd, args) {
+    return new Promise((resolve, reject) => {
+        execFile("gh", args, { cwd, timeout: 15000, maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
+            if (error) {
+                reject(new Error((stderr || error.message || "GitHub CLI command failed").trim()));
+                return;
+            }
+            try {
+                resolve({
+                    data: JSON.parse(stdout || "[]"),
+                    warning: (stderr || "").trim(),
+                });
+            } catch (parseError) {
+                reject(new Error(`GitHub CLI returned invalid JSON: ${parseError.message}`));
+            }
         });
     });
 }
 
 async function gatherContext(cwd) {
-    cwd = cwd || repoCwd();
-    const authorCmd = isWindows
-        ? 'git log --oneline -5 --format="%h %s" --author="$(git config user.name)"'
-        : 'git log --oneline -5 --format="%h %s" --author="$(git config user.name)"';
-    const suppressErr = isWindows ? "2>$null" : "2>/dev/null";
-
-    const [branch, log, status, diff, prs, issues] = await Promise.all([
-        run("git branch --show-current", cwd),
-        run(authorCmd, cwd),
-        run("git status --short", cwd),
-        run("git diff --stat", cwd),
-        run(`gh pr list --author=@me --state=open --limit=10 --json number,title,url,updatedAt,comments ${suppressErr}`, cwd),
-        run(`gh issue list --assignee=@me --state=open --limit=10 --json number,title,url,updatedAt ${suppressErr}`, cwd),
+    const gitContext = await gatherGitContext(cwd);
+    const [prs, issues] = await Promise.allSettled([
+        runGhJson(cwd, [
+            "pr", "list", "--author=@me", "--state=open", "--limit=10",
+            "--json", "number,title,url,updatedAt,comments",
+        ]),
+        runGhJson(cwd, [
+            "issue", "list", "--assignee=@me", "--state=open", "--limit=10",
+            "--json", "number,title,url,updatedAt",
+        ]),
     ]);
 
-    let parsedPrs = [];
-    let parsedIssues = [];
-    try { parsedPrs = JSON.parse(prs || "[]"); } catch {}
-    try { parsedIssues = JSON.parse(issues || "[]"); } catch {}
-
     return {
-        branch,
-        recentCommits: log.split("\n").filter(Boolean),
-        uncommitted: status.split("\n").filter(Boolean),
-        diffStat: diff,
-        openPrs: parsedPrs,
-        assignedIssues: parsedIssues,
+        ...gitContext,
+        openPrs: prs.status === "fulfilled" ? prs.value.data : [],
+        assignedIssues: issues.status === "fulfilled" ? issues.value.data : [],
+        warnings: [prs, issues]
+            .map((result) => result.status === "fulfilled" ? result.value.warning : result.reason.message)
+            .filter(Boolean),
         gatheredAt: new Date().toISOString(),
     };
 }
@@ -87,16 +83,8 @@ async function gatherContext(cwd) {
 async function saveContext(workspacePath, data) {
     if (!workspacePath) return;
     const dir = join(workspacePath, "files");
-    try { await mkdir(dir, { recursive: true }); } catch {}
+    await mkdir(dir, { recursive: true });
     await writeFile(join(dir, "where-was-i-context.json"), JSON.stringify(data, null, 2));
-}
-
-async function loadContext(workspacePath) {
-    if (!workspacePath) return null;
-    try {
-        const raw = await readFile(join(workspacePath, "files", "where-was-i-context.json"), "utf-8");
-        return JSON.parse(raw);
-    } catch { return null; }
 }
 
 // --- SSE ---
@@ -106,7 +94,11 @@ function broadcast(instanceId, data) {
     if (!clients) return;
     const payload = `data: ${JSON.stringify(data)}\n\n`;
     for (const res of clients) {
-        try { res.write(payload); } catch {}
+        try {
+            res.write(payload);
+        } catch {
+            clients.delete(res);
+        }
     }
 }
 
@@ -199,6 +191,25 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--azure);
+}
+.branch-bar .worktree-name {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.branch-bar .divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+.branch-bar .divergence {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 .branch-bar .label {
   font-size: 0.75rem;
@@ -357,6 +368,16 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   padding: 8px 0;
 }
 
+.warnings {
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-compact);
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  margin-bottom: 1.5rem;
+}
+
 .refresh-btn {
   display: inline-flex;
   align-items: center;
@@ -454,7 +475,9 @@ function render(data) {
   contextData = data;
   const app = document.getElementById("app");
 
-  const commits = (data.recentCommits || []).map(c => {
+  const worktreeCommits = data.branchCommits || [];
+  const commitSource = worktreeCommits.length ? worktreeCommits : (data.recentCommits || []);
+  const commits = commitSource.map(c => {
     const parts = c.split(" ");
     const hash = parts[0] || "";
     const msg = parts.slice(1).join(" ");
@@ -484,13 +507,21 @@ function render(data) {
 
     <div class="branch-bar">
       <span class="icon">⎇</span>
+      <span class="label">Worktree</span>
+      <span class="worktree-name" title="\${escapeHtml(data.worktreeRoot)}">\${escapeHtml(data.worktreeName || data.worktreeRoot) || "unknown"}</span>
+      <span class="divider"></span>
       <span class="label">Branch</span>
       <span class="branch-name">\${escapeHtml(data.branch) || "detached HEAD"}</span>
+      \${data.baseRef ? \`<span class="divergence">\${data.ahead || 0} ahead · \${data.behind || 0} behind \${escapeHtml(data.baseRef)}</span>\` : ""}
     </div>
+
+    \${(data.warnings || []).length ? \`
+      <div class="warnings">\${data.warnings.map(escapeHtml).join("<br>")}</div>
+    \` : ""}
 
     \${commits.length ? \`
     <div class="section">
-      <div class="section-title">Recent Commits</div>
+      <div class="section-title">\${worktreeCommits.length ? "Commits on this worktree" : "Recent commits"}</div>
       <div class="card">
         <ul class="commit-list">
           \${commits.map(c => \`
@@ -557,8 +588,12 @@ async function doRefresh(btn) {
   try {
     const res = await fetch("/refresh", { method: "POST" });
     const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Unable to refresh context.");
     render(data);
-  } catch (e) {}
+  } catch (error) {
+    const app = document.getElementById("app");
+    app.insertAdjacentHTML("afterbegin", \`<div class="warnings">\${escapeHtml(error.message)}</div>\`);
+  }
   if (btn) setTimeout(() => btn.classList.remove("spinning"), 300);
 }
 
@@ -588,7 +623,12 @@ evtSource.onmessage = (e) => {
 };
 
 // Initial load
-fetch("/context").then(r => r.json()).then(render).catch(() => {});
+fetch("/context")
+  .then(r => r.json())
+  .then(render)
+  .catch((error) => {
+    document.getElementById("app").innerHTML = \`<div class="warnings">\${escapeHtml(error.message)}</div>\`;
+  });
 </script>
 </body>
 </html>`;
@@ -596,8 +636,9 @@ fetch("/context").then(r => r.json()).then(render).catch(() => {});
 
 // --- Server ---
 
-async function startServer(instanceId, sessionRef, cwd, workspacePath) {
-    const server = createServer(async (req, res) => {
+async function startServer(instanceId, cwd, workspacePath) {
+    const entry = { server: null, url: "", cwd };
+    entry.server = createServer(async (req, res) => {
         const url = new URL(req.url, "http://localhost");
 
         if (url.pathname === "/events") {
@@ -622,12 +663,17 @@ async function startServer(instanceId, sessionRef, cwd, workspacePath) {
         }
 
         if (url.pathname === "/refresh" && req.method === "POST") {
-            const data = await gatherContext(cwd);
-            contextCache.set(instanceId, data);
-            await saveContext(workspacePath, data);
-            broadcast(instanceId, data);
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify(data));
+            try {
+                const data = await gatherContext(entry.cwd);
+                contextCache.set(instanceId, data);
+                await saveContext(workspacePath, data);
+                broadcast(instanceId, data);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(data));
+            } catch (error) {
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: error.message || "Unable to refresh context." }));
+            }
             return;
         }
 
@@ -635,21 +681,30 @@ async function startServer(instanceId, sessionRef, cwd, workspacePath) {
             let body = "";
             for await (const chunk of req) body += chunk;
             let thread = null;
-            try { thread = JSON.parse(body).thread; } catch {}
+            try {
+                thread = JSON.parse(body).thread;
+            } catch {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "The resume request body must be valid JSON." }));
+                return;
+            }
 
             const ctx = contextCache.get(instanceId) || {};
+            const commits = ctx.branchCommits?.length ? ctx.branchCommits : (ctx.recentCommits || []);
             let prompt;
             if (thread) {
                 prompt = `I was working on ${thread} and got interrupted. Here's my current context:\n\n` +
+                    `**Worktree:** ${ctx.worktreeRoot || "unknown"}\n` +
                     `**Branch:** ${ctx.branch || "unknown"}\n` +
-                    `**Recent commits:** ${(ctx.recentCommits || []).join(", ")}\n` +
+                    `**Worktree commits:** ${commits.join(", ")}\n` +
                     `**Uncommitted changes:** ${(ctx.uncommitted || []).join(", ")}\n` +
                     `**Open PRs:** ${(ctx.openPrs || []).map(p => "#" + p.number + " " + p.title).join(", ")}\n\n` +
                     `Help me pick up where I left off on this specific thread.`;
             } else {
                 prompt = `I got interrupted and need to resume my work. Here's my full context:\n\n` +
+                    `**Worktree:** ${ctx.worktreeRoot || "unknown"}\n` +
                     `**Branch:** ${ctx.branch || "unknown"}\n` +
-                    `**Recent commits:**\n${(ctx.recentCommits || []).map(c => "- " + c).join("\n")}\n\n` +
+                    `**Worktree commits:**\n${commits.map(c => "- " + c).join("\n")}\n\n` +
                     `**Uncommitted changes:**\n${(ctx.uncommitted || []).map(f => "- " + f).join("\n")}\n\n` +
                     `**Diff stat:**\n${ctx.diffStat || "none"}\n\n` +
                     `**Open PRs:** ${(ctx.openPrs || []).map(p => "#" + p.number + " " + p.title).join(", ") || "none"}\n` +
@@ -657,9 +712,15 @@ async function startServer(instanceId, sessionRef, cwd, workspacePath) {
                     `Help me pick up where I left off. What should I focus on first?`;
             }
 
-            try { await sessionRef.send(prompt); } catch {}
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ ok: true }));
+            try {
+                if (!sessionRef) throw new Error("The Copilot session is unavailable.");
+                await sessionRef.send(prompt);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: true }));
+            } catch (error) {
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: error.message || "Unable to send the resume prompt." }));
+            }
             return;
         }
 
@@ -668,10 +729,11 @@ async function startServer(instanceId, sessionRef, cwd, workspacePath) {
         res.end(renderHtml(instanceId));
     });
 
-    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-    const address = server.address();
+    await new Promise((resolve) => entry.server.listen(0, "127.0.0.1", resolve));
+    const address = entry.server.address();
     const port = typeof address === "object" && address ? address.port : 0;
-    return { server, url: `http://127.0.0.1:${port}/` };
+    entry.url = `http://127.0.0.1:${port}/`;
+    return entry;
 }
 
 // --- Extension ---
@@ -689,8 +751,10 @@ const session = await joinSession({
                     name: "refresh",
                     description: "Re-gather all git/project context and push updates to the canvas",
                     handler: async (ctx) => {
-                        captureCwd(ctx);
-                        const data = await gatherContext(repoCwd());
+                        const cwd = await activeCwd(ctx);
+                        const entry = servers.get(ctx.instanceId);
+                        if (entry) entry.cwd = cwd;
+                        const data = await gatherContext(cwd);
                         contextCache.set(ctx.instanceId, data);
                         if (sessionRef) await saveContext(sessionRef.workspacePath, data);
                         broadcast(ctx.instanceId, data);
@@ -719,11 +783,14 @@ const session = await joinSession({
                     handler: async (ctx) => {
                         const thread = ctx.input?.thread || null;
                         const data = contextCache.get(ctx.instanceId) || {};
+                        const commits = data.branchCommits?.length
+                            ? data.branchCommits
+                            : (data.recentCommits || []);
                         let prompt;
                         if (thread) {
-                            prompt = `I was working on ${thread} and got interrupted. Context: branch=${data.branch}, recent commits: ${(data.recentCommits || []).join("; ")}. Help me resume.`;
+                            prompt = `I was working on ${thread} and got interrupted. Context: worktree=${data.worktreeRoot}, branch=${data.branch}, worktree commits: ${commits.join("; ")}. Help me resume.`;
                         } else {
-                            prompt = `Help me resume. Branch: ${data.branch}. Commits: ${(data.recentCommits || []).join("; ")}. Uncommitted: ${(data.uncommitted || []).join("; ")}.`;
+                            prompt = `Help me resume. Worktree: ${data.worktreeRoot}. Branch: ${data.branch}. Commits: ${commits.join("; ")}. Uncommitted: ${(data.uncommitted || []).join("; ")}.`;
                         }
                         if (sessionRef) await sessionRef.send(prompt);
                         return { sent: true };
@@ -731,22 +798,17 @@ const session = await joinSession({
                 },
             ],
             open: async (ctx) => {
-                captureCwd(ctx);
+                const cwd = await activeCwd(ctx);
                 let entry = servers.get(ctx.instanceId);
                 if (!entry) {
-                    entry = await startServer(ctx.instanceId, sessionRef, repoCwd(), sessionRef?.workspacePath);
+                    entry = await startServer(ctx.instanceId, cwd, sessionRef?.workspacePath);
                     servers.set(ctx.instanceId, entry);
+                } else {
+                    entry.cwd = cwd;
                 }
 
-                // Load persisted context or gather fresh. Re-gather when the
-                // saved context is missing or has no branch (e.g. it was saved
-                // before the working directory was known), so the board never
-                // opens stuck on a stale "detached HEAD".
-                let data = await loadContext(sessionRef?.workspacePath);
-                if (!data || !data.branch) {
-                    data = await gatherContext(repoCwd());
-                    await saveContext(sessionRef?.workspacePath, data);
-                }
+                const data = await gatherContext(cwd);
+                await saveContext(sessionRef?.workspacePath, data);
                 contextCache.set(ctx.instanceId, data);
                 // Push to any waiting SSE clients
                 setTimeout(() => broadcast(ctx.instanceId, data), 100);
