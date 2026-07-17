@@ -733,6 +733,30 @@
     }
   },
   {
+    "name": "upgrade-agent",
+    "description": "GitHub Copilot upgrade is an AI-powered agent that helps you upgrade applications to newer versions of languages, frameworks, and runtimes. It assesses your application, creates an upgrade plan, applies code changes, and validates the results through an interactive upgrade workflow.",
+    "version": "1.1.222",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "repository": "https://github.com/microsoft/upgrade-agent-plugins",
+    "license": "MIT",
+    "keywords": [
+      "modernization",
+      "upgrade",
+      "migration",
+      "dotnet",
+      "canvas"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/upgrade-agent-plugins",
+      "path": "plugins/upgrade-agent",
+      "sha": "379d344e42823b25223f878c002f38fb3a2c1d2b"
+    }
+  },
+  {
     "name": "vercel-plugin",
     "description": "Build and deploy web apps and agents. Comprehensive Vercel ecosystem plugin — relational knowledge graph, skills for every major product, specialized agents, and Vercel conventions. Turns any AI agent into a Vercel expert.",
     "version": "0.43.0",
