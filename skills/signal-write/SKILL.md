@@ -51,6 +51,7 @@ Create `desks/<desk-name>/.signals/<timestamp>.json`:
 ```json
 {
   "signal_type": "execution",
+  "subtype": "checkpoint",
   "agent_name": "<desk-name>",
   "self_assessment": {
     "intent": 4,
@@ -71,11 +72,19 @@ Create `desks/<desk-name>/.signals/<timestamp>.json`:
 }
 ```
 
-For `hands-up` or `blocked` signals, populate the `escalation`
-fields. Use `signal_type: "escalation"` for these — they sort to
-the top of the dashboard.
+### Signal type mapping
 
-For `partnership` signals (TA only), use `signal_type: "partnership"`.
+| Signal    | `signal_type`   | `subtype`      |
+|-----------|-----------------|----------------|
+| hands-up  | `"escalation"`  | `"hands-up"`   |
+| blocked   | `"escalation"`  | `"blocked"`    |
+| done      | `"execution"`   | `"done"`       |
+| checkpoint| `"execution"`   | `"checkpoint"` |
+| partnership| `"partnership"` | `"partnership"`|
+
+The `subtype` field preserves the specific signal state for
+dashboard consumers. `signal_type` controls sort priority
+(escalation → top).
 
 ### 2. Note the signal in the journal
 

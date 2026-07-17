@@ -16,7 +16,7 @@
     "developer-experience"
   ],
   "agents": [
-    "workshop-ta"
+    "./agents/workshop-ta.md"
   ],
   "skills": [
     "./skills/bench-read/",
