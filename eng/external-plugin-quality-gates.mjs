@@ -8,6 +8,7 @@ import { spawnSync } from "child_process";
 import { runLint, LintConsoleReporter } from "@microsoft/vally";
 
 const MAX_OUTPUT_LENGTH = 12000;
+const EXTERNAL_CANVAS_KEYWORD = "canvas";
 
 const INFRA_ERROR_PATTERNS = [
   /\b401\b/,
@@ -67,6 +68,12 @@ function normalizePluginPath(pluginPath) {
   }
 
   return normalized;
+}
+
+function hasCanvasKeyword(plugin) {
+  return (plugin?.keywords ?? []).some(
+    (keyword) => String(keyword).trim().toLowerCase() === EXTERNAL_CANVAS_KEYWORD,
+  );
 }
 
 function resolveFetchSpec(pluginSource) {
@@ -467,6 +474,118 @@ function runVersionMatchGate(repoDir, plugin, primaryFetchSpec) {
   };
 }
 
+function checkPathExistsAtLocator(repoDir, locator, repoPath) {
+  const result = runCommand("git", ["cat-file", "-e", `${locator}:${repoPath}`], { cwd: repoDir });
+  if (result.exitCode === 0) {
+    return { exists: true, output: "" };
+  }
+
+  const normalizedOutput = String(result.output ?? "").toLowerCase();
+  if (
+    normalizedOutput.includes("not a valid object name")
+    || normalizedOutput.includes("path '")
+    || normalizedOutput.includes("does not exist")
+  ) {
+    return { exists: false, output: "" };
+  }
+
+  return {
+    exists: false,
+    output: `Unable to verify path "${repoPath}" at "${locator}": ${result.output}`,
+  };
+}
+
+export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
+  if (!hasCanvasKeyword(plugin)) {
+    return {
+      status: "not_run",
+      output: "Canvas structure gate skipped because plugin is not tagged with \"canvas\".",
+    };
+  }
+
+  const normalizedPluginPath = normalizePluginPath(plugin?.source?.path || "/");
+  const locators = [plugin?.source?.ref, plugin?.source?.sha]
+    .filter((value) => typeof value === "string" && value.trim().length > 0)
+    .map((value) => value.trim())
+    .filter((value, index, values) => values.indexOf(value) === index);
+
+  if (locators.length === 0) {
+    return {
+      status: "not_run",
+      output: "Canvas structure gate skipped because neither source.ref nor source.sha was provided.",
+    };
+  }
+
+  const extensionsDir = toPosixPath(normalizedPluginPath, "extensions");
+  const extensionEntryPoint = toPosixPath(extensionsDir, "extension.mjs");
+
+  let hasFailure = false;
+  let hasInfraError = false;
+  const messages = [];
+
+  for (const locator of locators) {
+    if (locator !== primaryFetchSpec) {
+      const fetchResult = fetchLocatorIntoRepo(repoDir, locator);
+      if (fetchResult.status === "fail") {
+        hasFailure = true;
+        messages.push(`- ${locator}: ${fetchResult.output}`);
+        continue;
+      }
+
+      if (fetchResult.status === "infra_error") {
+        hasInfraError = true;
+        messages.push(`- ${locator}: ${fetchResult.output}`);
+        continue;
+      }
+    }
+
+    const extensionDirCheck = checkPathExistsAtLocator(repoDir, locator, extensionsDir);
+    if (extensionDirCheck.output) {
+      hasInfraError = true;
+      messages.push(`- ${locator}: ${extensionDirCheck.output}`);
+      continue;
+    }
+    if (!extensionDirCheck.exists) {
+      hasFailure = true;
+      messages.push(`- ${locator}: missing required canvas extension directory "${extensionsDir}".`);
+      continue;
+    }
+
+    const extensionEntryCheck = checkPathExistsAtLocator(repoDir, locator, extensionEntryPoint);
+    if (extensionEntryCheck.output) {
+      hasInfraError = true;
+      messages.push(`- ${locator}: ${extensionEntryCheck.output}`);
+      continue;
+    }
+    if (!extensionEntryCheck.exists) {
+      hasFailure = true;
+      messages.push(`- ${locator}: missing required canvas extension entry point "${extensionEntryPoint}".`);
+      continue;
+    }
+
+    messages.push(`- ${locator}: found "${extensionsDir}" with entry point "${extensionEntryPoint}".`);
+  }
+
+  if (hasFailure) {
+    return {
+      status: "fail",
+      output: messages.join("\n"),
+    };
+  }
+
+  if (hasInfraError) {
+    return {
+      status: "infra_error",
+      output: messages.join("\n"),
+    };
+  }
+
+  return {
+    status: "pass",
+    output: messages.join("\n"),
+  };
+}
+
 function toOverallStatus(states) {
   if (states.includes("infra_error")) {
     return "infra_error";
@@ -523,6 +642,20 @@ export async function runExternalPluginQualityGates(plugin) {
     const versionMatchResult = runVersionMatchGate(repoDir, plugin, fetchSpec);
     result.version_match_status = versionMatchResult.status;
     result.version_match_output = versionMatchResult.output;
+
+    const canvasStructureResult = runCanvasStructureGate(repoDir, plugin, fetchSpec);
+    if (canvasStructureResult.status === "fail") {
+      result.version_match_status = "fail";
+    } else if (canvasStructureResult.status === "infra_error" && result.version_match_status !== "fail") {
+      result.version_match_status = "infra_error";
+    } else if (canvasStructureResult.status === "pass" && result.version_match_status === "not_run") {
+      result.version_match_status = "pass";
+    }
+    result.version_match_output = [
+      String(result.version_match_output || "").trim(),
+      canvasStructureResult.status === "not_run" ? "" : "Canvas extension structure:",
+      canvasStructureResult.status === "not_run" ? "" : canvasStructureResult.output,
+    ].filter(Boolean).join("\n\n");
 
     const vallyResult = await runVallyLintGate(pluginRoot);
     result.vally_lint_status = vallyResult.status;
