@@ -1,41 +1,26 @@
 #!/usr/bin/env bash
 #
-# uninstall-task-shepherd.sh — Removes the orchestration scripts from a target repository.
+# uninstall-task-shepherd.sh — Removes the shepherd-task plugin and skills
+# from the user's Copilot home directory.
 #
-# Removes the following directory from the target:
-#   plugins/shepherd-task/scripts
+# Removes:
+#   ~/.copilot/plugins/shepherd-task/
+#   ~/.copilot/skills/shepherd-task-*
 #
-# Skills must be removed manually by deleting them from your agent's skills location.
-#
-# Usage: ./uninstall-task-shepherd.sh <TARGET_REPO_PATH>
-#   TARGET_REPO_PATH: relative path to the target repository root (must exist)
+# Usage: ./uninstall-task-shepherd.sh
 
 set -euo pipefail
 
-TARGET_REPO="${1:?Usage: $0 <TARGET_REPO_PATH>}"
+COPILOT_HOME="${COPILOT_HOME:-$HOME/.copilot}"
 
-# Validate target path exists.
-if [ ! -d "$TARGET_REPO" ]; then
-    echo "ERROR: Target repository path does not exist: $TARGET_REPO" >&2
-    exit 1
+# Remove plugin.
+PLUGIN_DIR="$COPILOT_HOME/plugins/shepherd-task"
+if [ -d "$PLUGIN_DIR" ]; then
+    rm -rf "$PLUGIN_DIR"
+    echo "Removed $PLUGIN_DIR"
+else
+    echo "Plugin not found: $PLUGIN_DIR (skipped)"
 fi
-
-SCRIPTS_DIR="$TARGET_REPO/plugins/shepherd-task/scripts"
-
-if [ ! -d "$SCRIPTS_DIR" ]; then
-    echo "Nothing to remove: $SCRIPTS_DIR does not exist."
-    exit 0
-fi
-
-rm -rf "$SCRIPTS_DIR"
-echo "Removed $SCRIPTS_DIR"
-
-# Clean up empty parent directories.
-rmdir "$TARGET_REPO/plugins/shepherd-task" 2>/dev/null && echo "Removed plugins/shepherd-task/" || true
-rmdir "$TARGET_REPO/plugins" 2>/dev/null && echo "Removed plugins/" || true
-
-echo ""
-echo "Orchestration scripts removed from $TARGET_REPO"
 
 # Remove skills.
 SKILLS=(
@@ -44,12 +29,12 @@ SKILLS=(
     "shepherd-task-approve-workflows-and-wait-for-completion"
 )
 for skill in "${SKILLS[@]}"; do
-    skill_dir="$TARGET_REPO/.github/skills/$skill"
+    skill_dir="$COPILOT_HOME/skills/$skill"
     if [ -d "$skill_dir" ]; then
         rm -rf "$skill_dir"
-        echo "Removed .github/skills/$skill"
+        echo "Removed ~/.copilot/skills/$skill"
     fi
 done
 
 echo ""
-echo "Shepherd-task fully removed from $TARGET_REPO"
+echo "Shepherd-task fully uninstalled."

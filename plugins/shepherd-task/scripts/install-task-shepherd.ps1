@@ -1,44 +1,33 @@
 <#
 .SYNOPSIS
-    Copies the orchestration scripts and skills into another repository.
+    Installs the shepherd-task plugin and skills into the user's Copilot home directory.
 
 .DESCRIPTION
-    Copies the following from this repository to the target:
-      plugins/shepherd-task/scripts   (orchestration scripts)
-      .github/skills/shepherd-task-*  (skills, only if not already present)
-
-.PARAMETER TargetRepoPath
-    Relative path to the target repository root (must exist).
+    Installs to:
+      ~/.copilot/plugins/shepherd-task/  (plugin with orchestration scripts)
+      ~/.copilot/skills/shepherd-task-*  (skills, only if not already present)
 
 .EXAMPLE
-    ./install-task-shepherd.ps1 ../my-other-repo
+    ./install-task-shepherd.ps1
 #>
-
-param(
-    [Parameter(Mandatory = $true, Position = 0)]
-    [string]$TargetRepoPath
-)
 
 $ErrorActionPreference = 'Stop'
 
-# Validate target path exists.
-if (-not (Test-Path $TargetRepoPath -PathType Container)) {
-    Write-Error "Target repository path does not exist: $TargetRepoPath"
-}
+$CopilotHome = if ($env:COPILOT_HOME) { $env:COPILOT_HOME } else { Join-Path $HOME '.copilot' }
 
-$TargetRepo = (Resolve-Path $TargetRepoPath).Path
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-
-# Copy orchestration scripts.
-$dest = Join-Path $TargetRepo 'plugins/shepherd-task/scripts'
-if (-not (Test-Path $dest)) {
-    New-Item -ItemType Directory -Path $dest -Force | Out-Null
-}
-Copy-Item -Path (Join-Path $ScriptDir '*') -Destination $dest -Recurse -Force
-Write-Host "Copied plugins/shepherd-task/scripts"
-
-# Copy skills (only if not already present in target).
 $SourceRepo = (Resolve-Path (Join-Path $ScriptDir '..\..\..')).Path
+$PluginSrc = (Resolve-Path (Join-Path $ScriptDir '..')).Path
+
+# Install plugin.
+$pluginDest = Join-Path $CopilotHome 'plugins' 'shepherd-task'
+if (-not (Test-Path $pluginDest)) {
+    New-Item -ItemType Directory -Path $pluginDest -Force | Out-Null
+}
+Copy-Item -Path (Join-Path $PluginSrc '*') -Destination $pluginDest -Recurse -Force
+Write-Host "Installed plugin to $pluginDest"
+
+# Install skills (only if not already present).
 $skills = @(
     'shepherd-task-from-assignment-to-ready'
     'shepherd-task-from-ready-to-merged-to-base'
@@ -49,7 +38,7 @@ $skillsInstalled = 0
 $skillsSkipped = 0
 foreach ($skill in $skills) {
     $skillSrc = Join-Path $SourceRepo 'skills' $skill
-    $skillDest = Join-Path $TargetRepo '.github' 'skills' $skill
+    $skillDest = Join-Path $CopilotHome 'skills' $skill
 
     if (-not (Test-Path $skillSrc -PathType Container)) {
         Write-Warning "Source skill not found: $skillSrc"
@@ -57,17 +46,19 @@ foreach ($skill in $skills) {
     }
 
     if (Test-Path $skillDest -PathType Container) {
-        Write-Host "Skipped .github/skills/$skill (already exists)"
+        Write-Host "Skipped ~/.copilot/skills/$skill (already exists)"
         $skillsSkipped++
     } else {
         New-Item -ItemType Directory -Path $skillDest -Force | Out-Null
         Copy-Item -Path (Join-Path $skillSrc '*') -Destination $skillDest -Recurse -Force
-        Write-Host "Copied .github/skills/$skill"
+        Write-Host "Installed ~/.copilot/skills/$skill"
         $skillsInstalled++
     }
 }
 
 Write-Host ""
-Write-Host "Installation complete into $TargetRepo"
-Write-Host "  Scripts: copied"
-Write-Host "  Skills:  $skillsInstalled installed, $skillsSkipped already present"
+Write-Host "Installation complete."
+Write-Host "  Plugin: $pluginDest"
+Write-Host "  Skills: $skillsInstalled installed, $skillsSkipped already present"
+Write-Host ""
+Write-Host "Verify with: copilot skill list"
