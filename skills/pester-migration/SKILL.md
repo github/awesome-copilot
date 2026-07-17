@@ -1,13 +1,9 @@
 ---
 name: pester-migration
-description: 'Experimental (preview) Pester migration skill for upgrading PowerShell Pester test suites across major versions — v3→v4, v4→v5, and v5→v6. The v5→v6 path tracks Pester 6, which is still a release candidate, so that guidance may change. Covers the Discovery/Run two-phase model, moving setup into BeforeAll, $PSScriptRoot vs $MyInvocation, mock changes (Assert-MockCalled → Should -Invoke, removed fall-through), Invoke-Pester parameters → PesterConfiguration, data-driven -ForEach/-TestCases, and the v6 breaking changes. Use when the user asks to upgrade, migrate, or modernize Pester tests, fix *.Tests.ps1 files that broke after bumping the Pester version, or convert legacy Should / Invoke-Pester syntax.'
+description: 'Pester migration skill for upgrading PowerShell Pester test suites across major versions — v3→v4, v4→v5, and v5→v6. Covers the Discovery/Run two-phase model, moving setup into BeforeAll, $PSScriptRoot vs $MyInvocation, mock changes (Assert-MockCalled → Should -Invoke, removed fall-through), Invoke-Pester parameters → PesterConfiguration, data-driven -ForEach/-TestCases, and the v6 breaking changes. Use when the user asks to upgrade, migrate, or modernize Pester tests, fix *.Tests.ps1 files that broke after bumping the Pester version, or convert legacy Should / Invoke-Pester syntax.'
 ---
 
 # Pester Migration
-
-> **Experimental / preview.** The **v5→v6** guidance tracks Pester 6 while it is a release
-> candidate and may change; verify against the current
-> [release notes](https://github.com/pester/Pester/releases). v3→v4 and v4→v5 cover stable releases.
 
 Pester is the test framework for PowerShell. Test files end in `*.Tests.ps1` and use
 `Describe` / `Context` / `It` blocks with `Should` assertions. This skill upgrades an existing
@@ -56,11 +52,11 @@ Tell the source version from the **test code** with these heuristics:
 Install the target version when ready:
 
 ```powershell
-# Latest stable v5 — pin the major so this keeps installing v5 even after v6 goes GA
+# Latest stable v5 — pin the major to avoid installing Pester 6
 Install-Module Pester -MaximumVersion 5.99.99 -Force
 
-# Pester 6 (currently a release candidate — needs -AllowPrerelease)
-Install-Module Pester -AllowPrerelease -Force
+# Pester 6
+Install-Module Pester -Force
 ```
 
 > On **Windows PowerShell 5.1** the OS ships a Microsoft-signed built-in Pester 3 that PowerShellGet

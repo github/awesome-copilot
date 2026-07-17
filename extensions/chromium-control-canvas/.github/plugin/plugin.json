@@ -1,7 +1,7 @@
 {
   "name": "chromium-control-canvas",
   "description": "Opens a real Chromium window you can navigate and interact with from a Copilot canvas control panel and agent actions.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Andrea Griffiths",
     "url": "https://github.com/AndreaGriffiths11"

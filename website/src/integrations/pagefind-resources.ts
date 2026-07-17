@@ -42,9 +42,7 @@ const TYPE_PAGES: Record<string, string> = {
 };
 
 // Resource types that have a dedicated detail page at /<type>/<id>/. Search
-// results for these should deep-link to the canonical detail page rather than
-// the listing page with an inert #file= hash (listing pages no longer open a
-// modal from that hash).
+// results for these should deep-link to the canonical detail page.
 const DETAIL_ROUTE_TYPES = new Set([
   "agent",
   "instruction",
@@ -118,9 +116,7 @@ export default function pagefindResources(): AstroIntegration {
 
             const url = hasDetailPage
               ? `${base}${record.type}/${encodeURIComponent(record.id)}/`
-              : `${base}${typePage.slice(1)}#file=${encodeURIComponent(
-                  record.path
-                )}`;
+              : `${base}${typePage.slice(1)}`;
             const typeLabel = TYPE_LABELS[record.type] || record.type;
 
             const addResult = await index.addCustomRecord({

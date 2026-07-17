@@ -2,7 +2,7 @@
 
 /**
  * Generate JSON metadata files for the GitHub Pages website.
- * This script extracts metadata from agents, instructions, skills, hooks, and plugins
+ * This script extracts metadata from agents, instructions, skills, and plugins
  * and writes them to website/data/ for client-side search and display.
  */
 
@@ -14,27 +14,26 @@ import {
   AGENTS_DIR,
   COOKBOOK_DIR,
   EXTENSIONS_DIR,
-  HOOKS_DIR,
   INSTRUCTIONS_DIR,
   PLUGINS_DIR,
   ROOT_FOLDER,
   SKILLS_DIR,
-  WORKFLOWS_DIR,
 } from "./constants.mjs";
 import { getGitFileDates } from "./utils/git-dates.mjs";
 import {
   parseFrontmatter,
-  parseHookMetadata,
   parseSkillMetadata,
-  parseWorkflowMetadata,
   parseYamlFile,
 } from "./yaml-parser.mjs";
+import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 
 const WEBSITE_DIR = path.join(ROOT_FOLDER, "website");
 const WEBSITE_DATA_DIR = path.join(WEBSITE_DIR, "public", "data");
 const WEBSITE_SOURCE_DATA_DIR = path.join(WEBSITE_DIR, "data");
+const EXTERNAL_CANVAS_KEYWORD = "canvas";
+const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
 
 /**
  * Ensure the output directory exists
@@ -99,6 +98,23 @@ function formatDisplayName(value) {
 
 function normalizeText(value, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
+}
+
+function normalizeRepoRelativePath(value) {
+  const normalized = normalizeText(value);
+  if (!normalized || normalized === "/") {
+    return "";
+  }
+
+  return normalized.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+}
+
+function joinRepoPath(...segments) {
+  return segments
+    .map((segment) => String(segment ?? "").trim())
+    .filter(Boolean)
+    .join("/")
+    .replace(/\/+/g, "/");
 }
 
 /**
@@ -207,136 +223,6 @@ function generateAgentsData(gitDates) {
     filters: {
       models: ["(none)", ...Array.from(allModels).sort()],
       tools: Array.from(allTools).sort(),
-    },
-  };
-}
-
-/**
- * Generate hooks metadata
- */
-/**
- * Generate hooks metadata (similar to skills - folder-based)
- */
-function generateHooksData(gitDates) {
-  const hooks = [];
-
-  // Check if hooks directory exists
-  if (!fs.existsSync(HOOKS_DIR)) {
-    return {
-      items: hooks,
-      filters: {
-        hooks: [],
-        tags: [],
-      },
-    };
-  }
-
-  // Get all hook folders (directories)
-  const hookFolders = fs.readdirSync(HOOKS_DIR).filter((file) => {
-    const filePath = path.join(HOOKS_DIR, file);
-    return fs.statSync(filePath).isDirectory();
-  });
-
-  // Track all unique values for filters
-  const allHookTypes = new Set();
-  const allTags = new Set();
-
-  for (const folder of hookFolders) {
-    const hookPath = path.join(HOOKS_DIR, folder);
-    const metadata = parseHookMetadata(hookPath);
-    if (!metadata) continue;
-
-    const relativePath = path
-      .relative(ROOT_FOLDER, hookPath)
-      .replace(/\\/g, "/");
-    const readmeRelativePath = `${relativePath}/README.md`;
-
-    // Get all files in the hook folder recursively (for the file browser and
-    // ZIP download on the detail page).
-    const files = getFolderFiles(hookPath, relativePath);
-
-    // Track unique values
-    (metadata.hooks || []).forEach((h) => allHookTypes.add(h));
-    (metadata.tags || []).forEach((t) => allTags.add(t));
-
-    hooks.push({
-      id: folder,
-      title: metadata.name,
-      description: metadata.description,
-      hooks: metadata.hooks || [],
-      tags: metadata.tags || [],
-      assets: metadata.assets || [],
-      files,
-      path: relativePath,
-      readmeFile: readmeRelativePath,
-      readmeFileName: "README.md",
-      lastUpdated: gitDates.get(readmeRelativePath) || null,
-    });
-  }
-
-  // Sort and return with filter metadata
-  const sortedHooks = hooks.sort((a, b) => a.title.localeCompare(b.title));
-
-  return {
-    items: sortedHooks,
-    filters: {
-      hooks: Array.from(allHookTypes).sort(),
-      tags: Array.from(allTags).sort(),
-    },
-  };
-}
-
-/**
- * Generate workflows metadata (flat .md files)
- */
-function generateWorkflowsData(gitDates) {
-  const workflows = [];
-
-  if (!fs.existsSync(WORKFLOWS_DIR)) {
-    return {
-      items: workflows,
-      filters: {
-        triggers: [],
-      },
-    };
-  }
-
-  const workflowFiles = fs.readdirSync(WORKFLOWS_DIR).filter((file) => {
-    return file.endsWith(".md") && file !== ".gitkeep";
-  });
-
-  const allTriggers = new Set();
-
-  for (const file of workflowFiles) {
-    const filePath = path.join(WORKFLOWS_DIR, file);
-    const metadata = parseWorkflowMetadata(filePath);
-    if (!metadata) continue;
-
-    const relativePath = path
-      .relative(ROOT_FOLDER, filePath)
-      .replace(/\\/g, "/");
-
-    (metadata.triggers || []).forEach((t) => allTriggers.add(t));
-
-    const id = path.basename(file, ".md");
-    workflows.push({
-      id,
-      title: metadata.name,
-      description: metadata.description,
-      triggers: metadata.triggers || [],
-      path: relativePath,
-      lastUpdated: gitDates.get(relativePath) || null,
-    });
-  }
-
-  const sortedWorkflows = workflows.sort((a, b) =>
-    a.title.localeCompare(b.title)
-  );
-
-  return {
-    items: sortedWorkflows,
-    filters: {
-      triggers: Array.from(allTriggers).sort(),
     },
   };
 }
@@ -565,7 +451,7 @@ function getAgentFiles(agentDir, pluginRootPath) {
  * Build a lookup index of resource id -> { title, url } for the kinds that have
  * dedicated detail pages, so plugin items can deep-link to them.
  */
-function buildResourceIndex({ agents, skills, instructions, hooks, extensions }) {
+function buildResourceIndex({ agents, skills, instructions, extensions }) {
   const toMap = (items, urlPrefix) => {
     const map = new Map();
     for (const item of items || []) {
@@ -602,7 +488,6 @@ function buildResourceIndex({ agents, skills, instructions, hooks, extensions })
     agent: toMap(agents, "agent"),
     skill: toMap(skills, "skill"),
     instruction: toMap(instructions, "instruction"),
-    hook: toMap(hooks, "hook"),
     extension: extensionMap,
   };
 }
@@ -635,7 +520,7 @@ function resolvePluginItem(item, resourceIndex) {
 
   return {
     ...item,
-    title: match?.title || candidateId || item.path,
+    title: match?.title || item.title || candidateId || item.path,
     detailUrl: match?.url || null,
   };
 }
@@ -749,12 +634,40 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
         ];
       });
 
-      // Build items list from spec fields (agents, commands, skills)
+      // Parse mcpServers: supports a path to a .mcp.json file or an inline object
+      const mcpItems = [];
+      if (data.mcpServers) {
+        let mcpServersObj = null;
+        let mcpConfigPath = relPath;
+        if (typeof data.mcpServers === "string") {
+          const manifestMcpPath = data.mcpServers.replace(/^\.\//, "");
+          mcpConfigPath = manifestMcpPath ? `${relPath}/${manifestMcpPath}` : relPath;
+          const mcpJsonPath = path.join(pluginDir, manifestMcpPath);
+          if (fs.existsSync(mcpJsonPath)) {
+            try {
+              const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, "utf-8"));
+              mcpServersObj = mcpJson.mcpServers || mcpJson;
+            } catch {
+              // ignore parse errors
+            }
+          }
+        } else if (typeof data.mcpServers === "object") {
+          mcpServersObj = data.mcpServers;
+        }
+        if (mcpServersObj) {
+          for (const serverName of Object.keys(mcpServersObj)) {
+            mcpItems.push({ kind: "mcp", path: mcpConfigPath, title: serverName });
+          }
+        }
+      }
+
+      // Build items list from spec fields (agents, commands, skills, mcpServers)
       const items = [
         ...agentItems,
         ...(data.commands || []).map((p) => ({ kind: "prompt", path: p })),
         ...(data.skills || []).map((p) => ({ kind: "skill", path: p })),
         ...extensionItems,
+        ...mcpItems,
       ].map((item) => resolvePluginItem(item, resourceIndex));
 
       const tags = data.keywords || data.tags || [];
@@ -1162,6 +1075,67 @@ function normalizeExternalScreenshotRole(value, ref) {
   };
 }
 
+function buildExternalRepoImageUrl(repo, locator, assetPath) {
+  if (!repo || !locator || !assetPath) {
+    return null;
+  }
+
+  const encodedLocator = locator
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  const encodedPath = assetPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `https://raw.githubusercontent.com/${repo}/${encodedLocator}/${encodedPath}`;
+}
+
+function buildExternalRepoTreeUrl(repo, locator, pluginRoot) {
+  if (!repo) {
+    return null;
+  }
+
+  if (locator) {
+    const treePath = normalizeRepoRelativePath(pluginRoot);
+    const encodedLocator = locator
+      .split("/")
+      .map((segment) => encodeURIComponent(segment))
+      .join("/");
+    const encodedTreePath = treePath
+      ? treePath
+        .split("/")
+        .map((segment) => encodeURIComponent(segment))
+        .join("/")
+      : null;
+    const suffix = encodedTreePath ? `/${encodedTreePath}` : "";
+    return `https://github.com/${repo}/tree/${encodedLocator}${suffix}`;
+  }
+
+  return `https://github.com/${repo}`;
+}
+
+function hasCanvasKeyword(plugin) {
+  return normalizeExternalKeywords(plugin).some(
+    (keyword) => normalizeText(keyword).toLowerCase() === EXTERNAL_CANVAS_KEYWORD
+  );
+}
+
+function normalizeExternalKeywords(plugin) {
+  const source = Array.isArray(plugin?.keywords)
+    ? plugin.keywords
+    : Array.isArray(plugin?.tags)
+      ? plugin.tags
+      : [];
+
+  return [...new Set(
+    source
+      .filter((keyword) => typeof keyword === "string")
+      .map((keyword) => keyword.trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
+}
+
 function normalizeExtensionScreenshotRole(value, relPath, ref) {
   if (!value) return null;
   if (typeof value === "string") {
@@ -1427,6 +1401,93 @@ function generateCanvasManifest(gitDates, commitSha) {
     }
   }
 
+  const seenExtensionIds = new Set(items.map((item) => String(item.id).toLowerCase()));
+  const {
+    plugins: externalPlugins,
+    errors: externalPluginErrors,
+    warnings: externalPluginWarnings,
+  } = readExternalPlugins({ policy: "marketplace" });
+  externalPluginWarnings.forEach((warning) => console.warn(`Warning: ${warning}`));
+  if (externalPluginErrors.length > 0) {
+    externalPluginErrors.forEach((error) => console.error(`Error: ${error}`));
+    throw new Error("External plugin validation failed");
+  }
+
+  for (const ext of externalPlugins) {
+    if (!hasCanvasKeyword(ext)) {
+      continue;
+    }
+
+    const name = normalizeText(ext?.name);
+    if (!name) {
+      continue;
+    }
+    const displayName = formatDisplayName(name);
+
+    const id = normalizeText(ext?.name).toLowerCase().replace(/\s+/g, "-");
+    if (seenExtensionIds.has(id)) {
+      continue;
+    }
+
+    const source = ext?.source;
+    if (source?.source !== "github" || !normalizeText(source?.repo)) {
+      console.warn(`Warning: skipping external canvas "${name}" due to missing GitHub source`);
+      continue;
+    }
+
+    const locator = normalizeText(source.sha) || normalizeText(source.ref);
+    if (!locator) {
+      console.warn(`Warning: skipping external canvas "${name}" because source.sha or source.ref is required`);
+      continue;
+    }
+
+    const pluginRoot = normalizeRepoRelativePath(source.path);
+    const previewPath = joinRepoPath(pluginRoot, EXTERNAL_CANVAS_PREVIEW_PATH);
+    const imageUrl = buildExternalRepoImageUrl(source.repo, locator, previewPath);
+    const sourceUrl = buildExternalRepoTreeUrl(source.repo, locator, pluginRoot);
+    const externalSource = normalizeText(source.repo);
+    const keywords = normalizeExternalKeywords(ext);
+
+    items.push({
+      id,
+      canvasId: id,
+      extensionId: id,
+      extensionName: name,
+      pluginName: null,
+      name: displayName,
+      version: normalizeText(ext?.version, "1.0.0"),
+      readmeFile: null,
+      description: normalizeText(ext?.description, "External canvas extension"),
+      path: null,
+      ref: null,
+      lastUpdated: null,
+      screenshots: {
+        icon: imageUrl
+          ? {
+            path: imageUrl,
+            type: getImageMimeType(EXTERNAL_CANVAS_PREVIEW_PATH),
+          }
+          : null,
+        gallery: imageUrl
+          ? {
+            path: imageUrl,
+            type: getImageMimeType(EXTERNAL_CANVAS_PREVIEW_PATH),
+          }
+          : null,
+      },
+      imageUrl,
+      assetPath: null,
+      installUrl: null,
+      installCommand: null,
+      sourceUrl,
+      externalSource,
+      external: true,
+      author: normalizeAuthor(ext?.author),
+      keywords,
+    });
+    seenExtensionIds.add(id);
+  }
+
   const sortedItems = items.sort((a, b) => a.name.localeCompare(b.name));
   const keywordFilters = [...new Set(sortedItems.flatMap((item) => item.keywords || []))]
     .filter(Boolean)
@@ -1460,70 +1521,11 @@ function generateExtensionsData(extensionManifestData) {
 }
 
 /**
- * Generate tools metadata from website/data/tools.yml
- */
-function generateToolsData() {
-  const toolsFile = path.join(WEBSITE_SOURCE_DATA_DIR, "tools.yml");
-
-  if (!fs.existsSync(toolsFile)) {
-    console.warn("No tools.yml file found at", toolsFile);
-    return { items: [], filters: { categories: [], tags: [] } };
-  }
-
-  const data = parseYamlFile(toolsFile);
-
-  if (!data || !data.tools) {
-    return { items: [], filters: { categories: [], tags: [] } };
-  }
-
-  const allCategories = new Set();
-  const allTags = new Set();
-
-  const tools = data.tools.map((tool) => {
-    const category = tool.category || "Other";
-    allCategories.add(category);
-
-    const tags = tool.tags || [];
-    tags.forEach((t) => allTags.add(t));
-
-    return {
-      id: tool.id,
-      name: tool.name,
-      description: tool.description || "",
-      category: category,
-      featured: tool.featured || false,
-      requirements: tool.requirements || [],
-      features: tool.features || [],
-      links: tool.links || {},
-      configuration: tool.configuration || null,
-      tags: tags,
-    };
-  });
-
-  // Sort with featured first, then alphabetically
-  const sortedTools = tools.sort((a, b) => {
-    if (a.featured && !b.featured) return -1;
-    if (!a.featured && b.featured) return 1;
-    return a.name.localeCompare(b.name);
-  });
-
-  return {
-    items: sortedTools,
-    filters: {
-      categories: Array.from(allCategories).sort(),
-      tags: Array.from(allTags).sort(),
-    },
-  };
-}
-
-/**
  * Generate a combined index for search
  */
 function generateSearchIndex(
   agents,
   instructions,
-  hooks,
-  workflows,
   skills,
   plugins
 ) {
@@ -1553,33 +1555,6 @@ function generateSearchIndex(
       lastUpdated: instruction.lastUpdated,
       searchText: `${instruction.title} ${instruction.description} ${instruction.applyTo || ""
         }`.toLowerCase(),
-    });
-  }
-
-  for (const hook of hooks) {
-    index.push({
-      type: "hook",
-      id: hook.id,
-      title: hook.title,
-      description: hook.description,
-      path: hook.readmeFile,
-      lastUpdated: hook.lastUpdated,
-      searchText: `${hook.title} ${hook.description} ${hook.hooks.join(
-        " "
-      )} ${hook.tags.join(" ")}`.toLowerCase(),
-    });
-  }
-
-  for (const workflow of workflows) {
-    index.push({
-      type: "workflow",
-      id: workflow.id,
-      title: workflow.title,
-      description: workflow.description,
-      path: workflow.path,
-      lastUpdated: workflow.lastUpdated,
-      searchText: `${workflow.title} ${workflow.description
-        } ${workflow.triggers.join(" ")}`.toLowerCase(),
     });
   }
 
@@ -1752,8 +1727,6 @@ async function main() {
     [
       "agents/",
       "instructions/",
-      "hooks/",
-      "workflows/",
       "skills/",
       "extensions/",
       "plugins/",
@@ -1769,18 +1742,6 @@ async function main() {
   const agents = agentsData.items;
   console.log(
     `✓ Generated ${agents.length} agents (${agentsData.filters.models.length} models, ${agentsData.filters.tools.length} tools)`
-  );
-
-  const hooksData = generateHooksData(gitDates);
-  const hooks = hooksData.items;
-  console.log(
-    `✓ Generated ${hooks.length} hooks (${hooksData.filters.hooks.length} hook types, ${hooksData.filters.tags.length} tags)`
-  );
-
-  const workflowsData = generateWorkflowsData(gitDates);
-  const workflows = workflowsData.items;
-  console.log(
-    `✓ Generated ${workflows.length} workflows (${workflowsData.filters.triggers.length} triggers)`
   );
 
   const instructionsData = generateInstructionsData(gitDates);
@@ -1804,19 +1765,12 @@ async function main() {
     agents,
     skills,
     instructions,
-    hooks,
     extensions,
   });
   const pluginsData = generatePluginsData(gitDates, resourceIndex);
   const plugins = pluginsData.items;
   console.log(
     `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
-  );
-
-  const toolsData = generateToolsData();
-  const tools = toolsData.items;
-  console.log(
-    `✓ Generated ${tools.length} tools (${toolsData.filters.categories.length} categories)`
   );
 
   const samplesData = generateSamplesData();
@@ -1833,8 +1787,6 @@ async function main() {
   const searchIndex = generateSearchIndex(
     agents,
     instructions,
-    hooks,
-    workflows,
     skills,
     plugins
   );
@@ -1844,16 +1796,6 @@ async function main() {
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "agents.json"),
     JSON.stringify(agentsData, null, 2)
-  );
-
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "hooks.json"),
-    JSON.stringify(hooksData, null, 2)
-  );
-
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "workflows.json"),
-    JSON.stringify(workflowsData, null, 2)
   );
 
   fs.writeFileSync(
@@ -1876,10 +1818,6 @@ async function main() {
     JSON.stringify(extensionsData, null, 2)
   );
 
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "tools.json"),
-    JSON.stringify(toolsData, null, 2)
-  );
 
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "samples.json"),
@@ -1898,11 +1836,8 @@ async function main() {
       agents: agents.length,
       instructions: instructions.length,
       skills: skills.length,
-      hooks: hooks.length,
-      workflows: workflows.length,
       plugins: plugins.length,
       extensions: extensions.length,
-      tools: tools.length,
       contributors: contributorCount,
       samples: samplesData.totalRecipes,
       total: searchIndex.length,

@@ -1,10 +1,10 @@
 ---
-title: 'Using Automations in the GitHub Copilot app'
-description: 'A practical guide to getting started with Copilot app automations using templates, iterative refinement, and real-world examples.'
+title: "Using Automations in the GitHub Copilot app"
+description: "A practical guide to getting started with Copilot app automations using templates, iterative refinement, and real-world examples."
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-06-17
-estimatedReadingTime: '10 minutes'
+estimatedReadingTime: "10 minutes"
 tags:
   - copilot-app
   - automations
@@ -61,12 +61,14 @@ If your first version is only 70% right, that is normal. The fastest path is to 
 
 Here is a real in-app automation used on the `github/awesome-copilot` repository:
 
-| Field | Value |
-|---|---|
-| **Name** | Awesome Copilot daily PR summary |
-| **Interval** | Daily at 09:00 |
-| **Mode** | Autopilot |
+| Field            | Value                                                                                                     |
+| ---------------- | --------------------------------------------------------------------------------------------------------- |
+| **Name**         | Awesome Copilot daily PR summary                                                                          |
+| **Interval**     | Daily at 09:00                                                                                            |
+| **Mode**         | Autopilot                                                                                                 |
 | **What it does** | Pulls open PRs via `gh api`, filters to updates in the last 24 hours, and returns a concise summary table |
+
+[![Create Automation](https://img.shields.io/badge/automation-daily_pr_summary-blue?logo=github-copilot)](ghapp://automations/new?name=Awesome%20Copilot%20daily%20PR%20summary&trigger=daily&time=09%3A00&prompt=Pulls%20open%20PRs%20via%20gh%20api%2C%20filters%20to%20updates%20in%20the%20last%2024%20hours%2C%20and%20returns%20a%20concise%20summary%20table)
 
 Why this works well:
 

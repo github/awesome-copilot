@@ -1,7 +1,7 @@
 {
   "name": "work-hub",
   "description": "Generic cross-repo command center canvas for GitHub Copilot with onboarding, focus planning, repo health, work signals, and session cleanup.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "James Montemagno",
     "url": "https://github.com/jamesmontemagno"

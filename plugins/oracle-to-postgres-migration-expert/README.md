@@ -21,9 +21,9 @@ copilot plugin install oracle-to-postgres-migration-expert@awesome-copilot
 
 | Skill | Description |
 |-------|-------------|
-| `reviewing-oracle-to-postgres-migration` | Identifies Oracle-to-PostgreSQL migration risks by cross-referencing code against known behavioral differences (empty strings, refcursors, type coercion, sorting, timestamps, concurrent transactions, etc.). |
+| `reviewing-oracle-to-postgres-migration` | Identifies Oracle-to-PostgreSQL migration risks by cross-referencing code against known behavioral differences (empty strings, refcursors, type coercion, sorting/collations, UNION ALL planning risks, materialized-view refresh behavior, timestamps, concurrent transactions, etc.). |
 | `creating-oracle-to-postgres-master-migration-plan` | Discovers all projects in a .NET solution, classifies each for Oracle-to-PostgreSQL migration eligibility, and produces a persistent master migration plan. |
-| `migrating-oracle-to-postgres-stored-procedures` | Migrates Oracle PL/SQL stored procedures to PostgreSQL PL/pgSQL. Translates Oracle-specific syntax, preserves method signatures and type-anchored parameters, and applies `COLLATE "C"` for Oracle-compatible text sorting. |
+| `migrating-oracle-to-postgres-stored-procedures` | Migrates Oracle PL/SQL stored procedures to PostgreSQL PL/pgSQL. Translates Oracle-specific syntax, preserves method signatures and type-anchored parameters, and applies explicit collation rules (`"C"` only when appropriate, locale-specific collations when required). |
 | `planning-oracle-to-postgres-migration-integration-testing` | Creates an integration testing plan for .NET data access artifacts, identifying repositories, DAOs, and service layers that need validation coverage. |
 | `scaffolding-oracle-to-postgres-migration-test-project` | Scaffolds an xUnit integration test project with a transaction-rollback base class and seed data manager for Oracle-to-PostgreSQL migration validation. |
 | `creating-oracle-to-postgres-migration-integration-tests` | Generates DB-agnostic xUnit integration tests with deterministic seed data that validate behavior consistency across both database systems. |
@@ -35,7 +35,7 @@ copilot plugin install oracle-to-postgres-migration-expert@awesome-copilot
 
 The expert agent educates users throughout the migration journey:
 
-- **Migration Concepts**: Explains Oracle→PostgreSQL differences (empty strings vs NULL, NO_DATA_FOUND exceptions, sort order, TO_CHAR conversions, type coercion strictness, REF CURSOR handling, concurrent transactions, timestamp/timezone behavior)
+- **Migration Concepts**: Explains Oracle→PostgreSQL differences (empty strings vs NULL, NO_DATA_FOUND exceptions, sort/collation behavior, TO_CHAR conversions, type coercion strictness, REF CURSOR handling, UNION ALL planning caveats, materialized-view refresh needs, concurrent transactions, timestamp/timezone behavior)
 - **Pitfall Reference**: Surfaces insights from migration knowledge so users understand why changes are needed
 - **Best Practices**: Advises on minimizing changes, preserving logic, and ensuring schema immutability
 - **Workflow Guidance**: Presents a four-phase migration workflow as a guide users can follow at their own pace
@@ -51,6 +51,8 @@ The expert suggests actionable next steps and only proceeds with user confirmati
 5. **Summarize** what was produced and suggest the next step
 
 No autonomous chaining — the user controls the pace and sequence.
+
+For database-changing actions, the expert provides scripts and explicit run instructions; the user applies DB changes.
 
 ## Migration Workflow
 

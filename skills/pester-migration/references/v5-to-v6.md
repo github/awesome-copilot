@@ -4,11 +4,6 @@ Pester 6 builds on v5 and is **largely backwards-compatible** — most v5 suites
 changes, and your existing `Should -Be` assertions keep working. The work is fixing a handful of
 previously-deprecated behaviors that now throw. This is a low-to-medium effort jump.
 
-> Pester 6 is currently a **release candidate**. Install with
-> `Install-Module Pester -AllowPrerelease -Force` (add `-SkipPublisherCheck` on Windows
-> PowerShell 5.1). Some details may still change before final — check the release notes:
-> https://github.com/pester/Pester/releases.
-
 Official guide: https://pester.dev/docs/migrations/v5-to-v6
 
 ---

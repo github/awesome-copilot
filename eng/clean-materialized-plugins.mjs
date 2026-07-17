@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
+const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const MATERIALIZED_SPECS = {
   agents: {
     path: "agents",
@@ -89,6 +90,30 @@ function cleanPlugin(pluginPath) {
   return { removed, manifestUpdated };
 }
 
+function cleanMaterializedExtensionPlugin(extensionPath) {
+  const pluginJsonPath = path.join(extensionPath, ".github", "plugin", "plugin.json");
+  let manifestUpdated = false;
+  if (fs.existsSync(pluginJsonPath)) {
+    const plugin = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
+    if (plugin.extensions === "extensions") {
+      plugin.extensions = ".";
+      fs.writeFileSync(pluginJsonPath, JSON.stringify(plugin, null, 2) + "\n", "utf8");
+      manifestUpdated = true;
+      console.log(`  Updated ${path.basename(extensionPath)}/.github/plugin/plugin.json`);
+    }
+  }
+
+  const target = path.join(extensionPath, "extensions");
+  if (!fs.existsSync(target) || !fs.statSync(target).isDirectory()) {
+    return { removed: 0, manifestUpdated };
+  }
+
+  const count = countFiles(target);
+  fs.rmSync(target, { recursive: true, force: true });
+  console.log(`  Removed ${path.basename(extensionPath)}/extensions/ (${count} files)`);
+  return { removed: count, manifestUpdated };
+}
+
 function countFiles(dir) {
   let count = 0;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -168,6 +193,25 @@ function main() {
     total += removed;
     if (manifestUpdated) {
       manifestsUpdated++;
+    }
+  }
+
+  if (fs.existsSync(EXTENSIONS_DIR)) {
+    const extensionDirs = fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+
+    for (const dirName of extensionDirs) {
+      const extensionPath = path.join(EXTENSIONS_DIR, dirName);
+      if (!fs.existsSync(path.join(extensionPath, "extension.mjs"))) {
+        continue;
+      }
+      const { removed, manifestUpdated } = cleanMaterializedExtensionPlugin(extensionPath);
+      total += removed;
+      if (manifestUpdated) {
+        manifestsUpdated++;
+      }
     }
   }
 
