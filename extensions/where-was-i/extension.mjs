@@ -266,24 +266,85 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   color: var(--text);
 }
 
+.git-graph {
+  overflow-x: auto;
+}
+.graph-row {
+  display: grid;
+  grid-template-columns: 72px 72px minmax(220px, 1fr) auto;
+  align-items: center;
+  min-height: 34px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+}
+.graph-row:last-child { border-bottom: none; }
+.graph-row.worktree-commit {
+  background: color-mix(in srgb, var(--azure) 5%, transparent);
+}
+.graph-lines {
+  color: var(--azure);
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: pre;
+}
+.graph-hash {
+  color: var(--meta);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+.graph-subject {
+  color: var(--text);
+  font-size: 0.84rem;
+  overflow: hidden;
+  padding-right: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.graph-refs {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+.graph-ref {
+  background: var(--azure-tint);
+  border: 1px solid color-mix(in srgb, var(--azure) 20%, transparent);
+  border-radius: var(--radius-pill);
+  color: var(--azure);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  padding: 2px 7px;
+}
+
 .file-list { list-style: none; }
 .file-list li {
+  align-items: center;
+  border-radius: 6px;
+  display: flex;
+  gap: 8px;
   font-family: var(--mono);
   font-size: 0.8rem;
-  padding: 4px 0;
+  padding: 7px 8px;
   color: var(--muted);
 }
 .file-list .status-badge {
   display: inline-block;
-  width: 18px;
-  text-align: center;
-  margin-right: 6px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
+  min-width: 76px;
+  padding: 2px 8px;
+  text-align: center;
 }
-.file-list .status-badge.M { color: #d97706; }
-.file-list .status-badge.A { color: var(--sage); }
-.file-list .status-badge.D { color: #ef4444; }
-.file-list .status-badge.U { color: var(--coral); }
+.file-list .status-badge.modified { background: #fff7ed; color: #b45309; }
+.file-list .status-badge.added { background: var(--sage-tint); color: #4d7c0f; }
+.file-list .status-badge.deleted { background: #fef2f2; color: #dc2626; }
+.file-list .status-badge.untracked { background: var(--coral-tint); color: #c2410c; }
+.file-list .status-badge.renamed { background: var(--azure-tint); color: var(--azure); }
+.file-list .file-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .thread-cards { display: grid; grid-template-columns: 1fr; gap: 0.6rem; }
 .thread-card {
@@ -471,6 +532,18 @@ function escapeHtml(s) {
   return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
+function describeStatus(code) {
+  if (code === "??") return { label: "Untracked", kind: "untracked" };
+  const index = code[0];
+  const worktree = code[1];
+  if (index === "R") return { label: worktree === " " ? "Renamed" : "Renamed + edited", kind: "renamed" };
+  if (index === "A") return { label: worktree === " " ? "Staged add" : "Added + edited", kind: "added" };
+  if (index === "D" || worktree === "D") return { label: index !== " " && worktree !== " " ? "Staged + deleted" : "Deleted", kind: "deleted" };
+  if (index !== " " && worktree !== " ") return { label: "Staged + edited", kind: "modified" };
+  if (index !== " ") return { label: "Staged", kind: "modified" };
+  return { label: "Modified", kind: "modified" };
+}
+
 function render(data) {
   contextData = data;
   const app = document.getElementById("app");
@@ -484,11 +557,12 @@ function render(data) {
     return { hash, msg };
   });
 
-  const files = (data.uncommitted || []).map(f => {
-    const status = f.substring(0, 2).trim();
-    const path = f.substring(3);
-    return { status, path };
-  });
+  const files = data.changes || (data.uncommitted || []).map(f => ({
+    code: f.substring(0, 2),
+    path: f.substring(3)
+  }));
+  const branchHashes = new Set(worktreeCommits.map(commit => commit.split(" ")[0]));
+  const graph = data.commitGraph || [];
 
   const prs = data.openPrs || [];
   const issues = data.assignedIssues || [];
@@ -519,20 +593,33 @@ function render(data) {
       <div class="warnings">\${data.warnings.map(escapeHtml).join("<br>")}</div>
     \` : ""}
 
-    \${commits.length ? \`
+    \${graph.length ? \`
     <div class="section">
-      <div class="section-title">\${worktreeCommits.length ? "Commits on this worktree" : "Recent commits"}</div>
-      <div class="card">
-        <ul class="commit-list">
-          \${commits.map(c => \`
-            <li>
-              <span class="commit-hash">\${escapeHtml(c.hash)}</span>
-              <span class="commit-msg">\${escapeHtml(c.msg)}</span>
-            </li>
-          \`).join("")}
-        </ul>
+      <div class="section-title">Git graph</div>
+      <div class="card git-graph">
+        \${graph.map(row => row.hash ? \`
+          <div class="graph-row \${branchHashes.has(row.hash) ? "worktree-commit" : ""}">
+            <span class="graph-lines">\${escapeHtml(row.graph || "* ")}</span>
+            <span class="graph-hash">\${escapeHtml(row.hash)}</span>
+            <span class="graph-subject" title="\${escapeHtml(row.subject)}">\${escapeHtml(row.subject)}</span>
+            <span class="graph-refs">
+              \${(row.refs || "").split(",").map(ref => ref.trim()).filter(Boolean).map(ref => \`<span class="graph-ref">\${escapeHtml(ref)}</span>\`).join("")}
+            </span>
+          </div>
+        \` : \`
+          <div class="graph-row">
+            <span class="graph-lines">\${escapeHtml(row.graph)}</span>
+          </div>
+        \`).join("")}
       </div>
     </div>
+    \` : commits.length ? \`
+      <div class="section">
+        <div class="section-title">Recent commits</div>
+        <div class="card"><ul class="commit-list">
+          \${commits.map(c => \`<li><span class="commit-hash">\${escapeHtml(c.hash)}</span><span class="commit-msg">\${escapeHtml(c.msg)}</span></li>\`).join("")}
+        </ul></div>
+      </div>
     \` : ""}
 
     \${files.length ? \`
@@ -540,12 +627,15 @@ function render(data) {
       <div class="section-title">Uncommitted Changes</div>
       <div class="card">
         <ul class="file-list">
-          \${files.map(f => \`
+          \${files.map(f => {
+            const status = describeStatus(f.code);
+            return \`
             <li>
-              <span class="status-badge \${escapeHtml(f.status)}">\${escapeHtml(f.status)}</span>
-              \${escapeHtml(f.path)}
+              <span class="status-badge \${status.kind}">\${status.label}</span>
+              <span class="file-path">\${escapeHtml(f.path)}</span>
             </li>
-          \`).join("")}
+          \`;
+          }).join("")}
         </ul>
         \${data.diffStat ? \`<div class="diff-stat">\${escapeHtml(data.diffStat)}</div>\` : ""}
       </div>
