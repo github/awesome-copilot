@@ -315,6 +315,21 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   font-size: 0.65rem;
   padding: 2px 7px;
 }
+.graph-history {
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+.graph-history summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  list-style-position: inside;
+  padding: 12px 0 6px;
+  user-select: none;
+}
+.graph-history summary:hover { color: var(--azure); }
+.graph-history[open] summary { margin-bottom: 4px; }
 
 .file-list { list-style: none; }
 .file-list li {
@@ -640,6 +655,23 @@ function describeStatus(code) {
   return { label: "Modified", kind: "modified" };
 }
 
+function renderGraphRows(rows, branchHashes) {
+  return rows.map(row => row.hash ? \`
+    <div class="graph-row \${branchHashes.has(row.hash) ? "worktree-commit" : ""}">
+      <span class="graph-lines">\${escapeHtml(row.graph || "* ")}</span>
+      <span class="graph-hash">\${escapeHtml(row.hash)}</span>
+      <span class="graph-subject" title="\${escapeHtml(row.subject)}">\${escapeHtml(row.subject)}</span>
+      <span class="graph-refs">
+        \${(row.refs || "").split(",").map(ref => ref.trim()).filter(Boolean).map(ref => \`<span class="graph-ref">\${escapeHtml(ref)}</span>\`).join("")}
+      </span>
+    </div>
+  \` : \`
+    <div class="graph-row">
+      <span class="graph-lines">\${escapeHtml(row.graph)}</span>
+    </div>
+  \`).join("");
+}
+
 function render(data) {
   contextData = data;
   const app = document.getElementById("app");
@@ -659,6 +691,10 @@ function render(data) {
   }));
   const branchHashes = new Set(worktreeCommits.map(commit => commit.split(" ")[0]));
   const graph = data.commitGraph || [];
+  const firstBaseCommit = graph.findIndex(row => row.hash && !branchHashes.has(row.hash));
+  const focusedGraph = firstBaseCommit >= 0 ? graph.slice(0, firstBaseCommit) : graph;
+  const baseGraph = firstBaseCommit >= 0 ? graph.slice(firstBaseCommit) : [];
+  const baseCommitCount = baseGraph.filter(row => row.hash).length;
 
   const prs = data.openPrs || [];
   const issues = data.assignedIssues || [];
@@ -693,20 +729,13 @@ function render(data) {
     <div class="section">
       <div class="section-title">Git graph</div>
       <div class="card git-graph">
-        \${graph.map(row => row.hash ? \`
-          <div class="graph-row \${branchHashes.has(row.hash) ? "worktree-commit" : ""}">
-            <span class="graph-lines">\${escapeHtml(row.graph || "* ")}</span>
-            <span class="graph-hash">\${escapeHtml(row.hash)}</span>
-            <span class="graph-subject" title="\${escapeHtml(row.subject)}">\${escapeHtml(row.subject)}</span>
-            <span class="graph-refs">
-              \${(row.refs || "").split(",").map(ref => ref.trim()).filter(Boolean).map(ref => \`<span class="graph-ref">\${escapeHtml(ref)}</span>\`).join("")}
-            </span>
-          </div>
-        \` : \`
-          <div class="graph-row">
-            <span class="graph-lines">\${escapeHtml(row.graph)}</span>
-          </div>
-        \`).join("")}
+        \${renderGraphRows(focusedGraph, branchHashes)}
+        \${baseGraph.length ? \`
+          <details class="graph-history">
+            <summary>Show \${baseCommitCount} earlier commit\${baseCommitCount === 1 ? "" : "s"} from \${escapeHtml(data.baseRef || "base branch")}</summary>
+            \${renderGraphRows(baseGraph, branchHashes)}
+          </details>
+        \` : ""}
       </div>
     </div>
     \` : commits.length ? \`
