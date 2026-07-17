@@ -7,7 +7,6 @@ import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
-const MISSPELLED_EXTENSIONS_KEY = "exten" + "ions";
 
 // Validation functions
 function validateName(name, folderName) {
@@ -306,8 +305,8 @@ function validateExtensionManifest(folderName) {
     errors.push("x-awesome-copilot field must not be present (use convention-based logo instead)");
   }
 
-  if (parsed[MISSPELLED_EXTENSIONS_KEY] !== undefined) {
-    errors.push(`use "extensions" field (found misspelled key "${MISSPELLED_EXTENSIONS_KEY}")`);
+  if (parsed.extenions !== undefined) {
+    errors.push('use "extensions" field (found misspelled key "extenions")');
   }
 
   // Extension convention: source manifests keep extensions at repository root.
