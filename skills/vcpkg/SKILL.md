@@ -98,8 +98,8 @@ cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cm
 
 ### Classic-to-Manifest Migration
 
-1. List what's currently installed: `vcpkg list`
-2. Create `vcpkg.json` with those dependencies
+1. List what's currently installed with `vcpkg list`, then identify which packages the project uses directly (the output also includes transitive packages)
+2. Create `vcpkg.json` with only those direct dependencies
 3. Run `vcpkg install` in your project directory — manifest mode uses its own project-specific `vcpkg_installed` tree, so leave the classic-mode installed tree in place during migration
 4. Update your build system to use `CMAKE_TOOLCHAIN_FILE` if not already
 5. Optional: remove classic-mode packages later by name with `vcpkg remove <package> --recurse` if you no longer need them
@@ -209,7 +209,7 @@ Use a baseline for the registry that resolves the dependency. For the builtin re
 - `overrides` take precedence over all version constraints, including transitive ones.
 - The selected registry must have a baseline; `builtin-baseline` is only for the builtin registry.
 - Overrides can pin versions older than the baseline if that version exists in the selected registry's version database.
-- Use `vcpkg x-history <port>` to inspect available versions.
+- Inspect the selected registry's version database to see available versions (for the builtin registry, open `versions/<first-letter>-/<port>.json` in the vcpkg repository).
 
 ---
 

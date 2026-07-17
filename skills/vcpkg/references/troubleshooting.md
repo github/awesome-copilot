@@ -61,10 +61,7 @@ Update the features in `vcpkg.json`:
 
 Then run `vcpkg install` — vcpkg will detect the feature change and rebuild.
 
-In classic mode:
-```console
-vcpkg install curl[ssl,ssh] --recurse   # permits rebuilding with the new feature set
-```
+In classic mode, installing a feature only adds to the already installed feature set; omitted features are not removed. To remove a feature, uninstall `curl` and then reinstall it with the desired features. Account for dependent packages before using `--recurse`, because it removes them too.
 
 ### Replacing One Library with Another
 
@@ -88,8 +85,10 @@ Remove-Item -Recurse -Force <vcpkg-root>\installed
 # Remove package build artifacts
 Remove-Item -Recurse -Force <vcpkg-root>\packages
 
-# In manifest mode, remove the local vcpkg_installed directory
+# In CLI manifest mode, remove the manifest-root install directory
 Remove-Item -Recurse -Force .\vcpkg_installed
+
+# With CMake integration, remove <build-directory>\vcpkg_installed (or VCPKG_INSTALLED_DIR)
 ```
 
 ```bash
@@ -97,5 +96,6 @@ rm -rf <vcpkg-root>/buildtrees
 rm -rf <vcpkg-root>/downloads
 rm -rf <vcpkg-root>/installed
 rm -rf <vcpkg-root>/packages
+# CLI manifest mode; with CMake integration, use <build-directory>/vcpkg_installed (or VCPKG_INSTALLED_DIR)
 rm -rf ./vcpkg_installed
 ```
