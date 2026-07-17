@@ -21,6 +21,18 @@ $env:VCPKG_BINARY_SOURCES = "clear;nuget,https://nuget.pkg.github.com/your-org/i
 ```bash
 export VCPKG_BINARY_SOURCES="clear;nuget,https://nuget.pkg.github.com/your-org/index.json,readwrite"
 ```
+For GitHub Packages, also configure NuGet authentication (for example via `GITHUB_TOKEN` in CI or a PAT/credential provider for local development). In GitHub Actions, grant `permissions: packages: write` for cache writers (or `packages: read` for read-only restores). Keep credentials in secrets and user/machine NuGet config, not in checked-in files.
+
+**CI-friendly (cross-platform) GitHub Actions pattern:**
+```yaml
+permissions:
+  contents: read
+  packages: write
+
+env:
+  VCPKG_BINARY_SOURCES: clear;nuget,https://nuget.pkg.github.com/your-org/index.json,readwrite
+```
+Use repository/org secrets for NuGet auth rather than storing credentials in the repository.
 
 **Local filesystem:**
 ```powershell
@@ -30,21 +42,7 @@ $env:VCPKG_BINARY_SOURCES = "clear;files,C:\vcpkg-cache,readwrite"
 export VCPKG_BINARY_SOURCES="clear;files,/var/tmp/vcpkg-cache,readwrite"
 ```
 
-**Sharing between CI and local dev:** Use the same remote cache (Azure Blob or NuGet feed) in both environments. CI writes (`readwrite`), developers read (`read`):
-```powershell
-# CI (writes cache)
-$env:VCPKG_BINARY_SOURCES = "clear;x-azblob,https://myaccount.blob.core.windows.net/cache,$env:AZURE_STORAGE_SAS_TOKEN,readwrite"
-
-# Developer (reads cache)
-$env:VCPKG_BINARY_SOURCES = "clear;x-azblob,https://myaccount.blob.core.windows.net/cache,$env:AZURE_STORAGE_SAS_TOKEN,read"
-```
-```bash
-# CI (writes cache)
-export VCPKG_BINARY_SOURCES="clear;x-azblob,https://myaccount.blob.core.windows.net/cache,$AZURE_STORAGE_SAS_TOKEN,readwrite"
-
-# Developer (reads cache)
-export VCPKG_BINARY_SOURCES="clear;x-azblob,https://myaccount.blob.core.windows.net/cache,$AZURE_STORAGE_SAS_TOKEN,read"
-```
+**Sharing between CI and local dev:** Use the same remote cache source in both environments and switch only the final mode token: CI uses `readwrite`, developers use `read`.
 
 ---
 

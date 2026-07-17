@@ -38,6 +38,12 @@ If the user is working inside **Visual Studio** (not VS Code), prefer using the 
 
 If the user has a standalone vcpkg installation and prefers to use that instead, respect their preference.
 
+### Shell Environment Variable Syntax
+
+When examples require environment variables, use shell-appropriate syntax:
+- PowerShell: `$env:VARIABLE = "value"`
+- Bash/Zsh: `export VARIABLE=value`
+
 ---
 
 ## Project Setup
@@ -128,18 +134,10 @@ vcpkg install zlib:arm64-windows
 
 In manifest mode, set the triplet via CMake:
 ```console
-cmake -B build -DVCPKG_TARGET_TRIPLET=x64-linux -DCMAKE_TOOLCHAIN_FILE=[vcpkg root]/scripts/buildsystems/vcpkg.cmake
+cmake -B build -DVCPKG_TARGET_TRIPLET=x64-linux -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake
 ```
 
-Or set the environment variable:
-
-```powershell
-$env:VCPKG_DEFAULT_TRIPLET = "x64-linux"
-```
-
-```bash
-export VCPKG_DEFAULT_TRIPLET=x64-linux
-```
+Or set the default triplet via environment variable (using the shell syntax above): `VCPKG_DEFAULT_TRIPLET=x64-linux`.
 
 ### Bulk-Adding Multiple Dependencies
 
@@ -162,13 +160,9 @@ Then run `vcpkg install` (manifest mode) or the above command to install all at 
 Place test-only dependencies under an opt-in feature. The `"host"` field is reserved for build tools that must run on the host architecture:
 ```json
 {
-  "dependencies": [
-    "fmt",
-    "spdlog"
-  ],
+  "dependencies": ["fmt"],
   "features": {
     "tests": {
-      "description": "Build tests",
       "dependencies": ["gtest"]
     }
   }
@@ -183,40 +177,30 @@ Activate with: `vcpkg install --x-feature=tests` or in CMake: `-DVCPKG_MANIFEST_
 
 ### Setting Versions for Individual Dependencies
 
-In `vcpkg.json`, prefer using `"version>="` as a minimum version constraint over overrides. Example:
+Prefer `"version>="` for minimum-version constraints:
 ```json
 {
-  "dependencies": [
-    {
-      "name": "fmt",
-      "version>=": "10.2.0"
-    }
-  ],
+  "dependencies": [{ "name": "fmt", "version>=": "10.2.0" }],
   "builtin-baseline": "<commit-sha>"
 }
 ```
 
-If the user insists on hard-coding a version and is okay dealing with ABI compatibility issues manually, use overrides instead:
+Use `overrides` only when a hard pin is required:
 ```json
 {
   "dependencies": ["fmt"],
-  "overrides": [
-    {
-      "name": "fmt",
-      "version": "10.2.0"
-    }
-  ],
+  "overrides": [{ "name": "fmt", "version": "10.2.0" }],
   "builtin-baseline": "<commit-sha>"
 }
 ```
 
-The `builtin-baseline` is **very important** when using versioning. Suggest baselines at minimum as a way to set all library versions to a known-good state, and use overrides only when necessary.
+Always include `builtin-baseline` when using versioning.
 
 **Key points:**
-- `overrides` takes precedence over all version constraints, including transitive ones
-- You **must** have a `builtin-baseline` set for overrides to work
-- The version must exist in the selected vcpkg registry's version database; an override may select a version older than the baseline version
-- Use `vcpkg x-history zlib` to see available versions
+- `overrides` take precedence over all version constraints, including transitive ones.
+- `builtin-baseline` is required for overrides.
+- Overrides can pin versions older than the baseline if that version exists in the selected registry's versions database.
+- Use `vcpkg x-history <port>` to inspect available versions.
 
 ---
 
@@ -229,12 +213,8 @@ vcpkg install <packages>:arm64-linux
 ```
 
 Or set the triplet in CMake:
-```powershell
-cmake -B build -DVCPKG_TARGET_TRIPLET=arm64-linux -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
-```
-
-```bash
-cmake -B build -DVCPKG_TARGET_TRIPLET=arm64-linux -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+```console
+cmake -B build -DVCPKG_TARGET_TRIPLET=arm64-linux -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake
 ```
 
 You may need a cross-compilation toolchain installed (e.g., `aarch64-linux-gnu-gcc`).
@@ -246,39 +226,16 @@ vcpkg install <packages>:arm64-windows
 
 ### Building for Android (NDK)
 
-1. Set environment variables:
-```powershell
-$env:ANDROID_NDK_HOME = "C:\path\to\ndk"
-$env:VCPKG_DEFAULT_TRIPLET = "arm64-android"
-```
-
-```bash
-export ANDROID_NDK_HOME=/path/to/ndk
-export VCPKG_DEFAULT_TRIPLET=arm64-android
-```
-
-2. Install packages:
+1. Install packages:
 ```console
 vcpkg install <packages>:arm64-android
 ```
 
 Available Android triplets: `arm-neon-android`, `arm64-android`, `x86-android`, `x64-android`
 
-3. In CMake:
-```powershell
-cmake -B build `
-  -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake `
-  -DVCPKG_TARGET_TRIPLET=arm64-android `
-  -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$env:ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake `
-  -DANDROID_ABI=arm64-v8a `
-  -DANDROID_PLATFORM=android-24
+2. In CMake:
+```console
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=arm64-android -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=<android-ndk>/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-24
 ```
 
-```bash
-cmake -B build \
-  -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
-  -DVCPKG_TARGET_TRIPLET=arm64-android \
-  -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
-  -DANDROID_ABI=arm64-v8a \
-  -DANDROID_PLATFORM=android-24
-```
+For expanded CI and shell-specific examples, see `references/ci.md`.
