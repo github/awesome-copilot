@@ -115,12 +115,12 @@ coordination quality:
 - **accuracy** — did the dispatched work actually produce the right outcome?
 - **completeness** — did you cover everything, or did work fall through cracks?
 
-Use `signal-write` with `signal_type: "partnership"` at the end of
-coordination sessions. The TA writes partnership signals to a
-dedicated location: `desks/_ta/.signals/`. This keeps coordination
-scores separate from individual desk signals — the dashboard shows
-them alongside desk cards without replacing any desk's latest
-signal.
+Before the first partnership signal, create `desks/_ta/.signals/` and
+`desks/_ta/journal.md` if they do not exist. Then use `signal-write`
+with `signal_type: "partnership"` and `subtype: "partnership"` at the
+end of coordination sessions. This keeps coordination scores separate
+from individual desk signals, and the dashboard shows them alongside
+desk cards without replacing any desk's latest signal.
 
 > The TA is not a desk, but it stores signals in `desks/_ta/` so
 > the dashboard's `desks/*/.signals/` scan picks them up naturally.
