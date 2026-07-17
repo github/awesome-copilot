@@ -1,7 +1,7 @@
 {
   "name": "repo-actions-hub",
   "description": "Browse repository GitHub Actions workflows, inspect recent runs, and trigger manual workflow_dispatch runs from a Copilot canvas.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "James Montemagno",
     "url": "https://github.com/jamesmontemagno"

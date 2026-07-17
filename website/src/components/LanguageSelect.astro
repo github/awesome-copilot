@@ -1,0 +1,40 @@
+---
+// Custom override of Starlight's LanguageSelect.
+//
+// By default Starlight renders the language dropdown on every page as soon as
+// more than one locale is configured. Most of this site's docs are English-only,
+// so we only want the picker to appear on pages that actually have a translation
+// in a non-English locale. This override checks the docs collection for a
+// translated version of the current page and renders the stock picker only when
+// one exists; otherwise it renders nothing (no dropdown).
+import Default from "@astrojs/starlight/components/LanguageSelect.astro";
+import config from "virtual:starlight/user-config";
+import { getCollection } from "astro:content";
+
+// Locale directory names configured for the site, excluding the English root.
+const localeCodes = Object.keys(config.locales ?? {}).filter(
+  (code) => code !== "root"
+);
+
+/** Strip a leading `<locale>/` segment from a docs entry id, if present. */
+function baseSlug(id) {
+  const [first, ...rest] = id.split("/");
+  return localeCodes.includes(first) ? rest.join("/") : id;
+}
+
+// Set of base slugs (locale-stripped) that have at least one non-English
+// translation available in the docs collection.
+const docs = await getCollection("docs");
+const translatedBaseSlugs = new Set();
+for (const entry of docs) {
+  const [first, ...rest] = entry.id.split("/");
+  if (localeCodes.includes(first)) {
+    translatedBaseSlugs.add(rest.join("/"));
+  }
+}
+
+const currentBaseSlug = baseSlug(Astro.locals.starlightRoute.id);
+const hasTranslations = translatedBaseSlugs.has(currentBaseSlug);
+---
+
+{hasTranslations && <Default {...Astro.props} />}

@@ -1,0 +1,229 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import BackToTop from "../../../../../components/BackToTop.astro";
+import Breadcrumb from "../../../../../components/pages/Breadcrumb.astro";
+import FileBrowser from "../../../../../components/pages/FileBrowser.astro";
+import { readResourceMarkdown } from "../../../../../lib/detail-page";
+import samplesData from "../../../../../../public/data/samples.json";
+
+interface RecipeVariant {
+  doc: string;
+  example: string | null;
+}
+
+interface Recipe {
+  id: string;
+  name: string;
+  description: string;
+  tags: string[];
+  languages: string[];
+  variants: Record<string, RecipeVariant>;
+  external?: boolean;
+  url?: string | null;
+  author?: { name: string; url?: string } | null;
+}
+
+interface Language {
+  id: string;
+  name: string;
+  icon: string;
+  extension: string;
+}
+
+interface Cookbook {
+  id: string;
+  name: string;
+  description: string;
+  path: string;
+  featured: boolean;
+  languages: Language[];
+  recipes: Recipe[];
+}
+
+interface SamplesData {
+  cookbooks: Cookbook[];
+}
+
+const GITHUB_BASE = "https://github.com/github/awesome-copilot/blob/main";
+
+function buildCookbookUrl(
+  cookbookId: string,
+  languageId: string,
+  recipeId: string,
+  filePath?: string | null
+): string {
+  const basePath = `/learning-hub/cookbook/${encodeURIComponent(
+    cookbookId
+  )}/${encodeURIComponent(languageId)}/${encodeURIComponent(recipeId)}/`;
+  if (!filePath) return basePath;
+  return `${basePath}#file=${encodeURIComponent(filePath)}`;
+}
+
+export function getStaticPaths() {
+  const entries = (samplesData as SamplesData).cookbooks.flatMap((cookbook) =>
+    cookbook.recipes.flatMap((recipe) =>
+      Object.keys(recipe.variants ?? {}).map((languageId) => ({
+        params: {
+          cookbook: cookbook.id,
+          language: languageId,
+          recipe: recipe.id,
+        },
+      }))
+    )
+  );
+  return entries;
+}
+
+const { cookbook, language, recipe } = Astro.params as {
+  cookbook: string;
+  language: string;
+  recipe: string;
+};
+
+const cookbookEntry = (samplesData as SamplesData).cookbooks.find(
+  (item) => item.id === cookbook
+);
+const recipeEntry = cookbookEntry?.recipes.find((item) => item.id === recipe);
+const languageEntry = cookbookEntry?.languages.find((item) => item.id === language);
+const variant = recipeEntry?.variants?.[language];
+
+if (!cookbookEntry || !recipeEntry || !languageEntry || !variant || recipeEntry.external) {
+  return Astro.redirect("/learning-hub/cookbook/");
+}
+
+const { markdownHtml } = readResourceMarkdown(variant.doc);
+const files = [{ name: variant.doc.split("/").pop() ?? variant.doc, path: variant.doc }];
+
+if (variant.example) {
+  files.push({
+    name: variant.example.split("/").pop() ?? variant.example,
+    path: variant.example,
+  });
+}
+
+const recipeUrl = buildCookbookUrl(cookbook, language, recipe);
+const exampleUrl = variant.example
+  ? buildCookbookUrl(cookbook, language, recipe, variant.example)
+  : null;
+---
+
+<StarlightPage
+  frontmatter={{
+    title: `${recipeEntry.name} (${languageEntry.name})`,
+    description: recipeEntry.description,
+    template: "splash",
+    prev: false,
+    next: false,
+    editUrl: false,
+  }}
+>
+  <div
+    id="main-content"
+    class="resource-detail-page cookbook-detail-page"
+    data-file-browser-page
+    data-bundle-id={`${cookbookEntry.id}-${recipeEntry.id}-${languageEntry.id}`}
+    data-path={variant.doc}
+  >
+    <div class="container">
+      <Breadcrumb
+        paths={[
+          { name: "Home", href: "/" },
+          { name: "Learning Hub", href: "/learning-hub/" },
+          { name: "Cookbook", href: "/learning-hub/cookbook/" },
+          { name: cookbookEntry.name, href: "/learning-hub/cookbook/" },
+        ]}
+        title={recipeEntry.name}
+      />
+
+      <header class="cookbook-detail-header">
+        <h1>{recipeEntry.name}</h1>
+        <p>{recipeEntry.description}</p>
+        <div class="cookbook-detail-meta">
+          <span class="cookbook-detail-language">{languageEntry.icon} {languageEntry.name}</span>
+          <div class="cookbook-detail-tags">
+            {recipeEntry.tags.map((tag) => (
+              <span class="recipe-tag">{tag}</span>
+            ))}
+          </div>
+        </div>
+        <div class="cookbook-detail-actions">
+          <a class="btn btn-secondary btn-small" href={recipeUrl}>
+            View Recipe
+          </a>
+          {exampleUrl && (
+            <a class="btn btn-secondary btn-small" href={exampleUrl}>
+              View Example
+            </a>
+          )}
+          <a
+            class="btn btn-secondary btn-small"
+            href={`https://github.com/github/awesome-copilot/blob/main/${variant.doc}`}
+            target="_blank"
+            rel="noopener"
+          >
+            GitHub
+          </a>
+        </div>
+      </header>
+
+      <FileBrowser
+        files={files}
+        primaryPath={variant.doc}
+        primaryName={variant.doc.split("/").pop() ?? variant.doc}
+        primaryHtml={markdownHtml}
+        githubBase={GITHUB_BASE}
+      />
+    </div>
+  </div>
+
+  <BackToTop />
+
+  <script>
+    import "../../../../../scripts/pages/file-browser";
+  </script>
+
+  <style is:global>
+    .cookbook-detail-header {
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .cookbook-detail-header h1 {
+      margin: 0;
+      color: var(--color-text-emphasis);
+    }
+
+    .cookbook-detail-header p {
+      margin: 0;
+      color: var(--color-text-muted);
+    }
+
+    .cookbook-detail-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .cookbook-detail-language {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: "Monaspace Argon NF", monospace;
+    }
+
+    .cookbook-detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cookbook-detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  </style>
+</StarlightPage>
