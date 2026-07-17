@@ -45,6 +45,23 @@ desks/<desk-name>/
 4. **Announce it.** Tell the operator what was created and what
    the desk's focus is.
 
+## Session orientation
+
+This skill initializes storage — it does not launch a session.
+A desk becomes active when a Copilot session references its
+directory. The session workflow:
+
+1. The operator (or TA) starts a session and says "sit at the
+   `<desk-name>` desk"
+2. The session reads `desks/<desk-name>/journal.md` to load priors
+3. Work happens — the session uses `signal-write` to emit signals
+   and `desk-journal` to persist state at the end
+4. The next session repeats from step 2
+
+The desk identity comes from which journal is read, not from a
+persistent process. Desks are long-running in *state* (the journal
+carries forward), not in *runtime* (each session is independent).
+
 ## Journal format
 
 ```markdown

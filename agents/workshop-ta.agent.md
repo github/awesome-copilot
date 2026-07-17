@@ -116,10 +116,16 @@ coordination quality:
 - **completeness** — did you cover everything, or did work fall through cracks?
 
 Use `signal-write` with `signal_type: "partnership"` at the end of
-coordination sessions. These signals are written to `.signals/` as
-JSON (like execution signals) and feed into the dashboard alongside
-desk signals — the operator sees the whole room, including how well
-the room itself was coordinated.
+coordination sessions. The TA writes partnership signals to a
+dedicated location: `desks/_ta/.signals/`. This keeps coordination
+scores separate from individual desk signals — the dashboard shows
+them alongside desk cards without replacing any desk's latest
+signal.
+
+> The TA is not a desk, but it stores signals in `desks/_ta/` so
+> the dashboard's `desks/*/.signals/` scan picks them up naturally.
+> The `_ta` prefix signals that this is the coordinator, not a
+> working desk.
 
 ### Journal management
 
