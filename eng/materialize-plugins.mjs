@@ -46,6 +46,14 @@ function moveEntry(srcPath, destPath) {
   fs.rmSync(srcPath, { force: true });
 }
 
+function isRelativeAssetPath(assetPath) {
+  return typeof assetPath === "string" &&
+    assetPath.length > 0 &&
+    !/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(assetPath) &&
+    !assetPath.startsWith("data:") &&
+    !path.isAbsolute(assetPath);
+}
+
 /**
  * Resolve a plugin-relative path to the repo-root source file.
  *
@@ -103,6 +111,10 @@ export function materializeExtensionPlugin(extensionPath) {
   let manifestUpdated = false;
   if (metadata.extensions !== "extensions") {
     metadata.extensions = "extensions";
+    manifestUpdated = true;
+  }
+  if (isRelativeAssetPath(metadata.logo) && !metadata.logo.startsWith("extensions/")) {
+    metadata.logo = path.posix.join("extensions", path.basename(extensionPath), metadata.logo.replace(/\\/g, "/").replace(/^\.\//, ""));
     manifestUpdated = true;
   }
   if (manifestUpdated) {
