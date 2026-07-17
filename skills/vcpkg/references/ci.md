@@ -1,6 +1,6 @@
 # vcpkg: CI/CD & DevOps
 
-Reference for the `vcpkg` skill. Use this when a user asks about using vcpkg in CI/CD pipelines, configuring binary caching, setting up devcontainers, generating SBOMs, or automating dependency updates (GitHub Actions, Azure DevOps, binary cache configuration, CI optimization).
+Reference for the `vcpkg` skill. Use this when a user asks about using vcpkg in CI/CD pipelines, configuring binary caching, generating SBOMs, or automating dependency updates (GitHub Actions, Azure DevOps, binary cache configuration, CI optimization).
 
 ## Binary Caching
 
