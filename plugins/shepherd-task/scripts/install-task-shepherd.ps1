@@ -1,15 +1,11 @@
 <#
 .SYNOPSIS
-    Copies the orchestration scripts into another repository.
+    Copies the orchestration scripts and skills into another repository.
 
 .DESCRIPTION
-    Copies the following directory from this repository to the target:
-      plugins/shepherd-task/scripts
-
-    Skills should be installed separately via:
-      gh skill install github/awesome-copilot shepherd-task-from-assignment-to-ready
-      gh skill install github/awesome-copilot shepherd-task-from-ready-to-merged-to-base
-      gh skill install github/awesome-copilot shepherd-task-approve-workflows-and-wait-for-completion
+    Copies the following from this repository to the target:
+      plugins/shepherd-task/scripts   (orchestration scripts)
+      skills/shepherd-task-*          (skills, only if not already present)
 
 .PARAMETER TargetRepoPath
     Relative path to the target repository root (must exist).
@@ -41,10 +37,37 @@ if (-not (Test-Path $dest)) {
 Copy-Item -Path (Join-Path $ScriptDir '*') -Destination $dest -Recurse -Force
 Write-Host "Copied plugins/shepherd-task/scripts"
 
+# Copy skills (only if not already present in target).
+$SourceRepo = (Resolve-Path (Join-Path $ScriptDir '..\..\..')).Path
+$skills = @(
+    'shepherd-task-from-assignment-to-ready'
+    'shepherd-task-from-ready-to-merged-to-base'
+    'shepherd-task-approve-workflows-and-wait-for-completion'
+)
+
+$skillsInstalled = 0
+$skillsSkipped = 0
+foreach ($skill in $skills) {
+    $skillSrc = Join-Path $SourceRepo 'skills' $skill
+    $skillDest = Join-Path $TargetRepo 'skills' $skill
+
+    if (-not (Test-Path $skillSrc -PathType Container)) {
+        Write-Warning "Source skill not found: $skillSrc"
+        continue
+    }
+
+    if (Test-Path $skillDest -PathType Container) {
+        Write-Host "Skipped skills/$skill (already exists)"
+        $skillsSkipped++
+    } else {
+        New-Item -ItemType Directory -Path $skillDest -Force | Out-Null
+        Copy-Item -Path (Join-Path $skillSrc '*') -Destination $skillDest -Recurse -Force
+        Write-Host "Copied skills/$skill"
+        $skillsInstalled++
+    }
+}
+
 Write-Host ""
-Write-Host "Orchestration scripts installed into $TargetRepo"
-Write-Host ""
-Write-Host "Next, install the skills via gh CLI:"
-Write-Host "  gh skill install github/awesome-copilot shepherd-task-from-assignment-to-ready"
-Write-Host "  gh skill install github/awesome-copilot shepherd-task-from-ready-to-merged-to-base"
-Write-Host "  gh skill install github/awesome-copilot shepherd-task-approve-workflows-and-wait-for-completion"
+Write-Host "Installation complete into $TargetRepo"
+Write-Host "  Scripts: copied"
+Write-Host "  Skills:  $skillsInstalled installed, $skillsSkipped already present"
