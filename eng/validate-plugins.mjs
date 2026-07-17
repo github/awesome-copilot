@@ -305,9 +305,13 @@ function validateExtensionManifest(folderName) {
     errors.push("x-awesome-copilot field must not be present (use convention-based logo instead)");
   }
 
-  // Extension convention: extensions field must be "."
-  if (parsed.extensions !== ".") {
-    errors.push('extensions field must be exactly "." (extension convention)');
+  if (parsed.extenions !== undefined) {
+    errors.push('use "extensions" field (found misspelled "extenions")');
+  }
+
+  // Extension convention: extensions field must be "extensions"
+  if (parsed.extensions !== "extensions") {
+    errors.push('extensions field must be exactly "extensions" (extension convention)');
   }
 
   return { errors, plugin: parsedPlugin };

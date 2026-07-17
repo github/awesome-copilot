@@ -89,6 +89,18 @@ function cleanPlugin(pluginPath) {
   return { removed, manifestUpdated };
 }
 
+function cleanMaterializedExtensionPlugin(extensionPath) {
+  const target = path.join(extensionPath, "extensions");
+  if (!fs.existsSync(target) || !fs.statSync(target).isDirectory()) {
+    return 0;
+  }
+
+  const count = countFiles(target);
+  fs.rmSync(target, { recursive: true, force: true });
+  console.log(`  Removed ${path.basename(extensionPath)}/extensions/ (${count} files)`);
+  return count;
+}
+
 function countFiles(dir) {
   let count = 0;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -168,6 +180,21 @@ function main() {
     total += removed;
     if (manifestUpdated) {
       manifestsUpdated++;
+    }
+
+    if (fs.existsSync(EXTENSIONS_DIR)) {
+      const extensionDirs = fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .sort();
+
+      for (const dirName of extensionDirs) {
+        const extensionPath = path.join(EXTENSIONS_DIR, dirName);
+        if (!fs.existsSync(path.join(extensionPath, "extension.mjs"))) {
+          continue;
+        }
+        total += cleanMaterializedExtensionPlugin(extensionPath);
+      }
     }
   }
 

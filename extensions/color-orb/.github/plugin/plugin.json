@@ -1,7 +1,7 @@
 {
   "name": "color-orb",
   "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Aaron Powell",
     "url": "https://github.com/aaronpowell"
@@ -15,5 +15,5 @@
     "visual-feedback"
   ],
   "logo": "assets/preview.png",
-  "extensions": "."
+  "extensions": "extensions"
 }
