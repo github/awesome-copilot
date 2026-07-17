@@ -14,7 +14,7 @@ after(() => {
   }
 });
 
-test("materializeExtensionPlugin writes extension bundles to ./extensions and rewrites manifest", () => {
+test("materializeExtensionPlugin writes extension bundles to ./extensions and preserves root logo assets", () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "materialize-extension-plugin-"));
   tempDirs.push(tempDir);
 
@@ -44,13 +44,13 @@ test("materializeExtensionPlugin writes extension bundles to ./extensions and re
   assert.equal(fs.existsSync(path.join(pluginDir, "extensions", ".github")), false);
   assert.equal(fs.existsSync(path.join(pluginDir, "extension.mjs")), false);
   assert.equal(fs.existsSync(path.join(pluginDir, "README.md")), false);
-  assert.equal(fs.existsSync(path.join(pluginDir, "assets")), false);
+  assert.equal(fs.existsSync(path.join(pluginDir, "assets", "preview.png")), true);
 
   const pluginManifest = JSON.parse(
     fs.readFileSync(path.join(pluginDir, ".github", "plugin", "plugin.json"), "utf8")
   );
   assert.equal(pluginManifest.extensions, "extensions");
-  assert.equal(pluginManifest.logo, "extensions/extension-plugin/assets/preview.png");
+  assert.equal(pluginManifest.logo, "assets/preview.png");
 });
 
 test("cleanMaterializedExtensionPlugin restores moved extension files to root", () => {

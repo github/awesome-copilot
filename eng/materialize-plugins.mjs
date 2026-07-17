@@ -108,13 +108,19 @@ export function materializeExtensionPlugin(extensionPath) {
     movedEntries++;
   }
 
+  if (isRelativeAssetPath(metadata.logo)) {
+    const normalizedLogoPath = metadata.logo.replace(/\\/g, "/").replace(/^\.\//, "");
+    const bundledLogoPath = path.join(extensionBundlePath, normalizedLogoPath);
+    if (fs.existsSync(bundledLogoPath)) {
+      const rootLogoPath = path.join(extensionPath, normalizedLogoPath);
+      fs.mkdirSync(path.dirname(rootLogoPath), { recursive: true });
+      fs.copyFileSync(bundledLogoPath, rootLogoPath);
+    }
+  }
+
   let manifestUpdated = false;
   if (metadata.extensions !== "extensions") {
     metadata.extensions = "extensions";
-    manifestUpdated = true;
-  }
-  if (isRelativeAssetPath(metadata.logo) && !metadata.logo.startsWith("extensions/")) {
-    metadata.logo = path.posix.join("extensions", path.basename(extensionPath), metadata.logo.replace(/\\/g, "/").replace(/^\.\//, ""));
     manifestUpdated = true;
   }
   if (manifestUpdated) {

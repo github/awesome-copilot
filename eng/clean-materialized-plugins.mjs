@@ -47,7 +47,7 @@ function moveEntry(srcPath, destPath) {
     fs.renameSync(srcPath, destPath);
     return;
   } catch (error) {
-    if (error?.code !== "EXDEV") {
+    if (!["EXDEV", "EEXIST", "ENOTEMPTY", "EPERM"].includes(error?.code)) {
       throw error;
     }
   }
