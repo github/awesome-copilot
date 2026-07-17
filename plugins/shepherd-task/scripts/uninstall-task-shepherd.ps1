@@ -53,8 +53,20 @@ if ((Test-Path $pluginsDir) -and ((Get-ChildItem $pluginsDir -Force | Measure-Ob
 
 Write-Host ""
 Write-Host "Orchestration scripts removed from $TargetRepo"
+
+# Remove skills.
+$skills = @(
+    'shepherd-task-from-assignment-to-ready'
+    'shepherd-task-from-ready-to-merged-to-base'
+    'shepherd-task-approve-workflows-and-wait-for-completion'
+)
+foreach ($skill in $skills) {
+    $skillDir = Join-Path $TargetRepo '.github' 'skills' $skill
+    if (Test-Path $skillDir -PathType Container) {
+        Remove-Item -Path $skillDir -Recurse -Force
+        Write-Host "Removed .github/skills/$skill"
+    }
+}
+
 Write-Host ""
-Write-Host "To also remove the skills, manually delete them from your agent's skills location:"
-Write-Host "  Remove-Item -Recurse <skills-dir>/shepherd-task-from-assignment-to-ready"
-Write-Host "  Remove-Item -Recurse <skills-dir>/shepherd-task-from-ready-to-merged-to-base"
-Write-Host "  Remove-Item -Recurse <skills-dir>/shepherd-task-approve-workflows-and-wait-for-completion"
+Write-Host "Shepherd-task fully removed from $TargetRepo"
