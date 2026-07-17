@@ -29,7 +29,13 @@ desks/<desk-name>/
    how the operator and other desks refer to this desk.
    Examples: `security-scan`, `api-review`, `ops`, `cloud-workshop`
 
-2. **Create the structure.** Make the directory, initial journal,
+2. **Check if it already exists.** If `desks/<desk-name>/` already
+   has a `journal.md`, the desk is live — **do not overwrite it.**
+   Instead, resume it: read the journal and continue from where it
+   left off. If the operator explicitly wants a fresh start, they
+   must rename or archive the existing desk first.
+
+3. **Create the structure.** Make the directory, initial journal,
    and signals folder:
 
    ```
