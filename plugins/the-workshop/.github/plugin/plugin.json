@@ -16,12 +16,12 @@
     "developer-experience"
   ],
   "agents": [
-    "./agents/workshop-ta.agent.md"
+    "workshop-ta"
   ],
   "skills": [
-    "./skills/desk-open/",
+    "./skills/bench-read/",
     "./skills/desk-journal/",
-    "./skills/signal-write/",
-    "./skills/bench-read/"
+    "./skills/desk-open/",
+    "./skills/signal-write/"
   ]
 }

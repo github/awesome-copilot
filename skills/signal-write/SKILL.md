@@ -1,6 +1,6 @@
 ---
 name: signal-write
-description: 'Emit structured agent signals — hands-up, blocked, done, checkpoint. Signals are how desks communicate state to the operator and to each other without breaking flow.'
+description: 'Emit structured agent signals — hands-up, blocked, done, checkpoint, partnership. Signals are written as JSON to .signals/ for dashboard consumption and noted in the journal for persistence.'
 ---
 
 # Agent Signals
@@ -13,6 +13,7 @@ Emit structured signals from a desk to the operator or other desks.
 - Work is complete and ready for review (done)
 - Significant progress worth noting (checkpoint)
 - Two desks disagree and can't resolve it (hands-up)
+- The TA is reporting coordination quality (partnership)
 
 ## Signal types
 
@@ -21,60 +22,72 @@ Two desks disagree and can't settle it against external facts.
 This is the system working — the operator reads where desks
 *disagree*, not where they perform confidence.
 
-```
-Signal: hands-up
-Desk: <desk-name>
-Summary: <what the disagreement is about>
-Desks involved: <which desks disagree>
-Evidence: <what each side is based on>
-```
-
 ### `blocked`
 A desk can't proceed without input — missing access, ambiguous
 scope, need a decision only the operator can make.
 
-```
-Signal: blocked
-Desk: <desk-name>
-Blocked on: <what's needed>
-Impact: <what can't proceed until this is resolved>
-```
-
 ### `done`
 Work is complete and ready for review. Artifacts are on the bench.
-
-```
-Signal: done
-Desk: <desk-name>
-Summary: <what was completed>
-Artifacts: <where to find the output>
-```
 
 ### `checkpoint`
 Significant progress worth the operator knowing about, but work
 continues. Not blocked, not done — just a marker.
 
-```
-Signal: checkpoint
-Desk: <desk-name>
-Summary: <what was accomplished>
-Next: <what's happening next>
-```
+### `partnership`
+Used by the TA (room coordinator) to report coordination quality.
+Self-assessment scores reflect coordination, not code accuracy:
+- **intent** — understood what the operator needed
+- **confidence** — right work went to the right desks
+- **accuracy** — dispatched work produced the right outcome
+- **completeness** — nothing fell through the cracks
 
 ## How to emit
 
-Write the signal to the desk's journal with a `[signal]` marker:
+### 1. Write a JSON signal file to `.signals/`
 
-```markdown
-## <date> — [signal:hands-up] <summary>
-- **Desks:** scanning, review
-- **Disagreement:** scanning found CWE-502 in lib/deserialize.cs;
-  review says the SerializationBinder is sufficient
-- **Evidence:** <what each desk is basing its position on>
+This is the primary output — it's what the dashboard reads.
+Create `desks/<desk-name>/.signals/<timestamp>.json`:
+
+```json
+{
+  "signal_type": "execution",
+  "agent_name": "<desk-name>",
+  "self_assessment": {
+    "intent": 4,
+    "confidence": 5,
+    "accuracy": 4,
+    "completeness": 3
+  },
+  "patterns": {
+    "what_worked": "description of what went well",
+    "what_was_hard": "description of challenges",
+    "skill_gap": "areas for improvement"
+  },
+  "escalation": {
+    "reason": null,
+    "blocked_on": null,
+    "recommendation": null
+  }
+}
 ```
 
-For cross-desk visibility, also note the signal on the bench if
-other desks need to see it before the operator routes it.
+For `hands-up` or `blocked` signals, populate the `escalation`
+fields. Use `signal_type: "escalation"` for these — they sort to
+the top of the dashboard.
+
+For `partnership` signals (TA only), use `signal_type: "partnership"`.
+
+### 2. Note the signal in the journal
+
+Also append a short marker to the desk's journal for persistence:
+
+```markdown
+## <date> — [signal:<type>] <summary>
+- <key details>
+```
+
+The journal note is the trail marker. The JSON file is the
+machine-readable signal.
 
 ## Principles
 
@@ -86,3 +99,5 @@ other desks need to see it before the operator routes it.
   changes that affect the room, not status updates.
 - blocked means truly blocked — not "I'd prefer input." If you
   can proceed with a reasonable default, proceed and note it.
+- Self-assessment scores should be honest, not optimistic. A 3/5
+  is fine. A 5/5 on everything is suspicious.
