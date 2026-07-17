@@ -63,7 +63,7 @@ Each installed port writes:
 - CMake integration (default): `${CMAKE_BINARY_DIR}/vcpkg_installed` (or `VCPKG_INSTALLED_DIR` if overridden)
 - MSBuild integration (default): `$(VcpkgManifestRoot)\vcpkg_installed` (or `$(VcpkgInstalledDir)` if overridden)
 
-If you need a single consolidated SBOM, enumerate installed ports (for example with `vcpkg x-package-info --x-installed`) and merge/transform the per-port SPDX files in your SBOM pipeline.
+If you need a single consolidated SBOM, enumerate installed ports with `vcpkg list` and merge/transform their per-port SPDX files in your SBOM pipeline.
 
 ---
 
@@ -90,9 +90,8 @@ Option 2: **Script-based** — create a scheduled CI job that:
 
 ## Multi-Triplet CI Testing
 
-Test across multiple triplets in a CI matrix:
+Test across multiple triplets with this job-definition fragment nested under `jobs.<job-id>` in a GitHub Actions workflow:
 ```yaml
-# GitHub Actions example
 runs-on: ${{ matrix.os }}
 strategy:
   matrix:

@@ -77,10 +77,10 @@ cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cm
 
 ### Adding vcpkg to an Existing Visual Studio Solution
 
-1. Run `vcpkg integrate install` (one-time, user-wide)
-2. Create `vcpkg.json` in the solution directory
-3. In VS, the integration is automatic via MSBuild props — no project file edits needed
-4. Or per-project: add to `.vcxproj`:
+1. Create `vcpkg.json` in the solution directory
+2. Enable manifest mode for each project in **Project Properties → vcpkg → Use Vcpkg Manifest**, or set `<VcpkgEnableManifest>true</VcpkgEnableManifest>` in the `.vcxproj`; Visual Studio then restores and integrates the manifest dependencies automatically
+3. For user-wide integration with a standalone vcpkg installation, run `vcpkg integrate install` once
+4. Or for per-project integration, add to `.vcxproj`:
    - In the project file's top-level `PropertyGroup`, define `VcpkgRoot`:
    ```xml
    <PropertyGroup>
@@ -172,6 +172,7 @@ Place test-only dependencies under an opt-in feature. The `"host"` field is rese
   "dependencies": ["fmt"],
   "features": {
     "tests": {
+      "description": "Build project tests",
       "dependencies": ["gtest"]
     }
   }
@@ -247,7 +248,7 @@ Available Android triplets: `arm-neon-android`, `arm64-android`, `x86-android`, 
 
 3. In CMake, use the vcpkg toolchain and set the triplet:
 ```console
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=arm64-android
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=<android-ndk>/build/cmake/android.toolchain.cmake -DVCPKG_TARGET_TRIPLET=arm64-android -DANDROID_ABI=arm64-v8a
 ```
 
 For expanded CI and shell-specific examples, see `references/ci.md`.
