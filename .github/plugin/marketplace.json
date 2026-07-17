@@ -505,6 +505,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "the-workshop",
+      "source": "plugins/the-workshop",
+      "description": "Stop being the switchboard between your AI agents — direct a team. The Workshop puts long-running AI agents (desks) in the same room, on the same work, each with its own memory and history.",
+      "version": "0.1.0"
+    },
+    {
       "name": "eyeball",
       "source": "plugins/eyeball",
       "description": "Document analysis with inline source screenshots. When you ask Copilot to analyze a document, Eyeball generates a Word doc where every factual claim includes a highlighted screenshot from the source material so you can verify it with your own eyes.",
