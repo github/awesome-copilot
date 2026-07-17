@@ -5,7 +5,6 @@
 import { FuzzySearch, type SearchableItem } from "../search";
 import { fetchData, debounce } from "../utils";
 import { createChoices, getChoicesValues, type Choices } from "../choices";
-import { setupModal } from "../modal";
 import {
   getRecipeResultsCountText,
   renderCookbookSectionsHtml,
@@ -62,10 +61,10 @@ export async function initSamplesPage(): Promise<void> {
     search = new FuzzySearch(allRecipes);
 
     // Setup UI
-    setupModal();
+    handleLegacyCookbookHashLink();
     setupFilters();
     setupSearch();
-    setupRecipeListeners();
+    setupInteractionListeners();
     updateResultsCount();
   } catch (error) {
     console.error("Failed to initialize samples page:", error);
@@ -259,38 +258,16 @@ function renderCookbooks(): void {
   });
 
   // Setup event listeners
-  setupRecipeListeners();
+  setupInteractionListeners();
 }
 
 /**
- * Setup event listeners for recipe interactions
+ * Setup event listeners for cookbook interactions
  */
-function setupRecipeListeners(): void {
-  // View recipe buttons
-  document.querySelectorAll(".view-recipe-btn").forEach((btn) => {
-    btn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const docPath = (btn as HTMLElement).dataset.doc;
-      if (docPath) {
-        await showRecipeContent(docPath, "recipe");
-      }
-    });
-  });
-
-  // View example buttons
-  document.querySelectorAll(".view-example-btn").forEach((btn) => {
-    btn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const examplePath = (btn as HTMLElement).dataset.example;
-      if (examplePath) {
-        await showRecipeContent(examplePath, "example");
-      }
-    });
-  });
-
+function setupInteractionListeners(): void {
   // Language tab clicks
   document.querySelectorAll(".lang-tab").forEach((tab) => {
-    tab.addEventListener("click", (e) => {
+    tab.addEventListener("click", () => {
       const langId = (tab as HTMLElement).dataset.lang;
       if (langId) {
         selectedLanguage = langId;
@@ -307,15 +284,60 @@ function setupRecipeListeners(): void {
 }
 
 /**
- * Show recipe/example content in modal
+ * Redirect legacy cookbook #file=<path> links to canonical cookbook routes.
  */
-async function showRecipeContent(
-  filePath: string,
-  type: "recipe" | "example"
-): Promise<void> {
-  // Use existing modal infrastructure
-  const { openFileModal } = await import("../modal");
-  await openFileModal(filePath, type);
+function handleLegacyCookbookHashLink(): void {
+  const hashMatch = window.location.hash.match(/^#file=(.+)$/);
+  if (!hashMatch) return;
+
+  let filePath: string;
+  try {
+    filePath = decodeURIComponent(hashMatch[1]);
+  } catch {
+    return;
+  }
+
+  const parsed = parseCookbookPath(filePath);
+  if (!parsed) return;
+
+  const nextUrl = `/learning-hub/cookbook/${encodeURIComponent(
+    parsed.cookbook
+  )}/${encodeURIComponent(parsed.language)}/${encodeURIComponent(
+    parsed.recipe
+  )}/${parsed.example ? `#file=${encodeURIComponent(filePath)}` : ""}`;
+
+  window.location.replace(nextUrl);
+}
+
+function parseCookbookPath(filePath: string): {
+  cookbook: string;
+  language: string;
+  recipe: string;
+  example: boolean;
+} | null {
+  const docMatch = filePath.match(/^cookbook\/([^/]+)\/([^/]+)\/([^/]+)\.md$/);
+  if (docMatch) {
+    return {
+      cookbook: docMatch[1],
+      language: docMatch[2],
+      recipe: docMatch[3],
+      example: false,
+    };
+  }
+
+  const exampleMatch = filePath.match(
+    /^cookbook\/([^/]+)\/([^/]+)\/recipe\/([^/.]+)\.[^/.]+$/
+  );
+  if (exampleMatch) {
+    return {
+      cookbook: exampleMatch[1],
+      language: exampleMatch[2],
+      recipe: exampleMatch[3],
+      example: true,
+    };
+  }
+
+  return null;
 }
 
 /**

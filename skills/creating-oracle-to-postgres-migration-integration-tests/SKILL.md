@@ -36,17 +36,22 @@ Scope to the target project only. List data access methods that interact with th
 - Follow seed file location and naming conventions from the existing project.
 - Reuse existing seed files when possible.
 - Avoid `TRUNCATE TABLE` — keep existing database data intact.
+- Assume existing business rows and lookup rows are already present; add only minimal, collision-safe seed records needed for the scenario.
 - Do not commit seed data; tests run in transactions that roll back.
 - Ensure seed data does not conflict with other tests.
 - Load and verify seed data before assertions depend on it.
+- Create or reuse a test `LookupConstants` class for stable lookup IDs/codes used across seed builders and assertions.
 
 **Step 4: Write test cases**
 
 - Inherit from the base test class to get automatic transaction create/rollback.
+- Ensure each database-touching method in scope has at least one integration test (or multiple tests for higher-risk behavior branches).
 - Assert logical outputs (rows, columns, counts, error types), not platform-specific messages.
 - Assert specific expected values — never assert that a value is merely non-null or non-empty when a concrete value is available from seed data.
 - Avoid testing code paths that do not exist or asserting behavior that cannot occur.
 - Avoid redundant assertions across tests targeting the same method.
+- For text parameters, include both empty-string and `NULL`/missing input coverage where applicable.
+- For datetime behavior, include explicit timezone-sensitive assertions when methods write/read `timestamp without time zone` or `timestamp(0)` targets.
 
 **Step 5: Review determinism**
 
@@ -58,3 +63,4 @@ Re-examine every assertion against non-null values. Confirm each is deterministi
 - **DB-agnostic assertions** — no platform-specific error messages or syntax in assertions.
 - **Seed only against Oracle** — test project will be migrated to PostgreSQL later.
 - **Scoped to one project** — do not create tests for artifacts outside the target project.
+- **Preserve existing data** — never rewrite or wipe pre-existing business or lookup rows.

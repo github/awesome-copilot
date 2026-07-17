@@ -44,6 +44,10 @@ jobs:
                 color: 'FEF2C0',
                 description: 'Public external plugin submission'
               },
+              'external-plugin-canvas': {
+                color: '1D76DB',
+                description: 'External plugin submission includes a canvas extension'
+              },
               'hooks': {
                 color: 'C2E0C6',
                 description: 'PR touches hooks'

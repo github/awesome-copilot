@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-30
+lastUpdated: 2026-07-13
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -405,7 +405,7 @@ A: Yes, for clarity. Show examples of desired output format, patterns to follow,
 
 **Q: How do I review agent-proposed skill changes?**
 
-A: In v1.0.66+, the agent can propose draft skill additions or improvements as it discovers reusable patterns during a session. Review each draft interactively with:
+A: In v1.0.66+, the agent can propose draft skill additions or improvements as it discovers reusable patterns during a session. In v1.0.70+, **Forge** actively identifies clear workflow patterns during your session and creates draft skills automatically — you don't need to ask. Review each draft interactively with:
 
 ```
 /chronicle skills review
