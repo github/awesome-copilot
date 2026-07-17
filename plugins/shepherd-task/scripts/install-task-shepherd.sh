@@ -1,35 +1,30 @@
 #!/usr/bin/env bash
 #
-# install-task-shepherd.sh — Copies the orchestration scripts and skills into another repository.
+# install-task-shepherd.sh — Installs the shepherd-task plugin and skills
+# into the user's Copilot home directory.
 #
-# Copies the following from this repository to the target:
-#   plugins/shepherd-task/scripts   (orchestration scripts)
-#   .github/skills/shepherd-task-*  (skills, only if not already present)
+# Installs to:
+#   ~/.copilot/plugins/shepherd-task/  (plugin with orchestration scripts)
+#   ~/.copilot/skills/shepherd-task-*  (skills, only if not already present)
 #
-# Usage: ./install-task-shepherd.sh <TARGET_REPO_PATH>
-#   TARGET_REPO_PATH: relative path to the target repository root (must exist)
+# Usage: ./install-task-shepherd.sh
 
 set -euo pipefail
 
-TARGET_REPO="${1:?Usage: $0 <TARGET_REPO_PATH>}"
+COPILOT_HOME="${COPILOT_HOME:-$HOME/.copilot}"
 
 # Resolve the source repo root (three levels up from plugins/shepherd-task/scripts/).
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SOURCE_REPO="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+PLUGIN_SRC="$SCRIPT_DIR/.."
 
-# Validate target path exists.
-if [ ! -d "$TARGET_REPO" ]; then
-    echo "ERROR: Target repository path does not exist: $TARGET_REPO" >&2
-    exit 1
-fi
+# Install plugin.
+plugin_dest="$COPILOT_HOME/plugins/shepherd-task"
+mkdir -p "$plugin_dest"
+cp -R "$PLUGIN_SRC/." "$plugin_dest/"
+echo "Installed plugin to $plugin_dest"
 
-# Copy orchestration scripts.
-dest="$TARGET_REPO/plugins/shepherd-task/scripts"
-mkdir -p "$dest"
-cp -R "$SCRIPT_DIR/." "$dest/"
-echo "Copied plugins/shepherd-task/scripts"
-
-# Copy skills (only if not already present in target).
+# Install skills (only if not already present).
 SKILLS=(
     "shepherd-task-from-assignment-to-ready"
     "shepherd-task-from-ready-to-merged-to-base"
@@ -40,7 +35,7 @@ skills_installed=0
 skills_skipped=0
 for skill in "${SKILLS[@]}"; do
     skill_src="$SOURCE_REPO/skills/$skill"
-    skill_dest="$TARGET_REPO/.github/skills/$skill"
+    skill_dest="$COPILOT_HOME/skills/$skill"
 
     if [ ! -d "$skill_src" ]; then
         echo "WARNING: Source skill not found: $skill_src" >&2
@@ -48,17 +43,19 @@ for skill in "${SKILLS[@]}"; do
     fi
 
     if [ -d "$skill_dest" ]; then
-        echo "Skipped .github/skills/$skill (already exists)"
+        echo "Skipped ~/.copilot/skills/$skill (already exists)"
         skills_skipped=$((skills_skipped + 1))
     else
         mkdir -p "$skill_dest"
         cp -R "$skill_src/." "$skill_dest/"
-        echo "Copied .github/skills/$skill"
+        echo "Installed ~/.copilot/skills/$skill"
         skills_installed=$((skills_installed + 1))
     fi
 done
 
 echo ""
-echo "Installation complete into $TARGET_REPO"
-echo "  Scripts: copied"
-echo "  Skills:  $skills_installed installed, $skills_skipped already present"
+echo "Installation complete."
+echo "  Plugin: $plugin_dest"
+echo "  Skills: $skills_installed installed, $skills_skipped already present"
+echo ""
+echo "Verify with: copilot skill list"
