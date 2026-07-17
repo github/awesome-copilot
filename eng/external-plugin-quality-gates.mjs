@@ -474,9 +474,31 @@ function runVersionMatchGate(repoDir, plugin, primaryFetchSpec) {
   };
 }
 
-function checkPathExistsAtLocator(repoDir, locator, repoPath) {
+function checkPathExistsAtLocator(repoDir, locator, repoPath, expectedType) {
   const result = runCommand("git", ["cat-file", "-e", `${locator}:${repoPath}`], { cwd: repoDir });
   if (result.exitCode === 0) {
+    if (!expectedType) {
+      return { exists: true, output: "" };
+    }
+
+    const typeResult = runCommand("git", ["cat-file", "-t", `${locator}:${repoPath}`], { cwd: repoDir });
+    if (typeResult.exitCode !== 0) {
+      return {
+        exists: false,
+        output: `Unable to verify path "${repoPath}" type at "${locator}": ${typeResult.output}`,
+      };
+    }
+
+    const actualType = String(typeResult.stdout ?? "").trim();
+    if (actualType !== expectedType) {
+      return {
+        exists: false,
+        output: "",
+        kindMismatch: true,
+        actualType,
+      };
+    }
+
     return { exists: true, output: "" };
   }
 
@@ -539,7 +561,7 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
       }
     }
 
-    const extensionDirCheck = checkPathExistsAtLocator(repoDir, locator, extensionsDir);
+    const extensionDirCheck = checkPathExistsAtLocator(repoDir, locator, extensionsDir, "tree");
     if (extensionDirCheck.output) {
       hasInfraError = true;
       messages.push(`- ${locator}: ${extensionDirCheck.output}`);
@@ -547,11 +569,15 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
     }
     if (!extensionDirCheck.exists) {
       hasFailure = true;
-      messages.push(`- ${locator}: missing required canvas extension directory "${extensionsDir}".`);
+      if (extensionDirCheck.kindMismatch) {
+        messages.push(`- ${locator}: "${extensionsDir}" must be a directory.`);
+      } else {
+        messages.push(`- ${locator}: missing required canvas extension directory "${extensionsDir}".`);
+      }
       continue;
     }
 
-    const extensionEntryCheck = checkPathExistsAtLocator(repoDir, locator, extensionEntryPoint);
+    const extensionEntryCheck = checkPathExistsAtLocator(repoDir, locator, extensionEntryPoint, "blob");
     if (extensionEntryCheck.output) {
       hasInfraError = true;
       messages.push(`- ${locator}: ${extensionEntryCheck.output}`);
@@ -559,7 +585,11 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
     }
     if (!extensionEntryCheck.exists) {
       hasFailure = true;
-      messages.push(`- ${locator}: missing required canvas extension entry point "${extensionEntryPoint}".`);
+      if (extensionEntryCheck.kindMismatch) {
+        messages.push(`- ${locator}: "${extensionEntryPoint}" must be a file.`);
+      } else {
+        messages.push(`- ${locator}: missing required canvas extension entry point "${extensionEntryPoint}".`);
+      }
       continue;
     }
 
@@ -616,11 +646,13 @@ export async function runExternalPluginQualityGates(plugin) {
     vally_lint_status: "not_run",
     smoke_status: "not_run",
     version_match_status: "not_run",
+    canvas_structure_status: "not_run",
     failure_class: "none",
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
     version_match_output: "",
+    canvas_structure_output: "",
   };
 
   try {
@@ -632,10 +664,14 @@ export async function runExternalPluginQualityGates(plugin) {
       result.vally_lint_status = "fail";
       result.smoke_status = "fail";
       result.version_match_status = "fail";
+      result.canvas_structure_status = hasCanvasKeyword(plugin) ? "fail" : "not_run";
       result.overall_status = "fail";
       result.failure_class = "submitter_fixes";
       result.summary = `Plugin path "${plugin.source?.path || "/"}" was not found in the submitted repository snapshot.`;
       result.version_match_output = result.summary;
+      if (hasCanvasKeyword(plugin)) {
+        result.canvas_structure_output = result.summary;
+      }
       return result;
     }
 
@@ -644,18 +680,8 @@ export async function runExternalPluginQualityGates(plugin) {
     result.version_match_output = versionMatchResult.output;
 
     const canvasStructureResult = runCanvasStructureGate(repoDir, plugin, fetchSpec);
-    if (canvasStructureResult.status === "fail") {
-      result.version_match_status = "fail";
-    } else if (canvasStructureResult.status === "infra_error" && result.version_match_status !== "fail") {
-      result.version_match_status = "infra_error";
-    } else if (canvasStructureResult.status === "pass" && result.version_match_status === "not_run") {
-      result.version_match_status = "pass";
-    }
-    result.version_match_output = [
-      String(result.version_match_output || "").trim(),
-      canvasStructureResult.status === "not_run" ? "" : "Canvas extension structure:",
-      canvasStructureResult.status === "not_run" ? "" : canvasStructureResult.output,
-    ].filter(Boolean).join("\n\n");
+    result.canvas_structure_status = canvasStructureResult.status;
+    result.canvas_structure_output = canvasStructureResult.output;
 
     const vallyResult = await runVallyLintGate(pluginRoot);
     result.vally_lint_status = vallyResult.status;
@@ -665,12 +691,18 @@ export async function runExternalPluginQualityGates(plugin) {
     result.smoke_status = smokeResult.status;
     result.smoke_output = smokeResult.output;
 
-    result.overall_status = toOverallStatus([result.vally_lint_status, result.smoke_status, result.version_match_status]);
+    result.overall_status = toOverallStatus([
+      result.vally_lint_status,
+      result.smoke_status,
+      result.version_match_status,
+      result.canvas_structure_status,
+    ]);
     result.failure_class = toFailureClass(result.overall_status);
     result.summary = [
       `- vally lint: ${result.vally_lint_status}`,
       `- install smoke test: ${result.smoke_status}`,
       `- version match: ${result.version_match_status}`,
+      `- canvas structure: ${result.canvas_structure_status}`,
       `- overall: ${result.overall_status}`,
     ].join("\n");
 

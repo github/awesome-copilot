@@ -78,3 +78,24 @@ test("runCanvasStructureGate fails when extension entrypoint is only at repo roo
   assert.equal(result.status, "fail");
   assert.match(result.output, /missing required canvas extension directory "extensions"/);
 });
+
+test("runCanvasStructureGate fails when extension entrypoint path is a directory", () => {
+  const repoDir = createTempRepo();
+  fs.mkdirSync(path.join(repoDir, "extensions", "extension.mjs"), { recursive: true });
+  fs.writeFileSync(path.join(repoDir, "extensions", "extension.mjs", "placeholder.txt"), "not-a-module\n");
+  const sha = commitAll(repoDir, "Add invalid extension entrypoint directory");
+
+  const plugin = {
+    name: "canvas-plugin",
+    keywords: ["canvas"],
+    source: {
+      source: "github",
+      repo: "owner/repo",
+      sha,
+    },
+  };
+
+  const result = runCanvasStructureGate(repoDir, plugin, sha);
+  assert.equal(result.status, "fail");
+  assert.match(result.output, /"extensions\/extension\.mjs" must be a file/);
+});

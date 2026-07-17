@@ -629,11 +629,13 @@ function normalizeQualityGateResult(rawResult) {
     vally_lint_status: "not_run",
     smoke_status: "not_run",
     version_match_status: "not_run",
+    canvas_structure_status: "not_run",
     failure_class: "none",
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
     version_match_output: "",
+    canvas_structure_output: "",
   };
 
   if (!rawResult || typeof rawResult !== "object" || Array.isArray(rawResult)) {
@@ -650,6 +652,7 @@ function buildQualityGatesCommentSection(qualityResult) {
   const vallyState = qualityResult.vally_lint_status || "not_run";
   const smokeState = qualityResult.smoke_status || "not_run";
   const versionMatchState = qualityResult.version_match_status || "not_run";
+  const canvasStructureState = qualityResult.canvas_structure_status || "not_run";
   const summaryText = String(qualityResult.summary || "").trim() || "_No quality gate details were provided._";
 
   const sections = [
@@ -660,6 +663,7 @@ function buildQualityGatesCommentSection(qualityResult) {
     `| vally lint | ${vallyState} |`,
     `| install smoke test | ${smokeState} |`,
     `| version match | ${versionMatchState} |`,
+    `| canvas structure | ${canvasStructureState} |`,
     "",
     summaryText,
   ];
@@ -703,6 +707,21 @@ function buildQualityGatesCommentSection(qualityResult) {
       "",
       "```text",
       versionMatchOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
+
+  const canvasStructureOutput = String(qualityResult.canvas_structure_output || "").trim();
+  if (canvasStructureOutput) {
+    sections.push(
+      "",
+      "<details>",
+      "<summary>Canvas structure output</summary>",
+      "",
+      "```text",
+      canvasStructureOutput,
       "```",
       "",
       "</details>",
