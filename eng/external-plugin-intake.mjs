@@ -56,6 +56,7 @@ const LEGACY_FIELD_TITLES = Object.freeze({
 });
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
 const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
+const MISSPELLED_EXTENSIONS_KEY = "exten" + "ions";
 const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
   ".github/plugin/plugin.json",
   ".plugin/plugin.json",
@@ -459,9 +460,9 @@ async function validateCanvasPluginMetadata(plugin, errors, warnings, token) {
     );
   }
 
-  if (manifest.extenions !== undefined) {
+  if (manifest[MISSPELLED_EXTENSIONS_KEY] !== undefined) {
     errors.push(
-      `submission: plugins tagged with "canvas" must use "extensions" (found misspelled "extenions") in "${manifestPath}"`,
+      `submission: plugins tagged with "canvas" must use "extensions" (found misspelled key "${MISSPELLED_EXTENSIONS_KEY}") in "${manifestPath}"`,
     );
   }
 

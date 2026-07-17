@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
+const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const MATERIALIZED_SPECS = {
   agents: {
     path: "agents",
@@ -193,23 +194,23 @@ function main() {
     if (manifestUpdated) {
       manifestsUpdated++;
     }
+  }
 
-    if (fs.existsSync(EXTENSIONS_DIR)) {
-      const extensionDirs = fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
-        .filter((entry) => entry.isDirectory())
-        .map((entry) => entry.name)
-        .sort();
+  if (fs.existsSync(EXTENSIONS_DIR)) {
+    const extensionDirs = fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
 
-      for (const dirName of extensionDirs) {
-        const extensionPath = path.join(EXTENSIONS_DIR, dirName);
-        if (!fs.existsSync(path.join(extensionPath, "extension.mjs"))) {
-          continue;
-        }
-        const { removed, manifestUpdated } = cleanMaterializedExtensionPlugin(extensionPath);
-        total += removed;
-        if (manifestUpdated) {
-          manifestsUpdated++;
-        }
+    for (const dirName of extensionDirs) {
+      const extensionPath = path.join(EXTENSIONS_DIR, dirName);
+      if (!fs.existsSync(path.join(extensionPath, "extension.mjs"))) {
+        continue;
+      }
+      const { removed, manifestUpdated } = cleanMaterializedExtensionPlugin(extensionPath);
+      total += removed;
+      if (manifestUpdated) {
+        manifestsUpdated++;
       }
     }
   }
