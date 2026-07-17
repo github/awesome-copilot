@@ -597,16 +597,16 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
     <span class="dot"></span><span class="dot"></span><span class="dot"></span>
     <span style="margin-left: 8px;">Reconstructing your context…</span>
   </div>
-  <div id="diff-overlay" class="diff-overlay" onclick="handleDiffBackdrop(event)">
-    <section class="diff-panel" aria-label="File changes">
-      <div class="diff-header">
-        <span id="diff-status" class="status-badge modified">Changed</span>
-        <span id="diff-title" class="diff-title"></span>
-        <button class="diff-close" onclick="closeDiff()" aria-label="Close diff">×</button>
-      </div>
-      <pre id="diff-content" class="diff-content"></pre>
-    </section>
-  </div>
+</div>
+<div id="diff-overlay" class="diff-overlay">
+  <section class="diff-panel" aria-label="File changes">
+    <div class="diff-header">
+      <span id="diff-status" class="status-badge modified">Changed</span>
+      <span id="diff-title" class="diff-title"></span>
+      <button id="diff-close" class="diff-close" aria-label="Close diff">×</button>
+    </div>
+    <pre id="diff-content" class="diff-content"></pre>
+  </section>
 </div>
 
 <script>
@@ -859,6 +859,8 @@ function handleDiffBackdrop(event) {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeDiff();
 });
+document.getElementById("diff-overlay").addEventListener("click", handleDiffBackdrop);
+document.getElementById("diff-close").addEventListener("click", closeDiff);
 
 async function doResume() {
   await fetch("/resume", {
