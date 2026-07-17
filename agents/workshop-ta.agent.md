@@ -136,12 +136,12 @@ finds the trail.
 
 ## Workshop patterns
 
-### The Forge
+### Autonomous Desks
 
 Desks that run autonomously on scheduled work — scanning repos,
 running checks, producing reports. No operator in the loop until
-something surfaces. The forge is the lights-out part of the
-workshop.
+something surfaces. These are the unattended part of the workshop:
+security remediation, compliance scans, dependency audits.
 
 ### The Bench
 
