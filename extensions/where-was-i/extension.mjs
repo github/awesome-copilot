@@ -6,7 +6,7 @@ import { execFile } from "node:child_process";
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
-import { gatherGitContext } from "./git-context.mjs";
+import { gatherGitContext, getFileDiff } from "./git-context.mjs";
 
 const servers = new Map();
 const sseClients = new Map(); // instanceId → Set<res>
@@ -327,7 +327,25 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   padding: 7px 8px;
   color: var(--muted);
 }
-.file-list .status-badge {
+.file-list li.file-change {
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.file-list li.file-change:hover,
+.file-list li.file-change:focus-visible {
+  background: color-mix(in srgb, var(--azure) 7%, transparent);
+  color: var(--text);
+  outline: none;
+}
+.file-list li.file-change::after {
+  color: var(--meta);
+  content: "View diff";
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  margin-left: auto;
+}
+.file-list .status-badge,
+.diff-header .status-badge {
   display: inline-block;
   border-radius: var(--radius-pill);
   font-weight: 600;
@@ -335,11 +353,11 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   padding: 2px 8px;
   text-align: center;
 }
-.file-list .status-badge.modified { background: #fff7ed; color: #b45309; }
-.file-list .status-badge.added { background: var(--sage-tint); color: #4d7c0f; }
-.file-list .status-badge.deleted { background: #fef2f2; color: #dc2626; }
-.file-list .status-badge.untracked { background: var(--coral-tint); color: #c2410c; }
-.file-list .status-badge.renamed { background: var(--azure-tint); color: var(--azure); }
+.status-badge.modified { background: #fff7ed; color: #b45309; }
+.status-badge.added { background: var(--sage-tint); color: #4d7c0f; }
+.status-badge.deleted { background: #fef2f2; color: #dc2626; }
+.status-badge.untracked { background: var(--coral-tint); color: #c2410c; }
+.status-badge.renamed { background: var(--azure-tint); color: var(--azure); }
 .file-list .file-path {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -470,6 +488,68 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   line-height: 1.5;
 }
 
+.diff-overlay {
+  align-items: stretch;
+  background: rgba(15, 23, 42, 0.35);
+  display: none;
+  inset: 0;
+  justify-content: flex-end;
+  position: fixed;
+  z-index: 20;
+}
+.diff-overlay.open { display: flex; }
+.diff-panel {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -12px 0 32px rgba(15, 23, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+  max-width: 760px;
+  width: min(78vw, 760px);
+}
+.diff-header {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  padding: 14px 18px;
+}
+.diff-title {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diff-close {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  height: 30px;
+  width: 30px;
+}
+.diff-content {
+  background: #0d1117;
+  color: #c9d1d9;
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  margin: 0;
+  overflow: auto;
+  padding: 18px;
+  tab-size: 4;
+  white-space: pre;
+}
+.diff-loading {
+  color: var(--muted);
+  padding: 24px;
+}
+
 .loading {
   display: flex;
   align-items: center;
@@ -495,6 +575,16 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   <div class="loading">
     <span class="dot"></span><span class="dot"></span><span class="dot"></span>
     <span style="margin-left: 8px;">Reconstructing your context…</span>
+  </div>
+  <div id="diff-overlay" class="diff-overlay" onclick="handleDiffBackdrop(event)">
+    <section class="diff-panel" aria-label="File changes">
+      <div class="diff-header">
+        <span id="diff-status" class="status-badge modified">Changed</span>
+        <span id="diff-title" class="diff-title"></span>
+        <button class="diff-close" onclick="closeDiff()" aria-label="Close diff">×</button>
+      </div>
+      <pre id="diff-content" class="diff-content"></pre>
+    </section>
   </div>
 </div>
 
@@ -630,7 +720,7 @@ function render(data) {
           \${files.map(f => {
             const status = describeStatus(f.code);
             return \`
-            <li>
+            <li class="file-change" tabindex="0" data-path="\${escapeHtml(encodeURIComponent(f.path))}" onclick="showDiff(decodeURIComponent(this.dataset.path))" onkeydown="if(event.key === 'Enter' || event.key === ' ') showDiff(decodeURIComponent(this.dataset.path))">
               <span class="status-badge \${status.kind}">\${status.label}</span>
               <span class="file-path">\${escapeHtml(f.path)}</span>
             </li>
@@ -686,6 +776,42 @@ async function doRefresh(btn) {
   }
   if (btn) setTimeout(() => btn.classList.remove("spinning"), 300);
 }
+
+async function showDiff(path) {
+  const overlay = document.getElementById("diff-overlay");
+  const title = document.getElementById("diff-title");
+  const content = document.getElementById("diff-content");
+  const badge = document.getElementById("diff-status");
+  title.textContent = path;
+  badge.textContent = "Loading";
+  badge.className = "status-badge modified";
+  content.textContent = "Loading changes…";
+  overlay.classList.add("open");
+  try {
+    const res = await fetch("/file-diff?path=" + encodeURIComponent(path));
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Unable to load this diff.");
+    const status = describeStatus(data.code);
+    badge.textContent = status.label;
+    badge.className = "status-badge " + status.kind;
+    content.textContent = data.diff || "No textual diff is available.";
+  } catch (error) {
+    badge.textContent = "Error";
+    content.textContent = error.message;
+  }
+}
+
+function closeDiff() {
+  document.getElementById("diff-overlay").classList.remove("open");
+}
+
+function handleDiffBackdrop(event) {
+  if (event.target.id === "diff-overlay") closeDiff();
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeDiff();
+});
 
 async function doResume() {
   await fetch("/resume", {
@@ -749,6 +875,24 @@ async function startServer(instanceId, cwd, workspacePath) {
             const data = contextCache.get(instanceId) || {};
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(JSON.stringify(data));
+            return;
+        }
+
+        if (url.pathname === "/file-diff" && req.method === "GET") {
+            const path = url.searchParams.get("path");
+            if (!path) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "A file path is required." }));
+                return;
+            }
+            try {
+                const data = await getFileDiff(entry.cwd, path);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(data));
+            } catch (error) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: error.message || "Unable to load this diff." }));
+            }
             return;
         }
 
@@ -856,6 +1000,26 @@ const session = await joinSession({
                     description: "Return the currently assembled developer context as JSON",
                     handler: async (ctx) => {
                         return contextCache.get(ctx.instanceId) || {};
+                    },
+                },
+                {
+                    name: "get_file_diff",
+                    description: "Return the staged, unstaged, or untracked patch for a changed file",
+                    inputSchema: {
+                        type: "object",
+                        properties: {
+                            path: {
+                                type: "string",
+                                minLength: 1,
+                                description: "Repository-relative path from the current context",
+                            },
+                        },
+                        required: ["path"],
+                        additionalProperties: false,
+                    },
+                    handler: async (ctx) => {
+                        const cwd = await activeCwd(ctx);
+                        return await getFileDiff(cwd, ctx.input.path);
                     },
                 },
                 {
