@@ -4,7 +4,7 @@
 #
 # Copies the following from this repository to the target:
 #   plugins/shepherd-task/scripts   (orchestration scripts)
-#   skills/shepherd-task-*          (skills, only if not already present)
+#   .github/skills/shepherd-task-*  (skills, only if not already present)
 #
 # Usage: ./install-task-shepherd.sh <TARGET_REPO_PATH>
 #   TARGET_REPO_PATH: relative path to the target repository root (must exist)
@@ -40,7 +40,7 @@ skills_installed=0
 skills_skipped=0
 for skill in "${SKILLS[@]}"; do
     skill_src="$SOURCE_REPO/skills/$skill"
-    skill_dest="$TARGET_REPO/skills/$skill"
+    skill_dest="$TARGET_REPO/.github/skills/$skill"
 
     if [ ! -d "$skill_src" ]; then
         echo "WARNING: Source skill not found: $skill_src" >&2
@@ -48,12 +48,12 @@ for skill in "${SKILLS[@]}"; do
     fi
 
     if [ -d "$skill_dest" ]; then
-        echo "Skipped skills/$skill (already exists)"
+        echo "Skipped .github/skills/$skill (already exists)"
         skills_skipped=$((skills_skipped + 1))
     else
         mkdir -p "$skill_dest"
         cp -R "$skill_src/." "$skill_dest/"
-        echo "Copied skills/$skill"
+        echo "Copied .github/skills/$skill"
         skills_installed=$((skills_installed + 1))
     fi
 done

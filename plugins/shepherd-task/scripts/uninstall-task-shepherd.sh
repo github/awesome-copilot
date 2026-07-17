@@ -36,8 +36,20 @@ rmdir "$TARGET_REPO/plugins" 2>/dev/null && echo "Removed plugins/" || true
 
 echo ""
 echo "Orchestration scripts removed from $TARGET_REPO"
+
+# Remove skills.
+SKILLS=(
+    "shepherd-task-from-assignment-to-ready"
+    "shepherd-task-from-ready-to-merged-to-base"
+    "shepherd-task-approve-workflows-and-wait-for-completion"
+)
+for skill in "${SKILLS[@]}"; do
+    skill_dir="$TARGET_REPO/.github/skills/$skill"
+    if [ -d "$skill_dir" ]; then
+        rm -rf "$skill_dir"
+        echo "Removed .github/skills/$skill"
+    fi
+done
+
 echo ""
-echo "To also remove the skills, manually delete them from your agent's skills location:"
-echo "  rm -rf <skills-dir>/shepherd-task-from-assignment-to-ready"
-echo "  rm -rf <skills-dir>/shepherd-task-from-ready-to-merged-to-base"
-echo "  rm -rf <skills-dir>/shepherd-task-approve-workflows-and-wait-for-completion"
+echo "Shepherd-task fully removed from $TARGET_REPO"

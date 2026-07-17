@@ -5,7 +5,7 @@
 .DESCRIPTION
     Copies the following from this repository to the target:
       plugins/shepherd-task/scripts   (orchestration scripts)
-      skills/shepherd-task-*          (skills, only if not already present)
+      .github/skills/shepherd-task-*  (skills, only if not already present)
 
 .PARAMETER TargetRepoPath
     Relative path to the target repository root (must exist).
@@ -49,7 +49,7 @@ $skillsInstalled = 0
 $skillsSkipped = 0
 foreach ($skill in $skills) {
     $skillSrc = Join-Path $SourceRepo 'skills' $skill
-    $skillDest = Join-Path $TargetRepo 'skills' $skill
+    $skillDest = Join-Path $TargetRepo '.github' 'skills' $skill
 
     if (-not (Test-Path $skillSrc -PathType Container)) {
         Write-Warning "Source skill not found: $skillSrc"
@@ -57,12 +57,12 @@ foreach ($skill in $skills) {
     }
 
     if (Test-Path $skillDest -PathType Container) {
-        Write-Host "Skipped skills/$skill (already exists)"
+        Write-Host "Skipped .github/skills/$skill (already exists)"
         $skillsSkipped++
     } else {
         New-Item -ItemType Directory -Path $skillDest -Force | Out-Null
         Copy-Item -Path (Join-Path $skillSrc '*') -Destination $skillDest -Recurse -Force
-        Write-Host "Copied skills/$skill"
+        Write-Host "Copied .github/skills/$skill"
         $skillsInstalled++
     }
 }
