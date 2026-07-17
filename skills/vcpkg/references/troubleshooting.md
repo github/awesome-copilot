@@ -76,17 +76,26 @@ vcpkg install curl[ssl,ssh] --recurse   # permits rebuilding with the new featur
 ### Cleaning the vcpkg Cache
 
 ```powershell
-# Remove all package build artifacts
-vcpkg x-clean
+# Remove build trees
+Remove-Item -Recurse -Force <vcpkg-root>\buildtrees
 
-# Optional: remove local cache/install directories
-Remove-Item -Recurse -Force <vcpkg-root>\buildtrees,<vcpkg-root>\downloads,<vcpkg-root>\installed,.\vcpkg_installed
+# Remove downloaded archives
+Remove-Item -Recurse -Force <vcpkg-root>\downloads
+
+# Remove installed packages (classic mode only)
+Remove-Item -Recurse -Force <vcpkg-root>\installed
+
+# Remove package build artifacts
+Remove-Item -Recurse -Force <vcpkg-root>\packages
+
+# In manifest mode, remove the local vcpkg_installed directory
+Remove-Item -Recurse -Force .\vcpkg_installed
 ```
 
 ```bash
-# Remove all package build artifacts
-vcpkg x-clean
-
-# Optional: remove local cache/install directories
-rm -rf <vcpkg-root>/buildtrees <vcpkg-root>/downloads <vcpkg-root>/installed ./vcpkg_installed
+rm -rf <vcpkg-root>/buildtrees
+rm -rf <vcpkg-root>/downloads
+rm -rf <vcpkg-root>/installed
+rm -rf <vcpkg-root>/packages
+rm -rf ./vcpkg_installed
 ```

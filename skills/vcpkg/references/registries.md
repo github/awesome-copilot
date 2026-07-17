@@ -72,7 +72,12 @@ my-overlays/
   "name": "telemetry-sdk",
   "version": "1.0.0",
   "description": "Internal telemetry SDK",
-  "dependencies": ["curl", "nlohmann-json"]
+  "dependencies": [
+    "curl",
+    "nlohmann-json",
+    { "name": "vcpkg-cmake", "host": true },
+    { "name": "vcpkg-cmake-config", "host": true }
+  ]
 }
 ```
 

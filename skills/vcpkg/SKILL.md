@@ -30,11 +30,10 @@ Classic mode is simpler for quick one-off installs but lacks version pinning, pe
 
 ### Visual Studio Environment
 
-If the user is working inside **Visual Studio** (not VS Code), prefer using the **in-box copy of vcpkg that ships with Visual Studio** rather than a standalone vcpkg clone, unless the user indicates they want to use a different installation. The VS-bundled vcpkg:
-- Is located under the Visual Studio installation directory (e.g., `C:\Program Files\Microsoft Visual Studio\<version>\<edition>\VC\vcpkg\`)
-- Supports user-wide MSBuild integration after running `vcpkg integrate install` once
-- Stays up-to-date with Visual Studio updates
-- Can be used with Visual Studio Open Folder/CMake Presets projects, but CMake must still be configured to use the vcpkg toolchain (for example via `CMakePresets.json` or `-DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake`)
+If the user is working inside **Visual Studio** (not VS Code), then:
+- If the user is in **manifest mode**, prefer the in-box copy of vcpkg that ships with Visual Studio rather than a standalone clone.
+- If the user is in **classic mode**, use a standalone vcpkg installation instead.
+- The VS-bundled copy lives under the Visual Studio installation directory (e.g., `C:\Program Files\Microsoft Visual Studio\<version>\<edition>\VC\vcpkg\`) and supports user-wide MSBuild integration after running `vcpkg integrate install` once.
 
 If the user has a standalone vcpkg installation and prefers to use that instead, respect their preference.
 
@@ -82,18 +81,28 @@ cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cm
 2. Create `vcpkg.json` in the solution directory
 3. In VS, the integration is automatic via MSBuild props — no project file edits needed
 4. Or per-project: add to `.vcxproj`:
-```xml
-<Import Project="<vcpkg-root>\scripts\buildsystems\msbuild\vcpkg.props" />
-<Import Project="<vcpkg-root>\scripts\buildsystems\msbuild\vcpkg.targets" />
-```
+   - In the project file's top-level `PropertyGroup`, define `VcpkgRoot`:
+   ```xml
+   <PropertyGroup>
+     <VcpkgRoot>C:\vcpkg</VcpkgRoot>
+   </PropertyGroup>
+   ```
+   - Import `vcpkg.props` near the top of the project file:
+   ```xml
+   <Import Project="$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.props" />
+   ```
+   - Import `vcpkg.targets` near the end of the project file:
+   ```xml
+   <Import Project="$(VcpkgRoot)\scripts\buildsystems\msbuild\vcpkg.targets" />
+   ```
 
 ### Classic-to-Manifest Migration
 
 1. List what's currently installed: `vcpkg list`
 2. Create `vcpkg.json` with those dependencies
-3. Delete global installs: `vcpkg remove --recurse "*"`
-4. Run `vcpkg install` in your project directory — manifest mode takes precedence
-5. Update your build system to use `CMAKE_TOOLCHAIN_FILE` if not already
+3. Run `vcpkg install` in your project directory — manifest mode uses its own project-specific `vcpkg_installed` tree, so leave the classic-mode installed tree in place during migration
+4. Update your build system to use `CMAKE_TOOLCHAIN_FILE` if not already
+5. Optional: remove classic-mode packages later by name with `vcpkg remove <package> --recurse` if you no longer need them
 
 ---
 
@@ -194,12 +203,12 @@ Use `overrides` only when a hard pin is required:
 }
 ```
 
-Always include `builtin-baseline` when using versioning.
+Use a baseline for the registry that resolves the dependency. For the builtin registry, that means `builtin-baseline` in `vcpkg.json`. For a custom default registry, set the baseline in `vcpkg-configuration.json`.
 
 **Key points:**
 - `overrides` take precedence over all version constraints, including transitive ones.
-- `builtin-baseline` is required for overrides.
-- Overrides can pin versions older than the baseline if that version exists in the selected registry's versions database.
+- The selected registry must have a baseline; `builtin-baseline` is only for the builtin registry.
+- Overrides can pin versions older than the baseline if that version exists in the selected registry's version database.
 - Use `vcpkg x-history <port>` to inspect available versions.
 
 ---
@@ -219,23 +228,24 @@ cmake -B build -DVCPKG_TARGET_TRIPLET=arm64-linux -DCMAKE_TOOLCHAIN_FILE=<vcpkg-
 
 You may need a cross-compilation toolchain installed (e.g., `aarch64-linux-gnu-gcc`).
 
-For **arm64-windows**, just use the triplet directly — no cross-compiler needed on ARM64 Windows or with MSVC:
+For **arm64-windows**, native ARM64 Windows hosts can use the triplet directly. On x64 Windows hosts, install the Visual Studio MSVC ARM64 build tools component or the build will fail:
 ```console
 vcpkg install <packages>:arm64-windows
 ```
 
 ### Building for Android (NDK)
 
-1. Install packages:
+1. Set `ANDROID_NDK_HOME` to your NDK path.
+2. Install packages:
 ```console
 vcpkg install <packages>:arm64-android
 ```
 
 Available Android triplets: `arm-neon-android`, `arm64-android`, `x86-android`, `x64-android`
 
-2. In CMake:
+3. In CMake, use the vcpkg toolchain and set the triplet:
 ```console
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=arm64-android -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=<android-ndk>/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-24
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=arm64-android
 ```
 
 For expanded CI and shell-specific examples, see `references/ci.md`.
