@@ -23,6 +23,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 LOG_DIR="shepherd-tasks-$(date +%Y%m%d-%H%M)"
 mkdir -p "$LOG_DIR"
+LOG_DIR_FULL="$(cd "$LOG_DIR" && pwd)"
+echo "Logging shepherd task files to $LOG_DIR_FULL"
 
 IFS=',' read -ra ISSUES <<< "$TASK_ISSUES"
 

@@ -35,6 +35,8 @@ $logDir = "shepherd-tasks-$(Get-Date -Format 'yyyyMMdd-HHmm')"
 if (-not (Test-Path $logDir)) {
     New-Item -ItemType Directory -Path $logDir | Out-Null
 }
+$logDirFull = (Resolve-Path $logDir).Path
+Write-Output "Logging shepherd task files to $logDirFull"
 
 $issues = $TaskIssues -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
 
