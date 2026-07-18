@@ -3750,6 +3750,9 @@ const seedInput = document.createElement("input");
         this.world.session.warpTo(Math.floor(this.px), Math.floor(this.py));
       }
       window.addEventListener("message", (event) => {
+        if (event.source !== window || !event.data || typeof event.data !== "object") {
+          return;
+        }
         const message = event.data;
         if (message.type === "config") {
           this.applySettings(message.settings);
