@@ -105,4 +105,3 @@ Report the finished work in this order:
 3. **Implementation:** the meaningful interface and behavior changes.
 4. **Verification:** breakpoints, interaction states, and accessibility checks performed.
 5. **Remaining risks:** anything that could not be verified, without overstating completion.
-
