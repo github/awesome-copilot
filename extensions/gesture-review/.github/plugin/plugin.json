@@ -1,7 +1,7 @@
 {
   "name": "gesture-review",
   "description": "Review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "Aaron Powell",
     "url": "https://github.com/aaronpowell"
