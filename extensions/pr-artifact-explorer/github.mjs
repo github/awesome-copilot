@@ -271,6 +271,7 @@ async function pullRequestSignals(token, repository, pulls) {
       (pull, index) => `
         pull${index}: pullRequest(number: ${Number(pull.number)}) {
           number
+          isDraft
           headRefOid
           reviewDecision
           totalCommentsCount
@@ -327,6 +328,7 @@ async function pullRequestSignals(token, repository, pulls) {
       return [
         Number(pull.number),
         {
+          draft: Boolean(signal.isDraft),
           headSha: signal.headRefOid ?? null,
           ciStatus: ciStatusForRollup(rollupState),
           reviewDecision: signal.reviewDecision ?? null,

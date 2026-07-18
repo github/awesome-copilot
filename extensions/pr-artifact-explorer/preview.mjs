@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { posix } from "node:path";
 import { Transform } from "node:stream";
 import { getCachedEntry } from "./cache.mjs";
-import { hasRootIndexHtml, mimeForPath } from "./detector.mjs";
+import { mimeForPath } from "./detector.mjs";
 import { streamZipEntry } from "./zip.mjs";
 
 const previewServers = new Map();
@@ -200,8 +200,11 @@ export async function startStaticPreview(artifactId, entryPath, options) {
   if (!mimeForPath(context.entry.name).startsWith("text/html")) {
     throw new Error("Only HTML files can start a static preview.");
   }
-  if (!hasRootIndexHtml(context.index.entries)) {
-    throw new Error("HTML previews require index.html at the artifact root.");
+  if (
+    posix.dirname(context.entry.name) !== "." ||
+    posix.basename(context.entry.name).toLowerCase() !== "index.html"
+  ) {
+    throw new Error("Static previews require the root index.html file.");
   }
   const rootValue = posix.dirname(context.entry.name);
   const root = rootValue === "." ? "" : rootValue;

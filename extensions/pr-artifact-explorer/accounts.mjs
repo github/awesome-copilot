@@ -100,6 +100,7 @@ async function detectCandidates() {
   add("env", process.env.GITHUB_TOKEN, null);
 
   for (const account of await listGhAccounts()) {
+    if (account.host.toLowerCase() !== "github.com") continue;
     add("gh", await readGhToken(account.host, account.login), account.login);
   }
   return candidates;

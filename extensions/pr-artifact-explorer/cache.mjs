@@ -26,6 +26,7 @@ import { findZipEntry, readEntryPrefix, readZipEntry, readZipIndex } from "./zip
 const downloads = new Map();
 const indexCache = new Map();
 let reservedDownloadBytes = 0;
+let metadataWriteSequence = 0;
 
 function normalizeArtifactId(value) {
   const id = Number.parseInt(value, 10);
@@ -45,9 +46,14 @@ function pathsFor(value) {
 }
 
 async function writeJsonAtomic(path, value) {
-  const temporary = `${path}.${process.pid}.tmp`;
-  await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, "utf8");
-  await rename(temporary, path);
+  const temporary = `${path}.${process.pid}.${++metadataWriteSequence}.tmp`;
+  try {
+    await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+    await rename(temporary, path);
+  } catch (error) {
+    await rm(temporary, { force: true }).catch(() => {});
+    throw error;
+  }
 }
 
 async function readMetadataFile(path) {
@@ -379,7 +385,10 @@ export async function inspectArtifact(
       });
       return existing;
     }
-    if (existing) await deleteCachedArtifact(paths.id);
+    if (existing) {
+      indexCache.delete(paths.id);
+      await removeArtifactFiles(paths);
+    }
     return buildMetadata(token, repository, paths.id, emit, externalController.signal);
   })();
   const download = { listeners, operation, abort: () => externalController.abort(new Error("Cache cleared.")) };
@@ -437,13 +446,23 @@ export async function readCachedEntry(artifactId, entryPath, maxBytes = MAX_INLI
   };
 }
 
-export async function deleteCachedArtifact(artifactId) {
-  const paths = pathsFor(artifactId);
-  indexCache.delete(paths.id);
+async function removeArtifactFiles(paths) {
   await Promise.all([
     rm(paths.archive, { force: true }),
     rm(paths.metadata, { force: true }),
   ]);
+}
+
+export async function deleteCachedArtifact(artifactId) {
+  const paths = pathsFor(artifactId);
+  indexCache.delete(paths.id);
+  const suffix = `:${paths.id}`;
+  const matches = [...downloads.entries()]
+    .filter(([key]) => key.endsWith(suffix))
+    .map(([, entry]) => entry);
+  for (const entry of matches) entry.abort?.();
+  await Promise.allSettled(matches.map((entry) => entry.operation));
+  await removeArtifactFiles(paths);
   return { deleted: paths.id };
 }
 

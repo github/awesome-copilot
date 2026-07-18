@@ -99,8 +99,13 @@ export async function readZipIndex(zipPath) {
     let eocdOffset = -1;
     for (let index = tail.length - 22; index >= 0; index--) {
       if (tail.readUInt32LE(index) === EOCD_SIGNATURE) {
-        eocdOffset = index;
-        break;
+        if (index + 22 <= tail.length) {
+          const commentLength = tail.readUInt16LE(index + 20);
+          if (index + 22 + commentLength === tail.length) {
+            eocdOffset = index;
+            break;
+          }
+        }
       }
     }
     if (eocdOffset < 0) {
