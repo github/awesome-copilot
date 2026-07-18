@@ -13,7 +13,7 @@
       "name": "accessibility-kanban",
       "source": "extensions/accessibility-kanban",
       "description": "Kanban board to manage accessibility issues, allow you to plan, track, and complete remediation work.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "acreadiness-cockpit",
@@ -85,13 +85,13 @@
       "name": "apng-studio",
       "source": "extensions/apng-studio",
       "description": "Interactive GitHub Copilot app canvas extension for building Animated PNG (APNG) files from frames. Draw or upload frames, tune per-frame timing and compositing, preview live, send the result to your phone by QR, and export an animated .png.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "arcade-canvas",
       "source": "extensions/arcade-canvas",
       "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "arch",
@@ -158,7 +158,7 @@
       "name": "backlog-swipe-triage",
       "source": "extensions/backlog-swipe-triage",
       "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "backrooms-canvas",
@@ -201,7 +201,7 @@
       "name": "chromium-control-canvas",
       "source": "extensions/chromium-control-canvas",
       "description": "Opens a real Chromium window you can navigate and interact with from a Copilot canvas control panel and agent actions.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "clojure-interactive-programming",
@@ -245,13 +245,13 @@
       "name": "color-orb",
       "source": "extensions/color-orb",
       "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "connector-namespaces",
       "source": "extensions/connector-namespaces",
       "description": "Browse, connect, and open MCP connectors from an Azure Connector Namespace.",
-      "version": "1.1.1"
+      "version": "1.1.2"
     },
     {
       "name": "context-engineering",
@@ -379,7 +379,7 @@
       "name": "diagram-viewer",
       "source": "extensions/diagram-viewer",
       "description": "Render diagrams, click nodes to drill down, and view agent-generated explanations directly in the canvas.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "dotnet",
@@ -526,7 +526,7 @@
       "name": "feedback-themes",
       "source": "extensions/feedback-themes",
       "description": "Explore grouped customer feedback signals by impact and drill into a theme to guide product next steps.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "figma",
@@ -599,7 +599,7 @@
       "name": "gesture-review",
       "source": "extensions/gesture-review",
       "description": "Review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "gh-skills-builder",
@@ -707,7 +707,7 @@
       "name": "java-modernization-studio",
       "source": "extensions/java-modernization-studio",
       "description": "Drive the GitHub Copilot App Modernization for Java workflow from an interactive canvas: environment readiness, repo assessment, prioritized plan and progress, validation gates, and one-click predefined-task runs grounded in the repo's real artifacts.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "kotlin-mcp-development",
@@ -986,13 +986,13 @@
       "name": "release-notes-showcase",
       "source": "extensions/release-notes-showcase",
       "description": "Compose and refine launch-ready release notes with contributor callouts and export-friendly output.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "repo-actions-hub",
       "source": "extensions/repo-actions-hub",
       "description": "Browse repository GitHub Actions workflows, inspect recent runs, and trigger manual workflow_dispatch runs from a Copilot canvas.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "roundup",
@@ -1034,7 +1034,7 @@
       "name": "site-studio",
       "source": "extensions/site-studio",
       "description": "Plan, draft, and track a personal website section by section — a shared canvas where you and your agent author content, watch progress, and review every change.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "skill-image-gen",
@@ -1124,13 +1124,13 @@
       "name": "tiny-tool-town-submitter",
       "source": "extensions/tiny-tool-town-submitter",
       "description": "Inspect a repository, improve Tiny Tool Town readiness, submit its listing issue, and launch remediation work.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "token-pacman",
       "source": "extensions/token-pacman",
       "description": "Visualizes live session AI-credit usage as a Pac-Man board with pellets, ghosts, fruit milestones, and game-over limits.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "typescript-mcp-development",
@@ -1341,7 +1341,7 @@
       "name": "where-was-i",
       "source": "extensions/where-was-i",
       "description": "Reconstruct your dev context (branch, commits, uncommitted work, PR clues) and trigger a resume prompt to continue quickly.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "winappcli",
@@ -1405,7 +1405,7 @@
       "name": "work-hub",
       "source": "extensions/work-hub",
       "description": "Generic cross-repo command center canvas for GitHub Copilot with onboarding, focus planning, repo health, work signals, and session cleanup.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     }
   ]
 }
