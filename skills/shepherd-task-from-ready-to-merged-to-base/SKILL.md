@@ -25,6 +25,19 @@ Automate the lifecycle of a task PR from marking as **Ready for review** through
 
 ---
 
+## ⚠️ CRITICAL: Never go idle while waiting
+
+The `copilot --yolo` runtime **terminates the session shortly after the agent goes idle** (i.e., when there are no pending tool calls). If you launch a long-running polling command with a short `initial_wait` and then say "I'll check back when it completes," the runtime will kill the session before the command finishes.
+
+**Rules for all polling and waiting steps:**
+
+1. ✅✅✅ **ALWAYS use `initial_wait` ≥ 600 seconds** (10 minutes) on any polling/waiting command. This keeps the agent blocked on the tool call rather than going idle. ✅✅✅
+2. ❌❌❌ **NEVER background a polling command and then end your turn with no tool calls.** If a command exceeds `initial_wait`, immediately issue another tool call (e.g., `read_powershell`) to stay active. ❌❌❌
+3. ❌❌❌ **NEVER say "I'll check back when it completes" or "Waiting for notification."** These phrases mean you are going idle, which KILLS THE SESSION. ❌❌❌
+4. ✅✅✅ **ALWAYS prefer a single blocking poll** over launching a background command and waiting for a notification. ✅✅✅
+
+---
+
 ## Procedure
 
 ### Step 0: Find the PR
@@ -37,17 +50,22 @@ Use the same multi-strategy approach as the assignment skill:
 
 If none of these find the PR, fail the skill and report the error.
 
-### Step 1: Mark the PR as Ready for Review
+### Step 1: Mark the PR as Ready for Review and request Copilot review
 
 ```bash
 gh pr ready $PR_NUMBER -R $REPO
+gh pr edit $PR_NUMBER -R $REPO --add-reviewer "copilot-pull-request-reviewer"
 ```
+
+**Important:** Copilot code review is NOT automatically triggered when a PR is taken out of draft state. You must explicitly request it.
 
 ### Step 2: Wait for Copilot code review agent to complete
 
-The act of marking as Ready for Review triggers the Copilot code review agent. Wait for it to post its findings.
+Wait for the Copilot code review agent to post its findings.
 
-Poll the PR reviews and comments using **multiple detection strategies** (any match is sufficient):
+Poll the PR reviews and comments using **multiple detection strategies** (any match is sufficient).
+
+**⚠️ Use `initial_wait: 660` (11 minutes) on this polling command to prevent the session from going idle and being killed.**
 
 **Strategy A:** A review whose body matches `"Copilot.s findings"` (original format).
 
