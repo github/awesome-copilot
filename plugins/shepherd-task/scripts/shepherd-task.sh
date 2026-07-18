@@ -99,7 +99,7 @@ else
     echo "$PHASE1_PROMPT"
     PHASE1_SHARE="$LOG_DIR/phase1-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.md"
     PHASE1_JSON="$LOG_DIR/phase1-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.json"
-    PHASE1_OTEL="$LOG_DIR/phase1-otel-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.jsonl"
+    PHASE1_OTEL="$(cd "$LOG_DIR" && pwd)/phase1-otel-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.jsonl"
     export COPILOT_OTEL_FILE_EXPORTER_PATH="$PHASE1_OTEL"
     echo "$PHASE1_PROMPT" | copilot --yolo --output-format json --share "$PHASE1_SHARE" > "$PHASE1_JSON"
     unset COPILOT_OTEL_FILE_EXPORTER_PATH
@@ -148,7 +148,7 @@ else
     echo "$PHASE2_PROMPT"
     PHASE2_SHARE="$LOG_DIR/phase2-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.md"
     PHASE2_JSON="$LOG_DIR/phase2-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.json"
-    PHASE2_OTEL="$LOG_DIR/phase2-otel-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.jsonl"
+    PHASE2_OTEL="$(cd "$LOG_DIR" && pwd)/phase2-otel-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.jsonl"
     export COPILOT_OTEL_FILE_EXPORTER_PATH="$PHASE2_OTEL"
     echo "$PHASE2_PROMPT" | copilot --yolo --output-format json --share "$PHASE2_SHARE" > "$PHASE2_JSON"
     unset COPILOT_OTEL_FILE_EXPORTER_PATH

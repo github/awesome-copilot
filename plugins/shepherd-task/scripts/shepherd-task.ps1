@@ -130,7 +130,7 @@ Invoke skill ``shepherd-task-from-assignment-to-ready`` with these inputs:
     Write-Status "Phase 1 prompt: $phase1Prompt"
     $phase1Share = Join-Path $LogDir "phase1-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.md"
     $phase1Json = Join-Path $LogDir "phase1-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.json"
-    $phase1Otel = Join-Path $LogDir "phase1-otel-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.jsonl"
+    $phase1Otel = Join-Path (Resolve-Path $LogDir) "phase1-otel-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.jsonl"
     $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $phase1Otel
     $phase1Prompt | copilot --yolo --output-format json --share $phase1Share > $phase1Json
     Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH -ErrorAction SilentlyContinue
@@ -190,7 +190,7 @@ Invoke skill ``shepherd-task-from-ready-to-merged-to-base`` with these inputs:
     Write-Status "Phase 2 prompt: $phase2Prompt"
     $phase2Share = Join-Path $LogDir "phase2-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.md"
     $phase2Json = Join-Path $LogDir "phase2-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.json"
-    $phase2Otel = Join-Path $LogDir "phase2-otel-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.jsonl"
+    $phase2Otel = Join-Path (Resolve-Path $LogDir) "phase2-otel-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.jsonl"
     $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $phase2Otel
     $phase2Prompt | copilot --yolo --output-format json --share $phase2Share > $phase2Json
     Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH -ErrorAction SilentlyContinue
