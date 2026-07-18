@@ -1858,8 +1858,11 @@ void main() {
           }
         }
       };
-      tryAxis(x + dx, y, "x");
-      tryAxis(x, y + dy, "y");
+      const steps = Math.max(1, Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) / PLAYER_RADIUS));
+      for (let i = 0; i < steps; i++) {
+        tryAxis(x + dx / steps, y, "x");
+        tryAxis(x, y + dy / steps, "y");
+      }
       return { x, y };
     }
     /**
@@ -3056,7 +3059,15 @@ void main() {
     constructor(surface) {
       this.surface = surface;
       window.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" || e.key.toLowerCase() === "m") {
+        if (e.key === "Escape") {
+          this.onMenuToggle?.();
+          return;
+        }
+        const target = e.target;
+        if (target instanceof HTMLElement && (target.matches("input, select, textarea, button") || target.isContentEditable)) {
+          return;
+        }
+        if (e.key.toLowerCase() === "m") {
           this.onMenuToggle?.();
           return;
         }
