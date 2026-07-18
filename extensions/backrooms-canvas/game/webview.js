@@ -3528,9 +3528,10 @@ void main() {
     toggleRow(label, key) {
       const row = document.createElement("div");
       row.className = "bv-row";
-      const input = document.createElement("input");
+const input = document.createElement("input");
       input.type = "checkbox";
       input.dataset.key = key;
+      input.setAttribute("aria-label", label);
       input.addEventListener("change", () => this.callbacks.onSettingChange(key, input.checked));
       const text = document.createElement("label");
       text.textContent = label;
@@ -3544,12 +3545,13 @@ void main() {
       text.textContent = label;
       const value = document.createElement("span");
       value.className = "bv-val";
-      const input = document.createElement("input");
+const input = document.createElement("input");
       input.type = "range";
       input.min = String(min);
       input.max = String(max);
       input.step = String(stepSize);
       input.dataset.key = key;
+      input.setAttribute("aria-label", label);
       input.addEventListener("input", () => {
         value.textContent = input.value;
         this.callbacks.onSettingChange(key, Number(input.value));
@@ -3568,8 +3570,9 @@ void main() {
       row.className = "bv-row";
       const text = document.createElement("label");
       text.textContent = label;
-      const select = document.createElement("select");
+const select = document.createElement("select");
       select.dataset.key = key;
+      select.setAttribute("aria-label", label);
       for (const option of options) {
         const el = document.createElement("option");
         el.value = option.value;
@@ -3627,9 +3630,10 @@ void main() {
       seedRow.className = "bv-row";
       const seedLabel = document.createElement("label");
       seedLabel.textContent = "Seed (0 = random)";
-      const seedInput = document.createElement("input");
+const seedInput = document.createElement("input");
       seedInput.type = "number";
       seedInput.dataset.key = "seed";
+      seedInput.setAttribute("aria-label", "Seed (0 = random)");
       seedInput.addEventListener("change", () => {
         const seed = Math.trunc(Number(seedInput.value)) || 0;
         this.callbacks.onSettingChange("seed", seed);

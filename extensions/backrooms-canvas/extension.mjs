@@ -157,8 +157,9 @@ function normalizeOverrides(input) {
     if (!input || typeof input !== "object") {
         return overrides;
     }
-    if (input.seed !== undefined) {
-        overrides.seed = clampNumber(input.seed, 0, Number.MAX_SAFE_INTEGER, 0);
+if (input.seed !== undefined) {
+        const seed = Math.trunc(clampNumber(input.seed, 0, Number.MAX_SAFE_INTEGER, 0));
+        overrides.seed = seed === 0 ? randomSeed() : seed;
     }
     if (input.materialPreset !== undefined) {
         overrides.materialPreset = pickEnum(input.materialPreset, MATERIAL_PRESETS, "classic");
@@ -221,7 +222,7 @@ async function renderIndex(entry) {
         job: entry.job,
         session: entry.session,
     };
-    return html.replace("__BACKROOMS_INIT__", JSON.stringify(init));
+return html.replace("__BACKROOMS_INIT__", JSON.stringify(init).replace(/</g, "\\u003c"));
 }
 
 async function streamFile(res, filePath) {
