@@ -101,7 +101,13 @@
           dispatch({ type: "chatSession", session: JSON.parse(event.data).session });
         } catch {}
       });
-      events.addEventListener("relocate", () => dispatch({ type: "relocate" }));
+      events.addEventListener("relocate", (event) => {
+        let seed;
+        try {
+          seed = JSON.parse(event.data).seed;
+        } catch {}
+        dispatch({ type: "relocate", seed });
+      });
       events.addEventListener("reload", () => window.location.reload());
     } catch {
       // No EventSource: the game still runs, just without live agent activity.

@@ -2544,6 +2544,8 @@ void main() {
     }
     /** Clears every writing, e.g. on relocate or when the setting turns off. */
     reset(renderer) {
+      this.job = { ...IDLE_JOB };
+      this.session = null;
       this.stamps = [];
       this.nextSlot = 0;
       this.lastWrittenStatus = "";
@@ -3723,7 +3725,7 @@ const seedInput = document.createElement("input");
         if (message.type === "config") {
           this.applySettings(message.settings);
         } else if (message.type === "relocate") {
-          this.relocate();
+          this.relocate(message.seed);
         } else if (message.type === "jobStatus") {
           this.film.setJob(message.job);
           this.graffiti.setJob(message.job);
@@ -3784,11 +3786,13 @@ const seedInput = document.createElement("input");
         this.menu.open();
       }
     }
-    relocate() {
-      const seed = randomSeed();
-      this.rebuildWorld(seed);
+    // The host may pick the seed (so its action response stays accurate);
+    // anything invalid or absent rolls a fresh one here.
+    relocate(seed) {
+      const next = typeof seed === "number" && Number.isFinite(seed) && seed > 0 ? Math.floor(seed) : randomSeed();
+      this.rebuildWorld(next);
       this.menu.close();
-      this.showToast(`relocated to seed ${seed}`);
+      this.showToast(`relocated to seed ${next}`);
     }
     rebuildWorld(seed) {
       this.world.invalidateChunks(this.renderer);

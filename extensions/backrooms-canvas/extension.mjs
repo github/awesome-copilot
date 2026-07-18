@@ -423,6 +423,11 @@ await joinSession({
                     handler: (ctx) => {
                         const entry = getOpenEntry(ctx.instanceId);
                         const seed = randomSeed();
+                        // The walls are wiped on relocate, so drop the job and
+                        // session snapshots too or a reload would replay them
+                        // onto the fresh maze.
+                        entry.job = { ...IDLE_JOB };
+                        entry.session = null;
                         broadcast(entry, "relocate", { seed });
                         return { seed };
                     },
