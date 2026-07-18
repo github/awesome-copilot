@@ -91,7 +91,14 @@
     return "workflow";
   }
 
+  const KNOWN_TRX_OUTCOMES = new Set([
+    "passed", "failed", "completed", "error", "warning",
+    "inconclusive", "aborted", "timeout", "inprogress", "notexecuted",
+  ]);
+
   function summarizedRunOutcome(report) {
+    const normalized = String(report.outcome ?? "").toLowerCase();
+    if (KNOWN_TRX_OUTCOMES.has(normalized)) return report.outcome;
     if (report.summaryCounts.failed > 0) return "Failed";
     if (report.summaryCounts.passed > 0) return "Passed";
     if (report.summaryCounts.skipped > 0) return "Skipped";

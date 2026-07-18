@@ -103,7 +103,10 @@ function decodeRequestPath(pathname) {
       .join("/")
       .replace(/^\/+/, "");
   } catch (error) {
-    throw new Error("Preview URL contains invalid encoding.", { cause: error });
+    throw Object.assign(
+      new Error("Preview URL contains invalid encoding.", { cause: error }),
+      { statusCode: 400 },
+    );
   }
 }
 
@@ -116,7 +119,7 @@ function safeRelativePath(path) {
     normalized.startsWith("/") ||
     /^[A-Za-z]:\//.test(normalized)
   ) {
-    throw new Error("Preview path escapes the artifact root.");
+    throw Object.assign(new Error("Preview path escapes the artifact root."), { statusCode: 400 });
   }
   return normalized;
 }
@@ -136,14 +139,13 @@ async function servePreviewRequest(
     return;
   }
 
-  const url = new URL(req.url, "http://127.0.0.1");
-  let relative = safeRelativePath(decodeRequestPath(url.pathname));
-  if (!relative || relative.endsWith("/")) {
-    relative = `${relative}${posix.basename(entryName)}`;
-  }
-  const requestedEntry = safeRelativePath(root ? posix.join(root, relative) : relative);
-
   try {
+    const url = new URL(req.url, "http://127.0.0.1");
+    let relative = safeRelativePath(decodeRequestPath(url.pathname));
+    if (!relative || relative.endsWith("/")) {
+      relative = `${relative}${posix.basename(entryName)}`;
+    }
+    const requestedEntry = safeRelativePath(root ? posix.join(root, relative) : relative);
     const context = await getCachedEntry(artifactId, requestedEntry);
     if (!context.entry.supported) {
       res.writeHead(415, { "Content-Type": "text/plain; charset=utf-8" });
@@ -181,7 +183,8 @@ async function servePreviewRequest(
     );
   } catch (error) {
     if (!res.headersSent) {
-      res.writeHead(404, {
+      const status = error?.statusCode === 400 ? 400 : 404;
+      res.writeHead(status, {
         "Content-Type": "text/plain; charset=utf-8",
         "Content-Security-Policy": PREVIEW_CSP,
         "Referrer-Policy": "no-referrer",
@@ -235,7 +238,7 @@ export async function startStaticPreview(artifactId, entryPath, options) {
     throw new Error("Static preview server did not receive a TCP port.");
   }
   const url = `http://127.0.0.1:${address.port}/`;
-  previewServers.set(key, { artifactId: String(artifactId), server, url });
+  previewServers.set(key, { artifactId: String(artifactId), server, url, canvasOrigin: parentOrigin });
   return url;
 }
 
@@ -243,6 +246,18 @@ export async function stopStaticPreviewsForArtifact(artifactId) {
   const id = String(artifactId);
   const matching = [...previewServers.entries()].filter(
     ([, value]) => value.artifactId === id,
+  );
+  await Promise.all(
+    matching.map(async ([key, value]) => {
+      previewServers.delete(key);
+      await new Promise((resolve) => value.server.close(resolve));
+    }),
+  );
+}
+
+export async function stopStaticPreviewsForOrigin(canvasOrigin) {
+  const matching = [...previewServers.entries()].filter(
+    ([, value]) => value.canvasOrigin === canvasOrigin,
   );
   await Promise.all(
     matching.map(async ([key, value]) => {

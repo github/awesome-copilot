@@ -41,6 +41,7 @@ import {
   startStaticPreview,
   stopAllStaticPreviews,
   stopStaticPreviewsForArtifact,
+  stopStaticPreviewsForOrigin,
 } from "./preview.mjs";
 import { ExpiringPromiseCache } from "./memory-cache.mjs";
 import { HTML } from "./render.mjs";
@@ -581,7 +582,8 @@ async function handleApi(req, res, entry, url) {
       if (
         !Number.isSafeInteger(offset) ||
         offset < 0 ||
-        offset >= session.base.pulls.length
+        offset >= session.base.pulls.length ||
+        offset % PROGRESSIVE_PULL_BATCH_SIZE !== 0
       ) {
         throw new HttpError(400, "A valid progressive batch offset is required.");
       }
@@ -859,6 +861,9 @@ export async function stopInstance(instanceId) {
   if (!entry) return;
   servers.delete(instanceId);
   for (const response of entry.sseClients) response.end();
+  if (entry.url) {
+    await stopStaticPreviewsForOrigin(new URL(entry.url).origin);
+  }
   await new Promise((resolve) => entry.server.close(resolve));
 }
 

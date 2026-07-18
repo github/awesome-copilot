@@ -17,7 +17,7 @@ Artifact Explorer is a community-built Copilot canvas extension with the interna
 - Downloads an artifact once, indexes its ZIP, and streams entries directly from the archive without extracting them to disk.
 - Previews root-level static sites in a sandboxed loopback frame when the artifact contains `index.html`.
 - Plays asciinema terminal recordings and renders structured TRX test reports.
-- Syntax-highlights JSON and XML, renders Markdown, images, PDFs, and text, and identifies binary content.
+- Syntax-highlights JSON and XML, previews images and PDFs, renders text with safe escaping, and identifies binary content.
 - Keeps large or unsupported files available for download instead of forcing an unsafe or unreliable inline preview.
 - Provides per-artifact cleanup, clear-all cleanup, and a cache usage view.
 - Uses a responsive Primer interface that follows Copilot's light and dark themes.

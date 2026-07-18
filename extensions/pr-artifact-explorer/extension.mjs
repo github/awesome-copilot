@@ -177,14 +177,20 @@ const session = await joinSession({
               throw new CanvasError("invalid_account", "Account id is required.");
             }
             const prefs = await loadPrefs();
-            prefs.account = ctx.input.id;
-            await savePrefs(prefs);
             invalidateAccounts();
             const auth = await resolveAccounts({
-              preferredId: prefs.account,
+              preferredId: ctx.input.id,
               repository: prefs.repository,
               force: true,
             });
+            if (!auth.active || auth.active.id !== ctx.input.id) {
+              throw new CanvasError(
+                "invalid_account",
+                `Account "${ctx.input.id}" was not found or is unavailable.`,
+              );
+            }
+            prefs.account = ctx.input.id;
+            await savePrefs(prefs);
             return { active: auth.active, accounts: auth.accounts };
           },
         },

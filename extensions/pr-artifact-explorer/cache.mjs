@@ -21,7 +21,7 @@ import {
 } from "./constants.mjs";
 import { analyzeArtifact, hasRootIndexHtml } from "./detector.mjs";
 import { getArtifact, openArtifactDownload } from "./github.mjs";
-import { findZipEntry, readZipEntry, readZipIndex } from "./zip.mjs";
+import { findZipEntry, readEntryPrefix, readZipEntry, readZipIndex } from "./zip.mjs";
 
 const downloads = new Map();
 const indexCache = new Map();
@@ -105,6 +105,7 @@ async function downloadArchive(
   artifact,
   archivePath,
   onProgress,
+  externalSignal = null,
 ) {
   const declaredBytes = Number(artifact.sizeInBytes);
   let reservedBytes = 0;
@@ -128,6 +129,11 @@ async function downloadArchive(
   await reserve(declaredBytes);
 
   const controller = new AbortController();
+  if (externalSignal?.aborted) {
+    controller.abort(externalSignal.reason);
+  } else if (externalSignal) {
+    externalSignal.addEventListener("abort", () => controller.abort(externalSignal.reason), { once: true });
+  }
   let idleTimer;
   const resetIdleTimeout = () => {
     clearTimeout(idleTimer);
@@ -244,7 +250,7 @@ async function downloadArchive(
   };
 }
 
-async function buildMetadata(token, repository, artifactId, onProgress) {
+async function buildMetadata(token, repository, artifactId, onProgress, signal = null) {
   const paths = pathsFor(artifactId);
   const artifact = await getArtifact(token, repository, paths.id);
   if (artifact.expired) {
@@ -268,6 +274,7 @@ async function buildMetadata(token, repository, artifactId, onProgress) {
     artifact,
     paths.archive,
     onProgress,
+    signal,
   );
   const compressedBytes = transfer.receivedBytes;
   try {
@@ -282,10 +289,9 @@ async function buildMetadata(token, repository, artifactId, onProgress) {
       etaSeconds: 0,
     });
     const index = await readZipIndex(paths.archive);
+    const PREFIX_BYTES = 8 * 1024;
     const analysis = await analyzeArtifact(index, async (entry) => {
-      if (entry.uncompressedSize > MAX_INLINE_PREVIEW_BYTES) return null;
-      const content = await readZipEntry(paths.archive, entry, MAX_INLINE_PREVIEW_BYTES);
-      return content.subarray(0, 8_192);
+      return readEntryPrefix(paths.archive, entry, PREFIX_BYTES);
     });
     const timestamp = new Date().toISOString();
     const metadata = {
@@ -354,6 +360,7 @@ export async function inspectArtifact(
   const emit = (progress) => {
     for (const listener of listeners) listener(progress);
   };
+  const externalController = new AbortController();
   const operation = (async () => {
     const existing = await cachedMetadata(paths.id);
     if (existing?.repository === repository && existing.analysis) {
@@ -373,9 +380,9 @@ export async function inspectArtifact(
       return existing;
     }
     if (existing) await deleteCachedArtifact(paths.id);
-    return buildMetadata(token, repository, paths.id, emit);
+    return buildMetadata(token, repository, paths.id, emit, externalController.signal);
   })();
-  const download = { listeners, operation };
+  const download = { listeners, operation, abort: () => externalController.abort(new Error("Cache cleared.")) };
   downloads.set(key, download);
   try {
     return await operation;
@@ -441,6 +448,9 @@ export async function deleteCachedArtifact(artifactId) {
 }
 
 export async function clearArtifactCache() {
+  const inflight = [...downloads.values()];
+  for (const entry of inflight) entry.abort?.();
+  await Promise.allSettled(inflight.map((entry) => entry.operation));
   indexCache.clear();
   await rm(CACHE_ROOT, { recursive: true, force: true });
   await mkdir(CACHE_ROOT, { recursive: true });
