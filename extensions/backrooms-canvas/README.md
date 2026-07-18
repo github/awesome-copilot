@@ -1,4 +1,4 @@
-# BackViews Canvas
+# BackRooms Canvas
 
 A GitHub Copilot canvas that opens an endless first-person backrooms in the side panel. Yellow-wallpapered halls under humming fluorescent panels, drop-tile ceilings, and worn office carpet, filmed through the shake and grain of a 1990-era handheld camcorder. Somewhere past the fog, something else walks the same halls.
 

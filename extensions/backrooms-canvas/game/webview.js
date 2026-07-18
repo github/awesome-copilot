@@ -1772,7 +1772,7 @@ void main() {
      * Applies a wall material preset plus its adjustable elements (hue rotation
      * in degrees and a brightness multiplier). Call invalidateChunks afterwards
      * so existing meshes pick the change up.
-     * 
+     *
      * The preset determines the base tile and tint for all walls. Hue rotation
      * lets players shift the wallpaper color, and brightness scales the overall
      * material lightness without destroying the wear variation.
@@ -1798,7 +1798,7 @@ void main() {
     /**
      * Keeps the discrete MazeSession in step with the continuous player
      * position, so its move/enterCell events stay meaningful.
-     * 
+     *
      * When the player crosses a cell boundary, this tries to move the session
      * in the matching direction. If that fails (shouldn't happen - walls block
      * both), it warps the session to match reality.
@@ -1825,7 +1825,7 @@ void main() {
     /**
      * Moves the player from (px, py) toward (px+dx, py+dy) in plane coordinates,
      * resolving collisions per axis so the player slides along walls.
-     * 
+     *
      * This implements a sweep-and-clamp collision resolver: each axis is tested
      * independently. If the desired position is blocked, the coordinate is
      * clamped to the nearest wall surface (within the motion delta to avoid
@@ -1868,7 +1868,7 @@ void main() {
     /**
      * Whether a player disc at (x, y) fits: each corner of its bounding square
      * must be reachable from the center cell through open edges only.
-     * 
+     *
      * This implements circle-vs-grid collision by checking the four corners of
      * the circle's bounding box. Each corner cell must be connected to the
      * player's center cell via a valid path of open edges (either directly if
@@ -1910,7 +1910,7 @@ void main() {
      * Determines light state for a cell: on, dead, or flickering.
      * Lights live on a 3-cell lattice (offset to [1,1] within the pattern).
      * Returns null for cells that have no light fixture.
-     * 
+     *
      * Dead lights (12% chance) never illuminate. Flickering lights (8% chance)
      * pulse erratically. The rest stay on with the global flicker hum.
      */
@@ -3474,17 +3474,23 @@ void main() {
     statsEl = null;
     settings = null;
     openFlag = false;
+    lastFocused = null;
     get isOpen() {
       return this.openFlag;
     }
     open() {
       this.openFlag = true;
+      this.lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       this.root.classList.add("open");
       this.show("main");
     }
     close() {
       this.openFlag = false;
       this.root.classList.remove("open");
+      if (this.lastFocused?.isConnected) {
+        this.lastFocused.focus();
+      }
+      this.lastFocused = null;
     }
     syncSettings(settings) {
       this.settings = settings;
@@ -3511,11 +3517,22 @@ void main() {
       for (const [key, view] of Object.entries(this.views)) {
         view.style.display = key === name ? "block" : "none";
       }
+      // Only the visible card is a live dialog; hand it focus so assistive
+      // tech announces the context change instead of staying on the game.
+      if (this.openFlag) {
+        const view = this.views[name];
+        const target = view.querySelector("button, input, select") ?? view;
+        target.focus();
+      }
     }
     card() {
       const card = document.createElement("div");
       card.className = "bv-card";
-      card.innerHTML = '<h1>BACKVIEWS</h1><p class="bv-sub">no-clipped into a VSCode webview</p>';
+      card.setAttribute("role", "dialog");
+      card.setAttribute("aria-modal", "true");
+      card.setAttribute("aria-label", "BackRooms pause menu");
+      card.tabIndex = -1;
+      card.innerHTML = '<h1>BACKROOMS</h1><p class="bv-sub">noclipped into a Copilot canvas</p>';
       return card;
     }
     button(label, onClick, accent = false) {
@@ -3720,6 +3737,7 @@ const seedInput = document.createElement("input");
         }
       });
       this.toast = document.createElement("div");
+      this.toast.setAttribute("role", "status");
       this.toast.style.cssText = 'position:absolute;left:50%;bottom:9%;transform:translateX(-50%);z-index:20;background:rgba(22,24,27,0.85);color:#f0f2f3;border:1px solid #454c55;border-radius:6px;padding:8px 16px;font:13px "Segoe UI",system-ui,sans-serif;opacity:0;transition:opacity .4s;pointer-events:none;';
       root.appendChild(this.toast);
       const restored = vscode.getState();
@@ -3761,7 +3779,7 @@ const seedInput = document.createElement("input");
      * its procedural tile in place.
      */
     async loadMaterialImages() {
-      const uris = window.__BACKVIEWS_MATERIALS__ ?? {};
+      const uris = window.__BACKROOMS_MATERIALS__ ?? {};
       const load = (uri) => new Promise((resolve) => {
         if (!uri) {
           resolve(void 0);
@@ -3802,6 +3820,10 @@ const seedInput = document.createElement("input");
     relocate(seed) {
       const next = typeof seed === "number" && Number.isFinite(seed) && seed > 0 ? Math.floor(seed) : randomSeed();
       this.rebuildWorld(next);
+      // Adopt the new seed as the effective setting; otherwise the config
+      // replayed on a reload still carries the old seed and immediately
+      // rebuilds away from the relocated world.
+      this.changeSetting("seed", next);
       this.menu.close();
       this.showToast(`relocated to seed ${next}`);
     }

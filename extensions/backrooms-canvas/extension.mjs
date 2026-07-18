@@ -1,5 +1,5 @@
 /**
- * Copilot canvas entry point for BackViews.
+ * Copilot canvas entry point for BackRooms.
  *
  * The game itself is the prebuilt browser bundle at game/webview.js (an
  * esbuild IIFE that already carries the WebGL renderer, the procedural maze
@@ -265,6 +265,16 @@ async function handleRequest(entry, req, res) {
         return;
     }
 
+    // The shim reports explicit setting changes (menu edits, relocate): the
+    // per-open override for that key stops applying, so a reload keeps the
+    // player's choice instead of replaying the stale override.
+    if (req.method === "DELETE" && url.pathname.startsWith("/override/")) {
+        delete entry.overrides[decodeURIComponent(url.pathname.slice("/override/".length))];
+        res.writeHead(204);
+        res.end();
+        return;
+    }
+
     if (url.pathname === "/favicon.ico") {
         await streamFile(res, path.join(assetsRoot, "icon.png"));
         return;
@@ -333,7 +343,7 @@ await joinSession({
     canvases: [
         createCanvas({
             id: "backrooms-canvas",
-            displayName: "BackViews",
+            displayName: "BackRooms",
             description:
                 "An endless first-person backrooms to wander while agents work. The agent's status ghost-writes on the walls.",
             inputSchema: {
@@ -428,6 +438,7 @@ await joinSession({
                         // onto the fresh maze.
                         entry.job = { ...IDLE_JOB };
                         entry.session = null;
+                        broadcast(entry, "jobStatus", { job: entry.job });
                         broadcast(entry, "relocate", { seed });
                         return { seed };
                     },
@@ -442,7 +453,7 @@ await joinSession({
                     entry.overrides = { ...entry.overrides, ...overrides };
                 }
                 return {
-                    title: "BackViews",
+                    title: "BackRooms",
                     status: entry.job.working && entry.job.status ? entry.job.status : "Wandering",
                     url: entry.url,
                 };
