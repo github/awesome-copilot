@@ -16,9 +16,11 @@
 | Feature | Peer | Supported packages | Activation |
 |---------|------|--------------------|------------|
 | Lightweight highlighted code blocks | `stream-markdown` | `markstream-vue`, `markstream-vue2`, `markstream-react` | Configure the package's `MarkdownCodeBlockNode` as the `code_block` override |
+| Enhanced code blocks and File/Diff surfaces | `stream-diffs` | `markstream-vue` | Install for copy, preview, expand, syntax-highlighting, and File/Diff features |
 | Monaco-powered code blocks | `stream-monaco` | All framework packages | Install only when Monaco interactions are required |
 | Mermaid diagrams | `mermaid` | All framework packages | Install when Mermaid fences are rendered |
 | D2 diagrams | `@terrastruct/d2` | All framework packages | Install when D2 fences are rendered |
+| Infographic blocks | `@antv/infographic` | All framework packages | Install when infographic fences are rendered |
 | KaTeX math | `katex` | All framework packages | Install and load KaTeX CSS when math is rendered |
 
 ## CSS checklist

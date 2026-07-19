@@ -34,7 +34,7 @@ Before changing dependencies, inspect:
 - the package manager lockfile;
 - whether the application uses SSR;
 - reset, Tailwind, UnoCSS, or design-system styles;
-- required optional features: code highlighting, Monaco, Mermaid, D2, or KaTeX.
+- required optional features: code highlighting, enhanced File/Diff surfaces, Monaco, Mermaid, D2, infographic blocks, or KaTeX.
 
 Do not assume the Vue package is correct merely because the source repository is named `markstream-vue`. Select the framework-specific package from the scenario table.
 
