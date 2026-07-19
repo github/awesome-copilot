@@ -649,6 +649,7 @@ function renderDashboard(signals, stashed) {
 
 async function startServer(instanceId, workshopDir) {
     const server = createServer(async (req, res) => {
+        try {
         const url = new URL(req.url, `http://${req.headers.host}`);
 
         if (req.method === "POST" && url.pathname.startsWith("/api/") && isCrossSiteRequest(req)) {
@@ -708,6 +709,18 @@ async function startServer(instanceId, workshopDir) {
         const stashed = await readStash(workshopDir);
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.end(renderDashboard(signals, stashed));
+        } catch (err) {
+            // Top-level boundary: never leave a request hanging or let a
+            // rejection become an unhandled crash — e.g. malformed %-encoding
+            // in the path, a read-only workshop on a stash write, or a scan
+            // failure. Return a controlled error instead.
+            if (!res.headersSent) {
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: false, error: "internal_error" }));
+            } else {
+                try { res.end(); } catch {}
+            }
+        }
     });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const address = server.address();
