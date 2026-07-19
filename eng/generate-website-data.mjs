@@ -35,6 +35,16 @@ const WEBSITE_SOURCE_DATA_DIR = path.join(WEBSITE_DIR, "data");
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
 const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
 
+function hasExtensionEntryPoint(extensionDir, extensionName) {
+  const candidateEntryPoints = [
+    path.join(extensionDir, "extension.mjs"),
+    path.join(extensionDir, "extensions", "extension.mjs"),
+    path.join(extensionDir, "extensions", extensionName, "extension.mjs"),
+  ];
+
+  return candidateEntryPoints.some((entryPointPath) => fs.existsSync(entryPointPath));
+}
+
 /**
  * Ensure the output directory exists
  */
@@ -544,7 +554,7 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
     const extensionDirs = fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
       .filter((entry) => {
         if (!entry.isDirectory()) return false;
-        return fs.existsSync(path.join(EXTENSIONS_DIR, entry.name, "extension.mjs"));
+        return hasExtensionEntryPoint(path.join(EXTENSIONS_DIR, entry.name), entry.name);
       })
       .map((entry) => entry.name)
       .sort((a, b) => a.localeCompare(b));
@@ -1235,12 +1245,7 @@ function generateCanvasManifest(gitDates, commitSha) {
     .readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
     .filter((entry) => {
       if (!entry.isDirectory()) return false;
-      const extensionEntryPoint = path.join(
-        EXTENSIONS_DIR,
-        entry.name,
-        "extension.mjs"
-      );
-      return fs.existsSync(extensionEntryPoint);
+      return hasExtensionEntryPoint(path.join(EXTENSIONS_DIR, entry.name), entry.name);
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
