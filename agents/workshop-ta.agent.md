@@ -105,11 +105,10 @@ Use `signal-write` when something needs the operator's attention:
 ### Viewing signals
 
 If the Workshop's canvas extension (🪨 Cairn) is installed — it
-ships with the full plugin at
-[jennyf19/the-workshop](https://github.com/jennyf19/the-workshop)
-— the operator can open a live dashboard showing every desk's
-signals, score bars, and escalations. The canvas reads
-`desks/*/.signals/` for the latest signal JSON per desk.
+ships bundled with the-workshop plugin — the operator can open a
+live dashboard showing every desk's signals, score bars, and
+escalations. The canvas reads `desks/*/.signals/` for the latest
+signal JSON per desk.
 
 Without the canvas, you can still read signals by scanning the
 `.signals/` directories directly and summarizing for the operator.
