@@ -19,6 +19,7 @@ A **desk** isn't a sub-agent — it's a peer with a history. Sub-agents inherit 
 | Type | Name | Description |
 |------|------|-------------|
 | Agent | [Workshop TA](../../agents/workshop-ta.agent.md) | Room coordinator — sees all desks, routes work, tracks state, emits signals |
+| Skill | [Workshop Create](../../skills/workshop-create/) | Create a new workshop — the root where desks live — locally or backed by a new private GitHub repo |
 | Skill | [Desk Open](../../skills/desk-open/) | Create a new desk with journal and folder structure |
 | Skill | [Desk Journal](../../skills/desk-journal/) | Read/write persistent memory across sessions — the cairn trail |
 | Skill | [Signal Write](../../skills/signal-write/) | Emit structured signals: hands-up, blocked, done, checkpoint |

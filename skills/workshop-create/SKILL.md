@@ -41,19 +41,32 @@ they cloned, maybe it's a local project folder.
 The operator wants a fresh workshop backed by a GitHub repo.
 
 1. **Get the workshop name.** Short, no spaces, kebab-case preferred.
-2. **Create the repo:** `gh repo create <owner>/<name> --private --clone`
-   - Use the operator's signed-in GitHub account as `<owner>`
-   - Clone it to a sensible location (ask the operator where, or use
-     their configured workshops directory)
-3. **Scaffold the workshop structure** inside the cloned repo:
+2. **Pick and validate a clone parent.** `gh repo create --clone` clones
+   into the **current working directory**, so choose an explicit parent
+   directory first (ask the operator, or use their configured workshops
+   directory) and confirm it is **not** already inside a git repo:
+   ```bash
+   git -C <parent-dir> rev-parse --is-inside-work-tree
+   ```
+   If that prints `true`, pick a different parent — otherwise the new
+   repo nests inside the existing one. Create the parent if needed.
+3. **Create and clone the repo from that parent:**
+   ```bash
+   cd <parent-dir>
+   gh repo create <owner>/<name> --private --clone
+   ```
+   Use the operator's signed-in GitHub account as `<owner>`.
+4. **Scaffold the workshop structure** inside the cloned repo. Git does
+   not track empty directories, so add a placeholder in each otherwise
+   empty folder or the scaffold will not survive the next clone:
    ```
    <name>/
-     desks/
-     bench/
+     desks/.gitkeep
+     bench/.gitkeep
      CAIRN.md
      README.md
    ```
-4. **Commit and push** the scaffold.
+5. **Commit and push** the scaffold, including the `.gitkeep` placeholders.
 
 ### Critical: Never nest repos
 

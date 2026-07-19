@@ -17,10 +17,11 @@ leave work products for each other.
 
 ## What the bench is
 
-The bench is the shared filesystem of the workshop. It's not a
+The bench is `<workshop>/bench/` — the shared workspace directory
+that `workshop-create` establishes for cross-desk work. It's not a
 message queue or a chat channel — it's files. When Desk A produces
 a finding and Desk B needs to review it, the finding is a file
-on the bench. When the operator asks "what did the scanning desk
+in `bench/`. When the operator asks "what did the scanning desk
 find?" — you read the bench.
 
 Typical bench artifacts:
@@ -31,15 +32,19 @@ Typical bench artifacts:
 
 ## Where to look
 
-The bench is the workshop directory itself and its subdirectories.
-Common patterns:
+The primary shared location is the `bench/` directory at the
+workshop root — the designated cross-desk workspace. Desk-local
+artifacts under `desks/<desk-name>/` are a secondary source: read
+them when you need a specific desk's own work, but shared artifacts
+belong in `bench/`.
 
 ```
-desks/<desk-name>/           # each desk's own workspace
-  journal.md                  # the desk's memory
-  <artifacts>                 # work products from this desk
-
-<shared files at root>        # cross-desk artifacts
+<workshop>/
+  bench/                      # PRIMARY — shared cross-desk artifacts
+    <findings, verdicts, drafts, reports>
+  desks/<desk-name>/          # secondary — a desk's own workspace
+    journal.md                #   the desk's memory
+    <artifacts>               #   work still local to this desk
 ```
 
 ## How to read
