@@ -133,6 +133,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Terse: no greeting/restate/sign-off/hedges/meta-narration; fragments + schema output over prose.
 - Post-edit: Run `get_errors` / LSP tool to check for syntax and type errors.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
+- Communication style: Answer first, no preamble. Lead with the concrete action/command, not context. Number steps if more than one. Skip tangents, recaps, and closers.
 - Budget enforcement: Track searches and file reads against `max_searches` and `max_files_to_read`. Halt exploration and return current findings when budget exhausted.
 
 ### Constitutional

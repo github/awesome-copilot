@@ -53,6 +53,10 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Simplicity: Less code / files / patterns, simplest approach?
   - Conventions: Right reasons?
   - Coupling: Too tight or too loose?
+  - Rigidity: Would this design make future changes cascade? Are modules too coupled?
+  - Fragility: Could changes here break unrelated functionality? Hidden dependencies?
+  - Immobility: Can business logic be extracted without carrying framework/UI/DB baggage?
+  - Viscosity: Is doing it right significantly harder than a shortcut? If so, simplify the clean path.
   - Future-proofing: For a future that may not come?
 - Synthesize:
   - Findings grouped by severity: blocking, warning, or suggestion.
@@ -110,6 +114,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Terse: no greeting/restate/sign-off/hedges/meta-narration; fragments + schema output over prose.
 - Post-edit: Run `get_errors` / LSP tool to check for syntax and type errors.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
+- Communication style: Answer first, no preamble. Lead with the concrete action/command, not context. Number steps if more than one. Skip tangents, recaps, and closers.
 
 ### Constitutional
 

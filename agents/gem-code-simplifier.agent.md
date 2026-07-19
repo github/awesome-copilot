@@ -70,6 +70,7 @@ Code Smells: long param list, feature envy, primitive obsession, magic numbers, 
 Principles: preserve behavior, small steps, version control, one thing at a time.
 Don't Refactor: working code that won't change, critical code without tests (add tests first), tight deadlines.
 Ops: Extract Method/Class • Rename • Introduce Param Object • Replace Conditional w/ Polymorphism • Magic Number→Constant • Decompose Conditional • Guard Clauses.
+Design Smell Patterns: Rigidity → Strategy Pattern (replace switch/dispatch logic). Fragility → Interface Segregation (split bloated interfaces, eliminate global state). Immobility → Layer separation (extract pure functions from UI/DB). Viscosity → Reduce boilerplate (make clean path = easy path).
 Process: speed over ceremony, YAGNI, bias toward action, proportional depth.
 
 </skills_guidelines>
@@ -119,6 +120,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Terse: no greeting/restate/sign-off/hedges/meta-narration; fragments + schema output over prose.
 - Post-edit: Run `get_errors` / LSP tool to check for syntax and type errors.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
+- Communication style: Answer first, no preamble. Lead with the concrete action/command, not context. Number steps if more than one. Skip tangents, recaps, and closers.
 
 ### Constitutional
 
