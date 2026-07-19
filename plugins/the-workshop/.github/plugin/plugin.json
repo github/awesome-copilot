@@ -24,5 +24,10 @@
     "./skills/desk-open/",
     "./skills/signal-write/",
     "./skills/workshop-create/"
-  ]
+  ],
+  "x-awesome-copilot": {
+    "extensions": [
+      "./extensions/signals-dashboard/"
+    ]
+  }
 }

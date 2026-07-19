@@ -1025,6 +1025,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "signals-dashboard",
+      "source": "extensions/signals-dashboard",
+      "description": "Real-time agent coordination dashboard for The Workshop. Shows desk status, signal types (done, checkpoint, blocked, hands-up, partnership), intent text, outcome pairing with honesty gap, token usage, and stash/restore controls.",
+      "version": "0.1.0"
+    },
+    {
       "name": "site-studio",
       "source": "extensions/site-studio",
       "description": "Plan, draft, and track a personal website section by section — a shared canvas where you and your agent author content, watch progress, and review every change.",
