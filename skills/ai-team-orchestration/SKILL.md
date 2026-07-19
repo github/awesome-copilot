@@ -45,21 +45,16 @@ The human (CEO) is the message bus between parallel chats:
 │ Nova     │ │ Ivy      │ │        │
 │ Sage     │ │          │ │        │
 │ Milo     │ │          │ │        │
-│          │ │frozen   /│ │planned │
+│          │ │frozen  / │ │planned │
 │ <working-│ │candidate/│ │branch  │
-│ branch>  │ │immutable│ └────────┘
-│          │ │preview  │
-└──────────┘
+│ branch>  │ │immutable │ └────────┘
+│          │ │preview   │
+└──────────┘ └──────────┘
 ```
 
 Dev works on the plan's `<working-branch>`. QA normally evaluates the frozen Candidate ID or its immutable preview and creates a separate branch only for test/evidence commits.
 
-Each concurrent session works in a **separate VS Code window** with its own clone. Only roles that write files need their own branch; QA normally checks out the frozen candidate unless it creates test/evidence commits:
-```bash
-git clone <repo> project-dev    # Dev team
-git clone <repo> project-qa     # QA
-git clone <repo> project-devops # DevOps (only when needed)
-```
+Each concurrent session works in a **separate VS Code window** with its own clone. Only roles that write files need their own branch; QA normally checks out the frozen candidate unless it creates test/evidence commits. Record a distinct safe clone destination such as `project-dev`, `project-qa`, or `project-devops`, then use the validated fixed clone sequence in [Safe Git Values and Commands](./references/safe-git-values.md). Never interpolate an unvalidated repository URL or destination into a clone command.
 
 ## Project Bootstrap
 

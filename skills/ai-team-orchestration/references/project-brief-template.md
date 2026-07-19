@@ -152,6 +152,7 @@ Record actual repository values when bootstrapping; none of these fields has an 
 | Target branch | `<target-branch>` |
 | Base remote | `<base-remote>` |
 | Base remote URL | `<base-remote-url>` |
+| Clone destination | `<clone-destination>` |
 | Base ref | `<base-ref>` |
 | Push remote | `<push-remote>` |
 | Push remote URL | `<push-remote-url>` |
@@ -164,17 +165,13 @@ Record actual repository values when bootstrapping; none of these fields has an 
 - DevOps role on `feature/devops-N` only when needed
 
 **Setup:**
-```text
-git clone <repo> <folder-name>
-cd <folder-name>
-git status --short
-[validate the recorded names, branches, base ref, and URLs with Safe Git Values and Commands]
-[verify effective remote URLs; add a missing remote only after user confirms the exact name-to-URL mapping]
-[run the canonical fixed fetch/base/branch sequence one command at a time]
-[run the verified project setup command, if any]
-```
+1. Validate the recorded clone destination, names, branches, base ref, and URLs with Safe Git Values and Commands. The clone destination must not exist before cloning.
+2. Obtain explicit user confirmation for the exact clone endpoint and destination, then run the reference's fixed clone sequence one command at a time and open the verified clone.
+3. Verify effective remote URLs; add a missing remote only after the user confirms the exact name-to-URL mapping.
+4. Run the canonical fixed fetch/base/branch sequence one command at a time.
+5. Run the verified project setup command, if any.
 
-The base ref is exactly `refs/remotes/<base-remote>/<target-branch>`. If base and push URLs differ, use different remote names. Stop on a dirty worktree, unsafe value, URL mismatch/rewrite/multiplicity, ancestry/upstream mismatch, or missing authorization; never repair remotes, reset, rebase, or recreate automatically. Obtain explicit user confirmation before adding a missing remote, first push, or changed destination/refspec. See [Safe Git Values and Commands](./safe-git-values.md).
+The base ref is exactly `refs/remotes/<base-remote>/<target-branch>`. If base and push URLs differ, use different remote names. Stop on a dirty worktree, unsafe value, URL mismatch/rewrite/multiplicity, unexpected effective configuration for the planned clone remote, ancestry/upstream mismatch, or missing authorization; never repair remotes, reset, rebase, or recreate automatically. Obtain explicit user confirmation before cloning, adding a missing remote, first push, or changed destination/refspec. See [Safe Git Values and Commands](./safe-git-values.md).
 
 **Branch strategy:** Stable working branch → push and freeze candidate → PR against `<target-branch>` plus Candidate Packet → selected gates → Producer/CEO decision → regular merge to the target branch. This coordinated workflow avoids squash, rebase, and force-push because rewritten or collapsed history complicates multi-session handoffs and evidence.
 
