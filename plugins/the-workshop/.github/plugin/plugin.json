@@ -22,6 +22,7 @@
     "./skills/bench-read/",
     "./skills/desk-journal/",
     "./skills/desk-open/",
-    "./skills/signal-write/"
+    "./skills/signal-write/",
+    "./skills/workshop-create/"
   ]
 }
