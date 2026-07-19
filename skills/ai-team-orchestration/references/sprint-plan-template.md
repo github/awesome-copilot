@@ -35,7 +35,7 @@ Save as `docs/sprint-N/plan.md`:
 | QA acceptance | required / not required | QA | [scenarios, environment, and result mechanism] |
 | Post-merge smoke/deployment check | required / not required | [owner] | [environment and result mechanism] |
 | Final approval | Producer / CEO / both | [owner] | [approval mechanism] |
-| Freeze detection | [atomic expected-head merge / protected merge queue with candidate revalidation / other equivalent] | Producer | [how merge rejects or requeues a head different from Candidate ID] |
+| Freeze detection | [expected-head plus enforced target-ancestor rule / protected merge queue with candidate-and-base revalidation / other equivalent] | Producer | [how merge rejects or requeues when head differs from Candidate ID or current target is not its ancestor] |
 
 ## Baseline Override (Only When Needed)
 
@@ -69,7 +69,7 @@ Save as `docs/sprint-N/plan.md`:
 - Update and commit all candidate files, including progress and implementation handoff files
 - Run every final Dev check selected above against that clean committed candidate; resolve findings, commit fixes, and rerun affected checks until the candidate remains clean
 - Capture the full tested local commit ID, immediately push that branch, and freeze it
-- Create/update the PR, confirm its observed application head equals the captured ID, post the Candidate Packet, then stop pushing until the Producer posts a Branch Reopen Packet; mismatch means Hold with no packet
+- Create/update the PR, confirm its observed application head equals the captured ID and the authoritative target head is an ancestor of it, post the Candidate Packet with both IDs, then stop pushing until the Producer posts a Branch Reopen Packet; mismatch means Hold with no packet
 
 ## Success Criteria
 
@@ -98,7 +98,7 @@ Copy-paste this into the Dev Team chat to start execution:
 >
 > Implement and test incrementally. Reference issues in commits and the PR with `Refs #NN`; do not imply closure before the verification selected in this plan. Update docs/sprint-N/progress.md after each phase.
 >
-> Before freezing, commit docs/sprint-N/progress.md and docs/sprint-N/done.md as implementation-only summaries. Run every selected Dev check. Re-verify the approved push URL/current branch, capture the full tested local commit ID, and immediately push with the Safe Git reference's fixed full refspec; the branch freezes at push. Create/update the PR against the target branch and confirm its observed application head equals the captured ID before posting the canonical Candidate Packet. If they differ, post no packet and report Hold to Producer. If PR mutation is unavailable, remain frozen and hand off the captured ID plus exact PR creation and draft packet payload; the authorized actor confirms equality before posting it. Push again only after a Producer-authored Branch Reopen Packet whose prior Candidate ID equals current application head; stay within its permitted delta, then repeat the capture/push/equality sequence for the replacement candidate.
+> Before freezing, commit docs/sprint-N/progress.md and docs/sprint-N/done.md as implementation-only summaries. Run every selected Dev check. Re-verify the approved push URL/current branch, capture the full tested local commit ID, and immediately push with the Safe Git reference's fixed full refspec; the branch freezes at push. Create/update the PR against the target branch and confirm its observed application head equals the captured ID and its authoritative target head is an ancestor of that ID before posting the canonical Candidate Packet with both IDs. If either binding fails, post no packet and report Hold to Producer. If PR or target resolution is unavailable, remain frozen and hand off the captured ID plus exact PR creation and draft packet payload; the authorized actor confirms both bindings before posting it. Push again only after a Producer-authored Branch Reopen Packet whose prior Candidate ID equals current application head; stay within its permitted delta, then repeat the capture/push/head/base sequence for the replacement candidate. A packet caused only by target-base movement authorizes a regular merge of the latest base, never a rebase, and does not consume the defect reopen budget.
 >
 > Follow Sections 12-15 of PROJECT_BRIEF.md. Never merge.
 ```
