@@ -13,5 +13,6 @@
     "coordination",
     "canvas"
   ],
+  "logo": "assets/preview.png",
   "extensions": "."
 }
