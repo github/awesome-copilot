@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-01
+lastUpdated: 2026-07-19
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -109,6 +109,28 @@ Then summarize the findings into one recommendation.
 
 By default, subagents do not keep spawning additional subagents. In VS Code, recursive delegation is controlled by the `chat.subagents.allowInvocationsFromSubagents` setting, which is off by default.
 
+### VS Code Agent Host (VS Code 1.129+)
+
+VS Code 1.129 introduced the **agent host** — a dedicated, long-lived process that runs Copilot, Claude, and Codex agent sessions. Enabling the agent host aligns VS Code's agent behavior more closely with Copilot CLI and the Copilot SDK, and unlocks **session-management tools** that let agents inspect and message sibling sessions.
+
+Enable it in settings:
+
+```json
+{
+  "chat.agentHost.enabled": true
+}
+```
+
+Once enabled, agents can use session-management tools to:
+- **List** other active agent-host sessions
+- **Read** the conversation history of a specific session
+- **Create** new sessions programmatically
+- **Send messages** to another session and receive its reply
+
+This unlocks a new class of orchestration patterns directly inside VS Code: a coordinator agent can spin up peer sessions for specialized work and collect their results — similar to how `/fleet` works in Copilot CLI, but within the VS Code environment. GitHub Enterprise repositories are also supported with the agent host.
+
+> **Note**: The agent host is a new feature in VS Code 1.129 and behavior may evolve. Check the [VS Code release notes](https://code.visualstudio.com/updates) for the latest details.
+
 ## Launch subagents in Copilot CLI
 
 In GitHub Copilot CLI, the clearest end-user entry point is **`/fleet`**. Fleet acts as an orchestrator that decomposes a larger objective, launches multiple background subagents, respects dependencies, and then synthesizes the final result.
@@ -143,6 +165,8 @@ In v1.0.64+, you can configure the rubber-duck agent (including its complementar
 ```
 /subagents          # open the subagents configuration panel
 ```
+
+In v1.0.71+, the `/subagents` model picker **preserves each agent's reasoning effort and context tier** when the panel is reopened. Previously, any per-agent reasoning or context-tier adjustments you made were reset on the next open; now your choices persist for the duration of the session.
 
 Or you can still enable experimental features and select it from the agent picker:
 
@@ -188,7 +212,7 @@ VS Code documentation describes both subagents and the `handoffs` frontmatter pr
 
 That means you should think about delegation features in product-specific terms:
 
-- **VS Code**: supports subagent concepts, allowlists, and handoff-oriented agent composition
+- **VS Code**: supports subagent concepts, allowlists, handoff-oriented agent composition, and (1.129+) the agent host with session-management tools
 - **Copilot CLI**: exposes practical orchestration through commands like `/fleet`
 - **GitHub.com coding agent / cloud agent**: supports custom agents, but some VS Code-specific frontmatter is intentionally ignored
 

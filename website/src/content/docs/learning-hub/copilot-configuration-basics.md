@@ -147,6 +147,29 @@ Prevent Copilot from accessing specific files or directories.
 
 **Why it matters**: Exclude sensitive files, generated code, or dependencies from Copilot's context to improve suggestion relevance and protect confidential information.
 
+### Agent Host (VS Code 1.129+)
+
+The **agent host** runs Copilot, Claude, and Codex agent sessions in a dedicated long-lived process, aligning VS Code's agentic behavior with Copilot CLI and the Copilot SDK. It unlocks session-management tools that let agents list, read, and message sibling sessions, as well as GitHub Enterprise support for Copilot agents.
+
+```json
+{
+  "chat.agentHost.enabled": true
+}
+```
+
+**Why it matters**: Enables a richer orchestration model inside VS Code where agents can coordinate across sessions. See [Agents and Subagents](../agents-and-subagents/) for details on the session-management tools this unlocks.
+
+### Running Terminal Commands from Chat (VS Code 1.129+)
+
+Use the `!` prefix in the VS Code chat input to run a terminal command directly without leaving the chat:
+
+```
+! npm test
+! git status
+```
+
+**Why it matters**: Quickly inspect output (test results, lint errors, git state) mid-conversation without switching to a terminal panel.
+
 ## Repository-Level Configuration
 
 The `.github/` directory in your repository enables team-wide customizations that are version-controlled and shared across all contributors.

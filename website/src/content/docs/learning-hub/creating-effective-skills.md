@@ -3,10 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
-estimatedReadingTime: '9 minutes'
-tags:
-  - skills
+lastUpdated: 2026-07-19
   - customization
   - fundamentals
 relatedArticles:
@@ -386,6 +383,16 @@ You can also run `/skill` (or the existing `/skills`) inside an interactive sess
 **Q: How are skills different from prompts?**
 
 A: Skills replace the older prompt file (`*.prompt.md`) format. Skills offer agent discovery (prompts were manual-only), bundled assets (prompts were single files), and cross-platform portability via the Agent Skills specification. If you have existing prompts, consider migrating them to skills.
+
+In VS Code 1.129+, an experimental **prompt-file-to-skill migration tool** automates this migration. Enable it with:
+
+```json
+{
+  "chat.customizations.promptMigration.enabled": true
+}
+```
+
+Once enabled, VS Code will offer to convert your existing `*.prompt.md` files into the skill folder format automatically. Review the generated `SKILL.md` files to add `description` field improvements and any bundled assets before committing the migrated skills.
 
 **Q: Can skills include multiple files?**
 
