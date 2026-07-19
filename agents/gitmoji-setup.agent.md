@@ -124,7 +124,7 @@ Wire `commitlint --edit $1` into the `commit-msg` hook via the hook manager foun
 1. Create a scratch change and stage it: `git checkout -b test/gitmoji-hook && touch scratch.txt && git add scratch.txt`
 2. Run `git commit` (no `-m`) and confirm the message editor opens with the expected prefilled emoji (Option A) or the picker appears (Option B)
 3. Abort the commit (empty message), delete the scratch branch, and show the user the result
-4. For Option C: verify `echo "no emoji here" | npx commitlint` fails and `echo "✨ add thing" | npx commitlint` passes
+4. For Option C: verify `echo "no emoji here" | ./node_modules/.bin/commitlint` fails and `echo "✨ add thing" | ./node_modules/.bin/commitlint` passes (use the locally installed binary from Step 3 — avoid `npx`, which can fetch and execute a package on the fly)
 
 ---
 
