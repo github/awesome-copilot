@@ -5,20 +5,21 @@
 | Host app | Package |
 |----------|---------|
 | Vue 3 / Nuxt 3 or 4 | `markstream-vue` |
-| Vue 2.6 / 2.7 | `markstream-vue2` |
+| Vue 2.6 | `markstream-vue2` plus `@vue/composition-api`; register the plugin before mounting the app |
+| Vue 2.7 | `markstream-vue2`; use Vue's built-in Composition API and do not install `@vue/composition-api` |
 | React 18+ / Next.js | `markstream-react` |
 | Angular 20+ | `markstream-angular` |
 | Svelte 5 | `markstream-svelte` |
 
 ## Peer selection
 
-| Feature | Peer |
-|---------|------|
-| Lightweight highlighted code blocks | `stream-markdown` |
-| Monaco-powered code blocks | `stream-monaco` |
-| Mermaid diagrams | `mermaid` |
-| D2 diagrams | `@terrastruct/d2` |
-| KaTeX math | `katex` |
+| Feature | Peer | Supported packages | Activation |
+|---------|------|--------------------|------------|
+| Lightweight highlighted code blocks | `stream-markdown` | `markstream-vue`, `markstream-vue2`, `markstream-react` | Configure the package's `MarkdownCodeBlockNode` as the `code_block` override |
+| Monaco-powered code blocks | `stream-monaco` | All framework packages | Install only when Monaco interactions are required |
+| Mermaid diagrams | `mermaid` | All framework packages | Install when Mermaid fences are rendered |
+| D2 diagrams | `@terrastruct/d2` | All framework packages | Install when D2 fences are rendered |
+| KaTeX math | `katex` | All framework packages | Install and load KaTeX CSS when math is rendered |
 
 ## CSS checklist
 

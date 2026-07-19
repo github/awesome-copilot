@@ -70,6 +70,12 @@ Use the matching package name for React, Svelte, Angular, or Vue 2. If math rend
 @import 'katex/dist/katex.min.css';
 ```
 
+Vue CLI 4 and other Webpack 4-based Vue 2 applications cannot resolve package export maps. In those projects, import the published file directly:
+
+```ts
+import 'markstream-vue2/dist/index.css'
+```
+
 ### 4. Add the smallest working renderer
 
 Prefer `content` for static documents and most streaming chat interfaces. Markstream's built-in smooth streaming can pace irregular token delivery without requiring the host to maintain an AST.
@@ -80,6 +86,7 @@ For Vue 3 chat surfaces, start with:
 <MarkdownRender
   mode="chat"
   :content="markdown"
+  :final="false"
   smooth-streaming="auto"
   :fade="false"
   typewriter
@@ -92,6 +99,7 @@ For completed chat history, keep the same renderer mode and switch pacing off:
 <MarkdownRender
   mode="chat"
   :content="markdown"
+  :final="true"
   :smooth-streaming="false"
   :fade="true"
   :typewriter="false"
@@ -104,7 +112,8 @@ Use `nodes` plus `final` only when a worker, shared AST store, custom transform,
 
 ### 5. Handle framework-specific boundaries
 
-- In Nuxt and Next.js, keep browser-only optional peers behind client boundaries.
+- In Nuxt, keep browser-only optional peers behind client boundaries.
+- In Next.js, use the root `markstream-react` entry inside a `'use client'` component for live SSE or WebSocket streams. Use `markstream-react/next` for SSR-first HTML with hydration, or `markstream-react/server` for server-only rendering.
 - Use `markstream-svelte` only with Svelte 5.
 - Confirm the Angular application meets the current `markstream-angular` version requirement.
 - In Vue 3, use `mode="chat"` for AI chat, `mode="docs"` for rich documents, and `mode="minimal"` for lightweight non-chat surfaces.
@@ -133,4 +142,3 @@ Report the selected package, added peers, CSS location, streaming input choice, 
 - [Performance](https://markstream.simonhe.me/guide/performance)
 - [Troubleshooting](https://markstream.simonhe.me/guide/troubleshooting)
 - [Component overrides](https://markstream.simonhe.me/guide/component-overrides)
-
