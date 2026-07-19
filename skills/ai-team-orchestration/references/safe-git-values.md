@@ -62,6 +62,7 @@ git -C CLONE_DESTINATION config --get-all core.fsmonitor
 git -C CLONE_DESTINATION -c core.hooksPath=.git/disabled-hooks -c core.sparseCheckout=false -c core.sparseCheckoutCone=false checkout --force TARGET_BRANCH
 git -C CLONE_DESTINATION remote get-url --all BASE_REMOTE
 git -C CLONE_DESTINATION show-ref
+git -C CLONE_DESTINATION symbolic-ref --quiet refs/remotes/BASE_REMOTE/HEAD
 git -C CLONE_DESTINATION branch --show-current
 git -C CLONE_DESTINATION cat-file -t refs/heads/TARGET_BRANCH
 git -C CLONE_DESTINATION config --get-all core.fsmonitor
@@ -75,7 +76,7 @@ The clone deliberately leaves the worktree empty. Its immediate `core.fsmonitor`
 
 Configuration, URL, and path-listing commands can expose configured URLs or user-bearing paths. Always treat every URL-producing command as sensitive, and apply the same handling to configuration and path-listing output: compare it locally, never quote, log, or relay it, and report only a generic mismatch.
 
-The fixed clone disables templates, initial checkout, standard Git hooks, bundle endpoints, server options, tag following, and submodule recursion; it fetches only `TARGET_BRANCH`. The controlled checkout disables standard hooks and sparse-checkout configuration while the private attributes override blocks executable filters. After checkout, again require no `core.fsmonitor`, one exact base URL, exactly two refs with the same full object ID (`refs/heads/TARGET_BRANCH` and `refs/remotes/BASE_REMOTE/TARGET_BRANCH`), current branch `TARGET_BRANCH`, object type `commit`, every `git ls-files -v` line beginning with `H `, and empty status output. Any `S ` or lowercase index tag means skip-worktree or assume-unchanged state and stops the baseline. The explicit `core.ignoreStat=false` prevents that setting from hiding tracked changes. `.git/disabled-hooks` is a deliberately nonexistent hooks path; if attributes, filters, hooks, sparse checkout, or special index flags are required, stop for human-reviewed setup instead of widening the automatic baseline. Open `CLONE_DESTINATION` as the active workspace only after every check passes.
+The fixed clone disables templates, initial checkout, standard Git hooks, bundle endpoints, server options, tag following, and submodule recursion; it fetches only `TARGET_BRANCH`. The controlled checkout disables standard hooks and sparse-checkout configuration while the private attributes override blocks executable filters. After checkout, again require no `core.fsmonitor`, one exact base URL, and either two refs or one permitted third ref. The required refs are `refs/heads/TARGET_BRANCH` and `refs/remotes/BASE_REMOTE/TARGET_BRANCH` with the same full object ID. Some Git protocols also create symbolic `refs/remotes/BASE_REMOTE/HEAD`; when present, the `symbolic-ref` command must return exactly `refs/remotes/BASE_REMOTE/TARGET_BRANCH`, and its `show-ref` object ID must match the other two. When absent, accept the command's quiet exit status 1 and no output. Reject every other ref. Also require current branch `TARGET_BRANCH`, object type `commit`, every `git ls-files -v` line beginning with `H `, and empty status output. Any `S ` or lowercase index tag means skip-worktree or assume-unchanged state and stops the baseline. The explicit `core.ignoreStat=false` prevents that setting from hiding tracked changes. `.git/disabled-hooks` is a deliberately nonexistent hooks path; if attributes, filters, hooks, sparse checkout, or special index flags are required, stop for human-reviewed setup instead of widening the automatic baseline. Open `CLONE_DESTINATION` as the active workspace only after every check passes.
 
 ### Verify or add remotes
 
@@ -118,7 +119,7 @@ The empty `--refmap=` discards configured fetch refspecs. The other overrides pr
 For a new branch:
 
 ```text
-git -c core.hooksPath=.git/disabled-hooks switch --no-track --create WORKING_BRANCH -- BASE_REF
+git -c core.hooksPath=.git/disabled-hooks -c core.sparseCheckout=false -c core.sparseCheckoutCone=false switch --no-track --create WORKING_BRANCH -- BASE_REF
 git branch --show-current
 ```
 
@@ -127,13 +128,13 @@ For an existing branch, verify it before switching:
 ```text
 git show-ref --verify -- refs/heads/WORKING_BRANCH
 git merge-base --is-ancestor BASE_REF refs/heads/WORKING_BRANCH
-git -c core.hooksPath=.git/disabled-hooks switch -- WORKING_BRANCH
+git -c core.hooksPath=.git/disabled-hooks -c core.sparseCheckout=false -c core.sparseCheckoutCone=false switch -- WORKING_BRANCH
 git branch --show-current
 git config --get branch.WORKING_BRANCH.remote
 git config --get branch.WORKING_BRANCH.merge
 ```
 
-A missing upstream is acceptable before first push. An existing upstream equals `PUSH_REMOTE/WORKING_BRANCH`. Stop on mismatch; never rebase, reset, or recreate automatically.
+A missing upstream is acceptable before first push. An existing upstream equals `PUSH_REMOTE/WORKING_BRANCH`. Both switch forms disable sparse-checkout configuration so a changed tree cannot acquire hidden skip-worktree entries after the preflight. Stop on mismatch; never rebase, reset, or recreate automatically.
 
 ### Push
 
