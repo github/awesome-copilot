@@ -3236,6 +3236,10 @@ function rootIndexHtmlEntry(entries) {
   });
 }
 
+function shouldUseStaticSitePreview(entry, entries) {
+  return rootIndexHtmlEntry(entries) === entry;
+}
+
 function directoryPathsForFile(path) {
   const parts = String(path ?? "").split("/").filter(Boolean);
   const directories = [];
@@ -3851,8 +3855,10 @@ async function previewArtifactFile(entry, sequence) {
 
   try {
     const entryKind = artifactEntryKind(entry);
-    const hasRootIndex = Boolean(rootIndexHtmlEntry(artifact.analysis.entries));
-    if (entryKind === "html" && hasRootIndex) {
+    if (
+      entryKind === "html" &&
+      shouldUseStaticSitePreview(entry, artifact.analysis.entries)
+    ) {
       const theme = resolvedCanvasTheme();
       const result = await api(
         `/api/artifacts/${artifact.id}/preview-url?path=${encodeURIComponent(entry.path)}&theme=${theme}`,

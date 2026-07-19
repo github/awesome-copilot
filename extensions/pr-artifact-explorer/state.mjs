@@ -139,7 +139,12 @@ export function normalizePrefs(value) {
       pinned,
       favorites,
       recent: normalizeRepositoryList(
-        [repository, ...(prefs.repositories?.recent ?? [])],
+        [
+          repository,
+          ...(Array.isArray(prefs.repositories?.recent)
+            ? prefs.repositories.recent
+            : []),
+        ],
         MAX_RECENT_REPOSITORIES,
       ),
     },
@@ -210,7 +215,12 @@ export function rememberRepository(preferences, value) {
   preferences.repository = repository;
   preferences.repositories ??= {};
   preferences.repositories.recent = normalizeRepositoryList(
-    [repository, ...(preferences.repositories.recent ?? [])],
+    [
+      repository,
+      ...(Array.isArray(preferences.repositories.recent)
+        ? preferences.repositories.recent
+        : []),
+    ],
     MAX_RECENT_REPOSITORIES,
   );
   return repository;

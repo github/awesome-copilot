@@ -98,10 +98,11 @@
 
   function summarizedRunOutcome(report) {
     const normalized = String(report.outcome ?? "").toLowerCase();
-    if (KNOWN_TRX_OUTCOMES.has(normalized)) return report.outcome;
-    if (report.summaryCounts.failed > 0) return "Failed";
-    if (report.summaryCounts.passed > 0) return "Passed";
-    if (report.summaryCounts.skipped > 0) return "Skipped";
+    if (!KNOWN_TRX_OUTCOMES.has(normalized) || normalized === "completed") {
+      if (report.summaryCounts.failed > 0) return "Failed";
+      if (report.summaryCounts.passed > 0) return "Passed";
+      if (report.summaryCounts.skipped > 0) return "Skipped";
+    }
     return report.outcome;
   }
 

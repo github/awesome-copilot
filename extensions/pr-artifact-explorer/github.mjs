@@ -339,74 +339,62 @@ async function pullRequestSignals(token, repository, pulls) {
   );
 }
 
-async function listWorkflowRunsForHead(token, repository, headSha) {
-  const runs = [];
-  for (let page = 1; page <= 10; page++) {
-    const query = new URLSearchParams({
-      head_sha: headSha,
-      per_page: "100",
-      page: String(page),
-    });
+async function findArtifactHeads(token, repository) {
+  const heads = new Set();
+  let artifactCount = 0;
+  for (let page = 1; ; page++) {
     const payload = await githubRequest(
       token,
-      `/repos/${repositoryPath(repository)}/actions/runs?${query}`,
+      `/repos/${repositoryPath(repository)}/actions/artifacts?per_page=100&page=${page}`,
     );
-    const pageRuns = payload.workflow_runs ?? [];
-    runs.push(...pageRuns);
+    const artifacts = payload.artifacts ?? [];
+    artifactCount += artifacts.length;
+    for (const artifact of artifacts) {
+      const headSha = artifact.workflow_run?.head_sha;
+      if (headSha) heads.add(headSha);
+    }
     const totalCount = Number(payload.total_count) || 0;
-    if (pageRuns.length < 100 || runs.length >= totalCount) return runs;
+    if (artifacts.length < 100 || artifactCount >= totalCount) return heads;
   }
-  throw new GitHubApiError(
-    "GitHub returned more than 1,000 workflow runs for one pull request head.",
-    422,
-  );
-}
-
-async function findArtifactPresence(token, repository, headSha) {
-  const runs = await listWorkflowRunsForHead(token, repository, headSha);
-  for (const run of runs) {
-    const payload = await githubRequest(
-      token,
-      `/repos/${repositoryPath(repository)}/actions/runs/${encodeURIComponent(run.id)}/artifacts?per_page=1`,
-    );
-    if ((Number(payload.total_count) || 0) > 0) return true;
-  }
-  return false;
 }
 
 function pruneArtifactPresenceCache() {
   const now = Date.now();
   for (const [key, entry] of artifactPresenceCache) {
-    if (entry.expiresAt <= now) artifactPresenceCache.delete(key);
+    if (entry.positiveExpiresAt <= now) artifactPresenceCache.delete(key);
   }
   while (artifactPresenceCache.size >= ARTIFACT_PRESENCE_CACHE_LIMIT) {
     artifactPresenceCache.delete(artifactPresenceCache.keys().next().value);
   }
 }
 
-async function hasArtifactsForHead(token, repository, headSha) {
-  if (!headSha) return false;
-  const key = `${normalizeRepository(repository).toLocaleLowerCase()}:${headSha}`;
+async function artifactHeadsForPulls(token, repository, headShas) {
+  const requestedHeads = new Set(headShas.filter(Boolean));
+  if (!requestedHeads.size) return new Set();
+  const key = normalizeRepository(repository).toLocaleLowerCase();
+  const now = Date.now();
   const cached = artifactPresenceCache.get(key);
-  if (cached?.expiresAt > Date.now()) return cached.promise;
+  if (cached?.missingExpiresAt > now) return cached.promise;
+  if (cached?.positiveExpiresAt > now) {
+    const cachedHeads = await cached.promise;
+    if ([...requestedHeads].every((headSha) => cachedHeads.has(headSha))) {
+      return cachedHeads;
+    }
+  }
 
   pruneArtifactPresenceCache();
   const entry = {
-    expiresAt: Date.now() + MISSING_ARTIFACT_TTL_MS,
-    promise: null,
+    missingExpiresAt: now + MISSING_ARTIFACT_TTL_MS,
+    positiveExpiresAt: now + ARTIFACT_PRESENCE_TTL_MS,
+    promise: findArtifactHeads(token, repository),
   };
-  const promise = findArtifactPresence(token, repository, headSha).then((hasArtifacts) => {
-    entry.expiresAt =
-      Date.now() +
-      (hasArtifacts ? ARTIFACT_PRESENCE_TTL_MS : MISSING_ARTIFACT_TTL_MS);
-    return hasArtifacts;
-  });
-  entry.promise = promise;
   artifactPresenceCache.set(key, entry);
   try {
-    return await promise;
+    return await entry.promise;
   } catch (error) {
-    artifactPresenceCache.delete(key);
+    if (artifactPresenceCache.get(key) === entry) {
+      artifactPresenceCache.delete(key);
+    }
     throw error;
   }
 }
@@ -485,9 +473,14 @@ export async function enrichPullRequests(token, repository, pulls, filters = {})
     }));
   }
   if (normalizedFilters.artifacts !== "all") {
-    enriched = await mapLimit(enriched, 6, async (pull) => ({
+    const artifactHeads = await artifactHeadsForPulls(
+      token,
+      repository,
+      enriched.map((pull) => pull.headSha),
+    );
+    enriched = enriched.map((pull) => ({
       ...pull,
-      hasArtifacts: await hasArtifactsForHead(token, repository, pull.headSha),
+      hasArtifacts: Boolean(pull.headSha && artifactHeads.has(pull.headSha)),
     }));
   }
   return enriched;
