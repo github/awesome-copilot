@@ -1,7 +1,21 @@
 import sitemap from "@astrojs/sitemap";
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
+import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import pagefindResources from "./src/integrations/pagefind-resources";
+
+// Learning Hub course content mirrored from external workshop repos is authored
+// in GitHub admonition syntax (`> [!NOTE]`). This remark plugin rewrites those
+// callouts into Starlight aside directives before Starlight renders them, so the
+// same syntax used in the source repos and on github.com also produces styled
+// callouts here. The mapping targets Starlight's aside types (note / tip / caution).
+const githubAdmonitionMapping = {
+  NOTE: "note",
+  TIP: "tip",
+  IMPORTANT: "note",
+  WARNING: "caution",
+  CAUTION: "caution",
+};
 
 const site = "https://awesome-copilot.github.com/";
 const siteDescription =
@@ -19,6 +33,11 @@ export default defineConfig({
   site,
   base: "/",
   output: "static",
+  markdown: {
+    remarkPlugins: [
+      [remarkGithubAdmonitionsToDirectives, { mapping: githubAdmonitionMapping }],
+    ],
+  },
   integrations: [
     starlight({
       title: "Awesome GitHub Copilot",
@@ -66,6 +85,20 @@ export default defineConfig({
         "./src/styles/starlight-overrides.css",
         "./src/styles/global.css",
       ],
+      // English is served at the site root (no locale prefix), preserving all
+      // existing URLs. Additional locales are served under a locale prefix
+      // (e.g. /es-es/…) and fall back to the English page when a translation
+      // does not yet exist. These keys match the locale directory names used by
+      // mirrored Learning Hub course content (website/src/content/docs/<locale>/…).
+      defaultLocale: "root",
+      locales: {
+        root: { label: "English", lang: "en" },
+        "es-es": { label: "Español", lang: "es-ES" },
+        "ja-jp": { label: "日本語", lang: "ja-JP" },
+        "ko-kr": { label: "한국어", lang: "ko-KR" },
+        "pt-br": { label: "Português (Brasil)", lang: "pt-BR" },
+        "zh-cn": { label: "简体中文", lang: "zh-CN" },
+      },
       editLink: {
         baseUrl:
           "https://github.com/github/awesome-copilot/edit/staged/website/",
@@ -144,6 +177,7 @@ export default defineConfig({
         Head: "./src/components/Head.astro",
         Footer: "./src/components/Footer.astro",
         Search: "./src/components/Search.astro",
+        LanguageSelect: "./src/components/LanguageSelect.astro",
       },
     }),
     sitemap(),

@@ -337,6 +337,33 @@
     }
   },
   {
+    "name": "foundry-agent-canvas",
+    "description": "Interactive Copilot canvas for designing, configuring, testing, and deploying Microsoft Foundry hosted agents.",
+    "version": "1.0.1",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "repository": "https://github.com/microsoft/foundry-toolkit",
+    "homepage": "https://github.com/microsoft/foundry-toolkit",
+    "license": "MIT",
+    "keywords": [
+      "agent-builder",
+      "agent-inspector",
+      "azure-ai",
+      "foundry",
+      "hosted-agents",
+      "microsoft-foundry",
+      "canvas"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/foundry-toolkit",
+      "path": "foundry-agent-canvas",
+      "sha": "e16be2b8533ca82c22806388e07581e7497785d7"
+    }
+  },
+  {
     "name": "gh-skills-builder",
     "description": "Repo: https://github.com/arilivigni/gh-skills-builder\nThis plugin is for people that want to create a GitHub Skills exercise which are self-paced learning GitHub within GitHub.\nhttps://learn.github.com/skills\nexamples:\nhttps://github.com/skills/agent-orchestration-build-your-ai-dream-team\nhttps://github.com/skills/agentic-workflows-that-read-the-room",
     "version": "1.0.4",
@@ -475,7 +502,7 @@
   {
     "name": "modernize-dotnet",
     "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-    "version": "1.0.1157-preview1",
+    "version": "1.0.1161-preview1",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -492,7 +519,8 @@
     "source": {
       "source": "github",
       "repo": "dotnet/modernize-dotnet",
-      "path": "plugins/modernize-dotnet"
+      "path": "plugins/modernize-dotnet",
+      "sha": "ce4ec09678498da38099ca9169c1624c59c2a89a"
     }
   },
   {
@@ -575,7 +603,7 @@
   {
     "name": "sonarqube",
     "description": "SonarQube is the AI code quality and security verification platform used by millions of developers to catch bugs, vulnerabilities, and leaked secrets. This plugin enforces those standards in the coding loop: 7,500+ distinct issue types, secrets scanning, agentic analysis, and quality gates across 40+ languages.",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "author": {
       "name": "Sonar",
       "url": "https://sonarsource.com/"
@@ -593,7 +621,7 @@
     "source": {
       "source": "github",
       "repo": "SonarSource/sonarqube-agent-plugins",
-      "ref": "2.2.0"
+      "ref": "2.3.0"
     }
   },
   {
@@ -703,6 +731,30 @@
       "repo": "UI5/plugins-coding-agents",
       "path": "plugins/ui5-typescript-conversion",
       "sha": "80f2d93287054f9d30dd990e842e15bcfca581c9"
+    }
+  },
+  {
+    "name": "upgrade-agent",
+    "description": "GitHub Copilot upgrade is an AI-powered agent that helps you upgrade applications to newer versions of languages, frameworks, and runtimes. It assesses your application, creates an upgrade plan, applies code changes, and validates the results through an interactive upgrade workflow.",
+    "version": "1.1.222",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "repository": "https://github.com/microsoft/upgrade-agent-plugins",
+    "license": "MIT",
+    "keywords": [
+      "modernization",
+      "upgrade",
+      "migration",
+      "dotnet",
+      "canvas"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/upgrade-agent-plugins",
+      "path": "plugins/upgrade-agent",
+      "sha": "379d344e42823b25223f878c002f38fb3a2c1d2b"
     }
   },
   {
