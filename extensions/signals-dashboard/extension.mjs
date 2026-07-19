@@ -11,6 +11,14 @@ import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 const servers = new Map();
 const STASH_TTL_MS = 48 * 60 * 60 * 1000;
 
+// Desk names are single path segments (folder names under desks/ or classroom/).
+// Reject anything that could escape the workshop dir via path traversal.
+function isValidDeskName(name) {
+    return typeof name === "string" && name.length > 0 && name.length <= 128 &&
+        !name.includes("/") && !name.includes("\\") && !name.includes("\0") &&
+        name !== "." && name !== "..";
+}
+
 // --- Stash management ---
 
 async function readStash(workshopDir) {
@@ -116,8 +124,8 @@ async function scanSignals(workshopDir) {
                 // Also check for any recent outcome (within 1hr of latest signal) if no run_id match
                 if (!outcome) {
                     const recentOutcomes = allSignals
-                        .filter(s => s.parsed.signal_type === "outcome" && Math.abs(s.mtimeMs - latestTime) < 3600000)
-                        .sort((a, b) => b.mtimeMs - a.mtimeMs);
+                        .filter(s => s.parsed.signal_type === "outcome" && s.mtimeMs >= latestTime && (s.mtimeMs - latestTime) < 3600000)
+                        .sort((a, b) => a.mtimeMs - b.mtimeMs);
                     if (recentOutcomes.length > 0) outcome = recentOutcomes[0].parsed;
                 }
 
@@ -155,7 +163,7 @@ async function scanSignals(workshopDir) {
                     // Outcome signal fields
                     outcomeRating: outcome?.quality_rating || null,
                     outcomeEffort: outcome?.effort_to_merge || null,
-                    outcomeIssues: outcome?.issues_found || [],
+                    outcomeIssues: Array.isArray(outcome?.issues_found) ? outcome.issues_found : [],
                     outcomeAgent: outcome?.agent_name || null,
                     honestyGap: honestyGap,
                 });
@@ -188,10 +196,11 @@ function sortSignals(signals) {
 // --- HTML rendering ---
 
 function esc(s) {
-    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 function truncate(s, len) {
-    return s.length > len ? s.slice(0, len) + "…" : s;
+    const str = String(s);
+    return str.length > len ? str.slice(0, len) + "…" : str;
 }
 function formatTokens(n) {
     if (!n) return null;
@@ -308,7 +317,7 @@ function renderSignalCard(sig) {
         ? `<span style="background:#052e16;color:#86efac;padding:2px 8px;border-radius:4px;font-size:11px;">✓ done</span>`
         : `<span style="background:#0c2d48;color:#7dd3fc;padding:2px 8px;border-radius:4px;font-size:11px;">✓ checkpoint</span>`;
 
-    const stashBtn = `<button onclick="stashDesk('${esc(sig.deskName)}')"
+    const stashBtn = `<button data-act="stash" data-desk="${esc(sig.deskName)}"
         style="background:none;border:1px solid #1e293b;color:#475569;padding:2px 8px;border-radius:4px;
                font-size:11px;cursor:pointer;transition:all .15s;"
         onmouseover="this.style.borderColor='#dc2626';this.style.color='#fca5a5'"
@@ -317,10 +326,11 @@ function renderSignalCard(sig) {
     const openBtnStyle = isEscalation
         ? "background:#7f1d1d;border:1px solid #dc2626;color:#fca5a5;padding:2px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-weight:600;transition:all .15s;"
         : "background:none;border:1px solid #1e3a5f;color:#7dd3fc;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;transition:all .15s;";
-    const openBtn = noSignal ? "" : `<button onclick="openDesk('${esc(sig.deskName)}')"
+    const openBtn = noSignal ? "" : `<button data-act="open" data-desk="${esc(sig.deskName)}"
         style="${openBtnStyle}"
         onmouseover="this.style.background='#1e3a5f'"
-        onmouseout="this.style.background='${isEscalation ? '#7f1d1d' : 'transparent'}'">open</button>`;
+        onmouseout="this.style.background='${isEscalation ? '#7f1d1d' : 'transparent'}'"
+        title="Copy this desk's filesystem path to the clipboard">path</button>`;
 
     let escalationBlock = "";
     if (isEscalation && sig.escalationReason) {
@@ -440,7 +450,7 @@ function renderStashedCard(entry) {
             <span style="font-size:13px;color:#525252;">${esc(entry.name)}</span>
             <span style="font-size:10px;color:#3f3f46;background:#18181b;padding:1px 6px;border-radius:3px;">${timeRemaining(entry.stashedAt)}</span>
         </div>
-        <button onclick="restoreDesk('${esc(entry.name)}')"
+        <button data-act="restore" data-desk="${esc(entry.name)}"
             style="background:none;border:1px solid #262626;color:#525252;padding:2px 8px;border-radius:4px;
                    font-size:11px;cursor:pointer;transition:all .15s;"
             onmouseover="this.style.borderColor='#22c55e';this.style.color='#86efac'"
@@ -525,20 +535,50 @@ function renderDashboard(signals, stashed) {
             await fetch('/api/restore/' + encodeURIComponent(name), { method: 'POST' });
             refresh();
         }
+        function showToast(title, detail) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);' +
+                'background:#1e3a5f;color:#7dd3fc;padding:10px 20px;border-radius:8px;font-size:13px;' +
+                'border:1px solid #3b82f6;z-index:999;max-width:90%;text-align:center;';
+            const head = document.createElement('div');
+            const strong = document.createElement('b');
+            strong.textContent = title;
+            head.append('📂 ', strong);
+            toast.appendChild(head);
+            if (detail) {
+                const sub = document.createElement('div');
+                sub.style.cssText = 'font-size:10px;color:#93c5fd;margin-top:4px;word-break:break-all;';
+                sub.textContent = detail;
+                toast.appendChild(sub);
+            }
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
         async function openDesk(name) {
             const res = await fetch('/api/open/' + encodeURIComponent(name), { method: 'POST' });
             const data = await res.json();
             if (data.ok) {
-                const toast = document.createElement('div');
-                toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);' +
-                    'background:#1e3a5f;color:#7dd3fc;padding:10px 20px;border-radius:8px;font-size:13px;' +
-                    'border:1px solid #3b82f6;z-index:999;max-width:90%;text-align:center;';
-                toast.innerHTML = '📂 <b>' + name + '</b> desk ready' +
-                    '<div style="font-size:10px;color:#475569;margin-top:4px;">Path: ' + (data.deskPath || name) + '</div>';
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
+                const path = data.deskPath || name;
+                try {
+                    await navigator.clipboard.writeText(path);
+                    showToast(name + ' · path copied', path);
+                } catch {
+                    showToast(name, path);
+                }
+            } else {
+                showToast(name + ' · not found', '');
             }
         }
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-act]');
+            if (!btn) return;
+            const name = btn.getAttribute('data-desk');
+            if (!name) return;
+            const act = btn.getAttribute('data-act');
+            if (act === 'stash') stashDesk(name);
+            else if (act === 'restore') restoreDesk(name);
+            else if (act === 'open') openDesk(name);
+        });
         async function refresh() {
             try {
                 const res = await fetch('/');
@@ -566,6 +606,11 @@ async function startServer(instanceId, workshopDir) {
 
         if (req.method === "POST" && url.pathname.startsWith("/api/stash/")) {
             const deskName = decodeURIComponent(url.pathname.split("/api/stash/")[1]);
+            if (!isValidDeskName(deskName)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: false, error: "Invalid desk name" }));
+                return;
+            }
             await stashDesk(workshopDir, deskName);
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ ok: true }));
@@ -573,6 +618,11 @@ async function startServer(instanceId, workshopDir) {
         }
         if (req.method === "POST" && url.pathname.startsWith("/api/restore/")) {
             const deskName = decodeURIComponent(url.pathname.split("/api/restore/")[1]);
+            if (!isValidDeskName(deskName)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: false, error: "Invalid desk name" }));
+                return;
+            }
             await restoreDesk(workshopDir, deskName);
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ ok: true }));
@@ -580,6 +630,11 @@ async function startServer(instanceId, workshopDir) {
         }
         if (req.method === "POST" && url.pathname.startsWith("/api/open/")) {
             const deskName = decodeURIComponent(url.pathname.split("/api/open/")[1]);
+            if (!isValidDeskName(deskName)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: false, error: "Invalid desk name" }));
+                return;
+            }
             for (const subdir of ["desks", "classroom"]) {
                 const deskPath = join(workshopDir, subdir, deskName);
                 try {
@@ -631,7 +686,7 @@ const session = await joinSession({
                         if (!entry) return { error: "Dashboard not open" };
                         const signals = await scanSignals(entry.workshopDir);
                         const stashed = await readStash(entry.workshopDir);
-                        return { signals, stashed, activeCount: signals.length - stashed.length };
+                        return { signals, stashed, activeCount: signals.filter(s => !stashed.some(e => e.name === s.deskName)).length };
                     },
                 },
                 {
@@ -645,6 +700,7 @@ const session = await joinSession({
                     handler: async (ctx) => {
                         const entry = servers.get(ctx.instanceId);
                         if (!entry) return { error: "Dashboard not open" };
+                        if (!isValidDeskName(ctx.input.deskName)) return { error: "Invalid desk name" };
                         const stash = await stashDesk(entry.workshopDir, ctx.input.deskName);
                         return { ok: true, stashed: stash };
                     },
@@ -660,6 +716,7 @@ const session = await joinSession({
                     handler: async (ctx) => {
                         const entry = servers.get(ctx.instanceId);
                         if (!entry) return { error: "Dashboard not open" };
+                        if (!isValidDeskName(ctx.input.deskName)) return { error: "Invalid desk name" };
                         const stash = await restoreDesk(entry.workshopDir, ctx.input.deskName);
                         return { ok: true, stashed: stash };
                     },
@@ -675,6 +732,7 @@ const session = await joinSession({
                     handler: async (ctx) => {
                         const entry = servers.get(ctx.instanceId);
                         if (!entry) return { error: "Dashboard not open" };
+                        if (!isValidDeskName(ctx.input.deskName)) return { error: "Invalid desk name" };
                         // Check both desks/ and classroom/
                         for (const subdir of ["desks", "classroom"]) {
                             const deskPath = join(entry.workshopDir, subdir, ctx.input.deskName);
