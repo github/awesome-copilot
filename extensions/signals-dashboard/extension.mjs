@@ -19,6 +19,37 @@ function isValidDeskName(name) {
         name !== "." && name !== "..";
 }
 
+// Signal JSON is agent-produced and unvalidated. Coerce numeric fields before
+// they reach the renderer so a nonnumeric value cannot inject markup or break
+// layout. toScore clamps self-assessment/quality scores to 0..max; toCount
+// keeps token counts as finite nonnegative integers.
+function toScore(v, max = 5) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.min(max, n));
+}
+function toCount(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < 0) return 0;
+    return Math.floor(n);
+}
+
+// Reject cross-site POSTs to the state-changing /api/* routes (CSRF). The panel
+// loads as a top-level loopback document, so its own fetches are same-origin
+// (Origin === our loopback origin) and header-less / non-web-scheme callers fall
+// through as allowed; a browser page on another origin is blocked.
+function isCrossSiteRequest(req) {
+    const origin = req.headers.origin;
+    if (origin) {
+        if (origin === `http://${req.headers.host}`) return false;
+        if (origin === "null") return true;
+        if (/^https?:\/\//i.test(origin)) return true;
+        return false;
+    }
+    const site = req.headers["sec-fetch-site"];
+    return site === "cross-site" || site === "same-site";
+}
+
 // --- Stash management ---
 
 async function readStash(workshopDir) {
@@ -132,8 +163,8 @@ async function scanSignals(workshopDir) {
                 // Compute honesty gap if we have both self-assessment and outcome
                 let honestyGap = null;
                 if (outcome && sig.self_assessment) {
-                    const selfConf = sig.self_assessment.confidence || 0;
-                    const outcomeRating = outcome.quality_rating || 0;
+                    const selfConf = toScore(sig.self_assessment.confidence);
+                    const outcomeRating = toScore(outcome.quality_rating);
                     if (selfConf > 0 && outcomeRating > 0) {
                         honestyGap = Math.abs(selfConf - outcomeRating);
                     }
@@ -145,10 +176,10 @@ async function scanSignals(workshopDir) {
                     subtype: sig.subtype || sig.signal_type || "execution",
                     agentName: sig.agent_name || entry.name,
                     intentText: typeof intentRaw === "string" ? intentRaw : null,
-                    intentScore: typeof intentRaw === "number" ? intentRaw : 0,
-                    confidence: sig.self_assessment?.confidence || 0,
-                    accuracy: sig.self_assessment?.accuracy || 0,
-                    completeness: sig.self_assessment?.completeness || 0,
+                    intentScore: toScore(intentRaw),
+                    confidence: toScore(sig.self_assessment?.confidence),
+                    accuracy: toScore(sig.self_assessment?.accuracy),
+                    completeness: toScore(sig.self_assessment?.completeness),
                     whatWorked: sig.patterns?.what_worked || "",
                     whatWasHard: sig.patterns?.what_was_hard || "",
                     skillGap: sig.patterns?.skill_gap || "",
@@ -157,11 +188,11 @@ async function scanSignals(workshopDir) {
                     recommendation: sig.escalation?.recommendation || null,
                     emittedAt: new Date(latestTime).toISOString(),
                     signalCount: jsonFiles.length,
-                    tokensIn: sig.usage?.tokens_in || 0,
-                    tokensOut: sig.usage?.tokens_out || 0,
+                    tokensIn: toCount(sig.usage?.tokens_in),
+                    tokensOut: toCount(sig.usage?.tokens_out),
                     model: sig.usage?.model || null,
                     // Outcome signal fields
-                    outcomeRating: outcome?.quality_rating || null,
+                    outcomeRating: outcome ? (toScore(outcome.quality_rating) || null) : null,
                     outcomeEffort: outcome?.effort_to_merge || null,
                     outcomeIssues: Array.isArray(outcome?.issues_found) ? outcome.issues_found : [],
                     outcomeAgent: outcome?.agent_name || null,
@@ -413,7 +444,7 @@ function renderSignalCard(sig) {
                         <div style="width:${(sig.outcomeRating / 5) * 100}%;height:100%;background:${sig.outcomeRating >= 4 ? '#22c55e' : sig.outcomeRating >= 3 ? '#eab308' : '#ef4444'};border-radius:2px;"></div>
                     </div>
                 </div>
-                <span style="font-size:11px;color:${effortColor};">${sig.outcomeEffort || "—"} effort</span>
+                <span style="font-size:11px;color:${effortColor};">${esc(sig.outcomeEffort || "—")} effort</span>
             </div>
             ${sig.outcomeIssues?.length ? `<div style="margin-top:6px;font-size:11px;color:#94a3b8;">
                 ${sig.outcomeIssues.map(i => `<div style="margin-top:2px;">· ${esc(truncate(i, 120))}</div>`).join("")}
@@ -586,8 +617,24 @@ function renderDashboard(signals, stashed) {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const newContent = doc.getElementById('content');
-                if (newContent) {
-                    document.getElementById('content').innerHTML = newContent.innerHTML;
+                const content = document.getElementById('content');
+                if (newContent && content && content.innerHTML !== newContent.innerHTML) {
+                    // Preserve keyboard focus across the subtree swap so keyboard
+                    // users don't lose their place on every 5s refresh.
+                    const active = document.activeElement;
+                    let focusKey = null;
+                    if (active && active.matches && active.matches('button[data-act]')) {
+                        focusKey = active.getAttribute('data-act') + '|' + active.getAttribute('data-desk');
+                    }
+                    content.innerHTML = newContent.innerHTML;
+                    if (focusKey) {
+                        const bar = focusKey.indexOf('|');
+                        const act = focusKey.slice(0, bar);
+                        const desk = focusKey.slice(bar + 1);
+                        const escDesk = (window.CSS && CSS.escape) ? CSS.escape(desk) : desk;
+                        const target = content.querySelector('button[data-act="' + act + '"][data-desk="' + escDesk + '"]');
+                        if (target) target.focus();
+                    }
                 }
             } catch {}
         }
@@ -603,6 +650,12 @@ function renderDashboard(signals, stashed) {
 async function startServer(instanceId, workshopDir) {
     const server = createServer(async (req, res) => {
         const url = new URL(req.url, `http://${req.headers.host}`);
+
+        if (req.method === "POST" && url.pathname.startsWith("/api/") && isCrossSiteRequest(req)) {
+            res.writeHead(403, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ ok: false, error: "cross_site_blocked" }));
+            return;
+        }
 
         if (req.method === "POST" && url.pathname.startsWith("/api/stash/")) {
             const deskName = decodeURIComponent(url.pathname.split("/api/stash/")[1]);
