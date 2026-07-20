@@ -211,11 +211,13 @@
         for (const item of NAV) {
             if (item.footer && !footerStarted) { footerStarted = true; nav.append(el("div", { class: "nav-spacer" })); }
             const count = item.countKey ? counts[item.countKey] : null;
-            const node = el("div", {
+            const node = el("button", {
+                type: "button",
                 class: `nav-item ${state.view === item.id ? "active" : ""}`,
+                "aria-current": state.view === item.id ? "page" : null,
                 onclick: () => go(item.id),
             },
-                el("span", { class: "nav-ic", text: item.icon }),
+                el("span", { class: "nav-ic", text: item.icon, "aria-hidden": "true" }),
                 el("span", { text: item.label }),
                 count ? el("span", { class: "nav-badge", text: String(count) }) : null);
             nav.append(node);
@@ -802,9 +804,9 @@
             flushTable();
             let m;
             if ((m = line.match(/^(#{1,6})\s+(.*)$/))) { flushList(); const lv = m[1].length; html += `<h${lv}>${mdInline(esc(m[2]))}</h${lv}>`; continue; }
-            if (/^\s*[-*]\s+\[[ xX]\]\s+/.test(line)) { if (listType !== "ul") { flushList(); listType = "ul"; } const done = /\[[xX]\]/.test(line); listBuf.push((done ? "☑ " : "☐ ") + esc(line.replace(/^\s*[-*]\s+\[[ xX]\]\s+/, ""))); continue; }
-            if (/^\s*[-*]\s+/.test(line)) { if (listType !== "ul") { flushList(); listType = "ul"; } listBuf.push(esc(line.replace(/^\s*[-*]\s+/, ""))); continue; }
-            if (/^\s*\d+\.\s+/.test(line)) { if (listType !== "ol") { flushList(); listType = "ol"; } listBuf.push(esc(line.replace(/^\s*\d+\.\s+/, ""))); continue; }
+            if (/^\s*[-*]\s+\[[ xX]\]\s+/.test(line)) { if (listType !== "ul") { flushList(); listType = "ul"; } const done = /\[[xX]\]/.test(line); listBuf.push((done ? "☑ " : "☐ ") + line.replace(/^\s*[-*]\s+\[[ xX]\]\s+/, "")); continue; }
+            if (/^\s*[-*]\s+/.test(line)) { if (listType !== "ul") { flushList(); listType = "ul"; } listBuf.push(line.replace(/^\s*[-*]\s+/, "")); continue; }
+            if (/^\s*\d+\.\s+/.test(line)) { if (listType !== "ol") { flushList(); listType = "ol"; } listBuf.push(line.replace(/^\s*\d+\.\s+/, "")); continue; }
             if (/^>\s?/.test(line)) { flushList(); html += `<blockquote>${mdInline(esc(line.replace(/^>\s?/, "")))}</blockquote>`; continue; }
             if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) { flushList(); html += "<hr/>"; continue; }
             flushList(); html += `<p>${mdInline(esc(line))}</p>`;
@@ -969,7 +971,7 @@
         try {
             const { report } = await api(`/api/reports/${encodeURIComponent(filename)}`);
             let body;
-            if (report.format === "html") { body = el("iframe", { class: "report-iframe" }); body.srcdoc = report.content; }
+            if (report.format === "html") { body = el("iframe", { class: "report-iframe", sandbox: "", title: report.title || "Report preview" }); body.srcdoc = report.content; }
             else body = mdRender(report.content);
             const del = el("button", { class: "btn btn-danger", text: "Delete", onclick: async () => {
                 try { await api(`/api/reports/${encodeURIComponent(filename)}`, { method: "DELETE" }); toast("Report deleted", "", "ok"); closeModal(); if (state.view === "reports") go("reports"); }
@@ -1014,6 +1016,11 @@
         const applyBtn = el("button", { class: "btn btn-primary", text: "Confirm & apply", disabled: true });
         approveCb.addEventListener("change", () => { applyBtn.disabled = !approveCb.checked; });
         function bodyFromForm(withConfirm) { const b = { root: f.root.value.trim(), partitioning: f.partitioning.value, migration: f.migration.value }; if (withConfirm) b.confirm = true; return b; }
+        // A preview must precede every apply. Editing any field invalidates the
+        // previewed plan so the user can never apply a stale/mismatched plan.
+        let previewedBody = null;
+        function invalidate() { previewedBody = null; planBox.classList.add("hidden"); planBox.innerHTML = ""; approve.classList.add("hidden"); approveCb.checked = false; applyBtn.disabled = true; }
+        [f.root, f.partitioning, f.migration].forEach((inp) => { if (inp) { inp.addEventListener("input", invalidate); inp.addEventListener("change", invalidate); } });
         function renderPlan(plan) {
             planBox.innerHTML = ""; planBox.classList.remove("hidden");
             const changed = plan.rootChanged || plan.partitioningChanged;
@@ -1032,16 +1039,30 @@
                 planBox.append(el("p", { class: "muted small", text: plan.next.migration === "adopt" ? "Adopt mode: config points at the new location; no files are moved." : "Nothing to migrate — paths are unchanged." }));
                 approve.classList.add("hidden"); applyBtn.disabled = false;
             }
+            if (plan.hasConflicts) {
+                planBox.append(el("div", { class: "plan-warn small" },
+                    el("strong", { text: `⚠ ${plan.conflicts.length} destination file(s) already exist` }),
+                    el("div", { class: "muted small", text: "Existing files are kept and those sources are skipped — nothing is overwritten." })));
+            }
         }
         const previewBtn = el("button", { class: "btn", text: "Preview changes", onclick: async () => {
             const b = bodyFromForm(false);
             if (!b.root) { toast("Root required", "", "err"); return; }
-            try { const plan = await api("/api/config/plan", { method: "POST", body: b }); renderPlan(plan); }
+            try { const plan = await api("/api/config/plan", { method: "POST", body: b }); previewedBody = b; renderPlan(plan); }
             catch (e) { toast("Preview failed", e.message, "err"); }
         } });
         applyBtn.addEventListener("click", async () => {
+            if (!previewedBody) { toast("Preview first", "Preview the changes before applying.", "err"); return; }
             applyBtn.disabled = true; const orig = applyBtn.textContent; applyBtn.textContent = "Applying…";
-            try { const r = await api("/api/config/apply", { method: "POST", body: bodyFromForm(true) }); toast("Configuration updated", r.migrated ? `${r.migrated} item(s) ${f.migration.value === "copy" ? "copied" : "moved"}` : "Saved", "ok"); closeModal(); await refreshSummary(); go("settings"); }
+            try {
+                const r = await api("/api/config/apply", { method: "POST", body: { ...previewedBody, confirm: true } });
+                const moved = r.moved != null ? r.moved : r.migrated;
+                const parts = [];
+                if (moved) parts.push(`${moved} item(s) ${previewedBody.migration === "copy" ? "copied" : "moved"}`);
+                if (r.skipped) parts.push(`${r.skipped} skipped (already existed)`);
+                toast("Configuration updated", parts.join(" · ") || "Saved", "ok");
+                closeModal(); await refreshSummary(); go("settings");
+            }
             catch (e) { toast("Apply failed", e.message, "err"); applyBtn.disabled = false; applyBtn.textContent = orig; }
         });
         openModal({ title: "⚙️ CatPilot configuration", width: 660, body: el("div", {}, form, el("div", { class: "toolbar", style: "margin:4px 0 2px" }, previewBtn, el("span", { class: "spacer" }), el("span", { class: "muted small", text: "Preview before applying" })), planBox, approve), foot: [el("button", { class: "btn", text: "Cancel", onclick: closeModal }), applyBtn] });

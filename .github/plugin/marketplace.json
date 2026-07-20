@@ -167,6 +167,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "catpilot-canvas",
+      "source": "extensions/catpilot-canvas",
+      "description": "Visual command center canvas for CatPilot: manage tasks, journal, milestones, memos, learning, growth, projects, Copilot reports and an activity timeline with dashboards, charts, a markdown editor and interactive settings.",
+      "version": "1.0.0"
+    },
+    {
       "name": "chrome-devtools-plugin",
       "description": "Reliable automation, in-depth debugging, and performance analysis in Chrome using Chrome DevTools and Puppeteer.",
       "version": "1.0.1",

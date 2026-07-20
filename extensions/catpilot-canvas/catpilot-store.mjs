@@ -142,6 +142,21 @@ function slugify(title) {
 // ---------------------------------------------------------------------------
 // Tasks
 // ---------------------------------------------------------------------------
+// Markdown-table cells are pipe/newline delimited, so any user value that
+// contains `|` or a line break must be escaped on write and restored on read,
+// otherwise it spills into extra cells/rows and corrupts the table.
+function encodeCell(v) {
+    return String(v == null ? "" : v).replace(/\r?\n/g, "<br>").replace(/\|/g, "\\|");
+}
+
+function decodeCell(v) {
+    return String(v == null ? "" : v).replace(/<br\s*\/?>/gi, "\n").replace(/\\\|/g, "|").trim();
+}
+
+function splitCells(line) {
+    return line.split(/(?<!\\)\|/).map(decodeCell);
+}
+
 function parseTasksTable(content) {
     const lines = content.split("\n");
     const tasks = [];
@@ -155,7 +170,7 @@ function parseTasksTable(content) {
         if (line.match(/^[\s\-|]+$/) || !line.trim()) continue;
         if (line.includes("|") && headerIndex === -1) { headerIndex = i; continue; }
         if (line.includes("|") && headerIndex !== -1) {
-            const cells = line.split("|").map((c) => c.trim());
+            const cells = splitCells(line);
             if (cells.length && cells[0] === "") cells.shift();
             if (cells.length && cells[cells.length - 1] === "") cells.pop();
             if (cells.length >= 7) {
@@ -181,12 +196,12 @@ function formatTasksTable(tasks) {
     let out = "";
     if (open.length) {
         out += "## Open Tasks\n\n" + header;
-        open.forEach((t) => { out += `| ${t.id} | ${t.status} | ${t.title} | ${t.dueDate} | ${t.priority} | ${t.tags} | ${t.context} |\n`; });
+        open.forEach((t) => { out += `| ${t.id} | ${encodeCell(t.status)} | ${encodeCell(t.title)} | ${encodeCell(t.dueDate)} | ${encodeCell(t.priority)} | ${encodeCell(t.tags)} | ${encodeCell(t.context)} |\n`; });
         out += "\n";
     }
     if (done.length) {
         out += "## Completed Tasks\n\n" + header;
-        done.forEach((t) => { out += `| ${t.id} | ${t.status} | ${t.title} | ${t.dueDate} | ${t.priority} | ${t.tags} | ${t.context} |\n`; });
+        done.forEach((t) => { out += `| ${t.id} | ${encodeCell(t.status)} | ${encodeCell(t.title)} | ${encodeCell(t.dueDate)} | ${encodeCell(t.priority)} | ${encodeCell(t.tags)} | ${encodeCell(t.context)} |\n`; });
     }
     return out.trimEnd();
 }
@@ -302,7 +317,7 @@ function parseMilestones(content) {
     for (const line of lines) {
         if (!line.includes("|")) continue;
         if (line.match(/^[\s\-|]+$/)) continue;
-        const cells = line.split("|").map((c) => c.trim());
+        const cells = splitCells(line);
         if (cells.length && cells[0] === "") cells.shift();
         if (cells.length && cells[cells.length - 1] === "") cells.pop();
         if (!cells.length) continue;
@@ -322,7 +337,7 @@ function parseMilestones(content) {
 
 function formatMilestones(rows) {
     let out = "# Milestones\n\n| ID | Name | Target Date | Status | Notes |\n| --- | --- | --- | --- | --- |\n";
-    rows.forEach((m) => { out += `| ${m.id} | ${m.name} | ${m.targetDate} | ${m.status} | ${m.notes} |\n`; });
+    rows.forEach((m) => { out += `| ${m.id} | ${encodeCell(m.name)} | ${encodeCell(m.targetDate)} | ${encodeCell(m.status)} | ${encodeCell(m.notes)} |\n`; });
     return out.trimEnd();
 }
 
@@ -382,14 +397,15 @@ export function listMemos() {
 export function readMemo(filename) {
     const config = loadConfig();
     const dir = resolveFilePath("memos", config);
-    const p = path.join(dir, filename);
-    if (!path.resolve(p).startsWith(path.resolve(dir))) throw new Error("Invalid memo path");
-    if (!fs.existsSync(p)) throw new Error(`Memo not found: ${filename}`);
+    const safe = path.basename(String(filename || ""));
+    const p = path.join(dir, safe);
+    if (path.dirname(path.resolve(p)) !== path.resolve(dir)) throw new Error("Invalid memo path");
+    if (!fs.existsSync(p)) throw new Error(`Memo not found: ${safe}`);
     const content = fs.readFileSync(p, "utf8");
     const lines = content.split("\n");
     const title = (lines[0] || "").replace(/^#\s+/, "").trim();
     const body = lines.slice(2).join("\n").trim();
-    return { filename, title, content: body };
+    return { filename: safe, title, content: body };
 }
 
 export function createMemo(params = {}) {
@@ -459,11 +475,12 @@ export function readNote(domain, filename) {
     assertDomain(domain);
     const config = loadConfig();
     const dir = resolveFilePath(domain, config);
-    const p = path.join(dir, filename);
-    if (!path.resolve(p).startsWith(path.resolve(dir))) throw new Error("Invalid note path");
-    if (!fs.existsSync(p)) throw new Error(`Note not found: ${filename}`);
+    const safe = path.basename(String(filename || ""));
+    const p = path.join(dir, safe);
+    if (path.dirname(path.resolve(p)) !== path.resolve(dir)) throw new Error("Invalid note path");
+    if (!fs.existsSync(p)) throw new Error(`Note not found: ${safe}`);
     const content = fs.readFileSync(p, "utf8");
-    return { filename, frontmatter: parseFrontmatter(content), body: content.replace(/^---\n[\s\S]*?\n---\n?/, "").trim() };
+    return { filename: safe, frontmatter: parseFrontmatter(content), body: content.replace(/^---\n[\s\S]*?\n---\n?/, "").trim() };
 }
 
 export function addNote(domain, params = {}) {
@@ -488,6 +505,111 @@ function daysAgoISO(n) {
     const d = new Date();
     d.setDate(d.getDate() - n);
     return d.toISOString().split("T")[0];
+}
+
+// ---------------------------------------------------------------------------
+// Cross-partition aggregation. Range-based reads (dashboard last-3-days,
+// timeline, report journal) must see data across every day/week/month
+// partition, not just the current one. ID-keyed editable domains (tasks,
+// milestones) intentionally stay current-partition to match their list views
+// and avoid cross-partition ID collisions on edit.
+// ---------------------------------------------------------------------------
+function walkFind(root, targetName, isDir, depth, acc) {
+    if (depth > 5 || !fs.existsSync(root)) return acc;
+    let entries;
+    try { entries = fs.readdirSync(root, { withFileTypes: true }); } catch { return acc; }
+    for (const e of entries) {
+        const full = path.join(root, e.name);
+        if (e.name === targetName && ((isDir && e.isDirectory()) || (!isDir && e.isFile()))) {
+            acc.push(full);
+        } else if (e.isDirectory() && !e.name.startsWith(".")) {
+            // Skip dotfolders (.trash, .git, .obsidian, …) — they are tooling
+            // state, not CatPilot partitions.
+            walkFind(full, targetName, isDir, depth + 1, acc);
+        }
+    }
+    return acc;
+}
+
+function allPartitionPaths(config, type) {
+    const base = config.__baseDir || process.cwd();
+    const storageRoot = path.resolve(base, config.storage.root);
+    const fileName = (config.storage.files && config.storage.files[type]) || DEFAULT_FILES[type];
+    if (!fileName) return [];
+    const isDir = !/\.[a-z]+$/i.test(fileName);
+    return walkFind(storageRoot, fileName, isDir, 0, []);
+}
+
+function collectJournal(config) {
+    const out = [];
+    for (const p of allPartitionPaths(config, "journal")) {
+        try { out.push(...parseJournalEntries(fs.readFileSync(p, "utf8"))); } catch { /* ignore */ }
+    }
+    return out;
+}
+
+function collectMemos(config) {
+    const out = [];
+    for (const dir of allPartitionPaths(config, "memos")) {
+        let files = [];
+        try { files = fs.readdirSync(dir).filter((f) => f.endsWith(".md")); } catch { /* ignore */ }
+        for (const filename of files) {
+            let title = filename.replace(/\.md$/, "");
+            try {
+                const first = fs.readFileSync(path.join(dir, filename), "utf8").split("\n")[0];
+                title = first.replace(/^#\s+/, "").trim() || title;
+            } catch { /* ignore */ }
+            const m = filename.match(/^(\d{4}-\d{2}-\d{2})_/);
+            out.push({ filename, title, date: m ? m[1] : "" });
+        }
+    }
+    return out;
+}
+
+function collectNotes(config, domain) {
+    const out = [];
+    for (const dir of allPartitionPaths(config, domain)) {
+        let files = [];
+        try { files = fs.readdirSync(dir).filter((f) => f.endsWith(".md")); } catch { /* ignore */ }
+        for (const filename of files) {
+            let frontmatter = {};
+            try { frontmatter = parseFrontmatter(fs.readFileSync(path.join(dir, filename), "utf8")); } catch { /* ignore */ }
+            out.push({ filename, frontmatter });
+        }
+    }
+    return out;
+}
+
+function collectReports(config) {
+    const out = [];
+    for (const dir of allPartitionPaths(config, "reports")) {
+        let files = [];
+        try { files = fs.readdirSync(dir).filter((f) => /\.(md|html?)$/i.test(f)); } catch { /* ignore */ }
+        for (const filename of files) {
+            let title = filename;
+            try {
+                const c = fs.readFileSync(path.join(dir, filename), "utf8");
+                const h = c.match(/^#\s+(.+)$/m) || c.match(/<title>([\s\S]*?)<\/title>/i);
+                if (h) title = h[1].replace(/<[^>]+>/g, "").trim();
+            } catch { /* ignore */ }
+            out.push({ filename, title, date: reportDate(filename) });
+        }
+    }
+    return out;
+}
+
+// Existing destination paths that a migration would otherwise overwrite.
+function destConflicts(src, dest, isDir) {
+    const out = [];
+    try {
+        if (isDir) {
+            const names = fs.existsSync(src) ? fs.readdirSync(src) : [];
+            for (const name of names) if (fs.existsSync(path.join(dest, name))) out.push(path.join(dest, name));
+        } else if (fs.existsSync(dest)) {
+            out.push(dest);
+        }
+    } catch { /* ignore */ }
+    return out;
 }
 
 export function summary() {
@@ -517,19 +639,25 @@ export function summary() {
         else priorityBuckets.Other++;
     }
 
-    // Activity for last 3 days: journal entries + memos created + notes created
+    // Last-3-days activity spans partition boundaries, so aggregate across
+    // every partition rather than just the current one.
+    const journalAll = collectJournal(config);
+    const memosAll = collectMemos(config);
+    const learningAll = collectNotes(config, "learning");
+    const growthAll = collectNotes(config, "growth");
+    const projectsAll = collectNotes(config, "projects");
+
     const since = daysAgoISO(2); // today, -1, -2 => 3 days inclusive
     const last3 = [];
     for (let i = 0; i < 3; i++) {
         const day = daysAgoISO(i);
-        const j = journal.find((e) => e.date === day);
-        const memoCount = memos.filter((m) => m.date === day).length;
-        const noteCount = [...learning, ...growth, ...projects].filter((n) => n.frontmatter?.date === day).length;
-        const doneCount = done.length; // done tasks are not dated; approximate 0 per-day
+        const j = journalAll.find((e) => e.date === day);
+        const memoCount = memosAll.filter((m) => m.date === day).length;
+        const noteCount = [...learningAll, ...growthAll, ...projectsAll].filter((n) => n.frontmatter?.date === day).length;
         last3.push({ date: day, journal: j ? 1 : 0, memos: memoCount, notes: noteCount, doneTasks: 0 });
     }
 
-    const recentActivity = buildTimeline({ journal, memos, learning, growth, projects, since });
+    const recentActivity = buildTimeline({ journal: journalAll, memos: memosAll, learning: learningAll, growth: growthAll, projects: projectsAll, since });
 
     const milestoneStatus = { Planned: 0, "In Progress": 0, Done: 0 };
     for (const m of milestones) {
@@ -591,14 +719,14 @@ function oneLine(s, n = 120) {
 export function activity({ days = 14 } = {}) {
     const config = loadConfig();
     const since = daysAgoISO(Math.max(0, days - 1));
-    const journal = parseJournalEntries(readFileOrCreate(resolveFilePath("journal", config)));
-    const memos = listMemos();
-    const learning = safeList("learning");
-    const growth = safeList("growth");
-    const projects = safeList("projects");
+    const journal = collectJournal(config);
+    const memos = collectMemos(config);
+    const learning = collectNotes(config, "learning");
+    const growth = collectNotes(config, "growth");
+    const projects = collectNotes(config, "projects");
     const milestones = parseMilestones(readFileOrCreate(resolveFilePath("milestones", config)));
     let reports = [];
-    try { reports = listReports(); } catch { /* ignore */ }
+    try { reports = collectReports(config); } catch { /* ignore */ }
 
     const events = [];
     for (const e of journal) if (e.date >= since) events.push({ date: e.date, type: "journal", label: "Journal entry", detail: oneLine(e.text) });
@@ -710,6 +838,8 @@ function periodRange(period = "this-week") {
     else if (period === "last-week") { const s = startOfWeek(now); s.setDate(s.getDate() - 7); const e = new Date(s); e.setDate(e.getDate() + 6); since = iso(s); until = iso(e); label = "Last week"; }
     else if (period === "this-month") { since = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`; until = iso(now); label = "This month"; }
     else if (period === "last-month") { const m = new Date(now.getFullYear(), now.getMonth() - 1, 1); const e = new Date(now.getFullYear(), now.getMonth(), 0); since = iso(m); until = iso(e); label = "Last month"; }
+    else if (period === "last-7") { const s = new Date(now); s.setDate(s.getDate() - 6); since = iso(s); until = iso(now); label = "Last 7 days"; }
+    else if (period === "last-30") { const s = new Date(now); s.setDate(s.getDate() - 29); since = iso(s); until = iso(now); label = "Last 30 days"; }
     else if (period === "all") { since = "0000-01-01"; until = "9999-12-31"; label = "All time"; }
     else { const s = startOfWeek(now); since = iso(s); until = iso(now); label = "This week"; }
     return { since, until, label };
@@ -722,7 +852,7 @@ export function generateReport({ period = "this-week", title } = {}) {
     const config = loadConfig();
     const tasks = parseTasksTable(readFileOrCreate(resolveFilePath("tasks", config)));
     const milestones = parseMilestones(readFileOrCreate(resolveFilePath("milestones", config)));
-    const journal = parseJournalEntries(readFileOrCreate(resolveFilePath("journal", config)));
+    const journal = collectJournal(config);
     const { since, until, label } = periodRange(period);
     const today = todayISO();
 
@@ -862,22 +992,48 @@ export function planConfigChange({ root, partitioning, migration = "move" } = {}
     const rootChanged = path.resolve(from.storageRoot) !== path.resolve(to.storageRoot);
     const partChanged = current.partitioning !== nextPart;
 
-    const items = [];
-    for (const [type, meta] of Object.entries(from.paths)) {
-        const dest = to.paths[type];
-        const count = countEntries(meta.path, meta.isDir);
-        const samePath = path.resolve(meta.path) === path.resolve(dest.path);
-        items.push({
+    const mkItem = (type, isDir, srcPath, destPath) => {
+        const count = countEntries(srcPath, isDir);
+        const samePath = path.resolve(srcPath) === path.resolve(destPath);
+        const willMove = !samePath && count > 0 && migration !== "adopt";
+        return {
             type,
-            isDir: meta.isDir,
-            from: meta.path,
-            to: dest.path,
+            isDir,
+            from: srcPath,
+            to: destPath,
             count,
-            willMove: !samePath && count > 0 && migration !== "adopt",
+            willMove,
             exists: count > 0,
-        });
+            conflicts: willMove ? destConflicts(srcPath, destPath, isDir) : [],
+        };
+    };
+
+    const items = [];
+    if (rootChanged && !partChanged) {
+        // Root-only change: migrate EVERY partition, preserving the relative
+        // layout, so historical data is not left behind in the old root.
+        for (const [type, fileName] of Object.entries(DEFAULT_FILES)) {
+            const isDir = !/\.[a-z]+$/i.test(fileName);
+            const srcs = allPartitionPaths(config, type);
+            if (!srcs.length) {
+                items.push(mkItem(type, from.paths[type].isDir, from.paths[type].path, to.paths[type].path));
+                continue;
+            }
+            for (const src of srcs) {
+                const rel = path.relative(from.storageRoot, src);
+                items.push(mkItem(type, isDir, src, path.join(to.storageRoot, rel)));
+            }
+        }
+    } else {
+        // Partitioning change (re-bucketing history is ambiguous) or same root:
+        // operate on the current partition only.
+        for (const [type, meta] of Object.entries(from.paths)) {
+            items.push(mkItem(type, meta.isDir, meta.path, to.paths[type].path));
+        }
     }
+
     const moving = items.filter((i) => i.willMove);
+    const conflicts = items.flatMap((i) => i.conflicts || []);
     return {
         current: { root: current.root, partitioning: current.partitioning, resolvedRoot: from.storageRoot, migration: current.migration },
         next: { root: nextRoot, partitioning: nextPart, resolvedRoot: to.storageRoot, migration },
@@ -885,42 +1041,85 @@ export function planConfigChange({ root, partitioning, migration = "move" } = {}
         partitioningChanged: partChanged,
         needsMigration: (rootChanged || partChanged) && migration !== "adopt",
         totalItems: moving.reduce((a, i) => a + i.count, 0),
+        conflicts,
+        hasConflicts: conflicts.length > 0,
         items,
     };
 }
 
+// Move or copy without ever overwriting an existing destination. Returns the
+// count of entries moved and the count skipped because the destination existed.
 function moveOrCopyPath(src, dest, isDir, mode) {
-    if (!fs.existsSync(src)) return 0;
-    ensureDir(path.dirname(dest));
+    if (!fs.existsSync(src)) return { moved: 0, skipped: 0 };
     if (isDir) {
         ensureDir(dest);
-        let n = 0;
+        let moved = 0, skipped = 0;
         for (const name of fs.readdirSync(src)) {
             const s = path.join(src, name);
             const d = path.join(dest, name);
+            if (fs.existsSync(d)) { skipped++; continue; }
             if (mode === "copy") fs.copyFileSync(s, d);
             else fs.renameSync(s, d);
-            n++;
+            moved++;
         }
-        return n;
+        return { moved, skipped };
     }
+    if (fs.existsSync(dest)) return { moved: 0, skipped: 1 };
+    ensureDir(path.dirname(dest));
     if (mode === "copy") fs.copyFileSync(src, dest);
     else fs.renameSync(src, dest);
-    return 1;
+    return { moved: 1, skipped: 0 };
 }
 
-// Apply a config change, optionally migrating current-partition data. Requires
-// an explicit confirm flag so the UI can gate it behind user approval.
+// Persist an in-memory config object back to its own config file, preserving
+// any custom fields (storage.files, allowExternalPaths, active config path).
+function persistConfig(config) {
+    const { __baseDir, __configPath, ...clean } = config;
+    const target = __configPath || GLOBAL_CONFIG_PATH;
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, JSON.stringify(clean, null, 2), "utf8");
+    return target;
+}
+
+// Apply a config change, optionally migrating data across partitions. Requires
+// an explicit confirm flag so the UI can gate it behind user approval. If any
+// item fails to migrate, the whole operation aborts BEFORE the config is
+// rewritten, so config and data never drift out of sync.
 export function applyConfigChange({ root, partitioning, migration = "move", confirm = false } = {}) {
     if (!confirm) throw new Error("applyConfigChange requires confirm=true");
+    const config = loadConfig();
     const plan = planConfigChange({ root, partitioning, migration });
-    let migrated = 0;
+
+    let moved = 0, skipped = 0;
+    const errors = [];
     if (plan.needsMigration && (migration === "move" || migration === "copy")) {
         for (const item of plan.items) {
             if (!item.willMove) continue;
-            try { migrated += moveOrCopyPath(item.from, item.to, item.isDir, migration); } catch { /* best-effort per item */ }
+            try {
+                const r = moveOrCopyPath(item.from, item.to, item.isDir, migration);
+                moved += r.moved;
+                skipped += r.skipped;
+            } catch (err) {
+                errors.push({ type: item.type, from: item.from, to: item.to, error: String(err && err.message || err) });
+            }
         }
     }
-    const config = writeConfig({ root: plan.next.root, partitioning: plan.next.partitioning, migration });
-    return { ok: true, migrated, config: getConfig(), applied: plan.next, note: config.__configPath };
+
+    if (errors.length) {
+        // Config is left untouched; already-moved files stay where they landed
+        // but the source→config mapping is unchanged, so a retry is safe.
+        throw Object.assign(new Error(`Migration failed for ${errors.length} item(s); configuration was not changed.`), {
+            code: "MIGRATION_FAILED",
+            details: errors,
+            moved,
+            skipped,
+        });
+    }
+
+    config.storage.root = plan.next.root;
+    config.storage.partitioning = plan.next.partitioning;
+    config.migration = { ...(config.migration || {}), mode: migration };
+    const configPath = persistConfig(config);
+
+    return { ok: true, migrated: moved, moved, skipped, config: getConfig(), applied: plan.next, note: configPath };
 }

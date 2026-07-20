@@ -89,8 +89,11 @@ em { font-style: normal; color: var(--text-faint); }
     color: var(--text-muted); cursor: pointer; border: 1px solid transparent;
     transition: background var(--sq), color var(--sq), transform var(--sq);
     user-select: none; font-weight: 500;
+    width: 100%; text-align: left; font-family: inherit; font-size: inherit;
+    background: transparent; appearance: none;
 }
 .nav-item:hover { background: var(--panel-hover); color: var(--text); }
+.nav-item:focus-visible { outline: 2px solid var(--color-focus-outline, var(--accent)); outline-offset: 2px; }
 .nav-item.active {
     background: var(--panel); color: var(--text);
     border-color: var(--border);
@@ -238,6 +241,7 @@ table.tbl tbody tr { transition: background var(--sq); }
 table.tbl tbody tr:hover { background: var(--panel-hover); }
 .row-actions { display: flex; gap: 4px; opacity: 0; transition: opacity var(--sq); justify-content: flex-end; }
 table.tbl tr:hover .row-actions { opacity: 1; }
+table.tbl tr:focus-within .row-actions { opacity: 1; }
 .cell-title { font-weight: 600; cursor: pointer; }
 .cell-title:hover { color: var(--accent); }
 .done-row .cell-title { text-decoration: line-through; color: var(--text-faint); }
@@ -350,8 +354,14 @@ textarea { resize: vertical; min-height: 90px; }
 .search { max-width: 260px; }
 
 @media (max-width: 720px) {
-    .app { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
+    /* Collapse the sidebar into a horizontal, scrollable top bar so every
+       destination stays reachable on narrow viewports (no hidden nav). */
+    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    .sidebar { flex-direction: row; align-items: center; gap: 8px; overflow-x: auto; padding: 8px 10px; }
+    .sidebar .brand-text, .sidebar .nav-spacer, .sidebar .sidebar-foot { display: none; }
+    .sidebar .nav { flex-direction: row; gap: 6px; overflow-x: auto; overflow-y: visible; }
+    .nav-item { width: auto; white-space: nowrap; }
+    .nav-item .nav-badge { display: none; }
 }
 
 /* ---------- Nav footer separator ---------- */
@@ -439,6 +449,8 @@ textarea { resize: vertical; min-height: 90px; }
 .plan-item { display: flex; align-items: center; gap: 10px; }
 .approve { display: flex; align-items: center; gap: 9px; margin-top: 14px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 8%, transparent); cursor: pointer; }
 .approve input { width: 16px; height: 16px; accent-color: var(--accent); }
+.plan-warn { margin-top: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--true-color-red, #d1242f) 40%, var(--border)); background: color-mix(in srgb, var(--true-color-red, #d1242f) 8%, transparent); }
+.plan-warn strong { color: var(--true-color-red, #d1242f); }
 
 /* ---------- Help ---------- */
 .help-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }

@@ -135,12 +135,40 @@ async function handleApi(req, url) {
     return null; // not an API route we know
 }
 
+// Reject cross-origin / DNS-rebinding attempts against the loopback API. The
+// server binds to 127.0.0.1, but a malicious web page could still POST to it
+// via a spoofed Host header or a cross-site form/fetch, so we defend in depth:
+// only loopback Host values are accepted, cross-site Sec-Fetch-Site is refused,
+// and any Origin present must itself be loopback.
+function isLoopbackHost(value) {
+    if (!value) return false;
+    let host = String(value).trim().toLowerCase();
+    if (host.startsWith("[")) host = host.slice(1, host.indexOf("]") === -1 ? host.length : host.indexOf("]"));
+    else host = host.split(":")[0];
+    return host === "127.0.0.1" || host === "localhost" || host === "::1";
+}
+
+function apiGuardReason(req) {
+    const host = req.headers["host"];
+    if (host && !isLoopbackHost(host)) return "host";
+    const site = req.headers["sec-fetch-site"];
+    if (site && site !== "same-origin" && site !== "none") return "sec-fetch-site";
+    const origin = req.headers["origin"];
+    if (origin) {
+        try { if (!isLoopbackHost(new URL(origin).hostname)) return "origin"; }
+        catch { return "origin"; }
+    }
+    return null;
+}
+
 async function requestListener(req, res) {
     let url;
     try { url = new URL(req.url, "http://127.0.0.1"); } catch { res.writeHead(400); return res.end(); }
     const p = url.pathname;
 
     if (p.startsWith("/api/")) {
+        const denied = apiGuardReason(req);
+        if (denied) return sendJson(res, 403, { error: "Forbidden", code: "CROSS_ORIGIN_BLOCKED", reason: denied });
         try {
             const data = await handleApi(req, url);
             if (data === null) return sendJson(res, 404, { error: "Not found" });
@@ -252,7 +280,7 @@ const actions = [
         inputSchema: {
             type: "object",
             properties: {
-                period: { type: "string", enum: ["today", "this-week", "last-week", "this-month", "last-month", "all"], description: "Reporting period (default this-week)." },
+                period: { type: "string", enum: ["today", "this-week", "last-week", "last-7", "this-month", "last-month", "last-30", "all"], description: "Reporting period (default this-week)." },
                 title: { type: "string", description: "Optional report title." },
             },
         },
