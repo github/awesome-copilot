@@ -48,6 +48,7 @@ export interface RenderableExtension {
   installCommand?: string | null;
   installUrl?: string | null;
   sourceUrl?: string | null;
+  externalSource?: string | null;
   external?: boolean;
   author?: { name: string; url?: string } | null;
 }
@@ -95,13 +96,20 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
       const sourceUrl = safeUrl(
         item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "")
       );
+      const externalSource = (item.externalSource || "").trim();
       const pluginId = item.pluginName || item.id;
       const ghappInstallUrl =
-        !item.external && pluginId
-          ? `ghapp://plugins/install?source=${encodeURIComponent(
-              `${pluginId}@awesome-copilot`
-            )}`
-          : "";
+        item.external
+          ? externalSource
+            ? `ghapp://plugins/marketplace/add?source=${encodeURIComponent(
+                externalSource
+              )}`
+            : ""
+          : pluginId
+            ? `ghapp://plugins/install?source=${encodeURIComponent(
+                `${pluginId}@awesome-copilot`
+              )}`
+            : "";
 
       const previewImageUrl = safeUrl(item.imageUrl);
       const previewMediaHtml = previewImageUrl
@@ -152,14 +160,18 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
         </a>`
             : ""
         }
-        <button
+        ${
+          !item.external
+            ? `<button
           class="btn btn-secondary btn-small copy-install-url-btn"
           data-install-url="${escapeHtml(installUrl)}"
           title="Copy fallback URL install target"
           ${installUrl ? "" : "disabled"}
         >
           Copy URL
-        </button>
+        </button>`
+            : ""
+        }
         ${
           sourceUrl
            ? `<a href="${escapeHtml(

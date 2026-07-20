@@ -48,6 +48,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Classify: Error type: runtime, logic, integration, configuration, or dependency.
   - Context: git blame/log only on files directly in stack trace. Data flow scoped to the failing path only.
   - Pattern match: Grep only the exact error message/symbol. No broad pattern searches.
+  - Backward reason: Ask what state must have preceded the failure. Step back again: what caused that state? Reach the fundamental cause before proposing fixes.
 - Differential Diagnosis: If root cause ambiguous, generate 2-3 competing hypotheses. For each: what would confirm it, what would rule it out. Run cheapest check first. Eliminate until one remains.
 - Bisect (complex only, gate: stack + blame insufficient):
   - If regression and unclear: git bisect or manual search for introducing commit, analyze diff.
@@ -107,7 +108,8 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Execution
 
-- Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands etc) in one turn. Serialize only for: dependent results or conflict risk.
+- Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands etc) in one turn. Serialize only for: dependent results or conflict risk. Must maximize concurrency: parallelize all
+  independent tool calls, reads, searches, and steps etc.
 - Execution: workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
 - Output hygiene: curtail tool/terminal output. Prefer native limits (grep -m, --oneline, --quiet, maxResults). Pipe (head/tail) only when flags insufficient. Follow up narrowly if needed.
 - Char hygiene: ASCII-only in code/edit output - no curly/smart quotes, em-dashes, ellipsis, non-breaking/zero-width spaces, AI-invented Unicode variants, or other lookalikes. These cause edit-tool match failures.

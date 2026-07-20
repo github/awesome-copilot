@@ -46,6 +46,7 @@ interface ExtensionEntry extends HeaderItem {
   installUrl?: string | null;
   installCommand?: string | null;
   sourceUrl?: string | null;
+  externalSource?: string | null;
   external?: boolean;
   author?: ExtensionAuthor | null;
   keywords?: string[];
@@ -117,6 +118,7 @@ const installUrl = safeUrl(
       : "")
 );
 const sourceUrl = safeUrl(item.sourceUrl);
+const externalSource = (item.externalSource || "").trim();
 const installCommand =
   item.installCommand ||
   (item.pluginName
@@ -124,16 +126,13 @@ const installCommand =
     : "");
 
 const githubUrl = isExternal
-  ? sourceUrl || installUrl || GITHUB_TREE
+  ? sourceUrl || GITHUB_TREE
   : item.path
     ? `${GITHUB_TREE}/${item.path}`
     : installUrl || GITHUB_TREE;
 
 // Sidebar "Source" shows item.path; external extensions have no repo path.
-const sidebarItem =
-  isExternal && (sourceUrl || installUrl)
-    ? { ...item, path: sourceUrl || installUrl }
-    : item;
+const sidebarItem = isExternal && sourceUrl ? { ...item, path: sourceUrl } : item;
 
 const shortHash = (value: string) =>
   /^[0-9a-f]{40}$/i.test(value) ? value.slice(0, 7) : value;
@@ -262,22 +261,13 @@ if (!isExternal && item.ref) {
         >
           {
             isExternal ? (
-              <div class="skill-install" slot="install">
-                <p class="skill-install-label">Install this extension</p>
-                <p class="skill-install-note">
-                  This extension is maintained in an external repository.
-                </p>
-                {installUrl && (
-                  <button
-                    type="button"
-                    class="btn btn-secondary skill-install-url-btn"
-                    data-action="copy-install-url"
-                    data-install-url={installUrl}
-                  >
-                    Copy install URL
-                  </button>
-                )}
-              </div>
+              <PluginInstall
+                slot="install"
+                isExternal={true}
+                externalSource={externalSource || null}
+                label="Install this extension"
+                note="This extension is maintained in an external repository."
+              />
             ) : (
               <PluginInstall
                 slot="install"
