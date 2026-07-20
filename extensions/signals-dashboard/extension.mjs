@@ -4,7 +4,7 @@
 // Supports stashing desks (48hr hold) and restoring them.
 
 import { createServer } from "node:http";
-import { existsSync, statSync, accessSync, realpathSync, constants as fsConstants } from "node:fs";
+import { statSync, accessSync, realpathSync, constants as fsConstants } from "node:fs";
 import { readdir, readFile, writeFile, stat } from "node:fs/promises";
 import { join, delimiter, sep } from "node:path";
 import { spawn } from "node:child_process";
