@@ -103,3 +103,17 @@ cookbooks:
           - copilot-sdk
           - web-app
           - community
+      - id: copilot-sdk-java-examples
+        name: Copilot SDK Java Examples
+        description: A web-based chat application built with the GitHub Copilot Java SDK, Jetty, with auth status, JSON API, chat, and CLI connectivity examples
+        external: true
+        url: https://github.com/thesurenk/github-copilot-java-examples
+        author:
+          name: thesurenk
+          url: https://github.com/thesurenk
+        tags:
+          - java
+          - copilot-sdk
+          - web-app
+          - cli
+          - community
