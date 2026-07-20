@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
     ConnectorAuthenticationRequiredError,
     InteractiveAuthBroker,
+    loadAuthenticationRecord,
     TOKEN_CACHE_NAME,
 } from "./auth.mjs";
 
@@ -36,6 +37,7 @@ test("ARM token requests require an explicit browser sign-in", async () => {
         },
         loadAuthRecord: async () => undefined,
     });
+
     await assert.rejects(
         broker.getToken(),
         (error) => error instanceof ConnectorAuthenticationRequiredError
@@ -45,6 +47,25 @@ test("ARM token requests require an explicit browser sign-in", async () => {
         enabled: true,
         name: TOKEN_CACHE_NAME,
     });
+});
+
+test("a malformed authentication record falls back to browser sign-in", async () => {
+    assert.equal(
+        await loadAuthenticationRecord({
+            readFile: async () => "{malformed-json",
+        }),
+        undefined,
+    );
+});
+
+test("authentication record read failures remain operational errors", async () => {
+    const readError = Object.assign(new Error("authentication record is unreadable"), { code: "EACCES" });
+    await assert.rejects(
+        loadAuthenticationRecord({
+            readFile: async () => { throw readError; },
+        }),
+        (error) => error === readError,
+    );
 });
 
 test("interactive sign-in reports pending then done and caches the ARM token", async () => {

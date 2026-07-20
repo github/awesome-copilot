@@ -28,13 +28,22 @@ let legacyAuthCacheRemoved = false;
 
 useIdentityPlugin(cachePersistencePlugin);
 
-async function loadAuthenticationRecord() {
+export async function loadAuthenticationRecord({
+    readFile = fs.readFile,
+    deserialize = deserializeAuthenticationRecord,
+    authRecordFile = AUTH_RECORD_FILE,
+} = {}) {
+    let serialized;
     try {
-        const serialized = await fs.readFile(AUTH_RECORD_FILE, "utf-8");
-        return deserializeAuthenticationRecord(serialized);
+        serialized = await readFile(authRecordFile, "utf-8");
     } catch (error) {
         if (error?.code === "ENOENT") return undefined;
         throw error;
+    }
+    try {
+        return deserialize(serialized);
+    } catch {
+        return undefined;
     }
 }
 
