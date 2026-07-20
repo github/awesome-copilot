@@ -4,10 +4,11 @@
 // Supports stashing desks (48hr hold) and restoring them.
 
 import { createServer } from "node:http";
-import { existsSync } from "node:fs";
+import { existsSync, statSync, accessSync, realpathSync, constants as fsConstants } from "node:fs";
 import { readdir, readFile, writeFile, stat } from "node:fs/promises";
-import { join, delimiter } from "node:path";
+import { join, delimiter, sep } from "node:path";
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 
 const servers = new Map();
@@ -74,6 +75,18 @@ function trySpawn(cmd, args, opts = {}) {
 // Resolve an executable on PATH (honoring PATHEXT on Windows), mirroring
 // WorkshopRoom's AgentClis.IsOnPath. Used to prefer Agency when the machine has
 // it installed, falling back to vanilla Copilot.
+// A PATH hit only counts if it resolves to a real, runnable file. existsSync
+// alone would treat a directory or a non-executable file named `agency` as a
+// match, so auto-detection would pick the wrapper and the terminal would then
+// fail to run it with no fallback.
+function isExecutableFile(p) {
+    try {
+        if (!statSync(p).isFile()) return false;
+        if (process.platform !== "win32") accessSync(p, fsConstants.X_OK);
+        return true;
+    } catch { return false; }
+}
+
 function isOnPath(command) {
     try {
         const dirs = (process.env.PATH || "").split(delimiter);
@@ -82,10 +95,13 @@ function isOnPath(command) {
             : [];
         for (const dir of dirs) {
             if (!dir) continue;
-            try {
-                if (existsSync(join(dir, command))) return true;
-                for (const ext of exts) if (existsSync(join(dir, command + ext))) return true;
-            } catch {}
+            // On Windows only a PATHEXT match is runnable; on POSIX check the bare
+            // name, and isExecutableFile confirms the execute bit either way.
+            if (exts.length) {
+                for (const ext of exts) if (isExecutableFile(join(dir, command + ext))) return true;
+            } else if (isExecutableFile(join(dir, command))) {
+                return true;
+            }
         }
     } catch {}
     return false;
@@ -129,12 +145,28 @@ function osaStringLiteral(s) {
     return '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
 }
 
-async function launchDeskConsole(deskPath, deskName) {
+// Resolve symlinks on both sides and confirm the target is the workshop root
+// itself or lives beneath it. The callers locate a desk with stat(), which
+// follows symlinks, so a committed desks/foo -> /outside symlink would otherwise
+// launch the agent with an external working directory, breaking the inside-repo
+// guarantee.
+function isInsideRoot(root, target) {
+    try {
+        const r = realpathSync(root);
+        const t = realpathSync(target);
+        return t === r || t.startsWith(r + sep);
+    } catch { return false; }
+}
+
+async function launchDeskConsole(deskPath, deskName, workshopDir) {
     // deskPath can't contain a double quote (a real Windows path never does and
     // it would break out of a quoted argument). deskName must be a plain slug so
-    // it is safe on every command line and shell below.
+    // it is safe on every command line and shell below, and the resolved desk
+    // must still live inside the workshop root (which defeats a symlinked desk
+    // that escapes the repo).
     if (!deskPath || deskPath.includes('"')) return false;
     if (!isSafeDeskNameForLaunch(deskName)) return false;
+    if (!isInsideRoot(workshopDir, deskPath)) return false;
     const run = [...deskAgentArgv(deskName), "-i", deskOrientPrompt(deskName)];
     if (process.platform === "win32") {
         // Windows Terminal is a GUI app, so it always surfaces its own visible
@@ -217,6 +249,24 @@ function isCrossSiteRequest(req) {
     }
     const site = req.headers["sec-fetch-site"];
     return site === "cross-site" || site === "same-site";
+}
+
+// Pin the Host header to the exact loopback authority we bound. A DNS-rebinding
+// page reaches us under its own hostname (Host: attacker.example:<port>), so an
+// exact match against 127.0.0.1:<port> refuses those requests before any state
+// change — Origin/Host equality alone doesn't, since the attacker controls both.
+function isCanonicalHost(req, canonicalHost) {
+    return String(req.headers.host || "").toLowerCase() === String(canonicalHost || "").toLowerCase();
+}
+
+// Capability check for the per-server token minted at startup and embedded in
+// the page we serve. Only the loopback document we rendered knows it, so a blind
+// cross-origin/rebinding caller can't forge a mutating request even if it
+// reached the socket.
+function hasCapabilityToken(req, token) {
+    const header = req.headers["x-workshop-token"];
+    const provided = Array.isArray(header) ? header[0] : header;
+    return typeof provided === "string" && provided.length > 0 && provided === token;
 }
 
 // --- Stash management ---
@@ -675,7 +725,7 @@ function renderStashedCard(entry) {
     </div>`;
 }
 
-function renderDashboard(signals, stashed) {
+function renderDashboard(signals, stashed, capabilityToken) {
     const activeSignals = sortSignals(signals.filter(s => !stashed.some(e => e.name === s.deskName)));
 
     const cards = activeSignals.length > 0
@@ -747,12 +797,17 @@ function renderDashboard(signals, stashed) {
     </div>
 
     <script>
+        // Minted per server, echoed on every mutating fetch so the loopback
+        // document proves it actually loaded this page (defense-in-depth with the
+        // Host pin + CSRF check on the server).
+        const WORKSHOP_TOKEN = ${JSON.stringify(capabilityToken)};
+        const POST_OPTS = { method: 'POST', headers: { 'x-workshop-token': WORKSHOP_TOKEN } };
         async function stashDesk(name) {
-            await fetch('/api/stash/' + encodeURIComponent(name), { method: 'POST' });
+            await fetch('/api/stash/' + encodeURIComponent(name), POST_OPTS);
             refresh();
         }
         async function restoreDesk(name) {
-            await fetch('/api/restore/' + encodeURIComponent(name), { method: 'POST' });
+            await fetch('/api/restore/' + encodeURIComponent(name), POST_OPTS);
             refresh();
         }
         function showToast(title, detail) {
@@ -777,25 +832,20 @@ function renderDashboard(signals, stashed) {
             setTimeout(() => toast.remove(), 4000);
         }
         async function openDesk(name) {
-            const res = await fetch('/api/open/' + encodeURIComponent(name), { method: 'POST' });
+            const res = await fetch('/api/open/' + encodeURIComponent(name), POST_OPTS);
             const data = await res.json();
             if (data.ok) {
                 const path = data.deskPath || name;
-                // Copy the path either way so there's always a usable handle, but
-                // remember whether it actually succeeded so we never claim a copy
-                // that the browser blocked.
-                let copied = false;
-                try { await navigator.clipboard.writeText(path); copied = true; } catch {}
                 if (data.launched) {
+                    // A successful open shouldn't hijack the user's clipboard.
                     showToast('opening ' + name + ' desk…', path);
-                } else if (copied) {
-                    // No terminal could be launched from here, so the copied path
-                    // is the fallback the user (or the TA) opens the desk with.
-                    showToast(name + ' · path copied', path);
                 } else {
-                    // Neither launch nor clipboard worked; the toast still shows
-                    // the path below so it stays usable.
-                    showToast(name + ' · copy this path', path);
+                    // No terminal launched from here, so copy the path as the
+                    // fallback handle, but only claim the copy when it actually
+                    // succeeded. The path shows in the toast either way.
+                    let copied = false;
+                    try { await navigator.clipboard.writeText(path); copied = true; } catch {}
+                    showToast(copied ? (name + ' · path copied') : (name + ' · copy this path'), path);
                 }
             } else {
                 showToast(name + ' · not found', '');
@@ -849,14 +899,31 @@ function renderDashboard(signals, stashed) {
 // --- Server ---
 
 async function startServer(instanceId, workshopDir) {
+    // Minted once per server: embedded in the page we render and required back on
+    // every mutating request. canonicalHost is filled in after listen() so the
+    // Host pin knows the exact port we bound.
+    const capabilityToken = randomBytes(32).toString("base64url");
+    let canonicalHost = null;
+
     const server = createServer(async (req, res) => {
         try {
         const url = new URL(req.url, `http://${req.headers.host}`);
 
-        if (req.method === "POST" && url.pathname.startsWith("/api/") && isCrossSiteRequest(req)) {
-            res.writeHead(403, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ ok: false, error: "cross_site_blocked" }));
-            return;
+        // Layered guard for the state-changing /api/* routes (cf.
+        // connector-namespaces/server.mjs): the canonical-Host pin defeats DNS
+        // rebinding, the CSRF check blocks cross-site browser POSTs, and the
+        // capability token proves the caller actually loaded our page.
+        if (req.method === "POST" && url.pathname.startsWith("/api/")) {
+            if (!isCanonicalHost(req, canonicalHost) || isCrossSiteRequest(req)) {
+                res.writeHead(403, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: false, error: "cross_site_blocked" }));
+                return;
+            }
+            if (!hasCapabilityToken(req, capabilityToken)) {
+                res.writeHead(403, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: false, error: "missing_capability_token" }));
+                return;
+            }
         }
 
         if (req.method === "POST" && url.pathname.startsWith("/api/stash/")) {
@@ -895,7 +962,7 @@ async function startServer(instanceId, workshopDir) {
                 try {
                     const s = await stat(deskPath);
                     if (s.isDirectory()) {
-                        const launched = await launchDeskConsole(deskPath, deskName);
+                        const launched = await launchDeskConsole(deskPath, deskName, workshopDir);
                         res.writeHead(200, { "Content-Type": "application/json" });
                         res.end(JSON.stringify({ ok: true, deskName, deskPath, launched }));
                         return;
@@ -910,7 +977,7 @@ async function startServer(instanceId, workshopDir) {
         const signals = await scanSignals(workshopDir);
         const stashed = await readStash(workshopDir);
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        res.end(renderDashboard(signals, stashed));
+        res.end(renderDashboard(signals, stashed, capabilityToken));
         } catch (err) {
             // Top-level boundary: never leave a request hanging or let a
             // rejection become an unhandled crash — e.g. malformed %-encoding
@@ -933,6 +1000,7 @@ async function startServer(instanceId, workshopDir) {
     });
     const address = server.address();
     const port = typeof address === "object" && address ? address.port : 0;
+    canonicalHost = `127.0.0.1:${port}`;
     return { server, url: `http://127.0.0.1:${port}/` };
 }
 
@@ -1037,7 +1105,7 @@ const session = await joinSession({
                             try {
                                 const s = await stat(deskPath);
                                 if (s.isDirectory()) {
-                                    const launched = await launchDeskConsole(deskPath, ctx.input.deskName);
+                                    const launched = await launchDeskConsole(deskPath, ctx.input.deskName, entry.workshopDir);
                                     return { ok: true, deskName: ctx.input.deskName, deskPath, launched, workshopDir: entry.workshopDir };
                                 }
                             } catch {}
