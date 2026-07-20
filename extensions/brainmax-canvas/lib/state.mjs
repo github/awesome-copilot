@@ -12,7 +12,7 @@ const instances = new Map();
  * @typedef {Object} InstanceState
  * @property {"domains"|"quiz"|"summary"|"report"} view
  * @property {Array<{id: string, name: string}>} domains
- * @property {Array<{id: string, name: string, score: number, max: number, percentage: number}>} completed
+ * @property {Array<{id: string, name: string, score: number, max: number, percentage: number, tier: number, strongestArea: string, gap: string}>} completed
  * @property {null|Object} quiz - { domainId, domainName, total, index, runningScore, runningMax, history: [] }
  * @property {null|Object} question - { id, index, total, prompt, type }
  * @property {"idle"|"submitting"|"error"} domainSelectionStatus

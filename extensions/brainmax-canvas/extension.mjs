@@ -433,24 +433,8 @@ const session = await joinSession({
                     description: "MANDATORY after the student says 'compile report': display the complete competency report before presenting the same report in chat. Recorded Canvas scores are authoritative.",
                     inputSchema: {
                         type: "object",
-                        required: ["overallScore", "overallMax", "overallPercentage", "domains", "strongestAreas", "priorityAreas", "recommendations", "nextChallenge"],
+                        required: ["strongestAreas", "priorityAreas", "recommendations", "nextChallenge"],
                         properties: {
-                            overallScore: { type: "number" },
-                            overallMax: { type: "number" },
-                            overallPercentage: { type: "number" },
-                            domains: {
-                                type: "array",
-                                items: {
-                                    type: "object",
-                                    required: ["name", "score", "max", "percentage"],
-                                    properties: {
-                                        name: { type: "string" },
-                                        score: { type: "number" },
-                                        max: { type: "number" },
-                                        percentage: { type: "number" },
-                                    },
-                                },
-                            },
                             strongestAreas: { type: "array", items: { type: "string" } },
                             priorityAreas: {
                                 type: "array",

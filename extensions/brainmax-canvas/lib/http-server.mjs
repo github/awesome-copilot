@@ -45,7 +45,7 @@ function writeHeaders(res, status, contentType, extra = {}) {
 
 /**
  * @param {string} instanceId
- * @param {import("./state.mjs").InstanceState} getState - fn returning current state
+ * @param {() => import("./state.mjs").InstanceState} getStateFn - fn returning current state
  * @param {(event: {type: string, [k: string]: unknown}) => void} onClientEvent
  */
 export async function startInstanceServer(instanceId, getStateFn, onClientEvent) {
