@@ -106,14 +106,23 @@ Use `signal-write` when something needs the operator's attention:
 
 ### Viewing signals
 
-If the Workshop's canvas extension (🪨 Cairn) is installed — it
-ships bundled with the-workshop plugin — the operator can open a
-live dashboard showing every desk's signals, score bars, and
-escalations. The canvas reads `desks/*/.signals/` for the latest
-signal JSON per desk.
+The Workshop has a canvas extension — **🪨 Cairn** — that shows a live dashboard
+of every desk's signals, score bars, and escalations. It reads
+`desks/*/.signals/` for the latest signal JSON per desk.
 
-Without the canvas, you can still read signals by scanning the
-`.signals/` directories directly and summarizing for the operator.
+The canvas does **not** auto-load when the plugin is installed. To see the live
+board, install and register the `signals-dashboard` extension separately. If the
+operator asks you to "run cairn" / "open the dashboard" and it isn't already
+showing:
+
+1. Install the `signals-dashboard` canvas extension. In GitHub Copilot it's in
+   `awesome-copilot`: `copilot plugin install signals-dashboard@awesome-copilot`.
+   (It also ships in the the-workshop repo at
+   `.github/extensions/signals-dashboard/` for other setups.)
+2. Open the **🪨 Cairn** canvas once it's registered.
+
+Without the canvas, you can still read signals by scanning the `.signals/`
+directories directly and summarizing for the operator.
 
 ### Partnership signals
 
