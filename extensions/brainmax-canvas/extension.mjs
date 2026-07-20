@@ -422,7 +422,7 @@ const session = await joinSession({
                         if (existingIdx >= 0) state.completed[existingIdx] = entry;
                         else state.completed.push(entry);
                         state.view = "summary";
-                        state.announcement = `${input.domainName} complete: ${percentage}%.`;
+                        state.announcement = `${input.domainName} complete with a score of ${Math.round(percentage)}%.`;
                         servers.get(ctx.instanceId)?.broadcastState();
                         return { ok: true };
                     },

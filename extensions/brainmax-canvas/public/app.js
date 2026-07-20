@@ -146,9 +146,13 @@ function renderDomains(state) {
     : state.domainSelectionStatus === "error"
       ? state.domainSelectionError || "The quiz could not be started. Try again."
       : "";
+  if (state.domains.length === 0) {
+    selectionStatus.textContent = "No knowledge areas were detected in this codebase.";
+    return;
+  }
   for (const domain of state.domains) {
     const completed = state.completed.find((d) => d.id === domain.id);
-    const statusText = completed ? `${Math.round(completed.percentage)}% complete` : "Not started";
+    const statusText = completed ? `Score: ${Math.round(completed.percentage)}%` : "Not started";
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "domain-tile";
@@ -168,7 +172,7 @@ function renderDomains(state) {
     if (completed) {
       const pill = document.createElement("span");
       pill.className = `domain-status-pill ${tierClass(tierForPercentage(completed.percentage))}`;
-      pill.textContent = `${Math.round(completed.percentage)}%`;
+      pill.textContent = statusText;
       btn.appendChild(pill);
     } else {
       const status = document.createElement("span");
