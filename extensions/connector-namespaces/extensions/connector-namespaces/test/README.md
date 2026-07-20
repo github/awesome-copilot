@@ -9,23 +9,33 @@ connect → initialize → tools/list → a safe tools/call
 
 It imports the `connector-namespaces` extension's real pipeline (`install.mjs`,
 `catalog.mjs`, `armClient.mjs`) and connects through the same native Streamable
-HTTP endpoint that the extension writes to the Copilot CLI config. The probe
+HTTP endpoint that the extension writes to the GitHub Copilot MCP config. The probe
 uses the configured `X-API-Key`, follows `Mcp-Session-Id`, and accepts standard
 JSON or SSE JSON-RPC responses.
 
-The whole point: it runs with **Node and Azure CLI**. No Copilot app, no
-canvas, no UI. Hand it to anyone (e.g. Arjun) and they can reproduce an MCP
-server issue locally.
+The whole point: it runs with **Node and a browser sign-in**. No Copilot app or
+canvas is required. Hand it to anyone (e.g. Arjun) and they can reproduce an
+MCP server issue locally.
 
 ## Prerequisites
 
-1. **Azure CLI signed in with `az login`.** The harness asks Azure CLI for the
-   same short-lived ARM token as the extension.
+1. **A browser for Microsoft Entra sign-in.** The harness opens the same
+   interactive Azure sign-in as the extension when its encrypted Azure Identity
+   session is not already available.
 2. **A gateway already picked once.** The harness reads gateway coordinates from
    `~/.copilot/extensions/connector-namespaces/artifacts/gateway-config.json`
    (`{ subscriptionId, resourceGroup, gatewayName }`). Pick a gateway once in
    the connector-namespaces canvas, or write that file by hand.
-3. **Node 20+** (developed on Node 24).
+3. **An operating-system secure credential store.** Windows and macOS provide one
+   by default. Linux and WSL require a Secret Service-compatible keyring, such as
+   GNOME Keyring, with `libsecret` available. Unencrypted token storage is
+   intentionally disabled.
+4. **Node 20+** (developed on Node 24).
+5. **Extension dependencies installed.** From the repository root, run:
+
+   ```bash
+   npm install --prefix extensions/connector-namespaces
+   ```
 
 ## Run it
 
@@ -52,10 +62,12 @@ node extensions/connector-namespaces/test/smoke.mjs --only=WorkIQMail,WorkIQShar
 node extensions/connector-namespaces/test/smoke.mjs --limit=5 --open-consent
 ```
 
-## One-time consent, then headless forever
+## One-time connector consent
 
-This is the key behavior. OAuth-backed servers (most of them) need a human to
-consent **once** in a browser. The model:
+OAuth-backed servers (most of them) need a human to consent **once** in a
+browser. Azure ARM sign-in is restored from the operating system's encrypted
+credential store described in the prerequisites; the one-time behavior below
+applies to the connector's own consent. The model:
 
 1. **First run** hits a server that needs consent → the harness prints a consent
    URL and marks it `NEEDS_CONSENT`. It saves a pending record to
@@ -67,8 +79,8 @@ consent **once** in a browser. The model:
    loopback page is just a redirect target and nothing is listening on it.
 3. **Re-run the harness.** It sees the pending record, confirms the gateway
    connection is now `Connected`, finishes the install (mints the API key,
-   writes the CLI entry), and probes it headless. From then on it's reused with
-   zero human interaction.
+   writes the Copilot MCP entry), and probes it headless. From then on the connector is
+   reused without repeating its consent.
 
 So the server taxonomy is:
 

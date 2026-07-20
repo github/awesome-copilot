@@ -4,7 +4,7 @@ A standalone way to **see** every canvas state without launching the Copilot
 app. It imports the real, pure renderer functions from `../renderer.mjs` and
 serves each state on a fixed loopback port, with every `/api/*` endpoint stubbed
 so you can force the states that keep regressing (the connecting spinner and the
-"Restart your Copilot session…" banner).
+"Restart the GitHub Copilot app…" banner).
 
 This exists because those two bugs have each shipped multiple times:
 

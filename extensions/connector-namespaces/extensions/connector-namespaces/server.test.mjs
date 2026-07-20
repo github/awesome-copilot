@@ -10,12 +10,19 @@
 // harness — through untouched. Importing server.mjs has no side effects at eval;
 // the HTTP server only starts when startServer() is called.
 
-import { test } from "node:test";
+import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { Readable } from "node:stream";
 
-import {
+const TEST_COPILOT_HOME = mkdtempSync(join(tmpdir(), "connector-server-test-"));
+process.env.COPILOT_HOME = TEST_COPILOT_HOME;
+after(() => rmSync(TEST_COPILOT_HOME, { recursive: true, force: true }));
+
+const {
     getServerConfig,
     hasCapabilityToken,
     isCanonicalHost,
@@ -26,8 +33,8 @@ import {
     runIdempotentOperation,
     startServer,
     stopServer,
-} from "./server.mjs";
-import { isValidConfig } from "./state.mjs";
+} = await import("./server.mjs");
+const { isValidConfig } = await import("./state.mjs");
 
 // Minimal request stub: only headers matter to the gate.
 function req(headers) {
@@ -99,9 +106,66 @@ test("Sec-Fetch-Site: same-origin (no Origin) is allowed", () => {
 
 test("state-changing and OAuth status routes require a capability token", () => {
     assert.equal(requiresCapabilityToken("/api/install"), true);
+    assert.equal(requiresCapabilityToken("/api/signin"), true);
+    assert.equal(requiresCapabilityToken("/api/signin/status"), true);
+    assert.equal(requiresCapabilityToken("/api/signin/cancel"), true);
     assert.equal(requiresCapabilityToken("/oauth-status"), true);
     assert.equal(requiresCapabilityToken("/auth/callback/conn"), true);
     assert.equal(requiresCapabilityToken("/setup"), false);
+});
+
+test("subscription and sign-in status endpoints expose the unauthenticated state", async (t) => {
+    const instanceId = `auth-routes-${Date.now()}`;
+    t.after(() => stopServer(instanceId));
+    const entry = await startServer(instanceId);
+    const headers = { "x-connector-namespace-token": entry.token };
+
+    const subscriptions = await fetch(`${entry.url}api/subscriptions`, { headers });
+    assert.deepEqual(await subscriptions.json(), {
+        ok: false,
+        reason: "not_signed_in",
+        subscriptions: [],
+    });
+
+    const status = await fetch(`${entry.url}api/signin/status?sessionId=missing`, { headers });
+    assert.deepEqual(await status.json(), { ok: false, status: "unknown" });
+
+    const cancelled = await fetch(`${entry.url}api/signin/cancel`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: "missing" }),
+    });
+    assert.deepEqual(await cancelled.json(), { ok: true });
+});
+
+test("unauthenticated setup renders browser sign-in instead of an az login dead end", async (t) => {
+    const instanceId = `auth-setup-${Date.now()}`;
+    t.after(() => stopServer(instanceId));
+    const entry = await startServer(instanceId);
+
+    const response = await fetch(entry.url);
+    const html = await response.text();
+    assert.match(html, /id="signin-btn"/);
+    assert.match(html, /Sign in to Azure/);
+    assert.doesNotMatch(html, /az login|Azure CLI authentication failed/);
+});
+
+test("saved namespace prompts for sign-in after the extension credential is reset", async (t) => {
+    const instanceId = `saved-auth-setup-${Date.now()}`;
+    t.after(() => stopServer(instanceId));
+    const entry = await startServer(instanceId, {
+        config: {
+            subscriptionId: "f34b22a3-2202-4fb1-b040-1332bd928c84",
+            resourceGroup: "jack-sandboxgroup-rg",
+            gatewayName: "yeah-github-cli",
+        },
+    });
+
+    const response = await fetch(entry.url);
+    const html = await response.text();
+    assert.match(html, /id="signin-btn"/);
+    assert.match(html, /Sign in to Azure/);
+    assert.doesNotMatch(html, /Couldn't load the saved namespace|couldn't open namespace/i);
 });
 
 test("capability token accepts the private header or OAuth callback query", () => {
