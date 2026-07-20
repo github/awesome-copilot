@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BrainMax</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-header">
+        <span class="app-mark" aria-hidden="true">◆</span>
+        <span class="app-title">BrainMax</span>
+        <span class="app-subtitle">concept mastery check</span>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch color theme">
+          <span id="theme-toggle-label">DARK</span>
+        </button>
+      </header>
+
+      <main id="main" class="view-stack">
+        <!-- Domain selection -->
+        <section id="view-domains" class="view" data-view="domains" hidden>
+          <h1 class="view-heading">Pick a knowledge area</h1>
+          <p class="view-lede">
+            Detected from your codebase. Choose one to start a 5-question quiz grounded in your own code.
+          </p>
+          <div id="domain-grid" class="domain-grid"></div>
+          <p id="domain-selection-status" class="domain-selection-status" role="status"></p>
+        </section>
+
+        <!-- Active quiz -->
+        <section id="view-quiz" class="view" data-view="quiz" hidden>
+          <div class="quiz-header">
+            <div class="quiz-header-labels">
+              <span id="quiz-domain-code" class="mono-tag"></span>
+              <h1 id="quiz-domain-name" class="view-heading"></h1>
+            </div>
+            <div id="quiz-counter" class="quiz-counter mono"></div>
+          </div>
+
+          <ol id="progress-rail" class="progress-rail" aria-label="Question progress"></ol>
+
+          <div id="question-card" class="question-card">
+            <span id="question-type" class="question-type-tag"></span>
+            <p id="question-prompt" class="question-prompt"></p>
+          </div>
+
+          <form id="answer-form" class="answer-form" hidden>
+            <label for="answer-input" class="answer-label">Your answer</label>
+            <textarea
+              id="answer-input"
+              class="answer-input"
+              rows="5"
+              maxlength="8000"
+              aria-describedby="answer-status"
+              placeholder="Write your response…"
+            ></textarea>
+            <div class="answer-actions">
+              <p id="answer-status" class="answer-status" role="status"></p>
+              <button id="btn-submit-answer" class="btn btn-primary" type="submit" disabled>Submit answer</button>
+            </div>
+          </form>
+
+          <div id="score-reveal" class="score-reveal" hidden>
+            <div id="score-reveal-chip" class="score-chip mono"></div>
+            <p id="score-reveal-feedback" class="score-feedback"></p>
+          </div>
+
+          <div class="quiz-footer">
+            <span class="quiz-footer-label">Running score</span>
+            <span id="quiz-running-score" class="mono quiz-running-score"></span>
+          </div>
+        </section>
+
+        <!-- Domain summary -->
+        <section id="view-summary" class="view" data-view="summary" hidden>
+          <span class="mono-tag" id="summary-domain-code"></span>
+          <h1 id="summary-domain-name" class="view-heading"></h1>
+
+          <div class="summary-score-block">
+            <span id="summary-percentage" class="summary-percentage mono"></span>
+            <div class="summary-score-detail">
+              <span id="summary-fraction" class="mono summary-fraction"></span>
+              <span id="summary-tier-label" class="tier-label"></span>
+            </div>
+          </div>
+
+          <dl class="summary-notes">
+            <div class="summary-note">
+              <dt>Strongest</dt>
+              <dd id="summary-strongest"></dd>
+            </div>
+            <div class="summary-note">
+              <dt>Focus next</dt>
+              <dd id="summary-gap"></dd>
+            </div>
+          </dl>
+
+          <div class="action-row">
+            <button id="btn-choose-another" class="btn btn-secondary" type="button">Choose another domain</button>
+            <button id="btn-compile-report" class="btn btn-primary" type="button">Compile report</button>
+          </div>
+          <p id="report-request-status" class="report-request-status" role="status"></p>
+        </section>
+
+        <!-- Final report -->
+        <section id="view-report" class="view" data-view="report" hidden>
+          <h1 class="view-heading">Competency report</h1>
+          <p id="report-verdict" class="report-verdict"></p>
+
+          <table class="report-table">
+            <caption class="sr-only">Score by domain</caption>
+            <thead>
+              <tr>
+                <th scope="col">Domain</th>
+                <th scope="col">Score</th>
+                <th scope="col">Percentage</th>
+              </tr>
+            </thead>
+            <tbody id="report-table-body"></tbody>
+          </table>
+
+          <div class="report-columns">
+            <div class="report-col">
+              <h2 class="report-col-heading">Strongest areas</h2>
+              <ul id="report-strongest" class="report-list"></ul>
+            </div>
+            <div class="report-col">
+              <h2 class="report-col-heading">Priority study areas</h2>
+              <div id="report-priority" class="report-priority"></div>
+            </div>
+          </div>
+
+          <div class="report-col">
+            <h2 class="report-col-heading">Recommendations</h2>
+            <ul id="report-recommendations" class="report-list"></ul>
+          </div>
+
+          <div class="callout">
+            <span class="callout-label">Next challenge</span>
+            <p id="report-next-challenge"></p>
+          </div>
+
+          <div class="action-row">
+            <button id="btn-report-choose-another" class="btn btn-secondary" type="button">Quiz another domain</button>
+          </div>
+        </section>
+      </main>
+
+      <div id="live-region" class="sr-only" aria-live="polite"></div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

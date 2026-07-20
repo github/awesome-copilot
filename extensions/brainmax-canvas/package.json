@@ -1,0 +1,15 @@
+{
+  "name": "brainmax-canvas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "Canvas UI for codebase-grounded BrainMax concept-mastery quizzes.",
+  "scripts": {
+    "check": "node --check extension.mjs && node --check lib/http-server.mjs && node --check lib/state.mjs && node --check public/app.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
