@@ -459,6 +459,55 @@ async function validateCanvasPluginMetadata(plugin, errors, warnings, token) {
     );
   }
 
+  if (manifest.extenions !== undefined) {
+    errors.push(
+      `submission: plugins tagged with "canvas" must use "extensions" (found misspelled key "extenions") in "${manifestPath}"`,
+    );
+  }
+
+  if (manifest.extensions !== undefined && manifest.extensions !== "extensions") {
+    errors.push(
+      `submission: plugins tagged with "canvas" may omit "extensions", but if provided it must be "extensions" in "${manifestPath}"`,
+    );
+  }
+
+  const extensionContainerPath = joinRepoPath(pluginRoot, "extensions");
+  const extensionContainerResponse = await fetchGitHubFile(repo, extensionContainerPath, releaseLocator, token);
+  if (extensionContainerResponse.kind === "notFound") {
+    errors.push(
+      `submission: plugins tagged with "canvas" must include an "extensions" directory at ${releaseLocatorDescription}`,
+    );
+  } else if (extensionContainerResponse.kind === "apiError") {
+    warnings.push(
+      `submission: could not verify "extensions" directory in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
+    );
+  } else if (
+    !(
+      extensionContainerResponse.data?.type === "dir"
+      || Array.isArray(extensionContainerResponse.data)
+    )
+  ) {
+    errors.push(
+      `submission: "extensions" must be a directory in ${releaseLocatorDescription}`,
+    );
+  }
+
+  const extensionEntryPath = joinRepoPath(pluginRoot, "extensions", "extension.mjs");
+  const extensionEntryResponse = await fetchGitHubFile(repo, extensionEntryPath, releaseLocator, token);
+  if (extensionEntryResponse.kind === "notFound") {
+    errors.push(
+      `submission: plugins tagged with "canvas" must include "extensions/extension.mjs" at ${releaseLocatorDescription}`,
+    );
+  } else if (extensionEntryResponse.kind === "apiError") {
+    warnings.push(
+      `submission: could not verify "extensions/extension.mjs" in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
+    );
+  } else if (extensionEntryResponse.data?.type !== "file") {
+    errors.push(
+      `submission: "extensions/extension.mjs" must be a file in ${releaseLocatorDescription}`,
+    );
+  }
+
   const previewPath = joinRepoPath(pluginRoot, EXTERNAL_CANVAS_PREVIEW_PATH);
   const previewResponse = await fetchGitHubFile(repo, previewPath, releaseLocator, token);
   if (previewResponse.kind === "notFound") {
@@ -580,11 +629,13 @@ function normalizeQualityGateResult(rawResult) {
     vally_lint_status: "not_run",
     smoke_status: "not_run",
     version_match_status: "not_run",
+    canvas_structure_status: "not_run",
     failure_class: "none",
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
     version_match_output: "",
+    canvas_structure_output: "",
   };
 
   if (!rawResult || typeof rawResult !== "object" || Array.isArray(rawResult)) {
@@ -601,6 +652,7 @@ function buildQualityGatesCommentSection(qualityResult) {
   const vallyState = qualityResult.vally_lint_status || "not_run";
   const smokeState = qualityResult.smoke_status || "not_run";
   const versionMatchState = qualityResult.version_match_status || "not_run";
+  const canvasStructureState = qualityResult.canvas_structure_status || "not_run";
   const summaryText = String(qualityResult.summary || "").trim() || "_No quality gate details were provided._";
 
   const sections = [
@@ -611,6 +663,7 @@ function buildQualityGatesCommentSection(qualityResult) {
     `| vally lint | ${vallyState} |`,
     `| install smoke test | ${smokeState} |`,
     `| version match | ${versionMatchState} |`,
+    `| canvas structure | ${canvasStructureState} |`,
     "",
     summaryText,
   ];
@@ -654,6 +707,21 @@ function buildQualityGatesCommentSection(qualityResult) {
       "",
       "```text",
       versionMatchOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
+
+  const canvasStructureOutput = String(qualityResult.canvas_structure_output || "").trim();
+  if (canvasStructureOutput) {
+    sections.push(
+      "",
+      "<details>",
+      "<summary>Canvas structure output</summary>",
+      "",
+      "```text",
+      canvasStructureOutput,
       "```",
       "",
       "</details>",

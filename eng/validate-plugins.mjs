@@ -305,9 +305,14 @@ function validateExtensionManifest(folderName) {
     errors.push("x-awesome-copilot field must not be present (use convention-based logo instead)");
   }
 
-  // Extension convention: extensions field must be "."
+  if (parsed.extenions !== undefined) {
+    errors.push('use "extensions" field (found misspelled key "extenions")');
+  }
+
+  // Extension convention: source manifests keep extensions at repository root.
+  // Materialization rewrites this to "extensions" on distribution branches.
   if (parsed.extensions !== ".") {
-    errors.push('extensions field must be exactly "." (extension convention)');
+    errors.push('extensions field must be exactly "." in source manifests (extension convention)');
   }
 
   return { errors, plugin: parsedPlugin };
