@@ -46,7 +46,7 @@ Also note the package manager (`package.json`, `pnpm-lock.yaml`, ...) and whethe
 |--------|--------------|-------------|
 | **A. Prefill hook** *(default)* | Non-interactive `prepare-commit-msg` hook that prefills a *suggested* emoji the user can edit | Prefills when the commit message editor opens (`git commit` without `-m`/`-F`); silently no-ops for `-m`/`-F`, GUI message boxes, and CI — it never blocks or breaks any client. Recommend unless the user explicitly wants a picker |
 | **B. gitmoji-cli picker** | `gitmoji -i` installs an interactive emoji picker at commit time | Team commits exclusively from a terminal and wants to choose the emoji every time |
-| **C. commitlint enforcement** | `commitlint` + `commitlint-config-gitmoji` rejects commits without a valid gitmoji | Team wants the convention *enforced*, usually combined with A or B |
+| **C. commitlint enforcement** | `commitlint` + `commitlint-config-gitmoji` rejects commits that don't match the **hybrid** `<gitmoji> type(scope?): subject` format | Team wants the convention *enforced* **and** accepts the gitmoji + Conventional Commits hybrid format (stricter than plain gitmoji — see the warning in the Option C section) |
 
 State your recommendation and the reason in one or two sentences, then confirm with the user before modifying anything.
 
@@ -73,10 +73,14 @@ SOURCE=$2
 # skip merge/squash/-m/-F/template/amend sources
 [ -n "$SOURCE" ] && exit 0
 
+# Official gitmoji characters (base forms — variation selectors and ZWJ
+# sequences start with these). Shared with the commit-msg guard below.
+GITMOJI_RE='🎨|⚡|🔥|🐛|🚑|✨|📝|🚀|💄|🎉|✅|🔒|🔐|🔖|🚨|🚧|💚|⬇|⬆|📌|👷|📈|♻|➕|➖|🔧|🔨|🌐|✏|💩|⏪|🔀|📦|👽|🚚|📄|💥|🍱|♿|💡|🍻|💬|🗃|🔊|🔇|👥|🚸|🏗|📱|🤡|🥚|🙈|📸|⚗|🔍|🏷|🌱|🚩|🥅|💫|🗑|🛂|🩹|🧐|⚰|🧪|👔|🩺|🧱|🧑|💸|🧵|🦺|✈|🦖'
+
 # Skip if the message already starts with a gitmoji — match the official
 # emoji set and :shortcode: form explicitly (a broad non-ASCII test would
 # wrongly skip messages starting with accented or non-Latin characters)
-head -n 1 "$MSG_FILE" | grep -qE '^(:[a-z0-9_+-]+:|(🎨|⚡|🔥|🐛|🚑|✨|📝|🚀|💄|🎉|✅|🔒|🔐|🔖|🚨|🚧|💚|⬇|⬆|📌|👷|📈|♻|➕|➖|🔧|🔨|🌐|✏|💩|⏪|🔀|📦|👽|🚚|📄|💥|🍱|♿|💡|🍻|💬|🗃|🔊|🔇|👥|🚸|🏗|📱|🤡|🥚|🙈|📸|⚗|🔍|🏷|🌱|🚩|🥅|💫|🗑|🛂|🩹|🧐|⚰|🧪|👔|🩺|🧱|🧑|💸|🧵|🦺|✈|🦖))' && exit 0
+head -n 1 "$MSG_FILE" | grep -qE "^(:[a-z0-9_+-]+:|($GITMOJI_RE))" && exit 0
 
 branch=$(git symbolic-ref --short HEAD 2>/dev/null)
 files=$(git diff --cached --name-only)
@@ -112,6 +116,22 @@ fi
 printf '%s ' "$emoji" | cat - "$MSG_FILE" > "$MSG_FILE.tmp" && mv "$MSG_FILE.tmp" "$MSG_FILE"
 ```
 
+**Always pair it with this `commit-msg` guard.** Prefilling an empty message file defeats git's abort-on-empty-message safety: closing the editor without typing anything would otherwise create a commit whose message is just the emoji. The guard restores that behavior by rejecting an untouched prefill:
+
+```sh
+#!/bin/sh
+# commit-msg — abort when the message is only the untouched gitmoji prefill
+GITMOJI_RE='<same alternation as in prepare-commit-msg>'
+
+subject=$(head -n 1 "$1")
+if printf '%s' "$subject" | grep -qE "^(:[a-z0-9_+-]+:|($GITMOJI_RE))[^[:alnum:]]*$"; then
+  echo "commit aborted: the message contains only the prefilled gitmoji — add a subject" >&2
+  exit 1
+fi
+```
+
+Install it in the same effective hooks directory (or via the hook manager), chaining with any existing `commit-msg` hook.
+
 #### Option B — gitmoji-cli
 
 ```bash
@@ -122,6 +142,11 @@ gitmoji -i                   # installs the interactive prepare-commit-msg hook
 ⚠️ `gitmoji -i` **replaces** `.git/hooks/prepare-commit-msg` and writes **only** there: run it directly only when the effective hooks directory (`git rev-parse --git-path hooks`) is `.git/hooks` and no hook exists yet. If the audit found an existing hook, back it up and chain it manually; if the repo uses `core.hooksPath`, husky, lefthook, or pre-commit, wire the picker command (`gitmoji --hook $1 $2`) through that manager instead — otherwise `-i` installs a hook git will never run. Warn the user that the picker blocks commits from GUI clients.
 
 #### Option C — commitlint enforcement
+
+⚠️ **Format mismatch to resolve first:** `commitlint-config-gitmoji` enforces the hybrid format `<gitmoji> type(scope?): subject` (e.g. `✨ feat(api): add pagination`) — it **rejects** the plain gitmoji format `✨ add pagination` produced by Options A/B and by the `gitmoji` skill. Before installing, ask the team which format they want:
+
+- **Hybrid format** — proceed with `commitlint-config-gitmoji` below, and make sure prefill/picker output includes a Conventional Commit type
+- **Plain gitmoji format** — do not use `commitlint-config-gitmoji`; either skip enforcement or write a custom commitlint rule that only checks for a leading gitmoji
 
 ```bash
 npm install --save-dev @commitlint/cli commitlint-config-gitmoji
@@ -139,7 +164,7 @@ Wire `commitlint --edit $1` into the `commit-msg` hook via the hook manager foun
 
 1. Require a clean starting state (`git status --porcelain` must be empty), then create a scratch change with a name that cannot collide: `git switch -c test/gitmoji-hook && touch gitmoji-hook-scratch.tmp && git add gitmoji-hook-scratch.tmp`
 2. Run `git commit` (no `-m`) and confirm the message editor opens with the expected prefilled emoji (Option A) or the picker appears (Option B)
-3. Abort the commit by **deleting all content** in the editor before closing it (a prefilled emoji left in place counts as a non-empty message and would create the commit)
+3. Abort the commit by **deleting all content** in the editor before closing it (a prefilled emoji left in place counts as a non-empty message and would create the commit). If the `commit-msg` guard is installed, also verify it: close the editor with only the prefill in place and confirm the commit is rejected
 4. Clean up explicitly — the scratch file is still staged and the scratch branch is still checked out, so order matters:
    ```bash
    git restore --staged gitmoji-hook-scratch.tmp
@@ -147,7 +172,7 @@ Wire `commitlint --edit $1` into the `commit-msg` hook via the hook manager foun
    git switch -
    git branch -D test/gitmoji-hook
    ```
-5. For Option C: verify `echo "no emoji here" | ./node_modules/.bin/commitlint` fails and `echo "✨ add thing" | ./node_modules/.bin/commitlint` passes (use the locally installed binary from Step 3 — avoid `npx`, which can fetch and execute a package on the fly)
+5. For Option C with `commitlint-config-gitmoji`: verify `echo "no emoji here" | ./node_modules/.bin/commitlint` fails and `echo "✨ feat: add thing" | ./node_modules/.bin/commitlint` passes — note the hybrid format: a plain `✨ add thing` is expected to **fail** (use the locally installed binary from Step 3 — avoid `npx`, which can fetch and execute a package on the fly)
 
 ---
 
