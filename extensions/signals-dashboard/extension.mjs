@@ -11,6 +11,18 @@ import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 const servers = new Map();
 const STASH_TTL_MS = 48 * 60 * 60 * 1000;
 
+// Serialize stash read-modify-write per workshop. The UI fires stash/restore
+// POSTs without awaiting each other, so two overlapping mutations could both
+// read the same array and the last write would silently drop the other. Each
+// workshop gets a promise chain so its mutations run one at a time.
+const stashLocks = new Map();
+function withStashLock(workshopDir, fn) {
+    const prev = stashLocks.get(workshopDir) || Promise.resolve();
+    const run = prev.then(fn, fn);
+    stashLocks.set(workshopDir, run.then(() => {}, () => {}));
+    return run;
+}
+
 // Desk names are single path segments (folder names under desks/ or classroom/).
 // Reject anything that could escape the workshop dir via path traversal.
 function isValidDeskName(name) {
@@ -32,6 +44,19 @@ function toCount(v) {
     const n = Number(v);
     if (!Number.isFinite(n) || n < 0) return 0;
     return Math.floor(n);
+}
+
+// Prefer an explicit, persisted timestamp over filesystem mtime. A git
+// clone/checkout resets mtimes (often to a single instant), which would
+// otherwise scramble "latest" ordering and outcome pairing. Signals may carry
+// an ISO-8601 `timestamp` (or `emitted_at`); fall back to mtime when absent.
+function signalTime(parsed, mtimeMs) {
+    const explicit = parsed && (parsed.timestamp || parsed.emitted_at);
+    if (explicit) {
+        const t = Date.parse(explicit);
+        if (Number.isFinite(t)) return t;
+    }
+    return mtimeMs;
 }
 
 // Reject cross-site POSTs to the state-changing /api/* routes (CSRF). The panel
@@ -70,18 +95,22 @@ async function writeStash(workshopDir, entries) {
 }
 
 async function stashDesk(workshopDir, deskName) {
-    const stash = await readStash(workshopDir);
-    if (stash.some(e => e.name === deskName)) return stash;
-    stash.push({ name: deskName, stashedAt: new Date().toISOString() });
-    await writeStash(workshopDir, stash);
-    return stash;
+    return withStashLock(workshopDir, async () => {
+        const stash = await readStash(workshopDir);
+        if (stash.some(e => e.name === deskName)) return stash;
+        stash.push({ name: deskName, stashedAt: new Date().toISOString() });
+        await writeStash(workshopDir, stash);
+        return stash;
+    });
 }
 
 async function restoreDesk(workshopDir, deskName) {
-    let stash = await readStash(workshopDir);
-    stash = stash.filter(e => e.name !== deskName);
-    await writeStash(workshopDir, stash);
-    return stash;
+    return withStashLock(workshopDir, async () => {
+        let stash = await readStash(workshopDir);
+        stash = stash.filter(e => e.name !== deskName);
+        await writeStash(workshopDir, stash);
+        return stash;
+    });
 }
 
 // --- Signal reading ---
@@ -131,14 +160,27 @@ async function scanSignals(workshopDir) {
                     const s = await stat(fp);
                     const raw = await readFile(fp, "utf-8");
                     const parsed = JSON.parse(raw);
-                    allSignals.push({ parsed, mtimeMs: s.mtimeMs, path: fp });
+                    const emittedMs = signalTime(parsed, s.mtimeMs);
+                    allSignals.push({ parsed, mtimeMs: emittedMs, path: fp });
                     // Latest non-outcome signal (execution, partnership, escalation)
-                    if ((parsed.signal_type || "execution") !== "outcome" && s.mtimeMs > latestTime) {
-                        latestTime = s.mtimeMs; latest = { parsed, mtimeMs: s.mtimeMs };
+                    if ((parsed.signal_type || "execution") !== "outcome" && emittedMs > latestTime) {
+                        latestTime = emittedMs; latest = { parsed, mtimeMs: emittedMs };
                     }
                 } catch {}
             }
-            if (!latest) continue;
+            if (!latest) {
+                // Files exist but none parsed into a usable non-outcome signal
+                // (malformed JSON, or outcome-only). Keep the desk visible as
+                // "awaiting" instead of silently dropping it from the board.
+                results.push({
+                    deskName: entry.name, signalType: "none", agentName: entry.name,
+                    confidence: 0, accuracy: 0, completeness: 0, intent: 0,
+                    whatWorked: "", whatWasHard: "", skillGap: "",
+                    escalationReason: null, escalationBlocked: null, recommendation: null,
+                    emittedAt: null, signalCount: 0, tokensIn: 0, tokensOut: 0, model: null,
+                });
+                continue;
+            }
             try {
                 const sig = latest.parsed;
                 const intentRaw = sig.intent || sig.self_assessment?.intent || null;
@@ -303,7 +345,7 @@ function renderSummaryBar(activeSignals) {
         ? `<span style="font-size:11px;color:#475569;">🪙 ${formatTokens(totalTokens)}</span>`
         : "";
 
-    const calibrationBadge = withOutcomes > 0
+    const calibrationBadge = avgGap !== null
         ? `<span style="font-size:11px;color:${avgGap <= 1 ? '#22c55e' : avgGap <= 2 ? '#eab308' : '#ef4444'};" title="${withOutcomes} outcome signal${withOutcomes > 1 ? 's' : ''}, avg gap: ${avgGap}">🔍 gap ${avgGap}</span>`
         : "";
 
@@ -544,6 +586,9 @@ function renderDashboard(signals, stashed) {
             50% { border-color: #7f1d1d; }
         }
         #content { transition: opacity .15s; }
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -568,6 +613,8 @@ function renderDashboard(signals, stashed) {
         }
         function showToast(title, detail) {
             const toast = document.createElement('div');
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
             toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);' +
                 'background:#1e3a5f;color:#7dd3fc;padding:10px 20px;border-radius:8px;font-size:13px;' +
                 'border:1px solid #3b82f6;z-index:999;max-width:90%;text-align:center;';
@@ -722,7 +769,13 @@ async function startServer(instanceId, workshopDir) {
             }
         }
     });
-    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    await new Promise((resolve, reject) => {
+        const onError = (err) => { server.removeListener("listening", onListening); reject(err); };
+        const onListening = () => { server.removeListener("error", onError); resolve(); };
+        server.once("error", onError);
+        server.once("listening", onListening);
+        server.listen(0, "127.0.0.1");
+    });
     const address = server.address();
     const port = typeof address === "object" && address ? address.port : 0;
     return { server, url: `http://127.0.0.1:${port}/` };
@@ -788,8 +841,8 @@ const session = await joinSession({
                     },
                 },
                 {
-                    name: "open_desk",
-                    description: "Open a desk as a new session in the GHCP app. Returns the desk path so the agent can create_session or navigate to it.",
+                    name: "get_desk_path",
+                    description: "Resolve a desk name to its filesystem path. Does not open a session — returns the path so the caller can create_session or navigate to it.",
                     inputSchema: {
                         type: "object",
                         properties: { deskName: { type: "string", description: "Name of the desk to open" } },

@@ -52,6 +52,8 @@ Create `desks/<desk-name>/.signals/<timestamp>.json`:
 {
   "signal_type": "execution",
   "subtype": "checkpoint",
+  "timestamp": "2026-07-19T21:30:00Z",
+  "run_id": "<optional; set to pair this with an outcome signal>",
   "agent_name": "<desk-name>",
   "self_assessment": {
     "intent": 4,
@@ -91,6 +93,11 @@ dashboard consumers. `signal_type` controls sort priority
 > consuming signals in your own tooling, prefer `subtype` for the
 > specific state.
 
+> **Ordering:** include a `timestamp` (ISO 8601 UTC). The dashboard
+> orders signals by it and falls back to file mtime only when it's
+> absent — a git clone/checkout resets mtimes, so mtime alone is not a
+> dependable clock.
+
 ### 2. Note the signal in the journal
 
 Also append a short marker to the desk's journal for persistence:
@@ -102,6 +109,38 @@ Also append a short marker to the desk's journal for persistence:
 
 The journal note is the trail marker. The JSON file is the
 machine-readable signal.
+
+## Outcome signals (calibration)
+
+The signals-dashboard can pair a desk's self-assessment with an
+*outcome* — an independent rating of the realized result — and show
+the **honesty gap** (how far the desk's confidence was from the
+delivered quality). Outcome signals are optional and are usually
+emitted by a reviewer/evaluator, not the desk itself.
+
+Write them to the **same** `.signals/` directory:
+
+```json
+{
+  "signal_type": "outcome",
+  "run_id": "<same run_id as the signal it rates>",
+  "agent_name": "<reviewer name>",
+  "quality_rating": 4,
+  "effort_to_merge": "minimal",
+  "issues_found": ["optional short strings"],
+  "timestamp": "2026-07-19T22:00:00Z"
+}
+```
+
+- **`run_id`** correlates an outcome with the execution/partnership
+  signal it rates — set the same `run_id` on both. If it's absent, the
+  dashboard falls back to the nearest outcome emitted shortly after the
+  latest signal.
+- **`quality_rating`** (0–5) is the realized quality; the dashboard
+  compares it to the desk's self-assessed `confidence` to compute the
+  honesty gap.
+- **`effort_to_merge`** — `"minimal"`, `"moderate"`, or `"significant"`.
+- **`issues_found`** — optional array of short strings.
 
 ## Principles
 

@@ -16,7 +16,9 @@ room. When the operator asks "what's everyone working on?" or
 ## What a workshop is
 
 A **workshop** is a named directory containing desks that share a
-workspace. Each desk is a long-running Copilot CLI session with:
+workspace. Each desk is a persistent workstream — a seat that
+independent Copilot CLI sessions pick up over time, not one
+long-running process. Each desk has:
 
 - **A journal** (`journal.md`) — persistent memory across sessions.
   Every desk reads its own journal at the start and writes to it
