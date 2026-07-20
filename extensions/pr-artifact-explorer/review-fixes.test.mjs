@@ -1,13 +1,27 @@
 import assert from "node:assert/strict";
+import { request as httpRequest } from "node:http";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  analyzeArtifact,
+  hasRootIndexHtml,
+} from "./detector.mjs";
+import {
   enrichPullRequests,
   filterPullRequests,
 } from "./github.mjs";
+import { contentDeliveryMode, startInstance, stopInstance } from "./server.mjs";
+import {
+  CAPABILITY_TOKEN_HEADER,
+  hasCapabilityToken,
+  isCanonicalHost,
+  isCrossSiteRequest,
+  requiresCapabilityToken,
+} from "./security.mjs";
 import {
   DEFAULT_PREFS,
+  normalizeRepository,
   normalizePrefs,
   rememberRepository,
 } from "./state.mjs";
@@ -21,6 +35,17 @@ function jsonResponse(payload, status = 200) {
     status,
     text: async () => JSON.stringify(payload),
   };
+}
+
+function rawStatus(url, headers) {
+  return new Promise((resolve, reject) => {
+    const request = httpRequest(url, { headers }, (response) => {
+      response.resume();
+      response.on("end", () => resolve(response.statusCode));
+    });
+    request.on("error", reject);
+    request.end();
+  });
 }
 
 test("malformed recent repository values normalize to an empty list", () => {
@@ -156,13 +181,26 @@ test("only the archive root index uses static-site preview routing", async () =>
   const shouldUseStaticSitePreview = Function(
     `${helpers}; return shouldUseStaticSitePreview;`,
   )();
-  const root = { path: "index.html", kind: "html" };
-  const nested = { path: "docs/index.html", kind: "html" };
+  const root = { path: "index.html", kind: "html", supported: true };
+  const nested = {
+    path: "docs/index.html",
+    kind: "html",
+    supported: true,
+  };
+  const unsupported = {
+    path: "index.html",
+    kind: "html",
+    supported: false,
+  };
   const entries = [root, nested];
 
   assert.equal(shouldUseStaticSitePreview(root, entries), true);
   assert.equal(shouldUseStaticSitePreview(nested, entries), false);
   assert.equal(shouldUseStaticSitePreview(nested, [nested]), false);
+  assert.equal(
+    shouldUseStaticSitePreview(unsupported, [unsupported]),
+    false,
+  );
 });
 
 test("completed TRX summaries derive their displayed outcome from counters", async () => {
@@ -213,4 +251,142 @@ test("completed TRX summaries derive their displayed outcome from counters", asy
     }),
     "Failed",
   );
+});
+
+test("repository normalization rejects owner and name dot segments", () => {
+  for (const repository of ["../user", "./repo", "owner/..", "owner/."]) {
+    assert.throws(
+      () => normalizeRepository(repository),
+      /cannot be dot segments/,
+    );
+  }
+  assert.equal(
+    normalizeRepository("github/awesome-copilot"),
+    "github/awesome-copilot",
+  );
+});
+
+test("unsupported entries remain listed but cannot become the primary preview", async () => {
+  const analysis = await analyzeArtifact(
+    {
+      entries: [
+        {
+          name: "index.html",
+          directory: false,
+          supported: false,
+          compressedSize: 10,
+          uncompressedSize: 20,
+        },
+        {
+          name: "session.cast",
+          directory: false,
+          supported: false,
+          compressedSize: 10,
+          uncompressedSize: 20,
+        },
+        {
+          name: "results.trx",
+          directory: false,
+          supported: true,
+          compressedSize: 10,
+          uncompressedSize: 20,
+        },
+      ],
+      totalUncompressedBytes: 60,
+    },
+    async () => {
+      throw new Error("Unsupported entries must not be probed.");
+    },
+  );
+
+  assert.equal(analysis.entries.length, 3);
+  assert.deepEqual(analysis.primary, {
+    kind: "trx",
+    path: "results.trx",
+    label: "Test results",
+  });
+  assert.equal(hasRootIndexHtml(analysis.entries), false);
+});
+
+test("unsupported entry downloads fall back to the original artifact archive", () => {
+  assert.equal(contentDeliveryMode({ supported: false }, false), "unsupported");
+  assert.equal(contentDeliveryMode({ supported: false }, true), "archive");
+  assert.equal(contentDeliveryMode({ supported: true }, true), "entry");
+});
+
+test("capability tokens protect loopback APIs, content, and events", () => {
+  const token = "secret-token";
+  const req = (headers = {}) => ({ headers });
+  const apiUrl = new URL("http://127.0.0.1:1234/api/bootstrap");
+  const contentUrl = new URL(
+    `http://127.0.0.1:1234/content/1/file.txt?token=${token}`,
+  );
+  const eventsUrl = new URL(
+    `http://127.0.0.1:1234/events?token=${token}`,
+  );
+
+  assert.equal(
+    isCanonicalHost(req({ host: "127.0.0.1:1234" }), "127.0.0.1:1234"),
+    true,
+  );
+  assert.equal(
+    isCanonicalHost(req({ host: "attacker.example:1234" }), "127.0.0.1:1234"),
+    false,
+  );
+  assert.equal(requiresCapabilityToken("/api/bootstrap"), true);
+  assert.equal(requiresCapabilityToken("/content/1/file.txt"), true);
+  assert.equal(requiresCapabilityToken("/events"), true);
+  assert.equal(requiresCapabilityToken("/assets/app.js"), false);
+  assert.equal(
+    hasCapabilityToken(req({ [CAPABILITY_TOKEN_HEADER]: token }), apiUrl, token),
+    true,
+  );
+  assert.equal(hasCapabilityToken(req(), contentUrl, token), true);
+  assert.equal(hasCapabilityToken(req(), eventsUrl, token), true);
+  assert.equal(
+    hasCapabilityToken(
+      req(),
+      new URL(`${apiUrl}?token=${token}`),
+      token,
+    ),
+    false,
+  );
+  assert.equal(
+    isCrossSiteRequest(
+      req({ origin: "https://attacker.example" }),
+      "http://127.0.0.1:1234",
+    ),
+    true,
+  );
+});
+
+test("canvas server rejects spoofed hosts and unauthenticated protected routes", async (t) => {
+  const instanceId = `review-security-${Date.now()}`;
+  const entry = await startInstance(instanceId, null, () => {});
+  t.after(() => stopInstance(instanceId));
+
+  const root = await fetch(entry.url);
+  assert.equal(root.status, 200);
+  assert.match(
+    await root.text(),
+    new RegExp(`name="pr-artifact-explorer-token" content="${entry.token}"`),
+  );
+  assert.equal((await fetch(`${entry.origin}/`)).status, 403);
+
+  for (const path of ["api/bootstrap", "content/1/file.txt", "events"]) {
+    const response = await fetch(`${entry.origin}/${path}`);
+    assert.equal(response.status, 403);
+  }
+
+  assert.equal(
+    await rawStatus(entry.url, { Host: "attacker.example" }),
+    403,
+  );
+  const crossSite = await fetch(`${entry.origin}/api/bootstrap`, {
+    headers: {
+      [CAPABILITY_TOKEN_HEADER]: entry.token,
+      Origin: "https://attacker.example",
+    },
+  });
+  assert.equal(crossSite.status, 403);
 });

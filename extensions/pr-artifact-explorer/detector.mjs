@@ -82,6 +82,7 @@ export function kindForPath(path) {
 
 export function hasRootIndexHtml(entries) {
   return entries.some((entry) => {
+    if (!entry?.supported) return false;
     const path = String(entry?.name ?? entry?.path ?? "")
       .replaceAll("\\", "/")
       .replace(/^\.\/+/, "");
@@ -127,23 +128,34 @@ async function looksLikeAsciinema(entry, readHead) {
 
 export async function analyzeArtifact(index, readHead) {
   const files = index.entries.filter((entry) => !entry.directory);
+  const previewableFiles = files.filter((entry) => entry.supported);
   const castEntries = [];
-  for (const entry of files.slice(0, 2_000)) {
+  for (const entry of previewableFiles.slice(0, 2_000)) {
     if (await looksLikeAsciinema(entry, readHead)) castEntries.push(entry);
   }
 
-  const htmlEntries = files.filter((entry) => kindForPath(entry.name) === "html");
+  const htmlEntries = previewableFiles.filter(
+    (entry) => kindForPath(entry.name) === "html",
+  );
   const indexEntries = htmlEntries.filter(
     (entry) => posix.basename(entry.name).toLowerCase() === "index.html",
   );
   const rootIndexEntry = indexEntries.find(
     (entry) => hasRootIndexHtml([entry]),
   );
-  const firstTrx = shallowest(files.filter((entry) => kindForPath(entry.name) === "trx"));
-  const firstImage = shallowest(files.filter((entry) => kindForPath(entry.name) === "image"));
-  const firstMarkdown = shallowest(files.filter((entry) => kindForPath(entry.name) === "markdown"));
+  const firstTrx = shallowest(
+    previewableFiles.filter((entry) => kindForPath(entry.name) === "trx"),
+  );
+  const firstImage = shallowest(
+    previewableFiles.filter((entry) => kindForPath(entry.name) === "image"),
+  );
+  const firstMarkdown = shallowest(
+    previewableFiles.filter((entry) => kindForPath(entry.name) === "markdown"),
+  );
   const firstText = shallowest(
-    files.filter((entry) => ["json", "text", "xml"].includes(kindForPath(entry.name))),
+    previewableFiles.filter((entry) =>
+      ["json", "text", "xml"].includes(kindForPath(entry.name)),
+    ),
   );
 
   let primary = null;

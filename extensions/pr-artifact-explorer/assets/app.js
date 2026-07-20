@@ -11,6 +11,8 @@ const accountAvatar = document.getElementById("account-avatar");
 const accountFallback = document.getElementById("account-fallback");
 const cacheLabel = document.getElementById("cache-label");
 const toastRegion = document.getElementById("toast-region");
+const capabilityToken =
+  document.querySelector('meta[name="pr-artifact-explorer-token"]')?.content ?? "";
 
 let bootstrapState = null;
 let currentArtifact = null;
@@ -474,7 +476,11 @@ function normalizeRepository(value) {
     .trim()
     .replace(/^https?:\/\/github\.com\//i, "")
     .replace(/\.git$/i, "");
-  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) {
+  const parts = repository.split("/");
+  if (
+    !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository) ||
+    parts.some((part) => part === "." || part === "..")
+  ) {
     throw new Error("Enter a repository as owner/name or paste a pull request URL.");
   }
   return repository;
@@ -482,6 +488,7 @@ function normalizeRepository(value) {
 
 async function api(path, options = {}) {
   const headers = { ...(options.headers ?? {}) };
+  headers["x-pr-artifact-explorer-token"] = capabilityToken;
   let body = options.body;
   if (body != null && typeof body !== "string") {
     headers["Content-Type"] = "application/json";
@@ -3229,6 +3236,7 @@ function rootIndexHtmlEntry(entries) {
       .replaceAll("\\", "/")
       .replace(/^\.\/+/, "");
     return (
+      entry.supported &&
       !path.includes("/") &&
       path.toLocaleLowerCase() === "index.html" &&
       artifactEntryKind(entry) === "html"
@@ -3579,7 +3587,9 @@ function encodedEntryUrl(artifactId, entryPath, download = false) {
     .split("/")
     .map((part) => encodeURIComponent(part))
     .join("/");
-  return `/content/${artifactId}/${encodedPath}${download ? "?download=1" : ""}`;
+  const search = new URLSearchParams({ token: capabilityToken });
+  if (download) search.set("download", "1");
+  return `/content/${artifactId}/${encodedPath}?${search}`;
 }
 
 function disposePlayer() {
@@ -3847,6 +3857,12 @@ async function previewArtifactFile(entry, sequence) {
 
   previewPath.textContent = entry.path;
   downloadLink.href = encodedEntryUrl(artifact.id, entry.path, true);
+  downloadLink.innerHTML = entry.supported
+    ? `${icon("download")} Download`
+    : `${icon("download")} Download artifact ZIP`;
+  downloadLink.title = entry.supported
+    ? `Download ${entry.path}`
+    : "This ZIP entry cannot be extracted safely; download the original artifact.";
   downloadLink.hidden = false;
   preview.innerHTML = `
     <div class="loading-list w-100">
@@ -5243,7 +5259,9 @@ async function initialize() {
     renderAccounts(bootstrapState.accounts, bootstrapState.account);
     updateCacheHeader(bootstrapState.cache);
 
-    const events = new EventSource("/events");
+    const events = new EventSource(
+      `/events?token=${encodeURIComponent(capabilityToken)}`,
+    );
     events.addEventListener("navigate", (event) => {
       const payload = JSON.parse(event.data);
       if (payload.route) location.hash = payload.route;

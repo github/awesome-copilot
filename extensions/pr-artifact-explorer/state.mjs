@@ -42,6 +42,9 @@ export function normalizeRepository(value) {
   if (!match) {
     throw new Error("Repository must use the owner/name format.");
   }
+  if ([match[1], match[2]].some((part) => part === "." || part === "..")) {
+    throw new Error("Repository owner and name cannot be dot segments.");
+  }
   return `${match[1]}/${match[2]}`;
 }
 

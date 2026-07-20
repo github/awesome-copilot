@@ -3,6 +3,7 @@ import { posix } from "node:path";
 import { Transform } from "node:stream";
 import { getCachedEntry } from "./cache.mjs";
 import { mimeForPath } from "./detector.mjs";
+import { isCanonicalHost } from "./security.mjs";
 import { streamZipEntry } from "./zip.mjs";
 
 const previewServers = new Map();
@@ -130,9 +131,21 @@ async function servePreviewRequest(
   entryName,
   theme,
   parentOrigin,
+  serverEntry,
   req,
   res,
 ) {
+  if (!isCanonicalHost(req, serverEntry.host)) {
+    res.writeHead(403, {
+      "Cache-Control": "no-store",
+      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Security-Policy": PREVIEW_CSP,
+      "Referrer-Policy": "no-referrer",
+      "X-Content-Type-Options": "nosniff",
+    });
+    res.end("Preview host is not allowed.");
+    return;
+  }
   if (!["GET", "HEAD"].includes(req.method)) {
     res.writeHead(405, { Allow: "GET, HEAD" });
     res.end();
@@ -197,6 +210,9 @@ async function servePreviewRequest(
 
 export async function startStaticPreview(artifactId, entryPath, options) {
   const context = await getCachedEntry(artifactId, entryPath);
+  if (!context.entry.supported) {
+    throw new Error("This file uses an unsupported ZIP encoding.");
+  }
   if (!mimeForPath(context.entry.name).startsWith("text/html")) {
     throw new Error("Only HTML files can start a static preview.");
   }
@@ -220,6 +236,7 @@ export async function startStaticPreview(artifactId, entryPath, options) {
   const existing = previewServers.get(key);
   if (existing) return existing.url;
 
+  const serverEntry = { host: "" };
   const server = createServer((req, res) => {
     void servePreviewRequest(
       String(artifactId),
@@ -227,6 +244,7 @@ export async function startStaticPreview(artifactId, entryPath, options) {
       context.entry.name,
       theme,
       parentOrigin,
+      serverEntry,
       req,
       res,
     );
@@ -240,6 +258,7 @@ export async function startStaticPreview(artifactId, entryPath, options) {
     await new Promise((resolve) => server.close(resolve));
     throw new Error("Static preview server did not receive a TCP port.");
   }
+  serverEntry.host = `127.0.0.1:${address.port}`;
   const url = `http://127.0.0.1:${address.port}/`;
   previewServers.set(key, { artifactId: String(artifactId), server, url, canvasOrigin: parentOrigin });
   return url;

@@ -2,7 +2,7 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { join, posix } from "node:path";
 import { createServer } from "node:http";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { pipeline } from "node:stream/promises";
 import { resolveAccounts, invalidateAccounts } from "./accounts.mjs";
 import {
@@ -44,7 +44,13 @@ import {
   stopStaticPreviewsForOrigin,
 } from "./preview.mjs";
 import { ExpiringPromiseCache } from "./memory-cache.mjs";
-import { HTML } from "./render.mjs";
+import { renderHtml } from "./render.mjs";
+import {
+  hasCapabilityToken,
+  isCanonicalHost,
+  isCrossSiteRequest,
+  requiresCapabilityToken,
+} from "./security.mjs";
 import {
   loadPrefs,
   normalizeRepository,
@@ -91,6 +97,10 @@ class HttpError extends Error {
     this.name = "HttpError";
     this.status = status;
   }
+}
+
+function createCapabilityToken() {
+  return randomBytes(32).toString("base64url");
 }
 
 function sendJson(res, status, value) {
@@ -299,6 +309,42 @@ function decodeEntryPath(encoded) {
   }
 }
 
+export function contentDeliveryMode(entry, download) {
+  if (entry?.supported) return "entry";
+  return download ? "archive" : "unsupported";
+}
+
+function archiveDownloadName(context, artifactId) {
+  const rawName = String(
+    context.metadata?.artifact?.name || `artifact-${artifactId}`,
+  ).replaceAll("\\", "/");
+  const baseName = posix.basename(rawName) || `artifact-${artifactId}`;
+  return baseName.toLowerCase().endsWith(".zip")
+    ? baseName
+    : `${baseName}.zip`;
+}
+
+async function sendArchiveDownload(req, res, context, artifactId) {
+  const info = await stat(context.archivePath);
+  const filename = archiveDownloadName(context, artifactId);
+  res.writeHead(200, {
+    "Cache-Control": "no-store",
+    "Content-Disposition":
+      `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
+    "Content-Length": String(info.size),
+    "Content-Security-Policy": "default-src 'none'; sandbox",
+    "Content-Type": "application/zip",
+    "Cross-Origin-Resource-Policy": "same-origin",
+    "Referrer-Policy": "no-referrer",
+    "X-Content-Type-Options": "nosniff",
+  });
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
+  await pipeline(createReadStream(context.archivePath), res);
+}
+
 async function handleContentRequest(req, res, pathname, searchParams) {
   const match = pathname.match(/^\/content\/(\d+)\/(.+)$/);
   if (!match) return false;
@@ -308,7 +354,15 @@ async function handleContentRequest(req, res, pathname, searchParams) {
   const artifactId = match[1];
   const entryPath = decodeEntryPath(match[2]);
   const context = await getCachedEntry(artifactId, entryPath);
-  if (!context.entry.supported) throw new HttpError(415, "This ZIP entry cannot be served.");
+  const download = searchParams.get("download") === "1";
+  const deliveryMode = contentDeliveryMode(context.entry, download);
+  if (deliveryMode === "unsupported") {
+    throw new HttpError(415, "This ZIP entry cannot be served.");
+  }
+  if (deliveryMode === "archive") {
+    await sendArchiveDownload(req, res, context, artifactId);
+    return true;
+  }
   if (context.entry.uncompressedSize > MAX_STREAMED_ENTRY_BYTES) {
     throw new HttpError(
       413,
@@ -316,7 +370,6 @@ async function handleContentRequest(req, res, pathname, searchParams) {
     );
   }
 
-  const download = searchParams.get("download") === "1";
   const headers = {
     "Cache-Control": "no-store",
     "Content-Length": String(context.entry.uncompressedSize),
@@ -769,8 +822,25 @@ async function handleApi(req, res, entry, url) {
 async function handleRequest(req, res, entry) {
   const url = new URL(req.url, "http://127.0.0.1");
   try {
-    if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
-      return sendText(res, 200, HTML, "text/html; charset=utf-8", {
+    if (!isCanonicalHost(req, entry.host)) {
+      throw new HttpError(403, "Request host is not allowed.");
+    }
+    const protectedRoute = requiresCapabilityToken(url.pathname);
+    if (protectedRoute && isCrossSiteRequest(req, entry.origin)) {
+      throw new HttpError(403, "Cross-site requests are not allowed.");
+    }
+    if (protectedRoute && !hasCapabilityToken(req, url, entry.token)) {
+      throw new HttpError(403, "Missing or invalid capability token.");
+    }
+
+    const documentRoute =
+      req.method === "GET" &&
+      (url.pathname === "/" || url.pathname === "/index.html");
+    if (documentRoute && url.searchParams.get("token") !== entry.token) {
+      throw new HttpError(403, "Missing or invalid capability token.");
+    }
+    if (documentRoute) {
+      return sendText(res, 200, renderHtml(entry.token), "text/html; charset=utf-8", {
         "Content-Security-Policy": MAIN_CSP,
         "Referrer-Policy": "no-referrer",
       });
@@ -832,10 +902,13 @@ export async function startInstance(instanceId, initialInput, log) {
   }
 
   entry = {
+    host: null,
     initialInput: initialInput ?? null,
     log,
+    origin: null,
     server: null,
     sseClients: new Set(),
+    token: createCapabilityToken(),
     url: null,
   };
   const server = createServer((req, res) => {
@@ -851,7 +924,9 @@ export async function startInstance(instanceId, initialInput, log) {
     throw new Error("Canvas server did not receive a TCP port.");
   }
   entry.server = server;
-  entry.url = `http://127.0.0.1:${address.port}/`;
+  entry.host = `127.0.0.1:${address.port}`;
+  entry.origin = `http://${entry.host}`;
+  entry.url = `${entry.origin}/?token=${encodeURIComponent(entry.token)}`;
   servers.set(instanceId, entry);
   return entry;
 }

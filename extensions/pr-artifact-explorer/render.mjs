@@ -1,8 +1,19 @@
+const CAPABILITY_TOKEN_MARKER = "__PR_ARTIFACT_EXPLORER_CAPABILITY_TOKEN__";
+
+function escapeHtmlAttribute(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
 export const HTML = `<!doctype html>
 <html lang="en" data-color-mode="auto" data-light-theme="light" data-dark-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="pr-artifact-explorer-token" content="${CAPABILITY_TOKEN_MARKER}" />
     <title>PR Artifact Explorer</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="/assets/primer-color-modes.css" />
@@ -79,3 +90,10 @@ export const HTML = `<!doctype html>
     </div>
   </body>
 </html>`;
+
+export function renderHtml(capabilityToken) {
+  return HTML.replace(
+    CAPABILITY_TOKEN_MARKER,
+    escapeHtmlAttribute(capabilityToken),
+  );
+}
