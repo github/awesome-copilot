@@ -110,9 +110,10 @@ The Workshop has a canvas extension — **🪨 Cairn** — that shows a live das
 of every desk's signals, score bars, and escalations. It reads
 `desks/*/.signals/` for the latest signal JSON per desk.
 
-Cairn is a **companion canvas, installed separately from the plugin** — it does
-**not** auto-load when the plugin is installed. If the operator asks you to "run
-cairn" / "open the dashboard" and it isn't already showing:
+The canvas does **not** auto-load when the plugin is installed. To see the live
+board, install and register the `signals-dashboard` extension separately. If the
+operator asks you to "run cairn" / "open the dashboard" and it isn't already
+showing:
 
 1. Install the `signals-dashboard` canvas extension. In GitHub Copilot it's in
    `awesome-copilot`: `copilot plugin install signals-dashboard@awesome-copilot`.
