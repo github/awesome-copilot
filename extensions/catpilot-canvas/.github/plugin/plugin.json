@@ -1,0 +1,19 @@
+{
+  "name": "catpilot-canvas",
+  "description": "Visual command center canvas for CatPilot: manage tasks, journal, milestones, memos, learning, growth, projects, Copilot reports and an activity timeline with dashboards, charts, a markdown editor and interactive settings.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Albert Tanure",
+    "url": "https://github.com/tanure"
+  },
+  "keywords": [
+    "canvas",
+    "productivity",
+    "task-management",
+    "dashboard",
+    "personal-assistant",
+    "markdown-editor"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

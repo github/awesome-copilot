@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CatPilot</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <!-- Onboarding overlay (shown when CatPilot is not configured) -->
+    <div id="onboarding" class="onboarding hidden">
+        <div class="onboarding-card">
+            <img src="hero.png" alt="CatPilot" class="onboarding-hero" />
+            <h1>Welcome to CatPilot 😺</h1>
+            <p class="muted">Let's set up your workspace. CatPilot stores everything as plain markdown so it stays yours — ideal for an Obsidian vault.</p>
+            <form id="setup-form" class="form">
+                <label>
+                    <span>Storage root <em>(folder path)</em></span>
+                    <input type="text" name="root" placeholder="C:\Users\you\ObsidianVault" required autocomplete="off" />
+                </label>
+                <label>
+                    <span>Partitioning</span>
+                    <select name="partitioning">
+                        <option value="month" selected>Month (YYYY/YYYY-MM)</option>
+                        <option value="week">Week (YYYY/Www)</option>
+                        <option value="day">Day (YYYY/YYYY-MM/YYYY-MM-DD)</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Existing data</span>
+                    <select name="migration">
+                        <option value="adopt" selected>Adopt (use files where they are)</option>
+                        <option value="move">Move</option>
+                        <option value="copy">Copy</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-lg">Create workspace</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="app" class="app hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="hero.png" alt="" class="brand-logo" />
+                <div class="brand-text">
+                    <strong>CatPilot</strong>
+                    <span class="muted small">command center</span>
+                </div>
+            </div>
+            <nav class="nav" id="nav"></nav>
+            <div class="sidebar-foot">
+                <div class="storage-chip" id="storage-chip" title=""></div>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h2 id="view-title">Dashboard</h2>
+                    <span class="muted small" id="view-sub"></span>
+                </div>
+                <div class="topbar-right">
+                    <div class="segmented" id="view-actions"></div>
+                    <button class="icon-btn agent-icon" id="agent-btn" title="Ask Copilot">✨</button>
+                    <button class="icon-btn" id="refresh-btn" title="Refresh">⟳</button>
+                    <button class="icon-btn" id="theme-btn" title="Toggle theme">🌙</button>
+                </div>
+            </header>
+            <section class="content" id="content"></section>
+        </main>
+    </div>
+
+    <!-- Modal host -->
+    <div id="modal-root"></div>
+    <!-- Toasts -->
+    <div id="toasts" class="toasts"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
