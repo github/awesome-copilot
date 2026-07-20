@@ -1,3 +1,8 @@
+---
+name: shepherd-task-create-post-mortem
+description: 'Create a structured post-mortem report from shepherd-task run artifacts, including metrics, timeline, failures, and actionable recommendations.'
+---
+
 # Skill: Create Shepherd Task Post-Mortem
 
 ## Purpose
