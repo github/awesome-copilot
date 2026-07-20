@@ -19,6 +19,7 @@ const servers = new Map();
 /** @type {Map<string, NodeJS.Timeout>} */
 const stateCleanupTimers = new Map();
 const STATE_RETENTION_MS = 30 * 60 * 1000;
+const AGENT_RESPONSE_TIMEOUT_MS = 60 * 1000;
 const QUESTION_TYPES = new Set(["Explain", "Predict", "Refactor", "Debug"]);
 
 function isNonEmptyString(value) {
@@ -79,6 +80,12 @@ function handleClientEvent(instanceId, sendToSession, event) {
             setTimeout(async () => {
                 try {
                     await sendToSession({ prompt });
+                    const currentState = getState(instanceId);
+                    if (currentState.domainSelectionStatus !== "submitting") return;
+                    currentState.domainSelectionStatus = "error";
+                    currentState.domainSelectionError = "The quiz could not be started. Try selecting the domain again.";
+                    currentState.announcement = currentState.domainSelectionError;
+                    servers.get(instanceId)?.broadcastState();
                 } catch (err) {
                     const currentState = getState(instanceId);
                     if (currentState.domainSelectionStatus !== "submitting") return;
@@ -120,6 +127,12 @@ function handleClientEvent(instanceId, sendToSession, event) {
                     await sendToSession({
                         prompt: `Answer to ${domainName} question ${question.index} of ${question.total}:\n\n${answer}`,
                     });
+                    const currentState = getState(instanceId);
+                    if (currentState.question?.id !== question.id || currentState.answerStatus !== "submitting") return;
+                    currentState.answerStatus = "error";
+                    currentState.answerError = "Your answer could not be scored. Try again.";
+                    currentState.announcement = currentState.answerError;
+                    servers.get(instanceId)?.broadcastState();
                 } catch (err) {
                     const currentState = getState(instanceId);
                     if (currentState.question?.id !== question.id || currentState.answerStatus !== "submitting") return;
@@ -164,6 +177,12 @@ function handleClientEvent(instanceId, sendToSession, event) {
             setTimeout(async () => {
                 try {
                     await sendToSession({ prompt: "Compile report" });
+                    const currentState = getState(instanceId);
+                    if (currentState.reportRequestStatus !== "submitting") return;
+                    currentState.reportRequestStatus = "error";
+                    currentState.reportRequestError = "The report could not be requested. Try again.";
+                    currentState.announcement = currentState.reportRequestError;
+                    servers.get(instanceId)?.broadcastState();
                 } catch (err) {
                     const currentState = getState(instanceId);
                     if (currentState.reportRequestStatus !== "submitting") return;
@@ -495,7 +514,7 @@ const session = await joinSession({
                 },
             ],
             open: async (ctx) => {
-                const entry = await ensureServer(ctx.instanceId, (message) => session.send(message));
+                const entry = await ensureServer(ctx.instanceId, (message) => session.sendAndWait(message, AGENT_RESPONSE_TIMEOUT_MS));
                 return { title: "BrainMax", url: entry.url };
             },
             onClose: async (ctx) => {

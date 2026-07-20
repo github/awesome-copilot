@@ -429,12 +429,12 @@ document.getElementById("btn-compile-report").addEventListener("click", async ()
 });
 
 // ---------- Theme toggle ----------
-// Local UI preference only — never sent to the extension/chat. Persisted per
-// browser via localStorage so it survives canvas reopens.
-const THEME_STORAGE_KEY = "brainmax-canvas-theme";
+// Local UI preference only — never sent to the extension/chat. It applies to
+// this page and resets when the Canvas reopens.
 const themeToggleBtn = document.getElementById("theme-toggle");
 const themeToggleLabel = document.getElementById("theme-toggle-label");
 const colorScheme = window.matchMedia("(prefers-color-scheme: light)");
+let selectedTheme = null;
 
 function applyTheme(theme) {
   if (theme === "light" || theme === "dark") {
@@ -453,18 +453,17 @@ function applyTheme(theme) {
   themeToggleBtn.setAttribute("aria-label", `Switch from ${resolved} to ${nextTheme} theme`);
 }
 
-const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-applyTheme(storedTheme);
+applyTheme(selectedTheme);
 
 themeToggleBtn.addEventListener("click", () => {
-  const current = document.documentElement.dataset.theme || (colorScheme.matches ? "light" : "dark");
+  const current = selectedTheme || (colorScheme.matches ? "light" : "dark");
   const next = current === "light" ? "dark" : "light";
-  localStorage.setItem(THEME_STORAGE_KEY, next);
-  applyTheme(next);
+  selectedTheme = next;
+  applyTheme(selectedTheme);
 });
 
 colorScheme.addEventListener("change", () => {
-  if (!document.documentElement.dataset.theme) applyTheme(null);
+  if (!selectedTheme) applyTheme(null);
 });
 
 const source = new EventSource(apiUrl("/events"));
