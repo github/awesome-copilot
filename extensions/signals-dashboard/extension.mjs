@@ -141,9 +141,15 @@ function shSingleQuote(s) {
     return "'" + String(s).replace(/'/g, "'\\''") + "'";
 }
 
-// AppleScript string literal: escape backslashes and double quotes.
+// AppleScript string literal: escape backslashes, double quotes, and line breaks
+// (a raw CR/LF in a path would otherwise terminate the literal and fail to
+// compile, while osascript still spawns and trySpawn would report success).
 function osaStringLiteral(s) {
-    return '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+    return '"' + String(s)
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/\r/g, "\\r")
+        .replace(/\n/g, "\\n") + '"';
 }
 
 // Resolve symlinks on both sides and confirm the target is the workshop root
@@ -160,25 +166,29 @@ function isInsideRoot(root, target) {
 }
 
 async function launchDeskConsole(deskPath, deskName, workshopDir) {
-    // deskPath can't contain a double quote (a real Windows path never does and
-    // it would break out of a quoted argument). deskName must be a plain slug so
-    // it is safe on every command line and shell below, and the resolved desk
-    // must still live inside the workshop root (which defeats a symlinked desk
-    // that escapes the repo).
-    if (!deskPath || deskPath.includes('"')) return false;
+    // deskName must be a plain slug so it is safe on every command line and shell
+    // below, and the resolved desk must still live inside the workshop root
+    // (which defeats a symlinked desk that escapes the repo). deskPath itself is
+    // only ever quoted (macOS), passed via -d/cwd (Windows), or handed to the
+    // shell as a single-quoted literal (Linux), so an empty-path guard is all
+    // that is needed — a quote in the path can't break out of any of those.
+    if (!deskPath) return false;
     if (!isSafeDeskNameForLaunch(deskName)) return false;
     if (!isInsideRoot(workshopDir, deskPath)) return false;
     const run = [...deskAgentArgv(deskName), "-i", deskOrientPrompt(deskName)];
     if (process.platform === "win32") {
-        // Windows Terminal is a GUI app, so it always surfaces its own visible
-        // window even though the extension host is windowless. It is spawned via
-        // argv (no shell), so the contents of run are passed literally.
-        if (await trySpawn("wt.exe", ["-d", deskPath, ...run])) return true;
-        // Fallback when wt.exe is absent: a fresh console window via `start`.
-        // `start` re-parses its tail through cmd, so this path is only safe
-        // because deskName is a slug and the orientation prompt carries no shell
-        // metacharacters or quotes; nothing untrusted reaches the parser.
-        return await trySpawn("cmd.exe", ["/c", "start", "", ...run], { cwd: deskPath });
+        // Run the agent through cmd.exe (/k) so PATHEXT is applied: globally
+        // installed CLIs like `copilot`/`agency` are usually .cmd shims that
+        // Windows Terminal or a bare CreateProcess would fail to launch (they
+        // expect a literal executable, not a PATHEXT name). Windows Terminal is a
+        // GUI app, so it still surfaces its own window from the windowless host.
+        // Each element of run is its own argv token — deskName is a slug and the
+        // orientation prompt has no cmd metacharacters — and the desk path is
+        // passed via -d/cwd, so nothing untrusted is reparsed by a shell.
+        if (await trySpawn("wt.exe", ["-d", deskPath, "cmd", "/k", ...run])) return true;
+        // Fallback when wt.exe is absent: a fresh console window via `start`,
+        // still through cmd /k for the same PATHEXT resolution.
+        return await trySpawn("cmd.exe", ["/c", "start", "", "cmd", "/k", ...run], { cwd: deskPath });
     }
     if (process.platform === "darwin") {
         // macOS: `open` can't inject a command, so drive Terminal via AppleScript
@@ -594,7 +604,7 @@ function renderSignalCard(sig) {
     const openBtnStyle = isEscalation
         ? "background:#7f1d1d;border:1px solid #dc2626;color:#fca5a5;padding:2px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-weight:600;transition:all .15s;"
         : "background:none;border:1px solid #1e3a5f;color:#7dd3fc;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;transition:all .15s;";
-    const openBtn = noSignal ? "" : `<button data-act="open" data-desk="${esc(sig.deskName)}"
+    const openBtn = `<button data-act="open" data-desk="${esc(sig.deskName)}"
         style="${openBtnStyle}"
         onmouseover="this.style.background='#1e3a5f'"
         onmouseout="this.style.background='${isEscalation ? '#7f1d1d' : 'transparent'}'"
