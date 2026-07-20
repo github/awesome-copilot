@@ -122,8 +122,8 @@ async function handleApi(req, url) {
         const { prompt } = await readBody(req);
         if (!prompt || !String(prompt).trim()) throw new Error("prompt is required");
         if (!sessionRef?.send) return { ok: false, error: "No active session." };
-        const id = await sessionRef.send(String(prompt));
-        return { ok: true, id };
+await sessionRef.send({ prompt: String(prompt) });
+        return { ok: true };
     }
     if (p === "/api/agent/generate" && m === "POST") {
         const { prompt, timeout } = await readBody(req);
