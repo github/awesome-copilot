@@ -1,6 +1,6 @@
 {
   "name": "connector-namespaces",
-  "description": "Browse, connect, and open MCP connectors from an Azure Connector Namespace.",
+  "description": "Interactive GitHub Copilot canvas for discovering, connecting, and managing hosted MCP servers from Azure Connector Namespace.",
   "version": "1.2.0",
   "author": {
     "name": "Alex Yang",

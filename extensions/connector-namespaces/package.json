@@ -3,7 +3,7 @@
   "version": "1.2.0",
   "type": "module",
   "main": "extension.mjs",
-  "description": "Browse, connect, and open MCP connectors from your Azure Connector Namespace in Sandbox.",
+  "description": "Interactive GitHub Copilot canvas for discovering, connecting, and managing hosted MCP servers from Azure Connector Namespace.",
   "keywords": [
     "azure",
     "connector-namespace",
