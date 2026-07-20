@@ -468,7 +468,7 @@ async function loadSubscriptions(force) {
     } catch (error) {
         setupContent.hidden = false;
         signinPanel.hidden = true;
-        gatewayList.innerHTML = '<div class="empty" style="color:var(--danger);">Couldn\\'t load subscriptions: ' + escH(error.message) + '<br><button id="retry-subscriptions" class="change-btn" type="button" style="margin-top:.6rem;">Retry</button></div>';
+        gatewayList.innerHTML = '<div class="empty" style="color:var(--danger);">Unable to load subscriptions: ' + escH(error.message) + '<br><button id="retry-subscriptions" class="change-btn" type="button" style="margin-top:.6rem;">Retry</button></div>';
         document.getElementById("retry-subscriptions").addEventListener("click", () => loadSubscriptions(true));
         return false;
     }
@@ -515,7 +515,7 @@ async function startSignin() {
         signinPanel.dataset.state = "error";
         signinPanel.setAttribute("aria-busy", "false");
         signinButton.disabled = false;
-        signinMessage.textContent = "Couldn\\'t start sign-in: " + error.message;
+        signinMessage.textContent = "Unable to start sign-in: " + error.message;
     }
 }
 

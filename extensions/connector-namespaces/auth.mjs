@@ -129,7 +129,13 @@ export class InteractiveAuthBroker {
 
     ensureLegacyCredentialsRemoved() {
         if (!this.cleanupInFlight) {
-            this.cleanupInFlight = Promise.resolve().then(() => this.cleanupLegacyCredentials());
+            const cleanup = Promise.resolve()
+                .then(() => this.cleanupLegacyCredentials())
+                .catch((error) => {
+                    if (this.cleanupInFlight === cleanup) this.cleanupInFlight = null;
+                    throw error;
+                });
+            this.cleanupInFlight = cleanup;
         }
         return this.cleanupInFlight;
     }
@@ -198,7 +204,6 @@ export class InteractiveAuthBroker {
         if (!session) return { ok: false, status: "unknown" };
         if (session.status === "pending") return { ok: true, status: "pending", mode: "interactive" };
 
-        this.sessions.delete(sessionId);
         if (session.status === "done") return { ok: true, status: "done" };
         if (session.status === "cancelled") return { ok: true, status: "cancelled" };
         return { ok: false, status: "error", error: session.error || "Azure sign-in failed." };
@@ -224,10 +229,13 @@ export class InteractiveAuthBroker {
                 credential = this.createInteractiveCredential(authenticationRecord);
                 this.credential = credential;
             } catch (error) {
-                throw new ConnectorAuthenticationRequiredError(
-                    "Azure sign-in is unavailable. Check the secure token cache installation and try again.",
-                    { cause: error },
-                );
+                if (isAuthenticationRequiredError(error)) {
+                    throw new ConnectorAuthenticationRequiredError(
+                        "Sign in to Azure to continue.",
+                        { cause: error },
+                    );
+                }
+                throw error;
             }
         }
         const request = credential.getToken(this.scope)
@@ -239,6 +247,7 @@ export class InteractiveAuthBroker {
                 return accessToken.token;
             })
             .catch((error) => {
+                if (!isAuthenticationRequiredError(error)) throw error;
                 if (this.credential === credential) {
                     this.credential = null;
                     this.accessToken = null;

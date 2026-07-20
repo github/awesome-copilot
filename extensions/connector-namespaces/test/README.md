@@ -9,7 +9,7 @@ connect → initialize → tools/list → a safe tools/call
 
 It imports the `connector-namespaces` extension's real pipeline (`install.mjs`,
 `catalog.mjs`, `armClient.mjs`) and connects through the same native Streamable
-HTTP endpoint that the extension writes to the Copilot CLI config. The probe
+HTTP endpoint that the extension writes to the GitHub Copilot MCP config. The probe
 uses the configured `X-API-Key`, follows `Mcp-Session-Id`, and accepts standard
 JSON or SSE JSON-RPC responses.
 
@@ -27,6 +27,11 @@ MCP server issue locally.
    (`{ subscriptionId, resourceGroup, gatewayName }`). Pick a gateway once in
    the connector-namespaces canvas, or write that file by hand.
 3. **Node 20+** (developed on Node 24).
+4. **Extension dependencies installed.** From the repository root, run:
+
+   ```bash
+   npm install --prefix extensions/connector-namespaces
+   ```
 
 ## Run it
 
@@ -70,7 +75,7 @@ connector's own consent. The model:
    loopback page is just a redirect target and nothing is listening on it.
 3. **Re-run the harness.** It sees the pending record, confirms the gateway
    connection is now `Connected`, finishes the install (mints the API key,
-   writes the CLI entry), and probes it headless. From then on the connector is
+   writes the Copilot MCP entry), and probes it headless. From then on the connector is
    reused without repeating its consent.
 
 So the server taxonomy is:

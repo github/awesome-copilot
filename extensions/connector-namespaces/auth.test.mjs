@@ -96,6 +96,7 @@ test("interactive sign-in reports pending then done and caches the ARM token", a
     });
     assert.equal(authenticateOptions.abortSignal.aborted, false);
     assert.deepEqual(broker.getSignInStatus(started.sessionId), { ok: true, status: "done" });
+    assert.deepEqual(broker.getSignInStatus(started.sessionId), { ok: true, status: "done" });
     assert.equal(await broker.getToken(), "token");
 });
 
@@ -150,7 +151,9 @@ test("cancelling sign-in aborts the credential request", async () => {
             });
         },
         async getToken() {
-            throw new Error("getToken should not run after cancellation");
+            const error = new Error("No cached account found.");
+            error.name = "AuthenticationRequiredError";
+            throw error;
         },
     };
     const broker = new InteractiveAuthBroker({
@@ -169,6 +172,7 @@ test("cancelling sign-in aborts the credential request", async () => {
     await pending;
 
     assert.equal(abortSignal.aborted, true);
+    assert.deepEqual(broker.getSignInStatus(started.sessionId), { ok: true, status: "cancelled" });
     assert.deepEqual(broker.getSignInStatus(started.sessionId), { ok: true, status: "cancelled" });
     await assert.rejects(broker.getToken(), ConnectorAuthenticationRequiredError);
 });
@@ -195,4 +199,70 @@ test("sign-in failures are surfaced through the status endpoint contract", async
         status: "error",
         error: "browser launch failed",
     });
+    assert.deepEqual(broker.getSignInStatus(started.sessionId), {
+        ok: false,
+        status: "error",
+        error: "browser launch failed",
+    });
+});
+
+test("legacy credential cleanup retries after a transient failure", async () => {
+    let cleanupCalls = 0;
+    const broker = new InteractiveAuthBroker({
+        cleanupLegacyCredentials: async () => {
+            cleanupCalls++;
+            if (cleanupCalls === 1) throw new Error("legacy cache is locked");
+        },
+        createCredential: () => ({
+            async getToken() {
+                return accessToken();
+            },
+        }),
+        loadAuthRecord: async () => authenticationRecord(),
+    });
+
+    await assert.rejects(broker.getToken(), /legacy cache is locked/);
+    assert.equal(await broker.getToken(), "token");
+    assert.equal(cleanupCalls, 2);
+});
+
+test("token acquisition preserves operational errors and retries the credential", async () => {
+    const outage = new Error("Azure Identity network request timed out");
+    let createCredentialCalls = 0;
+    let tokenCalls = 0;
+    const broker = new InteractiveAuthBroker({
+        createCredential: () => {
+            createCredentialCalls++;
+            return {
+                async getToken() {
+                    tokenCalls++;
+                    if (tokenCalls === 1) throw outage;
+                    return accessToken();
+                },
+            };
+        },
+        loadAuthRecord: async () => authenticationRecord(),
+    });
+
+    await assert.rejects(broker.getToken(), (error) => error === outage);
+    assert.equal(await broker.getToken(), "token");
+    assert.equal(createCredentialCalls, 1);
+    assert.equal(tokenCalls, 2);
+});
+
+test("incomplete tokens remain operational errors instead of prompting sign-in", async () => {
+    const broker = new InteractiveAuthBroker({
+        createCredential: () => ({
+            async getToken() {
+                return { token: "incomplete" };
+            },
+        }),
+        loadAuthRecord: async () => authenticationRecord(),
+    });
+
+    await assert.rejects(
+        broker.getToken(),
+        (error) => !(error instanceof ConnectorAuthenticationRequiredError)
+            && error.message === "Azure identity returned an incomplete ARM access token.",
+    );
 });

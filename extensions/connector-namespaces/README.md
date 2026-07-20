@@ -36,6 +36,10 @@ and select **Install in GitHub Copilot app**.
 - Permission to view the namespace and create its connections and hosted MCP
   server configurations.
 - A browser for Microsoft Entra sign-in and connector consent.
+- An operating-system secure credential store. Windows and macOS provide one by
+  default. Linux and WSL require a Secret Service-compatible keyring, such as
+  GNOME Keyring, with `libsecret` available. Unencrypted token storage is
+  intentionally disabled.
 
 Connector Namespace is currently an Azure preview service and availability can
 vary by region.
@@ -60,9 +64,13 @@ playground. Use **Change namespace** to switch subscriptions or namespaces.
 Azure sign-in and connector sign-in are separate:
 
 - **Azure sign-in** lets the canvas discover and manage Connector Namespace
-  resources. The account cache is stored in the operating system's encrypted
-  credential store; raw access and refresh tokens are not written to extension
-  files.
+  resources. Access and refresh tokens are stored in the operating system's
+  encrypted credential store. To select that encrypted cache entry after an app
+  restart, the extension separately saves a non-secret authentication record
+  containing the authority, client ID, account ID, tenant ID, and username under
+  `~/.copilot/extensions/connector-namespaces/artifacts/azure-auth-record.json`,
+  with user-only permissions where supported. Raw tokens are never written to
+  extension files.
 - **Connector sign-in** grants an individual MCP server access to its backing
   service. The resulting connection is managed by Connector Namespace.
 
