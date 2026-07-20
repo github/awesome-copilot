@@ -42,6 +42,7 @@
    (no [data-theme] attribute set yet by app.js). */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
+    color-scheme: light;
     --bg: oklch(1 0 0);
     --surface: oklch(0.98 0.004 294);
     --surface-2: oklch(0.955 0.008 294);

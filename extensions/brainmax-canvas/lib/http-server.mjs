@@ -20,6 +20,18 @@ const MIME = {
 const MAX_EVENT_BODY_BYTES = 16 * 1024;
 const SSE_HEARTBEAT_MS = 20_000;
 
+export async function readRequestBody(request, maxBytes = MAX_EVENT_BODY_BYTES) {
+    const bodyChunks = [];
+    let bodyByteLength = 0;
+    for await (const chunk of request) {
+        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+        bodyByteLength += bytes.length;
+        if (bodyByteLength > maxBytes) return null;
+        bodyChunks.push(bytes);
+    }
+    return Buffer.concat(bodyChunks).toString("utf8");
+}
+
 function writeHeaders(res, status, contentType, extra = {}) {
     res.writeHead(status, {
         "Content-Type": contentType,
@@ -78,14 +90,11 @@ export async function startInstanceServer(instanceId, getStateFn, onClientEvent)
                     res.end(JSON.stringify({ ok: false, error: "content type must be application/json" }));
                     return;
                 }
-                let body = "";
-                for await (const chunk of req) {
-                    body += chunk;
-                    if (Buffer.byteLength(body, "utf8") > MAX_EVENT_BODY_BYTES) {
-                        writeHeaders(res, 413, MIME[".json"]);
-                        res.end(JSON.stringify({ ok: false, error: "event payload is too large" }));
-                        return;
-                    }
+                const body = await readRequestBody(req);
+                if (body === null) {
+                    writeHeaders(res, 413, MIME[".json"]);
+                    res.end(JSON.stringify({ ok: false, error: "event payload is too large" }));
+                    return;
                 }
                 let event;
                 try {

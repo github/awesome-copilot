@@ -1,6 +1,6 @@
 # BrainMax Canvas
 
-BrainMax Canvas is the interactive dashboard for codebase-grounded concept-mastery quizes. It presents detected knowledge domains, accepts freeform answers, shows rubric scores, and compiles completed domains into a competency report.
+BrainMax Canvas is the interactive dashboard for codebase-grounded concept-mastery quizzes. It presents detected knowledge domains, accepts freeform answers, shows rubric scores, and compiles completed domains into a competency report.
 
 The Canvas is an optional visual layer. Question generation and scoring stay with the [BrainMaxxing Agent Skills](https://gh.io/brainmaxxing/skills), and the skills continue to work in clients without Canvas support.
 
@@ -8,7 +8,12 @@ The Canvas is an optional visual layer. Question generation and scoring stay wit
 
 ## Install
 
-Install the Brainmax Canvas extension through GitHub Copilot or place this directory at `.github/extensions/brainmax-canvas/` in a project.
+Install the Brainmax Canvas extension through GitHub Copilot or place this directory at `.github/extensions/brainmax-canvas/` in a project. For a project-scoped installation, install the extension's dependencies:
+
+```bash
+cd .github/extensions/brainmax-canvas
+npm install
+```
 
 Install the companion Brainmaxxing Agent Skills separately:
 

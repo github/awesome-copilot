@@ -7,8 +7,7 @@
 // scores them and reports back via `record_score` / `complete_domain` /
 // `show_report`.
 //
-// See README.md in this directory for the full action contract with
-// example payloads.
+// See README.md in this directory for installation and usage guidance.
 
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 import { randomUUID } from "node:crypto";
@@ -341,7 +340,7 @@ const session = await joinSession({
                 {
                     name: "record_score",
                     description:
-                        "Reveal the score for the question just answered (0-3 rubric) with a one-sentence explanation. For questions 1-4, immediately follow this successful action with set_question for the next question before responding in chat. For question 5, follow with complete_domain.",
+                        "Reveal the score for the question just answered (0-3 rubric) with a one-sentence explanation. For every non-final question, immediately follow this successful action with set_question for the next question before responding in chat. For the final question, follow with complete_domain.",
                     inputSchema: {
                         type: "object",
                         required: ["index", "score", "feedback"],
@@ -376,7 +375,7 @@ const session = await joinSession({
                 },
                 {
                     name: "complete_domain",
-                    description: "MANDATORY after Question 5: show the domain summary with non-empty strongestArea and gap analysis before presenting the summary in chat.",
+                    description: "MANDATORY after the final question: show the domain summary with non-empty strongestArea and gap analysis before presenting the summary in chat.",
                     inputSchema: {
                         type: "object",
                         required: ["domainId", "domainName", "total", "max", "percentage", "strongestArea", "gap"],
