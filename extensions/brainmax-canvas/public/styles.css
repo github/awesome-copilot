@@ -6,7 +6,7 @@
    different surface strategy (shadow-based elevation vs. lighter-surface
    stacking) and darkened brand/tier colors so text-on-color still clears
    WCAG AA on a bright surface. Resolution order: explicit [data-theme]
-   attribute (user toggle, persisted) > prefers-color-scheme > dark default. */
+   attribute (page-local user toggle) > prefers-color-scheme > dark default. */
 
 :root {
   /* Surfaces */

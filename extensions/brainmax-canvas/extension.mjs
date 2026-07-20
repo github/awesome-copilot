@@ -150,6 +150,9 @@ function handleClientEvent(instanceId, sendToSession, event) {
             if (state.view !== "summary" && state.view !== "report") {
                 return { ok: false, error: "Finish the active quiz before choosing another domain." };
             }
+            if (state.reportRequestStatus === "submitting") {
+                return { ok: false, error: "Wait for the competency report to finish compiling." };
+            }
             state.view = "domains";
             state.question = null;
             state.lastScore = null;
@@ -351,7 +354,7 @@ const session = await joinSession({
                         state.answerError = null;
                         if (state.quiz) state.quiz.index = index;
                         state.view = "quiz";
-                        state.announcement = `Question ${index} of ${total}: ${type}.`;
+                        state.announcement = `Question ${index} of ${total}: ${type}. ${prompt}`;
                         servers.get(ctx.instanceId)?.broadcastState();
                         return { ok: true };
                     },

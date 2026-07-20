@@ -282,9 +282,11 @@ function renderSummary(state) {
   document.getElementById("summary-gap").textContent = summary.gap || "—";
 
   const reportButton = document.getElementById("btn-compile-report");
+  const chooseAnotherButton = document.getElementById("btn-choose-another");
   const reportStatus = document.getElementById("report-request-status");
   const isCompiling = state.reportRequestStatus === "submitting";
   reportButton.disabled = isCompiling;
+  chooseAnotherButton.disabled = isCompiling;
   reportButton.textContent = isCompiling ? "Compiling report…" : "Compile report";
   reportStatus.dataset.state = state.reportRequestStatus || "idle";
   reportStatus.textContent = isCompiling
@@ -413,8 +415,10 @@ document.getElementById("btn-report-choose-another").addEventListener("click", (
 });
 document.getElementById("btn-compile-report").addEventListener("click", async () => {
   const reportButton = document.getElementById("btn-compile-report");
+  const chooseAnotherButton = document.getElementById("btn-choose-another");
   const reportStatus = document.getElementById("report-request-status");
   reportButton.disabled = true;
+  chooseAnotherButton.disabled = true;
   reportButton.textContent = "Compiling report…";
   reportStatus.dataset.state = "submitting";
   reportStatus.textContent = "Building your competency report…";
@@ -422,6 +426,7 @@ document.getElementById("btn-compile-report").addEventListener("click", async ()
     await postEvent({ type: "compile-report" });
   } catch (err) {
     reportButton.disabled = false;
+    chooseAnotherButton.disabled = false;
     reportButton.textContent = "Compile report";
     reportStatus.dataset.state = "error";
     reportStatus.textContent = err instanceof Error ? err.message : "The report could not be requested. Try again.";
