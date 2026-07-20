@@ -35,7 +35,15 @@ A **desk** isn't a sub-agent — it's a peer with a history. Sub-agents inherit 
 
 ## The Cairn Dashboard
 
-The Workshop ships a **canvas extension** (🪨 Cairn) that shows the pulse of every desk — score bars, patterns, escalations — auto-refreshing in the GHCP app. It's bundled with the plugin: `copilot plugin install the-workshop@awesome-copilot` includes the dashboard — nothing else to install.
+The Workshop's live view is a **canvas extension** (🪨 Cairn) — `signals-dashboard` — that shows the pulse of every desk (score bars, patterns, escalations), auto-refreshing in the GitHub Copilot app.
+
+It ships as a separate extension. Install it alongside the plugin to get the live canvas:
+
+```
+copilot plugin install signals-dashboard@awesome-copilot
+```
+
+The Workshop's skills, agent, and desks work without it — the dashboard is the visual layer on top.
 
 ## Works With Ember
 
