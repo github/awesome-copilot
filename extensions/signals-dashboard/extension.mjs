@@ -41,10 +41,12 @@ function isValidDeskName(name) {
 // one workshop repo (coordinated through journals + .signals + Cairn) instead
 // of spinning off an isolated worktree elsewhere on disk.
 //
-// deskPath has already been confirmed to exist by the caller. We additionally
-// reject a path containing a double-quote before quoting it onto a command line
-// (a real Windows path cannot contain one), mirroring ConsoleLauncher.SafeDir,
-// so a planted workshop path can never break out of the -d "..." argument.
+// deskPath has already been confirmed to exist by the caller. Before launching
+// we re-resolve it with realpath and require it to stay inside the workshop root
+// (isInsideRoot), which defeats a planted desks/foo -> /outside symlink; the
+// path is then only ever passed as a spawn cwd, an argv element, or a
+// single-quoted literal inside the macOS Terminal command — never concatenated
+// raw onto a command line — so no character filtering of the path is required.
 function deskOrientPrompt(deskName) {
     return `You are sitting down at the ${deskName} desk in this workshop. ` +
         `Read journal.md in this folder first to pick up where the last session ` +
@@ -161,7 +163,12 @@ function isInsideRoot(root, target) {
     try {
         const r = realpathSync(root);
         const t = realpathSync(target);
-        return t === r || t.startsWith(r + sep);
+        if (t === r) return true;
+        // A filesystem root ("/" or "C:\") already ends with the separator, so
+        // don't append a second one or every desk below it would fail the prefix
+        // test and opening would always fall back.
+        const prefix = r.endsWith(sep) ? r : r + sep;
+        return t.startsWith(prefix);
     } catch { return false; }
 }
 
@@ -169,9 +176,10 @@ async function launchDeskConsole(deskPath, deskName, workshopDir) {
     // deskName must be a plain slug so it is safe on every command line and shell
     // below, and the resolved desk must still live inside the workshop root
     // (which defeats a symlinked desk that escapes the repo). deskPath itself is
-    // only ever quoted (macOS), passed via -d/cwd (Windows), or handed to the
-    // shell as a single-quoted literal (Linux), so an empty-path guard is all
-    // that is needed — a quote in the path can't break out of any of those.
+    // only ever passed as an argv element / spawn cwd (Windows via -d plus cwd,
+    // Linux via cwd) or as a single-quoted literal inside the macOS Terminal
+    // command, so an empty-path guard is all that is needed — a quote in the path
+    // can't break out of any of those.
     if (!deskPath) return false;
     if (!isSafeDeskNameForLaunch(deskName)) return false;
     if (!isInsideRoot(workshopDir, deskPath)) return false;
