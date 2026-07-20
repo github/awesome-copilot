@@ -11,6 +11,8 @@ It shepherds tasks from assignment through CI approval, code review resolution, 
 
 ## Enabling assumptions
 
+### Preconditions
+
 1. The work will happen within a single GitHub repository.
 1. The repository has GitHub Copilot Coding Agent and Code Review Agent installed and properly configured.
 1. User has `gh` CLI installed at version 2.45.0 or later and is signed in.
@@ -23,6 +25,10 @@ It shepherds tasks from assignment through CI approval, code review resolution, 
 1. User accepts this plugin will invoke `copilot --yolo`.
 1. The specification for the job to be done is encoded in an ordered set of GitHub issues in the issue tracker of the GitHub repository.
 1. User has `jq` installed and accessible to Copilot CLI.
+
+### Postconditions
+
+The user of `shepherd-task` is responsible for creating a PR from the specified non-`main base branch to main.
 
 ## Motivation
 
