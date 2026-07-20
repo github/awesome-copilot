@@ -7,9 +7,11 @@ import {
   analyzeArtifact,
   hasRootIndexHtml,
 } from "./detector.mjs";
+import { CacheMaintenanceCoordinator } from "./cache-coordinator.mjs";
 import {
   enrichPullRequests,
   filterPullRequests,
+  listPullRequestArtifacts,
 } from "./github.mjs";
 import { contentDeliveryMode, startInstance, stopInstance } from "./server.mjs";
 import {
@@ -46,6 +48,14 @@ function rawStatus(url, headers) {
     request.on("error", reject);
     request.end();
   });
+}
+
+function deferred() {
+  let resolve;
+  const promise = new Promise((complete) => {
+    resolve = complete;
+  });
+  return { promise, resolve };
 }
 
 test("malformed recent repository values normalize to an empty list", () => {
@@ -170,6 +180,78 @@ test("artifact filtering pages repository artifacts once and caches head SHAs", 
   assert.match(artifactRequests[0], /per_page=100/);
   assert.match(artifactRequests[0], /page=1/);
   assert.match(artifactRequests[1], /page=2/);
+});
+
+test("pull artifact results report the intentional workflow-run cap", async (t) => {
+  const originalFetch = globalThis.fetch;
+  const artifactRequests = [];
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async (url) => {
+    const requestUrl = new URL(url);
+    if (requestUrl.pathname === "/repos/example/run-cap/pulls/7") {
+      return jsonResponse({
+        number: 7,
+        title: "Run cap",
+        state: "open",
+        head: { sha: "head-sha", ref: "feature" },
+        base: { ref: "main" },
+        user: { login: "octocat" },
+        labels: [],
+      });
+    }
+    if (requestUrl.pathname === "/repos/example/run-cap/actions/runs") {
+      assert.equal(requestUrl.searchParams.get("per_page"), "30");
+      return jsonResponse({
+        total_count: 35,
+        workflow_runs: Array.from({ length: 30 }, (_, index) => ({
+          id: index + 1,
+          name: "CI",
+          run_number: index + 1,
+          run_attempt: 1,
+          event: "pull_request",
+          status: "completed",
+          conclusion: "success",
+          created_at: new Date(Date.UTC(2026, 0, 1, 0, 0, 35 - index)).toISOString(),
+          html_url: `https://github.com/example/run-cap/actions/runs/${index + 1}`,
+        })),
+      });
+    }
+    const artifactMatch = requestUrl.pathname.match(
+      /^\/repos\/example\/run-cap\/actions\/runs\/(\d+)\/artifacts$/,
+    );
+    assert.ok(artifactMatch);
+    artifactRequests.push(Number(artifactMatch[1]));
+    return jsonResponse({
+      total_count: 1,
+      artifacts: [
+        {
+          id: Number(artifactMatch[1]) * 10,
+          name: `artifact-${artifactMatch[1]}`,
+          size_in_bytes: 100,
+          expired: false,
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+          expires_at: "2026-04-01T00:00:00Z",
+        },
+      ],
+    });
+  };
+
+  const result = await listPullRequestArtifacts(
+    "token",
+    "example/run-cap",
+    7,
+  );
+  assert.equal(artifactRequests.length, 30);
+  assert.equal(result.runs.length, 30);
+  assert.equal(result.runCount, 35);
+  assert.equal(result.runsTruncated, true);
+  assert.equal(result.artifacts.length, 30);
+  assert.equal(result.artifactCount, 30);
+  assert.equal(result.artifactsTruncated, true);
 });
 
 test("only the archive root index uses static-site preview routing", async () => {
@@ -314,6 +396,98 @@ test("unsupported entry downloads fall back to the original artifact archive", (
   assert.equal(contentDeliveryMode({ supported: true }, true), "entry");
 });
 
+test("cache maintenance blocks inspections during artifact deletion", async () => {
+  const coordinator = new CacheMaintenanceCoordinator();
+  const deletionEntered = deferred();
+  const releaseDeletion = deferred();
+  const deletion = coordinator.deleteArtifact("42", async () => {
+    deletionEntered.resolve();
+    await releaseDeletion.promise;
+    return { deleted: "42" };
+  });
+  await deletionEntered.promise;
+
+  let inspectionStarted = false;
+  const inspection = (async () => {
+    while (true) {
+      const barrier = coordinator.inspectionBarrier("42");
+      if (!barrier) break;
+      await barrier;
+    }
+    inspectionStarted = true;
+  })();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(inspectionStarted, false);
+  assert.equal(coordinator.inspectionBarrier("99"), null);
+
+  releaseDeletion.resolve();
+  assert.deepEqual(await deletion, { deleted: "42" });
+  await inspection;
+  assert.equal(inspectionStarted, true);
+});
+
+test("cache clearing waits for deletions and blocks every inspection", async () => {
+  const coordinator = new CacheMaintenanceCoordinator();
+  const deletionEntered = deferred();
+  const releaseDeletion = deferred();
+  const deletion = coordinator.deleteArtifact("42", async () => {
+    deletionEntered.resolve();
+    await releaseDeletion.promise;
+  });
+  await deletionEntered.promise;
+
+  const clearEntered = deferred();
+  const releaseClear = deferred();
+  const clear = coordinator.clearCache(async () => {
+    clearEntered.resolve();
+    await releaseClear.promise;
+    return { cleared: true };
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(coordinator.inspectionBarrier("99") !== null, true);
+
+  let inspectionStarted = false;
+  const inspection = (async () => {
+    while (true) {
+      const barrier = coordinator.inspectionBarrier("99");
+      if (!barrier) break;
+      await barrier;
+    }
+    inspectionStarted = true;
+  })();
+  releaseDeletion.resolve();
+  await deletion;
+  await clearEntered.promise;
+  assert.equal(inspectionStarted, false);
+
+  releaseClear.resolve();
+  assert.deepEqual(await clear, { cleared: true });
+  await inspection;
+  assert.equal(inspectionStarted, true);
+});
+
+test("artifact truncation messaging names omitted workflow runs", async () => {
+  const source = await readFile(new URL("assets/app.js", here), "utf8");
+  const helperSource = source.slice(
+    source.indexOf("function artifactResultLimitMessage"),
+    source.indexOf("function renderPullPayload"),
+  );
+  const artifactResultLimitMessage = Function(
+    `${helperSource}; return artifactResultLimitMessage;`,
+  )();
+
+  assert.equal(
+    artifactResultLimitMessage({
+      runs: Array.from({ length: 30 }),
+      runCount: 35,
+      runsTruncated: true,
+      artifacts: Array.from({ length: 100 }),
+      artifactCount: 120,
+    }),
+    "Showing artifacts from the newest 30 of 35 workflow runs. Showing the newest 100 of 120 artifacts from those runs.",
+  );
+});
+
 test("capability tokens protect loopback APIs, content, and events", () => {
   const token = "secret-token";
   const req = (headers = {}) => ({ headers });
@@ -382,11 +556,11 @@ test("canvas server rejects spoofed hosts and unauthenticated protected routes",
     await rawStatus(entry.url, { Host: "attacker.example" }),
     403,
   );
-  const crossSite = await fetch(`${entry.origin}/api/bootstrap`, {
+  const foreignOriginResponse = await fetch(`${entry.origin}/api/bootstrap`, {
     headers: {
       [CAPABILITY_TOKEN_HEADER]: entry.token,
       Origin: "https://attacker.example",
     },
   });
-  assert.equal(crossSite.status, 403);
+  assert.equal(foreignOriginResponse.status, 403);
 });

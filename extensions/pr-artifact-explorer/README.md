@@ -14,6 +14,7 @@ Artifact Explorer is a community-built Copilot canvas extension with the interna
 
 - Navigates repositories, pull requests, artifacts, and files with persistent breadcrumbs.
 - Loads pull requests progressively, caches result pages, and supports query filters for fast review.
+- Bounds artifact discovery to the newest 30 workflow runs per head commit and reports when older runs are omitted.
 - Downloads an artifact once, indexes its ZIP, and streams entries directly from the archive without extracting them to disk.
 - Previews root-level static sites in a sandboxed loopback frame when the artifact contains `index.html`.
 - Plays asciinema terminal recordings and renders structured TRX test reports.
@@ -34,7 +35,7 @@ $COPILOT_HOME/extensions/pr-artifact-explorer/artifacts/
 
 When `COPILOT_HOME` is unset, it defaults to `~/.copilot`. Cached archives remain local until removed through the per-artifact or clear-all controls.
 
-Static-site previews bind to an ephemeral `127.0.0.1` port, apply a restrictive content security policy, prevent path traversal, and stream files from the ZIP. A preview requires `index.html` at the artifact root. Static content is untrusted, remains sandboxed by the canvas, and has no access to GitHub tokens.
+The canvas server validates its canonical loopback host and requires a per-instance capability token for API, artifact-content, and event requests. Static-site previews bind to a separate ephemeral `127.0.0.1` port, validate their loopback host, apply a restrictive content security policy, prevent path traversal, and stream files from the ZIP. A preview requires `index.html` at the artifact root. Static content is untrusted, remains sandboxed by the canvas, and has no access to GitHub tokens.
 
 ## Install
 

@@ -1916,7 +1916,7 @@ function artifactRunLabel(run) {
   return `${name}${Number.isFinite(number) ? ` #${number}` : ""}${event ? ` · ${event}` : ""}`;
 }
 
-function artifactRunOptions(artifacts) {
+function artifactRunOptions(artifacts, runsTruncated = false) {
   const runs = new Map();
   for (const artifact of artifacts) {
     const id = artifact.run?.id == null ? "unknown" : String(artifact.run.id);
@@ -1943,7 +1943,7 @@ function artifactRunOptions(artifacts) {
     },
     {
       value: "all",
-      label: "All runs",
+      label: runsTruncated ? "All loaded runs" : "All runs",
       count: artifacts.length,
       icon: "workflow",
     },
@@ -1963,7 +1963,12 @@ function artifactsForRunFilter(artifacts, selectedRun) {
   return latestArtifactsByName(artifacts);
 }
 
-function artifactScopeCountLabel(allArtifacts, scopedArtifacts, selectedRun) {
+function artifactScopeCountLabel(
+  allArtifacts,
+  scopedArtifacts,
+  selectedRun,
+  artifactsTruncated = false,
+) {
   const hiddenCopies = allArtifacts.length - scopedArtifacts.length;
   if (selectedRun === "latest" && hiddenCopies > 0) {
     return {
@@ -1979,7 +1984,9 @@ function artifactScopeCountLabel(allArtifacts, scopedArtifacts, selectedRun) {
   }
   return {
     label: `${scopedArtifacts.length.toLocaleString()} total`,
-    title: `${scopedArtifacts.length.toLocaleString()} retained artifacts.`,
+    title: `${scopedArtifacts.length.toLocaleString()} ${
+      artifactsTruncated ? "loaded" : "retained"
+    } artifacts.`,
   };
 }
 
@@ -2046,7 +2053,10 @@ function artifactFilterControlsHtml(artifacts) {
   const statuses = artifactStatusOptions(
     artifactsForRunFilter(artifacts, artifactFilters.run),
   );
-  const runs = artifactRunOptions(artifacts);
+  const runs = artifactRunOptions(
+    artifacts,
+    currentPullContext?.runsTruncated ?? false,
+  );
   return `
     <div id="artifact-filter-controls" class="artifact-filter-controls">
       ${artifactFilterPickerHtml("status", "Status", statuses, artifactFilters.status)}
@@ -3048,7 +3058,9 @@ function renderPullArtifactRows(filter = artifactFilters.query) {
       : artifactFilters.run === "latest" && hiddenCopies > 0
         ? "Latest copy of each artifact shown"
         : artifactFilters.run === "all"
-          ? "All retained runs shown"
+          ? currentPullContext.runsTruncated
+            ? "All loaded runs shown"
+            : "All retained runs shown"
           : "Selected run shown";
     const totalLabel = hasContentFilters
       ? `${matches.length.toLocaleString()} of ${total.toLocaleString()} ${artifactLabel}`
@@ -3066,10 +3078,37 @@ function renderPullArtifactRows(filter = artifactFilters.query) {
   }
   const totalCount = document.getElementById("artifact-total-count");
   if (totalCount) {
-    const scope = artifactScopeCountLabel(allArtifacts, scopedArtifacts, artifactFilters.run);
+    const scope = artifactScopeCountLabel(
+      allArtifacts,
+      scopedArtifacts,
+      artifactFilters.run,
+      currentPullContext.artifactsTruncated,
+    );
     totalCount.textContent = scope.label;
     totalCount.title = scope.title;
   }
+}
+
+function artifactResultLimitMessage(payload) {
+  const artifacts = payload.artifacts ?? [];
+  const runs = payload.runs ?? [];
+  const artifactCount = Math.max(
+    artifacts.length,
+    Number(payload.artifactCount) || 0,
+  );
+  const runCount = Math.max(runs.length, Number(payload.runCount) || 0);
+  const messages = [];
+  if (payload.runsTruncated) {
+    messages.push(
+      `Showing artifacts from the newest ${runs.length.toLocaleString()} of ${runCount.toLocaleString()} workflow runs.`,
+    );
+  }
+  if (artifactCount > artifacts.length) {
+    messages.push(
+      `Showing the newest ${artifacts.length.toLocaleString()} of ${artifactCount.toLocaleString()} artifacts from those runs.`,
+    );
+  }
+  return messages.join(" ");
 }
 
 function renderPullPayload(repository, pullNumber, payload, cache) {
@@ -3090,12 +3129,23 @@ function renderPullPayload(repository, pullNumber, payload, cache) {
   }
   bootstrapState.prefs.repository = repository;
   bootstrapState.prefs.pullNumber = pullNumber;
-  currentPullContext = { artifacts, cachedById, pullNumber, repository };
+  currentPullContext = {
+    artifactCount: Number(payload.artifactCount) || artifacts.length,
+    artifacts,
+    artifactsTruncated: Boolean(payload.artifactsTruncated),
+    cachedById,
+    pullNumber,
+    repository,
+    runCount: Number(payload.runCount) || (payload.runs?.length ?? 0),
+    runsTruncated: Boolean(payload.runsTruncated),
+  };
+  const resultLimitMessage = artifactResultLimitMessage(payload);
   const initialArtifacts = artifactsForRunFilter(artifacts, artifactFilters.run);
   const initialScope = artifactScopeCountLabel(
     artifacts,
     initialArtifacts,
     artifactFilters.run,
+    Boolean(payload.artifactsTruncated),
   );
 
   view.innerHTML = `
@@ -3130,13 +3180,22 @@ function renderPullPayload(repository, pullNumber, payload, cache) {
         <button class="app-button app-button-small artifact-refresh" type="button" data-refresh-view>${icon("sync")} Refresh</button>
       </div>
       ${
+        resultLimitMessage
+          ? `<div class="flash flash-warn">${icon("alert")} ${escapeHtml(resultLimitMessage)}</div>`
+          : ""
+      }
+      ${
         artifacts.length
           ? `<div id="artifact-list"></div>
              <div id="artifact-list-summary" class="Box-footer" aria-live="polite"></div>`
           : `<div class="blankslate">
               ${icon("package")}
               <h2>No workflow artifacts found</h2>
-              <p>No retained GitHub Actions artifacts are associated with this pull request head commit.</p>
+              <p>${
+                payload.runsTruncated
+                  ? "No artifacts were found in the loaded workflow runs. Older runs were not queried."
+                  : "No retained GitHub Actions artifacts are associated with this pull request head commit."
+              }</p>
             </div>`
       }
     </section>`;

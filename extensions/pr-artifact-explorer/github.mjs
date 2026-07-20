@@ -6,6 +6,9 @@ const PULL_CI_FILTERS = new Set(["all", "failing", "passing", "pending", "none"]
 const ARTIFACT_PRESENCE_TTL_MS = 5 * 60 * 1_000;
 const MISSING_ARTIFACT_TTL_MS = 30 * 1_000;
 const ARTIFACT_PRESENCE_CACHE_LIMIT = 1_000;
+// Each run fans out into paginated artifact requests, so keep the initial view bounded.
+const MAX_PULL_REQUEST_RUNS = 30;
+const MAX_PULL_REQUEST_ARTIFACTS = 2_000;
 const artifactPresenceCache = new Map();
 
 export class GitHubApiError extends Error {
@@ -572,20 +575,33 @@ async function listRunArtifacts(token, repository, runId) {
 export async function listPullRequestArtifacts(token, repository, pullNumber) {
   const pullRequest = await getPullRequest(token, repository, pullNumber);
   if (!pullRequest.headSha) {
-    return { pullRequest, runs: [], artifacts: [] };
+    return {
+      pullRequest,
+      runs: [],
+      runCount: 0,
+      runsTruncated: false,
+      artifacts: [],
+      artifactCount: 0,
+      artifactsTruncated: false,
+    };
   }
 
   const query = new URLSearchParams({
     head_sha: pullRequest.headSha,
-    per_page: "100",
+    per_page: String(MAX_PULL_REQUEST_RUNS),
   });
   const runsPayload = await githubRequest(
     token,
     `/repos/${repositoryPath(repository)}/actions/runs?${query}`,
   );
-  const runs = (runsPayload.workflow_runs ?? [])
-    .sort((left, right) => new Date(right.created_at) - new Date(left.created_at))
-    .slice(0, 30);
+  const returnedRuns = (runsPayload.workflow_runs ?? [])
+    .sort((left, right) => new Date(right.created_at) - new Date(left.created_at));
+  const runCount = Math.max(
+    returnedRuns.length,
+    Number(runsPayload.total_count) || 0,
+  );
+  const runs = returnedRuns.slice(0, MAX_PULL_REQUEST_RUNS);
+  const runsTruncated = runs.length < runCount;
 
   const artifactGroups = await mapLimit(runs, 5, async (run) => {
     const runArtifacts = await listRunArtifacts(token, repository, run.id);
@@ -614,7 +630,7 @@ export async function listPullRequestArtifacts(token, repository, pullNumber) {
   const allArtifacts = [...new Map(
     artifactGroups.flat().map((artifact) => [String(artifact.id), artifact]),
   ).values()].sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
-  const artifacts = allArtifacts.slice(0, 2_000);
+  const artifacts = allArtifacts.slice(0, MAX_PULL_REQUEST_ARTIFACTS);
 
   return {
     pullRequest,
@@ -629,9 +645,12 @@ export async function listPullRequestArtifacts(token, repository, pullNumber) {
       createdAt: run.created_at,
       url: run.html_url,
     })),
+    runCount,
+    runsTruncated,
     artifacts,
     artifactCount: allArtifacts.length,
-    artifactsTruncated: artifacts.length < allArtifacts.length,
+    artifactsTruncated:
+      runsTruncated || artifacts.length < allArtifacts.length,
   };
 }
 

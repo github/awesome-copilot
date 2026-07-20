@@ -19,12 +19,14 @@ import {
   MAX_INLINE_PREVIEW_BYTES,
   MIN_CACHE_FREE_BYTES,
 } from "./constants.mjs";
+import { CacheMaintenanceCoordinator } from "./cache-coordinator.mjs";
 import { analyzeArtifact, hasRootIndexHtml } from "./detector.mjs";
 import { getArtifact, openArtifactDownload } from "./github.mjs";
 import { findZipEntry, readEntryPrefix, readZipEntry, readZipIndex } from "./zip.mjs";
 
 const downloads = new Map();
 const indexCache = new Map();
+const maintenance = new CacheMaintenanceCoordinator();
 let reservedDownloadBytes = 0;
 let metadataWriteSequence = 0;
 
@@ -351,6 +353,11 @@ export async function inspectArtifact(
   { onProgress } = {},
 ) {
   const paths = pathsFor(artifactId);
+  while (true) {
+    const barrier = maintenance.inspectionBarrier(paths.id);
+    if (!barrier) break;
+    await barrier;
+  }
   const key = `${repository}:${paths.id}`;
   const active = downloads.get(key);
   if (active) {
@@ -455,25 +462,29 @@ async function removeArtifactFiles(paths) {
 
 export async function deleteCachedArtifact(artifactId) {
   const paths = pathsFor(artifactId);
-  indexCache.delete(paths.id);
-  const suffix = `:${paths.id}`;
-  const matches = [...downloads.entries()]
-    .filter(([key]) => key.endsWith(suffix))
-    .map(([, entry]) => entry);
-  for (const entry of matches) entry.abort?.();
-  await Promise.allSettled(matches.map((entry) => entry.operation));
-  await removeArtifactFiles(paths);
-  return { deleted: paths.id };
+  return maintenance.deleteArtifact(paths.id, async () => {
+    indexCache.delete(paths.id);
+    const suffix = `:${paths.id}`;
+    const matches = [...downloads.entries()]
+      .filter(([key]) => key.endsWith(suffix))
+      .map(([, entry]) => entry);
+    for (const entry of matches) entry.abort?.();
+    await Promise.allSettled(matches.map((entry) => entry.operation));
+    await removeArtifactFiles(paths);
+    return { deleted: paths.id };
+  });
 }
 
 export async function clearArtifactCache() {
-  const inflight = [...downloads.values()];
-  for (const entry of inflight) entry.abort?.();
-  await Promise.allSettled(inflight.map((entry) => entry.operation));
-  indexCache.clear();
-  await rm(CACHE_ROOT, { recursive: true, force: true });
-  await mkdir(CACHE_ROOT, { recursive: true });
-  return { cleared: true };
+  return maintenance.clearCache(async () => {
+    const inflight = [...downloads.values()];
+    for (const entry of inflight) entry.abort?.();
+    await Promise.allSettled(inflight.map((entry) => entry.operation));
+    indexCache.clear();
+    await rm(CACHE_ROOT, { recursive: true, force: true });
+    await mkdir(CACHE_ROOT, { recursive: true });
+    return { cleared: true };
+  });
 }
 
 export async function getCacheSummary() {
