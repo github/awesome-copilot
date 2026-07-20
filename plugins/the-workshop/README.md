@@ -37,6 +37,9 @@ A **desk** isn't a sub-agent — it's a peer with a history. Sub-agents inherit 
 
 The Workshop's live view is a **canvas extension** (🪨 Cairn) — `signals-dashboard` — that shows the pulse of every desk (score bars, patterns, escalations), auto-refreshing in the GitHub Copilot app.
 
+Each desk card also has an **open** button that launches a Copilot CLI right in
+that desk's folder, so you can sit down at a desk straight from the board.
+
 It ships as a separate extension. Install it alongside the plugin to get the live canvas:
 
 ```
