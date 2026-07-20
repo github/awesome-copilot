@@ -4,6 +4,7 @@
 // via session.send().
 
 import { createServer } from "node:http";
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -17,7 +18,7 @@ const MIME = {
     ".js": "text/javascript; charset=utf-8",
     ".json": "application/json; charset=utf-8",
 };
-const MAX_EVENT_BODY_BYTES = 16 * 1024;
+const MAX_EVENT_BODY_BYTES = 64 * 1024;
 const SSE_HEARTBEAT_MS = 20_000;
 
 export async function readRequestBody(request, maxBytes = MAX_EVENT_BODY_BYTES) {
@@ -51,6 +52,21 @@ function writeHeaders(res, status, contentType, extra = {}) {
 export async function startInstanceServer(instanceId, getStateFn, onClientEvent) {
     /** @type {Set<import("node:http").ServerResponse>} */
     const sseClients = new Set();
+    const capabilityToken = randomBytes(32).toString("base64url");
+
+    function hasCapability(url) {
+        const candidate = url.searchParams.get("token");
+        return Boolean(
+            candidate
+            && candidate.length === capabilityToken.length
+            && timingSafeEqual(Buffer.from(candidate), Buffer.from(capabilityToken)),
+        );
+    }
+
+    function rejectUnauthorized(res) {
+        writeHeaders(res, 403, MIME[".json"]);
+        res.end(JSON.stringify({ ok: false, error: "invalid canvas capability" }));
+    }
 
     function broadcastState() {
         const payload = `data: ${JSON.stringify(getStateFn())}\n\n`;
@@ -71,6 +87,10 @@ export async function startInstanceServer(instanceId, getStateFn, onClientEvent)
             const url = new URL(req.url, "http://localhost");
 
             if (url.pathname === "/events" && req.method === "GET") {
+                if (!hasCapability(url)) {
+                    rejectUnauthorized(res);
+                    return;
+                }
                 writeHeaders(res, 200, "text/event-stream", { Connection: "keep-alive" });
                 res.write(`data: ${JSON.stringify(getStateFn())}\n\n`);
                 sseClients.add(res);
@@ -79,12 +99,20 @@ export async function startInstanceServer(instanceId, getStateFn, onClientEvent)
             }
 
             if (url.pathname === "/state" && req.method === "GET") {
+                if (!hasCapability(url)) {
+                    rejectUnauthorized(res);
+                    return;
+                }
                 writeHeaders(res, 200, MIME[".json"]);
                 res.end(JSON.stringify(getStateFn()));
                 return;
             }
 
             if (url.pathname === "/event" && req.method === "POST") {
+                if (!hasCapability(url)) {
+                    rejectUnauthorized(res);
+                    return;
+                }
                 if (!String(req.headers["content-type"] || "").toLowerCase().startsWith("application/json")) {
                     writeHeaders(res, 415, MIME[".json"]);
                     res.end(JSON.stringify({ ok: false, error: "content type must be application/json" }));
@@ -161,7 +189,7 @@ export async function startInstanceServer(instanceId, getStateFn, onClientEvent)
     const port = typeof address === "object" && address ? address.port : 0;
 
     return {
-        url: `http://127.0.0.1:${port}/`,
+        url: `http://127.0.0.1:${port}/?token=${capabilityToken}`,
         broadcastState,
         close: () =>
             new Promise((resolve) => {

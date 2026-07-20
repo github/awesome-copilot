@@ -37,9 +37,16 @@ function tierForPercentage(percentage) {
 }
 
 const TIER_LABELS = ["No understanding", "Recognition", "Application", "Mastery"];
+const capabilityToken = new URL(window.location.href).searchParams.get("token");
+
+function apiUrl(pathname) {
+  const url = new URL(pathname, window.location.href);
+  if (capabilityToken) url.searchParams.set("token", capabilityToken);
+  return `${url.pathname}${url.search}`;
+}
 
 async function postEvent(event) {
-  const response = await fetch("/event", {
+  const response = await fetch(apiUrl("/event"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(event),
@@ -418,7 +425,7 @@ themeToggleBtn.addEventListener("click", () => {
   applyTheme(next);
 });
 
-const source = new EventSource("/events");
+const source = new EventSource(apiUrl("/events"));
 source.onmessage = (e) => {
   const state = JSON.parse(e.data);
   render(state);

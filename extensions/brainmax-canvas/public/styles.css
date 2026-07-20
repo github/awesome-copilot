@@ -21,11 +21,11 @@
   /* Text */
   --ink: oklch(0.95 0.006 294);
   --muted: oklch(0.7 0.014 294);
-  --faint: oklch(0.52 0.014 294);
+  --faint: oklch(0.6 0.014 294);
 
   /* Brand */
   --primary: oklch(0.62 0.16 294);
-  --primary-ink: oklch(0.99 0 0);
+  --primary-ink: oklch(0.16 0.02 75);
   --primary-dim: oklch(0.3 0.05 294);
   --accent: oklch(0.75 0.15 75);
   --accent-ink: oklch(0.16 0.02 75);
@@ -103,10 +103,10 @@
 
   --ink: oklch(0.95 0.006 294);
   --muted: oklch(0.7 0.014 294);
-  --faint: oklch(0.52 0.014 294);
+  --faint: oklch(0.6 0.014 294);
 
   --primary: oklch(0.62 0.16 294);
-  --primary-ink: oklch(0.99 0 0);
+  --primary-ink: oklch(0.16 0.02 75);
   --primary-dim: oklch(0.3 0.05 294);
   --accent: oklch(0.75 0.15 75);
   --accent-ink: oklch(0.16 0.02 75);
