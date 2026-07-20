@@ -423,6 +423,7 @@ body {
 
 .progress-rail {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-sm);
   list-style: none;
   padding: 0;
@@ -430,11 +431,19 @@ body {
 }
 
 .progress-rail li {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
+  width: 1.625rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
   border: 2px solid var(--border-strong);
   background: transparent;
+  color: var(--primary-ink);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
   transition: background var(--duration-base) var(--ease-out-quart), border-color var(--duration-base) var(--ease-out-quart),
     transform var(--duration-base) var(--ease-out-quart);
 }

@@ -36,7 +36,7 @@ function isValidQuestion(question, total, expectedIndex) {
     );
 }
 
-async function ensureServer(instanceId, session) {
+async function ensureServer(instanceId, sendToSession) {
     let entry = servers.get(instanceId);
     if (entry) return entry;
 
@@ -49,14 +49,14 @@ async function ensureServer(instanceId, session) {
     entry = await startInstanceServer(
         instanceId,
         () => getState(instanceId),
-        (event) => handleClientEvent(instanceId, session, event),
+        (event) => handleClientEvent(instanceId, sendToSession, event),
     );
     servers.set(instanceId, entry);
     return entry;
 }
 
 /** Handle an interaction posted from the browser back into chat. */
-function handleClientEvent(instanceId, session, event) {
+function handleClientEvent(instanceId, sendToSession, event) {
     switch (event.type) {
         case "select-domain": {
             const state = getState(instanceId);
@@ -74,11 +74,11 @@ function handleClientEvent(instanceId, session, event) {
             state.domainSelectionError = null;
             state.announcement = `Starting ${domain.name} quiz.`;
             servers.get(instanceId)?.broadcastState();
-            // Avoid calling session.send synchronously from an event-loop tick
+            // Avoid calling the session sender synchronously from an event-loop tick
             // that originated outside the normal turn flow.
             setTimeout(async () => {
                 try {
-                    await session.send({ prompt });
+                    await sendToSession({ prompt });
                 } catch (err) {
                     const currentState = getState(instanceId);
                     if (currentState.domainSelectionStatus !== "submitting") return;
@@ -117,7 +117,7 @@ function handleClientEvent(instanceId, session, event) {
 
             setTimeout(async () => {
                 try {
-                    await session.send({
+                    await sendToSession({
                         prompt: `Answer to ${domainName} question ${question.index} of ${question.total}:\n\n${answer}`,
                     });
                 } catch (err) {
@@ -163,7 +163,7 @@ function handleClientEvent(instanceId, session, event) {
             servers.get(instanceId)?.broadcastState();
             setTimeout(async () => {
                 try {
-                    await session.send({ prompt: "Compile report" });
+                    await sendToSession({ prompt: "Compile report" });
                 } catch (err) {
                     const currentState = getState(instanceId);
                     if (currentState.reportRequestStatus !== "submitting") return;
@@ -495,7 +495,7 @@ const session = await joinSession({
                 },
             ],
             open: async (ctx) => {
-                const entry = await ensureServer(ctx.instanceId, session);
+                const entry = await ensureServer(ctx.instanceId, (message) => session.send(message));
                 return { title: "BrainMax", url: entry.url };
             },
             onClose: async (ctx) => {

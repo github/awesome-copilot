@@ -148,11 +148,12 @@ function renderDomains(state) {
       : "";
   for (const domain of state.domains) {
     const completed = state.completed.find((d) => d.id === domain.id);
+    const statusText = completed ? `${Math.round(completed.percentage)}% complete` : "Not started";
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "domain-tile";
     btn.disabled = isStarting;
-    btn.setAttribute("aria-label", `Start the ${domain.name} quiz`);
+    btn.setAttribute("aria-label", `Start the ${domain.name} quiz. Status: ${statusText}.`);
 
     const code = document.createElement("span");
     code.className = "domain-code";
@@ -212,14 +213,18 @@ function renderQuiz(state) {
   for (let i = 1; i <= total; i++) {
     const li = document.createElement("li");
     if (scoredByIndex.has(i)) {
+      const tier = scoredByIndex.get(i);
       li.dataset.state = "scored";
-      li.classList.add(tierClass(scoredByIndex.get(i)));
+      li.classList.add(tierClass(tier));
+      li.textContent = `T${tier}`;
+      li.setAttribute("aria-label", `Question ${i} scored tier ${tier}: ${TIER_LABELS[tier]}.`);
     } else if (i === index) {
       li.dataset.state = "current";
+      li.setAttribute("aria-label", `Question ${i}, current.`);
     } else {
       li.dataset.state = "upcoming";
+      li.setAttribute("aria-label", `Question ${i}, upcoming.`);
     }
-    li.setAttribute("aria-label", `Question ${i}${scoredByIndex.has(i) ? " scored" : i === index ? " current" : ""}`);
     rail.appendChild(li);
   }
 
@@ -399,6 +404,7 @@ document.getElementById("btn-compile-report").addEventListener("click", () => {
 const THEME_STORAGE_KEY = "brainmax-canvas-theme";
 const themeToggleBtn = document.getElementById("theme-toggle");
 const themeToggleLabel = document.getElementById("theme-toggle-label");
+const colorScheme = window.matchMedia("(prefers-color-scheme: light)");
 
 function applyTheme(theme) {
   if (theme === "light" || theme === "dark") {
@@ -409,7 +415,7 @@ function applyTheme(theme) {
   const resolved =
     theme === "light" || theme === "dark"
       ? theme
-      : window.matchMedia("(prefers-color-scheme: light)").matches
+      : colorScheme.matches
         ? "light"
         : "dark";
   themeToggleLabel.textContent = resolved.toUpperCase();
@@ -421,10 +427,14 @@ const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
 applyTheme(storedTheme);
 
 themeToggleBtn.addEventListener("click", () => {
-  const current = document.documentElement.dataset.theme || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  const current = document.documentElement.dataset.theme || (colorScheme.matches ? "light" : "dark");
   const next = current === "light" ? "dark" : "light";
   localStorage.setItem(THEME_STORAGE_KEY, next);
   applyTheme(next);
+});
+
+colorScheme.addEventListener("change", () => {
+  if (!document.documentElement.dataset.theme) applyTheme(null);
 });
 
 const source = new EventSource(apiUrl("/events"));
