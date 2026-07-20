@@ -53,7 +53,9 @@ function deskOrientPrompt(deskName) {
 
 // Spawn detached and resolve true only once the OS confirms the process
 // started ('spawn'), false on failure ('error', e.g. the binary is missing) so
-// the caller can fall back. A short timer guards the rare case neither fires.
+// the caller can fall back. Node guarantees exactly one of those events fires
+// for a spawn attempt, so we resolve solely from them — no timeout that could
+// report an unconfirmed launch as success and skip the clipboard fallback.
 function trySpawn(cmd, args, opts = {}) {
     return new Promise((resolve) => {
         let settled = false;
@@ -67,7 +69,6 @@ function trySpawn(cmd, args, opts = {}) {
             const child = spawn(cmd, args, { detached: true, stdio: "ignore", ...opts });
             child.on("error", () => done(false));
             child.on("spawn", () => done(true, child));
-            setTimeout(() => done(true, child), 600);
         } catch { resolve(false); }
     });
 }
