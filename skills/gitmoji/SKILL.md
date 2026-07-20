@@ -17,7 +17,7 @@ This skill **only generates the message** — it never runs `git commit` or any 
 - User pastes a git diff or describes a change in a project that uses gitmoji-style commit history
 - User wants an expressive, scannable commit history using emojis
 
-**When not to use:** if the project follows plain [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, ...) without emojis, use the `conventional-commit` or `commit-message-storyteller` skill instead. Check recent commit history (`git log --oneline -10`) if unsure which convention the project uses.
+**When not to use:** if the project follows plain [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, ...) without emojis, use the `conventional-commit` or `commit-message-storyteller` skill instead. If unsure which convention the project uses, ask the user to provide recent commit history (for example, the output of `git log --oneline -10`).
 
 ## Message Format
 
