@@ -652,7 +652,7 @@
     {
       "name": "github-copilot-modernization",
       "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator → coordinators → executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
-      "version": "1.20.0",
+      "version": "1.22.0",
       "author": {
         "name": "Microsoft",
         "url": "https://github.com/microsoft/github-copilot-modernization"
@@ -676,7 +676,7 @@
         "source": "github",
         "repo": "microsoft/github-copilot-modernization",
         "path": "plugins/github-copilot-modernization",
-        "sha": "42c1189c55933384bec07e8349ef998eb9e775ad"
+        "sha": "8b644bebc7e1f929c01d80788293a37872f480f8"
       }
     },
     {
@@ -794,7 +794,7 @@
     {
       "name": "modernize-java",
       "description": "GitHub Copilot modernization – Java Upgrade CLI Plugin helps you upgrade Java applications from the command line. It brings intelligent modernization capabilities to your terminal and CI/CD pipelines: analyze your project and generate an upgrade plan, automatically transform your codebase, fix build issues, validate against known CVEs, and output a detailed summary of file changes and updated dependencies.",
-      "version": "1.9.2",
+      "version": "1.22.0",
       "author": {
         "name": "microsoft",
         "url": "https://github.com/microsoft/modernize-java"
@@ -812,8 +812,8 @@
         "source": "github",
         "repo": "microsoft/modernize-java",
         "path": "plugins/modernize-java",
-        "ref": "1.9.2",
-        "sha": "b570196c070bf1eb9d7ad34a263b228ef16034a0"
+        "ref": "1.22.0",
+        "sha": "ef5367b446566bdc90960deeb40def63f9e7024e"
       }
     },
     {
