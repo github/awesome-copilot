@@ -1,0 +1,33 @@
+{
+  "name": "the-workshop",
+  "description": "Stop being the switchboard between your AI agents — direct a team. The Workshop puts long-running AI agents (desks) in the same room, on the same work, each with its own memory and history, sharing one workspace so you direct the work instead of relaying it.",
+  "version": "0.1.0",
+  "author": {
+    "name": "jennyf19"
+  },
+  "repository": "https://github.com/jennyf19/the-workshop",
+  "license": "MIT",
+  "keywords": [
+    "multi-agent",
+    "coordination",
+    "desks",
+    "persistent-memory",
+    "agent-signals",
+    "developer-experience"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/bench-read",
+    "./skills/desk-journal",
+    "./skills/desk-open",
+    "./skills/signal-write",
+    "./skills/workshop-create"
+  ],
+  "x-awesome-copilot": {
+    "extensions": [
+      "./extensions/signals-dashboard"
+    ]
+  }
+}
