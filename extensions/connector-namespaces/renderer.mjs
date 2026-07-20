@@ -78,6 +78,7 @@ export function baseStyles() {
     }
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
     font-family: "Segoe UI Variable", "Segoe UI", -apple-system, system-ui, sans-serif;
     margin: 0;
@@ -303,7 +304,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px s
 // Setup / Namespace Picker
 // ---------------------------------------------------------------------------
 
-export function renderSetupHtml(subscriptions, notice = "", capabilityToken = "") {
+export function renderSetupHtml(subscriptions = [], notice = "", capabilityToken = "") {
     const subOptions = subscriptions.map((s) =>
         `<option value="${s.id}">${esc(s.name)} (${s.id.slice(0, 8)}\u2026)</option>`
     ).join("");
@@ -336,6 +337,19 @@ export function renderSetupHtml(subscriptions, notice = "", capabilityToken = ""
 }
 .create-link:hover { background: var(--accent); color: #fff; }
 .create-link .plus { font-size: 1.05rem; line-height: 1; font-weight: 700; }
+.create-link:disabled { opacity: .55; cursor: not-allowed; background: transparent; color: var(--fg-muted); border-color: var(--border-strong); }
+.signin-panel { margin: .25rem 0 1rem; max-width: 540px; }
+.signin-message { color: var(--fg-muted); font-size: .82rem; line-height: 1.5; margin: 0 0 .7rem; }
+.signin-actions { display: flex; align-items: center; gap: .35rem; }
+.signin-primary { min-width: 0; padding: .35rem .75rem; font-size: .82rem; }
+.signin-cancel {
+    appearance: none; border: 0; border-radius: 4px; background: transparent;
+    color: var(--fg-muted); padding: .3rem .45rem; font: inherit; font-size: .78rem;
+    cursor: pointer;
+}
+.signin-cancel:hover { color: var(--accent); background: var(--bg-hover); }
+.signin-actions button:disabled { opacity: .55; cursor: wait; }
+.signin-panel[data-state="error"] .signin-message { color: var(--danger); }
 .setup-notice {
     margin: 0 0 1rem; padding: .55rem .7rem; border-radius: 6px;
     background: var(--bg-pill); border: 1px solid var(--accent);
@@ -347,19 +361,28 @@ export function renderSetupHtml(subscriptions, notice = "", capabilityToken = ""
     <div class="sub">Choose which connector namespace to browse. This choice is saved for future sessions.</div>
 </div>
 ${notice ? `<div class="setup-notice">${esc(notice)}</div>` : ""}
-<div class="create-row">
-    <button id="create-ns-btn" class="create-link" type="button"><span class="plus">+</span><span>New connector namespace</span></button>
+<div id="signin-panel" class="signin-panel" data-state="idle" aria-busy="false" hidden>
+    <p id="signin-message" class="signin-message" aria-live="polite">Sign in to Azure to load your subscriptions and connector namespaces.</p>
+    <div class="signin-actions">
+        <button id="signin-btn" class="item-add primary signin-primary" type="button">Sign in to Azure</button>
+        <button id="cancel-signin-btn" class="signin-cancel" type="button" hidden>Cancel</button>
+    </div>
 </div>
-<div style="margin-bottom: 1rem;">
-    <label for="sub-select">Subscription</label>
-    <select id="sub-select">
-        <option value="">-- Select subscription --</option>
-        ${subOptions}
-    </select>
-</div>
-<input id="gw-filter" type="text" placeholder="Filter namespaces by name\u2026" autocomplete="off" spellcheck="false">
-<div id="gateway-list">
-    <div class="empty">Select a subscription to see available connector namespaces.</div>
+<div id="setup-content">
+    <div class="create-row">
+        <button id="create-ns-btn" class="create-link" type="button"${subscriptions.length ? "" : " disabled"}><span class="plus">+</span><span>New connector namespace</span></button>
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <label for="sub-select">Subscription</label>
+        <select id="sub-select"${subscriptions.length ? "" : " disabled"}>
+            <option value="">-- Select subscription --</option>
+            ${subOptions}
+        </select>
+    </div>
+    <input id="gw-filter" type="text" placeholder="Filter namespaces by name\u2026" autocomplete="off" spellcheck="false">
+    <div id="gateway-list">
+        <div class="empty">${subscriptions.length ? "Select a subscription to see available connector namespaces." : "Loading subscriptions\u2026"}</div>
+    </div>
 </div>
 <script>
 const connectorNamespaceToken = ${JSON.stringify(capabilityToken)};
@@ -379,13 +402,173 @@ window.fetch = (input, init = {}) => {
 const subSelect = document.getElementById("sub-select");
 const gatewayList = document.getElementById("gateway-list");
 const gwFilter = document.getElementById("gw-filter");
-document.getElementById("create-ns-btn").addEventListener("click", () => {
+const setupContent = document.getElementById("setup-content");
+const createNamespaceButton = document.getElementById("create-ns-btn");
+const signinPanel = document.getElementById("signin-panel");
+const signinMessage = document.getElementById("signin-message");
+const signinButton = document.getElementById("signin-btn");
+const cancelSigninButton = document.getElementById("cancel-signin-btn");
+const signin = { sessionId: null, timer: null, starting: false };
+
+createNamespaceButton.addEventListener("click", () => {
     window.location.href = "/create" + (subSelect.value ? "?subscriptionId=" + encodeURIComponent(subSelect.value) : "");
 });
 let allGateways = [];
 let hasMoreGateways = false;
 let loadedAll = false;
 let gatewayRequestSeq = 0;
+
+function setSigninRequired(message, state = "idle") {
+    signinPanel.hidden = false;
+    signinPanel.dataset.state = state;
+    signinPanel.setAttribute("aria-busy", "false");
+    setupContent.hidden = true;
+    signinMessage.textContent = message || "Sign in to Azure to load your subscriptions and connector namespaces.";
+    signinButton.disabled = false;
+    signinButton.hidden = false;
+    cancelSigninButton.hidden = true;
+}
+
+function setSetupReady() {
+    signinPanel.hidden = true;
+    signinPanel.dataset.state = "idle";
+    signinPanel.setAttribute("aria-busy", "false");
+    setupContent.hidden = false;
+    subSelect.disabled = false;
+    createNamespaceButton.disabled = false;
+}
+
+function replaceSubscriptions(subscriptions) {
+    subSelect.replaceChildren(new Option("-- Select subscription --", ""));
+    for (const subscription of subscriptions) {
+        const id = String(subscription.id || "");
+        if (!id) continue;
+        const name = String(subscription.name || id);
+        subSelect.appendChild(new Option(name + " (" + id.slice(0, 8) + "\u2026)", id));
+    }
+}
+
+async function loadSubscriptions(force) {
+    subSelect.disabled = true;
+    createNamespaceButton.disabled = true;
+    gatewayList.innerHTML = '<div class="empty">Loading subscriptions\u2026</div>';
+    try {
+        const response = await fetch("/api/subscriptions" + (force ? "?refresh=true" : ""));
+        const data = await response.json();
+        if (data.reason === "not_signed_in") {
+            replaceSubscriptions([]);
+            setSigninRequired();
+            return false;
+        }
+        if (!data.ok) throw new Error(data.error || "Could not load subscriptions.");
+        replaceSubscriptions(Array.isArray(data.subscriptions) ? data.subscriptions : []);
+        setSetupReady();
+        gatewayList.innerHTML = '<div class="empty">Select a subscription to see available connector namespaces.</div>';
+        return true;
+    } catch (error) {
+        setupContent.hidden = false;
+        signinPanel.hidden = true;
+        gatewayList.innerHTML = '<div class="empty" style="color:var(--danger);">Couldn\\'t load subscriptions: ' + escH(error.message) + '<br><button id="retry-subscriptions" class="change-btn" type="button" style="margin-top:.6rem;">Retry</button></div>';
+        document.getElementById("retry-subscriptions").addEventListener("click", () => loadSubscriptions(true));
+        return false;
+    }
+}
+
+function stopSigninPolling() {
+    if (signin.timer) clearTimeout(signin.timer);
+    signin.timer = null;
+    signin.sessionId = null;
+    signin.starting = false;
+    signinPanel.setAttribute("aria-busy", "false");
+    signinButton.disabled = false;
+    cancelSigninButton.hidden = true;
+}
+
+function scheduleSigninPoll() {
+    if (signin.sessionId) signin.timer = setTimeout(pollSignin, 2500);
+}
+
+async function startSignin() {
+    if (signin.starting || signin.sessionId) return;
+    signin.starting = true;
+    signinPanel.dataset.state = "pending";
+    signinPanel.setAttribute("aria-busy", "true");
+    signinButton.disabled = true;
+    signinMessage.textContent = "Opening your browser for Azure sign-in\u2026";
+    try {
+        const response = await fetch("/api/signin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: "{}",
+        });
+        const data = await response.json();
+        if (!data.ok || !data.sessionId) throw new Error(data.error || "Could not start Azure sign-in.");
+        signin.sessionId = data.sessionId;
+        signin.starting = false;
+        signinPanel.dataset.state = "pending";
+        signinButton.hidden = true;
+        cancelSigninButton.hidden = false;
+        signinMessage.textContent = "Complete sign-in in the browser window. This page will update automatically.";
+        scheduleSigninPoll();
+    } catch (error) {
+        signin.starting = false;
+        signinPanel.dataset.state = "error";
+        signinPanel.setAttribute("aria-busy", "false");
+        signinButton.disabled = false;
+        signinMessage.textContent = "Couldn\\'t start sign-in: " + error.message;
+    }
+}
+
+async function pollSignin() {
+    const sessionId = signin.sessionId;
+    if (!sessionId) return;
+    try {
+        const response = await fetch("/api/signin/status?sessionId=" + encodeURIComponent(sessionId));
+        const data = await response.json();
+        if (sessionId !== signin.sessionId) return;
+        if (data.status === "done") {
+            stopSigninPolling();
+            signinPanel.dataset.state = "pending";
+            signinPanel.setAttribute("aria-busy", "true");
+            signinMessage.textContent = "Signed in. Loading subscriptions\u2026";
+            signinPanel.hidden = false;
+            await loadSubscriptions(true);
+            return;
+        }
+        if (data.status === "error" || data.status === "cancelled" || data.status === "unknown") {
+            stopSigninPolling();
+            signinButton.hidden = false;
+            setSigninRequired(
+                data.status === "cancelled" ? "Sign-in was cancelled." : data.error || "Azure sign-in failed. Please try again.",
+                data.status === "cancelled" ? "idle" : "error",
+            );
+            return;
+        }
+    } catch {
+        // A transient loopback request failure should not cancel the browser flow.
+    }
+    scheduleSigninPoll();
+}
+
+async function cancelSignin() {
+    const sessionId = signin.sessionId;
+    stopSigninPolling();
+    signinButton.hidden = false;
+    setSigninRequired("Sign-in was cancelled.", "idle");
+    if (!sessionId) return;
+    try {
+        await fetch("/api/signin/cancel", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId }),
+        });
+    } catch {
+        // The local broker also expires abandoned sign-in sessions.
+    }
+}
+
+signinButton.addEventListener("click", startSignin);
+cancelSigninButton.addEventListener("click", cancelSignin);
 
 subSelect.addEventListener("change", async () => {
     const requestSeq = ++gatewayRequestSeq;
@@ -507,6 +690,9 @@ async function selectGateway(subscriptionId, resourceGroup, gatewayName) {
     if (data.ok) { window.location.href = "/"; }
     else { gatewayList.innerHTML = '<div class="empty" style="color:var(--danger);">Failed to save.</div>'; }
 }
+
+if (${subscriptions.length > 0}) setSetupReady();
+else loadSubscriptions(false);
 </script></body></html>`;
 }
 
@@ -592,11 +778,6 @@ export function renderCatalogHtml(instanceId, catalog, { filter, category, sourc
 .restart-banner .rb-dismiss { flex:none; appearance:none; border:0; background:transparent; color:var(--fg-muted); font:inherit; font-size:.78rem; cursor:pointer; padding:.1rem .35rem; border-radius:4px; }
 .restart-banner .rb-dismiss:hover { color:var(--accent); background:var(--bg-hover); }
 .is-hidden { display:none !important; }
-/* The [hidden] attribute must always win. A class rule like .restart-banner{display:flex}
-   has the same (0,1,0) specificity as the UA [hidden]{display:none} rule and, being an
-   author rule, overrides it -- so setting el.hidden=true does nothing and dismiss silently
-   breaks. This reset restores the attribute's authority for every element. */
-[hidden] { display:none !important; }
 
 /* ---- split "remove" control + its popover menu + delete-confirm dialog ---- */
 /* main + caret read as one pill; the shared 1px border between them is the
@@ -688,7 +869,7 @@ export function renderCatalogHtml(instanceId, catalog, { filter, category, sourc
 </div>
 <div id="restart-banner" class="restart-banner" role="status" hidden>
     <svg class="rb-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 8a5.4 5.4 0 1 1-1.6-3.8"/><path d="M13.6 2.2v3h-3"/></svg>
-    <div class="rb-body"><strong>Restart your Copilot session to use newly added tools.</strong><br>Connectors are saved to your MCP config now, but their tools only load when a session starts.</div>
+    <div class="rb-body"><strong>Restart the GitHub Copilot app to use newly added tools.</strong><br>Connectors are saved to your MCP config now, but their tools only load when the app starts.</div>
     <button class="rb-dismiss" type="button" aria-label="Dismiss this message">Dismiss</button>
 </div>
 ${sectionsHtml}
@@ -866,9 +1047,9 @@ if (input.value) applyFilters();
 // for now because it writes a plaintext API key into a git-tracked .mcp.json.
 const installScope = "profile";
 
-// --- Restart-required banner (tools load at session start) ---
+// --- Restart-required banner (tools load at app start) ---
 // Visibility is driven by the server's in-process pendingRestart flag via
-// /api/state, not local storage — a real session restart spawns a fresh
+// /api/state, not local storage — a full app restart spawns a fresh
 // extension process and clears it, so the banner can't go stale.
 const restartBanner = document.getElementById("restart-banner");
 // Once the user dismisses the banner, a late/racing hydrateState (its
@@ -1068,7 +1249,7 @@ function openSignInModal(displayName, consentUrl) {
             cancellable = false;
             icon.innerHTML = '<div class="si-check">\u2713</div>';
             title.textContent = "Connected";
-            sub.textContent = displayName + " is configured. Restart your Copilot session to load its tools.";
+            sub.textContent = displayName + " is configured. Restart the GitHub Copilot app to load its tools.";
             meta.textContent = "";
         },
         close() { doClose(); },
@@ -1116,7 +1297,7 @@ async function onConnect(btn) {
             pendingConn = null;
         }
 
-        await showConnectionSuccess(modal, item, 'Connected "' + displayName + '". Restart your session to use its tools.');
+        await showConnectionSuccess(modal, item, 'Connected "' + displayName + '". Restart the GitHub Copilot app to use its tools.');
     } catch (err) {
         const recovery = await recoverConnectorFailure(
             err,
@@ -1128,7 +1309,7 @@ async function onConnect(btn) {
             true
         );
         if (recovery.complete) {
-            await showConnectionSuccess(modal, item, 'Connected "' + displayName + '". Restart your session to use its tools.');
+            await showConnectionSuccess(modal, item, 'Connected "' + displayName + '". Restart the GitHub Copilot app to use its tools.');
             return;
         }
         if (modal) modal.close();
@@ -1218,7 +1399,7 @@ async function onReauth(btn) {
         await showConnectionSuccess(
             modal,
             item,
-            (isConnect ? 'Connected "' : 'Re-authenticated "') + displayName + '". Restart your session to use its tools.'
+            (isConnect ? 'Connected "' : 'Re-authenticated "') + displayName + '". Restart the GitHub Copilot app to use its tools.'
         );
     } catch (err) {
         const recovery = await recoverConnectorFailure(
@@ -1234,7 +1415,7 @@ async function onReauth(btn) {
             await showConnectionSuccess(
                 modal,
                 item,
-                (isConnect ? 'Connected "' : 'Re-authenticated "') + displayName + '". Restart your session to use its tools.'
+                (isConnect ? 'Connected "' : 'Re-authenticated "') + displayName + '". Restart the GitHub Copilot app to use its tools.'
             );
             return;
         }

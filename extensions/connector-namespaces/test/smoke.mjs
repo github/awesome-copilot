@@ -6,8 +6,8 @@
 // (install.mjs, catalog.mjs, armClient.mjs) and connects through the same native
 // Streamable HTTP endpoint persisted for the Copilot CLI.
 //
-// Runs with `node` and a signed-in Azure CLI — no Copilot app required — so it
-// can be handed to someone else to reproduce MCP issues. See README.md.
+// Runs with `node` and an interactive browser sign-in — no Copilot app required
+// — so it can be handed to someone else to reproduce MCP issues. See README.md.
 //
 // Usage:
 //   node extensions/connector-namespaces/test/smoke.mjs [options]
@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 
 import { loadSavedConfig } from "../state.mjs";
 import { getToken } from "../armClient.mjs";
+import { cancelSignIn, getSignInStatus, isAuthenticationRequiredError, startSignIn } from "../auth.mjs";
 import { CATEGORY } from "../categories.mjs";
 import {
     installConnector,
@@ -115,6 +116,31 @@ function logLine(text) {
     return redact(String(text)).replace(/[\r\n]+/g, " ");
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function signInToAzure() {
+    try {
+        return await getToken();
+    } catch (error) {
+        if (!isAuthenticationRequiredError(error)) throw error;
+    }
+    const started = startSignIn();
+    if (!started.ok || !started.sessionId) {
+        throw new Error(started.error || "Could not start Azure sign-in.");
+    }
+    console.log(`${C.dim}Complete Azure sign-in in the browser window...${C.reset}`);
+    for (let poll = 0; poll < 240; poll++) {
+        const status = getSignInStatus(started.sessionId);
+        if (status.status === "done") return getToken();
+        if (status.status === "error" || status.status === "cancelled" || status.status === "unknown") {
+            throw new Error(status.error || `Azure sign-in ${status.status}.`);
+        }
+        await sleep(2500);
+    }
+    cancelSignIn(started.sessionId);
+    throw new Error("Azure sign-in timed out.");
+}
+
 const C = {
     reset: "\x1b[0m", dim: "\x1b[2m", bold: "\x1b[1m",
     green: "\x1b[32m", red: "\x1b[31m", yellow: "\x1b[33m", cyan: "\x1b[36m",
@@ -124,7 +150,7 @@ const tick = (ok) => (ok ? `${C.green}PASS${C.reset}` : `${C.red}FAIL${C.reset}`
 async function main() {
     const opts = parseArgs(process.argv.slice(2));
 
-    // 1. Bootstrap: gateway coords + ARM token (fail fast).
+    // 1. Bootstrap: gateway coords + interactive ARM token (fail fast).
     const config = loadSavedConfig();
     if (!config?.subscriptionId || !config?.resourceGroup || !config?.gatewayName) {
         console.error(`${C.red}No gateway config found.${C.reset} Expected ${join(ARTIFACTS_DIR, "gateway-config.json")}.`);
@@ -132,9 +158,9 @@ async function main() {
         process.exit(2);
     }
     try {
-        await getToken();
+        await signInToAzure();
     } catch (err) {
-        console.error(`${C.red}Could not get an ARM token.${C.reset} Sign in to Azure when the browser opens.`);
+        console.error(`${C.red}Could not get an ARM token.${C.reset}`);
         console.error(String(err.message || err).slice(0, 300));
         process.exit(2);
     }

@@ -13,14 +13,15 @@ HTTP endpoint that the extension writes to the Copilot CLI config. The probe
 uses the configured `X-API-Key`, follows `Mcp-Session-Id`, and accepts standard
 JSON or SSE JSON-RPC responses.
 
-The whole point: it runs with **Node and Azure CLI**. No Copilot app, no
-canvas, no UI. Hand it to anyone (e.g. Arjun) and they can reproduce an MCP
-server issue locally.
+The whole point: it runs with **Node and a browser sign-in**. No Copilot app or
+canvas is required. Hand it to anyone (e.g. Arjun) and they can reproduce an
+MCP server issue locally.
 
 ## Prerequisites
 
-1. **Azure CLI signed in with `az login`.** The harness asks Azure CLI for the
-   same short-lived ARM token as the extension.
+1. **A browser for Microsoft Entra sign-in.** The harness opens the same
+   interactive Azure sign-in as the extension when its encrypted Azure Identity
+   session is not already available.
 2. **A gateway already picked once.** The harness reads gateway coordinates from
    `~/.copilot/extensions/connector-namespaces/artifacts/gateway-config.json`
    (`{ subscriptionId, resourceGroup, gatewayName }`). Pick a gateway once in
@@ -52,10 +53,12 @@ node extensions/connector-namespaces/test/smoke.mjs --only=WorkIQMail,WorkIQShar
 node extensions/connector-namespaces/test/smoke.mjs --limit=5 --open-consent
 ```
 
-## One-time consent, then headless forever
+## One-time connector consent
 
-This is the key behavior. OAuth-backed servers (most of them) need a human to
-consent **once** in a browser. The model:
+OAuth-backed servers (most of them) need a human to consent **once** in a
+browser. Azure ARM sign-in is restored from the operating system's encrypted
+credential store when available; the one-time behavior below applies to the
+connector's own consent. The model:
 
 1. **First run** hits a server that needs consent → the harness prints a consent
    URL and marks it `NEEDS_CONSENT`. It saves a pending record to
@@ -67,8 +70,8 @@ consent **once** in a browser. The model:
    loopback page is just a redirect target and nothing is listening on it.
 3. **Re-run the harness.** It sees the pending record, confirms the gateway
    connection is now `Connected`, finishes the install (mints the API key,
-   writes the CLI entry), and probes it headless. From then on it's reused with
-   zero human interaction.
+   writes the CLI entry), and probes it headless. From then on the connector is
+   reused without repeating its consent.
 
 So the server taxonomy is:
 
