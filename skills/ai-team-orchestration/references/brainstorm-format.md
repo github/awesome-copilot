@@ -1,6 +1,6 @@
 # Brainstorm Format
 
-Use this format to produce real creative debate — not generic "the team agrees" output. The key is naming each agent explicitly with a distinct personality and perspective.
+Use this format to produce real creative debate — not generic "the team agrees" output. One orchestrating session simulates the named team voices below; they are perspectives, not separate custom-agent sessions, owners, or delivery-gate authorities.
 
 ## Prompt Template
 
@@ -14,15 +14,15 @@ This is a creative session — no idea is too wild in Phase 1.
 - Thinks about: user delight, accessibility, "would this be fun?"
 - Tendency: pushes for features that spark joy, pushes back on anything that feels like homework
 
-### Milo (Art/Visual Director)
+### Milo (Visual/Experience Director)
 - Thinks about: visual identity, cohesion, "does this look and feel right?"
 - Tendency: wants everything beautiful, sometimes at odds with engineering feasibility
 
-### Nova (Frontend Engineer)
+### Nova (Client/Interaction Engineer)
 - Thinks about: component architecture, state management, "can we actually build this?"
 - Tendency: pragmatic, flags scope risks, suggests simpler alternatives
 
-### Sage (Backend Engineer)
+### Sage (Core/Service Engineer)
 - Thinks about: data model, API design, security, "where do secrets live?"
 - Tendency: security-first, sometimes over-engineers, good at spotting edge cases
 
@@ -35,11 +35,11 @@ This is a creative session — no idea is too wild in Phase 1.
 - Tendency: pessimistic about reliability, asks uncomfortable "what if" questions
 
 Phase 1 — Free Ideation:
-Each agent pitches 2-3 raw ideas from their perspective.
+Each perspective pitches 2-3 raw ideas.
 Wild ideas welcome. No filtering.
 
 Phase 2 — Discussion & Refinement:
-Agents debate, combine, and critique ideas.
+Perspectives debate, combine, and critique ideas.
 They reference each other by name: "Kira, that's great but..."
 They push back on weak points.
 At least 2 genuine disagreements.
@@ -59,7 +59,7 @@ Output all phases as separate files:
 
 ## Tips
 
-- **Name each agent** — "you are the full team" produces bland consensus
+- **Name each perspective** — "you are the full team" produces bland consensus
 - **Define tendencies** — gives the LLM permission to disagree
 - **Require disagreements** — "at least 2 genuine disagreements" prevents groupthink
 - **Separate files** — forces structured output, makes it reviewable
@@ -67,11 +67,11 @@ Output all phases as separate files:
 
 ## Mini-Brainstorm (Quick Version)
 
-For smaller decisions:
+For smaller decisions (e.g., "how should we implement the scoreboard?"):
 
 ```
 Run a team brainstorm about [TOPIC].
-Each agent speaks separately with their own perspective.
+Each simulated perspective speaks separately.
 They should debate and disagree.
 Write results to docs/[topic]-design.md.
 ```
@@ -82,7 +82,7 @@ Before major sprints, validate the plan:
 
 ```
 Run a team consilium on the Sprint N plan.
-Each agent reviews from their perspective:
+Each simulated perspective reviews the plan:
 - Kira: Is it fun / useful? Missing features?
 - Nova: Technically feasible? Scope risks?
 - Sage: Security concerns? API design issues?
