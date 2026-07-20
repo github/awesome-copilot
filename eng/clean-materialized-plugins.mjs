@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
+const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const MATERIALIZED_SPECS = {
   agents: {
     path: "agents",
@@ -26,6 +27,41 @@ const MATERIALIZED_SPECS = {
     },
   },
 };
+
+function copyDirRecursive(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+function moveEntry(srcPath, destPath) {
+  fs.mkdirSync(path.dirname(destPath), { recursive: true });
+  try {
+    fs.renameSync(srcPath, destPath);
+    return;
+  } catch (error) {
+    if (!["EXDEV", "EEXIST", "ENOTEMPTY", "EPERM"].includes(error?.code)) {
+      throw error;
+    }
+  }
+
+  const stats = fs.statSync(srcPath);
+  if (stats.isDirectory()) {
+    copyDirRecursive(srcPath, destPath);
+    fs.rmSync(srcPath, { recursive: true, force: true });
+    return;
+  }
+
+  fs.copyFileSync(srcPath, destPath);
+  fs.rmSync(srcPath, { force: true });
+}
 
 export function restoreManifestFromMaterializedFiles(pluginPath) {
   const pluginJsonPath = path.join(pluginPath, ".github/plugin", "plugin.json");
@@ -87,6 +123,68 @@ function cleanPlugin(pluginPath) {
   }
 
   return { removed, manifestUpdated };
+}
+
+export function cleanMaterializedExtensionPlugin(extensionPath) {
+  const pluginJsonPath = path.join(extensionPath, ".github", "plugin", "plugin.json");
+  let manifestUpdated = false;
+  if (fs.existsSync(pluginJsonPath)) {
+    const plugin = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
+    const extensionBundlePrefix = `extensions/${path.basename(extensionPath)}/`;
+    if (plugin.extensions === "extensions") {
+      plugin.extensions = ".";
+      manifestUpdated = true;
+    }
+    if (typeof plugin.logo === "string" && plugin.logo.startsWith(extensionBundlePrefix)) {
+      plugin.logo = plugin.logo.slice(extensionBundlePrefix.length);
+      manifestUpdated = true;
+    }
+    if (manifestUpdated) {
+      fs.writeFileSync(pluginJsonPath, JSON.stringify(plugin, null, 2) + "\n", "utf8");
+      console.log(`  Updated ${path.basename(extensionPath)}/.github/plugin/plugin.json`);
+    }
+  }
+
+  const target = path.join(extensionPath, "extensions");
+  if (!fs.existsSync(target) || !fs.statSync(target).isDirectory()) {
+    return { removed: 0, manifestUpdated };
+  }
+
+  const bundleRoot = path.join(target, path.basename(extensionPath));
+  const count = countFiles(target);
+  if (fs.existsSync(bundleRoot) && fs.statSync(bundleRoot).isDirectory()) {
+    for (const entry of fs.readdirSync(bundleRoot, { withFileTypes: true })) {
+      moveEntry(path.join(bundleRoot, entry.name), path.join(extensionPath, entry.name));
+    }
+    console.log(`  Restored ${path.basename(extensionPath)}/ from materialized extensions bundle`);
+  }
+
+  fs.rmSync(target, { recursive: true, force: true });
+  console.log(`  Removed ${path.basename(extensionPath)}/extensions/ (${count} files)`);
+  return { removed: count, manifestUpdated };
+}
+
+function isExtensionPluginDirectory(extensionPath) {
+  if (fs.existsSync(path.join(extensionPath, "extension.mjs"))) {
+    return true;
+  }
+
+  const bundleEntry = path.join(extensionPath, "extensions", path.basename(extensionPath), "extension.mjs");
+  if (fs.existsSync(bundleEntry)) {
+    return true;
+  }
+
+  const pluginJsonPath = path.join(extensionPath, ".github", "plugin", "plugin.json");
+  if (!fs.existsSync(pluginJsonPath)) {
+    return false;
+  }
+
+  try {
+    const plugin = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
+    return plugin.extensions === "extensions";
+  } catch {
+    return false;
+  }
 }
 
 function countFiles(dir) {
@@ -168,6 +266,25 @@ function main() {
     total += removed;
     if (manifestUpdated) {
       manifestsUpdated++;
+    }
+  }
+
+  if (fs.existsSync(EXTENSIONS_DIR)) {
+    const extensionDirs = fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+
+    for (const dirName of extensionDirs) {
+      const extensionPath = path.join(EXTENSIONS_DIR, dirName);
+      if (!isExtensionPluginDirectory(extensionPath)) {
+        continue;
+      }
+      const { removed, manifestUpdated } = cleanMaterializedExtensionPlugin(extensionPath);
+      total += removed;
+      if (manifestUpdated) {
+        manifestsUpdated++;
+      }
     }
   }
 

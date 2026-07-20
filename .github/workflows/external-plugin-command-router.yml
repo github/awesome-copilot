@@ -753,6 +753,7 @@ jobs:
                   vally_lint_status: 'infra_error',
                   smoke_status: 'infra_error',
                   version_match_status: 'infra_error',
+                  canvas_structure_status: 'infra_error',
                   failure_class: 'infra',
                   summary: 'Quality-gate workflow failed unexpectedly. Re-run intake to retry.',
                 };
@@ -764,6 +765,7 @@ jobs:
                   vally_lint_status: 'infra_error',
                   smoke_status: 'infra_error',
                   version_match_status: 'infra_error',
+                  canvas_structure_status: 'infra_error',
                   failure_class: 'infra',
                   summary: 'Quality-gate workflow did not return results. Re-run intake to retry.',
                 };
