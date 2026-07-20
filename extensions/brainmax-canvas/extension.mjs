@@ -503,6 +503,7 @@ const session = await joinSession({
                 if (entry) {
                     servers.delete(ctx.instanceId);
                     await entry.close();
+                    if (servers.has(ctx.instanceId)) return;
                 }
                 const existingTimer = stateCleanupTimers.get(ctx.instanceId);
                 if (existingTimer) clearTimeout(existingTimer);

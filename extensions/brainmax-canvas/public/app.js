@@ -79,6 +79,7 @@ let latestState = null;
 let activeQuestionId = null;
 let locallySubmitting = false;
 let localAnswerError = "";
+let activeView = null;
 
 function announce(text) {
   if (!text || text === lastAnnouncement) return;
@@ -90,6 +91,13 @@ function showView(name) {
   for (const [key, el] of Object.entries(views)) {
     el.hidden = key !== name;
   }
+}
+
+function focusViewHeading(name) {
+  const heading = views[name]?.querySelector("h1");
+  if (!heading) return;
+  heading.tabIndex = -1;
+  heading.focus();
 }
 
 function updateAnswerControls() {
@@ -357,6 +365,7 @@ function renderReport(state) {
 }
 
 function render(state) {
+  const viewChanged = state.view !== activeView;
   latestState = state;
   showView(state.view);
   if (state.view === "domains") renderDomains(state);
@@ -364,6 +373,10 @@ function render(state) {
   if (state.view === "summary") renderSummary(state);
   if (state.view === "report") renderReport(state);
   announce(state.announcement);
+  if (viewChanged) {
+    activeView = state.view;
+    focusViewHeading(state.view);
+  }
 }
 
 answerInput.addEventListener("input", updateAnswerControls);
@@ -398,8 +411,21 @@ document.getElementById("btn-choose-another").addEventListener("click", () => {
 document.getElementById("btn-report-choose-another").addEventListener("click", () => {
   sendEvent({ type: "choose-another-domain" });
 });
-document.getElementById("btn-compile-report").addEventListener("click", () => {
-  sendEvent({ type: "compile-report" });
+document.getElementById("btn-compile-report").addEventListener("click", async () => {
+  const reportButton = document.getElementById("btn-compile-report");
+  const reportStatus = document.getElementById("report-request-status");
+  reportButton.disabled = true;
+  reportButton.textContent = "Compiling report…";
+  reportStatus.dataset.state = "submitting";
+  reportStatus.textContent = "Building your competency report…";
+  try {
+    await postEvent({ type: "compile-report" });
+  } catch (err) {
+    reportButton.disabled = false;
+    reportButton.textContent = "Compile report";
+    reportStatus.dataset.state = "error";
+    reportStatus.textContent = err instanceof Error ? err.message : "The report could not be requested. Try again.";
+  }
 });
 
 // ---------- Theme toggle ----------
