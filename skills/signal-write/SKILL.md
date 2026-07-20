@@ -86,10 +86,10 @@ The `subtype` field preserves the specific signal state for
 dashboard consumers. `signal_type` controls sort priority
 (escalation → top).
 
-> **Note:** The signals-dashboard canvas extension (bundled with
-> the-workshop plugin) reads `subtype` when present and falls back
-> to `signal_type` for display. If consuming signals in your own
-> tooling, prefer `subtype` for the specific state.
+> **Note:** The signals-dashboard canvas extension reads `subtype`
+> when present and falls back to `signal_type` for display. If
+> consuming signals in your own tooling, prefer `subtype` for the
+> specific state.
 
 ### 2. Note the signal in the journal
 
