@@ -99,6 +99,9 @@ Whenever an issue or PR is referenced in the report body, render it as a Markdow
 
 Apply this consistently in narrative text, metric tables, legends, and comparisons.
 Do not leave plain-text references like `#123` or `PR #456` when `REPO` is known.
+Do not nest Markdown links inside another Markdown link.
+
+For Table of Contents entries, use plain text labels for issue/PR identifiers (for example, `3.1 — Issue #34 / PR #44`) and link only to the local anchor target.
 
 ---
 
