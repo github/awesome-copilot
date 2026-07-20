@@ -64,8 +64,11 @@ export function loadConfig(projectRoot = process.cwd()) {
     return config;
 }
 
-// Write a global config during onboarding.
-export function writeConfig({ root, partitioning = "month", migration = "adopt" } = {}) {
+// Write a global config during onboarding. First-run setup has no prior
+// configured location, so there is nothing to move/copy — always adopt the
+// chosen root. (Move/Copy migration is offered later from Settings, where the
+// plan/preview/approve flow in applyConfigChange handles it safely.)
+export function writeConfig({ root, partitioning = "month" } = {}) {
     if (!root || !String(root).trim()) throw new Error("A storage root path is required.");
     if (!["day", "week", "month"].includes(partitioning)) throw new Error("partitioning must be day, week, or month.");
     const config = {
@@ -76,7 +79,7 @@ export function writeConfig({ root, partitioning = "month", migration = "adopt" 
             allowExternalPaths: true,
             files: { ...DEFAULT_FILES },
         },
-        migration: { mode: migration },
+        migration: { mode: "adopt" },
     };
     fs.mkdirSync(GLOBAL_CONFIG_DIR, { recursive: true });
     fs.writeFileSync(GLOBAL_CONFIG_PATH, JSON.stringify(config, null, 2), "utf8");
@@ -117,6 +120,20 @@ function resolveFilePath(type, config) {
 
 function ensureDir(dir) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
+// Never overwrite an existing file: if the target path is taken, append
+// -2, -3, … before the extension so a "Create" action can never destroy data.
+function uniquePath(p) {
+    if (!fs.existsSync(p)) return p;
+    const dir = path.dirname(p);
+    const ext = path.extname(p);
+    const stem = path.basename(p, ext);
+    for (let i = 2; i < 10000; i++) {
+        const candidate = path.join(dir, `${stem}-${i}${ext}`);
+        if (!fs.existsSync(candidate)) return candidate;
+    }
+    throw new Error(`Could not allocate a unique filename for ${p}`);
 }
 
 function readFileOrCreate(filePath, def = "") {
@@ -414,9 +431,9 @@ export function createMemo(params = {}) {
     const dir = resolveFilePath("memos", config);
     ensureDir(dir);
     const filename = `${todayISO()}_${slugify(params.title)}.md`;
-    const p = path.join(dir, filename);
+    const p = uniquePath(path.join(dir, filename));
     fs.writeFileSync(p, `# ${params.title}\n\n${params.content || "Add your memo content here."}`, "utf8");
-    return { filename, title: params.title };
+    return { filename: path.basename(p), title: params.title };
 }
 
 // ---------------------------------------------------------------------------
@@ -490,12 +507,12 @@ export function addNote(domain, params = {}) {
     const dir = resolveFilePath(domain, config);
     ensureDir(dir);
     const filename = `${todayISO()}_${slugify(params.title)}.md`;
-    const p = path.join(dir, filename);
-    if (!path.resolve(p).startsWith(path.resolve(dir))) throw new Error("Invalid note path");
+    const p = uniquePath(path.join(dir, filename));
+    if (path.dirname(path.resolve(p)) !== path.resolve(dir)) throw new Error("Invalid note path");
     const frontmatter = { catpilot: DOMAIN_TAG[domain], title: params.title, date: todayISO(), ...(params.frontmatter || {}) };
     const body = params.body ? `\n${params.body}\n` : "\n";
     fs.writeFileSync(p, `${toFrontmatter(frontmatter)}\n\n# ${params.title}\n${body}`, "utf8");
-    return { filename, frontmatter };
+    return { filename: path.basename(p), frontmatter };
 }
 
 // ---------------------------------------------------------------------------
@@ -729,12 +746,13 @@ export function activity({ days = 14 } = {}) {
     try { reports = collectReports(config); } catch { /* ignore */ }
 
     const events = [];
+    const today = todayISO();
     for (const e of journal) if (e.date >= since) events.push({ date: e.date, type: "journal", label: "Journal entry", detail: oneLine(e.text) });
     for (const m of memos) if (m.date && m.date >= since) events.push({ date: m.date, type: "memo", label: m.title, detail: m.filename });
     for (const n of learning) if (n.frontmatter?.date >= since) events.push({ date: n.frontmatter.date, type: "learning", label: n.frontmatter.title || n.filename, detail: n.frontmatter.status || "" });
     for (const n of growth) if (n.frontmatter?.date >= since) events.push({ date: n.frontmatter.date, type: "growth", label: n.frontmatter.title || n.filename, detail: n.frontmatter.impact || "" });
     for (const n of projects) if (n.frontmatter?.date >= since) events.push({ date: n.frontmatter.date, type: "project", label: n.frontmatter.title || n.filename, detail: n.frontmatter.status || "" });
-    for (const m of milestones) if (m.targetDate && m.targetDate >= since) events.push({ date: m.targetDate, type: "milestone", label: m.name, detail: `Target · ${m.status || "Planned"}` });
+    for (const m of milestones) if (m.targetDate && m.targetDate >= since && m.targetDate <= today) events.push({ date: m.targetDate, type: "milestone", label: m.name, detail: `Target · ${m.status || "Planned"}` });
     for (const r of reports) if (r.date && r.date >= since) events.push({ date: r.date, type: "report", label: r.title, detail: r.filename });
 
     events.sort((a, b) => b.date.localeCompare(a.date));
@@ -815,8 +833,10 @@ export function saveReport({ title, body, format = "markdown" } = {}) {
     const filename = `report-${nowStamp()}${slug ? "-" + slug : ""}.${ext}`;
     let content = body || "";
     if (ext === "md" && title && !/^#\s/m.test(content)) content = `# ${title}\n\n${content}`;
-    fs.writeFileSync(path.join(dir, filename), content, "utf8");
-    return { filename, title: title || filename, content, format: ext === "md" ? "markdown" : "html", date: reportDate(filename) };
+    const full = uniquePath(path.join(dir, filename));
+    fs.writeFileSync(full, content, "utf8");
+    const finalName = path.basename(full);
+    return { filename: finalName, title: title || finalName, content, format: ext === "md" ? "markdown" : "html", date: reportDate(finalName) };
 }
 
 export function deleteReport(filename) {
@@ -941,11 +961,11 @@ export function generateReport({ period = "this-week", title } = {}) {
 
 // Resolve every domain path for a given (root, partitioning) pair without
 // mutating the active config.
-function resolveDomainPaths(baseDir, root, partitioning) {
+function resolveDomainPaths(baseDir, root, partitioning, files = DEFAULT_FILES) {
     const storageRoot = path.resolve(baseDir, root);
     const partition = getPartitionFolder(partitioning);
     const out = {};
-    for (const [type, fileName] of Object.entries(DEFAULT_FILES)) {
+    for (const [type, fileName] of Object.entries({ ...DEFAULT_FILES, ...(files || {}) })) {
         out[type] = { path: path.join(storageRoot, partition, fileName), isDir: !/\.[a-z]+$/i.test(fileName) };
     }
     return { storageRoot, partition, paths: out };
@@ -963,7 +983,7 @@ export function getConfig() {
     const status = configStatus();
     if (!status.configured) return { configured: false };
     const config = loadConfig();
-    const { storageRoot, partition } = resolveDomainPaths(config.__baseDir, config.storage.root, config.storage.partitioning);
+    const { storageRoot, partition } = resolveDomainPaths(config.__baseDir, config.storage.root, config.storage.partitioning, config.storage.files);
     return {
         configured: true,
         configPath: config.__configPath,
@@ -986,8 +1006,8 @@ export function planConfigChange({ root, partitioning, migration = "move" } = {}
     const nextRoot = (root && String(root).trim()) || current.root;
     const nextPart = partitioning || current.partitioning;
 
-    const from = resolveDomainPaths(baseDir, current.root, current.partitioning);
-    const to = resolveDomainPaths(baseDir, nextRoot, nextPart);
+    const from = resolveDomainPaths(baseDir, current.root, current.partitioning, config.storage.files);
+    const to = resolveDomainPaths(baseDir, nextRoot, nextPart, config.storage.files);
 
     const rootChanged = path.resolve(from.storageRoot) !== path.resolve(to.storageRoot);
     const partChanged = current.partitioning !== nextPart;
@@ -1012,7 +1032,7 @@ export function planConfigChange({ root, partitioning, migration = "move" } = {}
     if (rootChanged && !partChanged) {
         // Root-only change: migrate EVERY partition, preserving the relative
         // layout, so historical data is not left behind in the old root.
-        for (const [type, fileName] of Object.entries(DEFAULT_FILES)) {
+        for (const [type, fileName] of Object.entries({ ...DEFAULT_FILES, ...(config.storage.files || {}) })) {
             const isDir = !/\.[a-z]+$/i.test(fileName);
             const srcs = allPartitionPaths(config, type);
             if (!srcs.length) {

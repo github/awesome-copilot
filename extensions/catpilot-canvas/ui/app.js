@@ -50,27 +50,47 @@
     }
 
     // ---------------------------------------------------------------- modal
+    let modalReturnFocus = null;
     function openModal({ title, body, foot, width }) {
         closeModal();
+        modalReturnFocus = document.activeElement;
         const backdrop = el("div", { class: "modal-backdrop", onclick: (e) => { if (e.target === backdrop) closeModal(); } });
-        const modal = el("div", { class: "modal" });
+        const titleId = `modal-title-${Date.now()}`;
+        const modal = el("div", { class: "modal", role: "dialog", "aria-modal": "true", "aria-labelledby": titleId, tabindex: "-1" });
         if (width) modal.style.width = `min(${width}px, 100%)`;
         modal.append(
             el("div", { class: "modal-head" },
-                el("h3", { text: title }),
-                el("button", { class: "icon-btn", text: "✕", onclick: closeModal })),
+                el("h3", { id: titleId, text: title }),
+                el("button", { class: "icon-btn", text: "✕", "aria-label": "Close dialog", onclick: closeModal })),
             el("div", { class: "modal-body" }, body),
             foot ? el("div", { class: "modal-foot" }, foot) : null,
         );
         backdrop.append(modal);
         $("#modal-root").append(backdrop);
         document.addEventListener("keydown", escClose);
+        modal.addEventListener("keydown", trapFocus);
+        const focusables = modal.querySelectorAll("a[href], button, textarea, input, select, [tabindex]:not([tabindex='-1'])");
+        (focusables[0] || modal).focus();
         return { close: closeModal, modal };
+    }
+    function trapFocus(e) {
+        if (e.key !== "Tab") return;
+        const modal = e.currentTarget;
+        const f = [...modal.querySelectorAll("a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex='-1'])")]
+            .filter((n) => n.offsetParent !== null || n === document.activeElement);
+        if (!f.length) return;
+        const first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
     function escClose(e) { if (e.key === "Escape") closeModal(); }
     function closeModal() {
         $("#modal-root").innerHTML = "";
         document.removeEventListener("keydown", escClose);
+        if (modalReturnFocus && typeof modalReturnFocus.focus === "function") {
+            try { modalReturnFocus.focus(); } catch { /* */ }
+        }
+        modalReturnFocus = null;
     }
 
     // ---------------------------------------------------------------- state
@@ -230,22 +250,38 @@
     }
 
     // ---------------------------------------------------------------- router
+    // Views append asynchronously; a fast A→B navigation must not let A's late
+    // resolution paint into B's screen. Each navigation gets a token and builds
+    // into detached staging nodes, committing to the DOM only if it is still the
+    // current navigation.
+    let navToken = 0;
+    let actionsHost = $("#view-actions");
     async function go(view) {
+        const token = ++navToken;
         state.view = view;
         location.hash = view;
         $("#view-title").textContent = NAV.find((n) => n.id === view)?.label || "CatPilot";
         $("#view-sub").textContent = VIEW_SUB[view] || "";
-        $("#view-actions").innerHTML = "";
         renderNav();
+        const stage = el("div");
+        const actionStage = el("div");
+        actionsHost = actionStage;
+        stage.append(el("div", { class: "spinner" }));
+        $("#content").innerHTML = "";
+        $("#content").append(el("div", { class: "spinner" }));
+        try {
+            await VIEWS[view](stage);
+        } catch (err) {
+            stage.innerHTML = "";
+            stage.append(errorBox(err));
+        }
+        if (token !== navToken) return; // superseded by a newer navigation
         const content = $("#content");
         content.innerHTML = "";
-        content.append(el("div", { class: "spinner" }));
-        try {
-            await VIEWS[view](content);
-        } catch (err) {
-            content.innerHTML = "";
-            content.append(errorBox(err));
-        }
+        while (stage.firstChild) content.append(stage.firstChild);
+        const actions = $("#view-actions");
+        actions.innerHTML = "";
+        while (actionStage.firstChild) actions.append(actionStage.firstChild);
     }
 
     function errorBox(err) {
@@ -409,7 +445,7 @@
         const seg = el("div", { class: "segmented" },
             el("button", { class: taskViewMode === "list" ? "active" : "", text: "☰ List", onclick: () => { taskViewMode = "list"; localStorage.setItem("cp-task-view", "list"); go("tasks"); } }),
             el("button", { class: taskViewMode === "board" ? "active" : "", text: "▦ Board", onclick: () => { taskViewMode = "board"; localStorage.setItem("cp-task-view", "board"); go("tasks"); } }));
-        $("#view-actions").append(seg);
+        actionsHost.append(seg);
 
         const toolbar = el("div", { class: "toolbar" },
             el("button", { class: "btn btn-primary", html: "＋ Add task", onclick: () => taskModal() }),
@@ -455,7 +491,7 @@
     function taskRow(t) {
         const done = t.status.toLowerCase() === "done";
         const tr = el("tr", { class: done ? "done-row" : "", dataset: { taskTitle: t.title } });
-        const check = el("input", { type: "checkbox", style: "width:auto", ...(done ? { checked: "checked" } : {}) });
+        const check = el("input", { type: "checkbox", style: "width:auto", "aria-label": done ? `Reopen ${t.title}` : `Complete ${t.title}`, ...(done ? { checked: "checked" } : {}) });
         check.addEventListener("change", async () => {
             try {
                 if (check.checked) { await api(`/api/tasks/${t.id}/complete`, { method: "POST" }); toast("Task completed", t.title, "ok"); }
@@ -914,7 +950,7 @@
         const data = await api(`/api/timeline?days=${tlDays}`);
         root.innerHTML = "";
         const seg = el("div", { class: "segmented" }, [7, 14, 30].map((d) => el("button", { class: tlDays === d ? "active" : "", text: `${d}d`, onclick: () => { tlDays = d; localStorage.setItem("cp-tl-days", d); go("timeline"); } })));
-        $("#view-actions").append(seg);
+        actionsHost.append(seg);
         root.append(agentBar([
             { icon: "🧭", label: "Summarize this period", prompt: `Summarize what I've worked on in CatPilot over the last ${tlDays} days using my journal, memos, tasks and milestones.` },
             { icon: "🎯", label: "What should I do next?", prompt: "Based on my CatPilot tasks and milestones, what should I focus on next?" },
@@ -941,7 +977,7 @@
     };
 
     // ---------------------------------------------------------------- reports
-    const PERIODS = [["this-week", "This week"], ["last-week", "Last week"], ["this-month", "This month"], ["last-month", "Last month"], ["last-7", "Last 7 days"], ["last-30", "Last 30 days"]];
+    const PERIODS = [["this-week", "This week"], ["last-week", "Last week"], ["this-month", "This month"], ["last-month", "Last month"], ["last-7", "Last 7 days"], ["last-30", "Last 30 days"], ["all", "All time"]];
     let reportPeriod = "this-week";
     VIEWS.reports = async (root) => {
         const { reports } = await api("/api/reports");
@@ -1109,7 +1145,7 @@
         $("#setup-form").addEventListener("submit", async (e) => {
             e.preventDefault();
             const fd = new FormData(e.target);
-            const payload = { root: fd.get("root"), partitioning: fd.get("partitioning"), migration: fd.get("migration") };
+            const payload = { root: fd.get("root"), partitioning: fd.get("partitioning") };
             if (!payload.root.trim()) { toast("Path required", "", "err"); return; }
             try {
                 await api("/api/setup", { method: "POST", body: payload });

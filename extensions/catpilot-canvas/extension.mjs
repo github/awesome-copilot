@@ -22,6 +22,7 @@ function log(message, level = "info") {
 // Single shared loopback server (data is global; every instance is identical).
 // ---------------------------------------------------------------------------
 let sharedServer = null;
+let serverInit = null;
 const openInstances = new Set();
 
 const STATIC = {
@@ -194,14 +195,24 @@ async function requestListener(req, res) {
 
 async function ensureServer() {
     if (sharedServer) return sharedServer;
-    const server = createServer((req, res) => {
-        requestListener(req, res).catch(() => { try { res.writeHead(500); res.end(); } catch { /* */ } });
-    });
-    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-    const port = server.address().port;
-    sharedServer = { server, url: `http://127.0.0.1:${port}/` };
-    log(`CatPilot canvas server listening on ${sharedServer.url}`);
-    return sharedServer;
+    // Cache the in-flight init so concurrent open() calls share one server
+    // instead of racing to bind two loopback listeners.
+    if (!serverInit) {
+        serverInit = (async () => {
+            const server = createServer((req, res) => {
+                requestListener(req, res).catch(() => { try { res.writeHead(500); res.end(); } catch { /* */ } });
+            });
+            await new Promise((resolve, reject) => {
+                server.once("error", reject);
+                server.listen(0, "127.0.0.1", resolve);
+            });
+            const port = server.address().port;
+            sharedServer = { server, url: `http://127.0.0.1:${port}/` };
+            log(`CatPilot canvas server listening on ${sharedServer.url}`);
+            return sharedServer;
+        })().catch((err) => { serverInit = null; throw err; });
+    }
+    return serverInit;
 }
 
 // ---------------------------------------------------------------------------
@@ -328,6 +339,7 @@ const canvas = createCanvas({
         if (openInstances.size === 0 && sharedServer) {
             const { server } = sharedServer;
             sharedServer = null;
+            serverInit = null;
             await new Promise((resolve) => server.close(() => resolve()));
         }
     },
