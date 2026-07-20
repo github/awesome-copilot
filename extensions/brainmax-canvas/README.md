@@ -8,14 +8,14 @@ The Canvas is an optional visual layer. Question generation and scoring stay wit
 
 ## Install
 
-Install the Brainmax Canvas extension through GitHub Copilot or place this directory at `.github/extensions/brainmax-canvas/` in a project. For a project-scoped installation, install the extension's dependencies:
+Install the BrainMax Canvas extension through GitHub Copilot or place this directory at `.github/extensions/brainmax-canvas/` in a project. For a project-scoped installation, install the extension's dependencies:
 
 ```bash
 cd .github/extensions/brainmax-canvas
 npm install
 ```
 
-Install the companion Brainmaxxing Agent Skills separately:
+Install the companion BrainMaxxing Agent Skills separately:
 
 ```bash
 npx skills add juliamuiruri4/brainmaxxing
@@ -28,7 +28,7 @@ npx skills add juliamuiruri4/brainmaxxing
 1. In a new agent session, invoke `/brainmax` in a repository.
 1. Wait while BrainMax detects the knowledge domains represented in the codebase, and opens the Canvas.
 1. Select a domain in the Canvas.
-1. Answer each code-grounded question in the Canvas. Answers are relayed to the active session for scoring.
+1. Answer each code-grounded question in the Canvas or chat. Canvas answers are relayed to the active session for scoring.
 1. Pick another domain or compile a cross-domain report.
 
 ## Architecture

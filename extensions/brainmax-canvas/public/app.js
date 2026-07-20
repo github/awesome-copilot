@@ -413,6 +413,8 @@ function applyTheme(theme) {
         ? "light"
         : "dark";
   themeToggleLabel.textContent = resolved.toUpperCase();
+  const nextTheme = resolved === "light" ? "dark" : "light";
+  themeToggleBtn.setAttribute("aria-label", `Switch from ${resolved} to ${nextTheme} theme`);
 }
 
 const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);

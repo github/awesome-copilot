@@ -46,6 +46,8 @@ test("instance APIs require their capability token", async (t) => {
     const unauthorizedStateUrl = new URL(stateUrl);
     unauthorizedStateUrl.search = "";
     assert.equal((await fetch(unauthorizedStateUrl)).status, 403);
+    unauthorizedStateUrl.searchParams.set("token", "漢".repeat(43));
+    assert.equal((await fetch(unauthorizedStateUrl)).status, 403);
     assert.deepEqual(await (await fetch(stateUrl)).json(), { view: "domains" });
 
     const eventsUrl = new URL(server.url);

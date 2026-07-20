@@ -53,14 +53,13 @@ export async function startInstanceServer(instanceId, getStateFn, onClientEvent)
     /** @type {Set<import("node:http").ServerResponse>} */
     const sseClients = new Set();
     const capabilityToken = randomBytes(32).toString("base64url");
+    const capabilityTokenBytes = Buffer.from(capabilityToken);
 
     function hasCapability(url) {
         const candidate = url.searchParams.get("token");
-        return Boolean(
-            candidate
-            && candidate.length === capabilityToken.length
-            && timingSafeEqual(Buffer.from(candidate), Buffer.from(capabilityToken)),
-        );
+        if (!candidate) return false;
+        const candidateBytes = Buffer.from(candidate);
+        return candidateBytes.length === capabilityTokenBytes.length && timingSafeEqual(candidateBytes, capabilityTokenBytes);
     }
 
     function rejectUnauthorized(res) {

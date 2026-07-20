@@ -353,7 +353,7 @@ const session = await joinSession({
                     handler: async (ctx) => {
                         const state = getState(ctx.instanceId);
                         const { index, score, feedback } = ctx.input || {};
-                        if (!state.quiz || !state.question || index !== state.question.index || state.answerStatus !== "submitting") {
+                        if (!state.quiz || !state.question || index !== state.question.index || state.answerStatus === "scored") {
                             return { ok: false, error: "record_score must target the active question after its answer is submitted." };
                         }
                         if (!Number.isInteger(score) || score < 0 || score > 3 || !isNonEmptyString(feedback)) {
