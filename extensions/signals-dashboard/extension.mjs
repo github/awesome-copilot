@@ -4,8 +4,10 @@
 // Supports stashing desks (48hr hold) and restoring them.
 
 import { createServer } from "node:http";
+import { existsSync } from "node:fs";
 import { readdir, readFile, writeFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { join, delimiter } from "node:path";
+import { spawn } from "node:child_process";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 
 const servers = new Map();
@@ -29,6 +31,101 @@ function isValidDeskName(name) {
     return typeof name === "string" && name.length > 0 && name.length <= 128 &&
         !name.includes("/") && !name.includes("\\") && !name.includes("\0") &&
         name !== "." && name !== "..";
+}
+
+// Launch a desk as an in-place Copilot CLI session — the canvas counterpart to
+// WorkshopRoom's ConsoleLauncher. A desk is a seat that independent sessions
+// pick up over time, so "open" starts a fresh copilot in the desk's own folder,
+// oriented to read the journal and continue. This keeps every desk inside the
+// one workshop repo (coordinated through journals + .signals + Cairn) instead
+// of spinning off an isolated worktree elsewhere on disk.
+//
+// deskPath has already been confirmed to exist by the caller. We additionally
+// reject a path containing a double-quote before quoting it onto a command line
+// (a real Windows path cannot contain one), mirroring ConsoleLauncher.SafeDir,
+// so a planted workshop path can never break out of the -d "..." argument.
+function deskOrientPrompt(deskName) {
+    return `You are sitting down at the "${deskName}" desk in this workshop. ` +
+        `Read journal.md in this folder first to pick up where the last session ` +
+        `left off, then continue the desk's work. Write your journal before you stop.`;
+}
+
+// Spawn detached and resolve true only once the OS confirms the process
+// started ('spawn'), false on failure ('error', e.g. the binary is missing) so
+// the caller can fall back. A short timer guards the rare case neither fires.
+function trySpawn(cmd, args, opts = {}) {
+    return new Promise((resolve) => {
+        let settled = false;
+        const done = (v, child) => {
+            if (settled) return;
+            settled = true;
+            if (v && child) { try { child.unref(); } catch {} }
+            resolve(v);
+        };
+        try {
+            const child = spawn(cmd, args, { detached: true, stdio: "ignore", ...opts });
+            child.on("error", () => done(false));
+            child.on("spawn", () => done(true, child));
+            setTimeout(() => done(true, child), 600);
+        } catch { resolve(false); }
+    });
+}
+
+// Resolve an executable on PATH (honoring PATHEXT on Windows), mirroring
+// WorkshopRoom's AgentClis.IsOnPath. Used to prefer Agency when the machine has
+// it installed, falling back to vanilla Copilot.
+function isOnPath(command) {
+    try {
+        const dirs = (process.env.PATH || "").split(delimiter);
+        const exts = process.platform === "win32"
+            ? (process.env.PATHEXT || ".EXE;.CMD;.BAT").split(";").filter(Boolean)
+            : [];
+        for (const dir of dirs) {
+            if (!dir) continue;
+            try {
+                if (existsSync(join(dir, command))) return true;
+                for (const ext of exts) if (existsSync(join(dir, command + ext))) return true;
+            } catch {}
+        }
+    } catch {}
+    return false;
+}
+
+// The agent argv a desk opens with. Default: prefer Agency (the internal
+// wrapper around Copilot) when it's installed, so a desk comes up with its
+// MCPs/plugin already configured instead of bare GHCP; otherwise vanilla
+// Copilot. Agency can't take Copilot's --name (it clashes with Agency's own
+// --resume), matching AgentClis. Override with WORKSHOP_DESK_AGENT=copilot to
+// force vanilla, or =agency to insist on the wrapper.
+function deskAgentArgv(deskName) {
+    const pref = (process.env.WORKSHOP_DESK_AGENT || "").trim().toLowerCase();
+    const useAgency = pref === "copilot" ? false : isOnPath("agency");
+    return useAgency ? ["agency", "copilot"] : ["copilot", "--name", deskName];
+}
+
+async function launchDeskConsole(deskPath, deskName) {
+    if (!deskPath || deskPath.includes('"')) return false;
+    const orient = deskOrientPrompt(deskName);
+    const run = [...deskAgentArgv(deskName), "-i", orient];  // agent + orientation
+    if (process.platform === "win32") {
+        // Windows Terminal is a GUI app, so it always surfaces its own visible
+        // window even though the extension host itself is windowless — opened in
+        // the desk folder, running the desk's agent oriented to the desk.
+        if (await trySpawn("wt.exe", ["-d", deskPath, ...run])) return true;
+        // Fallback when wt.exe is absent: a fresh console window via `start`,
+        // with the working directory set to the desk folder.
+        return await trySpawn("cmd.exe", ["/c", "start", "", ...run], { cwd: deskPath });
+    }
+    if (process.platform === "darwin") {
+        // macOS: open Terminal.app in the desk folder. `open` can't inject the
+        // agent command, so it drops the user into the desk to run it.
+        return await trySpawn("open", ["-a", "Terminal", deskPath]);
+    }
+    // Linux/other: best-effort across common terminal emulators, cwd = desk.
+    for (const term of ["x-terminal-emulator", "gnome-terminal", "konsole", "xterm"]) {
+        if (await trySpawn(term, [], { cwd: deskPath })) return true;
+    }
+    return false;
 }
 
 // Signal JSON is agent-produced and unvalidated. Coerce numeric fields before
@@ -403,7 +500,7 @@ function renderSignalCard(sig) {
         style="${openBtnStyle}"
         onmouseover="this.style.background='#1e3a5f'"
         onmouseout="this.style.background='${isEscalation ? '#7f1d1d' : 'transparent'}'"
-        title="Copy this desk's filesystem path to the clipboard">path</button>`;
+        title="Open this desk as a Copilot CLI session in its folder">open</button>`;
 
     let escalationBlock = "";
     if (isEscalation && sig.escalationReason) {
@@ -637,11 +734,14 @@ function renderDashboard(signals, stashed) {
             const data = await res.json();
             if (data.ok) {
                 const path = data.deskPath || name;
-                try {
-                    await navigator.clipboard.writeText(path);
+                // Copy the path either way, so there's always a usable handle.
+                try { await navigator.clipboard.writeText(path); } catch {}
+                if (data.launched) {
+                    showToast('opening ' + name + ' desk…', path);
+                } else {
+                    // No terminal could be launched from here — fall back to the
+                    // path so the user (or the TA) can open the desk themselves.
                     showToast(name + ' · path copied', path);
-                } catch {
-                    showToast(name, path);
                 }
             } else {
                 showToast(name + ' · not found', '');
@@ -741,8 +841,9 @@ async function startServer(instanceId, workshopDir) {
                 try {
                     const s = await stat(deskPath);
                     if (s.isDirectory()) {
+                        const launched = await launchDeskConsole(deskPath, deskName);
                         res.writeHead(200, { "Content-Type": "application/json" });
-                        res.end(JSON.stringify({ ok: true, deskName, deskPath }));
+                        res.end(JSON.stringify({ ok: true, deskName, deskPath, launched }));
                         return;
                     }
                 } catch {}
@@ -859,6 +960,31 @@ const session = await joinSession({
                                 const s = await stat(deskPath);
                                 if (s.isDirectory()) {
                                     return { ok: true, deskName: ctx.input.deskName, deskPath, workshopDir: entry.workshopDir };
+                                }
+                            } catch {}
+                        }
+                        return { error: `Desk '${ctx.input.deskName}' not found` };
+                    },
+                },
+                {
+                    name: "open_desk",
+                    description: "Open a desk as an in-place Copilot CLI session: launches a terminal in the desk's folder (inside the workshop repo) running copilot, oriented to read the desk journal and continue. This is the Model A 'sit down at the desk' — no new worktree, no session spun off elsewhere. Returns the desk path and whether a terminal was launched.",
+                    inputSchema: {
+                        type: "object",
+                        properties: { deskName: { type: "string", description: "Name of the desk to open" } },
+                        required: ["deskName"],
+                    },
+                    handler: async (ctx) => {
+                        const entry = servers.get(ctx.instanceId);
+                        if (!entry) return { error: "Dashboard not open" };
+                        if (!isValidDeskName(ctx.input.deskName)) return { error: "Invalid desk name" };
+                        for (const subdir of ["desks", "classroom"]) {
+                            const deskPath = join(entry.workshopDir, subdir, ctx.input.deskName);
+                            try {
+                                const s = await stat(deskPath);
+                                if (s.isDirectory()) {
+                                    const launched = await launchDeskConsole(deskPath, ctx.input.deskName);
+                                    return { ok: true, deskName: ctx.input.deskName, deskPath, launched, workshopDir: entry.workshopDir };
                                 }
                             } catch {}
                         }
