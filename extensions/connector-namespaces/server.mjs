@@ -9,6 +9,7 @@ import { fetchCatalog, invalidateCache } from "./catalog.mjs";
 import {
     listConnectorGateways,
     listSubscriptions,
+    invalidateSubscriptionsCache,
     listResourceGroups,
     listUserAssignedIdentities,
     checkConnectorGatewayNameAvailable,
@@ -16,6 +17,12 @@ import {
     createConnectorGateway,
     buildGatewayIdentity,
 } from "./armClient.mjs";
+import {
+    cancelSignIn,
+    getSignInStatus,
+    isAuthenticationRequiredError,
+    startSignIn,
+} from "./auth.mjs";
 import { installConnector, finishInstall, reauthConnector, finishReauth, openInBrowser, openMcpConfigFile, getInstalledState, uninstallConnector, removeLocalEntry, deleteConnection, prewarmMeta } from "./install.mjs";
 
 const servers = new Map();
@@ -83,8 +90,8 @@ export function runIdempotentOperation(operations, key, start, now = Date.now())
 
 // Whether a connector was added during the life of THIS extension process.
 // MCP tools are only loaded by the CLI at session start, so an install done
-// after the process started isn't usable until the session restarts. A real
-// session restart spawns a fresh process and resets this to false. `acked`
+// after the process started isn't usable until the app restarts. A full app
+// restart spawns a fresh process and resets this to false. `acked`
 // lets the user dismiss the reminder for the rest of the process.
 let pendingRestart = false;
 let restartAcked = false;
@@ -157,6 +164,44 @@ async function handleRequest(req, res, instanceId, serverEntry) {
     }
 
     // --- API routes ---
+
+    if (req.method === "POST" && url.pathname === "/api/signin") {
+        json(res, startSignIn());
+        return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/signin/status") {
+        const result = getSignInStatus(url.searchParams.get("sessionId") || "");
+        if (result.status === "done") {
+            invalidateSubscriptionsCache();
+            gatewayCache.clear();
+            invalidateCache();
+        }
+        json(res, result);
+        return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/signin/cancel") {
+        const body = await parseBody(req);
+        json(res, cancelSignIn(body.sessionId || ""));
+        return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/subscriptions") {
+        try {
+            const subscriptions = await listSubscriptions({
+                forceRefresh: url.searchParams.get("refresh") === "true",
+            });
+            json(res, { ok: true, subscriptions });
+        } catch (error) {
+            if (isAuthenticationRequiredError(error)) {
+                json(res, { ok: false, reason: "not_signed_in", subscriptions: [] });
+            } else {
+                json(res, { ok: false, error: error.message, subscriptions: [] });
+            }
+        }
+        return;
+    }
 
     if (req.method === "POST" && url.pathname === "/api/add") {
         const body = await parseBody(req);
@@ -485,21 +530,19 @@ async function handleRequest(req, res, instanceId, serverEntry) {
             res.end(renderCreateNamespaceHtml(subs, preselected, serverEntry.token));
         } catch (err) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.end(renderErrorHtml(`Failed to load subscriptions. Run az login in a terminal, then reload this page.\n\n${err.message}`));
+            if (isAuthenticationRequiredError(err)) {
+                res.end(renderSetupHtml([], "Sign in to Azure before creating a connector namespace.", serverEntry.token));
+            } else {
+                res.end(renderErrorHtml(`Failed to load subscriptions.\n\n${err.message}`));
+            }
         }
         return;
     }
 
     // Setup page (no gateway configured)
     if (!config || url.pathname === "/setup") {
-        try {
-            const subs = await listSubscriptions();
-            res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.end(renderSetupHtml(subs, "", serverEntry.token));
-        } catch (err) {
-            res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.end(renderErrorHtml(`Failed to load subscriptions. Run az login in a terminal, then reload this page.\n\n${err.message}`));
-        }
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.end(renderSetupHtml([], "", serverEntry.token));
         return;
     }
 
@@ -516,20 +559,15 @@ async function handleRequest(req, res, instanceId, serverEntry) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.end(renderCatalogHtml(instanceId, catalog, { filter, category, source, config }, serverEntry.token));
     } catch (err) {
-        // Trust-and-fallback: a saved namespace that can no longer be read
-        // (deleted, access revoked, a transient outage) should drop the user
-        // back to the picker, not a dead-end error page. Only if even the
-        // picker can't load its subscriptions do we surface the raw error.
-        try {
-            const subs = await listSubscriptions();
-            res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.end(renderSetupHtml(subs, `couldn't open namespace ${config.gatewayName} .. pick another to continue.`, serverEntry.token));
-        } catch (subErr) {
-            // Both the namespace catalog and the subscription list failed. Surface
-            // the subscription error (the reason the picker itself can't render) and
-            // keep the original namespace error for context.
-            res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.end(renderErrorHtml(`couldn't load subscriptions: ${subErr.message} .. opening namespace ${config.gatewayName} also failed: ${err.message}`));
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        if (isAuthenticationRequiredError(err)) {
+            res.end(renderSetupHtml([], "", serverEntry.token));
+        } else {
+            res.end(renderSetupHtml(
+                [],
+                `Couldn't load the saved namespace "${config.gatewayName}". Choose another namespace or try again.`,
+                serverEntry.token,
+            ));
         }
     }
 }

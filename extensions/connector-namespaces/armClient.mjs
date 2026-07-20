@@ -1,61 +1,16 @@
-// ARM API client — fetches real connector data with Azure CLI credentials.
+// ARM API client — fetches real connector data with interactive Azure credentials.
 
-import { exec, execFile } from "node:child_process";
 import { constants as fsConstants, promises as fs } from "node:fs";
-import { homedir, platform } from "node:os";
-import { basename, delimiter, dirname, isAbsolute, join, resolve, sep } from "node:path";
-import { promisify } from "node:util";
+import { platform } from "node:os";
+import { basename, isAbsolute, join, resolve, sep } from "node:path";
+import { getToken } from "./auth.mjs";
+
+export { getToken };
 
 const API_VERSION = "2026-05-01-preview";
 const RG_API_VERSION = "2021-04-01";
 const MSI_API_VERSION = "2023-01-31";
 const SUBS_API_VERSION = "2020-01-01";
-
-const execFileAsync = promisify(execFile);
-const execAsync = promisify(exec);
-const ARM_RESOURCE = "https://management.azure.com/";
-const EXPIRY_SKEW_MS = 5 * 60 * 1000;
-const LEGACY_AUTH_CACHE = join(
-    process.env.COPILOT_HOME || join(homedir(), ".copilot"),
-    "extensions",
-    "connector-namespaces",
-    "artifacts",
-    "auth-cache.json",
-);
-
-let s_auth = null; // { token, expiresAt }
-let s_authInFlight = null;
-let s_legacyAuthCacheRemoved = false;
-
-export function parseAzureCliToken(stdout) {
-    let data;
-    try {
-        data = JSON.parse(stdout);
-    } catch {
-        throw new Error("Azure CLI returned invalid token JSON.");
-    }
-    const token = data?.accessToken;
-    const epochSeconds = Number(data?.expires_on);
-    const expiresAt = Number.isFinite(epochSeconds) && epochSeconds > 0
-        ? epochSeconds * 1000
-        : Date.parse(data?.expiresOn);
-    if (typeof token !== "string" || token.length === 0 || !Number.isFinite(expiresAt)) {
-        throw new Error("Azure CLI returned an incomplete ARM token.");
-    }
-    return { token, expiresAt };
-}
-
-async function removeLegacyAuthCache() {
-    if (s_legacyAuthCacheRemoved) return;
-    try {
-        await fs.unlink(LEGACY_AUTH_CACHE);
-    } catch (error) {
-        if (error?.code !== "ENOENT") {
-            throw new Error(`Could not remove the legacy connector credential cache at ${LEGACY_AUTH_CACHE}: ${error.message}`);
-        }
-    }
-    s_legacyAuthCacheRemoved = true;
-}
 
 function windowsSystemExecutable(name) {
     const systemRoot = process.env.SystemRoot;
@@ -92,29 +47,6 @@ async function trustedExecutablePath(path, expectedName, workspaceRoot = process
     return candidate;
 }
 
-async function resolveWindowsAzureCli() {
-    const trustedCwd = homedir();
-    const { stdout } = await execFileAsync(
-        windowsSystemExecutable("where.exe"),
-        ["az.cmd"],
-        { cwd: trustedCwd, encoding: "utf8", windowsHide: true, timeout: 10_000, maxBuffer: 64 * 1024 },
-    );
-    for (const path of stdout.split(/\r?\n/).map((line) => line.trim())) {
-        if (/[%]/.test(path)) continue;
-        const candidate = await trustedExecutablePath(path, "az.cmd");
-        if (candidate) return candidate;
-    }
-    throw new Error("Azure CLI was not found outside the current workspace.");
-}
-
-export async function resolvePosixAzureCli(pathValue = process.env.PATH || "", workspaceRoot = process.cwd()) {
-    for (const directory of pathValue.split(delimiter)) {
-        const candidate = await trustedExecutablePath(resolve(directory || workspaceRoot, "az"), "az", workspaceRoot);
-        if (candidate) return candidate;
-    }
-    throw new Error("Azure CLI was not found outside the current workspace.");
-}
-
 export async function resolveSystemExecutable(name, workspaceRoot = process.cwd()) {
     const candidates = platform() === "win32"
         ? [windowsSystemExecutable(name)]
@@ -126,41 +58,6 @@ export async function resolveSystemExecutable(name, workspaceRoot = process.cwd(
     throw new Error(`Could not resolve the trusted system executable ${name}.`);
 }
 
-async function acquireToken() {
-    await removeLegacyAuthCache();
-    try {
-        const windows = platform() === "win32";
-        const azureCli = windows ? await resolveWindowsAzureCli() : await resolvePosixAzureCli();
-        const options = { cwd: homedir(), encoding: "utf8", windowsHide: true, timeout: 60_000, maxBuffer: 1024 * 1024 };
-        const { stdout } = windows
-            ? await execAsync(
-                `"${azureCli}" account get-access-token --resource https://management.azure.com/ --output json --only-show-errors`,
-                { ...options, shell: windowsSystemExecutable("cmd.exe") },
-            )
-            : await execFileAsync(
-                azureCli,
-                ["account", "get-access-token", "--resource", ARM_RESOURCE, "--output", "json", "--only-show-errors"],
-                options,
-            );
-        s_auth = parseAzureCliToken(stdout);
-        return s_auth.token;
-    } catch (error) {
-        const detail = String(error?.stderr || error?.message || "").trim();
-        throw new Error(
-            `Azure CLI authentication failed. Install Azure CLI and run "az login" before opening the canvas.${detail ? ` ${detail}` : ""}`,
-        );
-    }
-}
-
-export async function getToken() {
-    if (s_auth && s_auth.expiresAt - EXPIRY_SKEW_MS > Date.now()) return s_auth.token;
-    if (s_authInFlight) return s_authInFlight;
-    s_authInFlight = acquireToken().finally(() => {
-        s_authInFlight = null;
-    });
-    return s_authInFlight;
-}
-
 /**
  * List all enabled Azure subscriptions the user has access to.
  */
@@ -170,9 +67,13 @@ export async function getToken() {
 let s_subsCache = null; // { subs, expiresAt }
 const SUBS_TTL_MS = 30 * 60 * 1000;
 
-export async function listSubscriptions() {
+export function invalidateSubscriptionsCache() {
+    s_subsCache = null;
+}
+
+export async function listSubscriptions({ forceRefresh = false } = {}) {
     const now = Date.now();
-    if (s_subsCache && s_subsCache.expiresAt > now) return s_subsCache.subs;
+    if (!forceRefresh && s_subsCache && s_subsCache.expiresAt > now) return s_subsCache.subs;
     const token = await getToken();
     const url = `https://management.azure.com/subscriptions?api-version=${SUBS_API_VERSION}`;
     const raw = await paginateAll(url, token);
