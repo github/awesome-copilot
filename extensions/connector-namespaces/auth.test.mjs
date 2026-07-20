@@ -162,6 +162,47 @@ test("a new broker restores the persisted credential without reopening the brows
     assert.equal(authenticateCalls, 1);
 });
 
+test("concurrent first-time token requests share credential initialization and acquisition", async () => {
+    let releaseAuthenticationRecord;
+    const authenticationRecordReady = new Promise((resolve) => {
+        releaseAuthenticationRecord = resolve;
+    });
+    let loadAuthRecordCalls = 0;
+    let createCredentialCalls = 0;
+    let tokenCalls = 0;
+    const broker = new InteractiveAuthBroker({
+        async loadAuthRecord() {
+            loadAuthRecordCalls++;
+            await authenticationRecordReady;
+            return authenticationRecord();
+        },
+        createCredential: () => {
+            createCredentialCalls++;
+            return {
+                async getToken() {
+                    tokenCalls++;
+                    return accessToken("shared-token");
+                },
+            };
+        },
+    });
+
+    const firstRequest = broker.getToken();
+    const secondRequest = broker.getToken();
+    await new Promise((resolve) => setImmediate(resolve));
+    const loadsBeforeRelease = loadAuthRecordCalls;
+    releaseAuthenticationRecord();
+
+    assert.deepEqual(
+        await Promise.all([firstRequest, secondRequest]),
+        ["shared-token", "shared-token"],
+    );
+    assert.equal(loadsBeforeRelease, 1);
+    assert.equal(loadAuthRecordCalls, 1);
+    assert.equal(createCredentialCalls, 1);
+    assert.equal(tokenCalls, 1);
+});
+
 test("cancelling sign-in aborts the credential request", async () => {
     let abortSignal;
     const credential = {

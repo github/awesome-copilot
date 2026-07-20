@@ -231,31 +231,35 @@ export class InteractiveAuthBroker {
         if (hasUsableToken(this.accessToken, this.now())) return this.accessToken.token;
         if (this.tokenInFlight) return this.tokenInFlight;
 
-        let credential = this.credential;
-        if (!credential) {
-            try {
-                const authenticationRecord = await this.loadAuthRecord();
-                credential = this.createInteractiveCredential(authenticationRecord);
-                this.credential = credential;
-            } catch (error) {
-                if (isAuthenticationRequiredError(error)) {
-                    throw new ConnectorAuthenticationRequiredError(
-                        "Sign in to Azure to continue.",
-                        { cause: error },
-                    );
+        const request = (async () => {
+            let credential = this.credential;
+            if (!credential) {
+                try {
+                    const authenticationRecord = await this.loadAuthRecord();
+                    if (hasUsableToken(this.accessToken, this.now())) return this.accessToken.token;
+                    credential = this.credential;
+                    if (!credential) {
+                        credential = this.createInteractiveCredential(authenticationRecord);
+                        this.credential = credential;
+                    }
+                } catch (error) {
+                    if (isAuthenticationRequiredError(error)) {
+                        throw new ConnectorAuthenticationRequiredError(
+                            "Sign in to Azure to continue.",
+                            { cause: error },
+                        );
+                    }
+                    throw error;
                 }
-                throw error;
             }
-        }
-        const request = credential.getToken(this.scope)
-            .then((accessToken) => {
+            try {
+                const accessToken = await credential.getToken(this.scope);
                 if (!accessToken?.token || !Number.isFinite(accessToken.expiresOnTimestamp)) {
                     throw new Error("Azure identity returned an incomplete ARM access token.");
                 }
                 this.accessToken = accessToken;
                 return accessToken.token;
-            })
-            .catch((error) => {
+            } catch (error) {
                 if (!isAuthenticationRequiredError(error)) throw error;
                 if (this.credential === credential) {
                     this.credential = null;
@@ -265,12 +269,14 @@ export class InteractiveAuthBroker {
                     "Sign in to Azure to continue.",
                     { cause: error },
                 );
-            })
-            .finally(() => {
-                if (this.tokenInFlight === request) this.tokenInFlight = null;
-            });
+            }
+        })();
         this.tokenInFlight = request;
-        return request;
+        try {
+            return await request;
+        } finally {
+            if (this.tokenInFlight === request) this.tokenInFlight = null;
+        }
     }
 }
 
