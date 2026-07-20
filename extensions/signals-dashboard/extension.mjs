@@ -45,7 +45,7 @@ function isValidDeskName(name) {
 // (a real Windows path cannot contain one), mirroring ConsoleLauncher.SafeDir,
 // so a planted workshop path can never break out of the -d "..." argument.
 function deskOrientPrompt(deskName) {
-    return `You are sitting down at the "${deskName}" desk in this workshop. ` +
+    return `You are sitting down at the ${deskName} desk in this workshop. ` +
         `Read journal.md in this folder first to pick up where the last session ` +
         `left off, then continue the desk's work. Write your journal before you stop.`;
 }
@@ -99,31 +99,78 @@ function isOnPath(command) {
 // force vanilla, or =agency to insist on the wrapper.
 function deskAgentArgv(deskName) {
     const pref = (process.env.WORKSHOP_DESK_AGENT || "").trim().toLowerCase();
-    const useAgency = pref === "copilot" ? false : isOnPath("agency");
+    // An explicit override is authoritative: =agency insists on the wrapper even
+    // when it isn't detected on PATH, and =copilot forces vanilla. Only when the
+    // override is unset do we auto-detect and prefer Agency if it's installed.
+    const useAgency = pref === "agency" ? true
+        : pref === "copilot" ? false
+        : isOnPath("agency");
     return useAgency ? ["agency", "copilot"] : ["copilot", "--name", deskName];
 }
 
+// A desk name flows onto a command line, and on the no-wt Windows fallback
+// through cmd.exe. isValidDeskName still allows shell metacharacters such as
+// & | > % ^, so the launcher additionally requires a conservative slug before
+// any shell can see the name; anything else refuses to launch and the caller
+// falls back to copying the path. Combined with the quote-free orientation
+// prompt, no untrusted text ever reaches a shell parser.
+function isSafeDeskNameForLaunch(name) {
+    return isValidDeskName(name) && /^[A-Za-z0-9._-]+$/.test(name);
+}
+
+// POSIX single-quote a value for the macOS `do script` command line, escaping
+// any embedded single quotes.
+function shSingleQuote(s) {
+    return "'" + String(s).replace(/'/g, "'\\''") + "'";
+}
+
+// AppleScript string literal: escape backslashes and double quotes.
+function osaStringLiteral(s) {
+    return '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+}
+
 async function launchDeskConsole(deskPath, deskName) {
+    // deskPath can't contain a double quote (a real Windows path never does and
+    // it would break out of a quoted argument). deskName must be a plain slug so
+    // it is safe on every command line and shell below.
     if (!deskPath || deskPath.includes('"')) return false;
-    const orient = deskOrientPrompt(deskName);
-    const run = [...deskAgentArgv(deskName), "-i", orient];  // agent + orientation
+    if (!isSafeDeskNameForLaunch(deskName)) return false;
+    const run = [...deskAgentArgv(deskName), "-i", deskOrientPrompt(deskName)];
     if (process.platform === "win32") {
         // Windows Terminal is a GUI app, so it always surfaces its own visible
-        // window even though the extension host itself is windowless — opened in
-        // the desk folder, running the desk's agent oriented to the desk.
+        // window even though the extension host is windowless. It is spawned via
+        // argv (no shell), so the contents of run are passed literally.
         if (await trySpawn("wt.exe", ["-d", deskPath, ...run])) return true;
-        // Fallback when wt.exe is absent: a fresh console window via `start`,
-        // with the working directory set to the desk folder.
+        // Fallback when wt.exe is absent: a fresh console window via `start`.
+        // `start` re-parses its tail through cmd, so this path is only safe
+        // because deskName is a slug and the orientation prompt carries no shell
+        // metacharacters or quotes; nothing untrusted reaches the parser.
         return await trySpawn("cmd.exe", ["/c", "start", "", ...run], { cwd: deskPath });
     }
     if (process.platform === "darwin") {
-        // macOS: open Terminal.app in the desk folder. `open` can't inject the
-        // agent command, so it drops the user into the desk to run it.
-        return await trySpawn("open", ["-a", "Terminal", deskPath]);
+        // macOS: `open` can't inject a command, so drive Terminal via AppleScript
+        // to cd into the desk and exec the agent. Each argv element is POSIX
+        // single-quoted so the shell can't reinterpret it, and osascript itself
+        // is spawned via argv (no shell).
+        const line = "cd " + shSingleQuote(deskPath) + " && exec " +
+            run.map(shSingleQuote).join(" ");
+        const script = 'tell application "Terminal"\n' +
+            "  activate\n" +
+            "  do script " + osaStringLiteral(line) + "\n" +
+            "end tell";
+        return await trySpawn("osascript", ["-e", script]);
     }
-    // Linux/other: best-effort across common terminal emulators, cwd = desk.
-    for (const term of ["x-terminal-emulator", "gnome-terminal", "konsole", "xterm"]) {
-        if (await trySpawn(term, [], { cwd: deskPath })) return true;
+    // Linux/other: best-effort across common terminal emulators. Each is spawned
+    // via argv (no shell) with the agent command after the emulator's exec flag,
+    // so the desk actually comes up running its agent instead of a bare shell.
+    const linuxTerms = [
+        ["x-terminal-emulator", ["-e", ...run]],
+        ["gnome-terminal", ["--", ...run]],
+        ["konsole", ["-e", ...run]],
+        ["xterm", ["-e", ...run]],
+    ];
+    for (const [term, args] of linuxTerms) {
+        if (await trySpawn(term, args, { cwd: deskPath })) return true;
     }
     return false;
 }
@@ -734,14 +781,21 @@ function renderDashboard(signals, stashed) {
             const data = await res.json();
             if (data.ok) {
                 const path = data.deskPath || name;
-                // Copy the path either way, so there's always a usable handle.
-                try { await navigator.clipboard.writeText(path); } catch {}
+                // Copy the path either way so there's always a usable handle, but
+                // remember whether it actually succeeded so we never claim a copy
+                // that the browser blocked.
+                let copied = false;
+                try { await navigator.clipboard.writeText(path); copied = true; } catch {}
                 if (data.launched) {
                     showToast('opening ' + name + ' desk…', path);
-                } else {
-                    // No terminal could be launched from here — fall back to the
-                    // path so the user (or the TA) can open the desk themselves.
+                } else if (copied) {
+                    // No terminal could be launched from here, so the copied path
+                    // is the fallback the user (or the TA) opens the desk with.
                     showToast(name + ' · path copied', path);
+                } else {
+                    // Neither launch nor clipboard worked; the toast still shows
+                    // the path below so it stays usable.
+                    showToast(name + ' · copy this path', path);
                 }
             } else {
                 showToast(name + ' · not found', '');
