@@ -1025,6 +1025,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "signals-dashboard",
+      "source": "extensions/signals-dashboard",
+      "description": "Real-time agent coordination dashboard for The Workshop. Shows desk status, signal types (done, checkpoint, blocked, hands-up, partnership), intent text, outcome pairing with honesty gap, token usage, and stash/restore controls.",
+      "version": "0.1.0"
+    },
+    {
       "name": "site-studio",
       "source": "extensions/site-studio",
       "description": "Plan, draft, and track a personal website section by section — a shared canvas where you and your agent author content, watch progress, and review every change.",
@@ -1113,6 +1119,12 @@
       "source": "plugins/testing-automation",
       "description": "Comprehensive collection for writing tests, test automation, and test-driven development including unit tests, integration tests, and end-to-end testing strategies.",
       "version": "1.0.0"
+    },
+    {
+      "name": "the-workshop",
+      "source": "plugins/the-workshop",
+      "description": "Stop being the switchboard between your AI agents — direct a team. The Workshop puts long-running AI agents (desks) in the same room, on the same work, each with its own memory and history, sharing one workspace so you direct the work instead of relaying it.",
+      "version": "0.1.0"
     },
     {
       "name": "tiny-tool-town-submitter",
