@@ -118,6 +118,9 @@ test("interactive sign-in reports pending then done and caches the ARM token", a
     assert.equal(authenticateOptions.abortSignal.aborted, false);
     assert.deepEqual(broker.getSignInStatus(started.sessionId), { ok: true, status: "done" });
     assert.deepEqual(broker.getSignInStatus(started.sessionId), { ok: true, status: "done" });
+    assert.deepEqual(broker.cancelSignIn(started.sessionId), { ok: true });
+    assert.equal(authenticateOptions.abortSignal.aborted, false);
+    assert.deepEqual(broker.getSignInStatus(started.sessionId), { ok: true, status: "done" });
     assert.equal(await broker.getToken(), "token");
 });
 
@@ -261,6 +264,12 @@ test("sign-in failures are surfaced through the status endpoint contract", async
         status: "error",
         error: "browser launch failed",
     });
+    assert.deepEqual(broker.getSignInStatus(started.sessionId), {
+        ok: false,
+        status: "error",
+        error: "browser launch failed",
+    });
+    assert.deepEqual(broker.cancelSignIn(started.sessionId), { ok: true });
     assert.deepEqual(broker.getSignInStatus(started.sessionId), {
         ok: false,
         status: "error",

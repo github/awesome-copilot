@@ -26,8 +26,12 @@ MCP server issue locally.
    `~/.copilot/extensions/connector-namespaces/artifacts/gateway-config.json`
    (`{ subscriptionId, resourceGroup, gatewayName }`). Pick a gateway once in
    the connector-namespaces canvas, or write that file by hand.
-3. **Node 20+** (developed on Node 24).
-4. **Extension dependencies installed.** From the repository root, run:
+3. **An operating-system secure credential store.** Windows and macOS provide one
+   by default. Linux and WSL require a Secret Service-compatible keyring, such as
+   GNOME Keyring, with `libsecret` available. Unencrypted token storage is
+   intentionally disabled.
+4. **Node 20+** (developed on Node 24).
+5. **Extension dependencies installed.** From the repository root, run:
 
    ```bash
    npm install --prefix extensions/connector-namespaces
@@ -62,8 +66,8 @@ node extensions/connector-namespaces/test/smoke.mjs --limit=5 --open-consent
 
 OAuth-backed servers (most of them) need a human to consent **once** in a
 browser. Azure ARM sign-in is restored from the operating system's encrypted
-credential store when available; the one-time behavior below applies to the
-connector's own consent. The model:
+credential store described in the prerequisites; the one-time behavior below
+applies to the connector's own consent. The model:
 
 1. **First run** hits a server that needs consent → the harness prints a consent
    URL and marks it `NEEDS_CONSENT`. It saves a pending record to

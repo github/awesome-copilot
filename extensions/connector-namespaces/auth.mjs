@@ -220,7 +220,7 @@ export class InteractiveAuthBroker {
 
     cancelSignIn(sessionId) {
         const session = this.sessions.get(sessionId);
-        if (!session) return { ok: true };
+        if (!session || session.status !== "pending") return { ok: true };
         session.status = "cancelled";
         session.abortController.abort();
         return { ok: true };
