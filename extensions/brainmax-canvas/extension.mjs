@@ -378,13 +378,12 @@ const session = await joinSession({
                     description: "MANDATORY after the final question: show the domain summary with non-empty strongestArea and gap analysis before presenting the summary in chat.",
                     inputSchema: {
                         type: "object",
-                        required: ["domainId", "domainName", "total", "max", "percentage", "strongestArea", "gap"],
+                        required: ["domainId", "domainName", "total", "max", "strongestArea", "gap"],
                         properties: {
                             domainId: { type: "string" },
                             domainName: { type: "string" },
                             total: { type: "number", description: "Total points earned." },
                             max: { type: "number", description: "Max possible points." },
-                            percentage: { type: "number" },
                             strongestArea: { type: "string", minLength: 1 },
                             gap: { type: "string", minLength: 1 },
                         },

@@ -60,7 +60,7 @@ export function deleteState(instanceId) {
     instances.delete(instanceId);
 }
 
-/** Map a 0-100 percentage to a score tier index 0-3 (matches shared/scoring-rubric.md bands). */
+/** Map a 0-100 percentage to a score tier index 0-3. */
 export function tierForPercentage(percentage) {
     if (percentage >= 90) return 3;
     if (percentage >= 70) return 2;
