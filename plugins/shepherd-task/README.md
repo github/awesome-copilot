@@ -45,6 +45,15 @@ The system has two layers:
 
 The plugin manifest (`plugin.json`) ties these together as a discoverable unit in the marketplace.
 
+### Invocation flow
+
+1. User invokes `shepherd-task-given-list`. See [figure 01: script shepherd-task-given-list](figure-01-shepherd-task-given-list.md).
+2. For each task, `shepherd-task-given-list` invokes `shepherd-task`. See [figure 02: script shepherd-task](figure-02-shepherd-task.md).
+   a. Phase 1: Assign task to Copilot Coding Agent and make it ready for review. See [figure 03: skill: from-assigned-to-ready](figure-03-from-assigned-to-ready.md).
+   b. Phase 2: Mark ready for review and resolve all Copilot Code Review Agent comments that have merit. See [figure 04: skill: from ready-to-merged-to-base](figure-04-from-ready-to-merged.md).
+3. Perform post-mortem. See [figure 05: skill: create post-mortem](figure-05-post-mortem.md).
+
+
 ## Sample invocation
 
 Bash
