@@ -1025,6 +1025,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "shepherd-task",
+      "source": "plugins/shepherd-task",
+      "description": "End-to-end task shepherding system that automates the full lifecycle of GitHub issues through Copilot coding agent assignment, CI approval, code review resolution, and merge. Includes orchestration scripts for both Bash and PowerShell.",
+      "version": "1.0.0"
+    },
+    {
       "name": "signals-dashboard",
       "source": "extensions/signals-dashboard",
       "description": "Real-time agent coordination dashboard for The Workshop. Shows desk status, signal types (done, checkpoint, blocked, hands-up, partnership), intent text, outcome pairing with honesty gap, token usage, and stash/restore controls.",
