@@ -2,16 +2,9 @@ import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import {
-    deserializeAuthenticationRecord,
-    InteractiveBrowserCredential,
-    serializeAuthenticationRecord,
-    useIdentityPlugin,
-} from "@azure/identity";
-import { cachePersistencePlugin } from "@azure/identity-cache-persistence";
+import { InteractiveBrowserCredential } from "@azure/identity";
 
 export const ARM_SCOPE = "https://management.azure.com/.default";
-export const TOKEN_CACHE_NAME = "github-copilot-connector-namespaces";
 
 const TOKEN_EXPIRY_SKEW_MS = 5 * 60 * 1000;
 const SIGN_IN_SESSION_TTL_MS = 10 * 60 * 1000;
@@ -24,50 +17,20 @@ const AUTH_STORAGE_DIR = join(
 const AUTH_RECORD_FILE = join(AUTH_STORAGE_DIR, "azure-auth-record.json");
 const LEGACY_AUTH_CACHE = join(AUTH_STORAGE_DIR, "auth-cache.json");
 
-let legacyAuthCacheRemoved = false;
+let legacyAuthArtifactsRemoved = false;
 
-useIdentityPlugin(cachePersistencePlugin);
-
-export async function loadAuthenticationRecord({
-    readFile = fs.readFile,
-    deserialize = deserializeAuthenticationRecord,
-    authRecordFile = AUTH_RECORD_FILE,
-} = {}) {
-    let serialized;
-    try {
-        serialized = await readFile(authRecordFile, "utf-8");
-    } catch (error) {
-        if (error?.code === "ENOENT") return undefined;
-        throw error;
-    }
-    try {
-        return deserialize(serialized);
-    } catch {
-        return undefined;
-    }
-}
-
-async function saveAuthenticationRecord(record) {
-    await fs.mkdir(AUTH_STORAGE_DIR, { recursive: true, mode: 0o700 });
-    await fs.chmod(AUTH_STORAGE_DIR, 0o700);
-    await fs.writeFile(
-        AUTH_RECORD_FILE,
-        serializeAuthenticationRecord(record),
-        { encoding: "utf-8", mode: 0o600 },
-    );
-    await fs.chmod(AUTH_RECORD_FILE, 0o600);
-}
-
-async function removeLegacyAuthCache() {
-    if (legacyAuthCacheRemoved) return;
-    try {
-        await fs.unlink(LEGACY_AUTH_CACHE);
-    } catch (error) {
-        if (error?.code !== "ENOENT") {
-            throw new Error(`Could not remove the legacy connector credential cache at ${LEGACY_AUTH_CACHE}: ${error.message}`);
+async function removeLegacyAuthArtifacts() {
+    if (legacyAuthArtifactsRemoved) return;
+    for (const path of [AUTH_RECORD_FILE, LEGACY_AUTH_CACHE]) {
+        try {
+            await fs.unlink(path);
+        } catch (error) {
+            if (error?.code !== "ENOENT") {
+                throw new Error(`Could not remove the legacy connector authentication file at ${path}: ${error.message}`);
+            }
         }
     }
-    legacyAuthCacheRemoved = true;
+    legacyAuthArtifactsRemoved = true;
 }
 
 export class ConnectorAuthenticationRequiredError extends Error {
@@ -103,20 +66,14 @@ export class InteractiveAuthBroker {
         createCredential = credentialFactory,
         createSessionId = randomUUID,
         cleanupLegacyCredentials = async () => {},
-        loadAuthRecord = async () => undefined,
-        saveAuthRecord = async () => {},
         now = Date.now,
         scope = ARM_SCOPE,
-        tokenCacheName = TOKEN_CACHE_NAME,
     } = {}) {
         this.createCredential = createCredential;
         this.createSessionId = createSessionId;
         this.cleanupLegacyCredentials = cleanupLegacyCredentials;
-        this.loadAuthRecord = loadAuthRecord;
-        this.saveAuthRecord = saveAuthRecord;
         this.now = now;
         this.scope = scope;
-        this.tokenCacheName = tokenCacheName;
         this.credential = null;
         this.accessToken = null;
         this.cleanupInFlight = null;
@@ -124,15 +81,10 @@ export class InteractiveAuthBroker {
         this.sessions = new Map();
     }
 
-    createInteractiveCredential(authenticationRecord) {
+    createInteractiveCredential() {
         return this.createCredential({
             redirectUri: "http://localhost",
             disableAutomaticAuthentication: true,
-            tokenCachePersistenceOptions: {
-                enabled: true,
-                name: this.tokenCacheName,
-            },
-            ...(authenticationRecord ? { authenticationRecord } : {}),
         });
     }
 
@@ -188,7 +140,6 @@ export class InteractiveAuthBroker {
                 if (!authenticationRecord) {
                     throw new Error("Azure identity did not return an authentication record.");
                 }
-                await this.saveAuthRecord(authenticationRecord);
                 const accessToken = await credential.getToken(this.scope, { abortSignal: abortController.signal });
                 if (!accessToken?.token || !Number.isFinite(accessToken.expiresOnTimestamp)) {
                     throw new Error("Azure identity returned an incomplete ARM access token.");
@@ -235,13 +186,8 @@ export class InteractiveAuthBroker {
             let credential = this.credential;
             if (!credential) {
                 try {
-                    const authenticationRecord = await this.loadAuthRecord();
-                    if (hasUsableToken(this.accessToken, this.now())) return this.accessToken.token;
-                    credential = this.credential;
-                    if (!credential) {
-                        credential = this.createInteractiveCredential(authenticationRecord);
-                        this.credential = credential;
-                    }
+                    credential = this.createInteractiveCredential();
+                    this.credential = credential;
                 } catch (error) {
                     if (isAuthenticationRequiredError(error)) {
                         throw new ConnectorAuthenticationRequiredError(
@@ -281,9 +227,7 @@ export class InteractiveAuthBroker {
 }
 
 export const interactiveAuth = new InteractiveAuthBroker({
-    cleanupLegacyCredentials: removeLegacyAuthCache,
-    loadAuthRecord: loadAuthenticationRecord,
-    saveAuthRecord: saveAuthenticationRecord,
+    cleanupLegacyCredentials: removeLegacyAuthArtifacts,
 });
 
 export const startSignIn = () => interactiveAuth.startSignIn();
