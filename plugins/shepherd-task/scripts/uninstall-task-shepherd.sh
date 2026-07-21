@@ -27,6 +27,8 @@ SKILLS=(
     "shepherd-task-from-assignment-to-ready"
     "shepherd-task-from-ready-to-merged-to-base"
     "shepherd-task-approve-workflows-and-wait-for-completion"
+    "shepherd-task-create-ignorance-reduction-plan"
+    "shepherd-task-create-post-mortem"
 )
 for skill in "${SKILLS[@]}"; do
     skill_dir="$COPILOT_HOME/skills/$skill"
