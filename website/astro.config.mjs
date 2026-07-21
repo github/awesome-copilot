@@ -130,33 +130,47 @@ export default defineConfig({
           items: ["learning-hub/github-copilot-terminology-glossary"],
         },
         {
-          label: "Copilot CLI for Beginners",
+          label: "Courses",
           items: [
             {
-              label: "Overview",
-              link: "/learning-hub/cli-for-beginners/",
-            },
-            "learning-hub/cli-for-beginners/00-quick-start",
-            "learning-hub/cli-for-beginners/01-setup-and-first-steps",
-            "learning-hub/cli-for-beginners/02-context-and-conversations",
-            "learning-hub/cli-for-beginners/03-development-workflows",
-            "learning-hub/cli-for-beginners/04-agents-and-custom-instructions",
-            "learning-hub/cli-for-beginners/05-skills",
-            "learning-hub/cli-for-beginners/06-mcp-servers",
-            "learning-hub/cli-for-beginners/07-putting-it-all-together",
-          ],
-        },
-        {
-          label: "Hands-on",
-          items: [
-            {
-              label: "Cookbook",
-              link: "/learning-hub/cookbook/",
+              label: "Copilot CLI for Beginners",
+              items: [
+                {
+                  label: "Overview",
+                  link: "/learning-hub/cli-for-beginners/",
+                },
+                "learning-hub/cli-for-beginners/00-quick-start",
+                "learning-hub/cli-for-beginners/01-setup-and-first-steps",
+                "learning-hub/cli-for-beginners/02-context-and-conversations",
+                "learning-hub/cli-for-beginners/03-development-workflows",
+                "learning-hub/cli-for-beginners/04-agents-and-custom-instructions",
+                "learning-hub/cli-for-beginners/05-skills",
+                "learning-hub/cli-for-beginners/06-mcp-servers",
+                "learning-hub/cli-for-beginners/07-putting-it-all-together",
+              ],
             },
           ],
         },
+        // The "Workshops" group is added by the Copilot Workshops sync workflow
+        // on its first run, once the mirrored harness pages exist. It is inserted
+        // immediately after "Courses" and before "Videos". It is intentionally not
+        // pre-created here: Starlight fails the build if a sidebar entry points at
+        // a page that does not yet exist.
         {
-          label: "Browse Resources",
+          label: "Videos",
+          items: [
+            {
+              label: "Copilot CLI for Beginners",
+              link: "https://www.youtube.com/watch?v=BDxRhhs36ns&list=PL0lo9MOBetEHvO-spzKBAITkkTqv4RvNl",
+            },
+          ],
+        },
+        {
+          label: "Cookbook",
+          link: "/learning-hub/cookbook/",
+        },
+        {
+          label: "Resources",
           items: [
             { label: "Home", link: "/" },
             { label: "Agents", link: "/agents/" },

@@ -97,8 +97,8 @@ Localized pages share the English images: keep their image references pointing a
 
 Navigation is wired in three places:
 
-- `website/astro.config.mjs` — the sidebar group **"Copilot Workshops"**, with a nested sub-group per harness. Starlight applies one sidebar across all locales and auto-prefixes links for the active locale, so you only configure the English (root) slugs here.
-- `website/src/content/docs/learning-hub/index.md` — a short entry linking to the workshop.
+- `website/astro.config.mjs` — the top-level sidebar group **"Workshops"**, with a nested sub-group per harness. Starlight applies one sidebar across all locales and auto-prefixes links for the active locale, so you only configure the English (root) slugs here.
+- `website/src/content/docs/learning-hub/index.md` — a short **"Workshops"** section linking to the workshop overview and harnesses.
 - `website/src/content/docs/learning-hub/copilot-workshops/index.md` — the mirrored landing page whose harness/lesson tables link to the local pages.
 
 ## Step 1 — Determine what's new upstream
@@ -173,14 +173,15 @@ Edit the local docs, assets, and navigation so the website remains a **source-fa
 
 3. If upstream adds, removes, or renames harnesses or lessons:
    - Create, delete, or rename the corresponding markdown files under `website/src/content/docs/learning-hub/copilot-workshops/<harness>/` (and the localized equivalents under `website/src/content/docs/<locale>/learning-hub/copilot-workshops/<harness>/`).
-   - Update the **"Copilot Workshops"** sidebar group in `website/astro.config.mjs` so its nested per-harness sub-groups list the Overview link plus each lesson in upstream order, using the upstream lesson titles as labels.
+   - Update the top-level **"Workshops"** sidebar group in `website/astro.config.mjs` so its nested per-harness sub-groups list the Overview link plus each lesson in upstream order, using the upstream lesson titles as labels.
    - Update `website/src/content/docs/learning-hub/copilot-workshops/index.md` and any harness `index.md` lesson tables to match.
-   - Update the `website/src/content/docs/learning-hub/index.md` entry only if the workshop's landing description or link must change.
+   - Update the **"Workshops"** section in `website/src/content/docs/learning-hub/index.md` only if the workshop's landing description or links must change.
 
 ### Navigation wiring details
 
-- In `website/astro.config.mjs`, add or maintain a top-level sidebar group labelled `"Copilot Workshops"`. Give it an `items` array containing one nested group per harness (labels: `VS Code`, `Copilot CLI`, `Copilot App`, `Copilot Cloud Agent`). Each nested group should start with an `Overview` entry that links to `/learning-hub/copilot-workshops/<harness>/` and then list each lesson slug (e.g. `learning-hub/copilot-workshops/app/0-prerequisites`). Follow the exact style already used by the existing `"Copilot CLI for Beginners"` group.
-- Place the new group in a sensible position relative to the existing Learning Hub groups (after `"Copilot CLI for Beginners"` is a natural fit).
+- In `website/astro.config.mjs`, add or maintain a **top-level** sidebar group labelled `"Workshops"`. Give it an `items` array containing one nested group per harness (labels: `VS Code`, `Copilot CLI`, `Copilot App`, `Copilot Cloud Agent`). Each nested group should start with an `Overview` entry that links to `/learning-hub/copilot-workshops/<harness>/` and then list each lesson slug (e.g. `learning-hub/copilot-workshops/app/0-prerequisites`). Follow the exact nesting style used by the existing `"Courses"` group.
+- Place the `"Workshops"` group immediately **after** the `"Courses"` group and **before** the `"Videos"` group. (`astro.config.mjs` contains a placeholder comment marking exactly where it belongs.)
+- In `website/src/content/docs/learning-hub/index.md`, add or maintain a `## Workshops` section (placed after `## Courses`) that briefly describes the build-along labs and links to the workshop overview page and each harness. Do not leave links that point at pages you have not created.
 - Do **not** add locale-prefixed slugs to the sidebar; Starlight derives localized navigation from the single root sidebar automatically.
 - Every root slug you add to the sidebar **must** correspond to a real mirrored English markdown file, or the website build will fail.
 
