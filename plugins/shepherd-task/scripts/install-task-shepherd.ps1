@@ -32,6 +32,8 @@ $skills = @(
     'shepherd-task-from-assignment-to-ready'
     'shepherd-task-from-ready-to-merged-to-base'
     'shepherd-task-approve-workflows-and-wait-for-completion'
+    'shepherd-task-create-ignorance-reduction-plan'
+    'shepherd-task-create-post-mortem'
 )
 
 $skillsInstalled = 0
