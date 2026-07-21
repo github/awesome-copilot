@@ -1,6 +1,8 @@
 ## Summary
 
-This PR adds a new **shepherd-task** plugin that provides an end-to-end system for implementing a specification described as a well-specified list of GitHub issues using an opinionated choice of the following agents and tools.
+**shepherd-task** is a collection of skills and scripts that invoke GitHub and GitHub Copilot agents and CLIs to drive a sufficiently detailed set of GitHub issues from assignment to merged.
+
+**shepherd-task** uses this opinionated choice of the following agents and tools.
 
 1. Copilot Coding Agent (CCA).
 2. Copilot Code Review Agent (CCRA).
