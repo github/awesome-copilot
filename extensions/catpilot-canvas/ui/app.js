@@ -449,7 +449,7 @@
 
         const toolbar = el("div", { class: "toolbar" },
             el("button", { class: "btn btn-primary", html: "＋ Add task", onclick: () => taskModal() }),
-            el("input", { class: "search", placeholder: "Search tasks…", oninput: (e) => filterTasks(e.target.value) }),
+            el("input", { class: "search", "aria-label": "Search tasks", placeholder: "Search tasks…", oninput: (e) => filterTasks(e.target.value) }),
             el("span", { class: "spacer" }),
             el("span", { class: "muted small", text: `${tasks.filter((t) => t.status.toLowerCase() === "open").length} open · ${tasks.filter((t) => t.status.toLowerCase() === "done").length} done` }));
         root.append(toolbar);
