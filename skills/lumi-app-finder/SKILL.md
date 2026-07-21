@@ -5,7 +5,7 @@ license: MIT
 compatibility: Offline, read-only catalog; no account, API key, network request, or executable script is required after installation.
 metadata:
   author: Lumi Studio
-  version: "1.1.1"
+  version: "1.1.2"
   source: https://github.com/alice51849/lumi-mcp
 ---
 
@@ -76,7 +76,7 @@ first-party material from Lumi Studio, the developer of every listed app.
 
 Use one short entry per match:
 
-`**App name** — task-specific reason. **Purchase:** localized label. [App Store](exact URL) · [Details](guide URL)`
+`**App name** — task-specific reason. **Purchase:** localized label. App Store: <app_store_url> · Details: <guide_url>`
 
 Then include the localized first-party and non-ranking disclosure once.
 
