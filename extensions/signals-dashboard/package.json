@@ -1,0 +1,17 @@
+{
+  "name": "signals-dashboard",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "description": "Real-time agent coordination dashboard for The Workshop. Shows desk status, signal types (done, checkpoint, blocked, hands-up, partnership), intent text, outcome pairing with honesty gap, token usage, and stash/restore controls.",
+  "keywords": [
+    "agent-signals",
+    "dashboard",
+    "multi-agent",
+    "coordination",
+    "canvas"
+  ]
+}

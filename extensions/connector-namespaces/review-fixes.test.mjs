@@ -1,10 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
-import { delimiter, join } from "node:path";
-import { tmpdir } from "node:os";
+import { readFile } from "node:fs/promises";
 
-import { armSegment, parseAzureCliToken, resolvePosixAzureCli, waitForProvisioning } from "./armClient.mjs";
+import { armSegment, waitForProvisioning } from "./armClient.mjs";
 
 const here = new URL(".", import.meta.url);
 
@@ -51,50 +49,18 @@ test("namespace creation polls an empty 202 result until explicit success", asyn
     );
 });
 
-test("Azure authentication is brokered by Azure CLI", async () => {
-    const source = await readFile(new URL("armClient.mjs", here), "utf8");
-    assert.match(source, /account get-access-token --resource/);
-    assert.doesNotMatch(source, /04b07795-8ddb-461a-bbee-02f9e1bf7b46/);
-    assert.doesNotMatch(source, /refreshToken/);
-    assert.match(source, /await fs\.unlink\(LEGACY_AUTH_CACHE\)/);
-    assert.match(source, /resolveWindowsAzureCli/);
-    assert.match(source, /resolvePosixAzureCli/);
-    assert.match(source, /fs\.realpath\(path\)/);
-    assert.match(source, /windowsSystemExecutable\("cmd\.exe"\)/);
-    assert.match(source, /\{ cwd: homedir\(\), encoding: "utf8"/);
-    assert.deepEqual(
-        parseAzureCliToken(JSON.stringify({ accessToken: "token", expires_on: 2_000_000_000 })),
-        { token: "token", expiresAt: 2_000_000_000_000 },
-    );
-    assert.throws(() => parseAzureCliToken("{}"), /incomplete ARM token/);
-});
-
-test("POSIX Azure CLI resolution rejects workspace-controlled binaries", async () => {
-    const root = await mkdtemp(join(tmpdir(), "cn-az-path-"));
-    const workspace = join(root, "workspace");
-    const workspaceBin = join(workspace, "node_modules", ".bin");
-    const trustedBin = join(root, "trusted-bin");
-    await Promise.all([
-        mkdir(workspaceBin, { recursive: true }),
-        mkdir(trustedBin, { recursive: true }),
+test("Azure authentication uses an interactive browser and persistent encrypted cache", async () => {
+    const [authSource, armSource] = await Promise.all([
+        readFile(new URL("auth.mjs", here), "utf8"),
+        readFile(new URL("armClient.mjs", here), "utf8"),
     ]);
-    await Promise.all([
-        writeFile(join(workspaceBin, "az"), "workspace", { mode: 0o755 }),
-        writeFile(join(trustedBin, "az"), "trusted", { mode: 0o755 }),
-    ]);
-    try {
-        const resolved = await resolvePosixAzureCli(
-            [workspaceBin, trustedBin].join(delimiter),
-            workspace,
-        );
-        assert.equal(resolved, await realpath(join(trustedBin, "az")));
-        await assert.rejects(
-            resolvePosixAzureCli(workspaceBin, workspace),
-            /outside the current workspace/,
-        );
-    } finally {
-        await rm(root, { recursive: true, force: true });
-    }
+    assert.match(authSource, /new InteractiveBrowserCredential\(options\)/);
+    assert.match(authSource, /useIdentityPlugin\(cachePersistencePlugin\)/);
+    assert.match(authSource, /disableAutomaticAuthentication: true/);
+    assert.match(authSource, /tokenCachePersistenceOptions/);
+    assert.match(authSource, /credential\.authenticate\(\s*this\.scope,\s*\{ abortSignal/);
+    assert.match(authSource, /serializeAuthenticationRecord/);
+    assert.doesNotMatch(armSource, /get-access-token|az login|resolvePosixAzureCli/);
 });
 
 test("installer preserves capability tokens and persists direct HTTP entries", async () => {
