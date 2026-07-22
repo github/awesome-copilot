@@ -256,6 +256,7 @@ table.tbl tr:focus-within .row-actions { opacity: 1; }
 .badge.st-done { background: rgba(53,200,143,.15); color: #35c88f; border-color: transparent; }
 .badge.st-planned { background: var(--panel-2); color: var(--text-muted); }
 .badge.st-inprogress { background: rgba(90,169,255,.16); color: #5aa9ff; border-color: transparent; }
+.badge.st-blocked { background: rgba(255,140,50,.16); color: #ff8c32; border-color: transparent; }
 .tag { font-size: 11px; padding: 2px 8px; border-radius: 6px; background: var(--panel-2); color: var(--text-muted); border: 1px solid var(--border); }
 .tags { display: flex; flex-wrap: wrap; gap: 5px; }
 
@@ -275,6 +276,57 @@ table.tbl tr:focus-within .row-actions { opacity: 1; }
 .board-card .bc-title { font-weight: 600; margin-bottom: 8px; }
 .board-card .bc-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
+/* ---------- Tasks · Calendar view ---------- */
+.cal-toolbar { align-items: center; gap: 10px; flex-wrap: wrap; }
+.cal-nav { display: flex; align-items: center; gap: 6px; }
+.cal-title { font-weight: 700; font-size: 15px; min-width: 150px; text-align: center; }
+.cal-fields { position: relative; }
+.cal-fields > summary { list-style: none; cursor: pointer; }
+.cal-fields > summary::-webkit-details-marker { display: none; }
+.cal-fields-menu {
+    position: absolute; right: 0; top: calc(100% + 6px); z-index: 20;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: var(--shadow-lg); padding: 8px; min-width: 160px;
+    display: flex; flex-direction: column; gap: 2px;
+}
+.cal-fields-opt { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; padding: 5px 8px; border-radius: 7px; cursor: pointer; }
+.cal-fields-opt:hover { background: var(--panel-hover); }
+.cal-fields-opt input { width: auto; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.cal-wd { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-faint); padding: 2px 4px 4px; }
+.cal-day {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 6px; display: flex; flex-direction: column; gap: 5px; min-height: 96px;
+    transition: border-color var(--sq);
+}
+.cal-month .cal-day { min-height: 104px; }
+.cal-week .cal-day { min-height: 340px; }
+.cal-day.other { opacity: .45; }
+.cal-day.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.cal-daynum { font-size: 12px; font-weight: 700; color: var(--text-muted); display: flex; justify-content: flex-end; gap: 4px; }
+.cal-day.today .cal-daynum { color: var(--accent); }
+.cal-dow-sm { color: var(--text-faint); font-weight: 600; margin-right: auto; }
+.cal-day-list { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.cal-chip {
+    background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 7px;
+    padding: 4px 7px; cursor: pointer; font-size: 12px; line-height: 1.25;
+    border-left-width: 3px; border-left-style: solid; border-left-color: var(--border-soft);
+    transition: background var(--sq), transform var(--sq);
+}
+.cal-chip:hover { background: var(--panel-hover); transform: translateX(1px); }
+.cal-chip.pr-0 { border-left-color: #ff6b7d; }
+.cal-chip.pr-1 { border-left-color: #ffb020; }
+.cal-chip.pr-2 { border-left-color: #7c5cff; }
+.cal-chip.pr-3 { border-left-color: #35c88f; }
+.cal-chip.done .cal-chip-title { text-decoration: line-through; color: var(--text-faint); }
+.cal-chip-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-chip-meta { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.cal-chip-meta .badge, .cal-chip-meta .tag { font-size: 10px; padding: 1px 6px; }
+@media (max-width: 720px) {
+    .cal-day { min-height: 72px; }
+    .cal-chip-meta { display: none; }
+}
+
 /* ---------- Note cards ---------- */
 .note-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .note-card { cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
@@ -293,6 +345,45 @@ table.tbl tr:focus-within .row-actions { opacity: 1; }
 .form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; }
 .form label span em { font-weight: 400; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* pomodoro */
+.pomo-ring { display: flex; justify-content: center; margin-bottom: 8px; }
+.pomo-meta { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 6px; }
+
+/* Floating persistent mini-timer dock */
+.pomo-dock {
+    position: fixed; right: 22px; bottom: 22px; z-index: 45;
+    display: flex; align-items: center; gap: 12px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; padding: 10px 12px; box-shadow: var(--shadow-lg);
+    max-width: 320px;
+}
+.pomo-dock.hidden { display: none; }
+.pomo-dock.is-done { border-color: color-mix(in srgb, #4caf7d 55%, var(--border)); animation: pomoPulse 1.6s ease-in-out infinite; }
+.pomo-dock-ring { flex: 0 0 auto; cursor: pointer; line-height: 0; opacity: .95; }
+.pomo-dock-info { display: flex; flex-direction: column; gap: 3px; cursor: pointer; min-width: 0; }
+.pomo-dock-time { font-size: 20px; font-weight: 800; line-height: 1; letter-spacing: .5px; font-variant-numeric: tabular-nums; }
+.pomo-dock-label { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.pomo-dock-task { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pomo-dock-controls { display: flex; gap: 6px; margin-left: 4px; padding-left: 10px; border-left: 1px solid var(--border-soft); }
+.pomo-dock-btn { width: 32px; height: 32px; font-size: 13px; border-radius: 9px; }
+.pomo-dock-btn:hover { background: var(--panel-hover); }
+.pomo-dock-stop:hover { background: rgba(255,107,107,.16); color: #ff8080; }
+.pomo-dock.is-paused { opacity: .92; }
+.pomo-dock.is-paused .pomo-dock-time { color: var(--text-muted); }
+/* Session-type & paused badges */
+.badge.st-focus { background: rgba(255,107,107,.16); color: #ff8080; border-color: transparent; }
+.badge.st-short { background: rgba(53,200,143,.16); color: #35c88f; border-color: transparent; }
+.badge.st-long { background: rgba(90,169,255,.16); color: #5aa9ff; border-color: transparent; }
+.badge.st-paused { background: rgba(255,176,32,.16); color: #ffb020; border-color: transparent; }
+@keyframes pomoPulse {
+    0%, 100% { box-shadow: var(--shadow-lg); }
+    50% { box-shadow: 0 0 0 3px color-mix(in srgb, #4caf7d 35%, transparent), var(--shadow-lg); }
+}
+/* Keep toasts stacked clear above the dock's corner */
+.pomo-dock:not(.hidden) ~ .toasts { bottom: 92px; }
+.stat-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
 input, textarea, select {
     font-family: inherit; font-size: 14px; color: var(--text);
     background: var(--panel-2); border: 1px solid var(--border);

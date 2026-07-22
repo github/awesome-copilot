@@ -112,18 +112,30 @@ async function handleApi(req, url) {
     // Timeline / activity feed
     if (p === "/api/timeline" && m === "GET") return store.activity({ days: Number(url.searchParams.get("days")) || 14 });
 
+    // Pomodoro
+    if (p === "/api/pomodoro/status" && m === "GET") return store.pomodoroStatus();
+    if (p === "/api/pomodoro/stats" && m === "GET") return store.pomodoroStats({ period: url.searchParams.get("period") || "all" });
+    if (p === "/api/pomodoro/report" && m === "GET") return store.pomodoroReport({ period: url.searchParams.get("period") || "this-week", groupBy: url.searchParams.get("by") || "day" });
+    if (p === "/api/pomodoro/complete" && m === "POST") return store.pomodoroComplete(await readBody(req));
+    if (p === "/api/pomodoro/cancel" && m === "POST") return store.pomodoroCancel(await readBody(req));
+    if (p === "/api/pomodoro/pause" && m === "POST") return store.pomodoroPause(await readBody(req));
+    if (p === "/api/pomodoro/resume" && m === "POST") return store.pomodoroResume(await readBody(req));
+    if (p === "/api/pomodoro" && m === "GET") return store.pomodoroList({ limit: Number(url.searchParams.get("limit")) || undefined });
+    if (p === "/api/pomodoro" && m === "POST") return store.pomodoroStart(await readBody(req));
+
     // Config + interactive data migration
     if (p === "/api/config" && m === "GET") return store.getConfig();
     if (p === "/api/config/plan" && m === "POST") return store.planConfigChange(await readBody(req));
     if (p === "/api/config/apply" && m === "POST") return store.applyConfigChange(await readBody(req));
+    if (p === "/api/config/pomodoro" && m === "POST") return store.savePomodoroDurations((await readBody(req))?.pomodoro || {});
 
     // Agent bridge — drive the Copilot session from the canvas
     if (p === "/api/agent" && m === "POST") {
         const { prompt } = await readBody(req);
         if (!prompt || !String(prompt).trim()) throw new Error("prompt is required");
         if (!sessionRef?.send) return { ok: false, error: "No active session." };
-await sessionRef.send({ prompt: String(prompt) });
-        return { ok: true };
+        const id = await sessionRef.send(String(prompt));
+        return { ok: true, id };
     }
     if (p === "/api/agent/generate" && m === "POST") {
         const { prompt, timeout } = await readBody(req);

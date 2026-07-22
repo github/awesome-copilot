@@ -23,6 +23,7 @@ const DEFAULT_FILES = {
     growth: "growth",
     projects: "projects",
     reports: "reports",
+    pomodoro: "pomodoro.md",
 };
 
 const DOMAIN_TAG = { learning: "learning", growth: "growth", projects: "project" };
@@ -80,6 +81,7 @@ export function writeConfig({ root, partitioning = "month" } = {}) {
             files: { ...DEFAULT_FILES },
         },
         migration: { mode: "adopt" },
+        pomodoro: { ...POMODORO_DEFAULTS },
     };
     fs.mkdirSync(GLOBAL_CONFIG_DIR, { recursive: true });
     fs.writeFileSync(GLOBAL_CONFIG_PATH, JSON.stringify(config, null, 2), "utf8");
@@ -207,8 +209,11 @@ function parseTasksTable(content) {
 }
 
 function formatTasksTable(tasks) {
-    const open = tasks.filter((t) => t.status === "Open" || t.status === "open");
-    const done = tasks.filter((t) => t.status === "Done" || t.status === "done");
+    const isDone = (t) => t.status === "Done" || t.status === "done";
+    // Section 1 = every NOT-done task (Open, Blocked, etc.) so custom statuses
+    // persist across the round-trip; section 2 = completed tasks.
+    const open = tasks.filter((t) => !isDone(t));
+    const done = tasks.filter(isDone);
     const header = "| ID | Status | Title | Due Date | Priority | Tags | Context |\n| --- | --- | --- | --- | --- | --- | --- |\n";
     let out = "";
     if (open.length) {
@@ -228,6 +233,16 @@ function nextId(rows) {
     return Math.max(...rows.map((r) => r.id || 0)) + 1;
 }
 
+// Canonical task statuses. "Overdue" is derived from the due date, never stored.
+export const TASK_STATUSES = ["Open", "Blocked", "Done"];
+
+function normalizeTaskStatus(value, fallback = "Open") {
+    if (value === undefined || value === null || value === "") return fallback;
+    const match = TASK_STATUSES.find((s) => s.toLowerCase() === String(value).trim().toLowerCase());
+    if (!match) throw new Error(`Invalid status "${value}". Use one of: ${TASK_STATUSES.join(", ")}`);
+    return match;
+}
+
 export function listTasks(status = "all") {
     const config = loadConfig();
     const p = resolveFilePath("tasks", config);
@@ -243,7 +258,7 @@ export function addTask(params = {}) {
     const tasks = parseTasksTable(readFileOrCreate(p));
     const task = {
         id: nextId(tasks),
-        status: "Open",
+        status: normalizeTaskStatus(params.status),
         title: params.title,
         dueDate: params.due || "",
         priority: params.priority || "",
@@ -262,7 +277,7 @@ export function updateTask(id, patch = {}) {
     const t = tasks.find((x) => x.id === parseInt(id, 10));
     if (!t) throw new Error(`Task #${id} not found`);
     for (const k of ["status", "title", "dueDate", "priority", "tags", "context"]) {
-        if (patch[k] !== undefined) t[k] = patch[k];
+        if (patch[k] !== undefined) t[k] = k === "status" ? normalizeTaskStatus(patch[k]) : patch[k];
     }
     fs.writeFileSync(p, formatTasksTable(tasks), "utf8");
     return t;
@@ -281,6 +296,349 @@ export function removeTask(id) {
     const [removed] = tasks.splice(idx, 1);
     fs.writeFileSync(p, formatTasksTable(tasks), "utf8");
     return removed;
+}
+
+// ---------------------------------------------------------------------------
+// Pomodoro
+// ---------------------------------------------------------------------------
+// Mirrors lib/pomodoro.js + lib/cli-utils.js file formats exactly so the CLI,
+// MCP server and this canvas read/write the same timer state and history.
+const POMODORO_TYPES = ["focus", "short-break", "long-break"];
+const POMODORO_DEFAULTS = { focus: 25, "short-break": 5, "long-break": 15 };
+const POMODORO_HISTORY_HEADER = "# Pomodoro Sessions\n\n";
+
+function pomodoroActivePath(config) {
+    const base = config.__baseDir || process.cwd();
+    const storageRoot = path.resolve(base, config.storage.root);
+    return path.join(storageRoot, "pomodoro-active.json");
+}
+
+function normalizePomodoroType(type) {
+    if (!type) return "focus";
+    const t = String(type).toLowerCase().trim();
+    if (["break", "short", "shortbreak", "short_break"].includes(t)) return "short-break";
+    if (["long", "longbreak", "long_break"].includes(t)) return "long-break";
+    return POMODORO_TYPES.includes(t) ? t : "focus";
+}
+
+function pomodoroDefaultMinutes(type, config) {
+    const t = normalizePomodoroType(type);
+    const override = config && config.pomodoro && config.pomodoro[t];
+    const n = parseInt(override, 10);
+    return Number.isFinite(n) && n > 0 ? n : POMODORO_DEFAULTS[t];
+}
+
+function decoratePomodoro(session, at = Date.now()) {
+    if (!session) return null;
+    const started = Date.parse(session.startedAt);
+    const plannedSec = Math.round((session.plannedMin || 0) * 60);
+    // While paused the clock freezes: measure elapsed up to the pause instant.
+    const paused = !!session.pausedAt;
+    const effectiveAt = paused ? Date.parse(session.pausedAt) : at;
+    const elapsedSec = Math.max(0, Math.round((effectiveAt - started) / 1000));
+    const remainingSec = Math.max(0, plannedSec - elapsedSec);
+    return { ...session, paused, elapsedSec, remainingSec, plannedSec, isExpired: remainingSec === 0 };
+}
+
+function readPomodoroActive(config) {
+    const p = pomodoroActivePath(config);
+    if (!fs.existsSync(p)) return null;
+    try {
+        const data = JSON.parse(fs.readFileSync(p, "utf8"));
+        return data && data.startedAt ? data : null;
+    } catch { return null; }
+}
+
+function parsePomodoroTable(content) {
+    const lines = content.split("\n");
+    const sessions = [];
+    let inTable = false;
+    let headerSeen = false;
+    for (const line of lines) {
+        if (line.match(/^##\s+Sessions$/)) { inTable = true; headerSeen = false; continue; }
+        if (line.match(/^##\s/) && inTable) { inTable = false; continue; }
+        if (!inTable) continue;
+        if (line.match(/^[\s\-|]+$/) || !line.trim()) continue;
+        if (line.includes("|") && !headerSeen) { headerSeen = true; continue; }
+        if (line.includes("|") && headerSeen) {
+            const cells = splitCells(line);
+            if (cells.length && cells[0] === "") cells.shift();
+            if (cells.length && cells[cells.length - 1] === "") cells.pop();
+            if (cells.length >= 9) {
+                sessions.push({
+                    id: parseInt(cells[0], 10) || 0,
+                    type: cells[1] || "focus",
+                    task: cells[2] || "",
+                    started: cells[3] || "",
+                    ended: cells[4] || "",
+                    plannedMin: cells[5] || "",
+                    actualMin: cells[6] || "",
+                    status: cells[7] || "completed",
+                    notes: cells[8] || "",
+                });
+            }
+        }
+    }
+    return sessions;
+}
+
+function formatPomodoroTable(sessions) {
+    let out = "## Sessions\n\n";
+    out += "| ID | Type | Task | Started | Ended | Planned (min) | Actual (min) | Status | Notes |\n";
+    out += "| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n";
+    sessions.forEach((s) => {
+        out += `| ${s.id} | ${encodeCell(s.type)} | ${encodeCell(s.task)} | ${encodeCell(s.started)} | ${encodeCell(s.ended)} | ${encodeCell(s.plannedMin)} | ${encodeCell(s.actualMin)} | ${encodeCell(s.status)} | ${encodeCell(s.notes)} |\n`;
+    });
+    return out.trimEnd();
+}
+
+function loadPomodoroHistory(config) {
+    const filePath = resolveFilePath("pomodoro", config);
+    const content = readFileOrCreate(filePath, POMODORO_HISTORY_HEADER + formatPomodoroTable([]));
+    return { filePath, sessions: parsePomodoroTable(content) };
+}
+
+function appendPomodoro(config, session, status, notes) {
+    const { filePath, sessions } = loadPomodoroHistory(config);
+    const started = Date.parse(session.startedAt);
+    const endedAt = new Date();
+    const actualMin = Math.max(0, Math.round(((endedAt.getTime() - started) / 1000) / 60));
+    const record = {
+        id: nextId(sessions),
+        type: session.type,
+        task: session.task || session.label || "",
+        started: session.startedAt,
+        ended: endedAt.toISOString(),
+        plannedMin: session.plannedMin,
+        actualMin,
+        status,
+        notes: notes ? String(notes) : "",
+    };
+    sessions.push(record);
+    ensureDir(path.dirname(filePath));
+    fs.writeFileSync(filePath, POMODORO_HISTORY_HEADER + formatPomodoroTable(sessions), "utf8");
+    return record;
+}
+
+export function pomodoroStatus() {
+    const config = loadConfig();
+    return { active: decoratePomodoro(readPomodoroActive(config)) };
+}
+
+export function pomodoroStart(params = {}) {
+    const config = loadConfig();
+    const existing = readPomodoroActive(config);
+    if (existing && !params.force) {
+        const err = new Error("A Pomodoro session is already running.");
+        err.active = decoratePomodoro(existing);
+        throw err;
+    }
+    const type = normalizePomodoroType(params.type);
+    const minutes = params.minutes != null && Number.isFinite(parseInt(params.minutes, 10))
+        ? parseInt(params.minutes, 10)
+        : pomodoroDefaultMinutes(type, config);
+    if (!(minutes > 0)) throw new Error("minutes must be a positive number");
+    const session = {
+        type,
+        task: params.task ? String(params.task) : "",
+        label: params.label ? String(params.label) : "",
+        plannedMin: minutes,
+        startedAt: new Date().toISOString(),
+    };
+    ensureDir(path.dirname(pomodoroActivePath(config)));
+    fs.writeFileSync(pomodoroActivePath(config), JSON.stringify(session, null, 2), "utf8");
+    return { active: decoratePomodoro(session) };
+}
+
+export function pomodoroComplete(params = {}) {
+    const config = loadConfig();
+    const active = readPomodoroActive(config);
+    if (!active) throw new Error("No Pomodoro session is currently running.");
+    const record = appendPomodoro(config, active, "completed", params.notes);
+    fs.rmSync(pomodoroActivePath(config), { force: true });
+    return { record };
+}
+
+export function pomodoroCancel(params = {}) {
+    const config = loadConfig();
+    const active = readPomodoroActive(config);
+    if (!active) throw new Error("No Pomodoro session is currently running.");
+    const record = appendPomodoro(config, active, "abandoned", params.notes);
+    fs.rmSync(pomodoroActivePath(config), { force: true });
+    return { record };
+}
+
+export function pomodoroPause() {
+    const config = loadConfig();
+    const active = readPomodoroActive(config);
+    if (!active) throw new Error("No Pomodoro session is currently running.");
+    if (!active.pausedAt) {
+        active.pausedAt = new Date().toISOString();
+        fs.writeFileSync(pomodoroActivePath(config), JSON.stringify(active, null, 2), "utf8");
+    }
+    return { active: decoratePomodoro(active) };
+}
+
+export function pomodoroResume() {
+    const config = loadConfig();
+    const active = readPomodoroActive(config);
+    if (!active) throw new Error("No Pomodoro session is currently running.");
+    if (active.pausedAt) {
+        // Shift startedAt forward by the paused span so remaining continues seamlessly.
+        const pausedFor = Date.now() - Date.parse(active.pausedAt);
+        active.startedAt = new Date(Date.parse(active.startedAt) + Math.max(0, pausedFor)).toISOString();
+        delete active.pausedAt;
+        fs.writeFileSync(pomodoroActivePath(config), JSON.stringify(active, null, 2), "utf8");
+    }
+    return { active: decoratePomodoro(active) };
+}
+
+export function pomodoroList({ limit } = {}) {
+    const config = loadConfig();
+    const { sessions } = loadPomodoroHistory(config);
+    const ordered = sessions.slice().reverse();
+    const n = parseInt(limit, 10);
+    return { sessions: Number.isFinite(n) && n > 0 ? ordered.slice(0, n) : ordered };
+}
+
+export function pomodoroStats({ period = "all" } = {}) {
+    const config = loadConfig();
+    const { sessions } = loadPomodoroHistory(config);
+    const now = Date.now();
+    const inPeriod = sessions.filter((s) => {
+        if (period === "all") return true;
+        const d = Date.parse(s.started);
+        if (!Number.isFinite(d)) return false;
+        if (period === "today") {
+            const t = new Date();
+            return d >= new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime();
+        }
+        if (period === "week") return d >= now - 7 * 864e5;
+        if (period === "month") return d >= now - 30 * 864e5;
+        return true;
+    });
+    const completed = inPeriod.filter((s) => s.status === "completed");
+    const focus = completed.filter((s) => s.type === "focus");
+    const focusMinutes = focus.reduce((sum, s) => sum + (parseInt(s.actualMin, 10) || 0), 0);
+    return {
+        period,
+        totalSessions: inPeriod.length,
+        completedSessions: completed.length,
+        abandonedSessions: inPeriod.length - completed.length,
+        focusSessions: focus.length,
+        focusMinutes,
+    };
+}
+
+// ---------------------------------------------------------------------------
+// Pomodoro reporting
+// ---------------------------------------------------------------------------
+function pomoPad2(n) { return String(n).padStart(2, "0"); }
+function pomoLocalDayKey(d) { return `${d.getFullYear()}-${pomoPad2(d.getMonth() + 1)}-${pomoPad2(d.getDate())}`; }
+function pomoIsoWeekKey(d) {
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const day = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() + 4 - day);
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    const week = Math.ceil((((date - yearStart) / 864e5) + 1) / 7);
+    return `${date.getUTCFullYear()}-W${pomoPad2(week)}`;
+}
+function pomoRate(num, den) { return den > 0 ? Math.round((num / den) * 1000) / 1000 : 0; }
+
+function pomoResolvePeriodRange(period, now = Date.now()) {
+    const d = new Date(now);
+    const startOfDay = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const mondayOf = (x) => {
+        const s = new Date(x.getFullYear(), x.getMonth(), x.getDate());
+        const day = s.getDay() || 7;
+        s.setDate(s.getDate() - (day - 1));
+        return s.getTime();
+    };
+    switch (period) {
+        case "today": return { from: startOfDay(d), to: null };
+        case "this-week": return { from: mondayOf(d), to: null };
+        case "last-week": { const tw = mondayOf(d); return { from: tw - 7 * 864e5, to: tw }; }
+        case "this-month": return { from: new Date(d.getFullYear(), d.getMonth(), 1).getTime(), to: null };
+        case "last-month": return { from: new Date(d.getFullYear(), d.getMonth() - 1, 1).getTime(), to: new Date(d.getFullYear(), d.getMonth(), 1).getTime() };
+        case "last-7": case "week": return { from: now - 7 * 864e5, to: null };
+        case "last-30": case "month": return { from: now - 30 * 864e5, to: null };
+        case "all": default: return { from: null, to: null };
+    }
+}
+
+function pomoSummarize(rows) {
+    const total = rows.length;
+    const completed = rows.filter((s) => s.status === "completed");
+    const abandoned = rows.filter((s) => s.status !== "completed");
+    const focus = rows.filter((s) => s.type === "focus");
+    const completedFocus = focus.filter((s) => s.status === "completed");
+    const focusMinutes = completedFocus.reduce((sum, s) => sum + (parseInt(s.actualMin, 10) || 0), 0);
+    const breakMinutes = completed.filter((s) => s.type !== "focus").reduce((sum, s) => sum + (parseInt(s.actualMin, 10) || 0), 0);
+    return {
+        totalSessions: total,
+        completedSessions: completed.length,
+        abandonedSessions: abandoned.length,
+        focusSessions: focus.length,
+        completedFocusSessions: completedFocus.length,
+        focusMinutes,
+        breakMinutes,
+        completionRate: pomoRate(completed.length, total),
+        focusCompletionRate: pomoRate(completedFocus.length, focus.length),
+    };
+}
+
+export function pomodoroReport({ period = "this-week", groupBy = "day" } = {}) {
+    const config = loadConfig();
+    const { sessions } = loadPomodoroHistory(config);
+    const now = Date.now();
+    const { from, to } = pomoResolvePeriodRange(period, now);
+    const rows = sessions.filter((s) => {
+        const t = Date.parse(s.started);
+        if (!Number.isFinite(t)) return false;
+        if (from != null && t < from) return false;
+        if (to != null && t >= to) return false;
+        return true;
+    });
+
+    const summary = { period, from, to, ...pomoSummarize(rows) };
+    let groups = [];
+
+    if (groupBy === "session") {
+        groups = rows
+            .slice()
+            .sort((a, b) => Date.parse(b.started) - Date.parse(a.started))
+            .map((s) => ({
+                key: String(s.id),
+                label: s.started,
+                type: s.type,
+                task: s.task || "",
+                started: s.started,
+                plannedMin: parseInt(s.plannedMin, 10) || 0,
+                actualMin: parseInt(s.actualMin, 10) || 0,
+                status: s.status,
+            }));
+    } else {
+        const buckets = new Map();
+        for (const s of rows) {
+            let key;
+            if (groupBy === "week") key = pomoIsoWeekKey(new Date(Date.parse(s.started)));
+            else if (groupBy === "task") key = s.task || "(no task)";
+            else key = pomoLocalDayKey(new Date(Date.parse(s.started)));
+            if (!buckets.has(key)) buckets.set(key, []);
+            buckets.get(key).push(s);
+        }
+        groups = Array.from(buckets.entries()).map(([key, list]) => {
+            const sum = pomoSummarize(list);
+            return { key, label: key, ...sum };
+        });
+        if (groupBy === "task") {
+            groups.sort((a, b) => b.focusMinutes - a.focusMinutes || b.completedFocusSessions - a.completedFocusSessions);
+        } else {
+            groups.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+        }
+    }
+
+    return { period, groupBy, summary, groups };
 }
 
 // ---------------------------------------------------------------------------
@@ -642,6 +1000,7 @@ export function summary() {
     const today = todayISO();
     const open = tasks.filter((t) => t.status.toLowerCase() === "open");
     const done = tasks.filter((t) => t.status.toLowerCase() === "done");
+    const blocked = tasks.filter((t) => t.status.toLowerCase() === "blocked");
     const overdue = open.filter((t) => t.dueDate && t.dueDate < today);
     const dueToday = open.filter((t) => t.dueDate === today);
 
@@ -687,6 +1046,7 @@ export function summary() {
         counts: {
             tasksOpen: open.length,
             tasksDone: done.length,
+            tasksBlocked: blocked.length,
             tasksOverdue: overdue.length,
             tasksDueToday: dueToday.length,
             milestones: milestones.length,
@@ -994,7 +1354,28 @@ export function getConfig() {
         partition,
         migration: config.migration?.mode || "adopt",
         allowExternalPaths: config.storage.allowExternalPaths !== false,
+        pomodoro: {
+            focus: pomodoroDefaultMinutes("focus", config),
+            "short-break": pomodoroDefaultMinutes("short-break", config),
+            "long-break": pomodoroDefaultMinutes("long-break", config),
+        },
     };
+}
+
+// Persist the Pomodoro session durations block into the active config file.
+export function savePomodoroDurations(durations = {}) {
+    const status = configStatus();
+    if (!status.configured) throw Object.assign(new Error("CatPilot is not set up yet."), { code: "NOT_CONFIGURED" });
+    const config = loadConfig();
+    const next = { ...POMODORO_DEFAULTS, ...(config.pomodoro || {}) };
+    for (const key of Object.keys(POMODORO_DEFAULTS)) {
+        const n = parseInt(durations[key], 10);
+        if (Number.isFinite(n) && n > 0) next[key] = n;
+    }
+    config.pomodoro = next;
+    const { __baseDir, __configPath, ...clean } = config;
+    fs.writeFileSync(config.__configPath, JSON.stringify(clean, null, 2), "utf8");
+    return { pomodoro: next };
 }
 
 // Build a preview of what changing the config would do — no writes.

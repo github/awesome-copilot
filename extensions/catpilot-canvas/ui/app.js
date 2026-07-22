@@ -106,6 +106,7 @@
         { id: "learning", icon: "🎓", label: "Learning", countKey: "learning" },
         { id: "growth", icon: "↗", label: "Growth", countKey: "growth" },
         { id: "projects", icon: "❏", label: "Projects", countKey: "projects" },
+        { id: "pomodoro", icon: "🍅", label: "Pomodoro" },
         { id: "reports", icon: "📊", label: "Reports" },
         { id: "settings", icon: "⚙️", label: "Settings", footer: true },
         { id: "help", icon: "❔", label: "Help", footer: true },
@@ -121,6 +122,7 @@
         learning: "Certifications and study topics",
         growth: "Accomplishments and impact log",
         projects: "Lightweight project status",
+        pomodoro: "Focus timers and logged sessions",
         reports: "Executive reports from your data",
         settings: "Storage, migration and preferences",
         help: "Capabilities and how to use this canvas",
@@ -146,7 +148,7 @@
     function priorityBadge(p) { return p ? el("span", { class: `badge ${priorityClass(p)}`, text: p }) : el("span", { class: "muted small", text: "—" }); }
     function statusBadge(s) {
         const k = (s || "").toLowerCase().replace(/\s/g, "");
-        const cls = k === "done" ? "st-done" : k === "inprogress" ? "st-inprogress" : k === "planned" ? "st-planned" : "st-open";
+        const cls = k === "done" ? "st-done" : k === "inprogress" ? "st-inprogress" : k === "planned" ? "st-planned" : k === "blocked" ? "st-blocked" : "st-open";
         return el("span", { class: `badge ${cls}`, text: s || "Open" });
     }
     function tagChips(tags) {
@@ -220,6 +222,24 @@
         const legend = el("div", { class: "legend" }, series.map((s) =>
             el("span", {}, el("i", { style: `background:${s.color}` }), s.label)));
         return el("div", {}, bars, legend);
+    }
+
+    // Single-series vertical bar chart (value per labeled group).
+    function simpleBars(items, { color = "#7c5cff", unit = "" } = {}) {
+        const max = Math.max(1, ...items.map((d) => d.value || 0));
+        const bars = el("div", { class: "bars" });
+        for (const d of items) {
+            const stack = el("div", { class: "bar-stack" });
+            if (d.value) {
+                const seg = el("div", { class: "bar-seg" });
+                seg.style.height = `${(d.value / max) * 130}px`;
+                seg.style.background = color;
+                seg.title = `${d.label}: ${d.value}${unit}`;
+                stack.append(seg);
+            }
+            bars.append(el("div", { class: "bar-col" }, stack, el("div", { class: "bar-label", text: d.short || d.label })));
+        }
+        return bars;
     }
 
     // ---------------------------------------------------------------- nav
@@ -312,11 +332,32 @@
     const VIEWS = {};
 
     // ---------- Dashboard ----------
+    // Dashboard period filter (drives the focus/Pomodoro analytics section).
+    let dashPeriod = localStorage.getItem("cp-dash-period") || "today";
+    const DASH_PERIODS = [["today", "Today"], ["week", "Week"], ["month", "Month"]];
+    const DASH_PERIOD_LABEL = { today: "Today", week: "This week", month: "This month" };
+    function fmtMinutes(m) {
+        m = parseInt(m, 10) || 0;
+        if (m < 60) return `${m}m`;
+        const h = Math.floor(m / 60), r = m % 60;
+        return r ? `${h}h ${r}m` : `${h}h`;
+    }
+
     VIEWS.dashboard = async (root) => {
-        const s = await api("/api/summary");
+        const [s, pomoStats] = await Promise.all([
+            api("/api/summary"),
+            api(`/api/pomodoro/stats?period=${dashPeriod}`).catch(() => null),
+        ]);
         state.summary = s;
         renderNav();
         root.innerHTML = "";
+
+        // Period filter in the topbar — governs the focus analytics below.
+        const periodSeg = el("div", { class: "segmented" },
+            ...DASH_PERIODS.map(([key, label]) =>
+                el("button", { class: dashPeriod === key ? "active" : "", text: label,
+                    onclick: () => { dashPeriod = key; localStorage.setItem("cp-dash-period", key); go("dashboard"); } })));
+        actionsHost.append(periodSeg);
 
         // Hero
         root.append(el("div", { class: "hero" },
@@ -345,6 +386,27 @@
                 el("div", { class: "stat-num", text: String(cd.n) }),
                 el("div", { class: "stat-label", text: cd.label }),
                 el("div", { class: "stat-sub muted", text: cd.sub })))));
+
+        // Focus / Pomodoro analytics — driven by the period filter above.
+        const ps = pomoStats || { focusSessions: 0, focusMinutes: 0, completedSessions: 0, abandonedSessions: 0 };
+        const pomoCards = [
+            { n: ps.focusSessions, label: "Focus sessions", ic: "🍅", tone: "tone-accent", sub: `${DASH_PERIOD_LABEL[dashPeriod]}` },
+            { n: fmtMinutes(ps.focusMinutes), label: "Focus time", ic: "⏱", tone: "tone-ok", sub: "logged focus" },
+            { n: ps.completedSessions, label: "Completed", ic: "✓", tone: "", sub: `${ps.totalSessions || 0} total` },
+            { n: ps.abandonedSessions, label: "Abandoned", ic: "⏹", tone: ps.abandonedSessions ? "tone-danger" : "", sub: "cancelled early" },
+        ];
+        const pomoSection = el("div", { style: "margin-top:22px" },
+            el("div", { class: "toolbar", style: "margin-bottom:12px" },
+                el("h4", { style: "margin:0", text: `🍅 Focus · ${DASH_PERIOD_LABEL[dashPeriod]}` }),
+                el("span", { class: "spacer" }),
+                el("button", { class: "btn small", html: "Open Pomodoro →", onclick: () => go("pomodoro") })),
+            el("div", { class: "grid cards" },
+                pomoCards.map((cd) => el("div", { class: `card stat hoverable ${cd.tone}` },
+                    el("span", { class: "stat-ic", text: cd.ic }),
+                    el("div", { class: "stat-num", text: String(cd.n) }),
+                    el("div", { class: "stat-label", text: cd.label }),
+                    el("div", { class: "stat-sub muted", text: cd.sub })))));
+        root.append(pomoSection);
 
         // Charts row
         const chartRow = el("div", { class: "chart-row", style: "margin-top:22px" });
@@ -437,26 +499,64 @@
 
     // ---------- Tasks ----------
     let taskViewMode = localStorage.getItem("cp-task-view") || "list";
+    let taskDueFilter = localStorage.getItem("cp-task-filter") || "all"; // all | today | 7days
+    // Calendar sub-view state.
+    let taskCalMode = localStorage.getItem("cp-task-cal-mode") || "month"; // month | week
+    let taskCalAnchorISO = todayISO(); // which month/week is in view (module-persistent across re-renders)
+    let taskCalFields = (localStorage.getItem("cp-task-cal-fields") || "priority").split(",").filter(Boolean);
+
+    // Apply the active due-date filter. Today = due today or overdue;
+    // 7days = due within the next 7 days (includes overdue). Undated tasks are
+    // hidden while a filter is active, per product decision.
+    function applyDueFilter(tasks) {
+        if (taskDueFilter === "all") return tasks;
+        const today = todayISO();
+        const in7 = new Date(); in7.setDate(in7.getDate() + 7);
+        const limit = in7.toISOString().split("T")[0];
+        if (taskDueFilter === "today") return tasks.filter((t) => t.dueDate && t.dueDate <= today);
+        if (taskDueFilter === "7days") return tasks.filter((t) => t.dueDate && t.dueDate <= limit);
+        return tasks;
+    }
+
     VIEWS.tasks = async (root) => {
-        const { tasks } = await api("/api/tasks?status=all");
+        const { tasks: allTasks } = await api("/api/tasks?status=all");
+        const tasks = applyDueFilter(allTasks);
         root.innerHTML = "";
 
         // view switcher in topbar
         const seg = el("div", { class: "segmented" },
             el("button", { class: taskViewMode === "list" ? "active" : "", text: "☰ List", onclick: () => { taskViewMode = "list"; localStorage.setItem("cp-task-view", "list"); go("tasks"); } }),
-            el("button", { class: taskViewMode === "board" ? "active" : "", text: "▦ Board", onclick: () => { taskViewMode = "board"; localStorage.setItem("cp-task-view", "board"); go("tasks"); } }));
+            el("button", { class: taskViewMode === "board" ? "active" : "", text: "▦ Board", onclick: () => { taskViewMode = "board"; localStorage.setItem("cp-task-view", "board"); go("tasks"); } }),
+            el("button", { class: taskViewMode === "calendar" ? "active" : "", text: "📅 Calendar", onclick: () => { taskViewMode = "calendar"; localStorage.setItem("cp-task-view", "calendar"); go("tasks"); } }));
         actionsHost.append(seg);
+
+        // Calendar mode uses the full task set (the due-window filter would hide most
+        // days) and its own toolbar; list/board keep the existing due filter.
+        if (taskViewMode === "calendar") {
+            const holderCal = el("div", { id: "task-holder" });
+            root.append(buildCalendarToolbar(allTasks), holderCal);
+            if (!allTasks.length) { holderCal.append(emptyState("🗒️", "No tasks yet", "Capture your first task and it will show up on the calendar.", el("button", { class: "btn btn-primary", html: "＋ Add task", onclick: () => taskModal() }))); return; }
+            renderTaskCalendar(holderCal, allTasks);
+            root._tasks = allTasks;
+            return;
+        }
+
+        const filterSeg = el("div", { class: "segmented" },
+            ...[["all", "All"], ["today", "Today"], ["7days", "7 days"]].map(([key, label]) =>
+                el("button", { class: taskDueFilter === key ? "active" : "", text: label, onclick: () => { taskDueFilter = key; localStorage.setItem("cp-task-filter", key); go("tasks"); } })));
 
         const toolbar = el("div", { class: "toolbar" },
             el("button", { class: "btn btn-primary", html: "＋ Add task", onclick: () => taskModal() }),
-            el("input", { class: "search", "aria-label": "Search tasks", placeholder: "Search tasks…", oninput: (e) => filterTasks(e.target.value) }),
+            el("input", { class: "search", placeholder: "Search tasks…", oninput: (e) => filterTasks(e.target.value) }),
+            filterSeg,
             el("span", { class: "spacer" }),
-            el("span", { class: "muted small", text: `${tasks.filter((t) => t.status.toLowerCase() === "open").length} open · ${tasks.filter((t) => t.status.toLowerCase() === "done").length} done` }));
+            el("span", { class: "muted small", text: `${tasks.filter((t) => t.status.toLowerCase() === "open").length} open · ${tasks.filter((t) => t.status.toLowerCase() === "blocked").length} blocked · ${tasks.filter((t) => t.status.toLowerCase() === "done").length} done` }));
         root.append(toolbar);
 
         const holder = el("div", { id: "task-holder" });
         root.append(holder);
-        if (!tasks.length) { holder.append(emptyState("🗒️", "No tasks yet", "Capture your first task and it will sync straight to CatPilot.", el("button", { class: "btn btn-primary", html: "＋ Add task", onclick: () => taskModal() }))); return; }
+        if (!allTasks.length) { holder.append(emptyState("🗒️", "No tasks yet", "Capture your first task and it will sync straight to CatPilot.", el("button", { class: "btn btn-primary", html: "＋ Add task", onclick: () => taskModal() }))); return; }
+        if (!tasks.length) { holder.append(emptyState("🔍", "Nothing in this window", "No tasks match the current filter. Try “All”.")); return; }
         if (taskViewMode === "list") renderTaskList(holder, tasks);
         else renderTaskBoard(holder, tasks);
         root._tasks = tasks;
@@ -472,8 +572,9 @@
 
     function renderTaskList(holder, tasks) {
         const open = tasks.filter((t) => t.status.toLowerCase() === "open");
+        const blocked = tasks.filter((t) => t.status.toLowerCase() === "blocked");
         const done = tasks.filter((t) => t.status.toLowerCase() === "done");
-        const ordered = [...open, ...done];
+        const ordered = [...open, ...blocked, ...done];
         const tbody = el("tbody");
         ordered.forEach((t) => tbody.append(taskRow(t)));
         holder.append(el("div", { class: "table-wrap" },
@@ -481,6 +582,7 @@
                 el("thead", {}, el("tr", {},
                     el("th", { text: "" }),
                     el("th", { text: "Task" }),
+                    el("th", { text: "Status" }),
                     el("th", { text: "Due" }),
                     el("th", { text: "Priority" }),
                     el("th", { text: "Tags" }),
@@ -503,6 +605,7 @@
             el("td", { style: "width:34px" }, check),
             el("td", {}, el("div", { class: "cell-title", text: t.title, onclick: () => taskDetail(t) }),
                 t.context ? el("div", { class: "muted small", text: t.context }) : null),
+            el("td", {}, statusBadge(t.status)),
             el("td", {}, t.dueDate ? el("span", { class: dueClass(t.dueDate, done), text: t.dueDate }) : el("span", { class: "muted small", text: "—" })),
             el("td", {}, priorityBadge(t.priority)),
             el("td", {}, tagChips(t.tags)),
@@ -521,9 +624,10 @@
 
     function renderTaskBoard(holder, tasks) {
         const cols = [
-            { key: "overdue", title: "⏰ Overdue", filter: (t) => t.status.toLowerCase() === "open" && t.dueDate && t.dueDate < todayISO() },
-            { key: "open", title: "◻ To do", filter: (t) => t.status.toLowerCase() === "open" && !(t.dueDate && t.dueDate < todayISO()) },
-            { key: "done", title: "✓ Done", filter: (t) => t.status.toLowerCase() === "done" },
+            { key: "overdue", title: "⏰ Overdue", status: "Open", filter: (t) => t.status.toLowerCase() === "open" && t.dueDate && t.dueDate < todayISO() },
+            { key: "open", title: "◻ To do", status: "Open", filter: (t) => t.status.toLowerCase() === "open" && !(t.dueDate && t.dueDate < todayISO()) },
+            { key: "blocked", title: "⛔ Blocked", status: "Blocked", filter: (t) => t.status.toLowerCase() === "blocked" },
+            { key: "done", title: "✓ Done", status: "Done", filter: (t) => t.status.toLowerCase() === "done" },
         ];
         const board = el("div", { class: "board" });
         for (const col of cols) {
@@ -538,8 +642,10 @@
                 e.preventDefault(); colEl.classList.remove("drop");
                 const id = e.dataTransfer.getData("text/plain");
                 try {
-                    if (col.key === "done") await api(`/api/tasks/${id}/complete`, { method: "POST" });
-                    else await api(`/api/tasks/${id}`, { method: "PUT", body: { status: "Open" } });
+                    // Overdue and To do both map to the stored "Open" status; the card
+                    // lands in the right column based on its due date.
+                    if (col.status === "Done") await api(`/api/tasks/${id}/complete`, { method: "POST" });
+                    else await api(`/api/tasks/${id}`, { method: "PUT", body: { status: col.status } });
                     await refreshSummary(); go("tasks");
                 } catch (err) { toast("Error", err.message, "err"); }
             });
@@ -550,6 +656,7 @@
 
     function boardCard(t) {
         const done = t.status.toLowerCase() === "done";
+        const blocked = t.status.toLowerCase() === "blocked";
         const card = el("div", { class: "board-card", draggable: "true", dataset: { taskTitle: t.title } });
         card.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", String(t.id)); card.classList.add("dragging"); });
         card.addEventListener("dragend", () => card.classList.remove("dragging"));
@@ -557,8 +664,131 @@
             el("div", { class: "bc-title", text: t.title, style: done ? "text-decoration:line-through;color:var(--text-faint)" : "", onclick: () => taskDetail(t) }),
             el("div", { class: "bc-meta" },
                 priorityBadge(t.priority),
+                blocked ? statusBadge("Blocked") : null,
                 t.dueDate ? el("span", { class: dueClass(t.dueDate, done), text: t.dueDate }) : null));
         return card;
+    }
+
+    // ---------- Tasks · Calendar view ----------
+    const CAL_FIELD_OPTS = [["priority", "Priority"], ["status", "Status"], ["tags", "Tags"]];
+    const pad2 = (n) => String(n).padStart(2, "0");
+    function fmtLocalISO(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+    function parseISO(s) { const [y, m, d] = String(s).split("-").map(Number); return new Date(y, (m || 1) - 1, d || 1); }
+    function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+    function startOfWeekMon(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+
+    function buildCalendarToolbar(tasks) {
+        const anchor = parseISO(taskCalAnchorISO);
+        // Human title for the current window.
+        let title;
+        if (taskCalMode === "week") {
+            const ws = startOfWeekMon(anchor), we = addDays(ws, 6);
+            const opt = { month: "short", day: "numeric" };
+            title = `${ws.toLocaleDateString(undefined, opt)} – ${we.toLocaleDateString(undefined, opt)}, ${we.getFullYear()}`;
+        } else {
+            title = anchor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+        }
+        const step = (dir) => {
+            const a = parseISO(taskCalAnchorISO);
+            if (taskCalMode === "week") { taskCalAnchorISO = fmtLocalISO(addDays(a, dir * 7)); }
+            else { taskCalAnchorISO = fmtLocalISO(new Date(a.getFullYear(), a.getMonth() + dir, 1)); }
+            go("tasks");
+        };
+        const modeSeg = el("div", { class: "segmented" },
+            ...[["month", "Month"], ["week", "Week"]].map(([k, l]) =>
+                el("button", { class: taskCalMode === k ? "active" : "", text: l,
+                    onclick: () => { taskCalMode = k; localStorage.setItem("cp-task-cal-mode", k); go("tasks"); } })));
+
+        // "Show fields" dropdown — pick which task info appears on each day chip.
+        const menu = el("div", { class: "cal-fields-menu" },
+            CAL_FIELD_OPTS.map(([key, label]) => {
+                const cb = el("input", { type: "checkbox", ...(taskCalFields.includes(key) ? { checked: "checked" } : {}) });
+                cb.addEventListener("change", () => {
+                    const set = new Set(taskCalFields);
+                    if (cb.checked) set.add(key); else set.delete(key);
+                    taskCalFields = [...set];
+                    localStorage.setItem("cp-task-cal-fields", taskCalFields.join(","));
+                    go("tasks");
+                });
+                return el("label", { class: "cal-fields-opt" }, cb, el("span", { text: label }));
+            }));
+        const fields = el("details", { class: "cal-fields" },
+            el("summary", { class: "btn", html: "▾ Fields" }), menu);
+
+        const nav = el("div", { class: "cal-nav" },
+            el("button", { class: "btn btn-ghost", html: "‹", title: "Previous", onclick: () => step(-1) }),
+            el("span", { class: "cal-title", text: title }),
+            el("button", { class: "btn btn-ghost", html: "›", title: "Next", onclick: () => step(1) }),
+            el("button", { class: "btn", text: "Today", onclick: () => { taskCalAnchorISO = todayISO(); go("tasks"); } }));
+
+        return el("div", { class: "toolbar cal-toolbar" },
+            el("button", { class: "btn btn-primary", html: "＋ Add task", onclick: () => taskModal() }),
+            nav,
+            el("span", { class: "spacer" }),
+            fields,
+            modeSeg,
+            el("input", { class: "search", placeholder: "Search tasks…", oninput: (e) => filterTasks(e.target.value) }));
+    }
+
+    function renderTaskCalendar(holder, tasks) {
+        const anchor = parseISO(taskCalAnchorISO);
+        const todayIso = todayISO();
+        // Bucket dated tasks by day; count undated for a footnote.
+        const byDay = new Map();
+        let undated = 0;
+        for (const t of tasks) {
+            if (!t.dueDate) { undated++; continue; }
+            (byDay.get(t.dueDate) || byDay.set(t.dueDate, []).get(t.dueDate)).push(t);
+        }
+
+        const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        let start, count;
+        if (taskCalMode === "week") { start = startOfWeekMon(anchor); count = 7; }
+        else { start = startOfWeekMon(new Date(anchor.getFullYear(), anchor.getMonth(), 1)); count = 42; }
+
+        const grid = el("div", { class: `cal-grid ${taskCalMode === "week" ? "cal-week" : "cal-month"}` });
+        weekdays.forEach((w) => grid.append(el("div", { class: "cal-wd", text: w })));
+
+        for (let i = 0; i < count; i++) {
+            const day = addDays(start, i);
+            const iso = fmtLocalISO(day);
+            const inMonth = taskCalMode === "week" || day.getMonth() === anchor.getMonth();
+            const isToday = iso === todayIso;
+            const cell = el("div", { class: `cal-day${inMonth ? "" : " other"}${isToday ? " today" : ""}` });
+            cell.append(el("div", { class: "cal-daynum" },
+                el("span", { class: "cal-dow-sm", text: taskCalMode === "week" ? weekdays[i] + " " : "" }),
+                el("span", { text: String(day.getDate()) })));
+            const list = el("div", { class: "cal-day-list" });
+            const items = (byDay.get(iso) || []).slice().sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority));
+            items.forEach((t) => list.append(calChip(t)));
+            cell.append(list);
+            grid.append(cell);
+        }
+        holder.append(grid);
+        if (undated) holder.append(el("p", { class: "muted small", style: "margin-top:12px",
+            text: `${undated} task${undated > 1 ? "s" : ""} without a due date ${undated > 1 ? "are" : "is"} not shown on the calendar.` }));
+    }
+
+    function priorityRank(p) {
+        const s = String(p || "").toLowerCase();
+        if (s === "p0" || s === "high") return 0;
+        if (s === "p1") return 1;
+        if (s === "p2" || s === "med") return 2;
+        if (s === "p3" || s === "low") return 3;
+        return 4;
+    }
+
+    function calChip(t) {
+        const done = t.status.toLowerCase() === "done";
+        const chip = el("div", { class: `cal-chip pr-${priorityRank(t.priority)}${done ? " done" : ""}`,
+            dataset: { taskTitle: t.title }, title: t.title, onclick: () => taskDetail(t) });
+        chip.append(el("div", { class: "cal-chip-title", text: t.title }));
+        const meta = el("div", { class: "cal-chip-meta" });
+        if (taskCalFields.includes("priority") && t.priority) meta.append(priorityBadge(t.priority));
+        if (taskCalFields.includes("status")) meta.append(statusBadge(t.status));
+        if (taskCalFields.includes("tags") && t.tags) meta.append(tagChips(t.tags));
+        if (meta.childNodes.length) chip.append(meta);
+        return chip;
     }
 
     async function removeTask(t) {
@@ -575,13 +805,14 @@
             el("div", { class: "form-row" },
                 field("Due date", f, "due", { value: t?.dueDate, type: "date" }),
                 selectField("Priority", f, "priority", ["", "P0", "P1", "P2", "P3", "High", "Med", "Low"], t?.priority)),
+            selectField("Status", f, "status", ["Open", "Blocked", "Done"], t?.status || "Open", { Open: "To do", Blocked: "Blocked", Done: "Done" }),
             field("Tags", f, "tags", { value: t?.tags, placeholder: "comma,separated" }),
             mdField("Context", f, "context", { value: t?.context, placeholder: "One-line context (markdown supported)" }));
         const save = el("button", { class: "btn btn-primary", text: editing ? "Save changes" : "Add task", onclick: async () => {
-            const payload = { title: f.title.value.trim(), due: f.due.value, priority: f.priority.value, tags: f.tags.value.trim(), context: f.context.value.trim() };
+            const payload = { title: f.title.value.trim(), due: f.due.value, priority: f.priority.value, tags: f.tags.value.trim(), context: f.context.value.trim(), status: f.status.value };
             if (!payload.title) { toast("Title required", "", "err"); return; }
             try {
-                if (editing) { await api(`/api/tasks/${t.id}`, { method: "PUT", body: { title: payload.title, dueDate: payload.due, priority: payload.priority, tags: payload.tags, context: payload.context } }); toast("Task updated", payload.title, "ok"); }
+                if (editing) { await api(`/api/tasks/${t.id}`, { method: "PUT", body: { title: payload.title, dueDate: payload.due, priority: payload.priority, tags: payload.tags, context: payload.context, status: payload.status } }); toast("Task updated", payload.title, "ok"); }
                 else { await api("/api/tasks", { method: "POST", body: payload }); toast("Task added", payload.title, "ok"); }
                 closeModal(); await refreshSummary(); go("tasks");
             } catch (e) { toast("Error", e.message, "err"); }
@@ -796,9 +1027,9 @@
         store[key] = input;
         return el("label", {}, el("span", {}, label, opts.required ? el("em", { text: " *" }) : null), input);
     }
-    function selectField(label, store, key, options, value) {
+    function selectField(label, store, key, options, value, labels) {
         const sel = el("select", {});
-        options.forEach((o) => { const opt = el("option", { value: o, text: o || "—" }); if (o === value) opt.selected = true; sel.append(opt); });
+        options.forEach((o) => { const opt = el("option", { value: o, text: (labels && labels[o]) || o || "—" }); if (o === value) opt.selected = true; sel.append(opt); });
         store[key] = sel;
         return el("label", {}, el("span", { text: label }), sel);
     }
@@ -976,6 +1207,464 @@
         root.append(wrap);
     };
 
+    // ---------------------------------------------------------------- pomodoro
+    const POMO_TYPES = [["focus", "Focus"], ["short-break", "Short break"], ["long-break", "Long break"]];
+    const POMO_DEFAULT_MIN = { focus: 25, "short-break": 5, "long-break": 15 };
+    const POMO_TYPE_LABEL = { focus: "Focus", "short-break": "Short break", "long-break": "Long break" };
+    const POMO_LONG_BREAK_EVERY = 4; // classic Pomodoro: long break after every 4th focus
+    // Distinct accent per session type (used for the ring arc and the dock badge).
+    const POMO_TYPE_COLOR = { focus: "#ff6b6b", "short-break": "#35c88f", "long-break": "#5aa9ff" };
+    const POMO_TYPE_BADGE = { focus: "st-focus", "short-break": "st-short", "long-break": "st-long" };
+    const pomoColor = (type) => POMO_TYPE_COLOR[type] || POMO_TYPE_COLOR.focus;
+
+    function fmtClock(sec) {
+        const s = Math.max(0, Math.round(sec));
+        const m = Math.floor(s / 60);
+        return `${String(m).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    }
+
+    // Circular progress ring for the running timer.
+    function pomoRing(remainingSec, plannedSec, size = 220, color = null) {
+        const NS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(NS, "svg");
+        svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+        svg.setAttribute("width", size); svg.setAttribute("height", size);
+        const stroke = Math.max(4, Math.round(size * 0.064));
+        const inset = Math.max(6, Math.round(size * 0.073));
+        const cx = size / 2, cy = size / 2, r = size / 2 - inset, C = 2 * Math.PI * r;
+        const frac = plannedSec > 0 ? Math.max(0, Math.min(1, remainingSec / plannedSec)) : 0;
+        const track = document.createElementNS(NS, "circle");
+        track.setAttribute("cx", cx); track.setAttribute("cy", cy); track.setAttribute("r", r);
+        track.setAttribute("fill", "none"); track.setAttribute("stroke", "var(--panel-2)"); track.setAttribute("stroke-width", stroke);
+        svg.append(track);
+        const arc = document.createElementNS(NS, "circle");
+        arc.setAttribute("cx", cx); arc.setAttribute("cy", cy); arc.setAttribute("r", r);
+        arc.setAttribute("fill", "none"); arc.setAttribute("stroke", remainingSec === 0 ? "#4caf7d" : (color || "#ff6b6b"));
+        arc.setAttribute("stroke-width", stroke); arc.setAttribute("stroke-linecap", "round");
+        arc.setAttribute("stroke-dasharray", `${C * frac} ${C}`);
+        arc.setAttribute("transform", `rotate(-90 ${cx} ${cy})`);
+        svg.append(arc);
+        // Compact rings (dock) are pure progress indicators; text only on the large ring.
+        if (size >= 90) {
+            const t1 = document.createElementNS(NS, "text");
+            t1.setAttribute("x", cx); t1.setAttribute("y", cy - 2); t1.setAttribute("text-anchor", "middle");
+            t1.setAttribute("font-size", String(Math.round(size * 0.18))); t1.setAttribute("font-weight", "800"); t1.setAttribute("fill", "var(--text)");
+            t1.textContent = fmtClock(remainingSec);
+            const t2 = document.createElementNS(NS, "text");
+            t2.setAttribute("x", cx); t2.setAttribute("y", cy + Math.round(size * 0.1)); t2.setAttribute("text-anchor", "middle");
+            t2.setAttribute("font-size", String(Math.round(size * 0.055))); t2.setAttribute("fill", "var(--text-faint)");
+            t2.textContent = remainingSec === 0 ? "done" : "remaining";
+            svg.append(t1, t2);
+        }
+        return svg;
+    }
+
+    // ------------------------------------------------- global pomodoro controller
+    // A single app-wide loop drives BOTH the floating mini-timer dock and (when
+    // visible) the full Pomodoro page, so the timer keeps running regardless of the
+    // current view. Replaces the old view-local `pomoTick`.
+    const pomo = { active: null, remaining: 0, planned: 0, expiredHandled: false, durations: null };
+    let pomoLoop = null;
+    let pomoSyncAccum = 0;
+    let pomoPageUpdater = null; // set by VIEWS.pomodoro while it is mounted
+    let pomoNotifyAsked = false;
+
+    async function pomoDurations() {
+        if (pomo.durations) return pomo.durations;
+        try { const cfg = await api("/api/config"); pomo.durations = (cfg && cfg.pomodoro) || POMO_DEFAULT_MIN; }
+        catch { pomo.durations = POMO_DEFAULT_MIN; }
+        return pomo.durations;
+    }
+
+    function pomoAskNotifyPermission() {
+        if (pomoNotifyAsked) return;
+        pomoNotifyAsked = true;
+        try {
+            if (typeof Notification !== "undefined" && Notification.permission === "default") {
+                Notification.requestPermission().catch(() => {});
+            }
+        } catch { /* webview may not support Notifications */ }
+    }
+
+    function pomoBeep() {
+        try {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return;
+            const ctx = new Ctx();
+            const now = ctx.currentTime;
+            [0, 0.18].forEach((offset, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = "sine";
+                osc.frequency.value = i === 0 ? 880 : 660;
+                gain.gain.setValueAtTime(0.0001, now + offset);
+                gain.gain.exponentialRampToValueAtTime(0.25, now + offset + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.16);
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start(now + offset); osc.stop(now + offset + 0.18);
+            });
+            setTimeout(() => { try { ctx.close(); } catch { /* */ } }, 600);
+        } catch { /* audio not available */ }
+    }
+
+    /** Re-fetch authoritative state from the server and refresh dock + page. */
+    async function pomoSync() {
+        let active = null;
+        try { const res = await api("/api/pomodoro/status"); active = res && res.active; } catch { return; }
+        const hadId = pomo.active ? pomo.active.startedAt : null;
+        const newId = active ? active.startedAt : null;
+        pomo.active = active || null;
+        if (active) {
+            // A different (new) session appeared -> reset expiry latch and ask for notifications.
+            if (newId !== hadId) { pomo.expiredHandled = false; pomoAskNotifyPermission(); }
+            pomo.planned = active.plannedSec;
+            pomo.remaining = active.remainingSec;
+            if (active.remainingSec === 0 && !pomo.expiredHandled) { pomo.expiredHandled = true; onPomoExpire(active); }
+        } else {
+            pomo.remaining = 0; pomo.planned = 0;
+        }
+        renderPomoDock();
+        if (pomoPageUpdater) pomoPageUpdater();
+    }
+
+    function startPomoLoop() {
+        if (pomoLoop) return;
+        pomoSyncAccum = 0;
+        pomoLoop = setInterval(async () => {
+            pomoSyncAccum += 1;
+            if (pomo.active && !pomo.active.paused) {
+                pomo.remaining = Math.max(0, pomo.remaining - 1);
+                if (pomo.remaining === 0 && !pomo.expiredHandled) {
+                    pomo.expiredHandled = true;
+                    onPomoExpire(pomo.active);
+                }
+                renderPomoDock();
+                if (pomoPageUpdater) pomoPageUpdater();
+            }
+            // Periodic re-sync (~15s) corrects drift and catches CLI/other-surface changes.
+            if (pomoSyncAccum >= 15) { pomoSyncAccum = 0; pomoSync(); }
+        }, 1000);
+    }
+
+    function stopPomoLoop() { if (pomoLoop) { clearInterval(pomoLoop); pomoLoop = null; } }
+
+    async function pomoAction(path) {
+        await api(path, { method: "POST", body: {} });
+        await pomoSync();
+        if (state.view === "pomodoro") go("pomodoro");
+    }
+
+    /** Render / update the floating mini-timer dock (persists across navigation). */
+    function renderPomoDock() {
+        const host = $("#pomo-dock");
+        if (!host) return;
+        const a = pomo.active;
+        if (!a) { host.classList.add("hidden"); host.innerHTML = ""; host.className = "pomo-dock hidden"; return; }
+        const paused = !!a.paused;
+        host.className = `pomo-dock pomo-${a.type}` + (pomo.remaining === 0 ? " is-done" : "") + (paused ? " is-paused" : "");
+        host.innerHTML = "";
+        const focusOn = a.task || a.label || "";
+        const typeLabel = POMO_TYPE_LABEL[a.type] || a.type;
+        const ringHost = el("div", { class: "pomo-dock-ring", title: "Open Pomodoro",
+            onclick: () => go("pomodoro") }, pomoRing(pomo.remaining, pomo.planned, 46, pomoColor(a.type)));
+        const info = el("div", { class: "pomo-dock-info", title: "Open Pomodoro", onclick: () => go("pomodoro") },
+            el("div", { class: "pomo-dock-time", text: fmtClock(pomo.remaining) }),
+            el("div", { class: "pomo-dock-label" },
+                el("span", { class: `badge ${POMO_TYPE_BADGE[a.type] || "st-inprogress"}`, text: typeLabel }),
+                paused ? el("span", { class: "badge st-paused", text: "Paused" })
+                    : (focusOn ? el("span", { class: "muted small pomo-dock-task", text: focusOn }) : null)));
+        const controls = el("div", { class: "pomo-dock-controls" },
+            paused
+                ? el("button", { class: "icon-btn pomo-dock-btn", title: "Resume", "aria-label": "Resume session", html: "▶",
+                    onclick: async () => { try { await pomoAction("/api/pomodoro/resume"); toast("Resumed", typeLabel, "ok"); } catch (e) { toast("Error", e.message, "err"); } } })
+                : el("button", { class: "icon-btn pomo-dock-btn", title: "Pause", "aria-label": "Pause session", html: "⏸",
+                    onclick: async () => { try { await pomoAction("/api/pomodoro/pause"); toast("Paused", typeLabel, ""); } catch (e) { toast("Error", e.message, "err"); } } }),
+            el("button", { class: "icon-btn pomo-dock-btn pomo-dock-stop", title: "Stop & log session", "aria-label": "Stop session", html: "⏹",
+                onclick: async () => { try { await pomoAction("/api/pomodoro/complete"); toast("Pomodoro stopped", "Logged 🍅", "ok"); } catch (e) { toast("Error", e.message, "err"); } } }));
+        host.append(ringHost, info, controls);
+    }
+
+    /** Fired once when a running session's countdown reaches zero. */
+    async function onPomoExpire(session) {
+        const finishedType = session.type;
+        const finishedTask = session.task || session.label || "";
+        pomoBeep();
+        try {
+            if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+                new Notification("CatPilot 🍅", {
+                    body: finishedType === "focus" ? "Focus session done — time for a break?" : "Break's over — back to focus?",
+                    silent: true,
+                });
+            }
+        } catch { /* best-effort only */ }
+        toast("Time! ⏰", finishedType === "focus" ? "Focus session finished 🍅" : "Break finished", "ok");
+        renderPomoDock();
+
+        const durations = await pomoDurations();
+        const min = (t) => parseInt(durations[t], 10) || POMO_DEFAULT_MIN[t];
+
+        // Log the finished session, then start the chosen next one (if any).
+        async function choose(nextType, carryTask) {
+            try {
+                await api("/api/pomodoro/complete", { method: "POST", body: {} });
+                if (nextType) {
+                    const body = { type: nextType, minutes: min(nextType) };
+                    if (nextType === "focus" && carryTask) body.task = carryTask;
+                    await api("/api/pomodoro", { method: "POST", body });
+                    toast("Started", POMO_TYPE_LABEL[nextType], "ok");
+                }
+            } catch (e) { toast("Error", e.message, "err"); }
+            closeModal();
+            await pomoSync();
+            if (state.view === "pomodoro") go("pomodoro");
+        }
+
+        let suggestLong = false;
+        if (finishedType === "focus") {
+            try {
+                const stats = await api("/api/pomodoro/stats?period=today");
+                // The just-finished focus isn't logged yet, so add it to today's count.
+                const done = (parseInt(stats && stats.focusSessions, 10) || 0) + 1;
+                suggestLong = done % POMO_LONG_BREAK_EVERY === 0;
+            } catch { /* default to short */ }
+        }
+
+        const btn = (label, cls, onclick) => el("button", { class: `btn ${cls}`, html: label, onclick });
+        let foot;
+        let bodyText;
+        if (finishedType === "focus") {
+            bodyText = suggestLong
+                ? `Nice work — that's ${POMO_LONG_BREAK_EVERY} focus sessions. Time for a long break?`
+                : "Focus session complete. Take a short break?";
+            foot = el("div", { class: "toolbar", style: "flex-wrap:wrap;gap:8px" },
+                btn(`☕ Short break (${min("short-break")}m)`, suggestLong ? "" : "btn-primary", () => choose("short-break")),
+                btn(`🛋️ Long break (${min("long-break")}m)`, suggestLong ? "btn-primary" : "", () => choose("long-break")),
+                btn(`🍅 Another focus (${min("focus")}m)`, "", () => choose("focus", finishedTask)),
+                btn("Skip", "", () => choose(null)));
+        } else {
+            bodyText = "Break's over. Ready to focus again?";
+            foot = el("div", { class: "toolbar", style: "flex-wrap:wrap;gap:8px" },
+                btn(`🍅 Start focus (${min("focus")}m)`, "btn-primary", () => choose("focus")),
+                btn("Skip", "", () => choose(null)));
+        }
+        openModal({
+            title: finishedType === "focus" ? "Focus session done 🍅" : "Break over ☕",
+            width: 460,
+            body: el("div", {},
+                el("p", { text: bodyText }),
+                finishedTask ? el("p", { class: "muted small", text: `Was focusing on: ${finishedTask}` }) : null,
+                el("p", { class: "muted small", text: "You decide — nothing starts automatically." })),
+            foot,
+        });
+    }
+
+    VIEWS.pomodoro = async (root) => {
+        pomoPageUpdater = null;
+        const [{ active }, stats, { sessions }, cfg] = await Promise.all([
+            api("/api/pomodoro/status"),
+            api("/api/pomodoro/stats?period=today"),
+            api("/api/pomodoro?limit=8"),
+            api("/api/config").catch(() => ({})),
+        ]);
+        const durations = (cfg && cfg.pomodoro) || POMO_DEFAULT_MIN;
+        pomo.durations = durations;
+        root.innerHTML = "";
+
+        const timerCard = el("div", { class: "card", style: "text-align:center;padding:24px" });
+        root.append(timerCard);
+
+        let pageRingHost = null;
+        let pageRenderedFor = "__init__"; // startedAt of the session the page structure was built for
+
+        function renderRunning(activeSession) {
+            timerCard.innerHTML = "";
+            const paused = !!pomo.active?.paused;
+            pageRingHost = el("div", { class: "pomo-ring" }, pomoRing(pomo.remaining, pomo.planned, 220, pomoColor(activeSession.type)));
+            const focusOn = activeSession.task || activeSession.label || "";
+            const typeLabel = POMO_TYPE_LABEL[activeSession.type] || activeSession.type;
+            timerCard.append(
+                pageRingHost,
+                el("div", { class: "pomo-meta" },
+                    el("span", { class: `badge ${POMO_TYPE_BADGE[activeSession.type] || "st-inprogress"}`, text: typeLabel }),
+                    paused ? el("span", { class: "badge st-paused", text: "Paused" }) : null,
+                    focusOn ? el("span", { class: "muted", text: `🎯 ${focusOn}` }) : null),
+                el("div", { class: "toolbar", style: "justify-content:center;margin-top:16px" },
+                    paused
+                        ? el("button", { class: "btn btn-primary", html: "▶ Resume", onclick: async () => {
+                            try { await api("/api/pomodoro/resume", { method: "POST", body: {} }); toast("Resumed", typeLabel, "ok"); await pomoSync(); go("pomodoro"); }
+                            catch (e) { toast("Error", e.message, "err"); } } })
+                        : el("button", { class: "btn", html: "⏸ Pause", onclick: async () => {
+                            try { await api("/api/pomodoro/pause", { method: "POST", body: {} }); toast("Paused", typeLabel, ""); await pomoSync(); go("pomodoro"); }
+                            catch (e) { toast("Error", e.message, "err"); } } }),
+                    el("button", { class: "btn btn-primary", html: "✓ Complete", onclick: async () => {
+                        try { await api("/api/pomodoro/complete", { method: "POST", body: {} }); toast("Pomodoro completed", "Logged 🍅", "ok"); await pomoSync(); go("pomodoro"); }
+                        catch (e) { toast("Error", e.message, "err"); }
+                    } }),
+                    el("button", { class: "btn", html: "✕ Cancel", onclick: async () => {
+                        try { await api("/api/pomodoro/cancel", { method: "POST", body: {} }); toast("Pomodoro cancelled", "", ""); await pomoSync(); go("pomodoro"); }
+                        catch (e) { toast("Error", e.message, "err"); }
+                    } })));
+        }
+
+        // The global loop calls this every second while the Pomodoro page is mounted.
+        pomoPageUpdater = () => {
+            if (state.view !== "pomodoro") return;
+            const a = pomo.active;
+            const id = a ? a.startedAt + (a.paused ? ":paused" : "") : null;
+            if (id !== pageRenderedFor) {
+                pageRenderedFor = id;
+                if (a) renderRunning(a); else renderStartForm();
+                return;
+            }
+            if (a && pageRingHost) pageRingHost.replaceChildren(pomoRing(pomo.remaining, pomo.planned, 220, pomoColor(a.type)));
+        };
+
+        async function renderStartForm() {
+            pageRingHost = null;
+            timerCard.innerHTML = "";
+            const f = {};
+            let tasks = [];
+            try { tasks = await api("/api/tasks?status=open"); tasks = tasks.tasks || tasks || []; } catch { tasks = []; }
+            const typeSel = el("select", {}, POMO_TYPES.map(([v, l]) => el("option", { value: v, text: l })));
+            const minutes = el("input", { type: "number", min: "1", value: String(durations.focus || 25), style: "width:90px" });
+            typeSel.addEventListener("change", () => { minutes.value = String(durations[typeSel.value] || POMO_DEFAULT_MIN[typeSel.value] || 25); });
+            const taskSel = el("select", {}, el("option", { value: "", text: "— No task —" }),
+                tasks.map((t) => el("option", { value: `#${t.id} ${t.title}`, text: `#${t.id} ${t.title}` })));
+            f.type = typeSel; f.minutes = minutes; f.task = taskSel;
+
+            timerCard.append(
+                el("div", { class: "big", text: "🍅", style: "font-size:52px" }),
+                el("h3", { text: "Start a focus session" }),
+                el("div", { class: "form", style: "max-width:420px;margin:16px auto 0;text-align:left" },
+                    el("div", { class: "form-row" },
+                        el("label", {}, el("span", { text: "Type" }), typeSel),
+                        el("label", {}, el("span", { text: "Minutes" }), minutes)),
+                    el("label", {}, el("span", { text: "Focus on task (optional)" }), taskSel)),
+                el("div", { class: "toolbar", style: "justify-content:center;margin-top:16px" },
+                    el("button", { class: "btn btn-primary", html: "▶ Start", onclick: async () => {
+                        const body = { type: typeSel.value, minutes: parseInt(minutes.value, 10) || undefined, task: taskSel.value || undefined };
+                        try { await api("/api/pomodoro", { method: "POST", body }); toast("Pomodoro started", body.type, "ok"); await pomoSync(); go("pomodoro"); }
+                        catch (e) { toast("Error", e.message, "err"); }
+                    } })));
+        }
+
+        // Seed the page from the controller's authoritative state.
+        pomo.active = active || null;
+        if (active) { pomo.planned = active.plannedSec; pomo.remaining = active.remainingSec; renderRunning(active); pageRenderedFor = active.startedAt; }
+        else { pomo.remaining = 0; pomo.planned = 0; await renderStartForm(); pageRenderedFor = null; }
+
+        // Stats strip (today)
+        root.append(el("div", { class: "grid stat-grid", style: "margin-top:16px" },
+            statTile("🍅", stats.completedSessions, "Sessions today"),
+            statTile("🎯", stats.focusSessions, "Focus sessions"),
+            statTile("⏱️", stats.focusMinutes, "Focus minutes")));
+
+        // Recent sessions
+        if (sessions.length) {
+            const tbody = el("tbody");
+            sessions.forEach((s) => tbody.append(el("tr", {},
+                el("td", {}, el("span", { class: "badge", text: s.type })),
+                el("td", {}, el("span", { text: s.task || "—" })),
+                el("td", {}, el("span", { class: "muted small", text: `${s.actualMin || 0} min` })),
+                el("td", {}, statusBadge(s.status === "completed" ? "Done" : s.status)))));
+            root.append(el("h3", { text: "Recent sessions", style: "margin:20px 0 8px" }),
+                el("div", { class: "table-wrap" }, el("table", { class: "tbl" },
+                    el("thead", {}, el("tr", {}, el("th", { text: "Type" }), el("th", { text: "Task" }), el("th", { text: "Actual" }), el("th", { text: "Status" }))),
+                    tbody)));
+        }
+
+        // Productivity reports
+        const reportHost = el("div", { style: "margin-top:24px" });
+        root.append(reportHost);
+        await renderPomoReports(reportHost);
+    };
+
+    let pomoReport = { period: "this-week", by: "day" };
+    async function renderPomoReports(host) {
+        host.innerHTML = "";
+        const periodSel = el("select", {}, PERIODS.map(([v, l]) => el("option", { value: v, text: l, selected: v === pomoReport.period })));
+        periodSel.value = pomoReport.period;
+        periodSel.addEventListener("change", () => { pomoReport.period = periodSel.value; renderPomoReports(host); });
+        const BYS = [["day", "By day"], ["week", "By week"], ["task", "By task"], ["session", "By session"]];
+        const bySel = el("select", {}, BYS.map(([v, l]) => el("option", { value: v, text: l, selected: v === pomoReport.by })));
+        bySel.value = pomoReport.by;
+        bySel.addEventListener("change", () => { pomoReport.by = bySel.value; renderPomoReports(host); });
+
+        host.append(el("div", { class: "toolbar", style: "align-items:center;gap:10px;margin-bottom:12px" },
+            el("h3", { text: "📊 Productivity", style: "margin:0;margin-right:auto" }),
+            periodSel, bySel));
+
+        let data;
+        try { data = await api(`/api/pomodoro/report?period=${encodeURIComponent(pomoReport.period)}&by=${encodeURIComponent(pomoReport.by)}`); }
+        catch (e) { host.append(el("div", { class: "muted", text: e.message })); return; }
+        const s = data.summary;
+        const pct = (x) => `${Math.round((x || 0) * 100)}%`;
+
+        host.append(el("div", { class: "grid stat-grid" },
+            statTile("🎯", `${s.completedFocusSessions}/${s.focusSessions}`, "Focus completed"),
+            statTile("⏱️", s.focusMinutes, "Focus minutes"),
+            statTile("✅", pct(s.focusCompletionRate), "Focus completion"),
+            statTile("🍅", s.totalSessions, "Total sessions")));
+
+        if (!data.groups.length) { host.append(el("div", { class: "muted small", style: "margin-top:12px", text: "No sessions in this period yet." })); return; }
+
+        // Charts row (skip bars for session view)
+        const charts = el("div", { class: "grid", style: "grid-template-columns:2fr 1fr;gap:16px;margin-top:16px" });
+        if (pomoReport.by !== "session") {
+            const barItems = data.groups.map((g) => ({
+                label: g.label,
+                short: pomoReport.by === "day" ? g.label.slice(5) : (pomoReport.by === "week" ? g.label.replace(/^\d+-/, "") : g.label),
+                value: g.focusMinutes || 0,
+            }));
+            charts.append(el("div", { class: "card" },
+                el("div", { class: "muted small", style: "margin-bottom:8px", text: "Focus minutes" }),
+                simpleBars(barItems, { color: "#7c5cff", unit: " min" })));
+        }
+        const donutHost = el("div", { class: "card", style: "text-align:center" },
+            el("div", { class: "muted small", style: "margin-bottom:8px", text: "Completed vs abandoned" }),
+            donut([
+                { value: s.completedSessions, color: "#4ade80" },
+                { value: s.abandonedSessions, color: "#f87171" },
+            ]),
+            el("div", { class: "legend", style: "justify-content:center" },
+                el("span", {}, el("i", { style: "background:#4ade80" }), "Completed"),
+                el("span", {}, el("i", { style: "background:#f87171" }), "Abandoned")));
+        charts.append(donutHost);
+        if (pomoReport.by === "session") charts.style.gridTemplateColumns = "1fr";
+        host.append(charts);
+
+        // Grouped table
+        const tbody = el("tbody");
+        if (pomoReport.by === "session") {
+            data.groups.forEach((g) => tbody.append(el("tr", {},
+                el("td", {}, el("span", { class: "muted small", text: new Date(g.started).toLocaleString() })),
+                el("td", {}, el("span", { class: "badge", text: g.type })),
+                el("td", {}, el("span", { text: g.task || "—" })),
+                el("td", {}, el("span", { class: "muted small", text: `${g.actualMin}/${g.plannedMin} min` })),
+                el("td", {}, statusBadge(g.status === "completed" ? "Done" : g.status)))));
+            host.append(el("div", { class: "table-wrap", style: "margin-top:16px" }, el("table", { class: "tbl" },
+                el("thead", {}, el("tr", {}, el("th", { text: "Started" }), el("th", { text: "Type" }), el("th", { text: "Task" }), el("th", { text: "Actual/Planned" }), el("th", { text: "Status" }))),
+                tbody)));
+        } else {
+            const head = pomoReport.by === "task" ? "Task" : (pomoReport.by === "week" ? "Week" : "Day");
+            data.groups.forEach((g) => tbody.append(el("tr", {},
+                el("td", {}, el("span", { text: g.label })),
+                el("td", {}, el("span", { text: `${g.completedFocusSessions}/${g.focusSessions}` })),
+                el("td", {}, el("span", { text: String(g.focusMinutes) })),
+                el("td", {}, el("span", { class: "muted small", text: pct(g.completionRate) })))));
+            host.append(el("div", { class: "table-wrap", style: "margin-top:16px" }, el("table", { class: "tbl" },
+                el("thead", {}, el("tr", {}, el("th", { text: head }), el("th", { text: "Focus done" }), el("th", { text: "Focus min" }), el("th", { text: "Completion" }))),
+                tbody)));
+        }
+    }
+
+    function statTile(icon, value, label) {
+        return el("div", { class: "card", style: "text-align:center" },
+            el("div", { class: "big", text: icon, style: "font-size:26px" }),
+            el("div", { style: "font-size:24px;font-weight:800", text: String(value) }),
+            el("div", { class: "muted small", text: label }));
+    }
+
     // ---------------------------------------------------------------- reports
     const PERIODS = [["this-week", "This week"], ["last-week", "Last week"], ["this-month", "This month"], ["last-month", "Last month"], ["last-7", "Last 7 days"], ["last-30", "Last 30 days"], ["all", "All time"]];
     let reportPeriod = "this-week";
@@ -1038,6 +1727,29 @@
             el("h4", { text: "Appearance" }),
             el("p", { class: "muted small", text: "Toggle light/dark from the top bar. Your preference is remembered on this machine." }),
             el("button", { class: "btn", html: state.theme === "dark" ? "☀️ Switch to light" : "🌙 Switch to dark", onclick: () => { toggleTheme(); go("settings"); } })));
+
+        // Pomodoro durations
+        const pd = cfg.pomodoro || { focus: 25, "short-break": 5, "long-break": 15 };
+        const dur = {};
+        const durInput = (key) => { const i = el("input", { type: "number", min: "1", value: String(pd[key] || 1), style: "width:90px" }); dur[key] = i; return i; };
+        const saveDur = el("button", { class: "btn btn-primary", html: "💾 Save durations", onclick: async () => {
+            const body = { pomodoro: {
+                focus: parseInt(dur.focus.value, 10),
+                "short-break": parseInt(dur["short-break"].value, 10),
+                "long-break": parseInt(dur["long-break"].value, 10),
+            } };
+            try { await api("/api/config/pomodoro", { method: "POST", body }); toast("Pomodoro durations saved", "", "ok"); go("settings"); }
+            catch (e) { toast("Error", e.message, "err"); }
+        } });
+        root.append(el("div", { class: "card settings-card", style: "margin-top:16px" },
+            el("h4", { text: "🍅 Pomodoro durations" }),
+            el("p", { class: "muted small", text: "Default session lengths (minutes) used when you start a timer without a custom value." }),
+            el("div", { class: "form" },
+                el("div", { class: "form-row" },
+                    el("label", {}, el("span", { text: "Focus" }), durInput("focus")),
+                    el("label", {}, el("span", { text: "Short break" }), durInput("short-break")),
+                    el("label", {}, el("span", { text: "Long break" }), durInput("long-break")))),
+            el("div", { class: "toolbar", style: "margin-top:12px" }, saveDur)));
     };
     function configModal(cfg) {
         const f = {};
@@ -1109,7 +1821,7 @@
         root.innerHTML = "";
         const cards = [
             { icon: "🐱", title: "What is this canvas?", body: "A visual command center for **CatPilot**. Everything you see reads and writes the *same files* CatPilot's CLI, agent and MCP server use — so edits here show up everywhere. Nothing is duplicated." },
-            { icon: "🧭", title: "Navigation", body: "The sidebar covers every CatPilot domain: **Tasks, Journal, Milestones, Memos, Learning, Growth, Projects**. Each has add buttons, inline edit and detail popups. **Tasks** offers both a table and a kanban board." },
+            { icon: "🧭", title: "Navigation", body: "The sidebar covers every CatPilot domain: **Tasks, Journal, Milestones, Memos, Learning, Growth, Projects**. Each has add buttons, inline edit and detail popups. **Tasks** offers a table and a kanban board with **Overdue · To do · Blocked · Done** columns, a status selector on create/edit, and **All / Today / 7 days** due-date filters." },
             { icon: "🕑", title: "Timeline", body: "A day-grouped story of your recent activity across every domain, with a **7/14/30 day** switch. Use the Copilot action chips to summarize the period, plan next steps or draft a standup." },
             { icon: "📊", title: "Reports", body: "Generate an **executive report** for a period from your tasks and milestones — or ask Copilot to write a richer one via the *report-generator* skill. Reports are saved as markdown/HTML in your storage `reports/` folder and open in a reader." },
             { icon: "✨", title: "Ask Copilot", body: "The **✨ button** (top bar) and the action chips send prompts to the Copilot agent in the chat panel. The agent works on the same data, so it can add tasks, write memos, generate reports and more on your behalf." },
@@ -1159,6 +1871,8 @@
     async function startApp() {
         $("#app").classList.remove("hidden");
         await refreshSummary();
+        await pomoSync();
+        startPomoLoop();
         const initial = (location.hash || "").replace("#", "");
         go(NAV.some((n) => n.id === initial) ? initial : "dashboard");
     }

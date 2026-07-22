@@ -6,11 +6,14 @@
   "dependencies": {
     "@github/copilot-sdk": "1.0.1"
   },
-  "description": "Visual command center canvas for CatPilot: tasks, journal, milestones, memos, learning, growth, projects, Copilot reports and an activity timeline with dashboards, charts, a markdown editor and interactive settings.",
+  "description": "Visual command center canvas for CatPilot: tasks (list/board/calendar), a configurable Pomodoro timer with a global mini-timer dock, journal, milestones, memos, learning, growth, projects, Copilot reports and an activity timeline with dashboards, charts, a markdown editor and interactive settings.",
   "keywords": [
     "canvas",
     "productivity",
     "task-management",
+    "pomodoro",
+    "timer",
+    "calendar",
     "dashboard",
     "personal-assistant",
     "markdown-editor"
