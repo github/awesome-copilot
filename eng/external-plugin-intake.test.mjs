@@ -132,3 +132,41 @@ test("validateCanvasPluginMetadata rejects when no extension.mjs exists flat or 
     true,
   );
 });
+
+test("validateCanvasPluginMetadata surfaces an unverifiable entry point when the extensions listing errors", async () => {
+  const routes = baseRoutes({
+    [`${PLUGIN_ROOT}/extensions`]: { status: 500, data: {} },
+    // No route for the entry point → the mock defaults to a 404, so it cannot be found
+    // and (because the listing errored) nested subfolders cannot be enumerated either.
+  });
+
+  const errors = [];
+  const warnings = [];
+  await withMockedFetch(routes, () =>
+    validateCanvasPluginMetadata(makePlugin(), errors, warnings, null),
+  );
+
+  assert.deepEqual(errors, []);
+  assert.equal(
+    warnings.some((message) => /could not verify the canvas extension entry point/.test(message)),
+    true,
+  );
+});
+
+test("validateCanvasPluginMetadata still accepts a flat entry point when the extensions listing errors", async () => {
+  const routes = baseRoutes({
+    [`${PLUGIN_ROOT}/extensions`]: { status: 500, data: {} },
+    [`${PLUGIN_ROOT}/extensions/extension.mjs`]: {
+      status: 200,
+      data: fileNode("export default {};\n"),
+    },
+  });
+
+  const errors = [];
+  const warnings = [];
+  await withMockedFetch(routes, () =>
+    validateCanvasPluginMetadata(makePlugin(), errors, warnings, null),
+  );
+
+  assert.deepEqual(errors, []);
+});

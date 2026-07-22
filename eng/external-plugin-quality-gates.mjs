@@ -518,23 +518,36 @@ function checkPathExistsAtLocator(repoDir, locator, repoPath, expectedType) {
 }
 
 function listTreeEntries(repoDir, locator, treePath) {
-  const result = runCommand("git", ["ls-tree", `${locator}:${treePath}`], { cwd: repoDir });
-  if (result.exitCode !== 0) {
+  // Parse the full, untruncated tree listing directly. runCommand()/truncateOutput()
+  // would cap stdout at MAX_OUTPUT_LENGTH and silently drop later entries, and the
+  // default (non-"-z") output quotes unusual names; "-z" gives raw, NUL-delimited records.
+  const result = spawnSync("git", ["ls-tree", "-z", `${locator}:${treePath}`], {
+    cwd: repoDir,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+
+  if (result.status !== 0) {
+    const detail = truncateOutput(`${result.stdout ?? ""}\n${result.stderr ?? ""}`);
     return {
       entries: [],
-      output: `Unable to list directory "${treePath}" at "${locator}": ${result.output}`,
+      output: `Unable to list directory "${treePath}" at "${locator}": ${detail}`,
     };
   }
 
   const entries = [];
-  for (const line of String(result.stdout ?? "").split("\n")) {
-    const tabIndex = line.indexOf("\t");
+  for (const record of String(result.stdout ?? "").split("\0")) {
+    if (!record) {
+      continue;
+    }
+
+    const tabIndex = record.indexOf("\t");
     if (tabIndex === -1) {
       continue;
     }
 
-    const meta = line.slice(0, tabIndex).trim().split(/\s+/);
-    const name = line.slice(tabIndex + 1).trim();
+    const meta = record.slice(0, tabIndex).trim().split(/\s+/);
+    const name = record.slice(tabIndex + 1);
     if (!name) {
       continue;
     }

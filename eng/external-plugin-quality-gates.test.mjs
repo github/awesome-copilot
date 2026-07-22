@@ -147,3 +147,39 @@ test("runCanvasStructureGate fails when no extension.mjs exists flat or nested",
   assert.equal(result.status, "fail");
   assert.match(result.output, /missing required canvas extension entry point/);
 });
+
+test("runCanvasStructureGate finds a nested extension listed past the legacy output cap", () => {
+  const repoDir = createTempRepo();
+  // Many sibling directories push the real extension past the ~12 KB stdout cap that the
+  // previous truncating implementation applied, which would silently drop it from the listing.
+  // Long names inflate each git ls-tree record so fewer directories are needed to exceed the cap.
+  for (let index = 0; index < 160; index += 1) {
+    const filler = path.join(
+      repoDir,
+      "extensions",
+      `filler-directory-that-pads-the-tree-listing-${String(index).padStart(4, "0")}`,
+    );
+    fs.mkdirSync(filler, { recursive: true });
+    fs.writeFileSync(path.join(filler, "readme.txt"), "filler\n");
+  }
+  fs.mkdirSync(path.join(repoDir, "extensions", "zzz-real-extension"), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, "extensions", "zzz-real-extension", "extension.mjs"),
+    "export default {};\n",
+  );
+  const sha = commitAll(repoDir, "Add nested extension after many siblings");
+
+  const plugin = {
+    name: "canvas-plugin",
+    keywords: ["canvas"],
+    source: {
+      source: "github",
+      repo: "owner/repo",
+      sha,
+    },
+  };
+
+  const result = runCanvasStructureGate(repoDir, plugin, sha);
+  assert.equal(result.status, "pass");
+  assert.match(result.output, /entry point "extensions\/zzz-real-extension\/extension\.mjs"/);
+});
