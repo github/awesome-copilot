@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-07-22
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -344,6 +344,29 @@ GitHub organizations can enforce a policy that restricts which third-party MCP s
 
 If you see a warning that an MCP server is blocked, contact your organization administrator to find out which servers are on the allowlist, or switch to an approved alternative.
 
+### MCP Secrets for the Copilot Cloud Agent
+
+When the Copilot coding agent runs in its cloud environment, it cannot access local environment variables from your machine. To pass API keys and connection strings to MCP servers used by the cloud agent, store them as **repository secrets or variables** with the `COPILOT_MCP_` prefix.
+
+Any secret or variable whose name starts with `COPILOT_MCP_` is automatically injected into the cloud agent's environment. For example, if your MCP server needs a `DATABASE_URL`, create a repository secret named `COPILOT_MCP_DATABASE_URL`. The agent will then see it as `DATABASE_URL` in the server's `env` block.
+
+```yaml
+# Example: using a COPILOT_MCP_ secret in .mcp.json
+{
+  "servers": {
+    "mydb": {
+      "command": "npx",
+      "args": ["-y", "@myorg/db-mcp-server"],
+      "env": {
+        "DATABASE_URL": "${COPILOT_MCP_DATABASE_URL}"
+      }
+    }
+  }
+}
+```
+
+Set the secret in your repository under **Settings → Secrets and variables → Copilot**, then prefix it with `COPILOT_MCP_`. The cloud agent picks it up automatically. See [Configure secrets and variables for the coding agent](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/configure-secrets-and-variables) for details.
+
 ## Common Questions
 
 **Q: Do MCP servers run in the cloud?**
@@ -371,5 +394,6 @@ A: No. Copilot CLI automatically detects Azure DevOps repositories and disables 
 - **Build Agents**: [Building Custom Agents](../building-custom-agents/) — Create agents that leverage MCP tools
 - **Explore Examples**: Browse the [Agents Directory](../../agents/) for agents built around MCP server integrations
 - **Protocol Deep Dive**: [MCP Specification](https://spec.modelcontextprotocol.io/) — Learn the protocol details for building your own servers
+- **Cloud Agent Secrets**: [Configure secrets and variables for the coding agent](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/configure-secrets-and-variables) — Pass MCP credentials using the `COPILOT_MCP_` prefix
 
 ---

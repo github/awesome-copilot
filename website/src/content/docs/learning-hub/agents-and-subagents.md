@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-01
+lastUpdated: 2026-07-22
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -108,6 +108,18 @@ Then summarize the findings into one recommendation.
 ### 4. Know the nesting rule
 
 By default, subagents do not keep spawning additional subagents. In VS Code, recursive delegation is controlled by the `chat.subagents.allowInvocationsFromSubagents` setting, which is off by default.
+
+### 5. The VS Code agent host and Copilot SDK (VS Code 1.130+)
+
+Starting with VS Code 1.130, agent sessions in VS Code run on a **dedicated agent host** — a separate process that powers Copilot using the same **Copilot SDK** that backs Copilot CLI and the Copilot app. This alignment means:
+
+- Agent behavior and tool capabilities are more consistent across VS Code, the CLI, and the Copilot app.
+- The agent host gives agents access to a richer, unified tool surface.
+- Bugs and improvements to the SDK benefit all Copilot surfaces at once.
+
+You do not need to configure anything to take advantage of this — it applies automatically to agent-mode sessions.
+
+**Assisted tool approvals** (VS Code 1.130+) reduce the number of manual approvals you need to click through during agent sessions. The model evaluates each tool call's risk level before prompting you. Low-risk operations — such as read-only file lookups or well-understood searches — are approved automatically, while higher-risk operations like file writes and shell commands still surface for review. This keeps you in control without slowing down the agent for routine work.
 
 ## Launch subagents in Copilot CLI
 
@@ -217,5 +229,6 @@ Yes. In v1.0.66+, usage-based billing users can configure **subagent concurrency
 - Read [Building Custom Agents](../building-custom-agents/) to design coordinator and worker agents.
 - Revisit [What are Agents, Skills, and Instructions](../what-are-agents-skills-instructions/) for the broader customization model.
 - Keep the [GitHub Copilot Terminology Glossary](../github-copilot-terminology-glossary/) nearby when comparing terminology across products.
+- **VS Code 1.130 release notes**: [The agent host and Assisted tool approvals](https://code.visualstudio.com/updates/v1_130#_the-agent-host) — official documentation for the Copilot SDK agent host and risk-based approval changes.
 
 ---
