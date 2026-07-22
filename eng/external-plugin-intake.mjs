@@ -380,7 +380,46 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
   }
 }
 
-async function validateCanvasPluginMetadata(plugin, errors, warnings, token) {
+async function locateCanvasEntryPointViaApi(repo, pluginRoot, releaseLocator, token, extensionDirEntries) {
+  const flatEntryPath = joinRepoPath(pluginRoot, "extensions", "extension.mjs");
+  const flatResponse = await fetchGitHubFile(repo, flatEntryPath, releaseLocator, token);
+  if (flatResponse.kind === "found" && flatResponse.data?.type === "file") {
+    return { status: "found", entryPath: "extensions/extension.mjs" };
+  }
+  if (flatResponse.kind === "apiError") {
+    return { status: "apiError" };
+  }
+
+  const flatExistsButNotFile = flatResponse.kind === "found";
+
+  let sawApiError = false;
+  for (const entry of extensionDirEntries) {
+    if (entry?.type !== "dir" || !entry?.name) {
+      continue;
+    }
+
+    const nestedEntryPath = joinRepoPath(pluginRoot, "extensions", entry.name, "extension.mjs");
+    const nestedResponse = await fetchGitHubFile(repo, nestedEntryPath, releaseLocator, token);
+    if (nestedResponse.kind === "apiError") {
+      sawApiError = true;
+      continue;
+    }
+    if (nestedResponse.kind === "found" && nestedResponse.data?.type === "file") {
+      return { status: "found", entryPath: `extensions/${entry.name}/extension.mjs` };
+    }
+  }
+
+  if (flatExistsButNotFile) {
+    return { status: "notFile" };
+  }
+  if (sawApiError) {
+    return { status: "apiError" };
+  }
+
+  return { status: "notFound" };
+}
+
+export async function validateCanvasPluginMetadata(plugin, errors, warnings, token) {
   const repo = plugin?.source?.repo;
   const sha = plugin?.source?.sha;
   const ref = plugin?.source?.ref;
@@ -473,6 +512,7 @@ async function validateCanvasPluginMetadata(plugin, errors, warnings, token) {
 
   const extensionContainerPath = joinRepoPath(pluginRoot, "extensions");
   const extensionContainerResponse = await fetchGitHubFile(repo, extensionContainerPath, releaseLocator, token);
+  let extensionDirEntries = null;
   if (extensionContainerResponse.kind === "notFound") {
     errors.push(
       `submission: plugins tagged with "canvas" must include an "extensions" directory at ${releaseLocatorDescription}`,
@@ -482,30 +522,39 @@ async function validateCanvasPluginMetadata(plugin, errors, warnings, token) {
       `submission: could not verify "extensions" directory in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
     );
   } else if (
-    !(
-      extensionContainerResponse.data?.type === "dir"
-      || Array.isArray(extensionContainerResponse.data)
-    )
+    extensionContainerResponse.data?.type === "dir"
+    || Array.isArray(extensionContainerResponse.data)
   ) {
+    extensionDirEntries = Array.isArray(extensionContainerResponse.data)
+      ? extensionContainerResponse.data
+      : [];
+  } else {
     errors.push(
       `submission: "extensions" must be a directory in ${releaseLocatorDescription}`,
     );
   }
 
-  const extensionEntryPath = joinRepoPath(pluginRoot, "extensions", "extension.mjs");
-  const extensionEntryResponse = await fetchGitHubFile(repo, extensionEntryPath, releaseLocator, token);
-  if (extensionEntryResponse.kind === "notFound") {
-    errors.push(
-      `submission: plugins tagged with "canvas" must include "extensions/extension.mjs" at ${releaseLocatorDescription}`,
+  if (extensionDirEntries) {
+    const entryLookup = await locateCanvasEntryPointViaApi(
+      repo,
+      pluginRoot,
+      releaseLocator,
+      token,
+      extensionDirEntries,
     );
-  } else if (extensionEntryResponse.kind === "apiError") {
-    warnings.push(
-      `submission: could not verify "extensions/extension.mjs" in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
-    );
-  } else if (extensionEntryResponse.data?.type !== "file") {
-    errors.push(
-      `submission: "extensions/extension.mjs" must be a file in ${releaseLocatorDescription}`,
-    );
+    if (entryLookup.status === "notFound") {
+      errors.push(
+        `submission: plugins tagged with "canvas" must include a canvas extension entry point at "extensions/extension.mjs" or "extensions/<extension>/extension.mjs" at ${releaseLocatorDescription}`,
+      );
+    } else if (entryLookup.status === "notFile") {
+      errors.push(
+        `submission: "extensions/extension.mjs" must be a file in ${releaseLocatorDescription}`,
+      );
+    } else if (entryLookup.status === "apiError") {
+      warnings.push(
+        `submission: could not verify the canvas extension entry point in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
+      );
+    }
   }
 
   const previewPath = joinRepoPath(pluginRoot, EXTERNAL_CANVAS_PREVIEW_PATH);

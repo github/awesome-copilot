@@ -99,3 +99,51 @@ test("runCanvasStructureGate fails when extension entrypoint path is a directory
   assert.equal(result.status, "fail");
   assert.match(result.output, /"extensions\/extension\.mjs" must be a file/);
 });
+
+test("runCanvasStructureGate passes when extension lives in a nested subfolder", () => {
+  const repoDir = createTempRepo();
+  fs.mkdirSync(path.join(repoDir, "extensions", "modernize-dashboard"), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, "extensions", "modernize-dashboard", "extension.mjs"),
+    "export default {};\n",
+  );
+  const sha = commitAll(repoDir, "Add nested canvas extension");
+
+  const plugin = {
+    name: "canvas-plugin",
+    keywords: ["canvas"],
+    source: {
+      source: "github",
+      repo: "owner/repo",
+      sha,
+    },
+  };
+
+  const result = runCanvasStructureGate(repoDir, plugin, sha);
+  assert.equal(result.status, "pass");
+  assert.match(result.output, /entry point "extensions\/modernize-dashboard\/extension\.mjs"/);
+});
+
+test("runCanvasStructureGate fails when no extension.mjs exists flat or nested", () => {
+  const repoDir = createTempRepo();
+  fs.mkdirSync(path.join(repoDir, "extensions", "modernize-dashboard"), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, "extensions", "modernize-dashboard", "index.mjs"),
+    "export default {};\n",
+  );
+  const sha = commitAll(repoDir, "Add extensions directory without entry point");
+
+  const plugin = {
+    name: "canvas-plugin",
+    keywords: ["canvas"],
+    source: {
+      source: "github",
+      repo: "owner/repo",
+      sha,
+    },
+  };
+
+  const result = runCanvasStructureGate(repoDir, plugin, sha);
+  assert.equal(result.status, "fail");
+  assert.match(result.output, /missing required canvas extension entry point/);
+});
