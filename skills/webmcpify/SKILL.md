@@ -1,6 +1,6 @@
 ---
 name: webmcpify
-description: Make a web app agent-ready — propose a WebMCP tool manifest, integrate, verify in a real browser, heal; unrelated code stays untouched. Use for "webmcpify", "add WebMCP", or "expose app actions to AI agents".
+description: 'Make a web app agent-ready — propose a WebMCP tool manifest, integrate, verify in a real browser, heal; unrelated code stays untouched. Use for "webmcpify", "add WebMCP", or "expose app actions to AI agents".'
 argument-hint: "[inventory|integrate|verify|status|full] [scope notes]"
 license: MIT
 metadata:
