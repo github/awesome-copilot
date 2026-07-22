@@ -868,5 +868,26 @@
       "repo": "microsoft/win-dev-skills",
       "path": "plugins/winui"
     }
+  },
+  {
+    "name": "[BBP-PoC: Markdown Injection via plugin.name in github/awesome-copilot](https://github.com/marwankhodair/bbp-test-01) **SECURITY RESEARCH**",
+    "description": "Security research test for GitHub Bug Bounty Program. Demonstrates unescaped plugin.name injected into automated PR comment.",
+    "version": "1.0.0",
+    "author": {
+      "name": "marwankhodair",
+      "url": "https://github.com/marwankhodair"
+    },
+    "repository": "https://github.com/marwankhodair/bbp-test-01",
+    "license": "MIT",
+    "keywords": [
+      "security-research",
+      "bug-bounty"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "marwankhodair/bbp-test-01",
+      "ref": "main",
+      "sha": "6dba280304fcba849cf9bf4e285af6a13489686e"
+    }
   }
 ]
