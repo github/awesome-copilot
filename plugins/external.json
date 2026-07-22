@@ -735,14 +735,13 @@
   },
   {
     "name": "upgrade-agent",
-    "description": "GitHub Copilot upgrade is an AI-powered agent that helps you upgrade applications to newer versions of languages, frameworks, and runtimes. It assesses your application, creates an upgrade plan, applies code changes, and validates the results through an interactive upgrade workflow.",
-    "version": "1.1.222",
+    "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
+    "version": "1.1.247",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
     },
-    "repository": "https://github.com/microsoft/upgrade-agent-plugins",
-    "license": "MIT",
+    "homepage": "https://github.com/microsoft/upgrade-agent-plugins",
     "keywords": [
       "modernization",
       "upgrade",
@@ -750,11 +749,13 @@
       "dotnet",
       "canvas"
     ],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/upgrade-agent-plugins",
     "source": {
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "sha": "379d344e42823b25223f878c002f38fb3a2c1d2b"
+      "sha": "a70e1ae1ff63dd19ff874e874b4b587a5291f68a"
     }
   },
   {
