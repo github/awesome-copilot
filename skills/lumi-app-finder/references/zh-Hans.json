@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "zh-Hans",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "这是由 Lumi Studio 发布的第一方资料；Lumi Studio 是每款列出 App 的开发者。",
   "non_ranking_disclosure": "这些查询是针对预期使用场景撰写的编辑说明，并非实测搜索量数据、排名、独立评测或用户推荐。",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/zh-Hans/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/cn/app/id6784974530",
       "app_store_cta_label": "在 App Store 获取 Aim990 →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — 15分钟攻克七大题型 | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "把零散刷题变成一套经得住时间压力的训练流程。",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "付费下载",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/zh-Hans/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "在 App Store 获取 Aim990 Plus"
     },
     {
       "app_key": "cvdesk",

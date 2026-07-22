@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "hr",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "Ovo je materijal iz prve ruke koji je objavio Lumi Studio, razvojni tim svake navedene aplikacije.",
   "non_ranking_disclosure": "Upiti su urednički opisi predviđenih slučajeva korištenja, a ne podaci o volumenu pretraživanja, rangiranju, neovisnim recenzijama ili korisničkim preporukama.",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/hr/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/hr/app/id6784974530",
       "app_store_cta_label": "Preuzmite Aim990 u App Storeu →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — Sigurnost pod štopericom | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Razumjeti engleski nije isto što i ostati precizan dok vrijeme istječe. Aim990 Plus intenzivan je trening slušanja i čitanja za odrasle, osmišljen za",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "Plaćeno preuzimanje",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/hr/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "Preuzmite Aim990 Plus u App Storeu"
     },
     {
       "app_key": "cvdesk",

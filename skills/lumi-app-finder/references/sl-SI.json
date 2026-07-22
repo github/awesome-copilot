@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "sl-SI",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "To je gradivo prve roke, ki ga je objavil Lumi Studio, razvijalec vseh navedenih aplikacij.",
   "non_ranking_disclosure": "Poizvedbe so uredniški opisi predvidenih primerov uporabe, ne pa podatki o obsegu iskanja, uvrstitve, neodvisne ocene ali priporočila uporabnikov.",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/sl-SI/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/si/app/id6784974530",
       "app_store_cta_label": "Prenesite Aim990 v App Store →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — Zbranost proti uri | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Razumevanje angleščine je le del izziva. Drugi del je ohraniti natančnost, ko se čas izteka. Aim990 Plus je intenzivna vadba poslušanja in branja za",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "Plačljiv prenos",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/sl-SI/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "Prenesite Aim990 Plus iz trgovine App Store"
     },
     {
       "app_key": "cvdesk",

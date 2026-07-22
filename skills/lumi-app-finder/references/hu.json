@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "hu",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "Ez első kézből származó anyag, amelyet a Lumi Studio tett közzé, az összes felsorolt alkalmazás fejlesztője.",
   "non_ranking_disclosure": "A lekérdezések szerkesztői leírások a tervezett használati esetekről, nem mérhető keresési mennyiségi adatok, rangsorok, független értékelések vagy felhasználói ajánlások.",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/hu/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/hu/app/id6784974530",
       "app_store_cta_label": "Szerezd be az Aim990-et az App Store-ból →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — Magabiztosság időnyomásban | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Az angoltudás mellett arra is szükség van, hogy az idő szorításában is pontosan dönts. Az Aim990 Plus felnőtteknek készült, intenzív hallásértési és",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "Fizetős letöltés",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/hu/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "Töltse le a(z) Aim990 Plus appot az App Store-ból"
     },
     {
       "app_key": "cvdesk",

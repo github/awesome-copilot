@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "hi",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "यह सामग्री सीधे Lumi Studio ने प्रकाशित की है, जो सूचीबद्ध सभी ऐप का डेवलपर है।",
   "non_ranking_disclosure": "ये खोज क्वेरी इच्छित उपयोग-स्थितियों के संपादकीय विवरण हैं; ये मापे गए खोज-वॉल्यूम डेटा, रैंकिंग, स्वतंत्र समीक्षाएँ या उपयोगकर्ता समर्थन नहीं हैं।",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/hi/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/in/app/id6784974530",
       "app_store_cta_label": "App Store पर Aim990 प्राप्त करें →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — दबाव में तेज़ और सटीक जवाब | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Aim990 Plus वयस्क शिक्षार्थियों के लिए अंग्रेज़ी सुनने और पढ़ने का गहन अभ्यास है। इसका मुख्य क्रम वास्तविक समय-दबाव में ध्यान बनाए रखने के लिए बनाया गया है",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "भुगतान किया गया डाउनलोड",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/hi/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "App Store पर Aim990 Plus पाएँ"
     },
     {
       "app_key": "cvdesk",

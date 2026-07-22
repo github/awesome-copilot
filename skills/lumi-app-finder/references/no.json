@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "no",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "Dette er førsteparts materiale publisert av Lumi Studio, utvikleren av hver oppført app.",
   "non_ranking_disclosure": "Spørringene er redaksjonelle beskrivelser av tiltenkte bruksområder, ikke målte søkevolumdata, rangeringer, uavhengige anmeldelser eller brukeranbefalinger.",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/no/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/no/app/id6784974530",
       "app_store_cta_label": "Få Aim990 i App Store →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — Engelsk trening under press | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Aim990 Plus er et komplett treningsverktøy for voksne som vil forstå lest og muntlig engelsk også når tiden er knapp. Dagens tydelige løype starter med 8",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "Betalt nedlasting",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/no/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "Last ned Aim990 Plus fra App Store"
     },
     {
       "app_key": "cvdesk",

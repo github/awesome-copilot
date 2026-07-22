@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "te-IN",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "ఇది Lumi Studio ద్వారా ప్రచురించబడిన స్వంత సంస్థ పదార్థం, ప్రతి జాబితా చేయబడిన యాప్ యొక్క అభివృద్ధికర్త.",
   "non_ranking_disclosure": "ఈ ప్రశ్నలు ఉద్దేశించిన ఉపయోగ సందర్భాల సవివర వివరణలు మాత్రమే, కొలిచిన శోధన పరిమాణ డేటా, ర్యాంకింగ్లు, స్వతంత్ర సమీక్షలు లేదా వినియోగదారు మద్దతు కాదు.",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/te-IN/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/in/app/id6784974530",
       "app_store_cta_label": "App Storeలో Aim990 పొందండి →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — ఆంగ్ల ఒత్తిడి సాధన | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Aim990 Plus అనేది పెద్దలు తమ ఆంగ్ల శ్రవణం, పఠనం, సమయ నిర్వహణను ఏకాగ్రతతో మెరుగుపరచుకోవడానికి రూపొందించిన ఒత్తిడి సాధన యాప్. పాఠాలను ఊరికే తిరగేయడం కాకుండా",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "చెల్లింపు డౌన్లోడ్",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/te-IN/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "App Store నుంచి Aim990 Plus పొందండి"
     },
     {
       "app_key": "cvdesk",

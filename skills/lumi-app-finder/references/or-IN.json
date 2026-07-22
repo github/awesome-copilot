@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "or-IN",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "ଏହା Lumi Studio ଦ୍ୱାରା ପ୍ରକାଶିତ ପ୍ରଥମ-ପକ୍ଷ ସାମଗ୍ରୀ, ଯାହାରେ ସମସ୍ତ ତାଲିକାଭୁକ୍ତ ଆପ୍ସର ବିକାଶକ ଅଛନ୍ତି।",
   "non_ranking_disclosure": "ଏହି ପ୍ରଶ୍ନଗୁଡ଼ିକ ଉଦ୍ଦେଶ୍ୟିତ ବ୍ୟବହାର କେସର ସମ୍ପାଦକୀୟ ବର୍ଣ୍ଣନା, ମାପାଯାଇଥିବା ସନ୍ଧାନ ପରିମାଣ ତଥ୍ୟ, ର୍ୟାଙ୍କିଂ, ସ୍ୱାଧୀନ ସମୀକ୍ଷା କିମ୍ବା ବ୍ୟବହାରକାରୀ ସମର୍ଥନ ନୁହେଁ।",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/or-IN/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/in/app/id6784974530",
       "app_store_cta_label": "App Store ରୁ Aim990 ପାଆନ୍ତୁ →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — ଇଂରାଜୀ ଚାପ ଅଭ୍ୟାସ | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Aim990 Plus ବୟସ୍କମାନଙ୍କ ଇଂରାଜୀ ଶ୍ରବଣ, ପଠନ ଓ ସମୟ ପରିଚାଳନାକୁ ଏକାଗ୍ର ଭାବରେ ଉନ୍ନତ କରିବା ପାଇଁ ତିଆରି ହୋଇଥିବା ଚାପ ଅଭ୍ୟାସ ଆପ୍। କେବଳ ପାଠ ଓଲଟାଇ ଦେଖିବା ବଦଳରେ",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "ପୈସା ଦେଇ ଡାଉନଲୋଡ୍",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/or-IN/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "App Store ରୁ Aim990 Plus ପାଆନ୍ତୁ"
     },
     {
       "app_key": "cvdesk",

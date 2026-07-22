@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "th",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "เนื้อหานี้เผยแพร่โดยตรงจาก Lumi Studio ซึ่งเป็นผู้พัฒนาแอปทั้งหมดที่ระบุไว้",
   "non_ranking_disclosure": "คำค้นหาเป็นคำอธิบายเชิงบรรณาธิการของกรณีการใช้งานที่ตั้งใจไว้ ไม่ใช่ข้อมูลปริมาณการค้นหาที่วัดจริง การจัดอันดับ รีวิวอิสระ หรือคำรับรองจากผู้ใช้",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/th/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/th/app/id6784974530",
       "app_store_cta_label": "รับ Aim990 ใน App Store →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — ฟังอ่านครบ 7 พาร์ตใน 15 นาที | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "ไม่ได้ฝึกแค่ให้ทำโจทย์ได้มากขึ้น แต่ฝึกให้ตัดสินใจได้แม่นยำเมื่อเวลาค่อย ๆ ลดลง",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "ดาวน์โหลดแบบชำระเงิน",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/th/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "ดาวน์โหลด Aim990 Plus บน App Store"
     },
     {
       "app_key": "cvdesk",

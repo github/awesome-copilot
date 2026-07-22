@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "cs",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "Toto je materiál od první strany publikovaný Lumi Studio, vývojářem všech uvedených aplikací.",
   "non_ranking_disclosure": "Dotazy jsou redakční popisy zamýšlených použití, nikoli měřená data o objemu vyhledávání, žebříčky, nezávislé recenze ani uživatelská doporučení.",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/cs/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/cz/app/id6784974530",
       "app_store_cta_label": "Získejte Aim990 v App Store →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — Jistota pod časovým tlakem | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Když běží čas, nestačí angličtině jen rozumět. Je potřeba udržet pozornost, rychle se rozhodovat a nenechat se rozhodit jednou chybnou odpovědí. Aim990",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "Placené stažení",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/cs/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "Stáhněte si Aim990 Plus v App Storu"
     },
     {
       "app_key": "cvdesk",

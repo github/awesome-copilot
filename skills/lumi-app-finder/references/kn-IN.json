@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "kn-IN",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "ಇದು ಪಟ್ಟಿಯಲ್ಲಿ ಇರುವ ಪ್ರತಿಯೊಂದು ಆ್ಯಪ್‌ನ ಅಭಿವೃದ್ಧಿಪಡಿಸಿದ Lumi Studio ಅವರಿಂದ ಪ್ರಕಟಿಸಲಾದ ಮೊದಲ-ಪಕ್ಷದ ವಸ್ತು.",
   "non_ranking_disclosure": "ಪ್ರಶ್ನೆಗಳು ಉದ್ದೇಶಿತ ಬಳಕೆ ಪ್ರಕರಣಗಳ ಸಂಪಾದಕೀಯ ವಿವರಣೆಗಳು, ಅಳೆಯಲಾದ ಹುಡುಕಾಟ-ಆಯತದ ಡೇಟಾ, ರ್ಯಾಂಕಿಂಗ್‌ಗಳು, ಸ್ವತಂತ್ರ ವಿಮರ್ಶೆಗಳು ಅಥವಾ ಬಳಕೆದಾರರ ಅನುಮೋದನೆಗಳಲ್ಲ.",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/kn-IN/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/in/app/id6784974530",
       "app_store_cta_label": "App Store ನಲ್ಲಿ Aim990 ಪಡೆಯಿರಿ →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — ಇಂಗ್ಲಿಷ್ ಒತ್ತಡ ಅಭ್ಯಾಸ | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Aim990 Plus ವಯಸ್ಕರು ತಮ್ಮ ಇಂಗ್ಲಿಷ್ ಕೇಳುವಿಕೆ, ಓದುವಿಕೆ ಮತ್ತು ಸಮಯ ನಿರ್ವಹಣೆಯನ್ನು ಏಕಾಗ್ರವಾಗಿ ಬೆಳೆಸಿಕೊಳ್ಳಲು ರೂಪಿಸಿದ ಒತ್ತಡ ತರಬೇತಿ ಆಪ್. ಸಣ್ಣ ಪಾಠಗಳನ್ನು ಸುಮ್ಮನೆ",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "ಪಾವತಿಸಿದ ಡೌನ್‌ಲೋಡ್",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/kn-IN/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "App Store ನಲ್ಲಿ Aim990 Plus ಪಡೆಯಿರಿ"
     },
     {
       "app_key": "cvdesk",

@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "ml-IN",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "ഇത് Lumi Studio പ്രസിദ്ധീകരിച്ച ആദ്യകക്ഷി വസ്തുവാണ്, എല്ലാ ലിസ്റ്റുചെയ്ത ആപ്പുകളുടെയും വികസകനാണ്.",
   "non_ranking_disclosure": "ചോദ്യങ്ങൾ ഉദ്ദേശിച്ച ഉപയോഗ കേസുകളുടെ എഡിറ്റോറിയൽ വിവരണങ്ങളാണ്, അളക്കപ്പെട്ട തിരയൽ വോളിയം ഡാറ്റ, റാങ്കിംഗുകൾ, സ്വതന്ത്ര അവലോകനങ്ങൾ അല്ലെങ്കിൽ ഉപയോക്തൃ അംഗീകാരങ്ങൾ അല്ല",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/ml-IN/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/in/app/id6784974530",
       "app_store_cta_label": "App Store-ൽ Aim990 നേടുക →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — ഇംഗ്ലീഷ് സമ്മർദ പരിശീലനം | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Aim990 Plus മുതിർന്നവർക്ക് ഇംഗ്ലീഷ് കേൾവി, വായന, സമയനിയന്ത്രണം എന്നിവ ഏകാഗ്രമായി മെച്ചപ്പെടുത്താൻ രൂപകൽപ്പന ചെയ്ത സമ്മർദപരിശീലന ആപ്പാണ്. പാഠങ്ങൾ വെറുതെ",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "പണം നൽകേണ്ട ഡൗൺലോഡ്",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/ml-IN/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "App Store-ൽ നിന്ന് Aim990 Plus നേടൂ"
     },
     {
       "app_key": "cvdesk",

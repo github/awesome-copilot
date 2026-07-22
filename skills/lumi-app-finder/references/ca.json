@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "ca",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "Aquest és material de primera mà publicat per Lumi Studio, el desenvolupador de totes les apps llistades.",
   "non_ranking_disclosure": "Les consultes són descripcions editorials dels casos d'ús previstos, no dades de volum de cerca mesurat, classificacions, ressenyes independents ni recomanacions d'usuaris.",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/ca/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/es/app/id6784974530",
       "app_store_cta_label": "Descarrega Aim990 a l'App Store →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — Anglès a contrarellotge | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "Entrena la comprensió de l’anglès amb sessions que posen a prova l’atenció, el ritme i la constància. Aim990 Plus està pensada per a persones adultes que",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "Descarrega de pagament",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/ca/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "Descarrega Aim990 Plus a l’App Store"
     },
     {
       "app_key": "cvdesk",

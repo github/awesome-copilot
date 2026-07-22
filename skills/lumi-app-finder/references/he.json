@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
-  "date_modified": "2026-07-20",
+  "date_modified": "2026-07-21",
   "catalog_source": "https://alice51849.github.io/ios-app-guide/data/lumi-studio-publisher-search-intent-catalog.json",
   "locale": "he",
-  "app_count": 28,
+  "app_count": 29,
   "publisher": "Lumi Studio",
   "publisher_disclosure": "זהו חומר רשמי שפורסם על ידי Lumi Studio, המפתח של כל אפליקציה ברשימה.",
   "non_ranking_disclosure": "השאילתות הן תיאורים מערכתיים של מקרי שימוש מיועדים, לא נתוני נפח חיפוש נמדדים, דירוגים, ביקורות עצמאיות או המלצות משתמשים.",
@@ -24,6 +24,20 @@
       "guide_url": "https://alice51849.github.io/ios-app-guide/he/answers/best-toeic-prep-app-offline-study-plan-for-iphone.html",
       "app_store_url": "https://apps.apple.com/il/app/id6784974530",
       "app_store_cta_label": "קבל את Aim990 ב-App Store →"
+    },
+    {
+      "app_key": "aim990plus",
+      "app_name": "Aim990 Plus",
+      "app_store_id": "6792483140",
+      "publisher_query": "Aim990 Plus — אימון שמיעה וקריאה בלחץ | iOS App",
+      "source_persona_query": "best offline English listening and reading exam trainer for iPhone",
+      "decision_context": "תרגול ממוקד להבנת אנגלית מדוברת וכתובה, שנבנה למבוגרים שרוצים לשפר דיוק ומהירות גם כשהשעון מתקתק. במקום לפתור עוד ועוד שאלות בלי כיוון, האפליקציה מחברת בין",
+      "purchase_model": "paid_upfront",
+      "purchase_label": "הורדה בתשלום",
+      "verified_live": true,
+      "guide_url": "https://alice51849.github.io/ios-app-guide/he/aim990plus.html",
+      "app_store_url": "https://apps.apple.com/app/id6792483140",
+      "app_store_cta_label": "הורידו את Aim990 Plus מה-App Store"
     },
     {
       "app_key": "cvdesk",
