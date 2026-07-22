@@ -553,7 +553,7 @@
     {
       "name": "foundry-agent-canvas",
       "description": "Interactive Copilot canvas for designing, configuring, testing, and deploying Microsoft Foundry hosted agents.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -574,7 +574,7 @@
         "source": "github",
         "repo": "microsoft/foundry-toolkit",
         "path": "foundry-agent-canvas",
-        "sha": "e16be2b8533ca82c22806388e07581e7497785d7"
+        "sha": "4f2d5fe02f6d89cac43e1a06de39c127cb53a55d"
       }
     },
     {
