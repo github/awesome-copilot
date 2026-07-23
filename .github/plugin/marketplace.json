@@ -551,33 +551,6 @@
       "version": "2.0.0"
     },
     {
-      "name": "foundry-agent-canvas",
-      "description": "Interactive Copilot canvas for designing, configuring, testing, and deploying Microsoft Foundry hosted agents.",
-      "version": "1.0.2",
-      "author": {
-        "name": "Microsoft",
-        "url": "https://www.microsoft.com"
-      },
-      "repository": "https://github.com/microsoft/foundry-toolkit",
-      "homepage": "https://github.com/microsoft/foundry-toolkit",
-      "license": "MIT",
-      "keywords": [
-        "agent-builder",
-        "agent-inspector",
-        "azure-ai",
-        "foundry",
-        "hosted-agents",
-        "microsoft-foundry",
-        "canvas"
-      ],
-      "source": {
-        "source": "github",
-        "repo": "microsoft/foundry-toolkit",
-        "path": "foundry-agent-canvas",
-        "sha": "4f2d5fe02f6d89cac43e1a06de39c127cb53a55d"
-      }
-    },
-    {
       "name": "frontend-web-dev",
       "source": "plugins/frontend-web-dev",
       "description": "Essential prompts, instructions, and chat modes for modern frontend web development including React, Angular, Vue, TypeScript, and CSS frameworks.",
@@ -765,6 +738,33 @@
       "source": {
         "source": "github",
         "repo": "microsoft/Build-CLI"
+      }
+    },
+    {
+      "name": "microsoft-foundry",
+      "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
+      "version": "1.0.3",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "repository": "https://github.com/microsoft/foundry-toolkit",
+      "homepage": "https://github.com/microsoft/foundry-toolkit",
+      "license": "MIT",
+      "keywords": [
+        "agent-builder",
+        "agent-inspector",
+        "azure-ai",
+        "foundry",
+        "hosted-agents",
+        "microsoft-foundry",
+        "canvas"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/foundry-toolkit",
+        "path": "microsoft-foundry",
+        "sha": "9e5fae9942514a8b90281886285052a99fc1932b"
       }
     },
     {
