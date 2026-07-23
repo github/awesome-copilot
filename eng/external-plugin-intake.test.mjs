@@ -5,13 +5,18 @@ import { validateCanvasPluginMetadata } from "./external-plugin-intake.mjs";
 const REPO = "owner/repo";
 const SHA = "0123456789abcdef0123456789abcdef01234567";
 const PLUGIN_ROOT = "plugins/upgrade-agent";
+const EXTENSIONS_DIR = `${PLUGIN_ROOT}/extensions`;
 
 function fileNode(content) {
   return { type: "file", content: Buffer.from(content, "utf8").toString("base64") };
 }
 
-function dirNode(entries) {
-  return entries.map((entry) => ({ type: entry.type, name: entry.name, path: entry.path ?? entry.name }));
+function treeEntry(path, type) {
+  return { path, type, mode: type === "tree" ? "040000" : "100644", sha: "deadbeef" };
+}
+
+function treeResponse(entries, { truncated = false } = {}) {
+  return { status: 200, data: { sha: "roottree", truncated, tree: entries } };
 }
 
 function decodeContentsPath(url) {
@@ -24,11 +29,13 @@ function decodeContentsPath(url) {
     .join("/");
 }
 
-async function withMockedFetch(routes, run) {
+async function withMockedFetch({ routes = {}, tree }, run) {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url) => {
-    const requestPath = decodeContentsPath(String(url));
-    const route = routes[requestPath] ?? { status: 404, data: {} };
+    const requestUrl = String(url);
+    const route = requestUrl.includes("/git/trees/")
+      ? tree ?? { status: 404, data: {} }
+      : routes[decodeContentsPath(requestUrl)] ?? { status: 404, data: {} };
     return {
       ok: route.status >= 200 && route.status < 300,
       status: route.status,
@@ -68,64 +75,48 @@ function makePlugin() {
   };
 }
 
-test("validateCanvasPluginMetadata accepts a nested extension entry point", async () => {
-  const routes = baseRoutes({
-    [`${PLUGIN_ROOT}/extensions`]: {
-      status: 200,
-      data: dirNode([{ name: "modernize-dashboard", type: "dir" }]),
-    },
-    [`${PLUGIN_ROOT}/extensions/modernize-dashboard/extension.mjs`]: {
-      status: 200,
-      data: fileNode("export default {};\n"),
-    },
-  });
-
+async function runValidation({ tree }) {
   const errors = [];
   const warnings = [];
-  await withMockedFetch(routes, () =>
+  await withMockedFetch({ routes: baseRoutes(), tree }, () =>
     validateCanvasPluginMetadata(makePlugin(), errors, warnings, null),
   );
+  return { errors, warnings };
+}
+
+test("validateCanvasPluginMetadata accepts a nested extension entry point", async () => {
+  const { errors, warnings } = await runValidation({
+    tree: treeResponse([
+      treeEntry(EXTENSIONS_DIR, "tree"),
+      treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard`, "tree"),
+      treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard/extension.mjs`, "blob"),
+    ]),
+  });
 
   assert.deepEqual(errors, []);
   assert.deepEqual(warnings, []);
 });
 
 test("validateCanvasPluginMetadata accepts a flat extension entry point", async () => {
-  const routes = baseRoutes({
-    [`${PLUGIN_ROOT}/extensions`]: {
-      status: 200,
-      data: dirNode([{ name: "extension.mjs", type: "file" }]),
-    },
-    [`${PLUGIN_ROOT}/extensions/extension.mjs`]: {
-      status: 200,
-      data: fileNode("export default {};\n"),
-    },
+  const { errors, warnings } = await runValidation({
+    tree: treeResponse([
+      treeEntry(EXTENSIONS_DIR, "tree"),
+      treeEntry(`${EXTENSIONS_DIR}/extension.mjs`, "blob"),
+    ]),
   });
-
-  const errors = [];
-  const warnings = [];
-  await withMockedFetch(routes, () =>
-    validateCanvasPluginMetadata(makePlugin(), errors, warnings, null),
-  );
 
   assert.deepEqual(errors, []);
   assert.deepEqual(warnings, []);
 });
 
 test("validateCanvasPluginMetadata rejects when no extension.mjs exists flat or nested", async () => {
-  const routes = baseRoutes({
-    [`${PLUGIN_ROOT}/extensions`]: {
-      status: 200,
-      data: dirNode([{ name: "modernize-dashboard", type: "dir" }]),
-    },
-    [`${PLUGIN_ROOT}/extensions/modernize-dashboard/extension.mjs`]: { status: 404, data: {} },
+  const { errors } = await runValidation({
+    tree: treeResponse([
+      treeEntry(EXTENSIONS_DIR, "tree"),
+      treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard`, "tree"),
+      treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard/index.mjs`, "blob"),
+    ]),
   });
-
-  const errors = [];
-  const warnings = [];
-  await withMockedFetch(routes, () =>
-    validateCanvasPluginMetadata(makePlugin(), errors, warnings, null),
-  );
 
   assert.equal(
     errors.some((message) => /must include a canvas extension entry point/.test(message)),
@@ -133,18 +124,50 @@ test("validateCanvasPluginMetadata rejects when no extension.mjs exists flat or 
   );
 });
 
-test("validateCanvasPluginMetadata surfaces an unverifiable entry point when the extensions listing errors", async () => {
-  const routes = baseRoutes({
-    [`${PLUGIN_ROOT}/extensions`]: { status: 500, data: {} },
-    // No route for the entry point → the mock defaults to a 404, so it cannot be found
-    // and (because the listing errored) nested subfolders cannot be enumerated either.
+test("validateCanvasPluginMetadata rejects when the extensions directory is missing", async () => {
+  const { errors } = await runValidation({
+    tree: treeResponse([
+      treeEntry(`${PLUGIN_ROOT}/.github/plugin/plugin.json`, "blob"),
+      treeEntry(`${PLUGIN_ROOT}/assets/preview.png`, "blob"),
+    ]),
   });
 
-  const errors = [];
-  const warnings = [];
-  await withMockedFetch(routes, () =>
-    validateCanvasPluginMetadata(makePlugin(), errors, warnings, null),
+  assert.equal(
+    errors.some((message) => /must include an "extensions" directory/.test(message)),
+    true,
   );
+});
+
+test("validateCanvasPluginMetadata rejects when extensions is a file rather than a directory", async () => {
+  const { errors } = await runValidation({
+    tree: treeResponse([treeEntry(EXTENSIONS_DIR, "blob")]),
+  });
+
+  assert.equal(
+    errors.some((message) => /"extensions" must be a directory/.test(message)),
+    true,
+  );
+});
+
+test("validateCanvasPluginMetadata rejects when extensions/extension.mjs is a directory", async () => {
+  const { errors } = await runValidation({
+    tree: treeResponse([
+      treeEntry(EXTENSIONS_DIR, "tree"),
+      treeEntry(`${EXTENSIONS_DIR}/extension.mjs`, "tree"),
+      treeEntry(`${EXTENSIONS_DIR}/extension.mjs/placeholder.txt`, "blob"),
+    ]),
+  });
+
+  assert.equal(
+    errors.some((message) => /"extensions\/extension\.mjs" must be a file/.test(message)),
+    true,
+  );
+});
+
+test("validateCanvasPluginMetadata surfaces an unverifiable result when the tree fetch errors", async () => {
+  const { errors, warnings } = await runValidation({
+    tree: { status: 500, data: {} },
+  });
 
   assert.deepEqual(errors, []);
   assert.equal(
@@ -153,20 +176,36 @@ test("validateCanvasPluginMetadata surfaces an unverifiable entry point when the
   );
 });
 
-test("validateCanvasPluginMetadata still accepts a flat entry point when the extensions listing errors", async () => {
-  const routes = baseRoutes({
-    [`${PLUGIN_ROOT}/extensions`]: { status: 500, data: {} },
-    [`${PLUGIN_ROOT}/extensions/extension.mjs`]: {
-      status: 200,
-      data: fileNode("export default {};\n"),
-    },
+test("validateCanvasPluginMetadata treats a truncated tree without an entry point as unverifiable", async () => {
+  const { errors, warnings } = await runValidation({
+    tree: treeResponse(
+      [
+        treeEntry(EXTENSIONS_DIR, "tree"),
+        treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard`, "tree"),
+      ],
+      { truncated: true },
+    ),
   });
 
-  const errors = [];
-  const warnings = [];
-  await withMockedFetch(routes, () =>
-    validateCanvasPluginMetadata(makePlugin(), errors, warnings, null),
+  assert.deepEqual(errors, []);
+  assert.equal(
+    warnings.some((message) => /could not verify the canvas extension entry point/.test(message)),
+    true,
   );
+});
+
+test("validateCanvasPluginMetadata accepts an entry point found within a truncated tree", async () => {
+  const { errors, warnings } = await runValidation({
+    tree: treeResponse(
+      [
+        treeEntry(EXTENSIONS_DIR, "tree"),
+        treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard`, "tree"),
+        treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard/extension.mjs`, "blob"),
+      ],
+      { truncated: true },
+    ),
+  });
 
   assert.deepEqual(errors, []);
+  assert.deepEqual(warnings, []);
 });
