@@ -49,17 +49,16 @@ test("namespace creation polls an empty 202 result until explicit success", asyn
     );
 });
 
-test("Azure authentication uses an interactive browser and persistent encrypted cache", async () => {
+test("Azure authentication uses an interactive browser with process-memory tokens", async () => {
     const [authSource, armSource] = await Promise.all([
         readFile(new URL("auth.mjs", here), "utf8"),
         readFile(new URL("armClient.mjs", here), "utf8"),
     ]);
     assert.match(authSource, /new InteractiveBrowserCredential\(options\)/);
-    assert.match(authSource, /useIdentityPlugin\(cachePersistencePlugin\)/);
     assert.match(authSource, /disableAutomaticAuthentication: true/);
-    assert.match(authSource, /tokenCachePersistenceOptions/);
     assert.match(authSource, /credential\.authenticate\(\s*this\.scope,\s*\{ abortSignal/);
-    assert.match(authSource, /serializeAuthenticationRecord/);
+    assert.doesNotMatch(authSource, /identity-cache-persistence|cachePersistencePlugin|tokenCachePersistenceOptions/);
+    assert.doesNotMatch(authSource, /serializeAuthenticationRecord|saveAuthenticationRecord/);
     assert.doesNotMatch(armSource, /get-access-token|az login|resolvePosixAzureCli/);
 });
 

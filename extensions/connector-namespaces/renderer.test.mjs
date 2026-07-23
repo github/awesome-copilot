@@ -67,6 +67,27 @@ test("setup prompts, polls, cancels, and reloads subscriptions after browser sig
     assert.match(html, /\/api\/subscriptions/);
 });
 
+test("a linked namespace gets a focused sign-in state and returns to its catalog", () => {
+    const html = renderSetupHtml([], "", "token", { linkedNamespace: "saved-gateway" });
+    assert.match(html, /Sign in to see your connectors/);
+    assert.match(html, /Connector namespace <code>saved-gateway<\/code> is already linked\./);
+    assert.match(html, /Sign in to Azure to view and manage its connectors\./);
+    assert.match(html, /const hasLinkedNamespace = true/);
+    assert.match(html, /window\.location\.replace\("\/"\)/);
+    assert.match(html, /<div id="setup-content" hidden>/);
+});
+
+test("linked namespace sign-in escapes saved names and produces valid client JavaScript", () => {
+    const html = renderSetupHtml([], "", "token", {
+        linkedNamespace: `gateway</code><script>alert("xss")</script>`,
+    });
+    assert.doesNotMatch(html, /<script>alert\("xss"\)<\/script>/);
+    assert.match(html, /gateway&lt;\/code&gt;&lt;script&gt;alert\(&quot;xss&quot;\)&lt;\/script&gt;/);
+    const script = html.match(/<script>([\s\S]*)<\/script>/)?.[1];
+    assert.ok(script, "linked setup page must include its client script");
+    assert.doesNotThrow(() => new Function(script));
+});
+
 test("setup sign-in uses a compact borderless blank state", () => {
     const html = renderSetupHtml([], "", "token");
     assert.match(html, /id="signin-btn" class="item-add primary signin-primary"/);

@@ -561,7 +561,9 @@ async function handleRequest(req, res, instanceId, serverEntry) {
     } catch (err) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         if (isAuthenticationRequiredError(err)) {
-            res.end(renderSetupHtml([], "", serverEntry.token));
+            res.end(renderSetupHtml([], "", serverEntry.token, {
+                linkedNamespace: config.gatewayName,
+            }));
         } else {
             res.end(renderSetupHtml(
                 [],

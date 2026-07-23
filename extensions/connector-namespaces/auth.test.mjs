@@ -4,8 +4,6 @@ import assert from "node:assert/strict";
 import {
     ConnectorAuthenticationRequiredError,
     InteractiveAuthBroker,
-    loadAuthenticationRecord,
-    TOKEN_CACHE_NAME,
 } from "./auth.mjs";
 
 function accessToken(token = "token", expiresOnTimestamp = 2_000_000_000_000) {
@@ -35,7 +33,6 @@ test("ARM token requests require an explicit browser sign-in", async () => {
                 },
             };
         },
-        loadAuthRecord: async () => undefined,
     });
 
     await assert.rejects(
@@ -43,32 +40,13 @@ test("ARM token requests require an explicit browser sign-in", async () => {
         (error) => error instanceof ConnectorAuthenticationRequiredError
             && error.code === "authentication_required",
     );
-    assert.deepEqual(credentialOptions.tokenCachePersistenceOptions, {
-        enabled: true,
-        name: TOKEN_CACHE_NAME,
+    assert.deepEqual(credentialOptions, {
+        redirectUri: "http://localhost",
+        disableAutomaticAuthentication: true,
     });
 });
 
-test("a malformed authentication record falls back to browser sign-in", async () => {
-    assert.equal(
-        await loadAuthenticationRecord({
-            readFile: async () => "{malformed-json",
-        }),
-        undefined,
-    );
-});
-
-test("authentication record read failures remain operational errors", async () => {
-    const readError = Object.assign(new Error("authentication record is unreadable"), { code: "EACCES" });
-    await assert.rejects(
-        loadAuthenticationRecord({
-            readFile: async () => { throw readError; },
-        }),
-        (error) => error === readError,
-    );
-});
-
-test("interactive sign-in reports pending then done and caches the ARM token", async () => {
+test("interactive sign-in reports pending then done and keeps the ARM token in memory", async () => {
     let credentialOptions;
     let authenticateOptions;
     const credential = {
@@ -89,7 +67,6 @@ test("interactive sign-in reports pending then done and caches the ARM token", a
             return credential;
         },
         createSessionId: () => "signin-session",
-        saveAuthRecord: async (record) => assert.deepEqual(record, authenticationRecord()),
         now: () => 1_000,
     });
 
@@ -110,10 +87,6 @@ test("interactive sign-in reports pending then done and caches the ARM token", a
     assert.deepEqual(credentialOptions, {
         redirectUri: "http://localhost",
         disableAutomaticAuthentication: true,
-        tokenCachePersistenceOptions: {
-            enabled: true,
-            name: TOKEN_CACHE_NAME,
-        },
     });
     assert.equal(authenticateOptions.abortSignal.aborted, false);
     assert.deepEqual(broker.getSignInStatus(started.sessionId), { ok: true, status: "done" });
@@ -124,22 +97,24 @@ test("interactive sign-in reports pending then done and caches the ARM token", a
     assert.equal(await broker.getToken(), "token");
 });
 
-test("a new broker restores the persisted credential without reopening the browser", async () => {
-    const cache = { record: null, token: null };
+test("a new broker requires browser sign-in after the extension reloads", async () => {
     let authenticateCalls = 0;
+    let createCredentialCalls = 0;
     const createCredential = (options) => {
-        assert.deepEqual(options.tokenCachePersistenceOptions, {
-            enabled: true,
-            name: TOKEN_CACHE_NAME,
+        createCredentialCalls++;
+        assert.deepEqual(options, {
+            redirectUri: "http://localhost",
+            disableAutomaticAuthentication: true,
         });
+        let signedIn = false;
         return {
             async authenticate() {
                 authenticateCalls++;
-                cache.token = accessToken("persisted-token");
+                signedIn = true;
                 return authenticationRecord();
             },
             async getToken() {
-                if (cache.token && options.authenticationRecord) return cache.token;
+                if (signedIn) return accessToken("memory-token");
                 const error = new Error("No cached account found.");
                 error.name = "AuthenticationRequiredError";
                 throw error;
@@ -149,41 +124,36 @@ test("a new broker restores the persisted credential without reopening the brows
     const signedInBroker = new InteractiveAuthBroker({
         createCredential,
         createSessionId: () => "persist-session",
-        saveAuthRecord: async (record) => { cache.record = record; },
         now: () => 1_000,
     });
     const started = signedInBroker.startSignIn();
     await signedInBroker.sessions.get(started.sessionId).promise;
     assert.equal(authenticateCalls, 1);
+    assert.equal(await signedInBroker.getToken(), "memory-token");
 
     const restartedBroker = new InteractiveAuthBroker({
         createCredential,
-        loadAuthRecord: async () => cache.record,
         now: () => 1_000,
     });
-    assert.equal(await restartedBroker.getToken(), "persisted-token");
+    await assert.rejects(restartedBroker.getToken(), ConnectorAuthenticationRequiredError);
     assert.equal(authenticateCalls, 1);
+    assert.equal(createCredentialCalls, 2);
 });
 
-test("concurrent first-time token requests share credential initialization and acquisition", async () => {
-    let releaseAuthenticationRecord;
-    const authenticationRecordReady = new Promise((resolve) => {
-        releaseAuthenticationRecord = resolve;
+test("concurrent first-time token requests share credential acquisition", async () => {
+    let releaseToken;
+    const tokenReady = new Promise((resolve) => {
+        releaseToken = resolve;
     });
-    let loadAuthRecordCalls = 0;
     let createCredentialCalls = 0;
     let tokenCalls = 0;
     const broker = new InteractiveAuthBroker({
-        async loadAuthRecord() {
-            loadAuthRecordCalls++;
-            await authenticationRecordReady;
-            return authenticationRecord();
-        },
         createCredential: () => {
             createCredentialCalls++;
             return {
                 async getToken() {
                     tokenCalls++;
+                    await tokenReady;
                     return accessToken("shared-token");
                 },
             };
@@ -193,15 +163,12 @@ test("concurrent first-time token requests share credential initialization and a
     const firstRequest = broker.getToken();
     const secondRequest = broker.getToken();
     await new Promise((resolve) => setImmediate(resolve));
-    const loadsBeforeRelease = loadAuthRecordCalls;
-    releaseAuthenticationRecord();
+    releaseToken();
 
     assert.deepEqual(
         await Promise.all([firstRequest, secondRequest]),
         ["shared-token", "shared-token"],
     );
-    assert.equal(loadsBeforeRelease, 1);
-    assert.equal(loadAuthRecordCalls, 1);
     assert.equal(createCredentialCalls, 1);
     assert.equal(tokenCalls, 1);
 });
@@ -224,7 +191,6 @@ test("cancelling sign-in aborts the credential request", async () => {
     const broker = new InteractiveAuthBroker({
         createCredential: () => credential,
         createSessionId: () => "cancel-session",
-        loadAuthRecord: async () => undefined,
         now: () => 1_000,
     });
 
@@ -289,7 +255,6 @@ test("legacy credential cleanup retries after a transient failure", async () => 
                 return accessToken();
             },
         }),
-        loadAuthRecord: async () => authenticationRecord(),
     });
 
     await assert.rejects(broker.getToken(), /legacy cache is locked/);
@@ -312,7 +277,6 @@ test("token acquisition preserves operational errors and retries the credential"
                 },
             };
         },
-        loadAuthRecord: async () => authenticationRecord(),
     });
 
     await assert.rejects(broker.getToken(), (error) => error === outage);
@@ -328,7 +292,6 @@ test("incomplete tokens remain operational errors instead of prompting sign-in",
                 return { token: "incomplete" };
             },
         }),
-        loadAuthRecord: async () => authenticationRecord(),
     });
 
     await assert.rejects(
