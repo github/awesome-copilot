@@ -1,84 +1,80 @@
-# MCP Connectors — Copilot CLI Canvas Extension
+# MCP Connectors
 
-A GitHub Copilot CLI **canvas extension** that lets you browse and add MCP
-connectors from an Azure **Connector Namespace** directly inside a Copilot CLI
-session. Search by name or category, sign in to a connector, then restart the
-session to make its tools available to the agent.
+A GitHub Copilot app canvas extension for discovering and connecting hosted MCP
+servers from [Azure Connector Namespace](https://learn.microsoft.com/en-us/azure/connector-namespace/connector-namespace-overview).
+It brings the Microsoft and partner connector catalog, guided browser sign-in,
+and connected-server management into the Copilot side panel.
 
-> The canvas talks to public Azure Resource Manager (`management.azure.com`)
-> using the signed-in Azure CLI account. The extension does not register its own
-> Entra application or persist Azure credentials.
+## Features
 
-## Prerequisites
-
-- **GitHub Copilot CLI** (the host that loads canvas extensions).
-- **Azure CLI**, signed in with `az login`. The extension asks Azure CLI for a
-  short-lived ARM access token and refreshes it through the same broker.
-- **An Azure subscription with a Connector Namespace** — resource type
-  `Microsoft.Web/connectorGateways` (API version `2026-05-01-preview`). This is
-  a preview resource provider; you must have access to it for the catalog to
-  load. Without it the extension installs fine but has nothing to show.
+- **Connector catalog** - browse and search Microsoft and partner MCP servers
+  available in your namespace.
+- **Guided Azure setup** - sign in from the canvas, then choose a subscription
+  and Connector Namespace.
+- **Browser-based connection flow** - complete each connector's authentication
+  or consent without leaving the setup experience.
+- **My MCPs** - see which servers are connected and ready to add to Copilot.
+- **Namespace playground** - open any connected server in the Connector
+  Namespace playground with **Sandbox**.
+- **Persistent namespace selection** - retain the selected namespace while Azure
+  tokens remain in memory and sign-in is requested again after a restart.
 
 ## Install
 
-Install it from the public Awesome Copilot repository:
+Open the GitHub Copilot app, go to **Settings > Plugins**, search for
+`connector-namespaces`, and select **Install**.
 
-```
-install_extension https://github.com/github/awesome-copilot/tree/main/extensions/connector-namespaces
-```
+You can also open the
+[MCP Connectors gallery page](https://awesome-copilot.github.com/extension/connector-namespaces/)
+and select **Install in GitHub Copilot app**.
 
-For a reproducible install, swap `main` for a reviewed commit SHA from this
-repository.
+## Requirements
 
-The destination **scope** is chosen at install time:
+- Access to an Azure subscription with a Connector Namespace. If you do not
+  have one, follow the
+  [Connector Namespace creation guide](https://learn.microsoft.com/en-us/azure/connector-namespace/create-connector-namespace).
+- Permission to view the namespace and create its connections and hosted MCP
+  server configurations.
+- A browser for Microsoft Entra sign-in and connector consent.
 
-- **user** (default) — installs globally for you at
-  `$COPILOT_HOME/extensions/connector-namespaces/`. The usual choice for a
-  personal tool.
-- **project** — installs into the current repo.
-- **session** — scoped to a single CLI session.
+Connector Namespace is currently an Azure preview service and availability can
+vary by region.
 
 ## Usage
 
-1. Open the **MCP Connectors** canvas from Copilot CLI.
-2. The canvas loads subscriptions from your signed-in Azure CLI account. Pick an
-   Azure **subscription** and a **Connector Namespace**. The choice is saved for
-   future sessions (change it any time via **Change namespace**).
-3. Browse or filter the connector catalog, then **Connect**. A browser tab
-   opens for Microsoft sign-in; complete it and the canvas updates on its own.
-4. Connected connectors move into **My MCPs**. Use **Sandbox** on a tile to open
-   that server directly in the namespace MCP playground.
-5. Restart the Copilot CLI session so the agent can load the connected tools.
+1. Open the **MCP Connectors** canvas in the GitHub Copilot app.
+2. Select **Sign in to Azure** and complete Microsoft Entra authentication in
+   your browser.
+3. Choose an Azure subscription and Connector Namespace.
+4. Browse or search the catalog, then select **Connect** on an MCP server.
+5. Complete the connector's sign-in or consent flow when prompted.
+6. Confirm the server appears under **My MCPs**.
+7. Restart the GitHub Copilot app so the new tools become available to the
+   agent.
 
-The extension registers the native `connector_namespaces_open_playground` tool,
-so GitHub Copilot can open a named connector from **My MCPs** without installing
-an additional Agent Skill.
+Use **Sandbox** on a connected server to inspect it in the Connector Namespace
+playground. Use **Change namespace** to switch subscriptions or namespaces.
 
-## How it works
+## Authentication and privacy
 
-- `extension.mjs` — entry point; declares the canvas, `open_sandbox` action, and
-  native `connector_namespaces_open_playground` tool.
-- `server.mjs` — a loopback HTTP server (bound to `127.0.0.1` only) that serves
-  the canvas UI and the JSON/OAuth endpoints the iframe calls.
-- `armClient.mjs` — thin ARM client (token brokered by Azure CLI, public ARM
-  base only, SSRF-guarded path segments).
-- `catalog.mjs` — fetches and curates the connector list for a namespace.
-- `install.mjs` — the connect/install pipeline (managed-API connection, consent,
-  rollback on cancel, and native HTTPS MCP config registration).
-- `renderer.mjs` — all canvas HTML/CSS/client JS.
-- `sandbox.mjs` — builds namespace playground links and resolves named My MCPs.
-- `state.mjs` — saved namespace and connector state.
+Azure sign-in and connector sign-in are separate:
 
-## Privacy & security
+- **Azure sign-in** lets the canvas discover and manage Connector Namespace
+  resources. Access and refresh tokens remain in the extension process and are
+  never written to extension files. Reloading the extension or restarting the
+  app requires Azure sign-in again. The selected namespace coordinates are
+  retained in
+  `~/.copilot/extensions/connector-namespaces/artifacts/gateway-config.json` so
+  the canvas can explain that the namespace is still linked and return directly
+  to its connectors after sign-in.
+- **Connector sign-in** grants an individual MCP server access to its backing
+  service. The resulting connection is managed by Connector Namespace.
 
-- ARM tokens come from `az account get-access-token`, stay in process memory,
-  and are never logged or written by the extension. Azure CLI owns sign-in and
-  credential storage.
-- All servers bind to loopback (`127.0.0.1`) and are never exposed externally.
-- ARM requests go only to `https://management.azure.com/`; path segments are
-  validated to prevent SSRF-style host smuggling.
-- The minted gateway API key is stored in the selected Copilot MCP config and
-  sent to its validated HTTPS endpoint as the `X-API-Key` header.
+The canvas serves its interface from loopback only (`127.0.0.1`). Azure
+management requests are restricted to `https://management.azure.com/`.
+The gateway API key that lets Copilot reach a connected server is stored in the
+user-scoped GitHub Copilot MCP configuration and sent only to that server's
+configured HTTPS endpoint.
 
 ## License
 

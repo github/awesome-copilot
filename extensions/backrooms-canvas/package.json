@@ -1,0 +1,20 @@
+{
+  "name": "backrooms-canvas",
+  "version": "1.0.0",
+  "main": "extension.mjs",
+  "author": "John Haugabook",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "description": "Wander an endless first-person backrooms in a Copilot canvas while agents work; their status ghost-writes on the walls.",
+  "keywords": [
+    "backrooms",
+    "copilot-canvas",
+    "interactive-canvas",
+    "first-person",
+    "procedural-generation",
+    "session-breaks"
+  ]
+}

@@ -7,7 +7,7 @@
 //      loaders without a visible fallback. Reduced motion now stops the
 //      animation while forcing each loader into a visible static busy state;
 //      nearby text continues to communicate progress.
-//   2. The "Restart your Copilot session" banner ignoring Dismiss. The real
+//   2. The "Restart the GitHub Copilot app" banner ignoring Dismiss. The real
 //      root cause was CSS specificity: `.restart-banner{display:flex}` is an
 //      author rule with the same (0,1,0) specificity as the UA
 //      `[hidden]{display:none}` rule, so it overrode the hidden attribute and
@@ -54,6 +54,54 @@ function catalogHtml() {
 test("setup subscription label names its select", () => {
     const html = renderSetupHtml([], "", "token");
     assert.match(html, /<label for="sub-select">Subscription<\/label>/);
+});
+
+test("setup prompts, polls, cancels, and reloads subscriptions after browser sign-in", () => {
+    const html = renderSetupHtml([], "", "token");
+    assert.match(html, /id="signin-btn"/);
+    assert.match(html, /fetch\("\/api\/signin"/);
+    assert.match(html, /\/api\/signin\/status\?sessionId=/);
+    assert.match(html, /fetch\("\/api\/signin\/cancel"/);
+    assert.match(html, /setTimeout\(pollSignin, 2500\)/);
+    assert.match(html, /await loadSubscriptions\(true\)/);
+    assert.match(html, /\/api\/subscriptions/);
+});
+
+test("a linked namespace gets a focused sign-in state and returns to its catalog", () => {
+    const html = renderSetupHtml([], "", "token", { linkedNamespace: "saved-gateway" });
+    assert.match(html, /Sign in to see your connectors/);
+    assert.match(html, /Connector namespace <code>saved-gateway<\/code> is already linked\./);
+    assert.match(html, /Sign in to Azure to view and manage its connectors\./);
+    assert.match(html, /const hasLinkedNamespace = true/);
+    assert.match(html, /window\.location\.replace\("\/"\)/);
+    assert.match(html, /<div id="setup-content" hidden>/);
+});
+
+test("linked namespace sign-in escapes saved names and produces valid client JavaScript", () => {
+    const html = renderSetupHtml([], "", "token", {
+        linkedNamespace: `gateway</code><script>alert("xss")</script>`,
+    });
+    assert.doesNotMatch(html, /<script>alert\("xss"\)<\/script>/);
+    assert.match(html, /gateway&lt;\/code&gt;&lt;script&gt;alert\(&quot;xss&quot;\)&lt;\/script&gt;/);
+    const script = html.match(/<script>([\s\S]*)<\/script>/)?.[1];
+    assert.ok(script, "linked setup page must include its client script");
+    assert.doesNotThrow(() => new Function(script));
+});
+
+test("setup sign-in uses a compact borderless blank state", () => {
+    const html = renderSetupHtml([], "", "token");
+    assert.match(html, /id="signin-btn" class="item-add primary signin-primary"/);
+    assert.match(html, /id="cancel-signin-btn" class="signin-cancel"/);
+    assert.match(html, /Sign in to Azure to load your subscriptions and connector namespaces\./);
+    assert.doesNotMatch(html, /signin-row|signin-icon|signin-title|>Azure account</);
+    assert.doesNotMatch(html, /\.signin-panel\s*\{[^}]*(?:border|background|padding)\s*:/);
+});
+
+test("setup browser script parses after rendering", () => {
+    const html = renderSetupHtml([], "", "token");
+    const script = html.match(/<script>([\s\S]*)<\/script>/)?.[1];
+    assert.ok(script, "setup page must include its client script");
+    assert.doesNotThrow(() => new Function(script));
 });
 
 test("load-all and installed-state failures stay visible and fail closed", () => {
@@ -141,6 +189,12 @@ test("restart banner dismiss is sticky against a racing state refresh", () => {
         /restartBanner\.hidden\s*=\s*restartDismissed\s*\|\|\s*!d\.pendingRestart/,
         "hydrateState must respect the dismissed flag so a late refresh can't re-show the banner",
     );
+});
+
+test("restart guidance names the GitHub Copilot app rather than the session", () => {
+    const html = catalogHtml();
+    assert.match(html, /Restart the GitHub Copilot app to use newly added tools\./);
+    assert.doesNotMatch(html, /Restart (?:your Copilot )?session/);
 });
 
 test("a global [hidden] reset makes the hidden attribute authoritative", () => {

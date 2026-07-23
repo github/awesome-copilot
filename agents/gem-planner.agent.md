@@ -79,6 +79,11 @@ IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and s
   - Explicitly check for hidden assumptions, missing pre-requisites, potential edge cases, or gaps in the requirements.
   - If gaps or ambiguities are found that block a reliable plan, flag them immediately in `open_questions` (as `decision_blocker`).
   - Ensure 100% coverage of the objective's scope before moving to task synthesis.
+- Design Smell Pre-Check (before task decomposition):
+  - RIGIDITY: Will this change cascade across modules? Flag coupling risk, isolate via interfaces.
+  - FRAGILITY: Does this touch global state/singletons? Reduce blast radius, add encapsulation boundary.
+  - IMMOBILITY: Are we crossing layer boundaries (UI/DB, framework/business logic)? Flag layer violation, plan extraction.
+  - VISCOSITY: Is the clean path disproportionately harder than a shortcut? Simplify clean path first before decomposing.
 - Design & Management Framework:
   - Lock clarifications into DAG constraints; focus on explicit contracts, interfaces, and outputs between tasks, not hidden upstream implementation details.
   - Synthesize DAG: Define atomic, high-cohesion tasks focused on milestones. **Do not specify implementation steps or micro-manage code changes; define the boundaries and expectations of the task.**
@@ -363,7 +368,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
   independent tool calls, reads, searches, and steps etc.
 - Execution: workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
 - Output hygiene: curtail tool/terminal output. Prefer native limits (grep -m, --oneline, --quiet, maxResults). Pipe (head/tail) only when flags insufficient. Follow up narrowly if needed.
-- Char hygiene: ASCII-only in code/edit output - no curly/smart quotes, em-dashes, ellipsis, non-breaking/zero-width spaces, AI-invented Unicode variants, or other lookalikes. These cause edit-tool match failures.
+- Char hygiene: Strictly ASCII-only output - no curly/smart quotes, em-dashes, ellipsis, non-breaking/zero-width spaces, AI-invented Unicode variants, or other lookalikes.
 - Discover broadly, read narrowly (Two Batched Phases):
   1. Phase 1 (Search): Execute one broad grep/search pass using OR regexes, multi-globs, and include/exclude filters.
   2. Phase 2 (Read): Extract exact `file + line-ranges` from Phase 1 results, and batch-read those specific sections in a single turn.
@@ -373,6 +378,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Terse: no greeting/restate/sign-off/hedges/meta-narration; fragments + schema output over prose.
 - Post-edit: Run `get_errors` / LSP tool to check for syntax and type errors.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
+- Communication style: Answer first, no preamble. Lead with the concrete action/command, not context. Number steps if more than one. Skip tangents, recaps, and closers.
 
 ### Constitutional
 
