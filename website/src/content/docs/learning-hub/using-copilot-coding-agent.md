@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-07-22
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -108,6 +108,26 @@ steps:
   - name: Run all tests
     run: npm test && pytest
 ```
+
+### Controlling Network Access (GA — July 2026)
+
+By default, the coding agent's cloud environment has outbound internet access. You can restrict this using the `allowed-domains` field in `copilot-setup-steps.yml`. This is useful when you want to enforce that the agent only reaches known package registries or internal services:
+
+```yaml
+# .github/copilot-setup-steps.yml
+allowed-domains:
+  - "*.npmjs.com"
+  - "registry.yarnpkg.com"
+  - "pypi.org"
+  - "*.github.com"
+steps:
+  - name: Install dependencies
+    run: npm ci
+```
+
+When `allowed-domains` is specified, all other outbound traffic is blocked. Omit the field (the default) to allow unrestricted internet access. If the setup steps need to download runtimes or tools from multiple sources, add each domain explicitly.
+
+> **Tip**: Start with no restrictions to validate your setup, then progressively tighten `allowed-domains` to match only the services your build actually needs.
 
 ## Assigning Work to the Coding Agent
 
@@ -447,6 +467,7 @@ A: Yes. You can specify which agent to use when assigning work — the coding ag
 ## Next Steps
 
 - **Set Up Your Environment**: Create `.github/copilot-setup-steps.yml` for your project
+- **Control Network Access**: [Configure internet access for the coding agent](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/configuring-copilot-setup-steps) — Use `allowed-domains` to restrict outbound traffic
 - **Create Skills**: [Creating Effective Skills](../creating-effective-skills/) — Build skills the coding agent can use automatically
 - **Add Guardrails**: [Automating with Hooks](../automating-with-hooks/) — Ensure code quality in autonomous sessions
 - **Build Custom Agents**: [Building Custom Agents](../building-custom-agents/) — Create specialized agents for the coding agent to use
