@@ -517,11 +517,16 @@ function checkPathExistsAtLocator(repoDir, locator, repoPath, expectedType) {
   };
 }
 
-function listTreeEntries(repoDir, locator, treePath) {
+function listTreeEntries(repoDir, locator, treePath, { recursive = false } = {}) {
   // Parse the full, untruncated tree listing directly. runCommand()/truncateOutput()
   // would cap stdout at MAX_OUTPUT_LENGTH and silently drop later entries, and the
   // default (non-"-z") output quotes unusual names; "-z" gives raw, NUL-delimited records.
-  const result = spawnSync("git", ["ls-tree", "-z", `${locator}:${treePath}`], {
+  // "-r -t" recurses in a single process and still lists intermediate tree objects, so a
+  // whole subtree can be inspected without spawning one git process per candidate path.
+  const args = recursive
+    ? ["ls-tree", "-r", "-t", "-z", `${locator}:${treePath}`]
+    : ["ls-tree", "-z", `${locator}:${treePath}`];
+  const result = spawnSync("git", args, {
     cwd: repoDir,
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
@@ -559,36 +564,42 @@ function listTreeEntries(repoDir, locator, treePath) {
 }
 
 function locateCanvasEntryPoint(repoDir, locator, extensionsDir) {
-  const flatEntryPoint = toPosixPath(extensionsDir, "extension.mjs");
-  const flatCheck = checkPathExistsAtLocator(repoDir, locator, flatEntryPoint, "blob");
-  if (flatCheck.output) {
-    return { entryPoint: null, output: flatCheck.output };
-  }
-  if (flatCheck.exists) {
-    return { entryPoint: flatEntryPoint, output: "" };
-  }
-
-  const listing = listTreeEntries(repoDir, locator, extensionsDir);
+  // Enumerate the extensions subtree with a single recursive git process rather than
+  // spawning a git cat-file per candidate directory, so discovery stays bounded no matter
+  // how many folders an untrusted repository packs under "extensions/". "-r" yields paths
+  // relative to extensionsDir, so nested entry points appear as "<name>/extension.mjs".
+  const listing = listTreeEntries(repoDir, locator, extensionsDir, { recursive: true });
   if (listing.output) {
     return { entryPoint: null, output: listing.output };
   }
 
+  let flatIsBlob = false;
+  let flatIsTree = false;
+  let nestedEntryPoint = null;
   for (const entry of listing.entries) {
-    if (entry.type !== "tree") {
+    if (entry.name === "extension.mjs") {
+      if (entry.type === "blob") {
+        flatIsBlob = true;
+      } else if (entry.type === "tree") {
+        flatIsTree = true;
+      }
       continue;
     }
 
-    const nestedEntryPoint = toPosixPath(extensionsDir, entry.name, "extension.mjs");
-    const nestedCheck = checkPathExistsAtLocator(repoDir, locator, nestedEntryPoint, "blob");
-    if (nestedCheck.output) {
-      return { entryPoint: null, output: nestedCheck.output };
-    }
-    if (nestedCheck.exists) {
-      return { entryPoint: nestedEntryPoint, output: "" };
+    const segments = entry.name.split("/");
+    if (segments.length === 2 && segments[1] === "extension.mjs" && entry.type === "blob" && !nestedEntryPoint) {
+      nestedEntryPoint = toPosixPath(extensionsDir, segments[0], "extension.mjs");
     }
   }
 
-  return { entryPoint: null, output: "", flatKindMismatch: Boolean(flatCheck.kindMismatch) };
+  if (flatIsBlob) {
+    return { entryPoint: toPosixPath(extensionsDir, "extension.mjs"), output: "" };
+  }
+  if (nestedEntryPoint) {
+    return { entryPoint: nestedEntryPoint, output: "" };
+  }
+
+  return { entryPoint: null, output: "", flatKindMismatch: flatIsTree };
 }
 
 export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {

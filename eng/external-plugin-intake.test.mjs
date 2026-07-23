@@ -5,18 +5,21 @@ import { validateCanvasPluginMetadata } from "./external-plugin-intake.mjs";
 const REPO = "owner/repo";
 const SHA = "0123456789abcdef0123456789abcdef01234567";
 const PLUGIN_ROOT = "plugins/upgrade-agent";
-const EXTENSIONS_DIR = `${PLUGIN_ROOT}/extensions`;
+
+const TREE_PLUGINS = "tree-plugins";
+const TREE_UPGRADE_AGENT = "tree-upgrade-agent";
+const TREE_EXTENSIONS = "tree-extensions";
 
 function fileNode(content) {
   return { type: "file", content: Buffer.from(content, "utf8").toString("base64") };
 }
 
-function treeEntry(path, type) {
-  return { path, type, mode: type === "tree" ? "040000" : "100644", sha: "deadbeef" };
+function treeEntry(path, type, sha) {
+  return { path, type, mode: type === "tree" ? "040000" : "100644", sha: sha ?? "deadbeef" };
 }
 
 function treeResponse(entries, { truncated = false } = {}) {
-  return { status: 200, data: { sha: "roottree", truncated, tree: entries } };
+  return { status: 200, data: { sha: "resolved", truncated, tree: entries } };
 }
 
 function decodeContentsPath(url) {
@@ -29,13 +32,21 @@ function decodeContentsPath(url) {
     .join("/");
 }
 
-async function withMockedFetch({ routes = {}, tree }, run) {
+function decodeTreeish(url) {
+  const match = String(url).match(/\/git\/trees\/([^/?]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function withMockedFetch({ contents = {}, trees = {} }, run) {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url) => {
     const requestUrl = String(url);
-    const route = requestUrl.includes("/git/trees/")
-      ? tree ?? { status: 404, data: {} }
-      : routes[decodeContentsPath(requestUrl)] ?? { status: 404, data: {} };
+    let route;
+    if (requestUrl.includes("/git/trees/")) {
+      route = trees[decodeTreeish(requestUrl)] ?? { status: 404, data: {} };
+    } else {
+      route = contents[decodeContentsPath(requestUrl)] ?? { status: 404, data: {} };
+    }
     return {
       ok: route.status >= 200 && route.status < 300,
       status: route.status,
@@ -59,12 +70,29 @@ const canvasManifest = fileNode(
   }),
 );
 
-function baseRoutes(extra) {
+function baseContents(extra) {
   return {
     [`${PLUGIN_ROOT}/.github/plugin/plugin.json`]: { status: 200, data: canvasManifest },
     [`${PLUGIN_ROOT}/assets/preview.png`]: { status: 200, data: fileNode("binary") },
     ...extra,
   };
+}
+
+// Wires up the directory-walk that resolves plugins/upgrade-agent/extensions to a tree SHA.
+// `extensionsEntry` controls what the walk finds at the final ".../extensions" step, and
+// `extensionsSubtree` is the recursive listing returned for that resolved tree SHA.
+function buildTrees({ extensionsEntry, extensionsSubtree, overrides } = {}) {
+  const trees = {
+    [SHA]: treeResponse([treeEntry("plugins", "tree", TREE_PLUGINS)]),
+    [TREE_PLUGINS]: treeResponse([treeEntry("upgrade-agent", "tree", TREE_UPGRADE_AGENT)]),
+    [TREE_UPGRADE_AGENT]: treeResponse([
+      extensionsEntry ?? treeEntry("extensions", "tree", TREE_EXTENSIONS),
+    ]),
+  };
+  if (extensionsSubtree) {
+    trees[TREE_EXTENSIONS] = extensionsSubtree;
+  }
+  return { ...trees, ...overrides };
 }
 
 function makePlugin() {
@@ -75,10 +103,10 @@ function makePlugin() {
   };
 }
 
-async function runValidation({ tree }) {
+async function runValidation({ contents, trees }) {
   const errors = [];
   const warnings = [];
-  await withMockedFetch({ routes: baseRoutes(), tree }, () =>
+  await withMockedFetch({ contents: baseContents(contents), trees }, () =>
     validateCanvasPluginMetadata(makePlugin(), errors, warnings, null),
   );
   return { errors, warnings };
@@ -86,11 +114,12 @@ async function runValidation({ tree }) {
 
 test("validateCanvasPluginMetadata accepts a nested extension entry point", async () => {
   const { errors, warnings } = await runValidation({
-    tree: treeResponse([
-      treeEntry(EXTENSIONS_DIR, "tree"),
-      treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard`, "tree"),
-      treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard/extension.mjs`, "blob"),
-    ]),
+    trees: buildTrees({
+      extensionsSubtree: treeResponse([
+        treeEntry("modernize-dashboard", "tree"),
+        treeEntry("modernize-dashboard/extension.mjs", "blob"),
+      ]),
+    }),
   });
 
   assert.deepEqual(errors, []);
@@ -99,10 +128,9 @@ test("validateCanvasPluginMetadata accepts a nested extension entry point", asyn
 
 test("validateCanvasPluginMetadata accepts a flat extension entry point", async () => {
   const { errors, warnings } = await runValidation({
-    tree: treeResponse([
-      treeEntry(EXTENSIONS_DIR, "tree"),
-      treeEntry(`${EXTENSIONS_DIR}/extension.mjs`, "blob"),
-    ]),
+    trees: buildTrees({
+      extensionsSubtree: treeResponse([treeEntry("extension.mjs", "blob")]),
+    }),
   });
 
   assert.deepEqual(errors, []);
@@ -111,11 +139,12 @@ test("validateCanvasPluginMetadata accepts a flat extension entry point", async 
 
 test("validateCanvasPluginMetadata rejects when no extension.mjs exists flat or nested", async () => {
   const { errors } = await runValidation({
-    tree: treeResponse([
-      treeEntry(EXTENSIONS_DIR, "tree"),
-      treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard`, "tree"),
-      treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard/index.mjs`, "blob"),
-    ]),
+    trees: buildTrees({
+      extensionsSubtree: treeResponse([
+        treeEntry("modernize-dashboard", "tree"),
+        treeEntry("modernize-dashboard/index.mjs", "blob"),
+      ]),
+    }),
   });
 
   assert.equal(
@@ -126,10 +155,9 @@ test("validateCanvasPluginMetadata rejects when no extension.mjs exists flat or 
 
 test("validateCanvasPluginMetadata rejects when the extensions directory is missing", async () => {
   const { errors } = await runValidation({
-    tree: treeResponse([
-      treeEntry(`${PLUGIN_ROOT}/.github/plugin/plugin.json`, "blob"),
-      treeEntry(`${PLUGIN_ROOT}/assets/preview.png`, "blob"),
-    ]),
+    trees: buildTrees({
+      extensionsEntry: treeEntry("other-dir", "tree", "tree-other"),
+    }),
   });
 
   assert.equal(
@@ -140,7 +168,9 @@ test("validateCanvasPluginMetadata rejects when the extensions directory is miss
 
 test("validateCanvasPluginMetadata rejects when extensions is a file rather than a directory", async () => {
   const { errors } = await runValidation({
-    tree: treeResponse([treeEntry(EXTENSIONS_DIR, "blob")]),
+    trees: buildTrees({
+      extensionsEntry: treeEntry("extensions", "blob", "blob-extensions"),
+    }),
   });
 
   assert.equal(
@@ -151,11 +181,12 @@ test("validateCanvasPluginMetadata rejects when extensions is a file rather than
 
 test("validateCanvasPluginMetadata rejects when extensions/extension.mjs is a directory", async () => {
   const { errors } = await runValidation({
-    tree: treeResponse([
-      treeEntry(EXTENSIONS_DIR, "tree"),
-      treeEntry(`${EXTENSIONS_DIR}/extension.mjs`, "tree"),
-      treeEntry(`${EXTENSIONS_DIR}/extension.mjs/placeholder.txt`, "blob"),
-    ]),
+    trees: buildTrees({
+      extensionsSubtree: treeResponse([
+        treeEntry("extension.mjs", "tree"),
+        treeEntry("extension.mjs/placeholder.txt", "blob"),
+      ]),
+    }),
   });
 
   assert.equal(
@@ -164,9 +195,11 @@ test("validateCanvasPluginMetadata rejects when extensions/extension.mjs is a di
   );
 });
 
-test("validateCanvasPluginMetadata surfaces an unverifiable result when the tree fetch errors", async () => {
+test("validateCanvasPluginMetadata surfaces an unverifiable result when the tree walk errors", async () => {
   const { errors, warnings } = await runValidation({
-    tree: { status: 500, data: {} },
+    trees: buildTrees({
+      overrides: { [SHA]: { status: 500, data: {} } },
+    }),
   });
 
   assert.deepEqual(errors, []);
@@ -176,15 +209,16 @@ test("validateCanvasPluginMetadata surfaces an unverifiable result when the tree
   );
 });
 
-test("validateCanvasPluginMetadata treats a truncated tree without an entry point as unverifiable", async () => {
+test("validateCanvasPluginMetadata treats a truncated walk level as unverifiable", async () => {
   const { errors, warnings } = await runValidation({
-    tree: treeResponse(
-      [
-        treeEntry(EXTENSIONS_DIR, "tree"),
-        treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard`, "tree"),
-      ],
-      { truncated: true },
-    ),
+    trees: buildTrees({
+      overrides: {
+        [TREE_UPGRADE_AGENT]: treeResponse(
+          [treeEntry("extensions", "tree", TREE_EXTENSIONS)],
+          { truncated: true },
+        ),
+      },
+    }),
   });
 
   assert.deepEqual(errors, []);
@@ -194,16 +228,31 @@ test("validateCanvasPluginMetadata treats a truncated tree without an entry poin
   );
 });
 
-test("validateCanvasPluginMetadata accepts an entry point found within a truncated tree", async () => {
+test("validateCanvasPluginMetadata treats a truncated extensions subtree without an entry point as unverifiable", async () => {
   const { errors, warnings } = await runValidation({
-    tree: treeResponse(
-      [
-        treeEntry(EXTENSIONS_DIR, "tree"),
-        treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard`, "tree"),
-        treeEntry(`${EXTENSIONS_DIR}/modernize-dashboard/extension.mjs`, "blob"),
-      ],
-      { truncated: true },
-    ),
+    trees: buildTrees({
+      extensionsSubtree: treeResponse([treeEntry("modernize-dashboard", "tree")], { truncated: true }),
+    }),
+  });
+
+  assert.deepEqual(errors, []);
+  assert.equal(
+    warnings.some((message) => /could not verify the canvas extension entry point/.test(message)),
+    true,
+  );
+});
+
+test("validateCanvasPluginMetadata accepts an entry point found within a truncated subtree", async () => {
+  const { errors, warnings } = await runValidation({
+    trees: buildTrees({
+      extensionsSubtree: treeResponse(
+        [
+          treeEntry("modernize-dashboard", "tree"),
+          treeEntry("modernize-dashboard/extension.mjs", "blob"),
+        ],
+        { truncated: true },
+      ),
+    }),
   });
 
   assert.deepEqual(errors, []);

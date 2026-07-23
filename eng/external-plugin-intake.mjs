@@ -380,12 +380,10 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
   }
 }
 
-async function fetchGitHubTree(repo, treeish, token) {
+function buildGitTreePath(repo, treeish, { recursive = false } = {}) {
   const encodedRepo = encodeRepoPath(repo);
-  return fetchGitHubJson(
-    `/repos/${encodedRepo}/git/trees/${encodeURIComponent(treeish)}?recursive=1`,
-    token,
-  );
+  const query = recursive ? "?recursive=1" : "";
+  return `/repos/${encodedRepo}/git/trees/${encodeURIComponent(treeish)}${query}`;
 }
 
 function normalizeTreeish(locator) {
@@ -396,43 +394,51 @@ function normalizeTreeish(locator) {
   return value.startsWith("refs/tags/") ? value.slice("refs/tags/".length) : value;
 }
 
-// Inspect a recursive git tree for the plugin's canvas extension entry point. Accepts the
-// flat "extensions/extension.mjs" or any immediate nested "extensions/<name>/extension.mjs".
-// A single recursive tree fetch replaces per-subfolder Contents API calls: it is complete
-// (subject only to the tree's own "truncated" flag, which the caller treats as unverifiable)
-// and avoids one request per extension subfolder.
-function analyzeCanvasExtensionTree(treeEntries, pluginRoot) {
-  const extensionsDir = pluginRoot ? `${pluginRoot}/extensions` : "extensions";
-  const flatEntryPath = `${extensionsDir}/extension.mjs`;
-  const nestedPrefix = `${extensionsDir}/`;
+// Resolve the tree SHA of a directory by walking the path one level at a time. Each hop is a
+// non-recursive tree fetch of a single directory, so the work is bounded by the path depth and
+// is independent of the overall repository size — unlike a root recursive fetch, which a large
+// unrelated monorepo can push over the API's truncation limit and never validate.
+async function resolveDirectoryTreeSha(repo, treeish, segments, token) {
+  let currentTreeish = treeish;
+  for (const segment of segments) {
+    const response = await fetchGitHubJson(buildGitTreePath(repo, currentTreeish), token);
+    if (response.kind !== "found" || !Array.isArray(response.data?.tree)) {
+      return { status: "apiError" };
+    }
+    if (response.data.truncated) {
+      // A single directory level exceeded the response limit; presence is unverifiable.
+      return { status: "apiError" };
+    }
 
-  let containerIsTree = false;
-  let containerIsBlob = false;
+    const match = response.data.tree.find((entry) => entry?.path === segment);
+    if (!match) {
+      return { status: "missing" };
+    }
+    if (match.type !== "tree") {
+      return { status: "notDirectory" };
+    }
+    currentTreeish = match.sha;
+  }
+
+  return { status: "found", treeSha: currentTreeish };
+}
+
+// Inspect the (recursively fetched) "extensions" subtree for the plugin's canvas extension
+// entry point. Paths are relative to "extensions/", so the flat form is "extension.mjs" and a
+// nested form is "<name>/extension.mjs". Scoping the recursive fetch to this subtree keeps the
+// lookup complete without depending on the size of the rest of the repository.
+function analyzeCanvasExtensionSubtree(subtreeEntries) {
   let flatIsBlob = false;
   let flatIsTree = false;
   let nestedEntryPath = null;
 
-  for (const entry of treeEntries) {
+  for (const entry of subtreeEntries) {
     const entryPath = entry?.path;
     if (typeof entryPath !== "string") {
       continue;
     }
 
-    if (entryPath === extensionsDir) {
-      if (entry.type === "tree") {
-        containerIsTree = true;
-      } else if (entry.type === "blob") {
-        containerIsBlob = true;
-      }
-      continue;
-    }
-
-    if (!entryPath.startsWith(nestedPrefix)) {
-      continue;
-    }
-    containerIsTree = true; // a descendant implies the container resolves to a directory
-
-    if (entryPath === flatEntryPath) {
+    if (entryPath === "extension.mjs") {
       if (entry.type === "blob") {
         flatIsBlob = true;
       } else if (entry.type === "tree") {
@@ -441,21 +447,17 @@ function analyzeCanvasExtensionTree(treeEntries, pluginRoot) {
       continue;
     }
 
-    const relative = entryPath.slice(nestedPrefix.length);
-    const segments = relative.split("/");
+    const segments = entryPath.split("/");
     if (segments.length === 2 && segments[1] === "extension.mjs" && entry.type === "blob") {
-      nestedEntryPath = nestedEntryPath ?? entryPath;
+      nestedEntryPath = nestedEntryPath ?? `extensions/${entryPath}`;
     }
   }
 
   if (flatIsBlob) {
-    return { status: "found", entryPath: flatEntryPath };
+    return { status: "found", entryPath: "extensions/extension.mjs" };
   }
   if (nestedEntryPath) {
     return { status: "found", entryPath: nestedEntryPath };
-  }
-  if (!containerIsTree) {
-    return { status: containerIsBlob ? "containerNotDirectory" : "containerMissing" };
   }
   if (flatIsTree) {
     return { status: "notFile" };
@@ -554,37 +556,50 @@ export async function validateCanvasPluginMetadata(plugin, errors, warnings, tok
     );
   }
 
-  const releaseTreeResponse = await fetchGitHubTree(repo, normalizeTreeish(releaseLocator), token);
-  if (releaseTreeResponse.kind !== "found" || !Array.isArray(releaseTreeResponse.data?.tree)) {
-    warnings.push(
-      `submission: could not verify the canvas extension entry point in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
+  const unverifiableEntryPointWarning =
+    `submission: could not verify the canvas extension entry point in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`;
+  const extensionsSegments = [...(pluginRoot ? pluginRoot.split("/") : []), "extensions"];
+  const extensionsTree = await resolveDirectoryTreeSha(
+    repo,
+    normalizeTreeish(releaseLocator),
+    extensionsSegments,
+    token,
+  );
+  if (extensionsTree.status === "apiError") {
+    warnings.push(unverifiableEntryPointWarning);
+  } else if (extensionsTree.status === "missing") {
+    errors.push(
+      `submission: plugins tagged with "canvas" must include an "extensions" directory at ${releaseLocatorDescription}`,
+    );
+  } else if (extensionsTree.status === "notDirectory") {
+    errors.push(
+      `submission: "extensions" must be a directory in ${releaseLocatorDescription}`,
     );
   } else {
-    const canvasStructure = analyzeCanvasExtensionTree(releaseTreeResponse.data.tree, pluginRoot);
-    if (canvasStructure.status === "found") {
-      // Entry point located (flat or nested); nothing to report.
-    } else if (releaseTreeResponse.data.truncated) {
-      // Absence is not conclusive when the tree is truncated: a nested entry point may lie
-      // beyond the returned entries, so flag it as unverifiable rather than falsely rejecting.
-      warnings.push(
-        `submission: could not verify the canvas extension entry point in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
-      );
-    } else if (canvasStructure.status === "containerMissing") {
-      errors.push(
-        `submission: plugins tagged with "canvas" must include an "extensions" directory at ${releaseLocatorDescription}`,
-      );
-    } else if (canvasStructure.status === "containerNotDirectory") {
-      errors.push(
-        `submission: "extensions" must be a directory in ${releaseLocatorDescription}`,
-      );
-    } else if (canvasStructure.status === "notFile") {
-      errors.push(
-        `submission: "extensions/extension.mjs" must be a file in ${releaseLocatorDescription}`,
-      );
+    const subtreeResponse = await fetchGitHubJson(
+      buildGitTreePath(repo, extensionsTree.treeSha, { recursive: true }),
+      token,
+    );
+    if (subtreeResponse.kind !== "found" || !Array.isArray(subtreeResponse.data?.tree)) {
+      warnings.push(unverifiableEntryPointWarning);
     } else {
-      errors.push(
-        `submission: plugins tagged with "canvas" must include a canvas extension entry point at "extensions/extension.mjs" or "extensions/<extension>/extension.mjs" at ${releaseLocatorDescription}`,
-      );
+      const canvasStructure = analyzeCanvasExtensionSubtree(subtreeResponse.data.tree);
+      if (canvasStructure.status === "found") {
+        // Entry point located (flat or nested); nothing to report.
+      } else if (subtreeResponse.data.truncated) {
+        // Absence is only inconclusive if the (already extensions-scoped) subtree itself is
+        // truncated, which would take an implausibly large extensions directory; flag it as
+        // unverifiable rather than falsely rejecting.
+        warnings.push(unverifiableEntryPointWarning);
+      } else if (canvasStructure.status === "notFile") {
+        errors.push(
+          `submission: "extensions/extension.mjs" must be a file in ${releaseLocatorDescription}`,
+        );
+      } else {
+        errors.push(
+          `submission: plugins tagged with "canvas" must include a canvas extension entry point at "extensions/extension.mjs" or "extensions/<extension>/extension.mjs" at ${releaseLocatorDescription}`,
+        );
+      }
     }
   }
 
