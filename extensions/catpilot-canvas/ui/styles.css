@@ -316,7 +316,7 @@ table.tbl tr:focus-within .row-actions { opacity: 1; }
     border: 1px solid var(--border); border-radius: 11px;
     padding: 11px 12px 11px 15px; cursor: grab; box-shadow: var(--shadow-sm);
     transition: transform var(--sq), box-shadow var(--sq), border-color var(--sq);
-    overflow: hidden;
+    overflow: hidden; flex: 0 0 auto;
 }
 .board-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--pr-accent, var(--border)); }
 .board-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: color-mix(in srgb, var(--pr-accent, var(--accent)) 45%, var(--border)); }
@@ -329,12 +329,10 @@ table.tbl tr:focus-within .row-actions { opacity: 1; }
 .bc-title:hover { color: var(--accent); }
 .board-card.is-done .bc-title { text-decoration: line-through; color: var(--text-faint); }
 .bc-foot { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--border); }
-.bc-due { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--text); background: color-mix(in srgb, var(--accent) 12%, var(--panel-2)); border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border)); border-radius: 7px; padding: 3px 8px; font-variant-numeric: tabular-nums; }
-.bc-due-ico { font-size: 12px; line-height: 1; }
-.bc-due-date { letter-spacing: .2px; }
-.bc-due-rel { font-weight: 600; opacity: .8; padding-left: 5px; margin-left: 1px; border-left: 1px solid color-mix(in srgb, currentColor 30%, transparent); }
-.bc-due.overdue { color: #ff6b7d; background: rgba(255,107,125,.13); border-color: transparent; }
-.bc-due.today { color: #ffb020; background: rgba(255,176,32,.15); border-color: transparent; }
+.bc-due { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text, #e6e6f0); background: rgba(124,92,255,.14); border: 1px solid rgba(124,92,255,.34); border-radius: 8px; padding: 4px 9px; letter-spacing: .2px; font-variant-numeric: tabular-nums; }
+.bc-due.overdue { color: #ff6b7d; background: rgba(255,107,125,.14); border-color: rgba(255,107,125,.4); }
+.bc-due.today { color: #ffb020; background: rgba(255,176,32,.15); border-color: rgba(255,176,32,.42); }
+.bc-due.none { color: var(--text-muted); background: var(--panel-2); border-color: var(--border); font-weight: 600; }
 .badge.st-overdue { background: rgba(255,107,125,.15); color: #ff6b7d; border-color: transparent; }
 
 /* ---------- Tasks · Calendar view ---------- */

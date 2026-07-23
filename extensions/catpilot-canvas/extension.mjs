@@ -34,6 +34,12 @@ const STATIC = {
     "/hero.svg": { file: "hero.svg", type: "image/svg+xml" },
 };
 
+// Some embedded WebViews (e.g. WebView2) ignore `no-store` and reuse an old
+// /app.js keyed only by path across loopback port changes, serving stale UI.
+// A fresh token is injected into the HTML entry on EVERY load (below), so the
+// asset URLs are always ones the WebView has never cached.
+const NO_CACHE = "no-store, no-cache, must-revalidate, max-age=0";
+
 function sendJson(res, code, payload) {
     const body = JSON.stringify(payload);
     res.writeHead(code, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
@@ -195,8 +201,20 @@ async function requestListener(req, res) {
     const asset = STATIC[p];
     if (asset) {
         try {
-            const buf = await readFile(path.join(UI_DIR, asset.file));
-            res.writeHead(200, { "Content-Type": asset.type, "Cache-Control": "no-store" });
+            let buf = await readFile(path.join(UI_DIR, asset.file));
+            // Inject a fresh cache-bust token into the HTML entry on every load so
+            // the WebView always requests an asset URL it has never cached.
+            if (asset.file === "index.html") {
+                const tag = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+                buf = Buffer.from(String(buf)
+                    .replace(/(href|src)="(styles\.css|app\.js)(\?[^"]*)?"/g, `$1="$2?v=${tag}"`));
+            }
+            res.writeHead(200, {
+                "Content-Type": asset.type,
+                "Cache-Control": NO_CACHE,
+                "Pragma": "no-cache",
+                "Expires": "0",
+            });
             return res.end(buf);
         } catch {
             res.writeHead(404); return res.end("Not found");

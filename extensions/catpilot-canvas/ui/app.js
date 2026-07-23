@@ -706,29 +706,13 @@
         const foot = el("div", { class: "bc-foot" });
         if (t.dueDate) {
             const state = done ? "" : overdue ? " overdue" : (t.dueDate === todayISO() ? " today" : "");
-            const rel = dueLabel(t.dueDate, done);
-            foot.append(el("span", { class: `bc-due${state}`, title: `Due ${t.dueDate}` },
-                el("span", { class: "bc-due-ico", text: "📅" }),
-                el("span", { class: "bc-due-date", text: t.dueDate }),
-                rel ? el("span", { class: "bc-due-rel", text: rel }) : null));
+            foot.append(el("span", { class: `bc-due${state}`, title: `Due ${t.dueDate}`, text: `📅 ${t.dueDate}` }));
+        } else {
+            foot.append(el("span", { class: "bc-due none", title: "No due date", text: "🗓️ No due date" }));
         }
         if (String(t.tags || "").trim()) foot.append(tagChips(t.tags));
         if (foot.childNodes.length) card.append(foot);
         return card;
-    }
-
-    // Human-friendly relative due label, e.g. "Today", "Tomorrow", "in 3d", "2d overdue".
-    function dueLabel(iso, done) {
-        if (!iso || done) return "";
-        const t0 = new Date(todayISO() + "T00:00:00");
-        const d = new Date(iso + "T00:00:00");
-        if (isNaN(d)) return "";
-        const diff = Math.round((d - t0) / 86400000);
-        if (diff < 0) return `${Math.abs(diff)}d overdue`;
-        if (diff === 0) return "Today";
-        if (diff === 1) return "Tomorrow";
-        if (diff <= 14) return `in ${diff}d`;
-        return "";
     }
 
     // ---------- Tasks · Calendar view ----------
