@@ -304,14 +304,23 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px s
 // Setup / Namespace Picker
 // ---------------------------------------------------------------------------
 
-export function renderSetupHtml(subscriptions = [], notice = "", capabilityToken = "") {
+export function renderSetupHtml(subscriptions = [], notice = "", capabilityToken = "", { linkedNamespace = "" } = {}) {
+    const hasLinkedNamespace = typeof linkedNamespace === "string" && linkedNamespace.length > 0;
+    const pageTitle = hasLinkedNamespace ? "Sign in to MCP Connectors" : "Select Connector Namespace";
+    const heading = hasLinkedNamespace ? "Sign in to see your connectors" : "Select a Connector Namespace";
+    const subheading = hasLinkedNamespace
+        ? `Connector namespace <code>${esc(linkedNamespace)}</code> is already linked.`
+        : "Choose which connector namespace to browse. This choice is saved for future sessions.";
+    const defaultSigninMessage = hasLinkedNamespace
+        ? "Sign in to Azure to view and manage its connectors."
+        : "Sign in to Azure to load your subscriptions and connector namespaces.";
     const subOptions = subscriptions.map((s) =>
         `<option value="${s.id}">${esc(s.name)} (${s.id.slice(0, 8)}\u2026)</option>`
     ).join("");
 
     return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Select Connector Namespace</title>${baseStyles()}
+<title>${pageTitle}</title>${baseStyles()}
 <style>
 .skeleton { animation: pulse 1.2s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: .4; } 50% { opacity: .8; } }
@@ -357,18 +366,18 @@ export function renderSetupHtml(subscriptions = [], notice = "", capabilityToken
 }
 </style></head><body>
 <div class="header brand-head">
-    <h1>${brandMark(30, "setup")}<span>Select a Connector Namespace</span></h1>
-    <div class="sub">Choose which connector namespace to browse. This choice is saved for future sessions.</div>
+    <h1>${brandMark(30, "setup")}<span>${heading}</span></h1>
+    <div class="sub">${subheading}</div>
 </div>
 ${notice ? `<div class="setup-notice">${esc(notice)}</div>` : ""}
 <div id="signin-panel" class="signin-panel" data-state="idle" aria-busy="false" hidden>
-    <p id="signin-message" class="signin-message" aria-live="polite">Sign in to Azure to load your subscriptions and connector namespaces.</p>
+    <p id="signin-message" class="signin-message" aria-live="polite">${defaultSigninMessage}</p>
     <div class="signin-actions">
         <button id="signin-btn" class="item-add primary signin-primary" type="button">Sign in to Azure</button>
         <button id="cancel-signin-btn" class="signin-cancel" type="button" hidden>Cancel</button>
     </div>
 </div>
-<div id="setup-content">
+<div id="setup-content"${hasLinkedNamespace ? " hidden" : ""}>
     <div class="create-row">
         <button id="create-ns-btn" class="create-link" type="button"${subscriptions.length ? "" : " disabled"}><span class="plus">+</span><span>New connector namespace</span></button>
     </div>
@@ -386,6 +395,8 @@ ${notice ? `<div class="setup-notice">${esc(notice)}</div>` : ""}
 </div>
 <script>
 const connectorNamespaceToken = ${JSON.stringify(capabilityToken)};
+const hasLinkedNamespace = ${hasLinkedNamespace};
+const defaultSigninMessage = ${JSON.stringify(defaultSigninMessage)};
 const rawFetch = window.fetch.bind(window);
 window.fetch = (input, init = {}) => {
     const url = typeof input === "string" ? input : input && input.url;
@@ -423,7 +434,7 @@ function setSigninRequired(message, state = "idle") {
     signinPanel.dataset.state = state;
     signinPanel.setAttribute("aria-busy", "false");
     setupContent.hidden = true;
-    signinMessage.textContent = message || "Sign in to Azure to load your subscriptions and connector namespaces.";
+    signinMessage.textContent = message || defaultSigninMessage;
     signinButton.disabled = false;
     signinButton.hidden = false;
     cancelSigninButton.hidden = true;
@@ -530,8 +541,14 @@ async function pollSignin() {
             stopSigninPolling();
             signinPanel.dataset.state = "pending";
             signinPanel.setAttribute("aria-busy", "true");
-            signinMessage.textContent = "Signed in. Loading subscriptions\u2026";
+            signinMessage.textContent = hasLinkedNamespace
+                ? "Signed in. Loading your connectors\u2026"
+                : "Signed in. Loading subscriptions\u2026";
             signinPanel.hidden = false;
+            if (hasLinkedNamespace) {
+                window.location.replace("/");
+                return;
+            }
             await loadSubscriptions(true);
             return;
         }
@@ -691,7 +708,8 @@ async function selectGateway(subscriptionId, resourceGroup, gatewayName) {
     else { gatewayList.innerHTML = '<div class="empty" style="color:var(--danger);">Failed to save.</div>'; }
 }
 
-if (${subscriptions.length > 0}) setSetupReady();
+if (hasLinkedNamespace) setSigninRequired();
+else if (${subscriptions.length > 0}) setSetupReady();
 else loadSubscriptions(false);
 </script></body></html>`;
 }

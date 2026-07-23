@@ -330,31 +330,45 @@ function isMissingPathAtLocator(output) {
   );
 }
 
-function fetchLocatorIntoRepo(repoDir, locator) {
+// Resolves the git object a locator's content should be read from.
+//
+// A locator can be a commit SHA, a short tag name (e.g. "v1.1.247"), or a
+// fully-qualified tag ref. `git fetch origin <locator>` only updates FETCH_HEAD;
+// it does NOT create a local `refs/tags/<name>`, so `git show <tag>:...` dies with
+// "invalid object name". Reading through FETCH_HEAD (or HEAD for the already
+// checked-out primary) sidesteps that without having to classify the locator.
+function resolveLocatorReadRef(repoDir, locator, primaryFetchSpec) {
+  if (locator === primaryFetchSpec) {
+    // The primary locator was fetched and checked out at HEAD when the submission
+    // was cloned, so its content is readable via HEAD without another fetch.
+    return { status: "pass", readRef: "HEAD", output: "" };
+  }
+
   const result = runCommand("git", ["fetch", "--depth=1", "origin", locator], { cwd: repoDir });
   if (result.exitCode === 0) {
-    return {
-      status: "pass",
-      output: "",
-    };
+    // FETCH_HEAD points at whatever was just fetched. At most one non-primary
+    // locator is fetched per gate and it is read immediately below, so FETCH_HEAD
+    // is not clobbered before use.
+    return { status: "pass", readRef: "FETCH_HEAD", output: "" };
   }
 
   const status = classifySmokeFailure(result.output);
   return {
     status,
+    readRef: null,
     output: `git fetch failed for "${locator}": ${result.output}`,
   };
 }
 
-function readPluginManifestAtLocator(repoDir, locator, normalizedPluginPath) {
+function readPluginManifestAtLocator(repoDir, readRef, locator, normalizedPluginPath) {
   const manifestCandidates = PLUGIN_JSON_CANDIDATES.map((segments) =>
     toPosixPath(normalizedPluginPath, ...segments)
   );
 
   for (const manifestPath of manifestCandidates) {
-    const showResult = runCommand("git", ["show", `${locator}:${manifestPath}`], { cwd: repoDir });
+    const showResult = runCommand("git", ["show", `${readRef}:${manifestPath}`], { cwd: repoDir });
     if (showResult.exitCode === 0) {
-      const rawShow = spawnSync("git", ["show", `${locator}:${manifestPath}`], { cwd: repoDir, encoding: "utf8" });
+      const rawShow = spawnSync("git", ["show", `${readRef}:${manifestPath}`], { cwd: repoDir, encoding: "utf8" });
       const rawStdout = String(rawShow.stdout ?? "");
 
       try {
@@ -388,7 +402,7 @@ function readPluginManifestAtLocator(repoDir, locator, normalizedPluginPath) {
   };
 }
 
-function runVersionMatchGate(repoDir, plugin, primaryFetchSpec) {
+export function runVersionMatchGate(repoDir, plugin, primaryFetchSpec) {
   const expectedVersion = String(plugin?.version ?? "").trim();
   const normalizedPluginPath = normalizePluginPath(plugin?.source?.path || "/");
   const locators = [plugin?.source?.ref, plugin?.source?.sha]
@@ -408,22 +422,20 @@ function runVersionMatchGate(repoDir, plugin, primaryFetchSpec) {
   let hasInfraError = false;
 
   for (const locator of locators) {
-    if (locator !== primaryFetchSpec) {
-      const fetchResult = fetchLocatorIntoRepo(repoDir, locator);
-      if (fetchResult.status === "fail") {
-        hasFailure = true;
-        messages.push(`- ${locator}: ${fetchResult.output}`);
-        continue;
-      }
-
-      if (fetchResult.status === "infra_error") {
-        hasInfraError = true;
-        messages.push(`- ${locator}: ${fetchResult.output}`);
-        continue;
-      }
+    const refResult = resolveLocatorReadRef(repoDir, locator, primaryFetchSpec);
+    if (refResult.status === "fail") {
+      hasFailure = true;
+      messages.push(`- ${locator}: ${refResult.output}`);
+      continue;
     }
 
-    const manifestResult = readPluginManifestAtLocator(repoDir, locator, normalizedPluginPath);
+    if (refResult.status === "infra_error") {
+      hasInfraError = true;
+      messages.push(`- ${locator}: ${refResult.output}`);
+      continue;
+    }
+
+    const manifestResult = readPluginManifestAtLocator(repoDir, refResult.readRef, locator, normalizedPluginPath);
     if (manifestResult.kind === "not_found" || manifestResult.kind === "invalid") {
       hasFailure = true;
       messages.push(`- ${locator}: ${manifestResult.message}`);
@@ -474,14 +486,14 @@ function runVersionMatchGate(repoDir, plugin, primaryFetchSpec) {
   };
 }
 
-function checkPathExistsAtLocator(repoDir, locator, repoPath, expectedType) {
-  const result = runCommand("git", ["cat-file", "-e", `${locator}:${repoPath}`], { cwd: repoDir });
+function checkPathExistsAtLocator(repoDir, readRef, locator, repoPath, expectedType) {
+  const result = runCommand("git", ["cat-file", "-e", `${readRef}:${repoPath}`], { cwd: repoDir });
   if (result.exitCode === 0) {
     if (!expectedType) {
       return { exists: true, output: "" };
     }
 
-    const typeResult = runCommand("git", ["cat-file", "-t", `${locator}:${repoPath}`], { cwd: repoDir });
+    const typeResult = runCommand("git", ["cat-file", "-t", `${readRef}:${repoPath}`], { cwd: repoDir });
     if (typeResult.exitCode !== 0) {
       return {
         exists: false,
@@ -546,22 +558,22 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
   const messages = [];
 
   for (const locator of locators) {
-    if (locator !== primaryFetchSpec) {
-      const fetchResult = fetchLocatorIntoRepo(repoDir, locator);
-      if (fetchResult.status === "fail") {
-        hasFailure = true;
-        messages.push(`- ${locator}: ${fetchResult.output}`);
-        continue;
-      }
-
-      if (fetchResult.status === "infra_error") {
-        hasInfraError = true;
-        messages.push(`- ${locator}: ${fetchResult.output}`);
-        continue;
-      }
+    const refResult = resolveLocatorReadRef(repoDir, locator, primaryFetchSpec);
+    if (refResult.status === "fail") {
+      hasFailure = true;
+      messages.push(`- ${locator}: ${refResult.output}`);
+      continue;
     }
 
-    const extensionDirCheck = checkPathExistsAtLocator(repoDir, locator, extensionsDir, "tree");
+    if (refResult.status === "infra_error") {
+      hasInfraError = true;
+      messages.push(`- ${locator}: ${refResult.output}`);
+      continue;
+    }
+
+    const readRef = refResult.readRef;
+
+    const extensionDirCheck = checkPathExistsAtLocator(repoDir, readRef, locator, extensionsDir, "tree");
     if (extensionDirCheck.output) {
       hasInfraError = true;
       messages.push(`- ${locator}: ${extensionDirCheck.output}`);
@@ -577,7 +589,7 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
       continue;
     }
 
-    const extensionEntryCheck = checkPathExistsAtLocator(repoDir, locator, extensionEntryPoint, "blob");
+    const extensionEntryCheck = checkPathExistsAtLocator(repoDir, readRef, locator, extensionEntryPoint, "blob");
     if (extensionEntryCheck.output) {
       hasInfraError = true;
       messages.push(`- ${locator}: ${extensionEntryCheck.output}`);

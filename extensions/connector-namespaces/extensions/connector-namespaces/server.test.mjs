@@ -164,7 +164,9 @@ test("saved namespace prompts for sign-in after the extension credential is rese
     const response = await fetch(entry.url);
     const html = await response.text();
     assert.match(html, /id="signin-btn"/);
-    assert.match(html, /Sign in to Azure/);
+    assert.match(html, /Sign in to see your connectors/);
+    assert.match(html, /Connector namespace <code>yeah-github-cli<\/code> is already linked\./);
+    assert.match(html, /Sign in to Azure to view and manage its connectors\./);
     assert.doesNotMatch(html, /Couldn't load the saved namespace|couldn't open namespace/i);
 });
 
