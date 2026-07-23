@@ -381,6 +381,13 @@ copilot skill add https://example.com/skill.zip  # add a skill from a URL
 copilot skill remove my-skill           # remove an installed skill by name
 ```
 
+You can also install skills via the plugins system (v1.0.72+), which supports installing from a file, URL, or directory with an optional `--scope project` flag to install into the current repository:
+
+```bash
+copilot plugins install --skill ./my-skill/
+copilot plugins install --skill ./my-skill/ --scope project
+```
+
 You can also run `/skill` (or the existing `/skills`) inside an interactive session to see what's loaded. The `copilot skill` subcommand is the recommended way to install skills that aren't packaged inside a plugin.
 
 **Q: How are skills different from prompts?**
