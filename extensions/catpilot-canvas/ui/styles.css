@@ -261,20 +261,76 @@ table.tbl tr:focus-within .row-actions { opacity: 1; }
 .tags { display: flex; flex-wrap: wrap; gap: 5px; }
 
 /* ---------- Board (kanban) ---------- */
-.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; align-items: start; }
-.board-col { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; min-height: 120px; transition: border-color var(--sq), background var(--sq); }
-.board-col.drop { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg-2)); }
-.board-col h4 { margin: 4px 6px 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
-.board-col h4 .count { color: var(--text-faint); font-weight: 600; }
-.board-card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 11px;
-    padding: 12px; margin-bottom: 10px; cursor: grab; box-shadow: var(--shadow-sm);
-    transition: transform var(--sq), box-shadow var(--sq), border-color var(--sq);
+.board {
+    display: flex; gap: 16px; align-items: flex-start;
+    overflow-x: auto; padding: 2px 2px 10px;
+    scroll-snap-type: x proximity;
 }
-.board-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
-.board-card.dragging { opacity: .5; }
-.board-card .bc-title { font-weight: 600; margin-bottom: 8px; }
-.board-card .bc-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.board-col {
+    flex: 1 1 288px; min-width: 288px; max-width: 440px;
+    display: flex; flex-direction: column;
+    background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: var(--radius); scroll-snap-align: start;
+    max-height: calc(100vh - 214px);
+    transition: border-color var(--sq), box-shadow var(--sq), background var(--sq);
+}
+.board-col.drop {
+    border-color: var(--col-accent, var(--accent));
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--col-accent, var(--accent)) 45%, transparent);
+    background: color-mix(in srgb, var(--col-accent, var(--accent)) 7%, var(--bg-2));
+}
+.board-col-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) 0 0;
+    background: color-mix(in srgb, var(--col-accent, var(--accent)) 13%, var(--panel));
+    position: sticky; top: 0; z-index: 2;
+}
+.board-col-head .bch-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--col-accent, var(--accent)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--col-accent, var(--accent)) 24%, transparent); flex: none; }
+.board-col-head .bch-icon { font-size: 14px; line-height: 1; }
+.board-col-head .bch-title { font-weight: 800; font-size: 12px; letter-spacing: .4px; text-transform: uppercase; color: var(--text); }
+.board-col-head .bch-count { font-weight: 800; font-size: 11px; color: var(--col-accent, var(--accent)); background: color-mix(in srgb, var(--col-accent, var(--accent)) 18%, transparent); border-radius: 999px; padding: 1px 8px; min-width: 20px; text-align: center; }
+.board-col-head .bch-add {
+    margin-left: auto; width: 26px; height: 26px; flex: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid transparent; border-radius: 8px; cursor: pointer;
+    background: transparent; color: var(--text-muted); font-size: 15px; line-height: 1;
+    transition: background var(--sq), color var(--sq);
+}
+.board-col-head .bch-add:hover { background: color-mix(in srgb, var(--col-accent, var(--accent)) 20%, transparent); color: var(--text); }
+.board-col-body { display: flex; flex-direction: column; gap: 9px; padding: 10px; overflow-y: auto; flex: 1 1 auto; min-height: 56px; scrollbar-width: thin; }
+.board-col-empty { text-align: center; color: var(--text-faint); font-size: 12px; font-weight: 500; padding: 20px 10px; border: 1px dashed var(--border); border-radius: 10px; }
+.board-col-foot { padding: 0 10px 10px; }
+.board-col-add {
+    width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px; border: 1px dashed var(--border); border-radius: 9px; cursor: pointer;
+    background: transparent; color: var(--text-muted); font-size: 12.5px; font-weight: 600;
+    transition: background var(--sq), color var(--sq), border-color var(--sq);
+}
+.board-col-add:hover { color: var(--text); border-color: color-mix(in srgb, var(--col-accent, var(--accent)) 55%, var(--border)); background: color-mix(in srgb, var(--col-accent, var(--accent)) 8%, transparent); }
+
+.board-card {
+    position: relative; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 11px;
+    padding: 11px 12px 11px 15px; cursor: grab; box-shadow: var(--shadow-sm);
+    transition: transform var(--sq), box-shadow var(--sq), border-color var(--sq);
+    overflow: hidden;
+}
+.board-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--pr-accent, var(--border)); }
+.board-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: color-mix(in srgb, var(--pr-accent, var(--accent)) 45%, var(--border)); }
+.board-card:active { cursor: grabbing; }
+.board-card.dragging { opacity: .5; transform: rotate(1.5deg); box-shadow: var(--shadow-lg); }
+.board-card.is-done { opacity: .68; }
+.bc-head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.bc-id { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--text-faint); font-family: var(--font-mono-ui); }
+.bc-title { font-weight: 700; font-size: 13.5px; line-height: 1.35; color: var(--text); cursor: pointer; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.bc-title:hover { color: var(--accent); }
+.board-card.is-done .bc-title { text-decoration: line-through; color: var(--text-faint); }
+.bc-foot { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--border); }
+.bc-due { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px; padding: 2px 7px; }
+.bc-due.overdue { color: #ff6b7d; background: rgba(255,107,125,.13); border-color: transparent; }
+.bc-due.today { color: #ffb020; background: rgba(255,176,32,.15); border-color: transparent; }
+.badge.st-overdue { background: rgba(255,107,125,.15); color: #ff6b7d; border-color: transparent; }
 
 /* ---------- Tasks · Calendar view ---------- */
 .cal-toolbar { align-items: center; gap: 10px; flex-wrap: wrap; }

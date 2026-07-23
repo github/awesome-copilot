@@ -622,22 +622,43 @@
         return "small";
     }
 
+    // Priority accent colours (index == priorityRank: P0..P3, then "none").
+    const PR_COLORS = ["#ff6b7d", "#ffb020", "#7c5cff", "#35c88f", "var(--border)"];
+    // Board columns are declared here so adding/re-ordering a column is a one-liner.
+    // `canAdd` gates the quick-add "＋" + footer for real statuses; Overdue is a
+    // derived urgency bucket (open tasks past due) so it has no quick-add.
+    const BOARD_COLS = [
+        { key: "overdue", title: "Overdue", icon: "⏰", accent: "#ff6b7d", status: "Open", addDue: true, canAdd: false, emptyHint: "Nothing overdue 🎉", filter: (t) => t.status.toLowerCase() === "open" && t.dueDate && t.dueDate < todayISO() },
+        { key: "open", title: "To do", icon: "🗒️", accent: "#7c5cff", status: "Open", canAdd: true, emptyHint: "No tasks queued — add one", filter: (t) => t.status.toLowerCase() === "open" && !(t.dueDate && t.dueDate < todayISO()) },
+        { key: "blocked", title: "Blocked", icon: "⛔", accent: "#ff8c32", status: "Blocked", canAdd: true, emptyHint: "No blockers right now", filter: (t) => t.status.toLowerCase() === "blocked" },
+        { key: "done", title: "Done", icon: "✅", accent: "#35c88f", status: "Done", canAdd: true, emptyHint: "Nothing done yet", filter: (t) => t.status.toLowerCase() === "done" },
+    ];
+
     function renderTaskBoard(holder, tasks) {
-        const cols = [
-            { key: "overdue", title: "⏰ Overdue", status: "Open", filter: (t) => t.status.toLowerCase() === "open" && t.dueDate && t.dueDate < todayISO() },
-            { key: "open", title: "◻ To do", status: "Open", filter: (t) => t.status.toLowerCase() === "open" && !(t.dueDate && t.dueDate < todayISO()) },
-            { key: "blocked", title: "⛔ Blocked", status: "Blocked", filter: (t) => t.status.toLowerCase() === "blocked" },
-            { key: "done", title: "✓ Done", status: "Done", filter: (t) => t.status.toLowerCase() === "done" },
-        ];
         const board = el("div", { class: "board" });
-        for (const col of cols) {
-            const items = tasks.filter(col.filter);
-            const colEl = el("div", { class: "board-col", dataset: { col: col.key } });
-            colEl.append(el("h4", {}, col.title, el("span", { class: "count", text: ` ${items.length}` })));
-            items.forEach((t) => colEl.append(boardCard(t)));
-            // drag & drop -> change status
+        for (const col of BOARD_COLS) {
+            const items = tasks.filter(col.filter).sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority));
+            const colEl = el("div", { class: "board-col", dataset: { col: col.key }, style: `--col-accent:${col.accent}` });
+
+            const addPrefill = () => taskModal(null, { status: col.status, due: col.addDue ? todayISO() : undefined });
+            const head = el("div", { class: "board-col-head" },
+                el("span", { class: "bch-dot" }),
+                el("span", { class: "bch-icon", text: col.icon }),
+                el("span", { class: "bch-title", text: col.title }),
+                el("span", { class: "bch-count", text: String(items.length) }),
+                col.canAdd ? el("button", { class: "bch-add", title: `Add to ${col.title}`, "aria-label": `Add task to ${col.title}`, html: "＋", onclick: addPrefill }) : null);
+
+            const bodyEl = el("div", { class: "board-col-body" });
+            if (items.length) items.forEach((t) => bodyEl.append(boardCard(t)));
+            else bodyEl.append(el("div", { class: "board-col-empty", text: col.emptyHint }));
+
+            colEl.append(head, bodyEl);
+            if (col.canAdd) colEl.append(el("div", { class: "board-col-foot" },
+                el("button", { class: "board-col-add", html: "＋ New", onclick: addPrefill })));
+
+            // Drag & drop -> change status. Highlight only the drop target.
             colEl.addEventListener("dragover", (e) => { e.preventDefault(); colEl.classList.add("drop"); });
-            colEl.addEventListener("dragleave", () => colEl.classList.remove("drop"));
+            colEl.addEventListener("dragleave", (e) => { if (!colEl.contains(e.relatedTarget)) colEl.classList.remove("drop"); });
             colEl.addEventListener("drop", async (e) => {
                 e.preventDefault(); colEl.classList.remove("drop");
                 const id = e.dataTransfer.getData("text/plain");
@@ -655,17 +676,28 @@
     }
 
     function boardCard(t) {
+        const rank = priorityRank(t.priority);
         const done = t.status.toLowerCase() === "done";
         const blocked = t.status.toLowerCase() === "blocked";
-        const card = el("div", { class: "board-card", draggable: "true", dataset: { taskTitle: t.title } });
-        card.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", String(t.id)); card.classList.add("dragging"); });
+        const overdue = !done && t.dueDate && t.dueDate < todayISO();
+        const card = el("div", { class: `board-card pr-${rank}${done ? " is-done" : ""}`, draggable: "true", dataset: { taskTitle: t.title }, style: `--pr-accent:${PR_COLORS[rank]}` });
+        card.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", String(t.id)); e.dataTransfer.effectAllowed = "move"; card.classList.add("dragging"); });
         card.addEventListener("dragend", () => card.classList.remove("dragging"));
-        card.append(
-            el("div", { class: "bc-title", text: t.title, style: done ? "text-decoration:line-through;color:var(--text-faint)" : "", onclick: () => taskDetail(t) }),
-            el("div", { class: "bc-meta" },
-                priorityBadge(t.priority),
-                blocked ? statusBadge("Blocked") : null,
-                t.dueDate ? el("span", { class: dueClass(t.dueDate, done), text: t.dueDate }) : null));
+
+        // Header row: priority + status flag, id pushed right — visually separate
+        // from the title so the card reads cleanly.
+        const head = el("div", { class: "bc-head" });
+        if (t.priority) head.append(priorityBadge(t.priority));
+        if (blocked) head.append(statusBadge("Blocked"));
+        if (overdue) head.append(el("span", { class: "badge st-overdue", html: "⏰ Overdue" }));
+        head.append(el("span", { class: "bc-id", text: `#${t.id}` }));
+
+        card.append(head, el("div", { class: "bc-title", text: t.title, title: t.title, onclick: () => taskDetail(t) }));
+
+        const foot = el("div", { class: "bc-foot" });
+        if (t.dueDate) foot.append(el("span", { class: `bc-due${overdue ? " overdue" : (t.dueDate === todayISO() ? " today" : "")}`, html: `📅 ${esc(t.dueDate)}` }));
+        if (String(t.tags || "").trim()) foot.append(tagChips(t.tags));
+        if (foot.childNodes.length) card.append(foot);
         return card;
     }
 
@@ -797,15 +829,15 @@
         catch (e) { toast("Error", e.message, "err"); }
     }
 
-    function taskModal(t) {
+    function taskModal(t, prefill = {}) {
         const editing = !!t;
         const f = {};
         const body = el("div", { class: "form" },
             field("Title", f, "title", { value: t?.title, placeholder: "What needs doing?", required: true }),
             el("div", { class: "form-row" },
-                field("Due date", f, "due", { value: t?.dueDate, type: "date" }),
-                selectField("Priority", f, "priority", ["", "P0", "P1", "P2", "P3", "High", "Med", "Low"], t?.priority)),
-            selectField("Status", f, "status", ["Open", "Blocked", "Done"], t?.status || "Open", { Open: "To do", Blocked: "Blocked", Done: "Done" }),
+                field("Due date", f, "due", { value: t?.dueDate || prefill.due, type: "date" }),
+                selectField("Priority", f, "priority", ["", "P0", "P1", "P2", "P3", "High", "Med", "Low"], t?.priority || prefill.priority)),
+            selectField("Status", f, "status", ["Open", "Blocked", "Done"], t?.status || prefill.status || "Open", { Open: "To do", Blocked: "Blocked", Done: "Done" }),
             field("Tags", f, "tags", { value: t?.tags, placeholder: "comma,separated" }),
             mdField("Context", f, "context", { value: t?.context, placeholder: "One-line context (markdown supported)" }));
         const save = el("button", { class: "btn btn-primary", text: editing ? "Save changes" : "Add task", onclick: async () => {
