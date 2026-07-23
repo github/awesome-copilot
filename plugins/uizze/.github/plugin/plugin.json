@@ -1,0 +1,24 @@
+{
+  "name": "uizze",
+  "description": "Stop generic UI from shipping. Ground GitHub Copilot in 800,000+ real web and iOS screens, write a product-specific design contract, and enforce a hard finish gate.",
+  "version": "1.0.0",
+  "author": {
+    "name": "UIZZE",
+    "url": "https://uizze.com"
+  },
+  "homepage": "https://uizze.com",
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "ui",
+    "design",
+    "frontend",
+    "ios",
+    "web",
+    "design-review",
+    "quality-gate"
+  ],
+  "skills": [
+    "./skills/anti-ui-slop/"
+  ]
+}

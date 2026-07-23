@@ -1260,6 +1260,12 @@
       }
     },
     {
+      "name": "uizze",
+      "source": "plugins/uizze",
+      "description": "Stop generic UI from shipping. Ground GitHub Copilot in 800,000+ real web and iOS screens, write a product-specific design contract, and enforce a hard finish gate.",
+      "version": "1.0.0"
+    },
+    {
       "name": "upgrade-agent",
       "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
       "version": "1.1.247",
