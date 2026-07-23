@@ -1,0 +1,233 @@
+{
+  "antigravity": {
+    "global_skills": "~/.gemini/antigravity/skills",
+    "project_skills": ".agents/skills",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "claude": {
+    "global_skills": "~/.claude/skills",
+    "project_skills": ".claude",
+    "rules": "CLAUDE.md",
+    "mcp": "~/.claude.json",
+    "config": "~/.claude/settings.json"
+  },
+  "codex": {
+    "global_skills": "~/.agents/skills",
+    "project_skills": ".codex",
+    "rules": "AGENTS.md",
+    "mcp": "~/.codex",
+    "config": "~/.codex"
+  },
+  "copilot": {
+    "global_skills": "~/.copilot/skills",
+    "project_skills": ".github/copilot-instructions.md",
+    "rules": ".github/copilot-instructions.md",
+    "mcp": "",
+    "config": ""
+  },
+  "cursor": {
+    "global_skills": "~/.cursor",
+    "project_skills": ".cursor",
+    "rules": ".cursorrules",
+    "mcp": "~/.cursor/mcp.json",
+    "config": "~/.cursor/settings.json"
+  },
+  "windsurf": {
+    "global_skills": "~/.windsurf",
+    "project_skills": ".windsurf",
+    "rules": ".windsurfrules",
+    "mcp": "~/.windsurf/mcp.json",
+    "config": "~/.windsurf/settings.json"
+  },
+  "jetbrains": {
+    "global_skills": "~/.idea",
+    "project_skills": ".idea",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "openclaw": {
+    "global_skills": "~/.openclaw/skills",
+    "project_skills": "skills",
+    "rules": "AGENT_RULES.md",
+    "mcp": "~/.openclaw/openclaw.json",
+    "config": "~/.openclaw/openclaw.json"
+  },
+  "trae": {
+    "global_skills": "~/.trae/skills",
+    "project_skills": ".trae",
+    "rules": "",
+    "mcp": "~/.trae/mcps",
+    "config": "~/.trae/argv.json"
+  },
+  "trae-cn": {
+    "global_skills": "~/.trae-cn/skills",
+    "project_skills": ".trae",
+    "rules": "",
+    "mcp": "~/.trae-cn/mcps",
+    "config": "~/.trae-cn/argv.json"
+  },
+  "vscode": {
+    "global_skills": "~/.vscode",
+    "project_skills": ".vscode",
+    "rules": "",
+    "mcp": "",
+    "config": "~/.vscode/settings.json"
+  },
+  "zed": {
+    "global_skills": "~/.config/zed",
+    "project_skills": ".zed",
+    "rules": "",
+    "mcp": "",
+    "config": "~/.config/zed/settings.json"
+  },
+  "neovim": {
+    "global_skills": "~/.config/nvim",
+    "project_skills": ".nvim",
+    "rules": "",
+    "mcp": "",
+    "config": "~/.config/nvim/init.lua"
+  },
+  "emacs": {
+    "global_skills": "~/.emacs.d",
+    "project_skills": ".dir-locals.el",
+    "rules": "",
+    "mcp": "",
+    "config": "~/.emacs.d/init.el"
+  },
+  "continue": {
+    "global_skills": "~/.continue",
+    "project_skills": ".continue",
+    "rules": ".continuerc.json",
+    "mcp": "~/.continue/config.json",
+    "config": "~/.continue/config.json"
+  },
+  "aider": {
+    "global_skills": "~/.aider",
+    "project_skills": ".aider.conf.yml",
+    "rules": "CONVENTIONS.md",
+    "mcp": "~/.aider.conf.yml",
+    "config": "~/.aider.conf.yml"
+  },
+  "roo-code": {
+    "global_skills": "~/.roo",
+    "project_skills": ".roo",
+    "rules": ".roomotes",
+    "mcp": "~/.roo/mcp.json",
+    "config": "~/.roo/config.json"
+  },
+  "cline": {
+    "global_skills": "~/.cline",
+    "project_skills": ".cline",
+    "rules": ".clinerules",
+    "mcp": "~/.cline/mcp.json",
+    "config": "~/.cline/config.json"
+  },
+  "amazon-q": {
+    "global_skills": "~/.aws/amazon-q",
+    "project_skills": ".amazon-q",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "cody": {
+    "global_skills": "",
+    "project_skills": ".cody",
+    "rules": ".codyrules",
+    "mcp": "",
+    "config": ""
+  },
+  "codeium": {
+    "global_skills": "",
+    "project_skills": ".codeium",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "tabnine": {
+    "global_skills": "",
+    "project_skills": ".tabnine",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "replit": {
+    "global_skills": "~/.replit",
+    "project_skills": ".replit",
+    "rules": "",
+    "mcp": "",
+    "config": "~/.replit/replit.nix"
+  },
+  "pearai": {
+    "global_skills": "~/.pearai",
+    "project_skills": ".pearai",
+    "rules": ".pearairules",
+    "mcp": "",
+    "config": "~/.pearai/settings.json"
+  },
+  "supermaven": {
+    "global_skills": "~/.supermaven",
+    "project_skills": ".supermaven",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "pieces": {
+    "global_skills": "~/.pieces",
+    "project_skills": ".pieces",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "blackbox": {
+    "global_skills": "",
+    "project_skills": ".blackbox",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "gemini-cli": {
+    "global_skills": "~/.gemini",
+    "project_skills": ".gemini",
+    "rules": "GEMINI.md",
+    "mcp": "~/.gemini/settings.json",
+    "config": "~/.gemini/settings.json"
+  },
+  "goose-cli": {
+    "global_skills": "~/.config/goose",
+    "project_skills": ".goose",
+    "rules": "GOOSE.md",
+    "mcp": "~/.config/goose/config.yaml",
+    "config": "~/.config/goose/config.yaml"
+  },
+  "opencode": {
+    "global_skills": "~/.config/opencode",
+    "project_skills": ".opencode",
+    "rules": "OPENCODE.md",
+    "mcp": "",
+    "config": "~/.config/opencode/config.json"
+  },
+  "kilocode": {
+    "global_skills": "~/.kilocode",
+    "project_skills": ".kilocode",
+    "rules": "KILOCODE.md",
+    "mcp": "",
+    "config": "~/.kilocode/config.json"
+  },
+  "kimiai": {
+    "global_skills": "~/.kimi-code/skills",
+    "project_skills": ".kimi-code/skills",
+    "rules": "AGENTS.md",
+    "mcp": "~/.kimi-code/mcp.json",
+    "config": "~/.kimi-code/config.toml"
+  },
+  "workbuddy": {
+    "global_skills": "~/.workbuddy/skills",
+    "project_skills": ".workbuddy/skills",
+    "rules": "",
+    "mcp": "~/.workbuddy/.mcp.json",
+    "config": "~/.workbuddy/settings.json"
+  }
+}
