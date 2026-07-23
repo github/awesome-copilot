@@ -299,7 +299,9 @@ table.tbl tr:focus-within .row-actions { opacity: 1; }
 }
 .board-col-head .bch-add:hover { background: color-mix(in srgb, var(--col-accent, var(--accent)) 20%, transparent); color: var(--text); }
 .board-col-body { display: flex; flex-direction: column; gap: 9px; padding: 10px; overflow-y: auto; flex: 1 1 auto; min-height: 56px; scrollbar-width: thin; }
-.board-col-empty { text-align: center; color: var(--text-faint); font-size: 12px; font-weight: 500; padding: 20px 10px; border: 1px dashed var(--border); border-radius: 10px; }
+.board-col-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; text-align: center; color: var(--text-faint); font-size: 12px; font-weight: 500; padding: 22px 10px; border: 1px dashed var(--border); border-radius: 10px; }
+.bce-emoji { font-size: 26px; line-height: 1; opacity: .92; }
+.bce-text { color: var(--text-muted); font-weight: 600; }
 .board-col-foot { padding: 0 10px 10px; }
 .board-col-add {
     width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
@@ -327,7 +329,10 @@ table.tbl tr:focus-within .row-actions { opacity: 1; }
 .bc-title:hover { color: var(--accent); }
 .board-card.is-done .bc-title { text-decoration: line-through; color: var(--text-faint); }
 .bc-foot { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--border); }
-.bc-due { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px; padding: 2px 7px; }
+.bc-due { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--text); background: color-mix(in srgb, var(--accent) 12%, var(--panel-2)); border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border)); border-radius: 7px; padding: 3px 8px; font-variant-numeric: tabular-nums; }
+.bc-due-ico { font-size: 12px; line-height: 1; }
+.bc-due-date { letter-spacing: .2px; }
+.bc-due-rel { font-weight: 600; opacity: .8; padding-left: 5px; margin-left: 1px; border-left: 1px solid color-mix(in srgb, currentColor 30%, transparent); }
 .bc-due.overdue { color: #ff6b7d; background: rgba(255,107,125,.13); border-color: transparent; }
 .bc-due.today { color: #ffb020; background: rgba(255,176,32,.15); border-color: transparent; }
 .badge.st-overdue { background: rgba(255,107,125,.15); color: #ff6b7d; border-color: transparent; }
