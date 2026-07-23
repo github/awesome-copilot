@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-07-21
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -181,6 +181,31 @@ Pinning to a SHA guarantees that everyone on the team installs plugins from exac
 - **Reproducible CI environments** — ensure builds always use the same plugin versions
 - **Change control** — review and approve plugin updates before rolling them out team-wide
 - **Stability** — prevent breaking changes in upstream marketplaces from impacting your team without notice
+
+## Installing Skills Directly (v1.0.72+)
+
+As of v1.0.72, you can install individual skills without creating or installing a full plugin. This is useful when you find a single useful skill and don't want to install an entire plugin:
+
+```bash
+# Install a skill from a local directory
+copilot plugins install --skill ./path/to/my-skill/
+
+# Install a skill from a URL
+copilot plugins install --skill https://raw.githubusercontent.com/owner/repo/main/skills/my-skill/SKILL.md
+
+# Install a skill into the current project (repository scope)
+copilot plugins install --skill ./path/to/my-skill/ --scope project
+```
+
+Or from within an interactive session:
+
+```
+/plugins install --skill https://example.com/skills/my-skill/SKILL.md
+```
+
+Skills installed this way are available immediately and appear in `copilot skill list`. Use `copilot plugins remove --skill <name>` to uninstall them.
+
+> **Tip**: Skills from this repository can be installed individually this way. Browse the [Skills Directory](../../skills/) for available skills and use the raw GitHub URL of a skill's `SKILL.md` to install it directly.
 
 ## Installing Plugins
 
