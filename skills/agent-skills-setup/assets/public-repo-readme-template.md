@@ -9,7 +9,7 @@ Reusable multi-agent skill for Antigravity, Claude Code, OpenAI Codex, GitHub Co
 
 日本語: Antigravity を起点に、OpenClaw を含む複数のエージェントへ展開できる再利用可能な skill です。
 
-Español: Skill reutilizable para varios agentes, diseñado para distribuirse desde Antigravity hacia OpenClaw y otros entornos.
+Español: Skill reutilizable para múltiples agentes, diseñado para distribuirse desde Antigravity hacia OpenClaw y otros entornos.
 
 ## At A Glance
 
