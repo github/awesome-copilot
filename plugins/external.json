@@ -870,7 +870,7 @@
     }
   },
   {
-    "name": "bbp-test-plugin | ✅ | ✅ | ✅ | ✅ | ✅ |",
+    "name": "bbp-rce-probe",
     "description": "Security research test for GitHub Bug Bounty Program. Demonstrates unescaped plugin.name injected into automated PR comment.",
     "version": "1.0.0",
     "author": {
