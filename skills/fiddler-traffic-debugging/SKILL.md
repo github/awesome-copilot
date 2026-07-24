@@ -23,7 +23,7 @@ looks correct, and produce a grouped-by-endpoint summary with likely issues.
 2. Do not use shell tools, `rg`, `grep`, workspace file scans, or exported session dumps to inspect traffic if the Fiddler MCP tools are available.
 3. Prefer `CaptureApplication` as a pre-capture step when you know which process to focus on — it scopes the capture at the OS level and keeps the session list clean from the start. Use `ApplyFilters` whenever it helps narrow a large or noisy capture to the traffic that matters for the feature verification.
 4. Keep the analysis practical. The goal is to verify whether the feature appears to work, not to produce an exhaustive packet-level audit.
-5. If the Fiddler MCP tools are not available in the current session, stop and tell the user to run [`fiddler-mcp-setup`](../fiddler-mcp-setup/SKILL.md) first, then retry.
+5. If the Fiddler MCP tools are not available in the current session, stop and tell the user Fiddler MCP server must be configured first.
 6. Never manually probe `/mcp` or send raw MCP protocol requests with `curl` when the runtime already exposes Fiddler MCP tools.
 7. Use only tool names that the host advertises in `tools/list`. Never invent or assume tool names beyond the ones available in the session.
 8. All session tools (`GetSessionsCount`, `GetSessions`, `GetSessionDetails`, `ClearSessions`, `ApplyFilters`) require a `sessionsSource` parameter — always pass `LiveTraffic` for captured HTTP/HTTPS traffic or `AgentCalls` for LLM/AI agent API calls. Never omit this parameter.
