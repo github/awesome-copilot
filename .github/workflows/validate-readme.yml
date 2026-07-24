@@ -38,6 +38,12 @@ jobs:
       - name: Validate plugins
         run: npm run plugin:validate
 
+      - name: Validate agents
+        run: npm run agent:validate
+
+      - name: Validate instructions
+        run: npm run instruction:validate
+
       - name: Update README.md
         run: npm start
 

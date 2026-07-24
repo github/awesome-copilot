@@ -1,5 +1,6 @@
 ---
 applyTo: '**'
+description: 'Getting started with the Dataverse SDK for Python, including installation, environment setup, and authentication.'
 ---
 # Dataverse SDK for Python — Getting Started
 

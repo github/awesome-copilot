@@ -1,3 +1,8 @@
+---
+applyTo: '**'
+description: 'Using the Dataverse SDK for Python (public preview) to build agentic workflows.'
+---
+
 # Dataverse SDK for Python - Agentic Workflows Guide
 
 ## ⚠️ PREVIEW FEATURE NOTICE

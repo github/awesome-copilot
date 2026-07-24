@@ -1,5 +1,6 @@
 ---
 applyTo: '**'
+description: 'Real-world use cases and reusable templates for the Dataverse SDK for Python.'
 ---
 
 # Dataverse SDK for Python — Real-World Use Cases & Templates
