@@ -1,11 +1,6 @@
 ---
 name: fiddler-download-setup
-description: >
-  Download, install, and launch Fiddler Everywhere from scratch, then configure MCP for
-  AI agent tools. Use this skill when the user does not have Fiddler installed, says
-  "download Fiddler", "install Fiddler Everywhere", "get started with Fiddler", "first
-  time Fiddler setup", "set up Fiddler from scratch", or needs a complete onboarding
-  from zero to a working Fiddler MCP connection.
+description: 'Download, install, and launch Fiddler Everywhere from scratch, then configure MCP for AI agent tools. Use this skill when the user does not have Fiddler installed, says "download Fiddler", "install Fiddler Everywhere", "get started with Fiddler", "first time Fiddler setup", "set up Fiddler from scratch", or needs a complete onboarding from zero to a working Fiddler MCP connection.'
 ---
 
 # Fiddler Download & Setup
@@ -211,13 +206,6 @@ exits with code 0, clean up.
 rm /tmp/FiddlerEverywhere.pkg
 ```
 
-### macOS — DMG (if user prefers drag-and-drop)
-
-```bash
-hdiutil attach ~/Downloads/FiddlerEverywhere.dmg -nobrowse
-cp -R "/Volumes/Fiddler Everywhere/Fiddler Everywhere.app" /Applications/
-hdiutil detach "/Volumes/Fiddler Everywhere"
-```
 
 ### Linux
 
@@ -241,7 +229,7 @@ open -a "Fiddler Everywhere" && sleep 15
 
 Linux:
 ```bash
-(nohup fiddler-everywhere &>/dev/null &); sleep 15
+(nohup "$HOME/Downloads/FiddlerEverywhere.AppImage" &>/dev/null &); sleep 15
 ```
 
 Windows:
@@ -291,13 +279,13 @@ Present the following message:
 > Fiddler Everywhere is installed and running.
 >
 > There is an **automatic MCP setup** skill that can configure the Fiddler MCP
-> server connection for your AI agent. This will allow agent tools 
+> server connection for your AI agent. This will allow agent tools
 > to interact with Fiddler directly — capturing traffic,
 > inspecting sessions, creating rules, and more — all from within your editor.
 >
 > Would you like me to auto-configure MCP now?
 
-Use the ask-questions tool to let the user choose:
+Ask the user to choose:
 - **Yes, auto-configure MCP** (recommended)
 - **No, I'll set it up manually later**
 

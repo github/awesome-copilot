@@ -1,15 +1,6 @@
 ---
 name: fiddler-traffic-debugging
-description: >
-  Verify that a developer-run feature behaved correctly by analyzing HTTP traffic captured
-  by Fiddler Everywhere. Always use this skill when a developer asks whether their feature's
-  HTTP calls completed correctly, wants to see what requests a feature made, needs to debug
-  a failed API call, is checking traffic after running a feature, wants to confirm what each
-  endpoint returned, or asks whether anything in the traffic looks wrong — even if they don't
-  use the word "verify" or "Fiddler". Summarizes the capture by endpoint and flags likely
-  issues such as failed calls, missing follow-up requests, retries, auth failures, timeouts,
-  and suspicious status-code patterns. Requires Fiddler Everywhere to be running with its
-  MCP server enabled.
+description: 'Verify that a developer-run feature behaved correctly by analyzing HTTP traffic captured by Fiddler Everywhere. Use this skill when a developer asks to debug or verify HTTP traffic captured with Fiddler, wants to see what requests a feature made, needs to debug a failed API call, is checking Fiddler-captured traffic after running a feature, or wants to confirm what each endpoint returned. Summarizes the capture by endpoint and flags likely issues such as failed calls, missing follow-up requests, retries, auth failures, timeouts, and suspicious status-code patterns. Requires Fiddler Everywhere to be running with its MCP server enabled.'
 ---
 
 # Fiddler Feature Verification
@@ -118,7 +109,7 @@ Use the details to inspect:
 - Request and response bodies
 - Redirect targets
 - Content length and content type
-- Auth headers, cookies, validation messages, and error payloads
+- Authentication schemes and cookie presence, validation messages, and error payloads. Never reproduce authorization tokens, cookie values, API keys, or other secrets in the report; redact them before quoting evidence.
 
 For `AgentCalls` sessions, also inspect the LLM model, `isCached` flag, and the last user prompt preview — these often reveal misconfigured model routing or unexpected cache hits.
 

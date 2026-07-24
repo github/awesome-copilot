@@ -1,13 +1,6 @@
 ---
 name: fiddler-mcp-setup
-description: >
-  Set up the Fiddler Everywhere MCP server connection for AI agent tools (Claude Code,
-  GitHub Copilot CLI, GitHub Copilot in VS Code, Cursor, OpenAI Codex CLI). ALWAYS use this skill when
-  Fiddler MCP tools are not available, you cannot see Fiddler tools, get an authentication
-  error connecting to Fiddler, need to configure Fiddler MCP for the first time, or hear
-  "tool not found" errors when trying to use other Fiddler skills. Calls Fiddler's local
-  autoconfigure API to detect existing config and write the correct settings automatically.
-  The only prerequisite is that Fiddler Everywhere is running.
+description: 'Set up the Fiddler Everywhere MCP server connection for AI agent tools (Claude Code, GitHub Copilot CLI, GitHub Copilot in VS Code, Cursor, OpenAI Codex CLI). ALWAYS use this skill when Fiddler MCP tools are not available, you cannot see Fiddler tools, get an authentication error connecting to Fiddler, need to configure Fiddler MCP for the first time, or hear "tool not found" errors when trying to use other Fiddler skills. Calls Fiddler''s local autoconfigure API to detect existing config and write the correct settings automatically. The only prerequisite is that Fiddler Everywhere is running.'
 ---
 
 # Fiddler MCP Setup
@@ -34,7 +27,7 @@ if [ -d "/Applications/Fiddler Everywhere.app" ]; then echo "INSTALLED"; else ec
 
 **Linux:**
 ```bash
-if command -v fiddler-everywhere &>/dev/null; then echo "INSTALLED"; else echo "NOT_INSTALLED"; fi
+if command -v fiddler-everywhere &>/dev/null || [ -x "$HOME/Downloads/FiddlerEverywhere.AppImage" ]; then echo "INSTALLED"; else echo "NOT_INSTALLED"; fi
 ```
 
 **Windows (PowerShell):**
@@ -107,8 +100,8 @@ curl.exe -s -o NUL -w "%{http_code}" "http://localhost:8868/api/McpManagement/De
 
 | Result | Action |
 |--------|--------|
-| Any HTTP response code | Port `8868` is reachable. Set `PORT=8868` and proceed to Step 4. |
-| `000` (connection refused) | Port `8868` is not listening. Run the port discovery script below. |
+| Expected Fiddler Detect response, including documented authentication or plan errors | Port `8868` is serving Fiddler. Set `PORT=8868` and proceed to Step 4. |
+| `000` (connection refused) or an unrecognized response | Port `8868` is not serving Fiddler. Run the port discovery script below. |
 
 **Port discovery script:**
 
@@ -158,7 +151,12 @@ open -a "Fiddler Everywhere" && sleep 15
 
 Linux:
 ```bash
-(nohup fiddler-everywhere &>/dev/null &); sleep 15
+if command -v fiddler-everywhere >/dev/null 2>&1; then
+  (nohup fiddler-everywhere >/dev/null 2>&1 &)
+elif [ -x "$HOME/Downloads/FiddlerEverywhere.AppImage" ]; then
+  (nohup "$HOME/Downloads/FiddlerEverywhere.AppImage" >/dev/null 2>&1 &)
+fi
+sleep 15
 ```
 
 Windows:
@@ -211,12 +209,12 @@ Call the Detect endpoint to see if Fiddler MCP is already configured for this pr
 
 macOS / Linux:
 ```bash
-curl -s "http://localhost:$PORT/api/McpManagement/Detect?provider=PROVIDER"
+curl -sS -w '\nHTTP_STATUS:%{http_code}\n' "http://localhost:$PORT/api/McpManagement/Detect?provider=PROVIDER"
 ```
 
 Windows (PowerShell):
 ```powershell
-curl.exe -s "http://localhost:$PORT/api/McpManagement/Detect?provider=PROVIDER"
+curl.exe -sS -w "\nHTTP_STATUS:%{http_code}\n" "http://localhost:$PORT/api/McpManagement/Detect?provider=PROVIDER"
 ```
 
 Replace `PROVIDER` with the value from Step 2.
@@ -313,16 +311,16 @@ Call the Configure endpoint. Fiddler will automatically generate or reuse the AP
 
 macOS / Linux:
 ```bash
-curl -s -X POST "http://localhost:$PORT/api/McpManagement/Configure" \
+curl -sS -w '\nHTTP_STATUS:%{http_code}\n' -X POST "http://localhost:$PORT/api/McpManagement/Configure" \
   -H "Content-Type: application/json" \
   -d '{"provider":"PROVIDER"}'
 ```
 
 Windows (PowerShell):
 ```powershell
-curl.exe -s -X POST "http://localhost:$PORT/api/McpManagement/Configure" `
+curl.exe -sS -w "\nHTTP_STATUS:%{http_code}\n" -X POST "http://localhost:$PORT/api/McpManagement/Configure" `
   -H "Content-Type: application/json" `
-  -d '{\"provider\":\"PROVIDER\"}'
+  -d '{\"provider\":\"PROVIDER\"}'`
 ```
 
 Replace `PROVIDER` with the value from Step 2.
