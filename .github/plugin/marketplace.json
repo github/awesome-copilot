@@ -947,6 +947,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "pr-artifact-explorer",
+      "source": "extensions/pr-artifact-explorer",
+      "description": "Navigate pull requests and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
+      "version": "1.0.0"
+    },
+    {
       "name": "project-documenter",
       "source": "plugins/project-documenter",
       "description": "Generate professional project documentation with draw.io architecture diagrams and Word (.docx) output with embedded images. Automatically discovers any project's technology stack and produces Markdown, diagrams, PNG exports, and a formatted Word document.",
