@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-07-17
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -541,16 +541,25 @@ The `/cd` command changes the working directory for the current session. Since v
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
 
-The `/worktree` command (v1.0.61+, also aliased `/move`) creates a new git worktree and switches into it, moving any uncommitted changes along. This lets you start working on a parallel branch without leaving your current terminal session:
+The `/worktree` command (v1.0.61+) creates a new git worktree and switches into it. Since v1.0.71, `/worktree` **leaves your uncommitted changes in the current directory** so you can continue working there while the new worktree starts clean:
 
 ```
 /worktree my-feature-branch
 ```
 
-In v1.0.66+, you can pass a task description to `/worktree` to name the branch from the task and immediately run the task as the first prompt in the new worktree — all in one step:
+The companion `/move` command (v1.0.71+) does the opposite: it **carries your uncommitted changes into the new worktree**, picking up exactly where you left off on a new branch:
 
 ```
-/worktree fix the login redirect
+/move my-feature-branch
+```
+
+> **Before v1.0.71**: `/worktree` and `/move` were aliases for the same command, which always moved uncommitted changes to the new worktree. If you relied on the old behavior of `/worktree` moving your changes, switch to `/move`.
+
+In v1.0.66+, you can pass a task description to either command to name the branch from the task and immediately run the task as the first prompt in the new worktree — all in one step:
+
+```
+/worktree fix the login redirect   # start clean on a new branch
+/move fix the login redirect       # bring uncommitted changes to a new branch
 ```
 
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
@@ -615,6 +624,12 @@ The `/chronicle skills review` subcommand *(v1.0.66+)* opens an interactive revi
 
 This keeps you in control of skill evolution — the agent can propose skill improvements as it discovers reusable patterns, but nothing is applied until you explicitly approve each change.
 
+The `/chronicle cost-tips` subcommand *(v1.0.71+)* opens an interactive cost analysis with recommendations for reducing your token usage. It shows local and cloud cost profiles and suggests changes — such as switching to a lighter model or using `/compact` more frequently — based on patterns in your current session:
+
+```
+/chronicle cost-tips
+```
+
 > **Note**: Session history, file tracking, and the `/chronicle` command were previously experimental features. As of v1.0.40, they are available to all users without enabling experimental mode.
 
 The `/diagnose` command (v1.0.64+) analyzes the current session's logs and surfaces diagnostic information to help troubleshoot unexpected behavior, performance issues, or errors:
@@ -624,6 +639,14 @@ The `/diagnose` command (v1.0.64+) analyzes the current session's logs and surfa
 ```
 
 Use `/diagnose` when a session is behaving unexpectedly — it inspects session logs and reports what it finds, making it easier to share diagnostics with support or understand what happened internally.
+
+The `/voice devices` command *(v1.0.71-2+)* opens a picker to choose which microphone the CLI uses for voice mode, and persists that choice across sessions:
+
+```
+/voice devices
+```
+
+Use this if you have multiple microphones (e.g., headset and built-in) and want to pin the CLI to the preferred device without reconfiguring every session.
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
@@ -743,6 +766,8 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+> **Note (v1.0.71-2+)**: Plan mode now **hard-blocks** built-in tool calls that would modify the workspace. The agent cannot edit files or run mutating shell commands while planning. Built-in mutators like opening a pull request are also blocked. MCP and external tools are still allowed in plan mode.
 
 The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
 
