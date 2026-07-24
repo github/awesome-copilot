@@ -2,6 +2,8 @@
 import Default from '@astrojs/starlight/components/Head.astro';
 const { head, entry } = Astro.locals.starlightRoute;
 const basePath = import.meta.env.BASE_URL;
+const isHomePage = Astro.url.pathname === basePath;
+const cookieConsentScript = `${basePath}github-cookie-consent.js`;
 
 const getMetaContent = (key: string, attribute: 'name' | 'property' = 'name') =>
   head.find((tag) => tag.tag === 'meta' && tag.attrs?.[attribute] === key)?.attrs?.content;
@@ -36,6 +38,7 @@ const twitterDomain =
     : undefined;
 ---
 
+{isHomePage && <script is:inline src={cookieConsentScript} defer />}
 <Default><slot /></Default>
 {twitterTitle && <meta name="twitter:title" content={twitterTitle} />}
 {description && <meta name="twitter:description" content={description} />}
