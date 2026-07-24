@@ -3,7 +3,7 @@ title: 'Building Custom Agents'
 description: 'Learn how to create specialized GitHub Copilot agents with custom personas, tool integrations, and domain expertise.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-09
+lastUpdated: 2026-07-19
 estimatedReadingTime: '10 minutes'
 tags:
   - agents
@@ -261,6 +261,10 @@ The agent can then query your database, analyze query plans, and suggest optimiz
 | Code-specialized tasks, large context | kimi-k2.7-code *(v1.0.68+)* |
 | Quick analysis, simple tasks | Claude Haiku or GPT-4.1-mini |
 | Large codebase understanding | Models with larger context windows |
+
+#### BYOK models with the Copilot harness (VS Code 1.129+)
+
+In VS Code 1.129, **Bring Your Own Key (BYOK) models** are now usable with the **Copilot harness** in the Agents window. This means you can point a custom agent at a BYOK model endpoint (e.g., your own Azure OpenAI deployment) and it will still benefit from Copilot's tool calling, skills discovery, and agent host infrastructure — rather than running as a bare chat completion. To use a BYOK model in an agent, configure the model endpoint under VS Code's language model settings and then reference the model identifier in your agent's `model` frontmatter field.
 
 ### Organizing Agents in Your Repository
 
