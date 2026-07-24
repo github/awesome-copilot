@@ -12,25 +12,17 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
-import { delimiter, join } from "node:path";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 // Isolate COPILOT_HOME before importing install.mjs because its paths are bound at
-// module-eval time. Put a fake Azure CLI on PATH so getToken() stays offline, and
-// seed a profile config so the local entry reads as inCli.
+// module-eval time. Seed the interactive broker with an in-memory token so ARM
+// calls stay offline, and seed a profile config so the local entry reads as inCli.
 const TMP = mkdtempSync(join(tmpdir(), "cn-reauth-"));
 process.env.COPILOT_HOME = TMP;
 process.env.USERPROFILE = TMP; // homedir() on Windows
 process.env.HOME = TMP; // homedir() on posix
-
-const binDir = join(TMP, "bin");
-mkdirSync(binDir, { recursive: true });
-const tokenJson = JSON.stringify({ accessToken: "fake-token", expires_on: Math.floor(Date.now() / 1000) + 3600 });
-writeFileSync(join(binDir, "az"), `#!/usr/bin/env node\nprocess.stdout.write(${JSON.stringify(tokenJson)});\n`);
-chmodSync(join(binDir, "az"), 0o755);
-writeFileSync(join(binDir, "az.cmd"), `@echo ${tokenJson}\r\n`);
-process.env.PATH = `${binDir}${delimiter}${process.env.PATH || ""}`;
 
 const legacyAuthCache = join(TMP, "extensions", "connector-namespaces", "artifacts", "auth-cache.json");
 mkdirSync(join(TMP, "extensions", "connector-namespaces", "artifacts"), { recursive: true });
@@ -40,6 +32,14 @@ writeFileSync(
     join(TMP, "mcp-config.json"),
     JSON.stringify({ mcpServers: { "docusign-bbb": { type: "http", url: "https://example/mcp" } } }),
 );
+
+const { interactiveAuth } = await import("./auth.mjs");
+interactiveAuth.credential = {
+    async getToken() {
+        return { token: "fake-token", expiresOnTimestamp: Date.now() + 60 * 60 * 1000 };
+    },
+};
+interactiveAuth.accessToken = { token: "fake-token", expiresOnTimestamp: Date.now() + 60 * 60 * 1000 };
 
 // Dynamic import AFTER the env is set. A static top-level import would be hoisted
 // and evaluate install.mjs (binding the paths to the real home) before the env

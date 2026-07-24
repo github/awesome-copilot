@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Skill Stack"
+  short_description: "Turn any goal into a minimal, audited Skill Stack"
+  default_prompt: "Use $agent-skill-stack to turn my goal into a minimal, compatible, project-specific Agent Skill Stack and explain it in plain language."

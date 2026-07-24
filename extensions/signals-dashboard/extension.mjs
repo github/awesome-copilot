@@ -4,8 +4,11 @@
 // Supports stashing desks (48hr hold) and restoring them.
 
 import { createServer } from "node:http";
+import { statSync, accessSync, realpathSync, constants as fsConstants } from "node:fs";
 import { readdir, readFile, writeFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { join, delimiter, sep } from "node:path";
+import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 
 const servers = new Map();
@@ -29,6 +32,198 @@ function isValidDeskName(name) {
     return typeof name === "string" && name.length > 0 && name.length <= 128 &&
         !name.includes("/") && !name.includes("\\") && !name.includes("\0") &&
         name !== "." && name !== "..";
+}
+
+// Launch a desk as an in-place Copilot CLI session — the canvas counterpart to
+// WorkshopRoom's ConsoleLauncher. A desk is a seat that independent sessions
+// pick up over time, so "open" starts a fresh copilot in the desk's own folder,
+// oriented to read the journal and continue. This keeps every desk inside the
+// one workshop repo (coordinated through journals + .signals + Cairn) instead
+// of spinning off an isolated worktree elsewhere on disk.
+//
+// deskPath has already been confirmed to exist by the caller. Before launching
+// we re-resolve it with realpath and require it to stay inside the workshop root
+// (isInsideRoot), which defeats a planted desks/foo -> /outside symlink; the
+// path is then only ever passed as a spawn cwd, an argv element, or a
+// single-quoted literal inside the macOS Terminal command — never concatenated
+// raw onto a command line — so no character filtering of the path is required.
+function deskOrientPrompt(deskName) {
+    return `You are sitting down at the ${deskName} desk in this workshop. ` +
+        `Read journal.md in this folder first to pick up where the last session ` +
+        `left off, then continue the desk's work. Write your journal before you stop.`;
+}
+
+// Spawn detached and resolve true only once the OS confirms the process
+// started ('spawn'), false on failure ('error', e.g. the binary is missing) so
+// the caller can fall back. Node guarantees exactly one of those events fires
+// for a spawn attempt, so we resolve solely from them — no timeout that could
+// report an unconfirmed launch as success and skip the clipboard fallback.
+function trySpawn(cmd, args, opts = {}) {
+    return new Promise((resolve) => {
+        let settled = false;
+        const done = (v, child) => {
+            if (settled) return;
+            settled = true;
+            if (v && child) { try { child.unref(); } catch {} }
+            resolve(v);
+        };
+        try {
+            const child = spawn(cmd, args, { detached: true, stdio: "ignore", ...opts });
+            child.on("error", () => done(false));
+            child.on("spawn", () => done(true, child));
+        } catch { resolve(false); }
+    });
+}
+
+// Resolve an executable on PATH (honoring PATHEXT on Windows), mirroring
+// WorkshopRoom's AgentClis.IsOnPath. Used to prefer Agency when the machine has
+// it installed, falling back to vanilla Copilot.
+// A PATH hit only counts if it resolves to a real, runnable file. existsSync
+// alone would treat a directory or a non-executable file named `agency` as a
+// match, so auto-detection would pick the wrapper and the terminal would then
+// fail to run it with no fallback.
+function isExecutableFile(p) {
+    try {
+        if (!statSync(p).isFile()) return false;
+        if (process.platform !== "win32") accessSync(p, fsConstants.X_OK);
+        return true;
+    } catch { return false; }
+}
+
+function isOnPath(command) {
+    try {
+        const dirs = (process.env.PATH || "").split(delimiter);
+        const exts = process.platform === "win32"
+            ? (process.env.PATHEXT || ".EXE;.CMD;.BAT").split(";").filter(Boolean)
+            : [];
+        for (const dir of dirs) {
+            if (!dir) continue;
+            // On Windows only a PATHEXT match is runnable; on POSIX check the bare
+            // name, and isExecutableFile confirms the execute bit either way.
+            if (exts.length) {
+                for (const ext of exts) if (isExecutableFile(join(dir, command + ext))) return true;
+            } else if (isExecutableFile(join(dir, command))) {
+                return true;
+            }
+        }
+    } catch {}
+    return false;
+}
+
+// The agent argv a desk opens with. Default: prefer Agency (the internal
+// wrapper around Copilot) when it's installed, so a desk comes up with its
+// MCPs/plugin already configured instead of bare GHCP; otherwise vanilla
+// Copilot. Agency can't take Copilot's --name (it clashes with Agency's own
+// --resume), matching AgentClis. Override with WORKSHOP_DESK_AGENT=copilot to
+// force vanilla, or =agency to insist on the wrapper.
+function deskAgentArgv(deskName) {
+    const pref = (process.env.WORKSHOP_DESK_AGENT || "").trim().toLowerCase();
+    // An explicit override is authoritative: =agency insists on the wrapper even
+    // when it isn't detected on PATH, and =copilot forces vanilla. Only when the
+    // override is unset do we auto-detect and prefer Agency if it's installed.
+    const useAgency = pref === "agency" ? true
+        : pref === "copilot" ? false
+        : isOnPath("agency");
+    return useAgency ? ["agency", "copilot"] : ["copilot", "--name", deskName];
+}
+
+// A desk name flows onto a command line, and on the no-wt Windows fallback
+// through cmd.exe. isValidDeskName still allows shell metacharacters such as
+// & | > % ^, so the launcher additionally requires a conservative slug before
+// any shell can see the name; anything else refuses to launch and the caller
+// falls back to copying the path. Combined with the quote-free orientation
+// prompt, no untrusted text ever reaches a shell parser.
+function isSafeDeskNameForLaunch(name) {
+    return isValidDeskName(name) && /^[A-Za-z0-9._-]+$/.test(name);
+}
+
+// POSIX single-quote a value for the macOS `do script` command line, escaping
+// any embedded single quotes.
+function shSingleQuote(s) {
+    return "'" + String(s).replace(/'/g, "'\\''") + "'";
+}
+
+// AppleScript string literal: escape backslashes, double quotes, and line breaks
+// (a raw CR/LF in a path would otherwise terminate the literal and fail to
+// compile, while osascript still spawns and trySpawn would report success).
+function osaStringLiteral(s) {
+    return '"' + String(s)
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/\r/g, "\\r")
+        .replace(/\n/g, "\\n") + '"';
+}
+
+// Resolve symlinks on both sides and confirm the target is the workshop root
+// itself or lives beneath it. The callers locate a desk with stat(), which
+// follows symlinks, so a committed desks/foo -> /outside symlink would otherwise
+// launch the agent with an external working directory, breaking the inside-repo
+// guarantee.
+function isInsideRoot(root, target) {
+    try {
+        const r = realpathSync(root);
+        const t = realpathSync(target);
+        if (t === r) return true;
+        // A filesystem root ("/" or "C:\") already ends with the separator, so
+        // don't append a second one or every desk below it would fail the prefix
+        // test and opening would always fall back.
+        const prefix = r.endsWith(sep) ? r : r + sep;
+        return t.startsWith(prefix);
+    } catch { return false; }
+}
+
+async function launchDeskConsole(deskPath, deskName, workshopDir) {
+    // deskName must be a plain slug so it is safe on every command line and shell
+    // below, and the resolved desk must still live inside the workshop root
+    // (which defeats a symlinked desk that escapes the repo). deskPath itself is
+    // only ever passed as an argv element / spawn cwd (Windows via -d plus cwd,
+    // Linux via cwd) or as a single-quoted literal inside the macOS Terminal
+    // command, so an empty-path guard is all that is needed — a quote in the path
+    // can't break out of any of those.
+    if (!deskPath) return false;
+    if (!isSafeDeskNameForLaunch(deskName)) return false;
+    if (!isInsideRoot(workshopDir, deskPath)) return false;
+    const run = [...deskAgentArgv(deskName), "-i", deskOrientPrompt(deskName)];
+    if (process.platform === "win32") {
+        // Run the agent through cmd.exe (/k) so PATHEXT is applied: globally
+        // installed CLIs like `copilot`/`agency` are usually .cmd shims that
+        // Windows Terminal or a bare CreateProcess would fail to launch (they
+        // expect a literal executable, not a PATHEXT name). Windows Terminal is a
+        // GUI app, so it still surfaces its own window from the windowless host.
+        // Each element of run is its own argv token — deskName is a slug and the
+        // orientation prompt has no cmd metacharacters — and the desk path is
+        // passed via -d/cwd, so nothing untrusted is reparsed by a shell.
+        if (await trySpawn("wt.exe", ["-d", deskPath, "cmd", "/k", ...run])) return true;
+        // Fallback when wt.exe is absent: a fresh console window via `start`,
+        // still through cmd /k for the same PATHEXT resolution.
+        return await trySpawn("cmd.exe", ["/c", "start", "", "cmd", "/k", ...run], { cwd: deskPath });
+    }
+    if (process.platform === "darwin") {
+        // macOS: `open` can't inject a command, so drive Terminal via AppleScript
+        // to cd into the desk and exec the agent. Each argv element is POSIX
+        // single-quoted so the shell can't reinterpret it, and osascript itself
+        // is spawned via argv (no shell).
+        const line = "cd " + shSingleQuote(deskPath) + " && exec " +
+            run.map(shSingleQuote).join(" ");
+        const script = 'tell application "Terminal"\n' +
+            "  activate\n" +
+            "  do script " + osaStringLiteral(line) + "\n" +
+            "end tell";
+        return await trySpawn("osascript", ["-e", script]);
+    }
+    // Linux/other: best-effort across common terminal emulators. Each is spawned
+    // via argv (no shell) with the agent command after the emulator's exec flag,
+    // so the desk actually comes up running its agent instead of a bare shell.
+    const linuxTerms = [
+        ["x-terminal-emulator", ["-e", ...run]],
+        ["gnome-terminal", ["--", ...run]],
+        ["konsole", ["-e", ...run]],
+        ["xterm", ["-e", ...run]],
+    ];
+    for (const [term, args] of linuxTerms) {
+        if (await trySpawn(term, args, { cwd: deskPath })) return true;
+    }
+    return false;
 }
 
 // Signal JSON is agent-produced and unvalidated. Coerce numeric fields before
@@ -73,6 +268,24 @@ function isCrossSiteRequest(req) {
     }
     const site = req.headers["sec-fetch-site"];
     return site === "cross-site" || site === "same-site";
+}
+
+// Pin the Host header to the exact loopback authority we bound. A DNS-rebinding
+// page reaches us under its own hostname (Host: attacker.example:<port>), so an
+// exact match against 127.0.0.1:<port> refuses those requests before any state
+// change — Origin/Host equality alone doesn't, since the attacker controls both.
+function isCanonicalHost(req, canonicalHost) {
+    return String(req.headers.host || "").toLowerCase() === String(canonicalHost || "").toLowerCase();
+}
+
+// Capability check for the per-server token minted at startup and embedded in
+// the page we serve. Only the loopback document we rendered knows it, so a blind
+// cross-origin/rebinding caller can't forge a mutating request even if it
+// reached the socket.
+function hasCapabilityToken(req, token) {
+    const header = req.headers["x-workshop-token"];
+    const provided = Array.isArray(header) ? header[0] : header;
+    return typeof provided === "string" && provided.length > 0 && provided === token;
 }
 
 // --- Stash management ---
@@ -399,11 +612,11 @@ function renderSignalCard(sig) {
     const openBtnStyle = isEscalation
         ? "background:#7f1d1d;border:1px solid #dc2626;color:#fca5a5;padding:2px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-weight:600;transition:all .15s;"
         : "background:none;border:1px solid #1e3a5f;color:#7dd3fc;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;transition:all .15s;";
-    const openBtn = noSignal ? "" : `<button data-act="open" data-desk="${esc(sig.deskName)}"
+    const openBtn = `<button data-act="open" data-desk="${esc(sig.deskName)}"
         style="${openBtnStyle}"
         onmouseover="this.style.background='#1e3a5f'"
         onmouseout="this.style.background='${isEscalation ? '#7f1d1d' : 'transparent'}'"
-        title="Copy this desk's filesystem path to the clipboard">path</button>`;
+        title="Open this desk as a Copilot CLI session in its folder">open</button>`;
 
     let escalationBlock = "";
     if (isEscalation && sig.escalationReason) {
@@ -531,7 +744,7 @@ function renderStashedCard(entry) {
     </div>`;
 }
 
-function renderDashboard(signals, stashed) {
+function renderDashboard(signals, stashed, capabilityToken) {
     const activeSignals = sortSignals(signals.filter(s => !stashed.some(e => e.name === s.deskName)));
 
     const cards = activeSignals.length > 0
@@ -603,12 +816,17 @@ function renderDashboard(signals, stashed) {
     </div>
 
     <script>
+        // Minted per server, echoed on every mutating fetch so the loopback
+        // document proves it actually loaded this page (defense-in-depth with the
+        // Host pin + CSRF check on the server).
+        const WORKSHOP_TOKEN = ${JSON.stringify(capabilityToken)};
+        const POST_OPTS = { method: 'POST', headers: { 'x-workshop-token': WORKSHOP_TOKEN } };
         async function stashDesk(name) {
-            await fetch('/api/stash/' + encodeURIComponent(name), { method: 'POST' });
+            await fetch('/api/stash/' + encodeURIComponent(name), POST_OPTS);
             refresh();
         }
         async function restoreDesk(name) {
-            await fetch('/api/restore/' + encodeURIComponent(name), { method: 'POST' });
+            await fetch('/api/restore/' + encodeURIComponent(name), POST_OPTS);
             refresh();
         }
         function showToast(title, detail) {
@@ -633,15 +851,20 @@ function renderDashboard(signals, stashed) {
             setTimeout(() => toast.remove(), 4000);
         }
         async function openDesk(name) {
-            const res = await fetch('/api/open/' + encodeURIComponent(name), { method: 'POST' });
+            const res = await fetch('/api/open/' + encodeURIComponent(name), POST_OPTS);
             const data = await res.json();
             if (data.ok) {
                 const path = data.deskPath || name;
-                try {
-                    await navigator.clipboard.writeText(path);
-                    showToast(name + ' · path copied', path);
-                } catch {
-                    showToast(name, path);
+                if (data.launched) {
+                    // A successful open shouldn't hijack the user's clipboard.
+                    showToast('opening ' + name + ' desk…', path);
+                } else {
+                    // No terminal launched from here, so copy the path as the
+                    // fallback handle, but only claim the copy when it actually
+                    // succeeded. The path shows in the toast either way.
+                    let copied = false;
+                    try { await navigator.clipboard.writeText(path); copied = true; } catch {}
+                    showToast(copied ? (name + ' · path copied') : (name + ' · copy this path'), path);
                 }
             } else {
                 showToast(name + ' · not found', '');
@@ -695,14 +918,31 @@ function renderDashboard(signals, stashed) {
 // --- Server ---
 
 async function startServer(instanceId, workshopDir) {
+    // Minted once per server: embedded in the page we render and required back on
+    // every mutating request. canonicalHost is filled in after listen() so the
+    // Host pin knows the exact port we bound.
+    const capabilityToken = randomBytes(32).toString("base64url");
+    let canonicalHost = null;
+
     const server = createServer(async (req, res) => {
         try {
         const url = new URL(req.url, `http://${req.headers.host}`);
 
-        if (req.method === "POST" && url.pathname.startsWith("/api/") && isCrossSiteRequest(req)) {
-            res.writeHead(403, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ ok: false, error: "cross_site_blocked" }));
-            return;
+        // Layered guard for the state-changing /api/* routes (cf.
+        // connector-namespaces/server.mjs): the canonical-Host pin defeats DNS
+        // rebinding, the CSRF check blocks cross-site browser POSTs, and the
+        // capability token proves the caller actually loaded our page.
+        if (req.method === "POST" && url.pathname.startsWith("/api/")) {
+            if (!isCanonicalHost(req, canonicalHost) || isCrossSiteRequest(req)) {
+                res.writeHead(403, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: false, error: "cross_site_blocked" }));
+                return;
+            }
+            if (!hasCapabilityToken(req, capabilityToken)) {
+                res.writeHead(403, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: false, error: "missing_capability_token" }));
+                return;
+            }
         }
 
         if (req.method === "POST" && url.pathname.startsWith("/api/stash/")) {
@@ -741,8 +981,9 @@ async function startServer(instanceId, workshopDir) {
                 try {
                     const s = await stat(deskPath);
                     if (s.isDirectory()) {
+                        const launched = await launchDeskConsole(deskPath, deskName, workshopDir);
                         res.writeHead(200, { "Content-Type": "application/json" });
-                        res.end(JSON.stringify({ ok: true, deskName, deskPath }));
+                        res.end(JSON.stringify({ ok: true, deskName, deskPath, launched }));
                         return;
                     }
                 } catch {}
@@ -755,7 +996,7 @@ async function startServer(instanceId, workshopDir) {
         const signals = await scanSignals(workshopDir);
         const stashed = await readStash(workshopDir);
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        res.end(renderDashboard(signals, stashed));
+        res.end(renderDashboard(signals, stashed, capabilityToken));
         } catch (err) {
             // Top-level boundary: never leave a request hanging or let a
             // rejection become an unhandled crash — e.g. malformed %-encoding
@@ -778,6 +1019,7 @@ async function startServer(instanceId, workshopDir) {
     });
     const address = server.address();
     const port = typeof address === "object" && address ? address.port : 0;
+    canonicalHost = `127.0.0.1:${port}`;
     return { server, url: `http://127.0.0.1:${port}/` };
 }
 
@@ -859,6 +1101,31 @@ const session = await joinSession({
                                 const s = await stat(deskPath);
                                 if (s.isDirectory()) {
                                     return { ok: true, deskName: ctx.input.deskName, deskPath, workshopDir: entry.workshopDir };
+                                }
+                            } catch {}
+                        }
+                        return { error: `Desk '${ctx.input.deskName}' not found` };
+                    },
+                },
+                {
+                    name: "open_desk",
+                    description: "Open a desk as an in-place Copilot CLI session: launches a terminal in the desk's folder (inside the workshop repo) running copilot, oriented to read the desk journal and continue. This is the Model A 'sit down at the desk' — no new worktree, no session spun off elsewhere. Returns the desk path and whether a terminal was launched.",
+                    inputSchema: {
+                        type: "object",
+                        properties: { deskName: { type: "string", description: "Name of the desk to open" } },
+                        required: ["deskName"],
+                    },
+                    handler: async (ctx) => {
+                        const entry = servers.get(ctx.instanceId);
+                        if (!entry) return { error: "Dashboard not open" };
+                        if (!isValidDeskName(ctx.input.deskName)) return { error: "Invalid desk name" };
+                        for (const subdir of ["desks", "classroom"]) {
+                            const deskPath = join(entry.workshopDir, subdir, ctx.input.deskName);
+                            try {
+                                const s = await stat(deskPath);
+                                if (s.isDirectory()) {
+                                    const launched = await launchDeskConsole(deskPath, ctx.input.deskName, entry.workshopDir);
+                                    return { ok: true, deskName: ctx.input.deskName, deskPath, launched, workshopDir: entry.workshopDir };
                                 }
                             } catch {}
                         }
