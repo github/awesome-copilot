@@ -629,6 +629,12 @@
       }
     },
     {
+      "name": "git-worktree-explorer",
+      "source": "extensions/git-worktree-explorer",
+      "description": "Visualize the active Git repository through worktrees, branches, commits, and optional GitHub pull request context.",
+      "version": "1.0.0"
+    },
+    {
       "name": "github-copilot-modernization",
       "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator → coordinators → executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
       "version": "1.22.0",
