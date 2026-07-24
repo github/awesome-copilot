@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-07-15
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -541,21 +541,23 @@ The `/cd` command changes the working directory for the current session. Since v
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
 
-The `/worktree` command (v1.0.61+, also aliased `/move`) creates a new git worktree and switches into it, moving any uncommitted changes along. This lets you start working on a parallel branch without leaving your current terminal session:
+The `/worktree` command (v1.0.61+) creates a new git worktree on a fresh branch and switches the session into it. Since v1.0.71, `/worktree` **leaves your uncommitted changes behind** in the current worktree — use `/move` when you want to bring them along:
 
 ```
-/worktree my-feature-branch
+/worktree my-feature-branch   # create worktree, leave uncommitted changes behind
+/move my-feature-branch       # create worktree, carry uncommitted changes into it
 ```
 
-In v1.0.66+, you can pass a task description to `/worktree` to name the branch from the task and immediately run the task as the first prompt in the new worktree — all in one step:
+In v1.0.66+, you can pass a task description to either command to name the branch from the task and immediately run the task as the first prompt in the new worktree — all in one step:
 
 ```
 /worktree fix the login redirect
+/move fix the login redirect
 ```
 
 This creates a branch named from your task description and begins working on it immediately, making it easy to spin up parallel work without stopping to think of a branch name.
 
-After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+After either command runs, the session is inside the new worktree. Use `/worktree` to start fresh on a parallel task, and `/move` when you've already begun work locally and want to continue it on its own branch. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -646,6 +648,15 @@ The `/refine` command *(v1.0.70+)* rewrites a rough, stream-of-consciousness pro
 ```
 
 Type your rough idea, and `/refine` transforms it into a precise, well-structured prompt. This is especially helpful for complex multi-step tasks where prompt clarity significantly affects output quality — for example, turning "um make the login thing work better with the existing setup" into a focused task description with clear scope and acceptance criteria.
+
+The `/voice` command *(v1.0.71+)* enables voice input mode, letting you speak prompts instead of typing them. The `/voice devices` subcommand opens a picker to choose and persistently save which microphone to use for voice input:
+
+```
+/voice             # start voice input mode
+/voice devices     # choose and persist your microphone
+```
+
+This is useful when you want to dictate long or complex prompts quickly, or when your hands are occupied with other work. Your microphone selection persists across sessions so you don't need to re-configure it each time you use voice mode.
 
 The `/env` command shows all loaded environment details — instructions, MCP servers, skills, agents, and plugins — in a single view. Use it to verify that the right resources are active for the current session:
 
