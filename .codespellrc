@@ -66,5 +66,6 @@ ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afte
 
 # Skip certain files and directories
 # *.tm7 - MTM DataContract exports; embedded base64 icon blobs trigger false positives
+# lumi-app-finder locale catalogs contain intentional non-English vocabulary
 
-skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus,.all-contributorrc,./skills/geofeed-tuner/assets/*.json,./skills/geofeed-tuner/references/*.txt,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/assets/*.json,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/references/*.txt,./extensions/arcade-canvas/game/phaser.min.js,*.tm7
+skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus,.all-contributorrc,./skills/geofeed-tuner/assets/*.json,./skills/geofeed-tuner/references/*.txt,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/assets/*.json,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/references/*.txt,./extensions/arcade-canvas/game/phaser.min.js,./skills/lumi-app-finder/references/*.json,*.tm7
