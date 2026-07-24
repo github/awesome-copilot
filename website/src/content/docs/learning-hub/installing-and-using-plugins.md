@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-07-20
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -220,6 +220,48 @@ copilot plugin marketplace update
 
 # Remove a plugin
 copilot plugin uninstall my-plugin
+```
+
+### Managing Plugins, Skills, and MCP Servers via Slash Commands
+
+*(v1.0.71–v1.0.72+)* Inside an interactive Copilot session, the `/plugins` slash command now supports the full range of management actions. You can target plugins, MCP servers, or skills using explicit flags:
+
+```
+# Plugin management
+/plugins update my-plugin
+/plugins uninstall my-plugin
+/plugins enable my-plugin
+/plugins disable my-plugin
+
+# Skill management via /plugins
+/plugins install --skill ./my-skill/
+/plugins remove --skill my-skill
+/plugins enable --skill my-skill
+/plugins disable --skill my-skill
+
+# MCP server management via /plugins
+/plugins enable --mcp my-server
+/plugins disable --mcp my-server
+/plugins remove --mcp my-server
+```
+
+Use `/plugins help` inside a session to see all available subcommands.
+
+### Marketplace Management
+
+Manage plugin marketplaces from within a session or the CLI:
+
+```
+# From an interactive session
+/plugins marketplace browse awesome-copilot
+/plugins marketplace update            # refresh all marketplace catalogs
+
+# From the CLI
+copilot plugins marketplace list
+copilot plugins marketplace browse awesome-copilot
+copilot plugins marketplace update
+copilot plugins marketplace add my-org/internal-plugins
+copilot plugins marketplace remove my-org/internal-plugins
 ```
 
 ### Loading Plugins from a Local Directory
