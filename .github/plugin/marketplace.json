@@ -167,6 +167,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "brainmax-canvas",
+      "source": "extensions/brainmax-canvas",
+      "description": "Interactive concept-mastery dashboard for codebase-grounded BrainMax quizzes, scores and competency reports.",
+      "version": "1.0.0"
+    },
+    {
       "name": "cast-imaging",
       "source": "plugins/cast-imaging",
       "description": "A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging.",

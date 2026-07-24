@@ -1,0 +1,19 @@
+{
+  "name": "brainmax-canvas",
+  "description": "Interactive concept-mastery dashboard for codebase-grounded BrainMax quizzes, scores and competency reports.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Julia Muiruri",
+    "url": "https://github.com/juliamuiruri4"
+  },
+  "keywords": [
+    "assessment",
+    "student-developer",
+    "developer-education",
+    "quiz",
+    "conceptual-understanding",
+    "skills-mastery"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}
