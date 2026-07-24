@@ -34,9 +34,24 @@ const twitterDomain =
   canonicalUrl && URL.canParse(canonicalUrl)
     ? new URL(canonicalUrl).hostname
     : undefined;
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "form-action 'none'",
+  "script-src 'self' 'unsafe-inline' https://analytics.githubassets.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://raw.githubusercontent.com https://collector.githubapp.com",
+  "worker-src 'self' blob:",
+  "upgrade-insecure-requests",
+].join("; ");
 ---
 
 <Default><slot /></Default>
+<meta http-equiv="Content-Security-Policy" content={contentSecurityPolicy} />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 {twitterTitle && <meta name="twitter:title" content={twitterTitle} />}
 {description && <meta name="twitter:description" content={description} />}
 {canonicalUrl && <meta property="twitter:url" content={canonicalUrl} />}
@@ -77,10 +92,25 @@ const twitterDomain =
       name="ha-url"
       content="https://collector.githubapp.com/awesome-copilot-web/collect"
     />
-    <script
-      async
-      defer
-      src="https://analytics.githubassets.com/hydro-marketing.min.js"
-    ></script>
+    <script is:inline>
+      (function() {
+        const doNotTrackEnabled =
+          navigator.doNotTrack === "1" ||
+          navigator.doNotTrack === "yes" ||
+          window.doNotTrack === "1" ||
+          navigator.msDoNotTrack === "1";
+        const globalPrivacyControlEnabled =
+          typeof navigator.globalPrivacyControl === "boolean" &&
+          navigator.globalPrivacyControl;
+
+        if (doNotTrackEnabled || globalPrivacyControlEnabled) return;
+
+        const analyticsScript = document.createElement("script");
+        analyticsScript.async = true;
+        analyticsScript.defer = true;
+        analyticsScript.src = "https://analytics.githubassets.com/hydro-marketing.min.js";
+        document.head.appendChild(analyticsScript);
+      })();
+    </script>
   </>
 )}
