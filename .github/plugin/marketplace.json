@@ -248,6 +248,33 @@
       "version": "1.0.2"
     },
     {
+      "name": "connector-namespaces",
+      "description": "Interactive GitHub Copilot canvas for discovering, connecting, and managing hosted MCP servers from an Azure Connector Namespace.",
+      "version": "1.2.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/Azure"
+      },
+      "repository": "https://github.com/Azure/Connectors",
+      "homepage": "https://github.com/Azure/Connectors/tree/connector-namespaces-canvas%401.2.0/connector-namespaces",
+      "license": "MIT",
+      "keywords": [
+        "azure",
+        "canvas",
+        "connector-namespace",
+        "mcp",
+        "mcp-connectors",
+        "model-context-protocol",
+        "tool-discovery"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Azure/Connectors",
+        "path": "connector-namespaces",
+        "sha": "473d526fad34951ed0e12664912df4c7f393ed15"
+      }
+    },
+    {
       "name": "context-engineering",
       "source": "plugins/context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
