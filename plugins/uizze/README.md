@@ -27,6 +27,8 @@ The skill remains usable when catalogue browsing is unavailable: it can work fro
 
 - No account, credential, token, or external server is required.
 - No MCP server is bundled with this plugin.
+
+For direct catalogue search, visual audits, and screenshot critique inside your agent, connect the full [UIZZE MCP](https://uizze.com/github-copilot).
 - The skill is MIT licensed and useful on its own.
 
 UIZZE maintains the public catalogue referenced by the skill.
