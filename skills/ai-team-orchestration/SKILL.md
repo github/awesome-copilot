@@ -67,7 +67,9 @@ Before ending a long or interrupted session:
 3. Use a cold-start prompt such as:
 
 ```text
-Read the repository instructions, PROJECT_BRIEF.md, and the active plan.
+Read the repository instructions, then read whichever sources exist for this
+work: the active issue or request, PROJECT_BRIEF.md, and the active plan or
+progress note.
 Continue from the recorded next action.
 ```
 
