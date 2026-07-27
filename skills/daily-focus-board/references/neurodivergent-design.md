@@ -24,7 +24,7 @@ genuinely supportive for neurodivergent people. Two ground rules:
 | **Overwhelm** — a long list paralyzes | reduce visible load; one thing at a time | **Focus mode** dims all but one; carryover keeps the list short |
 | **Dopamine / reward** — interest- & urgency-driven; needs immediate payoff | instant, visible reward + novelty | progress ring, confetti, momentum feed; **starting counts** (flip to in-progress — the partner can log it in the feed); rotating encouragements |
 | **Perfectionism / shame spiral** — miss one → abandon the whole system | no punishment; partial credit; easy defer | **"not today" carryover** (no overdue-shaming); "in progress" counts; carried items leave the ring math |
-| **Intrusive thoughts** — a stray thought derails focus | frictionless capture, deal with it later | **🧠 brain-dump box** ("park it, keep going") |
+| **Intrusive thoughts** — a stray thought pulls you off task | frictionless capture, deal with it later | **🧠 brain-dump box** ("park it, keep going") |
 | **Task-switching / transitions** | explicit "what's next" handoff | agent behavior: name ONE next action, offer Focus mode |
 | **Body-doubling** — focus improves with a present partner | be the other-in-the-room | the whole premise: you drive the board *by talking to your AI partner* |
 | **Sensory / motion sensitivity** | calm base, optional stimulation | **reduced-motion toggle** (kills confetti/transitions); honors `prefers-reduced-motion` by default |
