@@ -224,7 +224,7 @@ jobs:
                 .replace(/\]/g, '&#93;')
                 .replace(/\(/g, '&#40;')
                 .replace(/\)/g, '&#41;')
-                .replace(/\r?\n/g, '<br>');
+                .replace(/\r\n?|\n/g, '<br>');
             const normalizeGitHubUrl = (value) => {
               const raw = String(value || '').trim();
               if (!raw) {
