@@ -215,16 +215,17 @@ jobs:
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
             const escapeMarkdownTableCell = (value) =>
-              String(value || '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/\|/g, '&#124;')
-                .replace(/\[/g, '&#91;')
-                .replace(/\]/g, '&#93;')
-                .replace(/\(/g, '&#40;')
-                .replace(/\)/g, '&#41;')
-                .replace(/\r\n?|\n/g, '<br>');
+              String(value ?? '')
+                .replace(/\r\n?|\n/g, '\n')
+                .split('\n')
+                .map((line) =>
+                  Array.from(line, (character) =>
+                    /^[A-Za-z0-9 .-]$/.test(character)
+                      ? character
+                      : `&#${character.codePointAt(0)};`
+                  ).join('')
+                )
+                .join('<br>');
             const normalizeGitHubUrl = (value) => {
               const raw = String(value || '').trim();
               if (!raw) {
