@@ -214,6 +214,33 @@ jobs:
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
+            const escapeMarkdownTableCell = (value) =>
+              String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\|/g, '&#124;')
+                .replace(/\[/g, '&#91;')
+                .replace(/\]/g, '&#93;')
+                .replace(/\(/g, '&#40;')
+                .replace(/\)/g, '&#41;')
+                .replace(/\r?\n/g, '<br>');
+            const normalizeGitHubUrl = (value) => {
+              const raw = String(value || '').trim();
+              if (!raw) {
+                return '';
+              }
+
+              try {
+                const parsed = new URL(raw);
+                if (parsed.protocol !== 'https:' || parsed.hostname !== 'github.com') {
+                  return '';
+                }
+                return parsed.toString();
+              } catch {
+                return '';
+              }
+            };
             const TRUNCATED_OUTPUT_MARKER = '\n...output truncated...';
             const truncateGateOutput = (rawOutput) => {
               const normalized = escapeHtml(String(rawOutput || '').trim());
@@ -243,12 +270,17 @@ jobs:
 
             const rows = checkedPlugins.length > 0
               ? checkedPlugins.map((entry) => {
-                  const name = String(entry?.name || 'unknown');
+                  const name = escapeMarkdownTableCell(entry?.name || 'unknown');
                   const quality = entry?.quality || {};
-                  const sourceUrl = String(entry?.source_tree_url || '');
-                  const locator = String(entry?.source?.sha || entry?.source?.ref || 'repository');
-                  const sourceCell = sourceUrl ? `[${locator}](${sourceUrl})` : locator;
-                  return `| ${name} | ${quality.vally_lint_status || 'not_run'} | ${quality.smoke_status || 'not_run'} | ${quality.version_match_status || 'not_run'} | ${quality.canvas_structure_status || 'not_run'} | ${quality.overall_status || 'not_run'} | ${sourceCell} |`;
+                  const sourceUrl = normalizeGitHubUrl(entry?.source_tree_url || '');
+                  const locator = escapeMarkdownTableCell(entry?.source?.sha || entry?.source?.ref || 'repository');
+                  const sourceCell = sourceUrl ? `[${locator}](<${sourceUrl}>)` : locator;
+                  const vallyLintStatus = escapeMarkdownTableCell(quality.vally_lint_status || 'not_run');
+                  const smokeStatus = escapeMarkdownTableCell(quality.smoke_status || 'not_run');
+                  const versionMatchStatus = escapeMarkdownTableCell(quality.version_match_status || 'not_run');
+                  const canvasStructureStatus = escapeMarkdownTableCell(quality.canvas_structure_status || 'not_run');
+                  const overallStatus = escapeMarkdownTableCell(quality.overall_status || 'not_run');
+                  return `| ${name} | ${vallyLintStatus} | ${smokeStatus} | ${versionMatchStatus} | ${canvasStructureStatus} | ${overallStatus} | ${sourceCell} |`;
                 })
               : ['| _none_ | not_run | not_run | not_run | not_run | not_run | _n/a_ |'];
             const failureDetails = checkedPlugins.flatMap((entry) => {
@@ -296,7 +328,9 @@ jobs:
                     '',
                   ]
                 : []),
-              String(qualityResult.summary || '').trim() || '_No summary provided._',
+              String(qualityResult.summary || '').trim()
+                ? `<pre><code>${escapeHtml(String(qualityResult.summary).trim())}</code></pre>`
+                : '_No summary provided._',
             ].join('\n');
 
             await intakeState.upsertExternalPluginIntakeComment({
