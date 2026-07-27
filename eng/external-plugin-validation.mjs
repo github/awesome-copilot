@@ -60,12 +60,20 @@ function validatePluginName(name, prefix, errors) {
     return;
   }
 
-  if (name.length > 50) {
-    errors.push(`${prefix}: "name" must be 50 characters or fewer`);
+  if (name.length > 64) {
+    errors.push(`${prefix}: "name" must be 64 characters or fewer`);
   }
 
-  if (!/^[a-z0-9-]+$/.test(name)) {
-    errors.push(`${prefix}: "name" must contain only lowercase letters, numbers, and hyphens`);
+  if (!/^[a-z0-9.-]+$/.test(name)) {
+    errors.push(`${prefix}: "name" must contain only lowercase letters, numbers, hyphens, and periods`);
+  }
+
+  if (!/^[a-z0-9].*[a-z0-9]$/.test(name) && !/^[a-z0-9]$/.test(name)) {
+    errors.push(`${prefix}: "name" must start and end with a lowercase letter or number`);
+  }
+
+  if (name.includes("--") || name.includes("..")) {
+    errors.push(`${prefix}: "name" must not contain consecutive hyphens or periods`);
   }
 }
 
