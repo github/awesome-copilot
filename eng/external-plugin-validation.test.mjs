@@ -5,6 +5,7 @@ import {
   EXTERNAL_PLUGINS_FILE,
   validateExternalPlugin,
   validateExternalPlugins,
+  validateLicenseField,
 } from "./external-plugin-validation.mjs";
 
 function basePlugin(overrides = {}) {
@@ -60,20 +61,45 @@ test("license accepts SPDX ids and expressions", () => {
   assert.deepEqual(validateExternalPlugin(basePlugin({ license: "Apache-2.0" }), 0).errors, []);
   assert.deepEqual(validateExternalPlugin(basePlugin({ license: "MIT OR Apache-2.0" }), 0).errors, []);
   assert.deepEqual(validateExternalPlugin(basePlugin({ license: "(MIT OR Apache-2.0)" }), 0).errors, []);
-  assert.deepEqual(validateExternalPlugin(basePlugin({ license: "GPL-2.0-or-later WITH GCC-exception" }), 0).errors, []);
   assert.deepEqual(validateExternalPlugin(basePlugin({ license: "LicenseRef-Custom" }), 0).errors, []);
+
+  const recognized = validateExternalPlugin(basePlugin({ license: "MIT" }), 0);
+  assert.equal(recognized.warnings.filter((m) => m.includes("license")).length, 0);
 });
 
-test("license warns on well-formed but unrecognized SPDX id", () => {
-  const result = validateExternalPlugin(basePlugin({ license: "SSAL-1.0" }), 0);
-  assert.deepEqual(result.errors, []);
-  assert.ok(hasWarning(result, "not a recognized SPDX identifier"));
+test("non-SPDX license is a warning, never an error", () => {
+  for (const license of ["SSAL-1.0", "Proprietary", "UNLICENSED", "SEE LICENSE IN LICENSE.md", "MIT OR"]) {
+    const result = validateExternalPlugin(basePlugin({ license }), 0);
+    assert.deepEqual(result.errors, [], `expected no errors for license "${license}"`);
+    assert.ok(
+      hasWarning(result, "not a recognized SPDX identifier"),
+      `expected a warning for license "${license}"`
+    );
+  }
 });
 
-test("license errors on malformed expressions", () => {
-  assert.ok(hasError(validateExternalPlugin(basePlugin({ license: "MIT OR" }), 0), "operator"));
-  assert.ok(hasError(validateExternalPlugin(basePlugin({ license: "MIT Apache-2.0" }), 0), "not a valid SPDX expression"));
-  assert.ok(hasError(validateExternalPlugin(basePlugin({ license: "@bad@" }), 0), "invalid SPDX identifier"));
+test("empty/non-string license is an error; required license is enforced", () => {
+  assert.ok(hasError(validateExternalPlugin(basePlugin({ license: "" }), 0), "non-empty string"));
+  assert.ok(hasError(validateExternalPlugin(basePlugin({ license: 42 }), 0), "non-empty string"));
+
+  // publicSubmission requires a license.
+  const noLicense = basePlugin();
+  delete noLicense.license;
+  assert.ok(
+    hasError(validateExternalPlugin(noLicense, 0, { policy: "publicSubmission" }), '"license" is required')
+  );
+});
+
+test("validateLicenseField is reusable for local plugin.json", () => {
+  assert.deepEqual(validateLicenseField("MIT"), { errors: [], warnings: [] });
+
+  const proprietary = validateLicenseField("Proprietary");
+  assert.deepEqual(proprietary.errors, []);
+  assert.equal(proprietary.warnings.length, 1);
+
+  // Optional by default: absent license produces nothing.
+  assert.deepEqual(validateLicenseField(undefined), { errors: [], warnings: [] });
+  assert.ok(validateLicenseField(undefined, { required: true }).errors.length === 1);
 });
 
 test("author.email is validated only when present", () => {

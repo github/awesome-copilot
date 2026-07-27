@@ -238,11 +238,11 @@ For entries committed to `plugins/external.json`, the current marketplace valida
 - `author.name` (and, when present, a valid `author.url` and `author.email`)
 - `repository` as an HTTPS GitHub URL
 - `keywords` as lowercase hyphenated tags
-- `license`, when provided, as an [SPDX identifier or expression](https://spdx.org/licenses) (e.g. `MIT`, `Apache-2.0`, `MIT OR Apache-2.0`)
+- `license`, when provided, is recommended to be an [SPDX identifier or expression](https://spdx.org/licenses) (e.g. `MIT`, `Apache-2.0`, `MIT OR Apache-2.0`), but a non-SPDX or proprietary license is allowed and only produces a warning
 - `source.source: "github"` plus `source.repo` in `owner/repo` format
 - optional `source.path` values of `/` for repository root, or a repository-relative folder where the plugin structure starts (do not point to `plugin.json` directly)
 
-Validation also emits non-fatal warnings to catch mistakes early: unknown/misspelled top-level, `author`, or `source` fields; `license` values that are not recognized SPDX identifiers; and marketplace entries whose `source` omits an immutable `ref`/`sha` locator.
+Validation also emits non-fatal warnings to catch mistakes early: unknown/misspelled top-level, `author`, or `source` fields; `license` values that are not recognized SPDX identifiers (non-SPDX/proprietary licenses are permitted, not rejected); and marketplace entries whose `source` omits an immutable `ref`/`sha` locator. The same `license` validation is shared with local plugin `plugin.json` manifests so both are checked consistently.
 
 The public-submission policy builds on those rules and also requires `license` plus at least one immutable source locator: `source.ref`, `source.sha`, or both.
 

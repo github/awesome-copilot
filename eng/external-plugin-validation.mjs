@@ -267,40 +267,24 @@ function validateEmail(value, fieldName, prefix, errors) {
   }
 }
 
-function validateSpdxToken(token, prefix, errors, warnings) {
+function isRecognizedSpdxIdToken(token) {
   if (token.startsWith("LicenseRef-") || token.startsWith("DocumentRef-")) {
-    return;
+    return true;
   }
 
   if (!SPDX_ID_PATTERN.test(token)) {
-    errors.push(`${prefix}: "license" contains an invalid SPDX identifier "${token}"`);
-    return;
+    return false;
   }
 
   const normalized = token.endsWith("+") ? token.slice(0, -1) : token;
-  if (!KNOWN_SPDX_IDS.has(normalized)) {
-    warnings.push(
-      `${prefix}: "license" value "${token}" is not a recognized SPDX identifier; prefer a standard SPDX id (https://spdx.org/licenses)`
-    );
-  }
+  return KNOWN_SPDX_IDS.has(normalized);
 }
 
-function validateLicense(license, prefix, errors, warnings, required) {
-  if (license === undefined) {
-    if (required) {
-      errors.push(`${prefix}: "license" is required`);
-    }
-    return;
-  }
-
-  if (!isNonEmptyString(license)) {
-    errors.push(`${prefix}: "license" must be a non-empty string`);
-    return;
-  }
-
-  // Validate as an SPDX license expression: identifiers separated by AND/OR/WITH,
-  // optionally parenthesized. Unknown-but-well-formed identifiers warn; malformed
-  // syntax errors.
+// Returns true only for a well-formed SPDX license expression composed of
+// recognized identifiers joined by AND/OR/WITH operators (optionally parenthesized).
+// Anything else (proprietary strings, free text, unrecognized ids) returns false so
+// the caller can warn without rejecting it — the plugin spec does not enforce SPDX.
+function isRecognizedSpdxExpression(license) {
   const tokens = license
     .replace(/[()]/g, " ")
     .trim()
@@ -308,31 +292,64 @@ function validateLicense(license, prefix, errors, warnings, required) {
     .filter((token) => token.length > 0);
 
   if (tokens.length === 0) {
-    errors.push(`${prefix}: "license" must be a valid SPDX license identifier`);
-    return;
+    return false;
   }
 
   let expectOperator = false;
   for (const token of tokens) {
     if (SPDX_EXPRESSION_OPERATORS.has(token.toUpperCase())) {
       if (!expectOperator) {
-        errors.push(`${prefix}: "license" has a misplaced "${token}" operator in the SPDX expression`);
+        return false;
       }
       expectOperator = false;
       continue;
     }
 
-    if (expectOperator) {
-      errors.push(`${prefix}: "license" is not a valid SPDX expression near "${token}"`);
+    if (expectOperator || !isRecognizedSpdxIdToken(token)) {
+      return false;
     }
 
-    validateSpdxToken(token, prefix, errors, warnings);
     expectOperator = true;
   }
 
-  if (!expectOperator) {
-    errors.push(`${prefix}: "license" SPDX expression must not end with an operator`);
+  return expectOperator;
+}
+
+// Canonical license validation shared by external plugins and local plugin.json
+// manifests. A non-SPDX license is a warning (never an error) so authors may use
+// proprietary or non-OSS licenses, per the agent-plugins-spec schema which does not
+// enforce SPDX. Returns collected errors/warnings.
+export function validateLicenseField(license, options = {}) {
+  const { required = false } = options;
+  const prefix = options.prefix ? `${options.prefix}: ` : "";
+  const errors = [];
+  const warnings = [];
+
+  if (license === undefined) {
+    if (required) {
+      errors.push(`${prefix}"license" is required`);
+    }
+    return { errors, warnings };
   }
+
+  if (!isNonEmptyString(license)) {
+    errors.push(`${prefix}"license" must be a non-empty string`);
+    return { errors, warnings };
+  }
+
+  if (!isRecognizedSpdxExpression(license)) {
+    warnings.push(
+      `${prefix}"license" value "${license}" is not a recognized SPDX identifier; prefer a standard SPDX id (https://spdx.org/licenses), though non-SPDX or proprietary licenses are allowed`
+    );
+  }
+
+  return { errors, warnings };
+}
+
+function validateLicense(license, prefix, errors, warnings, required) {
+  const result = validateLicenseField(license, { prefix, required });
+  errors.push(...result.errors);
+  warnings.push(...result.warnings);
 }
 
 function validateKnownFields(value, allowedKeys, scope, prefix, warnings) {
