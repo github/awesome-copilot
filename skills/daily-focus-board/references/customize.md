@@ -3,8 +3,8 @@
 ## Theming
 Colors live in the `:root` CSS block of `assets/board.template.html`
 (`--ember`, `--good`, `--urgent`, backgrounds). The look is warm/dark by default. Tag colors:
-`new` (green), `deadline` (red), `career` (purple) — add your own by copying a `.tag.<name>`
-rule and passing that name as a task's `tagc`.
+`new` (green), `deadline` (red), `career` (purple) — add your own by copying a `.tagedit.<name>`
+rule and passing that name as a task's `tagc` (use a plain class name: letters, digits, `-`, `_`).
 
 ## v2 — file-backed state (closes the agent loop)
 v1 stores progress in the browser (`localStorage`), which the agent can't read back. To let

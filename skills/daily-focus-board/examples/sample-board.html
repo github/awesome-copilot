@@ -341,7 +341,7 @@ function render(){
       +`<select class="quadsel" data-quad="${t.id}"><option value=""${q===""?" selected":""}>priority…</option>`
       +`<option value="iu"${q==="iu"?" selected":""}>🔴 Do first</option><option value="ins"${q==="ins"?" selected":""}>🔵 Schedule</option>`
       +`<option value="niu"${q==="niu"?" selected":""}>🟡 Delegate</option><option value="ninu"${q==="ninu"?" selected":""}>⚪ Later</option></select>`
-      +`<input class="tagedit ${t.tagc||""}" data-tagedit="${t.id}" value="${escAttr(tag)}" placeholder="label"/></div>`;
+      +`<input class="tagedit ${safeCls(t.tagc)}" data-tagedit="${t.id}" value="${escAttr(tag)}" placeholder="label"/></div>`;
     if(isCounter(t)){
       const v=state.counters[t.id],g=t.goal>0?t.goal:1,pct=Math.min(100,Math.round(v/g*100)),inc=t.inc||Math.max(1,Math.round(g/10)),unit=t.unit||"";
       c.innerHTML=`<div class="top"><div class="emoji">${esc(t.emoji||"🎯")}</div>
@@ -428,6 +428,7 @@ function tagOf(t){return state.tag[t.id]!==undefined?state.tag[t.id]:(t.tag||"")
 function setQuad(id,v){state.quad[id]=v;save();render();}
 function setTag(id,v){state.tag[id]=v;save();render();}
 function escAttr(s){return esc(s).replace(/"/g,"&quot;");}
+function safeCls(s){return (s||"").replace(/[^a-zA-Z0-9_-]/g,"");}
 function reorder(from,targetId){if(!from||from===targetId)return;let ids=renderedIds.slice();const fromI=ids.indexOf(from),tgtI=ids.indexOf(targetId);if(fromI<0||tgtI<0)return;ids.splice(fromI,1);let ins=ids.indexOf(targetId);if(fromI<tgtI)ins+=1;ids.splice(ins,0,from);state.order=ids;save();render();}
 function sortByPriority(){const rank={iu:0,ins:1,niu:2,ninu:3,"":4};const ids=[...tasks].sort((a,b)=>{const ca=carriedOf(a)?1:0,cb=carriedOf(b)?1:0;if(ca!==cb)return ca-cb;const ra=(rank[quadOf(a)]===undefined?4:rank[quadOf(a)]),rb=(rank[quadOf(b)]===undefined?4:rank[quadOf(b)]);if(ra!==rb)return ra-rb;return orderIndex(a.id)-orderIndex(b.id);}).map(t=>t.id);state.order=ids;save();render();}
 function updateOverload(){const el=document.getElementById("overload");if(!el)return;const live=tasks.filter(t=>!carriedOf(t)&&statusOf(t)!=="done").length;if(live>9){el.style.display="block";el.textContent=`That's ${live} active tasks for today — more than a focus board loves. Consider carrying a few to tomorrow (⤳ not today), or use Focus mode to take one at a time. No pressure — this is a nudge, not a rule.`;}else{el.style.display="none";}}
