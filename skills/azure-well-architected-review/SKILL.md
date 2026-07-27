@@ -23,10 +23,15 @@ Fetch current Azure WAF best practices:
 If the `microsoft.docs.mcp` MCP server is available, use it to query the latest pillar checklists and service-specific recommendations.
 
 ### Step 2: Discover IaC & Architecture
-Scan the repository for IaC files:
-- Bicep: `**/*.bicep`, `bicepconfig.json`
-- Terraform: `**/*.tf` (azurerm/azapi providers)
-- ARM templates: `**/azuredeploy*.json`, `**/*.template.json`, files with `$schema` containing `deploymentTemplate`
+Establish the review scope, then inventory both the code and the live environment:
+
+1. **Confirm the Azure scope**: Ask the user which subscription(s)/resource group(s) are in scope, or infer them from IaC parameters and confirm.
+2. **Scan the repository for IaC files**:
+   - Bicep: `**/*.bicep`, `bicepconfig.json`
+   - Terraform: `**/*.tf` (azurerm/azapi providers)
+   - ARM templates: `**/azuredeploy*.json`, `**/*.template.json`, files with `$schema` containing `deploymentTemplate`
+3. **Inventory live resources** (always, even when IaC exists): `az resource list --resource-group <rg> --output json` (or subscription-wide), plus targeted `az <service> show` calls for configuration details the pillar checks need.
+4. **Compare IaC with live inventory**: Flag drift — resources present in Azure but absent from IaC (portal-created), resources defined in IaC but not deployed, and configuration mismatches. Record drift findings for Step 3 (they typically map to the Operational Excellence pillar).
 
 Identify key Azure services in use (compute, data, networking, security, observability) and generate a Mermaid architecture diagram.
 
@@ -113,13 +118,15 @@ For each finding, classify:
 ❓ Proceed with creating GitHub issues? (y/n)
 ```
 
+**Gate**: Only proceed to Steps 6–7 if the user gives an explicit affirmative response (e.g. "y", "yes"). On a negative, ambiguous, or missing response, do **not** create any GitHub issues — output the full findings as formatted markdown to the console and stop.
+
 ### Step 6: Create Individual Finding Issues
 Label with "well-architected" and the pillar name (e.g., "security", "reliability").
 
 **Title**: `[WAF-<PILLAR>] [Brief Finding] — [Risk Level]`
 
 **Body**:
-```markdown
+````markdown
 ## 🏗️ Well-Architected Finding: [Brief Title]
 
 **Pillar**: [Name] | **Risk Level**: [High/Medium/Low] | **Effort**: [Low/Medium/High]
@@ -161,7 +168,7 @@ az storage account update --name <name> --resource-group <rg> \
 - [ ] Microsoft Defender for Cloud recommendation resolved (if applicable)
 
 **Well-Architected Recommendation**: [WAF checklist item this maps to]
-```
+````
 
 ### Step 7: Create EPIC Tracking Issue
 Label with "well-architected" and "epic".
