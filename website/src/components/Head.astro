@@ -49,9 +49,9 @@ const contentSecurityPolicy = [
 ].join("; ");
 ---
 
-<Default><slot /></Default>
 <meta http-equiv="Content-Security-Policy" content={contentSecurityPolicy} />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
+<Default><slot /></Default>
 {twitterTitle && <meta name="twitter:title" content={twitterTitle} />}
 {description && <meta name="twitter:description" content={description} />}
 {canonicalUrl && <meta property="twitter:url" content={canonicalUrl} />}
