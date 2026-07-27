@@ -3,10 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
-estimatedReadingTime: '8 minutes'
-tags:
-  - plugins
+lastUpdated: 2026-07-27
   - copilot-cli
   - fundamentals
 relatedArticles:
@@ -31,7 +28,7 @@ A plugin bundles one or more of the following components:
 | **Custom Agents** | Specialized AI assistants with tailored expertise | `agents/*.agent.md` |
 | **Skills** | Discrete callable capabilities with bundled resources | `skills/*/SKILL.md` |
 | **Hooks** | Event handlers that intercept agent behavior | `hooks.json` or `hooks/` |
-| **MCP Servers** | Model Context Protocol integrations for external tools | `.mcp.json` or `.github/mcp.json` |
+| **MCP Servers** | Model Context Protocol integrations for external tools | `.mcp.json`, `.github/mcp.json`, or Open Plugin Spec `mcp.json` (v1.0.74+) |
 | **LSP Servers** | Language Server Protocol integrations | `lsp.json` or `.github/lsp.json` |
 | **Extensions** | IDE extensions installable via the plugin marketplace (v1.0.62+) | `extensions/` |
 
@@ -199,6 +196,8 @@ Or from an interactive session:
 ```
 
 > **Deprecation notice**: Installing plugins directly from a GitHub repository URL, raw URL, or local file path (e.g., `copilot plugin install github/awesome-copilot`) is deprecated and will be removed in a future release. Use marketplace-based installation instead.
+
+> **Open Plugin Spec v1 and `mcp.json` (v1.0.74+)**: Copilot CLI now supports the **Open Plugin Spec v1** manifest format in addition to the proprietary `plugin.json` format. This means plugins authored in `mcp.json` configuration format (used by tools like Claude Code) are automatically recognized and installable. If your team uses a shared `mcp.json` for MCP server configuration, it can also serve as a plugin manifest — no conversion needed.
 
 ### From VS Code
 
