@@ -18,19 +18,27 @@
 # Standard login — wires Docker/Podman credentials via your az login identity
 az acr login --name {registry}
 
-# Without a Docker daemon: get an Entra access token for the registry
-az acr login --name {registry} --expose-token
-# Returns accessToken + loginServer; use with:
-docker login {registry}.azurecr.io --username 00000000-0000-0000-0000-000000000000 --password-stdin
+# Without a Docker daemon: get an Entra access token and pipe it to docker login
+LOGIN_SERVER=$(az acr show --name {registry} --query loginServer --output tsv)
+az acr login --name {registry} --expose-token --query accessToken --output tsv | \
+  docker login $LOGIN_SERVER --username 00000000-0000-0000-0000-000000000000 --password-stdin
 ```
 
 Notes:
 - `az acr login` tokens are valid for 3 hours; re-run on expiry.
-- The full login server name is always `{registry}.azurecr.io` (lowercase).
+- Resolve the login server with `az acr show --name {registry} --query loginServer --output tsv` rather than hardcoding it: it is usually `{registry}.azurecr.io`, but sovereign clouds use other suffixes and registries with a domain name label scope get a hash suffix.
 
 ## Microsoft Entra RBAC Roles
 
-Built-in roles for data-plane access:
+The applicable data-plane roles depend on the registry's **role assignment permissions mode** — check it first:
+
+```bash
+az acr show --name {registry} --query roleAssignmentMode --output tsv
+# LegacyRegistryPermissions  -> use AcrPull/AcrPush/AcrDelete
+# AbacRepositoryPermissions  -> use Container Registry Repository Reader/Writer/Contributor
+```
+
+**Legacy mode (RBAC Registry Permissions):**
 
 | Role | Permissions |
 |---|---|
@@ -39,6 +47,15 @@ Built-in roles for data-plane access:
 | `AcrDelete` | Delete images |
 | `AcrImageSigner` | Sign images (content trust) |
 | `Contributor`/`Owner` | Full control-plane management + push/pull |
+
+**ABAC-enabled mode (RBAC Registry + ABAC Repository Permissions):** `AcrPull`/`AcrPush`/`AcrDelete` are **not honored**, and `Owner`/`Contributor`/`Reader` grant control-plane only. Use instead:
+
+| Role | Permissions |
+|---|---|
+| `Container Registry Repository Reader` | Read images, tags, metadata (add ABAC conditions to scope to repositories) |
+| `Container Registry Repository Writer` | Read + write/update |
+| `Container Registry Repository Contributor` | Read + write + delete |
+| `Container Registry Repository Catalog Lister` | List repositories (needed alongside the roles above) |
 
 ```bash
 # Get the registry resource ID
@@ -60,8 +77,8 @@ For CI/CD systems that cannot use OIDC/managed identity:
 ACR_ID=$(az acr show --name {registry} --query id --output tsv)
 az ad sp create-for-rbac --name {sp-name} --scopes $ACR_ID --role AcrPull
 
-# Docker login with the SP
-docker login {registry}.azurecr.io --username {appId} --password {password}
+# Docker login with the SP — pipe the secret via stdin, never pass it as an argument
+echo $SP_PASSWORD | docker login $LOGIN_SERVER --username {appId} --password-stdin
 ```
 
 Prefer federated credentials (OIDC) over SP passwords in GitHub Actions / Azure DevOps when possible.
@@ -95,9 +112,21 @@ az aks check-acr --name {cluster} --resource-group {rg} --acr {registry}.azurecr
 
 `--attach-acr` requires Owner or User Access Administrator on the registry. Cross-subscription attach works by passing the full ACR resource ID.
 
+⚠️ `--attach-acr` assigns `AcrPull`, which is **not honored on ABAC-enabled registries** (`roleAssignmentMode` = `AbacRepositoryPermissions`). For those, assign the ABAC roles to the kubelet identity manually:
+
+```bash
+ACR_ID=$(az acr show --name {registry} --query id --output tsv)
+KUBELET_ID=$(az aks show --name {cluster} --resource-group {rg} \
+  --query identityProfile.kubeletidentity.objectId --output tsv)
+az role assignment create --assignee $KUBELET_ID --scope $ACR_ID \
+  --role "Container Registry Repository Reader"
+az role assignment create --assignee $KUBELET_ID --scope $ACR_ID \
+  --role "Container Registry Repository Catalog Lister"
+```
+
 ## Repository-Scoped Tokens
 
-Premium SKU. Fine-grained, non-Entra credentials (e.g., external partners, IoT devices):
+Available in all service tiers. Fine-grained, non-Entra credentials (e.g., external partners, IoT devices):
 
 ```bash
 # 1. Create a scope map (actions: content/read, content/write, content/delete, metadata/read, metadata/write)
@@ -111,8 +140,8 @@ az acr token create --name {token} --registry {registry} --scope-map {scope-map}
 # 3. Generate/rotate passwords (up to 2, optional expiry)
 az acr token credential generate --name {token} --registry {registry} --password1 --expiration-in-days 30
 
-# Login with the token
-docker login {registry}.azurecr.io --username {token} --password {token-password}
+# Login with the token — pipe the password via stdin, never pass it as an argument
+echo $TOKEN_PWD | docker login $LOGIN_SERVER --username {token} --password-stdin
 
 # Disable or delete
 az acr token update --name {token} --registry {registry} --status disabled

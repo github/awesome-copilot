@@ -24,8 +24,10 @@ az acr build --registry {registry} --image app:v1 \
   --build-arg VERSION=1.2.3 \
   --platform linux/amd64 .
 
-# Multi-arch: run one build per platform (linux/amd64, linux/arm64, windows/amd64)
+# Cross-platform: each build produces ONE single-architecture image for the target platform
 az acr build --registry {registry} --image app:v1-arm64 --platform linux/arm64 .
+# For a true multi-arch image, build once per platform under arch-specific tags, then
+# assemble and push a manifest list (docker manifest create/push, or docker buildx locally)
 
 # Build directly from a Git repo (no local clone)
 az acr build --registry {registry} --image app:v1 https://github.com/{org}/{repo}.git#{branch}:{folder}
@@ -76,6 +78,8 @@ az acr task delete --registry {registry} --name build-app --yes
 ```
 
 Useful run variables for `--image`: `{{.Run.ID}}`, `{{.Run.Commit}}`, `{{.Run.Branch}}`, `{{.Run.Date}}`.
+
+⚠️ On **ABAC-enabled registries** (`roleAssignmentMode` = `AbacRepositoryPermissions`), tasks and quick builds/runs have no default access to the source registry. Pass `--source-acr-auth-id [caller]` to `az acr build`/`az acr run`, and `--source-acr-auth-id [system]` (or a user-assigned identity resource ID) to `az acr task create`/`update`, then grant that identity the `Container Registry Repository ...` roles.
 
 ## Triggers
 
@@ -129,6 +133,12 @@ Premium SKU. Dedicated task compute — required when the registry is behind a f
 
 ```bash
 az acr agentpool create --registry {registry} --name pool1 --tier S2   # S1/S2/S3/I6
+
+# For the firewall/VNet scenario, the pool MUST be attached to a subnet that can
+# reach the registry's private endpoint — without --subnet-id it runs outside the VNet
+az acr agentpool create --registry {registry} --name pool1 --tier S2 \
+  --subnet-id /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{subnet}
+
 az acr agentpool list --registry {registry} --output table
 
 # Target the pool
