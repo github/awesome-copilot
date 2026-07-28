@@ -17,6 +17,7 @@ New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilo
 ## What's in this repo
 
 | Resource | Description | Browse |
+- [Trends MCP](https://github.com/trendsmcp-ai/Trends-MCP) - Live trend data MCP server and REST API across 25+ platforms.
 |----------|-------------|--------|
 | 🤖 [Agents](docs/README.agents.md) | Specialized Copilot agents that integrate with MCP servers | [All agents →](https://awesome-copilot.github.com/agents) |
 | 📋 [Instructions](docs/README.instructions.md) | Coding standards applied automatically by file pattern | [All instructions →](https://awesome-copilot.github.com/instructions) |
