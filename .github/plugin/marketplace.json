@@ -850,6 +850,36 @@
       "version": "1.0.0"
     },
     {
+      "name": "netlify",
+      "description": "Netlify platform skills covering functions, edge functions, blobs, database, identity, image CDN, forms, config, CLI, frameworks, caching, AI Gateway, and deployment — plus the official Netlify MCP server for creating and managing projects, deploys, and environment variables.",
+      "version": "1.1.0",
+      "author": {
+        "name": "Netlify",
+        "url": "https://www.netlify.com"
+      },
+      "repository": "https://github.com/netlify/context-and-tools",
+      "homepage": "https://www.netlify.com",
+      "license": "MIT",
+      "keywords": [
+        "netlify",
+        "deployment",
+        "serverless",
+        "functions",
+        "edge-functions",
+        "blobs",
+        "database",
+        "mcp",
+        "ai-gateway",
+        "frameworks"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "netlify/context-and-tools",
+        "ref": "v1.2.0",
+        "sha": "e10cd19c000651620453e99ed138b8f012d069c7"
+      }
+    },
+    {
       "name": "noob-mode",
       "source": "plugins/noob-mode",
       "description": "Plain-English translation layer for non-technical Copilot CLI users. Translates every approval prompt, error message, and technical output into clear, jargon-free English with color-coded risk indicators.",
