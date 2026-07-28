@@ -4,14 +4,19 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - website
-      - agents
-      - skills
-      - plugins
-      - instructions
-      - hooks
-      - workflows
-      - extensions
+      - "website/**"
+      - "agents/**"
+      - "skills/**"
+      - "plugins/**"
+      - "instructions/**"
+      - "hooks/**"
+      - "workflows/**"
+      - "extensions/**"
+      - "cookbook/**"
+      - "eng/**"
+      - ".all-contributorsrc"
+      - "package.json"
+      - "package-lock.json"
 
 permissions:
   contents: read
