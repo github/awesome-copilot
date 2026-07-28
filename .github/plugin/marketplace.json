@@ -1184,6 +1184,30 @@
       "version": "0.1.0"
     },
     {
+      "name": "timebase",
+      "description": "Connect your AI agent to TimeBase, a high-performance database for financial market and other time-series data, via MCP tools and skills for QQL query and TimeBase client code generation.",
+      "version": "0.1.2",
+      "author": {
+        "name": "EPAM Systems",
+        "url": "https://www.epam.com/"
+      },
+      "repository": "https://github.com/epam/TimeBase-Agent-Plugins",
+      "license": "Apache-2.0",
+      "keywords": [
+        "timebase",
+        "time-series",
+        "db",
+        "qql",
+        "financial-data"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "epam/TimeBase-Agent-Plugins",
+        "ref": "v0.1.2",
+        "sha": "846b341a17becbf4d0cd43374588fc6ab1930d0b"
+      }
+    },
+    {
       "name": "tiny-tool-town-submitter",
       "source": "extensions/tiny-tool-town-submitter",
       "description": "Inspect a repository, improve Tiny Tool Town readiness, submit its listing issue, and launch remediation work.",
