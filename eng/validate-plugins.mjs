@@ -3,7 +3,8 @@
 import fs from "fs";
 import path from "path";
 import { ROOT_FOLDER } from "./constants.mjs";
-import { readExternalPlugins, validateLicenseField } from "./external-plugin-validation.mjs";
+import { readExternalPlugins } from "./external-plugin-validation.mjs";
+import { validateLicenseField } from "./lib/license.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");

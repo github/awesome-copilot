@@ -5,8 +5,8 @@ import {
   EXTERNAL_PLUGINS_FILE,
   validateExternalPlugin,
   validateExternalPlugins,
-  validateLicenseField,
 } from "./external-plugin-validation.mjs";
+import { validateLicenseField } from "./lib/license.mjs";
 
 function basePlugin(overrides = {}) {
   return {
