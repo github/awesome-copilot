@@ -26,9 +26,7 @@
   capture box, a reduced-motion toggle, and always-visible time. State persists in localStorage.
 -->
 <script>window.__BOARD__ = {
-  name:"Sam",
-  checkin:"above",
-  mantra:"Small, real, done — one block at a time.",
+  name:"Sam",checkin:"above",mantra:"Small, real, done — one block at a time.",
   tasks:[
     {id:"ship",emoji:"🚀",title:"Ship the release notes",sub:"the anchor",due:new Date(Date.now()+2*3600e3).toISOString(),tag:"deadline",tagc:"deadline",quad:"iu"},
     {id:"pages",emoji:"📖",title:"Read 30 pages",goal:30,start:8,inc:5,unit:"pages",tag:"mind",tagc:"new",quad:"ins"},
@@ -338,10 +336,10 @@ function render(){
     const dh=dueStr(t);
     const rmHtml=t.added?`<button class="rmbtn" data-rmtask="${t.id}" title="remove this task">🗑</button>`:"";
     const metaHtml=`<div class="cardmeta"><span class="grip" draggable="true" data-grip="${t.id}" title="drag to reorder">⠿</span><button type="button" class="mv" data-move="${t.id}:-1" title="move up" aria-label="move up">▲</button><button type="button" class="mv" data-move="${t.id}:1" title="move down" aria-label="move down">▼</button>`
-      +`<select class="quadsel" data-quad="${t.id}"><option value=""${q===""?" selected":""}>priority…</option>`
+      +`<select class="quadsel" data-quad="${t.id}" aria-label="priority for ${escAttr(t.title)}"><option value=""${q===""?" selected":""}>priority…</option>`
       +`<option value="iu"${q==="iu"?" selected":""}>🔴 Do first</option><option value="ins"${q==="ins"?" selected":""}>🔵 Schedule</option>`
       +`<option value="niu"${q==="niu"?" selected":""}>🟡 Delegate</option><option value="ninu"${q==="ninu"?" selected":""}>⚪ Later</option></select>`
-      +`<input class="tagedit ${safeCls(t.tagc)}" data-tagedit="${t.id}" value="${escAttr(tag)}" placeholder="label"/></div>`;
+      +`<input class="tagedit ${safeCls(t.tagc)}" data-tagedit="${t.id}" value="${escAttr(tag)}" placeholder="label" aria-label="label for ${escAttr(t.title)}"/></div>`;
     if(isCounter(t)){
       const v=state.counters[t.id],g=t.goal>0?t.goal:1,pct=Math.min(100,Math.round(v/g*100)),inc=t.inc||Math.max(1,Math.round(g/10)),unit=t.unit||"";
       c.innerHTML=`<div class="top"><div class="emoji">${esc(t.emoji||"🎯")}</div>
