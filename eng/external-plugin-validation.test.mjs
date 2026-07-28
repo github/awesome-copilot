@@ -102,6 +102,43 @@ test("validateLicenseField is reusable for local plugin.json", () => {
   assert.ok(validateLicenseField(undefined, { required: true }).errors.length === 1);
 });
 
+test("license grammar validates refs, parentheses, WITH exceptions, and warning sanitization", () => {
+  for (const license of [
+    "GPL-2.0-only WITH Classpath-exception-2.0",
+    "LicenseRef-Custom",
+    "DocumentRef-spdx-tool:LicenseRef-MyLicense",
+    "(MIT OR Apache-2.0)",
+    "MIT AND Apache-2.0",
+  ]) {
+    const result = validateLicenseField(license);
+    assert.deepEqual(result.errors, [], `expected no errors for recognized license "${license}"`);
+    assert.equal(result.warnings.length, 0, `expected no warnings for recognized license "${license}"`);
+  }
+
+  for (const license of [
+    "LicenseRef-",
+    "LicenseRef-@@",
+    "DocumentRef-foo",
+    "(MIT",
+    "MIT)",
+    "MIT OR (Apache-2.0))",
+    "(MIT OR Apache-2.0",
+    "MIT WITH Apache-2.0",
+    "GPL-2.0-only WITH MIT",
+  ]) {
+    const result = validateLicenseField(license);
+    assert.deepEqual(result.errors, [], `expected malformed license "${license}" to warn, not error`);
+    assert.equal(result.warnings.length, 1, `expected one warning for malformed license "${license}"`);
+    assert.ok(hasWarning(result, "not a recognized SPDX identifier"));
+  }
+
+  const injected = validateLicenseField("MIT\n\n## Injected\n| a | b |");
+  assert.deepEqual(injected.errors, []);
+  assert.equal(injected.warnings.length, 1);
+  assert.ok(!injected.warnings[0].includes("\n"));
+  assert.ok(hasWarning(injected, "not a recognized SPDX identifier"));
+});
+
 test("author.email is validated only when present", () => {
   assert.deepEqual(
     validateExternalPlugin(basePlugin({ author: { name: "Example", email: "dev@example.com" } }), 0).errors,

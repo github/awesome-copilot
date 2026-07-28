@@ -9,7 +9,7 @@
 
 // A single SPDX license identifier token (e.g. "MIT", "Apache-2.0", "LicenseRef-Foo").
 const SPDX_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.-]*\+?$/;
-const SPDX_EXPRESSION_OPERATORS = new Set(["AND", "OR", "WITH"]);
+const SPDX_IDSTRING_PATTERN = /^[A-Za-z0-9.-]+$/;
 
 // Curated set of common SPDX license identifiers. Not exhaustive: unrecognized
 // but well-formed identifiers produce a warning rather than an error.
@@ -46,12 +46,48 @@ const KNOWN_SPDX_IDS = new Set([
   "Zlib",
 ]);
 
+const KNOWN_SPDX_EXCEPTIONS = new Set([
+  "Classpath-exception-2.0",
+  "GCC-exception-3.1",
+  "LLVM-exception",
+  "Autoconf-exception-3.0",
+  "Bison-exception-2.2",
+  "Font-exception-2.0",
+  "GPL-3.0-linking-exception",
+  "Linux-syscall-note",
+  "OpenSSL-exception",
+  "Qt-GPL-exception-1.0",
+]);
+
 function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+function isSpdxIdString(value) {
+  return SPDX_IDSTRING_PATTERN.test(value);
+}
+
+function isRecognizedLicenseRef(token) {
+  if (token.startsWith("LicenseRef-")) {
+    return isSpdxIdString(token.slice("LicenseRef-".length));
+  }
+
+  if (!token.startsWith("DocumentRef-")) {
+    return false;
+  }
+
+  const separatorIndex = token.indexOf(":LicenseRef-");
+  if (separatorIndex === -1) {
+    return false;
+  }
+
+  const documentRef = token.slice("DocumentRef-".length, separatorIndex);
+  const licenseRef = token.slice(separatorIndex + ":LicenseRef-".length);
+  return isSpdxIdString(documentRef) && isSpdxIdString(licenseRef);
+}
+
 function isRecognizedSpdxIdToken(token) {
-  if (token.startsWith("LicenseRef-") || token.startsWith("DocumentRef-")) {
+  if (isRecognizedLicenseRef(token)) {
     return true;
   }
 
@@ -63,8 +99,20 @@ function isRecognizedSpdxIdToken(token) {
   return KNOWN_SPDX_IDS.has(normalized);
 }
 
+function isRecognizedSpdxExceptionToken(token) {
+  return isSpdxIdString(token) && KNOWN_SPDX_EXCEPTIONS.has(token);
+}
+
+function tokenizeSpdxExpression(license) {
+  return license
+    .replace(/([()])/g, " $1 ")
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token.length > 0);
+}
+
 // Returns true only for a well-formed SPDX license expression composed of
-// recognized identifiers joined by AND/OR/WITH operators (optionally parenthesized).
+// recognized identifiers joined by SPDX operators (optionally parenthesized).
 // Anything else (proprietary strings, free text, unrecognized ids) returns false so
 // the caller can warn without rejecting it — the plugin spec does not enforce SPDX.
 export function isRecognizedSpdxExpression(license) {
@@ -72,34 +120,114 @@ export function isRecognizedSpdxExpression(license) {
     return false;
   }
 
-  const tokens = license
-    .replace(/[()]/g, " ")
-    .trim()
-    .split(/\s+/)
-    .filter((token) => token.length > 0);
+  const tokens = tokenizeSpdxExpression(license);
 
   if (tokens.length === 0) {
     return false;
   }
 
-  let expectOperator = false;
-  for (const token of tokens) {
-    if (SPDX_EXPRESSION_OPERATORS.has(token.toUpperCase())) {
-      if (!expectOperator) {
+  let position = 0;
+
+  function peek() {
+    return tokens[position];
+  }
+
+  function consume() {
+    return tokens[position++];
+  }
+
+  function parsePrimary() {
+    const token = peek();
+
+    if (token === "(") {
+      consume();
+      if (!parseOrExpression()) {
         return false;
       }
-      expectOperator = false;
-      continue;
+      if (peek() !== ")") {
+        return false;
+      }
+      consume();
+      return true;
     }
 
-    if (expectOperator || !isRecognizedSpdxIdToken(token)) {
+    if (!token || token === ")" || ["AND", "OR", "WITH"].includes(token.toUpperCase())) {
       return false;
     }
 
-    expectOperator = true;
+    consume();
+    return isRecognizedSpdxIdToken(token);
   }
 
-  return expectOperator;
+  function parseSimpleExpression() {
+    const token = peek();
+    if (!token || token === ")" || ["AND", "OR", "WITH"].includes(token.toUpperCase())) {
+      return false;
+    }
+
+    consume();
+    return isRecognizedSpdxIdToken(token);
+  }
+
+  function parseWithExpression() {
+    if (peek() === "(") {
+      return parsePrimary() && peek()?.toUpperCase() !== "WITH";
+    }
+
+    if (!parseSimpleExpression()) {
+      return false;
+    }
+
+    if (peek()?.toUpperCase() !== "WITH") {
+      return true;
+    }
+
+    consume();
+    const exceptionToken = peek();
+    if (!exceptionToken || exceptionToken === ")" || ["AND", "OR", "WITH"].includes(exceptionToken.toUpperCase())) {
+      return false;
+    }
+    consume();
+    return isRecognizedSpdxExceptionToken(exceptionToken);
+  }
+
+  function parseAndExpression() {
+    if (!parseWithExpression()) {
+      return false;
+    }
+
+    while (peek()?.toUpperCase() === "AND") {
+      consume();
+      if (!parseWithExpression()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function parseOrExpression() {
+    if (!parseAndExpression()) {
+      return false;
+    }
+
+    while (peek()?.toUpperCase() === "OR") {
+      consume();
+      if (!parseAndExpression()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  return parseOrExpression() && position === tokens.length;
+}
+
+function sanitizeForMessage(value) {
+  const collapsed = String(value).replace(/\s+/g, " ").trim();
+  const truncated = collapsed.length > 80 ? `${collapsed.slice(0, 77)}...` : collapsed;
+  return `\`${truncated.replace(/`/g, "\\`")}\``;
 }
 
 // Canonical license validation. A non-SPDX license is a warning (never an error)
@@ -129,7 +257,7 @@ export function validateLicenseField(license, options = {}) {
 
   if (!isRecognizedSpdxExpression(license)) {
     warnings.push(
-      `${prefix}"license" value "${license}" is not a recognized SPDX identifier; prefer a standard SPDX id (https://spdx.org/licenses), though non-SPDX or proprietary licenses are allowed`
+      `${prefix}"license" value ${sanitizeForMessage(license)} is not a recognized SPDX identifier; prefer a standard SPDX id (https://spdx.org/licenses), though non-SPDX or proprietary licenses are allowed`
     );
   }
 
