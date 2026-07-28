@@ -29,6 +29,7 @@ SKILLS=(
     "shepherd-task-approve-workflows-and-wait-for-completion"
     "shepherd-task-create-ignorance-reduction-plan"
     "shepherd-task-create-post-mortem"
+    "shepherd-task-create-issues-from-plan"
 )
 for skill in "${SKILLS[@]}"; do
     skill_dir="$COPILOT_HOME/skills/$skill"
@@ -37,6 +38,9 @@ for skill in "${SKILLS[@]}"; do
         echo "Removed ~/.copilot/skills/$skill"
     fi
 done
+
+# Remove any generated interview prompt files from the plugin scripts directory.
+rm -f "$PLUGIN_DIR/scripts/"*invoke-shepherd-task-create-issues-from-plan-skill.md 2>/dev/null || true
 
 echo ""
 echo "Shepherd-task fully uninstalled."

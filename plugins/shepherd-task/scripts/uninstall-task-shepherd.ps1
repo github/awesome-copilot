@@ -31,6 +31,7 @@ $skills = @(
     'shepherd-task-approve-workflows-and-wait-for-completion'
     'shepherd-task-create-ignorance-reduction-plan'
     'shepherd-task-create-post-mortem'
+    'shepherd-task-create-issues-from-plan'
 )
 foreach ($skill in $skills) {
     $skillDir = Join-Path $CopilotHome 'skills' $skill
@@ -39,6 +40,10 @@ foreach ($skill in $skills) {
         Write-Host "Removed ~/.copilot/skills/$skill"
     }
 }
+
+# Remove any generated interview prompt files from the plugin scripts directory.
+$interviewPrompts = Join-Path $pluginDir 'scripts' '*invoke-shepherd-task-create-issues-from-plan-skill.md'
+Remove-Item -Path $interviewPrompts -Force -ErrorAction SilentlyContinue
 
 Write-Host ""
 Write-Host "Shepherd-task fully uninstalled."

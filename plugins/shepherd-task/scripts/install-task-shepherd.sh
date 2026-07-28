@@ -31,6 +31,7 @@ SKILLS=(
     "shepherd-task-approve-workflows-and-wait-for-completion"
     "shepherd-task-create-ignorance-reduction-plan"
     "shepherd-task-create-post-mortem"
+    "shepherd-task-create-issues-from-plan"
 )
 
 skills_installed=0
@@ -59,5 +60,8 @@ echo ""
 echo "Installation complete."
 echo "  Plugin: $plugin_dest"
 echo "  Skills: $skills_installed installed, $skills_skipped already present"
+echo ""
+echo "Interview script available at:"
+echo "  $plugin_dest/scripts/shepherd-task-interview-user-to-create-issues.sh"
 echo ""
 echo "Verify with: copilot skill list"

@@ -34,6 +34,7 @@ $skills = @(
     'shepherd-task-approve-workflows-and-wait-for-completion'
     'shepherd-task-create-ignorance-reduction-plan'
     'shepherd-task-create-post-mortem'
+    'shepherd-task-create-issues-from-plan'
 )
 
 $skillsInstalled = 0
@@ -62,5 +63,8 @@ Write-Host ""
 Write-Host "Installation complete."
 Write-Host "  Plugin: $pluginDest"
 Write-Host "  Skills: $skillsInstalled installed, $skillsSkipped already present"
+Write-Host ""
+Write-Host "Interview script available at:"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-interview-user-to-create-issues.ps1')"
 Write-Host ""
 Write-Host "Verify with: copilot skill list"

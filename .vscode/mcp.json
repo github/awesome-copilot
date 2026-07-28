@@ -1,6 +1,7 @@
 {
   "servers": {
     "github-agentic-workflows": {
+      "disabled": true,
       "command": "gh",
       "args": [
         "aw",
