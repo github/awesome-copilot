@@ -197,7 +197,7 @@
     <div class="mantra">
       <span class="mantra-tag">today's mantra</span>
       <input id="mantrain" class="mantra-in" placeholder="set a mantra for today — or tap 🔄, or ask Ember for one"/>
-      <button id="mantrasuggest" class="mantra-btn" title="suggest a mantra">🔄</button>
+      <button id="mantrasuggest" class="mantra-btn" title="suggest a mantra" aria-label="suggest a mantra">🔄</button>
     </div>
   </div>
 
@@ -232,14 +232,14 @@
   <div class="panel">
     <h2>🧠 Parked thoughts</h2>
     <p class="hint">Something pulling at your attention? Park it here so it's out of your head — deal with it later, not now.</p>
-    <div class="addrow" style="margin-left:0"><input id="brainin" placeholder="get it out of your head…"/><button id="brainbtn" title="park it">＋</button></div>
+    <div class="addrow" style="margin-left:0"><input id="brainin" placeholder="get it out of your head…"/><button id="brainbtn" title="park it" aria-label="park this thought">＋</button></div>
     <div class="chips" id="brain" style="margin-top:12px"></div>
   </div>
 
   <div class="panel">
     <h2>🔥 Today's momentum</h2>
     <p class="hint">Every step you log lands here, newest first. Starting counts. Small wins count.</p>
-    <div class="addrow" style="margin-left:0"><input id="dayin" placeholder="log a win / milestone for the day…"/><button id="daybtn" title="add">＋</button></div>
+    <div class="addrow" style="margin-left:0"><input id="dayin" placeholder="log a win / milestone for the day…"/><button id="daybtn" title="add" aria-label="log a win for the day">＋</button></div>
     <div class="chips" id="feed" style="margin-top:12px"></div>
   </div>
 
@@ -326,7 +326,7 @@ function render(){
     c.className="card "+st+(carried?" carried":"")+(state.focus===t.id?" focused":"")+(q?" q-"+q:"");
     c.dataset.cardid=t.id;
     const dh=dueStr(t);
-    const rmHtml=t.added?`<button class="rmbtn" data-rmtask="${t.id}" title="remove this task">🗑</button>`:"";
+    const rmHtml=t.added?`<button class="rmbtn" data-rmtask="${t.id}" title="remove this task" aria-label="remove ${escAttr(t.title)}">🗑</button>`:"";
     const metaHtml=`<div class="cardmeta"><span class="grip" draggable="true" data-grip="${t.id}" title="drag to reorder">⠿</span><button type="button" class="mv" data-move="${t.id}:-1" title="move up" aria-label="move up">▲</button><button type="button" class="mv" data-move="${t.id}:1" title="move down" aria-label="move down">▼</button>`
       +`<select class="quadsel" data-quad="${t.id}" aria-label="priority for ${escAttr(t.title)}"><option value=""${q===""?" selected":""}>priority…</option>`
       +`<option value="iu"${q==="iu"?" selected":""}>🔴 Do first</option><option value="ins"${q==="ins"?" selected":""}>🔵 Schedule</option>`
@@ -339,7 +339,7 @@ function render(){
           <div class="sub"><b style="color:var(--ink)">${v.toLocaleString()}</b> / ${t.goal.toLocaleString()} ${esc(unit)} · ${pct}%${st==="done"?" — done 🎉":""}</div>
           ${dh?`<div class="due ${dh.cls}" data-duefor="${t.id}">${dh.txt}</div>`:""}</div>
         <span class="pill ${st}">${LABEL[st]}</span>
-        <button class="fbtn" data-focus="${t.id}" title="focus on this">🎯</button>${rmHtml}</div>
+        <button class="fbtn" data-focus="${t.id}" title="focus on this" aria-label="focus on ${escAttr(t.title)}">🎯</button>${rmHtml}</div>
         <div class="bar"><div class="fill" data-fill="${t.id}"></div></div>
         <div class="stepctl">update: <input type="number" data-cin="${t.id}" value="${v}" min="0"/>
           <button data-cset="${t.id}">set</button><button data-cinc="${t.id}">+${inc.toLocaleString()}</button></div>${metaHtml}`;
@@ -353,10 +353,10 @@ function render(){
         <div class="emoji">${esc(t.emoji||"•")}</div>
         <div class="body"><div class="title">${esc(t.title)}</div>${t.sub?`<div class="sub">${esc(t.sub)}</div>`:""}${dh?`<div class="due ${dh.cls}" data-duefor="${t.id}">${dh.txt}</div>`:""}</div>
         <button type="button" class="pill ${pillCls}" data-cyc="${t.id}">${pillTxt}</button>
-        <button class="fbtn" data-focus="${t.id}" title="focus on this">🎯</button>${rmHtml}</div>
+        <button class="fbtn" data-focus="${t.id}" title="focus on this" aria-label="focus on ${escAttr(t.title)}">🎯</button>${rmHtml}</div>
         ${notes.length?`<div class="notes">${notes.map((n,i)=>`<div class="note"><span class="nt">${fmt(n.t)}</span><span>${esc(n.txt)}</span><button type="button" class="nx" data-del="${t.id}:${i}" aria-label="delete note">×</button></div>`).join("")}</div>`:""}
         <div class="cardfoot">${st!=="done"?`<button class="soft" data-carry="${t.id}">${carried?"↩ bring back to today":"⤳ not today"}</button>`:""}</div>
-        <div class="addrow"><input placeholder="log a step…" data-in="${t.id}"/><button data-add="${t.id}" title="add note">＋</button></div>${metaHtml}`;
+        <div class="addrow"><input placeholder="log a step…" data-in="${t.id}"/><button data-add="${t.id}" title="add note" aria-label="add a note to ${escAttr(t.title)}">＋</button></div>${metaHtml}`;
       cardsEl.appendChild(c);
     }
   });
