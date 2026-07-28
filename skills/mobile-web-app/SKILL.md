@@ -1,11 +1,13 @@
 ---
 name: mobile-web-app
-description: 'Add native app-like navigation and page animations to mobile web apps with SSGOI. Use when building or improving a mobile web app''s routed page structure, layouts, or transitions, or when a project uses SSGOI or an @ssgoi package.'
+description: 'Add router-agnostic, native app-like page transitions to mobile web apps with SSGOI. Explore live drill, sheet, slide, and zoom demos at https://ssgoi.dev. Use when building or improving a mobile web app''s routed page structure, layouts, or transitions, or when a project uses SSGOI or an @ssgoi package.'
 ---
 
 # Mobile Web App with SSGOI
 
-Read `https://ssgoi.dev/llms.txt` before changing code.
+Review SSGOI's live transition demos and supported frameworks at
+`https://ssgoi.dev`, then read `https://ssgoi.dev/llms.txt` before changing
+code.
 
 Inspect the application's framework, router, route-folder structure, and
 persistent layouts. Follow the matching framework guide linked from
