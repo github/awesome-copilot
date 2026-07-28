@@ -40,7 +40,12 @@ export function isCrossSiteRequest(req) {
 // Task ids double as object keys and HTML data-attributes, so keep them tight.
 const ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
 const TAG_COLORS = ["new", "deadline", "career"];
-export function validId(s) { return typeof s === "string" && ID_RE.test(s); }
+const BOARD_MARKER = "daily-focus-board";
+// "day"/"brain" are the momentum-feed and brain-dump sentinels used in the UI's
+// delete routing, so a task may not claim them as an id — otherwise deleting a
+// task note could splice the shared feed instead.
+const RESERVED_IDS = new Set(["day", "brain"]);
+export function validId(s) { return typeof s === "string" && ID_RE.test(s) && !RESERVED_IDS.has(s); }
 function text(s, max = 2000) { return typeof s === "string" ? s.slice(0, max) : ""; }
 function num(v) {
     if (v === undefined || v === null || v === "") return undefined;
@@ -102,6 +107,7 @@ export function normalize(doc) {
         }
     }
     doc.progress = p;
+    doc.kind = BOARD_MARKER;
     return doc;
 }
 
@@ -344,14 +350,28 @@ export async function resolveStateFile(p) {
     return join(process.cwd(), "focus-board-state.json");
 }
 
-// Create + seed the state file if it doesn't exist yet. Returns the resolved path.
+// A parsed value we're willing to treat as an existing board — so we never adopt
+// (and then overwrite on first mutation) an unrelated file the caller pointed at.
+export function looksLikeBoard(o) {
+    return !!o && typeof o === "object" && !Array.isArray(o)
+        && (o.kind === BOARD_MARKER || (Array.isArray(o.tasks) && !!o.progress && typeof o.progress === "object"));
+}
+
+// Create + seed the state file if it doesn't exist yet. If it DOES exist, refuse
+// to use it unless it's clearly one of our boards (a marker or the board schema),
+// so an externally supplied stateFile can't cause us to clobber an unrelated file.
 export async function ensureStateFile(inputPath, seed) {
     const file = await resolveStateFile(inputPath);
-    if (!existsSync(file)) {
-        const doc = normalize(seed && typeof seed === "object" ? seed : demoSeed());
-        doc.updatedAt = new Date().toISOString();
-        await mkdir(dirname(file), { recursive: true }).catch(() => {});
-        await atomicWrite(file, doc);
+    if (existsSync(file)) {
+        let parsed;
+        try { parsed = JSON.parse(await readFile(file, "utf-8")); }
+        catch { throw new Error(`refusing to use existing non-JSON file as a focus board: ${file}`); }
+        if (!looksLikeBoard(parsed)) throw new Error(`refusing to use an existing file that is not a daily-focus-board: ${file}`);
+        return file;
     }
+    const doc = normalize(seed && typeof seed === "object" ? seed : demoSeed());
+    doc.updatedAt = new Date().toISOString();
+    await mkdir(dirname(file), { recursive: true }).catch(() => {});
+    await atomicWrite(file, doc);
     return file;
 }
