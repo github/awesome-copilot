@@ -4,7 +4,7 @@ import os from "os";
 import path from "path";
 import { spawnSync } from "child_process";
 import { after, test } from "node:test";
-import { runCanvasStructureGate, runVersionMatchGate } from "./external-plugin-quality-gates.mjs";
+import { runCanvasStructureGate, runRefShaConsistencyGate, runVersionMatchGate } from "./external-plugin-quality-gates.mjs";
 
 const tempDirs = [];
 
@@ -213,4 +213,39 @@ test("runCanvasStructureGate passes when the primary locator is a tag ref", () =
   const result = runCanvasStructureGate(repoDir, plugin, "v1.0.0");
   assert.equal(result.status, "pass", result.output);
   assert.match(result.output, /- v1\.0\.0: found "extensions"/);
+});
+
+test("runRefShaConsistencyGate fails when ref and sha point to different commits", () => {
+  const remoteDir = initRemoteRepo();
+  writeValidPluginContent(remoteDir);
+  const firstSha = commitAll(remoteDir, "Add plugin manifest v1");
+  runGit(remoteDir, "tag", "-a", "v1.0.0", "-m", "release 1.0.0");
+  fs.writeFileSync(path.join(remoteDir, "README.md"), "v2\n");
+  const secondSha = commitAll(remoteDir, "Add plugin manifest v2");
+
+  const repoDir = cloneSubmissionRepo(remoteDir, secondSha);
+  const plugin = {
+    name: "tag-plugin",
+    source: { source: "github", repo: "owner/repo", ref: "v1.0.0", sha: secondSha },
+  };
+
+  const result = runRefShaConsistencyGate(repoDir, plugin, secondSha);
+  assert.equal(result.status, "fail", result.output);
+  assert.match(result.output, new RegExp(`resolves to "${firstSha}"`));
+});
+
+test("runRefShaConsistencyGate passes when ref and sha point to the same commit", () => {
+  const remoteDir = initRemoteRepo();
+  writeValidPluginContent(remoteDir);
+  const sha = commitAll(remoteDir, "Add plugin manifest");
+  runGit(remoteDir, "tag", "-a", "v1.0.0", "-m", "release 1.0.0");
+
+  const repoDir = cloneSubmissionRepo(remoteDir, sha);
+  const plugin = {
+    name: "tag-plugin",
+    source: { source: "github", repo: "owner/repo", ref: "v1.0.0", sha },
+  };
+
+  const result = runRefShaConsistencyGate(repoDir, plugin, sha);
+  assert.equal(result.status, "pass", result.output);
 });

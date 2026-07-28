@@ -6,6 +6,7 @@ import path from "path";
 import { Writable } from "stream";
 import { spawnSync } from "child_process";
 import { runLint, LintConsoleReporter } from "@microsoft/vally";
+import { evaluateRefShaConsistency, normalizeCommitSha } from "./lib/external-plugin-source-ref-sha.mjs";
 
 const MAX_OUTPUT_LENGTH = 12000;
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
@@ -384,6 +385,7 @@ function readPluginManifestAtLocator(repoDir, readRef, locator, normalizedPlugin
           message: `Invalid JSON in "${manifestPath}" at "${locator}": ${error.message}`,
         };
       }
+
     }
 
     if (isMissingPathAtLocator(showResult.output)) {
@@ -399,6 +401,87 @@ function readPluginManifestAtLocator(repoDir, readRef, locator, normalizedPlugin
   return {
     kind: "not_found",
     message: `No plugin.json found at "${locator}". Expected one of: ${manifestCandidates.join(", ")}`,
+  };
+}
+
+function resolveCommitShaAtReadRef(repoDir, readRef, locator) {
+  const revParse = runCommand("git", ["rev-parse", `${readRef}^{commit}`], { cwd: repoDir });
+  if (revParse.exitCode !== 0) {
+    return {
+      status: "infra_error",
+      commitSha: null,
+      output: `Unable to resolve commit for "${locator}": ${revParse.output}`,
+    };
+  }
+
+  const commitSha = normalizeCommitSha(revParse.stdout);
+  if (!commitSha) {
+    return {
+      status: "infra_error",
+      commitSha: null,
+      output: `Unable to parse commit SHA for "${locator}" from "${readRef}".`,
+    };
+  }
+
+  return {
+    status: "pass",
+    commitSha,
+    output: "",
+  };
+}
+
+export function runRefShaConsistencyGate(repoDir, plugin, primaryFetchSpec) {
+  const sourceRef = typeof plugin?.source?.ref === "string" ? plugin.source.ref.trim() : "";
+  const sourceSha = typeof plugin?.source?.sha === "string" ? plugin.source.sha.trim() : "";
+  if (!sourceRef || !sourceSha) {
+    return {
+      status: "not_run",
+      output: "Ref/SHA consistency gate skipped because one of source.ref or source.sha was not provided.",
+    };
+  }
+
+  const refResult = resolveLocatorReadRef(repoDir, sourceRef, primaryFetchSpec);
+  if (refResult.status === "fail") {
+    return {
+      status: "fail",
+      output: refResult.output,
+    };
+  }
+
+  if (refResult.status === "infra_error") {
+    return {
+      status: "infra_error",
+      output: refResult.output,
+    };
+  }
+
+  const commitResult = resolveCommitShaAtReadRef(repoDir, refResult.readRef, sourceRef);
+  if (commitResult.status !== "pass") {
+    return commitResult;
+  }
+
+  const consistency = evaluateRefShaConsistency({
+    ref: sourceRef,
+    sha: sourceSha,
+    resolvedRefCommitSha: commitResult.commitSha,
+  });
+  if (!consistency.comparable) {
+    return {
+      status: "not_run",
+      output: "Ref/SHA consistency gate skipped because source.sha is not a full 40-character commit SHA.",
+    };
+  }
+
+  if (!consistency.matches) {
+    return {
+      status: "fail",
+      output: `source.ref "${sourceRef}" resolves to "${consistency.normalizedRefCommitSha}", which does not match source.sha "${sourceSha}".`,
+    };
+  }
+
+  return {
+    status: "pass",
+    output: `source.ref "${sourceRef}" resolves to the same commit as source.sha "${sourceSha}".`,
   };
 }
 
@@ -658,12 +741,14 @@ export async function runExternalPluginQualityGates(plugin) {
     vally_lint_status: "not_run",
     smoke_status: "not_run",
     version_match_status: "not_run",
+    ref_sha_consistency_status: "not_run",
     canvas_structure_status: "not_run",
     failure_class: "none",
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
     version_match_output: "",
+    ref_sha_consistency_output: "",
     canvas_structure_output: "",
   };
 
@@ -676,6 +761,7 @@ export async function runExternalPluginQualityGates(plugin) {
       result.vally_lint_status = "fail";
       result.smoke_status = "fail";
       result.version_match_status = "fail";
+      result.ref_sha_consistency_status = "not_run";
       result.canvas_structure_status = hasCanvasKeyword(plugin) ? "fail" : "not_run";
       result.overall_status = "fail";
       result.failure_class = "submitter_fixes";
@@ -690,6 +776,10 @@ export async function runExternalPluginQualityGates(plugin) {
     const versionMatchResult = runVersionMatchGate(repoDir, plugin, fetchSpec);
     result.version_match_status = versionMatchResult.status;
     result.version_match_output = versionMatchResult.output;
+
+    const refShaConsistencyResult = runRefShaConsistencyGate(repoDir, plugin, fetchSpec);
+    result.ref_sha_consistency_status = refShaConsistencyResult.status;
+    result.ref_sha_consistency_output = refShaConsistencyResult.output;
 
     const canvasStructureResult = runCanvasStructureGate(repoDir, plugin, fetchSpec);
     result.canvas_structure_status = canvasStructureResult.status;
@@ -707,6 +797,7 @@ export async function runExternalPluginQualityGates(plugin) {
       result.vally_lint_status,
       result.smoke_status,
       result.version_match_status,
+      result.ref_sha_consistency_status,
       result.canvas_structure_status,
     ]);
     result.failure_class = toFailureClass(result.overall_status);
@@ -714,6 +805,7 @@ export async function runExternalPluginQualityGates(plugin) {
       `- vally lint: ${result.vally_lint_status}`,
       `- install smoke test: ${result.smoke_status}`,
       `- version match: ${result.version_match_status}`,
+      `- ref/sha consistency: ${result.ref_sha_consistency_status}`,
       `- canvas structure: ${result.canvas_structure_status}`,
       `- overall: ${result.overall_status}`,
     ].join("\n");
