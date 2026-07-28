@@ -89,7 +89,12 @@ jobs:
             const rawOutput = fs.existsSync('vally-output.txt')
               ? fs.readFileSync('vally-output.txt', 'utf8')
               : '';
-            const output = rawOutput.replace(/\x1b\[[0-9;]*m/g, '').trim();
+            const output = rawOutput
+              .replace(/\x1b\[[0-9;]*m/g, '')
+              .split('\n')
+              .filter(line => !line.match(/^npm (warn|notice)/))
+              .join('\n')
+              .trim();
 
             const errorCount = (output.match(/❌/g) || []).length;
             const warningCount = (output.match(/⚠/g) || []).length;
