@@ -119,7 +119,7 @@ Label with "well-architected" and the pillar name (e.g., "security", "reliabilit
 **Title**: `[WAF-<PILLAR>] [Brief Finding] — [Risk Level]`
 
 **Body**:
-```markdown
+````markdown
 ## 🏗️ Well-Architected Finding: [Brief Title]
 
 **Pillar**: [Name] | **Risk Level**: [High/Medium/Low] | **Effort**: [Low/Medium/High]
@@ -158,7 +158,7 @@ aws s3api put-bucket-encryption --bucket <name> \
 - [ ] Security Hub finding resolved (if applicable)
 
 **Well-Architected Question**: [WAF question this maps to]
-```
+````
 
 ### Step 7: Create EPIC Tracking Issue
 Label with "well-architected" and "epic".
