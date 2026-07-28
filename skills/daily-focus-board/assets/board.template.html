@@ -250,7 +250,7 @@
       <button id="eoddownload">💾 download recap</button>
       <button id="eodcopy" class="soft">📋 copy to share with Ember</button>
     </div>
-    <p class="ci-hint" id="eodmsg"></p>
+    <p class="ci-hint" id="eodmsg" role="status" aria-live="polite"></p>
   </div>
 
   <p class="foot">progress saves automatically in this browser · 🔥 built with Ember</p>
@@ -275,7 +275,7 @@ let state={counters:(raw.counters||{}),t:(raw.t||{}),day:(raw.day||[]),brain:(ra
 let dragId=null, renderedIds=[];
 function ensureTaskState(){tasks.forEach(t=>{ if(typeof t.goal==="number"){if(state.counters[t.id]===undefined)state.counters[t.id]=(t.start||0);}
   else if(!state.t[t.id])state.t[t.id]={status:"todo",notes:[],carried:false}; else if(state.t[t.id].carried===undefined)state.t[t.id].carried=false; });}
-function rebuildTasks(){tasks=baseTasks.concat(state.added||[]);ensureTaskState();if(state.focus&&!tasks.some(t=>t.id===state.focus))state.focus=null;}
+function rebuildTasks(){const seen={};tasks=baseTasks.concat(state.added||[]).filter(t=>{const id=t&&t.id;if(!validId(id)||seen[id])return false;seen[id]=1;return true;});ensureTaskState();if(state.focus&&!tasks.some(t=>t.id===state.focus))state.focus=null;}
 rebuildTasks();
 
 const cardsEl=document.getElementById("cards"),feedEl=document.getElementById("feed"),brainEl=document.getElementById("brain");
@@ -303,7 +303,7 @@ function fmt(ms){return new Date(ms).toLocaleTimeString(undefined,{hour:"numeric
 function esc(s){return (s||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));}
 const LABEL={todo:"to do",doing:"in progress",done:"done"};
 function isCounter(t){return typeof t.goal==="number";}
-function statusOf(t){if(isCounter(t)){const v=state.counters[t.id];return v>=t.goal?"done":(v>(t.start||0)?"doing":"todo");}return state.t[t.id].status;}
+function statusOf(t){if(isCounter(t)){const v=state.counters[t.id];return v>=t.goal?"done":(v>0?"doing":"todo");}return state.t[t.id].status;}
 function carriedOf(t){return !isCounter(t)&&state.t[t.id].carried;}
 
 function dueStr(t){
@@ -355,7 +355,7 @@ function render(){
         <button type="button" class="pill ${pillCls}" data-cyc="${t.id}">${pillTxt}</button>
         <button class="fbtn" data-focus="${t.id}" title="focus on this">🎯</button>${rmHtml}</div>
         ${notes.length?`<div class="notes">${notes.map((n,i)=>`<div class="note"><span class="nt">${fmt(n.t)}</span><span>${esc(n.txt)}</span><button type="button" class="nx" data-del="${t.id}:${i}" aria-label="delete note">×</button></div>`).join("")}</div>`:""}
-        <div class="cardfoot"><button class="soft" data-carry="${t.id}">${carried?"↩ bring back to today":"⤳ not today"}</button></div>
+        <div class="cardfoot">${st!=="done"?`<button class="soft" data-carry="${t.id}">${carried?"↩ bring back to today":"⤳ not today"}</button>`:""}</div>
         <div class="addrow"><input placeholder="log a step…" data-in="${t.id}"/><button data-add="${t.id}" title="add note">＋</button></div>${metaHtml}`;
       cardsEl.appendChild(c);
     }
@@ -419,6 +419,7 @@ function setQuad(id,v){state.quad[id]=v;save();render();}
 function setTag(id,v){state.tag[id]=v;save();render();}
 function escAttr(s){return esc(s).replace(/"/g,"&quot;");}
 function safeCls(s){return (s||"").replace(/[^a-zA-Z0-9_-]/g,"");}
+function validId(id){return typeof id==="string"&&/^[A-Za-z0-9_-]+$/.test(id);}
 function reorder(from,targetId){if(!from||from===targetId)return;let ids=renderedIds.slice();const fromI=ids.indexOf(from),tgtI=ids.indexOf(targetId);if(fromI<0||tgtI<0)return;ids.splice(fromI,1);let ins=ids.indexOf(targetId);if(fromI<tgtI)ins+=1;ids.splice(ins,0,from);state.order=ids;save();render();}
 function sortByPriority(){const rank={iu:0,ins:1,niu:2,ninu:3,"":4};const ids=[...tasks].sort((a,b)=>{const ca=carriedOf(a)?1:0,cb=carriedOf(b)?1:0;if(ca!==cb)return ca-cb;const ra=(rank[quadOf(a)]===undefined?4:rank[quadOf(a)]),rb=(rank[quadOf(b)]===undefined?4:rank[quadOf(b)]);if(ra!==rb)return ra-rb;return orderIndex(a.id)-orderIndex(b.id);}).map(t=>t.id);state.order=ids;save();render();}
 function updateOverload(){const el=document.getElementById("overload");if(!el)return;const live=tasks.filter(t=>!carriedOf(t)&&statusOf(t)!=="done").length;if(live>9){el.style.display="block";el.textContent=`That's ${live} active tasks for today — more than a focus board loves. Consider carrying a few to tomorrow (⤳ not today), or use Focus mode to take one at a time. No pressure — this is a nudge, not a rule.`;}else{el.style.display="none";}}
