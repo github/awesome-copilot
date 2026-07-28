@@ -60,12 +60,13 @@ jobs:
         run: |
           echo "📤 Sending traffic data to reporting endpoint..."
           
-          # Validate that REPORTING_URL is set
+          # If no reporting sink is configured, skip this step instead of failing.
+          # Configure vars.REPORTING_POST_URL (and secrets.REPORTING_API_KEY) to enable it.
           if [ -z "${REPORTING_URL}" ]; then
-            echo "❌ Error: REPORTING_URL environment variable is not set. Please configure vars.REPORTING_POST_URL."
-            exit 1
+            echo "⚠️  REPORTING_URL is not set (vars.REPORTING_POST_URL). Skipping traffic data upload."
+            exit 0
           fi
-          
+
           # Validate that REPORTING_URL uses HTTPS
           if [[ ! "${REPORTING_URL}" =~ ^https:// ]]; then
             echo "❌ Error: REPORTING_URL must start with https:// to ensure secure transmission of sensitive traffic data."
