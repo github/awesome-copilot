@@ -12,6 +12,9 @@ on:
       - "hooks/**"
       - "workflows/**"
       - "extensions/**"
+      - "cookbook/**"
+      - "eng/**"
+      - ".all-contributorsrc"
       - "package.json"
       - "package-lock.json"
 
