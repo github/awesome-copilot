@@ -9,7 +9,7 @@
 - [Connected Registry](#connected-registry)
 - [Registry Transfer Pipelines](#registry-transfer-pipelines)
 
-Geo-replication, private endpoints, connected registries, and transfer pipelines require the **Premium** SKU. Zone redundancy is automatic in every tier.
+Geo-replication, private endpoints, public IP network rules, dedicated data endpoints, connected registries, and transfer pipelines require the **Premium** SKU. Zone redundancy is automatic in every tier.
 
 ---
 

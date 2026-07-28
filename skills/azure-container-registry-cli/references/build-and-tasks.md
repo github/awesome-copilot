@@ -79,7 +79,7 @@ az acr task delete --registry {registry} --name build-app --yes
 
 Useful run variables for `--image`: `{{.Run.ID}}`, `{{.Run.Commit}}`, `{{.Run.Branch}}`, `{{.Run.Date}}`.
 
-⚠️ On **ABAC-enabled registries** (`roleAssignmentMode` = `AbacRepositoryPermissions`), tasks and quick builds/runs have no default access to the source registry. Pass `--source-acr-auth-id [caller]` to `az acr build`/`az acr run`, and `--source-acr-auth-id [system]` (or a user-assigned identity resource ID) to `az acr task create`/`update`, then grant that identity the `Container Registry Repository ...` roles.
+⚠️ On **ABAC-enabled registries** (`roleAssignmentMode` = `AbacRepositoryPermissions`), tasks and quick builds/runs have no default access to the source registry. Pass `--source-acr-auth-id [caller]` to `az acr build`/`az acr run`, and `--source-acr-auth-id [system]` (or a user-assigned identity resource ID) to `az acr task create`/`update`, then grant that identity the `Container Registry Repository ...` roles. Ensure the task actually has that identity — add `--assign-identity [system]` at creation, or run `az acr task identity assign` on an existing task, before referencing it.
 
 ## Triggers
 
@@ -129,7 +129,7 @@ az acr task create --registry {registry} --name build-test-push \
 
 ## Agent Pools
 
-Premium SKU. Dedicated task compute — required when the registry is behind a firewall/VNet, or for more CPU:
+Premium SKU. Dedicated task compute — for more CPU, or one of the two supported ways to run tasks against a network-restricted registry (the other being trusted services + the task network bypass policy, see `networking-and-geo.md`):
 
 ```bash
 az acr agentpool create --registry {registry} --name pool1 --tier S2   # S1/S2/S3/I6

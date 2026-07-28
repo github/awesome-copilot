@@ -55,7 +55,7 @@ az acr show --name {registry} --query roleAssignmentMode --output tsv
 | `Container Registry Repository Reader` | Read images, tags, metadata (add ABAC conditions to scope to repositories) |
 | `Container Registry Repository Writer` | Read + write/update |
 | `Container Registry Repository Contributor` | Read + write + delete |
-| `Container Registry Repository Catalog Lister` | List repositories (needed alongside the roles above) |
+| `Container Registry Repository Catalog Lister` | List repositories — assign only when the identity must enumerate the catalog (e.g., `az acr repository list`); not needed for pull/push of known repositories |
 
 ```bash
 # Get the registry resource ID
@@ -78,7 +78,8 @@ ACR_ID=$(az acr show --name {registry} --query id --output tsv)
 az ad sp create-for-rbac --name {sp-name} --scopes $ACR_ID --role AcrPull
 
 # Docker login with the SP — pipe the secret via stdin, never pass it as an argument
-echo $SP_PASSWORD | docker login $LOGIN_SERVER --username {appId} --password-stdin
+# (printf with a quoted variable preserves whitespace/glob characters exactly)
+printf '%s' "$SP_PASSWORD" | docker login $LOGIN_SERVER --username {appId} --password-stdin
 ```
 
 Prefer federated credentials (OIDC) over SP passwords in GitHub Actions / Azure DevOps when possible.
@@ -120,8 +121,8 @@ KUBELET_ID=$(az aks show --name {cluster} --resource-group {rg} \
   --query identityProfile.kubeletidentity.objectId --output tsv)
 az role assignment create --assignee $KUBELET_ID --scope $ACR_ID \
   --role "Container Registry Repository Reader"
-az role assignment create --assignee $KUBELET_ID --scope $ACR_ID \
-  --role "Container Registry Repository Catalog Lister"
+# "Container Registry Repository Catalog Lister" is NOT needed for pulls —
+# only add it if the identity must list repositories
 ```
 
 ## Repository-Scoped Tokens
@@ -141,7 +142,7 @@ az acr token create --name {token} --registry {registry} --scope-map {scope-map}
 az acr token credential generate --name {token} --registry {registry} --password1 --expiration-in-days 30
 
 # Login with the token — pipe the password via stdin, never pass it as an argument
-echo $TOKEN_PWD | docker login $LOGIN_SERVER --username {token} --password-stdin
+printf '%s' "$TOKEN_PWD" | docker login $LOGIN_SERVER --username {token} --password-stdin
 
 # Disable or delete
 az acr token update --name {token} --registry {registry} --status disabled
@@ -160,15 +161,14 @@ az acr credential renew --name {registry} --password-name password2   # rotate
 
 Legitimate uses: quick local tests, services that only accept username/password and cannot use tokens.
 
-## Content Trust
+## Content Trust (deprecated)
+
+Docker Content Trust (DCT) is being retired: **since May 31, 2026 it cannot be enabled on new registries** (or on registries that never enabled it), and it will be removed entirely on March 31, 2028. Do not set up DCT — sign images with **Notation (Notary Project)** and store signatures as OCI artifacts instead; see "Transition from Docker Content Trust to Notary Project" in the ACR docs.
 
 ```bash
-# Enable Docker Content Trust support (Premium)
-az acr config content-trust update --registry {registry} --status enabled
-
-# Client side: push signed images
-export DOCKER_CONTENT_TRUST=1
-docker push {registry}.azurecr.io/app:v1
+# Registries with legacy DCT only — inspect or disable the existing configuration
+az acr config content-trust show --registry {registry}
+az acr config content-trust update --registry {registry} --status disabled
 ```
 
-Signers need `AcrImageSigner` in addition to `AcrPush`. For new projects prefer Notation/ORAS-based signing over Docker Content Trust.
+Legacy DCT signers needed `AcrImageSigner` in addition to `AcrPush`.

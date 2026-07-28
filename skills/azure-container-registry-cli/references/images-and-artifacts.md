@@ -106,6 +106,8 @@ az acr task create --registry {registry} --name purge-old-images \
 
 `--filter` takes `repository:tag-regex` and can be repeated for multiple repos.
 
+⚠️ `--untagged` ignores `--ago`: it deletes **every** untagged manifest, including ones created moments ago (mid-push images, referrer artifacts). Omit `--untagged` if recent untagged manifests must survive — the age cutoff only applies to tagged images matched by `--filter`.
+
 ## Lock Images
 
 Prevent overwrite or deletion of critical tags (e.g., released versions):
@@ -123,17 +125,18 @@ az acr repository update --name {registry} --image app:v1 --write-enabled true -
 
 ## Retention Policy & Soft Delete
 
-Premium SKU:
+Two distinct policies that **cannot be enabled at the same time**. Retention policy requires **Premium**; soft delete (preview) is available in **all tiers** but doesn't support geo-replicated or artifact-cache-enabled registries.
 
 ```bash
-# Auto-delete untagged manifests after N days (0 = immediately)
+# Retention policy (Premium): auto-delete untagged manifests after N days (0 = immediately)
 az acr config retention update --registry {registry} \
   --status enabled --days 7 --type UntaggedManifests
 az acr config retention show --registry {registry}
 
-# Soft delete (preview): recover deleted artifacts within the retention window
+# Soft delete (preview, all tiers): recover deleted artifacts within 1-90 days
 az acr config soft-delete update --registry {registry} --status enabled --days 7
 az acr repository list-deleted --name {registry}
+az acr manifest restore --registry {registry} --name app:v1
 ```
 
 ## Artifact Cache (Pull-Through Cache)
