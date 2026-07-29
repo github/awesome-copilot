@@ -79,6 +79,34 @@
     }
   },
   {
+    "name": "brainmaxxing",
+    "description": "Codebase-grounded concept-mastery quizzes with an interactive BrainMax Canvas dashboard.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Julia Muiruri",
+      "url": "https://juliawakiru.dev"
+    },
+    "repository": "https://github.com/juliamuiruri4/brainmaxxing",
+    "homepage": "https://github.com/juliamuiruri4/brainmaxxing",
+    "license": "MIT",
+    "keywords": [
+      "assessment",
+      "canvas",
+      "developer-education",
+      "learning",
+      "quiz",
+      "skills-mastery",
+      "software-engineering",
+      "student-developer"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "juliamuiruri4/brainmaxxing",
+      "ref": "v1.0.0",
+      "sha": "8a8a102ff3ab8736f015764207cdb7e68fcd5ecf"
+    }
+  },
+  {
     "name": "chrome-devtools-plugin",
     "description": "Reliable automation, in-depth debugging, and performance analysis in Chrome using Chrome DevTools and Puppeteer.",
     "version": "1.0.1",
@@ -502,7 +530,7 @@
   {
     "name": "microsoft-foundry",
     "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -523,7 +551,7 @@
       "source": "github",
       "repo": "microsoft/foundry-toolkit",
       "path": "microsoft-foundry",
-      "sha": "478668e6c62035d702ad3405361d4d229f31ca03"
+      "sha": "b4ffffc810130893117a7b8f797e0a33102e66de"
     }
   },
   {
@@ -573,6 +601,36 @@
       "path": "plugins/modernize-java",
       "ref": "1.22.0",
       "sha": "ef5367b446566bdc90960deeb40def63f9e7024e"
+    }
+  },
+  {
+    "name": "netlify",
+    "description": "Netlify platform skills covering functions, edge functions, blobs, database, identity, image CDN, forms, config, CLI, frameworks, caching, AI Gateway, and deployment — plus the official Netlify MCP server for creating and managing projects, deploys, and environment variables.",
+    "version": "1.1.0",
+    "author": {
+      "name": "Netlify",
+      "url": "https://www.netlify.com"
+    },
+    "repository": "https://github.com/netlify/context-and-tools",
+    "homepage": "https://www.netlify.com",
+    "license": "MIT",
+    "keywords": [
+      "netlify",
+      "deployment",
+      "serverless",
+      "functions",
+      "edge-functions",
+      "blobs",
+      "database",
+      "mcp",
+      "ai-gateway",
+      "frameworks"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "netlify/context-and-tools",
+      "ref": "v1.2.0",
+      "sha": "e10cd19c000651620453e99ed138b8f012d069c7"
     }
   },
   {
@@ -649,6 +707,30 @@
       "source": "github",
       "repo": "SonarSource/sonarqube-agent-plugins",
       "ref": "2.3.0"
+    }
+  },
+  {
+    "name": "timebase",
+    "description": "Connect your AI agent to TimeBase, a high-performance database for financial market and other time-series data, via MCP tools and skills for QQL query and TimeBase client code generation.",
+    "version": "0.1.2",
+    "author": {
+      "name": "EPAM Systems",
+      "url": "https://www.epam.com/"
+    },
+    "repository": "https://github.com/epam/TimeBase-Agent-Plugins",
+    "license": "Apache-2.0",
+    "keywords": [
+      "timebase",
+      "time-series",
+      "db",
+      "qql",
+      "financial-data"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "epam/TimeBase-Agent-Plugins",
+      "ref": "v0.1.2",
+      "sha": "846b341a17becbf4d0cd43374588fc6ab1930d0b"
     }
   },
   {

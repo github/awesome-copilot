@@ -1,3 +1,4 @@
+import { unified } from "@astrojs/markdown-remark";
 import sitemap from "@astrojs/sitemap";
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
@@ -34,9 +35,16 @@ export default defineConfig({
   base: "/",
   output: "static",
   markdown: {
-    remarkPlugins: [
-      [remarkGithubAdmonitionsToDirectives, { mapping: githubAdmonitionMapping }],
-    ],
+    // Astro 7.1+ uses Sätteri as the default Markdown processor, but its plugin
+    // API is incompatible with remark/rehype plugins. We explicitly opt into the
+    // unified() (remark/rehype) processor so we can keep using
+    // remark-github-admonitions-to-directives, which rewrites > [!NOTE] callouts
+    // from Learning Hub course content into Starlight aside directives.
+    processor: unified({
+      remarkPlugins: [
+        [remarkGithubAdmonitionsToDirectives, { mapping: githubAdmonitionMapping }],
+      ],
+    }),
   },
   integrations: [
     starlight({

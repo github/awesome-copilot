@@ -6,6 +6,7 @@ import path from "path";
 import { Writable } from "stream";
 import { spawnSync } from "child_process";
 import { runLint, LintConsoleReporter } from "@microsoft/vally";
+import { evaluateRefShaConsistency, normalizeCommitSha } from "./lib/external-plugin-source-ref-sha.mjs";
 
 const MAX_OUTPUT_LENGTH = 12000;
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
@@ -384,6 +385,7 @@ function readPluginManifestAtLocator(repoDir, readRef, locator, normalizedPlugin
           message: `Invalid JSON in "${manifestPath}" at "${locator}": ${error.message}`,
         };
       }
+
     }
 
     if (isMissingPathAtLocator(showResult.output)) {
@@ -399,6 +401,87 @@ function readPluginManifestAtLocator(repoDir, readRef, locator, normalizedPlugin
   return {
     kind: "not_found",
     message: `No plugin.json found at "${locator}". Expected one of: ${manifestCandidates.join(", ")}`,
+  };
+}
+
+function resolveCommitShaAtReadRef(repoDir, readRef, locator) {
+  const revParse = runCommand("git", ["rev-parse", `${readRef}^{commit}`], { cwd: repoDir });
+  if (revParse.exitCode !== 0) {
+    return {
+      status: "fail",
+      commitSha: null,
+      output: `source.ref "${locator}" does not identify a commit (it may point to a tag object, tree, or blob); only commit-backed refs are supported`,
+    };
+  }
+
+  const commitSha = normalizeCommitSha(revParse.stdout);
+  if (!commitSha) {
+    return {
+      status: "infra_error",
+      commitSha: null,
+      output: `Unable to parse commit SHA for "${locator}" from "${readRef}".`,
+    };
+  }
+
+  return {
+    status: "pass",
+    commitSha,
+    output: "",
+  };
+}
+
+export function runRefShaConsistencyGate(repoDir, plugin, primaryFetchSpec) {
+  const sourceRef = typeof plugin?.source?.ref === "string" ? plugin.source.ref.trim() : "";
+  const sourceSha = typeof plugin?.source?.sha === "string" ? plugin.source.sha.trim() : "";
+  if (!sourceRef || !sourceSha) {
+    return {
+      status: "not_run",
+      output: "Ref/SHA consistency gate skipped because one of source.ref or source.sha was not provided.",
+    };
+  }
+
+  const refResult = resolveLocatorReadRef(repoDir, sourceRef, primaryFetchSpec);
+  if (refResult.status === "fail") {
+    return {
+      status: "fail",
+      output: refResult.output,
+    };
+  }
+
+  if (refResult.status === "infra_error") {
+    return {
+      status: "infra_error",
+      output: refResult.output,
+    };
+  }
+
+  const commitResult = resolveCommitShaAtReadRef(repoDir, refResult.readRef, sourceRef);
+  if (commitResult.status !== "pass") {
+    return commitResult;
+  }
+
+  const consistency = evaluateRefShaConsistency({
+    ref: sourceRef,
+    sha: sourceSha,
+    resolvedRefCommitSha: commitResult.commitSha,
+  });
+  if (!consistency.comparable) {
+    return {
+      status: "not_run",
+      output: "Ref/SHA consistency gate skipped because source.sha is not a full 40-character commit SHA.",
+    };
+  }
+
+  if (!consistency.matches) {
+    return {
+      status: "fail",
+      output: `source.ref "${sourceRef}" resolves to "${consistency.normalizedRefCommitSha}", which does not match source.sha "${sourceSha}".`,
+    };
+  }
+
+  return {
+    status: "pass",
+    output: `source.ref "${sourceRef}" resolves to the same commit as source.sha "${sourceSha}".`,
   };
 }
 
@@ -529,6 +612,91 @@ function checkPathExistsAtLocator(repoDir, readRef, locator, repoPath, expectedT
   };
 }
 
+function listTreeEntries(repoDir, readRef, locator, treePath, { recursive = false } = {}) {
+  // Parse the full, untruncated tree listing directly. runCommand()/truncateOutput()
+  // would cap stdout at MAX_OUTPUT_LENGTH and silently drop later entries, and the
+  // default (non-"-z") output quotes unusual names; "-z" gives raw, NUL-delimited records.
+  // "-r -t" recurses in a single process and still lists intermediate tree objects, so a
+  // whole subtree can be inspected without spawning one git process per candidate path.
+  const args = recursive
+    ? ["ls-tree", "-r", "-t", "-z", `${readRef}:${treePath}`]
+    : ["ls-tree", "-z", `${readRef}:${treePath}`];
+  const result = spawnSync("git", args, {
+    cwd: repoDir,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+
+  if (result.status !== 0) {
+    const detail = truncateOutput(`${result.stdout ?? ""}\n${result.stderr ?? ""}`);
+    return {
+      entries: [],
+      output: `Unable to list directory "${treePath}" at "${locator}": ${detail}`,
+    };
+  }
+
+  const entries = [];
+  for (const record of String(result.stdout ?? "").split("\0")) {
+    if (!record) {
+      continue;
+    }
+
+    const tabIndex = record.indexOf("\t");
+    if (tabIndex === -1) {
+      continue;
+    }
+
+    const meta = record.slice(0, tabIndex).trim().split(/\s+/);
+    const name = record.slice(tabIndex + 1);
+    if (!name) {
+      continue;
+    }
+
+    entries.push({ type: meta[1] ?? "", name });
+  }
+
+  return { entries, output: "" };
+}
+
+function locateCanvasEntryPoint(repoDir, readRef, locator, extensionsDir) {
+  // Enumerate the extensions subtree with a single recursive git process rather than
+  // spawning a git cat-file per candidate directory, so discovery stays bounded no matter
+  // how many folders an untrusted repository packs under "extensions/". "-r" yields paths
+  // relative to extensionsDir, so nested entry points appear as "<name>/extension.mjs".
+  const listing = listTreeEntries(repoDir, readRef, locator, extensionsDir, { recursive: true });
+  if (listing.output) {
+    return { entryPoint: null, output: listing.output };
+  }
+
+  let flatIsBlob = false;
+  let flatIsTree = false;
+  let nestedEntryPoint = null;
+  for (const entry of listing.entries) {
+    if (entry.name === "extension.mjs") {
+      if (entry.type === "blob") {
+        flatIsBlob = true;
+      } else if (entry.type === "tree") {
+        flatIsTree = true;
+      }
+      continue;
+    }
+
+    const segments = entry.name.split("/");
+    if (segments.length === 2 && segments[1] === "extension.mjs" && entry.type === "blob" && !nestedEntryPoint) {
+      nestedEntryPoint = toPosixPath(extensionsDir, segments[0], "extension.mjs");
+    }
+  }
+
+  if (flatIsBlob) {
+    return { entryPoint: toPosixPath(extensionsDir, "extension.mjs"), output: "" };
+  }
+  if (nestedEntryPoint) {
+    return { entryPoint: nestedEntryPoint, output: "" };
+  }
+
+  return { entryPoint: null, output: "", flatKindMismatch: flatIsTree };
+}
+
 export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
   if (!hasCanvasKeyword(plugin)) {
     return {
@@ -589,23 +757,25 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
       continue;
     }
 
-    const extensionEntryCheck = checkPathExistsAtLocator(repoDir, readRef, locator, extensionEntryPoint, "blob");
+    const extensionEntryCheck = locateCanvasEntryPoint(repoDir, readRef, locator, extensionsDir);
     if (extensionEntryCheck.output) {
       hasInfraError = true;
       messages.push(`- ${locator}: ${extensionEntryCheck.output}`);
       continue;
     }
-    if (!extensionEntryCheck.exists) {
+    if (!extensionEntryCheck.entryPoint) {
       hasFailure = true;
-      if (extensionEntryCheck.kindMismatch) {
+      if (extensionEntryCheck.flatKindMismatch) {
         messages.push(`- ${locator}: "${extensionEntryPoint}" must be a file.`);
       } else {
-        messages.push(`- ${locator}: missing required canvas extension entry point "${extensionEntryPoint}".`);
+        messages.push(
+          `- ${locator}: missing required canvas extension entry point "${extensionEntryPoint}" (or a nested "${extensionsDir}/<extension>/extension.mjs").`,
+        );
       }
       continue;
     }
 
-    messages.push(`- ${locator}: found "${extensionsDir}" with entry point "${extensionEntryPoint}".`);
+    messages.push(`- ${locator}: found "${extensionsDir}" with entry point "${extensionEntryCheck.entryPoint}".`);
   }
 
   if (hasInfraError) {
@@ -658,12 +828,14 @@ export async function runExternalPluginQualityGates(plugin) {
     vally_lint_status: "not_run",
     smoke_status: "not_run",
     version_match_status: "not_run",
+    ref_sha_consistency_status: "not_run",
     canvas_structure_status: "not_run",
     failure_class: "none",
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
     version_match_output: "",
+    ref_sha_consistency_output: "",
     canvas_structure_output: "",
   };
 
@@ -676,6 +848,7 @@ export async function runExternalPluginQualityGates(plugin) {
       result.vally_lint_status = "fail";
       result.smoke_status = "fail";
       result.version_match_status = "fail";
+      result.ref_sha_consistency_status = "not_run";
       result.canvas_structure_status = hasCanvasKeyword(plugin) ? "fail" : "not_run";
       result.overall_status = "fail";
       result.failure_class = "submitter_fixes";
@@ -690,6 +863,10 @@ export async function runExternalPluginQualityGates(plugin) {
     const versionMatchResult = runVersionMatchGate(repoDir, plugin, fetchSpec);
     result.version_match_status = versionMatchResult.status;
     result.version_match_output = versionMatchResult.output;
+
+    const refShaConsistencyResult = runRefShaConsistencyGate(repoDir, plugin, fetchSpec);
+    result.ref_sha_consistency_status = refShaConsistencyResult.status;
+    result.ref_sha_consistency_output = refShaConsistencyResult.output;
 
     const canvasStructureResult = runCanvasStructureGate(repoDir, plugin, fetchSpec);
     result.canvas_structure_status = canvasStructureResult.status;
@@ -707,6 +884,7 @@ export async function runExternalPluginQualityGates(plugin) {
       result.vally_lint_status,
       result.smoke_status,
       result.version_match_status,
+      result.ref_sha_consistency_status,
       result.canvas_structure_status,
     ]);
     result.failure_class = toFailureClass(result.overall_status);
@@ -714,6 +892,7 @@ export async function runExternalPluginQualityGates(plugin) {
       `- vally lint: ${result.vally_lint_status}`,
       `- install smoke test: ${result.smoke_status}`,
       `- version match: ${result.version_match_status}`,
+      `- ref/sha consistency: ${result.ref_sha_consistency_status}`,
       `- canvas structure: ${result.canvas_structure_status}`,
       `- overall: ${result.overall_status}`,
     ].join("\n");

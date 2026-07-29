@@ -19,6 +19,7 @@
   "author": "GitHub",
   "license": "MIT",
   "dependencies": {
+    "@astrojs/markdown-remark": "^7.2.0",
     "@astrojs/sitemap": "^3.7.2",
     "@astrojs/starlight": "^0.41.1",
     "astro": "^7.1.3",

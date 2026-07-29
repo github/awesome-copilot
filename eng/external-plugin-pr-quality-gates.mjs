@@ -74,12 +74,14 @@ function createValidationFailureQuality(errors) {
     vally_lint_status: "fail",
     smoke_status: "not_run",
     version_match_status: "not_run",
+    ref_sha_consistency_status: "not_run",
     canvas_structure_status: "not_run",
     failure_class: "submitter_fixes",
     summary: "Plugin entry failed external.json validation. Fix the listed errors and re-run quality checks.",
     vally_lint_output: output,
     smoke_output: "Install smoke test skipped due to external.json validation errors.",
     version_match_output: "Version match skipped due to external.json validation errors.",
+    ref_sha_consistency_output: "Ref/SHA consistency check skipped due to external.json validation errors.",
     canvas_structure_output: "Canvas structure check skipped due to external.json validation errors.",
   };
 }
@@ -107,7 +109,7 @@ export async function runExternalPluginPrQualityGates(plugins) {
     ? "No changed external plugin entries were detected in plugins/external.json."
     : checkedPlugins
       .map((entry) =>
-        `- ${entry.name}: vally-lint=${entry.quality.vally_lint_status}, install-smoke=${entry.quality.smoke_status}, version-match=${entry.quality.version_match_status}, canvas-structure=${entry.quality.canvas_structure_status}, overall=${entry.quality.overall_status}`
+        `- ${entry.name}: vally-lint=${entry.quality.vally_lint_status}, install-smoke=${entry.quality.smoke_status}, version-match=${entry.quality.version_match_status}, ref-sha-consistency=${entry.quality.ref_sha_consistency_status}, canvas-structure=${entry.quality.canvas_structure_status}, overall=${entry.quality.overall_status}`
       )
       .join("\n");
 
