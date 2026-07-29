@@ -67,8 +67,8 @@ When creating issues, produce issue bodies at least as specific and structured a
 ### Step 2: Study examples and existing children
 
 1. Parse each URL in `EXAMPLE_ISSUES` into its owner, repository, and issue number. Fetch every issue body and extract conventions for structure, specificity, and formatting.
-2. List current children of `PARENT_ISSUE` via `gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues"`.
-3. The workflow is idempotent — do not create duplicates. Stop and report ambiguous matches.
+2. List current children of `PARENT_ISSUE` via `gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues"` and retain their issue IDs and numbers as the pre-creation baseline.
+3. Treat issue creation as a one-shot operation, not an idempotent or resumable operation. Do not infer matches between existing children and implementation subsections.
 
 ### Step 3: Build a traceability map
 
@@ -117,14 +117,30 @@ printf '{"sub_issue_id": %s}' "$CHILD_ID" | \
   gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" -X POST --input -
 ```
 
-Create and link one at a time in plan order. On linking failure, retry up to 3 times. If still fails, stop immediately.
+Before creating the first issue, initialize a creation ledger. Immediately after each successful create call, append the returned issue ID, number, title, and URL with `linked=false`. Immediately after successfully linking it, update that entry to `linked=true`.
+
+Create and link one at a time in plan order. On linking failure, retry up to 3 times. If any create, link, checkbox-update, or postcondition-verification step fails:
+
+1. Stop immediately. Do not create, link, edit, or delete anything else.
+2. Use read-only GitHub queries to reconcile every ledger entry against current repository and parent-child state. Update each `linked` value from observed server state.
+3. Report the failed operation and its error.
+4. Print the complete reconciled creation ledger in creation order, including issue number, title, URL, and whether it was linked to `PARENT_ISSUE`.
+5. Print one cleanup command per created issue:
+
+   ```bash
+   gh issue delete ISSUE_NUMBER --repo "$REPO" --yes
+   ```
+
+6. Tell the invoking user that the operation did not complete, that the skill performed no automatic rollback, and that they must delete every issue in the ledger before invoking the skill again.
+
+If the ledger is empty, explicitly report that no issues were created and no cleanup is required.
 
 ### Step 6: Verify postconditions
 
-- Child count increased by expected number.
-- Each implementation subsection has exactly one child.
-- Child order matches plan order.
-- Every child has `ISSUE_TYPE`, is open, has no assignees.
+- Relative to the pre-creation baseline, the child count increased by exactly the number of ledger entries.
+- Every ledger entry is linked exactly once and corresponds, in creation order, to one implementation subsection.
+- The newly linked child order matches plan order.
+- Every issue in the ledger has `ISSUE_TYPE`, is open, and has no assignees.
 
 If `UPDATE_PLAN_CHECKBOXES=true`, add progress checkboxes to the implementation section.
 
@@ -144,5 +160,6 @@ Return:
 - Never write vague references — enumerate exact headings.
 - Never cite a resolution without its concrete value.
 - Never invent spike findings — cite available evidence or identify missing evidence as a blocker.
-- Never continue after a partial creation/linking failure.
+- Never attempt automatic rollback or resume a partial run. Report the creation ledger and cleanup commands, then stop.
+- Never rerun after a partial failure until the invoking user confirms that every issue in the creation ledger has been deleted.
 - Do not run `shepherd-task` or assign Copilot. This skill only creates and verifies the ordered issue backlog.
