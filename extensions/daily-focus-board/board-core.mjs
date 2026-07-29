@@ -46,7 +46,12 @@ const BOARD_MARKER = "daily-focus-board";
 // delete routing, so a task may not claim them as an id — otherwise deleting a
 // task note could splice the shared feed instead.
 const RESERVED_IDS = new Set(["day", "brain"]);
-export function validId(s) { return typeof s === "string" && ID_RE.test(s) && !RESERVED_IDS.has(s); }
+// Reject reserved sentinels AND any inherited Object.prototype name (toString,
+// constructor, hasOwnProperty, __proto__, ...) via `s in {}` — task ids are used
+// as object keys, so an inherited name could otherwise resolve to a prototype
+// member. With the null-prototype progress maps in normalize(), a task id can
+// never touch the prototype.
+export function validId(s) { return typeof s === "string" && ID_RE.test(s) && !RESERVED_IDS.has(s) && !(s in {}); }
 function text(s, max = 2000) { return typeof s === "string" ? s.slice(0, max) : ""; }
 function num(v) {
     if (v === undefined || v === null || v === "") return undefined;
@@ -89,8 +94,10 @@ export function normalize(doc) {
     doc.tasks = Array.isArray(doc.tasks) ? doc.tasks.filter(t => t && validId(t.id)).map(normalizeTaskDef) : [];
 
     const p = doc.progress && typeof doc.progress === "object" ? doc.progress : {};
-    p.counters = p.counters && typeof p.counters === "object" ? p.counters : {};
-    p.t = p.t && typeof p.t === "object" ? p.t : {};
+    // Null-prototype maps so a task id can never resolve to an inherited member
+    // (e.g. reading p.t["toString"] returning Object.prototype.toString).
+    p.counters = Object.assign(Object.create(null), p.counters && typeof p.counters === "object" ? p.counters : {});
+    p.t = Object.assign(Object.create(null), p.t && typeof p.t === "object" ? p.t : {});
     p.day = Array.isArray(p.day) ? p.day : [];
     p.brain = Array.isArray(p.brain) ? p.brain : [];
     p.focus = validId(p.focus) ? p.focus : null;
