@@ -39,7 +39,7 @@ $REPO = Read-Required "1/12  REPO (OWNER/REPO format, e.g. github/copilot-sdk)"
 
 $BASE_BRANCH = Read-Required "2/12  BASE_BRANCH (non-main topic branch, e.g. edburns/1917-java-embed-cli)"
 
-$PARENT_ISSUE = Read-Required "3/12  PARENT_ISSUE (number or URL of the parent issue)"
+$PARENT_ISSUE = Read-Required "3/12  PARENT_ISSUE (positive integer issue number only, e.g. 123)"
 
 $PLAN_DIRECTORY = Read-Required "4/12  PLAN_DIRECTORY (repo-relative path to directory containing plan and spikes)"
 
@@ -52,8 +52,8 @@ $QUESTIONS_SECTION = Read-Required "6/12  QUESTIONS_SECTION (exact heading of th
 $IMPLEMENTATION_SECTION = Read-Required "7/12  IMPLEMENTATION_SECTION (exact heading of the implementation/build-order section)"
 
 Write-Host ""
-Write-Host "  Hint: provide issue numbers or URLs separated by commas." -ForegroundColor DarkGray
-$EXAMPLE_ISSUES = Read-Required "8/12  EXAMPLE_ISSUES (issue numbers/URLs whose style to follow)"
+Write-Host "  Hint: provide full GitHub issue URLs separated by commas." -ForegroundColor DarkGray
+$EXAMPLE_ISSUES = Read-Required "8/12  EXAMPLE_ISSUES (full GitHub issue URLs whose style to follow)"
 
 $BASE_REMOTE = Read-Required "9/12  BASE_REMOTE (git remote name, e.g. upstream or origin)" "upstream"
 
