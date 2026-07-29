@@ -40,7 +40,7 @@ REPO=$(read_required "1/12  REPO (OWNER/REPO format, e.g. github/copilot-sdk)")
 
 BASE_BRANCH=$(read_required "2/12  BASE_BRANCH (non-main topic branch, e.g. edburns/1917-java-embed-cli)")
 
-PARENT_ISSUE=$(read_required "3/12  PARENT_ISSUE (number or URL of the parent issue)")
+PARENT_ISSUE=$(read_required "3/12  PARENT_ISSUE (positive integer issue number only, e.g. 123)")
 
 PLAN_DIRECTORY=$(read_required "4/12  PLAN_DIRECTORY (repo-relative path to directory containing plan and spikes)")
 
@@ -53,8 +53,8 @@ QUESTIONS_SECTION=$(read_required "6/12  QUESTIONS_SECTION (exact heading of the
 IMPLEMENTATION_SECTION=$(read_required "7/12  IMPLEMENTATION_SECTION (exact heading of the implementation/build-order section)")
 
 echo ""
-echo "  Hint: provide issue numbers or URLs separated by commas."
-EXAMPLE_ISSUES=$(read_required "8/12  EXAMPLE_ISSUES (issue numbers/URLs whose style to follow)")
+echo "  Hint: provide full GitHub issue URLs separated by commas."
+EXAMPLE_ISSUES=$(read_required "8/12  EXAMPLE_ISSUES (full GitHub issue URLs whose style to follow)")
 
 BASE_REMOTE=$(read_required "9/12  BASE_REMOTE (git remote name, e.g. upstream or origin)" "upstream")
 
