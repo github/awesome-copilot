@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins, validateExternalPlugin } from "./external-plugin-validation.mjs";
+import { evaluateRefShaConsistency, normalizeCommitSha } from "./lib/external-plugin-source-ref-sha.mjs";
 
 export const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
 export const EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER = "<!-- external-plugin-intake -->";
@@ -293,9 +294,23 @@ function encodeRepoPath(repo) {
   return `${encodeURIComponent(owner ?? "")}/${encodeURIComponent(name ?? "")}`;
 }
 
+async function resolveCommitSha(repo, locator, token) {
+  const encodedRepo = encodeRepoPath(repo);
+  const commitResponse = await fetchGitHubJson(`/repos/${encodedRepo}/commits/${encodeURIComponent(locator)}`, token);
+  if (commitResponse.kind !== "found") {
+    return commitResponse;
+  }
+
+  return {
+    ...commitResponse,
+    commitSha: normalizeCommitSha(commitResponse.data?.sha),
+  };
+}
+
 async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, token) {
   const encodedRepo = encodeRepoPath(repo);
   const repositoryResponse = await fetchGitHubJson(`/repos/${encodedRepo}`, token);
+  const normalizedSha = normalizeCommitSha(sha);
 
   if (repositoryResponse.kind === "notFound") {
     errors.push(`submission: GitHub repository "${repo}" was not found`);
@@ -333,6 +348,19 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
 
   }
 
+  function validateRefShaConsistency(refCommitSha) {
+    if (!normalizedSha || !refCommitSha) {
+      return;
+    }
+
+    const consistency = evaluateRefShaConsistency({ ref, sha, resolvedRefCommitSha: refCommitSha });
+    if (!consistency.matches) {
+      errors.push(
+        `submission: when both "Ref to review" and "Commit SHA to review" are provided, they must reference the same commit (ref "${ref}" resolves to "${consistency.normalizedRefCommitSha}", sha is "${sha}")`,
+      );
+    }
+  }
+
   if (!ref) {
     return;
   }
@@ -347,6 +375,8 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
         `submission: could not verify commit "${ref}" in GitHub repository "${repo}" (${statusText}${commitResponse.reason ? ` — ${commitResponse.reason}` : ""}); a maintainer should re-run intake`,
       );
     }
+
+    validateRefShaConsistency(normalizeCommitSha(ref));
     return;
   }
 
@@ -362,6 +392,38 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
   const tagResponse = await fetchGitHubJson(`/repos/${encodedRepo}/git/ref/tags/${encodeURIComponent(tagName)}`, token);
 
   if (tagResponse.kind === "found") {
+    if (!normalizedSha) {
+      return;
+    }
+
+    const resolvedRefResponse = await resolveCommitSha(repo, ref, token);
+    if (resolvedRefResponse.kind === "notFound") {
+      errors.push(`submission: ref "${ref}" could not be resolved to a commit in GitHub repository "${repo}"`);
+      return;
+    }
+
+    if (resolvedRefResponse.kind === "apiError") {
+      if (resolvedRefResponse.status === 422) {
+        errors.push(
+          `submission: ref "${ref}" does not resolve to a commit in GitHub repository "${repo}" (it may point to a tag object, tree, or blob); only commit-backed refs are supported`,
+        );
+        return;
+      }
+      const statusText = resolvedRefResponse.status ? `HTTP ${resolvedRefResponse.status}` : "network error";
+      warnings.push(
+        `submission: could not resolve ref "${ref}" to a commit in GitHub repository "${repo}" (${statusText}${resolvedRefResponse.reason ? ` — ${resolvedRefResponse.reason}` : ""}); a maintainer should re-run intake`,
+      );
+      return;
+    }
+
+    if (!resolvedRefResponse.commitSha) {
+      warnings.push(
+        `submission: could not determine the commit SHA for ref "${ref}" in GitHub repository "${repo}"; a maintainer should re-run intake`,
+      );
+      return;
+    }
+
+    validateRefShaConsistency(resolvedRefResponse.commitSha);
     return;
   }
 
@@ -724,12 +786,14 @@ function normalizeQualityGateResult(rawResult) {
     vally_lint_status: "not_run",
     smoke_status: "not_run",
     version_match_status: "not_run",
+    ref_sha_consistency_status: "not_run",
     canvas_structure_status: "not_run",
     failure_class: "none",
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
     version_match_output: "",
+    ref_sha_consistency_output: "",
     canvas_structure_output: "",
   };
 
@@ -747,6 +811,7 @@ function buildQualityGatesCommentSection(qualityResult) {
   const vallyState = qualityResult.vally_lint_status || "not_run";
   const smokeState = qualityResult.smoke_status || "not_run";
   const versionMatchState = qualityResult.version_match_status || "not_run";
+  const refShaConsistencyState = qualityResult.ref_sha_consistency_status || "not_run";
   const canvasStructureState = qualityResult.canvas_structure_status || "not_run";
   const summaryText = String(qualityResult.summary || "").trim() || "_No quality gate details were provided._";
 
@@ -758,6 +823,7 @@ function buildQualityGatesCommentSection(qualityResult) {
     `| vally lint | ${vallyState} |`,
     `| install smoke test | ${smokeState} |`,
     `| version match | ${versionMatchState} |`,
+    `| ref/sha consistency | ${refShaConsistencyState} |`,
     `| canvas structure | ${canvasStructureState} |`,
     "",
     summaryText,
@@ -802,6 +868,21 @@ function buildQualityGatesCommentSection(qualityResult) {
       "",
       "```text",
       versionMatchOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
+
+  const refShaConsistencyOutput = String(qualityResult.ref_sha_consistency_output || "").trim();
+  if (refShaConsistencyOutput) {
+    sections.push(
+      "",
+      "<details>",
+      "<summary>Ref/SHA consistency output</summary>",
+      "",
+      "```text",
+      refShaConsistencyOutput,
       "```",
       "",
       "</details>",
