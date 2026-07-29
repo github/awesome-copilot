@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# shepherd-task-interview-user-to-create-issues.sh — Interviews the user for all 11
-# inputs to the shepherd-task-create-issues-from-plan skill and writes a timestamped
-# prompt file in the current directory.
+# shepherd-task-interview-user-to-create-issues.sh — Interviews the user for 11 inputs
+# to the shepherd-task-create-issues-from-plan skill and writes a timestamped prompt
+# inside a persistent log directory. The printed invocation reuses that directory.
 #
 # Usage: ./shepherd-task-interview-user-to-create-issues.sh
 
@@ -66,7 +66,10 @@ SUPPORTING_ARTIFACTS=$(read_required "11/11 SUPPORTING_ARTIFACTS (paths to spike
 
 # Build the prompt file.
 timestamp=$(date +%Y%m%d-%H%M)
-out_file="$(pwd)/${timestamp}-invoke-shepherd-task-create-issues-from-plan-skill.md"
+log_dir="$(pwd)/shepherd-task-${timestamp}"
+mkdir -p "$log_dir"
+log_dir_full="$(cd "$log_dir" && pwd)"
+out_file="$log_dir_full/${timestamp}-invoke-shepherd-task-create-issues-from-plan-skill.md"
 
 cat > "$out_file" <<EOF
 Invoke skill \`shepherd-task-create-issues-from-plan\` with these inputs:
@@ -82,11 +85,25 @@ Invoke skill \`shepherd-task-create-issues-from-plan\` with these inputs:
 - BASE_REMOTE: $BASE_REMOTE
 - ISSUE_TYPE: $ISSUE_TYPE
 - SUPPORTING_ARTIFACTS: $SUPPORTING_ARTIFACTS
+- LOG_DIRECTORY: $log_dir_full
 EOF
 
 echo ""
 echo "Prompt file written to:"
 echo "  $out_file"
 echo ""
-echo "To execute, paste the contents into a Copilot chat or pipe to copilot:"
-echo "  cat \"$out_file\" | copilot --yolo"
+echo "To execute with persistent logs, paste this Bash command block:"
+printf 'timestamp=%q\n' "$timestamp"
+printf 'log_dir_full=%q\n' "$log_dir_full"
+printf 'mkdir -p "$log_dir_full"\n'
+printf 'session_share_path="$log_dir_full/create-issues-session-$timestamp.md"\n'
+printf 'session_json_path="$log_dir_full/create-issues-session-$timestamp.json"\n'
+printf 'session_otel_path="$log_dir_full/create-issues-otel-$timestamp.jsonl"\n'
+printf 'prompt_file=%q\n' "$out_file"
+printf 'prompt=$(cat "$prompt_file")\n'
+printf 'echo "[shepherd-task] Logging create-issues run to: $log_dir_full"\n'
+printf 'export COPILOT_OTEL_FILE_EXPORTER_PATH="$session_otel_path"\n'
+printf 'printf '\''%%s'\'' "$prompt" | copilot --yolo --output-format json --share "$session_share_path" > "$session_json_path"\n'
+printf 'copilot_exit=$?\n'
+printf 'unset COPILOT_OTEL_FILE_EXPORTER_PATH\n'
+printf 'if [[ $copilot_exit -ne 0 ]]; then echo "[shepherd-task] FAILED: copilot exited with code $copilot_exit" >&2; else echo "[shepherd-task] Create-issues session complete."; fi\n'
