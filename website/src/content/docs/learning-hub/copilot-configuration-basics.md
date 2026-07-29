@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-07-29
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -507,6 +507,17 @@ You can also press **x** on a highlighted session in the session picker (`--resu
 
 In the session picker, press **`s`** to cycle the sort order: relevance, last used, created, or name. The picker also shows the branch name and idle/in-use status for each session.
 
+**Experimental Sessions sidebar** (v1.0.76+): An opt-in **Sessions sidebar** lets you run and manage multiple concurrent CLI sessions side-by-side in a split-view layout, without needing to switch terminal windows. Enable it from `/experimental` and open it with `/sessions`:
+
+```
+/experimental       # toggle experimental features, including Sessions sidebar
+/sessions           # open the Sessions sidebar
+```
+
+When the sidebar is active, each session appears as its own panel. You can dispatch new sessions, monitor active ones, and switch focus between them — all without leaving the CLI. This is especially useful when you want to run a long agentic task in the background while continuing interactive work in a separate session.
+
+> **Note**: This is an experimental feature and its behavior may change. Provide feedback via `/feedback` if you find it useful.
+
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
 
 ```
@@ -665,6 +676,15 @@ The `/usage` command displays session metrics such as the number of tokens consu
 /usage
 ```
 
+The `/limits predict` command (v1.0.76+) estimates how much of your usage quota a described task is likely to consume **before you run it**. This is useful when working on large tasks — refactoring a big codebase, running `/fleet` across many files, or long-running agent workflows — where you want to check whether you have sufficient quota headroom:
+
+```
+/limits predict "Refactor the authentication module across all services"
+/limits predict "Run a security audit on the entire codebase"
+```
+
+Copilot returns a token and request estimate for the described task based on the selected model and your current context. Use this to decide whether to proceed immediately, switch to a more efficient model, or compact context first.
+
 The `/compact` command summarizes the conversation history to free up context window space while preserving the thread of the conversation. Use it when your context is getting full but you do not want to start a fresh session:
 
 ```
@@ -760,6 +780,8 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 ```
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
+
+**Enterprise sandbox policy floor** (v1.0.76+): In enterprise environments, administrators can enforce a **sandbox policy floor** — a minimum sandbox level that applies to all sessions in that organization. When a policy floor is active, the CLI displays a visible indicator showing the enforced minimum, and users cannot disable the sandbox below that floor. The `--no-sandbox` flag and the sandbox toggle in `/settings` are restricted accordingly. This gives organizations predictable security guarantees without requiring per-user configuration.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 

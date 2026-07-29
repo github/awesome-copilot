@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-01
+lastUpdated: 2026-07-29
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -133,6 +133,19 @@ The important behavior is different from a single chat turn:
 - subagents share the same filesystem, so overlapping writes should be avoided
 
 That makes `/fleet` a practical way to launch subagents even if you are not authoring custom agent files yourself.
+
+### Sessions sidebar for parallel CLI work
+
+The experimental **Sessions sidebar** (v1.0.76+) complements `/fleet` by giving you a visual way to manage multiple concurrent sessions side-by-side in the terminal. While `/fleet` handles orchestration automatically within a single session, the Sessions sidebar lets you manually run independent work in separate sessions and switch focus between them without leaving the CLI:
+
+```
+/experimental       # enable experimental features
+/sessions           # open the Sessions sidebar
+```
+
+This is useful when you want to run one session on an open-ended exploration task while another handles a focused implementation — keeping each session's context clean without merging unrelated work.
+
+See [Copilot Configuration Basics](../copilot-configuration-basics/) for full details on the Sessions sidebar and session management commands.
 
 ### Rubber-duck agent
 
