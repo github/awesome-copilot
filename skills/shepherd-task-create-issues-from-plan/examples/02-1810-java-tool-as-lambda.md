@@ -20,8 +20,4 @@ Tell the agent which sub-item within Phase 4 they are solving.
 
 Tell the agent that each issue will be assigned, resolved and merged to the base branch in the order in which they appear in the plan.
 
-Tell the agent to update the check boxes in their phase in `1810-java-tool-ergonomics-tool-as-lambda-remove-before-merge/1810-ignorance-reduction-for-implementation-plan.md` as they complete their work.
-
 No work is to start until I assign each issue to the coding agent, in turn.
-
-Once you have filed all the issues, update `1810-java-tool-ergonomics-tool-as-lambda-remove-before-merge/1810-ignorance-reduction-for-implementation-plan.md` Phase 4 with progress checkboxes the agents can check off as they work.

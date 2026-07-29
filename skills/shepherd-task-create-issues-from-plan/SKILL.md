@@ -1,6 +1,6 @@
 ---
 name: shepherd-task-create-issues-from-plan
-description: 'Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child Task issues under an existing GitHub parent issue, incorporating resolved research, spike artifacts, concrete example-issue style, branch instructions, gating tests, and verified sub-issue ordering. All 12 inputs are required.'
+description: 'Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child Task issues under an existing GitHub parent issue, incorporating resolved research, spike artifacts, concrete example-issue style, branch instructions, gating tests, and verified sub-issue ordering. All 11 inputs are required.'
 ---
 
 # Skill: Create Shepherd Task Issues from a Plan
@@ -24,7 +24,6 @@ The created issues are specifications, not summaries. A coding agent must be abl
 9. **`BASE_REMOTE`** — Remote name agents should use (e.g. `upstream` or `origin`).
 10. **`ISSUE_TYPE`** — GitHub issue type for children (e.g. `Task`).
 11. **`SUPPORTING_ARTIFACTS`** — Repo-relative paths or path constraints for spike reports, prototypes, screenshots, etc. that task issues must cite.
-12. **`UPDATE_PLAN_CHECKBOXES`** — Whether to add progress checkboxes to the implementation section after successful issue creation (`true` or `false`).
 
 ## Fixed behaviors
 
@@ -119,7 +118,7 @@ printf '{"sub_issue_id": %s}' "$CHILD_ID" | \
 
 Before creating the first issue, initialize a creation ledger. Immediately after each successful create call, append the returned issue ID, number, title, and URL with `linked=false`. Immediately after successfully linking it, update that entry to `linked=true`.
 
-Create and link one at a time in plan order. On linking failure, retry up to 3 times. If any create, link, checkbox-update, or postcondition-verification step fails:
+Create and link one at a time in plan order. On linking failure, retry up to 3 times. If any create, link, or postcondition-verification step fails:
 
 1. Stop immediately. Do not create, link, edit, or delete anything else.
 2. Use read-only GitHub queries to reconcile every ledger entry against current repository and parent-child state. Update each `linked` value from observed server state.
@@ -141,8 +140,6 @@ If the ledger is empty, explicitly report that no issues were created and no cle
 - Every ledger entry is linked exactly once and corresponds, in creation order, to one implementation subsection.
 - The newly linked child order matches plan order.
 - Every issue in the ledger has `ISSUE_TYPE`, is open, and has no assignees.
-
-If `UPDATE_PLAN_CHECKBOXES=true`, add progress checkboxes to the implementation section.
 
 ### Step 7: Report the ordered handoff
 
