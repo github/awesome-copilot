@@ -4,7 +4,7 @@ import os from "os";
 import path from "path";
 import { spawnSync } from "child_process";
 import { after, test } from "node:test";
-import { runCanvasStructureGate, runVersionMatchGate } from "./external-plugin-quality-gates.mjs";
+import { runCanvasStructureGate, runRefShaConsistencyGate, runVersionMatchGate } from "./external-plugin-quality-gates.mjs";
 
 const tempDirs = [];
 
@@ -98,6 +98,90 @@ test("runCanvasStructureGate fails when extension entrypoint path is a directory
   const result = runCanvasStructureGate(repoDir, plugin, sha);
   assert.equal(result.status, "fail");
   assert.match(result.output, /"extensions\/extension\.mjs" must be a file/);
+});
+
+test("runCanvasStructureGate passes when extension lives in a nested subfolder", () => {
+  const repoDir = createTempRepo();
+  fs.mkdirSync(path.join(repoDir, "extensions", "modernize-dashboard"), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, "extensions", "modernize-dashboard", "extension.mjs"),
+    "export default {};\n",
+  );
+  const sha = commitAll(repoDir, "Add nested canvas extension");
+
+  const plugin = {
+    name: "canvas-plugin",
+    keywords: ["canvas"],
+    source: {
+      source: "github",
+      repo: "owner/repo",
+      sha,
+    },
+  };
+
+  const result = runCanvasStructureGate(repoDir, plugin, sha);
+  assert.equal(result.status, "pass");
+  assert.match(result.output, /entry point "extensions\/modernize-dashboard\/extension\.mjs"/);
+});
+
+test("runCanvasStructureGate fails when no extension.mjs exists flat or nested", () => {
+  const repoDir = createTempRepo();
+  fs.mkdirSync(path.join(repoDir, "extensions", "modernize-dashboard"), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, "extensions", "modernize-dashboard", "index.mjs"),
+    "export default {};\n",
+  );
+  const sha = commitAll(repoDir, "Add extensions directory without entry point");
+
+  const plugin = {
+    name: "canvas-plugin",
+    keywords: ["canvas"],
+    source: {
+      source: "github",
+      repo: "owner/repo",
+      sha,
+    },
+  };
+
+  const result = runCanvasStructureGate(repoDir, plugin, sha);
+  assert.equal(result.status, "fail");
+  assert.match(result.output, /missing required canvas extension entry point/);
+});
+
+test("runCanvasStructureGate finds a nested extension listed past the legacy output cap", () => {
+  const repoDir = createTempRepo();
+  // Many sibling directories push the real extension past the ~12 KB stdout cap that the
+  // previous truncating implementation applied, which would silently drop it from the listing.
+  // Long names inflate each git ls-tree record so fewer directories are needed to exceed the cap.
+  for (let index = 0; index < 160; index += 1) {
+    const filler = path.join(
+      repoDir,
+      "extensions",
+      `filler-directory-that-pads-the-tree-listing-${String(index).padStart(4, "0")}`,
+    );
+    fs.mkdirSync(filler, { recursive: true });
+    fs.writeFileSync(path.join(filler, "readme.txt"), "filler\n");
+  }
+  fs.mkdirSync(path.join(repoDir, "extensions", "zzz-real-extension"), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, "extensions", "zzz-real-extension", "extension.mjs"),
+    "export default {};\n",
+  );
+  const sha = commitAll(repoDir, "Add nested extension after many siblings");
+
+  const plugin = {
+    name: "canvas-plugin",
+    keywords: ["canvas"],
+    source: {
+      source: "github",
+      repo: "owner/repo",
+      sha,
+    },
+  };
+
+  const result = runCanvasStructureGate(repoDir, plugin, sha);
+  assert.equal(result.status, "pass");
+  assert.match(result.output, /entry point "extensions\/zzz-real-extension\/extension\.mjs"/);
 });
 
 // Regression tests for issue #2397: a tag-name locator (e.g. "v1.0.0") must be
@@ -213,4 +297,39 @@ test("runCanvasStructureGate passes when the primary locator is a tag ref", () =
   const result = runCanvasStructureGate(repoDir, plugin, "v1.0.0");
   assert.equal(result.status, "pass", result.output);
   assert.match(result.output, /- v1\.0\.0: found "extensions"/);
+});
+
+test("runRefShaConsistencyGate fails when ref and sha point to different commits", () => {
+  const remoteDir = initRemoteRepo();
+  writeValidPluginContent(remoteDir);
+  const firstSha = commitAll(remoteDir, "Add plugin manifest v1");
+  runGit(remoteDir, "tag", "-a", "v1.0.0", "-m", "release 1.0.0");
+  fs.writeFileSync(path.join(remoteDir, "README.md"), "v2\n");
+  const secondSha = commitAll(remoteDir, "Add plugin manifest v2");
+
+  const repoDir = cloneSubmissionRepo(remoteDir, secondSha);
+  const plugin = {
+    name: "tag-plugin",
+    source: { source: "github", repo: "owner/repo", ref: "v1.0.0", sha: secondSha },
+  };
+
+  const result = runRefShaConsistencyGate(repoDir, plugin, secondSha);
+  assert.equal(result.status, "fail", result.output);
+  assert.match(result.output, new RegExp(`resolves to "${firstSha}"`));
+});
+
+test("runRefShaConsistencyGate passes when ref and sha point to the same commit", () => {
+  const remoteDir = initRemoteRepo();
+  writeValidPluginContent(remoteDir);
+  const sha = commitAll(remoteDir, "Add plugin manifest");
+  runGit(remoteDir, "tag", "-a", "v1.0.0", "-m", "release 1.0.0");
+
+  const repoDir = cloneSubmissionRepo(remoteDir, sha);
+  const plugin = {
+    name: "tag-plugin",
+    source: { source: "github", repo: "owner/repo", ref: "v1.0.0", sha },
+  };
+
+  const result = runRefShaConsistencyGate(repoDir, plugin, sha);
+  assert.equal(result.status, "pass", result.output);
 });
