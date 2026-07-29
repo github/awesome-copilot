@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
     Interviews the user for 11 inputs to the shepherd-task-create-issues-from-plan
-    skill and writes a timestamped prompt file in the current directory.
+    skill and writes timestamped prompt and invocation artifacts.
 
 .DESCRIPTION
     Asks the user each required input interactively, then writes a prompt file named
     YYYYMMDD-HHMM-invoke-shepherd-task-create-issues-from-plan-skill.md inside a
-    persistent log directory. The printed invocation reuses that directory and invokes
-    Copilot with JSON, session-share, and OTel logging enabled.
+    persistent log directory. It also writes a PowerShell script that invokes the prompt
+    with JSON, session-share, and OTel logging enabled.
 
 .EXAMPLE
     .\shepherd-task-interview-user-to-create-issues.ps1
@@ -70,6 +70,7 @@ $logDir = Join-Path (Get-Location) "shepherd-task-$timestamp"
 New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 $logDirFull = (Resolve-Path $logDir).Path
 $outFile = Join-Path $logDirFull "$timestamp-invoke-shepherd-task-create-issues-from-plan-skill.md"
+$invocationFile = Join-Path $logDirFull "$timestamp-invoke-shepherd-task-create-issues-from-plan-skill.ps1"
 
 $body = @"
 Invoke skill ``shepherd-task-create-issues-from-plan`` with these inputs:
@@ -89,12 +90,6 @@ Invoke skill ``shepherd-task-create-issues-from-plan`` with these inputs:
 "@
 
 Set-Content -Path $outFile -Value $body -Encoding utf8NoBOM
-
-Write-Host ""
-Write-Host "Prompt file written to:" -ForegroundColor Green
-Write-Host "  $outFile"
-Write-Host ""
-Write-Host "To execute with persistent logs, paste this PowerShell command block:"
 
 $escapedOutFile = $outFile.Replace("'", "''")
 $escapedLogDir = $logDirFull.Replace("'", "''")
@@ -125,4 +120,9 @@ else {
 }
 '@.Replace('__TIMESTAMP__', $timestamp).Replace('__LOG_DIRECTORY__', $escapedLogDir).Replace('__PROMPT_PATH__', $escapedOutFile)
 
-Write-Host $command
+Set-Content -Path $invocationFile -Value $command -Encoding utf8NoBOM
+
+Write-Host ""
+Write-Host "Artifacts written:" -ForegroundColor Green
+Write-Host "  Prompt: $outFile"
+Write-Host "  Script: $invocationFile"
