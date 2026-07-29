@@ -529,6 +529,91 @@ function checkPathExistsAtLocator(repoDir, readRef, locator, repoPath, expectedT
   };
 }
 
+function listTreeEntries(repoDir, readRef, locator, treePath, { recursive = false } = {}) {
+  // Parse the full, untruncated tree listing directly. runCommand()/truncateOutput()
+  // would cap stdout at MAX_OUTPUT_LENGTH and silently drop later entries, and the
+  // default (non-"-z") output quotes unusual names; "-z" gives raw, NUL-delimited records.
+  // "-r -t" recurses in a single process and still lists intermediate tree objects, so a
+  // whole subtree can be inspected without spawning one git process per candidate path.
+  const args = recursive
+    ? ["ls-tree", "-r", "-t", "-z", `${readRef}:${treePath}`]
+    : ["ls-tree", "-z", `${readRef}:${treePath}`];
+  const result = spawnSync("git", args, {
+    cwd: repoDir,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+
+  if (result.status !== 0) {
+    const detail = truncateOutput(`${result.stdout ?? ""}\n${result.stderr ?? ""}`);
+    return {
+      entries: [],
+      output: `Unable to list directory "${treePath}" at "${locator}": ${detail}`,
+    };
+  }
+
+  const entries = [];
+  for (const record of String(result.stdout ?? "").split("\0")) {
+    if (!record) {
+      continue;
+    }
+
+    const tabIndex = record.indexOf("\t");
+    if (tabIndex === -1) {
+      continue;
+    }
+
+    const meta = record.slice(0, tabIndex).trim().split(/\s+/);
+    const name = record.slice(tabIndex + 1);
+    if (!name) {
+      continue;
+    }
+
+    entries.push({ type: meta[1] ?? "", name });
+  }
+
+  return { entries, output: "" };
+}
+
+function locateCanvasEntryPoint(repoDir, readRef, locator, extensionsDir) {
+  // Enumerate the extensions subtree with a single recursive git process rather than
+  // spawning a git cat-file per candidate directory, so discovery stays bounded no matter
+  // how many folders an untrusted repository packs under "extensions/". "-r" yields paths
+  // relative to extensionsDir, so nested entry points appear as "<name>/extension.mjs".
+  const listing = listTreeEntries(repoDir, readRef, locator, extensionsDir, { recursive: true });
+  if (listing.output) {
+    return { entryPoint: null, output: listing.output };
+  }
+
+  let flatIsBlob = false;
+  let flatIsTree = false;
+  let nestedEntryPoint = null;
+  for (const entry of listing.entries) {
+    if (entry.name === "extension.mjs") {
+      if (entry.type === "blob") {
+        flatIsBlob = true;
+      } else if (entry.type === "tree") {
+        flatIsTree = true;
+      }
+      continue;
+    }
+
+    const segments = entry.name.split("/");
+    if (segments.length === 2 && segments[1] === "extension.mjs" && entry.type === "blob" && !nestedEntryPoint) {
+      nestedEntryPoint = toPosixPath(extensionsDir, segments[0], "extension.mjs");
+    }
+  }
+
+  if (flatIsBlob) {
+    return { entryPoint: toPosixPath(extensionsDir, "extension.mjs"), output: "" };
+  }
+  if (nestedEntryPoint) {
+    return { entryPoint: nestedEntryPoint, output: "" };
+  }
+
+  return { entryPoint: null, output: "", flatKindMismatch: flatIsTree };
+}
+
 export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
   if (!hasCanvasKeyword(plugin)) {
     return {
@@ -589,23 +674,25 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
       continue;
     }
 
-    const extensionEntryCheck = checkPathExistsAtLocator(repoDir, readRef, locator, extensionEntryPoint, "blob");
+    const extensionEntryCheck = locateCanvasEntryPoint(repoDir, readRef, locator, extensionsDir);
     if (extensionEntryCheck.output) {
       hasInfraError = true;
       messages.push(`- ${locator}: ${extensionEntryCheck.output}`);
       continue;
     }
-    if (!extensionEntryCheck.exists) {
+    if (!extensionEntryCheck.entryPoint) {
       hasFailure = true;
-      if (extensionEntryCheck.kindMismatch) {
+      if (extensionEntryCheck.flatKindMismatch) {
         messages.push(`- ${locator}: "${extensionEntryPoint}" must be a file.`);
       } else {
-        messages.push(`- ${locator}: missing required canvas extension entry point "${extensionEntryPoint}".`);
+        messages.push(
+          `- ${locator}: missing required canvas extension entry point "${extensionEntryPoint}" (or a nested "${extensionsDir}/<extension>/extension.mjs").`,
+        );
       }
       continue;
     }
 
-    messages.push(`- ${locator}: found "${extensionsDir}" with entry point "${extensionEntryPoint}".`);
+    messages.push(`- ${locator}: found "${extensionsDir}" with entry point "${extensionEntryCheck.entryPoint}".`);
   }
 
   if (hasInfraError) {
