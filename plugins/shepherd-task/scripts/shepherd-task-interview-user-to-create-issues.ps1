@@ -1,12 +1,13 @@
 <#
 .SYNOPSIS
-    Interviews the user for all 11 inputs to the shepherd-task-create-issues-from-plan
+    Interviews the user for 11 inputs to the shepherd-task-create-issues-from-plan
     skill and writes a timestamped prompt file in the current directory.
 
 .DESCRIPTION
     Asks the user each required input interactively, then writes a prompt file named
-    YYYYMMDD-HHMM-invoke-shepherd-task-create-issues-from-plan-skill.md that, when
-    executed, invokes the skill with all parameters inlined.
+    YYYYMMDD-HHMM-invoke-shepherd-task-create-issues-from-plan-skill.md inside a
+    persistent log directory. The printed invocation reuses that directory and invokes
+    Copilot with JSON, session-share, and OTel logging enabled.
 
 .EXAMPLE
     .\shepherd-task-interview-user-to-create-issues.ps1
@@ -65,7 +66,10 @@ $SUPPORTING_ARTIFACTS = Read-Required "11/11 SUPPORTING_ARTIFACTS (paths to spik
 
 # Build the prompt file.
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmm'
-$outFile = Join-Path (Get-Location) "$timestamp-invoke-shepherd-task-create-issues-from-plan-skill.md"
+$logDir = Join-Path (Get-Location) "shepherd-task-$timestamp"
+New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+$logDirFull = (Resolve-Path $logDir).Path
+$outFile = Join-Path $logDirFull "$timestamp-invoke-shepherd-task-create-issues-from-plan-skill.md"
 
 $body = @"
 Invoke skill ``shepherd-task-create-issues-from-plan`` with these inputs:
@@ -81,6 +85,7 @@ Invoke skill ``shepherd-task-create-issues-from-plan`` with these inputs:
 - BASE_REMOTE: $BASE_REMOTE
 - ISSUE_TYPE: $ISSUE_TYPE
 - SUPPORTING_ARTIFACTS: $SUPPORTING_ARTIFACTS
+- LOG_DIRECTORY: $logDirFull
 "@
 
 Set-Content -Path $outFile -Value $body -Encoding utf8NoBOM
@@ -89,5 +94,35 @@ Write-Host ""
 Write-Host "Prompt file written to:" -ForegroundColor Green
 Write-Host "  $outFile"
 Write-Host ""
-Write-Host "To execute, paste the contents into a Copilot chat or pipe to copilot:"
-Write-Host "  Get-Content `"$outFile`" | copilot --yolo"
+Write-Host "To execute with persistent logs, paste this PowerShell command block:"
+
+$escapedOutFile = $outFile.Replace("'", "''")
+$escapedLogDir = $logDirFull.Replace("'", "''")
+$command = @'
+$timestamp = '__TIMESTAMP__'
+$logDirFull = '__LOG_DIRECTORY__'
+New-Item -ItemType Directory -Path $logDirFull -Force | Out-Null
+$sessionSharePath = Join-Path $logDirFull "create-issues-session-$timestamp.md"
+$sessionJsonPath = Join-Path $logDirFull "create-issues-session-$timestamp.json"
+$sessionOtelPath = Join-Path $logDirFull "create-issues-otel-$timestamp.jsonl"
+$promptPath = '__PROMPT_PATH__'
+$prompt = Get-Content $promptPath -Raw
+Write-Output "[shepherd-task] Logging create-issues run to: $logDirFull"
+$env:COPILOT_OTEL_FILE_EXPORTER_PATH = $sessionOtelPath
+$copilotExit = 0
+try {
+    $prompt | copilot --yolo --output-format json --share $sessionSharePath > $sessionJsonPath
+    $copilotExit = $LASTEXITCODE
+}
+finally {
+    Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH -ErrorAction SilentlyContinue
+}
+if ($copilotExit -ne 0) {
+    Write-Error "[shepherd-task] FAILED: copilot exited with code $copilotExit"
+}
+else {
+    Write-Output "[shepherd-task] Create-issues session complete."
+}
+'@.Replace('__TIMESTAMP__', $timestamp).Replace('__LOG_DIRECTORY__', $escapedLogDir).Replace('__PROMPT_PATH__', $escapedOutFile)
+
+Write-Host $command
