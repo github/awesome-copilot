@@ -79,6 +79,34 @@
     }
   },
   {
+    "name": "brainmaxxing",
+    "description": "Codebase-grounded concept-mastery quizzes with an interactive BrainMax Canvas dashboard.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Julia Muiruri",
+      "url": "https://juliawakiru.dev"
+    },
+    "repository": "https://github.com/juliamuiruri4/brainmaxxing",
+    "homepage": "https://github.com/juliamuiruri4/brainmaxxing",
+    "license": "MIT",
+    "keywords": [
+      "assessment",
+      "canvas",
+      "developer-education",
+      "learning",
+      "quiz",
+      "skills-mastery",
+      "software-engineering",
+      "student-developer"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "juliamuiruri4/brainmaxxing",
+      "ref": "v1.0.0",
+      "sha": "8a8a102ff3ab8736f015764207cdb7e68fcd5ecf"
+    }
+  },
+  {
     "name": "chrome-devtools-plugin",
     "description": "Reliable automation, in-depth debugging, and performance analysis in Chrome using Chrome DevTools and Puppeteer.",
     "version": "1.0.1",
