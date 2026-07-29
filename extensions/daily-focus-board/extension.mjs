@@ -36,7 +36,7 @@ const session = await joinSession({
                 properties: {
                     stateFile: {
                         type: "string",
-                        description: "Absolute path to the board's JSON state file. Seeded if it doesn't exist yet. Defaults to focus-board-state.json in the current working directory.",
+                        description: "Absolute path to the board's JSON state file. Seeded if it doesn't exist yet. Defaults to a date-scoped focus-board-<YYYY-MM-DD>.json in the current working directory, so each day starts a fresh board; pass an explicit path to keep a single ongoing file.",
                     },
                     seed: {
                         type: "object",

@@ -168,7 +168,8 @@ export function statusOf(doc, t) {
 
 export function opStatus(doc, id, status) {
     const t = findTask(doc, id);
-    if (!t || isCounter(t)) return;
+    if (!t) return { error: `no such task: ${id}` };
+    if (isCounter(t)) return { error: `'${id}' is a counter task; set its value, not a status` };
     const e = doc.progress.t[id];
     if (status && ["todo", "doing", "done"].includes(status)) e.status = status;
     else { const o = ["todo", "doing", "done"]; e.status = o[(o.indexOf(e.status) + 1) % 3]; }
@@ -176,9 +177,10 @@ export function opStatus(doc, id, status) {
 }
 export function opNote(doc, id, txt) {
     const t = findTask(doc, id);
-    if (!t || isCounter(t)) return;
+    if (!t) return { error: `no such task: ${id}` };
+    if (isCounter(t)) return { error: `'${id}' is a counter task; it has no progress notes` };
     txt = text(txt).trim();
-    if (!txt) return;
+    if (!txt) return { error: "empty note" };
     const e = doc.progress.t[id];
     e.notes.push({ t: Date.now(), txt });
     if (e.status === "todo") e.status = "doing";
@@ -186,33 +188,36 @@ export function opNote(doc, id, txt) {
 }
 export function opNoteDel(doc, id, idx) {
     const e = doc.progress.t[id];
-    if (e && Array.isArray(e.notes) && idx >= 0 && idx < e.notes.length) e.notes.splice(idx, 1);
+    if (!e || !Array.isArray(e.notes) || !(idx >= 0 && idx < e.notes.length)) return { error: "no such note" };
+    e.notes.splice(idx, 1);
 }
 export function opCount(doc, id, { value, inc } = {}) {
     const t = findTask(doc, id);
-    if (!t || !isCounter(t)) return;
-    let v = doc.progress.counters[id] || 0;
+    if (!t) return { error: `no such task: ${id}` };
+    if (!isCounter(t)) return { error: `'${id}' is not a counter task` };
     const nv = num(value), ni = num(inc);
-    if (nv !== undefined) v = nv;
-    else if (ni !== undefined) v = v + ni;
+    if (nv === undefined && ni === undefined) return { error: "count requires a numeric value or inc" };
+    let v = doc.progress.counters[id] || 0;
+    if (nv !== undefined) v = nv; else v = v + ni;
     doc.progress.counters[id] = Math.max(0, Math.round(v || 0));
 }
 export function opCarry(doc, id, value) {
     const t = findTask(doc, id);
-    if (!t || isCounter(t)) return;
+    if (!t) return { error: `no such task: ${id}` };
+    if (isCounter(t)) return { error: `'${id}' is a counter task and can't be carried` };
     const e = doc.progress.t[id];
     e.carried = typeof value === "boolean" ? value : !e.carried;
 }
 export function opFocus(doc, id) {
     const p = doc.progress;
     if (id === null || id === undefined || id === "") { p.focus = null; return; }
-    if (!findTask(doc, id)) return;
+    if (!findTask(doc, id)) return { error: `no such task: ${id}` };
     p.focus = p.focus === id ? null : id;
 }
-export function opDay(doc, txt) { txt = text(txt).trim(); if (txt) doc.progress.day.unshift({ t: Date.now(), txt }); }
-export function opDayDel(doc, idx) { const d = doc.progress.day; if (idx >= 0 && idx < d.length) d.splice(idx, 1); }
-export function opBrain(doc, txt) { txt = text(txt).trim(); if (txt) doc.progress.brain.unshift({ t: Date.now(), txt }); }
-export function opBrainDel(doc, idx) { const b = doc.progress.brain; if (idx >= 0 && idx < b.length) b.splice(idx, 1); }
+export function opDay(doc, txt) { txt = text(txt).trim(); if (!txt) return { error: "empty momentum note" }; doc.progress.day.unshift({ t: Date.now(), txt }); }
+export function opDayDel(doc, idx) { const d = doc.progress.day; if (!(idx >= 0 && idx < d.length)) return { error: "no such momentum note" }; d.splice(idx, 1); }
+export function opBrain(doc, txt) { txt = text(txt).trim(); if (!txt) return { error: "empty note" }; doc.progress.brain.unshift({ t: Date.now(), txt }); }
+export function opBrainDel(doc, idx) { const b = doc.progress.brain; if (!(idx >= 0 && idx < b.length)) return { error: "no such parked thought" }; b.splice(idx, 1); }
 export function opRM(doc, value) { doc.progress.rm = !!value; }
 export function opAddTask(doc, task) {
     task = task && typeof task === "object" ? task : {};
@@ -387,15 +392,18 @@ export function demoSeed() {
     };
 }
 
-// Resolve the state file path from (untrusted-ish) input. Defaults to a file in
-// cwd; if an existing directory is given, place the file inside it.
+// Resolve the state file path from (untrusted-ish) input. Defaults to a
+// date-scoped file in cwd so reopening the board tomorrow starts a fresh day
+// instead of silently reusing today's date/tasks/progress; an explicit path is
+// used as-is (the caller owns its lifecycle). If an existing directory is given,
+// place a date-scoped file inside it.
 export async function resolveStateFile(p) {
     if (typeof p === "string" && p.trim()) {
         let file = isAbsolute(p) ? p : join(process.cwd(), p);
-        try { const s = await stat(file); if (s.isDirectory()) file = join(file, "focus-board-state.json"); } catch { /* not yet created */ }
+        try { const s = await stat(file); if (s.isDirectory()) file = join(file, `focus-board-${todayKey()}.json`); } catch { /* not yet created */ }
         return file;
     }
-    return join(process.cwd(), "focus-board-state.json");
+    return join(process.cwd(), `focus-board-${todayKey()}.json`);
 }
 
 // A parsed value we're willing to treat as an existing board — so we never adopt
