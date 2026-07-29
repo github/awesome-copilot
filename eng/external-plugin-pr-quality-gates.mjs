@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { runExternalPluginQualityGates } from "./external-plugin-quality-gates.mjs";
+import { validateExternalPlugin } from "./external-plugin-validation.mjs";
 
 function normalizePluginPath(pluginPath) {
   if (!pluginPath || pluginPath === "/") {
@@ -66,13 +67,33 @@ function aggregateResultStatus(pluginResults) {
   };
 }
 
+function createValidationFailureQuality(errors) {
+  const output = errors.map((error) => `- ${error}`).join("\n");
+  return {
+    overall_status: "fail",
+    vally_lint_status: "fail",
+    smoke_status: "not_run",
+    version_match_status: "not_run",
+    canvas_structure_status: "not_run",
+    failure_class: "submitter_fixes",
+    summary: "Plugin entry failed external.json validation. Fix the listed errors and re-run quality checks.",
+    vally_lint_output: output,
+    smoke_output: "Install smoke test skipped due to external.json validation errors.",
+    version_match_output: "Version match skipped due to external.json validation errors.",
+    canvas_structure_output: "Canvas structure check skipped due to external.json validation errors.",
+  };
+}
+
 export async function runExternalPluginPrQualityGates(plugins) {
   if (!Array.isArray(plugins)) {
     throw new Error("plugins must be an array");
   }
 
   const checkedPlugins = await Promise.all(plugins.map(async (plugin) => {
-    const quality = await runExternalPluginQualityGates(plugin);
+    const validation = validateExternalPlugin(plugin, "changed-plugin", { policy: "marketplace" });
+    const quality = validation.errors.length > 0
+      ? createValidationFailureQuality(validation.errors)
+      : await runExternalPluginQualityGates(plugin);
     return {
       name: plugin?.name ?? "unknown",
       source: plugin?.source ?? {},
