@@ -403,6 +403,12 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
     }
 
     if (resolvedRefResponse.kind === "apiError") {
+      if (resolvedRefResponse.status === 422) {
+        errors.push(
+          `submission: ref "${ref}" does not resolve to a commit in GitHub repository "${repo}" (it may point to a tag object, tree, or blob); only commit-backed refs are supported`,
+        );
+        return;
+      }
       const statusText = resolvedRefResponse.status ? `HTTP ${resolvedRefResponse.status}` : "network error";
       warnings.push(
         `submission: could not resolve ref "${ref}" to a commit in GitHub repository "${repo}" (${statusText}${resolvedRefResponse.reason ? ` — ${resolvedRefResponse.reason}` : ""}); a maintainer should re-run intake`,

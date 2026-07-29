@@ -408,9 +408,9 @@ function resolveCommitShaAtReadRef(repoDir, readRef, locator) {
   const revParse = runCommand("git", ["rev-parse", `${readRef}^{commit}`], { cwd: repoDir });
   if (revParse.exitCode !== 0) {
     return {
-      status: "infra_error",
+      status: "fail",
       commitSha: null,
-      output: `Unable to resolve commit for "${locator}": ${revParse.output}`,
+      output: `source.ref "${locator}" does not identify a commit (it may point to a tag object, tree, or blob); only commit-backed refs are supported`,
     };
   }
 
