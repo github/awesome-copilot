@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="board-token" content="__BOARD_TOKEN__"/>
 <title>Daily Focus Board · let's go 🔥</title>
 <!--
   daily-focus-board (Ember) — CANVAS extension UI. Executive-function-friendly
@@ -147,6 +148,9 @@ const $=id=>document.getElementById(id);
 const sparks=["One block at a time.","Starting is the win. The rest follows.","You don't have to feel ready — just start the next one.","Small, real, done. Repeat.","Progress over perfect.","Pick one thing. Just one."];
 let doc=null,tasks=[],NAME="",state=null,confettiStarted=false;
 const cardsEl=document.getElementById("cards"),feedEl=document.getElementById("feed"),brainEl=document.getElementById("brain");
+// Per-server capability token the extension embedded in this page; sent on every
+// request so the local server accepts reads/writes only from the page it served.
+const TOKEN=(document.querySelector('meta[name="board-token"]')||{}).content||"";
 
 function esc(s){return (s||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));}
 function fmt(ms){return new Date(ms).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}).toLowerCase().replace(" ","");}
@@ -156,8 +160,8 @@ function statusOf(t){if(isCounter(t)){const v=state.counters[t.id]||0;return v>=
 function carriedOf(t){return !isCounter(t)&&!!(state.t[t.id]||{}).carried;}
 
 // --- server-backed state (the file the AI partner also reads/writes) ---
-async function pull(){try{const r=await fetch("api/state");const j=await r.json();if(j&&j.state&&(!doc||j.state.updatedAt!==doc.updatedAt))apply(j.state);}catch(e){}}
-async function api(path,body){try{const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});const j=await r.json();if(j&&j.state)apply(j.state);return j;}catch(e){return {ok:false};}}
+async function pull(){try{const r=await fetch("api/state",{headers:{"x-board-token":TOKEN}});const j=await r.json();if(j&&j.state&&(!doc||j.state.updatedAt!==doc.updatedAt))apply(j.state);}catch(e){}}
+async function api(path,body){try{const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json","x-board-token":TOKEN},body:JSON.stringify(body||{})});const j=await r.json();if(j&&j.state)apply(j.state);return j;}catch(e){return {ok:false};}}
 function apply(d){
   doc=d;NAME=d.name||"";tasks=d.tasks||[];state=d.progress;
   document.getElementById("h1").textContent=NAME?`Let's go, ${NAME} 🔥`:"Let's go 🔥";
@@ -184,18 +188,19 @@ function render(){
     const st=statusOf(t),carried=carriedOf(t);
     const c=document.createElement("div");
     c.className="card "+st+(carried?" carried":"")+(state.focus===t.id?" focused":"");
+    c.setAttribute("role","group");c.setAttribute("aria-label",t.title||"task");
     const tagHtml=t.tag?`<span class="tag ${t.tagc||""}">${esc(t.tag)}</span>`:"";
     const dh=dueStr(t);
     if(isCounter(t)){
       const v=state.counters[t.id]||0,pct=Math.min(100,Math.round(v/t.goal*100)),inc=t.inc||Math.max(1,Math.round(t.goal/10)),unit=t.unit||"";
-      c.innerHTML=`<div class="top"><div class="emoji">${t.emoji||"🎯"}</div>
+      c.innerHTML=`<div class="top"><div class="emoji">${esc(t.emoji||"🎯")}</div>
         <div class="body"><div class="title">${esc(t.title)}</div>
           <div class="sub"><b style="color:var(--ink)">${v.toLocaleString()}</b> / ${t.goal.toLocaleString()} ${esc(unit)} · ${pct}%${st==="done"?" — done 🎉":""}</div>
           ${dh?`<div class="due ${dh.cls}" data-duefor="${t.id}">${dh.txt}</div>`:""}</div>
         <span class="pill ${st}">${LABEL[st]}</span>
         <button class="fbtn" data-focus="${t.id}" title="focus on this">🎯</button>${tagHtml}</div>
         <div class="bar"><div class="fill" data-fill="${t.id}"></div></div>
-        <div class="stepctl">update: <input type="number" data-cin="${t.id}" value="${v}" min="0"/>
+        <div class="stepctl">update: <input type="number" data-cin="${t.id}" value="${v}" min="0" step="1"/>
           <button data-cset="${t.id}">set</button><button data-cinc="${t.id}">+${inc.toLocaleString()}</button></div>`;
       cardsEl.appendChild(c);
       requestAnimationFrame(()=>{const f=cardsEl.querySelector(`[data-fill="${t.id}"]`);if(f)f.style.width=pct+"%";});
@@ -204,7 +209,7 @@ function render(){
       const pillCls=carried?"carried":st, pillTxt=carried?"→ tomorrow":LABEL[st];
       c.innerHTML=`<div class="top">
         <div class="box ${st}" data-cyc="${t.id}">${st==="done"?"✓":(st==="doing"?"…":"")}</div>
-        <div class="emoji">${t.emoji||"•"}</div>
+        <div class="emoji">${esc(t.emoji||"•")}</div>
         <div class="body"><div class="title">${esc(t.title)}</div>${t.sub?`<div class="sub">${esc(t.sub)}</div>`:""}${dh?`<div class="due ${dh.cls}" data-duefor="${t.id}">${dh.txt}</div>`:""}</div>
         <span class="pill ${pillCls}" data-cyc="${t.id}">${pillTxt}</span>
         <button class="fbtn" data-focus="${t.id}" title="focus on this">🎯</button>${tagHtml}</div>
@@ -230,7 +235,7 @@ function renderFeed(){
   state.day.forEach((n,i)=>items.push({t:n.t,txt:n.txt,emoji:"📌",src:"day",idx:i}));
   items.sort((a,b)=>b.t-a.t);
   if(!items.length){feedEl.innerHTML=`<div class="empty">No steps logged yet — starting counts. Log your first one 👆</div>`;return;}
-  feedEl.innerHTML=items.map(it=>`<div class="fitem"><span class="ft">${fmt(it.t)}</span><span>${it.emoji}</span><span>${esc(it.txt)}</span><span class="fx" data-fdel="${it.src}:${it.idx}">×</span></div>`).join("");
+  feedEl.innerHTML=items.map(it=>`<div class="fitem"><span class="ft">${fmt(it.t)}</span><span>${esc(it.emoji)}</span><span>${esc(it.txt)}</span><span class="fx" data-fdel="${it.src}:${it.idx}">×</span></div>`).join("");
   feedEl.querySelectorAll("[data-fdel]").forEach(x=>x.onclick=()=>{const[src,i]=x.dataset.fdel.split(":");if(src==="day")api("api/day-del",{idx:+i});else api("api/note-del",{id:src,idx:+i});});
 }
 function renderBrain(){

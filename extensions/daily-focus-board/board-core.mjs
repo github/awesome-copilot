@@ -14,6 +14,7 @@ import { readFile, writeFile, rename, mkdir, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, dirname, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
+import { randomUUID } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BOARD_HTML_PATH = join(__dirname, "assets", "board.html");
@@ -112,9 +113,16 @@ export function normalize(doc) {
 }
 
 export async function loadDoc(file) {
-    let doc = {};
-    try { doc = JSON.parse(await readFile(file, "utf-8")); } catch { /* missing/corrupt -> fresh */ }
-    return normalize(doc);
+    let raw;
+    try { raw = await readFile(file, "utf-8"); }
+    catch (e) {
+        if (e && e.code === "ENOENT") return normalize({}); // no file yet -> a fresh board is correct
+        throw e; // EACCES/EBUSY/etc: propagate so a transient read error never overwrites the file
+    }
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch { throw new Error(`state file is not valid JSON (refusing to overwrite): ${file}`); }
+    return normalize(parsed);
 }
 
 async function atomicWrite(file, obj) {
@@ -272,21 +280,60 @@ export async function handleApi(stateFile, op, b) {
     }
 }
 
+// Pin the Host header to the exact loopback authority we bound. A DNS-rebinding
+// page reaches us under its own hostname (Host: attacker.example:<port>), so an
+// exact match against 127.0.0.1:<port> refuses those requests before any read or
+// write — Origin/Host equality alone can't, since the attacker controls both.
+function isCanonicalHost(req, canonicalHost) {
+    return String(req.headers.host || "").toLowerCase() === String(canonicalHost || "").toLowerCase();
+}
+
+// Per-server capability token, minted at startup and embedded in the page we
+// serve. Only the loopback document we rendered knows it, so a blind
+// cross-origin / rebinding caller can't read state or forge a mutation even if
+// it reaches the socket.
+function hasToken(req, token) {
+    const h = req.headers["x-board-token"];
+    const v = Array.isArray(h) ? h[0] : h;
+    return typeof v === "string" && v.length > 0 && v === token;
+}
+
 // Start the local board server bound to loopback. Serves the board HTML at / and
-// the JSON state + mutation API under /api/. Returns { server, url }.
+// the JSON state + mutation API under /api/. Returns { server, url, token }.
 export async function startServer(stateFile) {
+    const token = randomUUID();
     let boardHtml;
-    try { boardHtml = await readFile(BOARD_HTML_PATH, "utf-8"); }
+    try { boardHtml = (await readFile(BOARD_HTML_PATH, "utf-8")).replace(/__BOARD_TOKEN__/g, token); }
     catch { boardHtml = "<!doctype html><meta charset=utf-8><p>board.html asset is missing.</p>"; }
+    let canonicalHost = null;
 
     const server = createServer(async (req, res) => {
         try {
-            const url = new URL(req.url, `http://${req.headers.host}`);
-            if (req.method === "POST" && url.pathname.startsWith("/api/") && isCrossSiteRequest(req)) {
+            // Host pin first: reject anything not addressed to the exact loopback
+            // authority we bound (defeats DNS rebinding for reads and writes alike).
+            if (canonicalHost && !isCanonicalHost(req, canonicalHost)) {
                 res.writeHead(403, JSON_HEADERS);
-                res.end(JSON.stringify({ ok: false, error: "cross_site_blocked" }));
+                res.end(JSON.stringify({ ok: false, error: "bad_host" }));
                 return;
             }
+            const url = new URL(req.url, `http://${req.headers.host}`);
+
+            // Every /api/* route (read AND write) requires the capability token, so
+            // GET /api/state can't leak task data and POSTs can't be forged. Writes
+            // additionally reject cross-site browser requests.
+            if (url.pathname.startsWith("/api/")) {
+                if (!hasToken(req, token)) {
+                    res.writeHead(403, JSON_HEADERS);
+                    res.end(JSON.stringify({ ok: false, error: "missing_capability_token" }));
+                    return;
+                }
+                if (req.method === "POST" && isCrossSiteRequest(req)) {
+                    res.writeHead(403, JSON_HEADERS);
+                    res.end(JSON.stringify({ ok: false, error: "cross_site_blocked" }));
+                    return;
+                }
+            }
+
             if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
                 res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
                 res.end(boardHtml);
@@ -322,7 +369,8 @@ export async function startServer(stateFile) {
     });
     const addr = server.address();
     const port = addr && typeof addr === "object" ? addr.port : 0;
-    return { server, url: `http://127.0.0.1:${port}/` };
+    canonicalHost = `127.0.0.1:${port}`;
+    return { server, url: `http://127.0.0.1:${port}/`, token };
 }
 
 // --- state file resolution + demo seed --------------------------------------
