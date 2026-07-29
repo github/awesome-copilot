@@ -18,8 +18,10 @@ read_required() {
     fi
 
     while true; do
-        printf '%s: ' "$prompt"
+        printf '%s: ' "$prompt" >&2
         IFS= read -r value
+        value="${value#"${value%%[![:space:]]*}"}"
+        value="${value%"${value##*[![:space:]]}"}"
         if [[ -z "$value" && -n "$default" ]]; then
             value="$default"
         fi
