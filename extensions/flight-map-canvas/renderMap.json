@@ -1,0 +1,37 @@
+{
+    "map": {
+        "width": 2210,
+        "height": 1290,
+        "tileZoom": 15,
+        "tileSize": 100,
+        "loadRadius": 25,
+        "unloadRadius": 9,
+        "startAltitude": 200,
+        "fogDensity": 0.00092,
+        "radiusFeather": 28.5,
+        "maxTiles": 600
+    },
+    "filler": {
+        "sampleInterval": 55,
+        "updateIntervalSec": 15,
+        "perimeter": {
+            "patchCount": 15,
+            "patchSize": 15
+        },
+        "center": {
+            "patchCount": 4,
+            "patchSize": 7
+        },
+        "padding": {
+            "patchCount": 6,
+            "patchSize": 9
+        }
+    },
+    "cloud": {
+        "enabled": true,
+        "opacity": 0.35,
+        "speed": 0.0004,
+        "coverage": 0.5,
+        "scale": 0.008
+    }
+}
