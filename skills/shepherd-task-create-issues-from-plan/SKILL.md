@@ -15,12 +15,12 @@ The created issues are specifications, not summaries. A coding agent must be abl
 
 1. **`REPO`** — GitHub repository in `OWNER/REPO` format.
 2. **`BASE_BRANCH`** — Non-`main` topic branch all task PRs target.
-3. **`PARENT_ISSUE`** — Number or URL of the existing parent issue that children are linked to.
+3. **`PARENT_ISSUE`** — Positive integer issue number of the existing parent issue that children are linked to. URLs are not accepted.
 4. **`PLAN_DIRECTORY`** — Repo-relative path to the directory on `BASE_BRANCH` that contains the plan, spikes, and all supporting resources.
 5. **`PLAN_FILE_NAME`** — Name of the ignorance reduction plan file within `PLAN_DIRECTORY`.
 6. **`QUESTIONS_SECTION`** — Exact heading of the resolved "questions to answer before writing code" section in the plan.
 7. **`IMPLEMENTATION_SECTION`** — Exact heading of the implementation/build-order section whose direct task subsections become child issues.
-8. **`EXAMPLE_ISSUES`** — One or more issue numbers or URLs whose title/body style, specificity, and formatting establish the expected standard.
+8. **`EXAMPLE_ISSUES`** — One or more comma-separated full GitHub issue URLs whose title/body style, specificity, and formatting establish the expected standard. Bare issue numbers are not accepted.
 9. **`BASE_REMOTE`** — Remote name agents should use (e.g. `upstream` or `origin`).
 10. **`ISSUE_TYPE`** — GitHub issue type for children (e.g. `Task`).
 11. **`SUPPORTING_ARTIFACTS`** — Repo-relative paths or path constraints for spike reports, prototypes, screenshots, etc. that task issues must cite.
@@ -54,17 +54,19 @@ When creating issues, produce issue bodies at least as specific and structured a
 
 ### Step 1: Validate the invocation
 
-1. Verify `BASE_BRANCH` is not `main` or the repository's default branch.
-2. Verify `BASE_BRANCH` exists.
-3. Verify `PARENT_ISSUE` exists, is open, and belongs to `REPO`.
-4. Discover the repository owner's issue types. Verify `ISSUE_TYPE` exists and is enabled.
-5. Read `PLAN_DIRECTORY/PLAN_FILE_NAME` from `BASE_BRANCH`. Prefer `git show "$BASE_BRANCH:$PLAN_DIRECTORY/$PLAN_FILE_NAME"`; fall back to `gh api`.
-6. Verify both `QUESTIONS_SECTION` and `IMPLEMENTATION_SECTION` headings occur exactly once.
-7. Verify every question that gates implementation has a non-empty `Resolution:`. If any is unresolved, stop and list blockers.
+1. Verify `PARENT_ISSUE` matches `^[1-9][0-9]*$`. Reject URLs and other non-numeric values.
+2. Split `EXAMPLE_ISSUES` on commas and trim surrounding whitespace from each item. Verify the list is non-empty and every item is a full GitHub issue URL matching `https://github.com/OWNER/REPO/issues/NUMBER`. Reject bare issue numbers, pull request URLs, and other URL forms.
+3. Verify `BASE_BRANCH` is not `main` or the repository's default branch.
+4. Verify `BASE_BRANCH` exists.
+5. Verify `PARENT_ISSUE` exists, is open, and belongs to `REPO`.
+6. Discover the repository owner's issue types. Verify `ISSUE_TYPE` exists and is enabled.
+7. Read `PLAN_DIRECTORY/PLAN_FILE_NAME` from `BASE_BRANCH`. Prefer `git show "$BASE_BRANCH:$PLAN_DIRECTORY/$PLAN_FILE_NAME"`; fall back to `gh api`.
+8. Verify both `QUESTIONS_SECTION` and `IMPLEMENTATION_SECTION` headings occur exactly once.
+9. Verify every question that gates implementation has a non-empty `Resolution:`. If any is unresolved, stop and list blockers.
 
 ### Step 2: Study examples and existing children
 
-1. Fetch every `EXAMPLE_ISSUES` issue body. Extract conventions for structure, specificity, and formatting.
+1. Parse each URL in `EXAMPLE_ISSUES` into its owner, repository, and issue number. Fetch every issue body and extract conventions for structure, specificity, and formatting.
 2. List current children of `PARENT_ISSUE` via `gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues"`.
 3. The workflow is idempotent — do not create duplicates. Stop and report ambiguous matches.
 
