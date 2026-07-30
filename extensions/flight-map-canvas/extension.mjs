@@ -46,6 +46,13 @@ const IDLE_JOB = { working: false, status: "", tokens: 0 };
 const USER_AGENT = "flight-map-canvas (https://github.com/isocialPractice/vscode-flight-map)";
 const NOMINATIM = "https://nominatim.openstreetmap.org/search";
 
+/**
+ * The tile imagery the page flies over is Web Mercator, which runs out of
+ * projection at about 85.0511 degrees. Past that there are no tiles to
+ * fetch, so a latitude beyond it is rejected rather than flown to a blank.
+ */
+const MAX_LATITUDE = 85.0511;
+
 const servers = new Map();
 
 /**
@@ -222,8 +229,11 @@ async function resolveDestination(input) {
         if (lat === undefined || lng === undefined) {
             throw new CanvasError("incomplete_coordinates", "Give both lat and lng, or neither.");
         }
-        if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
-            throw new CanvasError("invalid_latitude", "lat must be between -90 and 90.");
+        if (!Number.isFinite(lat) || lat < -MAX_LATITUDE || lat > MAX_LATITUDE) {
+            throw new CanvasError(
+                "invalid_latitude",
+                `lat must be between -${MAX_LATITUDE} and ${MAX_LATITUDE}, the limit of the Web Mercator tile imagery.`,
+            );
         }
         if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
             throw new CanvasError("invalid_longitude", "lng must be between -180 and 180.");
@@ -509,11 +519,15 @@ const DESTINATION_PROPERTIES = {
     },
     lat: {
         type: "number",
-        description: "Latitude in degrees, -90 to 90. Give lng as well to skip the geocoder entirely.",
+        description: `Latitude in degrees, -${MAX_LATITUDE} to ${MAX_LATITUDE} (the limit of the Web Mercator tile imagery). Give lng as well to skip the geocoder entirely.`,
+        minimum: -MAX_LATITUDE,
+        maximum: MAX_LATITUDE,
     },
     lng: {
         type: "number",
         description: "Longitude in degrees, -180 to 180. Give lat as well.",
+        minimum: -180,
+        maximum: 180,
     },
 };
 

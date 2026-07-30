@@ -296,6 +296,7 @@ FlightControls.prototype.update = function (delta) {
         this.targetSpeed = Math.max(this.targetSpeed - this.deceleration * delta, this.minSpeed);
     }
 
+    this.targetSpeed = Math.min(this.targetSpeed, this.maxSpeed * boost);
     this.speed += (this.targetSpeed - this.speed) * Math.min(5 * delta, 1);
 
     // --- Altitude (R/F) ---

@@ -6,17 +6,21 @@
  * human-readable location label ("City, State, Country"), falling back *
  * to "Rural <state>, <country>" when the position is not within a      *
  * city/town/village boundary. Requests are throttled by time and by    *
- * minimum movement to respect the Nominatim usage policy (absolute     *
- * maximum of 1 request per second).                                    *
+ * minimum movement so the HUD label costs as few lookups as possible.  *
  *                                                                      *
  * search() forward geocodes a typed state/city/country into a list of  *
  * candidate destinations for the destination input dialog.             *
+ *                                                                      *
+ * Both directions go out through one queue, so the module holds to the *
+ * Nominatim usage policy (absolute maximum of 1 request per second)    *
+ * whichever direction is asking.                                       *
  ***********************************************************************/
 var Geocoder = (function () {
 
     var NOMINATIM = 'https://nominatim.openstreetmap.org/';
 
-    var MIN_INTERVAL_MS = 5000;  // Minimum time between lookups
+    var MIN_REQUEST_INTERVAL_MS = 1000;  // Nominatim policy: 1 request/second
+    var MIN_INTERVAL_MS = 5000;  // Minimum time between reverse lookups
     var MIN_MOVE_DEG = 0.005;    // Minimum movement (~500m) before a new lookup
     var SEARCH_LIMIT = 10;       // Candidates shown in the results list
 
@@ -25,6 +29,101 @@ var Geocoder = (function () {
     var lastRequestTime = 0;
     var lastLabel = '';
     var pending = false;
+
+    // Bumped by reset(). A reverse lookup carries the value it was queued
+    // under, so a response that belongs to the location left behind is
+    // recognized as stale instead of overwriting the HUD with it.
+    var generation = 0;
+
+    /* ------------------------------------------------------------
+       Shared request queue
+
+       Nominatim counts requests per client across its endpoints, so
+       reverse lookups and searches cannot each keep their own pace.
+       One request is in flight at a time and consecutive sends are
+       spaced by MIN_REQUEST_INTERVAL_MS.
+       ------------------------------------------------------------ */
+
+    var queue = [];
+    var inFlight = null;
+    var lastSendTime = 0;
+    var drainTimer = null;
+
+    /**
+     * Queues one request. job is
+     * { url, success(data), failure(reason), stale() }, where reason is
+     * { status, malformed } and the optional stale() predicate lets a
+     * job whose result is no longer wanted be dropped before it is sent.
+     */
+    function enqueue(job) {
+        queue.push(job);
+        drain();
+    }
+
+    function drain() {
+        if (inFlight) return;
+
+        // Drop abandoned jobs before they spend a request slot
+        while (queue.length && queue[0].stale && queue[0].stale()) {
+            queue.shift();
+        }
+        if (!queue.length) return;
+
+        var wait = MIN_REQUEST_INTERVAL_MS - (performance.now() - lastSendTime);
+        if (wait > 0) {
+            if (drainTimer === null) {
+                drainTimer = setTimeout(function () {
+                    drainTimer = null;
+                    drain();
+                }, wait);
+            }
+            return;
+        }
+
+        send(queue.shift());
+    }
+
+    function send(job) {
+        var settled = false;
+        var xhr = new XMLHttpRequest();
+
+        inFlight = xhr;
+        lastSendTime = performance.now();
+
+        // A network failure raises both onerror and a readyState 4 with no
+        // status, so the first outcome to arrive is the one that counts
+        function finish(handler, argument) {
+            if (settled) return;
+            settled = true;
+            inFlight = null;
+            handler(argument);
+            drain();
+        }
+
+        xhr.open('GET', job.url, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState !== 4) return;
+
+            if (xhr.status !== 200) {
+                finish(job.failure, { status: xhr.status, malformed: false });
+                return;
+            }
+
+            var data;
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch (e) {
+                finish(job.failure, { status: xhr.status, malformed: true });
+                return;
+            }
+
+            finish(job.success, data);
+        };
+        xhr.onerror = function () {
+            finish(job.failure, { status: 0, malformed: false });
+        };
+        xhr.send();
+    }
 
     /**
      * Builds a display label from a Nominatim address object.
@@ -69,38 +168,46 @@ var Geocoder = (function () {
         pending = true;
         lastRequestTime = now;
 
-        var url = NOMINATIM + 'reverse?format=jsonv2&zoom=10' +
-                  '&lat=' + encodeURIComponent(lat) +
-                  '&lon=' + encodeURIComponent(lng);
+        var token = generation;
+        function abandoned() {
+            return token !== generation;
+        }
 
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState !== 4) return;
-            pending = false;
-            if (xhr.status !== 200) return; // Keep the last label on failure
+        enqueue({
+            url: NOMINATIM + 'reverse?format=jsonv2&zoom=10' +
+                 '&lat=' + encodeURIComponent(lat) +
+                 '&lon=' + encodeURIComponent(lng),
+            stale: abandoned,
+            success: function (data) {
+                // Switched location while this was in flight: the label and
+                // the position it describes belong to somewhere else now
+                if (abandoned()) return;
+                pending = false;
 
-            try {
-                var data = JSON.parse(xhr.responseText);
-                var label = buildLabel(data.address || {});
+                var label = buildLabel((data && data.address) || {});
                 lastLat = lat;
                 lastLng = lng;
                 if (label && label !== lastLabel) {
                     lastLabel = label;
                     callback(label);
                 }
-            } catch (e) {
-                // Malformed response: keep the last label
+            },
+            failure: function () {
+                if (abandoned()) return;
+                pending = false;
+                // Keep the last label on failure or a malformed response
             }
-        };
-        xhr.send();
+        });
     }
 
     /**
      * Clears cached state when switching capitals so the next lookup
-     * runs immediately for the new location.
+     * runs immediately for the new location. Lookups already queued or
+     * in flight for the old location are abandoned rather than allowed
+     * to report back over the new one.
      */
     function reset() {
+        generation++;
         lastLat = null;
         lastLng = null;
         lastRequestTime = 0;
@@ -158,56 +265,45 @@ var Geocoder = (function () {
             return;
         }
 
-        var url = NOMINATIM + 'search?format=jsonv2&addressdetails=1' +
-                  '&limit=' + SEARCH_LIMIT + '&' + params.join('&');
+        enqueue({
+            url: NOMINATIM + 'search?format=jsonv2&addressdetails=1' +
+                 '&limit=' + SEARCH_LIMIT + '&' + params.join('&'),
+            success: function (data) {
+                if (!data || !data.length) {
+                    callback(null, []);
+                    return;
+                }
 
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState !== 4) return;
+                var results = [];
+                for (var i = 0; i < data.length; i++) {
+                    var item = data[i];
+                    var lat = parseFloat(item.lat);
+                    var lng = parseFloat(item.lon);
+                    if (isNaN(lat) || isNaN(lng)) continue;
 
-            if (xhr.status !== 200) {
-                callback('Search failed (' + (xhr.status || 'no response') + ').', []);
-                return;
+                    var address = item.address || {};
+                    results.push({
+                        label: buildResultLabel(item),
+                        lat: lat,
+                        lng: lng,
+                        city: address.city || address.town || address.village ||
+                              item.name || 'Destination',
+                        country: address.country || ''
+                    });
+                }
+
+                callback(null, results);
+            },
+            failure: function (reason) {
+                if (reason.malformed) {
+                    callback('Search returned a malformed response.', []);
+                } else if (!reason.status) {
+                    callback('Search could not reach the geocoding service.', []);
+                } else {
+                    callback('Search failed (' + reason.status + ').', []);
+                }
             }
-
-            var data;
-            try {
-                data = JSON.parse(xhr.responseText);
-            } catch (e) {
-                callback('Search returned a malformed response.', []);
-                return;
-            }
-
-            if (!data || !data.length) {
-                callback(null, []);
-                return;
-            }
-
-            var results = [];
-            for (var i = 0; i < data.length; i++) {
-                var item = data[i];
-                var lat = parseFloat(item.lat);
-                var lng = parseFloat(item.lon);
-                if (isNaN(lat) || isNaN(lng)) continue;
-
-                var address = item.address || {};
-                results.push({
-                    label: buildResultLabel(item),
-                    lat: lat,
-                    lng: lng,
-                    city: address.city || address.town || address.village ||
-                          item.name || 'Destination',
-                    country: address.country || ''
-                });
-            }
-
-            callback(null, results);
-        };
-        xhr.onerror = function () {
-            callback('Search could not reach the geocoding service.', []);
-        };
-        xhr.send();
+        });
     }
 
     return {

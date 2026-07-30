@@ -167,8 +167,10 @@ TerrainFill.prototype.update = function (flightHeading) {
  * and padding perimeter positions.
  */
 TerrainFill.prototype._collectSamples = function (flightHeading) {
-    // Hide fill mesh so we only sample actual terrain + sky
-    this.fillMesh.visible = false;
+     // Hide generated overlays so we only sample actual terrain + sky
+     var cloudWasVisible = this.cloudMesh.visible;
+     this.fillMesh.visible = false;
+     this.cloudMesh.visible = false;
 
     // Render scene to low-res offscreen target
     this.renderer.setRenderTarget(this.sampleTarget);
@@ -176,6 +178,7 @@ TerrainFill.prototype._collectSamples = function (flightHeading) {
     this.renderer.setRenderTarget(null);
 
     this.fillMesh.visible = true;
+    this.cloudMesh.visible = cloudWasVisible;
 
     // Read pixels from the render target
     this.renderer.readRenderTargetPixels(

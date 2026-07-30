@@ -47,7 +47,7 @@ The canvas accepts optional open inputs, resolved the same way `fly_to` resolves
 | `city` | string | City name for anywhere that is not a shipped capital. Geocoded on the way in. |
 | `state` | string | State, region, province, or district that narrows the city. |
 | `country` | string | Country that narrows the city. |
-| `lat` / `lng` | number | Raw coordinates, which skip the geocoder entirely. Give both or neither. |
+| `lat` / `lng` | number | Raw coordinates, which skip the geocoder entirely. Latitude runs -85.0511 to 85.0511, the limit of the Web Mercator tile imagery; longitude runs -180 to 180. Give both or neither. |
 
 Opened with no input, the canvas starts on its own welcome screen and waits for a destination.
 

@@ -97,6 +97,9 @@ var DestinationInput = (function () {
         for (var i = 0; i < results.length; i++) {
             var row = document.createElement('li');
             row.className = 'dest-result';
+            // Focus stays on the listbox, so each option needs an id for
+            // the list's aria-activedescendant to point a reader at it
+            row.id = 'dest-result-' + i;
             row.setAttribute('role', 'option');
             row.setAttribute('aria-selected', 'false');
             row.dataset.index = String(i);
@@ -118,8 +121,16 @@ var DestinationInput = (function () {
         }
 
         selectBtn.disabled = index < 0;
-        if (index >= 0 && rows[index] && rows[index].scrollIntoView) {
-            rows[index].scrollIntoView({ block: 'nearest' });
+
+        // Point the listbox at the option the arrow keys landed on, and
+        // drop the reference entirely when nothing is active
+        if (index >= 0 && rows[index]) {
+            resultList.setAttribute('aria-activedescendant', rows[index].id);
+            if (rows[index].scrollIntoView) {
+                rows[index].scrollIntoView({ block: 'nearest' });
+            }
+        } else {
+            resultList.removeAttribute('aria-activedescendant');
         }
     }
 
@@ -182,6 +193,9 @@ var DestinationInput = (function () {
 
         results = [];
         activeIndex = -1;
+        // Rows from the previous search are stale the moment the form
+        // reopens, so nothing should still be pointing at one of them
+        resultList.removeAttribute('aria-activedescendant');
         formMessage.textContent = '';
         setSearching(false);
         showForm();

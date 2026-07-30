@@ -75,6 +75,24 @@ function metersPerTile(lat, zoom) {
 }
 
 /**
+ * Wraps a tile column into the [0, 2^zoom - 1] range the providers serve.
+ *
+ * Tile coordinates are kept unwrapped everywhere else: they double as the
+ * world grid, and a flight that crosses the antimeridian has to keep
+ * counting past the edge of the map for its tiles to stay put relative to
+ * each other. Only the URL needs the column the provider recognizes.
+ */
+function wrapTileX(x, zoom) {
+    var n = Math.pow(2, zoom);
+    return ((x % n) + n) % n;
+}
+
+/** Wraps a longitude into [-180, 180) after a crossing carried it past. */
+function wrapLongitude(lng) {
+    return ((lng + 180) % 360 + 360) % 360 - 180;
+}
+
+/**
  * Formats a position for the coordinate readout. The two spaces between
  * the latitude and the longitude are what separates them on screen;
  * #hud-coords sets white-space: pre so they survive to the render.
@@ -92,7 +110,7 @@ function positionToLatLng(worldX, worldZ) {
     var dLat = -dMetersZ / 110574;
     return {
         lat: originLat + dLat,
-        lng: originLng + dLng
+        lng: wrapLongitude(originLng + dLng)
     };
 }
 
@@ -240,7 +258,11 @@ function loadTile(tileX, tileY) {
     loadedTiles[key] = { mesh: mesh, tileX: tileX, tileY: tileY, loaded: false };
     tilesRequested++;
 
-    var url = getTileUrl(tileX, tileY, TILE_ZOOM);
+    // The mesh keeps its unwrapped world column; the request uses the
+    // column the provider serves, so a flight can cross the antimeridian
+    // without every tile after it 404ing
+    var urlX = wrapTileX(tileX, TILE_ZOOM);
+    var url = getTileUrl(urlX, tileY, TILE_ZOOM);
 
     textureLoader.load(url, function (texture) {
         if (!loadedTiles[key]) return; // Already unloaded
@@ -255,8 +277,8 @@ function loadTile(tileX, tileY) {
     }, undefined, function () {
         // Primary failed, try fallback provider
         var fallbackUrl = (tileProvider === 'google')
-            ? getEsriTileUrl(tileX, tileY, TILE_ZOOM)
-            : getGoogleTileUrl(tileX, tileY, TILE_ZOOM);
+            ? getEsriTileUrl(urlX, tileY, TILE_ZOOM)
+            : getGoogleTileUrl(urlX, tileY, TILE_ZOOM);
 
         textureLoader.load(fallbackUrl, function (texture) {
             if (!loadedTiles[key]) return;
@@ -307,52 +329,87 @@ function clearAllTiles() {
     initialLoadDone = false;
 }
 
+/**
+ * How far the loader may actually reach, as a squared tile distance.
+ *
+ * loadRadius asks for a terrain disk of a given width and maxTiles caps
+ * how many tiles may exist at once. A disk of radius r holds about
+ * pi * r^2 tiles, so a radius asking for more than the cap allows is a
+ * radius the cap takes straight back: the reach is whichever is smaller.
+ *
+ * loadRadius keeps its other job either way. updateTileFeather() scales
+ * the opacity ramp against it, so a loadRadius wider than this reach
+ * stretches the fade across the terrain that does fit rather than
+ * widening the terrain itself.
+ */
+function tileReachSq() {
+    return Math.min(LOAD_RADIUS * LOAD_RADIUS, MAX_TILES / Math.PI);
+}
+
 function updateTiles() {
-    if (!originLat) return;
+    if (!currentCapitalName) return;
 
     var camTileX = centerTileX + Math.round(controls.position.x / TILE_SIZE);
     var camTileY = centerTileY + Math.round(controls.position.z / TILE_SIZE);
 
-    // Load tiles within radius
-    for (var dx = -LOAD_RADIUS; dx <= LOAD_RADIUS; dx++) {
-        for (var dy = -LOAD_RADIUS; dy <= LOAD_RADIUS; dy++) {
-            if (dx * dx + dy * dy > LOAD_RADIUS * LOAD_RADIUS) continue;
+    var reachSq = tileReachSq();
+    var reach = Math.ceil(Math.sqrt(reachSq));
+
+    // Everything in play this pass, gathered before anything is requested:
+    // the tiles the camera wants, plus the tiles already around it that it
+    // has not left behind yet. Ranking one pool by distance is what lets
+    // the cap be spent on the nearest tiles whether they are loaded yet or
+    // not, so no tile is requested only for the same pass to evict it.
+    var pool = [];
+    var wanted = {};
+
+    for (var dx = -reach; dx <= reach; dx++) {
+        for (var dy = -reach; dy <= reach; dy++) {
+            var distSq = dx * dx + dy * dy;
+            if (distSq > reachSq) continue;
             var tx = camTileX + dx;
             var ty = camTileY + dy;
             var key = tx + ',' + ty;
-            if (!loadedTiles[key]) {
-                loadTile(tx, ty);
+            wanted[key] = true;
+            pool.push({ key: key, tileX: tx, tileY: ty, distSq: distSq });
+        }
+    }
+
+    var loadedKeys = Object.keys(loadedTiles);
+    for (var i = 0; i < loadedKeys.length; i++) {
+        if (wanted[loadedKeys[i]]) continue;
+        var tile = loadedTiles[loadedKeys[i]];
+        var ddx = tile.tileX - camTileX;
+        var ddy = tile.tileY - camTileY;
+        var loadedDistSq = ddx * ddx + ddy * ddy;
+
+        // Out of range for good; the unload radius has the last word on
+        // what is too far behind to be worth ranking at all
+        if (loadedDistSq > UNLOAD_RADIUS * UNLOAD_RADIUS) {
+            unloadTile(loadedKeys[i]);
+            continue;
+        }
+
+        pool.push({
+            key: loadedKeys[i],
+            tileX: tile.tileX,
+            tileY: tile.tileY,
+            distSq: loadedDistSq
+        });
+    }
+
+    pool.sort(function (a, b) { return a.distSq - b.distSq; });
+
+    // Spend the cap nearest first: request what is missing while there is
+    // room, and evict whatever the room ran out on
+    for (var i = 0; i < pool.length; i++) {
+        var entry = pool[i];
+        if (i < MAX_TILES) {
+            if (!loadedTiles[entry.key]) {
+                loadTile(entry.tileX, entry.tileY);
             }
-        }
-    }
-
-    // Unload distant tiles
-    var allKeys = Object.keys(loadedTiles);
-    for (var i = 0; i < allKeys.length; i++) {
-        var parts = allKeys[i].split(',');
-        var tx2 = parseInt(parts[0]);
-        var ty2 = parseInt(parts[1]);
-        var ddx = tx2 - camTileX;
-        var ddy = ty2 - camTileY;
-        if (ddx * ddx + ddy * ddy > UNLOAD_RADIUS * UNLOAD_RADIUS) {
-            unloadTile(allKeys[i]);
-        }
-    }
-
-    // Enforce MAX_TILES cap: evict most distant tiles first
-    var currentKeys = Object.keys(loadedTiles);
-    if (currentKeys.length > MAX_TILES) {
-        var tilesByDist = [];
-        for (var i = 0; i < currentKeys.length; i++) {
-            var tile = loadedTiles[currentKeys[i]];
-            var ddx = tile.tileX - camTileX;
-            var ddy = tile.tileY - camTileY;
-            tilesByDist.push({ key: currentKeys[i], dist: ddx * ddx + ddy * ddy });
-        }
-        tilesByDist.sort(function (a, b) { return b.dist - a.dist; });
-        var excess = currentKeys.length - MAX_TILES;
-        for (var i = 0; i < excess; i++) {
-            unloadTile(tilesByDist[i].key);
+        } else if (loadedTiles[entry.key]) {
+            unloadTile(entry.key);
         }
     }
 
@@ -905,7 +962,7 @@ function animate() {
  * stays in place while tiles reload in the background.
  */
 function reloadTilesAtCurrentZoom() {
-    if (!originLat) return;
+    if (!currentCapitalName) return;
 
     // Determine camera's current geographic position before clearing
     var camGeo = positionToLatLng(controls.position.x, controls.position.z);
