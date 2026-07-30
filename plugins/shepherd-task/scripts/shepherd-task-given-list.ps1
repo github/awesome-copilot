@@ -28,6 +28,26 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$usage = 'Usage: shepherd-task-given-list.ps1 <TASK_ISSUES> <BASE_BRANCH> <REPO>'
+
+if ($TaskIssues -notmatch '^[1-9][0-9]*(,[1-9][0-9]*)*$') {
+    throw "TASK_ISSUES must be a comma-separated list of positive issue numbers (for example: 2167,2168); received '$TaskIssues'. $usage"
+}
+
+if ($BaseBranch -eq 'main') {
+    throw "BASE_BRANCH must not be 'main'. $usage"
+}
+
+& git check-ref-format --branch $BaseBranch *> $null
+if ($LASTEXITCODE -ne 0) {
+    throw "BASE_BRANCH is not a valid Git branch name; received '$BaseBranch'. $usage"
+}
+
+if ($Repo -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$') {
+    throw "REPO must be in OWNER/REPO format; received '$Repo'. $usage"
+}
+
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $shepherdScript = Join-Path $scriptDir 'shepherd-task.ps1'
 $scriptExitCode = 0
