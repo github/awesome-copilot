@@ -54,76 +54,132 @@ If none of these find the PR, fail the skill and report the error.
 
 ```bash
 gh pr ready $PR_NUMBER -R $REPO
-gh pr edit $PR_NUMBER -R $REPO --add-reviewer "copilot-pull-request-reviewer"
 ```
 
 **Important:** Copilot code review is NOT automatically triggered when a PR is taken out of draft state. You must explicitly request it.
 
-### Step 2: Wait for Copilot code review agent to complete
-
-Wait for the Copilot code review agent to post its findings.
-
-Poll the PR reviews and comments using **multiple detection strategies** (any match is sufficient).
-
-**⚠️ Use `initial_wait: 660` (11 minutes) on this polling command to prevent the session from going idle and being killed.**
-
-**Strategy A:** A review whose body matches `"Copilot.s findings"` (original format).
-
-**Strategy B:** A review whose body matches `"Pull request overview"` (alternate format).
-
-**Strategy C:** A review from a user whose login contains `"copilot-pull-request-reviewer"` (handles `[bot]` suffix).
-
-**Strategy D:** Line-level review comments from user `Copilot` on the PR.
+Before requesting review, capture the PR head and the latest completed Copilot review. These values identify the review round and prevent a previous review from satisfying a later poll:
 
 ```bash
-# Poll every 30 seconds for up to 10 minutes
-TIMEOUT=600
+REVIEW_TARGET_HEAD=$(gh pr view "$PR_NUMBER" -R "$REPO" --json headRefOid --jq '.headRefOid')
+PREVIOUS_COPILOT_REVIEW_ID=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/reviews" \
+  --jq '[.[]
+    | select((.user.login // "") | test("^copilot-pull-request-reviewer(\\[bot\\])?$"; "i"))
+    | .id
+  ] | max // 0')
+```
+
+Request reviewer `Copilot` with `gh pr edit`. Do not substitute the REST request `reviewers[]=copilot-pull-request-reviewer`; that login is the review bot's output identity, not the requestable Copilot reviewer. Also do not treat a nonzero `gh pr edit` exit caused only by its deprecated Projects Classic query as proof that the mutation failed. Verify the result instead.
+
+For up to three attempts, record the request time, request reviewer `Copilot`, and poll for up to two minutes for at least one positive acknowledgement:
+
+- a new `review_requested` timeline event for requested reviewer `Copilot` at or after the recorded request time;
+- `Copilot` in `gh pr view --json reviewRequests`; or
+- a new Copilot review whose `commit_id` is `REVIEW_TARGET_HEAD` and whose ID is greater than `PREVIOUS_COPILOT_REVIEW_ID`.
+
+```bash
+REVIEW_REQUEST_ACKNOWLEDGED=false
+
+for ATTEMPT in 1 2 3; do
+  REQUESTED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+  EDIT_STATUS=0
+  gh pr edit "$PR_NUMBER" -R "$REPO" --add-reviewer Copilot || EDIT_STATUS=$?
+
+  # gh pr edit may complete the mutation and then fail its deprecated Projects
+  # Classic query. Trust positive API state, not this process status alone.
+  if [ "$EDIT_STATUS" -ne 0 ]; then
+    echo "gh pr edit exited $EDIT_STATUS; verifying whether the review request was accepted"
+  fi
+
+  ACK_ELAPSED=0
+  while [ "$ACK_ELAPSED" -lt 120 ]; do
+    REQUEST_EVENT=$(gh api "/repos/$REPO/issues/$PR_NUMBER/timeline?per_page=100" \
+      -H 'Accept: application/vnd.github+json' 2>/dev/null \
+      | jq --arg requested_at "$REQUESTED_AT" '[.[]
+          | select(.event == "review_requested")
+          | select((.requested_reviewer.login // "") == "Copilot")
+          | select(.created_at >= $requested_at)
+        ] | length')
+
+    REQUEST_STATE=$(gh pr view "$PR_NUMBER" -R "$REPO" --json reviewRequests \
+      --jq '[.reviewRequests[] | select((.login // "") == "Copilot")] | length' 2>/dev/null)
+
+    COMPLETED_REVIEW=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/reviews" 2>/dev/null \
+      | jq --arg head "$REVIEW_TARGET_HEAD" --argjson previous "$PREVIOUS_COPILOT_REVIEW_ID" '[.[]
+          | select((.user.login // "") | test("^copilot-pull-request-reviewer(\\[bot\\])?$"; "i"))
+          | select(.commit_id == $head)
+          | select(.id > $previous)
+        ] | length')
+
+    if [ "${REQUEST_EVENT:-0}" -gt 0 ] || [ "${REQUEST_STATE:-0}" -gt 0 ] || [ "${COMPLETED_REVIEW:-0}" -gt 0 ]; then
+      REVIEW_REQUEST_ACKNOWLEDGED=true
+      break 2
+    fi
+
+    sleep 10
+    ACK_ELAPSED=$((ACK_ELAPSED + 10))
+  done
+
+  [ "$ATTEMPT" -lt 3 ] && sleep 10
+done
+
+if [ "$REVIEW_REQUEST_ACKNOWLEDGED" != true ]; then
+  echo "SHEPHERD FAILED: Copilot review request was not acknowledged for PR #$PR_NUMBER at $REVIEW_TARGET_HEAD."
+  echo "The task is resumable; do not repeat completed fixes."
+  exit 1
+fi
+```
+
+Do not begin the review-completion timeout until the request is positively acknowledged. If all three attempts remain unacknowledged, report `SHEPHERD FAILED: Copilot review request was not acknowledged`, include the PR number and target head, and stop in a resumable state.
+
+### Step 2: Wait for Copilot code review agent to complete
+
+Wait for a new review from the Copilot code review agent for `REVIEW_TARGET_HEAD`. Review body text is presentation and may change; do not use headings such as `Copilot's findings`, `Pull request overview`, or `Not ready to approve` as completion signals.
+
+Set `COPILOT_REVIEW_TIMEOUT_SECONDS` to override the default 30-minute completion timeout. The request-acknowledgement check in Step 1 is separate and must already have succeeded.
+
+**⚠️ Keep the polling command active. Use the largest supported `initial_wait`, and if the tool returns while the command is still running, immediately read the same shell again.**
+
+```bash
+TIMEOUT=${COPILOT_REVIEW_TIMEOUT_SECONDS:-1800}
 INTERVAL=30
 ELAPSED=0
+COPILOT_REVIEW=''
 
 while [ $ELAPSED -lt $TIMEOUT ]; do
-  # Strategy A: Original "Copilot's findings" header
-  FINDINGS=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/reviews" \
-    --jq '.[] | select(.body | test("Copilot.s findings")) | {id: .id, body: .body}' 2>/dev/null | tail -1)
+  COPILOT_REVIEW=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/reviews" 2>/dev/null \
+    | jq --arg head "$REVIEW_TARGET_HEAD" --argjson previous "$PREVIOUS_COPILOT_REVIEW_ID" '
+      [.[]
+        | select((.user.login // "") | test("^copilot-pull-request-reviewer(\\[bot\\])?$"; "i"))
+        | select(.commit_id == $head)
+        | select(.id > $previous)
+      ] | last // empty')
 
-  # Strategy B: Alternate "Pull request overview" header
-  if [ -z "$FINDINGS" ]; then
-    FINDINGS=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/reviews" \
-      --jq '.[] | select(.body | test("Pull request overview")) | {id: .id, body: .body}' 2>/dev/null | tail -1)
-  fi
-
-  # Strategy C: Any review from the copilot-pull-request-reviewer bot
-  if [ -z "$FINDINGS" ]; then
-    FINDINGS=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/reviews" \
-      --jq '.[] | select(.user.login | test("copilot-pull-request-reviewer")) | {id: .id, body: .body}' 2>/dev/null | tail -1)
-  fi
-
-  # Strategy D: Line-level comments from user "Copilot"
-  if [ -z "$FINDINGS" ]; then
-    FINDINGS=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/comments" \
-      --jq '.[] | select(.user.login == "Copilot") | {id: .id, body: .body}' 2>/dev/null | head -1)
-  fi
-
-  if [ -n "$FINDINGS" ]; then
+  if [ -n "$COPILOT_REVIEW" ]; then
     break
   fi
 
   sleep $INTERVAL
   ELAPSED=$((ELAPSED + INTERVAL))
 done
+
+if [ -z "$COPILOT_REVIEW" ]; then
+  echo "SHEPHERD FAILED: Copilot review did not complete within ${TIMEOUT}s for PR #$PR_NUMBER at $REVIEW_TARGET_HEAD."
+  echo "The acknowledged review request is resumable; do not repeat completed fixes."
+  exit 1
+fi
+
+COPILOT_REVIEW_ID=$(printf '%s' "$COPILOT_REVIEW" | jq -r '.id')
 ```
 
 #### 2.1: Stop if Copilot refused review because the PR has too many files
 
-Before interpreting the review as findings or treating a zero-comment review as success, check for the specific too-many-files refusal. Inspect only reviews authored by the Copilot pull request reviewer, and require both stable phrases so unrelated review text cannot trigger this gate:
+Before interpreting the review as findings or treating a zero-comment review as success, check the current review for the specific too-many-files refusal. Require both stable phrases so unrelated review text cannot trigger this gate:
 
 ```bash
-TOO_MANY_FILES_REVIEW=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/reviews" \
-  --jq '[.[]
-    | select(.user.login | test("^copilot-pull-request-reviewer(\\[bot\\])?$"; "i"))
-    | select((.body // "") | test("wasn.t able to review"; "i"))
-    | select((.body // "") | test("maximum number of files"; "i"))
-  ] | last // empty')
+TOO_MANY_FILES_REVIEW=$(printf '%s' "$COPILOT_REVIEW" | jq '
+  select((.body // "") | test("wasn.t able to review"; "i"))
+  | select((.body // "") | test("maximum number of files"; "i"))')
 
 if [ -n "$TOO_MANY_FILES_REVIEW" ]; then
   echo "SHEPHERD FAILED: Copilot could not review PR #$PR_NUMBER because it exceeds the maximum number of files."
@@ -135,9 +191,9 @@ fi
 
 Do not attempt to reduce or split the PR automatically. This gate handles only this specific refusal and does not change the treatment of any other Copilot review outcome.
 
-Search for similar text to identify the batch of review findings (`jtbdtask-pr-comments`).
+Use `COPILOT_REVIEW_ID` to identify this batch of review findings (`jtbdtask-pr-comments`).
 
-If **Comments generated: 0** (or no comments for this round), skip to **Step 15**.
+If there are no top-level line comments associated with `COPILOT_REVIEW_ID`, skip to **Step 15**.
 
 When `jtbdtask-pr-comments` has been identified, proceed.
 
@@ -145,7 +201,18 @@ When `jtbdtask-pr-comments` has been identified, proceed.
 
 ❌❌❌ DO NOT TAKE ANY ACTION ON COMMENTS ALREADY MARKED **Resolved**. ❌❌❌
 
-Extract the number of comments from the **Comments generated:** line in the findings header. There will be exactly N individual review comments in this batch to address.
+Count top-level comments associated with the completed review. Do not parse the review body's **Comments generated:** line; that presentation syntax is not an API contract.
+
+```bash
+N=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/comments" \
+  | jq --argjson review_id "$COPILOT_REVIEW_ID" '
+    [.[]
+      | select(.pull_request_review_id == $review_id)
+      | select(.in_reply_to_id == null)
+    ] | length')
+```
+
+There will be exactly N individual review comments in this batch to address.
 
 ### Step 4: Fetch upstream and set up local worktree
 
@@ -183,7 +250,10 @@ This ensures any pending workflow runs triggered by prior pushes are approved an
 # Get all review comments from the Copilot code review batch.
 # The reviewer may appear as "copilot-pull-request-reviewer[bot]" or "Copilot" depending on the repo.
 gh api "/repos/$REPO/pulls/$PR_NUMBER/comments" \
-  --jq '.[] | select(.user.login | test("copilot-pull-request-reviewer|Copilot")) | {id: .id, path: .path, line: .line, body: .body, in_reply_to_id: .in_reply_to_id}'
+  | jq --argjson review_id "$COPILOT_REVIEW_ID" '.[]
+    | select(.pull_request_review_id == $review_id)
+    | select(.in_reply_to_id == null)
+    | {id: .id, path: .path, line: .line, body: .body}'
 ```
 
 Identify each individual comment. Each has a unique `id` (e.g., `discussion_r3456155645`-style reference). For discussion, each is a `jtbdtask-pr-comments-comment`.
@@ -293,9 +363,9 @@ This ensures any pending workflow runs triggered by the push in Step 8 are appro
 
 ### Step 12: Re-request Copilot review
 
-```bash
-gh pr edit $PR_NUMBER -R $REPO --add-reviewer "copilot-pull-request-reviewer"
-```
+Repeat the review-target capture and acknowledged request procedure from Step 1. The new `REVIEW_TARGET_HEAD` must be the pushed fix commit, and `PREVIOUS_COPILOT_REVIEW_ID` must include the review just addressed.
+
+Do not continue to Step 13 unless the new request is positively acknowledged.
 
 ### Step 13: Loop back
 
@@ -304,7 +374,7 @@ Go back to **Step 2**. Wait for the Copilot code review agent to post new findin
 **Max iterations: 8.** If exhausted, report failure and stop:
 
 ```
-SHEPHERD FAILED: Exhausted 20 iterations on PR #$PR_NUMBER for task #$TASK_ISSUE.
+SHEPHERD FAILED: Exhausted 8 iterations on PR #$PR_NUMBER for task #$TASK_ISSUE.
 Manual intervention required.
 ```
 
@@ -390,7 +460,8 @@ SHEPHERD COMPLETE: PR #$PR_NUMBER for task #$TASK_ISSUE has been merged to $BASE
 
 ## Error handling
 
-- **Copilot review agent doesn't post within 10 minutes**: Report and stop.
+- **Copilot review request is not acknowledged after 3 attempts**: Report the PR and target head, preserve the resumable state, and stop.
+- **An acknowledged Copilot review does not complete within `COPILOT_REVIEW_TIMEOUT_SECONDS` (default 30 minutes)**: Report the PR and target head, preserve the resumable state, and stop.
 - **Copilot refuses review because the PR exceeds the maximum number of files**: Report, require manual intervention, and stop without merging.
 - **8 iterations exhausted**: Report and stop.
 - **Merge conflicts that cannot be auto-resolved**: Report and stop.
