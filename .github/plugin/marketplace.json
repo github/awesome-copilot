@@ -78,8 +78,8 @@
     {
       "name": "ai-team-orchestration",
       "source": "plugins/ai-team-orchestration",
-      "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
-      "version": "1.0.0"
+      "description": "Run a lightweight, role-separated AI development team with flexible tools, developer-selected models, proportionate planning, and optional QA.",
+      "version": "2.0.0"
     },
     {
       "name": "apng-studio",
@@ -606,6 +606,12 @@
       }
     },
     {
+      "name": "flight-map-canvas",
+      "source": "extensions/flight-map-canvas",
+      "description": "A GitHub Copilot canvas that generates a view where Google Maps can be explored using 3D controls, as if a flight simulator. Agents can send the flight anywhere and report what they are working on.",
+      "version": "1.0.0"
+    },
+    {
       "name": "flowstudio-power-automate",
       "source": "plugins/flowstudio-power-automate",
       "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
@@ -1035,6 +1041,12 @@
       "name": "power-platform-mcp-connector-development",
       "source": "plugins/power-platform-mcp-connector-development",
       "description": "Complete toolkit for developing Power Platform custom connectors with Model Context Protocol integration for Microsoft Copilot Studio",
+      "version": "1.0.0"
+    },
+    {
+      "name": "pr-artifact-explorer",
+      "source": "extensions/pr-artifact-explorer",
+      "description": "Navigate pull requests and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
       "version": "1.0.0"
     },
     {
