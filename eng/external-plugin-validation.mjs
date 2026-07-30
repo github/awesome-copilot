@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { ROOT_FOLDER } from "./constants.mjs";
+import { validateLicenseField } from "./lib/license.mjs";
+import { inlineCode } from "./lib/markdown.mjs";
 
 export const EXTERNAL_PLUGINS_FILE = path.join(ROOT_FOLDER, "plugins", "external.json");
 
@@ -12,6 +14,7 @@ export const EXTERNAL_PLUGIN_POLICIES = Object.freeze({
     requireKeywords: true,
     requireLicense: false,
     requireImmutableLocator: false,
+    warnMissingImmutableLocator: true,
   }),
   publicSubmission: Object.freeze({
     allowedSourceTypes: ["github"],
@@ -20,8 +23,33 @@ export const EXTERNAL_PLUGIN_POLICIES = Object.freeze({
     requireKeywords: true,
     requireLicense: true,
     requireImmutableLocator: true,
+    warnMissingImmutableLocator: false,
   }),
 });
+
+// Allowed keys for typo detection. Kept intentionally permissive: unknown keys
+// produce warnings (not errors) so the schema stays forward-compatible.
+const ALLOWED_PLUGIN_KEYS = Object.freeze([
+  "name",
+  "description",
+  "version",
+  "author",
+  "repository",
+  "homepage",
+  "license",
+  "keywords",
+  "tags",
+  "source",
+]);
+
+const ALLOWED_AUTHOR_KEYS = Object.freeze(["name", "url", "email"]);
+
+const ALLOWED_SOURCE_KEYS = Object.freeze(["source", "repo", "path", "ref", "sha"]);
+
+// Semantic Versioning 2.0.0 (https://semver.org). Anchored: major.minor.patch
+// with optional -prerelease and +build metadata.
+const SEMVER_PATTERN =
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
 // NOTE: Keep in sync with PLUGIN_JSON_CANDIDATES in external-plugin-quality-gates.mjs
 const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
@@ -97,6 +125,12 @@ function validateVersion(version, prefix, errors) {
   if (version.length > 100) {
     errors.push(`${prefix}: "version" must be 100 characters or fewer`);
   }
+
+  if (!SEMVER_PATTERN.test(version)) {
+    errors.push(
+      `${prefix}: "version" must be a valid semantic version (e.g. "1.2.3" or "1.2.3-beta.1"); see https://semver.org`
+    );
+  }
 }
 
 function validateKeywords(keywords, prefix, errors, warnings, required) {
@@ -164,7 +198,7 @@ function validateHttpsUrl(value, fieldName, prefix, errors, options = {}) {
   }
 }
 
-function validateAuthor(author, prefix, errors, required) {
+function validateAuthor(author, prefix, errors, warnings, required) {
   if (author === undefined) {
     if (required) {
       errors.push(`${prefix}: "author" is required`);
@@ -184,18 +218,43 @@ function validateAuthor(author, prefix, errors, required) {
   if (author.url !== undefined) {
     validateHttpsUrl(author.url, "author.url", prefix, errors);
   }
+
+  if (author.email !== undefined) {
+    validateEmail(author.email, "author.email", prefix, errors);
+  }
+
+  validateKnownFields(author, ALLOWED_AUTHOR_KEYS, "author", prefix, warnings);
 }
 
-function validateLicense(license, prefix, errors, required) {
-  if (license === undefined) {
-    if (required) {
-      errors.push(`${prefix}: "license" is required`);
-    }
+function validateEmail(value, fieldName, prefix, errors) {
+  if (!isNonEmptyString(value)) {
+    errors.push(`${prefix}: "${fieldName}" must be a non-empty string`);
     return;
   }
 
-  if (!isNonEmptyString(license)) {
-    errors.push(`${prefix}: "license" must be a non-empty string`);
+  // Pragmatic email check: single "@", non-empty local part, and a dotted domain.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    errors.push(`${prefix}: "${fieldName}" must be a valid email address`);
+  }
+}
+
+function validateLicense(license, prefix, errors, warnings, required) {
+  const result = validateLicenseField(license, { prefix, required });
+  errors.push(...result.errors);
+  warnings.push(...result.warnings);
+}
+
+function validateKnownFields(value, allowedKeys, scope, prefix, warnings) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return;
+  }
+
+  const allowed = new Set(allowedKeys);
+  const label = scope ? `${scope}.` : "";
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) {
+      warnings.push(`${prefix}: unknown ${scope || "top-level"} field ${inlineCode(`${label}${key}`)} (possible typo)`);
+    }
   }
 }
 
@@ -289,7 +348,7 @@ function validateCommitSha(sha, prefix, errors) {
   }
 }
 
-function validateGitHubSource(source, prefix, errors, requireImmutableLocator) {
+function validateGitHubSource(source, prefix, errors, warnings, policy) {
   if (!source || typeof source !== "object" || Array.isArray(source)) {
     errors.push(`${prefix}: "source" must be an object`);
     return;
@@ -317,8 +376,15 @@ function validateGitHubSource(source, prefix, errors, requireImmutableLocator) {
     validateCommitSha(source.sha, prefix, errors);
   }
 
-  if (requireImmutableLocator && source.ref === undefined && source.sha === undefined) {
-    errors.push(`${prefix}: one of "source.ref" or "source.sha" is required for public external plugin submissions`);
+  const missingLocator = source.ref === undefined && source.sha === undefined;
+  if (missingLocator) {
+    if (policy.requireImmutableLocator) {
+      errors.push(`${prefix}: one of "source.ref" or "source.sha" is required for public external plugin submissions`);
+    } else if (policy.warnMissingImmutableLocator) {
+      warnings.push(
+        `${prefix}: "source" has no "source.ref" or "source.sha"; an immutable tag ref or commit SHA is recommended for reproducible installs`
+      );
+    }
   }
 }
 
@@ -338,11 +404,12 @@ export function validateExternalPlugin(plugin, index, options = {}) {
   validatePluginName(plugin.name, prefix, errors);
   validateDescription(plugin.description, prefix, errors);
   validateVersion(plugin.version, prefix, errors);
-  validateAuthor(plugin.author, prefix, errors, policy.requireAuthor);
+  validateAuthor(plugin.author, prefix, errors, warnings, policy.requireAuthor);
   validateRepository(plugin.repository, prefix, errors, policy.requireRepository);
   validateHomepage(plugin.homepage, prefix, errors);
-  validateLicense(plugin.license, prefix, errors, policy.requireLicense);
+  validateLicense(plugin.license, prefix, errors, warnings, policy.requireLicense);
   validateKeywords(plugin.keywords ?? plugin.tags, prefix, errors, warnings, policy.requireKeywords);
+  validateKnownFields(plugin, ALLOWED_PLUGIN_KEYS, "", prefix, warnings);
 
   if (plugin.tags !== undefined && plugin.keywords === undefined) {
     warnings.push(`${prefix}: prefer "keywords" over legacy "tags"`);
@@ -350,12 +417,15 @@ export function validateExternalPlugin(plugin, index, options = {}) {
 
   if (!plugin.source) {
     errors.push(`${prefix}: "source" is required`);
-  } else if (typeof plugin.source === "string") {
+  } else if (typeof plugin.source !== "object" || Array.isArray(plugin.source)) {
     errors.push(`${prefix}: "source" must be an object (local file paths are not allowed for external plugins)`);
-  } else if (!policy.allowedSourceTypes.includes(plugin.source.source)) {
-    errors.push(`${prefix}: "source.source" must be one of: ${policy.allowedSourceTypes.join(", ")}`);
-  } else if (plugin.source.source === "github") {
-    validateGitHubSource(plugin.source, prefix, errors, policy.requireImmutableLocator);
+  } else {
+    validateKnownFields(plugin.source, ALLOWED_SOURCE_KEYS, "source", prefix, warnings);
+    if (!policy.allowedSourceTypes.includes(plugin.source.source)) {
+      errors.push(`${prefix}: "source.source" must be one of: ${policy.allowedSourceTypes.join(", ")}`);
+    } else if (plugin.source.source === "github") {
+      validateGitHubSource(plugin.source, prefix, errors, warnings, policy);
+    }
   }
 
   return { errors, warnings };
