@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins, validateExternalPlugin } from "./external-plugin-validation.mjs";
+import { evaluateRefShaConsistency, normalizeCommitSha } from "./lib/external-plugin-source-ref-sha.mjs";
 
 export const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
 export const EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER = "<!-- external-plugin-intake -->";
@@ -293,9 +294,23 @@ function encodeRepoPath(repo) {
   return `${encodeURIComponent(owner ?? "")}/${encodeURIComponent(name ?? "")}`;
 }
 
+async function resolveCommitSha(repo, locator, token) {
+  const encodedRepo = encodeRepoPath(repo);
+  const commitResponse = await fetchGitHubJson(`/repos/${encodedRepo}/commits/${encodeURIComponent(locator)}`, token);
+  if (commitResponse.kind !== "found") {
+    return commitResponse;
+  }
+
+  return {
+    ...commitResponse,
+    commitSha: normalizeCommitSha(commitResponse.data?.sha),
+  };
+}
+
 async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, token) {
   const encodedRepo = encodeRepoPath(repo);
   const repositoryResponse = await fetchGitHubJson(`/repos/${encodedRepo}`, token);
+  const normalizedSha = normalizeCommitSha(sha);
 
   if (repositoryResponse.kind === "notFound") {
     errors.push(`submission: GitHub repository "${repo}" was not found`);
@@ -333,6 +348,19 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
 
   }
 
+  function validateRefShaConsistency(refCommitSha) {
+    if (!normalizedSha || !refCommitSha) {
+      return;
+    }
+
+    const consistency = evaluateRefShaConsistency({ ref, sha, resolvedRefCommitSha: refCommitSha });
+    if (!consistency.matches) {
+      errors.push(
+        `submission: when both "Ref to review" and "Commit SHA to review" are provided, they must reference the same commit (ref "${ref}" resolves to "${consistency.normalizedRefCommitSha}", sha is "${sha}")`,
+      );
+    }
+  }
+
   if (!ref) {
     return;
   }
@@ -347,6 +375,8 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
         `submission: could not verify commit "${ref}" in GitHub repository "${repo}" (${statusText}${commitResponse.reason ? ` — ${commitResponse.reason}` : ""}); a maintainer should re-run intake`,
       );
     }
+
+    validateRefShaConsistency(normalizeCommitSha(ref));
     return;
   }
 
@@ -362,6 +392,38 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
   const tagResponse = await fetchGitHubJson(`/repos/${encodedRepo}/git/ref/tags/${encodeURIComponent(tagName)}`, token);
 
   if (tagResponse.kind === "found") {
+    if (!normalizedSha) {
+      return;
+    }
+
+    const resolvedRefResponse = await resolveCommitSha(repo, ref, token);
+    if (resolvedRefResponse.kind === "notFound") {
+      errors.push(`submission: ref "${ref}" could not be resolved to a commit in GitHub repository "${repo}"`);
+      return;
+    }
+
+    if (resolvedRefResponse.kind === "apiError") {
+      if (resolvedRefResponse.status === 422) {
+        errors.push(
+          `submission: ref "${ref}" does not resolve to a commit in GitHub repository "${repo}" (it may point to a tag object, tree, or blob); only commit-backed refs are supported`,
+        );
+        return;
+      }
+      const statusText = resolvedRefResponse.status ? `HTTP ${resolvedRefResponse.status}` : "network error";
+      warnings.push(
+        `submission: could not resolve ref "${ref}" to a commit in GitHub repository "${repo}" (${statusText}${resolvedRefResponse.reason ? ` — ${resolvedRefResponse.reason}` : ""}); a maintainer should re-run intake`,
+      );
+      return;
+    }
+
+    if (!resolvedRefResponse.commitSha) {
+      warnings.push(
+        `submission: could not determine the commit SHA for ref "${ref}" in GitHub repository "${repo}"; a maintainer should re-run intake`,
+      );
+      return;
+    }
+
+    validateRefShaConsistency(resolvedRefResponse.commitSha);
     return;
   }
 
@@ -380,7 +442,92 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
   }
 }
 
-async function validateCanvasPluginMetadata(plugin, errors, warnings, token) {
+function buildGitTreePath(repo, treeish, { recursive = false } = {}) {
+  const encodedRepo = encodeRepoPath(repo);
+  const query = recursive ? "?recursive=1" : "";
+  return `/repos/${encodedRepo}/git/trees/${encodeURIComponent(treeish)}${query}`;
+}
+
+function normalizeTreeish(locator) {
+  const value = String(locator ?? "").trim();
+  // The Git Trees API takes the tree-ish as a single path segment. A full "refs/tags/<tag>"
+  // ref would break that, so reduce it to the bare tag name; commit SHAs and simple tag
+  // names pass through unchanged.
+  return value.startsWith("refs/tags/") ? value.slice("refs/tags/".length) : value;
+}
+
+// Resolve the tree SHA of a directory by walking the path one level at a time. Each hop is a
+// non-recursive tree fetch of a single directory, so the work is bounded by the path depth and
+// is independent of the overall repository size — unlike a root recursive fetch, which a large
+// unrelated monorepo can push over the API's truncation limit and never validate.
+async function resolveDirectoryTreeSha(repo, treeish, segments, token) {
+  let currentTreeish = treeish;
+  for (const segment of segments) {
+    const response = await fetchGitHubJson(buildGitTreePath(repo, currentTreeish), token);
+    if (response.kind !== "found" || !Array.isArray(response.data?.tree)) {
+      return { status: "apiError" };
+    }
+    if (response.data.truncated) {
+      // A single directory level exceeded the response limit; presence is unverifiable.
+      return { status: "apiError" };
+    }
+
+    const match = response.data.tree.find((entry) => entry?.path === segment);
+    if (!match) {
+      return { status: "missing" };
+    }
+    if (match.type !== "tree") {
+      return { status: "notDirectory" };
+    }
+    currentTreeish = match.sha;
+  }
+
+  return { status: "found", treeSha: currentTreeish };
+}
+
+// Inspect the (recursively fetched) "extensions" subtree for the plugin's canvas extension
+// entry point. Paths are relative to "extensions/", so the flat form is "extension.mjs" and a
+// nested form is "<name>/extension.mjs". Scoping the recursive fetch to this subtree keeps the
+// lookup complete without depending on the size of the rest of the repository.
+function analyzeCanvasExtensionSubtree(subtreeEntries) {
+  let flatIsBlob = false;
+  let flatIsTree = false;
+  let nestedEntryPath = null;
+
+  for (const entry of subtreeEntries) {
+    const entryPath = entry?.path;
+    if (typeof entryPath !== "string") {
+      continue;
+    }
+
+    if (entryPath === "extension.mjs") {
+      if (entry.type === "blob") {
+        flatIsBlob = true;
+      } else if (entry.type === "tree") {
+        flatIsTree = true;
+      }
+      continue;
+    }
+
+    const segments = entryPath.split("/");
+    if (segments.length === 2 && segments[1] === "extension.mjs" && entry.type === "blob") {
+      nestedEntryPath = nestedEntryPath ?? `extensions/${entryPath}`;
+    }
+  }
+
+  if (flatIsBlob) {
+    return { status: "found", entryPath: "extensions/extension.mjs" };
+  }
+  if (nestedEntryPath) {
+    return { status: "found", entryPath: nestedEntryPath };
+  }
+  if (flatIsTree) {
+    return { status: "notFile" };
+  }
+  return { status: "notFound" };
+}
+
+export async function validateCanvasPluginMetadata(plugin, errors, warnings, token) {
   const repo = plugin?.source?.repo;
   const sha = plugin?.source?.sha;
   const ref = plugin?.source?.ref;
@@ -471,41 +618,51 @@ async function validateCanvasPluginMetadata(plugin, errors, warnings, token) {
     );
   }
 
-  const extensionContainerPath = joinRepoPath(pluginRoot, "extensions");
-  const extensionContainerResponse = await fetchGitHubFile(repo, extensionContainerPath, releaseLocator, token);
-  if (extensionContainerResponse.kind === "notFound") {
+  const unverifiableEntryPointWarning =
+    `submission: could not verify the canvas extension entry point in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`;
+  const extensionsSegments = [...(pluginRoot ? pluginRoot.split("/") : []), "extensions"];
+  const extensionsTree = await resolveDirectoryTreeSha(
+    repo,
+    normalizeTreeish(releaseLocator),
+    extensionsSegments,
+    token,
+  );
+  if (extensionsTree.status === "apiError") {
+    warnings.push(unverifiableEntryPointWarning);
+  } else if (extensionsTree.status === "missing") {
     errors.push(
       `submission: plugins tagged with "canvas" must include an "extensions" directory at ${releaseLocatorDescription}`,
     );
-  } else if (extensionContainerResponse.kind === "apiError") {
-    warnings.push(
-      `submission: could not verify "extensions" directory in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
-    );
-  } else if (
-    !(
-      extensionContainerResponse.data?.type === "dir"
-      || Array.isArray(extensionContainerResponse.data)
-    )
-  ) {
+  } else if (extensionsTree.status === "notDirectory") {
     errors.push(
       `submission: "extensions" must be a directory in ${releaseLocatorDescription}`,
     );
-  }
-
-  const extensionEntryPath = joinRepoPath(pluginRoot, "extensions", "extension.mjs");
-  const extensionEntryResponse = await fetchGitHubFile(repo, extensionEntryPath, releaseLocator, token);
-  if (extensionEntryResponse.kind === "notFound") {
-    errors.push(
-      `submission: plugins tagged with "canvas" must include "extensions/extension.mjs" at ${releaseLocatorDescription}`,
+  } else {
+    const subtreeResponse = await fetchGitHubJson(
+      buildGitTreePath(repo, extensionsTree.treeSha, { recursive: true }),
+      token,
     );
-  } else if (extensionEntryResponse.kind === "apiError") {
-    warnings.push(
-      `submission: could not verify "extensions/extension.mjs" in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`,
-    );
-  } else if (extensionEntryResponse.data?.type !== "file") {
-    errors.push(
-      `submission: "extensions/extension.mjs" must be a file in ${releaseLocatorDescription}`,
-    );
+    if (subtreeResponse.kind !== "found" || !Array.isArray(subtreeResponse.data?.tree)) {
+      warnings.push(unverifiableEntryPointWarning);
+    } else {
+      const canvasStructure = analyzeCanvasExtensionSubtree(subtreeResponse.data.tree);
+      if (canvasStructure.status === "found") {
+        // Entry point located (flat or nested); nothing to report.
+      } else if (subtreeResponse.data.truncated) {
+        // Absence is only inconclusive if the (already extensions-scoped) subtree itself is
+        // truncated, which would take an implausibly large extensions directory; flag it as
+        // unverifiable rather than falsely rejecting.
+        warnings.push(unverifiableEntryPointWarning);
+      } else if (canvasStructure.status === "notFile") {
+        errors.push(
+          `submission: "extensions/extension.mjs" must be a file in ${releaseLocatorDescription}`,
+        );
+      } else {
+        errors.push(
+          `submission: plugins tagged with "canvas" must include a canvas extension entry point at "extensions/extension.mjs" or "extensions/<extension>/extension.mjs" at ${releaseLocatorDescription}`,
+        );
+      }
+    }
   }
 
   const previewPath = joinRepoPath(pluginRoot, EXTERNAL_CANVAS_PREVIEW_PATH);
@@ -629,12 +786,14 @@ function normalizeQualityGateResult(rawResult) {
     vally_lint_status: "not_run",
     smoke_status: "not_run",
     version_match_status: "not_run",
+    ref_sha_consistency_status: "not_run",
     canvas_structure_status: "not_run",
     failure_class: "none",
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
     version_match_output: "",
+    ref_sha_consistency_output: "",
     canvas_structure_output: "",
   };
 
@@ -652,6 +811,7 @@ function buildQualityGatesCommentSection(qualityResult) {
   const vallyState = qualityResult.vally_lint_status || "not_run";
   const smokeState = qualityResult.smoke_status || "not_run";
   const versionMatchState = qualityResult.version_match_status || "not_run";
+  const refShaConsistencyState = qualityResult.ref_sha_consistency_status || "not_run";
   const canvasStructureState = qualityResult.canvas_structure_status || "not_run";
   const summaryText = String(qualityResult.summary || "").trim() || "_No quality gate details were provided._";
 
@@ -663,6 +823,7 @@ function buildQualityGatesCommentSection(qualityResult) {
     `| vally lint | ${vallyState} |`,
     `| install smoke test | ${smokeState} |`,
     `| version match | ${versionMatchState} |`,
+    `| ref/sha consistency | ${refShaConsistencyState} |`,
     `| canvas structure | ${canvasStructureState} |`,
     "",
     summaryText,
@@ -707,6 +868,21 @@ function buildQualityGatesCommentSection(qualityResult) {
       "",
       "```text",
       versionMatchOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
+
+  const refShaConsistencyOutput = String(qualityResult.ref_sha_consistency_output || "").trim();
+  if (refShaConsistencyOutput) {
+    sections.push(
+      "",
+      "<details>",
+      "<summary>Ref/SHA consistency output</summary>",
+      "",
+      "```text",
+      refShaConsistencyOutput,
       "```",
       "",
       "</details>",

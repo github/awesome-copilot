@@ -279,17 +279,19 @@ jobs:
                   const vallyLintStatus = escapeMarkdownTableCell(quality.vally_lint_status || 'not_run');
                   const smokeStatus = escapeMarkdownTableCell(quality.smoke_status || 'not_run');
                   const versionMatchStatus = escapeMarkdownTableCell(quality.version_match_status || 'not_run');
+                  const refShaConsistencyStatus = escapeMarkdownTableCell(quality.ref_sha_consistency_status || 'not_run');
                   const canvasStructureStatus = escapeMarkdownTableCell(quality.canvas_structure_status || 'not_run');
                   const overallStatus = escapeMarkdownTableCell(quality.overall_status || 'not_run');
-                  return `| ${name} | ${vallyLintStatus} | ${smokeStatus} | ${versionMatchStatus} | ${canvasStructureStatus} | ${overallStatus} | ${sourceCell} |`;
+                  return `| ${name} | ${vallyLintStatus} | ${smokeStatus} | ${versionMatchStatus} | ${refShaConsistencyStatus} | ${canvasStructureStatus} | ${overallStatus} | ${sourceCell} |`;
                 })
-              : ['| _none_ | not_run | not_run | not_run | not_run | not_run | _n/a_ |'];
+              : ['| _none_ | not_run | not_run | not_run | not_run | not_run | not_run | _n/a_ |'];
             const failureDetails = checkedPlugins.flatMap((entry) => {
               const name = String(entry?.name || 'unknown');
               const quality = entry?.quality || {};
               const shouldShowVally = quality.vally_lint_status === 'fail' || quality.vally_lint_status === 'infra_error' || String(quality.vally_lint_output || '').trim().length > 0;
               const shouldShowSmoke = quality.smoke_status === 'fail' || quality.smoke_status === 'infra_error' || String(quality.smoke_output || '').trim().length > 0;
               const shouldShowVersionMatch = quality.version_match_status === 'fail' || quality.version_match_status === 'infra_error' || String(quality.version_match_output || '').trim().length > 0;
+              const shouldShowRefShaConsistency = quality.ref_sha_consistency_status === 'fail' || quality.ref_sha_consistency_status === 'infra_error' || String(quality.ref_sha_consistency_output || '').trim().length > 0;
               const shouldShowCanvasStructure = quality.canvas_structure_status === 'fail' || quality.canvas_structure_status === 'infra_error' || String(quality.canvas_structure_output || '').trim().length > 0;
 
               const details = [];
@@ -301,6 +303,9 @@ jobs:
               }
               if (shouldShowVersionMatch) {
                 details.push(formatGateOutput(name, 'version match', quality.version_match_status, quality.version_match_output));
+              }
+              if (shouldShowRefShaConsistency) {
+                details.push(formatGateOutput(name, 'ref/sha consistency', quality.ref_sha_consistency_status, quality.ref_sha_consistency_output));
               }
               if (shouldShowCanvasStructure) {
                 details.push(formatGateOutput(name, 'canvas structure', quality.canvas_structure_status, quality.canvas_structure_output));
@@ -317,8 +322,8 @@ jobs:
               '',
               '### Per-plugin quality summary',
               '',
-              '| Plugin | vally lint | install smoke test | version match | canvas structure | overall | source tree |',
-              '|---|---|---|---|---|---|---|',
+              '| Plugin | vally lint | install smoke test | version match | ref/sha consistency | canvas structure | overall | source tree |',
+              '|---|---|---|---|---|---|---|---|',
               ...rows,
               '',
               ...(failureDetails.length > 0
