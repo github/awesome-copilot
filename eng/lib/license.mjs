@@ -7,6 +7,8 @@
 // does not enforce SPDX, and plugins may legitimately use proprietary or non-OSS
 // licenses. A non-SPDX license is therefore a warning, never an error.
 
+import { inlineCode } from "./markdown.mjs";
+
 // A single SPDX license identifier token (e.g. "MIT", "Apache-2.0", "LicenseRef-Foo").
 const SPDX_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.-]*\+?$/;
 const SPDX_IDSTRING_PATTERN = /^[A-Za-z0-9.-]+$/;
@@ -224,12 +226,6 @@ export function isRecognizedSpdxExpression(license) {
   return parseOrExpression() && position === tokens.length;
 }
 
-function sanitizeForMessage(value) {
-  const collapsed = String(value).replace(/\s+/g, " ").trim();
-  const truncated = collapsed.length > 80 ? `${collapsed.slice(0, 77)}...` : collapsed;
-  return `\`${truncated.replace(/\\/g, "\\\\").replace(/`/g, "\\`")}\``;
-}
-
 // Canonical license validation. A non-SPDX license is a warning (never an error)
 // so authors may use proprietary or non-OSS licenses. Returns collected
 // errors/warnings so each caller can integrate them into its own reporting.
@@ -257,7 +253,7 @@ export function validateLicenseField(license, options = {}) {
 
   if (!isRecognizedSpdxExpression(license)) {
     warnings.push(
-      `${prefix}"license" value ${sanitizeForMessage(license)} is not a recognized SPDX identifier; prefer a standard SPDX id (https://spdx.org/licenses), though non-SPDX or proprietary licenses are allowed`
+      `${prefix}"license" value ${inlineCode(license)} is not a recognized SPDX identifier; prefer a standard SPDX id (https://spdx.org/licenses), though non-SPDX or proprietary licenses are allowed`
     );
   }
 

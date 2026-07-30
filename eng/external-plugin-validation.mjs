@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { validateLicenseField } from "./lib/license.mjs";
+import { inlineCode } from "./lib/markdown.mjs";
 
 export const EXTERNAL_PLUGINS_FILE = path.join(ROOT_FOLDER, "plugins", "external.json");
 
@@ -252,7 +253,7 @@ function validateKnownFields(value, allowedKeys, scope, prefix, warnings) {
   const label = scope ? `${scope}.` : "";
   for (const key of Object.keys(value)) {
     if (!allowed.has(key)) {
-      warnings.push(`${prefix}: unknown ${scope || "top-level"} field "${label}${key}" (possible typo)`);
+      warnings.push(`${prefix}: unknown ${scope || "top-level"} field ${inlineCode(`${label}${key}`)} (possible typo)`);
     }
   }
 }

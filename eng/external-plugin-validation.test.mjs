@@ -34,6 +34,10 @@ function hasWarning(result, needle) {
   return result.warnings.some((message) => message.includes(needle));
 }
 
+function longestBacktickRun(value) {
+  return Math.max(0, ...Array.from(value.matchAll(/`+/g), (match) => match[0].length));
+}
+
 test("valid plugin has no errors under both policies", () => {
   const marketplace = validateExternalPlugin(basePlugin(), 0, { policy: "marketplace" });
   assert.deepEqual(marketplace.errors, []);
@@ -141,8 +145,24 @@ test("license grammar validates refs, parentheses, WITH exceptions, and warning 
   const backslashed = validateLicenseField("MIT \\ Custom \\`code\\`");
   assert.deepEqual(backslashed.errors, []);
   assert.equal(backslashed.warnings.length, 1);
-  // Backslashes are doubled and backticks escaped in the inline-code span.
-  assert.ok(backslashed.warnings[0].includes("\\\\"));
+  assert.ok(backslashed.warnings[0].includes("`` MIT \\ Custom \\`code\\` ``"));
+});
+
+test("license warning wraps backticks and markdown link in an unbreakable code span", () => {
+  const license = "x` [pwn](https://evil.example)";
+  const result = validateLicenseField(license);
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.warnings.length, 1);
+
+  const warning = result.warnings[0];
+  assert.ok(warning.includes("is not a recognized SPDX identifier"));
+  const [, wrappedValue] = warning.match(/"license" value (.+?) is not a recognized SPDX identifier/u);
+  const fence = wrappedValue.match(/^`+/u)[0];
+  const content = wrappedValue.slice(fence.length, -fence.length);
+
+  assert.ok(fence.length > longestBacktickRun(content));
+  assert.ok(content.includes("[pwn](https://evil.example)"));
 });
 
 test("author.email is validated only when present", () => {
@@ -163,19 +183,19 @@ test("author.email is validated only when present", () => {
 test("unknown fields produce warnings, not errors", () => {
   const topLevel = validateExternalPlugin(basePlugin({ licence: "MIT" }), 0);
   assert.deepEqual(topLevel.errors, []);
-  assert.ok(hasWarning(topLevel, 'unknown top-level field "licence"'));
+  assert.ok(hasWarning(topLevel, "unknown top-level field `licence`"));
 
   const authorTypo = validateExternalPlugin(
     basePlugin({ author: { name: "Example", emial: "dev@example.com" } }),
     0
   );
-  assert.ok(hasWarning(authorTypo, 'unknown author field "author.emial"'));
+  assert.ok(hasWarning(authorTypo, "unknown author field `author.emial`"));
 
   const sourceTypo = validateExternalPlugin(
     basePlugin({ source: { source: "github", repo: "example/example-plugin", ref: "v1.2.3", branch: "main" } }),
     0
   );
-  assert.ok(hasWarning(sourceTypo, 'unknown source field "source.branch"'));
+  assert.ok(hasWarning(sourceTypo, "unknown source field `source.branch`"));
 
   // A typo in the source discriminator itself is still surfaced as an unknown
   // source field (plus the discriminator error), because the unknown-field check
@@ -184,7 +204,7 @@ test("unknown fields produce warnings, not errors", () => {
     basePlugin({ source: { soruce: "github", repo: "example/example-plugin", ref: "v1.2.3" } }),
     0
   );
-  assert.ok(hasWarning(sourceDiscriminatorTypo, 'unknown source field "source.soruce"'));
+  assert.ok(hasWarning(sourceDiscriminatorTypo, "unknown source field `source.soruce`"));
   assert.ok(hasError(sourceDiscriminatorTypo, '"source.source" must be one of'));
 
   // Supported fields never warn.
@@ -193,6 +213,18 @@ test("unknown fields produce warnings, not errors", () => {
     clean.warnings.filter((message) => message.includes("unknown")).length,
     0
   );
+});
+
+test("unknown field warning collapses malicious key markdown into one inline code span", () => {
+  const maliciousKey = "evil\n- injected [x](https://evil.example)";
+  const result = validateExternalPlugin(basePlugin({ [maliciousKey]: true }), 0);
+
+  assert.deepEqual(result.errors, []);
+  const warning = result.warnings.find((message) => message.includes("unknown top-level field"));
+  assert.ok(warning);
+  assert.ok(!warning.includes("\n"));
+  assert.ok(warning.includes("unknown top-level field `evil - injected [x](https://evil.example)`"));
+  assert.ok(warning.includes("(possible typo)"));
 });
 
 test("immutable locator: marketplace warns, publicSubmission errors", () => {
