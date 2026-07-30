@@ -113,6 +113,28 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
 done
 ```
 
+#### 2.1: Stop if Copilot refused review because the PR has too many files
+
+Before interpreting the review as findings or treating a zero-comment review as success, check for the specific too-many-files refusal. Inspect only reviews authored by the Copilot pull request reviewer, and require both stable phrases so unrelated review text cannot trigger this gate:
+
+```bash
+TOO_MANY_FILES_REVIEW=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/reviews" \
+  --jq '[.[]
+    | select(.user.login | test("^copilot-pull-request-reviewer(\\[bot\\])?$"; "i"))
+    | select((.body // "") | test("wasn.t able to review"; "i"))
+    | select((.body // "") | test("maximum number of files"; "i"))
+  ] | last // empty')
+
+if [ -n "$TOO_MANY_FILES_REVIEW" ]; then
+  echo "SHEPHERD FAILED: Copilot could not review PR #$PR_NUMBER because it exceeds the maximum number of files."
+  echo "The PR must not be merged. Reduce or split the PR, then request a new Copilot review."
+  echo "Manual intervention required."
+  exit 1
+fi
+```
+
+Do not attempt to reduce or split the PR automatically. This gate handles only this specific refusal and does not change the treatment of any other Copilot review outcome.
+
 Search for similar text to identify the batch of review findings (`jtbdtask-pr-comments`).
 
 If **Comments generated: 0** (or no comments for this round), skip to **Step 15**.
@@ -300,6 +322,7 @@ This ensures any pending workflow runs are approved and complete before performi
 
 Verify:
 
+- Re-run the Step 2.1 too-many-files refusal query. If it matches, stop immediately; the PR must not be merged.
 - The only failed check is "Block remove-before-merge paths" / "No remove-before-merge directories".
 - All other checks pass.
 
@@ -368,6 +391,7 @@ SHEPHERD COMPLETE: PR #$PR_NUMBER for task #$TASK_ISSUE has been merged to $BASE
 ## Error handling
 
 - **Copilot review agent doesn't post within 10 minutes**: Report and stop.
+- **Copilot refuses review because the PR exceeds the maximum number of files**: Report, require manual intervention, and stop without merging.
 - **8 iterations exhausted**: Report and stop.
 - **Merge conflicts that cannot be auto-resolved**: Report and stop.
 - **API errors**: Retry up to 3 times with 10-second backoff, then report and stop.
