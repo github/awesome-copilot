@@ -63,7 +63,11 @@ When creating issues, produce issue bodies at least as specific and structured a
 7. Discover the repository owner's issue types. Verify `ISSUE_TYPE` exists and is enabled.
 8. Read `PLAN_DIRECTORY/PLAN_FILE_NAME` from `BASE_BRANCH`. Prefer `git show "$BASE_BRANCH:$PLAN_DIRECTORY/$PLAN_FILE_NAME"`; fall back to `gh api`.
 9. Verify both `QUESTIONS_SECTION` and `IMPLEMENTATION_SECTION` headings occur exactly once.
-10. Verify every question that gates implementation has a non-empty `Resolution:`. If any is unresolved, stop and list blockers.
+10. Verify every question that gates implementation has a non-empty resolution block:
+  - Treat `Resolution:` as a marker, not as a single-line value. Its block includes content on the marker line and all following paragraphs, lists, tables, code blocks, and other Markdown until the next peer question/subsection heading or the end of `QUESTIONS_SECTION`.
+  - A standalone `**Resolution:**` line followed by substantive block content is resolved. Never classify it as empty merely because no value appears on the marker line, and never use a same-line-only regular expression as the resolution check.
+  - After ignoring blank lines and Markdown formatting delimiters, classify a resolution as unresolved only when its entire block has no substantive content or explicitly states that the gating decision remains unresolved.
+  - Before stopping, list each blocking question and quote its complete parsed resolution block, or explicitly state that no resolution block exists. If the block contains a concrete decision, answer, or operational consequence, do not report that question as unresolved.
 
 ### Step 2: Study examples and existing children
 
