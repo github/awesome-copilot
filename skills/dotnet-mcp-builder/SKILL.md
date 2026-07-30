@@ -61,7 +61,7 @@ For multi-primitive tasks, load several at once. For trivial edits in an existin
 
 1. **Pin the current stable package, not a preview.** Use `ModelContextProtocol` / `ModelContextProtocol.AspNetCore` / `ModelContextProtocol.Core` at the latest **2.x**. If you find yourself writing `0.3-preview` or `0.4-preview`, stop and check NuGet — preview APIs have breaking differences. 1.x still works but predates the 2026-07-28 spec.
 2. **STDIO servers must not write to stdout.** Stdout is the JSON-RPC channel. Configure `LogToStandardErrorThreshold = LogLevel.Trace` before anything else and never `Console.WriteLine` from a tool.
-3. **HTTP defaults to stateless in 2.x** (v1.x defaulted to stateful — the single most impactful v2 breaking change). Server-to-client features (elicitation via `ElicitAsync`, unsolicited notifications, and the deprecated sampling/roots) require stateful HTTP (`options.Stateless = false`) **or** STDIO — the stateless default will break them at runtime.
+3. **HTTP defaults to stateless in 2.x** (v1.x defaulted to stateful — the single most impactful v2 breaking change). The 2026-07-28 revision has no HTTP sessions at all: setting `Stateless = false` makes the server refuse that revision and serve clients via the legacy `initialize` fallback. For "ask the user something mid-tool" on current-protocol HTTP, use the multi-round-trip `InputRequiredException` pattern; reserve stateful HTTP (or STDIO) for the legacy `ElicitAsync`/sampling/roots paths and pushed notifications.
 4. **SSE-only is deprecated.** Use Streamable HTTP. Only enable legacy SSE (`EnableLegacySse = true`) for an old client you must support, and call it out.
 5. **Don't design new servers around deprecated capabilities.** The 2026-07-28 spec deprecates roots, sampling, and MCP-channel logging; the SDK marks them `[Obsolete]` (warning `MCP9005`). They still work against down-level clients, but for new designs prefer the multi-round-trip `input_required` pattern and `ILogger` logging. Suppress `MCP9005` only as a documented transition measure.
 6. **Always `[Description]` tools and parameters.** This is what the LLM sees when picking and shaping calls. Vague descriptions are the #1 reason tools don't get used.
@@ -81,7 +81,7 @@ Walk this checklist before guessing:
 2. **HTTP 404:** path mismatch — `app.MapMcp()` is root, `app.MapMcp("/mcp")` puts it under `/mcp`.
 3. **Tool not appearing:** missing `[McpServerToolType]` on the class, or no `.WithToolsFromAssembly()` / `.WithTools<T>()` registered.
 4. **Args not bound:** parameter names must match the JSON-RPC `arguments` keys; complex types bind via `System.Text.Json`.
-5. **Sampling/elicitation/roots failing:** transport is stateless HTTP (the 2.x default — set `Stateless = false`), or the client doesn't advertise the capability.
+5. **Sampling/elicitation/roots failing:** these legacy server-to-client calls can't run on current-protocol HTTP — migrate to the multi-round-trip `InputRequiredException` pattern, or (legacy paths only) set `Stateless = false`, knowing that pins HTTP clients to a down-level `initialize` revision. Also check the client actually advertises the capability.
 6. **`MCP9005` build warnings after upgrading to 2.x:** the code uses deprecated roots/sampling/logging APIs. Plan the migration; suppress only temporarily.
 
 Still stuck? Point the user at the [`EverythingServer`](https://github.com/modelcontextprotocol/csharp-sdk/tree/main/samples/EverythingServer) sample — it exercises every feature.

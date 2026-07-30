@@ -57,10 +57,10 @@ public static class EchoTool
 
 | Mode | `options.Stateless` | Behaviour | Use when |
 |---|---|---|---|
-| **Stateless** | `true` (default since 2.x) | No `Mcp-Session-Id`. Each POST is independent. | Horizontal scaling, simple tool servers, no server-initiated traffic. |
-| **Stateful** | `false` | Server assigns and tracks `Mcp-Session-Id`. Long-lived session. | You need elicitation, log notifications, the deprecated sampling/roots, or anything that pushes from server to client. Requires session affinity at the load balancer. |
+| **Stateless** | `true` (default since 2.x) | No `Mcp-Session-Id`. Each POST is independent. Serves the current (2026-07-28) revision. | Horizontal scaling, simple tool servers, current-protocol clients. |
+| **Stateful** | `false` | Server assigns and tracks `Mcp-Session-Id`. Long-lived session. **Down-level compatibility mode:** the server refuses the 2026-07-28 revision so dual-path clients fall back to an initialize-capable revision (2025-11-25 or earlier). | Legacy `ElicitAsync`/sampling/roots paths, pushed log notifications, clients that haven't adopted 2026-07-28. Requires session affinity at the load balancer. |
 
-**Rule:** if the user wants any of `ElicitAsync`, the deprecated `SampleAsync`/`RequestRootsAsync`, or to push log/notification messages, set `Stateless = false` explicitly. On the stateless default the calls will fail at runtime with no transport to deliver them on. For "ask the user something mid-tool" on a stateless deployment, prefer the multi-round-trip `input_required` pattern from the 2026-07-28 spec (see [`elicitation.md`](./elicitation.md)).
+**Rule:** on the current (2026-07-28) protocol there are no HTTP sessions — "ask the user something mid-tool" uses the multi-round-trip pattern (throw `InputRequiredException`, handle the retried call; see [`elicitation.md`](./elicitation.md)), which works in both session modes and both revisions. Set `Stateless = false` only for the legacy paths — `ElicitAsync`, the deprecated `SampleAsync`/`RequestRootsAsync`, or pushed log/notification messages — and be aware it pins HTTP clients to a down-level, initialize-capable revision. On the stateless default those legacy calls fail at runtime with no channel to deliver them on.
 
 ## Endpoint shape
 
