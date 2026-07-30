@@ -12,7 +12,7 @@ Create a complete Model Context Protocol (MCP) server in TypeScript using the **
 1. **Project Structure**: Create a new TypeScript/Node.js project with proper directory structure
 2. **NPM Packages**: The v1 monolithic `@modelcontextprotocol/sdk` package is retired. Use the focused v2 packages:
    - `@modelcontextprotocol/server` — server implementation (stdio transport via the `@modelcontextprotocol/server/stdio` subpath)
-   - `@modelcontextprotocol/node` — Node HTTP transport (`NodeStreamableHTTPServerTransport`), or a framework adapter: `@modelcontextprotocol/express`, `@modelcontextprotocol/hono`, `@modelcontextprotocol/fastify`
+   - `@modelcontextprotocol/node` — Node HTTP transport (`NodeStreamableHTTPServerTransport`), or a framework adapter: `@modelcontextprotocol/express`, `@modelcontextprotocol/hono`, `@modelcontextprotocol/fastify` — each adapter requires its peer framework to be installed alongside it (e.g. `@modelcontextprotocol/express` + `express`)
    - `@modelcontextprotocol/core` — shared protocol schemas (import `*Schema` constants from here, not from `sdk/types.js`)
    - `zod@^4.2` — v2 requires Zod 4.2+; do not use zod@3
 3. **Runtime**: Node.js 20+ (v2 minimum); ESM-first with `"type": "module"` (a CommonJS build is also shipped, so `require()` works if needed)
@@ -24,7 +24,7 @@ Create a complete Model Context Protocol (MCP) server in TypeScript using the **
 
 ### Project Setup
 - Initialize with `npm init` and create package.json
-- Install dependencies: `@modelcontextprotocol/server`, `zod@^4.2`, and the transport package (`@modelcontextprotocol/node` or a framework adapter for HTTP)
+- Install dependencies: `@modelcontextprotocol/server`, `zod@^4.2`, and the transport package — `@modelcontextprotocol/node` for plain Node HTTP, or a framework adapter together with its peer framework (e.g. `npm install @modelcontextprotocol/express express`)
 - Configure TypeScript with ES modules: `"type": "module"` in package.json
 - Add dev dependencies: `tsx` or `ts-node` for development
 - Create proper .gitignore file
@@ -74,7 +74,7 @@ Create a complete Model Context Protocol (MCP) server in TypeScript using the **
 - External API integrations
 - File system operations (read, search, analyze)
 - Database queries
-- Text analysis or summarization (with sampling)
+- Text analysis or summarization (LLM-assisted via the multi-round `input_required` pattern)
 - System information retrieval
 
 ## Configuration Options
@@ -104,7 +104,7 @@ Create a complete Model Context Protocol (MCP) server in TypeScript using the **
 - Add troubleshooting tips for common issues
 
 ## Additional Features to Consider
-- Sampling support for LLM-powered tools
+- LLM-powered tools using the multi-round `input_required` pattern (the v2 replacement for the deprecated sampling subsystem)
 - User input elicitation for interactive workflows
 - Dynamic tool registration with enable/disable capabilities
 - Notification debouncing for bulk updates
