@@ -80,7 +80,7 @@ Match this on the client side (`Endpoint = new Uri("https://host/mcp/v1")`).
 ## Version negotiation and routing (2026-07-28)
 
 - **Discovery-first:** v2 clients probe the `server/discover` method to learn capabilities instead of the legacy `initialize` handshake. The SDK answers both and falls back automatically for down-level peers (2025-11-25 and earlier) — you don't write any code for this, but don't be surprised to see `server/discover` in traffic captures.
-- **Routable headers:** requests carry `Mcp-Method` and `Mcp-Name` headers so gateways and rate limiters can route/throttle per tool without parsing JSON bodies. Useful when configuring an API gateway in front of the server.
+- **Routable headers:** every Streamable HTTP POST carries an `Mcp-Method` header (e.g. `tools/call`), and named invocations (`tools/call`, `prompts/get`, `resources/read`) additionally carry `Mcp-Name` (e.g. the tool name), so gateways and rate limiters can route/throttle per tool without parsing JSON bodies. Don't require `Mcp-Name` globally at the gateway — discovery and list requests legitimately omit it.
 
 ## Per-session configuration (HttpContext access)
 

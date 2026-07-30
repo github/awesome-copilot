@@ -196,4 +196,4 @@ builder.Services.AddMcpServer(options =>
 });
 ```
 
-By default, the SDK advertises everything you've registered — usually the right behaviour. Note the `Roots`, `Sampling`, and `Logging` capability fields are `[Obsolete]` in 2.x (`MCP9005`) — don't advertise them on new servers.
+By default, the SDK advertises everything you've registered — usually the right behaviour. Note that `Logging` is `[Obsolete]` in 2.x (`MCP9005`) — don't advertise it on new servers. Roots and sampling are *client* capabilities: a server never advertises them, it only checks `server.ClientCapabilities?.Roots` / `.Sampling` before using the (equally deprecated) client-side features.
