@@ -600,6 +600,12 @@
       }
     },
     {
+      "name": "flight-map-canvas",
+      "source": "extensions/flight-map-canvas",
+      "description": "A GitHub Copilot canvas that generates a view where Google Maps can be explored using 3D controls, as if a flight simulator. Agents can send the flight anywhere and report what they are working on.",
+      "version": "1.0.0"
+    },
+    {
       "name": "flowstudio-power-automate",
       "source": "plugins/flowstudio-power-automate",
       "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
