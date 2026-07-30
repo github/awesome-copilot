@@ -10,14 +10,39 @@
 
 set -euo pipefail
 
-if [[ $# -lt 3 ]]; then
+usage() {
     echo "Usage: $0 <TASK_ISSUES> <BASE_BRANCH> <REPO>" >&2
+}
+
+fail_input() {
+    echo "Error: $1" >&2
+    usage
     exit 1
+}
+
+if [[ $# -ne 3 ]]; then
+    fail_input "Expected exactly 3 arguments; received $#. TASK_ISSUES must be the first argument."
 fi
 
 TASK_ISSUES="$1"
 BASE_BRANCH="$2"
 REPO="$3"
+
+if [[ ! "$TASK_ISSUES" =~ ^[1-9][0-9]*(,[1-9][0-9]*)*$ ]]; then
+    fail_input "TASK_ISSUES must be a comma-separated list of positive issue numbers (for example: 2167,2168); received '$TASK_ISSUES'."
+fi
+
+if [[ "$BASE_BRANCH" == "main" ]]; then
+    fail_input "BASE_BRANCH must not be 'main'."
+fi
+
+if ! git check-ref-format --branch "$BASE_BRANCH" >/dev/null 2>&1; then
+    fail_input "BASE_BRANCH is not a valid Git branch name; received '$BASE_BRANCH'."
+fi
+
+if [[ ! "$REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+    fail_input "REPO must be in OWNER/REPO format; received '$REPO'."
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
