@@ -227,7 +227,7 @@ export function isRecognizedSpdxExpression(license) {
 function sanitizeForMessage(value) {
   const collapsed = String(value).replace(/\s+/g, " ").trim();
   const truncated = collapsed.length > 80 ? `${collapsed.slice(0, 77)}...` : collapsed;
-  return `\`${truncated.replace(/`/g, "\\`")}\``;
+  return `\`${truncated.replace(/\\/g, "\\\\").replace(/`/g, "\\`")}\``;
 }
 
 // Canonical license validation. A non-SPDX license is a warning (never an error)

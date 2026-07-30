@@ -377,8 +377,6 @@ function validateGitHubSource(source, prefix, errors, warnings, policy) {
       );
     }
   }
-
-  validateKnownFields(source, ALLOWED_SOURCE_KEYS, "source", prefix, warnings);
 }
 
 export function validateExternalPlugin(plugin, index, options = {}) {
@@ -410,12 +408,15 @@ export function validateExternalPlugin(plugin, index, options = {}) {
 
   if (!plugin.source) {
     errors.push(`${prefix}: "source" is required`);
-  } else if (typeof plugin.source === "string") {
+  } else if (typeof plugin.source !== "object" || Array.isArray(plugin.source)) {
     errors.push(`${prefix}: "source" must be an object (local file paths are not allowed for external plugins)`);
-  } else if (!policy.allowedSourceTypes.includes(plugin.source.source)) {
-    errors.push(`${prefix}: "source.source" must be one of: ${policy.allowedSourceTypes.join(", ")}`);
-  } else if (plugin.source.source === "github") {
-    validateGitHubSource(plugin.source, prefix, errors, warnings, policy);
+  } else {
+    validateKnownFields(plugin.source, ALLOWED_SOURCE_KEYS, "source", prefix, warnings);
+    if (!policy.allowedSourceTypes.includes(plugin.source.source)) {
+      errors.push(`${prefix}: "source.source" must be one of: ${policy.allowedSourceTypes.join(", ")}`);
+    } else if (plugin.source.source === "github") {
+      validateGitHubSource(plugin.source, prefix, errors, warnings, policy);
+    }
   }
 
   return { errors, warnings };

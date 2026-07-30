@@ -137,6 +137,12 @@ test("license grammar validates refs, parentheses, WITH exceptions, and warning 
   assert.equal(injected.warnings.length, 1);
   assert.ok(!injected.warnings[0].includes("\n"));
   assert.ok(hasWarning(injected, "not a recognized SPDX identifier"));
+
+  const backslashed = validateLicenseField("MIT \\ Custom \\`code\\`");
+  assert.deepEqual(backslashed.errors, []);
+  assert.equal(backslashed.warnings.length, 1);
+  // Backslashes are doubled and backticks escaped in the inline-code span.
+  assert.ok(backslashed.warnings[0].includes("\\\\"));
 });
 
 test("author.email is validated only when present", () => {
@@ -170,6 +176,16 @@ test("unknown fields produce warnings, not errors", () => {
     0
   );
   assert.ok(hasWarning(sourceTypo, 'unknown source field "source.branch"'));
+
+  // A typo in the source discriminator itself is still surfaced as an unknown
+  // source field (plus the discriminator error), because the unknown-field check
+  // now runs for every source object rather than only recognized github sources.
+  const sourceDiscriminatorTypo = validateExternalPlugin(
+    basePlugin({ source: { soruce: "github", repo: "example/example-plugin", ref: "v1.2.3" } }),
+    0
+  );
+  assert.ok(hasWarning(sourceDiscriminatorTypo, 'unknown source field "source.soruce"'));
+  assert.ok(hasError(sourceDiscriminatorTypo, '"source.source" must be one of'));
 
   // Supported fields never warn.
   const clean = validateExternalPlugin(basePlugin({ homepage: "https://github.com/example/example-plugin" }), 0);
