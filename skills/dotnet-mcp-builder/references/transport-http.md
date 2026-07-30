@@ -30,13 +30,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddMcpServer()
-    .WithHttpTransport(options =>
-    {
-        // Stateless = true: each request is independent, no Mcp-Session-Id tracking.
-        // Required for horizontal scaling without sticky sessions.
-        // Disables server-to-client features (sampling, elicitation, roots, unsolicited notifications).
-        options.Stateless = true;
-    })
+    // Since 2.x, Stateless defaults to true: each request is independent,
+    // no Mcp-Session-Id tracking, no SSE session endpoints — ready for
+    // horizontal scaling without sticky sessions.
+    .WithHttpTransport()
     .WithToolsFromAssembly();
 
 var app = builder.Build();
@@ -56,12 +53,14 @@ public static class EchoTool
 
 ## Stateless vs. stateful — the most important decision
 
+> **v2 breaking change:** `HttpServerTransportOptions.Stateless` now defaults to **`true`** (it defaulted to `false` on 1.x). A server upgraded to 2.x without touching options stops creating sessions and stops exposing SSE endpoints. Set `Stateless = false` explicitly to restore the legacy behavior.
+
 | Mode | `options.Stateless` | Behaviour | Use when |
 |---|---|---|---|
-| **Stateless** | `true` | No `Mcp-Session-Id`. Each POST is independent. | Horizontal scaling, simple tool servers, no server-initiated traffic. |
-| **Stateful** | `false` (default) | Server assigns and tracks `Mcp-Session-Id`. Long-lived session. | You need elicitation, sampling, roots, log notifications, or anything that pushes from server to client. Requires session affinity at the load balancer. |
+| **Stateless** | `true` (default since 2.x) | No `Mcp-Session-Id`. Each POST is independent. | Horizontal scaling, simple tool servers, no server-initiated traffic. |
+| **Stateful** | `false` | Server assigns and tracks `Mcp-Session-Id`. Long-lived session. | You need elicitation, log notifications, the deprecated sampling/roots, or anything that pushes from server to client. Requires session affinity at the load balancer. |
 
-**Rule:** if the user wants any of `ElicitAsync`, `SampleAsync`, `RequestRootsAsync`, or to push log/notification messages, **do not** set `Stateless = true`. The calls will fail at runtime with no transport to deliver them on.
+**Rule:** if the user wants any of `ElicitAsync`, the deprecated `SampleAsync`/`RequestRootsAsync`, or to push log/notification messages, set `Stateless = false` explicitly. On the stateless default the calls will fail at runtime with no transport to deliver them on. For "ask the user something mid-tool" on a stateless deployment, prefer the multi-round-trip `input_required` pattern from the 2026-07-28 spec (see [`elicitation.md`](./elicitation.md)).
 
 ## Endpoint shape
 
@@ -77,6 +76,11 @@ app.MapMcp("/mcp/v1");
 ```
 
 Match this on the client side (`Endpoint = new Uri("https://host/mcp/v1")`).
+
+## Version negotiation and routing (2026-07-28)
+
+- **Discovery-first:** v2 clients probe the `server/discover` method to learn capabilities instead of the legacy `initialize` handshake. The SDK answers both and falls back automatically for down-level peers (2025-11-25 and earlier) — you don't write any code for this, but don't be surprised to see `server/discover` in traffic captures.
+- **Routable headers:** requests carry `Mcp-Method` and `Mcp-Name` headers so gateways and rate limiters can route/throttle per tool without parsing JSON bodies. Useful when configuring an API gateway in front of the server.
 
 ## Per-session configuration (HttpContext access)
 

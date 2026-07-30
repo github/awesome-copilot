@@ -2,7 +2,9 @@
 
 Elicitation lets a tool **ask the user for input mid-execution**, via the client. The LLM doesn't see the question; the client surfaces it directly to the user. This turns one-shot tool calls into interactive flows — collecting confirmation, missing parameters, credentials (URL mode), etc.
 
-> **Spec version:** 2025-11-25. URL mode is the newer addition (originally 2025-06-18 had only form mode).
+> **Spec version:** current through 2026-07-28 (elicitation is *not* among the v2 deprecations — sampling/roots/logging are). URL mode is the newer addition (originally 2025-06-18 had only form mode).
+
+> **Stateless alternative (2026-07-28):** the spec adds multi-round-trip requests — a tool can return an `input_required` result instead of completing, and the client retries the call with the user's answers. Unlike `ElicitAsync`, this needs no server-to-client channel, so it **works on stateless HTTP**. Prefer it for horizontally-scaled deployments; check the [SDK API reference](https://csharp.sdk.modelcontextprotocol.io/api/ModelContextProtocol.html) for the current result-type name (`InputRequiredResult` at the time of writing) rather than guessing.
 
 ## Two modes
 

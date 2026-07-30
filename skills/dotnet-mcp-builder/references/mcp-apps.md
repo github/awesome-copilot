@@ -2,7 +2,7 @@
 
 [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) is the official extension that lets a tool return an **interactive UI** rendered in a sandboxed iframe inside the host (Claude, Claude Desktop, VS Code Copilot, Goose, Postman, MCPJam). Typical use cases: charts, dashboards, multi-step forms, 3D viewers, real-time monitors, PDF/video viewers.
 
-> **Important:** as of early 2026, the C# SDK does **not** ship a typed convenience layer for MCP Apps (tracked in [csharp-sdk#1431](https://github.com/modelcontextprotocol/csharp-sdk/issues/1431)). You implement the spec by hand: serve a `ui://` resource and emit the right `_meta` on the tool. It's not hard — just untyped. This page shows you the pattern.
+> **Important:** SDK 2.x ships a dedicated extension package, **`ModelContextProtocol.Extensions.Apps`**, with typed MCP Apps support — on 2.x, add that package and follow its API docs instead of hand-rolling (check the [package page](https://www.nuget.org/packages/ModelContextProtocol.Extensions.Apps) and [SDK API reference](https://csharp.sdk.modelcontextprotocol.io/api/ModelContextProtocol.html) for the current surface; don't guess method names). The manual pattern below remains correct on the wire and is what you need on **1.x**, which has no typed layer (was tracked in [csharp-sdk#1431](https://github.com/modelcontextprotocol/csharp-sdk/issues/1431)): serve a `ui://` resource and emit the right `_meta` on the tool.
 
 ## How it works (short version)
 
@@ -215,6 +215,6 @@ For pure-UI iteration, [MCP Inspector](https://github.com/modelcontextprotocol/i
 - **Forgetting `Tool.Meta` on the tool.** Without the `Meta` property containing the `ui.resourceUri` entry, the host treats your tool as a regular text-returning tool. The UI never appears.
 - **Trying to use browser APIs outside the sandbox.** No cookies, no localStorage from the parent. Use `app.updateModelContext` and tool calls for state.
 
-## Future-proofing
+## Migrating from the manual pattern
 
-When the C# SDK ships its typed MCP Apps helpers (issue [#1431](https://github.com/modelcontextprotocol/csharp-sdk/issues/1431)), you'll likely be able to replace the manual `Configure` block with an attribute or fluent builder. The serving of `ui://` resources won't change. Keep your UI HTML as embedded resources so the migration is mechanical.
+On 2.x, `ModelContextProtocol.Extensions.Apps` replaces the manual `Configure` block with typed helpers. The serving of `ui://` resources and the HTML bundle don't change — keep your UI HTML as embedded resources so the migration is mechanical, and consult the package docs for the registration API rather than inventing it.
