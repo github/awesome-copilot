@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pcf-development",
   "description": "Complete toolkit for developing custom code components using Power Apps Component Framework for model-driven and canvas apps",
   "version": "1.0.0",

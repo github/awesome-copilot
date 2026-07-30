@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "site-studio",
   "description": "Plan, draft, and track a personal website section by section — a shared canvas where you and your agent author content, watch progress, and review every change.",
   "version": "1.0.0",
@@ -14,6 +15,9 @@
     "section-planning",
     "site-builder"
   ],
-  "logo": "assets/preview.png",
-  "extensions": "."
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    }
+  }
 }

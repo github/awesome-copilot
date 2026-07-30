@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "work-hub",
   "description": "Generic cross-repo command center canvas for GitHub Copilot with onboarding, focus planning, repo health, work signals, and session cleanup.",
   "version": "1.0.0",
@@ -14,6 +15,9 @@
     "work-triage",
     "workflow-visibility"
   ],
-  "logo": "assets/preview.png",
-  "extensions": "."
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    }
+  }
 }

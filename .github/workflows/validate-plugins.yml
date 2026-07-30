@@ -1,0 +1,65 @@
+name: Validate Plugins and Extensions
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "plugins/**"
+      - "extensions/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    name: Plugin & extension spec validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate plugins and extensions
+        id: validate
+        run: npm run plugin:validate
+
+      - name: Post failure summary on PR
+        if: failure() && steps.validate.outcome == 'failure'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const body = [
+              '🛑 **Plugin/extension validation failed**',
+              '',
+              'One or more plugins or extensions in this PR do not pass spec validation.',
+              '',
+              'All internal plugins and extensions must include:',
+              '- `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"` in `plugin.json`',
+              '- A valid `name`, `description`, and `version`',
+              '- For **extensions**: `extensions["com.github.copilot"].logo` set to `"assets/preview.png"`',
+              '',
+              'Run `npm run plugin:validate` locally to see the full list of errors.',
+            ].join('\n');
+
+            const isFork = context.payload.pull_request.head.repo.fork;
+            if (!isFork) {
+              try {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body,
+                });
+              } catch (error) {
+                core.warning(`Could not post PR comment: ${error.message}`);
+              }
+            }

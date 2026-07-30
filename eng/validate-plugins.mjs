@@ -8,6 +8,9 @@ import { readExternalPlugins } from "./external-plugin-validation.mjs";
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 
+const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
+const COPILOT_NAMESPACE = "com.github.copilot";
+
 // Validation functions
 function validateName(name, folderName) {
   const errors = [];
@@ -15,16 +18,23 @@ function validateName(name, folderName) {
     errors.push("name is required and must be a string");
     return errors;
   }
-  if (name.length < 1 || name.length > 50) {
-    errors.push("name must be between 1 and 50 characters");
+  if (name.length < 1 || name.length > 64) {
+    errors.push("name must be between 1 and 64 characters");
   }
-  if (!/^[a-z0-9-]+$/.test(name)) {
-    errors.push("name must contain only lowercase letters, numbers, and hyphens");
+  if (!/^[a-z0-9][a-z0-9.-]*[a-z0-9]$|^[a-z0-9]$/.test(name)) {
+    errors.push("name must contain only lowercase letters, numbers, hyphens, and dots (spec §5.5)");
   }
   if (name !== folderName) {
     errors.push(`name "${name}" must match folder name "${folderName}"`);
   }
   return errors;
+}
+
+function validateSchema(parsed) {
+  if (parsed["$schema"] !== AGENT_PLUGINS_SCHEMA) {
+    return `$schema must be "${AGENT_PLUGINS_SCHEMA}"`;
+  }
+  return null;
 }
 
 function validateDescription(description) {
@@ -225,7 +235,11 @@ function validatePlugin(folderName) {
     return { errors, plugin: parsedPlugin };
   }
 
-  // Rule 3 & 4: name, description, version
+  // Rule 3: $schema required
+  const schemaError = validateSchema(plugin);
+  if (schemaError) errors.push(schemaError);
+
+  // Rule 4 & 5: name, description, version
   const nameErrors = validateName(plugin.name, folderName);
   errors.push(...nameErrors);
 
@@ -235,7 +249,7 @@ function validatePlugin(folderName) {
   const versionError = validateVersion(plugin.version);
   if (versionError) errors.push(versionError);
 
-  // Rule 5: keywords (or tags for backward compat)
+  // Rule 6: keywords (or tags for backward compat)
   const keywordsError = validateKeywords(plugin.keywords ?? plugin.tags);
   if (keywordsError) errors.push(keywordsError);
 
@@ -281,6 +295,10 @@ function validateExtensionManifest(folderName) {
 
   parsedPlugin = parsed;
 
+  // $schema required
+  const schemaError = validateSchema(parsed);
+  if (schemaError) errors.push(schemaError);
+
   const nameErrors = validateName(parsed.name, folderName);
   errors.push(...nameErrors);
 
@@ -293,21 +311,36 @@ function validateExtensionManifest(folderName) {
   const keywordsError = validateKeywords(parsed.keywords ?? parsed.tags);
   if (keywordsError) errors.push(keywordsError);
 
-  // Extension convention: logo must be exactly "assets/preview.png"
-  if (parsed.logo !== "assets/preview.png") {
-    errors.push('logo must be exactly "assets/preview.png" (extension convention)');
-  } else {
-    validateExtensionScreenshotPath(extensionDir, parsed.logo, "logo", errors);
+  // Extension convention: top-level logo must NOT be present (moved into namespace)
+  if (parsed.logo !== undefined) {
+    errors.push('top-level "logo" must not be present — use extensions["com.github.copilot"].logo instead');
   }
 
   // Extension convention: x-awesome-copilot must not be present
   if (parsed["x-awesome-copilot"] !== undefined) {
-    errors.push("x-awesome-copilot field must not be present (use convention-based logo instead)");
+    errors.push("x-awesome-copilot field must not be present");
   }
 
-  // Extension convention: extensions field must be "."
-  if (parsed.extensions !== ".") {
-    errors.push('extensions field must be exactly "." (extension convention)');
+  // Extension convention: extensions must be an object with com.github.copilot namespace
+  const ext = parsed.extensions;
+  if (ext === undefined || ext === null) {
+    errors.push(`extensions field is required and must be an object with a "${COPILOT_NAMESPACE}" key`);
+  } else if (typeof ext !== "object" || Array.isArray(ext) || typeof ext === "string") {
+    errors.push(`extensions must be an object keyed by reverse-domain namespace (e.g. "${COPILOT_NAMESPACE}")`);
+  } else {
+    const ns = ext[COPILOT_NAMESPACE];
+    if (ns === undefined) {
+      errors.push(`extensions["${COPILOT_NAMESPACE}"] is required`);
+    } else if (typeof ns !== "object" || Array.isArray(ns)) {
+      errors.push(`extensions["${COPILOT_NAMESPACE}"] must be an object`);
+    } else {
+      // Validate logo inside the namespace
+      if (ns.logo !== "assets/preview.png") {
+        errors.push(`extensions["${COPILOT_NAMESPACE}"].logo must be exactly "assets/preview.png"`);
+      } else {
+        validateExtensionScreenshotPath(extensionDir, ns.logo, `extensions["${COPILOT_NAMESPACE}"].logo`, errors);
+      }
+    }
   }
 
   return { errors, plugin: parsedPlugin };

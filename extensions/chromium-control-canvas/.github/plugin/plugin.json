@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "chromium-control-canvas",
   "description": "Opens a real Chromium window you can navigate and interact with from a Copilot canvas control panel and agent actions.",
   "version": "1.0.0",
@@ -15,6 +16,9 @@
     "ui-testing",
     "web-navigation"
   ],
-  "logo": "assets/preview.png",
-  "extensions": "."
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    }
+  }
 }

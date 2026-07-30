@@ -86,12 +86,12 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 
 - Each extension folder must include `extension.mjs`
 - Extension metadata must live at `.github/plugin/plugin.json`
-- Extension `plugin.json` **must** follow the convention:
+- Extension `plugin.json` **must** follow the Agent Plugins v1.0.0 spec:
+  - `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"` (required)
   - `name`, `description`, `version` are required
-  - `logo` **must** be exactly `"assets/preview.png"` (enforced convention)
-  - `extensions` **must** be exactly `"."` (per [copilot-agent-runtime#9929](https://github.com/github/copilot-agent-runtime/pull/9929))
+  - `extensions` **must** be the namespace object: `{ "com.github.copilot": { "logo": "assets/preview.png" } }`
   - Optional: `author`, `keywords` fields
-  - **Must not** include `x-awesome-copilot` field (use convention-based `assets/preview.png` only)
+  - **Must not** include top-level `logo` (moved into the namespace) or `extensions: "."` (replaced by namespace object)
 - Each extension must have `assets/preview.png` as the primary visual asset
 - Do not add `canvas.json`; website metadata is sourced from `.github/plugin/plugin.json`
 
@@ -120,10 +120,11 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 #### Plugin Folders (plugins/\*)
 
 - Each plugin is a folder containing a `.github/plugin/plugin.json` file with metadata
+- plugin.json **must** have `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"` (Agent Plugins v1.0.0)
 - plugin.json must have `name` field (matching the folder name)
 - plugin.json must have `description` field (describing the plugin's purpose)
 - plugin.json must have `version` field (semantic version, e.g., "1.0.0")
-- Plugin content is defined declaratively in plugin.json using Claude Code spec fields (`agents`, `commands`, `skills`). Source files live in top-level directories and are materialized into plugins by CI.
+- Plugin content is defined declaratively in plugin.json using source-only composition fields (`agents`, `commands`, `skills`). Source files live in top-level directories and are materialized into plugins by CI. These fields are stripped from the served manifest — conventional directory discovery handles them in spec mode.
 - The `marketplace.json` file is automatically generated from all plugins during build
 - Plugins are discoverable and installable via GitHub Copilot CLI
 
@@ -177,7 +178,20 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 **For Canvas Extensions:**
 
 1. Create/update the extension in `extensions/<extension-id>/` with `extension.mjs`
-2. Add `.github/plugin/plugin.json` metadata (required: `name`, `description`, `version`, `logo: "assets/preview.png"`, `extensions: "."`; optional: `author`, `keywords`)
+2. Add `.github/plugin/plugin.json` with spec-compliant metadata:
+   ```json
+   {
+     "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+     "name": "<extension-id>",
+     "description": "...",
+     "version": "1.0.0",
+     "extensions": {
+       "com.github.copilot": {
+         "logo": "assets/preview.png"
+       }
+     }
+   }
+   ```
 3. Ensure `assets/preview.png` exists as the primary visual asset
 4. Run `npm run plugin:validate` to validate plugin and extension metadata
 5. Run `npm run build` to regenerate website data and marketplace output
@@ -312,6 +326,7 @@ For plugins (plugins/\*/):
 
 - [ ] Directory contains a `.github/plugin/plugin.json` file
 - [ ] Directory contains a `README.md` file
+- [ ] `plugin.json` has `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"`
 - [ ] `plugin.json` has `name` field matching the directory name (lowercase with hyphens)
 - [ ] `plugin.json` has non-empty `description` field
 - [ ] `plugin.json` has `version` field (semantic version, e.g., "1.0.0")
@@ -319,7 +334,7 @@ For plugins (plugins/\*/):
 - [ ] If `keywords` is present, it is an array of lowercase hyphenated strings
 - [ ] If `agents`, `commands`, or `skills` arrays are present, each entry is a valid relative path
 - [ ] The plugin does not reference non-existent files
-- [ ] Run `npm run build` to verify marketplace.json is updated correctly
+- [ ] Run `npm run plugin:validate` and `npm run build` to verify the plugin passes all checks
 
 ## Contributing
 

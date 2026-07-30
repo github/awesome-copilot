@@ -133,6 +133,7 @@ async function createPlugin() {
 
     // Generate plugin.json
     const pluginJson = {
+      "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
       name: pluginId,
       description,
       version: "1.0.0",

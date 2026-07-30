@@ -1220,7 +1220,11 @@ function resolveExtensionScreenshots(pluginJson, extensionDir, relPath, ref) {
     }
     : null;
 
-  const logoEntry = normalizeExtensionScreenshotRole(pluginJson?.logo, relPath, ref);
+  const copilotNs = pluginJson?.extensions?.["com.github.copilot"];
+  const logoEntry = normalizeExtensionScreenshotRole(
+    copilotNs?.logo ?? pluginJson?.logo,
+    relPath, ref
+  );
   const screenshotConfig = pluginJson?.["x-awesome-copilot"]?.screenshots || {};
   const iconEntry = normalizeExtensionScreenshotRole(screenshotConfig.icon, relPath, ref);
   const galleryRaw = screenshotConfig.gallery;

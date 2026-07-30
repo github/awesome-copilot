@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "feedback-themes",
   "description": "Explore grouped customer feedback signals by impact and drill into a theme to guide product next steps.",
   "version": "1.0.0",
@@ -14,6 +15,9 @@
     "theme-analysis",
     "trend-discovery"
   ],
-  "logo": "assets/preview.png",
-  "extensions": "."
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    }
+  }
 }

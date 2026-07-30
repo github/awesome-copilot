@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "color-orb",
   "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
   "version": "1.0.0",
@@ -14,6 +15,9 @@
     "sse-events",
     "visual-feedback"
   ],
-  "logo": "assets/preview.png",
-  "extensions": "."
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    }
+  }
 }

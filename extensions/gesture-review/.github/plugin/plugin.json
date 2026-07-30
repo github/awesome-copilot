@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "gesture-review",
   "description": "Review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
   "version": "1.0.0",
@@ -14,6 +15,9 @@
     "mediapipe",
     "pull-request-review"
   ],
-  "logo": "assets/preview.png",
-  "extensions": "."
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    }
+  }
 }

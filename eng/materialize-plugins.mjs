@@ -145,36 +145,22 @@ function materializePlugins() {
       totalExtensions++;
     }
 
-    // Rewrite plugin.json to use folder paths instead of individual file paths.
-    // On staged, paths like ./agents/foo.md point to individual source files.
-    // On main, after materialization, we only need the containing directory.
-    const rewritten = { ...metadata };
-    let changed = false;
+    // Emit a spec-compliant served manifest for the marketplace branch.
+    // Source manifests keep non-spec composition fields (agents, skills, x-awesome-copilot)
+    // for build tooling. The served manifest retains only Agent Plugins v1.0.0 fields
+    // so the runtime uses conventional directory discovery for all content.
+    const SPEC_FIELDS = new Set(["$schema", "name", "version", "description", "author",
+      "homepage", "repository", "license", "keywords", "extensions"]);
+    const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
 
-    for (const field of ["agents", "commands"]) {
-      if (Array.isArray(rewritten[field]) && rewritten[field].length > 0) {
-        const dirs = [...new Set(rewritten[field].map(p => path.dirname(p)))];
-        rewritten[field] = dirs;
-        changed = true;
+    const served = { "$schema": AGENT_PLUGINS_SCHEMA };
+    for (const [key, val] of Object.entries(metadata)) {
+      if (SPEC_FIELDS.has(key) && key !== "$schema") {
+        served[key] = val;
       }
     }
 
-    if (Array.isArray(rewritten.skills) && rewritten.skills.length > 0) {
-      // Skills are already folder refs (./skills/name/); strip trailing slash
-      rewritten.skills = rewritten.skills.map(p => p.replace(/\/$/, ""));
-      changed = true;
-    }
-
-    if (Array.isArray(rewritten?.["x-awesome-copilot"]?.extensions) &&
-      rewritten["x-awesome-copilot"].extensions.length > 0) {
-      rewritten["x-awesome-copilot"].extensions =
-        rewritten["x-awesome-copilot"].extensions.map((p) => p.replace(/\/$/, ""));
-      changed = true;
-    }
-
-    if (changed) {
-      fs.writeFileSync(pluginJsonPath, JSON.stringify(rewritten, null, 2) + "\n", "utf8");
-    }
+    fs.writeFileSync(pluginJsonPath, JSON.stringify(served, null, 2) + "\n", "utf8");
 
     const counts = [];
     if (metadata.agents?.length) counts.push(`${metadata.agents.length} agents`);

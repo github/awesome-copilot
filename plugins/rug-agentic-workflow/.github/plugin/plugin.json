@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "rug-agentic-workflow",
   "description": "Three-agent workflow for orchestrated software delivery with an orchestrator plus implementation and QA subagents.",
   "version": "1.0.0",
