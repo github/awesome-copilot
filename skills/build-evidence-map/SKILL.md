@@ -55,17 +55,18 @@ between evidence, intermediate claims, trade-offs, and missing facts matter.
    review is not a Doubt receipt. If deterministic validation cannot run, report
    that block instead of inventing success.
 
-   Render the validated map when package execution is available:
+   Render the validated map only when the user has already installed
+   `doubt-ai@0.8.0`; do not install or execute a remote package implicitly:
 
    ```bash
-   npx --yes doubt-ai@0.8.0 map decision.doubt.json --out decision.html
+   doubt map decision.doubt.json --out decision.html
    ```
 9. **Verify source snapshots only with explicit network permission.** The
    following command retrieves each recorded HTTP(S) source and fails closed if
    an excerpt cannot be matched:
 
    ```bash
-   npx --yes doubt-ai@0.8.0 verify decision.doubt.json \
+   doubt verify decision.doubt.json \
      --out decision.verified.doubt.json
    ```
 
