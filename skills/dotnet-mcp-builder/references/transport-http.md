@@ -30,13 +30,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddMcpServer()
-    .WithHttpTransport(options =>
-    {
-        // Stateless = true: each request is independent, no Mcp-Session-Id tracking.
-        // Required for horizontal scaling without sticky sessions.
-        // Disables server-to-client features (sampling, elicitation, roots, unsolicited notifications).
-        options.Stateless = true;
-    })
+    // Since 2.x, Stateless defaults to true: each request is independent,
+    // no Mcp-Session-Id tracking, no SSE session endpoints — ready for
+    // horizontal scaling without sticky sessions.
+    .WithHttpTransport()
     .WithToolsFromAssembly();
 
 var app = builder.Build();
@@ -56,12 +53,14 @@ public static class EchoTool
 
 ## Stateless vs. stateful — the most important decision
 
+> **v2 breaking change:** `HttpServerTransportOptions.Stateless` now defaults to **`true`** (it defaulted to `false` on 1.x). A server upgraded to 2.x without touching options stops creating sessions and stops exposing SSE endpoints. Set `Stateless = false` explicitly to restore the legacy behavior.
+
 | Mode | `options.Stateless` | Behaviour | Use when |
 |---|---|---|---|
-| **Stateless** | `true` | No `Mcp-Session-Id`. Each POST is independent. | Horizontal scaling, simple tool servers, no server-initiated traffic. |
-| **Stateful** | `false` (default) | Server assigns and tracks `Mcp-Session-Id`. Long-lived session. | You need elicitation, sampling, roots, log notifications, or anything that pushes from server to client. Requires session affinity at the load balancer. |
+| **Stateless** | `true` (default since 2.x) | No `Mcp-Session-Id`. Each POST is independent. Serves the current (2026-07-28) revision. | Horizontal scaling, simple tool servers, current-protocol clients. |
+| **Stateful** | `false` | Server assigns and tracks `Mcp-Session-Id`. Long-lived session. **Down-level compatibility mode:** the server refuses the 2026-07-28 revision so dual-path clients fall back to an initialize-capable revision (2025-11-25 or earlier). | Legacy `ElicitAsync`/sampling/roots paths, pushed log notifications, clients that haven't adopted 2026-07-28. Requires session affinity at the load balancer. |
 
-**Rule:** if the user wants any of `ElicitAsync`, `SampleAsync`, `RequestRootsAsync`, or to push log/notification messages, **do not** set `Stateless = true`. The calls will fail at runtime with no transport to deliver them on.
+**Rule:** on the current (2026-07-28) protocol there are no HTTP sessions — "ask the user something mid-tool" uses the multi-round-trip pattern (throw `InputRequiredException`, handle the retried call; see [`elicitation.md`](./elicitation.md)), which works in both session modes and both revisions. Set `Stateless = false` only for the legacy paths — `ElicitAsync`, the deprecated `SampleAsync`/`RequestRootsAsync`, or pushed log/notification messages — and be aware it pins HTTP clients to a down-level, initialize-capable revision. On the stateless default those legacy calls fail at runtime with no channel to deliver them on.
 
 ## Endpoint shape
 
@@ -77,6 +76,11 @@ app.MapMcp("/mcp/v1");
 ```
 
 Match this on the client side (`Endpoint = new Uri("https://host/mcp/v1")`).
+
+## Version negotiation and routing (2026-07-28)
+
+- **Discovery-first:** v2 clients probe the `server/discover` method to learn capabilities instead of the legacy `initialize` handshake. The SDK answers both and falls back automatically for down-level peers (2025-11-25 and earlier) — you don't write any code for this, but don't be surprised to see `server/discover` in traffic captures.
+- **Routable headers:** every Streamable HTTP POST carries an `Mcp-Method` header (e.g. `tools/call`), and named invocations (`tools/call`, `prompts/get`, `resources/read`) additionally carry `Mcp-Name` (e.g. the tool name), so gateways and rate limiters can route/throttle per tool without parsing JSON bodies. Don't require `Mcp-Name` globally at the gateway — discovery and list requests legitimately omit it.
 
 ## Per-session configuration (HttpContext access)
 
