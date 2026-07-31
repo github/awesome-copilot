@@ -100,9 +100,9 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
       const pluginId = item.pluginName || item.id;
       const ghappInstallUrl =
         item.external
-          ? externalSource
-            ? `ghapp://plugins/marketplace/add?source=${encodeURIComponent(
-                externalSource
+          ? pluginId
+            ? `ghapp://plugins/install?source=${encodeURIComponent(
+                `${pluginId}@awesome-copilot`
               )}`
             : ""
           : pluginId
