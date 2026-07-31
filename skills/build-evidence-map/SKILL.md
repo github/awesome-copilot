@@ -40,22 +40,32 @@ between evidence, intermediate claims, trade-offs, and missing facts matter.
 7. **Write UTF-8 JSON** with a `.doubt.json` suffix. Follow
    [references/map-schema.md](references/map-schema.md). Keep IDs short,
    stable, and semantic.
-8. **Validate fail-closed.** When Node.js is available, run:
+8. **Validate fail-closed.** Resolve
+   `scripts/validate.mjs` relative to this `SKILL.md`, then run it with Node.js
+   18 or newer:
 
    ```bash
-   npx --yes doubt-ai@0.7.1 validate decision.doubt.json
-   npx --yes doubt-ai@0.7.1 map decision.doubt.json --out decision.html
+   node <skill-directory>/scripts/validate.mjs decision.doubt.json
    ```
 
-   Fix every finding before reporting success. If package execution is not
-   available, manually enforce every invariant in the schema reference and say
-   that deterministic validation was not run.
+   The bundled validator uses only Node.js built-ins and does not require npm or
+   network access. Fix every finding before reporting success. Only say the map
+   is valid when the command exits `0` and prints `VALID` followed by a
+   64-character receipt. A file hash, node count, JSON parse, or manual schema
+   review is not a Doubt receipt. If deterministic validation cannot run, report
+   that block instead of inventing success.
+
+   Render the validated map when package execution is available:
+
+   ```bash
+   npx --yes doubt-ai@0.8.0 map decision.doubt.json --out decision.html
+   ```
 9. **Verify source snapshots only with explicit network permission.** The
    following command retrieves each recorded HTTP(S) source and fails closed if
    an excerpt cannot be matched:
 
    ```bash
-   npx --yes doubt-ai@0.7.1 verify decision.doubt.json \
+   npx --yes doubt-ai@0.8.0 verify decision.doubt.json \
      --out decision.verified.doubt.json
    ```
 
