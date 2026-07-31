@@ -48,5 +48,8 @@
     "js-yaml": "^5.2.2",
     "vfile": "^6.0.3",
     "vfile-matter": "^5.0.1"
+  },
+  "overrides": {
+    "tmp": "0.2.7"
   }
 }
