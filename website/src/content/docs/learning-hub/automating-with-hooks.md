@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-07-31
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -512,6 +512,8 @@ exit 0
 
 > **How it works**: When the hook exits with code `0` **and** writes a valid `{"response": "..."}` JSON object to stdout, the CLI delivers that text to the user and stops processing — no model call is made. If the hook exits with code `0` but writes nothing (or writes no `response` key), the CLI proceeds normally and calls the LLM.
 
+> **Robustness improvements** *(v1.0.76+)*: The `userPromptSubmitted` hook handler now validates all returned fields: non-string values for `modifiedPrompt`, `modifiedTransformedPrompt`, or `responseContent` are ignored with a type warning; an empty-string replacement is rejected instead of blanking model-facing content; a hook that sets `handled` without a usable `responseContent` is diagnosed instead of silently falling through; and a `null` `additionalContext` is treated as absent rather than injected as the literal text `null`.
+
 > **Multiple hooks**: If several `userPromptSubmitted` hooks are configured, the first one that returns a `response` wins; subsequent hooks for that event are skipped.
 
 ### Notification on Session End
@@ -649,6 +651,7 @@ echo "Pre-commit checks passed ✅"
 - **Document setup requirements**: If hooks depend on tools being installed (Prettier, ESLint), document this in the README.
 - **Test locally first**: Run hook scripts manually before relying on them in agent sessions.
 - **Layer hooks, don't overload**: Use multiple hook entries for independent checks rather than one monolithic script.
+- **Mind the output size limit** *(v1.0.76+)*: Hook output is bounded at **10 MiB per invocation**. Scripts or HTTP hooks that return unbounded responses (for example, a web endpoint that streams indefinitely) are truncated at this limit, protecting sessions from memory exhaustion.
 
 ## Common Questions
 

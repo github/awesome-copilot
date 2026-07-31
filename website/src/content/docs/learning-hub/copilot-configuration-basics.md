@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
+lastUpdated: 2026-07-31
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -428,7 +428,8 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `continueOnAutoMode` | Automatically switch to the auto model on rate limit instead of pausing |
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
-| `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+). Defaults to `true` as of v1.0.76. |
+| `allowDevToolCaches` | Grant sandboxed builds access to toolchain caches, registries, and package manager installs so builds work without extra setup (v1.0.78+, on by default). Set to `false` to opt out. |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -637,6 +638,8 @@ Use `/diagnose` when a session is behaving unexpectedly — it inspects session 
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
+**Directable queue manager** *(v1.0.76+)*: Open the queue manager to reorder, edit, remove, repeat, or immediately send queued messages. This is useful for adjusting pending follow-up prompts mid-task without cancelling your queue entirely.
+
 **Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
 
 **Shell command history in normal mode** (v1.0.65+): The **↑/↓** arrow keys and **Ctrl+R** reverse search now include past shell commands (commands run with `!`) while you are in normal (non-shell) input mode. Previously you had to type `!` to enter shell mode before history worked. Now you can recall and re-run a shell command without switching modes first — useful for quickly repeating a build, test, or diagnostic command from earlier in the session.
@@ -673,6 +676,12 @@ The `/usage` command displays session metrics such as the number of tokens consu
 
 ```
 /usage
+```
+
+The `/limits predict` command *(v1.0.76+)* suggests an AI-credit limit for the current session based on similar past sessions. Use it to set a `sessionLimits` value that prevents runaway credit usage without cutting off work mid-task:
+
+```
+/limits predict
 ```
 
 The `/compact` command summarizes the conversation history to free up context window space while preserving the thread of the conversation. Use it when your context is getting full but you do not want to start a fresh session:
@@ -721,9 +730,17 @@ The `/autopilot` command (v1.0.45+) is a quick in-session toggle that switches b
 
 Use `/autopilot` when you want to flip between supervised and unsupervised operation mid-session without typing out the full `/allow-all on` or `/allow-all off` commands.
 
+The `/permissions` command *(v1.0.78+)* lets you switch between approval modes mid-session — a convenient shorthand for cycling through interactive, autopilot, and auto-judge modes without remembering the full `/allow-all` syntax:
+
+```
+/permissions      # open the approval mode picker
+```
+
+This is useful when you want to quickly escalate or de-escalate the level of autonomous operation during a session.
+
 > **Enhanced autopilot (v1.0.64+)**: When autopilot mode is active — including when launched with `--autopilot` at startup or during automatic continuation turns — the agent automatically handles elicitation dialogs, `ask_user` prompts, sampling requests, and permission prompts without surfacing them as interactive dialogs. This means long-running automated sessions can proceed end-to-end without manual confirmation steps.
 
-> **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
+> **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. Activate it with `/allow-all auto` or use `/permissions` to switch modes interactively. Note: The judge model used for auto mode is now **selected automatically** by the system (v1.0.78+) and is no longer user-configurable.
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
 
@@ -770,6 +787,18 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 ```
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
+
+The `--web-flow` and `--device-code` flags *(v1.0.77+)* control the OAuth login method used when running `copilot login`. By default, local interactive terminals use the **browser-based (web) flow**, which opens your default browser to complete authentication — no copying device codes required. Remote or headless terminals fall back to the **device code flow** automatically:
+
+```bash
+copilot login               # uses web flow on local terminals by default
+copilot login --web-flow    # force browser-based login
+copilot login --device-code # force device code flow (useful for SSH sessions)
+```
+
+You can also choose a login method interactively from within a session using the `/login` command.
+
+> **Enterprise MDM enforcement** *(v1.0.77+)*: On macOS and Windows, organizations can enforce a restrictive sandbox policy floor via native MDM (Mobile Device Management) settings. Managed settings tighten — but never loosen — the user's sandbox policy. When MDM settings are active, the `/sandbox` dialog surfaces the org-configured values with locked fields so administrators can confirm what is enforced. This enables IT to set a minimum sandbox baseline across all managed machines without requiring per-user configuration.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
