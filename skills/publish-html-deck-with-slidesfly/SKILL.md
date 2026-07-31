@@ -61,16 +61,11 @@ command -v slidesfly
 slidesfly --version
 ```
 
-Continue only with Slidesfly CLI `0.1.2` or newer. If it is missing or outdated, explain that the
-official installer downloads executable code from `slidesfly.com` and writes to
-`~/.slidesfly/bin`, then ask before running:
-
-```bash
-curl -fsSL https://slidesfly.com/install.sh | sh
-slidesfly --version
-```
-
-Do not substitute an unverified npm package or a third-party download.
+Continue only with Slidesfly CLI `0.1.2` or newer. If it is missing or outdated, stop and direct the
+user to the official technical quickstart linked below. Ask them to complete the documented install
+or upgrade and return after `slidesfly --version` reports `0.1.2` or newer. Do not download or
+execute a remote installer from this skill, and do not substitute an unverified npm package or a
+third-party download.
 
 ### 3. Publish the exact file
 
