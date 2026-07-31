@@ -3,7 +3,7 @@ title: '01 · First Steps'
 description: 'Experience your first GitHub Copilot CLI demos and learn the three main interaction modes.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-17
+lastUpdated: 2026-07-31
 ---
 
 ![Chapter 01: First Steps](/images/learning-hub/copilot-cli-for-beginners/01/chapter-header.png)
@@ -316,7 +316,7 @@ Step 4: Test the flow
 Proceed with implementation? [Y/n]
 ```
 
-**Key insight**: Plan mode lets you review and modify the approach before any code is written. Once a plan is complete, you can even tell Copilot CLI to save it to a file for later reference. For example, "Save this plan to `mark_as_read_plan.md`" would create a markdown file with the plan details.
+**Key insight**: Plan mode lets you review and modify the approach before any code is written. While in plan mode, Copilot CLI is **read-only** and will not edit any files or run commands that change your workspace until you approve and move to implementation. This keeps you safely in the "thinking" stage until you're ready. Once a plan is complete, you can even tell Copilot CLI to save it to a file for later reference. For example, "Save this plan to `mark_as_read_plan.md`" would create a markdown file with the plan details.
 
 > 💡 **Want something more complex?** Try: `/plan Add search and filter capabilities to the book app`. Plan mode scales from simple features to full applications.
 

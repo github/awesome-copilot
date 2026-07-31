@@ -3,7 +3,7 @@ title: '04 · Create Specialized AI Assistants'
 description: 'Mirror the source chapter on custom agents and custom instructions for GitHub Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-10
+lastUpdated: 2026-07-31
 ---
 
 ![Chapter 04: Agents and Custom Instructions](/images/learning-hub/copilot-cli-for-beginners/04/chapter-header.png)
@@ -104,6 +104,25 @@ What about the Task Agent? It works behind the scenes to manage and track what i
 | ✅ **Success** | Brief summary (e.g., "All 247 tests passed", "Build succeeded") |
 | ❌ **Failure** | Full output with stack traces, compiler errors, and detailed logs |
 
+> 💡 **Multi-turn subagents**: Subagents (background tasks launched by agents) support follow-up messages. While an agent is running in the background, you can open `/tasks` to view it and send follow-up instructions. You don't have to wait for it to finish before guiding it further. Think of it like being able to tap your assistant on the shoulder mid-task to give extra direction.
+
+### Choosing a Model for Plan Mode
+
+By default, `/plan` uses the same AI model you've selected for your session. You can pick a *different* model to use only while in plan mode — great for using a faster or less expensive model for planning, then switching back to a more powerful one for implementation:
+
+```bash
+copilot
+
+# Open the model picker for plan mode only
+> /model plan
+
+# Or specify a model ID directly (use 'off' to clear the plan-mode model)
+> /model plan gpt-5.6-sol
+
+# Leave plan mode and the model reverts to your session model automatically
+```
+
+> 💡 **Why set a plan-mode model?** A high-quality plan created by a frontier model upfront can actually save tokens and time overall. A precise, well-scoped plan means fewer back-and-forth corrections during implementation.
 
 > 📚 **Official Documentation**: [GitHub Copilot CLI Agents](https://docs.github.com/copilot/how-tos/use-copilot-agents/use-copilot-cli#use-custom-agents)
 
