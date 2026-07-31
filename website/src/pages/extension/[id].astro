@@ -264,6 +264,7 @@ if (!isExternal && item.ref) {
               <PluginInstall
                 slot="install"
                 isExternal={true}
+                pluginId={item.pluginName ?? item.id}
                 externalSource={externalSource || null}
                 label="Install this extension"
                 note="This extension is maintained in an external repository."
