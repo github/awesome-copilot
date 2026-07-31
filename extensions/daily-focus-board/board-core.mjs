@@ -98,8 +98,8 @@ export function normalize(doc) {
     // (e.g. reading p.t["toString"] returning Object.prototype.toString).
     p.counters = Object.assign(Object.create(null), p.counters && typeof p.counters === "object" ? p.counters : {});
     p.t = Object.assign(Object.create(null), p.t && typeof p.t === "object" ? p.t : {});
-    p.day = Array.isArray(p.day) ? p.day : [];
-    p.brain = Array.isArray(p.brain) ? p.brain : [];
+    p.day = Array.isArray(p.day) ? p.day.filter(n => n && typeof n.txt === "string") : [];
+    p.brain = Array.isArray(p.brain) ? p.brain.filter(n => n && typeof n.txt === "string") : [];
     p.focus = validId(p.focus) ? p.focus : null;
     p.rm = !!p.rm;
 
