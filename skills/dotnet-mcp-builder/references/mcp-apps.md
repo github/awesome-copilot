@@ -2,7 +2,7 @@
 
 [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) is the official extension that lets a tool return an **interactive UI** rendered in a sandboxed iframe inside the host (Claude, Claude Desktop, VS Code Copilot, Goose, Postman, MCPJam). Typical use cases: charts, dashboards, multi-step forms, 3D viewers, real-time monitors, PDF/video viewers.
 
-> **Important:** as of early 2026, the C# SDK does **not** ship a typed convenience layer for MCP Apps (tracked in [csharp-sdk#1431](https://github.com/modelcontextprotocol/csharp-sdk/issues/1431)). You implement the spec by hand: serve a `ui://` resource and emit the right `_meta` on the tool. It's not hard — just untyped. This page shows you the pattern.
+> **Important:** SDK 2.x ships a dedicated extension package, **`ModelContextProtocol.Extensions.Apps`**, with typed MCP Apps support: register with `.WithMcpApps()` and annotate tools with `[McpAppUi(ResourceUri = "ui://...")]`. It replaces the hand-rolled `_meta` wiring, **not** the `ui://` resource — you still register and serve the UI resource. The APIs are marked experimental (suppress diagnostic `MCPEXP003`); check the [package page](https://www.nuget.org/packages/ModelContextProtocol.Extensions.Apps) and [SDK API reference](https://csharp.sdk.modelcontextprotocol.io/api/ModelContextProtocol.html) for the current surface rather than guessing beyond those names. The manual pattern below is what you need on **1.x**, which has no typed layer (was tracked in [csharp-sdk#1431](https://github.com/modelcontextprotocol/csharp-sdk/issues/1431)): serve a `ui://` resource and emit the right `_meta` on the tool.
 
 ## How it works (short version)
 
@@ -31,7 +31,7 @@ public static class ChartUiResource
     [McpServerResource(
         UriTemplate = "ui://charts/interactive",
         Name = "Interactive chart",
-        MimeType = "text/html+skybridge")]   // see "MIME type" note below
+        MimeType = "text/html;profile=mcp-app")]   // see "MIME type" note below
     [Description("UI bundle for the interactive chart MCP App.")]
     public static TextResourceContents GetUi()
     {
@@ -41,7 +41,7 @@ public static class ChartUiResource
         return new TextResourceContents
         {
             Uri = "ui://charts/interactive",
-            MimeType = "text/html+skybridge",
+            MimeType = "text/html;profile=mcp-app",
             Text = html
         };
     }
@@ -57,7 +57,7 @@ public static class ChartUiResource
 }
 ```
 
-**MIME type note:** the spec uses `text/html+skybridge` for app HTML so hosts can distinguish UI bundles from regular `text/html` previews. Use that, even though plain `text/html` may work today on lenient hosts.
+**MIME type note:** the current Apps spec (2026-01-26) uses `text/html;profile=mcp-app` for app HTML so hosts can distinguish UI bundles from regular `text/html` previews. Earlier drafts used `text/html+skybridge` — treat that as legacy; some older hosts may still expect it.
 
 ## Step 2: Emit `_meta` on the tool
 
@@ -210,11 +210,11 @@ For pure-UI iteration, [MCP Inspector](https://github.com/modelcontextprotocol/i
 
 ## Pitfalls
 
-- **Wrong MIME type.** Use `text/html+skybridge`. Plain `text/html` may still work but isn't future-proof.
+- **Wrong MIME type.** Use `text/html;profile=mcp-app` (current spec; `text/html+skybridge` is a legacy draft value). Plain `text/html` may still work on lenient hosts but isn't future-proof.
 - **CSP too tight or too loose.** If your UI loads from a CDN, declare it in `Meta["ui"]["csp"]` on the `Tool` definition (this serialises to `_meta.ui.csp` on the wire). Otherwise the iframe sandbox blocks it.
 - **Forgetting `Tool.Meta` on the tool.** Without the `Meta` property containing the `ui.resourceUri` entry, the host treats your tool as a regular text-returning tool. The UI never appears.
 - **Trying to use browser APIs outside the sandbox.** No cookies, no localStorage from the parent. Use `app.updateModelContext` and tool calls for state.
 
-## Future-proofing
+## Migrating from the manual pattern
 
-When the C# SDK ships its typed MCP Apps helpers (issue [#1431](https://github.com/modelcontextprotocol/csharp-sdk/issues/1431)), you'll likely be able to replace the manual `Configure` block with an attribute or fluent builder. The serving of `ui://` resources won't change. Keep your UI HTML as embedded resources so the migration is mechanical.
+On 2.x, `ModelContextProtocol.Extensions.Apps` replaces the manual `Configure` block: `.WithMcpApps()` plus `[McpAppUi(ResourceUri = "ui://...")]` on the tool, with the extension handling the Apps capability negotiation. You still serve the `ui://` resource (with the current `text/html;profile=mcp-app` MIME type) and keep your HTML bundle — keep the UI HTML as embedded resources so the migration is mechanical. The APIs are experimental (`MCPEXP003`); consult the package docs for anything beyond this surface rather than inventing it.
