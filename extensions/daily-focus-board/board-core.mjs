@@ -88,12 +88,12 @@ function normalizeTaskDef(t) {
 // Coerce any parsed JSON into a well-formed board doc, and ensure every task has
 // a matching progress entry so the UI and mutations can assume presence.
 export function normalize(doc) {
-    doc = doc && typeof doc === "object" ? doc : {};
+    doc = doc && typeof doc === "object" && !Array.isArray(doc) ? doc : {};
     if (typeof doc.name !== "string") doc.name = "";
     if (typeof doc.dateKey !== "string") doc.dateKey = todayKey();
     doc.tasks = Array.isArray(doc.tasks) ? doc.tasks.filter(t => t && validId(t.id)).map(normalizeTaskDef) : [];
 
-    const p = doc.progress && typeof doc.progress === "object" ? doc.progress : {};
+    const p = doc.progress && typeof doc.progress === "object" && !Array.isArray(doc.progress) ? doc.progress : {};
     // Null-prototype maps so a task id can never resolve to an inherited member
     // (e.g. reading p.t["toString"] returning Object.prototype.toString).
     p.counters = Object.assign(Object.create(null), p.counters && typeof p.counters === "object" ? p.counters : {});
