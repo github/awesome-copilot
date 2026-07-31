@@ -1441,6 +1441,12 @@
       }
     },
     {
+      "name": "version-sentinel",
+      "source": "plugins/version-sentinel",
+      "description": "Dependency-version guardrail for AI coding agents. Verifies every added or bumped package version against its upstream registry (npm, PyPI, crates.io, NuGet) so stale, hallucinated, or compromised versions never reach your manifests.",
+      "version": "0.4.0"
+    },
+    {
       "name": "visual-pr",
       "source": "plugins/visual-pr",
       "description": "Capture, annotate, and embed screenshots and animated GIF demos in pull request descriptions. Includes Playwright-based UI capture, PIL image annotations, PR embedding workflows for GitHub and Azure DevOps, and screen recording with variable timing.",

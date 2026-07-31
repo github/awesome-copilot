@@ -1,0 +1,25 @@
+{
+  "name": "version-sentinel",
+  "description": "Dependency-version guardrail for AI coding agents. Verifies every added or bumped package version against its upstream registry (npm, PyPI, crates.io, NuGet) so stale, hallucinated, or compromised versions never reach your manifests.",
+  "version": "0.4.0",
+  "keywords": [
+    "dependencies",
+    "version-check",
+    "supply-chain",
+    "guardrail",
+    "audit"
+  ],
+  "author": {
+    "name": "KSEGIT",
+    "url": "https://github.com/KSEGIT"
+  },
+  "homepage": "https://github.com/KSEGIT/Version-Sentinel",
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "agents": [
+    "./agents/version-reviewer.md"
+  ],
+  "skills": [
+    "./skills/version-sentinel/"
+  ]
+}
