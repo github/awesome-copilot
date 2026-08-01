@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-08-01
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -334,6 +334,36 @@ This repository provides a curated collection of agents, skills, and hooks desig
 
 > **Example workflow**: Combine a `test-specialist` agent with a `database-migrations` skill and a linting hook. Assign an issue to the coding agent using the test-specialist agent — it will automatically pick up the migrations skill when relevant, and the hook ensures all code is formatted before completion.
 
+## Controlling Approval Modes
+
+By default, Copilot CLI asks for your approval before executing tools like shell commands and file writes. You can change this behavior with the `/permissions` command:
+
+```
+/permissions
+```
+
+This opens a dialog where you can switch between approval modes:
+
+| Mode | Behavior |
+|------|----------|
+| **Interactive** | Asks for approval before each sensitive action (default) |
+| **Autopilot** | Executes actions autonomously without per-action prompts |
+| **Plan** | Produces a plan for your review before taking any actions |
+
+Switching to **autopilot** mode lets the agent work without interruption — useful for well-defined tasks where you trust the agent's judgment. Autopilot mode now stays active after a task completes; if you prefer to return to interactive mode after each task, set `stayInAutopilot: false` in your Copilot settings.
+
+> **Note**: When unconditional autopilot approval is enabled and sandbox bypass is allowed, the sandbox is disabled for the current session.
+
+### Estimating AI Credit Usage
+
+Before running a long task, you can ask Copilot to predict how many AI credits the session might consume based on similar past sessions:
+
+```
+/limits predict
+```
+
+This helps avoid unexpected credit exhaustion on long autonomous tasks.
+
 ## Remote Control
 
 You can connect to and steer a running coding agent session from a local Copilot CLI terminal using **remote control**. This lets you observe the agent's progress, send follow-up prompts, and redirect its work in real time — without waiting for it to open a PR first.
@@ -376,6 +406,16 @@ Since v1.0.47, `--resume` also surfaces **cloud agent sessions that haven't yet 
 | No PR required | You can steer tasks that haven't yet opened a pull request |
 
 > **Note**: Remote control replaces the earlier "steering" feature. If you see references to steering in older documentation, remote control is the updated equivalent.
+
+### Managing Multiple Concurrent Sessions (Experimental)
+
+If you regularly run several coding agent tasks in parallel from the CLI, you can enable the **Sessions sidebar** to manage them all from one terminal window:
+
+```
+/experimental on
+```
+
+Once enabled, the sidebar lets you switch between active sessions, spawn new ones, and see each session's status at a glance — without opening separate terminal windows. This is an experimental feature and the interface may change in future releases.
 
 ## Hooks and the Coding Agent
 
@@ -421,6 +461,28 @@ It's less suited for:
 - All changes go through PR review before merging
 - Use hooks to enforce security scanning on every commit
 - Scope repository permissions appropriately
+
+#### Enterprise Sandbox Enforcement
+
+Enterprise administrators can enforce a **managed sandbox policy** using macOS and Windows native MDM (Mobile Device Management) settings. When a managed policy is in effect:
+
+- The managed settings **tighten** (but never loosen) the user's sandbox policy
+- The `/sandbox` dialog shows the org-configured managed values with locked fields
+- Managed filesystem paths are clearly identified as admin-controlled
+
+This lets organizations ensure that all Copilot CLI sessions on managed machines operate within approved sandbox boundaries, regardless of individual user settings.
+
+#### Sandbox Toolchain Cache Access
+
+The `allowDevToolCaches` sandbox setting (on by default) grants sandboxed builds access to toolchain caches, package manager registries, and local installs — so builds work without extra configuration in most cases. Set it to `false` in your Copilot settings to opt out if you need stricter isolation:
+
+```json
+{
+  "sandbox": {
+    "allowDevToolCaches": false
+  }
+}
+```
 
 ## Common Questions
 
