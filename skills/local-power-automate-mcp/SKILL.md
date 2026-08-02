@@ -25,6 +25,15 @@ environment's Dataverse). Internet access to those endpoints is still required.
 >   `git clone https://github.com/prasadgd9022/power-automate-mcp`
 > - Python packages: `mcp`, `azure-identity`, `requests`
 
+> **Nothing to build.** The MCP server already exists as a complete,
+> open-source (MIT) reference implementation
+> (<https://github.com/prasadgd9022/power-automate-mcp>) — you clone it, register
+> the stdio launch command below, and go. This skill is the operational
+> counterpart to the already-published `flowstudio-power-automate-mcp` skill,
+> which likewise documents connecting to an existing MCP server rather than
+> shipping one; the difference is that server runs locally under your own
+> `az login` identity instead of a hosted, paid endpoint.
+
 ---
 
 ## Why This Is Different (Trust & Data-Flow Model)
