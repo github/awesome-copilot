@@ -561,6 +561,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 - [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
 - [GitHub Copilot Chat Documentation](https://code.visualstudio.com/docs/copilot/chat/copilot-chat) - Complete chat feature guide
 - [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
+- [Pixel Pet](https://letmethink.cc/app/pixel-pet/) - Turn a personality description into a deterministic ASCII pixel companion in the browser.
 
 ## ™️ Trademarks
 
