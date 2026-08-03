@@ -20,7 +20,7 @@ New here? The quickest way to tell these apart is *when* each one reaches Copilo
 
 | Resource | Description | When it loads | Browse |
 |----------|-------------|---------------|--------|
-| 🤖 [Agents](docs/README.agents.md) | A specialist persona: system prompt + allowed tools/MCP servers + an optional pinned model | When **you** pick it for a conversation | [All agents →](https://awesome-copilot.github.com/agents) |
+| 🤖 [Agents](docs/README.agents.md) | A specialist persona: system prompt + allowed tools/MCP servers + an optional pinned model | When you select or assign it, or another agent delegates work to it | [All agents →](https://awesome-copilot.github.com/agents) |
 | 📋 [Instructions](docs/README.instructions.md) | Coding standards and repo conventions — prose only, no tools | **Automatically**, when a file matches its `applyTo` pattern | [All instructions →](https://awesome-copilot.github.com/instructions) |
 | 🎯 [Skills](docs/README.skills.md) | Task procedures plus bundled scripts, templates, and reference data | **In two stages** — only the frontmatter `description` sits in context; the body and assets load when the agent opens the file | [All skills →](https://awesome-copilot.github.com/skills) |
 | 🪝 [Hooks](docs/README.hooks.md) | Shell commands wired to coding-agent lifecycle events like `sessionStart` or `preToolUse` | Never — hooks *run*, they don't enter the context window | [Browse hooks →](hooks/) |
