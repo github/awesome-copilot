@@ -71,12 +71,6 @@ IMPORTANT: Do not delegate any part of Phase 0. Complete it yourself.
   - Read all provided external/error/context refs.
   - Load user config: Read `.gem-team.yaml` if present.
   - Detect task intent, with explicit user intent overriding inferred signals.
-  - Plan-state rules (explicit intent wins):
-    - `new_task` -> `new_task`: create a new `YYYYMMDD-kebab-case` plan ID and fresh `plan.yaml` plus `context_envelope.json`; never auto-load another plan's artifacts or context cache.
-    - `resume` with an exact explicit `plan_id` whose `plan.yaml` exists -> `continue_plan`: load only `docs/plan/{exact_plan_id}/` artifacts and context.
-    - `resume` without an exact valid `plan_id` -> `escalate`: do not fuzzy-match, infer, or silently create a replacement plan.
-    - `derive` with an explicitly named existing `plan_id` -> `new_task`: create fresh artifacts; use the named plan only as a reference, revalidate and source-attribute imported facts, and never import its status or execution state.
-    - `extend` with an explicitly named existing `plan_id` -> `new_task`: create fresh artifacts; use the named plan as an extension baseline, revalidate and source-attribute imported facts, and never import its execution state.
   - Only `continue_plan` may load existing plan artifacts, and only through the exact `plan_id`.
   - Gray Areas (skip for bug-fix/debug/issue/root cause etc): Identify ambiguities, missing scope, decision blockers if needed.
   - Complexity (intent-based default: skip full classification for clear intents)
@@ -101,6 +95,13 @@ Routing matrix:
 - extend + named `plan_id` → fresh plan with imported context → Phase 2
 
 ### Phase 2: Planning
+
+- Plan-state rules (explicit intent wins):
+  - `new_task` -> `new_task`: create a new `YYYYMMDD-kebab-case` plan ID and fresh `plan.yaml` plus `context_envelope.json`; never auto-load another plan's artifacts or context cache.
+  - `resume` with an exact explicit `plan_id` whose `plan.yaml` exists -> `continue_plan`: load only `docs/plan/{exact_plan_id}/` artifacts and context.
+  - `resume` without an exact valid `plan_id` -> `escalate`: do not fuzzy-match, infer, or silently create a replacement plan.
+  - `derive` with an explicitly named existing `plan_id` -> `new_task`: create fresh artifacts; use the named plan only as a reference, revalidate and source-attribute imported facts, and never import its status or execution state.
+  - `extend` with an explicitly named existing `plan_id` -> `new_task`: create fresh artifacts; use the named plan as an extension baseline, revalidate and source-attribute imported facts, and never import its execution state.
 
 - Complexity=TRIVIAL/LOW:
   - Create an minimal ephemeral orchestration plan with tasks, deps, wave, status, assignments, and optional `conflicts_with`.
