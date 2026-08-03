@@ -226,6 +226,7 @@ If there is nothing to change after your analysis, do **not** open a PR. Instead
 - Preserve GitHub admonition syntax exactly; the site renders it natively.
 - Only mirror localized files that actually exist upstream; rely on Starlight's fallback for the rest, and never fabricate translations.
 - Keep the course source-faithful; avoid summaries or interpretive rewrites.
+- The repository runs `codespell` in CI. Localized locale directories are already excluded in `.codespellrc`, but a new upstream English page may still trip a false positive on a valid word. **Never edit mirrored prose to satisfy the spell checker** — add the word to `ignore-words-list` in `.codespellrc` (with a comment explaining why) as part of the same PR.
 - Do not auto-merge; the PR is for human review.
 - If you are uncertain whether an upstream change warrants a Learning Hub update, err on the side of creating the PR — a human reviewer can always decline.
 - Always call either `create-pull-request` or `noop` at the end of your run so the workflow clearly signals its outcome.
