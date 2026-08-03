@@ -334,9 +334,10 @@ test("runRefShaConsistencyGate passes when ref and sha point to the same commit"
   assert.equal(result.status, "pass", result.output);
 });
 
-// Manifest-location coverage: `.claude-plugin/plugin.json` is the Claude Code plugin
-// spec location that CONTRIBUTING.md points external submitters at. It resolves last,
-// so a repo shipping one of the three original locations keeps resolving to that one.
+// Manifest-location coverage: `.claude-plugin/plugin.json` is one of the four
+// directories the Copilot CLI itself searches for a plugin manifest, so a plugin the
+// CLI can install resolves here too. It resolves last, so a repo shipping one of the
+// three original locations keeps resolving to that one.
 
 function writePluginManifestAt(repoDir, pluginPath, manifestRelativePath, manifest) {
   const manifestPath = path.join(repoDir, pluginPath, manifestRelativePath);
