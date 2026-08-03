@@ -25,7 +25,7 @@ Use the configured Codebase Memory graph as a discovery accelerator, not as the 
 
 - Use `moderate` by default for normal indexing: it filters files while retaining similarity and semantic edges.
 - Use `fast` only for an explicitly requested smoke index, or when `moderate` is blocked and a degraded fallback is useful. Disclose that similarity and semantic edges are absent.
-- Use `full` when excluded files or maximum coverage justify the additional indexing cost.
+- Use `full` when moderate-only discovery filters omit relevant supported files and the additional indexing cost is justified. Full still honors `.gitignore`, `.cbmignore`, and always-skip rules.
 
 ## Safety and Fallbacks
 
