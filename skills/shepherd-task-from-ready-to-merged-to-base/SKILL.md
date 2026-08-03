@@ -229,7 +229,10 @@ GH_CURRENT_USER=$(gh api /user --jq '.login')
 JTBDTASK_BRANCH=$(gh pr view $PR_NUMBER -R $REPO --json headRefName --jq '.headRefName')
 
 # Create a worktree for local review work — as a SIBLING of the current repo clone, not inside it.
-git worktree add "../review-copilot-pr-$PR_NUMBER" "upstream/$JTBDTASK_BRANCH"
+# Use an absolute path derived from the git toplevel to avoid CWD-relative resolution errors.
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+WORKTREE_PATH="$(dirname "$REPO_ROOT")/review-copilot-pr-$PR_NUMBER"
+git worktree add "$WORKTREE_PATH" "upstream/$JTBDTASK_BRANCH"
 ```
 
 For discussion, this worktree is the `jtbdtask-pr-comments-comment-worktree`.
@@ -293,7 +296,7 @@ Once **all** N review comments have been addressed locally:
 
 ```bash
 # Push from the worktree to the configured remote (sibling directory)
-cd "../review-copilot-pr-$PR_NUMBER"
+cd "$WORKTREE_PATH"
 git push "$REMOTE" HEAD:$JTBDTASK_BRANCH
 ```
 
@@ -400,7 +403,7 @@ Verify:
 
 ```bash
 # Remove the worktree (sibling directory)
-git worktree remove "../review-copilot-pr-$PR_NUMBER"
+git worktree remove "$WORKTREE_PATH"
 
 # Remove the local branch tracking the PR topic branch (if created)
 git branch -D "$JTBDTASK_BRANCH" 2>/dev/null || true
@@ -427,7 +430,7 @@ If there are conflicts between the PR branch and `BASE_BRANCH`:
 MERGEABLE=$(gh pr view $PR_NUMBER -R $REPO --json mergeable --jq '.mergeable')
 if [ "$MERGEABLE" = "CONFLICTING" ]; then
   # Resolve conflicts locally in the worktree (sibling directory)
-  cd "../review-copilot-pr-$PR_NUMBER"
+  cd "$WORKTREE_PATH"
   git fetch upstream
   git rebase "upstream/$BASE_BRANCH"
   # Resolve conflicts, then:
