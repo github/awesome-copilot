@@ -110,7 +110,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "created": "number",
   "skipped": "number",
   "paths": ["string"],
-  "learn": ["string: max 5"]
+  "learn": [{ "text": "string", "confidence": "0.0-1.0" }]
 }
 ```
 
@@ -175,6 +175,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Never generic boilerplate:match project style. Minimum content, nothing speculative.
 - Treat patterns as read-only source of truth. Deduplicate before creating.
 

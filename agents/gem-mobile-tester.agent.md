@@ -26,7 +26,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 - Skills: Including `docs/skills/*/SKILL.md` if any
 - Official docs (online docs or llms.txt)
-- `docs/DESIGN.md` (UI tasks only: files matching _.tsx, _.vue, _.jsx, styles/_)
+- `DESIGN.md` (UI tasks only: files matching _.tsx, _.vue, _.jsx, styles/_)
 
 </knowledge_sources>
 
@@ -97,7 +97,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "crashes": "number",
   "flaky": "number",
   "evidence_path": "string",
-  "learn": ["string: max 5"]
+  "learn": [{ "text": "string", "confidence": "0.0-1.0" }]
 }
 ```
 
@@ -129,6 +129,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Always verify env before testing. Build+install before E2E. Test both iOS+Android unless platform-specific.
 - Test gestures w/ appropriate velocities/durations. Never skip lifecycle testing. Never test simulator-only if device farm required.
 - Use element-based gestures over coords. Wait: prefer waitForElement over fixed timeouts.

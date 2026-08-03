@@ -92,7 +92,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "tests_passed": "boolean",
   "preserved_behavior": "boolean",
   "assumptions": ["string: max 2"],
-  "learn": ["string: max 5"]
+  "learn": [{ "text": "string", "confidence": "0.0-1.0" }]
 }
 ```
 
@@ -124,6 +124,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Never add comments explaining bad code:fix it. Never add features:only refactor.
 - Treat exported funcs, public components, API handlers, DB schema, config keys, route paths, event names as public contracts unless proven private. Do not rename/remove without explicit permission.
 

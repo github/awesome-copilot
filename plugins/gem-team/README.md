@@ -92,14 +92,24 @@ Gem Team installs a set of specialized agents that work together under the guida
 
 ### Agent Roles
 
-| Role             | Description                                                             |
-| :--------------- | :---------------------------------------------------------------------- |
-| **Orchestrator** | Coordinates the workflow and ensures all tasks are completed correctly. |
-| **Planner**      | Breaks down complex tasks into manageable steps.                        |
-| **Implementer**  | Writes the code using TDD and best practices.                           |
-| **Reviewer**     | Verifies code quality, security, and compliance with requirements.      |
-| **Debugger**     | Diagnoses and fixes bugs with root-cause analysis.                      |
-| **Researcher**   | Explores the codebase and finds the best patterns to use.               |
+| Role                | Description                                                             |
+| :------------------ | :---------------------------------------------------------------------- |
+| **Orchestrator**    | Coordinates the workflow and ensures all tasks are completed correctly. |
+| **Planner**         | Breaks down complex tasks into manageable steps.                        |
+| **Implementer**     | Writes the code using TDD and best practices.                           |
+| **Reviewer**        | Verifies code quality, security, and compliance with requirements.      |
+| **Debugger**        | Diagnoses bugs with root-cause analysis (never implements fixes).       |
+| **Researcher**      | Explores the codebase and finds the best patterns to use.               |
+| **Designer**        | Creates UI/UX designs, layouts, and design systems.                     |
+| **Designer Mobile** | Creates mobile UI/UX following HIG and Material Design guidelines.      |
+| **Impl. Mobile**    | Implements mobile features with TDD for iOS/Android.                    |
+| **Tester**          | Runs E2E browser tests and visual regression.                           |
+| **Tester Mobile**   | Runs mobile E2E tests on iOS/Android simulators.                        |
+| **DevOps**          | Manages deployments, CI/CD, and infrastructure with approval gates.     |
+| **Documentation**   | Writes technical docs, API references, and walkthroughs.                |
+| **Code Simplifier** | Refactors code to reduce complexity and remove dead code.               |
+| **Critic**          | Challenges assumptions and finds edge cases before implementation.      |
+| **Skill Creator**   | Extracts reusable patterns into packaged agent skills.                  |
 
 ## Compatible Tools
 

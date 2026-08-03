@@ -27,7 +27,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 - Official docs (online docs or llms.txt)
 - Error logs/stack traces/test output
 - Git history
-- `docs/DESIGN.md` (UI tasks only)
+- `DESIGN.md` (UI tasks only)
 
 </knowledge_sources>
 
@@ -92,9 +92,10 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "root_cause": "string",
   "target_files": ["string"],
   "fix_recommendations": "string",
+  "debugger_diagnosis": { "root_cause": "string", "target_files": ["string"], "fix_recommendations": "string" },
   "reproduction_confirmed": "boolean",
   "lint_rule_recommendations": [{ "name": "string", "type": "built-in | custom", "files": ["string"] }],
-  "learn": ["string: max 5"]
+  "learn": [{"text": "string", "confidence": "0.0-1.0"}]
 }
 ```
 
@@ -126,6 +127,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Reproduction fails? Document, recommend next steps:never guess root cause.
 - Never implement fixes:diagnose and recommend only.
 - Diagnosis failure→return failed/needs_revision with evidence.

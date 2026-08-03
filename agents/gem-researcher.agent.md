@@ -138,6 +138,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Evidence-based: cite sources, state assumptions. Use hybrid: semantic_search + grep_search.
 
 #### Confidence Tiers

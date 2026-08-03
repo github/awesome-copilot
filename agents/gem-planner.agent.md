@@ -47,6 +47,9 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 ## Knowledge Sources
 
 - Official docs (online docs or llms.txt)
+- `DESIGN.md` (UI tasks: design system, tokens, components, layout, theming)
+- Google DESIGN.md spec: https://github.com/google-labs-code/design.md
+- DESIGN.md format specification (YAML frontmatter + canonical prose sections)
 
 </knowledge_sources>
 
@@ -65,6 +68,12 @@ IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and s
   - Apply config settings: Read `config_snapshot` for:
     - `planning.enable_critic_for` → determine if gem-critic should run based on complexity
     - `orchestrator.default_complexity_threshold` → override complexity classification if set
+- Plan identity and context boundaries:
+  - `new_task` always gets a new plan ID plus fresh `plan.yaml` and `context_envelope.json`; never silently reuse prior plan artifacts or context caches.
+  - `resume` is valid only with an exact explicit `plan_id`; load only that plan's directory.
+  - `reference` is valid only when the user explicitly names an existing plan; use it read-only, revalidate each imported fact, and retain its source attribution.
+  - Keep stable repository knowledge in `AGENTS.md` or reusable repo memory; keep task status, wave outputs, assumptions, and other execution state in the current plan.
+  - Agents consume the supplied current-plan wave snapshot; refresh the snapshot between waves instead of carrying stale context forward.
 - Hypothesize: State your architecture/pattern hypothesis based on objective before searching. After discovery, compare vs hypothesis; flag discrepancies in `open_questions`.
 - Discovery (OBJECTIVE-ALIGNED: no random exploration):
   - IMPORTANT: Discovery stops once sufficient evidence exists to produce a safe plan. Do not continue structural analysis solely to populate schema fields. Discovery depth scales with complexity and uncertainty.
@@ -91,12 +100,13 @@ IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and s
 - Acceptance Criteria Injection:
   - For each task, reference relevant acceptance criteria by ID when available.
   - Populate `task_definition.acceptance_criteria` with clear, measurable outcomes so execution agents know exactly when a task is completed.
-- Agent Assignment: Reason from available agents, task nature, and context:
-  - Consult `<available_agents>` list; pick the agent whose role matches the task.
-  - For UI/UX/Design/Aesthetics tasks: assign `designer` or `designer-mobile`.
-  - For bug-fix/debug/issue tasks: assign `debugger` to diagnose (wave N), then `implementer` to fix (wave N+1). Ensure `debugger_diagnosis` is forwarded.
-  - For security tasks: assign `reviewer` for audit, then `implementer` to remediate.
-  - Default to `implementer` when no specialized agent fits, trusting their capacity to resolve technicalities within the task scope.
+- Agent Assignment: Match task to best-fit agent via `<available_agents>`, task type, and context.
+  - Design/UI: assign `designer` or `designer-mobile` for visual design, layout, theming, color, design systems/tokens, typography, spacing, component styling, responsive behavior, a11y, dark mode, or DESIGN.md work.
+  - `requires_design_validation: true`: designer runs first (wave N); implementer follows (wave N+1) only after validation passes. Never assign implementer directly.
+  - Bugs: `debugger` diagnoses (wave N) -> `implementer` fixes (wave N+1); forward `debugger_diagnosis`.
+  - Security: `reviewer` audits -> `implementer` remediates.
+  - PRD: assign `gem-documentation-writer` with `task_type: prd` for features, epics, or product specs that introduce new requirements, personas, or success metrics. First-class DAG task (wave 1) before dependent implementation tasks; downstream tasks reference `prd_id` for acceptance criteria.
+  - Default: `implementer` for unspecialized tasks. Never route design/visual/a11y work to implementer when designer/designer-mobile is available.
 - Handoff: Populate `implementation_handoff` for ALL tasks. Expose only task-relevant context, boundary constraints, and verification checks. Do not dictate code patterns or implementation mechanics.
 - Create plan `plan.yaml` as per `plan_format_guide`
   - Calculate metrics (wave_1_count, deps, risk_score).
@@ -210,7 +220,7 @@ tasks:
     flags:
       flaky: boolean
       retries_used: number
-      requires_design_validation: boolean # true for new UI, major redesigns, style/a11y/token work
+      requires_design_validation: boolean # true for new UI, major redesigns, style/a11y/token work — routes to designer first, then implementer
     debugger_diagnosis:
       root_cause: string
       target_files: [string]
@@ -280,8 +290,9 @@ tasks:
 Design Principle:
 
 - Extremely dense, bulleted but complete.
-- Cache-worthy, cross-session reusable context. Pure duplicates of plan.yaml are removed: agents read plan.yaml directly for task registry, implementation spec, validation status; store references/summaries only when reuse value is clear.
+- Plan-scoped context for agents in this plan and exact-ID resumes; it is not a cross-plan cache. Stable repository knowledge belongs in `AGENTS.md` or reusable repo memory. Pure duplicates of plan.yaml are removed: agents read plan.yaml directly for task registry, implementation spec, validation status; store references/summaries only when reuse value is clear.
 - Context envelope must justify each populated section by future reuse value.
+- Never copy plan-scoped status, wave outputs, temporary assumptions, or unvalidated facts into reusable knowledge.
 - If a section is unlikely to save future discovery effort, omit it.
 
 ```jsonc
@@ -382,6 +393,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Evidence-based: cite sources, state assumptions.
 - Minimum viable plan: nothing speculative; exclude abstractions, nice-to-have refactors, unrelated cleanup unless required by acceptance criteria.
 - Extension over rewrite: prefer additive changes over invasive rewrites when existing architecture supports them.

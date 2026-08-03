@@ -139,7 +139,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "approval_reason": "string",
   "approval_state": "not_required | pending | approved | denied",
   "health_check": "pass | fail",
-  "learn": ["string: max 5"]
+  "learn": [{ "text": "string", "confidence": "0.0-1.0" }]
 }
 ```
 
@@ -171,6 +171,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - All ops idempotent. YAGNI, KISS, DRY.
 - Atomic ops preferred.
 - Verify health checks pass before completing.

@@ -25,7 +25,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 ## Knowledge Sources
 
 - Official docs (online docs or llms.txt)
-- `docs/DESIGN.md` (UI tasks only: files matching _.tsx, _.vue, _.jsx, styles/_)
+- `DESIGN.md` (UI tasks only: files matching _.tsx, _.vue, _.jsx, styles/_)
 - OWASP MASVS
 - Platform security docs (iOS Keychain, Android Keystore)
 
@@ -41,7 +41,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse review_scope: plan|wave.
-  - Use quality_score.reviewer_focus to prioritize scrutiny on weak areas.
+  - Use your own `prd_score` and `confidence` from the prior review pass (or initial audit) to prioritize scrutiny on weak areas.
   - Apply config settings: Read `config_snapshot` for:
     - `quality.a11y_audit_level` → determine accessibility scan depth (none/basic/full)
 
@@ -116,7 +116,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "acceptance_criteria_met": "number",
   "acceptance_criteria_missing": "number",
   "prd_score": "number (0-100)",
-  "learn": ["string: max 5"]
+  "learn": [{"text": "string", "confidence": "0.0-1.0"}]
 }
 ```
 
@@ -148,6 +148,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Security audit FIRST via grep_search before semantic.
 - Mobile: all 8 vectors if mobile detected.
 - PRD compliance: verify all acceptance_criteria.
