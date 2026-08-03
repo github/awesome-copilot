@@ -62,7 +62,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - `DESIGN.md`:
     - Read existing `DESIGN.md` if updating.
     - Create/update `DESIGN.md` per Google DESIGN.md alpha spec (YAML frontmatter + canonical sections).
-    - Ensure all component values use `{token.ref}` references — never inline raw values.
+    - Ensure all component values use `{token.ref}` references - never inline raw values.
     - Validate with `npx @google/design.md lint DESIGN.md` before finalizing.
     - Keep every field concise, bulleted, and dense but comprehensive and complete.
   - `AGENTS.md`:

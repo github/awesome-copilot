@@ -87,14 +87,19 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
 {
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
-  "clarification_needed": "boolean",  # true when input insufficient
+  "clarification_needed": "boolean", # true when input insufficient
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "root_cause": "string",
-  "target_files": ["string"],
-  "fix_recommendations": "string",
-  "debugger_diagnosis": { "root_cause": "string", "target_files": ["string"], "fix_recommendations": "string" },
+  "debugger_diagnosis": {
+    "root_cause": "string",
+    "target_files": ["string"],
+    "fix_recommendations": "string"
+  },
   "reproduction_confirmed": "boolean",
-  "lint_rule_recommendations": [{ "name": "string", "type": "built-in | custom", "files": ["string"] }],
+  "lint_rule_recommendations": [{
+    "name": "string",
+    "type": "built-in | custom",
+    "files": ["string"]
+  }],
   "learn": [{"text": "string", "confidence": "0.0-1.0"}]
 }
 ```
@@ -131,7 +136,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Reproduction fails? Document, recommend next steps:never guess root cause.
 - Never implement fixes:diagnose and recommend only.
 - Diagnosis failure→return failed/needs_revision with evidence.
-- Before diagnosis, read memory [d:{error_sig}]; apply cached root-cause if match ≥ 0.8. After diagnosis, write [d:{error_sig}] + confidence if ≥ 0.85; overwrite on new finding.
+- Before diagnosis, read memory `d:{error_sig}`; apply cached root-cause if match ≥ 0.8. After diagnosis, write `d:{error_sig}` + confidence if ≥ 0.85; overwrite on new finding.
 - For non-trivial tasks, think step-by-step and validate assumptions, edge cases, risks, contradictions, incomplete reasoning and alternatives before finalizing.
 
 </rules>

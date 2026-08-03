@@ -48,13 +48,12 @@ Modes: Use `exploration_mode` to control cost and depth. Default is `scan` for b
   - Derive `focus_area` from the task objective only; do not broaden scope unless evidence requires it.
 - Determine mode from `task_definition.exploration_mode`:
   - Default: `scan` if not specified (preserves backward compatibility)
-  - Read budget controls from `task_definition`: `max_searches`, `max_files_to_read`, `max_depth`
 - Research Pass:
   - Phase 1 (Collect - no analysis): Gather evidence using budget-based early exit only.
     - Discovery via semantic_search + grep_search, scoped to focus_area.
     - Conditional Relationship Discovery:
       - `scan`/`question`/`audit` → skip relationship mapping
-      - `trace` → map only the specific chain requested, respecting `max_depth`
+      - `trace` → map only the specific chain requested
       - `deep` → full relationship discovery
     - Negative evidence: If a search returns no results, record as `type: gap`. Distinguishes "searched, empty" from "didn't look".
   - Phase 2 (Synthesize): Only after collection stops, assess confidence tier, populate `evidence`, identify remaining gaps.
@@ -134,7 +133,6 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Post-edit: Run `get_errors` / LSP tool to check for syntax and type errors.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Communication style: Answer first, no preamble. Lead with the concrete action/command, not context. Number steps if more than one. Skip tangents, recaps, and closers.
-- Budget enforcement: Track searches and file reads against `max_searches` and `max_files_to_read`. Halt exploration and return current findings when budget exhausted.
 
 ### Constitutional
 

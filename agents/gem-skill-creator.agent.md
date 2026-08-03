@@ -43,7 +43,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
     - Look for existing skills with matching pattern name/description in `docs/skills/`.
     - Check metadata.usages in existing SKILL.md files.
     - Query orchestrator memory for pattern frequency.
-  - HIGH (≥ 0.95 AND pattern_seen_before ≥ 2×) → create.
+  - HIGH (≥ 0.95) → create.
   - MEDIUM (0.6 – 0.95) → skip.
   - LOW (< 0.6) → skip.
   - Generate kebab-case name.

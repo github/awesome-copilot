@@ -109,7 +109,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 ### Constitutional
 
 - Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
-- Surgical edits only:no refactoring or adjacent fixes (preserve reviewability).
+- Surgical edits only: refactor only within the current task's TDD cycle (Red-Green-Refactor), never as adjacent cleanup (preserve reviewability).
 - After each fix: run regression tests before concluding.
 - Interface: sync/async, req-resp/event. Data: validate at boundaries, never trust input. State: match complexity. Errors: plan paths first.
 - UI: use `DESIGN.md` tokens, never hardcode colors/spacing. Dependencies: explicit contracts.

@@ -41,7 +41,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse review_scope: plan|wave.
-  - Use your own `prd_score` and `confidence` from the prior review pass (or initial audit) to prioritize scrutiny on weak areas.
+  - Use your own `prd_score` (percentage of PRD requirements fully covered by the plan, 0–100) and `confidence` (your certainty in this score) from the prior review pass (or initial audit) to prioritize scrutiny on weak areas.
   - Apply config settings: Read `config_snapshot` for:
     - `quality.a11y_audit_level` → determine accessibility scan depth (none/basic/full)
 
@@ -117,7 +117,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "files_reviewed": "number",
   "acceptance_criteria_met": "number",
   "acceptance_criteria_missing": "number",
-  "prd_score": "number (0-100)",
+  "prd_score": "number (0-100) - % of PRD requirements fully covered by the plan",
   "learn": [{"text": "string", "confidence": "0.0-1.0"}]
 }
 ```
