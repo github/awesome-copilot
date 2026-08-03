@@ -51,11 +51,15 @@ const ALLOWED_SOURCE_KEYS = Object.freeze(["source", "repo", "path", "ref", "sha
 const SEMVER_PATTERN =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
-// NOTE: Keep in sync with PLUGIN_JSON_CANDIDATES in external-plugin-quality-gates.mjs
+// NOTE: Keep this SET in sync with PLUGIN_JSON_CANDIDATES in
+// external-plugin-quality-gates.mjs and EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS in
+// external-plugin-intake.mjs. This list only formats the expected-location error
+// message, so its order carries no precedence meaning.
 const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
   "plugin.json",
   ".github/plugin/plugin.json",
   ".plugin/plugin.json",
+  ".claude-plugin/plugin.json",
 ]);
 
 function resolvePolicy(policy) {

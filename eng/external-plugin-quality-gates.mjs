@@ -148,11 +148,21 @@ function cloneSubmissionRepository(workDir, plugin) {
 // Both the Copilot CLI and many external repos use nested conventions. We read the
 // manifest ourselves so skill paths can be resolved from the plugin root consistently,
 // regardless of where the manifest lives.
-// NOTE: Keep in sync with EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS in external-plugin-validation.mjs
+// NOTE: Keep this SET in sync with EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS in
+// external-plugin-validation.mjs (used only to format the expected-location error
+// message) and in external-plugin-intake.mjs (used to resolve canvas plugin
+// metadata). Those two orderings already differ from this one; ordering is
+// precedence only where a list actually resolves a manifest.
+//
+// These four directories are the same set the Copilot CLI searches for a plugin
+// manifest, so a plugin the CLI can install resolves here too. `.claude-plugin`
+// is last: a repo shipping any of the three original locations keeps resolving
+// to that one.
 const PLUGIN_JSON_CANDIDATES = [
   [".github", "plugin", "plugin.json"],
   [".plugin", "plugin.json"],
   ["plugin.json"],
+  [".claude-plugin", "plugin.json"],
 ];
 
 function toPosixPath(...segments) {

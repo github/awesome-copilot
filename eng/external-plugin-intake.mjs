@@ -57,10 +57,13 @@ const LEGACY_FIELD_TITLES = Object.freeze({
 });
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
 const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
+// NOTE: Keep in sync with PLUGIN_JSON_CANDIDATES in external-plugin-quality-gates.mjs
+// and EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS in external-plugin-validation.mjs.
 const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
   ".github/plugin/plugin.json",
   ".plugin/plugin.json",
   "plugin.json",
+  ".claude-plugin/plugin.json",
 ]);
 
 function normalizeMultilineText(value) {

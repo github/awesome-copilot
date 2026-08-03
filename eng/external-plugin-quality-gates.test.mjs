@@ -333,3 +333,81 @@ test("runRefShaConsistencyGate passes when ref and sha point to the same commit"
   const result = runRefShaConsistencyGate(repoDir, plugin, sha);
   assert.equal(result.status, "pass", result.output);
 });
+
+// Manifest-location coverage: `.claude-plugin/plugin.json` is the Claude Code plugin
+// spec location that CONTRIBUTING.md points external submitters at. It resolves last,
+// so a repo shipping one of the three original locations keeps resolving to that one.
+
+function writePluginManifestAt(repoDir, pluginPath, manifestRelativePath, manifest) {
+  const manifestPath = path.join(repoDir, pluginPath, manifestRelativePath);
+  fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+test("runVersionMatchGate resolves a manifest at .claude-plugin/plugin.json", () => {
+  const remoteDir = initRemoteRepo();
+  writePluginManifestAt(remoteDir, "plugins/my-plugin", ".claude-plugin/plugin.json", {
+    name: "my-plugin",
+    version: "1.0.0",
+  });
+  const sha = commitAll(remoteDir, "Add Claude Code spec plugin manifest");
+
+  const repoDir = cloneSubmissionRepo(remoteDir, sha);
+  const plugin = {
+    name: "my-plugin",
+    version: "1.0.0",
+    source: { source: "github", repo: "owner/repo", path: "plugins/my-plugin", sha },
+  };
+
+  const result = runVersionMatchGate(repoDir, plugin, sha);
+  assert.equal(result.status, "pass", result.output);
+  assert.match(result.output, /matched version "1\.0\.0" at "plugins\/my-plugin\/\.claude-plugin\/plugin\.json"/);
+});
+
+test("runVersionMatchGate still fails when no manifest exists in any known location", () => {
+  const remoteDir = initRemoteRepo();
+  fs.mkdirSync(path.join(remoteDir, "plugins", "my-plugin"), { recursive: true });
+  fs.writeFileSync(path.join(remoteDir, "plugins", "my-plugin", "README.md"), "no manifest here\n");
+  const sha = commitAll(remoteDir, "Add plugin folder without a manifest");
+
+  const repoDir = cloneSubmissionRepo(remoteDir, sha);
+  const plugin = {
+    name: "my-plugin",
+    version: "1.0.0",
+    source: { source: "github", repo: "owner/repo", path: "plugins/my-plugin", sha },
+  };
+
+  const result = runVersionMatchGate(repoDir, plugin, sha);
+  assert.equal(result.status, "fail", result.output);
+  assert.match(result.output, /No plugin\.json found/);
+  // The failure message must enumerate every supported location, including the new one.
+  assert.match(result.output, /plugins\/my-plugin\/\.github\/plugin\/plugin\.json/);
+  assert.match(result.output, /plugins\/my-plugin\/\.plugin\/plugin\.json/);
+  assert.match(result.output, /plugins\/my-plugin\/plugin\.json/);
+  assert.match(result.output, /plugins\/my-plugin\/\.claude-plugin\/plugin\.json/);
+});
+
+test("runVersionMatchGate prefers .github/plugin/plugin.json over .claude-plugin/plugin.json", () => {
+  const remoteDir = initRemoteRepo();
+  writePluginManifestAt(remoteDir, "plugins/my-plugin", ".github/plugin/plugin.json", {
+    name: "my-plugin",
+    version: "1.0.0",
+  });
+  writePluginManifestAt(remoteDir, "plugins/my-plugin", ".claude-plugin/plugin.json", {
+    name: "my-plugin",
+    version: "9.9.9",
+  });
+  const sha = commitAll(remoteDir, "Add both manifest locations");
+
+  const repoDir = cloneSubmissionRepo(remoteDir, sha);
+  const plugin = {
+    name: "my-plugin",
+    version: "1.0.0",
+    source: { source: "github", repo: "owner/repo", path: "plugins/my-plugin", sha },
+  };
+
+  const result = runVersionMatchGate(repoDir, plugin, sha);
+  assert.equal(result.status, "pass", result.output);
+  assert.match(result.output, /at "plugins\/my-plugin\/\.github\/plugin\/plugin\.json"/);
+  assert.doesNotMatch(result.output, /\.claude-plugin/);
+});
