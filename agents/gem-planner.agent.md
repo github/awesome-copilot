@@ -74,6 +74,14 @@ IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and s
   - `reference` is valid only when the user explicitly names an existing plan; use it read-only, revalidate each imported fact, and retain its source attribution.
   - Keep stable repository knowledge in `AGENTS.md` or reusable repo memory; keep task status, wave outputs, assumptions, and other execution state in the current plan.
   - Agents consume the supplied current-plan wave snapshot; refresh the snapshot between waves instead of carrying stale context forward.
+- Replan safety:
+  - Treat `baseline.objective` and `baseline.acceptance_criteria` as immutable constraints.
+  - For `Replan`, increment `plan_lineage.revision` and `plan_lineage.replan_count` without increasing `max_replans`.
+  - Return a non-empty `replan` delta naming the concrete failure/evidence, changed/added/removed task IDs,
+    preserved acceptance criteria, new risks, and a measurable `progress_signal`.
+  - Do not change the objective or weaken baseline criteria; mark either as a `decision_blocker`.
+  - If the replan budget is exhausted or no meaningful progress is possible, return `status: needs_revision` with
+    `fail: escalate` instead of producing another plan.
 - Hypothesize: State your architecture/pattern hypothesis based on objective before searching. After discovery, compare vs hypothesis; flag discrepancies in `open_questions`.
 - Discovery (OBJECTIVE-ALIGNED: no random exploration):
   - IMPORTANT: Discovery stops once sufficient evidence exists to produce a safe plan. Do not continue structural analysis solely to populate schema fields. Discovery depth scales with complexity and uncertainty.
@@ -155,6 +163,19 @@ created_by: string
 status: pending | approved | in_progress | completed | failed
 tldr: |
 
+baseline:
+  objective: string
+  acceptance_criteria: [string]
+  captured_at: string
+
+plan_lineage:
+  root_plan_id: string
+  revision: number
+  replan_count: number
+  max_replans: number # default: 2; never increased by a replan
+  parent_revision: number
+  reason: initial | validation_failure | execution_failure | scope_change
+
 # ═══════════════════════════════════════════════════════════════════════════
 # PLAN-LEVEL METRICS (populated by planner)
 # ═══════════════════════════════════════════════════════════════════════════
@@ -163,6 +184,15 @@ plan_metrics:
   total_dependencies: number
   risk_score: low | medium | high
 quality_warnings: [string]
+
+replan:
+  reason: string
+  changed_tasks: [string]
+  added_tasks: [string]
+  removed_tasks: [string]
+  preserved_acceptance_criteria: [string]
+  new_risks: [string]
+  progress_signal: string
 
 # ═══════════════════════════════════════════════════════════════════════════
 # PLANNING ANALYSIS (complexity-dependent)
@@ -173,7 +203,7 @@ quality_warnings: [string]
 open_questions:
   - question: string
     context: string
-    type: decision_blocker  # only decision_blocker type retained; research/nice_to_know removed
+    type: decision_blocker # only decision_blocker type retained; research/nice_to_know removed
     affects: [string]
 assumptions: [string] # MEDIUM: flat list of assumptions; HIGH: also in pre_mortem
 pre_mortem: # HIGH complexity ONLY : structured risk analysis
@@ -184,7 +214,7 @@ pre_mortem: # HIGH complexity ONLY : structured risk analysis
       impact: low | medium | high | critical
       mitigation: string
 coordination_notes: [string] # HIGH only : task-specific notes for implementer coordination
-contracts: # HIGH ONLY : cross-task, cross-agent, or cross-wave handoffs with explicit interfaces
+contracts: # MEDIUM/HIGH when dependency handoffs need explicit interfaces
   - from_task: string
     to_task: string
     interface: string
@@ -224,8 +254,8 @@ tasks:
     debugger_diagnosis:
       root_cause: string
       target_files: [string]
-          fix_recommendations: string
-          injected_at: string
+      fix_recommendations: string
+      injected_at: string
 
     # ───────────────────────────────────────────────────────────────────────
     # QUALITY GATES (verification criteria)

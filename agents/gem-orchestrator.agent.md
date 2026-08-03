@@ -102,6 +102,8 @@ Routing matrix:
 
 - Complexity=TRIVIAL/LOW:
   - Create an minimal ephemeral isolated orchestration plan with tasks, deps, wave, status, assignments, and optional `conflicts_with`.
+  - Initialize immutable `baseline.objective` and `baseline.acceptance_criteria`, plus `plan_lineage` with
+    `revision: 0`, `replan_count: 0`, and `max_replans: 2`.
   - For every `new_task`, create fresh `plan.yaml` and `context_envelope.json`; never borrow another plan's files or context cache.
   - If the objective is bug-fix/debug/issue: assign `gem-debugger` for diagnosis (wave 1) and `gem-implementer` for the fix (wave 2). The plan MUST include `debugger_diagnosis` as a dependency handoff from wave 1 to wave 2.
   - Goto Phase 3.
@@ -113,7 +115,7 @@ Routing matrix:
     - Complexity=HIGH or `planning.enable_critic_for` satisfies:
       - In parallel, delegate to `gem-critic(plan)`, only if: High-risk signal exists: `architecture`, `contract_change`, `breaking_change`, `api_change`, `schema_change`, `auth_change`, `data_flow_change`, `migration`, `security_sensitive`, or `cross_domain_impact`.
   - If validation fails:
-    - Failed + replanable → delegate to `gem-planner` with findings for replan/ adjustments.
+    - Failed + replanable → apply the bounded replan contract below, then delegate to `gem-planner` with findings.
     - Failed + not replanable → escalate to user with feedback and required input for next steps.
 
 ### Phase 3: Delegated Execution
@@ -155,16 +157,33 @@ Execute all unblocked waves/tasks without approval pauses. Follow the branching 
   - Complexity=HIGH: delegate to `gem-reviewer(wave)` for integration check after every wave.
   - Complexity=MEDIUM: delegate to `gem-reviewer(wave)` only when integration risk exists:
     - Final wave → always gate (catches all accumulated issues).
-    - Non-final wave → gate ONLY if any task in this wave has `conflicts_with` entries OR any contract in `plan.yaml` references a task in this wave as `from_task` (i.e., downstream waves depend on this wave's output).
+    - Non-final wave → gate ONLY if any task in this wave has `conflicts_with` entries OR any dependency handoff
+      contract in `plan.yaml` references a task in this wave as `from_task` (i.e., downstream waves depend on its output).
   - Gate passes → if `orchestrator.git_commit_on_gate_pass` is true, `git add -A && git commit -m "{plan_id}_wave-{n}"`. Gate fails → `git diff HEAD` for diagnosis.
   - Persist task/wave status to this plan's `plan.yaml`.
   - Keep task status, wave outputs, temporary assumptions, and transient findings plan-scoped. Persist only stable, revalidated repository knowledge to `AGENTS.md` or reusable repo memory, with source attribution.
   - Synthesize statuses (`completed`, `blocked`, `needs_replan`, `failed`, `escalate`). Present concise status without pausing for approval.
+- Status routing:
+  - `completed` -> continue dependency evaluation.
+  - `needs_replan` -> apply the bounded replan guardrails; never call the planner recursively without incrementing lineage.
+  - `needs_revision` from plan review -> bounded planner revision; `needs_revision` from execution -> retry only while
+    `task.flags.retries_used < 3`, then escalate. Do not silently reinterpret it as scope growth.
+  - `failed` -> apply the failure enum; `blocked`, `escalate`, and `needs_approval` stop the affected path.
 - Learning Extraction: Persist reusable items from specialist returns where `learn[].confidence ≥ 0.95` (each item now includes `{ text, confidence }`). Filter by confidence before routing to the correct target (batch delegation):
   - If product decisions → delegate to `gem-documentation-writer` → PRD
   - If technical decisions/conventions → delegate to `gem-documentation-writer` → AGENTS.md or architecture docs
   - If patterns/gotchas/failure_modes → delegate to `gem-documentation-writer` → both memory and context envelope update
   - If repeatable executable workflows → delegate to `gem-skill-creator` → skills
+- Replan guardrails:
+  - Preserve immutable `baseline.objective` and `baseline.acceptance_criteria`; never weaken or remove them automatically.
+  - Before each replan, increment `plan_lineage.replan_count` and `plan_lineage.revision`; escalate when
+    `replan_count >= max_replans`.
+  - Default `plan_lineage.max_replans` to `2`; a replan may not increase the limit.
+  - Require a non-empty `replan` delta with reason, changed/added/removed task IDs,
+    preserved acceptance criteria, new risks, and a measurable `progress_signal`.
+  - Objective or baseline acceptance-criteria changes are user decision blockers, not automatic replans.
+  - On replan, increment `context_envelope.meta.version`, refresh `last_updated`, record changed top-level fields,
+    invalidate stale wave snapshots, and revalidate completed tasks affected by changed dependencies or criteria.
 - Loop:
   - Remaining unblocked waves/tasks → next wave.
   - Blocked or not replanable → escalate.
