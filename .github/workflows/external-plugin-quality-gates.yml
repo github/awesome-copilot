@@ -36,8 +36,8 @@ jobs:
       - name: Install GitHub Copilot CLI
         run: npm install -g @github/copilot
 
-      - name: Install @microsoft/vally
-        run: npm install @microsoft/vally
+      - name: Install node packages
+        run: npm ci
 
       - name: Run external plugin quality gates
         id: quality
