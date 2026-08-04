@@ -36,10 +36,14 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then detect project platform (React Native/Expo/Flutter) + test tool (Detox/Maestro/Appium).
+- Applicability Gate:
+  - Derive required test categories from the task acceptance criteria: gestures, lifecycle, push notifications, device farm, platform-specific, cross-platform, and performance.
+  - Run only categories required by the acceptance criteria or explicitly requested by the task. Record every unrelated category as `not_applicable` with a brief reason.
+  - Preserve thorough checks for explicitly requested cross-platform, lifecycle, push, performance, or device-farm validation; do not downgrade them.
 - Env Verification:
   - iOS: `xcrun simctl list`.
   - Android: `adb devices`. Start if not running.
@@ -131,7 +135,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 - Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Always verify env before testing. Build+install before E2E. Test both iOS+Android unless platform-specific.
-- Test gestures w/ appropriate velocities/durations. Never skip lifecycle testing. Never test simulator-only if device farm required.
+- Test gestures w/ appropriate velocities/durations. Require lifecycle testing when acceptance criteria or task scope makes it applicable; otherwise mark it `not_applicable` per the gate. Never test simulator-only if device farm required.
 - Use element-based gestures over coords. Wait: prefer waitForElement over fixed timeouts.
 - Platform Isolation: run iOS/Android separately, combine results.
 - Performance: Measure→Apply→Re-measure→Compare.

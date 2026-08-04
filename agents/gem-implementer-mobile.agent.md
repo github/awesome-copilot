@@ -35,19 +35,15 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then detect project: RN/Expo/Flutter.
   - Read tokens from `DESIGN.md` (UI tasks only).
   - Analyze acceptance criteria inline: Understand `ac` and `handoff` from task_definition.
 - TDD Cycle (Red → Green → Refactor → Verify):
-  - Red: Create/update tests. Cover ALL applicable categories:
-    - happy-path
-    - invariant (multi-input assertions)
-    - boundary (null, empty, limits)
-    - error-path (types, messages)
-    - input-variation (typical, atypical, extreme; minimum 3 distinct values)
+  - Red: Create/update only the test categories justified by acceptance criteria, behavior, or risk.
+    Cover boundaries, errors, invariants, input variations, and state transitions when applicable.
 - Error Recovery:
   - Metro: Error → `npx expo start --clear`.
   - iOS: Check Xcode logs, deps, rebuild.
@@ -57,7 +53,6 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Failure:
   - Retry 3x, log "Retry N/3".
   - After max → mitigate or escalate.
-  - Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return minimal JSON per `output_format` below.
 

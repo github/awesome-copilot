@@ -37,7 +37,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse review_scope: plan|wave.
@@ -49,15 +49,15 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 
 Determine depth from `task_definition.review_depth` (default: `full`).
 
+- Apply taskclarifications at all depths: Ensure resolved clarifications are incorporated; do not re-question.
+
 - lightweight (MEDIUM complexity):
-  - Apply taskclarifications: Ensure resolved clarifications are incorporated; do not re-question.
   - Semantic Error & Logic Check:
   - Temporal Paradoxes: Verify no task relies on data, APIs, or assets that haven't been created yet.
   - Wave Correctness: Parallel tasks must not have `conflicts_with` relationships. Wave 1 must contain valid root tasks.
     - Deterministic Verification: Reject vague criteria. Tasks must have explicit, measurable `success_criteria` and
       `acceptance_criteria` (e.g., specific test commands, expected status codes/payloads).
 - full (HIGH complexity):
-  - Apply taskclarifications: Ensure resolved clarifications are incorporated; do not re-question.
   - Semantic Error & Logic Check: All lightweight checks apply.
   - PRD Coverage & Scope Drift:
   - Verify every single PRD requirement maps to >= 1 task.

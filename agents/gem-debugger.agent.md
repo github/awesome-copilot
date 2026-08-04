@@ -37,7 +37,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Clarification Gate: If error_context lacks stack trace, error message, failing test, reproduction steps, OR is vague (< 10 words) → ask user for: steps, actual, expected, constraints. Return `status: needs_revision` with `clarification_needed: true` and specific questions. Do not guess or proceed on insufficient info.
@@ -71,7 +71,6 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Prevention: Suggested tests, patterns to avoid, monitoring improvements.
 - Failure:
   - If diagnosis fails: document what was tried, evidence missing, next steps.
-  - Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return minimal JSON per `output_format` below.
 

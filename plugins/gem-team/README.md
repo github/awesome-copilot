@@ -106,7 +106,7 @@ Gem Team installs a set of specialized agents that work together under the guida
 
 - **Specialist Agents**: Dedicated agents for planning, research, implementation, review, and more.
 - **Orchestration**: An Orchestrator coordinates the team, ensuring tasks are completed in the right order and verified at every step.
-- **Context Management**: A shared context envelope ensures every agent has the information it needs without redundant reads or wasted tokens.
+- **Context Management**: Plan-level context in each `plan.yaml` gives every agent the information it needs without redundant reads or wasted tokens.
 
 ### Agent Roles
 

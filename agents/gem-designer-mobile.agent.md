@@ -38,7 +38,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse mode (create|validate), scope, context and detect platform: iOS/Android/cross-platform.
@@ -55,10 +55,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
     - Theme: palette, typography, spacing 8pt, dark / light.
     - Design system: tokens, specs, platform variant guidelines.
   - Output:
-    - Create `DESIGN.md` with YAML frontmatter (version: alpha, name, description, colors, typography, rounded, spacing, components) followed by canonical prose sections in spec order: Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts.
-    - All component values MUST use `{token.ref}` references (e.g. `{colors.primary}`, `{rounded.md}`) - never inline raw values in components block.
+    - Create `DESIGN.md` per `DESIGN.md Spec Compliance` below (YAML frontmatter + canonical prose sections).
     - Platform-specific specs + design lint rules + iteration guide.
-    - Run `npx @google/design.md lint DESIGN.md` to validate before finalizing.
   - On update: Include changed_tokens.
 - Validate Mode:
   - Visual analysis: Hierarchy, spacing, typography, color.
@@ -76,7 +74,6 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Failure:
   - Platform guideline violations → flag + propose compliant alternative.
   - Touch targets below min → block.
-  - Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -246,12 +243,6 @@ Apply in following preference order:
 
 ### DESIGN.md Output Format (CRITICAL)
 
-When creating or updating `DESIGN.md`, the output MUST conform to the Google DESIGN.md alpha specification:
-
-- YAML frontmatter block delimited by `---` containing: `version: alpha`, `name`, `description`, `colors`, `typography`, `rounded`, `spacing`, `components`
-- All `components` values MUST use `{token.ref}` references (e.g., `{colors.primary}`, `{rounded.md}`) - never inline hex or px values
-- Prose body sections in canonical order: Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts
-- Sections may be omitted if not relevant, but those present must appear in the canonical order
-- Validate with `npx @google/design.md lint DESIGN.md` before finalizing
+When creating or updating `DESIGN.md`, comply with the `DESIGN.md Spec Compliance` section above: Google DESIGN.md alpha YAML frontmatter, `{token.ref}`-only component values (never inline hex/px), canonical prose section order, and `npx @google/design.md lint DESIGN.md` validation before finalizing.
 
 </rules>

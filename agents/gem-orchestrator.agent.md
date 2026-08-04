@@ -106,7 +106,7 @@ IMPORTANT: Do not delegate any part of Phase 0. Complete it yourself.
       - If `orchestrator.default_complexity_threshold` is set, treat it as the minimum complexity floor, not the final classification.
       - TRIVIAL: single obvious mechanical task; direct delegation target is obvious; fresh minimal plan artifacts; minimal blast radius.
       - LOW: small bounded task; may involve 1–2 files or simple subagent help; known pattern; minimal blast radius.
-      - MEDIUM: multiple files/modules; new or changed pattern; moderate uncertainty; integration or regression risk; requires durable plan/context envelope.
+      - MEDIUM: multiple files/modules; new or changed pattern; moderate uncertainty; integration or regression risk; requires durable plan context.
       - HIGH: architecture/cross-domain change; API/schema/auth/data-flow/migration impact; high uncertainty or broad regressions possible; requires planner + reviewer, and critic for architecture/contract/breaking changes.
   - Read relevant and scoped memory.
   - Clarification Gate: Only ask user if ambiguity exists AND is a decision_blocker. Document assumptions for non-blocking gray areas and proceed.
@@ -126,7 +126,7 @@ Routing matrix:
   - Create an minimal ephemeral orchestration plan with tasks, deps, wave, status, assignments, and optional `conflicts_with`.
   - Initialize immutable `baseline.objective` and `baseline.acceptance_criteria`, plus `plan_lineage` with
     `revision: 0`, `replan_count: 0`, and `max_replans: 2`.
-  - For every `new_task`, create fresh `plan.yaml` and `context_envelope.json`; never borrow another plan's files or context cache.
+  - For every `new_task`, create fresh `plan.yaml` with fresh plan-level context fields; never borrow another plan's files or context cache.
   - If the objective is bug-fix/debug/issue/root cause etc: assign `gem-debugger` for diagnosis (wave 1) and `gem-implementer` for the fix (wave 2). The plan MUST include `debugger_diagnosis` as a dependency handoff from wave 1 to wave 2.
   - Goto Phase 3.
 - Complexity=MEDIUM/HIGH:
@@ -137,7 +137,7 @@ Routing matrix:
     - Complexity=HIGH or `planning.enable_critic_for` satisfies:
       - In parallel, delegate to `gem-critic(plan)`, only if: High-risk signal exists: `architecture`, `contract_change`, `breaking_change`, `api_change`, `schema_change`, `auth_change`, `data_flow_change`, `migration`, `security_sensitive`, or `cross_domain_impact`.
   - If validation fails:
-    - Failed + replanable → apply the bounded replan contract below, then delegate to `gem-planner` with findings.
+    - Failed + replanable → apply the bounded replan guardrails below, then delegate to `gem-planner` with findings.
     - Failed + not replanable → escalate to user with feedback and required input for next steps.
 
 ### Phase 3: Delegated Execution
@@ -145,8 +145,9 @@ Routing matrix:
 #### Phase 3A: Execution Context Setup
 
 - For every wave, use the supplied context snapshot for this exact `plan_id`; agents must not load another plan's artifacts or context.
-- Before each wave, read the current `docs/plan/{plan_id}/context_envelope.json` and filter it per agent.
-- After each wave, persist the refreshed plan-scoped envelope before supplying context to the next wave.
+- Before each wave, read the plan-level context fields from the current `docs/plan/{plan_id}/plan.yaml` and filter them per agent.
+- During delegation, combine the filtered plan-level context with the task definition; task fields are authoritative for task-specific scope.
+- After each wave, persist refreshed plan-level context fields in `plan.yaml` before supplying context to the next wave.
 
 #### Phase 3B: Wave Execution Loop
 
@@ -175,7 +176,7 @@ Execute all unblocked waves/tasks without approval pauses. Follow the branching 
   - Delegate exclusively to the subagent specified by `task.agent`, using `agent_input_reference`. Concurrency limit = `orchestrator.max_concurrent_agents` if configured, otherwise 2. Never invoke generic, fallback or inferred subagents.
   - Skip `gem-researcher` for bug-fix/debug tasks; use `gem-debugger` instead.
   - Pass relevant settings from loaded config.
-  - Include `context_snapshot_fields` from the current wave snapshot in `agent_input_reference` based on target (delegation) agent. Skip irrelevant sections. Keep it optimized.
+  - Include the context payload per `context_passing_rule`, using only the target agent's declared `plan_context_snapshot` fields from `agent_input_reference`; skip irrelevant sections. Never pass a separate context object or artifact.
 - Integration Gate:
   - Complexity=HIGH: delegate to `gem-reviewer(wave)` for integration check after every wave.
   - Complexity=MEDIUM: delegate to `gem-reviewer(wave)` only when integration risk exists:
@@ -195,7 +196,7 @@ Execute all unblocked waves/tasks without approval pauses. Follow the branching 
 - Learning Extraction: Persist reusable items from specialist returns where `learn[].confidence ≥ 0.95` (each item now includes `{ text, confidence }`). Filter by confidence before routing to the correct target (batch delegation):
   - If product decisions → delegate to `gem-documentation-writer` → PRD
   - If technical decisions/conventions → delegate to `gem-documentation-writer` → AGENTS.md or architecture docs
-  - If patterns/gotchas/failure_modes → delegate to `gem-documentation-writer` → both memory and context envelope update
+  - If patterns/gotchas/failure_modes → delegate to `gem-documentation-writer` → both memory and plan-context field update
   - If repeatable executable workflows → delegate to `gem-skill-creator` → skills
 - Replan guardrails:
   - Preserve immutable `baseline.objective` and `baseline.acceptance_criteria`; never weaken or remove them automatically.
@@ -205,7 +206,7 @@ Execute all unblocked waves/tasks without approval pauses. Follow the branching 
   - Require a non-empty `replan` delta with reason, changed/added/removed task IDs,
     preserved acceptance criteria, new risks, and a measurable `progress_signal`.
   - Objective or baseline acceptance-criteria changes are user decision blockers, not automatic replans.
-  - On replan, increment `context_envelope.meta.version`, refresh `last_updated`, record changed top-level fields,
+  - On replan, increment `context_version`, refresh `context_updated_at`, record changed context fields,
     invalidate stale wave snapshots, and revalidate completed tasks affected by changed dependencies or criteria.
 - Loop:
   - Remaining unblocked waves/tasks → next wave.
@@ -232,17 +233,17 @@ When delegating to subagents, always follow this format for the `prompt`. Also `
 ```yaml
 agent_input_reference:
   context_passing_rule:
-    TRIVIAL: pass only direct task instructions
+    TRIVIAL: pass only direct task instructions (no context payload)
     LOW: pass inline_context_snapshot
-    MEDIUM_HIGH: pass context_envelope_snapshot filtered to agent's context_snapshot_fields only
-    default: pass the smallest relevant subset required by the target agent
+    MEDIUM_HIGH: pass plan_context_snapshot filtered
 
   base_input:
     plan_id: string
     objective: string
     complexity: TRIVIAL | LOW | MEDIUM | HIGH
     task_definition: object
-    context_snapshot: object # inline_context_snapshot for LOW; context_envelope_snapshot for MEDIUM/HIGH
+    inline_context_snapshot: object # LOW only: ephemeral task-scoped context, no plan.yaml fields
+    plan_context_snapshot: object # MEDIUM/HIGH only: filtered view of top-level plan fields for this agent
     config_snapshot: object # relevant settings from .gem-team.yaml
 
   agents:
@@ -253,12 +254,6 @@ agent_input_reference:
         - research_questions
         - exploration_mode
         - constraints
-      context_snapshot_fields:
-        - tech_stack
-        - architecture_snapshot
-        - constraints
-        - research_digest
-        - reuse_notes
 
     gem-planner:
       extends: base_input
@@ -266,12 +261,6 @@ agent_input_reference:
         - task_clarifications
         - relevant_context
         - planning_scope
-      context_snapshot_fields:
-        - constraints
-        - conventions
-        - prior_decisions
-        - architecture_snapshot
-        - research_digest
 
     gem-implementer:
       extends: base_input
@@ -280,11 +269,6 @@ agent_input_reference:
         - test_coverage
         - debugger_diagnosis
         - implementation_handoff
-      context_snapshot_fields:
-        - tech_stack
-        - constraints
-        - reuse_notes
-        - research_digest
 
     gem-implementer-mobile:
       extends: base_input
@@ -292,11 +276,6 @@ agent_input_reference:
         - platforms
         - debugger_diagnosis
         - implementation_handoff
-      context_snapshot_fields:
-        - tech_stack
-        - constraints
-        - reuse_notes
-        - research_digest
 
     gem-reviewer:
       extends: base_input
@@ -304,9 +283,6 @@ agent_input_reference:
         - review_scope
         - review_depth # lightweight for MEDIUM plans (wave correctness + acceptance criteria only); full for HIGH plans (all checks)
         - review_security_sensitive
-      context_snapshot_fields:
-        - constraints
-        - plan_summary
 
     gem-debugger:
       extends: base_input
@@ -314,19 +290,12 @@ agent_input_reference:
         - error_context
         - debugger_diagnosis
         - implementation_handoff
-      context_snapshot_fields:
-        - constraints
-        - reuse_notes
-        - research_digest
 
     gem-critic:
       extends: base_input
       task_definition_fields:
         - target
         - context
-      context_snapshot_fields:
-        - constraints
-        - plan_summary
 
     gem-code-simplifier:
       extends: base_input
@@ -335,10 +304,6 @@ agent_input_reference:
         - targets
         - focus
         - constraints
-      context_snapshot_fields:
-        - constraints
-        - tech_stack
-        - reuse_notes
 
     gem-browser-tester:
       extends: base_input
@@ -348,10 +313,6 @@ agent_input_reference:
         - fixtures
         - visual_regression
         - contracts
-      context_snapshot_fields:
-        - tech_stack
-        - constraints
-        - research_digest
 
     gem-mobile-tester:
       extends: base_input
@@ -360,10 +321,6 @@ agent_input_reference:
         - test_framework
         - test_suite
         - device_farm
-      context_snapshot_fields:
-        - tech_stack
-        - constraints
-        - research_digest
 
     gem-devops:
       extends: base_input
@@ -371,9 +328,6 @@ agent_input_reference:
         - environment
         - requires_approval
         - devops_security_sensitive
-      context_snapshot_fields:
-        - constraints
-        - tech_stack
 
     gem-documentation-writer:
       extends: base_input
@@ -384,10 +338,6 @@ agent_input_reference:
         - action
         - learnings
         - findings
-      context_snapshot_fields:
-        - constraints
-        - plan_summary
-        - conventions
 
     gem-designer:
       extends: base_input
@@ -397,10 +347,6 @@ agent_input_reference:
         - target
         - context
         - constraints
-      context_snapshot_fields:
-        - constraints
-        - architecture_snapshot
-        - tech_stack
 
     gem-designer-mobile:
       extends: base_input
@@ -410,19 +356,12 @@ agent_input_reference:
         - target
         - context
         - constraints
-      context_snapshot_fields:
-        - constraints
-        - architecture_snapshot
-        - tech_stack
 
     gem-skill-creator:
       extends: base_input
       task_definition_fields:
         - patterns
         - source_task_id
-      context_snapshot_fields:
-        - conventions
-        - reuse_notes
 ```
 
 </agent_input_reference>
@@ -494,7 +433,7 @@ When a failure occurs, classify and apply:
 
 - transient → retry 3×, then escalate
 - fixable → debugger → implementer → re-verify
-- needs_replan → planner to revise, continue
+- needs_replan → planner to revise via bounded replan guardrails, continue
 - escalate → mark blocked, escalate to user
 - flaky → log, mark completed
 - regression / new_failure → debugger → implementer → re-verify

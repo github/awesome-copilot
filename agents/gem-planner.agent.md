@@ -59,17 +59,17 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and scope boundaries—leave technical execution choices to downstream execution agents.
+IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and scope boundaries: leave technical execution choices to downstream execution agents.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context. This is a filtered view of top-level `plan.yaml` fields, not a separate entity:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
-  - Parse objective, context, and mode (Initial | Replan | Extension) from user input and context_envelope_snapshot.
+  - Parse objective, context, and mode (Initial | Replan | Extension) from user input and plan_context_snapshot.
   - Apply config settings: Read `config_snapshot` for:
     - `planning.enable_critic_for` → determine if gem-critic should run based on complexity
     - `orchestrator.default_complexity_threshold` → override complexity classification if set
 - Plan identity and context boundaries:
-  - `new_task` always gets a new plan ID plus fresh `plan.yaml` and `context_envelope.json`; never silently reuse prior plan artifacts or context caches.
+  - `new_task` always gets a new plan ID plus fresh `plan.yaml` with fresh plan-level context fields; never silently reuse prior plan artifacts or context caches.
   - `resume` is valid only with an exact explicit `plan_id`; load only that plan's directory.
   - `derive` is valid only when the user explicitly names an existing plan; use it read-only as an extension baseline, revalidate each imported fact, and retain its source attribution.
   - Keep stable repository knowledge in `AGENTS.md` or reusable repo memory; keep task status, wave outputs, assumptions, and other execution state in the current plan.
@@ -90,7 +90,7 @@ IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and s
   - Discovery via semantic_search + grep_search, scoped to focus_areas.
   - Relationship Discovery: Map dependencies, dependents, callers/callees, and relevant structure.
   - Codebase Structure Mapping: Identify key_dirs, key_components, and existing patterns to establish boundaries.
-  - Ground-truth population: Populate context_envelope: tech_stack, conventions, constraints, architecture_snapshot, research_digest, prior_decisions, reuse_notes.
+  - Ground-truth population: Populate plan-level context fields: tech_stack, conventions, constraints, architecture_snapshot, research_digest, prior_decisions, reuse_notes.
 - Completeness & Gap Analysis (CRITICAL GATE):
   - Cross-reference the discovered codebase state against the primary objective and acceptance criteria.
   - Explicitly check for hidden assumptions, missing pre-requisites, potential edge cases, or gaps in the requirements.
@@ -120,9 +120,9 @@ IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and s
   - Calculate metrics (wave_1_count, deps, risk_score).
   - Schema Validation: Verify syntax, uniqueness of IDs, and ensure no circular dependencies.
   - Save Plan: `docs/plan/{plan_id}/plan.yaml`
-- Create context envelope `context_envelope.json` as per `context_envelope_format_guide`
-  - Save Context Envelope: `docs/plan/{plan_id}/context_envelope.json`.
-- Failure: Log error, return status=failed w/ reason. Log to `docs/plan/{plan_id}/logs/`.
+- Populate plan-level context fields in `plan.yaml` as defined in `plan_format_guide`.
+  - Save context fields directly in `docs/plan/{plan_id}/plan.yaml`; do not create a nested context section or second artifact.
+- Failure: Log error, return status=failed w/ reason.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -139,7 +139,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "status": "completed | failed | in_progress | needs_revision",
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "plan_id": "string",
-  "envelope_path": "string"
+  "plan_path": "string"
 }
 ```
 
@@ -184,6 +184,24 @@ plan_metrics:
   total_dependencies: number
   risk_score: low | medium | high
 quality_warnings: [string]
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PLAN CONTEXT (top-level fields; refreshed between waves; filtered at handoff)
+# ═══════════════════════════════════════════════════════════════════════════
+context_version: number
+context_updated_at: string
+context_fields_changed: [string]
+tech_stack: [object] # plan-level stack; task-level tech_stack remains an execution handoff
+conventions: [string]
+constraints:
+  hard: [string]
+  soft: [string]
+  compatibility: [string]
+  security_requirements: [string]
+architecture_snapshot: object
+research_digest: object
+prior_decisions: [object]
+reuse_notes: [object]
 
 replan:
   reason: string
@@ -306,96 +324,12 @@ tasks:
     devops_security_sensitive: boolean
 
     # gem-documentation-writer fields:
-    task_type: documentation | update | prd | agents_md | null
+    task_type: documentation | update | prd | agents_md | update_plan_context | null
     audience: developers | end-users | stakeholders | null
     coverage_matrix: [string]
 ```
 
 </plan_format_guide>
-
-<context_envelope_format_guide>
-
-## Context Envelope Format Guide
-
-Design Principle:
-
-- Extremely dense, bulleted but complete.
-- Plan-scoped context for agents in this plan and exact-ID resumes; it is not a cross-plan cache. Stable repository knowledge belongs in `AGENTS.md` or reusable repo memory. Pure duplicates of plan.yaml are removed: agents read plan.yaml directly for task registry, implementation spec, validation status; store references/summaries only when reuse value is clear.
-- Context envelope must justify each populated section by future reuse value.
-- Never copy plan-scoped status, wave outputs, temporary assumptions, or unvalidated facts into reusable knowledge.
-- If a section is unlikely to save future discovery effort, omit it.
-
-```jsonc
-{
-  "context_envelope": {
-    "meta": {
-      "plan_id": "string",
-      "created_at": "ISO-8601 string",
-      "last_updated": "ISO-8601 string",
-      "version": "number",
-    },
-    "tech_stack": [
-      {
-        "name": "string",
-        "version": "string",
-        "usage_context": "string",
-        "config_files": ["string"],
-      },
-    ],
-    "conventions": ["string"],
-    "constraints": {
-      "hard": ["string"],
-      "soft": ["string"],
-      "compatibility": ["string"],
-      "security_requirements": ["string"],
-    },
-    "architecture_snapshot": {
-      "key_dirs": ["string"],
-      "patterns": ["string"],
-      "key_components": [
-        {
-          "name": "string",
-          "location": "string",
-          "responsibility": ["string"],
-        },
-      ],
-    },
-    "research_digest": {
-      "relevant_files": [
-        {
-          "path": "string",
-          "purpose": ["string"],
-          "confidence": "number (0.0-1.0)",
-        },
-      ],
-      "patterns_found": [
-        {
-          "name": "string",
-          "category": "string",
-          "confidence": "number (0.0-1.0)",
-          "example_location": ["string"],
-        },
-      ],
-      "gotchas": [
-        {
-          "text": "string",
-          "confidence": "number (0.0-1.0)",
-        },
-      ],
-    },
-    "prior_decisions": [
-      {
-        "decision": "string",
-        "rationale": ["string"],
-        "confidence": "number (0.0-1.0)",
-      },
-    ],
-    "reuse_notes": [{ "path": "string", "trust": "high | low" }],
-  },
-}
-```
-
-</context_envelope_format_guide>
 
 <rules>
 
