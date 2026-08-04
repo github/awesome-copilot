@@ -201,4 +201,4 @@ This is a **stable** package that also surfaces preview features. Preview featur
 - Handle errors via `azure.core.exceptions.HttpResponseError` (`e.status_code`, `e.reason`, `e.message`). A `401 Unauthorized` almost always means a missing RBAC role assignment (or, in local dev, that you didn't `az login`), not a bad endpoint.
 - **Logging exposes sensitive data — treat with care.** `logging_enable=True` turns on full HTTP transport logging **including request/response bodies** (prompts, user data), and header redaction is bypassed in this mode unless you install a filtered handler — so bearer tokens and payloads can leak into logs. Prefer the SDK's filtered console-logging path (`AZURE_AI_PROJECTS_CONSOLE_LOGGING=true`, which redacts auth headers) for routine diagnostics, enable body logging only against non-production/non-sensitive data, and never ship it to shared log sinks. Logging only emits at level `DEBUG`.
 - For async, import from `azure.ai.projects.aio` and `azure.identity.aio` and use `async with` — the method names are identical.
-```
+
