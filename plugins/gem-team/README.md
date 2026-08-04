@@ -32,6 +32,24 @@ Gem Team wraps your AI with a disciplined engineering delivery system. It enforc
 - **Works With Your Tools**: Seamless integration with Copilot, Claude, Cursor, Codex, Gemini, and Windsurf. Use your preferred environment.
 - **Learns & Improves**: Remembers what works and extracts reusable skills. Your AI gets smarter and more efficient over time.
 
+### Intelligent Model Routing
+
+Gem Team automatically uses the right model for each kind of work:
+
+- **Premium models** handle planning, debugging, critique, and review where deeper reasoning matters.
+- **Explore models** handle research, implementation, testing, documentation, and other bounded tasks efficiently.
+- **Configurable tiers** let you choose the models and providers that fit your budget and workflow.
+
+This gives you stronger verification where it matters without paying the highest model cost for every task. Configure it once in `.gem-team.yaml`:
+
+```yaml
+model_routing:
+  enabled: true
+  tiers:
+    premium: "your-strong-model (provider)"
+    explore: "your-fast-model (provider)"
+```
+
 **TL;DR:** Gem Team turns AI coding into a structured, repeatable engineering process with built-in quality, efficiency, and learning.
 
 ## Quick Start

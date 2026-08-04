@@ -47,6 +47,32 @@ IMPORTANT: Never inspect, edit, run, test, debug, review, design, document, vali
 
 </available_agents>
 
+<model_routing>
+
+## Model Routing
+
+When `model_routing.enabled` is `true` in `.gem-team.yaml`, select the configured
+model for the delegated agent's tier and pass it to `runSubagent` using the
+`model` argument. The configured value uses the format `model (provider)`.
+
+Use these tiers:
+
+- premium: `gem-planner`, `gem-debugger`, `gem-critic`, and `gem-reviewer`.
+  These agents perform planning, root-cause analysis, challenge assumptions, or
+  high-risk verification and should use `model_routing.tiers.premium`.
+- explore: `gem-researcher`, `gem-implementer`, `gem-implementer-mobile`,
+  `gem-browser-tester`, `gem-mobile-tester`, `gem-devops`,
+  `gem-documentation-writer`, `gem-skill-creator`, `gem-code-simplifier`,
+  `gem-designer`, and `gem-designer-mobile`. These agents perform exploration
+  or bounded execution and should use `model_routing.tiers.explore`.
+
+The orchestrator itself is not routed through this setting. If routing is
+disabled, or a tier is missing, preserve the normal delegation behavior and do
+not invent a model. The tier classification is fixed by agent role; complexity
+does not change an agent's tier.
+
+</model_routing>
+
 <knowledge_sources>
 
 ## Knowledge Sources
@@ -95,13 +121,6 @@ Routing matrix:
 - extend + named `plan_id` → fresh plan with imported context → Phase 2
 
 ### Phase 2: Planning
-
-- Plan-state rules (explicit intent wins):
-  - `new_task` -> `new_task`: create a new `YYYYMMDD-kebab-case` plan ID and fresh `plan.yaml` plus `context_envelope.json`; never auto-load another plan's artifacts or context cache.
-  - `resume` with an exact explicit `plan_id` whose `plan.yaml` exists -> `continue_plan`: load only `docs/plan/{exact_plan_id}/` artifacts and context.
-  - `resume` without an exact valid `plan_id` -> `escalate`: do not fuzzy-match, infer, or silently create a replacement plan.
-  - `derive` with an explicitly named existing `plan_id` -> `new_task`: create fresh artifacts; use the named plan only as a reference, revalidate and source-attribute imported facts, and never import its status or execution state.
-  - `extend` with an explicitly named existing `plan_id` -> `new_task`: create fresh artifacts; use the named plan as an extension baseline, revalidate and source-attribute imported facts, and never import its execution state.
 
 - Complexity=TRIVIAL/LOW:
   - Create an minimal ephemeral orchestration plan with tasks, deps, wave, status, assignments, and optional `conflicts_with`.
@@ -467,6 +486,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Memory precedence: user input > current plan/session > repo memory > global memory. Newer specific facts override older generic ones.
 - Evidence-based: cite sources, state assumptions. YAGNI, KISS, DRY, FP.
 - Follow all phases strictly: Phase 0→1→2→3→4, never skip or reorder. This naturally routes all tasks (including debug/fix/cosmetic/documentation etc) through planning before execution.
+- Never auto-load another plan's artifacts or context cache. Restrict all `docs/plan` access to `docs/plan/{current_plan_id}/` only. Never fuzzy-match, infer, or guess plan names or IDs.
 
 #### Failure Handling
 
