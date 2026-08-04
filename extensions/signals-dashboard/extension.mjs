@@ -198,20 +198,17 @@ function terminateProcessTree(child) {
     }
 }
 
-// Capture the machine-readable plugin MCP inventory through a trusted absolute
-// executable resolved from PATH. Prefer Copilot directly; if Agency is the only
-// installed entry point, use its existing Copilot resolver.
+// Capture the underlying Copilot plugin inventory directly. Agency repo mode
+// separately suppresses its own default/config plugins, so discovery does not
+// need a wrapper process that can leave inherited pipes or descendants behind.
 function capturePluginMcpJson(workshopDir, agent) {
     return new Promise((resolve) => {
-        const command = agent.useAgency ? agent.agencyCommand : agent.copilotCommand;
+        const command = agent.copilotCommand;
         if (!command) {
             resolve(null);
             return;
         }
-        const args = agent.useAgency
-            ? ["copilot", "--no-default-mcps",
-                "plugins", "list", "--kind", "mcp", "--scope", "plugin", "--json"]
-            : ["plugins", "list", "--kind", "mcp", "--scope", "plugin", "--json"];
+        const args = ["plugins", "list", "--kind", "mcp", "--scope", "plugin", "--json"];
         const shim = process.platform === "win32" && /\.(cmd|bat)$/i.test(command);
         if (shim && !isSafeWindowsCmdShim(command)) {
             resolve(null);
@@ -271,8 +268,7 @@ function capturePluginMcpJson(workshopDir, agent) {
 }
 
 async function discoverPluginMcpNames(workshopDir, agent) {
-    const cacheKey = `${workshopDir}\0${agent.useAgency ? "agency" : "copilot"}\0` +
-        `${agent.useAgency ? agent.agencyCommand : agent.copilotCommand}`;
+    const cacheKey = `${workshopDir}\0${agent.copilotCommand || "missing"}`;
     const cached = mcpDiscoveryCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) return cached.value;
 
@@ -290,7 +286,8 @@ async function discoverPluginMcpNames(workshopDir, agent) {
 
 // Preserve the existing Agency-aware launch and layer the repo profile on top.
 // Repo mode suppresses ambient plugin MCPs; connected mode keeps today's tool
-// surface. Discovery fails open to connected behavior.
+// surface. Plugin discovery fails open, while Agency repo mode still suppresses
+// Agency's own default MCPs.
 async function deskAgentArgv(deskName, workshopDir, profile) {
     const resolved = resolveDeskAgent(workshopDir);
     if (!resolved) return null;

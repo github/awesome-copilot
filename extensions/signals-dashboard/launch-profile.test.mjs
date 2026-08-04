@@ -118,7 +118,7 @@ test("builds a plain Copilot repo profile without Agency-only flags", () => {
     ]);
 });
 
-test("connected and discovery-failure launches preserve the existing tool surface", () => {
+test("connected preserves tools while Agency discovery failure still removes defaults", () => {
     assert.deepEqual(buildDeskAgentArgv({
         deskName: "cost-desk",
         workshopDir: "/workshop",
@@ -137,6 +137,6 @@ test("connected and discovery-failure launches preserve the existing tool surfac
         pluginMcpNames: [],
         discoverySucceeded: false,
     }), [
-        "agency", "copilot", "--add-dir", "/workshop",
+        "agency", "copilot", "--no-default-mcps", "--add-dir", "/workshop",
     ]);
 });

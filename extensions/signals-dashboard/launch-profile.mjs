@@ -73,8 +73,11 @@ export function buildDeskAgentArgv({
         ? [agencyCommand, "copilot"]
         : [copilotCommand, "--name", deskName];
 
-    if (profile === "repo" && discoverySucceeded) {
+    if (profile === "repo") {
         if (useAgency) argv.push("--no-default-mcps");
+    }
+
+    if (profile === "repo" && discoverySucceeded) {
         for (const name of pluginMcpNames) {
             if (SAFE_MCP_NAME.test(name)) argv.push("--disable-mcp-server", name);
         }
