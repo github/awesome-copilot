@@ -18,6 +18,17 @@ $CopilotHome = if ($env:COPILOT_HOME) { $env:COPILOT_HOME } else { Join-Path $HO
 # Remove plugin.
 $pluginDir = Join-Path $CopilotHome 'plugins' 'shepherd-task'
 if (Test-Path $pluginDir -PathType Container) {
+    $redactionScripts = @(
+        'redact-secrets.sh'
+        'redact-secrets.ps1'
+    )
+    foreach ($script in $redactionScripts) {
+        $installedScript = Join-Path $pluginDir 'scripts' $script
+        if (Test-Path $installedScript -PathType Leaf) {
+            Remove-Item -Path $installedScript -Force
+            Write-Host "Removed $installedScript"
+        }
+    }
     Remove-Item -Path $pluginDir -Recurse -Force
     Write-Host "Removed $pluginDir"
 } else {
