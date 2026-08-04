@@ -1,0 +1,145 @@
+---
+import { getFileMeta } from "../../lib/file-types";
+
+export interface BrowserFile {
+  name: string;
+  path: string;
+  size?: number;
+}
+
+export interface FileBrowserProps {
+  files: BrowserFile[];
+  /** Full repo path of the primary file, e.g. skills/foo/SKILL.md or hooks/foo/README.md */
+  primaryPath: string;
+  /** Display name of the primary file, e.g. SKILL.md or README.md */
+  primaryName: string;
+  /** Pre-rendered HTML for the primary file (shown by default) */
+  primaryHtml: string;
+  /** GitHub blob base, e.g. https://github.com/github/awesome-copilot/blob/main */
+  githubBase: string;
+}
+
+const { files, primaryPath, primaryName, primaryHtml, githubBase } =
+  Astro.props as FileBrowserProps;
+
+// Primary file first, then everything else alphabetically by name.
+const sortedFiles = [...files].sort((a, b) => {
+  if (a.path === primaryPath) return -1;
+  if (b.path === primaryPath) return 1;
+  return a.name.localeCompare(b.name);
+});
+
+const otherFiles = sortedFiles.filter((f) => f.path !== primaryPath);
+const rootFiles = otherFiles.filter((f) => !f.name.includes("/"));
+
+// Group nested files by their top-level folder for optgroup rendering.
+const folderGroups = new Map<string, BrowserFile[]>();
+for (const file of otherFiles) {
+  const slash = file.name.indexOf("/");
+  if (slash === -1) continue;
+  const folder = file.name.slice(0, slash);
+  const bucket = folderGroups.get(folder) ?? [];
+  bucket.push(file);
+  folderGroups.set(folder, bucket);
+}
+const sortedFolders = [...folderGroups.keys()].sort((a, b) =>
+  a.localeCompare(b)
+);
+
+const hasMultipleFiles = sortedFiles.length > 1;
+
+function optionAttrs(file: BrowserFile) {
+  const meta = getFileMeta(file.name);
+  return {
+    value: file.path,
+    "data-file-name": file.name,
+    "data-file-lang": meta.lang,
+    "data-file-kind": meta.kind,
+  };
+}
+---
+
+<section
+  class="skill-file-browser"
+  aria-label="Bundle files"
+  data-file-browser
+  data-github-base={githubBase}
+  data-primary-file={primaryPath}
+>
+  <div class="skill-file-view">
+    <header class="skill-file-view-header">
+      {
+        hasMultipleFiles ? (
+          <div class="skill-file-picker">
+            <label class="skill-file-picker-label" for="file-browser-select">
+              File
+            </label>
+            <select
+              id="file-browser-select"
+              class="skill-file-select"
+              data-file-select
+              aria-label="Select a file to view"
+            >
+              <option {...optionAttrs({ name: primaryName, path: primaryPath })} selected>
+                {primaryName}
+              </option>
+              {rootFiles.map((file) => (
+                <option {...optionAttrs(file)}>{file.name}</option>
+              ))}
+              {sortedFolders.map((folder) => (
+                <optgroup label={`${folder}/`}>
+                  {folderGroups.get(folder)!.map((file) => (
+                    <option {...optionAttrs(file)}>
+                      {file.name.slice(folder.length + 1)}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <code class="skill-file-current" data-current-file-name>
+            {primaryName}
+          </code>
+        )
+      }
+      <div class="skill-file-view-actions">
+        <button
+          type="button"
+          class="btn btn-secondary btn-small"
+          data-action="copy-file"
+          title="Copy file contents"
+        >
+          <svg
+            viewBox="0 0 16 16"
+            width="14"
+            height="14"
+            fill="currentColor"
+            aria-hidden="true"
+            ><path
+              d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"
+            ></path><path
+              d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"
+            ></path></svg
+          >
+          Copy
+        </button>
+        <a
+          class="btn btn-secondary btn-small"
+          data-file-github
+          href={`${githubBase}/${primaryPath}`}
+          target="_blank"
+          rel="noopener"
+          title="View file on GitHub">GitHub</a
+        >
+      </div>
+    </header>
+
+    <div
+      class="skill-file-content article-content"
+      data-file-content
+      set:html={primaryHtml}
+    />
+    <div class="skill-file-status" data-file-status hidden></div>
+  </div>
+</section>

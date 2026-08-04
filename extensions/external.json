@@ -3,6 +3,7 @@
     "id": "coffilot",
     "name": "Coffilot",
     "description": "Java-focused Copilot canvas extension from jdubois.",
+    "author": { "name": "Julien Dubois", "url": "https://github.com/jdubois" },
     "keywords": [
       "java",
       "canvas",

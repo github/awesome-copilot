@@ -1,0 +1,104 @@
+---
+import type { SidebarChipsProps } from "./SidebarChips.astro";
+import SidebarChips from "./SidebarChips.astro";
+
+export interface SidebarProps {
+  item: any;
+  lastUpdated?: string;
+  frontmatterText?: string;
+  githubUrl: string;
+  chips?: SidebarChipsProps[];
+}
+const {
+  item,
+  lastUpdated,
+  frontmatterText,
+  githubUrl,
+  chips,
+} = Astro.props as SidebarProps;
+---
+
+<aside class="detail-sidebar" aria-label="Details">
+  <section class="detail-card detail-actions-card" data-actions>
+    <slot name="install" />
+
+    <div class="detail-actions-secondary">
+      <button class="btn btn-secondary" type="button" data-action="share">
+        <svg
+          viewBox="0 0 24 24"
+          width="15"
+          height="15"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          ><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"
+          ></circle><circle cx="18" cy="19" r="3"></circle><path
+            d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"></path></svg
+        >
+        Share
+      </button>
+      <a
+        class="btn btn-secondary"
+        href={githubUrl}
+        target="_blank"
+        rel="noopener"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="15"
+          height="15"
+          fill="currentColor"
+          aria-hidden="true"
+          ><path
+            d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48 0-.24-.01-.87-.01-1.71-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85 0 1.34-.01 2.42-.01 2.75 0 .27.18.58.69.48A10.01 10.01 0 0022 12c0-5.52-4.48-10-10-10z"
+          ></path></svg
+        >
+        View on GitHub
+      </a>
+    </div>
+  </section>
+
+  <section class="detail-card">
+    <h2>Details</h2>
+    <dl class="detail-meta">
+      {
+        chips?.map((chip) => (
+          <SidebarChips
+            title={chip.title}
+            items={chip.items}
+            filterBase={chip.filterBase}
+            filterParam={chip.filterParam}
+          />
+        ))
+      }
+      <div>
+        <dt>Source</dt>
+        <dd><code class="detail-path">{item.path}</code></dd>
+      </div>
+      {
+        lastUpdated && (
+          <div>
+            <dt>Last updated</dt>
+            <dd>{lastUpdated}</dd>
+          </div>
+        )
+      }
+    </dl>
+  </section>
+
+  {
+    frontmatterText && (
+      <section class="detail-card">
+        <details class="detail-frontmatter">
+          <summary>Frontmatter</summary>
+          <pre>
+            <code>{frontmatterText}</code>
+          </pre>
+        </details>
+      </section>
+    )
+  }
+</aside>

@@ -1,5 +1,7 @@
 # Roots
 
+> **Deprecated in the 2026-07-28 spec.** SDK 2.x marks the roots APIs `[Obsolete]` (build warning `MCP9005`). They stay wire-compatible with down-level clients during the transition, but for new designs prefer having the client pass in-scope paths as tool arguments, or ask via elicitation / the multi-round-trip `input_required` pattern. Keep this page for maintaining existing 1.x-era servers.
+
 Roots are filesystem (or URI) locations the **client** advertises to the server, scoping what the server is allowed to look at. Think "open workspace folders" in an IDE — the user has implicitly approved the server reading from these places. The server pulls the list when it needs it.
 
 ## When you'd use roots

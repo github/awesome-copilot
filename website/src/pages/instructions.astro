@@ -5,7 +5,6 @@ import ContributeCTA from '../components/ContributeCTA.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import PageHeader from '../components/PageHeader.astro';
 import BackToTop from '../components/BackToTop.astro';
-import Modal from '../components/Modal.astro';
 import { renderInstructionsHtml, sortInstructions } from '../scripts/pages/instructions-render';
 
 const initialItems = sortInstructions(instructionsData.items, 'title');
@@ -48,7 +47,6 @@ const initialItems = sortInstructions(instructionsData.items, 'title');
   </div>
 
   <BackToTop />
-  <Modal />
   <EmbeddedPageData filename="instructions.json" data={instructionsData} />
 
   <script>

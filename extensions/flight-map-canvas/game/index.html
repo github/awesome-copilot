@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--{{HOST_HEAD}}-->
+  <title>Flight Map</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Bar: capital selector on the left, location readout centered.
+       The bar owns both so the readout can never sit under the menu. -->
+  <div id="top-bar">
+    <div id="selector-panel">
+      <label for="capital-select">Destination</label>
+      <!-- The placeholder is hidden from the list so "Input Destination"
+           reads as the first entry, but still shows as the closed value
+           until a destination has been chosen. -->
+      <select id="capital-select">
+        <option value="" selected hidden>-- Select a Capital --</option>
+        <option value="__input__" id="opt-input-destination">Input Destination</option>
+      </select>
+      <button id="btn-toggle-config" type="button" title="Configure Rendering">Config</button>
+      <button id="btn-export-json" type="button" title="Export renderMap.json">Export JSON</button>
+    </div>
+
+    <div id="hud-location" class="hidden">
+      <div id="hud-capital">---</div>
+      <div id="hud-coords">---</div>
+    </div>
+  </div>
+
+  <!-- Render Config Panel -->
+  <div id="config-panel" class="hidden">
+    <h3>Render Configuration</h3>
+    <p class="config-hint">Adjust rendering parameters to determine suitability for different gaming applications.</p>
+
+    <fieldset>
+      <legend>Map</legend>
+      <div class="cfg-row">
+        <label for="cfg-width">Width</label>
+        <input type="range" id="cfg-width" data-config="map.width" min="640" max="3840" step="10">
+        <span id="cfg-width-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-height">Height</label>
+        <input type="range" id="cfg-height" data-config="map.height" min="480" max="2160" step="10">
+        <span id="cfg-height-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-tileZoom">Tile Zoom</label>
+        <input type="range" id="cfg-tileZoom" data-config="map.tileZoom" min="10" max="19" step="1">
+        <span id="cfg-tileZoom-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-loadRadius">Load Radius</label>
+        <input type="range" id="cfg-loadRadius" data-config="map.loadRadius" min="2" max="48" step="1">
+        <span id="cfg-loadRadius-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-radiusFeather">Radius Feather</label>
+        <input type="range" id="cfg-radiusFeather" data-config="map.radiusFeather" min="0" max="100" step="0.5">
+        <span id="cfg-radiusFeather-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-startAlt">Start Altitude</label>
+        <input type="range" id="cfg-startAlt" data-config="map.startAltitude" min="50" max="1000" step="10">
+        <span id="cfg-startAlt-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-fogDensity">Fog Density</label>
+        <input type="range" id="cfg-fogDensity" data-config="map.fogDensity" min="0.00001" max="0.01" step="0.00001">
+        <span id="cfg-fogDensity-val"></span>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Filler</legend>
+      <div class="cfg-row">
+        <label for="cfg-sampleInterval">Sample Interval</label>
+        <input type="range" id="cfg-sampleInterval" data-config="filler.sampleInterval" min="10" max="120" step="5">
+        <span id="cfg-sampleInterval-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-updateInterval">Update Time (s)</label>
+        <input type="range" id="cfg-updateInterval" data-config="filler.updateIntervalSec" min="5" max="60" step="1">
+        <span id="cfg-updateInterval-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-perimCount">Perimeter Count</label>
+        <input type="range" id="cfg-perimCount" data-config="filler.perimeter.patchCount" min="1" max="20" step="1">
+        <span id="cfg-perimCount-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-perimSize">Perimeter Size</label>
+        <input type="range" id="cfg-perimSize" data-config="filler.perimeter.patchSize" min="2" max="20" step="1">
+        <span id="cfg-perimSize-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-centerCount">Center Count</label>
+        <input type="range" id="cfg-centerCount" data-config="filler.center.patchCount" min="1" max="15" step="1">
+        <span id="cfg-centerCount-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-centerSize">Center Size</label>
+        <input type="range" id="cfg-centerSize" data-config="filler.center.patchSize" min="2" max="20" step="1">
+        <span id="cfg-centerSize-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-padCount">Padding Count</label>
+        <input type="range" id="cfg-padCount" data-config="filler.padding.patchCount" min="1" max="12" step="1">
+        <span id="cfg-padCount-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-padSize">Padding Size</label>
+        <input type="range" id="cfg-padSize" data-config="filler.padding.patchSize" min="2" max="15" step="1">
+        <span id="cfg-padSize-val"></span>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Cloud Effect</legend>
+      <div class="cfg-row">
+        <label for="cfg-cloud-enabled">Enabled</label>
+        <input type="checkbox" id="cfg-cloud-enabled">
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-cloudOpacity">Opacity</label>
+        <input type="range" id="cfg-cloudOpacity" data-config="cloud.opacity" min="0" max="1" step="0.05">
+        <span id="cfg-cloudOpacity-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-cloudSpeed">Speed</label>
+        <input type="range" id="cfg-cloudSpeed" data-config="cloud.speed" min="0.0001" max="0.002" step="0.0001">
+        <span id="cfg-cloudSpeed-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-cloudCoverage">Coverage</label>
+        <input type="range" id="cfg-cloudCoverage" data-config="cloud.coverage" min="0.1" max="1" step="0.05">
+        <span id="cfg-cloudCoverage-val"></span>
+      </div>
+      <div class="cfg-row">
+        <label for="cfg-cloudScale">Scale</label>
+        <input type="range" id="cfg-cloudScale" data-config="cloud.scale" min="0.002" max="0.03" step="0.001">
+        <span id="cfg-cloudScale-val"></span>
+      </div>
+    </fieldset>
+  </div>
+
+  <!-- Destination Input Dialog: opened by the "Input Destination" entry
+       in the destination menu. Stage one collects a typed location,
+       stage two lists the matches the geocoder returned for it. -->
+  <div id="destination-dialog" class="hidden" role="dialog" aria-modal="true"
+       aria-label="Input destination">
+    <div class="destination-card">
+
+      <div id="destination-form">
+        <div class="dest-row">
+          <label class="dest-label" for="dest-state">State/region</label>
+          <input type="text" id="dest-state" placeholder="Keyboard Input"
+                 autocomplete="off" spellcheck="false">
+        </div>
+        <div class="dest-row">
+          <label class="dest-label" for="dest-city">City</label>
+          <input type="text" id="dest-city" placeholder="Keyboard Input"
+                 autocomplete="off" spellcheck="false">
+        </div>
+        <div class="dest-row">
+          <label class="dest-label" for="dest-country">Country</label>
+          <select id="dest-country">
+            <option value="">Dropdown Menu</option>
+          </select>
+        </div>
+        <p id="dest-form-message" class="dest-message" role="status"></p>
+        <div class="dest-actions">
+          <button id="dest-search" type="button">Search</button>
+          <button id="dest-cancel" type="button">Cancel</button>
+        </div>
+      </div>
+
+      <div id="destination-results" class="hidden">
+        <ul id="dest-result-list" role="listbox" tabindex="0"
+            aria-label="Matching destinations"></ul>
+        <p id="dest-results-message" class="dest-message" role="status"></p>
+        <div class="dest-actions">
+          <button id="dest-select" type="button">Select</button>
+          <button id="dest-results-cancel" type="button">Cancel</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 3D Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- HUD Overlay -->
+  <div id="hud" class="hidden">
+    <div id="hud-heading">
+      <span id="hud-heading-value">N 000</span>
+    </div>
+    <div id="hud-speed">
+      <div class="hud-label">SPD</div>
+      <div id="hud-speed-value">0</div>
+      <div class="hud-unit">km/h</div>
+    </div>
+    <div id="hud-altitude">
+      <div class="hud-label">ALT</div>
+      <div id="hud-altitude-value">0</div>
+      <div class="hud-unit">m</div>
+    </div>
+    <div id="hud-crosshair">+</div>
+    <div id="hud-pitch">
+      <span id="hud-pitch-value">0</span>
+    </div>
+  </div>
+
+  <!-- Click to Fly Prompt -->
+  <div id="fly-prompt" class="hidden">
+    <div class="prompt-text">Click to Fly</div>
+    <div class="prompt-hint" id="fly-prompt-hint"></div>
+  </div>
+
+  <!-- Controls Help -->
+  <div id="controls-help" class="hidden">
+    <div>W/S: Speed &middot; <span id="controls-help-look">Mouse: Look</span> &middot; A/D: Roll</div>
+    <div>Q/E: Yaw &middot; R/F: Alt &middot; Space: Level &middot; Shift: Boost &middot; P: Pause</div>
+  </div>
+
+  <!-- Static Controls List -->
+  <div id="controls-list" class="hidden">
+    <div class="controls-title">Controls</div>
+    <ul>
+      <li><span>W / S</span>Throttle</li>
+      <li><span id="controls-list-look">Mouse</span>Look</li>
+      <li><span>A / D</span>Roll</li>
+      <li><span>Q / E</span>Yaw</li>
+      <li><span>R / F</span>Climb / Descend</li>
+      <li><span>Space</span>Auto-level</li>
+      <li><span>Shift</span>Boost</li>
+      <li><span>P</span>Pause</li>
+    </ul>
+  </div>
+
+  <!-- Agent Status: what the host reports its agent is working on. Stays
+       hidden until a host sends a status, so the VS Code panel and the
+       standalone page never show it. -->
+  <div id="agent-status" class="hidden">
+    <span id="agent-status-dot"></span>
+    <span id="agent-status-text"></span>
+    <span id="agent-status-tokens"></span>
+  </div>
+
+  <!-- Pause Indicator -->
+  <div id="pause-indicator" class="hidden">Paused</div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="hidden">
+    <div id="loading-text">Loading terrain...</div>
+    <div id="loading-bar-container">
+      <div id="loading-bar"></div>
+    </div>
+    <div id="loading-progress">0%</div>
+  </div>
+
+  <!-- Welcome Screen -->
+  <div id="welcome">
+    <h1>3D Flight Simulator</h1>
+    <p>Satellite Terrain Viewer - World Capitals</p>
+    <p class="welcome-hint">Select a capital city to begin</p>
+  </div>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="hostBridge.js"></script>
+  <script src="capitals.js"></script>
+  <script src="geocoder.js"></script>
+  <script src="destinationInput.js"></script>
+  <script src="flightControls.js"></script>
+  <script src="terrainFill.js"></script>
+  <script src="renderConfig.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

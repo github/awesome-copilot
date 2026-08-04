@@ -20,8 +20,6 @@ jobs:
         with:
           script: |
             const managedLabels = {
-              'targets-main': true,
-              'branched-main': true,
               'skills': true,
               'plugin': true,
               'agent': true,
@@ -63,9 +61,6 @@ jobs:
             const filenames = files.map((file) => file.filename);
 
             const patterns = {
-              branchedMain: [
-                /^plugins\/[^/]+\/(?:agents|commands|skills)\//
-              ],
               skills: [
                 /^skills\//
               ],
@@ -107,59 +102,50 @@ jobs:
               ]
             };
 
-            const isBranchedMain = filenames.some((filename) => matchesAny(filename, patterns.branchedMain));
             const hasNewSubmission = files.some(
               (file) => file.status === 'added' && matchesAny(file.filename, patterns.newSubmission)
             );
 
             const desiredLabels = new Set();
 
-            if (context.payload.pull_request.base.ref === 'main') {
-              desiredLabels.add('targets-main');
-            }
-
             if (filenames.some((filename) => matchesAny(filename, patterns.externalPlugin))) {
               desiredLabels.add('external-plugin');
             }
 
-            if (isBranchedMain) {
-              desiredLabels.add('branched-main');
-            } else {
-              if (filenames.some((filename) => matchesAny(filename, patterns.skills))) {
-                desiredLabels.add('skills');
-              }
+            if (filenames.some((filename) => matchesAny(filename, patterns.skills))) {
+              desiredLabels.add('skills');
+            }
 
-              if (filenames.some((filename) => matchesAny(filename, patterns.plugin))) {
-                desiredLabels.add('plugin');
-              }
+            if (filenames.some((filename) => matchesAny(filename, patterns.plugin))) {
+              desiredLabels.add('plugin');
+            }
 
-              if (filenames.some((filename) => matchesAny(filename, patterns.agent))) {
-                desiredLabels.add('agent');
-              }
+            if (filenames.some((filename) => matchesAny(filename, patterns.agent))) {
+              desiredLabels.add('agent');
+            }
 
-              if (filenames.some((filename) => matchesAny(filename, patterns.instructions))) {
-                desiredLabels.add('instructions');
-              }
+            if (filenames.some((filename) => matchesAny(filename, patterns.instructions))) {
+              desiredLabels.add('instructions');
+            }
 
-              if (filenames.some((filename) => matchesAny(filename, patterns.websiteUpdate))) {
-                desiredLabels.add('website-update');
-              }
+            if (filenames.some((filename) => matchesAny(filename, patterns.websiteUpdate))) {
+              desiredLabels.add('website-update');
+            }
 
-              if (filenames.some((filename) => matchesAny(filename, patterns.hooks))) {
-                desiredLabels.add('hooks');
-              }
+            if (filenames.some((filename) => matchesAny(filename, patterns.hooks))) {
+              desiredLabels.add('hooks');
+            }
 
-              if (filenames.some((filename) => matchesAny(filename, patterns.workflow))) {
-                desiredLabels.add('workflow');
-              }
+            if (filenames.some((filename) => matchesAny(filename, patterns.workflow))) {
+              desiredLabels.add('workflow');
+            }
 
-              if (filenames.some((filename) => matchesAny(filename, patterns.canvasExtension))) {
-                desiredLabels.add('canvas-extension');
-              }
+            if (filenames.some((filename) => matchesAny(filename, patterns.canvasExtension))) {
+              desiredLabels.add('canvas-extension');
+            }
 
-              if (hasNewSubmission) {
-                desiredLabels.add('new-submission');
-              }
+            if (hasNewSubmission) {
+              desiredLabels.add('new-submission');
             }
 
             const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {

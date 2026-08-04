@@ -1,0 +1,51 @@
+---
+export type SidebarChipsProps = {
+  title: string;
+  items: string[];
+  /**
+   * When both `filterBase` and `filterParam` are provided, each chip is
+   * rendered as a link to the resource's list page pre-filtered by that value
+   * (e.g. `/hooks/?tag=testing`), turning read-only metadata into navigation.
+   */
+  filterBase?: string;
+  filterParam?: string;
+};
+
+const { title, items, filterBase, filterParam } =
+  Astro.props as SidebarChipsProps;
+const slug = title
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, "");
+
+const linkable = Boolean(filterBase && filterParam);
+const chipHref = (value: string) =>
+  `${filterBase}?${filterParam}=${encodeURIComponent(value)}`;
+---
+
+<div>
+  <dt>{title}</dt>
+  <dd>
+    {
+      items.length ? (
+        <div class="detail-chips">
+          {items.map((item) =>
+            linkable ? (
+              <a
+                class={`resource-tag resource-tag-link tag-${slug}`}
+                href={chipHref(item)}
+                aria-label={`Filter by ${title.toLowerCase()}: ${item}`}
+              >
+                {item}
+              </a>
+            ) : (
+              <span class={`resource-tag tag-${slug}`}>{item}</span>
+            )
+          )}
+        </div>
+      ) : (
+        <span class="detail-none">Not specified</span>
+      )
+    }
+  </dd>
+</div>

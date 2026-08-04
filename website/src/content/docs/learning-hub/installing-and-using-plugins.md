@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-28
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -160,6 +160,28 @@ To automatically register an additional marketplace for everyone working in a re
 
 With this in place, team members automatically get the `my-org-plugins` marketplace available without running a separate `marketplace add` command. This replaces the older `marketplaces` setting, which was removed in v1.0.16.
 
+### Pinning a Marketplace to a Specific Commit
+
+*(v1.0.70+)* To ensure reproducibility and prevent unintended updates, you can pin a marketplace to an exact commit SHA using the `sha` field in the source configuration:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "sha": "a1b2c3d4e5f6..."
+    }
+  ]
+}
+```
+
+Pinning to a SHA guarantees that everyone on the team installs plugins from exactly that snapshot of the marketplace, regardless of subsequent changes to the repository. This is useful for:
+
+- **Reproducible CI environments** — ensure builds always use the same plugin versions
+- **Change control** — review and approve plugin updates before rolling them out team-wide
+- **Stability** — prevent breaking changes in upstream marketplaces from impacting your team without notice
+
 ## Installing Plugins
 
 ### From Copilot CLI
@@ -251,6 +273,26 @@ If you only need a single agent or skill (rather than a full plugin), you can st
 - Copy a hook configuration into `.github/hooks/`
 
 See [Using the Copilot Coding Agent](../using-copilot-coding-agent/) for details on this approach.
+
+## Open Plugin Spec v1 Compatibility
+
+*(v1.0.74+)* GitHub Copilot CLI supports **Open Plugin Spec v1** plugin manifests, in addition to its own `plugin.json` format. This means plugins authored for other AI tools or platforms using the Open Plugin Spec standard can be installed and used in Copilot CLI without any modification.
+
+### What This Means for You
+
+If you encounter a plugin from the broader AI ecosystem (outside GitHub's own marketplace) that ships with an Open Plugin Spec v1 manifest, you can install it directly:
+
+```bash
+copilot plugin install /path/to/openspec-plugin
+```
+
+The CLI reads the manifest, discovers the bundled agents, skills, and MCP server configuration, and integrates them the same way it handles native Copilot plugins.
+
+### `mcp.json` Configuration
+
+Open Plugin Spec v1 also standardizes how MCP server configuration is bundled in plugins. A plugin can now include an `mcp.json` file at its root to declare MCP servers it requires — using the same format as `.mcp.json` or `.github/mcp.json` in your repository. When you install such a plugin, its MCP server configuration is automatically merged into your active server list.
+
+This is useful for plugins that bundle dedicated tooling (for example, a database plugin that ships its own MCP server) — users get both the agent/skill and the required MCP server in a single install step.
 
 ## Best Practices
 

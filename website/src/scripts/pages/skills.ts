@@ -2,9 +2,7 @@
  * Skills page functionality
  */
 import {
-  escapeHtml,
   fetchData,
-  formatRelativeTime,
   getQueryParam,
   showToast,
   downloadZipBundle,
@@ -12,7 +10,6 @@ import {
   copyToClipboard,
   REPO_IDENTIFIER,
 } from '../utils';
-import { openCardDetailsModal, setupModal } from '../modal';
 import {
   renderSkillsHtml,
   sortSkills,
@@ -34,10 +31,8 @@ interface SkillsData {
 }
 
 let allItems: Skill[] = [];
-let skillById = new Map<string, Skill>();
 let currentSort: SkillSortOption = 'title';
 let resourceListHandlersReady = false;
-let modalReady = false;
 
 function applyFiltersAndRender(): void {
   const countEl = document.getElementById('results-count');
@@ -99,66 +94,6 @@ async function downloadSkill(skillId: string, btn: HTMLButtonElement): Promise<v
   }
 }
 
-function openSkillDetailsModal(skillId: string, trigger?: HTMLElement): void {
-  const item = skillById.get(skillId);
-  if (!item) {
-    return;
-  }
-
-  const metaParts: string[] = [];
-  if (item.hasAssets) {
-    metaParts.push(
-      `<span class="resource-tag tag-assets">${item.assetCount} asset${
-        item.assetCount === 1 ? '' : 's'
-      }</span>`
-    );
-  }
-
-  metaParts.push(
-    `<span class="resource-tag">${item.files.length} file${
-      item.files.length === 1 ? '' : 's'
-    }</span>`
-  );
-
-  if (item.lastUpdated) {
-    metaParts.push(
-      `<span class="last-updated">Updated ${escapeHtml(
-        formatRelativeTime(item.lastUpdated)
-      )}</span>`
-    );
-  }
-
-  const fileTagParts = item.files
-    .slice(0, 24)
-    .map((file) => `<span class="resource-tag">${escapeHtml(file.name)}</span>`);
-  if (item.files.length > 24) {
-    fileTagParts.push(`<span class="resource-tag">+${item.files.length - 24} more</span>`);
-  }
-
-  const actionsHtml = `
-    <button id="skill-details-install" class="btn btn-secondary" type="button" data-skill-id="${escapeHtml(
-      item.id
-    )}">Copy Install</button>
-    <button id="skill-details-download" class="btn btn-primary" type="button" data-skill-id="${escapeHtml(
-      item.id
-    )}">Download</button>
-    <button class="btn btn-secondary" type="button" data-open-file-path="${escapeHtml(
-      item.skillFile
-    )}" data-open-file-type="skill">Source</button>
-  `;
-
-  openCardDetailsModal({
-    title: item.title,
-    description: item.description || 'No description',
-    previewIcon: '⚡',
-    previewText: 'Skill files and install options',
-    metaHtml: metaParts.join(''),
-    tagsHtml: fileTagParts.join(''),
-    actionsHtml,
-    trigger,
-  });
-}
-
 function setupResourceListHandlers(list: HTMLElement | null): void {
   if (!list || resourceListHandlersReady) return;
 
@@ -167,6 +102,7 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
 
     const copyInstallButton = target.closest('.copy-install-btn') as HTMLButtonElement | null;
     if (copyInstallButton) {
+      event.preventDefault();
       event.stopPropagation();
       const skillId = copyInstallButton.dataset.skillId;
       if (skillId) copyInstallCommand(skillId, copyInstallButton);
@@ -175,37 +111,11 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
 
     const downloadButton = target.closest('.download-skill-btn') as HTMLButtonElement | null;
     if (downloadButton) {
+      event.preventDefault();
       event.stopPropagation();
       const skillId = downloadButton.dataset.skillId;
       if (skillId) downloadSkill(skillId, downloadButton);
       return;
-    }
-
-    if (target.closest('.resource-actions')) return;
-
-    const item = target.closest('.resource-item') as HTMLElement | null;
-    const button = item?.querySelector('.resource-preview') as HTMLElement | undefined;
-    const skillId = item?.dataset.skillId;
-    if (skillId) openSkillDetailsModal(skillId, button);
-  });
-
-  document.addEventListener('click', (event) => {
-    const target = event.target as HTMLElement;
-    const modalInstallButton = target.closest(
-      '#skill-details-install'
-    ) as HTMLButtonElement | null;
-    if (modalInstallButton) {
-      const skillId = modalInstallButton.dataset.skillId;
-      if (skillId) copyInstallCommand(skillId, modalInstallButton);
-      return;
-    }
-
-    const modalDownloadButton = target.closest(
-      '#skill-details-download'
-    ) as HTMLButtonElement | null;
-    if (modalDownloadButton) {
-      const skillId = modalDownloadButton.dataset.skillId;
-      if (skillId) downloadSkill(skillId, modalDownloadButton);
     }
   });
 
@@ -225,11 +135,6 @@ export async function initSkillsPage(): Promise<void> {
   const list = document.getElementById('resource-list');
   const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
 
-  if (!modalReady) {
-    setupModal();
-    modalReady = true;
-  }
-
   setupResourceListHandlers(list as HTMLElement | null);
 
   const data = await fetchData<SkillsData>('skills.json');
@@ -239,7 +144,6 @@ export async function initSkillsPage(): Promise<void> {
   }
 
   allItems = data.items;
-  skillById = new Map(allItems.map((item) => [item.id, item]));
 
   const initialSort = getQueryParam('sort');
   if (initialSort === 'lastUpdated') {

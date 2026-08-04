@@ -1,0 +1,17 @@
+---
+const githubUrl = Astro.props.githubUrl as string;
+const markdownHtml = Astro.props.markdownHtml as string;
+---
+
+<div class="detail-main">
+          {markdownHtml ? (
+            <section class="detail-section" aria-labelledby="doc-heading">
+              <h2 id="doc-heading">Documentation</h2>
+              <div class="article-content" set:html={markdownHtml} />
+            </section>
+          ) : (
+            <section class="detail-section">
+              <p class="detail-empty">Documentation preview is unavailable. View the file <a href={githubUrl} target="_blank" rel="noopener">on GitHub</a>.</p>
+            </section>
+          )}
+        </div>

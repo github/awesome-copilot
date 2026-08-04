@@ -1,5 +1,7 @@
 # Sampling
 
+> **Deprecated in the 2026-07-28 spec.** SDK 2.x marks the sampling APIs `[Obsolete]` (build warning `MCP9005`). They stay wire-compatible with down-level clients during the transition, but **don't design new servers around sampling**: for "the tool needs user/LLM input mid-execution", prefer the multi-round-trip `input_required` pattern; for "the server needs an LLM", call a model directly server-side. Keep this page for maintaining existing 1.x-era servers; suppress `MCP9005` only as a documented transition measure.
+
 Sampling lets a tool **call the LLM through the client** instead of bringing its own model. The server says "summarise this for me" and the client routes the request to whatever model the user has configured (Claude, GPT, local model, anything). Costs and rate limits live with the client, not the server.
 
 ## When to use sampling
