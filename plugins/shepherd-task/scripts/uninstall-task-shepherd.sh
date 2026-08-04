@@ -16,6 +16,16 @@ COPILOT_HOME="${COPILOT_HOME:-$HOME/.copilot}"
 # Remove plugin.
 PLUGIN_DIR="$COPILOT_HOME/plugins/shepherd-task"
 if [ -d "$PLUGIN_DIR" ]; then
+    REDACTION_SCRIPTS=(
+        "redact-secrets.sh"
+        "redact-secrets.ps1"
+    )
+    for script in "${REDACTION_SCRIPTS[@]}"; do
+        if [ -f "$PLUGIN_DIR/scripts/$script" ]; then
+            rm -f "$PLUGIN_DIR/scripts/$script"
+            echo "Removed $PLUGIN_DIR/scripts/$script"
+        fi
+    done
     rm -rf "$PLUGIN_DIR"
     echo "Removed $PLUGIN_DIR"
 else

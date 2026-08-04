@@ -27,6 +27,18 @@ if (-not (Test-Path $pluginDest)) {
 Copy-Item -Path (Join-Path $PluginSrc '*') -Destination $pluginDest -Recurse -Force
 Write-Host "Installed plugin to $pluginDest"
 
+# Verify the log redaction utilities were included in the plugin installation.
+$redactionScripts = @(
+    'redact-secrets.sh'
+    'redact-secrets.ps1'
+)
+foreach ($script in $redactionScripts) {
+    $installedScript = Join-Path $pluginDest 'scripts' $script
+    if (-not (Test-Path $installedScript -PathType Leaf)) {
+        throw "Redaction script was not installed: $installedScript"
+    }
+}
+
 # Install skills (only if not already present).
 $skills = @(
     'shepherd-task-from-assignment-to-ready'

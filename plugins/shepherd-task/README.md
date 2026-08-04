@@ -146,6 +146,19 @@ User runs: shepherd-task-given-list.sh "1841,1842,1843" feature-branch owner/rep
        └─ Verify: PR merged to non-main base branch, issue closed
 ```
 
+### Redacting log files
+
+Before committing shepherd-task logs, redact secret-bearing fields from a log
+directory. Run the script from the directory containing the log directory:
+
+```bash
+./redact-secrets.sh shepherd-tasks-20260803-1550
+```
+
+The Bash script requires `jq`; the PowerShell script uses built-in JSON
+support. Both scripts process `.json*` files recursively and replace
+credential fields and content-bearing event fields with `[REDACTED]`.
+
 ## Key design decisions
 
 - **Scripts verify state independently** — they don't trust Copilot exit codes; they use `gh` CLI to confirm PR existence, CI status, and merge state between phases.
@@ -172,6 +185,8 @@ User runs: shepherd-task-given-list.sh "1841,1842,1843" feature-branch owner/rep
 | `plugins/shepherd-task/scripts/shepherd-task.ps1` | PowerShell equivalent |
 | `plugins/shepherd-task/scripts/shepherd-task-inspect-json.sh` | Bash: debug utility to inspect copilot JSON session logs |
 | `plugins/shepherd-task/scripts/shepherd-task-inspect-json.ps1` | PowerShell equivalent |
+| `plugins/shepherd-task/scripts/redact-secrets.sh` | Bash: redact secret-bearing fields from `.json*` shepherd logs |
+| `plugins/shepherd-task/scripts/redact-secrets.ps1` | PowerShell equivalent |
 | `plugins/shepherd-task/scripts/install-task-shepherd.sh` | Bash: copies the full shepherd system into another repository |
 | `plugins/shepherd-task/scripts/install-task-shepherd.ps1` | PowerShell equivalent |
 
@@ -247,7 +262,6 @@ This system has been used in production on `github/copilot-sdk` to shepherd impl
 ---
 
 By submitting this pull request, I confirm that my contribution abides by the [Code of Conduct](../CODE_OF_CONDUCT.md) and will be licensed under the MIT License.
-
 
 
 
