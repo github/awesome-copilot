@@ -804,12 +804,14 @@ function renderSignalCard(sig) {
         ? "background:#7f1d1d;border:1px solid #dc2626;color:#fca5a5;padding:2px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-weight:600;transition:all .15s;"
         : "background:none;border:1px solid #1e3a5f;color:#7dd3fc;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;transition:all .15s;";
     const openBtn = `<button data-act="open" data-profile="${esc(DEFAULT_DESK_PROFILE)}" data-desk="${esc(sig.deskName)}"
+        aria-label="Open ${esc(sig.deskName)} desk with ${esc(DEFAULT_DESK_PROFILE)} profile"
         style="${openBtnStyle}"
         onmouseover="this.style.background='#1e3a5f'"
         onmouseout="this.style.background='${isEscalation ? '#7f1d1d' : 'transparent'}'"
         title="Open this desk with the ${esc(DEFAULT_DESK_PROFILE)} tool profile">open</button>`;
     const connectedBtn = DEFAULT_DESK_PROFILE === "connected" ? "" : `
         <button data-act="open" data-profile="connected" data-desk="${esc(sig.deskName)}"
+            aria-label="Open ${esc(sig.deskName)} desk with connected profile"
             style="background:none;border:1px solid #262626;color:#94a3b8;padding:2px 7px;border-radius:4px;
                    font-size:10px;cursor:pointer;transition:all .15s;"
             onmouseover="this.style.borderColor='#475569';this.style.color='#cbd5e1'"
