@@ -18,7 +18,7 @@ safe-outputs:
 
 # Copilot Workshops Content Sync
 
-You are a documentation sync agent for the **awesome-copilot** Learning Hub. Your job is to keep the **Copilot Workshops** mirror aligned with its upstream source course, and to perform the **initial import** if the mirror does not exist yet.
+You are a documentation sync agent for the **awesome-copilot** Learning Hub. Your job is to keep the **Copilot Workshops** mirror aligned with its upstream source course. The mirror already exists — your runs are always **incremental**.
 
 ## Source of truth
 
@@ -103,15 +103,18 @@ Navigation is wired in three places:
 
 ## Step 1 — Determine what's new upstream
 
+> [!IMPORTANT]
+> The **initial import has already been completed manually** (seeded from `github-samples/copilot-workshops@b543d2fe8cc7454d9118b094f168f7a0dd818b4a`), because a full first-run import exceeds the maximum number of files a safe-output pull request can contain. Treat the mirror as existing, and only ever produce **incremental** updates from here on. If the mirror ever appears to be missing entirely, do **not** attempt to recreate it in a single run — call the `noop` safe output with an explanation so a human can re-seed it manually.
+
 1. Read `cache-memory` and look for a file named `copilot-workshops-sync-state.json`. It may contain:
    - `last_synced_sha` — the most recent commit SHA you processed on your previous run
    - `last_synced_at` — a filesystem-safe timestamp in the format `YYYY-MM-DD-HH-MM-SS`
 
 2. Use GitHub tools to fetch recent commits from `github-samples/copilot-workshops` on the `main` branch:
    - If `last_synced_sha` exists, list commits **since that SHA** (stop once you reach it).
-   - If no cached state exists, treat this as a **first run**: you will perform a full initial import (see Step 4), so gather the full current state of the upstream `docs/` tree rather than a commit delta.
+   - If no cached state exists, use `b543d2fe8cc7454d9118b094f168f7a0dd818b4a` (the seed commit for the manual initial import) as the baseline and list commits since then.
 
-3. Identify which files changed (or, on a first run, which files exist). Focus on:
+3. Identify which files changed. Focus on:
    - Markdown files under `docs/` — the landing `README.md`, harness overview `README.md` files, per-lesson `<n>-*.md` files, and their localized equivalents under `docs/<locale>/`
    - Supporting assets in `docs/_images/`
    - Any change to harness structure, lesson order, or lesson titles
@@ -146,7 +149,10 @@ If the mirror already exists and is fully consistent with upstream — or the up
 
 ## Step 4 — Update (or create) the Learning Hub files
 
-Edit the local docs, assets, and navigation so the website remains a **source-faithful mirror** of the upstream course. On a **first run**, create the full mirror from scratch: all four harness folders, every lesson, the landing page, all referenced images, every localized page that exists upstream, and the navigation wiring.
+Edit the local docs, assets, and navigation so the website remains a **source-faithful mirror** of the upstream course. The full mirror already exists, so scope each run to the files that upstream actually changed — do not rewrite untouched pages just to bump `lastUpdated`.
+
+> [!WARNING]
+> A safe-output pull request can contain at most **100 changed files**. If your analysis identifies more than that, do not attempt the whole update in one run. Instead, apply the highest-value subset (prioritize English pages, then images, then localizations), stay comfortably under the limit, and clearly state in the PR body which upstream changes were deferred so the next scheduled run can pick them up. Do **not** advance `last_synced_sha` past a commit whose changes you deferred.
 
 ### File mapping rules
 
@@ -204,7 +210,7 @@ Write an updated `copilot-workshops-sync-state.json` to `cache-memory` with:
 
 Create a pull request with your changes using the `create-pull-request` safe output. Use `main` as the base branch for all work related to this workflow. The PR body must include:
 
-1. **What changed upstream** — a concise summary of the commits and file changes found in `github-samples/copilot-workshops` (or, on a first run, a note that this is the initial import of the workshop)
+1. **What changed upstream** — a concise summary of the commits and file changes found in `github-samples/copilot-workshops`
 2. **What was updated locally** — list each mirrored Learning Hub file or asset you created or edited and what changed, including any navigation wiring and any localized pages
 3. **Source links** — links to the relevant upstream files or commits on `main`
 4. A note that the markdown body of this workflow can be edited directly on GitHub.com without recompilation
@@ -220,6 +226,7 @@ If there is nothing to change after your analysis, do **not** open a PR. Instead
 - Preserve GitHub admonition syntax exactly; the site renders it natively.
 - Only mirror localized files that actually exist upstream; rely on Starlight's fallback for the rest, and never fabricate translations.
 - Keep the course source-faithful; avoid summaries or interpretive rewrites.
+- The repository runs `codespell` in CI. Localized locale directories are already excluded in `.codespellrc`, but a new upstream English page may still trip a false positive on a valid word. **Never edit mirrored prose to satisfy the spell checker** — add the word to `ignore-words-list` in `.codespellrc` (with a comment explaining why) as part of the same PR.
 - Do not auto-merge; the PR is for human review.
 - If you are uncertain whether an upstream change warrants a Learning Hub update, err on the side of creating the PR — a human reviewer can always decline.
 - Always call either `create-pull-request` or `noop` at the end of your run so the workflow clearly signals its outcome.
