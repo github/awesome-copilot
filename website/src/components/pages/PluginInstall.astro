@@ -8,7 +8,7 @@
  */
 export interface PluginInstallProps {
   isExternal?: boolean;
-  /** awesome-copilot plugin id (internal installs). */
+  /** awesome-copilot plugin id. */
   pluginId?: string | null;
   /** Upstream marketplace source (owner/repo or git URL) for external installs. */
   externalSource?: string | null;
@@ -36,14 +36,16 @@ let insidersUrl: string | null = null;
 let ghappUrl: string | null = null;
 
 if (isExternal) {
+  if (pluginId) {
+    ghappUrl = `ghapp://plugins/install?source=${encodeURIComponent(
+      `${pluginId}@${MARKETPLACE}`
+    )}`;
+  }
   if (externalSource) {
     vscodeUrl = `vscode://chat-plugin/install?source=${encodeURIComponent(
       externalSource
     )}`;
     insidersUrl = `vscode-insiders://chat-plugin/install?source=${encodeURIComponent(
-      externalSource
-    )}`;
-    ghappUrl = `ghapp://plugins/marketplace/add?source=${encodeURIComponent(
       externalSource
     )}`;
   }

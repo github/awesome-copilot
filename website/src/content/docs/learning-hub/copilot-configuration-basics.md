@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-09
+lastUpdated: 2026-07-28
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -447,7 +447,17 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
-**Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
+**Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string. Recent models available include **Claude Opus 5** (v1.0.75+), the latest in Anthropic's Opus family for the most demanding tasks.
+
+**Plan mode model** *(v1.0.74+)*: When using plan mode (which blocks file mutations and keeps changes in a planning phase), you can assign a *separate* model specifically for planning — different from your regular session model. This lets you use a fast, cost-effective model for plan drafting while keeping a more capable model on standby for the implementation phase:
+
+```
+/model plan                  # open the picker to choose a model for plan mode
+/model --plan claude-haiku   # set a specific model for plan mode
+/model --plan off            # clear the plan-mode model (revert to session model)
+```
+
+When you leave plan mode, the CLI automatically reverts to your session model. This pairing works well with repository model pinning — you can enforce a high-quality model for implementation while allowing a lighter model during exploration and planning.
 
 ### CLI Session Commands
 
@@ -458,6 +468,17 @@ The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edi
 ```
 
 The settings dialog supports search — type to filter settings by name. Changes take effect immediately.
+
+*(v1.0.70+)* The `/settings` command and the `/model` command both support **`--repo` and `--local` flags** for explicitly scoping which layer of settings you want to view or edit:
+
+```
+/settings --repo    # view/edit repository-scoped settings
+/settings --local   # view/edit local (user-level) settings
+/model --repo       # view/edit the model pinned for this repository
+/model --local      # view/edit your personal model preference
+```
+
+These flags mirror the **Repo** and **Repo (local)** scope tabs available in the `/settings` dashboard (v1.0.71+), making it easier to manage per-repository vs. user-global configuration without ambiguity. In v1.0.71+, the `/settings` dashboard also shows **Repo** and **Repo (local)** tabs alongside the existing user-level view, giving you a unified place to see which settings are applied at each layer.
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
 
@@ -569,6 +590,16 @@ The `/pr auto` command *(v1.0.66+)* starts a self-paced automation loop that dri
 ```
 
 `/pr auto` is ideal when you have a PR with failing tests or linting errors — let it work through failures one at a time while you focus on other things. `/pr automerge` extends this further: it continues until all CI checks pass, required reviews are approved, and the PR is successfully merged. Both commands can be monitored and stopped from `/loop` or `/every`, which register the running automation as a scheduleable loop task.
+
+The `/delegate` command creates a **delegate PR** — a pull request that the coding agent works on autonomously. By default, the delegate PR targets your current branch. Use `--base` *(v1.0.69+)* to specify a different target base branch:
+
+```
+/delegate                      # create a delegate PR targeting the current branch
+/delegate --base main          # create a delegate PR targeting main
+/delegate --base release/2.0   # target a specific release branch
+```
+
+This is useful when you want to hand off a task to the coding agent on a specific branch — for example, backporting a fix to an older release branch or targeting a long-lived feature branch for automated work.
 
 The `/share html` command exports the current session — including conversation history and any research reports — as a **self-contained interactive HTML file**:
 

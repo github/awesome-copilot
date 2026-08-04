@@ -62,6 +62,16 @@ function collectLocalPluginsFromRoot(rootDir, sourcePrefix, includeEntry = () =>
   return plugins;
 }
 
+function hasExtensionEntryPoint(extensionDir, extensionName) {
+  const candidateEntryPoints = [
+    path.join(extensionDir, "extension.mjs"),
+    path.join(extensionDir, "extensions", "extension.mjs"),
+    path.join(extensionDir, "extensions", extensionName, "extension.mjs"),
+  ];
+
+  return candidateEntryPoints.some((entryPointPath) => fs.existsSync(entryPointPath));
+}
+
 /**
  * Generate marketplace.json from plugin directories
  */
@@ -78,7 +88,7 @@ function generateMarketplace() {
     ...collectLocalPluginsFromRoot(
       EXTENSIONS_DIR,
       "extensions",
-      (entryName) => fs.existsSync(path.join(EXTENSIONS_DIR, entryName, "extension.mjs"))
+      (entryName) => hasExtensionEntryPoint(path.join(EXTENSIONS_DIR, entryName), entryName)
     )
   ];
 

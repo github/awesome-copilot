@@ -77,7 +77,7 @@ Agentic Workflows are ideal when you need **autonomous, event-driven automation*
 
 ## Using Workflows from Awesome Copilot
 
-The [Awesome Copilot workflows page](../../workflows/) hosts a growing collection of community-contributed workflows. Here's how to install and use them.
+The [repository workflows directory](https://github.com/github/awesome-copilot/tree/main/workflows) hosts a growing collection of community-contributed workflows. Here's how to install and use them.
 
 ### Prerequisites
 
@@ -89,7 +89,7 @@ gh extension install github/gh-aw
 
 ### Installing a Workflow
 
-1. **Browse** the [workflows collection](../../workflows/) and find one that fits your needs
+1. **Browse** the [workflows collection](https://github.com/github/awesome-copilot/tree/main/workflows) and find one that fits your needs
 2. **Copy** the workflow `.md` file into your repository's `.github/workflows/` directory
 3. **Compile** the workflow to generate the Actions lock file:
 
@@ -211,8 +211,6 @@ gh aw compile --validate --no-emit workflows/my-new-workflow.md
 ## Learn More
 
 - **Official documentation**: [GitHub Agentic Workflows](https://gh.io/gh-aw) — full specification and reference
-- **Browse workflows**: [Awesome Copilot Workflows](../../workflows/) — community-contributed collection
-- **Contributing guide**: [CONTRIBUTING.md](https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md#adding-agentic-workflows) — detailed contribution guidelines
 - **Related**: [Automating with Hooks](../automating-with-hooks/) — deterministic automation for Copilot agent sessions
 - **Related**: [Using the Copilot Coding Agent](../using-copilot-coding-agent/) — the agent that powers agentic workflows
 
