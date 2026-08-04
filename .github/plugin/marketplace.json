@@ -829,6 +829,28 @@
       }
     },
     {
+      "name": "modern-web-guidance",
+      "description": "Modern Web Guidance is an agent skill and CLI tool designed to help AI coding agents build web applications using modern, secure, and high-performance APIs rather than outdated workarounds.\nSupported by the Google Chrome team, it injects expert-curated web platform best practices directly into an agent's context window to prevent the generation of bloated, legacy code.",
+      "version": "0.0.179",
+      "author": {
+        "name": "GoogleChrome",
+        "url": "https://github.com/GoogleChrome"
+      },
+      "repository": "https://github.com/GoogleChrome/modern-web-guidance",
+      "homepage": "https://developer.chrome.com/docs/modern-web-guidance",
+      "license": "Apache-2.0",
+      "keywords": [
+        "frontend",
+        "web",
+        "baseline"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "GoogleChrome/modern-web-guidance",
+        "ref": "v0.0.179"
+      }
+    },
+    {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
       "version": "1.0.1161-preview1",
@@ -1302,7 +1324,7 @@
     {
       "name": "ui5",
       "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Create and validate UI5 projects, access API documentation, run UI5 linter, get development guidelines and best practices for UI5 development.",
-      "version": "0.1.7",
+      "version": "0.1.8",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -1323,13 +1345,13 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5",
-        "ref": "v0.1.7"
+        "ref": "v0.1.8"
       }
     },
     {
       "name": "ui5-modernization",
       "description": "Complete UI5 modernization toolkit with workflow and specialized fix patterns for modernizing SAPUI5/OpenUI5 applications",
-      "version": "0.1.7",
+      "version": "0.1.8",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -1349,13 +1371,13 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5-modernization",
-        "ref": "v0.1.7"
+        "ref": "v0.1.8"
       }
     },
     {
       "name": "ui5-typescript-conversion",
       "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Convert JavaScript based UI5 projects to TypeScript.",
-      "version": "0.1.7",
+      "version": "0.1.8",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -1377,7 +1399,7 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5-typescript-conversion",
-        "ref": "v0.1.7"
+        "ref": "v0.1.8"
       }
     },
     {
@@ -1389,7 +1411,7 @@
     {
       "name": "upgrade-agent",
       "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-      "version": "1.1.247",
+      "version": "1.1.290",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -1408,7 +1430,7 @@
         "source": "github",
         "repo": "microsoft/upgrade-agent-plugins",
         "path": "plugins/upgrade-agent",
-        "sha": "a70e1ae1ff63dd19ff874e874b4b587a5291f68a"
+        "sha": "559f6fea2deea78fb5adf2cfacba2a5151a5fa7f"
       }
     },
     {
