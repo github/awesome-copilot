@@ -13,9 +13,11 @@ import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 import {
     buildDeskAgentArgv,
     isDeskProfile,
+    isSafeWindowsCmdShim,
     isWindowsAppExecutionAlias,
     normalizeDeskProfile,
     parsePluginMcpNames,
+    quoteWindowsCmdArgument,
 } from "./launch-profile.mjs";
 
 const servers = new Map();
@@ -210,6 +212,20 @@ function capturePluginMcpJson(workshopDir, agent) {
             ? ["copilot", "--no-default-mcps",
                 "plugins", "list", "--kind", "mcp", "--scope", "plugin", "--json"]
             : ["plugins", "list", "--kind", "mcp", "--scope", "plugin", "--json"];
+        const shim = process.platform === "win32" && /\.(cmd|bat)$/i.test(command);
+        if (shim && !isSafeWindowsCmdShim(command)) {
+            resolve(null);
+            return;
+        }
+        const spawnCommand = shim ? resolveSystem32Executable("cmd.exe") : command;
+        if (!spawnCommand) {
+            resolve(null);
+            return;
+        }
+        const spawnArgs = shim
+            ? ["/d", "/s", "/c",
+                `"${[command, ...args].map(quoteWindowsCmdArgument).join(" ")}"`]
+            : args;
 
         let settled = false;
         let stdout = "";
@@ -226,10 +242,11 @@ function capturePluginMcpJson(workshopDir, agent) {
 
         let child;
         try {
-            child = spawn(command, args, {
+            child = spawn(spawnCommand, spawnArgs, {
                 cwd: workshopDir,
                 detached: process.platform !== "win32",
                 windowsHide: true,
+                windowsVerbatimArguments: shim,
                 stdio: ["ignore", "pipe", "ignore"],
             });
         } catch {
@@ -796,10 +813,10 @@ function renderSignalCard(sig) {
         title="Open this desk with the ${esc(DEFAULT_DESK_PROFILE)} tool profile">open</button>`;
     const connectedBtn = DEFAULT_DESK_PROFILE === "connected" ? "" : `
         <button data-act="open" data-profile="connected" data-desk="${esc(sig.deskName)}"
-            style="background:none;border:1px solid #262626;color:#64748b;padding:2px 7px;border-radius:4px;
+            style="background:none;border:1px solid #262626;color:#94a3b8;padding:2px 7px;border-radius:4px;
                    font-size:10px;cursor:pointer;transition:all .15s;"
             onmouseover="this.style.borderColor='#475569';this.style.color='#cbd5e1'"
-            onmouseout="this.style.borderColor='#262626';this.style.color='#64748b'"
+            onmouseout="this.style.borderColor='#262626';this.style.color='#94a3b8'"
             title="Open with every configured MCP and tool">connected</button>`;
 
     let escalationBlock = "";

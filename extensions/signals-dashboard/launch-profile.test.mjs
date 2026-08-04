@@ -1,11 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
     buildDeskAgentArgv,
     isDeskProfile,
+    isSafeWindowsCmdShim,
     isWindowsAppExecutionAlias,
     normalizeDeskProfile,
     parsePluginMcpNames,
+    quoteWindowsCmdArgument,
 } from "./launch-profile.mjs";
 
 test("normalizes supported profiles and defaults unknown values to repo", () => {
@@ -26,6 +32,38 @@ test("recognizes Windows App Execution Alias paths without trusting repository e
     assert.equal(isWindowsAppExecutionAlias(
         "C:\\Users\\person\\AppData\\Local\\Microsoft\\WindowsApps\\wt.cmd",
         "C:\\Users\\person\\AppData\\Local"), false);
+});
+
+test("quotes trusted cmd shim arguments and rejects percent-bearing paths", () => {
+    assert.equal(
+        quoteWindowsCmdArgument("C:\\Program Files\\Agency\\agency.cmd"),
+        "\"C:\\Program Files\\Agency\\agency.cmd\"");
+    assert.equal(quoteWindowsCmdArgument("--scope"), "\"--scope\"");
+    assert.equal(isSafeWindowsCmdShim("C:\\Program Files\\Agency\\agency.cmd"), true);
+    assert.equal(isSafeWindowsCmdShim("C:\\Users\\%USERNAME%\\agency.cmd"), false);
+});
+
+test("executes a Windows cmd shim with safe quoting", {
+    skip: process.platform !== "win32",
+}, () => {
+    const root = mkdtempSync(join(tmpdir(), "workshop-profile-"));
+    const shimDir = join(root, "Shim Name");
+    mkdirSync(shimDir);
+    const shim = join(shimDir, "copilot.cmd");
+    writeFileSync(shim, "@echo off\r\necho {\"plugins\":[]}\r\n");
+
+    const cmd = join(process.env.SystemRoot, "System32", "cmd.exe");
+    const commandLine = `"${[shim, "plugins", "list"]
+        .map(quoteWindowsCmdArgument)
+        .join(" ")}"`;
+    const result = spawnSync(cmd, ["/d", "/s", "/c", commandLine], {
+        encoding: "utf8",
+        windowsHide: true,
+        windowsVerbatimArguments: true,
+    });
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /\{"plugins":\[\]\}/);
 });
 
 test("extracts enabled plugin-scoped MCP names and rejects unsafe names", () => {

@@ -45,6 +45,9 @@ Each desk card has two launch choices:
 - **connected** — the full configured tool surface for work that needs external
   systems such as issue trackers, mail, or service APIs.
 
+Set `WORKSHOP_DESK_PROFILE=connected` to make the main **open** button use the
+full tool surface; in that mode the separate **connected** button is omitted.
+
 Both launch a CLI in the desk's folder. If Agency is installed, Cairn keeps
 using the existing Agency wrapper; otherwise it launches plain Copilot CLI.
 

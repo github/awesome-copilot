@@ -17,6 +17,14 @@ export function isWindowsAppExecutionAlias(candidate, localAppData) {
     return normalized.startsWith(root.toLowerCase()) && normalized.endsWith(".exe");
 }
 
+export function quoteWindowsCmdArgument(value) {
+    return `"${String(value).replaceAll('"', '""')}"`;
+}
+
+export function isSafeWindowsCmdShim(value) {
+    return typeof value === "string" && !/[%\r\n]/.test(value);
+}
+
 export function parsePluginMcpNames(text) {
     let parsed;
     try { parsed = JSON.parse(text); }
