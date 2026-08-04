@@ -24,6 +24,18 @@ mkdir -p "$plugin_dest"
 cp -R "$PLUGIN_SRC/." "$plugin_dest/"
 echo "Installed plugin to $plugin_dest"
 
+# Verify the log redaction utilities were included in the plugin installation.
+REDACTION_SCRIPTS=(
+    "redact-secrets.sh"
+    "redact-secrets.ps1"
+)
+for script in "${REDACTION_SCRIPTS[@]}"; do
+    if [ ! -f "$plugin_dest/scripts/$script" ]; then
+        echo "ERROR: Redaction script was not installed: $plugin_dest/scripts/$script" >&2
+        exit 1
+    fi
+done
+
 # Install skills (only if not already present).
 SKILLS=(
     "shepherd-task-from-assignment-to-ready"
