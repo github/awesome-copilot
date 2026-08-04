@@ -155,6 +155,82 @@ export default defineConfig({
           ],
         },
         {
+          label: "Copilot Workshops",
+          items: [
+            {
+              label: "Overview",
+              link: "/learning-hub/copilot-workshops/",
+            },
+            {
+              label: "VS Code",
+              items: [
+                {
+                  label: "Overview",
+                  link: "/learning-hub/copilot-workshops/vscode/",
+                },
+                "learning-hub/copilot-workshops/vscode/0-prerequisites",
+                "learning-hub/copilot-workshops/vscode/1-custom-instructions",
+                "learning-hub/copilot-workshops/vscode/2-agent-mode",
+                "learning-hub/copilot-workshops/vscode/3-mcp",
+                "learning-hub/copilot-workshops/vscode/4-custom-agents",
+                "learning-hub/copilot-workshops/vscode/5-managing-agents",
+                "learning-hub/copilot-workshops/vscode/6-iterating",
+              ],
+            },
+            {
+              label: "Copilot CLI",
+              items: [
+                {
+                  label: "Overview",
+                  link: "/learning-hub/copilot-workshops/cli/",
+                },
+                "learning-hub/copilot-workshops/cli/0-prerequisites",
+                "learning-hub/copilot-workshops/cli/1-install-copilot-cli",
+                "learning-hub/copilot-workshops/cli/2-custom-instructions",
+                "learning-hub/copilot-workshops/cli/3-generating-code",
+                "learning-hub/copilot-workshops/cli/4-mcp",
+                "learning-hub/copilot-workshops/cli/5-agent-skills",
+                "learning-hub/copilot-workshops/cli/6-custom-agents",
+                "learning-hub/copilot-workshops/cli/7-slash-commands",
+                "learning-hub/copilot-workshops/cli/8-review",
+              ],
+            },
+            {
+              label: "Copilot App",
+              items: [
+                {
+                  label: "Overview",
+                  link: "/learning-hub/copilot-workshops/app/",
+                },
+                "learning-hub/copilot-workshops/app/0-prerequisites",
+                "learning-hub/copilot-workshops/app/1-install-copilot-app",
+                "learning-hub/copilot-workshops/app/2-add-star-rating",
+                "learning-hub/copilot-workshops/app/3-custom-instructions",
+                "learning-hub/copilot-workshops/app/4-build-filtering",
+                "learning-hub/copilot-workshops/app/5-mcp-playwright",
+                "learning-hub/copilot-workshops/app/6-agent-merge",
+                "learning-hub/copilot-workshops/app/7-canvases",
+                "learning-hub/copilot-workshops/app/8-review",
+              ],
+            },
+            {
+              label: "Copilot Cloud Agent",
+              items: [
+                {
+                  label: "Overview",
+                  link: "/learning-hub/copilot-workshops/cloud/",
+                },
+                "learning-hub/copilot-workshops/cloud/0-prerequisites",
+                "learning-hub/copilot-workshops/cloud/1-custom-instructions",
+                "learning-hub/copilot-workshops/cloud/2-cloud-agent",
+                "learning-hub/copilot-workshops/cloud/3-custom-agents",
+                "learning-hub/copilot-workshops/cloud/4-managing-agents",
+                "learning-hub/copilot-workshops/cloud/5-iterating",
+              ],
+            },
+          ],
+        },
+        {
           label: "Hands-on",
           items: [
             {
