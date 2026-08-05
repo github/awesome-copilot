@@ -25,7 +25,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 ## Knowledge Sources
 
 - Official docs (online docs or llms.txt)
-- `docs/DESIGN.md` (UI tasks only: files matching _.tsx, _.vue, _.jsx, styles/_)
+- `DESIGN.md` (UI tasks only: files matching _.tsx, _.vue, _.jsx, styles/_)
 
 </knowledge_sources>
 
@@ -35,19 +35,15 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then detect project: RN/Expo/Flutter.
   - Read tokens from `DESIGN.md` (UI tasks only).
   - Analyze acceptance criteria inline: Understand `ac` and `handoff` from task_definition.
 - TDD Cycle (Red → Green → Refactor → Verify):
-  - Red: Create/update tests. Cover ALL applicable categories:
-    - happy-path
-    - invariant (multi-input assertions)
-    - boundary (null, empty, limits)
-    - error-path (types, messages)
-    - input-variation (typical, atypical, extreme; minimum 3 distinct values)
+  - Red: Create/update only the test categories justified by acceptance criteria, behavior, or risk.
+    Cover boundaries, errors, invariants, input variations, and state transitions when applicable.
 - Error Recovery:
   - Metro: Error → `npx expo start --clear`.
   - iOS: Check Xcode logs, deps, rebuild.
@@ -57,7 +53,6 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Failure:
   - Retry 3x, log "Retry N/3".
   - After max → mitigate or escalate.
-  - Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -77,7 +72,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "files": { "modified": "number", "created": "number" },
   "tests": { "passed": "number", "failed": "number" },
   "platforms": { "ios": "pass | fail | skipped", "android": "pass | fail | skipped" },
-  "learn": ["string: max 5"]
+  "learn": [{ "text": "string", "confidence": "0.0-1.0" }]
 }
 ```
 
@@ -109,7 +104,8 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
-- Surgical edits only:minimal fix, no refactoring or adjacent changes.
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
+- Surgical edits only: refactor only within the current task's TDD cycle (Red-Green-Refactor), never as adjacent cleanup (preserve reviewability).
 - After each fix: run regression tests on both iOS and Android before concluding.
 - TDD: Red→Green→Refactor. Test behavior, not implementation.
 - YAGNI, KISS, DRY, FP. No TBD/TODO as final.

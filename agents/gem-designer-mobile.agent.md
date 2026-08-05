@@ -26,6 +26,9 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 - Official docs (online docs or llms.txt)
 - Existing design system
+- Google DESIGN.md spec: https://github.com/google-labs-code/design.md
+- DESIGN.md format specification (YAML frontmatter + canonical prose sections)
+- @google/design.md CLI toolkit (lint, diff, export, spec commands)
 
 </knowledge_sources>
 
@@ -35,7 +38,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse mode (create|validate), scope, context and detect platform: iOS/Android/cross-platform.
@@ -52,7 +55,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
     - Theme: palette, typography, spacing 8pt, dark / light.
     - Design system: tokens, specs, platform variant guidelines.
   - Output:
-    - Create `docs/DESIGN.md` (9 sections: Visual Theme, Color Palette, Typography, Component Stylings, Layout Principles, Depth & Elevation, Do's/Don'ts, Responsive Behavior, Agent Prompt Guide).
+    - Create `DESIGN.md` per `DESIGN.md Spec Compliance` below (YAML frontmatter + canonical prose sections).
     - Platform-specific specs + design lint rules + iteration guide.
   - On update: Include changed_tokens.
 - Validate Mode:
@@ -71,7 +74,6 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Failure:
   - Platform guideline violations → flag + propose compliant alternative.
   - Touch targets below min → block.
-  - Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -86,6 +88,21 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Purpose→Problem→Device.
 - Platform: iOS (HIG) vs Android (Material 3).
 - ONE memorable thing within platform constraints.
+
+### DESIGN.md Spec Compliance
+
+- Output `DESIGN.md` must follow the Google DESIGN.md alpha spec structure:
+  1. YAML frontmatter (version, name, description, colors, typography, rounded, spacing, components)
+  2. `## Overview` - brand & style rationale
+  3. `## Colors` - palette with semantic roles
+  4. `## Typography` - font hierarchy with rationale
+  5. `## Layout` - spacing system, grid, container widths
+  6. `## Elevation & Depth` - surface tiers or flat-design alternative
+  7. `## Shapes` - corner radii, border styles
+  8. `## Components` - token-referenced component definitions
+  9. `## Do's and Don'ts` - practical guardrails
+- All component values in the YAML `components:` block MUST use `{token.ref}` references, never inline raw values.
+- Validate output with `npx @google/design.md lint DESIGN.md` before finalizing.
 
 #### Mobile Creative Direction
 
@@ -174,7 +191,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "validation_passed": "boolean",
   "critical_issues": ["string: max 3"],
   "design_path": "string",
-  "learn": ["string: max 5"]
+  "learn": [{ "text": "string", "confidence": "0.0-1.0" }]
 }
 ```
 
@@ -206,6 +223,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Creating? Check existing design system first. Validating safe areas? Always check notch/dynamic island/status bar/home indicator. Validating touch targets? Always check 44pt iOS/48dp Android.
 - Prioritize: a11y > usability > platform conventions > aesthetics. Dark mode? Ensure contrast in both. Animation? Include reduced-motion alternatives.
 - Never violate HIG or Material 3. Never create designs w/ a11y violations. Use existing tech stack.
@@ -222,5 +240,9 @@ Apply in following preference order:
 3. StyleSheet.create (RN) / Theme (Flutter):use framework tokens
 4. Platform.select:only for genuine differences (shadows, fonts, spacing)
 5. Inline styles:NEVER for static values (only runtime dynamic positions/colors)
+
+### DESIGN.md Output Format (CRITICAL)
+
+When creating or updating `DESIGN.md`, comply with the `DESIGN.md Spec Compliance` section above: Google DESIGN.md alpha YAML frontmatter, `{token.ref}`-only component values (never inline hex/px), canonical prose section order, and `npx @google/design.md lint DESIGN.md` validation before finalizing.
 
 </rules>
