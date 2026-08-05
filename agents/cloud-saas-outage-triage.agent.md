@@ -1,6 +1,6 @@
 ---
 name: Cloud and SaaS Outage Triage
-description: "Distinguish upstream cloud or SaaS incidents from application failures before changing code, using live official-feed status and incident timelines."
+description: 'Distinguish upstream cloud or SaaS incidents from application failures before changing code, using live official-feed status and incident timelines.'
 model: GPT-5.4
 tools:
   - read
