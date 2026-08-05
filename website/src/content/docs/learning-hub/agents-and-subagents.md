@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-01
+lastUpdated: 2026-08-05
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -134,6 +134,20 @@ The important behavior is different from a single chat turn:
 
 That makes `/fleet` a practical way to launch subagents even if you are not authoring custom agent files yourself.
 
+### Sessions sidebar for parallel work *(v1.0.76+, experimental)*
+
+When you're running multiple independent tasks in Copilot CLI, the **Sessions sidebar** gives you a split-view TUI panel to manage concurrent sessions without leaving the terminal. You can switch between active sessions, spawn new ones, and see their status at a glance — all without starting a new terminal window.
+
+Enable it with experimental mode:
+
+```
+/experimental on
+```
+
+Once enabled, the Sessions sidebar appears as a panel alongside your current conversation. Each session tracks its own conversation history, working directory, and model selection independently. This complements `/fleet` — while `/fleet` orchestrates subagents within a single session, the Sessions sidebar lets you manage fully independent parallel workstreams (for example, one session refactoring a module while another writes tests for a different service).
+
+> **Tip**: In v1.0.78+, switching sessions no longer restarts MCP servers or rebuilds your hook state — the switch is nearly instant and the session resumes exactly where it left off.
+
 ### Rubber-duck agent
 
 Available in `/experimental` (v1.0.42+), the **rubber-duck agent** applies a novel multi-model pattern: when you're working in a GPT-powered session, the rubber-duck agent internally routes certain requests through Claude to provide a second perspective. The idea is similar to rubber-duck debugging — talking through a problem with a different "listener" often surfaces assumptions or blind spots you didn't notice.
@@ -206,7 +220,7 @@ Yes, when the delegated worker is a custom agent with its own frontmatter.
 
 **Are subagents always parallel?**
 
-No. They can run sequentially when one step depends on another, or in parallel when work items are independent.
+No. They can run sequentially when one step depends on another, or in parallel when work items are independent. In v1.0.76+, the CLI includes improved subagent delegation that makes it better at automatically choosing parallelism for small, independent tasks — you no longer need to explicitly request parallel execution in many common scenarios.
 
 **Can I control how many subagents run simultaneously?**
 
