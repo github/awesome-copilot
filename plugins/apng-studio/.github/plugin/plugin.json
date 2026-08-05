@@ -16,7 +16,7 @@
     "interactive-canvas"
   ],
   "extensions": {
-    "apng-studio": {
+    "com.github.copilot": {
       "logo": "assets/preview.png"
     }
   }

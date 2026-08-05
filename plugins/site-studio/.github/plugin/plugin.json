@@ -16,7 +16,7 @@
     "site-builder"
   ],
   "extensions": {
-    "site-studio": {
+    "com.github.copilot": {
       "logo": "assets/preview.png"
     }
   }

@@ -16,7 +16,7 @@
     "status-tracking"
   ],
   "extensions": {
-    "accessibility-kanban": {
+    "com.github.copilot": {
       "logo": "assets/preview.png"
     }
   }

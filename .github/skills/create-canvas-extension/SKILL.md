@@ -117,4 +117,3 @@ When migrating an existing extension:
 3. Remove the old manifest from `extensions/<extension-id>`.
 4. Register the extension in any parent plugin's `.github/plugin/extensions.json`.
 5. Run the validation and build commands above.
-

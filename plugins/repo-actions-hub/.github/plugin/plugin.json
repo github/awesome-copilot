@@ -16,7 +16,7 @@
     "workflow-dispatch"
   ],
   "extensions": {
-    "repo-actions-hub": {
+    "com.github.copilot": {
       "logo": "assets/preview.png"
     }
   }

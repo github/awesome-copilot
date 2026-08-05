@@ -16,7 +16,7 @@
     "release-notes"
   ],
   "extensions": {
-    "release-notes-showcase": {
+    "com.github.copilot": {
       "logo": "assets/preview.png"
     }
   }

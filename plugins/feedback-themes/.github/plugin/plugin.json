@@ -16,7 +16,7 @@
     "trend-discovery"
   ],
   "extensions": {
-    "feedback-themes": {
+    "com.github.copilot": {
       "logo": "assets/preview.png"
     }
   }

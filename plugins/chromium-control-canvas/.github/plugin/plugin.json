@@ -17,7 +17,7 @@
     "web-navigation"
   ],
   "extensions": {
-    "chromium-control-canvas": {
+    "com.github.copilot": {
       "logo": "assets/preview.png"
     }
   }
