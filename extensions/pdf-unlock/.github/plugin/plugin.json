@@ -1,0 +1,22 @@
+{
+  "name": "pdf-unlock",
+  "description": "Remove encryption and permission locks from PDFs by re-printing them through the system print-to-PDF engine, then replace each original in place. Handles owner-password restrictions and user-password files, verifies every conversion before replacing anything, and keeps a backup.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Abhi Singh",
+    "url": "https://github.com/abhi-singhs"
+  },
+  "keywords": [
+    "decrypt-pdf",
+    "document-tools",
+    "ghostscript",
+    "pdf",
+    "pdf-password",
+    "pdf-permissions",
+    "print-to-pdf",
+    "quartz",
+    "unlock-pdf"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}

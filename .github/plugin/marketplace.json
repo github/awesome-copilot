@@ -996,6 +996,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "pdf-unlock",
+      "source": "extensions/pdf-unlock",
+      "description": "Remove encryption and permission locks from PDFs by re-printing them through the system print-to-PDF engine, then replace each original in place. Handles owner-password restrictions and user-password files, verifies every conversion before replacing anything, and keeps a backup.",
+      "version": "1.0.0"
+    },
+    {
       "name": "phoenix",
       "source": "plugins/phoenix",
       "description": "Phoenix AI observability skills for LLM application debugging, evaluation, and tracing. Includes CLI debugging tools, LLM evaluation workflows, and OpenInference tracing instrumentation.",

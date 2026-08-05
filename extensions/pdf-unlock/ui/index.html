@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>PDF Unlock</title>
+        <script>
+            // Runs before first paint so switching themes never flashes.
+            (() => {
+                const KEY = "pdf-unlock:theme";
+                let choice = "auto";
+                try {
+                    choice = localStorage.getItem(KEY) || "auto";
+                } catch {
+                    /* storage blocked — fall back to auto */
+                }
+                const root = document.documentElement;
+                root.dataset.themeMode = choice;
+                root.dataset.theme =
+                    choice === "auto"
+                        ? matchMedia("(prefers-color-scheme: dark)").matches
+                            ? "dark"
+                            : "light"
+                        : choice;
+            })();
+        </script>
+        <style>
+            /* The resolved theme is written to <html data-theme> before first
+               paint, so "auto" never flashes the wrong palette. */
+            :root,
+            :root[data-theme="light"] {
+                color-scheme: light;
+                --bg: #ffffff;
+                --bg-subtle: #f6f8fa;
+                --bg-inset: #eef1f4;
+                --fg: #1f2328;
+                --fg-muted: #59636e;
+                --border: #d1d9e0;
+                --accent: #0969da;
+                --accent-fg: #ffffff;
+                --danger: #cf222e;
+                --danger-bg: #fff1f0;
+                --warn: #9a6700;
+                --warn-bg: #fff8c5;
+                --ok: #1a7f37;
+                --ok-bg: #dafbe1;
+                --shadow: 0 1px 2px rgba(31, 35, 40, 0.08);
+                --radius: 8px;
+            }
+            :root[data-theme="dark"] {
+                color-scheme: dark;
+                --bg: #0d1117;
+                --bg-subtle: #151b23;
+                --bg-inset: #010409;
+                --fg: #e6edf3;
+                --fg-muted: #9198a1;
+                --border: #3d444d;
+                --accent: #4493f8;
+                --accent-fg: #0d1117;
+                --danger: #ff7b72;
+                --danger-bg: #25171c;
+                --warn: #d29922;
+                --warn-bg: #272115;
+                --ok: #3fb950;
+                --ok-bg: #12261e;
+                --shadow: none;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--fg);
+                font: 13px/1.5 ui-sans-serif, -apple-system, "SF Pro Text", system-ui, sans-serif;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                overflow: hidden;
+            }
+            header {
+                padding: 14px 16px 10px;
+                border-bottom: 1px solid var(--border);
+                flex: none;
+            }
+            .head-row {
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            .head-row > div:first-child {
+                flex: 1;
+                min-width: 0;
+            }
+            .theme {
+                display: inline-flex;
+                flex: none;
+                border: 1px solid var(--border);
+                border-radius: 999px;
+                background: var(--bg-subtle);
+                padding: 2px;
+                gap: 2px;
+            }
+            .theme button {
+                border: none;
+                background: transparent;
+                color: var(--fg-muted);
+                border-radius: 999px;
+                padding: 2px 9px;
+                font-size: 11px;
+                font-weight: 500;
+                line-height: 1.6;
+            }
+            .theme button:hover:not([aria-pressed="true"]) {
+                color: var(--fg);
+            }
+            .theme button[aria-pressed="true"] {
+                background: var(--bg);
+                color: var(--fg);
+                box-shadow: var(--shadow);
+            }
+            h1 {
+                font-size: 15px;
+                margin: 0 0 3px;
+                letter-spacing: -0.01em;
+            }
+            .sub {
+                color: var(--fg-muted);
+                font-size: 12px;
+            }
+            main {
+                flex: 1;
+                overflow-y: auto;
+                padding: 14px 16px 20px;
+            }
+            footer {
+                flex: none;
+                border-top: 1px solid var(--border);
+                padding: 10px 16px;
+                background: var(--bg-subtle);
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+            .drop {
+                border: 1.5px dashed var(--border);
+                border-radius: var(--radius);
+                padding: 18px 14px;
+                text-align: center;
+                color: var(--fg-muted);
+                background: var(--bg-subtle);
+                transition: 0.12s;
+                cursor: default;
+            }
+            .drop.hot {
+                border-color: var(--accent);
+                background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+                color: var(--fg);
+            }
+            .drop strong {
+                color: var(--fg);
+                display: block;
+                margin-bottom: 2px;
+                font-size: 13px;
+            }
+            .row {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            .row.tight {
+                gap: 6px;
+            }
+            .mt {
+                margin-top: 10px;
+            }
+            button {
+                font: inherit;
+                font-weight: 500;
+                border: 1px solid var(--border);
+                background: var(--bg-subtle);
+                color: var(--fg);
+                border-radius: 6px;
+                padding: 5px 11px;
+                cursor: pointer;
+            }
+            button:hover:not(:disabled) {
+                border-color: var(--fg-muted);
+            }
+            button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            button.primary {
+                background: var(--accent);
+                border-color: transparent;
+                color: var(--accent-fg);
+            }
+            button.ghost {
+                background: transparent;
+                border-color: transparent;
+                color: var(--fg-muted);
+                padding: 4px 6px;
+            }
+            button.ghost:hover:not(:disabled) {
+                color: var(--fg);
+                background: var(--bg-inset);
+            }
+            input,
+            select {
+                font: inherit;
+                background: var(--bg);
+                color: var(--fg);
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                padding: 5px 8px;
+            }
+            input[type="text"],
+            input[type="password"] {
+                min-width: 0;
+            }
+            label.field {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+                font-size: 11px;
+                color: var(--fg-muted);
+            }
+            label.check {
+                display: flex;
+                gap: 5px;
+                align-items: center;
+                color: var(--fg-muted);
+                font-size: 12px;
+            }
+            .grow {
+                flex: 1;
+            }
+            h2 {
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--fg-muted);
+                margin: 18px 0 8px;
+                font-weight: 600;
+            }
+            ul.files {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+            li.file {
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 9px 10px;
+                background: var(--bg-subtle);
+            }
+            li.file.done {
+                border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+            }
+            li.file.failed {
+                border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+            }
+            .file-head {
+                display: flex;
+                gap: 8px;
+                align-items: baseline;
+            }
+            .name {
+                font-weight: 600;
+                word-break: break-all;
+            }
+            .path {
+                color: var(--fg-muted);
+                font-size: 11px;
+                font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                word-break: break-all;
+                margin-top: 1px;
+            }
+            .meta {
+                color: var(--fg-muted);
+                font-size: 11px;
+                margin-top: 4px;
+            }
+            .badge {
+                font-size: 10px;
+                font-weight: 600;
+                border-radius: 999px;
+                padding: 1px 7px;
+                white-space: nowrap;
+                border: 1px solid transparent;
+            }
+            .badge.enc {
+                background: var(--warn-bg);
+                color: var(--warn);
+                border-color: color-mix(in srgb, var(--warn) 35%, transparent);
+            }
+            .badge.pw {
+                background: var(--danger-bg);
+                color: var(--danger);
+                border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+            }
+            .badge.clear {
+                background: var(--ok-bg);
+                color: var(--ok);
+                border-color: color-mix(in srgb, var(--ok) 35%, transparent);
+            }
+            .badge.err {
+                background: var(--danger-bg);
+                color: var(--danger);
+            }
+            .badge.busy {
+                background: var(--bg-inset);
+                color: var(--fg-muted);
+            }
+            .result {
+                margin-top: 7px;
+                padding: 7px 9px;
+                border-radius: 6px;
+                font-size: 11.5px;
+                background: var(--bg-inset);
+            }
+            .result.ok {
+                background: var(--ok-bg);
+                color: var(--ok);
+            }
+            .result.err {
+                background: var(--danger-bg);
+                color: var(--danger);
+            }
+            .result code {
+                font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                word-break: break-all;
+            }
+            .empty {
+                color: var(--fg-muted);
+                text-align: center;
+                padding: 26px 10px;
+                font-size: 12px;
+            }
+            .toast {
+                margin-top: 10px;
+                padding: 8px 10px;
+                border-radius: 6px;
+                font-size: 12px;
+                background: var(--warn-bg);
+                color: var(--warn);
+            }
+            .toast.err {
+                background: var(--danger-bg);
+                color: var(--danger);
+            }
+            .caps {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                margin-top: 6px;
+            }
+            .cap {
+                font-size: 10px;
+                border: 1px solid var(--border);
+                border-radius: 999px;
+                padding: 1px 7px;
+                color: var(--fg-muted);
+            }
+            .cap.on {
+                color: var(--ok);
+                border-color: color-mix(in srgb, var(--ok) 40%, transparent);
+            }
+            .status {
+                color: var(--fg-muted);
+                font-size: 12px;
+            }
+            details.help {
+                margin-top: 12px;
+                font-size: 11.5px;
+                color: var(--fg-muted);
+            }
+            details.help summary {
+                cursor: pointer;
+            }
+            details.help p {
+                margin: 6px 0 0;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="head-row">
+                <div>
+                    <h1>PDF Unlock</h1>
+                    <div class="sub" id="tagline">
+                        Re-prints encrypted PDFs through the system print-to-PDF engine and replaces
+                        the originals in place.
+                    </div>
+                </div>
+                <div class="theme" id="theme" role="group" aria-label="Appearance">
+                    <button type="button" data-theme-choice="auto" aria-pressed="false">Auto</button>
+                    <button type="button" data-theme-choice="light" aria-pressed="false">
+                        Light
+                    </button>
+                    <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+                </div>
+            </div>
+            <div class="caps" id="caps"></div>
+        </header>
+
+        <main>
+            <div class="drop" id="drop">
+                <strong>Drop PDFs or a folder here</strong>
+                Or add them by path below
+            </div>
+
+            <div class="row mt">
+                <input
+                    class="grow"
+                    type="text"
+                    id="pathInput"
+                    placeholder="/Users/you/Documents/statement.pdf or a folder"
+                    spellcheck="false"
+                />
+                <button id="addBtn">Add</button>
+                <button id="browseBtn">Browse…</button>
+            </div>
+
+            <div class="row mt">
+                <label class="field grow" style="max-width: 210px">
+                    Engine
+                    <select id="method">
+                        <option value="auto">Auto (print-to-PDF first)</option>
+                        <option value="quartz">Print to PDF (Quartz)</option>
+                        <option value="ghostscript">Print to PDF (Ghostscript)</option>
+                        <option value="poppler">Render via Poppler</option>
+                        <option value="qpdf">Lossless decrypt (qpdf)</option>
+                    </select>
+                </label>
+                <label class="field grow" style="max-width: 210px">
+                    Original file
+                    <select id="backup">
+                        <option value="sibling">Keep as “… (original).pdf”</option>
+                        <option value="trash" id="backupBin">Move to Trash</option>
+                        <option value="none">Overwrite, no backup</option>
+                    </select>
+                </label>
+                <label class="field grow" style="max-width: 210px">
+                    Password (if required)
+                    <input type="password" id="password" placeholder="optional" />
+                </label>
+            </div>
+
+            <div class="row mt tight">
+                <label class="check">
+                    <input type="checkbox" id="dryRun" />
+                    Dry run — write a preview copy instead of replacing
+                </label>
+                <label class="check">
+                    <input type="checkbox" id="recursive" checked />
+                    Search folders recursively
+                </label>
+            </div>
+
+            <div id="toast"></div>
+
+            <h2 id="listTitle">Queue</h2>
+            <ul class="files" id="list"></ul>
+
+            <details class="help">
+                <summary>How this works</summary>
+                <p id="helpEngine">
+                    Each page is redrawn into a brand-new PDF. The new document is authored from
+                    scratch, so it carries no encryption dictionary and no permission flags. Text
+                    stays selectable vector text; it is not rasterized.
+                </p>
+                <p>
+                    Because the page is re-printed, interactive extras do not survive: links,
+                    bookmarks, form fields, annotations and attachments are dropped. Pick the
+                    <em>lossless qpdf</em> engine if you need to keep them.
+                </p>
+                <p>
+                    The original is only replaced after the new file is verified to be unencrypted
+                    and to have the same page count, and the swap is an atomic rename on the same
+                    volume.
+                </p>
+                <p>
+                    A PDF that needs a password just to open cannot be unlocked without that
+                    password — enter it above.
+                </p>
+            </details>
+        </main>
+
+        <footer>
+            <button class="primary" id="runBtn" disabled>Unlock &amp; replace</button>
+            <button id="refreshBtn">Re-scan</button>
+            <button id="clearBtn">Clear</button>
+            <span class="status grow" id="status"></span>
+        </footer>
+
+        <script type="module">
+            const TOKEN = "__PDF_UNLOCK_TOKEN__";
+            const INSTANCE = "__PDF_UNLOCK_INSTANCE__";
+
+            const $ = (id) => document.getElementById(id);
+            const els = {
+                caps: $("caps"),
+                theme: $("theme"),
+                drop: $("drop"),
+                pathInput: $("pathInput"),
+                addBtn: $("addBtn"),
+                browseBtn: $("browseBtn"),
+                method: $("method"),
+                backup: $("backup"),
+                password: $("password"),
+                dryRun: $("dryRun"),
+                recursive: $("recursive"),
+                toast: $("toast"),
+                list: $("list"),
+                listTitle: $("listTitle"),
+                runBtn: $("runBtn"),
+                refreshBtn: $("refreshBtn"),
+                clearBtn: $("clearBtn"),
+                status: $("status"),
+            };
+
+            let state = { files: [], options: {}, revision: -1 };
+            let running = false;
+            let workingPath = null;
+
+            // --- appearance -------------------------------------------------
+
+            const THEME_KEY = "pdf-unlock:theme";
+            const darkQuery = matchMedia("(prefers-color-scheme: dark)");
+
+            function applyTheme(choice) {
+                const root = document.documentElement;
+                root.dataset.themeMode = choice;
+                root.dataset.theme =
+                    choice === "auto" ? (darkQuery.matches ? "dark" : "light") : choice;
+                for (const button of els.theme.querySelectorAll("[data-theme-choice]")) {
+                    button.setAttribute(
+                        "aria-pressed",
+                        String(button.dataset.themeChoice === choice)
+                    );
+                }
+            }
+
+            els.theme.addEventListener("click", (event) => {
+                const button = event.target.closest("[data-theme-choice]");
+                if (!button) return;
+                const choice = button.dataset.themeChoice;
+                try {
+                    localStorage.setItem(THEME_KEY, choice);
+                } catch {
+                    /* storage blocked — the choice still applies for this session */
+                }
+                applyTheme(choice);
+            });
+
+            darkQuery.addEventListener("change", () => {
+                if (document.documentElement.dataset.themeMode === "auto") applyTheme("auto");
+            });
+
+            applyTheme(document.documentElement.dataset.themeMode ?? "auto");
+
+            async function api(name, body = {}) {
+                const response = await fetch(`/api/${name}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-pdf-unlock-token": TOKEN,
+                    },
+                    body: JSON.stringify(body),
+                });
+                if (!response.ok) {
+                    const detail = await response.json().catch(() => ({}));
+                    throw new Error(detail.error || `Request failed (${response.status})`);
+                }
+                return response.json();
+            }
+
+            function toast(message, kind = "warn") {
+                els.toast.innerHTML = message
+                    ? `<div class="toast ${kind === "err" ? "err" : ""}">${message}</div>`
+                    : "";
+            }
+
+            const bytes = (n) => {
+                if (typeof n !== "number") return "—";
+                if (n < 1024) return `${n} B`;
+                if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+                return `${(n / 1024 / 1024).toFixed(1)} MB`;
+            };
+
+            const escapeHtml = (value) =>
+                String(value ?? "").replace(
+                    /[&<>"']/g,
+                    (c) =>
+                        ({
+                            "&": "&amp;",
+                            "<": "&lt;",
+                            ">": "&gt;",
+                            '"': "&quot;",
+                            "'": "&#39;",
+                        })[c]
+                );
+
+            function badge(file) {
+                if (workingPath === file.path)
+                    return '<span class="badge busy">Working…</span>';
+                if (!file.ok)
+                    return `<span class="badge err">${escapeHtml(file.status ?? "Error")}</span>`;
+                if (file.needsPassword)
+                    return '<span class="badge pw">Password required</span>';
+                if (file.encrypted)
+                    return `<span class="badge enc">Encrypted${
+                        file.algorithm ? ` · ${escapeHtml(file.algorithm)}` : ""
+                    }</span>`;
+                return '<span class="badge clear">Not encrypted</span>';
+            }
+
+            function resultBlock(file) {
+                const result = file.result;
+                if (!result) return "";
+                if (!result.ok) {
+                    return `<div class="result err">${escapeHtml(result.error)}</div>`;
+                }
+                if (result.dryRun) {
+                    return `<div class="result ok">Dry run via ${escapeHtml(
+                        result.method
+                    )} — preview written to <code>${escapeHtml(result.preview)}</code></div>`;
+                }
+                const backup = result.backup
+                    ? result.backup.mode === "trash"
+                        ? `original moved to <code>${escapeHtml(
+                              result.backup.location || "Trash"
+                          )}</code>`
+                        : `original kept at <code>${escapeHtml(result.backup.location)}</code>`
+                    : "original overwritten";
+                return `<div class="result ok">Replaced via ${escapeHtml(result.method)} · ${
+                    result.after.pages
+                } pages · ${bytes(result.before.size)} → ${bytes(
+                    result.after.size
+                )} · ${backup}</div>`;
+            }
+
+            function metaLine(file) {
+                if (!file.ok) return escapeHtml(file.error ?? "");
+                const parts = [`${file.pages || "?"} pages`, bytes(file.size)];
+                if (file.version) parts.push(`PDF ${file.version}`);
+                if (file.encrypted && !file.needsPassword) {
+                    const blocked = [];
+                    if (!file.allowsCopying) blocked.push("copy");
+                    if (!file.allowsPrinting) blocked.push("print");
+                    parts.push(blocked.length ? `blocks ${blocked.join(" + ")}` : "permissions set");
+                } else if (!file.encrypted && !file.result) {
+                    parts.push("nothing to do");
+                }
+                return parts.join(" · ");
+            }
+
+            // Only encrypted, openable files are re-printed — clean PDFs are left
+            // untouched so a bulk run never degrades a file that is already fine.
+            const isActionable = (file) =>
+                file.ok && file.encrypted && !file.needsPassword && !file.result?.ok;
+
+            function render() {
+                const files = state.files ?? [];
+                els.listTitle.textContent = files.length
+                    ? `Queue · ${files.length} file${files.length === 1 ? "" : "s"}`
+                    : "Queue";
+
+                if (files.length === 0) {
+                    els.list.innerHTML =
+                        '<li class="empty">Nothing queued yet. Drop a PDF above, paste a path, or ask Copilot to add files.</li>';
+                } else {
+                    els.list.innerHTML = files
+                        .map((file) => {
+                            const cls = file.result
+                                ? file.result.ok
+                                    ? "done"
+                                    : "failed"
+                                : "";
+                            return `<li class="file ${cls}">
+                                <div class="file-head">
+                                    <span class="name grow">${escapeHtml(file.name)}</span>
+                                    ${badge(file)}
+                                    <button class="ghost" data-reveal="${escapeHtml(
+                                        file.path
+                                    )}" title="Reveal in Finder">⤴</button>
+                                    <button class="ghost" data-remove="${escapeHtml(
+                                        file.path
+                                    )}" title="Remove from queue">✕</button>
+                                </div>
+                                <div class="path">${escapeHtml(file.path)}</div>
+                                <div class="meta">${metaLine(file)}</div>
+                                ${resultBlock(file)}
+                            </li>`;
+                        })
+                        .join("");
+                }
+
+                const actionable = files.filter(isActionable);
+                const locked = files.filter((file) => file.ok && file.needsPassword);
+                els.runBtn.disabled = running || actionable.length === 0;
+                els.runBtn.textContent = running
+                    ? "Working…"
+                    : state.options.dryRun
+                      ? `Preview ${actionable.length || ""}`.trim()
+                      : `Unlock & replace${actionable.length ? ` (${actionable.length})` : ""}`;
+
+                if (!running) {
+                    els.status.textContent = locked.length
+                        ? `${locked.length} file${locked.length === 1 ? " needs" : "s need"} a password — enter it above, then Re-scan.`
+                        : "";
+                }
+            }
+
+            function applyState(next) {
+                if (!next) return;
+                state = next;
+                els.method.value = next.options.method;
+                els.backup.value = next.options.backup;
+                els.dryRun.checked = Boolean(next.options.dryRun);
+                els.recursive.checked = Boolean(next.options.recursive);
+                render();
+            }
+
+            async function pushOptions() {
+                applyState(
+                    await api("options", {
+                        options: {
+                            method: els.method.value,
+                            backup: els.backup.value,
+                            dryRun: els.dryRun.checked,
+                            recursive: els.recursive.checked,
+                        },
+                    })
+                );
+            }
+
+            async function addPaths(paths) {
+                if (paths.length === 0) return;
+                toast("");
+                els.status.textContent = "Inspecting…";
+                try {
+                    const response = await api("add", {
+                        paths,
+                        recursive: els.recursive.checked,
+                        password: els.password.value,
+                    });
+                    applyState(response.state);
+                } catch (error) {
+                    toast(escapeHtml(error.message), "err");
+                } finally {
+                    els.status.textContent = "";
+                }
+            }
+
+            async function run() {
+                const targets = (state.files ?? []).filter(isActionable);
+                if (targets.length === 0) return;
+                running = true;
+                toast("");
+                render();
+
+                let done = 0;
+                let failed = 0;
+                for (const file of targets) {
+                    workingPath = file.path;
+                    els.status.textContent = `${file.name} — ${done + 1} of ${targets.length}`;
+                    render();
+                    try {
+                        const response = await api("unlock", {
+                            path: file.path,
+                            password: els.password.value,
+                            method: els.method.value,
+                            backup: els.backup.value,
+                            dryRun: els.dryRun.checked,
+                        });
+                        if (!response.ok) failed += 1;
+                    } catch (error) {
+                        failed += 1;
+                        toast(escapeHtml(error.message), "err");
+                    }
+                    done += 1;
+                    workingPath = null;
+                    applyState(await api("state"));
+                }
+
+                running = false;
+                workingPath = null;
+                applyState(await api("state"));
+                els.status.textContent = failed
+                    ? `${done - failed} succeeded, ${failed} failed.`
+                    : `${done} file${done === 1 ? "" : "s"} ${
+                          els.dryRun.checked ? "previewed" : "unlocked and replaced"
+                      }.`;
+            }
+
+            // --- events -----------------------------------------------------
+
+            els.addBtn.addEventListener("click", () => {
+                const raw = els.pathInput.value.trim();
+                if (!raw) return;
+                els.pathInput.value = "";
+                addPaths(raw.split("\n").map((line) => line.trim()).filter(Boolean));
+            });
+
+            els.pathInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") els.addBtn.click();
+            });
+
+            els.browseBtn.addEventListener("click", async () => {
+                els.browseBtn.disabled = true;
+                els.status.textContent = "Waiting for the file picker…";
+                try {
+                    const response = await api("browse", { password: els.password.value });
+                    if (!response.ok) toast(escapeHtml(response.error), "err");
+                    else applyState(response.state);
+                } catch (error) {
+                    toast(escapeHtml(error.message), "err");
+                } finally {
+                    els.browseBtn.disabled = false;
+                    els.status.textContent = "";
+                }
+            });
+
+            for (const el of [els.method, els.backup, els.dryRun, els.recursive]) {
+                el.addEventListener("change", pushOptions);
+            }
+
+            els.runBtn.addEventListener("click", run);
+
+            els.refreshBtn.addEventListener("click", async () => {
+                els.status.textContent = "Re-scanning…";
+                try {
+                    applyState(await api("refresh", { password: els.password.value }));
+                } finally {
+                    els.status.textContent = "";
+                }
+            });
+
+            els.clearBtn.addEventListener("click", async () => {
+                applyState(await api("clear"));
+                toast("");
+                els.status.textContent = "";
+            });
+
+            els.list.addEventListener("click", async (event) => {
+                const removeTarget = event.target.closest("[data-remove]");
+                if (removeTarget) {
+                    applyState(
+                        await api("remove", { paths: [removeTarget.dataset.remove] })
+                    );
+                    return;
+                }
+                const revealTarget = event.target.closest("[data-reveal]");
+                if (revealTarget) {
+                    await api("reveal", { path: revealTarget.dataset.reveal });
+                }
+            });
+
+            // Drag and drop. Webviews hide the real filesystem path, so fall back
+            // to resolving the dropped file by name + exact size via Spotlight.
+            let dragDepth = 0;
+            for (const type of ["dragenter", "dragover"]) {
+                els.drop.addEventListener(type, (event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "copy";
+                    els.drop.classList.add("hot");
+                });
+            }
+            document.addEventListener("dragenter", (event) => {
+                event.preventDefault();
+                dragDepth += 1;
+                els.drop.classList.add("hot");
+            });
+            document.addEventListener("dragover", (event) => event.preventDefault());
+            document.addEventListener("dragleave", () => {
+                dragDepth = Math.max(0, dragDepth - 1);
+                if (dragDepth === 0) els.drop.classList.remove("hot");
+            });
+
+            document.addEventListener("drop", async (event) => {
+                event.preventDefault();
+                dragDepth = 0;
+                els.drop.classList.remove("hot");
+                const transfer = event.dataTransfer;
+                if (!transfer) return;
+
+                const uriList = transfer.getData("text/uri-list");
+                const plain = transfer.getData("text/plain");
+                const fromText = [uriList, plain]
+                    .join("\n")
+                    .split("\n")
+                    .map((line) => line.trim())
+                    .filter((line) => line.startsWith("file://") || line.startsWith("/"));
+                if (fromText.length > 0) {
+                    await addPaths([...new Set(fromText)]);
+                    return;
+                }
+
+                const files = [...(transfer.files ?? [])];
+                if (files.length === 0) return;
+                els.status.textContent = "Locating dropped files…";
+                try {
+                    const response = await api("resolveDrop", {
+                        files: files.map((file) => ({
+                            name: file.name,
+                            size: file.size,
+                            path: file.path || undefined,
+                        })),
+                        password: els.password.value,
+                    });
+                    applyState(response.state);
+                    if (response.unresolved.length > 0) {
+                        toast(
+                            `Could not locate ${response.unresolved
+                                .map((item) => escapeHtml(item.name))
+                                .join(", ")} on disk. Use <strong>Browse…</strong> or paste the full path instead.`
+                        );
+                    }
+                } catch (error) {
+                    toast(escapeHtml(error.message), "err");
+                } finally {
+                    els.status.textContent = "";
+                }
+            });
+
+            // --- boot -------------------------------------------------------
+
+            (async () => {
+                try {
+                    const caps = await api("capabilities");
+                    els.caps.innerHTML = Object.values(caps.methods)
+                        .map(
+                            (method) =>
+                                `<span class="cap ${method.available ? "on" : ""}" title="${escapeHtml(
+                                    method.available ? method.detail : (method.error ?? "Not installed")
+                                )}">${method.available ? "●" : "○"} ${escapeHtml(
+                                    method.label
+                                )}</span>`
+                        )
+                        .join("");
+
+                    for (const option of els.method.options) {
+                        const method = caps.methods[option.value];
+                        if (method && !method.available) {
+                            option.disabled = true;
+                            option.textContent += " — unavailable";
+                        }
+                    }
+
+                    // Wording follows the host OS: Trash on macOS, Recycle Bin on Windows.
+                    $("backupBin").textContent = `Move to ${caps.binLabel}`;
+                    const printEngine = caps.methods.quartz.available
+                        ? "CoreGraphics — the same pipeline behind Print → Save as PDF"
+                        : "Ghostscript's pdfwrite device — the same idea as printing to a PDF printer";
+                    $("helpEngine").innerHTML = `Each page is redrawn into a brand-new PDF using ${escapeHtml(
+                        printEngine
+                    )}. The new document is authored from scratch, so it carries no encryption dictionary and no permission flags. Text stays selectable vector text; it is not rasterized.`;
+
+                    if (!caps.anyAvailable) {
+                        els.runBtn.disabled = true;
+                        toast(
+                            `No conversion engine is installed. Install one of:<br />${caps.setup
+                                .map(
+                                    (hint) =>
+                                        `<code>${escapeHtml(hint.command)}</code> — ${escapeHtml(
+                                            hint.tool
+                                        )}`
+                                )
+                                .join("<br />")}`,
+                            "err"
+                        );
+                    }
+                } catch (error) {
+                    toast(escapeHtml(error.message), "err");
+                }
+                applyState(await api("state"));
+
+                // Pick up files queued by the agent while the panel is open.
+                setInterval(async () => {
+                    if (running) return;
+                    try {
+                        const next = await api("state");
+                        if (next.revision !== state.revision) applyState(next);
+                    } catch {
+                        /* panel will retry */
+                    }
+                }, 1500);
+            })();
+        </script>
+    </body>
+</html>

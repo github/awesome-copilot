@@ -1,0 +1,25 @@
+{
+  "name": "pdf-unlock",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "Remove encryption and permission locks from PDFs by re-printing them through the system print-to-PDF engine, then replace each original in place.",
+  "author": {
+    "name": "Abhi Singh",
+    "url": "https://github.com/abhi-singhs"
+  },
+  "keywords": [
+    "decrypt-pdf",
+    "document-tools",
+    "ghostscript",
+    "pdf",
+    "pdf-password",
+    "pdf-permissions",
+    "print-to-pdf",
+    "quartz",
+    "unlock-pdf"
+  ],
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  }
+}
