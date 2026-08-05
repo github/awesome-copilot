@@ -1,7 +1,7 @@
 {
   "name": "signals-dashboard",
-  "description": "Real-time agent coordination dashboard for The Workshop. Shows desk status, signal types (done, checkpoint, blocked, hands-up, partnership), intent text, outcome pairing with honesty gap, token usage, and stash/restore controls.",
-  "version": "0.1.0",
+  "description": "Real-time Workshop dashboard with agent signals, honesty calibration, and cost-aware repo or connected desk launch profiles.",
+  "version": "0.2.0",
   "author": {
     "name": "jennyf19",
     "url": "https://github.com/jennyf19"
