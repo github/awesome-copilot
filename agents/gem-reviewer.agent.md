@@ -25,7 +25,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 ## Knowledge Sources
 
 - Official docs (online docs or llms.txt)
-- `docs/DESIGN.md` (UI tasks only: files matching _.tsx, _.vue, _.jsx, styles/_)
+- `DESIGN.md` (UI tasks only: files matching _.tsx, _.vue, _.jsx, styles/_)
 - OWASP MASVS
 - Platform security docs (iOS Keychain, Android Keystore)
 
@@ -37,26 +37,27 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse review_scope: plan|wave.
-  - Use quality_score.reviewer_focus to prioritize scrutiny on weak areas.
+  - Use your own `prd_score` (percentage of PRD requirements fully covered by the plan, 0–100) and `confidence` (your certainty in this score) from the prior review pass (or initial audit) to prioritize scrutiny on weak areas.
   - Apply config settings: Read `config_snapshot` for:
     - `quality.a11y_audit_level` → determine accessibility scan depth (none/basic/full)
 
 ### Plan Review
 
-Determine depth from `taskdefinition.reviewdepth` (default: `full`).
+Determine depth from `task_definition.review_depth` (default: `full`).
+
+- Apply taskclarifications at all depths: Ensure resolved clarifications are incorporated; do not re-question.
 
 - lightweight (MEDIUM complexity):
-  - Apply taskclarifications: Ensure resolved clarifications are incorporated; do not re-question.
   - Semantic Error & Logic Check:
   - Temporal Paradoxes: Verify no task relies on data, APIs, or assets that haven't been created yet.
   - Wave Correctness: Parallel tasks must not have `conflicts_with` relationships. Wave 1 must contain valid root tasks.
-  - Deterministic Verification: Reject vague criteria. Tasks must have explicit, measurable `verification` and `acceptance_criteria` (e.g., specific test commands, expected status codes/payloads).
+    - Deterministic Verification: Reject vague criteria. Tasks must have explicit, measurable `success_criteria` and
+      `acceptance_criteria` (e.g., specific test commands, expected status codes/payloads).
 - full (HIGH complexity):
-  - Apply taskclarifications: Ensure resolved clarifications are incorporated; do not re-question.
   - Semantic Error & Logic Check: All lightweight checks apply.
   - PRD Coverage & Scope Drift:
   - Verify every single PRD requirement maps to >= 1 task.
@@ -66,7 +67,8 @@ Determine depth from `taskdefinition.reviewdepth` (default: `full`).
   - Diagnose-then-fix Rigor: Every debugger task must have a paired implementer task in a later wave that explicitly consumes the `debugger_diagnosis` field.
 - Status Assignment:
   - Critical → failed: Logical paradoxes (data gaps), missing root tasks, parallel conflicts, or entirely missed PRD requirements.
-  - Non-critical → needsrevision: Vague acceptance criteria, missing data contracts on non-breaking dependencies, or loose typing in contracts.
+  - Non-critical → `needs_revision`: Vague acceptance criteria, missing data contracts on non-breaking dependencies,
+    or loose typing in contracts.
   - No issues → completed: The plan is logically sound, fully traced, and executable.
 - Output
   - Return minimal JSON per `output_format` below.
@@ -115,8 +117,8 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "files_reviewed": "number",
   "acceptance_criteria_met": "number",
   "acceptance_criteria_missing": "number",
-  "prd_score": "number (0-100)",
-  "learn": ["string: max 5"]
+  "prd_score": "number (0-100) - % of PRD requirements fully covered by the plan",
+  "learn": [{"text": "string", "confidence": "0.0-1.0"}]
 }
 ```
 
@@ -148,6 +150,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Security audit FIRST via grep_search before semantic.
 - Mobile: all 8 vectors if mobile detected.
 - PRD compliance: verify all acceptance_criteria.
