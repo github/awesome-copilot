@@ -715,7 +715,7 @@ function generateUnifiedModeSection(cfg) {
  * Read and parse a plugin.json file from a plugin directory.
  */
 function readPluginJson(pluginDir) {
-  const jsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
+  const jsonPath = path.join(pluginDir, "plugin.json");
   if (!fs.existsSync(jsonPath)) return null;
   try {
     return JSON.parse(fs.readFileSync(jsonPath, "utf-8"));

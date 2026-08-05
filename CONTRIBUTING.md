@@ -143,7 +143,7 @@ Skills are self-contained folders in the `skills/` directory that include a `SKI
 Canvas extensions live in `extensions/<extension-id>/` as reusable source components. They are shipped only through plugin manifests in `plugins/`.
 
 1. **Create/update the extension source**: Add or update `extensions/<extension-id>/extension.mjs`
-2. **Register the extension plugin**: Add `plugins/<extension-id>/.github/plugin/plugin.json`:
+2. **Register the extension plugin**: Add `plugins/<extension-id>/plugin.json`:
    - Required: `name` (matching folder name), `description`, `version`
    - Optional: `author`, `keywords`
    - `extensions.com.github.copilot.logo` **must** be exactly `"assets/preview.png"`
@@ -170,7 +170,7 @@ npm run plugin:create -- --name my-plugin-id
 
 ```
 plugins/my-plugin-id/
-├── .github/plugin/plugin.json  # Plugin metadata (Claude Code spec format)
+├── plugin.json                # Plugin metadata
 └── README.md                   # Plugin documentation
 ```
 
@@ -198,7 +198,7 @@ plugins/my-plugin-id/
 
 - **Declarative content**: Plugin content is specified via `agents`, `commands`, and `skills` arrays in plugin.json — source files live in top-level directories and are materialized into plugins by CI
 - **Valid references**: All paths referenced in plugin.json must point to existing source files in the repository
-- **Reusable extensions**: Curated plugins can bundle extensions by adding their folder names to `.github/plugin/extensions.json`; the same extension can be listed by multiple plugins
+- **Reusable extensions**: Curated plugins can bundle extensions by adding `./extensions/<name>` paths under `extensions.com.github.copilot.directories`; the same extension can be listed by multiple plugins
 - **Instructions excluded**: Instructions are standalone resources and are not part of plugins
 - **Clear purpose**: The plugin should solve a specific problem or workflow
 - **Validate before submitting**: Run `npm run plugin:validate` to ensure your plugin is valid

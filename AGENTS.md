@@ -86,8 +86,8 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 
 - Each extension folder must include `extension.mjs`
 - Extensions are reusable source components, not standalone plugins
-- A shippable extension plugin is registered by a matching `plugins/<extension-id>/.github/plugin/plugin.json`
-- A plugin can bundle additional reusable extensions by listing their names in `.github/plugin/extensions.json`
+- A shippable extension plugin is registered by a matching `plugins/<extension-id>/plugin.json`
+- A plugin can bundle additional reusable extensions by listing `./extensions/<name>` paths in `extensions.com.github.copilot.directories`
 - Each extension must have `assets/preview.png` as the primary visual asset
 - Extension metadata is sourced from the matching plugin manifest in `plugins/`
 
@@ -115,7 +115,7 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 
 #### Plugin Folders (plugins/\*)
 
-- Each plugin is a folder containing a `.github/plugin/plugin.json` file with metadata
+- Each plugin is a folder containing a root `plugin.json` file with metadata
 - plugin.json **must** have `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"` (Agent Plugins v1.0.0)
 - plugin.json must have `name` field (matching the folder name)
 - plugin.json must have `description` field (describing the plugin's purpose)
@@ -165,7 +165,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 **For Plugins:**
 
 1. Run `npm run plugin:create -- --name <plugin-name>` to scaffold a new plugin
-2. Define agents, commands, and skills in `plugin.json` using Claude Code spec fields
+2. Define agents, commands, and skills in `plugin.json` using the repository's build-time composition fields
 3. Edit the generated `plugin.json` with your metadata
 4. Run `npm run plugin:validate` to validate the plugin structure
 5. Run `npm run build` to update README.md and marketplace.json
@@ -174,7 +174,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 **For Canvas Extensions:**
 
 1. Create/update the extension in `extensions/<extension-id>/` with `extension.mjs`
-2. Add the matching plugin manifest under `plugins/<extension-id>/.github/plugin/plugin.json`:
+2. Add the matching plugin manifest under `plugins/<extension-id>/plugin.json`:
    ```json
    {
      "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
@@ -192,7 +192,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 4. Run `npm run plugin:validate` to validate plugin and extension metadata
 5. Run `npm run build` to regenerate website data and marketplace output
 
-To bundle an extension into another plugin without making a second source copy, add a sorted array of extension folder names to `plugins/<plugin-id>/.github/plugin/extensions.json`.
+To bundle an extension into another plugin without making a second source copy, add sorted `./extensions/<name>` paths to `plugins/<plugin-id>/plugin.json` under `extensions.com.github.copilot.directories`.
 
 **For External Plugins:**
 
@@ -322,7 +322,7 @@ For workflow files (workflows/\*.md):
 
 For plugins (plugins/\*/):
 
-- [ ] Directory contains a `.github/plugin/plugin.json` file
+- [ ] Directory contains a root `plugin.json` file
 - [ ] Directory contains a `README.md` file
 - [ ] `plugin.json` has `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"`
 - [ ] `plugin.json` has `name` field matching the directory name (lowercase with hyphens)

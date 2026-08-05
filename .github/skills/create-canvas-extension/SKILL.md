@@ -23,7 +23,7 @@ Before creating files, ask for each missing value:
 4. **Preview image**: obtain an existing `assets/preview.png` path or ask the user to add it. Do not invent a binary image or silently use a misleading placeholder.
 5. **Plugin registration**:
    - For a standalone installable canvas plugin, create `plugins/<extension-id>`.
-   - For an extension that belongs to an existing plugin, ask for the parent plugin ID and add the extension ID to that plugin's `.github/plugin/extensions.json`.
+   - For an extension that belongs to an existing plugin, ask for the parent plugin ID and add `./extensions/<extension-id>` to that plugin's `extensions.com.github.copilot.directories`.
    - If the extension should be shipped by multiple plugins, collect all plugin IDs and add the same extension ID to each mapping file.
 
 ## Files to create
@@ -45,7 +45,7 @@ plugins/<extension-id>/
 
 The extension source may contain additional files such as `package.json`, canvas assets, or supporting modules. Keep all reusable implementation files under `extensions/<extension-id>/`.
 
-Create `plugins/<extension-id>/.github/plugin/plugin.json` with this shape:
+Create `plugins/<extension-id>/plugin.json` with this shape:
 
 ```json
 {
@@ -74,7 +74,7 @@ The manifest must contain only Agent Plugins spec fields. Do not add `x-awesome-
 For an existing parent plugin, create or update:
 
 ```text
-plugins/<parent-plugin>/.github/plugin/extensions.json
+plugins/<parent-plugin>/plugin.json (`extensions.com.github.copilot.directories`)
 ```
 
 Its contents must be a sorted JSON array of extension IDs:
@@ -96,7 +96,7 @@ Do not copy the extension source into the parent plugin. Materialization resolve
 2. Ask only the missing required questions from the decisions above.
 3. Create the source and plugin directories with the required files.
 4. If creating a new entrypoint, keep it minimal and clearly mark implementation TODOs rather than fabricating behavior.
-5. Add or update `extensions.json` for every parent plugin that should ship the extension. Keep IDs alphabetically sorted and unique.
+5. Add or update `extensions.com.github.copilot.directories` for every parent plugin that should ship the extension. Keep paths alphabetically sorted and unique.
 6. Ensure there is no `extensions/<extension-id>/.github/plugin/plugin.json`.
 7. Run:
 
@@ -112,8 +112,8 @@ Do not copy the extension source into the parent plugin. Materialization resolve
 
 When migrating an existing extension:
 
-1. Move its `.github/plugin/plugin.json` to `plugins/<extension-id>/.github/plugin/plugin.json`.
+1. Move its existing manifest to `plugins/<extension-id>/plugin.json`.
 2. Update the manifest to the namespace-based `extensions.com.github.copilot.logo` shape.
 3. Remove the old manifest from `extensions/<extension-id>`.
-4. Register the extension in any parent plugin's `.github/plugin/extensions.json`.
+4. Register the extension in any parent plugin's `extensions.com.github.copilot.directories`.
 5. Run the validation and build commands above.

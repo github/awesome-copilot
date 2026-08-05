@@ -550,17 +550,16 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
 
   for (const dir of pluginDirs) {
     const pluginDir = path.join(PLUGINS_DIR, dir.name);
-    const jsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
+    const jsonPath = path.join(pluginDir, "plugin.json");
 
     if (!fs.existsSync(jsonPath)) continue;
 
     try {
       const data = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
       const relPath = `plugins/${dir.name}`;
-      const extensionReferencesPath = path.join(pluginDir, ".github/plugin/extensions.json");
-      const extensionRefs = fs.existsSync(extensionReferencesPath)
-        ? JSON.parse(fs.readFileSync(extensionReferencesPath, "utf-8"))
-        : [];
+      const extensionRefs = data.extensions?.["com.github.copilot"]?.directories
+        ?.map((entry) => entry.replace(/^\.\/extensions\//, "").replace(/\/$/, ""))
+        .filter(Boolean) ?? [];
       if (fs.existsSync(path.join(EXTENSIONS_DIR, dir.name, "extension.mjs")) && !extensionRefs.includes(dir.name)) {
         extensionRefs.push(dir.name);
       }
@@ -1192,7 +1191,7 @@ function generateCanvasManifest(gitDates, commitSha) {
     const packageJson = fs.existsSync(packageJsonPath)
       ? JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"))
       : {};
-    const pluginJsonPath = path.join(PLUGINS_DIR, dir.name, ".github", "plugin", "plugin.json");
+    const pluginJsonPath = path.join(PLUGINS_DIR, dir.name, "plugin.json");
     const pluginJson = fs.existsSync(pluginJsonPath)
       ? JSON.parse(fs.readFileSync(pluginJsonPath, "utf-8"))
       : {};

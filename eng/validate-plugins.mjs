@@ -166,33 +166,31 @@ function validateSpecPaths(plugin) {
   return errors;
 }
 
-function validateExtensionReferences(pluginDir) {
+function validateExtensionReferences(plugin, pluginDir) {
   const errors = [];
-  const referencesPath = path.join(pluginDir, ".github/plugin/extensions.json");
-  if (!fs.existsSync(referencesPath)) {
+  const directories = plugin.extensions?.[COPILOT_NAMESPACE]?.directories;
+  if (directories === undefined) {
     return errors;
+  }
+  if (!Array.isArray(directories)) {
+    errors.push(`extensions["${COPILOT_NAMESPACE}"].directories must be an array`);
+    return errors;
+  }
+  if (!arraysEqual(directories, sortPluginEntries(directories))) {
+    errors.push(`extensions["${COPILOT_NAMESPACE}"].directories entries must be sorted alphabetically`);
   }
 
-  const references = parseJsonFile(referencesPath);
-  if (references.parseError) {
-    errors.push(`failed to parse extensions.json: ${references.parseError}`);
-    return errors;
-  }
-  if (!Array.isArray(references)) {
-    errors.push("extensions.json must contain an array of extension names");
-    return errors;
-  }
-  if (!arraysEqual(references, sortPluginEntries(references))) {
-    errors.push("extensions.json entries must be sorted alphabetically");
-  }
-
-  for (const [index, name] of references.entries()) {
-    if (typeof name !== "string" || !/^[a-z0-9][a-z0-9.-]*[a-z0-9]$|^[a-z0-9]$/.test(name)) {
-      errors.push(`extensions.json[${index}] must be a valid extension name`);
+  for (const [index, directory] of directories.entries()) {
+    const name = typeof directory === "string"
+      ? directory.replace(/^\.\/extensions\//, "").replace(/\/$/, "")
+      : "";
+    if (typeof directory !== "string" || !directory.startsWith("./extensions/") ||
+        !/^[a-z0-9][a-z0-9.-]*[a-z0-9]$|^[a-z0-9]$/.test(name)) {
+      errors.push(`extensions["${COPILOT_NAMESPACE}"].directories[${index}] must be a valid ./extensions/<name> path`);
       continue;
     }
     if (!fs.existsSync(path.join(EXTENSIONS_DIR, name, "extension.mjs"))) {
-      errors.push(`extensions.json[${index}] source not found: extensions/${name}`);
+      errors.push(`extensions["${COPILOT_NAMESPACE}"].directories[${index}] source not found: extensions/${name}`);
     }
   }
 
@@ -206,10 +204,10 @@ function validatePlugin(folderName) {
   const extensionDir = path.join(EXTENSIONS_DIR, folderName);
   const isExtensionPlugin = fs.existsSync(path.join(extensionDir, "extension.mjs"));
 
-  // Rule 1: Must have .github/plugin/plugin.json
-  const pluginJsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
+  // Rule 1: Must have plugin.json at the plugin root
+  const pluginJsonPath = path.join(pluginDir, "plugin.json");
   if (!fs.existsSync(pluginJsonPath)) {
-    errors.push("missing required file: .github/plugin/plugin.json");
+    errors.push("missing required file: plugin.json");
     return errors;
   }
 
@@ -258,7 +256,7 @@ function validatePlugin(folderName) {
   const specErrors = validateSpecPaths(plugin);
   errors.push(...specErrors);
 
-  const extensionRefErrors = validateExtensionReferences(pluginDir);
+  const extensionRefErrors = validateExtensionReferences(plugin, pluginDir);
   errors.push(...extensionRefErrors);
 
   if (isExtensionPlugin) {
@@ -334,9 +332,9 @@ function validatePlugins() {
   }
 
   for (const dir of getExtensionFolderNames()) {
-    const pluginJsonPath = path.join(PLUGINS_DIR, dir, ".github/plugin/plugin.json");
+    const pluginJsonPath = path.join(PLUGINS_DIR, dir, "plugin.json");
     if (!fs.existsSync(pluginJsonPath)) {
-      console.error(`❌ extension ${dir}: missing plugin manifest at plugins/${dir}/.github/plugin/plugin.json`);
+      console.error(`❌ extension ${dir}: missing plugin manifest at plugins/${dir}/plugin.json`);
       hasErrors = true;
     }
   }

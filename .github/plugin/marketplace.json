@@ -162,7 +162,7 @@
     },
     {
       "name": "backrooms-canvas",
-      "source": "extensions/backrooms-canvas",
+      "source": "plugins/backrooms-canvas",
       "description": "Wander an endless first-person backrooms in a Copilot canvas while agents work; their status ghost-writes on the walls.",
       "version": "1.0.0"
     },
@@ -301,12 +301,6 @@
         "path": "connector-namespaces",
         "sha": "473d526fad34951ed0e12664912df4c7f393ed15"
       }
-    },
-    {
-      "name": "connector-namespaces",
-      "source": "plugins/connector-namespaces",
-      "description": "Browse, connect, and open MCP connectors from an Azure Connector Namespace.",
-      "version": "1.1.0"
     },
     {
       "name": "context-engineering",
@@ -607,7 +601,7 @@
     },
     {
       "name": "flight-map-canvas",
-      "source": "extensions/flight-map-canvas",
+      "source": "plugins/flight-map-canvas",
       "description": "A GitHub Copilot canvas that generates a view where Google Maps can be explored using 3D controls, as if a flight simulator. Agents can send the flight anywhere and report what they are working on.",
       "version": "1.0.0"
     },
@@ -1067,7 +1061,7 @@
     },
     {
       "name": "pr-artifact-explorer",
-      "source": "extensions/pr-artifact-explorer",
+      "source": "plugins/pr-artifact-explorer",
       "description": "Navigate pull requests and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
       "version": "1.0.0"
     },
@@ -1151,7 +1145,7 @@
     },
     {
       "name": "signals-dashboard",
-      "source": "extensions/signals-dashboard",
+      "source": "plugins/signals-dashboard",
       "description": "Real-time agent coordination dashboard for The Workshop. Shows desk status, signal types (done, checkpoint, blocked, hands-up, partnership), intent text, outcome pairing with honesty gap, token usage, and stash/restore controls.",
       "version": "0.1.0"
     },
