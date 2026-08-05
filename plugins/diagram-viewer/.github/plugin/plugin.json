@@ -16,7 +16,7 @@
     "relationship-visualization"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "diagram-viewer": {
       "logo": "assets/preview.png"
     }
   }

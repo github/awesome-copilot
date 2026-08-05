@@ -256,11 +256,11 @@ function validatePlugin(folderName) {
 
   if (isExtensionPlugin) {
     const extension = plugin.extensions;
-    const namespace = extension?.[COPILOT_NAMESPACE];
+    const namespace = extension?.[folderName];
     if (!namespace || namespace.logo !== "assets/preview.png") {
-      errors.push(`extensions["${COPILOT_NAMESPACE}"].logo must be exactly "assets/preview.png" for extension plugins`);
+      errors.push(`extensions["${folderName}"].logo must be exactly "assets/preview.png" for extension plugins`);
     } else {
-      validateExtensionScreenshotPath(extensionDir, namespace.logo, `extensions["${COPILOT_NAMESPACE}"].logo`, errors);
+      validateExtensionScreenshotPath(extensionDir, namespace.logo, `extensions["${folderName}"].logo`, errors);
     }
   }
 

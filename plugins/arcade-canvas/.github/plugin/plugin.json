@@ -16,7 +16,7 @@
     "session-breaks"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "arcade-canvas": {
       "logo": "assets/preview.png"
     }
   }

@@ -16,7 +16,7 @@
     "workflow-automation"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "backlog-swipe-triage": {
       "logo": "assets/preview.png"
     }
   }

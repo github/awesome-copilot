@@ -16,7 +16,7 @@
     "session-usage"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "token-pacman": {
       "logo": "assets/preview.png"
     }
   }

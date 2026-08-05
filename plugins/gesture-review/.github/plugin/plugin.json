@@ -16,7 +16,7 @@
     "pull-request-review"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "gesture-review": {
       "logo": "assets/preview.png"
     }
   }

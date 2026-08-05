@@ -16,7 +16,7 @@
     "visual-feedback"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "color-orb": {
       "logo": "assets/preview.png"
     }
   }

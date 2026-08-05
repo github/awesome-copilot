@@ -16,7 +16,7 @@
     "tool-discovery"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "connector-namespaces": {
       "logo": "assets/preview.png"
     }
   }

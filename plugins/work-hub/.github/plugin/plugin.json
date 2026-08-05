@@ -16,7 +16,7 @@
     "workflow-visibility"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "work-hub": {
       "logo": "assets/preview.png"
     }
   }

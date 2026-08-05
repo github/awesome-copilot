@@ -37,7 +37,9 @@ jobs:
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
+            const marker = '<!-- plugin-extension-validation -->';
             const body = [
+              marker,
               '🛑 **Plugin/extension validation failed**',
               '',
               'One or more plugins or extensions in this PR do not pass spec validation.',
@@ -45,21 +47,34 @@ jobs:
               'All internal plugins and extensions must include:',
               '- `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"` in `plugin.json`',
               '- A valid `name`, `description`, and `version`',
-              '- For **extensions**: `extensions["com.github.copilot"].logo` set to `"assets/preview.png"`',
+              '- For **extensions**: `extensions["<extension-id>"].logo` set to `"assets/preview.png"`',
               '',
               'Run `npm run plugin:validate` locally to see the full list of errors.',
             ].join('\n');
 
-            const isFork = context.payload.pull_request.head.repo.fork;
-            if (!isFork) {
-              try {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.issue.number,
-                  body,
-                });
-              } catch (error) {
-                core.warning(`Could not post PR comment: ${error.message}`);
-              }
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+
+            const existing = comments.find((comment) => comment.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+              console.log(`Updated existing validation comment ${existing.id}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+              console.log('Created validation comment');
             }

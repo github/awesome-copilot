@@ -16,7 +16,7 @@
     "tiny-tool-town"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "tiny-tool-town-submitter": {
       "logo": "assets/preview.png"
     }
   }

@@ -17,7 +17,7 @@
     "validation-gates"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "java-modernization-studio": {
       "logo": "assets/preview.png"
     }
   }

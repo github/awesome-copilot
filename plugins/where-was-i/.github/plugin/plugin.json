@@ -16,7 +16,7 @@
     "resume-work"
   ],
   "extensions": {
-    "com.github.copilot": {
+    "where-was-i": {
       "logo": "assets/preview.png"
     }
   }

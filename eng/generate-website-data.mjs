@@ -1158,7 +1158,9 @@ function resolveExtensionScreenshots(pluginJson, extensionDir, relPath, ref) {
     }
     : null;
 
-  const copilotNs = pluginJson?.extensions?.["com.github.copilot"];
+  const extensionNamespace = path.basename(extensionDir);
+  const copilotNs = pluginJson?.extensions?.[extensionNamespace]
+    ?? pluginJson?.extensions?.["com.github.copilot"];
   const logoEntry = normalizeExtensionScreenshotRole(
     copilotNs?.logo ?? pluginJson?.logo,
     relPath, ref
