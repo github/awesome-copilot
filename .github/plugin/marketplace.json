@@ -621,7 +621,7 @@
       "name": "gem-team",
       "source": "plugins/gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
-      "version": "1.87.0"
+      "version": "1.99.0"
     },
     {
       "name": "gesture-review",
@@ -1146,8 +1146,8 @@
     {
       "name": "signals-dashboard",
       "source": "extensions/signals-dashboard",
-      "description": "Real-time agent coordination dashboard for The Workshop. Shows desk status, signal types (done, checkpoint, blocked, hands-up, partnership), intent text, outcome pairing with honesty gap, token usage, and stash/restore controls.",
-      "version": "0.1.0"
+      "description": "Real-time Workshop dashboard with agent signals, honesty calibration, and cost-aware repo or connected desk launch profiles.",
+      "version": "0.2.0"
     },
     {
       "name": "site-studio",
