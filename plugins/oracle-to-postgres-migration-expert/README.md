@@ -28,6 +28,7 @@ copilot plugin install oracle-to-postgres-migration-expert@awesome-copilot
 | `scaffolding-oracle-to-postgres-migration-test-project` | Scaffolds an xUnit integration test project with a transaction-rollback base class and seed data manager for Oracle-to-PostgreSQL migration validation. |
 | `creating-oracle-to-postgres-migration-integration-tests` | Generates DB-agnostic xUnit integration tests with deterministic seed data that validate behavior consistency across both database systems. |
 | `creating-oracle-to-postgres-migration-bug-report` | Creates structured bug reports for defects discovered during Oracle-to-PostgreSQL migration validation, with severity, root cause, and remediation steps. |
+| `migrating-oracle-to-postgres-data-access-code` | Migrates .NET/C# data access code from Oracle to PostgreSQL (Npgsql). Replaces Oracle NuGet packages, rewrites ADO.NET type references, fixes DbType mappings, updates stored procedure invocation patterns, and adapts connection string configuration. |
 
 ## Features
 
@@ -83,7 +84,8 @@ The expert guides users through a six-phase, gated workflow. Each phase must sat
 
 **Phase 5 — Code Migration** *(per project)*
 
-- Work through `MigrationChecklist.md` item by item on a cloned copy of the project
+- Copy the application project into a `.Postgres` sibling, add to the solution, and update namespace/assembly name
+- Use the `migrating-oracle-to-postgres-data-access-code` skill to work through `MigrationChecklist.md` item by item
 - Run `dotnet build` after each item; fix errors before moving on
 - Cross-reference completed checklist against `OracleRiskAnalysis.md` to confirm every risk is addressed or deferred with justification
 
