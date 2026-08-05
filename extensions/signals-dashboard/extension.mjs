@@ -6,13 +6,26 @@
 import { createServer } from "node:http";
 import { statSync, accessSync, realpathSync, constants as fsConstants } from "node:fs";
 import { readdir, readFile, writeFile, stat } from "node:fs/promises";
-import { join, delimiter, sep } from "node:path";
+import { join, delimiter, isAbsolute, sep } from "node:path";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
+import {
+    buildDeskAgentArgv,
+    isDeskProfile,
+    isSafeWindowsCmdShim,
+    isWindowsAppExecutionAlias,
+    normalizeDeskProfile,
+    parsePluginMcpNames,
+    quoteWindowsCmdArgument,
+} from "./launch-profile.mjs";
 
 const servers = new Map();
 const STASH_TTL_MS = 48 * 60 * 60 * 1000;
+const MCP_DISCOVERY_TTL_MS = 5 * 60 * 1000;
+const MCP_DISCOVERY_MAX_BYTES = 1024 * 1024;
+const DEFAULT_DESK_PROFILE = normalizeDeskProfile(process.env.WORKSHOP_DESK_PROFILE);
+const mcpDiscoveryCache = new Map();
 
 // Serialize stash read-modify-write per workshop. The UI fires stash/restore
 // POSTs without awaiting each other, so two overlapping mutations could both
@@ -83,48 +96,217 @@ function trySpawn(cmd, args, opts = {}) {
 // match, so auto-detection would pick the wrapper and the terminal would then
 // fail to run it with no fallback.
 function isExecutableFile(p) {
-    try {
-        if (!statSync(p).isFile()) return false;
-        if (process.platform !== "win32") accessSync(p, fsConstants.X_OK);
-        return true;
-    } catch { return false; }
+    return probeExecutableFile(p).ok;
 }
 
-function isOnPath(command) {
+function probeExecutableFile(p) {
+    try {
+        if (!statSync(p).isFile()) return { ok: false, errorCode: null };
+        if (process.platform !== "win32") accessSync(p, fsConstants.X_OK);
+        return { ok: true, errorCode: null };
+    } catch (error) {
+        return { ok: false, errorCode: error?.code || null };
+    }
+}
+
+function resolveOnPath(command, { directOnly = false, excludedRoot = null } = {}) {
     try {
         const dirs = (process.env.PATH || "").split(delimiter);
         const exts = process.platform === "win32"
             ? (process.env.PATHEXT || ".EXE;.CMD;.BAT").split(";").filter(Boolean)
             : [];
-        for (const dir of dirs) {
-            if (!dir) continue;
+        for (const rawDir of dirs) {
+            const dir = rawDir.replace(/^"(.*)"$/, "$1");
+            if (!dir || !isAbsolute(dir)) continue;
             // On Windows only a PATHEXT match is runnable; on POSIX check the bare
             // name, and isExecutableFile confirms the execute bit either way.
             if (exts.length) {
-                for (const ext of exts) if (isExecutableFile(join(dir, command + ext))) return true;
-            } else if (isExecutableFile(join(dir, command))) {
-                return true;
+                for (const ext of exts) {
+                    if (directOnly && ![".EXE", ".COM"].includes(ext.toUpperCase())) continue;
+                    const candidate = join(dir, command + ext);
+                    const probe = probeExecutableFile(candidate);
+                    const appAlias = directOnly && probe.errorCode === "EACCES" &&
+                        isWindowsAppExecutionAlias(candidate, process.env.LOCALAPPDATA);
+                    if (!appAlias && !probe.ok) continue;
+                    const resolved = appAlias ? candidate : realpathSync(candidate);
+                    if (excludedRoot && isInsideRoot(excludedRoot, resolved)) continue;
+                    return resolved;
+                }
+            } else {
+                const candidate = join(dir, command);
+                if (!isExecutableFile(candidate)) continue;
+                const resolved = realpathSync(candidate);
+                if (excludedRoot && isInsideRoot(excludedRoot, resolved)) continue;
+                return resolved;
             }
         }
     } catch {}
-    return false;
+    return null;
 }
 
-// The agent argv a desk opens with. Default: prefer Agency (the internal
-// wrapper around Copilot) when it's installed, so a desk comes up with its
-// MCPs/plugin already configured instead of bare GHCP; otherwise vanilla
-// Copilot. Agency can't take Copilot's --name (it clashes with Agency's own
-// --resume), matching AgentClis. Override with WORKSHOP_DESK_AGENT=copilot to
-// force vanilla, or =agency to insist on the wrapper.
-function deskAgentArgv(deskName) {
+function resolveDeskAgent(workshopDir) {
     const pref = (process.env.WORKSHOP_DESK_AGENT || "").trim().toLowerCase();
-    // An explicit override is authoritative: =agency insists on the wrapper even
-    // when it isn't detected on PATH, and =copilot forces vanilla. Only when the
-    // override is unset do we auto-detect and prefer Agency if it's installed.
-    const useAgency = pref === "agency" ? true
-        : pref === "copilot" ? false
-        : isOnPath("agency");
-    return useAgency ? ["agency", "copilot"] : ["copilot", "--name", deskName];
+    const agencyCommand = resolveOnPath("agency", { excludedRoot: workshopDir });
+    const copilotCommand = resolveOnPath("copilot", { excludedRoot: workshopDir });
+    // Explicit overrides are authoritative and fail closed when unavailable.
+    if (pref === "agency") {
+        return agencyCommand
+            ? { useAgency: true, agencyCommand, copilotCommand }
+            : null;
+    }
+    if (pref === "copilot") {
+        return copilotCommand
+            ? { useAgency: false, agencyCommand, copilotCommand }
+            : null;
+    }
+    if (agencyCommand) return { useAgency: true, agencyCommand, copilotCommand };
+    if (copilotCommand) return { useAgency: false, agencyCommand, copilotCommand };
+    return null;
+}
+
+function resolveSystem32Executable(name) {
+    if (process.platform !== "win32") return null;
+    const root = process.env.SystemRoot || process.env.WINDIR;
+    if (!root || !isAbsolute(root)) return null;
+    try {
+        const candidate = join(root, "System32", name);
+        return isExecutableFile(candidate) ? realpathSync(candidate) : null;
+    } catch {
+        return null;
+    }
+}
+
+function terminateProcessTree(child) {
+    if (!child || child.exitCode !== null) return;
+    if (process.platform === "win32" && child.pid) {
+        const taskkill = resolveSystem32Executable("taskkill.exe");
+        if (!taskkill) return;
+        try {
+            const killer = spawn(taskkill, ["/PID", String(child.pid), "/T", "/F"], {
+                windowsHide: true,
+                stdio: "ignore",
+            });
+            killer.unref();
+        } catch {}
+        return;
+    }
+    try {
+        if (child.pid) process.kill(-child.pid, "SIGKILL");
+        else child.kill("SIGKILL");
+    } catch {
+        try { child.kill("SIGKILL"); } catch {}
+    }
+}
+
+// Capture the underlying Copilot plugin inventory directly. Agency repo mode
+// separately suppresses its own default/config plugins, so discovery does not
+// need a wrapper process that can leave inherited pipes or descendants behind.
+function capturePluginMcpJson(workshopDir, agent) {
+    return new Promise((resolve) => {
+        const command = agent.copilotCommand;
+        if (!command) {
+            resolve(null);
+            return;
+        }
+        const args = ["plugins", "list", "--kind", "mcp", "--scope", "plugin", "--json"];
+        const shim = process.platform === "win32" && /\.(cmd|bat)$/i.test(command);
+        if (shim && !isSafeWindowsCmdShim(command)) {
+            resolve(null);
+            return;
+        }
+        const spawnCommand = shim ? resolveSystem32Executable("cmd.exe") : command;
+        if (!spawnCommand) {
+            resolve(null);
+            return;
+        }
+        const spawnArgs = shim
+            ? ["/d", "/s", "/c",
+                `"${[command, ...args].map(quoteWindowsCmdArgument).join(" ")}"`]
+            : args;
+
+        let settled = false;
+        let stdout = "";
+        const done = (value, child, timer, terminate = false) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            if (terminate) {
+                try { child.stdout.destroy(); } catch {}
+                terminateProcessTree(child);
+            }
+            resolve(value);
+        };
+
+        let child;
+        try {
+            child = spawn(spawnCommand, spawnArgs, {
+                cwd: workshopDir,
+                detached: process.platform !== "win32",
+                windowsHide: true,
+                windowsVerbatimArguments: shim,
+                stdio: ["ignore", "pipe", "ignore"],
+            });
+        } catch {
+            resolve(null);
+            return;
+        }
+
+        const timer = setTimeout(() => done(null, child, timer, true), 30000);
+        child.stdout.setEncoding("utf8");
+        child.stdout.on("data", (chunk) => {
+            if (settled) return;
+            stdout += chunk;
+            if (Buffer.byteLength(stdout, "utf8") > MCP_DISCOVERY_MAX_BYTES) {
+                done(null, child, timer, true);
+                return;
+            }
+            if (parsePluginMcpNames(stdout) !== null) done(stdout, child, timer, true);
+        });
+        child.on("error", () => done(null, child, timer));
+        child.on("close", (code) => done(code === 0 ? stdout : null, child, timer));
+    });
+}
+
+async function discoverPluginMcpNames(workshopDir, agent) {
+    const cacheKey = `${workshopDir}\0${agent.copilotCommand || "missing"}`;
+    const cached = mcpDiscoveryCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+    const output = await capturePluginMcpJson(workshopDir, agent);
+    const names = output === null ? null : parsePluginMcpNames(output);
+    const value = names === null
+        ? { ok: false, names: [] }
+        : { ok: true, names };
+    mcpDiscoveryCache.set(cacheKey, {
+        expiresAt: Date.now() + MCP_DISCOVERY_TTL_MS,
+        value,
+    });
+    return value;
+}
+
+// Preserve the existing Agency-aware launch and layer the repo profile on top.
+// Repo mode suppresses ambient plugin MCPs; connected mode keeps today's tool
+// surface. Plugin discovery fails open, while Agency repo mode still suppresses
+// Agency's own default MCPs.
+async function deskAgentArgv(deskName, workshopDir, profile) {
+    const resolved = resolveDeskAgent(workshopDir);
+    if (!resolved) return null;
+    const { useAgency, agencyCommand, copilotCommand } = resolved;
+    if (useAgency && !agencyCommand) return null;
+    if (!useAgency && !copilotCommand) return null;
+    const discovery = profile === "repo"
+        ? await discoverPluginMcpNames(workshopDir, resolved)
+        : { ok: true, names: [] };
+    return buildDeskAgentArgv({
+        deskName,
+        workshopDir,
+        useAgency,
+        agencyCommand,
+        copilotCommand,
+        profile,
+        pluginMcpNames: discovery.names,
+        discoverySucceeded: discovery.ok,
+    });
 }
 
 // A desk name flows onto a command line, and on the no-wt Windows fallback
@@ -172,7 +354,7 @@ function isInsideRoot(root, target) {
     } catch { return false; }
 }
 
-async function launchDeskConsole(deskPath, deskName, workshopDir) {
+async function launchDeskConsole(deskPath, deskName, workshopDir, profile = DEFAULT_DESK_PROFILE) {
     // deskName must be a plain slug so it is safe on every command line and shell
     // below, and the resolved desk must still live inside the workshop root
     // (which defeats a symlinked desk that escapes the repo). deskPath itself is
@@ -183,22 +365,30 @@ async function launchDeskConsole(deskPath, deskName, workshopDir) {
     if (!deskPath) return false;
     if (!isSafeDeskNameForLaunch(deskName)) return false;
     if (!isInsideRoot(workshopDir, deskPath)) return false;
-    const run = [...deskAgentArgv(deskName), "-i", deskOrientPrompt(deskName)];
+    const agent = await deskAgentArgv(deskName, workshopDir, profile);
+    if (!agent) return false;
+    const run = [...agent, "-i", deskOrientPrompt(deskName)];
     if (process.platform === "win32") {
-        // Run the agent through cmd.exe (/k) so PATHEXT is applied: globally
-        // installed CLIs like `copilot`/`agency` are usually .cmd shims that
-        // Windows Terminal or a bare CreateProcess would fail to launch (they
-        // expect a literal executable, not a PATHEXT name). Windows Terminal is a
-        // GUI app, so it still surfaces its own window from the windowless host.
-        // Each element of run is its own argv token — deskName is a slug and the
-        // orientation prompt has no cmd metacharacters — and the desk path is
-        // passed via -d/cwd, so nothing untrusted is reparsed by a shell.
-        if (await trySpawn("wt.exe", ["-d", deskPath, "cmd", "/k", ...run])) return true;
+        const wt = resolveOnPath("wt", { directOnly: true, excludedRoot: workshopDir });
+        const cmd = resolveSystem32Executable("cmd.exe");
+        const direct = /\.(exe|com)$/i.test(run[0]);
+        if (direct && wt && await trySpawn(wt, ["-d", deskPath, ...run])) return true;
+
+        // Older installs can expose .cmd/.bat shims. Only use cmd.exe when every
+        // argument is free of cmd metacharacters; otherwise fail closed and let
+        // the UI copy the desk path rather than reparse an unsafe workshop path.
+        const cmdSafe = run.every((arg) => !/[&|<>^%!()\r\n]/.test(arg));
+        if (cmdSafe && wt && cmd &&
+            await trySpawn(wt, ["-d", deskPath, cmd, "/k", ...run])) return true;
         // Fallback when wt.exe is absent: a fresh console window via `start`,
-        // still through cmd /k for the same PATHEXT resolution.
-        return await trySpawn("cmd.exe", ["/c", "start", "", "cmd", "/k", ...run], { cwd: deskPath });
+        // still through cmd /k only when the arguments are safe for reparsing.
+        return cmdSafe && cmd
+            ? await trySpawn(cmd, ["/c", "start", "", cmd, "/k", ...run], { cwd: deskPath })
+            : false;
     }
     if (process.platform === "darwin") {
+        const osascript = "/usr/bin/osascript";
+        if (!isExecutableFile(osascript)) return false;
         // macOS: `open` can't inject a command, so drive Terminal via AppleScript
         // to cd into the desk and exec the agent. Each argv element is POSIX
         // single-quoted so the shell can't reinterpret it, and osascript itself
@@ -209,7 +399,7 @@ async function launchDeskConsole(deskPath, deskName, workshopDir) {
             "  activate\n" +
             "  do script " + osaStringLiteral(line) + "\n" +
             "end tell";
-        return await trySpawn("osascript", ["-e", script]);
+        return await trySpawn(osascript, ["-e", script]);
     }
     // Linux/other: best-effort across common terminal emulators. Each is spawned
     // via argv (no shell) with the agent command after the emulator's exec flag,
@@ -221,7 +411,8 @@ async function launchDeskConsole(deskPath, deskName, workshopDir) {
         ["xterm", ["-e", ...run]],
     ];
     for (const [term, args] of linuxTerms) {
-        if (await trySpawn(term, args, { cwd: deskPath })) return true;
+        const executable = resolveOnPath(term, { excludedRoot: workshopDir });
+        if (executable && await trySpawn(executable, args, { cwd: deskPath })) return true;
     }
     return false;
 }
@@ -612,11 +803,20 @@ function renderSignalCard(sig) {
     const openBtnStyle = isEscalation
         ? "background:#7f1d1d;border:1px solid #dc2626;color:#fca5a5;padding:2px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-weight:600;transition:all .15s;"
         : "background:none;border:1px solid #1e3a5f;color:#7dd3fc;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer;transition:all .15s;";
-    const openBtn = `<button data-act="open" data-desk="${esc(sig.deskName)}"
+    const openBtn = `<button data-act="open" data-profile="${esc(DEFAULT_DESK_PROFILE)}" data-desk="${esc(sig.deskName)}"
+        aria-label="Open ${esc(sig.deskName)} desk with ${esc(DEFAULT_DESK_PROFILE)} profile"
         style="${openBtnStyle}"
         onmouseover="this.style.background='#1e3a5f'"
         onmouseout="this.style.background='${isEscalation ? '#7f1d1d' : 'transparent'}'"
-        title="Open this desk as a Copilot CLI session in its folder">open</button>`;
+        title="Open this desk with the ${esc(DEFAULT_DESK_PROFILE)} tool profile">open</button>`;
+    const connectedBtn = DEFAULT_DESK_PROFILE === "connected" ? "" : `
+        <button data-act="open" data-profile="connected" data-desk="${esc(sig.deskName)}"
+            aria-label="Open ${esc(sig.deskName)} desk with connected profile"
+            style="background:none;border:1px solid #262626;color:#94a3b8;padding:2px 7px;border-radius:4px;
+                   font-size:10px;cursor:pointer;transition:all .15s;"
+            onmouseover="this.style.borderColor='#475569';this.style.color='#cbd5e1'"
+            onmouseout="this.style.borderColor='#262626';this.style.color='#94a3b8'"
+            title="Open with every configured MCP and tool">connected</button>`;
 
     let escalationBlock = "";
     if (isEscalation && sig.escalationReason) {
@@ -719,6 +919,7 @@ function renderSignalCard(sig) {
                 ${(sig.tokensIn || sig.tokensOut) ? `<span style="font-size:10px;color:#334155;background:#0f172a;border:1px solid #1e293b;padding:1px 6px;border-radius:3px;" title="in: ${sig.tokensIn} · out: ${sig.tokensOut}${sig.model ? ' · ' + esc(sig.model) : ''}">🪙 ${formatTokens(sig.tokensIn + sig.tokensOut)}</span>` : ""}
                 <span style="font-size:11px;color:#475569;">${timeSince(sig.emittedAt)}${sig.signalCount ? ` · ${sig.signalCount}` : ""}</span>
                 ${openBtn}
+                ${connectedBtn}
                 ${stashBtn}
             </div>
         </div>
@@ -850,14 +1051,16 @@ function renderDashboard(signals, stashed, capabilityToken) {
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
         }
-        async function openDesk(name) {
-            const res = await fetch('/api/open/' + encodeURIComponent(name), POST_OPTS);
+        async function openDesk(name, profile) {
+            const selectedProfile = profile || ${JSON.stringify(DEFAULT_DESK_PROFILE)};
+            const res = await fetch('/api/open/' + encodeURIComponent(name) +
+                '?profile=' + encodeURIComponent(selectedProfile), POST_OPTS);
             const data = await res.json();
             if (data.ok) {
                 const path = data.deskPath || name;
                 if (data.launched) {
                     // A successful open shouldn't hijack the user's clipboard.
-                    showToast('opening ' + name + ' desk…', path);
+                    showToast('opening ' + name + ' desk (' + selectedProfile + ')…', path);
                 } else {
                     // No terminal launched from here, so copy the path as the
                     // fallback handle, but only claim the copy when it actually
@@ -876,9 +1079,10 @@ function renderDashboard(signals, stashed, capabilityToken) {
             const name = btn.getAttribute('data-desk');
             if (!name) return;
             const act = btn.getAttribute('data-act');
+            const profile = btn.getAttribute('data-profile');
             if (act === 'stash') stashDesk(name);
             else if (act === 'restore') restoreDesk(name);
-            else if (act === 'open') openDesk(name);
+            else if (act === 'open') openDesk(name, profile);
         });
         async function refresh() {
             try {
@@ -894,15 +1098,22 @@ function renderDashboard(signals, stashed, capabilityToken) {
                     const active = document.activeElement;
                     let focusKey = null;
                     if (active && active.matches && active.matches('button[data-act]')) {
-                        focusKey = active.getAttribute('data-act') + '|' + active.getAttribute('data-desk');
+                        focusKey = JSON.stringify([
+                            active.getAttribute('data-act'),
+                            active.getAttribute('data-desk'),
+                            active.getAttribute('data-profile') || '',
+                        ]);
                     }
                     content.innerHTML = newContent.innerHTML;
                     if (focusKey) {
-                        const bar = focusKey.indexOf('|');
-                        const act = focusKey.slice(0, bar);
-                        const desk = focusKey.slice(bar + 1);
+                        const [act, desk, profile] = JSON.parse(focusKey);
                         const escDesk = (window.CSS && CSS.escape) ? CSS.escape(desk) : desk;
-                        const target = content.querySelector('button[data-act="' + act + '"][data-desk="' + escDesk + '"]');
+                        const profileSelector = profile
+                            ? '[data-profile="' + profile + '"]'
+                            : ':not([data-profile])';
+                        const target = content.querySelector(
+                            'button[data-act="' + act + '"][data-desk="' + escDesk + '"]' +
+                            profileSelector);
                         if (target) target.focus();
                     }
                 }
@@ -971,19 +1182,26 @@ async function startServer(instanceId, workshopDir) {
         }
         if (req.method === "POST" && url.pathname.startsWith("/api/open/")) {
             const deskName = decodeURIComponent(url.pathname.split("/api/open/")[1]);
+            const profileInput = url.searchParams.get("profile") || DEFAULT_DESK_PROFILE;
             if (!isValidDeskName(deskName)) {
                 res.writeHead(400, { "Content-Type": "application/json" });
                 res.end(JSON.stringify({ ok: false, error: "Invalid desk name" }));
                 return;
             }
+            if (!isDeskProfile(profileInput)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: false, error: "Invalid desk profile" }));
+                return;
+            }
+            const profile = normalizeDeskProfile(profileInput);
             for (const subdir of ["desks", "classroom"]) {
                 const deskPath = join(workshopDir, subdir, deskName);
                 try {
                     const s = await stat(deskPath);
                     if (s.isDirectory()) {
-                        const launched = await launchDeskConsole(deskPath, deskName, workshopDir);
+                        const launched = await launchDeskConsole(deskPath, deskName, workshopDir, profile);
                         res.writeHead(200, { "Content-Type": "application/json" });
-                        res.end(JSON.stringify({ ok: true, deskName, deskPath, launched }));
+                        res.end(JSON.stringify({ ok: true, deskName, deskPath, launched, profile }));
                         return;
                     }
                 } catch {}
@@ -1109,23 +1327,41 @@ const session = await joinSession({
                 },
                 {
                     name: "open_desk",
-                    description: "Open a desk as an in-place Copilot CLI session: launches a terminal in the desk's folder (inside the workshop repo) running copilot, oriented to read the desk journal and continue. This is the Model A 'sit down at the desk' — no new worktree, no session spun off elsewhere. Returns the desk path and whether a terminal was launched.",
+                    description: "Open a desk as an in-place Copilot CLI session. Repo profile suppresses ambient plugin MCPs; connected keeps every configured tool. Returns the desk path, profile, and whether a terminal was launched.",
                     inputSchema: {
                         type: "object",
-                        properties: { deskName: { type: "string", description: "Name of the desk to open" } },
+                        properties: {
+                            deskName: { type: "string", description: "Name of the desk to open" },
+                            profile: {
+                                type: "string",
+                                enum: ["repo", "connected"],
+                                description: `Tool profile. Defaults to ${DEFAULT_DESK_PROFILE}.`,
+                            },
+                        },
                         required: ["deskName"],
                     },
                     handler: async (ctx) => {
                         const entry = servers.get(ctx.instanceId);
                         if (!entry) return { error: "Dashboard not open" };
                         if (!isValidDeskName(ctx.input.deskName)) return { error: "Invalid desk name" };
+                        const profileInput = ctx.input.profile || DEFAULT_DESK_PROFILE;
+                        if (!isDeskProfile(profileInput)) return { error: "Invalid desk profile" };
+                        const profile = normalizeDeskProfile(profileInput);
                         for (const subdir of ["desks", "classroom"]) {
                             const deskPath = join(entry.workshopDir, subdir, ctx.input.deskName);
                             try {
                                 const s = await stat(deskPath);
                                 if (s.isDirectory()) {
-                                    const launched = await launchDeskConsole(deskPath, ctx.input.deskName, entry.workshopDir);
-                                    return { ok: true, deskName: ctx.input.deskName, deskPath, launched, workshopDir: entry.workshopDir };
+                                    const launched = await launchDeskConsole(
+                                        deskPath, ctx.input.deskName, entry.workshopDir, profile);
+                                    return {
+                                        ok: true,
+                                        deskName: ctx.input.deskName,
+                                        deskPath,
+                                        launched,
+                                        workshopDir: entry.workshopDir,
+                                        profile,
+                                    };
                                 }
                             } catch {}
                         }
