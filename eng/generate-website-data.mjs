@@ -645,8 +645,6 @@ function resolvePluginItem(item, resourceIndex) {
  */
 function generatePluginsData(gitDates, resourceIndex = {}) {
   const plugins = [];
-  const extensionEntriesByName = new Map();
-
   if (!fs.existsSync(PLUGINS_DIR)) {
     return { items: [], filters: { tags: [] } };
   }
@@ -654,62 +652,6 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
   const pluginDirs = fs
     .readdirSync(PLUGINS_DIR, { withFileTypes: true })
     .filter((d) => d.isDirectory());
-
-  if (fs.existsSync(EXTENSIONS_DIR)) {
-    const extensionDirs = fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
-      .filter((entry) => {
-        if (!entry.isDirectory()) return false;
-        return fs.existsSync(path.join(EXTENSIONS_DIR, entry.name, "extension.mjs"));
-      })
-      .map((entry) => entry.name)
-      .sort((a, b) => a.localeCompare(b));
-
-    for (const extensionDirName of extensionDirs) {
-      const extensionDir = path.join(EXTENSIONS_DIR, extensionDirName);
-      const pluginJsonPath = path.join(extensionDir, ".github", "plugin", "plugin.json");
-      if (!fs.existsSync(pluginJsonPath)) {
-        continue;
-      }
-
-      try {
-        const extensionPlugin = JSON.parse(fs.readFileSync(pluginJsonPath, "utf-8"));
-        const pluginName = normalizeText(extensionPlugin.name, extensionDirName);
-        const pluginDescription = normalizeText(extensionPlugin.description, "Canvas extension");
-        const extensionKeywords = Array.isArray(extensionPlugin.keywords)
-          ? [...new Set(extensionPlugin.keywords.filter((keyword) => typeof keyword === "string").map((keyword) => keyword.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b))
-          : [];
-        const relPath = `extensions/${extensionDirName}`;
-        const extensionItem = resolvePluginItem(
-          {
-            kind: "extension",
-            path: relPath,
-          },
-          resourceIndex
-        );
-        const extReadmePath = path.join(extensionDir, "README.md");
-        const extReadmeFile = fs.existsSync(extReadmePath)
-          ? `${relPath}/README.md`
-          : null;
-
-        extensionEntriesByName.set(pluginName, {
-          id: pluginName,
-          name: pluginName,
-          description: pluginDescription,
-          path: relPath,
-          readmeFile: extReadmeFile,
-          version: normalizeText(extensionPlugin.version, null),
-          tags: extensionKeywords,
-          itemCount: 1,
-          items: [extensionItem],
-          generatedFromExtension: true,
-          lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
-          searchText: `${pluginName} ${pluginDescription} ${extensionKeywords.join(" ")} canvas extension`.toLowerCase(),
-        });
-      } catch (e) {
-        console.warn(`Failed to parse extension plugin manifest for ${extensionDirName}: ${e.message}`);
-      }
-    }
-  }
 
   for (const dir of pluginDirs) {
     const pluginDir = path.join(PLUGINS_DIR, dir.name);
@@ -720,17 +662,18 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
     try {
       const data = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
       const relPath = `plugins/${dir.name}`;
-      const extensionRefs = Array.isArray(data?.["x-awesome-copilot"]?.extensions)
-        ? data["x-awesome-copilot"].extensions
+      const extensionReferencesPath = path.join(pluginDir, ".github/plugin/extensions.json");
+      const extensionRefs = fs.existsSync(extensionReferencesPath)
+        ? JSON.parse(fs.readFileSync(extensionReferencesPath, "utf-8"))
         : [];
+      if (fs.existsSync(path.join(EXTENSIONS_DIR, dir.name, "extension.mjs")) && !extensionRefs.includes(dir.name)) {
+        extensionRefs.push(dir.name);
+      }
       const extensionItems = extensionRefs
-        .map((entry) => normalizeText(entry))
-        .filter(Boolean)
-        .map((entry) => entry.replace(/^\.\/+/, "").replace(/\/$/, ""))
-        .filter((entry) => entry.startsWith("extensions/"))
+        .filter((entry) => typeof entry === "string")
         .map((entry) => ({
           kind: "extension",
-          path: entry,
+          path: `extensions/${entry}`,
         }));
 
       const agentItems = (data.agents || []).flatMap((agent) => {
@@ -779,14 +722,9 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
         searchText: `${pluginName} ${data.description || ""
           } ${tags.join(" ")}`.toLowerCase(),
       });
-      extensionEntriesByName.delete(pluginName);
     } catch (e) {
       console.warn(`Failed to parse plugin: ${dir.name}`, e.message);
     }
-  }
-
-  for (const extensionPlugin of extensionEntriesByName.values()) {
-    plugins.push(extensionPlugin);
   }
 
   // Load external plugins from plugins/external.json
@@ -1225,14 +1163,8 @@ function resolveExtensionScreenshots(pluginJson, extensionDir, relPath, ref) {
     copilotNs?.logo ?? pluginJson?.logo,
     relPath, ref
   );
-  const screenshotConfig = pluginJson?.["x-awesome-copilot"]?.screenshots || {};
-  const iconEntry = normalizeExtensionScreenshotRole(screenshotConfig.icon, relPath, ref);
-  const galleryRaw = screenshotConfig.gallery;
-  const firstGalleryEntry = Array.isArray(galleryRaw) ? galleryRaw[0] : galleryRaw;
-  const galleryEntry = normalizeExtensionScreenshotRole(firstGalleryEntry, relPath, ref);
-
-  const finalIcon = iconEntry || logoEntry || inferredIcon;
-  const finalGallery = galleryEntry || logoEntry || inferredGallery || finalIcon;
+  const finalIcon = logoEntry || inferredIcon;
+  const finalGallery = logoEntry || inferredGallery || finalIcon;
 
   return {
     screenshots: {
@@ -1281,7 +1213,7 @@ function generateCanvasManifest(gitDates, commitSha) {
     const packageJson = fs.existsSync(packageJsonPath)
       ? JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"))
       : {};
-    const pluginJsonPath = path.join(extensionDir, ".github", "plugin", "plugin.json");
+    const pluginJsonPath = path.join(PLUGINS_DIR, dir.name, ".github", "plugin", "plugin.json");
     const pluginJson = fs.existsSync(pluginJsonPath)
       ? JSON.parse(fs.readFileSync(pluginJsonPath, "utf-8"))
       : {};

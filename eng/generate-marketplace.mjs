@@ -6,7 +6,6 @@ import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
-const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const MARKETPLACE_FILE = path.join(ROOT_FOLDER, ".github/plugin", "marketplace.json");
 
 /**
@@ -68,19 +67,12 @@ function collectLocalPluginsFromRoot(rootDir, sourcePrefix, includeEntry = () =>
 function generateMarketplace() {
   console.log("Generating marketplace.json...");
 
-  if (!fs.existsSync(PLUGINS_DIR) && !fs.existsSync(EXTENSIONS_DIR)) {
-    console.error(`Error: Neither plugins directory (${PLUGINS_DIR}) nor extensions directory (${EXTENSIONS_DIR}) was found`);
+  if (!fs.existsSync(PLUGINS_DIR)) {
+    console.error(`Error: Plugins directory (${PLUGINS_DIR}) was not found`);
     process.exit(1);
   }
 
-  const plugins = [
-    ...collectLocalPluginsFromRoot(PLUGINS_DIR, "plugins"),
-    ...collectLocalPluginsFromRoot(
-      EXTENSIONS_DIR,
-      "extensions",
-      (entryName) => fs.existsSync(path.join(EXTENSIONS_DIR, entryName, "extension.mjs"))
-    )
-  ];
+  const plugins = collectLocalPluginsFromRoot(PLUGINS_DIR, "plugins");
 
   console.log(`Found ${plugins.length} local plugin manifests`);
 

@@ -140,17 +140,15 @@ Skills are self-contained folders in the `skills/` directory that include a `SKI
 
 ### Adding Canvas Extensions
 
-Canvas extensions live in `extensions/<extension-id>/` and are installable through plugin metadata.
+Canvas extensions live in `extensions/<extension-id>/` as reusable source components. They are shipped only through plugin manifests in `plugins/`.
 
-1. **Create/update extension metadata**: Add `.github/plugin/plugin.json` in the extension folder
-2. **Use convention-based metadata**: Follow the extension plugin.json structure:
+1. **Create/update the extension source**: Add or update `extensions/<extension-id>/extension.mjs`
+2. **Register the extension plugin**: Add `plugins/<extension-id>/.github/plugin/plugin.json`:
    - Required: `name` (matching folder name), `description`, `version`
    - Optional: `author`, `keywords`
-   - `logo` **must** be exactly `"assets/preview.png"` (enforced convention)
-   - `extensions` **must** be exactly `"."` (per [copilot-agent-runtime#9929](https://github.com/github/copilot-agent-runtime/pull/9929))
-   - **Never** include `x-awesome-copilot` field (use convention-based assets only)
+   - `extensions.com.github.copilot.logo` **must** be exactly `"assets/preview.png"`
 3. **Screenshot requirements**: Create `assets/preview.png` as your primary visual
-4. **Do not add `canvas.json`**: Extension website metadata is now sourced from `.github/plugin/plugin.json`
+4. **Do not add `canvas.json`**: Extension website metadata is sourced from the matching plugin manifest
 5. **Validate before submitting**: Run `npm run plugin:validate` to check compliance with conventions
 
 ### Adding Plugins
@@ -182,6 +180,7 @@ plugins/my-plugin-id/
 
 ```json
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "my-plugin-id",
   "description": "Plugin description",
   "version": "1.0.0",
@@ -199,7 +198,7 @@ plugins/my-plugin-id/
 
 - **Declarative content**: Plugin content is specified via `agents`, `commands`, and `skills` arrays in plugin.json — source files live in top-level directories and are materialized into plugins by CI
 - **Valid references**: All paths referenced in plugin.json must point to existing source files in the repository
-- **Optional extension links**: Curated plugins can reference extensions using `x-awesome-copilot.extensions` with paths like `./extensions/<extension-id>`
+- **Reusable extensions**: Curated plugins can bundle extensions by adding their folder names to `.github/plugin/extensions.json`; the same extension can be listed by multiple plugins
 - **Instructions excluded**: Instructions are standalone resources and are not part of plugins
 - **Clear purpose**: The plugin should solve a specific problem or workflow
 - **Validate before submitting**: Run `npm run plugin:validate` to ensure your plugin is valid

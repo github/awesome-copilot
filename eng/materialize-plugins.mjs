@@ -5,6 +5,7 @@ import path from "path";
 import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
+const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 
 /**
  * Recursively copy a directory.
@@ -43,6 +44,30 @@ function resolveSource(relPath) {
     return path.join(ROOT_FOLDER, "extensions", extensionName);
   }
   return null;
+}
+
+function readExtensionReferences(pluginPath, pluginName) {
+  const referencesPath = path.join(pluginPath, ".github/plugin/extensions.json");
+  let references = [];
+
+  if (fs.existsSync(referencesPath)) {
+    try {
+      references = JSON.parse(fs.readFileSync(referencesPath, "utf8"));
+    } catch (err) {
+      throw new Error(`Failed to parse ${referencesPath}: ${err.message}`);
+    }
+  }
+
+  if (!Array.isArray(references) || references.some((name) => typeof name !== "string")) {
+    throw new Error(`${referencesPath} must contain an array of extension names`);
+  }
+
+  const names = new Set(references);
+  if (fs.existsSync(path.join(EXTENSIONS_DIR, pluginName, "extension.mjs"))) {
+    names.add(pluginName);
+  }
+
+  return [...names].sort();
 }
 
 function materializePlugins() {
@@ -124,11 +149,10 @@ function materializePlugins() {
       }
     }
 
-    // Process extension references from x-awesome-copilot.extensions
-    const extensionRefs = Array.isArray(metadata?.["x-awesome-copilot"]?.extensions)
-      ? metadata["x-awesome-copilot"].extensions
-      : [];
-    for (const relPath of extensionRefs) {
+    // Process extension references from the build-only extensions.json file.
+    const extensionRefs = readExtensionReferences(pluginPath, pluginName);
+    for (const extensionName of extensionRefs) {
+      const relPath = `./extensions/${extensionName}`;
       const src = resolveSource(relPath);
       if (!src) {
         console.warn(`  ⚠ ${pluginName}: Unknown extension path format: ${relPath}`);
@@ -146,7 +170,7 @@ function materializePlugins() {
     }
 
     // Emit a spec-compliant served manifest for the marketplace branch.
-    // Source manifests keep non-spec composition fields (agents, skills, x-awesome-copilot)
+    // Source manifests keep composition fields (agents and skills)
     // for build tooling. The served manifest retains only Agent Plugins v1.0.0 fields
     // so the runtime uses conventional directory discovery for all content.
     const SPEC_FIELDS = new Set(["$schema", "name", "version", "description", "author",

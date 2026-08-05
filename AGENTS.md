@@ -21,7 +21,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 ├── hooks/            # Automated workflow hooks (folders with README.md + hooks.json)
 ├── workflows/        # Agentic Workflows (.md files for GitHub Actions automation)
 ├── plugins/          # Installable plugin packages (folders with plugin.json)
-├── extensions/       # Canvas extensions (each with extension.mjs and plugin metadata)
+├── extensions/       # Reusable canvas extension sources (extension.mjs and assets)
 ├── docs/             # Documentation for different resource types
 ├── eng/              # Build and automation scripts
 └── scripts/          # Utility scripts
@@ -85,15 +85,11 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 #### Canvas Extensions (extensions/\*)
 
 - Each extension folder must include `extension.mjs`
-- Extension metadata must live at `.github/plugin/plugin.json`
-- Extension `plugin.json` **must** follow the Agent Plugins v1.0.0 spec:
-  - `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"` (required)
-  - `name`, `description`, `version` are required
-  - `extensions` **must** be the namespace object: `{ "com.github.copilot": { "logo": "assets/preview.png" } }`
-  - Optional: `author`, `keywords` fields
-  - **Must not** include top-level `logo` (moved into the namespace) or `extensions: "."` (replaced by namespace object)
+- Extensions are reusable source components, not standalone plugins
+- A shippable extension plugin is registered by a matching `plugins/<extension-id>/.github/plugin/plugin.json`
+- A plugin can bundle additional reusable extensions by listing their names in `.github/plugin/extensions.json`
 - Each extension must have `assets/preview.png` as the primary visual asset
-- Do not add `canvas.json`; website metadata is sourced from `.github/plugin/plugin.json`
+- Extension metadata is sourced from the matching plugin manifest in `plugins/`
 
 #### Hook Folders (hooks/\*/README.md)
 
@@ -178,7 +174,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 **For Canvas Extensions:**
 
 1. Create/update the extension in `extensions/<extension-id>/` with `extension.mjs`
-2. Add `.github/plugin/plugin.json` with spec-compliant metadata:
+2. Add the matching plugin manifest under `plugins/<extension-id>/.github/plugin/plugin.json`:
    ```json
    {
      "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
@@ -195,6 +191,8 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 3. Ensure `assets/preview.png` exists as the primary visual asset
 4. Run `npm run plugin:validate` to validate plugin and extension metadata
 5. Run `npm run build` to regenerate website data and marketplace output
+
+To bundle an extension into another plugin without making a second source copy, add a sorted array of extension folder names to `plugins/<plugin-id>/.github/plugin/extensions.json`.
 
 **For External Plugins:**
 
