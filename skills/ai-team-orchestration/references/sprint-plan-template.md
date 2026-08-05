@@ -1,140 +1,75 @@
-# Sprint Plan Template
+# Work Plan Template
 
-## Plan File
-
-Save as `docs/sprint-N/plan.md`:
+Use this for substantial work. Small, clear changes can proceed directly from the issue or request.
 
 ```markdown
-# Sprint N — [Name]
+# [Work Item] - Plan
 
-> Sprint Goal: [one sentence describing the deliverable]
-> Branch: feature/sprint-N
-> Estimated effort: [time estimate]
+## Goal
 
-## Prioritized Task List
+[One observable outcome.]
 
-| # | Task | Owner | Est | Description |
-|---|------|-------|-----|-------------|
-| 1 | [task] | Nova | 1h | [what to build] |
-| 2 | [task] | Sage | 2h | [what to build] |
-| 3 | [task] | Milo | 1h | [what to style] |
+## Context
 
-## Work Schedule
+- Relevant issue/request: [link or summary]
+- Repository instructions: [links]
+- Important constraints: [list]
 
-### Phase 1: [Name] (tasks 1-3)
-- Build [component]
-- Checkpoint commit after phase
+## In Scope
 
-### Phase 2: [Name] (tasks 4-6)
-- Build [component]
-- Checkpoint commit after phase
+- [deliverable]
 
-### Phase 3: Polish & Integration
-- Integration testing
-- Bug fixes
-- Final commit
+## Out of Scope
 
-## Success Criteria
+- [explicit exclusion]
 
-- [ ] [Testable criterion 1]
-- [ ] [Testable criterion 2]
-- [ ] [Testable criterion 3]
-- [ ] All tests pass
-- [ ] No console errors
+## Tasks
 
-## What's NOT in This Sprint
+1. [task]
+2. [task]
+3. [task]
 
-| Feature | Reason |
-|---------|--------|
-| [cut feature] | [why — scope, complexity, not needed yet] |
+## Acceptance Criteria
 
-## Agent Prompt
+- [ ] [observable behavior]
+- [ ] Relevant repository checks pass
+- [ ] Documentation/context is updated when behavior or operation changed
 
-> Read PROJECT_BRIEF.md, then read docs/sprint-N/plan.md. Execute Sprint N.
->
-> First: git pull origin main && git checkout -b feature/sprint-N
->
-> Close GitHub Issues in commits: "fix: description (Fixes #NN)"
-> Update docs/sprint-N/progress.md after each phase.
-> When done, push and create PR: git push origin feature/sprint-N
-> Follow Sections 12-14 of PROJECT_BRIEF.md.
+## Verification
+
+- Automated: [commands or checks]
+- Manual: [focused scenarios, if useful]
+- Independent review: required / optional / not needed - [reason]
+- QA: required / optional / not needed - [reason]
+
+## Risks and Decisions
+
+- [risk or material decision]
+
+## Next Action
+
+[owner and immediate next step]
 ```
 
-## Progress Tracker
+## Progress Note
 
-Create `docs/sprint-N/progress.md` at sprint start:
+For long-running work, keep a short progress note:
 
 ```markdown
-# Sprint N — Progress Tracker
+# [Work Item] - Progress
 
-> If context overflows, start a new chat:
-> "Read PROJECT_BRIEF.md and docs/sprint-N/progress.md.
->  Continue from where it left off."
-
-## Task Status
-
-| # | Task | Status | Notes |
-|---|------|--------|-------|
-| 1 | [task] | ⬜ Not started | |
-| 2 | [task] | 🔨 In progress | |
-| 3 | [task] | ✅ Done | |
-| 4 | [task] | ❌ Blocked | [reason] |
-
-## Bugs Found
-
-| # | Description | Severity | Status | Fix |
-|---|-------------|----------|--------|-----|
-| 1 | [bug] | blocker/major/minor | open/fixed | [commit or PR] |
-
-## Notes
-
-[Free-form notes about decisions, issues, or context for recovery]
+- Completed: [items]
+- In progress: [item]
+- Blocked: [issue or none]
+- Decisions: [material decisions]
+- Verification so far: [results]
+- Next action: [specific action]
 ```
 
-## Done File
+## Dev Handoff
 
-Write `docs/sprint-N/done.md` at sprint end:
-
-```markdown
-# Sprint N — Done
-
-## What Was Built
-- [Feature 1]
-- [Feature 2]
-
-## What's NOT Done
-- [Deferred item — why]
-
-## Files Changed/Created
-- `src/components/NewComponent.tsx` — [purpose]
-- `api/src/functions/newEndpoint.ts` — [purpose]
-
-## Manual Setup Required
-- [Any env vars, config, or manual steps needed]
-
-## Known Issues
-- [Issue — tracked as GitHub Issue #NN]
-```
-
-## QA Sign-off Template
-
-```markdown
-# QA Sprint N Sign-Off
-
-Date: [date]
-Tester: Ivy (QA)
-
-## Test Results
-- Tests run: X
-- Tests passed: X
-- Tests failed: 0
-
-## Blockers
-NONE
-
-## Issues Filed
-- #NN — [description] (severity: minor)
-
-## Result
-✅ PASS — No blockers. Sprint N is ready to merge.
+```text
+Read the repository instructions, PROJECT_BRIEF.md when present, and this plan.
+Implement the in-scope work, run the listed verification, update durable context
+when needed, and prepare a pull request. Do not merge.
 ```

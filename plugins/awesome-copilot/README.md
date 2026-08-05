@@ -9,6 +9,11 @@ Meta prompts that help you discover and generate curated GitHub Copilot agents, 
 copilot plugin install awesome-copilot@awesome-copilot
 ```
 
+## Prerequisites
+
+- [Docker](https://www.docker.com/) must be installed and available on your `PATH`.
+- The plugin starts its bundled MCP server by running `docker run ... ghcr.io/microsoft/mcp-dotnet-samples/awesome-copilot:latest`.
+
 ## What's Included
 
 ### Commands (Slash Commands)
@@ -25,6 +30,10 @@ copilot plugin install awesome-copilot@awesome-copilot
 | Agent | Description |
 |-------|-------------|
 | `meta-agentic-project-scaffold` | Meta agentic project creation assistant to help users create and manage project workflows effectively. |
+
+### MCP server
+
+This plugin includes the `awesome-copilot` MCP server configured in [`./.mcp.json`](./.mcp.json). If Docker is unavailable, MCP startup will fail.
 
 ## Source
 

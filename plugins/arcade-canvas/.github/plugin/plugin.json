@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "arcade-canvas",
   "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "author": {
     "name": "Dan Wahlin",
     "url": "https://github.com/DanWahlin"

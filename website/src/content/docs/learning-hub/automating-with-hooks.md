@@ -681,7 +681,6 @@ A: Yes. Hooks are especially valuable with the coding agent because they provide
 
 ## Next Steps
 
-- **Explore Examples**: Browse the [Hooks Directory](../../hooks/) for ready-to-use hook configurations
 - **Build Agents**: [Building Custom Agents](../building-custom-agents/) — Create agents that complement hooks
 - **Automate Further**: [Using the Copilot Coding Agent](../using-copilot-coding-agent/) — Run hooks in autonomous agent sessions
 

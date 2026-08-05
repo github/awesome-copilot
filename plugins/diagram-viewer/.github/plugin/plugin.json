@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "diagram-viewer",
   "description": "Render diagrams, click nodes to drill down, and view agent-generated explanations directly in the canvas.",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "author": {
     "name": "Aaron Powell",
     "url": "https://github.com/aaronpowell"

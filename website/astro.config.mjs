@@ -1,7 +1,22 @@
+import { unified } from "@astrojs/markdown-remark";
 import sitemap from "@astrojs/sitemap";
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
+import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import pagefindResources from "./src/integrations/pagefind-resources";
+
+// Learning Hub course content mirrored from external workshop repos is authored
+// in GitHub admonition syntax (`> [!NOTE]`). This remark plugin rewrites those
+// callouts into Starlight aside directives before Starlight renders them, so the
+// same syntax used in the source repos and on github.com also produces styled
+// callouts here. The mapping targets Starlight's aside types (note / tip / caution).
+const githubAdmonitionMapping = {
+  NOTE: "note",
+  TIP: "tip",
+  IMPORTANT: "note",
+  WARNING: "caution",
+  CAUTION: "caution",
+};
 
 const site = "https://awesome-copilot.github.com/";
 const siteDescription =
@@ -19,6 +34,18 @@ export default defineConfig({
   site,
   base: "/",
   output: "static",
+  markdown: {
+    // Astro 7.1+ uses Sätteri as the default Markdown processor, but its plugin
+    // API is incompatible with remark/rehype plugins. We explicitly opt into the
+    // unified() (remark/rehype) processor so we can keep using
+    // remark-github-admonitions-to-directives, which rewrites > [!NOTE] callouts
+    // from Learning Hub course content into Starlight aside directives.
+    processor: unified({
+      remarkPlugins: [
+        [remarkGithubAdmonitionsToDirectives, { mapping: githubAdmonitionMapping }],
+      ],
+    }),
+  },
   integrations: [
     starlight({
       title: "Awesome GitHub Copilot",
@@ -66,6 +93,20 @@ export default defineConfig({
         "./src/styles/starlight-overrides.css",
         "./src/styles/global.css",
       ],
+      // English is served at the site root (no locale prefix), preserving all
+      // existing URLs. Additional locales are served under a locale prefix
+      // (e.g. /es-es/…) and fall back to the English page when a translation
+      // does not yet exist. These keys match the locale directory names used by
+      // mirrored Learning Hub course content (website/src/content/docs/<locale>/…).
+      defaultLocale: "root",
+      locales: {
+        root: { label: "English", lang: "en" },
+        "es-es": { label: "Español", lang: "es-ES" },
+        "ja-jp": { label: "日本語", lang: "ja-JP" },
+        "ko-kr": { label: "한국어", lang: "ko-KR" },
+        "pt-br": { label: "Português (Brasil)", lang: "pt-BR" },
+        "zh-cn": { label: "简体中文", lang: "zh-CN" },
+      },
       editLink: {
         baseUrl:
           "https://github.com/github/awesome-copilot/edit/staged/website/",
@@ -114,6 +155,82 @@ export default defineConfig({
           ],
         },
         {
+          label: "Copilot Workshops",
+          items: [
+            {
+              label: "Overview",
+              link: "/learning-hub/copilot-workshops/",
+            },
+            {
+              label: "VS Code",
+              items: [
+                {
+                  label: "Overview",
+                  link: "/learning-hub/copilot-workshops/vscode/",
+                },
+                "learning-hub/copilot-workshops/vscode/0-prerequisites",
+                "learning-hub/copilot-workshops/vscode/1-custom-instructions",
+                "learning-hub/copilot-workshops/vscode/2-agent-mode",
+                "learning-hub/copilot-workshops/vscode/3-mcp",
+                "learning-hub/copilot-workshops/vscode/4-custom-agents",
+                "learning-hub/copilot-workshops/vscode/5-managing-agents",
+                "learning-hub/copilot-workshops/vscode/6-iterating",
+              ],
+            },
+            {
+              label: "Copilot CLI",
+              items: [
+                {
+                  label: "Overview",
+                  link: "/learning-hub/copilot-workshops/cli/",
+                },
+                "learning-hub/copilot-workshops/cli/0-prerequisites",
+                "learning-hub/copilot-workshops/cli/1-install-copilot-cli",
+                "learning-hub/copilot-workshops/cli/2-custom-instructions",
+                "learning-hub/copilot-workshops/cli/3-generating-code",
+                "learning-hub/copilot-workshops/cli/4-mcp",
+                "learning-hub/copilot-workshops/cli/5-agent-skills",
+                "learning-hub/copilot-workshops/cli/6-custom-agents",
+                "learning-hub/copilot-workshops/cli/7-slash-commands",
+                "learning-hub/copilot-workshops/cli/8-review",
+              ],
+            },
+            {
+              label: "Copilot App",
+              items: [
+                {
+                  label: "Overview",
+                  link: "/learning-hub/copilot-workshops/app/",
+                },
+                "learning-hub/copilot-workshops/app/0-prerequisites",
+                "learning-hub/copilot-workshops/app/1-install-copilot-app",
+                "learning-hub/copilot-workshops/app/2-add-star-rating",
+                "learning-hub/copilot-workshops/app/3-custom-instructions",
+                "learning-hub/copilot-workshops/app/4-build-filtering",
+                "learning-hub/copilot-workshops/app/5-mcp-playwright",
+                "learning-hub/copilot-workshops/app/6-agent-merge",
+                "learning-hub/copilot-workshops/app/7-canvases",
+                "learning-hub/copilot-workshops/app/8-review",
+              ],
+            },
+            {
+              label: "Copilot Cloud Agent",
+              items: [
+                {
+                  label: "Overview",
+                  link: "/learning-hub/copilot-workshops/cloud/",
+                },
+                "learning-hub/copilot-workshops/cloud/0-prerequisites",
+                "learning-hub/copilot-workshops/cloud/1-custom-instructions",
+                "learning-hub/copilot-workshops/cloud/2-cloud-agent",
+                "learning-hub/copilot-workshops/cloud/3-custom-agents",
+                "learning-hub/copilot-workshops/cloud/4-managing-agents",
+                "learning-hub/copilot-workshops/cloud/5-iterating",
+              ],
+            },
+          ],
+        },
+        {
           label: "Hands-on",
           items: [
             {
@@ -129,11 +246,8 @@ export default defineConfig({
             { label: "Agents", link: "/agents/" },
             { label: "Instructions", link: "/instructions/" },
             { label: "Skills", link: "/skills/" },
-            { label: "Hooks", link: "/hooks/" },
-            { label: "Workflows", link: "/workflows/" },
             { label: "Canvas Extensions", link: "/extensions/" },
             { label: "Plugins", link: "/plugins/" },
-            { label: "Tools", link: "/tools/" },
             { label: "Contributors", link: "/contributors/" },
           ],
         },
@@ -147,6 +261,7 @@ export default defineConfig({
         Head: "./src/components/Head.astro",
         Footer: "./src/components/Footer.astro",
         Search: "./src/components/Search.astro",
+        LanguageSelect: "./src/components/LanguageSelect.astro",
       },
     }),
     sitemap(),

@@ -1,7 +1,6 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import samplesData from '../../../../public/data/samples.json';
-import Modal from '../../../components/Modal.astro';
 import EmbeddedPageData from '../../../components/EmbeddedPageData.astro';
 import {
   getRecipeResultsCountText,
@@ -56,7 +55,6 @@ const languageOptions = Array.from(
     <div id="samples-list" set:html={renderCookbookSectionsHtml(initialRecipeMatches)}></div>
   </div>
 
-  <Modal />
   <EmbeddedPageData filename="samples.json" data={samplesData} />
 
   <style is:global>

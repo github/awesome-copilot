@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
+import { validateLicenseField } from "./lib/license.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
@@ -247,6 +248,12 @@ function validatePlugin(folderName) {
   const keywordsError = validateKeywords(plugin.keywords ?? plugin.tags);
   if (keywordsError) errors.push(keywordsError);
 
+  // Rule 5b: license (shared with external plugins). Non-SPDX is a warning, not an error.
+  const warnings = [];
+  const licenseResult = validateLicenseField(plugin.license, { required: false });
+  errors.push(...licenseResult.errors);
+  warnings.push(...licenseResult.warnings);
+
   // Rule 6: agents, commands, skills paths
   const specErrors = validateSpecPaths(plugin);
   errors.push(...specErrors);
@@ -264,7 +271,7 @@ function validatePlugin(folderName) {
     }
   }
 
-  return { errors, plugin: parsedPlugin };
+  return { errors, warnings, plugin: parsedPlugin };
 }
 
 function validateExtensionScreenshotPath(extensionDir, pathValue, fieldName, errors) {
@@ -301,7 +308,7 @@ function validatePlugins() {
   for (const dir of pluginDirs) {
     console.log(`Validating ${dir}...`);
 
-    const { errors, plugin } = validatePlugin(dir);
+    const { errors, warnings, plugin } = validatePlugin(dir);
 
     if (errors.length > 0) {
       console.error(`❌ ${dir}:`);
@@ -309,6 +316,10 @@ function validatePlugins() {
       hasErrors = true;
     } else {
       console.log(`✅ ${dir} is valid`);
+    }
+
+    if (warnings?.length > 0) {
+      warnings.forEach((w) => console.warn(`⚠️  ${dir}: ${w}`));
     }
 
     if (plugin?.name) {
