@@ -540,8 +540,6 @@ function resolvePluginItem(item, resourceIndex) {
  */
 function generatePluginsData(gitDates, resourceIndex = {}) {
   const plugins = [];
-  const extensionEntriesByName = new Map();
-
   if (!fs.existsSync(PLUGINS_DIR)) {
     return { items: [], filters: { tags: [] } };
   }
@@ -550,85 +548,30 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
     .readdirSync(PLUGINS_DIR, { withFileTypes: true })
     .filter((d) => d.isDirectory());
 
-  if (fs.existsSync(EXTENSIONS_DIR)) {
-    const extensionDirs = fs.readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
-      .filter((entry) => {
-        if (!entry.isDirectory()) return false;
-        return hasExtensionEntryPoint(path.join(EXTENSIONS_DIR, entry.name), entry.name);
-      })
-      .map((entry) => entry.name)
-      .sort((a, b) => a.localeCompare(b));
-
-    for (const extensionDirName of extensionDirs) {
-      const extensionDir = path.join(EXTENSIONS_DIR, extensionDirName);
-      const pluginJsonPath = path.join(extensionDir, ".github", "plugin", "plugin.json");
-      if (!fs.existsSync(pluginJsonPath)) {
-        continue;
-      }
-
-      try {
-        const extensionPlugin = JSON.parse(fs.readFileSync(pluginJsonPath, "utf-8"));
-        const pluginName = normalizeText(extensionPlugin.name, extensionDirName);
-        const pluginDescription = normalizeText(extensionPlugin.description, "Canvas extension");
-        const extensionKeywords = Array.isArray(extensionPlugin.keywords)
-          ? [...new Set(extensionPlugin.keywords.filter((keyword) => typeof keyword === "string").map((keyword) => keyword.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b))
-          : [];
-        const relPath = `extensions/${extensionDirName}`;
-        const extensionItem = resolvePluginItem(
-          {
-            kind: "extension",
-            path: relPath,
-          },
-          resourceIndex
-        );
-        const extReadmePath = path.join(extensionDir, "README.md");
-        const extReadmeFile = fs.existsSync(extReadmePath)
-          ? `${relPath}/README.md`
-          : null;
-
-        extensionEntriesByName.set(pluginName, {
-          id: pluginName,
-          name: pluginName,
-          description: pluginDescription,
-          path: relPath,
-          readmeFile: extReadmeFile,
-          version: normalizeText(extensionPlugin.version, null),
-          tags: extensionKeywords,
-          itemCount: 1,
-          items: [extensionItem],
-          generatedFromExtension: true,
-          lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
-          searchText: `${pluginName} ${pluginDescription} ${extensionKeywords.join(" ")} canvas extension`.toLowerCase(),
-        });
-      } catch (e) {
-        console.warn(`Failed to parse extension plugin manifest for ${extensionDirName}: ${e.message}`);
-      }
-    }
-  }
-
   for (const dir of pluginDirs) {
     const pluginDir = path.join(PLUGINS_DIR, dir.name);
-    const jsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
+    const jsonPath = path.join(pluginDir, "plugin.json");
 
     if (!fs.existsSync(jsonPath)) continue;
 
     try {
       const data = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
       const relPath = `plugins/${dir.name}`;
-      const extensionRefs = Array.isArray(data?.["x-awesome-copilot"]?.extensions)
-        ? data["x-awesome-copilot"].extensions
-        : [];
+      const composition = data.extensions?.["com.github.awesome-copilot"] ?? {};
+      const extensionRefs = composition.extensions
+        ?.map((entry) => entry.replace(/^\.\/extensions\//, "").replace(/\/$/, ""))
+        .filter(Boolean) ?? [];
+      if (fs.existsSync(path.join(EXTENSIONS_DIR, dir.name, "extension.mjs")) && !extensionRefs.includes(dir.name)) {
+        extensionRefs.push(dir.name);
+      }
       const extensionItems = extensionRefs
-        .map((entry) => normalizeText(entry))
-        .filter(Boolean)
-        .map((entry) => entry.replace(/^\.\/+/, "").replace(/\/$/, ""))
-        .filter((entry) => entry.startsWith("extensions/"))
+        .filter((entry) => typeof entry === "string")
         .map((entry) => ({
           kind: "extension",
-          path: entry,
+          path: `extensions/${entry}`,
         }));
 
-      const agentItems = (data.agents || []).flatMap((agent) => {
+      const agentItems = (composition.agents || []).flatMap((agent) => {
         const agentPath = agent.replace("./", "");
         const fullPath = path.join(pluginDir, agentPath);
 
@@ -646,11 +589,11 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
 
       // Parse mcpServers: supports a path to a .mcp.json file or an inline object
       const mcpItems = [];
-      if (data.mcpServers) {
+      if (composition.mcpServers) {
         let mcpServersObj = null;
         let mcpConfigPath = relPath;
-        if (typeof data.mcpServers === "string") {
-          const manifestMcpPath = data.mcpServers.replace(/^\.\//, "");
+        if (typeof composition.mcpServers === "string") {
+          const manifestMcpPath = composition.mcpServers.replace(/^\.\//, "");
           mcpConfigPath = manifestMcpPath ? `${relPath}/${manifestMcpPath}` : relPath;
           const mcpJsonPath = path.join(pluginDir, manifestMcpPath);
           if (fs.existsSync(mcpJsonPath)) {
@@ -661,8 +604,8 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
               // ignore parse errors
             }
           }
-        } else if (typeof data.mcpServers === "object") {
-          mcpServersObj = data.mcpServers;
+        } else if (typeof composition.mcpServers === "object") {
+          mcpServersObj = composition.mcpServers;
         }
         if (mcpServersObj) {
           for (const serverName of Object.keys(mcpServersObj)) {
@@ -674,8 +617,8 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
       // Build items list from spec fields (agents, commands, skills, mcpServers)
       const items = [
         ...agentItems,
-        ...(data.commands || []).map((p) => ({ kind: "prompt", path: p })),
-        ...(data.skills || []).map((p) => ({ kind: "skill", path: p })),
+        ...(composition.commands || []).map((p) => ({ kind: "prompt", path: p })),
+        ...(composition.skills || []).map((p) => ({ kind: "skill", path: p })),
         ...extensionItems,
         ...mcpItems,
       ].map((item) => resolvePluginItem(item, resourceIndex));
@@ -702,14 +645,9 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
         searchText: `${pluginName} ${data.description || ""
           } ${tags.join(" ")}`.toLowerCase(),
       });
-      extensionEntriesByName.delete(pluginName);
     } catch (e) {
       console.warn(`Failed to parse plugin: ${dir.name}`, e.message);
     }
-  }
-
-  for (const extensionPlugin of extensionEntriesByName.values()) {
-    plugins.push(extensionPlugin);
   }
 
   // Load external plugins from plugins/external.json
@@ -1204,15 +1142,13 @@ function resolveExtensionScreenshots(pluginJson, extensionDir, relPath, ref) {
     }
     : null;
 
-  const logoEntry = normalizeExtensionScreenshotRole(pluginJson?.logo, relPath, ref);
-  const screenshotConfig = pluginJson?.["x-awesome-copilot"]?.screenshots || {};
-  const iconEntry = normalizeExtensionScreenshotRole(screenshotConfig.icon, relPath, ref);
-  const galleryRaw = screenshotConfig.gallery;
-  const firstGalleryEntry = Array.isArray(galleryRaw) ? galleryRaw[0] : galleryRaw;
-  const galleryEntry = normalizeExtensionScreenshotRole(firstGalleryEntry, relPath, ref);
-
-  const finalIcon = iconEntry || logoEntry || inferredIcon;
-  const finalGallery = galleryEntry || logoEntry || inferredGallery || finalIcon;
+  const copilotNs = pluginJson?.extensions?.["com.github.copilot"];
+  const logoEntry = normalizeExtensionScreenshotRole(
+    copilotNs?.logo ?? pluginJson?.logo,
+    relPath, ref
+  );
+  const finalIcon = logoEntry || inferredIcon;
+  const finalGallery = logoEntry || inferredGallery || finalIcon;
 
   return {
     screenshots: {
@@ -1256,7 +1192,7 @@ function generateCanvasManifest(gitDates, commitSha) {
     const packageJson = fs.existsSync(packageJsonPath)
       ? JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"))
       : {};
-    const pluginJsonPath = path.join(extensionDir, ".github", "plugin", "plugin.json");
+    const pluginJsonPath = path.join(PLUGINS_DIR, dir.name, "plugin.json");
     const pluginJson = fs.existsSync(pluginJsonPath)
       ? JSON.parse(fs.readFileSync(pluginJsonPath, "utf-8"))
       : {};

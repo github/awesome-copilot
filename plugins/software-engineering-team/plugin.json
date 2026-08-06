@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "software-engineering-team",
+  "description": "7 specialized agents covering the full software development lifecycle from UX design and architecture to security and DevOps.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "team",
+    "enterprise",
+    "security",
+    "devops",
+    "ux",
+    "architecture",
+    "product",
+    "ai-ethics"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/se-gitops-ci-specialist.md",
+        "./agents/se-product-manager-advisor.md",
+        "./agents/se-responsible-ai-code.md",
+        "./agents/se-security-reviewer.md",
+        "./agents/se-system-architecture-reviewer.md",
+        "./agents/se-technical-writer.md",
+        "./agents/se-ux-ui-designer.md"
+      ]
+    }
+  }
+}

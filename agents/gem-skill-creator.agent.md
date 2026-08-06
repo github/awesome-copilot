@@ -34,7 +34,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse patterns[], source_task_id.
@@ -43,7 +43,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
     - Look for existing skills with matching pattern name/description in `docs/skills/`.
     - Check metadata.usages in existing SKILL.md files.
     - Query orchestrator memory for pattern frequency.
-  - HIGH (≥ 0.95 AND pattern_seen_before ≥ 2×) → create.
+  - HIGH (≥ 0.95) → create.
   - MEDIUM (0.6 – 0.95) → skip.
   - LOW (< 0.6) → skip.
   - Generate kebab-case name.
@@ -77,7 +77,6 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Failure:
   - Retry 3x, log "Retry N/3".
   - After max → escalate.
-  - Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -110,7 +109,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "created": "number",
   "skipped": "number",
   "paths": ["string"],
-  "learn": ["string: max 5"]
+  "learn": [{ "text": "string", "confidence": "0.0-1.0" }]
 }
 ```
 
@@ -175,6 +174,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Never generic boilerplate:match project style. Minimum content, nothing speculative.
 - Treat patterns as read-only source of truth. Deduplicate before creating.
 

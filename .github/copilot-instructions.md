@@ -59,7 +59,7 @@ The following instructions are only to be applied when performing a code review.
 
 **Only apply to directories in the `plugins/` directory**
 
-- [ ] The plugin directory contains a `.github/plugin/plugin.json` file.
+- [ ] The plugin directory contains a root `plugin.json` file.
 - [ ] The plugin directory contains a `README.md` file.
 - [ ] The plugin.json has a `name` field matching the directory name.
 - [ ] The plugin.json has a `description` field.

@@ -1,7 +1,7 @@
 ---
 description: "Technical documentation, README files, API docs, diagrams, walkthroughs."
 name: gem-documentation-writer
-argument-hint: "Enter task_id, plan_id, plan_path, task_definition with task_type (documentation|update|prd|agents_md|update_context_envelope), audience, coverage_matrix."
+argument-hint: "Enter task_id, plan_id, plan_path, task_definition with task_type (documentation|update|prd|agents_md|update_plan_context), audience, coverage_matrix."
 disable-model-invocation: false
 user-invocable: false
 mode: subagent
@@ -26,6 +26,8 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 - Official docs (online docs or llms.txt)
 - Existing docs (README, docs/, `CONTRIBUTING.md`)
+- `DESIGN.md` (design system, tokens, components, layout, theming)
+- Google DESIGN.md spec: https://github.com/google-labs-code/design.md
 
 </knowledge_sources>
 
@@ -35,11 +37,11 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
-  - Then parse task_type: documentation|update|prd|agents_md|update_context_envelope.
-  - Emit minimal/dense/queryable JSON for memory/envelope updates (structured fields over prose; schema: trigger/action/reason/confidence/usage).
+  - Then parse task_type: documentation|update|prd|agents_md|update_plan_context.
+  - Emit minimal/dense/queryable JSON for memory and plan-context updates (structured fields over prose; schema: trigger/action/reason/confidence/usage).
 - Execute by Type:
   - Documentation:
     - Read source code (not just docs/about). Every factual claim must reference source lines. Flag speculation.
@@ -57,20 +59,27 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
     - Mark features complete, record decisions, log changes.
     - Check duplicates, append concisely.
     - Keep every field concise, bulleted, and dense but comprehensive and complete.
+  - `DESIGN.md`:
+    - Read existing `DESIGN.md` if updating.
+    - Create/update `DESIGN.md` per Google DESIGN.md alpha spec (YAML frontmatter + canonical sections).
+    - Ensure all component values use `{token.ref}` references - never inline raw values.
+    - Validate with `npx @google/design.md lint DESIGN.md` before finalizing.
+    - Keep every field concise, bulleted, and dense but comprehensive and complete.
   - `AGENTS.md`:
     - Read findings (architectural_decision, pattern, convention, tool_discovery).
     - Follow `AGENTS.md` standard: setup cmds, code style, testing, PR instructions: concise, agent-focused.
     - Check duplicates, append concisely.
     - Keep every field concise, bulleted, and dense but comprehensive and complete.
-  - `context_envelope`:
-    - Update existing envelope from `docs/plan/{plan_id}/context_envelope.json` with:
+  - plan-level context fields:
+    - Update the top-level context fields in `docs/plan/{plan_id}/plan.yaml` with:
       - Parsed `learnings` from task definition: facts, patterns, gotchas, failure_modes, decisions.
-      - Bump `meta.version` (increment), set `meta.last_updated` (now), set `meta.previous_version_fields_changed` to list of changed top-level keys.
+      - Bump `context_version` (increment), set `context_updated_at` (now), and set `context_fields_changed` to changed top-level keys.
 - Validate:
   - Ensure diagrams render, check no secrets exposed.
 - Verify:
-  - Walkthrough vs `plan.yaml`, docs vs code parity, update vs delta parity.
-- Failure: Log to `docs/plan/{plan_id}/logs/`.
+  - For `Documentation` tasks producing walkthroughs, verify walkthrough vs `plan.yaml`.
+  - For `Documentation` or `Update` tasks documenting code, verify docs vs code parity.
+  - For `Update` tasks, verify update vs delta parity.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -89,9 +98,9 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "created": "number",
   "updated": "number",
-  "envelope_version": "number",
+  "context_version": "number",
   "parity_check": "passed | failed | partial",
-  "learn": ["string: max 5"]
+  "learn": [{ "text": "string", "confidence": "0.0-1.0" }]
 }
 ```
 
@@ -111,16 +120,30 @@ Requirements MUST use EARS syntax. Types:
 ```yaml
 prd_id: string
 version: semver
+status: draft | active | on_target | at_risk | delayed | deferred | shipped   # Atlassian: overall PRD health
+target_release: string          # Atlassian: projected ship date (semver or YYYY-MM-DD)
+purpose: string          # Problem statement and why this PRD exists
+strategic_fit: string    # Atlassian: how this aligns with broader org goals/strategy
+personas: [{ name, goals, pain_points }]  # Target users
+business_goals: [{ metric, target }]      # Measurable business outcomes
+success_metrics: [{ name, target, unit }] # How success is measured
 requirements: [{ id, statement, type }] # EARS syntax
 user_stories: [{ as_a, i_want, so_that }]
 scope: { in_scope: [], out_of_scope: [] }
+assumptions: [{ assumption, impact_if_wrong }]
+dependencies: [{ name, type, description }]  # Upstream/downstream, third-party
+technical_constraints: [{ constraint, detail }] # Platform, performance, security
+risks: [{ risk, probability, impact, mitigation }]
+prioritization: { framework: "MoSCoW" | "RICE" | "Value-vs-Effort" | "Kano", items: [{ id, score, category }] }
 acceptance_criteria: [{ criterion, verification }]
 needs_clarification: [{ question, context, impact, status, owner }]
 features: [{ name, overview, status }]
+design_explorations: [{ name, link, status }]  # Atlassian: linked wireframes/mockups/explorations
 state_machines: [{ name, states, transitions }]
 errors: [{ code, message }]
 decisions: [{ id, status, decision, rationale, alternatives, consequences }]
-changes: [{ version, change }]
+changes: [{ version, date, author, change, linked_issue }]
+collaboration: { stakeholders: [], review_process, approval_status }
 ```
 
 </prd_format_guide>
@@ -151,6 +174,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Never use generic boilerplate:match project style.
 - Document actual tech stack, not assumed.
 - Minimum content, bulleted, nothing speculative.

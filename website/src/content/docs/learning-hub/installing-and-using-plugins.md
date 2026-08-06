@@ -3,12 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-28
-estimatedReadingTime: '8 minutes'
-tags:
-  - plugins
-  - copilot-cli
-  - fundamentals
+lastUpdated: 2026-08-04
 relatedArticles:
   - ./building-custom-agents.md
   - ./creating-effective-skills.md
@@ -222,6 +217,18 @@ copilot plugin marketplace update
 copilot plugin uninstall my-plugin
 ```
 
+> **Auto-update for first-party plugins** *(v1.0.78+)*: Plugins sourced from the official `copilot-plugins` marketplace automatically update to their latest version at the start of each session. You do not need to run `copilot plugin update` for first-party plugins — updates are applied silently on startup. Community plugins from `awesome-copilot` and other marketplace registries still require a manual `copilot plugin update` command.
+
+### Enabling and Disabling Plugin Components
+
+*(v1.0.76+)* The `/plugins` command (or `copilot plugin list` in non-interactive mode) now includes **enable/disable toggles** for individual plugin components. You can turn off specific agents, instructions, hooks, LSP servers, or entire plugins without uninstalling them:
+
+```
+/plugins
+```
+
+This opens an interactive list where each installed plugin and its components are shown with a toggle. Disabling a component hides it from Copilot without removing it from disk — useful for temporarily deactivating a hook that is too noisy, or turning off a plugin's instructions when working on a different type of project. Re-enable the component at any time from the same `/plugins` menu.
+
 ### Loading Plugins from a Local Directory
 
 You can load plugins directly from a local directory without installing them from a marketplace, using the `--plugin-dir` flag when starting Copilot:
@@ -298,7 +305,7 @@ This is useful for plugins that bundle dedicated tooling (for example, a databas
 
 - **Start with a marketplace plugin** before building your own — there may already be one that fits your needs
 - **Keep plugins focused** — a plugin for "Rails development" is better than a plugin for "everything"
-- **Check for updates regularly** — run `copilot plugin update` to get the latest improvements
+- **Check for updates regularly** — run `copilot plugin update` for community plugins; first-party plugins update automatically at session start
 - **Review what you install** — plugins run code on your machine, so inspect unfamiliar plugins before installing
 - **Use plugins for team standards** — publish an internal plugin to ensure every team member has the same agents, skills, and hooks
 - **Remove unused plugins** — declutter with `copilot plugin uninstall` to keep your environment clean

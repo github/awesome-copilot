@@ -1,0 +1,29 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "java-modernization-studio",
+  "description": "Drive the GitHub Copilot App Modernization for Java workflow from an interactive canvas: environment readiness, repo assessment, prioritized plan and progress, validation gates, and one-click predefined-task runs grounded in the repo's real artifacts.",
+  "version": "1.0.2",
+  "author": {
+    "name": "Ayan Gupta",
+    "url": "https://github.com/ayangupt"
+  },
+  "keywords": [
+    "app-modernization",
+    "assessment-dashboard",
+    "azure-migration",
+    "java-modernization",
+    "legacy-java",
+    "modernization-cockpit",
+    "validation-gates"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/java-modernization-studio"
+      ]
+    }
+  }
+}
