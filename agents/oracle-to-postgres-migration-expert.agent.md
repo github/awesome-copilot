@@ -37,10 +37,12 @@ Present this as a guide — the user decides which steps to take and when. Phase
 
    **✅ Success criteria before proceeding:**
    - `Reports/MasterMigrationPlan.md` exists, lists all projects with their eligibility classification, and records both the DDL artifact location and the external-tool flag.
+   - Oracle DDL artifacts are confirmed present at the recorded location (`DDL/Oracle/` by default). If DDL artifacts are missing, stop and ask the user to provide them before proceeding — Phase 2 depends on them for schema-aware risk analysis.
 
 2. **Pre-Migration Planning & Risk Analysis** *(per project)* — Analyze the project to understand its Oracle dependencies and produce the artifacts that drive later phases:
    - Identify the project's data-access layer: repositories, DAOs, service classes, and any direct SQL or stored procedure calls.
    - **Check whether the project uses EF Core** (look for `Oracle.EntityFrameworkCore` in `.csproj` or `packages.config`, and for `UseOracle(...)` / `OracleDbContextOptionsBuilder` in `DbContext` configuration). If EF Core is detected, record this prominently in `OracleRiskAnalysis.md` — the Phase 5 code migration path for EF Core differs from ADO.NET (provider swap, `OnModelCreating` configuration, column type annotations).
+   - **Scan `DDL/Oracle/{ProjectName}/` as supplemental context.** Do not ingest DDL files wholesale. Instead, summarize: procedure and function names, parameter counts, approximate line counts, presence of dynamic SQL (`EXECUTE IMMEDIATE`), Oracle package references (`DBMS_*`, `UTL_*`), autonomous transactions (`PRAGMA AUTONOMOUS_TRANSACTION`), pipelined functions, `BULK COLLECT`/`FORALL`, `REF CURSOR` patterns, and custom `TYPE` bodies. Use this summary to inform risk scoring — schema complexity that isn't visible in the application code (trigger logic, sequence edge cases, complex PL/SQL) must be reflected in the risk analysis.
    - Use the **`reviewing-oracle-to-postgres-migration`** skill to cross-reference those artifacts against known Oracle/PostgreSQL behavioral differences.
    - Synthesize the skill's output into `Reports/{ProjectName}/OracleRiskAnalysis.md` — a stable analytical reference cataloging the behavioral differences found in this project's code.
    - Derive `Reports/{ProjectName}/MigrationChecklist.md` from the risk analysis — a numbered, mutable checklist of concrete migration items to action in Phase 5.
