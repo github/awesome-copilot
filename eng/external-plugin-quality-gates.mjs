@@ -232,7 +232,14 @@ function inspectAgentPluginSpecCompliance(pluginRoot) {
           }
         }
 
-        const optionalStringFields = ["version", "description", "homepage", "repository", "license"];
+        const requiredStringFields = ["version", "description"];
+        for (const field of requiredStringFields) {
+          if (typeof manifest[field] !== "string" || manifest[field].trim() === "") {
+            issues.push(`required field "${field}" must be a non-empty string`);
+          }
+        }
+
+        const optionalStringFields = ["homepage", "repository", "license"];
         for (const field of optionalStringFields) {
           if (manifest[field] !== undefined && typeof manifest[field] !== "string") {
             issues.push(`field "${field}" must be a string when provided`);
