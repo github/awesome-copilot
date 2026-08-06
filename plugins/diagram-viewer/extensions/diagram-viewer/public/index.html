@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Diagram Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0f1419;
+  --surface: #1a2028;
+  --border: #2a3540;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #0ea5e9;
+  --coral: #ff7f50;
+  --sage: #84cc16;
+  --violet: #a78bfa;
+  --amber: #f59e0b;
+  --rose: #f43f5e;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header with breadcrumbs */
+.header {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  background: var(--surface);
+  min-height: 42px;
+}
+
+.back-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.back-btn:hover { border-color: var(--accent); color: var(--accent); }
+.back-btn.visible { display: flex; }
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+.breadcrumbs .crumb {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breadcrumbs .crumb.current {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.breadcrumbs .sep {
+  color: var(--border);
+  flex-shrink: 0;
+}
+
+.header .badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: rgba(14, 165, 233, 0.15);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+/* Main layout: diagram + optional explanation sidebar */
+.main-layout {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Diagram area */
+.canvas-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Empty state */
+.empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+}
+
+.empty-state .icon { font-size: 48px; opacity: 0.3; }
+.empty-state p { font-size: 13px; text-align: center; max-width: 280px; line-height: 1.6; }
+
+/* Explanation sidebar */
+.explanation-panel {
+  width: 0;
+  overflow: hidden;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.explanation-panel.visible {
+  width: 280px;
+}
+
+.explanation-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.explanation-header h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.explanation-close {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.explanation-close:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+
+.explanation-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Node styles */
+.node-group { cursor: pointer; }
+.node-group:hover .node-rect { filter: brightness(1.2); }
+
+.node-rect {
+  rx: 8;
+  ry: 8;
+  stroke-width: 1.5;
+  transition: filter 0.15s ease, stroke-width 0.15s ease;
+}
+
+.node-group.selected .node-rect {
+  stroke-width: 3;
+  filter: brightness(1.3) drop-shadow(0 0 12px currentColor);
+}
+
+.node-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--text);
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.node-type-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  fill: var(--muted);
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+/* Edge styles */
+.edge-line {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1.5;
+  marker-end: url(#arrowhead);
+}
+
+.edge-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  fill: var(--muted);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 11px;
+  color: var(--text);
+  max-width: 240px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.tooltip.visible { opacity: 1; }
+.tooltip .tt-label { font-weight: 600; margin-bottom: 4px; }
+.tooltip .tt-desc { color: var(--muted); line-height: 1.4; }
+.tooltip .tt-hint { margin-top: 6px; font-family: var(--mono); font-size: 9px; color: var(--accent); }
+
+/* Loading indicator */
+.loading-indicator {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.loading-indicator.visible { display: flex; }
+
+.loading-indicator .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <button class="back-btn" id="back-btn" title="Go back">←</button>
+  <div class="breadcrumbs" id="breadcrumbs">
+    <span class="crumb current">Diagram Explorer</span>
+  </div>
+  <span class="badge" id="badge" style="display:none"></span>
+</div>
+
+<div class="main-layout">
+  <div class="canvas-area" id="canvas-area">
+    <div class="empty-state" id="empty-state">
+      <div class="icon">◇</div>
+      <p>Ask Copilot about architecture or any topic, and an interactive diagram will appear here. Click nodes to drill in.</p>
+    </div>
+    <svg id="svg" xmlns="http://www.w3.org/2000/svg" style="display:none">
+      <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#2a3540" />
+        </marker>
+      </defs>
+      <g id="edges-layer"></g>
+      <g id="nodes-layer"></g>
+    </svg>
+    <div class="tooltip" id="tooltip">
+      <div class="tt-label"></div>
+      <div class="tt-desc"></div>
+      <div class="tt-hint">Click to drill in</div>
+    </div>
+    <div class="loading-indicator" id="loading">
+      <span class="dot"></span>
+      <span>Agent thinking…</span>
+    </div>
+  </div>
+
+  <div class="explanation-panel" id="explanation-panel">
+    <div class="explanation-header">
+      <h3 id="explanation-title">Explanation</h3>
+      <button class="explanation-close" id="explanation-close">×</button>
+    </div>
+    <div class="explanation-body" id="explanation-body"></div>
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const instanceId = params.get("instance");
+const token = params.get("token");
+
+const NODE_COLORS = {
+  service:  { fill: "#1e3a5f", stroke: "#0ea5e9" },
+  database: { fill: "#2d1f3d", stroke: "#a78bfa" },
+  ui:       { fill: "#1f2d1f", stroke: "#84cc16" },
+  api:      { fill: "#3d2a1a", stroke: "#ff7f50" },
+  config:   { fill: "#3d3a1a", stroke: "#f59e0b" },
+  external: { fill: "#3d1a2a", stroke: "#f43f5e" },
+  default:  { fill: "#1a2028", stroke: "#475569" },
+};
+
+let currentView = null;
+let selectedNodeId = null;
+let historyDepth = 0;
+
+// Layout algorithm: hierarchical/layered
+function computeLayout(nodes, edges) {
+  if (!nodes || nodes.length === 0) return new Map();
+
+  const inDegree = new Map(nodes.map((n) => [n.id, 0]));
+  const outEdges = new Map(nodes.map((n) => [n.id, []]));
+
+  for (const edge of edges) {
+    if (inDegree.has(edge.to)) inDegree.set(edge.to, inDegree.get(edge.to) + 1);
+    if (outEdges.has(edge.from)) outEdges.get(edge.from).push(edge.to);
+  }
+
+  // Assign layers via BFS from roots
+  const layers = new Map();
+  const queue = [];
+  const visited = new Set();
+
+  for (const [id, deg] of inDegree) {
+    if (deg === 0) { queue.push(id); layers.set(id, 0); visited.add(id); }
+  }
+
+  if (queue.length === 0 && nodes.length > 0) {
+    queue.push(nodes[0].id); layers.set(nodes[0].id, 0); visited.add(nodes[0].id);
+  }
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    const currentLayer = layers.get(current);
+    for (const next of (outEdges.get(current) || [])) {
+      const newLayer = currentLayer + 1;
+      if (!visited.has(next) || layers.get(next) < newLayer) {
+        layers.set(next, newLayer);
+        if (!visited.has(next)) { visited.add(next); queue.push(next); }
+      }
+    }
+  }
+
+  for (const node of nodes) {
+    if (!layers.has(node.id)) layers.set(node.id, 0);
+  }
+
+  // Group by layer
+  const layerGroups = new Map();
+  for (const [id, layer] of layers) {
+    if (!layerGroups.has(layer)) layerGroups.set(layer, []);
+    layerGroups.get(layer).push(id);
+  }
+
+  const NODE_WIDTH = 160;
+  const NODE_HEIGHT = 56;
+  const H_GAP = 40;
+  const V_GAP = 80;
+  const positions = new Map();
+
+  const maxLayer = Math.max(...layerGroups.keys());
+  const svg = document.getElementById("svg");
+  const svgRect = svg.getBoundingClientRect();
+  const availWidth = svgRect.width || 500;
+  const availHeight = svgRect.height || 400;
+
+  const totalHeight = (maxLayer + 1) * (NODE_HEIGHT + V_GAP) - V_GAP;
+  const startY = Math.max(40, (availHeight - totalHeight) / 2);
+
+  for (const [layer, nodeIds] of layerGroups) {
+    const totalWidth = nodeIds.length * (NODE_WIDTH + H_GAP) - H_GAP;
+    const startX = Math.max(20, (availWidth - totalWidth) / 2);
+
+    nodeIds.forEach((id, i) => {
+      positions.set(id, {
+        x: startX + i * (NODE_WIDTH + H_GAP) + NODE_WIDTH / 2,
+        y: startY + layer * (NODE_HEIGHT + V_GAP) + NODE_HEIGHT / 2,
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
+      });
+    });
+  }
+
+  return positions;
+}
+
+function getNodeColor(type) {
+  return NODE_COLORS[type] || NODE_COLORS.default;
+}
+
+function renderDiagram() {
+  const diagram = currentView?.diagram;
+
+  if (!diagram || !diagram.nodes || diagram.nodes.length === 0) {
+    document.getElementById("svg").style.display = "none";
+    document.getElementById("empty-state").style.display = "flex";
+    document.getElementById("badge").style.display = "none";
+    return;
+  }
+
+  document.getElementById("svg").style.display = "block";
+  document.getElementById("empty-state").style.display = "none";
+  document.getElementById("badge").textContent = `${diagram.nodes.length} nodes`;
+  document.getElementById("badge").style.display = "inline";
+
+  const positions = computeLayout(diagram.nodes, diagram.edges);
+
+  // Render edges
+  const edgesLayer = document.getElementById("edges-layer");
+  edgesLayer.innerHTML = "";
+
+  for (const edge of diagram.edges) {
+    const fromPos = positions.get(edge.from);
+    const toPos = positions.get(edge.to);
+    if (!fromPos || !toPos) continue;
+
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const x1 = fromPos.x, y1 = fromPos.y + fromPos.height / 2;
+    const x2 = toPos.x, y2 = toPos.y - toPos.height / 2;
+    const midY = (y1 + y2) / 2;
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("class", "edge-line");
+    path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`);
+    g.appendChild(path);
+
+    if (edge.label) {
+      const labelEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      labelEl.setAttribute("class", "edge-label");
+      labelEl.setAttribute("x", (x1 + x2) / 2);
+      labelEl.setAttribute("y", midY - 8);
+      labelEl.textContent = edge.label;
+      g.appendChild(labelEl);
+    }
+    edgesLayer.appendChild(g);
+  }
+
+  // Render nodes
+  const nodesLayer = document.getElementById("nodes-layer");
+  nodesLayer.innerHTML = "";
+
+  for (const node of diagram.nodes) {
+    const pos = positions.get(node.id);
+    if (!pos) continue;
+
+    const colors = getNodeColor(node.type);
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("class", `node-group${selectedNodeId === node.id ? " selected" : ""}`);
+    g.dataset.nodeId = node.id;
+
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("class", "node-rect");
+    rect.setAttribute("x", pos.x - pos.width / 2);
+    rect.setAttribute("y", pos.y - pos.height / 2);
+    rect.setAttribute("width", pos.width);
+    rect.setAttribute("height", pos.height);
+    rect.setAttribute("fill", colors.fill);
+    rect.setAttribute("stroke", colors.stroke);
+    rect.style.color = colors.stroke;
+    g.appendChild(rect);
+
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("class", "node-label");
+    label.setAttribute("x", pos.x);
+    label.setAttribute("y", pos.y - 4);
+    label.textContent = node.label;
+    g.appendChild(label);
+
+    if (node.type) {
+      const badge = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      badge.setAttribute("class", "node-type-badge");
+      badge.setAttribute("x", pos.x);
+      badge.setAttribute("y", pos.y + 14);
+      badge.textContent = node.type;
+      g.appendChild(badge);
+    }
+
+    g.addEventListener("mouseenter", (e) => showTooltip(e, node));
+    g.addEventListener("mouseleave", hideTooltip);
+    g.addEventListener("click", () => onNodeClick(node));
+
+    nodesLayer.appendChild(g);
+  }
+}
+
+function updateBreadcrumbs(breadcrumbs) {
+  const container = document.getElementById("breadcrumbs");
+  container.innerHTML = "";
+
+  if (!breadcrumbs || breadcrumbs.length === 0) {
+    container.innerHTML = '<span class="crumb current">Diagram Explorer</span>';
+    return;
+  }
+
+  breadcrumbs.forEach((crumb, i) => {
+    if (i > 0) {
+      const sep = document.createElement("span");
+      sep.className = "sep";
+      sep.textContent = "›";
+      container.appendChild(sep);
+    }
+    const el = document.createElement("span");
+    el.className = i === breadcrumbs.length - 1 ? "crumb current" : "crumb";
+    el.textContent = crumb;
+    container.appendChild(el);
+  });
+}
+
+function updateBackButton() {
+  const btn = document.getElementById("back-btn");
+  if (historyDepth > 0) {
+    btn.classList.add("visible");
+  } else {
+    btn.classList.remove("visible");
+  }
+}
+
+function showExplanation(explanation) {
+  if (!explanation) return;
+  const panel = document.getElementById("explanation-panel");
+  document.getElementById("explanation-title").textContent = explanation.title || "Explanation";
+  document.getElementById("explanation-body").textContent = explanation.text || "";
+  panel.classList.add("visible");
+}
+
+function hideExplanation() {
+  document.getElementById("explanation-panel").classList.remove("visible");
+}
+
+function showTooltip(e, node) {
+  const tooltip = document.getElementById("tooltip");
+  tooltip.querySelector(".tt-label").textContent = node.label;
+  tooltip.querySelector(".tt-desc").textContent = node.description || node.type || "";
+  tooltip.classList.add("visible");
+
+  const rect = document.getElementById("canvas-area").getBoundingClientRect();
+  const x = e.clientX - rect.left + 12;
+  const y = e.clientY - rect.top + 12;
+  tooltip.style.left = x + "px";
+  tooltip.style.top = y + "px";
+}
+
+function hideTooltip() {
+  document.getElementById("tooltip").classList.remove("visible");
+}
+
+function onNodeClick(node) {
+  selectedNodeId = node.id;
+  renderDiagram();
+
+  // Show loading state
+  document.getElementById("loading").classList.add("visible");
+
+  // Notify extension
+  fetch(`/api/click?instance=${instanceId}&token=${token}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nodeId: node.id }),
+  });
+}
+
+// Back button
+document.getElementById("back-btn").addEventListener("click", async () => {
+  try {
+    await fetch(`/api/back?instance=${instanceId}&token=${token}`, { method: "POST" });
+  } catch (err) {
+    console.error("Back navigation failed:", err);
+  }
+});
+
+// Close explanation
+document.getElementById("explanation-close").addEventListener("click", hideExplanation);
+
+// Apply a full view state update
+function applyViewState(data) {
+  currentView = data;
+  selectedNodeId = null;
+  historyDepth = data.historyDepth || 0;
+
+  // Hide loading
+  document.getElementById("loading").classList.remove("visible");
+
+  updateBreadcrumbs(data.breadcrumbs);
+  updateBackButton();
+  renderDiagram();
+
+  if (data.explanation) {
+    showExplanation(data.explanation);
+  } else {
+    hideExplanation();
+  }
+}
+
+// SSE connection
+function connectSSE() {
+  const es = new EventSource(`/events?instance=${instanceId}&token=${token}`);
+
+  es.addEventListener("view", (e) => {
+    const data = JSON.parse(e.data);
+    applyViewState(data);
+  });
+
+  es.addEventListener("explanation", (e) => {
+    const explanation = JSON.parse(e.data);
+    showExplanation(explanation);
+    document.getElementById("loading").classList.remove("visible");
+  });
+
+  es.addEventListener("select", (e) => {
+    const { nodeId } = JSON.parse(e.data);
+    selectedNodeId = nodeId;
+    renderDiagram();
+  });
+
+  es.addEventListener("clear", () => {
+    currentView = null;
+    selectedNodeId = null;
+    historyDepth = 0;
+    hideExplanation();
+    updateBreadcrumbs([]);
+    updateBackButton();
+    renderDiagram();
+  });
+
+  es.onerror = () => {
+    es.close();
+    setTimeout(connectSSE, 2000);
+  };
+}
+
+// Handle window resize
+window.addEventListener("resize", () => {
+  if (currentView) renderDiagram();
+});
+
+// Init
+async function init() {
+  try {
+    const resp = await fetch(`/api/state?instance=${instanceId}&token=${token}`);
+    const state = await resp.json();
+    if (state.view) {
+      currentView = state.view;
+      historyDepth = state.historyDepth || 0;
+      selectedNodeId = state.selectedNodeId;
+      updateBreadcrumbs(state.breadcrumbs);
+      updateBackButton();
+      renderDiagram();
+      if (state.view.explanation) showExplanation(state.view.explanation);
+    }
+  } catch {}
+  connectSSE();
+}
+
+init();
+</script>
+</body>
+</html>

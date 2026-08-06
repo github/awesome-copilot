@@ -1,0 +1,22 @@
+{
+  "name": "chromium-control-canvas",
+  "version": "1.0.0",
+  "main": "extension.mjs",
+  "author": "Andrea Griffiths",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@github/copilot-sdk": "latest",
+    "playwright": "^1.60.0"
+  },
+  "description": "Opens a real Chromium window you can navigate and interact with from a Copilot canvas control panel and agent actions.",
+  "keywords": [
+    "chromium-browser",
+    "playwright-automation",
+    "browser-control",
+    "interactive-canvas",
+    "web-navigation",
+    "screenshots",
+    "ui-testing"
+  ]
+}

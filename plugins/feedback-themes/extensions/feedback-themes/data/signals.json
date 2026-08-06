@@ -1,0 +1,244 @@
+{
+  "meta": {
+    "description": "Synthetic feedback signals for SignalBox theme exploration. These are demo data derived from fictional customer research scenarios.",
+    "generatedAt": "2026-05-28"
+  },
+  "themes": [
+    {
+      "id": "workflow-automation",
+      "label": "Workflow Automation",
+      "description": "Signals about automating repetitive tasks, scheduling recurring operations, and reducing manual overhead in day-to-day workflows.",
+      "aliases": ["workflow automation", "reporting cadence", "admin efficiency", "scheduled tasks", "recurring operations"]
+    },
+    {
+      "id": "mobile-usability",
+      "label": "Mobile Usability",
+      "description": "Feedback on mobile experience gaps — density of information on small screens, touch interactions, and on-the-go decision making.",
+      "aliases": ["mobile usability", "alert prioritization", "frontline decision making", "responsive design", "touch interaction"]
+    },
+    {
+      "id": "data-governance",
+      "label": "Data Governance & Permissions",
+      "description": "Concerns around sharing confidence, permission transparency, and ensuring sensitive data stays protected during collaboration.",
+      "aliases": ["permissions transparency", "data governance", "sharing confidence", "access control", "data privacy"]
+    },
+    {
+      "id": "onboarding-setup",
+      "label": "Onboarding & Setup",
+      "description": "Pain points in first-run experiences, initial configuration complexity, and time-to-value for new users and teams.",
+      "aliases": ["onboarding", "first-run experience", "setup complexity", "time to value", "getting started"]
+    },
+    {
+      "id": "performance-reliability",
+      "label": "Performance & Reliability",
+      "description": "Issues with load times, API timeouts, data sync delays, and system reliability under normal and peak usage.",
+      "aliases": ["performance", "load times", "reliability", "api timeouts", "data sync", "latency"]
+    },
+    {
+      "id": "integration-ecosystem",
+      "label": "Integration Ecosystem",
+      "description": "Requests for third-party connectors, API extensibility, webhook support, and interoperability with existing toolchains.",
+      "aliases": ["integrations", "third-party connectors", "api extensibility", "webhook support", "ecosystem"]
+    }
+  ],
+  "signals": [
+    {
+      "id": "sig-001",
+      "source": "user-interview",
+      "customer": "Northstar Analytics Cooperative",
+      "title": "Admins need scheduled exports for recurring reviews",
+      "description": "A fictional operations admin described rebuilding the same export every week before leadership review. The core need is a recurring delivery flow with clear ownership and failure visibility.",
+      "impact": "high",
+      "themes": ["workflow-automation"],
+      "submittedBy": "Sarah Chen",
+      "createdAt": "2026-04-12"
+    },
+    {
+      "id": "sig-002",
+      "source": "customer-call",
+      "customer": "Blue Harbor Retail Group",
+      "title": "Field managers need faster mobile triage",
+      "description": "A fictional district manager said alert detail pages are useful on desktop but too dense during store visits. They want a compact mobile summary that highlights severity, affected locations, and the next best action.",
+      "impact": "medium",
+      "themes": ["mobile-usability"],
+      "submittedBy": "Marcus Rivera",
+      "createdAt": "2026-04-15"
+    },
+    {
+      "id": "sig-003",
+      "source": "support-ticket",
+      "customer": "Cedar Labs Education",
+      "title": "Analysts need clearer permission boundaries",
+      "description": "A fictional analytics lead hesitated to share dashboards because the UI did not clearly explain which sensitive fields were excluded for external reviewers. The theme is confidence-building around governed collaboration.",
+      "impact": "high",
+      "themes": ["data-governance"],
+      "submittedBy": "Priya Patel",
+      "createdAt": "2026-04-18"
+    },
+    {
+      "id": "sig-004",
+      "source": "sales-note",
+      "customer": "Verdant Supply Co",
+      "title": "Procurement team blocked by slow initial setup",
+      "description": "Prospect's IT team estimated 3 weeks to configure SSO and role mappings. They need a guided wizard that reduces setup from weeks to hours, with clear progress indicators and rollback options.",
+      "impact": "high",
+      "themes": ["onboarding-setup"],
+      "submittedBy": "James O'Brien",
+      "createdAt": "2026-04-20"
+    },
+    {
+      "id": "sig-005",
+      "source": "support-ticket",
+      "customer": "Apex Manufacturing",
+      "title": "Dashboard timeouts during month-end reporting",
+      "description": "Multiple users reported 30-second load times and occasional gateway timeouts when running aggregate queries across all business units during month-end close. Affects executive visibility into financials.",
+      "impact": "high",
+      "themes": ["performance-reliability"],
+      "submittedBy": "Lisa Chang",
+      "createdAt": "2026-04-22"
+    },
+    {
+      "id": "sig-006",
+      "source": "customer-call",
+      "customer": "Meridian Health Systems",
+      "title": "Need Salesforce integration for patient outreach tracking",
+      "description": "Clinical ops team manually exports engagement data to upload into Salesforce campaigns. They need a native connector or webhook that syncs patient touchpoints in near real-time.",
+      "impact": "medium",
+      "themes": ["integration-ecosystem"],
+      "submittedBy": "David Park",
+      "createdAt": "2026-04-25"
+    },
+    {
+      "id": "sig-007",
+      "source": "user-interview",
+      "customer": "Northstar Analytics Cooperative",
+      "title": "Approval chains block time-sensitive reports",
+      "description": "Reports that require manager sign-off before distribution often miss their deadline. The team wants conditional auto-approval for recurring reports that haven't changed scope.",
+      "impact": "medium",
+      "themes": ["workflow-automation"],
+      "submittedBy": "Sarah Chen",
+      "createdAt": "2026-05-01"
+    },
+    {
+      "id": "sig-008",
+      "source": "teams-conversation",
+      "customer": "Blue Harbor Retail Group",
+      "title": "Push notifications dismissed too easily on mobile",
+      "description": "Store managers reported that critical alerts are visually identical to informational ones. They swipe-dismiss high-priority alerts because there's no visual urgency differentiation on the lock screen.",
+      "impact": "high",
+      "themes": ["mobile-usability"],
+      "submittedBy": "Marcus Rivera",
+      "createdAt": "2026-05-03"
+    },
+    {
+      "id": "sig-009",
+      "source": "user-interview",
+      "customer": "Cedar Labs Education",
+      "title": "External partners confused by permission error messages",
+      "description": "Partner reviewers see generic 'Access Denied' screens with no explanation of what they lack access to or who to contact. They need contextual guidance that preserves security while reducing friction.",
+      "impact": "medium",
+      "themes": ["data-governance"],
+      "submittedBy": "Priya Patel",
+      "createdAt": "2026-05-05"
+    },
+    {
+      "id": "sig-010",
+      "source": "customer-call",
+      "customer": "Solaris Energy",
+      "title": "New team members take too long to become productive",
+      "description": "Engineering managers say it takes 2-3 weeks for new hires to navigate the system confidently. They want role-based onboarding paths with interactive tutorials rather than static documentation.",
+      "impact": "medium",
+      "themes": ["onboarding-setup"],
+      "submittedBy": "Amanda Foster",
+      "createdAt": "2026-05-07"
+    },
+    {
+      "id": "sig-011",
+      "source": "support-ticket",
+      "customer": "Pinnacle Financial",
+      "title": "Real-time data sync drops events under high load",
+      "description": "During market open hours, the event stream occasionally drops updates, causing stale portfolio values. They need guaranteed delivery or at minimum a visible staleness indicator.",
+      "impact": "high",
+      "themes": ["performance-reliability"],
+      "submittedBy": "Robert Kim",
+      "createdAt": "2026-05-09"
+    },
+    {
+      "id": "sig-012",
+      "source": "sales-note",
+      "customer": "Atlas Logistics",
+      "title": "Must integrate with ServiceNow for IT ticket routing",
+      "description": "Prospect requires alerts to automatically create ServiceNow incidents with proper categorization. Without this integration, their compliance team won't approve the vendor.",
+      "impact": "high",
+      "themes": ["integration-ecosystem"],
+      "submittedBy": "Jennifer Walsh",
+      "createdAt": "2026-05-11"
+    },
+    {
+      "id": "sig-013",
+      "source": "teams-conversation",
+      "customer": "Verdant Supply Co",
+      "title": "Bulk user provisioning needs CSV import",
+      "description": "IT admin has 200+ users to onboard and the current one-by-one flow is untenable. They need batch import with validation preview and error handling.",
+      "impact": "medium",
+      "themes": ["onboarding-setup", "workflow-automation"],
+      "submittedBy": "Thomas Wright",
+      "createdAt": "2026-05-13"
+    },
+    {
+      "id": "sig-014",
+      "source": "customer-call",
+      "customer": "Apex Manufacturing",
+      "title": "API rate limits too restrictive for ETL pipelines",
+      "description": "Their data engineering team hits rate limits during nightly batch syncs. Current limits of 100 req/min are insufficient for their 50K-record nightly ETL job.",
+      "impact": "medium",
+      "themes": ["performance-reliability", "integration-ecosystem"],
+      "submittedBy": "Lisa Chang",
+      "createdAt": "2026-05-15"
+    },
+    {
+      "id": "sig-015",
+      "source": "user-interview",
+      "customer": "Meridian Health Systems",
+      "title": "Mobile app crashes when offline then reconnecting",
+      "description": "Clinicians in areas with spotty WiFi lose unsaved form data when the app crashes on network transition. They need offline-capable data entry with background sync.",
+      "impact": "high",
+      "themes": ["mobile-usability", "performance-reliability"],
+      "submittedBy": "David Park",
+      "createdAt": "2026-05-17"
+    },
+    {
+      "id": "sig-016",
+      "source": "support-ticket",
+      "customer": "Solaris Energy",
+      "title": "Sharing a dashboard should show a permission preview",
+      "description": "Before sharing, users want to see exactly what the recipient will see — including which widgets will be hidden and which data will be masked. Current share dialog gives no preview.",
+      "impact": "medium",
+      "themes": ["data-governance"],
+      "submittedBy": "Amanda Foster",
+      "createdAt": "2026-05-19"
+    },
+    {
+      "id": "sig-017",
+      "source": "sales-note",
+      "customer": "Pinnacle Financial",
+      "title": "Need webhook notifications for compliance audit trail",
+      "description": "Compliance team requires real-time webhook callbacks whenever sensitive data is accessed or exported. This is a hard requirement for their SOC 2 audit.",
+      "impact": "high",
+      "themes": ["integration-ecosystem", "data-governance"],
+      "submittedBy": "Robert Kim",
+      "createdAt": "2026-05-21"
+    },
+    {
+      "id": "sig-018",
+      "source": "other",
+      "customer": "Atlas Logistics",
+      "title": "Automated alert escalation when no action taken",
+      "description": "If a critical alert isn't acknowledged within 15 minutes, it should auto-escalate to the next person in the chain. Current system only sends one notification with no follow-up.",
+      "impact": "high",
+      "themes": ["workflow-automation"],
+      "submittedBy": "Jennifer Walsh",
+      "createdAt": "2026-05-23"
+    }
+  ]
+}

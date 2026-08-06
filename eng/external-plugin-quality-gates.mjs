@@ -7,8 +7,23 @@ import { Writable } from "stream";
 import { spawnSync } from "child_process";
 import { runLint, LintConsoleReporter } from "@microsoft/vally";
 import { evaluateRefShaConsistency, normalizeCommitSha } from "./lib/external-plugin-source-ref-sha.mjs";
+import { validateAgentPluginManifest } from "./agent-plugin-schema.mjs";
 
 const MAX_OUTPUT_LENGTH = 12000;
+const AGENT_PLUGIN_SCHEMA_URL = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
+const AGENT_PLUGIN_ALLOWED_TOP_LEVEL_FIELDS = new Set([
+  "$schema",
+  "name",
+  "version",
+  "description",
+  "author",
+  "homepage",
+  "repository",
+  "license",
+  "keywords",
+  "extensions",
+]);
+const AGENT_PLUGIN_NAME_PATTERN = /^(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/;
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
 
 const INFRA_ERROR_PATTERNS = [
@@ -168,8 +183,129 @@ function findPluginJson(pluginRoot) {
     if (fs.existsSync(candidate)) {
       return candidate;
     }
+
   }
   return null;
+}
+
+function inspectAgentPluginSpecCompliance(pluginRoot) {
+      const pluginJsonPath = findPluginJson(pluginRoot);
+      if (!pluginJsonPath) {
+        return {
+          status: "warning",
+          output: "No plugin.json found in a recognized location. Agent Plugins v1.0.0 expects plugin.json at the plugin root.",
+        };
+      }
+
+      const rootPluginJsonPath = path.join(pluginRoot, "plugin.json");
+      const issues = [];
+      if (pluginJsonPath !== rootPluginJsonPath) {
+        issues.push(`manifest location is "${path.relative(pluginRoot, pluginJsonPath)}"; expected "plugin.json" at plugin root`);
+      }
+
+      let manifest;
+      try {
+        manifest = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
+      } catch (error) {
+        return {
+          status: "warning",
+          output: `plugin.json is not valid JSON: ${error.message}`,
+        };
+      }
+
+      if (!manifest || typeof manifest !== "object" || Array.isArray(manifest)) {
+        issues.push("plugin.json top-level value must be a JSON object");
+      } else {
+        if (manifest.$schema !== AGENT_PLUGIN_SCHEMA_URL) {
+          issues.push(`$schema should be "${AGENT_PLUGIN_SCHEMA_URL}"`);
+        }
+
+        const pluginName = manifest.name;
+        if (typeof pluginName !== "string") {
+          issues.push('required field "name" must be a string');
+        } else {
+          if (pluginName.length < 1 || pluginName.length > 64) {
+            issues.push('field "name" must be 1-64 characters');
+          }
+          if (!AGENT_PLUGIN_NAME_PATTERN.test(pluginName)) {
+            issues.push('field "name" does not match Agent Plugins naming constraints');
+          }
+        }
+
+        const requiredStringFields = ["version", "description"];
+        for (const field of requiredStringFields) {
+          if (typeof manifest[field] !== "string" || manifest[field].trim() === "") {
+            issues.push(`required field "${field}" must be a non-empty string`);
+          }
+        }
+
+        const optionalStringFields = ["homepage", "repository", "license"];
+        for (const field of optionalStringFields) {
+          if (manifest[field] !== undefined && typeof manifest[field] !== "string") {
+            issues.push(`field "${field}" must be a string when provided`);
+          }
+        }
+
+        if (manifest.author !== undefined) {
+          if (!manifest.author || typeof manifest.author !== "object" || Array.isArray(manifest.author)) {
+            issues.push('field "author" must be an object when provided');
+          } else {
+            const allowedAuthorFields = new Set(["name", "email", "url"]);
+            for (const authorField of Object.keys(manifest.author)) {
+              if (!allowedAuthorFields.has(authorField)) {
+                issues.push(`field "author.${authorField}" is not allowed`);
+              } else if (typeof manifest.author[authorField] !== "string") {
+                issues.push(`field "author.${authorField}" must be a string`);
+              }
+            }
+          }
+        }
+
+        if (manifest.keywords !== undefined) {
+          if (!Array.isArray(manifest.keywords)) {
+            issues.push('field "keywords" must be an array of strings when provided');
+          } else if (manifest.keywords.some((entry) => typeof entry !== "string")) {
+            issues.push('field "keywords" must contain only strings');
+          }
+        }
+
+        if (manifest.extensions !== undefined) {
+          if (!manifest.extensions || typeof manifest.extensions !== "object" || Array.isArray(manifest.extensions)) {
+            issues.push('field "extensions" must be an object when provided');
+          } else {
+            for (const [namespace, value] of Object.entries(manifest.extensions)) {
+              if (!value || typeof value !== "object" || Array.isArray(value)) {
+                issues.push(`field "extensions.${namespace}" must be an object`);
+              }
+            }
+          }
+        }
+
+        for (const field of Object.keys(manifest)) {
+          if (!AGENT_PLUGIN_ALLOWED_TOP_LEVEL_FIELDS.has(field)) {
+            issues.push(`top-level field "${field}" is not part of Agent Plugins v1.0.0`);
+          }
+        }
+      }
+
+      if (manifest && typeof manifest === "object" && !Array.isArray(manifest)) {
+        issues.push(...validateAgentPluginManifest(manifest).map((error) => `schema validation: ${error}`));
+      }
+
+      if (issues.length === 0) {
+        return {
+          status: "pass",
+          output: `Agent Plugins v1.0.0 manifest checks passed for ${path.relative(pluginRoot, pluginJsonPath) || "plugin.json"}.`,
+        };
+      }
+
+      return {
+        status: "warning",
+        output: [
+          "Agent Plugins v1.0.0 manifest warnings:",
+          ...issues.map((issue) => `- ${issue}`),
+        ].join("\n"),
+      };
 }
 
 function buildVallyLintArgs(pluginRoot) {
@@ -827,6 +963,7 @@ export async function runExternalPluginQualityGates(plugin) {
     overall_status: "not_run",
     vally_lint_status: "not_run",
     smoke_status: "not_run",
+    spec_compliance_status: "not_run",
     version_match_status: "not_run",
     ref_sha_consistency_status: "not_run",
     canvas_structure_status: "not_run",
@@ -834,6 +971,7 @@ export async function runExternalPluginQualityGates(plugin) {
     summary: "",
     vally_lint_output: "",
     smoke_output: "",
+    spec_compliance_output: "",
     version_match_output: "",
     ref_sha_consistency_output: "",
     canvas_structure_output: "",
@@ -847,18 +985,24 @@ export async function runExternalPluginQualityGates(plugin) {
     if (!fs.existsSync(pluginRoot) || !fs.statSync(pluginRoot).isDirectory()) {
       result.vally_lint_status = "fail";
       result.smoke_status = "fail";
+      result.spec_compliance_status = "warning";
       result.version_match_status = "fail";
       result.ref_sha_consistency_status = "not_run";
       result.canvas_structure_status = hasCanvasKeyword(plugin) ? "fail" : "not_run";
       result.overall_status = "fail";
       result.failure_class = "submitter_fixes";
       result.summary = `Plugin path "${plugin.source?.path || "/"}" was not found in the submitted repository snapshot.`;
+      result.spec_compliance_output = result.summary;
       result.version_match_output = result.summary;
       if (hasCanvasKeyword(plugin)) {
         result.canvas_structure_output = result.summary;
       }
       return result;
     }
+
+    const specResult = inspectAgentPluginSpecCompliance(pluginRoot);
+    result.spec_compliance_status = specResult.status;
+    result.spec_compliance_output = specResult.output;
 
     const versionMatchResult = runVersionMatchGate(repoDir, plugin, fetchSpec);
     result.version_match_status = versionMatchResult.status;
@@ -889,6 +1033,7 @@ export async function runExternalPluginQualityGates(plugin) {
     ]);
     result.failure_class = toFailureClass(result.overall_status);
     result.summary = [
+      `- spec compliance: ${result.spec_compliance_status}`,
       `- vally lint: ${result.vally_lint_status}`,
       `- install smoke test: ${result.smoke_status}`,
       `- version match: ${result.version_match_status}`,

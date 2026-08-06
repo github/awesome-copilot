@@ -1,0 +1,18 @@
+{
+  "name": "repo-actions-hub",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "description": "Browse repository GitHub Actions workflows, inspect recent runs, and trigger manual workflow_dispatch runs from a Copilot canvas.",
+  "keywords": [
+    "actions",
+    "canvas",
+    "copilot-extension",
+    "github-actions",
+    "recent-runs",
+    "workflow-dispatch"
+  ]
+}

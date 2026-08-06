@@ -29,6 +29,7 @@ import {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 
 // Cache of MCP registry server names (lower-cased) fetched from the API
 let MCP_REGISTRY_SET = null;
@@ -715,7 +716,7 @@ function generateUnifiedModeSection(cfg) {
  * Read and parse a plugin.json file from a plugin directory.
  */
 function readPluginJson(pluginDir) {
-  const jsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
+  const jsonPath = path.join(pluginDir, "plugin.json");
   if (!fs.existsSync(jsonPath)) return null;
   try {
     return JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
@@ -786,10 +787,23 @@ function generatePluginsSection(pluginsDir) {
   for (const entry of sortedEntries) {
     const { plugin, dir, name, isFeatured } = entry;
     const description = formatTableCell(plugin.description || "No description");
+    const composition = plugin.extensions?.["com.github.awesome-copilot"] || {};
+    const extensionReferences = Array.isArray(composition.extensions)
+      ? composition.extensions.length
+      : 0;
+    const implicitExtension =
+      fs.existsSync(path.join(EXTENSIONS_DIR, entry.pluginId, "extension.mjs")) &&
+      !(Array.isArray(composition.extensions) && composition.extensions.some(
+        (reference) => reference === `./extensions/${entry.pluginId}`
+      ))
+      ? 1
+      : 0;
     const itemCount =
-      (plugin.agents || []).length +
-      (plugin.commands || []).length +
-      (plugin.skills || []).length;
+      (composition.agents || []).length +
+      (composition.commands || []).length +
+      (composition.skills || []).length +
+      extensionReferences +
+      implicitExtension;
     const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
 
     const link = `../plugins/${dir}/README.md`;
@@ -842,10 +856,23 @@ function generateFeaturedPluginsSection(pluginsDir) {
             plugin.description || "No description"
           );
           const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
+          const composition = plugin.extensions?.["com.github.awesome-copilot"] || {};
+          const extensionReferences = Array.isArray(composition.extensions)
+            ? composition.extensions.length
+            : 0;
+          const implicitExtension =
+            fs.existsSync(path.join(EXTENSIONS_DIR, name, "extension.mjs")) &&
+            !(Array.isArray(composition.extensions) && composition.extensions.some(
+              (reference) => reference === `./extensions/${name}`
+            ))
+            ? 1
+            : 0;
           const itemCount =
-            (plugin.agents || []).length +
-            (plugin.commands || []).length +
-            (plugin.skills || []).length;
+            (composition.agents || []).length +
+            (composition.commands || []).length +
+            (composition.skills || []).length +
+            extensionReferences +
+            implicitExtension;
 
           return {
             dir,

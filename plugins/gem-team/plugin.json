@@ -1,0 +1,26 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "gem-team",
+  "version": "1.99.0",
+  "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
+  "author": {
+    "email": "mubaidr@gmail.com",
+    "name": "mubaidr",
+    "url": "https://github.com/mubaidr"
+  },
+  "homepage": "https://github.com/mubaidr/gem-team",
+  "keywords": [
+    "multi-agent",
+    "orchestration",
+    "tdd",
+    "testing",
+    "e2e",
+    "devops",
+    "security-audit",
+    "code-review",
+    "prd",
+    "mobile"
+  ],
+  "license": "Apache-2.0",
+  "repository": "https://github.com/mubaidr/gem-team"
+}
