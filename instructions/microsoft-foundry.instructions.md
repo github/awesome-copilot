@@ -9,10 +9,43 @@ Guidance for building agents against **Microsoft Foundry** using the **`azure-ai
 
 > **Field note (why this file exists):** In Copilot-assisted Foundry projects, the default behavior is to generate the *old* thread/run/message API, fail on the first attempts, then only recover after re-checking the current methodology against **Microsoft Learn** and the **Microsoft Docs MCP server** and re-coding against the v2 approach. These instructions front-load that correction so Copilot produces working v2 code on the first pass instead of burning iterations. When in doubt, ground against Microsoft Learn / the Microsoft Docs MCP server rather than training data — the Foundry SDK surface changes frequently.
 
+## Authentication: Local dev vs. production
+
+Entra ID is the **only** supported auth. Use `azure.identity.DefaultAzureCredential` for **local development** (it tries CLI, env vars, managed identity in order); use `ManagedIdentityCredential` for **deployed workloads** on Azure (App Service, Container Apps, Functions, AKS, etc.) where a system-assigned or user-assigned managed identity is assigned to the compute resource.
+
+### Local development
+
+```python
+from azure.identity import DefaultAzureCredential
+
+with (
+    DefaultAzureCredential() as credential,
+    AIProjectClient(endpoint=endpoint, credential=credential) as project_client,
+):
+    # ... use project_client
+```
+
+Requires `az login` once in your terminal. `DefaultAzureCredential` will find and use your CLI credentials.
+
+### Deployed to Azure (App Service, Container Apps, Functions, AKS, etc.)
+
+```python
+from azure.identity import ManagedIdentityCredential
+
+with (
+    ManagedIdentityCredential() as credential,
+    AIProjectClient(endpoint=endpoint, credential=credential) as project_client,
+):
+    # ... use project_client
+```
+
+Requires: the compute resource (App Service, Container Apps app, etc.) has a **system-assigned or user-assigned managed identity** configured, **and that identity has the required RBAC role assignment** on the Foundry project (typically "Azure AI Projects User" or similar). No `az login` needed; the platform provides credentials automatically.
+
+> Mixing patterns: `DefaultAzureCredential` works in both contexts but is slower in production (tries multiple auth methods). Use `ManagedIdentityCredential` explicitly in deployed code for clarity and performance.
+
 ## Package and versions
 
 - Install: `pip install "azure-ai-projects>=2.3.0"` (async also needs `pip install aiohttp`). Use **2.3.0+** — the documented flow below relies on APIs added across the 2.x line (`agent_name` on `get_openai_client` in 2.1.0; `force` on `delete_version` and `AgentEndpointConfig` in 2.2.0). A 2.0.x install will make some of this code fail.
-- Entra ID is the **only** supported auth — there is **no** API-key auth and **no** `from_connection_string()` on the client. Use `azure.identity.DefaultAzureCredential`. For **local development** it resolves the Azure CLI credential, so run `az login` first; in **Azure (managed/workload identity)** it uses the assigned identity automatically — no `az login` and no interactive step required.
 - The endpoint is a **project endpoint** of the form
   `https://<account>.services.ai.azure.com/api/projects/<project>` — not a bare resource URL.
 
@@ -33,7 +66,7 @@ messages = client.messages.list(thread_id=thread.id)   # WRONG
 ✅ **Do this instead (v2): create a versioned agent, point the endpoint at that version, then talk to it via the OpenAI-compatible client.**
 ```python
 import os
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential  # Use ManagedIdentityCredential for deployed apps
 from azure.ai.projects import AIProjectClient
 from azure.ai.projects.models import (
     PromptAgentDefinition,
@@ -201,4 +234,3 @@ This is a **stable** package that also surfaces preview features. Preview featur
 - Handle errors via `azure.core.exceptions.HttpResponseError` (`e.status_code`, `e.reason`, `e.message`). A `401 Unauthorized` almost always means a missing RBAC role assignment (or, in local dev, that you didn't `az login`), not a bad endpoint.
 - **Logging exposes sensitive data — treat with care.** `logging_enable=True` turns on full HTTP transport logging **including request/response bodies** (prompts, user data), and header redaction is bypassed in this mode unless you install a filtered handler — so bearer tokens and payloads can leak into logs. Prefer the SDK's filtered console-logging path (`AZURE_AI_PROJECTS_CONSOLE_LOGGING=true`, which redacts auth headers) for routine diagnostics, enable body logging only against non-production/non-sensitive data, and never ship it to shared log sinks. Logging only emits at level `DEBUG`.
 - For async, import from `azure.ai.projects.aio` and `azure.identity.aio` and use `async with` — the method names are identical.
-
