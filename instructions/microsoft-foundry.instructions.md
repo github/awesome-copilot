@@ -11,7 +11,7 @@ Guidance for building agents against **Microsoft Foundry** using the **`azure-ai
 
 ## Authentication: Local dev vs. production
 
-Entra ID is the **only** supported auth. Use `azure.identity.DefaultAzureCredential` for **local development** (it tries environment variables, workload identity, managed identity, then Azure CLI in order); use `ManagedIdentityCredential` for **deployed workloads** on Azure (App Service, Container Apps, Functions) where a system-assigned or user-assigned managed identity is assigned to the compute resource.
+Entra ID is the **only** supported auth. Use `azure.identity.DefaultAzureCredential` for **local development** (it tries multiple credential sources including environment variables, workload identity, managed identity, and developer tool credentials like CLI/PowerShell); use `ManagedIdentityCredential` for **deployed workloads** on Azure (App Service, Container Apps, Functions) where a system-assigned or user-assigned managed identity is assigned to the compute resource.
 
 ### Local development
 
@@ -25,7 +25,7 @@ with (
     # ... use project_client
 ```
 
-Requires `az login` once in your terminal. `DefaultAzureCredential` will find and use your CLI credentials (tried after environment, workload identity, and managed identity).
+Requires `az login` once in your terminal. `DefaultAzureCredential` will find and use your CLI credentials (or other available developer credentials).
 
 ### Deployed to Azure (App Service, Container Apps, Functions)
 
@@ -53,7 +53,7 @@ with (
     # ... use project_client
 ```
 
-Requires: the compute resource (App Service app, Container Apps app, Function app, etc.) has a **system-assigned or user-assigned managed identity** configured, **and that identity has the required RBAC role assignment** on the Foundry project (typically "Azure AI Projects User" or similar). For user-assigned identities, pass the client ID to `ManagedIdentityCredential(client_id=...)`. No `az login` needed; the platform provides credentials automatically.
+Requires: the compute resource (App Service app, Container Apps app, Function app, etc.) has a **system-assigned or user-assigned managed identity** configured, **and that identity has the required RBAC role assignment** on the Foundry project — typically the built-in **`Foundry User`** role (formerly `Azure AI User`). For user-assigned identities, pass the client ID to `ManagedIdentityCredential(client_id=...)`. No `az login` needed; the platform provides credentials automatically. See [Azure AI role-based access control](https://learn.microsoft.com/en-us/azure/ai-services/role-based-access-control) for current role definitions.
 
 ### Deployed to AKS (workload identity)
 
@@ -71,7 +71,7 @@ with (
 
 Requires: the AKS pod has the workload-identity annotation and projected OIDC token volume configured. See [Azure Workload Identity documentation](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview).
 
-> **Credential precedence:** `DefaultAzureCredential` tries (in order): environment variables → workload identity (AKS) → managed identity (App Service, Container Apps, etc.) → Azure CLI. Use the specific credential class (`ManagedIdentityCredential`, `WorkloadIdentityCredential`) in deployed code for clarity and performance.
+> **Best practice:** In deployed code, use the specific credential class (`ManagedIdentityCredential` for App Service/Container Apps/Functions, `WorkloadIdentityCredential` for AKS) for clarity and performance. For details on `DefaultAzureCredential`'s complete credential chain, see [Azure Identity documentation](https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential).
 
 ## Package and versions
 
@@ -262,5 +262,5 @@ This is a **stable** package that also surfaces preview features. Preview featur
 - Wrap creation in `try/finally` and clean up with `agents.delete_version(agent_name=..., agent_version=..., force=True)` in tests/samples to avoid orphaned versions. When you temporarily re-route an agent's endpoint, restore its prior `AgentEndpointConfig` in the same `finally` block.
 - Route traffic across versions with `AgentEndpointConfig` + `VersionSelector` / `FixedRatioVersionSelectionRule` — send 100% to a new version, or split percentages for canary rollouts.
 - Handle errors via `azure.core.exceptions.HttpResponseError` (`e.status_code`, `e.reason`, `e.message`). A `401 Unauthorized` almost always means a missing RBAC role assignment (or, in local dev, that you didn't `az login`), not a bad endpoint.
-- **Logging exposes sensitive data — treat with care.** `logging_enable=True` turns on full HTTP transport logging **including request/response bodies** (prompts, user data), and header redaction is bypassed in this mode unless you install a filtered handler — so bearer tokens and payloads can leak into logs. Prefer the SDK's filtered console-logging path (`AZURE_AI_PROJECTS_CONSOLE_LOGGING=true`, which redacts auth headers) for routine diagnostics, enable body logging only against non-production/non-sensitive data, and never ship it to shared log sinks. Logging only emits at level `DEBUG`.
+- **Logging exposes sensitive data — treat with care.** `logging_enable=True` turns on full HTTP transport logging. At DEBUG level, logs include request/response bodies (prompts, user data) and headers are unredacted — bearer tokens and payloads can leak into logs. At other levels, logs remain redacted but are still emitted. Prefer the SDK's filtered console-logging path (`AZURE_AI_PROJECTS_CONSOLE_LOGGING=true`, which redacts auth headers by default) for routine diagnostics. Enable body logging only against non-production/non-sensitive data, and never ship unredacted logs to shared log sinks.
 - For async, import from `azure.ai.projects.aio` and `azure.identity.aio` and use `async with` — the method names are identical.
