@@ -11,7 +11,7 @@ Guidance for building agents against **Microsoft Foundry** using the **`azure-ai
 
 ## Authentication: Local dev vs. production
 
-Entra ID is the **only** supported auth. Use `azure.identity.DefaultAzureCredential` for **local development** (it tries CLI, env vars, managed identity in order); use `ManagedIdentityCredential` for **deployed workloads** on Azure (App Service, Container Apps, Functions, AKS, etc.) where a system-assigned or user-assigned managed identity is assigned to the compute resource.
+Entra ID is the **only** supported auth. Use `azure.identity.DefaultAzureCredential` for **local development** (it tries CLI, env vars, managed identity in order); use `ManagedIdentityCredential` for **deployed workloads** on Azure (App Service, Container Apps, Functions) where a system-assigned or user-assigned managed identity is assigned to the compute resource.
 
 ### Local development
 
@@ -27,7 +27,7 @@ with (
 
 Requires `az login` once in your terminal. `DefaultAzureCredential` will find and use your CLI credentials.
 
-### Deployed to Azure (App Service, Container Apps, Functions, AKS, etc.)
+### Deployed to Azure (App Service, Container Apps, Functions)
 
 ```python
 from azure.identity import ManagedIdentityCredential
@@ -39,9 +39,25 @@ with (
     # ... use project_client
 ```
 
-Requires: the compute resource (App Service, Container Apps app, etc.) has a **system-assigned or user-assigned managed identity** configured, **and that identity has the required RBAC role assignment** on the Foundry project (typically "Azure AI Projects User" or similar). No `az login` needed; the platform provides credentials automatically.
+Requires: the compute resource (App Service app, Container Apps app, Function app, etc.) has a **system-assigned or user-assigned managed identity** configured, **and that identity has the required RBAC role assignment** on the Foundry project (typically "Azure AI Projects User" or similar). No `az login` needed; the platform provides credentials automatically.
 
-> Mixing patterns: `DefaultAzureCredential` works in both contexts but is slower in production (tries multiple auth methods). Use `ManagedIdentityCredential` explicitly in deployed code for clarity and performance.
+### Deployed to AKS (workload identity)
+
+For AKS pods configured with Microsoft Entra Workload ID, use `WorkloadIdentityCredential` instead:
+
+```python
+from azure.identity import WorkloadIdentityCredential
+
+with (
+    WorkloadIdentityCredential() as credential,
+    AIProjectClient(endpoint=endpoint, credential=credential) as project_client,
+):
+    # ... use project_client
+```
+
+Requires: the AKS pod has the workload-identity annotation and projected OIDC token volume configured. See [Azure Workload Identity documentation](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview).
+
+> **Mixing patterns:** `DefaultAzureCredential` works in all contexts (tries env/workload/managed identity before CLI) but is slower in production. Use `ManagedIdentityCredential` for App Service/Container Apps/Functions or `WorkloadIdentityCredential` for AKS for clarity and performance.
 
 ## Package and versions
 
