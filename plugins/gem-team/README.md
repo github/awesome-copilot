@@ -32,6 +32,24 @@ Gem Team wraps your AI with a disciplined engineering delivery system. It enforc
 - **Works With Your Tools**: Seamless integration with Copilot, Claude, Cursor, Codex, Gemini, and Windsurf. Use your preferred environment.
 - **Learns & Improves**: Remembers what works and extracts reusable skills. Your AI gets smarter and more efficient over time.
 
+### Intelligent Model Routing
+
+Gem Team automatically uses the right model for each kind of work:
+
+- **Premium models** handle planning, debugging, critique, and review where deeper reasoning matters.
+- **Explore models** handle research, implementation, testing, documentation, and other bounded tasks efficiently.
+- **Configurable tiers** let you choose the models and providers that fit your budget and workflow.
+
+This gives you stronger verification where it matters without paying the highest model cost for every task. Configure it once in `.gem-team.yaml`:
+
+```yaml
+model_routing:
+  enabled: true
+  tiers:
+    premium: "your-strong-model (provider)"
+    explore: "your-fast-model (provider)"
+```
+
 **TL;DR:** Gem Team turns AI coding into a structured, repeatable engineering process with built-in quality, efficiency, and learning.
 
 ## Quick Start
@@ -88,18 +106,28 @@ Gem Team installs a set of specialized agents that work together under the guida
 
 - **Specialist Agents**: Dedicated agents for planning, research, implementation, review, and more.
 - **Orchestration**: An Orchestrator coordinates the team, ensuring tasks are completed in the right order and verified at every step.
-- **Context Management**: A shared context envelope ensures every agent has the information it needs without redundant reads or wasted tokens.
+- **Context Management**: Plan-level context in each `plan.yaml` gives every agent the information it needs without redundant reads or wasted tokens.
 
 ### Agent Roles
 
-| Role             | Description                                                             |
-| :--------------- | :---------------------------------------------------------------------- |
-| **Orchestrator** | Coordinates the workflow and ensures all tasks are completed correctly. |
-| **Planner**      | Breaks down complex tasks into manageable steps.                        |
-| **Implementer**  | Writes the code using TDD and best practices.                           |
-| **Reviewer**     | Verifies code quality, security, and compliance with requirements.      |
-| **Debugger**     | Diagnoses and fixes bugs with root-cause analysis.                      |
-| **Researcher**   | Explores the codebase and finds the best patterns to use.               |
+| Role                | Description                                                             |
+| :------------------ | :---------------------------------------------------------------------- |
+| **Orchestrator**    | Coordinates the workflow and ensures all tasks are completed correctly. |
+| **Planner**         | Breaks down complex tasks into manageable steps.                        |
+| **Implementer**     | Writes the code using TDD and best practices.                           |
+| **Reviewer**        | Verifies code quality, security, and compliance with requirements.      |
+| **Debugger**        | Diagnoses bugs with root-cause analysis (never implements fixes).       |
+| **Researcher**      | Explores the codebase and finds the best patterns to use.               |
+| **Designer**        | Creates UI/UX designs, layouts, and design systems.                     |
+| **Designer Mobile** | Creates mobile UI/UX following HIG and Material Design guidelines.      |
+| **Impl. Mobile**    | Implements mobile features with TDD for iOS/Android.                    |
+| **Tester**          | Runs E2E browser tests and visual regression.                           |
+| **Tester Mobile**   | Runs mobile E2E tests on iOS/Android simulators.                        |
+| **DevOps**          | Manages deployments, CI/CD, and infrastructure with approval gates.     |
+| **Documentation**   | Writes technical docs, API references, and walkthroughs.                |
+| **Code Simplifier** | Refactors code to reduce complexity and remove dead code.               |
+| **Critic**          | Challenges assumptions and finds edge cases before implementation.      |
+| **Skill Creator**   | Extracts reusable patterns into packaged agent skills.                  |
 
 ## Compatible Tools
 

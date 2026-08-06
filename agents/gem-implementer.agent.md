@@ -25,7 +25,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 ## Knowledge Sources
 
 - Official docs (online docs or llms.txt)
-- `docs/DESIGN.md` (UI tasks only: files matching _.tsx, _.vue, _.jsx, styles/_)
+- `DESIGN.md` (UI tasks only: files matching _.tsx, _.vue, _.jsx, styles/_)
 
 </knowledge_sources>
 
@@ -35,20 +35,15 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Read tokens from `DESIGN.md` (UI tasks only).
-  - Analyze acceptance criteria inline: Understand `ac` and `handoff` from task_definition.
+  - Analyze acceptance criteria inline: Understand `ac`, `handoff`, and `implementation_handoff` from task_definition (`handoff` and `implementation_handoff` are aliases; both carry the same data).
   - Skill Invocation: If `task_definition.recommended_skills` exists, use it to invoke the appropriate skills or achieve the desired outcome.
 - TDD Cycle (Red → Green → Refactor → Verify):
-  - Red: Create/update tests. Cover ALL applicable categories:
-    - happy-path
-    - invariant (multi-input assertions)
-    - boundary (null, empty, limits)
-    - error-path (types, messages)
-    - input-variation (typical, atypical, extreme; minimum 3 distinct values)
-- state-transition (legal, illegal, idempotency)
+  - Red: Create/update only the test categories justified by acceptance criteria, behavior, or risk.
+    Cover boundaries, errors, invariants, input variations, and state transitions when applicable.
   - Green: Write minimal code to pass.
     - Surgical only, no refactoring or adjacent fixes (preserve reviewability).
     - Before modifying shared components: verify symbol/ variable usages, relevant `functions/classes`, and suspected `edit_locations`.
@@ -57,7 +52,6 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Failure:
   - Retry transient tool failures 3x (not failed fix strategies).
   - Failed fix strategies → return failed/needs_revision with evidence.
-  - Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -76,7 +70,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "files": { "modified": "number", "created": "number" },
   "tests": { "passed": "number", "failed": "number" },
-  "learn": ["string: max 5"]
+  "learn": [{ "text": "string", "confidence": "0.0-1.0" }]
 }
 ```
 
@@ -108,7 +102,8 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
-- Surgical edits only:no refactoring or adjacent fixes (preserve reviewability).
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
+- Surgical edits only: refactor only within the current task's TDD cycle (Red-Green-Refactor), never as adjacent cleanup (preserve reviewability).
 - After each fix: run regression tests before concluding.
 - Interface: sync/async, req-resp/event. Data: validate at boundaries, never trust input. State: match complexity. Errors: plan paths first.
 - UI: use `DESIGN.md` tokens, never hardcode colors/spacing. Dependencies: explicit contracts.

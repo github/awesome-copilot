@@ -35,7 +35,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Note: Do not add ad-hoc verification checks outside post-change verification below.
@@ -56,7 +56,6 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Tests fail → revert / fix without behavior change.
   - Unsure if used → mark "needs manual review".
   - Breaks contracts → escalate.
-  - Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -92,7 +91,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "tests_passed": "boolean",
   "preserved_behavior": "boolean",
   "assumptions": ["string: max 2"],
-  "learn": ["string: max 5"]
+  "learn": [{ "text": "string", "confidence": "0.0-1.0" }]
 }
 ```
 
@@ -124,6 +123,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Never add comments explaining bad code:fix it. Never add features:only refactor.
 - Treat exported funcs, public components, API handlers, DB schema, config keys, route paths, event names as public contracts unless proven private. Do not rename/remove without explicit permission.
 

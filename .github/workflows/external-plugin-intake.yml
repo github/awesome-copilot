@@ -113,6 +113,7 @@ jobs:
               if (process.env.QUALITY_JOB_RESULT === 'failure' || process.env.QUALITY_JOB_RESULT === 'cancelled') {
                 qualityResult = {
                   overall_status: 'infra_error',
+                  spec_compliance_status: 'warning',
                   vally_lint_status: 'infra_error',
                   smoke_status: 'infra_error',
                   version_match_status: 'infra_error',
@@ -125,6 +126,7 @@ jobs:
               } else {
                 qualityResult = {
                   overall_status: 'infra_error',
+                  spec_compliance_status: 'warning',
                   vally_lint_status: 'infra_error',
                   smoke_status: 'infra_error',
                   version_match_status: 'infra_error',

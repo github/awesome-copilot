@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "accessibility-kanban",
-      "source": "extensions/accessibility-kanban",
+      "source": "plugins/accessibility-kanban",
       "description": "Kanban board to manage accessibility issues, allow you to plan, track, and complete remediation work.",
       "version": "1.0.2"
     },
@@ -83,13 +83,13 @@
     },
     {
       "name": "apng-studio",
-      "source": "extensions/apng-studio",
+      "source": "plugins/apng-studio",
       "description": "Interactive GitHub Copilot app canvas extension for building Animated PNG (APNG) files from frames. Draw or upload frames, tune per-frame timing and compositing, preview live, send the result to your phone by QR, and export an animated .png.",
       "version": "1.0.2"
     },
     {
       "name": "arcade-canvas",
-      "source": "extensions/arcade-canvas",
+      "source": "plugins/arcade-canvas",
       "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
       "version": "1.0.2"
     },
@@ -156,13 +156,13 @@
     },
     {
       "name": "backlog-swipe-triage",
-      "source": "extensions/backlog-swipe-triage",
+      "source": "plugins/backlog-swipe-triage",
       "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
       "version": "1.0.2"
     },
     {
       "name": "backrooms-canvas",
-      "source": "extensions/backrooms-canvas",
+      "source": "plugins/backrooms-canvas",
       "description": "Wander an endless first-person backrooms in a Copilot canvas while agents work; their status ghost-writes on the walls.",
       "version": "1.0.0"
     },
@@ -227,7 +227,7 @@
     },
     {
       "name": "chromium-control-canvas",
-      "source": "extensions/chromium-control-canvas",
+      "source": "plugins/chromium-control-canvas",
       "description": "Opens a real Chromium window you can navigate and interact with from a Copilot canvas control panel and agent actions.",
       "version": "1.0.2"
     },
@@ -271,7 +271,7 @@
     },
     {
       "name": "color-orb",
-      "source": "extensions/color-orb",
+      "source": "plugins/color-orb",
       "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
       "version": "1.0.2"
     },
@@ -358,12 +358,6 @@
       "version": "1.1.0"
     },
     {
-      "name": "daily-focus-board",
-      "source": "extensions/daily-focus-board",
-      "description": "A warm, executive-function-friendly daily focus board rendered in a GHCP canvas and backed by a JSON file your AI partner can read and write. Tasks (to-do -> in progress -> done) with progress notes, numeric counters, Focus mode, kind carryover, a brain-dump box, reduced motion, and a live clock. Universal companion to the daily-focus-board skill for people who run the GitHub Copilot app.",
-      "version": "0.1.0"
-    },
-    {
       "name": "database-data-management",
       "source": "plugins/database-data-management",
       "description": "Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices.",
@@ -432,7 +426,7 @@
     },
     {
       "name": "diagram-viewer",
-      "source": "extensions/diagram-viewer",
+      "source": "plugins/diagram-viewer",
       "description": "Render diagrams, click nodes to drill down, and view agent-generated explanations directly in the canvas.",
       "version": "1.0.2"
     },
@@ -579,7 +573,7 @@
     },
     {
       "name": "feedback-themes",
-      "source": "extensions/feedback-themes",
+      "source": "plugins/feedback-themes",
       "description": "Explore grouped customer feedback signals by impact and drill into a theme to guide product next steps.",
       "version": "1.0.2"
     },
@@ -607,7 +601,7 @@
     },
     {
       "name": "flight-map-canvas",
-      "source": "extensions/flight-map-canvas",
+      "source": "plugins/flight-map-canvas",
       "description": "A GitHub Copilot canvas that generates a view where Google Maps can be explored using 3D controls, as if a flight simulator. Agents can send the flight anywhere and report what they are working on.",
       "version": "1.0.0"
     },
@@ -627,11 +621,11 @@
       "name": "gem-team",
       "source": "plugins/gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
-      "version": "1.87.0"
+      "version": "1.99.0"
     },
     {
       "name": "gesture-review",
-      "source": "extensions/gesture-review",
+      "source": "plugins/gesture-review",
       "description": "Review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
       "version": "1.0.2"
     },
@@ -739,7 +733,7 @@
     },
     {
       "name": "java-modernization-studio",
-      "source": "extensions/java-modernization-studio",
+      "source": "plugins/java-modernization-studio",
       "description": "Drive the GitHub Copilot App Modernization for Java workflow from an interactive canvas: environment readiness, repo assessment, prioritized plan and progress, validation gates, and one-click predefined-task runs grounded in the repo's real artifacts.",
       "version": "1.0.2"
     },
@@ -1067,7 +1061,7 @@
     },
     {
       "name": "pr-artifact-explorer",
-      "source": "extensions/pr-artifact-explorer",
+      "source": "plugins/pr-artifact-explorer",
       "description": "Navigate pull requests and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
       "version": "1.0.0"
     },
@@ -1103,13 +1097,13 @@
     },
     {
       "name": "release-notes-showcase",
-      "source": "extensions/release-notes-showcase",
+      "source": "plugins/release-notes-showcase",
       "description": "Compose and refine launch-ready release notes with contributor callouts and export-friendly output.",
       "version": "1.0.2"
     },
     {
       "name": "repo-actions-hub",
-      "source": "extensions/repo-actions-hub",
+      "source": "plugins/repo-actions-hub",
       "description": "Browse repository GitHub Actions workflows, inspect recent runs, and trigger manual workflow_dispatch runs from a Copilot canvas.",
       "version": "1.0.2"
     },
@@ -1151,13 +1145,13 @@
     },
     {
       "name": "signals-dashboard",
-      "source": "extensions/signals-dashboard",
-      "description": "Real-time agent coordination dashboard for The Workshop. Shows desk status, signal types (done, checkpoint, blocked, hands-up, partnership), intent text, outcome pairing with honesty gap, token usage, and stash/restore controls.",
-      "version": "0.1.0"
+      "source": "plugins/signals-dashboard",
+      "description": "Real-time Workshop dashboard with agent signals, honesty calibration, and cost-aware repo or connected desk launch profiles.",
+      "version": "0.2.0"
     },
     {
       "name": "site-studio",
-      "source": "extensions/site-studio",
+      "source": "plugins/site-studio",
       "description": "Plan, draft, and track a personal website section by section — a shared canvas where you and your agent author content, watch progress, and review every change.",
       "version": "1.0.2"
     },
@@ -1277,13 +1271,13 @@
     },
     {
       "name": "tiny-tool-town-submitter",
-      "source": "extensions/tiny-tool-town-submitter",
+      "source": "plugins/tiny-tool-town-submitter",
       "description": "Inspect a repository, improve Tiny Tool Town readiness, submit its listing issue, and launch remediation work.",
       "version": "1.0.2"
     },
     {
       "name": "token-pacman",
-      "source": "extensions/token-pacman",
+      "source": "plugins/token-pacman",
       "description": "Visualizes live session AI-credit usage as a Pac-Man board with pellets, ghosts, fruit milestones, and game-over limits.",
       "version": "1.0.2"
     },
@@ -1501,7 +1495,7 @@
     },
     {
       "name": "where-was-i",
-      "source": "extensions/where-was-i",
+      "source": "plugins/where-was-i",
       "description": "Reconstruct your dev context (branch, commits, uncommitted work, PR clues) and trigger a resume prompt to continue quickly.",
       "version": "1.0.2"
     },
@@ -1565,7 +1559,7 @@
     },
     {
       "name": "work-hub",
-      "source": "extensions/work-hub",
+      "source": "plugins/work-hub",
       "description": "Generic cross-repo command center canvas for GitHub Copilot with onboarding, focus planning, repo health, work signals, and session cleanup.",
       "version": "1.0.2"
     }

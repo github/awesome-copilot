@@ -1,0 +1,29 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "chromium-control-canvas",
+  "description": "Opens a real Chromium window you can navigate and interact with from a Copilot canvas control panel and agent actions.",
+  "version": "1.0.2",
+  "author": {
+    "name": "Andrea Griffiths",
+    "url": "https://github.com/AndreaGriffiths11"
+  },
+  "keywords": [
+    "browser-control",
+    "chromium-browser",
+    "interactive-canvas",
+    "playwright-automation",
+    "screenshots",
+    "ui-testing",
+    "web-navigation"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/chromium-control-canvas"
+      ]
+    }
+  }
+}
