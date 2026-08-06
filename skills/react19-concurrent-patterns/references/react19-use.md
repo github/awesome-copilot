@@ -163,7 +163,7 @@ function Post({ postId }) {
   return <PostContent post={post} />;
 }
 
-​// After:
+// After:
 function Post({ postId }) {
   const post = use(fetchPost(postId));
   return <PostContent post={post} />;
