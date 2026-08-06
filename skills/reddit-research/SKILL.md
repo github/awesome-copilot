@@ -322,7 +322,7 @@ field names carry over.
 
 ## Error Handling
 
-- `400` - missing/empty `query`, or an unparseable `start_date`/`end_date`
+- `400` - missing/empty `query`, or an unparsable `start_date`/`end_date`
 - `403` - missing `Content-Type: application/json` on a POST request - not a
   plan limit
 - `404` - no handler for that method/path (e.g. `GET /api/v1/trends`, which
