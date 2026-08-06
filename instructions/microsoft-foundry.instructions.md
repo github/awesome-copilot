@@ -11,7 +11,7 @@ Guidance for building agents against **Microsoft Foundry** using the **`azure-ai
 
 ## Authentication: Local dev vs. production
 
-Entra ID is the **only** supported auth. Use `azure.identity.DefaultAzureCredential` for **local development** (it tries CLI, env vars, managed identity in order); use `ManagedIdentityCredential` for **deployed workloads** on Azure (App Service, Container Apps, Functions) where a system-assigned or user-assigned managed identity is assigned to the compute resource.
+Entra ID is the **only** supported auth. Use `azure.identity.DefaultAzureCredential` for **local development** (it tries environment variables, workload identity, managed identity, then Azure CLI in order); use `ManagedIdentityCredential` for **deployed workloads** on Azure (App Service, Container Apps, Functions) where a system-assigned or user-assigned managed identity is assigned to the compute resource.
 
 ### Local development
 
@@ -25,9 +25,11 @@ with (
     # ... use project_client
 ```
 
-Requires `az login` once in your terminal. `DefaultAzureCredential` will find and use your CLI credentials.
+Requires `az login` once in your terminal. `DefaultAzureCredential` will find and use your CLI credentials (tried after environment, workload identity, and managed identity).
 
 ### Deployed to Azure (App Service, Container Apps, Functions)
+
+For **system-assigned identity** (default):
 
 ```python
 from azure.identity import ManagedIdentityCredential
@@ -39,7 +41,19 @@ with (
     # ... use project_client
 ```
 
-Requires: the compute resource (App Service app, Container Apps app, Function app, etc.) has a **system-assigned or user-assigned managed identity** configured, **and that identity has the required RBAC role assignment** on the Foundry project (typically "Azure AI Projects User" or similar). No `az login` needed; the platform provides credentials automatically.
+For **user-assigned identity**, pass the client ID:
+
+```python
+from azure.identity import ManagedIdentityCredential
+
+with (
+    ManagedIdentityCredential(client_id="<USER_ASSIGNED_CLIENT_ID>") as credential,
+    AIProjectClient(endpoint=endpoint, credential=credential) as project_client,
+):
+    # ... use project_client
+```
+
+Requires: the compute resource (App Service app, Container Apps app, Function app, etc.) has a **system-assigned or user-assigned managed identity** configured, **and that identity has the required RBAC role assignment** on the Foundry project (typically "Azure AI Projects User" or similar). For user-assigned identities, pass the client ID to `ManagedIdentityCredential(client_id=...)`. No `az login` needed; the platform provides credentials automatically.
 
 ### Deployed to AKS (workload identity)
 
@@ -57,7 +71,7 @@ with (
 
 Requires: the AKS pod has the workload-identity annotation and projected OIDC token volume configured. See [Azure Workload Identity documentation](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview).
 
-> **Mixing patterns:** `DefaultAzureCredential` works in all contexts (tries env/workload/managed identity before CLI) but is slower in production. Use `ManagedIdentityCredential` for App Service/Container Apps/Functions or `WorkloadIdentityCredential` for AKS for clarity and performance.
+> **Credential precedence:** `DefaultAzureCredential` tries (in order): environment variables → workload identity (AKS) → managed identity (App Service, Container Apps, etc.) → Azure CLI. Use the specific credential class (`ManagedIdentityCredential`, `WorkloadIdentityCredential`) in deployed code for clarity and performance.
 
 ## Package and versions
 
