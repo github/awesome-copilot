@@ -39,7 +39,7 @@ Apply these translation rules:
 - Treat `UNION ALL` as a review checkpoint. Validate plan quality per branch and restructure if combined-branch planning causes regressions (for example, unexpected sequential scans on large tables).
 - Leverage the `orafce` extension when it improves clarity or fidelity.
 
-Consult the PostgreSQL table/view definitions at `.github/oracle-to-postgres-migration/DDL/Postgres/Tables and Views/` for target schema details.
+Consult the PostgreSQL table/view definitions at `.github/oracle-to-postgres-migration/DDL/Postgres/{ProjectName}/Tables and Views/` for target schema details.
 
 **Step 3: Write the migrated procedure to Postgres output directory**
 
