@@ -15,12 +15,16 @@
     "best-practices",
     "architecture"
   ],
-  "agents": [
-    "./agents/context-architect.md"
-  ],
-  "skills": [
-    "./skills/context-map/",
-    "./skills/refactor-plan/",
-    "./skills/what-context-needed/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/context-architect.md"
+      ],
+      "skills": [
+        "./skills/context-map/",
+        "./skills/refactor-plan/",
+        "./skills/what-context-needed/"
+      ]
+    }
+  }
 }

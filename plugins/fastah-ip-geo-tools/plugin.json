@@ -20,7 +20,11 @@
     "hosting",
     "ixp"
   ],
-  "skills": [
-    "./skills/geofeed-tuner/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/geofeed-tuner/"
+      ]
+    }
+  }
 }

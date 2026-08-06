@@ -17,7 +17,11 @@
     "copilot-cli",
     "ux"
   ],
-  "skills": [
-    "./skills/noob-mode/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/noob-mode/"
+      ]
+    }
+  }
 }

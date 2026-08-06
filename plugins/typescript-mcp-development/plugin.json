@@ -15,10 +15,14 @@
     "nodejs",
     "server-development"
   ],
-  "agents": [
-    "./agents/typescript-mcp-expert.md"
-  ],
-  "skills": [
-    "./skills/typescript-mcp-server-generator/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/typescript-mcp-expert.md"
+      ],
+      "skills": [
+        "./skills/typescript-mcp-server-generator/"
+      ]
+    }
+  }
 }

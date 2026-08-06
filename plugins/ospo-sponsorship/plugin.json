@@ -8,7 +8,11 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "skills": [
-    "./skills/sponsor-finder/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/sponsor-finder/"
+      ]
+    }
+  }
 }

@@ -14,10 +14,14 @@
     "validation",
     "research"
   ],
-  "agents": [
-    "./agents/research-technical-spike.md"
-  ],
-  "skills": [
-    "./skills/create-technical-spike/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/research-technical-spike.md"
+      ],
+      "skills": [
+        "./skills/create-technical-spike/"
+      ]
+    }
+  }
 }

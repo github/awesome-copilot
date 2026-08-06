@@ -15,10 +15,14 @@
     "fastmcp",
     "server-development"
   ],
-  "agents": [
-    "./agents/python-mcp-expert.md"
-  ],
-  "skills": [
-    "./skills/python-mcp-server-generator/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/python-mcp-expert.md"
+      ],
+      "skills": [
+        "./skills/python-mcp-server-generator/"
+      ]
+    }
+  }
 }

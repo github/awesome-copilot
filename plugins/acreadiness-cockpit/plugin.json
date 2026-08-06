@@ -17,12 +17,16 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "agents": [
-    "./agents/ai-readiness-reporter.md"
-  ],
-  "skills": [
-    "./skills/acreadiness-assess/",
-    "./skills/acreadiness-generate-instructions/",
-    "./skills/acreadiness-policy/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/ai-readiness-reporter.md"
+      ],
+      "skills": [
+        "./skills/acreadiness-assess/",
+        "./skills/acreadiness-generate-instructions/",
+        "./skills/acreadiness-policy/"
+      ]
+    }
+  }
 }

@@ -15,10 +15,14 @@
     "python",
     "fastapi"
   ],
-  "agents": [
-    "./agents/openapi-to-application.md"
-  ],
-  "skills": [
-    "./skills/openapi-to-application-code/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/openapi-to-application.md"
+      ],
+      "skills": [
+        "./skills/openapi-to-application-code/"
+      ]
+    }
+  }
 }

@@ -18,10 +18,14 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "skills": [
-    "./skills/image-annotations/",
-    "./skills/pr-screenshots/",
-    "./skills/screen-recording/",
-    "./skills/ui-screenshots/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/image-annotations/",
+        "./skills/pr-screenshots/",
+        "./skills/screen-recording/",
+        "./skills/ui-screenshots/"
+      ]
+    }
+  }
 }

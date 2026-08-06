@@ -18,7 +18,11 @@
     "productivity",
     "copilot-cli"
   ],
-  "skills": [
-    "./skills/automate-this/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/automate-this/"
+      ]
+    }
+  }
 }

@@ -16,10 +16,14 @@
     "junit",
     "javadoc"
   ],
-  "skills": [
-    "./skills/create-spring-boot-java-project/",
-    "./skills/java-docs/",
-    "./skills/java-junit/",
-    "./skills/java-springboot/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/create-spring-boot-java-project/",
+        "./skills/java-docs/",
+        "./skills/java-junit/",
+        "./skills/java-springboot/"
+      ]
+    }
+  }
 }

@@ -786,10 +786,11 @@ function generatePluginsSection(pluginsDir) {
   for (const entry of sortedEntries) {
     const { plugin, dir, name, isFeatured } = entry;
     const description = formatTableCell(plugin.description || "No description");
+    const composition = plugin.extensions?.["com.github.awesome-copilot"] || {};
     const itemCount =
-      (plugin.agents || []).length +
-      (plugin.commands || []).length +
-      (plugin.skills || []).length;
+      (composition.agents || []).length +
+      (composition.commands || []).length +
+      (composition.skills || []).length;
     const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
 
     const link = `../plugins/${dir}/README.md`;
@@ -842,10 +843,11 @@ function generateFeaturedPluginsSection(pluginsDir) {
             plugin.description || "No description"
           );
           const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
+          const composition = plugin.extensions?.["com.github.awesome-copilot"] || {};
           const itemCount =
-            (plugin.agents || []).length +
-            (plugin.commands || []).length +
-            (plugin.skills || []).length;
+            (composition.agents || []).length +
+            (composition.commands || []).length +
+            (composition.skills || []).length;
 
           return {
             dir,

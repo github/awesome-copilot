@@ -140,6 +140,12 @@ async function createPlugin() {
       author: { name: "Awesome Copilot Community" },
       repository: "https://github.com/github/awesome-copilot",
       license: "MIT",
+      extensions: {
+        "com.github.awesome-copilot": {
+          agents: [],
+          skills: [],
+        },
+      },
     };
 
     fs.writeFileSync(

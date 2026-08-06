@@ -17,10 +17,14 @@
     "dataverse",
     "connectors"
   ],
-  "agents": [
-    "./agents/power-platform-expert.md"
-  ],
-  "skills": [
-    "./skills/power-apps-code-app-scaffold/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/power-platform-expert.md"
+      ],
+      "skills": [
+        "./skills/power-apps-code-app-scaffold/"
+      ]
+    }
+  }
 }

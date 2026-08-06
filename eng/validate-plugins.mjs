@@ -11,6 +11,7 @@ const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 
 const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
 const COPILOT_NAMESPACE = "com.github.copilot";
+const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
 
 // Validation functions
 function validateName(name, folderName) {
@@ -116,35 +117,37 @@ function validateSpecPaths(plugin) {
   const errors = [];
   const specs = {
     agents: { prefix: "./agents/", suffix: ".md", repoDir: "agents", repoSuffix: ".agent.md" },
+    commands: { prefix: "./commands/", suffix: ".md", repoDir: "commands", repoSuffix: ".md" },
+    hooks: { prefix: "./hooks/", suffix: ".md", repoDir: "hooks", repoSuffix: ".md" },
     skills: { prefix: "./skills/", suffix: "/", repoDir: "skills", repoFile: "SKILL.md" },
   };
 
   for (const [field, spec] of Object.entries(specs)) {
-    const arr = plugin[field];
+    const arr = plugin.extensions?.[AWESOME_COPILOT_NAMESPACE]?.[field];
     if (arr === undefined) continue;
     if (!Array.isArray(arr)) {
-      errors.push(`${field} must be an array`);
+      errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field} must be an array`);
       continue;
     }
     if (!arraysEqual(arr, sortPluginEntries(arr))) {
-      errors.push(`${field} must be sorted alphabetically`);
+      errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field} must be sorted alphabetically`);
     }
     for (let i = 0; i < arr.length; i++) {
       const p = arr[i];
       if (typeof p !== "string") {
-        errors.push(`${field}[${i}] must be a string`);
+        errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] must be a string`);
         continue;
       }
       if (!p.startsWith("./")) {
-        errors.push(`${field}[${i}] must start with "./"`);
+        errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] must start with "./"`);
         continue;
       }
       if (!p.startsWith(spec.prefix)) {
-        errors.push(`${field}[${i}] must start with "${spec.prefix}"`);
+        errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] must start with "${spec.prefix}"`);
         continue;
       }
       if (!p.endsWith(spec.suffix)) {
-        errors.push(`${field}[${i}] must end with "${spec.suffix}"`);
+        errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] must end with "${spec.suffix}"`);
         continue;
       }
       // Validate the source file exists at repo root
@@ -153,12 +156,12 @@ function validateSpecPaths(plugin) {
         const skillDir = path.join(ROOT_FOLDER, spec.repoDir, basename);
         const skillFile = path.join(skillDir, spec.repoFile);
         if (!fs.existsSync(skillFile)) {
-          errors.push(`${field}[${i}] source not found: ${spec.repoDir}/${basename}/SKILL.md`);
+          errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] source not found: ${spec.repoDir}/${basename}/SKILL.md`);
         }
       } else {
         const srcFile = path.join(ROOT_FOLDER, spec.repoDir, basename + spec.repoSuffix);
         if (!fs.existsSync(srcFile)) {
-          errors.push(`${field}[${i}] source not found: ${spec.repoDir}/${basename}${spec.repoSuffix}`);
+          errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] source not found: ${spec.repoDir}/${basename}${spec.repoSuffix}`);
         }
       }
     }
@@ -168,16 +171,16 @@ function validateSpecPaths(plugin) {
 
 function validateExtensionReferences(plugin, pluginDir) {
   const errors = [];
-  const directories = plugin.extensions?.[COPILOT_NAMESPACE]?.directories;
+  const directories = plugin.extensions?.[AWESOME_COPILOT_NAMESPACE]?.extensions;
   if (directories === undefined) {
     return errors;
   }
   if (!Array.isArray(directories)) {
-    errors.push(`extensions["${COPILOT_NAMESPACE}"].directories must be an array`);
+    errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions must be an array`);
     return errors;
   }
   if (!arraysEqual(directories, sortPluginEntries(directories))) {
-    errors.push(`extensions["${COPILOT_NAMESPACE}"].directories entries must be sorted alphabetically`);
+    errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions entries must be sorted alphabetically`);
   }
 
   for (const [index, directory] of directories.entries()) {
@@ -186,11 +189,38 @@ function validateExtensionReferences(plugin, pluginDir) {
       : "";
     if (typeof directory !== "string" || !directory.startsWith("./extensions/") ||
         !/^[a-z0-9][a-z0-9.-]*[a-z0-9]$|^[a-z0-9]$/.test(name)) {
-      errors.push(`extensions["${COPILOT_NAMESPACE}"].directories[${index}] must be a valid ./extensions/<name> path`);
+      errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions[${index}] must be a valid ./extensions/<name> path`);
       continue;
     }
     if (!fs.existsSync(path.join(EXTENSIONS_DIR, name, "extension.mjs"))) {
-      errors.push(`extensions["${COPILOT_NAMESPACE}"].directories[${index}] source not found: extensions/${name}`);
+      errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions[${index}] source not found: extensions/${name}`);
+    }
+  }
+
+  return errors;
+}
+
+function validateCompositionNamespace(plugin) {
+  const errors = [];
+  const compositionFields = ["agents", "commands", "hooks", "mcpServers", "skills"];
+  const extensions = plugin.extensions;
+  const composition = extensions?.[AWESOME_COPILOT_NAMESPACE];
+
+  if (extensions !== undefined &&
+      (typeof extensions !== "object" || extensions === null || Array.isArray(extensions))) {
+    errors.push(`extensions must be an object containing "${AWESOME_COPILOT_NAMESPACE}"`);
+    return errors;
+  }
+
+  if (composition !== undefined &&
+      (typeof composition !== "object" || composition === null || Array.isArray(composition))) {
+    errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"] must be an object`);
+    return errors;
+  }
+
+  for (const field of compositionFields) {
+    if (extensions?.[field] !== undefined) {
+      errors.push(`extensions.${field} must be moved to extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}`);
     }
   }
 
@@ -248,6 +278,12 @@ function validatePlugin(folderName) {
 
   // Rule 5b: license (shared with external plugins). Non-SPDX is a warning, not an error.
   const warnings = [];
+  for (const field of ["agents", "commands", "hooks", "mcpServers", "skills"]) {
+    if (plugin[field] !== undefined) {
+      errors.push(`${field} must be moved to extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}`);
+    }
+  }
+  errors.push(...validateCompositionNamespace(plugin));
   const licenseResult = validateLicenseField(plugin.license, { required: false });
   errors.push(...licenseResult.errors);
   warnings.push(...licenseResult.warnings);

@@ -18,8 +18,12 @@
     "roundup",
     "copilot-cli"
   ],
-  "skills": [
-    "./skills/roundup-setup/",
-    "./skills/roundup/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/roundup-setup/",
+        "./skills/roundup/"
+      ]
+    }
+  }
 }

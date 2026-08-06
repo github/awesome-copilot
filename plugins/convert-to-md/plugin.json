@@ -17,9 +17,13 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "skills": [
-    "./skills/convert-excel-to-md/",
-    "./skills/convert-pdf-to-md/",
-    "./skills/convert-word-to-md/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/convert-excel-to-md/",
+        "./skills/convert-pdf-to-md/",
+        "./skills/convert-word-to-md/"
+      ]
+    }
+  }
 }

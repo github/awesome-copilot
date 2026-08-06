@@ -16,10 +16,14 @@
     "server-development",
     "ktor"
   ],
-  "agents": [
-    "./agents/kotlin-mcp-expert.md"
-  ],
-  "skills": [
-    "./skills/kotlin-mcp-server-generator/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/kotlin-mcp-expert.md"
+      ],
+      "skills": [
+        "./skills/kotlin-mcp-server-generator/"
+      ]
+    }
+  }
 }

@@ -16,8 +16,10 @@
   ],
   "extensions": {
     "com.github.copilot": {
-      "logo": "assets/preview.png",
-      "directories": [
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
         "./extensions/backrooms-canvas"
       ]
     }

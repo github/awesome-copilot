@@ -19,15 +19,19 @@
     "crm",
     "salesforce-dx"
   ],
-  "agents": [
-    "./agents/salesforce-apex-triggers.md",
-    "./agents/salesforce-aura-lwc.md",
-    "./agents/salesforce-flow.md",
-    "./agents/salesforce-visualforce.md"
-  ],
-  "skills": [
-    "./skills/salesforce-apex-quality/",
-    "./skills/salesforce-component-standards/",
-    "./skills/salesforce-flow-design/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/salesforce-apex-triggers.md",
+        "./agents/salesforce-aura-lwc.md",
+        "./agents/salesforce-flow.md",
+        "./agents/salesforce-visualforce.md"
+      ],
+      "skills": [
+        "./skills/salesforce-apex-quality/",
+        "./skills/salesforce-component-standards/",
+        "./skills/salesforce-flow-design/"
+      ]
+    }
+  }
 }

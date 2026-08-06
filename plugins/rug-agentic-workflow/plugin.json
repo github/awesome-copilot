@@ -15,9 +15,13 @@
     "software-engineering",
     "qa"
   ],
-  "agents": [
-    "./agents/qa-subagent.md",
-    "./agents/rug-orchestrator.md",
-    "./agents/swe-subagent.md"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/qa-subagent.md",
+        "./agents/rug-orchestrator.md",
+        "./agents/swe-subagent.md"
+      ]
+    }
+  }
 }

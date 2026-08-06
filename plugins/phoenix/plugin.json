@@ -18,9 +18,13 @@
     "openinference",
     "instrumentation"
   ],
-  "skills": [
-    "./skills/phoenix-cli/",
-    "./skills/phoenix-evals/",
-    "./skills/phoenix-tracing/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/phoenix-cli/",
+        "./skills/phoenix-evals/",
+        "./skills/phoenix-tracing/"
+      ]
+    }
+  }
 }

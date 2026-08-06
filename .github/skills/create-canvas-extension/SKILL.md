@@ -23,7 +23,7 @@ Before creating files, ask for each missing value:
 4. **Preview image**: obtain an existing `assets/preview.png` path or ask the user to add it. Do not invent a binary image or silently use a misleading placeholder.
 5. **Plugin registration**:
    - For a standalone installable canvas plugin, create `plugins/<extension-id>`.
-   - For an extension that belongs to an existing plugin, ask for the parent plugin ID and add `./extensions/<extension-id>` to that plugin's `extensions.com.github.copilot.directories`.
+   - For an extension that belongs to an existing plugin, ask for the parent plugin ID and add `./extensions/<extension-id>` to that plugin's `extensions.com.github.awesome-copilot.extensions`.
    - If the extension should be shipped by multiple plugins, collect all plugin IDs and add the same extension ID to each mapping file.
 
 ## Files to create
@@ -37,9 +37,7 @@ extensions/<extension-id>/
     └── preview.png
 
 plugins/<extension-id>/
-├── .github/
-│   └── plugin/
-│       └── plugin.json
+├── plugin.json
 └── README.md
 ```
 
@@ -64,25 +62,32 @@ Create `plugins/<extension-id>/plugin.json` with this shape:
   "extensions": {
     "com.github.copilot": {
       "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/<extension-id>"
+      ]
     }
   }
 }
 ```
 
-The manifest must contain only Agent Plugins spec fields. Do not add `x-awesome-copilot`, `standalone`, or other repository-specific fields.
+Keep Agent Plugins fields at the manifest top level. Repository composition belongs only under `extensions.com.github.awesome-copilot`; do not put `agents`, `commands`, `hooks`, `mcpServers`, or `skills` at the top level or directly under `extensions`. Do not add `x-awesome-copilot`, `standalone`, or other repository-specific top-level fields.
 
 For an existing parent plugin, create or update:
 
 ```text
-plugins/<parent-plugin>/plugin.json (`extensions.com.github.copilot.directories`)
+plugins/<parent-plugin>/plugin.json (`extensions.com.github.awesome-copilot.extensions`)
 ```
 
-Its contents must be a sorted JSON array of extension IDs:
+Its `extensions` property must contain sorted repository-relative paths:
 
 ```json
-[
-  "<extension-id>"
-]
+{
+  "extensions": [
+    "./extensions/<extension-id>"
+  ]
+}
 ```
 
 Do not copy the extension source into the parent plugin. Materialization resolves the IDs from the root `extensions/` directory, so the same source can be bundled by multiple plugins.
@@ -96,7 +101,7 @@ Do not copy the extension source into the parent plugin. Materialization resolve
 2. Ask only the missing required questions from the decisions above.
 3. Create the source and plugin directories with the required files.
 4. If creating a new entrypoint, keep it minimal and clearly mark implementation TODOs rather than fabricating behavior.
-5. Add or update `extensions.com.github.copilot.directories` for every parent plugin that should ship the extension. Keep paths alphabetically sorted and unique.
+5. Add or update `extensions.com.github.awesome-copilot.extensions` for every parent plugin that should ship the extension. Keep paths alphabetically sorted and unique.
 6. Ensure there is no `extensions/<extension-id>/.github/plugin/plugin.json`.
 7. Run:
 
@@ -115,5 +120,5 @@ When migrating an existing extension:
 1. Move its existing manifest to `plugins/<extension-id>/plugin.json`.
 2. Update the manifest to the namespace-based `extensions.com.github.copilot.logo` shape.
 3. Remove the old manifest from `extensions/<extension-id>`.
-4. Register the extension in any parent plugin's `extensions.com.github.copilot.directories`.
+4. Register the extension in any parent plugin's `extensions.com.github.awesome-copilot.extensions`.
 5. Run the validation and build commands above.

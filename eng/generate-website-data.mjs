@@ -557,7 +557,8 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
     try {
       const data = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
       const relPath = `plugins/${dir.name}`;
-      const extensionRefs = data.extensions?.["com.github.copilot"]?.directories
+      const composition = data.extensions?.["com.github.awesome-copilot"] ?? {};
+      const extensionRefs = composition.extensions
         ?.map((entry) => entry.replace(/^\.\/extensions\//, "").replace(/\/$/, ""))
         .filter(Boolean) ?? [];
       if (fs.existsSync(path.join(EXTENSIONS_DIR, dir.name, "extension.mjs")) && !extensionRefs.includes(dir.name)) {
@@ -570,7 +571,7 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
           path: `extensions/${entry}`,
         }));
 
-      const agentItems = (data.agents || []).flatMap((agent) => {
+      const agentItems = (composition.agents || []).flatMap((agent) => {
         const agentPath = agent.replace("./", "");
         const fullPath = path.join(pluginDir, agentPath);
 
@@ -588,11 +589,11 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
 
       // Parse mcpServers: supports a path to a .mcp.json file or an inline object
       const mcpItems = [];
-      if (data.mcpServers) {
+      if (composition.mcpServers) {
         let mcpServersObj = null;
         let mcpConfigPath = relPath;
-        if (typeof data.mcpServers === "string") {
-          const manifestMcpPath = data.mcpServers.replace(/^\.\//, "");
+        if (typeof composition.mcpServers === "string") {
+          const manifestMcpPath = composition.mcpServers.replace(/^\.\//, "");
           mcpConfigPath = manifestMcpPath ? `${relPath}/${manifestMcpPath}` : relPath;
           const mcpJsonPath = path.join(pluginDir, manifestMcpPath);
           if (fs.existsSync(mcpJsonPath)) {
@@ -603,8 +604,8 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
               // ignore parse errors
             }
           }
-        } else if (typeof data.mcpServers === "object") {
-          mcpServersObj = data.mcpServers;
+        } else if (typeof composition.mcpServers === "object") {
+          mcpServersObj = composition.mcpServers;
         }
         if (mcpServersObj) {
           for (const serverName of Object.keys(mcpServersObj)) {
@@ -616,8 +617,8 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
       // Build items list from spec fields (agents, commands, skills, mcpServers)
       const items = [
         ...agentItems,
-        ...(data.commands || []).map((p) => ({ kind: "prompt", path: p })),
-        ...(data.skills || []).map((p) => ({ kind: "skill", path: p })),
+        ...(composition.commands || []).map((p) => ({ kind: "prompt", path: p })),
+        ...(composition.skills || []).map((p) => ({ kind: "skill", path: p })),
         ...extensionItems,
         ...mcpItems,
       ].map((item) => resolvePluginItem(item, resourceIndex));

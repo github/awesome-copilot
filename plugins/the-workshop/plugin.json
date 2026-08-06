@@ -16,19 +16,19 @@
     "agent-signals",
     "developer-experience"
   ],
-  "agents": [
-    "./agents/workshop-ta.md"
-  ],
-  "skills": [
-    "./skills/bench-read/",
-    "./skills/desk-journal/",
-    "./skills/desk-open/",
-    "./skills/signal-write/",
-    "./skills/workshop-create/"
-  ],
   "extensions": {
-    "com.github.copilot": {
-      "directories": [
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/workshop-ta.md"
+      ],
+      "skills": [
+        "./skills/bench-read/",
+        "./skills/desk-journal/",
+        "./skills/desk-open/",
+        "./skills/signal-write/",
+        "./skills/workshop-create/"
+      ],
+      "extensions": [
         "./extensions/signals-dashboard"
       ]
     }

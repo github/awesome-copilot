@@ -87,7 +87,7 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 - Each extension folder must include `extension.mjs`
 - Extensions are reusable source components, not standalone plugins
 - A shippable extension plugin is registered by a matching `plugins/<extension-id>/plugin.json`
-- A plugin can bundle additional reusable extensions by listing `./extensions/<name>` paths in `extensions.com.github.copilot.directories`
+- A plugin can bundle additional reusable extensions by listing `./extensions/<name>` paths in `extensions.com.github.awesome-copilot.extensions`
 - Each extension must have `assets/preview.png` as the primary visual asset
 - Extension metadata is sourced from the matching plugin manifest in `plugins/`
 
@@ -120,7 +120,7 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 - plugin.json must have `name` field (matching the folder name)
 - plugin.json must have `description` field (describing the plugin's purpose)
 - plugin.json must have `version` field (semantic version, e.g., "1.0.0")
-- Plugin content is defined declaratively in plugin.json using source-only composition fields (`agents`, `commands`, `skills`). Source files live in top-level directories and are materialized into plugins by CI. These fields are stripped from the served manifest — conventional directory discovery handles them in spec mode.
+- Plugin content is defined declaratively in plugin.json under `extensions.com.github.awesome-copilot` using source-only composition fields (`agents`, `commands`, `hooks`, `skills`, and `extensions`). Source files live in top-level directories and are materialized into plugins by CI. This namespace is stripped from the served manifest — conventional directory discovery handles the materialized content in spec mode.
 - The `marketplace.json` file is automatically generated from all plugins during build
 - Plugins are discoverable and installable via GitHub Copilot CLI
 
@@ -165,7 +165,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 **For Plugins:**
 
 1. Run `npm run plugin:create -- --name <plugin-name>` to scaffold a new plugin
-2. Define agents, commands, and skills in `plugin.json` using the repository's build-time composition fields
+2. Define agents, commands, hooks, skills, and reusable extensions under `extensions.com.github.awesome-copilot` in `plugin.json`
 3. Edit the generated `plugin.json` with your metadata
 4. Run `npm run plugin:validate` to validate the plugin structure
 5. Run `npm run build` to update README.md and marketplace.json
@@ -192,7 +192,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 4. Run `npm run plugin:validate` to validate plugin and extension metadata
 5. Run `npm run build` to regenerate website data and marketplace output
 
-To bundle an extension into another plugin without making a second source copy, add sorted `./extensions/<name>` paths to `plugins/<plugin-id>/plugin.json` under `extensions.com.github.copilot.directories`.
+To bundle an extension into another plugin without making a second source copy, add sorted `./extensions/<name>` paths to `plugins/<plugin-id>/plugin.json` under `extensions.com.github.awesome-copilot.extensions`.
 
 **For External Plugins:**
 
@@ -330,7 +330,7 @@ For plugins (plugins/\*/):
 - [ ] `plugin.json` has `version` field (semantic version, e.g., "1.0.0")
 - [ ] Directory name is lower case with hyphens
 - [ ] If `keywords` is present, it is an array of lowercase hyphenated strings
-- [ ] If `agents`, `commands`, or `skills` arrays are present, each entry is a valid relative path
+- [ ] If composition arrays are present under `extensions.com.github.awesome-copilot`, each entry is a valid relative path
 - [ ] The plugin does not reference non-existent files
 - [ ] Run `npm run plugin:validate` and `npm run build` to verify the plugin passes all checks
 

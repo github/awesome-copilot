@@ -15,13 +15,17 @@
     "prompt-engineering",
     "agents"
   ],
-  "agents": [
-    "./agents/meta-agentic-project-scaffold.md"
-  ],
-  "skills": [
-    "./skills/suggest-awesome-github-copilot-agents/",
-    "./skills/suggest-awesome-github-copilot-instructions/",
-    "./skills/suggest-awesome-github-copilot-skills/"
-  ],
-  "mcpServers": "./.mcp.json"
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/meta-agentic-project-scaffold.md"
+      ],
+      "mcpServers": "./.mcp.json",
+      "skills": [
+        "./skills/suggest-awesome-github-copilot-agents/",
+        "./skills/suggest-awesome-github-copilot-instructions/",
+        "./skills/suggest-awesome-github-copilot-skills/"
+      ]
+    }
+  }
 }

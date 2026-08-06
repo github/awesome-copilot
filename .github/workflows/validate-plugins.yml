@@ -47,9 +47,12 @@ jobs:
               'All internal plugins and extensions must include:',
               '- `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"` in `plugin.json`',
               '- A valid `name`, `description`, and `version`',
-              '- For **extensions**: `extensions["<extension-id>"].logo` set to `"assets/preview.png"`',
+              '- Repository composition (`agents`, `commands`, `hooks`, `mcpServers`, `skills`, and reusable `extensions`) under `extensions["com.github.awesome-copilot"]`',
+              '- For **extensions**: `extensions["com.github.copilot"].logo` set to `"assets/preview.png"`',
               '',
-              'Run `npm run plugin:validate` locally to see the full list of errors.',
+              'Do not put repository composition fields at the manifest top level or directly under `extensions`; they must be nested under `extensions["com.github.awesome-copilot"]`.',
+              '',
+              'Run `npm run plugin:validate` locally to see the full list of errors. See `.github/skills/create-canvas-extension/SKILL.md` and `CONTRIBUTING.md` for examples.',
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({

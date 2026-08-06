@@ -19,9 +19,13 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "skills": [
-    "./skills/content-management-systems/",
-    "./skills/markdown-to-html/",
-    "./skills/quasi-coder/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/content-management-systems/",
+        "./skills/markdown-to-html/",
+        "./skills/quasi-coder/"
+      ]
+    }
+  }
 }

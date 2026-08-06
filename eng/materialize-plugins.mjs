@@ -7,6 +7,7 @@ import { ROOT_FOLDER } from "./constants.mjs";
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const COPILOT_NAMESPACE = "com.github.copilot";
+const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
 
 /**
  * Recursively copy a directory.
@@ -44,14 +45,21 @@ function resolveSource(relPath) {
     const extensionName = relPath.replace(/^\.\/extensions\//, "").replace(/\/$/, "");
     return path.join(ROOT_FOLDER, "extensions", extensionName);
   }
+  if (relPath.startsWith("./hooks/")) {
+    return path.join(ROOT_FOLDER, "hooks", relPath.replace(/^\.\/hooks\//, ""));
+  }
+  if (relPath.startsWith("./commands/")) {
+    return path.join(ROOT_FOLDER, "commands", relPath.replace(/^\.\/commands\//, ""));
+  }
   return null;
 }
 
 function readExtensionReferences(metadata, pluginName) {
-  const extensionData = metadata.extensions?.[COPILOT_NAMESPACE];
-  const directories = extensionData?.directories ?? [];
-  if (!Array.isArray(directories) || directories.some((entry) => typeof entry !== "string")) {
-    throw new Error(`extensions["${COPILOT_NAMESPACE}"].directories must contain plugin-relative paths`);
+  const extensionData = metadata.extensions?.[AWESOME_COPILOT_NAMESPACE];
+  const directories = extensionData?.extensions ?? [];
+  if (!Array.isArray(directories) ||
+      directories.some((entry) => typeof entry !== "string" || !entry.startsWith("./extensions/"))) {
+    throw new Error(`extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions must contain plugin-relative paths`);
   }
 
   const names = new Set(directories.map((entry) =>
@@ -102,48 +110,34 @@ function materializePlugins() {
 
     const pluginName = metadata.name || dirName;
 
-    // Process agents
-    if (Array.isArray(metadata.agents)) {
-      for (const relPath of metadata.agents) {
+    const composition = metadata.extensions?.[AWESOME_COPILOT_NAMESPACE] ?? {};
+
+    // Process repository composition fields.
+    for (const field of ["agents", "commands", "hooks", "skills"]) {
+      const entries = composition[field];
+      if (!Array.isArray(entries)) continue;
+      for (const relPath of entries) {
         const src = resolveSource(relPath);
         if (!src) {
-          console.warn(`  ⚠ ${pluginName}: Unknown path format: ${relPath}`);
+          console.warn(`  ⚠ ${pluginName}: Unknown ${field} path format: ${relPath}`);
           warnings++;
           continue;
         }
         if (!fs.existsSync(src)) {
-          console.warn(`  ⚠ ${pluginName}: Source not found: ${src}`);
-          warnings++;
-          continue;
-        }
-        const dest = path.join(pluginPath, relPath.replace(/^\.\//, ""));
-        fs.mkdirSync(path.dirname(dest), { recursive: true });
-        fs.copyFileSync(src, dest);
-        totalAgents++;
-      }
-    }
-
-    // Process skills
-    if (Array.isArray(metadata.skills)) {
-      for (const relPath of metadata.skills) {
-        const src = resolveSource(relPath);
-        if (!src) {
-          console.warn(`  ⚠ ${pluginName}: Unknown path format: ${relPath}`);
-          warnings++;
-          continue;
-        }
-        if (!fs.existsSync(src) || !fs.statSync(src).isDirectory()) {
-          console.warn(`  ⚠ ${pluginName}: Source directory not found: ${src}`);
+          console.warn(`  ⚠ ${pluginName}: ${field} source not found: ${src}`);
           warnings++;
           continue;
         }
         const dest = path.join(pluginPath, relPath.replace(/^\.\//, "").replace(/\/$/, ""));
-        copyDirRecursive(src, dest);
-        totalSkills++;
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
+        if (fs.statSync(src).isDirectory()) copyDirRecursive(src, dest);
+        else fs.copyFileSync(src, dest);
+        if (field === "agents") totalAgents++;
+        if (field === "skills") totalSkills++;
       }
     }
 
-    // Process extension directories declared in the Copilot namespace.
+    // Process reusable extensions declared in the repository namespace.
     const extensionRefs = readExtensionReferences(metadata, pluginName);
     for (const extensionName of extensionRefs) {
       const relPath = `./extensions/${extensionName}`;
@@ -158,7 +152,9 @@ function materializePlugins() {
         warnings++;
         continue;
       }
-      const dest = path.join(pluginPath, COPILOT_NAMESPACE, extensionName);
+      // Extensions are conventional plugin content and belong under the
+      // plugin's top-level extensions directory, not the client namespace.
+      const dest = path.join(pluginPath, "extensions", extensionName);
       copyDirRecursive(src, dest);
       totalExtensions++;
     }
@@ -174,15 +170,11 @@ function materializePlugins() {
     const served = { "$schema": AGENT_PLUGINS_SCHEMA };
     for (const [key, val] of Object.entries(metadata)) {
       if (SPEC_FIELDS.has(key) && key !== "$schema") {
-        if (key === "extensions" && val?.[COPILOT_NAMESPACE]?.directories) {
-          served[key] = {
-            ...val,
-            [COPILOT_NAMESPACE]: {
-              ...val[COPILOT_NAMESPACE],
-              directories: undefined,
-            },
-          };
-          delete served[key][COPILOT_NAMESPACE].directories;
+        if (key === "extensions") {
+          const copilot = val?.[COPILOT_NAMESPACE];
+          if (copilot) {
+            served.extensions = { [COPILOT_NAMESPACE]: { ...copilot } };
+          }
         } else {
           served[key] = val;
         }
@@ -192,8 +184,8 @@ function materializePlugins() {
     fs.writeFileSync(pluginJsonPath, JSON.stringify(served, null, 2) + "\n", "utf8");
 
     const counts = [];
-    if (metadata.agents?.length) counts.push(`${metadata.agents.length} agents`);
-    if (metadata.skills?.length) counts.push(`${metadata.skills.length} skills`);
+    if (composition.agents?.length) counts.push(`${composition.agents.length} agents`);
+    if (composition.skills?.length) counts.push(`${composition.skills.length} skills`);
     if (extensionRefs.length) counts.push(`${extensionRefs.length} extensions`);
     if (counts.length) {
       console.log(`✓ ${pluginName}: ${counts.join(", ")}`);

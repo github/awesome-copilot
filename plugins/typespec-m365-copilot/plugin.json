@@ -16,9 +16,13 @@
     "agent-development",
     "microsoft-365"
   ],
-  "skills": [
-    "./skills/typespec-api-operations/",
-    "./skills/typespec-create-agent/",
-    "./skills/typespec-create-api-plugin/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/typespec-api-operations/",
+        "./skills/typespec-create-agent/",
+        "./skills/typespec-create-api-plugin/"
+      ]
+    }
+  }
 }

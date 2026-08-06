@@ -16,13 +16,17 @@
     "storytelling",
     "developer-experience"
   ],
-  "agents": [
-    "./agents/ember.md"
-  ],
-  "skills": [
-    "./skills/from-the-other-side-anitta/",
-    "./skills/from-the-other-side-quinn/",
-    "./skills/from-the-other-side-vega/",
-    "./skills/from-the-other-side-wiggins/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/ember.md"
+      ],
+      "skills": [
+        "./skills/from-the-other-side-anitta/",
+        "./skills/from-the-other-side-quinn/",
+        "./skills/from-the-other-side-vega/",
+        "./skills/from-the-other-side-wiggins/"
+      ]
+    }
+  }
 }

@@ -15,11 +15,15 @@
     "custom-connector",
     "json-rpc"
   ],
-  "agents": [
-    "./agents/power-platform-mcp-integration-expert.md"
-  ],
-  "skills": [
-    "./skills/mcp-copilot-studio-server-generator/",
-    "./skills/power-platform-mcp-connector-suite/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/power-platform-mcp-integration-expert.md"
+      ],
+      "skills": [
+        "./skills/mcp-copilot-studio-server-generator/",
+        "./skills/power-platform-mcp-connector-suite/"
+      ]
+    }
+  }
 }

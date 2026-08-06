@@ -14,17 +14,21 @@
     "aspnet",
     "testing"
   ],
-  "agents": [
-    "./agents/expert-dotnet-software-engineer.md"
-  ],
-  "skills": [
-    "./skills/aspnet-minimal-api-openapi/",
-    "./skills/csharp-async/",
-    "./skills/csharp-mstest/",
-    "./skills/csharp-nunit/",
-    "./skills/csharp-tunit/",
-    "./skills/csharp-xunit/",
-    "./skills/dotnet-best-practices/",
-    "./skills/dotnet-upgrade/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/expert-dotnet-software-engineer.md"
+      ],
+      "skills": [
+        "./skills/aspnet-minimal-api-openapi/",
+        "./skills/csharp-async/",
+        "./skills/csharp-mstest/",
+        "./skills/csharp-nunit/",
+        "./skills/csharp-tunit/",
+        "./skills/csharp-xunit/",
+        "./skills/dotnet-best-practices/",
+        "./skills/dotnet-upgrade/"
+      ]
+    }
+  }
 }

@@ -15,7 +15,11 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "skills": [
-    "./skills/doc-and-modernize/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/doc-and-modernize/"
+      ]
+    }
+  }
 }

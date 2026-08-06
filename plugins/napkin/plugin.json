@@ -20,7 +20,11 @@
     "copilot-cli",
     "ux"
   ],
-  "skills": [
-    "./skills/napkin/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/napkin/"
+      ]
+    }
+  }
 }

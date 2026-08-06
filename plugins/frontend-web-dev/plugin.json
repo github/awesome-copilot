@@ -19,12 +19,16 @@
     "angular",
     "vue"
   ],
-  "agents": [
-    "./agents/electron-angular-native.md",
-    "./agents/expert-react-frontend-engineer.md"
-  ],
-  "skills": [
-    "./skills/playwright-explore-website/",
-    "./skills/playwright-generate-test/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/electron-angular-native.md",
+        "./agents/expert-react-frontend-engineer.md"
+      ],
+      "skills": [
+        "./skills/playwright-explore-website/",
+        "./skills/playwright-generate-test/"
+      ]
+    }
+  }
 }

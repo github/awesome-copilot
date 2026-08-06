@@ -17,7 +17,11 @@
     "trust",
     "visual-verification"
   ],
-  "skills": [
-    "./skills/eyeball/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/eyeball/"
+      ]
+    }
+  }
 }

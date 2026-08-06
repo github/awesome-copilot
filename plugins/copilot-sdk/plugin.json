@@ -19,7 +19,11 @@
     "ai",
     "github-copilot"
   ],
-  "skills": [
-    "./skills/copilot-sdk/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/copilot-sdk/"
+      ]
+    }
+  }
 }

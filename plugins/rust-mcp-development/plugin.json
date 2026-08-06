@@ -19,10 +19,14 @@
     "macros",
     "rmcp"
   ],
-  "agents": [
-    "./agents/rust-mcp-expert.md"
-  ],
-  "skills": [
-    "./skills/rust-mcp-server-generator/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/rust-mcp-expert.md"
+      ],
+      "skills": [
+        "./skills/rust-mcp-server-generator/"
+      ]
+    }
+  }
 }

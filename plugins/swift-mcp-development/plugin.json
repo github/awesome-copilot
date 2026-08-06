@@ -20,10 +20,14 @@
     "actor",
     "async-await"
   ],
-  "agents": [
-    "./agents/swift-mcp-expert.md"
-  ],
-  "skills": [
-    "./skills/swift-mcp-server-generator/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/swift-mcp-expert.md"
+      ],
+      "skills": [
+        "./skills/swift-mcp-server-generator/"
+      ]
+    }
+  }
 }

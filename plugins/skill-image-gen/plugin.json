@@ -20,7 +20,11 @@
   "homepage": "https://github.com/adamd9/skill-image-gen",
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "skills": [
-    "./skills/generate-image/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/generate-image/"
+      ]
+    }
+  }
 }

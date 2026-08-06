@@ -19,8 +19,12 @@
   "homepage": "https://www.apimatic.io",
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "skills": [
-    "./skills/integrate-context-matic/",
-    "./skills/onboard-context-matic/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/integrate-context-matic/",
+        "./skills/onboard-context-matic/"
+      ]
+    }
+  }
 }

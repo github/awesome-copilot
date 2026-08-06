@@ -18,7 +18,11 @@
     "optimization",
     "best-practices"
   ],
-  "skills": [
-    "./skills/ai-prompt-engineering-safety-review/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/ai-prompt-engineering-safety-review/"
+      ]
+    }
+  }
 }

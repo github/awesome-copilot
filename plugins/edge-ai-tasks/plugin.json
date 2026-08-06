@@ -15,8 +15,12 @@
     "tasks",
     "implementation"
   ],
-  "agents": [
-    "./agents/task-planner.md",
-    "./agents/task-researcher.md"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/task-planner.md",
+        "./agents/task-researcher.md"
+      ]
+    }
+  }
 }

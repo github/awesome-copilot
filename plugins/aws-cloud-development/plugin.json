@@ -19,16 +19,20 @@
     "devops",
     "cdk"
   ],
-  "agents": [
-    "./agents/aws-principal-architect.md",
-    "./agents/aws-serverless-architect.md",
-    "./agents/terraform-aws-implement.md",
-    "./agents/terraform-aws-planning.md"
-  ],
-  "skills": [
-    "./skills/aws-cost-optimize/",
-    "./skills/aws-resource-health-diagnose/",
-    "./skills/aws-resource-query/",
-    "./skills/aws-well-architected-review/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/aws-principal-architect.md",
+        "./agents/aws-serverless-architect.md",
+        "./agents/terraform-aws-implement.md",
+        "./agents/terraform-aws-planning.md"
+      ],
+      "skills": [
+        "./skills/aws-cost-optimize/",
+        "./skills/aws-resource-health-diagnose/",
+        "./skills/aws-resource-query/",
+        "./skills/aws-well-architected-review/"
+      ]
+    }
+  }
 }

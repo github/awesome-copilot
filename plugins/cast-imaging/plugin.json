@@ -16,9 +16,13 @@
     "impact-analysis",
     "devops"
   ],
-  "agents": [
-    "./agents/cast-imaging-impact-analysis.md",
-    "./agents/cast-imaging-software-discovery.md",
-    "./agents/cast-imaging-structural-quality-advisor.md"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/cast-imaging-impact-analysis.md",
+        "./agents/cast-imaging-software-discovery.md",
+        "./agents/cast-imaging-structural-quality-advisor.md"
+      ]
+    }
+  }
 }

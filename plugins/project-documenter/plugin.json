@@ -19,11 +19,15 @@
     "project-summary",
     "auto-discovery"
   ],
-  "agents": [
-    "./agents/project-documenter.md"
-  ],
-  "skills": [
-    "./skills/drawio/",
-    "./skills/md-to-docx/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/project-documenter.md"
+      ],
+      "skills": [
+        "./skills/drawio/",
+        "./skills/md-to-docx/"
+      ]
+    }
+  }
 }

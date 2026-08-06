@@ -16,12 +16,16 @@
     "model-context-protocol",
     "adaptive-cards"
   ],
-  "agents": [
-    "./agents/mcp-m365-agent-expert.md"
-  ],
-  "skills": [
-    "./skills/mcp-create-adaptive-cards/",
-    "./skills/mcp-create-declarative-agent/",
-    "./skills/mcp-deploy-manage-agents/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/mcp-m365-agent-expert.md"
+      ],
+      "skills": [
+        "./skills/mcp-create-adaptive-cards/",
+        "./skills/mcp-create-declarative-agent/",
+        "./skills/mcp-deploy-manage-agents/"
+      ]
+    }
+  }
 }

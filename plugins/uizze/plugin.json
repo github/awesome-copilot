@@ -19,7 +19,11 @@
     "design-review",
     "quality-gate"
   ],
-  "skills": [
-    "./skills/anti-ui-slop/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/anti-ui-slop/"
+      ]
+    }
+  }
 }

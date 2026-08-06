@@ -157,7 +157,7 @@ Plugins group related agents, commands, and skills around specific themes or wor
 
 1. **Create your plugin**: Run `npm run plugin:create` to scaffold a new plugin
 2. **Follow the naming convention**: Use descriptive, lowercase folder names with hyphens (e.g., `python-web-development`)
-3. **Define your content**: List agents, commands, and skills in `plugin.json` using the Claude Code spec fields
+3. **Define your content**: List agents, commands, hooks, skills, and reusable extensions under `extensions.com.github.awesome-copilot` in `plugin.json`
 4. **Test your plugin**: Run `npm run plugin:validate` to verify your plugin structure
 
 #### Creating a plugin
@@ -174,7 +174,7 @@ plugins/my-plugin-id/
 └── README.md                   # Plugin documentation
 ```
 
-> **Note:** Plugin content is defined declaratively in plugin.json using Claude Code spec fields (`agents`, `commands`, `skills`). Source files live in top-level directories and are materialized into plugins by CI.
+> **Note:** Plugin content is defined declaratively in plugin.json under `extensions.com.github.awesome-copilot`. Source files live in top-level directories and are materialized into plugins by CI. This repository namespace is removed from the served manifest.
 
 #### plugin.json example
 
@@ -188,17 +188,21 @@ plugins/my-plugin-id/
   "author": { "name": "Awesome Copilot Community" },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "agents": ["./agents/my-agent.md"],
-  "commands": ["./commands/my-command.md"],
-  "skills": ["./skills/my-skill/"]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": ["./agents/my-agent.md"],
+      "commands": ["./commands/my-command.md"],
+      "skills": ["./skills/my-skill/"]
+    }
+  }
 }
 ```
 
 #### Plugin Guidelines
 
-- **Declarative content**: Plugin content is specified via `agents`, `commands`, and `skills` arrays in plugin.json — source files live in top-level directories and are materialized into plugins by CI
+- **Declarative content**: Plugin content is specified under `extensions.com.github.awesome-copilot` — source files live in top-level directories and are materialized into plugins by CI
 - **Valid references**: All paths referenced in plugin.json must point to existing source files in the repository
-- **Reusable extensions**: Curated plugins can bundle extensions by adding `./extensions/<name>` paths under `extensions.com.github.copilot.directories`; the same extension can be listed by multiple plugins
+- **Reusable extensions**: Curated plugins can bundle extensions by adding `./extensions/<name>` paths under `extensions.com.github.awesome-copilot.extensions`; the same extension can be listed by multiple plugins
 - **Instructions excluded**: Instructions are standalone resources and are not part of plugins
 - **Clear purpose**: The plugin should solve a specific problem or workflow
 - **Validate before submitting**: Run `npm run plugin:validate` to ensure your plugin is valid
