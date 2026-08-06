@@ -8,7 +8,7 @@ permissions:
   contents: read
   copilot-requests: write
 tools:
-  bash: ["curl", "gh"]
+  bash: ["curl", "gh", "web-fetch"]
   edit:
   web-fetch:
   github:
