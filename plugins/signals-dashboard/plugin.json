@@ -1,0 +1,27 @@
+{
+  "name": "signals-dashboard",
+  "description": "Real-time Workshop dashboard with agent signals, honesty calibration, and cost-aware repo or connected desk launch profiles.",
+  "version": "0.2.0",
+  "author": {
+    "name": "jennyf19",
+    "url": "https://github.com/jennyf19"
+  },
+  "keywords": [
+    "agent-signals",
+    "dashboard",
+    "multi-agent",
+    "coordination",
+    "canvas"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/signals-dashboard"
+      ]
+    }
+  },
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+}

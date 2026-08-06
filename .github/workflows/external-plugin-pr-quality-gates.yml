@@ -147,6 +147,7 @@ jobs:
 
             let qualityResult = {
               overall_status: 'not_run',
+              spec_compliance_status: 'not_run',
               failure_class: 'none',
               checked_plugins: [],
               summary: 'No changed external plugin entries were detected in this PR.',
@@ -155,6 +156,7 @@ jobs:
             if (detectJobResult === 'failure' || detectJobResult === 'cancelled') {
               qualityResult = {
                 overall_status: 'infra_error',
+                spec_compliance_status: 'not_run',
                 failure_class: 'infra',
                 checked_plugins: [],
                 version_match_status: 'infra_error',
@@ -165,6 +167,7 @@ jobs:
               if (qualityJobResult === 'failure' || qualityJobResult === 'cancelled') {
                 qualityResult = {
                   overall_status: 'infra_error',
+                  spec_compliance_status: 'not_run',
                   failure_class: 'infra',
                   checked_plugins: [],
                   version_match_status: 'infra_error',
@@ -176,6 +179,7 @@ jobs:
               } else {
                 qualityResult = {
                   overall_status: 'infra_error',
+                  spec_compliance_status: 'not_run',
                   failure_class: 'infra',
                   checked_plugins: [],
                   version_match_status: 'infra_error',
@@ -201,11 +205,29 @@ jobs:
             });
 
             const checkedPlugins = Array.isArray(qualityResult.checked_plugins) ? qualityResult.checked_plugins : [];
+            const hasSpecWarnings = checkedPlugins.some((entry) => String(entry?.quality?.spec_compliance_status || '') === 'warning');
             const header = qualityResult.failure_class === 'submitter_fixes'
-              ? '## ⚠️ External plugin PR checks require submitter fixes'
-              : qualityResult.overall_status === 'pass' || !shouldRun
-                ? '## ✅ External plugin PR checks passed'
-                : '## ⚠️ External plugin PR checks need maintainer follow-up';
+              ? '## 🛑 External plugin PR checks failed (submitter fixes required)'
+              : qualityResult.overall_status === 'infra_error'
+                ? '## 🛑 External plugin PR checks failed (maintainer follow-up)'
+                : hasSpecWarnings
+                  ? '## ⚠️ External plugin PR checks passed with spec warnings'
+                  : qualityResult.overall_status === 'pass' || !shouldRun
+                    ? '## ✅ External plugin PR checks passed'
+                    : '## ⚠️ External plugin PR checks need maintainer follow-up';
+            const formatStatus = (rawStatus, gateName) => {
+              const status = String(rawStatus || 'not_run');
+              if (status === 'pass') {
+                return '✅ pass';
+              }
+              if (status === 'warning' || (gateName === 'spec compliance' && status === 'fail')) {
+                return '⚠️ warning';
+              }
+              if (status === 'fail' || status === 'infra_error') {
+                return '🛑 fail';
+              }
+              return '⚪ not_run';
+            };
             const MAX_GATE_OUTPUT_CHARS = 2000;
             const escapeHtml = (value) =>
               String(value || '')
@@ -273,21 +295,16 @@ jobs:
               ? checkedPlugins.map((entry) => {
                   const name = escapeMarkdownTableCell(entry?.name || 'unknown');
                   const quality = entry?.quality || {};
-                  const sourceUrl = normalizeGitHubUrl(entry?.source_tree_url || '');
+                  const sourceUrl = normalizeGitHubUrl(entry?.source_tree_url);
                   const locator = escapeMarkdownTableCell(entry?.source?.sha || entry?.source?.ref || 'repository');
-                  const sourceCell = sourceUrl ? `[${locator}](<${sourceUrl}>)` : locator;
-                  const vallyLintStatus = escapeMarkdownTableCell(quality.vally_lint_status || 'not_run');
-                  const smokeStatus = escapeMarkdownTableCell(quality.smoke_status || 'not_run');
-                  const versionMatchStatus = escapeMarkdownTableCell(quality.version_match_status || 'not_run');
-                  const refShaConsistencyStatus = escapeMarkdownTableCell(quality.ref_sha_consistency_status || 'not_run');
-                  const canvasStructureStatus = escapeMarkdownTableCell(quality.canvas_structure_status || 'not_run');
-                  const overallStatus = escapeMarkdownTableCell(quality.overall_status || 'not_run');
-                  return `| ${name} | ${vallyLintStatus} | ${smokeStatus} | ${versionMatchStatus} | ${refShaConsistencyStatus} | ${canvasStructureStatus} | ${overallStatus} | ${sourceCell} |`;
+                  const sourceCell = sourceUrl ? `[${locator}](${sourceUrl})` : locator;
+                  return `| ${name} | ${formatStatus(quality.spec_compliance_status, 'spec compliance')} | ${formatStatus(quality.vally_lint_status, 'vally lint')} | ${formatStatus(quality.smoke_status, 'install smoke test')} | ${formatStatus(quality.version_match_status, 'version match')} | ${formatStatus(quality.ref_sha_consistency_status, 'ref/sha consistency')} | ${formatStatus(quality.canvas_structure_status, 'canvas structure')} | ${formatStatus(quality.overall_status, 'overall')} | ${sourceCell} |`;
                 })
-              : ['| _none_ | not_run | not_run | not_run | not_run | not_run | not_run | _n/a_ |'];
+              : ['| _none_ | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | _n/a_ |'];
             const failureDetails = checkedPlugins.flatMap((entry) => {
               const name = String(entry?.name || 'unknown');
               const quality = entry?.quality || {};
+              const shouldShowSpec = quality.spec_compliance_status === 'warning' || String(quality.spec_compliance_output || '').trim().length > 0;
               const shouldShowVally = quality.vally_lint_status === 'fail' || quality.vally_lint_status === 'infra_error' || String(quality.vally_lint_output || '').trim().length > 0;
               const shouldShowSmoke = quality.smoke_status === 'fail' || quality.smoke_status === 'infra_error' || String(quality.smoke_output || '').trim().length > 0;
               const shouldShowVersionMatch = quality.version_match_status === 'fail' || quality.version_match_status === 'infra_error' || String(quality.version_match_output || '').trim().length > 0;
@@ -295,11 +312,14 @@ jobs:
               const shouldShowCanvasStructure = quality.canvas_structure_status === 'fail' || quality.canvas_structure_status === 'infra_error' || String(quality.canvas_structure_output || '').trim().length > 0;
 
               const details = [];
+              if (shouldShowSpec) {
+                details.push(formatGateOutput(name, 'spec compliance', formatStatus(quality.spec_compliance_status, 'spec compliance'), quality.spec_compliance_output));
+              }
               if (shouldShowVally) {
-                details.push(formatGateOutput(name, 'vally lint', quality.vally_lint_status, quality.vally_lint_output));
+                details.push(formatGateOutput(name, 'vally lint', formatStatus(quality.vally_lint_status, 'vally lint'), quality.vally_lint_output));
               }
               if (shouldShowSmoke) {
-                details.push(formatGateOutput(name, 'install smoke test', quality.smoke_status, quality.smoke_output));
+                details.push(formatGateOutput(name, 'install smoke test', formatStatus(quality.smoke_status, 'install smoke test'), quality.smoke_output));
               }
               if (shouldShowVersionMatch) {
                 details.push(formatGateOutput(name, 'version match', quality.version_match_status, quality.version_match_output));
@@ -319,11 +339,12 @@ jobs:
               '',
               `- **Changed entries detected:** ${changedCount}`,
               `- **Workflow state label:** \`${stateLabel}\``,
+              '- **Status legend:** ✅ pass · ⚠️ warning · 🛑 fail',
               '',
               '### Per-plugin quality summary',
               '',
-              '| Plugin | vally lint | install smoke test | version match | ref/sha consistency | canvas structure | overall | source tree |',
-              '|---|---|---|---|---|---|---|---|',
+              '| Plugin | spec compliance (non-blocking) | vally lint | install smoke test | version match | ref/sha consistency | canvas structure | overall | source tree |',
+              '|---|---|---|---|---|---|---|---|---|',
               ...rows,
               '',
               ...(failureDetails.length > 0

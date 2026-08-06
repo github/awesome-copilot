@@ -1,0 +1,34 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "frontend-web-dev",
+  "description": "Essential prompts, instructions, and chat modes for modern frontend web development including React, Angular, Vue, TypeScript, and CSS frameworks.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "frontend",
+    "web",
+    "react",
+    "typescript",
+    "javascript",
+    "css",
+    "html",
+    "angular",
+    "vue"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/electron-angular-native.md",
+        "./agents/expert-react-frontend-engineer.md"
+      ],
+      "skills": [
+        "./skills/playwright-explore-website/",
+        "./skills/playwright-generate-test/"
+      ]
+    }
+  }
+}

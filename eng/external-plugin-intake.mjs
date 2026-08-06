@@ -783,6 +783,7 @@ export function parseMarkReadyForReviewCommand(body) {
 function normalizeQualityGateResult(rawResult) {
   const defaults = {
     overall_status: "not_run",
+    spec_compliance_status: "not_run",
     vally_lint_status: "not_run",
     smoke_status: "not_run",
     version_match_status: "not_run",
@@ -790,6 +791,7 @@ function normalizeQualityGateResult(rawResult) {
     canvas_structure_status: "not_run",
     failure_class: "none",
     summary: "",
+    spec_compliance_output: "",
     vally_lint_output: "",
     smoke_output: "",
     version_match_output: "",
@@ -808,6 +810,21 @@ function normalizeQualityGateResult(rawResult) {
 }
 
 function buildQualityGatesCommentSection(qualityResult) {
+  const formatStatus = (rawStatus, gate) => {
+    const status = String(rawStatus || "not_run");
+    if (status === "pass") {
+      return "✅ pass";
+    }
+    if (status === "warning" || (gate === "spec" && status === "fail")) {
+      return "⚠️ warning";
+    }
+    if (status === "fail" || status === "infra_error") {
+      return "🛑 fail";
+    }
+    return "⚪ not_run";
+  };
+
+  const specState = qualityResult.spec_compliance_status || "not_run";
   const vallyState = qualityResult.vally_lint_status || "not_run";
   const smokeState = qualityResult.smoke_status || "not_run";
   const versionMatchState = qualityResult.version_match_status || "not_run";
@@ -818,23 +835,41 @@ function buildQualityGatesCommentSection(qualityResult) {
   const sections = [
     "### Quality gate summary",
     "",
+    "_Legend: ✅ pass · ⚠️ warning · 🛑 fail_",
+    "",
     "| Gate | Status |",
     "|---|---|",
-    `| vally lint | ${vallyState} |`,
-    `| install smoke test | ${smokeState} |`,
-    `| version match | ${versionMatchState} |`,
-    `| ref/sha consistency | ${refShaConsistencyState} |`,
-    `| canvas structure | ${canvasStructureState} |`,
+    `| spec compliance (non-blocking) | ${formatStatus(specState, "spec")} |`,
+    `| vally lint | ${formatStatus(vallyState, "vally")} |`,
+    `| install smoke test | ${formatStatus(smokeState, "smoke")} |`,
+    `| version match | ${formatStatus(versionMatchState, "version match")} |`,
+    `| ref/sha consistency | ${formatStatus(refShaConsistencyState, "ref/sha consistency")} |`,
+    `| canvas structure | ${formatStatus(canvasStructureState, "canvas structure")} |`,
     "",
     summaryText,
   ];
+
+  const specOutput = String(qualityResult.spec_compliance_output || "").trim();
+  if (specOutput) {
+    sections.push(
+      "",
+      "<details>",
+      `<summary>spec compliance output (${formatStatus(specState, "spec")})</summary>`,
+      "",
+      "```text",
+      specOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
 
   const vallyOutput = String(qualityResult.vally_lint_output || "").trim();
   if (vallyOutput) {
     sections.push(
       "",
       "<details>",
-      "<summary>vally lint output</summary>",
+      `<summary>vally lint output (${formatStatus(vallyState, "vally")})</summary>`,
       "",
       "```text",
       vallyOutput,
@@ -849,7 +884,7 @@ function buildQualityGatesCommentSection(qualityResult) {
     sections.push(
       "",
       "<details>",
-      "<summary>Install smoke test output</summary>",
+      `<summary>install smoke test output (${formatStatus(smokeState, "smoke")})</summary>`,
       "",
       "```text",
       smokeOutput,
@@ -932,19 +967,24 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo)
   const qualitySection = buildQualityGatesCommentSection(qualityResult);
   const runLink = runId && owner && repo ? `_[View workflow run](https://github.com/${owner}/${repo}/actions/runs/${runId})_` : "";
 
+  const hasSpecWarnings = String(qualityResult.spec_compliance_status || "") === "warning";
   const intro =
     qualityResult.failure_class === "submitter_fixes"
-      ? "## ⚠️ External plugin intake requires submitter fixes"
+      ? "## 🛑 External plugin intake failed (submitter fixes required)"
       : qualityResult.failure_class === "infra"
-        ? "## ⚠️ External plugin intake could not complete quality checks"
-        : "## ✅ External plugin intake passed";
+        ? "## 🛑 External plugin intake failed (quality checks could not complete)"
+        : hasSpecWarnings
+          ? "## ⚠️ External plugin intake passed with spec warnings"
+          : "## ✅ External plugin intake passed";
 
   const statusLine =
     qualityResult.failure_class === "submitter_fixes"
       ? "This submission passed metadata validation, but quality gates found issues that must be fixed before it can move to maintainer review. Update the issue details or source plugin and then comment `/rerun-intake`."
       : qualityResult.failure_class === "infra"
         ? "This submission passed metadata validation, but the automated quality checks hit an infrastructure issue. A maintainer should rerun intake or use the explicit override command after review."
-        : "This submission passed automated intake validation and quality checks and is ready for maintainer review.";
+        : hasSpecWarnings
+          ? "This submission passed blocking quality checks and is ready for maintainer review, but it has non-blocking Agent Plugins spec compliance warnings."
+          : "This submission passed automated intake validation and quality checks and is ready for maintainer review.";
 
   return [
     marker,
@@ -1069,7 +1109,7 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
       ].join("\n")
     : [
         marker,
-        "## ⚠️ External plugin intake requires submitter fixes",
+        "## 🛑 External plugin intake failed (submitter fixes required)",
         "",
         "This submission did not pass automated intake validation and cannot move to maintainer review yet.",
         `Edit the issue form to address the fixes below. Intake reruns automatically when the issue is edited, or the issue author/maintainer can comment \`${RERUN_INTAKE_COMMAND}\` to re-run on demand.`,
