@@ -25,6 +25,8 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 ## Knowledge Sources
 
 - `docs/PRD.yaml`
+- `DESIGN.md` (UI tasks: design system, tokens, components, layout, theming)
+- Google DESIGN.md spec: https://github.com/google-labs-code/design.md
 
 </knowledge_sources>
 
@@ -34,12 +36,12 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `context_envelope_snapshot` as active execution context:
+- Start with `plan_context_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Read target + task_clarifications (resolved decisions: don't challenge).
-  - Read `plan.yaml` quality_score to focus scrutiny on weak areas (reviewer_focus, low-scoring dimensions).
-  - Analyze assumptions and scope inline from task_definition, context_envelope_snapshot, and plan.yaml.
+  - Read the plan's task definitions, contracts, and constraints to focus scrutiny on weak areas (missing contracts, low-confidence assumptions, high blast radius).
+  - Analyze assumptions and scope inline from task_definition, plan_context_snapshot, and plan.yaml.
     - Assumptions: Explicit vs implicit. Stated? Valid? What if wrong?
     - Scope: Too much? Too little?
 - Devil's Advocate: For each assumption in the plan, construct a concrete counter-scenario where it fails. If likelihood > LOW, flag as warning.
@@ -58,12 +60,13 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Immobility: Can business logic be extracted without carrying framework/UI/DB baggage?
   - Viscosity: Is doing it right significantly harder than a shortcut? If so, simplify the clean path.
   - Future-proofing: For a future that may not come?
+- DESIGN.md compliance.
+- PRD compliance.
 - Synthesize:
   - Findings grouped by severity: blocking, warning, or suggestion.
   - Each with issue, impact, file:line references.
   - Offer alternatives, not just criticism.
   - Acknowledge what works.
-- Failure: Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -86,7 +89,7 @@ JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. 
   "warnings": "number",
   "suggestions": "number",
   "top_findings": ["string: max 3"],
-  "learn": ["string: max 5"]
+  "learn": [{"text": "string", "confidence": "0.0-1.0"}]
 }
 ```
 
@@ -118,6 +121,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Constitutional
 
+- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
 - Severity: blocking/warning/suggestion. Offer simpler alternatives, not just "this is wrong".
 - YAGNI violations→warning min. Logic gaps causing data loss/security→blocking.
 - Over-engineering adding >50% complexity for <20% benefit→blocking.
