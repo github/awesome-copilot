@@ -231,6 +231,35 @@ while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
     break
   fi
 
+  # Handle copilot_work_finished_failure (CCA timed out or hit an internal error)
+  LATEST_FAILURE=$(printf '%s' "$TIMELINE" | jq -r \
+    '[.[] | select(.event == "copilot_work_finished_failure") | .created_at] | max // empty')
+
+  if [ -n "$LATEST_START" ] && [ -n "$LATEST_FAILURE" ] \
+      && [[ "$LATEST_FAILURE" > "$LATEST_START" || "$LATEST_FAILURE" == "$LATEST_START" ]]; then
+    # CCA failed after its latest start — check if it still produced substantive work
+    CHANGED_FILES=$(gh api "/repos/$REPO/pulls/$PR_NUMBER" --jq '.changed_files')
+    if [ "$CHANGED_FILES" -gt 0 ]; then
+      echo "WARNING: CCA reported failure (copilot_work_finished_failure at $LATEST_FAILURE) but PR has $CHANGED_FILES changed files."
+      echo "Proceeding with validation — gates will determine if the work is sufficient."
+      LATEST_FINISH="$LATEST_FAILURE"
+      break
+    else
+      echo "WARNING: CCA failed (copilot_work_finished_failure at $LATEST_FAILURE) with no substantive changes. Re-assigning."
+      gh api --method POST \
+        -H "Accept: application/vnd.github+json" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        "/repos/$REPO/issues/$TASK_ISSUE/assignees" \
+        --input - <<< "{
+          \"assignees\": [\"copilot-swe-agent[bot]\"],
+          \"agent_assignment\": {
+            \"target_repo\": \"$REPO\",
+            \"base_branch\": \"$BASE_BRANCH\"
+          }
+        }" > /dev/null
+    fi
+  fi
+
   sleep "$INTERVAL"
   ELAPSED=$((ELAPSED + INTERVAL))
 done
