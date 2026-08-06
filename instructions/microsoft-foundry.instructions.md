@@ -25,7 +25,7 @@ with (
     # ... use project_client
 ```
 
-Requires `az login` once in your terminal. `DefaultAzureCredential` will find and use your CLI credentials (or other available developer credentials).
+Optional: run `az login` if using Azure CLI for authentication. `DefaultAzureCredential` will find and use your CLI credentials, environment variables, or other available developer credentials (Visual Studio Code, Azure PowerShell, Azure Developer CLI, etc.). If another credential succeeds, `az login` is not required.
 
 ### Deployed to Azure (App Service, Container Apps, Functions)
 
@@ -53,7 +53,7 @@ with (
     # ... use project_client
 ```
 
-Requires: the compute resource (App Service app, Container Apps app, Function app, etc.) has a **system-assigned or user-assigned managed identity** configured, **and that identity has the required RBAC role assignment** on the Foundry project — typically the built-in **`Foundry User`** role (formerly `Azure AI User`). For user-assigned identities, pass the client ID to `ManagedIdentityCredential(client_id=...)`. No `az login` needed; the platform provides credentials automatically. See [Azure AI role-based access control](https://learn.microsoft.com/en-us/azure/ai-services/role-based-access-control) for current role definitions.
+Requires: the compute resource (App Service app, Container Apps app, Function app, etc.) has a **system-assigned or user-assigned managed identity** configured, **and that identity has the required RBAC role assignment** on the Foundry project — typically the built-in **`Foundry User`** role (formerly `Azure AI User`). For user-assigned identities, pass the client ID to `ManagedIdentityCredential(client_id=...)`. No `az login` needed; the platform provides credentials automatically. See [Foundry role-based access control](https://learn.microsoft.com/en-us/azure/ai-studio/concepts/rbac-ai-studio) for current role definitions.
 
 ### Deployed to AKS (workload identity)
 
@@ -235,17 +235,21 @@ tool = FunctionTool(
 
 response = openai_client.responses.create(input="What is my horoscope? I am an Aquarius.")
 
-input_list: ResponseInputParam = []
-for item in response.output:
-    if item.type == "function_call" and item.name == "get_horoscope":
-        result = get_horoscope(**json.loads(item.arguments))
-        input_list.append(FunctionCallOutput(
-            type="function_call_output",
-            call_id=item.call_id,               # echo call_id back — required
-            output=json.dumps({"horoscope": result}),
-        ))
+# Continue processing until no more function calls
+while any(item.type == "function_call" for item in response.output):
+    input_list: ResponseInputParam = []
+    for item in response.output:
+        if item.type == "function_call" and item.name == "get_horoscope":
+            result = get_horoscope(**json.loads(item.arguments))
+            input_list.append(FunctionCallOutput(
+                type="function_call_output",
+                call_id=item.call_id,
+                output=json.dumps({"horoscope": result}),
+            ))
 
-response = openai_client.responses.create(input=input_list, previous_response_id=response.id)
+    if input_list:
+        response = openai_client.responses.create(input=input_list, previous_response_id=response.id)
+
 print(response.output_text)
 ```
 
