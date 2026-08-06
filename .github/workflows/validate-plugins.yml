@@ -6,6 +6,8 @@ on:
     paths:
       - "plugins/**"
       - "extensions/**"
+      - "eng/validate-plugins.mjs"
+      - ".github/workflows/validate-plugins.yml"
 
 permissions:
   contents: read
@@ -32,12 +34,15 @@ jobs:
         id: validate
         run: npm run plugin:validate
 
-      - name: Post failure summary on PR
-        if: failure() && steps.validate.outcome == 'failure'
+      - name: Manage validation summary on PR
+        if: always()
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
             const marker = '<!-- plugin-extension-validation -->';
+            const validationOutcome = '${{ steps.validate.outcome }}';
+            const validationFailed = validationOutcome === 'failure';
+            const validationPassed = validationOutcome === 'success';
             const body = [
               marker,
               '🛑 **Plugin/extension validation failed**',
@@ -47,10 +52,10 @@ jobs:
               'All internal plugins and extensions must include:',
               '- `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"` in `plugin.json`',
               '- A valid `name`, `description`, and `version`',
-              '- Repository composition (`agents`, `commands`, `hooks`, `mcpServers`, `skills`, and reusable `extensions`) under `extensions["com.github.awesome-copilot"]`',
-              '- For **extensions**: `extensions["com.github.copilot"].logo` set to `"assets/preview.png"`',
+              '- Repository composition (`agents`, `commands`, `hooks`, `mcpServers`, `skills`, and reusable `extensions`) under `extensions.com.github.awesome-copilot`',
+              '- For **extensions**: `extensions.com.github.copilot.logo` must be set to `"assets/preview.png"`',
               '',
-              'Do not put repository composition fields at the manifest top level or directly under `extensions`; they must be nested under `extensions["com.github.awesome-copilot"]`.',
+              'Do not put repository composition fields at the manifest top level or directly under `extensions`; they must be nested under `extensions.com.github.awesome-copilot`.',
               '',
               'Run `npm run plugin:validate` locally to see the full list of errors. See `.github/skills/create-canvas-extension/SKILL.md` and `CONTRIBUTING.md` for examples.',
             ].join('\n');
@@ -64,7 +69,7 @@ jobs:
 
             const existing = comments.find((comment) => comment.body.includes(marker));
 
-            if (existing) {
+            if (validationFailed && existing) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -72,7 +77,7 @@ jobs:
                 body,
               });
               console.log(`Updated existing validation comment ${existing.id}`);
-            } else {
+            } else if (validationFailed) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -80,4 +85,11 @@ jobs:
                 body,
               });
               console.log('Created validation comment');
+            } else if (validationPassed && existing) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+              });
+              console.log(`Deleted stale validation comment ${existing.id}`);
             }

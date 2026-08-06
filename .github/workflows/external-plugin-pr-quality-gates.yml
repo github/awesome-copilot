@@ -295,8 +295,8 @@ jobs:
               ? checkedPlugins.map((entry) => {
                   const name = escapeMarkdownTableCell(entry?.name || 'unknown');
                   const quality = entry?.quality || {};
-                  const sourceUrl = String(entry?.source_tree_url || '');
-                  const locator = String(entry?.source?.sha || entry?.source?.ref || 'repository');
+                  const sourceUrl = normalizeGitHubUrl(entry?.source_tree_url);
+                  const locator = escapeMarkdownTableCell(entry?.source?.sha || entry?.source?.ref || 'repository');
                   const sourceCell = sourceUrl ? `[${locator}](${sourceUrl})` : locator;
                   return `| ${name} | ${formatStatus(quality.spec_compliance_status, 'spec compliance')} | ${formatStatus(quality.vally_lint_status, 'vally lint')} | ${formatStatus(quality.smoke_status, 'install smoke test')} | ${formatStatus(quality.version_match_status, 'version match')} | ${formatStatus(quality.ref_sha_consistency_status, 'ref/sha consistency')} | ${formatStatus(quality.canvas_structure_status, 'canvas structure')} | ${formatStatus(quality.overall_status, 'overall')} | ${sourceCell} |`;
                 })

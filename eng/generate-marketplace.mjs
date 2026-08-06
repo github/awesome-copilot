@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
@@ -64,7 +65,7 @@ function collectLocalPluginsFromRoot(rootDir, sourcePrefix, includeEntry = () =>
 /**
  * Generate marketplace.json from plugin directories
  */
-function generateMarketplace() {
+export function generateMarketplace() {
   console.log("Generating marketplace.json...");
 
   if (!fs.existsSync(PLUGINS_DIR)) {
@@ -126,5 +127,6 @@ function generateMarketplace() {
   console.log(`  Location: ${MARKETPLACE_FILE}`);
 }
 
-// Run the script
-generateMarketplace();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  generateMarketplace();
+}

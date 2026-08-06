@@ -7,6 +7,7 @@ import { Writable } from "stream";
 import { spawnSync } from "child_process";
 import { runLint, LintConsoleReporter } from "@microsoft/vally";
 import { evaluateRefShaConsistency, normalizeCommitSha } from "./lib/external-plugin-source-ref-sha.mjs";
+import { validateAgentPluginManifest } from "./agent-plugin-schema.mjs";
 
 const MAX_OUTPUT_LENGTH = 12000;
 const AGENT_PLUGIN_SCHEMA_URL = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
@@ -22,7 +23,7 @@ const AGENT_PLUGIN_ALLOWED_TOP_LEVEL_FIELDS = new Set([
   "keywords",
   "extensions",
 ]);
-const AGENT_PLUGIN_NAME_PATTERN = /^(?!.*(?:--|\\.\\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/;
+const AGENT_PLUGIN_NAME_PATTERN = /^(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/;
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
 
 const INFRA_ERROR_PATTERNS = [
@@ -183,7 +184,11 @@ function findPluginJson(pluginRoot) {
       return candidate;
     }
 
-    function inspectAgentPluginSpecCompliance(pluginRoot) {
+  }
+  return null;
+}
+
+function inspectAgentPluginSpecCompliance(pluginRoot) {
       const pluginJsonPath = findPluginJson(pluginRoot);
       if (!pluginJsonPath) {
         return {
@@ -276,6 +281,10 @@ function findPluginJson(pluginRoot) {
         }
       }
 
+      if (manifest && typeof manifest === "object" && !Array.isArray(manifest)) {
+        issues.push(...validateAgentPluginManifest(manifest).map((error) => `schema validation: ${error}`));
+      }
+
       if (issues.length === 0) {
         return {
           status: "pass",
@@ -290,9 +299,6 @@ function findPluginJson(pluginRoot) {
           ...issues.map((issue) => `- ${issue}`),
         ].join("\n"),
       };
-    }
-  }
-  return null;
 }
 
 function buildVallyLintArgs(pluginRoot) {

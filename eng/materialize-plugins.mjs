@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
@@ -72,7 +73,7 @@ function readExtensionReferences(metadata, pluginName) {
   return [...names].sort();
 }
 
-function materializePlugins() {
+export function materializePlugins() {
   console.log("Materializing plugin files...\n");
 
   if (!fs.existsSync(PLUGINS_DIR)) {
@@ -202,4 +203,6 @@ function materializePlugins() {
   }
 }
 
-materializePlugins();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  materializePlugins();
+}

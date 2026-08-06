@@ -5,11 +5,12 @@ import path from "path";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
 import { validateLicenseField } from "./lib/license.mjs";
+import { AGENT_PLUGIN_SCHEMA_URL, validateAgentPluginManifest } from "./agent-plugin-schema.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 
-const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
+const AGENT_PLUGINS_SCHEMA = AGENT_PLUGIN_SCHEMA_URL;
 const COPILOT_NAMESPACE = "com.github.copilot";
 const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
 
@@ -23,7 +24,7 @@ function validateName(name, folderName) {
   if (name.length < 1 || name.length > 64) {
     errors.push("name must be between 1 and 64 characters");
   }
-  if (!/^[a-z0-9][a-z0-9.-]*[a-z0-9]$|^[a-z0-9]$/.test(name)) {
+  if (!/^(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(name)) {
     errors.push("name must contain only lowercase letters, numbers, hyphens, and dots (spec §5.5)");
   }
   if (name !== folderName) {
@@ -36,7 +37,8 @@ function validateSchema(parsed) {
   if (parsed["$schema"] !== AGENT_PLUGINS_SCHEMA) {
     return `$schema must be "${AGENT_PLUGINS_SCHEMA}"`;
   }
-  return null;
+  const schemaErrors = validateAgentPluginManifest(parsed);
+  return schemaErrors.length ? `manifest does not conform to Agent Plugins schema: ${schemaErrors.join("; ")}` : null;
 }
 
 function validateDescription(description) {
@@ -118,7 +120,7 @@ function validateSpecPaths(plugin) {
   const specs = {
     agents: { prefix: "./agents/", suffix: ".md", repoDir: "agents", repoSuffix: ".agent.md" },
     commands: { prefix: "./commands/", suffix: ".md", repoDir: "commands", repoSuffix: ".md" },
-    hooks: { prefix: "./hooks/", suffix: ".md", repoDir: "hooks", repoSuffix: ".md" },
+    hooks: { prefix: "./hooks/", suffix: "/", repoDir: "hooks", repoFile: "README.md" },
     skills: { prefix: "./skills/", suffix: "/", repoDir: "skills", repoFile: "SKILL.md" },
   };
 
@@ -131,6 +133,9 @@ function validateSpecPaths(plugin) {
     }
     if (!arraysEqual(arr, sortPluginEntries(arr))) {
       errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field} must be sorted alphabetically`);
+    }
+    if (new Set(arr).size !== arr.length) {
+      errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field} must not contain duplicate references`);
     }
     for (let i = 0; i < arr.length; i++) {
       const p = arr[i];
@@ -159,9 +164,13 @@ function validateSpecPaths(plugin) {
           errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] source not found: ${spec.repoDir}/${basename}/SKILL.md`);
         }
       } else {
-        const srcFile = path.join(ROOT_FOLDER, spec.repoDir, basename + spec.repoSuffix);
+        const srcFile = spec.repoFile
+          ? path.join(ROOT_FOLDER, spec.repoDir, basename, spec.repoFile)
+          : path.join(ROOT_FOLDER, spec.repoDir, basename + spec.repoSuffix);
         if (!fs.existsSync(srcFile)) {
-          errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] source not found: ${spec.repoDir}/${basename}${spec.repoSuffix}`);
+          errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] source not found`);
+        } else if (field === "hooks" && !fs.existsSync(path.join(ROOT_FOLDER, spec.repoDir, basename, "hooks.json"))) {
+          errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] source not found: ${spec.repoDir}/${basename}/hooks.json`);
         }
       }
     }
@@ -181,6 +190,9 @@ function validateExtensionReferences(plugin, pluginDir) {
   }
   if (!arraysEqual(directories, sortPluginEntries(directories))) {
     errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions entries must be sorted alphabetically`);
+  }
+  if (new Set(directories).size !== directories.length) {
+    errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions must not contain duplicate references`);
   }
 
   for (const [index, directory] of directories.entries()) {
@@ -243,7 +255,7 @@ function validatePlugin(folderName) {
 
   // Rule 2: Must have README.md
   const readmePath = path.join(pluginDir, "README.md");
-  if (!fs.existsSync(readmePath) && !isExtensionPlugin) {
+  if (!fs.existsSync(readmePath)) {
     errors.push("missing required file: README.md");
   }
 
