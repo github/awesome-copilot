@@ -34,6 +34,8 @@ Standard RAG re-discovers knowledge from scratch on every query. This skill is d
 
 ## ⚡ Quick Start for Agents
 
+A complete runnable version of this workflow is in `scripts/template_agent_workflow.py` — copy and adapt it.
+
 ```python
 from scripts.contextgraph import ContextGraphSkill
 from scripts.tools import wiki_store
