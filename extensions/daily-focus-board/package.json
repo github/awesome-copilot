@@ -1,0 +1,18 @@
+{
+  "name": "daily-focus-board",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "A warm, executive-function-friendly daily focus board rendered in a GHCP canvas and backed by a JSON file your AI partner can read and write. Tasks (to-do -> in progress -> done) with progress notes, numeric counters, Focus mode, kind carryover, a brain-dump box, reduced motion, and a live clock.",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "keywords": [
+    "focus",
+    "daily-planner",
+    "executive-function",
+    "adhd-friendly",
+    "productivity",
+    "canvas"
+  ]
+}

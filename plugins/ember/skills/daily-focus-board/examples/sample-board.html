@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Today · let's go 🔥</title>
+<!--
+  SKILL: daily-focus-board (Ember) — executive-function-friendly daily board.
+  Personalize by setting window.__BOARD__ below to a config object:
+    { name:"Alex", dateKey:"2026-07-27",
+      mantra:"Small, real, done — one block at a time.",  // optional: today's intention
+      checkin:"above",                                    // optional: "below" | "mid" | "above"
+      tasks:[
+        { id:"pages", emoji:"📖", title:"Read 30 pages",
+          goal:30, start:0, inc:5, unit:"pages", tag:"mind", tagc:"new" },
+        { id:"doc", emoji:"⚙️", title:"Finish the design doc",
+          sub:"the anchor", due:"2026-07-27T17:00", tag:"deadline", tagc:"deadline" },
+        { id:"read", emoji:"📖", title:"Read a chapter", tag:"mind" } ] }
+  - numeric `goal` → counter card (progress bar). otherwise a status card
+    (to-do → in progress → done) with progress notes.
+  - optional `due` (ISO local datetime) → gentle live countdown, never red-shaming.
+  - optional `mantra` / `checkin` → today's intention + an above/below-the-line arrival
+    check-in (both editable on the board; the partner can also set them from your chat).
+  Built-in features (no config needed): a "how are you arriving?" check-in + daily mantra,
+  ➕ add-a-task, Focus mode (dim all but one), "not today" kind carryover, a 🧠 brain-dump
+  capture box, a reduced-motion toggle, and always-visible time. State persists in localStorage.
+-->
+<script>window.__BOARD__ = {
+  name:"Sam",checkin:"above",mantra:"Small, real, done — one block at a time.",
+  tasks:[
+    {id:"ship",emoji:"🚀",title:"Ship the release notes",sub:"the anchor",due:new Date(Date.now()+2*3600e3).toISOString(),tag:"deadline",tagc:"deadline",quad:"iu"},
+    {id:"pages",emoji:"📖",title:"Read 30 pages",goal:30,start:8,inc:5,unit:"pages",tag:"mind",tagc:"new",quad:"ins"},
+    {id:"pom",emoji:"🍅",title:"4 focus pomodoros",goal:4,start:1,inc:1,unit:"pomodoros",tag:"focus",quad:"ins"},
+    {id:"inbox",emoji:"📧",title:"Inbox to zero",quad:"niu"}
+  ]
+};</script>
+<style>
+  :root{--bg:#0f1117;--card:#191d29;--line:#2b3150;--ink:#eef1fa;--sub:#98a2bd;
+    --ember:#ff7a3c;--ember2:#ffb23c;--good:#37d39a;--urgent:#ff5d73;}
+  *{box-sizing:border-box} html,body{margin:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+    background:radial-gradient(1100px 560px at 82% -12%,#34204a 0%,var(--bg) 55%);
+    color:var(--ink);min-height:100vh;padding:34px 18px 90px;}
+  body.rm *{transition:none!important;animation:none!important}
+  .wrap{max-width:800px;margin:0 auto}
+  header{display:flex;align-items:flex-start;gap:22px;margin-bottom:4px}
+  .ring{width:98px;height:98px;flex:none;border-radius:50%;position:relative;background:conic-gradient(var(--ember) 0deg,var(--line) 0deg)}
+  .ring b{position:absolute;inset:12px;border-radius:50%;background:#12141c;display:grid;place-items:center;font-size:22px;font-weight:800}
+  h1{font-size:27px;margin:0 0 3px}
+  .date{color:var(--sub);font-size:14px;margin:0}
+  .date .clock{color:var(--ember2);font-variant-numeric:tabular-nums;font-weight:600}
+  .tally{color:var(--ember2);font-size:13.5px;margin:6px 0 0;font-weight:600}
+  .spark{color:var(--sub);font-size:13.5px;margin:8px 0 0;min-height:18px;font-style:italic}
+  .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .chip{font-size:12px;padding:5px 11px;border-radius:999px;background:#232a42;border:1px solid var(--line);color:#aab4d6;cursor:pointer;user-select:none}
+  .chip:hover{border-color:var(--ember)}
+  .chip.on{background:#3a2f18;border-color:#5c471f;color:#ffce7a}
+  .focusbar{display:none;align-items:center;gap:10px;margin:16px 0 0;padding:10px 14px;background:#20182c;border:1px solid #4a3a6b;border-radius:12px;font-size:14px}
+  body.focusing .focusbar{display:flex}
+  .focusbar .x{margin-left:auto;color:#c3a9ff;cursor:pointer;font-weight:600}
+  .cards{margin-top:16px;display:flex;flex-direction:column;gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;transition:border-color .2s,background .2s,opacity .2s}
+  .card.done{background:#141826;border-color:#243a30}
+  .card.doing{border-color:#4a3a1e}
+  body.focusing .card{opacity:.24;filter:saturate(.5)}
+  body.focusing .card.focused{opacity:1;filter:none;border-color:#6b52a0}
+  .card.carried{opacity:.5}
+  .top{display:flex;align-items:center;gap:14px}
+  .box{width:30px;height:30px;flex:none;border-radius:9px;border:2px solid #3b4472;display:grid;place-items:center;font-size:16px;color:#12141c;cursor:pointer;transition:.2s;user-select:none}
+  .box.doing{background:var(--ember2);border-color:var(--ember2)}
+  .box.done{background:var(--good);border-color:var(--good)}
+  .emoji{font-size:22px;flex:none;width:26px;text-align:center}
+  .body{flex:1;min-width:0}
+  .title{font-size:16px;font-weight:600}
+  .card.done .title{color:var(--sub)}
+  .sub{font-size:12.5px;color:var(--sub);margin-top:2px}
+  .due{font-size:11.5px;margin-top:3px;color:var(--ember2);font-weight:600}
+  .due.over{color:#ffab6b}
+  .due.done{color:var(--good)}
+  .pill{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:4px 9px;border-radius:999px;cursor:pointer;flex:none;user-select:none;border:1px solid transparent}
+  .pill.todo{background:#232a42;color:#aab4d6}
+  .pill.doing{background:#3a2f18;color:#ffce7a;border-color:#5c471f}
+  .pill.done{background:#16311f;color:#7fe3bb;border-color:#204d33}
+  .pill.carried{background:#241f30;color:#b9a6dd;border-color:#3d2f57}
+  .fbtn{background:none;border:none;color:#6b7599;cursor:pointer;font-size:15px;flex:none;padding:2px}
+  .fbtn:hover{color:#c3a9ff}
+  .tag{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:#232a42;color:#8b96b8;flex:none}
+  .tag.deadline{background:#3a1d26;color:#ff9caa}
+  .tag.new{background:#22322c;color:#7fe3bb}
+  .tag.career{background:#2c2540;color:#c3a9ff}
+  .cardfoot{margin:9px 0 0 44px;display:flex;align-items:center;gap:12px}
+  .soft{font-size:11.5px;color:var(--sub);cursor:pointer;background:none;border:none;padding:0}
+  .soft:hover{color:var(--ember2)}
+  .notes{margin:11px 0 0 44px;display:flex;flex-direction:column;gap:6px}
+  .note{display:flex;align-items:flex-start;gap:8px;font-size:13px;background:#12141c;border:1px solid var(--line);border-radius:9px;padding:6px 10px}
+  .note .nt{color:var(--ember2);font-variant-numeric:tabular-nums;font-size:11.5px;flex:none;padding-top:1px}
+  .note .nx{margin-left:auto;color:#556079;cursor:pointer;flex:none;font-size:14px;line-height:1}
+  .note .nx:hover{color:var(--urgent)}
+  .addrow{margin:9px 0 0 44px;display:flex;gap:7px}
+  .addrow input{flex:1;background:#12141c;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:7px 10px;font-size:13px}
+  .addrow input::placeholder{color:#566079}
+  .addrow input:focus{outline:none;border-color:var(--ember)}
+  .addrow button{background:#232a42;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:0 13px;cursor:pointer;font-size:15px}
+  .addrow button:hover{border-color:var(--ember);color:var(--ember2)}
+  .bar{height:12px;border-radius:999px;background:#232a42;overflow:hidden;margin:12px 0 0 0}
+  .fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--ember),var(--ember2));transition:width .7s cubic-bezier(.2,.8,.2,1)}
+  .stepctl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);margin-top:10px}
+  .stepctl input{width:92px;background:#12141c;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 8px;font-size:14px}
+  .stepctl button{background:#232a42;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px}
+  .stepctl button:hover{border-color:var(--ember)}
+  .panel{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .panel h2{font-size:16px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+  .panel .hint{color:var(--sub);font-size:12px;margin:0 0 12px}
+  .chips{display:flex;flex-direction:column;gap:8px}
+  .fitem{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;padding:8px 11px;background:#12141c;border:1px solid var(--line);border-radius:10px;border-left:3px solid var(--ember)}
+  .fitem.think{border-left-color:#c3a9ff}
+  .fitem .ft{color:var(--ember2);font-variant-numeric:tabular-nums;font-size:11.5px;flex:none;padding-top:1px;min-width:52px}
+  .fitem .fx{margin-left:auto;color:#556079;cursor:pointer;flex:none}
+  .fitem .fx:hover{color:var(--urgent)}
+  .empty{color:var(--sub);font-size:13px;font-style:italic;padding:6px 2px}
+  .foot{text-align:center;color:var(--sub);font-size:12px;margin-top:24px}
+  #cc{position:fixed;inset:0;pointer-events:none;z-index:50}
+  .checkin{margin:16px 0 0;padding:12px 14px;background:#161a26;border:1px solid var(--line);border-radius:14px}
+  .ci-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ci-label{color:var(--sub);font-size:13px;margin-right:2px}
+  .ci-opt{font-size:13px;padding:5px 12px;border-radius:999px;background:#232a42;border:1px solid var(--line);color:#aab4d6;cursor:pointer;user-select:none}
+  .ci-opt:hover{border-color:var(--ember)}
+  .ci-opt.on{background:#20182c;border-color:#6b52a0;color:#d9c7ff}
+  .ci-hint{color:var(--sub);font-size:12.5px;margin:8px 0 0;font-style:italic;min-height:16px}
+  .mantra{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .mantra-tag{font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ember2);flex:none}
+  .mantra-in{flex:1;min-width:0;background:transparent;border:none;border-bottom:1px dashed #3b4472;color:var(--ink);font-size:15.5px;font-style:italic;font-weight:600;padding:4px 2px}
+  .mantra-in:focus{outline:none;border-bottom-color:var(--ember)}
+  .mantra-in::placeholder{color:#5b6480;font-weight:400}
+  .mantra-btn{flex:none;background:#232a42;border:1px solid var(--line);color:#aab4d6;border-radius:9px;cursor:pointer;font-size:14px;padding:5px 9px}
+  .mantra-btn:hover{border-color:var(--ember)}
+  .addtask{margin-top:12px}
+  .addtask-toggle{background:#191d29;border:1px dashed #3b4472;color:var(--sub);border-radius:12px;padding:10px 14px;width:100%;cursor:pointer;font-size:14px;text-align:left}
+  .addtask-toggle:hover{border-color:var(--ember);color:var(--ink)}
+  .addtask-form{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .addtask-form #ntitle,.addtask-form #nunit{background:#12141c;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px;font-size:14px}
+  .addtask-form #ntitle{flex:1;min-width:160px}
+  .addtask-count{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:13px;cursor:pointer}
+  .ncount-fields{align-items:center;gap:6px}
+  .ncount-fields input{width:96px;background:#12141c;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px;font-size:14px}
+  .addtask-form #naddbtn{background:var(--ember);border:none;color:#12141c;font-weight:700;border-radius:8px;padding:8px 14px;cursor:pointer}
+  .rmbtn{flex:none;background:none;border:none;color:#556079;cursor:pointer;font-size:14px;padding:2px}
+  .rmbtn:hover{color:var(--urgent)}
+  .overload{margin:16px 0 0;padding:11px 14px;background:#2a2213;border:1px solid #5c471f;border-radius:12px;color:#ffce7a;font-size:13.5px;line-height:1.5}
+  .prioline{display:flex;gap:8px;margin:14px 0 0;flex-wrap:wrap}
+  .legend{margin:10px 0 0;padding:12px 14px;background:#161a26;border:1px solid var(--line);border-radius:12px;font-size:13px;color:var(--sub);line-height:1.5}
+  .legend-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+  .qbadge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:3px 8px;border-radius:6px;flex:none;color:#12141c}
+  .qbadge.q-iu{background:var(--urgent)}
+  .qbadge.q-ins{background:#5aa9ff}
+  .qbadge.q-niu{background:var(--ember2)}
+  .qbadge.q-ninu{background:#8892b0}
+  .card.q-iu{border-left:4px solid var(--urgent)}
+  .card.q-ins{border-left:4px solid #5aa9ff}
+  .card.q-niu{border-left:4px solid var(--ember2)}
+  .card.q-ninu{border-left:4px solid #8892b0}
+  .card.dragover{border-color:var(--ember);box-shadow:0 0 0 2px rgba(255,122,60,.4)}
+  .cardmeta{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .grip{cursor:grab;color:#556079;font-size:15px;user-select:none;flex:none}
+  .grip:active{cursor:grabbing}
+  .quadsel{background:#12141c;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:5px 8px;font-size:12px}
+  .tagedit{flex:1;min-width:80px;max-width:170px;background:#12141c;border:1px solid var(--line);color:var(--sub);border-radius:999px;padding:4px 11px;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  .tagedit:focus{outline:none;border-color:var(--ember);color:var(--ink)}
+  #eoddownload{background:var(--ember);border:none;color:#12141c;font-weight:700;border-radius:9px;padding:8px 14px;cursor:pointer;font-size:14px}
+  button{font-family:inherit}
+  button.box{padding:0}
+  button.x,button.nx,button.fx,button.mv{background:none;border:none;padding:0;cursor:pointer;font-size:inherit;line-height:1}
+  .mv{color:#556079;font-size:11px;padding:0 1px}
+  .mv:hover{color:var(--ember)}
+  .tagedit.new{border-color:#2f6b4f;color:#8fe3bb}
+  .tagedit.deadline{border-color:#6b2f3f;color:#ff9fb0}
+  .tagedit.career{border-color:#4a3a6b;color:#c9b6ff}
+</style>
+</head>
+<body>
+<canvas id="cc"></canvas>
+<div class="wrap">
+  <header>
+    <div class="ring" id="ring"><b id="ringtxt">0/0</b></div>
+    <div style="flex:1">
+      <h1 id="h1">Let's go 🔥</h1>
+      <p class="date" id="date"></p>
+      <p class="tally" id="tally"></p>
+      <p class="spark" id="spark"></p>
+      <div class="controls">
+        <button type="button" class="chip" id="focuschip" aria-pressed="false">🎯 Focus mode</button>
+        <button type="button" class="chip" id="rmchip" aria-pressed="false">🌙 Reduce motion</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="checkin" id="checkin">
+    <div class="ci-row">
+      <span class="ci-label">Arriving today:</span>
+      <button type="button" class="ci-opt" data-checkin="below" aria-pressed="false">🌧️ below the line</button>
+      <button type="button" class="ci-opt" data-checkin="mid" aria-pressed="false">⛅ in between</button>
+      <button type="button" class="ci-opt" data-checkin="above" aria-pressed="false">☀️ above the line</button>
+    </div>
+    <p class="ci-hint" id="checkinhint">Just notice where you're arriving — no wrong answer.</p>
+    <div class="mantra">
+      <span class="mantra-tag">today's mantra</span>
+      <input id="mantrain" class="mantra-in" placeholder="set a mantra for today — or tap 🔄, or ask Ember for one"/>
+      <button id="mantrasuggest" class="mantra-btn" title="suggest a mantra" aria-label="suggest a mantra">🔄</button>
+    </div>
+  </div>
+
+  <div class="focusbar" id="focusbar"><span id="focustxt"></span><button type="button" class="x" id="focusexit">show all ✕</button></div>
+
+  <div class="overload" id="overload" style="display:none"></div>
+
+  <div class="prioline">
+    <button type="button" class="chip" id="prioguide" aria-expanded="false">🧭 priority guide</button>
+    <button type="button" class="chip" id="priosort">⬍ sort by priority</button>
+  </div>
+  <div class="legend" id="legend" style="display:none">
+    <div class="legend-row"><span class="qbadge q-iu">Do first</span> important &amp; urgent — do it now.</div>
+    <div class="legend-row"><span class="qbadge q-ins">Schedule</span> important, not urgent — plan a time. (The good, non-frantic work lives here.)</div>
+    <div class="legend-row"><span class="qbadge q-niu">Delegate</span> urgent, not important — hand it off, automate, or shrink it.</div>
+    <div class="legend-row"><span class="qbadge q-ninu">Later</span> not urgent, not important — park it, or kindly let it go.</div>
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="addtask" id="addtask">
+    <button class="addtask-toggle" id="addtaskbtn">➕ add a task</button>
+    <div class="addtask-form" id="addtaskform" style="display:none">
+      <input id="ntitle" placeholder="what needs doing?"/>
+      <label class="addtask-count"><input type="checkbox" id="niscount"/> count toward a number</label>
+      <span id="ncountfields" class="ncount-fields" style="display:none"><input type="number" id="ngoal" min="1" step="1" placeholder="goal"/><input id="nunit" placeholder="unit (pages, reps…)"/></span>
+      <button id="naddbtn">add</button>
+      <button id="ncancel" class="soft">cancel</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>🧠 Parked thoughts</h2>
+    <p class="hint">Something pulling at your attention? Park it here so it's out of your head — deal with it later, not now.</p>
+    <div class="addrow" style="margin-left:0"><input id="brainin" placeholder="get it out of your head…"/><button id="brainbtn" title="park it" aria-label="park this thought">＋</button></div>
+    <div class="chips" id="brain" style="margin-top:12px"></div>
+  </div>
+
+  <div class="panel">
+    <h2>🔥 Today's momentum</h2>
+    <p class="hint">Every step you log lands here, newest first. Starting counts. Small wins count.</p>
+    <div class="addrow" style="margin-left:0"><input id="dayin" placeholder="log a win / milestone for the day…"/><button id="daybtn" title="add" aria-label="log a win for the day">＋</button></div>
+    <div class="chips" id="feed" style="margin-top:12px"></div>
+  </div>
+
+  <div class="panel">
+    <h2>🌙 End of day</h2>
+    <p class="hint">Save the day's progress — keep the recap, or paste it to Ember to journal today and plan tomorrow.</p>
+    <div class="addrow" style="margin-left:0">
+      <button id="eoddownload">💾 download recap</button>
+      <button id="eodcopy" class="soft">📋 copy to share with Ember</button>
+    </div>
+    <p class="ci-hint" id="eodmsg" role="status" aria-live="polite"></p>
+  </div>
+
+  <p class="foot">progress saves automatically in this browser · 🔥 built with Ember</p>
+</div>
+<script>
+const DEMO={name:"",mantra:"",checkin:null,tasks:[
+  {id:"pages",emoji:"📖",title:"Read 30 pages",goal:30,start:0,inc:5,unit:"pages",tag:"mind",tagc:"new"},
+  {id:"deep",emoji:"⚙️",title:"Two hours of deep work",sub:"the thing that moves the needle",due:new Date(Date.now()+3*3600e3).toISOString(),tag:"anchor",tagc:"deadline"},
+  {id:"move",emoji:"🌿",title:"Move a little — whatever fits your body",tag:"body"}]};
+const CFG=(window.__BOARD__&&window.__BOARD__.tasks)?window.__BOARD__:DEMO;
+const NAME=CFG.name||""; const baseTasks=CFG.tasks||[]; let tasks=baseTasks.slice();
+const MANTRAS={
+  above:["Ride the momentum — one block at a time.","You're in it. Keep the thread.","Open, curious, moving.","Great start — let it carry you."],
+  mid:["Progress over perfect.","One thing at a time.","Small, real, done. Repeat.","Just the next step — that's enough."],
+  below:["Small and kind. Just the next tiny step.","You don't have to feel ready — start gently.","Lower the bar. Starting counts today.","Be gentle with yourself; one small thing."]
+};
+const sparks=["One block at a time.","Starting is the win. The rest follows.","You don't have to feel ready — just start the next one.","Small, real, done. Repeat.","Progress over perfect.","Pick one thing. Just one."];
+const KEY="focus-board-"+(CFG.dateKey||todayLocal());
+const raw=(()=>{try{return JSON.parse((window.localStorage&&localStorage.getItem(KEY))||"{}")||{};}catch(e){return {};}})();
+const prefersRM=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let state={counters:(raw.counters||{}),t:(raw.t||{}),day:(raw.day||[]),brain:(raw.brain||[]),focus:(raw.focus||null),rm:(raw.rm!==undefined?raw.rm:prefersRM),added:(raw.added||[]),checkin:(raw.checkin!==undefined?raw.checkin:(CFG.checkin||null)),mantra:(raw.mantra!==undefined?raw.mantra:(CFG.mantra||"")),order:(raw.order||[]),quad:(raw.quad||{}),tag:(raw.tag||{})};
+let dragId=null, renderedIds=[];
+function ensureTaskState(){tasks.forEach(t=>{ if(typeof t.goal==="number"){if(state.counters[t.id]===undefined)state.counters[t.id]=(t.start||0);}
+  else if(!state.t[t.id])state.t[t.id]={status:"todo",notes:[],carried:false}; else if(state.t[t.id].carried===undefined)state.t[t.id].carried=false; });}
+function rebuildTasks(){const seen={};tasks=baseTasks.concat(state.added||[]).filter(t=>{const id=t&&t.id;if(!validId(id)||seen[id])return false;seen[id]=1;return true;});ensureTaskState();if(state.focus&&!tasks.some(t=>t.id===state.focus))state.focus=null;}
+rebuildTasks();
+
+const cardsEl=document.getElementById("cards"),feedEl=document.getElementById("feed"),brainEl=document.getElementById("brain");
+document.getElementById("h1").textContent=NAME?`Let's go, ${NAME} 🔥`:"Let's go 🔥";
+document.getElementById("spark").textContent=sparks[Math.floor(Math.random()*sparks.length)];
+if(state.rm)document.body.classList.add("rm");
+document.getElementById("rmchip").classList.toggle("on",!!state.rm);document.getElementById("rmchip").setAttribute("aria-pressed",state.rm?"true":"false");
+document.getElementById("mantrain").value=state.mantra||"";
+document.getElementById("mantrain").addEventListener("input",e=>{state.mantra=e.target.value;save();});
+document.getElementById("mantrasuggest").onclick=()=>suggestMantra();
+document.querySelectorAll("[data-checkin]").forEach(b=>b.onclick=()=>setCheckin(b.dataset.checkin));
+renderCheckin();
+document.getElementById("addtaskbtn").onclick=()=>toggleAddForm();
+document.getElementById("ncancel").onclick=()=>toggleAddForm(false);
+document.getElementById("naddbtn").onclick=()=>addTask();
+document.getElementById("ntitle").addEventListener("keydown",e=>{if(e.key==="Enter")addTask();});
+document.getElementById("niscount").addEventListener("change",e=>{document.getElementById("ncountfields").style.display=e.target.checked?"inline-flex":"none";});
+document.getElementById("prioguide").onclick=()=>{const l=document.getElementById("legend");const vis=(l.style.display==="none"||!l.style.display);l.style.display=vis?"block":"none";document.getElementById("prioguide").setAttribute("aria-expanded",vis?"true":"false");};
+document.getElementById("priosort").onclick=()=>sortByPriority();
+document.getElementById("eoddownload").onclick=()=>downloadRecap();
+document.getElementById("eodcopy").onclick=()=>copyRecap();
+
+function save(){try{if(window.localStorage)localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function fmt(ms){return new Date(ms).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}).toLowerCase().replace(" ","");}
+function esc(s){return (s||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));}
+const LABEL={todo:"to do",doing:"in progress",done:"done"};
+function isCounter(t){return typeof t.goal==="number";}
+function statusOf(t){if(isCounter(t)){const v=state.counters[t.id];return v>=t.goal?"done":(v>0?"doing":"todo");}return state.t[t.id].status;}
+function carriedOf(t){return !isCounter(t)&&state.t[t.id].carried;}
+
+function dueStr(t){
+  if(!t.due)return null;
+  const ms=new Date(t.due).getTime()-Date.now();
+  if(statusOf(t)==="done")return {cls:"done",txt:"⏰ done — nice"};
+  if(ms<=0){const tm=Math.round(-ms/60e3),h=Math.floor(tm/60),m=tm%60;return {cls:"over",txt:`⏰ was due ${fmt(new Date(t.due))}${h||m?` · ${h?h+"h ":""}${m}m ago`:""} — still worth doing`};}
+  const tm=Math.round(ms/60e3),h=Math.floor(tm/60),m=tm%60;
+  return {cls:"",txt:`⏰ ${h?h+"h ":""}${m}m left (due ${fmt(new Date(t.due))})`};
+}
+
+function render(){
+  cardsEl.innerHTML="";
+  const ordered=[...tasks].sort((a,b)=>{const ca=carriedOf(a)?1:0,cb=carriedOf(b)?1:0;if(ca!==cb)return ca-cb;return orderIndex(a.id)-orderIndex(b.id);});
+  renderedIds=ordered.map(t=>t.id);
+  ordered.forEach(t=>{
+    const st=statusOf(t),carried=carriedOf(t);
+    const c=document.createElement("div");
+    const q=quadOf(t), tag=tagOf(t);
+    c.className="card "+st+(carried?" carried":"")+(state.focus===t.id?" focused":"")+(q?" q-"+q:"");
+    c.setAttribute("role","group");c.setAttribute("aria-label",t.title||"task");
+    c.dataset.cardid=t.id;
+    const dh=dueStr(t);
+    const rmHtml=t.added?`<button class="rmbtn" data-rmtask="${t.id}" title="remove this task" aria-label="remove ${escAttr(t.title)}">🗑</button>`:"";
+    const metaHtml=`<div class="cardmeta"><span class="grip" draggable="true" data-grip="${t.id}" title="drag to reorder">⠿</span><button type="button" class="mv" data-move="${t.id}:-1" title="move up" aria-label="move up">▲</button><button type="button" class="mv" data-move="${t.id}:1" title="move down" aria-label="move down">▼</button>`
+      +`<select class="quadsel" data-quad="${t.id}" aria-label="priority for ${escAttr(t.title)}"><option value=""${q===""?" selected":""}>priority…</option>`
+      +`<option value="iu"${q==="iu"?" selected":""}>🔴 Do first</option><option value="ins"${q==="ins"?" selected":""}>🔵 Schedule</option>`
+      +`<option value="niu"${q==="niu"?" selected":""}>🟡 Delegate</option><option value="ninu"${q==="ninu"?" selected":""}>⚪ Later</option></select>`
+      +`<input class="tagedit ${safeCls(t.tagc)}" data-tagedit="${t.id}" value="${escAttr(tag)}" placeholder="label" aria-label="label for ${escAttr(t.title)}"/></div>`;
+    if(isCounter(t)){
+      const v=state.counters[t.id],g=t.goal>0?t.goal:1,pct=Math.min(100,Math.round(v/g*100)),inc=t.inc||Math.max(1,Math.round(g/10)),unit=t.unit||"";
+      c.innerHTML=`<div class="top"><div class="emoji">${esc(t.emoji||"🎯")}</div>
+        <div class="body"><div class="title">${esc(t.title)}</div>
+          <div class="sub"><b style="color:var(--ink)">${v.toLocaleString()}</b> / ${t.goal.toLocaleString()} ${esc(unit)} · ${pct}%${st==="done"?" — done 🎉":""}</div>
+          ${dh?`<div class="due ${dh.cls}" data-duefor="${t.id}">${dh.txt}</div>`:""}</div>
+        <span class="pill ${st}">${LABEL[st]}</span>
+        <button class="fbtn" data-focus="${t.id}" title="focus on this" aria-label="focus on ${escAttr(t.title)}">🎯</button>${rmHtml}</div>
+        <div class="bar"><div class="fill" data-fill="${t.id}"></div></div>
+        <div class="stepctl">update: <input type="number" data-cin="${t.id}" value="${v}" min="0" step="1"/>
+          <button data-cset="${t.id}">set</button><button data-cinc="${t.id}">+${inc.toLocaleString()}</button></div>${metaHtml}`;
+      cardsEl.appendChild(c);
+      requestAnimationFrame(()=>{const f=cardsEl.querySelector(`[data-fill="${t.id}"]`);if(f)f.style.width=pct+"%";});
+    } else {
+      const o=state.t[t.id],notes=o.notes||[];
+      const pillCls=carried?"carried":st, pillTxt=carried?"→ tomorrow":LABEL[st];
+      c.innerHTML=`<div class="top">
+        <button type="button" class="box ${st}" data-cyc="${t.id}" aria-label="cycle status">${st==="done"?"✓":(st==="doing"?"…":"")}</button>
+        <div class="emoji">${esc(t.emoji||"•")}</div>
+        <div class="body"><div class="title">${esc(t.title)}</div>${t.sub?`<div class="sub">${esc(t.sub)}</div>`:""}${dh?`<div class="due ${dh.cls}" data-duefor="${t.id}">${dh.txt}</div>`:""}</div>
+        <button type="button" class="pill ${pillCls}" data-cyc="${t.id}">${pillTxt}</button>
+        <button class="fbtn" data-focus="${t.id}" title="focus on this" aria-label="focus on ${escAttr(t.title)}">🎯</button>${rmHtml}</div>
+        ${notes.length?`<div class="notes">${notes.map((n,i)=>`<div class="note"><span class="nt">${fmt(n.t)}</span><span>${esc(n.txt)}</span><button type="button" class="nx" data-del="${t.id}:${i}" aria-label="delete note">×</button></div>`).join("")}</div>`:""}
+        <div class="cardfoot">${st!=="done"?`<button class="soft" data-carry="${t.id}">${carried?"↩ bring back to today":"⤳ not today"}</button>`:""}</div>
+        <div class="addrow"><input placeholder="log a step…" data-in="${t.id}"/><button data-add="${t.id}" title="add note" aria-label="add a note to ${escAttr(t.title)}">＋</button></div>${metaHtml}`;
+      cardsEl.appendChild(c);
+    }
+  });
+  cardsEl.querySelectorAll("[data-cyc]").forEach(el=>el.onclick=()=>cycle(el.dataset.cyc));
+  cardsEl.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{const inp=cardsEl.querySelector(`[data-in="${b.dataset.add}"]`);addNote(b.dataset.add,inp.value);});
+  cardsEl.querySelectorAll("[data-in]").forEach(inp=>inp.addEventListener("keydown",e=>{if(e.key==="Enter")addNote(inp.dataset.in,inp.value);}));
+  cardsEl.querySelectorAll("[data-del]").forEach(x=>x.onclick=()=>{const[id,i]=x.dataset.del.split(":");state.t[id].notes.splice(+i,1);save();render();});
+  cardsEl.querySelectorAll("[data-cset]").forEach(b=>b.onclick=()=>{const inp=cardsEl.querySelector(`[data-cin="${b.dataset.cset}"]`);setCounter(b.dataset.cset,+inp.value);});
+  cardsEl.querySelectorAll("[data-cinc]").forEach(b=>b.onclick=()=>{const t=tasks.find(x=>x.id===b.dataset.cinc);setCounter(b.dataset.cinc,state.counters[b.dataset.cinc]+(t.inc||Math.max(1,Math.round(t.goal/10))));});
+  cardsEl.querySelectorAll("[data-focus]").forEach(b=>b.onclick=()=>setFocus(b.dataset.focus));
+  cardsEl.querySelectorAll("[data-carry]").forEach(b=>b.onclick=()=>toggleCarry(b.dataset.carry));
+  cardsEl.querySelectorAll("[data-rmtask]").forEach(b=>b.onclick=()=>removeTask(b.dataset.rmtask));
+  cardsEl.querySelectorAll("[data-quad]").forEach(s=>s.onchange=()=>setQuad(s.dataset.quad,s.value));
+  cardsEl.querySelectorAll("[data-tagedit]").forEach(i=>i.addEventListener("change",()=>setTag(i.dataset.tagedit,i.value)));
+  cardsEl.querySelectorAll(".card").forEach(c=>{c.addEventListener("dragover",e=>{e.preventDefault();c.classList.add("dragover");});c.addEventListener("dragleave",()=>c.classList.remove("dragover"));c.addEventListener("drop",e=>{e.preventDefault();c.classList.remove("dragover");if(dragId)reorder(dragId,c.dataset.cardid);});});
+  cardsEl.querySelectorAll("[data-grip]").forEach(g=>g.addEventListener("dragstart",e=>{dragId=g.dataset.grip;if(e.dataTransfer){e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",dragId);}}));
+  cardsEl.querySelectorAll("[data-move]").forEach(b=>b.onclick=()=>{const p=b.dataset.move.split(":");moveTask(p[0],+p[1]);});
+  renderBrain(); renderFeed(); updateRing(); updateFocusBar(); updateOverload(); tick();
+}
+function renderFeed(){
+  const items=[];
+  tasks.forEach(t=>{if(isCounter(t))return;(state.t[t.id].notes||[]).forEach((n,i)=>items.push({t:n.t,txt:n.txt,emoji:t.emoji||"•",src:t.id,idx:i}));});
+  state.day.forEach((n,i)=>items.push({t:n.t,txt:n.txt,emoji:"📌",src:"day",idx:i}));
+  items.sort((a,b)=>b.t-a.t);
+  if(!items.length){feedEl.innerHTML=`<div class="empty">No steps logged yet — starting counts. Log your first one 👆</div>`;return;}
+  feedEl.innerHTML=items.map(it=>`<div class="fitem"><span class="ft">${fmt(it.t)}</span><span>${esc(it.emoji)}</span><span>${esc(it.txt)}</span><button type="button" class="fx" data-fdel="${it.src}:${it.idx}" aria-label="delete">×</button></div>`).join("");
+  feedEl.querySelectorAll("[data-fdel]").forEach(x=>x.onclick=()=>{const[src,i]=x.dataset.fdel.split(":");if(src==="day")state.day.splice(+i,1);else state.t[src].notes.splice(+i,1);save();render();});
+}
+function renderBrain(){
+  if(!state.brain.length){brainEl.innerHTML=`<div class="empty">Nothing parked. When a stray thought hits, drop it here and keep going.</div>`;return;}
+  brainEl.innerHTML=state.brain.map((n,i)=>`<div class="fitem think"><span class="ft">${fmt(n.t)}</span><span>💭</span><span>${esc(n.txt)}</span><button type="button" class="fx" data-bdel="${i}" aria-label="delete">×</button></div>`).join("");
+  brainEl.querySelectorAll("[data-bdel]").forEach(x=>x.onclick=()=>{state.brain.splice(+x.dataset.bdel,1);save();render();});
+}
+function addNote(id,txt){txt=(txt||"").trim();if(!txt)return;state.t[id].notes.push({t:Date.now(),txt});if(state.t[id].status==="todo")state.t[id].status="doing";if(state.t[id].carried)state.t[id].carried=false;save();render();}
+function addDayNote(txt){txt=(txt||"").trim();if(!txt)return;state.day.unshift({t:Date.now(),txt});save();render();}
+function addBrain(txt){txt=(txt||"").trim();if(!txt)return;state.brain.unshift({t:Date.now(),txt});save();render();}
+document.getElementById("daybtn").onclick=()=>{const i=document.getElementById("dayin");addDayNote(i.value);i.value="";};
+document.getElementById("dayin").addEventListener("keydown",e=>{if(e.key==="Enter"){addDayNote(e.target.value);e.target.value="";}});
+document.getElementById("brainbtn").onclick=()=>{const i=document.getElementById("brainin");addBrain(i.value);i.value="";};
+document.getElementById("brainin").addEventListener("keydown",e=>{if(e.key==="Enter"){addBrain(e.target.value);e.target.value="";}});
+function cycle(id){const o=["todo","doing","done"],nx=o[(o.indexOf(state.t[id].status)+1)%3];state.t[id].status=nx;if(state.t[id].carried)state.t[id].carried=false;save();if(nx==="done"){burst(70);checkAll();}render();}
+function setCounter(id,v){v=Math.max(0,Math.round(v||0));const t=tasks.find(x=>x.id===id);const was=state.counters[id]>=t.goal;state.counters[id]=v;save();if(!was&&v>=t.goal){burst(160);checkAll();}render();}
+function toggleCarry(id){state.t[id].carried=!state.t[id].carried;save();render();}
+function setFocus(id){state.focus=(state.focus===id?null:id);save();render();}
+function setCheckin(v){state.checkin=(state.checkin===v?null:v);save();renderCheckin();if(state.checkin&&!(state.mantra||"").trim())suggestMantra();}
+function renderCheckin(){document.querySelectorAll("[data-checkin]").forEach(b=>{const on=b.dataset.checkin===state.checkin;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});const h=document.getElementById("checkinhint");const msg={below:"Below the line — and that's ok. Be gentle; shrink the first step.",mid:"Somewhere in between. Just noticing, no judgment.",above:"Above the line — open and ready. Ride it."};if(h)h.textContent=state.checkin?msg[state.checkin]:"Just notice where you're arriving — no wrong answer.";}
+function suggestMantra(){const zone=(state.checkin==="above"||state.checkin==="below")?state.checkin:"mid";const list=MANTRAS[zone]||MANTRAS.mid;setMantra(list[Math.floor(Math.random()*list.length)]);}
+function setMantra(m){state.mantra=m;const i=document.getElementById("mantrain");if(i)i.value=m;save();}
+function toggleAddForm(show){const f=document.getElementById("addtaskform"),b=document.getElementById("addtaskbtn");const on=(show===undefined)?(f.style.display==="none"||!f.style.display):show;f.style.display=on?"flex":"none";b.style.display=on?"none":"inline-flex";if(on)document.getElementById("ntitle").focus();}
+function addTask(){const ti=document.getElementById("ntitle"),gi=document.getElementById("ngoal"),ui=document.getElementById("nunit"),isc=document.getElementById("niscount");const title=(ti.value||"").trim();if(!title)return;const id="u"+Date.now().toString(36);const t={id,title,emoji:"📝",added:true};if(isc.checked&&+gi.value>0){t.goal=+gi.value;t.start=0;t.unit=(ui.value||"").trim();t.inc=Math.max(1,Math.round(+gi.value/10));}state.added.push(t);save();rebuildTasks();ti.value="";gi.value="";ui.value="";isc.checked=false;document.getElementById("ncountfields").style.display="none";toggleAddForm(false);render();}
+function removeTask(id){state.added=(state.added||[]).filter(x=>x.id!==id);delete state.t[id];delete state.counters[id];if(state.focus===id)state.focus=null;save();rebuildTasks();render();}
+function todayLocal(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function recapDate(){if(CFG.dateKey&&/^\d{4}-\d{2}-\d{2}$/.test(CFG.dateKey)){const p=CFG.dateKey.split("-");return new Date(+p[0],+p[1]-1,+p[2]);}return new Date();}
+function moveTask(id,dir){let ids=renderedIds.slice();const i=ids.indexOf(id);if(i<0)return;const j=i+dir;if(j<0||j>=ids.length)return;const tmp=ids[i];ids[i]=ids[j];ids[j]=tmp;state.order=ids;save();render();}
+function stopConfetti(){if(rafId!==null){cancelAnimationFrame(rafId);rafId=null;}parts=[];if(cx)cx.clearRect(0,0,cv.width,cv.height);}
+function orderIndex(id){const i=(state.order||[]).indexOf(id);return i<0?9999:i;}
+function quadOf(t){return state.quad[t.id]!==undefined?state.quad[t.id]:(t.quad||"");}
+function tagOf(t){return state.tag[t.id]!==undefined?state.tag[t.id]:(t.tag||"");}
+function setQuad(id,v){state.quad[id]=v;save();render();}
+function setTag(id,v){state.tag[id]=v;save();render();}
+function escAttr(s){return esc(s).replace(/"/g,"&quot;");}
+function safeCls(s){return (s||"").replace(/[^a-zA-Z0-9_-]/g,"");}
+function validId(id){return typeof id==="string"&&/^[A-Za-z0-9_-]+$/.test(id);}
+function reorder(from,targetId){if(!from||from===targetId)return;let ids=renderedIds.slice();const fromI=ids.indexOf(from),tgtI=ids.indexOf(targetId);if(fromI<0||tgtI<0)return;ids.splice(fromI,1);let ins=ids.indexOf(targetId);if(fromI<tgtI)ins+=1;ids.splice(ins,0,from);state.order=ids;save();render();}
+function sortByPriority(){const rank={iu:0,ins:1,niu:2,ninu:3,"":4};const ids=[...tasks].sort((a,b)=>{const ca=carriedOf(a)?1:0,cb=carriedOf(b)?1:0;if(ca!==cb)return ca-cb;const ra=(rank[quadOf(a)]===undefined?4:rank[quadOf(a)]),rb=(rank[quadOf(b)]===undefined?4:rank[quadOf(b)]);if(ra!==rb)return ra-rb;return orderIndex(a.id)-orderIndex(b.id);}).map(t=>t.id);state.order=ids;save();render();}
+function updateOverload(){const el=document.getElementById("overload");if(!el)return;const live=tasks.filter(t=>!carriedOf(t)&&statusOf(t)!=="done").length;if(live>9){el.style.display="block";el.textContent=`That's ${live} active tasks for today — more than a focus board loves. Consider carrying a few to tomorrow (⤳ not today), or use Focus mode to take one at a time. No pressure — this is a nudge, not a rule.`;}else{el.style.display="none";}}
+function dayRecap(){
+  const dstr=recapDate().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+  const zoneTxt={below:"below the line 🌧️",mid:"in between ⛅",above:"above the line ☀️"};
+  const L=[`# Focus board — ${dstr}`,""];
+  const head=[];if(state.checkin&&zoneTxt[state.checkin])head.push(`**Arrived:** ${zoneTxt[state.checkin]}`);if((state.mantra||"").trim())head.push(`**Mantra:** "${state.mantra.trim()}"`);
+  if(head.length)L.push(head.join("   ·   "),"");
+  const live=tasks.filter(t=>!carriedOf(t));
+  const done=live.filter(t=>statusOf(t)==="done"),doing=live.filter(t=>statusOf(t)==="doing"),todo=live.filter(t=>statusOf(t)==="todo"),carried=tasks.filter(t=>carriedOf(t));
+  const line=t=>{let extra="";if(isCounter(t))extra=` (${state.counters[t.id].toLocaleString()}/${t.goal.toLocaleString()}${t.unit?" "+t.unit:""})`;const lbl=tagOf(t)?`[${tagOf(t)}] `:"";return `- ${t.emoji||"•"} ${lbl}${t.title}${extra}`;};
+  L.push(`## Done (${done.length}/${live.length})`);done.length?done.forEach(t=>L.push(line(t))):L.push("- (nothing marked done — and starting still counts)");L.push("");
+  if(doing.length){L.push("## In progress");doing.forEach(t=>L.push(line(t)));L.push("");}
+  if(todo.length){L.push("## Still to do");todo.forEach(t=>L.push(line(t)));L.push("");}
+  if(carried.length){L.push("## Carried to tomorrow (a valid, healthy choice)");carried.forEach(t=>L.push(line(t)));L.push("");}
+  const feed=[];tasks.forEach(t=>{if(isCounter(t))return;(state.t[t.id].notes||[]).forEach(n=>feed.push({t:n.t,txt:n.txt,e:t.emoji||"•"}));});state.day.forEach(n=>feed.push({t:n.t,txt:n.txt,e:"📌"}));feed.sort((a,b)=>a.t-b.t);
+  if(feed.length){L.push("## Momentum");feed.forEach(f=>L.push(`- ${fmt(f.t)} — ${f.e} ${f.txt}`));L.push("");}
+  if((state.brain||[]).length){L.push("## Parked thoughts");state.brain.forEach(n=>L.push(`- 💭 ${n.txt}`));L.push("");}
+  L.push(`_saved ${fmt(Date.now())} · 🔥 built with Ember_`);
+  return L.join("\n");
+}
+function eodMsg(m){const el=document.getElementById("eodmsg");if(el)el.textContent=m;}
+function downloadRecap(){const md=dayRecap();try{const blob=new Blob([md],{type:"text/markdown"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="focus-"+(CFG.dateKey||todayLocal())+".md";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);eodMsg("saved a recap to your downloads 💾");}catch(e){eodMsg("couldn't auto-download here — use copy instead 📋");}}
+function fallbackCopy(md,cb){try{const ta=document.createElement("textarea");ta.value=md;document.body.appendChild(ta);ta.select();const ok=document.execCommand("copy");ta.remove();if(ok){cb&&cb();}else{eodMsg("couldn't copy here — try download 💾");}}catch(e){eodMsg("couldn't copy here — try download 💾");}}
+function copyRecap(){const md=dayRecap();const ok=()=>eodMsg("copied — paste it to Ember to journal your day 📋");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(md).then(ok,()=>fallbackCopy(md,ok));}else{fallbackCopy(md,ok);}}
+document.getElementById("focuschip").onclick=()=>{
+  if(state.focus){state.focus=null;}
+  else{const cand=tasks.find(t=>statusOf(t)==="doing"&&!carriedOf(t))||tasks.find(t=>statusOf(t)==="todo"&&!carriedOf(t))||tasks[0];state.focus=cand?cand.id:null;}
+  save();render();
+};
+document.getElementById("focusexit").onclick=()=>{state.focus=null;save();render();};
+document.getElementById("rmchip").onclick=()=>{state.rm=!state.rm;document.body.classList.toggle("rm",state.rm);document.getElementById("rmchip").classList.toggle("on",state.rm);document.getElementById("rmchip").setAttribute("aria-pressed",state.rm?"true":"false");if(state.rm)stopConfetti();save();};
+function checkAll(){const live=tasks.filter(t=>!carriedOf(t));if(live.length&&live.every(t=>statusOf(t)==="done"))setTimeout(()=>{burst(320);document.getElementById("spark").textContent="Everything you kept for today — done. 🔥";},250);}
+function updateFocusBar(){
+  document.body.classList.toggle("focusing",!!state.focus);
+  {const fc=document.getElementById("focuschip");if(fc)fc.setAttribute("aria-pressed",state.focus?"true":"false");}
+  if(state.focus){const t=tasks.find(x=>x.id===state.focus);document.getElementById("focustxt").innerHTML=`🎯 Just this one right now: <b>${esc(t?t.title:"")}</b>`;}
+}
+function updateRing(){
+  const live=tasks.filter(t=>!carriedOf(t));
+  const done=live.filter(t=>statusOf(t)==="done").length,doing=live.filter(t=>statusOf(t)==="doing").length,carried=tasks.length-live.length;
+  const n=live.length;
+  document.getElementById("ring").style.background=`conic-gradient(var(--ember) ${n?done/n*360:0}deg,var(--line) 0deg)`;
+  document.getElementById("ringtxt").textContent=done+"/"+n;
+  document.getElementById("tally").textContent=`${done} done · ${doing} in progress · ${n-done-doing} to go`+(carried?` · ${carried} for tomorrow`:"");
+}
+function tick(){
+  const now=new Date();
+  document.getElementById("date").innerHTML=now.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})+` · <span class="clock">${fmt(now.getTime())}</span>`;
+  tasks.forEach(t=>{const el=document.querySelector(`[data-duefor="${t.id}"]`);const dh=dueStr(t);if(el&&dh){el.className="due "+dh.cls;el.textContent=dh.txt;}});
+}
+setInterval(tick,30000);
+
+const cv=document.getElementById("cc"),cx=cv.getContext("2d");let parts=[];
+function size(){cv.width=innerWidth;cv.height=innerHeight;}addEventListener("resize",size);size();
+const COL=["#ff7a3c","#ffb23c","#37d39a","#c3a9ff","#ff5d73","#eef1fa"];
+let rafId=null;
+function burst(n){if(state.rm||!cx)return;for(let i=0;i<n;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*220,y:innerHeight*0.28,vx:(Math.random()-.5)*11,vy:Math.random()*-13-4,g:.42,life:70+Math.random()*40,c:COL[i%COL.length],s:5+Math.random()*6,rot:Math.random()*6});if(rafId===null)rafId=requestAnimationFrame(loop);}
+function loop(){if(!cx){rafId=null;return;}cx.clearRect(0,0,cv.width,cv.height);parts.forEach(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.life--;p.rot+=.2;cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*1.6);cx.restore();});parts=parts.filter(p=>p.life>0&&p.y<cv.height+40);rafId=parts.length?requestAnimationFrame(loop):null;}
+render();
+</script>
+</body>
+</html>
