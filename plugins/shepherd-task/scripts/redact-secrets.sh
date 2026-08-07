@@ -3,16 +3,13 @@
 # redact-secrets.sh — Redact secret-bearing fields from shepherd JSONL logs.
 #
 # Usage: ./redact-secrets.sh <log-directory>
-#   log-directory is relative to the current working directory and contains
-#   .json* files produced by shepherd-task.
+#        ./redact-secrets.sh -
+#   A directory contains .json* files produced by shepherd-task. With "-" the
+#   script reads JSONL from stdin and writes redacted JSONL to stdout.
 
 set -euo pipefail
 
-LOG_DIR="${1:?Usage: $0 <log-directory>}"
-if [[ ! -d "$LOG_DIR" ]]; then
-    echo "Log directory not found: $LOG_DIR" >&2
-    exit 1
-fi
+TARGET="${1:?Usage: $0 <log-directory>}"
 
 JQ_FILTER='
     def sensitive_key:
@@ -21,7 +18,8 @@ JQ_FILTER='
         test("(?i)^(content|encryptedContent|reasoningOpaque|arguments|result|error|prompt|toolRequests|userContent|assistantContent|toolCompleteResultContent)$");
     def scrub_string:
         gsub("(?i)bearer[[:space:]]+[A-Za-z0-9._~+/-]+"; "Bearer [REDACTED]")
-        | gsub("gh[opsu]_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]+"; "[REDACTED]");
+        | gsub("gh[opsu]_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]+"; "[REDACTED]")
+        | gsub("[A-Za-z0-9+/]{20,}[+/][A-Za-z0-9+/]{20,}={0,2}"; "[REDACTED]");
     def scrub:
         if type == "object" then
             with_entries(
@@ -62,6 +60,23 @@ redact_file() {
     mv "$temp" "$file"
     echo "Redacted $file"
 }
+
+if [[ "$TARGET" == "-" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        if [[ -z "$line" ]]; then
+            printf '\n'
+        else
+            printf '%s\n' "$line" | jq -c "$JQ_FILTER"
+        fi
+    done
+    exit 0
+fi
+
+LOG_DIR="$TARGET"
+if [[ ! -d "$LOG_DIR" ]]; then
+    echo "Log directory not found: $LOG_DIR" >&2
+    exit 1
+fi
 
 mapfile -d '' files < <(find "$LOG_DIR" -type f -name '*.json*' -print0)
 if [[ ${#files[@]} -eq 0 ]]; then

@@ -7,6 +7,7 @@
 # Usage: ./shepherd-task-interview-user-to-create-issues.sh
 
 set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 read_required() {
     local prompt="$1"
@@ -100,10 +101,15 @@ EOF
     printf 'prompt=$(cat "$prompt_file")\n'
     printf 'echo "[shepherd-task] Logging create-issues run to: $log_dir_full"\n'
     printf 'export COPILOT_OTEL_FILE_EXPORTER_PATH="$session_otel_path"\n'
-    printf 'printf '\''%%s'\'' "$prompt" | copilot --yolo --output-format json --share "$session_share_path" > "$session_json_path"\n'
-    printf 'copilot_exit=$?\n'
+    printf 'set +e\n'
+    printf 'printf '\''%%s'\'' "$prompt" | copilot --yolo --output-format json --share "$session_share_path" | "%s" - > "$session_json_path"\n' "$SCRIPT_DIR/redact-secrets.sh"
+    printf 'pipeline_status=("${PIPESTATUS[@]}")\n'
+    printf 'copilot_exit=${pipeline_status[0]}\n'
+    printf 'redact_exit=${pipeline_status[1]}\n'
+    printf 'set -e\n'
+    printf '"%s" "$log_dir_full" >/dev/null\n' "$SCRIPT_DIR/redact-secrets.sh"
     printf 'unset COPILOT_OTEL_FILE_EXPORTER_PATH\n'
-    printf 'if [[ $copilot_exit -ne 0 ]]; then echo "[shepherd-task] FAILED: copilot exited with code $copilot_exit" >&2; else echo "[shepherd-task] Create-issues session complete."; fi\n'
+    printf 'if [[ $copilot_exit -ne 0 || $redact_exit -ne 0 ]]; then echo "[shepherd-task] FAILED: copilot or redaction exited with code $copilot_exit/$redact_exit" >&2; else echo "[shepherd-task] Create-issues session complete."; fi\n'
 } > "$invocation_file"
 chmod +x "$invocation_file"
 

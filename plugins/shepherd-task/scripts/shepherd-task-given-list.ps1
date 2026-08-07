@@ -62,6 +62,26 @@ Write-Output "Logging shepherd task files to $logDirFull"
 
 $issues = $TaskIssues -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
 
+function Invoke-CopilotRedacted {
+    param([string]$Prompt, [string]$JsonPath, [string]$SharePath)
+
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "shepherd-redact-$([guid]::NewGuid().ToString('N'))"
+    New-Item -ItemType Directory -Path $tempDir | Out-Null
+    $rawJsonPath = Join-Path $tempDir 'session.json'
+    $rawSharePath = Join-Path $tempDir 'session.md'
+    try {
+        $Prompt | copilot --yolo --output-format json --share $rawSharePath > $rawJsonPath
+        $copilotExit = $LASTEXITCODE
+        if ($copilotExit -ne 0) { throw "copilot exited with code $copilotExit" }
+        & (Join-Path $scriptDir 'redact-secrets.ps1') $tempDir | Out-Null
+        Move-Item -LiteralPath $rawJsonPath -Destination $JsonPath -Force
+        Move-Item -LiteralPath $rawSharePath -Destination $SharePath -Force
+    }
+    finally {
+        Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Invoke-PostMortemSkill {
     param(
         [Parameter(Mandatory = $true)]
@@ -91,10 +111,8 @@ Write the report to:
 "@
 
         Write-Output "[shepherd-task] Generating post-mortem report at: $postMortemPath"
-        $prompt | copilot --yolo --output-format json --share $sessionSharePath > $sessionJsonPath
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning "[shepherd-task] Post-mortem skill invocation exited with code $LASTEXITCODE."
-        }
+        Invoke-CopilotRedacted -Prompt $prompt -JsonPath $sessionJsonPath -SharePath $sessionSharePath
+        & (Join-Path $scriptDir 'redact-secrets.ps1') $logDirFull | Out-Null
     }
     catch {
         Write-Warning "[shepherd-task] Post-mortem skill invocation failed: $($_.Exception.Message)"

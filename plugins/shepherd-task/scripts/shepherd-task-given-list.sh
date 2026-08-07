@@ -51,6 +51,20 @@ mkdir -p "$LOG_DIR"
 LOG_DIR_FULL="$(cd "$LOG_DIR" && pwd)"
 echo "Logging shepherd task files to $LOG_DIR_FULL"
 
+run_copilot_redacted() {
+    local output_file="$1"
+    shift
+    local copilot_exit redact_exit
+
+    set +e
+    copilot "$@" | "$SCRIPT_DIR/redact-secrets.sh" - >"$output_file"
+    local pipeline_status=("${PIPESTATUS[@]}")
+    copilot_exit=${pipeline_status[0]}
+    redact_exit=${pipeline_status[1]}
+    set -e
+    [[ $copilot_exit -eq 0 && $redact_exit -eq 0 ]]
+}
+
 IFS=',' read -ra ISSUES <<< "$TASK_ISSUES"
 
 invoke_post_mortem_on_exit() {
@@ -86,8 +100,12 @@ Write the report to:
 
     echo "[shepherd-task] Generating post-mortem report at: $post_mortem_path"
     set +e
-    printf '%s' "$prompt" | copilot --yolo --output-format json --share "$share_path" > "$json_path"
-    pm_exit=$?
+    if ! run_copilot_redacted "$json_path" --yolo --output-format json --share "$share_path" <<< "$prompt"; then
+        pm_exit=1
+    else
+        pm_exit=0
+    fi
+    "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR_FULL" >/dev/null
     set -e
 
     if [[ $pm_exit -ne 0 ]]; then

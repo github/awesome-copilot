@@ -148,8 +148,10 @@ User runs: shepherd-task-given-list.sh "1841,1842,1843" feature-branch owner/rep
 
 ### Redacting log files
 
-Before committing shepherd-task logs, redact secret-bearing fields from a log
-directory. Run the script from the directory containing the log directory:
+All JSON session output is redacted before it is written to the log directory,
+and the completed directory is scanned again so OTel JSONL artifacts are
+covered too. The scripts also support redacting an existing directory before
+committing it:
 
 ```bash
 ./redact-secrets.sh shepherd-tasks-20260803-1550
@@ -157,7 +159,10 @@ directory. Run the script from the directory containing the log directory:
 
 The Bash script requires `jq`; the PowerShell script uses built-in JSON
 support. Both scripts process `.json*` files recursively and replace
-credential fields and content-bearing event fields with `[REDACTED]`.
+credential fields, content-bearing event fields, and high-entropy
+base64-like values with `[REDACTED]`. Do not commit a log directory if a
+shepherd process was interrupted before its cleanup completed; run the
+redactor first and review the diff.
 
 ## Key design decisions
 
@@ -262,6 +267,5 @@ This system has been used in production on `github/copilot-sdk` to shepherd impl
 ---
 
 By submitting this pull request, I confirm that my contribution abides by the [Code of Conduct](../CODE_OF_CONDUCT.md) and will be licensed under the MIT License.
-
 
 

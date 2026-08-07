@@ -93,6 +93,7 @@ Set-Content -Path $outFile -Value $body -Encoding utf8NoBOM
 
 $escapedOutFile = $outFile.Replace("'", "''")
 $escapedLogDir = $logDirFull.Replace("'", "''")
+$redactorPath = (Join-Path $PSScriptRoot 'redact-secrets.ps1').Replace("'", "''")
 $command = @'
 $timestamp = '__TIMESTAMP__'
 $logDirFull = '__LOG_DIRECTORY__'
@@ -103,14 +104,25 @@ $sessionOtelPath = Join-Path $logDirFull "create-issues-otel-$timestamp.jsonl"
 $promptPath = '__PROMPT_PATH__'
 $prompt = Get-Content $promptPath -Raw
 Write-Output "[shepherd-task] Logging create-issues run to: $logDirFull"
+$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "shepherd-redact-$([guid]::NewGuid().ToString('N'))"
+New-Item -ItemType Directory -Path $tempDir | Out-Null
+$rawJsonPath = Join-Path $tempDir 'session.json'
+$rawSharePath = Join-Path $tempDir 'session.md'
 $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $sessionOtelPath
 $copilotExit = 0
 try {
-    $prompt | copilot --yolo --output-format json --share $sessionSharePath > $sessionJsonPath
+    $prompt | copilot --yolo --output-format json --share $rawSharePath > $rawJsonPath
     $copilotExit = $LASTEXITCODE
+    if ($copilotExit -eq 0) {
+        & '__REDACTOR_PATH__' $tempDir | Out-Null
+        Move-Item -LiteralPath $rawJsonPath -Destination $sessionJsonPath -Force
+        Move-Item -LiteralPath $rawSharePath -Destination $sessionSharePath -Force
+        & '__REDACTOR_PATH__' $logDirFull | Out-Null
+    }
 }
 finally {
     Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 if ($copilotExit -ne 0) {
     Write-Error "[shepherd-task] FAILED: copilot exited with code $copilotExit"
@@ -118,7 +130,7 @@ if ($copilotExit -ne 0) {
 else {
     Write-Output "[shepherd-task] Create-issues session complete."
 }
-'@.Replace('__TIMESTAMP__', $timestamp).Replace('__LOG_DIRECTORY__', $escapedLogDir).Replace('__PROMPT_PATH__', $escapedOutFile)
+'@.Replace('__TIMESTAMP__', $timestamp).Replace('__LOG_DIRECTORY__', $escapedLogDir).Replace('__PROMPT_PATH__', $escapedOutFile).Replace('__REDACTOR_PATH__', $redactorPath)
 
 Set-Content -Path $invocationFile -Value $command -Encoding utf8NoBOM
 
