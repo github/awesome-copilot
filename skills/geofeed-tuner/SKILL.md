@@ -157,7 +157,7 @@ The key requirements from RFC 8805 that this skill enforces are summarized below
 - Generate a **script** for this phase.
 - Do NOT combine this phase with others.
 - Do NOT precompute future-phase data.
-- Store the output as a JSON file at: [`./run/data/report-data.json`](./run/data/report-data.json)
+- Store the output as a JSON file at: `./run/data/report-data.json`
 
 #### Schema Definition
 
@@ -355,7 +355,7 @@ The goal is to ensure the file can be parsed reliably and normalized into a **co
     - Remove comment rows where the **first column begins with `#`**.
     - This also removes a header row if it begins with `#`.
     - Create a map of comments using the **1-based line number** as the key and the full original line as the value. Also store blank lines.
-    - Store this map in a JSON file at: [`./run/data/comments.json`](./run/data/comments.json)
+    - Store this map in a JSON file at: `./run/data/comments.json`
     - Example: `{ "4": "# It's OK for small city states to leave state ISO2 code unspecified" }`
 
 - **Notes**
@@ -543,7 +543,7 @@ Lookup all the `Entries` using Fastah's `rfc8805-row-place-search` tool.
 
 #### Step 1: Build Lookup Payload with Deduplication
 
-Load the dataset from: [./run/data/report-data.json](./run/data/report-data.json)
+Load the dataset from: `./run/data/report-data.json`
 - Read the `Entries` array. Each entry will be used to build the MCP lookup payload.
 
 Reduce server requests by deduplicating identical entries:
@@ -569,7 +569,7 @@ Build request batches:
 - When reading responses, match each response `rowKey` field to the corresponding deduplication entry to retrieve all associated `entryIndices`.
 
 Rules:
-- Write payload to: [./run/data/mcp-server-payload.json](./run/data/mcp-server-payload.json)
+- Write payload to: `./run/data/mcp-server-payload.json`
 - Exit the script after writing the payload.
 
 #### Step 2: Invoke Fastah MCP Tool
@@ -591,7 +591,7 @@ Rules:
       {"rowKey": "550e8400-...", "countryCode":"CA", ...},
       {"rowKey": "690e9301-...", "countryCode":"ZZ", ...}
   ]
-- Open [./run/data/mcp-server-payload.json](./run/data/mcp-server-payload.json) and send all deduplicated entries with their rowKeys.
+- Open `./run/data/mcp-server-payload.json` and send all deduplicated entries with their rowKeys.
 - If there are more than 1000 deduplicated entries after deduplication, split into multiple requests of 1000 entries each.
 - The server will respond with the same `rowKey` field in each response for mapping back.
 - Do NOT use local data.
@@ -599,7 +599,7 @@ Rules:
 #### Step 3: Attach Tuned Data to Entries
 
 - Generate a new **script** for attaching tuned data.
-- Load both [./run/data/report-data.json](./run/data/report-data.json) and the deduplication map (held in memory from Step 1, or re-derived from the payload file).
+- Load both `./run/data/report-data.json` and the deduplication map (held in memory from Step 1, or re-derived from the payload file).
 - For each response from the MCP server:
   - Extract the `rowKey` from the response.
   - Look up the `entryIndices` array associated with that `rowKey` from the deduplication map.
@@ -633,7 +633,7 @@ The `TunedEntry` field is a **single object** (not an array). It holds the best 
 
 Entries with no UUID match (i.e. the MCP server returned no response for their UUID) must receive an empty `TunedEntry: {}` object — never leave the field absent.
 
-- Write the dataset back to: [./run/data/report-data.json](./run/data/report-data.json)
+- Write the dataset back to: `./run/data/report-data.json`
 - Rules:
   - Maintain all existing validation flags.
   - Do NOT create additional intermediate files.
