@@ -24,6 +24,7 @@ Build evaluators for AI/LLM applications. Code first, LLM for nuance, validate a
 | Build code evaluator | [evaluators-code-python](references/evaluators-code-python.md), [evaluators-code-typescript](references/evaluators-code-typescript.md) |
 | Build LLM evaluator | [evaluators-llm-python](references/evaluators-llm-python.md), [evaluators-llm-typescript](references/evaluators-llm-typescript.md), [evaluators-custom-templates](references/evaluators-custom-templates.md) |
 | Batch evaluate DataFrame | [evaluate-dataframe-python](references/evaluate-dataframe-python.md) |
+| Understand experiments | [experiments-overview](references/experiments-overview.md) |
 | Run experiment | [experiments-running-python](references/experiments-running-python.md), [experiments-running-typescript](references/experiments-running-typescript.md) |
 | Create dataset | [experiments-datasets-python](references/experiments-datasets-python.md), [experiments-datasets-typescript](references/experiments-datasets-typescript.md) |
 | Generate synthetic data | [experiments-synthetic-python](references/experiments-synthetic-python.md), [experiments-synthetic-typescript](references/experiments-synthetic-typescript.md) |

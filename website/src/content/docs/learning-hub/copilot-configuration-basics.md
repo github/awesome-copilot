@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-04
+lastUpdated: 2026-08-06
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -517,13 +517,13 @@ You can also press **x** on a highlighted session in the session picker (`--resu
 
 In the session picker, press **`s`** to cycle the sort order: relevance, last used, created, or name. The picker also shows the branch name and idle/in-use status for each session.
 
-**Sessions Sidebar** *(v1.0.76+, experimental)*: The Sessions Sidebar is a persistent panel for managing multiple concurrent sessions — switch between them, spawn new ones, and see their status at a glance, all without leaving your current session. Enable it with `/experimental on`, then toggle it on:
+**Sessions Sidebar and Tab** *(v1.0.76+)*: The Sessions Sidebar is a persistent panel for managing multiple concurrent sessions — switch between them, spawn new ones, and see their status at a glance, all without leaving your current session. As of v1.0.79, the Sessions Sidebar has graduated from experimental and is available by default alongside a dedicated **Sessions tab**. Enable or customize it in `/settings`:
 
 ```
-/experimental on
+/settings sidebar
 ```
 
-With the sidebar open, you can see all running and backgrounded sessions in a split-view panel alongside your active conversation. Sessions are listed with their name, working directory, and running status. Click or keyboard-navigate to switch sessions instantly. Use this when you regularly juggle several parallel workstreams and want a persistent view of all your sessions rather than accessing them through the `/resume` picker.
+With the sidebar open, you can see all running and backgrounded sessions in a split-view panel alongside your active conversation. Sessions are listed with their name, working directory, and running status. Click or keyboard-navigate (arrow keys, **n** to spawn, **x** twice to close) to switch sessions instantly. Use this when you regularly juggle several parallel workstreams and want a persistent view of all your sessions rather than accessing them through the `/resume` picker.
 
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history. You can also trigger it by pressing **double-Esc**:
 
@@ -583,7 +583,11 @@ The `/new-worktree` command *(v1.0.78+, experimental)* creates a new worktree an
 /new-worktree my-feature-branch
 ```
 
-Unlike `/worktree` (which keeps the current conversation), `/new-worktree` is the equivalent of opening a new terminal, switching to a worktree, and starting fresh — all in one step.
+Unlike `/worktree` (which keeps the current conversation), `/new-worktree` is the equivalent of opening a new terminal, switching to a worktree, and starting fresh — all in one step. In v1.0.79+, the same behaviour is also available as a subcommand shorthand:
+
+```
+/worktree new my-feature-branch
+```
 
 The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
@@ -799,9 +803,21 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
 
-**`allowDevToolCaches` sandbox setting** *(v1.0.78+, on by default)*: When the sandbox is enabled, this setting grants sandboxed builds access to toolchain caches, registries, and installs (npm cache, pip cache, Go module cache, etc.) so builds work without extra setup. Set it to `false` in `/settings` to opt out if you want a stricter sandbox that blocks all toolchain cache access.
+**`allowDevToolAccess` sandbox setting** *(v1.0.78+ as `allowDevToolCaches`, renamed to `allowDevToolAccess` in v1.0.79 — breaking change)*: When the sandbox is enabled, this setting grants sandboxed builds access to toolchain caches, registries, config files, and installs (npm cache, pip cache, Go module cache, etc.) so builds work without extra setup. Set it to `false` in `/settings` to opt out if you want a stricter sandbox that blocks all toolchain access.
+
+> **Breaking change (v1.0.79)**: The setting was renamed from `allowDevToolCaches` to `allowDevToolAccess`. If you previously set `allowDevToolCaches` to `false` to opt out, update your `settings.json` to use `allowDevToolAccess` — the old key is silently ignored.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
+
+**Browser-based OAuth login** *(v1.0.77+)*: `copilot login` now defaults to the browser (web) flow on local interactive terminals. A browser tab opens, you authenticate with GitHub, and the CLI is authorized without typing a device code. On remote or headless terminals (SSH sessions, CI), device code remains the default. You can force a specific flow with `--web-flow` or `--device-code`, or choose interactively with the `/login` command:
+
+```bash
+copilot login               # browser flow on local terminals, device code on remote/headless
+copilot login --web-flow    # force browser flow
+copilot login --device-code # force device code flow
+```
+
+
 
 ```bash
 copilot -p "Summarize the architecture shown in these diagrams" \
