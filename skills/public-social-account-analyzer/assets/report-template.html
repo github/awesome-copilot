@@ -1,0 +1,377 @@
+<!--
+  report-template.html — 公开社媒账号分析 HTML 报告模板
+  用途：由 scripts/render_report.py 填充 {{占位符}} 生成最终 dashboard.html。
+  说明：本文件为模板，正文中的 {{...}} 占位符会被渲染脚本替换为动态内容。
+        所有 CSS 内联，无外部依赖、无 CDN、无 fetch。
+  -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>公开社媒账号分析报告</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --border: #e6e8eb;
+      --text: #1f2329;
+      --text-soft: #606770;
+      --text-faint: #8a9099;
+      --accent: #2f6bff;
+      --accent-soft: #eaf0ff;
+      --warn-bg: #fff7e6;
+      --warn-border: #ffd591;
+      --warn-text: #ad6800;
+      --good-bg: #f0fbf4;
+      --good-border: #b7eb8f;
+      --good-text: #237804;
+      --bad-bg: #fff1f0;
+      --bad-border: #ffccc7;
+      --bad-text: #a8071a;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    .banner {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--warn-bg);
+      color: var(--warn-text);
+      border-bottom: 1px solid var(--warn-border);
+      padding: 10px 16px;
+      font-size: 13.5px;
+      text-align: center;
+      letter-spacing: .2px;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 20px 64px;
+    }
+    header.report-head {
+      margin-bottom: 8px;
+    }
+    header.report-head h1 {
+      font-size: 24px;
+      margin: 8px 0 4px;
+      font-weight: 700;
+    }
+    .muted { color: var(--text-soft); }
+    .faint { color: var(--text-faint); }
+    section.block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px 22px;
+      margin: 18px 0;
+    }
+    .block-title {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin: 0 0 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .block-num {
+      flex: 0 0 auto;
+      min-width: 28px;
+      height: 28px;
+      line-height: 28px;
+      text-align: center;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .block-title h2 {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 650;
+    }
+    .block-body { font-size: 14.5px; }
+    .block-body > :first-child { margin-top: 0; }
+    .block-body > :last-child { margin-bottom: 0; }
+
+    /* 通用排版组件 */
+    .kv {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 8px 16px;
+      margin: 0;
+    }
+    .kv dt { color: var(--text-soft); }
+    .kv dd { margin: 0; }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 680px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: #fcfcfd;
+    }
+    .card .label { color: var(--text-soft); font-size: 12.5px; }
+    .card .value { font-size: 19px; font-weight: 650; margin-top: 2px; }
+    .card .sub { color: var(--text-faint); font-size: 12px; margin-top: 2px; }
+    .pill {
+      display: inline-block;
+      padding: 1px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid #d6e2ff;
+    }
+    .pill.warn { background: var(--warn-bg); color: var(--warn-text); border-color: var(--warn-border); }
+    .pill.good { background: var(--good-bg); color: var(--good-text); border-color: var(--good-border); }
+    .pill.bad  { background: var(--bad-bg);  color: var(--bad-text);  border-color: var(--bad-border); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin: 6px 0;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--text-soft); font-weight: 600; background: #fafbfc; }
+    tbody tr:hover { background: #fafbff; }
+    .note {
+      font-size: 13px;
+      color: var(--text-soft);
+      background: #fafbfc;
+      border-left: 3px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 12px 0 0;
+    }
+    .note.warn {
+      background: var(--warn-bg);
+      border-left-color: var(--warn-border);
+      color: var(--warn-text);
+    }
+    .empty { color: var(--text-faint); font-style: italic; }
+    a { color: var(--accent); text-decoration: none; word-break: break-all; }
+    a:hover { text-decoration: underline; }
+    ul.tight { margin: 6px 0; padding-left: 20px; }
+    ul.tight li { margin: 3px 0; }
+    .footer {
+      text-align: center;
+      color: var(--text-faint);
+      font-size: 12px;
+      margin-top: 30px;
+    }
+    @media print {
+      .banner { position: static; }
+      section.block { break-inside: avoid; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="banner">本报告基于公开页面快照，不代表账号后台真实曝光、触达、完播或转化数据。</div>
+
+  <div class="container">
+
+    <!-- ============== 1 报告标题与任务信息 ============== -->
+    <section class="block" id="sec-1">
+      <div class="block-title">
+        <span class="block-num">1</span>
+        <h2>报告标题与任务信息</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:task_info -->
+        {{task_info}}
+        <!-- END SECTION:task_info -->
+      </div>
+    </section>
+
+    <!-- ============== 2 数据质量摘要 ============== -->
+    <section class="block" id="sec-2">
+      <div class="block-title">
+        <span class="block-num">2</span>
+        <h2>数据质量摘要</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:quality_summary -->
+        {{quality_summary}}
+        <!-- END SECTION:quality_summary -->
+      </div>
+    </section>
+
+    <!-- ============== 3 账号定位卡 ============== -->
+    <section class="block" id="sec-3">
+      <div class="block-title">
+        <span class="block-num">3</span>
+        <h2>账号定位卡</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:account_card -->
+        {{account_card}}
+        <!-- END SECTION:account_card -->
+      </div>
+    </section>
+
+    <!-- ============== 4 内容结构 ============== -->
+    <section class="block" id="sec-4">
+      <div class="block-title">
+        <span class="block-num">4</span>
+        <h2>内容结构</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:content_structure -->
+        {{content_structure}}
+        <!-- END SECTION:content_structure -->
+      </div>
+    </section>
+
+    <!-- ============== 5 发布节奏 ============== -->
+    <section class="block" id="sec-5">
+      <div class="block-title">
+        <span class="block-num">5</span>
+        <h2>发布节奏</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:publish_cadence -->
+        {{publish_cadence}}
+        <!-- END SECTION:publish_cadence -->
+      </div>
+    </section>
+
+    <!-- ============== 6 公开指标看板 ============== -->
+    <section class="block" id="sec-6">
+      <div class="block-title">
+        <span class="block-num">6</span>
+        <h2>公开指标看板</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:metrics_dashboard -->
+        {{metrics_dashboard}}
+        <!-- END SECTION:metrics_dashboard -->
+      </div>
+    </section>
+
+    <!-- ============== 7 高表现内容 ============== -->
+    <section class="block" id="sec-7">
+      <div class="block-title">
+        <span class="block-num">7</span>
+        <h2>高表现内容</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:high_performance -->
+        {{high_performance}}
+        <!-- END SECTION:high_performance -->
+      </div>
+    </section>
+
+    <!-- ============== 8 低表现内容 ============== -->
+    <section class="block" id="sec-8">
+      <div class="block-title">
+        <span class="block-num">8</span>
+        <h2>低表现内容</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:low_performance -->
+        {{low_performance}}
+        <!-- END SECTION:low_performance -->
+      </div>
+    </section>
+
+    <!-- ============== 9 内容模式 ============== -->
+    <section class="block" id="sec-9">
+      <div class="block-title">
+        <span class="block-num">9</span>
+        <h2>内容模式</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:content_patterns -->
+        {{content_patterns}}
+        <!-- END SECTION:content_patterns -->
+      </div>
+    </section>
+
+    <!-- ============== 10 策略建议 ============== -->
+    <section class="block" id="sec-10">
+      <div class="block-title">
+        <span class="block-num">10</span>
+        <h2>策略建议</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:strategy -->
+        {{strategy}}
+        <!-- END SECTION:strategy -->
+      </div>
+    </section>
+
+    <!-- ============== 11 样本与限制 ============== -->
+    <section class="block" id="sec-11">
+      <div class="block-title">
+        <span class="block-num">11</span>
+        <h2>样本与限制</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:sample_limits -->
+        {{sample_limits}}
+        <!-- END SECTION:sample_limits -->
+      </div>
+    </section>
+
+    <!-- ============== 12 来源链接 ============== -->
+    <section class="block" id="sec-12">
+      <div class="block-title">
+        <span class="block-num">12</span>
+        <h2>来源链接</h2>
+      </div>
+      <div class="block-body">
+        <!-- SECTION:sources -->
+        {{sources}}
+        <!-- END SECTION:sources -->
+      </div>
+    </section>
+
+    <div class="footer">本报告由公开页面快照自动生成 · 数据仅供参考，不构成后台真实指标</div>
+  </div>
+
+  <!-- 占位符兜底：若渲染脚本未替换，则将残留 {{...}} 显示为「暂无数据」，避免页面破损 -->
+  <script>
+    (function () {
+      document.querySelectorAll('.block-body').forEach(function (body) {
+        // 替换任何未被渲染脚本处理的占位符
+        if (body.innerHTML.indexOf('{{') !== -1) {
+          body.innerHTML = body.innerHTML.replace(/\{\{[^}]*\}\}/g, '<span class="empty">暂无数据</span>');
+        }
+        // 处理完全为空的内容块
+        if (body.textContent.trim() === '') {
+          body.innerHTML = '<span class="empty">暂无数据</span>';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

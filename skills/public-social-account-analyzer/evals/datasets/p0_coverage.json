@@ -1,0 +1,586 @@
+{
+  "schema": "public-social-account-analyzer/p0-coverage@1",
+  "dataset_version": "0.4.0",
+  "coverage": {
+    "required": 30,
+    "covered_by_cases": 30,
+    "dataset_coverage_rate": 1.0,
+    "external_acceptance_required": 7
+  },
+  "status_semantics": {
+    "dataset_coverage": "存在可执行或可填写的验收用例，不代表运行通过",
+    "external_evidence_required": "必须由真实公开页面、人工真值或运营试用记录完成"
+  },
+  "requirements": [
+    {
+      "id": "FR-001",
+      "title": "任务创建",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-001",
+      "case_ids": [
+        "p0-fr001-task-creation"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "positive"
+      ],
+      "verification_types": [
+        "agent_eval"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-002",
+      "title": "平台识别",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-002",
+      "case_ids": [
+        "p0-fr002-platform-routing"
+      ],
+      "platforms": [
+        "unsupported"
+      ],
+      "scenario_types": [
+        "failure"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-003",
+      "title": "公开访问检查",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-003",
+      "case_ids": [
+        "p0-fr003-public-access"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "failure"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-004",
+      "title": "账号资料采集",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-004",
+      "case_ids": [
+        "p0-fr004-profile-fields"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "boundary"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-005",
+      "title": "内容列表采集",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-005",
+      "case_ids": [
+        "p0-fr005-post-list"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "boundary"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-006",
+      "title": "内容详情采集",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-006",
+      "case_ids": [
+        "p0-fr006-post-detail"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "boundary"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-008",
+      "title": "数据归一化",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-008",
+      "case_ids": [
+        "p0-fr008-normalization"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "positive"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-009",
+      "title": "数据质量报告",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-009",
+      "case_ids": [
+        "p0-fr009-quality-report"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "boundary"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-010",
+      "title": "内容自动分类",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-010",
+      "case_ids": [
+        "p0-fr010-classification"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "positive"
+      ],
+      "verification_types": [
+        "agent_eval"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-011",
+      "title": "指标计算",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-011",
+      "case_ids": [
+        "p0-fr011-metrics"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "boundary"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-012",
+      "title": "高低表现拆解",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-012",
+      "case_ids": [
+        "p0-fr012-high-low"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "boundary"
+      ],
+      "verification_types": [
+        "agent_eval"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-013",
+      "title": "报告生成",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-013",
+      "case_ids": [
+        "p0-fr013-reports"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "positive"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "FR-015",
+      "title": "证据追溯",
+      "kind": "functional",
+      "source_ref": "PRD §7 FR-015",
+      "case_ids": [
+        "p0-fr015-evidence"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "positive"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "NFR-001",
+      "title": "可靠性",
+      "kind": "non_functional",
+      "source_ref": "PRD §15 可靠性",
+      "case_ids": [
+        "p0-nfr001-reliability"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "failure"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "NFR-002",
+      "title": "准确性",
+      "kind": "non_functional",
+      "source_ref": "PRD §15 准确性",
+      "case_ids": [
+        "p0-nfr002-accuracy"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "external_acceptance"
+      ],
+      "verification_types": [
+        "external_manual"
+      ],
+      "execution_gate": "external_evidence_required"
+    },
+    {
+      "id": "NFR-003",
+      "title": "性能",
+      "kind": "non_functional",
+      "source_ref": "PRD §15 性能",
+      "case_ids": [
+        "p0-nfr003-performance"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "external_acceptance"
+      ],
+      "verification_types": [
+        "external_live"
+      ],
+      "execution_gate": "external_evidence_required"
+    },
+    {
+      "id": "NFR-004",
+      "title": "可维护性",
+      "kind": "non_functional",
+      "source_ref": "PRD §15 可维护性",
+      "case_ids": [
+        "p0-nfr004-maintainability"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "contract"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "NFR-005",
+      "title": "可观测性",
+      "kind": "non_functional",
+      "source_ref": "PRD §15 可观测性",
+      "case_ids": [
+        "p0-nfr005-observability"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "positive"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "NFR-006",
+      "title": "安全与隐私",
+      "kind": "non_functional",
+      "source_ref": "PRD §15 安全与隐私",
+      "case_ids": [
+        "p0-nfr006-security"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "failure"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "NFR-007",
+      "title": "合规边界",
+      "kind": "non_functional",
+      "source_ref": "PRD §15 合规边界",
+      "case_ids": [
+        "p0-nfr007-compliance"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "failure"
+      ],
+      "verification_types": [
+        "agent_eval"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "AC-01",
+      "title": "两平台各两个账号端到端",
+      "kind": "acceptance",
+      "source_ref": "PRD §16 AC-01",
+      "case_ids": [
+        "p0-ac01-four-e2e-accounts"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "external_acceptance"
+      ],
+      "verification_types": [
+        "external_live"
+      ],
+      "execution_gate": "external_evidence_required"
+    },
+    {
+      "id": "AC-02",
+      "title": "两平台最近30条",
+      "kind": "acceptance",
+      "source_ref": "PRD §16 AC-02",
+      "case_ids": [
+        "p0-ac02-recent-30"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "external_acceptance"
+      ],
+      "verification_types": [
+        "external_live"
+      ],
+      "execution_gate": "external_evidence_required"
+    },
+    {
+      "id": "AC-03",
+      "title": "核心字段人工准确率不低于95%",
+      "kind": "acceptance",
+      "source_ref": "PRD §16 AC-03",
+      "case_ids": [
+        "p0-ac03-manual-accuracy"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "external_acceptance"
+      ],
+      "verification_types": [
+        "external_manual"
+      ],
+      "execution_gate": "external_evidence_required"
+    },
+    {
+      "id": "AC-04",
+      "title": "置顶重复失效与空值",
+      "kind": "acceptance",
+      "source_ref": "PRD §16 AC-04",
+      "case_ids": [
+        "p0-ac04-edge-data"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "boundary"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "AC-05",
+      "title": "两平台统一流程",
+      "kind": "acceptance",
+      "source_ref": "PRD §16 AC-05",
+      "case_ids": [
+        "p0-ac05-unified-flow"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "positive"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "AC-06",
+      "title": "核心洞察证据覆盖率100%",
+      "kind": "acceptance",
+      "source_ref": "PRD §16 AC-06",
+      "case_ids": [
+        "p0-ac06-evidence-review"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "external_acceptance"
+      ],
+      "verification_types": [
+        "external_manual"
+      ],
+      "execution_gate": "external_evidence_required"
+    },
+    {
+      "id": "AC-07",
+      "title": "四类输出可打开",
+      "kind": "acceptance",
+      "source_ref": "PRD §16 AC-07",
+      "case_ids": [
+        "p0-ac07-output-openability"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "positive"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "AC-08",
+      "title": "受限时安全停止",
+      "kind": "acceptance",
+      "source_ref": "PRD §16 AC-08",
+      "case_ids": [
+        "p0-ac08-safe-stop"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "failure"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "AC-09",
+      "title": "至少15个自动化测试",
+      "kind": "acceptance",
+      "source_ref": "PRD §16 AC-09",
+      "case_ids": [
+        "p0-ac09-automated-suite"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "contract"
+      ],
+      "verification_types": [
+        "automated"
+      ],
+      "execution_gate": "runnable_offline"
+    },
+    {
+      "id": "AC-10",
+      "title": "真实运营人员试用与反馈修改",
+      "kind": "acceptance",
+      "source_ref": "PRD §16 AC-10",
+      "case_ids": [
+        "p0-ac10-operator-trial"
+      ],
+      "platforms": [
+        "cross_platform"
+      ],
+      "scenario_types": [
+        "external_acceptance"
+      ],
+      "verification_types": [
+        "external_manual"
+      ],
+      "execution_gate": "external_evidence_required"
+    }
+  ]
+}

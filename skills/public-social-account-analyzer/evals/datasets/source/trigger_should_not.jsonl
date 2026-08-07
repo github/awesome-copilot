@@ -1,0 +1,10 @@
+{"id": "trg-neg-001", "label": "should_not_trigger", "category": "unsupported_scope", "reason": "no_specific_account", "query": "整理一下本周小红书上流行的露营话题和热门标签，不需要研究具体账号"}
+{"id": "trg-neg-003", "label": "should_not_trigger", "category": "private_or_control", "reason": "private_backend", "query": "帮我登录我自己的抖音后台，把最近的完播率和粉丝画像导出来"}
+{"id": "trg-neg-004", "label": "should_not_trigger", "category": "private_or_control", "reason": "bypass_risk_control", "query": "这个B站账号有验证码，帮我破解一下验证码继续采集：https://space.bilibili.com/946974"}
+{"id": "trg-neg-005", "label": "should_not_trigger", "category": "unsupported_scope", "reason": "media_download", "query": "帮我把这个B站视频的原始文件下载下来：https://www.bilibili.com/video/BV1xx411c7mD"}
+{"id": "trg-neg-006", "label": "should_not_trigger", "category": "private_or_control", "reason": "account_takeover", "query": "帮我登录这个抖音号，把最近三条评论都回复一下"}
+{"id": "trg-neg-007", "label": "should_not_trigger", "category": "non_analysis_request", "reason": "platform_generic_question", "query": "抖音的推荐算法大概是怎么运作的？给我讲讲原理"}
+{"id": "trg-neg-008", "label": "should_not_trigger", "category": "non_analysis_request", "reason": "no_url_content_writing", "query": "帮我写一篇关于B站账号内容运营方法论的文章，2000字左右"}
+{"id": "trg-neg-010", "label": "should_not_trigger", "category": "unsupported_scope", "reason": "unrelated_platform", "query": "帮我分析一下我这个淘宝店铺最近的销量数据：https://shop123456.taobao.com"}
+{"id": "trg-neg-011", "label": "should_not_trigger", "category": "non_analysis_request", "reason": "general_chitchat", "query": "今天天气怎么样？顺便帮我推荐几个好看的B站up主"}
+{"id": "trg-neg-012", "label": "should_not_trigger", "category": "private_or_control", "reason": "private_dm", "query": "帮我把这个B站up主的私信记录导出来看看：https://space.bilibili.com/946974"}

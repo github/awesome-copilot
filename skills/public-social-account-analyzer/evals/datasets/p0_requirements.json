@@ -1,0 +1,41 @@
+{
+  "schema": "public-social-account-analyzer/p0-requirements@1",
+  "prd": {
+    "title": "公开社交媒体账号内容分析 Skill 产品需求文档 V1.0",
+    "path": "docs/prd/公开社交媒体账号内容分析Skill-产品需求文档-V1.0.docx",
+    "version": "V1.0",
+    "date": "2026-07-23"
+  },
+  "requirements": [
+    {"id":"FR-001","title":"任务创建","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-001","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["positive"]},
+    {"id":"FR-002","title":"平台识别","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-002","min_cases":1,"required_platforms":["unsupported"],"required_scenario_types":["failure"]},
+    {"id":"FR-003","title":"公开访问检查","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-003","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["failure"]},
+    {"id":"FR-004","title":"账号资料采集","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-004","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["boundary"]},
+    {"id":"FR-005","title":"内容列表采集","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-005","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["boundary"]},
+    {"id":"FR-006","title":"内容详情采集","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-006","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["boundary"]},
+    {"id":"FR-008","title":"数据归一化","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-008","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["positive"]},
+    {"id":"FR-009","title":"数据质量报告","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-009","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["boundary"]},
+    {"id":"FR-010","title":"内容自动分类","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-010","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["positive"]},
+    {"id":"FR-011","title":"指标计算","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-011","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["boundary"]},
+    {"id":"FR-012","title":"高低表现拆解","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-012","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["boundary"]},
+    {"id":"FR-013","title":"报告生成","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-013","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["positive"]},
+    {"id":"FR-015","title":"证据追溯","kind":"functional","priority":"P0","source_ref":"PRD §7 FR-015","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["positive"]},
+    {"id":"NFR-001","title":"可靠性","kind":"non_functional","priority":"P0","source_ref":"PRD §15 可靠性","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["failure"]},
+    {"id":"NFR-002","title":"准确性","kind":"non_functional","priority":"P0","source_ref":"PRD §15 准确性","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["external_acceptance"]},
+    {"id":"NFR-003","title":"性能","kind":"non_functional","priority":"P0","source_ref":"PRD §15 性能","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["external_acceptance"]},
+    {"id":"NFR-004","title":"可维护性","kind":"non_functional","priority":"P0","source_ref":"PRD §15 可维护性","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["contract"]},
+    {"id":"NFR-005","title":"可观测性","kind":"non_functional","priority":"P0","source_ref":"PRD §15 可观测性","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["positive"]},
+    {"id":"NFR-006","title":"安全与隐私","kind":"non_functional","priority":"P0","source_ref":"PRD §15 安全与隐私","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["failure"]},
+    {"id":"NFR-007","title":"合规边界","kind":"non_functional","priority":"P0","source_ref":"PRD §15 合规边界","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["failure"]},
+    {"id":"AC-01","title":"两平台各两个账号端到端","kind":"acceptance","priority":"P0","source_ref":"PRD §16 AC-01","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["external_acceptance"]},
+    {"id":"AC-02","title":"两平台最近30条","kind":"acceptance","priority":"P0","source_ref":"PRD §16 AC-02","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["external_acceptance"]},
+    {"id":"AC-03","title":"核心字段人工准确率不低于95%","kind":"acceptance","priority":"P0","source_ref":"PRD §16 AC-03","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["external_acceptance"]},
+    {"id":"AC-04","title":"置顶重复失效与空值","kind":"acceptance","priority":"P0","source_ref":"PRD §16 AC-04","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["boundary"]},
+    {"id":"AC-05","title":"两平台统一流程","kind":"acceptance","priority":"P0","source_ref":"PRD §16 AC-05","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["positive"]},
+    {"id":"AC-06","title":"核心洞察证据覆盖率100%","kind":"acceptance","priority":"P0","source_ref":"PRD §16 AC-06","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["external_acceptance"]},
+    {"id":"AC-07","title":"四类输出可打开","kind":"acceptance","priority":"P0","source_ref":"PRD §16 AC-07","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["positive"]},
+    {"id":"AC-08","title":"受限时安全停止","kind":"acceptance","priority":"P0","source_ref":"PRD §16 AC-08","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["failure"]},
+    {"id":"AC-09","title":"至少15个自动化测试","kind":"acceptance","priority":"P0","source_ref":"PRD §16 AC-09","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["contract"]},
+    {"id":"AC-10","title":"真实运营人员试用与反馈修改","kind":"acceptance","priority":"P0","source_ref":"PRD §16 AC-10","min_cases":1,"required_platforms":["cross_platform"],"required_scenario_types":["external_acceptance"]}
+  ]
+}

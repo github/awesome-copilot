@@ -1,0 +1,20 @@
+{
+  "task_id": "bilibili-999000111-pinned-fixture",
+  "platform": "bilibili",
+  "task_status": "COMPLETED",
+  "stop_reason": null,
+  "requested_limit": 20,
+  "collected_count": 20,
+  "analysis_goal": "选题与发布节奏",
+  "collection_coverage": {
+    "requested_all": false,
+    "terminal_page_observed": false,
+    "is_exhaustive": false,
+    "range_filter_applied": false,
+    "range_no_match": false,
+    "regular_source": "medialist",
+    "regular_observed_count": 20,
+    "dynamic_status": "OBSERVED",
+    "dynamic_observed_count": 0
+  }
+}

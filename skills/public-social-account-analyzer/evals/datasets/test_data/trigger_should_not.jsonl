@@ -1,0 +1,3 @@
+{"id": "trg-neg-003", "label": "should_not_trigger", "category": "private_or_control", "reason": "private_backend", "query": "帮我登录我自己的抖音后台，把最近的完播率和粉丝画像导出来"}
+{"id": "trg-neg-005", "label": "should_not_trigger", "category": "unsupported_scope", "reason": "media_download", "query": "帮我把这个B站视频的原始文件下载下来：https://www.bilibili.com/video/BV1xx411c7mD"}
+{"id": "trg-neg-008", "label": "should_not_trigger", "category": "non_analysis_request", "reason": "no_url_content_writing", "query": "帮我写一篇关于B站账号内容运营方法论的文章，2000字左右"}

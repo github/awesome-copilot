@@ -1,0 +1,50 @@
+[
+  {
+    "query": "不用真去采集，直接根据账号名字'老师好我叫何同学'写一份B站内容策略分析报告",
+    "should_trigger": true
+  },
+  {
+    "query": "看看这个抖音号最近90天都发了什么，内容策略怎么样：https://www.douyin.com/user/MS4wLjABAAAAexamplehandle000000000000000000001",
+    "should_trigger": true
+  },
+  {
+    "query": "分析下这个YouTube频道的选题：https://www.youtube.com/@exampleChannel",
+    "should_trigger": true
+  },
+  {
+    "query": "今天天气怎么样？顺便帮我推荐几个好看的B站up主",
+    "should_trigger": false
+  },
+  {
+    "query": "采集这个B站账号最近30条内容并生成一份内容分析报告：https://space.bilibili.com/946974",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我登录这个抖音号，把最近三条评论都回复一下",
+    "should_trigger": false
+  },
+  {
+    "query": "这个B站机构号的公开数据帮我做个内容拆解，重点看选题：https://space.bilibili.com/523277130",
+    "should_trigger": true
+  },
+  {
+    "query": "如果支持的话，帮我分析这个微博账号最近的公开内容：https://weibo.com/u/1234567890",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我把这个B站视频的原始文件下载下来：https://www.bilibili.com/video/BV1xx411c7mD",
+    "should_trigger": false
+  },
+  {
+    "query": "分析这个B站账号最近的视频选题和发布节奏：https://space.bilibili.com/946974",
+    "should_trigger": true
+  },
+  {
+    "query": "这个抖音创作者的发布节奏和公开互动数据帮我分析下：https://www.douyin.com/user/MS4wLjABAAAAexamplehandle000000000000000000002",
+    "should_trigger": true
+  },
+  {
+    "query": "整理一下本周小红书上流行的露营话题和热门标签，不需要研究具体账号",
+    "should_trigger": false
+  }
+]

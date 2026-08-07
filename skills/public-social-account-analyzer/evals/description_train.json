@@ -1,0 +1,74 @@
+[
+  {
+    "query": "审计这个 Instagram 品牌账号最近的公开内容栏目和发布节奏：https://www.instagram.com/examplebrand/",
+    "should_trigger": true
+  },
+  {
+    "query": "分析这个抖音机构账号最近30天的公开内容结构和发布节奏：https://www.douyin.com/user/MS4wLjABAAAAexamplehandle000000000000000000006",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我评估这个B站账号最近30天的公开表现，顺便看看评论区在问什么：https://space.bilibili.com/946974",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我写一篇关于B站账号内容运营方法论的文章，2000字左右",
+    "should_trigger": false
+  },
+  {
+    "query": "这个B站账号有验证码，帮我破解一下验证码继续采集：https://space.bilibili.com/946974",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我看看这个抖音账号高赞视频的共同特征：https://www.douyin.com/user/MS4wLjABAAAAexamplehandle000000000000000000003",
+    "should_trigger": true
+  },
+  {
+    "query": "https://space.bilibili.com/946974 这个号最近内容方向是什么，帮我归个类",
+    "should_trigger": true
+  },
+  {
+    "query": "检查当前微博适配器是否启用；如果可用就分析这个公开账号，否则明确说明条件支持：https://weibo.com/u/9876543210",
+    "should_trigger": true
+  },
+  {
+    "query": "这个抖音品牌号的内容运营方向帮我总结一下：https://www.douyin.com/user/MS4wLjABAAAAexamplehandle000000000000000000005",
+    "should_trigger": true
+  },
+  {
+    "query": "分析这个小红书博主公开主页里的内容选题：https://www.xiaohongshu.com/user/profile/5f0c2a1b0000000001001234",
+    "should_trigger": true
+  },
+  {
+    "query": "分析这个抖音账号最近50条作品的选题分布：https://www.douyin.com/user/MS4wLjABAAAAexamplehandle000000000000000000004",
+    "should_trigger": true
+  },
+  {
+    "query": "抖音的推荐算法大概是怎么运作的？给我讲讲原理",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我把这个B站up主的私信记录导出来看看：https://space.bilibili.com/946974",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我登录我自己的抖音后台，把最近的完播率和粉丝画像导出来",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我研究小红书上的李子柒最近公开内容，我没有主页链接",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我分析一下我这个淘宝店铺最近的销量数据：https://shop123456.taobao.com",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我拆解这个B站up主的高低表现内容有什么共同点：https://space.bilibili.com/523277130",
+    "should_trigger": true
+  },
+  {
+    "query": "按公开数据能力边界分析这个微博主页最近内容，并在适配器不可用时安全停止：https://weibo.com/u/1122334455",
+    "should_trigger": true
+  }
+]

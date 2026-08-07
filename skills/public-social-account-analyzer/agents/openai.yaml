@@ -1,0 +1,4 @@
+interface:
+  display_name: "公开社交账号分析"
+  short_description: "用跨平台公开证据研究具体社交账号的内容策略、节奏与互动表现"
+  default_prompt: "使用 $public-social-account-analyzer 研究这个公开账号；按我的目标自主选择证据路径、分析深度和交付形式，并说明结论的证据范围。"

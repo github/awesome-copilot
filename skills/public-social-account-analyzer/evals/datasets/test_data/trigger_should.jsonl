@@ -1,0 +1,6 @@
+{"id": "trg-pos-011", "label": "should_trigger", "platform": "bilibili", "query": "帮我评估这个B站账号最近30天的公开表现，顺便看看评论区在问什么：https://space.bilibili.com/946974"}
+{"id": "trg-pos-013", "label": "should_trigger", "platform": "weibo", "query": "检查当前微博适配器是否启用；如果可用就分析这个公开账号，否则明确说明条件支持：https://weibo.com/u/9876543210"}
+{"id": "trg-pos-015", "label": "should_trigger", "platform": "douyin", "query": "分析这个抖音机构账号最近30天的公开内容结构和发布节奏：https://www.douyin.com/user/MS4wLjABAAAAexamplehandle000000000000000000006"}
+{"id": "trg-pos-016", "label": "should_trigger", "platform": "xiaohongshu", "query": "分析这个小红书博主公开主页里的内容选题：https://www.xiaohongshu.com/user/profile/5f0c2a1b0000000001001234"}
+{"id": "trg-pos-018", "label": "should_trigger", "platform": "other", "query": "分析下这个YouTube频道的选题：https://www.youtube.com/@exampleChannel"}
+{"id": "trg-pos-019", "label": "should_trigger", "platform": "bilibili", "query": "不用真去采集，直接根据账号名字'老师好我叫何同学'写一份B站内容策略分析报告"}
