@@ -5,6 +5,8 @@
 .PARAMETER LogDirectory
     A path relative to the current working directory containing .json* files.
 
+    Use "-" to redact JSONL received on stdin and write JSONL to stdout.
+
 .EXAMPLE
     ./redact-secrets.ps1 shepherd-tasks-20260803-1550
 #>
@@ -16,18 +18,16 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-if (-not (Test-Path -LiteralPath $LogDirectory -PathType Container)) {
-    throw "Log directory not found: $LogDirectory"
-}
-
 $sensitiveKeyPattern = '(?i)(password|passwd|secret|token|api[-_]?key|authorization|credential|private[-_]?key|access[-_]?key|client[-_]?secret|connection[-_]?string)'
 $contentKeyPattern = '(?i)^(content|encryptedContent|reasoningOpaque|arguments|result|error|prompt|toolRequests|userContent|assistantContent|toolCompleteResultContent)$'
+$secretStringPattern = '[A-Za-z0-9+/]{20,}[+/][A-Za-z0-9+/]{20,}={0,2}'
 
 function Redact-String {
     param([string]$Value)
 
     $result = $Value -replace '(?i)bearer\s+[A-Za-z0-9._~+/-]+', 'Bearer [REDACTED]'
-    $result -replace 'gh[opsu]_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]+', '[REDACTED]'
+    $result = $result -replace 'gh[opsu]_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]+', '[REDACTED]'
+    $result -replace $secretStringPattern, '[REDACTED]'
 }
 
 function Redact-JsonValue {
@@ -94,6 +94,26 @@ function Redact-File {
         Remove-Item -LiteralPath $temporaryPath -Force -ErrorAction SilentlyContinue
         throw
     }
+}
+
+if ($LogDirectory -eq '-') {
+    foreach ($line in [Console]::In.ReadToEnd() -split "\r?\n") {
+        if ([string]::IsNullOrEmpty($line)) {
+            [Console]::Out.WriteLine()
+            continue
+        }
+        try {
+            $json = $line | ConvertFrom-Json -Depth 100
+        } catch {
+            throw "Invalid JSONL received on stdin"
+        }
+        [Console]::Out.WriteLine((Redact-JsonValue $json '' | ConvertTo-Json -Compress -Depth 100))
+    }
+    exit 0
+}
+
+if (-not (Test-Path -LiteralPath $LogDirectory -PathType Container)) {
+    throw "Log directory not found: $LogDirectory"
 }
 
 $files = Get-ChildItem -LiteralPath $LogDirectory -File -Recurse |

@@ -34,6 +34,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 if (-not (Test-Path $LogDir)) {
     New-Item -ItemType Directory -Path $LogDir | Out-Null
@@ -49,6 +50,32 @@ function Write-Fail($msg) {
 
 function Write-Ok($msg) {
     Write-Output "[shepherd-task] $msg"
+}
+
+function Invoke-CopilotRedacted {
+    param(
+        [string]$Prompt,
+        [string]$JsonPath,
+        [string]$SharePath
+    )
+
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "shepherd-redact-$([guid]::NewGuid().ToString('N'))"
+    New-Item -ItemType Directory -Path $tempDir | Out-Null
+    $rawJsonPath = Join-Path $tempDir 'session.json'
+    $rawSharePath = Join-Path $tempDir 'session.md'
+    try {
+        $Prompt | copilot --yolo --output-format json --share $rawSharePath > $rawJsonPath
+        $copilotExit = $LASTEXITCODE
+        if ($copilotExit -ne 0) {
+            throw "copilot exited with code $copilotExit"
+        }
+        & (Join-Path $scriptDir 'redact-secrets.ps1') $tempDir | Out-Null
+        Move-Item -LiteralPath $rawJsonPath -Destination $JsonPath -Force
+        Move-Item -LiteralPath $rawSharePath -Destination $SharePath -Force
+    }
+    finally {
+        Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }
 
 # --- Helper: Find the PR linked to the task issue ---
@@ -132,7 +159,8 @@ Invoke skill ``shepherd-task-from-assignment-to-ready`` with these inputs:
     $phase1Json = Join-Path $LogDir "phase1-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.json"
     $phase1Otel = Join-Path (Resolve-Path $LogDir) "phase1-otel-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.jsonl"
     $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $phase1Otel
-    $phase1Prompt | copilot --yolo --output-format json --share $phase1Share > $phase1Json
+    Invoke-CopilotRedacted -Prompt $phase1Prompt -JsonPath $phase1Json -SharePath $phase1Share
+    & (Join-Path $scriptDir 'redact-secrets.ps1') $LogDir | Out-Null
     Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH -ErrorAction SilentlyContinue
 
     Write-Status "Phase 1: copilot exited. Verifying state..."
@@ -192,7 +220,8 @@ Invoke skill ``shepherd-task-from-ready-to-merged-to-base`` with these inputs:
     $phase2Json = Join-Path $LogDir "phase2-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.json"
     $phase2Otel = Join-Path (Resolve-Path $LogDir) "phase2-otel-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.jsonl"
     $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $phase2Otel
-    $phase2Prompt | copilot --yolo --output-format json --share $phase2Share > $phase2Json
+    Invoke-CopilotRedacted -Prompt $phase2Prompt -JsonPath $phase2Json -SharePath $phase2Share
+    & (Join-Path $scriptDir 'redact-secrets.ps1') $LogDir | Out-Null
     Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH -ErrorAction SilentlyContinue
 
     Write-Status "Phase 2: copilot exited. Verifying state..."

@@ -16,12 +16,27 @@ REPO="${3:?Usage: $0 <TASK_ISSUE> <BASE_BRANCH> <REPO> [LOG_DIR]}"
 LOG_DIR="${4:-shepherd-tasks-$(date +%Y%m%d-%H%M)}"
 
 mkdir -p "$LOG_DIR"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # --- Helpers ---
 
 status()  { echo "[shepherd-task] $*"; }
 fail()    { echo "[shepherd-task] FAILED: $*"; exit 1; }
 ok()      { echo "[shepherd-task] $*"; }
+
+run_copilot_redacted() {
+    local output_file="$1"
+    shift
+    local copilot_exit redact_exit
+
+    set +e
+    copilot "$@" | "$SCRIPT_DIR/redact-secrets.sh" - >"$output_file"
+    local pipeline_status=("${PIPESTATUS[@]}")
+    copilot_exit=${pipeline_status[0]}
+    redact_exit=${pipeline_status[1]}
+    set -e
+    [[ $copilot_exit -eq 0 && $redact_exit -eq 0 ]]
+}
 
 # Find the PR linked to the task issue using three strategies.
 find_linked_pr() {
@@ -101,7 +116,9 @@ else
     PHASE1_JSON="$LOG_DIR/phase1-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.json"
     PHASE1_OTEL="$(cd "$LOG_DIR" && pwd)/phase1-otel-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.jsonl"
     export COPILOT_OTEL_FILE_EXPORTER_PATH="$PHASE1_OTEL"
-    echo "$PHASE1_PROMPT" | copilot --yolo --output-format json --share "$PHASE1_SHARE" > "$PHASE1_JSON"
+    run_copilot_redacted "$PHASE1_JSON" --yolo --output-format json --share "$PHASE1_SHARE" <<< "$PHASE1_PROMPT" ||
+        fail "Phase 1 copilot session or redaction failed."
+    "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR" >/dev/null
     unset COPILOT_OTEL_FILE_EXPORTER_PATH
 
     status "Phase 1: copilot exited. Verifying state..."
@@ -150,7 +167,9 @@ else
     PHASE2_JSON="$LOG_DIR/phase2-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.json"
     PHASE2_OTEL="$(cd "$LOG_DIR" && pwd)/phase2-otel-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.jsonl"
     export COPILOT_OTEL_FILE_EXPORTER_PATH="$PHASE2_OTEL"
-    echo "$PHASE2_PROMPT" | copilot --yolo --output-format json --share "$PHASE2_SHARE" > "$PHASE2_JSON"
+    run_copilot_redacted "$PHASE2_JSON" --yolo --output-format json --share "$PHASE2_SHARE" <<< "$PHASE2_PROMPT" ||
+        fail "Phase 2 copilot session or redaction failed."
+    "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR" >/dev/null
     unset COPILOT_OTEL_FILE_EXPORTER_PATH
 
     status "Phase 2: copilot exited. Verifying state..."
