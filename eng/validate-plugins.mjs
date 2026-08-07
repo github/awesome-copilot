@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
 import { validateLicenseField } from "./lib/license.mjs";
@@ -334,7 +335,11 @@ function validateExtensionScreenshotPath(extensionDir, pathValue, fieldName, err
 }
 
 // Main validation function
-function validatePlugins() {
+export function isReusableExtensionRegistered(extensionName, pluginDirectoryNames, referencedExtensionNames) {
+  return pluginDirectoryNames.has(extensionName) || referencedExtensionNames.has(extensionName);
+}
+
+export function validatePlugins() {
   const pluginDirs = fs.existsSync(PLUGINS_DIR)
     ? fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
       .filter((d) => d.isDirectory())
@@ -350,6 +355,8 @@ function validatePlugins() {
   let hasErrors = false;
   const seenNames = new Set();
   const localPluginNames = [];
+  const pluginDirectoryNames = new Set(pluginDirs);
+  const referencedExtensionNames = new Set();
 
   for (const dir of pluginDirs) {
     console.log(`Validating ${dir}...`);
@@ -377,12 +384,20 @@ function validatePlugins() {
         localPluginNames.push(plugin.name);
       }
     }
+
+    const extensionReferences = plugin?.extensions?.[AWESOME_COPILOT_NAMESPACE]?.extensions;
+    if (Array.isArray(extensionReferences)) {
+      for (const reference of extensionReferences) {
+        if (typeof reference === "string" && reference.startsWith("./extensions/")) {
+          referencedExtensionNames.add(reference.replace(/^\.\/extensions\//, "").replace(/\/$/, ""));
+        }
+      }
+    }
   }
 
   for (const dir of getExtensionFolderNames()) {
-    const pluginJsonPath = path.join(PLUGINS_DIR, dir, "plugin.json");
-    if (!fs.existsSync(pluginJsonPath)) {
-      console.error(`❌ extension ${dir}: missing plugin manifest at plugins/${dir}/plugin.json`);
+    if (!isReusableExtensionRegistered(dir, pluginDirectoryNames, referencedExtensionNames)) {
+      console.error(`❌ extension ${dir}: must be referenced by a plugin or have a standalone manifest at plugins/${dir}/plugin.json`);
       hasErrors = true;
     }
   }
@@ -410,15 +425,16 @@ function validatePlugins() {
   return !hasErrors;
 }
 
-// Run validation
-try {
-  const isValid = validatePlugins();
-  if (!isValid) {
-    console.error("\n❌ Plugin validation failed");
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    const isValid = validatePlugins();
+    if (!isValid) {
+      console.error("\n❌ Plugin validation failed");
+      process.exit(1);
+    }
+    console.log("\n🎉 Plugin validation passed");
+  } catch (error) {
+    console.error(`Error during validation: ${error.message}`);
     process.exit(1);
   }
-  console.log("\n🎉 Plugin validation passed");
-} catch (error) {
-  console.error(`Error during validation: ${error.message}`);
-  process.exit(1);
 }
