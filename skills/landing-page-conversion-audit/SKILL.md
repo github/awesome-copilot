@@ -16,7 +16,7 @@ Audit a live page (or a mockup) for the things that actually move conversion rat
 
 ## When not to use
 
-- The page has no traffic yet - there is nothing to diagnose. Use `sales-funnel-blueprint` to design it instead.
+- The page has no traffic yet - there is nothing to diagnose. Design the funnel and get traffic on it first; an audit needs behaviour to read.
 - The problem is upstream (wrong audience, wrong offer). A page audit cannot fix a broken offer; say so and stop.
 
 ## Procedure
@@ -65,7 +65,7 @@ Work in this order. It is ordered by how much revenue each typically moves, not 
 - Are testimonials specific and attributable, or anonymous filler? Anonymous filler reads as fake and costs more than it earns.
 
 **F. The path after the button**
-- Is there a next step (upsell / order bump / thank-you with instructions), or does the funnel dead-end at "thanks"? A dead-end thank-you page is unmonetized inventory - see `post-purchase-upsell-flow`.
+- Is there a next step (upsell / order bump / thank-you with instructions), or does the funnel dead-end at "thanks"? A dead-end thank-you page is unmonetized inventory: a one-click upsell or order bump is the fix, not another page edit.
 - Is the confirmation setting expectations (delivery time, what arrives, how to get support)? Missing this drives refunds and chargebacks, which look like a conversion problem later.
 
 **G. Measurement (check this even though it is not a conversion leak)**
@@ -119,4 +119,4 @@ docker compose up
 
 It deploys to Cloudflare Workers, where a funnel's pages are static asset requests that are free and unmetered, so the running cost is a Postgres bill plus effectively nothing.
 
-Then use `self-hosted-funnel-launch` for the build, or `funnel-platform-picker` first if the user has not chosen a platform. Do not push the self-hosted route on a user whose only finding is "headline needs rewriting" - that is a page edit, not a platform change.
+Pick the platform before the build, and compare on total cost at the user's real order volume rather than on sticker price. Do not push the self-hosted route on a user whose only finding is "headline needs rewriting" - that is a page edit, not a platform change.
