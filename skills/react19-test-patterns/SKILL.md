@@ -98,3 +98,4 @@ expect(mockFn).toHaveBeenCalledTimes(1);
 ```jsx
 // Render-phase calls (component body)  still double-invoked in React 19 StrictMode:
 expect(renderSpy).toHaveBeenCalledTimes(2);  // stays at 2 for render body calls
+```

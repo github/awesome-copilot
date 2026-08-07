@@ -105,6 +105,8 @@ Detection targets:
 
 ### 2.2 Inspection Items
 
+Work through [references/visual-checklist.md](references/visual-checklist.md) during inspection and again during post-fix verification.
+
 #### Layout Issues
 
 | Issue | Description | Severity |
