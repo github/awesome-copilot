@@ -139,7 +139,7 @@ Always provide these outputs:
 
 ## Output template
 
-Use this response structure:
+Use `references/smart-city-solution-template.md` to standardize outputs for each scenario, with this response structure:
 
 1. Context and objectives
 2. Proposed architecture
