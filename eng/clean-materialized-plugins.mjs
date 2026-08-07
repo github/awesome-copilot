@@ -64,7 +64,7 @@ function moveEntry(srcPath, destPath) {
 }
 
 export function restoreManifestFromMaterializedFiles(pluginPath) {
-  const pluginJsonPath = path.join(pluginPath, ".github/plugin", "plugin.json");
+  const pluginJsonPath = path.join(pluginPath, "plugin.json");
   if (!fs.existsSync(pluginJsonPath)) {
     return false;
   }
@@ -108,7 +108,7 @@ export function restoreManifestFromMaterializedFiles(pluginPath) {
 function cleanPlugin(pluginPath) {
   const manifestUpdated = restoreManifestFromMaterializedFiles(pluginPath);
   if (manifestUpdated) {
-    console.log(`  Updated ${path.basename(pluginPath)}/.github/plugin/plugin.json`);
+    console.log(`  Updated ${path.basename(pluginPath)}/plugin.json`);
   }
 
   let removed = 0;
@@ -126,7 +126,7 @@ function cleanPlugin(pluginPath) {
 }
 
 export function cleanMaterializedExtensionPlugin(extensionPath) {
-  const pluginJsonPath = path.join(extensionPath, ".github", "plugin", "plugin.json");
+  const pluginJsonPath = path.join(extensionPath, "plugin.json");
   let manifestUpdated = false;
   if (fs.existsSync(pluginJsonPath)) {
     const plugin = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
@@ -141,7 +141,7 @@ export function cleanMaterializedExtensionPlugin(extensionPath) {
     }
     if (manifestUpdated) {
       fs.writeFileSync(pluginJsonPath, JSON.stringify(plugin, null, 2) + "\n", "utf8");
-      console.log(`  Updated ${path.basename(extensionPath)}/.github/plugin/plugin.json`);
+      console.log(`  Updated ${path.basename(extensionPath)}/plugin.json`);
     }
   }
 
@@ -174,7 +174,7 @@ function isExtensionPluginDirectory(extensionPath) {
     return true;
   }
 
-  const pluginJsonPath = path.join(extensionPath, ".github", "plugin", "plugin.json");
+  const pluginJsonPath = path.join(extensionPath, "plugin.json");
   if (!fs.existsSync(pluginJsonPath)) {
     return false;
   }

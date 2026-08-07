@@ -109,7 +109,7 @@ export async function runExternalPluginPrQualityGates(plugins) {
     ? "No changed external plugin entries were detected in plugins/external.json."
     : checkedPlugins
       .map((entry) =>
-        `- ${entry.name}: vally-lint=${entry.quality.vally_lint_status}, install-smoke=${entry.quality.smoke_status}, version-match=${entry.quality.version_match_status}, ref-sha-consistency=${entry.quality.ref_sha_consistency_status}, canvas-structure=${entry.quality.canvas_structure_status}, overall=${entry.quality.overall_status}`
+        `- ${entry.name}: spec=${entry.quality.spec_compliance_status}, vally-lint=${entry.quality.vally_lint_status}, install-smoke=${entry.quality.smoke_status}, version-match=${entry.quality.version_match_status}, ref-sha-consistency=${entry.quality.ref_sha_consistency_status}, canvas-structure=${entry.quality.canvas_structure_status}, overall=${entry.quality.overall_status}`
       )
       .join("\n");
 
