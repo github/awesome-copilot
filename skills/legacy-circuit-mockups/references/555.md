@@ -1,6 +1,6 @@
 # 555
 
-[www.fairchildsemi.com](www.fairchildsemi.com)
+[www.fairchildsemi.com](https://www.fairchildsemi.com)
 
 The LM555/NE555/SA555 is  a highly stable controller capable of producing accurate timing pulses. With a monostable operation, the time delay is controlled by one external resistor and one capacitor. With an astable operation, the frequency and duty cycle are accurately controlled by two external resistors and one capacitor.
 

@@ -126,6 +126,8 @@ Always provide:
 
 ## Output Template
 
+Use `references/python-edge-module-template.md` to structure implementation proposals and reviews.
+
 1. Context and assumptions
 2. Module architecture
 3. Deployment and configuration
