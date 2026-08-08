@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Git Worktree Explorer</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="title-block">
+      <span class="mark" aria-hidden="true">⌘</span>
+      <div>
+        <h1>Git Worktree Explorer</h1>
+        <p id="repo-path">Loading repository…</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span id="github-status" class="status-pill">Local Git</span>
+      <button id="refresh-button" class="icon-button" type="button" title="Refresh repository" aria-label="Refresh repository">↻</button>
+    </div>
+  </header>
+
+  <nav id="breadcrumbs" class="breadcrumbs" aria-label="Topology breadcrumbs"></nav>
+
+  <main class="workspace">
+    <section class="graph-panel" aria-label="Git repository topology">
+      <div class="graph-toolbar" aria-label="Graph controls">
+        <button id="view-worktrees" class="view-button active" type="button">Worktrees</button>
+        <button id="view-branches" class="view-button" type="button">Branches</button>
+        <span class="toolbar-divider" aria-hidden="true"></span>
+        <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+        <button id="zoom-reset" type="button">100%</button>
+        <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+      </div>
+      <div id="loading" class="loading">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Reading worktrees and branches…</span>
+      </div>
+      <div id="empty-state" class="empty-state" hidden></div>
+      <div id="graph-scroll" class="graph-scroll">
+        <svg id="graph" role="tree" aria-label="Git topology graph"></svg>
+      </div>
+    </section>
+
+    <aside id="inspector" class="inspector" aria-live="polite">
+      <div class="inspector-empty">
+        <span class="inspector-icon" aria-hidden="true">⌁</span>
+        <h2>Select a node</h2>
+        <p>Details and safe actions appear here.</p>
+      </div>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

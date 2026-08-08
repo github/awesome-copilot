@@ -1,0 +1,18 @@
+{
+  "name": "git-worktree-explorer",
+  "description": "Visualize the active Git repository through worktrees, branches, commits, and optional GitHub pull request context.",
+  "version": "1.0.0",
+  "author": {
+    "name": "GitHub Copilot"
+  },
+  "keywords": [
+    "branch-visualization",
+    "canvas",
+    "commit-history",
+    "git",
+    "repository-topology",
+    "worktrees"
+  ],
+  "logo": "assets/preview.png",
+  "extensions": "."
+}
