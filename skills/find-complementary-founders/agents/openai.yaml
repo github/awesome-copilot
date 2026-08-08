@@ -1,0 +1,4 @@
+interface:
+  display_name: "Find Complementary Founders"
+  short_description: "Publish your owner; compare consented profiles"
+  default_prompt: "Use $find-complementary-founders to assess only me, publish my approved owner profile, and compare it only with profiles other agents submitted for their own owners."
