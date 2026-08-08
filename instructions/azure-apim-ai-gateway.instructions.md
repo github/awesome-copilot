@@ -57,7 +57,12 @@ Emit prompt/completion/total token metrics to **Application Insights** so you ca
 
 ## Authentication — managed identity, not keys
 
-Give APIM's managed identity the **Cognitive Services OpenAI User** role on the Foundry resource, then authenticate at the gateway. Inline form:
+The RBAC role **and the token audience depend on the model type** — this trips people up because the OpenAI role and audience don't work for other Foundry models:
+
+- **Azure OpenAI deployments** → assign **Cognitive Services OpenAI User**; token audience `https://cognitiveservices.azure.com`.
+- **Non-OpenAI Foundry Models** (DeepSeek, Llama, Grok, and other models sold by Azure) → assign **Cognitive Services User** (the OpenAI role does **not** grant access to these); token audience `https://ai.azure.com`.
+
+Assign the role to APIM's managed identity on the Foundry resource, then authenticate at the gateway. Inline form (Azure OpenAI shown — swap `resource` to `https://ai.azure.com` for non-OpenAI Foundry models):
 
 ```xml
 <!-- inbound -->
@@ -70,7 +75,7 @@ Give APIM's managed identity the **Cognitive Services OpenAI User** role on the 
 </set-header>
 ```
 
-Preferred form: configure a **backend** with managed-identity credentials to `https://cognitiveservices.azure.com/` and reference it with `<set-backend-service backend-id="..." />`. This is what APIM sets up when you import a Foundry API directly.
+Preferred form: configure a **backend** with managed-identity credentials to the matching audience (`https://cognitiveservices.azure.com/` for Azure OpenAI, `https://ai.azure.com/` for other Foundry models) and reference it with `<set-backend-service backend-id="..." />`. This is what APIM sets up when you import a Foundry API directly.
 
 ## Resiliency — backend pools, load balancing, and circuit breakers
 
@@ -103,7 +108,7 @@ resource backend1 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' 
           failureCondition: {
             count: 3
             interval: 'PT1H'
-            statusCodeRanges: [ { min: 429, max: 429 }, { min: 500, max: 599 } ]
+            statusCodeRanges: [ { min: 500, max: 599 } ]
             errorReasons: [ 'Server errors' ]
           }
           tripDuration: 'PT1H'
