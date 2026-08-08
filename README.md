@@ -16,13 +16,17 @@ New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilo
 
 ## What's in this repo
 
-| Resource | Description | Browse |
-|----------|-------------|--------|
-| 🤖 [Agents](docs/README.agents.md) | Specialized Copilot agents that integrate with MCP servers | [All agents →](https://awesome-copilot.github.com/agents) |
-| 📋 [Instructions](docs/README.instructions.md) | Coding standards applied automatically by file pattern | [All instructions →](https://awesome-copilot.github.com/instructions) |
-| 🎯 [Skills](docs/README.skills.md) | Self-contained folders with instructions and bundled assets | [All skills →](https://awesome-copilot.github.com/skills) |
-| 🔌 [Plugins](docs/README.plugins.md) | Curated bundles of agents and skills for specific workflows | [All plugins →](https://awesome-copilot.github.com/plugins) |
-| 🍳 [Cookbook](cookbook/README.md) | Copy-paste-ready recipes for working with Copilot APIs | — |
+New here? The quickest way to tell these apart is *when* each one reaches Copilot.
+
+| Resource | Description | When it loads | Browse |
+|----------|-------------|---------------|--------|
+| 🤖 [Agents](docs/README.agents.md) | A specialist persona: system prompt + allowed tools/MCP servers + an optional pinned model | When you select or assign it, or another agent delegates work to it | [All agents →](https://awesome-copilot.github.com/agents) |
+| 📋 [Instructions](docs/README.instructions.md) | Coding standards and repo conventions — prose only, no tools | **Automatically**, when a file matches its `applyTo` pattern | [All instructions →](https://awesome-copilot.github.com/instructions) |
+| 🎯 [Skills](docs/README.skills.md) | Task procedures plus bundled scripts, templates, and reference data | **In two stages** — only the frontmatter `description` sits in context; the body and assets load when the agent opens the file | [All skills →](https://awesome-copilot.github.com/skills) |
+| 🪝 [Hooks](docs/README.hooks.md) | Shell commands wired to coding-agent lifecycle events like `sessionStart` or `preToolUse` | Never — hooks *run*, they don't enter the context window | [Browse hooks →](hooks/) |
+| ⚙️ [Workflows](docs/README.workflows.md) | Agentic workflows that run Copilot in GitHub Actions on a schedule or repo event | Not in your editor — these execute in CI | [Browse workflows →](workflows/) |
+| 🔌 [Plugins](docs/README.plugins.md) | Installable bundles of related agents and skills — packaging, not a new capability | **At install time only** — the bundled agents and skills then load by their own rules above | [All plugins →](https://awesome-copilot.github.com/plugins) |
+| 🍳 [Cookbook](cookbook/README.md) | Copy-paste-ready recipes for building *with* the Copilot SDK | Never — these are docs for you, not for Copilot | — |
 
 ## Install a Plugin
 
