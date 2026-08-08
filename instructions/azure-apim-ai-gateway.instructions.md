@@ -15,7 +15,7 @@ Guidance for putting **Azure API Management (APIM)** in front of **Microsoft Fou
 - **Throttle by tokens, not by call count**, for LLM APIs. `rate-limit-by-key` counts requests and is blind to token cost; use `llm-token-limit`.
 - **Authenticate to Foundry with a managed identity**, never a stored key. Give APIM's identity the **Cognitive Services OpenAI User** role on the Foundry resource.
 - **Respect policy element order.** Set elements and child elements in the order documented for each policy, and keep `<base />` in each section (`inbound`, `backend`, `outbound`, `on-error`).
-- **The `llm-*` and `azure-openai-*` metric/token policies are not available on the Consumption tier.** Check tier support before recommending them.
+- **Check tier support per policy — it varies.** `llm-token-limit` is not available on the Consumption tier; `llm-emit-token-metric`, `llm-semantic-cache-*`, and `llm-content-safety` apply to all tiers (including Consumption). Verify each policy's "Applies to" line rather than assuming.
 - Prefer configuring an APIM **backend** resource (with managed-identity credentials) over inline `authentication-managed-identity` + `set-header`; importing a Foundry API wires this up automatically.
 
 ## Token rate limiting and quotas — `llm-token-limit`
@@ -52,7 +52,8 @@ Emit prompt/completion/total token metrics to **Application Insights** so you ca
 ```
 
 - Requires an Application Insights logger wired to the APIM instance. Also enable LLM request logging to capture prompts/completions for auditing.
-- Not available on the Consumption tier.
+- Metrics come from the `usage` section of the model response. Some OpenAI models — **especially when streaming** — omit token counts unless the request sets `include_usage: true` (`stream_options`), and an interrupted stream yields inaccurate counts. Ensure clients enable usage reporting or the metric will be silently incomplete.
+- Applies to all API Management tiers (including Consumption). A maximum of 5 custom dimensions per policy.
 
 ## Authentication — managed identity, not keys
 
@@ -98,7 +99,7 @@ resource backend1 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' 
     circuitBreaker: {
       rules: [
         {
-          name: 'trip-on-5xx'
+          name: 'trip-on-backend-failures'
           failureCondition: {
             count: 3
             interval: 'PT1H'
@@ -110,6 +111,14 @@ resource backend1 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' 
         }
       ]
     }
+  }
+}
+
+resource backend2 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' = {
+  name: '${apimName}/foundry-paygo'
+  properties: {
+    url: 'https://<foundry-2>.openai.azure.com/openai'
+    protocol: 'http'
   }
 }
 ```
@@ -189,7 +198,7 @@ Keep AI gateway policies in the correct sections and preserve `<base />`:
 
 ## Foundry-native AI gateway
 
-Foundry has **built-in integration** with APIM: from the Foundry portal you can create or attach an APIM instance as an AI gateway and set per-deployment TPM limits and quotas from **Operate → Admin → AI Gateway → Token management** — these map directly to `llm-token-limit`. The gateway can also govern registered **agents** (running anywhere) and **MCP tools**, surfacing them in the Foundry inventory with policy enforcement and telemetry. When a repo uses this integration, keep custom policies compatible with the Foundry-managed configuration rather than overriding it. Prefer importing the API as a **Language Model API** or **Azure AI Foundry API** in APIM, which auto-creates the backend, `set-backend-service`, and optional token/caching/safety policies.
+Foundry has **built-in integration** with APIM: from the Foundry portal you can create a new APIM instance or attach an existing one as an AI gateway, then set per-deployment TPM limits and quotas from **Operate → Admin → AI Gateway → Token management** — these map directly to `llm-token-limit`. Attaching an **existing** APIM instance has hard requirements: it must be in the **same Microsoft Entra tenant and subscription** as the Foundry resource, be a **v2 tier** (Basic v2 / Standard v2 / Premium v2), and you need at least the **API Management Service Contributor** (or Owner) role on it — otherwise it won't appear as selectable. The gateway can also govern registered **agents** (running anywhere) and, in **preview**, **MCP tools** (only new MCP tools that don't use managed OAuth are routed; policies are applied in the Azure portal, not the Foundry portal). When a repo uses this integration, keep custom policies compatible with the Foundry-managed configuration rather than overriding it. Prefer importing the API as a **Language Model API** or **Azure AI Foundry API** in APIM, which auto-creates the backend, `set-backend-service`, and optional token/caching/safety policies.
 
 ## Grounding
 
