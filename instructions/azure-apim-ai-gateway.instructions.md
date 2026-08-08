@@ -102,7 +102,7 @@ resource backend1 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' 
           failureCondition: {
             count: 3
             interval: 'PT1H'
-            statusCodeRanges: [ { min: 500, max: 599 } ]
+            statusCodeRanges: [ { min: 429, max: 429 }, { min: 500, max: 599 } ]
             errorReasons: [ 'Server errors' ]
           }
           tripDuration: 'PT1H'
