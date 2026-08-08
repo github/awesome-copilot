@@ -13,7 +13,7 @@ Guidance for putting **Azure API Management (APIM)** in front of **Microsoft Fou
 
 - **Prefer the provider-agnostic `llm-*` policies** (`llm-token-limit`, `llm-emit-token-metric`, `llm-semantic-cache-lookup`/`-store`, `llm-content-safety`). They work across OpenAI Chat Completions/Responses, Anthropic Messages (v2 tiers), and Google Vertex AI. Only use the `azure-openai-*` variants when the API is exclusively Azure OpenAI and you have a reason to.
 - **Throttle by tokens, not by call count**, for LLM APIs. `rate-limit-by-key` counts requests and is blind to token cost; use `llm-token-limit`.
-- **Authenticate to Foundry with a managed identity**, never a stored key. Give APIM's identity the **Cognitive Services OpenAI User** role on the Foundry resource.
+- **Authenticate to Foundry with a managed identity**, never a stored key. The exact role and token audience depend on the model type (see [Authentication](#authentication--managed-identity-not-keys)) — Azure OpenAI uses **Cognitive Services OpenAI User** (`https://cognitiveservices.azure.com`); other Foundry models use **Cognitive Services User** (`https://ai.azure.com`).
 - **Respect policy element order.** Set elements and child elements in the order documented for each policy, and keep `<base />` in each section (`inbound`, `backend`, `outbound`, `on-error`).
 - **Check tier support per policy — it varies.** `llm-token-limit` is not available on the Consumption tier; `llm-emit-token-metric`, `llm-semantic-cache-*`, and `llm-content-safety` apply to all tiers (including Consumption). Verify each policy's "Applies to" line rather than assuming.
 - Prefer configuring an APIM **backend** resource (with managed-identity credentials) over inline `authentication-managed-identity` + `set-header`; importing a Foundry API wires this up automatically.
@@ -47,7 +47,7 @@ Emit prompt/completion/total token metrics to **Application Insights** so you ca
 <llm-emit-token-metric namespace="llm-metrics">
     <dimension name="Client IP" value="@(context.Request.IpAddress)" />
     <dimension name="API ID" value="@(context.Api.Id)" />
-    <dimension name="User ID" value="@(context.Request.Headers.GetValueOrDefault("x-user-id", "N/A"))" />
+    <dimension name="User ID" value='@(context.Request.Headers.GetValueOrDefault("x-user-id", "N/A"))' />
 </llm-emit-token-metric>
 ```
 
@@ -108,7 +108,8 @@ resource backend1 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' 
           failureCondition: {
             count: 3
             interval: 'PT1H'
-            statusCodeRanges: [ { min: 500, max: 599 } ]
+            // 429 = PTU/TPM saturation (honors Retry-After), 5xx = backend failure
+            statusCodeRanges: [ { min: 429, max: 429 }, { min: 500, max: 599 } ]
             errorReasons: [ 'Server errors' ]
           }
           tripDuration: 'PT1H'
