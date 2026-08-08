@@ -62,6 +62,8 @@
 
 # Vally/vally - Name of product
 
+# checkin - config key in the daily-focus-board skill (window.__BOARD__.checkin, state.checkin, data-checkin attribute)
+
 # ACI - Azure Container Instances abbreviation
 
 # soruce - intentional misspelling for tests
@@ -70,7 +72,7 @@
 
 # crystalize - valid US spelling variant in mirrored copilot-workshops content
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,extenions,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally,ACI,soruce,straightaway,crystalize
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,extenions,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally,checkin,ACI,soruce,straightaway,crystalize
 
 # Skip certain files and directories
 
