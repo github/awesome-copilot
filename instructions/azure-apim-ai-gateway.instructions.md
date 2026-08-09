@@ -51,7 +51,7 @@ Emit prompt/completion/total token metrics to **Application Insights** so you ca
 </llm-emit-token-metric>
 ```
 
-- Requires an Application Insights logger wired to the APIM instance. Also enable LLM request logging to capture prompts/completions for auditing.
+- Requires an Application Insights logger wired to the APIM instance. Token metrics do **not** require logging message content. Full prompt/completion logging is a separate, **opt-in** step — enable it only with a clear need, because it can persist PII, secrets, and other sensitive content. If you do, apply field redaction, restrict who can read the logs, set a short retention window, and run it past your compliance/privacy review.
 - Metrics come from the `usage` section of the model response. Some OpenAI models — **especially when streaming** — omit token counts unless the request sets `include_usage: true` (`stream_options`), and an interrupted stream yields inaccurate counts. Ensure clients enable usage reporting or the metric will be silently incomplete.
 - Applies to all API Management tiers (including Consumption). A maximum of 5 custom dimensions per policy.
 
@@ -141,7 +141,9 @@ Cache completions by vector proximity of the prompt to reduce token spend and la
     embeddings-backend-auth="system-assigned"
     ignore-system-messages="true"
     max-message-count="10">
-    <vary-by>@(context.Subscription.Id)</vary-by>
+    <!-- Subscription id alone shares one partition across all users on that subscription.
+         For user-specific responses, vary by an authenticated subject to isolate per user: -->
+    <vary-by>@(context.Principal?.Claims.GetValueOrDefault("oid", context.Subscription.Id))</vary-by>
 </llm-semantic-cache-lookup>
 ```
 
@@ -151,7 +153,7 @@ Cache completions by vector proximity of the prompt to reduce token spend and la
 ```
 
 - Lower `score-threshold` = stricter match (fewer cache hits, higher fidelity). Tune per use case; start around `0.05`–`0.15`.
-- Partition the cache per tenant/consumer with `<vary-by>` so users never receive another consumer's cached completion.
+- Partition the cache on the **actual confidentiality boundary** with `<vary-by>`. Keying only on the APIM subscription id means every user sharing that subscription shares one cache partition and can receive each other's cached completions — a data-exposure risk. When responses are user-specific, add an authenticated user/subject identifier (for example a JWT `sub`/`oid` claim via `context.Principal`) to `<vary-by>` so per-user isolation is enforced.
 
 ## Content safety — `llm-content-safety`
 
@@ -187,11 +189,14 @@ Keep AI gateway policies in the correct sections and preserve `<base />`:
         <category name="Hate" threshold="4" />
       </categories>
     </llm-content-safety>
+    <!-- Cache lookup BEFORE token-limit/metric: a cache hit short-circuits the pipeline,
+         so a cached request must not consume the caller's TPM/quota. Content safety stays
+         above the lookup so every prompt is still screened. -->
+    <llm-semantic-cache-lookup score-threshold="0.1" embeddings-backend-id="embeddings-backend" embeddings-backend-auth="system-assigned" />
     <llm-token-limit counter-key="@(context.Subscription.Id)" tokens-per-minute="500" estimate-prompt-tokens="true" />
     <llm-emit-token-metric namespace="llm-metrics">
       <dimension name="API ID" value="@(context.Api.Id)" />
     </llm-emit-token-metric>
-    <llm-semantic-cache-lookup score-threshold="0.1" embeddings-backend-id="embeddings-backend" embeddings-backend-auth="system-assigned" />
   </inbound>
   <backend><base /></backend>
   <outbound>
