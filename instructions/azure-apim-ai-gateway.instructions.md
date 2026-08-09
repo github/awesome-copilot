@@ -90,8 +90,18 @@ resource pool 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' = {
     type: 'Pool'
     pool: {
       services: [
-        { id: backend1.id, priority: 1, weight: 1 } // PTU — preferred
-        { id: backend2.id, priority: 2, weight: 1 } // PayGo — fallback
+        {
+          // PTU — preferred
+          id: backend1.id
+          priority: 1
+          weight: 1
+        }
+        {
+          // PayGo — fallback
+          id: backend2.id
+          priority: 2
+          weight: 1
+        }
       ]
     }
   }
@@ -110,8 +120,19 @@ resource backend1 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' 
             count: 3
             interval: 'PT1H'
             // 429 = PTU/TPM saturation (honors Retry-After), 5xx = backend failure
-            statusCodeRanges: [ { min: 429, max: 429 }, { min: 500, max: 599 } ]
-            errorReasons: [ 'Server errors' ]
+            statusCodeRanges: [
+              {
+                min: 429
+                max: 429
+              }
+              {
+                min: 500
+                max: 599
+              }
+            ]
+            errorReasons: [
+              'Server errors'
+            ]
           }
           tripDuration: 'PT1H'
           acceptRetryAfter: true
@@ -143,8 +164,9 @@ Cache completions by vector proximity of the prompt to reduce token spend and la
     ignore-system-messages="true"
     max-message-count="10">
     <!-- Subscription id alone shares one partition across all users on that subscription.
-         For user-specific responses, vary by an authenticated subject to isolate per user: -->
-    <vary-by>@(context.Principal?.Claims.GetValueOrDefault("oid", context.Subscription.Id))</vary-by>
+         For user-specific responses, vary by the authenticated caller's subject. Reads the
+         JWT from the Authorization header (authenticate it first with <validate-jwt>): -->
+    <vary-by>@(context.Request.Headers.GetValueOrDefault("Authorization","").AsJwt()?.Subject ?? context.Subscription.Id)</vary-by>
 </llm-semantic-cache-lookup>
 ```
 
@@ -154,7 +176,7 @@ Cache completions by vector proximity of the prompt to reduce token spend and la
 ```
 
 - Lower `score-threshold` = stricter match (fewer cache hits, higher fidelity). Tune per use case; start around `0.05`–`0.15`.
-- Partition the cache on the **actual confidentiality boundary** with `<vary-by>`. Keying only on the APIM subscription id means every user sharing that subscription shares one cache partition and can receive each other's cached completions — a data-exposure risk. When responses are user-specific, add an authenticated user/subject identifier (for example a JWT `sub`/`oid` claim via `context.Principal`) to `<vary-by>` so per-user isolation is enforced.
+- Partition the cache on the **actual confidentiality boundary** with `<vary-by>`. Keying only on the APIM subscription id means every user sharing that subscription shares one cache partition and can receive each other's cached completions — a data-exposure risk. When responses are user-specific, add the authenticated caller's subject to `<vary-by>` — read the validated token with `context.Request.Headers.GetValueOrDefault("Authorization","").AsJwt()?.Subject` (or a specific claim via `.AsJwt()?.Claims.GetValueOrDefault("oid","")`), authenticated first with `<validate-jwt>`, so per-user isolation is enforced.
 
 ## Content safety — `llm-content-safety`
 
