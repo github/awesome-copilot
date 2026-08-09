@@ -167,10 +167,11 @@ Cache completions by vector proximity of the prompt to reduce token spend and la
     max-message-count="10">
     <!-- Subscription id alone shares one partition across all users on that subscription.
          For user-specific responses, vary by the authenticated caller's subject. Key off the
-         caller JWT captured by <validate-jwt output-token-variable-name="callerJwt"/> earlier
-         in inbound — do NOT read Authorization here, it has been overwritten with APIM's
-         managed-identity token before lookup: -->
-    <vary-by>@(context.Variables.GetValueOrDefault<Jwt>("callerJwt")?.Subject ?? context.Subscription.Id)</vary-by>
+         caller JWT saved by validate-jwt (output-token-variable-name="callerJwt") earlier in
+         inbound — do NOT read Authorization here; it is overwritten with APIM's managed-identity
+         token before lookup. A cast is used because a generic (Jwt) would put a raw '<' in the
+         XML, which is invalid: -->
+    <vary-by>@(context.Variables.ContainsKey("callerJwt") ? ((Jwt)context.Variables["callerJwt"]).Subject : context.Subscription.Id)</vary-by>
 </llm-semantic-cache-lookup>
 ```
 
@@ -180,11 +181,11 @@ Cache completions by vector proximity of the prompt to reduce token spend and la
 ```
 
 - Lower `score-threshold` = stricter match (fewer cache hits, higher fidelity). Tune per use case; start around `0.05`–`0.15`.
-- Partition the cache on the **actual confidentiality boundary** with `<vary-by>`. Keying only on the APIM subscription id means every user sharing that subscription shares one cache partition and can receive each other's cached completions — a data-exposure risk. When responses are user-specific, add the authenticated caller's subject to `<vary-by>`. Capture the caller's token early in `inbound` with `<validate-jwt output-token-variable-name="callerJwt" ... />` (before the managed-identity step overwrites `Authorization`), then key off the saved variable: `context.Variables.GetValueOrDefault<Jwt>("callerJwt")?.Subject` (or a specific claim via `...?.Claims.GetValueOrDefault("oid","")`). Do not re-read `Authorization` at lookup time — by then it holds APIM's backend token, which would collapse all callers into one partition.
+- Partition the cache on the **actual confidentiality boundary** with `<vary-by>`. Keying only on the APIM subscription id means every user sharing that subscription shares one cache partition and can receive each other's cached completions — a data-exposure risk. When responses are user-specific, add the authenticated caller's subject to `<vary-by>`. Capture the caller's token early in `inbound` with `<validate-jwt output-token-variable-name="callerJwt" ... />` (before the managed-identity step overwrites `Authorization`), then key off the saved variable with a cast (a generic `<Jwt>` would put a raw `<` into the XML): `@(context.Variables.ContainsKey("callerJwt") ? ((Jwt)context.Variables["callerJwt"]).Subject : context.Subscription.Id)`. Do not re-read `Authorization` at lookup time — by then it holds APIM's backend token, which would collapse all callers into one partition.
 
 ## Content safety — `llm-content-safety`
 
-Screen prompts (and optionally responses) through **Azure AI Content Safety** before they reach the model. Configure a content-safety backend and set severity thresholds. Mind the defaults: both `shield-prompt` (jailbreak/prompt-injection detection) and `enforce-on-completions` default to `false`, so an inbound policy screens **prompts only** — set `enforce-on-completions="true"` to also screen the model's completions (or place the policy in the `outbound` section to screen responses).
+Screen prompts through **Azure AI Content Safety** **before they reach the model** and, optionally, screen the model's responses (completions) **after it replies**. Configure a content-safety backend and set severity thresholds. Mind the defaults: both `shield-prompt` (jailbreak/prompt-injection detection) and `enforce-on-completions` default to `false`, so an inbound policy screens **prompts only** — set `enforce-on-completions="true"` to also screen the model's completions (or place the policy in the `outbound` section to screen responses).
 
 ```xml
 <!-- inbound -->
@@ -228,10 +229,11 @@ Keep AI gateway policies in the correct sections and preserve `<base />`:
          so a cached request must not consume the caller's TPM/quota. Content safety stays
          above the lookup so every prompt is still screened. -->
     <llm-semantic-cache-lookup score-threshold="0.1" embeddings-backend-id="embeddings-backend" embeddings-backend-auth="system-assigned">
-      <!-- Partition per authenticated caller (from the saved token) to prevent cross-user cache leakage. -->
-      <vary-by>@(context.Variables.GetValueOrDefault<Jwt>("callerJwt")?.Subject ?? context.Subscription.Id)</vary-by>
+      <!-- Partition per authenticated caller (from the saved token) to prevent cross-user cache
+           leakage. Cast, not a generic, so no raw '<' appears in the XML. -->
+      <vary-by>@(context.Variables.ContainsKey("callerJwt") ? ((Jwt)context.Variables["callerJwt"]).Subject : context.Subscription.Id)</vary-by>
     </llm-semantic-cache-lookup>
-    <llm-token-limit counter-key="@(context.Variables.GetValueOrDefault<Jwt>("callerJwt")?.Subject ?? context.Subscription.Id)" tokens-per-minute="500" estimate-prompt-tokens="true" />
+    <llm-token-limit counter-key="@(context.Subscription.Id)" tokens-per-minute="500" estimate-prompt-tokens="true" />
     <llm-emit-token-metric namespace="llm-metrics">
       <dimension name="API ID" value="@(context.Api.Id)" />
     </llm-emit-token-metric>
