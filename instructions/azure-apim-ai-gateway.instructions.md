@@ -15,7 +15,7 @@ Guidance for putting **Azure API Management (APIM)** in front of **Microsoft Fou
 - **Throttle by tokens, not by call count**, for LLM APIs. `rate-limit-by-key` counts requests and is blind to token cost; use `llm-token-limit`.
 - **Authenticate to Foundry with a managed identity**, never a stored key. The exact role and token audience depend on the model type (see [Authentication](#authentication--managed-identity-not-keys)) — Azure OpenAI uses **Cognitive Services OpenAI User** (`https://cognitiveservices.azure.com`); other Foundry models use **Cognitive Services User** (`https://ai.azure.com`).
 - **Respect policy element order.** Set elements and child elements in the order documented for each policy, and keep `<base />` in each section (`inbound`, `backend`, `outbound`, `on-error`).
-- **Check tier support per policy — it varies.** `llm-token-limit` is not available on the Consumption tier; `llm-emit-token-metric`, `llm-semantic-cache-*`, and `llm-content-safety` apply to all tiers (including Consumption). Verify each policy's "Applies to" line rather than assuming.
+- **Check tier support per policy — it varies.** `llm-token-limit` and `llm-content-safety` are not available on the Consumption tier; `llm-emit-token-metric` and `llm-semantic-cache-*` apply to all tiers (including Consumption). Verify each policy's "Applies to" line rather than assuming.
 - Prefer configuring an APIM **backend** resource (with managed-identity credentials) over inline `authentication-managed-identity` + `set-header`; importing a Foundry API wires this up automatically.
 
 ## Token rate limiting and quotas — `llm-token-limit`
@@ -180,7 +180,7 @@ Cache completions by vector proximity of the prompt to reduce token spend and la
 
 ## Content safety — `llm-content-safety`
 
-Screen prompts (and optionally responses) through **Azure AI Content Safety** before they reach the model. Configure a content-safety backend and set severity thresholds; `shield-prompt="true"` adds jailbreak/prompt-injection detection.
+Screen prompts (and optionally responses) through **Azure AI Content Safety** before they reach the model. Configure a content-safety backend and set severity thresholds. Mind the defaults: both `shield-prompt` (jailbreak/prompt-injection detection) and `enforce-on-completions` default to `false`, so an inbound policy screens **prompts only** — set `enforce-on-completions="true"` to also screen the model's completions (or place the policy in the `outbound` section to screen responses).
 
 ```xml
 <!-- inbound -->
