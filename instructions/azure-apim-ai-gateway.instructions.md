@@ -45,16 +45,16 @@ Emit prompt/completion/total token metrics to **Application Insights** so you ca
 ```xml
 <!-- inbound -->
 <llm-emit-token-metric namespace="llm-metrics">
-    <dimension name="Client IP" value="@(context.Request.IpAddress)" />
-    <dimension name="API ID" value="@(context.Api.Id)" />
-    <dimension name="User ID" value='@(context.Request.Headers.GetValueOrDefault("x-user-id", "N/A"))' />
+    <dimension name="API ID" />
+    <dimension name="Subscription ID" />
 </llm-emit-token-metric>
 ```
 
 - Prerequisites for the metric — all three are required or the policy emits nothing usable: an Application Insights logger connected to the APIM instance; **Application Insights logging enabled for the LLM API**; and **custom metrics with dimensions enabled in Application Insights**.
 - Emitting token metrics does **not** require logging message content. Full prompt/completion logging is a separate, **opt-in** step — enable it only with a clear need, because it can persist PII, secrets, and other sensitive content. If you do, apply field redaction, restrict who can read the logs, set a short retention window, and run it past your compliance/privacy review.
 - Metrics come from the `usage` section of the model response. Some OpenAI models — **especially when streaming** — omit token counts unless the request sets `include_usage: true` (`stream_options`), and an interrupted stream yields inaccurate counts. Ensure clients enable usage reporting or the metric will be silently incomplete.
-- Applies to all API Management tiers (including Consumption). A maximum of 5 custom dimensions per policy.
+- Applies to all API Management tiers (including Consumption). Max 5 custom dimensions per policy.
+- **Keep dimension cardinality low.** Azure Monitor caps custom metrics at 50,000 active time series per region per subscription (12-hour window), and the series count is the product of each dimension's distinct values. Avoid high-cardinality dimensions like client IP or per-user IDs — at normal user scale they blow past the cap and metrics get dropped. Prefer stable built-in dimensions (e.g. `API ID`, `Subscription ID`); use per-user attribution through logs/queries instead.
 
 ## Authentication — managed identity, not keys
 
@@ -77,6 +77,8 @@ Assign the role to APIM's managed identity on the Foundry resource, then authent
 ```
 
 Preferred form: configure a **backend** with managed-identity credentials to the matching audience (`https://cognitiveservices.azure.com/` for Azure OpenAI, `https://ai.azure.com/` for other Foundry models) and reference it with `<set-backend-service backend-id="..." />`. This is what APIM sets up when you import a Foundry API directly.
+
+> **Important — the `Authorization` header gets overwritten.** The `set-header` above (and the backend form) replaces the caller's `Authorization` with APIM's managed-identity token *before* the request reaches the backend. If you need the caller's identity downstream (e.g. to partition the semantic cache per user), capture it **first** with `<validate-jwt ... output-token-variable-name="callerJwt" />` and read it from that variable — after the overwrite, `Authorization` holds the backend identity, not the caller's.
 
 ## Resiliency — backend pools, load balancing, and circuit breakers
 
@@ -164,9 +166,11 @@ Cache completions by vector proximity of the prompt to reduce token spend and la
     ignore-system-messages="true"
     max-message-count="10">
     <!-- Subscription id alone shares one partition across all users on that subscription.
-         For user-specific responses, vary by the authenticated caller's subject. Reads the
-         JWT from the Authorization header (authenticate it first with <validate-jwt>): -->
-    <vary-by>@(context.Request.Headers.GetValueOrDefault("Authorization","").AsJwt()?.Subject ?? context.Subscription.Id)</vary-by>
+         For user-specific responses, vary by the authenticated caller's subject. Key off the
+         caller JWT captured by <validate-jwt output-token-variable-name="callerJwt"/> earlier
+         in inbound — do NOT read Authorization here, it has been overwritten with APIM's
+         managed-identity token before lookup: -->
+    <vary-by>@(context.Variables.GetValueOrDefault<Jwt>("callerJwt")?.Subject ?? context.Subscription.Id)</vary-by>
 </llm-semantic-cache-lookup>
 ```
 
@@ -176,7 +180,7 @@ Cache completions by vector proximity of the prompt to reduce token spend and la
 ```
 
 - Lower `score-threshold` = stricter match (fewer cache hits, higher fidelity). Tune per use case; start around `0.05`–`0.15`.
-- Partition the cache on the **actual confidentiality boundary** with `<vary-by>`. Keying only on the APIM subscription id means every user sharing that subscription shares one cache partition and can receive each other's cached completions — a data-exposure risk. When responses are user-specific, add the authenticated caller's subject to `<vary-by>` — read the validated token with `context.Request.Headers.GetValueOrDefault("Authorization","").AsJwt()?.Subject` (or a specific claim via `.AsJwt()?.Claims.GetValueOrDefault("oid","")`), authenticated first with `<validate-jwt>`, so per-user isolation is enforced.
+- Partition the cache on the **actual confidentiality boundary** with `<vary-by>`. Keying only on the APIM subscription id means every user sharing that subscription shares one cache partition and can receive each other's cached completions — a data-exposure risk. When responses are user-specific, add the authenticated caller's subject to `<vary-by>`. Capture the caller's token early in `inbound` with `<validate-jwt output-token-variable-name="callerJwt" ... />` (before the managed-identity step overwrites `Authorization`), then key off the saved variable: `context.Variables.GetValueOrDefault<Jwt>("callerJwt")?.Subject` (or a specific claim via `...?.Claims.GetValueOrDefault("oid","")`). Do not re-read `Authorization` at lookup time — by then it holds APIM's backend token, which would collapse all callers into one partition.
 
 ## Content safety — `llm-content-safety`
 
@@ -202,6 +206,14 @@ Keep AI gateway policies in the correct sections and preserve `<base />`:
 <policies>
   <inbound>
     <base />
+    <!-- Authenticate the caller and SAVE their token before Authorization is overwritten below.
+         Required to partition the semantic cache per user. Fill in your issuer/audience. -->
+    <validate-jwt header-name="Authorization" output-token-variable-name="callerJwt" failed-validation-httpcode="401">
+      <openid-config url="https://login.microsoftonline.com/{tenant-id}/v2.0/.well-known/openid-configuration" />
+      <audiences>
+        <audience>api://your-api-client-id</audience>
+      </audiences>
+    </validate-jwt>
     <set-backend-service backend-id="foundry-pool" />
     <authentication-managed-identity resource="https://cognitiveservices.azure.com" output-token-variable-name="mi" />
     <set-header name="Authorization" exists-action="override">
@@ -215,8 +227,11 @@ Keep AI gateway policies in the correct sections and preserve `<base />`:
     <!-- Cache lookup BEFORE token-limit/metric: a cache hit short-circuits the pipeline,
          so a cached request must not consume the caller's TPM/quota. Content safety stays
          above the lookup so every prompt is still screened. -->
-    <llm-semantic-cache-lookup score-threshold="0.1" embeddings-backend-id="embeddings-backend" embeddings-backend-auth="system-assigned" />
-    <llm-token-limit counter-key="@(context.Subscription.Id)" tokens-per-minute="500" estimate-prompt-tokens="true" />
+    <llm-semantic-cache-lookup score-threshold="0.1" embeddings-backend-id="embeddings-backend" embeddings-backend-auth="system-assigned">
+      <!-- Partition per authenticated caller (from the saved token) to prevent cross-user cache leakage. -->
+      <vary-by>@(context.Variables.GetValueOrDefault<Jwt>("callerJwt")?.Subject ?? context.Subscription.Id)</vary-by>
+    </llm-semantic-cache-lookup>
+    <llm-token-limit counter-key="@(context.Variables.GetValueOrDefault<Jwt>("callerJwt")?.Subject ?? context.Subscription.Id)" tokens-per-minute="500" estimate-prompt-tokens="true" />
     <llm-emit-token-metric namespace="llm-metrics">
       <dimension name="API ID" value="@(context.Api.Id)" />
     </llm-emit-token-metric>
