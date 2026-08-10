@@ -295,10 +295,4 @@ Enable Agent Merge to automate routine PR workflows:
 - **Understand Agent Skills**: [Creating Effective Skills](../creating-effective-skills/) — Build reusable task guidance
 - **Automate with Hooks**: [Automating with Hooks](../automating-with-hooks/) — Add guardrails to autonomous work
 
-## Further Reading
-
-- [GitHub Copilot app changelog](https://github.com/github/app/blob/main/changelog.md) — Latest features and fixes, including stacked pull request support, Agent Merge improvements, and requesting Copilot code reviews from the app
-- [GitHub Copilot CLI changelog](https://github.com/github/copilot-cli/blob/main/changelog.md) — Companion CLI release notes for plugin, sandbox, and session management features
-- [GitHub Changelog: Copilot](https://github.blog/changelog/label/copilot/) — Official announcements across all Copilot surfaces
-
 ---
