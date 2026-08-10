@@ -1,0 +1,4 @@
+﻿instructions:
+  id: test-skill
+  name: Test Skill
+  description: A test skill for validation
