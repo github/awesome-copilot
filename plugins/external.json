@@ -555,6 +555,33 @@
     }
   },
   {
+    "name": "mobile-canvas",
+    "description": "View, create, boot, and interact with local iOS simulators and Android emulators from a GitHub Copilot canvas. The plugin also exposes the same device controls to agents through MCP.",
+    "version": "0.1.6",
+    "author": {
+      "name": "Jonathan Dick",
+      "url": "https://github.com/Redth"
+    },
+    "repository": "https://github.com/Redth/mobile-canvas-ghcp",
+    "homepage": "https://github.com/Redth/mobile-canvas-ghcp",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "mobile",
+      "ios",
+      "android",
+      "simulator",
+      "emulator",
+      "device-control",
+      "mcp"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Redth/mobile-canvas-ghcp",
+      "sha": "c930769d41f07852baeeb407ded76d5ba83c06d2"
+    }
+  },
+  {
     "name": "modern-web-guidance",
     "description": "Modern Web Guidance is an agent skill and CLI tool designed to help AI coding agents build web applications using modern, secure, and high-performance APIs rather than outdated workarounds.\nSupported by the Google Chrome team, it injects expert-curated web platform best practices directly into an agent's context window to prevent the generation of bloated, legacy code.",
     "version": "0.0.179",
