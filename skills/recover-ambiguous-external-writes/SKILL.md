@@ -1,12 +1,30 @@
 ---
 name: recover-ambiguous-external-writes
-description: 'Recover external writes whose result was lost or timed out without blindly repeating duplicate-sensitive mutations. Use when a tool may have committed a create, send, update, delete, payment, deployment, or other side effect but the agent did not receive a trustworthy result.'
+description: 'Recover uncertain results from application-facing external actions—such as payments, tickets, messages, deployments, or CRUD API calls—without blindly repeating a duplicate-sensitive mutation. Use when a tool may have committed a side effect but the agent did not receive a trustworthy result.'
 ---
 
 # Recover Ambiguous External Writes
 
 Treat a lost response as an unknown outcome, not a failed operation. Reconcile the
 destination before deciding whether to retry.
+
+## Scope: application actions, not database recovery
+
+Use this skill when an agent invokes an **external application service** whose
+side effect matters outside the current process: for example, creating a
+customer-support ticket, sending an email or chat message, charging or
+refunding a payment, provisioning or deploying infrastructure, updating a SaaS
+record, or invoking a domain API through an SDK, CLI, webhook, or MCP tool.
+
+The destination may use a database internally, but this skill does **not**
+prescribe database transactions, replication recovery, or a generic network
+retry policy. It is a workflow pattern for a caller that needs a provider
+idempotency key and/or an authoritative way to look up the business result
+after a timeout or dropped response.
+
+Do not use it for a read-only request, a purely local calculation, or an action
+whose provider has already conclusively reported that it never started. In
+those cases, follow the service's ordinary retry guidance instead.
 
 ## Non-negotiable rules
 
