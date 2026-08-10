@@ -14,6 +14,8 @@ A community-created collection of custom agents, instructions, skills, hooks, wo
 
 New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilot.github.com/learning-hub)** on the website offers curated articles, walkthroughs, and reference material — covering everything from core concepts like agents, skills, and instructions to hands-on guides for hooks, agentic workflows, MCP servers, and the Copilot coding agent.
 
+[⬆ Back to Top](#-awesome-github-copilot)
+
 ## What's in this repo
 
 | Resource | Description | Browse |
@@ -23,6 +25,8 @@ New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilo
 | 🎯 [Skills](docs/README.skills.md) | Self-contained folders with instructions and bundled assets | [All skills →](https://awesome-copilot.github.com/skills) |
 | 🔌 [Plugins](docs/README.plugins.md) | Curated bundles of agents and skills for specific workflows | [All plugins →](https://awesome-copilot.github.com/plugins) |
 | 🍳 [Cookbook](cookbook/README.md) | Copy-paste-ready recipes for working with Copilot APIs | — |
+
+[⬆ Back to Top](#-awesome-github-copilot)
 
 ## Install a Plugin
 
@@ -39,11 +43,15 @@ copilot plugin marketplace add github/awesome-copilot
 copilot plugin install <plugin-name>@awesome-copilot
 ```
 
+[⬆ Back to Top](#-awesome-github-copilot)
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) · [AGENTS.md](AGENTS.md) for AI agent guidance · [Security](SECURITY.md) · [Code of Conduct](CODE_OF_CONDUCT.md)
 
 > The customizations here are sourced from third-party developers. Please inspect any agent and its documentation before installing.
+
+[⬆ Back to Top](#-awesome-github-copilot)
 
 ## Contributors ✨
 
@@ -556,11 +564,15 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
+[⬆ Back to Top](#-awesome-github-copilot)
+
 ## 📚 Additional Resources
 
 - [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
 - [GitHub Copilot Chat Documentation](https://code.visualstudio.com/docs/copilot/chat/copilot-chat) - Complete chat feature guide
 - [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
+
+[⬆ Back to Top](#-awesome-github-copilot)
 
 ## ™️ Trademarks
 
