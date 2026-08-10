@@ -26,6 +26,10 @@ import {
   parseYamlFile,
 } from "./yaml-parser.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
+import {
+  readExtensionPluginOwners,
+  resolveExtensionPluginName,
+} from "./extension-plugin-ownership.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -1177,6 +1181,7 @@ function generateCanvasManifest(gitDates, commitSha) {
     return { items: [], filters: { keywords: [] } };
   }
 
+  const extensionPluginOwners = readExtensionPluginOwners(PLUGINS_DIR);
   const extensionDirs = fs
     .readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
     .filter((entry) => {
@@ -1212,6 +1217,7 @@ function generateCanvasManifest(gitDates, commitSha) {
       normalizeText(packageJson.description, "Canvas extension")
     );
     const extensionName = normalizeText(pluginJson.name, normalizeText(packageJson.name, dir.name));
+    const pluginName = resolveExtensionPluginName(dir.name, extensionPluginOwners);
     const extensionVersion = normalizeText(pluginJson.version, normalizeText(packageJson.version, "1.0.0"));
     const readmeFile = fs.existsSync(path.join(extensionDir, "README.md"))
       ? `${relPath}/README.md`
@@ -1230,7 +1236,7 @@ function generateCanvasManifest(gitDates, commitSha) {
       /\\/g,
       "/"
     )}`;
-    const installCommand = `copilot plugin install ${extensionName}@awesome-copilot`;
+    const installCommand = `copilot plugin install ${pluginName}@awesome-copilot`;
 
     for (const canvas of canvasEntries) {
       const canvasId = normalizeText(canvas.id, dir.name);
@@ -1241,7 +1247,7 @@ function generateCanvasManifest(gitDates, commitSha) {
         canvasId,
         extensionId: dir.name,
         extensionName,
-        pluginName: extensionName,
+        pluginName,
         name: canvasName,
         version: extensionVersion,
         readmeFile,
