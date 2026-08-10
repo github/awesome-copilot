@@ -12,7 +12,7 @@
   "commit": false,
   "commitConvention": "none",
   "contributorsPerLine": 7,
-  "linkToUsage": true,
+  "linkToUsage": false,
   "commitType": "docs",
   "types": {
     "instructions": {
