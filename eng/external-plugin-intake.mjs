@@ -2,7 +2,9 @@
 
 import fs from "fs";
 import path from "path";
+import { lookup } from "node:dns/promises";
 import { fileURLToPath } from "url";
+import { isIP } from "node:net";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins, validateExternalPlugin } from "./external-plugin-validation.mjs";
 import { evaluateRefShaConsistency, normalizeCommitSha } from "./lib/external-plugin-source-ref-sha.mjs";
@@ -59,6 +61,7 @@ const EXTERNAL_CANVAS_KEYWORD = "canvas";
 const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
 const HOMEPAGE_FETCH_TIMEOUT_MS = 10_000;
 const HOMEPAGE_MAX_BYTES = 512_000;
+const HOMEPAGE_MAX_REDIRECTS = 5;
 const MARKETING_SIGNAL_PATTERNS = Object.freeze([
   ["pricing", /\bpricing\b|\bplans?\b|\bsubscription\b|\bmonthly\b|\bannual\b/i],
   ["sales", /\bbook\s+a\s+demo\b|\bcontact\s+sales\b|\btalk\s+to\s+sales\b|\brequest\s+a\s+demo\b/i],
@@ -287,6 +290,91 @@ async function fetchGitHubFile(repo, filePath, ref, token) {
   );
 }
 
+function isPublicAddress(address) {
+  if (isIP(address) === 4) {
+    const octets = address.split(".").map(Number);
+    const value = octets.reduce((result, octet) => (result * 256) + octet, 0);
+    return !(
+      octets[0] === 0 ||
+      octets[0] === 10 ||
+      octets[0] === 127 ||
+      (octets[0] === 100 && octets[1] >= 64 && octets[1] <= 127) ||
+      (octets[0] === 169 && octets[1] === 254) ||
+      (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
+      (octets[0] === 192 && octets[1] === 0 && octets[2] === 0) ||
+      (octets[0] === 192 && octets[1] === 0 && octets[2] === 2) ||
+      (octets[0] === 192 && octets[1] === 168) ||
+      (octets[0] === 198 && octets[1] >= 18 && octets[1] <= 19) ||
+      (octets[0] === 198 && octets[1] === 51 && octets[2] === 100) ||
+      (octets[0] === 203 && octets[1] === 0 && octets[2] === 113) ||
+      octets[0] >= 224 ||
+      value === 0xffffffff
+    );
+  }
+
+  if (isIP(address) !== 6) {
+    return false;
+  }
+
+  const normalized = address.toLowerCase().split("%")[0];
+  const groups = normalized.split("::");
+  const left = groups[0] ? groups[0].split(":") : [];
+  const right = groups[1] ? groups[1].split(":") : [];
+  const expanded = groups.length === 2
+    ? [...left, ...Array(8 - left.length - right.length).fill("0"), ...right]
+    : left;
+  const values = expanded.map((group) => Number.parseInt(group || "0", 16));
+  const first = values[0] ?? 0;
+  const second = values[1] ?? 0;
+  const isMappedIpv4 = values.slice(0, 6).every((value, index) => value === (index === 5 ? 0xffff : 0));
+  return !(
+    values.every((value) => value === 0) ||
+    (values.slice(0, 7).every((value) => value === 0) && values[7] === 1) ||
+    (first & 0xfe00) === 0xfc00 ||
+    (first & 0xffc0) === 0xfe80 ||
+    (first & 0xff00) === 0xff00 ||
+    (first === 0x2001 && second === 0x0db8) ||
+    isMappedIpv4 && !isPublicAddress(
+      `${values[6] >> 8}.${values[6] & 0xff}.${values[7] >> 8}.${values[7] & 0xff}`,
+    )
+  );
+}
+
+async function assertPublicUrl(url) {
+  const addresses = await lookup(url.hostname, { all: true, verbatim: true });
+  if (!addresses.length || addresses.some(({ address }) => !isPublicAddress(address))) {
+    throw new Error("Homepage URL resolves to a non-public address.");
+  }
+}
+
+async function readHomepageBody(response) {
+  if (!response.body?.getReader) {
+    throw new Error("Homepage response body was not readable.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  const chunks = [];
+  let totalBytes = 0;
+  try {
+    while (totalBytes < HOMEPAGE_MAX_BYTES) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const remaining = HOMEPAGE_MAX_BYTES - totalBytes;
+      const chunk = value.byteLength > remaining ? value.subarray(0, remaining) : value;
+      chunks.push(decoder.decode(chunk, { stream: true }));
+      totalBytes += chunk.byteLength;
+      if (chunk.byteLength < value.byteLength) {
+        await reader.cancel();
+        break;
+      }
+    }
+    return chunks.join("") + decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 async function inspectHomepage(homepage) {
   const result = {
     status: "not_run",
@@ -313,15 +401,31 @@ async function inspectHomepage(homepage) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), HOMEPAGE_FETCH_TIMEOUT_MS);
   try {
-    const response = await fetch(parsedUrl, {
-      headers: { Accept: "text/html,text/plain;q=0.9", "User-Agent": "awesome-copilot-external-plugin-intake" },
-      signal: controller.signal,
-    });
+    let url = parsedUrl;
+    let response;
+    for (let redirectCount = 0; redirectCount <= HOMEPAGE_MAX_REDIRECTS; redirectCount += 1) {
+      await assertPublicUrl(url);
+      response = await fetch(url, {
+        redirect: "manual",
+        headers: { Accept: "text/html,text/plain;q=0.9", "User-Agent": "awesome-copilot-external-plugin-intake" },
+        signal: controller.signal,
+      });
+      if (response.status < 300 || response.status >= 400) break;
+      const location = response.headers?.get?.("location");
+      if (!location) break;
+      if (redirectCount === HOMEPAGE_MAX_REDIRECTS) {
+        return { ...result, status: "warning", output: "Homepage exceeded the redirect limit." };
+      }
+      url = new URL(location, url);
+      if (!["http:", "https:"].includes(url.protocol)) {
+        return { ...result, status: "warning", output: "Homepage URL uses an unsupported protocol." };
+      }
+    }
     if (!response.ok) {
       return { ...result, status: "warning", output: `Homepage returned HTTP ${response.status}.` };
     }
 
-    const content = (await response.text()).slice(0, HOMEPAGE_MAX_BYTES);
+    const content = await readHomepageBody(response);
     for (const [name, pattern] of MARKETING_SIGNAL_PATTERNS) {
       if (pattern.test(content)) {
         result.signals.push(name);
@@ -356,14 +460,14 @@ function buildRepositorySignals(repository) {
   const signals = [];
   if (ageDays !== undefined && ageDays <= 14) signals.push(`repository is ${ageDays} day(s) old`);
   if (repository.stargazers_count === 0) signals.push("0 stars");
-  if (repository.watchers_count === 0) signals.push("0 watchers");
+  if (repository.subscribers_count === 0) signals.push("0 watchers");
   if (repository.forks_count === 0) signals.push("0 forks");
 
   return {
     status: "pass",
     age_days: ageDays,
     stars: repository.stargazers_count,
-    watchers: repository.watchers_count,
+    watchers: repository.subscribers_count,
     forks: repository.forks_count,
     open_issues: repository.open_issues_count,
     signals,
@@ -1055,7 +1159,7 @@ function buildReviewSignalsCommentSection(reviewSignals) {
     rows.push(
       `| Repository age | ${repository.age_days === undefined ? "unknown" : `${repository.age_days} day(s)`} |`,
       `| Repository activity | ${repository.signals?.length ? repository.signals.join("; ") : "no configured signal"} |`,
-      `| Repository counts | ${repository.stars ?? "unknown"} stars · ${repository.watchers ?? "unknown"} watchers · ${repository.forks ?? "unknown"} forks · ${repository.open_issues ?? "unknown"} open issues |`,
+      `| Repository counts | ${repository.stars ?? "unknown"} stars · ${repository.watchers ?? "unknown"} watchers · ${repository.forks ?? "unknown"} forks · ${repository.open_issues ?? "unknown"} open issues/PRs |`,
     );
   } else if (repository?.output) {
     rows.push(`| Repository metadata | ${repository.output} |`);
