@@ -151,21 +151,21 @@ async function canonicalPath(targetPath, errorCode = "cleanup_path_unavailable")
     }
 }
 
-async function createValidationContext(approvedRoots, analyzerProtectedPaths = []) {
-    let knownFolderPaths;
-    try {
-        knownFolderPaths = await resolveKnownFolderPaths();
-    } catch (error) {
+async function createValidationContext(approvedRoots, analyzerProtectedPaths = [], knownFolderPaths) {
+    if (knownFolderPaths !== undefined && !Array.isArray(knownFolderPaths)) {
+        throw serviceError("cleanup_known_folders_invalid", "Known folder paths must be an array");
+    }
+    const resolvedKnownFolderPaths = knownFolderPaths ?? await resolveKnownFolderPaths().catch((error) => {
         throw serviceError(
             "cleanup_known_folders_unavailable",
             `Cannot resolve protected Windows known folders: ${error.message}`,
         );
-    }
+    });
 
     const profile = process.env.USERPROFILE ? path.resolve(process.env.USERPROFILE) : undefined;
     const programData = path.resolve(process.env.ProgramData ?? "C:\\ProgramData");
     const protectedPaths = [
-        ...knownFolderPaths,
+        ...resolvedKnownFolderPaths,
         profile && path.join(profile, "desktop"),
         profile && path.join(profile, "documents"),
         profile && path.join(profile, "pictures"),
@@ -267,7 +267,10 @@ async function fingerprintDirectory(directoryPath) {
 }
 
 async function revalidateCandidate(candidate, validationContext) {
-    const lexicalRoot = validationContext.roots.find((root) => isWithinRoot(candidate.path, root.path));
+    const lexicalRoot = validationContext.roots.find((root) => (
+        isWithinRoot(candidate.path, root.path)
+        || isWithinRoot(candidate.path, root.canonicalPath)
+    ));
     if (!lexicalRoot) {
         throw serviceError("cleanup_path_not_allowed", `Path is outside approved scan roots: ${candidate.path}`);
     }
@@ -422,7 +425,15 @@ function runRecycleBin(paths, onResult) {
     });
 }
 
-export async function createCleanupPreview({ itemIds, candidates, approvedRoots, analyzerProtectedPaths = [], source, onProgress }) {
+export async function createCleanupPreview({
+    itemIds,
+    candidates,
+    approvedRoots,
+    analyzerProtectedPaths = [],
+    source,
+    onProgress,
+    knownFolderPaths,
+}) {
     if (!Array.isArray(itemIds) || itemIds.length === 0) {
         throw serviceError("cleanup_selection_required", "Select at least one cleanup candidate");
     }
@@ -443,7 +454,7 @@ export async function createCleanupPreview({ itemIds, candidates, approvedRoots,
 
     const entries = [];
     const rejected = [];
-    const validationContext = await createValidationContext(approvedRoots, analyzerProtectedPaths);
+    const validationContext = await createValidationContext(approvedRoots, analyzerProtectedPaths, knownFolderPaths);
     for (const [index, candidate] of selected.entries()) {
         onProgress?.({
             phase: "validating",
@@ -490,7 +501,14 @@ export async function createCleanupPreview({ itemIds, candidates, approvedRoots,
     };
 }
 
-export async function executeCleanupPreview({ preview, confirmed, onProgress, recycleBin = runRecycleBin }) {
+export async function executeCleanupPreview({
+    preview,
+    confirmed,
+    onProgress,
+    recycleBin = runRecycleBin,
+    revalidateEntry = revalidateCandidate,
+    knownFolderPaths,
+}) {
     if (confirmed !== true) {
         throw serviceError("cleanup_confirmation_required", "Explicit cleanup confirmation is required");
     }
@@ -500,7 +518,11 @@ export async function executeCleanupPreview({ preview, confirmed, onProgress, re
 
     const ready = [];
     const failed = [];
-    const validationContext = await createValidationContext(preview.approvedRoots, preview.analyzerProtectedPaths);
+    const validationContext = await createValidationContext(
+        preview.approvedRoots,
+        preview.analyzerProtectedPaths,
+        knownFolderPaths,
+    );
     for (const [index, entry] of preview.entries.entries()) {
         onProgress?.({
             phase: "validating",
@@ -509,7 +531,7 @@ export async function executeCleanupPreview({ preview, confirmed, onProgress, re
             total: preview.entries.length,
         });
         try {
-            ready.push(await revalidateCandidate(entry, validationContext));
+            ready.push(await revalidateEntry(entry, validationContext));
         } catch (error) {
             failed.push({
                 path: entry.path,

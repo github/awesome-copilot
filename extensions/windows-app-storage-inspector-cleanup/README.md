@@ -87,7 +87,9 @@ All deletion paths use the same centralized cleanup service and modal:
 6. Select **Move to Recycle Bin**.
 7. Keep the modal open while it reports validation and Recycle Bin progress.
 
-The service revalidates every item immediately before execution. It rejects changed files or directory subtrees, unexpected entry types, symbolic links or junctions anywhere in the path, protected locations, changed scan roots, and paths that resolve outside the selected scan roots. Redirected Windows known folders such as Documents and Desktop are resolved and protected. Cleanup uses a recycle-only Windows operation that fails when an item cannot be recycled rather than falling back to permanent deletion. A refresh scan starts after cleanup.
+The service revalidates every item immediately before execution. It rejects changed files or directory subtrees, unexpected entry types, symbolic links or junctions anywhere in the path, protected locations, changed scan roots, and paths that resolve outside the selected scan roots. Redirected Windows known folders such as Documents and Desktop are resolved and protected.
+
+Cleanup uses a recycle-only Windows operation that fails when an item cannot be recycled rather than falling back to permanent deletion. A refresh scan starts after cleanup.
 
 Generic folders named `cache`, `logs`, `temp`, and similar are classified for inspection but do not become direct cleanup candidates from their name and age alone. Scan candidates require an explicit, application-specific built-in cleanup policy or an analyzer-managed path whose protection the user deliberately disabled.
 
@@ -195,7 +197,9 @@ Analyzer results are held in memory and are discarded on a new scan or extension
 
 Analyzer commands have a **Run** button. Each command runs through the extension's fixed command allowlist and a singleton command runner, so only one analyzer command can execute at a time across canvas instances.
 
-A blocking modal displays the command, an indeterminate progress bar, and a **Cancel** button while it runs, then displays its result. Cancellation terminates the full spawned Windows process tree and reports the command as cancelled only after termination is verified. Destructive commands require an explicit confirmation and use non-interactive, scoped CLI arguments. The canvas never executes arbitrary command text received from the browser.
+A blocking modal displays the command, an indeterminate progress bar, and a **Cancel** button while it runs, then displays its result. Cancellation terminates the full spawned Windows process tree and reports the command as cancelled only after termination is verified.
+
+Destructive commands require an explicit confirmation and use non-interactive, scoped CLI arguments. The canvas never executes arbitrary command text received from the browser.
 
 ### Create an analyzer
 
@@ -273,14 +277,14 @@ For managed stores such as Docker, do not return direct filesystem cleanup items
 
 ## Data and persistence
 
-| Data                              | Storage                       | Lifetime                                    |
-| --------------------------------- | ----------------------------- | ------------------------------------------- |
-| Custom categorizers               | `artifacts\categorizers.json` | Persistent across sessions and repositories |
-| Completed scan and file inventory | Extension memory              | Current provider lifetime                   |
-| Analyzer results                  | Extension memory              | Until the next scan or provider restart     |
-| Cleanup previews                  | Extension memory              | Ten minutes or until executed               |
-| Cleanup result summary            | Extension memory              | Current provider lifetime                   |
-| Folder explanation cache          | Canvas iframe memory          | Current canvas page lifetime                |
+| Data                              | Storage                          | Lifetime                                                  |
+| --------------------------------- | -------------------------------- | --------------------------------------------------------- |
+| Custom categorizers               | `artifacts\categorizers.json`    | Persistent across sessions and repositories               |
+| Completed scan and file inventory | Extension memory                 | Current provider lifetime                                 |
+| Analyzer results                  | Extension memory                 | Until the next scan or provider restart                   |
+| Cleanup previews                  | Extension memory                 | Ten minutes or until executed                             |
+| Cleanup result summary            | Extension memory                 | Current provider lifetime                                 |
+| Folder explanation cache          | Canvas iframe memory             | Current canvas page lifetime                              |
 
 The extension does not persist general scan inventories or folder explanations by default.
 

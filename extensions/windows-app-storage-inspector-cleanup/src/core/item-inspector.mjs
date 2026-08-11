@@ -97,9 +97,15 @@ export async function inspectStorageItem({ targetPath, roots, result, categorize
     }
 
     const normalizedPath = normalizePath(canonicalTargetPath);
-    const directory = result?.directories?.find((item) => normalizePath(item.path) === normalizedPath);
-    const largestFile = result?.largestFiles?.find((item) => normalizePath(item.path) === normalizedPath);
-    const categorizer = findCategorizer(canonicalTargetPath, categorizers);
+    const normalizedResolvedPath = normalizePath(resolvedPath);
+    const matchesInspectedPath = (item) => (
+        normalizePath(item.path) === normalizedPath
+        || normalizePath(item.path) === normalizedResolvedPath
+    );
+    const directory = result?.directories?.find(matchesInspectedPath);
+    const largestFile = result?.largestFiles?.find(matchesInspectedPath);
+    const categorizer = findCategorizer(canonicalTargetPath, categorizers)
+        ?? findCategorizer(resolvedPath, categorizers);
     const directContents = stats.isDirectory() ? await inspectDirectory(canonicalTargetPath) : undefined;
     const app = categorizer?.name ?? largestFile?.app ?? "Unclassified";
     const category = categorizer?.category ?? largestFile?.category ?? (stats.isDirectory() ? "Folder" : "File");
