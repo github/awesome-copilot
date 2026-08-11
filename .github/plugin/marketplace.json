@@ -557,7 +557,7 @@
       "name": "ember",
       "source": "plugins/ember",
       "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
-      "version": "1.0.0"
+      "version": "1.2.0"
     },
     {
       "name": "eyeball",
@@ -975,7 +975,7 @@
       "name": "oracle-to-postgres-migration-expert",
       "source": "plugins/oracle-to-postgres-migration-expert",
       "description": "Expert agent for Oracle-to-PostgreSQL application migrations in .NET solutions. Performs code edits, runs commands, and invokes extension tools to migrate .NET/Oracle data access patterns to PostgreSQL.",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     {
       "name": "ospo-sponsorship",
@@ -1248,7 +1248,7 @@
     {
       "name": "timebase",
       "description": "Connect your AI agent to TimeBase, a high-performance database for financial market and other time-series data, via MCP tools and skills for QQL query and TimeBase client code generation.",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "author": {
         "name": "EPAM Systems",
         "url": "https://www.epam.com/"
@@ -1265,8 +1265,8 @@
       "source": {
         "source": "github",
         "repo": "epam/TimeBase-Agent-Plugins",
-        "ref": "v0.1.2",
-        "sha": "846b341a17becbf4d0cd43374588fc6ab1930d0b"
+        "ref": "v0.1.3",
+        "sha": "536887d80f631dfa32213fc78be1e00edaa21b68"
       }
     },
     {
