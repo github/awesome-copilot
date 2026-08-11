@@ -199,7 +199,7 @@ redactor first and review the diff.
 
 | File | Purpose |
 |------|---------|
-| `plugins/shepherd-task/.github/plugin/plugin.json` | Plugin manifest grouping the stage 30, stage 40, and helper skills; includes metadata, keywords, and version |
+| `plugins/shepherd-task/plugin.json` | Agent Plugins v1.0.0 manifest grouping the stage 30, stage 40, and helper skills; includes metadata, keywords, and version |
 | `plugins/shepherd-task/README.md` | User-facing documentation for the plugin |
 
 ### Orchestration scripts
@@ -295,5 +295,4 @@ This system has been used in production on `github/copilot-sdk` to shepherd impl
 ---
 
 By submitting this pull request, I confirm that my contribution abides by the [Code of Conduct](../CODE_OF_CONDUCT.md) and will be licensed under the MIT License.
-
 
