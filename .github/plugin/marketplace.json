@@ -201,6 +201,35 @@
       "version": "1.0.0"
     },
     {
+      "name": "catalyst-by-zoho",
+      "description": "Official GitHub Copilot plugin for Catalyst by Zoho — a full-stack serverless cloud platform. Includes skills covering services, SDKs, CLI workflows, architecture patterns, pricing, migration guides, and Zoho MCP resource management.",
+      "version": "0.0.1",
+      "author": {
+        "name": "Catalyst By Zoho",
+        "url": "https://github.com/catalystbyzoho"
+      },
+      "repository": "https://github.com/catalystbyzoho/copilot-plugin",
+      "homepage": "https://catalyst.zoho.com",
+      "license": "Apache-2.0",
+      "keywords": [
+        "catalyst",
+        "zoho",
+        "mcp",
+        "serverless",
+        "cloud",
+        "datastore",
+        "zcql",
+        "appsail",
+        "stratus",
+        "functions"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "catalystbyzoho/copilot-plugin",
+        "sha": "0c2716ca4f28df375529c67b4504b41f7bd29a66"
+      }
+    },
+    {
       "name": "chrome-devtools-plugin",
       "description": "Reliable automation, in-depth debugging, and performance analysis in Chrome using Chrome DevTools and Puppeteer.",
       "version": "1.0.1",
