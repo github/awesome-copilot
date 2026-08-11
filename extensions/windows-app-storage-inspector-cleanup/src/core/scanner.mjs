@@ -152,10 +152,10 @@ function classifyCategory(filePath, categorizer) {
 
 function cleanupCandidate(filePath, stats, app, categorizer, analyzerProtection, protectAnalyzerManagedPaths) {
     const normalized = normalizeWindowsPath(filePath);
-    if (
-        (categorizer?.cleanupPolicy === "manual" && (!categorizer.analyzerId || protectAnalyzerManagedPaths))
-        || (analyzerProtection && protectAnalyzerManagedPaths)
-    ) {
+    const analyzerCleanupAllowed = (categorizer?.analyzerId || analyzerProtection)
+        && !protectAnalyzerManagedPaths;
+    const policyCleanupAllowed = categorizer?.cleanupPolicy === "automatic";
+    if (!analyzerCleanupAllowed && !policyCleanupAllowed) {
         return undefined;
     }
     if (normalized.includes("\\.git\\") || normalized.includes("\\windows\\installer\\")) {

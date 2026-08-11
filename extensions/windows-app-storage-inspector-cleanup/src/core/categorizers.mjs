@@ -10,6 +10,16 @@ const MAX_TEXT_LENGTH = 120;
 
 export const BUILT_IN_CATEGORIZERS = [
     {
+        id: "built-in-github-copilot-cache",
+        name: "GitHub Copilot",
+        category: "Application cache",
+        description: "Regenerable GitHub Copilot application cache data.",
+        match: "token",
+        value: "\\appdata\\local\\github copilot\\",
+        cleanupPolicy: "automatic",
+        source: "built-in",
+    },
+    {
         id: "built-in-docker-desktop",
         name: "Docker Desktop",
         category: "Container image and build storage",

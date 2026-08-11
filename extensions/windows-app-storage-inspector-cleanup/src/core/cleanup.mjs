@@ -29,34 +29,79 @@ using System.Runtime.InteropServices;
 
 public static class StorageInspectorRecycleBin
 {
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    private struct SHFILEOPSTRUCT
+    [ComImport]
+    [Guid("43826D1E-E718-42EE-BC55-A1E261C37BFE")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IShellItem
     {
-        public IntPtr hwnd;
-        public uint wFunc;
-        [MarshalAs(UnmanagedType.LPWStr)] public string pFrom;
-        [MarshalAs(UnmanagedType.LPWStr)] public string pTo;
-        public ushort fFlags;
-        [MarshalAs(UnmanagedType.Bool)] public bool fAnyOperationsAborted;
-        public IntPtr hNameMappings;
-        [MarshalAs(UnmanagedType.LPWStr)] public string lpszProgressTitle;
     }
 
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    private static extern int SHFileOperation(ref SHFILEOPSTRUCT operation);
+    [ComImport]
+    [Guid("947AAB5F-0A5C-4C13-B4D6-4BF7836FC9F8")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IFileOperation
+    {
+        uint Advise(IntPtr progressSink);
+        void Unadvise(uint cookie);
+        void SetOperationFlags(uint operationFlags);
+        void SetProgressMessage([MarshalAs(UnmanagedType.LPWStr)] string message);
+        void SetProgressDialog(IntPtr progressDialog);
+        void SetProperties(IntPtr properties);
+        void SetOwnerWindow(uint ownerWindow);
+        void ApplyPropertiesToItem(IShellItem item);
+        void ApplyPropertiesToItems(IntPtr items);
+        void RenameItem(IShellItem item, [MarshalAs(UnmanagedType.LPWStr)] string newName, IntPtr progressSink);
+        void RenameItems(IntPtr items, [MarshalAs(UnmanagedType.LPWStr)] string newName);
+        void MoveItem(IShellItem item, IShellItem destinationFolder, [MarshalAs(UnmanagedType.LPWStr)] string newName, IntPtr progressSink);
+        void MoveItems(IntPtr items, IShellItem destinationFolder);
+        void CopyItem(IShellItem item, IShellItem destinationFolder, [MarshalAs(UnmanagedType.LPWStr)] string copyName, IntPtr progressSink);
+        void CopyItems(IntPtr items, IShellItem destinationFolder);
+        void DeleteItem(IShellItem item, IntPtr progressSink);
+        void DeleteItems(IntPtr items);
+        void NewItem(IShellItem destinationFolder, uint fileAttributes, [MarshalAs(UnmanagedType.LPWStr)] string name, [MarshalAs(UnmanagedType.LPWStr)] string templateName, IntPtr progressSink);
+        void PerformOperations();
+        [return: MarshalAs(UnmanagedType.Bool)]
+        bool GetAnyOperationsAborted();
+    }
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
+    private static extern void SHCreateItemFromParsingName(
+        [MarshalAs(UnmanagedType.LPWStr)] string path,
+        IntPtr bindContext,
+        ref Guid interfaceId,
+        [MarshalAs(UnmanagedType.Interface)] out IShellItem shellItem);
 
     public static void Send(string filePath)
     {
-        var operation = new SHFILEOPSTRUCT
+        const uint FOF_SILENT = 0x0004;
+        const uint FOF_NOCONFIRMATION = 0x0010;
+        const uint FOF_NOERRORUI = 0x0400;
+        const uint FOFX_RECYCLEONDELETE = 0x00080000;
+        var operationType = Type.GetTypeFromCLSID(new Guid("3AD05575-8857-4850-9277-11B85BDB8E09"), true);
+        var operation = (IFileOperation)Activator.CreateInstance(operationType);
+        IShellItem item = null;
+        try
         {
-            wFunc = 3,
-            pFrom = filePath + "\\0\\0",
-            fFlags = 0x0004 | 0x0010 | 0x0040 | 0x0400
-        };
-        var result = SHFileOperation(ref operation);
-        if (result != 0 || operation.fAnyOperationsAborted)
+            var shellItemId = typeof(IShellItem).GUID;
+            SHCreateItemFromParsingName(filePath, IntPtr.Zero, ref shellItemId, out item);
+            operation.SetOperationFlags(FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOFX_RECYCLEONDELETE);
+            operation.DeleteItem(item, IntPtr.Zero);
+            operation.PerformOperations();
+            if (operation.GetAnyOperationsAborted())
+            {
+                throw new InvalidOperationException("Recycle Bin operation was aborted");
+            }
+        }
+        finally
         {
-            throw new InvalidOperationException("Recycle Bin operation failed with code " + result);
+            if (item != null)
+            {
+                Marshal.FinalReleaseComObject(item);
+            }
+            if (operation != null)
+            {
+                Marshal.FinalReleaseComObject(operation);
+            }
         }
     }
 }

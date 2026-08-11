@@ -1,4 +1,4 @@
-import { lstat, readdir } from "node:fs/promises";
+import { lstat, readdir, realpath } from "node:fs/promises";
 import path from "node:path";
 import { findCategorizer } from "./categorizers.mjs";
 
@@ -75,25 +75,37 @@ export async function inspectStorageItem({ targetPath, roots, result, categorize
     }
 
     let stats;
+    let canonicalTargetPath;
     try {
         stats = await lstat(resolvedPath);
+        canonicalTargetPath = await realpath(resolvedPath);
     } catch (error) {
         throw serviceError("inspection_path_unavailable", `Cannot access selected item: ${error.message}`);
     }
     if (stats.isSymbolicLink() || (!stats.isDirectory() && !stats.isFile())) {
         throw serviceError("inspection_path_invalid", "The selected item must be a regular file or folder");
     }
+    const canonicalRoots = await Promise.all(roots.map(async (root) => {
+        try {
+            return await realpath(root.path);
+        } catch (error) {
+            throw serviceError("inspection_root_unavailable", `Cannot resolve scanned storage root: ${error.message}`);
+        }
+    }));
+    if (!canonicalRoots.some((rootPath) => isWithinRoot(canonicalTargetPath, rootPath))) {
+        throw serviceError("inspection_path_not_allowed", "The selected item resolves outside the scanned storage roots");
+    }
 
-    const normalizedPath = normalizePath(resolvedPath);
+    const normalizedPath = normalizePath(canonicalTargetPath);
     const directory = result?.directories?.find((item) => normalizePath(item.path) === normalizedPath);
     const largestFile = result?.largestFiles?.find((item) => normalizePath(item.path) === normalizedPath);
-    const categorizer = findCategorizer(resolvedPath, categorizers);
-    const directContents = stats.isDirectory() ? await inspectDirectory(resolvedPath) : undefined;
+    const categorizer = findCategorizer(canonicalTargetPath, categorizers);
+    const directContents = stats.isDirectory() ? await inspectDirectory(canonicalTargetPath) : undefined;
     const app = categorizer?.name ?? largestFile?.app ?? "Unclassified";
     const category = categorizer?.category ?? largestFile?.category ?? (stats.isDirectory() ? "Folder" : "File");
 
     return {
-        path: resolvedPath,
+        path: canonicalTargetPath,
         itemType: stats.isDirectory() ? "folder" : "file",
         bytes: directory?.bytes ?? largestFile?.bytes ?? stats.size,
         files: directory?.files,

@@ -169,12 +169,7 @@ export class StorageService {
         if (!this.result) {
             throw serviceError("scan_results_unavailable", "Run a scan before running an analyzer command");
         }
-        const analysis = await this.analyzeCustomAnalyzer(analyzerId);
-        const command = analysis.cleanupCommands?.find((item) => item.id === commandId);
-        if (!command) {
-            throw serviceError("analyzer_command_unknown", `Analyzer command is not available: ${commandId}`);
-        }
-        return executeAnalyzerCommand(analyzerId, command.id, confirmed);
+        return executeAnalyzerCommand(analyzerId, commandId, confirmed);
     }
 
     cancelAnalyzerCommand() {

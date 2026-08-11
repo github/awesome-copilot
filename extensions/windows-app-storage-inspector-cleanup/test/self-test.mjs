@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, writeFile, utimes, access, rm, stat, symlink } from "no
 import { request } from "node:http";
 import os from "node:os";
 import path from "node:path";
-import { CategorizerStore } from "../src/core/categorizers.mjs";
+import { BUILT_IN_CATEGORIZERS, CategorizerStore } from "../src/core/categorizers.mjs";
 import {
     createAnalyzerCommandRunner,
     executeAnalyzerCommand,
@@ -195,6 +195,7 @@ try {
 
     const result = await scanStorage({
         roots: [{ id: "test", label: "Test root", path: root }],
+        categorizers: BUILT_IN_CATEGORIZERS,
     });
     assert.equal(result.summary.files, 3);
     assert.equal(result.summary.bytes, 6148);
@@ -410,6 +411,15 @@ try {
         }),
         { code: "cleanup_no_valid_candidates" },
     );
+    await assert.rejects(
+        inspectStorageItem({
+            targetPath: escapedPath,
+            roots: [{ id: "test", label: "Test root", path: root }],
+            result,
+            categorizers: [],
+        }),
+        { code: "inspection_path_not_allowed" },
+    );
 
     const controller = new AbortController();
     controller.abort();
@@ -537,10 +547,12 @@ try {
     const ordinaryCodeFile = path.join(ordinaryCodeCache, "build.bin");
     await mkdir(ordinaryCodeCache, { recursive: true });
     await writeFile(ordinaryCodeFile, Buffer.alloc(48, 1));
+    await utimes(ordinaryCodeFile, oldDate, oldDate);
     const ordinaryCodeResult = await scanStorage({
         roots: [{ id: "test", label: "Test root", path: root }],
     });
     assert.ok(ordinaryCodeResult.apps.some((item) => item.name === "Other" && item.bytes >= 48));
+    assert.ok(!ordinaryCodeResult.candidates.some((item) => item.path === ordinaryCodeFile));
     const inspection = await inspectStorageItem({
         targetPath: foundryCache,
         roots: categorizedResult.roots,

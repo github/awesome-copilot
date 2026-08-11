@@ -86,7 +86,9 @@ All deletion paths use the same centralized cleanup service and modal:
 6. Select **Move to Recycle Bin**.
 7. Keep the modal open while it reports validation and Recycle Bin progress.
 
-The service revalidates every item immediately before execution. It rejects changed files or directory subtrees, unexpected entry types, symbolic links or junctions anywhere in the path, protected locations, changed scan roots, and paths that resolve outside the selected scan roots. Redirected Windows known folders such as Documents and Desktop are resolved and protected. Cleanup never permanently deletes files; successful items are moved to the Windows Recycle Bin. A refresh scan starts after cleanup.
+The service revalidates every item immediately before execution. It rejects changed files or directory subtrees, unexpected entry types, symbolic links or junctions anywhere in the path, protected locations, changed scan roots, and paths that resolve outside the selected scan roots. Redirected Windows known folders such as Documents and Desktop are resolved and protected. Cleanup uses a recycle-only Windows operation that fails when an item cannot be recycled rather than falling back to permanent deletion. A refresh scan starts after cleanup.
+
+Generic folders named `cache`, `logs`, `temp`, and similar are classified for inspection but do not become direct cleanup candidates from their name and age alone. Scan candidates require an explicit, application-specific built-in cleanup policy or an analyzer-managed path whose protection the user deliberately disabled.
 
 ## Custom categorizers
 
@@ -167,7 +169,7 @@ Built-in categorizers are code-defined in `src\core\categorizers.mjs`. Add an en
 }
 ```
 
-Built-in rules are not written to `categorizers.json`. Token values should be normalized, lower-case Windows path fragments. Keep `cleanupPolicy: "manual"` unless a separate, tested cleanup policy is deliberately implemented.
+Built-in rules are not written to `categorizers.json`. Token values should be normalized, lower-case Windows path fragments. Keep `cleanupPolicy: "manual"` unless a separate, tested application-specific policy is deliberately implemented. A tested built-in rule can use `cleanupPolicy: "automatic"` to permit files matching the scanner's age and cleanup-path rules to become direct candidates.
 
 Docker storage is categorized automatically:
 
