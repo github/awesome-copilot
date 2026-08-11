@@ -72,7 +72,9 @@
 
 # crystalize - valid US spelling variant in mirrored copilot-workshops content
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,extenions,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally,checkin,ACI,soruce,straightaway,crystalize
+# INOUT - PostgreSQL stored procedure parameter mode (IN, OUT, INOUT) in migrating-oracle-to-postgres-data-access-code/SKILL.md
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,INOUT,pixelX,aNULL,Wee,Sherif,queston,extenions,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally,checkin,ACI,soruce,straightaway,crystalize
 
 # Skip certain files and directories
 
@@ -80,10 +82,10 @@ ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afte
 
 # website/src/content/docs/<locale> - localized Learning Hub content mirrored from
 
-# upstream course repos. codespell only knows English, so Spanish, Japanese, Korean,
+# upstream course repos. codespell only knows English, so Spanish, Japanese, Korean
 
-# Portuguese, and Chinese prose produces false positives on ordinary foreign words.
+# Portuguese, and Chinese prose produces false positives on ordinary foreign words
 
-# These files are source-faithful mirrors and must not be edited to satisfy a spell checker.
+# These files are source-faithful mirrors and must not be edited to satisfy a spell checker
 
 skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus,.all-contributorrc,./skills/geofeed-tuner/assets/*.json,./skills/geofeed-tuner/references/*.txt,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/assets/*.json,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/references/*.txt,./extensions/arcade-canvas/game/phaser.min.js,./extensions/pr-artifact-explorer/assets/asciinema-player.min.js,./extensions/pr-artifact-explorer/assets/asciinema-player-worker.min.js,./extensions/pr-artifact-explorer/assets/primer-*.css,./extensions/flight-map-canvas/game/vendor/three.min.js,*.tm7,./website/src/content/docs/es-es,./website/src/content/docs/ja-jp,./website/src/content/docs/ko-kr,./website/src/content/docs/pt-br,./website/src/content/docs/zh-cn

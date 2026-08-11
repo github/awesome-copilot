@@ -1,11 +1,11 @@
 ---
 name: creating-oracle-to-postgres-migration-integration-tests
-description: 'Creates integration test cases for .NET data access artifacts during Oracle-to-PostgreSQL database migrations. Generates DB-agnostic xUnit tests with deterministic seed data that validate behavior consistency across both database systems. Use when creating integration tests for a migrated project, generating test coverage for data access layers, or writing Oracle-to-PostgreSQL migration validation tests.'
+description: 'Creates integration test cases targeting Oracle for .NET data access artifacts. Tests capture Oracle expected behavior as the authoritative baseline; they are written once and later ported to PostgreSQL by migrating the test project in Phase 6. Use only during Phase 3, before any PostgreSQL migration work has begun. Do not invoke during Phase 6 or against a project that has already been migrated.'
 ---
 
 # Creating Integration Tests for Oracle-to-PostgreSQL Migration
 
-Generates integration test cases for data access artifacts in a single target project. Tests validate behavior consistency when running against Oracle or PostgreSQL.
+Generates integration test cases for data access artifacts in a single target project. Tests target Oracle and capture its behavior as the authoritative baseline. They are written to be logically portable — so they can survive Phase 6 migration without rewriting — but they do not run against PostgreSQL at this stage.
 
 ## Prerequisites
 
@@ -34,7 +34,6 @@ Scope to the target project only. List data access methods that interact with th
 **Step 3: Create seed data**
 
 - Follow seed file location and naming conventions from the existing project.
-- Reuse existing seed files when possible.
 - Avoid `TRUNCATE TABLE` — keep existing database data intact.
 - Assume existing business rows and lookup rows are already present; add only minimal, collision-safe seed records needed for the scenario.
 - Do not commit seed data; tests run in transactions that roll back.
@@ -51,7 +50,7 @@ Scope to the target project only. List data access methods that interact with th
 - Avoid testing code paths that do not exist or asserting behavior that cannot occur.
 - Avoid redundant assertions across tests targeting the same method.
 - For text parameters, include both empty-string and `NULL`/missing input coverage where applicable.
-- For datetime behavior, include explicit timezone-sensitive assertions when methods write/read `timestamp without time zone` or `timestamp(0)` targets.
+- For datetime behavior, include assertions that validate the value written and read back matches — use the Oracle column's precision (e.g., seconds-only for a date/time column with no fractional seconds) rather than assuming any particular database type syntax.
 
 **Step 5: Review determinism**
 
@@ -59,8 +58,9 @@ Re-examine every assertion against non-null values. Confirm each is deterministi
 
 ## Key Constraints
 
+- **Phase 3 only** — these tests target Oracle. Do not invoke this skill during Phase 6 or against a PostgreSQL-targeting project.
 - **Oracle is the golden source** — tests capture Oracle's expected behavior.
-- **DB-agnostic assertions** — no platform-specific error messages or syntax in assertions.
-- **Seed only against Oracle** — test project will be migrated to PostgreSQL later.
+- **Assertion portability** — avoid platform-specific error messages or syntax in assertions so that when the test project is migrated to PostgreSQL in Phase 6, assertions require no changes.
+- **Seed only against Oracle** — the test project will be migrated to PostgreSQL in Phase 6; seed data and infrastructure stay Oracle-targeted until then.
 - **Scoped to one project** — do not create tests for artifacts outside the target project.
 - **Preserve existing data** — never rewrite or wipe pre-existing business or lookup rows.
