@@ -33,7 +33,7 @@ The created issues are specifications, not summaries. A coding agent must be abl
 - Leave every child unassigned. Work starts only when the user assigns each issue in turn.
 - State that tasks are assigned, completed, and merged serially in the listed order.
 - Require the agent to read the entire plan and explicitly list the exact sections to re-read.
-- Include relevant `Resolution:` values and explicit directions for accessing relevant spike research or other artifacts.
+- Include relevant `Resolution:` values and explicit spike **findings** stated as prose — never as paths to spike source files or instructions to read/copy spike code (see "Spike firewall" section).
 - Add discriminating gating tests where they reduce downstream rework.
 - Each issue must prominently include text stating that on the base branch, the `PLAN_DIRECTORY` contains the `PLAN_FILE_NAME` and supporting resources.
 - Never write vague references such as "read the relevant sections"; enumerate exact headings.
@@ -84,17 +84,17 @@ For each direct child heading beneath `IMPLEMENTATION_SECTION`:
 3. Tests and gating criteria from the plan.
 4. Prerequisite task (if not the first).
 5. Every question/resolution from `QUESTIONS_SECTION` that constrains this task — with concrete resolution values.
-6. Relevant spike reports, prototypes, screenshots within `PLAN_DIRECTORY` and `SUPPORTING_ARTIFACTS`.
+6. Relevant spike **findings** (decisions, constraints, rejected approaches) from `PLAN_DIRECTORY` and `SUPPORTING_ARTIFACTS` — extracted as prose, never as source file references (see "Spike firewall" section).
 7. Additional gating tests that catch contract, integration, or regression failures before the next serial task starts.
 
 ### Step 4: Draft all issues before creating any
 
 Each issue body must include:
 
-- A prominent statement: "On the `BASE_BRANCH` branch, the directory `PLAN_DIRECTORY` contains the plan (`PLAN_FILE_NAME`) and supporting resources (spikes, prototypes, diagrams)."
+- A prominent statement: "On the `BASE_BRANCH` branch, the directory `PLAN_DIRECTORY` contains the plan (`PLAN_FILE_NAME`) and supporting resources (diagrams, decision records). Spike subdirectories are research artifacts — read the plan's Resolution sections for findings, not the spike source code."
 - Instruction to read the entire plan before working.
 - Exact section headings to re-read, with relevant resolved decisions spelled out.
-- Explicit paths to spike research and artifacts within `PLAN_DIRECTORY`.
+- Explicit spike **findings** relevant to the task, stated as prose in the issue body — never as paths to spike source files (see "Spike firewall" section).
 - Branch and execution order instructions.
 - Concrete specification of what to build.
 - Tests and gating criteria.
@@ -170,3 +170,35 @@ Return:
 - Never attempt automatic rollback or resume a partial run. Report the creation ledger and cleanup commands, then stop.
 - Never rerun after a partial failure until the invoking user confirms that every issue in the creation ledger has been deleted.
 - Do not run `shepherd-task` or assign Copilot. This skill only creates and verifies the ordered issue backlog.
+
+## Spike firewall — findings vs. code
+
+Spikes and research artifacts exist to **inform decisions**, not to be transplanted into production code. Every issue body must enforce this distinction.
+
+### What to carry forward from spikes
+
+- **Findings:** Concrete decisions, constraints, and patterns discovered during research (e.g., "PipedInputStream is rejected because JNA creates a new thread per callback invocation — use QueueInputStream instead").
+- **Resolutions:** The `Resolution:` blocks from the plan's questions section, with their concrete values and operational consequences.
+- **Architectural patterns:** High-level design shapes proven by spikes (e.g., "multi-release JAR with platform-thread reader on JDK 17 and virtual-thread reader on JDK 25").
+- **Negative results:** What was tried and rejected, and why (e.g., "GraalVM native-image callback invocation fails — do not pursue").
+
+### What must NOT appear in issue bodies
+
+- **Spike source file paths as implementation references.** Never tell the agent to "read" or "use" spike source files as templates for production code. Spike code is throwaway.
+- **Spike class names, method names, or variable names.** Never reference spike-internal identifiers (e.g., `CallbackTestLib`, `SPIKE_LIB_PATH`, `libcallback_test.so`) as things to use, adapt, or copy.
+- **Spike test helpers or test libraries.** Never direct the agent to reuse spike test infrastructure in production tests. Production tests must exercise production code with production dependencies.
+- **Spike directory paths as working directories.** The `PLAN_DIRECTORY` contains the plan and may contain spike subdirectories; issue bodies must reference the plan and its resolutions, not the spike subdirectories themselves.
+
+### How to reference spikes in issue bodies
+
+When a spike's findings are relevant to a task, the issue body must:
+
+1. State the **finding** in the issue body itself, with enough detail that the agent can implement without reading the spike code.
+2. Optionally note that the finding was "established by research in `PLAN_DIRECTORY`" for human traceability.
+3. Never instruct the agent to open, read, copy from, or adapt spike source files.
+
+**Anti-pattern (causes spike pollution):**
+> Read the spike at `spike-3-4-jna-callback-and-threading/java-program-that-invokes-rust-dll-mr-jar-17-25/` and use its approach.
+
+**Correct pattern:**
+> The spike established that `QueueInputStream` (a `BlockingQueue<byte[]>`-backed `InputStream`) is the correct approach for piping callback data into Java. `PipedInputStream` is rejected because JNA creates a new short-lived thread per callback invocation, and `PipedInputStream.writeSide.isAlive()` fails when the writing thread terminates. On JDK 25, the reader thread should be a virtual thread via `Thread.ofVirtual()`; on JDK 17, a platform thread. Implement this pattern from scratch using production dependencies.
