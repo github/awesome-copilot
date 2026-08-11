@@ -39,7 +39,6 @@ jobs:
 
             const workflowRun = context.payload.workflow_run;
             const artifactRoot = path.join(process.env.RUNNER_TEMP, 'pr-duplicate-agent');
-            const candidates = [];
 
             function readJsonIfExists(filePath) {
               if (!fs.existsSync(filePath)) return null;
@@ -82,32 +81,42 @@ jobs:
               return;
             }
 
-            function collectCandidate(value) {
+            function collectCandidate(value, targetCandidates) {
               if (!value || typeof value !== 'object') return;
               const tool = value.tool || value.name || value.tool_name || value.type || value.action;
               const args = value.arguments || value.args || value.input || value.params || value.data || value;
               if (tool === 'add_comment') {
-                candidates.push(args);
+                targetCandidates.push(args);
               }
+            }
+
+            function collectCandidatesFromJson(value) {
+              const collected = [];
+              if (value) {
+                if (Array.isArray(value.items)) {
+                  for (const item of value.items) collectCandidate(item, collected);
+                } else if (Array.isArray(value)) {
+                  for (const item of value) collectCandidate(item, collected);
+                } else {
+                  collectCandidate(value, collected);
+                }
+              }
+              return collected;
             }
 
             const agentOutput = readJsonIfExists(path.join(artifactRoot, 'agent_output.json'));
-            if (agentOutput) {
-              if (Array.isArray(agentOutput.items)) {
-                for (const item of agentOutput.items) collectCandidate(item);
-              } else if (Array.isArray(agentOutput)) {
-                for (const item of agentOutput) collectCandidate(item);
-              } else {
-                collectCandidate(agentOutput);
-              }
-            }
+            let candidates = collectCandidatesFromJson(agentOutput);
 
-            const safeOutputsPath = path.join(artifactRoot, 'safeoutputs.jsonl');
-            if (fs.existsSync(safeOutputsPath)) {
-              const stat = fs.statSync(safeOutputsPath);
-              if (stat.size > 1024 * 1024) throw new Error('safeoutputs.jsonl exceeds 1 MiB');
-              const lines = fs.readFileSync(safeOutputsPath, 'utf8').split(/\r?\n/).filter(Boolean).slice(0, 100);
-              for (const line of lines) collectCandidate(JSON.parse(line));
+            if (candidates.length === 0) {
+              const safeOutputsPath = path.join(artifactRoot, 'safeoutputs.jsonl');
+              if (fs.existsSync(safeOutputsPath)) {
+                const stat = fs.statSync(safeOutputsPath);
+                if (stat.size > 1024 * 1024) throw new Error('safeoutputs.jsonl exceeds 1 MiB');
+                const lines = fs.readFileSync(safeOutputsPath, 'utf8').split(/\r?\n/).filter(Boolean).slice(0, 100);
+                const safeOutputCandidates = [];
+                for (const line of lines) collectCandidate(JSON.parse(line), safeOutputCandidates);
+                candidates = safeOutputCandidates;
+              }
             }
 
             const stripControlCharacters = (value) =>
