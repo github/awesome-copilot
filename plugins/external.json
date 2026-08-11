@@ -54,6 +54,32 @@
     }
   },
   {
+    "name": "apify",
+    "description": "Helps devs extract data from any website with thousands of trusted scrapers, crawlers, and automations from Apify Store. Integrate ready-made Actors to access all popular social media, video, e-commerce, search engines, maps, and travel sites. Build, debug, publish, and monetize new Actors on Apify.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Jakub-Vacek",
+      "url": "https://apify.com"
+    },
+    "repository": "https://github.com/apify/apify-github-copilot-plugin",
+    "license": "Apache-2.0",
+    "keywords": [
+      "automation",
+      "copilot",
+      "github",
+      "apify",
+      "actors",
+      "scrape",
+      "crawl"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "apify/apify-github-copilot-plugin",
+      "path": "apify",
+      "sha": "84136d82da104af9792040e91392daff098e6ff9"
+    }
+  },
+  {
     "name": "azure",
     "description": "Microsoft Azure MCP Server and skills for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Copilot.",
     "version": "1.0.0",
