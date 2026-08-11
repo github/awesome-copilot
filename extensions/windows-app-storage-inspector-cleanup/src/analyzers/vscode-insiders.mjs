@@ -196,7 +196,10 @@ export async function analyzeVsCodeInsiders(result) {
             kind: "old-installations",
             risk: "high",
             folders: Math.max(0, folders.length - 1),
-            bytes: inactiveFolders.slice(1).reduce((total, folder) => total + folder.bytes, 0),
+            bytes: [...inactiveFolders]
+                .sort((left, right) => right.modifiedAt.localeCompare(left.modifiedAt))
+                .slice(1)
+                .reduce((total, folder) => total + folder.bytes, 0),
             message: "No VS Code Insiders process is running, so the active version could not be confirmed. Keep the newest installation until VS Code is opened once, then review older folders.",
         });
     } else if (processInspection.status === "unknown") {

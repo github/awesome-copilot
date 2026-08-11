@@ -73,6 +73,10 @@ export async function startCanvasServer(service, requestAgentInvestigation, canc
         response.setHeader("referrer-policy", "no-referrer");
 
         if (request.method === "GET" && url.pathname === "/") {
+            if (url.searchParams.get("token") !== token) {
+                sendJson(response, 403, { code: "request_forbidden", message: "Canvas request token is missing or invalid" });
+                return;
+            }
             response.writeHead(200, {
                 "content-type": "text/html; charset=utf-8",
                 "cache-control": "no-store",

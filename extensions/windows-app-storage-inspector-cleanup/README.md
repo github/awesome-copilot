@@ -11,7 +11,7 @@ Approved cleanup items are moved to the Windows Recycle Bin rather than permanen
 Run this command in the GitHub Copilot app:
 
 ```text
-copilot plugin install windows-app-storage-inspector-cleanup@plagueho-copilot
+copilot plugin install windows-app-storage-inspector-cleanup@awesome-copilot
 ```
 
 Canvas extensions are supported in the GitHub Copilot app only.
