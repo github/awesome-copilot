@@ -18,7 +18,7 @@
     "windows"
   ],
   "dependencies": {
-    "@github/copilot-sdk": "1.0.9-preview.2"
+    "@github/copilot-sdk": "latest"
   },
   "scripts": {
     "test": "node test/self-test.mjs"

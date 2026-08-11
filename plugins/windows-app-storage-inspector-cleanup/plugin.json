@@ -3,6 +3,10 @@
   "name": "windows-app-storage-inspector-cleanup",
   "description": "Inspect Windows application storage, understand local disk usage, and safely move approved cleanup items to the Recycle Bin.",
   "version": "1.0.3",
+  "author": {
+    "name": "Daniel Scott-Raynsford",
+    "url": "https://github.com/PlagueHO"
+  },
   "keywords": [
     "app-storage",
     "canvas",
