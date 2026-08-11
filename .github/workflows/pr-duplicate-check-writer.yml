@@ -29,6 +29,16 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
+      - name: Download PR context artifact
+        id: download-context
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: pr-duplicate-check-context
+          path: ${{ runner.temp }}/pr-duplicate-context
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
       - name: Validate and publish safe comment output
         if: steps.download-agent.outcome == 'success'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -39,6 +49,7 @@ jobs:
 
             const workflowRun = context.payload.workflow_run;
             const artifactRoot = path.join(process.env.RUNNER_TEMP, 'pr-duplicate-agent');
+            const contextRoot = path.join(process.env.RUNNER_TEMP, 'pr-duplicate-context');
 
             function readJsonIfExists(filePath) {
               if (!fs.existsSync(filePath)) return null;
@@ -47,7 +58,9 @@ jobs:
               return JSON.parse(fs.readFileSync(filePath, 'utf8'));
             }
 
-            const prContext = readJsonIfExists(path.join(artifactRoot, 'pr-context.json'));
+            const prContext =
+              readJsonIfExists(path.join(contextRoot, 'pr-context.json')) ||
+              readJsonIfExists(path.join(artifactRoot, 'pr-context.json'));
             if (!prContext || prContext.schema_version !== 'pr-duplicate-check-context/v1') {
               throw new Error('Missing or invalid pr-context.json artifact.');
             }
