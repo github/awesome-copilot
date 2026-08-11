@@ -24,11 +24,48 @@ import { analyzeNpmCache } from "../src/analyzers/npm-cache.mjs";
 import { analyzeUvCache } from "../src/analyzers/uv-cache.mjs";
 import { StorageService } from "../src/core/storage-service.mjs";
 import { WINDOWS_ONLY_MESSAGE, assertWindowsPlatform, isWindowsPlatform } from "../src/core/platform.mjs";
+import { renderHtml } from "../src/ui/renderer.mjs";
+import { findTreeStackForPath, getParentPath } from "../src/ui/tree-navigation.mjs";
 
 const root = await mkdtemp(path.join(os.tmpdir(), "storage-inspector-test-"));
 const outsideRoot = await mkdtemp(path.join(os.tmpdir(), "storage-inspector-outside-"));
 const stateRoot = await mkdtemp(path.join(os.tmpdir(), "storage-inspector-state-"));
 try {
+    const navigationTree = {
+        name: "Scanned storage",
+        path: "",
+        children: [
+            {
+                name: "Profile",
+                path: "C:\\Users\\Example",
+                children: [
+                    {
+                        name: "Cache",
+                        path: "C:\\Users\\Example\\Cache",
+                        children: [],
+                    },
+                ],
+            },
+            {
+                name: "Other",
+                path: "C:\\Users\\Example\\*",
+                aggregate: true,
+                children: [],
+            },
+        ],
+    };
+    assert.deepEqual(
+        findTreeStackForPath(navigationTree, "c:/users/example/cache/large-file.bin").map((item) => item.path),
+        ["", "C:\\Users\\Example", "C:\\Users\\Example\\Cache"],
+    );
+    assert.deepEqual(
+        findTreeStackForPath(navigationTree, "C:\\Users\\ExampleOther\\file.bin").map((item) => item.path),
+        [""],
+    );
+    assert.equal(getParentPath("C:\\Users\\Example\\Cache\\large-file.bin"), "C:\\Users\\Example\\Cache");
+    assert.equal(getParentPath("C:\\large-file.bin"), "C:\\");
+    assert.match(renderHtml("test-token"), /navigateTreemapToPath/);
+    assert.match(renderHtml("test-token"), /path-navigation/);
     assert.equal(isWindowsPlatform("win32"), true);
     assert.equal(isWindowsPlatform("linux"), false);
     assert.throws(() => assertWindowsPlatform("linux"), (error) => (

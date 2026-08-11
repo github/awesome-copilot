@@ -25,6 +25,7 @@ Canvas extensions are supported in the GitHub Copilot app only.
 5. After the scan completes:
    - Select treemap folders to drill down.
    - Use **Application ownership** and **File categories** to understand usage.
+   - Select a file or folder path in the result tabs to navigate the treemap to its deepest visible parent folder.
    - Use the result tabs to inspect folders, large files, cloud-only files, cleanup candidates, and warnings.
    - Select **Analyze folder & cleanup options** or **Ask Copilot** in a result row for a structured Copilot explanation of a selected item.
    - Open **Custom storage analyzers** for application-specific analysis.
@@ -272,14 +273,14 @@ For managed stores such as Docker, do not return direct filesystem cleanup items
 
 ## Data and persistence
 
-| Data                              | Storage                          | Lifetime                                                  |
-| --------------------------------- | -------------------------------- | --------------------------------------------------------- |
-| Custom categorizers               | `artifacts\categorizers.json`    | Persistent across sessions and repositories               |
-| Completed scan and file inventory | Extension memory                 | Current provider lifetime                                 |
-| Analyzer results                  | Extension memory                 | Until the next scan or provider restart                   |
-| Cleanup previews                  | Extension memory                 | Ten minutes or until executed                             |
-| Cleanup result summary            | Extension memory                 | Current provider lifetime                                 |
-| Folder explanation cache          | Canvas iframe memory             | Current canvas page lifetime                              |
+| Data                              | Storage                       | Lifetime                                    |
+| --------------------------------- | ----------------------------- | ------------------------------------------- |
+| Custom categorizers               | `artifacts\categorizers.json` | Persistent across sessions and repositories |
+| Completed scan and file inventory | Extension memory              | Current provider lifetime                   |
+| Analyzer results                  | Extension memory              | Until the next scan or provider restart     |
+| Cleanup previews                  | Extension memory              | Ten minutes or until executed               |
+| Cleanup result summary            | Extension memory              | Current provider lifetime                   |
+| Folder explanation cache          | Canvas iframe memory          | Current canvas page lifetime                |
 
 The extension does not persist general scan inventories or folder explanations by default.
 

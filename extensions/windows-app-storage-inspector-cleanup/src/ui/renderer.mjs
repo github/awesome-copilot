@@ -1,3 +1,9 @@
+import { containsPath, findTreeStackForPath, getParentPath, normalizePath } from "./tree-navigation.mjs";
+
+const treeNavigationClientSource = [normalizePath, containsPath, getParentPath, findTreeStackForPath]
+    .map((helper) => helper.toString())
+    .join("\n");
+
 export function renderHtml(token) {
     return String.raw`<!doctype html>
 <html lang="en">
@@ -205,6 +211,8 @@ export function renderHtml(token) {
     th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border-color-default, #d0d7de); vertical-align: top; }
     th { position: sticky; top: 0; z-index: 1; background: var(--background-color-muted, #f6f8fa); white-space: nowrap; }
     td.path { max-width: 580px; overflow-wrap: anywhere; font-family: var(--font-mono, Consolas, monospace); font-size: var(--text-code-inline, 12px); }
+    .path-navigation { color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+    .path-navigation:hover { color: var(--true-color-blue, #0969da); text-decoration: underline; }
     .empty { padding: 32px; text-align: center; color: var(--text-color-muted, #656d76); }
     .warning { border-left: 3px solid #bf8700; padding: 8px 10px; background: rgba(191,135,0,.09); margin: 6px 0; overflow-wrap: anywhere; }
     .error { border-left: 3px solid var(--true-color-red, #cf222e); padding: 8px 10px; background: var(--true-color-red-muted, rgba(207,34,46,.1)); margin: 8px 0; }
@@ -443,6 +451,7 @@ export function renderHtml(token) {
     </div>
   </dialog>
   <script>
+    ${treeNavigationClientSource}
     const token = __TOKEN__;
     const state = {
       scan: null,
@@ -535,6 +544,23 @@ export function renderHtml(token) {
       cell.textContent = value;
       row.appendChild(cell);
       return cell;
+    }
+
+    function appendPathNavigation(row, item, isFile) {
+      const cell = document.createElement("td");
+      cell.className = "path";
+      const link = document.createElement("a");
+      link.className = "path-navigation";
+      link.href = "#treemap";
+      link.textContent = item.path;
+      link.title = "Navigate the treemap to this path";
+      link.setAttribute("aria-label", "Navigate the treemap to " + item.path);
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        navigateTreemapToPath(isFile ? getParentPath(item.path) : item.path);
+      });
+      cell.appendChild(link);
+      row.appendChild(cell);
     }
 
     function renderScanState(next) {
@@ -1472,6 +1498,17 @@ export function renderHtml(token) {
       renderBreadcrumbs();
     }
 
+    function navigateTreemapToPath(targetPath) {
+      const treeStack = findTreeStackForPath(state.result?.tree, targetPath);
+      if (!treeStack.length) return;
+      state.treeStack = treeStack;
+      state.selectedFolder = treeStack[treeStack.length - 1];
+      renderTreemap();
+      renderSelectedFolderAction();
+      activateAnalyzerForPath(state.selectedFolder.path);
+      $("treemap").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
     function renderBreadcrumbs() {
       const crumbs = $("crumbs");
       crumbs.replaceChildren();
@@ -1913,7 +1950,7 @@ export function renderHtml(token) {
       const { table, body } = createTable(["Folder", "Categorizer", "Size", "Files", "Actions"]);
       items.forEach((item) => {
         const row = document.createElement("tr");
-        textCell(row, item.path, "path");
+        appendPathNavigation(row, item, false);
         textCell(row, item.categorizer || "—");
         textCell(row, formatBytes(item.bytes));
         textCell(row, item.files.toLocaleString());
@@ -1928,7 +1965,7 @@ export function renderHtml(token) {
       const { table, body } = createTable(["File", "Application", "Category", "Size", "Modified", "Actions"]);
       items.forEach((item) => {
         const row = document.createElement("tr");
-        textCell(row, item.path, "path");
+        appendPathNavigation(row, item, true);
         textCell(row, item.app);
         textCell(row, item.category);
         textCell(row, formatBytes(item.bytes));
@@ -1956,7 +1993,7 @@ export function renderHtml(token) {
         });
         selectionCell.appendChild(checkbox);
         row.appendChild(selectionCell);
-        textCell(row, item.path, "path");
+        appendPathNavigation(row, item, true);
         textCell(row, item.reason);
         textCell(row, item.app);
         textCell(row, formatBytes(item.bytes));
@@ -1972,7 +2009,7 @@ export function renderHtml(token) {
       const { table, body } = createTable(["Online-only file", "Application", "Category", "Logical size", "Modified", "Actions"]);
       items.forEach((item) => {
         const row = document.createElement("tr");
-        textCell(row, item.path, "path");
+        appendPathNavigation(row, item, true);
         textCell(row, item.app);
         textCell(row, item.category);
         textCell(row, formatBytes(item.bytes));
