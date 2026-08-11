@@ -79,6 +79,31 @@
     }
   },
   {
+    "name": "blea",
+    "description": "Safe, agent-first Bluetooth Low Energy diagnostics with portable evidence capture/diff/replay and guarded writes through a Skill, CLI, and local MCP server.",
+    "version": "0.6.1",
+    "author": {
+      "name": "Nitmi",
+      "url": "https://github.com/Nitmi"
+    },
+    "repository": "https://github.com/Nitmi/blea",
+    "license": "MIT",
+    "keywords": [
+      "bluetooth-low-energy",
+      "ble",
+      "hardware",
+      "agent-plugin",
+      "agent-skill",
+      "cli",
+      "mcp"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Nitmi/blea",
+      "sha": "5b4b325e5d4a444f328366dff89e81dd2bda36ed"
+    }
+  },
+  {
     "name": "brainmaxxing",
     "description": "Codebase-grounded concept-mastery quizzes with an interactive BrainMax Canvas dashboard.",
     "version": "1.0.0",
