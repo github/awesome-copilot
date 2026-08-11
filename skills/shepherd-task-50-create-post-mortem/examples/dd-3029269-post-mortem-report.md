@@ -90,7 +90,7 @@ The CCRA (`copilot-pull-request-reviewer[bot]`) reviewed each PR once it was mar
 
 ### 2.3 Local Copilot CLI (Shepherd)
 
-The local CLI (`copilot --yolo`) ran the `shepherd-task-from-ready-to-merged-to-base` skill (phase 2). For each CCRA review batch, it:
+The local CLI (`copilot --yolo`) ran the `shepherd-task-40-from-ready-to-merged-to-base` skill (stage 40). For each CCRA review batch, it:
 
 1. Fetched and read all open review comments
 2. Applied each fix locally (via `edit`, `create`, or `powershell` tool calls in a worktree)

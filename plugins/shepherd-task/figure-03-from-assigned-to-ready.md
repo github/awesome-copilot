@@ -1,6 +1,6 @@
 # Figure 03: From Assignment to Ready for Review
 
-This diagram shows the detail of the `shepherd-task-from-assignment-to-ready` skill, including its nested invocation of `shepherd-task-approve-workflows-and-wait-for-completion`. All of this runs inside a single `copilot --yolo` session (the Local Copilot CLI), which orchestrates interaction with the remote Copilot Coding Agent (CCA) via the GitHub API.
+This diagram shows the detail of the `shepherd-task-30-from-assignment-to-ready` skill, including its nested invocation of `shepherd-task-approve-workflows-and-wait-for-completion`. All of this runs inside a single `copilot --yolo` session (the Local Copilot CLI), which orchestrates interaction with the remote Copilot Coding Agent (CCA) via the GitHub API.
 
 ## Sequence Diagram
 

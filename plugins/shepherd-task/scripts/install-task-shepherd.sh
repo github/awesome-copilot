@@ -38,12 +38,12 @@ done
 
 # Install skills (only if not already present).
 SKILLS=(
-    "shepherd-task-from-assignment-to-ready"
-    "shepherd-task-from-ready-to-merged-to-base"
+    "shepherd-task-30-from-assignment-to-ready"
+    "shepherd-task-40-from-ready-to-merged-to-base"
     "shepherd-task-approve-workflows-and-wait-for-completion"
-    "shepherd-task-create-ignorance-reduction-plan"
-    "shepherd-task-create-post-mortem"
-    "shepherd-task-create-issues-from-plan"
+    "shepherd-task-10-create-ignorance-reduction-plan"
+    "shepherd-task-50-create-post-mortem"
+    "shepherd-task-20-create-issues-from-plan"
 )
 
 skills_installed=0

@@ -1,13 +1,13 @@
 ---
-name: shepherd-task-from-assignment-to-ready
-description: "Use this skill to shepherd a child Task issue from 'assigned to Copilot' through CI approval and review-agent feedback resolution, stopping just before marking the PR as **Ready for review**."
+name: shepherd-task-30-from-assignment-to-ready
+description: "Stage 30 of the shepherd-task campaign lifecycle (each issue from assignment through the boundary immediately before Ready for review). Use this skill to shepherd a child Task issue from 'assigned to Copilot' through CI approval and review-agent feedback resolution, stopping just before marking the PR as **Ready for review**."
 ---
 
-# Skill: Shepherd Task to Ready for Review
+# Skill: Shepherd Task to Ready for Review (shepherd-task stage 30 — assignment through the boundary before Ready for review)
 
 ## Purpose
 
-Automate the lifecycle of a child **Task** issue from "assigned to Copilot" through CI passing and review-agent feedback resolution, stopping just before marking the PR as **Ready for review**.
+This is stage 30 of the ordered shepherd-task campaign lifecycle (10 → 20 → 30 → 40 → 50): each issue from assignment through the boundary immediately before Ready for review. Automate the lifecycle of a child **Task** issue from "assigned to Copilot" through CI passing and review-agent feedback resolution, stopping just before marking the PR as **Ready for review**.
 
 The existence of a draft PR is only evidence that CCA accepted the assignment. CCA commonly opens a draft PR with an empty `Initial plan` commit before it starts implementation. Never treat PR creation, an `Initial plan` commit, passing selector checks, or an absence of review comments as evidence that the task is complete.
 

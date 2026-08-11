@@ -1,6 +1,6 @@
 # Figure 05: Post-Mortem Report Generation
 
-This diagram shows the detail of the `shepherd-task-create-post-mortem` skill. It is invoked from the `finally` block of `shepherd-task-given-list.ps1` (see Figure 01) so that a report is always generated, regardless of whether the run succeeded or failed.
+This diagram shows the detail of the `shepherd-task-50-create-post-mortem` skill. It is invoked from the `finally` block of `shepherd-task-given-list.ps1` (see Figure 01) so that a report is always generated, regardless of whether the run succeeded or failed.
 
 ## Sequence Diagram
 
@@ -8,13 +8,13 @@ This diagram shows the detail of the `shepherd-task-create-post-mortem` skill. I
 sequenceDiagram
     participant STGL as shepherd-task-given-list.ps1<br/>(finally block)
     participant Copilot as copilot --yolo
-    participant Skill as shepherd-task-create-post-mortem
+    participant Skill as shepherd-task-50-create-post-mortem
     participant LogDir as SHEPHERD_LOG_DIR<br/>(shepherd-tasks-YYYYMMDD-HHMM/)
     participant ParentDir as Parent Directory<br/>(campaign context)
 
     rect rgb(255, 245, 220)
         Note over STGL,Copilot: Invocation (runs on success OR failure)
-        STGL->>Copilot: echo prompt | copilot --yolo<br/>"Invoke skill shepherd-task-create-post-mortem"<br/>with SHEPHERD_LOG_DIR, SCRIPT_EXIT_CODE,<br/>TASK_ISSUES, BASE_BRANCH, REPO
+        STGL->>Copilot: echo prompt | copilot --yolo<br/>"Invoke skill shepherd-task-50-create-post-mortem"<br/>with SHEPHERD_LOG_DIR, SCRIPT_EXIT_CODE,<br/>TASK_ISSUES, BASE_BRANCH, REPO
     end
 
     rect rgb(220, 240, 255)

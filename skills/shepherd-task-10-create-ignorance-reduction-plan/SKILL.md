@@ -1,13 +1,15 @@
 ---
-name: shepherd-task-create-ignorance-reduction-plan
-description: "Use this skill when creating a new ignorance reduction plan — a structured document that maps unknowns, spikes, and phased implementation steps for a multi-day engineering campaign."
+name: shepherd-task-10-create-ignorance-reduction-plan
+description: "Stage 10 of the shepherd-task campaign lifecycle (campaign planning). Use this skill when creating a new ignorance reduction plan — a structured document that maps unknowns, spikes, and phased implementation steps for a multi-day engineering campaign. Skip this stage when suitable implementation issues already exist."
 ---
 
-# Skill: Create Ignorance Reduction Plan
+# Skill: Create Ignorance Reduction Plan (shepherd-task stage 10 — campaign planning)
 
 ## Purpose
 
-Generate a structured **ignorance reduction plan** — a markdown document that identifies unknowns, formulates precise questions, and lays out phased implementation steps for a multi-day engineering campaign. The plan is created with **empty Resolution sections**; a human expert later fills in each resolution, sometimes producing engineering "spike" work that resides alongside the plan.
+This is stage 10 of the ordered shepherd-task campaign lifecycle (10 → 20 → 30 → 40 → 50): campaign planning. Generate a structured **ignorance reduction plan** — a markdown document that identifies unknowns, formulates precise questions, and lays out phased implementation steps for a multi-day engineering campaign. The plan is created with **empty Resolution sections**; a human expert later fills in each resolution, sometimes producing engineering "spike" work that resides alongside the plan.
+
+This stage (and stage 20) is only needed when a campaign does not yet have an ordered set of implementation issues. If suitable issues already exist, skip directly to stage 30 (`shepherd-task-30-from-assignment-to-ready`).
 
 ## Inputs
 

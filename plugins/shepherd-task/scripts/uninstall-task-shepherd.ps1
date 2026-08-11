@@ -37,12 +37,12 @@ if (Test-Path $pluginDir -PathType Container) {
 
 # Remove skills.
 $skills = @(
-    'shepherd-task-from-assignment-to-ready'
-    'shepherd-task-from-ready-to-merged-to-base'
+    'shepherd-task-30-from-assignment-to-ready'
+    'shepherd-task-40-from-ready-to-merged-to-base'
     'shepherd-task-approve-workflows-and-wait-for-completion'
-    'shepherd-task-create-ignorance-reduction-plan'
-    'shepherd-task-create-post-mortem'
-    'shepherd-task-create-issues-from-plan'
+    'shepherd-task-10-create-ignorance-reduction-plan'
+    'shepherd-task-50-create-post-mortem'
+    'shepherd-task-20-create-issues-from-plan'
 )
 foreach ($skill in $skills) {
     $skillDir = Join-Path $CopilotHome 'skills' $skill
@@ -53,7 +53,7 @@ foreach ($skill in $skills) {
 }
 
 # Remove any generated interview prompt files from the plugin scripts directory.
-$interviewPrompts = Join-Path $pluginDir 'scripts' '*invoke-shepherd-task-create-issues-from-plan-skill.md'
+$interviewPrompts = Join-Path $pluginDir 'scripts' '*invoke-shepherd-task-20-create-issues-from-plan-skill.md'
 Remove-Item -Path $interviewPrompts -Force -ErrorAction SilentlyContinue
 
 Write-Host ""

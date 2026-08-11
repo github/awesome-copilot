@@ -1,13 +1,15 @@
 ---
-name: shepherd-task-create-issues-from-plan
-description: 'Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child Task issues under an existing GitHub parent issue, incorporating resolved research, spike artifacts, concrete example-issue style, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 12 inputs are required.'
+name: shepherd-task-20-create-issues-from-plan
+description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child Task issues under an existing GitHub parent issue, incorporating resolved research, spike artifacts, concrete example-issue style, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 12 inputs are required. Skip this stage when suitable implementation issues already exist.'
 ---
 
-# Skill: Create Shepherd Task Issues from a Plan
+# Skill: Create Shepherd Task Issues from a Plan (shepherd-task stage 20 — creation of ordered implementation issues)
 
 ## Purpose
 
-Satisfy the `shepherd-task` precondition that a job specification is encoded as an ordered set of GitHub issues. Create one coding-agent-ready child issue for each direct task subsection in an ignorance reduction plan's implementation section, preserving build order and carrying the relevant resolved research into each issue.
+This is stage 20 of the ordered shepherd-task campaign lifecycle (10 → 20 → 30 → 40 → 50): creation of ordered implementation issues. Satisfy the `shepherd-task` precondition that a job specification is encoded as an ordered set of GitHub issues. Create one coding-agent-ready child issue for each direct task subsection in an ignorance reduction plan's implementation section, preserving build order and carrying the relevant resolved research into each issue.
+
+This stage (and stage 10) is only needed when a campaign does not yet have an ordered set of implementation issues. If suitable issues already exist, skip directly to stage 30 (`shepherd-task-30-from-assignment-to-ready`).
 
 The created issues are specifications, not summaries. A coding agent must be able to complete each issue without guessing about scope, prior decisions, files, tests, or completion criteria.
 

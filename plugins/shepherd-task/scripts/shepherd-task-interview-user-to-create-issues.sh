@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # shepherd-task-interview-user-to-create-issues.sh — Interviews the user for 11 inputs
-# to the shepherd-task-create-issues-from-plan skill and writes a timestamped prompt
+# to the shepherd-task-20-create-issues-from-plan skill and writes a timestamped prompt
 # and invocation script inside a persistent log directory.
 #
 # Usage: ./shepherd-task-interview-user-to-create-issues.sh
@@ -34,7 +34,7 @@ read_required() {
     done
 }
 
-echo "=== shepherd-task-create-issues-from-plan — Input Interview ==="
+echo "=== shepherd-task-20-create-issues-from-plan — Input Interview ==="
 echo ""
 
 REPO=$(read_required "1/11  REPO (OWNER/REPO format, e.g. github/copilot-sdk)")
@@ -70,11 +70,11 @@ timestamp=$(date +%Y%m%d-%H%M)
 log_dir="$(pwd)/shepherd-task-${timestamp}"
 mkdir -p "$log_dir"
 log_dir_full="$(cd "$log_dir" && pwd)"
-out_file="$log_dir_full/${timestamp}-invoke-shepherd-task-create-issues-from-plan-skill.md"
-invocation_file="$log_dir_full/${timestamp}-invoke-shepherd-task-create-issues-from-plan-skill.sh"
+out_file="$log_dir_full/${timestamp}-invoke-shepherd-task-20-create-issues-from-plan-skill.md"
+invocation_file="$log_dir_full/${timestamp}-invoke-shepherd-task-20-create-issues-from-plan-skill.sh"
 
 cat > "$out_file" <<EOF
-Invoke skill \`shepherd-task-create-issues-from-plan\` with these inputs:
+Invoke skill \`shepherd-task-20-create-issues-from-plan\` with these inputs:
 
 - REPO: $REPO
 - BASE_BRANCH: $BASE_BRANCH

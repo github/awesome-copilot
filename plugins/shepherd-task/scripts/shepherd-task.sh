@@ -104,7 +104,7 @@ if [[ -n "$PR_NUMBER" ]]; then
 else
     status "Phase 1: Launching copilot --yolo for task #$TASK_ISSUE"
 
-    PHASE1_PROMPT="Invoke skill \`shepherd-task-from-assignment-to-ready\` with these inputs:
+    PHASE1_PROMPT="Invoke skill \`shepherd-task-30-from-assignment-to-ready\` with these inputs:
 
 - TASK_ISSUE: $TASK_ISSUE
 - BASE_BRANCH: $BASE_BRANCH
@@ -154,7 +154,7 @@ if [[ "$PR_STATE" == "MERGED" ]]; then
 else
     status "Phase 2: Launching copilot --yolo for PR #$PR_NUMBER"
 
-    PHASE2_PROMPT="Invoke skill \`shepherd-task-from-ready-to-merged-to-base\` with these inputs:
+    PHASE2_PROMPT="Invoke skill \`shepherd-task-40-from-ready-to-merged-to-base\` with these inputs:
 
 - TASK_ISSUE: $TASK_ISSUE
 - BASE_BRANCH: $BASE_BRANCH

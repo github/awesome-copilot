@@ -98,7 +98,7 @@ function Invoke-PostMortemSkill {
         $sessionJsonPath = Join-Path $logDirFull "post-mortem-session-$timestamp.json"
 
         $prompt = @"
-Invoke skill ``shepherd-task-create-post-mortem`` with these inputs:
+Invoke skill ``shepherd-task-50-create-post-mortem`` with these inputs:
 
 - SHEPHERD_LOG_DIR: $logDirFull
 - SCRIPT_EXIT_CODE: $ScriptExitCode

@@ -16,7 +16,7 @@ sequenceDiagram
     participant STGL as shepherd-task-given-list.ps1
     participant ST as shepherd-task.ps1
     participant Copilot as copilot --yolo
-    participant PostMortem as shepherd-task-create-post-mortem
+    participant PostMortem as shepherd-task-50-create-post-mortem
 
     User->>STGL: "51,52,53,54"<br/>edburns/dd-3034809-test-01<br/>edburns/Build26-BRK206-your-agent
 
@@ -41,7 +41,7 @@ sequenceDiagram
 
     rect rgb(255, 245, 220)
         Note over STGL,PostMortem: finally block — runs on success OR failure
-        STGL->>Copilot: echo prompt | copilot --yolo<br/>"Invoke skill shepherd-task-create-post-mortem"
+        STGL->>Copilot: echo prompt | copilot --yolo<br/>"Invoke skill shepherd-task-50-create-post-mortem"
         Copilot->>PostMortem: Invoke with SHEPHERD_LOG_DIR,<br/>SCRIPT_EXIT_CODE, TASK_ISSUES,<br/>BASE_BRANCH, REPO
         PostMortem-->>Copilot: Write YYYYMMDD-HHMM-post-mortem.md<br/>to log directory
         Copilot-->>STGL: Session complete
