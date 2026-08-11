@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-04
+lastUpdated: 2026-08-11
 relatedArticles:
   - ./building-custom-agents.md
   - ./creating-effective-skills.md
@@ -29,6 +29,8 @@ A plugin bundles one or more of the following components:
 | **MCP Servers** | Model Context Protocol integrations for external tools | `.mcp.json` or `.github/mcp.json` |
 | **LSP Servers** | Language Server Protocol integrations | `lsp.json` or `.github/lsp.json` |
 | **Extensions** | IDE extensions installable via the plugin marketplace (v1.0.62+) | `extensions/` |
+
+> **Agent Plugins spec support** *(v1.0.79+)*: Plugins that follow the [Agent Plugins spec](https://agentskills.io/specification) can now ship canvas and IDE extensions under a `com.github.copilot/extensions/` directory, in addition to the `extensions/` convention above.
 
 A plugin might include all of these or just one — for example, a plugin could provide a single specialized agent, or an entire development toolkit with multiple agents, skills, hooks, and MCP server configurations working together.
 
@@ -177,6 +179,24 @@ Pinning to a SHA guarantees that everyone on the team installs plugins from exac
 - **Change control** — review and approve plugin updates before rolling them out team-wide
 - **Stability** — prevent breaking changes in upstream marketplaces from impacting your team without notice
 
+### Auto-Updating a Marketplace's Plugins
+
+*(v1.0.79+)* Set `"autoUpdate": true` on an `extraKnownMarketplaces` entry in your **user** settings to have that marketplace's plugins automatically update at the start of each session, the same way first-party plugins from the official `copilot-plugins` marketplace already do:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "autoUpdate": true
+    }
+  ]
+}
+```
+
+This is a per-user setting (not a repository-level one), so each team member opts in individually rather than the whole team being forced onto auto-updates.
+
 ## Installing Plugins
 
 ### From Copilot CLI
@@ -217,7 +237,7 @@ copilot plugin marketplace update
 copilot plugin uninstall my-plugin
 ```
 
-> **Auto-update for first-party plugins** *(v1.0.78+)*: Plugins sourced from the official `copilot-plugins` marketplace automatically update to their latest version at the start of each session. You do not need to run `copilot plugin update` for first-party plugins — updates are applied silently on startup. Community plugins from `awesome-copilot` and other marketplace registries still require a manual `copilot plugin update` command.
+> **Auto-update for first-party plugins** *(v1.0.78+)*: Plugins sourced from the official `copilot-plugins` marketplace automatically update to their latest version at the start of each session. You do not need to run `copilot plugin update` for first-party plugins — updates are applied silently on startup. Community plugins from `awesome-copilot` and other marketplace registries still require a manual `copilot plugin update` command, unless you've opted a marketplace into auto-updates with the `autoUpdate` setting described below.
 
 ### Enabling and Disabling Plugin Components
 
