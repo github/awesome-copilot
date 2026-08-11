@@ -1529,6 +1529,12 @@
       }
     },
     {
+      "name": "windows-app-storage-inspector-cleanup",
+      "source": "plugins/windows-app-storage-inspector-cleanup",
+      "description": "Inspect Windows application storage, understand local disk usage, and safely move approved cleanup items to the Recycle Bin.",
+      "version": "1.0.2"
+    },
+    {
       "name": "winui",
       "description": "Agents and skills for WinUI 3 app development. Create new WinUI 3 desktop apps, convert from other frameworks (WPF, WinForms, Electron, Tauri, Flutter) to WinUI 3, or add features to existing WinUI 3 applications. Includes MSIX packaging, code signing, UI automation testing, and Windows App SDK guidance.",
       "version": "0.3.0",
