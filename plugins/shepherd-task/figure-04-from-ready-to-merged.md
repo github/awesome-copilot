@@ -1,6 +1,6 @@
 # Figure 04: From Ready for Review to Merged
 
-This diagram shows the detail of the `shepherd-task-from-ready-to-merged-to-base` skill. Unlike Phase 1 (which relies on the remote Copilot Coding Agent), this phase resolves review comments **locally** using a git worktree, with dialog between the Copilot Code Review Agent (CCRA) and the local Copilot CLI session.
+This diagram shows the detail of the `shepherd-task-40-from-ready-to-merged-to-base` skill. Unlike Phase 1 (which relies on the remote Copilot Coding Agent), this phase resolves review comments **locally** using a git worktree, with dialog between the Copilot Code Review Agent (CCRA) and the local Copilot CLI session.
 
 ## Sequence Diagram
 

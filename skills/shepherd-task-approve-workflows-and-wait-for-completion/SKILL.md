@@ -77,5 +77,5 @@ gh run list -R $REPO --branch "$JTBDTASK_BRANCH" \
 
 ## Notes
 
-- This skill is extracted from Steps 4 and 5 of `shepherd-task-from-assignment-to-ready` for reuse across multiple shepherd skills.
+- This skill is extracted from Steps 4 and 5 of `shepherd-task-30-from-assignment-to-ready` for reuse across multiple shepherd skills.
 - The `gh api .../actions/runs/{id}/approve` endpoint does NOT work for same-repo PRs (returns HTTP 403 "This run is not from a fork pull request"). Always use `gh run rerun` instead.

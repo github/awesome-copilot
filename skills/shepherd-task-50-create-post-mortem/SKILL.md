@@ -1,15 +1,15 @@
 ---
-name: shepherd-task-create-post-mortem
-description: 'Create a structured post-mortem report from shepherd-task run artifacts, including metrics, timeline, failures, and actionable recommendations.'
+name: shepherd-task-50-create-post-mortem
+description: 'Stage 50 of the shepherd-task campaign lifecycle (campaign post-mortem after success or failure). Create a structured post-mortem report from shepherd-task run artifacts, including metrics, timeline, failures, and actionable recommendations.'
 ---
 
-# Skill: Create Shepherd Task Post-Mortem
+# Skill: Create Shepherd Task Post-Mortem (shepherd-task stage 50 — campaign post-mortem)
 
 ## Purpose
 
-Create a comprehensive post-mortem report for a completed (or failed) `shepherd-task` run.
+This is stage 50 of the ordered shepherd-task campaign lifecycle (10 → 20 → 30 → 40 → 50): campaign post-mortem after success or failure. Create a comprehensive post-mortem report for a completed **or failed** `shepherd-task` run.
 
-This skill is designed to be invoked from `shepherd-task-given-list.ps1` / `shepherd-task-given-list.sh` in a `finally` / `trap EXIT` path so it runs for **all outcomes**.
+This skill is designed to be invoked from `shepherd-task-given-list.ps1` / `shepherd-task-given-list.sh` in a `finally` / `trap EXIT` path so it runs for **all outcomes**, not only after success.
 
 ---
 
@@ -115,7 +115,7 @@ For Table of Contents entries, use plain text labels for issue/PR identifiers (f
 The caller should invoke this skill with a prompt like:
 
 ```text
-Invoke skill `shepherd-task-create-post-mortem` with these inputs:
+Invoke skill `shepherd-task-50-create-post-mortem` with these inputs:
 
 - SHEPHERD_LOG_DIR: <absolute-path>
 - SCRIPT_EXIT_CODE: <code>

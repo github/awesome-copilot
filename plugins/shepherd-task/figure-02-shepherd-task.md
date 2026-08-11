@@ -9,8 +9,8 @@ sequenceDiagram
     participant ST as shepherd-task.ps1
     participant GH as gh CLI
     participant Copilot as copilot --yolo
-    participant Skill1 as shepherd-task-from-<br/>assignment-to-ready
-    participant Skill2 as shepherd-task-from-<br/>ready-to-merged-to-base
+    participant Skill1 as shepherd-task-30-from-<br/>assignment-to-ready
+    participant Skill2 as shepherd-task-40-from-<br/>ready-to-merged-to-base
 
     Note over ST: Receive TASK_ISSUE, BASE_BRANCH, REPO, LogDir
 
@@ -24,7 +24,7 @@ sequenceDiagram
         Note over ST,Skill1: Phase 1: Assignment to Ready for Review
         ST->>Copilot: echo phase1Prompt | copilot --yolo<br/>--output-format json --share phase1.md > phase1.json
         Note over Copilot: COPILOT_OTEL_FILE_EXPORTER_PATH set<br/>for telemetry capture
-        Copilot->>Skill1: "Invoke skill<br/>shepherd-task-from-assignment-to-ready<br/>with TASK_ISSUE, BASE_BRANCH, REPO"
+        Copilot->>Skill1: "Invoke skill<br/>shepherd-task-30-from-assignment-to-ready<br/>with TASK_ISSUE, BASE_BRANCH, REPO"
         Note over Skill1: Assign → wait for PR → approve workflows<br/>→ fix CI → iterate (max 20 rounds)<br/>(details in Figure 03)
         Skill1-->>Copilot: Skill complete
         Copilot-->>ST: Session exits
@@ -53,7 +53,7 @@ sequenceDiagram
         Note over ST,Skill2: Phase 2: Ready for Review to Merged
         ST->>Copilot: echo phase2Prompt | copilot --yolo<br/>--output-format json --share phase2.md > phase2.json
         Note over Copilot: COPILOT_OTEL_FILE_EXPORTER_PATH set<br/>for telemetry capture
-        Copilot->>Skill2: "Invoke skill<br/>shepherd-task-from-ready-to-merged-to-base<br/>with TASK_ISSUE, BASE_BRANCH,<br/>REPO, PR_NUMBER"
+        Copilot->>Skill2: "Invoke skill<br/>shepherd-task-40-from-ready-to-merged-to-base<br/>with TASK_ISSUE, BASE_BRANCH,<br/>REPO, PR_NUMBER"
         Note over Skill2: Mark ready → request review → resolve<br/>comments locally → push → merge<br/>(details in Figure 04)
         Skill2-->>Copilot: Skill complete
         Copilot-->>ST: Session exits

@@ -87,7 +87,7 @@ invoke_post_mortem_on_exit() {
     share_path="$LOG_DIR_FULL/post-mortem-session-${timestamp}.md"
     json_path="$LOG_DIR_FULL/post-mortem-session-${timestamp}.json"
 
-    prompt="Invoke skill \`shepherd-task-create-post-mortem\` with these inputs:
+    prompt="Invoke skill \`shepherd-task-50-create-post-mortem\` with these inputs:
 
 - SHEPHERD_LOG_DIR: $LOG_DIR_FULL
 - SCRIPT_EXIT_CODE: $script_exit

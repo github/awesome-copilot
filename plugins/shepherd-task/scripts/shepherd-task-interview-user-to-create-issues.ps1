@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Interviews the user for 11 inputs to the shepherd-task-create-issues-from-plan
+    Interviews the user for 11 inputs to the shepherd-task-20-create-issues-from-plan
     skill and writes timestamped prompt and invocation artifacts.
 
 .DESCRIPTION
     Asks the user each required input interactively, then writes a prompt file named
-    YYYYMMDD-HHMM-invoke-shepherd-task-create-issues-from-plan-skill.md inside a
+    YYYYMMDD-HHMM-invoke-shepherd-task-20-create-issues-from-plan-skill.md inside a
     persistent log directory. It also writes a PowerShell script that invokes the prompt
     with JSON, session-share, and OTel logging enabled.
 
@@ -33,7 +33,7 @@ function Read-Required {
     return $value.Trim()
 }
 
-Write-Host "=== shepherd-task-create-issues-from-plan — Input Interview ===" -ForegroundColor Cyan
+Write-Host "=== shepherd-task-20-create-issues-from-plan — Input Interview ===" -ForegroundColor Cyan
 Write-Host ""
 
 $REPO = Read-Required "1/11  REPO (OWNER/REPO format, e.g. github/copilot-sdk)"
@@ -69,11 +69,11 @@ $timestamp = Get-Date -Format 'yyyyMMdd-HHmm'
 $logDir = Join-Path (Get-Location) "shepherd-task-$timestamp"
 New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 $logDirFull = (Resolve-Path $logDir).Path
-$outFile = Join-Path $logDirFull "$timestamp-invoke-shepherd-task-create-issues-from-plan-skill.md"
-$invocationFile = Join-Path $logDirFull "$timestamp-invoke-shepherd-task-create-issues-from-plan-skill.ps1"
+$outFile = Join-Path $logDirFull "$timestamp-invoke-shepherd-task-20-create-issues-from-plan-skill.md"
+$invocationFile = Join-Path $logDirFull "$timestamp-invoke-shepherd-task-20-create-issues-from-plan-skill.ps1"
 
 $body = @"
-Invoke skill ``shepherd-task-create-issues-from-plan`` with these inputs:
+Invoke skill ``shepherd-task-20-create-issues-from-plan`` with these inputs:
 
 - REPO: $REPO
 - BASE_BRANCH: $BASE_BRANCH

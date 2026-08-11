@@ -1,13 +1,13 @@
 ---
-name: shepherd-task-from-ready-to-merged-to-base
-description: "Use this skill to shepherd a task PR from 'Ready for review' through Copilot code review, local comment resolution, and merge to the specified base branch."
+name: shepherd-task-40-from-ready-to-merged-to-base
+description: "Stage 40 of the shepherd-task campaign lifecycle (each issue from Ready for review through merge to the campaign base branch). Use this skill to shepherd a task PR from 'Ready for review' through Copilot code review, local comment resolution, and merge to the specified base branch."
 ---
 
-# Skill: Shepherd Task from Ready for Review to Merged
+# Skill: Shepherd Task from Ready for Review to Merged (shepherd-task stage 40 — Ready for review through merge)
 
 ## Purpose
 
-Automate the lifecycle of a task PR from marking as **Ready for review** through Copilot code review comment resolution and merge to the specified base branch. This is a follow-up skill intended to be run after `shepherd-task-from-assignment-to-ready`.
+This is stage 40 of the ordered shepherd-task campaign lifecycle (10 → 20 → 30 → 40 → 50): each issue from Ready for review through merge to the campaign base branch. Automate the lifecycle of a task PR from marking as **Ready for review** through Copilot code review comment resolution and merge to the specified base branch. This is a follow-up skill intended to be run after `shepherd-task-30-from-assignment-to-ready`.
 
 ## Inputs
 
@@ -18,7 +18,7 @@ Automate the lifecycle of a task PR from marking as **Ready for review** through
 
 ## Prerequisites
 
-- The `shepherd-task-from-assignment-to-ready` skill has completed successfully for this task.
+- The `shepherd-task-30-from-assignment-to-ready` skill has completed successfully for this task.
 - `PR_NUMBER` is known (the PR created by Copilot for this task). For discussion: `jtbdtask-pr`.
 - `gh` CLI authenticated with sufficient permissions.
 - The PR is currently in draft state with all CI checks passing.
@@ -346,7 +346,7 @@ mutation {
 
 ### Step 10: Wait for CI to run
 
-The push triggers CI/CD. Use the same approach as `shepherd-task-from-assignment-to-ready` to:
+The push triggers CI/CD. Use the same approach as `shepherd-task-30-from-assignment-to-ready` to:
 
 1. Wait for workflow runs to complete (`gh pr checks $PR_NUMBER -R $REPO --watch`).
 2. Evaluate results (excluding the expected "Block remove-before-merge paths" / "No remove-before-merge directories" failure).

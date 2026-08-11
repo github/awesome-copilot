@@ -44,10 +44,15 @@ This plugin was developed and battle-tested in the `github/copilot-sdk` reposito
 
 The system has two layers:
 
-1. **Skills** (Copilot-invocable instructions) — three SKILL.md files that Copilot reads during `--yolo` sessions to know what to do at each phase:
-   - `shepherd-task-from-assignment-to-ready`: Assigns an issue to @copilot with a specific base branch, waits for PR creation, iterates through CI approval and review-agent feedback (up to 20 iterations).
-   - `shepherd-task-from-ready-to-merged-to-base`: Marks the PR as ready, waits for Copilot code review, resolves comments locally in a git worktree, pushes fixes, and merges.
-   - `shepherd-task-approve-workflows-and-wait-for-completion`: Reusable sub-skill that approves pending `action_required` workflow runs and blocks until completion.
+1. **Skills** (Copilot-invocable instructions) — an ordered campaign lifecycle of stages 10, 20, 30, 40, and 50, plus one unnumbered reusable helper skill, that Copilot reads during `--yolo` sessions to know what to do at each stage:
+   - `shepherd-task-10-create-ignorance-reduction-plan` (stage 10 — campaign planning): Generates a structured ignorance reduction plan for a multi-day engineering campaign. Only needed when a campaign does not yet have an ordered set of implementation issues.
+   - `shepherd-task-20-create-issues-from-plan` (stage 20 — creation of ordered implementation issues): Turns the resolved plan's implementation section into an ordered set of GitHub Task issues. Only needed when suitable implementation issues do not already exist.
+   - `shepherd-task-30-from-assignment-to-ready` (stage 30 — assignment through the boundary before Ready for review): Assigns an issue to @copilot with a specific base branch, waits for PR creation, iterates through CI approval and review-agent feedback (up to 20 iterations).
+   - `shepherd-task-40-from-ready-to-merged-to-base` (stage 40 — Ready for review through merge to the campaign base branch): Marks the PR as ready, waits for Copilot code review, resolves comments locally in a git worktree, pushes fixes, and merges.
+   - `shepherd-task-50-create-post-mortem` (stage 50 — campaign post-mortem after success or failure): Creates a structured post-mortem report from run artifacts, invoked from a `finally` / `trap EXIT` path so it runs for every outcome.
+   - `shepherd-task-approve-workflows-and-wait-for-completion` (unnumbered helper, not a campaign stage): Reusable sub-skill that approves pending `action_required` workflow runs and blocks until completion.
+
+   Only stages 30, 40, and 50 are members of the `shepherd-task` plugin manifest; stages 10 and 20 and the helper skill are installed and invoked independently.
 
 2. **Orchestration scripts** (user-facing entry points) — shell scripts that launch `copilot --yolo` sessions, verify outcomes with `gh` CLI between phases, and provide idempotent retry semantics. Both Bash and PowerShell variants are included for cross-platform support.
 
@@ -55,15 +60,19 @@ The plugin manifest (`plugin.json`) ties these together as a discoverable unit i
 
 ### Invocation flow
 
+Stages 10 and 20 (campaign planning and issue creation) are only needed when a campaign does not yet have an ordered set of implementation issues. If suitable issues already exist, skip directly to stage 30.
+
+0. (Optional) Stage 10: create the ignorance reduction plan (`shepherd-task-10-create-ignorance-reduction-plan`), then stage 20: create the ordered implementation issues from the resolved plan (`shepherd-task-20-create-issues-from-plan`).
+
 1. User invokes `shepherd-task-given-list`. See [figure 01: script shepherd-task-given-list](figure-01-shepherd-task-given-list.md).
 
 2. For each task, `shepherd-task-given-list` invokes `shepherd-task`. See [figure 02: script shepherd-task](figure-02-shepherd-task.md).
 
-   a. Phase 1: Assign task to Copilot Coding Agent and make it ready for review. See [figure 03: skill: from-assigned-to-ready](figure-03-from-assigned-to-ready.md).
+   a. Stage 30: Assign task to Copilot Coding Agent and make it ready for review. See [figure 03: skill: from-assigned-to-ready](figure-03-from-assigned-to-ready.md).
 
-   b. Phase 2: Mark ready for review and resolve all Copilot Code Review Agent comments that have merit. See [figure 04: skill: from ready-to-merged-to-base](figure-04-from-ready-to-merged.md).
+   b. Stage 40: Mark ready for review and resolve all Copilot Code Review Agent comments that have merit, merging to the campaign base branch. See [figure 04: skill: from ready-to-merged-to-base](figure-04-from-ready-to-merged.md).
 
-3. Perform post-mortem. See [figure 05: skill: create post-mortem](figure-05-post-mortem.md).
+3. Stage 50: Perform post-mortem after success or failure. See [figure 05: skill: create post-mortem](figure-05-post-mortem.md).
 
 
 ## Sample invocation
@@ -87,9 +96,22 @@ This invocation was used to implement the issues in this Epic: https://github.co
 ### Step 1: Install skills (via `gh skill`)
 
 ```bash
-gh skill install github/awesome-copilot shepherd-task-from-assignment-to-ready
-gh skill install github/awesome-copilot shepherd-task-from-ready-to-merged-to-base
+gh skill install github/awesome-copilot shepherd-task-30-from-assignment-to-ready
+gh skill install github/awesome-copilot shepherd-task-40-from-ready-to-merged-to-base
 gh skill install github/awesome-copilot shepherd-task-approve-workflows-and-wait-for-completion
+```
+
+To also install the optional campaign-planning stages (10 and 20), used only when a campaign does not yet have an ordered set of implementation issues:
+
+```bash
+gh skill install github/awesome-copilot shepherd-task-10-create-ignorance-reduction-plan
+gh skill install github/awesome-copilot shepherd-task-20-create-issues-from-plan
+```
+
+To also install the campaign post-mortem stage (50):
+
+```bash
+gh skill install github/awesome-copilot shepherd-task-50-create-post-mortem
 ```
 
 Requires GitHub CLI v2.90.0+.
@@ -138,10 +160,10 @@ There is no `gh skill uninstall` command. To remove installed skills, manually d
 ```
 User runs: shepherd-task-given-list.sh "1841,1842,1843" feature-branch owner/repo
   └─ For each issue, calls shepherd-task.sh
-       ├─ Phase 1: echo prompt | copilot --yolo  (invokes shepherd-task-from-assignment-to-ready)
+       ├─ Stage 30: echo prompt | copilot --yolo  (invokes shepherd-task-30-from-assignment-to-ready)
        │    └─ skill loops: assign → wait for PR → approve workflows → fix CI → repeat
        ├─ Verify: gh pr checks, no unresolved reviews
-       ├─ Phase 2: echo prompt | copilot --yolo  (invokes shepherd-task-from-ready-to-merged-to-base)
+       ├─ Stage 40: echo prompt | copilot --yolo  (invokes shepherd-task-40-from-ready-to-merged-to-base)
        │    └─ skill loops: mark ready → resolve review comments locally → push → merge
        └─ Verify: PR merged to non-main base branch, issue closed
 ```
@@ -167,8 +189,8 @@ redactor first and review the diff.
 ## Key design decisions
 
 - **Scripts verify state independently** — they don't trust Copilot exit codes; they use `gh` CLI to confirm PR existence, CI status, and merge state between phases.
-- **Idempotent** — if a PR already exists for the issue, Phase 1 is skipped. If already merged, Phase 2 is skipped. Safe to re-run after failures.
-- **Local review resolution** — Phase 2 resolves Copilot code review comments in a local git worktree rather than asking the remote agent to fix itself, giving more reliable results.
+- **Idempotent** — if a PR already exists for the issue, Phase 1 (stage 30) is skipped. If already merged, Phase 2 (stage 40) is skipped. Safe to re-run after failures.
+- **Local review resolution** — Phase 2 (stage 40) resolves Copilot code review comments in a local git worktree rather than asking the remote agent to fix itself, giving more reliable results.
 - **Cross-platform** — every script has both `.sh` and `.ps1` variants.
 
 ## Per-file manifest
@@ -177,7 +199,7 @@ redactor first and review the diff.
 
 | File | Purpose |
 |------|---------|
-| `plugins/shepherd-task/.github/plugin/plugin.json` | Plugin manifest grouping the three skills; includes metadata, keywords, and version |
+| `plugins/shepherd-task/.github/plugin/plugin.json` | Plugin manifest grouping the stage 30, stage 40, and helper skills; includes metadata, keywords, and version |
 | `plugins/shepherd-task/README.md` | User-facing documentation for the plugin |
 
 ### Orchestration scripts
@@ -186,7 +208,7 @@ redactor first and review the diff.
 |------|---------|
 | `plugins/shepherd-task/scripts/shepherd-task-given-list.sh` | Bash: iterates a comma-separated list of issue numbers, invoking shepherd-task.sh for each |
 | `plugins/shepherd-task/scripts/shepherd-task-given-list.ps1` | PowerShell equivalent |
-| `plugins/shepherd-task/scripts/shepherd-task.sh` | Bash: orchestrates Phase 1 + Phase 2 for a single task issue with state verification |
+| `plugins/shepherd-task/scripts/shepherd-task.sh` | Bash: orchestrates Phase 1 (stage 30) + Phase 2 (stage 40) for a single task issue with state verification |
 | `plugins/shepherd-task/scripts/shepherd-task.ps1` | PowerShell equivalent |
 | `plugins/shepherd-task/scripts/shepherd-task-inspect-json.sh` | Bash: debug utility to inspect copilot JSON session logs |
 | `plugins/shepherd-task/scripts/shepherd-task-inspect-json.ps1` | PowerShell equivalent |
@@ -199,9 +221,12 @@ redactor first and review the diff.
 
 | File | Purpose |
 |------|---------|
-| `skills/shepherd-task-from-assignment-to-ready/SKILL.md` | Skill instructions for Phase 1: assign to Copilot → PR created → CI passing → no unresolved reviews |
-| `skills/shepherd-task-from-ready-to-merged-to-base/SKILL.md` | Skill instructions for Phase 2: mark ready → resolve code review → merge to base branch |
-| `skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md` | Reusable sub-skill: approve `action_required` workflow runs and wait for completion |
+| `skills/shepherd-task-10-create-ignorance-reduction-plan/SKILL.md` | Stage 10 (campaign planning): generates a structured ignorance reduction plan. Only needed when a campaign does not yet have an ordered set of implementation issues. |
+| `skills/shepherd-task-20-create-issues-from-plan/SKILL.md` | Stage 20 (creation of ordered implementation issues): turns a resolved plan's implementation section into an ordered set of GitHub Task issues. Only needed when suitable implementation issues do not already exist. |
+| `skills/shepherd-task-30-from-assignment-to-ready/SKILL.md` | Stage 30 (assignment through the boundary before Ready for review): assign to Copilot → PR created → CI passing → no unresolved reviews |
+| `skills/shepherd-task-40-from-ready-to-merged-to-base/SKILL.md` | Stage 40 (Ready for review through merge to the campaign base branch): mark ready → resolve code review → merge to base branch |
+| `skills/shepherd-task-50-create-post-mortem/SKILL.md` | Stage 50 (campaign post-mortem after success or failure): creates a structured post-mortem report from run artifacts |
+| `skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md` | Unnumbered reusable helper skill (not a campaign stage): approve `action_required` workflow runs and wait for completion |
 
 ### Generated files (updated by `npm run build`)
 
@@ -209,15 +234,18 @@ redactor first and review the diff.
 |------|---------|
 | `.github/plugin/marketplace.json` | Marketplace registry updated with new shepherd-task plugin entry |
 | `docs/README.plugins.md` | Plugin listing updated to include shepherd-task |
-| `docs/README.skills.md` | Skills listing updated with the three new shepherd-task skills |
+| `docs/README.skills.md` | Skills listing updated with the shepherd-task campaign stage skills (10, 20, 30, 40, 50) and the helper skill |
 
 ## Validation
 
 ```
 $ npm run skill:validate
 ✅ shepherd-task-approve-workflows-and-wait-for-completion is valid
-✅ shepherd-task-from-assignment-to-ready is valid
-✅ shepherd-task-from-ready-to-merged-to-base is valid
+✅ shepherd-task-10-create-ignorance-reduction-plan is valid
+✅ shepherd-task-20-create-issues-from-plan is valid
+✅ shepherd-task-30-from-assignment-to-ready is valid
+✅ shepherd-task-40-from-ready-to-merged-to-base is valid
+✅ shepherd-task-50-create-post-mortem is valid
 
 $ npm run plugin:validate
 ✅ shepherd-task is valid

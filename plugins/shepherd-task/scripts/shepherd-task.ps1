@@ -147,7 +147,7 @@ if ($prNumber) {
     Write-Status "Phase 1: Launching copilot --yolo for task #$TaskIssue"
 
     $phase1Prompt = @"
-Invoke skill ``shepherd-task-from-assignment-to-ready`` with these inputs:
+Invoke skill ``shepherd-task-30-from-assignment-to-ready`` with these inputs:
 
 - TASK_ISSUE: $TaskIssue
 - BASE_BRANCH: $BaseBranch
@@ -207,7 +207,7 @@ if ($prState -eq "MERGED") {
     Write-Status "Phase 2: Launching copilot --yolo for PR #$prNumber"
 
     $phase2Prompt = @"
-Invoke skill ``shepherd-task-from-ready-to-merged-to-base`` with these inputs:
+Invoke skill ``shepherd-task-40-from-ready-to-merged-to-base`` with these inputs:
 
 - TASK_ISSUE: $TaskIssue
 - BASE_BRANCH: $BaseBranch
