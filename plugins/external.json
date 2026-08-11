@@ -446,6 +446,35 @@
     }
   },
   {
+    "name": "foundation-models",
+    "description": "Helps coding agents write and review Apple Foundation Models code for iOS, macOS, visionOS, and watchOS using the SDK installed on the developer's Mac. It verifies real API signatures and availability, then type-checks the result instead of relying on model memory.",
+    "version": "0.1.3",
+    "author": {
+      "name": "Artem Novichkov",
+      "url": "https://github.com/artemnovichkov"
+    },
+    "repository": "https://github.com/artemnovichkov/foundation-models-plugin",
+    "homepage": "https://github.com/artemnovichkov/foundation-models-plugin",
+    "license": "MIT",
+    "keywords": [
+      "swift",
+      "ios",
+      "macos",
+      "apple",
+      "foundation-models",
+      "apple-intelligence",
+      "on-device",
+      "llm",
+      "xcode"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "artemnovichkov/foundation-models-plugin",
+      "ref": "0.1.3",
+      "sha": "5837a9343db97d59107d146024b1dbd858625274"
+    }
+  },
+  {
     "name": "gh-skills-builder",
     "description": "Repo: https://github.com/arilivigni/gh-skills-builder\nThis plugin is for people that want to create a GitHub Skills exercise which are self-paced learning GitHub within GitHub.\nhttps://learn.github.com/skills\nexamples:\nhttps://github.com/skills/agent-orchestration-build-your-ai-dream-team\nhttps://github.com/skills/agentic-workflows-that-read-the-room",
     "version": "1.0.4",
