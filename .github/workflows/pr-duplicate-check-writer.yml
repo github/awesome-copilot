@@ -1,0 +1,178 @@
+name: PR Duplicate Check Writer
+
+on:
+  workflow_run:
+    workflows: ["PR Duplicate Check"]
+    types: [completed]
+
+permissions:
+  actions: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: pr-duplicate-check-writer-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  process-safe-output:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Download agent artifact
+        id: download-agent
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: agent
+          path: ${{ runner.temp }}/pr-duplicate-agent
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Validate and publish safe comment output
+        if: steps.download-agent.outcome == 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const workflowRun = context.payload.workflow_run;
+            const pullRequests = Array.isArray(workflowRun.pull_requests) ? workflowRun.pull_requests : [];
+            if (pullRequests.length !== 1) {
+              core.warning(`Expected exactly one pull request on workflow_run; found ${pullRequests.length}.`);
+              return;
+            }
+
+            const prNumber = pullRequests[0].number;
+            if (!Number.isInteger(prNumber) || prNumber < 1) {
+              throw new Error('Invalid pull request number on workflow_run payload.');
+            }
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            if (pr.state !== 'open') {
+              core.info(`Skipping non-open PR #${prNumber}.`);
+              return;
+            }
+            const artifactRoot = path.join(process.env.RUNNER_TEMP, 'pr-duplicate-agent');
+            const candidates = [];
+
+            function readJsonIfExists(filePath) {
+              if (!fs.existsSync(filePath)) return null;
+              const stat = fs.statSync(filePath);
+              if (stat.size > 1024 * 1024) throw new Error(`${filePath} exceeds 1 MiB`);
+              return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            }
+
+            const prContext = readJsonIfExists(path.join(artifactRoot, 'pr-context.json'));
+            if (!prContext || prContext.schema_version !== 'pr-duplicate-check-context/v1') {
+              throw new Error('Missing or invalid pr-context.json artifact.');
+            }
+            if (prContext.pr_number !== prNumber) {
+              throw new Error(`PR context number ${prContext.pr_number} did not match workflow_run PR #${prNumber}.`);
+            }
+            if (!/^[0-9a-f]{40}$/i.test(String(prContext.head_sha || ''))) {
+              throw new Error('Invalid PR context head_sha.');
+            }
+            if (pr.head.sha !== prContext.head_sha) {
+              core.warning(`Skipping stale PR duplicate output for PR #${prNumber}: artifact head ${prContext.head_sha}, current head ${pr.head.sha}`);
+              return;
+            }
+
+            function collectCandidate(value) {
+              if (!value || typeof value !== 'object') return;
+              const tool = value.tool || value.name || value.tool_name || value.type || value.action;
+              const args = value.arguments || value.args || value.input || value.params || value.data || value;
+              if (tool === 'add_comment') {
+                candidates.push(args);
+              }
+            }
+
+            const agentOutput = readJsonIfExists(path.join(artifactRoot, 'agent_output.json'));
+            if (agentOutput) {
+              if (Array.isArray(agentOutput.items)) {
+                for (const item of agentOutput.items) collectCandidate(item);
+              } else if (Array.isArray(agentOutput)) {
+                for (const item of agentOutput) collectCandidate(item);
+              } else {
+                collectCandidate(agentOutput);
+              }
+            }
+
+            const safeOutputsPath = path.join(artifactRoot, 'safeoutputs.jsonl');
+            if (fs.existsSync(safeOutputsPath)) {
+              const stat = fs.statSync(safeOutputsPath);
+              if (stat.size > 1024 * 1024) throw new Error('safeoutputs.jsonl exceeds 1 MiB');
+              const lines = fs.readFileSync(safeOutputsPath, 'utf8').split(/\r?\n/).filter(Boolean).slice(0, 100);
+              for (const line of lines) collectCandidate(JSON.parse(line));
+            }
+
+            const validComments = [];
+            for (const candidate of candidates) {
+              if (!candidate || typeof candidate !== 'object') continue;
+              const body = candidate.body;
+              if (typeof body !== 'string' || body.trim() === '' || body.length > 65000 || body.includes('\u0000')) continue;
+              if (candidate.item_number !== undefined && Number(candidate.item_number) !== prNumber) continue;
+              if (candidate.repo !== undefined && String(candidate.repo) !== `${context.repo.owner}/${context.repo.repo}`) continue;
+              validComments.push(body);
+            }
+
+            if (validComments.length === 0) {
+              core.info('No valid add_comment safe output was found.');
+              return;
+            }
+            if (validComments.length > 1) {
+              throw new Error(`Expected at most one add_comment safe output, found ${validComments.length}.`);
+            }
+
+            const marker = '<!-- pr-duplicate-check -->';
+            const runUrl = workflowRun.html_url;
+            const body = [
+              marker,
+              validComments[0],
+              '',
+              `<!-- synchronized from read-only PR Duplicate Check run ${workflowRun.id}: ${runUrl} -->`,
+            ].join('\n');
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+            const matchingComments = comments.filter((comment) =>
+              comment.user?.login === 'github-actions[bot]' && String(comment.body || '').includes(marker)
+            );
+
+            const [canonical, ...duplicates] = matchingComments;
+            if (canonical) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: canonical.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+
+            for (const duplicate of duplicates) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: duplicate.id,
+              }).catch(() => {});
+            }
+
+      - name: Note missing artifact
+        if: steps.download-agent.outcome != 'success'
+        run: echo "No PR Duplicate Check agent artifact was available; nothing to synchronize."

@@ -1,0 +1,172 @@
+name: Contributor Reputation Check Writer
+
+on:
+  workflow_run:
+    workflows: ["Contributor Reputation Check"]
+    types: [completed]
+
+permissions:
+  actions: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: contributor-check-writer-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  sync-pr-state:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Download PR result artifact
+        id: download-result
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: contributor-check-result
+          path: ${{ runner.temp }}/contributor-check-result
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Sync risk labels and comment
+        if: steps.download-result.outcome == 'success'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const resultPath = path.join(process.env.RUNNER_TEMP, 'contributor-check-result', 'result.json');
+            const raw = fs.readFileSync(resultPath, 'utf8');
+            const result = JSON.parse(raw);
+            const allowedRisks = new Set(['HIGH', 'MEDIUM', 'LOW', 'NONE', 'UNKNOWN']);
+
+            function fail(message) {
+              throw new Error(`Invalid contributor check artifact: ${message}`);
+            }
+
+            if (result.schema_version !== 'contributor-check-result/v1') fail('unexpected schema_version');
+            if (result.event !== 'pull_request') fail('unexpected event');
+            if (!Number.isInteger(result.pr_number) || result.pr_number < 1) fail('invalid pr_number');
+            if (!/^[0-9a-f]{40}$/i.test(String(result.head_sha || ''))) fail('invalid head_sha');
+            for (const key of ['profile_risk', 'credential_risk', 'overall_risk']) {
+              if (!allowedRisks.has(result[key])) fail(`invalid ${key}`);
+            }
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: result.pr_number,
+            });
+
+            if (pr.head.sha !== result.head_sha) {
+              core.warning(`Skipping stale contributor result for PR #${result.pr_number}: artifact head ${result.head_sha}, current head ${pr.head.sha}`);
+              return;
+            }
+            if (pr.state !== 'open') {
+              core.info(`Skipping contributor result for non-open PR #${result.pr_number}.`);
+              return;
+            }
+
+            const issueNumber = pr.number;
+            const risk = result.overall_risk;
+            const marker = '<!-- agt-contributor-check -->';
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const matchingComments = comments.filter((comment) =>
+              comment.user?.login === 'github-actions[bot]' && String(comment.body || '').includes(marker)
+            );
+
+            if (risk !== 'MEDIUM' && risk !== 'HIGH') {
+              for (const comment of matchingComments) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id,
+                }).catch((error) => core.warning(`Could not delete comment ${comment.id}: ${error.message}`));
+              }
+            } else {
+              const icon = risk === 'HIGH' ? '🔴' : '🟡';
+              const runUrl = context.payload.workflow_run.html_url;
+              const body = [
+                marker,
+                `${icon} **Contributor Reputation Check: ${risk} risk**`,
+                '',
+                '| Check | Risk |',
+                '|-------|------|',
+                `| Profile | ${result.profile_risk} |`,
+                `| Credential audit | ${result.credential_risk} |`,
+                '',
+                'Maintainers: please review this contributor before merging.',
+                `See the [workflow run](${runUrl}) for full details.`,
+                '*Automated check powered by [AGT](https://github.com/microsoft/agent-governance-toolkit).*',
+              ].join('\n');
+
+              const [canonical, ...duplicates] = matchingComments;
+              if (canonical) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: canonical.id,
+                  body,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body,
+                });
+              }
+
+              for (const duplicate of duplicates) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: duplicate.id,
+                }).catch(() => {});
+              }
+            }
+
+            for (const label of ['needs-review:MEDIUM', 'needs-review:HIGH']) {
+              if (label !== `needs-review:${risk}`) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name: label,
+                }).catch(() => {});
+              }
+            }
+
+            if (risk === 'MEDIUM' || risk === 'HIGH') {
+              const label = `needs-review:${risk}`;
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: label,
+              }).catch(async () => {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label,
+                  description: `Contributor reputation check flagged ${risk} risk`,
+                  color: 'FFA500',
+                });
+              });
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: [label],
+              });
+            }
+
+      - name: Note missing artifact
+        if: steps.download-result.outcome != 'success'
+        run: echo "No contributor-check-result artifact was available; nothing to synchronize."
