@@ -57,6 +57,14 @@ const LEGACY_FIELD_TITLES = Object.freeze({
 });
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
 const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
+const HOMEPAGE_FETCH_TIMEOUT_MS = 10_000;
+const HOMEPAGE_MAX_BYTES = 512_000;
+const MARKETING_SIGNAL_PATTERNS = Object.freeze([
+  ["pricing", /\bpricing\b|\bplans?\b|\bsubscription\b|\bmonthly\b|\bannual\b/i],
+  ["sales", /\bbook\s+a\s+demo\b|\bcontact\s+sales\b|\btalk\s+to\s+sales\b|\brequest\s+a\s+demo\b/i],
+  ["trial", /\bfree\s+trial\b|\bstart\s+your\s+trial\b|\bget\s+started\s+free\b/i],
+  ["checkout", /\bstripe\b|\bcheckout\b|\bsubscribe\s+now\b|\bbuy\s+now\b/i],
+]);
 const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
   ".github/plugin/plugin.json",
   ".plugin/plugin.json",
@@ -279,6 +287,90 @@ async function fetchGitHubFile(repo, filePath, ref, token) {
   );
 }
 
+async function inspectHomepage(homepage) {
+  const result = {
+    status: "not_run",
+    url: homepage,
+    signals: [],
+    output: "",
+  };
+
+  if (!homepage) {
+    return result;
+  }
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(homepage);
+  } catch {
+    return { ...result, status: "warning", output: "Homepage URL could not be parsed." };
+  }
+
+  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+    return { ...result, status: "warning", output: "Homepage URL uses an unsupported protocol." };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), HOMEPAGE_FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetch(parsedUrl, {
+      headers: { Accept: "text/html,text/plain;q=0.9", "User-Agent": "awesome-copilot-external-plugin-intake" },
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      return { ...result, status: "warning", output: `Homepage returned HTTP ${response.status}.` };
+    }
+
+    const content = (await response.text()).slice(0, HOMEPAGE_MAX_BYTES);
+    for (const [name, pattern] of MARKETING_SIGNAL_PATTERNS) {
+      if (pattern.test(content)) {
+        result.signals.push(name);
+      }
+    }
+
+    result.status = "pass";
+    result.output = result.signals.length
+      ? `Detected homepage signals: ${result.signals.join(", ")}.`
+      : "No configured pricing or sales signals detected in the homepage content.";
+    return result;
+  } catch (error) {
+    return {
+      ...result,
+      status: "warning",
+      output: error?.name === "AbortError" ? "Homepage inspection timed out." : `Homepage inspection failed: ${error.message}`,
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function buildRepositorySignals(repository) {
+  if (!repository) {
+    return { status: "not_run", output: "" };
+  }
+
+  const createdAt = repository.created_at ? new Date(repository.created_at) : null;
+  const ageDays = createdAt && !Number.isNaN(createdAt.valueOf())
+    ? Math.max(0, Math.floor((Date.now() - createdAt.valueOf()) / 86_400_000))
+    : undefined;
+  const signals = [];
+  if (ageDays !== undefined && ageDays <= 14) signals.push(`repository is ${ageDays} day(s) old`);
+  if (repository.stargazers_count === 0) signals.push("0 stars");
+  if (repository.watchers_count === 0) signals.push("0 watchers");
+  if (repository.forks_count === 0) signals.push("0 forks");
+
+  return {
+    status: "pass",
+    age_days: ageDays,
+    stars: repository.stargazers_count,
+    watchers: repository.watchers_count,
+    forks: repository.forks_count,
+    open_issues: repository.open_issues_count,
+    signals,
+    output: signals.length ? `Detected repository signals: ${signals.join(", ")}.` : "No configured repository signals detected.",
+  };
+}
+
 function decodeGitHubFileContent(fileResponse) {
   const encodedContent = fileResponse?.data?.content;
   if (!encodedContent || typeof encodedContent !== "string") {
@@ -314,7 +406,7 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
 
   if (repositoryResponse.kind === "notFound") {
     errors.push(`submission: GitHub repository "${repo}" was not found`);
-    return;
+    return { status: "not_found", output: "" };
   }
 
   if (repositoryResponse.kind === "apiError") {
@@ -322,7 +414,7 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
     warnings.push(
       `submission: could not verify GitHub repository "${repo}" (${statusText}${repositoryResponse.reason ? ` — ${repositoryResponse.reason}` : ""}); a maintainer should re-run intake`,
     );
-    return;
+    return { status: "warning", output: `Repository metadata unavailable (${statusText}).` };
   }
 
   if (repositoryResponse.data?.private) {
@@ -362,7 +454,7 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
   }
 
   if (!ref) {
-    return;
+    return buildRepositorySignals(repositoryResponse.data);
   }
 
   if (/^[0-9a-f]{40}$/i.test(ref)) {
@@ -377,15 +469,15 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
     }
 
     validateRefShaConsistency(normalizeCommitSha(ref));
-    return;
+    return buildRepositorySignals(repositoryResponse.data);
   }
 
   if (ref.startsWith("refs/heads/") || ["main", "master", "develop", "development", "dev", "trunk"].includes(ref)) {
-    return;
+    return buildRepositorySignals(repositoryResponse.data);
   }
 
   if (ref.startsWith("refs/") && !ref.startsWith("refs/tags/")) {
-    return;
+    return buildRepositorySignals(repositoryResponse.data);
   }
 
   const tagName = ref.startsWith("refs/tags/") ? ref.slice("refs/tags/".length) : ref;
@@ -393,13 +485,13 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
 
   if (tagResponse.kind === "found") {
     if (!normalizedSha) {
-      return;
+      return buildRepositorySignals(repositoryResponse.data);
     }
 
     const resolvedRefResponse = await resolveCommitSha(repo, ref, token);
     if (resolvedRefResponse.kind === "notFound") {
       errors.push(`submission: ref "${ref}" could not be resolved to a commit in GitHub repository "${repo}"`);
-      return;
+      return buildRepositorySignals(repositoryResponse.data);
     }
 
     if (resolvedRefResponse.kind === "apiError") {
@@ -407,29 +499,29 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
         errors.push(
           `submission: ref "${ref}" does not resolve to a commit in GitHub repository "${repo}" (it may point to a tag object, tree, or blob); only commit-backed refs are supported`,
         );
-        return;
+        return buildRepositorySignals(repositoryResponse.data);
       }
       const statusText = resolvedRefResponse.status ? `HTTP ${resolvedRefResponse.status}` : "network error";
       warnings.push(
         `submission: could not resolve ref "${ref}" to a commit in GitHub repository "${repo}" (${statusText}${resolvedRefResponse.reason ? ` — ${resolvedRefResponse.reason}` : ""}); a maintainer should re-run intake`,
       );
-      return;
+      return buildRepositorySignals(repositoryResponse.data);
     }
 
     if (!resolvedRefResponse.commitSha) {
       warnings.push(
         `submission: could not determine the commit SHA for ref "${ref}" in GitHub repository "${repo}"; a maintainer should re-run intake`,
       );
-      return;
+      return buildRepositorySignals(repositoryResponse.data);
     }
 
     validateRefShaConsistency(resolvedRefResponse.commitSha);
-    return;
+    return buildRepositorySignals(repositoryResponse.data);
   }
 
   if (/^[0-9a-f]+$/i.test(ref) && ref.length !== 40) {
     errors.push('submission: commit SHAs in "Ref to review" must use the full 40-character SHA or be submitted in "Commit SHA to review"');
-    return;
+    return buildRepositorySignals(repositoryResponse.data);
   }
 
   if (tagResponse.kind === "notFound") {
@@ -440,6 +532,7 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
       `submission: could not verify tag "${ref}" in GitHub repository "${repo}" (${statusText}${tagResponse.reason ? ` — ${tagResponse.reason}` : ""}); a maintainer should re-run intake`,
     );
   }
+  return buildRepositorySignals(repositoryResponse.data);
 }
 
 function buildGitTreePath(repo, treeish, { recursive = false } = {}) {
@@ -815,6 +908,7 @@ function buildQualityGatesCommentSection(qualityResult) {
     if (status === "pass") {
       return "✅ pass";
     }
+
     if (status === "warning" || (gate === "spec" && status === "fail")) {
       return "⚠️ warning";
     }
@@ -942,6 +1036,40 @@ function buildQualityGatesCommentSection(qualityResult) {
   return sections.join("\n");
 }
 
+function buildReviewSignalsCommentSection(reviewSignals) {
+  const repository = reviewSignals?.repository;
+  const homepage = reviewSignals?.homepage;
+  if (!repository && !homepage) {
+    return "";
+  }
+
+  const rows = [
+    "### Reviewer signals",
+    "",
+    "_These are non-blocking heuristics for maintainer review; they are not evidence of misconduct or low quality._",
+    "",
+    "| Signal | Result |",
+    "|---|---|",
+  ];
+  if (repository?.status === "pass") {
+    rows.push(
+      `| Repository age | ${repository.age_days === undefined ? "unknown" : `${repository.age_days} day(s)`} |`,
+      `| Repository activity | ${repository.signals?.length ? repository.signals.join("; ") : "no configured signal"} |`,
+      `| Repository counts | ${repository.stars ?? "unknown"} stars · ${repository.watchers ?? "unknown"} watchers · ${repository.forks ?? "unknown"} forks · ${repository.open_issues ?? "unknown"} open issues |`,
+    );
+  } else if (repository?.output) {
+    rows.push(`| Repository metadata | ${repository.output} |`);
+  }
+
+  if (homepage?.status === "pass") {
+    rows.push(`| Homepage heuristics | ${homepage.signals?.length ? `⚠️ ${homepage.signals.join(", ")}` : "no configured signal"} |`);
+  } else if (homepage?.output) {
+    rows.push(`| Homepage inspection | ${homepage.output} |`);
+  }
+
+  return rows.join("\n");
+}
+
 function getIntakeStateFromQualityResult(baseResult, qualityResult) {
   if (!baseResult.valid) {
     return "requires-submitter-fixes";
@@ -997,6 +1125,8 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo)
     baseResult.plugin?.source?.ref ? `- **Ref:** [\`${baseResult.plugin.source.ref.replaceAll('\`', '\\\`')}\`](https://github.com/${encodeRepoPath(baseResult.plugin.source.repo)}/tree/${encodeURIComponent(baseResult.plugin.source.ref).replaceAll("%2F", "/")})` : undefined,
     baseResult.plugin?.source?.sha ? `- **SHA:** [\`${baseResult.plugin.source.sha.replaceAll('\`', '\\\`')}\`](https://github.com/${encodeRepoPath(baseResult.plugin.source.repo)}/tree/${encodeURIComponent(baseResult.plugin.source.sha).replaceAll("%2F", "/")})` : undefined,
     "",
+    buildReviewSignalsCommentSection(baseResult.reviewSignals),
+    "",
     qualitySection,
     "",
     "",
@@ -1033,6 +1163,7 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
   const parsed = parseExternalPluginIssueBody(issueBody);
   const errors = [...parsed.errors];
   const warnings = [];
+  let repositorySignals = { status: "not_run", output: "" };
 
   const localPluginNames = readLocalPluginNames();
   const { plugins: existingExternalPlugins } = readExternalPlugins({ policy: "marketplace" });
@@ -1056,8 +1187,10 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
   }
 
   if (parsed.plugin?.source?.repo && (parsed.plugin?.source?.ref || parsed.plugin?.source?.sha)) {
-    await validateRemoteRepository(parsed.plugin.source.repo, parsed.plugin.source, errors, warnings, token);
+    repositorySignals = await validateRemoteRepository(parsed.plugin.source.repo, parsed.plugin.source, errors, warnings, token);
   }
+  const homepageSignals = await inspectHomepage(parsed.plugin?.homepage);
+  const reviewSignals = { repository: repositorySignals, homepage: homepageSignals };
 
   if (isCanvasPlugin) {
     await validateCanvasPluginMetadata(parsed.plugin, errors, warnings, token);
@@ -1092,6 +1225,8 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
         parsed.plugin.source.sha ? `- **SHA:** [\`${parsed.plugin.source.sha.replaceAll('\`', '\\\`')}\`](https://github.com/${encodeRepoPath(parsed.plugin.source.repo)}/tree/${encodeURIComponent(parsed.plugin.source.sha).replaceAll("%2F", "/")})` : undefined,
         `- **Keywords:** ${normalizedKeywords}`,
         "",
+        buildReviewSignalsCommentSection(reviewSignals),
+        "",
         "",
         "### Canonical external.json payload",
         "",
@@ -1117,6 +1252,7 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
         "### Required fixes",
         "",
         ...dedupedErrors.map((error) => `- ${error}`),
+        buildReviewSignalsCommentSection(reviewSignals),
         dedupedWarnings.length > 0
           ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
           : "",
@@ -1130,6 +1266,7 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
     errors: dedupedErrors,
     warnings: dedupedWarnings,
     plugin: parsed.plugin,
+    reviewSignals,
     isCanvasPlugin,
     commentBody,
     commentMarker: marker,

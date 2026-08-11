@@ -337,7 +337,7 @@ function buildIssueBody({ ref, sha }) {
   ].join("\n");
 }
 
-function jsonResponse(payload, { status = 200 } = {}) {
+function jsonResponse(payload, { status = 200, text } = {}) {
   return {
     ok: status >= 200 && status < 300,
     status,
@@ -346,14 +346,49 @@ function jsonResponse(payload, { status = 200 } = {}) {
     async json() {
       return payload;
     },
+    async text() {
+      return text ?? "";
+    },
   };
 }
+
+test("evaluateExternalPluginIssue surfaces repository and homepage review signals", async () => {
+  installMockFetch();
+  const githubFetch = global.fetch;
+  global.fetch = async (url, options) => {
+    if (String(url) === "https://example.com/pricing") {
+      return jsonResponse({}, { text: "<html><body>Pricing · Book a demo · Start your free trial</body></html>" });
+    }
+    return githubFetch(url, options);
+  };
+
+  const issue = {
+    body: buildIssueBody({ ref: "v1.2.3", sha: RESOLVED_REF_SHA }).replace(
+      "### Homepage URL\n\n_No response_",
+      "### Homepage URL\n\nhttps://example.com/pricing",
+    ),
+  };
+  const result = await evaluateExternalPluginIssue({ issue });
+
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.reviewSignals.homepage.signals, ["pricing", "sales", "trial"]);
+  assert.match(result.commentBody, /### Reviewer signals/);
+  assert.match(result.commentBody, /Homepage heuristics.*pricing, sales, trial/);
+});
 
 function installMockFetch() {
   global.fetch = async (url) => {
     const requestUrl = String(url);
     if (requestUrl === `https://api.github.com/repos/${INTAKE_REPO}`) {
-      return jsonResponse({ private: false, archived: false });
+      return jsonResponse({
+        private: false,
+        archived: false,
+        created_at: new Date().toISOString(),
+        stargazers_count: 0,
+        watchers_count: 0,
+        forks_count: 0,
+        open_issues_count: 0,
+      });
     }
 
     if (
