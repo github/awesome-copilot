@@ -1,7 +1,7 @@
 import { analyzeDockerImages } from "./docker-images.mjs";
 import { analyzeMicrosoftScout } from "./microsoft-scout.mjs";
-import { analyzeNpmCache } from "./npm-cache.mjs";
-import { analyzeUvCache } from "./uv-cache.mjs";
+import { analyzeNpmCache, discoverNpmCachePath } from "./npm-cache.mjs";
+import { analyzeUvCache, discoverUvCachePaths } from "./uv-cache.mjs";
 import { analyzeVsCodeInsiders } from "./vscode-insiders.mjs";
 
 export const CUSTOM_ANALYZERS = [
@@ -39,6 +39,27 @@ export const CUSTOM_ANALYZERS = [
 
 export function listCustomAnalyzers() {
     return CUSTOM_ANALYZERS.map(({ id, name, description }) => ({ id, name, description }));
+}
+
+export async function discoverAnalyzerManagedPaths() {
+    const [npmCache, uvPaths] = await Promise.all([
+        discoverNpmCachePath(),
+        discoverUvCachePaths(),
+    ]);
+    return [
+        {
+            path: npmCache.path,
+            analyzerId: "npm-cache",
+            name: "npm cache",
+            description: "npm-managed package cache. Use npm cache commands instead of direct file cleanup.",
+        },
+        ...uvPaths.map((uvPath) => ({
+            path: uvPath,
+            analyzerId: "uv-cache",
+            name: "uv cache",
+            description: "uv-managed Python package cache. Use uv cache commands instead of direct file cleanup.",
+        })),
+    ];
 }
 
 export async function runCustomAnalyzer(id, result) {

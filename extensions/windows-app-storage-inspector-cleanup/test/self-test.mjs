@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, utimes, access, rm, stat } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, utimes, access, rm, stat, symlink } from "node:fs/promises";
+import { request } from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { CategorizerStore } from "../src/core/categorizers.mjs";
@@ -16,7 +17,8 @@ import {
     parseFolderExplanation,
     parseFolderExplanationCandidates,
 } from "../src/core/folder-explanation.mjs";
-import { scanStorage } from "../src/core/scanner.mjs";
+import { scanStorage, toPublicScanResult } from "../src/core/scanner.mjs";
+import { startCanvasServer } from "../src/api/server.mjs";
 import { analyzeVsCodeInsiders } from "../src/analyzers/vscode-insiders.mjs";
 import { analyzeNpmCache } from "../src/analyzers/npm-cache.mjs";
 import { analyzeUvCache } from "../src/analyzers/uv-cache.mjs";
@@ -24,6 +26,7 @@ import { StorageService } from "../src/core/storage-service.mjs";
 import { WINDOWS_ONLY_MESSAGE, assertWindowsPlatform, isWindowsPlatform } from "../src/core/platform.mjs";
 
 const root = await mkdtemp(path.join(os.tmpdir(), "storage-inspector-test-"));
+const outsideRoot = await mkdtemp(path.join(os.tmpdir(), "storage-inspector-outside-"));
 const stateRoot = await mkdtemp(path.join(os.tmpdir(), "storage-inspector-state-"));
 try {
     assert.equal(isWindowsPlatform("win32"), true);
@@ -31,6 +34,30 @@ try {
     assert.throws(() => assertWindowsPlatform("linux"), (error) => (
         error.code === "windows_only" && error.message === WINDOWS_ONLY_MESSAGE
     ));
+    const canvasServer = await startCanvasServer({
+        subscribe: () => () => {},
+        getState: () => ({ scan: { status: "idle" } }),
+    }, async () => ({}), async () => ({}));
+    try {
+        assert.equal((await fetch(canvasServer.url)).status, 200);
+        const canvasUrl = new URL(canvasServer.url);
+        const spoofedHostStatus = await new Promise((resolve, reject) => {
+            const spoofedRequest = request({
+                hostname: "127.0.0.1",
+                port: canvasUrl.port,
+                path: `${canvasUrl.pathname}${canvasUrl.search}`,
+                headers: { host: "attacker.example" },
+            }, (response) => {
+                response.resume();
+                response.on("end", () => resolve(response.statusCode));
+            });
+            spoofedRequest.on("error", reject);
+            spoofedRequest.end();
+        });
+        assert.equal(spoofedHostStatus, 403);
+    } finally {
+        await canvasServer.close();
+    }
     const safetyService = new StorageService();
     assert.deepEqual(safetyService.getState().safety, {
         directCleanupEnabled: false,
@@ -47,6 +74,28 @@ try {
     await safetyService.setCleanupSafety({ directCleanupEnabled: true, acknowledged: true });
     assert.equal(safetyService.getState().safety.directCleanupEnabled, true);
     await safetyService.setCleanupSafety({ directCleanupEnabled: false });
+    const testCategorizerStore = {
+        all: async () => [],
+        list: async () => ({ builtIn: [], custom: [] }),
+    };
+    const scanConcurrencyService = new StorageService({
+        categorizerStore: testCategorizerStore,
+        discoverAnalyzerManagedPaths: async () => [],
+        scanStorage: async ({ signal }) => new Promise((resolve, reject) => {
+            signal.addEventListener("abort", () => {
+                const error = new Error("Storage scan cancelled");
+                error.code = "ABORT_ERR";
+                reject(error);
+            }, { once: true });
+        }),
+    });
+    assert.equal((await scanConcurrencyService.startScan({ scopes: ["profile"] })).scan.status, "running");
+    await assert.rejects(
+        scanConcurrencyService.startScan({ scopes: ["profile"] }),
+        { code: "scan_already_running" },
+    );
+    scanConcurrencyService.cancelScan();
+    assert.equal((await scanConcurrencyService.waitForScan()).scan.status, "cancelled");
     assert.deepEqual(
         listCustomAnalyzers().map((analyzer) => analyzer.id),
         ["vscode-insiders", "microsoft-scout", "docker-images", "npm-cache", "uv-cache"],
@@ -153,6 +202,63 @@ try {
     assert.equal(result.summary.cloudOnlyFiles, 0);
     assert.equal(result.candidates.length, 1);
     assert.equal(result.candidates[0].app, "GitHub Copilot");
+    assert.equal(toPublicScanResult({ ...result, directories: Array.from({ length: 1001 }, (_, index) => ({ index })) }).directories.length, 1000);
+
+    const serviceCleanupFile = path.join(root, "Temporary", "service-cleanup.bin");
+    await mkdir(path.dirname(serviceCleanupFile), { recursive: true });
+    await writeFile(serviceCleanupFile, Buffer.alloc(80, 1));
+    const serviceCleanupStats = await stat(serviceCleanupFile);
+    const serviceCleanupCandidate = {
+        id: "service-cleanup",
+        path: serviceCleanupFile,
+        bytes: serviceCleanupStats.size,
+        modifiedAt: serviceCleanupStats.mtime.toISOString(),
+        entryType: "file",
+        reason: "Test service cleanup",
+        risk: "low",
+    };
+    const serviceScanResult = {
+        ...result,
+        generatedAt: new Date().toISOString(),
+        roots: [{ id: "test", label: "Test root", path: root }],
+        candidates: [serviceCleanupCandidate],
+        analyzerManagedPaths: [],
+    };
+    let completeServiceCleanup;
+    const cleanupConcurrencyService = new StorageService({
+        categorizerStore: testCategorizerStore,
+        discoverAnalyzerManagedPaths: async () => [],
+        scanStorage: async () => serviceScanResult,
+        executeCleanupPreview: async () => new Promise((resolve) => {
+            completeServiceCleanup = resolve;
+        }),
+    });
+    await cleanupConcurrencyService.startScan({ scopes: ["profile"] });
+    await cleanupConcurrencyService.waitForScan();
+    await cleanupConcurrencyService.setCleanupSafety({ directCleanupEnabled: true, acknowledged: true });
+    const servicePreview = await cleanupConcurrencyService.previewCleanup({
+        source: "scan",
+        itemIds: [serviceCleanupCandidate.id],
+    });
+    const firstCleanupExecution = cleanupConcurrencyService.executeCleanup(servicePreview.id, true);
+    await new Promise((resolve) => setImmediate(resolve));
+    await assert.rejects(
+        cleanupConcurrencyService.executeCleanup(servicePreview.id, true),
+        { code: "cleanup_already_running" },
+    );
+    completeServiceCleanup({ succeeded: [], failed: [], reclaimedBytes: 0 });
+    await firstCleanupExecution;
+    await cleanupConcurrencyService.waitForScan();
+
+    const staleServicePreview = await cleanupConcurrencyService.previewCleanup({
+        source: "scan",
+        itemIds: [serviceCleanupCandidate.id],
+    });
+    await cleanupConcurrencyService.setCleanupSafety({ analyzerProtectionEnabled: false });
+    await assert.rejects(
+        cleanupConcurrencyService.executeCleanup(staleServicePreview.id, true),
+        { code: "cleanup_preview_unknown" },
+    );
 
     const preview = await createCleanupPreview({
         itemIds: [result.candidates[0].id],
@@ -253,6 +359,58 @@ try {
     assert.equal(analyzerPreview.entries[0].entryType, "directory");
     assert.equal(analyzerPreview.totalBytes, 128);
 
+    const mutableDirectory = path.join(root, "MutableAnalyzerCache");
+    const mutableFile = path.join(mutableDirectory, "nested", "cache.bin");
+    await mkdir(path.dirname(mutableFile), { recursive: true });
+    await writeFile(mutableFile, Buffer.alloc(32, 1));
+    const mutableDirectoryStats = await stat(mutableDirectory);
+    const mutablePreview = await createCleanupPreview({
+        itemIds: ["mutable-directory"],
+        candidates: [{
+            id: "mutable-directory",
+            path: mutableDirectory,
+            bytes: 32,
+            modifiedAt: mutableDirectoryStats.mtime.toISOString(),
+            entryType: "directory",
+            cleanupEligible: true,
+            reason: "Test mutable directory",
+            risk: "low",
+        }],
+        source: { type: "analyzer", analyzerId: "test-analyzer" },
+        approvedRoots: [{ id: "test", label: "Test root", path: root }],
+    });
+    await writeFile(mutableFile, Buffer.alloc(32, 2));
+    await utimes(mutableDirectory, mutableDirectoryStats.atime, mutableDirectoryStats.mtime);
+    const mutableCleanup = await executeCleanupPreview({ preview: mutablePreview, confirmed: true });
+    assert.equal(mutableCleanup.succeeded.length, 0);
+    assert.equal(mutableCleanup.failed[0].code, "cleanup_candidate_changed");
+    await access(mutableDirectory);
+
+    const outsideFile = path.join(outsideRoot, "outside-cache.bin");
+    await writeFile(outsideFile, Buffer.alloc(16, 1));
+    const junctionPath = path.join(root, "junction");
+    await symlink(outsideRoot, junctionPath, "junction");
+    const escapedPath = path.join(junctionPath, path.basename(outsideFile));
+    const outsideStats = await stat(outsideFile);
+    await assert.rejects(
+        createCleanupPreview({
+            itemIds: ["junction-escape"],
+            candidates: [{
+                id: "junction-escape",
+                path: escapedPath,
+                bytes: outsideStats.size,
+                modifiedAt: outsideStats.mtime.toISOString(),
+                entryType: "file",
+                cleanupEligible: true,
+                reason: "Test junction escape",
+                risk: "low",
+            }],
+            source: { type: "scan" },
+            approvedRoots: [{ id: "test", label: "Test root", path: root }],
+        }),
+        { code: "cleanup_no_valid_candidates" },
+    );
+
     const controller = new AbortController();
     controller.abort();
     await assert.rejects(
@@ -283,6 +441,16 @@ try {
         approvedRoots: [{ path: root }],
     });
     assert.equal(categorizer.name, "Microsoft Foundry Local");
+    const longCategorizerPath = path.join(root, "x".repeat(130));
+    await mkdir(longCategorizerPath);
+    const longPathCategorizer = await categorizerStore.add({
+        path: longCategorizerPath,
+        name: "Long path application",
+        category: "Application data",
+        approvedRoots: [{ path: root }],
+    });
+    assert.equal(longPathCategorizer.path, longCategorizerPath.toLowerCase());
+    await categorizerStore.remove(longPathCategorizer.id);
     const persistedStore = new CategorizerStore({
         storagePath: path.join(stateRoot, "categorizers.json"),
     });
@@ -348,6 +516,31 @@ try {
     });
     assert.equal(analyzerProtectionDisabledResult.protectedPaths.length, 0);
     assert.ok(analyzerProtectionDisabledResult.candidates.some((item) => item.path === uvCacheData));
+    const configuredCacheRoot = path.join(root, "Configured", "cache");
+    const configuredCacheFile = path.join(configuredCacheRoot, "managed.bin");
+    await mkdir(configuredCacheRoot, { recursive: true });
+    await writeFile(configuredCacheFile, Buffer.alloc(96, 1));
+    await utimes(configuredCacheFile, oldDate, oldDate);
+    const dynamicallyProtectedResult = await scanStorage({
+        roots: [{ id: "test", label: "Test root", path: root }],
+        analyzerManagedPaths: [{
+            path: configuredCacheRoot,
+            analyzerId: "npm-cache",
+            name: "npm cache",
+            description: "Test configured cache",
+        }],
+    });
+    assert.ok(!dynamicallyProtectedResult.candidates.some((item) => item.path === configuredCacheFile));
+    assert.ok(dynamicallyProtectedResult.analyzerManagedPaths.some((item) => item.path === configuredCacheRoot));
+
+    const ordinaryCodeCache = path.join(root, "code", "project", "cache");
+    const ordinaryCodeFile = path.join(ordinaryCodeCache, "build.bin");
+    await mkdir(ordinaryCodeCache, { recursive: true });
+    await writeFile(ordinaryCodeFile, Buffer.alloc(48, 1));
+    const ordinaryCodeResult = await scanStorage({
+        roots: [{ id: "test", label: "Test root", path: root }],
+    });
+    assert.ok(ordinaryCodeResult.apps.some((item) => item.name === "Other" && item.bytes >= 48));
     const inspection = await inspectStorageItem({
         targetPath: foundryCache,
         roots: categorizedResult.roots,
@@ -409,5 +602,6 @@ try {
     assert.equal((await persistedStore.list()).custom.length, 0);
 } finally {
     await rm(root, { recursive: true, force: true });
+    await rm(outsideRoot, { recursive: true, force: true });
     await rm(stateRoot, { recursive: true, force: true });
 }

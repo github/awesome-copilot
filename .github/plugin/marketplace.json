@@ -1641,7 +1641,7 @@
       "name": "windows-app-storage-inspector-cleanup",
       "source": "plugins/windows-app-storage-inspector-cleanup",
       "description": "Inspect Windows application storage, understand local disk usage, and safely move approved cleanup items to the Recycle Bin.",
-      "version": "1.0.2"
+      "version": "1.0.3"
     },
     {
       "name": "winui",

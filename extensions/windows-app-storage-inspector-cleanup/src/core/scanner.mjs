@@ -18,7 +18,7 @@ const APP_RULES = [
     ["GitHub Copilot", ["\\.copilot\\", "\\github copilot\\", "\\github-copilot\\"]],
     ["Microsoft 365 Copilot", ["\\microsoft\\copilot\\", "\\m365 copilot\\", "\\microsoft 365 copilot\\"]],
     ["Microsoft Scout", ["\\.scout\\", "\\microsoft scout\\", "\\m365scout\\"]],
-    ["Visual Studio Code", ["\\code\\", "\\code - insiders\\", "\\microsoft vs code insiders\\", "\\visual studio code\\"]],
+    ["Visual Studio Code", ["\\appdata\\roaming\\code\\", "\\code - insiders\\", "\\microsoft vs code insiders\\", "\\visual studio code\\"]],
     ["Microsoft Office", ["\\microsoft\\office\\", "\\microsoft\\outlook\\"]],
     ["Microsoft Teams", ["\\microsoft\\teams\\", "\\msteams\\"]],
     ["OneDrive", ["\\microsoft\\onedrive\\", "\\onedrive\\"]],
@@ -94,7 +94,17 @@ function isWithinPath(candidatePath, parentPath) {
     return relative === "" || (relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
 }
 
-function protectionForPath(directoryPath, categorizers) {
+function protectionForPath(directoryPath, categorizers, analyzerManagedPaths = []) {
+    const managedPath = analyzerManagedPaths
+        .filter((item) => isWithinPath(directoryPath, item.path))
+        .sort((left, right) => right.path.length - left.path.length)[0];
+    if (managedPath) {
+        return {
+            analyzerId: managedPath.analyzerId,
+            name: managedPath.name,
+            description: managedPath.description,
+        };
+    }
     const categorizer = findCategorizer(directoryPath, categorizers);
     if (!categorizer?.analyzerId) {
         return undefined;
@@ -140,11 +150,11 @@ function classifyCategory(filePath, categorizer) {
     return CATEGORY_EXTENSIONS.get(extension) ?? (extension ? "Other files" : "Files without extension");
 }
 
-function cleanupCandidate(filePath, stats, app, categorizer, protectAnalyzerManagedPaths) {
+function cleanupCandidate(filePath, stats, app, categorizer, analyzerProtection, protectAnalyzerManagedPaths) {
     const normalized = normalizeWindowsPath(filePath);
     if (
-        categorizer?.cleanupPolicy === "manual"
-        && (!categorizer.analyzerId || protectAnalyzerManagedPaths)
+        (categorizer?.cleanupPolicy === "manual" && (!categorizer.analyzerId || protectAnalyzerManagedPaths))
+        || (analyzerProtection && protectAnalyzerManagedPaths)
     ) {
         return undefined;
     }
@@ -201,7 +211,7 @@ function summarizeMap(map) {
     return [...map.values()].sort((left, right) => right.bytes - left.bytes);
 }
 
-function buildTree(nodes, nodePath, categorizers, protectAnalyzerManagedPaths, depth = 0) {
+function buildTree(nodes, nodePath, categorizers, analyzerManagedPaths, protectAnalyzerManagedPaths, depth = 0) {
     const node = nodes.get(normalizeWindowsPath(nodePath));
     if (!node) {
         return undefined;
@@ -214,7 +224,7 @@ function buildTree(nodes, nodePath, categorizers, protectAnalyzerManagedPaths, d
         files: node.files,
         children: [],
         protection: protectAnalyzerManagedPaths
-            ? protectionForPath(node.path, categorizers)
+            ? protectionForPath(node.path, categorizers, analyzerManagedPaths)
             : undefined,
     };
 
@@ -232,6 +242,7 @@ function buildTree(nodes, nodePath, categorizers, protectAnalyzerManagedPaths, d
             nodes,
             child.path,
             categorizers,
+            analyzerManagedPaths,
             protectAnalyzerManagedPaths,
             depth + 1,
         );
@@ -255,7 +266,7 @@ function buildTree(nodes, nodePath, categorizers, protectAnalyzerManagedPaths, d
     return result;
 }
 
-function aggregateDirectories(nodes, rootPaths, categorizers, protectAnalyzerManagedPaths) {
+function aggregateDirectories(nodes, rootPaths, categorizers, analyzerManagedPaths, protectAnalyzerManagedPaths) {
     const byDepth = [...nodes.values()].sort(
         (left, right) => right.path.split(path.sep).length - left.path.split(path.sep).length,
     );
@@ -274,7 +285,7 @@ function aggregateDirectories(nodes, rootPaths, categorizers, protectAnalyzerMan
     }
 
     return rootPaths
-        .map((rootPath) => buildTree(nodes, rootPath, categorizers, protectAnalyzerManagedPaths))
+        .map((rootPath) => buildTree(nodes, rootPath, categorizers, analyzerManagedPaths, protectAnalyzerManagedPaths))
         .filter(Boolean);
 }
 
@@ -296,6 +307,7 @@ export function getDefaultRoots(scopes = ["profile", "programData"]) {
 export async function scanStorage({
     roots,
     categorizers = [],
+    analyzerManagedPaths: configuredAnalyzerManagedPaths = [],
     protectAnalyzerManagedPaths = true,
     signal,
     onProgress = () => {},
@@ -431,6 +443,7 @@ export async function scanStorage({
         filesScanned += 1;
         bytesScanned += stats.size;
         const categorizer = findCategorizer(fullPath, categorizers);
+        const analyzerProtection = protectionForPath(fullPath, categorizers, configuredAnalyzerManagedPaths);
         const app = classifyApp(fullPath, categorizer);
         const category = classifyCategory(fullPath, categorizer);
         const extension = path.extname(fullPath).toLowerCase() || "(none)";
@@ -453,6 +466,7 @@ export async function scanStorage({
             stats,
             app,
             categorizer,
+            analyzerProtection,
             protectAnalyzerManagedPaths,
         );
         if (candidate) {
@@ -509,16 +523,24 @@ export async function scanStorage({
         skippedReparsePoints,
     });
 
-    const trees = aggregateDirectories(nodes, rootPaths, categorizers, protectAnalyzerManagedPaths);
+    const trees = aggregateDirectories(
+        nodes,
+        rootPaths,
+        categorizers,
+        configuredAnalyzerManagedPaths,
+        protectAnalyzerManagedPaths,
+    );
     largestFiles.sort((left, right) => right.bytes - left.bytes);
     largestFiles.length = Math.min(largestFiles.length, MAX_LARGEST_FILES);
+    cloudOnlyFiles.sort((left, right) => right.bytes - left.bytes);
+    cloudOnlyFiles.length = Math.min(cloudOnlyFiles.length, MAX_CLOUD_ONLY_FILES);
     candidates.sort((left, right) => right.bytes - left.bytes);
     candidates.length = Math.min(candidates.length, MAX_CANDIDATES);
 
     const directoryDetails = [...nodes.values()]
         .map((node) => {
             const categorizer = findCategorizer(node.path, categorizers);
-            const analyzerManagement = protectionForPath(node.path, categorizers);
+            const analyzerManagement = protectionForPath(node.path, categorizers, configuredAnalyzerManagedPaths);
             return {
                 name: node.name,
                 path: node.path,
@@ -539,9 +561,7 @@ export async function scanStorage({
         )))
         .map(({ path: directoryPath, analyzerManagement }) => ({ path: directoryPath, ...analyzerManagement }));
     const protectedPaths = protectAnalyzerManagedPaths ? analyzerManagedPaths : [];
-    const directories = directoryDetails
-        .sort((left, right) => right.bytes - left.bytes)
-        .slice(0, MAX_DIRECTORY_ROWS);
+    const directories = directoryDetails.sort((left, right) => right.bytes - left.bytes);
 
     const completedAt = new Date();
     return {
@@ -580,5 +600,12 @@ export async function scanStorage({
         analyzerManagedPaths,
         protectedPaths,
         warnings,
+    };
+}
+
+export function toPublicScanResult(result) {
+    return {
+        ...result,
+        directories: result.directories.slice(0, MAX_DIRECTORY_ROWS),
     };
 }

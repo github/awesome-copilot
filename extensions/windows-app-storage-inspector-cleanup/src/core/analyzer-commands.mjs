@@ -159,9 +159,30 @@ function runProcess(command) {
     return {
         promise,
         cancel() {
-            if (childProcess && !childProcess.killed) {
-                childProcess.kill();
+            if (!childProcess || childProcess.killed) {
+                return Promise.resolve();
             }
+            if (process.platform === "win32" && Number.isInteger(childProcess.pid)) {
+                return new Promise((resolve, reject) => {
+                    execFile(
+                        "taskkill.exe",
+                        ["/pid", String(childProcess.pid), "/t", "/f"],
+                        { windowsHide: true, timeout: 10_000 },
+                        (error, stdout, stderr) => {
+                            if (error) {
+                                reject(commandError(
+                                    "analyzer_command_cancellation_failed",
+                                    String(stderr || stdout || error.message).trim(),
+                                ));
+                                return;
+                            }
+                            resolve();
+                        },
+                    );
+                });
+            }
+            childProcess.kill();
+            return Promise.resolve();
         },
     };
 }
@@ -198,7 +219,9 @@ export function createAnalyzerCommandRunner({ executeProcess = runProcess } = {}
                 );
             }
             activeExecution.cancelRequested = true;
-            activeExecution.cancel();
+            activeExecution.cancelPromise = Promise.resolve(activeExecution.cancel()).catch((error) => {
+                activeExecution.cancelError = error;
+            });
             return {
                 status: "cancelling",
                 commandId: activeCommand.commandId,
@@ -230,6 +253,13 @@ export function createAnalyzerCommandRunner({ executeProcess = runProcess } = {}
             try {
                 activeExecution = normalizeExecution(executeProcess(command));
                 const result = await activeExecution.promise;
+                if (activeExecution.cancelRequested) {
+                    await activeExecution.cancelPromise;
+                    if (activeExecution.cancelError) {
+                        throw activeExecution.cancelError;
+                    }
+                    throw commandError("analyzer_command_cancelled", "Analyzer command was cancelled");
+                }
                 return {
                     commandId: command.id,
                     command: command.command,
@@ -240,6 +270,10 @@ export function createAnalyzerCommandRunner({ executeProcess = runProcess } = {}
                 };
             } catch (error) {
                 if (activeExecution?.cancelRequested) {
+                    await activeExecution.cancelPromise;
+                    if (activeExecution.cancelError) {
+                        throw activeExecution.cancelError;
+                    }
                     throw commandError("analyzer_command_cancelled", "Analyzer command was cancelled");
                 }
                 throw error;

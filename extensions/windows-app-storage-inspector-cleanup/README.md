@@ -35,22 +35,22 @@ Canvas extensions are supported in the GitHub Copilot app only.
 
 The canvas exposes these actions to GitHub Copilot:
 
-| Action | Purpose |
-| --- | --- |
-| `start_scan` | Scan the selected user profile and/or `C:\ProgramData`. |
-| `get_scan_status` | Read scan progress, current totals, and completion state. |
-| `set_cleanup_safety` | Enable acknowledged direct cleanup or control protection for analyzer-managed folders. |
-| `get_results` | Retrieve treemap data, classifications, cleanup candidates, and warnings. |
-| `cancel_scan` | Stop an active scan. |
-| `list_custom_analyzers` | List specialized storage analyzers. |
-| `analyze_custom_storage` | Run the VS Code Insiders, Microsoft Scout, Docker, npm cache, or uv cache analyzer. |
-| `list_categorizers` | List built-in and user-defined categorization rules. |
-| `add_categorizer` | Add a persistent application/category rule for a path. |
-| `remove_categorizer` | Remove a custom categorization rule. |
-| `inspect_storage_item` | Inspect bounded metadata for a file or folder. |
-| `ask_copilot_to_investigate` | Generate a Copilot explanation and cleanup guidance for a folder. |
-| `preview_cleanup` | Revalidate selected cleanup items and show the exact Recycle Bin preview. |
-| `execute_cleanup` | Move confirmed, validated items to the Windows Recycle Bin. |
+| Action                       | Purpose                                                                                |
+| ---------------------------- | -------------------------------------------------------------------------------------- |
+| `start_scan`                 | Scan the selected user profile and/or `C:\ProgramData`.                                |
+| `get_scan_status`            | Read scan progress, current totals, and completion state.                              |
+| `set_cleanup_safety`         | Enable acknowledged direct cleanup or control protection for analyzer-managed folders. |
+| `get_results`                | Retrieve treemap data, classifications, cleanup candidates, and warnings.              |
+| `cancel_scan`                | Stop an active scan.                                                                   |
+| `list_custom_analyzers`      | List specialized storage analyzers.                                                    |
+| `analyze_custom_storage`     | Run the VS Code Insiders, Microsoft Scout, Docker, npm cache, or uv cache analyzer.    |
+| `list_categorizers`          | List built-in and user-defined categorization rules.                                   |
+| `add_categorizer`            | Add a persistent application/category rule for a path.                                 |
+| `remove_categorizer`         | Remove a custom categorization rule.                                                   |
+| `inspect_storage_item`       | Inspect bounded metadata for a file or folder.                                         |
+| `ask_copilot_to_investigate` | Generate a Copilot explanation and cleanup guidance for a folder.                      |
+| `preview_cleanup`            | Revalidate selected cleanup items and show the exact Recycle Bin preview.              |
+| `execute_cleanup`            | Move confirmed, validated items to the Windows Recycle Bin.                            |
 
 The extension also provides the `storage_inspector_inspect_item` Copilot agent tool. Use it to inspect local storage metadata before researching what a folder does or whether cleanup is safe.
 
@@ -86,7 +86,7 @@ All deletion paths use the same centralized cleanup service and modal:
 6. Select **Move to Recycle Bin**.
 7. Keep the modal open while it reports validation and Recycle Bin progress.
 
-The service revalidates every item immediately before execution. It rejects changed files, unexpected entry types, symbolic links, protected locations, and paths outside the selected scan roots. Cleanup never permanently deletes files; successful items are moved to the Windows Recycle Bin. A refresh scan starts after cleanup.
+The service revalidates every item immediately before execution. It rejects changed files or directory subtrees, unexpected entry types, symbolic links or junctions anywhere in the path, protected locations, changed scan roots, and paths that resolve outside the selected scan roots. Redirected Windows known folders such as Documents and Desktop are resolved and protected. Cleanup never permanently deletes files; successful items are moved to the Windows Recycle Bin. A refresh scan starts after cleanup.
 
 ## Custom categorizers
 
@@ -148,7 +148,7 @@ Stored data has this shape:
 }
 ```
 
-Use the canvas to add or remove rules. The store is cached in memory and written atomically, so editing it while the extension is running can be overwritten or leave the in-memory state out of sync. Up to 200 custom rules are supported; text fields are limited to 120 characters.
+Use the canvas to add or remove rules. The store is cached in memory and written atomically, so editing it while the extension is running can be overwritten or leave the in-memory state out of sync. Up to 200 custom rules are supported. Names, categories, and descriptions are limited to 120 characters; paths are limited to 4,096 characters.
 
 ### Add a built-in categorizer
 
@@ -192,7 +192,7 @@ Analyzer results are held in memory and are discarded on a new scan or extension
 
 Analyzer commands have a **Run** button. Each command runs through the extension's fixed command allowlist and a singleton command runner, so only one analyzer command can execute at a time across canvas instances.
 
-A blocking modal displays the command, an indeterminate progress bar, and a **Cancel** button while it runs, then displays its result. Cancellation terminates the centralized child process and reports the command as cancelled. Destructive commands require an explicit confirmation and use non-interactive, scoped CLI arguments. The canvas never executes arbitrary command text received from the browser.
+A blocking modal displays the command, an indeterminate progress bar, and a **Cancel** button while it runs, then displays its result. Cancellation terminates the full spawned Windows process tree and reports the command as cancelled only after termination is verified. Destructive commands require an explicit confirmation and use non-interactive, scoped CLI arguments. The canvas never executes arbitrary command text received from the browser.
 
 ### Create an analyzer
 
@@ -201,42 +201,42 @@ A blocking modal displays the command, an indeterminate progress bar, and a **Ca
 
 ```js
 export async function analyzeExampleApp(result) {
-    // Use the completed scan result and bounded local inspection.
-    return {
-        status: "not-running",
-        message: "Example App is not running.",
-        totalBytes: 0,
-        cleanupItems: [
-            {
-                id: "example-cache",
-                name: "Regenerable cache",
-                path: "C:\\Users\\...\\Example App\\Cache",
-                bytes: 0,
-                files: 0,
-                modifiedAt: new Date().toISOString(),
-                entryType: "directory",
-                cleanupEligible: true,
-                reason: "Cache can be regenerated by Example App",
-                risk: "low"
-            }
-        ],
-        topFiles: []
-    };
+  // Use the completed scan result and bounded local inspection.
+  return {
+    status: "not-running",
+    message: "Example App is not running.",
+    totalBytes: 0,
+    cleanupItems: [
+      {
+        id: "example-cache",
+        name: "Regenerable cache",
+        path: "C:\\Users\\...\\Example App\\Cache",
+        bytes: 0,
+        files: 0,
+        modifiedAt: new Date().toISOString(),
+        entryType: "directory",
+        cleanupEligible: true,
+        reason: "Cache can be regenerated by Example App",
+        risk: "low",
+      },
+    ],
+    topFiles: [],
+  };
 }
 ```
 
 For cleanup integration, return `cleanupItems`. Each eligible item must include:
 
-| Field | Purpose |
-| --- | --- |
-| `id` | Stable identifier within the analyzer result |
-| `path` | Absolute path inside a scanned root |
-| `bytes` | Observed logical size |
-| `modifiedAt` | ISO modification timestamp used for revalidation |
-| `entryType` | `file` or `directory` |
-| `cleanupEligible` | Must be exactly `true` to allow selection |
-| `reason` | User-facing reason cleanup is appropriate |
-| `risk` | User-facing risk level |
+| Field             | Purpose                                          |
+| ----------------- | ------------------------------------------------ |
+| `id`              | Stable identifier within the analyzer result     |
+| `path`            | Absolute path inside a scanned root              |
+| `bytes`           | Observed logical size                            |
+| `modifiedAt`      | ISO modification timestamp used for revalidation |
+| `entryType`       | `file` or `directory`                            |
+| `cleanupEligible` | Must be exactly `true` to allow selection        |
+| `reason`          | User-facing reason cleanup is appropriate        |
+| `risk`            | User-facing risk level                           |
 
 Only mark an item eligible when safety can be positively established. If application process inspection fails or the active data set is ambiguous, return `cleanupEligible: false`.
 
@@ -246,13 +246,13 @@ Only mark an item eligible when safety can be positively established. If applica
 import { analyzeExampleApp } from "./example-app.mjs";
 
 export const CUSTOM_ANALYZERS = [
-    // Existing analyzers...
-    {
-        id: "example-app",
-        name: "Example App",
-        description: "Inspect Example App storage and regenerable caches.",
-        analyze: analyzeExampleApp,
-    },
+  // Existing analyzers...
+  {
+    id: "example-app",
+    name: "Example App",
+    description: "Inspect Example App storage and regenerable caches.",
+    analyze: analyzeExampleApp,
+  },
 ];
 ```
 
@@ -270,36 +270,36 @@ For managed stores such as Docker, do not return direct filesystem cleanup items
 
 ## Data and persistence
 
-| Data | Storage | Lifetime |
-| --- | --- | --- |
-| Custom categorizers | `artifacts\categorizers.json` | Persistent across sessions and repositories |
-| Completed scan and file inventory | Extension memory | Current provider lifetime |
-| Analyzer results | Extension memory | Until the next scan or provider restart |
-| Cleanup previews | Extension memory | Ten minutes or until executed |
-| Cleanup result summary | Extension memory | Current provider lifetime |
-| Folder explanation cache | Canvas iframe memory | Current canvas page lifetime |
-| Reload recovery | `artifacts\reload-recovery.json` | Temporary; consumed and deleted after controlled recovery |
+| Data                              | Storage                          | Lifetime                                                  |
+| --------------------------------- | -------------------------------- | --------------------------------------------------------- |
+| Custom categorizers               | `artifacts\categorizers.json`    | Persistent across sessions and repositories               |
+| Completed scan and file inventory | Extension memory                 | Current provider lifetime                                 |
+| Analyzer results                  | Extension memory                 | Until the next scan or provider restart                   |
+| Cleanup previews                  | Extension memory                 | Ten minutes or until executed                             |
+| Cleanup result summary            | Extension memory                 | Current provider lifetime                                 |
+| Folder explanation cache          | Canvas iframe memory             | Current canvas page lifetime                              |
+| Reload recovery                   | `artifacts\reload-recovery.json` | Temporary; consumed and deleted after controlled recovery |
 
 The extension does not persist general scan inventories or folder explanations by default.
 
 ## Key files
 
-| File | Responsibility |
-| --- | --- |
-| `extension.mjs` | Canvas registration, action schemas, and Copilot folder-explanation handoff |
-| `src\api\server.mjs` | Loopback-only HTTP and Server-Sent Events API |
-| `src\ui\renderer.mjs` | Canvas UI, treemap, analyzer widgets, and centralized cleanup modal |
-| `src\core\storage-service.mjs` | Scan, categorizer, analyzer, preview, cleanup, and progress orchestration |
-| `src\core\scanner.mjs` | Filesystem traversal, aggregation, classification, and conservative candidates |
-| `src\core\cleanup.mjs` | Shared path validation and Windows Recycle Bin execution |
-| `src\core\categorizers.mjs` | Built-in rules and persistent custom categorizer store |
-| `src\core\analyzer-commands.mjs` | Fixed analyzer command allowlist and singleton command execution |
-| `src\analyzers\custom-analyzers.mjs` | Analyzer registry and dispatch |
-| `src\analyzers\vscode-insiders.mjs` | VS Code Insiders analyzer |
-| `src\analyzers\microsoft-scout.mjs` | Microsoft Scout analyzer |
-| `src\analyzers\docker-images.mjs` | Docker image and managed-storage analyzer |
-| `src\core\folder-explanation.mjs` | Structured Copilot prompt and response validation |
-| `test\self-test.mjs` | Regression tests for scanning, classification, cleanup, and explanations |
+| File                                 | Responsibility                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------ |
+| `extension.mjs`                      | Canvas registration, action schemas, and Copilot folder-explanation handoff    |
+| `src\api\server.mjs`                 | Loopback-only HTTP and Server-Sent Events API                                  |
+| `src\ui\renderer.mjs`                | Canvas UI, treemap, analyzer widgets, and centralized cleanup modal            |
+| `src\core\storage-service.mjs`       | Scan, categorizer, analyzer, preview, cleanup, and progress orchestration      |
+| `src\core\scanner.mjs`               | Filesystem traversal, aggregation, classification, and conservative candidates |
+| `src\core\cleanup.mjs`               | Shared path validation and Windows Recycle Bin execution                       |
+| `src\core\categorizers.mjs`          | Built-in rules and persistent custom categorizer store                         |
+| `src\core\analyzer-commands.mjs`     | Fixed analyzer command allowlist and singleton command execution               |
+| `src\analyzers\custom-analyzers.mjs` | Analyzer registry and dispatch                                                 |
+| `src\analyzers\vscode-insiders.mjs`  | VS Code Insiders analyzer                                                      |
+| `src\analyzers\microsoft-scout.mjs`  | Microsoft Scout analyzer                                                       |
+| `src\analyzers\docker-images.mjs`    | Docker image and managed-storage analyzer                                      |
+| `src\core\folder-explanation.mjs`    | Structured Copilot prompt and response validation                              |
+| `test\self-test.mjs`                 | Regression tests for scanning, classification, cleanup, and explanations       |
 
 ## Validate changes
 

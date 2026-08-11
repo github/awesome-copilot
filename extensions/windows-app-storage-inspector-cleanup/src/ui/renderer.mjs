@@ -538,9 +538,9 @@ export function renderHtml(token) {
     }
 
     function renderScanState(next) {
-      state.scan = next;
-      if (next.safety) renderSafety(next.safety);
       const scan = next.scan;
+      state.scan = scan;
+      if (next.safety) renderSafety(next.safety);
       $("statusText").textContent = scan.status.charAt(0).toUpperCase() + scan.status.slice(1);
       $("statusDot").className = "dot " + scan.status;
       const running = scan.status === "running";
@@ -716,15 +716,18 @@ export function renderHtml(token) {
       }
       state.analyzerSelected.clear();
       $("customAnalyzerContent").replaceChildren(emptyMessage("Analyzing storage and active processes..."));
+      const analyzerId = state.analyzerId;
       try {
         const analysis = await api("/api/analyzers/run", {
           method: "POST",
-          body: JSON.stringify({ analyzerId: state.analyzerId }),
+          body: JSON.stringify({ analyzerId }),
         });
-        state.customAnalyses[state.analyzerId] = analysis;
-        renderCustomAnalyzer();
+        state.customAnalyses[analyzerId] = analysis;
+        if (state.analyzerId === analyzerId) renderCustomAnalyzer();
       } catch (error) {
-        $("customAnalyzerContent").replaceChildren(emptyMessage(error.message));
+        if (state.analyzerId === analyzerId) {
+          $("customAnalyzerContent").replaceChildren(emptyMessage(error.message));
+        }
       }
     }
 

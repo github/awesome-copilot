@@ -49,6 +49,12 @@ async function getConfiguredCachePath(defaultCachePath) {
     }
 }
 
+export async function discoverUvCachePaths() {
+    const rootPath = getDefaultUvRoot();
+    const configuredCache = await getConfiguredCachePath(path.join(rootPath, "cache"));
+    return [...new Set([rootPath, configuredCache.path])];
+}
+
 async function describeDirectory(result, id, name, directoryPath) {
     try {
         const directoryStats = await stat(directoryPath);

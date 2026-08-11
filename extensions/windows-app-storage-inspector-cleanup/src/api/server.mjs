@@ -55,6 +55,7 @@ function authorized(request, url, token) {
 export async function startCanvasServer(service, requestAgentInvestigation, cancelAgentInvestigation) {
     assertWindowsPlatform();
     const token = randomBytes(32).toString("hex");
+    let expectedHost;
     const clients = new Set();
     const unsubscribe = service.subscribe((state) => {
         const payload = `data: ${JSON.stringify(state)}\n\n`;
@@ -66,6 +67,10 @@ export async function startCanvasServer(service, requestAgentInvestigation, canc
     const server = createServer(async (request, response) => {
         if (!isWindowsPlatform()) {
             sendError(response, createWindowsOnlyError());
+            return;
+        }
+        if (request.headers.host !== expectedHost) {
+            sendJson(response, 403, { code: "request_forbidden", message: "Canvas request host is invalid" });
             return;
         }
         const url = new URL(request.url ?? "/", "http://127.0.0.1");
@@ -206,6 +211,7 @@ export async function startCanvasServer(service, requestAgentInvestigation, canc
     });
     const address = server.address();
     const port = typeof address === "object" && address ? address.port : 0;
+    expectedHost = `127.0.0.1:${port}`;
 
     return {
         server,

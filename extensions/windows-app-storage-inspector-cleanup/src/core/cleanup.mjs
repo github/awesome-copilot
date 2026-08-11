@@ -1,10 +1,24 @@
-import { randomUUID } from "node:crypto";
-import { lstat } from "node:fs/promises";
+import { execFile, spawn } from "node:child_process";
+import { createHash, randomUUID } from "node:crypto";
+import { lstat, readdir, realpath } from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
+import { promisify } from "node:util";
 
 const MAX_CLEANUP_ITEMS = 500;
 const PREVIEW_LIFETIME_MS = 10 * 60 * 1000;
+const execFileAsync = promisify(execFile);
+
+const KNOWN_FOLDERS_SCRIPT = `
+$ErrorActionPreference = 'Stop'
+$folders = @(
+    [Environment]::GetFolderPath([Environment+SpecialFolder]::Desktop),
+    [Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments),
+    [Environment]::GetFolderPath([Environment+SpecialFolder]::MyPictures),
+    [Environment]::GetFolderPath([Environment+SpecialFolder]::MyMusic),
+    [Environment]::GetFolderPath([Environment+SpecialFolder]::MyVideos)
+) | Where-Object { $_ }
+ConvertTo-Json -Compress -InputObject @($folders)
+`;
 
 const RECYCLE_SCRIPT = `
 $ErrorActionPreference = 'Stop'
@@ -72,18 +86,41 @@ function isWithinRoot(candidatePath, rootPath) {
     return relative !== "" && relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
 }
 
-function isProtectedPath(candidatePath, analyzerProtectedPaths = []) {
-    const normalized = path.resolve(candidatePath).toLowerCase();
-    const analyzerProtection = analyzerProtectedPaths.find((protectedPath) => (
-        normalized === path.resolve(protectedPath.path).toLowerCase()
-        || normalized.startsWith(`${path.resolve(protectedPath.path).toLowerCase()}${path.sep}`)
-    ));
-    if (analyzerProtection) {
-        return analyzerProtection;
+async function resolveKnownFolderPaths() {
+    const { stdout } = await execFileAsync("powershell.exe", [
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-EncodedCommand",
+        Buffer.from(KNOWN_FOLDERS_SCRIPT, "utf16le").toString("base64"),
+    ], { windowsHide: true, timeout: 10_000, maxBuffer: 1024 * 1024 });
+    const parsed = JSON.parse(stdout.trim() || "[]");
+    return Array.isArray(parsed) ? parsed : [parsed];
+}
+
+async function canonicalPath(targetPath, errorCode = "cleanup_path_unavailable") {
+    try {
+        return await realpath(targetPath);
+    } catch (error) {
+        throw serviceError(errorCode, `Cannot resolve storage path ${targetPath}: ${error.message}`);
     }
-    const profile = path.resolve(process.env.USERPROFILE ?? "").toLowerCase();
-    const programData = path.resolve(process.env.ProgramData ?? "C:\\ProgramData").toLowerCase();
-    const protectedRoots = [
+}
+
+async function createValidationContext(approvedRoots, analyzerProtectedPaths = []) {
+    let knownFolderPaths;
+    try {
+        knownFolderPaths = await resolveKnownFolderPaths();
+    } catch (error) {
+        throw serviceError(
+            "cleanup_known_folders_unavailable",
+            `Cannot resolve protected Windows known folders: ${error.message}`,
+        );
+    }
+
+    const profile = process.env.USERPROFILE ? path.resolve(process.env.USERPROFILE) : undefined;
+    const programData = path.resolve(process.env.ProgramData ?? "C:\\ProgramData");
+    const protectedPaths = [
+        ...knownFolderPaths,
         profile && path.join(profile, "desktop"),
         profile && path.join(profile, "documents"),
         profile && path.join(profile, "pictures"),
@@ -96,18 +133,105 @@ function isProtectedPath(candidatePath, analyzerProtectedPaths = []) {
         profile && path.join(profile, ".copilot", "extensions", "windows-app-storage-inspector-cleanup"),
     ].filter(Boolean);
 
-    return protectedRoots.some(
-        (protectedPath) =>
-            normalized === protectedPath ||
-            normalized.startsWith(`${protectedPath}${path.sep}`),
-    ) ? {} : undefined;
+    const roots = await Promise.all(approvedRoots.map(async (root) => {
+        const resolvedRoot = await canonicalPath(root.path, "cleanup_root_unavailable");
+        if (root.canonicalPath && path.resolve(root.canonicalPath) !== path.resolve(resolvedRoot)) {
+            throw serviceError("cleanup_root_changed", `Approved cleanup root changed since preview: ${root.path}`);
+        }
+        return { ...root, canonicalPath: resolvedRoot };
+    }));
+    const protections = [];
+    for (const protection of [
+        ...analyzerProtectedPaths,
+        ...protectedPaths.map((protectedPath) => ({ path: protectedPath })),
+    ]) {
+        try {
+            protections.push({ ...protection, canonicalPath: await realpath(protection.path) });
+        } catch (error) {
+            if (error?.code !== "ENOENT") {
+                throw serviceError(
+                    "cleanup_protected_path_unavailable",
+                    `Cannot resolve protected path ${protection.path}: ${error.message}`,
+                );
+            }
+        }
+    }
+    return { roots, protections };
 }
 
-async function revalidateCandidate(candidate, approvedRoots, analyzerProtectedPaths) {
-    if (!approvedRoots.some((root) => isWithinRoot(candidate.path, root.path))) {
+function isProtectedPath(candidatePath, protections) {
+    const normalized = path.resolve(candidatePath).toLowerCase();
+    const analyzerProtection = protections.find((protectedPath) => (
+        normalized === path.resolve(protectedPath.canonicalPath).toLowerCase()
+        || normalized.startsWith(`${path.resolve(protectedPath.canonicalPath).toLowerCase()}${path.sep}`)
+    ));
+    if (analyzerProtection) {
+        return analyzerProtection;
+    }
+    return undefined;
+}
+
+async function assertNoReparsePoints(candidatePath, rootPath) {
+    const relative = path.relative(path.resolve(rootPath), path.resolve(candidatePath));
+    let currentPath = path.resolve(rootPath);
+    for (const segment of relative.split(path.sep).filter(Boolean)) {
+        currentPath = path.join(currentPath, segment);
+        const stats = await lstat(currentPath);
+        if (stats.isSymbolicLink()) {
+            throw serviceError(
+                "cleanup_reparse_point_not_allowed",
+                `Cleanup paths cannot contain symbolic links or junctions: ${currentPath}`,
+            );
+        }
+    }
+}
+
+async function fingerprintDirectory(directoryPath) {
+    const hash = createHash("sha256");
+    let bytes = 0;
+    let files = 0;
+
+    const visit = async (currentPath) => {
+        const entries = await readdir(currentPath, { withFileTypes: true });
+        entries.sort((left, right) => left.name.localeCompare(right.name));
+        for (const entry of entries) {
+            const fullPath = path.join(currentPath, entry.name);
+            const stats = await lstat(fullPath);
+            if (stats.isSymbolicLink()) {
+                throw serviceError(
+                    "cleanup_reparse_point_not_allowed",
+                    `Cleanup directories cannot contain symbolic links or junctions: ${fullPath}`,
+                );
+            }
+            const relativePath = path.relative(directoryPath, fullPath).replaceAll("\\", "/");
+            const entryType = stats.isDirectory() ? "directory" : stats.isFile() ? "file" : "other";
+            hash.update(`${relativePath}\0${entryType}\0${stats.size}\0${stats.mtimeMs}\0`);
+            if (stats.isDirectory()) {
+                await visit(fullPath);
+            } else if (stats.isFile()) {
+                bytes += stats.size;
+                files += 1;
+            } else {
+                throw serviceError("cleanup_entry_type_changed", `Unsupported entry in cleanup directory: ${fullPath}`);
+            }
+        }
+    };
+
+    await visit(directoryPath);
+    return { fingerprint: hash.digest("hex"), bytes, files };
+}
+
+async function revalidateCandidate(candidate, validationContext) {
+    const lexicalRoot = validationContext.roots.find((root) => isWithinRoot(candidate.path, root.path));
+    if (!lexicalRoot) {
         throw serviceError("cleanup_path_not_allowed", `Path is outside approved scan roots: ${candidate.path}`);
     }
-    const protection = isProtectedPath(candidate.path, analyzerProtectedPaths);
+    await assertNoReparsePoints(candidate.path, lexicalRoot.path);
+    const resolvedPath = await canonicalPath(candidate.path);
+    if (!validationContext.roots.some((root) => isWithinRoot(resolvedPath, root.canonicalPath))) {
+        throw serviceError("cleanup_path_not_allowed", `Path resolves outside approved scan roots: ${candidate.path}`);
+    }
+    const protection = isProtectedPath(resolvedPath, validationContext.protections);
     if (protection) {
         if (!protection.analyzerId) {
             throw serviceError(
@@ -140,8 +264,18 @@ async function revalidateCandidate(candidate, approvedRoots, analyzerProtectedPa
             `Cleanup candidate is not the expected ${entryType}: ${candidate.path}`,
         );
     }
-    if (
+    const directoryState = entryType === "directory" ? await fingerprintDirectory(candidate.path) : undefined;
+    if (entryType === "directory" && candidate.directoryFingerprint) {
+        if (
+            directoryState.fingerprint !== candidate.directoryFingerprint
+            || directoryState.bytes !== candidate.bytes
+            || directoryState.files !== candidate.files
+        ) {
+            throw serviceError("cleanup_candidate_changed", `Cleanup candidate changed since the preview: ${candidate.path}`);
+        }
+    } else if (
         (entryType === "file" && stats.size !== candidate.bytes)
+        || (entryType === "directory" && directoryState.bytes !== candidate.bytes)
         || stats.mtime.toISOString() !== candidate.modifiedAt
     ) {
         throw serviceError("cleanup_candidate_changed", `Cleanup candidate changed since the scan: ${candidate.path}`);
@@ -149,8 +283,10 @@ async function revalidateCandidate(candidate, approvedRoots, analyzerProtectedPa
 
     return {
         id: candidate.id,
-        path: candidate.path,
-        bytes: entryType === "directory" ? candidate.bytes : stats.size,
+        path: resolvedPath,
+        bytes: entryType === "directory" ? directoryState.bytes : stats.size,
+        files: entryType === "directory" ? directoryState.files : undefined,
+        directoryFingerprint: directoryState?.fingerprint,
         modifiedAt: stats.mtime.toISOString(),
         entryType,
         app: candidate.app,
@@ -246,6 +382,7 @@ export async function createCleanupPreview({ itemIds, candidates, approvedRoots,
 
     const entries = [];
     const rejected = [];
+    const validationContext = await createValidationContext(approvedRoots, analyzerProtectedPaths);
     for (const [index, candidate] of selected.entries()) {
         onProgress?.({
             phase: "validating",
@@ -254,7 +391,7 @@ export async function createCleanupPreview({ itemIds, candidates, approvedRoots,
             total: selected.length,
         });
         try {
-            entries.push(await revalidateCandidate(candidate, approvedRoots, analyzerProtectedPaths));
+            entries.push(await revalidateCandidate(candidate, validationContext));
         } catch (error) {
             rejected.push({
                 id: candidate.id,
@@ -284,7 +421,10 @@ export async function createCleanupPreview({ itemIds, candidates, approvedRoots,
         entries,
         rejected,
         totalBytes: entries.reduce((total, entry) => total + entry.bytes, 0),
-        approvedRoots,
+        approvedRoots: validationContext.roots.map(({ canonicalPath, ...root }) => ({
+            ...root,
+            canonicalPath,
+        })),
         analyzerProtectedPaths,
     };
 }
@@ -299,6 +439,7 @@ export async function executeCleanupPreview({ preview, confirmed, onProgress }) 
 
     const ready = [];
     const failed = [];
+    const validationContext = await createValidationContext(preview.approvedRoots, preview.analyzerProtectedPaths);
     for (const [index, entry] of preview.entries.entries()) {
         onProgress?.({
             phase: "validating",
@@ -307,7 +448,7 @@ export async function executeCleanupPreview({ preview, confirmed, onProgress }) 
             total: preview.entries.length,
         });
         try {
-            ready.push(await revalidateCandidate(entry, preview.approvedRoots, preview.analyzerProtectedPaths));
+            ready.push(await revalidateCandidate(entry, validationContext));
         } catch (error) {
             failed.push({
                 path: entry.path,

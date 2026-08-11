@@ -7,10 +7,14 @@ import {
     createCleanupPreview,
     executeCleanupPreview,
 } from "./cleanup.mjs";
-import { listCustomAnalyzers, runCustomAnalyzer } from "../analyzers/custom-analyzers.mjs";
+import {
+    discoverAnalyzerManagedPaths,
+    listCustomAnalyzers,
+    runCustomAnalyzer,
+} from "../analyzers/custom-analyzers.mjs";
 import { cancelAnalyzerCommand, executeAnalyzerCommand } from "./analyzer-commands.mjs";
 import { inspectStorageItem } from "./item-inspector.mjs";
-import { getDefaultRoots, scanStorage } from "./scanner.mjs";
+import { getDefaultRoots, scanStorage, toPublicScanResult } from "./scanner.mjs";
 import { assertWindowsPlatform } from "./platform.mjs";
 
 function serviceError(code, message) {
@@ -50,12 +54,28 @@ function analyzerCleanupItems(analysis) {
 export class StorageService {
     #events = new EventEmitter();
     #controller;
-    #categorizerStore = new CategorizerStore();
+    #categorizerStore;
+    #createCleanupPreview;
+    #discoverAnalyzerManagedPaths;
+    #executeCleanupPreview;
+    #activeCleanupPreviewId;
     #previews = new Map();
     #runPromise;
+    #scanStorage;
 
-    constructor() {
+    constructor({
+        categorizerStore = new CategorizerStore(),
+        createCleanupPreview: createCleanupPreviewImplementation = createCleanupPreview,
+        discoverAnalyzerManagedPaths: discoverAnalyzerManagedPathsImplementation = discoverAnalyzerManagedPaths,
+        executeCleanupPreview: executeCleanupPreviewImplementation = executeCleanupPreview,
+        scanStorage: scanStorageImplementation = scanStorage,
+    } = {}) {
         assertWindowsPlatform();
+        this.#categorizerStore = categorizerStore;
+        this.#createCleanupPreview = createCleanupPreviewImplementation;
+        this.#discoverAnalyzerManagedPaths = discoverAnalyzerManagedPathsImplementation;
+        this.#executeCleanupPreview = executeCleanupPreviewImplementation;
+        this.#scanStorage = scanStorageImplementation;
         this.scan = {
             status: "idle",
             scopes: ["profile", "programData"],
@@ -102,7 +122,7 @@ export class StorageService {
         if (!this.result) {
             throw serviceError("scan_results_unavailable", "Run a scan before requesting results");
         }
-        return this.result;
+        return toPublicScanResult(this.result);
     }
 
     async restoreReloadRecovery() {
@@ -187,7 +207,7 @@ export class StorageService {
         };
         const analyzerProtectionChanged = nextSafety.analyzerProtectionEnabled !== this.safety.analyzerProtectionEnabled;
         this.safety = nextSafety;
-        if (!nextSafety.directCleanupEnabled) {
+        if (!nextSafety.directCleanupEnabled || analyzerProtectionChanged) {
             this.#previews.clear();
             this.cleanup = { status: "idle" };
         }
@@ -256,11 +276,12 @@ export class StorageService {
             throw serviceError("scan_roots_unavailable", "No requested scan roots are available");
         }
 
-        this.#controller = new AbortController();
-        const categorizers = await this.#categorizerStore.all();
-        this.categorizers = await this.#categorizerStore.list();
+        const controller = new AbortController();
+        this.#controller = controller;
         this.result = undefined;
         this.customAnalyses = {};
+        this.#previews.clear();
+        this.cleanup = { status: "idle" };
         this.scan = {
             status: "running",
             scopes: uniqueScopes,
@@ -281,17 +302,32 @@ export class StorageService {
         };
         this.#emit();
 
-        this.#runPromise = scanStorage({
-            roots,
-            categorizers,
-            protectAnalyzerManagedPaths: this.safety.analyzerProtectionEnabled,
-            signal: this.#controller.signal,
-            onProgress: (progress) => {
-                this.scan = { ...this.scan, progress };
-                this.#emit();
-            },
-        })
+        this.#runPromise = (async () => {
+            const [categorizers, categorizerList, analyzerManagedPaths] = await Promise.all([
+                this.#categorizerStore.all(),
+                this.#categorizerStore.list(),
+                this.#discoverAnalyzerManagedPaths(),
+            ]);
+            this.categorizers = categorizerList;
+            return this.#scanStorage({
+                roots,
+                categorizers,
+                analyzerManagedPaths,
+                protectAnalyzerManagedPaths: this.safety.analyzerProtectionEnabled,
+                signal: controller.signal,
+                onProgress: (progress) => {
+                    if (this.#controller !== controller) {
+                        return;
+                    }
+                    this.scan = { ...this.scan, progress };
+                    this.#emit();
+                },
+            });
+        })()
             .then((result) => {
+                if (this.#controller !== controller) {
+                    return;
+                }
                 this.result = result;
                 this.scan = {
                     ...this.scan,
@@ -302,6 +338,9 @@ export class StorageService {
                 this.#emit();
             })
             .catch((error) => {
+                if (this.#controller !== controller) {
+                    return;
+                }
                 const cancelled = error?.code === "ABORT_ERR";
                 this.scan = {
                     ...this.scan,
@@ -313,8 +352,10 @@ export class StorageService {
                 this.#emit();
             })
             .finally(() => {
-                this.#controller = undefined;
-                this.#runPromise = undefined;
+                if (this.#controller === controller) {
+                    this.#controller = undefined;
+                    this.#runPromise = undefined;
+                }
             });
 
         return this.getState();
@@ -365,7 +406,7 @@ export class StorageService {
         };
         this.#emit();
         try {
-            const preview = await createCleanupPreview({
+            const preview = await this.#createCleanupPreview({
                 itemIds,
                 candidates,
                 source: previewSource,
@@ -415,10 +456,18 @@ export class StorageService {
                 "Direct cleanup is disabled. Enable it in the Cleanup safety panel and acknowledge the risk before removing files.",
             );
         }
+        if (confirmed !== true) {
+            throw serviceError("cleanup_confirmation_required", "Explicit cleanup confirmation is required");
+        }
+        if (this.#activeCleanupPreviewId) {
+            throw serviceError("cleanup_already_running", "Wait for the active cleanup operation to finish");
+        }
         const preview = this.#previews.get(previewId);
         if (!preview) {
             throw serviceError("cleanup_preview_unknown", "Cleanup preview was not found; create a new preview");
         }
+        this.#previews.delete(previewId);
+        this.#activeCleanupPreviewId = previewId;
         try {
             if (preview.source?.type === "analyzer") {
                 const current = await this.analyzeCustomAnalyzer(preview.source.analyzerId);
@@ -445,7 +494,7 @@ export class StorageService {
                 error: undefined,
             };
             this.#emit();
-            const result = await executeCleanupPreview({
+            const result = await this.#executeCleanupPreview({
                 preview: {
                     ...preview,
                     analyzerProtectedPaths: this.safety.analyzerProtectionEnabled
@@ -458,7 +507,6 @@ export class StorageService {
                     this.#emit();
                 },
             });
-            this.#previews.delete(previewId);
             this.lastCleanup = result;
             this.cleanup = {
                 status: "completed",
@@ -488,6 +536,8 @@ export class StorageService {
             };
             this.#emit();
             throw error;
+        } finally {
+            this.#activeCleanupPreviewId = undefined;
         }
     }
 }

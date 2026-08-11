@@ -46,6 +46,10 @@ async function getConfiguredCachePath() {
     }
 }
 
+export async function discoverNpmCachePath() {
+    return getConfiguredCachePath();
+}
+
 async function describeCache(result, cachePath) {
     try {
         const cacheStats = await stat(cachePath);
