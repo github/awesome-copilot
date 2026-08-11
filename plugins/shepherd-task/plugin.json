@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "shepherd-task",
   "description": "End-to-end task shepherding system that automates the full lifecycle of GitHub issues through Copilot coding agent assignment, CI approval, code review resolution, and merge. Includes orchestration scripts for both Bash and PowerShell.",
   "version": "1.0.0",
@@ -17,9 +18,13 @@
     "workflow-approval",
     "yolo"
   ],
-  "skills": [
-    "./skills/shepherd-task-approve-workflows-and-wait-for-completion/",
-    "./skills/shepherd-task-30-from-assignment-to-ready/",
-    "./skills/shepherd-task-40-from-ready-to-merged-to-base/"
-  ]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/shepherd-task-30-from-assignment-to-ready/",
+        "./skills/shepherd-task-40-from-ready-to-merged-to-base/",
+        "./skills/shepherd-task-approve-workflows-and-wait-for-completion/"
+      ]
+    }
+  }
 }
