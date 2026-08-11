@@ -3,6 +3,8 @@
 import fs from "fs";
 import path from "path";
 import { lookup } from "node:dns/promises";
+import http from "node:http";
+import https from "node:https";
 import { fileURLToPath } from "url";
 import { isIP } from "node:net";
 import { ROOT_FOLDER } from "./constants.mjs";
@@ -345,6 +347,61 @@ async function assertPublicUrl(url) {
   if (!addresses.length || addresses.some(({ address }) => !isPublicAddress(address))) {
     throw new Error("Homepage URL resolves to a non-public address.");
   }
+  return addresses[0];
+}
+
+// Native fetch does not expose a lookup hook. This dispatcher connects to the
+// address checked above while retaining the original hostname for Host/SNI.
+export class PinnedAddressDispatcher {
+  constructor(url, address) {
+    this.url = url;
+    this.address = address;
+  }
+
+  dispatch(options, handler) {
+    const requestHeaders = Array.isArray(options.headers)
+      ? Object.fromEntries(
+        Array.from({ length: options.headers.length / 2 }, (_, index) => [
+          options.headers[index * 2],
+          options.headers[index * 2 + 1],
+        ]),
+      )
+      : { ...options.headers };
+    const defaultPort = this.url.protocol === "https:" ? "443" : "80";
+    if (!Object.keys(requestHeaders).some((name) => name.toLowerCase() === "host")) {
+      requestHeaders.Host = this.url.port && this.url.port !== defaultPort
+        ? `${this.url.hostname}:${this.url.port}`
+        : this.url.hostname;
+    }
+
+    const requestOptions = {
+      protocol: this.url.protocol,
+      hostname: this.address.address,
+      port: this.url.port || defaultPort,
+      path: `${this.url.pathname}${this.url.search}`,
+      method: options.method,
+      headers: requestHeaders,
+      ...(this.url.protocol === "https:" ? { servername: this.url.hostname } : {}),
+    };
+    const request = (this.url.protocol === "https:" ? https : http).request(requestOptions);
+    handler.onConnect?.(() => request.destroy());
+    request.once("response", (response) => {
+      const headers = response.rawHeaders;
+      if (handler.onHeaders(response.statusCode, headers, () => {}, response.statusMessage) === false) {
+        request.destroy();
+        return;
+      }
+      response.on("data", (chunk) => handler.onData(chunk));
+      response.once("end", () => handler.onComplete(null));
+      response.once("error", (error) => handler.onError(error));
+    });
+    request.once("error", (error) => handler.onError(error));
+    request.end();
+    return true;
+  }
+
+  close() {}
+  destroy() {}
 }
 
 async function readHomepageBody(response) {
@@ -404,11 +461,12 @@ async function inspectHomepage(homepage) {
     let url = parsedUrl;
     let response;
     for (let redirectCount = 0; redirectCount <= HOMEPAGE_MAX_REDIRECTS; redirectCount += 1) {
-      await assertPublicUrl(url);
+      const address = await assertPublicUrl(url);
       response = await fetch(url, {
         redirect: "manual",
         headers: { Accept: "text/html,text/plain;q=0.9", "User-Agent": "awesome-copilot-external-plugin-intake" },
         signal: controller.signal,
+        dispatcher: new PinnedAddressDispatcher(url, address),
       });
       if (response.status < 300 || response.status >= 400) break;
       const location = response.headers?.get?.("location");

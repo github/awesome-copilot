@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
+import http from "node:http";
 import { afterEach, test } from "node:test";
-import { evaluateExternalPluginIssue, validateCanvasPluginMetadata } from "./external-plugin-intake.mjs";
+import {
+  evaluateExternalPluginIssue,
+  PinnedAddressDispatcher,
+  validateCanvasPluginMetadata,
+} from "./external-plugin-intake.mjs";
 
 const REPO = "owner/repo";
 const SHA = "0123456789abcdef0123456789abcdef01234567";
@@ -421,6 +426,28 @@ test("homepage inspection limits streamed content to 512 KB", async () => {
 
   assert.equal(result.valid, true);
   assert.deepEqual(result.reviewSignals.homepage.signals, []);
+});
+
+test("pinned homepage dispatcher connects to the validated address and preserves Host", async () => {
+  let receivedHost;
+  const server = http.createServer((request, response) => {
+    receivedHost = request.headers.host;
+    response.end("pinned");
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = server.address().port;
+  const url = new URL(`http://example.com:${port}/homepage`);
+
+  try {
+    const response = await fetch(url, {
+      dispatcher: new PinnedAddressDispatcher(url, { address: "127.0.0.1", family: 4 }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), "pinned");
+    assert.equal(receivedHost, `example.com:${port}`);
+  } finally {
+    server.close();
+  }
 });
 
 function installMockFetch() {
