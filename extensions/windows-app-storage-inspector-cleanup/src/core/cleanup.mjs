@@ -342,7 +342,7 @@ async function revalidateCandidate(candidate, validationContext) {
 }
 
 function runRecycleBin(paths, onResult) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const encodedCommand = Buffer.from(RECYCLE_SCRIPT, "utf16le").toString("base64");
         const child = spawn(
             "powershell.exe",
@@ -352,6 +352,15 @@ function runRecycleBin(paths, onResult) {
         let stdout = "";
         let stderr = "";
         const results = [];
+        let settled = false;
+        const finish = (interruption) => {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            clearTimeout(timeout);
+            resolve({ results, interruption });
+        };
         const consumeLines = (flush = false) => {
             const lines = stdout.split(/\r?\n/);
             const remainder = lines.pop() ?? "";
@@ -368,7 +377,7 @@ function runRecycleBin(paths, onResult) {
         };
         const timeout = setTimeout(() => {
             child.kill();
-            reject(serviceError("cleanup_timeout", "Recycle Bin operation timed out"));
+            finish({ code: "cleanup_timeout", message: "Recycle Bin operation timed out" });
         }, 120_000);
 
         child.stdout.setEncoding("utf8");
@@ -379,28 +388,35 @@ function runRecycleBin(paths, onResult) {
                 consumeLines();
             } catch (error) {
                 child.kill();
-                reject(serviceError("cleanup_response_invalid", `Could not parse Recycle Bin response: ${error.message}`));
+                finish({
+                    code: "cleanup_response_invalid",
+                    message: `Could not parse Recycle Bin response: ${error.message}`,
+                });
             }
         });
         child.stderr.on("data", (chunk) => {
             stderr += chunk;
         });
         child.on("error", (error) => {
-            clearTimeout(timeout);
-            reject(serviceError("cleanup_process_failed", error.message));
+            finish({ code: "cleanup_process_failed", message: error.message });
         });
         child.on("close", (code) => {
-            clearTimeout(timeout);
-            if (code !== 0) {
-                reject(serviceError("cleanup_process_failed", stderr.trim() || `PowerShell exited with code ${code}`));
+            if (settled) {
                 return;
             }
             try {
                 consumeLines(true);
-                resolve(results);
             } catch (error) {
-                reject(serviceError("cleanup_response_invalid", `Could not parse Recycle Bin response: ${error.message}`));
+                finish({
+                    code: "cleanup_response_invalid",
+                    message: `Could not parse Recycle Bin response: ${error.message}`,
+                });
+                return;
             }
+            finish(code === 0 ? undefined : {
+                code: "cleanup_process_failed",
+                message: stderr.trim() || `PowerShell exited with code ${code}`,
+            });
         });
         child.stdin.end(JSON.stringify(paths));
     });
@@ -474,7 +490,7 @@ export async function createCleanupPreview({ itemIds, candidates, approvedRoots,
     };
 }
 
-export async function executeCleanupPreview({ preview, confirmed, onProgress }) {
+export async function executeCleanupPreview({ preview, confirmed, onProgress, recycleBin = runRecycleBin }) {
     if (confirmed !== true) {
         throw serviceError("cleanup_confirmation_required", "Explicit cleanup confirmation is required");
     }
@@ -516,8 +532,8 @@ export async function executeCleanupPreview({ preview, confirmed, onProgress }) 
         completed: 0,
         total: ready.length,
     });
-    const recycled = ready.length > 0
-        ? await runRecycleBin(ready.map((entry) => entry.path), (result, completed) => {
+    const recycleOutcome = ready.length > 0
+        ? await recycleBin(ready.map((entry) => entry.path), (result, completed) => {
             onProgress?.({
                 phase: "recycling",
                 currentPath: result.path,
@@ -525,20 +541,31 @@ export async function executeCleanupPreview({ preview, confirmed, onProgress }) 
                 total: ready.length,
             });
         })
-        : [];
+        : { results: [], interruption: undefined };
     const sizeByPath = new Map(ready.map((entry) => [entry.path, entry.bytes]));
-    const succeeded = recycled.filter((result) => result.success);
-    const processFailures = recycled
+    const succeeded = recycleOutcome.results.filter((result) => result.success);
+    const processFailures = recycleOutcome.results
         .filter((result) => !result.success)
         .map((result) => ({
             ...result,
             code: "cleanup_recycle_failed",
         }));
+    const reportedPaths = new Set(recycleOutcome.results.map((result) => result.path));
+    const unknown = recycleOutcome.interruption
+        ? ready
+            .filter((entry) => !reportedPaths.has(entry.path))
+            .map((entry) => ({
+                path: entry.path,
+                code: recycleOutcome.interruption.code,
+                error: recycleOutcome.interruption.message,
+            }))
+        : [];
 
     return {
         completedAt: new Date().toISOString(),
         succeeded,
         failed: [...failed, ...processFailures],
+        unknown,
         reclaimedBytes: succeeded.reduce((total, result) => total + (sizeByPath.get(result.path) ?? 0), 0),
     };
 }

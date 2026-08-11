@@ -1,7 +1,4 @@
 import { EventEmitter } from "node:events";
-import { readFile, rm } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import { CategorizerStore } from "./categorizers.mjs";
 import {
     createCleanupPreview,
@@ -23,27 +20,6 @@ function serviceError(code, message) {
     return error;
 }
 
-function recoveryPath() {
-    const copilotHome = process.env.COPILOT_HOME ?? path.join(os.homedir(), ".copilot");
-    return path.join(copilotHome, "extensions", "windows-app-storage-inspector-cleanup", "artifacts", "reload-recovery.json");
-}
-
-function isRecoveredScan(value) {
-    return value
-        && typeof value === "object"
-        && Array.isArray(value.scopes)
-        && Array.isArray(value.roots);
-}
-
-function isRecoveredResult(value) {
-    return value
-        && typeof value === "object"
-        && typeof value.generatedAt === "string"
-        && value.summary
-        && Array.isArray(value.roots)
-        && value.tree;
-}
-
 function analyzerCleanupItems(analysis) {
     if (analysis.id === "vscode-insiders") {
         return analysis.folders ?? [];
@@ -58,7 +34,7 @@ export class StorageService {
     #createCleanupPreview;
     #discoverAnalyzerManagedPaths;
     #executeCleanupPreview;
-    #activeCleanupPreviewId;
+    #activeCleanupOperation;
     #previews = new Map();
     #runPromise;
     #scanStorage;
@@ -123,32 +99,6 @@ export class StorageService {
             throw serviceError("scan_results_unavailable", "Run a scan before requesting results");
         }
         return toPublicScanResult(this.result);
-    }
-
-    async restoreReloadRecovery() {
-        let recovery;
-        try {
-            recovery = JSON.parse(await readFile(recoveryPath(), "utf8"));
-        } catch (error) {
-            if (error?.code === "ENOENT") {
-                return false;
-            }
-            throw serviceError("scan_recovery_invalid", `Could not restore the previous scan: ${error.message}`);
-        }
-        if (!isRecoveredScan(recovery.scan) || !isRecoveredResult(recovery.result)) {
-            throw serviceError("scan_recovery_invalid", "Could not restore the previous scan because its saved data is incomplete");
-        }
-
-        this.result = recovery.result;
-        this.scan = {
-            ...recovery.scan,
-            status: "completed",
-            progress: undefined,
-            error: undefined,
-        };
-        this.categorizers = await this.#categorizerStore.list();
-        await rm(recoveryPath());
-        return true;
     }
 
     listCustomAnalyzers() {
@@ -256,9 +206,16 @@ export class StorageService {
         });
     }
 
-    async startScan({ scopes = ["profile", "programData"] } = {}) {
+    async startScan(options = {}) {
+        return this.#startScan(options);
+    }
+
+    async #startScan({ scopes = ["profile", "programData"] } = {}, cleanupOperation, preserveCleanup = false) {
         if (this.scan.status === "running") {
             throw serviceError("scan_already_running", "A storage scan is already running");
+        }
+        if (this.#activeCleanupOperation && this.#activeCleanupOperation !== cleanupOperation) {
+            throw serviceError("cleanup_in_progress", "Wait for the active cleanup operation to finish before scanning");
         }
 
         const uniqueScopes = [...new Set(scopes)];
@@ -276,7 +233,9 @@ export class StorageService {
         this.result = undefined;
         this.customAnalyses = {};
         this.#previews.clear();
-        this.cleanup = { status: "idle" };
+        if (!preserveCleanup) {
+            this.cleanup = { status: "idle" };
+        }
         this.scan = {
             status: "running",
             scopes: uniqueScopes,
@@ -382,25 +341,30 @@ export class StorageService {
         if (!["scan", "analyzer"].includes(source)) {
             throw serviceError("cleanup_source_invalid", "Cleanup source must be scan or analyzer");
         }
-
-        let candidates = this.result.candidates;
-        let previewSource = { type: "scan" };
-        if (source === "analyzer") {
-            const analysis = await this.analyzeCustomAnalyzer(analyzerId);
-            candidates = analyzerCleanupItems(analysis).filter((item) => item.cleanupEligible);
-            previewSource = { type: "analyzer", analyzerId };
+        if (this.#activeCleanupOperation) {
+            throw serviceError("cleanup_already_running", "Wait for the active cleanup operation to finish");
         }
+        const cleanupOperation = { phase: "previewing" };
+        this.#activeCleanupOperation = cleanupOperation;
 
-        this.cleanup = {
-            status: "previewing",
-            phase: "validating",
-            completed: 0,
-            total: itemIds.length,
-            currentPath: undefined,
-            error: undefined,
-        };
-        this.#emit();
         try {
+            let candidates = this.result.candidates;
+            let previewSource = { type: "scan" };
+            if (source === "analyzer") {
+                const analysis = await this.analyzeCustomAnalyzer(analyzerId);
+                candidates = analyzerCleanupItems(analysis).filter((item) => item.cleanupEligible);
+                previewSource = { type: "analyzer", analyzerId };
+            }
+
+            this.cleanup = {
+                status: "previewing",
+                phase: "validating",
+                completed: 0,
+                total: itemIds.length,
+                currentPath: undefined,
+                error: undefined,
+            };
+            this.#emit();
             const preview = await this.#createCleanupPreview({
                 itemIds,
                 candidates,
@@ -441,6 +405,10 @@ export class StorageService {
             };
             this.#emit();
             throw error;
+        } finally {
+            if (this.#activeCleanupOperation === cleanupOperation) {
+                this.#activeCleanupOperation = undefined;
+            }
         }
     }
 
@@ -454,7 +422,7 @@ export class StorageService {
         if (confirmed !== true) {
             throw serviceError("cleanup_confirmation_required", "Explicit cleanup confirmation is required");
         }
-        if (this.#activeCleanupPreviewId) {
+        if (this.#activeCleanupOperation) {
             throw serviceError("cleanup_already_running", "Wait for the active cleanup operation to finish");
         }
         const preview = this.#previews.get(previewId);
@@ -462,7 +430,9 @@ export class StorageService {
             throw serviceError("cleanup_preview_unknown", "Cleanup preview was not found; create a new preview");
         }
         this.#previews.delete(previewId);
-        this.#activeCleanupPreviewId = previewId;
+        const cleanupOperation = { phase: "executing", previewId };
+        this.#activeCleanupOperation = cleanupOperation;
+        let result;
         try {
             if (preview.source?.type === "analyzer") {
                 const current = await this.analyzeCustomAnalyzer(preview.source.analyzerId);
@@ -489,7 +459,7 @@ export class StorageService {
                 error: undefined,
             };
             this.#emit();
-            const result = await this.#executeCleanupPreview({
+            result = await this.#executeCleanupPreview({
                 preview: {
                     ...preview,
                     analyzerProtectedPaths: this.safety.analyzerProtectionEnabled
@@ -507,21 +477,16 @@ export class StorageService {
                 status: "completed",
                 phase: "completed",
                 previewId,
-                completed: result.succeeded.length + result.failed.length,
+                completed: result.succeeded.length + result.failed.length + (result.unknown?.length ?? 0),
                 total: preview.entries.length,
                 currentPath: undefined,
                 reclaimedBytes: result.reclaimedBytes,
                 succeeded: result.succeeded.length,
                 failed: result.failed.length,
+                unknown: result.unknown?.length ?? 0,
                 error: undefined,
             };
             this.#emit();
-
-            await this.startScan({ scopes: this.scan.scopes });
-            return {
-                ...result,
-                rescanStarted: true,
-            };
         } catch (error) {
             this.cleanup = {
                 ...this.cleanup,
@@ -532,7 +497,25 @@ export class StorageService {
             this.#emit();
             throw error;
         } finally {
-            this.#activeCleanupPreviewId = undefined;
+            if (this.#activeCleanupOperation === cleanupOperation) {
+                this.#activeCleanupOperation = undefined;
+            }
+        }
+
+        try {
+            await this.#startScan({ scopes: this.scan.scopes }, undefined, true);
+            this.cleanup = { ...this.cleanup, rescanStarted: true, rescanError: undefined };
+            this.#emit();
+            return { ...result, rescanStarted: true };
+        } catch (error) {
+            const rescanError = { code: error.code, message: error.message };
+            this.cleanup = { ...this.cleanup, rescanStarted: false, rescanError };
+            this.#emit();
+            return {
+                ...result,
+                rescanStarted: false,
+                rescanError,
+            };
         }
     }
 }

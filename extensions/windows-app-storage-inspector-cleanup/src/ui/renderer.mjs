@@ -2065,14 +2065,21 @@ export function renderHtml(token) {
         progressBar.style.width = "100%";
         $("cleanupProgressText").textContent = cleanup.total.toLocaleString() + " of " + cleanup.total.toLocaleString() + " items · 100%";
         $("cleanupCurrentPath").textContent = "";
-        $("cleanupStatus").textContent = "Cleanup completed. A refresh scan has started.";
+        $("cleanupStatus").textContent = cleanup.rescanStarted === false
+          ? "Cleanup completed, but the refresh scan could not start. Run a new scan to verify current storage."
+          : "Cleanup completed. A refresh scan has started.";
         $("cleanupPreviewContent").hidden = true;
         $("cleanupResult").hidden = false;
         $("cleanupResultSummary").textContent = cleanup.succeeded.toLocaleString() + " items moved to the Recycle Bin · " + formatBytes(cleanup.reclaimedBytes) + " reclaimed.";
-        $("cleanupFailures").hidden = cleanup.failed === 0;
-        $("cleanupFailures").textContent = cleanup.failed
-          ? cleanup.failed.toLocaleString() + " items could not be moved. No failed item was deleted."
-          : "";
+        const outcomeMessages = [];
+        if (cleanup.failed) {
+          outcomeMessages.push(cleanup.failed.toLocaleString() + " items were reported as not moved.");
+        }
+        if (cleanup.unknown) {
+          outcomeMessages.push(cleanup.unknown.toLocaleString() + " items have an unknown outcome because the Recycle Bin operation ended early. Verify them with the refresh scan.");
+        }
+        $("cleanupFailures").hidden = outcomeMessages.length === 0;
+        $("cleanupFailures").textContent = outcomeMessages.join(" ");
         $("executeCleanup").hidden = true;
         $("confirmCleanup").disabled = true;
         state.selected.clear();

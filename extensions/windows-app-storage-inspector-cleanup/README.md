@@ -280,7 +280,6 @@ For managed stores such as Docker, do not return direct filesystem cleanup items
 | Cleanup previews                  | Extension memory                 | Ten minutes or until executed                             |
 | Cleanup result summary            | Extension memory                 | Current provider lifetime                                 |
 | Folder explanation cache          | Canvas iframe memory             | Current canvas page lifetime                              |
-| Reload recovery                   | `artifacts\reload-recovery.json` | Temporary; consumed and deleted after controlled recovery |
 
 The extension does not persist general scan inventories or folder explanations by default.
 

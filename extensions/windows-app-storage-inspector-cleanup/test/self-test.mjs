@@ -225,6 +225,41 @@ try {
         candidates: [serviceCleanupCandidate],
         analyzerManagedPaths: [],
     };
+    let completeServicePreview;
+    const previewConcurrencyService = new StorageService({
+        categorizerStore: testCategorizerStore,
+        discoverAnalyzerManagedPaths: async () => [],
+        scanStorage: async () => serviceScanResult,
+        createCleanupPreview: async (options) => new Promise((resolve) => {
+            completeServicePreview = () => resolve({
+                id: "preview-concurrency",
+                source: options.source,
+                selectedIds: [serviceCleanupCandidate.id],
+                createdAt: new Date().toISOString(),
+                expiresAt: new Date(Date.now() + 60_000).toISOString(),
+                entries: [serviceCleanupCandidate],
+                rejected: [],
+                totalBytes: serviceCleanupCandidate.bytes,
+                approvedRoots: options.approvedRoots,
+                analyzerProtectedPaths: options.analyzerProtectedPaths,
+            });
+        }),
+    });
+    await previewConcurrencyService.startScan({ scopes: ["profile"] });
+    await previewConcurrencyService.waitForScan();
+    await previewConcurrencyService.setCleanupSafety({ directCleanupEnabled: true, acknowledged: true });
+    const pendingServicePreview = previewConcurrencyService.previewCleanup({
+        source: "scan",
+        itemIds: [serviceCleanupCandidate.id],
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+    await assert.rejects(
+        previewConcurrencyService.startScan({ scopes: ["profile"] }),
+        { code: "cleanup_in_progress" },
+    );
+    completeServicePreview();
+    await pendingServicePreview;
+
     let completeServiceCleanup;
     const cleanupConcurrencyService = new StorageService({
         categorizerStore: testCategorizerStore,
@@ -247,6 +282,10 @@ try {
         cleanupConcurrencyService.executeCleanup(servicePreview.id, true),
         { code: "cleanup_already_running" },
     );
+    await assert.rejects(
+        cleanupConcurrencyService.startScan({ scopes: ["profile"] }),
+        { code: "cleanup_in_progress" },
+    );
     completeServiceCleanup({ succeeded: [], failed: [], reclaimedBytes: 0 });
     await firstCleanupExecution;
     await cleanupConcurrencyService.waitForScan();
@@ -260,6 +299,32 @@ try {
         cleanupConcurrencyService.executeCleanup(staleServicePreview.id, true),
         { code: "cleanup_preview_unknown" },
     );
+
+    let refreshScanCount = 0;
+    const refreshFailureService = new StorageService({
+        categorizerStore: testCategorizerStore,
+        discoverAnalyzerManagedPaths: async () => [],
+        scanStorage: async () => {
+            refreshScanCount += 1;
+            if (refreshScanCount > 1) {
+                throw new Error("Test refresh failure");
+            }
+            return serviceScanResult;
+        },
+        executeCleanupPreview: async () => ({ succeeded: [], failed: [], unknown: [], reclaimedBytes: 0 }),
+    });
+    await refreshFailureService.startScan({ scopes: ["profile"] });
+    await refreshFailureService.waitForScan();
+    await refreshFailureService.setCleanupSafety({ directCleanupEnabled: true, acknowledged: true });
+    const refreshFailurePreview = await refreshFailureService.previewCleanup({
+        source: "scan",
+        itemIds: [serviceCleanupCandidate.id],
+    });
+    const refreshFailureCleanup = await refreshFailureService.executeCleanup(refreshFailurePreview.id, true);
+    assert.equal(refreshFailureCleanup.rescanStarted, true);
+    await refreshFailureService.waitForScan();
+    assert.equal(refreshFailureService.getState().scan.status, "failed");
+    assert.equal(refreshFailureService.getState().cleanup.status, "completed");
 
     const preview = await createCleanupPreview({
         itemIds: [result.candidates[0].id],
@@ -279,6 +344,49 @@ try {
     assert.ok(cleanupProgress.some((progress) => progress.phase === "recycling" && progress.completed === 1));
     await assert.rejects(access(cacheFile));
     await access(regularFile);
+
+    const partialFirstFile = path.join(cacheDirectory, "partial-first.bin");
+    const partialSecondFile = path.join(cacheDirectory, "partial-second.bin");
+    await writeFile(partialFirstFile, Buffer.alloc(32, 1));
+    await writeFile(partialSecondFile, Buffer.alloc(48, 1));
+    const partialCandidates = await Promise.all([
+        ["partial-first", partialFirstFile],
+        ["partial-second", partialSecondFile],
+    ].map(async ([id, filePath]) => {
+        const fileStats = await stat(filePath);
+        return {
+            id,
+            path: filePath,
+            bytes: fileStats.size,
+            modifiedAt: fileStats.mtime.toISOString(),
+            entryType: "file",
+            cleanupEligible: true,
+            reason: "Test partial cleanup",
+            risk: "low",
+        };
+    }));
+    const partialPreview = await createCleanupPreview({
+        itemIds: partialCandidates.map((candidate) => candidate.id),
+        candidates: partialCandidates,
+        source: { type: "scan" },
+        approvedRoots: [{ id: "test", label: "Test root", path: root }],
+    });
+    const partialCleanup = await executeCleanupPreview({
+        preview: partialPreview,
+        confirmed: true,
+        recycleBin: async (paths, onResult) => {
+            const succeeded = { path: paths[0], success: true };
+            onResult(succeeded, 1);
+            return {
+                results: [succeeded],
+                interruption: { code: "cleanup_timeout", message: "Recycle Bin operation timed out" },
+            };
+        },
+    });
+    assert.deepEqual(partialCleanup.succeeded.map((item) => item.path), [partialFirstFile]);
+    assert.equal(partialCleanup.failed.length, 0);
+    assert.deepEqual(partialCleanup.unknown.map((item) => item.path), [partialSecondFile]);
+    assert.equal(partialCleanup.reclaimedBytes, 32);
 
     const originalUserProfile = process.env.USERPROFILE;
     try {

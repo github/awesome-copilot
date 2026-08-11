@@ -130,7 +130,6 @@ async function cancelAgentInvestigation() {
 }
 
 if (isWindowsPlatform()) {
-await service.restoreReloadRecovery();
 session = await joinSession({
     tools: [
         {
