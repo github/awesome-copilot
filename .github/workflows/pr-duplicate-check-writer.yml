@@ -38,26 +38,6 @@ jobs:
             const path = require('path');
 
             const workflowRun = context.payload.workflow_run;
-            const pullRequests = Array.isArray(workflowRun.pull_requests) ? workflowRun.pull_requests : [];
-            if (pullRequests.length !== 1) {
-              core.warning(`Expected exactly one pull request on workflow_run; found ${pullRequests.length}.`);
-              return;
-            }
-
-            const prNumber = pullRequests[0].number;
-            if (!Number.isInteger(prNumber) || prNumber < 1) {
-              throw new Error('Invalid pull request number on workflow_run payload.');
-            }
-
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
-            if (pr.state !== 'open') {
-              core.info(`Skipping non-open PR #${prNumber}.`);
-              return;
-            }
             const artifactRoot = path.join(process.env.RUNNER_TEMP, 'pr-duplicate-agent');
             const candidates = [];
 
@@ -72,11 +52,30 @@ jobs:
             if (!prContext || prContext.schema_version !== 'pr-duplicate-check-context/v1') {
               throw new Error('Missing or invalid pr-context.json artifact.');
             }
-            if (prContext.pr_number !== prNumber) {
-              throw new Error(`PR context number ${prContext.pr_number} did not match workflow_run PR #${prNumber}.`);
+            if (!Number.isInteger(prContext.pr_number) || prContext.pr_number < 1) {
+              throw new Error('Invalid PR context pr_number.');
             }
             if (!/^[0-9a-f]{40}$/i.test(String(prContext.head_sha || ''))) {
               throw new Error('Invalid PR context head_sha.');
+            }
+
+            const prNumber = prContext.pr_number;
+            const pullRequests = Array.isArray(workflowRun.pull_requests) ? workflowRun.pull_requests : [];
+            if (pullRequests.length > 0 && !pullRequests.some((pullRequest) => pullRequest.number === prNumber)) {
+              throw new Error(`PR context number ${prNumber} was not present in workflow_run.pull_requests.`);
+            }
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            if (pr.state !== 'open') {
+              core.info(`Skipping non-open PR #${prNumber}.`);
+              return;
+            }
+            if (pr.base?.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`) {
+              throw new Error(`PR #${prNumber} base repository ${pr.base?.repo?.full_name || '<unknown>'} is not this repository.`);
             }
             if (pr.head.sha !== prContext.head_sha) {
               core.warning(`Skipping stale PR duplicate output for PR #${prNumber}: artifact head ${prContext.head_sha}, current head ${pr.head.sha}`);
@@ -111,11 +110,20 @@ jobs:
               for (const line of lines) collectCandidate(JSON.parse(line));
             }
 
+            const stripControlCharacters = (value) =>
+              String(value).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
+            const neutralizeMentions = (value) =>
+              value.replace(/@([A-Za-z0-9][A-Za-z0-9-]{0,38})/g, '@\u200B$1');
+            const sanitizeCommentBody = (value, maxLength) => {
+              const sanitized = neutralizeMentions(stripControlCharacters(value));
+              return sanitized.length > maxLength ? sanitized.slice(0, maxLength) : sanitized;
+            };
+
             const validComments = [];
             for (const candidate of candidates) {
               if (!candidate || typeof candidate !== 'object') continue;
               const body = candidate.body;
-              if (typeof body !== 'string' || body.trim() === '' || body.length > 65000 || body.includes('\u0000')) continue;
+              if (typeof body !== 'string' || body.trim() === '' || body.length > 65000) continue;
               if (candidate.item_number !== undefined && Number(candidate.item_number) !== prNumber) continue;
               if (candidate.repo !== undefined && String(candidate.repo) !== `${context.repo.owner}/${context.repo.repo}`) continue;
               validComments.push(body);
@@ -131,11 +139,18 @@ jobs:
 
             const marker = '<!-- pr-duplicate-check -->';
             const runUrl = workflowRun.html_url;
+            const footer = `<!-- synchronized from read-only PR Duplicate Check run ${workflowRun.id}: ${runUrl} -->`;
+            const maxSafeOutputBodyLength = 65000 - marker.length - footer.length - 4;
+            const safeOutputBody = sanitizeCommentBody(validComments[0], Math.max(0, maxSafeOutputBodyLength));
+            if (safeOutputBody.trim() === '') {
+              core.info('No non-empty safe comment body remained after sanitization.');
+              return;
+            }
             const body = [
               marker,
-              validComments[0],
+              safeOutputBody,
               '',
-              `<!-- synchronized from read-only PR Duplicate Check run ${workflowRun.id}: ${runUrl} -->`,
+              footer,
             ].join('\n');
 
             const comments = await github.paginate(github.rest.issues.listComments, {

@@ -1,7 +1,10 @@
 ---
 description: 'Checks PRs for potential duplicate agents, instructions, skills, and workflows already in the repository'
+# SECURITY MIGRATION NOTE: this source was moved off pull_request_target.
+# The checked-in lock file is hand-maintained with a split pull_request/workflow_run writer pattern;
+# do not regenerate it with gh-aw compile unless that split and no-privileged-PR-code-execution invariant is preserved.
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened]
 checkout: false
 permissions:

@@ -17,6 +17,11 @@
 #  \/  \/ \___/|_| |_|\_\|_| |_|\___/ \_/\_/ |___/
 #
 #
+# SECURITY MIGRATION NOTE: this lock file is intentionally hand-maintained for the
+# pull_request_target migration. It is paired with pr-duplicate-check-writer.yml for
+# privileged workflow_run writes. Exclude it from routine gh-aw compile maintenance
+# until gh-aw can regenerate the same split without privileged PR-code execution.
+#
 # To update this file, edit the corresponding .md file and run:
 #   gh aw compile
 # Not all edits will cause changes to this file.
