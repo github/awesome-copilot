@@ -27,15 +27,17 @@ if (-not (Test-Path $pluginDest)) {
 Copy-Item -Path (Join-Path $PluginSrc '*') -Destination $pluginDest -Recurse -Force
 Write-Host "Installed plugin to $pluginDest"
 
-# Verify the log redaction utilities were included in the plugin installation.
-$redactionScripts = @(
+# Verify required campaign initialization and log redaction scripts were installed.
+$requiredScripts = @(
+    'shepherd-task-init-campaign.sh'
+    'shepherd-task-init-campaign.ps1'
     'redact-secrets.sh'
     'redact-secrets.ps1'
 )
-foreach ($script in $redactionScripts) {
+foreach ($script in $requiredScripts) {
     $installedScript = Join-Path $pluginDest 'scripts' $script
     if (-not (Test-Path $installedScript -PathType Leaf)) {
-        throw "Redaction script was not installed: $installedScript"
+        throw "Required script was not installed: $installedScript"
     }
 }
 
@@ -75,6 +77,10 @@ Write-Host ""
 Write-Host "Installation complete."
 Write-Host "  Plugin: $pluginDest"
 Write-Host "  Skills: $skillsInstalled installed, $skillsSkipped already present"
+Write-Host ""
+Write-Host "Campaign initialization scripts available at:"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-init-campaign.sh')"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-init-campaign.ps1')"
 Write-Host ""
 Write-Host "Interview script available at:"
 Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-interview-user-to-create-issues.ps1')"

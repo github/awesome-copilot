@@ -7,6 +7,8 @@
 #   ~/.copilot/plugins/shepherd-task/
 #   ~/.copilot/skills/shepherd-task-*
 #
+# Campaign metadata directories in Git repositories are never removed.
+#
 # Usage: ./uninstall-task-shepherd.sh
 
 set -euo pipefail
@@ -54,3 +56,4 @@ rm -f "$PLUGIN_DIR/scripts/"*invoke-shepherd-task-20-create-issues-from-plan-ski
 
 echo ""
 echo "Shepherd-task fully uninstalled."
+echo "Campaign metadata directories in Git repositories were not modified."

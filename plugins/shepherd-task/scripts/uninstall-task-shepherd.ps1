@@ -7,6 +7,8 @@
       ~/.copilot/plugins/shepherd-task/
       ~/.copilot/skills/shepherd-task-*
 
+    Campaign metadata directories in Git repositories are never removed.
+
 .EXAMPLE
     ./uninstall-task-shepherd.ps1
 #>
@@ -58,3 +60,4 @@ Remove-Item -Path $interviewPrompts -Force -ErrorAction SilentlyContinue
 
 Write-Host ""
 Write-Host "Shepherd-task fully uninstalled."
+Write-Host "Campaign metadata directories in Git repositories were not modified."

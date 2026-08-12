@@ -24,14 +24,16 @@ mkdir -p "$plugin_dest"
 cp -R "$PLUGIN_SRC/." "$plugin_dest/"
 echo "Installed plugin to $plugin_dest"
 
-# Verify the log redaction utilities were included in the plugin installation.
-REDACTION_SCRIPTS=(
+# Verify required campaign initialization and log redaction scripts were installed.
+REQUIRED_SCRIPTS=(
+    "shepherd-task-init-campaign.sh"
+    "shepherd-task-init-campaign.ps1"
     "redact-secrets.sh"
     "redact-secrets.ps1"
 )
-for script in "${REDACTION_SCRIPTS[@]}"; do
+for script in "${REQUIRED_SCRIPTS[@]}"; do
     if [ ! -f "$plugin_dest/scripts/$script" ]; then
-        echo "ERROR: Redaction script was not installed: $plugin_dest/scripts/$script" >&2
+        echo "ERROR: Required script was not installed: $plugin_dest/scripts/$script" >&2
         exit 1
     fi
 done
@@ -72,6 +74,10 @@ echo ""
 echo "Installation complete."
 echo "  Plugin: $plugin_dest"
 echo "  Skills: $skills_installed installed, $skills_skipped already present"
+echo ""
+echo "Campaign initialization scripts available at:"
+echo "  $plugin_dest/scripts/shepherd-task-init-campaign.sh"
+echo "  $plugin_dest/scripts/shepherd-task-init-campaign.ps1"
 echo ""
 echo "Interview script available at:"
 echo "  $plugin_dest/scripts/shepherd-task-interview-user-to-create-issues.sh"

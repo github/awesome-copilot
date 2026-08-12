@@ -1,27 +1,31 @@
 <#
 .SYNOPSIS
-    Prepares the base branch for a shepherd-task test run by creating
-    the remove-before-merge directory with an ignorance-reduction plan.
+    Creates and initializes a shepherd-task test campaign.
 
 .DESCRIPTION
     This script:
     1. Creates a new branch from the currently checked-out commit.
-    2. Creates the <slug>-remove-before-merge/ directory.
-    3. Writes the ignorance-reduction plan for the math-tool scenario.
-    4. Commits and pushes the branch to origin.
+    2. Creates the campaign issue in GitHub.
+    3. Invokes shepherd-task-init-campaign.ps1 to mint the campaign ID and
+       create the campaign metadata directory.
+    4. Writes the ignorance-reduction plan inside the campaign metadata directory.
+    5. Commits and pushes the branch to origin.
 
     Enabling assumptions from plugins/shepherd-task/README.md must already
-    be satisfied before running this script.
+    be satisfied before running this script. This script creates a real GitHub
+    issue, branch, commit, and remote branch.
 
 .PARAMETER Repo
     GitHub repository in owner/repo format (e.g. "edburns/my-test-repo").
 
 .PARAMETER BaseBranch
     The non-main base branch name (e.g. "edburns/dd-3034809-test-01").
-    The slug after the last "/" is used for directory and file naming.
+
+.PARAMETER CampaignShortname
+    Lowercase kebab-case short name used in the campaign metadata directory.
 
 .EXAMPLE
-    .\01-prepare-base-branch.ps1 -Repo edburns/my-test-repo -BaseBranch edburns/dd-3034809-test-01
+    .\01-prepare-base-branch.ps1 -Repo edburns/my-test-repo -BaseBranch edburns/dd-3034809-test-01 -CampaignShortname math-tool-test
 #>
 
 [CmdletBinding()]
@@ -31,32 +35,40 @@ param(
     [string]$Repo,
 
     [Parameter(Mandatory)]
-    [string]$BaseBranch
+    [string]$BaseBranch,
+
+    [Parameter(Mandatory)]
+    [ValidatePattern('^[a-z0-9]+(-[a-z0-9]+)*$')]
+    [string]$CampaignShortname
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# ── Derive names from base branch ────────────────────────────────────────
-
-$slug = $BaseBranch
-if ($slug -match '/') {
-    $slug = $slug.Substring($slug.LastIndexOf('/') + 1)
+if ($BaseBranch -eq 'main') {
+    throw "BaseBranch must not be 'main'."
 }
 
-$rbmDir  = "$slug-remove-before-merge"
-$planFile = "$slug-ignorance-reduction-plan.md"
+& git check-ref-format --branch $BaseBranch *> $null
+if ($LASTEXITCODE -ne 0) {
+    throw "BaseBranch is not a valid Git branch name: '$BaseBranch'."
+}
 
-Write-Host "Repo:            $Repo"
-Write-Host "Base branch:     $BaseBranch"
-Write-Host "Slug:            $slug"
-Write-Host "RBM directory:   $rbmDir"
-Write-Host "Plan file:       $rbmDir/$planFile"
+$repoRootOutput = git rev-parse --show-toplevel 2>$null
+if ($LASTEXITCODE -ne 0 -or -not $repoRootOutput) {
+    throw 'Run this script inside the test Git worktree.'
+}
+$repoRoot = [System.IO.Path]::GetFullPath(($repoRootOutput | Select-Object -First 1).Trim())
+$planFile = 'math-tool-ignorance-reduction-plan.md'
+
+Write-Host "Repository:          $Repo"
+Write-Host "Campaign base branch: $BaseBranch"
+Write-Host "Campaign shortname:   $CampaignShortname"
 Write-Host ""
 
 # ── Verify git state ────────────────────────────────────────────────────
 
-$gitStatus = git status --porcelain 2>&1
+$gitStatus = git -C $repoRoot status --porcelain 2>&1
 if ($gitStatus) {
     throw "Working tree is not clean. Commit or stash changes before running this script."
 }
@@ -64,20 +76,83 @@ if ($gitStatus) {
 # ── Create and switch to the base branch ─────────────────────────────────
 
 Write-Host "Creating branch '$BaseBranch' from current HEAD..."
-git checkout -b $BaseBranch 2>&1 | Write-Host
+git -C $repoRoot checkout -b $BaseBranch 2>&1 | Write-Host
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to create branch '$BaseBranch'. Does it already exist?"
 }
 
-# ── Create remove-before-merge directory ─────────────────────────────────
+# ── Create the campaign issue ────────────────────────────────────────────
 
-Write-Host "Creating directory '$rbmDir'..."
-New-Item -ItemType Directory -Path $rbmDir -Force | Out-Null
+$campaignIssueBody = @"
+## shepherd-task test campaign: math-tool.ps1
+
+This campaign contains four ordered tasks that build a PowerShell math-tool
+script incrementally and exercise the shepherd-task pipeline end to end.
+
+**Campaign base branch:** ``$BaseBranch``
+**Campaign shortname:** ``$CampaignShortname``
+
+The campaign metadata directory and campaign ID are initialized on the
+campaign base branch by ``shepherd-task-init-campaign.ps1``.
+"@
+
+Write-Host "Creating campaign issue in '$Repo'..."
+$campaignIssueUrlOutput = gh issue create `
+    --repo $Repo `
+    --title "[Campaign] shepherd-task test: math-tool.ps1" `
+    --body $campaignIssueBody 2>&1
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to create campaign issue: $campaignIssueUrlOutput"
+}
+$campaignIssueUrl = ($campaignIssueUrlOutput | Select-Object -Last 1).Trim()
+$campaignIssueNumber = [int]($campaignIssueUrl -split '/')[-1]
+Write-Host "Created campaign issue #$campaignIssueNumber`: $campaignIssueUrl"
+
+# ── Initialize campaign metadata ─────────────────────────────────────────
+
+$initializer = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-init-campaign.ps1')
+)
+if (-not (Test-Path -LiteralPath $initializer -PathType Leaf)) {
+    throw "Campaign initializer not found: $initializer"
+}
+
+& $initializer `
+    -CampaignIssueNumber $campaignIssueNumber `
+    -CampaignShortname $CampaignShortname `
+    -BaseBranch $BaseBranch `
+    -Repo $Repo
+
+$manifestFiles = @(
+    Get-ChildItem -LiteralPath $repoRoot -Directory |
+        ForEach-Object {
+            $candidate = Join-Path $_.FullName 'shepherd-campaign.json'
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+                $manifest = Get-Content -LiteralPath $candidate -Raw | ConvertFrom-Json
+                if ($manifest.campaignIssueNumber -eq $campaignIssueNumber) {
+                    Get-Item -LiteralPath $candidate
+                }
+            }
+        }
+)
+if ($manifestFiles.Count -ne 1) {
+    throw "Expected exactly one campaign manifest for issue #$campaignIssueNumber; found $($manifestFiles.Count)."
+}
+
+$manifestPath = $manifestFiles[0].FullName
+$campaign = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+$campaignMetadataDirectory = [string]$campaign.campaignMetadataDirectory
+$campaignMetadataPath = Split-Path -Parent $manifestPath
+$planPath = Join-Path $campaignMetadataPath $planFile
+
+Write-Host "Campaign ID:                $($campaign.campaignId)"
+Write-Host "Campaign metadata directory: $campaignMetadataDirectory"
+Write-Host "Plan file:                  $campaignMetadataDirectory/$planFile"
 
 # ── Write ignorance-reduction plan ───────────────────────────────────────
 
 $planContent = @"
-# Implementation plan: PowerShell math-tool ($slug)
+# Implementation plan: PowerShell math-tool ($CampaignShortname)
 
 Human DRI: (test harness — automated)
 Project root: repository root
@@ -141,7 +216,7 @@ The script follows standard PowerShell conventions:
 (repo root)
 ├── math-tool.ps1              # Main script
 ├── math-tool.Tests.ps1        # Pester 5 test suite
-└── $rbmDir/
+└── $campaignMetadataDirectory/
     └── $planFile              # This file
 ```
 
@@ -259,28 +334,35 @@ output.
 5. All Pester tests pass
 "@
 
-$planPath = Join-Path $rbmDir $planFile
-Set-Content -Path $planPath -Value $planContent -Encoding utf8NoBOM
+Set-Content -LiteralPath $planPath -Value $planContent -Encoding utf8NoBOM
 Write-Host "Wrote ignorance-reduction plan to '$planPath'"
 
 # ── Commit and push ──────────────────────────────────────────────────────
 
 Write-Host ""
 Write-Host "Committing and pushing..."
-git add $rbmDir
-git commit -m "chore: add $rbmDir with ignorance-reduction plan for math-tool test"
+git -C $repoRoot add -- $campaignMetadataDirectory
+if ($LASTEXITCODE -ne 0) {
+    throw "git add failed"
+}
+
+git -C $repoRoot commit -m "chore: initialize shepherd-task campaign #$campaignIssueNumber"
 if ($LASTEXITCODE -ne 0) {
     throw "git commit failed"
 }
 
-git push -u origin $BaseBranch
+git -C $repoRoot push -u origin $BaseBranch
 if ($LASTEXITCODE -ne 0) {
     throw "git push failed"
 }
 
 Write-Host ""
-Write-Host "Done. Base branch '$BaseBranch' is ready."
-Write-Host "  Remote: https://github.com/$Repo/tree/$BaseBranch"
-Write-Host "  Plan:   $rbmDir/$planFile"
+Write-Host "Done. Campaign #$campaignIssueNumber is initialized."
+Write-Host "  Campaign issue:             $campaignIssueUrl"
+Write-Host "  Campaign ID:                $($campaign.campaignId)"
+Write-Host "  Campaign base branch:       $BaseBranch"
+Write-Host "  Campaign metadata directory: $campaignMetadataDirectory"
+Write-Host "  Plan:                       $campaignMetadataDirectory/$planFile"
 Write-Host ""
-Write-Host "Next step: run 02-create-issues.ps1 -Repo $Repo -BaseBranch $BaseBranch"
+Write-Host "Next step:"
+Write-Host "  02-create-issues.ps1 -CampaignMetadataDirectory `"$campaignMetadataDirectory`""
