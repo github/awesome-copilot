@@ -1,94 +1,70 @@
 ---
 name: bug-receipt
-description: 'Fix software defects with an auditable proof receipt: reproduce, trace root cause, repair, verify, and report VERIFIED, PARTIAL, or BLOCKED. Use for bug fixes and regressions.'
+description: 'Close bugs and incidents with an auditable BUG RECEIPT and VERIFIED, PARTIAL, or BLOCKED status. Use for defect repair, regression proof, production incidents, and issue closeout.'
 ---
 
 # Bug Receipt
 
-Treat the receipt as the completion gate, not as decoration added after a conclusion.
+## Mandatory closeout output
 
-## Define proof before editing
-
-Write a compact working ledger with the observed problem, intended behavior, strongest direct acceptance check, and proof layers required by the affected surface. Keep it current while investigating.
-
-Choose proof that can falsify the fix. A green build is not a substitute for a browser interaction, API round trip, persistence reload, or concurrency sequence when one of those is the user-visible contract.
-
-## Establish the baseline
-
-1. Restate the observed defect and the intended behavior in one sentence each.
-2. Run the narrowest safe reproduction before editing whenever the environment permits it.
-3. Record the exact command or interaction and the decisive failing observation.
-4. If reproduction is unavailable, state why and cap the final status at `PARTIAL` or `BLOCKED`.
-
-Do not convert an assumption, stale log, source read, or passing build into a reproduced baseline.
-
-## Trace the cause
-
-Follow the live owner path far enough to distinguish the responsible cause from a nearby symptom. Cite concrete evidence such as a file and line, stack frame, request/response, state transition, or runtime observation.
-
-Separate:
-
-- facts directly observed;
-- bounded inferences supported by those facts;
-- remaining gaps.
-
-Do not claim root cause from plausibility alone.
-
-## Repair the responsible layer
-
-Make the smallest change that fixes the responsible behavior and preserves adjacent contracts. Avoid unrelated cleanup, silent fallbacks, fixture-specific exceptions, retries, or post-processing unless the product contract requires them.
-
-Record every changed file or artifact and its role in the repair.
-
-## Close the proof loop
-
-Run, in proportion to the defect:
-
-1. the original reproduction or direct acceptance check;
-2. the nearest relevant negative or regression check;
-3. the affected build, type, lint, or integration gate when applicable;
-4. the live UI, network, backend, or runtime path when the user-visible claim depends on it.
-
-Record exact commands and observed results. Never invent a test, command, count, file location, or runtime observation.
-
-Use these minimum direct checks when applicable:
-
-| Defect surface | Direct proof |
-| --- | --- |
-| Logic or failing test | Original failing input or focused test now passes |
-| UI behavior | Real interaction plus relevant console and network observation |
-| API or integration | Request, response, and responsible service behavior |
-| Persistence | Write/read or reload round trip through the real owner path |
-| Race or lifecycle | Repeated triggering sequence and the violated invariant |
-| Build or configuration | Affected build, startup, or deployment path |
-
-## Assign status
-
-- Use `VERIFIED` only when the baseline failure was observed, root-cause evidence is concrete, the responsible change is identified, every declared verification passed, and no material gap remains.
-- Use `PARTIAL` when useful evidence exists but at least one required proof layer is missing or inconclusive.
-- Use `BLOCKED` when the fix or its proof cannot proceed because of a specific external condition.
-
-For `BLOCKED`, name the single next evidence package or experiment that closes the causal chain. When the failure spans systems, require correlated evidence from every relevant owner rather than an isolated capture.
-
-Passing syntax, compilation, one narrow unit test, or source inspection alone does not prove downstream behavior unless it is the complete acceptance contract.
-
-## Return the receipt
-
-Finish with this compact structure:
+For every bug or incident closeout decision, return the complete receipt below as the entire user-facing result, even when the user requests a concise reply or does not name this format. Concision shortens field values; it never removes or renames a row. Do not replace the receipt with prose.
 
 ```text
 BUG RECEIPT · VERIFIED | PARTIAL | BLOCKED
 
 Problem    <observed defect and intended behavior>
-Baseline   <exact command or interaction>
-           <decisive observed result>
-Root cause <location and evidence-backed mechanism>
-Change     <file or artifact — responsible repair>
-Proof      <check: result · check: result>
-Gaps       <none, or the exact missing proof>
+Baseline   <failing interaction or command and decisive result; or not run>
+Root cause <proven mechanism; or unproven hypothesis>
+Change     <responsible change; or none>
+Proof      <supplied or executed check: result; include every decisive layer>
+Gaps       <none; or exact missing proof and single next experiment/package>
+Source     executed now | supplied | mixed
 ```
 
-Use `not run` explicitly where applicable. Do not omit a row to make the receipt look complete.
+Use `not run`, `unproven`, or `none` explicitly. Never omit a row to make the receipt look complete.
+
+## Establish the evidence boundary
+
+Before editing, record the observed problem, intended behavior, strongest direct check, and evidence source: `executed now`, `supplied`, or `mixed`. Never imply that supplied evidence was executed in the current run.
+
+Reproduce the failure with the narrowest safe check when possible. If reproduction is unavailable, preserve the evidence obtained and cap the result at `PARTIAL` or `BLOCKED`.
+
+## Trace and repair
+
+1. Follow the live owner path from input to symptom.
+2. Separate observed facts, bounded inferences, and gaps.
+3. Require a concrete location or runtime transition before naming root cause.
+4. Make the smallest responsible change; avoid unrelated cleanup, retries, silent fallbacks, and fixture-specific exceptions.
+
+Do not convert a plausible patch, stale log, source read, or passing build into proof of the user-visible behavior.
+
+## Close the proof loop
+
+Run only checks required by the affected contract:
+
+- original reproduction or direct acceptance check;
+- nearest negative or regression check;
+- affected build or integration gate;
+- real UI, API, persistence, concurrency, or runtime path when the claim crosses that boundary.
+
+Use these decisive boundaries:
+
+| Surface | Required direct proof |
+| --- | --- |
+| Logic or failing test | Original failing input or focused test now passes |
+| UI behavior | Real interaction plus relevant console and network observation |
+| API or integration | Request, response, and responsible service behavior |
+| Persistence | Write/read or reload round trip through the real owner path |
+| Race or lifecycle | Repeated concurrent trigger; zero-or-one success; affected-row and transaction evidence; final invariant |
+| Cross-system blocker | One sanitized failing request/response with timestamp or request ID, edge and application logs, and identity-provider logs when the trace reaches that owner |
+
+## Assign status
+
+- `VERIFIED`: observed baseline, concrete cause, responsible change, all declared checks passed, no material gap.
+- `PARTIAL`: useful evidence exists, but a required proof layer is missing or inconclusive.
+- `BLOCKED`: a specific external condition prevents reproduction, repair, or proof.
+
+For `PARTIAL` or `BLOCKED`, name the single minimal experiment or correlated evidence package that closes the decisive gap. Never invent a command, observation, count, location, or result.
 
 For a machine-readable receipt or CI integration, read [references/receipt-contract.md](references/receipt-contract.md) and conform to its JSON fields and status invariants.
 
