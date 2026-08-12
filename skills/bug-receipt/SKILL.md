@@ -1,6 +1,6 @@
 ---
 name: bug-receipt
-description: 'Debug and fix software defects with an auditable evidence receipt. Use for bug fixes, regressions, flaky or failing tests, runtime errors, broken UI, API, or database behavior, incident follow-ups, reviewing a proposed fix, or requests such as “fix this,” “find the root cause,” “prove it works,” “verify the fix,” and “do not claim fixed without evidence.” Reproduce the failure, trace the responsible cause, make the smallest responsible change, rerun the original path plus adjacent checks, and return VERIFIED, PARTIAL, or BLOCKED. Skip feature-only work, generic code review, drafting, and explanations that do not require defect resolution.'
+description: 'Fix software defects with an auditable proof receipt: reproduce, trace root cause, repair, verify, and report VERIFIED, PARTIAL, or BLOCKED. Use for bug fixes and regressions.'
 ---
 
 # Bug Receipt
@@ -67,6 +67,8 @@ Use these minimum direct checks when applicable:
 - Use `VERIFIED` only when the baseline failure was observed, root-cause evidence is concrete, the responsible change is identified, every declared verification passed, and no material gap remains.
 - Use `PARTIAL` when useful evidence exists but at least one required proof layer is missing or inconclusive.
 - Use `BLOCKED` when the fix or its proof cannot proceed because of a specific external condition.
+
+For `BLOCKED`, name the single next evidence package or experiment that closes the causal chain. When the failure spans systems, require correlated evidence from every relevant owner rather than an isolated capture.
 
 Passing syntax, compilation, one narrow unit test, or source inspection alone does not prove downstream behavior unless it is the complete acceptance contract.
 
