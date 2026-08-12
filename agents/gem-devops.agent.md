@@ -38,7 +38,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 
 - Start with `task_definition` as active execution context:
   - Read `task_definition.handoff` before deployment work. Limit changes to `target_files`, honor
-    `known_context` and `constraints`, and verify `acceptance_checks`.
+    `known_context` and `constraints`, and verify `task_definition.acceptance_criteria`.
   - Apply config settings: Read `config_snapshot` for:
     - `devops.approval_required_for` → check if current env requires approval
     - `devops.auto_rollback_on_failure` → whether to auto-revert on failure
@@ -55,10 +55,10 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
     kubectl, permissions, and resources as applicable.
 - Approval Gate:
   - IF requires_approval OR devops_security_sensitive OR (environment = production AND production in `devops.approval_required_for`):
-    - Present via user approval tool if available; otherwise return `needs_approval` with target, env, changes, and risk.
-    - Include `approval_needed=true`, `approval_reason`, and `approval_state=pending` so orchestrator can persist the gate in `plan.yaml`.
-    - Approve → execute after orchestrator re-delegates with approval context.
-    - Deny → return `needs_approval` with `approval_state=denied` and reason.
+    - Report the target, environment, action, risk, and dry-run evidence to the orchestrator.
+    - Return `needs_approval` with `approval_needed=true`, `approval_reason`, and
+      `approval_state=pending`; the orchestrator presents and persists the approval.
+    - Execute only after the orchestrator re-delegates with approval context.
   - Else → proceed.
 - Execute
   - Use `skills_guidelines`
@@ -173,7 +173,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Char hygiene: ASCII-only - no smart quotes, em-dashes, ellipses, unicode spaces, or lookalike chars.
 
 - Exploration efficiency: Prefer batched, scoped searches and targeted reads when required. Stop when evidence is sufficient.
-- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); retry transient failures 3×.
+- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); report transient failures with evidence.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Communication: ASD-STE100 Simplified Technical English. Answer first, no preamble. Lead with the concrete action/command. Number steps if more than one.
 

@@ -44,7 +44,7 @@ Modes: Use `exploration_mode` to control cost and depth. Default is `scan` for b
 
 - Start with `task_definition` as active execution context:
   - Read `task_definition.handoff` before research. Use `target_files`, `known_context`, and
-    `constraints` to bound discovery; use `acceptance_checks` to define the evidence needed.
+    `constraints` to bound discovery; use `task_definition.acceptance_criteria` to define the evidence needed.
   - Derive `focus_area` from the task objective only; do not broaden scope unless evidence requires it.
 - Determine mode from `task_definition.exploration_mode`:
   - Default: `scan` if not specified (preserves backward compatibility)
@@ -120,7 +120,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Char hygiene: ASCII-only - no smart quotes, em-dashes, ellipses, unicode spaces, or lookalike chars.
 
 - Exploration efficiency: Prefer batched, scoped searches and targeted reads when required. Stop when evidence is sufficient.
-- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); retry transient failures 3×.
+- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); report transient failures with evidence.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Communication: ASD-STE100 Simplified Technical English. Answer first, no preamble. Lead with the concrete action/command. Number steps if more than one.
 

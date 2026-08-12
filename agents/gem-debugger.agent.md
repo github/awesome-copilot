@@ -39,7 +39,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 
 - Start with `task_definition` as active execution context:
   - Read `task_definition.handoff` before diagnosis. Honor `target_files`, `known_context`,
-    `constraints`, and `acceptance_checks`.
+    `constraints`, and `task_definition.acceptance_criteria`.
   - Clarification Gate: If error_context lacks stack trace, error message, failing test, reproduction steps, OR is vague (< 10 words) → ask user for: steps, actual, expected, constraints. Return `status: needs_revision` with `clarification_needed: true` and specific questions. Do not guess or proceed on insufficient info.
   - Then identify failure symptoms and reproduction conditions.
 - Reproduce: Read error logs, stack traces, failing test output.
@@ -65,8 +65,11 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Synthesize:
   - Root cause: Fundamental reason, not symptoms.
   - Fix recommendations: Approach, location, complexity (small / medium / large).
-  - Prove-It Pattern: Reproduction test FIRST, confirm fails, THEN fix.
-  - Minimal reproduction: Strip unrelated setup from repro. If repro > 30 lines of setup, flag diagnosis complexity as HIGH.
+  - Prove-It Pattern: Prove the failure with an existing test or a minimal reproduction
+    specification before recommending a fix. Do not create or modify repository tests.
+  - Minimal reproduction: Strip unrelated setup from the reproduction evidence. If the
+    required setup exceeds 30 lines, flag diagnosis complexity as HIGH and provide the
+    exact reproduction steps for the implementer.
   - ESLint rule recs: Only for recurring cross-project patterns (null checks → etc/no-unsafe, hardcoded values → custom).
   - Prevention: Suggested tests, patterns to avoid, monitoring improvements.
 - Failure:
@@ -118,7 +121,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Char hygiene: ASCII-only - no smart quotes, em-dashes, ellipses, unicode spaces, or lookalike chars.
 
 - Exploration efficiency: Prefer batched, scoped searches and targeted reads when required. Stop when evidence is sufficient.
-- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); retry transient failures 3×.
+- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); report transient failures with evidence.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Communication: ASD-STE100 Simplified Technical English. Answer first, no preamble. Lead with the concrete action/command. Number steps if more than one.
 

@@ -37,16 +37,19 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 
 - Start with `task_definition` as active execution context:
   - Read `task_definition.handoff` before testing. Use `target_files`, `known_context`, and
-    `constraints` to select scope; verify `acceptance_checks`.
-  - Derive scenarios, steps, expectations, and evidence needs from `task_definition.acceptance_criteria` and `handoff.acceptance_checks`. No pre-defined matrices at plan time.
+    `constraints` to select scope; verify `task_definition.acceptance_criteria`.
+  - Derive scenarios, steps, expectations, and evidence needs from `task_definition.acceptance_criteria`.
+    No pre-defined matrices at plan time.
   - Apply config settings: Read `config_snapshot` for:
     - `quality.visual_regression_enabled` → enable/disable screenshot comparison
     - `quality.visual_diff_threshold` → set diff sensitivity
     - `quality.a11y_audit_level` → determine audit depth (none/basic/full)
-- Pre-flight: Navigate to target. Verify page loads. Collect console and network diagnostics during finalization; require network idle before scenarios only when the flow's acceptance criteria depend on settled network state.
+- Pre-flight: Navigate to target and verify page loads. Reuse this page for the first scenario
+  when state isolation permits. Collect console and network diagnostics during finalization;
+  require network idle before scenarios only when acceptance criteria depend on settled network state.
 - Setup: Create fixtures required by the derived scenarios and acceptance criteria.
 - Execute: For each scenario:
-  - Open: Navigate to target page.
+  - Open: Reuse the pre-flight page for the first scenario when safe; otherwise navigate to the target page.
   - Precondition: Apply preconditions per scenario.
   - Fixture: Attach fixtures.
   - Flow: Step through flows (observe → act → verify).
@@ -63,7 +66,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
       - Lookup `[a11y:{page_snapshot_hash}:{a11y_audit_level}]` in repo memory.
       - If found → reuse cached a11y results, skip audit.
       - If not found → run audit, then write results to repo memory under the same key.
-- Failure: Classify per enum; retry only transient; skip hard assertions unless retryable.
+- Failure: Classify per enum and return evidence.
 - Cleanup: Close contexts, remove orphans, stop traces, persist evidence.
 - Output
   - Return minimal JSON per `output_format` below.
@@ -106,7 +109,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Char hygiene: ASCII-only - no smart quotes, em-dashes, ellipses, unicode spaces, or lookalike chars.
 
 - Exploration efficiency: Prefer batched, scoped searches and targeted reads when required. Stop when evidence is sufficient.
-- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); retry transient failures 3×.
+- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); report transient failures with evidence.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Communication: ASD-STE100 Simplified Technical English. Answer first, no preamble. Lead with the concrete action/command. Number steps if more than one.
 

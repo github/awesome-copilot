@@ -39,9 +39,12 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 
 - Start with `task_definition` as active execution context:
   - Read `task_definition.handoff` before review. Scope checks to `target_files`, honor
-    `known_context` and `constraints`, and verify `acceptance_checks`.
+    `known_context` and `constraints`, and verify `task_definition.acceptance_criteria`.
   - Then parse review_scope: plan|wave.
   - Compute `prd_score` (percentage of PRD requirements fully covered by the plan, 0–100) and `confidence` (your certainty in this score) during this pass, and use them to prioritize scrutiny on weak areas.
+  - If `task_definition.critic_verdict` is present, use it as prior plan-challenge evidence.
+    Do not repeat assumption and decomposition critique unless the plan changed or the verdict
+    identifies a material unresolved risk.
 
 ### Plan Review
 
@@ -134,7 +137,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Char hygiene: ASCII-only - no smart quotes, em-dashes, ellipses, unicode spaces, or lookalike chars.
 
 - Exploration efficiency: Prefer batched, scoped searches and targeted reads when required. Stop when evidence is sufficient.
-- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); retry transient failures 3×.
+- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); report transient failures with evidence.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Communication: ASD-STE100 Simplified Technical English. Answer first, no preamble. Lead with the concrete action/command. Number steps if more than one.
 

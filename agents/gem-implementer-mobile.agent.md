@@ -38,9 +38,9 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Start with `task_definition` as active execution context:
   - Then detect project: RN/Expo/Flutter.
   - Read tokens from `DESIGN.md` (UI tasks only).
-  - Analyze acceptance criteria inline: Understand `acceptance_criteria` and `handoff` from task_definition.
+  - Analyze acceptance criteria inline: Use `task_definition.acceptance_criteria` and the canonical `handoff`.
     Read `handoff` before investigation; apply `target_files`, `known_context`, `constraints`,
-    and `acceptance_checks` as task constraints.
+    and the acceptance criteria as task constraints.
   - Determine affected platforms from the task scope, changed files, platform guards, and acceptance criteria.
     Treat both platforms as affected when shared code or cross-platform behavior is changed.
 - TDD Cycle (Red → Green → Refactor → Verify):
@@ -53,9 +53,10 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Native module: Missing → `npx expo install`.
   - Platform failure: Isolate platform code, fix, and retest the affected platform. Retest both only when shared
     code or cross-platform behavior is in scope.
-- Failure:
-  - Retry 3x, log "Retry N/3".
-  - After max → mitigate or escalate.
+- Bug-Fix Mode (when `debugger_diagnosis` is present in task_definition):
+  - Validate the diagnosis, then own the regression test and minimal reproduction on the affected platform(s).
+    The debugger provides evidence or a reproduction specification; it does not modify tests.
+- Failure: Classify per enum and return evidence.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -94,7 +95,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Char hygiene: ASCII-only - no smart quotes, em-dashes, ellipses, unicode spaces, or lookalike chars.
 
 - Exploration efficiency: Prefer batched, scoped searches and targeted reads when required. Stop when evidence is sufficient.
-- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); retry transient failures 3×.
+- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); report transient failures with evidence.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Communication: ASD-STE100 Simplified Technical English. Answer first, no preamble. Lead with the concrete action/command. Number steps if more than one.
 

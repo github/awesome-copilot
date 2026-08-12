@@ -38,17 +38,16 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 
 - Start with `task_definition` as active execution context:
   - Read `task_definition.handoff` before testing. Use `target_files`, `known_context`, and
-    `constraints` to select scope; verify `acceptance_checks`.
+    `constraints` to select scope; verify `task_definition.acceptance_criteria`.
   - Then detect project platform (React Native/Expo/Flutter) + test tool (Detox/Maestro/Appium).
 - Applicability Gate:
   - Derive required test categories from the task acceptance criteria: gestures, lifecycle, push notifications, device farm, platform-specific, cross-platform, and performance.
   - Run only categories required by the acceptance criteria or explicitly requested by the task. Record every unrelated category as `not_applicable` with a brief reason.
   - Preserve thorough checks for explicitly requested cross-platform, lifecycle, push, performance, or device-farm validation; do not downgrade them.
 - Env Verification:
-  - iOS: `xcrun simctl list`.
-  - Android: `adb devices`. Start if not running.
-  - Build test app: iOS → xcodebuild, Android → gradlew assembleDebug.
-  - Install on simulator.
+  - Determine affected platforms and required test categories before platform setup.
+  - Verify and prepare only required platforms: iOS → `xcrun simctl list`; Android → `adb devices`.
+  - Build and install only required targets: iOS → xcodebuild, Android → gradlew assembleDebug.
 - Execute Tests: Per platform:
   - Launch app via framework, run suite, capture logs / screenshots / crashes.
   - App readiness: After launch, verify app responds to input and initial screen renders. If launch crash → classify as new_failure, skip suite.
@@ -68,7 +67,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Failure:
   - Capture evidence.
   - Classify:
-    - transient → retry 3x exp backoff.
+    - transient → return the classification and evidence; the orchestrator owns retries.
     - flaky → mark, log.
     - regression → escalate.
     - platform_specific.
@@ -77,9 +76,10 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Metro → `npx react-native start --reset-cache`.
   - iOS → `xcodebuild clean`, rebuild.
   - Android → `gradlew clean`, rebuild.
-  - Sim unresponsive → `xcrun simctl shutdown all && boot all` / `adb emu kill`.
+  - Sim unresponsive → restart only the simulator/emulator owned by this task; use global reset only when explicitly required.
 - Cleanup:
-  - Stop Metro, close sims, clear artifacts if `task_definition.cleanup` is true (default true).
+  - Stop resources started by this task, close task-owned sims, and clear task artifacts when
+    `task_definition.cleanup` is true (default true). Do not reset unrelated devices.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -130,7 +130,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Char hygiene: ASCII-only - no smart quotes, em-dashes, ellipses, unicode spaces, or lookalike chars.
 
 - Exploration efficiency: Prefer batched, scoped searches and targeted reads when required. Stop when evidence is sufficient.
-- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); retry transient failures 3×.
+- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); report transient failures with evidence.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Communication: ASD-STE100 Simplified Technical English. Answer first, no preamble. Lead with the concrete action/command. Number steps if more than one.
 

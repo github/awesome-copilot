@@ -39,7 +39,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 
 - Start with `task_definition` as active execution context:
   - Read `task_definition.handoff` before writing. Use `target_files`, `known_context`,
-    `constraints`, and `acceptance_checks` to keep documentation aligned with scope.
+    `constraints`, and `task_definition.acceptance_criteria` to keep documentation aligned with scope.
   - Then parse task_type: documentation|update|prd|agents_md.
   - Then parse audience: developers|end-users|stakeholders (default developers when absent).
   - Emit minimal/dense/queryable JSON for memory updates (structured fields over prose; schema: trigger/action/reason/confidence/usage).
@@ -157,7 +157,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Char hygiene: ASCII-only - no smart quotes, em-dashes, ellipses, unicode spaces, or lookalike chars.
 
 - Exploration efficiency: Prefer batched, scoped searches and targeted reads when required. Stop when evidence is sufficient.
-- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); retry transient failures 3×.
+- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); report transient failures with evidence.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Communication: ASD-STE100 Simplified Technical English. Answer first, no preamble. Lead with the concrete action/command. Number steps if more than one.
 

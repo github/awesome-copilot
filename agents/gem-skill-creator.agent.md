@@ -36,7 +36,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 
 - Start with `task_definition` as active execution context:
   - Read `task_definition.handoff` before extracting a skill. Use `target_files`, `known_context`,
-    `constraints`, and `acceptance_checks` to keep the skill scoped to proven work.
+    `constraints`, and `task_definition.acceptance_criteria` to keep the skill scoped to proven work.
   - Then parse patterns[], source_task_id.
 - Evaluate & Deduplicate:
   - For each pattern, first perform one bounded lookup for matching skill names/descriptions
@@ -73,9 +73,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - No secrets exposed.
   - Test scripts with dry-run or `--help`.
   - Scope check: new skill should not overlap with existing skill scope. If overlap detected → merge into existing rather than create separate.
-- Failure:
-  - Retry 3x, log "Retry N/3".
-  - After max → escalate.
+- Failure: Classify per enum and return evidence.
 - Output
   - Return minimal JSON per `output_format` below.
 
@@ -160,7 +158,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Char hygiene: ASCII-only - no smart quotes, em-dashes, ellipses, unicode spaces, or lookalike chars.
 
 - Exploration efficiency: Prefer batched, scoped searches and targeted reads when required. Stop when evidence is sufficient.
-- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); retry transient failures 3×.
+- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); report transient failures with evidence.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Communication: ASD-STE100 Simplified Technical English. Answer first, no preamble. Lead with the concrete action/command. Number steps if more than one.
 
