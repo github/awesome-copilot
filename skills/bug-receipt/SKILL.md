@@ -1,6 +1,8 @@
 ---
 name: bug-receipt
 description: 'Close defects and incidents with a BUG RECEIPT and VERIFIED, PARTIAL, or BLOCKED status after diagnosis, repair, or recovery.'
+metadata:
+  version: "1.4.1"
 ---
 
 # Bug Receipt
