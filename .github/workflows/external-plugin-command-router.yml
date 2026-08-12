@@ -99,8 +99,8 @@ jobs:
             }
 
             const reactionByCommand = {
-              approve: 'rocket',
-              reject: '-1'
+              approve: 'eyes',
+              reject: 'eyes'
             };
 
             await github.rest.reactions.createForIssueComment({

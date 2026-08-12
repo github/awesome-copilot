@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
+import http from "node:http";
 import { afterEach, test } from "node:test";
-import { evaluateExternalPluginIssue, validateCanvasPluginMetadata } from "./external-plugin-intake.mjs";
+import {
+  evaluateExternalPluginIssue,
+  PinnedAddressDispatcher,
+  validateCanvasPluginMetadata,
+} from "./external-plugin-intake.mjs";
 
 const REPO = "owner/repo";
 const SHA = "0123456789abcdef0123456789abcdef01234567";
@@ -337,7 +342,7 @@ function buildIssueBody({ ref, sha }) {
   ].join("\n");
 }
 
-function jsonResponse(payload, { status = 200 } = {}) {
+function jsonResponse(payload, { status = 200, text } = {}) {
   return {
     ok: status >= 200 && status < 300,
     status,
@@ -346,14 +351,118 @@ function jsonResponse(payload, { status = 200 } = {}) {
     async json() {
       return payload;
     },
+    async text() {
+      return text ?? "";
+    },
+    body: text === undefined
+      ? null
+      : new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(text));
+          controller.close();
+        },
+      }),
   };
 }
+
+test("evaluateExternalPluginIssue surfaces repository and homepage review signals", async () => {
+  installMockFetch();
+  const githubFetch = global.fetch;
+  global.fetch = async (url, options) => {
+    if (String(url) === "https://example.com/pricing") {
+      return jsonResponse({}, { text: "<html><body>Pricing · Book a demo · Start your free trial</body></html>" });
+    }
+    return githubFetch(url, options);
+  };
+
+  const issue = {
+    body: buildIssueBody({ ref: "v1.2.3", sha: RESOLVED_REF_SHA }).replace(
+      "### Homepage URL\n\n_No response_",
+      "### Homepage URL\n\nhttps://example.com/pricing",
+    ),
+  };
+  const result = await evaluateExternalPluginIssue({ issue });
+
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.reviewSignals.homepage.signals, ["pricing", "sales", "trial"]);
+  assert.match(result.commentBody, /3 watchers · 0 forks · 4 open issues\/PRs/);
+  assert.match(result.commentBody, /### Reviewer signals/);
+  assert.match(result.commentBody, /Homepage heuristics.*pricing, sales, trial/);
+});
+
+test("evaluateExternalPluginIssue rejects homepage URLs resolving to loopback", async () => {
+  installMockFetch();
+  const issue = {
+    body: buildIssueBody({ ref: "v1.2.3", sha: RESOLVED_REF_SHA }).replace(
+      "### Homepage URL\n\n_No response_",
+      "### Homepage URL\n\nhttps://127.0.0.1/",
+    ),
+  };
+
+  const result = await evaluateExternalPluginIssue({ issue });
+
+  assert.equal(result.valid, true);
+  assert.match(result.reviewSignals.homepage.output, /non-public address/);
+});
+
+test("homepage inspection limits streamed content to 512 KB", async () => {
+  installMockFetch();
+  const homepage = `${"a".repeat(512_000)} pricing`;
+  const githubFetch = global.fetch;
+  global.fetch = async (url, options) => {
+    if (String(url) === "https://example.com/large") {
+      return jsonResponse({}, { text: homepage });
+    }
+    return githubFetch(url, options);
+  };
+  const issue = {
+    body: buildIssueBody({ ref: "v1.2.3", sha: RESOLVED_REF_SHA }).replace(
+      "### Homepage URL\n\n_No response_",
+      "### Homepage URL\n\nhttps://example.com/large",
+    ),
+  };
+
+  const result = await evaluateExternalPluginIssue({ issue });
+
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.reviewSignals.homepage.signals, []);
+});
+
+test("pinned homepage dispatcher connects to the validated address and preserves Host", async () => {
+  let receivedHost;
+  const server = http.createServer((request, response) => {
+    receivedHost = request.headers.host;
+    response.end("pinned");
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = server.address().port;
+  const url = new URL(`http://example.com:${port}/homepage`);
+
+  try {
+    const response = await fetch(url, {
+      dispatcher: new PinnedAddressDispatcher(url, { address: "127.0.0.1", family: 4 }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), "pinned");
+    assert.equal(receivedHost, `example.com:${port}`);
+  } finally {
+    server.close();
+  }
+});
 
 function installMockFetch() {
   global.fetch = async (url) => {
     const requestUrl = String(url);
     if (requestUrl === `https://api.github.com/repos/${INTAKE_REPO}`) {
-      return jsonResponse({ private: false, archived: false });
+      return jsonResponse({
+        private: false,
+        archived: false,
+        created_at: new Date().toISOString(),
+        stargazers_count: 0,
+        subscribers_count: 3,
+        forks_count: 0,
+        open_issues_count: 4,
+      });
     }
 
     if (

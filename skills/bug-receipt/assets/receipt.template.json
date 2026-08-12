@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "status": "partial",
+  "problem": "Describe the observed defect and intended behavior.",
+  "baseline": {
+    "command": "Record the exact reproduction command or interaction.",
+    "result": "not-run",
+    "evidence": "State the decisive observation, or why it could not be obtained."
+  },
+  "rootCause": {
+    "summary": "State the evidence-backed mechanism, or mark it unresolved.",
+    "evidence": []
+  },
+  "changes": [],
+  "verification": [],
+  "gaps": [
+    "Replace this with the exact missing proof layer."
+  ]
+}
