@@ -823,6 +823,12 @@ These flags apply only to the current invocation — your persisted sandbox pref
 
 **`worktreeBaseRef` setting** *(v1.0.79-8+)*: Controls whether `/worktree`, `/worktree new`, and the `--worktree` startup flag create the new worktree from `HEAD` or from the remote default branch. All three now default to `HEAD`; previously `--worktree` defaulted to starting from the remote default branch. Set this in `/settings` if you want worktrees to branch from the remote default instead.
 
+**`/sandbox policy`** *(v1.0.79+)*: Run `/sandbox policy` to see the effective sandbox configuration for the current session — the specific paths that are read-only or writable, which operations are denied, and whether network access is currently allowed. This is useful for debugging why a sandboxed command failed without having to reason through the layered settings, managed policy, and per-invocation flags yourself.
+
+**Sandboxed git for non-GitHub remotes** *(v1.0.79+)*: Sandboxed git commands now authenticate against Azure DevOps, GitHub Enterprise Server, GitLab, and other non-GitHub remotes using HTTPS credentials you already have stored, so `git push`/`git pull` inside the sandbox work the same way they do outside it for these hosts.
+
+**Faster search in large monorepos** *(v1.0.79+)*: In large monorepos, Copilot CLI automatically uses [tgrep](https://github.com/microsoft/tgrep) (trigram-indexed regex search) instead of ripgrep for file search, speeding up codebase exploration in very large repositories.
+
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
 **Browser-based OAuth login** *(v1.0.77+)*: `copilot login` now defaults to the browser (web) flow on local interactive terminals. A browser tab opens, you authenticate with GitHub, and the CLI is authorized without typing a device code. On remote or headless terminals (SSH sessions, CI), device code remains the default. You can force a specific flow with `--web-flow` or `--device-code`, or choose interactively with the `/login` command:
