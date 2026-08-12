@@ -319,6 +319,10 @@ function isPublicAddress(address) {
   }
 
   const normalized = address.toLowerCase().split("%")[0];
+  const embeddedIpv4 = normalized.slice(normalized.lastIndexOf(":") + 1);
+  if (isIP(embeddedIpv4) === 4 && !isPublicAddress(embeddedIpv4)) {
+    return false;
+  }
   const groups = normalized.split("::");
   const left = groups[0] ? groups[0].split(":") : [];
   const right = groups[1] ? groups[1].split(":") : [];
