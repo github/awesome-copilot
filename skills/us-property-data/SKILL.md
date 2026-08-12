@@ -62,4 +62,5 @@ Ask for one real address end to end before trusting generated code. A property l
 
 ## Reference
 
-API documentation: https://zillapi.com/docs
+OpenAPI specification (canonical, machine-readable): https://zillapi.com/openapi.json
+Site: https://zillapi.com/
