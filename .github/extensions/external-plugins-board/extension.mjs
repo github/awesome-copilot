@@ -3,9 +3,29 @@ import { execFileSync, spawnSync, execSync } from "node:child_process";
 import { dirname } from "node:path";
 import { createRequire } from "node:module";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
+import sanitizeHtml from "sanitize-html";
 
 const require = createRequire(import.meta.url);
 const { marked } = require("marked");
+
+const SAFE_ISSUE_HTML = {
+    allowedTags: [
+        "a", "b", "blockquote", "br", "code", "del", "em", "h1", "h2", "h3",
+        "hr", "i", "li", "ol", "p", "pre", "strong", "ul"
+    ],
+    allowedAttributes: {
+        a: ["href", "name", "rel", "target"],
+        code: ["class"],
+        pre: ["class"],
+    },
+    allowedSchemes: ["http", "https", "mailto"],
+    allowedSchemesByTag: {
+        a: ["http", "https", "mailto"],
+    },
+    transformTags: {
+        a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer" }, true),
+    },
+};
 
 const servers = new Map();
 let workspacePath = null;
@@ -51,15 +71,45 @@ async function fetchLiveIssues(cwd) {
                 number: issue.number,
                 title: issue.title,
                 body: issue.body || "",
-                bodyHtml: marked.parse(issue.body || ""),
-                labels: (issue.labels || []).map(l => ({ name: l.name })),
-                pr_url: issue.body?.match(/\[Generated PR\]\(([^)]+)\)/)?.[1],
+                bodyHtml: sanitizeIssueHtml(issue.body || ""),
+                labels: (issue.labels || []).map(l => ({ name: String(l.name || "") })),
+                pr_url: sanitizeIssueUrl(issue.body?.match(/\[Generated PR\]\(([^)]+)\)/)?.[1]),
                 created_at: issue.created_at,
                 updated_at: issue.updated_at
             }));
     } catch (err) {
         lastError = err.message;
         throw err;
+    }
+}
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function sanitizeIssueHtml(value) {
+    const rawHtml = typeof value === "string" ? marked.parse(value || "") : "";
+    return sanitizeHtml(rawHtml, SAFE_ISSUE_HTML);
+}
+
+function sanitizeIssueUrl(value) {
+    if (typeof value !== "string") {
+        return "";
+    }
+
+    try {
+        const url = new URL(value);
+        if (!['http:', 'https:', 'mailto:'].includes(url.protocol)) {
+            return "";
+        }
+        return url.toString();
+    } catch {
+        return "";
     }
 }
 
@@ -332,6 +382,15 @@ function renderHtml() {
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
       }
 
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
       function getLabelClass(labelName) {
         if (labelName.includes('requires')) return 'requires';
         if (labelName.includes('ready')) return 'ready';
@@ -360,14 +419,16 @@ function renderHtml() {
         \`;
         document.getElementById('modalMeta').innerHTML = metaHtml;
 
-        const labelsHtml = (issue.labels || []).map(l => 
-          \`<span class="label-badge \${getLabelClass(l.name)}">\${l.name.replace(/-/g, ' ')}</span>\`
-        ).join('');
+        const labelsHtml = (issue.labels || []).map(l => {
+          const safeName = escapeHtml(String(l.name || '')).replace(/-/g, ' ');
+          return \`<span class="label-badge \${getLabelClass(l.name || '')}">\${safeName}</span>\`;
+        }).join('');
         document.getElementById('modalLabels').innerHTML = labelsHtml;
 
         const prDiv = document.getElementById('modalPR');
         if (issue.pr_url) {
-          prDiv.innerHTML = \`<a href="\${issue.pr_url}" target="_blank" class="pr-link">View generated PR →</a>\`;
+          const safeUrl = escapeHtml(issue.pr_url);
+          prDiv.innerHTML = \`<a href="\${safeUrl}" target="_blank" rel="noopener noreferrer" class="pr-link">View generated PR →</a>\`;
           prDiv.style.display = 'block';
         } else {
           prDiv.style.display = 'none';
