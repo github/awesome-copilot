@@ -3578,6 +3578,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "passadis",
+      "name": "Konstantinos Passadis | Azure MVP | MCT",
+      "avatar_url": "https://avatars.githubusercontent.com/u/53148138?v=4",
+      "profile": "https://www.cloudblogger.eu",
+      "contributions": [
+        "doc",
+        "content"
+      ]
     }
   ]
 }

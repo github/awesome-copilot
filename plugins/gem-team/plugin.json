@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "gem-team",
-  "version": "1.99.0",
+  "version": "1.102.0",
   "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
   "author": {
     "email": "mubaidr@gmail.com",
@@ -22,5 +22,27 @@
     "mobile"
   ],
   "license": "Apache-2.0",
-  "repository": "https://github.com/mubaidr/gem-team"
+  "repository": "https://github.com/mubaidr/gem-team",
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/gem-browser-tester.md",
+        "./agents/gem-code-simplifier.md",
+        "./agents/gem-critic.md",
+        "./agents/gem-debugger.md",
+        "./agents/gem-designer-mobile.md",
+        "./agents/gem-designer.md",
+        "./agents/gem-devops.md",
+        "./agents/gem-documentation-writer.md",
+        "./agents/gem-implementer-mobile.md",
+        "./agents/gem-implementer.md",
+        "./agents/gem-mobile-tester.md",
+        "./agents/gem-orchestrator.md",
+        "./agents/gem-planner.md",
+        "./agents/gem-researcher.md",
+        "./agents/gem-reviewer.md",
+        "./agents/gem-skill-creator.md"
+      ]
+    }
+  }
 }

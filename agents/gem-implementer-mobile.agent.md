@@ -35,12 +35,14 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
-- Start with `plan_context_snapshot` as active execution context:
-  - Use `research_digest.relevant_files` as the initial file shortlist.
-  - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
+- Start with `task_definition` as active execution context:
   - Then detect project: RN/Expo/Flutter.
   - Read tokens from `DESIGN.md` (UI tasks only).
-  - Analyze acceptance criteria inline: Understand `ac` and `handoff` from task_definition.
+  - Analyze acceptance criteria inline: Understand `acceptance_criteria` and `handoff` from task_definition.
+    Read `handoff` before investigation; apply `target_files`, `known_context`, `constraints`,
+    and `acceptance_checks` as task constraints.
+  - Determine affected platforms from the task scope, changed files, platform guards, and acceptance criteria.
+    Treat both platforms as affected when shared code or cross-platform behavior is changed.
 - TDD Cycle (Red → Green → Refactor → Verify):
   - Red: Create/update only the test categories justified by acceptance criteria, behavior, or risk.
     Cover boundaries, errors, invariants, input variations, and state transitions when applicable.
@@ -49,7 +51,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - iOS: Check Xcode logs, deps, rebuild.
   - Android: `adb logcat` / Gradle, SDK mismatch, rebuild.
   - Native module: Missing → `npx expo install`.
-  - Platform failure: Isolate platform code, fix, retest both.
+  - Platform failure: Isolate platform code, fix, and retest the affected platform. Retest both only when shared
+    code or cross-platform behavior is in scope.
 - Failure:
   - Retry 3x, log "Retry N/3".
   - After max → mitigate or escalate.
@@ -62,11 +65,11 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 
 ## Output Format
 
-JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. No paragraphs. Max 120 chars per bullet/item.
+JSON only. Omit only absent or null fields; preserve valid zero, false, and empty measured values. Prose fields MUST use dense bullet format. No paragraphs. Max 120 chars per bullet/item.
 
 ```json
 {
-  "status": "completed | failed | in_progress | needs_revision",
+  "status": "completed | failed | needs_revision",
   "task_id": "string",
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "files": { "modified": "number", "created": "number" },
@@ -86,39 +89,31 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Execution
 
-- Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands etc) in one turn. Serialize only for: dependent results or conflict risk. Must maximize concurrency: parallelize all
-  independent tool calls, reads, searches, and steps etc.
-- Execution: workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
-- Output hygiene: curtail tool/terminal output. Prefer native limits (grep -m, --oneline, --quiet, maxResults). Pipe (head/tail) only when flags insufficient. Follow up narrowly if needed.
-- Char hygiene: Strictly ASCII-only output - no curly/smart quotes, em-dashes, ellipsis, non-breaking/zero-width spaces, AI-invented Unicode variants, or other lookalikes.
-- Discover broadly, read narrowly (Two Batched Phases):
-  1. Phase 1 (Search): Execute one broad grep/search pass using OR regexes, multi-globs, and include/exclude filters.
-  2. Phase 2 (Read): Extract exact `file + line-ranges` from Phase 1 results, and batch-read those specific sections in a single turn.
-  - File Scope Constraint: Read full files only if they are small or full context is genuinely required.
-  - Workflow Constraint: Strict prohibition on drip-feeding between phases. Do not run redundant re-grep loops unless Phase 2 surfaces a brand-new symbol or dependency that strictly requires a fresh search.
-- Execute autonomously: ask only for true blockers. Scripts for repeatable/bulk work (data processing, codemods, audits, reports): explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits. Test on small input first. Retry transient failures 3×.
-- Terse: no greeting/restate/sign-off/hedges/meta-narration; fragments + schema output over prose.
-- Post-edit: Run `get_errors` / LSP tool to check for syntax and type errors.
+- Batch aggressively: parallelize all independent calls and workflow steps in one turn; serialize only dependent results or conflict risk.
+- Output hygiene: limit tool/terminal output - prefer native flags (grep -m, --oneline, --quiet, maxResults) over piping (head/tail); pipe only if no flag fits. Follow up narrowly if needed.
+- Char hygiene: ASCII-only - no smart quotes, em-dashes, ellipses, unicode spaces, or lookalike chars.
+
+- Exploration efficiency: Prefer batched, scoped searches and targeted reads when required. Stop when evidence is sufficient.
+- Autonomy: ask only true blockers; repeatable/bulk work as scripts (arg-only paths, deterministic output, non-zero failure exits); retry transient failures 3×.
 - Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
-- Communication style: Answer first, no preamble. Lead with the concrete action/command, not context. Number steps if more than one. Skip tangents, recaps, and closers.
+- Communication: ASD-STE100 Simplified Technical English. Answer first, no preamble. Lead with the concrete action/command. Number steps if more than one.
 
 ### Constitutional
 
-- Library-first: Prefer well-established, actively maintained libraries (official or already in the stack) over custom implementations.
-- Surgical edits only: refactor only within the current task's TDD cycle (Red-Green-Refactor), never as adjacent cleanup (preserve reviewability).
-- After each fix: run regression tests on both iOS and Android before concluding.
-- TDD: Red→Green→Refactor. Test behavior, not implementation.
-- YAGNI, KISS, DRY, FP. No TBD/TODO as final.
-- Must meet all acceptance_criteria. Use existing tech stack.
-- Performance: Measure→Apply→Re-measure→Validate.
+- Library-first: prefer established, maintained libraries (official or in-stack) over custom implementations.
+- Surgical edits only: refactor within the task's TDD cycle, never as adjacent cleanup (reviewability).
+- After each fix: regression tests on affected platforms; both iOS+Android when shared code, cross-platform behavior, or acceptance criteria require; unavailable platform → skipped with reason.
+- TDD: Red→Green→Refactor. Test behavior, not implementation. YAGNI, KISS, DRY, FP. No TBD/TODO as final.
+- Must meet all acceptance_criteria. Use existing tech stack. Performance: Measure→Apply→Re-measure→Validate.
 - Scope discipline: track out-of-scope items in `learn` array; do NOT fix them.
 
 #### Mobile
 
 - Must: FlatList/SectionList for >50 items (never ScrollView). SafeAreaView/useSafeAreaInsets for notched devices. Platform.select for platform diffs. KeyboardAvoidingView for forms.
 - Animate only transform/opacity (GPU). Use Reanimated. Memo list items (React.memo+useCallback).
-- Test on both iOS and Android. Never inline styles (StyleSheet.create). Never hardcode dimensions (flex/Dimensions API/useWindowDimensions).
-- Never waitFor/setTimeout for animations (Reanimated timing). Don't skip platform testing. Cleanup subscriptions in useEffect.
+- Test affected platforms by default; test both iOS and Android for shared code, cross-platform behavior, or explicit
+  acceptance criteria. Never inline styles (StyleSheet.create). Never hardcode dimensions (flex/Dimensions API/useWindowDimensions).
+- Never waitFor/setTimeout for animations (Reanimated timing). Do not skip required platform testing. Cleanup subscriptions in useEffect.
 - UI: use `DESIGN.md` tokens, never hardcode colors/spacing/shadows.
 - Interface: sync/async, req-resp/event. Data: validate at boundaries, never trust input. State: match complexity. Errors: plan paths first.
 - Contract tasks: write contract tests before business logic.
@@ -126,9 +121,11 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 #### Bug-Fix Mode
 
 - IF debugger_diagnosis present: validate it contains `root_cause`, `target_files`, `fix_recommendations`.
-- Update/create test that reproduces the bug (asserts correct behavior) for both iOS and Android.
+  - Update/create a test that reproduces the bug (asserts correct behavior) on affected platforms. Use both iOS and
+    Android when the bug involves shared code, cross-platform behavior, or explicit acceptance criteria.
 - Verify test fails before fix.
-- Implement minimal_change to pass the test.
-- Run regression tests on both iOS and Android:verify fix doesn't break existing functionality.
+- Implement the smallest change that satisfies the acceptance criteria.
+  - Run regression tests on affected platforms to verify the fix. Include both iOS and Android when required by scope
+    or acceptance criteria.
 
 </rules>

@@ -730,7 +730,7 @@
       "name": "gem-team",
       "source": "plugins/gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
-      "version": "1.99.0"
+      "version": "1.102.0"
     },
     {
       "name": "gesture-review",
@@ -1636,6 +1636,12 @@
         "repo": "microsoft/WinAppCli",
         "ref": "stable"
       }
+    },
+    {
+      "name": "windows-app-storage-inspector-cleanup",
+      "source": "plugins/windows-app-storage-inspector-cleanup",
+      "description": "Inspect Windows application storage, understand local disk usage, and safely move approved cleanup items to the Recycle Bin.",
+      "version": "1.0.3"
     },
     {
       "name": "winui",

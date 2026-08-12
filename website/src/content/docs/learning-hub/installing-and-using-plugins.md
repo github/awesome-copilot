@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-04
+lastUpdated: 2026-08-10
 relatedArticles:
   - ./building-custom-agents.md
   - ./creating-effective-skills.md
@@ -29,6 +29,8 @@ A plugin bundles one or more of the following components:
 | **MCP Servers** | Model Context Protocol integrations for external tools | `.mcp.json` or `.github/mcp.json` |
 | **LSP Servers** | Language Server Protocol integrations | `lsp.json` or `.github/lsp.json` |
 | **Extensions** | IDE extensions installable via the plugin marketplace (v1.0.62+) | `extensions/` |
+
+> *(v1.0.79+)* Agent Plugins spec plugins can also ship canvas extensions under a `com.github.copilot/extensions/` directory inside the plugin, so a single plugin package can bundle agents, skills, and canvas extensions together.
 
 A plugin might include all of these or just one — for example, a plugin could provide a single specialized agent, or an entire development toolkit with multiple agents, skills, hooks, and MCP server configurations working together.
 
@@ -154,6 +156,22 @@ To automatically register an additional marketplace for everyone working in a re
 ```
 
 With this in place, team members automatically get the `my-org-plugins` marketplace available without running a separate `marketplace add` command. This replaces the older `marketplaces` setting, which was removed in v1.0.16.
+
+**Auto-updating team marketplaces** *(v1.0.79+)*: Set `"autoUpdate": true` on an `extraKnownMarketplaces` entry to have that marketplace's plugins update automatically at the start of each session, without requiring a manual `copilot plugin marketplace update` or `copilot plugin update`:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "autoUpdate": true
+    }
+  ]
+}
+```
+
+This is useful for internal marketplaces where you want every team member to always be running the latest published plugin versions.
 
 ### Pinning a Marketplace to a Specific Commit
 
