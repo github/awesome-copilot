@@ -11,8 +11,8 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: contributor-check-writer-${{ github.event.workflow_run.id }}
-  cancel-in-progress: false
+  group: ccw-${{ github.event.workflow_run.head_repository.id || 'unknown-repo' }}-${{ github.event.workflow_run.head_branch || 'unknown-branch' }}
+  cancel-in-progress: true
 
 jobs:
   sync-pr-state:
@@ -37,6 +37,7 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
+            const workflowRun = context.payload.workflow_run;
             const resultPath = path.join(process.env.RUNNER_TEMP, 'contributor-check-result', 'result.json');
             const raw = fs.readFileSync(resultPath, 'utf8');
             const result = JSON.parse(raw);
@@ -50,6 +51,9 @@ jobs:
             if (result.event !== 'pull_request') fail('unexpected event');
             if (!Number.isInteger(result.pr_number) || result.pr_number < 1) fail('invalid pr_number');
             if (!/^[0-9a-f]{40}$/i.test(String(result.head_sha || ''))) fail('invalid head_sha');
+            if (workflowRun.event !== 'pull_request') fail('unexpected workflow_run event');
+            if (String(result.run_id || '') !== String(workflowRun.id)) fail('run_id did not match workflow_run');
+            if (result.head_sha !== workflowRun.head_sha) fail('head_sha did not match workflow_run');
             for (const key of ['profile_risk', 'credential_risk', 'overall_risk']) {
               if (!allowedRisks.has(result[key])) fail(`invalid ${key}`);
             }
@@ -60,13 +64,54 @@ jobs:
               pull_number: result.pr_number,
             });
 
-            if (pr.head.sha !== result.head_sha) {
-              core.warning(`Skipping stale contributor result for PR #${result.pr_number}: artifact head ${result.head_sha}, current head ${pr.head.sha}`);
-              return;
-            }
             if (pr.state !== 'open') {
               core.info(`Skipping contributor result for non-open PR #${result.pr_number}.`);
               return;
+            }
+            const expectedBaseRepository = `${context.repo.owner}/${context.repo.repo}`.toLowerCase();
+            const runHeadRepository = String(workflowRun.head_repository?.full_name || '');
+            const runHeadRepositoryParts = runHeadRepository.split('/');
+            const runHeadRef = String(workflowRun.head_branch || '');
+            if (String(pr.base?.repo?.full_name || '').toLowerCase() !== expectedBaseRepository) {
+              fail(`PR #${result.pr_number} does not target this repository`);
+            }
+            if (pr.head.sha !== workflowRun.head_sha) {
+              core.warning(`Skipping stale contributor result for PR #${result.pr_number}: artifact head ${result.head_sha}, current head ${pr.head.sha}`);
+              return;
+            }
+            if (
+              runHeadRepositoryParts.length !== 2 ||
+              !runHeadRepositoryParts[0] ||
+              !runHeadRepositoryParts[1] ||
+              !runHeadRef ||
+              String(pr.head?.repo?.full_name || '').toLowerCase() !== runHeadRepository.toLowerCase() ||
+              String(pr.head?.ref || '') !== runHeadRef
+            ) {
+              fail(`PR #${result.pr_number} head did not match workflow_run`);
+            }
+
+            const workflowRunPullRequests = Array.isArray(workflowRun.pull_requests) ? workflowRun.pull_requests : [];
+            if (workflowRunPullRequests.length > 0) {
+              if (!workflowRunPullRequests.some((pullRequest) => pullRequest.number === result.pr_number)) {
+                fail(`PR #${result.pr_number} was not present in workflow_run.pull_requests`);
+              }
+            } else {
+              const candidatePullRequests = await github.paginate(github.rest.pulls.list, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${runHeadRepositoryParts[0]}:${runHeadRef}`,
+                per_page: 100,
+              });
+              const trustedMatches = candidatePullRequests.filter((candidate) =>
+                candidate.head?.sha === workflowRun.head_sha &&
+                String(candidate.head?.ref || '') === runHeadRef &&
+                String(candidate.head?.repo?.full_name || '').toLowerCase() === runHeadRepository.toLowerCase() &&
+                String(candidate.base?.repo?.full_name || '').toLowerCase() === expectedBaseRepository
+              );
+              if (trustedMatches.length !== 1 || trustedMatches[0].number !== result.pr_number) {
+                fail(`PR #${result.pr_number} could not be uniquely associated with workflow_run`);
+              }
             }
 
             const issueNumber = pr.number;

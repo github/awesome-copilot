@@ -12,8 +12,8 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: external-plugin-pr-quality-writer-${{ github.event.workflow_run.id }}
-  cancel-in-progress: false
+  group: epqw-${{ github.event.workflow_run.head_repository.id || 'unknown-repo' }}-${{ github.event.workflow_run.head_branch || 'unknown-branch' }}
+  cancel-in-progress: true
 
 jobs:
   sync-pr-state:
@@ -46,6 +46,7 @@ jobs:
             const path = require('path');
             const { pathToFileURL } = require('url');
 
+            const workflowRun = context.payload.workflow_run;
             const artifactPath = path.join(process.env.RUNNER_TEMP, 'external-plugin-pr-quality-result', 'result.json');
             const payload = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
             const allowedJobResults = new Set(['success', 'failure', 'cancelled', 'skipped']);
@@ -60,6 +61,9 @@ jobs:
             if (!/^[0-9a-f]{40}$/i.test(String(payload.head_sha || ''))) fail('invalid head_sha');
             if (!/^[0-9a-f]{40}$/i.test(String(payload.base_sha || ''))) fail('invalid base_sha');
             if (payload.base_ref !== 'main') fail('unexpected base_ref');
+            if (workflowRun.event !== 'pull_request') fail('unexpected workflow_run event');
+            if (String(payload.run_id || '') !== String(workflowRun.id)) fail('run_id did not match workflow_run');
+            if (payload.head_sha !== workflowRun.head_sha) fail('head_sha did not match workflow_run');
             if (!allowedJobResults.has(payload.detect_job_result)) fail('invalid detect_job_result');
             if (!allowedJobResults.has(payload.quality_job_result)) fail('invalid quality_job_result');
             if (!Number.isInteger(payload.changed_count) || payload.changed_count < 0 || payload.changed_count > 1000) fail('invalid changed_count');
@@ -76,9 +80,50 @@ jobs:
               core.info(`Skipping non-open PR #${payload.pr_number}.`);
               return;
             }
-            if (pr.head.sha !== payload.head_sha) {
+            const expectedBaseRepository = `${context.repo.owner}/${context.repo.repo}`.toLowerCase();
+            const runHeadRepository = String(workflowRun.head_repository?.full_name || '');
+            const runHeadRepositoryParts = runHeadRepository.split('/');
+            const runHeadRef = String(workflowRun.head_branch || '');
+            if (String(pr.base?.repo?.full_name || '').toLowerCase() !== expectedBaseRepository) {
+              fail(`PR #${payload.pr_number} does not target this repository`);
+            }
+            if (pr.head.sha !== workflowRun.head_sha) {
               core.warning(`Skipping stale external plugin result for PR #${payload.pr_number}: artifact head ${payload.head_sha}, current head ${pr.head.sha}`);
               return;
+            }
+            if (
+              runHeadRepositoryParts.length !== 2 ||
+              !runHeadRepositoryParts[0] ||
+              !runHeadRepositoryParts[1] ||
+              !runHeadRef ||
+              String(pr.head?.repo?.full_name || '').toLowerCase() !== runHeadRepository.toLowerCase() ||
+              String(pr.head?.ref || '') !== runHeadRef
+            ) {
+              fail(`PR #${payload.pr_number} head did not match workflow_run`);
+            }
+
+            const workflowRunPullRequests = Array.isArray(workflowRun.pull_requests) ? workflowRun.pull_requests : [];
+            if (workflowRunPullRequests.length > 0) {
+              if (!workflowRunPullRequests.some((pullRequest) => pullRequest.number === payload.pr_number)) {
+                fail(`PR #${payload.pr_number} was not present in workflow_run.pull_requests`);
+              }
+            } else {
+              const candidatePullRequests = await github.paginate(github.rest.pulls.list, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${runHeadRepositoryParts[0]}:${runHeadRef}`,
+                per_page: 100,
+              });
+              const trustedMatches = candidatePullRequests.filter((candidate) =>
+                candidate.head?.sha === workflowRun.head_sha &&
+                String(candidate.head?.ref || '') === runHeadRef &&
+                String(candidate.head?.repo?.full_name || '').toLowerCase() === runHeadRepository.toLowerCase() &&
+                String(candidate.base?.repo?.full_name || '').toLowerCase() === expectedBaseRepository
+              );
+              if (trustedMatches.length !== 1 || trustedMatches[0].number !== payload.pr_number) {
+                fail(`PR #${payload.pr_number} could not be uniquely associated with workflow_run`);
+              }
             }
             if (pr.base.ref !== 'main' || pr.base.sha !== payload.base_sha) {
               core.warning(`Skipping external plugin result for PR #${payload.pr_number}: base branch/ref changed since the read-only run.`);
@@ -320,6 +365,23 @@ jobs:
                 ? `<pre><code>${escapeHtml(String(qualityResult.summary).trim())}</code></pre>`
                 : '_No summary provided._',
             ].join('\n');
+            const MAX_COMMENT_BODY_BYTES = 60000;
+            const truncationNotice = '\n\n_Additional gate output was truncated to fit GitHub comment limits._';
+            const truncateUtf8 = (value, maxBytes) => {
+              const encoded = Buffer.from(value, 'utf8');
+              if (encoded.length <= maxBytes) {
+                return value;
+              }
+
+              let end = maxBytes;
+              while (end > 0 && (encoded[end] & 0xc0) === 0x80) {
+                end -= 1;
+              }
+              return encoded.subarray(0, end).toString('utf8');
+            };
+            const boundedBody = Buffer.byteLength(body, 'utf8') <= MAX_COMMENT_BODY_BYTES
+              ? body
+              : `${truncateUtf8(body, MAX_COMMENT_BODY_BYTES - Buffer.byteLength(truncationNotice, 'utf8'))}${truncationNotice}`;
 
             await intakeState.upsertExternalPluginIntakeComment({
               github,
@@ -327,7 +389,7 @@ jobs:
               repo: context.repo.repo,
               issueNumber: payload.pr_number,
               marker,
-              body,
+              body: boundedBody,
             });
 
       - name: Note missing artifact

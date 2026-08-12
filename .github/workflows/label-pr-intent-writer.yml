@@ -11,8 +11,8 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: label-pr-intent-writer-${{ github.event.workflow_run.id }}
-  cancel-in-progress: false
+  group: lpiw-${{ github.event.workflow_run.head_repository.id || 'unknown-repo' }}-${{ github.event.workflow_run.head_branch || 'unknown-branch' }}
+  cancel-in-progress: true
 
 jobs:
   apply-labels:
@@ -37,6 +37,7 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
+            const workflowRun = context.payload.workflow_run;
             const resultPath = path.join(process.env.RUNNER_TEMP, 'label-pr-intent-result', 'result.json');
             const result = JSON.parse(fs.readFileSync(resultPath, 'utf8'));
             const managedLabels = new Set([
@@ -60,6 +61,9 @@ jobs:
             if (result.event !== 'pull_request') fail('unexpected event');
             if (!Number.isInteger(result.pr_number) || result.pr_number < 1) fail('invalid pr_number');
             if (!/^[0-9a-f]{40}$/i.test(String(result.head_sha || ''))) fail('invalid head_sha');
+            if (workflowRun.event !== 'pull_request') fail('unexpected workflow_run event');
+            if (String(result.run_id || '') !== String(workflowRun.id)) fail('run_id did not match workflow_run');
+            if (result.head_sha !== workflowRun.head_sha) fail('head_sha did not match workflow_run');
             if (!Array.isArray(result.desired_labels) || result.desired_labels.length > managedLabels.size) fail('invalid desired_labels');
             if (!Array.isArray(result.managed_labels)) fail('invalid managed_labels');
             for (const label of result.managed_labels) {
@@ -78,9 +82,50 @@ jobs:
               core.info(`Skipping non-open PR #${result.pr_number}.`);
               return;
             }
-            if (pr.head.sha !== result.head_sha) {
+            const expectedBaseRepository = `${context.repo.owner}/${context.repo.repo}`.toLowerCase();
+            const runHeadRepository = String(workflowRun.head_repository?.full_name || '');
+            const runHeadRepositoryParts = runHeadRepository.split('/');
+            const runHeadRef = String(workflowRun.head_branch || '');
+            if (String(pr.base?.repo?.full_name || '').toLowerCase() !== expectedBaseRepository) {
+              fail(`PR #${result.pr_number} does not target this repository`);
+            }
+            if (pr.head.sha !== workflowRun.head_sha) {
               core.warning(`Skipping stale label intent result for PR #${result.pr_number}: artifact head ${result.head_sha}, current head ${pr.head.sha}`);
               return;
+            }
+            if (
+              runHeadRepositoryParts.length !== 2 ||
+              !runHeadRepositoryParts[0] ||
+              !runHeadRepositoryParts[1] ||
+              !runHeadRef ||
+              String(pr.head?.repo?.full_name || '').toLowerCase() !== runHeadRepository.toLowerCase() ||
+              String(pr.head?.ref || '') !== runHeadRef
+            ) {
+              fail(`PR #${result.pr_number} head did not match workflow_run`);
+            }
+
+            const workflowRunPullRequests = Array.isArray(workflowRun.pull_requests) ? workflowRun.pull_requests : [];
+            if (workflowRunPullRequests.length > 0) {
+              if (!workflowRunPullRequests.some((pullRequest) => pullRequest.number === result.pr_number)) {
+                fail(`PR #${result.pr_number} was not present in workflow_run.pull_requests`);
+              }
+            } else {
+              const candidatePullRequests = await github.paginate(github.rest.pulls.list, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${runHeadRepositoryParts[0]}:${runHeadRef}`,
+                per_page: 100,
+              });
+              const trustedMatches = candidatePullRequests.filter((candidate) =>
+                candidate.head?.sha === workflowRun.head_sha &&
+                String(candidate.head?.ref || '') === runHeadRef &&
+                String(candidate.head?.repo?.full_name || '').toLowerCase() === runHeadRepository.toLowerCase() &&
+                String(candidate.base?.repo?.full_name || '').toLowerCase() === expectedBaseRepository
+              );
+              if (trustedMatches.length !== 1 || trustedMatches[0].number !== result.pr_number) {
+                fail(`PR #${result.pr_number} could not be uniquely associated with workflow_run`);
+              }
             }
 
             const desiredLabels = new Set(result.desired_labels);

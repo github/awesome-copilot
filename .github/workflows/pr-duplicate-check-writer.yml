@@ -11,8 +11,8 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: pr-duplicate-check-writer-${{ github.event.workflow_run.id }}
-  cancel-in-progress: false
+  group: pdcw-${{ github.event.workflow_run.head_repository.id || 'unknown-repo' }}-${{ github.event.workflow_run.head_branch || 'unknown-branch' }}
+  cancel-in-progress: true
 
 jobs:
   process-safe-output:
@@ -70,13 +70,17 @@ jobs:
             if (!/^[0-9a-f]{40}$/i.test(String(prContext.head_sha || ''))) {
               throw new Error('Invalid PR context head_sha.');
             }
-
-            const prNumber = prContext.pr_number;
-            const pullRequests = Array.isArray(workflowRun.pull_requests) ? workflowRun.pull_requests : [];
-            if (pullRequests.length > 0 && !pullRequests.some((pullRequest) => pullRequest.number === prNumber)) {
-              throw new Error(`PR context number ${prNumber} was not present in workflow_run.pull_requests.`);
+            if (workflowRun.event !== 'pull_request') {
+              throw new Error('Invalid workflow_run event.');
+            }
+            if (String(prContext.run_id || '') !== String(workflowRun.id)) {
+              throw new Error('PR context run_id did not match workflow_run.');
+            }
+            if (prContext.head_sha !== workflowRun.head_sha) {
+              throw new Error('PR context head_sha did not match workflow_run.');
             }
 
+            const prNumber = prContext.pr_number;
             const { data: pr } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -86,12 +90,50 @@ jobs:
               core.info(`Skipping non-open PR #${prNumber}.`);
               return;
             }
-            if (pr.base?.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`) {
+            const expectedBaseRepository = `${context.repo.owner}/${context.repo.repo}`.toLowerCase();
+            const runHeadRepository = String(workflowRun.head_repository?.full_name || '');
+            const runHeadRepositoryParts = runHeadRepository.split('/');
+            const runHeadRef = String(workflowRun.head_branch || '');
+            if (String(pr.base?.repo?.full_name || '').toLowerCase() !== expectedBaseRepository) {
               throw new Error(`PR #${prNumber} base repository ${pr.base?.repo?.full_name || '<unknown>'} is not this repository.`);
             }
-            if (pr.head.sha !== prContext.head_sha) {
+            if (pr.head.sha !== workflowRun.head_sha) {
               core.warning(`Skipping stale PR duplicate output for PR #${prNumber}: artifact head ${prContext.head_sha}, current head ${pr.head.sha}`);
               return;
+            }
+            if (
+              runHeadRepositoryParts.length !== 2 ||
+              !runHeadRepositoryParts[0] ||
+              !runHeadRepositoryParts[1] ||
+              !runHeadRef ||
+              String(pr.head?.repo?.full_name || '').toLowerCase() !== runHeadRepository.toLowerCase() ||
+              String(pr.head?.ref || '') !== runHeadRef
+            ) {
+              throw new Error(`PR #${prNumber} head did not match workflow_run.`);
+            }
+
+            const workflowRunPullRequests = Array.isArray(workflowRun.pull_requests) ? workflowRun.pull_requests : [];
+            if (workflowRunPullRequests.length > 0) {
+              if (!workflowRunPullRequests.some((pullRequest) => pullRequest.number === prNumber)) {
+                throw new Error(`PR context number ${prNumber} was not present in workflow_run.pull_requests.`);
+              }
+            } else {
+              const candidatePullRequests = await github.paginate(github.rest.pulls.list, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${runHeadRepositoryParts[0]}:${runHeadRef}`,
+                per_page: 100,
+              });
+              const trustedMatches = candidatePullRequests.filter((candidate) =>
+                candidate.head?.sha === workflowRun.head_sha &&
+                String(candidate.head?.ref || '') === runHeadRef &&
+                String(candidate.head?.repo?.full_name || '').toLowerCase() === runHeadRepository.toLowerCase() &&
+                String(candidate.base?.repo?.full_name || '').toLowerCase() === expectedBaseRepository
+              );
+              if (trustedMatches.length !== 1 || trustedMatches[0].number !== prNumber) {
+                throw new Error(`PR context number ${prNumber} could not be uniquely associated with workflow_run.`);
+              }
             }
 
             function collectCandidate(value, targetCandidates) {
