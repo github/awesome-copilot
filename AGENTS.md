@@ -9,7 +9,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 - **Skills** - Self-contained folders with instructions and bundled resources for specialized tasks
 - **Hooks** - Automated workflows triggered by specific events during development
 - **Workflows** - [Agentic Workflows](https://github.github.com/gh-aw) for AI-powered repository automation in GitHub Actions
-- **Plugins** - Installable packages that group related agents, commands, and skills around specific themes
+- **Plugins** - Installable packages that group related agents, hooks, and skills around specific themes
 
 ## Repository Structure
 
@@ -120,7 +120,7 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 - plugin.json must have `name` field (matching the folder name)
 - plugin.json must have `description` field (describing the plugin's purpose)
 - plugin.json must have `version` field (semantic version, e.g., "1.0.0")
-- Plugin content is defined declaratively in plugin.json under `extensions.com.github.awesome-copilot` using source-only composition fields (`agents`, `commands`, `hooks`, `skills`, and `extensions`). Source files live in top-level directories and are materialized into plugins by CI. This namespace is stripped from the served manifest — conventional directory discovery handles the materialized content in spec mode.
+- Plugin content is defined declaratively in plugin.json under `extensions.com.github.awesome-copilot` using source-only composition fields (`agents`, `hooks`, `skills`, and `extensions`). Source files live in top-level directories and are materialized into plugins by CI. This namespace is stripped from the served manifest — skills use the standard `skills/` directory and Copilot-specific content uses `com.github.copilot/`.
 - The `marketplace.json` file is automatically generated from all plugins during build
 - Plugins are discoverable and installable via GitHub Copilot CLI
 
@@ -165,7 +165,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 **For Plugins:**
 
 1. Run `npm run plugin:create -- --name <plugin-name>` to scaffold a new plugin
-2. Define agents, commands, hooks, skills, and reusable extensions under `extensions.com.github.awesome-copilot` in `plugin.json`
+2. Define agents, hooks, skills, and reusable extensions under `extensions.com.github.awesome-copilot` in `plugin.json`
 3. Edit the generated `plugin.json` with your metadata
 4. Run `npm run plugin:validate` to validate the plugin structure
 5. Run `npm run build` to update README.md and marketplace.json
