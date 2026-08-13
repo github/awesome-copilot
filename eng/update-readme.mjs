@@ -800,7 +800,6 @@ function generatePluginsSection(pluginsDir) {
       : 0;
     const itemCount =
       (composition.agents || []).length +
-      (composition.commands || []).length +
       (composition.skills || []).length +
       extensionReferences +
       implicitExtension;
@@ -869,7 +868,6 @@ function generateFeaturedPluginsSection(pluginsDir) {
             : 0;
           const itemCount =
             (composition.agents || []).length +
-            (composition.commands || []).length +
             (composition.skills || []).length +
             extensionReferences +
             implicitExtension;
