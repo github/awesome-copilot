@@ -618,10 +618,9 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
         }
       }
 
-      // Build items list from spec fields (agents, commands, skills, mcpServers)
+      // Build items list from supported composition fields.
       const items = [
         ...agentItems,
-        ...(composition.commands || []).map((p) => ({ kind: "prompt", path: p })),
         ...(composition.skills || []).map((p) => ({ kind: "skill", path: p })),
         ...extensionItems,
         ...mcpItems,

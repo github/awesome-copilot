@@ -9,6 +9,7 @@ const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const COPILOT_NAMESPACE = "com.github.copilot";
 const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
+const COPILOT_CONTENT_DIR = COPILOT_NAMESPACE;
 
 /**
  * Recursively copy a directory.
@@ -48,9 +49,6 @@ function resolveSource(relPath) {
   }
   if (relPath.startsWith("./hooks/")) {
     return path.join(ROOT_FOLDER, "hooks", relPath.replace(/^\.\/hooks\//, ""));
-  }
-  if (relPath.startsWith("./commands/")) {
-    return path.join(ROOT_FOLDER, "commands", relPath.replace(/^\.\/commands\//, ""));
   }
   return null;
 }
@@ -114,7 +112,7 @@ export function materializePlugins() {
     const composition = metadata.extensions?.[AWESOME_COPILOT_NAMESPACE] ?? {};
 
     // Process repository composition fields.
-    for (const field of ["agents", "commands", "hooks", "skills"]) {
+    for (const field of ["agents", "hooks", "skills"]) {
       const entries = composition[field];
       if (!Array.isArray(entries)) continue;
       for (const relPath of entries) {
@@ -129,7 +127,10 @@ export function materializePlugins() {
           warnings++;
           continue;
         }
-        const dest = path.join(pluginPath, relPath.replace(/^\.\//, "").replace(/\/$/, ""));
+        const relativeDestination = relPath.replace(/^\.\//, "").replace(/\/$/, "");
+        const dest = field === "skills"
+          ? path.join(pluginPath, relativeDestination)
+          : path.join(pluginPath, COPILOT_CONTENT_DIR, relativeDestination);
         fs.mkdirSync(path.dirname(dest), { recursive: true });
         if (fs.statSync(src).isDirectory()) copyDirRecursive(src, dest);
         else fs.copyFileSync(src, dest);
@@ -153,17 +154,16 @@ export function materializePlugins() {
         warnings++;
         continue;
       }
-      // Extensions are conventional plugin content and belong under the
-      // plugin's top-level extensions directory, not the client namespace.
-      const dest = path.join(pluginPath, "extensions", extensionName);
+      const dest = path.join(pluginPath, COPILOT_CONTENT_DIR, "extensions", extensionName);
       copyDirRecursive(src, dest);
       totalExtensions++;
     }
 
     // Emit a spec-compliant served manifest for the marketplace branch.
-    // Source manifests keep composition fields (agents and skills)
-    // for build tooling. The served manifest retains only Agent Plugins v1.0.0 fields
-    // so the runtime uses conventional directory discovery for all content.
+    // Source manifests keep repository composition fields for build tooling.
+    // The served manifest retains only Agent Plugins v1.0.0 fields; standard
+    // skills are discovered from skills/, while Copilot-specific content is
+    // discovered from com.github.copilot/.
     const SPEC_FIELDS = new Set(["$schema", "name", "version", "description", "author",
       "homepage", "repository", "license", "keywords", "extensions"]);
     const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";

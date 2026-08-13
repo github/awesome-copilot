@@ -120,7 +120,6 @@ function validateSpecPaths(plugin) {
   const errors = [];
   const specs = {
     agents: { prefix: "./agents/", suffix: ".md", repoDir: "agents", repoSuffix: ".agent.md" },
-    commands: { prefix: "./commands/", suffix: ".md", repoDir: "commands", repoSuffix: ".md" },
     hooks: { prefix: "./hooks/", suffix: "/", repoDir: "hooks", repoFile: "README.md" },
     skills: { prefix: "./skills/", suffix: "/", repoDir: "skills", repoFile: "SKILL.md" },
   };
@@ -215,7 +214,7 @@ function validateExtensionReferences(plugin, pluginDir) {
 
 function validateCompositionNamespace(plugin) {
   const errors = [];
-  const compositionFields = ["agents", "commands", "hooks", "mcpServers", "skills"];
+  const compositionFields = ["agents", "hooks", "mcpServers", "skills"];
   const extensions = plugin.extensions;
   const composition = extensions?.[AWESOME_COPILOT_NAMESPACE];
 
@@ -291,7 +290,7 @@ function validatePlugin(folderName) {
 
   // Rule 5b: license (shared with external plugins). Non-SPDX is a warning, not an error.
   const warnings = [];
-  for (const field of ["agents", "commands", "hooks", "mcpServers", "skills"]) {
+  for (const field of ["agents", "hooks", "mcpServers", "skills"]) {
     if (plugin[field] !== undefined) {
       errors.push(`${field} must be moved to extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}`);
     }
@@ -301,7 +300,7 @@ function validatePlugin(folderName) {
   errors.push(...licenseResult.errors);
   warnings.push(...licenseResult.warnings);
 
-  // Rule 6: agents, commands, skills paths
+  // Rule 6: agents, hooks, and skills paths
   const specErrors = validateSpecPaths(plugin);
   errors.push(...specErrors);
 
