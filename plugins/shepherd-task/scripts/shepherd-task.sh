@@ -6,17 +6,33 @@
 # Orchestrates two phases by launching separate `copilot --yolo` sessions.
 # Between phases, verifies state using gh CLI (not copilot exit codes).
 #
-# Usage: ./shepherd-task.sh <TASK_ISSUE> <BASE_BRANCH> <REPO>
+# Usage: ./shepherd-task.sh <TASK_ISSUE> <CAMPAIGN_METADATA_DIRECTORY> <RUN_DIRECTORY>
 
 set -euo pipefail
 
-TASK_ISSUE="${1:?Usage: $0 <TASK_ISSUE> <BASE_BRANCH> <REPO> [LOG_DIR]}"
-BASE_BRANCH="${2:?Usage: $0 <TASK_ISSUE> <BASE_BRANCH> <REPO> [LOG_DIR]}"
-REPO="${3:?Usage: $0 <TASK_ISSUE> <BASE_BRANCH> <REPO> [LOG_DIR]}"
-LOG_DIR="${4:-shepherd-tasks-$(date +%Y%m%d-%H%M)}"
-
-mkdir -p "$LOG_DIR"
+TASK_ISSUE="${1:?Usage: $0 <TASK_ISSUE> <CAMPAIGN_METADATA_DIRECTORY> <RUN_DIRECTORY>}"
+CAMPAIGN_METADATA_DIRECTORY="${2:?Usage: $0 <TASK_ISSUE> <CAMPAIGN_METADATA_DIRECTORY> <RUN_DIRECTORY>}"
+LOG_DIR="${3:?Usage: $0 <TASK_ISSUE> <CAMPAIGN_METADATA_DIRECTORY> <RUN_DIRECTORY>}"
+[[ "$TASK_ISSUE" =~ ^[1-9][0-9]*$ ]] || { echo "TASK_ISSUE must be a positive issue number." >&2; exit 1; }
+[[ "$CAMPAIGN_METADATA_DIRECTORY" =~ ^[1-9][0-9]*-[a-z0-9][a-z0-9-]*-remove-before-merge$ ]] ||
+    { echo "Invalid campaign metadata directory name." >&2; exit 1; }
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+CAMPAIGN_PATH="$REPO_ROOT/$CAMPAIGN_METADATA_DIRECTORY"
+MANIFEST_PATH="$CAMPAIGN_PATH/shepherd-campaign.json"
+[[ -f "$MANIFEST_PATH" && -d "$LOG_DIR" ]] || { echo "Invalid campaign or run directory." >&2; exit 1; }
+CAMPAIGN_ID="$(jq -r '.campaignId' "$MANIFEST_PATH")"
+BASE_BRANCH="$(jq -r '.baseBranch' "$MANIFEST_PATH")"
+REPO="$(jq -r '.repository' "$MANIFEST_PATH")"
+LESSON_PROPAGATION="$(jq -r '.lessonPropagation' "$MANIFEST_PATH")"
+[[ "$(jq -r '.campaignMetadataDirectory' "$MANIFEST_PATH")" == "$CAMPAIGN_METADATA_DIRECTORY" ]] ||
+    { echo "Manifest directory does not match supplied directory." >&2; exit 1; }
+[[ "$LESSON_PROPAGATION" == "off" || "$LESSON_PROPAGATION" == "campaign" ]] ||
+    { echo "Invalid campaign lesson propagation mode." >&2; exit 1; }
+[[ -f "$CAMPAIGN_PATH/campaign-lessons.md" ]] || { echo "Campaign lessons file not found." >&2; exit 1; }
+EXPECTED_RUN_PARENT="$(cd "$CAMPAIGN_PATH" && pwd -P)"
+ACTUAL_RUN_PARENT="$(cd "$(dirname "$LOG_DIR")" && pwd -P)"
+[[ "$ACTUAL_RUN_PARENT" == "$EXPECTED_RUN_PARENT" ]] || { echo "Run directory is not inside the campaign metadata directory." >&2; exit 1; }
 
 # --- Helpers ---
 
@@ -108,7 +124,10 @@ else
 
 - TASK_ISSUE: $TASK_ISSUE
 - BASE_BRANCH: $BASE_BRANCH
-- REPO: $REPO"
+- REPO: $REPO
+- CAMPAIGN_ID: $CAMPAIGN_ID
+- CAMPAIGN_METADATA_DIRECTORY: $CAMPAIGN_METADATA_DIRECTORY
+- LESSON_PROPAGATION: $LESSON_PROPAGATION"
 
     status "Phase 1 prompt:"
     echo "$PHASE1_PROMPT"
@@ -159,6 +178,9 @@ else
 - TASK_ISSUE: $TASK_ISSUE
 - BASE_BRANCH: $BASE_BRANCH
 - REPO: $REPO
+- CAMPAIGN_ID: $CAMPAIGN_ID
+- CAMPAIGN_METADATA_DIRECTORY: $CAMPAIGN_METADATA_DIRECTORY
+- LESSON_PROPAGATION: $LESSON_PROPAGATION
 - PR_NUMBER: $PR_NUMBER"
 
     status "Phase 2 prompt:"

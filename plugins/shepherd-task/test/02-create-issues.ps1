@@ -170,10 +170,11 @@ $orderedIssueList = $issueNumbers -join ','
 Write-Host ''
 Write-Host 'Stage 20 completed successfully.'
 Write-Host "  Campaign ID:                 $($campaign.campaignId)"
+Write-Host "  Lesson propagation:         $($campaign.lessonPropagation)"
 Write-Host "  Campaign issue:              #$($campaign.campaignIssueNumber)"
 Write-Host "  Campaign metadata directory: $CampaignMetadataDirectory"
 Write-Host "  Stage-20 artifacts:          $($artifacts.ArtifactDirectory)"
 Write-Host "  Ordered child issues:        $orderedIssueList"
 Write-Host ''
 Write-Host 'To start a shepherd-task-given-list run:'
-Write-Host "  shepherd-task-given-list.ps1 `"$orderedIssueList`" $($campaign.baseBranch) $($campaign.repository)"
+Write-Host "  shepherd-task-given-list.ps1 -LessonPropagation $($campaign.lessonPropagation) -TaskIssues `"$orderedIssueList`" -CampaignMetadataDirectory `"$CampaignMetadataDirectory`""

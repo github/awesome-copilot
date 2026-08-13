@@ -19,8 +19,11 @@
 .PARAMETER Repo
     GitHub repository in OWNER/REPO format.
 
+.PARAMETER LessonPropagation
+    Immutable campaign lesson mode: off or campaign.
+
 .EXAMPLE
-    ./shepherd-task-init-campaign.ps1 3031763 improve-agentic-velocity edburns/dd-3031763-shepherd-task edburns/awesome-copilot
+    ./shepherd-task-init-campaign.ps1 3031763 improve-agentic-velocity edburns/dd-3031763-shepherd-task edburns/awesome-copilot campaign
 #>
 
 [CmdletBinding()]
@@ -35,7 +38,11 @@ param(
     [string]$BaseBranch,
 
     [Parameter(Mandatory = $true, Position = 3)]
-    [string]$Repo
+    [string]$Repo,
+
+    [Parameter(Mandatory = $true, Position = 4)]
+    [ValidateSet('off', 'campaign')]
+    [string]$LessonPropagation
 )
 
 Set-StrictMode -Version Latest
@@ -108,6 +115,7 @@ try {
         campaignShortname = $CampaignShortname
         repository = $Repo
         baseBranch = $BaseBranch
+        lessonPropagation = $LessonPropagation
         campaignMetadataDirectory = $campaignMetadataDirectory
         lessonsFile = 'campaign-lessons.md'
         createdAt = $createdAt
@@ -126,6 +134,10 @@ try {
 
 This file contains validated, reusable lessons for subsequent issues in this campaign.
 The issue specification and repository instructions remain authoritative.
+
+## Validated lessons
+
+No validated lessons have been recorded yet.
 '@
     [System.IO.File]::WriteAllText(
         $tempLessonsPath,
@@ -151,5 +163,6 @@ Write-Host 'Campaign initialized.'
 Write-Host "  Campaign ID:                 $campaignId"
 Write-Host "  Repository:                  $Repo"
 Write-Host "  Base branch:                 $BaseBranch"
+Write-Host "  Lesson propagation:         $LessonPropagation"
 Write-Host "  Campaign metadata directory: $campaignMetadataDirectory"
 Write-Host "  Absolute path:               $campaignMetadataPath"

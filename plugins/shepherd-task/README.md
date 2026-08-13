@@ -80,16 +80,25 @@ Stages 10 and 20 (campaign planning and issue creation) are only needed when a c
 Bash
 
 ```bash
-. ./plugins/shepherd-task/scripts/shepherd-task-given-list.sh 13,4,5,6,7,8,9,10,11 edburns/2-build-out-demo edburns/Build26-BRK206-your-agent-anywhere-multiclient-multidevice-with-github-copilot-sdk
+./plugins/shepherd-task/scripts/shepherd-task-given-list.sh \
+  --lesson-propagation=campaign \
+  "13,4,5,6,7,8,9,10,11" \
+  2-build-out-demo-remove-before-merge
 ```
 
 PowerShell
 
 ```powershell
-. .\plugins\shepherd-task\scripts\shepherd-task-given-list.ps1 13,4,5,6,7,8,9,10,11 edburns/2-build-out-demo edburns/Build26-BRK206-your-agent-anywhere-multiclient-multidevice-with-github-copilot-sdk
+.\plugins\shepherd-task\scripts\shepherd-task-given-list.ps1 `
+  -LessonPropagation campaign `
+  -TaskIssues "13,4,5,6,7,8,9,10,11" `
+  -CampaignMetadataDirectory 2-build-out-demo-remove-before-merge
 ```
 
-This invocation was used to implement the issues in this Epic: https://github.com/edburns/Build26-BRK206-your-agent-anywhere-multiclient-multidevice-with-github-copilot-sdk/issues/2 .
+Repository, base branch, campaign ID, and lesson mode are read from the campaign
+manifest. The command rejects a lesson mode that differs from the immutable
+campaign setting. Each issue is completed serially so a treatment campaign's
+validated lessons are available to the next issue.
 
 ## Installation
 
@@ -295,4 +304,3 @@ This system has been used in production on `github/copilot-sdk` to shepherd impl
 ---
 
 By submitting this pull request, I confirm that my contribution abides by the [Code of Conduct](../CODE_OF_CONDUCT.md) and will be licensed under the MIT License.
-

@@ -9,7 +9,7 @@ sequenceDiagram
     participant STGL as shepherd-task-given-list.ps1<br/>(finally block)
     participant Copilot as copilot --yolo
     participant Skill as shepherd-task-50-create-post-mortem
-    participant LogDir as SHEPHERD_LOG_DIR<br/>(shepherd-tasks-YYYYMMDD-HHMM/)
+    participant LogDir as SHEPHERD_LOG_DIR<br/>(shepherd-tasks-CAMPAIGN-ID-YYYYMMDD-HHMM/)
     participant ParentDir as Parent Directory<br/>(campaign context)
 
     rect rgb(255, 245, 220)

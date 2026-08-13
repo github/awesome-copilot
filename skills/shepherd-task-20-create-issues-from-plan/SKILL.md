@@ -1,6 +1,6 @@
 ---
 name: shepherd-task-20-create-issues-from-plan
-description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child Task issues under an existing GitHub parent issue, incorporating resolved research, spike artifacts, concrete example-issue style, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 12 inputs are required. Skip this stage when suitable implementation issues already exist.'
+description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child Task issues under an existing GitHub parent issue, incorporating resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 14 inputs are required. Skip this stage when suitable implementation issues already exist.'
 ---
 
 # Skill: Create Shepherd Task Issues from a Plan (shepherd-task stage 20 — creation of ordered implementation issues)
@@ -27,6 +27,8 @@ The created issues are specifications, not summaries. A coding agent must be abl
 10. **`ISSUE_TYPE`** — GitHub issue type for children (e.g. `Task`).
 11. **`SUPPORTING_ARTIFACTS`** — Repo-relative paths or path constraints for spike reports, prototypes, screenshots, etc. that task issues must cite.
 12. **`LOG_DIRECTORY`** — Absolute path to the existing run log directory. The launcher supplies this input; store all drafted issue bodies and the creation ledger here.
+13. **`CAMPAIGN_ID`** — Canonical campaign UUID from `PLAN_DIRECTORY/shepherd-campaign.json`.
+14. **`LESSON_PROPAGATION`** — Immutable campaign mode, exactly `off` or `campaign`.
 
 ## Fixed behaviors
 
@@ -40,6 +42,7 @@ The created issues are specifications, not summaries. A coding agent must be abl
 - Each issue must prominently include text stating that on the base branch, the `PLAN_DIRECTORY` contains the `PLAN_FILE_NAME` and supporting resources.
 - Never write vague references such as "read the relevant sections"; enumerate exact headings.
 - Never cite a resolution without its concrete value or operational consequence.
+- In `campaign` mode, every issue must tell CCA to consume validated campaign lessons and contribute candidate lessons. In `off` mode, omit all lesson consumption and production instructions.
 
 ## Bundled examples
 
@@ -70,6 +73,7 @@ When creating issues, produce issue bodies at least as specific and structured a
   - A standalone `**Resolution:**` line followed by substantive block content is resolved. Never classify it as empty merely because no value appears on the marker line, and never use a same-line-only regular expression as the resolution check.
   - After ignoring blank lines and Markdown formatting delimiters, classify a resolution as unresolved only when its entire block has no substantive content or explicitly states that the gating decision remains unresolved.
   - Before stopping, list each blocking question and quote its complete parsed resolution block, or explicitly state that no resolution block exists. If the block contains a concrete decision, answer, or operational consequence, do not report that question as unresolved.
+11. Read `PLAN_DIRECTORY/shepherd-campaign.json` from `BASE_BRANCH`. Verify its `campaignId` and `lessonPropagation` exactly match `CAMPAIGN_ID` and `LESSON_PROPAGATION`, and verify `campaign-lessons.md` exists.
 
 ### Step 2: Study examples and existing children
 
@@ -101,6 +105,26 @@ Each issue body must include:
 - Concrete specification of what to build.
 - Tests and gating criteria.
 - Out-of-scope boundaries.
+
+When `LESSON_PROPAGATION=campaign`, also include this prominent required section, substituting actual values:
+
+```markdown
+## Campaign lessons (REQUIRED)
+
+Campaign ID: `CAMPAIGN_ID`.
+
+Before implementation, read `PLAN_DIRECTORY/campaign-lessons.md` from `BASE_BRANCH`.
+Treat only entries under `Validated lessons` as advisory context; the issue specification and repository instructions remain authoritative.
+
+Before declaring the task complete, update that same file in this PR by adding a
+`Candidate lessons for issue #<this issue's actual number>` section. Record only concise,
+reusable repository discoveries, failed approaches worth avoiding, commands
+that actually passed, and non-obvious constraints. Include applicability and
+evidence. Do not include raw reasoning, secrets, complete trajectories, or
+speculation. Preserve all existing validated lessons.
+```
+
+When `LESSON_PROPAGATION=off`, do not mention the lessons file or ask CCA to read or modify it.
 
 Title each issue with its implementation subsection identity and an actionable outcome.
 
@@ -158,7 +182,7 @@ If the ledger is empty, explicitly report that no issues were created and no cle
 Return:
 1. Ordered table of implementation subsection, issue number, title, URL.
 2. Comma-separated child issue numbers for `shepherd-task-given-list`.
-3. Suggested invocation using `BASE_BRANCH` and `REPO`.
+3. Suggested campaign-aware given-list invocation using `LESSON_PROPAGATION`, the ordered issue numbers, and `PLAN_DIRECTORY`.
 
 ## Guardrails
 

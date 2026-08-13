@@ -12,11 +12,11 @@
 .PARAMETER TaskIssue
     The issue number (e.g., 1841) or URL of the child task to shepherd.
 
-.PARAMETER BaseBranch
-    The base branch the task PR should target.
+.PARAMETER CampaignMetadataDirectory
+    Repository-root-relative campaign metadata directory.
 
-.PARAMETER Repo
-    Repository in OWNER/REPO format.
+.PARAMETER RunDirectory
+    Existing shepherd-task-given-list run directory.
 #>
 
 param(
@@ -24,20 +24,35 @@ param(
     [string]$TaskIssue,
 
     [Parameter(Mandatory = $true, Position = 1)]
-    [string]$BaseBranch,
+    [string]$CampaignMetadataDirectory,
 
     [Parameter(Mandatory = $true, Position = 2)]
-    [string]$Repo,
-
-    [Parameter(Mandatory = $false, Position = 3)]
-    [string]$LogDir = "shepherd-tasks-$(Get-Date -Format 'yyyyMMdd-HHmm')"
+    [string]$RunDirectory
 )
 
 $ErrorActionPreference = "Stop"
+if ($TaskIssue -notmatch '^[1-9][0-9]*$') { throw 'TaskIssue must be a positive issue number.' }
+if ($CampaignMetadataDirectory -notmatch '^[1-9][0-9]*-[a-z0-9][a-z0-9-]*-remove-before-merge$') {
+    throw 'Invalid campaign metadata directory name.'
+}
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-if (-not (Test-Path $LogDir)) {
-    New-Item -ItemType Directory -Path $LogDir | Out-Null
+$repoRoot = (& git rev-parse --show-toplevel | Select-Object -First 1).Trim()
+$campaignPath = Join-Path $repoRoot $CampaignMetadataDirectory
+$manifestPath = Join-Path $campaignPath 'shepherd-campaign.json'
+if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf) -or -not (Test-Path -LiteralPath $RunDirectory -PathType Container)) {
+    throw 'Invalid campaign or run directory.'
+}
+$campaign = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+$CampaignId = [string]$campaign.campaignId
+$BaseBranch = [string]$campaign.baseBranch
+$Repo = [string]$campaign.repository
+$LessonPropagation = [string]$campaign.lessonPropagation
+if ([string]$campaign.campaignMetadataDirectory -ne $CampaignMetadataDirectory) { throw 'Manifest directory does not match supplied directory.' }
+if ($LessonPropagation -notin @('off', 'campaign')) { throw 'Invalid campaign lesson propagation mode.' }
+if (-not (Test-Path -LiteralPath (Join-Path $campaignPath 'campaign-lessons.md') -PathType Leaf)) { throw 'Campaign lessons file not found.' }
+$LogDir = (Resolve-Path -LiteralPath $RunDirectory).Path
+if ([IO.Directory]::GetParent($LogDir).FullName -ne (Resolve-Path -LiteralPath $campaignPath).Path) {
+    throw 'Run directory is not a direct child of the campaign metadata directory.'
 }
 
 function Write-Status($msg) {
@@ -152,6 +167,9 @@ Invoke skill ``shepherd-task-30-from-assignment-to-ready`` with these inputs:
 - TASK_ISSUE: $TaskIssue
 - BASE_BRANCH: $BaseBranch
 - REPO: $Repo
+- CAMPAIGN_ID: $CampaignId
+- CAMPAIGN_METADATA_DIRECTORY: $CampaignMetadataDirectory
+- LESSON_PROPAGATION: $LessonPropagation
 "@
 
     Write-Status "Phase 1 prompt: $phase1Prompt"
@@ -212,6 +230,9 @@ Invoke skill ``shepherd-task-40-from-ready-to-merged-to-base`` with these inputs
 - TASK_ISSUE: $TaskIssue
 - BASE_BRANCH: $BaseBranch
 - REPO: $Repo
+- CAMPAIGN_ID: $CampaignId
+- CAMPAIGN_METADATA_DIRECTORY: $CampaignMetadataDirectory
+- LESSON_PROPAGATION: $LessonPropagation
 - PR_NUMBER: $prNumber
 "@
 

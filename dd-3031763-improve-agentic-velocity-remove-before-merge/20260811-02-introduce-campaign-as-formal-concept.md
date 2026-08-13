@@ -122,6 +122,7 @@ Use this schema and property naming:
   "campaignShortname": "improve-agentic-velocity",
   "repository": "owner/repo",
   "baseBranch": "owner/topic-branch",
+  "lessonPropagation": "campaign",
   "campaignMetadataDirectory": "3031763-improve-agentic-velocity-remove-before-merge",
   "lessonsFile": "campaign-lessons.md",
   "createdAt": "2026-08-11T22:35:00Z"
@@ -134,11 +135,12 @@ Rules:
 - `campaignId` must be a canonical UUID.
 - `campaignIssueNumber` must be a positive integer.
 - `campaignShortname`, `repository`, and `baseBranch` must pass the validations below.
+- `lessonPropagation` must equal `off` or `campaign` and is immutable for the campaign.
 - `campaignMetadataDirectory` must be the repo-relative basename computed from the issue number and shortname, and it must match the actual directory basename.
 - `lessonsFile` must equal the literal `campaign-lessons.md`.
 - `createdAt` must be UTC ISO 8601.
 - Unknown future properties may be tolerated when reading, but all required properties must exist with correct types and values.
-- The manifest is authoritative for campaign ID, repository, and base branch. Downstream scripts must not ask callers to repeat repository or base branch.
+- The manifest is authoritative for campaign ID, repository, base branch, and lesson-propagation mode. Downstream scripts must not ask callers to repeat repository or base branch, and must validate any run-level lesson option against the immutable mode.
 - Missing, malformed, unsupported, path-inconsistent, or internally inconsistent manifests are hard failures.
 - Never silently repair, replace, or regenerate an existing manifest.
 
@@ -190,7 +192,7 @@ They should provide equivalent Bash/PowerShell operations for:
 - resolving a supplied campaign metadata directory safely;
 - proving it is inside the repository root;
 - loading and validating `shepherd-campaign.json`;
-- exposing campaign ID, repository, base branch, issue number, shortname, and canonical relative directory;
+- exposing campaign ID, repository, base branch, lesson-propagation mode, issue number, shortname, and canonical relative directory;
 - validating a shepherd-task-given-list run directory as a direct child of the campaign metadata directory;
 - validating its basename against the campaign ID and timestamp format;
 - atomically writing JSON state.
@@ -219,13 +221,13 @@ plugins/shepherd-task/scripts/shepherd-task-init-campaign.ps1
 Bash:
 
 ```text
-shepherd-task-init-campaign.sh <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO>
+shepherd-task-init-campaign.sh <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO> <LESSON_PROPAGATION>
 ```
 
 PowerShell:
 
 ```text
-shepherd-task-init-campaign.ps1 <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO>
+shepherd-task-init-campaign.ps1 <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO> <LESSON_PROPAGATION>
 ```
 
 Use positional parameters in the same order and idiomatic named PowerShell parameters.
@@ -239,6 +241,7 @@ Before creating anything:
 - Require a positive campaign issue number.
 - Require the shortname format defined above.
 - Require `REPO` in `OWNER/REPO` format.
+- Require `LESSON_PROPAGATION` to be exactly `off` or `campaign`.
 - Require a syntactically valid Git branch name.
 - Reject `main`.
 - Require the current checked-out branch to equal `BASE_BRANCH`; do not write campaign state onto another branch.
@@ -263,7 +266,7 @@ Use a standard platform UUID v4 facility. Bash may require `uuidgen`; fail with 
 
 - If initialization fails after directory creation, clean up only files and the exact newly created directory from this invocation. Never delete a pre-existing directory.
 - Do not commit, push, create issues, or invoke Copilot.
-- Print the absolute campaign metadata directory, repo-relative directory, campaign ID, repository, and base branch.
+- Print the absolute campaign metadata directory, repo-relative directory, campaign ID, repository, base branch, and lesson-propagation mode.
 
 No adoption, upgrade, inference, or legacy mode is permitted.
 

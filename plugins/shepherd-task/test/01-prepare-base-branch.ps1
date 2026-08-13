@@ -24,8 +24,11 @@
 .PARAMETER CampaignShortname
     Lowercase kebab-case short name used in the campaign metadata directory.
 
+.PARAMETER LessonPropagation
+    Immutable campaign lesson mode: off or campaign.
+
 .EXAMPLE
-    .\01-prepare-base-branch.ps1 -Repo edburns/my-test-repo -BaseBranch edburns/dd-3034809-test-01 -CampaignShortname math-tool-test
+    .\01-prepare-base-branch.ps1 -Repo edburns/my-test-repo -BaseBranch edburns/dd-3034809-test-01 -CampaignShortname math-tool-test -LessonPropagation campaign
 #>
 
 [CmdletBinding()]
@@ -39,7 +42,11 @@ param(
 
     [Parameter(Mandatory)]
     [ValidatePattern('^[a-z0-9]+(-[a-z0-9]+)*$')]
-    [string]$CampaignShortname
+    [string]$CampaignShortname,
+
+    [Parameter(Mandatory)]
+    [ValidateSet('off', 'campaign')]
+    [string]$LessonPropagation
 )
 
 Set-StrictMode -Version Latest
@@ -64,6 +71,7 @@ $planFile = 'math-tool-ignorance-reduction-plan.md'
 Write-Host "Repository:          $Repo"
 Write-Host "Campaign base branch: $BaseBranch"
 Write-Host "Campaign shortname:   $CampaignShortname"
+Write-Host "Lesson propagation:   $LessonPropagation"
 Write-Host ""
 
 # ── Verify git state ────────────────────────────────────────────────────
@@ -91,6 +99,7 @@ script incrementally and exercise the shepherd-task pipeline end to end.
 
 **Campaign base branch:** ``$BaseBranch``
 **Campaign shortname:** ``$CampaignShortname``
+**Lesson propagation:** ``$LessonPropagation``
 
 The campaign metadata directory and campaign ID are initialized on the
 campaign base branch by ``shepherd-task-init-campaign.ps1``.
@@ -121,7 +130,8 @@ if (-not (Test-Path -LiteralPath $initializer -PathType Leaf)) {
     -CampaignIssueNumber $campaignIssueNumber `
     -CampaignShortname $CampaignShortname `
     -BaseBranch $BaseBranch `
-    -Repo $Repo
+    -Repo $Repo `
+    -LessonPropagation $LessonPropagation
 
 $manifestFiles = @(
     Get-ChildItem -LiteralPath $repoRoot -Directory |
@@ -146,6 +156,7 @@ $campaignMetadataPath = Split-Path -Parent $manifestPath
 $planPath = Join-Path $campaignMetadataPath $planFile
 
 Write-Host "Campaign ID:                $($campaign.campaignId)"
+Write-Host "Lesson propagation:         $($campaign.lessonPropagation)"
 Write-Host "Campaign metadata directory: $campaignMetadataDirectory"
 Write-Host "Plan file:                  $campaignMetadataDirectory/$planFile"
 
@@ -360,6 +371,7 @@ Write-Host ""
 Write-Host "Done. Campaign #$campaignIssueNumber is initialized."
 Write-Host "  Campaign issue:             $campaignIssueUrl"
 Write-Host "  Campaign ID:                $($campaign.campaignId)"
+Write-Host "  Lesson propagation:         $($campaign.lessonPropagation)"
 Write-Host "  Campaign base branch:       $BaseBranch"
 Write-Host "  Campaign metadata directory: $campaignMetadataDirectory"
 Write-Host "  Plan:                       $campaignMetadataDirectory/$planFile"
