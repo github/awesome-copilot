@@ -156,23 +156,21 @@ function renderItems(items: Skill[], query = ""): void {
     )
     .join("");
 
-  // Add click handlers for opening modal
-  list.querySelectorAll(".resource-item").forEach((el) => {
-    el.addEventListener("click", (e) => {
-      // Don't trigger modal if clicking download button or github link
-      if ((e.target as HTMLElement).closest(".resource-actions")) return;
-      const path = (el as HTMLElement).dataset.path;
-      if (path) openFileModal(path, resourceType);
-    });
-  });
-
-  // Add download handlers
-  list.querySelectorAll(".download-skill-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
+  // Use a single delegated handler so re-rendering doesn't rebind every row.
+  list.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const downloadBtn = target.closest(".download-skill-btn") as HTMLButtonElement | null;
+    if (downloadBtn) {
       e.stopPropagation();
-      const skillId = (btn as HTMLElement).dataset.skillId;
-      if (skillId) downloadSkill(skillId, btn as HTMLButtonElement);
-    });
+      const skillId = downloadBtn.dataset.skillId;
+      if (skillId) downloadSkill(skillId, downloadBtn);
+      return;
+    }
+
+    const item = target.closest(".resource-item") as HTMLElement | null;
+    if (!item || target.closest(".resource-actions")) return;
+    const path = item.dataset.path;
+    if (path) openFileModal(path, resourceType);
   });
 }
 

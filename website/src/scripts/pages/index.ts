@@ -76,17 +76,17 @@ export async function initHomepage(): Promise<void> {
             </div>
           `).join('');
 
-          // Add click handlers
-          resultsDiv.querySelectorAll('.search-result').forEach(el => {
-            el.addEventListener('click', () => {
-              const path = (el as HTMLElement).dataset.path;
-              const type = (el as HTMLElement).dataset.type;
-              if (path && type) openFileModal(path, type);
-            });
-          });
         }
         resultsDiv.classList.remove('hidden');
       }, 200));
+
+        resultsDiv.addEventListener('click', (e) => {
+          const target = (e.target as HTMLElement).closest('.search-result') as HTMLElement | null;
+          if (!target) return;
+          const path = target.dataset.path;
+          const type = target.dataset.type;
+          if (path && type) openFileModal(path, type);
+        });
       
       // Close results when clicking outside
       document.addEventListener('click', (e) => {
@@ -115,16 +115,16 @@ export async function initHomepage(): Promise<void> {
           </div>
         `).join('');
 
-        // Add click handlers
-        featuredEl.querySelectorAll('.card').forEach(el => {
-          el.addEventListener('click', () => {
-            const path = (el as HTMLElement).dataset.path;
-            if (path) openFileModal(path, 'plugin');
-          });
-        });
       } else {
         featuredEl.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">No featured plugins yet</p>';
       }
+
+      featuredEl.addEventListener('click', (e) => {
+        const target = (e.target as HTMLElement).closest('.card') as HTMLElement | null;
+        if (!target) return;
+        const path = target.dataset.path;
+        if (path) openFileModal(path, 'plugin');
+      });
     }
   }
 
