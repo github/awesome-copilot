@@ -1,0 +1,1689 @@
+{
+  "name": "Meanwhile",
+  "version": "0.4.0",
+  "purpose": "Give a person one fitting side quest while their AI keeps working.",
+  "agent_contract": {
+    "trigger_when": [
+      "projected_micro_wait_over_45_seconds_after_opt_in",
+      "projected_journey_wait_over_5_minutes",
+      "user_previously_welcomed_suggestions",
+      "personal_taste_needed",
+      "reality_or_proof_needed",
+      "history_gap_found",
+      "user_frustrated",
+      "natural_waiting_window"
+    ],
+    "do_not_trigger_when": [
+      "user_is_answering",
+      "sensitive_action_in_progress",
+      "urgent_failure_needs_attention",
+      "active_debugging_in_progress",
+      "required_user_input_pending",
+      "quest_would_interrupt_flow",
+      "no_honest_time_estimate",
+      "already_offered_this_session",
+      "previous_message_contained_an_offer",
+      "implicit_offers_disabled_after_two_declines"
+    ],
+    "selection_order": [
+      "safety",
+      "current_blocker",
+      "recurring_user_miss",
+      "personal_judgment",
+      "learning_recovery_or_play",
+      "learn_user_last_and_only_after_opt_in"
+    ],
+    "rules": [
+      "Offer exactly one option.",
+      "Offer at most once per work session.",
+      "Never offer in two consecutive assistant messages.",
+      "After an ignored or declined offer, do not offer again that session.",
+      "After two declined or annoyed outcomes, disable implicit offers until explicit opt-in.",
+      "On decline, continue work silently without acknowledgement, defense, replacement, or retry.",
+      "Use micro only for an opted-in 45 to 120 second wait.",
+      "Use journey only for a projected wait of at least five minutes.",
+      "Prefer a quest shorter than the projected wait.",
+      "Use history only when it materially improves the choice.",
+      "Send the destination URL directly when a resource exists.",
+      "Send the invitation in chat when no resource exists.",
+      "Do not send the user to the Meanwhile index unless they ask to browse.",
+      "Ask for a reply only when it genuinely helps the work.",
+      "A screenshot, opinion, or file is not stronger proof than its actual evidence level.",
+      "Play and recovery need no productive disguise and no completion tracking.",
+      "Do not repeat a completed quest until the catalogue is exhausted."
+    ],
+    "outcome_record": {
+      "signal": "Infer only from the next user message after an offer.",
+      "shape": {
+        "quest_id": "string",
+        "situation": "string",
+        "outcome": "accepted | ignored | declined | annoyed",
+        "observed_at": "ISO-8601 timestamp"
+      }
+    },
+    "delivery": {
+      "resource_present": "Send resources[quest.resource].url directly.",
+      "resource_absent": "Send the quest prompt directly in the current chat.",
+      "index_page": "Use as a catalogue or optional human browsing page, not as an intermediate destination.",
+      "return_policy_by_kind": {
+        "play": "none",
+        "recover": "none",
+        "learn": "optional",
+        "learn-user": "reply_in_chat",
+        "proof": "reply_in_chat",
+        "reality": "reply_in_chat",
+        "decide": "reply_in_chat",
+        "test": "reply_in_chat",
+        "taste": "reply_in_chat",
+        "scope": "reply_in_chat",
+        "retrieve": "reply_in_chat",
+        "observe": "reply_in_chat",
+        "research": "reply_in_chat"
+      }
+    },
+    "output_template": [
+      "While I work, want something for {minutes} minutes?",
+      "{prompt}",
+      "{direct_resource_url_or_optional_reply_request}"
+    ],
+    "query_params": {
+      "mode": [
+        "micro",
+        "journey"
+      ],
+      "pack": "one curated pack ID",
+      "state": [
+        "busy",
+        "blocked",
+        "proof",
+        "taste",
+        "frustrated",
+        "learning"
+      ],
+      "minutes": [
+        1,
+        3,
+        5,
+        10,
+        20
+      ],
+      "intent": [
+        "any",
+        "useful",
+        "learn-user",
+        "learn",
+        "play"
+      ],
+      "signals": "comma-separated history signal IDs",
+      "context": "comma-separated freeform task tags",
+      "seed": "optional deterministic selection seed; otherwise rotates hourly",
+      "go": "when 1, the page redirects to the selected external resource if one exists"
+    }
+  },
+  "wait_modes": [
+    {
+      "id": "micro",
+      "label": "Quick quest",
+      "description": "A no-tab action that fits a 45 to 120 second wait.",
+      "minimum_wait_seconds": 45,
+      "maximum_quest_seconds": 120,
+      "requires_prior_opt_in": true
+    },
+    {
+      "id": "journey",
+      "label": "Small journey",
+      "description": "A game, learning trail, reset, or useful check for a wait of five minutes or more.",
+      "minimum_wait_seconds": 300,
+      "maximum_quest_seconds": 1200,
+      "requires_prior_opt_in": false
+    }
+  ],
+  "packs": [
+    {
+      "id": "touch-grass",
+      "title": "Touch Grass",
+      "description": "Leave the screen for a small physical reset.",
+      "quest_ids": [
+        "look-far",
+        "water-reset",
+        "one-color-walk",
+        "notice-three-sounds"
+      ]
+    },
+    {
+      "id": "learn-your-stack",
+      "title": "Learn Your Stack",
+      "description": "Understand the exact technology already on the screen.",
+      "quest_ids": [
+        "watch-debugging",
+        "android-measurement",
+        "oauth-flow-trace",
+        "compose-performance-spot",
+        "tiny-exercise"
+      ]
+    },
+    {
+      "id": "test-what-ai-built",
+      "title": "Test What AI Built",
+      "description": "Use human eyes and hands where source inspection is not enough.",
+      "quest_ids": [
+        "whole-click-path",
+        "five-click-smoke",
+        "capture-reality",
+        "claim-red-team",
+        "proof-ladder"
+      ]
+    },
+    {
+      "id": "founder-taste",
+      "title": "Founder Taste",
+      "description": "Make the product sharper with one clear judgment.",
+      "quest_ids": [
+        "three-second-verdict",
+        "remove-one",
+        "user-words",
+        "acceptance-line",
+        "taste-anchor"
+      ]
+    },
+    {
+      "id": "creative-reset",
+      "title": "Creative Reset",
+      "description": "Change medium long enough to loosen the next idea.",
+      "quest_ids": [
+        "draw-badly",
+        "make-tiny-song",
+        "six-word-story",
+        "wrong-hand-sketch",
+        "strange-internet-toy"
+      ]
+    },
+    {
+      "id": "debugging-brain",
+      "title": "Debugging Brain",
+      "description": "Interrupt a stale loop with a better question.",
+      "quest_ids": [
+        "first-error",
+        "count-retries",
+        "assumption-bounty",
+        "stop-condition",
+        "watch-debugging"
+      ]
+    },
+    {
+      "id": "surprise-me",
+      "title": "Surprise Me",
+      "description": "A balanced handful of useful, playful, and restorative defaults.",
+      "quest_ids": [
+        "three-second-verdict",
+        "chess-storm",
+        "look-far",
+        "useless-fact",
+        "first-error",
+        "draw-badly",
+        "explorable-rabbit-hole",
+        "notice-three-sounds"
+      ]
+    }
+  ],
+  "history_signals": [
+    {
+      "id": "proof-blur",
+      "label": "Keep proof levels honest",
+      "bias": [
+        "proof",
+        "reality"
+      ]
+    },
+    {
+      "id": "no-op-ui",
+      "label": "Make controls actually work",
+      "bias": [
+        "test",
+        "reality",
+        "taste"
+      ]
+    },
+    {
+      "id": "artifact-gap",
+      "label": "Validate files end to end",
+      "bias": [
+        "proof",
+        "retrieve"
+      ]
+    },
+    {
+      "id": "dirty-boundary",
+      "label": "Keep unrelated failures separate",
+      "bias": [
+        "proof",
+        "scope"
+      ]
+    },
+    {
+      "id": "retry-loop",
+      "label": "Stop when retries teach us nothing",
+      "bias": [
+        "observe",
+        "recover"
+      ]
+    },
+    {
+      "id": "vague-plan",
+      "label": "Make plans concrete",
+      "bias": [
+        "decide",
+        "proof"
+      ]
+    },
+    {
+      "id": "response-miss",
+      "label": "Match the response to the moment",
+      "bias": [
+        "learn-user",
+        "communication"
+      ]
+    },
+    {
+      "id": "friction-fatigue",
+      "label": "Notice when friction is building",
+      "bias": [
+        "recover",
+        "play",
+        "learn-user"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "debug-talks",
+      "label": "Julia Evans",
+      "url": "https://jvns.ca/"
+    },
+    {
+      "id": "design-critiques",
+      "label": "Laws of UX",
+      "url": "https://lawsofux.com/"
+    },
+    {
+      "id": "android-talks",
+      "label": "Android performance guide",
+      "url": "https://developer.android.com/topic/performance/measuring-performance"
+    },
+    {
+      "id": "lichess-storm",
+      "label": "Puzzle Storm",
+      "url": "https://lichess.org/storm"
+    },
+    {
+      "id": "quick-draw",
+      "label": "Quick, Draw!",
+      "url": "https://quickdraw.withgoogle.com/"
+    },
+    {
+      "id": "neal-fun",
+      "label": "Neal.fun",
+      "url": "https://neal.fun/"
+    },
+    {
+      "id": "radio-garden",
+      "label": "Radio Garden",
+      "url": "https://radio.garden/"
+    },
+    {
+      "id": "random-wikipedia",
+      "label": "random Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Special:Random"
+    },
+    {
+      "id": "exercism",
+      "label": "Exercism",
+      "url": "https://exercism.org/"
+    },
+    {
+      "id": "explorables",
+      "label": "Explorable Explanations",
+      "url": "https://explorabl.es/"
+    },
+    {
+      "id": "seeing-theory",
+      "label": "Seeing Theory",
+      "url": "https://seeing-theory.brown.edu/"
+    },
+    {
+      "id": "ciechanowski",
+      "label": "an interactive essay",
+      "url": "https://ciechanow.ski/"
+    },
+    {
+      "id": "human-benchmark",
+      "label": "Human Benchmark",
+      "url": "https://humanbenchmark.com/"
+    },
+    {
+      "id": "music-lab",
+      "label": "Chrome Music Lab",
+      "url": "https://musiclab.chromeexperiments.com/"
+    },
+    {
+      "id": "mit-ocw",
+      "label": "MIT OpenCourseWare",
+      "url": "https://ocw.mit.edu/"
+    },
+    {
+      "id": "oauth-playground",
+      "label": "OAuth 2.0 Playground",
+      "url": "https://www.oauth.com/playground/"
+    },
+    {
+      "id": "compose-performance",
+      "label": "Compose performance guide",
+      "url": "https://developer.android.com/develop/ui/compose/performance"
+    }
+  ],
+  "quests": [
+    {
+      "id": "response-density",
+      "title": "How much detail today?",
+      "kind": "learn-user",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 1,
+      "intents": [
+        "learn-user"
+      ],
+      "signals": [
+        "response-miss"
+      ],
+      "contexts": [
+        "any"
+      ],
+      "prompt": "For your agent's next answer, what would feel right: one line, quick bullets, a short explanation, or the full reasoning?",
+      "receipt": "Your choice.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "autonomy-line",
+      "title": "What can your agent do without asking?",
+      "kind": "learn-user",
+      "states": [
+        "busy",
+        "blocked"
+      ],
+      "minutes": 1,
+      "intents": [
+        "learn-user"
+      ],
+      "signals": [
+        "response-miss"
+      ],
+      "contexts": [
+        "any"
+      ],
+      "prompt": "Name one thing your agent should simply handle, and one thing that should always wait for you.",
+      "receipt": "Handle it / ask me first.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "proof-appetite",
+      "title": "What counts as proven here?",
+      "kind": "learn-user",
+      "states": [
+        "proof",
+        "busy"
+      ],
+      "minutes": 1,
+      "intents": [
+        "learn-user"
+      ],
+      "signals": [
+        "proof-blur"
+      ],
+      "contexts": [
+        "any"
+      ],
+      "prompt": "What is enough for this task: reading the source, a local run, the real browser, a device, a live service, or seeing it yourself?",
+      "receipt": "The level that is enough.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "taste-anchor",
+      "title": "Show your agent your taste",
+      "kind": "learn-user",
+      "states": [
+        "taste",
+        "busy"
+      ],
+      "minutes": 3,
+      "intents": [
+        "learn-user"
+      ],
+      "signals": [],
+      "contexts": [
+        "ui",
+        "product"
+      ],
+      "prompt": "Find one app, page, or object that feels right for this work. What single quality should your agent borrow?",
+      "receipt": "One example and one quality.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "taste-rejection",
+      "title": "Show your agent what to avoid",
+      "kind": "learn-user",
+      "states": [
+        "taste",
+        "busy"
+      ],
+      "minutes": 3,
+      "intents": [
+        "learn-user"
+      ],
+      "signals": [],
+      "contexts": [
+        "ui",
+        "product"
+      ],
+      "prompt": "Find one relevant example that feels wrong. What exactly makes it wrong for you?",
+      "receipt": "One example and one reason.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "frustration-translate",
+      "title": "What is actually getting annoying?",
+      "kind": "learn-user",
+      "states": [
+        "frustrated",
+        "blocked"
+      ],
+      "minutes": 1,
+      "intents": [
+        "learn-user",
+        "useful"
+      ],
+      "signals": [
+        "friction-fatigue",
+        "response-miss"
+      ],
+      "contexts": [
+        "any"
+      ],
+      "prompt": "Finish this honestly: the part that keeps wearing me down is…",
+      "receipt": "One sentence.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "task-shape",
+      "title": "What kind of work is this?",
+      "kind": "learn-user",
+      "states": [
+        "busy",
+        "blocked"
+      ],
+      "minutes": 1,
+      "intents": [
+        "learn-user"
+      ],
+      "signals": [
+        "vague-plan"
+      ],
+      "contexts": [
+        "any"
+      ],
+      "prompt": "Is today’s job to explore, choose, build, debug, check, polish, or ship?",
+      "receipt": "The closest word.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "interruption-rule",
+      "title": "When should your agent interrupt?",
+      "kind": "learn-user",
+      "states": [
+        "busy"
+      ],
+      "minutes": 1,
+      "intents": [
+        "learn-user"
+      ],
+      "signals": [
+        "response-miss"
+      ],
+      "contexts": [
+        "any"
+      ],
+      "prompt": "Only for blockers, for decisions that matter, or whenever something interesting comes up?",
+      "receipt": "Your rule.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "learning-mode",
+      "title": "How do you want to learn this?",
+      "kind": "learn-user",
+      "states": [
+        "learning",
+        "busy"
+      ],
+      "minutes": 1,
+      "intents": [
+        "learn-user",
+        "learn"
+      ],
+      "signals": [],
+      "contexts": [
+        "any"
+      ],
+      "prompt": "Would you rather see an example, get the mental model, try it first, be quizzed, or ask only when stuck?",
+      "receipt": "Your preferred way.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "memory-correction",
+      "title": "Fix one assumption your agent made",
+      "kind": "learn-user",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 3,
+      "intents": [
+        "learn-user"
+      ],
+      "signals": [
+        "response-miss"
+      ],
+      "contexts": [
+        "any"
+      ],
+      "prompt": "Pick one thing your agent seems to believe about you. Is it right, partly right, or wrong?",
+      "receipt": "The assumption and the correction.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "fun-calibration",
+      "title": "What sounds fun right now?",
+      "kind": "learn-user",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 1,
+      "intents": [
+        "learn-user",
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "play"
+      ],
+      "prompt": "A puzzle, a strange website, a short video, movement, music, making something tiny, or a surprise?",
+      "receipt": "Whatever sounds good.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "proof-ladder",
+      "title": "What do we actually know?",
+      "kind": "proof",
+      "states": [
+        "proof",
+        "blocked"
+      ],
+      "minutes": 1,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "proof-blur"
+      ],
+      "contexts": [
+        "release",
+        "android",
+        "browser",
+        "code"
+      ],
+      "prompt": "What has truly happened so far: source checked, run locally, tried in a browser, tried on a device, tried live, released, or seen by you?",
+      "receipt": "What is proven, and what is still missing.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "claim-red-team",
+      "title": "Try to break the claim",
+      "kind": "proof",
+      "states": [
+        "proof",
+        "busy"
+      ],
+      "minutes": 3,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "proof-blur",
+        "dirty-boundary"
+      ],
+      "contexts": [
+        "release",
+        "code",
+        "research"
+      ],
+      "prompt": "How could the latest “it works” statement be technically true while the experience is still broken?",
+      "receipt": "One believable counterexample.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "capture-reality",
+      "title": "See what really happens",
+      "kind": "reality",
+      "states": [
+        "proof",
+        "busy"
+      ],
+      "minutes": 3,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "no-op-ui"
+      ],
+      "contexts": [
+        "ui",
+        "android",
+        "product"
+      ],
+      "prompt": "Try the real action once, without reading the code. What do you actually see?",
+      "receipt": "A screenshot or the exact result.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "artifact-chain",
+      "title": "Follow the file all the way through",
+      "kind": "proof",
+      "states": [
+        "proof",
+        "blocked"
+      ],
+      "minutes": 5,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "artifact-gap"
+      ],
+      "contexts": [
+        "release",
+        "browser",
+        "research"
+      ],
+      "prompt": "Start where the file came from. Can you follow it through download, integrity, structure, and final acceptance?",
+      "receipt": "The first broken or missing link.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 300
+    },
+    {
+      "id": "stop-condition",
+      "title": "When should your agent stop?",
+      "kind": "decide",
+      "states": [
+        "blocked",
+        "busy"
+      ],
+      "minutes": 1,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "retry-loop",
+        "vague-plan"
+      ],
+      "contexts": [
+        "browser",
+        "research",
+        "code"
+      ],
+      "prompt": "What should make your agent stop, wait, try later, or come back to you?",
+      "receipt": "One clear if/then rule.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "whole-click-path",
+      "title": "Try it like a real person",
+      "kind": "test",
+      "states": [
+        "proof",
+        "busy"
+      ],
+      "minutes": 5,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "no-op-ui"
+      ],
+      "contexts": [
+        "ui",
+        "product"
+      ],
+      "prompt": "Use the control, look for the change, leave the screen, come back, and see whether it held.",
+      "receipt": "The first moment that feels wrong.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 300
+    },
+    {
+      "id": "five-click-smoke",
+      "title": "Click the obvious things",
+      "kind": "test",
+      "states": [
+        "busy",
+        "proof"
+      ],
+      "minutes": 3,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "no-op-ui"
+      ],
+      "contexts": [
+        "ui",
+        "product"
+      ],
+      "prompt": "Ignore the code. Try the five things a new person would click first.",
+      "receipt": "What worked, and the first surprise.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "three-second-verdict",
+      "title": "First impression, no overthinking",
+      "kind": "taste",
+      "states": [
+        "taste",
+        "busy"
+      ],
+      "minutes": 1,
+      "intents": [
+        "useful"
+      ],
+      "signals": [],
+      "contexts": [
+        "ui",
+        "product"
+      ],
+      "prompt": "Look for three seconds. What does it feel like, who is it for, and what grabs you first?",
+      "receipt": "Three quick phrases.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "remove-one",
+      "title": "What would you remove?",
+      "kind": "taste",
+      "states": [
+        "taste",
+        "busy"
+      ],
+      "minutes": 1,
+      "intents": [
+        "useful"
+      ],
+      "signals": [],
+      "contexts": [
+        "ui",
+        "docs",
+        "product"
+      ],
+      "prompt": "What single thing could disappear and make this calmer or clearer?",
+      "receipt": "The thing and why.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "acceptance-line",
+      "title": "What would make this done?",
+      "kind": "decide",
+      "states": [
+        "blocked",
+        "busy"
+      ],
+      "minutes": 1,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "vague-plan"
+      ],
+      "contexts": [
+        "code",
+        "product",
+        "release"
+      ],
+      "prompt": "Describe one thing anyone could see or try and agree means this is finished.",
+      "receipt": "One plain sentence.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "forbidden-change",
+      "title": "What must stay untouched?",
+      "kind": "scope",
+      "states": [
+        "busy",
+        "blocked"
+      ],
+      "minutes": 1,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "dirty-boundary"
+      ],
+      "contexts": [
+        "code",
+        "release"
+      ],
+      "prompt": "What nearby file, behavior, or system should this work leave completely alone?",
+      "receipt": "One boundary.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "fetch-missing",
+      "title": "Find the one missing thing",
+      "kind": "retrieve",
+      "states": [
+        "blocked"
+      ],
+      "minutes": 3,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "artifact-gap"
+      ],
+      "contexts": [
+        "code",
+        "research",
+        "browser"
+      ],
+      "prompt": "What smallest log, screenshot, sample, setting, or export would let your agent keep moving?",
+      "receipt": "The thing itself, or where to find it.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "first-error",
+      "title": "Start with the first real error",
+      "kind": "observe",
+      "states": [
+        "blocked",
+        "frustrated"
+      ],
+      "minutes": 3,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "dirty-boundary",
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "code",
+        "browser",
+        "android"
+      ],
+      "prompt": "Ignore everything that followed. What failed first, what happened just before it, and does this work own it?",
+      "receipt": "The first error and its context.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "count-retries",
+      "title": "Are we learning or just retrying?",
+      "kind": "observe",
+      "states": [
+        "blocked",
+        "frustrated"
+      ],
+      "minutes": 1,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "retry-loop"
+      ],
+      "contexts": [
+        "browser",
+        "research",
+        "code"
+      ],
+      "prompt": "How many times has the same thing failed? Did the latest try teach us anything new?",
+      "receipt": "The count and yes/no.",
+      "return_policy": "reply_in_chat",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "assumption-bounty",
+      "title": "What are we assuming?",
+      "kind": "research",
+      "states": [
+        "blocked",
+        "proof"
+      ],
+      "minutes": 5,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "proof-blur",
+        "vague-plan"
+      ],
+      "contexts": [
+        "code",
+        "research",
+        "product"
+      ],
+      "prompt": "Find one thing everyone is treating as true without having checked it.",
+      "receipt": "The assumption and the easiest check.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 300
+    },
+    {
+      "id": "user-words",
+      "title": "Find how people actually say it",
+      "kind": "research",
+      "states": [
+        "busy",
+        "taste"
+      ],
+      "minutes": 5,
+      "intents": [
+        "useful"
+      ],
+      "signals": [],
+      "contexts": [
+        "product",
+        "docs",
+        "research"
+      ],
+      "prompt": "Find one real complaint, request, review, or support message about this problem.",
+      "receipt": "A short phrase and where it came from.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 300
+    },
+    {
+      "id": "watch-debugging",
+      "title": "Steal one debugging idea",
+      "kind": "learn",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 10,
+      "intents": [
+        "learn"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "code"
+      ],
+      "prompt": "Watch until you hear one technique worth trying. You do not need to finish the video.",
+      "receipt": "The idea in one sentence.",
+      "resource": "debug-talks",
+      "return_policy": "optional",
+      "mode": "journey",
+      "duration_seconds": 600
+    },
+    {
+      "id": "watch-design",
+      "title": "Steal one design question",
+      "kind": "learn",
+      "states": [
+        "busy",
+        "taste",
+        "learning"
+      ],
+      "minutes": 10,
+      "intents": [
+        "learn"
+      ],
+      "signals": [],
+      "contexts": [
+        "ui",
+        "product"
+      ],
+      "prompt": "Watch a critique until one good question appears. Ask that question about the current screen.",
+      "receipt": "The question and your answer.",
+      "resource": "design-critiques",
+      "return_policy": "optional",
+      "mode": "journey",
+      "duration_seconds": 600
+    },
+    {
+      "id": "android-measurement",
+      "title": "Learn what one Android metric means",
+      "kind": "learn",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 10,
+      "intents": [
+        "learn"
+      ],
+      "signals": [
+        "proof-blur"
+      ],
+      "contexts": [
+        "android"
+      ],
+      "prompt": "Pick one Android performance technique. What does it truly measure, and what does it not prove?",
+      "receipt": "The metric and its limit.",
+      "resource": "android-talks",
+      "return_policy": "optional",
+      "mode": "journey",
+      "duration_seconds": 600
+    },
+    {
+      "id": "tiny-exercise",
+      "title": "Finish something small",
+      "kind": "learn",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 20,
+      "intents": [
+        "learn"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "code"
+      ],
+      "prompt": "Choose an exercise that feels almost too easy. Finish it and notice one neat language idiom.",
+      "receipt": "The idiom you noticed.",
+      "resource": "exercism",
+      "return_policy": "optional",
+      "mode": "journey",
+      "duration_seconds": 1200
+    },
+    {
+      "id": "chess-storm",
+      "title": "Three minutes of chess",
+      "kind": "play",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 3,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "play"
+      ],
+      "prompt": "Play one Puzzle Storm. When the run ends, so does the quest.",
+      "receipt": "Your score, if you feel like sharing.",
+      "resource": "lichess-storm",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "draw-badly",
+      "title": "Draw badly, quickly",
+      "kind": "play",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 3,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "play",
+        "ui"
+      ],
+      "prompt": "Play one Quick, Draw! round. Speed matters; quality does not.",
+      "receipt": "Nothing. Just come back when you are ready.",
+      "resource": "quick-draw",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "strange-internet-toy",
+      "title": "Wander into something weird",
+      "kind": "play",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 5,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "play"
+      ],
+      "prompt": "Open a Neal.fun experiment you have never tried. Give it five minutes, no more.",
+      "receipt": "A one-word review, if you have one.",
+      "resource": "neal-fun",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 300
+    },
+    {
+      "id": "radio-teleport",
+      "title": "Listen somewhere else",
+      "kind": "play",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 5,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "play"
+      ],
+      "prompt": "Drop into a city you have never visited and listen for a while. No extra tabs.",
+      "receipt": "The city and how it felt.",
+      "resource": "radio-garden",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 300
+    },
+    {
+      "id": "useless-fact",
+      "title": "Find one delightful fact",
+      "kind": "play",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 3,
+      "intents": [
+        "play",
+        "learn"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "play",
+        "research"
+      ],
+      "prompt": "Open one random article. Leave with a single fact and do not follow the link trail.",
+      "receipt": "The fact.",
+      "resource": "random-wikipedia",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "look-far",
+      "title": "Give your eyes a minute",
+      "kind": "recover",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 1,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "recover"
+      ],
+      "prompt": "Stand up, look at the farthest thing you can see, and take six unhurried breaths.",
+      "receipt": "Nothing. Just come back when you are ready.",
+      "return_policy": "none",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "water-reset",
+      "title": "Get water without the screen",
+      "kind": "recover",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 3,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "recover"
+      ],
+      "prompt": "Leave the screen here. Get water, drink it, then return.",
+      "receipt": "Nothing. Just come back when you are ready.",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "smallest-win",
+      "title": "What would count as a tiny win?",
+      "kind": "recover",
+      "states": [
+        "frustrated",
+        "blocked"
+      ],
+      "minutes": 1,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "friction-fatigue",
+        "vague-plan"
+      ],
+      "contexts": [
+        "any"
+      ],
+      "prompt": "Even if the main task stays stuck, what would make the next five minutes worthwhile?",
+      "receipt": "One small outcome.",
+      "return_policy": "none",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "handoff-packet",
+      "title": "Leave your agent a clean note",
+      "kind": "decide",
+      "states": [
+        "busy",
+        "blocked"
+      ],
+      "minutes": 5,
+      "intents": [
+        "useful"
+      ],
+      "signals": [
+        "vague-plan",
+        "dirty-boundary"
+      ],
+      "contexts": [
+        "code",
+        "product",
+        "research"
+      ],
+      "prompt": "Write what is true now, what your agent owns, what comes next, what counts as done, when to stop, and what remains unproven.",
+      "receipt": "Six short lines.",
+      "return_policy": "reply_in_chat",
+      "mode": "journey",
+      "duration_seconds": 300
+    },
+    {
+      "id": "explorable-rabbit-hole",
+      "title": "Play with an idea",
+      "kind": "learn",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 5,
+      "intents": [
+        "learn",
+        "play"
+      ],
+      "signals": [],
+      "contexts": [
+        "play",
+        "learning"
+      ],
+      "prompt": "Open one interactive explanation that catches your eye. Touch the controls before reading everything.",
+      "receipt": "Anything that surprised you.",
+      "resource": "explorables",
+      "return_policy": "optional",
+      "mode": "journey",
+      "duration_seconds": 300
+    },
+    {
+      "id": "probability-picture",
+      "title": "See probability move",
+      "kind": "learn",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 10,
+      "intents": [
+        "learn"
+      ],
+      "signals": [],
+      "contexts": [
+        "math",
+        "learning"
+      ],
+      "prompt": "Pick one probability idea and learn it through the visualization, not the formula first.",
+      "receipt": "The picture that made it click.",
+      "resource": "seeing-theory",
+      "return_policy": "optional",
+      "mode": "journey",
+      "duration_seconds": 600
+    },
+    {
+      "id": "interactive-essay",
+      "title": "Open a beautiful explanation",
+      "kind": "learn",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 10,
+      "intents": [
+        "learn"
+      ],
+      "signals": [],
+      "contexts": [
+        "science",
+        "design",
+        "learning"
+      ],
+      "prompt": "Choose one interactive essay. Read only until one mechanism becomes clearer.",
+      "receipt": "The mechanism in your own words.",
+      "resource": "ciechanowski",
+      "return_policy": "optional",
+      "mode": "journey",
+      "duration_seconds": 600
+    },
+    {
+      "id": "reaction-time",
+      "title": "Test your reaction time",
+      "kind": "play",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 3,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "play"
+      ],
+      "prompt": "Try the reaction-time test three times. No practice marathon.",
+      "receipt": "Nothing. The score is yours.",
+      "resource": "human-benchmark",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "make-tiny-song",
+      "title": "Make eight bars of noise",
+      "kind": "play",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 5,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "play",
+        "music",
+        "create"
+      ],
+      "prompt": "Open Song Maker and make something tiny. It does not need to sound good.",
+      "receipt": "Nothing, unless you want to share the song.",
+      "resource": "music-lab",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 300
+    },
+    {
+      "id": "course-window-shopping",
+      "title": "Window-shop a subject",
+      "kind": "learn",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 10,
+      "intents": [
+        "learn"
+      ],
+      "signals": [],
+      "contexts": [
+        "learning"
+      ],
+      "prompt": "Choose a subject you know almost nothing about. Skim one syllabus and save one lecture for later.",
+      "receipt": "The subject you chose.",
+      "resource": "mit-ocw",
+      "return_policy": "optional",
+      "mode": "journey",
+      "duration_seconds": 600
+    },
+    {
+      "id": "six-word-story",
+      "title": "Write a six-word story",
+      "kind": "play",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 3,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "play",
+        "create"
+      ],
+      "prompt": "Write a complete story in exactly six words. Do not explain it.",
+      "receipt": "Nothing, unless you want your agent to read it.",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "one-color-walk",
+      "title": "Find one color five times",
+      "kind": "recover",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 5,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "recover",
+        "walk"
+      ],
+      "prompt": "Pick a color, walk for five minutes, and notice five different versions of it.",
+      "receipt": "Nothing. Keep the walk.",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 300
+    },
+    {
+      "id": "wrong-hand-sketch",
+      "title": "Draw the room with the wrong hand",
+      "kind": "play",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 3,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "play",
+        "create"
+      ],
+      "prompt": "Use your non-dominant hand. Draw the room without lifting the pen.",
+      "receipt": "Nothing. Bad is the point.",
+      "return_policy": "none",
+      "mode": "journey",
+      "duration_seconds": 180
+    },
+    {
+      "id": "notice-three-sounds",
+      "title": "Find three layers of sound",
+      "kind": "recover",
+      "states": [
+        "busy",
+        "frustrated"
+      ],
+      "minutes": 1,
+      "intents": [
+        "play"
+      ],
+      "signals": [
+        "friction-fatigue"
+      ],
+      "contexts": [
+        "recover"
+      ],
+      "prompt": "Close your eyes. Find the nearest sound, the farthest sound, and one sound you had stopped noticing.",
+      "receipt": "Nothing. Just listen.",
+      "return_policy": "none",
+      "mode": "micro",
+      "duration_seconds": 60
+    },
+    {
+      "id": "oauth-flow-trace",
+      "title": "Trace one OAuth exchange",
+      "kind": "learn",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 10,
+      "intents": [
+        "learn"
+      ],
+      "signals": [],
+      "contexts": [
+        "oauth",
+        "auth",
+        "security",
+        "web"
+      ],
+      "prompt": "Step through one authorization-code flow. Name what the authorization code protects that an access token does not.",
+      "receipt": "The distinction in your own words.",
+      "resource": "oauth-playground",
+      "return_policy": "optional",
+      "mode": "journey",
+      "duration_seconds": 600
+    },
+    {
+      "id": "compose-performance-spot",
+      "title": "Spot one Compose performance trap",
+      "kind": "learn",
+      "states": [
+        "busy",
+        "learning"
+      ],
+      "minutes": 10,
+      "intents": [
+        "learn"
+      ],
+      "signals": [
+        "no-op-ui"
+      ],
+      "contexts": [
+        "android",
+        "compose",
+        "ui",
+        "performance"
+      ],
+      "prompt": "Read one performance mistake from the Compose guide, then look for that exact pattern in the code currently being changed.",
+      "receipt": "The pattern you checked and whether it exists.",
+      "resource": "compose-performance",
+      "return_policy": "optional",
+      "mode": "journey",
+      "duration_seconds": 600
+    }
+  ]
+}
