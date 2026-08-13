@@ -4,12 +4,13 @@
 #
 # Usage:
 #   ./shepherd-task-init-campaign.sh \
-#     <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO>
+#     <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO> \
+#     <LESSON_PROPAGATION>
 
 set -euo pipefail
 
 usage() {
-    echo "Usage: $0 <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO>" >&2
+    echo "Usage: $0 <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO> <LESSON_PROPAGATION>" >&2
 }
 
 fail() {
@@ -18,14 +19,15 @@ fail() {
     exit 1
 }
 
-if [[ $# -ne 4 ]]; then
-    fail "Expected exactly 4 arguments; received $#."
+if [[ $# -ne 5 ]]; then
+    fail "Expected exactly 5 arguments; received $#."
 fi
 
 CAMPAIGN_ISSUE_NUMBER="$1"
 CAMPAIGN_SHORTNAME="$2"
 BASE_BRANCH="$3"
 REPO="$4"
+LESSON_PROPAGATION="$5"
 
 if [[ ! "$CAMPAIGN_ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
     fail "CAMPAIGN_ISSUE_NUMBER must be a positive integer; received '$CAMPAIGN_ISSUE_NUMBER'."
@@ -45,6 +47,10 @@ fi
 
 if [[ ! "$REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
     fail "REPO must be in OWNER/REPO format; received '$REPO'."
+fi
+
+if [[ "$LESSON_PROPAGATION" != "off" && "$LESSON_PROPAGATION" != "campaign" ]]; then
+    fail "LESSON_PROPAGATION must be 'off' or 'campaign'; received '$LESSON_PROPAGATION'."
 fi
 
 for command in git jq uuidgen; do
@@ -112,6 +118,7 @@ jq -n \
     --arg campaignShortname "$CAMPAIGN_SHORTNAME" \
     --arg repository "$REPO" \
     --arg baseBranch "$BASE_BRANCH" \
+    --arg lessonPropagation "$LESSON_PROPAGATION" \
     --arg campaignMetadataDirectory "$CAMPAIGN_METADATA_DIRECTORY" \
     --arg lessonsFile "campaign-lessons.md" \
     --arg createdAt "$CREATED_AT" \
@@ -122,6 +129,7 @@ jq -n \
         campaignShortname: $campaignShortname,
         repository: $repository,
         baseBranch: $baseBranch,
+        lessonPropagation: $lessonPropagation,
         campaignMetadataDirectory: $campaignMetadataDirectory,
         lessonsFile: $lessonsFile,
         createdAt: $createdAt
@@ -132,6 +140,10 @@ cat >"$TEMP_LESSONS_PATH" <<'EOF'
 
 This file contains validated, reusable lessons for subsequent issues in this campaign.
 The issue specification and repository instructions remain authoritative.
+
+## Validated lessons
+
+No validated lessons have been recorded yet.
 EOF
 
 mv -- "$TEMP_MANIFEST_PATH" "$MANIFEST_PATH"
@@ -144,5 +156,6 @@ echo "Campaign initialized."
 echo "  Campaign ID:                $CAMPAIGN_ID"
 echo "  Repository:                 $REPO"
 echo "  Base branch:                $BASE_BRANCH"
+echo "  Lesson propagation:         $LESSON_PROPAGATION"
 echo "  Campaign metadata directory: $CAMPAIGN_METADATA_DIRECTORY"
 echo "  Absolute path:              $CAMPAIGN_METADATA_PATH"

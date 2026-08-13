@@ -15,6 +15,9 @@ This is stage 40 of the ordered shepherd-task campaign lifecycle (10 → 20 → 
 - `BASE_BRANCH`: The base branch the task PR should target (e.g., `edburns/1810-java-tool-ergonomics-tool-as-lambda`).
 - `REPO`: Repository in `OWNER/REPO` format (default: `github/copilot-sdk`).
 - `REMOTE`: Git remote to push to (default: `upstream`).
+- `CAMPAIGN_ID`: Canonical campaign UUID.
+- `CAMPAIGN_METADATA_DIRECTORY`: Repository-root-relative campaign metadata directory.
+- `LESSON_PROPAGATION`: Immutable mode, exactly `off` or `campaign`.
 
 ## Prerequisites
 
@@ -383,6 +386,44 @@ Manual intervention required.
 
 ### Step 14: Approve workflows and wait for completion
 
+Before this final approval step, perform lesson publication when
+`LESSON_PROPAGATION=campaign`:
+
+1. First inspect the current PR HEAD. If it already contains a validated
+   section for this issue and no candidate section, treat publication as
+   complete and do not create another lesson commit. Otherwise, in the PR
+   worktree, read the candidate section for `TASK_ISSUE` from
+   `CAMPAIGN_METADATA_DIRECTORY/campaign-lessons.md`.
+2. Synthesize it with observed CI failures, CCRA findings, corrective commits,
+   validated commands, and the final implementation. Reject inaccurate,
+   speculative, issue-local, secret-bearing, or non-reusable content.
+3. Replace the candidate section with:
+
+   ```markdown
+   ## Validated lessons from issue #TASK_ISSUE (PR #PR_NUMBER)
+
+   - **Applies to:** paths, subsystem, language, or acceptance-criterion class
+   - **Lesson:** concise actionable guidance
+   - **Evidence:** test, CI, review finding, or final PR-head reference
+   - **Source:** CCA observation, stage-40 observation, or both
+   - **Confidence:** high, medium, or low
+   ```
+
+   If no reusable lesson survives validation, publish an explicit
+   `No reusable lessons identified` entry with brief evidence. Preserve all
+   prior validated entries. Remove the initial
+   `No validated lessons have been recorded yet` placeholder when publishing
+   the first validated issue section. No `Candidate lessons` section may remain.
+4. Commit only the lessons-file change with a descriptive message and push it
+   to the PR branch. Never add local run directories or logs.
+5. Because this changes PR HEAD, go to Step 10, then execute Steps 11–13 to
+   approve workflows, re-request Copilot review for the publication commit,
+   and resolve any findings. When that loop returns here, the validated-section
+   check in item 1 makes publication idempotent. Do not merge based on evidence
+   from the pre-publication HEAD.
+
+When `LESSON_PROPAGATION=off`, do not read or modify the campaign lessons file.
+
 Invoke the **`shepherd-task-approve-workflows-and-wait-for-completion`** skill (`skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md`) with:
 
 - `REPO` = `$REPO`
@@ -398,6 +439,10 @@ Verify:
 - Re-run the Step 2.1 too-many-files refusal query. If it matches, stop immediately; the PR must not be merged.
 - The only failed check is "Block remove-before-merge paths" / "No remove-before-merge directories".
 - All other checks pass.
+- In `campaign` mode, the current PR HEAD contains exactly one validated lesson section for this issue, contains no candidate section for it, and prior validated entries remain intact.
+- The Copilot review request for the current post-publication HEAD was
+  positively acknowledged, and the authoritative Step 9 GraphQL query reports
+  no unresolved review threads or pending actionable findings.
 
 ### Step 16: Clean up worktree
 

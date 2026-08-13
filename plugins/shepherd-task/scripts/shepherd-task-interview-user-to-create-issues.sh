@@ -79,7 +79,8 @@ jq -e '
     (.campaignIssueNumber | type == "number" and . > 0 and floor == .) and
     (.campaignShortname | type == "string" and test("^[a-z0-9]+(-[a-z0-9]+)*$")) and
     (.repository | type == "string" and test("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")) and
-    (.baseBranch | type == "string" and . != "main")
+    (.baseBranch | type == "string" and . != "main") and
+    (.lessonPropagation == "off" or .lessonPropagation == "campaign")
 ' "$MANIFEST_PATH" >/dev/null || fail "Campaign manifest is invalid: $MANIFEST_PATH"
 
 CAMPAIGN_ID="$(jq -r '.campaignId' "$MANIFEST_PATH")"
@@ -87,6 +88,7 @@ PARENT_ISSUE="$(jq -r '.campaignIssueNumber' "$MANIFEST_PATH")"
 CAMPAIGN_SHORTNAME="$(jq -r '.campaignShortname' "$MANIFEST_PATH")"
 REPO="$(jq -r '.repository' "$MANIFEST_PATH")"
 BASE_BRANCH="$(jq -r '.baseBranch' "$MANIFEST_PATH")"
+LESSON_PROPAGATION="$(jq -r '.lessonPropagation' "$MANIFEST_PATH")"
 PLAN_DIRECTORY="$(jq -r '.campaignMetadataDirectory' "$MANIFEST_PATH")"
 EXPECTED_DIRECTORY="${PARENT_ISSUE}-${CAMPAIGN_SHORTNAME}-remove-before-merge"
 [[ "$PLAN_DIRECTORY" == "$EXPECTED_DIRECTORY" && "$CAMPAIGN_METADATA_DIRECTORY" == "$EXPECTED_DIRECTORY" ]] ||
@@ -97,6 +99,7 @@ echo "Campaign ID:                 $CAMPAIGN_ID"
 echo "Repository:                  $REPO"
 echo "Campaign base branch:        $BASE_BRANCH"
 echo "Campaign issue:              #$PARENT_ISSUE"
+echo "Lesson propagation:          $LESSON_PROPAGATION"
 echo "Campaign metadata directory: $PLAN_DIRECTORY"
 echo ""
 
@@ -153,6 +156,7 @@ cat >"$out_file" <<EOF
 Invoke skill \`shepherd-task-20-create-issues-from-plan\` with these inputs:
 
 - CAMPAIGN_ID: $CAMPAIGN_ID
+- LESSON_PROPAGATION: $LESSON_PROPAGATION
 - REPO: $REPO
 - BASE_BRANCH: $BASE_BRANCH
 - PARENT_ISSUE: $PARENT_ISSUE

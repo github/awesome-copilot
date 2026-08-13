@@ -16,6 +16,9 @@ The existence of a draft PR is only evidence that CCA accepted the assignment. C
 - `TASK_ISSUE`: The issue number (e.g., `1850`) or URL of the child task to shepherd.
 - `BASE_BRANCH`: The base branch the task PR should target (default: `upstream/edburns/1810-java-tool-ergonomics-tool-as-lambda`).
 - `REPO`: Repository in `OWNER/REPO` format (default: `github/copilot-sdk`).
+- `CAMPAIGN_ID`: Canonical campaign UUID.
+- `CAMPAIGN_METADATA_DIRECTORY`: Repository-root-relative campaign metadata directory.
+- `LESSON_PROPAGATION`: Immutable mode, exactly `off` or `campaign`.
 
 ## Prerequisites
 
@@ -50,6 +53,7 @@ This skill must fail closed. It may emit `SHEPHERD COMPLETE` only when all of th
 6. All required and relevant CI checks for the current PR HEAD are complete and successful. Selector/aggregator checks alone are not meaningful CI.
 7. There are no unresolved review threads, change requests, or actionable bot comments.
 8. The HEAD SHA has not changed while gates 3–7 were evaluated. If it changes, restart validation from gate 2.
+9. In `campaign` mode, the PR contains a nonempty `Candidate lessons for issue #TASK_ISSUE` section in `CAMPAIGN_METADATA_DIRECTORY/campaign-lessons.md`.
 
 Do not weaken or skip an invariant because the task appears small, because CCA has produced good work in prior runs, or because a timeout would otherwise expire. A timeout is a failure requiring intervention, never permission to proceed.
 
@@ -58,6 +62,13 @@ Do not weaken or skip an invariant because the task appears small, because CCA h
 ## Procedure
 
 ### Step 1: Assign the task to @Copilot
+
+Before assignment, validate `CAMPAIGN_METADATA_DIRECTORY/shepherd-campaign.json`
+on `BASE_BRANCH`. Its campaign ID and lesson mode must match this invocation.
+When mode is `campaign`, also verify `campaign-lessons.md` exists and the issue
+body contains the required Campaign lessons section. Fail closed rather than
+assigning an issue that cannot transfer lessons. When mode is `off`, verify the
+issue body does not require lesson consumption or production.
 
 Use the GitHub Issues REST API with the `agent_assignment.base_branch` parameter. This is the **only 100% reliable method** — it passes `BASE_BRANCH` directly to CCA as a first-class input, so it cannot default to `main`.
 
@@ -575,6 +586,7 @@ Immediately before reporting completion, re-query all state. Do not reuse cached
 - Every issue-specified gating command passed on `HEAD_SHA`.
 - Relevant CI checks for `HEAD_SHA` passed and no check or workflow is pending or `action_required`.
 - No unresolved review thread, `CHANGES_REQUESTED` review, or actionable bot comment remains.
+- In `campaign` mode, fetch `CAMPAIGN_METADATA_DIRECTORY/campaign-lessons.md` from the current PR HEAD and verify it preserves prior validated lessons and contains a substantive candidate section for this issue.
 
 Use the authoritative closing-issue GraphQL query from Step 2, commit/check-runs API query from Step 6.1, and paginated review-thread GraphQL query from Step 8.1 for this recheck. Do not replace them with PR title matching, `gh pr checks` against an unverified HEAD, or the presence/absence of raw review comments.
 

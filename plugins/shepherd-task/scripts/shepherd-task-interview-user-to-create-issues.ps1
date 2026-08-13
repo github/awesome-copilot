@@ -130,6 +130,9 @@ if ([string]$campaign.repository -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$') 
 if ([string]$campaign.baseBranch -eq 'main') {
     throw "Campaign manifest baseBranch must not be 'main'."
 }
+if ([string]$campaign.lessonPropagation -notin @('off', 'campaign')) {
+    throw "Campaign manifest lessonPropagation must be 'off' or 'campaign'."
+}
 
 $expectedDirectory = "$($campaign.campaignIssueNumber)-$($campaign.campaignShortname)-remove-before-merge"
 if (
@@ -144,12 +147,14 @@ $BASE_BRANCH = [string]$campaign.baseBranch
 $PARENT_ISSUE = [int]$campaign.campaignIssueNumber
 $PLAN_DIRECTORY = [string]$campaign.campaignMetadataDirectory
 $CAMPAIGN_ID = [string]$campaign.campaignId
+$LESSON_PROPAGATION = [string]$campaign.lessonPropagation
 
 Write-Host '=== shepherd-task-20-create-issues-from-plan — Input Interview ===' -ForegroundColor Cyan
 Write-Host "Campaign ID:                 $CAMPAIGN_ID"
 Write-Host "Repository:                  $REPO"
 Write-Host "Campaign base branch:        $BASE_BRANCH"
 Write-Host "Campaign issue:              #$PARENT_ISSUE"
+Write-Host "Lesson propagation:          $LESSON_PROPAGATION"
 Write-Host "Campaign metadata directory: $PLAN_DIRECTORY"
 Write-Host ''
 
@@ -226,6 +231,7 @@ $body = @"
 Invoke skill ``shepherd-task-20-create-issues-from-plan`` with these inputs:
 
 - CAMPAIGN_ID: $CAMPAIGN_ID
+- LESSON_PROPAGATION: $LESSON_PROPAGATION
 - REPO: $REPO
 - BASE_BRANCH: $BASE_BRANCH
 - PARENT_ISSUE: $PARENT_ISSUE

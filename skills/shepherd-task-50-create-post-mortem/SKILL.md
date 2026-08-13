@@ -22,6 +22,9 @@ This skill is designed to be invoked from `shepherd-task-given-list.ps1` / `shep
 - `TASK_ISSUES` (optional)
 - `BASE_BRANCH` (optional)
 - `REPO` (optional)
+- `CAMPAIGN_ID` (recommended)
+- `CAMPAIGN_METADATA_DIRECTORY` (recommended)
+- `LESSON_PROPAGATION` (recommended; `off` or `campaign`)
 
 ---
 
@@ -53,22 +56,26 @@ Match their structure and tone: concise executive summary, clear sectioning, met
 Given `SHEPHERD_LOG_DIR`:
 
 1. Validate the directory exists; fail clearly if it does not.
-2. Collect all run artifacts from that directory:
+2. If `shepherd-task-given-list-run.json` exists, verify its campaign ID,
+   repository, base branch, lesson mode, task list, and exit code agree with
+   the invocation. Include lesson mode in the executive summary and metrics so
+   treatment and control campaign runs can be compared later.
+3. Collect all run artifacts from that directory:
    - `phase1-task-*.json`, `phase2-task-*.json`
    - `phase1-task-*.md`, `phase2-task-*.md`
    - any supporting markdown notes
-3. Determine the parent campaign directory (`PARENT_DIR = dirname(SHEPHERD_LOG_DIR)`), then collect context files there:
+4. Determine the parent campaign directory (`PARENT_DIR = dirname(SHEPHERD_LOG_DIR)`), then collect context files there:
    - `*memory*.md` (if present)
    - `*prompts.md` (if present)
    - `*job-logs.txt` (if present)
-4. Extract quantitative metrics from JSON/MD artifacts:
+5. Extract quantitative metrics from JSON/MD artifacts:
    - issues/PRs touched
    - per-task phase durations
    - review rounds (`Comments generated`)
    - success/failure and failure signatures
    - idle/timeout markers
    - token usage where available (`assistant.message.outputTokens` / `inputTokens`)
-5. Build the report so it is useful for both:
+6. Build the report so it is useful for both:
    - **successful runs** (throughput/convergence/quality)
    - **failed runs** (root cause and corrective actions)
 
