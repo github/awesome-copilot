@@ -7,23 +7,33 @@ import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
+const COPILOT_CONTENT_DIR = "com.github.copilot";
+const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
 const MATERIALIZED_SPECS = {
   agents: {
-    path: "agents",
+    paths: [path.join(COPILOT_CONTENT_DIR, "agents"), "agents"],
     restore(dirPath) {
       return collectFiles(dirPath).map((relativePath) => `./agents/${relativePath}`);
     },
   },
-  commands: {
-    path: "commands",
+  hooks: {
+    paths: [path.join(COPILOT_CONTENT_DIR, "hooks"), "hooks"],
     restore(dirPath) {
-      return collectFiles(dirPath).map((relativePath) => `./commands/${relativePath}`);
+      return collectDirectoriesContainingFile(dirPath, "hooks.json")
+        .map((relativePath) => `./hooks/${relativePath}/`);
     },
   },
   skills: {
-    path: "skills",
+    paths: ["skills"],
     restore(dirPath) {
       return collectSkillDirectories(dirPath).map((relativePath) => `./skills/${relativePath}/`);
+    },
+  },
+  extensions: {
+    paths: [path.join(COPILOT_CONTENT_DIR, "extensions"), "extensions"],
+    restore(dirPath) {
+      return collectDirectoriesContainingFile(dirPath, "extension.mjs")
+        .map((relativePath) => `./extensions/${relativePath}`);
     },
   },
 };
@@ -78,22 +88,19 @@ export function restoreManifestFromMaterializedFiles(pluginPath) {
 
   let changed = false;
   for (const [field, spec] of Object.entries(MATERIALIZED_SPECS)) {
-    if (Array.isArray(plugin[field])) {
-      const sortedEntries = sortPluginEntries(plugin[field]);
-      if (!arraysEqual(plugin[field], sortedEntries)) {
-        plugin[field] = sortedEntries;
-        changed = true;
-      }
-    }
-
-    const materializedPath = path.join(pluginPath, spec.path);
-    if (!fs.existsSync(materializedPath) || !fs.statSync(materializedPath).isDirectory()) {
+    const materializedPath = spec.paths
+      .map((subdir) => path.join(pluginPath, subdir))
+      .find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isDirectory());
+    if (!materializedPath) {
       continue;
     }
 
     const restored = spec.restore(materializedPath);
-    if (!arraysEqual(plugin[field], restored)) {
-      plugin[field] = restored;
+    const composition = plugin.extensions?.[AWESOME_COPILOT_NAMESPACE];
+    if (!arraysEqual(composition?.[field], restored)) {
+      plugin.extensions ??= {};
+      plugin.extensions[AWESOME_COPILOT_NAMESPACE] ??= {};
+      plugin.extensions[AWESOME_COPILOT_NAMESPACE][field] = restored;
       changed = true;
     }
   }
@@ -112,14 +119,21 @@ function cleanPlugin(pluginPath) {
   }
 
   let removed = 0;
-  for (const { path: subdir } of Object.values(MATERIALIZED_SPECS)) {
-    const target = path.join(pluginPath, subdir);
-    if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
-      const count = countFiles(target);
-      fs.rmSync(target, { recursive: true, force: true });
-      removed += count;
-      console.log(`  Removed ${path.basename(pluginPath)}/${subdir}/ (${count} files)`);
+  for (const { paths } of Object.values(MATERIALIZED_SPECS)) {
+    for (const subdir of paths) {
+      const target = path.join(pluginPath, subdir);
+      if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
+        const count = countFiles(target);
+        fs.rmSync(target, { recursive: true, force: true });
+        removed += count;
+        console.log(`  Removed ${path.basename(pluginPath)}/${subdir}/ (${count} files)`);
+      }
     }
+  }
+
+  const copilotContentPath = path.join(pluginPath, COPILOT_CONTENT_DIR);
+  if (fs.existsSync(copilotContentPath) && fs.readdirSync(copilotContentPath).length === 0) {
+    fs.rmdirSync(copilotContentPath);
   }
 
   return { removed, manifestUpdated };
@@ -230,16 +244,30 @@ function collectSkillDirectories(dir, rootDir = dir) {
   return skillDirs.sort();
 }
 
+function collectDirectoriesContainingFile(dir, fileName, rootDir = dir) {
+  const directories = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    const entryPath = path.join(dir, entry.name);
+    if (fs.existsSync(path.join(entryPath, fileName))) {
+      directories.push(toPosixPath(path.relative(rootDir, entryPath)));
+      continue;
+    }
+
+    directories.push(...collectDirectoriesContainingFile(entryPath, fileName, rootDir));
+  }
+  return directories.sort();
+}
+
 function arraysEqual(left, right) {
   if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
     return false;
   }
 
   return left.every((value, index) => value === right[index]);
-}
-
-function sortPluginEntries(entries) {
-  return [...entries].sort((left, right) => left.localeCompare(right));
 }
 
 function toPosixPath(filePath) {
