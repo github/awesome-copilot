@@ -1,116 +1,75 @@
 ---
-import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
-import BackToTop from "../../components/BackToTop.astro";
-import agentsData from "../../../public/data/agents.json";
-import RawMarkdown from "../../components/pages/RawMarkdown.astro";
-import type { HeaderItem } from "../../components/pages/Header.astro";
-import DetailHeader from "../../components/pages/Header.astro";
-import Breadcrumb from "../../components/pages/Breadcrumb.astro";
-import Main from "../../components/pages/Main.astro";
-import InstallButtons from "../../components/pages/InstallButtons.astro";
-import Sidebar from "../../components/pages/Sidebar.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { AgentDetail } from "../../components/brand/AgentDetail";
+import { buildDetailToc } from "../../components/brand/DetailChassis";
+import { agents, searchIndex } from "../../lib/site-data";
 import { loadDetailPage } from "../../lib/detail-page";
 
-interface AgentItem extends HeaderItem {
+const RAW_BASE = "https://raw.githubusercontent.com/github/awesome-copilot/main";
+
+interface Item {
   id: string;
-  title: string;
+  title?: string;
+  name?: string;
   description?: string;
-  model?: string | string[];
-  tools?: string[];
-  hasHandoffs?: boolean;
-  handoffs?: string[];
-  mcpServers?: string[];
   path: string;
-  filename?: string;
   lastUpdated?: string | null;
 }
 
+const labelOf = (entry: Item) => entry.title ?? entry.name ?? entry.id;
+
 export function getStaticPaths() {
-  return (agentsData.items as AgentItem[]).map((item) => ({
+  const name = (entry: Item) => entry.title ?? entry.name ?? entry.id;
+  const list = [...(agents as unknown as Item[])].sort((a, b) =>
+    name(a).localeCompare(name(b)),
+  );
+  return list.map((item, index) => ({
     params: { id: item.id },
-    props: { item },
+    props: {
+      item,
+      previous: index > 0 ? list[index - 1] : undefined,
+      next: index < list.length - 1 ? list[index + 1] : undefined,
+    },
   }));
 }
 
-const { item } = Astro.props as { item: AgentItem };
+const { item, previous, next } = Astro.props as {
+  item: Item;
+  previous?: Item;
+  next?: Item;
+};
 
-const {
-  vscodeUrl,
-  insidersUrl,
-  githubUrl,
-  markdownHtml,
-  frontmatterText,
-  rawMarkdown,
-  lastUpdated,
-} = loadDetailPage(item, "agent");
+const detail = loadDetailPage(item, "agent");
+const { html, toc } = buildDetailToc(detail.markdownHtml);
 
-const models = Array.isArray(item.model)
-  ? item.model
-  : item.model
-    ? [item.model]
-    : [];
-const tools = item.tools ?? [];
-const handoffs = item.handoffs ?? [];
-const mcpServers = item.mcpServers ?? [];
+const base = import.meta.env.BASE_URL ?? "/";
+const prefix = base.endsWith("/") ? base : base + "/";
+const detailHref = (id: string) =>
+  (prefix + "agent/" + id + "/").replace(/\/{2,}/g, "/");
+
+const siblingOf = (sibling?: Item) =>
+  sibling ? { label: labelOf(sibling), href: detailHref(sibling.id) } : undefined;
+
+const downloadUrl = RAW_BASE + "/" + item.path;
 ---
 
-<StarlightPage
-  frontmatter={{
-    title: item.title,
-    description: item.description,
-    template: "splash",
-    prev: false,
-    next: false,
-    editUrl: false,
-  }}
+<BaseLayout
+  title={labelOf(item) + " | Awesome GitHub Copilot"}
+  description={item.description}
 >
-  <div
-    id="main-content"
-    class="resource-detail-page"
-    data-resource-detail
-    data-path={item.path}
-  >
-    <RawMarkdown markdown={rawMarkdown} />
-    <div class="container">
-      <Breadcrumb
-        paths={[
-          { name: "Home", href: "/" },
-          { name: "Agents", href: "/agents/" },
-        ]}
-        title={item.title}
-      />
-
-      <DetailHeader item={item} />
-
-      <div class="detail-layout">
-        <Main markdownHtml={markdownHtml} githubUrl={githubUrl} />
-
-        <Sidebar
-          item={item}
-          lastUpdated={lastUpdated ?? undefined}
-          frontmatterText={frontmatterText || undefined}
-          githubUrl={githubUrl}
-          chips={[
-            { title: "Models", items: models },
-            { title: "Handoffs", items: handoffs },
-            { title: "MCP Servers", items: mcpServers },
-            { title: "Tools", items: tools },
-          ]}
-        >
-          <InstallButtons
-            vscodeUrl={vscodeUrl}
-            insidersUrl={insidersUrl}
-            rawMarkdown={rawMarkdown}
-            slot="install"
-          />
-        </Sidebar>
-      </div>
-    </div>
-  </div>
-
-  <BackToTop />
-
-  <script>
-    import "../../scripts/pages/resource-detail";
-  </script>
-</StarlightPage>
+  <AgentDetail
+    client:load
+    item={item as any}
+    markdownHtml={html}
+    toc={toc}
+    vscodeUrl={detail.vscodeUrl}
+    insidersUrl={detail.insidersUrl}
+    githubUrl={detail.githubUrl}
+    downloadUrl={downloadUrl}
+    rawMarkdown={detail.rawMarkdown}
+    lastUpdated={detail.lastUpdated}
+    previous={siblingOf(previous)}
+    next={siblingOf(next)}
+    searchIndex={searchIndex}
+  />
+</BaseLayout>

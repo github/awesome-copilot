@@ -1,0 +1,39 @@
+---
+import { getCollection } from "astro:content";
+
+import PlaybookArticle from "../../layouts/PlaybookArticle.astro";
+import {
+  isPlaybookArticle,
+  localizedEntry,
+  siteLocale,
+  splitLocale,
+} from "../../lib/playbook-routes";
+
+// Only the English (unprefixed) articles are enumerated here. Astro's i18n
+// `fallback` config auto-generates the locale-prefixed variant of every path in
+// this route, so this one route file owns every locale URL. Declaring a
+// separate `/[locale]/learning-hub/[...slug]` route as well would produce the
+// same paths at lower priority and be dropped with a build warning, leaving the
+// English fallback to shadow real translations.
+export async function getStaticPaths() {
+  const docs = await getCollection("docs");
+  return docs
+    .filter((entry) => isPlaybookArticle(entry.id))
+    .filter((entry) => !splitLocale(entry.id).locale)
+    .map((entry) => ({
+      params: { slug: entry.id.replace(/^learning-hub\//, "") },
+      props: { englishId: entry.id },
+    }));
+}
+
+const { englishId } = Astro.props;
+
+// On a fallback-generated page `Astro.url` is the rewritten English URL, so the
+// requested locale has to come from `Astro.currentLocale`.
+const locale = siteLocale(Astro.currentLocale);
+const docs = await getCollection("docs");
+const entry = localizedEntry(docs, englishId, locale);
+const slug = locale ? `${locale}/${englishId}` : englishId;
+---
+
+<PlaybookArticle entry={entry} slug={slug} />

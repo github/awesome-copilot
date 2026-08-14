@@ -1,185 +1,28 @@
 ---
-import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
-import Icon from "../components/Icon.astro";
-import BackToTop from "../components/BackToTop.astro";
+import { getCollection } from "astro:content";
 
-const base = import.meta.env.BASE_URL;
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { HomePage } from "../components/brand/HomePage";
+import { counts, searchIndex } from "../lib/site-data";
+
+// Playbook articles live in the docs collection rather than in generated data,
+// so the count is derived here to keep every figure on the page live.
+const docs = await getCollection("docs");
+const playbook = docs.filter(
+  (entry) =>
+    entry.id.includes("learning-hub/") &&
+    !entry.id.endsWith("/index") &&
+    !entry.id.endsWith("learning-hub"),
+).length;
 ---
 
-<StarlightPage
-  frontmatter={{
-    title: "Awesome GitHub Copilot",
-    description:
-      "Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience",
-    template: "splash",
-    pagefind: false,
-    prev: false,
-    next: false,
-    editUrl: false,
-    head: [
-      {
-        tag: "meta",
-        attrs: {
-          property: "og:type",
-          content: "website",
-        },
-      },
-    ],
-  }}
-  hasSidebar={false}
+<BaseLayout
+  title="Awesome GitHub Copilot"
+  description="The community library for GitHub Copilot: agents, instructions, skills, plugins, and extensions."
 >
-  <div id="main-content">
-    <!-- Hero Section -->
-    <section class="hero" aria-labelledby="hero-heading">
-      <div class="container">
-        <h1 id="hero-heading">
-          <span class="gradient-text">Awesome GitHub Copilot</span>
-        </h1>
-        <p class="hero-subtitle">
-          Community-contributed agents, instructions, and skills to enhance your
-          GitHub Copilot experience
-        </p>
-        <p>
-          <a href="https://github.com/github/awesome-copilot/" target="_blank" rel="noopener noreferrer">
-            View the Awesome Copilot repository on GitHub
-          </a>
-        </p>
-      </div>
-    </section>
-
-    <!-- Quick Links -->
-    <section class="quick-links" aria-labelledby="quick-links-heading">
-      <h2 id="quick-links-heading" class="sr-only">Browse Resources</h2>
-      <div class="container">
-        <div class="cards-grid">
-          <a
-            href={`${base}agents/`}
-            class="card card-with-count card-category-ai"
-            id="card-agents"
-            style="--animation-delay: 0ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="robot" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Agents</h3>
-              <p>Custom agents for specialized Copilot experiences</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="agents"
-              aria-label="Agent count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}instructions/`}
-            class="card card-with-count card-category-docs"
-            id="card-instructions"
-            style="--animation-delay: 50ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="document" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Instructions</h3>
-              <p>Coding standards and best practices for Copilot</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="instructions"
-              aria-label="Instruction count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}skills/`}
-            class="card card-with-count card-category-power"
-            id="card-skills"
-            style="--animation-delay: 100ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="lightning" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Skills</h3>
-              <p>Self-contained folders with instructions and resources</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="skills"
-              aria-label="Skill count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}plugins/`}
-            class="card card-with-count card-category-extension"
-            id="card-plugins"
-            style="--animation-delay: 250ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="plug" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Plugins</h3>
-              <p>Curated plugins organized by themes</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="plugins"
-              aria-label="Plugin count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}extensions/`}
-            class="card card-with-count card-category-extension"
-            id="card-extensions"
-            style="--animation-delay: 300ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="plug" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Canvas Extensions</h3>
-              <p>Interactive canvas extensions for Copilot app experiences</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="extensions"
-              aria-label="Extension count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}learning-hub/`}
-            class="card card-with-count card-category-learn"
-            id="card-learning-hub"
-            style="--animation-delay: 400ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="book" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Learning Hub</h3>
-              <p>Articles and guides to master GitHub Copilot</p>
-            </div>
-          </a>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- Back to Top Button -->
-  <BackToTop />
-
-  <script>
-    import "../scripts/pages/index";
-  </script>
-</StarlightPage>
+  <HomePage
+    client:load
+    counts={{ ...counts, playbook }}
+    searchIndex={searchIndex}
+  />
+</BaseLayout>

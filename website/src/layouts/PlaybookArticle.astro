@@ -1,0 +1,50 @@
+---
+/**
+ * Renders a `docs` collection entry through the Playbook article chassis.
+ *
+ * The chassis owns its own scroll host, hero pinning, and footer, so it
+ * replaces `PageShell` here rather than nesting inside it.
+ */
+import { render, type CollectionEntry } from "astro:content";
+
+import BaseLayout from "./BaseLayout.astro";
+import { PlaybookArticleBody } from "../components/brand/PlaybookArticleBody";
+import type { TocSection } from "../components/brand/LearningArticleLayout";
+import { buildArticleSections } from "../lib/playbook-article";
+import { searchIndex } from "../lib/site-data";
+
+interface Props {
+  entry: CollectionEntry<"docs">;
+  /** Site path for this article, without leading or trailing slashes. */
+  slug: string;
+}
+
+const { entry, slug } = Astro.props;
+
+const { headings } = await render(entry);
+
+// `render()` returns an Astro component, not HTML. The rendered markup is
+// available on the entry itself, which is what the section splitter needs.
+const html = entry.rendered?.html ?? "";
+const sections = buildArticleSections(html, entry.body ?? "");
+
+const tocSections: TocSection[] = headings
+  .filter((heading) => heading.depth === 2)
+  .map((heading) => ({ id: heading.slug, label: heading.text }));
+
+const title = entry.data.title;
+const description = entry.data.description ?? "";
+---
+
+<BaseLayout title={`${title} | Copilot Playbook`} description={description}>
+  <PlaybookArticleBody
+    client:load
+    slug={slug}
+    breadcrumbLabel={title}
+    title={title}
+    description={description}
+    sections={sections}
+    tocSections={tocSections}
+    searchIndex={searchIndex}
+  />
+</BaseLayout>

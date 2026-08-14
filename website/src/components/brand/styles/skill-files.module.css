@@ -1,0 +1,60 @@
+/* File switcher for skill bundles.
+
+   Skills are folders, so the content region is a browser rather than a single
+   article. The tab strip reuses the prototype's pill-tab treatment
+   (`.subNavLink` / `.subNavLinkActive` in dotnet-upgrade.module.css) via
+   `composes`, so there is no new visual language here — only the layout the
+   prototype has no equivalent for. */
+
+.fileTabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fileTab {
+  composes: subNavLink from "./dotnet-upgrade.module.css";
+  border: 0;
+  cursor: pointer;
+  font-family: var(--brand-fontStack-monospace);
+}
+
+.fileTabActive {
+  composes: subNavLinkActive from "./dotnet-upgrade.module.css";
+}
+
+/* Meta row above the rendered file: path, size, per-file GitHub link. */
+.fileBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-12);
+  padding-block-end: var(--base-size-12);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.filePath {
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-100);
+  color: var(--brand-color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.fileActions {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+}
+
+.fileImage {
+  max-inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--brand-borderRadius-medium);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+}

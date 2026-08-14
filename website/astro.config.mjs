@@ -1,15 +1,13 @@
-import { unified } from "@astrojs/markdown-remark";
 import sitemap from "@astrojs/sitemap";
-import starlight from "@astrojs/starlight";
+import react from "@astrojs/react";
 import { defineConfig } from "astro/config";
 import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import pagefindResources from "./src/integrations/pagefind-resources";
 
-// Learning Hub course content mirrored from external workshop repos is authored
-// in GitHub admonition syntax (`> [!NOTE]`). This remark plugin rewrites those
-// callouts into Starlight aside directives before Starlight renders them, so the
-// same syntax used in the source repos and on github.com also produces styled
-// callouts here. The mapping targets Starlight's aside types (note / tip / caution).
+// Playbook course content mirrored from external workshop repos is authored in
+// GitHub admonition syntax (`> [!NOTE]`). This remark plugin rewrites those
+// callouts into directives before rendering, so the same syntax used in the
+// source repos and on github.com also produces styled callouts here.
 const githubAdmonitionMapping = {
   NOTE: "note",
   TIP: "tip",
@@ -19,15 +17,6 @@ const githubAdmonitionMapping = {
 };
 
 const site = "https://awesome-copilot.github.com/";
-const siteDescription =
-  "Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience";
-// Social preview image used for all Open Graph / Twitter cards (e.g. LinkedIn, which is
-// Open Graph-driven). socialImageWidth/Height MUST match the actual pixels of social-image.png.
-// If a page ever overrides og:image, also override og:image:width/height and twitter:image
-// (Head.astro derives og:image:secure_url from twitter:image first).
-const socialImageUrl = new URL("/images/social-image.png", site).toString();
-const socialImageWidth = "2400";
-const socialImageHeight = "1260";
 
 // https://astro.build/config
 export default defineConfig({
@@ -35,238 +24,31 @@ export default defineConfig({
   base: "/",
   output: "static",
   markdown: {
-    // Astro 7.1+ uses Sätteri as the default Markdown processor, but its plugin
-    // API is incompatible with remark/rehype plugins. We explicitly opt into the
-    // unified() (remark/rehype) processor so we can keep using
-    // remark-github-admonitions-to-directives, which rewrites > [!NOTE] callouts
-    // from Learning Hub course content into Starlight aside directives.
-    processor: unified({
-      remarkPlugins: [
-        [remarkGithubAdmonitionsToDirectives, { mapping: githubAdmonitionMapping }],
-      ],
-    }),
+    remarkPlugins: [
+      [remarkGithubAdmonitionsToDirectives, { mapping: githubAdmonitionMapping }],
+    ],
   },
-  integrations: [
-    starlight({
-      title: "Awesome GitHub Copilot",
-      favicon: "/images/favicon.svg",
-      description: siteDescription,
-      social: [],
-      head: [
-        {
-          tag: "meta",
-          attrs: {
-            property: "og:image",
-            content: socialImageUrl,
-          },
-        },
-        {
-          tag: "meta",
-          attrs: {
-            property: "og:image:width",
-            content: socialImageWidth,
-          },
-        },
-        {
-          tag: "meta",
-          attrs: {
-            property: "og:image:height",
-            content: socialImageHeight,
-          },
-        },
-        {
-          tag: "meta",
-          attrs: {
-            property: "og:image:alt",
-            content: siteDescription,
-          },
-        },
-        {
-          tag: "meta",
-          attrs: {
-            name: "twitter:image",
-            content: socialImageUrl,
-          },
-        },
-      ],
-      customCss: [
-        "./src/styles/starlight-overrides.css",
-        "./src/styles/global.css",
-      ],
-      // English is served at the site root (no locale prefix), preserving all
-      // existing URLs. Additional locales are served under a locale prefix
-      // (e.g. /es-es/…) and fall back to the English page when a translation
-      // does not yet exist. These keys match the locale directory names used by
-      // mirrored Learning Hub course content (website/src/content/docs/<locale>/…).
-      defaultLocale: "root",
-      locales: {
-        root: { label: "English", lang: "en" },
-        "es-es": { label: "Español", lang: "es-ES" },
-        "ja-jp": { label: "日本語", lang: "ja-JP" },
-        "ko-kr": { label: "한국어", lang: "ko-KR" },
-        "pt-br": { label: "Português (Brasil)", lang: "pt-BR" },
-        "zh-cn": { label: "简体中文", lang: "zh-CN" },
-      },
-      editLink: {
-        baseUrl:
-          "https://github.com/github/awesome-copilot/edit/staged/website/",
-      },
-      sidebar: [
-        {
-          label: "Fundamentals",
-          items: [
-            "learning-hub/github-copilot-app",
-            "learning-hub/working-with-canvas-extensions",
-            "learning-hub/using-automations-in-copilot-app",
-            "learning-hub/what-are-agents-skills-instructions",
-            "learning-hub/agents-and-subagents",
-            "learning-hub/understanding-copilot-context",
-            "learning-hub/copilot-configuration-basics",
-            "learning-hub/defining-custom-instructions",
-            "learning-hub/creating-effective-skills",
-            "learning-hub/building-custom-agents",
-            "learning-hub/understanding-mcp-servers",
-            "learning-hub/automating-with-hooks",
-            "learning-hub/agentic-workflows",
-            "learning-hub/using-copilot-coding-agent",
-            "learning-hub/installing-and-using-plugins",
-            "learning-hub/before-after-customization-examples",
-          ],
-        },
-        {
-          label: "Reference",
-          items: ["learning-hub/github-copilot-terminology-glossary"],
-        },
-        {
-          label: "Copilot CLI for Beginners",
-          items: [
-            {
-              label: "Overview",
-              link: "/learning-hub/cli-for-beginners/",
-            },
-            "learning-hub/cli-for-beginners/00-quick-start",
-            "learning-hub/cli-for-beginners/01-setup-and-first-steps",
-            "learning-hub/cli-for-beginners/02-context-and-conversations",
-            "learning-hub/cli-for-beginners/03-development-workflows",
-            "learning-hub/cli-for-beginners/04-agents-and-custom-instructions",
-            "learning-hub/cli-for-beginners/05-skills",
-            "learning-hub/cli-for-beginners/06-mcp-servers",
-            "learning-hub/cli-for-beginners/07-putting-it-all-together",
-          ],
-        },
-        {
-          label: "Copilot Workshops",
-          items: [
-            {
-              label: "Overview",
-              link: "/learning-hub/copilot-workshops/",
-            },
-            {
-              label: "VS Code",
-              items: [
-                {
-                  label: "Overview",
-                  link: "/learning-hub/copilot-workshops/vscode/",
-                },
-                "learning-hub/copilot-workshops/vscode/0-prerequisites",
-                "learning-hub/copilot-workshops/vscode/1-custom-instructions",
-                "learning-hub/copilot-workshops/vscode/2-agent-mode",
-                "learning-hub/copilot-workshops/vscode/3-mcp",
-                "learning-hub/copilot-workshops/vscode/4-custom-agents",
-                "learning-hub/copilot-workshops/vscode/5-managing-agents",
-                "learning-hub/copilot-workshops/vscode/6-iterating",
-              ],
-            },
-            {
-              label: "Copilot CLI",
-              items: [
-                {
-                  label: "Overview",
-                  link: "/learning-hub/copilot-workshops/cli/",
-                },
-                "learning-hub/copilot-workshops/cli/0-prerequisites",
-                "learning-hub/copilot-workshops/cli/1-install-copilot-cli",
-                "learning-hub/copilot-workshops/cli/2-custom-instructions",
-                "learning-hub/copilot-workshops/cli/3-generating-code",
-                "learning-hub/copilot-workshops/cli/4-mcp",
-                "learning-hub/copilot-workshops/cli/5-agent-skills",
-                "learning-hub/copilot-workshops/cli/6-custom-agents",
-                "learning-hub/copilot-workshops/cli/7-slash-commands",
-                "learning-hub/copilot-workshops/cli/8-review",
-              ],
-            },
-            {
-              label: "Copilot App",
-              items: [
-                {
-                  label: "Overview",
-                  link: "/learning-hub/copilot-workshops/app/",
-                },
-                "learning-hub/copilot-workshops/app/0-prerequisites",
-                "learning-hub/copilot-workshops/app/1-install-copilot-app",
-                "learning-hub/copilot-workshops/app/2-add-star-rating",
-                "learning-hub/copilot-workshops/app/3-custom-instructions",
-                "learning-hub/copilot-workshops/app/4-build-filtering",
-                "learning-hub/copilot-workshops/app/5-mcp-playwright",
-                "learning-hub/copilot-workshops/app/6-agent-merge",
-                "learning-hub/copilot-workshops/app/7-canvases",
-                "learning-hub/copilot-workshops/app/8-review",
-              ],
-            },
-            {
-              label: "Copilot Cloud Agent",
-              items: [
-                {
-                  label: "Overview",
-                  link: "/learning-hub/copilot-workshops/cloud/",
-                },
-                "learning-hub/copilot-workshops/cloud/0-prerequisites",
-                "learning-hub/copilot-workshops/cloud/1-custom-instructions",
-                "learning-hub/copilot-workshops/cloud/2-cloud-agent",
-                "learning-hub/copilot-workshops/cloud/3-custom-agents",
-                "learning-hub/copilot-workshops/cloud/4-managing-agents",
-                "learning-hub/copilot-workshops/cloud/5-iterating",
-              ],
-            },
-          ],
-        },
-        {
-          label: "Hands-on",
-          items: [
-            {
-              label: "Cookbook",
-              link: "/learning-hub/cookbook/",
-            },
-          ],
-        },
-        {
-          label: "Browse Resources",
-          items: [
-            { label: "Home", link: "/" },
-            { label: "Agents", link: "/agents/" },
-            { label: "Instructions", link: "/instructions/" },
-            { label: "Skills", link: "/skills/" },
-            { label: "Canvas Extensions", link: "/extensions/" },
-            { label: "Plugins", link: "/plugins/" },
-            { label: "Contributors", link: "/contributors/" },
-          ],
-        },
-      ],
-      disable404Route: true,
-      // pagefind: true is required so Starlight renders the search UI.
-      // Our pagefindResources() integration overwrites the index after build.
-      pagefind: true,
-      tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
-      components: {
-        Head: "./src/components/Head.astro",
-        Footer: "./src/components/Footer.astro",
-        Search: "./src/components/Search.astro",
-        LanguageSelect: "./src/components/LanguageSelect.astro",
-      },
-    }),
-    sitemap(),
-    pagefindResources(),
-  ],
+  // English is served at the site root (no locale prefix), preserving all
+  // existing URLs. Additional locales are served under a locale prefix
+  // (e.g. /es-es/…) and fall back to the English page when a translation does
+  // not yet exist. These keys match the locale directory names used by mirrored
+  // Playbook course content (website/src/content/docs/<locale>/…).
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "es-es", "ja-jp", "ko-kr", "pt-br", "zh-cn"],
+    routing: {
+      prefixDefaultLocale: false,
+      fallbackType: "rewrite",
+    },
+    fallback: {
+      "es-es": "en",
+      "ja-jp": "en",
+      "ko-kr": "en",
+      "pt-br": "en",
+      "zh-cn": "en",
+    },
+  },
+  integrations: [react(), sitemap(), pagefindResources()],
   redirects: {
     "/samples/": "/learning-hub/cookbook/",
   },
@@ -275,12 +57,25 @@ export default defineConfig({
   },
   trailingSlash: "always",
   vite: {
+    // @primer/react-brand's default entrypoint is CJS, so Node's ESM loader
+    // cannot detect its named exports during SSR. The package also ships a
+    // proper ESM build; alias to it so named imports resolve in both the
+    // server render and the client bundle.
+    resolve: {
+      alias: [
+        {
+          // Only the bare package specifier (the JS entrypoint) is redirected;
+          // subpath imports such as `/lib/css/main.css` must resolve normally.
+          find: /^@primer\/react-brand$/,
+          replacement: "@primer/react-brand/esm",
+        },
+      ],
+      // The ESM build imports its own .css files, which Node's loader cannot
+      // handle, so it has to be bundled rather than externalised for SSR.
+      noExternal: ["@primer/react-brand"],
+    },
     build: {
-      // Production sourcemaps trigger a known warning in the expressive-code Vite plugin.
-      // The docs site does not need emitted JS sourcemaps for its validation build.
       sourcemap: false,
-      // Starlight ships large syntax-highlighting chunks that are expected for this site.
-      // Raise the threshold so Vite only warns on materially larger regressions.
       chunkSizeWarningLimit: 900,
     },
     css: {

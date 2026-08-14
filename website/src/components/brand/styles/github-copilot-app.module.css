@@ -1,0 +1,1988 @@
+/* The GitHub Copilot app guide page. A fixed app-shell: the top bar and hero
+   stay put while a framed two-column body (article + sticky sidebar) scrolls
+   inside .scrollHost. Layout, gridlines, and code/prompt styling mirror the
+   other awesome-copilot detail pages; every value resolves to a Primer Brand
+   token so the page adapts to both color modes. */
+.page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  --app-sidebar-width: 375px;
+  /* Responsive page gutters — see styles.module.css for the tier rationale.
+     <768→20 · 768–1279→91 · 1280–1919→152 · ≥1920→native centered-1280. */
+  --page-gutter: var(--base-size-20);
+  --page-pad-block: var(--base-size-40);
+}
+
+@media screen and (min-width: 48rem) and (max-width: 79.99rem) {
+  .page {
+    --page-gutter: 91px;
+  }
+}
+
+@media screen and (min-width: 80rem) and (max-width: 119.99rem) {
+  .page {
+    --page-gutter: 152px;
+    --page-pad-block: 60px;
+  }
+}
+
+/* Combined top navigation: brand mark, title, content-type tabs, and trailing
+   actions, framed by the same gridlines as the hero. */
+.topBar {
+  width: 100%;
+  flex: none;
+  display: flex;
+  justify-content: center;
+  /* Match the width the scrollbar steals from the scrollable body below so the
+     top bar's frame lines stay aligned with the body's (see --app-scrollbar). */
+  padding-inline-end: var(--app-scrollbar, 0px);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.topBarInner {
+  width: 1280px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  border-inline-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  padding-inline-start: var(--base-size-24);
+  padding-inline-end: var(--base-size-24);
+  color: var(--brand-color-text-default);
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.brandMark:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-4);
+}
+
+.topBarActions {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-12);
+  padding-inline-start: var(--base-size-16);
+  padding-inline-end: var(--base-size-24);
+}
+
+.searchButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--base-size-32);
+  block-size: var(--base-size-32);
+  padding: 0;
+  border: 0;
+  border-radius: var(--brand-borderRadius-medium);
+  background-color: transparent;
+  color: var(--brand-color-text-muted);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.searchButton:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--base-color-scale-gray-1);
+}
+
+.page[data-mode="dark"] .searchButton:hover {
+  background-color: var(--base-color-scale-gray-6);
+}
+
+.searchButton:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+.searchField {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  inline-size: 12rem;
+  max-inline-size: 100%;
+  block-size: var(--base-size-32);
+  padding-inline: var(--base-size-12);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  background-color: var(--brand-color-canvas-default);
+  color: var(--brand-color-text-muted);
+  overflow: hidden;
+  transform-origin: right center;
+  animation: searchFieldExpand 0.18s ease;
+  transition: border-color 0.2s ease;
+}
+
+@keyframes searchFieldExpand {
+  from {
+    inline-size: var(--base-size-32);
+    opacity: 0.4;
+  }
+  to {
+    inline-size: 12rem;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .searchField {
+    animation: none;
+  }
+}
+
+.searchField:focus-within {
+  border-color: var(--brand-color-focus);
+}
+
+.searchInput {
+  flex: 1;
+  min-inline-size: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-100);
+  color: var(--brand-color-text-default);
+}
+
+.searchInput::placeholder {
+  color: var(--brand-color-text-muted);
+}
+
+.searchInput:focus {
+  outline: none;
+}
+
+.searchKbd {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--base-size-6);
+  padding-block: var(--base-size-2);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-small);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: 1;
+  color: var(--brand-color-text-muted);
+}
+
+.subNavTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  text-decoration: none;
+  padding-block: var(--base-size-16);
+  padding-inline: var(--base-size-24);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-weight: var(--brand-text-weight-medium);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-default);
+  white-space: nowrap;
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.subNavList {
+  flex: 1 1 auto;
+  margin: 0;
+  padding-block: var(--base-size-16);
+  padding-inline: var(--base-size-16);
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-8);
+}
+
+.subNavLink {
+  display: inline-flex;
+  align-items: center;
+  margin-block: 0;
+  padding-block: var(--base-size-4);
+  padding-inline: var(--base-size-16);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-muted);
+  text-decoration: none;
+  border-radius: var(--brand-borderRadius-full);
+  background-color: transparent;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.subNavLink:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.subNavLink:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-4);
+}
+
+.subNavTitle:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+}
+
+/* "More" overflow dropdown, trigger styled as a tab */
+.moreItem {
+  display: flex;
+  align-items: center;
+}
+
+.moreMenu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.moreTrigger {
+  gap: var(--base-size-4);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.moreTrigger::-webkit-details-marker {
+  display: none;
+}
+
+.moreChevron {
+  transition: transform 0.2s ease;
+}
+
+.moreMenu[open] .moreChevron {
+  transform: rotate(180deg);
+}
+
+.moreOverlay {
+  position: absolute;
+  inset-block-start: calc(100% + var(--base-size-4));
+  inset-inline-start: 0;
+  z-index: 20;
+  min-inline-size: 12rem;
+  display: flex;
+  flex-direction: column;
+  padding: var(--base-size-8);
+  background-color: var(--brand-color-canvas-default);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  box-shadow: var(--brand-SubNav-shadow);
+}
+
+.moreLink {
+  padding-block: var(--base-size-8);
+  padding-inline: var(--base-size-12);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: var(--brand-borderRadius-medium);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.moreLink:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.moreLink:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+}
+
+/* Active dropdown item: mark the current Resources page so it stays
+   indicated when the menu is reopened. */
+.moreLink[aria-current="page"],
+.moreLink[aria-current="page"]:hover {
+  color: var(--brand-color-text-default);
+  font-weight: var(--brand-text-weight-semibold);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* ---- Hero ---- */
+
+.hero {
+  width: 100%;
+  /* The hero now lives at the top of the scroll region so the breadcrumbs
+     scroll away with the page. A negative sticky offset equal to the breadcrumb
+     band height (--app-hero-crumb, measured in JS) lets the crumbs scroll up out
+     of view while the hero body pins to the top of the window and stays fixed as
+     the article scrolls beneath it. */
+  position: sticky;
+  top: calc(-1 * var(--app-hero-crumb, calc(var(--base-size-20) * 3)));
+  /* Lift the pinned hero above the scrolling body so open overlays (the
+     install-command dropdown) that spill past the hero's bottom edge paint over
+     the body instead of being covered by it, and so the article scrolls behind
+     the hero rather than over it. Stays below the nav "More" menu (20) and
+     back-to-top control (30). */
+  z-index: 3;
+  background-color: var(--brand-color-canvas-default);
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+/* Green reading-progress indicator laid over the hero's bottom line: it grows
+   from the first vertical gridline (the framed content's left border) toward the
+   last one as the content region below is scrolled, matching the accent-green
+   hero rule used across the library. --app-frame-start / --app-frame-width are
+   measured in JS so the line lives between the outer gridlines, not full-bleed. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--app-frame-start, 0px);
+  /* Sit directly on the hero's bottom rule so the green progress line replaces
+     the muted track instead of doubling it. */
+  inset-block-end: 0;
+  block-size: var(--brand-borderWidth-thick);
+  inline-size: calc(var(--app-progress, 0) * var(--app-frame-width, 100%));
+  /* Figma Primitives/Green/05 (#0fbf3e) — dark default. The brand green scale
+     remaps per color mode, so green-4 (not green-5) resolves to Green/05 here. */
+  background-color: var(--base-color-scale-green-4);
+  transition: inline-size 0.08s linear;
+}
+
+.page[data-mode="light"] .hero::after {
+  background-color: var(--base-color-scale-green-6);
+}
+
+/* Rider that tracks the leading edge of the green progress line. It carries the
+   duck (which sits on the line and slides right as the reader scrolls) and, once
+   the reader reaches the bottom, a one-shot confetti burst that the duck pops
+   into. The anchor is zero-size and centred on the line's leading edge; its
+   children are centred on that point. It starts at the first vertical gridline
+   (--app-frame-start) so on load the duck rests exactly on that line. */
+.progressRider {
+  position: absolute;
+  z-index: 1;
+  inset-block-end: 0;
+  inset-inline-start: max(
+    calc(var(--base-size-24) / 2),
+    calc(
+      var(--app-frame-start, 0px) +
+        var(--app-progress, 0) * var(--app-frame-width, 100%)
+    )
+  );
+  inline-size: 0;
+  block-size: 0;
+  pointer-events: none;
+  transition: inset-inline-start 0.08s linear;
+}
+
+.progressDuck {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  inline-size: var(--base-size-24);
+  block-size: var(--base-size-20);
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+  /* Figma Primitives/Green/05 (#0fbf3e) — dark default. The brand green scale
+     remaps per color mode, so green-4 (not green-5) resolves to Green/05 here,
+     matching the progress line exactly. */
+  background-color: var(--base-color-scale-green-4);
+  -webkit-mask: url("/media/duck-progress.svg") no-repeat center / contain;
+  mask: url("/media/duck-progress.svg") no-repeat center / contain;
+  transition: opacity 0.18s ease-out, transform 0.24s ease-out;
+}
+
+.page[data-mode="light"] .progressDuck {
+  background-color: var(--base-color-scale-green-6);
+}
+
+/* When the reader reaches the bottom the duck pops out and the confetti fires. */
+.progressRider[data-burst="true"] .progressDuck {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.2) rotate(18deg);
+}
+
+.confetti {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  inline-size: 0;
+  block-size: 0;
+}
+
+.confettiPiece {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  inline-size: var(--base-size-8);
+  block-size: var(--base-size-8);
+  background-color: var(--base-color-scale-green-4);
+  opacity: 0;
+  transform: translateX(-50%) scale(0);
+}
+
+.progressRider[data-burst="true"] .confettiPiece {
+  animation: confetti-burst 0.9s ease-out forwards;
+  animation-delay: var(--piece-delay, 0ms);
+}
+
+/* Per-piece trajectory: spread outward and up, then fall and fade. Distances use
+   base-size tokens; only rotation (deg) is a raw value, which has no token. */
+.confettiPiece:nth-child(1) {
+  --piece-dx: calc(-1 * var(--base-size-48));
+  --piece-dy: calc(-1 * var(--base-size-20));
+  --piece-fall: var(--base-size-64);
+  --piece-rot: 220deg;
+  --piece-delay: 0ms;
+  background-color: var(--base-color-scale-green-4);
+}
+.confettiPiece:nth-child(2) {
+  --piece-dx: calc(-1 * var(--base-size-32));
+  --piece-dy: calc(-1 * var(--base-size-24));
+  --piece-fall: var(--base-size-48);
+  --piece-rot: -180deg;
+  --piece-delay: 20ms;
+  inline-size: var(--base-size-4);
+  block-size: var(--base-size-4);
+  background-color: var(--base-color-scale-green-5);
+}
+.confettiPiece:nth-child(3) {
+  --piece-dx: calc(-1 * var(--base-size-24));
+  --piece-dy: calc(-1 * var(--base-size-16));
+  --piece-fall: var(--base-size-64);
+  --piece-rot: 160deg;
+  --piece-delay: 10ms;
+  background-color: var(--base-color-scale-green-6);
+}
+.confettiPiece:nth-child(4) {
+  --piece-dx: calc(-1 * var(--base-size-16));
+  --piece-dy: calc(-1 * var(--base-size-24));
+  --piece-fall: var(--base-size-48);
+  --piece-rot: -140deg;
+  --piece-delay: 30ms;
+  background-color: var(--base-color-scale-green-3);
+}
+.confettiPiece:nth-child(5) {
+  --piece-dx: calc(-1 * var(--base-size-8));
+  --piece-dy: calc(-1 * var(--base-size-20));
+  --piece-fall: var(--base-size-64);
+  --piece-rot: 200deg;
+  --piece-delay: 0ms;
+  inline-size: var(--base-size-4);
+  block-size: var(--base-size-4);
+  background-color: var(--base-color-scale-green-4);
+}
+.confettiPiece:nth-child(6) {
+  --piece-dx: var(--base-size-8);
+  --piece-dy: calc(-1 * var(--base-size-24));
+  --piece-fall: var(--base-size-48);
+  --piece-rot: -200deg;
+  --piece-delay: 25ms;
+  background-color: var(--base-color-scale-green-5);
+}
+.confettiPiece:nth-child(7) {
+  --piece-dx: var(--base-size-16);
+  --piece-dy: calc(-1 * var(--base-size-16));
+  --piece-fall: var(--base-size-64);
+  --piece-rot: 180deg;
+  --piece-delay: 10ms;
+  background-color: var(--base-color-scale-green-3);
+}
+.confettiPiece:nth-child(8) {
+  --piece-dx: var(--base-size-24);
+  --piece-dy: calc(-1 * var(--base-size-24));
+  --piece-fall: var(--base-size-48);
+  --piece-rot: -160deg;
+  --piece-delay: 35ms;
+  inline-size: var(--base-size-4);
+  block-size: var(--base-size-4);
+  background-color: var(--base-color-scale-green-6);
+}
+.confettiPiece:nth-child(9) {
+  --piece-dx: var(--base-size-32);
+  --piece-dy: calc(-1 * var(--base-size-20));
+  --piece-fall: var(--base-size-64);
+  --piece-rot: 240deg;
+  --piece-delay: 5ms;
+  background-color: var(--base-color-scale-green-4);
+}
+.confettiPiece:nth-child(10) {
+  --piece-dx: var(--base-size-48);
+  --piece-dy: calc(-1 * var(--base-size-16));
+  --piece-fall: var(--base-size-48);
+  --piece-rot: -220deg;
+  --piece-delay: 20ms;
+  background-color: var(--base-color-scale-green-5);
+}
+.confettiPiece:nth-child(11) {
+  --piece-dx: calc(-1 * var(--base-size-40));
+  --piece-dy: calc(-1 * var(--base-size-24));
+  --piece-fall: var(--base-size-48);
+  --piece-rot: 140deg;
+  --piece-delay: 40ms;
+  inline-size: var(--base-size-4);
+  block-size: var(--base-size-4);
+  background-color: var(--base-color-scale-green-3);
+}
+.confettiPiece:nth-child(12) {
+  --piece-dx: var(--base-size-40);
+  --piece-dy: calc(-1 * var(--base-size-24));
+  --piece-fall: var(--base-size-64);
+  --piece-rot: -240deg;
+  --piece-delay: 15ms;
+  background-color: var(--base-color-scale-green-6);
+}
+.confettiPiece:nth-child(13) {
+  --piece-dx: calc(-1 * var(--base-size-16));
+  --piece-dy: calc(-1 * var(--base-size-16));
+  --piece-fall: var(--base-size-48);
+  --piece-rot: 260deg;
+  --piece-delay: 30ms;
+  background-color: var(--base-color-scale-green-5);
+}
+.confettiPiece:nth-child(14) {
+  --piece-dx: var(--base-size-16);
+  --piece-dy: calc(-1 * var(--base-size-20));
+  --piece-fall: var(--base-size-64);
+  --piece-rot: -260deg;
+  --piece-delay: 5ms;
+  background-color: var(--base-color-scale-green-4);
+}
+
+@keyframes confetti-burst {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.2) rotate(0deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  38% {
+    transform: translate(calc(-50% + var(--piece-dx) * 0.7), var(--piece-dy))
+      scale(1) rotate(calc(var(--piece-rot) * 0.45));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+        calc(-50% + var(--piece-dx)),
+        calc(var(--piece-dy) + var(--piece-fall))
+      )
+      scale(0.85) rotate(var(--piece-rot));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressRider,
+  .progressDuck {
+    transition: none;
+  }
+  .progressRider[data-burst="true"] .confettiPiece {
+    animation: none;
+  }
+  .progressRider[data-burst="true"] .progressDuck {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+
+.heroInner {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--brand-color-canvas-subtle);
+  border-inline: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.heroContent {
+  min-block-size: calc(17rem - (var(--brand-borderWidth-thin) * 2));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+  gap: var(--base-size-16);
+  padding-block-start: var(--base-size-40);
+  padding-block-end: var(--base-size-64);
+  padding-inline: var(--base-size-32);
+}
+
+/* Blinking block caret that trails the hero title while it types itself out,
+   echoing a terminal prompt. Sized in em so it tracks the heading font. */
+.heroTitleCaret {
+  display: inline-block;
+  inline-size: 0.6em;
+  block-size: 0.82em;
+  margin-inline-start: 0.08em;
+  vertical-align: baseline;
+  transform: translateY(0.06em);
+  background-color: var(--brand-color-accent-primary);
+  animation: heroTitleCaretBlink 1s steps(1, end) infinite;
+}
+
+@keyframes heroTitleCaretBlink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroTitleCaret {
+    display: none;
+  }
+}
+
+/* Hero description + actions slide in from the left, staggered just behind the
+   typing title. Paired with the animateHeroTitle opt-in on the layout. */
+.heroReveal {
+  opacity: 0;
+  animation: heroSlideInLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.heroRevealDescription {
+  animation-delay: 0.15s;
+}
+
+.heroRevealExtra {
+  animation-delay: 0.3s;
+}
+
+.heroRevealActions {
+  animation-delay: 0.45s;
+}
+
+@keyframes heroSlideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroReveal {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Breadcrumbs sit in a full-width bar pinned to the top of the hero, with a
+   20px margin above and below the text and a dashed horizontal rule (matching
+   the search-results divider) that spans the whole hero from the left vertical
+   line to the right. Previous crumb is secondary text (muted) with a back
+   arrow; the current page uses default text — the inverse of the library
+   default, which mutes the current page. Wrapper hooks the overrides since
+   Breadcrumbs drops its own className. */
+.heroBreadcrumbs {
+  padding-block: var(--base-size-20);
+  padding-inline: var(--base-size-32);
+  border-block-end: var(--brand-borderWidth-thin) dashed
+    var(--brand-color-border-subtle);
+}
+
+/* Keep the crumbs left-packed instead of spread by the nav's space-between. */
+.heroBreadcrumbs nav {
+  justify-content: flex-start;
+}
+
+/* The crumb list is a centered flex row so the previous crumb (which carries a
+   back-arrow icon) and the current page text share one baseline instead of the
+   current page sitting lower. */
+.heroBreadcrumbs ol {
+  display: flex;
+  align-items: center;
+}
+
+/* Center each crumb's contents — including the rotated "/" separator drawn as
+   the item's ::after — so the slash lines up with the text instead of sitting
+   on the baseline (lower than the text's optical center). */
+.heroBreadcrumbs li {
+  display: flex;
+  align-items: center;
+}
+
+.heroBreadcrumbs li a {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--base-size-12);
+  font-weight: var(--brand-text-weight-normal);
+  color: var(--brand-color-text-muted);
+}
+
+.heroBreadcrumbs li,
+.heroBreadcrumbs li [aria-current="page"] {
+  font-size: var(--base-size-12);
+  font-weight: var(--brand-text-weight-normal);
+}
+
+.heroBreadcrumbs li a:hover,
+.heroBreadcrumbs li a:focus-visible {
+  color: var(--brand-color-text-default);
+}
+
+.heroBreadcrumbs li [aria-current="page"] {
+  color: var(--brand-color-text-default);
+}
+
+.heroBreadcrumbBackIcon {
+  margin-inline-end: var(--base-size-4);
+  fill: currentColor;
+}
+
+.heroEyebrow {
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--base-size-12);
+  font-weight: var(--brand-text-weight-normal);
+  letter-spacing: var(--brand-text-letterSpacing-100, 0.05em);
+  text-transform: uppercase;
+  color: var(--brand-color-accent-primary);
+}
+
+.heroDescription {
+  max-width: 35rem;
+  margin-inline: 0;
+  margin-block: 0;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--base-size-8);
+  margin-block-start: var(--base-size-8);
+}
+
+/* ---- Hero install command bar (matches github.com/features/copilot/cli) ---- */
+
+.heroExtra {
+  /* The reveal animation leaves a lingering transform (translateX(0)) that makes
+     this a stacking context, trapping the install dropdown's z-index locally. Lift
+     the whole block above the progress rider (z-index 1) and the green progress
+     line (.hero::after) so the open install menu paints over the duck/line instead
+     of being covered by them. Stays below the nav "More" menu (20). */
+  position: relative;
+  z-index: 2;
+  margin-block-start: var(--base-size-16);
+  max-width: min(100%, 52rem);
+}
+
+.installBar {
+  display: flex;
+  align-items: stretch;
+  gap: var(--base-size-8);
+  padding: var(--base-size-8);
+  border-radius: var(--brand-borderRadius-medium);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-default);
+  background-color: var(--brand-color-canvas-default);
+}
+
+/* The install bar's package-manager picker is a Primer Brand ActionMenu whose
+   button is inset from the bordered container by its padding + border. Primer
+   offsets the single-select overlay further left (to tuck the item text under
+   the button label via its own JS, applied inline), which leaves the dropdown
+   overhanging the container's left edge. Pull it back by that container inset so
+   the dropdown's left edge sits flush with the install container above it
+   (issue #22 follow-up). `!important` is required because Primer sets `left`
+   as an inline style. */
+.installBar :global([class*="ActionMenu__menu"]) {
+  left: calc(
+    -1 * (var(--brand-borderWidth-thin) + var(--base-size-8))
+  ) !important;
+}
+
+.installCommand {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  padding-inline: var(--base-size-12);
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-200);
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.installCopy {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--base-size-8);
+  padding: var(--base-size-8) var(--base-size-16);
+  border: 0;
+  border-radius: var(--brand-borderRadius-small);
+  background-color: var(--brand-button-primary-bgColor-rest);
+  color: var(--brand-button-primary-fgColor-rest);
+  font: var(--brand-text-body-shorthand-small);
+  cursor: pointer;
+}
+
+.installCopy:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+.installCopy:hover {
+  background-color: var(--brand-button-primary-bgColor-hover);
+}
+
+.installCopy svg {
+  color: currentColor;
+}
+
+/* Mobile-only CTA that replaces the install command bar on phones. */
+.installMobileCta {
+  display: none;
+  margin-block-start: var(--base-size-8);
+}
+
+/* Icon-only buttons: keep them square to match the brand button height. */
+.iconButton {
+  padding-inline: var(--base-size-12);
+  align-items: center;
+}
+
+.iconButton svg {
+  display: block;
+}
+
+/* ---- Scrolling body ---- */
+
+.body {
+  width: 100%;
+  background-color: var(--brand-color-canvas-default);
+}
+
+/* The single scroll region wraps the framed two-column body AND the
+   full-page-width footer. The top bar and hero stay fixed above; the sidebar
+   stays fixed via sticky positioning inside this scroller. */
+.scrollHost {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.bodyInner {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--brand-color-canvas-default);
+  border-inline: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  /* No inline padding: the two columns run flush to the outer frame so the
+     frame lines coincide with the hero's own frame lines (no doubled inset
+     lines). */
+  padding-inline: 0;
+  padding-block-start: 0;
+  padding-block-end: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 30%, var(--app-sidebar-width));
+  gap: 0;
+  align-items: stretch;
+}
+
+.contentCol {
+  min-width: 0;
+  background-color: var(--brand-color-canvas-default);
+  /* The single vertical gridline between the text column and the sidebar. It is
+     drawn here (rather than as a .layout background) because the content column
+     is the taller of the two, so its right border spans the full body height.
+     The outer frame lines are drawn by .bodyInner's border-inline. */
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+/* Body copy in the content column uses body/medium (16px, 1.6 line height). */
+.contentCol :is(p, li) {
+  font-size: var(--brand-text-size-200);
+  line-height: 1.6;
+}
+
+.articleSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  padding: var(--base-size-32);
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  /* Offset in-page anchor jumps by the pinned hero height so a targeted heading
+     lands just below the fixed hero instead of behind it. */
+  scroll-margin-top: calc(var(--app-hero-pinned, 17rem) + var(--base-size-24));
+}
+
+.articleSection:first-child {
+  /* Matches the .NET Upgrade / Agents hero-to-content gap (raw 60px — the base
+     size scale has no 60 step). */
+  padding-block-start: 60px;
+  border-block-start: none;
+}
+
+.articleHeading {
+  margin: 0;
+  margin-block-end: var(--base-size-16);
+}
+
+/* Inline code/path tokens render as monospace chips with a muted fill. */
+.inlineCode {
+  padding: var(--base-size-2) var(--base-size-4);
+  border-radius: var(--brand-borderRadius-small);
+  background-color: var(--brand-color-border-muted);
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-monospace);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+/* Inline body links inside article copy: brand link color, underline, and a
+   visible focus ring. Scoped to the article content column so the TOC and "Up
+   next" band keep their own styling. Renders correctly in both color modes. */
+.contentCol :is(p, li, td, th, dd) a {
+  color: var(--brand-color-text-link-rest);
+  text-decoration: underline;
+}
+
+.contentCol :is(p, li, td, th, dd) a:hover {
+  text-decoration: underline;
+}
+
+.contentCol :is(p, li, td, th, dd) a:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+  border-radius: var(--brand-borderRadius-small);
+}
+
+/* Markdown tables inside article copy: bordered and padded with a subtle header
+   fill. Border and canvas tokens keep it legible in both color modes. */
+.contentCol table {
+  inline-size: 100%;
+  margin: var(--base-size-16) 0 0;
+  border-collapse: collapse;
+}
+
+.contentCol table:focus-visible {
+  outline: var(--base-size-2) solid var(--brand-color-accent-primary);
+  outline-offset: var(--base-size-2);
+}
+
+.contentCol th,
+.contentCol td {
+  padding: var(--base-size-8) var(--base-size-12);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  text-align: start;
+  vertical-align: top;
+  color: var(--brand-color-text-default);
+}
+
+.contentCol thead th {
+  background-color: var(--brand-color-canvas-subtle);
+  font-weight: var(--brand-text-weight-medium);
+}
+
+/* Blockquote callout in article copy: a muted accent bar with indented text. */
+.contentCol blockquote {
+  margin: var(--base-size-16) 0 0;
+  padding: var(--base-size-8) var(--base-size-16);
+  border-inline-start: var(--brand-borderWidth-thick) solid
+    var(--brand-color-border-muted);
+  color: var(--brand-color-text-muted);
+}
+
+/* Inline demo video — framed to match the article's cards and code blocks. */
+.videoFigure {
+  margin: var(--base-size-8) 0 0;
+}
+
+.video {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--brand-borderRadius-medium);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* Responsive 16:9 YouTube embed, framed like the local video above. */
+.videoEmbedFrame {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--brand-borderRadius-medium);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* Autoplaying looping demo rendered as a GIF, framed like the video above. */
+.gif {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--brand-borderRadius-medium);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* "Learn more" — connected 3-up link cards, mirroring the video carousel band:
+   one bordered frame, no gaps, thin dividers between cards. */
+.learnMoreBand {
+  display: flex;
+  flex-wrap: wrap;
+  overflow: hidden;
+  margin-block-start: var(--base-size-8);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-default);
+}
+
+.learnMoreCard {
+  flex: 0 0 calc(100% / 3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  padding: var(--base-size-24);
+  text-decoration: none;
+  background-color: var(--brand-color-canvas-default);
+  transition: background-color var(--brand-animation-duration-extended)
+    var(--brand-animation-easing-default);
+}
+
+.learnMoreCard:not(:first-child) {
+  border-inline-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.learnMoreCard:is(:hover, :focus-visible) {
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* Learn more cards are anchors inside .contentCol, which underlines links on
+   hover; keep these cards underline-free (the arrow icon signals the link). */
+.contentCol a.learnMoreCard:is(:hover, :focus-visible) {
+  text-decoration: none;
+}
+
+.learnMoreCard:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(-1 * var(--base-size-4));
+}
+
+/* Tablet nav: the full desktop nav row (tabs + search + heart + Contribute)
+   doesn't fit from 48rem up to this breakpoint — it wraps to two rows, and
+   opening search shoves the wordmark off-screen (issue #19). Collapse to the
+   hamburger across this band too; the wordmark grows to fill so the menu
+   button sits at the far right. */
+@media screen and (min-width: 48rem) and (max-width: 74.99rem) {
+  .subNavList {
+    display: none;
+  }
+
+  .topBarActions {
+    display: none;
+  }
+
+  .searchButton,
+  .searchField {
+    display: none;
+  }
+
+  .subNavTitle {
+    flex: 1 1 auto;
+    border-inline-end: 0;
+  }
+}
+
+@media screen and (max-width: 47.99rem) {
+  /* Collapse the desktop sub-nav so the top bar fits the viewport: hide the
+     middle links and let the title shrink instead of overflowing. */
+  .subNavList {
+    display: none;
+  }
+
+  .subNavTitle {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--brand-text-size-100);
+    /* Align the wordmark with the hero's left gridline: the full-bleed header's
+       inner border sits at x=0, so inset by the page gutter less that border. */
+    padding-inline-start: calc(
+      var(--page-gutter) - var(--brand-borderWidth-thin)
+    );
+    padding-inline-end: var(--base-size-12);
+    border-inline-end: 0;
+  }
+
+  /* Keep the GitHub mark on the wordmark at every viewport so the page still
+     reads as official; it stays fixed while the title text ellipsizes. */
+  .subNavTitle svg {
+    flex-shrink: 0;
+  }
+
+  .brandMark {
+    padding-inline-start: var(--base-size-16);
+    padding-inline-end: var(--base-size-16);
+  }
+
+  /* Heart + Contribute relocate into the hamburger dropdown on mobile
+     (see TopNav); search is already hidden below. */
+  .topBarActions {
+    display: none;
+  }
+
+  .searchButton,
+  .searchField {
+    display: none;
+  }
+
+  /* Let long inline-code tokens (paths, commands) wrap on phones instead of
+     forcing horizontal scroll. */
+  .inlineCode {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .learnMoreCard {
+    flex-basis: 100%;
+  }
+
+  .learnMoreCard:not(:first-child) {
+    border-inline-start: 0;
+    border-block-start: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  /* Match the local demo video and GIF to the 16:9 YouTube embed on phones.
+     Their source assets are ~2.09:1, so they rendered wider/shorter than the
+     embed and the video carousel thumbnails; crop to fill (cover) at 16:9 so
+     every inline preview shares one proportion. */
+  .video,
+  .gif {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  /* Swap the hero install command bar for a single Get Copilot CLI button so
+     the long install command never overflows the viewport on phones. */
+  .installBar {
+    display: none;
+  }
+
+  .installMobileCta {
+    display: block;
+  }
+
+  /* Keep article tables inside the frame gridlines: fixed, readable columns
+     that scroll horizontally instead of spilling past the vertical lines. */
+  .contentCol table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .contentCol th,
+  .contentCol td {
+    min-inline-size: var(--base-size-112);
+  }
+}
+
+.learnMoreCardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--base-size-48);
+  block-size: var(--base-size-48);
+  border-radius: var(--base-size-12);
+  background-color: var(--brand-Icon-background-green);
+  color: var(--brand-color-text-emphasized);
+}
+
+.learnMoreCardTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--base-size-8);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-300);
+  font-weight: var(--brand-text-weight-600, 600);
+  line-height: var(--brand-text-lineHeight-300);
+  color: var(--brand-color-text-default);
+}
+
+.learnMoreCardTitle svg {
+  flex-shrink: 0;
+  margin-block-start: calc(
+    (var(--brand-text-lineHeight-300) * 1em - var(--base-size-20)) / 2
+  );
+}
+
+/* "Pro tip" callout — a card in the article flow (not a numbered section). */
+.proTip {
+  margin: 0 var(--base-size-32) var(--base-size-32);
+  border-radius: var(--brand-borderRadius-medium);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-muted);
+  overflow: hidden;
+}
+
+.proTipHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  padding-block: var(--base-size-8);
+  padding-inline: var(--base-size-12);
+  background-color: var(--brand-color-canvas-subtle);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.proTipMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--base-size-8);
+  color: var(--brand-color-text-default);
+}
+
+.proTipTitle {
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-weight: var(--brand-text-weight-medium);
+}
+
+.proTipClose {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--base-size-8);
+  border: 0;
+  border-radius: var(--brand-borderRadius-small);
+  background-color: transparent;
+  color: var(--brand-color-text-muted);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.proTipClose:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+.proTipClose:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-border-muted);
+}
+
+.proTipBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-20);
+  padding: var(--base-size-20) var(--base-size-24) var(--base-size-24);
+  color: var(--brand-color-text-default);
+  font-size: var(--brand-text-size-200);
+  line-height: var(--brand-text-lineHeight-300);
+}
+
+.proTipBody p {
+  margin: 0;
+  color: var(--brand-color-text-default);
+}
+
+.proTipBody .proTipLead {
+  color: var(--brand-color-text-default);
+  font-weight: var(--brand-text-weight-normal);
+}
+
+.pointList {
+  margin: 0;
+  padding-inline-start: var(--base-size-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+  color: var(--brand-color-text-muted);
+  font-family: var(--brand-fontStack-sansSerif);
+  line-height: var(--brand-text-lineHeight-300);
+}
+
+.stepsList {
+  margin: 0;
+  padding-inline-start: var(--base-size-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-sansSerif);
+  line-height: var(--brand-text-lineHeight-300);
+}
+
+.stepsList li {
+  padding-inline-start: var(--base-size-4);
+}
+
+.stepLabel {
+  font-weight: var(--brand-text-weight-semibold);
+  color: var(--brand-color-text-default);
+}
+
+.codeBlockWrap {
+  margin: 0;
+}
+
+.codeSurface {
+  position: relative;
+}
+
+.codeBlock {
+  margin: 0;
+  padding: var(--base-size-20);
+  padding-inline-end: var(--base-size-48);
+  overflow-x: auto;
+  border-radius: var(--brand-borderRadius-medium);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-subtle);
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-100);
+  line-height: var(--brand-text-lineHeight-400);
+  white-space: pre;
+  tab-size: 2;
+}
+
+.codeBlock:focus-visible {
+  outline: var(--base-size-2) solid var(--brand-color-accent-primary);
+  outline-offset: calc(-1 * var(--base-size-2));
+}
+
+.codeLine {
+  display: block;
+  min-inline-size: max-content;
+}
+
+.codeBlock :global(.token.comment),
+.codeBlock :global(.token.prolog),
+.codeBlock :global(.token.doctype),
+.codeBlock :global(.token.cdata) {
+  color: var(--brand-color-text-muted);
+  font-style: italic;
+}
+
+.codeBlock :global(.token.punctuation),
+.codeBlock :global(.token.operator) {
+  color: var(--brand-color-text-default);
+}
+
+.codeBlock :global(.token.property),
+.codeBlock :global(.token.tag),
+.codeBlock :global(.token.constant),
+.codeBlock :global(.token.symbol),
+.codeBlock :global(.token.deleted) {
+  color: var(--brand-color-text-link-rest);
+}
+
+.codeBlock :global(.token.boolean),
+.codeBlock :global(.token.number),
+.codeBlock :global(.token.selector),
+.codeBlock :global(.token.attr-name),
+.codeBlock :global(.token.string),
+.codeBlock :global(.token.char),
+.codeBlock :global(.token.builtin),
+.codeBlock :global(.token.inserted) {
+  color: var(--brand-color-accent-primary);
+}
+
+.codeBlock :global(.token.atrule),
+.codeBlock :global(.token.attr-value),
+.codeBlock :global(.token.keyword) {
+  color: var(--brand-color-text-link-rest);
+  font-weight: var(--brand-text-weight-semibold);
+}
+
+.codeBlock :global(.token.function),
+.codeBlock :global(.token.class-name) {
+  color: var(--brand-color-text-default);
+  font-weight: var(--brand-text-weight-semibold);
+}
+
+.codeBlock :global(.token.regex),
+.codeBlock :global(.token.important),
+.codeBlock :global(.token.variable) {
+  color: var(--brand-color-accent-primary);
+  font-weight: var(--brand-text-weight-semibold);
+}
+
+.copyButton {
+  position: absolute;
+  inset-block-start: var(--base-size-12);
+  inset-inline-end: var(--base-size-12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--base-size-32);
+  block-size: var(--base-size-32);
+  padding: 0;
+  border-radius: var(--brand-borderRadius-small);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-subtle);
+  color: var(--brand-color-text-muted);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.copyButton:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-default);
+}
+
+.copyButton:focus-visible {
+  outline: var(--base-size-2) solid var(--brand-color-accent-primary);
+  outline-offset: var(--base-size-2);
+}
+
+.codeLabel {
+  display: block;
+  margin-block-end: var(--base-size-12);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-semibold);
+  color: var(--brand-color-text-default);
+}
+
+.prompt {
+  margin: 0;
+  padding: var(--base-size-16) var(--base-size-20);
+  border-inline-start: var(--base-size-4) solid
+    var(--brand-color-accent-primary);
+  border-radius: var(--brand-borderRadius-small);
+  background-color: var(--brand-color-canvas-subtle);
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-style: italic;
+  line-height: var(--brand-text-lineHeight-300);
+}
+
+.promptGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+}
+
+.promptLabel {
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-semibold);
+  color: var(--brand-color-text-default);
+}
+
+.checkList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+  color: var(--brand-color-text-muted);
+  font-family: var(--brand-fontStack-sansSerif);
+  line-height: var(--brand-text-lineHeight-300);
+  overflow-wrap: break-word;
+}
+
+/* The checkbox marker is drawn as an absolutely positioned pseudo-element (not a
+   grid/flex track) so the item's text — including inline <span>/<a>/<code>
+   emphasis — stays a single, naturally wrapping run inside the content box.
+   A grid/flex marker splits that inline content into separate cells, which
+   collapses narrow labels to one character per line. */
+.checkList li {
+  position: relative;
+  padding-inline-start: var(--base-size-24);
+}
+
+.checkList li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0.3em;
+  inline-size: var(--base-size-16);
+  block-size: var(--base-size-16);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-default);
+  border-radius: var(--brand-borderRadius-small);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* ---- Sticky sidebar ---- */
+
+.sidebarCol {
+  min-width: 0;
+  align-self: start;
+  position: sticky;
+  /* Sit the sticky TOC just below the pinned hero (its visible height is
+     measured into --app-hero-pinned) so it never slides under the fixed hero.
+     The rem fallback matches the hero content's min height before measurement. */
+  top: var(--app-hero-pinned, 17rem);
+  overflow: visible;
+}
+
+.sidebarSticky {
+  display: flex;
+  flex-direction: column;
+  max-block-size: calc(
+    100dvh - var(--app-hero-pinned, 17rem) - var(--base-size-64)
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-24);
+  padding: var(--base-size-32);
+}
+
+/* The first sidebar block aligns its heading with the article column's first
+   heading, which sits 60px below the hero. */
+.sidebarSection:first-child {
+  padding-block-start: 60px;
+}
+
+.sidebarSection + .sidebarSection {
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.sidebarSummary {
+  display: flex;
+  align-items: center;
+}
+
+.sidebarSectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-24);
+}
+
+.sidebarKicker {
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--base-size-12);
+  font-weight: var(--brand-text-weight-normal);
+  letter-spacing: var(--brand-text-letterSpacing-100, 0.05em);
+  text-transform: uppercase;
+  color: var(--brand-color-text-muted);
+}
+
+.metaGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+}
+
+.metaLabel {
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  color: var(--brand-color-text-default);
+}
+
+.metaValues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--base-size-8);
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--base-size-4) var(--base-size-12);
+  border-radius: var(--brand-borderRadius-small);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-default);
+  background-color: var(--brand-color-canvas-default);
+  color: var(--brand-color-text-muted);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  line-height: var(--brand-text-lineHeight-200);
+}
+
+/* "In this article" table of contents */
+.toc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-12);
+}
+
+.tocList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-4);
+}
+
+.tocList li {
+  position: relative;
+}
+
+.tocLink {
+  position: relative;
+  display: block;
+  padding-block: var(--base-size-8);
+  padding-inline: var(--base-size-16) var(--base-size-12);
+  border-radius: var(--brand-borderRadius-medium);
+  color: var(--brand-color-text-muted);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  line-height: var(--brand-text-lineHeight-200);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.tocLink:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.tocLink:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+}
+
+.tocLinkActive {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* Green caret indicator in the gutter to the left of the active item. */
+.tocList li:has(.tocLinkActive)::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(-1 * var(--base-size-16));
+  inset-block: var(--base-size-8);
+  inline-size: var(--base-size-4);
+  border-radius: var(--brand-borderRadius-full);
+  background-color: var(--brand-color-accent-primary);
+}
+
+/* Full-width "Up next" band at the very end of the article: a kicker over a
+   large link to the next article. It sits inside the content frame so it aligns
+   with the outer gridlines, and its bottom edge runs flush to the footer's green
+   rule. The subtle canvas fill matches the Docs "Up next" pattern and adapts
+   across color modes. */
+.nextUp {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: calc(2 * var(--base-size-96));
+  gap: var(--base-size-24);
+  padding: var(--base-size-48) var(--base-size-32) var(--base-size-24);
+  background-color: var(--brand-color-canvas-subtle);
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.nextUpMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+}
+
+.nextUpKickerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+}
+
+.nextUpKicker {
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  letter-spacing: var(--brand-text-letterSpacing-100, 0.05em);
+  text-transform: uppercase;
+  color: var(--brand-color-text-muted);
+}
+
+.nextUpLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--base-size-20);
+  font-weight: var(--brand-text-weight-medium);
+  line-height: var(--brand-text-lineHeight-200);
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    gap 0.2s ease;
+}
+
+.nextUpArrow {
+  position: relative;
+  /* Optical nudge so the icon centres on the Title Case cap height, not the
+     larger line box (align-items:center alone leaves it sitting low). */
+  inset-block-start: calc(-1 * var(--base-size-2));
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.nextUpLink:hover {
+  color: var(--brand-color-text-link-rest);
+}
+
+.nextUpLink:hover .nextUpArrow {
+  transform: translateX(var(--base-size-4));
+}
+
+.nextUpLink:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-4);
+  border-radius: var(--brand-borderRadius-small);
+}
+
+/*
+ * ActionMenu hard-locks the split-button overlay to light color mode, so its
+ * brand tokens can't see the page's dark palette and the dropdown renders light
+ * on a dark page. When the page is in dark mode, capture the dark canvas/default,
+ * text, border, and item-hover tokens on .heroActions (which sits in the page's
+ * dark context, above the overlay's forced-light wrapper) and feed them back
+ * into the overlay so the dropdown matches the dark theme.
+ */
+.page[data-mode="dark"] .heroActions {
+  --menu-canvas: var(--brand-color-canvas-default);
+  --menu-text: var(--brand-color-text-default);
+  --menu-border: var(--brand-color-border-muted);
+  --menu-item-hover: var(--brand-ActionMenu-color-item-hover);
+}
+
+.page[data-mode="dark"] .heroActions :global([class*="ActionMenu__menu"]) {
+  --brand-color-canvas-default: var(--menu-canvas);
+  --brand-color-text-default: var(--menu-text);
+  --brand-color-border-muted: var(--menu-border);
+  --brand-ActionMenu-color-item-hover: var(--menu-item-hover);
+}
+
+/* Short desktop viewports do not have enough reading space for a pinned hero.
+   The layout's measurement effect sets data-hero-pin="false" on .page whenever
+   pinning would leave less than MIN_HERO_READING of article below the hero (a
+   per-page decision, so the CLI page's taller install-bar hero releases sooner
+   than a plain hero). Release the hero to scroll away; the sticky TOC top and
+   in-page anchor offsets follow automatically because the effect also zeroes
+   --app-hero-pinned. */
+.page[data-hero-pin="false"] .hero {
+  position: relative;
+  top: auto;
+}
+
+@media (max-width: 74.99rem) {
+  /* Below the two-column breakpoint the fixed app-shell reverts to normal
+     document flow: the whole page scrolls instead of just the body. */
+  .page {
+    height: auto;
+    min-height: 100vh;
+    display: block;
+    overflow: visible;
+  }
+
+  .bodyInner {
+    display: block;
+    padding-block-end: var(--base-size-64);
+  }
+
+  /* On article pages the "Up next" card is the last child of the body, so the
+     tall bottom padding leaves an empty gridlined band between it and the
+     footer's green rule. Collapse it to zero so the card meets the footer.
+     Pages without an Up next card (e.g. the cookbook) keep their breathing
+     room. */
+  .bodyInner:has(.nextUp) {
+    padding-block-end: 0;
+  }
+
+  /* The Up next card's desktop min-height leaves dead space below the link on
+     mobile; let it hug its own content instead. */
+  .nextUp {
+    min-height: auto;
+  }
+
+  /* Drop the breadcrumb divider on mobile — the hero reads as one block without
+     it at this width. */
+  .heroBreadcrumbs {
+    border-block-end: none;
+  }
+
+  /* Below the two-column breakpoint the whole page scrolls natively, so the hero
+     returns to normal flow (no sticky pinning) and in-page anchors only need a
+     small offset. Keep it `relative` (not `static`) so it stays the containing
+     block for the absolutely-positioned progress rider (the duck) and the
+     `.hero::after` progress line — under `static` they escaped to the viewport
+     and the duck floated far below the hero, over the article body. */
+  .hero {
+    position: relative;
+    top: auto;
+  }
+
+  .articleSection {
+    scroll-margin-top: var(--base-size-24);
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--base-size-32);
+    background-image: none;
+  }
+
+  .scrollHost {
+    flex: 0 0 auto;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Single-column mobile: drop the text column's side lines. */
+  .contentCol {
+    border-inline: none;
+  }
+
+  /* Move the "In this article" TOC directly beneath the hero (before the
+     article body) and separate it with a bottom rule instead of a top one. */
+  .sidebarCol {
+    order: -1;
+    position: static;
+    border-block-end: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  .sidebarSticky {
+    max-block-size: none;
+    overflow: visible;
+    scrollbar-gutter: auto;
+  }
+
+  .sidebarSection,
+  .sidebarSection:first-child {
+    padding: var(--base-size-24) var(--base-size-32);
+  }
+
+  /* The article now follows the TOC, so it no longer needs the tall hero
+     offset above its first heading. */
+  .contentCol .articleSection:first-child {
+    padding-block-start: var(--base-size-8);
+  }
+}
+
+/* Back-to-top button: a circular control that fades in once the body has been
+   scrolled and jumps the reader back to the top. Uses the canvas/subtle surface
+   and bottom-right anchor to match the .NET Upgrade page. */
+.backToTop {
+  position: fixed;
+  inset-block-end: var(--base-size-32);
+  inset-inline-end: var(--base-size-32);
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 60px;
+  block-size: 60px;
+  padding: 0;
+  border-radius: var(--brand-borderRadius-full);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-subtle);
+  color: var(--brand-color-text-default);
+  box-shadow: var(--brand-SubNav-shadow);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(var(--base-size-8));
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.backToTopVisible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.backToTop:hover {
+  background-color: var(--brand-color-canvas-default);
+}
+
+.backToTop:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+/*
+ * Responsive gutters (below 1920px). Neutralise the native Section 1280px cap
+ * and inset the hero + body frames by the tiered --page-gutter so the outer
+ * vertical gridlines (and the JS-measured reading-progress line, which reads
+ * .heroInner's rect) track the content edge. heroInner and bodyInner must share
+ * the same inset so their frame lines stay aligned. At >=1920px this drops out.
+ */
+@media screen and (max-width: 119.99rem) {
+  .hero :global([class*="Section__container"]),
+  .body :global([class*="Section__container"]) {
+    max-width: none;
+  }
+
+  .heroInner,
+  .bodyInner {
+    margin-inline: var(--page-gutter);
+  }
+}
+
+/* Header bar gridline alignment: 768–1919px only (phones keep the full-bleed
+   collapsed bar). Grow-to-fill minus symmetric gutter margins. */
+@media screen and (min-width: 48rem) and (max-width: 119.99rem) {
+  .topBarInner {
+    width: auto;
+    max-width: none;
+    flex: 1 1 auto;
+    margin-inline: var(--page-gutter);
+  }
+}
