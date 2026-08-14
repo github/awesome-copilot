@@ -1,24 +1,26 @@
 name: Label PR Intent
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened, edited, ready_for_review]
 
 permissions:
-  issues: write
-  pull-requests: write
+  pull-requests: read
 
 jobs:
-  label-pr:
+  compute-labels:
     runs-on: ubuntu-latest
     if: >-
       github.actor != 'dependabot[bot]' &&
       github.actor != 'github-actions[bot]'
     steps:
-      - name: Apply intent labels
+      - name: Compute desired intent labels
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
+            const fs = require('fs');
+            const path = require('path');
+
             const managedLabels = {
               'skills': true,
               'plugin': true,
@@ -148,36 +150,24 @@ jobs:
               desiredLabels.add('new-submission');
             }
 
-            const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              per_page: 100
-            });
+            const outDir = path.join(process.env.RUNNER_TEMP, 'label-pr-intent-result');
+            fs.mkdirSync(outDir, { recursive: true });
+            fs.writeFileSync(path.join(outDir, 'result.json'), `${JSON.stringify({
+              schema_version: 'label-pr-intent-result/v1',
+              event: 'pull_request',
+              pr_number: context.payload.pull_request.number,
+              head_sha: context.payload.pull_request.head.sha,
+              managed_labels: Object.keys(managedLabels).sort(),
+              desired_labels: [...desiredLabels].sort(),
+              run_id: process.env.GITHUB_RUN_ID,
+            }, null, 2)}\n`);
 
-            const currentManagedLabels = currentLabels
-              .map((label) => label.name)
-              .filter((name) => Object.prototype.hasOwnProperty.call(managedLabels, name));
+            core.info(`Desired managed labels: ${[...desiredLabels].sort().join(', ') || 'none'}`);
 
-            const labelsToAdd = [...desiredLabels].filter((name) => !currentManagedLabels.includes(name));
-            const labelsToRemove = currentManagedLabels.filter((name) => !desiredLabels.has(name));
-
-            if (labelsToAdd.length > 0) {
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                labels: labelsToAdd
-              });
-            }
-
-            for (const name of labelsToRemove) {
-              await github.rest.issues.removeLabel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                name
-              });
-            }
-
-            core.info(`Managed labels: ${[...desiredLabels].sort().join(', ') || 'none'}`);
+      - name: Upload desired label artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: label-pr-intent-result
+          path: ${{ runner.temp }}/label-pr-intent-result/result.json
+          if-no-files-found: error
+          retention-days: 3
