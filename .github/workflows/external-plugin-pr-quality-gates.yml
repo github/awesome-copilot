@@ -1,7 +1,7 @@
 name: External Plugin PR Quality Gates
 
 on:
-  pull_request_target:
+  pull_request:
     branches: [main]
     paths:
       - "plugins/external.json"
@@ -13,6 +13,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   detect-changed-plugins:
@@ -28,8 +29,9 @@ jobs:
         with:
           script: |
             const filePath = 'plugins/external.json';
-            const baseRef = context.payload.pull_request.base.sha;
-            const headRef = context.payload.pull_request.head.sha;
+            const pull = context.payload.pull_request;
+            const baseRef = pull.base.sha;
+            const headRef = pull.head.sha;
 
             function normalizePath(value) {
               if (!value || value === '/') {
@@ -46,21 +48,33 @@ jobs:
               ].join('|');
             }
 
-            async function readExternalJson(ref) {
+            async function readExternalJson({ owner, repo, ref }) {
               const response = await github.rest.repos.getContent({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
+                owner,
+                repo,
                 path: filePath,
                 ref,
               });
+
+              if (Array.isArray(response.data) || response.data.type !== 'file') {
+                throw new Error(`${filePath} at ${owner}/${repo}@${ref} is not a file`);
+              }
 
               const encoded = response.data?.content ?? '';
               const decoded = Buffer.from(encoded, 'base64').toString('utf8');
               return JSON.parse(decoded);
             }
 
-            const basePlugins = await readExternalJson(baseRef);
-            const headPlugins = await readExternalJson(headRef);
+            const basePlugins = await readExternalJson({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: baseRef,
+            });
+            const headPlugins = await readExternalJson({
+              owner: pull.head.repo.owner.login,
+              repo: pull.head.repo.name,
+              ref: headRef,
+            });
             const baseByIdentity = new Map(basePlugins.map((plugin) => [toIdentity(plugin), plugin]));
 
             const changedPlugins = headPlugins.filter((plugin) => {
@@ -110,21 +124,14 @@ jobs:
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
-  sync-pr-state:
+  publish-quality-result:
     runs-on: ubuntu-latest
     needs: [detect-changed-plugins, run-quality-gates]
     if: always()
     permissions:
       contents: read
-      issues: write
-      pull-requests: write
     steps:
-      - name: Checkout main branch
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-        with:
-          ref: main
-
-      - name: Sync labels and PR status comment
+      - name: Write quality result artifact
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         env:
           DETECT_JOB_RESULT: ${{ needs.detect-changed-plugins.result }}
@@ -132,239 +139,36 @@ jobs:
           CHANGED_COUNT: ${{ needs.detect-changed-plugins.outputs.changed-count }}
           QUALITY_RESULT_JSON: ${{ needs.run-quality-gates.outputs.quality-result }}
           QUALITY_JOB_RESULT: ${{ needs.run-quality-gates.result }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
         with:
           script: |
+            const fs = require('fs');
             const path = require('path');
-            const { pathToFileURL } = require('url');
-
-            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
-            const marker = '<!-- external-plugin-pr-quality -->';
-
-            const detectJobResult = process.env.DETECT_JOB_RESULT;
-            const shouldRun = process.env.SHOULD_RUN === 'true';
-            const changedCount = Number.parseInt(process.env.CHANGED_COUNT || '0', 10);
-            const qualityJobResult = process.env.QUALITY_JOB_RESULT;
-
-            let qualityResult = {
-              overall_status: 'not_run',
-              spec_compliance_status: 'not_run',
-              failure_class: 'none',
-              checked_plugins: [],
-              summary: 'No changed external plugin entries were detected in this PR.',
+            const outDir = path.join(process.env.RUNNER_TEMP, 'external-plugin-pr-quality-result');
+            fs.mkdirSync(outDir, { recursive: true });
+            const payload = {
+              schema_version: 'external-plugin-pr-quality-result/v1',
+              event: 'pull_request',
+              pr_number: Number.parseInt(process.env.PR_NUMBER, 10),
+              head_sha: process.env.PR_HEAD_SHA,
+              base_sha: process.env.PR_BASE_SHA,
+              base_ref: process.env.PR_BASE_REF,
+              detect_job_result: process.env.DETECT_JOB_RESULT || '',
+              should_run: process.env.SHOULD_RUN === 'true',
+              changed_count: Number.parseInt(process.env.CHANGED_COUNT || '0', 10) || 0,
+              quality_job_result: process.env.QUALITY_JOB_RESULT || '',
+              quality_result_json: process.env.QUALITY_RESULT_JSON || '',
+              run_id: process.env.GITHUB_RUN_ID,
             };
+            fs.writeFileSync(path.join(outDir, 'result.json'), `${JSON.stringify(payload, null, 2)}\n`);
 
-            if (detectJobResult === 'failure' || detectJobResult === 'cancelled') {
-              qualityResult = {
-                overall_status: 'infra_error',
-                spec_compliance_status: 'not_run',
-                failure_class: 'infra',
-                checked_plugins: [],
-                version_match_status: 'infra_error',
-                canvas_structure_status: 'infra_error',
-                summary: 'External plugin PR change detection failed unexpectedly. Re-run this workflow.',
-              };
-            } else if (shouldRun) {
-              if (qualityJobResult === 'failure' || qualityJobResult === 'cancelled') {
-                qualityResult = {
-                  overall_status: 'infra_error',
-                  spec_compliance_status: 'not_run',
-                  failure_class: 'infra',
-                  checked_plugins: [],
-                  version_match_status: 'infra_error',
-                  canvas_structure_status: 'infra_error',
-                  summary: 'External plugin PR quality checks failed unexpectedly. Re-run this workflow.',
-                };
-              } else if (process.env.QUALITY_RESULT_JSON) {
-                qualityResult = JSON.parse(process.env.QUALITY_RESULT_JSON);
-              } else {
-                qualityResult = {
-                  overall_status: 'infra_error',
-                  spec_compliance_status: 'not_run',
-                  failure_class: 'infra',
-                  checked_plugins: [],
-                  version_match_status: 'infra_error',
-                  canvas_structure_status: 'infra_error',
-                  summary: 'External plugin PR quality checks did not return a result payload.',
-                };
-              }
-            }
-
-            const stateLabel = qualityResult.failure_class === 'submitter_fixes'
-              ? 'requires-submitter-fixes'
-              : qualityResult.overall_status === 'pass' || !shouldRun
-                ? 'ready-for-review'
-                : 'awaiting-review';
-
-            const desiredLabels = new Set(['external-plugin', stateLabel]);
-            await intakeState.syncExternalPluginIntakeLabels({
-              github,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issueNumber: context.issue.number,
-              desiredLabels,
-            });
-
-            const checkedPlugins = Array.isArray(qualityResult.checked_plugins) ? qualityResult.checked_plugins : [];
-            const hasSpecWarnings = checkedPlugins.some((entry) => String(entry?.quality?.spec_compliance_status || '') === 'warning');
-            const header = qualityResult.failure_class === 'submitter_fixes'
-              ? '## 🛑 External plugin PR checks failed (submitter fixes required)'
-              : qualityResult.overall_status === 'infra_error'
-                ? '## 🛑 External plugin PR checks failed (maintainer follow-up)'
-                : hasSpecWarnings
-                  ? '## ⚠️ External plugin PR checks passed with spec warnings'
-                  : qualityResult.overall_status === 'pass' || !shouldRun
-                    ? '## ✅ External plugin PR checks passed'
-                    : '## ⚠️ External plugin PR checks need maintainer follow-up';
-            const formatStatus = (rawStatus, gateName) => {
-              const status = String(rawStatus || 'not_run');
-              if (status === 'pass') {
-                return '✅ pass';
-              }
-              if (status === 'warning' || (gateName === 'spec compliance' && status === 'fail')) {
-                return '⚠️ warning';
-              }
-              if (status === 'fail' || status === 'infra_error') {
-                return '🛑 fail';
-              }
-              return '⚪ not_run';
-            };
-            const MAX_GATE_OUTPUT_CHARS = 2000;
-            const escapeHtml = (value) =>
-              String(value || '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-            const escapeMarkdownTableCell = (value) =>
-              String(value ?? '')
-                .replace(/\r\n?|\n/g, '\n')
-                .split('\n')
-                .map((line) =>
-                  Array.from(line, (character) =>
-                    /^[A-Za-z0-9 .-]$/.test(character)
-                      ? character
-                      : `&#${character.codePointAt(0)};`
-                  ).join('')
-                )
-                .join('<br>');
-            const normalizeGitHubUrl = (value) => {
-              const raw = String(value || '').trim();
-              if (!raw) {
-                return '';
-              }
-
-              try {
-                const parsed = new URL(raw);
-                if (parsed.protocol !== 'https:' || parsed.hostname !== 'github.com') {
-                  return '';
-                }
-                return parsed.toString();
-              } catch {
-                return '';
-              }
-            };
-            const TRUNCATED_OUTPUT_MARKER = '\n...output truncated...';
-            const truncateGateOutput = (rawOutput) => {
-              const normalized = escapeHtml(String(rawOutput || '').trim());
-              if (!normalized) {
-                return '_No output captured._';
-              }
-              if (normalized.length <= MAX_GATE_OUTPUT_CHARS) {
-                return normalized;
-              }
-              return `${normalized.slice(0, Math.max(0, MAX_GATE_OUTPUT_CHARS - TRUNCATED_OUTPUT_MARKER.length))}${TRUNCATED_OUTPUT_MARKER}`;
-            };
-            const formatGateOutput = (pluginName, gateName, gateStatus, rawOutput) => {
-              const summaryPluginName = escapeHtml(String(pluginName || 'unknown'));
-              const summaryGateName = escapeHtml(String(gateName || 'gate'));
-              const summaryGateStatus = escapeHtml(String(gateStatus || 'not_run'));
-              const output = truncateGateOutput(rawOutput);
-              return [
-                '<details>',
-                `<summary>${summaryPluginName} - ${summaryGateName} (${summaryGateStatus})</summary>`,
-                '',
-                '<pre><code>',
-                output,
-                '</code></pre>',
-                '</details>',
-              ].join('\n');
-            };
-
-            const rows = checkedPlugins.length > 0
-              ? checkedPlugins.map((entry) => {
-                  const name = escapeMarkdownTableCell(entry?.name || 'unknown');
-                  const quality = entry?.quality || {};
-                  const sourceUrl = normalizeGitHubUrl(entry?.source_tree_url);
-                  const locator = escapeMarkdownTableCell(entry?.source?.sha || entry?.source?.ref || 'repository');
-                  const sourceCell = sourceUrl ? `[${locator}](${sourceUrl})` : locator;
-                  return `| ${name} | ${formatStatus(quality.spec_compliance_status, 'spec compliance')} | ${formatStatus(quality.vally_lint_status, 'vally lint')} | ${formatStatus(quality.smoke_status, 'install smoke test')} | ${formatStatus(quality.version_match_status, 'version match')} | ${formatStatus(quality.ref_sha_consistency_status, 'ref/sha consistency')} | ${formatStatus(quality.canvas_structure_status, 'canvas structure')} | ${formatStatus(quality.overall_status, 'overall')} | ${sourceCell} |`;
-                })
-              : ['| _none_ | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | _n/a_ |'];
-            const failureDetails = checkedPlugins.flatMap((entry) => {
-              const name = String(entry?.name || 'unknown');
-              const quality = entry?.quality || {};
-              const shouldShowSpec = quality.spec_compliance_status === 'warning' || String(quality.spec_compliance_output || '').trim().length > 0;
-              const shouldShowVally = quality.vally_lint_status === 'fail' || quality.vally_lint_status === 'infra_error' || String(quality.vally_lint_output || '').trim().length > 0;
-              const shouldShowSmoke = quality.smoke_status === 'fail' || quality.smoke_status === 'infra_error' || String(quality.smoke_output || '').trim().length > 0;
-              const shouldShowVersionMatch = quality.version_match_status === 'fail' || quality.version_match_status === 'infra_error' || String(quality.version_match_output || '').trim().length > 0;
-              const shouldShowRefShaConsistency = quality.ref_sha_consistency_status === 'fail' || quality.ref_sha_consistency_status === 'infra_error' || String(quality.ref_sha_consistency_output || '').trim().length > 0;
-              const shouldShowCanvasStructure = quality.canvas_structure_status === 'fail' || quality.canvas_structure_status === 'infra_error' || String(quality.canvas_structure_output || '').trim().length > 0;
-
-              const details = [];
-              if (shouldShowSpec) {
-                details.push(formatGateOutput(name, 'spec compliance', formatStatus(quality.spec_compliance_status, 'spec compliance'), quality.spec_compliance_output));
-              }
-              if (shouldShowVally) {
-                details.push(formatGateOutput(name, 'vally lint', formatStatus(quality.vally_lint_status, 'vally lint'), quality.vally_lint_output));
-              }
-              if (shouldShowSmoke) {
-                details.push(formatGateOutput(name, 'install smoke test', formatStatus(quality.smoke_status, 'install smoke test'), quality.smoke_output));
-              }
-              if (shouldShowVersionMatch) {
-                details.push(formatGateOutput(name, 'version match', quality.version_match_status, quality.version_match_output));
-              }
-              if (shouldShowRefShaConsistency) {
-                details.push(formatGateOutput(name, 'ref/sha consistency', quality.ref_sha_consistency_status, quality.ref_sha_consistency_output));
-              }
-              if (shouldShowCanvasStructure) {
-                details.push(formatGateOutput(name, 'canvas structure', quality.canvas_structure_status, quality.canvas_structure_output));
-              }
-              return details;
-            });
-
-            const body = [
-              marker,
-              header,
-              '',
-              `- **Changed entries detected:** ${changedCount}`,
-              `- **Workflow state label:** \`${stateLabel}\``,
-              '- **Status legend:** ✅ pass · ⚠️ warning · 🛑 fail',
-              '',
-              '### Per-plugin quality summary',
-              '',
-              '| Plugin | spec compliance (non-blocking) | vally lint | install smoke test | version match | ref/sha consistency | canvas structure | overall | source tree |',
-              '|---|---|---|---|---|---|---|---|---|',
-              ...rows,
-              '',
-              ...(failureDetails.length > 0
-                ? [
-                    '### Gate output details',
-                    '',
-                    ...failureDetails,
-                    '',
-                  ]
-                : []),
-              String(qualityResult.summary || '').trim()
-                ? `<pre><code>${escapeHtml(String(qualityResult.summary).trim())}</code></pre>`
-                : '_No summary provided._',
-            ].join('\n');
-
-            await intakeState.upsertExternalPluginIntakeComment({
-              github,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issueNumber: context.issue.number,
-              marker,
-              body,
-            });
+      - name: Upload quality result artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: external-plugin-pr-quality-result
+          path: ${{ runner.temp }}/external-plugin-pr-quality-result/result.json
+          if-no-files-found: error
+          retention-days: 3
