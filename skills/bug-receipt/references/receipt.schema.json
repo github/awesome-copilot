@@ -7,8 +7,9 @@
   "additionalProperties": false,
   "required": ["version", "status", "problem", "baseline", "rootCause", "changes", "verification", "gaps"],
   "properties": {
-    "version": { "const": 1 },
+    "version": { "enum": [1, 2] },
     "status": { "enum": ["verified", "partial", "blocked"] },
+    "evidenceSource": { "enum": ["executed-now", "supplied", "mixed"] },
     "problem": { "$ref": "#/$defs/nonEmptyString" },
     "baseline": {
       "type": "object",
@@ -71,6 +72,13 @@
     "nonEmptyString": { "type": "string", "minLength": 1, "pattern": "\\S" }
   },
   "allOf": [
+    {
+      "if": { "properties": { "version": { "const": 2 } }, "required": ["version"] },
+      "then": {
+        "properties": { "evidenceSource": { "enum": ["executed-now", "supplied", "mixed"] } },
+        "required": ["evidenceSource"]
+      }
+    },
     {
       "if": { "properties": { "status": { "const": "verified" } }, "required": ["status"] },
       "then": {

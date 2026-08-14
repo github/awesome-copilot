@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const statuses = new Set(['verified', 'partial', 'blocked'])
+const evidenceSources = new Set(['executed-now', 'supplied', 'mixed'])
 const baselineResults = new Set(['failed', 'observed', 'not-run'])
 const verificationResults = new Set(['passed', 'failed', 'not-run'])
 
@@ -10,8 +11,9 @@ const isObject = (value) => value !== null && typeof value === 'object' && !Arra
 const nonEmpty = (value) => typeof value === 'string' && value.trim().length > 0
 
 export const sampleReceipt = {
-  version: 1,
+  version: 2,
   status: 'verified',
+  evidenceSource: 'executed-now',
   problem: 'A 10% checkout discount returns 100 instead of 90 after currency rounding.',
   baseline: {
     command: 'npm test -- discount.test.ts',
@@ -41,10 +43,12 @@ export function validateReceipt(receipt) {
   }
 
   if (!isObject(receipt)) return { valid: false, issues: [{ path: '$', message: 'Receipt must be a JSON object.' }] }
-  rejectUnknown(receipt, new Set(['version', 'status', 'problem', 'baseline', 'rootCause', 'changes', 'verification', 'gaps']), '')
+  rejectUnknown(receipt, new Set(['version', 'status', 'evidenceSource', 'problem', 'baseline', 'rootCause', 'changes', 'verification', 'gaps']), '')
 
-  if (receipt.version !== 1) add('version', 'Must equal 1.')
+  if (receipt.version !== 1 && receipt.version !== 2) add('version', 'Must equal 1 or 2.')
   if (!statuses.has(receipt.status)) add('status', 'Must be verified, partial, or blocked.')
+  if (receipt.evidenceSource !== undefined && !evidenceSources.has(receipt.evidenceSource)) add('evidenceSource', 'Must be executed-now, supplied, or mixed.')
+  if (receipt.version === 2 && !evidenceSources.has(receipt.evidenceSource)) add('evidenceSource', 'Version 2 requires an evidence source.')
   if (!nonEmpty(receipt.problem)) add('problem', 'Must be a non-empty string.')
 
   if (!isObject(receipt.baseline)) {
@@ -103,7 +107,7 @@ export function validateReceipt(receipt) {
     if (!Array.isArray(receipt.rootCause?.evidence) || receipt.rootCause.evidence.length === 0) add('rootCause.evidence', 'Verified requires concrete root-cause evidence.')
     if (!Array.isArray(receipt.changes) || receipt.changes.length === 0) add('changes', 'Verified requires at least one changed file or artifact.')
     if (!Array.isArray(receipt.verification) || receipt.verification.length === 0) add('verification', 'Verified requires at least one verification check.')
-    if (receipt.verification?.some((entry) => entry?.result !== 'passed')) add('verification', 'Every verification check must pass for verified status.')
+    if (Array.isArray(receipt.verification) && receipt.verification.some((entry) => entry?.result !== 'passed')) add('verification', 'Every verification check must pass for verified status.')
     if (Array.isArray(receipt.gaps) && receipt.gaps.length > 0) add('gaps', 'Verified status cannot contain proof gaps.')
   }
 

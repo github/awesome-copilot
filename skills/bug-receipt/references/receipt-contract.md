@@ -4,8 +4,9 @@ Use JSON only when the user, CI, or another tool needs a structured artifact. Ke
 
 ## Required fields
 
-- `version`: integer `1`.
+- `version`: integer `2` for new receipts. Version `1` remains accepted for compatibility.
 - `status`: `verified`, `partial`, or `blocked`.
+- `evidenceSource`: `executed-now`, `supplied`, or `mixed` (required in version `2`).
 - `problem`: concise defect and intended behavior.
 - `baseline`: object with `command`, `result`, and `evidence`.
 - `rootCause`: object with `summary` and at least one evidence item for `verified`.
@@ -37,4 +38,4 @@ For `blocked`:
 - Require at least one gap naming the external blocking condition.
 - Leave unperformed work empty or mark it `not-run`; do not speculate about the result.
 
-Validate against [receipt.schema.json](receipt.schema.json), run `node scripts/validate-receipt.mjs <file>` from the skill directory, or pipe JSON to `node scripts/validate-receipt.mjs - --json`.
+Validate against [receipt.schema.json](receipt.schema.json), run `node scripts/validate-receipt.mjs <file>` from the skill directory, pipe JSON to `node scripts/validate-receipt.mjs - --json`, or use `bug-receipt check <file>` when the package CLI is installed.
