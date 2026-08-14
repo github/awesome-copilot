@@ -5,6 +5,7 @@ import {
     deskOrientPrompt,
     findLocalDelegationSkillDir,
     isLocalDelegationPreference,
+    isSafeDeskOrientPrompt,
     localSavingsCredit,
     normalizeLocalDelegationPreference,
     parseLocalDelegationState,
@@ -103,7 +104,7 @@ test("requested on + unavailable stays ineffective with a warning", () => {
     assert.match(launch.warning, /not installed/i);
 });
 
-test("launch env and prompt only enable when effective", () => {
+test("launch env enables when effective; -i prompt stays short and quote-free", () => {
     const base = { PATH: "/usr/bin", WORKSHOP_LOCAL_DELEGATION: "enabled" };
     const offEnv = buildLocalDelegationLaunchEnv(base, { localDelegationEffective: false });
     assert.equal(Object.hasOwn(offEnv, "WORKSHOP_LOCAL_DELEGATION"), false);
@@ -113,13 +114,15 @@ test("launch env and prompt only enable when effective", () => {
     assert.equal(onEnv.WORKSHOP_LOCAL_DELEGATION, "enabled");
 
     const offPrompt = deskOrientPrompt("cost-desk", { localDelegationEffective: false });
-    assert.equal(offPrompt.includes("Local Delegation is available"), false);
-    assert.match(offPrompt, /cost-desk/);
-
     const onPrompt = deskOrientPrompt("cost-desk", { localDelegationEffective: true });
-    assert.match(onPrompt, /Local Delegation is available/);
-    assert.match(onPrompt, /local-agent-delegation/);
-    assert.match(onPrompt, /no savings credit/i);
+    // Policy must not ride on -i (Windows wt/cmd reparse splits long LD text).
+    assert.equal(offPrompt, onPrompt);
+    assert.match(onPrompt, /cost-desk/);
+    assert.equal(onPrompt.includes("Local Delegation"), false);
+    assert.equal(onPrompt.includes("do not delegate"), false);
+    assert.equal(isSafeDeskOrientPrompt(onPrompt), true);
+    assert.equal(isSafeDeskOrientPrompt('bad "quote"'), false);
+    assert.equal(isSafeDeskOrientPrompt("em dash — bad"), false);
 });
 
 test("repo/connected argv stays orthogonal to local-delegation preference", () => {
@@ -203,11 +206,10 @@ test("skill discovery walks marketplace/plugin and _direct install layouts", asy
         const found = findLocalDelegationSkillDir({ home, env: {} });
         assert.equal(found, skillDir);
 
+        rmSync(join(home, ".copilot", "installed-plugins", "awesome-copilot"), { recursive: true, force: true });
         const direct = join(
             home, ".copilot", "installed-plugins", "_direct", "sealed-delegation",
             "skills", "local-agent-delegation");
-        // Prefer first match; after removing marketplace tree, direct should hit.
-        rmSync(join(home, ".copilot", "installed-plugins", "awesome-copilot"), { recursive: true, force: true });
         mkdirSync(direct, { recursive: true });
         writeFileSync(join(direct, "SKILL.md"), "# local-agent-delegation\n");
         const foundDirect = findLocalDelegationSkillDir({ home, env: {} });

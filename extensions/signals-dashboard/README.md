@@ -112,7 +112,9 @@ When the preference is on but availability fails, opens still launch as frontier
 desks and surface the reason — they never silently fall back with savings credit.
 
 When effective, Cairn sets `WORKSHOP_LOCAL_DELEGATION=enabled` on the launched
-process and appends a short orientation note that local output is a proposal.
+process. The desk orientation `-i` prompt stays the short base journal prompt
+(Windows Terminal cannot safely reparse a long multi-sentence `-i` string).
+Policy lives in that env flag plus the installed `local-agent-delegation` skill.
 The runtime, launcher, and gates remain owned by
 [Sealed Delegation](https://github.com/jennyf19/sealed-delegation).
 

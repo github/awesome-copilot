@@ -17,19 +17,31 @@ export function normalizeLocalDelegationPreference(value, fallback = "off") {
     return isLocalDelegationPreference(value) ? value.toLowerCase() : fallback;
 }
 
+// Windows Terminal / cmd reparse cannot safely carry long multi-space -i strings.
+// Keep the orientation prompt short, ASCII, and quote-free. Local Delegation
+// policy lives in WORKSHOP_LOCAL_DELEGATION=enabled + the installed skill — not
+// on the CLI.
+const MAX_ORIENT_PROMPT_CHARS = 280;
+// Allow apostrophes (desk's). Ban double quotes, backticks, dashes that WT/cmd
+// have split on, and classic cmd metacharacters.
+const UNSAFE_ORIENT_CHARS = /["`—–|&<>^%!()\r\n]/;
+
+export function isSafeDeskOrientPrompt(prompt) {
+    return typeof prompt === "string"
+        && prompt.length > 0
+        && prompt.length <= MAX_ORIENT_PROMPT_CHARS
+        && !UNSAFE_ORIENT_CHARS.test(prompt);
+}
+
 export function deskOrientPrompt(deskName, { localDelegationEffective = false } = {}) {
-    let prompt = `You are sitting down at the ${deskName} desk in this workshop. ` +
+    // deskName is already constrained to a slug by the launcher; still keep the
+    // prompt free of punctuation that cmd/wt have historically mis-parsed.
+    const prompt = `You are sitting down at the ${deskName} desk in this workshop. ` +
         `Read journal.md in this folder first to pick up where the last session ` +
         `left off, then continue the desk's work. Write your journal before you stop.`;
-    if (localDelegationEffective) {
-        prompt += " Local Delegation is available for bounded, independently verifiable " +
-            "subtasks via the installed local-agent-delegation skill. Keep the user " +
-            "conversation, decomposition, judgment, and final answer in the frontier desk. " +
-            "Local output is a proposal and receives no savings credit unless an independent " +
-            "gate accepts it. Eligible V1 work is bounded read/evidence-check only; do not " +
-            "delegate edits, shell, broad discovery, tool authoring, or security disposition. " +
-            "One local failure escalates once to frontier — no retry loops.";
-    }
+    // localDelegationEffective is intentionally unused in the -i string: policy
+    // is carried by env + skill so Windows launch cannot reparse a long appendix.
+    void localDelegationEffective;
     return prompt;
 }
 
