@@ -26,6 +26,13 @@ export type PageShellProps = {
   contributorsTotal?: number;
   searchAriaLabel?: string;
   contributorsCurrent?: boolean;
+  /**
+   * Pages that scroll inside their own element (the detail/article chassis) must
+   * render the footer *inside* that scroll region, otherwise it sits outside the
+   * scrolling box and stays pinned over the content. Those pages opt out here
+   * and render `<LargeFooter />` themselves.
+   */
+  renderFooter?: boolean;
   children: ReactNode;
 };
 
@@ -44,6 +51,7 @@ export function PageShell({
   contributorsTotal = 0,
   searchAriaLabel = "Search the library",
   contributorsCurrent = false,
+  renderFooter = true,
   children,
 }: PageShellProps) {
   return (
@@ -55,6 +63,7 @@ export function PageShell({
         contributorsTotal={contributorsTotal}
         searchAriaLabel={searchAriaLabel}
         contributorsCurrent={contributorsCurrent}
+        renderFooter={renderFooter}
       >
         {children}
       </PageShellBody>
@@ -74,6 +83,7 @@ function PageShellBody({
   contributorsTotal = 0,
   searchAriaLabel = "Search the library",
   contributorsCurrent = false,
+  renderFooter = true,
   children,
 }: PageShellProps) {
   const { colorMode } = useTheme();
@@ -121,7 +131,7 @@ function PageShellBody({
         {children}
       </main>
 
-      <LargeFooter />
+      {renderFooter ? <LargeFooter /> : null}
     </Box>
   );
 }

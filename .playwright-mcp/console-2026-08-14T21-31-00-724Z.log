@@ -1,0 +1,3 @@
+[    1255ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:4321/node_modules/.vite/deps/client-D2l-HPP8.js?v=76c4dcbd:14391
+[   30611ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:4321/skill/pdf/:0
+[   30617ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:4321/plugin/:0

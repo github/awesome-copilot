@@ -669,6 +669,35 @@
   display: flex;
   flex-direction: column;
   gap: var(--base-size-4);
+  max-block-size: 480px;
+  overflow-y: auto;
+  padding-inline-end: var(--base-size-4);
+  scrollbar-width: thin;
+}
+
+.showMoreButton {
+  align-self: flex-start;
+  margin-block-start: var(--base-size-8);
+  margin-inline-start: var(--base-size-12);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-100);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  cursor: pointer;
+}
+
+.showMoreButton:hover {
+  color: var(--brand-color-text-muted);
+}
+
+.showMoreButton:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-4);
+  border-radius: var(--brand-borderRadius-small);
 }
 
 .filterOption {

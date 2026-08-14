@@ -1,0 +1,314 @@
+- generic [ref=f4e1]:
+  - generic [ref=f4e4]:
+    - link "Skip to main content" [ref=f4e5] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f4e6]:
+      - navigation "Primary" [ref=f4e7]:
+        - link "Awesome GitHub Copilot" [ref=f4e8] [cursor=pointer]:
+          - /url: /
+        - list [ref=f4e11]:
+          - listitem [ref=f4e12]:
+            - group [ref=f4e13]:
+              - generic "Resources" [ref=f4e14] [cursor=pointer]
+          - listitem [ref=f4e17]:
+            - link "Playbook" [ref=f4e18] [cursor=pointer]:
+              - /url: /learning-hub/
+        - generic [ref=f4e19]:
+          - button "Search" [ref=f4e21] [cursor=pointer]
+          - link "Meet all 0 contributors" [ref=f4e24] [cursor=pointer]:
+            - /url: /contributors/
+            - generic [ref=f4e28]: "0"
+          - 'button "Language: English" [ref=f4e30] [cursor=pointer]':
+            - generic [ref=f4e34]: English
+          - link "Contribute" [ref=f4e39] [cursor=pointer]:
+            - /url: https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md
+    - main [ref=f4e42]:
+      - generic [ref=f4e44]:
+        - heading "Agents" [level=1] [ref=f4e51]
+        - paragraph [ref=f4e52]: Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains — contributed and curated by the community.
+      - generic [ref=f4e55]:
+        - complementary "Filter agents" [ref=f4e56]:
+          - generic [ref=f4e57]:
+            - generic [ref=f4e58]:
+              - generic [ref=f4e59]: Model
+              - generic [ref=f4e60]:
+                - generic [ref=f4e62]:
+                  - generic [ref=f4e63]:
+                    - checkbox "(none)" [ref=f4e64]
+                    - generic [ref=f4e65] [cursor=pointer]
+                  - generic [ref=f4e68] [cursor=pointer]: (none)
+                - generic [ref=f4e70]:
+                  - generic [ref=f4e71]:
+                    - checkbox "Claude Haiku 4.5 (copilot)" [ref=f4e72]
+                    - generic [ref=f4e73] [cursor=pointer]
+                  - generic [ref=f4e76] [cursor=pointer]: Claude Haiku 4.5 (copilot)
+                - generic [ref=f4e78]:
+                  - generic [ref=f4e79]:
+                    - checkbox "Claude Opus 4.6 (copilot)" [ref=f4e80]
+                    - generic [ref=f4e81] [cursor=pointer]
+                  - generic [ref=f4e84] [cursor=pointer]: Claude Opus 4.6 (copilot)
+                - generic [ref=f4e86]:
+                  - generic [ref=f4e87]:
+                    - checkbox "Claude Opus 4.7" [ref=f4e88]
+                    - generic [ref=f4e89] [cursor=pointer]
+                  - generic [ref=f4e92] [cursor=pointer]: Claude Opus 4.7
+                - generic [ref=f4e94]:
+                  - generic [ref=f4e95]:
+                    - checkbox "Claude Sonnet 4" [ref=f4e96]
+                    - generic [ref=f4e97] [cursor=pointer]
+                  - generic [ref=f4e100] [cursor=pointer]: Claude Sonnet 4
+                - generic [ref=f4e102]:
+                  - generic [ref=f4e103]:
+                    - checkbox "Claude Sonnet 4.5" [ref=f4e104]
+                    - generic [ref=f4e105] [cursor=pointer]
+                  - generic [ref=f4e108] [cursor=pointer]: Claude Sonnet 4.5
+                - generic [ref=f4e110]:
+                  - generic [ref=f4e111]:
+                    - checkbox "Claude Sonnet 4.5 (copilot)" [ref=f4e112]
+                    - generic [ref=f4e113] [cursor=pointer]
+                  - generic [ref=f4e116] [cursor=pointer]: Claude Sonnet 4.5 (copilot)
+                - generic [ref=f4e118]:
+                  - generic [ref=f4e119]:
+                    - checkbox "Claude Sonnet 4.6" [ref=f4e120]
+                    - generic [ref=f4e121] [cursor=pointer]
+                  - generic [ref=f4e124] [cursor=pointer]: Claude Sonnet 4.6
+                - generic [ref=f4e126]:
+                  - generic [ref=f4e127]:
+                    - checkbox "Claude Sonnet 4.6 (copilot)" [ref=f4e128]
+                    - generic [ref=f4e129] [cursor=pointer]
+                  - generic [ref=f4e132] [cursor=pointer]: Claude Sonnet 4.6 (copilot)
+                - generic [ref=f4e134]:
+                  - generic [ref=f4e135]:
+                    - checkbox "claude-3.5-sonnet" [ref=f4e136]
+                    - generic [ref=f4e137] [cursor=pointer]
+                  - generic [ref=f4e140] [cursor=pointer]: claude-3.5-sonnet
+              - button "Show 16 more" [ref=f4e141] [cursor=pointer]
+            - generic [ref=f4e142]:
+              - generic [ref=f4e143]: Tools
+              - generic [ref=f4e144]:
+                - generic [ref=f4e146]:
+                  - generic [ref=f4e147]:
+                    - checkbox "*" [ref=f4e148]
+                    - generic [ref=f4e149] [cursor=pointer]
+                  - generic [ref=f4e152] [cursor=pointer]: "*"
+                - generic [ref=f4e154]:
+                  - generic [ref=f4e155]:
+                    - checkbox "activePullRequest" [ref=f4e156]
+                    - generic [ref=f4e157] [cursor=pointer]
+                  - generic [ref=f4e160] [cursor=pointer]: activePullRequest
+                - generic [ref=f4e162]:
+                  - generic [ref=f4e163]:
+                    - checkbox "add_issue_comment" [ref=f4e164]
+                    - generic [ref=f4e165] [cursor=pointer]
+                  - generic [ref=f4e168] [cursor=pointer]: add_issue_comment
+                - generic [ref=f4e170]:
+                  - generic [ref=f4e171]:
+                    - checkbox "agent" [ref=f4e172]
+                    - generic [ref=f4e173] [cursor=pointer]
+                  - generic [ref=f4e176] [cursor=pointer]: agent
+                - generic [ref=f4e178]:
+                  - generic [ref=f4e179]:
+                    - checkbox "agent/runSubagent" [ref=f4e180]
+                    - generic [ref=f4e181] [cursor=pointer]
+                  - generic [ref=f4e184] [cursor=pointer]: agent/runSubagent
+                - generic [ref=f4e186]:
+                  - generic [ref=f4e187]:
+                    - checkbox "atlassian" [ref=f4e188]
+                    - generic [ref=f4e189] [cursor=pointer]
+                  - generic [ref=f4e192] [cursor=pointer]: atlassian
+                - generic [ref=f4e194]:
+                  - generic [ref=f4e195]:
+                    - checkbox "azure_design_architecture" [ref=f4e196]
+                    - generic [ref=f4e197] [cursor=pointer]
+                  - generic [ref=f4e200] [cursor=pointer]: azure_design_architecture
+                - generic [ref=f4e202]:
+                  - generic [ref=f4e203]:
+                    - checkbox "azure_get_azure_verified_module" [ref=f4e204]
+                    - generic [ref=f4e205] [cursor=pointer]
+                  - generic [ref=f4e208] [cursor=pointer]: azure_get_azure_verified_module
+                - generic [ref=f4e210]:
+                  - generic [ref=f4e211]:
+                    - checkbox "azure_get_code_gen_best_practices" [ref=f4e212]
+                    - generic [ref=f4e213] [cursor=pointer]
+                  - generic [ref=f4e216] [cursor=pointer]: azure_get_code_gen_best_practices
+                - generic [ref=f4e218]:
+                  - generic [ref=f4e219]:
+                    - checkbox "azure_get_deployment_best_practices" [ref=f4e220]
+                    - generic [ref=f4e221] [cursor=pointer]
+                  - generic [ref=f4e224] [cursor=pointer]: azure_get_deployment_best_practices
+              - button "Show 183 more" [ref=f4e225] [cursor=pointer]
+            - generic [ref=f4e226]:
+              - generic [ref=f4e227]: Last updated
+              - generic [ref=f4e228]:
+                - generic [ref=f4e230]:
+                  - generic [ref=f4e231]:
+                    - checkbox "Past week" [ref=f4e232]
+                    - generic [ref=f4e233] [cursor=pointer]
+                  - generic [ref=f4e236] [cursor=pointer]: Past week
+                - generic [ref=f4e238]:
+                  - generic [ref=f4e239]:
+                    - checkbox "Past month" [ref=f4e240]
+                    - generic [ref=f4e241] [cursor=pointer]
+                  - generic [ref=f4e244] [cursor=pointer]: Past month
+                - generic [ref=f4e246]:
+                  - generic [ref=f4e247]:
+                    - checkbox "Past 3 months" [ref=f4e248]
+                    - generic [ref=f4e249] [cursor=pointer]
+                  - generic [ref=f4e252] [cursor=pointer]: Past 3 months
+                - generic [ref=f4e254]:
+                  - generic [ref=f4e255]:
+                    - checkbox "Past 6 months" [ref=f4e256]
+                    - generic [ref=f4e257] [cursor=pointer]
+                  - generic [ref=f4e260] [cursor=pointer]: Past 6 months
+                - generic [ref=f4e262]:
+                  - generic [ref=f4e263]:
+                    - checkbox "Older" [ref=f4e264]
+                    - generic [ref=f4e265] [cursor=pointer]
+                  - generic [ref=f4e268] [cursor=pointer]: Older
+        - generic [ref=f4e272]:
+          - generic [ref=f4e560]:
+            - generic [ref=f4e562]:
+              - heading [level=2] [ref=f4e563]:
+                - link "Agent Governance Reviewer" [ref=f4e564] [cursor=pointer]:
+                  - /url: /agent/agent-governance-reviewer/
+              - paragraph [ref=f4e565]:
+                - generic [ref=f4e566]: AI agent governance expert that reviews code for safety issues, missing governance controls, and helps implement policy enforcement, trust scoring, and audit trails in agent systems.
+            - generic [ref=f4e567]:
+              - generic [ref=f4e569]:
+                - link "Install" [ref=f4e570] [cursor=pointer]:
+                  - /url: https://aka.ms/awesome-copilot/install/agent?url=vscode%3Achat-agent%2Finstall%3Furl%3Dhttps%253A%252F%252Fraw.githubusercontent.com%252Fgithub%252Fawesome-copilot%252Fmain%252Fagents%252Fagent-governance-reviewer.agent.md
+                - button "Menu" [ref=f4e573] [cursor=pointer]
+              - link "Download Agent Governance Reviewer agent file" [ref=f4e578] [cursor=pointer]:
+                - /url: https://raw.githubusercontent.com/github/awesome-copilot/main/agents/agent-governance-reviewer.agent.md
+              - link "View Agent Governance Reviewer agent on GitHub" [ref=f4e584] [cursor=pointer]:
+                - /url: https://github.com/github/awesome-copilot/blob/main/agents/agent-governance-reviewer.agent.md
+          - generic [ref=f4e590]:
+            - generic [ref=f4e592]:
+              - heading [level=2] [ref=f4e593]:
+                - link "Ai Readiness Reporter" [ref=f4e594] [cursor=pointer]:
+                  - /url: /agent/ai-readiness-reporter/
+              - paragraph [ref=f4e595]:
+                - generic [ref=f4e596]: Runs the AgentRC readiness assessment on the current repository and produces a self-contained, static HTML dashboard at reports/index.html. Explains every readiness pillar, the maturity level, and an actionable remediation plan, framed by AgentRC measure → generate → maintain loop. Use when asked to assess, audit, score, report on, or visualise the AI readiness of a repo.
+            - generic [ref=f4e597]:
+              - generic [ref=f4e599]:
+                - link "Install" [ref=f4e600] [cursor=pointer]:
+                  - /url: https://aka.ms/awesome-copilot/install/agent?url=vscode%3Achat-agent%2Finstall%3Furl%3Dhttps%253A%252F%252Fraw.githubusercontent.com%252Fgithub%252Fawesome-copilot%252Fmain%252Fagents%252Fai-readiness-reporter.agent.md
+                - button "Menu" [ref=f4e603] [cursor=pointer]
+              - link "Download Ai Readiness Reporter agent file" [ref=f4e608] [cursor=pointer]:
+                - /url: https://raw.githubusercontent.com/github/awesome-copilot/main/agents/ai-readiness-reporter.agent.md
+              - link "View Ai Readiness Reporter agent on GitHub" [ref=f4e614] [cursor=pointer]:
+                - /url: https://github.com/github/awesome-copilot/blob/main/agents/ai-readiness-reporter.agent.md
+          - generic [ref=f4e620]:
+            - generic [ref=f4e622]:
+              - heading [level=2] [ref=f4e623]:
+                - link "Ai Team Dev" [ref=f4e624] [cursor=pointer]:
+                  - /url: /agent/ai-team-dev/
+              - paragraph [ref=f4e625]:
+                - generic [ref=f4e626]: AI development team (Nova, Sage, Milo). Use when implementing features, fixing bugs, writing tests, improving user experience, or preparing a pull request across the project's actual stack.
+            - generic [ref=f4e627]:
+              - generic [ref=f4e629]:
+                - link "Install" [ref=f4e630] [cursor=pointer]:
+                  - /url: https://aka.ms/awesome-copilot/install/agent?url=vscode%3Achat-agent%2Finstall%3Furl%3Dhttps%253A%252F%252Fraw.githubusercontent.com%252Fgithub%252Fawesome-copilot%252Fmain%252Fagents%252Fai-team-dev.agent.md
+                - button "Menu" [ref=f4e633] [cursor=pointer]
+              - link "Download Ai Team Dev agent file" [ref=f4e638] [cursor=pointer]:
+                - /url: https://raw.githubusercontent.com/github/awesome-copilot/main/agents/ai-team-dev.agent.md
+              - link "View Ai Team Dev agent on GitHub" [ref=f4e644] [cursor=pointer]:
+                - /url: https://github.com/github/awesome-copilot/blob/main/agents/ai-team-dev.agent.md
+          - generic [ref=f4e650]:
+            - generic [ref=f4e652]:
+              - heading [level=2] [ref=f4e653]:
+                - link "Ai Team Producer" [ref=f4e654] [cursor=pointer]:
+                  - /url: /agent/ai-team-producer/
+              - paragraph [ref=f4e655]:
+                - generic [ref=f4e656]: AI team producer (Remy). Use when planning work, clarifying scope, coordinating Dev and optional QA, triaging issues, maintaining project context, or preparing and merging pull requests. Never writes application code.
+            - generic [ref=f4e657]:
+              - generic [ref=f4e659]:
+                - link "Install" [ref=f4e660] [cursor=pointer]:
+                  - /url: https://aka.ms/awesome-copilot/install/agent?url=vscode%3Achat-agent%2Finstall%3Furl%3Dhttps%253A%252F%252Fraw.githubusercontent.com%252Fgithub%252Fawesome-copilot%252Fmain%252Fagents%252Fai-team-producer.agent.md
+                - button "Menu" [ref=f4e663] [cursor=pointer]
+              - link "Download Ai Team Producer agent file" [ref=f4e668] [cursor=pointer]:
+                - /url: https://raw.githubusercontent.com/github/awesome-copilot/main/agents/ai-team-producer.agent.md
+              - link "View Ai Team Producer agent on GitHub" [ref=f4e674] [cursor=pointer]:
+                - /url: https://github.com/github/awesome-copilot/blob/main/agents/ai-team-producer.agent.md
+          - generic [ref=f4e680]:
+            - generic [ref=f4e682]:
+              - heading [level=2] [ref=f4e683]:
+                - link "Ai Team Qa" [ref=f4e684] [cursor=pointer]:
+                  - /url: /agent/ai-team-qa/
+              - paragraph [ref=f4e685]:
+                - generic [ref=f4e686]: Optional AI QA engineer (Ivy). Use when testing behavior, running automated or exploratory checks, filing reproducible bugs, verifying fixes, or providing release confidence for changes that warrant dedicated QA.
+            - generic [ref=f4e687]:
+              - generic [ref=f4e689]:
+                - link "Install" [ref=f4e690] [cursor=pointer]:
+                  - /url: https://aka.ms/awesome-copilot/install/agent?url=vscode%3Achat-agent%2Finstall%3Furl%3Dhttps%253A%252F%252Fraw.githubusercontent.com%252Fgithub%252Fawesome-copilot%252Fmain%252Fagents%252Fai-team-qa.agent.md
+                - button "Menu" [ref=f4e693] [cursor=pointer]
+              - link "Download Ai Team Qa agent file" [ref=f4e698] [cursor=pointer]:
+                - /url: https://raw.githubusercontent.com/github/awesome-copilot/main/agents/ai-team-qa.agent.md
+              - link "View Ai Team Qa agent on GitHub" [ref=f4e704] [cursor=pointer]:
+                - /url: https://github.com/github/awesome-copilot/blob/main/agents/ai-team-qa.agent.md
+          - generic [ref=f4e710]:
+            - generic [ref=f4e712]:
+              - heading [level=2] [ref=f4e713]:
+                - link "Amplitude Experiment Implementation" [ref=f4e714] [cursor=pointer]:
+                  - /url: /agent/amplitude-experiment-implementation/
+              - paragraph [ref=f4e715]:
+                - generic [ref=f4e716]: This custom agent uses Amplitude's MCP tools to deploy new experiments inside of Amplitude, enabling seamless variant testing capabilities and rollout of product features.
+            - generic [ref=f4e717]:
+              - generic [ref=f4e719]:
+                - link "Install" [ref=f4e720] [cursor=pointer]:
+                  - /url: https://aka.ms/awesome-copilot/install/agent?url=vscode%3Achat-agent%2Finstall%3Furl%3Dhttps%253A%252F%252Fraw.githubusercontent.com%252Fgithub%252Fawesome-copilot%252Fmain%252Fagents%252Famplitude-experiment-implementation.agent.md
+                - button "Menu" [ref=f4e723] [cursor=pointer]
+              - link "Download Amplitude Experiment Implementation agent file" [ref=f4e728] [cursor=pointer]:
+                - /url: https://raw.githubusercontent.com/github/awesome-copilot/main/agents/amplitude-experiment-implementation.agent.md
+              - link "View Amplitude Experiment Implementation agent on GitHub" [ref=f4e734] [cursor=pointer]:
+                - /url: https://github.com/github/awesome-copilot/blob/main/agents/amplitude-experiment-implementation.agent.md
+      - navigation "Pagination" [ref=f4e456]:
+        - generic [ref=f4e457]:
+          - button "Previous Page" [ref=f4e739] [cursor=pointer]:
+            - generic [ref=f4e740]: Previous
+          - button "Page 1" [ref=f4e466] [cursor=pointer]:
+            - generic [ref=f4e467]: "1"
+          - button "Page 2" [active] [ref=f4e469] [cursor=pointer]:
+            - generic [ref=f4e470]: "2"
+          - button "Page 3" [ref=f4e472] [cursor=pointer]:
+            - generic [ref=f4e473]: "3"
+          - button "Page 4" [ref=f4e475] [cursor=pointer]:
+            - generic [ref=f4e476]: "4"
+          - button "Page 5" [ref=f4e478] [cursor=pointer]:
+            - generic [ref=f4e479]: "5"
+          - button "Page 6..." [ref=f4e481] [cursor=pointer]:
+            - generic [ref=f4e482]: "6"
+          - generic [ref=f4e484] [cursor=pointer]: …
+          - button "Page 38" [ref=f4e486] [cursor=pointer]:
+            - generic [ref=f4e487]: "38"
+          - button "Next Page" [ref=f4e747] [cursor=pointer]:
+            - generic [ref=f4e748]: Next
+      - generic [ref=f4e504]:
+        - heading "Can’t find the agent you need?" [level=3] [ref=f4e505]
+        - paragraph [ref=f4e506]: This library is community-built. Share an agent you use—or request one—to help developers ship faster with GitHub Copilot.
+        - generic [ref=f4e507]:
+          - link "Submit an agent" [ref=f4e508] [cursor=pointer]:
+            - /url: https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md
+          - link "Request an agent" [ref=f4e510] [cursor=pointer]:
+            - /url: https://github.com/github/awesome-copilot/issues/new
+    - contentinfo [ref=f4e512]:
+      - link "GitHub" [ref=f4e517] [cursor=pointer]:
+        - /url: https://github.com
+      - generic [ref=f4e525]:
+        - generic [ref=f4e526]:
+          - link "Terms" [ref=f4e527] [cursor=pointer]:
+            - /url: https://docs.github.com/site-policy/github-terms/github-terms-of-service
+          - link "Privacy" [ref=f4e528] [cursor=pointer]:
+            - /url: https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement
+          - link "GitHub Docs" [ref=f4e529] [cursor=pointer]:
+            - /url: https://docs.github.com
+          - link "Community" [ref=f4e530] [cursor=pointer]:
+            - /url: https://github.community
+          - link "Support" [ref=f4e531] [cursor=pointer]:
+            - /url: https://support.github.com
+        - paragraph [ref=f4e532]: © 2026 GitHub. All rights reserved.
+  - generic [ref=f4e535]:
+    - button [ref=f4e536]
+    - button [ref=f4e542]
+    - button [ref=f4e546]
+    - button [ref=f4e551]

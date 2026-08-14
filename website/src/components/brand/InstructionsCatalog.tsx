@@ -87,6 +87,13 @@ const emptyFilters: FilterState = { pattern: [], extension: [], updated: [] };
 const PAGE_SIZE = 6;
 
 /**
+ * Long facets collapse behind a "Show N more" toggle, matching the prototype's
+ * extensions page. Real data produces far longer option lists than the
+ * prototype's hardcoded arrays, so every catalog needs this.
+ */
+const FILTER_COLLAPSE_LIMIT = 10;
+
+/**
  * The Instructions catalog, ported from the design prototype's
  * `instructions.tsx`. The prototype's hardcoded array and filter options are
  * replaced by build-time data; the layout, filters, and interactions are
@@ -108,6 +115,12 @@ export function InstructionsCatalog({
   const [currentPage, setCurrentPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
+  const [expandedGroups, setExpandedGroups] = useState<
+    Record<FilterGroupId, boolean>
+  >({ pattern: false, extension: false, updated: false });
+  const toggleGroupExpanded = (groupId: FilterGroupId) => {
+    setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
 
   const filterGroups = useMemo<
     { id: FilterGroupId; label: string; options: string[] }[]
@@ -388,26 +401,47 @@ export function InstructionsCatalog({
                 !mobileFiltersOpen && styles.filterBodyCollapsed,
               )}
             >
-              {filterGroups.map((group) => (
-                <div className={styles.filterGroup} key={group.id}>
-                  <Text as="h2" size="100" className={styles.filterHeading}>
-                    {group.label}
-                  </Text>
-                  <div className={styles.filterOptions}>
-                    {group.options.map((option) => (
-                      <div className={styles.filterOption} key={option}>
-                        <FormControl>
-                          <Checkbox
-                            checked={filters[group.id].includes(option)}
-                            onChange={() => toggleFilter(group.id, option)}
-                          />
-                          <FormControl.Label>{option}</FormControl.Label>
-                        </FormControl>
-                      </div>
-                    ))}
+              {filterGroups.map((group) => {
+                const isExpandable =
+                  group.options.length > FILTER_COLLAPSE_LIMIT;
+                const expanded = expandedGroups[group.id];
+                const visibleOptions =
+                  isExpandable && !expanded
+                    ? group.options.slice(0, FILTER_COLLAPSE_LIMIT)
+                    : group.options;
+                return (
+                  <div className={styles.filterGroup} key={group.id}>
+                    <Text as="h2" size="100" className={styles.filterHeading}>
+                      {group.label}
+                    </Text>
+                    <div className={styles.filterOptions}>
+                      {visibleOptions.map((option) => (
+                        <div className={styles.filterOption} key={option}>
+                          <FormControl>
+                            <Checkbox
+                              checked={filters[group.id].includes(option)}
+                              onChange={() => toggleFilter(group.id, option)}
+                            />
+                            <FormControl.Label>{option}</FormControl.Label>
+                          </FormControl>
+                        </div>
+                      ))}
+                    </div>
+                    {isExpandable ? (
+                      <button
+                        type="button"
+                        className={styles.showMoreButton}
+                        aria-expanded={expanded}
+                        onClick={() => toggleGroupExpanded(group.id)}
+                      >
+                        {expanded
+                          ? "Show less"
+                          : `Show ${group.options.length - FILTER_COLLAPSE_LIMIT} more`}
+                      </button>
+                    ) : null}
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {hasActiveFilters ? (
                 <div className={styles.filterActions}>
                   <Button

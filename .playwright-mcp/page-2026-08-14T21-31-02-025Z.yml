@@ -1,0 +1,383 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e4]:
+    - link "Skip to main content" [ref=f5e5] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=f5e6]:
+      - navigation "Primary" [ref=f5e7]:
+        - link "Awesome GitHub Copilot" [ref=f5e8] [cursor=pointer]:
+          - /url: /
+        - list [ref=f5e11]:
+          - listitem [ref=f5e12]:
+            - group [ref=f5e13]:
+              - generic "Resources" [ref=f5e14] [cursor=pointer]
+          - listitem [ref=f5e17]:
+            - link "Playbook" [ref=f5e18] [cursor=pointer]:
+              - /url: /learning-hub/
+        - generic [ref=f5e19]:
+          - button "Search" [ref=f5e21] [cursor=pointer]
+          - link "Meet all 0 contributors" [ref=f5e24] [cursor=pointer]:
+            - /url: /contributors/
+            - generic [ref=f5e28]: "0"
+          - 'button "Language: English" [ref=f5e30] [cursor=pointer]':
+            - generic [ref=f5e34]: English
+          - link "Contribute" [ref=f5e39] [cursor=pointer]:
+            - /url: https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md
+    - main [ref=f5e42]:
+      - generic [ref=f5e43]:
+        - generic [ref=f5e47]:
+          - navigation "Breadcrumbs" [ref=f5e49]:
+            - list [ref=f5e50]:
+              - listitem [ref=f5e51]:
+                - link "Agents" [ref=f5e52] [cursor=pointer]:
+                  - /url: /agents/
+              - listitem [ref=f5e55]:
+                - generic: .NET Upgrade
+          - generic [ref=f5e56]:
+            - heading ".NET Upgrade" [level=1] [ref=f5e57]
+            - paragraph [ref=f5e58]: Perform janitorial tasks on C#/.NET code including cleanup, modernization, and tech debt remediation.
+            - generic [ref=f5e59]:
+              - generic [ref=f5e61]:
+                - link "Install" [ref=f5e62] [cursor=pointer]:
+                  - /url: https://aka.ms/awesome-copilot/install/agent?url=vscode%3Achat-agent%2Finstall%3Furl%3Dhttps%253A%252F%252Fraw.githubusercontent.com%252Fgithub%252Fawesome-copilot%252Fmain%252Fagents%252Fdotnet-upgrade.agent.md
+                - button "Menu" [ref=f5e65] [cursor=pointer]
+              - link "View the .NET Upgrade agent on GitHub" [ref=f5e70] [cursor=pointer]:
+                - /url: https://github.com/github/awesome-copilot/blob/main/agents/dotnet-upgrade.agent.md
+              - link "Download the .NET Upgrade agent file" [ref=f5e75] [cursor=pointer]:
+                - /url: https://raw.githubusercontent.com/github/awesome-copilot/main/agents/dotnet-upgrade.agent.md
+        - generic [ref=f5e84]:
+          - generic [ref=f5e85]:
+            - article [ref=f5e86]:
+              - generic [ref=f5e88]:
+                - heading ".NET Upgrade Collection" [level=1] [ref=f5e89]
+                - paragraph [ref=f5e90]: .NET Framework upgrade specialist for comprehensive project migration
+                - paragraph [ref=f5e91]:
+                  - strong [ref=f5e92]: "Tags:"
+                  - text: dotnet, upgrade, migration, framework, modernization
+                - heading "Collection Usage" [level=2] [ref=f5e93]
+                - heading ".NET Upgrade Chat Mode" [level=3] [ref=f5e94]
+                - paragraph [ref=f5e95]: Discover and plan your .NET upgrade journey!
+                - code [ref=f5e97]: "--- mode: dotnet-upgrade title: Analyze current .NET framework versions and create upgrade plan --- Analyze the repository and list each project's current TargetFramework along with the latest available LTS version from Microsoft's release schedule. Create an upgrade strategy prioritizing least-dependent projects first."
+                - paragraph [ref=f5e98]: The upgrade chat mode automatically adapts to your repository's current .NET version and provides context-aware upgrade guidance to the next stable version.
+                - paragraph [ref=f5e99]: "It will help you:"
+                - list [ref=f5e100]:
+                  - listitem [ref=f5e101]: Auto-detect current .NET versions across all projects
+                  - listitem [ref=f5e102]: Generate optimal upgrade sequences
+                  - listitem [ref=f5e103]: Identify breaking changes and modernization opportunities
+                  - listitem [ref=f5e104]: Create per-project upgrade flows
+                - separator [ref=f5e105]
+                - heading ".NET Upgrade Instructions" [level=3] [ref=f5e106]
+                - paragraph [ref=f5e107]: Execute comprehensive .NET framework upgrades with structured guidance!
+                - paragraph [ref=f5e108]: "The instructions provide:"
+                - list [ref=f5e109]:
+                  - listitem [ref=f5e110]: Sequential upgrade strategies
+                  - listitem [ref=f5e111]: Dependency analysis and sequencing
+                  - listitem [ref=f5e112]: Framework targeting and code adjustments
+                  - listitem [ref=f5e113]: NuGet and dependency management
+                  - listitem [ref=f5e114]: CI/CD pipeline updates
+                  - listitem [ref=f5e115]: Testing and validation procedures
+                - paragraph [ref=f5e116]: Use these instructions when implementing upgrade plans to ensure proper execution and validation.
+                - separator [ref=f5e117]
+                - heading ".NET Upgrade Prompts" [level=3] [ref=f5e118]
+                - paragraph [ref=f5e119]: Quick access to specialized upgrade analysis prompts!
+                - paragraph [ref=f5e120]: "The prompts collection includes ready-to-use queries for:"
+                - list [ref=f5e121]:
+                  - listitem [ref=f5e122]: Project discovery and assessment
+                  - listitem [ref=f5e123]: Upgrade strategy and sequencing
+                  - listitem [ref=f5e124]: Framework targeting and code adjustments
+                  - listitem [ref=f5e125]: Breaking change analysis
+                  - listitem [ref=f5e126]: CI/CD pipeline updates
+                  - listitem [ref=f5e127]: Final validation and delivery
+                - paragraph [ref=f5e128]: Use these prompts for targeted analysis of specific upgrade aspects.
+                - separator [ref=f5e129]
+                - heading "Quick Start" [level=2] [ref=f5e130]
+                - list [ref=f5e131]:
+                  - listitem [ref=f5e132]:
+                    - text: Run a discovery pass to enumerate all
+                    - code [ref=f5e133]: "*.sln"
+                    - text: and
+                    - code [ref=f5e134]: "*.csproj"
+                    - text: files in the repository.
+                  - listitem [ref=f5e135]: Detect the current .NET version(s) used across projects.
+                  - listitem [ref=f5e136]:
+                    - text: Identify the latest available stable .NET version (LTS preferred) — usually
+                    - code [ref=f5e137]: "+2"
+                    - text: years ahead of the existing version.
+                  - listitem [ref=f5e138]:
+                    - text: Generate an upgrade plan to move from current → next stable version (e.g.,
+                    - code [ref=f5e139]: net6.0 → net8.0
+                    - text: ", or"
+                    - code [ref=f5e140]: net7.0 → net9.0
+                    - text: ).
+                  - listitem [ref=f5e141]: Upgrade one project at a time, validate builds, update tests, and modify CI/CD accordingly.
+                - separator [ref=f5e142]
+                - heading "Auto-Detect Current .NET Version" [level=2] [ref=f5e143]
+                - paragraph [ref=f5e144]: "To automatically detect the current framework versions across the solution:"
+                - code [ref=f5e146]: "# 1. Check global SDKs installed dotnet --list-sdks # 2. Detect project-level TargetFrameworks find . -name \"*.csproj\" -exec grep -H \"<TargetFramework\" {} \\; # 3. Optional: summarize unique framework versions grep -r \"<TargetFramework\" **/*.csproj | sed 's/.*<TargetFramework>//;s/<\\/TargetFramework>//' | sort | uniq # 4. Verify runtime environment dotnet --info | grep \"Version\""
+                - paragraph [ref=f5e147]:
+                  - strong [ref=f5e148]: "Chat Prompt:"
+                - blockquote [ref=f5e149]:
+                  - paragraph [ref=f5e150]: "\"Analyze the repository and list each project’s current TargetFramework along with the latest available LTS version from Microsoft’s release schedule.\""
+                - separator [ref=f5e151]
+                - heading "Discovery & Analysis Commands" [level=2] [ref=f5e152]
+                - code [ref=f5e154]: "# List all projects dotnet sln list # Check current target frameworks for each project grep -H \"TargetFramework\" **/*.csproj # Check outdated packages dotnet list <ProjectName>.csproj package --outdated # Generate dependency graph dotnet msbuild <ProjectName>.csproj /t:GenerateRestoreGraphFile /p:RestoreGraphOutputPath=graph.json"
+                - paragraph [ref=f5e155]:
+                  - strong [ref=f5e156]: "Chat Prompt:"
+                - blockquote [ref=f5e157]:
+                  - paragraph [ref=f5e158]: "\"Analyze the solution and summarize each project’s current TargetFramework and suggest the appropriate next LTS upgrade version.\""
+                - separator [ref=f5e159]
+                - heading "Classification Rules" [level=2] [ref=f5e160]
+                - list [ref=f5e161]:
+                  - listitem [ref=f5e162]:
+                    - code [ref=f5e163]: TargetFramework
+                    - text: starts with
+                    - code [ref=f5e164]: netcoreapp
+                    - text: ","
+                    - code [ref=f5e165]: net5.0+
+                    - text: ","
+                    - code [ref=f5e166]: net6.0+
+                    - text: ", etc. →"
+                    - strong [ref=f5e167]: Modern .NET
+                  - listitem [ref=f5e168]:
+                    - code [ref=f5e169]: netstandard*
+                    - text: →
+                    - strong [ref=f5e170]: .NET Standard
+                    - text: (migrate to current .NET version)
+                  - listitem [ref=f5e171]:
+                    - code [ref=f5e172]: net4*
+                    - text: →
+                    - strong [ref=f5e173]: .NET Framework
+                    - text: (migrate via intermediate step to .NET 8+)
+                - separator [ref=f5e174]
+                - heading "Upgrade Sequence" [level=2] [ref=f5e175]
+                - list [ref=f5e176]:
+                  - listitem [ref=f5e177]:
+                    - strong [ref=f5e178]: "Start with Independent Libraries:"
+                    - text: Least dependent class libraries first.
+                  - listitem [ref=f5e179]:
+                    - strong [ref=f5e180]: "Next:"
+                    - text: Shared components and common utilities.
+                  - listitem [ref=f5e181]:
+                    - strong [ref=f5e182]: "Then:"
+                    - text: API, Web, or Function projects.
+                  - listitem [ref=f5e183]:
+                    - strong [ref=f5e184]: "Finally:"
+                    - text: Tests, integration points, and pipelines.
+                - paragraph [ref=f5e185]:
+                  - strong [ref=f5e186]: "Chat Prompt:"
+                - blockquote [ref=f5e187]:
+                  - paragraph [ref=f5e188]: "\"Generate the optimal upgrade order for this repository, prioritizing least-dependent projects first.\""
+                - separator [ref=f5e189]
+                - heading "Per-Project Upgrade Flow" [level=2] [ref=f5e190]
+                - list [ref=f5e191]:
+                  - listitem [ref=f5e192]:
+                    - strong [ref=f5e193]: "Create branch:"
+                    - code [ref=f5e194]: upgrade/<project>-to-<targetVersion>
+                  - listitem [ref=f5e195]:
+                    - strong [ref=f5e196]:
+                      - text: Edit
+                      - code [ref=f5e197]: <TargetFramework>
+                    - text: in
+                    - code [ref=f5e198]: .csproj
+                    - text: to the suggested version (e.g.,
+                    - code [ref=f5e199]: net9.0
+                    - text: )
+                  - listitem [ref=f5e200]:
+                    - strong [ref=f5e201]: "Restore & update packages:"
+                    - code [ref=f5e203]: dotnet restore dotnet list package --outdated dotnet add package <PackageName> --version <LatestVersion>
+                  - listitem [ref=f5e204]:
+                    - strong [ref=f5e205]: "Build & test:"
+                    - code [ref=f5e207]: dotnet build <ProjectName>.csproj dotnet test <ProjectName>.Tests.csproj
+                  - listitem [ref=f5e208]:
+                    - strong [ref=f5e209]: Fix issues
+                    - text: — resolve deprecated APIs, adjust configurations, modernize JSON/logging/DI.
+                  - listitem [ref=f5e210]:
+                    - strong [ref=f5e211]: Commit & push
+                    - text: PR with test evidence and checklist.
+                - separator [ref=f5e212]
+                - heading "Breaking Changes & Modernization" [level=2] [ref=f5e213]
+                - list [ref=f5e214]:
+                  - listitem [ref=f5e215]:
+                    - text: Use
+                    - code [ref=f5e216]: .NET Upgrade Assistant
+                    - text: for initial recommendations.
+                  - listitem [ref=f5e217]: Apply analyzers to detect obsolete APIs.
+                  - listitem [ref=f5e218]:
+                    - text: Replace outdated SDKs (e.g.,
+                    - code [ref=f5e219]: Microsoft.Azure.*
+                    - text: →
+                    - code [ref=f5e220]: Azure.*
+                    - text: ).
+                  - listitem [ref=f5e221]:
+                    - text: Modernize startup logic (
+                    - code [ref=f5e222]: Startup.cs
+                    - text: →
+                    - code [ref=f5e223]: Program.cs
+                    - text: top-level statements).
+                - paragraph [ref=f5e224]:
+                  - strong [ref=f5e225]: "Chat Prompt:"
+                - blockquote [ref=f5e226]:
+                  - paragraph [ref=f5e227]: "\"List deprecated or incompatible APIs when upgrading from to for .\""
+                - separator [ref=f5e228]
+                - heading "CI/CD Configuration Updates" [level=2] [ref=f5e229]
+                - paragraph [ref=f5e230]:
+                  - text: Ensure pipelines use the detected
+                  - strong [ref=f5e231]: target version
+                  - text: "dynamically:"
+                - paragraph [ref=f5e232]:
+                  - strong [ref=f5e233]: Azure DevOps
+                - code [ref=f5e235]: "- task: UseDotNet@2 inputs: packageType: 'sdk' version: '$(TargetDotNetVersion).x'"
+                - paragraph [ref=f5e236]:
+                  - strong [ref=f5e237]: GitHub Actions
+                - code [ref=f5e239]: "- uses: actions/setup-dotnet@v4 with: dotnet-version: '${{ env.TargetDotNetVersion }}.x'"
+                - separator [ref=f5e240]
+                - heading "Validation Checklist" [level=2] [ref=f5e241]
+                - list [ref=f5e242]:
+                  - listitem [ref=f5e243]:
+                    - checkbox "Incomplete task" [disabled] [ref=f5e244]
+                    - text: TargetFramework upgraded to next stable version
+                  - listitem [ref=f5e245]:
+                    - checkbox "Incomplete task" [disabled] [ref=f5e246]
+                    - text: All NuGet packages compatible and updated
+                  - listitem [ref=f5e247]:
+                    - checkbox "Incomplete task" [disabled] [ref=f5e248]
+                    - text: Build and test pipelines succeed locally and in CI
+                  - listitem [ref=f5e249]:
+                    - checkbox "Incomplete task" [disabled] [ref=f5e250]
+                    - text: Integration tests pass
+                  - listitem [ref=f5e251]:
+                    - checkbox "Incomplete task" [disabled] [ref=f5e252]
+                    - text: Deployed to a lower environment and verified
+                - separator [ref=f5e253]
+                - heading "Branching & Rollback Strategy" [level=2] [ref=f5e254]
+                - list [ref=f5e255]:
+                  - listitem [ref=f5e256]:
+                    - text: "Use feature branches:"
+                    - code [ref=f5e257]: upgrade/<project>-to-<targetVersion>
+                  - listitem [ref=f5e258]: Commit frequently and keep changes atomic
+                  - listitem [ref=f5e259]: If CI fails after merge, revert PR and isolate failing modules
+                - paragraph [ref=f5e260]:
+                  - strong [ref=f5e261]: "Chat Prompt:"
+                - blockquote [ref=f5e262]:
+                  - paragraph [ref=f5e263]: "\"Suggest a rollback and validation plan if the .NET upgrade for introduces build or runtime regressions.\""
+                - separator [ref=f5e264]
+                - heading "Automation & Scaling" [level=2] [ref=f5e265]
+                - list [ref=f5e266]:
+                  - listitem [ref=f5e267]: Automate upgrade detection with GitHub Actions or Azure Pipelines.
+                  - listitem [ref=f5e268]:
+                    - text: Schedule nightly runs to check for new .NET releases via
+                    - code [ref=f5e269]: dotnet --list-sdks
+                    - text: .
+                  - listitem [ref=f5e270]: Use agents to automatically raise PRs for outdated frameworks.
+                - separator [ref=f5e271]
+                - heading "Chatmode Prompt Library" [level=2] [ref=f5e272]
+                - list [ref=f5e273]:
+                  - listitem [ref=f5e274]: "\"List all projects with current and recommended .NET versions.\""
+                  - listitem [ref=f5e275]: "\"Generate a per-project upgrade plan from to .\""
+                  - listitem [ref=f5e276]: "\"Suggest .csproj and pipeline edits to upgrade .\""
+                  - listitem [ref=f5e277]: "\"Summarize build/test results post-upgrade for .\""
+                  - listitem [ref=f5e278]: "\"Create PR description and checklist for the upgrade.\""
+                - separator [ref=f5e279]
+            - complementary [ref=f5e280]:
+              - generic [ref=f5e281]:
+                - generic [ref=f5e282]:
+                  - generic [ref=f5e283]: In this article
+                  - navigation "In this article" [ref=f5e285]:
+                    - list [ref=f5e286]:
+                      - listitem [ref=f5e287]:
+                        - link "Collection Usage" [ref=f5e288] [cursor=pointer]:
+                          - /url: "#collection-usage"
+                      - listitem [ref=f5e289]:
+                        - link "Quick Start" [ref=f5e290] [cursor=pointer]:
+                          - /url: "#quick-start"
+                      - listitem [ref=f5e291]:
+                        - link "Auto-Detect Current .NET Version" [ref=f5e292] [cursor=pointer]:
+                          - /url: "#auto-detect-current-net-version"
+                      - listitem [ref=f5e293]:
+                        - link "Discovery & Analysis Commands" [ref=f5e294] [cursor=pointer]:
+                          - /url: "#discovery-analysis-commands"
+                      - listitem [ref=f5e295]:
+                        - link "Classification Rules" [ref=f5e296] [cursor=pointer]:
+                          - /url: "#classification-rules"
+                      - listitem [ref=f5e297]:
+                        - link "Upgrade Sequence" [ref=f5e298] [cursor=pointer]:
+                          - /url: "#upgrade-sequence"
+                      - listitem [ref=f5e299]:
+                        - link "Per-Project Upgrade Flow" [ref=f5e300] [cursor=pointer]:
+                          - /url: "#per-project-upgrade-flow"
+                      - listitem [ref=f5e301]:
+                        - link "Breaking Changes & Modernization" [ref=f5e302] [cursor=pointer]:
+                          - /url: "#breaking-changes-modernization"
+                      - listitem [ref=f5e303]:
+                        - link "CI/CD Configuration Updates" [ref=f5e304] [cursor=pointer]:
+                          - /url: "#ci-cd-configuration-updates"
+                      - listitem [ref=f5e305]:
+                        - link "Validation Checklist" [ref=f5e306] [cursor=pointer]:
+                          - /url: "#validation-checklist"
+                      - listitem [ref=f5e307]:
+                        - link "Branching & Rollback Strategy" [ref=f5e308] [cursor=pointer]:
+                          - /url: "#branching-rollback-strategy"
+                      - listitem [ref=f5e309]:
+                        - link "Automation & Scaling" [ref=f5e310] [cursor=pointer]:
+                          - /url: "#automation-scaling"
+                      - listitem [ref=f5e311]:
+                        - link "Chatmode Prompt Library" [ref=f5e312] [cursor=pointer]:
+                          - /url: "#chatmode-prompt-library"
+                - generic [ref=f5e313]:
+                  - generic [ref=f5e314]: Agent details
+                  - generic [ref=f5e316]:
+                    - generic [ref=f5e317]:
+                      - generic [ref=f5e318]: Tools
+                      - generic [ref=f5e319]:
+                        - generic [ref=f5e320]: codebase
+                        - generic [ref=f5e321]: edit/editFiles
+                        - generic [ref=f5e322]: search
+                        - generic [ref=f5e323]: runCommands
+                        - generic [ref=f5e324]: runTasks
+                        - generic [ref=f5e325]: runTests
+                        - generic [ref=f5e326]: problems
+                        - generic [ref=f5e327]: changes
+                        - generic [ref=f5e328]: usages
+                        - generic [ref=f5e329]: findTestFiles
+                        - generic [ref=f5e330]: testFailure
+                        - generic [ref=f5e331]: terminalLastCommand
+                        - generic [ref=f5e332]: terminalSelection
+                        - generic [ref=f5e333]: web/fetch
+                        - generic [ref=f5e334]: microsoft.docs.mcp
+                    - generic [ref=f5e335]:
+                      - generic [ref=f5e336]: Last updated
+                      - generic [ref=f5e337]: 4 February 2026
+                    - generic [ref=f5e339]:
+                      - generic [ref=f5e340]: Source
+                      - link "View on GitHub" [ref=f5e342] [cursor=pointer]:
+                        - /url: https://github.com/github/awesome-copilot/blob/main/agents/dotnet-upgrade.agent.md
+          - complementary "More like this" [ref=f5e348]:
+            - generic [ref=f5e349]:
+              - generic [ref=f5e350]: Previous
+              - link ".NET Self Learning Architect" [ref=f5e352] [cursor=pointer]:
+                - /url: /agent/dotnet-self-learning-architect/
+            - generic [ref=f5e355]:
+              - generic [ref=f5e356]: Up next
+              - link "Accessibility Expert" [ref=f5e358] [cursor=pointer]:
+                - /url: /agent/accessibility/
+        - generic [ref=f5e361]:
+          - link "GitHub" [ref=f5e366] [cursor=pointer]:
+            - /url: https://github.com
+          - generic [ref=f5e374]:
+            - generic [ref=f5e375]:
+              - link "Terms" [ref=f5e376] [cursor=pointer]:
+                - /url: https://docs.github.com/site-policy/github-terms/github-terms-of-service
+              - link "Privacy" [ref=f5e377] [cursor=pointer]:
+                - /url: https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement
+              - link "GitHub Docs" [ref=f5e378] [cursor=pointer]:
+                - /url: https://docs.github.com
+              - link "Community" [ref=f5e379] [cursor=pointer]:
+                - /url: https://github.community
+              - link "Support" [ref=f5e380] [cursor=pointer]:
+                - /url: https://support.github.com
+            - paragraph [ref=f5e381]: © 2026 GitHub. All rights reserved.
+      - button
+  - generic [ref=f5e384]:
+    - button [ref=f5e385]
+    - button [ref=f5e391]
+    - button [ref=f5e395]
+    - button [ref=f5e400]

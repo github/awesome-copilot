@@ -5,6 +5,7 @@ import React from "react";
 import { Box, Breadcrumbs, Heading, Section, Text } from "@primer/react-brand";
 
 import { PageShell } from "./PageShell";
+import { LargeFooter } from "./LargeFooter";
 import type { AwesomeCopilotPage } from "./navigation";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/dotnet-upgrade.module.css";
@@ -105,6 +106,7 @@ export function DetailChassis({
       currentPage={currentPage}
       searchIndex={searchIndex}
       contributorsTotal={contributorsTotal}
+      renderFooter={false}
     >
       <div className={styles.scrollHost} ref={contentScrollRef}>
         <Box as="section" className={styles.hero}>
@@ -259,6 +261,7 @@ export function DetailChassis({
             </div>
           </Section>
         </Box>
+        <LargeFooter />
       </div>
       <button
         type="button"
