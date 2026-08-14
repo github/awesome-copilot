@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { join } from "node:path";
+import { join, sep } from "node:path";
 import {
     LOCAL_DELEGATION_ORIENT_LINE,
     buildLocalDelegationLaunchEnv,
@@ -9,6 +9,7 @@ import {
     formatLocalDelegationOpenNotice,
     isLocalDelegationPreference,
     isSafeDeskOrientPrompt,
+    localDelegationPreferencePath,
     localSavingsCredit,
     normalizeLocalDelegationPreference,
     parseLocalDelegationState,
@@ -215,6 +216,29 @@ test("state parse/serialize defaults to off", () => {
     const serialized = serializeLocalDelegationState({ preference: "on" });
     assert.equal(serialized.preference, "on");
     assert.equal(typeof serialized.updatedAt, "string");
+});
+
+test("preference path is user-local and keyed by workshop path, not the repo root", () => {
+    const home = join("user-home");
+    const a = localDelegationPreferencePath(join("repos", "workshop-a"), {
+        home,
+        resolvePath: (p) => p,
+    });
+    const b = localDelegationPreferencePath(join("repos", "workshop-b"), {
+        home,
+        resolvePath: (p) => p,
+    });
+    const again = localDelegationPreferencePath(join("repos", "workshop-a"), {
+        home,
+        resolvePath: (p) => p,
+    });
+    assert.match(a, /workshop-local-delegation/);
+    assert.equal(a.startsWith(home), true);
+    assert.equal(a.includes(`${sep}repos${sep}`), false);
+    assert.notEqual(a, b);
+    assert.equal(a, again);
+    // Repo-shipped .local-delegation.json is never the preference path.
+    assert.equal(a.endsWith(".local-delegation.json"), false);
 });
 
 test("skill discovery respects explicit dir and common install roots", () => {

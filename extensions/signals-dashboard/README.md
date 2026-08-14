@@ -107,7 +107,9 @@ Availability is fail-closed. Cairn enables the lane only when:
    receipt at `~/.copilot/local-agent-runs/qualified-route.json`
    (`status: "qualified"`, safe `route_id`).
 
-Operator preference is stored at the workshop root in `.local-delegation.json`.
+Operator preference is stored **user-locally** under
+`~/.copilot/workshop-local-delegation/` (keyed by the canonical workshop path),
+never in the cloned workshop — a repo cannot ship `preference: on`.
 When the preference is on but availability fails, opens still launch as frontier
 desks and surface the reason — they never silently fall back with savings credit.
 

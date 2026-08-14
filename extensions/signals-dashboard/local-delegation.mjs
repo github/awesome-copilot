@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { accessSync, constants as fsConstants, existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -5,9 +6,32 @@ import { join } from "node:path";
 const PREFERENCES = new Set(["off", "on"]);
 const SAFE_ROUTE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 
+/** @deprecated Repo-root state is rejected; kept only for docs/migration mentions. */
 export const LOCAL_DELEGATION_STATE_FILE = ".local-delegation.json";
 export const LOCAL_DELEGATION_ENV = "WORKSHOP_LOCAL_DELEGATION";
 export const LOCAL_DELEGATION_SKILL_NAME = "local-agent-delegation";
+export const LOCAL_DELEGATION_USER_STATE_DIR = join(".copilot", "workshop-local-delegation");
+
+/**
+ * Stable user-local preference path for a workshop root.
+ * Permission state must NOT live in the cloned workshop (a repo can ship
+ * preference:on). Key by a hash of the canonical workshop path under ~/.copilot.
+ */
+export function localDelegationPreferencePath(workshopDir, {
+    home = homedir(),
+    resolvePath = (p) => p,
+} = {}) {
+    if (typeof workshopDir !== "string" || !workshopDir) {
+        throw new Error("workshopDir is required");
+    }
+    let canonical = workshopDir;
+    try { canonical = resolvePath(workshopDir); } catch { /* keep input */ }
+    const key = createHash("sha256")
+        .update(String(canonical).replaceAll("\\", "/").toLowerCase())
+        .digest("hex")
+        .slice(0, 32);
+    return join(home, LOCAL_DELEGATION_USER_STATE_DIR, `${key}.json`);
+}
 
 export function isLocalDelegationPreference(value) {
     return typeof value === "string" && PREFERENCES.has(value.toLowerCase());
