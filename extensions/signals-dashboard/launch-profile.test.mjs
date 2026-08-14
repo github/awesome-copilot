@@ -7,6 +7,7 @@ import { join } from "node:path";
 import {
     buildDeskAgentArgv,
     isDeskProfile,
+    isSafeQuotedWindowsCmdArg,
     isSafeWindowsCmdShim,
     isWindowsAppExecutionAlias,
     normalizeDeskProfile,

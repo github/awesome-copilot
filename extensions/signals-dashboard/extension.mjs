@@ -13,6 +13,7 @@ import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 import {
     buildDeskAgentArgv,
     isDeskProfile,
+    isSafeQuotedWindowsCmdArg,
     isSafeWindowsCmdShim,
     isWindowsAppExecutionAlias,
     normalizeDeskProfile,
