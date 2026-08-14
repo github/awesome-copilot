@@ -5,7 +5,7 @@
 
 import { createServer } from "node:http";
 import { statSync, accessSync, realpathSync, constants as fsConstants } from "node:fs";
-import { readdir, readFile, writeFile, stat } from "node:fs/promises";
+import { readdir, readFile, writeFile, stat, rename, unlink } from "node:fs/promises";
 import { join, delimiter, isAbsolute, sep } from "node:path";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -29,6 +29,7 @@ import {
     resolveLocalDelegationAvailability,
     resolveLocalDelegationLaunch,
     serializeLocalDelegationState,
+    windowsLocalDelegationCmdPrefix,
 } from "./local-delegation.mjs";
 
 const servers = new Map();
@@ -376,10 +377,27 @@ async function readLocalDelegationPreference(workshopDir) {
 
 async function writeLocalDelegationPreference(workshopDir, preference) {
     const state = serializeLocalDelegationState({ preference });
-    await writeFile(
-        join(workshopDir, LOCAL_DELEGATION_STATE_FILE),
-        JSON.stringify(state, null, 2) + "\n",
-        "utf8");
+    const target = join(workshopDir, LOCAL_DELEGATION_STATE_FILE);
+    // Write via a same-directory temp file + rename so a checked-in symlink at
+    // .local-delegation.json cannot redirect the write outside the workshop.
+    const tmp = join(
+        workshopDir,
+        `.local-delegation.${process.pid}.${randomBytes(4).toString("hex")}.tmp`);
+    const body = JSON.stringify(state, null, 2) + "\n";
+    try {
+        await writeFile(tmp, body, { encoding: "utf8", flag: "wx" });
+        try {
+            await rename(tmp, target);
+        } catch {
+            // Windows may refuse rename-over-existing; replace without following
+            // a dangling external target by unlinking the name first.
+            await unlink(target).catch(() => {});
+            await rename(tmp, target);
+        }
+    } catch (err) {
+        await unlink(tmp).catch(() => {});
+        throw err;
+    }
     return state;
 }
 
@@ -413,20 +431,20 @@ async function launchDeskConsole(
     if (process.platform === "win32") {
         const wt = resolveOnPath("wt", { directOnly: true, excludedRoot: workshopDir });
         const cmd = resolveSystem32Executable("cmd.exe");
-        const direct = /\.(exe|com)$/i.test(run[0]);
-        if (direct && wt && await trySpawn(wt, ["-d", deskPath, ...run], { env })) return true;
-
-        // Older installs can expose .cmd/.bat shims. Only use cmd.exe when every
-        // argument is free of cmd metacharacters; otherwise fail closed and let
-        // the UI copy the desk path rather than reparse an unsafe workshop path.
-        const cmdSafe = run.every((arg) => !/[&|<>^%!()\r\n]/.test(arg));
-        if (cmdSafe && wt && cmd &&
-            await trySpawn(wt, ["-d", deskPath, cmd, "/k", ...run], { env })) return true;
-        // Fallback when wt.exe is absent: a fresh console window via `start`,
-        // still through cmd /k only when the arguments are safe for reparsing.
-        return cmdSafe && cmd
-            ? await trySpawn(cmd, ["/c", "start", "", cmd, "/k", ...run], { cwd: deskPath, env })
-            : false;
+        // wt.exe does not reliably forward Node's spawn env into a new tab when
+        // Windows Terminal is already running. Always start through cmd.exe and
+        // set/clear WORKSHOP_LOCAL_DELEGATION in the command string itself.
+        const cmdSafe = run.every((arg) => !/[&|<>^%!()\r\n]/.test(arg))
+            && run.every((arg) => isSafeWindowsCmdShim(arg));
+        if (!cmdSafe || !cmd) return false;
+        const inner = windowsLocalDelegationCmdPrefix(effective)
+            + run.map(quoteWindowsCmdArgument).join(" ");
+        if (wt && await trySpawn(wt, ["-d", deskPath, cmd, "/d", "/s", "/k", inner], { env })) {
+            return true;
+        }
+        // Fallback when wt.exe is absent: a fresh console window via `start`.
+        return await trySpawn(
+            cmd, ["/c", "start", "", cmd, "/d", "/s", "/k", inner], { cwd: deskPath, env });
     }
     if (process.platform === "darwin") {
         const osascript = "/usr/bin/osascript";
@@ -801,7 +819,8 @@ function renderLocalDelegationControl(localDelegation) {
     <div style="display:flex;align-items:center;gap:6px;" title="${esc(title)}">
         <span style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;">Local</span>
         <button data-act="local-delegation" data-preference="${esc(next)}"
-            aria-label="Set Local Delegation ${esc(next)}"
+            aria-label="Local Delegation ${esc(label)}${effective && routeId ? ` route ${esc(routeId)}` : ""}"
+            aria-pressed="${pref === "on" ? "true" : "false"}"
             style="background:#020617;border:1px solid ${border};color:${color};padding:2px 8px;border-radius:999px;
                    font-size:11px;cursor:pointer;font-weight:600;min-width:42px;"
             title="${esc(title)}">${esc(label)}</button>

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { join } from "node:path";
 import {
     LOCAL_DELEGATION_ORIENT_LINE,
     buildLocalDelegationLaunchEnv,
@@ -14,10 +15,12 @@ import {
     resolveLocalDelegationAvailability,
     resolveLocalDelegationLaunch,
     serializeLocalDelegationState,
+    windowsLocalDelegationCmdPrefix,
 } from "./local-delegation.mjs";
 import {
     buildDeskAgentArgv,
     normalizeDeskProfile,
+    quoteWindowsCmdArgument,
 } from "./launch-profile.mjs";
 
 test("normalizes local-delegation preference independently of desk profile", () => {
@@ -52,21 +55,24 @@ test("availability is fail-closed without skill or route receipt", () => {
 });
 
 test("availability accepts env route id or a qualified receipt", () => {
+    const home = join("home");
+    const skillDir = join("skills", "local-agent-delegation");
     const viaEnv = resolveLocalDelegationAvailability({
         env: { WORKSHOP_LOCAL_DELEGATION_ROUTE_ID: "foundry-qwen25-7b-qualified" },
-        home: "C:\\home",
-        findSkill: () => "C:\\skills\\local-agent-delegation",
+        home,
+        findSkill: () => skillDir,
         exists: () => false,
     });
     assert.equal(viaEnv.available, true);
     assert.equal(viaEnv.routeId, "foundry-qwen25-7b-qualified");
 
-    const receiptPath = "C:\\home\\.copilot\\local-agent-runs\\qualified-route.json";
+    // Match host path.join separators so Linux CI exercises the receipt branch.
+    const receiptPath = join(home, ".copilot", "local-agent-runs", "qualified-route.json");
     const viaReceipt = resolveLocalDelegationAvailability({
         env: {},
-        home: "C:\\home",
+        home,
         now: Date.parse("2026-08-14T12:00:00Z"),
-        findSkill: () => "C:\\skills\\local-agent-delegation",
+        findSkill: () => skillDir,
         exists: (p) => p === receiptPath,
         readFile: () => JSON.stringify({
             status: "qualified",
@@ -79,9 +85,9 @@ test("availability accepts env route id or a qualified receipt", () => {
 
     const expired = resolveLocalDelegationAvailability({
         env: {},
-        home: "C:\\home",
+        home,
         now: Date.parse("2027-01-01T00:00:00Z"),
-        findSkill: () => "C:\\skills\\local-agent-delegation",
+        findSkill: () => skillDir,
         exists: (p) => p === receiptPath,
         readFile: () => JSON.stringify({
             status: "qualified",
@@ -107,13 +113,19 @@ test("requested on + unavailable stays ineffective with a warning", () => {
 });
 
 test("launch env enables when effective; -i prompt stays short and quote-free", () => {
-    const base = { PATH: "/usr/bin", WORKSHOP_LOCAL_DELEGATION: "enabled" };
+    const base = {
+        PATH: "/usr/bin",
+        WORKSHOP_LOCAL_DELEGATION: "enabled",
+        workshop_local_delegation: "enabled",
+    };
     const offEnv = buildLocalDelegationLaunchEnv(base, { localDelegationEffective: false });
     assert.equal(Object.hasOwn(offEnv, "WORKSHOP_LOCAL_DELEGATION"), false);
+    assert.equal(Object.hasOwn(offEnv, "workshop_local_delegation"), false);
     assert.equal(offEnv.PATH, "/usr/bin");
 
     const onEnv = buildLocalDelegationLaunchEnv(base, { localDelegationEffective: true });
     assert.equal(onEnv.WORKSHOP_LOCAL_DELEGATION, "enabled");
+    assert.equal(Object.hasOwn(onEnv, "workshop_local_delegation"), false);
 
     const offPrompt = deskOrientPrompt("cost-desk", { localDelegationEffective: false });
     const onPrompt = deskOrientPrompt("cost-desk", { localDelegationEffective: true });
@@ -126,6 +138,13 @@ test("launch env enables when effective; -i prompt stays short and quote-free", 
     assert.equal(isSafeDeskOrientPrompt(onPrompt), true);
     assert.equal(isSafeDeskOrientPrompt('bad "quote"'), false);
     assert.equal(isSafeDeskOrientPrompt("em dash — bad"), false);
+
+    assert.match(windowsLocalDelegationCmdPrefix(true), /enabled/);
+    assert.match(windowsLocalDelegationCmdPrefix(false), /WORKSHOP_LOCAL_DELEGATION="&&/);
+    const run = ["C:\\tools\\copilot.exe", "-i", onPrompt];
+    const cmdLine = windowsLocalDelegationCmdPrefix(true) + run.map(quoteWindowsCmdArgument).join(" ");
+    assert.match(cmdLine, /^set "WORKSHOP_LOCAL_DELEGATION=enabled"&& /);
+    assert.match(cmdLine, /copilot\.exe/);
 });
 
 test("open notice reports effective route without savings claims", () => {

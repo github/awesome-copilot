@@ -79,13 +79,27 @@ export function formatLocalDelegationOpenNotice(localDelegation) {
 
 export function buildLocalDelegationLaunchEnv(baseEnv = {}, { localDelegationEffective = false } = {}) {
     const env = { ...baseEnv };
+    // Windows env names are case-insensitive; spreading process.env yields a
+    // case-sensitive object, so clear every spelling before optionally setting.
+    const target = LOCAL_DELEGATION_ENV.toLowerCase();
+    for (const key of Object.keys(env)) {
+        if (key.toLowerCase() === target) delete env[key];
+    }
     if (localDelegationEffective) {
         env[LOCAL_DELEGATION_ENV] = "enabled";
-    } else {
-        // Never leave a stale enabled flag from the parent process.
-        delete env[LOCAL_DELEGATION_ENV];
     }
     return env;
+}
+
+/**
+ * cmd.exe prefix that forces WORKSHOP_LOCAL_DELEGATION on or off inside a new
+ * Windows Terminal / console session. wt.exe does not reliably forward the
+ * caller's process env into a new tab when Terminal is already running.
+ */
+export function windowsLocalDelegationCmdPrefix(localDelegationEffective = false) {
+    return localDelegationEffective
+        ? 'set "WORKSHOP_LOCAL_DELEGATION=enabled"&& '
+        : 'set "WORKSHOP_LOCAL_DELEGATION="&& ';
 }
 
 /**
