@@ -1,6 +1,8 @@
 ---
 name: bug-receipt
-description: 'Close bugs and incidents with an auditable BUG RECEIPT and VERIFIED, PARTIAL, or BLOCKED status. Use for defect repair, regression proof, production incidents, and issue closeout.'
+description: 'Close defects and incidents with a BUG RECEIPT and VERIFIED, PARTIAL, or BLOCKED status after diagnosis, repair, or recovery.'
+metadata:
+  version: "1.4.1"
 ---
 
 # Bug Receipt
@@ -26,6 +28,8 @@ Use `not run`, `unproven`, or `none` explicitly. Never omit a row to make the re
 ## Establish the evidence boundary
 
 Before editing, record the observed problem, intended behavior, strongest direct check, and evidence source: `executed now`, `supplied`, or `mixed`. Never imply that supplied evidence was executed in the current run.
+
+Keep evidence privacy-minimal. Redact credentials, tokens, cookies, personal data, private URLs, and sensitive payloads; preserve only the identifiers and excerpts needed to reproduce or correlate the failure.
 
 Reproduce the failure with the narrowest safe check when possible. If reproduction is unavailable, preserve the evidence obtained and cap the result at `PARTIAL` or `BLOCKED`.
 
@@ -66,7 +70,7 @@ Use these decisive boundaries:
 
 For `PARTIAL` or `BLOCKED`, name the single minimal experiment or correlated evidence package that closes the decisive gap. Never invent a command, observation, count, location, or result.
 
-For a machine-readable receipt or CI integration, read [references/receipt-contract.md](references/receipt-contract.md) and conform to its JSON fields and status invariants.
+For a machine-readable receipt or CI integration, read [references/receipt-contract.md](references/receipt-contract.md) and conform to its JSON fields, evidence-source marker, compatibility rule, and status invariants.
 
 When a JSON artifact is requested, start from [assets/receipt.template.json](assets/receipt.template.json), write it to a task-owned path, and validate it with `node scripts/validate-receipt.mjs <receipt.json>` from this skill directory. Do not commit the generated receipt unless the user requests it.
 
