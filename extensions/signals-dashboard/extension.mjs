@@ -23,6 +23,7 @@ import {
     LOCAL_DELEGATION_STATE_FILE,
     buildLocalDelegationLaunchEnv,
     deskOrientPrompt,
+    formatLocalDelegationOpenNotice,
     normalizeLocalDelegationPreference,
     parseLocalDelegationState,
     resolveLocalDelegationAvailability,
@@ -779,16 +780,19 @@ function renderLocalDelegationControl(localDelegation) {
     const available = Boolean(localDelegation?.availability?.available);
     const effective = Boolean(localDelegation?.effective);
     const reason = localDelegation?.availability?.reason || "Local Delegation unavailable";
+    const routeId = localDelegation?.availability?.routeId || null;
     const next = pref === "on" ? "off" : "on";
     const label = effective ? "On" : (pref === "on" ? "On*" : "Off");
     const color = effective ? "#86efac" : (pref === "on" ? "#fbbf24" : "#94a3b8");
     const border = effective ? "#166534" : (pref === "on" ? "#854d0e" : "#334155");
     const title = available
         ? (effective
-            ? "Local Delegation on: frontier desk may use sealed local-agent-delegation for bounded read/evidence work"
+            ? `Local Delegation effective${routeId ? ` · route ${routeId}` : ""}`
             : "Local Delegation available but currently off")
         : reason;
-    const note = !available
+    const note = effective && routeId
+        ? `<span style="font-size:10px;color:#86efac;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(title)}">effective · ${esc(truncate(routeId, 28))}</span>`
+        : !available
         ? `<span style="font-size:10px;color:#64748b;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(reason)}">${esc(truncate(reason, 48))}</span>`
         : (pref === "on" && !effective
             ? `<span style="font-size:10px;color:#fbbf24;">requested, unavailable</span>`
@@ -1139,20 +1143,22 @@ function renderDashboard(signals, stashed, capabilityToken, localDelegation) {
             const data = await res.json();
             if (data.ok) {
                 const path = data.deskPath || name;
-                const localNote = data.localDelegation?.effective
-                    ? ' · local on'
-                    : (data.localDelegation?.requested ? ' · local unavailable' : '');
+                const notice = data.localDelegationNotice || {};
+                const localTitle = notice.titleSuffix || '';
+                const localDetail = notice.detail || '';
                 if (data.launched) {
                     // A successful open shouldn't hijack the user's clipboard.
-                    showToast('opening ' + name + ' desk (' + selectedProfile + localNote + ')…',
-                        data.localDelegation?.warning || path);
+                    // Surface LD state in the toast — operators cannot rely on -i alone.
+                    showToast('opening ' + name + ' desk (' + selectedProfile + localTitle + ')…',
+                        localDetail || path);
                 } else {
                     // No terminal launched from here, so copy the path as the
                     // fallback handle, but only claim the copy when it actually
                     // succeeded. The path shows in the toast either way.
                     let copied = false;
                     try { await navigator.clipboard.writeText(path); copied = true; } catch {}
-                    showToast(copied ? (name + ' · path copied') : (name + ' · copy this path'), path);
+                    const copyTitle = copied ? (name + ' · path copied') : (name + ' · copy this path');
+                    showToast(copyTitle + localTitle, localDetail || path);
                 }
             } else {
                 showToast(name + ' · not found', '');
@@ -1163,12 +1169,14 @@ function renderDashboard(signals, stashed, capabilityToken, localDelegation) {
                 encodeURIComponent(preference || 'off'), POST_OPTS);
             const data = await res.json();
             if (data.ok) {
-                const label = data.localDelegation?.effective
-                    ? 'Local Delegation on'
-                    : (data.localDelegation?.preference === 'on'
+                const ld = data.localDelegation || {};
+                const routeId = ld.availability && ld.availability.routeId;
+                const label = ld.effective
+                    ? ('Local Delegation effective' + (routeId ? (' · route ' + routeId) : ''))
+                    : (ld.preference === 'on'
                         ? 'Local Delegation requested (unavailable)'
                         : 'Local Delegation off');
-                showToast(label, data.localDelegation?.availability?.reason || '');
+                showToast(label, ld.availability?.reason || '');
                 refresh();
             } else {
                 showToast('Local Delegation · not updated', data.error || '');
@@ -1337,6 +1345,7 @@ async function startServer(instanceId, workshopDir) {
                             launched,
                             profile,
                             localDelegation,
+                            localDelegationNotice: formatLocalDelegationOpenNotice(localDelegation),
                         }));
                         return;
                     }
@@ -1513,6 +1522,7 @@ const session = await joinSession({
                                         workshopDir: entry.workshopDir,
                                         profile,
                                         localDelegation,
+                                        localDelegationNotice: formatLocalDelegationOpenNotice(localDelegation),
                                     };
                                 }
                             } catch {}

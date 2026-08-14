@@ -33,16 +33,48 @@ export function isSafeDeskOrientPrompt(prompt) {
         && !UNSAFE_ORIENT_CHARS.test(prompt);
 }
 
+/** One short ASCII notice operators can see in the session start prompt. */
+export const LOCAL_DELEGATION_ORIENT_LINE = " Local Delegation env is enabled.";
+
 export function deskOrientPrompt(deskName, { localDelegationEffective = false } = {}) {
     // deskName is already constrained to a slug by the launcher; still keep the
     // prompt free of punctuation that cmd/wt have historically mis-parsed.
-    const prompt = `You are sitting down at the ${deskName} desk in this workshop. ` +
+    let prompt = `You are sitting down at the ${deskName} desk in this workshop. ` +
         `Read journal.md in this folder first to pick up where the last session ` +
         `left off, then continue the desk's work. Write your journal before you stop.`;
-    // localDelegationEffective is intentionally unused in the -i string: policy
-    // is carried by env + skill so Windows launch cannot reparse a long appendix.
-    void localDelegationEffective;
+    // Only a single short ASCII line may ride on -i. Full policy stays in env + skill.
+    if (localDelegationEffective) {
+        const withNotice = prompt + LOCAL_DELEGATION_ORIENT_LINE;
+        if (isSafeDeskOrientPrompt(withNotice)) prompt = withNotice;
+    }
     return prompt;
+}
+
+/**
+ * Operator-visible summary for open toasts and badges.
+ * Never claims savings; only reports effective state + route id when known.
+ */
+export function formatLocalDelegationOpenNotice(localDelegation) {
+    if (!localDelegation || typeof localDelegation !== "object") {
+        return { titleSuffix: "", detail: "" };
+    }
+    const routeId = localDelegation.availability?.routeId || null;
+    if (localDelegation.effective) {
+        const routePart = routeId ? ` · route ${routeId}` : "";
+        return {
+            titleSuffix: " · Local Delegation effective",
+            detail: `Local Delegation effective${routePart}`,
+        };
+    }
+    if (localDelegation.requested) {
+        return {
+            titleSuffix: " · local unavailable",
+            detail: localDelegation.warning
+                || localDelegation.availability?.reason
+                || "Local Delegation requested but unavailable",
+        };
+    }
+    return { titleSuffix: "", detail: "" };
 }
 
 export function buildLocalDelegationLaunchEnv(baseEnv = {}, { localDelegationEffective = false } = {}) {

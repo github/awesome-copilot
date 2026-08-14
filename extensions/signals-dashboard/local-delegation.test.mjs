@@ -1,9 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+    LOCAL_DELEGATION_ORIENT_LINE,
     buildLocalDelegationLaunchEnv,
     deskOrientPrompt,
     findLocalDelegationSkillDir,
+    formatLocalDelegationOpenNotice,
     isLocalDelegationPreference,
     isSafeDeskOrientPrompt,
     localSavingsCredit,
@@ -115,14 +117,36 @@ test("launch env enables when effective; -i prompt stays short and quote-free", 
 
     const offPrompt = deskOrientPrompt("cost-desk", { localDelegationEffective: false });
     const onPrompt = deskOrientPrompt("cost-desk", { localDelegationEffective: true });
-    // Policy must not ride on -i (Windows wt/cmd reparse splits long LD text).
-    assert.equal(offPrompt, onPrompt);
-    assert.match(onPrompt, /cost-desk/);
-    assert.equal(onPrompt.includes("Local Delegation"), false);
+    assert.match(offPrompt, /cost-desk/);
+    assert.equal(offPrompt.includes("Local Delegation"), false);
+    // One short ASCII line only — never the long policy appendix.
+    assert.equal(onPrompt, offPrompt + LOCAL_DELEGATION_ORIENT_LINE);
+    assert.match(onPrompt, /Local Delegation env is enabled\./);
     assert.equal(onPrompt.includes("do not delegate"), false);
     assert.equal(isSafeDeskOrientPrompt(onPrompt), true);
     assert.equal(isSafeDeskOrientPrompt('bad "quote"'), false);
     assert.equal(isSafeDeskOrientPrompt("em dash — bad"), false);
+});
+
+test("open notice reports effective route without savings claims", () => {
+    assert.deepEqual(formatLocalDelegationOpenNotice({
+        effective: true,
+        requested: true,
+        availability: { available: true, routeId: "foundry-qwen25-7b-qualified" },
+    }), {
+        titleSuffix: " · Local Delegation effective",
+        detail: "Local Delegation effective · route foundry-qwen25-7b-qualified",
+    });
+    assert.deepEqual(formatLocalDelegationOpenNotice({
+        effective: false,
+        requested: true,
+        warning: "local-agent-delegation skill is not installed",
+        availability: { available: false, reason: "local-agent-delegation skill is not installed" },
+    }).detail, "local-agent-delegation skill is not installed");
+    assert.deepEqual(formatLocalDelegationOpenNotice({
+        effective: false,
+        requested: false,
+    }), { titleSuffix: "", detail: "" });
 });
 
 test("repo/connected argv stays orthogonal to local-delegation preference", () => {
