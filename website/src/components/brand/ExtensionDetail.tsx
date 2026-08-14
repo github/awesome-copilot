@@ -74,7 +74,9 @@ function InstallCommand({ command }: { command: string }) {
 
   return (
     <div className={appStyles.installBar}>
-      <code className={appStyles.installCommand}>{command}</code>
+      <code className={appStyles.installCommand} tabIndex={0}>
+        {command}
+      </code>
       <button
         type="button"
         className={appStyles.installCopy}

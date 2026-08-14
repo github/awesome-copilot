@@ -1050,6 +1050,16 @@
 }
 
 /*
+ * In light mode the brand's success-fg on success-subtle only reaches 4.09:1 at
+ * this text size. Step one down the same green ramp to clear WCAG AA (6.14:1)
+ * without leaving the brand palette. Dark mode already passes, and its green-7
+ * is near-black, so this is deliberately light-mode only.
+ */
+.page[data-mode="light"] .recCardLabelAccent {
+  color: var(--base-color-scale-green-7);
+}
+
+/*
  * Secondary label variant: stroke only, no fill. Pairs with the neutral filled
  * .recCardLabel so the two tags on a card read as distinct (per brand cards).
  */

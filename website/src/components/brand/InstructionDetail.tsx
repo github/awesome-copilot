@@ -125,9 +125,11 @@ export function InstructionDetail({
   // are promoted into the hero rather than left in the sidebar.
   const heroExtras =
     applyTo.length > 0 ? (
-      <div className={styles.metaValues} aria-label="Applies to">
+      <div className={styles.metaValues} role="list" aria-label="Applies to">
         {applyTo.map((pattern) => (
-          <Token key={pattern} text={pattern} />
+          <span key={pattern} role="listitem">
+            <Token text={pattern} />
+          </span>
         ))}
       </div>
     ) : null;

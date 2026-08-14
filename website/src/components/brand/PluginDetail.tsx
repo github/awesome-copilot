@@ -141,7 +141,9 @@ export function PluginDetail({
   const install = (
     <>
       <div className={installStyles.installBar}>
-        <code className={installStyles.installCommand}>{installCommand}</code>
+        <code className={installStyles.installCommand} tabIndex={0}>
+          {installCommand}
+        </code>
         <button
           type="button"
           className={installStyles.installCopy}
@@ -167,7 +169,7 @@ export function PluginDetail({
   // Provenance sits in the hero: whether the plugin ships from this repository
   // or from a third-party repo is the first thing a reader needs to know.
   const heroExtras = (
-    <div className={styles.metaValues} aria-label="Plugin provenance">
+    <div className={styles.metaValues} role="group" aria-label="Plugin provenance">
       <Label color={item.external ? "purple" : "green"} size="medium">
         {item.external ? "External plugin" : "Built-in"}
       </Label>

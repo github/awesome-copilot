@@ -70,7 +70,9 @@ export function InstallCommandBar() {
             ))}
           </ActionMenu.Overlay>
         </ActionMenu>
-        <code className={styles.installCommand}>{selected.command}</code>
+        <code className={styles.installCommand} tabIndex={0}>
+          {selected.command}
+        </code>
         <button
           type="button"
           className={styles.installCopy}
