@@ -443,8 +443,9 @@ async function launchDeskConsole(
         // wt.exe does not reliably forward Node's spawn env into a new tab when
         // Windows Terminal is already running. Always start through cmd.exe and
         // set/clear WORKSHOP_LOCAL_DELEGATION in the command string itself.
-        const cmdSafe = run.every((arg) => !/[&|<>^%!()\r\n]/.test(arg))
-            && run.every((arg) => isSafeWindowsCmdShim(arg));
+        // Args are quoteWindowsCmdArgument'd, so only block expanders that still
+        // fire inside quotes (% and !) — allow parentheses in workshop paths.
+        const cmdSafe = run.every((arg) => isSafeQuotedWindowsCmdArg(arg));
         if (!cmdSafe || !cmd) return false;
         const inner = windowsLocalDelegationCmdPrefix(effective)
             + run.map(quoteWindowsCmdArgument).join(" ");
