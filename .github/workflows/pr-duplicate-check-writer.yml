@@ -8,7 +8,7 @@ on:
 permissions:
   actions: read
   issues: write
-  pull-requests: read
+  pull-requests: write
 
 concurrency:
   group: pdcw-${{ github.event.workflow_run.head_repository.id || 'unknown-repo' }}-${{ github.event.workflow_run.head_branch || 'unknown-branch' }}
