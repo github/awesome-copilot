@@ -26,8 +26,10 @@ export function localDelegationPreferencePath(workshopDir, {
     }
     let canonical = workshopDir;
     try { canonical = resolvePath(workshopDir); } catch { /* keep input */ }
+    // Normalize separators only. Do not lowercase: on case-sensitive filesystems
+    // /work/Foo and /work/foo are distinct workshops and must not share state.
     const key = createHash("sha256")
-        .update(String(canonical).replaceAll("\\", "/").toLowerCase())
+        .update(String(canonical).replaceAll("\\", "/"))
         .digest("hex")
         .slice(0, 32);
     return join(home, LOCAL_DELEGATION_USER_STATE_DIR, `${key}.json`);

@@ -239,6 +239,17 @@ test("preference path is user-local and keyed by workshop path, not the repo roo
     assert.equal(a, again);
     // Repo-shipped .local-delegation.json is never the preference path.
     assert.equal(a.endsWith(".local-delegation.json"), false);
+
+    // Case-sensitive filesystems: Foo and foo must not share permission state.
+    const upper = localDelegationPreferencePath("/work/Foo", {
+        home,
+        resolvePath: (p) => p,
+    });
+    const lower = localDelegationPreferencePath("/work/foo", {
+        home,
+        resolvePath: (p) => p,
+    });
+    assert.notEqual(upper, lower);
 });
 
 test("skill discovery respects explicit dir and common install roots", () => {
