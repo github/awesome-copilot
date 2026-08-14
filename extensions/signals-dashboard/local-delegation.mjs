@@ -116,18 +116,34 @@ export function findLocalDelegationSkillDir({
         if (isSkillDir(candidate)) return candidate;
     }
 
-    // Inherited/plugin skills land under installed-plugins/**/skills/<name>
+    // Marketplace: ~/.copilot/installed-plugins/<marketplace>/<plugin>/
+    // Direct:      ~/.copilot/installed-plugins/_direct/<plugin>/
+    // Skill dirs may live at skills/, .github/skills/, or com.github.copilot/skills/.
     const pluginsRoot = join(home, ".copilot", "installed-plugins");
     if (exists(pluginsRoot)) {
         try {
-            for (const plugin of readdirSync(pluginsRoot, { withFileTypes: true })) {
-                if (!plugin.isDirectory()) continue;
-                const nested = join(pluginsRoot, plugin.name, "skills", LOCAL_DELEGATION_SKILL_NAME);
-                if (isSkillDir(nested)) return nested;
-                // Some plugins nest under com.github.copilot/skills
-                const nested2 = join(
-                    pluginsRoot, plugin.name, "com.github.copilot", "skills", LOCAL_DELEGATION_SKILL_NAME);
-                if (isSkillDir(nested2)) return nested2;
+            for (const market of readdirSync(pluginsRoot, { withFileTypes: true })) {
+                if (!market.isDirectory()) continue;
+                const marketRoot = join(pluginsRoot, market.name);
+                let pluginEntries;
+                try {
+                    pluginEntries = readdirSync(marketRoot, { withFileTypes: true });
+                } catch {
+                    continue;
+                }
+                for (const plugin of pluginEntries) {
+                    if (!plugin.isDirectory()) continue;
+                    const pluginRoot = join(marketRoot, plugin.name);
+                    const nestedCandidates = [
+                        join(pluginRoot, "skills", LOCAL_DELEGATION_SKILL_NAME),
+                        join(pluginRoot, ".github", "skills", LOCAL_DELEGATION_SKILL_NAME),
+                        join(pluginRoot, "com.github.copilot", "skills", LOCAL_DELEGATION_SKILL_NAME),
+                        join(pluginRoot, "com.github.awesome-copilot", "skills", LOCAL_DELEGATION_SKILL_NAME),
+                    ];
+                    for (const nested of nestedCandidates) {
+                        if (isSkillDir(nested)) return nested;
+                    }
+                }
             }
         } catch {
             // fail closed on scan errors

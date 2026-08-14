@@ -188,3 +188,31 @@ test("skill discovery respects explicit dir and common install roots", () => {
     });
     assert.equal(missingExplicit, null);
 });
+
+test("skill discovery walks marketplace/plugin and _direct install layouts", async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const home = mkdtempSync(join(tmpdir(), "ld-skill-"));
+    try {
+        const skillDir = join(
+            home, ".copilot", "installed-plugins", "awesome-copilot", "sealed-delegation",
+            ".github", "skills", "local-agent-delegation");
+        mkdirSync(skillDir, { recursive: true });
+        writeFileSync(join(skillDir, "SKILL.md"), "# local-agent-delegation\n");
+        const found = findLocalDelegationSkillDir({ home, env: {} });
+        assert.equal(found, skillDir);
+
+        const direct = join(
+            home, ".copilot", "installed-plugins", "_direct", "sealed-delegation",
+            "skills", "local-agent-delegation");
+        // Prefer first match; after removing marketplace tree, direct should hit.
+        rmSync(join(home, ".copilot", "installed-plugins", "awesome-copilot"), { recursive: true, force: true });
+        mkdirSync(direct, { recursive: true });
+        writeFileSync(join(direct, "SKILL.md"), "# local-agent-delegation\n");
+        const foundDirect = findLocalDelegationSkillDir({ home, env: {} });
+        assert.equal(foundDirect, direct);
+    } finally {
+        rmSync(home, { recursive: true, force: true });
+    }
+});
