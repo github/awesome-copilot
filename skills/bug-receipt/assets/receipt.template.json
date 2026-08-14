@@ -1,6 +1,7 @@
 {
-  "version": 1,
+  "version": 2,
   "status": "partial",
+  "evidenceSource": "supplied",
   "problem": "Describe the observed defect and intended behavior.",
   "baseline": {
     "command": "Record the exact reproduction command or interaction.",

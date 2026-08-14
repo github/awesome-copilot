@@ -913,7 +913,7 @@
     {
       "name": "microsoft-foundry",
       "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-      "version": "1.0.6",
+      "version": "1.0.7",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -934,7 +934,34 @@
         "source": "github",
         "repo": "microsoft/foundry-toolkit",
         "path": "microsoft-foundry",
-        "sha": "c3a1606fb83ba4b89e205b1723a22e1c497f66a2"
+        "sha": "5d78641be6c789710222bc7248206ace115d5080"
+      }
+    },
+    {
+      "name": "mobile-canvas",
+      "description": "View, create, boot, and interact with local iOS simulators and Android emulators from a GitHub Copilot canvas. The plugin also exposes the same device controls to agents through MCP.",
+      "version": "0.1.6",
+      "author": {
+        "name": "Jonathan Dick",
+        "url": "https://github.com/Redth"
+      },
+      "repository": "https://github.com/Redth/mobile-canvas-ghcp",
+      "homepage": "https://github.com/Redth/mobile-canvas-ghcp",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "mobile",
+        "ios",
+        "android",
+        "simulator",
+        "emulator",
+        "device-control",
+        "mcp"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Redth/mobile-canvas-ghcp",
+        "sha": "c930769d41f07852baeeb407ded76d5ba83c06d2"
       }
     },
     {
