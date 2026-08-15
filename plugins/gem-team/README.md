@@ -79,9 +79,42 @@ Or install for one target only:
 apm install mubaidr/gem-team --target copilot
 ```
 
+Install globally for personal use:
+
+```bash
+apm install -g mubaidr/gem-team
+```
+
+APM records the resolved commit in `apm.lock.yaml`. Repeating `apm install`
+replays that lockfile; it does not silently upgrade an existing installation.
+Refresh Gem Team explicitly when desired:
+
+```bash
+# Project-scoped installation
+apm update mubaidr/gem-team --yes
+
+# Global installation
+apm update -g mubaidr/gem-team --yes
+```
+
+To check for an update to the APM CLI itself, use `apm self-update --check`.
+
+For reproducible environments, pin a release tag:
+
+```bash
+apm install 'mubaidr/gem-team#gem-team-v<version>' --target copilot
+```
+
+Replace `<version>` with a published version from the
+[GitHub Releases](https://github.com/mubaidr/gem-team/releases) page.
+
 After the first install, commit the generated APM files that belong to your repo, especially `apm.yml`, `apm.lock.yaml`, and the generated harness directories such as `.github/`, `.claude/`, `.cursor/`, `.opencode/`, `.codex/`, `.gemini/`, or `.windsurf/`. Do **not** commit `apm_modules/`.
 
 > APM can auto-detect targets from existing harness directories, but explicit `--target` is recommended for predictable installs and fresh repositories.
+>
+> Direct Git installs use the canonical sources in `.apm/`. Maintainers do not
+> need to commit `build/`; release archives and checksums are generated and
+> attached automatically to each GitHub Release.
 
 ## The Process
 
