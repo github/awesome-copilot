@@ -1,13 +1,15 @@
 ---
 name: sandbase-multi-source-research
-description: 'Run source-diverse web and academic research through SandBase MCP, cross-check claims, detect circular reporting, and report confidence, disagreements, citations, and evidence gaps. Use for broad research or fact-checking that benefits from multiple independent search providers.'
+description: 'Run source-diverse web and academic research with available host search tools and optional SandBase MCP providers; cross-check claims, detect circular reporting, and report confidence, disagreements, citations, and evidence gaps. Use for broad research or fact-checking that benefits from multiple independent search capabilities.'
 ---
 
 # SandBase Multi-Source Research
 
-Use this skill to research one question through multiple independent search
-providers and produce a traceable synthesis. The goal is evidence diversity,
-not a larger pile of duplicated search results.
+Use this skill to research one question through multiple search capabilities
+and produce a traceable synthesis. Start with compatible web, page-reading,
+browser, or academic-search tools already available to the host. When SandBase
+MCP is configured, use it to add independent provider coverage. The goal is
+evidence diversity, not a larger pile of duplicated search results.
 
 ## When to Use This Skill
 
@@ -24,14 +26,18 @@ an auditable decision graph with exact source regions, prefer
 `build-evidence-map`. Use this skill for discovery and synthesis across search
 providers.
 
-## Prerequisites
+## Available capabilities
 
-- Configure SandBase MCP so the environment exposes
-  `sandbase_describe_tool` and `sandbase_call_tool`.
-- Configure a valid SandBase API key through the user's normal secret store.
-  Never ask the user to paste an API key into chat or include it in output.
-- Search providers and their schemas may change. Discover live capabilities
-  before invoking them.
+Use compatible search and page-reading tools already exposed by the host. Do
+not stop merely because SandBase is unavailable. Record the actual capability
+names used and disclose missing coverage.
+
+If SandBase MCP is configured, the environment exposes
+`sandbase_describe_tool` and `sandbase_call_tool`. Use them for additional
+Tavily, Exa, Scholar, and Cloudsway coverage. A valid API key must come from
+the user's normal secret store; never ask the user to paste one into chat or
+include it in output. Provider schemas may change, so discover live SandBase
+capabilities before invoking them.
 
 SandBase is an external service and may have usage limits or paid plans. State
 that dependency clearly when suggesting this workflow. Do not create accounts,
@@ -45,11 +51,17 @@ Restate the research question, relevant time window, required source types, and
 what evidence would change the conclusion. Ask a clarifying question only when
 an ambiguity would materially change the search.
 
-### 2. Discover live tool schemas
+### 2. Select search capabilities
 
-For every selected capability, call `sandbase_describe_tool` first. Then call
-`sandbase_call_tool` with the exact `tool_name` and only arguments present in
-the returned schema. Never guess capability parameters from this document.
+Select at least two distinct available search capabilities. Native host tools
+count; repeated queries to one capability do not. Prefer original documents,
+official documentation, repositories, and research papers over derivative
+summaries.
+
+For every selected SandBase capability, call `sandbase_describe_tool` first.
+Then call `sandbase_call_tool` with the exact `tool_name` and only arguments
+present in the returned schema. Never guess capability parameters from this
+document.
 
 When available, combine providers with different strengths:
 
@@ -80,8 +92,9 @@ change files, contact people, or modify external systems.
 ### 4. Inspect primary evidence
 
 Prefer official documentation, original datasets, first-party statements, and
-peer-reviewed research. If a selected result needs more context, describe the
-live schema before using `exa_contents` or `tavily_extract`.
+peer-reviewed research. Open primary pages with the host's available
+page-reading or browser tool. If a SandBase result needs more context, describe
+the live schema before using `exa_contents` or `tavily_extract`.
 
 Do not send private, proprietary, or personal content to an external provider
 without the user's explicit consent. Keep quotations short and respect access
@@ -148,7 +161,8 @@ Copilot:
 
 ## Limitations
 
-- Requires configured SandBase MCP access and network connectivity.
+- Requires network access and at least two compatible host search/page
+  capabilities; SandBase MCP is optional provider expansion.
 - Provider availability, freshness, quotas, and input schemas can change.
 - Confidence labels summarize evidence agreement; they do not prove truth.
 - Paywalled or inaccessible primary sources may prevent full verification.
