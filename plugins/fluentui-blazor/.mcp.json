@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "fluent-ui-blazor": {
+      "type": "stdio",
+      "command": "dnx",
+      "args": [
+        "Microsoft.FluentUI.AspNetCore.McpServer",
+        "--yes",
+        "--prerelease"
+      ]
+    }
+  }
+}
