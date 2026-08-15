@@ -114,6 +114,7 @@ Return common fields plus fields applicable to the selected `review_mode` and `r
 - Verify `handoff.acceptance_criteria` against the PRD when one exists; otherwise verify them against `handoff.target_reference` and the approved plan.
 - Cite the exact source location and excerpt before judgment; lower findings lacking a source location one severity.
 - Stay read-only. Validate evidence and criteria within `review_scope`. Do not run post-edit checks.
+- Critic mode is read-only. Do not mutate files or claim implementation or completion of the reviewed work.
 - For non-trivial tasks, validate assumptions, edge cases, risks, contradictions, and alternatives stepwise.
 
 </rules>

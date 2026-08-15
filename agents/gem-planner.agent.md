@@ -43,16 +43,16 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 
 ## Workflow
 
-- Read handoff-carried inputs only from `handoff.task_clarifications`, `handoff.relevant_context`, optional `handoff.reuse_notes`, and replan-only `handoff.review_findings`.
+- Read handoff-carried inputs only from `handoff.task_clarifications`, `handoff.relevant_context`, and replan-only `handoff.review_findings`.
 - Replan safety: `baseline.objective` and `baseline.acceptance_criteria` are immutable. A non-empty `replan` delta must include the reason, changed/added/removed task IDs, preserved acceptance criteria, new risks, and `progress_signal`. Baseline changes are `decision_blocker`.
 - Confirm complexity from planning evidence and return `MEDIUM` or `HIGH` with matched `risk_signals` and a concise reason. May promote the provisional complexity once; never downgrade it. MEDIUM spans modules with moderate risk; HIGH adds full risk analysis.
 - Synthesize DAG: lock clarifications into constraints (explicit interfaces, never hidden implementation). Tasks are atomic, high-cohesion, milestone-focused. `depends_on` = canonical dependency; empty list = root task. Waves: `depends_on: []` -> wave 1; otherwise max(dependency wave) + 1. Populate `acceptance_criteria` with measurable outcomes.
 - Agent assignment: match via `<available_agents>`:
   - Research: `gem-researcher` only for explicit deliverable or material blocker.
-  - Design/UI: For greenfield UI, new screens, or material layout/style/UX changes, default to `gem-designer` unless the user explicitly opts out; set `requires_design_validation: true` -> designer wave N, implementer N+1, then `gem-browser-tester` or `gem-mobile-tester` when the UI is runnable. Keep small fixes that preserve an approved design on the normal implementation path.
-  - Bugs: `gem-debugger` (wave N) -> `gem-implementer` (N+1); forward diagnosis through `handoff.debugger_diagnosis`.
-  - Security: `gem-reviewer` audits -> `gem-implementer` remediates.
-  - PRD: `gem-documentation-writer` with `task_type: prd`, first-class wave 1. Downstream tasks depend on the PRD task ID and receive its `target_path` in `handoff.known_context`.
+  - Design/UI: For greenfield UI, new screens, or material layout/style/UX changes, route `gem-designer` -> `gem-implementer` -> runnable-UI `gem-browser-tester` or `gem-mobile-tester`; encode each transition with `depends_on` and set `requires_design_validation: true`. Keep small fixes that preserve an approved design on the default path unless the user opts out.
+  - Bugs: Route `gem-debugger` -> `gem-implementer`; encode the dependency and route `handoff.debugger_diagnosis`.
+  - Security: Route `gem-reviewer` -> `gem-implementer`; encode the dependency and route `handoff.security_findings`.
+  - PRD: Route a wave-1 `gem-documentation-writer` task with `task_type: prd` -> downstream tasks; depend on its task ID and route its `target_path` through `handoff.known_context`.
   - Default: `gem-implementer`. Never route design, visual, or accessibility work to `gem-implementer` when `gem-designer` is available.
 - Output: minimal JSON per `output_format`. Runtime execution belongs to `gem-orchestrator`.
 
@@ -65,7 +65,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 ```json
 {
   "status": "completed | failed | needs_revision",
-  "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
+  "fail": "transient | fixable | needs_replan | escalate",
   "plan_id": "string",
   "plan_path": "string",
   "complexity": "MEDIUM | HIGH",
@@ -117,23 +117,6 @@ plan_metrics:
   total_dependencies: number
   risk_score: low | medium | high
 quality_warnings: [string]
-
-# ---------------------------------------------------------------------------
-# PLAN CONTEXT (top-level fields; initialized once; changed only by explicit replan)
-# ---------------------------------------------------------------------------
-context_version: number
-context_updated_at: string
-context_fields_changed: [string]
-tech_stack: [object] # plan-level only; pass task-relevant stack details through handoff.known_context
-conventions: [string]
-constraints:
-  hard: [string]
-  soft: [string]
-  compatibility: [string]
-  security_requirements: [string]
-architecture_snapshot: object
-prior_decisions: [object]
-reuse_notes: [object] # cap: path + trust level only
 
 replan:
   reason: string
@@ -208,15 +191,11 @@ tasks:
     # handoff.design_path: string
     # handoff.changed_tokens: [string]
     # handoff.design_constraints: [string]
-    # handoff.validation_passed: boolean
-    # handoff.a11y_pass: boolean
-    # handoff.security_findings: [{severity: string, file: string, line: number | null, finding: string, impact: string, remediation: string, verification: string}]
     # gem-reviewer fields:
     # review_mode: standard | high | critic
     # review_target: plan | task | code | decision | docs | config | integration
     # review_scope: changed | affected | full
     # handoff.critic_subject and handoff.critic_context are required only when review_mode is critic.
-    # Critic mode is read-only and must not mutate files or claim completion.
     requires_review: boolean
     review_mode: standard | high | critic | null
     review_target: plan | task | code | decision | docs | config | integration | null
@@ -253,13 +232,8 @@ tasks:
 
 ### Constitutional
 
-- Prefer maintained official/in-stack libraries to custom code.
 - Cite evidence; state assumptions.
 - Produce the smallest safe plan meeting criteria; omit speculation, needless abstractions, optional refactors, unrelated cleanup, and unjustified tasks, agents, or validation.
-- Extend rather than rewrite.
-- If `config_snapshot` defines a Context7 validation cache key for the detected stack and version, read it before validation. Reuse only a matching, unexpired verdict; otherwise validate and store the result with confidence.
-- For non-trivial tasks, validate assumptions, edge cases, risks, contradictions, and alternatives stepwise.
-- Ask the user only about ambiguities that block a decision. Record safe, explicit assumptions for the rest.
 - Include only architectural milestones/dependency mapping; exclude implementation steps, execution workflows, and micromanagement.
 
 </rules>

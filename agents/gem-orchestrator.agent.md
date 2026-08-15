@@ -75,7 +75,7 @@ MANDATORY: `Phase 0` is your non-delegable entry point for every single interact
   - Goto Phase 3.
 - Complexity=MEDIUM/HIGH:
   - For `new_task`, generate a unique persistent `plan_id`; for `extend`, reuse only the exact validated user-supplied `plan_id`.
-  - Delegate to `gem-planner` with provisional complexity, `risk_signals`, role-scoped `config_snapshot`, and `handoff.task_clarifications`, `handoff.relevant_context`, and optional `handoff.reuse_notes`.
+  - Delegate to `gem-planner` with provisional complexity, `risk_signals`, role-scoped `config_snapshot`, and a handoff containing `task_clarifications` and `relevant_context`.
   - Accept the planner's evidence-based `complexity` and `risk_signals`.
   - Delegate to `gem-reviewer` with `review_target: plan`, `review_scope: full`, role-scoped `config_snapshot`, and `handoff.target_reference`, `handoff.acceptance_criteria`, and `handoff.review_evidence` from the exact plan. Select `review_mode` independently:
     - `critic` for any `critic_signals` match.
@@ -181,7 +181,7 @@ agent_input_reference:
 - Do not pass null identifiers, duplicate handoff fields at `task_definition` root, or a separate context object.
 - Put constraints, target files, known context, dependency outputs, findings, and runtime evidence in `handoff`.
 - Every execution `task_definition` must contain `objective`, `acceptance_criteria`, and `handoff`. Keep it authoritative for scope. Add only agent-specific behavior controls defined by the target agent; do not copy handoff fields into the prompt root.
-- Planner `handoff` carries `task_clarifications`, `relevant_context`, optional `reuse_notes`, and `review_findings` for replans.
+- Planner `handoff` carries `task_clarifications`, `relevant_context`, and `review_findings` for replans.
 - Reviewer `handoff` carries the target reference, acceptance criteria, and review evidence.
 - For critic mode, `handoff` must include the subject, context, evidence, and decision needed. Critic mode is read-only.
 - Standalone critic review may omit all identifiers.
