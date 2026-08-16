@@ -49,6 +49,12 @@
       }
     },
     {
+      "name": "agent-memory",
+      "source": "plugins/agent-memory",
+      "description": "Standing rules that make Copilot actually use long-term memory: when to recall before acting, what is worth saving after a decision or a correction, and how to close a fact that stopped being true instead of deleting it. Backend-neutral, works with repository files or any connected MCP memory server.",
+      "version": "1.0.0"
+    },
+    {
       "name": "ai-ready",
       "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
       "version": "1.1.0",

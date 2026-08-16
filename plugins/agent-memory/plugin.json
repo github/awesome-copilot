@@ -1,0 +1,27 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-memory",
+  "description": "Standing rules that make Copilot actually use long-term memory: when to recall before acting, what is worth saving after a decision or a correction, and how to close a fact that stopped being true instead of deleting it. Backend-neutral, works with repository files or any connected MCP memory server.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Mnemoverse",
+    "url": "https://mnemoverse.com"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "memory",
+    "context",
+    "mcp",
+    "persistence",
+    "conventions",
+    "agent-behavior"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/agent-memory-discipline/"
+      ]
+    }
+  }
+}
