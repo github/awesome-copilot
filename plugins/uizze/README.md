@@ -31,6 +31,8 @@ The skill remains usable when catalogue browsing is unavailable: it can work fro
 
 UIZZE maintains the public catalogue referenced by the skill.
 
+For an optional, separate anonymous source check outside this plugin, use the [free UI slop preview](https://uizze.com/mcp/preview). It exposes exactly one deterministic `check_ui_slop` tool, requires no account or token, and is not required by this plugin.
+
 ## Source
 
 This plugin is part of [Awesome Copilot](https://github.com/github/awesome-copilot).
