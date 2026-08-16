@@ -5,6 +5,9 @@
  * by the React components is defined in exactly one place and the shell always
  * gets consistent counts and a consistent search index.
  */
+import fs from "node:fs";
+import path from "node:path";
+
 import agentsData from "../../public/data/agents.json";
 import extensionsData from "../../public/data/extensions.json";
 import instructionsData from "../../public/data/instructions.json";
@@ -19,6 +22,18 @@ import {
 } from "../components/brand/searchIndex";
 
 const BASE = import.meta.env.BASE_URL ?? "/";
+
+function getContributorsTotal(): number {
+  try {
+    const rcPath = path.resolve(process.cwd(), "..", ".all-contributorsrc");
+    const rc = JSON.parse(fs.readFileSync(rcPath, "utf8")) as {
+      contributors?: Array<Record<string, unknown>>;
+    };
+    return Array.isArray(rc.contributors) ? rc.contributors.length : 0;
+  } catch {
+    return 0;
+  }
+}
 
 export const agents = agentsData.items;
 export const extensions = extensionsData.items;
@@ -35,6 +50,9 @@ export const counts = {
   plugins: plugins.length,
   skills: skills.length,
 };
+
+/** Repo contributor count, sourced from the root .all-contributorsrc file. */
+export const contributorsTotal = getContributorsTotal();
 
 /** Site-wide search index for `TopNavSearch`, shared by every page. */
 export const searchIndex: SearchItem[] = buildSearchIndex(

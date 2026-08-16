@@ -2,6 +2,7 @@ import { MarkGithubIcon } from "@primer/octicons-react";
 import { Box, Button, ThemeProvider, useTheme } from "@primer/react-brand";
 import type { ReactNode } from "react";
 
+import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
 import { ContributorsNavButton } from "./ContributorsNavButton";
 import { LanguageSelect } from "./LanguageSelect";
 import { LargeFooter } from "./LargeFooter";
@@ -48,7 +49,7 @@ export function PageShell({
   styles,
   currentPage,
   searchIndex = [],
-  contributorsTotal = 0,
+  contributorsTotal = siteContributorsTotal,
   searchAriaLabel = "Search the library",
   contributorsCurrent = false,
   renderFooter = true,
@@ -80,7 +81,7 @@ function PageShellBody({
   styles,
   currentPage,
   searchIndex = [],
-  contributorsTotal = 0,
+  contributorsTotal = siteContributorsTotal,
   searchAriaLabel = "Search the library",
   contributorsCurrent = false,
   renderFooter = true,
