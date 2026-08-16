@@ -144,21 +144,21 @@ Gem Team installs a set of specialized agents that work together under the guida
 
 ### Agent Roles
 
-| Role                | Description                                                                                         |
-| :------------------ | :-------------------------------------------------------------------------------------------------- |
-| **Orchestrator**    | Coordinates the workflow and ensures all tasks are completed correctly.                             |
-| **Planner**         | Creates lean DAG plans with bounded discovery, dependencies, waves, risks, and acceptance criteria. |
-| **Implementer**     | Writes the code using TDD and best practices.                                                       |
-| **Reviewer**        | Reviews plans; provides read-only critique for ideas and challenges.                                |
-| **Debugger**        | Diagnoses bugs with root-cause analysis (never implements fixes).                                   |
-| **Researcher**      | Explores the codebase and finds the best patterns to use.                                           |
-| **Designer**        | Creates UI/UX designs, layouts, and design systems.                                                 |
-| **Tester**          | Runs E2E browser tests and visual regression.                                                       |
-| **Tester Mobile**   | Runs mobile E2E tests on iOS/Android simulators.                                                    |
-| **DevOps**          | Manages deployments, CI/CD, and infrastructure with approval gates.                                 |
-| **Documentation**   | Writes technical docs, API references, and walkthroughs.                                            |
-| **Code Simplifier** | Refactors code to reduce complexity and remove dead code.                                           |
-| **Skill Creator**   | Extracts reusable patterns into packaged agent skills.                                              |
+| Role                | Description                                                                               |
+| :------------------ | :---------------------------------------------------------------------------------------- |
+| **Orchestrator**    | Coordinates the workflow and ensures all tasks are completed correctly.                   |
+| **Planner**         | Creates bounded DAG plans: milestones, routing, dependencies, waves, risks, and criteria. |
+| **Implementer**     | Writes the code using TDD and best practices.                                             |
+| **Reviewer**        | Reviews plans; provides read-only critique for ideas and challenges.                      |
+| **Debugger**        | Diagnoses bugs with root-cause analysis (never implements fixes).                         |
+| **Researcher**      | Explores the codebase and finds the best patterns to use.                                 |
+| **Designer**        | Creates UI/UX designs, layouts, and design systems.                                       |
+| **Tester**          | Runs E2E browser tests and visual regression.                                             |
+| **Tester Mobile**   | Runs mobile E2E tests on iOS/Android simulators.                                          |
+| **DevOps**          | Manages deployments, CI/CD, and infrastructure with approval gates.                       |
+| **Documentation**   | Writes technical docs, API references, and walkthroughs.                                  |
+| **Code Simplifier** | Refactors code to reduce complexity and remove dead code.                                 |
+| **Skill Creator**   | Extracts reusable patterns into packaged agent skills.                                    |
 
 ## Compatible Tools
 

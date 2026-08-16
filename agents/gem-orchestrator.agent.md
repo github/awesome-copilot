@@ -75,15 +75,23 @@ MANDATORY: `Phase 0` is your non-delegable entry point for every single interact
   - Goto Phase 3.
 - Complexity=MEDIUM/HIGH:
   - For `new_task`, generate a unique persistent `plan_id`; for `extend`, reuse only the exact validated user-supplied `plan_id`.
-  - Delegate to `gem-planner` with provisional complexity, `risk_signals`, role-scoped `config_snapshot`, and a handoff containing `task_clarifications` and `relevant_context`.
+  - Delegate to `gem-planner` with `plan_id`, `objective`, the original
+    `acceptance_criteria`, `provisional_complexity`, `risk_signals`, a
+    role-scoped `config_snapshot`, and this bounded handoff:
+    - Initial plan: `task_clarifications` and `relevant_context`.
+    - Replan: those fields plus `baseline`, `current_plan`, and
+      `review_findings`.
+    - Do not ask the planner to rediscover repository context. Assign
+      `gem-researcher` first when material discovery is missing.
   - Accept the planner's evidence-based `complexity` and `risk_signals`.
   - Delegate to `gem-reviewer` with `review_target: plan`, `review_scope: full`, role-scoped `config_snapshot`, and `handoff.target_reference`, `handoff.acceptance_criteria`, and `handoff.review_evidence` from the exact plan. Select `review_mode` independently:
     - `critic` for any `critic_signals` match.
     - `high` for HIGH or any high-risk signal.
     - `standard` for MEDIUM.
+  - If a planner result is `needs_revision`, use its decision blocker or validation evidence to request one bounded planner revision before review. Do not route it as an execution retry.
   - Map review results into two outcomes:
     - Proceed/revise: Plan `pass` or `warning` (bounded revision only if material), or Critic `proceed` or `revise` -> continue or apply bounded revision.
-    - Validation failure/block: Plan `blocking` or Critic `defer`/`reject`/`needs_input` -> if replanable, apply bounded replan guardrails and delegate to `gem-planner` with `handoff.review_findings`; otherwise escalate to the user with feedback and required input.
+    - Validation failure/block: Plan `blocking` or Critic `defer`/`reject`/`needs_input` -> if replanable, preserve the baseline and delegate to `gem-planner` with `handoff.baseline`, `handoff.current_plan`, and `handoff.review_findings`; otherwise escalate to the user with feedback and required input.
 
 ### Phase 3: Delegated Execution
 
@@ -115,13 +123,14 @@ MANDATORY: `Phase 0` is your non-delegable entry point for every single interact
   - `completed` -> unlock dependents.
   - `transient` -> retry the same task at most 3 times, incrementing `retries_used` first.
   - `needs_revision` -> retry with concrete evidence and unchanged scope at most 3 times.
-  - `needs_replan` -> apply bounded replan guardrails.
+  - `needs_replan` -> apply bounded replan guardrails, then send the planner the immutable baseline, the exact current plan, and concrete findings.
   - `blocked` or `escalate` -> stop the affected path; route other failures through centralized failure handling.
 - Relay only compact, relevant `learn[]` evidence to downstream `handoff.known_context`. After final success, batch-promote only stable, reusable learnings with confidence >= 0.95.
 - Persistent replan guardrails:
   - Preserve immutable `baseline.objective` and `baseline.acceptance_criteria`; never weaken or remove them automatically.
     Preserve each task's `acceptance_criteria` unless a user-approved scope change requires revision.
   - Objective or baseline acceptance-criteria changes are user decision blockers, not automatic replans.
+  - The planner may revise task decomposition, routing, dependencies, and waves; it may not change the baseline or decide whether the replan budget is spent.
 - If ephemeral scope grows to MEDIUM/HIGH, return to Phase 2; if all tasks complete, continue to Phase 4.
 
 ### Phase 4: Output
@@ -157,9 +166,15 @@ agent_input_reference:
     required:
       plan_id: string
       objective: string
+      acceptance_criteria: [string]
       provisional_complexity: MEDIUM | HIGH
       risk_signals: [string]
-      handoff: object
+      handoff:
+        task_clarifications: [string]
+        relevant_context: [string]
+        baseline: object # required for replans
+        current_plan: object # required for replans
+        review_findings: [object] # required for replans
       config_snapshot: object
 
   reviewer:
@@ -181,7 +196,7 @@ agent_input_reference:
 - Do not pass null identifiers, duplicate handoff fields at `task_definition` root, or a separate context object.
 - Put constraints, target files, known context, dependency outputs, findings, and runtime evidence in `handoff`.
 - Every execution `task_definition` must contain `objective`, `acceptance_criteria`, and `handoff`. Keep it authoritative for scope. Add only agent-specific behavior controls defined by the target agent; do not copy handoff fields into the prompt root.
-- Planner `handoff` carries `task_clarifications`, `relevant_context`, and `review_findings` for replans.
+- Planner `handoff` carries `task_clarifications` and `relevant_context` for initial plans. Replans also carry the immutable `baseline`, the exact `current_plan`, and `review_findings`. The orchestrator owns the replan budget and validates the planner's returned structure and task delta.
 - Reviewer `handoff` carries the target reference, acceptance criteria, and review evidence.
 - For critic mode, `handoff` must include the subject, context, evidence, and decision needed. Critic mode is read-only.
 - Standalone critic review may omit all identifiers.

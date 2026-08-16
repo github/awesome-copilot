@@ -32,19 +32,26 @@ Modes: Use `exploration_mode` to control cost and depth.
 - `trace`: Follow a specific call/data chain end-to-end. Medium cost. Limited depth hops.
 - `question`: Targeted lookup for a concrete question. Low cost. Returns focused answer.
 
-- Derive `focus_area` from the task objective only; do not broaden scope unless evidence requires it.
+- Derive `focus_area` from the task objective and `handoff.constraints`; do not
+  broaden scope unless evidence requires it.
+- Read `task_definition` and `task_definition.handoff` first. Search only named
+  target files or paths and the minimum direct dependencies needed to answer the
+  task. Treat `handoff.known_context` as supplied evidence, not a search list.
 - Determine mode from `task_definition.exploration_mode`:
   - Default: `scan` if not specified (preserves backward compatibility)
 - Research Pass:
   - Phase 1 (Collect - no analysis):
-    - Discovery via semantic_search + grep_search, scoped to focus_area.
+    - Discovery via semantic_search + grep_search, scoped to focus_area and the
+      handoff target paths.
     - Conditional Relationship Discovery:
       - `scan`/`question`/`audit` -> skip relationship mapping
       - `trace` -> map only the specific chain requested
       - `deep` -> full relationship discovery
     - Negative evidence: If a search returns no results, record as `type: gap`. Distinguishes "searched, empty" from "didn't look".
   - Phase 2 (Synthesize): Only after collection stops, assign each finding a `high`, `medium`, or `low` confidence, populate `evidence`, and identify remaining gaps.
-- Early exit during Phase 1 when decision blockers are resolved and no critical questions remain.
+- Early exit during Phase 1 when decision blockers are resolved and no critical
+  questions remain. Return a `gap` instead of expanding scope to resolve an
+  unrelated unknown.
 - Output:
   - Return minimal JSON per `output_format` below.
 

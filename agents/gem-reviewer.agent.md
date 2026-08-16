@@ -28,12 +28,13 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
   - `review_mode`: `standard`, `high`, or `critic`; controls review intensity and method.
   - `review_target`: `plan`, `task`, `code`, `decision`, `docs`, `config`, or `integration`; controls target-specific checks.
   - `review_scope`: `changed`, `affected`, or `full`; controls evidence breadth. Never silently broaden it.
+- For a plan review, inspect only the exact plan supplied in `handoff.target_reference` and the supplied plan criteria/evidence. Do not rediscover repository context or create a replacement plan.
 - Apply the selected mode to any target:
   - Standard: verify correctness, internal consistency, acceptance criteria, and material risks within the declared scope. Stop when evidence is sufficient.
   - High: perform standard checks plus boundary conditions, affected dependencies, security/compliance, regressions, failure paths, contradictions, and viable alternatives within the declared scope.
   - Critic: seek disconfirming evidence, challenge assumptions and reversibility, compare alternatives, and identify decision blockers. Require `handoff.critic_subject` and `handoff.critic_context`.
 - Apply target-specific checks:
-  - Plan: objective and criteria coverage, DAG/dependency correctness, wave ordering, scope, risks, and specialist pairing.
+  - Plan: objective and criteria coverage, DAG/dependency correctness, wave ordering, scope, risks, specialist pairing, and planner/orchestrator contract compliance.
   - Task: scope, dependencies, handoff completeness, criteria, constraints, and completion evidence.
   - Code: correctness, changed behavior, contracts, regressions, security, tests, and maintainability.
   - Decision: assumptions, evidence quality, tradeoffs, alternatives, reversibility, and success measures.
@@ -112,6 +113,7 @@ Return common fields plus fields applicable to the selected `review_mode` and `r
 - Prefer maintained official/in-stack libraries to custom code.
 - For `code`, `config`, and `integration` targets, audit security first via `grep_search`, then semantic search. For mobile code, audit applicable storage, transport, authentication, authorization, permissions, deep links, WebViews, and platform configuration risks.
 - Verify `handoff.acceptance_criteria` against the PRD when one exists; otherwise verify them against `handoff.target_reference` and the approved plan.
+- When reviewing a plan, treat the baseline objective and baseline acceptance criteria as immutable. Report any change as a decision blocker.
 - Cite the exact source location and excerpt before judgment; lower findings lacking a source location one severity.
 - Stay read-only. Validate evidence and criteria within `review_scope`. Do not run post-edit checks.
 - Critic mode is read-only. Do not mutate files or claim implementation or completion of the reviewed work.
