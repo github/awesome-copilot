@@ -1,5 +1,6 @@
 import sitemap from "@astrojs/sitemap";
 import react from "@astrojs/react";
+import { unified } from "@astrojs/markdown-remark";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,9 +46,16 @@ export default defineConfig({
   base: "/",
   output: "static",
   markdown: {
-    remarkPlugins: [
-      [remarkGithubAdmonitionsToDirectives, { mapping: githubAdmonitionMapping }],
-    ],
+    // Astro 7 deprecated top-level `remarkPlugins`/`rehypePlugins`/
+    // `remarkRehype` in favour of configuring the unified pipeline directly.
+    processor: unified({
+      remarkPlugins: [
+        [
+          remarkGithubAdmonitionsToDirectives,
+          { mapping: githubAdmonitionMapping },
+        ],
+      ],
+    }),
     // The prototype's own code blocks (SyntaxHighlightedCode.tsx) are styled
     // entirely through brand CSS tokens rather than baked-in theme colours, so
     // they automatically match the site's light/dark mode. Raw markdown code
