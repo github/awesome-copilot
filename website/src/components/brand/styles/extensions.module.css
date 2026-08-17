@@ -749,7 +749,23 @@
   max-block-size: 480px;
   overflow-y: auto;
   padding-inline-end: var(--base-size-4);
+  /* Matches the muted, low-contrast scrollbar used by the article sidebar so
+     the filter list does not read as a heavy chrome element. */
   scrollbar-width: thin;
+  scrollbar-color: var(--brand-color-border-muted) transparent;
+}
+
+.filterOptions::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filterOptions::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.filterOptions::-webkit-scrollbar-thumb {
+  background-color: var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium, 6px);
 }
 
 .showMoreButton {
