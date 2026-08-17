@@ -538,6 +538,17 @@
   border-block-start: none;
 }
 
+/* Raw markdown links inherit the UA default blue/purple otherwise, which is
+   too harsh in dark mode; route them through the themed link token instead. */
+.articleSection a {
+  color: var(--brand-color-text-link-rest);
+}
+
+.articleSection a:hover,
+.articleSection a:focus-visible {
+  color: var(--brand-color-text-link-pressed);
+}
+
 .articleHeading {
   margin: 0;
   /* Two medium gaps separate the title from the text below, while the
