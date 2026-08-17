@@ -927,6 +927,21 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-color-border-muted) transparent;
+}
+
+.sidebarSticky::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebarSticky::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebarSticky::-webkit-scrollbar-thumb {
+  background-color: var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium, 6px);
 }
 
 /* Each block in the sidebar column (Agent details, In this article) carries
