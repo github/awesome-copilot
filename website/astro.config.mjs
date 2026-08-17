@@ -27,6 +27,19 @@ export default defineConfig({
     remarkPlugins: [
       [remarkGithubAdmonitionsToDirectives, { mapping: githubAdmonitionMapping }],
     ],
+    // The prototype's own code blocks (SyntaxHighlightedCode.tsx) are styled
+    // entirely through brand CSS tokens rather than baked-in theme colours, so
+    // they automatically match the site's light/dark mode. Raw markdown code
+    // fences render through Shiki instead, which by default bakes a fixed
+    // "github-dark" theme's literal colours into inline styles — that ignores
+    // the site's actual colour mode and clashes with the prototype's bordered,
+    // canvas-subtle code block styling. The "css-variables" theme emits
+    // `var(--astro-code-*)` custom properties instead of literal colours,
+    // which are mapped to the same brand tokens in
+    // src/components/brand/styles/{dotnet-upgrade,github-copilot-app}.module.css.
+    shikiConfig: {
+      theme: "css-variables",
+    },
   },
   // English is served at the site root (no locale prefix), preserving all
   // existing URLs. Additional locales are served under a locale prefix

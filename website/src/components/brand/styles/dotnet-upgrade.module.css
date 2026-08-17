@@ -549,6 +549,42 @@
   color: var(--brand-color-text-link-pressed);
 }
 
+/* Raw markdown fenced code blocks render through Shiki's "css-variables"
+   theme (see astro.config.mjs), which emits `--astro-code-*` custom
+   properties instead of baking in a fixed theme's literal colours. Map those
+   to the same brand tokens the prototype's SyntaxHighlightedCode component
+   uses, and match its bordered, canvas-subtle surface so both code paths look
+   identical in both colour modes. */
+.articleSection :global(pre.astro-code) {
+  --astro-code-foreground: var(--brand-color-text-default);
+  --astro-code-background: var(--brand-color-canvas-subtle);
+  --astro-code-token-constant: var(--brand-color-accent-primary);
+  --astro-code-token-string: var(--brand-color-accent-primary);
+  --astro-code-token-comment: var(--brand-color-text-muted);
+  --astro-code-token-keyword: var(--brand-color-text-link-rest);
+  --astro-code-token-parameter: var(--brand-color-text-default);
+  --astro-code-token-function: var(--brand-color-text-default);
+  --astro-code-token-string-expression: var(--brand-color-accent-primary);
+  --astro-code-token-punctuation: var(--brand-color-text-default);
+  --astro-code-token-link: var(--brand-color-text-link-rest);
+  margin: 0;
+  padding: var(--base-size-20);
+  overflow-x: auto;
+  border-radius: var(--brand-borderRadius-medium);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-subtle);
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-100);
+  line-height: var(--brand-text-lineHeight-400);
+  tab-size: 2;
+}
+
+.articleSection :global(pre.astro-code):focus-visible {
+  outline: var(--base-size-2) solid var(--brand-color-accent-primary);
+  outline-offset: calc(-1 * var(--base-size-2));
+}
+
 .articleHeading {
   margin: 0;
   /* Two medium gaps separate the title from the text below, while the
