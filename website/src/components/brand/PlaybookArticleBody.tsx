@@ -11,6 +11,7 @@ import type {
 } from "../../lib/playbook-article";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
+import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
 import styles from "./styles/github-copilot-app.module.css";
 
 const CALLOUT_TITLES: Record<CalloutKind, string> = {
@@ -60,7 +61,7 @@ export function PlaybookArticleBody({
   sections,
   tocSections,
   searchIndex = [],
-  contributorsTotal = 0,
+  contributorsTotal = siteContributorsTotal,
 }: {
   /** Site path of this article, e.g. `learning-hub/agentic-workflows`. */
   slug: string;

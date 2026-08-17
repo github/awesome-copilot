@@ -4,6 +4,7 @@ import { Button } from "@primer/react-brand";
 import { useEffect, useRef } from "react";
 
 import type { SearchItem } from "./searchIndex";
+import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
 import mobileStyles from "./styles/TopNav.module.css";
 import { ContributorsNavButton } from "./ContributorsNavButton";
 import { LanguageSelect } from "./LanguageSelect";
@@ -26,7 +27,7 @@ export function TopNav({
   libraryLabel = "Resources",
   playbookLabel = "Playbook",
   contributorsHref,
-  contributorsTotal = 0,
+  contributorsTotal = siteContributorsTotal,
   searchIndex,
   contributorsCurrent = false,
   searchAriaLabel = "Search the library",

@@ -3,6 +3,7 @@ import { Heading, Text } from "@primer/react-brand";
 import styles from "./styles/github-copilot-app.module.css";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
+import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
 import {
   LearningArticleLayout,
   type TocSection,
@@ -42,7 +43,7 @@ export type CookbookSection = {
 export function CookbookIndex({
   sections,
   searchIndex = [],
-  contributorsTotal = 0,
+  contributorsTotal = siteContributorsTotal,
 }: {
   sections: CookbookSection[];
   searchIndex?: SearchItem[];

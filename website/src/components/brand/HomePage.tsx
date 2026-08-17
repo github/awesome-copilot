@@ -28,6 +28,7 @@ import { LearningIcon } from "./LearningIcon";
 import { PageShell } from "./PageShell";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
+import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
 
 const REPO_URL = "https://github.com/github/awesome-copilot";
 const CONTRIBUTING_URL =
@@ -123,7 +124,7 @@ const buildResources = (counts: HomePageCounts): Resource[] => [
 export function HomePage({
   counts,
   searchIndex = [],
-  contributorsTotal = 0,
+  contributorsTotal = siteContributorsTotal,
 }: HomePageProps) {
   const resources = buildResources(counts);
   const internalHref = ({ page, anchor }: { page?: string; anchor?: string }) =>

@@ -1,8 +1,29 @@
 import sitemap from "@astrojs/sitemap";
 import react from "@astrojs/react";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
 import remarkGithubAdmonitionsToDirectives from "remark-github-admonitions-to-directives";
 import pagefindResources from "./src/integrations/pagefind-resources";
+
+// The contributor count is read from the repo's all-contributors manifest at
+// build time and inlined as a literal into both the server render and the
+// client bundle. It cannot be read at module scope in src/ because the shells
+// that display it are `client:load` hydrated: `node:fs` is unavailable in the
+// browser, so the read would fail there and the badge would reset to 0 on
+// hydration even though the server-rendered HTML had the right number.
+function readContributorsTotal() {
+  try {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const rc = JSON.parse(
+      fs.readFileSync(path.resolve(here, "..", ".all-contributorsrc"), "utf8"),
+    );
+    return Array.isArray(rc.contributors) ? rc.contributors.length : 0;
+  } catch {
+    return 0;
+  }
+}
 
 // Playbook course content mirrored from external workshop repos is authored in
 // GitHub admonition syntax (`> [!NOTE]`). This remark plugin rewrites those
@@ -70,6 +91,9 @@ export default defineConfig({
   },
   trailingSlash: "always",
   vite: {
+    define: {
+      __CONTRIBUTORS_TOTAL__: JSON.stringify(readContributorsTotal()),
+    },
     // @primer/react-brand's default entrypoint is CJS, so Node's ESM loader
     // cannot detect its named exports during SSR. The package also ships a
     // proper ESM build; alias to it so named imports resolve in both the

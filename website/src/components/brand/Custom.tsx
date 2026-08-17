@@ -29,6 +29,7 @@ import brandDivider from "./brand-divider-copilot-sitting.webp";
 import { LargeFooter } from "./LargeFooter";
 import { ContributorsHoverCard } from "./ContributorsHoverCard";
 import { ContributorsNavButton } from "./ContributorsNavButton";
+import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
 import { LearningIcon } from "./LearningIcon";
 import type { PrototypePageProps } from "./pageHref";
 import { getAwesomeCopilotNavLinks } from "./navigation";
@@ -137,7 +138,10 @@ export default function AwesomeCopilot({ pageHref }: PrototypePageProps) {
               styles={styles}
               inputAriaLabel="Search the library"
             />
-            <ContributorsNavButton href={pageHref("contributors")} />
+            <ContributorsNavButton
+              href={pageHref("contributors")}
+              total={siteContributorsTotal}
+            />
             <Button as="a" href={CONTRIBUTING_URL} variant="subtle" size="small">
               Contribute
             </Button>

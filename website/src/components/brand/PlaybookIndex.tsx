@@ -29,6 +29,7 @@ import { PageShell } from "./PageShell";
 import { ScrambleText } from "./ScrambleText";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
+import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
 
 type Topic =
   | "Getting started"
@@ -191,7 +192,7 @@ const recommendedCards = [
 export function PlaybookIndex({
   articles,
   searchIndex = [],
-  contributorsTotal = 0,
+  contributorsTotal = siteContributorsTotal,
 }: {
   articles: PlaybookArticle[];
   searchIndex?: SearchItem[];
