@@ -1,15 +1,15 @@
 {
   "name": "signals-dashboard",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "main": "extension.mjs",
   "scripts": {
-    "test": "node --test launch-profile.test.mjs"
+    "test": "node --test launch-profile.test.mjs local-delegation.test.mjs"
   },
   "dependencies": {
     "@github/copilot-sdk": "latest"
   },
-  "description": "Real-time Workshop dashboard with agent signals, honesty calibration, and cost-aware repo or connected desk launch profiles.",
+  "description": "Real-time Workshop dashboard with agent signals, honesty calibration, cost-aware desk profiles, and fail-closed Local Delegation.",
   "keywords": [
     "agent-signals",
     "dashboard",

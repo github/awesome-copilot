@@ -1282,8 +1282,8 @@
     {
       "name": "signals-dashboard",
       "source": "plugins/signals-dashboard",
-      "description": "Real-time Workshop dashboard with agent signals, honesty calibration, and cost-aware repo or connected desk launch profiles.",
-      "version": "0.2.0"
+      "description": "Real-time Workshop dashboard with agent signals, honesty calibration, cost-aware desk profiles, and fail-closed Local Delegation.",
+      "version": "0.3.0"
     },
     {
       "name": "site-studio",
