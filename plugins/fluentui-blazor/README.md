@@ -24,7 +24,7 @@ copilot plugin install fluentui-blazor@awesome-copilot
 
 ### MCP server
 
-This plugin includes the `fluent-ui-blazor` MCP server configured in [`./.mcp.json`](./.mcp.json), published on NuGet as [`Microsoft.FluentUI.AspNetCore.McpServer`](https://www.nuget.org/packages/Microsoft.FluentUI.AspNetCore.McpServer). If the .NET SDK is unavailable, MCP startup will fail.
+This plugin includes the `fluent-ui-blazor` MCP server configured in [`./mcp.json`](./mcp.json), published on NuGet as [`Microsoft.FluentUI.AspNetCore.McpServer`](https://www.nuget.org/packages/Microsoft.FluentUI.AspNetCore.McpServer). If the .NET SDK is unavailable, MCP startup will fail.
 
 It gives the agent authoritative, version-aware answers instead of guesses:
 
@@ -42,7 +42,7 @@ It gives the agent authoritative, version-aware answers instead of guesses:
 They cover different failure modes, and each is weaker alone:
 
 - The **skill** encodes the patterns that models get wrong from training data — the provider components that fail silently when missing, `ServiceLifetime.Transient` throwing, `FluentSelect` not behaving like `InputSelect`, design tokens needing `OnAfterRenderAsync`. This is judgement, not lookup.
-- The **MCP server** supplies the facts that go stale — exact parameter names, enum values, the 142+ component surface, and the icon catalog — read from the library version in use rather than recalled.
+- The **MCP server** supplies the facts that go stale — exact parameter names, enum values, the 142+ component surface, and the icon catalog — looked up in documentation generated at package build time rather than recalled from training data. It serves the library version it was built against, which is why matching versions matters (see Prerequisites).
 
 Installing them as one plugin means a single `copilot plugin install` gets a working Fluent UI Blazor setup, instead of a skill that names components the agent then has to invent parameters for.
 
