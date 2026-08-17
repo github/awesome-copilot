@@ -69,6 +69,13 @@ const githubUrl = item.external
 
 const installCommand = `copilot plugin install ${item.id}@awesome-copilot`;
 
+// Deep link handled by the Copilot app's `ghapp://` protocol handler. The
+// marketplace-qualified source is encoded because the `@` separator is not
+// safe unescaped in a query value.
+const appInstallUrl = `ghapp://plugins/install?source=${encodeURIComponent(
+  `${item.id}@awesome-copilot`,
+)}`;
+
 const lastUpdated = formatLastUpdated(item.lastUpdated);
 
 const base = import.meta.env.BASE_URL ?? "/";
@@ -92,6 +99,7 @@ const siblingOf = (sibling?: PluginItem) =>
     markdownHtml={html}
     githubUrl={githubUrl}
     installCommand={installCommand}
+    appInstallUrl={appInstallUrl}
     lastUpdated={lastUpdated}
     previous={siblingOf(previous)}
     next={siblingOf(next)}

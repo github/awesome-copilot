@@ -1,7 +1,8 @@
-import { CheckIcon, CopyIcon, MarkGithubIcon } from "@primer/octicons-react";
+import { MarkGithubIcon, PlusIcon } from "@primer/octicons-react";
 import React from "react";
 
 import {
+  ActionMenu,
   Box,
   Button,
   Card,
@@ -19,7 +20,6 @@ import { DetailChassis, type DetailSibling } from "./DetailChassis";
 import { ResourceMeta } from "./ResourceMeta";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
-import installStyles from "./styles/github-copilot-app.module.css";
 import gridStyles from "./styles/plugins.module.css";
 import styles from "./styles/dotnet-upgrade.module.css";
 
@@ -57,6 +57,8 @@ export type PluginDetailProps = {
   githubUrl: string;
   /** Copilot CLI command that installs this plugin. */
   installCommand: string;
+  /** `ghapp://` deep link that installs this plugin into the Copilot app. */
+  appInstallUrl: string;
   lastUpdated?: string | null;
   previous?: DetailSibling;
   next?: DetailSibling;
@@ -93,14 +95,16 @@ function itemTitle(item: PluginIncludedItem): string {
  *
  * Differs from the other resource detail pages in three ways: the plugin's
  * bundled contents are rendered as a card grid linking to each item's own
- * detail page, installation is a copyable Copilot CLI command rather than a
- * VS Code deep link, and externally-hosted plugins carry provenance badges.
+ * detail page, installation deep-links into the Copilot app (with the CLI
+ * command offered as a secondary path), and externally-hosted plugins carry
+ * provenance badges.
  */
 export function PluginDetail({
   item,
   markdownHtml,
   githubUrl,
   installCommand,
+  appInstallUrl,
   lastUpdated,
   previous,
   next,
@@ -132,22 +136,29 @@ export function PluginDetail({
   const includedItems = item.items ?? [];
   const hasContents = includedItems.length > 0;
 
+  // Installing straight into the Copilot app is the primary path, so it is the
+  // split button's default action. The CLI command stays available behind the
+  // menu for people working in a terminal or on a machine without the app.
   const install = (
     <>
-      <div className={installStyles.installBar}>
-        <code className={installStyles.installCommand} tabIndex={0}>
-          {installCommand}
-        </code>
-        <button
-          type="button"
-          className={installStyles.installCopy}
-          onClick={handleCopy}
-          aria-label={copied ? "Copied to clipboard" : "Copy install command"}
+      <ActionMenu mode="split-button" menuAlignment="start">
+        <ActionMenu.Button
+          as="a"
+          href={appInstallUrl}
+          variant="primary"
+          leadingVisual={PlusIcon}
         >
-          {copied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
-          <span>{copied ? "Copied" : "Copy"}</span>
-        </button>
-      </div>
+          Install
+        </ActionMenu.Button>
+        <ActionMenu.Overlay aria-label={`Install the ${item.name} plugin`}>
+          <ActionMenu.Item as="a" href={appInstallUrl}>
+            Install in Copilot app
+          </ActionMenu.Item>
+          <ActionMenu.Item onClick={handleCopy}>
+            {copied ? "Copied CLI command" : "Copy CLI install command"}
+          </ActionMenu.Item>
+        </ActionMenu.Overlay>
+      </ActionMenu>
       <Button
         as="a"
         href={githubUrl}
