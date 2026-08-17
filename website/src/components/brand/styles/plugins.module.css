@@ -359,69 +359,6 @@
     var(--brand-color-border-muted);
 }
 
-.accessPanel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--base-size-16);
-  padding: 60px 60px var(--base-size-16);
-}
-
-.accessTitle {
-  margin: 0;
-  font-family: var(--brand-fontStack-monospace);
-  font-size: 14px;
-  font-weight: var(--brand-text-weight-regular);
-  text-transform: uppercase;
-  letter-spacing: var(--brand-text-letterSpacing-100);
-  color: var(--brand-color-text-muted);
-}
-
-.accessList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.accessItem {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  padding-block: var(--base-size-16);
-  border-block-start: var(--brand-borderWidth-thin) dashed
-    var(--brand-color-border-muted);
-}
-
-.accessItem:first-child {
-  border-block-start: none;
-}
-
-.accessLabel {
-  font-weight: var(--brand-heading-weight-500, 600);
-  color: var(--brand-color-text-default);
-}
-
-.accessDesc {
-  color: var(--brand-color-text-muted);
-  margin: 0;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.accessCode {
-  font-family: var(--brand-fontStack-monospace, monospace);
-  font-size: 0.85em;
-  padding: 0.15em 0.4em;
-  border-radius: var(--brand-borderRadius-medium);
-  background-color: var(--brand-color-border-muted);
-  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
-  color: var(--brand-color-text-default);
-  white-space: nowrap;
-}
-
 /* Full-bleed horizontal rule spanning the entire viewport width */
 .rule {
   width: 100%;

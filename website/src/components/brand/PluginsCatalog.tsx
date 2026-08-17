@@ -296,40 +296,6 @@ export function PluginsCatalog({
           </aside>
 
           <Box className={styles.catalogMain}>
-            <Box className={styles.accessPanel} data-mode={colorMode}>
-              <p className={styles.accessTitle}>Access from tools</p>
-              <ul className={styles.accessList}>
-                <li className={styles.accessItem}>
-                  <Text as="span" size="200" className={styles.accessDesc}>
-                    <span className={styles.accessLabel}>GitHub Copilot CLI</span>
-                    {" — Type "}
-                    <code className={styles.accessCode}>
-                      /plugin marketplace browse awesome-copilot
-                    </code>{" "}
-                    in a Copilot session
-                  </Text>
-                </li>
-                <li className={styles.accessItem}>
-                  <Text as="span" size="200" className={styles.accessDesc}>
-                    <span className={styles.accessLabel}>VS Code</span>
-                    {" — Type "}
-                    <code className={styles.accessCode}>@agentPlugins</code> in the
-                    Extensions search view, or run{" "}
-                    <code className={styles.accessCode}>Chat: Plugins</code>
-                  </Text>
-                </li>
-                <li className={styles.accessItem}>
-                  <Text as="span" size="200" className={styles.accessDesc}>
-                    <span className={styles.accessLabel}>Install</span>
-                    {" — "}
-                    <code className={styles.accessCode}>
-                      copilot plugin install &lt;plugin-name&gt;@awesome-copilot
-                    </code>
-                  </Text>
-                </li>
-              </ul>
-            </Box>
-
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
