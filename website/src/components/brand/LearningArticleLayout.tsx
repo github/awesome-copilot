@@ -17,6 +17,7 @@ import {
   Heading,
   Section,
   Text,
+  ThemeProvider,
   useTheme,
 } from "@primer/react-brand";
 
@@ -144,7 +145,15 @@ export type LearningArticleLayoutProps = {
   children: React.ReactNode;
 };
 
-export function LearningArticleLayout({
+export function LearningArticleLayout(props: LearningArticleLayoutProps) {
+  return (
+    <ThemeProvider colorMode="auto">
+      <LearningArticleLayoutBody {...props} />
+    </ThemeProvider>
+  );
+}
+
+function LearningArticleLayoutBody({
   pageHref,
   currentPage,
   breadcrumbLabel,
