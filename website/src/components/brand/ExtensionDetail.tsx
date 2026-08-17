@@ -9,11 +9,7 @@ import React from "react";
 
 import { Button, Token } from "@primer/react-brand";
 
-import {
-  DetailChassis,
-  type DetailSibling,
-  type DetailTocItem,
-} from "./DetailChassis";
+import { DetailChassis, type DetailSibling } from "./DetailChassis";
 import { ResourceMeta } from "./ResourceMeta";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
@@ -42,7 +38,6 @@ export type ExtensionDetailProps = {
   images: ExtensionDetailImage[];
   /** Rendered, sanitized README with heading ids already stamped. */
   markdownHtml: string;
-  toc: DetailTocItem[];
   /** `ghapp://` deep link — absent for external extensions. */
   installUrl?: string | null;
   /** Copilot CLI command — absent for external extensions. */
@@ -103,7 +98,6 @@ export function ExtensionDetail({
   item,
   images,
   markdownHtml,
-  toc,
   installUrl,
   installCommand,
   sourceUrl,
@@ -154,10 +148,6 @@ export function ExtensionDetail({
       </div>
     ) : null;
 
-  const fullToc = hasPreview
-    ? [{ id: PREVIEW_SECTION_ID, label: "Preview" }, ...toc]
-    : toc;
-
   return (
     <DetailChassis
       title={item.name}
@@ -168,7 +158,6 @@ export function ExtensionDetail({
       ]}
       install={install}
       heroExtras={heroExtras}
-      toc={fullToc}
       sidebar={
         <ResourceMeta
           kicker="Extension details"

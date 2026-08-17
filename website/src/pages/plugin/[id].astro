@@ -61,7 +61,7 @@ const { markdownHtml } = item.readmeFile
   ? readResourceMarkdown(item.readmeFile)
   : { markdownHtml: "" };
 
-const { html, toc } = buildDetailToc(markdownHtml);
+const { html } = buildDetailToc(markdownHtml);
 
 const githubUrl = item.external
   ? externalRepoUrl(item.source, [item.repository, item.homepage, GITHUB_TREE])
@@ -90,7 +90,6 @@ const siblingOf = (sibling?: PluginItem) =>
     client:load
     item={item}
     markdownHtml={html}
-    toc={toc}
     githubUrl={githubUrl}
     installCommand={installCommand}
     lastUpdated={lastUpdated}

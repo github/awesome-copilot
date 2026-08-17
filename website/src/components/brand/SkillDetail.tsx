@@ -10,11 +10,7 @@ import React from "react";
 
 import { Button, Text } from "@primer/react-brand";
 
-import {
-  DetailChassis,
-  type DetailSibling,
-  type DetailTocItem,
-} from "./DetailChassis";
+import { DetailChassis, type DetailSibling } from "./DetailChassis";
 import { ResourceMeta } from "./ResourceMeta";
 import {
   SyntaxHighlightedCode,
@@ -51,7 +47,6 @@ export type SkillDetailProps = {
   item: SkillDetailItem;
   /** Rendered, sanitized SKILL.md body with heading ids already stamped. */
   markdownHtml: string;
-  toc: DetailTocItem[];
   /** GitHub tree URL for the skill folder. */
   githubUrl: string;
   /** `https://github.com/.../blob/main` — per-file links are built from this. */
@@ -143,7 +138,6 @@ function encodeRepoPath(filePath: string): string {
 export function SkillDetail({
   item,
   markdownHtml,
-  toc,
   githubUrl,
   githubBlobBase,
   rawBase,
@@ -299,8 +293,6 @@ export function SkillDetail({
           />
         </div>
       }
-      /* Anchors only exist while SKILL.md is on screen. */
-      toc={isPrimary ? toc : []}
       sidebar={
         <ResourceMeta
           kicker="Skill details"

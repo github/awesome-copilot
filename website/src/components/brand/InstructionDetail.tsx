@@ -3,11 +3,7 @@ import React from "react";
 
 import { ActionMenu, Button, Token } from "@primer/react-brand";
 
-import {
-  DetailChassis,
-  type DetailSibling,
-  type DetailTocItem,
-} from "./DetailChassis";
+import { DetailChassis, type DetailSibling } from "./DetailChassis";
 import { ResourceMeta } from "./ResourceMeta";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
@@ -28,7 +24,6 @@ export type InstructionDetailProps = {
   item: InstructionDetailItem;
   /** Rendered, sanitized markdown body with heading ids already stamped. */
   markdownHtml: string;
-  toc: DetailTocItem[];
   /** `chat-instructions` VS Code install URL (see src/lib/detail-page.ts). */
   vscodeUrl: string;
   insidersUrl: string;
@@ -45,7 +40,6 @@ export type InstructionDetailProps = {
 export function InstructionDetail({
   item,
   markdownHtml,
-  toc,
   vscodeUrl,
   insidersUrl,
   githubUrl,
@@ -144,7 +138,6 @@ export function InstructionDetail({
       ]}
       install={install}
       heroExtras={heroExtras}
-      toc={toc}
       sidebar={
         <ResourceMeta
           kicker="Instruction details"

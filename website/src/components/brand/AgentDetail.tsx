@@ -3,11 +3,7 @@ import React from "react";
 
 import { ActionMenu, Button } from "@primer/react-brand";
 
-import {
-  DetailChassis,
-  type DetailSibling,
-  type DetailTocItem,
-} from "./DetailChassis";
+import { DetailChassis, type DetailSibling } from "./DetailChassis";
 import { ResourceMeta } from "./ResourceMeta";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
@@ -29,7 +25,6 @@ export type AgentDetailProps = {
   item: AgentDetailItem;
   /** Rendered, sanitized markdown body with heading ids already stamped. */
   markdownHtml: string;
-  toc: DetailTocItem[];
   vscodeUrl: string;
   insidersUrl: string;
   githubUrl: string;
@@ -45,7 +40,6 @@ export type AgentDetailProps = {
 export function AgentDetail({
   item,
   markdownHtml,
-  toc,
   vscodeUrl,
   insidersUrl,
   githubUrl,
@@ -138,7 +132,6 @@ export function AgentDetail({
         { label: item.title },
       ]}
       install={install}
-      toc={toc}
       sidebar={
         <ResourceMeta
           kicker="Agent details"

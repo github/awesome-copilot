@@ -15,11 +15,7 @@ import {
 import { clsx } from "clsx";
 
 import type { ExternalSource } from "../../lib/external-source";
-import {
-  DetailChassis,
-  type DetailSibling,
-  type DetailTocItem,
-} from "./DetailChassis";
+import { DetailChassis, type DetailSibling } from "./DetailChassis";
 import { ResourceMeta } from "./ResourceMeta";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
@@ -57,7 +53,6 @@ export type PluginDetailProps = {
   item: PluginDetailItem;
   /** Rendered, sanitized README with heading ids already stamped. */
   markdownHtml: string;
-  toc: DetailTocItem[];
   /** GitHub URL for the plugin source (repo tree, or the external repo). */
   githubUrl: string;
   /** Copilot CLI command that installs this plugin. */
@@ -104,7 +99,6 @@ function itemTitle(item: PluginIncludedItem): string {
 export function PluginDetail({
   item,
   markdownHtml,
-  toc,
   githubUrl,
   installCommand,
   lastUpdated,
@@ -182,10 +176,6 @@ export function PluginDetail({
     </div>
   );
 
-  const chassisToc: DetailTocItem[] = hasContents
-    ? [{ id: "plugin-contents", label: "What's included" }, ...toc]
-    : toc;
-
   return (
     <DetailChassis
       title={item.name}
@@ -196,7 +186,6 @@ export function PluginDetail({
       ]}
       install={install}
       heroExtras={heroExtras}
-      toc={chassisToc}
       sidebar={
         <ResourceMeta
           kicker="Plugin details"

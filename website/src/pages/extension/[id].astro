@@ -104,7 +104,7 @@ const images = Array.from(
 const { markdownHtml } = item.readmeFile
   ? readResourceMarkdown(item.readmeFile)
   : { markdownHtml: "" };
-const { html, toc } = buildDetailToc(markdownHtml);
+const { html } = buildDetailToc(markdownHtml);
 
 const lastUpdated = formatLastUpdated(item.lastUpdated ?? null);
 
@@ -139,7 +139,6 @@ const siblingOf = (sibling?: ExtensionItem) =>
     item={item}
     images={images}
     markdownHtml={html}
-    toc={toc}
     installUrl={appInstallUrl}
     installCommand={item.external ? null : item.installCommand}
     sourceUrl={sourceUrl}

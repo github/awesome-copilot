@@ -54,7 +54,7 @@ const { item, previous, next } = Astro.props as {
 const { markdownHtml, rawMarkdown } = readResourceMarkdown(item.skillFile);
 const lastUpdated = formatLastUpdated(item.lastUpdated);
 
-const { html, toc } = buildDetailToc(markdownHtml);
+const { html } = buildDetailToc(markdownHtml);
 
 const githubUrl = `${GITHUB_TREE_BASE}/${item.path}`;
 const installCommand = `gh skills install ${REPO_IDENTIFIER} ${item.id}`;
@@ -72,7 +72,6 @@ const siblingOf = (sibling?: SkillItem) =>
     client:load
     item={item}
     markdownHtml={html}
-    toc={toc}
     githubUrl={githubUrl}
     githubBlobBase={GITHUB_BLOB_BASE}
     rawBase={RAW_BASE}
