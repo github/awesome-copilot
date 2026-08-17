@@ -940,6 +940,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--base-size-16);
+  /* Raw markdown is injected here without Primer Brand components, so it would
+     otherwise inherit `color` from `body` — which sits *outside* the
+     ThemeProvider and therefore always resolves the light-mode token. Setting
+     it here resolves the token inside the themed scope instead. */
+  color: var(--brand-color-text-default);
   padding: var(--base-size-32);
   border-block-start: var(--brand-borderWidth-thin) solid
     var(--brand-color-border-muted);
