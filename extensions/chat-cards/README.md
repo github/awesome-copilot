@@ -8,7 +8,7 @@ sends the values back to the conversation as the agent's next prompt, so a card
 can gather context and steer the session as easily as it presents information.
 
 The extension is a port of an MCP server, which is similar; but renders the cards
-inline of the coversation, instead of rendering the HTML in a separate panel.
+inline of the conversation, instead of rendering the HTML in a separate panel.
 
 ![Chat Cards canvas preview](assets/preview.png)
 
