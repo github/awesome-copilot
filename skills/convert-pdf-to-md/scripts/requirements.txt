@@ -1,0 +1,2 @@
+markitdown[pdf]>=0.1.0
+pymupdf>=1.24.0

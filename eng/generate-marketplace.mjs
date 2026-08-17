@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
@@ -14,7 +15,7 @@ const MARKETPLACE_FILE = path.join(ROOT_FOLDER, ".github/plugin", "marketplace.j
  * @returns {object|null} - Plugin metadata or null if not found
  */
 function readPluginMetadata(pluginDir) {
-  const pluginJsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
+  const pluginJsonPath = path.join(pluginDir, "plugin.json");
 
   if (!fs.existsSync(pluginJsonPath)) {
     console.warn(`Warning: No plugin.json found for ${path.basename(pluginDir)}`);
@@ -30,43 +31,51 @@ function readPluginMetadata(pluginDir) {
   }
 }
 
-/**
- * Generate marketplace.json from plugin directories
- */
-function generateMarketplace() {
-  console.log("Generating marketplace.json...");
-
-  if (!fs.existsSync(PLUGINS_DIR)) {
-    console.error(`Error: Plugins directory not found at ${PLUGINS_DIR}`);
-    process.exit(1);
+function collectLocalPluginsFromRoot(rootDir, sourcePrefix, includeEntry = () => true) {
+  if (!fs.existsSync(rootDir)) {
+    return [];
   }
 
-  // Read all plugin directories
-  const pluginDirs = fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
+  const entries = fs.readdirSync(rootDir, { withFileTypes: true })
     .filter(entry => entry.isDirectory())
+    .filter(entry => includeEntry(entry.name))
     .map(entry => entry.name)
     .sort();
 
-  console.log(`Found ${pluginDirs.length} plugin directories`);
-
-  // Read metadata for each plugin
   const plugins = [];
-  for (const dirName of pluginDirs) {
-    const pluginPath = path.join(PLUGINS_DIR, dirName);
+  for (const dirName of entries) {
+    const pluginPath = path.join(rootDir, dirName);
     const metadata = readPluginMetadata(pluginPath);
 
-    if (metadata) {
-      plugins.push({
-        name: metadata.name,
-        source: dirName,
-        description: metadata.description,
-        version: metadata.version || "1.0.0"
-      });
-      console.log(`✓ Added plugin: ${metadata.name}`);
-    } else {
-      console.log(`✗ Skipped: ${dirName} (no valid plugin.json)`);
+    if (!metadata) {
+      continue;
     }
+
+    plugins.push({
+      name: metadata.name,
+      source: `${sourcePrefix}/${dirName}`,
+      description: metadata.description,
+      version: metadata.version || "1.0.0"
+    });
   }
+
+  return plugins;
+}
+
+/**
+ * Generate marketplace.json from plugin directories
+ */
+export function generateMarketplace() {
+  console.log("Generating marketplace.json...");
+
+  if (!fs.existsSync(PLUGINS_DIR)) {
+    console.error(`Error: Plugins directory (${PLUGINS_DIR}) was not found`);
+    process.exit(1);
+  }
+
+  const plugins = collectLocalPluginsFromRoot(PLUGINS_DIR, "plugins");
+
+  console.log(`Found ${plugins.length} local plugin manifests`);
 
   // Read external plugins and merge as-is
   const { plugins: externalPlugins, errors: externalErrors, warnings: externalWarnings } = readExternalPlugins({
@@ -96,8 +105,7 @@ function generateMarketplace() {
     name: "awesome-copilot",
     metadata: {
       description: "Community-driven collection of GitHub Copilot plugins, agents, prompts, and skills",
-      version: "1.0.0",
-      pluginRoot: "./plugins"
+      version: "1.0.0"
     },
     owner: {
       name: "GitHub",
@@ -119,5 +127,6 @@ function generateMarketplace() {
   console.log(`  Location: ${MARKETPLACE_FILE}`);
 }
 
-// Run the script
-generateMarketplace();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  generateMarketplace();
+}

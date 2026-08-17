@@ -3,7 +3,7 @@ title: 'Defining Custom Instructions'
 description: 'Learn how to create persistent, context-aware instructions that guide GitHub Copilot automatically across your codebase.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-22
+lastUpdated: 2026-07-01
 estimatedReadingTime: '8 minutes'
 tags:
   - instructions
@@ -142,7 +142,38 @@ applyTo: '**'
 **Expected Result**:
 When you work on a file matching the pattern, Copilot incorporates that instruction's context into suggestions and chat responses automatically.
 
-## Real Examples from the Repository
+## Composing Instructions with @-style Imports
+
+*(v1.0.66+)* Copilot CLI supports **@-style imports** in instruction files, AGENTS.md, and CLAUDE.md. Use a bare `@path/to/file.md` reference to embed the content of another file at that point:
+
+```markdown
+---
+description: 'Full TypeScript standards for this project'
+applyTo: '**/*.ts, **/*.tsx'
+---
+
+@shared/base-coding-standards.md
+@shared/security-rules.md
+
+## TypeScript-Specific Rules
+
+- Prefer `interface` over `type` for object shapes
+- Always provide return types for public functions
+```
+
+When the instruction file is loaded, the referenced files are read and their content is substituted inline before being sent to the model.
+
+**Why this matters**:
+- **DRY principle**: Maintain a shared `security-rules.md` and import it into every instruction rather than copying it
+- **Modular composition**: Build complex instructions from small, focused files
+- **Easy updates**: Edit the shared file once; every instruction that imports it picks up the change automatically
+
+**Tips**:
+- Paths are resolved relative to the instruction file's location
+- Referenced files do not need to be instruction files themselves — plain Markdown files work
+- Imports can be nested (a file you import can itself import other files)
+
+
 
 The awesome-copilot-hub repository includes over 120 instruction files demonstrating real-world patterns.
 

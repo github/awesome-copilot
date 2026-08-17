@@ -1,0 +1,9 @@
+---
+const { markdown } = Astro.props as { markdown?: string };
+---
+
+{
+  markdown && (
+    <textarea data-raw-markdown hidden aria-hidden="true" readonly set:text={markdown}></textarea>
+  )
+}

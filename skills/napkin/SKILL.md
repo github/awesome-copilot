@@ -151,4 +151,5 @@ It looks like we haven't started a napkin yet. Want me to open one for you?
 - Always check for the PNG first. If it isn't found, prompt the user to click "Share with Copilot."
 - If the clipboard doesn't have JSON data, proceed with the PNG alone.
 - The HTML template is located at `assets/napkin.html` relative to this SKILL.md file.
+- The walkthrough images `assets/step1-activate.svg`, `assets/step2-whiteboard.svg`, `assets/step3-draw.svg`, `assets/step4-share.svg`, and `assets/step5-response.svg` are documentation illustrations, not runtime inputs.
 - If the noob-mode skill is also active, use its risk indicator format (green/yellow/red) when requesting file or bash permissions.

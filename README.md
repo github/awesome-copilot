@@ -6,13 +6,15 @@ A community-created collection of custom agents, instructions, skills, hooks, wo
 > [!TIP]
 > **Explore the full collection on the website →** [awesome-copilot.github.com](https://awesome-copilot.github.com)
 >
-> The website offers full-text search and filtering across hundreds of resources, plus the [Tools](https://awesome-copilot.github.com/tools) section for MCP servers and developer tooling, and the [Learning Hub](https://awesome-copilot.github.com/learning-hub) for guides and tutorials.
+> The website offers full-text search and filtering across hundreds of resources, plus the [Learning Hub](https://awesome-copilot.github.com/learning-hub) for guides and tutorials.
 >
 > **Using this collection in an AI agent?** A machine-readable [`llms.txt`](https://awesome-copilot.github.com/llms.txt) is available with structured listings of all agents, instructions, and skills.
 
 ## 📖 Learning Hub
 
 New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilot.github.com/learning-hub)** on the website offers curated articles, walkthroughs, and reference material — covering everything from core concepts like agents, skills, and instructions to hands-on guides for hooks, agentic workflows, MCP servers, and the Copilot coding agent.
+
+[⬆ Back to Top](#-awesome-github-copilot)
 
 ## What's in this repo
 
@@ -22,13 +24,9 @@ New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilo
 | 📋 [Instructions](docs/README.instructions.md) | Coding standards applied automatically by file pattern | [All instructions →](https://awesome-copilot.github.com/instructions) |
 | 🎯 [Skills](docs/README.skills.md) | Self-contained folders with instructions and bundled assets | [All skills →](https://awesome-copilot.github.com/skills) |
 | 🔌 [Plugins](docs/README.plugins.md) | Curated bundles of agents and skills for specific workflows | [All plugins →](https://awesome-copilot.github.com/plugins) |
-| 🪝 [Hooks](docs/README.hooks.md) | Automated actions triggered during Copilot agent sessions | [All hooks →](https://awesome-copilot.github.com/hooks) |
-| ⚡ [Agentic Workflows](docs/README.workflows.md) | AI-powered GitHub Actions automations written in markdown | [All workflows →](https://awesome-copilot.github.com/workflows) |
 | 🍳 [Cookbook](cookbook/README.md) | Copy-paste-ready recipes for working with Copilot APIs | — |
 
-## 🛠️ Tools
-
-Looking at how to use Awesome Copilot? Check out the **[Tools section](https://awesome-copilot.github.com/tools)** of the website for MCP servers, editor integrations, and other developer tooling to get the most out of this collection.
+[⬆ Back to Top](#-awesome-github-copilot)
 
 ## Install a Plugin
 
@@ -45,11 +43,15 @@ copilot plugin marketplace add github/awesome-copilot
 copilot plugin install <plugin-name>@awesome-copilot
 ```
 
+[⬆ Back to Top](#-awesome-github-copilot)
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) · [AGENTS.md](AGENTS.md) for AI agent guidance · [Security](SECURITY.md) · [Code of Conduct](CODE_OF_CONDUCT.md)
 
 > The customizations here are sourced from third-party developers. Please inspect any agent and its documentation before installing.
+
+[⬆ Back to Top](#-awesome-github-copilot)
 
 ## Contributors ✨
 
@@ -539,17 +541,12 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/lovyjain"><img src="https://avatars.githubusercontent.com/u/54174168?v=4" width="100px;" alt=""/><br /><sub><b>Lovy Jain</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kimtth"><img src="https://avatars.githubusercontent.com/u/13846660?v=4" width="100px;" alt=""/><br /><sub><b>kimtth</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/AkashAi7"><img src="https://avatars.githubusercontent.com/u/46550108?v=4" width="100px;" alt=""/><br /><sub><b>Akash Dwivedi</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://surenk.com"><img src="https://avatars.githubusercontent.com/u/902972?v=4" width="100px;" alt=""/><br /><sub><b>Suren K</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.cloudblogger.eu"><img src="https://avatars.githubusercontent.com/u/53148138?v=4" width="100px;" alt=""/><br /><sub><b>Konstantinos Passadis | Azure MVP | MCT</b></sub></a></td>
     </tr>
   </tbody>
-  <tfoot>
-    <tr>
-      <td align="center" size="13px" colspan="7">
-        <img src="https://raw.githubusercontent.com/all-contributors/all-contributors-cli/1b8533af435da9854653492b1327a23a4dbd0a10/assets/logo-small.svg">
-          <a href="https://all-contributors.js.org/docs/en/bot/usage">Add your contributions</a>
-        </img>
-      </td>
-    </tr>
-  </tfoot>
 </table>
 
 <!-- markdownlint-restore -->
@@ -557,13 +554,19 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
+<p><a href="https://all-contributors.js.org/docs/en/bot/usage">Add your contributions</a></p>
+
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+
+[⬆ Back to Top](#-awesome-github-copilot)
 
 ## 📚 Additional Resources
 
 - [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
 - [GitHub Copilot Chat Documentation](https://code.visualstudio.com/docs/copilot/chat/copilot-chat) - Complete chat feature guide
 - [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
+
+[⬆ Back to Top](#-awesome-github-copilot)
 
 ## ™️ Trademarks
 

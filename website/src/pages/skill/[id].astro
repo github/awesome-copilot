@@ -1,0 +1,166 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import BackToTop from "../../components/BackToTop.astro";
+import skillsData from "../../../public/data/skills.json";
+import RawMarkdown from "../../components/pages/RawMarkdown.astro";
+import type { HeaderItem } from "../../components/pages/Header.astro";
+import DetailHeader from "../../components/pages/Header.astro";
+import Breadcrumb from "../../components/pages/Breadcrumb.astro";
+import Sidebar from "../../components/pages/Sidebar.astro";
+import FileBrowser from "../../components/pages/FileBrowser.astro";
+import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
+
+const GITHUB_BASE = "https://github.com/github/awesome-copilot/blob/main";
+const GITHUB_TREE_BASE = "https://github.com/github/awesome-copilot/tree/main";
+const REPO_IDENTIFIER = "github/awesome-copilot";
+
+interface SkillFile {
+  name: string;
+  path: string;
+  size?: number;
+}
+
+interface SkillItem extends HeaderItem {
+  id: string;
+  title: string;
+  description?: string;
+  path: string;
+  skillFile: string;
+  files: SkillFile[];
+  hasAssets?: boolean;
+  assetCount?: number;
+  lastUpdated?: string | null;
+}
+
+export function getStaticPaths() {
+  return (skillsData.items as SkillItem[]).map((item) => ({
+    params: { id: item.id },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props as { item: SkillItem };
+
+const { markdownHtml, frontmatterText, rawMarkdown } = readResourceMarkdown(
+  item.skillFile
+);
+const lastUpdated = formatLastUpdated(item.lastUpdated);
+const githubUrl = `${GITHUB_TREE_BASE}/${item.path}`;
+const installCommand = `gh skills install ${REPO_IDENTIFIER} ${item.id}`;
+const skillFileName = item.skillFile.split("/").pop() ?? "SKILL.md";
+
+const fileCount = item.files.length;
+const chips: { title: string; items: string[] }[] = [
+  { title: "Files", items: [`${fileCount} file${fileCount === 1 ? "" : "s"}`] },
+];
+if (item.hasAssets && item.assetCount) {
+  chips.push({
+    title: "Assets",
+    items: [`${item.assetCount} asset${item.assetCount === 1 ? "" : "s"}`],
+  });
+}
+---
+
+<StarlightPage
+  frontmatter={{
+    title: item.title,
+    description: item.description,
+    template: "splash",
+    prev: false,
+    next: false,
+    editUrl: false,
+  }}
+>
+  <div
+    id="main-content"
+    class="resource-detail-page skill-detail-page"
+    data-file-browser-page
+    data-bundle-id={item.id}
+    data-path={item.skillFile}
+  >
+    <RawMarkdown markdown={rawMarkdown} />
+    <div class="container">
+      <Breadcrumb
+        paths={[
+          { name: "Home", href: "/" },
+          { name: "Skills", href: "/skills/" },
+        ]}
+        title={item.title}
+      />
+
+      <DetailHeader item={item} />
+
+      <div class="detail-layout">
+        <div class="detail-main">
+          <FileBrowser
+            files={item.files}
+            primaryPath={item.skillFile}
+            primaryName={skillFileName}
+            primaryHtml={markdownHtml}
+            githubBase={GITHUB_BASE}
+          />
+        </div>
+
+        <Sidebar
+          item={item}
+          lastUpdated={lastUpdated ?? undefined}
+          frontmatterText={frontmatterText || undefined}
+          githubUrl={githubUrl}
+          chips={chips}
+        >
+          <div class="skill-install" slot="install">
+            <p class="skill-install-label">Install with the GitHub CLI</p>
+            <div class="skill-install-command" data-install-command={installCommand}>
+              <code tabindex="0">{installCommand}</code>
+              <button
+                type="button"
+                class="skill-install-copy"
+                data-action="copy-install"
+                title="Copy install command"
+                aria-label="Copy install command"
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  width="15"
+                  height="15"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  ><path
+                    d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"
+                  ></path><path
+                    d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"
+                  ></path></svg
+                >
+              </button>
+            </div>
+            <button
+              type="button"
+              class="btn btn-primary skill-download-btn"
+              data-action="download-zip"
+            >
+              <svg
+                viewBox="0 0 16 16"
+                width="16"
+                height="16"
+                fill="currentColor"
+                aria-hidden="true"
+                ><path
+                  d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"
+                ></path><path
+                  d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"
+                ></path></svg
+              >
+              Download ZIP
+            </button>
+          </div>
+        </Sidebar>
+      </div>
+    </div>
+  </div>
+
+  <BackToTop />
+
+  <script>
+    import "../../scripts/pages/file-browser";
+  </script>
+</StarlightPage>

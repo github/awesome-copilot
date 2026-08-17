@@ -1,0 +1,94 @@
+---
+export interface PluginIncludedItem {
+  kind: string;
+  path: string;
+  title?: string;
+  detailUrl?: string | null;
+}
+
+export interface IncludedItemsProps {
+  items: PluginIncludedItem[];
+  pluginPath: string;
+  githubBase: string;
+}
+
+const { items, pluginPath, githubBase } = Astro.props as IncludedItemsProps;
+
+const KIND_LABELS: Record<string, string> = {
+  agent: "Agents",
+  skill: "Skills",
+  instruction: "Instructions",
+  hook: "Hooks",
+  prompt: "Commands",
+  extension: "Extensions",
+  mcp: "MCP Servers",
+};
+
+const KIND_ORDER = ["agent", "skill", "instruction", "hook", "prompt", "extension", "mcp"];
+
+function githubHref(itemPath: string): string {
+  const normalized = itemPath.replace(/^\.\/+/, "").replace(/\/+$/, "");
+  // Repo-root-relative paths (e.g. extensions/foo, plugins/foo) are used as-is;
+  // plugin-relative paths are resolved against the plugin folder.
+  const isRepoRelative = /^[a-z0-9._-]+\//i.test(normalized) &&
+    (normalized.startsWith("extensions/") ||
+      normalized.startsWith("plugins/") ||
+      normalized.startsWith("agents/") ||
+      normalized.startsWith("skills/") ||
+      normalized.startsWith("instructions/") ||
+      normalized.startsWith("hooks/"));
+  const repoPath = isRepoRelative ? normalized : `${pluginPath}/${normalized}`;
+  // GitHub uses /blob/ for files and /tree/ for directories; /tree/<ref>/<file>
+  // returns 404. Detect files by a trailing extension on the last path segment.
+  const lastSegment = repoPath.split("/").pop() ?? "";
+  const isFile = /\.[a-z0-9]+$/i.test(lastSegment);
+  const base = isFile ? githubBase.replace("/tree/", "/blob/") : githubBase;
+  return `${base}/${repoPath}`;
+}
+
+const grouped = KIND_ORDER.map((kind) => ({
+  kind,
+  label: KIND_LABELS[kind] ?? kind,
+  entries: (items ?? []).filter((item) => item.kind === kind),
+})).filter((group) => group.entries.length > 0);
+---
+
+{
+  grouped.length > 0 && (
+    <section class="detail-section included-items" aria-labelledby="included-heading">
+      <h2 id="included-heading">Included items</h2>
+      <p class="included-items-hint">
+        This plugin bundles the following resources. Installing the plugin brings
+        them all in together.
+      </p>
+      {grouped.map((group) => (
+        <div class="included-group">
+          <h3 class="included-group-title">{group.label}</h3>
+          <ul class="included-list">
+            {group.entries.map((item) => {
+              const href = item.detailUrl ?? githubHref(item.path);
+              const isExternal = !item.detailUrl;
+              return (
+                <li class="included-entry">
+                  <a
+                    class="included-link"
+                    href={href}
+                    {...(isExternal
+                      ? { target: "_blank", rel: "noopener" }
+                      : {})}
+                  >
+                    <span class="included-kind-badge">{item.kind}</span>
+                    <span class="included-title">{item.title || item.path}</span>
+                    {isExternal && (
+                      <span class="included-external-hint">GitHub ↗</span>
+                    )}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </section>
+  )
+}

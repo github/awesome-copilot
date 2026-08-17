@@ -1,0 +1,25 @@
+---
+export type Breadcrumb = {
+  paths: { name: string; href?: string }[];
+  title: string;
+};
+
+const { paths, title } = Astro.props as Breadcrumb;
+---
+
+<nav class="detail-breadcrumbs" aria-label="Breadcrumb">
+  {
+    paths.map((path, index) => (
+      <>
+        {path.href ? (
+          <a href={path.href}>{path.name}</a>
+        ) : (
+          <span>{path.name}</span>
+        )}
+        {index < paths.length - 1 && <span aria-hidden="true">/</span>}
+      </>
+    ))
+  }
+  <span aria-hidden="true">/</span>
+  <span aria-current="page">{title}</span>
+</nav>

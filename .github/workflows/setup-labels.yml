@@ -16,14 +16,6 @@ jobs:
           script: |
             const labels = {
               // Intent labels for PR categorization
-              'targets-main': {
-                color: 'B60205',
-                description: 'PR targets staged instead of main'
-              },
-              'branched-main': {
-                color: 'D93F0B',
-                description: 'PR appears to include plugin files materialized from main'
-              },
               'skills': {
                 color: '1D76DB',
                 description: 'PR touches skills'
@@ -51,6 +43,10 @@ jobs:
               'external-plugin': {
                 color: 'FEF2C0',
                 description: 'Public external plugin submission'
+              },
+              'external-plugin-canvas': {
+                color: '1D76DB',
+                description: 'External plugin submission includes a canvas extension'
               },
               'hooks': {
                 color: 'C2E0C6',

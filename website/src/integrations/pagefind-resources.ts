@@ -41,6 +41,17 @@ const TYPE_PAGES: Record<string, string> = {
   tool: "/tools/",
 };
 
+// Resource types that have a dedicated detail page at /<type>/<id>/. Search
+// results for these should deep-link to the canonical detail page.
+const DETAIL_ROUTE_TYPES = new Set([
+  "agent",
+  "instruction",
+  "skill",
+  "hook",
+  "workflow",
+  "plugin",
+]);
+
 export default function pagefindResources(): AstroIntegration {
   let siteBase = "/";
 
@@ -97,12 +108,15 @@ export default function pagefindResources(): AstroIntegration {
 
           let added = 0;
           for (const record of records) {
+            const hasDetailPage =
+              DETAIL_ROUTE_TYPES.has(record.type) && Boolean(record.id);
             const typePage = TYPE_PAGES[record.type];
-            if (!typePage) continue;
+            // Skip records we can neither deep-link nor point at a listing page.
+            if (!hasDetailPage && !typePage) continue;
 
-            const url = `${base}${typePage.slice(1)}#file=${encodeURIComponent(
-              record.path
-            )}`;
+            const url = hasDetailPage
+              ? `${base}${record.type}/${encodeURIComponent(record.id)}/`
+              : `${base}${typePage.slice(1)}`;
             const typeLabel = TYPE_LABELS[record.type] || record.type;
 
             const addResult = await index.addCustomRecord({

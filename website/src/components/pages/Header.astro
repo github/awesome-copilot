@@ -1,0 +1,13 @@
+---
+export type HeaderItem = {
+  title: string;
+  description?: string;
+};
+
+const { item } = Astro.props as { item: HeaderItem };
+---
+
+<header class="detail-header">
+  <h1>{item.title}</h1>
+  {item.description && <p class="detail-description">{item.description}</p>}
+</header>

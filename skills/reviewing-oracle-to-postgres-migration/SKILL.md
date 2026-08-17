@@ -1,6 +1,6 @@
 ---
 name: reviewing-oracle-to-postgres-migration
-description: 'Identifies Oracle-to-PostgreSQL migration risks by cross-referencing code against known behavioral differences (empty strings, refcursors, type coercion, sorting, timestamps, concurrent transactions, etc.). Use when planning a database migration, reviewing migration artifacts, or validating that integration tests cover Oracle/PostgreSQL differences.'
+description: 'Identifies Oracle-to-PostgreSQL migration risks by cross-referencing code against known behavioral differences (empty strings, refcursors, type coercion, sorting/collations, UNION ALL planner risks, materialized-view refresh requirements, timestamps, concurrent transactions, etc.). Use when planning a database migration, reviewing migration artifacts, or validating that integration tests cover Oracle/PostgreSQL differences.'
 ---
 
 # Oracle-to-PostgreSQL Database Migration
@@ -60,7 +60,7 @@ For each reference in [references/REFERENCE.md](references/REFERENCE.md), confir
 
 **Step 3: Verify integration test coverage**
 
-Confirm tests exercise both the happy path and the failure scenarios highlighted in applicable insights (exceptions, sorting, refcursor consumption, concurrent transactions, timestamps, etc.).
+Confirm tests exercise both the happy path and the failure scenarios highlighted in applicable insights (exceptions, sorting, `UNION ALL` behavior/performance risks, refcursor consumption, concurrent transactions, timestamps, materialized-view freshness, etc.).
 
 **Step 4: Gate the result**
 

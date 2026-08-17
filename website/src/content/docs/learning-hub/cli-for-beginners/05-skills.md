@@ -3,7 +3,7 @@ title: '05 · Automate Repetitive Tasks'
 description: 'Mirror the source chapter on skills that load automatically for repeated GitHub Copilot CLI workflows.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-15
+lastUpdated: 2026-07-03
 ---
 
 ![Chapter 05: Skills System](/images/learning-hub/copilot-cli-for-beginners/05/chapter-header.png)
@@ -364,6 +364,9 @@ Provide issues as a numbered list with severity:
 | `name` | **Yes** | Unique identifier (lowercase, hyphens for spaces) |
 | `description` | **Yes** | What the skill does and when Copilot should use it |
 | `license` | No | License that applies to this skill |
+| `argument-hint` | No | Short hint shown to users describing what argument the skill expects (e.g., `"file path or code snippet"`) |
+
+> 💡 **What is `argument-hint`?** When users invoke a skill directly (e.g., `/security-audit`), the `argument-hint` text appears as a placeholder showing what to type next — like a mini help prompt. For example, setting `argument-hint: "file path to review"` tells the user to provide a file path after the skill name.
 
 > 📖 **Official docs**: [About Agent Skills](https://docs.github.com/copilot/concepts/agents/about-agent-skills)
 
@@ -482,9 +485,29 @@ Discover installed skills, find community skills, and share your own.
 
 ---
 
-## Managing Skills with the `/skills` Command
+## Managing Skills with the `copilot skill` Command and `/skills`
 
-Use the `/skills` command to manage your installed skills:
+Copilot CLI gives you two ways to manage skills. You can do it directly from the terminal before starting Copilot or from inside a Copilot session.
+
+### Option 1: `copilot skill` (Terminal Command)
+
+The `copilot skill` subcommand lets you manage skills directly from your terminal, without opening an interactive Copilot session. This is handy for scripting, quick checks, or adding skills before you start working.
+
+```bash
+# See all installed skills
+copilot skill list
+
+# Add a skill from a local file, URL, or directory
+copilot skill add .github/skills/my-skill/SKILL.md
+copilot skill add https://example.com/skills/security-audit/SKILL.md
+
+# Remove a skill by name
+copilot skill remove security-audit
+```
+
+### Option 2: `/skills` (Inside Copilot Session)
+
+Once you're in an interactive Copilot session, use `/skills` (or its shortcut `/skill`) to manage skills without leaving:
 
 | Command | What It Does |
 |---------|--------------|
@@ -494,11 +517,23 @@ Use the `/skills` command to manage your installed skills:
 | `/skills remove <name>` | Disable or uninstall a skill |
 | `/skills reload` | Reload skills after editing SKILL.md files |
 
+> 💡 **`/skill` shortcut**: You can type `/skill` instead of `/skills` — they're interchangeable. For example, `/skill list` works the same as `/skills list`.
+
 > 💡 **Remember**: You don't need to "activate" skills for each prompt. Once installed, skills are **automatically triggered** when your prompt matches their description. These commands are for managing which skills are available, not for using them.
 
 ### Example: View Your Skills
 
 ```bash
+# From the terminal (no interactive session needed):
+copilot skill list
+
+Available skills:
+- security-audit: Security-focused code review checking OWASP Top 10
+- generate-tests: Generate comprehensive unit tests with edge cases
+- code-checklist: Team code quality checklist
+...
+
+# Or from inside a Copilot session:
 copilot
 
 > /skills list
@@ -862,9 +897,10 @@ Run `/skills reload` after creating or editing skills to ensure changes are pick
 
 1. **Skills are automatic**: Copilot loads them when your prompt matches the skill's description
 2. **Direct invocation**: You can also invoke skills directly with `/skill-name` as a slash command
-3. **SKILL.md format**: YAML frontmatter (name, description, optional license) plus markdown instructions
+3. **SKILL.md format**: YAML frontmatter (name, description, optional license, argument-hint) plus markdown instructions
 4. **Location matters**: `.github/skills/` for project/team sharing, `~/.copilot/skills/` for personal use
 5. **Description is key**: Write descriptions that match how you naturally ask questions
+6. **Two ways to manage skills**: Use `copilot skill` from the terminal or `/skills` (shortcut: `/skill`) inside a session
 
 > 📋 **Quick Reference**: See the [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference) for a complete list of commands and shortcuts.
 

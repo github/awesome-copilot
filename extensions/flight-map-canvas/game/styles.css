@@ -1,0 +1,846 @@
+/* ============================================================
+   3D Flight Simulator - Styles
+   ============================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    background: #000;
+    color: #e0e0e0;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* ---- Canvas Container ---- */
+#canvas-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#canvas-container canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* ---- Top Bar ---- */
+
+/*
+   The selector panel and the location readout share one row. The bar
+   mirrors the selector panel's measured width as right padding so the
+   readout reads as centered in the panel rather than in the space left
+   over beside the menu. When the panel is too narrow for both, app.js
+   adds .stacked and the readout takes its own row underneath.
+
+   --selector-width and --top-bar-height are published by app.js.
+*/
+#top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: auto;
+    z-index: 100;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 12px;
+    padding-right: calc(12px + var(--selector-width, 0px));
+    pointer-events: none;
+}
+
+#top-bar.stacked {
+    padding-right: 12px;
+}
+
+/* ---- Capital Selector ---- */
+#selector-panel {
+    flex: 0 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.65);
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(100, 200, 255, 0.2);
+    backdrop-filter: blur(8px);
+    pointer-events: auto;
+}
+
+#selector-panel label {
+    font-size: 0.75rem;
+    color: #88bbdd;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#capital-select {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    border: 1px solid rgba(100, 200, 255, 0.3);
+    border-radius: 3px;
+    background: rgba(10, 20, 40, 0.9);
+    color: #c0e0f0;
+    cursor: pointer;
+    flex: 1 1 auto;
+    min-width: 140px;
+    max-width: 100%;
+    outline: none;
+}
+
+#capital-select:focus {
+    border-color: rgba(100, 200, 255, 0.6);
+}
+
+#capital-select optgroup {
+    color: #66aacc;
+    font-weight: bold;
+}
+
+#capital-select option {
+    color: #c0e0f0;
+    background: #0a1428;
+}
+
+/* ---- HUD Overlay ---- */
+#hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    pointer-events: none;
+}
+
+/* Location display (lives in #top-bar; the flex basis below is mirrored
+   by LOCATION_MIN_WIDTH in app.js, which decides when to stack) */
+#hud-location {
+    /* flex: 1 1 240px; */
+    min-width: 0;
+    text-align: center;
+}
+
+/* Both lines sit over bright satellite imagery, so they carry a hard
+   1px drop shadow rather than a blurred glow. A blur radius spreads the
+   dark halo through the glyphs themselves and softens the strokes, which
+   is what made the coordinates unreadable against a pale sky. */
+#hud-capital {
+    font-size: calc(1rem + 2pt);
+    color: rgb(235, 246, 255);
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* white-space: pre keeps the two spaces that separate the latitude from
+   the longitude; normal whitespace handling would collapse them to one */
+#hud-coords {
+    font-size: calc(0.72rem + 2pt);
+    color: rgb(214, 234, 250);
+    margin-top: 2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre;
+}
+
+/* Heading: sits under the top bar at whatever height it settled on */
+#hud-heading {
+    position: absolute;
+    top: calc(var(--top-bar-height, 56px) + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.35);
+    padding: 3px 16px;
+    border-radius: 3px;
+    border: 1px solid rgba(100, 200, 255, 0.15);
+}
+
+#hud-heading-value {
+    font-size: 0.9rem;
+    color: rgba(100, 220, 255, 0.85);
+    text-shadow: 0 0 6px rgba(0, 100, 200, 0.3);
+}
+
+/* Speed (left side) */
+#hud-speed {
+    position: absolute;
+    left: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 10px 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(100, 200, 255, 0.15);
+}
+
+#hud-speed .hud-label {
+    font-size: 0.65rem;
+    color: rgba(100, 200, 255, 0.5);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+}
+
+#hud-speed-value {
+    font-size: 1.6rem;
+    color: rgba(100, 255, 180, 0.9);
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(0, 200, 100, 0.3);
+}
+
+#hud-speed .hud-unit {
+    font-size: 0.6rem;
+    color: rgba(100, 200, 255, 0.4);
+    margin-top: 2px;
+}
+
+/* Altitude (right side) */
+#hud-altitude {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 10px 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(100, 200, 255, 0.15);
+}
+
+#hud-altitude .hud-label {
+    font-size: 0.65rem;
+    color: rgba(100, 200, 255, 0.5);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+}
+
+#hud-altitude-value {
+    font-size: 1.6rem;
+    color: rgba(255, 200, 100, 0.9);
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(200, 150, 0, 0.3);
+}
+
+#hud-altitude .hud-unit {
+    font-size: 0.6rem;
+    color: rgba(100, 200, 255, 0.4);
+    margin-top: 2px;
+}
+
+/* Crosshair */
+#hud-crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    color: rgba(200, 230, 255, 0.4);
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    line-height: 1;
+}
+
+/* Pitch indicator */
+#hud-pitch {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(80px);
+    text-align: center;
+}
+
+#hud-pitch-value {
+    font-size: 0.75rem;
+    color: rgba(180, 200, 255, 0.6);
+}
+
+/* ---- Click to Fly Prompt ---- */
+#fly-prompt {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 80;
+    text-align: center;
+    pointer-events: none;
+}
+
+#fly-prompt .prompt-text {
+    font-size: 1.8rem;
+    color: rgba(180, 220, 255, 0.9);
+    text-shadow: 0 0 20px rgba(50, 150, 255, 0.5);
+    animation: pulse 2s ease-in-out infinite;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#fly-prompt .prompt-hint {
+    margin-top: 8px;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    color: rgba(120, 170, 210, 0.6);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+/* ---- Controls Help ---- */
+#controls-help {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 80;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: 1px solid rgba(100, 200, 255, 0.15);
+    pointer-events: none;
+    font-size: 0.72rem;
+    color: rgba(160, 200, 230, 0.8);
+    line-height: 1.6;
+    transition: opacity 2s ease;
+}
+
+#controls-help.fade-out {
+    opacity: 0;
+}
+
+/* ---- Static Controls List ---- */
+#controls-list {
+    position: fixed;
+    left: 12px;
+    bottom: 20px;
+    z-index: 60;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(100, 200, 255, 0.1);
+    border-radius: 4px;
+    padding: 8px 12px;
+    pointer-events: none;
+    font-size: 0.62rem;
+    color: rgba(150, 190, 220, 0.6);
+}
+
+#controls-list .controls-title {
+    font-size: 0.58rem;
+    color: rgba(120, 170, 210, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+}
+
+#controls-list ul {
+    list-style: none;
+}
+
+#controls-list li {
+    line-height: 1.55;
+    white-space: nowrap;
+}
+
+#controls-list li span {
+    display: inline-block;
+    width: 52px;
+    color: rgba(120, 210, 255, 0.7);
+}
+
+/* ---- Pause Indicator ---- */
+#pause-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 95;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 220, 120, 0.3);
+    pointer-events: none;
+    font-size: 1.6rem;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: rgba(255, 220, 120, 0.9);
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+/* ---- Loading Overlay ---- */
+#loading-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 90;
+    text-align: center;
+    background: rgba(0, 10, 30, 0.85);
+    padding: 30px 50px;
+    border-radius: 10px;
+    border: 1px solid rgba(100, 200, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+#loading-text {
+    font-size: 1rem;
+    color: rgba(150, 200, 240, 0.9);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#loading-bar-container {
+    width: 240px;
+    height: 4px;
+    background: rgba(50, 80, 120, 0.5);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+#loading-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #2288cc, #44ccff);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+#loading-progress {
+    font-size: 0.8rem;
+    color: rgba(100, 180, 230, 0.7);
+    margin-top: 8px;
+}
+
+/* ---- Welcome Screen ---- */
+#welcome {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 70;
+    text-align: center;
+    pointer-events: none;
+}
+
+#welcome h1 {
+    font-size: 2.2rem;
+    color: rgba(180, 220, 255, 0.9);
+    font-weight: 300;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 30px rgba(50, 150, 255, 0.3);
+    margin-bottom: 8px;
+}
+
+#welcome p {
+    font-size: 0.85rem;
+    color: rgba(130, 170, 210, 0.6);
+    letter-spacing: 1px;
+}
+
+#welcome .welcome-hint {
+    margin-top: 20px;
+    font-size: 0.75rem;
+    color: rgba(100, 150, 200, 0.5);
+    animation: pulse 3s ease-in-out infinite;
+}
+
+/* ---- Agent Status ---- */
+
+/* Clears the controls help that sits at the bottom edge, so both can be
+   on screen during the five seconds before the help fades */
+#agent-status {
+    position: fixed;
+    bottom: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 90;
+    max-width: min(560px, calc(100vw - 24px));
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: 20px;
+    background: rgba(0, 8, 24, 0.8);
+    border: 1px solid rgba(100, 200, 255, 0.25);
+    font-size: 0.75rem;
+    color: rgba(200, 230, 255, 0.9);
+    pointer-events: none;
+}
+
+#agent-status-dot {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #66ddaa;
+    animation: pulse 1.6s ease-in-out infinite;
+}
+
+/* A finished job leaves the last status readable but stops the pulse */
+#agent-status.idle #agent-status-dot {
+    background: rgba(120, 170, 210, 0.5);
+    animation: none;
+}
+
+#agent-status-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#agent-status-tokens {
+    flex: 0 0 auto;
+    color: rgba(120, 200, 255, 0.65);
+}
+
+#agent-status-tokens:empty {
+    display: none;
+}
+
+/* ---- Utility ---- */
+.hidden {
+    display: none !important;
+}
+
+/* ---- Destination Input Dialog ---- */
+
+/* The "Input Destination" entry is the only action in the menu, so it
+   is set apart from the capitals listed under it. */
+#opt-input-destination {
+    background: #e8edf1;
+    color: #16283f;
+    font-weight: bold;
+}
+
+/* Sits above the top bar so the dialog is never partly behind the menu,
+   and covers the canvas so a click cannot engage flight behind it. The
+   card hangs from just under the bar rather than centering, so it stays
+   next to the menu entry that opened it. */
+#destination-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px;
+    padding-top: calc(var(--top-bar-height, 56px) + 16px);
+    background: rgba(4, 12, 24, 0.45);
+}
+
+.destination-card {
+    width: 100%;
+    max-width: 400px;
+    max-height: calc(100vh - var(--top-bar-height, 56px) - 40px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border-radius: 14px;
+    background: rgba(238, 242, 245, 0.97);
+    border: 1px solid rgba(120, 160, 200, 0.45);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+#destination-form,
+#destination-results {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dest-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Fixed basis keeps the three fields on one left edge regardless of
+   how wide the individual label text is */
+.dest-label {
+    flex: 0 0 92px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #ccd4da;
+    color: #1c2b3d;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.dest-row input,
+.dest-row select {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 9px 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border: 1px solid rgba(80, 130, 180, 0.35);
+    background: #16283f;
+    color: #dceaf6;
+    outline: none;
+}
+
+.dest-row input::placeholder {
+    color: rgba(190, 215, 235, 0.55);
+}
+
+.dest-row input:focus,
+.dest-row select:focus {
+    border-color: rgba(120, 200, 255, 0.85);
+}
+
+.dest-row select option {
+    background: #16283f;
+    color: #dceaf6;
+}
+
+#dest-result-list {
+    list-style: none;
+    max-height: 210px;
+    overflow-y: auto;
+    padding: 6px 4px;
+    border-radius: 10px;
+    border: 1px solid rgba(80, 130, 180, 0.35);
+    background: #16283f;
+    outline: none;
+}
+
+#dest-result-list:focus {
+    border-color: rgba(120, 200, 255, 0.85);
+}
+
+/* The dashed rule between rows is a bottom border on every row but the
+   last, so the list reads as separated entries rather than a paragraph */
+.dest-result {
+    padding: 9px 10px;
+    border-radius: 6px;
+    color: #dceaf6;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-bottom: 1px dashed rgba(140, 185, 225, 0.4);
+}
+
+.dest-result:last-child {
+    border-bottom: none;
+}
+
+.dest-result:hover {
+    background: rgba(90, 140, 190, 0.25);
+}
+
+.dest-result.active {
+    background: rgba(110, 165, 215, 0.45);
+    color: #ffffff;
+}
+
+.dest-message {
+    min-height: 1em;
+    font-size: 0.72rem;
+    color: #7a1f1f;
+}
+
+#dest-results-message {
+    color: #33465c;
+}
+
+.dest-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.dest-actions button {
+    flex: 1 1 0;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    border: 1px solid rgba(80, 130, 180, 0.35);
+    background: #16283f;
+    color: #dceaf6;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.dest-actions button:hover:not(:disabled) {
+    background: #21395a;
+    border-color: rgba(120, 200, 255, 0.7);
+}
+
+.dest-actions button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* ---- Selector Panel Buttons ---- */
+#selector-panel button {
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    font-family: inherit;
+    border: 1px solid rgba(100, 200, 255, 0.3);
+    border-radius: 3px;
+    background: rgba(10, 20, 40, 0.9);
+    color: #c0e0f0;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+#selector-panel button:hover {
+    border-color: rgba(100, 200, 255, 0.6);
+    background: rgba(20, 40, 70, 0.9);
+}
+
+#btn-export-json {
+    color: #88ddaa !important;
+    border-color: rgba(100, 255, 160, 0.3) !important;
+}
+
+#btn-export-json:hover {
+    border-color: rgba(100, 255, 160, 0.6) !important;
+}
+
+/* ---- Render Config Panel ---- */
+#config-panel {
+    position: fixed;
+    top: calc(var(--top-bar-height, 56px) + 12px);
+    left: 12px;
+    z-index: 100;
+    width: 320px;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - var(--top-bar-height, 56px) - 36px);
+    overflow-y: auto;
+    background: rgba(0, 8, 24, 0.88);
+    padding: 14px 16px;
+    border-radius: 6px;
+    border: 1px solid rgba(100, 200, 255, 0.2);
+    backdrop-filter: blur(10px);
+    font-size: 0.72rem;
+}
+
+#config-panel h3 {
+    font-size: 0.85rem;
+    color: rgba(180, 220, 255, 0.9);
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+#config-panel .config-hint {
+    font-size: 0.65rem;
+    color: rgba(120, 170, 210, 0.6);
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+#config-panel fieldset {
+    border: 1px solid rgba(100, 200, 255, 0.12);
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+}
+
+#config-panel legend {
+    font-size: 0.7rem;
+    color: #66aacc;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0 6px;
+}
+
+.cfg-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.cfg-row label {
+    flex: 0 0 100px;
+    font-size: 0.68rem;
+    color: rgba(160, 200, 230, 0.8);
+    text-align: right;
+}
+
+.cfg-row input[type="range"] {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(50, 80, 120, 0.5);
+    border-radius: 2px;
+    outline: none;
+}
+
+.cfg-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #44ccff;
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.cfg-row input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #44ccff;
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.cfg-row input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: #44ccff;
+}
+
+.cfg-row span {
+    flex: 0 0 50px;
+    font-size: 0.65rem;
+    color: rgba(100, 220, 255, 0.85);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbar has styling for config panel */
+#config-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+#config-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#config-panel::-webkit-scrollbar-thumb {
+    background: rgba(100, 200, 255, 0.2);
+    border-radius: 2px;
+}

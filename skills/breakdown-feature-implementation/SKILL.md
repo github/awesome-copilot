@@ -56,9 +56,6 @@ Create a comprehensive system architecture diagram using Mermaid that shows how 
 Use subgraphs to organize these layers clearly. Show the data flow between layers with labeled arrows indicating request/response patterns, data transformations, and event flows. Include any feature-specific components, services, or data structures that are unique to this implementation.
 
 - **Technology Stack Selection**: Document choice rationale for each layer
-```
-
-- **Technology Stack Selection**: Document choice rationale for each layer
 - **Integration Points**: Define clear boundaries and communication protocols
 - **Deployment Architecture**: Docker containerization strategy
 - **Scalability Considerations**: Horizontal and vertical scaling approaches
