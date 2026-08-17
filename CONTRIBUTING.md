@@ -148,7 +148,7 @@ Canvas extensions live in `extensions/<extension-id>/` as reusable source compon
    - Optional: `author`, `keywords`
    - `extensions.com.github.copilot.logo` **must** be exactly `"assets/preview.png"`
 3. **Screenshot requirements**: Create `assets/preview.png` as your primary visual
-   - For best results use an aspect ratio of **16:10**
+   - For best results, use an aspect ratio of **16:10**
 4. **Do not add `canvas.json`**: Extension website metadata is sourced from the matching plugin manifest
 5. **Validate before submitting**: Run `npm run plugin:validate` to check compliance with conventions
 
