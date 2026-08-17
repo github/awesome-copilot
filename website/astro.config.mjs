@@ -15,13 +15,22 @@ import pagefindResources from "./src/integrations/pagefind-resources";
 // browser, so the read would fail there and the badge would reset to 0 on
 // hydration even though the server-rendered HTML had the right number.
 function readContributorsTotal() {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const manifest = path.resolve(here, "..", ".all-contributorsrc");
   try {
-    const here = path.dirname(fileURLToPath(import.meta.url));
-    const rc = JSON.parse(
-      fs.readFileSync(path.resolve(here, "..", ".all-contributorsrc"), "utf8"),
-    );
-    return Array.isArray(rc.contributors) ? rc.contributors.length : 0;
-  } catch {
+    const rc = JSON.parse(fs.readFileSync(manifest, "utf8"));
+    if (!Array.isArray(rc.contributors)) {
+      throw new Error("`contributors` is missing or is not an array");
+    }
+    return rc.contributors.length;
+  } catch (error) {
+    const message = `Could not read the contributor count from ${manifest}: ${error.message}`;
+    // Falling back to 0 silently is how this badge regressed before, so make a
+    // broken manifest fail the production build rather than ship a wrong count.
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(message);
+    }
+    console.warn(`[contributors] ${message}`);
     return 0;
   }
 }
