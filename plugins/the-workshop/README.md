@@ -45,6 +45,13 @@ Each desk card has two launch choices:
 - **connected** — the full configured tool surface for work that needs external
   systems such as issue trackers, mail, or service APIs.
 
+The summary bar also has a **Local** toggle. It is orthogonal to repo/connected:
+when available and on, the frontier desk may use
+[Sealed Delegation](https://github.com/jennyf19/sealed-delegation)'s
+`local-agent-delegation` skill for bounded read/evidence work. Availability is
+fail-closed (installed skill + qualified route receipt). Local output is a
+proposal and never earns savings credit on its own.
+
 Set `WORKSHOP_DESK_PROFILE=connected` to make the main **open** button use the
 full tool surface; in that mode the separate **connected** button is omitted.
 
