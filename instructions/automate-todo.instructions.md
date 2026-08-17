@@ -1,5 +1,6 @@
 ---
 description: 'Complete TODO.md items nested under the level 2 header "Current".'
+applyTo:  '**/*'
 ---
 
 # Automate TODO
@@ -37,8 +38,8 @@ Once completed, update:
           - Updates **partially applied**, and:
             - Revert relevant files according to failing and passing updates
           - Updates **not applied**, and:
-            - Restore all relevant files, so essentially:
-              - In the terminal run: `git restore .`
+            - Leave failed updates in place and report them for review; do not discard
+              uncommitted workspace changes without explicit user confirmation
 
 ## Nested **From** List Items or Property
 
@@ -133,7 +134,10 @@ Resolve to the `Applying Next Version Update` section of this document, then:
 
 ## Move Completed `TODO` items
 
-Run a script that would evaluate to `node todo.mjs`:
+Ask for the user's permission to save the following script as
+`scripts/todo.mjs`, if `nodeJS` is installed, else if the user does not approve
+the addition of the script or `nodeJS` is not installed, then update the
+`TODO.md` file as it would be updated from running the following script:
 
 ### `todo.mjs`
 
