@@ -112,7 +112,11 @@ const SANITIZE_VOID_TAGS = new Set(["br", "hr", "img"]);
 // missing here, or failing its validator, is dropped.
 const SAFE_CLASS_PATTERN = /^[a-zA-Z0-9_ -]*$/;
 const SAFE_ATTR_RULES = {
-  "*": { class: (v) => SAFE_CLASS_PATTERN.test(v), title: () => true },
+  "*": {
+    class: (v) =>
+      SAFE_CLASS_PATTERN.test(v) && !v.split(/\s+/).some((className) => className.startsWith("mcc-")),
+    title: () => true,
+  },
   a: { href: (v) => isHttpUrl(v.trim()) },
   img: {
     src: (v) => isDisplayableImageUrl(v),
