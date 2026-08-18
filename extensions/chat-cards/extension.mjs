@@ -941,7 +941,13 @@ function readJsonBody(req) {
   });
 }
 
-async function handleCanvasRequest(req, res) {
+// A panel's server answers for exactly one canvas instance: the id is
+// bound when the server is created rather than taken from the request.
+// Ports are recycled as panels close and reopen, so a page orphaned by an
+// earlier panel can reach a later panel's server; its token is still in
+// memory and would otherwise let it go on reading and changing its old
+// deck through a port that now belongs to someone else.
+async function handleCanvasRequest(req, res, servedInstanceId) {
   let url;
   try {
     url = new URL(req.url, `http://${req.headers.host ?? "127.0.0.1"}`);
@@ -952,7 +958,7 @@ async function handleCanvasRequest(req, res) {
   }
   const instanceId = url.searchParams.get("instance");
   const token = url.searchParams.get("token");
-  if (!instanceId || !validateToken(instanceId, token)) {
+  if (instanceId !== servedInstanceId || !validateToken(instanceId, token)) {
     res.writeHead(403);
     res.end("Forbidden");
     return;
@@ -1111,7 +1117,7 @@ async function startCanvasServer(instanceId) {
   const existing = canvasServers.get(instanceId);
   if (existing) return existing;
 
-  const server = http.createServer(handleCanvasRequest);
+  const server = http.createServer((req, res) => handleCanvasRequest(req, res, instanceId));
   const sockets = new Set();
   // Connections are tracked for teardown and unref'd on arrival so an open
   // keep-alive or SSE socket can never keep this process alive by itself.
