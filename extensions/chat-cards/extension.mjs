@@ -118,8 +118,10 @@ function flushStateSync() {
       .slice(0, MAX_PERSISTED_DECKS),
   );
   try {
-    mkdirSync(path.dirname(STATE_FILE), { recursive: true });
-    writeFileSync(`${STATE_FILE}.tmp`, JSON.stringify({ version: STATE_VERSION, instances: kept }));
+    mkdirSync(path.dirname(STATE_FILE), { recursive: true, mode: 0o700 });
+    writeFileSync(`${STATE_FILE}.tmp`, JSON.stringify({ version: STATE_VERSION, instances: kept }), {
+      mode: 0o600,
+    });
     renameSync(`${STATE_FILE}.tmp`, STATE_FILE);
   } catch {
     // Persistence is best effort; the live deck is unaffected.
@@ -786,7 +788,10 @@ async function handleCanvasRequest(req, res) {
 
   try {
     if (req.method === "GET" && url.pathname === "/") {
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      res.writeHead(200, {
+        "Content-Type": "text/html; charset=utf-8",
+        "Referrer-Policy": "no-referrer",
+      });
       res.end(CANVAS_PAGE);
       return;
     }
