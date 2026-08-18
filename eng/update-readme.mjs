@@ -791,10 +791,13 @@ function generatePluginsSection(pluginsDir) {
     if (typeof configured === "object" && configured !== null) {
       mcpServersObj = configured;
     } else {
-      const candidates =
-        typeof configured === "string"
+      const candidates = [
+        ...(typeof configured === "string"
           ? [configured.replace(/^\.\//, "")]
-          : ["mcp.json", ".mcp.json"];
+          : []),
+        "mcp.json",
+        ".mcp.json",
+      ];
       for (const candidate of candidates) {
         const mcpJsonPath = path.join(pluginDir, candidate);
         if (!fs.existsSync(mcpJsonPath)) {

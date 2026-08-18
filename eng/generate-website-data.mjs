@@ -601,10 +601,13 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
         if (typeof composition.mcpServers === "object" && composition.mcpServers !== null) {
           mcpServersObj = composition.mcpServers;
         } else {
-          const candidates =
-            typeof composition.mcpServers === "string"
+          const candidates = [
+            ...(typeof composition.mcpServers === "string"
               ? [composition.mcpServers.replace(/^\.\//, "")]
-              : ["mcp.json", ".mcp.json"];
+              : []),
+            "mcp.json",
+            ".mcp.json",
+          ];
           for (const candidate of candidates) {
             const mcpJsonPath = path.join(pluginDir, candidate);
             if (!fs.existsSync(mcpJsonPath)) {
