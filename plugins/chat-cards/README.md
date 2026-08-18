@@ -9,9 +9,9 @@ can gather context and steer the session as easily as it presents information.
 
 ## Installation
 
-``bash
+```bash
 copilot plugin install chat-cards@awesome-copilot
-``
+```
 
 ## Source
 

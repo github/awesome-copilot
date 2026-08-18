@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chat Cards</title>
 <style id="mcc-theme">
-/* Card theme ported from the mcp-chat-cards project (src/cards/theme.ts).
+/* Card theme for the Chat Cards deck.
    Palette: 60% light cool primary surfaces, 30% secondary cool tones,
    10% accent, dark neutral text on light backgrounds. The dark palette is
    applied via data-theme on the root element. */
@@ -241,6 +241,7 @@ ul.mcc-legend .mcc-swatch { display: inline-block; width: 10px; height: 10px; bo
 
 /* Tutor terms and tooltip */
 .mcc-term { border-bottom: 1px dotted var(--mcc-primary); cursor: help; }
+.mcc-term:focus-visible { outline: 2px solid var(--mcc-primary); outline-offset: 1px; }
 #mcc-tooltip {
   position: fixed;
   z-index: 40;
@@ -365,6 +366,7 @@ img { max-width: 100%; height: auto; }
   <div>
     <span class="mcc-deck-brand">Chat Cards</span>
     <span class="mcc-deck-count" id="mcc-count"></span>
+    <span class="mcc-deck-count" id="mcc-conn" role="status" aria-live="polite"></span>
   </div>
   <div class="mcc-tools">
     <button type="button" class="mcc-btn" id="mcc-theme-btn" title="Toggle light/dark theme">&#x263E;</button>
@@ -390,6 +392,7 @@ img { max-width: 100%; height: auto; }
   var deck = document.getElementById("mcc-deck");
   var emptyState = document.getElementById("mcc-empty");
   var countEl = document.getElementById("mcc-count");
+  var connEl = document.getElementById("mcc-conn");
   var tooltip = document.getElementById("mcc-tooltip");
   var menu = document.getElementById("mcc-menu");
   var configs = {}; // cardId -> runtime config (kind, dwellMs, contextActions, draggable)
@@ -473,11 +476,21 @@ img { max-width: 100%; height: auto; }
     });
   }
 
-  if (DEMO) {
-    setDeck(DEMO);
-  } else {
-    var source = new EventSource("/events?" + AUTH);
+  // The extension process (and with it this page's /events endpoint) dies
+  // whenever the host stops it, while this page can live on inside a hidden
+  // WebView. EventSource's built-in retry would then hit localhost every
+  // couple of seconds forever from an orphaned panel, so reconnection is
+  // managed by hand: a few backed-off attempts, then stop for good. When the
+  // deck comes back, the host hands the panel a fresh URL via canvas.open.
+  var source = null;
+  var reconnectAttempts = 0;
+  var MAX_RECONNECT_ATTEMPTS = 8;
+
+  function connectEvents() {
+    source = new EventSource("/events?" + AUTH);
     source.addEventListener("init", function (event) {
+      reconnectAttempts = 0;
+      connEl.textContent = "";
       setDeck(JSON.parse(event.data).cards);
     });
     source.addEventListener("upsert", function (event) {
@@ -490,6 +503,22 @@ img { max-width: 100%; height: auto; }
     source.addEventListener("reorder", function (event) {
       applyOrder(JSON.parse(event.data).order);
     });
+    source.onerror = function () {
+      source.close();
+      reconnectAttempts += 1;
+      if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
+        connEl.textContent = "- disconnected; reopen the canvas panel to reconnect";
+        return;
+      }
+      connEl.textContent = "- reconnecting...";
+      setTimeout(connectEvents, Math.min(30000, 1000 * Math.pow(2, reconnectAttempts)));
+    };
+  }
+
+  if (DEMO) {
+    setDeck(DEMO);
+  } else {
+    connectEvents();
     updateChrome();
   }
 
@@ -669,10 +698,30 @@ img { max-width: 100%; height: auto; }
     return 'Form "' + title + '" submitted:\n' + lines.join("\n");
   }
 
+  // A required multi-checkbox group means "check at least one". HTML cannot
+  // express that natively, so the builder marks the fieldset with
+  // data-mcc-require-one and the first box carries a custom validity that
+  // checkValidity()/reportValidity() surface like any native constraint.
+  function enforceRequiredGroups(form) {
+    var groups = form.querySelectorAll("[data-mcc-require-one]");
+    Array.prototype.forEach.call(groups, function (group) {
+      var boxes = group.querySelectorAll('input[type="checkbox"]');
+      if (boxes.length === 0) return;
+      var satisfied = Array.prototype.some.call(boxes, function (box) { return box.checked; });
+      boxes[0].setCustomValidity(satisfied ? "" : "Select at least one option.");
+    });
+  }
+
+  document.addEventListener("change", function (event) {
+    var form = event.target.form;
+    if (form && event.target.closest("[data-mcc-require-one]")) enforceRequiredGroups(form);
+  });
+
   document.addEventListener("submit", function (event) {
     var form = event.target.closest(".mcc-form");
     if (!form) return;
     event.preventDefault();
+    enforceRequiredGroups(form);
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
@@ -705,6 +754,30 @@ img { max-width: 100%; height: auto; }
 
   // ---- tutor term tooltips ----------------------------------------------
   var dwellTimer = null;
+
+  function showTooltip(term) {
+    var tip = term.getAttribute("data-tip");
+    if (!tip) return;
+    tooltip.textContent = tip;
+    tooltip.style.display = "block";
+    var rect = term.getBoundingClientRect();
+    var x = Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 12);
+    var y = rect.bottom + 8;
+    if (y + tooltip.offsetHeight > window.innerHeight) y = rect.top - tooltip.offsetHeight - 8;
+    tooltip.style.left = Math.max(6, x) + "px";
+    tooltip.style.top = Math.max(6, y) + "px";
+    term.setAttribute("aria-describedby", "mcc-tooltip");
+  }
+
+  function hideTooltip() {
+    clearTimeout(dwellTimer);
+    tooltip.style.display = "none";
+    var described = document.querySelectorAll('[aria-describedby="mcc-tooltip"]');
+    Array.prototype.forEach.call(described, function (el) {
+      el.removeAttribute("aria-describedby");
+    });
+  }
+
   document.addEventListener("mouseover", function (event) {
     var term = event.target.closest(".mcc-term");
     if (!term) return;
@@ -712,27 +785,26 @@ img { max-width: 100%; height: auto; }
     var config = article ? configs[article.getAttribute("data-card-id")] : null;
     var dwellMs = config && config.dwellMs ? config.dwellMs : 1200;
     clearTimeout(dwellTimer);
-    dwellTimer = setTimeout(function () {
-      var tip = term.getAttribute("data-tip");
-      if (!tip) return;
-      tooltip.textContent = tip;
-      tooltip.style.display = "block";
-      var rect = term.getBoundingClientRect();
-      var x = Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 12);
-      var y = rect.bottom + 8;
-      if (y + tooltip.offsetHeight > window.innerHeight) y = rect.top - tooltip.offsetHeight - 8;
-      tooltip.style.left = Math.max(6, x) + "px";
-      tooltip.style.top = Math.max(6, y) + "px";
-    }, dwellMs);
+    dwellTimer = setTimeout(function () { showTooltip(term); }, dwellMs);
   });
   document.addEventListener("mouseout", function (event) {
     if (!event.target.closest || !event.target.closest(".mcc-term")) return;
+    hideTooltip();
+  });
+  // Keyboard access: term spans are focusable (tabindex from the builder).
+  // Focus shows the definition immediately; blur or Escape dismisses it.
+  document.addEventListener("focusin", function (event) {
+    var term = event.target.closest && event.target.closest(".mcc-term");
+    if (!term) return;
     clearTimeout(dwellTimer);
-    tooltip.style.display = "none";
+    showTooltip(term);
+  });
+  document.addEventListener("focusout", function (event) {
+    if (!event.target.closest || !event.target.closest(".mcc-term")) return;
+    hideTooltip();
   });
   document.addEventListener("scroll", function () {
-    clearTimeout(dwellTimer);
-    tooltip.style.display = "none";
+    hideTooltip();
   }, true);
 
   // ---- context menu (per-card model-defined actions) ---------------------
@@ -779,7 +851,10 @@ img { max-width: 100%; height: auto; }
     if (!event.target.closest("#mcc-menu")) hideMenu();
   });
   document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") hideMenu();
+    if (event.key === "Escape") {
+      hideMenu();
+      hideTooltip();
+    }
   });
 
   // ---- drag to reorder cards --------------------------------------------
@@ -791,7 +866,7 @@ img { max-width: 100%; height: auto; }
     draggingCard.classList.add("mcc-dragging");
     event.dataTransfer.effectAllowed = "move";
     // Carry the card HTML in the drag data so dropping outside the canvas
-    // pastes something meaningful, mirroring the MCP card behavior.
+    // pastes something meaningful.
     try {
       event.dataTransfer.setData("text/html", draggingCard.outerHTML);
       event.dataTransfer.setData("text/plain", standaloneDocument(draggingCard));

@@ -91,9 +91,6 @@ npm install
 `npm install` pulls the extension's single dependency (`@github/copilot-sdk`).
 Then register the `extension/` folder with your Copilot client as a local
 extension, start a session, and ask the agent to open the Chat Cards canvas.
-The MCP server at the repository root is separate and is not affected by
-installing the extension (*and vice versa*); install whichever fits your host,
-or both.
 
 Reload extensions in the GitHub Copilot app, then open the chat-cards canvas in
 a conversation.

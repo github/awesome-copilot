@@ -1,16 +1,18 @@
 // Extension: chat-cards
-// GitHub Copilot canvas port of the mcp-chat-cards MCP server. The agent
-// builds interactive cards (tabs, tables, charts, forms, show/hide sections,
-// sequential lists, markdown documents, video) through canvas actions; the
-// canvas renders them as a live deck. Form submissions and per-card context
-// actions travel back to the conversation as prompts via session.send.
+// A GitHub Copilot canvas extension. The agent builds interactive cards
+// (tabs, tables, charts, forms, show/hide sections, sequential lists,
+// markdown documents, video) through canvas actions; the canvas renders
+// them as a live deck. Form submissions and per-card context actions travel
+// back to the conversation as prompts via session.send.
 //
 // All rendering lives in cards-core.mjs (dependency-free, testable without
-// the SDK); this file wires the canvas/session lifecycle, the local HTTP +
-// SSE server behind the canvas page, and the action surface.
+// the SDK); this file wires the canvas/session lifecycle, the action
+// surface, and a per-panel page server: open() starts one, onClose() stops
+// it, so the process holds no sockets while no panel is showing.
 import http from "node:http";
 import crypto from "node:crypto";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
@@ -19,8 +21,8 @@ import { buildCard, CARD_BUILDERS } from "./cards-core.mjs";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CANVAS_PAGE = readFileSync(path.join(__dirname, "assets", "canvas.html"), "utf8");
 
-// Deck limits. The MCP server keeps the last 24 rendered cards; a live deck
-// can hold more, but it is still a conversation surface, not a database.
+// Deck limits. A live deck can hold plenty, but it is still a conversation
+// surface, not a database.
 const MAX_CARDS = 60;
 const MAX_SUBMISSIONS = 50;
 const MAX_BODY_BYTES = 1024 * 1024;
@@ -28,20 +30,145 @@ const MAX_PROMPT_CHARS = 16000;
 
 let session = null;
 
-// instanceId -> { token, cards: [], submissions: [] }
+// instanceId -> { token, sessionId, cards: [], submissions: [], updatedAt }
 const instances = new Map();
 // instanceId -> Set of SSE responses
 const sseClients = new Map();
 
-function getInstance(instanceId) {
+// ---------------------------------------------------------------------------
+// Deck persistence
+// ---------------------------------------------------------------------------
+// Decks are written to per-user state on disk so the cards a conversation
+// produced are still there after the Copilot app (and this extension process
+// with it) restarts. Tokens are deliberately NOT persisted: they only
+// authenticate the canvas page against this process, so each run mints fresh
+// ones and open() hands the page a fresh URL.
+
+const STATE_VERSION = 1;
+const MAX_PERSISTED_DECKS = 8;
+const PERSIST_DEBOUNCE_MS = 300;
+
+function stateDirectory() {
+  if (process.platform === "win32") {
+    return path.join(
+      process.env.LOCALAPPDATA ?? path.join(os.homedir(), "AppData", "Local"),
+      "chat-cards",
+    );
+  }
+  if (process.platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Application Support", "chat-cards");
+  }
+  return path.join(
+    process.env.XDG_STATE_HOME ?? path.join(os.homedir(), ".local", "state"),
+    "chat-cards",
+  );
+}
+
+const STATE_FILE = path.join(stateDirectory(), "state.json");
+
+function loadPersistedDecks() {
+  try {
+    const parsed = JSON.parse(readFileSync(STATE_FILE, "utf8"));
+    if (parsed?.version === STATE_VERSION && parsed.instances && typeof parsed.instances === "object") {
+      return parsed.instances;
+    }
+  } catch {
+    // No state file yet, or an unreadable one: start with an empty store.
+  }
+  return {};
+}
+
+// instanceId -> { sessionId, cards, submissions, updatedAt } from earlier
+// runs, not yet claimed by an in-memory instance this run.
+const persistedDecks = loadPersistedDecks();
+
+let persistTimer = null;
+
+function schedulePersist() {
+  if (persistTimer) return;
+  persistTimer = setTimeout(() => {
+    persistTimer = null;
+    flushStateSync();
+  }, PERSIST_DEBOUNCE_MS);
+  // The debounce must never be what keeps this process alive.
+  persistTimer.unref();
+}
+
+// Synchronous so the process "exit" event and the shutdown path can use it.
+function flushStateSync() {
+  if (persistTimer) {
+    clearTimeout(persistTimer);
+    persistTimer = null;
+  }
+  const decks = { ...persistedDecks };
+  for (const [instanceId, instance] of instances) {
+    decks[instanceId] = {
+      sessionId: instance.sessionId ?? null,
+      cards: instance.cards,
+      submissions: instance.submissions,
+      updatedAt: instance.updatedAt ?? new Date().toISOString(),
+    };
+  }
+  const kept = Object.fromEntries(
+    Object.entries(decks)
+      .sort(
+        ([, a], [, b]) =>
+          (Date.parse(b?.updatedAt ?? "") || 0) - (Date.parse(a?.updatedAt ?? "") || 0),
+      )
+      .slice(0, MAX_PERSISTED_DECKS),
+  );
+  try {
+    mkdirSync(path.dirname(STATE_FILE), { recursive: true });
+    writeFileSync(`${STATE_FILE}.tmp`, JSON.stringify({ version: STATE_VERSION, instances: kept }));
+    renameSync(`${STATE_FILE}.tmp`, STATE_FILE);
+  } catch {
+    // Persistence is best effort; the live deck is unaffected.
+  }
+}
+
+function markDirty(instance) {
+  instance.updatedAt = new Date().toISOString();
+  schedulePersist();
+}
+
+// Recall a persisted deck for a canvas instance: an exact instance match
+// first, else the newest deck from the same session. The host may mint a new
+// canvas instance id after a restart while the conversation (and so the deck
+// the user expects to see again) is the same.
+function takePersistedDeck(instanceId, sessionId) {
+  let key = Object.prototype.hasOwnProperty.call(persistedDecks, instanceId) ? instanceId : null;
+  if (!key && sessionId) {
+    let newest = -1;
+    for (const [candidate, deck] of Object.entries(persistedDecks)) {
+      if (deck?.sessionId !== sessionId || instances.has(candidate)) continue;
+      const at = Date.parse(deck.updatedAt ?? "") || 0;
+      if (at > newest) {
+        newest = at;
+        key = candidate;
+      }
+    }
+  }
+  if (!key) return null;
+  const deck = persistedDecks[key];
+  delete persistedDecks[key];
+  return deck;
+}
+
+function getInstance(instanceId, sessionId) {
   let instance = instances.get(instanceId);
   if (!instance) {
+    const restored = takePersistedDeck(instanceId, sessionId);
     instance = {
       token: crypto.randomBytes(16).toString("hex"),
-      cards: [],
-      submissions: [],
+      sessionId: sessionId ?? restored?.sessionId ?? null,
+      cards: Array.isArray(restored?.cards) ? restored.cards : [],
+      submissions: Array.isArray(restored?.submissions) ? restored.submissions : [],
+      updatedAt: restored?.updatedAt,
     };
     instances.set(instanceId, instance);
+    if (restored) schedulePersist();
+  } else if (sessionId && !instance.sessionId) {
+    instance.sessionId = sessionId;
   }
   return instance;
 }
@@ -86,17 +213,18 @@ function cardListing(instance) {
 
 // Create a card of the given kind, append it to the deck (trimming the
 // oldest cards past the limit), and notify the canvas.
-function createCardAction(instanceId, kind, input) {
-  const instance = getInstance(instanceId);
-  const card = buildCard(kind, input ?? {});
+function createCardAction(ctx, kind) {
+  const instance = getInstance(ctx.instanceId, ctx.sessionId);
+  const card = buildCard(kind, ctx.input ?? {});
   instance.cards.push(card);
   let note = "";
   while (instance.cards.length > MAX_CARDS) {
     const dropped = instance.cards.shift();
-    broadcast(instanceId, "remove", { cardId: dropped.id });
+    broadcast(ctx.instanceId, "remove", { cardId: dropped.id });
     note = ` The deck was at its ${MAX_CARDS}-card limit, so the oldest card ("${dropped.title}") was removed.`;
   }
-  broadcast(instanceId, "upsert", { card });
+  markDirty(instance);
+  broadcast(ctx.instanceId, "upsert", { card });
   return {
     ok: true,
     cardId: card.id,
@@ -114,7 +242,7 @@ function actionError(error) {
 }
 
 // ---------------------------------------------------------------------------
-// Shared schema fragments (mirroring the MCP server's zod schemas)
+// Shared schema fragments
 // ---------------------------------------------------------------------------
 
 const TUTOR_TERMS_SCHEMA = {
@@ -209,12 +337,12 @@ const CHART_CARD_PROPERTIES = {
   labels: { type: "array", items: { type: "string" }, description: "X-axis labels (bar/line)" },
   series: {
     type: "array",
-    description: "Data series (bar/line)",
+    description: "Data series (bar/line); values must be 0 or greater",
     items: {
       type: "object",
       properties: {
         name: { type: "string" },
-        values: { type: "array", items: { type: "number" } },
+        values: { type: "array", items: { type: "number", minimum: 0 } },
       },
       required: ["name", "values"],
     },
@@ -343,6 +471,19 @@ const KIND_SCHEMAS = {
   video: VIDEO_CARD_PROPERTIES,
 };
 
+// Required fields per kind, mirroring the matching create action. update_card
+// derives its discriminated per-kind schema from these plus KIND_SCHEMAS.
+const KIND_REQUIRED_FIELDS = {
+  tabs: ["title", "tabs"],
+  table: ["title"],
+  chart: ["title", "type"],
+  form: ["title", "fields"],
+  "show-hide": ["title", "sections"],
+  list: ["title", "items"],
+  document: ["markdown"],
+  video: ["title", "src"],
+};
+
 function cardActionSchema(properties, required) {
   return { type: "object", properties, required };
 }
@@ -354,7 +495,7 @@ function makeCreateAction(name, kind, description, properties, required) {
     inputSchema: cardActionSchema(properties, required),
     handler: (ctx) => {
       try {
-        return createCardAction(ctx.instanceId, kind, ctx.input);
+        return createCardAction(ctx, kind);
       } catch (error) {
         return actionError(error);
       }
@@ -372,7 +513,7 @@ const canvas = createCanvas({
   description:
     "Interactive card deck for explaining things visually: tab cards, tables, SVG charts, forms whose " +
     "submissions come back to the conversation as prompts, show/hide sections, numbered outlines, " +
-    "rendered markdown documents, and short video clips. Ported from the mcp-chat-cards MCP server. " +
+    "rendered markdown documents, and short video clips. " +
     "Use it for research, education, professional and hobbyist skills, history, and news topics " +
     "whenever a card communicates better than text. Cards render only in the canvas, so also state " +
     "each card's key conclusion in the conversation.",
@@ -459,16 +600,23 @@ const canvas = createCanvas({
         "action takes.",
       inputSchema: {
         type: "object",
-        properties: {
-          cardId: { type: "string", description: "The id returned when the card was created" },
-          kind: { type: "string", enum: Object.keys(CARD_BUILDERS) },
-        },
-        required: ["cardId", "kind"],
-        additionalProperties: true,
+        description:
+          "Discriminated by kind: each branch takes cardId, kind, and the full replacement " +
+          "fields (with the same required fields) of the matching create action.",
+        oneOf: Object.entries(KIND_SCHEMAS).map(([kind, properties]) => ({
+          type: "object",
+          properties: {
+            cardId: { type: "string", description: "The id returned when the card was created" },
+            kind: { type: "string", enum: [kind] },
+            ...properties,
+          },
+          required: ["cardId", "kind", ...KIND_REQUIRED_FIELDS[kind]],
+          additionalProperties: true,
+        })),
       },
       handler: (ctx) => {
         try {
-          const instance = getInstance(ctx.instanceId);
+          const instance = getInstance(ctx.instanceId, ctx.sessionId);
           const { cardId, kind, ...spec } = ctx.input ?? {};
           const index = findCardIndex(instance, cardId);
           if (index === -1) return { error: `No card with id "${cardId}". Use list_cards to see the deck.` };
@@ -478,6 +626,7 @@ const canvas = createCanvas({
           card.config.id = cardId;
           card.id = cardId;
           instance.cards[index] = card;
+          markDirty(instance);
           broadcast(ctx.instanceId, "upsert", { card });
           return { ok: true, cardId, kind: card.kind, title: card.title, summary: `Updated card in place. ${card.summary}` };
         } catch (error) {
@@ -494,10 +643,11 @@ const canvas = createCanvas({
         required: ["cardId"],
       },
       handler: (ctx) => {
-        const instance = getInstance(ctx.instanceId);
+        const instance = getInstance(ctx.instanceId, ctx.sessionId);
         const index = findCardIndex(instance, ctx.input?.cardId);
         if (index === -1) return { error: `No card with id "${ctx.input?.cardId}".` };
         const [removed] = instance.cards.splice(index, 1);
+        markDirty(instance);
         broadcast(ctx.instanceId, "remove", { cardId: removed.id });
         return { ok: true, removed: { cardId: removed.id, kind: removed.kind, title: removed.title } };
       },
@@ -507,9 +657,10 @@ const canvas = createCanvas({
       description: "Remove every card from the deck.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       handler: (ctx) => {
-        const instance = getInstance(ctx.instanceId);
+        const instance = getInstance(ctx.instanceId, ctx.sessionId);
         const count = instance.cards.length;
         instance.cards = [];
+        markDirty(instance);
         broadcast(ctx.instanceId, "clear", {});
         return { ok: true, removedCount: count };
       },
@@ -521,7 +672,7 @@ const canvas = createCanvas({
         "have reordered or removed cards since they were created.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       handler: (ctx) => {
-        const instance = getInstance(ctx.instanceId);
+        const instance = getInstance(ctx.instanceId, ctx.sessionId);
         return { ok: true, count: instance.cards.length, cards: cardListing(instance) };
       },
     },
@@ -538,7 +689,7 @@ const canvas = createCanvas({
         },
       },
       handler: (ctx) => {
-        const instance = getInstance(ctx.instanceId);
+        const instance = getInstance(ctx.instanceId, ctx.sessionId);
         const wanted = ctx.input?.cardId;
         const responses = instance.submissions
           .filter((submission) => !wanted || submission.cardId === wanted)
@@ -548,8 +699,9 @@ const canvas = createCanvas({
       },
     },
   ],
-  open: (ctx) => {
-    const instance = getInstance(ctx.instanceId);
+  open: async (ctx) => {
+    const instance = getInstance(ctx.instanceId, ctx.sessionId);
+    const { port } = await startCanvasServer(ctx.instanceId);
     return {
       url: `http://127.0.0.1:${port}/?instance=${encodeURIComponent(ctx.instanceId)}&token=${instance.token}`,
       title: ctx.input?.title || "Chat Cards",
@@ -557,6 +709,11 @@ const canvas = createCanvas({
     };
   },
   onClose: (ctx) => {
+    // Closing the panel (by the user, the agent, or the host on its way
+    // down) must not discard the deck; the canvas can be reopened and the
+    // cards are expected to still be there. Only the live SSE connections
+    // and this panel's page server go; the deck stays in memory and is
+    // flushed to disk.
     const clients = sseClients.get(ctx.instanceId);
     if (clients) {
       for (const res of clients) {
@@ -566,7 +723,8 @@ const canvas = createCanvas({
       }
       sseClients.delete(ctx.instanceId);
     }
-    instances.delete(ctx.instanceId);
+    stopCanvasServer(ctx.instanceId);
+    if (instances.has(ctx.instanceId)) flushStateSync();
   },
 });
 
@@ -608,7 +766,7 @@ function readJsonBody(req) {
   });
 }
 
-const server = http.createServer(async (req, res) => {
+async function handleCanvasRequest(req, res) {
   let url;
   try {
     url = new URL(req.url, `http://${req.headers.host ?? "127.0.0.1"}`);
@@ -675,6 +833,7 @@ const server = http.createServer(async (req, res) => {
         receivedAt: new Date().toISOString(),
       });
       while (instance.submissions.length > MAX_SUBMISSIONS) instance.submissions.shift();
+      markDirty(instance);
       json(res, 200, { ok: true, delivered });
       return;
     }
@@ -696,6 +855,7 @@ const server = http.createServer(async (req, res) => {
       const index = findCardIndex(instance, String(body.cardId ?? ""));
       if (index !== -1) {
         const [removed] = instance.cards.splice(index, 1);
+        markDirty(instance);
         broadcast(instanceId, "remove", { cardId: removed.id });
       }
       json(res, 200, { ok: true });
@@ -720,6 +880,7 @@ const server = http.createServer(async (req, res) => {
         if (byId.has(card.id)) reordered.push(card);
       }
       instance.cards = reordered;
+      markDirty(instance);
       broadcast(instanceId, "reorder", { order: instance.cards.map((card) => card.id) });
       json(res, 200, { ok: true });
       return;
@@ -730,10 +891,149 @@ const server = http.createServer(async (req, res) => {
   } catch (error) {
     json(res, 400, { error: error instanceof Error ? error.message : "Bad request" });
   }
-});
+}
 
-const port = await new Promise((resolve) => {
-  server.listen(0, "127.0.0.1", () => resolve(server.address().port));
-});
+// ---------------------------------------------------------------------------
+// Per-panel page servers
+// ---------------------------------------------------------------------------
+// A server exists only while its canvas panel is open: open() starts it and
+// onClose() stops it. While no panel is showing, this process holds no
+// sockets at all; it is just an RPC child of the host serving actions.
+//
+// Servers bind OUTSIDE the OS dynamic port range (49152+). The Copilot app's
+// own single-instance WebSocket takes an ephemeral port from that range, and
+// a canvas page orphaned by a stopped extension process keeps retrying its
+// old origin for a while; binding down here guarantees those retries can
+// only ever land on a port this extension family owns, never on a recycled
+// port the app's reopen handshake depends on.
 
+const PORT_RANGE_START = 21750;
+const PORT_RANGE_SIZE = 40;
+
+// instanceId -> { server, sockets: Set, port }
+const canvasServers = new Map();
+
+function tryListen(server, target) {
+  return new Promise((resolve, reject) => {
+    const onError = (error) => {
+      server.off("listening", onListening);
+      reject(error);
+    };
+    const onListening = () => {
+      server.off("error", onError);
+      resolve();
+    };
+    server.once("error", onError);
+    server.once("listening", onListening);
+    server.listen(target, "127.0.0.1");
+  });
+}
+
+async function startCanvasServer(instanceId) {
+  const existing = canvasServers.get(instanceId);
+  if (existing) return existing;
+
+  const server = http.createServer(handleCanvasRequest);
+  const sockets = new Set();
+  // Connections are tracked for teardown and unref'd on arrival so an open
+  // keep-alive or SSE socket can never keep this process alive by itself.
+  server.on("connection", (socket) => {
+    socket.unref();
+    sockets.add(socket);
+    socket.on("close", () => sockets.delete(socket));
+  });
+
+  const entry = { server, sockets, port: 0 };
+  const offset = crypto.randomInt(PORT_RANGE_SIZE);
+  for (let i = 0; i < PORT_RANGE_SIZE && entry.port === 0; i++) {
+    const candidate = PORT_RANGE_START + ((offset + i) % PORT_RANGE_SIZE);
+    try {
+      await tryListen(server, candidate);
+      entry.port = candidate;
+    } catch {
+      // In use (another open panel or another session's process): next slot.
+    }
+  }
+  if (entry.port === 0) {
+    // Every slot taken: fall back to an ephemeral port rather than failing.
+    await tryListen(server, 0);
+    entry.port = server.address().port;
+  }
+  // The listener itself must never be what keeps this process alive.
+  server.unref();
+  canvasServers.set(instanceId, entry);
+  return entry;
+}
+
+function stopCanvasServer(instanceId) {
+  const entry = canvasServers.get(instanceId);
+  if (!entry) return;
+  canvasServers.delete(instanceId);
+  try {
+    entry.server.close();
+  } catch {}
+  for (const socket of entry.sockets) {
+    try {
+      socket.destroy();
+    } catch {}
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Lifecycle: this process must never outlive the Copilot app
+// ---------------------------------------------------------------------------
+// The SDK talks to the host over stdio and only flips an internal
+// "disconnected" flag when that pipe closes; nothing ends the process on
+// its own. Two layers keep this process from outliving the app: every
+// end-of-life signal below leads to an explicit flush-and-exit, and nothing
+// this extension owns (page servers, their sockets, the persistence timer)
+// refs the event loop, so the host's stdio pipe is the only thing keeping
+// it alive at all.
+
+let shuttingDown = false;
+
+function shutdown() {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  flushStateSync();
+  for (const clients of sseClients.values()) {
+    for (const res of clients) {
+      try {
+        res.end();
+      } catch {}
+    }
+  }
+  sseClients.clear();
+  for (const instanceId of [...canvasServers.keys()]) {
+    stopCanvasServer(instanceId);
+  }
+  // Deliberately kept referenced: exit is guaranteed even if a handle the
+  // SDK or a dependency owns refuses to close.
+  setTimeout(() => process.exit(0), 150);
+}
+
+// The stdio pipe to the host is the ground truth: when the app goes away,
+// stdin ends. Signals cover a graceful stop, "disconnect" an IPC parent.
+process.stdin.on("end", shutdown);
+process.stdin.on("close", shutdown);
+process.on("disconnect", shutdown);
+for (const signal of ["SIGTERM", "SIGINT", "SIGHUP", "SIGBREAK"]) {
+  try {
+    process.on(signal, shutdown);
+  } catch {}
+}
+// If the event loop drains naturally instead, still write the deck out.
+process.on("exit", flushStateSync);
+
+// Nothing refs the event loop until the session join wires up stdio, so
+// hold it open across the join, then hand that job to the stdio pipe.
+const bootKeepalive = setInterval(() => {}, 60000);
 session = await joinSession({ canvases: [canvas] });
+clearInterval(bootKeepalive);
+
+// The host also announces the end of the session as a first-class event.
+try {
+  session.on("session.shutdown", shutdown);
+} catch {
+  // An SDK build without this event type still exits via the stdio hooks.
+}

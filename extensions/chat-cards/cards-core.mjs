@@ -1,12 +1,11 @@
-// Card building core for the Chat Cards canvas extension. This module is a
-// dependency-free port of the mcp-chat-cards renderers (src/cards and
-// src/util) so the extension folder stays self-contained for reuse outside
-// this repository. It knows nothing about the Copilot SDK or the HTTP server;
-// extension.mjs wires those. Everything here is pure string logic, so it can
-// be exercised with plain Node without joining a session.
+// Card building core for the Chat Cards canvas extension. This module is
+// dependency-free so the extension folder stays self-contained for reuse
+// outside this repository. It knows nothing about the Copilot SDK or the
+// page server; extension.mjs wires those. Everything here is pure string
+// logic, so it can be exercised with plain Node without joining a session.
 
 // ---------------------------------------------------------------------------
-// Escaping and small string helpers (ported from src/util/html.ts)
+// Escaping and small string helpers
 // ---------------------------------------------------------------------------
 
 const HTML_ESCAPES = {
@@ -90,9 +89,9 @@ export function textToParagraphs(text) {
 // ---------------------------------------------------------------------------
 // HTML sanitizing
 // ---------------------------------------------------------------------------
-// The MCP server sanitizes caller HTML with an HTML parser dependency. The
-// extension stays dependency-free, so this is a strict rebuild-only
-// sanitizer: a tag survives only if its name is allowlisted, and it is then
+// The extension stays dependency-free (no HTML parser), so this is a strict
+// rebuild-only sanitizer: a tag survives only if its name is allowlisted,
+// and it is then
 // re-emitted from scratch with only allowlisted, validated attributes.
 // Anything else (unknown tags, malformed tags) is escaped and shown as
 // literal text, so a mistake is visible instead of silently dropped. Closing
@@ -197,7 +196,7 @@ export function sanitizeHtml(html) {
 }
 
 // ---------------------------------------------------------------------------
-// Tutor terms (ported from src/util/html.ts wrapTermsInHtml)
+// Tutor terms
 // ---------------------------------------------------------------------------
 
 const DEFAULT_MAX_PER_TERM = 1;
@@ -310,7 +309,7 @@ export function wrapTermsInHtml(html, terms, options = {}) {
       total += 1;
       out +=
         segment.slice(last, match.index) +
-        `<span class="mcc-term" data-tip="${escapeHtml(term.tip)}">${match[0]}</span>`;
+        `<span class="mcc-term" data-tip="${escapeHtml(term.tip)}" tabindex="0">${match[0]}</span>`;
       last = match.index + match[0].length;
     }
     if (last > 0) segments[i] = out + segment.slice(last);
@@ -320,7 +319,7 @@ export function wrapTermsInHtml(html, terms, options = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Text to table (ported from src/util/text-to-table.ts)
+// Text to table
 // ---------------------------------------------------------------------------
 
 const CANDIDATE_DELIMITERS = ["\t", "|", ";", ","];
@@ -406,8 +405,8 @@ export function normalizeRows(rows, headers = []) {
 // ---------------------------------------------------------------------------
 // Markdown rendering
 // ---------------------------------------------------------------------------
-// The MCP server parses markdown with the `marked` package and sanitizes the
-// result. The extension stays dependency-free, so this is a small renderer
+// The extension stays dependency-free (no markdown package), so this is a
+// small renderer
 // covering what a model-written guide actually uses: headings, paragraphs,
 // nested lists, fenced code, pipe tables, blockquotes, rules, and the inline
 // set (code, bold, italic, links, images). Every text node passes through
@@ -609,7 +608,7 @@ export function renderMarkdownFragment(markdown) {
   return parts.join("\n");
 }
 
-// Parse a markdown document the way the MCP document card does: the first H1
+// Parse a markdown document for the document card: the first H1
 // becomes the title, and the body splits into sections on H2 headings (the
 // content before the first H2 is the intro section with a null heading).
 export function parseMarkdownDocument(markdown) {
@@ -687,10 +686,10 @@ function renderMarkdownSections(sections, options = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Chart rendering (ported from src/cards/chart.ts)
+// Chart rendering
 // ---------------------------------------------------------------------------
-// One deliberate change from the MCP version: axis, grid, and separator
-// colors reference the card theme variables (with the original light values
+// Axis, grid, and separator colors reference the card theme variables (with
+// the plain light values
 // as fallbacks) instead of fixed hex values. The canvas page inlines the SVG
 // in its own DOM, so the chart follows the light/dark theme for free.
 
@@ -958,12 +957,11 @@ function chartDataTable(options) {
 }
 
 // ---------------------------------------------------------------------------
-// Card shell (ported from src/cards/shell.ts)
+// Card shell
 // ---------------------------------------------------------------------------
 
 // The canvas page renders header toggles for every card; these attributes are
-// how a builder opts a card out (mirroring data-mcc-no-code/-no-collapse in
-// the MCP shell).
+// how a builder opts a card out.
 function renderCardShell(options) {
   const id = uid("card");
   let body = options.body;
@@ -1056,7 +1054,7 @@ function richContent(part, what) {
 }
 
 // ---------------------------------------------------------------------------
-// Card builders (ported from src/cards/*.ts)
+// Card builders
 // ---------------------------------------------------------------------------
 
 export function buildTabCard(options) {
@@ -1175,6 +1173,22 @@ export function buildChartCard(options) {
   if ((type === "bar" || type === "line") && (!options.series?.length || !options.labels?.length)) {
     throw new Error("Bar and line charts require labels and series.");
   }
+  if (type === "bar" || type === "line") {
+    // The scale, bar geometry, and line placement all assume values from 0
+    // up. A negative or non-numeric value would render as a clamped bar or
+    // an off-canvas point, silently misrepresenting the data, so it is
+    // rejected here (and the action schema says the same) instead.
+    for (const s of options.series ?? []) {
+      for (const value of Array.isArray(s?.values) ? s.values : []) {
+        if (!Number.isFinite(value) || value < 0) {
+          throw new Error(
+            `Series "${s?.name ?? "?"}" contains ${String(value)}: ` +
+              "bar and line charts accept finite values of 0 or greater only.",
+          );
+        }
+      }
+    }
+  }
 
   let svg;
   let legendHtml;
@@ -1260,16 +1274,24 @@ function renderFormField(field, formId) {
 <select id="${fieldId}" name="${name}"${required}>${optionTags}</select>${help}</div>`;
   }
   if (type === "checkbox" || type === "radio") {
-    const choices = normalizeFieldOptions(field.options ?? [{ label: field.label ?? field.name, value: "yes" }])
+    const choiceOptions = normalizeFieldOptions(field.options ?? [{ label: field.label ?? field.name, value: "yes" }]);
+    // Native required covers "pick one" radio groups and a lone confirmation
+    // checkbox. A required multi-checkbox group means "check at least one",
+    // which HTML cannot express (required on each box would demand all of
+    // them), so the fieldset is marked and the canvas page enforces it at
+    // submit time via setCustomValidity.
+    const nativeRequired = field.required && (type === "radio" || choiceOptions.length === 1) ? " required" : "";
+    const choices = choiceOptions
       .map((option, index) => {
         const choiceId = `${fieldId}-${index}`;
         const checked = option.value === field.value ? " checked" : "";
         return `<label class="mcc-choice" for="${choiceId}">
-<input type="${type}" id="${choiceId}" name="${name}" value="${escapeHtml(option.value ?? option.label)}"${checked}>
+<input type="${type}" id="${choiceId}" name="${name}" value="${escapeHtml(option.value ?? option.label)}"${checked}${nativeRequired}>
 ${escapeHtml(option.label)}</label>`;
       })
       .join("\n");
-    return `<fieldset class="mcc-field" style="border:none;padding:0;margin:0">
+    const requireOne = field.required && type === "checkbox" && choiceOptions.length > 1 ? " data-mcc-require-one" : "";
+    return `<fieldset class="mcc-field" style="border:none;padding:0;margin:0"${requireOne}>
 <label>${label}${requiredMark}</label>
 ${choices}${help}</fieldset>`;
   }
@@ -1312,8 +1334,8 @@ ${fieldHtml}
       kind: "form",
       body,
       contextActions: options.contextActions,
-      // Reordering a form away from its explanatory neighbors is harmless,
-      // but the MCP version pins forms and the port keeps that behavior.
+      // Forms stay pinned in place: dragging one away from its explanatory
+      // neighbors invites mis-submissions.
       draggable: false,
     },
     `Created form card "${title}" with ${fields.length} field(s). ` +
