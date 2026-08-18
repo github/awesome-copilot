@@ -24,6 +24,7 @@
   "license": "MIT",
   "extensions": {
     "com.github.awesome-copilot": {
+      "mcpServers": "./mcp.json",
       "skills": [
         "./skills/fluentui-blazor/"
       ]
