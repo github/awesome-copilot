@@ -11,7 +11,15 @@
 // it, so the process holds no sockets while no panel is showing.
 import http from "node:http";
 import crypto from "node:crypto";
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -64,22 +72,108 @@ function stateDirectory() {
   );
 }
 
-const STATE_FILE = path.join(stateDirectory(), "state.json");
+// One file per deck rather than one shared document. Several extension
+// processes (parallel Copilot sessions) share this directory, and each one
+// only knows about the decks it holds open plus the snapshot it read at
+// startup. A process rewriting a shared document would flush that stale
+// snapshot over decks another process had since changed, and the two would
+// race on a single temp path. A file per deck means a process only ever
+// replaces the decks it owns, through a temp name scoped to its own pid.
+const DECKS_DIR = path.join(stateDirectory(), "decks");
+// The single-document layout this replaced: imported once, then removed.
+const LEGACY_STATE_FILE = path.join(stateDirectory(), "state.json");
 
-function loadPersistedDecks() {
-  try {
-    const parsed = JSON.parse(readFileSync(STATE_FILE, "utf8"));
-    if (parsed?.version === STATE_VERSION && parsed.instances && typeof parsed.instances === "object") {
-      return parsed.instances;
-    }
-  } catch {
-    // No state file yet, or an unreadable one: start with an empty store.
-  }
-  return {};
+// Canvas instance ids come from the host, so hash rather than trust one as a
+// path segment. The id itself is stored inside the file.
+function deckFile(instanceId) {
+  const name = crypto.createHash("sha256").update(instanceId).digest("hex").slice(0, 32);
+  return path.join(DECKS_DIR, `${name}.json`);
 }
 
+// Replace one deck's file atomically. The temp name carries this process's
+// pid, so two processes writing this directory can never rename over each
+// other's half-written file.
+function writeDeckSync(instanceId, deck) {
+  const target = deckFile(instanceId);
+  const tmp = `${target}.${process.pid}.tmp`;
+  try {
+    mkdirSync(DECKS_DIR, { recursive: true, mode: 0o700 });
+    writeFileSync(
+      tmp,
+      JSON.stringify({
+        version: STATE_VERSION,
+        instanceId,
+        sessionId: deck.sessionId ?? null,
+        cards: deck.cards ?? [],
+        submissions: deck.submissions ?? [],
+        updatedAt: deck.updatedAt ?? new Date().toISOString(),
+      }),
+      { mode: 0o600 },
+    );
+    renameSync(tmp, target);
+  } catch {
+    // Persistence is best effort; the live deck is unaffected.
+    try {
+      rmSync(tmp, { force: true });
+    } catch {}
+  }
+}
+
+function removeDeckSync(instanceId) {
+  try {
+    rmSync(deckFile(instanceId), { force: true });
+  } catch {}
+}
+
+function loadPersistedDecks() {
+  const decks = {};
+  let names;
+  try {
+    names = readdirSync(DECKS_DIR);
+  } catch {
+    return decks; // Nothing persisted yet.
+  }
+  for (const name of names) {
+    if (!name.endsWith(".json")) continue;
+    try {
+      const parsed = JSON.parse(readFileSync(path.join(DECKS_DIR, name), "utf8"));
+      if (parsed?.version !== STATE_VERSION || typeof parsed.instanceId !== "string") continue;
+      decks[parsed.instanceId] = {
+        sessionId: parsed.sessionId ?? null,
+        cards: Array.isArray(parsed.cards) ? parsed.cards : [],
+        submissions: Array.isArray(parsed.submissions) ? parsed.submissions : [],
+        updatedAt: parsed.updatedAt,
+      };
+    } catch {
+      // One unreadable file must not cost the user the other decks.
+    }
+  }
+  return decks;
+}
+
+// Carry decks written by the single-document layout over to per-deck files,
+// then drop that file so this runs at most once.
+function migrateLegacyState() {
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(LEGACY_STATE_FILE, "utf8"));
+  } catch {
+    return; // Nothing left from the old layout.
+  }
+  if (parsed?.version === STATE_VERSION && parsed.instances && typeof parsed.instances === "object") {
+    for (const [instanceId, deck] of Object.entries(parsed.instances)) {
+      if (deck && typeof deck === "object") writeDeckSync(instanceId, deck);
+    }
+  }
+  try {
+    rmSync(LEGACY_STATE_FILE, { force: true });
+  } catch {}
+}
+
+migrateLegacyState();
+
 // instanceId -> { sessionId, cards, submissions, updatedAt } from earlier
-// runs, not yet claimed by an in-memory instance this run.
+// runs or another process, not yet claimed by an in-memory instance this run.
 const persistedDecks = loadPersistedDecks();
 
 let persistTimer = null;
@@ -95,36 +189,54 @@ function schedulePersist() {
 }
 
 // Synchronous so the process "exit" event and the shutdown path can use it.
+// Only the decks this process owns are written: a deck belonging to another
+// process, or to an earlier run, stays on disk exactly as its owner left it.
 function flushStateSync() {
   if (persistTimer) {
     clearTimeout(persistTimer);
     persistTimer = null;
   }
-  const decks = { ...persistedDecks };
+  const owned = new Set();
   for (const [instanceId, instance] of instances) {
-    decks[instanceId] = {
+    writeDeckSync(instanceId, {
       sessionId: instance.sessionId ?? null,
       cards: instance.cards,
       submissions: instance.submissions,
       updatedAt: instance.updatedAt ?? new Date().toISOString(),
-    };
-  }
-  const kept = Object.fromEntries(
-    Object.entries(decks)
-      .sort(
-        ([, a], [, b]) =>
-          (Date.parse(b?.updatedAt ?? "") || 0) - (Date.parse(a?.updatedAt ?? "") || 0),
-      )
-      .slice(0, MAX_PERSISTED_DECKS),
-  );
-  try {
-    mkdirSync(path.dirname(STATE_FILE), { recursive: true, mode: 0o700 });
-    writeFileSync(`${STATE_FILE}.tmp`, JSON.stringify({ version: STATE_VERSION, instances: kept }), {
-      mode: 0o600,
     });
-    renameSync(`${STATE_FILE}.tmp`, STATE_FILE);
+    owned.add(path.basename(deckFile(instanceId)));
+  }
+  pruneDeckFiles(owned);
+}
+
+// Hold the directory to MAX_PERSISTED_DECKS, newest first. Files are ranked
+// by mtime rather than by the updatedAt inside them: a deck's file is
+// rewritten whenever it changes, so mtime gives the same order without
+// reading every file, and it stays right for decks other processes own.
+function pruneDeckFiles(owned) {
+  let names;
+  try {
+    names = readdirSync(DECKS_DIR).filter((name) => name.endsWith(".json"));
   } catch {
-    // Persistence is best effort; the live deck is unaffected.
+    return;
+  }
+  if (names.length <= MAX_PERSISTED_DECKS) return;
+  const ranked = names
+    .map((name) => {
+      let mtimeMs = 0;
+      try {
+        mtimeMs = statSync(path.join(DECKS_DIR, name)).mtimeMs;
+      } catch {}
+      return { name, mtimeMs };
+    })
+    .sort((a, b) => b.mtimeMs - a.mtimeMs);
+  for (const { name } of ranked.slice(MAX_PERSISTED_DECKS)) {
+    // A deck this process holds open outranks the cap: dropping its file
+    // would lose cards the user can still see in the canvas.
+    if (owned.has(name)) continue;
+    try {
+      rmSync(path.join(DECKS_DIR, name), { force: true });
+    } catch {}
   }
 }
 
@@ -153,6 +265,10 @@ function takePersistedDeck(instanceId, sessionId) {
   if (!key) return null;
   const deck = persistedDecks[key];
   delete persistedDecks[key];
+  // A deck recalled under a different canvas instance id is written back
+  // out under that id, so drop the file it came from: leaving it would let
+  // the same deck be recalled a second time.
+  if (key !== instanceId) removeDeckSync(key);
   return deck;
 }
 
