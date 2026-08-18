@@ -7,6 +7,7 @@ import { join } from "node:path";
 import {
     buildDeskAgentArgv,
     isDeskProfile,
+    isSafeQuotedWindowsCmdArg,
     isSafeWindowsCmdShim,
     isWindowsAppExecutionAlias,
     normalizeDeskProfile,
@@ -41,6 +42,10 @@ test("quotes trusted cmd shim arguments and rejects percent-bearing paths", () =
     assert.equal(quoteWindowsCmdArgument("--scope"), "\"--scope\"");
     assert.equal(isSafeWindowsCmdShim("C:\\Program Files\\Agency\\agency.cmd"), true);
     assert.equal(isSafeWindowsCmdShim("C:\\Users\\%USERNAME%\\agency.cmd"), false);
+    // Quoted args may contain parentheses (common workshop folders).
+    assert.equal(isSafeQuotedWindowsCmdArg("C:\\Work\\Project (1)"), true);
+    assert.equal(isSafeQuotedWindowsCmdArg("C:\\Users\\%USERNAME%\\w"), false);
+    assert.equal(isSafeQuotedWindowsCmdArg("C:\\Users\\!DELAY!\\w"), false);
 });
 
 test("executes a Windows cmd shim with safe quoting", {

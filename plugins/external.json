@@ -846,7 +846,7 @@
   {
     "name": "sonarqube",
     "description": "SonarQube is the AI code quality and security verification platform used by millions of developers to catch bugs, vulnerabilities, and leaked secrets. This plugin enforces those standards in the coding loop: 7,500+ distinct issue types, secrets scanning, agentic analysis, and quality gates across 40+ languages.",
-    "version": "2.3.0",
+    "version": "2.5.0",
     "author": {
       "name": "Sonar",
       "url": "https://sonarsource.com/"
@@ -864,7 +864,7 @@
     "source": {
       "source": "github",
       "repo": "SonarSource/sonarqube-agent-plugins",
-      "ref": "2.3.0"
+      "ref": "2.5.0"
     }
   },
   {
@@ -1003,7 +1003,7 @@
   {
     "name": "upgrade-agent",
     "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-    "version": "1.1.290",
+    "version": "1.1.404",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1022,7 +1022,8 @@
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "sha": "559f6fea2deea78fb5adf2cfacba2a5151a5fa7f"
+      "ref": "v1.1.404",
+      "sha": "a4f718e90c39e7ab62a81ddd78be9b56b1a4c4bf"
     }
   },
   {
