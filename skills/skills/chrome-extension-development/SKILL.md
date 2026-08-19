@@ -1,641 +1,327 @@
 ---
 name: chrome-extension-development
-description: Build, review, debug, and improve production-quality Chrome extensions using Manifest V3. Use when creating a new Chrome extension, adding extension features, working with content scripts, service workers, popup or options pages, Chrome APIs, messaging, storage, permissions, authentication, security, testing, or Chrome Web Store preparation.
-license: MIT
+description: Build, review, debug, and secure Chrome extensions using Manifest V3, including service workers, content scripts, extension pages, Chrome APIs, messaging, storage, permissions, authentication, testing, and Chrome Web Store preparation.
 ---
 
 # Chrome Extension Development
 
-Build Chrome extensions using modern Manifest V3 architecture, secure browser APIs, minimal permissions, maintainable code structure, and production-oriented development practices.
+Build Chrome extensions with Manifest V3 using minimal permissions, clear context boundaries, secure data flow, event-driven background processing, and maintainable architecture.
 
 ## When to Use
 
-Use this skill when the user asks to:
+Use this skill when creating or modifying Chrome extensions, including:
 
-- Create a Chrome extension from scratch
-- Add a feature to an existing Chrome extension
-- Migrate an extension to Manifest V3
-- Build popup, options, or extension pages
-- Create or modify content scripts
-- Create or modify extension service workers
-- Communicate between extension contexts
-- Use Chrome extension APIs
-- Store or synchronize extension data
-- Integrate an extension with external APIs
-- Add authentication to an extension
-- Debug extension behavior
-- Improve extension security or permissions
-- Prepare an extension for Chrome Web Store submission
-- Review an extension architecture or implementation
-
-Do not assume that every browser-based feature belongs in an extension. First determine whether the requirement actually needs extension privileges, browser APIs, page access, or background execution.
-
-## Core Principles
-
-### 1. Use Manifest V3
-
-New Chrome extensions should use Manifest V3 unless there is a specific compatibility requirement preventing it.
-
-Do not generate Manifest V2 implementations for new projects.
-
-Prefer:
-
-- `manifest.json`
-- Extension service workers
+- Manifest V3 migration
+- Service workers
 - Content scripts
-- Extension pages
-- Chrome extension APIs
-- Declarative APIs where appropriate
+- Popup, options, side-panel, and extension pages
+- Chrome APIs
+- Messaging
+- Storage
+- External API integration
+- Authentication
+- Debugging and code review
+- Chrome Web Store preparation
 
-Avoid deprecated Manifest V2 patterns.
+First determine whether the requirement actually needs an extension or privileged browser access.
 
-### 2. Minimize Permissions
+## Manifest and Permissions
 
-Request the smallest possible permission set.
+Use Manifest V3 for new extensions. Prefer service workers, content scripts, extension pages, Chrome APIs, and declarative APIs.
 
-Before adding a permission, determine:
+Keep `manifest.json` minimal. Request only permissions required by the feature. Prefer narrow host permissions and optional permissions where practical. Avoid `<all_urls>` unless broad access is genuinely required.
 
-1. Why it is required
-2. Which API requires it
-3. Whether a narrower permission exists
-4. Whether the feature can work without the permission
-5. Whether the permission creates additional Chrome Web Store review concerns
+Do not invent Chrome API names, parameters, or permissions. When current API behavior is uncertain, verify the official Chrome documentation.
 
-Prefer optional permissions when functionality does not need to be enabled immediately.
+## Extension Contexts
 
-Do not request broad permissions such as `<all_urls>` unless they are genuinely required.
-
-### 3. Separate Extension Contexts
-
-Understand that these contexts have different responsibilities and security boundaries:
+Treat these as separate execution contexts:
 
 - Service worker
 - Content script
 - Popup
 - Options page
-- Extension pages
 - Side panel
-- DevTools page
+- Other extension pages
 
-Do not assume variables, DOM access, APIs, or runtime behavior are shared between contexts.
+Do not assume they share DOM access, variables, memory, APIs, or lifecycle. Use explicit messaging between contexts.
 
-Use explicit messaging when communication is required.
+Choose the smallest architecture that satisfies the requirement. Do not create unnecessary files, contexts, frameworks, or dependencies.
 
-### 4. Keep the Service Worker Event-Driven
+Before implementation, identify the user workflow, required contexts, APIs, permissions, message flow, persistent state, authentication, external services, and security constraints.
 
-Manifest V3 service workers are not persistent background pages.
+## Service Workers
 
-Do not design the service worker around continuously running processes.
+Manifest V3 service workers are event-driven and can be stopped and restarted.
 
-Use:
+Use them for:
 
-- Event listeners
-- `chrome.alarms`
-- Message handlers
-- Declarative APIs
+- Message handling
+- Extension lifecycle events
+- API requests
 - Storage
-- Short-lived asynchronous operations
+- Alarms
+- Notifications
+- Context menus
+- Tab events
 
-Persist important state because the service worker can be stopped and restarted by Chrome.
-
-## Architecture Workflow
-
-When creating a new extension, follow this sequence.
-
-### Step 1: Understand the Requirement
-
-Identify:
-
-- User workflow
-- Browser pages involved
-- Required UI
-- Required browser APIs
-- External APIs
-- Data that must persist
-- Authentication requirements
-- Security requirements
-- Chrome Web Store constraints
-
-Do not start generating files before understanding the extension's execution contexts.
-
-### Step 2: Determine the Extension Architecture
-
-Choose only the contexts that are actually required.
-
-Typical architecture:
-
-```text
-Chrome Extension
-│
-├── manifest.json
-│
-├── service-worker.js
-│
-├── content/
-│   └── content.js
-│
-├── popup/
-│   ├── popup.html
-│   ├── popup.js
-│   └── popup.css
-│
-├── options/
-│   ├── options.html
-│   ├── options.js
-│   └── options.css
-│
-├── sidepanel/
-│   ├── sidepanel.html
-│   ├── sidepanel.js
-│   └── sidepanel.css
-│
-└── assets/
-```
-
-Do not create every directory by default. Adapt the structure to the requirements.
-
-### Step 3: Define the Message Flow
-
-For extensions containing multiple contexts, explicitly define communication.
-
-Example:
-
-```text
-Content Script
-      │
-      │ chrome.runtime.sendMessage()
-      ▼
-Service Worker
-      │
-      │ API request / storage / processing
-      ▼
-Service Worker
-      │
-      │ response/message
-      ▼
-Content Script
-```
-
-Use message contracts that clearly define:
-
-- Message type
-- Payload
-- Expected response
-- Error behavior
-
-Avoid tightly coupling contexts through undocumented message structures.
-
-## Manifest Design
-
-Start with the minimum manifest.
-
-Example:
-
-```json
-{
-  "manifest_version": 3,
-  "name": "Example Extension",
-  "version": "1.0.0",
-  "description": "Example Chrome extension",
-  "action": {
-    "default_popup": "popup/popup.html"
-  },
-  "background": {
-    "service_worker": "service-worker.js"
-  }
-}
-```
-
-Add permissions only when required.
-
-Common permission categories include:
-
-- `storage`
-- `tabs`
-- `activeTab`
-- `scripting`
-- `alarms`
-- `notifications`
-- `identity`
-
-Treat host permissions separately from API permissions.
-
-For example:
-
-```json
-{
-  "host_permissions": [
-    "https://example.com/*"
-  ]
-}
-```
-
-Prefer narrowly scoped hosts over broad access.
+Do not treat a service worker as a persistent process. Persist state that must survive termination.
 
 ## Content Scripts
 
-Use content scripts when the extension needs to inspect or modify webpages.
+Use content scripts to inspect or modify webpages.
 
-Content scripts should:
+They should:
 
 - Minimize DOM manipulation
 - Avoid unnecessary polling
-- Avoid global variable collisions
-- Handle dynamic pages carefully
-- Clean up event listeners and injected UI when appropriate
-- Communicate with the service worker through explicit messages
+- Avoid global namespace collisions
+- Handle dynamic content
+- Clean up injected UI and listeners
+- Use messaging for privileged operations
 
-Do not assume content scripts can directly access privileged Chrome APIs.
+Do not assume content scripts can directly use privileged APIs.
 
-If privileged functionality is required, send a message to the service worker.
+## Messaging
 
-## Service Worker
+Define explicit message contracts containing a message type, payload, response, and error behavior.
 
-Use the service worker for privileged or background operations such as:
+Validate incoming messages and payloads. Never blindly trust data received from another context.
 
-- API requests
-- Authentication coordination
-- Storage operations
-- Alarms
-- Message handling
-- Extension lifecycle events
-- Context menu actions
-- Tab-related events
+For larger extensions, centralize message types.
 
-Remember:
+Typical flow:
 
 ```text
-Service worker ≠ persistent background process
+Content Script -> Service Worker -> API/Storage -> Response
 ```
 
-Never rely on in-memory state surviving indefinitely.
+## UI
 
-Persist state that must survive service-worker termination.
+Keep popup code focused on short user interactions. For complex workflows, prefer an extension page or side panel.
 
-## Popup and Extension UI
-
-Keep popup logic focused on user interaction.
-
-Avoid putting large application workflows directly into popup code.
-
-For complex interfaces, consider:
-
-- Side panel
-- Extension page
-- Options page
-- Dedicated extension tab
-
-Keep UI state separate from business logic where practical.
-
-Use accessible HTML controls and meaningful labels.
+Use accessible controls and meaningful labels. Separate UI state from business logic where practical.
 
 ## Storage
 
-Choose storage based on the data's purpose.
+Choose storage based on the data's purpose:
 
-Typical options:
+- `chrome.storage.local` — persistent local data
+- `chrome.storage.sync` — small synchronized preferences
+- `chrome.storage.session` — temporary session state
 
-- `chrome.storage.local` for local extension data
-- `chrome.storage.sync` for small user preferences that should synchronize
-- `chrome.storage.session` for temporary session state
+Handle missing, invalid, outdated, and corrupt values.
 
-Do not store secrets merely because the storage API makes it convenient.
-
-Treat client-side extension storage as accessible to the extension and potentially exposed through compromised extension code.
+Do not treat extension storage as a secure secret store.
 
 ## External APIs
 
-When integrating external APIs:
+Use the service worker for privileged or cross-origin API operations when appropriate.
 
-1. Determine whether the request should originate from the content script or service worker.
-2. Prefer the service worker for privileged or cross-origin requests when appropriate.
-3. Validate API responses.
-4. Handle network failures.
-5. Handle authentication expiration.
-6. Avoid embedding long-lived secrets in extension source code.
+Handle authentication failures, timeouts, network failures, invalid responses, and rate limits.
 
-Never hard-code private API keys, client secrets, service-account credentials, or other sensitive credentials into the extension.
+Use caching, debouncing, throttling, pagination, and request deduplication when useful.
 
-Remember that anything shipped to the browser should be considered potentially inspectable by the user.
+Never hard-code private API keys, private keys, service-account credentials, passwords, or other confidential secrets into extension code.
+
+Anything shipped to the browser should be considered inspectable.
 
 ## Authentication
 
-For authentication:
+Prefer established OAuth/OIDC mechanisms when appropriate.
 
-- Prefer established browser authentication mechanisms.
-- Use OAuth/OIDC flows when appropriate.
-- Avoid storing access tokens unnecessarily.
-- Handle token expiration.
-- Avoid putting tokens into URLs.
-- Never ship client secrets that are intended to remain confidential.
-- Consider the security implications of content-script access to authenticated pages.
+Consider token expiration, logout, refresh, storage, context exposure, and authentication failures.
 
-If authentication architecture is ambiguous, explain the security trade-offs before implementing it.
+Never embed confidential client secrets or private credentials in client-side code. Do not put sensitive tokens into URLs.
+
+If the authentication model is unclear, explain the security implications before implementation.
 
 ## Security
 
-Treat browser extensions as privileged software.
+Treat extensions as privileged software.
 
-Always review:
+### Untrusted Content
 
-### Permissions
-
-Check whether every permission is necessary.
-
-### Content Security Policy
-
-Avoid unsafe patterns that weaken the extension's security model.
-
-Do not introduce:
-
-```text
-eval()
-new Function()
-```
-
-or equivalent dynamic code execution without a compelling, reviewed reason.
-
-### XSS
-
-Do not insert untrusted data directly with:
-
-```javascript
-element.innerHTML = userInput;
-```
+Never insert untrusted data directly into HTML.
 
 Prefer:
 
 ```javascript
-element.textContent = userInput;
+element.textContent = value;
 ```
 
-or safely construct DOM elements.
+over unsafe HTML insertion.
 
-### Message Validation
+### Dynamic Code
 
-Do not blindly trust messages received from other extension contexts.
+Do not introduce `eval()`, `new Function()`, or equivalent dynamic code execution.
 
-Validate:
+### Messages
 
-- Message type
-- Required fields
-- Data types
-- Allowed values
+Validate message type, required fields, data types, and allowed values.
 
-### External Content
+### External Data
 
-Treat content retrieved from webpages and external APIs as untrusted input.
+Treat webpage content and API responses as untrusted. Validate and sanitize data before rendering or processing.
 
 ### Secrets
 
-Never commit:
+Never commit or bundle:
 
-- API keys
-- OAuth client secrets
+- Private API keys
 - Private keys
-- Service-account JSON files
+- Service-account JSON
 - Passwords
 - Production credentials
 
-## Chrome API Usage
-
-Before implementing a Chrome API:
-
-1. Identify the exact API.
-2. Determine required permissions.
-3. Verify whether the API is available in the required extension context.
-4. Check whether the API behavior differs under Manifest V3.
-5. Consider whether a declarative alternative is preferable.
-
-Do not invent Chrome API methods or parameters.
-
-When API behavior is uncertain, consult current official Chrome documentation rather than guessing.
-
 ## Performance
-
-Avoid:
-
-- Excessive DOM observers
-- Aggressive polling
-- Repeated API calls
-- Unnecessary content-script injection
-- Large data stored in memory
-- Blocking operations in UI contexts
 
 Prefer event-driven behavior.
 
-For webpage monitoring, use the narrowest observer or event mechanism that satisfies the requirement.
+Avoid aggressive polling, excessive DOM observers, repeated API requests, unnecessary content-script injection, and large in-memory datasets.
 
-For network-heavy operations, consider:
+Use debouncing, throttling, caching, pagination, request deduplication, and appropriate retries when needed.
 
-- Debouncing
-- Throttling
-- Caching
-- Pagination
-- Request deduplication
-- Appropriate retry behavior
+Use the narrowest event or observer that satisfies the requirement.
 
 ## Error Handling
 
-Handle failures explicitly.
+Handle failures explicitly, including:
 
-At minimum consider:
-
-- Permission denied
-- Missing active tab
-- Invalid URL
+- Permission denial
+- Unsupported URLs
+- Missing active tabs
 - Service-worker restart
 - API timeout
-- API authentication failure
 - Network failure
-- Invalid API response
+- Authentication failure
+- Invalid API responses
 - Storage failure
 - Message delivery failure
 
-User-facing errors should explain what happened and, when possible, what the user can do next.
-
-Do not silently swallow errors.
-
-## Testing
-
-Before considering an extension complete, test:
-
-### Installation
-
-- Fresh installation
-- Extension reload
-- Upgrade scenario
-
-### UI
-
-- Popup
-- Options
-- Side panel, if applicable
-- Different viewport sizes where relevant
-
-### Content Script
-
-- Supported pages
-- Unsupported pages
-- Dynamically rendered content
-- Multiple tabs
-- Page navigation
-
-### Service Worker
-
-- Startup
-- Restart
-- Message handling
-- Alarms/events
-- Error handling
-
-### Permissions
-
-Verify the extension behaves correctly when optional permissions are unavailable.
-
-### Authentication
-
-Test:
-
-- Login
-- Logout
-- Expired token
-- Invalid credentials
-- Network failure
-
-### Data
-
-Test:
-
-- Empty storage
-- Existing storage
-- Corrupt/unexpected data
-- Large datasets where relevant
-
-## Debugging Workflow
-
-When debugging an extension:
-
-1. Identify which extension context is failing.
-2. Inspect the relevant console.
-3. Check service-worker logs.
-4. Check content-script logs.
-5. Inspect extension messages.
-6. Inspect network requests.
-7. Verify permissions.
-8. Verify the manifest.
-9. Reproduce the issue with the smallest possible scenario.
-10. Fix the underlying architecture rather than adding unrelated workarounds.
-
-Do not assume an error in a webpage console originated from the extension.
-
-## Chrome Web Store Readiness
-
-Before publishing, review:
-
-- Extension name
-- Description
-- Icons
-- Screenshots
-- Manifest
-- Permissions
-- Host permissions
-- Privacy requirements
-- Remote code usage
-- Third-party libraries
-- Authentication behavior
-- Data collection
-- Privacy policy requirements
-- User-facing disclosures
-
-Remove development-only code, debug logging, test credentials, and unused permissions.
-
-## Code Quality
-
-Prefer:
-
-- Small modules
-- Clear function boundaries
-- Explicit data flow
-- Consistent naming
-- Centralized configuration
-- Reusable utilities
-- Explicit error handling
-- Minimal permissions
-
-Avoid:
-
-- Huge monolithic scripts
-- Global mutable state
-- Duplicate API logic
-- Unnecessary abstractions
-- Copy-pasted message handlers
-- Hard-coded environment-specific values
+User-facing errors should explain the problem and provide a useful recovery action when possible. Do not silently swallow errors.
 
 ## Existing Projects
 
-When modifying an existing extension:
+Before modifying an existing extension:
 
-1. Inspect the existing architecture first.
-2. Read `manifest.json`.
-3. Identify extension contexts.
-4. Identify current messaging patterns.
-5. Identify storage usage.
-6. Identify permissions.
-7. Identify build tooling and framework.
-8. Reuse established patterns unless they are demonstrably problematic.
+1. Read `manifest.json`.
+2. Identify extension contexts.
+3. Inspect messaging and storage.
+4. Inspect permissions and host permissions.
+5. Identify frameworks and build tooling.
+6. Follow existing project conventions.
 
-Do not rewrite an existing extension's architecture merely because another architecture is theoretically cleaner.
+Do not rewrite architecture unnecessarily. Preserve unrelated functionality.
 
-Preserve unrelated functionality.
+If the project already uses React, Vue, Svelte, TypeScript, or another framework, follow its existing build system. Do not replace a framework without a clear reason.
 
-## Frameworks
+## Testing
 
-If the project uses React, Vue, Svelte, TypeScript, or another framework:
+Test the actual extension contexts.
 
-- Follow the project's existing build system.
-- Do not introduce a new framework unnecessarily.
-- Keep extension-context boundaries clear.
-- Ensure generated assets work with Manifest V3.
-- Verify the final output directory matches the manifest paths.
+### Installation
 
-For simple extensions, prefer a lightweight implementation rather than adding a framework solely for structure.
+Test fresh installation, reload, and upgrade behavior.
 
-## Implementation Strategy
+### UI
 
-When asked to build an extension, follow this order:
+Test popup, options, side panel, and relevant viewport sizes.
 
-1. Clarify the user workflow if requirements are incomplete.
-2. Inspect an existing codebase if one exists.
-3. Determine the required extension contexts.
-4. Design the message/data flow.
-5. Define the minimum permissions.
-6. Define the manifest.
-7. Implement the core functionality.
-8. Implement the UI.
-9. Add error handling.
-10. Add security protections.
-11. Test the extension contexts independently.
-12. Test the complete user workflow.
-13. Review permissions and security again.
-14. Prepare production/Web Store configuration.
+### Content Scripts
 
-Do not generate unnecessary files or permissions.
+Test supported and unsupported pages, dynamic content, navigation, and multiple tabs.
+
+### Service Worker
+
+Test startup, restart, messages, alarms/events, and error handling.
+
+### Authentication
+
+Test login, logout, expired tokens, invalid credentials, and network failure.
+
+### Storage
+
+Test empty, existing, invalid, and unusually large datasets where relevant.
+
+## Debugging
+
+When debugging:
+
+1. Identify the failing extension context.
+2. Inspect its console and logs.
+3. Inspect service-worker and content-script logs.
+4. Inspect runtime messages.
+5. Inspect network requests.
+6. Verify permissions and manifest configuration.
+7. Reproduce the smallest failing scenario.
+8. Fix the root cause.
+
+Do not assume a webpage console error originated from the extension.
+
+## Chrome Web Store
+
+Before publishing, review:
+
+- Name and description
+- Icons and screenshots
+- Manifest
+- Permissions and host permissions
+- Privacy requirements
+- Remote code
+- Third-party dependencies
+- Authentication
+- Data collection
+- Privacy policy requirements
+- User disclosures
+
+Remove development credentials, test credentials, debug code, unnecessary logging, and unused permissions.
+
+## Common Mistakes
+
+Avoid:
+
+- Treating a service worker as persistent
+- Assuming content scripts can use privileged APIs
+- Requesting unnecessarily broad permissions
+- Storing secrets in source code
+- Trusting messages without validation
+- Rendering untrusted data with unsafe HTML
+- Depending on in-memory service-worker state
+- Polling when events are available
+- Forgetting service-worker restart tests
+- Assuming popup state persists after closing
+- Adding unnecessary frameworks
+
+## Implementation Workflow
+
+When building or modifying an extension:
+
+1. Understand the user workflow.
+2. Inspect the existing codebase.
+3. Identify contexts and permissions.
+4. Design message and data flow.
+5. Update the manifest.
+6. Implement core functionality and UI.
+7. Add error handling.
+8. Review security.
+9. Test each context.
+10. Test the complete workflow.
+11. Review permissions again.
+12. Prepare production configuration.
+
+Do not generate unnecessary files, permissions, dependencies, or abstractions.
 
 ## Response Guidelines
 
-When proposing an extension architecture, explain:
+Before implementation, explain decisions affecting architecture, permissions, security, lifecycle, or maintainability.
 
-- Why each extension context is required
-- Why each permission is required
-- How contexts communicate
-- Where persistent state is stored
-- How authentication works
-- What security risks exist
-- How the extension will be tested
+When generating code:
 
-When implementing code, prefer complete working changes over isolated snippets.
+- Prefer complete working changes
+- Follow existing project conventions
+- Preserve unrelated behavior
+- Keep message contracts explicit
+- Avoid unnecessary abstractions
 
-When a requirement has security or Chrome Web Store implications, explicitly call them out rather than silently choosing a risky implementation.
-
-When official Chrome API behavior is uncertain or potentially changed, verify against current official documentation before making a definitive implementation decision.
+Explicitly identify security and Chrome Web Store risks. Verify uncertain Chrome API behavior against official documentation instead of guessing.
