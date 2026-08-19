@@ -381,6 +381,30 @@ const slugify = (text: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+const stripHtmlTags = (html: string) => {
+  let text = "";
+  let inTag = false;
+  let quote: '"' | "'" | undefined;
+
+  for (const character of html) {
+    if (inTag) {
+      if (quote) {
+        if (character === quote) quote = undefined;
+      } else if (character === '"' || character === "'") {
+        quote = character;
+      } else if (character === ">") {
+        inTag = false;
+      }
+    } else if (character === "<") {
+      inTag = true;
+    } else {
+      text += character;
+    }
+  }
+
+  return text;
+};
+
 /**
  * Derive the in-page table of contents from rendered markdown, stamping a
  * stable `id` onto every `<h2>` so the TOC links and scroll-spy have anchors.
@@ -400,8 +424,7 @@ export function buildDetailToc(markdownHtml: string): {
   const html = markdownHtml.replace(
     /<h2([^>]*)>([\s\S]*?)<\/h2>/g,
     (match, attrs: string, inner: string) => {
-      const label = inner
-        .replace(/<[^>]+>/g, "")
+      const label = stripHtmlTags(inner)
         .replace(/&lt;|&gt;|&quot;|&#39;|&amp;/g, (entity) => {
           switch (entity) {
             case "&lt;":
