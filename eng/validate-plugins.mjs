@@ -6,14 +6,12 @@ import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
 import { validateLicenseField } from "./lib/license.mjs";
-import { AGENT_PLUGIN_SCHEMA_URL, validateAgentPluginManifest } from "./agent-plugin-schema.mjs";
+import { AGENT_PLUGIN_SCHEMA_URL, validateAgentPluginManifest, validateAgentPluginMcpConfig } from "./agent-plugin-schema.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 
 const AGENT_PLUGINS_SCHEMA = AGENT_PLUGIN_SCHEMA_URL;
-const AGENT_PLUGINS_MCP_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json";
-const MCP_SERVER_TYPES = new Set(["stdio", "streamable-http", "sse"]);
 const COPILOT_NAMESPACE = "com.github.copilot";
 const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
 
@@ -239,40 +237,12 @@ export function validateMcpConfig(pluginDir) {
     errors.push("mcp.json must contain a top-level object");
     return errors;
   }
-  if (parsed["$schema"] !== AGENT_PLUGINS_MCP_SCHEMA) {
-    errors.push(`mcp.json $schema must be "${AGENT_PLUGINS_MCP_SCHEMA}"`);
-  }
-  const servers = parsed.mcpServers;
-  if (typeof servers !== "object" || servers === null || Array.isArray(servers)) {
-    errors.push("mcp.json mcpServers must be an object");
-    return errors;
-  }
-  for (const key of Object.keys(parsed)) {
-    if (key !== "$schema" && key !== "mcpServers") {
-      errors.push(`mcp.json must not contain the top-level field "${key}"`);
-    }
-  }
-  for (const [name, server] of Object.entries(servers)) {
-    if (typeof server !== "object" || server === null || Array.isArray(server)) {
-      errors.push(`mcp.json mcpServers["${name}"] must be an object`);
-      continue;
-    }
-    if (!MCP_SERVER_TYPES.has(server.type)) {
-      errors.push(`mcp.json mcpServers["${name}"].type must be one of ${[...MCP_SERVER_TYPES].join(", ")}`);
-      continue;
-    }
-    if (server.type === "stdio" && typeof server.command !== "string") {
-      errors.push(`mcp.json mcpServers["${name}"].command is required for stdio servers`);
-    }
-    if (server.type !== "stdio" && typeof server.url !== "string") {
-      errors.push(`mcp.json mcpServers["${name}"].url is required for ${server.type} servers`);
-    }
-  }
+  errors.push(...validateAgentPluginMcpConfig(parsed).map((message) => `mcp.json ${message}`));
 
   return errors;
 }
 
-function validateCompositionNamespace(plugin) {
+export function validateCompositionNamespace(plugin) {
   const errors = [];
   const compositionFields = ["agents", "hooks", "skills"];
   const extensions = plugin.extensions;
@@ -292,6 +262,10 @@ function validateCompositionNamespace(plugin) {
 
   if (composition?.mcpServers !== undefined) {
     errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].mcpServers is not supported; declare MCP servers in mcp.json at the plugin root`);
+  }
+
+  if (extensions?.mcpServers !== undefined) {
+    errors.push("extensions.mcpServers is not supported; declare MCP servers in mcp.json at the plugin root");
   }
 
   for (const field of compositionFields) {

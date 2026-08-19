@@ -23,3 +23,135 @@ export function validateAgentPluginManifest(manifest) {
   return validate(manifest) ? [] : (validate.errors ?? []).map((error) =>
     `${error.instancePath || "manifest"} ${error.message}`);
 }
+
+export const AGENT_PLUGIN_MCP_SCHEMA_URL = "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json";
+export const AGENT_PLUGIN_MCP_SCHEMA = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: AGENT_PLUGIN_MCP_SCHEMA_URL,
+  title: "Agent Plugins MCP Configuration",
+  type: "object",
+  properties: {
+    $schema: { const: AGENT_PLUGIN_MCP_SCHEMA_URL },
+    mcpServers: { type: "object", additionalProperties: { $ref: "#/$defs/server" } },
+  },
+  required: ["$schema", "mcpServers"],
+  additionalProperties: false,
+  $defs: {
+    server: {
+      title: "MCP server",
+      oneOf: [
+        { $ref: "#/$defs/stdioServer" },
+        { $ref: "#/$defs/streamableHttpServer" },
+        { $ref: "#/$defs/sseServer" },
+      ],
+    },
+    stdioServer: {
+      title: "stdio MCP server",
+      type: "object",
+      properties: {
+        type: { const: "stdio" },
+        command: { type: "string", minLength: 1 },
+        args: { type: "array", items: { type: "string" } },
+        env: {
+          type: "object",
+          propertyNames: { not: { enum: ["PLUGIN_ROOT", "PLUGIN_DATA"] } },
+          additionalProperties: { type: "string" },
+        },
+        cwd: {
+          type: "string",
+          pattern: "^(?:\\./|\\$\\{PLUGIN_ROOT\\}(?:/|$)|\\$\\{PLUGIN_DATA\\}(?:/|$))",
+        },
+      },
+      required: ["type", "command"],
+      additionalProperties: false,
+    },
+    streamableHttpServer: {
+      title: "Streamable HTTP MCP server",
+      type: "object",
+      properties: {
+        type: { const: "streamable-http" },
+        url: { type: "string", minLength: 1 },
+        headers: { $ref: "#/$defs/headers" },
+      },
+      required: ["type", "url"],
+      additionalProperties: false,
+    },
+    sseServer: {
+      title: "Legacy HTTP+SSE MCP server",
+      type: "object",
+      properties: {
+        type: { const: "sse" },
+        url: { type: "string", minLength: 1 },
+        headers: { $ref: "#/$defs/headers" },
+      },
+      required: ["type", "url"],
+      additionalProperties: false,
+    },
+    headers: { title: "HTTP headers", type: "object", additionalProperties: { type: "string" } },
+  },
+};
+
+const mcpAjv = new Ajv2020({ allErrors: true });
+const validateMcp = mcpAjv.compile(AGENT_PLUGIN_MCP_SCHEMA);
+
+// A bare oneOf failure reports every branch at once, so errors for a server whose
+// `type` is a known discriminator are re-derived from that branch alone.
+const MCP_SERVER_BRANCHES = {
+  stdio: "stdioServer",
+  "streamable-http": "streamableHttpServer",
+  sse: "sseServer",
+};
+const MCP_SERVER_TYPES = Object.keys(MCP_SERVER_BRANCHES);
+
+function formatMcpError(error) {
+  const extra = error.params?.additionalProperty
+    ? ` (${error.params.additionalProperty})`
+    : "";
+  return `${error.instancePath || "config"} ${error.message}${extra}`;
+}
+
+export function validateAgentPluginMcpConfig(config) {
+  if (validateMcp(config)) {
+    return [];
+  }
+  const rawErrors = validateMcp.errors ?? [];
+  const servers = config?.mcpServers;
+  const hasServerObject = typeof servers === "object" && servers !== null && !Array.isArray(servers);
+
+  const messages = [];
+  for (const error of rawErrors) {
+    if (hasServerObject && error.instancePath.startsWith("/mcpServers/")) {
+      continue;
+    }
+    messages.push(formatMcpError(error));
+  }
+
+  if (hasServerObject) {
+    for (const [name, server] of Object.entries(servers)) {
+      if (typeof server !== "object" || server === null || Array.isArray(server)) {
+        messages.push(`/mcpServers/${name} must be an object`);
+        continue;
+      }
+      const branch = MCP_SERVER_BRANCHES[server.type];
+      if (!branch) {
+        messages.push(`/mcpServers/${name}/type must be one of ${MCP_SERVER_TYPES.join(", ")}`);
+        continue;
+      }
+      const branchValidator = mcpAjv.getSchema(`${AGENT_PLUGIN_MCP_SCHEMA_URL}#/$defs/${branch}`);
+      if (branchValidator(server)) {
+        continue;
+      }
+      for (const error of branchValidator.errors ?? []) {
+        if (error.keyword === "not") {
+          continue;
+        }
+        const suffix = error.keyword === "propertyNames"
+          ? ` "${error.params?.propertyName}" is reserved`
+          : formatMcpError(error).slice(error.instancePath.length || "config".length);
+        messages.push(`/mcpServers/${name}${error.instancePath}${suffix}`);
+      }
+    }
+  }
+
+  return messages;
+}
