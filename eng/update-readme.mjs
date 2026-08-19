@@ -779,33 +779,6 @@ function generatePluginsSection(pluginsDir) {
     return "";
   }
 
-  // Count configured MCP servers, mirroring generate-website-data.mjs so the
-  // README and website catalogs report the same item count.
-  // Supports a path to a .mcp.json file or an inline object.
-  const countMcpServers = (composition, pluginDir) => {
-    const configured = composition.mcpServers;
-    if (!configured) {
-      return 0;
-    }
-
-    let mcpServersObj = null;
-    if (typeof configured === "string") {
-      const mcpJsonPath = path.join(pluginDir, configured.replace(/^\.\//, ""));
-      if (fs.existsSync(mcpJsonPath)) {
-        try {
-          const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, "utf-8"));
-          mcpServersObj = mcpJson.mcpServers || mcpJson;
-        } catch {
-          // ignore parse errors
-        }
-      }
-    } else if (typeof configured === "object") {
-      mcpServersObj = configured;
-    }
-
-    return mcpServersObj ? Object.keys(mcpServersObj).length : 0;
-  };
-
   // Create table header
   let pluginsContent =
     "| Name | Description | Items | Tags |\n| ---- | ----------- | ----- | ---- |\n";
@@ -829,8 +802,7 @@ function generatePluginsSection(pluginsDir) {
       (composition.agents || []).length +
       (composition.skills || []).length +
       extensionReferences +
-      implicitExtension +
-      countMcpServers(composition, entry.pluginDir);
+      implicitExtension;
     const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
 
     const link = `../plugins/${dir}/README.md`;
