@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-10
+lastUpdated: 2026-08-19
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -701,6 +701,12 @@ The `/usage` command displays session metrics such as the number of tokens consu
 
 ```
 /usage
+```
+
+**`/limits predict`** *(v1.0.76+)*: Usage-based billing users can run `/limits predict` to get a suggested AI-credit limit for the current session, based on the credit consumption of similar past sessions. This helps you set a realistic `sessionLimits` value ahead of a large task instead of guessing:
+
+```
+/limits predict
 ```
 
 The `/compact` command summarizes the conversation history to free up context window space while preserving the thread of the conversation. Use it when your context is getting full but you do not want to start a fresh session:

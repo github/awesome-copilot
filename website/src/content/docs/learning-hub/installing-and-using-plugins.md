@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-10
+lastUpdated: 2026-08-19
 relatedArticles:
   - ./building-custom-agents.md
   - ./creating-effective-skills.md
@@ -299,13 +299,15 @@ If you only need a single agent or skill (rather than a full plugin), you can st
 
 See [Using the Copilot Coding Agent](../using-copilot-coding-agent/) for details on this approach.
 
-## Open Plugin Spec v1 Compatibility
+## Agent Plugins Standard Compatibility
 
 *(v1.0.74+)* GitHub Copilot CLI supports **Open Plugin Spec v1** plugin manifests, in addition to its own `plugin.json` format. This means plugins authored for other AI tools or platforms using the Open Plugin Spec standard can be installed and used in Copilot CLI without any modification.
 
+That standard has since matured: on August 6, 2026, [**Agent Plugins 1.0**](https://agent-plugins.org/) launched as the open, cross-tool specification for this portable packaging format, with VS Code adopting it alongside Copilot CLI. A plugin that follows the standard is just a directory containing a `plugin.json` manifest, skills under `skills/`, and MCP server configuration in `mcp.json` — no per-tool repackaging required. VS Code and Copilot CLI both read the portable parts of the package, and each also reads its own tool-specific components from a dedicated namespace (for example, `com.github.copilot/` for Copilot-specific agents, hooks, and canvas extensions). A client that doesn't recognize a given namespace simply ignores it, so one plugin package can stay portable while still bringing custom agents, slash commands, and hooks to every tool that supports the namespace.
+
 ### What This Means for You
 
-If you encounter a plugin from the broader AI ecosystem (outside GitHub's own marketplace) that ships with an Open Plugin Spec v1 manifest, you can install it directly:
+If you encounter a plugin from the broader AI ecosystem (outside GitHub's own marketplace) that ships with an Agent Plugins / Open Plugin Spec manifest, you can install it directly:
 
 ```bash
 copilot plugin install /path/to/openspec-plugin
@@ -315,7 +317,7 @@ The CLI reads the manifest, discovers the bundled agents, skills, and MCP server
 
 ### `mcp.json` Configuration
 
-Open Plugin Spec v1 also standardizes how MCP server configuration is bundled in plugins. A plugin can now include an `mcp.json` file at its root to declare MCP servers it requires — using the same format as `.mcp.json` or `.github/mcp.json` in your repository. When you install such a plugin, its MCP server configuration is automatically merged into your active server list.
+The Agent Plugins standard also standardizes how MCP server configuration is bundled in plugins. A plugin can now include an `mcp.json` file at its root to declare MCP servers it requires — using the same format as `.mcp.json` or `.github/mcp.json` in your repository. When you install such a plugin, its MCP server configuration is automatically merged into your active server list.
 
 This is useful for plugins that bundle dedicated tooling (for example, a database plugin that ships its own MCP server) — users get both the agent/skill and the required MCP server in a single install step.
 
