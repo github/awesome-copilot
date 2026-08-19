@@ -1,10 +1,6 @@
 ---
 name: repo-standardizer
 description: Polish any GitHub repository's surface — labels (emoji rating tiers, P0–P3 priority, impact severity), issue forms, PR template, CI workflows, CODEOWNERS, rulesets, docs. Repo meta & config only — no code logic touched. Use when creating a new repo or polishing an existing one.
-metadata:
-  openclaw:
-    requires:
-      bins: [gh, git, jq, python3]
 ---
 
 # GitHub Repo Standardizer
@@ -22,6 +18,9 @@ duplicating or clobbering.
 - A repo looks bare: no templates, no labels, no CI, no branch protection
 
 ## Preflight (mandatory, in order)
+
+> **Requires**: `gh` CLI (authenticated), `git`, `jq`, `python3` — verify
+> they exist before starting (`which gh git jq python3`).
 
 ### 1. Authenticate — check gh login first
 
@@ -486,4 +485,5 @@ All templates live in `templates/`:
 `issue-form-feature.yml`, `issue-form-question.yml`, `PR_TEMPLATE.md`,
 `ci-node.yml`, `ci-python.yml`, `ci-go.yml`, `ci-rust.yml`, `CODEOWNERS`,
 `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CLAUDE.md`,
-`AGENTS.md`, `VISION.md`, `CHANGELOG.md`, `README.md`, `README.zh.md`.
+`AGENTS.md`, `VISION.md`, `CHANGELOG.md`, `templates/README.md`,
+`templates/README.zh.md`.
