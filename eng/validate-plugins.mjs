@@ -12,6 +12,8 @@ const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 
 const AGENT_PLUGINS_SCHEMA = AGENT_PLUGIN_SCHEMA_URL;
+const AGENT_PLUGINS_MCP_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json";
+const MCP_SERVER_TYPES = new Set(["stdio", "streamable-http", "sse"]);
 const COPILOT_NAMESPACE = "com.github.copilot";
 const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
 
@@ -212,9 +214,67 @@ function validateExtensionReferences(plugin, pluginDir) {
   return errors;
 }
 
+export function validateMcpConfig(pluginDir) {
+  const errors = [];
+  const legacyPath = path.join(pluginDir, ".mcp.json");
+  if (fs.existsSync(legacyPath)) {
+    errors.push("MCP configuration must live at mcp.json in the plugin root, not .mcp.json");
+  }
+
+  const mcpJsonPath = path.join(pluginDir, "mcp.json");
+  if (!fs.existsSync(mcpJsonPath)) {
+    return errors;
+  }
+  if (!fs.statSync(mcpJsonPath).isFile()) {
+    errors.push("mcp.json must be a regular file");
+    return errors;
+  }
+
+  const parsed = parseJsonFile(mcpJsonPath);
+  if (parsed.parseError) {
+    errors.push(`failed to parse mcp.json: ${parsed.parseError}`);
+    return errors;
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    errors.push("mcp.json must contain a top-level object");
+    return errors;
+  }
+  if (parsed["$schema"] !== AGENT_PLUGINS_MCP_SCHEMA) {
+    errors.push(`mcp.json $schema must be "${AGENT_PLUGINS_MCP_SCHEMA}"`);
+  }
+  const servers = parsed.mcpServers;
+  if (typeof servers !== "object" || servers === null || Array.isArray(servers)) {
+    errors.push("mcp.json mcpServers must be an object");
+    return errors;
+  }
+  for (const key of Object.keys(parsed)) {
+    if (key !== "$schema" && key !== "mcpServers") {
+      errors.push(`mcp.json must not contain the top-level field "${key}"`);
+    }
+  }
+  for (const [name, server] of Object.entries(servers)) {
+    if (typeof server !== "object" || server === null || Array.isArray(server)) {
+      errors.push(`mcp.json mcpServers["${name}"] must be an object`);
+      continue;
+    }
+    if (!MCP_SERVER_TYPES.has(server.type)) {
+      errors.push(`mcp.json mcpServers["${name}"].type must be one of ${[...MCP_SERVER_TYPES].join(", ")}`);
+      continue;
+    }
+    if (server.type === "stdio" && typeof server.command !== "string") {
+      errors.push(`mcp.json mcpServers["${name}"].command is required for stdio servers`);
+    }
+    if (server.type !== "stdio" && typeof server.url !== "string") {
+      errors.push(`mcp.json mcpServers["${name}"].url is required for ${server.type} servers`);
+    }
+  }
+
+  return errors;
+}
+
 function validateCompositionNamespace(plugin) {
   const errors = [];
-  const compositionFields = ["agents", "hooks", "mcpServers", "skills"];
+  const compositionFields = ["agents", "hooks", "skills"];
   const extensions = plugin.extensions;
   const composition = extensions?.[AWESOME_COPILOT_NAMESPACE];
 
@@ -228,6 +288,10 @@ function validateCompositionNamespace(plugin) {
       (typeof composition !== "object" || composition === null || Array.isArray(composition))) {
     errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"] must be an object`);
     return errors;
+  }
+
+  if (composition?.mcpServers !== undefined) {
+    errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].mcpServers is not supported; declare MCP servers in mcp.json at the plugin root`);
   }
 
   for (const field of compositionFields) {
@@ -290,12 +354,16 @@ function validatePlugin(folderName) {
 
   // Rule 5b: license (shared with external plugins). Non-SPDX is a warning, not an error.
   const warnings = [];
-  for (const field of ["agents", "hooks", "mcpServers", "skills"]) {
+  if (plugin.mcpServers !== undefined) {
+    errors.push("mcpServers must be declared in mcp.json at the plugin root, not in plugin.json");
+  }
+  for (const field of ["agents", "hooks", "skills"]) {
     if (plugin[field] !== undefined) {
       errors.push(`${field} must be moved to extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}`);
     }
   }
   errors.push(...validateCompositionNamespace(plugin));
+  errors.push(...validateMcpConfig(pluginDir));
   const licenseResult = validateLicenseField(plugin.license, { required: false });
   errors.push(...licenseResult.errors);
   warnings.push(...licenseResult.warnings);

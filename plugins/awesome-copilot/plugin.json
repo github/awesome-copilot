@@ -20,7 +20,6 @@
       "agents": [
         "./agents/meta-agentic-project-scaffold.md"
       ],
-      "mcpServers": "./.mcp.json",
       "skills": [
         "./skills/suggest-awesome-github-copilot-agents/",
         "./skills/suggest-awesome-github-copilot-instructions/",
