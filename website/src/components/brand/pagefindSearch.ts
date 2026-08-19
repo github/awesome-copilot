@@ -15,6 +15,19 @@ type PagefindResultData = {
   meta?: Record<string, string | undefined>;
 };
 
+/** Strip HTML tags, repeating until no more tags remain so a malformed or
+ * nested markup fragment (e.g. `<<script>script>`) can't survive a single pass. */
+function stripTags(html: string): string {
+  let text = html;
+  let previous: string;
+  do {
+    previous = text;
+    text = text.replace(/<[^>]*>/g, " ");
+  } while (text !== previous);
+  return text;
+}
+
+
 type PagefindModule = {
   options?: (opts: Record<string, unknown>) => Promise<void>;
   init?: () => Promise<void>;
@@ -127,7 +140,7 @@ export async function searchPagefind(
       if (!title) continue;
       items.push({
         title,
-        description: entry.excerpt?.replace(/<[^>]*>/g, "") ?? "",
+        description: entry.excerpt ? stripTags(entry.excerpt) : "",
         category: categoryOf(entry.url.split(/[?#]/)[0]),
         href: entry.url,
       });

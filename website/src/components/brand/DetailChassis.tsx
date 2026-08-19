@@ -402,11 +402,20 @@ export function buildDetailToc(markdownHtml: string): {
     (match, attrs: string, inner: string) => {
       const label = inner
         .replace(/<[^>]+>/g, "")
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
+        .replace(/&lt;|&gt;|&quot;|&#39;|&amp;/g, (entity) => {
+          switch (entity) {
+            case "&lt;":
+              return "<";
+            case "&gt;":
+              return ">";
+            case "&quot;":
+              return '"';
+            case "&#39;":
+              return "'";
+            default:
+              return "&";
+          }
+        })
         .trim();
       if (!label) return match;
 

@@ -52,7 +52,7 @@ const rules: Record<CodeLanguage, readonly TokenRule[]> = {
     { kind: "punctuation", expression: /[{}[\],:]/y },
   ],
   markup: [
-    { kind: "comment", expression: /<!--.*?-->/y },
+    { kind: "comment", expression: /<!--[\s\S]*?-->/y },
     { kind: "tag", expression: /<\/?[A-Za-z][\w:-]*/y },
     { kind: "attr-name", expression: /[A-Za-z_:][\w:.-]*(?=\s*=)/y },
     { kind: "string", expression: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/y },

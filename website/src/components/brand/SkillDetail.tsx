@@ -480,7 +480,7 @@ function FileView({
   if (status === "error" || text === undefined) {
     return (
       <Text as="p" size="200" variant="muted">
-        Couldn&apos;t load this file. <a href={githubUrl}>View it on GitHub</a>.
+        Couldn't load this file. <a href={githubUrl}>View it on GitHub</a>.
       </Text>
     );
   }

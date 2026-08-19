@@ -14,7 +14,7 @@ export const updatedBuckets: { label: string; max: number }[] = [
   { label: "Older", max: Number.POSITIVE_INFINITY },
 ];
 
-/** Whole days between `lastUpdated` and now. Unparseable dates sort as oldest. */
+/** Whole days between `lastUpdated` and now. Unparsable dates sort as oldest. */
 export function daysSince(lastUpdated: string | undefined): number {
   if (!lastUpdated) return Number.POSITIVE_INFINITY;
   const then = Date.parse(lastUpdated);
