@@ -102,41 +102,18 @@ Do not fragment progress, roadmap, current TODOs, review conclusions, decisions,
 
 Use the smallest fitting type.
 
-### MISSION
-A long-lived reason the project exists. It survives many implementations and experiments.
-
-### SUCCESS_CRITERION
-A durable definition of meaningful project success. Never invent one merely to make a mission measurable.
-
-### WORKSTREAM
-A coherent multi-task initiative with a meaningful end or pause condition.
-
-### MILESTONE
-A bounded intermediate outcome spanning multiple tasks.
-
-### TASK
-Bounded work with a recognizable closure condition.
-
-### RESEARCH_HYPOTHESIS
-A falsifiable proposition requiring evidence. A failed hypothesis does not fail the mission.
-
-### DECISION
-An owner-approved or objectively established choice that materially constrains future work.
-
-### CONSTRAINT
-A technical, business, risk, authorization, compatibility, data, research-integrity, or operational rule future work must respect.
-
-### BLOCKER
-A confirmed condition preventing meaningful progress.
-
-### DEFERRED
-Real work intentionally postponed.
-
-### QUESTION
-Persist only if unresolved status materially affects future work.
-
-### LESSON
-A concise, validated pitfall or correction worth retaining because future agents are likely to repeat an expensive mistake.
+- `MISSION`: long-lived reason the project exists.
+- `SUCCESS_CRITERION`: durable definition of meaningful success; never invent one merely to make a mission measurable.
+- `WORKSTREAM`: coherent multi-task initiative with a meaningful end or pause condition.
+- `MILESTONE`: bounded intermediate outcome spanning multiple tasks.
+- `TASK`: bounded work with a recognizable closure condition.
+- `RESEARCH_HYPOTHESIS`: falsifiable proposition requiring evidence; rejection does not fail the mission.
+- `DECISION`: owner-approved or objectively established choice that constrains future work.
+- `CONSTRAINT`: technical, business, risk, authorization, compatibility, data, research-integrity, or operational rule.
+- `BLOCKER`: confirmed condition preventing meaningful progress.
+- `DEFERRED`: real work intentionally postponed.
+- `QUESTION`: unresolved issue whose status materially affects future work.
+- `LESSON`: validated pitfall or correction worth retaining to prevent an expensive repeated mistake.
 
 ## 4. Closure and hierarchy
 
@@ -282,33 +259,9 @@ If the discussion produced no durable lesson, store nothing.
 
 Use these defaults unless the project defines authoritative alternatives.
 
-Tasks:
-
-- `PROPOSED`
-- `ACTIVE`
-- `BLOCKED`
-- `DONE`
-- `CANCELLED`
-- `DEFERRED`
-
-Research hypotheses:
-
-- `PROPOSED`
-- `ACTIVE`
-- `SUPPORTED`
-- `REJECTED`
-- `INCONCLUSIVE`
-- `INVALIDATED`
-- `FORWARD_ONLY`
-
-Workstreams:
-
-- `PLANNED`
-- `ACTIVE`
-- `BLOCKED`
-- `COMPLETED`
-- `PAUSED`
-- `CANCELLED`
+- Tasks: `PROPOSED`, `ACTIVE`, `BLOCKED`, `DONE`, `CANCELLED`, `DEFERRED`.
+- Research hypotheses: `PROPOSED`, `ACTIVE`, `SUPPORTED`, `REJECTED`, `INCONCLUSIVE`, `INVALIDATED`, `FORWARD_ONLY`.
+- Workstreams: `PLANNED`, `ACTIVE`, `BLOCKED`, `COMPLETED`, `PAUSED`, `CANCELLED`.
 
 Do not invent new status vocabularies unless necessary.
 
@@ -431,46 +384,11 @@ Do not copy secrets from code/config into state documents while documenting a fi
 
 ## 18. Coordination with engineering governors
 
-When `engineering-decision-governor` or equivalent exists:
-
-Project State Governor owns:
-
-- state reconstruction;
-- goal hierarchy;
-- persistent status;
-- documentation hygiene;
-- durable state transitions;
-- cross-session continuity.
-
-Engineering Governor owns:
-
-- engineering task boundary;
-- technical defect classification;
-- deterministic fixes;
-- engineering verification;
-- scope-creep prevention;
-- release-risk classification.
-
-Consume verified engineering outputs as evidence.
-Do not repeat engineering work unless evidence is missing or contradictory.
+When `engineering-decision-governor` or equivalent exists, this governor owns reconstruction, goal hierarchy, persistent status, documentation hygiene, durable transitions, and cross-session continuity. The engineering governor owns task boundaries, defect classification, deterministic fixes, engineering verification, scope control, and release-risk classification. Consume its verified outputs as evidence; repeat engineering work only when evidence is missing or contradictory.
 
 ## 19. Coordination with research governors
 
-When a domain research governor exists, it owns:
-
-- research protocol and stage authorization;
-- experiment execution;
-- contamination/OOS rules;
-- candidate acceptance/rejection;
-- research evidence requirements.
-
-Project State Governor owns:
-
-- how research fits the mission;
-- which workstream is active;
-- persistent high-level research state;
-- durable negative evidence;
-- current next direction.
+When a domain research governor exists, it owns research protocol and stage authorization, experiment execution, contamination/OOS rules, candidate acceptance or rejection, and research evidence requirements. Project State Governor owns how research fits the mission, the active workstream, persistent high-level research state, durable negative evidence, and the current next direction.
 
 Never bypass research stage gates.
 Never turn invalid/rejected research into project success.
@@ -524,20 +442,11 @@ Distinguish `CONFIRMED`, `INFERRED`, and `UNKNOWN` where reliability matters.
 
 After meaningful governance work, report only:
 
-### Project State Changes
-Durable state transitions applied.
-
-### Current Focus
-Active mission/workstream/milestone/task/research direction.
-
-### Remaining Blockers / Decisions
-Only genuine unresolved blockers or owner decisions.
-
-### Documentation Actions
-Canonical docs changed, staged, consolidated, or removed.
-
-### Evidence Notes
-Only provenance or confidence caveats that materially affect trust.
+- **Project State Changes:** durable state transitions applied.
+- **Current Focus:** active mission, workstream, milestone, task, or research direction.
+- **Remaining Blockers / Decisions:** genuine unresolved blockers or owner decisions.
+- **Documentation Actions:** canonical docs changed, staged, consolidated, or removed.
+- **Evidence Notes:** provenance or confidence caveats that materially affect trust.
 
 If no durable state changed, say so briefly and do not manufacture an update.
 
