@@ -382,8 +382,8 @@ README (ask about languages FIRST):
   - Extra languages: `README.<lang>.md` (e.g. `README.zh.md`, `README.ja.md`).
   - Top of every file, a switcher line — current language as plain text,
     others as relative links:
-    - `README.md`:       `< English | [简体中文](./README.zh.md) >`
-    - `README.zh.md`:    `< [English](./README.md) | 简体中文 >`
+    - `README.md`:       `< English | 简体中文 >`  (简体中文 links to `README.zh.md`)
+    - `README.zh.md`:    `< English | 简体中文 >`  (English links to `README.md`)
   - Keep structure, badges, and anchors parallel across language files.
 - `README.md`: if missing or bare, generate one from `templates/README.md`
   (badges, install, usage, modules table). Keep the user's existing content if
