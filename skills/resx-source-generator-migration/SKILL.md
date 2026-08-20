@@ -66,6 +66,8 @@ Before deleting a candidate, inspect its contents and confirm it is a generated 
 
 Also confirm that every resource exposed by the designer is a string and that the .resx file contains no images, icons, byte arrays, serialized objects, or other non-string values. This source generator emits string accessors backed by `ResourceManager.GetString`; it is not a compatible replacement for non-string resource properties. If any non-string resource exists, do not delete the designer or migrate that resource file. Keep its existing generation approach, or set `<GenerateSource>false</GenerateSource>` if the package would otherwise process it.
 
+Before deletion, search the solution for every use and declaration of the accessor type. `ResXFileCodeGenerator` emits a non-static class, while this source generator emits a `static partial` class. Identify object construction, instance access, inheritance, use as a generic type argument (including `IStringLocalizer<T>`), and existing partial declarations with instance members, base types, or interfaces. Refactor each incompatible use to the static generated API and make every partial declaration compatible before migrating. If that is not appropriate, retain the existing designer and set `<GenerateSource>false</GenerateSource>` for that resource file.
+
 For each associated designer file:
 
 1. Delete the `*.Designer.cs` file from disk.
@@ -137,7 +139,7 @@ Build the migrated project.
 
 After the build succeeds, validate each resource family according to how it is consumed:
 
-1. For each migrated neutral string resource, load the built assembly in PowerShell, use reflection to access at least one generated property, and verify it returns the expected string.
+1. For each migrated neutral string resource, use the repository's existing tests or an available .NET test/console host to access at least one generated property and verify it returns the expected string. Reflection from PowerShell is an optional approach when `pwsh` is available, not a requirement.
 2. For culture-specific satellite resources, switch to a representative culture and verify the neutral accessor returns the expected localized string. Do not expect a separate generated accessor for each satellite file.
 3. For framework, designer, non-string, or other resources marked `GenerateSource=false`, exercise their actual consumer, such as instantiating the WinForms form/control or loading an image/object through the retained resource API.
 4. Confirm every .resx file is still embedded in the expected main or satellite assembly.
