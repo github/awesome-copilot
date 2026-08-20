@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     forks: "*"
 checkout: false
+model: gpt-5.4
 permissions:
   contents: read
   pull-requests: read
