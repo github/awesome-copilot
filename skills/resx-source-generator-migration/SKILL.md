@@ -64,6 +64,8 @@ For each strongly typed .resx file being migrated, identify its generated design
 
 Before deleting a candidate, inspect its contents and confirm it is a generated resource accessor, such as a class containing `ResourceManager`, `Culture`, and properties that retrieve resource values. A matching filename alone is not sufficient. Do not delete WinForms or control designer files that contain UI initialization such as `InitializeComponent`; these commonly sit beside a same-named .resx file, and their `DependentUpon` metadata points to the form or control source file rather than the .resx file.
 
+Also confirm that every resource exposed by the designer is a string and that the .resx file contains no images, icons, byte arrays, serialized objects, or other non-string values. This source generator emits string accessors backed by `ResourceManager.GetString`; it is not a compatible replacement for non-string resource properties. If any non-string resource exists, do not delete the designer or migrate that resource file. Keep its existing generation approach, or set `<GenerateSource>false</GenerateSource>` if the package would otherwise process it.
+
 For each associated designer file:
 
 1. Delete the `*.Designer.cs` file from disk.
@@ -84,7 +86,7 @@ Process each strongly typed `EmbeddedResource` being migrated as follows:
 1. Remove the `LastGenOutput` metadata.
 2. If either `Generator` or `CustomTool` metadata is set to `PublicResXFileCodeGenerator`, add `<Public>true</Public>` metadata to the item.
 3. Remove the `Generator` (or `CustomTool`) metadata.
-4. If the `EmbeddedResource` item has no remaining metadata after these removals, remove the item entirely.
+4. If the `EmbeddedResource` item has no remaining metadata after these removals, remove it only after verifying that the SDK implicitly includes that .resx file and that default embedded-resource items are enabled. Otherwise retain the explicit `Include` or equivalent item so the resource remains in the built assembly.
 5. If you see `CustomToolNamespace` metadata, see the special section on that topic.
 
 ## `CustomToolNamespace` metadata special handling
@@ -133,8 +135,9 @@ When the compiler emits an error about a type and namespace sharing the same nam
 
 Build the migrated project.
 
-After the build succeeds, verify string resources are still accessible:
+After the build succeeds, validate each resource family according to how it is consumed:
 
-1. Load the built assembly in PowerShell.
-2. Use reflection APIs to access at least one string from each resx file.
-3. Verify property getters successfully return expected strings.
+1. For each migrated neutral string resource, load the built assembly in PowerShell, use reflection to access at least one generated property, and verify it returns the expected string.
+2. For culture-specific satellite resources, switch to a representative culture and verify the neutral accessor returns the expected localized string. Do not expect a separate generated accessor for each satellite file.
+3. For framework, designer, non-string, or other resources marked `GenerateSource=false`, exercise their actual consumer, such as instantiating the WinForms form/control or loading an image/object through the retained resource API.
+4. Confirm every .resx file is still embedded in the expected main or satellite assembly.
