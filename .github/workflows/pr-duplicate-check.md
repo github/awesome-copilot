@@ -9,7 +9,7 @@ permissions:
   contents: read
   pull-requests: read
   copilot-requests: write
-model: gpt-5-mini
+model: claude-sonnet-5
 tools:
   github:
     toolsets: [repos, pull_requests]
