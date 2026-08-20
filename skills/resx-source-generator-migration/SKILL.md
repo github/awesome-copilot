@@ -62,6 +62,8 @@ For each strongly typed .resx file being migrated, identify its generated design
 - a `Compile` item whose `DependentUpon` metadata names the .resx file; and
 - a matching `*.Designer.cs` file on disk, even when the SDK includes it implicitly and no `Compile` item exists.
 
+Before deleting a candidate, inspect its contents and confirm it is a generated resource accessor, such as a class containing `ResourceManager`, `Culture`, and properties that retrieve resource values. A matching filename alone is not sufficient. Do not delete WinForms or control designer files that contain UI initialization such as `InitializeComponent`; these commonly sit beside a same-named .resx file, and their `DependentUpon` metadata points to the form or control source file rather than the .resx file.
+
 For each associated designer file:
 
 1. Delete the `*.Designer.cs` file from disk.
