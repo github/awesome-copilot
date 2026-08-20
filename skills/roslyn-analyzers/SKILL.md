@@ -260,6 +260,8 @@ Third, copy this `Directory.Packages.Analyzers.props` structure and tailor the b
     <!-- These versions are chosen to support the oldest compiler/SDK host named here. -->
   <PropertyGroup>
         <CodeAnalysisVersionForAnalyzers>4.11.0</CodeAnalysisVersionForAnalyzers>
+      <!-- Apply analyzer compatibility pins to packages referenced only transitively. -->
+      <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
         <PackageVersion Update="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
@@ -452,7 +454,7 @@ A separate `Product.Analyzers` package is also valid. In that model, the main li
 - Shipping Roslyn references and their transitive dependency closure are coherently pinned to one compatibility baseline.
 - `Microsoft.CodeAnalysis.Analyzers` uses the latest available version as a private development dependency and is not tied to the shipping Roslyn baseline.
 - Analyzer projects set `IsAnalyzerProject`, conditionally import a dedicated `Directory.Packages.Analyzers.props`, and retain XML comments explaining the compatibility baseline and override mechanism.
-- Renovate or Dependabot cannot casually advance that baseline beyond patch versions.
+- Renovate or Dependabot cannot automatically advance that baseline at any SemVer level: patch, minor, or major.
 - API/type/member names come from a shared catalog rather than scattered literals.
 - Every diagnostic ID has a documentation page, is present in site navigation, and has a `HelpLinkUri` matching the published URL.
 - Every analyzer project produces a unique assembly version per commit; with Nerdbank.GitVersioning, its local `version.json` uses revision precision and any shared `GitVersionBaseDirectory` is overridden correctly.

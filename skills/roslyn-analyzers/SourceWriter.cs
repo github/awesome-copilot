@@ -101,19 +101,16 @@ internal sealed class SourceWriter
         [StringSyntax("c#-test")] string text,
         bool disableIndentation = false)
     {
-        if (this.indentation == 0 || disableIndentation)
-        {
-            this.builder.Append(text);
-            this.builder.Append(NewLine);
-            return;
-        }
-
         bool isFinalLine;
         ReadOnlySpan<char> remainingText = text.AsSpan();
         do
         {
             ReadOnlySpan<char> nextLine = GetNextLine(ref remainingText, out isFinalLine);
-            this.AddIndentation();
+            if (!disableIndentation && this.indentation > 0)
+            {
+                this.AddIndentation();
+            }
+
             this.AppendSpan(nextLine);
             this.builder.Append(NewLine);
         }
