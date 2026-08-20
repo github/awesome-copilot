@@ -2,6 +2,7 @@
 name: multi-source-search
 description: 'Research claims across independent sources, preserve supporting and contradicting evidence separately, and return a confidence-scored evidence ledger with adjacent citations. Use for fact-checking, current research, and decisions that require more than one source.'
 license: Apache-2.0
+compatibility: 'Designed for GitHub Copilot and other Agent Skills-compatible hosts with web search and page-reading tools; requires network access for live research. No SandBase account or external CLI is required.'
 ---
 
 # Multi-Source Search
