@@ -4,7 +4,7 @@ description: Maintain evidence-backed project state across conversations, branch
 license: MIT
 metadata:
   author: Ghost011118
-  version: "1.0.0"
+  version: "1.0.1"
   compatibility: Designed for filesystem- and Git-capable coding agents, including GitHub Copilot, Codex, and Claude Code.
   source: https://github.com/Ghost011118/project-state-governor
 ---
@@ -147,15 +147,17 @@ workstream DONE != mission success
 
 When repository access exists and project-level conclusions are required:
 
-1. read repository `AGENTS.md`;
-2. detect compact or scaled canonical-state mode;
-3. in scaled mode, read `.project/MANIFEST.md` first;
-4. read current state/brief before historical material;
-5. identify current Git branch and working tree;
-6. inspect relevant recent commits, code, tests, configuration, and contracts;
-7. load domain-specific governance files when applicable;
-8. load only task-relevant canonical area files;
-9. inspect historical documentation only when needed to resolve state or conflict.
+1. read the repository-root `AGENTS.md` when present;
+2. identify candidate paths that may be inspected, written, moved, or deleted;
+3. before acting on each candidate path, discover and read every applicable `AGENTS.md` from the repository root through that path's parent; deeper rules govern only their subtree;
+4. detect compact or scaled canonical-state mode;
+5. in scaled mode, read `.project/MANIFEST.md` first;
+6. read current state/brief before historical material;
+7. identify current Git branch and working tree;
+8. inspect relevant recent commits, code, tests, configuration, and contracts;
+9. load domain-specific governance files when applicable;
+10. load only task-relevant canonical area files;
+11. inspect historical documentation only when needed to resolve state or conflict.
 
 Use progressive retrieval. Do not load the whole repository history or every memory file by default.
 
