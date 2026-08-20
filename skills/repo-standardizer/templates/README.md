@@ -1,5 +1,7 @@
 # PROJECT_NAME
 
+< English | [简体中文](./README.zh.md) >
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![GitHub release](https://img.shields.io/github/v/release/OWNER/REPO)
 ![GitHub issues](https://img.shields.io/github/issues/OWNER/REPO)
