@@ -13,6 +13,12 @@ model: gpt-5-mini
 tools:
   github:
     toolsets: [repos, pull_requests]
+pre-agent-steps:
+  - name: Expose Copilot CLI to the sandbox
+    run: |
+      COPILOT_BIN="$(command -v copilot)"
+      test -x "$COPILOT_BIN"
+      sudo ln -sfn "$COPILOT_BIN" /usr/local/bin/copilot
 post-steps:
   - name: Write PR context artifact
     if: always()
