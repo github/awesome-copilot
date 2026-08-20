@@ -3,13 +3,11 @@ description: 'Checks PRs for potential duplicate agents, instructions, skills, a
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    forks: "*"
 checkout: false
 permissions:
   contents: read
   pull-requests: read
   copilot-requests: write
-model: claude-sonnet-5
 tools:
   github:
     toolsets: [repos, pull_requests]
