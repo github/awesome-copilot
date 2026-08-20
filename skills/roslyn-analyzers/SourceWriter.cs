@@ -176,11 +176,6 @@ internal sealed class SourceWriter
     private void AddIndentation()
         => this.builder.Append(this.IndentationChar, this.CharsPerIndentation * this.indentation);
 
-    private unsafe void AppendSpan(ReadOnlySpan<char> span)
-    {
-        fixed (char* pointer = span)
-        {
-            this.builder.Append(pointer, span.Length);
-        }
-    }
+    private void AppendSpan(ReadOnlySpan<char> span)
+        => this.builder.Append(span.ToString());
 }
