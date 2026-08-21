@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0 # full history for git-log author fallback
 
       - name: Setup Node.js
-        uses: actions/setup-node@3235b876344febd2b5f2414c5edc3a01b7f10a06 # v4.2.0
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: 20
 

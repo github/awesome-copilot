@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "security-best-practices",
+  "description": "Security frameworks, accessibility guidelines, performance optimization, and code quality best practices for building secure, maintainable, and high-performance applications.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "accessibility",
+    "performance",
+    "code-quality",
+    "owasp",
+    "a11y",
+    "optimization",
+    "best-practices"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/ai-prompt-engineering-safety-review/"
+      ]
+    }
+  }
+}

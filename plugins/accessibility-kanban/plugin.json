@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "accessibility-kanban",
+  "description": "Kanban board to manage accessibility issues, allow you to plan, track, and complete remediation work.",
+  "version": "1.0.2",
+  "author": {
+    "name": "Aaron Powell",
+    "url": "https://github.com/aaronpowell"
+  },
+  "keywords": [
+    "accessibility",
+    "github-issues",
+    "issue-triage",
+    "kanban-board",
+    "planning-workflow",
+    "status-tracking"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/accessibility-kanban"
+      ]
+    }
+  }
+}

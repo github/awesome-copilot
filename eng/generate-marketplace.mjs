@@ -2,11 +2,11 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
-const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const MARKETPLACE_FILE = path.join(ROOT_FOLDER, ".github/plugin", "marketplace.json");
 
 /**
@@ -15,7 +15,7 @@ const MARKETPLACE_FILE = path.join(ROOT_FOLDER, ".github/plugin", "marketplace.j
  * @returns {object|null} - Plugin metadata or null if not found
  */
 function readPluginMetadata(pluginDir) {
-  const pluginJsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
+  const pluginJsonPath = path.join(pluginDir, "plugin.json");
 
   if (!fs.existsSync(pluginJsonPath)) {
     console.warn(`Warning: No plugin.json found for ${path.basename(pluginDir)}`);
@@ -65,22 +65,15 @@ function collectLocalPluginsFromRoot(rootDir, sourcePrefix, includeEntry = () =>
 /**
  * Generate marketplace.json from plugin directories
  */
-function generateMarketplace() {
+export function generateMarketplace() {
   console.log("Generating marketplace.json...");
 
-  if (!fs.existsSync(PLUGINS_DIR) && !fs.existsSync(EXTENSIONS_DIR)) {
-    console.error(`Error: Neither plugins directory (${PLUGINS_DIR}) nor extensions directory (${EXTENSIONS_DIR}) was found`);
+  if (!fs.existsSync(PLUGINS_DIR)) {
+    console.error(`Error: Plugins directory (${PLUGINS_DIR}) was not found`);
     process.exit(1);
   }
 
-  const plugins = [
-    ...collectLocalPluginsFromRoot(PLUGINS_DIR, "plugins"),
-    ...collectLocalPluginsFromRoot(
-      EXTENSIONS_DIR,
-      "extensions",
-      (entryName) => fs.existsSync(path.join(EXTENSIONS_DIR, entryName, "extension.mjs"))
-    )
-  ];
+  const plugins = collectLocalPluginsFromRoot(PLUGINS_DIR, "plugins");
 
   console.log(`Found ${plugins.length} local plugin manifests`);
 
@@ -134,5 +127,6 @@ function generateMarketplace() {
   console.log(`  Location: ${MARKETPLACE_FILE}`);
 }
 
-// Run the script
-generateMarketplace();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  generateMarketplace();
+}

@@ -567,7 +567,7 @@ Include at end of Executive Summary:
 
 ⚠️ **This ENTIRE section is REQUIRED.** Previous iterations skipped it entirely. Include ALL sub-sections below, even if tables are empty.
 
-```markdown
+````markdown
 ## Analysis Context & Assumptions
 
 ### Analysis Scope
@@ -601,7 +601,7 @@ Include at end of Executive Summary:
 <!-- Any other context from the user's prompt -->
 
 [Freeform notes provided by user]
-```
+````
 
 ### References Consulted Template
 

@@ -7,9 +7,9 @@ For just *running* a server, ignore this file.
 ## Packages
 
 ```bash
-dotnet add package ModelContextProtocol.Core   # minimal: just client + transports
+dotnet add package ModelContextProtocol.Core --version 2.2.0   # minimal: just client + transports
 # or
-dotnet add package ModelContextProtocol         # adds DI/hosting helpers
+dotnet add package ModelContextProtocol --version 2.2.0         # adds DI/hosting helpers
 ```
 
 ## Connecting via STDIO (launching a server process)
@@ -110,9 +110,13 @@ client.RegisterNotificationHandler(
     });
 ```
 
+## Version negotiation (2026-07-28)
+
+Since 2.x, `McpClient.CreateAsync` probes the server with `server/discover` first and falls back to the legacy `initialize` handshake for down-level servers automatically — no configuration needed on your side.
+
 ## Handling server-to-client requests (sampling, elicitation, roots)
 
-If your server uses these features, your client must handle them. Configure handlers when creating the client:
+If your server uses these features, your client must handle them. Note that sampling and roots are deprecated in the 2026-07-28 spec (`MCP9005` warnings on 2.x) — you still need the handlers to interoperate with servers that use them. Configure handlers when creating the client:
 
 ```csharp
 await using var client = await McpClient.CreateAsync(transport, new McpClientOptions

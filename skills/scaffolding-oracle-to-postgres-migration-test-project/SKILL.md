@@ -1,6 +1,6 @@
 ---
 name: scaffolding-oracle-to-postgres-migration-test-project
-description: 'Scaffolds an xUnit integration test project for validating Oracle-to-PostgreSQL database migration behavior in .NET solutions. Creates the test project, transaction-rollback base class, and seed data manager. Use when setting up test infrastructure before writing migration integration tests, or when a test project is needed for Oracle-to-PostgreSQL validation.'
+description: 'Scaffolds an xUnit integration test project targeting Oracle in .NET solutions. Creates the test project, transaction-rollback base class, and seed data manager. Use only during Phase 3, before writing Oracle baseline integration tests. Do not invoke during Phase 6 — the PostgreSQL test project is produced by migrating this project, not by running this skill again.'
 ---
 
 # Scaffolding an Integration Test Project for Oracle-to-PostgreSQL Migration
@@ -25,7 +25,7 @@ Read the target project's `.csproj` to determine the .NET version and existing p
 **Step 2: Create the xUnit test project**
 
 - Target the same .NET version as the application under test.
-- Add NuGet packages for Oracle database connectivity and xUnit.
+- Add NuGet packages for Oracle database connectivity (`Oracle.ManagedDataAccess.Core`) and xUnit.
 - Add a project reference to the target project only — no other application projects.
 - Add an `appsettings.json` configured for Oracle database connectivity.
 
@@ -40,7 +40,6 @@ Read the target project's `.csproj` to determine the .NET version and existing p
 - Create a global seed manager for loading test data within the transaction scope.
 - Do not commit seed data — transactions roll back after each test.
 - Do not use `TRUNCATE TABLE` — preserve existing database data.
-- Reuse existing seed files if available.
 - Establish a naming convention for seed file location that downstream test creation will follow.
 
 **Step 5: Verify the project compiles**
@@ -49,6 +48,7 @@ Build the test project and confirm it compiles with zero errors before finishing
 
 ## Key Constraints
 
-- Oracle is the golden behavior source — scaffold for Oracle first.
+- **Phase 3 only** — this skill scaffolds the Oracle-targeting test project. The PostgreSQL test project (Phase 6) is created by copying and migrating this project; do not run this skill again at that point.
+- Oracle is the golden behavior source — scaffold for Oracle only, not PostgreSQL.
 - Keep to existing .NET and C# versions; do not introduce newer language or runtime features.
 - Output is an empty test project with infrastructure only — no test cases.

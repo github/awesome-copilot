@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "release-notes-showcase",
+  "description": "Compose and refine launch-ready release notes with contributor callouts and export-friendly output.",
+  "version": "1.0.2",
+  "author": {
+    "name": "Kayla Cinnamon",
+    "url": "https://github.com/cinnamon-msft"
+  },
+  "keywords": [
+    "changelog",
+    "contributor-callouts",
+    "email-export",
+    "launch-summary",
+    "product-updates",
+    "release-notes"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/release-notes-showcase"
+      ]
+    }
+  }
+}
