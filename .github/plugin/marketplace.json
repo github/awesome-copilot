@@ -993,6 +993,12 @@
       }
     },
     {
+      "name": "modernization-workflow",
+      "source": "plugins/modernization-workflow",
+      "description": "Visualize and guide the GitHub Copilot Modernize CLI Assess, Plan, and Execute workflow for .NET, Java, and C++ application repositories.",
+      "version": "1.0.0"
+    },
+    {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
       "version": "1.0.1161-preview1",
