@@ -216,6 +216,20 @@ test("rejects traversal in plugin root and data placeholders", () => {
   ]);
 });
 
+test("rejects mixed-separator traversal in a PLUGIN_DATA placeholder", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: {
+        data: { type: "stdio", command: "docker", cwd: "${PLUGIN_DATA}/..\\outside" },
+      },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    "mcp.json /mcpServers/data/cwd must stay within the plugin root or plugin data directory",
+  ]);
+});
+
 test("rejects Windows-style traversal in plugin-relative paths", () => {
   const dir = makePluginDir({
     "mcp.json": {

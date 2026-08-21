@@ -183,7 +183,7 @@ function isContainedRelativeCwd(cwd, pluginDir) {
 
 function isLexicallyWithinRoot(value) {
   let depth = 0;
-  for (const segment of value.split("/")) {
+  for (const segment of value.split(/[\\/]/)) {
     if (!segment || segment === ".") continue;
     if (segment === "..") {
       if (depth === 0) return false;
