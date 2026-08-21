@@ -14,6 +14,7 @@ on:
       - "instructions/**"
       - "hooks/**"
       - "workflows/**"
+      - ".github/workflows/**"
       - "extensions/**"
       - "cookbook/**"
       - "eng/**"
