@@ -41,6 +41,33 @@ test("accepts a plugin with no mcp.json", () => {
   assert.deepEqual(validateMcpConfig(makePluginDir({})), []);
 });
 
+test("rejects an mcp.json symlink outside the plugin root", (t) => {
+  const dir = makePluginDir({});
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "plugin-mcp-outside-"));
+  const outsideMcp = path.join(outside, "mcp.json");
+  fs.writeFileSync(outsideMcp, JSON.stringify({ $schema: MCP_SCHEMA, mcpServers: {} }));
+  try {
+    fs.symlinkSync(outsideMcp, path.join(dir, "mcp.json"), "file");
+  } catch {
+    t.skip("symlink creation is not available");
+    return;
+  }
+  assert.deepEqual(validateMcpConfig(dir), [
+    "mcp.json must resolve to a file inside the plugin root",
+  ]);
+});
+
+test("reports a dangling mcp.json symlink", (t) => {
+  const dir = makePluginDir({});
+  try {
+    fs.symlinkSync(path.join(dir, "missing-mcp.json"), path.join(dir, "mcp.json"), "file");
+  } catch {
+    t.skip("symlink creation is not available");
+    return;
+  }
+  assert.deepEqual(validateMcpConfig(dir), ["mcp.json is a dangling symbolic link"]);
+});
+
 test("rejects a legacy .mcp.json location", () => {
   const dir = makePluginDir({
     ".mcp.json": { mcpServers: {} },
@@ -236,6 +263,27 @@ test("rejects plugin-relative paths that traverse a symlink outside the root", (
   assert.deepEqual(validateMcpConfig(dir), [
     'mcp.json /mcpServers/command/command must be a bare executable name or a plugin-relative path starting with "./"',
     "mcp.json /mcpServers/root/cwd must stay within the plugin root or plugin data directory",
+  ]);
+});
+
+test("rejects command and PLUGIN_ROOT cwd paths through a dangling symlink", (t) => {
+  const dir = makePluginDir({});
+  try {
+    fs.symlinkSync(path.join(dir, "missing-directory"), path.join(dir, "dangling"), "junction");
+  } catch {
+    t.skip("symlink creation is not available");
+    return;
+  }
+  fs.writeFileSync(path.join(dir, "mcp.json"), JSON.stringify({
+    $schema: MCP_SCHEMA,
+    mcpServers: {
+      command: { type: "stdio", command: "./dangling/tool" },
+      cwd: { type: "stdio", command: "docker", cwd: "${PLUGIN_ROOT}/dangling/work" },
+    },
+  }));
+  assert.deepEqual(validateMcpConfig(dir), [
+    'mcp.json /mcpServers/command/command must be a bare executable name or a plugin-relative path starting with "./"',
+    "mcp.json /mcpServers/cwd/cwd must stay within the plugin root or plugin data directory",
   ]);
 });
 

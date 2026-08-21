@@ -220,15 +220,53 @@ export function validateMcpConfig(pluginDir) {
   }
 
   const mcpJsonPath = path.join(pluginDir, "mcp.json");
-  if (!fs.existsSync(mcpJsonPath)) {
+  let mcpStat;
+  try {
+    mcpStat = fs.lstatSync(mcpJsonPath);
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      try {
+        fs.readlinkSync(mcpJsonPath);
+        errors.push("mcp.json is a dangling symbolic link");
+      } catch (readlinkError) {
+        if (readlinkError.code !== "EINVAL" && readlinkError.code !== "ENOENT") {
+          errors.push(`mcp.json could not be inspected: ${readlinkError.message}`);
+        }
+      }
+      return errors;
+    }
+    errors.push(`mcp.json could not be inspected: ${error.message}`);
     return errors;
   }
-  if (!fs.statSync(mcpJsonPath).isFile()) {
+
+  let pluginRoot;
+  let resolvedMcpJsonPath;
+  try {
+    pluginRoot = fs.realpathSync.native(pluginDir);
+    resolvedMcpJsonPath = fs.realpathSync.native(mcpJsonPath);
+  } catch (error) {
+    if (mcpStat.isSymbolicLink() && error.code === "ENOENT") {
+      errors.push("mcp.json is a dangling symbolic link");
+    } else {
+      errors.push(`mcp.json could not be resolved: ${error.message}`);
+    }
+    return errors;
+  }
+
+  const relativeMcpPath = path.relative(pluginRoot, resolvedMcpJsonPath);
+  if (relativeMcpPath === ".." ||
+      relativeMcpPath.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(relativeMcpPath)) {
+    errors.push("mcp.json must resolve to a file inside the plugin root");
+    return errors;
+  }
+
+  if (!fs.statSync(resolvedMcpJsonPath).isFile()) {
     errors.push("mcp.json must be a regular file");
     return errors;
   }
 
-  const parsed = parseJsonFile(mcpJsonPath);
+  const parsed = parseJsonFile(resolvedMcpJsonPath);
   if (parsed.parseError) {
     errors.push(`failed to parse mcp.json: ${parsed.parseError}`);
     return errors;

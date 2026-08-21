@@ -123,23 +123,45 @@ function isPathWithinRoot(root, value) {
     return false;
   }
 
-  const rootRealPath = fs.realpathSync.native(root);
+  let rootRealPath;
+  try {
+    rootRealPath = fs.realpathSync.native(root);
+  } catch {
+    return false;
+  }
   let existingPath = candidate;
   const missingSegments = [];
-  while (!fs.existsSync(existingPath)) {
-    const parent = path.dirname(existingPath);
-    if (parent === existingPath) {
-      break;
+  while (true) {
+    let resolvedExistingPath;
+    try {
+      fs.lstatSync(existingPath);
+      resolvedExistingPath = fs.realpathSync.native(existingPath);
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        return false;
+      }
+      try {
+        fs.readlinkSync(existingPath);
+        return false;
+      } catch (readlinkError) {
+        if (readlinkError.code !== "EINVAL" && readlinkError.code !== "ENOENT") {
+          return false;
+        }
+      }
+      const parent = path.dirname(existingPath);
+      if (parent === existingPath) {
+        return false;
+      }
+      missingSegments.unshift(path.basename(existingPath));
+      existingPath = parent;
+      continue;
     }
-    missingSegments.unshift(path.basename(existingPath));
-    existingPath = parent;
+    const resolvedCandidate = path.join(resolvedExistingPath, ...missingSegments);
+    const resolvedRelative = path.relative(rootRealPath, resolvedCandidate);
+    return resolvedRelative !== ".." &&
+      !resolvedRelative.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(resolvedRelative);
   }
-  const resolvedExistingPath = fs.realpathSync.native(existingPath);
-  const resolvedCandidate = path.join(resolvedExistingPath, ...missingSegments);
-  const resolvedRelative = path.relative(rootRealPath, resolvedCandidate);
-  return resolvedRelative !== ".." &&
-    !resolvedRelative.startsWith(`..${path.sep}`) &&
-    !path.isAbsolute(resolvedRelative);
 }
 
 function isContainedRelativeCwd(cwd, pluginDir) {
