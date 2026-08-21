@@ -800,7 +800,7 @@
     },
     {
       "name": "git-worktree-explorer",
-      "source": "extensions/git-worktree-explorer",
+      "source": "plugins/git-worktree-explorer",
       "description": "Visualize the active Git repository through worktrees, branches, commits, and optional GitHub pull request context.",
       "version": "1.0.0"
     },
