@@ -1,0 +1,19 @@
+{
+  "name": "chat-cards",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "Interactive card deck in a GHCP canvas: tab cards, tables, SVG charts, show/hide sections, numbered outlines, rendered markdown documents, video clips, and forms whose submissions come back to the conversation as prompts.",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "keywords": [
+    "interactive-cards",
+    "charts",
+    "forms",
+    "education",
+    "research",
+    "visual-explanations",
+    "canvas"
+  ]
+}

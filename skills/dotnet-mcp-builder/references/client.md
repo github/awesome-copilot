@@ -7,9 +7,9 @@ For just *running* a server, ignore this file.
 ## Packages
 
 ```bash
-dotnet add package ModelContextProtocol.Core   # minimal: just client + transports
+dotnet add package ModelContextProtocol.Core --version 2.2.0   # minimal: just client + transports
 # or
-dotnet add package ModelContextProtocol         # adds DI/hosting helpers
+dotnet add package ModelContextProtocol --version 2.2.0         # adds DI/hosting helpers
 ```
 
 ## Connecting via STDIO (launching a server process)
