@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { gatherGitContext, getFileDiff } from "./git-context.mjs";
+import { gatherGitContext, getFileDiff, splitCommitGraph } from "./git-context.mjs";
 
 function git(cwd, ...args) {
     return execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
@@ -232,4 +232,98 @@ test("preserves executable mode for untracked files", async (t) => {
 
     const diff = await getFileDiff(cwd, "run.sh");
     assert.match(diff.diff, /new file mode 100755/);
+});
+
+test("collapses only base history after the final branch commit in a diverged graph", () => {
+    const row = (hash, extra = {}) => ({ graph: "* ", hash, subject: hash, refs: "", ...extra });
+    const branchHashes = new Set(["b2", "b1"]);
+    // --topo-order can place a newer base commit above the branch's own commits.
+    const graph = [
+        row("base3"),
+        row("b2"),
+        row("base2"),
+        row("b1"),
+        { graph: "|/", hash: "", subject: "", refs: "" },
+        row("base1"),
+        row("root"),
+    ];
+    const start = splitCommitGraph(graph, branchHashes, "main");
+    assert.equal(start, 5, "the split must begin after the last branch commit");
+    assert.deepEqual(graph.slice(start).map((item) => item.hash), ["base1", "root"]);
+
+    assert.equal(splitCommitGraph(graph, branchHashes, null), -1, "no base ref means no split");
+    assert.equal(splitCommitGraph(graph, new Set(), "main"), -1, "no branch commits means no split");
+    assert.equal(splitCommitGraph([row("b1")], branchHashes, "main"), -1, "nothing after the last branch commit");
+});
+
+test("gathered context reports a graph split that keeps diverged branch commits visible", async (t) => {
+    const cwd = mkdtempSync(join(tmpdir(), "where-was-i-diverged-"));
+    t.after(() => rmSync(cwd, { recursive: true, force: true }));
+
+    git(cwd, "init", "-b", "main");
+    git(cwd, "config", "user.name", "Canvas Tester");
+    git(cwd, "config", "user.email", "canvas@example.com");
+    write(cwd, "a.txt", "a\n");
+    git(cwd, "add", ".");
+    git(cwd, "commit", "-m", "root");
+    git(cwd, "switch", "-c", "feature");
+    write(cwd, "b.txt", "b\n");
+    git(cwd, "add", ".");
+    git(cwd, "commit", "-m", "feature 1");
+    git(cwd, "switch", "main");
+    write(cwd, "c.txt", "c\n");
+    git(cwd, "add", ".");
+    git(cwd, "commit", "-m", "main moved on");
+    git(cwd, "switch", "feature");
+
+    const context = await gatherGitContext(cwd);
+    assert.equal(context.behind, 1);
+    assert.equal(context.ahead, 1);
+    const branchHashes = new Set(context.branchCommits.map((commit) => commit.split(" ")[0]));
+    const lastBranchRow = context.commitGraph.reduce(
+        (last, item, index) => (item.hash && branchHashes.has(item.hash) ? index : last),
+        -1,
+    );
+    assert.ok(lastBranchRow >= 0);
+    assert.ok(context.baseGraphStart > lastBranchRow, "branch commits must never land in the collapsed base section");
+    // Same-second commits make the relative order of "main moved on" and "feature 1" under
+    // --topo-order nondeterministic, so only assert what must always hold.
+    const subjects = (rows) => rows.filter((item) => item.hash).map((item) => item.subject);
+    const collapsed = subjects(context.commitGraph.slice(context.baseGraphStart));
+    const focused = subjects(context.commitGraph.slice(0, context.baseGraphStart));
+    assert.ok(collapsed.includes("root"));
+    assert.ok(!collapsed.includes("feature 1"));
+    assert.ok(focused.includes("feature 1"));
+});
+
+test("selects the requested status record when a path appears twice", async (t) => {
+    const cwd = mkdtempSync(join(tmpdir(), "where-was-i-dupe-"));
+    t.after(() => rmSync(cwd, { recursive: true, force: true }));
+
+    git(cwd, "init", "-b", "main");
+    git(cwd, "config", "user.name", "Canvas Tester");
+    git(cwd, "config", "user.email", "canvas@example.com");
+    write(cwd, "file.txt", "tracked\n");
+    git(cwd, "add", ".");
+    git(cwd, "commit", "-m", "seed");
+    // Leaves a staged deletion and an untracked file with the same path.
+    git(cwd, "rm", "--cached", "file.txt");
+    write(cwd, "file.txt", "recreated\n");
+
+    const context = await gatherGitContext(cwd);
+    assert.deepEqual(
+        context.changes.filter((change) => change.path === "file.txt").map((change) => change.code).sort(),
+        ["??", "D "],
+    );
+
+    const staged = await getFileDiff(cwd, "file.txt", "D ");
+    assert.equal(staged.code, "D ");
+    assert.match(staged.diff, /-tracked/);
+
+    const untracked = await getFileDiff(cwd, "file.txt", "??");
+    assert.equal(untracked.code, "??");
+    assert.match(untracked.diff, /\+recreated/);
+
+    const fallback = await getFileDiff(cwd, "file.txt", "ZZ");
+    assert.ok(["D ", "??"].includes(fallback.code), "an unknown code falls back to the first record");
 });

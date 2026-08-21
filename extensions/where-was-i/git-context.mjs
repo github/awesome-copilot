@@ -83,6 +83,20 @@ function parseGraphLine(line) {
     };
 }
 
+// Returns the index of the first graph row that can be collapsed as base-branch history.
+// `--topo-order` may interleave newer base commits above branch commits, so only the
+// suffix after the final branch commit is collapsible. Returns -1 when nothing can be split.
+export function splitCommitGraph(graph, branchHashes, baseRef) {
+    if (!baseRef || !branchHashes?.size || !graph?.length) return -1;
+    let lastBranchRow = -1;
+    graph.forEach((row, index) => {
+        if (row.hash && branchHashes.has(row.hash)) lastBranchRow = index;
+    });
+    if (lastBranchRow === -1) return -1;
+    const firstBaseRow = graph.findIndex((row, index) => index > lastBranchRow && row.hash);
+    return firstBaseRow;
+}
+
 function assertRepositoryPath(root, path) {
     const absolutePath = resolve(root, path);
     const relativePath = relative(root, absolutePath);
@@ -136,13 +150,16 @@ async function renderUntrackedFile(root, path) {
     return renderNewFilePatch(relativePath, mode, addedLines);
 }
 
-export async function getFileDiff(cwd, requestedPath) {
+export async function getFileDiff(cwd, requestedPath, requestedCode = null) {
     const root = await runGit(cwd, ["rev-parse", "--show-toplevel"]);
     const { relativePath } = assertRepositoryPath(root, requestedPath);
     // Filtering status by only the destination path makes Git report a rename as an add.
     // Read the full status first so the original path remains available for the patch.
     const status = await runGit(root, STATUS_ARGS);
-    const entry = parseStatusOutput(status).find((item) => item.path === relativePath);
+    // The same path can appear twice (e.g. a staged deletion plus an untracked re-creation),
+    // so prefer the record whose status code the caller selected.
+    const matches = parseStatusOutput(status).filter((item) => item.path === relativePath);
+    const entry = (requestedCode && matches.find((item) => item.code === requestedCode)) || matches[0];
     if (!entry) throw new Error("This file no longer has uncommitted changes.");
 
     if (entry.code === "??") {
@@ -232,6 +249,9 @@ export async function gatherGitContext(cwd) {
         .filter(Boolean)
         .map((value) => Number.parseInt(value, 10) || 0);
     const changes = parseStatusOutput(status);
+    const branchCommits = lines(branchLog);
+    const commitGraph = lines(graphLog).map(parseGraphLine);
+    const branchHashes = new Set(branchCommits.map((commit) => commit.split(" ")[0]));
 
     return {
         worktreeRoot,
@@ -241,9 +261,10 @@ export async function gatherGitContext(cwd) {
         baseRef,
         ahead,
         behind,
-        branchCommits: lines(branchLog),
+        branchCommits,
         recentCommits: lines(recentLog),
-        commitGraph: lines(graphLog).map(parseGraphLine),
+        commitGraph,
+        baseGraphStart: splitCommitGraph(commitGraph, branchHashes, baseRef),
         uncommitted: changes.map(formatStatusEntry),
         changes,
         diffStat,

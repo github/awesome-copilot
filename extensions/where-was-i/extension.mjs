@@ -105,14 +105,12 @@ function broadcast(instanceId, data) {
 
 // --- HTML renderer ---
 
-function renderHtml(instanceId) {
+function renderHtml(instanceId, scriptNonce) {
     return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <title>Where Was I?</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -397,7 +395,10 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   border: 1px solid var(--border);
   border-radius: var(--radius-compact);
   cursor: pointer;
+  font-family: inherit;
+  text-align: left;
   transition: all 0.15s ease;
+  width: 100%;
 }
 .thread-card:hover {
   border-color: var(--azure);
@@ -611,7 +612,7 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   </section>
 </div>
 
-<script>
+<script nonce="${scriptNonce}">
 const instanceId = "${instanceId}";
 let contextData = null;
 let diffPreviousFocus = null;
@@ -651,7 +652,7 @@ function timeAwayLabel(isoString) {
 }
 
 function escapeHtml(s) {
-  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
 
 function describeStatus(code) {
@@ -705,10 +706,8 @@ function render(data) {
   }));
   const branchHashes = new Set(worktreeCommits.map(commit => commit.split(" ")[0]));
   const graph = data.commitGraph || [];
-  const canSplitGraph = Boolean(data.baseRef && branchHashes.size);
-  const firstBaseCommit = canSplitGraph
-    ? graph.findIndex(row => row.hash && !branchHashes.has(row.hash))
-    : -1;
+  // The server computes the split so only the suffix after the last branch commit collapses.
+  const firstBaseCommit = Number.isInteger(data.baseGraphStart) ? data.baseGraphStart : -1;
   const focusedGraph = firstBaseCommit >= 0 ? graph.slice(0, firstBaseCommit) : graph;
   const baseGraph = firstBaseCommit >= 0 ? graph.slice(firstBaseCommit) : [];
   const baseCommitCount = baseGraph.filter(row => row.hash).length;
@@ -722,7 +721,7 @@ function render(data) {
       <h1>Where was I?</h1>
       <div style="display:flex;align-items:center;gap:0.75rem;">
         \${data.gatheredAt ? \`<span class="time-away">\${timeAwayLabel(data.gatheredAt)}</span>\` : ""}
-        <button class="refresh-btn" onclick="doRefresh(this)">
+        <button id="refresh-context" class="refresh-btn" type="button">
           <span class="icon">↻</span> Refresh
         </button>
       </div>
@@ -773,7 +772,7 @@ function render(data) {
             const status = describeStatus(f.code);
             return \`
             <li>
-              <button type="button" class="file-change" data-path="\${escapeHtml(encodeURIComponent(f.path))}">
+              <button type="button" class="file-change" data-path="\${escapeHtml(encodeURIComponent(f.path))}" data-code="\${escapeHtml(f.code)}">
                 <span class="status-badge \${status.kind}">\${status.label}</span>
                 <span class="file-path">\${escapeHtml(f.path)}</span>
                 <span class="view-diff">View diff</span>
@@ -791,38 +790,57 @@ function render(data) {
     <div class="section">
       <div class="section-title">Open Threads</div>
       <div class="thread-cards">
-        \${prs.map(pr => \`
-          <div class="thread-card card-clickable" onclick="resumeThread('PR #\${pr.number}: \${escapeHtml(pr.title)}')">
+        \${prs.map((pr, index) => \`
+          <button type="button" class="thread-card card-clickable" data-thread-kind="pr" data-thread-index="\${index}">
             <span class="number">#\${pr.number}</span>
             <span class="title">\${escapeHtml(pr.title)}</span>
             <span class="badge badge-pr">PR</span>
-          </div>
+          </button>
         \`).join("")}
-        \${issues.map(iss => \`
-          <div class="thread-card card-clickable" onclick="resumeThread('Issue #\${iss.number}: \${escapeHtml(iss.title)}')">
+        \${issues.map((iss, index) => \`
+          <button type="button" class="thread-card card-clickable" data-thread-kind="issue" data-thread-index="\${index}">
             <span class="number">#\${iss.number}</span>
             <span class="title">\${escapeHtml(iss.title)}</span>
             <span class="badge badge-issue">Issue</span>
-          </div>
+          </button>
         \`).join("")}
       </div>
     </div>
     \` : ""}
 
     <div class="resume-section">
-      <button class="resume-btn" onclick="doResume()">
+      <button id="resume-context" class="resume-btn" type="button">
         ↩ Resume where I left off
       </button>
       <p class="resume-hint">Sends your full context to the agent so it can help you pick up</p>
     </div>
   \`;
   wireFileChangeButtons();
+  wireContextButtons(prs, issues);
 }
 
 function wireFileChangeButtons() {
   document.querySelectorAll(".file-change").forEach((button) => {
     button.addEventListener("click", () => {
-      showDiff(decodeURIComponent(button.dataset.path));
+      showDiff(decodeURIComponent(button.dataset.path), button.dataset.code || "");
+    });
+  });
+}
+
+function wireContextButtons(prs, issues) {
+  document.getElementById("refresh-context").addEventListener("click", (event) => {
+    doRefresh(event.currentTarget);
+  });
+  document.getElementById("resume-context").addEventListener("click", () => {
+    doResume();
+  });
+  document.querySelectorAll(".thread-card").forEach((button) => {
+    button.addEventListener("click", () => {
+      const items = button.dataset.threadKind === "pr" ? prs : issues;
+      const item = items[Number(button.dataset.threadIndex)];
+      if (!item) return;
+      const kind = button.dataset.threadKind === "pr" ? "PR" : "Issue";
+      resumeThread(kind + " #" + item.number + ": " + item.title);
     });
   });
 }
@@ -841,7 +859,7 @@ async function doRefresh(btn) {
   if (btn) setTimeout(() => btn.classList.remove("spinning"), 300);
 }
 
-async function showDiff(path) {
+async function showDiff(path, code = "") {
   if (diffRequestController) diffRequestController.abort();
   const controller = new AbortController();
   diffRequestController = controller;
@@ -858,7 +876,7 @@ async function showDiff(path) {
   document.getElementById("diff-close").focus();
   try {
     const res = await fetch(
-      authorizedUrl("/file-diff?path=" + encodeURIComponent(path)),
+      authorizedUrl("/file-diff?path=" + encodeURIComponent(path) + (code ? "&code=" + encodeURIComponent(code) : "")),
       { signal: controller.signal }
     );
     const data = await res.json();
@@ -1036,13 +1054,14 @@ async function startServer(instanceId, cwd, workspacePath) {
 
         if (url.pathname === "/file-diff" && req.method === "GET") {
             const path = url.searchParams.get("path");
+            const code = url.searchParams.get("code");
             if (!path) {
                 res.writeHead(400, { "Content-Type": "application/json" });
                 res.end(JSON.stringify({ error: "A file path is required." }));
                 return;
             }
             try {
-                const data = await getFileDiff(entry.cwd, path);
+                const data = await getFileDiff(entry.cwd, path, code && code.length === 2 ? code : null);
                 res.writeHead(200, { "Content-Type": "application/json" });
                 res.end(JSON.stringify(data));
             } catch (error) {
@@ -1115,8 +1134,20 @@ async function startServer(instanceId, cwd, workspacePath) {
         }
 
         if (url.pathname === "/" && req.method === "GET") {
-            res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-            res.end(renderHtml(instanceId));
+            const scriptNonce = randomBytes(16).toString("base64url");
+            res.writeHead(200, {
+                "Content-Type": "text/html; charset=utf-8",
+                "Content-Security-Policy": [
+                    "default-src 'none'",
+                    `script-src 'nonce-${scriptNonce}'`,
+                    "style-src 'unsafe-inline' https://fonts.googleapis.com",
+                    "font-src https://fonts.gstatic.com",
+                    "connect-src 'self'",
+                    "base-uri 'none'",
+                    "object-src 'none'",
+                ].join("; "),
+            });
+            res.end(renderHtml(instanceId, scriptNonce));
             return;
         }
 
@@ -1176,13 +1207,19 @@ const session = await joinSession({
                                 minLength: 1,
                                 description: "Repository-relative path from the current context",
                             },
+                            code: {
+                                type: "string",
+                                minLength: 2,
+                                maxLength: 2,
+                                description: "Optional two-character porcelain status code to disambiguate a path listed more than once",
+                            },
                         },
                         required: ["path"],
                         additionalProperties: false,
                     },
                     handler: async (ctx) => {
                         const cwd = await activeCwd(ctx);
-                        return await getFileDiff(cwd, ctx.input.path);
+                        return await getFileDiff(cwd, ctx.input.path, ctx.input.code || null);
                     },
                 },
                 {
