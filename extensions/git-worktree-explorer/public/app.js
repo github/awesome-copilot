@@ -587,8 +587,27 @@ async function copyCommand(parts) {
   showToast(`Copied ${shell === "powershell" ? "PowerShell" : "POSIX shell"} command`);
 }
 
+const mobileLayout = window.matchMedia("(max-width: 560px)");
+
+function syncInspectorVisibility() {
+  // When the mobile overlay is translated off-screen it must also leave the accessibility tree and tab order.
+  const hidden = mobileLayout.matches && !elements.inspector.classList.contains("has-selection");
+  elements.inspector.inert = hidden;
+  elements.inspector.setAttribute("aria-hidden", String(hidden));
+}
+
+function focusSelectedGraphControl() {
+  const target = elements.graph.querySelector('[aria-pressed="true"]')
+    || elements.graph.querySelector('[tabindex="0"]')
+    || elements.viewWorktrees;
+  target?.focus();
+}
+
 function closeInspector() {
+  const hadFocus = elements.inspector.contains(document.activeElement);
   elements.inspector.classList.remove("has-selection");
+  syncInspectorVisibility();
+  if (hadFocus || mobileLayout.matches) focusSelectedGraphControl();
 }
 
 function renderInspector(node, details = null, { open = false } = {}) {
@@ -708,6 +727,7 @@ function renderInspector(node, details = null, { open = false } = {}) {
   elements.inspector.replaceChildren(content);
   // Only an explicit selection opens the mobile overlay; snapshot refreshes keep it closed.
   if (open) elements.inspector.classList.add("has-selection");
+  syncInspectorVisibility();
 }
 
 function appendFiles(content, files, title) {
@@ -1042,6 +1062,14 @@ elements.viewBranches.addEventListener("click", () => setRepositoryView("branche
 elements.zoomIn.addEventListener("click", () => setZoom(state.zoom + 0.1));
 elements.zoomOut.addEventListener("click", () => setZoom(state.zoom - 0.1));
 elements.zoomReset.addEventListener("click", () => setZoom(1));
+mobileLayout.addEventListener("change", syncInspectorVisibility);
+elements.inspector.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && mobileLayout.matches && elements.inspector.classList.contains("has-selection")) {
+    event.preventDefault();
+    closeInspector();
+  }
+});
+syncInspectorVisibility();
 window.addEventListener("pagehide", () => {
   state.eventsStopped = true;
   clearTimeout(state.branchReloadTimer);
