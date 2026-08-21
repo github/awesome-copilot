@@ -1,14 +1,12 @@
 import { execFile } from "node:child_process";
 import { lstat, readFile, readlink } from "node:fs/promises";
-import { basename, isAbsolute, relative, resolve } from "node:path";
+import { basename, isAbsolute, relative, resolve, sep } from "node:path";
 
-// Hash of Git's empty tree, used to diff the worktree when HEAD is unborn.
-const EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
 const STATUS_ARGS = ["status", "--porcelain=v1", "-z", "--untracked-files=all"];
 
-function runGit(cwd, args, { optional = false } = {}) {
+function runGit(cwd, args, { optional = false, input } = {}) {
     return new Promise((resolve, reject) => {
-        execFile(
+        const child = execFile(
             "git",
             args,
             { cwd, timeout: 15000, maxBuffer: 1024 * 1024, encoding: "utf8" },
@@ -24,6 +22,7 @@ function runGit(cwd, args, { optional = false } = {}) {
                 resolve((stdout || "").trimEnd());
             },
         );
+        if (input !== undefined) child.stdin.end(input);
     });
 }
 
@@ -87,10 +86,20 @@ function parseGraphLine(line) {
 function assertRepositoryPath(root, path) {
     const absolutePath = resolve(root, path);
     const relativePath = relative(root, absolutePath);
-    if (!relativePath || relativePath.startsWith("..") || isAbsolute(relativePath)) {
+    if (
+        !relativePath
+        || relativePath === ".."
+        || relativePath.startsWith(`..${sep}`)
+        || isAbsolute(relativePath)
+    ) {
         throw new Error("The requested file must be inside the current worktree.");
     }
-    return { absolutePath, relativePath: relativePath.replaceAll("\\", "/") };
+    return {
+        absolutePath,
+        relativePath: process.platform === "win32"
+            ? relativePath.replaceAll("\\", "/")
+            : relativePath,
+    };
 }
 
 function renderNewFilePatch(relativePath, mode, addedLines) {
@@ -123,7 +132,8 @@ async function renderUntrackedFile(root, path) {
     const text = content.toString("utf8");
     const addedLines = text.split(/\r?\n/);
     if (addedLines.at(-1) === "") addedLines.pop();
-    return renderNewFilePatch(relativePath, "100644", addedLines);
+    const mode = (fileStat.mode & 0o111) !== 0 ? "100755" : "100644";
+    return renderNewFilePatch(relativePath, mode, addedLines);
 }
 
 export async function getFileDiff(cwd, requestedPath) {
@@ -147,11 +157,15 @@ export async function getFileDiff(cwd, requestedPath) {
         ? [entry.originalPath, relativePath]
         : [relativePath];
     if (entry.code[0] && entry.code[0] !== " ") {
-        const staged = await runGit(root, ["diff", "--cached", "--no-ext-diff", "--", ...diffPaths]);
+        const staged = await runGit(root, [
+            "--literal-pathspecs", "diff", "--cached", "--no-ext-diff", "--", ...diffPaths,
+        ]);
         if (staged) patches.push({ kind: "Staged", content: staged });
     }
     if (entry.code[1] && entry.code[1] !== " ") {
-        const unstaged = await runGit(root, ["diff", "--no-ext-diff", "--", ...diffPaths]);
+        const unstaged = await runGit(root, [
+            "--literal-pathspecs", "diff", "--no-ext-diff", "--", ...diffPaths,
+        ]);
         if (unstaged) patches.push({ kind: "Unstaged", content: unstaged });
     }
 
@@ -171,6 +185,9 @@ export async function gatherGitContext(cwd) {
         runGit(worktreeRoot, ["rev-parse", "--short", "--verify", "--quiet", "HEAD"], { optional: true }),
     ]);
     const hasHead = Boolean(head);
+    const emptyTree = hasHead
+        ? ""
+        : await runGit(worktreeRoot, ["hash-object", "-t", "tree", "--stdin"], { input: "" });
     const baseRef = hasHead ? await resolveBaseRef(worktreeRoot, branch) : null;
     const mergeBase = baseRef
         ? await runGit(worktreeRoot, ["merge-base", "HEAD", baseRef], { optional: true })
@@ -198,7 +215,9 @@ export async function gatherGitContext(cwd) {
                 ])
                 : none,
             runGit(worktreeRoot, STATUS_ARGS),
-            runGit(worktreeRoot, ["diff", "--stat", hasHead ? "HEAD" : EMPTY_TREE]),
+            hasHead
+                ? runGit(worktreeRoot, ["diff", "--stat", "HEAD"])
+                : runGit(worktreeRoot, ["diff", "--stat", emptyTree]),
             runGit(worktreeRoot, ["diff", "--cached", "--stat"]),
             runGit(worktreeRoot, ["diff", "--stat"]),
             baseRef

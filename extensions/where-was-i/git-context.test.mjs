@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -119,6 +119,37 @@ test("preserves spaces and rename paths from porcelain status", async (t) => {
     assert.match(renameDiff.diff, /rename to after name\.txt/);
 });
 
+test("treats status-derived filenames as literal Git pathspecs", async (t) => {
+    const cwd = mkdtempSync(join(tmpdir(), "where-was-i-literal-"));
+    t.after(() => rmSync(cwd, { recursive: true, force: true }));
+
+    git(cwd, "init", "-b", "main");
+    git(cwd, "config", "user.name", "Canvas Tester");
+    git(cwd, "config", "user.email", "canvas@example.com");
+    write(cwd, "[ab].txt", "initial bracket\n");
+    write(cwd, "a.txt", "initial a\n");
+    git(cwd, "add", ".");
+    git(cwd, "commit", "-m", "Seed repository");
+
+    write(cwd, "[ab].txt", "changed bracket\n");
+    write(cwd, "a.txt", "changed a\n");
+
+    const diff = await getFileDiff(cwd, "[ab].txt");
+    assert.match(diff.diff, /changed bracket/);
+    assert.doesNotMatch(diff.diff, /changed a/);
+});
+
+test("allows repository filenames beginning with two dots", async (t) => {
+    const cwd = mkdtempSync(join(tmpdir(), "where-was-i-dots-"));
+    t.after(() => rmSync(cwd, { recursive: true, force: true }));
+
+    git(cwd, "init", "-b", "main");
+    write(cwd, "..notes", "valid repository file\n");
+
+    const diff = await getFileDiff(cwd, "..notes");
+    assert.match(diff.diff, /valid repository file/);
+});
+
 test("gathers staged and untracked work from an unborn branch", async (t) => {
     const cwd = mkdtempSync(join(tmpdir(), "where-was-i-unborn-"));
     t.after(() => rmSync(cwd, { recursive: true, force: true }));
@@ -142,6 +173,21 @@ test("gathers staged and untracked work from an unborn branch", async (t) => {
         ],
     );
     assert.match(context.diffStat, /staged\.txt/);
+});
+
+test("gathers an unborn SHA-256 repository without a SHA-1 empty tree", async (t) => {
+    const cwd = mkdtempSync(join(tmpdir(), "where-was-i-sha256-"));
+    t.after(() => rmSync(cwd, { recursive: true, force: true }));
+
+    git(cwd, "init", "--object-format=sha256", "-b", "main");
+    write(cwd, "staged.txt", "staged\n");
+    git(cwd, "add", "staged.txt");
+    write(cwd, "staged.txt", "staged\nthen modified\n");
+
+    const context = await gatherGitContext(cwd);
+    assert.equal(context.head, "");
+    assert.match(context.diffStat, /staged\.txt/);
+    assert.match(context.diffStat, /2 insertions/);
 });
 
 test("does not dereference untracked symlinks", async (t) => {
@@ -169,4 +215,21 @@ test("does not dereference untracked symlinks", async (t) => {
     assert.match(diff.diff, /new file mode 120000/);
     assert.match(diff.diff, new RegExp(target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     assert.doesNotMatch(diff.diff, /must not be exposed/);
+});
+
+test("preserves executable mode for untracked files", async (t) => {
+    if (process.platform === "win32") {
+        t.skip("Windows does not expose POSIX execute bits.");
+        return;
+    }
+
+    const cwd = mkdtempSync(join(tmpdir(), "where-was-i-mode-"));
+    t.after(() => rmSync(cwd, { recursive: true, force: true }));
+
+    git(cwd, "init", "-b", "main");
+    write(cwd, "run.sh", "#!/bin/sh\necho hello\n");
+    chmodSync(join(cwd, "run.sh"), 0o755);
+
+    const diff = await getFileDiff(cwd, "run.sh");
+    assert.match(diff.diff, /new file mode 100755/);
 });

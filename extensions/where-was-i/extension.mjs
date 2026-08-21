@@ -3,6 +3,7 @@
 
 import { createServer } from "node:http";
 import { execFile } from "node:child_process";
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
@@ -379,6 +380,7 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
 .status-badge.deleted { background: #fef2f2; color: #dc2626; }
 .status-badge.untracked { background: var(--coral-tint); color: #c2410c; }
 .status-badge.renamed { background: var(--azure-tint); color: var(--azure); }
+.status-badge.conflicted { background: #fef2f2; color: #b91c1c; }
 .file-list .file-path {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -613,6 +615,14 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
 const instanceId = "${instanceId}";
 let contextData = null;
 let diffPreviousFocus = null;
+let diffRequestController = null;
+const capabilityToken = new URLSearchParams(window.location.search).get("k") || "";
+
+function authorizedUrl(path) {
+  const url = new URL(path, window.location.origin);
+  url.searchParams.set("k", capabilityToken);
+  return url.pathname + url.search;
+}
 
 function timeAgo(isoString) {
   if (!isoString) return "";
@@ -646,6 +656,9 @@ function escapeHtml(s) {
 
 function describeStatus(code) {
   if (code === "??") return { label: "Untracked", kind: "untracked" };
+  if (["DD", "AU", "UD", "UA", "DU", "AA", "UU"].includes(code)) {
+    return { label: "Unmerged", kind: "conflicted" };
+  }
   const index = code[0];
   const worktree = code[1];
   if (index === "R") return { label: worktree === " " ? "Renamed" : "Renamed + edited", kind: "renamed" };
@@ -692,7 +705,10 @@ function render(data) {
   }));
   const branchHashes = new Set(worktreeCommits.map(commit => commit.split(" ")[0]));
   const graph = data.commitGraph || [];
-  const firstBaseCommit = graph.findIndex(row => row.hash && !branchHashes.has(row.hash));
+  const canSplitGraph = Boolean(data.baseRef && branchHashes.size);
+  const firstBaseCommit = canSplitGraph
+    ? graph.findIndex(row => row.hash && !branchHashes.has(row.hash))
+    : -1;
   const focusedGraph = firstBaseCommit >= 0 ? graph.slice(0, firstBaseCommit) : graph;
   const baseGraph = firstBaseCommit >= 0 ? graph.slice(firstBaseCommit) : [];
   const baseCommitCount = baseGraph.filter(row => row.hash).length;
@@ -814,7 +830,7 @@ function wireFileChangeButtons() {
 async function doRefresh(btn) {
   if (btn) btn.classList.add("spinning");
   try {
-    const res = await fetch("/refresh", { method: "POST" });
+    const res = await fetch(authorizedUrl("/refresh"), { method: "POST" });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Unable to refresh context.");
     render(data);
@@ -826,6 +842,9 @@ async function doRefresh(btn) {
 }
 
 async function showDiff(path) {
+  if (diffRequestController) diffRequestController.abort();
+  const controller = new AbortController();
+  diffRequestController = controller;
   const overlay = document.getElementById("diff-overlay");
   const title = document.getElementById("diff-title");
   const content = document.getElementById("diff-content");
@@ -838,22 +857,31 @@ async function showDiff(path) {
   overlay.classList.add("open");
   document.getElementById("diff-close").focus();
   try {
-    const res = await fetch("/file-diff?path=" + encodeURIComponent(path));
+    const res = await fetch(
+      authorizedUrl("/file-diff?path=" + encodeURIComponent(path)),
+      { signal: controller.signal }
+    );
     const data = await res.json();
+    if (diffRequestController !== controller) return;
     if (!res.ok) throw new Error(data.error || "Unable to load this diff.");
     const status = describeStatus(data.code);
     badge.textContent = status.label;
     badge.className = "status-badge " + status.kind;
     content.textContent = data.diff || "No textual diff is available.";
   } catch (error) {
+    if (error.name === "AbortError" || diffRequestController !== controller) return;
     badge.textContent = "Error";
     content.textContent = error.message;
+  } finally {
+    if (diffRequestController === controller) diffRequestController = null;
   }
 }
 
 function closeDiff() {
   const overlay = document.getElementById("diff-overlay");
   if (!overlay.classList.contains("open")) return;
+  if (diffRequestController) diffRequestController.abort();
+  diffRequestController = null;
   overlay.classList.remove("open");
   if (diffPreviousFocus && typeof diffPreviousFocus.focus === "function") {
     diffPreviousFocus.focus();
@@ -908,7 +936,7 @@ function showWarning(message) {
 
 async function requestResume(thread) {
   try {
-    const res = await fetch("/resume", {
+    const res = await fetch(authorizedUrl("/resume"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ thread })
@@ -929,7 +957,7 @@ async function resumeThread(thread) {
 }
 
 // SSE for live updates
-const evtSource = new EventSource("/events");
+const evtSource = new EventSource(authorizedUrl("/events"));
 evtSource.onmessage = (e) => {
   try {
     const data = JSON.parse(e.data);
@@ -938,7 +966,7 @@ evtSource.onmessage = (e) => {
 };
 
 // Initial load
-fetch("/context")
+fetch(authorizedUrl("/context"))
   .then(r => r.json())
   .then(render)
   .catch((error) => {
@@ -951,12 +979,41 @@ fetch("/context")
 
 // --- Server ---
 
+function tokenMatches(provided, expected) {
+    if (typeof provided !== "string" || provided.length !== expected.length) return false;
+    try {
+        return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+    } catch {
+        return false;
+    }
+}
+
+function requestIsAuthorized(req, url, entry) {
+    const host = String(req.headers.host || "").toLowerCase();
+    if (!entry.canonicalHost || host !== entry.canonicalHost) return false;
+    const origin = req.headers.origin;
+    if (origin && origin !== entry.origin) return false;
+    return tokenMatches(url.searchParams.get("k") || "", entry.token);
+}
+
 async function startServer(instanceId, cwd, workspacePath) {
-    const entry = { server: null, url: "", cwd };
+    const entry = {
+        server: null,
+        url: "",
+        cwd,
+        token: randomBytes(32).toString("base64url"),
+        canonicalHost: "",
+        origin: "",
+    };
     entry.server = createServer(async (req, res) => {
         const url = new URL(req.url, "http://localhost");
+        if (!requestIsAuthorized(req, url, entry)) {
+            res.writeHead(403, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Forbidden" }));
+            return;
+        }
 
-        if (url.pathname === "/events") {
+        if (url.pathname === "/events" && req.method === "GET") {
             res.writeHead(200, {
                 "Content-Type": "text/event-stream",
                 "Cache-Control": "no-cache",
@@ -1057,15 +1114,22 @@ async function startServer(instanceId, cwd, workspacePath) {
             return;
         }
 
-        // Default: serve HTML
-        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-        res.end(renderHtml(instanceId));
+        if (url.pathname === "/" && req.method === "GET") {
+            res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+            res.end(renderHtml(instanceId));
+            return;
+        }
+
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Not found" }));
     });
 
     await new Promise((resolve) => entry.server.listen(0, "127.0.0.1", resolve));
     const address = entry.server.address();
     const port = typeof address === "object" && address ? address.port : 0;
-    entry.url = `http://127.0.0.1:${port}/`;
+    entry.canonicalHost = `127.0.0.1:${port}`;
+    entry.origin = `http://${entry.canonicalHost}`;
+    entry.url = `${entry.origin}/?k=${entry.token}`;
     return entry;
 }
 
