@@ -33,7 +33,7 @@ jobs:
     permissions:
       checks: read
       contents: read
-      pages: write
+      pages: read
       pull-requests: read
     steps:
       - name: Checkout
