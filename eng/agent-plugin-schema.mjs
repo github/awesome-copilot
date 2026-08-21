@@ -61,7 +61,7 @@ export const AGENT_PLUGIN_MCP_SCHEMA = {
         },
         cwd: {
           type: "string",
-          pattern: "^(?:\\.[/\\\\]|\\$\\{PLUGIN_ROOT\\}(?:[/\\\\]|$)|\\$\\{PLUGIN_DATA\\}(?:[/\\\\]|$))",
+          pattern: "^(?:\\./|\\$\\{PLUGIN_ROOT\\}(?:/|$)|\\$\\{PLUGIN_DATA\\}(?:/|$))",
         },
       },
       required: ["type", "command"],
@@ -109,7 +109,7 @@ function isBareExecutableOrRelativePath(command) {
   if (typeof command !== "string" || command.length === 0) {
     return false;
   }
-  if (/^\.[/\\]/.test(command)) {
+  if (command.startsWith("./")) {
     return true;
   }
   return !command.includes("/") && !command.includes("\\");
@@ -146,18 +146,72 @@ function isContainedRelativeCwd(cwd, pluginDir) {
   if (typeof cwd !== "string" || cwd.length === 0) {
     return false;
   }
-  const placeholder = cwd.match(/^\$\{(PLUGIN_ROOT|PLUGIN_DATA)\}(.*)$/);
+  const placeholder = cwd.match(/^\$\{(PLUGIN_ROOT|PLUGIN_DATA)\}(\/.*)?$/);
   if (placeholder) {
-    const remainder = placeholder[2];
-    if (!remainder || /^[\/\\]/.test(remainder)) {
-      return !pluginDir || isPathWithinRoot(pluginDir, remainder);
+    if (placeholder[1] === "PLUGIN_DATA") {
+      return isLexicallyWithinRoot(placeholder[2] ?? "");
     }
-    return false;
+    return !pluginDir || isPathWithinRoot(pluginDir, placeholder[2] ?? "");
   }
-  if (!/^\.[/\\]/.test(cwd)) {
+  if (!cwd.startsWith("./")) {
     return false;
   }
   return !pluginDir || isPathWithinRoot(pluginDir, cwd);
+}
+
+function isLexicallyWithinRoot(value) {
+  let depth = 0;
+  for (const segment of value.split("/")) {
+    if (!segment || segment === ".") continue;
+    if (segment === "..") {
+      if (depth === 0) return false;
+      depth--;
+    } else {
+      depth++;
+    }
+  }
+  return true;
+}
+
+function isLoopbackHostname(hostname) {
+  const normalized = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  return normalized === "localhost" || normalized === "::1" || /^127(?:\.\d{1,3}){3}$/.test(normalized);
+}
+
+function validateRemoteServer(server, name) {
+  const errors = [];
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(server.url);
+  } catch {
+    errors.push(`/mcpServers/${name}/url must be an absolute HTTP(S) URL`);
+    return errors;
+  }
+  if (!/^https?:\/\//i.test(server.url) ||
+      parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:" ||
+      !parsedUrl.hostname || parsedUrl.username || parsedUrl.password || parsedUrl.hash) {
+    errors.push(`/mcpServers/${name}/url must be an absolute HTTP(S) URL without userinfo or fragment`);
+  } else if (parsedUrl.protocol === "http:" && !isLoopbackHostname(parsedUrl.hostname)) {
+    errors.push(`/mcpServers/${name}/url must use HTTPS for non-loopback hosts`);
+  }
+
+  if (server.headers !== undefined) {
+    const seen = new Set();
+    for (const [headerName, headerValue] of Object.entries(server.headers)) {
+      if (!/^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(headerName)) {
+        errors.push(`/mcpServers/${name}/headers/${headerName} must be a valid HTTP header name`);
+      }
+      const normalizedName = headerName.toLowerCase();
+      if (seen.has(normalizedName)) {
+        errors.push(`/mcpServers/${name}/headers must not contain duplicate header names`);
+      }
+      seen.add(normalizedName);
+      if (/[\u0000-\u0008\u000A-\u001F\u007F]/.test(headerValue)) {
+        errors.push(`/mcpServers/${name}/headers/${headerName} must be a valid HTTP header value`);
+      }
+    }
+  }
+  return errors;
 }
 
 function formatMcpError(error) {
@@ -176,10 +230,14 @@ export function validateAgentPluginMcpConfig(config, pluginDir) {
         if (typeof server !== "object" || server === null || Array.isArray(server)) {
           continue;
         }
+        if (server.type === "streamable-http" || server.type === "sse") {
+          semanticErrors.push(...validateRemoteServer(server, name));
+          continue;
+        }
         if (server.type !== "stdio") {
           continue;
         }
-        const commandIsContained = !/^\.[/\\]/.test(server.command) ||
+        const commandIsContained = !server.command.startsWith("./") ||
           !pluginDir || isPathWithinRoot(pluginDir, server.command);
         if (!isBareExecutableOrRelativePath(server.command) || !commandIsContained) {
           semanticErrors.push(`/mcpServers/${name}/command must be a bare executable name or a plugin-relative path starting with "./"`);

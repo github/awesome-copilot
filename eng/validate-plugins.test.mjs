@@ -200,8 +200,19 @@ test("rejects Windows-style traversal in plugin-relative paths", () => {
     },
   });
   assert.deepEqual(validateMcpConfig(dir), [
-    'mcp.json /mcpServers/command/command must be a bare executable name or a plugin-relative path starting with "./"',
-    "mcp.json /mcpServers/cwd/cwd must stay within the plugin root or plugin data directory",
+    "mcp.json /mcpServers/cwd/cwd must match pattern \"^(?:\\./|\\$\\{PLUGIN_ROOT\\}(?:/|$)|\\$\\{PLUGIN_DATA\\}(?:/|$))\"",
+  ]);
+});
+
+test("rejects a backslash-prefixed stdio command", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: { demo: { type: "stdio", command: ".\\tool" } },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    'mcp.json /mcpServers/demo/command must be a bare executable name or a plugin-relative path starting with "./"',
   ]);
 });
 
@@ -225,7 +236,68 @@ test("rejects plugin-relative paths that traverse a symlink outside the root", (
   assert.deepEqual(validateMcpConfig(dir), [
     'mcp.json /mcpServers/command/command must be a bare executable name or a plugin-relative path starting with "./"',
     "mcp.json /mcpServers/root/cwd must stay within the plugin root or plugin data directory",
-    "mcp.json /mcpServers/data/cwd must stay within the plugin root or plugin data directory",
+  ]);
+});
+
+test("accepts PLUGIN_DATA paths without checking unrelated plugin symlinks", (t) => {
+  const dir = makePluginDir({});
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "plugin-mcp-data-outside-"));
+  try {
+    fs.symlinkSync(outside, path.join(dir, "linked"), "junction");
+  } catch {
+    t.skip("symlink creation is not available");
+    return;
+  }
+  fs.writeFileSync(path.join(dir, "mcp.json"), JSON.stringify({
+    $schema: MCP_SCHEMA,
+    mcpServers: {
+      data: { type: "stdio", command: "docker", cwd: "${PLUGIN_DATA}/linked" },
+    },
+  }));
+  assert.deepEqual(validateMcpConfig(dir), []);
+});
+
+test("rejects non-HTTP remote URLs", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: { demo: { type: "sse", url: "javascript:alert(1)" } },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    "mcp.json /mcpServers/demo/url must be an absolute HTTP(S) URL without userinfo or fragment",
+  ]);
+});
+
+test("rejects public HTTP remote URLs", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: { demo: { type: "streamable-http", url: "http://example.com/mcp" } },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    "mcp.json /mcpServers/demo/url must use HTTPS for non-loopback hosts",
+  ]);
+});
+
+test("rejects duplicate and invalid remote headers", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: {
+        demo: {
+          type: "sse",
+          url: "https://example.com/mcp",
+          headers: { Authorization: "ok", authorization: "also ok", "Bad Header": "ok", "X-Bad": "bad\nvalue" },
+        },
+      },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    "mcp.json /mcpServers/demo/headers must not contain duplicate header names",
+    "mcp.json /mcpServers/demo/headers/Bad Header must be a valid HTTP header name",
+    "mcp.json /mcpServers/demo/headers/X-Bad must be a valid HTTP header value",
   ]);
 });
 
