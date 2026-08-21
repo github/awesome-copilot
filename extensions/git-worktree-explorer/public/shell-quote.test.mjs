@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { formatShellCommand, quoteShellArg } from "./shell-quote.mjs";
+import { detectShell, formatShellCommand, quoteShellArg } from "./shell-quote.mjs";
 
 test("plain arguments are left unquoted", () => {
   assert.equal(quoteShellArg("main"), "main");
@@ -16,8 +16,20 @@ test("shell metacharacters are neutralized with single quotes", () => {
   assert.equal(quoteShellArg(""), "''");
 });
 
-test("embedded single quotes are escaped", () => {
+test("embedded single quotes are escaped for the target shell", () => {
   assert.equal(quoteShellArg("it's"), "'it'\\''s'");
+  assert.equal(quoteShellArg("it's", "posix"), "'it'\\''s'");
+  assert.equal(quoteShellArg("O'Brien", "powershell"), "'O''Brien'");
+  assert.equal(quoteShellArg("C:\\Users\\O'Brien\\repo", "powershell"), "'C:\\Users\\O''Brien\\repo'");
+  assert.equal(quoteShellArg("$(whoami)", "powershell"), "'$(whoami)'");
+});
+
+test("detects PowerShell on Windows platforms and POSIX elsewhere", () => {
+  assert.equal(detectShell("Win32"), "powershell");
+  assert.equal(detectShell("Windows"), "powershell");
+  assert.equal(detectShell("MacIntel"), "posix");
+  assert.equal(detectShell("Linux x86_64"), "posix");
+  assert.equal(detectShell(""), "posix");
 });
 
 test("commands are assembled from individually quoted parts", () => {

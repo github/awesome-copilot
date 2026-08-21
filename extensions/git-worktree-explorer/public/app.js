@@ -1,8 +1,9 @@
 import { layoutCommitGraph } from "./graph-layout.mjs";
-import { formatShellCommand } from "./shell-quote.mjs";
+import { detectShell, formatShellCommand } from "./shell-quote.mjs";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const token = new URLSearchParams(location.search).get("token");
+const shell = detectShell(navigator.userAgentData?.platform || navigator.platform);
 
 const elements = {
   breadcrumbs: document.querySelector("#breadcrumbs"),
@@ -395,27 +396,33 @@ function renderGraph() {
         lineLayer.append(path);
       });
 
-      const group = svgElement("g", {
-        class: `commit-row${state.selected?.id === `commit:${row.commit.sha}` ? " selected" : ""}`,
+      const selectedRow = state.selected?.id === `commit:${row.commit.sha}`;
+      // The row button and branch badges are siblings so no interactive role nests inside another.
+      const group = svgElement("g", { class: `commit-row${selectedRow ? " selected" : ""}` });
+      const rowButton = svgElement("g", {
+        class: "commit-row-button",
         role: "button",
         tabindex: "0",
-        "aria-pressed": state.selected?.id === `commit:${row.commit.sha}` ? "true" : "false",
+        "aria-pressed": selectedRow ? "true" : "false",
         "aria-label": `${row.commit.subject}, ${row.commit.author.name}, ${formatDate(row.commit.committedAt)}`,
       });
-      group.append(svgElement("rect", {
+      rowButton.append(svgElement("rect", {
         class: "commit-row-hit",
         x: 0,
         y: top,
         width: contentWidth,
         height: rowHeight,
       }));
-      group.append(svgElement("circle", {
+      rowButton.append(svgElement("circle", {
         class: "commit-dot",
         cx: 28 + row.laneIndex * 22,
         cy: middle,
         r: row.commit.parents.length > 1 ? 6 : 5,
         fill: row.color,
       }));
+      group.append(rowButton);
+      const badgeLayer = svgElement("g", { class: "commit-row-badges" });
+      group.append(badgeLayer);
 
       let textX = laneAreaWidth;
       for (const { ref, overflow, width: badgeWidth } of rowBadges[index].badges) {
@@ -432,7 +439,7 @@ function renderGraph() {
             rx: 11,
           }));
           addText(badge, "ref-badge-text", textX + 10, middle + 4, `+${overflow} more`, 24);
-          group.append(badge);
+          badgeLayer.append(badge);
           textX += badgeWidth + badgeGap;
           continue;
         }
@@ -462,17 +469,17 @@ function renderGraph() {
             openBranch(event);
           }
         });
-        group.append(badge);
+        badgeLayer.append(badge);
         textX += badgeWidth + badgeGap;
       }
 
-      addText(group, "commit-subject", textX, middle - 2, row.commit.subject, 72);
-      addText(group, "commit-author", textX, middle + 15, row.commit.author.name, 32);
-      addText(group, "commit-time", contentWidth - 72, middle + 4, relativeTime(row.commit.committedAt), 18);
+      addText(rowButton, "commit-subject", textX, middle - 2, row.commit.subject, 72);
+      addText(rowButton, "commit-author", textX, middle + 15, row.commit.author.name, 32);
+      addText(rowButton, "commit-time", contentWidth - 72, middle + 4, relativeTime(row.commit.committedAt), 18);
 
       const activate = () => selectAndDrill({ type: "commit", value: row.commit });
-      group.addEventListener("click", activate);
-      group.addEventListener("keydown", (event) => {
+      rowButton.addEventListener("click", activate);
+      rowButton.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           activate();
@@ -575,6 +582,11 @@ async function copyText(value) {
   showToast("Copied to clipboard");
 }
 
+async function copyCommand(parts) {
+  await navigator.clipboard.writeText(formatShellCommand(parts, shell));
+  showToast(`Copied ${shell === "powershell" ? "PowerShell" : "POSIX shell"} command`);
+}
+
 function closeInspector() {
   elements.inspector.classList.remove("has-selection");
 }
@@ -615,7 +627,7 @@ function renderInspector(node, details = null, { open = false } = {}) {
     );
     actions.append(
       actionButton("Copy path", () => copyText(node.value.root)),
-      actionButton("Copy status command", () => copyText(formatShellCommand(["git", "-C", node.value.root, "status"]))),
+      actionButton("Copy status command", () => copyCommand(["git", "-C", node.value.root, "status"])),
       actionButton("Ask Copilot", (event) => askCopilot({ id: "repository" }, event.currentTarget), true),
     );
     if (node.value.changedFiles.length) appendFiles(content, node.value.changedFiles, "Changed files");
@@ -633,7 +645,7 @@ function renderInspector(node, details = null, { open = false } = {}) {
     if (node.value.path) {
       actions.append(
         actionButton("Copy path", () => copyText(node.value.path)),
-        actionButton("Copy status command", () => copyText(formatShellCommand(["git", "-C", node.value.path, "status"]))),
+        actionButton("Copy status command", () => copyCommand(["git", "-C", node.value.path, "status"])),
       );
     }
     actions.append(actionButton(
@@ -658,8 +670,8 @@ function renderInspector(node, details = null, { open = false } = {}) {
     );
     actions.append(
       actionButton("Copy branch", () => copyText(node.value.name)),
-      actionButton("Copy log command", () => copyText(
-        formatShellCommand(["git", "log", "--oneline", "-50", "--end-of-options", node.value.name, "--"]),
+      actionButton("Copy log command", () => copyCommand(
+        ["git", "log", "--oneline", "-50", "--end-of-options", node.value.name, "--"],
       )),
       actionButton("Ask Copilot", (event) => askCopilot({ id: node.value.id }, event.currentTarget), true),
     );
