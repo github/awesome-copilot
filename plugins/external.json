@@ -739,7 +739,7 @@
   {
     "name": "modernize-java",
     "description": "GitHub Copilot modernization – Java Upgrade CLI Plugin helps you upgrade Java applications from the command line. It brings intelligent modernization capabilities to your terminal and CI/CD pipelines: analyze your project and generate an upgrade plan, automatically transform your codebase, fix build issues, validate against known CVEs, and output a detailed summary of file changes and updated dependencies.",
-    "version": "1.22.0",
+    "version": "1.23.0",
     "author": {
       "name": "microsoft",
       "url": "https://github.com/microsoft/modernize-java"
@@ -757,8 +757,8 @@
       "source": "github",
       "repo": "microsoft/modernize-java",
       "path": "plugins/modernize-java",
-      "ref": "1.22.0",
-      "sha": "ef5367b446566bdc90960deeb40def63f9e7024e"
+      "ref": "1.23.0",
+      "sha": "5ccc2ad4011314602e1b80f0b818c95bcf198f67"
     }
   },
   {
@@ -1003,7 +1003,7 @@
   {
     "name": "upgrade-agent",
     "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-    "version": "1.1.404",
+    "version": "1.1.441",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1022,8 +1022,8 @@
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "ref": "v1.1.404",
-      "sha": "a4f718e90c39e7ab62a81ddd78be9b56b1a4c4bf"
+      "ref": "v1.1.441",
+      "sha": "f8abab778cfb5b57a3c745d540631b7aab15d5b3"
     }
   },
   {
