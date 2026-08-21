@@ -103,6 +103,44 @@ const MCP_SERVER_BRANCHES = {
 };
 const MCP_SERVER_TYPES = Object.keys(MCP_SERVER_BRANCHES);
 
+function isBareExecutableOrRelativePath(command) {
+  if (typeof command !== "string" || command.length === 0) {
+    return false;
+  }
+  if (command.startsWith("./")) {
+    return true;
+  }
+  return !command.includes("/") && !command.includes("\\");
+}
+
+function isContainedRelativeCwd(cwd) {
+  if (typeof cwd !== "string" || cwd.length === 0) {
+    return false;
+  }
+  if (cwd.startsWith("${PLUGIN_ROOT}") || cwd.startsWith("${PLUGIN_DATA}")) {
+    return true;
+  }
+  if (!cwd.startsWith("./")) {
+    return false;
+  }
+  const segments = cwd.split("/");
+  let depth = 0;
+  for (const segment of segments) {
+    if (!segment || segment === ".") {
+      continue;
+    }
+    if (segment === "..") {
+      if (depth === 0) {
+        return false;
+      }
+      depth--;
+      continue;
+    }
+    depth++;
+  }
+  return true;
+}
+
 function formatMcpError(error) {
   const extra = error.params?.additionalProperty
     ? ` (${error.params.additionalProperty})`
@@ -112,7 +150,25 @@ function formatMcpError(error) {
 
 export function validateAgentPluginMcpConfig(config) {
   if (validateMcp(config)) {
-    return [];
+    const semanticErrors = [];
+    const servers = config?.mcpServers;
+    if (typeof servers === "object" && servers !== null && !Array.isArray(servers)) {
+      for (const [name, server] of Object.entries(servers)) {
+        if (typeof server !== "object" || server === null || Array.isArray(server)) {
+          continue;
+        }
+        if (server.type !== "stdio") {
+          continue;
+        }
+        if (!isBareExecutableOrRelativePath(server.command)) {
+          semanticErrors.push(`/mcpServers/${name}/command must be a bare executable name or a plugin-relative path starting with "./"`);
+        }
+        if (server.cwd !== undefined && !isContainedRelativeCwd(server.cwd)) {
+          semanticErrors.push(`/mcpServers/${name}/cwd must stay within the plugin root or plugin data directory`);
+        }
+      }
+    }
+    return semanticErrors;
   }
   const rawErrors = validateMcp.errors ?? [];
   const servers = config?.mcpServers;
@@ -150,8 +206,8 @@ export function validateAgentPluginMcpConfig(config) {
           : formatMcpError(error).slice(error.instancePath.length || "config".length);
         messages.push(`/mcpServers/${name}${error.instancePath}${suffix}`);
       }
+
     }
   }
-
   return messages;
 }

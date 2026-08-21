@@ -137,6 +137,30 @@ test("rejects non-string args on a stdio server", () => {
   ]);
 });
 
+test("rejects a stdio server command that is an absolute path", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: { demo: { type: "stdio", command: "/bin/tool" } },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    'mcp.json /mcpServers/demo/command must be a bare executable name or a plugin-relative path starting with "./"',
+  ]);
+});
+
+test("rejects a stdio server cwd that escapes plugin root", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: { demo: { type: "stdio", command: "docker", cwd: "./../../outside" } },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    "mcp.json /mcpServers/demo/cwd must stay within the plugin root or plugin data directory",
+  ]);
+});
+
 test("rejects mcpServers declared under extensions in plugin.json", () => {
   assert.deepEqual(
     validateCompositionNamespace({ extensions: { mcpServers: { demo: {} } } }),
@@ -150,6 +174,15 @@ test("rejects mcpServers declared under the awesome-copilot namespace", () => {
   });
   assert.equal(errors.length, 1);
   assert.match(errors[0], /mcpServers is not supported; declare MCP servers in mcp\.json/);
+});
+
+test("rejects mcpServers declared under the com.github.copilot namespace", () => {
+  const errors = validateCompositionNamespace({
+    extensions: { "com.github.copilot": { mcpServers: { demo: {} } } },
+  });
+  assert.deepEqual(errors, [
+    'extensions["com.github.copilot"].mcpServers is not supported; declare MCP servers in mcp.json at the plugin root',
+  ]);
 });
 
 test("accepts a same-named standalone extension plugin", () => {

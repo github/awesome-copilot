@@ -260,12 +260,15 @@ export function validateCompositionNamespace(plugin) {
     return errors;
   }
 
-  if (composition?.mcpServers !== undefined) {
-    errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].mcpServers is not supported; declare MCP servers in mcp.json at the plugin root`);
-  }
-
-  if (extensions?.mcpServers !== undefined) {
-    errors.push("extensions.mcpServers is not supported; declare MCP servers in mcp.json at the plugin root");
+  if (extensions && typeof extensions === "object" && !Array.isArray(extensions)) {
+    for (const [namespace, value] of Object.entries(extensions)) {
+      if (value && typeof value === "object" && !Array.isArray(value) && value.mcpServers !== undefined) {
+        errors.push(`extensions["${namespace}"].mcpServers is not supported; declare MCP servers in mcp.json at the plugin root`);
+      }
+    }
+    if (extensions.mcpServers !== undefined) {
+      errors.push("extensions.mcpServers is not supported; declare MCP servers in mcp.json at the plugin root");
+    }
   }
 
   for (const field of compositionFields) {
