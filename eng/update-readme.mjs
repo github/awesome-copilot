@@ -779,6 +779,43 @@ function generatePluginsSection(pluginsDir) {
     return "";
   }
 
+  // Count configured MCP servers, mirroring generate-website-data.mjs so the
+  // README and website catalogs report the same item count.
+  // Resolves an explicit manifest reference (path or inline object) first, then
+  // falls back to a plugin-root config file, preferring the spec-named mcp.json
+  // over the legacy .mcp.json, so counts stay correct under both conventions.
+  const countMcpServers = (composition, pluginDir) => {
+    const configured = composition.mcpServers;
+
+    let mcpServersObj = null;
+    if (typeof configured === "object" && configured !== null) {
+      mcpServersObj = configured;
+    } else {
+      const candidates = [
+        ...(typeof configured === "string"
+          ? [configured.replace(/^\.\//, "")]
+          : []),
+        "mcp.json",
+        ".mcp.json",
+      ];
+      for (const candidate of candidates) {
+        const mcpJsonPath = path.join(pluginDir, candidate);
+        if (!fs.existsSync(mcpJsonPath)) {
+          continue;
+        }
+        try {
+          const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, "utf-8"));
+          mcpServersObj = mcpJson.mcpServers || mcpJson;
+          break;
+        } catch {
+          // ignore parse errors
+        }
+      }
+    }
+
+    return mcpServersObj ? Object.keys(mcpServersObj).length : 0;
+  };
+
   // Create table header
   let pluginsContent =
     "| Name | Description | Items | Tags |\n| ---- | ----------- | ----- | ---- |\n";
@@ -802,7 +839,8 @@ function generatePluginsSection(pluginsDir) {
       (composition.agents || []).length +
       (composition.skills || []).length +
       extensionReferences +
-      implicitExtension;
+      implicitExtension +
+      countMcpServers(composition, entry.pluginDir);
     const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
 
     const link = `../plugins/${dir}/README.md`;
