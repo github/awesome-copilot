@@ -200,6 +200,22 @@ function isLoopbackHostname(hostname) {
   return normalized === "localhost" || normalized === "::1" || /^127(?:\.\d{1,3}){3}$/.test(normalized);
 }
 
+// Headers in mcp.json are visible package data. These names unambiguously carry
+// credentials; API-key names are intentionally rejected even when their value is
+// a placeholder, so users configure them in their local MCP client instead.
+const CREDENTIAL_HEADER_NAMES = new Set([
+  "authorization",
+  "proxy-authorization",
+  "cookie",
+  "set-cookie",
+  "api-key",
+  "x-api-key",
+  "x-api-token",
+  "x-auth-token",
+  "x-access-token",
+  "access-token",
+]);
+
 function validateRemoteServer(server, name) {
   const errors = [];
   let parsedUrl;
@@ -224,6 +240,9 @@ function validateRemoteServer(server, name) {
         errors.push(`/mcpServers/${name}/headers/${headerName} must be a valid HTTP header name`);
       }
       const normalizedName = headerName.toLowerCase();
+      if (CREDENTIAL_HEADER_NAMES.has(normalizedName)) {
+        errors.push(`/mcpServers/${name}/headers/${headerName} must not contain credentials or secrets`);
+      }
       if (seen.has(normalizedName)) {
         errors.push(`/mcpServers/${name}/headers must not contain duplicate header names`);
       }

@@ -351,7 +351,7 @@ test("rejects duplicate and invalid remote headers", () => {
         demo: {
           type: "sse",
           url: "https://example.com/mcp",
-          headers: { Authorization: "ok", authorization: "also ok", "Bad Header": "ok", "X-Bad": "bad\nvalue" },
+          headers: { "X-Custom": "ok", "x-custom": "also ok", "Bad Header": "ok", "X-Bad": "bad\nvalue" },
         },
       },
     },
@@ -361,6 +361,48 @@ test("rejects duplicate and invalid remote headers", () => {
     "mcp.json /mcpServers/demo/headers/Bad Header must be a valid HTTP header name",
     "mcp.json /mcpServers/demo/headers/X-Bad must be a valid HTTP header value",
   ]);
+});
+
+test("rejects credential-bearing and API-key-style remote headers", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: {
+        demo: {
+          type: "sse",
+          url: "https://example.com/mcp",
+          headers: {
+            Authorization: "Bearer fixed",
+            "Proxy-Authorization": "Basic fixed",
+            "x-api-key": "<YOUR_TOKEN>",
+            "api-key": "fixed",
+          },
+        },
+      },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    "mcp.json /mcpServers/demo/headers/Authorization must not contain credentials or secrets",
+    "mcp.json /mcpServers/demo/headers/Proxy-Authorization must not contain credentials or secrets",
+    "mcp.json /mcpServers/demo/headers/x-api-key must not contain credentials or secrets",
+    "mcp.json /mcpServers/demo/headers/api-key must not contain credentials or secrets",
+  ]);
+});
+
+test("accepts an ordinary non-secret custom remote header", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: {
+        demo: {
+          type: "streamable-http",
+          url: "https://example.com/mcp",
+          headers: { "X-Apimatic-Mcp-Client": "VsCode" },
+        },
+      },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), []);
 });
 
 test("rejects mcpServers declared under extensions in plugin.json", () => {
