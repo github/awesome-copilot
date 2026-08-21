@@ -149,6 +149,18 @@ test("rejects a stdio server command that is an absolute path", () => {
   ]);
 });
 
+test("rejects a plugin-relative command that escapes plugin root", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: { demo: { type: "stdio", command: "./../../outside" } },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    'mcp.json /mcpServers/demo/command must be a bare executable name or a plugin-relative path starting with "./"',
+  ]);
+});
+
 test("rejects a stdio server cwd that escapes plugin root", () => {
   const dir = makePluginDir({
     "mcp.json": {
@@ -158,6 +170,62 @@ test("rejects a stdio server cwd that escapes plugin root", () => {
   });
   assert.deepEqual(validateMcpConfig(dir), [
     "mcp.json /mcpServers/demo/cwd must stay within the plugin root or plugin data directory",
+  ]);
+});
+
+test("rejects traversal in plugin root and data placeholders", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: {
+        root: { type: "stdio", command: "docker", cwd: "${PLUGIN_ROOT}/../../outside" },
+        data: { type: "stdio", command: "docker", cwd: "${PLUGIN_DATA}/../outside" },
+      },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    "mcp.json /mcpServers/root/cwd must stay within the plugin root or plugin data directory",
+    "mcp.json /mcpServers/data/cwd must stay within the plugin root or plugin data directory",
+  ]);
+});
+
+test("rejects Windows-style traversal in plugin-relative paths", () => {
+  const dir = makePluginDir({
+    "mcp.json": {
+      $schema: MCP_SCHEMA,
+      mcpServers: {
+        command: { type: "stdio", command: ".\\..\\..\\outside" },
+        cwd: { type: "stdio", command: "docker", cwd: "${PLUGIN_DATA}\\..\\outside" },
+      },
+    },
+  });
+  assert.deepEqual(validateMcpConfig(dir), [
+    'mcp.json /mcpServers/command/command must be a bare executable name or a plugin-relative path starting with "./"',
+    "mcp.json /mcpServers/cwd/cwd must stay within the plugin root or plugin data directory",
+  ]);
+});
+
+test("rejects plugin-relative paths that traverse a symlink outside the root", (t) => {
+  const dir = makePluginDir({});
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "plugin-mcp-outside-"));
+  try {
+    fs.symlinkSync(outside, path.join(dir, "linked"), "junction");
+  } catch {
+    t.skip("symlink creation is not available");
+    return;
+  }
+  fs.writeFileSync(path.join(dir, "mcp.json"), JSON.stringify({
+    $schema: MCP_SCHEMA,
+    mcpServers: {
+      command: { type: "stdio", command: "./linked/tool" },
+      root: { type: "stdio", command: "docker", cwd: "${PLUGIN_ROOT}/linked" },
+      data: { type: "stdio", command: "docker", cwd: "${PLUGIN_DATA}/linked" },
+    },
+  }));
+  assert.deepEqual(validateMcpConfig(dir), [
+    'mcp.json /mcpServers/command/command must be a bare executable name or a plugin-relative path starting with "./"',
+    "mcp.json /mcpServers/root/cwd must stay within the plugin root or plugin data directory",
+    "mcp.json /mcpServers/data/cwd must stay within the plugin root or plugin data directory",
   ]);
 });
 

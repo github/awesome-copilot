@@ -1,4 +1,6 @@
 import Ajv2020 from "ajv/dist/2020.js";
+import fs from "node:fs";
+import path from "node:path";
 
 export const AGENT_PLUGIN_SCHEMA_URL = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
 export const AGENT_PLUGIN_SCHEMA = {
@@ -59,7 +61,7 @@ export const AGENT_PLUGIN_MCP_SCHEMA = {
         },
         cwd: {
           type: "string",
-          pattern: "^(?:\\./|\\$\\{PLUGIN_ROOT\\}(?:/|$)|\\$\\{PLUGIN_DATA\\}(?:/|$))",
+          pattern: "^(?:\\.[/\\\\]|\\$\\{PLUGIN_ROOT\\}(?:[/\\\\]|$)|\\$\\{PLUGIN_DATA\\}(?:[/\\\\]|$))",
         },
       },
       required: ["type", "command"],
@@ -107,38 +109,55 @@ function isBareExecutableOrRelativePath(command) {
   if (typeof command !== "string" || command.length === 0) {
     return false;
   }
-  if (command.startsWith("./")) {
+  if (/^\.[/\\]/.test(command)) {
     return true;
   }
   return !command.includes("/") && !command.includes("\\");
 }
 
-function isContainedRelativeCwd(cwd) {
+function isPathWithinRoot(root, value) {
+  const normalizedValue = value.replaceAll("\\", path.sep).replaceAll("/", path.sep).replace(/^[/\\]+/, "");
+  const candidate = path.resolve(root, normalizedValue);
+  const relative = path.relative(root, candidate);
+  if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    return false;
+  }
+
+  const rootRealPath = fs.realpathSync.native(root);
+  let existingPath = candidate;
+  const missingSegments = [];
+  while (!fs.existsSync(existingPath)) {
+    const parent = path.dirname(existingPath);
+    if (parent === existingPath) {
+      break;
+    }
+    missingSegments.unshift(path.basename(existingPath));
+    existingPath = parent;
+  }
+  const resolvedExistingPath = fs.realpathSync.native(existingPath);
+  const resolvedCandidate = path.join(resolvedExistingPath, ...missingSegments);
+  const resolvedRelative = path.relative(rootRealPath, resolvedCandidate);
+  return resolvedRelative !== ".." &&
+    !resolvedRelative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(resolvedRelative);
+}
+
+function isContainedRelativeCwd(cwd, pluginDir) {
   if (typeof cwd !== "string" || cwd.length === 0) {
     return false;
   }
-  if (cwd.startsWith("${PLUGIN_ROOT}") || cwd.startsWith("${PLUGIN_DATA}")) {
-    return true;
-  }
-  if (!cwd.startsWith("./")) {
+  const placeholder = cwd.match(/^\$\{(PLUGIN_ROOT|PLUGIN_DATA)\}(.*)$/);
+  if (placeholder) {
+    const remainder = placeholder[2];
+    if (!remainder || /^[\/\\]/.test(remainder)) {
+      return !pluginDir || isPathWithinRoot(pluginDir, remainder);
+    }
     return false;
   }
-  const segments = cwd.split("/");
-  let depth = 0;
-  for (const segment of segments) {
-    if (!segment || segment === ".") {
-      continue;
-    }
-    if (segment === "..") {
-      if (depth === 0) {
-        return false;
-      }
-      depth--;
-      continue;
-    }
-    depth++;
+  if (!/^\.[/\\]/.test(cwd)) {
+    return false;
   }
-  return true;
+  return !pluginDir || isPathWithinRoot(pluginDir, cwd);
 }
 
 function formatMcpError(error) {
@@ -148,7 +167,7 @@ function formatMcpError(error) {
   return `${error.instancePath || "config"} ${error.message}${extra}`;
 }
 
-export function validateAgentPluginMcpConfig(config) {
+export function validateAgentPluginMcpConfig(config, pluginDir) {
   if (validateMcp(config)) {
     const semanticErrors = [];
     const servers = config?.mcpServers;
@@ -160,10 +179,12 @@ export function validateAgentPluginMcpConfig(config) {
         if (server.type !== "stdio") {
           continue;
         }
-        if (!isBareExecutableOrRelativePath(server.command)) {
+        const commandIsContained = !/^\.[/\\]/.test(server.command) ||
+          !pluginDir || isPathWithinRoot(pluginDir, server.command);
+        if (!isBareExecutableOrRelativePath(server.command) || !commandIsContained) {
           semanticErrors.push(`/mcpServers/${name}/command must be a bare executable name or a plugin-relative path starting with "./"`);
         }
-        if (server.cwd !== undefined && !isContainedRelativeCwd(server.cwd)) {
+        if (server.cwd !== undefined && !isContainedRelativeCwd(server.cwd, pluginDir)) {
           semanticErrors.push(`/mcpServers/${name}/cwd must stay within the plugin root or plugin data directory`);
         }
       }

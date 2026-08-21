@@ -237,7 +237,7 @@ export function validateMcpConfig(pluginDir) {
     errors.push("mcp.json must contain a top-level object");
     return errors;
   }
-  errors.push(...validateAgentPluginMcpConfig(parsed).map((message) => `mcp.json ${message}`));
+  errors.push(...validateAgentPluginMcpConfig(parsed, pluginDir).map((message) => `mcp.json ${message}`));
 
   return errors;
 }
