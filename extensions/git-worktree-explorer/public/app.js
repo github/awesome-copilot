@@ -1,4 +1,5 @@
 import { layoutCommitGraph } from "./graph-layout.mjs";
+import { formatShellCommand } from "./shell-quote.mjs";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const token = new URLSearchParams(location.search).get("token");
@@ -189,8 +190,9 @@ function renderNode(node, x, y, width, isParent = false) {
   const id = nodeId(node);
   const group = svgElement("g", {
     class: `node ${node.type}${node.value.dirty ? " dirty" : ""}${state.selected?.id === id ? " selected" : ""}`,
-    role: "treeitem",
+    role: "button",
     tabindex: "0",
+    "aria-pressed": state.selected?.id === id ? "true" : "false",
     "aria-label": `${node.type}: ${labelFor(node)}. ${metaFor(node)}`,
     transform: `translate(${x} ${y})`,
   });
@@ -301,7 +303,7 @@ function renderGraph() {
                   name: branch.name,
                   worktreeCount: branch.worktrees.length,
                   pullRequestCount: branch.pullRequests.length,
-                  default: state.snapshot.repository.defaultBranch?.endsWith(`/${branch.name}`) || false,
+                  default: Boolean(branch.isDefault),
                 }],
               }
             : commit),
@@ -350,8 +352,27 @@ function renderGraph() {
     const { rows, maxLanes } = layoutCommitGraph(page.commits);
     const rowHeight = 44;
     const topPadding = 18;
+    const maxVisibleBadges = 3;
+    const badgeGap = 8;
+    const subjectWidth = 72 * 7;
+    const timeColumnWidth = 96;
     const laneAreaWidth = Math.max(92, 36 + maxLanes * 22);
-    const contentWidth = Math.max(980, elements.graphScroll.clientWidth || 980);
+    const badgeWidthFor = (name) => Math.min(190, 22 + name.length * 7);
+    const rowBadges = rows.map((row) => {
+      const refs = row.commit.refs || [];
+      const visible = refs.slice(0, maxVisibleBadges);
+      const overflow = refs.length - visible.length;
+      const badges = visible.map((ref) => ({ ref, width: badgeWidthFor(ref.name) }));
+      if (overflow > 0) badges.push({ overflow, width: badgeWidthFor(`+${overflow} more`) });
+      const total = badges.reduce((sum, badge) => sum + badge.width + badgeGap, 0);
+      return { badges, total };
+    });
+    const widestRow = rowBadges.reduce((max, { total }) => Math.max(max, total), 0);
+    const contentWidth = Math.max(
+      980,
+      elements.graphScroll.clientWidth || 980,
+      laneAreaWidth + widestRow + subjectWidth + timeColumnWidth,
+    );
     const contentHeight = topPadding * 2 + rows.length * rowHeight + (page.nextOffset !== null ? 58 : 0);
     elements.graph.setAttribute("viewBox", `0 0 ${contentWidth} ${contentHeight}`);
     elements.graph.style.width = `${contentWidth * state.zoom}px`;
@@ -376,8 +397,9 @@ function renderGraph() {
 
       const group = svgElement("g", {
         class: `commit-row${state.selected?.id === `commit:${row.commit.sha}` ? " selected" : ""}`,
-        role: "treeitem",
+        role: "button",
         tabindex: "0",
+        "aria-pressed": state.selected?.id === `commit:${row.commit.sha}` ? "true" : "false",
         "aria-label": `${row.commit.subject}, ${row.commit.author.name}, ${formatDate(row.commit.committedAt)}`,
       });
       group.append(svgElement("rect", {
@@ -396,8 +418,24 @@ function renderGraph() {
       }));
 
       let textX = laneAreaWidth;
-      for (const ref of row.commit.refs || []) {
-        const badgeWidth = Math.min(190, 22 + ref.name.length * 7);
+      for (const { ref, overflow, width: badgeWidth } of rowBadges[index].badges) {
+        if (overflow) {
+          const hidden = (row.commit.refs || []).slice(maxVisibleBadges).map((item) => item.name);
+          const badge = svgElement("g", { class: "ref-badge overflow" });
+          const title = svgElement("title");
+          title.textContent = hidden.join(", ");
+          badge.append(title, svgElement("rect", {
+            x: textX,
+            y: middle - 11,
+            width: badgeWidth,
+            height: 22,
+            rx: 11,
+          }));
+          addText(badge, "ref-badge-text", textX + 10, middle + 4, `+${overflow} more`, 24);
+          group.append(badge);
+          textX += badgeWidth + badgeGap;
+          continue;
+        }
         const badge = svgElement("g", {
           class: `ref-badge${ref.default ? " default" : ""}`,
           role: "button",
@@ -419,10 +457,13 @@ function renderGraph() {
         };
         badge.addEventListener("click", openBranch);
         badge.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") openBranch(event);
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openBranch(event);
+          }
         });
         group.append(badge);
-        textX += badgeWidth + 8;
+        textX += badgeWidth + badgeGap;
       }
 
       addText(group, "commit-subject", textX, middle - 2, row.commit.subject, 72);
@@ -534,10 +575,20 @@ async function copyText(value) {
   showToast("Copied to clipboard");
 }
 
-function renderInspector(node, details = null) {
+function closeInspector() {
+  elements.inspector.classList.remove("has-selection");
+}
+
+function renderInspector(node, details = null, { open = false } = {}) {
   if (!node) return;
   const content = document.createElement("div");
   content.className = "inspector-content";
+  const close = document.createElement("button");
+  close.type = "button";
+  close.className = "inspector-close";
+  close.setAttribute("aria-label", "Close details");
+  close.textContent = "×";
+  close.addEventListener("click", closeInspector);
   const eyebrow = document.createElement("div");
   eyebrow.className = "eyebrow";
   eyebrow.textContent = node.type;
@@ -564,7 +615,7 @@ function renderInspector(node, details = null) {
     );
     actions.append(
       actionButton("Copy path", () => copyText(node.value.root)),
-      actionButton("Copy status command", () => copyText(`git -C "${node.value.root}" status`)),
+      actionButton("Copy status command", () => copyText(formatShellCommand(["git", "-C", node.value.root, "status"]))),
       actionButton("Ask Copilot", (event) => askCopilot({ id: "repository" }, event.currentTarget), true),
     );
     if (node.value.changedFiles.length) appendFiles(content, node.value.changedFiles, "Changed files");
@@ -582,7 +633,7 @@ function renderInspector(node, details = null) {
     if (node.value.path) {
       actions.append(
         actionButton("Copy path", () => copyText(node.value.path)),
-        actionButton("Copy status command", () => copyText(`git -C "${node.value.path}" status`)),
+        actionButton("Copy status command", () => copyText(formatShellCommand(["git", "-C", node.value.path, "status"]))),
       );
     }
     actions.append(actionButton(
@@ -607,7 +658,9 @@ function renderInspector(node, details = null) {
     );
     actions.append(
       actionButton("Copy branch", () => copyText(node.value.name)),
-      actionButton("Copy log command", () => copyText(`git log "${node.value.name}" --oneline -50`)),
+      actionButton("Copy log command", () => copyText(
+        formatShellCommand(["git", "log", "--oneline", "-50", "--end-of-options", node.value.name, "--"]),
+      )),
       actionButton("Ask Copilot", (event) => askCopilot({ id: node.value.id }, event.currentTarget), true),
     );
     appendPullRequests(content, node.value.pullRequests);
@@ -639,9 +692,10 @@ function renderInspector(node, details = null) {
     if (commit.files) appendFiles(content, commit.files, "Changed files");
   }
 
-  content.prepend(eyebrow, title, summary, list, actions, askStatus);
+  content.prepend(close, eyebrow, title, summary, list, actions, askStatus);
   elements.inspector.replaceChildren(content);
-  elements.inspector.classList.add("has-selection");
+  // Only an explicit selection opens the mobile overlay; snapshot refreshes keep it closed.
+  if (open) elements.inspector.classList.add("has-selection");
 }
 
 function appendFiles(content, files, title) {
@@ -699,17 +753,17 @@ async function selectAndDrill(node) {
   state.selected = { type: node.type, id };
   renderGraph();
   if (node.type === "commit") {
-    renderInspector(node);
+    renderInspector(node, null, { open: true });
     try {
       const details = await post("/api/commit", { sha: node.value.sha });
-      if (state.selected?.id === id) renderInspector(node, details);
+      if (state.selected?.id === id) renderInspector(node, details, { open: true });
     } catch (error) {
       showToast(error.message);
     }
     return;
   }
 
-  renderInspector(node);
+  renderInspector(node, null, { open: true });
   const path = pathForNode(node);
   state.breadcrumbs = path;
   state.current = path.at(-1);
@@ -749,10 +803,9 @@ async function loadMoreCommits() {
     });
     renderGraph();
   } catch (error) {
+    // Keep the already-loaded page so history and the load-more cursor survive a transient failure.
     if (state.branchRequestId === requestId && state.historyGeneration === generation) {
-      state.commits.set(branchId, { ...page, error: error.message });
-      renderGraph();
-      showToast(error.message);
+      showToast(`Could not load more commits: ${error.message}`);
     }
   }
 }
@@ -776,9 +829,14 @@ async function loadBranchGraph(reset = false) {
     renderGraph();
   } catch (error) {
     if (state.branchGraphRequestId === requestId && state.historyGeneration === generation) {
-      state.branchGraph = { commits: [], nextOffset: null, error: error.message };
-      renderGraph();
-      showToast(error.message);
+      if (reset || !state.branchGraph) {
+        state.branchGraph = { commits: [], nextOffset: null, error: error.message };
+        renderGraph();
+        showToast(error.message);
+      } else {
+        // Preserve the cached pages; the load-more button stays available for retry.
+        showToast(`Could not load more commits: ${error.message}`);
+      }
     }
   } finally {
     if (state.branchGraphRequestId === requestId) elements.loading.hidden = true;
@@ -957,7 +1015,9 @@ function setRepositoryView(view) {
   state.breadcrumbs = [state.current];
   state.selected = { type: "repository", id: "repository" };
   elements.viewWorktrees.classList.toggle("active", view === "worktrees");
+  elements.viewWorktrees.setAttribute("aria-pressed", String(view === "worktrees"));
   elements.viewBranches.classList.toggle("active", view === "branches");
+  elements.viewBranches.setAttribute("aria-pressed", String(view === "branches"));
   renderBreadcrumbs();
   renderGraph();
   renderInspector(currentNode());

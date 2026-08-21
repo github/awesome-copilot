@@ -119,6 +119,51 @@ export function parseDivergence(output) {
     return { ahead, behind };
 }
 
+export function parseAheadBehindRecords(output) {
+    const divergence = new Map();
+    for (const record of String(output || "").split(/\r?\n/)) {
+        if (!record) continue;
+        const [ref, counts] = record.split(FIELD_SEPARATOR);
+        const [aheadValue, behindValue] = String(counts || "").trim().split(/\s+/);
+        const ahead = Number(aheadValue);
+        const behind = Number(behindValue);
+        if (!ref || !Number.isFinite(ahead) || !Number.isFinite(behind)) continue;
+        divergence.set(ref, { ahead, behind });
+    }
+    return divergence;
+}
+
+export function describeDefaultBranch(defaultBranch) {
+    if (!defaultBranch) return { ref: null, short: null, name: null };
+    const short = defaultBranch.replace(/^refs\/remotes\//, "");
+    const separator = short.indexOf("/");
+    return {
+        ref: defaultBranch,
+        short,
+        name: separator === -1 ? short : short.slice(separator + 1),
+    };
+}
+
+export function isDefaultBranch(branch, defaultBranch) {
+    const resolved = typeof defaultBranch === "string" ? describeDefaultBranch(defaultBranch) : defaultBranch;
+    if (!resolved?.name || !branch || branch.detached) return false;
+    if (branch.upstream) return branch.upstream === resolved.short;
+    return branch.name === resolved.name;
+}
+
+export async function mapWithConcurrency(items, limit, worker) {
+    const results = new Array(items.length);
+    let nextIndex = 0;
+    const runners = Array.from({ length: Math.min(Math.max(limit, 1), items.length) }, async () => {
+        while (nextIndex < items.length) {
+            const index = nextIndex++;
+            results[index] = await worker(items[index], index);
+        }
+    });
+    await Promise.all(runners);
+    return results;
+}
+
 export function resolveDefaultBranch(symbolicRef, branches) {
     if (symbolicRef) return symbolicRef;
     const refs = new Set(branches.filter((branch) => branch.remote).map((branch) => branch.ref));
@@ -186,9 +231,18 @@ function worktreeId(path) {
     return `worktree:${path}`;
 }
 
-function enrichBranches(branches, worktrees, pullRequests) {
+export function isSameRepositoryPullRequest(pullRequest, remote) {
+    if (pullRequest.isCrossRepository === true) return false;
+    const headOwner = pullRequest.headRepositoryOwner?.login;
+    if (headOwner && remote?.owner && headOwner.toLowerCase() !== remote.owner.toLowerCase()) return false;
+    return true;
+}
+
+function enrichBranches(branches, worktrees, pullRequests, remote) {
     const prsByBranch = new Map();
     for (const pullRequest of pullRequests) {
+        // Fork PRs share headRefName with unrelated local branches, so only same-repository heads are attached.
+        if (!isSameRepositoryPullRequest(pullRequest, remote)) continue;
         const existing = prsByBranch.get(pullRequest.headRefName) || [];
         existing.push(pullRequest);
         prsByBranch.set(pullRequest.headRefName, existing);
@@ -202,11 +256,29 @@ function enrichBranches(branches, worktrees, pullRequests) {
     }));
 }
 
+const DIVERGENCE_CONCURRENCY = 8;
+
 async function addDefaultDivergence(branches, defaultBranch, cwd, commandRunner) {
-    if (!defaultBranch) {
+    if (!defaultBranch || !branches.length) {
         return branches.map((branch) => ({ ...branch, defaultTracking: null }));
     }
-    return Promise.all(branches.map(async (branch) => {
+
+    // Git 2.41+ computes every branch's divergence in a single process.
+    const batched = await commandRunner("git", [
+        "for-each-ref",
+        `--format=%(refname)%1f%(ahead-behind:${defaultBranch})`,
+        "refs/heads",
+    ], cwd, { allowFailure: true });
+    if (!batched.error) {
+        const divergence = parseAheadBehindRecords(batched.stdout);
+        return branches.map((branch) => ({
+            ...branch,
+            defaultTracking: divergence.get(branch.ref) || null,
+        }));
+    }
+
+    // Older Git falls back to one rev-list per branch with bounded concurrency.
+    return mapWithConcurrency(branches, DIVERGENCE_CONCURRENCY, async (branch) => {
         const result = await commandRunner("git", [
             "rev-list",
             "--left-right",
@@ -218,7 +290,7 @@ async function addDefaultDivergence(branches, defaultBranch, cwd, commandRunner)
             ...branch,
             defaultTracking: result.error ? null : parseDivergence(result.stdout),
         };
-    }));
+    });
 }
 
 async function gatherGitHub(remote, cwd, commandRunner) {
@@ -231,7 +303,7 @@ async function gatherGitHub(remote, cwd, commandRunner) {
         "--repo", `${remote.owner}/${remote.repo}`,
         "--state", "all",
         "--limit", "100",
-        "--json", "number,title,url,state,isDraft,headRefName,baseRefName,updatedAt",
+        "--json", "number,title,url,state,isDraft,headRefName,baseRefName,updatedAt,isCrossRepository,headRepositoryOwner",
     ], cwd, { allowFailure: true, timeout: 20_000 });
 
     if (result.error) {
@@ -286,13 +358,14 @@ export async function gatherRepository(startCwd, options = {}) {
     const worktrees = parseWorktreePorcelain(worktreeResult.stdout);
     const allBranches = parseBranchRecords(branchResult.stdout);
     const defaultBranch = resolveDefaultBranch(defaultBranchResult.stdout || null, allBranches);
-    const localBranches = enrichBranches(allBranches, worktrees, github.pullRequests);
-    const branches = await addDefaultDivergence(
+    const defaultBranchInfo = describeDefaultBranch(defaultBranch);
+    const localBranches = enrichBranches(allBranches, worktrees, github.pullRequests, remote);
+    const branches = (await addDefaultDivergence(
         localBranches,
         defaultBranch,
         root,
         commandRunner,
-    );
+    )).map((branch) => ({ ...branch, isDefault: isDefaultBranch(branch, defaultBranchInfo) }));
     const assignedBranches = new Set(worktrees.map((worktree) => worktree.branch).filter(Boolean));
     const unassignedBranchIds = branches.filter((branch) => !assignedBranches.has(branch.name)).map((branch) => branch.id);
 
@@ -338,6 +411,7 @@ export async function gatherRepository(startCwd, options = {}) {
         worktrees: [worktree.path],
         pullRequests: [],
         defaultTracking: null,
+        isDefault: false,
     }));
 
     return {
@@ -352,6 +426,7 @@ export async function gatherRepository(startCwd, options = {}) {
             changedFiles: status.files,
             branchSummary: status.branchSummary,
             defaultBranch,
+            defaultBranchName: defaultBranchInfo.name,
             remote,
         },
         worktrees: normalizedWorktrees,
@@ -431,10 +506,9 @@ export async function gatherCommitDetails(cwd, sha, remote, options = {}) {
     }
     const commandRunner = options.commandRunner || runCommand;
     const format = ["%H", "%h", "%P", "%an", "%ae", "%aI", "%cI", "%s", "%b"].join("%x1f");
-    const [metadata, files, summary] = await Promise.all([
+    const [metadata, files] = await Promise.all([
         commandRunner("git", ["show", "--no-patch", `--format=${format}`, sha], cwd),
         commandRunner("git", ["diff-tree", "--root", "--no-commit-id", "--name-status", "-r", "-M", sha], cwd),
-        commandRunner("git", ["show", "--stat", "--oneline", "--format=", sha], cwd),
     ]);
     const [fullSha, shortSha, parents, authorName, authorEmail, authoredAt, committedAt, subject, ...bodyParts] =
         metadata.stdout.split(FIELD_SEPARATOR);
@@ -451,7 +525,6 @@ export async function gatherCommitDetails(cwd, sha, remote, options = {}) {
             const [status, ...paths] = line.split("\t");
             return { status, path: paths.join(" -> ") };
         }),
-        summary: summary.stdout,
         githubUrl: remote?.github ? `${remote.webUrl}/commit/${encodeURIComponent(fullSha)}` : null,
     };
 }

@@ -433,6 +433,19 @@ h1 {
   fill: #8250df;
 }
 
+.ref-badge.overflow {
+  cursor: default;
+}
+
+.ref-badge.overflow rect {
+  fill: var(--surface-muted);
+  stroke: var(--border-color-default, #d0d7de);
+}
+
+.ref-badge.overflow .ref-badge-text {
+  fill: var(--text-color-muted, #656d76);
+}
+
 .inspector {
   min-width: 0;
   overflow-y: auto;
@@ -458,7 +471,24 @@ h1 {
 }
 
 .inspector-content {
+  position: relative;
   padding: 18px;
+}
+
+.inspector-close {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border-color-default, #d0d7de);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .eyebrow {
@@ -660,6 +690,16 @@ h1 {
 
   .inspector.has-selection {
     transform: translateX(0);
+  }
+
+  .inspector-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .inspector-content {
+    padding-right: 52px;
   }
 }
 

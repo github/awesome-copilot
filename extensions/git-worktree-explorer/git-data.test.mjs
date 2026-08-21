@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+    describeDefaultBranch,
     gatherCommitDetails,
     gatherCommits,
     gatherGraphCommits,
     gatherRepository,
+    isDefaultBranch,
+    isSameRepositoryPullRequest,
+    mapWithConcurrency,
     normalizeRemoteUrl,
     parseBranchRecords,
     parseCommitRecords,
@@ -128,6 +132,10 @@ test("repository snapshot creates a virtual group for branches without worktrees
         if (key === "git worktree list --porcelain") {
             return { stdout: `worktree ${root}\nHEAD ${sha}\nbranch refs/heads/main\n`, stderr: "" };
         }
+        if (key.startsWith("git for-each-ref ") && key.includes("ahead-behind")) {
+            const error = new Error("unknown field name: ahead-behind");
+            return { stdout: "", stderr: error.message, error };
+        }
         if (key.startsWith("git for-each-ref ")) {
             return {
                 stdout: [
@@ -155,7 +163,131 @@ test("repository snapshot creates a virtual group for branches without worktrees
     assert.equal(snapshot.worktrees.length, 2);
     assert.deepEqual(snapshot.worktrees[1].branchIds, ["branch:topic"]);
     assert.equal(snapshot.branches[0].worktrees[0], root);
+    assert.equal(snapshot.branches[0].isDefault, true);
+    assert.equal(snapshot.branches[1].isDefault, false);
+    assert.equal(snapshot.repository.defaultBranchName, "main");
     assert.deepEqual(snapshot.branches[1].defaultTracking, { ahead: 2, behind: 4 });
+});
+
+test("branch divergence uses a single for-each-ref query when Git supports ahead-behind", async () => {
+    const root = process.cwd();
+    const sha = "a".repeat(40);
+    const separator = "\x1f";
+    const commands = [];
+    const runner = async (command, args) => {
+        const key = `${command} ${args.join(" ")}`;
+        commands.push(key);
+        if (key === "git rev-parse --show-toplevel") return { stdout: root, stderr: "" };
+        if (key === "git rev-parse --git-common-dir") return { stdout: ".git", stderr: "" };
+        if (key === "git rev-parse --verify HEAD") return { stdout: sha, stderr: "" };
+        if (key === "git remote get-url origin") return { stdout: "", stderr: "", error: new Error("none") };
+        if (key === "git symbolic-ref --quiet refs/remotes/origin/HEAD") {
+            return { stdout: "refs/remotes/origin/feature/x", stderr: "" };
+        }
+        if (key.startsWith("git status ")) return { stdout: "## x", stderr: "" };
+        if (key === "git worktree list --porcelain") {
+            return { stdout: `worktree ${root}\nHEAD ${sha}\nbranch refs/heads/x\n`, stderr: "" };
+        }
+        if (key.includes("ahead-behind")) {
+            assert.ok(args.some((arg) => arg.includes("%(ahead-behind:refs/remotes/origin/feature/x)")));
+            return {
+                stdout: [
+                    `refs/heads/feature/x${separator}0 0`,
+                    `refs/heads/x${separator}3 1`,
+                ].join("\n"),
+                stderr: "",
+            };
+        }
+        if (key.startsWith("git for-each-ref ")) {
+            return {
+                stdout: [
+                    ["refs/heads/feature/x", "feature/x", sha, "origin/feature/x", "", "2026-01-01T00:00:00Z", "Default"].join(separator),
+                    ["refs/heads/x", "x", sha, "", "", "2026-01-01T00:00:00Z", "Suffix"].join(separator),
+                ].join("\n"),
+                stderr: "",
+            };
+        }
+        throw new Error(`Unexpected command: ${key}`);
+    };
+
+    const snapshot = await gatherRepository(root, { commandRunner: runner });
+    assert.ok(!commands.some((key) => key.startsWith("git rev-list ")), "should not spawn per-branch rev-list");
+    const byName = Object.fromEntries(snapshot.branches.map((branch) => [branch.name, branch]));
+    assert.deepEqual(byName["feature/x"].defaultTracking, { ahead: 0, behind: 0 });
+    assert.deepEqual(byName.x.defaultTracking, { ahead: 3, behind: 1 });
+    assert.equal(byName["feature/x"].isDefault, true);
+    assert.equal(byName.x.isDefault, false, "suffix of the default branch name must not be marked default");
+});
+
+test("per-branch divergence fallback is bounded to a small concurrency", async () => {
+    const defaultBranch = "refs/remotes/origin/main";
+    const branches = Array.from({ length: 40 }, (_, index) => ({ ref: `refs/heads/b${index}`, name: `b${index}` }));
+    let active = 0;
+    let peak = 0;
+    const runner = async (_command, args) => {
+        if (args.includes("for-each-ref")) {
+            return { stdout: "", stderr: "", error: new Error("old git") };
+        }
+        active++;
+        peak = Math.max(peak, active);
+        await new Promise((resolve) => setTimeout(resolve, 2));
+        active--;
+        return { stdout: "1\t2", stderr: "" };
+    };
+    const results = await mapWithConcurrency(branches, 8, async (branch) => {
+        const result = await runner("git", ["rev-list", branch.ref]);
+        return { ...branch, defaultTracking: result.error ? null : { ahead: 2, behind: 1 } };
+    });
+    assert.equal(results.length, 40);
+    assert.ok(peak <= 8, `peak concurrency was ${peak}`);
+    assert.deepEqual(results[39].defaultTracking, { ahead: 2, behind: 1 });
+    assert.equal(defaultBranch, "refs/remotes/origin/main");
+});
+
+test("default branch detection compares full branch names and upstreams", () => {
+    const info = describeDefaultBranch("refs/remotes/origin/feature/x");
+    assert.deepEqual(info, { ref: "refs/remotes/origin/feature/x", short: "origin/feature/x", name: "feature/x" });
+    assert.equal(isDefaultBranch({ name: "feature/x", upstream: null }, info), true);
+    assert.equal(isDefaultBranch({ name: "x", upstream: null }, info), false);
+    assert.equal(isDefaultBranch({ name: "local-main", upstream: "origin/feature/x" }, info), true);
+    assert.equal(isDefaultBranch({ name: "feature/x", upstream: "upstream/feature/x" }, info), false);
+    assert.equal(isDefaultBranch({ name: "main" }, null), false);
+});
+
+test("pull requests from forks are not attached to same-named local branches", () => {
+    const remote = { owner: "octo", repo: "repo" };
+    assert.equal(isSameRepositoryPullRequest({ headRefName: "main", isCrossRepository: true }, remote), false);
+    assert.equal(isSameRepositoryPullRequest({
+        headRefName: "main",
+        isCrossRepository: false,
+        headRepositoryOwner: { login: "Octo" },
+    }, remote), true);
+    assert.equal(isSameRepositoryPullRequest({
+        headRefName: "main",
+        headRepositoryOwner: { login: "contributor" },
+    }, remote), false);
+    assert.equal(isSameRepositoryPullRequest({ headRefName: "main" }, remote), true);
+});
+
+test("commit details run only metadata and file listing commands", async () => {
+    const separator = "\x1f";
+    const commands = [];
+    const sha = "a".repeat(40);
+    const details = await gatherCommitDetails(process.cwd(), sha, null, {
+        commandRunner: async (_command, args) => {
+            commands.push(args[0]);
+            if (args[0] === "show") {
+                return {
+                    stdout: [sha, "aaaaaaaa", "", "Ada", "ada@example.com", "2026", "2026", "Subject", "Body"].join(separator),
+                    stderr: "",
+                };
+            }
+            return { stdout: "M\tsrc/app.js", stderr: "" };
+        },
+    });
+    assert.deepEqual(commands.sort(), ["diff-tree", "show"]);
+    assert.equal(details.summary, undefined);
+    assert.deepEqual(details.files, [{ status: "M", path: "src/app.js" }]);
 });
 
 test("commit pagination returns a cursor only when more records exist", async () => {

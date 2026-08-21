@@ -1,13 +1,17 @@
+// Each color keeps at least 3:1 contrast against both the light (#ffffff)
+// and dark (#0d1117) canvas backgrounds so lanes stay traceable in either theme.
 const COLORS = [
-  "#2f81f7",
-  "#f778ba",
-  "#d29922",
-  "#3fb950",
-  "#a371f7",
-  "#db6d28",
-  "#39c5cf",
-  "#f85149",
+  "#0969da",
+  "#bf3989",
+  "#bf8700",
+  "#1a7f37",
+  "#8250df",
+  "#bc4c00",
+  "#1b7c83",
+  "#cf222e",
 ];
+
+export const LANE_COLORS = COLORS;
 
 function nextColor(index) {
   return COLORS[index % COLORS.length];

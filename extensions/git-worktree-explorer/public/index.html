@@ -26,8 +26,8 @@
   <main class="workspace">
     <section class="graph-panel" aria-label="Git repository topology">
       <div class="graph-toolbar" aria-label="Graph controls">
-        <button id="view-worktrees" class="view-button active" type="button">Worktrees</button>
-        <button id="view-branches" class="view-button" type="button">Branches</button>
+        <button id="view-worktrees" class="view-button active" type="button" aria-pressed="true">Worktrees</button>
+        <button id="view-branches" class="view-button" type="button" aria-pressed="false">Branches</button>
         <span class="toolbar-divider" aria-hidden="true"></span>
         <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
         <button id="zoom-reset" type="button">100%</button>
@@ -39,7 +39,7 @@
       </div>
       <div id="empty-state" class="empty-state" hidden></div>
       <div id="graph-scroll" class="graph-scroll">
-        <svg id="graph" role="tree" aria-label="Git topology graph"></svg>
+        <svg id="graph" role="group" aria-label="Git topology graph"></svg>
       </div>
     </section>
 
