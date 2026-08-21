@@ -20,7 +20,7 @@ Use this workflow when adding or changing a Roslyn analyzer, code fix, source ge
 - Document every diagnostic ID. When the repository uses Docfx, put analyzer documentation under its Docfx tree, typically `docfx/analyzers`, and include each page in the relevant table of contents.
 - Set every analyzer assembly's version precisely enough that each commit produces a unique assembly version. When using Nerdbank.GitVersioning, give each analyzer project its own `version.json` with `assemblyVersion.precision` set to `revision` and ensure that repository-wide MSBuild properties do not prevent that file from being discovered.
 - Source generators must implement `IIncrementalGenerator`, not `ISourceGenerator`. Design the provider graph so unchanged inputs remain cached and do not regenerate output.
-- Source generators must use a small `SourceWriter` abstraction for deterministic newlines, indentation, encoding, and balanced output. Start from [SourceWriter.cs](./SourceWriter.cs) and tailor its namespace and target-framework details to the receiving repository.
+- Source generators must use a small `SourceWriter` abstraction for deterministic newlines, indentation, encoding, and balanced output. Start from [SourceWriter.cs](./references/SourceWriter.cs) and tailor its namespace and target-framework details to the receiving repository.
 
 ## Implementation workflow
 
@@ -173,7 +173,7 @@ public sealed class FactoryGenerator : IIncrementalGenerator
 }
 ```
 
-The model creation step must normalize symbol data into strings, booleans, enums, and other immutable values, validate unsupported declarations, escape identifiers, and derive a stable hint name. The output callback should only render the model. Use the complete [SourceWriter.cs](./SourceWriter.cs) example rather than ad hoc `StringBuilder` concatenation, then adapt indentation style and framework compatibility to the repository.
+The model creation step must normalize symbol data into strings, booleans, enums, and other immutable values, validate unsupported declarations, escape identifiers, and derive a stable hint name. The output callback should only render the model. Use the complete [SourceWriter.cs](./references/SourceWriter.cs) example rather than ad hoc `StringBuilder` concatenation, then adapt indentation style and framework compatibility to the repository.
 
 ### Generator tests
 
@@ -367,7 +367,7 @@ Validate the built assembly rather than only inspecting MSBuild source. Build th
 
 Use `Microsoft.CodeAnalysis.Testing` or the repository's established equivalent. Keep one test class per diagnostic rule for analyzer and code-fix behavior together. Do not create a separate code-fix test class. Even when a diagnostic intentionally has no fix, instantiate the same analyzer-plus-code-fix harness with `EmptyCodeFixProvider`; this keeps all cases and configuration for the rule together.
 
-Annotate every verifier/helper parameter that accepts C# source with `[StringSyntax("c#-test")]` from `System.Diagnostics.CodeAnalysis`. This enables syntax highlighting and language services at test call sites. Start from [CSharpCodeFixVerifier.cs](./CSharpCodeFixVerifier.cs) for a complete example and apply the attribute to analyzer-only and generator test helpers as well. If the target framework does not define `StringSyntaxAttribute`, use the repository's compatibility/polyfill pattern.
+Annotate every verifier/helper parameter that accepts C# source with `[StringSyntax("c#-test")]` from `System.Diagnostics.CodeAnalysis`. This enables syntax highlighting and language services at test call sites. Start from [CSharpCodeFixVerifier.cs](./references/CSharpCodeFixVerifier.cs) for a complete example and apply the attribute to analyzer-only and generator test helpers as well. If the target framework does not define `StringSyntaxAttribute`, use the repository's compatibility/polyfill pattern.
 
 When C# source is assigned to a local variable instead of passed directly to an annotated parameter, add a language comment before the literal:
 
