@@ -1,6 +1,10 @@
 import { execFile } from "node:child_process";
-import { readFile, stat } from "node:fs/promises";
+import { lstat, readFile, readlink } from "node:fs/promises";
 import { basename, isAbsolute, relative, resolve } from "node:path";
+
+// Hash of Git's empty tree, used to diff the worktree when HEAD is unborn.
+const EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
+const STATUS_ARGS = ["status", "--porcelain=v1", "-z", "--untracked-files=all"];
 
 function runGit(cwd, args, { optional = false } = {}) {
     return new Promise((resolve, reject) => {
@@ -46,15 +50,27 @@ function lines(value) {
     return value.split("\n").map((line) => line.trimEnd()).filter(Boolean);
 }
 
-export function parseStatusEntry(line) {
-    const code = line.slice(0, 2);
-    const rawPath = line.slice(3);
-    const renameMarker = rawPath.lastIndexOf(" -> ");
-    return {
-        code,
-        path: renameMarker >= 0 ? rawPath.slice(renameMarker + 4) : rawPath,
-        originalPath: renameMarker >= 0 ? rawPath.slice(0, renameMarker) : null,
-    };
+// Parses `git status --porcelain=v1 -z` output. Each entry is `XY PATH\0`; renames and
+// copies are followed by a second `ORIG_PATH\0` field. Paths are never quoted in -z mode.
+export function parseStatusOutput(output) {
+    const fields = output.split("\0");
+    const entries = [];
+    for (let index = 0; index < fields.length; index += 1) {
+        const field = fields[index];
+        if (!field) continue;
+        const code = field.slice(0, 2);
+        const path = field.slice(3);
+        const isRenameOrCopy = /[RC]/.test(code);
+        const originalPath = isRenameOrCopy ? fields[index + 1] || null : null;
+        if (isRenameOrCopy) index += 1;
+        entries.push({ code, path, originalPath });
+    }
+    return entries;
+}
+
+export function formatStatusEntry(entry) {
+    const rename = entry.originalPath ? `${entry.originalPath} -> ` : "";
+    return `${entry.code} ${rename}${entry.path}`;
 }
 
 function parseGraphLine(line) {
@@ -77,9 +93,27 @@ function assertRepositoryPath(root, path) {
     return { absolutePath, relativePath: relativePath.replaceAll("\\", "/") };
 }
 
+function renderNewFilePatch(relativePath, mode, addedLines) {
+    return [
+        `diff --git a/${relativePath} b/${relativePath}`,
+        `new file mode ${mode}`,
+        "--- /dev/null",
+        `+++ b/${relativePath}`,
+        `@@ -0,0 +1,${addedLines.length} @@`,
+        ...addedLines.map((line) => `+${line}`),
+    ].join("\n");
+}
+
 async function renderUntrackedFile(root, path) {
     const { absolutePath, relativePath } = assertRepositoryPath(root, path);
-    const fileStat = await stat(absolutePath);
+    // lstat never follows symlinks, so a link pointing outside the worktree cannot be
+    // dereferenced into reading an arbitrary file on disk.
+    const fileStat = await lstat(absolutePath);
+    if (fileStat.isSymbolicLink()) {
+        // Mirror Git: a symlink's "content" is its link target, not the file it points to.
+        const target = await readlink(absolutePath);
+        return renderNewFilePatch(relativePath, "120000", [target]);
+    }
     if (!fileStat.isFile()) throw new Error("Only untracked files can be previewed.");
     if (fileStat.size > 512 * 1024) throw new Error("This untracked file is too large to preview.");
 
@@ -89,23 +123,16 @@ async function renderUntrackedFile(root, path) {
     const text = content.toString("utf8");
     const addedLines = text.split(/\r?\n/);
     if (addedLines.at(-1) === "") addedLines.pop();
-    return [
-        `diff --git a/${relativePath} b/${relativePath}`,
-        "new file mode 100644",
-        "--- /dev/null",
-        `+++ b/${relativePath}`,
-        `@@ -0,0 +1,${addedLines.length} @@`,
-        ...addedLines.map((line) => `+${line}`),
-    ].join("\n");
+    return renderNewFilePatch(relativePath, "100644", addedLines);
 }
 
 export async function getFileDiff(cwd, requestedPath) {
     const root = await runGit(cwd, ["rev-parse", "--show-toplevel"]);
     const { relativePath } = assertRepositoryPath(root, requestedPath);
-    const status = await runGit(root, [
-        "status", "--short", "--untracked-files=all", "--", relativePath,
-    ]);
-    const entry = lines(status).map(parseStatusEntry).find((item) => item.path === relativePath);
+    // Filtering status by only the destination path makes Git report a rename as an add.
+    // Read the full status first so the original path remains available for the patch.
+    const status = await runGit(root, STATUS_ARGS);
+    const entry = parseStatusOutput(status).find((item) => item.path === relativePath);
     if (!entry) throw new Error("This file no longer has uncommitted changes.");
 
     if (entry.code === "??") {
@@ -116,12 +143,15 @@ export async function getFileDiff(cwd, requestedPath) {
     }
 
     const patches = [];
+    const diffPaths = entry.originalPath
+        ? [entry.originalPath, relativePath]
+        : [relativePath];
     if (entry.code[0] && entry.code[0] !== " ") {
-        const staged = await runGit(root, ["diff", "--cached", "--no-ext-diff", "--", relativePath]);
+        const staged = await runGit(root, ["diff", "--cached", "--no-ext-diff", "--", ...diffPaths]);
         if (staged) patches.push({ kind: "Staged", content: staged });
     }
     if (entry.code[1] && entry.code[1] !== " ") {
-        const unstaged = await runGit(root, ["diff", "--no-ext-diff", "--", relativePath]);
+        const unstaged = await runGit(root, ["diff", "--no-ext-diff", "--", ...diffPaths]);
         if (unstaged) patches.push({ kind: "Unstaged", content: unstaged });
     }
 
@@ -137,9 +167,11 @@ export async function gatherGitContext(cwd) {
     const worktreeRoot = await runGit(cwd, ["rev-parse", "--show-toplevel"]);
     const [branch, head] = await Promise.all([
         runGit(worktreeRoot, ["branch", "--show-current"]),
-        runGit(worktreeRoot, ["rev-parse", "--short", "HEAD"]),
+        // Empty on an unborn branch (fresh `git init`), where no commit exists yet.
+        runGit(worktreeRoot, ["rev-parse", "--short", "--verify", "--quiet", "HEAD"], { optional: true }),
     ]);
-    const baseRef = await resolveBaseRef(worktreeRoot, branch);
+    const hasHead = Boolean(head);
+    const baseRef = hasHead ? await resolveBaseRef(worktreeRoot, branch) : null;
     const mergeBase = baseRef
         ? await runGit(worktreeRoot, ["merge-base", "HEAD", baseRef], { optional: true })
         : "";
@@ -147,36 +179,40 @@ export async function gatherGitContext(cwd) {
     const branchRange = mergeBase ? `${mergeBase}..HEAD` : null;
     const graphRefs = ["HEAD"];
     if (baseRef) graphRefs.push(baseRef);
+    const none = Promise.resolve("");
     const [branchLog, recentLog, graphLog, status, diffStat, stagedDiffStat, unstagedDiffStat, divergence] =
         await Promise.all([
             branchRange
                 ? runGit(worktreeRoot, ["log", "--format=%h %s", branchRange])
-                : Promise.resolve(""),
-            runGit(worktreeRoot, ["log", "-10", "--format=%h %s", "HEAD"]),
-            runGit(worktreeRoot, [
-                "log",
-                "--graph",
-                "--decorate=short",
-                "--topo-order",
-                "--format=%h%x09%s%x09%D",
-                "--max-count=40",
-                ...graphRefs,
-            ]),
-            runGit(worktreeRoot, ["status", "--short", "--untracked-files=all"]),
-            runGit(worktreeRoot, ["diff", "--stat", "HEAD"]),
+                : none,
+            hasHead ? runGit(worktreeRoot, ["log", "-10", "--format=%h %s", "HEAD"]) : none,
+            hasHead
+                ? runGit(worktreeRoot, [
+                    "log",
+                    "--graph",
+                    "--decorate=short",
+                    "--topo-order",
+                    "--format=%h%x09%s%x09%D",
+                    "--max-count=40",
+                    ...graphRefs,
+                ])
+                : none,
+            runGit(worktreeRoot, STATUS_ARGS),
+            runGit(worktreeRoot, ["diff", "--stat", hasHead ? "HEAD" : EMPTY_TREE]),
             runGit(worktreeRoot, ["diff", "--cached", "--stat"]),
             runGit(worktreeRoot, ["diff", "--stat"]),
             baseRef
                 ? runGit(worktreeRoot, ["rev-list", "--left-right", "--count", `${baseRef}...HEAD`], {
                     optional: true,
                 })
-                : Promise.resolve(""),
+                : none,
         ]);
 
     const [behind = 0, ahead = 0] = divergence
         .split(/\s+/)
         .filter(Boolean)
         .map((value) => Number.parseInt(value, 10) || 0);
+    const changes = parseStatusOutput(status);
 
     return {
         worktreeRoot,
@@ -189,8 +225,8 @@ export async function gatherGitContext(cwd) {
         branchCommits: lines(branchLog),
         recentCommits: lines(recentLog),
         commitGraph: lines(graphLog).map(parseGraphLine),
-        uncommitted: lines(status),
-        changes: lines(status).map(parseStatusEntry),
+        uncommitted: changes.map(formatStatusEntry),
+        changes,
         diffStat,
         stagedDiffStat,
         unstagedDiffStat,

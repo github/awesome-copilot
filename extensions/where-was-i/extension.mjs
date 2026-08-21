@@ -599,7 +599,7 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   </div>
 </div>
 <div id="diff-overlay" class="diff-overlay">
-  <section class="diff-panel" aria-label="File changes">
+  <section class="diff-panel" role="dialog" aria-modal="true" aria-labelledby="diff-title" tabindex="-1">
     <div class="diff-header">
       <span id="diff-status" class="status-badge modified">Changed</span>
       <span id="diff-title" class="diff-title"></span>
@@ -612,6 +612,7 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
 <script>
 const instanceId = "${instanceId}";
 let contextData = null;
+let diffPreviousFocus = null;
 
 function timeAgo(isoString) {
   if (!isoString) return "";
@@ -833,7 +834,9 @@ async function showDiff(path) {
   badge.textContent = "Loading";
   badge.className = "status-badge modified";
   content.textContent = "Loading changes…";
+  diffPreviousFocus = document.activeElement;
   overlay.classList.add("open");
+  document.getElementById("diff-close").focus();
   try {
     const res = await fetch("/file-diff?path=" + encodeURIComponent(path));
     const data = await res.json();
@@ -849,33 +852,80 @@ async function showDiff(path) {
 }
 
 function closeDiff() {
-  document.getElementById("diff-overlay").classList.remove("open");
+  const overlay = document.getElementById("diff-overlay");
+  if (!overlay.classList.contains("open")) return;
+  overlay.classList.remove("open");
+  if (diffPreviousFocus && typeof diffPreviousFocus.focus === "function") {
+    diffPreviousFocus.focus();
+  }
+  diffPreviousFocus = null;
 }
 
 function handleDiffBackdrop(event) {
   if (event.target.id === "diff-overlay") closeDiff();
 }
 
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeDiff();
-});
-document.getElementById("diff-overlay").addEventListener("click", handleDiffBackdrop);
+function handleDiffKeydown(event) {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeDiff();
+    return;
+  }
+  if (event.key !== "Tab") return;
+
+  const panel = document.querySelector(".diff-panel");
+  const focusable = Array.from(panel.querySelectorAll("button, [href], [tabindex]"))
+    .filter((element) => !element.disabled && element.tabIndex >= 0);
+  if (!focusable.length) {
+    event.preventDefault();
+    panel.focus();
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !panel.contains(document.activeElement))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !panel.contains(document.activeElement))) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+const diffOverlay = document.getElementById("diff-overlay");
+diffOverlay.addEventListener("click", handleDiffBackdrop);
+diffOverlay.addEventListener("keydown", handleDiffKeydown);
 document.getElementById("diff-close").addEventListener("click", closeDiff);
 
+function showWarning(message) {
+  const warning = document.createElement("div");
+  warning.className = "warnings";
+  warning.setAttribute("role", "alert");
+  warning.textContent = message;
+  document.getElementById("app").prepend(warning);
+}
+
+async function requestResume(thread) {
+  try {
+    const res = await fetch("/resume", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ thread })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Unable to send the resume prompt.");
+  } catch (error) {
+    showWarning(error.message || "Unable to send the resume prompt.");
+  }
+}
+
 async function doResume() {
-  await fetch("/resume", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ thread: null })
-  });
+  await requestResume(null);
 }
 
 async function resumeThread(thread) {
-  await fetch("/resume", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ thread })
-  });
+  await requestResume(thread);
 }
 
 // SSE for live updates
