@@ -1,0 +1,26 @@
+{
+  "name": "windows-app-storage-inspector-cleanup",
+  "version": "1.0.3",
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "Inspect Windows application storage, understand local disk usage, and safely move approved cleanup items to the Recycle Bin.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PlagueHO/plagueho.copilot.git",
+    "directory": "extensions/windows-app-storage-inspector-cleanup"
+  },
+  "keywords": [
+    "app-storage",
+    "canvas",
+    "cleanup",
+    "storage",
+    "windows"
+  ],
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "scripts": {
+    "test": "node test/self-test.mjs"
+  }
+}

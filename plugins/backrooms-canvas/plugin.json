@@ -1,0 +1,28 @@
+{
+  "name": "backrooms-canvas",
+  "description": "Wander an endless first-person backrooms in a Copilot canvas while agents work; their status ghost-writes on the walls.",
+  "version": "1.0.0",
+  "author": {
+    "name": "John Haugabook",
+    "url": "https://github.com/jhauga"
+  },
+  "keywords": [
+    "backrooms",
+    "copilot-canvas",
+    "interactive-canvas",
+    "first-person",
+    "procedural-generation",
+    "session-breaks"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/backrooms-canvas"
+      ]
+    }
+  },
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+}

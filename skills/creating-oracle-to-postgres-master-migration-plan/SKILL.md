@@ -45,7 +45,7 @@ Present the classified list. Let the user adjust classifications or migration or
 
 **Step 4: Write the plan file**
 
-Save to: `.github/oracle-to-postgres-migration/Reports/Master Migration Plan.md`
+Save to: `.github/oracle-to-postgres-migration/Reports/MasterMigrationPlan.md`
 
 Use this exact template — downstream consumers depend on the structure:
 
@@ -56,6 +56,11 @@ Use this exact template — downstream consumers depend on the structure:
 **Solution Root:** {REPOSITORY_ROOT}
 **Created:** {timestamp}
 **Last Updated:** {timestamp}
+
+## DDL Artifacts
+
+**Location:** {path to DDL artifacts, e.g., `.github/oracle-to-postgres-migration/DDL/`}
+**External tool used:** {Yes / No} — {If Yes, name the tool (e.g., `ora2pg`) and note that Phase 4 (Schema & DDL Migration) can be skipped; PostgreSQL DDL artifacts already exist.}
 
 ## Solution Summary
 

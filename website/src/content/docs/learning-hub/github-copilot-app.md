@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-08-07
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -64,8 +64,13 @@ Each session the Copilot app creates runs in its own **git worktree**—a real, 
 - Each agent has its own branch, its own environment, and its own changes
 - No manual branch juggling or cleanup required—the app handles it all
 - You can pick up a session from any device, on any worktree
+- A **Worktree location** setting in Settings > Sessions lets you customize where new worktrees are created, using a path template with repository, branch, and name placeholders
 
 This makes it easy to dispatch multiple agents and trust they won't interfere with each other.
+
+### Running in the Background
+
+Closing the app's main window keeps it running in the background instead of quitting, with tray (Windows/Linux) or Dock (macOS) support to bring it back. This means scheduled automations and in-progress sessions keep running even when the window isn't open.
 
 ### Canvases
 
@@ -87,6 +92,12 @@ For a hands-on guide to building canvases with `/create-canvas`, see [Working wi
 - Can automatically merge when all conditions are met
 
 You control the automation level—decide whether Agent Merge should just run CI, address feedback, or go all the way to merging. It's a way to let Copilot handle the tedious parts of the review and merge process.
+
+Agent Merge also understands **stacked pull requests**: it shows a stack summary in the merge drawer with the pull requests that will be included, and lets you merge an entire stack together instead of merging each PR one at a time.
+
+### Requesting Code Reviews
+
+From the app, you can request a Copilot code review on a pull request—and re-request a review even from reviewers who already responded—without leaving the session. This keeps the review loop inside the same workspace where the change was made.
 
 ## Who is the Copilot app for?
 

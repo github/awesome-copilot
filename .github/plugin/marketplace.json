@@ -11,9 +11,9 @@
   "plugins": [
     {
       "name": "accessibility-kanban",
-      "source": "extensions/accessibility-kanban",
+      "source": "plugins/accessibility-kanban",
       "description": "Kanban board to manage accessibility issues, allow you to plan, track, and complete remediation work.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "acreadiness-cockpit",
@@ -51,7 +51,7 @@
     {
       "name": "ai-ready",
       "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "John Papa",
         "url": "https://github.com/johnpapa"
@@ -72,26 +72,52 @@
         "source": "github",
         "repo": "johnpapa/ai-ready",
         "path": ".github/plugin",
-        "ref": "b993d6512c918d8a21a61b7931726f5980c3c920"
+        "ref": "v1.1.0"
       }
     },
     {
       "name": "ai-team-orchestration",
       "source": "plugins/ai-team-orchestration",
-      "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
-      "version": "1.0.0"
+      "description": "Run a lightweight, role-separated AI development team with flexible tools, developer-selected models, proportionate planning, and optional QA.",
+      "version": "2.0.0"
+    },
+    {
+      "name": "apify",
+      "description": "Helps devs extract data from any website with thousands of trusted scrapers, crawlers, and automations from Apify Store. Integrate ready-made Actors to access all popular social media, video, e-commerce, search engines, maps, and travel sites. Build, debug, publish, and monetize new Actors on Apify.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Jakub-Vacek",
+        "url": "https://apify.com"
+      },
+      "repository": "https://github.com/apify/apify-github-copilot-plugin",
+      "license": "Apache-2.0",
+      "keywords": [
+        "automation",
+        "copilot",
+        "github",
+        "apify",
+        "actors",
+        "scrape",
+        "crawl"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "apify/apify-github-copilot-plugin",
+        "path": "apify",
+        "sha": "84136d82da104af9792040e91392daff098e6ff9"
+      }
     },
     {
       "name": "apng-studio",
-      "source": "extensions/apng-studio",
+      "source": "plugins/apng-studio",
       "description": "Interactive GitHub Copilot app canvas extension for building Animated PNG (APNG) files from frames. Draw or upload frames, tune per-frame timing and compositing, preview live, send the result to your phone by QR, and export an animated .png.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "arcade-canvas",
-      "source": "extensions/arcade-canvas",
+      "source": "plugins/arcade-canvas",
       "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "arch",
@@ -156,15 +182,109 @@
     },
     {
       "name": "backlog-swipe-triage",
-      "source": "extensions/backlog-swipe-triage",
+      "source": "plugins/backlog-swipe-triage",
       "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
-      "version": "1.0.1"
+      "version": "1.0.2"
+    },
+    {
+      "name": "backrooms-canvas",
+      "source": "plugins/backrooms-canvas",
+      "description": "Wander an endless first-person backrooms in a Copilot canvas while agents work; their status ghost-writes on the walls.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "blea",
+      "description": "Safe, agent-first Bluetooth Low Energy diagnostics with portable evidence capture/diff/replay and guarded writes through a Skill, CLI, and local MCP server.",
+      "version": "0.6.1",
+      "author": {
+        "name": "Nitmi",
+        "url": "https://github.com/Nitmi"
+      },
+      "repository": "https://github.com/Nitmi/blea",
+      "license": "MIT",
+      "keywords": [
+        "bluetooth-low-energy",
+        "ble",
+        "hardware",
+        "agent-plugin",
+        "agent-skill",
+        "cli",
+        "mcp"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Nitmi/blea",
+        "sha": "5b4b325e5d4a444f328366dff89e81dd2bda36ed"
+      }
+    },
+    {
+      "name": "brainmaxxing",
+      "description": "Codebase-grounded concept-mastery quizzes with an interactive BrainMax Canvas dashboard.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Julia Muiruri",
+        "url": "https://juliawakiru.dev"
+      },
+      "repository": "https://github.com/juliamuiruri4/brainmaxxing",
+      "homepage": "https://github.com/juliamuiruri4/brainmaxxing",
+      "license": "MIT",
+      "keywords": [
+        "assessment",
+        "canvas",
+        "developer-education",
+        "learning",
+        "quiz",
+        "skills-mastery",
+        "software-engineering",
+        "student-developer"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "juliamuiruri4/brainmaxxing",
+        "ref": "v1.0.0",
+        "sha": "8a8a102ff3ab8736f015764207cdb7e68fcd5ecf"
+      }
     },
     {
       "name": "cast-imaging",
       "source": "plugins/cast-imaging",
       "description": "A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging.",
       "version": "1.0.0"
+    },
+    {
+      "name": "catalyst-by-zoho",
+      "description": "Official GitHub Copilot plugin for Catalyst by Zoho — a full-stack serverless cloud platform. Includes skills covering services, SDKs, CLI workflows, architecture patterns, pricing, migration guides, and Zoho MCP resource management.",
+      "version": "0.0.1",
+      "author": {
+        "name": "Catalyst By Zoho",
+        "url": "https://github.com/catalystbyzoho"
+      },
+      "repository": "https://github.com/catalystbyzoho/copilot-plugin",
+      "homepage": "https://catalyst.zoho.com",
+      "license": "Apache-2.0",
+      "keywords": [
+        "catalyst",
+        "zoho",
+        "mcp",
+        "serverless",
+        "cloud",
+        "datastore",
+        "zcql",
+        "appsail",
+        "stratus",
+        "functions"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "catalystbyzoho/copilot-plugin",
+        "sha": "0c2716ca4f28df375529c67b4504b41f7bd29a66"
+      }
+    },
+    {
+      "name": "chat-cards",
+      "source": "plugins/chat-cards",
+      "description": "Interactive card deck in a GHCP canvas: tab cards, tables, SVG charts, show/hide sections, numbered outlines, rendered markdown documents, video clips, and forms whose submissions come back to the conversation as prompts.",
+      "version": "0.1.0"
     },
     {
       "name": "chrome-devtools-plugin",
@@ -193,9 +313,9 @@
     },
     {
       "name": "chromium-control-canvas",
-      "source": "extensions/chromium-control-canvas",
+      "source": "plugins/chromium-control-canvas",
       "description": "Opens a real Chromium window you can navigate and interact with from a Copilot canvas control panel and agent actions.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "clojure-interactive-programming",
@@ -237,15 +357,36 @@
     },
     {
       "name": "color-orb",
-      "source": "extensions/color-orb",
+      "source": "plugins/color-orb",
       "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "connector-namespaces",
-      "source": "extensions/connector-namespaces",
-      "description": "Browse, connect, and open MCP connectors from an Azure Connector Namespace.",
-      "version": "1.1.1"
+      "description": "Interactive GitHub Copilot canvas for discovering, connecting, and managing hosted MCP servers from an Azure Connector Namespace.",
+      "version": "1.2.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/Azure"
+      },
+      "repository": "https://github.com/Azure/Connectors",
+      "homepage": "https://github.com/Azure/Connectors/tree/connector-namespaces-canvas%401.2.0/connector-namespaces",
+      "license": "MIT",
+      "keywords": [
+        "azure",
+        "canvas",
+        "connector-namespace",
+        "mcp",
+        "mcp-connectors",
+        "model-context-protocol",
+        "tool-discovery"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Azure/Connectors",
+        "path": "connector-namespaces",
+        "sha": "473d526fad34951ed0e12664912df4c7f393ed15"
+      }
     },
     {
       "name": "context-engineering",
@@ -268,7 +409,7 @@
     {
       "name": "copilot-goal-skill",
       "description": "Goal-driven task orchestration with independent verification. Interviews the user to define a clear goal, then loops between a Builder subagent (does the work) and an Inspector subagent (judges the result with fresh context). The Inspector never trusts the Builder. Output is auditable in git commits from each subagent actions. Use when the user says \"achieve this goal\", \"make this work\", \"implement until done\", or wants verified autonomous task completion with independent quality review.",
-      "version": "1.0.1",
+      "version": "1.1.2",
       "author": {
         "name": "Gaetan Semet",
         "url": "https://github.com/gsemet"
@@ -286,8 +427,8 @@
         "source": "github",
         "repo": "gsemet/copilot-goal-skill",
         "path": "plugins/copilot-goal-skill",
-        "ref": "1.0.1",
-        "sha": "b186d0b0d59da1ea051283a7d99185979ede998a"
+        "ref": "1.1.2",
+        "sha": "17d0452fcb08adc7cc0cdf61a174e7045f3b5586"
       }
     },
     {
@@ -371,9 +512,9 @@
     },
     {
       "name": "diagram-viewer",
-      "source": "extensions/diagram-viewer",
+      "source": "plugins/diagram-viewer",
       "description": "Render diagrams, click nodes to drill down, and view agent-generated explanations directly in the canvas.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "dotnet",
@@ -502,7 +643,7 @@
       "name": "ember",
       "source": "plugins/ember",
       "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
-      "version": "1.0.0"
+      "version": "1.2.0"
     },
     {
       "name": "eyeball",
@@ -518,9 +659,9 @@
     },
     {
       "name": "feedback-themes",
-      "source": "extensions/feedback-themes",
+      "source": "plugins/feedback-themes",
       "description": "Explore grouped customer feedback signals by impact and drill into a theme to guide product next steps.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "figma",
@@ -545,36 +686,44 @@
       }
     },
     {
+      "name": "flight-map-canvas",
+      "source": "plugins/flight-map-canvas",
+      "description": "A GitHub Copilot canvas that generates a view where Google Maps can be explored using 3D controls, as if a flight simulator. Agents can send the flight anywhere and report what they are working on.",
+      "version": "1.0.0"
+    },
+    {
       "name": "flowstudio-power-automate",
       "source": "plugins/flowstudio-power-automate",
       "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
       "version": "2.0.0"
     },
     {
-      "name": "foundry-agent-canvas",
-      "description": "Interactive Copilot canvas for designing, configuring, testing, and deploying Microsoft Foundry hosted agents.",
-      "version": "1.0.1",
+      "name": "foundation-models",
+      "description": "Helps coding agents write and review Apple Foundation Models code for iOS, macOS, visionOS, and watchOS using the SDK installed on the developer's Mac. It verifies real API signatures and availability, then type-checks the result instead of relying on model memory.",
+      "version": "0.1.3",
       "author": {
-        "name": "Microsoft",
-        "url": "https://www.microsoft.com"
+        "name": "Artem Novichkov",
+        "url": "https://github.com/artemnovichkov"
       },
-      "repository": "https://github.com/microsoft/foundry-toolkit",
-      "homepage": "https://github.com/microsoft/foundry-toolkit",
+      "repository": "https://github.com/artemnovichkov/foundation-models-plugin",
+      "homepage": "https://github.com/artemnovichkov/foundation-models-plugin",
       "license": "MIT",
       "keywords": [
-        "agent-builder",
-        "agent-inspector",
-        "azure-ai",
-        "foundry",
-        "hosted-agents",
-        "microsoft-foundry",
-        "canvas"
+        "swift",
+        "ios",
+        "macos",
+        "apple",
+        "foundation-models",
+        "apple-intelligence",
+        "on-device",
+        "llm",
+        "xcode"
       ],
       "source": {
         "source": "github",
-        "repo": "microsoft/foundry-toolkit",
-        "path": "foundry-agent-canvas",
-        "sha": "e16be2b8533ca82c22806388e07581e7497785d7"
+        "repo": "artemnovichkov/foundation-models-plugin",
+        "ref": "0.1.3",
+        "sha": "5837a9343db97d59107d146024b1dbd858625274"
       }
     },
     {
@@ -587,13 +736,13 @@
       "name": "gem-team",
       "source": "plugins/gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
-      "version": "1.84.0"
+      "version": "1.109.0"
     },
     {
       "name": "gesture-review",
-      "source": "extensions/gesture-review",
+      "source": "plugins/gesture-review",
       "description": "Review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "gh-skills-builder",
@@ -658,7 +807,7 @@
     {
       "name": "github-copilot-modernization",
       "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator → coordinators → executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
-      "version": "1.20.0",
+      "version": "1.22.0",
       "author": {
         "name": "Microsoft",
         "url": "https://github.com/microsoft/github-copilot-modernization"
@@ -682,7 +831,7 @@
         "source": "github",
         "repo": "microsoft/github-copilot-modernization",
         "path": "plugins/github-copilot-modernization",
-        "sha": "42c1189c55933384bec07e8349ef998eb9e775ad"
+        "sha": "8b644bebc7e1f929c01d80788293a37872f480f8"
       }
     },
     {
@@ -705,9 +854,9 @@
     },
     {
       "name": "java-modernization-studio",
-      "source": "extensions/java-modernization-studio",
+      "source": "plugins/java-modernization-studio",
       "description": "Drive the GitHub Copilot App Modernization for Java workflow from an interactive canvas: environment readiness, repo assessment, prioritized plan and progress, validation gates, and one-click predefined-task runs grounded in the repo's real artifacts.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "kotlin-mcp-development",
@@ -774,6 +923,82 @@
       }
     },
     {
+      "name": "microsoft-foundry",
+      "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
+      "version": "1.0.7",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "repository": "https://github.com/microsoft/foundry-toolkit",
+      "homepage": "https://github.com/microsoft/foundry-toolkit",
+      "license": "MIT",
+      "keywords": [
+        "agent-builder",
+        "agent-inspector",
+        "azure-ai",
+        "foundry",
+        "hosted-agents",
+        "microsoft-foundry",
+        "canvas"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/foundry-toolkit",
+        "path": "microsoft-foundry",
+        "sha": "5d78641be6c789710222bc7248206ace115d5080"
+      }
+    },
+    {
+      "name": "mobile-canvas",
+      "description": "View, create, boot, and interact with local iOS simulators and Android emulators from a GitHub Copilot canvas. The plugin also exposes the same device controls to agents through MCP.",
+      "version": "0.1.6",
+      "author": {
+        "name": "Jonathan Dick",
+        "url": "https://github.com/Redth"
+      },
+      "repository": "https://github.com/Redth/mobile-canvas-ghcp",
+      "homepage": "https://github.com/Redth/mobile-canvas-ghcp",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "mobile",
+        "ios",
+        "android",
+        "simulator",
+        "emulator",
+        "device-control",
+        "mcp"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Redth/mobile-canvas-ghcp",
+        "sha": "c930769d41f07852baeeb407ded76d5ba83c06d2"
+      }
+    },
+    {
+      "name": "modern-web-guidance",
+      "description": "Modern Web Guidance is an agent skill and CLI tool designed to help AI coding agents build web applications using modern, secure, and high-performance APIs rather than outdated workarounds.\nSupported by the Google Chrome team, it injects expert-curated web platform best practices directly into an agent's context window to prevent the generation of bloated, legacy code.",
+      "version": "0.0.179",
+      "author": {
+        "name": "GoogleChrome",
+        "url": "https://github.com/GoogleChrome"
+      },
+      "repository": "https://github.com/GoogleChrome/modern-web-guidance",
+      "homepage": "https://developer.chrome.com/docs/modern-web-guidance",
+      "license": "Apache-2.0",
+      "keywords": [
+        "frontend",
+        "web",
+        "baseline"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "GoogleChrome/modern-web-guidance",
+        "ref": "v0.0.179"
+      }
+    },
+    {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
       "version": "1.0.1161-preview1",
@@ -800,7 +1025,7 @@
     {
       "name": "modernize-java",
       "description": "GitHub Copilot modernization – Java Upgrade CLI Plugin helps you upgrade Java applications from the command line. It brings intelligent modernization capabilities to your terminal and CI/CD pipelines: analyze your project and generate an upgrade plan, automatically transform your codebase, fix build issues, validate against known CVEs, and output a detailed summary of file changes and updated dependencies.",
-      "version": "1.9.2",
+      "version": "1.23.0",
       "author": {
         "name": "microsoft",
         "url": "https://github.com/microsoft/modernize-java"
@@ -818,8 +1043,8 @@
         "source": "github",
         "repo": "microsoft/modernize-java",
         "path": "plugins/modernize-java",
-        "ref": "1.9.2",
-        "sha": "b570196c070bf1eb9d7ad34a263b228ef16034a0"
+        "ref": "1.23.0",
+        "sha": "5ccc2ad4011314602e1b80f0b818c95bcf198f67"
       }
     },
     {
@@ -827,6 +1052,36 @@
       "source": "plugins/napkin",
       "description": "Visual whiteboard collaboration for Copilot CLI. Opens an interactive whiteboard in your browser where you can draw, sketch, and add sticky notes — then share everything back with Copilot. Copilot sees your drawings and responds with analysis, suggestions, and ideas.",
       "version": "1.0.0"
+    },
+    {
+      "name": "netlify",
+      "description": "Netlify platform skills covering functions, edge functions, blobs, database, identity, image CDN, forms, config, CLI, frameworks, caching, AI Gateway, and deployment — plus the official Netlify MCP server for creating and managing projects, deploys, and environment variables.",
+      "version": "1.1.0",
+      "author": {
+        "name": "Netlify",
+        "url": "https://www.netlify.com"
+      },
+      "repository": "https://github.com/netlify/context-and-tools",
+      "homepage": "https://www.netlify.com",
+      "license": "MIT",
+      "keywords": [
+        "netlify",
+        "deployment",
+        "serverless",
+        "functions",
+        "edge-functions",
+        "blobs",
+        "database",
+        "mcp",
+        "ai-gateway",
+        "frameworks"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "netlify/context-and-tools",
+        "ref": "v1.2.0",
+        "sha": "e10cd19c000651620453e99ed138b8f012d069c7"
+      }
     },
     {
       "name": "noob-mode",
@@ -868,7 +1123,7 @@
       "name": "oracle-to-postgres-migration-expert",
       "source": "plugins/oracle-to-postgres-migration-expert",
       "description": "Expert agent for Oracle-to-PostgreSQL application migrations in .NET solutions. Performs code edits, runs commands, and invokes extension tools to migrate .NET/Oracle data access patterns to PostgreSQL.",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     {
       "name": "ospo-sponsorship",
@@ -953,6 +1208,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "pr-artifact-explorer",
+      "source": "plugins/pr-artifact-explorer",
+      "description": "Navigate pull requests and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
+      "version": "1.0.0"
+    },
+    {
       "name": "project-documenter",
       "source": "plugins/project-documenter",
       "description": "Generate professional project documentation with draw.io architecture diagrams and Word (.docx) output with embedded images. Automatically discovers any project's technology stack and produces Markdown, diagrams, PNG exports, and a formatted Word document.",
@@ -984,15 +1245,15 @@
     },
     {
       "name": "release-notes-showcase",
-      "source": "extensions/release-notes-showcase",
+      "source": "plugins/release-notes-showcase",
       "description": "Compose and refine launch-ready release notes with contributor callouts and export-friendly output.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "repo-actions-hub",
-      "source": "extensions/repo-actions-hub",
+      "source": "plugins/repo-actions-hub",
       "description": "Browse repository GitHub Actions workflows, inspect recent runs, and trigger manual workflow_dispatch runs from a Copilot canvas.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "roundup",
@@ -1031,10 +1292,16 @@
       "version": "1.0.0"
     },
     {
+      "name": "signals-dashboard",
+      "source": "plugins/signals-dashboard",
+      "description": "Real-time Workshop dashboard with agent signals, honesty calibration, cost-aware desk profiles, and fail-closed Local Delegation.",
+      "version": "0.3.0"
+    },
+    {
       "name": "site-studio",
-      "source": "extensions/site-studio",
+      "source": "plugins/site-studio",
       "description": "Plan, draft, and track a personal website section by section — a shared canvas where you and your agent author content, watch progress, and review every change.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "skill-image-gen",
@@ -1075,7 +1342,7 @@
     {
       "name": "sonarqube",
       "description": "SonarQube is the AI code quality and security verification platform used by millions of developers to catch bugs, vulnerabilities, and leaked secrets. This plugin enforces those standards in the coding loop: 7,500+ distinct issue types, secrets scanning, agentic analysis, and quality gates across 40+ languages.",
-      "version": "2.3.0",
+      "version": "2.5.0",
       "author": {
         "name": "Sonar",
         "url": "https://sonarsource.com/"
@@ -1093,7 +1360,7 @@
       "source": {
         "source": "github",
         "repo": "SonarSource/sonarqube-agent-plugins",
-        "ref": "2.3.0"
+        "ref": "2.5.0"
       }
     },
     {
@@ -1121,16 +1388,46 @@
       "version": "1.0.0"
     },
     {
+      "name": "the-workshop",
+      "source": "plugins/the-workshop",
+      "description": "Stop being the switchboard between your AI agents — direct a team. The Workshop puts long-running AI agents (desks) in the same room, on the same work, each with its own memory and history, sharing one workspace so you direct the work instead of relaying it.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "timebase",
+      "description": "Connect your AI agent to TimeBase, a high-performance database for financial market and other time-series data, via MCP tools and skills for QQL query and TimeBase client code generation.",
+      "version": "0.1.3",
+      "author": {
+        "name": "EPAM Systems",
+        "url": "https://www.epam.com/"
+      },
+      "repository": "https://github.com/epam/TimeBase-Agent-Plugins",
+      "license": "Apache-2.0",
+      "keywords": [
+        "timebase",
+        "time-series",
+        "db",
+        "qql",
+        "financial-data"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "epam/TimeBase-Agent-Plugins",
+        "ref": "v0.1.3",
+        "sha": "536887d80f631dfa32213fc78be1e00edaa21b68"
+      }
+    },
+    {
       "name": "tiny-tool-town-submitter",
-      "source": "extensions/tiny-tool-town-submitter",
+      "source": "plugins/tiny-tool-town-submitter",
       "description": "Inspect a repository, improve Tiny Tool Town readiness, submit its listing issue, and launch remediation work.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "token-pacman",
-      "source": "extensions/token-pacman",
+      "source": "plugins/token-pacman",
       "description": "Visualizes live session AI-credit usage as a Pac-Man board with pellets, ghosts, fruit milestones, and game-over limits.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "typescript-mcp-development",
@@ -1175,7 +1472,7 @@
     {
       "name": "ui5",
       "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Create and validate UI5 projects, access API documentation, run UI5 linter, get development guidelines and best practices for UI5 development.",
-      "version": "0.1.4",
+      "version": "0.1.8",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -1196,13 +1493,13 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5",
-        "sha": "80f2d93287054f9d30dd990e842e15bcfca581c9"
+        "ref": "v0.1.8"
       }
     },
     {
       "name": "ui5-modernization",
       "description": "Complete UI5 modernization toolkit with workflow and specialized fix patterns for modernizing SAPUI5/OpenUI5 applications",
-      "version": "0.1.6",
+      "version": "0.1.8",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -1222,13 +1519,13 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5-modernization",
-        "ref": "v0.1.6"
+        "ref": "v0.1.8"
       }
     },
     {
       "name": "ui5-typescript-conversion",
       "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Convert JavaScript based UI5 projects to TypeScript.",
-      "version": "0.1.4",
+      "version": "0.1.8",
       "author": {
         "name": "SAP SE",
         "url": "https://www.sap.com"
@@ -1250,19 +1547,24 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5-typescript-conversion",
-        "sha": "80f2d93287054f9d30dd990e842e15bcfca581c9"
+        "ref": "v0.1.8"
       }
     },
     {
+      "name": "uizze",
+      "source": "plugins/uizze",
+      "description": "Stop generic UI from shipping. Ground GitHub Copilot in 800,000+ real web and iOS screens, write a product-specific design contract, and enforce a hard finish gate.",
+      "version": "1.0.0"
+    },
+    {
       "name": "upgrade-agent",
-      "description": "GitHub Copilot upgrade is an AI-powered agent that helps you upgrade applications to newer versions of languages, frameworks, and runtimes. It assesses your application, creates an upgrade plan, applies code changes, and validates the results through an interactive upgrade workflow.",
-      "version": "1.1.222",
+      "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
+      "version": "1.1.441",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
       },
-      "repository": "https://github.com/microsoft/upgrade-agent-plugins",
-      "license": "MIT",
+      "homepage": "https://github.com/microsoft/upgrade-agent-plugins",
       "keywords": [
         "modernization",
         "upgrade",
@@ -1270,11 +1572,14 @@
         "dotnet",
         "canvas"
       ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/upgrade-agent-plugins",
       "source": {
         "source": "github",
         "repo": "microsoft/upgrade-agent-plugins",
         "path": "plugins/upgrade-agent",
-        "sha": "379d344e42823b25223f878c002f38fb3a2c1d2b"
+        "ref": "v1.1.441",
+        "sha": "f8abab778cfb5b57a3c745d540631b7aab15d5b3"
       }
     },
     {
@@ -1339,9 +1644,9 @@
     },
     {
       "name": "where-was-i",
-      "source": "extensions/where-was-i",
+      "source": "plugins/where-was-i",
       "description": "Reconstruct your dev context (branch, commits, uncommitted work, PR clues) and trigger a resume prompt to continue quickly.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     },
     {
       "name": "winappcli",
@@ -1371,6 +1676,12 @@
         "repo": "microsoft/WinAppCli",
         "ref": "stable"
       }
+    },
+    {
+      "name": "windows-app-storage-inspector-cleanup",
+      "source": "plugins/windows-app-storage-inspector-cleanup",
+      "description": "Inspect Windows application storage, understand local disk usage, and safely move approved cleanup items to the Recycle Bin.",
+      "version": "1.0.3"
     },
     {
       "name": "winui",
@@ -1403,9 +1714,9 @@
     },
     {
       "name": "work-hub",
-      "source": "extensions/work-hub",
+      "source": "plugins/work-hub",
       "description": "Generic cross-repo command center canvas for GitHub Copilot with onboarding, focus planning, repo health, work signals, and session cleanup.",
-      "version": "1.0.1"
+      "version": "1.0.2"
     }
   ]
 }

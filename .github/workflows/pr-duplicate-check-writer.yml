@@ -1,0 +1,257 @@
+name: PR Duplicate Check Writer
+
+on:
+  workflow_run:
+    workflows: ["PR Duplicate Check"]
+    types: [completed]
+
+permissions:
+  actions: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: pdcw-${{ github.event.workflow_run.head_repository.id || 'unknown-repo' }}-${{ github.event.workflow_run.head_branch || 'unknown-branch' }}
+  cancel-in-progress: true
+
+jobs:
+  process-safe-output:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Download agent artifact
+        id: download-agent
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: agent
+          path: ${{ runner.temp }}/pr-duplicate-agent
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Download PR context artifact
+        id: download-context
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: pr-duplicate-check-context
+          path: ${{ runner.temp }}/pr-duplicate-context
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Validate and publish safe comment output
+        if: steps.download-agent.outcome == 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const workflowRun = context.payload.workflow_run;
+            const artifactRoot = path.join(process.env.RUNNER_TEMP, 'pr-duplicate-agent');
+            const contextRoot = path.join(process.env.RUNNER_TEMP, 'pr-duplicate-context');
+
+            function readJsonIfExists(filePath) {
+              if (!fs.existsSync(filePath)) return null;
+              const stat = fs.statSync(filePath);
+              if (stat.size > 1024 * 1024) throw new Error(`${filePath} exceeds 1 MiB`);
+              return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            }
+
+            const prContext =
+              readJsonIfExists(path.join(contextRoot, 'pr-context.json')) ||
+              readJsonIfExists(path.join(artifactRoot, 'pr-context.json'));
+            if (!prContext || prContext.schema_version !== 'pr-duplicate-check-context/v1') {
+              throw new Error('Missing or invalid pr-context.json artifact.');
+            }
+            if (!Number.isInteger(prContext.pr_number) || prContext.pr_number < 1) {
+              throw new Error('Invalid PR context pr_number.');
+            }
+            if (!/^[0-9a-f]{40}$/i.test(String(prContext.head_sha || ''))) {
+              throw new Error('Invalid PR context head_sha.');
+            }
+            if (workflowRun.event !== 'pull_request') {
+              throw new Error('Invalid workflow_run event.');
+            }
+            if (String(prContext.run_id || '') !== String(workflowRun.id)) {
+              throw new Error('PR context run_id did not match workflow_run.');
+            }
+            if (prContext.head_sha !== workflowRun.head_sha) {
+              throw new Error('PR context head_sha did not match workflow_run.');
+            }
+
+            const prNumber = prContext.pr_number;
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            if (pr.state !== 'open') {
+              core.info(`Skipping non-open PR #${prNumber}.`);
+              return;
+            }
+            const expectedBaseRepository = `${context.repo.owner}/${context.repo.repo}`.toLowerCase();
+            const runHeadRepository = String(workflowRun.head_repository?.full_name || '');
+            const runHeadRepositoryParts = runHeadRepository.split('/');
+            const runHeadRef = String(workflowRun.head_branch || '');
+            if (String(pr.base?.repo?.full_name || '').toLowerCase() !== expectedBaseRepository) {
+              throw new Error(`PR #${prNumber} base repository ${pr.base?.repo?.full_name || '<unknown>'} is not this repository.`);
+            }
+            if (pr.head.sha !== workflowRun.head_sha) {
+              core.warning(`Skipping stale PR duplicate output for PR #${prNumber}: artifact head ${prContext.head_sha}, current head ${pr.head.sha}`);
+              return;
+            }
+            if (
+              runHeadRepositoryParts.length !== 2 ||
+              !runHeadRepositoryParts[0] ||
+              !runHeadRepositoryParts[1] ||
+              !runHeadRef ||
+              String(pr.head?.repo?.full_name || '').toLowerCase() !== runHeadRepository.toLowerCase() ||
+              String(pr.head?.ref || '') !== runHeadRef
+            ) {
+              throw new Error(`PR #${prNumber} head did not match workflow_run.`);
+            }
+
+            const workflowRunPullRequests = Array.isArray(workflowRun.pull_requests) ? workflowRun.pull_requests : [];
+            if (workflowRunPullRequests.length > 0) {
+              if (!workflowRunPullRequests.some((pullRequest) => pullRequest.number === prNumber)) {
+                throw new Error(`PR context number ${prNumber} was not present in workflow_run.pull_requests.`);
+              }
+            } else {
+              const candidatePullRequests = await github.paginate(github.rest.pulls.list, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${runHeadRepositoryParts[0]}:${runHeadRef}`,
+                per_page: 100,
+              });
+              const trustedMatches = candidatePullRequests.filter((candidate) =>
+                candidate.head?.sha === workflowRun.head_sha &&
+                String(candidate.head?.ref || '') === runHeadRef &&
+                String(candidate.head?.repo?.full_name || '').toLowerCase() === runHeadRepository.toLowerCase() &&
+                String(candidate.base?.repo?.full_name || '').toLowerCase() === expectedBaseRepository
+              );
+              if (trustedMatches.length !== 1 || trustedMatches[0].number !== prNumber) {
+                throw new Error(`PR context number ${prNumber} could not be uniquely associated with workflow_run.`);
+              }
+            }
+
+            function collectCandidate(value, targetCandidates) {
+              if (!value || typeof value !== 'object') return;
+              const tool = value.tool || value.name || value.tool_name || value.type || value.action;
+              const args = value.arguments || value.args || value.input || value.params || value.data || value;
+              if (tool === 'add_comment') {
+                targetCandidates.push(args);
+              }
+            }
+
+            function collectCandidatesFromJson(value) {
+              const collected = [];
+              if (value) {
+                if (Array.isArray(value.items)) {
+                  for (const item of value.items) collectCandidate(item, collected);
+                } else if (Array.isArray(value)) {
+                  for (const item of value) collectCandidate(item, collected);
+                } else {
+                  collectCandidate(value, collected);
+                }
+              }
+              return collected;
+            }
+
+            const agentOutput = readJsonIfExists(path.join(artifactRoot, 'agent_output.json'));
+            let candidates = collectCandidatesFromJson(agentOutput);
+
+            if (candidates.length === 0) {
+              const safeOutputsPath = path.join(artifactRoot, 'safeoutputs.jsonl');
+              if (fs.existsSync(safeOutputsPath)) {
+                const stat = fs.statSync(safeOutputsPath);
+                if (stat.size > 1024 * 1024) throw new Error('safeoutputs.jsonl exceeds 1 MiB');
+                const lines = fs.readFileSync(safeOutputsPath, 'utf8').split(/\r?\n/).filter(Boolean).slice(0, 100);
+                const safeOutputCandidates = [];
+                for (const line of lines) collectCandidate(JSON.parse(line), safeOutputCandidates);
+                candidates = safeOutputCandidates;
+              }
+            }
+
+            const stripControlCharacters = (value) =>
+              String(value).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
+            const neutralizeMentions = (value) =>
+              value.replace(/@([A-Za-z0-9][A-Za-z0-9-]{0,38})/g, '@\u200B$1');
+            const sanitizeCommentBody = (value, maxLength) => {
+              const sanitized = neutralizeMentions(stripControlCharacters(value));
+              return sanitized.length > maxLength ? sanitized.slice(0, maxLength) : sanitized;
+            };
+
+            const validComments = [];
+            for (const candidate of candidates) {
+              if (!candidate || typeof candidate !== 'object') continue;
+              const body = candidate.body;
+              if (typeof body !== 'string' || body.trim() === '' || body.length > 65000) continue;
+              if (candidate.item_number !== undefined && Number(candidate.item_number) !== prNumber) continue;
+              if (candidate.repo !== undefined && String(candidate.repo) !== `${context.repo.owner}/${context.repo.repo}`) continue;
+              validComments.push(body);
+            }
+
+            if (validComments.length === 0) {
+              core.info('No valid add_comment safe output was found.');
+              return;
+            }
+            if (validComments.length > 1) {
+              throw new Error(`Expected at most one add_comment safe output, found ${validComments.length}.`);
+            }
+
+            const marker = '<!-- pr-duplicate-check -->';
+            const runUrl = workflowRun.html_url;
+            const footer = `<!-- synchronized from read-only PR Duplicate Check run ${workflowRun.id}: ${runUrl} -->`;
+            const maxSafeOutputBodyLength = 65000 - marker.length - footer.length - 4;
+            const safeOutputBody = sanitizeCommentBody(validComments[0], Math.max(0, maxSafeOutputBodyLength));
+            if (safeOutputBody.trim() === '') {
+              core.info('No non-empty safe comment body remained after sanitization.');
+              return;
+            }
+            const body = [
+              marker,
+              safeOutputBody,
+              '',
+              footer,
+            ].join('\n');
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+            const matchingComments = comments.filter((comment) =>
+              comment.user?.login === 'github-actions[bot]' && String(comment.body || '').includes(marker)
+            );
+
+            const [canonical, ...duplicates] = matchingComments;
+            if (canonical) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: canonical.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+
+            for (const duplicate of duplicates) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: duplicate.id,
+              }).catch(() => {});
+            }
+
+      - name: Note missing artifact
+        if: steps.download-agent.outcome != 'success'
+        run: echo "No PR Duplicate Check agent artifact was available; nothing to synchronize."

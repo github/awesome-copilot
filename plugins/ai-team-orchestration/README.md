@@ -1,63 +1,69 @@
 # AI Team Orchestration
 
-Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Plan sprints, run brainstorms with distinct agent voices, coordinate parallel dev/QA workflows, and survive context overflows with structured handoff templates.
+Run a lightweight, role-separated AI development team with flexible tools, developer-selected models, proportionate planning, and optional QA.
 
 ## What's Included
 
 ### Agents
 
-| Agent | Mention | Role | Tool Access |
-|-------|---------|------|-------------|
-| **Producer** (Remy) | `@ai-team-producer` | Sprint planning, coordination, PR merging | Read-only (no code editing) |
-| **Dev Team** (Nova, Sage, Milo) | `@ai-team-dev` | Frontend, backend, and visual implementation | Full coding tools |
-| **QA** (Ivy) | `@ai-team-qa` | Testing, bug filing, sign-off | Read + test (no source editing) |
+| Agent | Mention | Role |
+|---|---|---|
+| **Producer** (Remy) | `@ai-team-producer` | Scope, planning, coordination, triage, and merge |
+| **Dev Team** (Nova, Sage, Milo) | `@ai-team-dev` | Stack-adaptive implementation, tests, self-review, and pull requests |
+| **QA** (Ivy) | `@ai-team-qa` | Optional independent behavioral testing and fix verification |
+
+The agents intentionally omit `tools` and `model` frontmatter. They inherit the developer's enabled built-in, MCP, and extension tools and use the developer-selected model. Role boundaries remain in the instructions and normal permission and approval controls.
 
 ### Skill
 
-`/ai-team-orchestration` provides templates for:
-- **PROJECT_BRIEF.md** — 14-section single source of truth across chats
-- **Brainstorm format** — multi-agent debate with distinct voices
-- **Sprint plans** — prioritized tasks, progress trackers, handoff docs
-- **Anti-patterns** — 19 documented pitfalls from real multi-agent projects
+`/ai-team-orchestration` provides:
+
+- a concise project brief template;
+- a proportional work-plan template;
+- brainstorm guidance with distinct perspectives;
+- practical anti-patterns for multi-agent work.
+
+## Default Workflow
+
+```text
+Plan -> Implement -> Test -> optional review or QA -> Merge -> update project state
+```
+
+Use the lightest process that fits the work. Small changes can proceed directly; substantial or risky changes benefit from a short plan, independent review, or dedicated QA.
 
 ## Quick Start
 
-### 1. Bootstrap a project
+### Plan
 
-```
-@ai-team-producer I want to build [describe your project].
-Use /ai-team-orchestration to bootstrap this project.
-Start with a brainstorm, then create PROJECT_BRIEF.md with ALL sections (1-14).
-```
-
-### 2. Plan a sprint
-
-```
-@ai-team-producer Create Sprint 1 plan. Scope: [what to build].
-Run a team consilium to validate the plan.
+```text
+@ai-team-producer Help me define the next useful outcome for this project.
+Use /ai-team-orchestration and keep planning proportional to the work.
 ```
 
-### 3. Execute (separate VS Code window)
+### Implement
 
-```
-@ai-team-dev Read PROJECT_BRIEF.md, then docs/sprint-1/plan.md. Execute Sprint 1.
-```
-
-### 4. Test (another VS Code window)
-
-```
-@ai-team-qa Sprint 1 is merged to main. Do full playthrough.
-File bugs as GitHub Issues. Write docs/qa/sprint-1-signoff.md.
+```text
+@ai-team-dev Read the repository instructions and active plan or issue.
+Implement the requested outcome, run relevant checks, self-review the diff,
+and prepare the pull request. Do not merge.
 ```
 
-## How It Works
+### Optional QA
 
-The human acts as the message bus between parallel chats. Each team works in a separate VS Code window with its own repo clone:
+```text
+@ai-team-qa Test the pull request against its acceptance criteria.
+Focus on important behavior and regressions. Report Ready, Ready with minor
+follow-ups, or Blocked with reproducible findings.
+```
 
-- **@ai-team-producer** — cannot edit code (enforced by tool restrictions)
-- **@ai-team-qa** — cannot edit source files, only reads/tests/files bugs
-- **@ai-team-dev** — full tools, builds as Nova (frontend), Sage (backend), Milo (design)
+## Principles
+
+- Producer coordinates but never implements application code.
+- Dev implements and verifies but never merges or claims independent approval.
+- QA is optional and independently verifies behavior without fixing application source.
+- Repository contribution policy and platform protections define Git and merge behavior.
+- Important context and bugs live in durable project files or issue trackers, not only chat.
 
 ## Origin
 
-Codifies the workflow that shipped [Arcade After Dark](https://github.com/denis-a-evdokimov/guess-and-get) — a 30-game birthday gift app built entirely by 7 AI agents in 5 days.
+The plugin grew from [Arcade After Dark](https://github.com/denis-a-evdokimov/guess-and-get), a multi-agent project built with distinct planning, implementation, design, and QA perspectives.
