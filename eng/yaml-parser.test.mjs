@@ -91,7 +91,7 @@ test("excludes only the root SKILL.md, keeping nested ones as bundled assets", (
   );
 });
 
-test("skips symlinks instead of escaping the skill folder or cycling", () => {
+test("skips directory symlinks instead of escaping the skill folder or cycling", () => {
   const outside = createSkill({ "secret.md": "not part of the skill" });
   const skillPath = createSkill({
     "SKILL.md": SKILL_MD,
@@ -111,4 +111,25 @@ test("skips symlinks instead of escaping the skill folder or cycling", () => {
       `asset "${asset}" was resolved through a symlink`
     );
   }
+});
+
+test("keeps file symlinks, which materialization dereferences into the bundle", () => {
+  const outside = createSkill({ "shared.md": "shared content" });
+  const skillPath = createSkill({ "SKILL.md": SKILL_MD });
+  fs.symlinkSync(path.join(outside, "shared.md"), path.join(skillPath, "shared.md"));
+
+  const metadata = parseSkillMetadata(skillPath);
+
+  // copyDirRecursive in materialize-plugins.mjs copies this via copyFileSync,
+  // so the file ships with the plugin and must appear in the asset list.
+  assert.deepEqual(metadata.assets, ["shared.md"]);
+});
+
+test("skips broken symlinks", () => {
+  const skillPath = createSkill({ "SKILL.md": SKILL_MD });
+  fs.symlinkSync(path.join(skillPath, "does-not-exist.md"), path.join(skillPath, "dangling.md"));
+
+  const metadata = parseSkillMetadata(skillPath);
+
+  assert.deepEqual(metadata.assets, []);
 });
