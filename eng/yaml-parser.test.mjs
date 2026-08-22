@@ -90,3 +90,25 @@ test("excludes only the root SKILL.md, keeping nested ones as bundled assets", (
     "the skill's own SKILL.md must not be listed as a bundled asset"
   );
 });
+
+test("skips symlinks instead of escaping the skill folder or cycling", () => {
+  const outside = createSkill({ "secret.md": "not part of the skill" });
+  const skillPath = createSkill({
+    "SKILL.md": SKILL_MD,
+    "references/guide.md": "guide",
+  });
+
+  // A link that leaves the skill root, and one that points back at it.
+  fs.symlinkSync(outside, path.join(skillPath, "templates"));
+  fs.symlinkSync(skillPath, path.join(skillPath, "references", "loop"));
+
+  const metadata = parseSkillMetadata(skillPath);
+
+  assert.deepEqual(metadata.assets, ["references/guide.md"]);
+  for (const asset of metadata.assets) {
+    assert.ok(
+      !asset.startsWith("templates/") && !asset.includes("loop/"),
+      `asset "${asset}" was resolved through a symlink`
+    );
+  }
+});

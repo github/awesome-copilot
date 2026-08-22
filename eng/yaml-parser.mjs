@@ -142,13 +142,17 @@ function parseSkillMetadata(skillPath) {
         return null;
       }
 
-      // List bundled assets (all files except SKILL.md), recursing through subdirectories
+      // List bundled assets (all files except SKILL.md), recursing through subdirectories.
+      // Symlinks are skipped: following one can escape the skill folder or form a cycle.
       const getAllFiles = (dirPath, arrayOfFiles = []) => {
-        const files = fs.readdirSync(dirPath);
+        const entries = fs.readdirSync(dirPath, { withFileTypes: true });
 
-        files.forEach((file) => {
-          const filePath = path.join(dirPath, file);
-          if (fs.statSync(filePath).isDirectory()) {
+        entries.forEach((entry) => {
+          const filePath = path.join(dirPath, entry.name);
+          if (entry.isSymbolicLink()) {
+            return;
+          }
+          if (entry.isDirectory()) {
             arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
           } else {
             const relativePath = path.relative(skillPath, filePath);
@@ -217,13 +221,17 @@ function parseHookMetadata(hookPath) {
         }
       }
 
-      // List bundled assets (all files except README.md), recursing through subdirectories
+      // List bundled assets (all files except README.md), recursing through subdirectories.
+      // Symlinks are skipped: following one can escape the hook folder or form a cycle.
       const getAllFiles = (dirPath, arrayOfFiles = []) => {
-        const files = fs.readdirSync(dirPath);
+        const entries = fs.readdirSync(dirPath, { withFileTypes: true });
 
-        files.forEach((file) => {
-          const filePath = path.join(dirPath, file);
-          if (fs.statSync(filePath).isDirectory()) {
+        entries.forEach((entry) => {
+          const filePath = path.join(dirPath, entry.name);
+          if (entry.isSymbolicLink()) {
+            return;
+          }
+          if (entry.isDirectory()) {
             arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
           } else {
             const relativePath = path.relative(hookPath, filePath);
