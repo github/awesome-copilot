@@ -4,7 +4,7 @@ description: Operate a Famulor workspace through its hosted MCP server, includin
 license: MIT
 metadata:
   author: bekservice
-  version: "2.0.0"
+  version: "2.0.1"
   homepage: https://github.com/bekservice/Famulor-Skill
 ---
 
@@ -16,7 +16,7 @@ Use Famulor through the hosted Streamable HTTP MCP server:
 https://app.famulor.io/mcp
 ```
 
-This plugin configures that endpoint automatically. Let the MCP client run its OAuth flow. A workspace API key can also authenticate trusted server-to-server clients, but never ask a user to paste a key into chat or place one in files, commands, logs, or source control.
+The full plugin package configures that endpoint automatically. A skills-only installer may copy only this instruction bundle; in that case, help the user add the endpoint to their MCP client before continuing. Let the client run its OAuth flow. A workspace API key can also authenticate trusted server-to-server clients, but never ask a user to paste a key into chat or place one in files, commands, logs, or source control.
 
 If the Famulor MCP server is unavailable in the current client, help the user connect it and stop before claiming to have read or changed their account. Do not substitute an undocumented REST endpoint.
 
