@@ -33,7 +33,7 @@ copilot plugin install awesome-copilot@awesome-copilot
 
 ### MCP server
 
-This plugin includes the `awesome-copilot` MCP server configured in [`./.mcp.json`](./.mcp.json). If Docker is unavailable, MCP startup will fail.
+This plugin includes the `awesome-copilot` MCP server configured in [`./mcp.json`](./mcp.json). If Docker is unavailable, MCP startup will fail.
 
 ## Source
 
