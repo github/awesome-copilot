@@ -591,30 +591,20 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
         ];
       });
 
-      // Parse mcpServers: supports a path to a .mcp.json file or an inline object
+      // Discover MCP servers from the spec-mandated mcp.json at the plugin root.
       const mcpItems = [];
-      if (composition.mcpServers) {
-        let mcpServersObj = null;
-        let mcpConfigPath = relPath;
-        if (typeof composition.mcpServers === "string") {
-          const manifestMcpPath = composition.mcpServers.replace(/^\.\//, "");
-          mcpConfigPath = manifestMcpPath ? `${relPath}/${manifestMcpPath}` : relPath;
-          const mcpJsonPath = path.join(pluginDir, manifestMcpPath);
-          if (fs.existsSync(mcpJsonPath)) {
-            try {
-              const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, "utf-8"));
-              mcpServersObj = mcpJson.mcpServers || mcpJson;
-            } catch {
-              // ignore parse errors
+      const mcpJsonPath = path.join(pluginDir, "mcp.json");
+      if (fs.existsSync(mcpJsonPath) && fs.statSync(mcpJsonPath).isFile()) {
+        try {
+          const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, "utf-8"));
+          const mcpServers = mcpJson.mcpServers;
+          if (mcpServers && typeof mcpServers === "object") {
+            for (const serverName of Object.keys(mcpServers)) {
+              mcpItems.push({ kind: "mcp", path: `${relPath}/mcp.json`, title: serverName });
             }
           }
-        } else if (typeof composition.mcpServers === "object") {
-          mcpServersObj = composition.mcpServers;
-        }
-        if (mcpServersObj) {
-          for (const serverName of Object.keys(mcpServersObj)) {
-            mcpItems.push({ kind: "mcp", path: mcpConfigPath, title: serverName });
-          }
+        } catch {
+          // ignore parse errors
         }
       }
 

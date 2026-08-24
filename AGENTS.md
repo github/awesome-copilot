@@ -121,6 +121,7 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 - plugin.json must have `description` field (describing the plugin's purpose)
 - plugin.json must have `version` field (semantic version, e.g., "1.0.0")
 - Plugin content is defined declaratively in plugin.json under `extensions.com.github.awesome-copilot` using source-only composition fields (`agents`, `hooks`, `skills`, and `extensions`). Source files live in top-level directories and are materialized into plugins by CI. This namespace is stripped from the served manifest — skills use the standard `skills/` directory and Copilot-specific content uses `com.github.copilot/`.
+- MCP servers are **not** a composition field. Per the Agent Plugins spec they are declared in an `mcp.json` file at the plugin root, which is committed alongside `plugin.json` and shipped as-is. Do not add `mcpServers` to `plugin.json`, and do not use the legacy `.mcp.json` filename.
 - The `marketplace.json` file is automatically generated from all plugins during build
 - Plugins are discoverable and installable via GitHub Copilot CLI
 
@@ -331,6 +332,7 @@ For plugins (plugins/\*/):
 - [ ] Directory name is lower case with hyphens
 - [ ] If `keywords` is present, it is an array of lowercase hyphenated strings
 - [ ] If composition arrays are present under `extensions.com.github.awesome-copilot`, each entry is a valid relative path
+- [ ] If the plugin ships MCP servers, they are declared in `mcp.json` at the plugin root (with the `mcp.schema.json` `$schema`), not in `plugin.json` or `.mcp.json`
 - [ ] The plugin does not reference non-existent files
 - [ ] Run `npm run plugin:validate` and `npm run build` to verify the plugin passes all checks
 
