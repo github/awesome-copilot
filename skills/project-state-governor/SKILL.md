@@ -4,7 +4,7 @@ description: Maintain evidence-backed project state across conversations, branch
 license: MIT
 metadata:
   author: Ghost011118
-  version: "1.0.3"
+  version: "1.0.4"
   compatibility: Designed for filesystem- and Git-capable coding agents, including GitHub Copilot, Codex, and Claude Code.
   source: https://github.com/Ghost011118/project-state-governor
 ---
@@ -36,6 +36,32 @@ Read `references/project-state-schema.md` when creating or repairing canonical p
 Read `references/persistence-lifecycle.md` when deciding what to recall, stage, persist, review, or consolidate.
 Read `references/reconstruction-workflow.md` when cleaning fragmented history or contradictory documentation.
 Read `references/manifest-routing.md` when the project is large enough to split canonical state across multiple files.
+
+## Worked Example
+
+A feature branch claims that `export-redesign` is complete. The canonical
+`PROJECT_STATE.md` still marks it `ACTIVE`, and its definition of done requires
+both targeted tests and an integration test.
+
+1. Resolve every applicable `AGENTS.md` for the canonical state file and the
+   evidence paths before reading or changing them.
+2. Verify that the branch was merged and that targeted tests passed.
+3. Record that the required integration test has not run; classify this as an
+   evidence gap rather than inferring success from the merge.
+4. Preserve `export-redesign: ACTIVE`, record the missing integration evidence,
+   and identify running that test as the next authoritative step.
+
+The durable result is a minimal state delta, not a rewritten history:
+
+```text
+Status: ACTIVE (unchanged)
+Verified: implementation merged; targeted tests passed
+Missing evidence: required integration test
+Next step: run and evaluate the integration test
+```
+
+Only after that test satisfies the approved definition of done may the task
+transition to `DONE`.
 
 ## 1. Authority hierarchy
 
