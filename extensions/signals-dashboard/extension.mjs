@@ -5,20 +5,33 @@
 
 import { createServer } from "node:http";
 import { statSync, accessSync, realpathSync, constants as fsConstants } from "node:fs";
-import { readdir, readFile, writeFile, stat } from "node:fs/promises";
-import { join, delimiter, isAbsolute, sep } from "node:path";
+import { readdir, readFile, writeFile, stat, rename, unlink, mkdir } from "node:fs/promises";
+import { join, delimiter, isAbsolute, sep, dirname } from "node:path";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 import {
     buildDeskAgentArgv,
     isDeskProfile,
+    isSafeQuotedWindowsCmdArg,
     isSafeWindowsCmdShim,
     isWindowsAppExecutionAlias,
     normalizeDeskProfile,
     parsePluginMcpNames,
     quoteWindowsCmdArgument,
 } from "./launch-profile.mjs";
+import {
+    buildLocalDelegationLaunchEnv,
+    deskOrientPrompt,
+    formatLocalDelegationOpenNotice,
+    localDelegationPreferencePath,
+    normalizeLocalDelegationPreference,
+    parseLocalDelegationState,
+    resolveLocalDelegationAvailability,
+    resolveLocalDelegationLaunch,
+    serializeLocalDelegationState,
+    windowsLocalDelegationCmdPrefix,
+} from "./local-delegation.mjs";
 
 const servers = new Map();
 const STASH_TTL_MS = 48 * 60 * 60 * 1000;
@@ -60,11 +73,10 @@ function isValidDeskName(name) {
 // path is then only ever passed as a spawn cwd, an argv element, or a
 // single-quoted literal inside the macOS Terminal command — never concatenated
 // raw onto a command line — so no character filtering of the path is required.
-function deskOrientPrompt(deskName) {
-    return `You are sitting down at the ${deskName} desk in this workshop. ` +
-        `Read journal.md in this folder first to pick up where the last session ` +
-        `left off, then continue the desk's work. Write your journal before you stop.`;
-}
+//
+// Local Delegation is orthogonal to repo/connected: it never changes the tool
+// surface. When effective, only the orientation prompt and child env mark that
+// the frontier desk may use the installed local-agent-delegation skill.
 
 // Spawn detached and resolve true only once the OS confirms the process
 // started ('spawn'), false on failure ('error', e.g. the binary is missing) so
@@ -354,7 +366,62 @@ function isInsideRoot(root, target) {
     } catch { return false; }
 }
 
-async function launchDeskConsole(deskPath, deskName, workshopDir, profile = DEFAULT_DESK_PROFILE) {
+function preferenceStatePath(workshopDir) {
+    return localDelegationPreferencePath(workshopDir, {
+        resolvePath: (p) => {
+            try { return realpathSync(p); } catch { return p; }
+        },
+    });
+}
+
+async function readLocalDelegationPreference(workshopDir) {
+    // Never read preference from the workshop repo — a clone can ship
+    // preference:on. Only user-local state (or explicit env) counts.
+    try {
+        const raw = JSON.parse(await readFile(preferenceStatePath(workshopDir), "utf8"));
+        return parseLocalDelegationState(raw).preference;
+    } catch {
+        return normalizeLocalDelegationPreference(
+            process.env.WORKSHOP_LOCAL_DELEGATION_PREFERENCE, "off");
+    }
+}
+
+async function writeLocalDelegationPreference(workshopDir, preference) {
+    const state = serializeLocalDelegationState({ preference });
+    const target = preferenceStatePath(workshopDir);
+    await mkdir(dirname(target), { recursive: true });
+    // Atomic replace in the user-local dir (temp + rename).
+    const tmp = join(
+        dirname(target),
+        `.pref.${process.pid}.${randomBytes(4).toString("hex")}.tmp`);
+    const body = JSON.stringify(state, null, 2) + "\n";
+    try {
+        await writeFile(tmp, body, { encoding: "utf8", flag: "wx" });
+        try {
+            await rename(tmp, target);
+        } catch {
+            await unlink(target).catch(() => {});
+            await rename(tmp, target);
+        }
+    } catch (err) {
+        await unlink(tmp).catch(() => {});
+        throw err;
+    }
+    return state;
+}
+
+function currentLocalDelegationLaunch(preference) {
+    const availability = resolveLocalDelegationAvailability();
+    return resolveLocalDelegationLaunch({ preference, availability });
+}
+
+async function launchDeskConsole(
+    deskPath,
+    deskName,
+    workshopDir,
+    profile = DEFAULT_DESK_PROFILE,
+    localDelegation = { effective: false },
+) {
     // deskName must be a plain slug so it is safe on every command line and shell
     // below, and the resolved desk must still live inside the workshop root
     // (which defeats a symlinked desk that escapes the repo). deskPath itself is
@@ -367,24 +434,27 @@ async function launchDeskConsole(deskPath, deskName, workshopDir, profile = DEFA
     if (!isInsideRoot(workshopDir, deskPath)) return false;
     const agent = await deskAgentArgv(deskName, workshopDir, profile);
     if (!agent) return false;
-    const run = [...agent, "-i", deskOrientPrompt(deskName)];
+    const effective = Boolean(localDelegation?.effective);
+    const run = [...agent, "-i", deskOrientPrompt(deskName, { localDelegationEffective: effective })];
+    const env = buildLocalDelegationLaunchEnv(process.env, { localDelegationEffective: effective });
     if (process.platform === "win32") {
         const wt = resolveOnPath("wt", { directOnly: true, excludedRoot: workshopDir });
         const cmd = resolveSystem32Executable("cmd.exe");
-        const direct = /\.(exe|com)$/i.test(run[0]);
-        if (direct && wt && await trySpawn(wt, ["-d", deskPath, ...run])) return true;
-
-        // Older installs can expose .cmd/.bat shims. Only use cmd.exe when every
-        // argument is free of cmd metacharacters; otherwise fail closed and let
-        // the UI copy the desk path rather than reparse an unsafe workshop path.
-        const cmdSafe = run.every((arg) => !/[&|<>^%!()\r\n]/.test(arg));
-        if (cmdSafe && wt && cmd &&
-            await trySpawn(wt, ["-d", deskPath, cmd, "/k", ...run])) return true;
-        // Fallback when wt.exe is absent: a fresh console window via `start`,
-        // still through cmd /k only when the arguments are safe for reparsing.
-        return cmdSafe && cmd
-            ? await trySpawn(cmd, ["/c", "start", "", cmd, "/k", ...run], { cwd: deskPath })
-            : false;
+        // wt.exe does not reliably forward Node's spawn env into a new tab when
+        // Windows Terminal is already running. Always start through cmd.exe and
+        // set/clear WORKSHOP_LOCAL_DELEGATION in the command string itself.
+        // Args are quoteWindowsCmdArgument'd, so only block expanders that still
+        // fire inside quotes (% and !) — allow parentheses in workshop paths.
+        const cmdSafe = run.every((arg) => isSafeQuotedWindowsCmdArg(arg));
+        if (!cmdSafe || !cmd) return false;
+        const inner = windowsLocalDelegationCmdPrefix(effective)
+            + run.map(quoteWindowsCmdArgument).join(" ");
+        if (wt && await trySpawn(wt, ["-d", deskPath, cmd, "/d", "/s", "/k", inner], { env })) {
+            return true;
+        }
+        // Fallback when wt.exe is absent: a fresh console window via `start`.
+        return await trySpawn(
+            cmd, ["/c", "start", "", cmd, "/d", "/s", "/k", inner], { cwd: deskPath, env });
     }
     if (process.platform === "darwin") {
         const osascript = "/usr/bin/osascript";
@@ -393,13 +463,18 @@ async function launchDeskConsole(deskPath, deskName, workshopDir, profile = DEFA
         // to cd into the desk and exec the agent. Each argv element is POSIX
         // single-quoted so the shell can't reinterpret it, and osascript itself
         // is spawned via argv (no shell).
-        const line = "cd " + shSingleQuote(deskPath) + " && exec " +
+        // Local-delegation env is exported in-line so the Terminal session sees it
+        // without inheriting a polluted parent shell forever.
+        const envPrefix = effective
+            ? "export WORKSHOP_LOCAL_DELEGATION=enabled; "
+            : "unset WORKSHOP_LOCAL_DELEGATION; ";
+        const line = "cd " + shSingleQuote(deskPath) + " && " + envPrefix + "exec " +
             run.map(shSingleQuote).join(" ");
         const script = 'tell application "Terminal"\n' +
             "  activate\n" +
             "  do script " + osaStringLiteral(line) + "\n" +
             "end tell";
-        return await trySpawn(osascript, ["-e", script]);
+        return await trySpawn(osascript, ["-e", script], { env });
     }
     // Linux/other: best-effort across common terminal emulators. Each is spawned
     // via argv (no shell) with the agent command after the emulator's exec flag,
@@ -412,7 +487,7 @@ async function launchDeskConsole(deskPath, deskName, workshopDir, profile = DEFA
     ];
     for (const [term, args] of linuxTerms) {
         const executable = resolveOnPath(term, { excludedRoot: workshopDir });
-        if (executable && await trySpawn(executable, args, { cwd: deskPath })) return true;
+        if (executable && await trySpawn(executable, args, { cwd: deskPath, env })) return true;
     }
     return false;
 }
@@ -728,7 +803,42 @@ function avgScore(signals) {
     return { confidence: avg("confidence"), accuracy: avg("accuracy"), completeness: avg("completeness"), intent: avg("intentScore") };
 }
 
-function renderSummaryBar(activeSignals) {
+function renderLocalDelegationControl(localDelegation) {
+    const pref = localDelegation?.preference || "off";
+    const available = Boolean(localDelegation?.availability?.available);
+    const effective = Boolean(localDelegation?.effective);
+    const reason = localDelegation?.availability?.reason || "Local Delegation unavailable";
+    const routeId = localDelegation?.availability?.routeId || null;
+    const next = pref === "on" ? "off" : "on";
+    const label = effective ? "On" : (pref === "on" ? "On*" : "Off");
+    const color = effective ? "#86efac" : (pref === "on" ? "#fbbf24" : "#94a3b8");
+    const border = effective ? "#166534" : (pref === "on" ? "#854d0e" : "#334155");
+    const title = available
+        ? (effective
+            ? `Local Delegation effective${routeId ? ` · route ${routeId}` : ""}`
+            : "Local Delegation available but currently off")
+        : reason;
+    const note = effective && routeId
+        ? `<span style="font-size:10px;color:#86efac;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(title)}">effective · ${esc(truncate(routeId, 28))}</span>`
+        : !available
+        ? `<span style="font-size:10px;color:#64748b;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(reason)}">${esc(truncate(reason, 48))}</span>`
+        : (pref === "on" && !effective
+            ? `<span style="font-size:10px;color:#fbbf24;">requested, unavailable</span>`
+            : "");
+    return `
+    <div style="display:flex;align-items:center;gap:6px;" title="${esc(title)}">
+        <span style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;">Local</span>
+        <button data-act="local-delegation" data-preference="${esc(next)}"
+            aria-label="Local Delegation ${esc(label)}${effective && routeId ? ` route ${esc(routeId)}` : ""}"
+            aria-pressed="${pref === "on" ? "true" : "false"}"
+            style="background:#020617;border:1px solid ${border};color:${color};padding:2px 8px;border-radius:999px;
+                   font-size:11px;cursor:pointer;font-weight:600;min-width:42px;"
+            title="${esc(title)}">${esc(label)}</button>
+        ${note}
+    </div>`;
+}
+
+function renderSummaryBar(activeSignals, localDelegation) {
     const escalations = activeSignals.filter(s => s.signalType === "escalation").length;
     const withSignals = activeSignals.filter(s => s.signalType !== "none").length;
     const awaiting = activeSignals.filter(s => s.signalType === "none").length;
@@ -763,13 +873,14 @@ function renderSummaryBar(activeSignals) {
 
     return `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;
-                background:#0f172a;border:1px solid #1e293b;border-radius:8px;margin-bottom:14px;">
-        <div style="display:flex;align-items:center;gap:12px;">
+                background:#0f172a;border:1px solid #1e293b;border-radius:8px;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <span style="font-size:13px;color:#cbd5e1;"><b style="color:#f1f5f9;">${activeSignals.length}</b> desk${activeSignals.length !== 1 ? "s" : ""}</span>
             <span style="font-size:11px;color:#475569;">${withSignals} reporting · ${awaiting} awaiting</span>
             ${tokenBadge}
             ${calibrationBadge}
             ${escBadge}
+            ${renderLocalDelegationControl(localDelegation)}
         </div>
         ${avgBlock}
     </div>`;
@@ -945,8 +1056,9 @@ function renderStashedCard(entry) {
     </div>`;
 }
 
-function renderDashboard(signals, stashed, capabilityToken) {
+function renderDashboard(signals, stashed, capabilityToken, localDelegation) {
     const activeSignals = sortSignals(signals.filter(s => !stashed.some(e => e.name === s.deskName)));
+    const localDelegationState = localDelegation || currentLocalDelegationLaunch("off");
 
     const cards = activeSignals.length > 0
         ? activeSignals.map(renderSignalCard).join("")
@@ -975,7 +1087,9 @@ function renderDashboard(signals, stashed, capabilityToken) {
             </div>
            </div>`;
 
-    const summaryBar = activeSignals.length > 0 ? renderSummaryBar(activeSignals) : "";
+    // Always show the Local Delegation control so operators can see availability
+    // even before the first desk signal arrives.
+    const summaryBar = renderSummaryBar(activeSignals, localDelegationState);
 
     const stashedSection = stashed.length > 0 ? `
         <div style="margin-top:20px;padding-top:12px;border-top:1px solid #1a1a1a;">
@@ -1058,27 +1172,55 @@ function renderDashboard(signals, stashed, capabilityToken) {
             const data = await res.json();
             if (data.ok) {
                 const path = data.deskPath || name;
+                const notice = data.localDelegationNotice || {};
+                const localTitle = notice.titleSuffix || '';
+                const localDetail = notice.detail || '';
                 if (data.launched) {
                     // A successful open shouldn't hijack the user's clipboard.
-                    showToast('opening ' + name + ' desk (' + selectedProfile + ')…', path);
+                    // Surface LD state in the toast — operators cannot rely on -i alone.
+                    showToast('opening ' + name + ' desk (' + selectedProfile + localTitle + ')…',
+                        localDetail || path);
                 } else {
                     // No terminal launched from here, so copy the path as the
                     // fallback handle, but only claim the copy when it actually
                     // succeeded. The path shows in the toast either way.
                     let copied = false;
                     try { await navigator.clipboard.writeText(path); copied = true; } catch {}
-                    showToast(copied ? (name + ' · path copied') : (name + ' · copy this path'), path);
+                    const copyTitle = copied ? (name + ' · path copied') : (name + ' · copy this path');
+                    showToast(copyTitle + localTitle, localDetail || path);
                 }
             } else {
                 showToast(name + ' · not found', '');
             }
         }
+        async function setLocalDelegation(preference) {
+            const res = await fetch('/api/local-delegation?preference=' +
+                encodeURIComponent(preference || 'off'), POST_OPTS);
+            const data = await res.json();
+            if (data.ok) {
+                const ld = data.localDelegation || {};
+                const routeId = ld.availability && ld.availability.routeId;
+                const label = ld.effective
+                    ? ('Local Delegation effective' + (routeId ? (' · route ' + routeId) : ''))
+                    : (ld.preference === 'on'
+                        ? 'Local Delegation requested (unavailable)'
+                        : 'Local Delegation off');
+                showToast(label, ld.availability?.reason || '');
+                refresh();
+            } else {
+                showToast('Local Delegation · not updated', data.error || '');
+            }
+        }
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('button[data-act]');
             if (!btn) return;
+            const act = btn.getAttribute('data-act');
+            if (act === 'local-delegation') {
+                setLocalDelegation(btn.getAttribute('data-preference') || 'off');
+                return;
+            }
             const name = btn.getAttribute('data-desk');
             if (!name) return;
-            const act = btn.getAttribute('data-act');
             const profile = btn.getAttribute('data-profile');
             if (act === 'stash') stashDesk(name);
             else if (act === 'restore') restoreDesk(name);
@@ -1102,19 +1244,26 @@ function renderDashboard(signals, stashed, capabilityToken) {
                             active.getAttribute('data-act'),
                             active.getAttribute('data-desk'),
                             active.getAttribute('data-profile') || '',
+                            active.getAttribute('data-preference') || '',
                         ]);
                     }
                     content.innerHTML = newContent.innerHTML;
                     if (focusKey) {
-                        const [act, desk, profile] = JSON.parse(focusKey);
-                        const escDesk = (window.CSS && CSS.escape) ? CSS.escape(desk) : desk;
-                        const profileSelector = profile
-                            ? '[data-profile="' + profile + '"]'
-                            : ':not([data-profile])';
-                        const target = content.querySelector(
-                            'button[data-act="' + act + '"][data-desk="' + escDesk + '"]' +
-                            profileSelector);
+                        const [act, desk, profile, preference] = JSON.parse(focusKey);
+                        let target = null;
+                        if (act === 'local-delegation') {
+                            target = content.querySelector('button[data-act="local-delegation"]');
+                        } else {
+                            const escDesk = (window.CSS && CSS.escape) ? CSS.escape(desk) : desk;
+                            const profileSelector = profile
+                                ? '[data-profile="' + profile + '"]'
+                                : ':not([data-profile])';
+                            target = content.querySelector(
+                                'button[data-act="' + act + '"][data-desk="' + escDesk + '"]' +
+                                profileSelector);
+                        }
                         if (target) target.focus();
+                        void preference;
                     }
                 }
             } catch {}
@@ -1180,6 +1329,20 @@ async function startServer(instanceId, workshopDir) {
             res.end(JSON.stringify({ ok: true }));
             return;
         }
+        if (req.method === "POST" && url.pathname === "/api/local-delegation") {
+            const preferenceInput = url.searchParams.get("preference") || "off";
+            if (!["off", "on"].includes(String(preferenceInput).toLowerCase())) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: false, error: "Invalid local delegation preference" }));
+                return;
+            }
+            const preference = normalizeLocalDelegationPreference(preferenceInput, "off");
+            await writeLocalDelegationPreference(workshopDir, preference);
+            const localDelegation = currentLocalDelegationLaunch(preference);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ ok: true, localDelegation }));
+            return;
+        }
         if (req.method === "POST" && url.pathname.startsWith("/api/open/")) {
             const deskName = decodeURIComponent(url.pathname.split("/api/open/")[1]);
             const profileInput = url.searchParams.get("profile") || DEFAULT_DESK_PROFILE;
@@ -1194,14 +1357,25 @@ async function startServer(instanceId, workshopDir) {
                 return;
             }
             const profile = normalizeDeskProfile(profileInput);
+            const preference = await readLocalDelegationPreference(workshopDir);
+            const localDelegation = currentLocalDelegationLaunch(preference);
             for (const subdir of ["desks", "classroom"]) {
                 const deskPath = join(workshopDir, subdir, deskName);
                 try {
                     const s = await stat(deskPath);
                     if (s.isDirectory()) {
-                        const launched = await launchDeskConsole(deskPath, deskName, workshopDir, profile);
+                        const launched = await launchDeskConsole(
+                            deskPath, deskName, workshopDir, profile, localDelegation);
                         res.writeHead(200, { "Content-Type": "application/json" });
-                        res.end(JSON.stringify({ ok: true, deskName, deskPath, launched, profile }));
+                        res.end(JSON.stringify({
+                            ok: true,
+                            deskName,
+                            deskPath,
+                            launched,
+                            profile,
+                            localDelegation,
+                            localDelegationNotice: formatLocalDelegationOpenNotice(localDelegation),
+                        }));
                         return;
                     }
                 } catch {}
@@ -1213,8 +1387,10 @@ async function startServer(instanceId, workshopDir) {
 
         const signals = await scanSignals(workshopDir);
         const stashed = await readStash(workshopDir);
+        const preference = await readLocalDelegationPreference(workshopDir);
+        const localDelegation = currentLocalDelegationLaunch(preference);
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        res.end(renderDashboard(signals, stashed, capabilityToken));
+        res.end(renderDashboard(signals, stashed, capabilityToken, localDelegation));
         } catch (err) {
             // Top-level boundary: never leave a request hanging or let a
             // rejection become an unhandled crash — e.g. malformed %-encoding
@@ -1327,7 +1503,7 @@ const session = await joinSession({
                 },
                 {
                     name: "open_desk",
-                    description: "Open a desk as an in-place Copilot CLI session. Repo profile suppresses ambient plugin MCPs; connected keeps every configured tool. Returns the desk path, profile, and whether a terminal was launched.",
+                    description: "Open a desk as an in-place Copilot CLI session. Repo profile suppresses ambient plugin MCPs; connected keeps every configured tool. Local Delegation is orthogonal and fail-closed: when available and preferred on, the frontier desk may use sealed local-agent-delegation for bounded read/evidence work. Returns the desk path, profile, localDelegation state, and whether a terminal was launched.",
                     inputSchema: {
                         type: "object",
                         properties: {
@@ -1336,6 +1512,11 @@ const session = await joinSession({
                                 type: "string",
                                 enum: ["repo", "connected"],
                                 description: `Tool profile. Defaults to ${DEFAULT_DESK_PROFILE}.`,
+                            },
+                            localDelegation: {
+                                type: "string",
+                                enum: ["off", "on"],
+                                description: "Optional Local Delegation preference for this launch. Defaults to the workshop Cairn toggle (.local-delegation.json).",
                             },
                         },
                         required: ["deskName"],
@@ -1347,13 +1528,21 @@ const session = await joinSession({
                         const profileInput = ctx.input.profile || DEFAULT_DESK_PROFILE;
                         if (!isDeskProfile(profileInput)) return { error: "Invalid desk profile" };
                         const profile = normalizeDeskProfile(profileInput);
+                        const preferenceInput = ctx.input.localDelegation
+                            ?? await readLocalDelegationPreference(entry.workshopDir);
+                        const preference = normalizeLocalDelegationPreference(preferenceInput, "off");
+                        const localDelegation = currentLocalDelegationLaunch(preference);
                         for (const subdir of ["desks", "classroom"]) {
                             const deskPath = join(entry.workshopDir, subdir, ctx.input.deskName);
                             try {
                                 const s = await stat(deskPath);
                                 if (s.isDirectory()) {
                                     const launched = await launchDeskConsole(
-                                        deskPath, ctx.input.deskName, entry.workshopDir, profile);
+                                        deskPath,
+                                        ctx.input.deskName,
+                                        entry.workshopDir,
+                                        profile,
+                                        localDelegation);
                                     return {
                                         ok: true,
                                         deskName: ctx.input.deskName,
@@ -1361,6 +1550,8 @@ const session = await joinSession({
                                         launched,
                                         workshopDir: entry.workshopDir,
                                         profile,
+                                        localDelegation,
+                                        localDelegationNotice: formatLocalDelegationOpenNotice(localDelegation),
                                     };
                                 }
                             } catch {}

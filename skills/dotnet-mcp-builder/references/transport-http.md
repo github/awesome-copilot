@@ -18,7 +18,7 @@ For local single-user scenarios, [STDIO](./transport-stdio.md) is simpler.
 ```bash
 dotnet new web -n MyHttpServer -f net10.0
 cd MyHttpServer
-dotnet add package ModelContextProtocol.AspNetCore
+dotnet add package ModelContextProtocol.AspNetCore --version 2.2.0
 ```
 
 ```csharp

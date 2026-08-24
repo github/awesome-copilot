@@ -27,7 +27,7 @@ Gem Team wraps your AI with a disciplined engineering delivery system. It enforc
 
 ## Why Gem Team?
 
-- **Quality by Default**: TDD, code reviews, and security audits happen automatically. No more "vibe coding" that breaks in production.
+- **Quality by Default**: TDD and acceptance checks always apply; reviews and security audits run when risk requires them. No more "vibe coding" that breaks in production.
 - **Smart & Efficient**: Optimized for fewer tokens and lower costs. Progressive context management prevents bloat and keeps your AI focused.
 - **Works With Your Tools**: Seamless integration with Copilot, Claude, Cursor, Codex, Gemini, and Windsurf. Use your preferred environment.
 - **Learns & Improves**: Remembers what works and extracts reusable skills. Your AI gets smarter and more efficient over time.
@@ -36,7 +36,7 @@ Gem Team wraps your AI with a disciplined engineering delivery system. It enforc
 
 Gem Team automatically uses the right model for each kind of work:
 
-- **Premium models** handle planning, debugging, critique, and review where deeper reasoning matters.
+- **Premium models** handle planning, debugging, and review where deeper reasoning matters.
 - **Explore models** handle research, implementation, testing, documentation, and other bounded tasks efficiently.
 - **Configurable tiers** let you choose the models and providers that fit your budget and workflow.
 
@@ -79,22 +79,56 @@ Or install for one target only:
 apm install mubaidr/gem-team --target copilot
 ```
 
+Install globally for personal use:
+
+```bash
+apm install -g mubaidr/gem-team
+```
+
+APM records the resolved commit in `apm.lock.yaml`. Repeating `apm install`
+replays that lockfile; it does not silently upgrade an existing installation.
+Refresh Gem Team explicitly when desired:
+
+```bash
+# Project-scoped installation
+apm update mubaidr/gem-team --yes
+
+# Global installation
+apm update -g mubaidr/gem-team --yes
+```
+
+To check for an update to the APM CLI itself, use `apm self-update --check`.
+
+For reproducible environments, pin a release tag:
+
+```bash
+apm install 'mubaidr/gem-team#gem-team-v<version>' --target copilot
+```
+
+Replace `<version>` with a published version from the
+[GitHub Releases](https://github.com/mubaidr/gem-team/releases) page.
+
 After the first install, commit the generated APM files that belong to your repo, especially `apm.yml`, `apm.lock.yaml`, and the generated harness directories such as `.github/`, `.claude/`, `.cursor/`, `.opencode/`, `.codex/`, `.gemini/`, or `.windsurf/`. Do **not** commit `apm_modules/`.
 
 > APM can auto-detect targets from existing harness directories, but explicit `--target` is recommended for predictable installs and fresh repositories.
+>
+> Direct Git installs use the canonical sources in `.apm/`. Maintainers do not
+> need to commit `build/`; release archives and checksums are generated and
+> attached automatically to each GitHub Release.
 
 ## The Process
 
 Gem Team uses a structured workflow to turn AI coding into a reliable engineering process:
 
-1. **Plan**: Analyze the task, break it down, and create a structured plan with verification gates.
-2. **Build**: Implement features using TDD, following best practices and design patterns.
-3. **Review**: Automated code reviews, security audits, and accessibility checks at every step.
-4. **Learn**: Extract reusable skills and patterns from successful tasks to improve future performance.
+1. **Route**: Classify the request from supplied evidence and select only the workflow depth it needs.
+2. **Plan**: Use an in-memory DAG for TRIVIAL/LOW work or a persistent, planner-confirmed DAG for MEDIUM/HIGH work.
+3. **Build**: Execute every DAG through the same dependency-aware loop, using TDD and specialist agents.
+4. **Verify**: Check every task and run reviewer integration checks only when changed-scope risk requires them.
+5. **Learn**: Promote only stable, high-confidence patterns after successful execution.
 
 ## Features
 
-- **Automated Quality Gates**: TDD, code reviews, and security/accessibility audits happen automatically.
+- **Risk-Based Quality Gates**: TDD and deterministic verification always apply; specialist reviews and audits run when the plan or changed scope requires them.
 - **Effortless Context**: Progressive context management prevents bloat and keeps your AI focused.
 - **Smart Routing**: Tasks are automatically routed to the right agents based on complexity.
 - **Reusable Knowledge**: High-confidence patterns and skills are extracted and reused for future tasks.
@@ -105,29 +139,26 @@ Gem Team uses a structured workflow to turn AI coding into a reliable engineerin
 Gem Team installs a set of specialized agents that work together under the guidance of an Orchestrator. This team follows a disciplined workflow that includes planning, implementation, verification, and learning.
 
 - **Specialist Agents**: Dedicated agents for planning, research, implementation, review, and more.
-- **Orchestration**: An Orchestrator coordinates the team, ensuring tasks are completed in the right order and verified at every step.
-- **Context Management**: Plan-level context in each `plan.yaml` gives every agent the information it needs without redundant reads or wasted tokens.
+- **Orchestration**: One DAG loop coordinates dependencies, parallel work, bounded retries, and final acceptance checks at every complexity level.
+- **Context Management**: Execution agents receive an authoritative `task_definition`; constraints, evidence, and dependency outputs travel through its canonical `handoff`. Planner and reviewer use dedicated handoff contracts, and every delegate receives only a role-scoped configuration snapshot.
 
 ### Agent Roles
 
-| Role                | Description                                                             |
-| :------------------ | :---------------------------------------------------------------------- |
-| **Orchestrator**    | Coordinates the workflow and ensures all tasks are completed correctly. |
-| **Planner**         | Breaks down complex tasks into manageable steps.                        |
-| **Implementer**     | Writes the code using TDD and best practices.                           |
-| **Reviewer**        | Verifies code quality, security, and compliance with requirements.      |
-| **Debugger**        | Diagnoses bugs with root-cause analysis (never implements fixes).       |
-| **Researcher**      | Explores the codebase and finds the best patterns to use.               |
-| **Designer**        | Creates UI/UX designs, layouts, and design systems.                     |
-| **Designer Mobile** | Creates mobile UI/UX following HIG and Material Design guidelines.      |
-| **Impl. Mobile**    | Implements mobile features with TDD for iOS/Android.                    |
-| **Tester**          | Runs E2E browser tests and visual regression.                           |
-| **Tester Mobile**   | Runs mobile E2E tests on iOS/Android simulators.                        |
-| **DevOps**          | Manages deployments, CI/CD, and infrastructure with approval gates.     |
-| **Documentation**   | Writes technical docs, API references, and walkthroughs.                |
-| **Code Simplifier** | Refactors code to reduce complexity and remove dead code.               |
-| **Critic**          | Challenges assumptions and finds edge cases before implementation.      |
-| **Skill Creator**   | Extracts reusable patterns into packaged agent skills.                  |
+| Role                | Description                                                                               |
+| :------------------ | :---------------------------------------------------------------------------------------- |
+| **Orchestrator**    | Coordinates the workflow and ensures all tasks are completed correctly.                   |
+| **Planner**         | Creates bounded DAG plans: milestones, routing, dependencies, waves, risks, and criteria. |
+| **Implementer**     | Writes the code using TDD and best practices.                                             |
+| **Reviewer**        | Reviews plans; provides read-only critique for ideas and challenges.                      |
+| **Debugger**        | Diagnoses bugs with root-cause analysis (never implements fixes).                         |
+| **Researcher**      | Explores the codebase and finds the best patterns to use.                                 |
+| **Designer**        | Creates UI/UX designs, layouts, and design systems.                                       |
+| **Tester**          | Runs E2E browser tests and visual regression.                                             |
+| **Tester Mobile**   | Runs mobile E2E tests on iOS/Android simulators.                                          |
+| **DevOps**          | Manages deployments, CI/CD, and infrastructure with approval gates.                       |
+| **Documentation**   | Writes technical docs, API references, and walkthroughs.                                  |
+| **Code Simplifier** | Refactors code to reduce complexity and remove dead code.                                 |
+| **Skill Creator**   | Extracts reusable patterns into packaged agent skills.                                    |
 
 ## Compatible Tools
 
@@ -146,6 +177,44 @@ Gem Team works with your favorite AI coding tools:
 ## Configuration
 
 Gem Team is designed to work out of the box with smart defaults. You can customize behavior by editing the `AGENTS.md` file or specific agent definitions in the `.apm/agents/` directory.
+
+### Reviewer and critic modes
+
+`gem-reviewer` uses three independent axes:
+
+- `review_mode`: `standard`, `high`, or `critic` controls review intensity.
+- `review_target`: `plan`, `task`, `code`, `decision`, `docs`, `config`, or `integration` selects what is reviewed.
+- `review_scope`: `changed`, `affected`, or `full` limits the evidence breadth.
+
+TRIVIAL/LOW work does not invoke the planner or reviewer during planning.
+MEDIUM/HIGH work receives one pre-execution plan review: standard for MEDIUM,
+high for HIGH or high-risk work, and critic for architecture, breaking-change,
+or cross-domain signals. Later integration review is risk-triggered, not a
+routine wave gate.
+
+Discussion is answered directly. A requested evaluation or decision becomes a
+read-only challenge with `review_mode: critic`, `review_target: decision`, and
+`review_scope: full`. Critic mode does not mutate files or claim implementation.
+Its subject and context are passed through `handoff`:
+
+```yaml
+review_mode: critic
+review_target: decision
+review_scope: full
+handoff:
+  critic_subject:
+    objective: string
+    proposal: string
+    constraints: string[]
+    alternatives: string[]
+    evidence: string[]
+    decision_needed: string
+  critic_context:
+    audience: string
+    time_horizon: string
+    success_criteria: string[]
+    known_unknowns: string[]
+```
 
 ## Learn More
 

@@ -25,6 +25,16 @@ export function isSafeWindowsCmdShim(value) {
     return typeof value === "string" && !/[%\r\n]/.test(value);
 }
 
+/**
+ * Args that will be wrapped with quoteWindowsCmdArgument. Inside double quotes,
+ * cmd still expands %VAR% and !VAR! (delayed expansion). Other metacharacters
+ * like & | < > ^ ( ) are literal when quoted, so paths such as
+ * C:\Work\Project (1) must be allowed.
+ */
+export function isSafeQuotedWindowsCmdArg(value) {
+    return typeof value === "string" && !/[%!\r\n]/.test(value);
+}
+
 export function parsePluginMcpNames(text) {
     let parsed;
     try { parsed = JSON.parse(text); }
