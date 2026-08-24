@@ -74,10 +74,15 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 
 ### Constitutional
 
-- Prefer maintained official/in-stack libraries to custom code.
-- Edit surgically; refactor only within TDD, never adjacent cleanup.
-- Validate boundaries; trust no input. Match state management to complexity; plan errors first.
-- Meet all `acceptance_criteria`; use the existing stack, YAGNI, KISS, DRY, FP.
+- Reuse over creation: Exhaust YAGNI -> codebase -> stdlib -> official/in-stack libs before writing new code.
+- Trace before edit: Map end-to-end flow first. Edit surgically; refactor only within TDD—never do adjacent cleanup.
+- Fix root causes: Grep call sites. Patch shared functions instead of caller-level hacks.
+- Minimal footprint: Shortest working diff wins. Prefer deletion over addition; no unrequested abstractions, extra deps, or boilerplate.
+- Defensive design: Trust no input, validate boundaries, plan errors first, and match state management to complexity.
+- Strict compliance: Meet all `acceptance_criteria` while keeping code simple, dry, and functional (KISS/DRY/FP).
+- Verify non-trivial changes: Leave one runnable assert or small test behind for logic not covered by TDD. Skip only for trivial one-liners.
+- Label trade-offs: Tag intentional hacks.
+- Challenge requirements: Clarify ambiguous specs. If two solutions are equal size, choose the algorithmically robust option.
 
 ### UI/UX Skills & Styling Workflow
 

@@ -114,5 +114,6 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 
 - For `code`, `config`, and `integration` targets, perform targeted security searches before broader code-navigation analysis when those capabilities are available. For mobile code, audit applicable storage, transport, authentication, authorization, permissions, deep links, WebViews, and platform configuration risks.
 - When reviewing a plan, treat the baseline objective and baseline acceptance criteria as immutable. Report any change as a decision blocker.
+- For `code`/`integration` targets, run an over-engineering pass: flag unrequested abstractions, avoidable new dependencies, boilerplate, diffs that could be shorter or more correct, and deliberate simplifications. Report each as a warning with the leaner alternative.
 
 </rules>

@@ -29,6 +29,11 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
   - Do not ask the user directly; return `needs_revision` or the appropriate failure state so the orchestrator can own user interaction.
   - Make the plan decision-complete enough that downstream workers do not need to make architectural or scope decisions.
 
+- Scope Reduction Gate:
+  - Ascend the reuse ladder: Before writing a task, stop at the first valid rung: (1) YAGNI (drop it) -> (2) Existing codebase helper -> (3) Stdlib -> (4) Platform feature -> (5) Installed dependency -> (6) One-liner -> (7) Author new code.
+  - Tag the rung: Record the stopping point in the task `description` (e.g., `reuse: X` or `new: Y`). Cut or explicitly justify any untagged task.
+  - Minimize task count: Prefer deleting or consolidating tasks over adding them. The smallest task list that hits the baseline wins.
+
 - Wave Plan Rules:
   - Cohesive Milestones: Create 1 task per meaningful execution milestone.
   - Task Order: Assign every task to one positive execution wave. All tasks in a wave become eligible after the preceding wave completes.
@@ -149,6 +154,7 @@ tasks:
 - Keep it simple: Apply YAGNI/KISS. Avoid speculative flexibility, overengineering, or invented requirements. Use the smallest solution that meets the baseline and allows clear extension.
 - Use only relevant context: Retain evidence needed for decisions or acceptance criteria. Stop exploring once the plan is decision-complete; avoid exhaustive repository knowledge.
 - Keep architecture proportional: Justify every extra layer, agent, task, or wave barrier. Remove anything unnecessary to meet the baseline.
+- Climb the reuse ladder before scoping: justify every new task against YAGNI, reuse, stdlib, native platform features, and installed deps; record the rung stopped at in the task description.
 - Keep task count lean; split only when it improves parallelism, ownership, specialist routing, or validation.
 - Do not create additional wave barriers merely to make the plan easier to describe.
 - Declare resource ownership for affected paths; the orchestrator derives safe parallelism from ownership within each wave.
