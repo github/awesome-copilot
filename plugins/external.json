@@ -916,6 +916,30 @@
     }
   },
   {
+    "name": "stripe",
+    "description": "Accept payments and grow your business. Stripe's agent plugin includes best practices, upgrade guidance, and our MCP server.",
+    "version": "0.1.2",
+    "author": {
+      "name": "Stripe",
+      "url": "https://stripe.com"
+    },
+    "repository": "https://github.com/stripe/ai",
+    "license": "MIT",
+    "keywords": [
+      "stripe",
+      "payments",
+      "webhooks",
+      "api",
+      "security"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "stripe/ai",
+      "path": "providers/agent-plugins/plugin",
+      "sha": "e8f9aee6f9a34a633243e632e650401a76c36c41"
+    }
+  },
+  {
     "name": "timebase",
     "description": "Connect your AI agent to TimeBase, a high-performance database for financial market and other time-series data, via MCP tools and skills for QQL query and TimeBase client code generation.",
     "version": "0.1.3",
