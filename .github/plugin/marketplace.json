@@ -1048,6 +1048,29 @@
       }
     },
     {
+      "name": "msgraph-developer-skills",
+      "description": "Builds and modernizes Microsoft Graph applications with minimal, purpose-built API clients. The plugin identifies the required Microsoft Graph endpoints and their least-privileged permissions, generates a focused client with [Kiota](https://aka.ms/kiota) or an AI-assisted workflow, and applies recommended authentication and SDK patterns.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Sergio Lopez"
+      },
+      "repository": "https://github.com/microsoftgraph/dev-skills",
+      "license": "MIT",
+      "keywords": [
+        "microsoft-graph",
+        "graph-api",
+        "sdk-generation",
+        "kiota",
+        "api-client",
+        "copilot-skills"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoftgraph/dev-skills",
+        "sha": "175381470b0d7e09da89be0608017d208e79933a"
+      }
+    },
+    {
       "name": "napkin",
       "source": "plugins/napkin",
       "description": "Visual whiteboard collaboration for Copilot CLI. Opens an interactive whiteboard in your browser where you can draw, sketch, and add sticky notes — then share everything back with Copilot. Copilot sees your drawings and responds with analysis, suggestions, and ideas.",

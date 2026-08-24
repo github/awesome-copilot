@@ -762,6 +762,29 @@
     }
   },
   {
+    "name": "msgraph-developer-skills",
+    "description": "Builds and modernizes Microsoft Graph applications with minimal, purpose-built API clients. The plugin identifies the required Microsoft Graph endpoints and their least-privileged permissions, generates a focused client with [Kiota](https://aka.ms/kiota) or an AI-assisted workflow, and applies recommended authentication and SDK patterns.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Sergio Lopez"
+    },
+    "repository": "https://github.com/microsoftgraph/dev-skills",
+    "license": "MIT",
+    "keywords": [
+      "microsoft-graph",
+      "graph-api",
+      "sdk-generation",
+      "kiota",
+      "api-client",
+      "copilot-skills"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoftgraph/dev-skills",
+      "sha": "175381470b0d7e09da89be0608017d208e79933a"
+    }
+  },
+  {
     "name": "netlify",
     "description": "Netlify platform skills covering functions, edge functions, blobs, database, identity, image CDN, forms, config, CLI, frameworks, caching, AI Gateway, and deployment — plus the official Netlify MCP server for creating and managing projects, deploys, and environment variables.",
     "version": "1.1.0",
