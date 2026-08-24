@@ -698,6 +698,12 @@
       "version": "2.0.0"
     },
     {
+      "name": "fluentui-blazor",
+      "source": "plugins/fluentui-blazor",
+      "description": "Build Blazor apps with the Microsoft Fluent UI Blazor library. Bundles the fluentui-blazor skill for correct usage patterns (providers, service registration, icons, dialogs, data grid, theming) with the official Fluent UI Blazor MCP server for live lookup of components, parameters, enums, icons, and documentation, plus v4-to-v5 migration guidance.",
+      "version": "1.0.0"
+    },
+    {
       "name": "foundation-models",
       "description": "Helps coding agents write and review Apple Foundation Models code for iOS, macOS, visionOS, and watchOS using the SDK installed on the developer's Mac. It verifies real API signatures and availability, then type-checks the result instead of relying on model memory.",
       "version": "0.1.3",
