@@ -1,0 +1,19 @@
+{
+  "name": "anti-ui-slop",
+  "version": "quiet-expert-v12",
+  "designStack": {
+    "version": "4.1.1",
+    "commit": "5a149f3fdb1b5793f10567233b1dcab98fc305fd",
+    "license": "Apache-2.0"
+  },
+  "designAuthority": "uizze",
+  "evidenceMode": "concrete-need-only",
+  "included": [
+    "reference/new-work.md",
+    "reference/operate.md",
+    "reference/polish.md",
+    "reference/distill.md",
+    "reference/audit.md",
+    "reference/ios.md"
+  ]
+}
