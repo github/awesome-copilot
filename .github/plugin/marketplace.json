@@ -698,6 +698,12 @@
       "version": "2.0.0"
     },
     {
+      "name": "fluentui-blazor",
+      "source": "plugins/fluentui-blazor",
+      "description": "Build Blazor apps with the Microsoft Fluent UI Blazor library. Bundles the fluentui-blazor skill for correct usage patterns (providers, service registration, icons, dialogs, data grid, theming) with the official Fluent UI Blazor MCP server for live lookup of components, parameters, enums, icons, and documentation, plus v4-to-v5 migration guidance.",
+      "version": "1.0.0"
+    },
+    {
       "name": "foundation-models",
       "description": "Helps coding agents write and review Apple Foundation Models code for iOS, macOS, visionOS, and watchOS using the SDK installed on the developer's Mac. It verifies real API signatures and availability, then type-checks the result instead of relying on model memory.",
       "version": "0.1.3",
@@ -851,6 +857,31 @@
       "source": "plugins/java-modernization-studio",
       "description": "Drive the GitHub Copilot App Modernization for Java workflow from an interactive canvas: environment readiness, repo assessment, prioritized plan and progress, validation gates, and one-click predefined-task runs grounded in the repo's real artifacts.",
       "version": "1.0.2"
+    },
+    {
+      "name": "keep-the-why",
+      "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
+      "version": "0.5.2",
+      "author": {
+        "name": "Oliver Zehentleitner",
+        "url": "https://github.com/oliver-zehentleitner"
+      },
+      "repository": "https://github.com/oliver-zehentleitner/keep-the-why",
+      "homepage": "https://keepthewhy.com",
+      "license": "MIT",
+      "keywords": [
+        "documentation",
+        "context",
+        "decision-log",
+        "knowledge-management",
+        "onboarding",
+        "agents"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "oliver-zehentleitner/keep-the-why",
+        "ref": "v0.5.2"
+      }
     },
     {
       "name": "kotlin-mcp-development",
@@ -1039,6 +1070,29 @@
         "path": "plugins/modernize-java",
         "ref": "1.23.0",
         "sha": "5ccc2ad4011314602e1b80f0b818c95bcf198f67"
+      }
+    },
+    {
+      "name": "msgraph-developer-skills",
+      "description": "Builds and modernizes Microsoft Graph applications with minimal, purpose-built API clients. The plugin identifies the required Microsoft Graph endpoints and their least-privileged permissions, generates a focused client with [Kiota](https://aka.ms/kiota) or an AI-assisted workflow, and applies recommended authentication and SDK patterns.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Sergio Lopez"
+      },
+      "repository": "https://github.com/microsoftgraph/dev-skills",
+      "license": "MIT",
+      "keywords": [
+        "microsoft-graph",
+        "graph-api",
+        "sdk-generation",
+        "kiota",
+        "api-client",
+        "copilot-skills"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoftgraph/dev-skills",
+        "sha": "175381470b0d7e09da89be0608017d208e79933a"
       }
     },
     {
@@ -1358,6 +1412,30 @@
       }
     },
     {
+      "name": "stripe",
+      "description": "Accept payments and grow your business. Stripe's agent plugin includes best practices, upgrade guidance, and our MCP server.",
+      "version": "0.1.2",
+      "author": {
+        "name": "Stripe",
+        "url": "https://stripe.com"
+      },
+      "repository": "https://github.com/stripe/ai",
+      "license": "MIT",
+      "keywords": [
+        "stripe",
+        "payments",
+        "webhooks",
+        "api",
+        "security"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "stripe/ai",
+        "path": "providers/agent-plugins/plugin",
+        "sha": "e8f9aee6f9a34a633243e632e650401a76c36c41"
+      }
+    },
+    {
       "name": "structured-autonomy",
       "source": "plugins/structured-autonomy",
       "description": "Premium planning, thrifty implementation",
@@ -1547,8 +1625,8 @@
     {
       "name": "uizze",
       "source": "plugins/uizze",
-      "description": "Stop generic UI from shipping. Ground GitHub Copilot in 800,000+ real web and iOS screens, write a product-specific design contract, and enforce a hard finish gate.",
-      "version": "1.0.0"
+      "description": "Build product-specific interfaces with a focused UIZZE workflow, optional real-screen evidence, and a practical finish check.",
+      "version": "1.2.13"
     },
     {
       "name": "upgrade-agent",

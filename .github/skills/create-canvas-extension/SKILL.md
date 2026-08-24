@@ -72,7 +72,7 @@ Create `plugins/<extension-id>/plugin.json` with this shape:
 }
 ```
 
-Keep Agent Plugins fields at the manifest top level. Repository composition belongs only under `extensions.com.github.awesome-copilot`; do not put `agents`, `commands`, `hooks`, `mcpServers`, or `skills` at the top level or directly under `extensions`. Do not add `x-awesome-copilot`, `standalone`, or other repository-specific top-level fields.
+Keep Agent Plugins fields at the manifest top level. Repository composition belongs only under `extensions.com.github.awesome-copilot`; do not put `agents`, `commands`, `hooks`, or `skills` at the top level or directly under `extensions`. MCP servers are declared in `mcp.json` at the plugin root, never in `plugin.json`. Do not add `x-awesome-copilot`, `standalone`, or other repository-specific top-level fields.
 
 For an existing parent plugin, create or update:
 
