@@ -21,8 +21,8 @@ Build an evidence-based map of the repository instructions that may affect a tar
 2. **Run the deterministic audit when authorized.** In a repository with Node.js 20 or newer, run the pinned, read-only Instructree release:
 
    ```bash
-   npm exec --package=github:kotobuki09/instructree#22c433db5dbd303fa26b6b59c81c6ab607e5a890 -- instructree
-   npm exec --package=github:kotobuki09/instructree#22c433db5dbd303fa26b6b59c81c6ab607e5a890 -- instructree imports
+   npm exec --package=github:kotobuki09/instructree#1e34ae9872f43d176c5d193c3ef0f45b59e00226 -- instructree
+   npm exec --package=github:kotobuki09/instructree#1e34ae9872f43d176c5d193c3ef0f45b59e00226 -- instructree imports
    ```
 
    Use `--json` when another tool will consume the report. The scanner is local-only, does not call a model, and does not execute repository content.
@@ -30,7 +30,7 @@ Build an evidence-based map of the repository instructions that may affect a tar
 3. **Explain a concrete target.** If the problem concerns a file or directory, show the broad-to-specific candidates and transitive imports:
 
    ```bash
-   npm exec --package=github:kotobuki09/instructree#22c433db5dbd303fa26b6b59c81c6ab607e5a890 -- instructree explain path/to/target --effective
+   npm exec --package=github:kotobuki09/instructree#1e34ae9872f43d176c5d193c3ef0f45b59e00226 -- instructree explain path/to/target --effective
    ```
 
 4. **Interpret findings conservatively.** Treat schema errors, missing files, repository escapes, and cycles as factual. Treat conflict warnings as review prompts, not proof of model behavior. GitHub Copilot CLI expands relative `@path` lines recursively in `.github/copilot-instructions.md`, `AGENTS.md`, and `CLAUDE.md`; it does not expand them in `GEMINI.md` or `*.instructions.md`. Label that behavior as Copilot-specific.
