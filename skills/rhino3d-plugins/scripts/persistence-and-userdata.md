@@ -199,8 +199,12 @@ use [user strings](#user-strings-on-an-object) or the
 
 ### Attach user data to a Brep face
 
-Same class, different anchor. Attaching to a `BrepFace` looks like it works and then silently loses the data
-on save — attach to `face.UnderlyingSurface()` instead.
+Same `PhysicalData` class as above, different anchor, and a different write path. Two traps here:
+attaching to the `BrepFace` instead of `face.UnderlyingSurface()` silently loses the data on save, and
+mutating the picked face in place looks like it works but never reaches the document. Writing means
+duplicating the owning top-level `Brep`, attaching to the corresponding surface in the duplicate, and
+replacing the whole object by its id, not through the subobject `ObjRef`, which refers only to the
+selected face.
 
 **C#**
 ```csharp
@@ -218,24 +222,41 @@ partial class Examples
     if (face == null)
       return Rhino.Commands.Result.Failure;
 
-    // Use the underlying surface, NOT the face, or the user data will not
-    // serialize with the file.
-    var surface = face.UnderlyingSurface();
-    var ud = surface.UserData.Find(typeof(MyCustomData)) as MyCustomData;
-    if (ud == null)
-    {
-      int i = 0;
-      rc = Rhino.Input.RhinoGet.GetInteger("Integer Value", false, ref i);
-      if (rc != Rhino.Commands.Result.Success)
-        return rc;
-
-      ud = new MyCustomData(i, "This is some text");
-      surface.UserData.Add(ud);
-    }
-    else
+    // Reading can use the picked face directly. Use the underlying surface,
+    // NOT the face, or the user data will not serialize with the file.
+    var ud = face.UnderlyingSurface().UserData.Find(typeof(PhysicalData)) as PhysicalData;
+    if (ud != null)
     {
       RhinoApp.WriteLine("{0} = {1}", ud.Description, ud);
+      return Rhino.Commands.Result.Success;
     }
+
+    // No user data found; create some and add it.
+    int weight = 0;
+    rc = Rhino.Input.RhinoGet.GetInteger("Weight", false, ref weight);
+    if (rc != Rhino.Commands.Result.Success)
+      return rc;
+
+    // Writing takes more than Add(): mutate a DUPLICATE of the owning
+    // top-level Brep and put the whole Brep back into the document, keyed by
+    // the object's id. Adding to the picked face's surface alone reports
+    // success and then the data is lost, and replacing via the subobject
+    // objref would target only the selected face.
+    var brepObject = objref.Object();
+    if (brepObject == null)
+      return Rhino.Commands.Result.Failure;
+
+    var newBrep = brepObject.Geometry.Duplicate() as Rhino.Geometry.Brep;
+    if (newBrep == null)
+      return Rhino.Commands.Result.Failure;
+
+    // Again: the underlying surface, not the face.
+    var surface = newBrep.Faces[face.FaceIndex].UnderlyingSurface();
+    surface.UserData.Add(new PhysicalData(weight, 12.34));
+
+    if (!doc.Objects.Replace(brepObject.Id, newBrep))
+      return Rhino.Commands.Result.Failure;
+
     return Rhino.Commands.Result.Success;
   }
 }
@@ -519,6 +540,7 @@ using Rhino;
 using Rhino.PlugIns;
 using Rhino.FileIO;
 using Rhino.Collections;
+using System.Collections.Generic;
 
 namespace examples_cs
 {
@@ -527,29 +549,61 @@ namespace examples_cs
     public MyPlugIn()
     {
       if (Instance == null) Instance = this;
+
+      // Drop a document's state when it closes, or the table grows forever.
+      RhinoDoc.CloseDocument += (sender, e) =>
+        m_document_data.Remove(e.Document.RuntimeSerialNumber);
     }
 
     public static MyPlugIn Instance { get; private set; }
 
-    // The state we want in the 3dm file
-    public string ProjectCode { get; set; }
-    public int RevisionNumber { get; set; }
+    // The state we want in the 3dm file. There is ONE plug-in instance serving
+    // EVERY open document, so this must NOT live in plain instance properties:
+    // with two documents open, ReadDocument for one file would overwrite the
+    // values WriteDocument later serializes for the other. Key it by the
+    // document's runtime serial number instead.
+    class DocumentData
+    {
+      public string ProjectCode { get; set; }
+      public int RevisionNumber { get; set; }
+    }
+
+    readonly Dictionary<uint, DocumentData> m_document_data = new Dictionary<uint, DocumentData>();
+
+    DocumentData DataFor(RhinoDoc doc)
+    {
+      DocumentData data;
+      if (!m_document_data.TryGetValue(doc.RuntimeSerialNumber, out data))
+      {
+        data = new DocumentData();
+        m_document_data[doc.RuntimeSerialNumber] = data;
+      }
+      return data;
+    }
+
+    public string GetProjectCode(RhinoDoc doc) => DataFor(doc).ProjectCode;
+    public void SetProjectCode(RhinoDoc doc, string value) => DataFor(doc).ProjectCode = value;
 
     // Rhino asks this on every save. The base class returns false, which is
     // why document data silently fails to persist if you don't override it.
+    // Note it receives no document -- only WriteDocument does -- so answer for
+    // the plug-in as a whole and write per-document data there.
     protected override bool ShouldCallWriteDocument(FileWriteOptions options)
     {
       if (options.WriteSelectedObjectsOnly)
         return false;
-      return !string.IsNullOrEmpty(ProjectCode) || RevisionNumber > 0;
+      return m_document_data.Count > 0;
     }
 
     protected override void WriteDocument(RhinoDoc doc, BinaryArchiveWriter archive, FileWriteOptions options)
     {
+      // THIS document's state, not shared plug-in state.
+      var data = DataFor(doc);
+
       // The dictionary handles versioning better than raw chunk writes.
       var dict = new ArchivableDictionary(1, "MyPlugInDocumentData");
-      dict.Set("ProjectCode", ProjectCode ?? string.Empty);
-      dict.Set("RevisionNumber", RevisionNumber);
+      dict.Set("ProjectCode", data.ProjectCode ?? string.Empty);
+      dict.Set("RevisionNumber", data.RevisionNumber);
       archive.WriteDictionary(dict);
     }
 
@@ -558,10 +612,11 @@ namespace examples_cs
       var dict = archive.ReadDictionary();
       if (dict == null) return;
 
+      var data = DataFor(doc);
       if (dict.ContainsKey("ProjectCode"))
-        ProjectCode = dict["ProjectCode"] as string;
+        data.ProjectCode = dict["ProjectCode"] as string;
       if (dict.ContainsKey("RevisionNumber"))
-        RevisionNumber = (int)dict["RevisionNumber"];
+        data.RevisionNumber = (int)dict["RevisionNumber"];
 
       // options tells you why the file is being read -- merging an insert
       // is not the same as opening a document.
@@ -661,14 +716,21 @@ Changes made relative to the published McNeel samples and guide pages:
 - **Custom `UserData`** — reproduced verbatim from the guide's `PhysicalData` sample. The only additions
   are comments marking the three non-obvious requirements (unique `[Guid]`, parameterless constructor,
   `OnDuplicate`) and the hand-rolled `Write3dmChunkVersion` alternative, which the guide describes in prose.
-- **Attach user data to a Brep face** — taken from the samples-site `MyCustomData` version, with a
-  `face == null` guard added (the published version dereferences `objref.Face()` unchecked) and the
-  `UnderlyingSurface()` result hoisted into a local so the reason for it is visible.
+- **Attach user data to a Brep face** — based on the samples-site recipe, adapted to reuse the
+  `PhysicalData` class defined above (the published version uses a separate `MyCustomData` class this
+  file never defines), with a `face == null` guard added (the published version dereferences
+  `objref.Face()` unchecked). The write path follows the current McNeel sample: duplicate the owning
+  top-level `Brep`, attach to the corresponding surface in the duplicate, and
+  `doc.Objects.Replace(brepObject.Id, newBrep)`; mutating the picked face in place, or replacing via
+  the subobject `ObjRef`, loses the data.
 - **No Python was invented for `UserData`.** The published page has none, and none is possible from a
   script; the recipe says so and points at the two alternatives instead.
 - **User strings, document user strings, `UserDictionary`, document user data, `PlugIn.Settings`** — the
   guide pages name these APIs but ship no code, so each recipe is written from the API-reference member
   descriptions and is marked `pattern` in a leading comment rather than presented as a published sample.
   Verify exact overloads against the RhinoCommon API reference for your target version.
+- **Document user data** — the state is keyed by `RhinoDoc.RuntimeSerialNumber` in a dictionary, cleaned
+  up on `RhinoDoc.CloseDocument`, rather than held in plain plug-in properties, because one plug-in
+  instance serves every open document and instance properties would leak state across documents.
 - **Python throughout** — CPython 3 syntax (`print(...)`, `except ... as e`), and every function returns a
   `Rhino.Commands.Result` on every path.

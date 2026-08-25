@@ -381,9 +381,16 @@ public class MyPluginPlugin : Rhino.PlugIns.PlugIn
     pages.Add(new Views.MyOptionsPage());
   }
 
-  /// <summary>Per-document Document Properties (settings that travel in the .3dm).</summary>
+  /// <summary>
+  /// Per-document Document Properties (settings that travel in the .3dm).
+  /// Do NOT reuse MyOptionsPage here -- it persists through the global
+  /// PlugIn.Settings, so the "per-document" page would silently edit user
+  /// preferences instead. Register a separate document-aware page that takes
+  /// the supplied doc (or its serial number) and persists through document
+  /// user data -- see rule 7 and "Which list to register in" below.
+  /// </summary>
   protected override void DocumentPropertiesDialogPages(RhinoDoc doc, List<OptionsDialogPage> pages)
-    => pages.Add(new Views.MyOptionsPage());
+    => pages.Add(new Views.MyDocPropertiesPage(doc.RuntimeSerialNumber));
 
   /// <summary>Object Properties panel pages, for completeness.</summary>
   protected override void ObjectPropertiesPages(ObjectPropertiesPageCollection collection)
@@ -794,7 +801,6 @@ namespace MyPluginGh.Components
       pManager.AddPlaneParameter ("Plane",  "P", "Rectangle base plane",     GH_ParamAccess.item, Plane.WorldXY);
       pManager.AddNumberParameter("X Size", "X", "Size in plane X direction", GH_ParamAccess.item, 1.0);
       pManager.AddNumberParameter("Y Size", "Y", "Size in plane Y direction", GH_ParamAccess.item, 1.0);
-      pManager.AddNumberParameter("Radius", "R", "Corner fillet radius",      GH_ParamAccess.item, 0.0);
     }
 
     protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
@@ -808,13 +814,11 @@ namespace MyPluginGh.Components
       var plane = Plane.Unset;
       var x = RhinoMath.UnsetValue;
       var y = RhinoMath.UnsetValue;
-      var r = RhinoMath.UnsetValue;
 
       // GetData returns false when the input is missing -> bail out quietly.
       if (!DA.GetData(0, ref plane)) return;
       if (!DA.GetData(1, ref x)) return;
       if (!DA.GetData(2, ref y)) return;
-      if (!DA.GetData(3, ref r)) return;
 
       if (!plane.IsValid || !RhinoMath.IsValidDouble(x)) return;
 
