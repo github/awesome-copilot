@@ -454,16 +454,37 @@ No `<OutputPath>` here either, for the reason given in §4a.
 
 **Component icons.** Most shipped components have them, so this is the usual first addition rather
 than a rare one — but a component whose `Icon` override returns null needs none of it. Icons are
-24×24 PNGs embedded through a `.resx`, which on .NET 7+ means the property *and* the package from
-§4b, plus the files themselves:
+24×24 PNGs embedded through a `Properties/Resources.resx`, which on .NET 7+ means the property
+*and* the package from §4b, plus the `.resx` pair below. The `Properties.Resources.MyPluginGh_24x24`
+and `Properties.Resources.MyRectangle_24x24` accessors the component code reads are **generated from
+that `.resx`**; a bare `<None Include="....png" />` item neither embeds the PNGs nor generates
+anything, and the code will not compile.
+
+In the IDE: add `Properties/Resources.resx`, open it, and drag the PNGs in as image resources. The
+IDE generates `Resources.Designer.cs` (one `static Bitmap` property per image, named after the
+resource) and writes this pair into the `.csproj`:
 
 ```xml
   <ItemGroup>
-    <!-- 24x24 PNG icons, one per component plus one for the library -->
-    <None Include="Resources\MyPluginGh_24x24.png" />
-    <None Include="Resources\MyComponent_24x24.png" />
+    <!-- The .resx embeds the 24x24 PNGs; the generated designer exposes them
+         as Properties.Resources.MyPluginGh_24x24 / MyRectangle_24x24. In an
+         SDK-style project the .resx is already an EmbeddedResource, so these
+         are Update items wiring up the generator, not Include items. -->
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 ```
+
+The PNG files themselves live wherever the `.resx` references them (a `Resources/` folder next to
+the project file is conventional) and need no `.csproj` item of their own; the `.resx` carries them
+into the assembly.
 
 **Warning noise.** `NETSDK1086` ("FrameworkReference included but not used") is common in `.gha`
 projects, and `NU1701` appears once a `net48` leg exists. Silence them when you see them:
