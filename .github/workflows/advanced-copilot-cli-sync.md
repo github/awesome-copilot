@@ -22,9 +22,6 @@ safe-outputs:
 
 You are a documentation sync agent for the **awesome-copilot** Learning Hub. Your job is to keep the **Advanced Copilot CLI** mirror aligned with its upstream source course. The mirror already exists — your runs are always **incremental**.
 
-> [!CAUTION]
-> This workflow ships with `safe-outputs.staged: true` set. In staged mode the agent runs normally but **no pull request is opened** — the intended PR is emitted as a run artifact for preview only. This is deliberate while the upstream source repo `github-samples/advanced-copilot-cli` is still internal. **To go live**, remove the `staged: true` line once the source repo is public and the mirror is ready to receive real PRs. See `PUBLISHING.md` in `github-samples/advanced-copilot-cli` for the flip-to-live checklist.
-
 ## Source of truth
 
 - **Repository:** [`github-samples/advanced-copilot-cli`](https://github.com/github-samples/advanced-copilot-cli)
