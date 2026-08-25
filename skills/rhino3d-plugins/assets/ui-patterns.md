@@ -86,10 +86,9 @@ namespace MyPlugin.Views
     /// <summary>Everything else keys off this.</summary>
     public static System.Guid PanelId => typeof(MyPanel).GUID;
 
-    /// <summary>
-    /// Rhino constructs this reflectively. The constructor signature must be
-    /// EITHER parameterless OR exactly (uint documentSerialNumber).
-    /// Anything else and the panel silently fails to appear.
+    /// Rhino constructs this reflectively. Supported constructor signatures include
+    /// parameterless, (uint documentSerialNumber), (RhinoDoc), and
+    /// (Guid runtimeId, RhinoDoc). This example uses the serial-number form.
     /// </summary>
     public MyPanel(uint documentSerialNumber)
     {
@@ -820,7 +819,9 @@ namespace MyPluginGh.Components
       if (!DA.GetData(1, ref x)) return;
       if (!DA.GetData(2, ref y)) return;
 
-      if (!plane.IsValid || !RhinoMath.IsValidDouble(x)) return;
+      if (!plane.IsValid ||
+          !RhinoMath.IsValidDouble(x) ||
+          !RhinoMath.IsValidDouble(y)) return;
 
       if (Math.Abs(x) < 1e-12 || Math.Abs(y) < 1e-12)
       {

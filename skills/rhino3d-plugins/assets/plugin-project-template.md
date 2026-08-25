@@ -897,14 +897,14 @@ dotnet build -c Release
 #     level of dist/. Paths below are the SDK default layout §4a relies on —
 #     bin/<Configuration>/<tfm>/ — so Release here is genuinely the Release build.
 mkdir -p dist
-cp bin/Release/net8.0/MyPlugin.rhp dist/
+cp -R bin/Release/net8.0/. dist/
 cp icon.png dist/
 
 # 2b. Multi-target instead: a net8.0 leg for Rhino 8.20+ and a net48 leg for
 #     users still running Rhino 8 in .NET Framework mode, one folder each.
 mkdir -p dist/net48 dist/net8.0
-cp bin/Release/net48/MyPlugin.rhp  dist/net48/
-cp bin/Release/net8.0/MyPlugin.rhp dist/net8.0/
+cp -R bin/Release/net48/. dist/net48/
+cp -R bin/Release/net8.0/. dist/net8.0/
 cp icon.png dist/net48/ && cp icon.png dist/net8.0/
 
 # 3. Generate the manifest ONCE, then keep it in source control and edit by hand.

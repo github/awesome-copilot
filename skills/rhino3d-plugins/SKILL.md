@@ -456,8 +456,8 @@ clipped out of frame. For preview that only needs to last the length of one pick
 
 **Tabbed panels** have a registration contract that fails silently when broken. The panel
 class must be **public** and carry a `[Guid]` attribute, which *is* the panel id. Rhino
-constructs it reflectively, looking for a constructor that takes — in this order of
-preference — a `RhinoDoc`, a `uint documentSerialNumber`, or no arguments.
+constructs it reflectively, preferring — in this order — `(Guid runtimeId, RhinoDoc)`,
+a `RhinoDoc`, a `uint documentSerialNumber`, or no arguments.
 `Panels.RegisterPanel(plugIn, type, caption, icon)` must run before `Panels.OpenPanel`; the
 command constructor or `PlugIn.OnLoad` are both fine places for it. Inside a docked panel use
 `Rhino.UI.Dialogs.ShowMessage`, not `Eto.Forms.MessageBox`: a panel is a child of a Rhino
