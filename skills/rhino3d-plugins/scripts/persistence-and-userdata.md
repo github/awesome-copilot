@@ -590,8 +590,8 @@ namespace examples_cs
 
     // Rhino asks this on every save. The base class returns false, which is
     // why document data silently fails to persist if you don't override it.
-    // Note it receives no document -- only WriteDocument does -- so answer for
-    // the plug-in as a whole and write per-document data there.
+    // FileWriteOptions exposes the source document, so opt in only when this
+    // document has state to serialize.
     protected override bool ShouldCallWriteDocument(FileWriteOptions options)
     {
       if (options.WriteGeometryOnly || options.WriteSelectedObjectsOnly)
