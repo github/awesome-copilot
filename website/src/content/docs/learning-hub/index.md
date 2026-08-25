@@ -20,7 +20,7 @@ Prefer to learn by building? Work through [Hands-on with GitHub Copilot's agents
 
 ## Video content
 
-Rather watch than read? Explore the [CLI for Beginners video series](videos/cli-for-beginners/) on YouTube.
+Rather watch than read? Explore the [GitHub Copilot CLI for beginners](videos/cli-for-beginners/) and [GitHub Copilot app for beginners](videos/copilot-app/) video series on YouTube.
 
 ## Additional resources
 
