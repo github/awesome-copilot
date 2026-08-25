@@ -48,11 +48,12 @@ GUIDs are load-bearing in at least five distinct roles, and each needs its own f
 How to generate one:
 
 ```bash
-# .NET (any platform)
-dotnet run --project - <<< 'System.Console.WriteLine(System.Guid.NewGuid());'   # or:
-uuidgen                       # macOS / Linux
-powershell -c "[guid]::NewGuid()"   # Windows
+# Cross-platform when Python 3 is available
 python3 -c "import uuid; print(uuid.uuid4())"
+# macOS / Linux
+uuidgen
+# Windows
+powershell -c "[guid]::NewGuid()"
 ```
 
 Visual Studio's *Tools > Create GUID* and Rider's `Guid` live template do the same thing.
@@ -556,11 +557,7 @@ using System.Runtime.InteropServices;
 // the assembly's metadata comes from — the MSBuild <Version>/<Title>/<Company>
 // properties are inert. yak spec reads the compiled assembly, so anything you leave
 // out here comes back as a blank in manifest.yml.
-[assembly: AssemblyTitle("MyPlugin")]
-[assembly: AssemblyDescription("What MyPlugin does, in one sentence.")]
-[assembly: AssemblyCompany("My Company")]
-[assembly: AssemblyProduct("MyPlugin")]
-[assembly: AssemblyCopyright("Copyright © 2026, My Company")]
+// Assembly metadata is declared above; do not duplicate those attributes here.
 
 // yak spec reads AssemblyInformationalVersion first, then AssemblyVersion.
 [assembly: AssemblyVersion("1.0.0.0")]

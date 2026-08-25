@@ -80,7 +80,7 @@ namespace examples_cs
 {
   // The Guid attribute is required for serialization, and must be unique
   // to this class -- never reuse one from another sample.
-  [Guid("DAAA9791-01DB-4F5F-B89B-4AE46767C783")]
+  [Guid("00000000-0000-0000-0000-000000000000")] // REGENERATE
   public class PhysicalData : Rhino.DocObjects.Custom.UserData
   {
     public int Weight { get; set; }
@@ -153,7 +153,7 @@ namespace examples_cs
     }
   }
 
-  [Guid("ca9a110e-3969-49ec-9d59-a7c2ee0b85bd")]
+  [Guid("00000000-0000-0000-0000-000000000000")] // REGENERATE
   public class ex_userdataCommand : Rhino.Commands.Command
   {
     public override string EnglishName { get { return "cs_userdataCommand"; } }
@@ -283,9 +283,11 @@ partial class Examples
     obj.Attributes.SetUserString("Mass", (12.5).ToString("R"));
     obj.CommitChanges();
 
-    // The geometry has its own, independent set; no CommitChanges needed,
-    // but you must put the geometry back into the document to keep it.
-    obj.Geometry.SetUserString("Origin", "generated");
+    // Geometry user strings require replacing the document geometry.
+    var geometry = obj.Geometry.Duplicate();
+    geometry.SetUserString("Origin", "generated");
+    if (!doc.Objects.Replace(objref, geometry))
+      return Rhino.Commands.Result.Failure;
 
     // Enumerate everything on the attributes
     var all = obj.Attributes.GetUserStrings();

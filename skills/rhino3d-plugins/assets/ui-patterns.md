@@ -144,7 +144,7 @@ constructor works — commands are constructed once when the plugin loads.
 ```csharp
 // In PlugIn.OnLoad, or in the command's constructor:
 Panels.RegisterPanel(
-  PlugIn,                       // the owning plug-in instance
+  MyPluginPlugin.Instance,       // the owning plug-in instance
   typeof(Views.MyPanel),        // the panel type
   "My Panel",                   // caption on the tab
   Properties.Resources.MyPanelIcon);
