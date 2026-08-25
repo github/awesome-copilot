@@ -7,6 +7,8 @@ sidebar:
 
 Meet the GitHub Copilot app — your agent-native desktop home for working on GitHub. This beginner-friendly series covers writing your first prompt, tracking work, automations, running agents in parallel, and reviewing changes in-app. Play an episode below, or [watch the full playlist on YouTube](https://www.youtube.com/watch?v=LsA4vIX_3UY&list=PLNBWjViYXaIY).
 
+New here? [Install the GitHub Copilot app](https://gh.io/app) to follow along.
+
 ### 1. Meet the GitHub Copilot app
 
 <div class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/LsA4vIX_3UY?list=PLNBWjViYXaIY" title="Meet the GitHub Copilot app" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>

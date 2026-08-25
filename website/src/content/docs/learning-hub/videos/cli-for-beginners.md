@@ -7,6 +7,8 @@ sidebar:
 
 Learn GitHub Copilot CLI by watching. This beginner-friendly series walks you through using AI assistance directly in your terminal — from install and first prompts to slash commands, delegation, MCP, and customization. Play an episode below, or [watch the full playlist on YouTube](https://www.youtube.com/watch?v=BDxRhhs36ns&list=PL0lo9MOBetEHvO-spzKBAITkkTqv4RvNl).
 
+New here? [Install GitHub Copilot CLI](https://docs.github.com/copilot/how-tos/copilot-cli/set-up-copilot-cli/install-copilot-cli) to follow along.
+
 ### 1. Getting started with GitHub Copilot CLI
 
 <div class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/BDxRhhs36ns?list=PL0lo9MOBetEHvO-spzKBAITkkTqv4RvNl" title="Getting started with GitHub Copilot CLI" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
