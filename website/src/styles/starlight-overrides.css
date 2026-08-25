@@ -71,7 +71,8 @@ header.header {
   background: var(--sl-color-gray-6) !important;
   border-bottom: 1px solid var(--sl-color-gray-5) !important;
   z-index: 1000;
-  position: relative;
+  position: sticky;
+  top: 0;
 }
 
 /* Header inner content for alignment */

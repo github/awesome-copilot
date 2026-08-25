@@ -114,6 +114,7 @@ export default defineConfig({
       sidebar: [
         {
           label: "Fundamentals",
+          collapsed: true,
           items: [
             "learning-hub/github-copilot-app",
             "learning-hub/working-with-canvas-extensions",
@@ -135,9 +136,11 @@ export default defineConfig({
         },
         {
           label: "Courses",
+          collapsed: true,
           items: [
             {
               label: "CLI for Beginners",
+              collapsed: true,
               items: [
                 {
                   label: "Overview",
@@ -163,6 +166,7 @@ export default defineConfig({
         },
         {
           label: "Workshops",
+          collapsed: true,
           items: [
             {
               label: "Overview",
@@ -170,6 +174,7 @@ export default defineConfig({
             },
             {
               label: "VS Code",
+              collapsed: true,
               items: [
                 {
                   label: "Overview",
@@ -186,6 +191,7 @@ export default defineConfig({
             },
             {
               label: "Copilot CLI",
+              collapsed: true,
               items: [
                 {
                   label: "Overview",
@@ -204,6 +210,7 @@ export default defineConfig({
             },
             {
               label: "Copilot App",
+              collapsed: true,
               items: [
                 {
                   label: "Overview",
@@ -222,6 +229,7 @@ export default defineConfig({
             },
             {
               label: "Copilot Cloud Agent",
+              collapsed: true,
               items: [
                 {
                   label: "Overview",
@@ -239,10 +247,15 @@ export default defineConfig({
         },
         {
           label: "Video content",
-          items: ["learning-hub/videos/cli-for-beginners"],
+          collapsed: true,
+          items: [
+            "learning-hub/videos/cli-for-beginners",
+            "learning-hub/videos/copilot-app",
+          ],
         },
         {
           label: "Additional resources",
+          collapsed: true,
           items: [
             {
               label: "Cookbook",

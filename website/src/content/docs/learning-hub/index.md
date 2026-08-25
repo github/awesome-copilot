@@ -12,7 +12,7 @@ New to GitHub Copilot? Start here to understand the tools and concepts you'll bu
 
 ## Courses
 
-Prefer a guided, self-paced path? Work through a full course end to end. Start with [CLI for Beginners](cli-for-beginners/) — a beginner-friendly path into GitHub Copilot from the terminal. More courses are on the way.
+Prefer a guided, self-paced path? Work through a full course end to end. Start with [CLI for Beginners](cli-for-beginners/) — a beginner-friendly path into GitHub Copilot from the terminal.
 
 ## Workshops
 
@@ -20,7 +20,7 @@ Prefer to learn by building? Work through [Hands-on with GitHub Copilot's agents
 
 ## Video content
 
-Rather watch than read? Follow along with the [CLI for Beginners video series](videos/cli-for-beginners/) on YouTube — the same course, in video form.
+Rather watch than read? Explore the [CLI for Beginners video series](videos/cli-for-beginners/) on YouTube.
 
 ## Additional resources
 
