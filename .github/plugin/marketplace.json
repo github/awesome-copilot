@@ -22,6 +22,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "aeon",
+      "source": "plugins/aeon",
+      "description": "Operator console for an Aeon agent instance: enable, schedule, and edit skills, wire secrets and channels, debug runs, and mine past coding-agent chats into scheduled skills.",
+      "version": "0.1.0"
+    },
+    {
       "name": "agent-council",
       "description": "A runtime-portable 5-agent quality gate that adjudicates text artifacts before they ship. Five role-conditioned LLM deliberators run a 2-round async protocol with cross-read rebuttal and return one verdict — SHIP, REVISE, or HOLD — plus a structured revision brief and a full audit transcript.",
       "version": "0.1.3",

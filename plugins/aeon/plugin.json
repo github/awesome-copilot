@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "aeon",
+  "description": "Operator console for an Aeon agent instance: enable, schedule, and edit skills, wire secrets and channels, debug runs, and mine past coding-agent chats into scheduled skills.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Aeon Inc",
+    "url": "https://github.com/aeonfun"
+  },
+  "homepage": "https://aeon.fun",
+  "repository": "https://github.com/aeonfun/aeon",
+  "license": "MIT",
+  "keywords": [
+    "aeon",
+    "agent",
+    "skills",
+    "automation",
+    "github-actions",
+    "cron"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/aeon/"
+      ]
+    }
+  }
+}
