@@ -18,6 +18,8 @@ New to GitHub Copilot? Start here to understand the tools available to you.
 
 **Workshop**: Prefer to learn by building? Work through [Hands-on with GitHub Copilot's agents](copilot-workshops/) — a hands-on workshop with four harnesses (VS Code, Copilot CLI, Copilot app, and cloud agent) built around a shared Tailspin Toys backlog.
 
+**Advanced**: Ready to go deeper? Work through [Advanced Copilot CLI](advanced-copilot-cli/) — a nine-module, multi-stack course covering AI infrastructure, cloud-agent delegation, lifecycle hooks, and app modernization.
+
 ## Fundamentals
 
 Essential concepts to tailor GitHub Copilot beyond its default experience. Start with
