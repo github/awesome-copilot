@@ -92,9 +92,9 @@ the language: one line per switch.
 Encode required steps in the type so `.delete()` doesn't exist until they've run:
 
 ```ts
-class QueryBuilder<HasTable extends boolean = false, HasWhere extends boolean = false> {
+class QueryBuilder<HasFrom extends boolean = false, HasWhere extends boolean = false> {
   from(t: string): QueryBuilder<true, HasWhere> { /* … */ }
-  where(c: Cond): QueryBuilder<HasTable, true> { /* … */ }
+  where(c: Cond): QueryBuilder<HasFrom, true> { /* … */ }
 
   // Only callable once both have been set
   delete(this: QueryBuilder<true, true>): string { /* … */ }
