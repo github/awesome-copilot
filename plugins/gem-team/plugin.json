@@ -24,7 +24,6 @@
         "./agents/gem-skill-creator.md"
       ],
       "skills": [
-        "./skills/gem-design-md-guidelines/",
         "./skills/gem-devops-guidelines/"
       ]
     }
@@ -45,5 +44,5 @@
   "license": "Apache-2.0",
   "name": "gem-team",
   "repository": "https://github.com/mubaidr/gem-team",
-  "version": "1.109.0"
+  "version": "1.115.0"
 }

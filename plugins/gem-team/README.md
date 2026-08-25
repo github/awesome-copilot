@@ -121,8 +121,8 @@ After the first install, commit the generated APM files that belong to your repo
 Gem Team uses a structured workflow to turn AI coding into a reliable engineering process:
 
 1. **Route**: Classify the request from supplied evidence and select only the workflow depth it needs.
-2. **Plan**: Use an in-memory DAG for TRIVIAL/LOW work or a persistent, planner-confirmed DAG for MEDIUM/HIGH work.
-3. **Build**: Execute every DAG through the same dependency-aware loop, using TDD and specialist agents.
+2. **Plan**: Use an in-memory wave plan for TRIVIAL/LOW work or a persistent, planner-confirmed wave plan for MEDIUM/HIGH work.
+3. **Build**: Execute every wave plan through the same ordered-wave loop, using TDD and specialist agents.
 4. **Verify**: Check every task and run reviewer integration checks only when changed-scope risk requires them.
 5. **Learn**: Promote only stable, high-confidence patterns after successful execution.
 
@@ -139,26 +139,25 @@ Gem Team uses a structured workflow to turn AI coding into a reliable engineerin
 Gem Team installs a set of specialized agents that work together under the guidance of an Orchestrator. This team follows a disciplined workflow that includes planning, implementation, verification, and learning.
 
 - **Specialist Agents**: Dedicated agents for planning, research, implementation, review, and more.
-- **Orchestration**: One DAG loop coordinates dependencies, parallel work, bounded retries, and final acceptance checks at every complexity level.
-- **Context Management**: Execution agents receive an authoritative `task_definition`; constraints, evidence, and dependency outputs travel through its canonical `handoff`. Planner and reviewer use dedicated handoff contracts, and every delegate receives only a role-scoped configuration snapshot.
+- **Orchestration**: One wave loop coordinates ordered work, parallel tasks, bounded retries, and final acceptance checks at every complexity level.
+- **Context Management**: Execution agents receive an authoritative `task_definition` with a nested `handoff`; constraints, evidence, and prior-wave outputs travel through it. Planner receives a bounded `planning_context`; reviewer uses a dedicated review `handoff`; every delegate receives only a role-scoped configuration snapshot.
 
 ### Agent Roles
 
-| Role                | Description                                                                               |
-| :------------------ | :---------------------------------------------------------------------------------------- |
-| **Orchestrator**    | Coordinates the workflow and ensures all tasks are completed correctly.                   |
-| **Planner**         | Creates bounded DAG plans: milestones, routing, dependencies, waves, risks, and criteria. |
-| **Implementer**     | Writes the code using TDD and best practices.                                             |
-| **Reviewer**        | Reviews plans; provides read-only critique for ideas and challenges.                      |
-| **Debugger**        | Diagnoses bugs with root-cause analysis (never implements fixes).                         |
-| **Researcher**      | Explores the codebase and finds the best patterns to use.                                 |
-| **Designer**        | Creates UI/UX designs, layouts, and design systems.                                       |
-| **Tester**          | Runs E2E browser tests and visual regression.                                             |
-| **Tester Mobile**   | Runs mobile E2E tests on iOS/Android simulators.                                          |
-| **DevOps**          | Manages deployments, CI/CD, and infrastructure with approval gates.                       |
-| **Documentation**   | Writes technical docs, API references, and walkthroughs.                                  |
-| **Code Simplifier** | Refactors code to reduce complexity and remove dead code.                                 |
-| **Skill Creator**   | Extracts reusable patterns into packaged agent skills.                                    |
+| Role                | Description                                                                                     |
+| :------------------ | :---------------------------------------------------------------------------------------------- |
+| **Orchestrator**    | Coordinates the workflow and ensures all tasks are completed correctly.                         |
+| **Planner**         | Creates bounded wave plans: milestones, routing, per-task handoffs, waves, risks, and criteria. |
+| **Implementer**     | Writes the code using TDD and best practices.                                                   |
+| **Reviewer**        | Reviews plans; provides read-only critique for ideas and challenges.                            |
+| **Debugger**        | Diagnoses bugs with root-cause analysis (never implements fixes).                               |
+| **Researcher**      | Explores the codebase and finds the best patterns to use.                                       |
+| **Tester**          | Runs E2E browser tests and visual regression.                                                   |
+| **Tester Mobile**   | Runs mobile E2E tests on iOS/Android simulators.                                                |
+| **DevOps**          | Manages deployments, CI/CD, and infrastructure with approval gates.                             |
+| **Documentation**   | Writes technical docs, API references, and walkthroughs.                                        |
+| **Code Simplifier** | Refactors code to reduce complexity and remove dead code.                                       |
+| **Skill Creator**   | Extracts reusable patterns into packaged agent skills.                                          |
 
 ## Compatible Tools
 
