@@ -582,7 +582,11 @@ namespace examples_cs
     }
 
     public string GetProjectCode(RhinoDoc doc) => DataFor(doc).ProjectCode;
-    public void SetProjectCode(RhinoDoc doc, string value) => DataFor(doc).ProjectCode = value;
+    public void SetProjectCode(RhinoDoc doc, string value)
+    {
+      DataFor(doc).ProjectCode = value;
+      doc.Modified = true;
+    }
 
     // Rhino asks this on every save. The base class returns false, which is
     // why document data silently fails to persist if you don't override it.
@@ -590,7 +594,7 @@ namespace examples_cs
     // the plug-in as a whole and write per-document data there.
     protected override bool ShouldCallWriteDocument(FileWriteOptions options)
     {
-      if (options.WriteSelectedObjectsOnly)
+      if (options.WriteGeometryOnly || options.WriteSelectedObjectsOnly)
         return false;
       return m_document_data.Count > 0;
     }

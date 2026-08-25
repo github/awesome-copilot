@@ -408,7 +408,7 @@ for (;;)
     go.EnablePreSelect(false, true);              // or the next call returns GetResult.Object
     continue;
   }
-  if (res != GetResult.Object) return Result.Cancel;
+  if (res != GetResult.Object) return go.CommandResult();
 
   if (go.ObjectsWerePreselected)
   {

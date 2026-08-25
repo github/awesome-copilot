@@ -288,9 +288,7 @@ protected override Result RunCommand(RhinoDoc doc, RunMode mode)
   }
 
   var dialog = new Views.MyModalDialog();
-  Eto.Forms.DialogResult rc = dialog.ShowModal(RhinoEtoApp.MainWindow);
-  // Better, especially on Mac:
-  //   dialog.ShowModal(RhinoEtoApp.MainWindowForDocument(doc));
+  Eto.Forms.DialogResult rc = dialog.ShowModal(RhinoEtoApp.MainWindowForDocument(doc));
 
   return rc == Eto.Forms.DialogResult.Ok ? Result.Success : Result.Cancel;
 }

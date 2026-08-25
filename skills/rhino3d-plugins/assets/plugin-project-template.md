@@ -887,7 +887,7 @@ such uncertainty.)
 
 ```bash
 # 0. Set YAK once so the commands below are readable.
-#    Windows:  set YAK="C:\Program Files\Rhino 8\System\Yak.exe"
+#    Windows (Git Bash): YAK="/c/Program Files/Rhino 8/System/Yak.exe"
 #    macOS:    YAK="/Applications/Rhino 8.app/Contents/Resources/bin/yak"
 
 # 1. Build every target, Release configuration.
