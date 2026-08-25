@@ -5,6 +5,8 @@ description: Design or review infrastructure, deployment, CI/CD, Docker, Kuberne
 
 # DevOps Guidelines
 
+Apply only the sections relevant to the workload, provider, environment, and acceptance criteria. Skip Docker, Kubernetes, mobile, production, rollback, health, feature-flag, and security checks when they do not apply.
+
 ## Deployment strategy
 
 - Rolling (default): gradual, zero-downtime replacement.
@@ -23,12 +25,12 @@ Configure startup, readiness, and liveness probes with workload-appropriate init
 
 ## CI/CD
 
-- PR: lint → typecheck → unit → integration → preview.
-- Main: build → staging → smoke → production.
+- PR: lint -> typecheck -> unit -> integration -> preview.
+- Main: build -> staging -> smoke -> production.
 
 ## Health and shutdown
 
-- Simple: `GET /health` → `{ "status": "ok" }`.
+- Simple: `GET /health` -> `{ "status": "ok" }`.
 - Detailed: dependencies, uptime, version.
 - Services MUST expose meaningful health and gracefully handle `SIGTERM` when the workload requires it.
 
@@ -42,7 +44,7 @@ Kubernetes: `kubectl rollout undo`. Vercel: `vercel rollback`. Docker: redeploy 
 
 ## Feature Flags
 
-- Lifecycle: create → enable → 5% → 25% → 50% → 100% → remove flag and dead code.
+- Lifecycle: create -> enable -> 5% -> 25% -> 50% -> 100% -> remove flag and dead code.
 - Every flag MUST have an owner, expiration, and rollback trigger. Remove within two weeks.
 
 ## Checklists
@@ -58,4 +60,4 @@ Kubernetes: `kubectl rollout undo`. Vercel: `vercel rollback`. Docker: redeploy 
 - Fastlane: iOS `match`/`cert`/`sigh`/`pilot`; Android Gradle/`supply`.
 - Keep credentials in environment/secret storage, never Git. Automate iOS development/distribution signing with `fastlane match`; use `keytool` and Google Play App Signing for Android.
 - TestFlight: internal instant; external 90 days/100 testers. Google Play: internal/beta/production. Expect 1–7 days for review.
-- Rollback: EAS `eas update:rollback`; native release → revert build; store release → reduce phased rollout.
+- Rollback: EAS `eas update:rollback`; native release -> revert build; store release -> reduce phased rollout.
