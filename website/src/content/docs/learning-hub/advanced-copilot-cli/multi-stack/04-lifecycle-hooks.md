@@ -209,7 +209,7 @@ AssetTrack's checks span four different stacks - .NET, Java, Python, TypeScript,
     chmod +x .github/hooks/scripts/test-router.sh
     ```
 
-5. Create the hook configutation file `.github/hooks/hooks.json` and paste in the following content. This declares the `postToolUse` and `agentStop` hooks, both of which call the same script you just downloaded:
+5. Create the hook configuration file `.github/hooks/hooks.json` and paste in the following content. This declares the `postToolUse` and `agentStop` hooks, both of which call the same script you just downloaded:
 
     ```json
     {
