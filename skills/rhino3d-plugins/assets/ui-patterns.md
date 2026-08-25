@@ -725,9 +725,11 @@ internal class MyDropTarget : RhinoDropTarget
 ### Wiring both up in `OnLoad`
 
 ```csharp
+private MyDropTarget m_drop_target = null!;
+
 protected override LoadReturnCode OnLoad(ref string errorMessage)
 {
-  DropTarget = new MyDropTarget();
+  m_drop_target = new MyDropTarget();
 
   Panels.RegisterPanel(this, typeof(MyDragPanel), "My Panel", null);
 

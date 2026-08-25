@@ -596,7 +596,9 @@ namespace examples_cs
     {
       if (options.WriteGeometryOnly || options.WriteSelectedObjectsOnly)
         return false;
-      return m_document_data.Count > 0;
+
+      var doc = options.RhinoDoc;
+      return doc != null && m_document_data.ContainsKey(doc.RuntimeSerialNumber);
     }
 
     protected override void WriteDocument(RhinoDoc doc, BinaryArchiveWriter archive, FileWriteOptions options)
@@ -644,8 +646,7 @@ namespace examples_cs
 Not available from a script. `ShouldCallWriteDocument` / `WriteDocument` / `ReadDocument` are `protected`
 overrides on the compiled `Rhino.PlugIns.PlugIn` base class, and Rhino calls them on a plug-in it loaded
 from the file's plug-in id — there is no script-hosted equivalent. From a script, use
-[document-level user strings](#document-level-user-strings) or the document's own user dictionary
-(`doc.UserDictionary`), both of which persist without any serialization code.
+[document-level user strings](#document-level-user-strings), which persist automatically.
 
 ---
 
