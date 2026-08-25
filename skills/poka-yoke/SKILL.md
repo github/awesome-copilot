@@ -183,8 +183,13 @@ addressed.
 
 This method was benchmarked at 591 blind-graded runs across six model families, scored against
 assertions written before the runs by a grader that never saw which configuration produced a
-response. The behaviour it most reliably changes is stating what a design forecloses: **42% of
-responses did that unprompted, 81% with the method applied**.
+response. The behaviour it most reliably changes is stating what a design forecloses: **45% of
+responses did that unprompted, 80% with the method applied**, across 132 graded verdicts.
+
+That average conceals where the effect lives. Asked squarely to design an interface, models
+already do it 77% of the time; the skills add eleven points. The large gains are in tasks
+where nobody asked for a design review — writing an endpoint goes 14% to 79%, shipping an
+agent feature 33% to 83%, building a form 29% to 64%.
 
 Stated honestly, because the limits matter: every run was the first turn of a fresh session, so
 this measures the ceiling rather than what survives a long working session. The comparison was
