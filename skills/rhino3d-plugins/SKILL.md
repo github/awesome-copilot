@@ -463,11 +463,11 @@ command constructor or `PlugIn.OnLoad` are both fine places for it. Inside a doc
 `Rhino.UI.Dialogs.ShowMessage`, not `Eto.Forms.MessageBox`: a panel is a child of a Rhino
 container and has no top-level Eto window, which breaks the Eto message box on Mac.
 
-**Dialogs.** `Dialog<T>` with `ShowModal(RhinoEtoApp.MainWindowForDocument(doc))` for modal;
-`ShowSemiModal` when the user still needs to pick in the viewport; a modeless `Form` needs
-`Owner` set or it disappears behind Rhino on Mac. Prefer `MainWindowForDocument(doc)` over
-`MainWindow` — on Mac, multiple documents mean multiple main windows. (Most published samples
-still use `MainWindow`; the per-document form is what the current Eto guide recommends.)
+**Dialogs.** Use `Dialog<T>` with `ShowModal(RhinoEtoApp.MainWindowForDocument(doc))` for modal, and
+`ShowSemiModal` when the user still needs to pick in the viewport. Modeless Eto `Form`s are not
+currently supported on Mac, so use a Panel for cross-platform modeless UI; on Windows, set the
+form's `Owner`. Prefer `MainWindowForDocument(doc)` over `MainWindow`, especially on Mac with
+multiple documents.
 
 **Options pages** register through `PlugIn.OptionsDialogPages()` (application preferences) or
 `PlugIn.DocumentPropertiesDialogPages()` (settings that belong to this `.3dm`). The lifecycle

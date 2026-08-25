@@ -181,8 +181,8 @@ if (null == option) return Result.Nothing;
 ### Rules that are easy to get wrong
 
 - The panel class **must** carry a `[Guid]` attribute — that GUID *is* the panel id.
-- The constructor must be parameterless or `(uint documentSerialNumber)`. Rhino constructs it
-  reflectively; any other signature fails silently.
+- The constructor must be parameterless, `(uint documentSerialNumber)`, `(RhinoDoc)`, or
+  `(Guid runtimeId, RhinoDoc)`. Rhino constructs it reflectively; other signatures fail silently.
 - `RegisterPanel` must run before `OpenPanel`.
 - A panel that selects objects has to handle the ones that cannot be selected. `Objects.Select`
   is a no-op on a locked or hidden object and returns without complaint, so a row click appears
@@ -325,8 +325,8 @@ how you show it:
 
 ```csharp
 // Hold the reference somewhere (a static or plug-in field) so it is not
-// garbage-collected, and ALWAYS set Owner — without it the form goes behind
-// Rhino on Mac.
+// garbage-collected. This pattern is Windows-only; always set Owner so the form stays
+// associated with Rhino. Use a Panel for modeless UI on Mac.
 Form = new Views.MyModelessForm { Owner = RhinoEtoApp.MainWindow };
 Form.Show();
 ```
@@ -826,7 +826,7 @@ namespace MyPluginGh.Components
       if (Math.Abs(x) < 1e-12 || Math.Abs(y) < 1e-12)
       {
         // Warning / Error / Remark — this is how a component talks to the user.
-        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Rectangle diagonal cannot be zero length.");
+        AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Rectangle dimensions cannot be zero.");
         return;
       }
 
