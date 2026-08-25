@@ -609,19 +609,27 @@ namespace examples_cs
 
     protected override void ReadDocument(RhinoDoc doc, BinaryArchiveReader archive, FileReadOptions options)
     {
+      // Always consume the archive first so the reader stays positioned
+      // correctly, even when the data ends up ignored below.
       var dict = archive.ReadDictionary();
       if (dict == null) return;
+
+      // Check WHY the file is being read BEFORE touching destination state.
+      // During an insert / import / reference attach this archive holds the
+      // SOURCE file's values; applying them would overwrite the destination
+      // document's own project code and revision. Merge or ignore explicitly
+      // -- this sample ignores.
+      if (options.ImportMode || options.ImportReferenceMode)
+      {
+        RhinoApp.WriteLine("MyPlugIn data in the imported file was ignored");
+        return;
+      }
 
       var data = DataFor(doc);
       if (dict.ContainsKey("ProjectCode"))
         data.ProjectCode = dict["ProjectCode"] as string;
       if (dict.ContainsKey("RevisionNumber"))
         data.RevisionNumber = (int)dict["RevisionNumber"];
-
-      // options tells you why the file is being read -- merging an insert
-      // is not the same as opening a document.
-      if (options.ImportMode || options.ImportReferenceMode)
-        RhinoApp.WriteLine("MyPlugIn data read during an import");
     }
   }
 }
@@ -732,5 +740,7 @@ Changes made relative to the published McNeel samples and guide pages:
 - **Document user data** — the state is keyed by `RhinoDoc.RuntimeSerialNumber` in a dictionary, cleaned
   up on `RhinoDoc.CloseDocument`, rather than held in plain plug-in properties, because one plug-in
   instance serves every open document and instance properties would leak state across documents.
+  `ReadDocument` checks `ImportMode`/`ImportReferenceMode` before touching destination state and ignores
+  the imported values; an insert or reference attach must not overwrite the open document's own data.
 - **Python throughout** — CPython 3 syntax (`print(...)`, `except ... as e`), and every function returns a
   `Rhino.Commands.Result` on every path.
