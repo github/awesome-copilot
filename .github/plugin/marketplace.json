@@ -614,6 +614,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "edit-tutorial",
+      "source": "plugins/edit-tutorial",
+      "description": "Turn the code edits Copilot made in your session into an interactive lesson: a step-by-step walkthrough of each change with before/after views and quizzes, then a hands-on exercise that varies those edits so you finish the change yourself.",
+      "version": "1.0.0"
+    },
+    {
       "name": "elasticsearch",
       "description": "Official Elastic plugin for GitHub Copilot — translate natural language to ES|QL queries, ingest data, manage Elasticsearch security (authn, authz, audit), and troubleshoot clusters. Powered by the official Elastic agent skills repository.",
       "version": "0.3.0",
