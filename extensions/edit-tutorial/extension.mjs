@@ -1596,16 +1596,33 @@ function gotoStep(i) {
 
 // Switches to another lesson in the history. The server owns the swap: it moves
 // the active lesson (with its progress) back into the archive, pulls the chosen
-// one out, and bumps the revision, so a debounced progress save composed
-// against the departing lesson is refused rather than written onto the arriving
-// one.
+// one out, and bumps the revision, so a save composed against the departing
+// lesson that arrives after the swap is refused rather than written onto the
+// arriving one. That refusal is exactly why the departing progress has to be
+// flushed BEFORE the switch is requested: the swap archives whatever the
+// server holds at that moment, and an edit still sitting in the 450ms debounce
+// window would otherwise be quietly missing from the archive.
 function gotoLesson(index) {
   var info = S.lesson || {};
   if (lessonSwitching || !(info.count > 1)) return;
   if (index < 0 || index >= info.count || index === info.index) return;
   var forward = index > (info.index || 0);
   lessonSwitching = true;
-  api("/lesson", { method: "POST", body: JSON.stringify({ index: index }) })
+  // The same flush discipline askReview uses: cancel the debounce, post the
+  // current progress directly, and only then switch. A 409 answer is fine, the
+  // server already holds something newer or an authoritative change is on its
+  // way. A network failure must not strand the learner on this lesson either,
+  // so the switch still proceeds; the unflushed keystrokes then carry the same
+  // risk a dropped save always carried, no more.
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+  postProgress()
+    .catch(function () {})
+    .then(function () {
+      return api("/lesson", { method: "POST", body: JSON.stringify({ index: index }) });
+    })
     .then(function (r) {
       if (!r.ok) throw new Error("switch rejected");
       return r.json();
