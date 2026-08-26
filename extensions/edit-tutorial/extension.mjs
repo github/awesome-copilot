@@ -650,8 +650,8 @@ function lcsSuffixLengths(b, a) {
 function diffLines(before, after) {
   var b = String(before || "").split("\\n");
   var a = String(after || "").split("\\n");
-  var bKey = b;
-  var aKey = a;
+  var bKey = b.map(function (line) { return line.trim(); });
+  var aKey = a.map(function (line) { return line.trim(); });
   var removed = {}, added = {};
   var i = 0, j = 0, k;
 
