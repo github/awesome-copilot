@@ -312,9 +312,10 @@ function saveState(workspacePath, state) {
     const chained = prior.then(run, run);
     saveQueues.set(file, chained);
     // Drop the entry once this write is the tail, so the map does not grow.
-    chained.then(() => {
+    const cleanup = () => {
         if (saveQueues.get(file) === chained) saveQueues.delete(file);
-    });
+    };
+    chained.then(cleanup, cleanup);
     return chained;
 }
 
