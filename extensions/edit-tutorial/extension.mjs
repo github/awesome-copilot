@@ -626,6 +626,25 @@ function api(path, options) {
   return fetch(path, { method: opts.method || "GET", headers: headers, body: opts.body });
 }
 
+// Every state document the canvas receives goes through here: the initial /state
+// read, an event from the stream, and the /reset response. They can arrive out of
+// order, because the read is issued before the stream is open, so a tutorial or
+// reset event can be applied first and the older read would then overwrite it.
+// Revisions only ever move forward, so a snapshot no newer than the one already
+// applied is dropped. Without that the canvas can end up sitting on a lesson that
+// no longer exists, with no further event coming to correct it, and every save it
+// makes refused as a stale revision.
+var appliedRev = -1;
+
+function applyState(next) {
+  if (!next || typeof next !== "object") return false;
+  var rev = Number(next.rev) || 0;
+  if (appliedRev !== -1 && rev <= appliedRev) return false;
+  S = next;
+  appliedRev = rev;
+  return true;
+}
+
 function esc(s) {
   return String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;")
@@ -1202,9 +1221,13 @@ function resetProgress() {
       return r.json();
     })
     .then(function (state) {
-      S = state;
-      view = { kind: "step", index: 0 };
-      lastCheckResults = null;
+      // The broadcast for this same reset may have arrived first and carried the
+      // same revision, in which case it already moved the view and there is
+      // nothing left to do here.
+      if (applyState(state)) {
+        view = { kind: "step", index: 0 };
+        lastCheckResults = null;
+      }
       render();
     })
     .catch(function () { toast("Could not reset your progress."); });
@@ -1220,7 +1243,9 @@ evtSource.onmessage = function (e) {
   try { msg = JSON.parse(e.data); } catch (err) { return; }
   if (!msg || !msg.state) return;
   var hadTutorial = !!S.tutorial;
-  S = msg.state;
+  // A replayed or out-of-order event carries a revision already applied; its view
+  // changes and toasts would be duplicates, so stop here.
+  if (!applyState(msg.state)) return;
   if (!hadTutorial && S.tutorial) {
     view = { kind: "step", index: 0 };
     toast("Your tutorial is ready.");
@@ -1236,8 +1261,10 @@ api("/state")
     return r.json();
   })
   .then(function (state) {
-    S = state;
-    if (S.tutorial && S.progress) {
+    // This read was issued before the stream opened. If an event has already
+    // delivered a newer document, this snapshot is stale and the opening step it
+    // would pick is wrong, so leave the applied state and its view alone.
+    if (applyState(state) && S.tutorial && S.progress) {
       var firstOpen = -1;
       S.tutorial.steps.forEach(function (s, i) {
         if (firstOpen === -1 && !(S.progress.steps[s.id] || {}).understood) firstOpen = i;
