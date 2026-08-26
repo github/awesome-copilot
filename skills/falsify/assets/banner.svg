@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0f1a"/>
+      <stop offset="0.55" stop-color="#101a33"/>
+      <stop offset="1" stop-color="#1a1433"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7dd3fc"/>
+      <stop offset="0.5" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#f472b6"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="320" fill="url(#bg)"/>
+  <rect width="1280" height="320" fill="url(#grid)"/>
+  <circle cx="1150" cy="60" r="180" fill="#7dd3fc" opacity="0.06"/>
+  <circle cx="160" cy="300" r="140" fill="#f472b6" opacity="0.05"/>
+  <text x="72" y="150" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="88" font-weight="700" fill="url(#accent)" letter-spacing="-2">falsify</text>
+  <text x="76" y="205" font-family="ui-sans-serif, -apple-system, sans-serif" font-size="30" fill="#cbd5e1">Think like a first-rate scientist: falsify before you believe.</text>
+  <text x="76" y="248" font-family="ui-sans-serif, -apple-system, sans-serif" font-size="24" fill="#64748b">公理化 → 假设化 → 对抗 → 验证 → 收束 · the 5-stage thinking protocol for AI agents</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">
+    <rect x="72" y="272" width="158" height="28" rx="6" fill="#7dd3fc" opacity="0.12"/>
+    <text x="84" y="292" fill="#7dd3fc">works with 20+ agents</text>
+    <rect x="250" y="272" width="118" height="28" rx="6" fill="#a78bfa" opacity="0.12"/>
+    <text x="262" y="292" fill="#a78bfa">MIT license</text>
+    <rect x="388" y="272" width="148" height="28" rx="6" fill="#f472b6" opacity="0.12"/>
+    <text x="400" y="292" fill="#f472b6">evals included</text>
+  </g>
+</svg>
