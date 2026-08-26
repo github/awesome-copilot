@@ -928,10 +928,12 @@ function onEditorKey(e) {
 
 // Solution checks are regexes the agent wrote, run against whatever the learner
 // typed. Even a pattern that compiles can backtrack catastrophically on a near
-// match and freeze the tab, so checks never run on the UI thread: a worker
-// evaluates them one at a time and reports each result as it lands. If the batch
-// blows its budget the worker is terminated and the unfinished checks come back
-// as "not evaluated", leaving the canvas responsive.
+// match and freeze the tab, so whenever a worker can be created the checks run
+// there: it evaluates them one at a time and reports each result as it lands, and
+// if the batch blows its budget the worker is terminated and the unfinished checks
+// come back as "not evaluated", leaving the canvas responsive. Only when no worker
+// is available at all do they run on this thread, under the narrower protection
+// described at the inline fallback below.
 var CHECK_BUDGET_MS = 2000;
 var CHECK_WORKER_SRC = [
   "self.onmessage = function (e) {",
@@ -968,9 +970,12 @@ function runChecks(checks, codeText, done) {
     blobUrl = null;
   };
 
-  // Evaluating on this thread is the degradation when no worker is usable. It is
-  // acceptable only because every pattern reaching the canvas was screened for
-  // backtracking shapes when the lesson was published.
+  // The degradation when no worker is usable: this runs on the UI thread with no
+  // time bound, so it leans entirely on the publish-time screen, which every
+  // pattern passes before it can reach the canvas (set_tutorial screens on the
+  // way in, loadState re-screens saved lessons on the way back out). That screen
+  // is a conservative heuristic rather than a proof, which is why it is the
+  // fallback and the worker is the normal path.
   var inline = function () {
     var out = [], k;
     for (k = 0; k < checks.length; k++) {
@@ -1035,7 +1040,9 @@ function checkWork(btn) {
     checking = false;
     // The agent can publish a new lesson or reset progress while a check is in
     // flight. Applying these results to whatever replaced it would credit the
-    // wrong exercise, so drop them; that path always re-renders on its own.
+    // wrong exercise, so drop them. Re-render on the way out: the replacing path
+    // normally repaints too, but this is what guarantees the pending "Checking..."
+    // button never sticks if it did not.
     if (!S.tutorial || !S.progress || S.tutorial.exercise.checks !== ex.checks) {
       render();
       return;
@@ -1053,7 +1060,11 @@ function checkWork(btn) {
       pe.completed = true;
       pe.completedBy = "checks";
       pe.completedAt = new Date().toISOString();
-    } else {
+    } else if (!stalled) {
+      // Only count a run where every check actually returned a verdict. A stalled
+      // check is not the learner getting it wrong, and failedAttempts is what
+      // offers up the reference solution, so an unrunnable check must not push
+      // them toward the answer they never failed to reach.
       pe.failedAttempts++;
     }
     saveProgress(true);
