@@ -12,8 +12,7 @@
 
 .PARAMETER AnswersFile
     Optional JSON file containing planFileName, questionsSection,
-    implementationSection, exampleIssues, baseRemote, issueType, and
-    supportingArtifacts.
+    implementationSection, exampleIssues, baseRemote, and supportingArtifacts.
 
 .PARAMETER PassThru
     Return an object describing generated artifacts for automation.
@@ -179,22 +178,20 @@ if ($AnswersFile) {
     $IMPLEMENTATION_SECTION = Get-RequiredAnswer $answers 'implementationSection'
     $EXAMPLE_ISSUES = Get-RequiredAnswer $answers 'exampleIssues'
     $BASE_REMOTE = Get-RequiredAnswer $answers 'baseRemote'
-    $ISSUE_TYPE = Get-RequiredAnswer $answers 'issueType'
     $SUPPORTING_ARTIFACTS = Get-RequiredAnswer $answers 'supportingArtifacts'
 } else {
-    $PLAN_FILE_NAME = Read-Required '1/7  PLAN_FILE_NAME (name within campaign metadata directory)'
+    $PLAN_FILE_NAME = Read-Required '1/6  PLAN_FILE_NAME (name within campaign metadata directory)'
 
     Write-Host ''
     Write-Host '  Hint: copy the exact markdown heading from the plan.' -ForegroundColor DarkGray
-    $QUESTIONS_SECTION = Read-Required '2/7  QUESTIONS_SECTION (exact resolved-questions heading)'
-    $IMPLEMENTATION_SECTION = Read-Required '3/7  IMPLEMENTATION_SECTION (exact implementation heading)'
+    $QUESTIONS_SECTION = Read-Required '2/6  QUESTIONS_SECTION (exact resolved-questions heading)'
+    $IMPLEMENTATION_SECTION = Read-Required '3/6  IMPLEMENTATION_SECTION (exact implementation heading)'
 
     Write-Host ''
     Write-Host '  Hint: provide full GitHub issue URLs separated by commas.' -ForegroundColor DarkGray
-    $EXAMPLE_ISSUES = Read-Required '4/7  EXAMPLE_ISSUES (full issue URLs whose style to follow)'
-    $BASE_REMOTE = Read-Required '5/7  BASE_REMOTE (git remote name)' 'upstream'
-    $ISSUE_TYPE = Read-Required '6/7  ISSUE_TYPE (GitHub issue type for children)' 'Task'
-    $SUPPORTING_ARTIFACTS = Read-Required '7/7  SUPPORTING_ARTIFACTS (repo-relative paths or constraints)' $PLAN_DIRECTORY
+    $EXAMPLE_ISSUES = Read-Required '4/6  EXAMPLE_ISSUES (full issue URLs whose style to follow)'
+    $BASE_REMOTE = Read-Required '5/6  BASE_REMOTE (git remote name)' 'upstream'
+    $SUPPORTING_ARTIFACTS = Read-Required '6/6  SUPPORTING_ARTIFACTS (repo-relative paths or constraints)' $PLAN_DIRECTORY
 }
 
 $planPath = Join-Path $campaignMetadataPath $PLAN_FILE_NAME
@@ -241,7 +238,6 @@ Invoke skill ``shepherd-task-20-create-issues-from-plan`` with these inputs:
 - IMPLEMENTATION_SECTION: $IMPLEMENTATION_SECTION
 - EXAMPLE_ISSUES: $EXAMPLE_ISSUES
 - BASE_REMOTE: $BASE_REMOTE
-- ISSUE_TYPE: $ISSUE_TYPE
 - SUPPORTING_ARTIFACTS: $SUPPORTING_ARTIFACTS
 - LOG_DIRECTORY: $logDirFull
 "@

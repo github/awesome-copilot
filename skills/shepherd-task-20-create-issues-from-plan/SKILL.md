@@ -1,6 +1,6 @@
 ---
 name: shepherd-task-20-create-issues-from-plan
-description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child Task issues under an existing GitHub parent issue, incorporating resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 14 inputs are required. Skip this stage when suitable implementation issues already exist.'
+description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child issues under an existing GitHub parent issue, preferring the Task issue type when the repository supports it. Incorporates resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 13 inputs are required. Skip this stage when suitable implementation issues already exist.'
 ---
 
 # Skill: Create Shepherd Task Issues from a Plan (shepherd-task stage 20 — creation of ordered implementation issues)
@@ -24,11 +24,10 @@ The created issues are specifications, not summaries. A coding agent must be abl
 7. **`IMPLEMENTATION_SECTION`** — Exact heading of the implementation/build-order section whose direct task subsections become child issues.
 8. **`EXAMPLE_ISSUES`** — One or more comma-separated full GitHub issue URLs whose title/body style, specificity, and formatting establish the expected standard. Bare issue numbers are not accepted.
 9. **`BASE_REMOTE`** — Remote name agents should use (e.g. `upstream` or `origin`).
-10. **`ISSUE_TYPE`** — GitHub issue type for children (e.g. `Task`).
-11. **`SUPPORTING_ARTIFACTS`** — Repo-relative paths or path constraints for spike reports, prototypes, screenshots, etc. that task issues must cite.
-12. **`LOG_DIRECTORY`** — Absolute path to the existing run log directory. The launcher supplies this input; store all drafted issue bodies and the creation ledger here.
-13. **`CAMPAIGN_ID`** — Canonical campaign UUID from `PLAN_DIRECTORY/shepherd-campaign.json`.
-14. **`LESSON_PROPAGATION`** — Immutable campaign mode, exactly `off` or `campaign`.
+10. **`SUPPORTING_ARTIFACTS`** — Repo-relative paths or path constraints for spike reports, prototypes, screenshots, etc. that task issues must cite.
+11. **`LOG_DIRECTORY`** — Absolute path to the existing run log directory. The launcher supplies this input; store all drafted issue bodies and the creation ledger here.
+12. **`CAMPAIGN_ID`** — Canonical campaign UUID from `PLAN_DIRECTORY/shepherd-campaign.json`.
+13. **`LESSON_PROPAGATION`** — Immutable campaign mode, exactly `off` or `campaign`.
 
 ## Fixed behaviors
 
@@ -42,6 +41,7 @@ The created issues are specifications, not summaries. A coding agent must be abl
 - Each issue must prominently include text stating that on the base branch, the `PLAN_DIRECTORY` contains the `PLAN_FILE_NAME` and supporting resources.
 - Never write vague references such as "read the relevant sections"; enumerate exact headings.
 - Never cite a resolution without its concrete value or operational consequence.
+- Prefer the enabled `Task` issue type when the repository owner provides it; otherwise create ordinary untyped issues.
 - In `campaign` mode, every issue must tell CCA to consume validated campaign lessons and contribute candidate lessons. In `off` mode, omit all lesson consumption and production instructions.
 
 ## Bundled examples
@@ -65,7 +65,12 @@ When creating issues, produce issue bodies at least as specific and structured a
 4. Verify `BASE_BRANCH` is not `main` or the repository's default branch.
 5. Verify `BASE_BRANCH` exists.
 6. Verify `PARENT_ISSUE` exists, is open, and belongs to `REPO`.
-7. Discover the repository owner's issue types. Verify `ISSUE_TYPE` exists and is enabled.
+7. Determine whether `REPO` supports an enabled issue type named exactly `Task`:
+   - Read the repository owner's login and type from `gh api "repos/$REPO"`.
+   - If the owner type is `Organization`, query `gh api "orgs/$OWNER/issue-types"`. If the request succeeds and contains an entry whose `name` is exactly `Task` and whose `is_enabled` value is `true`, set `SELECTED_ISSUE_TYPE=Task`. If it succeeds without such an entry, leave `SELECTED_ISSUE_TYPE` empty.
+   - If the owner type is `User`, leave `SELECTED_ISSUE_TYPE` empty because organization issue types are unavailable.
+   - Fail on repository lookup errors, unrecognized owner types, or organization issue-type lookup errors. Do not turn authentication, authorization, or transient API failures into an untyped-success fallback.
+   - Report whether child issues will use `Task` or be created without an issue type before creating anything.
 8. Read `PLAN_DIRECTORY/PLAN_FILE_NAME` from `BASE_BRANCH`. Prefer `git show "$BASE_BRANCH:$PLAN_DIRECTORY/$PLAN_FILE_NAME"`; fall back to `gh api`.
 9. Verify both `QUESTIONS_SECTION` and `IMPLEMENTATION_SECTION` headings occur exactly once.
 10. Verify every question that gates implementation has a non-empty resolution block:
@@ -132,14 +137,26 @@ Title each issue with its implementation subsection identity and an actionable o
 
 Before creating the first issue, write every drafted body to `LOG_DIRECTORY/issue-bodies/NN-SUBSECTION-body.md`, where `NN` is its zero-padded creation order and `SUBSECTION` is a filesystem-safe form of the implementation subsection identity. Verify that the expected number of non-empty body files exists. Never write issue bodies to a temporary directory and never delete these files.
 
-Create issues with the REST API so the issue type is set at creation. Use `-F/--field`, not `-f/--raw-field`, for `body=@...`; only `-F` reads the body from the referenced file:
+Create issues with the REST API. Use `-F/--field`, not `-f/--raw-field`, for `body=@...`; only `-F` reads the body from the referenced file.
+
+When `SELECTED_ISSUE_TYPE=Task`, set the type at creation:
 
 ```bash
 gh api "repos/$REPO/issues" \
   -X POST \
   -f title="$TITLE" \
   -F "body=@$BODY_FILE" \
-  -f type="$ISSUE_TYPE" \
+  -f type="$SELECTED_ISSUE_TYPE" \
+  --jq '{id,number,node_id,html_url,title}'
+```
+
+When `SELECTED_ISSUE_TYPE` is empty, omit the `type` field entirely:
+
+```bash
+gh api "repos/$REPO/issues" \
+  -X POST \
+  -f title="$TITLE" \
+  -F "body=@$BODY_FILE" \
   --jq '{id,number,node_id,html_url,title}'
 ```
 
@@ -175,7 +192,8 @@ If the ledger is empty, explicitly report that no issues were created and no cle
 - Relative to the pre-creation baseline, the child count increased by exactly the number of ledger entries.
 - Every ledger entry is linked exactly once and corresponds, in creation order, to one implementation subsection.
 - The newly linked child order matches plan order.
-- Every issue in the ledger has a body exactly matching its persisted body file, has `ISSUE_TYPE`, is open, and has no assignees.
+- Every issue in the ledger has a body exactly matching its persisted body file, is open, and has no assignees.
+- When `SELECTED_ISSUE_TYPE=Task`, every created issue has type `Task`. When it is empty, no issue-type postcondition is required.
 
 ### Step 7: Report the ordered handoff
 
@@ -183,6 +201,7 @@ Return:
 1. Ordered table of implementation subsection, issue number, title, URL.
 2. Comma-separated child issue numbers for `shepherd-task-given-list`.
 3. Suggested campaign-aware given-list invocation using `LESSON_PROPAGATION`, the ordered issue numbers, and `PLAN_DIRECTORY`.
+4. Whether the issues were created with type `Task` or without an issue type.
 
 ## Guardrails
 

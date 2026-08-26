@@ -112,16 +112,14 @@ if [[ -n "$ANSWERS_FILE" ]]; then
     IMPLEMENTATION_SECTION="$(jq -er '.implementationSection | select(type == "string" and length > 0)' "$ANSWERS_FILE")"
     EXAMPLE_ISSUES="$(jq -er '.exampleIssues | if type == "array" then join(",") else select(type == "string") end | select(length > 0)' "$ANSWERS_FILE")"
     BASE_REMOTE="$(jq -er '.baseRemote | select(type == "string" and length > 0)' "$ANSWERS_FILE")"
-    ISSUE_TYPE="$(jq -er '.issueType | select(type == "string" and length > 0)' "$ANSWERS_FILE")"
     SUPPORTING_ARTIFACTS="$(jq -er '.supportingArtifacts | if type == "array" then join(",") else select(type == "string") end | select(length > 0)' "$ANSWERS_FILE")"
 else
-    PLAN_FILE_NAME="$(read_required "1/7  PLAN_FILE_NAME (name within campaign metadata directory)")"
-    QUESTIONS_SECTION="$(read_required "2/7  QUESTIONS_SECTION (exact resolved-questions heading)")"
-    IMPLEMENTATION_SECTION="$(read_required "3/7  IMPLEMENTATION_SECTION (exact implementation heading)")"
-    EXAMPLE_ISSUES="$(read_required "4/7  EXAMPLE_ISSUES (full issue URLs whose style to follow)")"
-    BASE_REMOTE="$(read_required "5/7  BASE_REMOTE (git remote name)" "upstream")"
-    ISSUE_TYPE="$(read_required "6/7  ISSUE_TYPE (GitHub issue type for children)" "Task")"
-    SUPPORTING_ARTIFACTS="$(read_required "7/7  SUPPORTING_ARTIFACTS (repo-relative paths or constraints)" "$PLAN_DIRECTORY")"
+    PLAN_FILE_NAME="$(read_required "1/6  PLAN_FILE_NAME (name within campaign metadata directory)")"
+    QUESTIONS_SECTION="$(read_required "2/6  QUESTIONS_SECTION (exact resolved-questions heading)")"
+    IMPLEMENTATION_SECTION="$(read_required "3/6  IMPLEMENTATION_SECTION (exact implementation heading)")"
+    EXAMPLE_ISSUES="$(read_required "4/6  EXAMPLE_ISSUES (full issue URLs whose style to follow)")"
+    BASE_REMOTE="$(read_required "5/6  BASE_REMOTE (git remote name)" "upstream")"
+    SUPPORTING_ARTIFACTS="$(read_required "6/6  SUPPORTING_ARTIFACTS (repo-relative paths or constraints)" "$PLAN_DIRECTORY")"
 fi
 
 [[ -f "$CAMPAIGN_METADATA_PATH/$PLAN_FILE_NAME" ]] ||
@@ -166,7 +164,6 @@ Invoke skill \`shepherd-task-20-create-issues-from-plan\` with these inputs:
 - IMPLEMENTATION_SECTION: $IMPLEMENTATION_SECTION
 - EXAMPLE_ISSUES: $EXAMPLE_ISSUES
 - BASE_REMOTE: $BASE_REMOTE
-- ISSUE_TYPE: $ISSUE_TYPE
 - SUPPORTING_ARTIFACTS: $SUPPORTING_ARTIFACTS
 - LOG_DIRECTORY: $log_dir_full
 EOF

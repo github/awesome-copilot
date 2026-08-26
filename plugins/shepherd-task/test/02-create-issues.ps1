@@ -86,7 +86,6 @@ $answers = [ordered]@{
     implementationSection = '## Phase 3 — Implementation (build order)'
     exampleIssues = $exampleIssues
     baseRemote = 'origin'
-    issueType = 'Task'
     supportingArtifacts = @($CampaignMetadataDirectory)
 }
 
@@ -126,6 +125,9 @@ foreach ($exampleIssue in $exampleIssues) {
     if (-not $prompt.Contains($exampleIssue)) {
         throw "Generated stage-20 prompt is missing example issue '$exampleIssue'."
     }
+}
+if ($prompt -match '(?m)^-\s+ISSUE_TYPE:') {
+    throw 'Generated stage-20 prompt must let the skill select Task automatically when supported.'
 }
 
 Write-Host ''

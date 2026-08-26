@@ -46,7 +46,7 @@ The system has two layers:
 
 1. **Skills** (Copilot-invocable instructions) — an ordered campaign lifecycle of stages 10, 20, 30, 40, and 50, plus one unnumbered reusable helper skill, that Copilot reads during `--yolo` sessions to know what to do at each stage:
    - `shepherd-task-10-create-ignorance-reduction-plan` (stage 10 — campaign planning): Generates a structured ignorance reduction plan for a multi-day engineering campaign. Only needed when a campaign does not yet have an ordered set of implementation issues.
-   - `shepherd-task-20-create-issues-from-plan` (stage 20 — creation of ordered implementation issues): Turns the resolved plan's implementation section into an ordered set of GitHub Task issues. Only needed when suitable implementation issues do not already exist.
+   - `shepherd-task-20-create-issues-from-plan` (stage 20 — creation of ordered implementation issues): Turns the resolved plan's implementation section into an ordered set of GitHub issues, using the `Task` issue type when the repository supports it. Only needed when suitable implementation issues do not already exist.
    - `shepherd-task-30-from-assignment-to-ready` (stage 30 — assignment through the boundary before Ready for review): Assigns an issue to @copilot with a specific base branch, waits for PR creation, iterates through CI approval and review-agent feedback (up to 20 iterations).
    - `shepherd-task-40-from-ready-to-merged-to-base` (stage 40 — Ready for review through merge to the campaign base branch): Marks the PR as ready, waits for Copilot code review, resolves comments locally in a git worktree, pushes fixes, and merges.
    - `shepherd-task-50-create-post-mortem` (stage 50 — campaign post-mortem after success or failure): Creates a structured post-mortem report from run artifacts, invoked from a `finally` / `trap EXIT` path so it runs for every outcome.
@@ -231,7 +231,7 @@ redactor first and review the diff.
 | File | Purpose |
 |------|---------|
 | `skills/shepherd-task-10-create-ignorance-reduction-plan/SKILL.md` | Stage 10 (campaign planning): generates a structured ignorance reduction plan. Only needed when a campaign does not yet have an ordered set of implementation issues. |
-| `skills/shepherd-task-20-create-issues-from-plan/SKILL.md` | Stage 20 (creation of ordered implementation issues): turns a resolved plan's implementation section into an ordered set of GitHub Task issues. Only needed when suitable implementation issues do not already exist. |
+| `skills/shepherd-task-20-create-issues-from-plan/SKILL.md` | Stage 20 (creation of ordered implementation issues): turns a resolved plan's implementation section into an ordered set of GitHub issues, using the `Task` issue type when available. Only needed when suitable implementation issues do not already exist. |
 | `skills/shepherd-task-30-from-assignment-to-ready/SKILL.md` | Stage 30 (assignment through the boundary before Ready for review): assign to Copilot → PR created → CI passing → no unresolved reviews |
 | `skills/shepherd-task-40-from-ready-to-merged-to-base/SKILL.md` | Stage 40 (Ready for review through merge to the campaign base branch): mark ready → resolve code review → merge to base branch |
 | `skills/shepherd-task-50-create-post-mortem/SKILL.md` | Stage 50 (campaign post-mortem after success or failure): creates a structured post-mortem report from run artifacts |
