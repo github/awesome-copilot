@@ -13,7 +13,7 @@ import { createServer } from "node:http";
 import { readFile, writeFile, rename, rm, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
+import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
 
 const servers = new Map(); // instanceId -> { server, url }
 const sseClients = new Map(); // instanceId -> Set<res>
@@ -2395,15 +2395,23 @@ const session = await joinSession({
 
                 if (ctx.input?.tutorial) {
                     const result = normalizeTutorial(ctx.input.tutorial);
-                    if (result.tutorial) {
-                        publishLesson(state, result.tutorial);
-                        bumpRev(state);
-                        await saveState(sessionRef?.workspacePath, state);
-                        // The state is shared, so canvases already open elsewhere
-                        // must hear about this publish; this instance's own page
-                        // is not connected yet and reads /state when it loads.
-                        broadcast({ kind: "tutorial", state: clientState(state) });
+                    if (result.error) {
+                        // A payload that passes the JSON schema can still fail
+                        // normalization (a blank quiz option, an unsafe check
+                        // pattern). Opening anyway would show the old or empty
+                        // lesson while the caller believes it published; refuse
+                        // instead, with the same actionable message set_tutorial
+                        // would return, so the caller can fix the payload or
+                        // open without input.
+                        throw new CanvasError("invalid_tutorial", result.error);
                     }
+                    publishLesson(state, result.tutorial);
+                    bumpRev(state);
+                    await saveState(sessionRef?.workspacePath, state);
+                    // The state is shared, so canvases already open elsewhere
+                    // must hear about this publish; this instance's own page
+                    // is not connected yet and reads /state when it loads.
+                    broadcast({ kind: "tutorial", state: clientState(state) });
                 } else if (!state.tutorial) {
                     const persisted = await loadState(sessionRef?.workspacePath);
                     if (persisted?.tutorial) {
