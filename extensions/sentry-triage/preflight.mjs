@@ -50,6 +50,11 @@ export function unknownConnections() {
 
 const msg = (err) => (err instanceof Error ? err.message : String(err))
 
+// The optional `sentry` package isn't installed for this extension (a published
+// awesome-copilot plugin ships source only). This is a one-time setup step, not a
+// network blip and not an auth failure, so it gets its own gate branch.
+const isPackageMissing = (err) => Boolean(err) && err.code === 'SENTRY_PACKAGE_MISSING'
+
 // Text used for classification: the message plus any CLI stderr, since a rejected
 // credential (HTTP 401/403) often surfaces its status in stderr rather than the
 // Error message.
@@ -82,6 +87,9 @@ const isTransient = (err) =>
 // Turn the raw error into something a human can act on.
 const humanizeSentryError = (err) => {
   const t = msg(err)
+  if (isPackageMissing(err)) {
+    return 'The Sentry CLI isn’t installed for this canvas yet. Ask Copilot to “install the sentry-triage dependencies and reload extensions,” or run `npm install` in the extension folder (see the README). Then run `sentry auth login` and re-open this canvas.'
+  }
   if (isNotAuthenticated(err)) {
     return 'Sentry isn’t connected yet. Run `sentry auth login` in your terminal, then re-open this canvas.'
   }
@@ -104,7 +112,7 @@ const humanizeSentryError = (err) => {
 //     when their text happens to mention a network keyword.
 export function classifySentryError(err) {
   return {
-    configured: !isAuthFailure(err),
+    configured: !isAuthFailure(err) && !isPackageMissing(err),
     transient: isTransient(err),
     message: humanizeSentryError(err),
   }

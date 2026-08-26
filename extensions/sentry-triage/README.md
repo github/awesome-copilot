@@ -61,10 +61,30 @@ that drafts a fix pull request.
 
 ## Install
 
-Drop this folder at `~/.copilot/extensions/sentry-triage/` for user scope, or in
-a repository at `.github/extensions/sentry-triage/` for project scope. Then
-install dependencies from inside the copied folder (this canvas depends on the
-`sentry` npm package at runtime):
+Drop this folder at `~/.copilot/extensions/sentry-triage/` for user scope, or in a
+repository at `.github/extensions/sentry-triage/` for project scope.
+
+This canvas depends on the [`sentry`](https://cli.sentry.dev) npm package at
+runtime, which isn't bundled with the extension source. If it's missing, the canvas
+still **opens** and shows a setup gate explaining what to do instead of crashing.
+
+### Let Copilot set it up (recommended)
+
+Because the canvas runs inside GitHub Copilot, the agent can install the dependency
+for you. Paste this into Copilot:
+
+> Install the `sentry-triage` canvas dependencies by running `npm install` in its
+> extension folder (`~/.copilot/extensions/sentry-triage/` for user scope, or
+> `.github/extensions/sentry-triage/` for project scope), then reload extensions.
+
+Then finish the one interactive step yourself — sign in so Copilot never handles a
+raw secret:
+
+```sh
+sentry auth login
+```
+
+### Or install it manually
 
 ```sh
 # User scope
@@ -74,10 +94,10 @@ cd ~/.copilot/extensions/sentry-triage
 cd .github/extensions/sentry-triage
 
 npm install
+sentry auth login
 ```
 
-Reload extensions in the GitHub Copilot app, then open the `sentry-triage`
-canvas.
+Reload extensions in the GitHub Copilot app, then open the `sentry-triage` canvas.
 
 ## Open the canvas in the correct repository scope
 
