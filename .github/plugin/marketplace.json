@@ -811,6 +811,12 @@
       }
     },
     {
+      "name": "git-worktree-explorer",
+      "source": "plugins/git-worktree-explorer",
+      "description": "Visualize the active Git repository through worktrees, branches, commits, and optional GitHub pull request context.",
+      "version": "1.0.0"
+    },
+    {
       "name": "github-copilot-modernization",
       "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator → coordinators → executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
       "version": "1.22.0",
@@ -1346,6 +1352,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "sentry-triage",
+      "source": "plugins/sentry-triage",
+      "description": "Scan live Sentry issues in a Copilot canvas, group them by urgency, and hand issues off for tracking or a fix PR.",
+      "version": "1.0.0"
+    },
+    {
       "name": "signals-dashboard",
       "source": "plugins/signals-dashboard",
       "description": "Real-time Workshop dashboard with agent signals, honesty calibration, cost-aware desk profiles, and fail-closed Local Delegation.",
@@ -1724,7 +1736,7 @@
       "name": "where-was-i",
       "source": "plugins/where-was-i",
       "description": "Reconstruct your dev context (branch, commits, uncommitted work, PR clues) and trigger a resume prompt to continue quickly.",
-      "version": "1.0.2"
+      "version": "1.1.0"
     },
     {
       "name": "winappcli",
