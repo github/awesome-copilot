@@ -1,0 +1,2279 @@
+{
+  "$defs": {
+    "ASNAssociationProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "snapshot_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Sha256",
+          "type": "string"
+        },
+        "snapshot_sources": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Snapshot Sources",
+          "type": "array"
+        },
+        "source_name": {
+          "title": "Source Name",
+          "type": "string"
+        },
+        "source_url": {
+          "title": "Source Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_name",
+        "source_url",
+        "snapshot_sources",
+        "snapshot_id",
+        "snapshot_sha256"
+      ],
+      "title": "ASNAssociationProvenance",
+      "type": "object"
+    },
+    "ASNOrganizationAssociation": {
+      "additionalProperties": false,
+      "properties": {
+        "as_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "As Name"
+        },
+        "asn": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "title": "Asn",
+          "type": "integer"
+        },
+        "asn_source_registry": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asn Source Registry"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^asn-association-[0-9]{6}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "asn_organization_snapshot",
+          "default": "asn_organization_snapshot",
+          "title": "Kind",
+          "type": "string"
+        },
+        "organization_country": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Organization Country"
+        },
+        "organization_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Organization Id"
+        },
+        "organization_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Organization Name"
+        },
+        "organization_source_registry": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Organization Source Registry"
+        },
+        "provenance": {
+          "$ref": "#/$defs/ASNAssociationProvenance"
+        },
+        "routing_association_id": {
+          "pattern": "^asn-association-[0-9]{6}$",
+          "title": "Routing Association Id",
+          "type": "string"
+        },
+        "target_row_id": {
+          "pattern": "^row-[0-9]+$",
+          "title": "Target Row Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "target_row_id",
+        "routing_association_id",
+        "asn",
+        "provenance",
+        "evidence_ids"
+      ],
+      "title": "ASNOrganizationAssociation",
+      "type": "object"
+    },
+    "ASNOriginGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "as_set": {
+          "default": false,
+          "title": "As Set",
+          "type": "boolean"
+        },
+        "asns": {
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Asns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "asns"
+      ],
+      "title": "ASNOriginGroup",
+      "type": "object"
+    },
+    "ASNRegistrationAssociation": {
+      "additionalProperties": false,
+      "properties": {
+        "asn": {
+          "maximum": 4294967295,
+          "minimum": 0,
+          "title": "Asn",
+          "type": "integer"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^asn-association-[0-9]{6}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "asn_registration",
+          "default": "asn_registration",
+          "title": "Kind",
+          "type": "string"
+        },
+        "organization_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Organization Name"
+        },
+        "provenance": {
+          "$ref": "#/$defs/ASNAssociationProvenance"
+        },
+        "registration_handle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Registration Handle"
+        },
+        "target_row_id": {
+          "pattern": "^row-[0-9]+$",
+          "title": "Target Row Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "target_row_id",
+        "asn",
+        "provenance",
+        "evidence_ids"
+      ],
+      "title": "ASNRegistrationAssociation",
+      "type": "object"
+    },
+    "AddressFamily": {
+      "enum": [
+        "ipv4",
+        "ipv6"
+      ],
+      "title": "AddressFamily",
+      "type": "string"
+    },
+    "AnalysisConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "enrichment_enabled": {
+          "default": false,
+          "title": "Enrichment Enabled",
+          "type": "boolean"
+        },
+        "enum_version": {
+          "pattern": "^5$",
+          "title": "Enum Version",
+          "type": "string"
+        },
+        "max_data_rows": {
+          "minimum": 1,
+          "title": "Max Data Rows",
+          "type": "integer"
+        },
+        "mcp": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/McpConfigurationSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rdap": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RdapConfigurationSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "relationship_limit": {
+          "minimum": 1,
+          "title": "Relationship Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "enum_version",
+        "max_data_rows",
+        "relationship_limit"
+      ],
+      "title": "AnalysisConfiguration",
+      "type": "object"
+    },
+    "Artifact": {
+      "additionalProperties": false,
+      "properties": {
+        "analysis_id": {
+          "pattern": "^analysis-[0-9a-f]{16}$",
+          "title": "Analysis Id",
+          "type": "string"
+        },
+        "approval_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Approval Ids",
+          "type": "array"
+        },
+        "media_type": {
+          "title": "Media Type",
+          "type": "string"
+        },
+        "renderer_version": {
+          "title": "Renderer Version",
+          "type": "string"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "media_type",
+        "renderer_version",
+        "analysis_id"
+      ],
+      "title": "Artifact",
+      "type": "object"
+    },
+    "CorrectionAction": {
+      "enum": [
+        "approve",
+        "reject"
+      ],
+      "title": "CorrectionAction",
+      "type": "string"
+    },
+    "CorrectionApproval": {
+      "additionalProperties": false,
+      "properties": {
+        "analysis_id": {
+          "pattern": "^analysis-[0-9a-f]{16}$",
+          "title": "Analysis Id",
+          "type": "string"
+        },
+        "analysis_schema_version": {
+          "const": "0.5.0",
+          "title": "Analysis Schema Version",
+          "type": "string"
+        },
+        "approver_label": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Approver Label",
+          "type": "string"
+        },
+        "decided_at": {
+          "format": "date-time",
+          "title": "Decided At",
+          "type": "string"
+        },
+        "decisions": {
+          "items": {
+            "$ref": "#/$defs/CorrectionDecision"
+          },
+          "minItems": 1,
+          "title": "Decisions",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^approval-[0-9a-f]{16}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "proposal_set_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Proposal Set Sha256",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "source_sha256",
+        "analysis_id",
+        "analysis_schema_version",
+        "proposal_set_sha256",
+        "approver_label",
+        "decided_at",
+        "decisions"
+      ],
+      "title": "CorrectionApproval",
+      "type": "object"
+    },
+    "CorrectionCategory": {
+      "enum": [
+        "deterministic_normalization",
+        "deprecated_field_removal",
+        "mcp_place_suggestion"
+      ],
+      "title": "CorrectionCategory",
+      "type": "string"
+    },
+    "CorrectionConfidence": {
+      "enum": [
+        "deterministic",
+        "not_assessed"
+      ],
+      "title": "CorrectionConfidence",
+      "type": "string"
+    },
+    "CorrectionDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/CorrectionAction"
+        },
+        "proposal_id": {
+          "pattern": "^proposal-[0-9a-f]{16}$",
+          "title": "Proposal Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposal_id",
+        "action"
+      ],
+      "title": "CorrectionDecision",
+      "type": "object"
+    },
+    "CorrectionProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/CorrectionCategory"
+        },
+        "confidence": {
+          "$ref": "#/$defs/CorrectionConfidence"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "field": {
+          "enum": [
+            "country",
+            "region",
+            "city",
+            "postal_code"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "finding_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Finding Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^proposal-[0-9a-f]{16}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "old_value": {
+          "title": "Old Value",
+          "type": "string"
+        },
+        "path": {
+          "pattern": "^/rows/row-[0-9]+/location/(country|region|city|postal_code)$",
+          "title": "Path",
+          "type": "string"
+        },
+        "proposed_value": {
+          "title": "Proposed Value",
+          "type": "string"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "row_id": {
+          "pattern": "^row-[0-9]+$",
+          "title": "Row Id",
+          "type": "string"
+        },
+        "rule_id": {
+          "pattern": "^[A-Z0-9]+(?:[._][A-Z0-9]+)+$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "source_line": {
+          "minimum": 1,
+          "title": "Source Line",
+          "type": "integer"
+        },
+        "version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "row_id",
+        "source_line",
+        "field",
+        "path",
+        "rule_id",
+        "category",
+        "old_value",
+        "proposed_value",
+        "rationale",
+        "confidence",
+        "evidence_ids"
+      ],
+      "title": "CorrectionProposal",
+      "type": "object"
+    },
+    "Corrections": {
+      "additionalProperties": false,
+      "properties": {
+        "applied_proposal_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Applied Proposal Ids",
+          "type": "array"
+        },
+        "approvals": {
+          "items": {
+            "$ref": "#/$defs/CorrectionApproval"
+          },
+          "title": "Approvals",
+          "type": "array"
+        },
+        "proposals": {
+          "items": {
+            "$ref": "#/$defs/CorrectionProposal"
+          },
+          "title": "Proposals",
+          "type": "array"
+        }
+      },
+      "title": "Corrections",
+      "type": "object"
+    },
+    "Enrichment": {
+      "additionalProperties": false,
+      "properties": {
+        "asn_associations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "asn_organization_snapshot": "#/$defs/ASNOrganizationAssociation",
+                "asn_registration": "#/$defs/ASNRegistrationAssociation",
+                "routing_origin_snapshot": "#/$defs/RoutingOriginAssociation"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/RoutingOriginAssociation"
+              },
+              {
+                "$ref": "#/$defs/ASNOrganizationAssociation"
+              },
+              {
+                "$ref": "#/$defs/ASNRegistrationAssociation"
+              }
+            ]
+          },
+          "title": "Asn Associations",
+          "type": "array"
+        },
+        "mcp_observations": {
+          "items": {
+            "$ref": "#/$defs/McpObservation"
+          },
+          "title": "Mcp Observations",
+          "type": "array"
+        },
+        "observations": {
+          "items": {
+            "$ref": "#/$defs/RdapObservation"
+          },
+          "title": "Observations",
+          "type": "array"
+        },
+        "publisher_profile": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublisherProfile"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "Enrichment",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^evidence-[0-9]{6}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Target Ids",
+          "type": "array"
+        },
+        "type": {
+          "$ref": "#/$defs/EvidenceType"
+        },
+        "values": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Values",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "source",
+        "observed_at",
+        "target_ids"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "EvidenceType": {
+      "enum": [
+        "source",
+        "validation",
+        "relationship",
+        "rdap",
+        "mcp",
+        "routing_origin",
+        "asn_organization",
+        "asn_registration"
+      ],
+      "title": "EvidenceType",
+      "type": "string"
+    },
+    "FeedStatistics": {
+      "additionalProperties": false,
+      "properties": {
+        "approved_corrections": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Approved Corrections",
+          "type": "integer"
+        },
+        "asn_associations": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Asn Associations",
+          "type": "integer"
+        },
+        "blank_lines": {
+          "minimum": 0,
+          "title": "Blank Lines",
+          "type": "integer"
+        },
+        "comment_lines": {
+          "minimum": 0,
+          "title": "Comment Lines",
+          "type": "integer"
+        },
+        "data_rows": {
+          "minimum": 0,
+          "title": "Data Rows",
+          "type": "integer"
+        },
+        "do_not_geolocate_rows": {
+          "minimum": 0,
+          "title": "Do Not Geolocate Rows",
+          "type": "integer"
+        },
+        "enrichment_observations": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Enrichment Observations",
+          "type": "integer"
+        },
+        "finding_counts": {
+          "$ref": "#/$defs/FindingCounts"
+        },
+        "invalid_rows": {
+          "minimum": 0,
+          "title": "Invalid Rows",
+          "type": "integer"
+        },
+        "physical_lines": {
+          "minimum": 0,
+          "title": "Physical Lines",
+          "type": "integer"
+        },
+        "proposed_corrections": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Proposed Corrections",
+          "type": "integer"
+        },
+        "rejected_corrections": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Rejected Corrections",
+          "type": "integer"
+        },
+        "relationship_counts": {
+          "$ref": "#/$defs/RelationshipCounts"
+        },
+        "resolved_rows": {
+          "default": 0,
+          "maximum": 0,
+          "minimum": 0,
+          "title": "Resolved Rows",
+          "type": "integer"
+        },
+        "severity_counts": {
+          "$ref": "#/$defs/SeverityCounts"
+        },
+        "unresolved_rows": {
+          "minimum": 0,
+          "title": "Unresolved Rows",
+          "type": "integer"
+        },
+        "valid_rows": {
+          "minimum": 0,
+          "title": "Valid Rows",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "physical_lines",
+        "data_rows",
+        "valid_rows",
+        "invalid_rows",
+        "comment_lines",
+        "blank_lines",
+        "do_not_geolocate_rows",
+        "unresolved_rows",
+        "finding_counts",
+        "severity_counts",
+        "relationship_counts"
+      ],
+      "title": "FeedStatistics",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/FindingCategory"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^finding-[0-9]{6}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "proposal_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Proposal Ids",
+          "type": "array"
+        },
+        "reference": {
+          "title": "Reference",
+          "type": "string"
+        },
+        "rule_id": {
+          "pattern": "^[A-Z0-9]+(?:[._][A-Z0-9]+)+$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "target_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Target Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "category",
+        "severity",
+        "rule_id",
+        "reference",
+        "message",
+        "target_ids",
+        "evidence_ids"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "FindingCategory": {
+      "enum": [
+        "rfc8805_violation",
+        "fastah_quality_recommendation",
+        "operational_warning",
+        "rdap_mcp_enrichment_observation"
+      ],
+      "title": "FindingCategory",
+      "type": "string"
+    },
+    "FindingCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "fastah_quality_recommendation": {
+          "minimum": 0,
+          "title": "Fastah Quality Recommendation",
+          "type": "integer"
+        },
+        "operational_warning": {
+          "minimum": 0,
+          "title": "Operational Warning",
+          "type": "integer"
+        },
+        "rdap_mcp_enrichment_observation": {
+          "minimum": 0,
+          "title": "Rdap Mcp Enrichment Observation",
+          "type": "integer"
+        },
+        "rfc8805_violation": {
+          "minimum": 0,
+          "title": "Rfc8805 Violation",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "rfc8805_violation",
+        "fastah_quality_recommendation",
+        "operational_warning",
+        "rdap_mcp_enrichment_observation"
+      ],
+      "title": "FindingCounts",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "LocationValue": {
+      "additionalProperties": false,
+      "properties": {
+        "accuracy_radius_km": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accuracy Radius Km"
+        },
+        "city": {
+          "default": "",
+          "title": "City",
+          "type": "string"
+        },
+        "country": {
+          "default": "",
+          "title": "Country",
+          "type": "string"
+        },
+        "postal_code": {
+          "default": "",
+          "title": "Postal Code",
+          "type": "string"
+        },
+        "raw_city": {
+          "default": "",
+          "title": "Raw City",
+          "type": "string"
+        },
+        "raw_country": {
+          "default": "",
+          "title": "Raw Country",
+          "type": "string"
+        },
+        "raw_postal_code": {
+          "default": "",
+          "title": "Raw Postal Code",
+          "type": "string"
+        },
+        "raw_region": {
+          "default": "",
+          "title": "Raw Region",
+          "type": "string"
+        },
+        "region": {
+          "default": "",
+          "title": "Region",
+          "type": "string"
+        }
+      },
+      "title": "LocationValue",
+      "type": "object"
+    },
+    "McpConfigurationSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "server_advertised_batch_limit": {
+          "minimum": 1,
+          "title": "Server Advertised Batch Limit",
+          "type": "integer"
+        },
+        "transport": {
+          "const": "host_mediated",
+          "default": "host_mediated",
+          "title": "Transport",
+          "type": "string"
+        }
+      },
+      "required": [
+        "server_advertised_batch_limit"
+      ],
+      "title": "McpConfigurationSummary",
+      "type": "object"
+    },
+    "McpObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/McpResultCode"
+        },
+        "contract_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Contract Version",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^mcp-[0-9]{6}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "matches": {
+          "items": {
+            "$ref": "#/$defs/McpPlaceMatch"
+          },
+          "title": "Matches",
+          "type": "array"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "opaque_row_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+          "title": "Opaque Row Id",
+          "type": "string"
+        },
+        "representative_opaque_row_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
+          "title": "Representative Opaque Row Id",
+          "type": "string"
+        },
+        "request_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Request Sha256",
+          "type": "string"
+        },
+        "response_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Response Sha256",
+          "type": "string"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "search_mode": {
+          "$ref": "#/$defs/McpSearchMode"
+        },
+        "server_batch_limit": {
+          "minimum": 1,
+          "title": "Server Batch Limit",
+          "type": "integer"
+        },
+        "status": {
+          "$ref": "#/$defs/McpRowStatus"
+        },
+        "target_row_id": {
+          "pattern": "^row-[0-9]+$",
+          "title": "Target Row Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "target_row_id",
+        "opaque_row_id",
+        "representative_opaque_row_id",
+        "request_sha256",
+        "search_mode",
+        "server_batch_limit",
+        "status",
+        "code",
+        "message",
+        "retryable",
+        "matches",
+        "response_sha256",
+        "evidence_ids"
+      ],
+      "title": "McpObservation",
+      "type": "object"
+    },
+    "McpPlaceMatch": {
+      "additionalProperties": false,
+      "properties": {
+        "approximate_radius_km": {
+          "minimum": 10,
+          "title": "Approximate Radius Km",
+          "type": "integer"
+        },
+        "bounding_box": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 0,
+          "title": "Bounding Box",
+          "type": "array"
+        },
+        "center_long_lat": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 0,
+          "title": "Center Long Lat",
+          "type": "array"
+        },
+        "continent_code": {
+          "maxLength": 2,
+          "minLength": 2,
+          "title": "Continent Code",
+          "type": "string"
+        },
+        "country_code": {
+          "maxLength": 2,
+          "minLength": 2,
+          "title": "Country Code",
+          "type": "string"
+        },
+        "country_name": {
+          "title": "Country Name",
+          "type": "string"
+        },
+        "h3_cells": {
+          "items": {
+            "type": "string"
+          },
+          "title": "H3 Cells",
+          "type": "array"
+        },
+        "place_id_geonames": {
+          "minimum": 1,
+          "title": "Place Id Geonames",
+          "type": "integer"
+        },
+        "place_name": {
+          "title": "Place Name",
+          "type": "string"
+        },
+        "place_type": {
+          "$ref": "#/$defs/McpPlaceType"
+        },
+        "population_weight_percent": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Population Weight Percent",
+          "type": "number"
+        },
+        "region_code": {
+          "title": "Region Code",
+          "type": "string"
+        },
+        "region_name": {
+          "title": "Region Name",
+          "type": "string"
+        },
+        "sovereign_country_code": {
+          "maxLength": 2,
+          "minLength": 2,
+          "title": "Sovereign Country Code",
+          "type": "string"
+        },
+        "timezone": {
+          "title": "Timezone",
+          "type": "string"
+        }
+      },
+      "required": [
+        "place_id_geonames",
+        "place_type",
+        "place_name",
+        "country_code",
+        "country_name",
+        "sovereign_country_code",
+        "region_code",
+        "region_name",
+        "continent_code",
+        "timezone",
+        "center_long_lat",
+        "bounding_box",
+        "approximate_radius_km",
+        "h3_cells",
+        "population_weight_percent"
+      ],
+      "title": "McpPlaceMatch",
+      "type": "object"
+    },
+    "McpPlaceType": {
+      "enum": [
+        "city",
+        "region",
+        "country"
+      ],
+      "title": "McpPlaceType",
+      "type": "string"
+    },
+    "McpResultCode": {
+      "enum": [
+        "MATCH_FOUND",
+        "DO_NOT_GEOLOCATE",
+        "NO_MATCH",
+        "INVALID_ROW_KEY",
+        "INVALID_COUNTRY_CODE",
+        "INVALID_REGION_CODE",
+        "INVALID_CITY_NAME",
+        "INVALID_SEARCH_MODE",
+        "BACKEND_UNAVAILABLE"
+      ],
+      "title": "McpResultCode",
+      "type": "string"
+    },
+    "McpRowStatus": {
+      "enum": [
+        "matched",
+        "do_not_geolocate",
+        "no_match",
+        "invalid_input",
+        "backend_unavailable"
+      ],
+      "title": "McpRowStatus",
+      "type": "string"
+    },
+    "McpSearchMode": {
+      "enum": [
+        "auto",
+        "prefer_larger_area",
+        "prefer_larger_population_center"
+      ],
+      "title": "McpSearchMode",
+      "type": "string"
+    },
+    "ParseStatus": {
+      "enum": [
+        "valid",
+        "malformed",
+        "comment",
+        "blank"
+      ],
+      "title": "ParseStatus",
+      "type": "string"
+    },
+    "PrefixRelationship": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "geolocation_conflict": {
+          "default": false,
+          "title": "Geolocation Conflict",
+          "type": "boolean"
+        },
+        "id": {
+          "pattern": "^relationship-[0-9]{6}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source_prefix": {
+          "title": "Source Prefix",
+          "type": "string"
+        },
+        "source_row_id": {
+          "title": "Source Row Id",
+          "type": "string"
+        },
+        "target_prefix": {
+          "title": "Target Prefix",
+          "type": "string"
+        },
+        "target_row_id": {
+          "title": "Target Row Id",
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/RelationshipType"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "source_row_id",
+        "target_row_id",
+        "source_prefix",
+        "target_prefix"
+      ],
+      "title": "PrefixRelationship",
+      "type": "object"
+    },
+    "PrefixValue": {
+      "additionalProperties": false,
+      "properties": {
+        "address_family": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AddressFamily"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "authored_as_host": {
+          "default": false,
+          "title": "Authored As Host",
+          "type": "boolean"
+        },
+        "canonical": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Canonical"
+        },
+        "is_publicly_routable": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Is Publicly Routable"
+        },
+        "raw": {
+          "title": "Raw",
+          "type": "string"
+        }
+      },
+      "required": [
+        "raw"
+      ],
+      "title": "PrefixValue",
+      "type": "object"
+    },
+    "PublisherProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "asn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asn"
+        },
+        "domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "organization_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Organization Name"
+        },
+        "rdap_entity_handle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rdap Entity Handle"
+        },
+        "rir_organization_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rir Organization Id"
+        },
+        "version": {
+          "const": "1",
+          "default": "1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "title": "PublisherProfile",
+      "type": "object"
+    },
+    "RdapAssessment": {
+      "enum": [
+        "consistent",
+        "conflicting",
+        "unverified",
+        "unavailable"
+      ],
+      "title": "RdapAssessment",
+      "type": "string"
+    },
+    "RdapConfigurationSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "bootstrap_ipv4_url": {
+          "title": "Bootstrap Ipv4 Url",
+          "type": "string"
+        },
+        "bootstrap_ipv6_url": {
+          "title": "Bootstrap Ipv6 Url",
+          "type": "string"
+        },
+        "connect_timeout_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Connect Timeout Seconds",
+          "type": "number"
+        },
+        "max_concurrency": {
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Max Concurrency",
+          "type": "integer"
+        },
+        "max_redirects": {
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Max Redirects",
+          "type": "integer"
+        },
+        "min_interval_per_rir_seconds": {
+          "minimum": 0,
+          "title": "Min Interval Per Rir Seconds",
+          "type": "number"
+        },
+        "read_timeout_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Read Timeout Seconds",
+          "type": "number"
+        },
+        "response_byte_limit": {
+          "exclusiveMinimum": 0,
+          "title": "Response Byte Limit",
+          "type": "integer"
+        },
+        "user_agent": {
+          "title": "User Agent",
+          "type": "string"
+        }
+      },
+      "required": [
+        "connect_timeout_seconds",
+        "read_timeout_seconds",
+        "response_byte_limit",
+        "max_redirects",
+        "max_concurrency",
+        "min_interval_per_rir_seconds",
+        "user_agent",
+        "bootstrap_ipv4_url",
+        "bootstrap_ipv6_url"
+      ],
+      "title": "RdapConfigurationSummary",
+      "type": "object"
+    },
+    "RdapEntitySummary": {
+      "additionalProperties": false,
+      "properties": {
+        "handle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Handle"
+        },
+        "organization_names": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Organization Names",
+          "type": "array"
+        },
+        "public_ids": {
+          "items": {
+            "$ref": "#/$defs/RdapPublicIdentifier"
+          },
+          "title": "Public Ids",
+          "type": "array"
+        },
+        "roles": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Roles",
+          "type": "array"
+        }
+      },
+      "title": "RdapEntitySummary",
+      "type": "object"
+    },
+    "RdapFailureCode": {
+      "enum": [
+        "bootstrap_unavailable",
+        "no_authoritative_service",
+        "insecure_service_url",
+        "timeout",
+        "rate_limited",
+        "http_error",
+        "invalid_content_type",
+        "response_too_large",
+        "malformed_response"
+      ],
+      "title": "RdapFailureCode",
+      "type": "string"
+    },
+    "RdapNetworkSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "end_address": {
+          "title": "End Address",
+          "type": "string"
+        },
+        "handle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Handle"
+        },
+        "ip_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ip Version"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "start_address": {
+          "title": "Start Address",
+          "type": "string"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        }
+      },
+      "required": [
+        "start_address",
+        "end_address"
+      ],
+      "title": "RdapNetworkSummary",
+      "type": "object"
+    },
+    "RdapObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "assessment": {
+          "$ref": "#/$defs/RdapAssessment"
+        },
+        "cached": {
+          "title": "Cached",
+          "type": "boolean"
+        },
+        "conflicting_profile_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Conflicting Profile Fields",
+          "type": "array"
+        },
+        "endpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endpoint"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "failure_code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RdapFailureCode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "http_status": {
+          "anyOf": [
+            {
+              "maximum": 599,
+              "minimum": 100,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Http Status"
+        },
+        "id": {
+          "pattern": "^rdap-[0-9]{6}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "matched_profile_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Matched Profile Fields",
+          "type": "array"
+        },
+        "network": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RdapNetworkSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "queried_at": {
+          "format": "date-time",
+          "title": "Queried At",
+          "type": "string"
+        },
+        "requested_prefix": {
+          "title": "Requested Prefix",
+          "type": "string"
+        },
+        "retry_after_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After Seconds"
+        },
+        "retryable": {
+          "default": false,
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "rir": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rir"
+        },
+        "selected_entities": {
+          "items": {
+            "$ref": "#/$defs/RdapEntitySummary"
+          },
+          "title": "Selected Entities",
+          "type": "array"
+        },
+        "target_row_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Target Row Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "target_row_ids",
+        "requested_prefix",
+        "queried_at",
+        "cached",
+        "assessment",
+        "explanation",
+        "evidence_ids"
+      ],
+      "title": "RdapObservation",
+      "type": "object"
+    },
+    "RdapPublicIdentifier": {
+      "additionalProperties": false,
+      "properties": {
+        "identifier": {
+          "title": "Identifier",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "identifier"
+      ],
+      "title": "RdapPublicIdentifier",
+      "type": "object"
+    },
+    "RelationshipCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "carved_child": {
+          "minimum": 0,
+          "title": "Carved Child",
+          "type": "integer"
+        },
+        "conflicting_geolocation": {
+          "minimum": 0,
+          "title": "Conflicting Geolocation",
+          "type": "integer"
+        },
+        "duplicate": {
+          "minimum": 0,
+          "title": "Duplicate",
+          "type": "integer"
+        },
+        "equal": {
+          "minimum": 0,
+          "title": "Equal",
+          "type": "integer"
+        },
+        "overlap": {
+          "minimum": 0,
+          "title": "Overlap",
+          "type": "integer"
+        },
+        "parent": {
+          "minimum": 0,
+          "title": "Parent",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "duplicate",
+        "equal",
+        "parent",
+        "carved_child",
+        "overlap",
+        "conflicting_geolocation"
+      ],
+      "title": "RelationshipCounts",
+      "type": "object"
+    },
+    "RelationshipType": {
+      "enum": [
+        "duplicate",
+        "equal",
+        "parent",
+        "carved_child",
+        "overlap",
+        "conflicting_geolocation"
+      ],
+      "title": "RelationshipType",
+      "type": "string"
+    },
+    "RoutingOriginAssociation": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^asn-association-[0-9]{6}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "routing_origin_snapshot",
+          "default": "routing_origin_snapshot",
+          "title": "Kind",
+          "type": "string"
+        },
+        "matched_prefix": {
+          "title": "Matched Prefix",
+          "type": "string"
+        },
+        "origin_groups": {
+          "items": {
+            "$ref": "#/$defs/ASNOriginGroup"
+          },
+          "minItems": 1,
+          "title": "Origin Groups",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/ASNAssociationProvenance"
+        },
+        "target_row_id": {
+          "pattern": "^row-[0-9]+$",
+          "title": "Target Row Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "target_row_id",
+        "matched_prefix",
+        "origin_groups",
+        "provenance",
+        "evidence_ids"
+      ],
+      "title": "RoutingOriginAssociation",
+      "type": "object"
+    },
+    "RowKind": {
+      "enum": [
+        "data",
+        "comment",
+        "blank"
+      ],
+      "title": "RowKind",
+      "type": "string"
+    },
+    "RowRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "asn_association_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Asn Association Ids",
+          "type": "array"
+        },
+        "effective_line": {
+          "title": "Effective Line",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "finding_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Finding Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^row-[0-9]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "ignored_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Ignored Fields",
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/RowKind"
+        },
+        "line_ending": {
+          "enum": [
+            "",
+            "\n",
+            "\r",
+            "\r\n"
+          ],
+          "title": "Line Ending",
+          "type": "string"
+        },
+        "line_number": {
+          "minimum": 1,
+          "title": "Line Number",
+          "type": "integer"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LocationValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "parse_status": {
+          "$ref": "#/$defs/ParseStatus"
+        },
+        "parsed_field_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parsed Field Count"
+        },
+        "prefix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PrefixValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "raw_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Raw Fields",
+          "type": "array"
+        },
+        "raw_line": {
+          "title": "Raw Line",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/RowState"
+        }
+      },
+      "required": [
+        "id",
+        "line_number",
+        "kind",
+        "raw_line",
+        "line_ending",
+        "effective_line",
+        "parse_status",
+        "state"
+      ],
+      "title": "RowRecord",
+      "type": "object"
+    },
+    "RowState": {
+      "enum": [
+        "invalid",
+        "valid_do_not_geolocate",
+        "valid_unresolved",
+        "not_applicable"
+      ],
+      "title": "RowState",
+      "type": "string"
+    },
+    "Severity": {
+      "enum": [
+        "error",
+        "warning",
+        "info"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "SeverityCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "minimum": 0,
+          "title": "Error",
+          "type": "integer"
+        },
+        "info": {
+          "minimum": 0,
+          "title": "Info",
+          "type": "integer"
+        },
+        "warning": {
+          "minimum": 0,
+          "title": "Warning",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "error",
+        "warning",
+        "info"
+      ],
+      "title": "SeverityCounts",
+      "type": "object"
+    },
+    "SourceMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "acquisition_evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Acquisition Evidence Ids",
+          "type": "array"
+        },
+        "byte_count": {
+          "minimum": 0,
+          "title": "Byte Count",
+          "type": "integer"
+        },
+        "digest_algorithm": {
+          "const": "sha256",
+          "default": "sha256",
+          "title": "Digest Algorithm",
+          "type": "string"
+        },
+        "display_name": {
+          "title": "Display Name",
+          "type": "string"
+        },
+        "had_utf8_bom": {
+          "title": "Had Utf8 Bom",
+          "type": "boolean"
+        },
+        "kind": {
+          "pattern": "^local_file$",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modified_at": {
+          "format": "date-time",
+          "title": "Modified At",
+          "type": "string"
+        },
+        "physical_line_count": {
+          "minimum": 0,
+          "title": "Physical Line Count",
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "display_name",
+        "sha256",
+        "byte_count",
+        "modified_at",
+        "had_utf8_bom",
+        "physical_line_count"
+      ],
+      "title": "SourceMetadata",
+      "type": "object"
+    }
+  },
+  "$id": "https://schemas.fastah.net/netops/geofeed-quality/analysis-0.5.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "analysis_id": {
+      "pattern": "^analysis-[0-9a-f]{16}$",
+      "title": "Analysis Id",
+      "type": "string"
+    },
+    "analyzer_version": {
+      "const": "0.5.0",
+      "title": "Analyzer Version",
+      "type": "string"
+    },
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/Artifact"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "configuration": {
+      "$ref": "#/$defs/AnalysisConfiguration"
+    },
+    "corrections": {
+      "$ref": "#/$defs/Corrections"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "enrichment": {
+      "$ref": "#/$defs/Enrichment"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/Finding"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "relationships": {
+      "items": {
+        "$ref": "#/$defs/PrefixRelationship"
+      },
+      "title": "Relationships",
+      "type": "array"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/RowRecord"
+      },
+      "title": "Rows",
+      "type": "array"
+    },
+    "schema_uri": {
+      "pattern": "^https://schemas\\.fastah\\.net/",
+      "title": "Schema Uri",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.5.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/SourceMetadata"
+    },
+    "statistics": {
+      "$ref": "#/$defs/FeedStatistics"
+    }
+  },
+  "required": [
+    "schema_uri",
+    "schema_version",
+    "analysis_id",
+    "created_at",
+    "analyzer_version",
+    "source",
+    "configuration",
+    "statistics",
+    "rows",
+    "findings",
+    "evidence",
+    "relationships",
+    "enrichment",
+    "corrections",
+    "artifacts"
+  ],
+  "title": "Analysis",
+  "type": "object"
+}

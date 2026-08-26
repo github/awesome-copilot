@@ -1,0 +1,163 @@
+{
+  "$defs": {
+    "CorrectionCategory": {
+      "enum": [
+        "deterministic_normalization",
+        "deprecated_field_removal",
+        "mcp_place_suggestion"
+      ],
+      "title": "CorrectionCategory",
+      "type": "string"
+    },
+    "CorrectionConfidence": {
+      "enum": [
+        "deterministic",
+        "not_assessed"
+      ],
+      "title": "CorrectionConfidence",
+      "type": "string"
+    },
+    "CorrectionProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/CorrectionCategory"
+        },
+        "confidence": {
+          "$ref": "#/$defs/CorrectionConfidence"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "field": {
+          "enum": [
+            "country",
+            "region",
+            "city",
+            "postal_code"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "finding_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Finding Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^proposal-[0-9a-f]{16}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "old_value": {
+          "title": "Old Value",
+          "type": "string"
+        },
+        "path": {
+          "pattern": "^/rows/row-[0-9]+/location/(country|region|city|postal_code)$",
+          "title": "Path",
+          "type": "string"
+        },
+        "proposed_value": {
+          "title": "Proposed Value",
+          "type": "string"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "row_id": {
+          "pattern": "^row-[0-9]+$",
+          "title": "Row Id",
+          "type": "string"
+        },
+        "rule_id": {
+          "pattern": "^[A-Z0-9]+(?:[._][A-Z0-9]+)+$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "source_line": {
+          "minimum": 1,
+          "title": "Source Line",
+          "type": "integer"
+        },
+        "version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "row_id",
+        "source_line",
+        "field",
+        "path",
+        "rule_id",
+        "category",
+        "old_value",
+        "proposed_value",
+        "rationale",
+        "confidence",
+        "evidence_ids"
+      ],
+      "title": "CorrectionProposal",
+      "type": "object"
+    }
+  },
+  "$id": "https://schemas.fastah.net/netops/geofeed-quality/correction-plan-1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "analysis_id": {
+      "pattern": "^analysis-[0-9a-f]{16}$",
+      "title": "Analysis Id",
+      "type": "string"
+    },
+    "analysis_schema_version": {
+      "const": "0.5.0",
+      "title": "Analysis Schema Version",
+      "type": "string"
+    },
+    "proposal_set_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Proposal Set Sha256",
+      "type": "string"
+    },
+    "proposals": {
+      "items": {
+        "$ref": "#/$defs/CorrectionProposal"
+      },
+      "title": "Proposals",
+      "type": "array"
+    },
+    "source_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Source Sha256",
+      "type": "string"
+    },
+    "version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_sha256",
+    "analysis_id",
+    "analysis_schema_version",
+    "proposal_set_sha256",
+    "proposals"
+  ],
+  "title": "CorrectionPlan",
+  "type": "object"
+}

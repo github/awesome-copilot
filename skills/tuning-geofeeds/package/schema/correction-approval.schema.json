@@ -1,0 +1,98 @@
+{
+  "$defs": {
+    "CorrectionAction": {
+      "enum": [
+        "approve",
+        "reject"
+      ],
+      "title": "CorrectionAction",
+      "type": "string"
+    },
+    "CorrectionDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/CorrectionAction"
+        },
+        "proposal_id": {
+          "pattern": "^proposal-[0-9a-f]{16}$",
+          "title": "Proposal Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposal_id",
+        "action"
+      ],
+      "title": "CorrectionDecision",
+      "type": "object"
+    }
+  },
+  "$id": "https://schemas.fastah.net/netops/geofeed-quality/correction-approval-1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "analysis_id": {
+      "pattern": "^analysis-[0-9a-f]{16}$",
+      "title": "Analysis Id",
+      "type": "string"
+    },
+    "analysis_schema_version": {
+      "const": "0.5.0",
+      "title": "Analysis Schema Version",
+      "type": "string"
+    },
+    "approver_label": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Approver Label",
+      "type": "string"
+    },
+    "decided_at": {
+      "format": "date-time",
+      "title": "Decided At",
+      "type": "string"
+    },
+    "decisions": {
+      "items": {
+        "$ref": "#/$defs/CorrectionDecision"
+      },
+      "minItems": 1,
+      "title": "Decisions",
+      "type": "array"
+    },
+    "id": {
+      "pattern": "^approval-[0-9a-f]{16}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "proposal_set_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Proposal Set Sha256",
+      "type": "string"
+    },
+    "source_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Source Sha256",
+      "type": "string"
+    },
+    "version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "source_sha256",
+    "analysis_id",
+    "analysis_schema_version",
+    "proposal_set_sha256",
+    "approver_label",
+    "decided_at",
+    "decisions"
+  ],
+  "title": "CorrectionApproval",
+  "type": "object"
+}

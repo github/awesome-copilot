@@ -1,0 +1,275 @@
+{
+  "$defs": {
+    "McpPlaceType": {
+      "enum": [
+        "city",
+        "region",
+        "country"
+      ],
+      "title": "McpPlaceType",
+      "type": "string"
+    },
+    "McpResponseRow": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/McpResultCode"
+        },
+        "matches": {
+          "items": {
+            "$ref": "#/$defs/McpWirePlaceMatch"
+          },
+          "title": "Matches",
+          "type": "array"
+        },
+        "message": {
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "rowKey": {
+          "maxLength": 128,
+          "minLength": 32,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{31,127}$",
+          "title": "Rowkey",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/McpRowStatus"
+        }
+      },
+      "required": [
+        "rowKey",
+        "status",
+        "code",
+        "message",
+        "retryable",
+        "matches"
+      ],
+      "title": "McpResponseRow",
+      "type": "object"
+    },
+    "McpResponseSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "backendUnavailable": {
+          "minimum": 0,
+          "title": "Backendunavailable",
+          "type": "integer"
+        },
+        "doNotGeolocate": {
+          "minimum": 0,
+          "title": "Donotgeolocate",
+          "type": "integer"
+        },
+        "invalidInput": {
+          "minimum": 0,
+          "title": "Invalidinput",
+          "type": "integer"
+        },
+        "matched": {
+          "minimum": 0,
+          "title": "Matched",
+          "type": "integer"
+        },
+        "noMatch": {
+          "minimum": 0,
+          "title": "Nomatch",
+          "type": "integer"
+        },
+        "retryable": {
+          "minimum": 0,
+          "title": "Retryable",
+          "type": "integer"
+        },
+        "total": {
+          "minimum": 1,
+          "title": "Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total",
+        "matched",
+        "doNotGeolocate",
+        "noMatch",
+        "invalidInput",
+        "backendUnavailable",
+        "retryable"
+      ],
+      "title": "McpResponseSummary",
+      "type": "object"
+    },
+    "McpResultCode": {
+      "enum": [
+        "MATCH_FOUND",
+        "DO_NOT_GEOLOCATE",
+        "NO_MATCH",
+        "INVALID_ROW_KEY",
+        "INVALID_COUNTRY_CODE",
+        "INVALID_REGION_CODE",
+        "INVALID_CITY_NAME",
+        "INVALID_SEARCH_MODE",
+        "BACKEND_UNAVAILABLE"
+      ],
+      "title": "McpResultCode",
+      "type": "string"
+    },
+    "McpRowStatus": {
+      "enum": [
+        "matched",
+        "do_not_geolocate",
+        "no_match",
+        "invalid_input",
+        "backend_unavailable"
+      ],
+      "title": "McpRowStatus",
+      "type": "string"
+    },
+    "McpWirePlaceMatch": {
+      "additionalProperties": false,
+      "properties": {
+        "approximateRadiusKm": {
+          "minimum": 10,
+          "title": "Approximateradiuskm",
+          "type": "integer"
+        },
+        "boundingBox": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 0,
+          "title": "Boundingbox",
+          "type": "array"
+        },
+        "centerLongLat": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 0,
+          "title": "Centerlonglat",
+          "type": "array"
+        },
+        "continentCode": {
+          "maxLength": 2,
+          "minLength": 2,
+          "title": "Continentcode",
+          "type": "string"
+        },
+        "countryCode": {
+          "maxLength": 2,
+          "minLength": 2,
+          "title": "Countrycode",
+          "type": "string"
+        },
+        "countryName": {
+          "title": "Countryname",
+          "type": "string"
+        },
+        "h3Cells": {
+          "items": {
+            "type": "string"
+          },
+          "title": "H3Cells",
+          "type": "array"
+        },
+        "placeIdGeonames": {
+          "minimum": 1,
+          "title": "Placeidgeonames",
+          "type": "integer"
+        },
+        "placeName": {
+          "title": "Placename",
+          "type": "string"
+        },
+        "placeType": {
+          "$ref": "#/$defs/McpPlaceType"
+        },
+        "populationWeightPercent": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Populationweightpercent",
+          "type": "number"
+        },
+        "regionCode": {
+          "title": "Regioncode",
+          "type": "string"
+        },
+        "regionName": {
+          "title": "Regionname",
+          "type": "string"
+        },
+        "sovereignCountryCode": {
+          "maxLength": 2,
+          "minLength": 2,
+          "title": "Sovereigncountrycode",
+          "type": "string"
+        },
+        "timezone": {
+          "title": "Timezone",
+          "type": "string"
+        }
+      },
+      "required": [
+        "placeIdGeonames",
+        "placeType",
+        "placeName",
+        "countryCode",
+        "countryName",
+        "sovereignCountryCode",
+        "regionCode",
+        "regionName",
+        "continentCode",
+        "timezone",
+        "centerLongLat",
+        "boundingBox",
+        "approximateRadiusKm",
+        "h3Cells",
+        "populationWeightPercent"
+      ],
+      "title": "McpWirePlaceMatch",
+      "type": "object"
+    }
+  },
+  "$id": "https://schemas.fastah.net/netops/geofeed-quality/mcp-place-search-response-1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Frozen local adapter/exchange contract v1.0 response envelope. It is not the live Fastah MCP tool outputSchema; discover that via tools/list.",
+  "properties": {
+    "batchLimit": {
+      "minimum": 1,
+      "title": "Batchlimit",
+      "type": "integer"
+    },
+    "contractVersion": {
+      "const": "1.0",
+      "title": "Contractversion",
+      "type": "string"
+    },
+    "results": {
+      "items": {
+        "$ref": "#/$defs/McpResponseRow"
+      },
+      "minItems": 1,
+      "title": "Results",
+      "type": "array"
+    },
+    "summary": {
+      "$ref": "#/$defs/McpResponseSummary"
+    }
+  },
+  "required": [
+    "contractVersion",
+    "batchLimit",
+    "summary",
+    "results"
+  ],
+  "title": "McpResponseBatch",
+  "type": "object"
+}

@@ -3,6 +3,7 @@
 Curated plugins of related agents and skills organized around specific themes, workflows, or use cases. Plugins can be installed directly via GitHub Copilot CLI or VS Code.
 
 > **Awesome Copilot is a default plugin marketplace** — no setup required in either Copilot CLI or VS Code.
+>
 ### How to Contribute
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how to contribute new plugins, improve existing ones, and share your use cases.
@@ -10,16 +11,19 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how t
 ### How to Use Plugins
 
 **Browse Plugins:**
+
 - ⭐ Featured plugins are highlighted and appear at the top of the list
 - Explore themed plugins that group related customizations
 - Each plugin includes agents and skills for specific workflows
 - Plugins make it easy to adopt comprehensive toolkits for particular scenarios
 
 **Find & Install in Copilot CLI:**
+
 - Browse the marketplace from within an interactive Copilot session: \`/plugin marketplace browse awesome-copilot\`
 - Install a plugin: \`copilot plugin install <plugin-name>@awesome-copilot\`
 
 **Find & Install in VS Code:**
+
 - Open the Extensions search view and type \`@agentPlugins\` to browse available plugins
 - Or open the Command Palette and run \`Chat: Plugins\`
 - Published marketplace manifest (tool-facing): `https://raw.githubusercontent.com/github/awesome-copilot/marketplace/.github/plugin/marketplace.json`
@@ -59,7 +63,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how t
 | [edge-ai-tasks](../plugins/edge-ai-tasks/README.md) | Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai | 2 items | architecture, planning, research, tasks, implementation |
 | [ember](../plugins/ember/README.md) | An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find. | 7 items | ai-partnership, coaching, onboarding, collaboration, storytelling, developer-experience |
 | [eyeball](../plugins/eyeball/README.md) | Document analysis with inline source screenshots. When you ask Copilot to analyze a document, Eyeball generates a Word doc where every factual claim includes a highlighted screenshot from the source material so you can verify it with your own eyes. | 1 items | document-analysis, citation-verification, screenshot, contracts, legal, trust, visual-verification |
-| [fastah-ip-geo-tools](../plugins/fastah-ip-geo-tools/README.md) | This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy. | 1 items | geofeed, ip-geolocation, rfc-8805, rfc-9632, network-operations, isp, cloud, hosting, ixp |
+| [fastah-ip-geo-tools](../plugins/fastah-ip-geo-tools/README.md) | Local-first RFC 8805 geofeed analysis, publishing, and visualization for network operators, with optional Fastah MCP server that converts country/region/place names to validated cities for accuracy. | 1 items | geofeed, ip-geolocation, rfc-8805, rfc-9632, network-operations, isp, cloud, hosting, ixp |
 | [feedback-themes](../plugins/feedback-themes/README.md) | Explore grouped customer feedback signals by impact and drill into a theme to guide product next steps. | 1 items | customer-feedback, impact-prioritization, product-insights, signal-grouping, theme-analysis, trend-discovery |
 | [flight-map-canvas](../plugins/flight-map-canvas/README.md) | A GitHub Copilot canvas that generates a view where Google Maps can be explored using 3D controls, as if a flight simulator. Agents can send the flight anywhere and report what they are working on. | 1 items | copilot-canvas, flight-simulator, geography, google-maps, interactive-canvas, session-breaks, threejs |
 | [flowstudio-power-automate](../plugins/flowstudio-power-automate/README.md) | Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes. | 5 items | power-automate, power-platform, flowstudio, mcp, model-context-protocol, cloud-flows, workflow-automation, monitoring, governance |
@@ -82,7 +86,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how t
 | [openapi-to-application-nodejs-nestjs](../plugins/openapi-to-application-nodejs-nestjs/README.md) | Generate production-ready NestJS applications from OpenAPI specifications. Includes project scaffolding, controller and service generation, TypeScript best practices, and enterprise patterns. | 2 items | openapi, code-generation, api, nodejs, typescript, nestjs |
 | [openapi-to-application-python-fastapi](../plugins/openapi-to-application-python-fastapi/README.md) | Generate production-ready FastAPI applications from OpenAPI specifications. Includes project scaffolding, route generation, dependency injection, and Python best practices for async APIs. | 2 items | openapi, code-generation, api, python, fastapi |
 | [oracle-to-postgres-migration-expert](../plugins/oracle-to-postgres-migration-expert/README.md) | Expert agent for Oracle-to-PostgreSQL application migrations in .NET solutions. Performs code edits, runs commands, and invokes extension tools to migrate .NET/Oracle data access patterns to PostgreSQL. | 9 items | oracle, postgresql, database-migration, dotnet, sql, migration, integration-testing, stored-procedures |
-| [ospo-sponsorship](../plugins/ospo-sponsorship/README.md) | Tools and resources for Open Source Program Offices (OSPOs) to identify, evaluate, and manage sponsorship of open source dependencies through GitHub Sponsors, Open Collective, and other funding platforms. | 1 items |  |
+| [ospo-sponsorship](../plugins/ospo-sponsorship/README.md) | Tools and resources for Open Source Program Offices (OSPOs) to identify, evaluate, and manage sponsorship of open source dependencies through GitHub Sponsors, Open Collective, and other funding platforms. | 1 items | |
 | [partners](../plugins/partners/README.md) | Custom agents that have been created by GitHub partners | 20 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
 | [pcf-development](../plugins/pcf-development/README.md) | Complete toolkit for developing custom code components using Power Apps Component Framework for model-driven and canvas apps | 0 items | power-apps, pcf, component-framework, typescript, power-platform |
 | [phoenix](../plugins/phoenix/README.md) | Phoenix AI observability skills for LLM application debugging, evaluation, and tracing. Includes CLI debugging tools, LLM evaluation workflows, and OpenInference tracing instrumentation. | 3 items | phoenix, arize, llm, observability, tracing, evaluation, openinference, instrumentation |
@@ -110,7 +114,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how t
 | [site-studio](../plugins/site-studio/README.md) | Plan, draft, and track a personal website section by section — a shared canvas where you and your agent author content, watch progress, and review every change. | 1 items | agent-collaboration, content-authoring, personal-website, progress-tracking, section-planning, site-builder |
 | [skill-image-gen](../plugins/skill-image-gen/README.md) | Generate images using AI directly from your coding workflow. Supports OpenAI (gpt-image-2) and Google Gemini. BYO API key — the skill guides you through setup on first use. | 1 items | image-generation, openai, gemini, ai, art, sprites, textures, icons |
 | [software-engineering-team](../plugins/software-engineering-team/README.md) | 7 specialized agents covering the full software development lifecycle from UX design and architecture to security and DevOps. | 7 items | team, enterprise, security, devops, ux, architecture, product, ai-ethics |
-| [structured-autonomy](../plugins/structured-autonomy/README.md) | Premium planning, thrifty implementation | 3 items |  |
+| [structured-autonomy](../plugins/structured-autonomy/README.md) | Premium planning, thrifty implementation | 3 items | |
 | [swift-mcp-development](../plugins/swift-mcp-development/README.md) | Comprehensive collection for building Model Context Protocol servers in Swift using the official MCP Swift SDK with modern concurrency features. | 2 items | swift, mcp, model-context-protocol, server-development, sdk, ios, macos, concurrency, actor, async-await |
 | [technical-spike](../plugins/technical-spike/README.md) | Tools for creation, management and research of technical spikes to reduce unknowns and assumptions before proceeding to specification and implementation of solutions. | 2 items | technical-spike, assumption-testing, validation, research |
 | [testing-automation](../plugins/testing-automation/README.md) | Comprehensive collection for writing tests, test automation, and test-driven development including unit tests, integration tests, and end-to-end testing strategies. | 9 items | testing, tdd, automation, unit-tests, integration, playwright, jest, nunit |

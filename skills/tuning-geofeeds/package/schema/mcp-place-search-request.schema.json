@@ -1,0 +1,71 @@
+{
+  "$defs": {
+    "McpRequestRow": {
+      "additionalProperties": false,
+      "properties": {
+        "cityName": {
+          "default": "",
+          "maxLength": 200,
+          "title": "Cityname",
+          "type": "string"
+        },
+        "countryCode": {
+          "maxLength": 16,
+          "title": "Countrycode",
+          "type": "string"
+        },
+        "regionCode": {
+          "default": "",
+          "maxLength": 16,
+          "title": "Regioncode",
+          "type": "string"
+        },
+        "rowKey": {
+          "maxLength": 128,
+          "minLength": 32,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{31,127}$",
+          "title": "Rowkey",
+          "type": "string"
+        },
+        "searchMode": {
+          "$ref": "#/$defs/McpSearchMode",
+          "default": "auto"
+        }
+      },
+      "required": [
+        "rowKey",
+        "countryCode"
+      ],
+      "title": "McpRequestRow",
+      "type": "object"
+    },
+    "McpSearchMode": {
+      "enum": [
+        "auto",
+        "prefer_larger_area",
+        "prefer_larger_population_center"
+      ],
+      "title": "McpSearchMode",
+      "type": "string"
+    }
+  },
+  "$id": "https://schemas.fastah.net/netops/geofeed-quality/mcp-place-search-request-1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Frozen local adapter/exchange contract v1.0 request envelope. It is not the live Fastah MCP tool inputSchema; discover that via tools/list.",
+  "properties": {
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/McpRequestRow"
+      },
+      "minItems": 1,
+      "title": "Rows",
+      "type": "array"
+    }
+  },
+  "required": [
+    "rows"
+  ],
+  "title": "McpRequestBatch",
+  "type": "object"
+}

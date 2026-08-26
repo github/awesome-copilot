@@ -1,6 +1,8 @@
-# IP Geolocation Tools by Fastah Inc.
+# IP geolocation tools by Fastah
 
-This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.
+Tune public RFC 8805 geofeeds without handing over the feed. You get local
+analysis, evidence-preserving reports, and various report and analysis friendly formats such as HTML and GeoJSON.
+Optional Fastah MCP server helps enrich place names (country code, region code, city name) to normalized place names compatible with RFC 8805.
 
 ## Installation
 
@@ -9,17 +11,28 @@ This plugin is for network operations engineers who wish to tune and publish IP 
 copilot plugin install fastah-ip-geo-tools@awesome-copilot
 ```
 
-## What's Included
+## What's included
 
 ### Skills
 
 | Skill | Description |
 |-------|-------------|
-| `geofeed-tuner` | Validates, tunes, and improves IP geolocation feeds in CSV format following RFC 8805 with opinionated best practices from real-world deployments. Uses Fastah MCP for tuning data lookup. |
+| `tuning-geofeeds` | Analyzes public RFC 8805 CSV geofeeds locally, renders review artifacts, and exports corrected feeds only after explicit approval. |
+
+## Optional MCP enrichment
+
+The bundled `mcp.json` connects to Fastah over Streamable HTTP. Complete OAuth
+in your host when prompted; never put a credential in this plugin. The workflow
+uses `rfc8805-row-place-search` for geofeed enrichment, while fastah may expose
+additional tools. It rediscovers the live `inputSchema` and `outputSchema`
+with `tools/list` after authentication, so the committed local adapter schemas
+never masquerade as the server contract. If that tool has no `outputSchema` or
+is unavailable, the skill skips enrichment and continues locally.
 
 ## Prerequisites
 
-- **Python 3** is required for running generated validation and tuning scripts.
+- **Python 3.14+** is required for the bundled analyzer. See the skill's
+  [setup guide](../../skills/tuning-geofeeds/references/setup.md).
 
 ## Source
 

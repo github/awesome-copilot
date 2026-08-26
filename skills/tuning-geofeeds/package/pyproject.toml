@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastah-geofeed-quality"
+version = "0.5.0"
+description = "Local RFC 8805 geofeed analysis for Fastah NetOps Tools"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+  "httpx>=0.28,<1",
+  "jsonschema>=4.23,<5",
+  "pycountry>=26.2.16",
+  "pydantic>=2.11,<3",
+]
+
+[project.scripts]
+geofeed-quality = "geofeed_quality.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
