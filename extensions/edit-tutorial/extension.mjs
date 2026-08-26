@@ -1016,7 +1016,10 @@ function runChecks(checks, codeText, done) {
 function checkWork(btn) {
   if (checking) return;
   var ex = S.tutorial.exercise;
-  var codeText = S.progress.exercise.code || "";
+  // The exact exercise, progress record, and code snapshot this run describes.
+  // The callback refuses to apply its verdict to anything else.
+  var startedOn = S.progress.exercise;
+  var codeText = startedOn.code || "";
 
   if (!ex.checks.length) {
     // A lesson can reach the canvas with no runnable checks (patterns dropped
@@ -1034,16 +1037,29 @@ function checkWork(btn) {
 
   runChecks(ex.checks, codeText, function (results, reason) {
     checking = false;
-    // The agent can publish a new lesson or reset progress while a check is in
-    // flight. Applying these results to whatever replaced it would credit the
-    // wrong exercise, so drop them. Re-render on the way out: the replacing path
-    // normally repaints too, but this is what guarantees the pending "Checking..."
-    // button never sticks if it did not.
-    if (!S.tutorial || !S.progress || S.tutorial.exercise.checks !== ex.checks) {
+    // A verdict is only meaningful for the exercise, progress record, and code it
+    // was computed from. A new lesson or a progress reset replaces all of S, and
+    // comparing the progress object catches that directly rather than inferring it
+    // from the tutorial, which is what keeps this correct if the update path ever
+    // starts merging state instead of replacing it.
+    if (!S.tutorial || !S.progress ||
+        S.tutorial.exercise.checks !== ex.checks ||
+        S.progress.exercise !== startedOn) {
+      // That path repaints on its own; this render is what guarantees the pending
+      // "Checking..." button never sticks if it did not.
       render();
       return;
     }
-    var pe = S.progress.exercise;
+    var pe = startedOn;
+    if ((pe.code || "") !== codeText) {
+      // The learner kept typing while the checks ran, so this verdict describes
+      // code they have already replaced. Crediting it could complete the exercise
+      // on the strength of an answer that is no longer in the editor.
+      lastCheckResults = null;
+      render();
+      toast("Your code changed while the checks were running. Check it again.");
+      return;
+    }
     var allPass = true;
     lastCheckResults = ex.checks.map(function (c, i) {
       var pass = results[i] === true;
