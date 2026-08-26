@@ -179,6 +179,32 @@ understood and maintained. Ask whether the shape is common enough to justify it.
 the likelihood. Both are worth having, and conflating them means the likelihood never gets
 addressed.
 
+## Specialist modes
+
+This skill carries the method and is enough on its own. Ten companion skills carry the domain
+detail it does not — what a tenant-scoping device looks like, what expand/contract means,
+which lint rules catch silent failure. Install the one that fits:
+
+| Skill | For |
+|---|---|
+| `poka-yoke-design` | A new API, schema, type or state machine — make misuse unrepresentable |
+| `poka-yoke-audit` | Existing code: swappable arguments, silent fallbacks, unguarded deletes |
+| `poka-yoke-retro` | After an incident, when the fix must close the class rather than the case |
+| `poka-yoke-guardrails` | Pre-commit hooks, CI gates, lint rules, database constraints |
+| `poka-yoke-agent-guardrails` | Constraining an AI agent that works on your repository |
+| `poka-yoke-authz` | Multi-tenant isolation, IDOR, row-level security |
+| `poka-yoke-data` | Pipelines and metrics, where failure is silently wrong numbers |
+| `poka-yoke-ops` | Deploys, migrations, rollback, blast radius |
+| `poka-yoke-llm` | AI features you ship to users: structured output, tool schemas, injection |
+| `poka-yoke-ux` | Forms, destructive actions, flows users get wrong |
+
+Two are easy to confuse. `poka-yoke-llm` is for AI features *you ship to users*;
+`poka-yoke-agent-guardrails` is for constraining an agent that *works on your repository*.
+
+They compose. An incident involving a bad migration is `poka-yoke-retro` for the analysis and
+`poka-yoke-ops` for the device: the retro decides what to install, the domain skill decides
+which device.
+
 ## Evidence, and its limits
 
 This method was benchmarked at 591 blind-graded runs across six model families, scored against
