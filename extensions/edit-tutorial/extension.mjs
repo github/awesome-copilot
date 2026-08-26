@@ -455,8 +455,11 @@ function saveState(workspacePath, state) {
 // checks is still completable through "Ask Copilot for a review".
 function rescreenExercise(tutorial) {
     const ex = tutorial?.exercise;
-    if (!ex || !Array.isArray(ex.checks)) return;
-    ex.checks = ex.checks
+    if (!ex || typeof ex !== "object") return;
+    // Checks always end up an array the canvas can take .length of: a loaded
+    // exercise without one gets the empty set, which the canvas already
+    // handles as "ask Copilot for a review instead".
+    ex.checks = (Array.isArray(ex.checks) ? ex.checks : [])
         .map((c) => normalizeCheck(c))
         .filter((r) => !r.error && r.check)
         .map((r) => r.check);
@@ -472,9 +475,10 @@ function clampLoadedLesson(tutorial) {
     tutorial.title = text(tutorial.title, 160);
     tutorial.summary = text(tutorial.summary, 1200);
     tutorial.source = text(tutorial.source, 200);
-    tutorial.steps = (Array.isArray(tutorial.steps) ? tutorial.steps : []).slice(0, MAX_STEPS);
+    tutorial.steps = (Array.isArray(tutorial.steps) ? tutorial.steps : [])
+        .filter((step) => step && typeof step === "object")
+        .slice(0, MAX_STEPS);
     tutorial.steps.forEach((step, index) => {
-        if (!step || typeof step !== "object") return;
         // Ids are regenerated, never trusted: the canvas page interpolates step
         // ids into inline handlers, and the publish path only ever writes these
         // positional ids, so for any legitimately saved lesson this is the
@@ -509,10 +513,38 @@ function clampLoadedLesson(tutorial) {
     }
 }
 
+// A lesson is renderable only with at least one step and an exercise object.
+// Every lesson the publish path saves has both (normalizeTutorial refuses
+// anything less), so requiring them here is the identity for legitimate data
+// and a refusal for a malformed block, which would otherwise crash the canvas
+// renderer mid-restore and leave it stuck on the loading screen.
+function renderableLesson(tutorial) {
+    return !!(tutorial && typeof tutorial === "object" &&
+        Array.isArray(tutorial.steps) && tutorial.steps.length > 0 &&
+        tutorial.exercise && typeof tutorial.exercise === "object");
+}
+
+// Progress the canvas can index into; anything else becomes null so the
+// callers' freshProgress fallbacks take over instead of the renderer throwing.
+function structuredProgress(progress) {
+    return progress && typeof progress === "object" &&
+        progress.steps && typeof progress.steps === "object" &&
+        progress.exercise && typeof progress.exercise === "object"
+        ? progress
+        : null;
+}
+
 function clampLoadedState(state) {
     clampLoadedLesson(state?.tutorial);
     state.archive = (Array.isArray(state?.archive) ? state.archive : []).slice(0, MAX_LESSONS);
     for (const entry of state.archive) clampLoadedLesson(entry?.tutorial);
+    if (!renderableLesson(state.tutorial)) {
+        state.tutorial = null;
+        state.progress = null;
+    }
+    state.archive = state.archive.filter((entry) => entry && renderableLesson(entry.tutorial));
+    for (const entry of state.archive) entry.progress = structuredProgress(entry.progress);
+    state.progress = structuredProgress(state.progress);
     const pe = state?.progress?.exercise;
     if (pe && typeof pe === "object") {
         // The attempt is learner text and can legitimately outgrow the snippet
@@ -565,7 +597,10 @@ async function loadStateFromArtifact(workspacePath) {
                 const match = ARTIFACT_STATE_RE.exec(await readFile(file, "utf-8"));
                 if (!match) continue;
                 const parsed = JSON.parse(match[1]);
-                if (parsed && typeof parsed === "object" && parsed.tutorial) return parsed;
+                // Structural gate at acceptance, so one file carrying a
+                // malformed block does not shadow a valid artifact ranked
+                // after it; the same gate runs again after clamping.
+                if (parsed && typeof parsed === "object" && renderableLesson(parsed.tutorial)) return parsed;
             } catch {}
         }
     }
