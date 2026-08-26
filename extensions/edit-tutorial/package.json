@@ -1,0 +1,19 @@
+{
+  "name": "canvas-edit-tutorial",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "GitHub Copilot canvas extension that turns agent code edits into an interactive lesson with a walkthrough and a hands-on variation exercise.",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "keywords": [
+    "agent-edits",
+    "code-walkthrough",
+    "guided-exercise",
+    "interactive-tutorial",
+    "learning",
+    "onboarding"
+  ]
+}
+
