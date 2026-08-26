@@ -116,6 +116,18 @@ function deriveRepoAnchors(prTargets, issueRepo, currentProjectRepo) {
   return { expectedRepo, prExpectedRepo, prProjectSelected }
 }
 
+// The TRUSTED current-checkout repo for the "Current project" PR anchor. Always
+// derived from the resolved session cwd (localPath), NEVER from runtimeDefaults.repo:
+// that value prefers GITHUB_REPOSITORY, which is the configured ISSUE target and may
+// point at a separate (cloud) repo. seedDefaultsFromSession() deliberately does not
+// overwrite an explicit GITHUB_REPOSITORY, so feeding runtimeDefaults.repo in as the
+// current-project anchor would gate PR validation/dedup on the issue repo and reject
+// legitimate PRs opened from the driving checkout. localPath is the resolved cwd, so
+// its git remote is the checkout actually being driven — the right, host-trusted anchor.
+function currentCheckoutRepo(defaults) {
+  return repoFromPath(defaults?.localPath || '')
+}
+
 // Every model turn (scan enrichment and each work item) runs on the ONE shared
 // `session`. The SDK drives a single conversation, so two overlapping
 // `sendAndWait` calls would interleave prompts and replies on the same thread —
@@ -539,7 +551,7 @@ function buildWorkPrompt({ key, issue, org, prTargets, model: modelOverride, ass
   // the trusted PR anchor when we have one, else the selected project's declared
   // repo (model-relayed — acceptable for a search hint), else the issue repo. Issue
   // lookup/creation stays on the issue repo (targetRepo).
-  const { prExpectedRepo } = deriveRepoAnchors(prTargets, issueRepo, defaults.repo)
+  const { prExpectedRepo } = deriveRepoAnchors(prTargets, issueRepo, currentCheckoutRepo(defaults))
   const prSearchRepo = prExpectedRepo || normalizeRepo(prTargets?.local?.repo) || targetRepo
   const plain = sanitizeForPrompt(issue.plainEnglish || issue.summary || 'User-visible failure in production', 200)
   const issueTitle = `[sentry-triage][${key}] ${plain}`.slice(0, 120)
@@ -901,7 +913,7 @@ Also, in the SAME turn, silently load the user's registered app projects for the
   // PR URL against that model-declared repo still pins the badge number to the URL it
   // links to and to the trusted host; it only accepts a model-asserted repo, which is
   // inherent to any model-reported tracking claim. Falls back to the issue repo last.
-  const { prExpectedRepo: trackPrExpectedRepo } = deriveRepoAnchors(trackPrTargets, trackRepo, runtimeDefaults.repo)
+  const { prExpectedRepo: trackPrExpectedRepo } = deriveRepoAnchors(trackPrTargets, trackRepo, currentCheckoutRepo(runtimeDefaults))
   const trackPrRepo = trackPrExpectedRepo || normalizeRepo(trackPrTargets?.local?.repo) || normalizeRepo(trackRepo)
   const needTracking = !!trackRepo
   const trackingToken = needTracking ? makeTrackingToken() : ''
@@ -1383,7 +1395,7 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
   // `prExpectedRepo` is the TRUSTED PR anchor when one exists, or '' for an
   // explicitly selected project — which authorizes by host-resolved project_id, not
   // a repo — signalled by `prProjectSelected` so the preflight below does NOT block.
-  const { expectedRepo, prExpectedRepo, prProjectSelected } = deriveRepoAnchors(prTargets, issueRepo, runtimeDefaults.repo)
+  const { expectedRepo, prExpectedRepo, prProjectSelected } = deriveRepoAnchors(prTargets, issueRepo, currentCheckoutRepo(runtimeDefaults))
   // Trusted host the authorized issue/PR links must live on, paired with
   // `expectedRepo`. Repo alone is not enough: a look-alike host would otherwise
   // let a model-reported link pass the repo check (see urlInRepo). Sourced from
