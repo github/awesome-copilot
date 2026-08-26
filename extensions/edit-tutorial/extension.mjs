@@ -134,11 +134,19 @@ function screenPattern(pattern) {
 function normalizeCheck(raw) {
     const pattern = typeof raw?.pattern === "string" ? raw.pattern.slice(0, 500) : "";
     if (!pattern) return {};
-    const flags = typeof raw?.flags === "string" && /^[gims]*$/.test(raw.flags) ? raw.flags : "m";
+    // Default only when flags are omitted. A hand-picked allowlist rejected valid
+    // flags such as u, y and d and quietly substituted "m", running the check with
+    // semantics the author did not ask for; RegExp is the authority on what is
+    // valid, and anything it refuses becomes an error the agent can act on.
+    const flags = typeof raw?.flags === "string" ? raw.flags : "m";
     try {
         new RegExp(pattern, flags);
     } catch {
-        return { error: "solutionChecks pattern is not a valid regular expression: " + pattern };
+        return {
+            error:
+                "solutionChecks entry is not a valid regular expression: /" + pattern + "/" + flags +
+                ". Check both the pattern and the flags.",
+        };
     }
     const unsafe = screenPattern(pattern);
     if (unsafe) {
@@ -174,9 +182,19 @@ function normalizeTutorial(raw) {
         let quiz = null;
         if (s.quiz && typeof s.quiz === "object") {
             const question = text(s.quiz.question, 500);
-            const options = Array.isArray(s.quiz.options)
-                ? s.quiz.options.map((o) => text(o, 300)).filter(Boolean).slice(0, 5)
-                : [];
+            // Positions are meaningful here: answerIndex points into this array.
+            // Dropping a blank option used to shift every later one down a slot, so
+            // ["", "correct", "wrong"] with answerIndex 1 ended up marking "wrong"
+            // as the right answer. Keep the positions and refuse the blank instead.
+            const options = (Array.isArray(s.quiz.options) ? s.quiz.options.slice(0, 5) : [])
+                .map((o) => text(o, 300));
+            if (options.some((o) => !o)) {
+                return {
+                    error:
+                        "Step " + (i + 1) + " quiz has a blank option. Every option needs text, because " +
+                        "answerIndex refers to their positions.",
+                };
+            }
             const answerIndex = Number.isInteger(s.quiz.answerIndex) ? s.quiz.answerIndex : -1;
             if (question && options.length >= 2 && answerIndex >= 0 && answerIndex < options.length) {
                 quiz = { question, options, answerIndex, why: text(s.quiz.why, 800) };
@@ -581,6 +599,13 @@ body { padding: 1.75rem 1.5rem 3rem; max-width: 940px; margin: 0 auto; }
 .banner-complete p { font-size: 0.9rem; color: var(--muted); }
 
 .solution-block { margin-top: 1rem; }
+.review-lock {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  font-size: 0.84rem; color: var(--blue-dark); background: var(--blue-tint);
+  border: 1px solid rgba(26,102,194,0.2); border-radius: var(--radius-sm);
+  padding: 8px 14px; margin-top: 0.5rem;
+}
+.editor[readonly] { background: var(--code-bg); color: var(--muted); }
 .locked-note {
   display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.9rem;
   background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius);
@@ -638,6 +663,14 @@ var saveTimer = null;
 var lastCheckResults = null;
 var checking = false;
 var pendingFocus = null;
+// Set by Escape in the editor: releases the next Tab so it moves focus instead of
+// indenting, which is what keeps the textarea from being a keyboard trap.
+var tabEscapes = false;
+// A review was sent and the agent has not acted yet. reviewPending freezes the
+// editor; reviewArmed outlives an early release and keeps saves immediate, so a
+// changed attempt reaches the server before an approval naming the old one can.
+var reviewPending = false;
+var reviewArmed = false;
 
 // Capability token minted by the server for this canvas instance. Every API call
 // carries it, so a page that never received this document cannot read the lesson
@@ -668,6 +701,9 @@ function applyState(next) {
   if (appliedRev !== -1 && rev <= appliedRev) return false;
   S = next;
   appliedRev = rev;
+  // A new revision means the agent acted, so nothing is outstanding any more.
+  reviewPending = false;
+  reviewArmed = false;
   // The server restarts its accepted-write counter on every revision, so restart
   // ours in step or the first save against the new revision looks stale.
   progressSeq = Number(next.progressSeq) || 0;
@@ -698,6 +734,7 @@ function toast(msg) {
 var progressSeq = 0;
 var saveInFlight = false;
 var saveQueued = false;
+var saveFailures = 0;
 
 function postProgress() {
   progressSeq++;
@@ -715,10 +752,21 @@ function saveProgress(immediate) {
     // coalesced into one that runs after, carrying whatever the latest state is.
     if (saveInFlight) { saveQueued = true; return; }
     saveInFlight = true;
-    // A rejected save needs no handling here: every revision bump also broadcasts,
-    // so the authoritative state is already on its way over the event stream.
     postProgress()
-      .catch(function () {})
+      .then(function (r) {
+        // 409 is not a failure: the write was superseded, and every revision bump
+        // also broadcasts, so the authoritative state is already on its way.
+        if (r.ok || r.status === 409) { saveFailures = 0; return; }
+        throw new Error("save rejected with " + r.status);
+      })
+      .catch(function () {
+        // fetch resolves for HTTP errors and rejects for network ones, and both
+        // used to vanish here, leaving the panel showing progress that would not
+        // survive a reload. Retry once, then say so rather than keep pretending.
+        saveFailures++;
+        if (saveFailures === 1) saveQueued = true;
+        else if (saveFailures === 2) toast("Your progress is not being saved right now. It may not survive a reload.");
+      })
       .then(function () {
         saveInFlight = false;
         if (saveQueued) { saveQueued = false; doSave(); }
@@ -975,8 +1023,16 @@ function renderExercise() {
     html += "</div>";
   }
 
-  html += '<textarea id="editor" class="editor" aria-label="Exercise code editor" spellcheck="false" oninput="onEditorInput(this)" onkeydown="onEditorKey(event)">' +
+  html += '<textarea id="editor" class="editor" aria-label="Exercise code editor" aria-describedby="editor-help"' +
+    (reviewPending ? ' readonly aria-readonly="true"' : "") +
+    ' spellcheck="false" oninput="onEditorInput(this)" onkeydown="onEditorKey(event)">' +
     esc(pe.code) + "</textarea>";
+  if (reviewPending) {
+    html += '<div class="review-lock">' +
+      "<span>Copilot is reviewing this attempt. Editing is paused so its review matches what you sent.</span>" +
+      '<button class="btn btn-ghost" id="resume-editing" onclick="resumeEditing()">Keep editing</button></div>';
+  }
+  html += '<p class="hint-inline" id="editor-help">Tab indents. Press Escape then Tab to leave the editor.</p>';
 
   html += renderChecks();
 
@@ -1105,6 +1161,10 @@ function answerQuiz(stepId, optionIndex) {
   // has to close the gate again, or the panel says "Not quite" while the continue
   // button stays enabled.
   p.quizCorrect = !!(step.quiz && optionIndex === step.quiz.answerIndex);
+  // Closing the quiz gate has to reopen the step as well. exerciseUnlocked() counts
+  // understood steps only, so leaving that set would keep the exercise reachable
+  // while this step insists the quiz must be answered correctly first.
+  if (step.quiz && !p.quizCorrect) p.understood = false;
   saveProgress();
   // render() rebuilds the whole panel, so the option the learner just activated
   // stops existing and focus falls to the document body. Put focus back on their
@@ -1126,19 +1186,37 @@ function markUnderstood(stepId, i) {
 
 function onEditorInput(el) {
   S.progress.exercise.code = el.value;
-  saveProgress();
+  // While a review is outstanding the 450ms debounce is exactly the window an
+  // approval can slip through, so give it up and write straight away.
+  saveProgress(reviewArmed);
 }
 
+// Tab indents, which means it cannot also move focus, which would leave a
+// keyboard-only learner unable to reach "Check my work" at all. Escape releases
+// the next Tab so it moves focus normally, the convention code editors on the web
+// settle on; the hint under the editor says so, and the release is announced.
 function onEditorKey(e) {
-  if (e.key === "Tab") {
-    e.preventDefault();
-    var el = e.target;
-    var start = el.selectionStart, end = el.selectionEnd;
-    el.value = el.value.slice(0, start) + "  " + el.value.slice(end);
-    el.selectionStart = el.selectionEnd = start + 2;
-    S.progress.exercise.code = el.value;
-    saveProgress();
+  if (e.key === "Escape") {
+    tabEscapes = true;
+    announce("Tab will move to the next control. Type to keep editing.");
+    return;
   }
+  if (e.key !== "Tab") {
+    tabEscapes = false;
+    return;
+  }
+  if (tabEscapes) {
+    // Let the browser do its normal thing and move focus out of the editor.
+    tabEscapes = false;
+    return;
+  }
+  e.preventDefault();
+  var el = e.target;
+  var start = el.selectionStart, end = el.selectionEnd;
+  el.value = el.value.slice(0, start) + "  " + el.value.slice(end);
+  el.selectionStart = el.selectionEnd = start + 2;
+  S.progress.exercise.code = el.value;
+  saveProgress();
 }
 
 // Solution checks are regexes the agent wrote, run against whatever the learner
@@ -1335,16 +1413,39 @@ function askReview(btn) {
   }
   postProgress()
     .then(function (r) {
-      if (!r.ok) throw new Error("progress rejected");
+      // 409 means the server already holds progress at least as new as this flush,
+      // so the attempt it will describe is on the server either way.
+      if (!r.ok && r.status !== 409) throw new Error("progress rejected");
       return api("/review", { method: "POST" });
     })
     .then(function (r) {
+      if (r.ok) {
+        // Hold the editor while the agent reads. Approval names the attempt it
+        // approves, but that name can only describe what the server has stored,
+        // and a keystroke is a debounce away from making it stale. Freezing the
+        // text is what makes the two agree; the learner can release it and lose
+        // nothing but the lock.
+        reviewPending = true;
+        reviewArmed = true;
+        render();
+        announce("Sent to Copilot. Editing is paused while it reviews, so the review matches what you sent.");
+      }
       toast(r.ok
         ? "Sent to Copilot. Watch the chat for coaching."
         : "Copilot did not receive your attempt. Try again in a moment.");
     })
     .catch(function () { toast("Could not reach the session."); })
     .then(function () { if (btn) setTimeout(function () { btn.disabled = false; }, 2000); });
+}
+
+// The learner is never actually stuck: releasing the lock is one click. Saves stay
+// immediate afterwards (reviewArmed), so the moment they change anything the
+// server sees it and an approval naming the old text is refused.
+function resumeEditing() {
+  reviewPending = false;
+  pendingFocus = "editor";
+  render();
+  announce("Editing resumed. A review that arrives now will not be applied to changed code.");
 }
 
 function requestTutorial() {
