@@ -47,8 +47,8 @@ Start an edit tutorial from the last commit.
   default; name any commit to learn that one instead.
 - **Lesson history**: each newly titled lesson joins a history of up to 10. When
   more than one exists, arrows under the progress counter let the learner flip
-  between lessons, each keeping its own progress. Republishing a lesson with the
-  same title replaces it instead of adding a new one.
+  between lessons, each keeping its own progress. Republishing the active lesson with
+  the same title replaces it instead of adding a new one.
 - **Walkthrough**: one step per focused edit, each with the file, an explanation, a
   before/after code view with change highlighting, and an optional multiple-choice quiz.
 - **Exercise**: finishing the walkthrough unlocks a hands-on task that applies the same
