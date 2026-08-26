@@ -362,14 +362,19 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
         const payload = parseJson(body)
         const current = state.getPrTargets()
         const pick = (value, fallback) => (typeof value === 'string' ? value : fallback)
-        // The PR-authorization repo (and its display name) must NOT be taken from
-        // the browser payload. The Settings dropdown is populated by the model via
-        // submit_projects, so accepting its repo here would let a forged
-        // projectId->repo mapping choose where fix-session PRs may land. Re-bind both
-        // from the selected projectId against our own trusted project options (loaded
-        // in a Sentry-free turn — see loadProjectOptions), failing closed to '' when
-        // the id isn't in the list. localProjectRepo/localProjectName in the payload
-        // are ignored on purpose.
+        // repo/name here are DISPLAY + dedup-search metadata only — they do NOT
+        // authorize where fix-session PRs land (an explicitly selected project is
+        // authorized by its host-resolved project_id at create_session time; see
+        // deriveRepoAnchors). Still, don't take them from the browser payload: the
+        // Settings dropdown is populated by the model via submit_projects, so re-bind
+        // repo/name from the selected projectId against our own project options to
+        // keep the browser from injecting arbitrary display/search strings. Crucially,
+        // ALSO reject a projectId that doesn't resolve to a known project (stale or
+        // forged): storing an unknown non-empty id would make deriveRepoAnchors treat
+        // it as an explicit selection and skip the missing-repo/PR-URL preflight, so
+        // an unresolvable id must fail closed to '' (→ Current-project mode, which
+        // requires a trusted git remote). localProjectRepo/localProjectName in the
+        // payload are ignored on purpose.
         const nextProjectId = pick(payload.localProjectId, current.local.projectId)
         const trustedProjects = state.getProjectOptions()
         const boundProject = nextProjectId && Array.isArray(trustedProjects)
@@ -383,7 +388,7 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
           local: {
             path: pick(payload.localPath, current.local.path),
             baseBranch: pick(payload.localBranch, current.local.baseBranch),
-            projectId: nextProjectId,
+            projectId: boundProject ? nextProjectId : '',
             projectName: boundName,
             repo: boundRepo,
           },

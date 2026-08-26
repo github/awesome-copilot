@@ -892,11 +892,17 @@ Also, in the SAME turn, silently load the user's registered app projects for the
   const trackRepo = selectedTracker === 'github'
     ? (trackPrTargets?.cloud?.repo || runtimeDefaults.repo || '')
     : ''
-  // Issue vs PR repo split for enrichment: the tracking ISSUE lives in trackRepo,
-  // but its linked PR can live in the selected project's repo (see
-  // deriveRepoAnchors). Validate each reported URL against its own anchor below.
+  // Issue vs PR repo split for enrichment: the tracking ISSUE lives in trackRepo, but
+  // its linked PR can live in the selected project's repo. deriveRepoAnchors publishes
+  // no TRUSTED PR anchor for an explicitly selected project (it authorizes by
+  // host-resolved project_id, not a model-relayed repo), so for the tracked-PR BADGE —
+  // which is read-only display, not a write/authorization gate — fall back to the
+  // project's declared repo when there's no trusted anchor. Validating a model-reported
+  // PR URL against that model-declared repo still pins the badge number to the URL it
+  // links to and to the trusted host; it only accepts a model-asserted repo, which is
+  // inherent to any model-reported tracking claim. Falls back to the issue repo last.
   const { prExpectedRepo: trackPrExpectedRepo } = deriveRepoAnchors(trackPrTargets, trackRepo, runtimeDefaults.repo)
-  const trackPrRepo = trackPrExpectedRepo || trackRepo
+  const trackPrRepo = trackPrExpectedRepo || normalizeRepo(trackPrTargets?.local?.repo) || normalizeRepo(trackRepo)
   const needTracking = !!trackRepo
   const trackingToken = needTracking ? makeTrackingToken() : ''
   const trackingBlock = needTracking
@@ -1013,14 +1019,15 @@ ${items.map((i) => `${i.key}: ${i.title}`).join('\n')}`
           if (verifiedIssueNumber === null) continue
           // Trust the PR's pr* fields ONLY when a concrete prUrl is a `/pull/<n>` in
           // the PR anchor (which can differ from the issue repo in split-repo local
-          // mode). A model-reported prNumber/prState with NO url, an issue URL, or a
-          // url in the wrong repo is unverifiable: strip EVERY pr* field (the card
-          // renders a badge from prNumber alone, and prState alone can keep a closed
-          // issue "tracked") but KEEP the authorized issue. Derive prNumber from the
-          // validated URL itself so a mismatched model-reported number can never
-          // render a badge pointing at a different PR than the one we verified.
+          // mode; for a selected project the anchor is the model-declared project
+          // repo — display-only, see trackPrRepo). A model-reported prNumber/prState
+          // with NO url, an issue URL, or a url in the wrong repo is unverifiable:
+          // strip EVERY pr* field (the card renders a badge from prNumber alone, and
+          // prState alone can keep a closed issue "tracked") but KEEP the authorized
+          // issue. Derive prNumber from the validated URL itself so a mismatched
+          // model-reported number can never render a badge pointing at a different PR.
           const verifiedPrNumber = info.prUrl
-            ? repoRefNumber(info.prUrl, trackPrExpectedRepo, allowedHost, 'pull')
+            ? repoRefNumber(info.prUrl, trackPrRepo, allowedHost, 'pull')
             : null
           const record = verifiedPrNumber !== null
             ? { ...info, issueNumber: verifiedIssueNumber, prNumber: verifiedPrNumber }
