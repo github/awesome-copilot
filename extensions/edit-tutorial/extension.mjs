@@ -529,8 +529,8 @@ function lcsSuffixLengths(b, a) {
 function diffLines(before, after) {
   var b = String(before || "").split("\\n");
   var a = String(after || "").split("\\n");
-  var bKey = b.map(function (l) { return l.trim(); });
-  var aKey = a.map(function (l) { return l.trim(); });
+  var bKey = b;
+  var aKey = a;
   var removed = {}, added = {};
   var i = 0, j = 0, k;
 
@@ -589,9 +589,11 @@ function renderStepper() {
   (S.tutorial.steps || []).forEach(function (s, i) {
     var p = stepProgress(s.id);
     var cls = "step-node";
-    if (view.kind === "step" && view.index === i) cls += " active";
+    var isActive = view.kind === "step" && view.index === i;
+    if (isActive) cls += " active";
     if (p.understood) cls += " done";
-    html += '<button class="' + cls + '" onclick="gotoStep(' + i + ')">' +
+    html += '<button class="' + cls + '" aria-label="Step ' + (i + 1) + ': ' + esc(s.heading) + '"' +
+      (isActive ? ' aria-current="step"' : "") + ' onclick="gotoStep(' + i + ')">' +
       (p.understood ? "&#10003; " : "") + (i + 1) + "</button>";
     html += '<span class="step-connector"></span>';
   });
@@ -833,11 +835,16 @@ function revealSolution() {
 
 function askReview(btn) {
   if (btn) btn.disabled = true;
-  saveProgress(true);
-  api("/review", { method: "POST" })
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+  api("/progress", { method: "POST", body: JSON.stringify(S.progress) })
     .then(function (r) {
-      // Only a 2xx means the bridge actually accepted the prompt. Anything else
-      // means nothing reached the chat, so do not claim coaching is on its way.
+      if (!r.ok) throw new Error("progress rejected");
+      return api("/review", { method: "POST" });
+    })
+    .then(function (r) {
       toast(r.ok
         ? "Sent to Copilot. Watch the chat for coaching."
         : "Copilot did not receive your attempt. Try again in a moment.");
