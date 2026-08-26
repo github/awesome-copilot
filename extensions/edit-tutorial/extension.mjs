@@ -459,7 +459,7 @@ function rescreenExercise(tutorial) {
     // Checks always end up an array the canvas can take .length of: a loaded
     // exercise without one gets the empty set, which the canvas already
     // handles as "ask Copilot for a review instead".
-    ex.checks = (Array.isArray(ex.checks) ? ex.checks : [])
+    ex.checks = (Array.isArray(ex.checks) ? ex.checks.slice(0, MAX_CHECKS) : [])
         .map((c) => normalizeCheck(c))
         .filter((r) => !r.error && r.check)
         .map((r) => r.check);
