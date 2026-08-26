@@ -104,7 +104,6 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
       orgDefault: state.getOrgDefault(),
       savedDefaultOrg: state.getSavedDefaultOrg(),
       project: state.getProject(),
-      projectOptions: state.getProjectOptions(),
       period: state.getPeriod(),
       periods: PERIODS,
       projects: state.getProjects(),
@@ -362,35 +361,17 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
         const payload = parseJson(body)
         const current = state.getPrTargets()
         const pick = (value, fallback) => (typeof value === 'string' ? value : fallback)
-        // repo/name here are DISPLAY + dedup-search metadata only — they do NOT
-        // authorize where fix-session PRs land (an explicitly selected project is
-        // authorized by its host-resolved project_id at create_session time; see
-        // deriveRepoAnchors). Still, don't take them from the browser payload: the
-        // Settings dropdown is populated by the model via submit_projects, so re-bind
-        // repo/name from the selected projectId against our own project options to
-        // keep the browser from injecting arbitrary display/search strings. Crucially,
-        // ALSO reject a projectId that doesn't resolve to a known project (stale or
-        // forged): storing an unknown non-empty id would make deriveRepoAnchors treat
-        // it as an explicit selection and skip the missing-repo/PR-URL preflight, so
-        // an unresolvable id must fail closed to '' (→ Current-project mode, which
-        // requires a trusted git remote). localProjectRepo/localProjectName in the
-        // payload are ignored on purpose.
-        const nextProjectId = pick(payload.localProjectId, current.local.projectId)
-        const trustedProjects = state.getProjectOptions()
-        const boundProject = nextProjectId && Array.isArray(trustedProjects)
-          ? trustedProjects.find((p) => p && p.id === nextProjectId)
-          : null
-        const boundRepo = boundProject && typeof boundProject.repo === 'string' ? boundProject.repo : ''
-        const boundName = boundProject && typeof boundProject.name === 'string' ? boundProject.name : ''
+        // The local fix-session hand-off always runs in the CURRENT project (the
+        // canvas's own checkout, host-trusted from its git remote), so there is no
+        // model-relayed project selection to bind here. Cross-repo work uses Cloud
+        // mode, whose repo the user types directly in Settings (also trusted). Only
+        // the local path/branch and cloud repo/branch are accepted from the payload.
         const next = {
           mode: pick(payload.mode, current.mode),
           model: pick(payload.model, current.model),
           local: {
             path: pick(payload.localPath, current.local.path),
             baseBranch: pick(payload.localBranch, current.local.baseBranch),
-            projectId: boundProject ? nextProjectId : '',
-            projectName: boundName,
-            repo: boundRepo,
           },
           cloud: {
             repo: pick(payload.cloudRepo, current.cloud.repo),
@@ -405,7 +386,7 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
         // the stale annotations now, invalidate any pending enrichment, and
         // re-derive against the new repo. Model/base-branch-only edits keep them.
         const repoId = (t) =>
-          [t.mode, t.cloud.repo, t.local.path, t.local.projectId, t.local.repo]
+          [t.mode, t.cloud.repo, t.local.path]
             .map((v) => (v || '').trim())
             .join('\u0000')
         const repoChanged = repoId(next) !== repoId(current)

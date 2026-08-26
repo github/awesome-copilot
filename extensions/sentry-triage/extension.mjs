@@ -95,25 +95,20 @@ function normalizeRepo(value) {
 // text:
 //   - Cloud mode: the fix session runs on the cloud repo (user-typed in Settings),
 //     where the issue is also filed, so the PR anchor is that issue repo.
-//   - Local mode, EXPLICITLY selected project (local.projectId set): the session is
-//     created by its host-resolved project_id — a trusted handle — so authorization
-//     rides on the project_id, NOT on a repo. The project's repo is only known via
-//     the model-relayed project list, which we do NOT treat as an authorization
-//     anchor, so we publish NO PR-repo gate here (prExpectedRepo='') and signal that
-//     via prProjectSelected. (The model list still feeds the Settings dropdown and a
-//     dedup search hint — display only, never authorization.)
-//   - Local mode, "Current project" (no explicit selection): the session runs in the
-//     canvas's OWN checkout, so the PR lands in the trusted current-project repo
+//   - Local mode: the fix session ALWAYS runs in the canvas's OWN checkout (the
+//     "Current project"), so the PR lands in the trusted current-project repo
 //     (`currentProjectRepo`, seeded from the session cwd's git remote) — NOT the
-//     issue repo, which Settings may point at a separate cloud repo.
+//     issue repo, which Settings may point at a separate cloud repo. There is no
+//     model-relayed "selected project" handoff: routing a fix session by a
+//     model-supplied project_id would authorize the write with a repo we could only
+//     learn from the same untrusted Sentry turn, so that path was removed. Cross-repo
+//     work goes through Cloud mode (repo typed in Settings = trusted).
 // Both repo values are '' unless a concrete "owner/repo" resolves.
 function deriveRepoAnchors(prTargets, issueRepo, currentProjectRepo) {
   const expectedRepo = normalizeRepo(issueRepo)
   const isCloudMode = prTargets?.mode === 'cloud'
-  if (isCloudMode) return { expectedRepo, prExpectedRepo: expectedRepo, prProjectSelected: false }
-  const prProjectSelected = Boolean(prTargets?.local?.projectId)
-  const prExpectedRepo = prProjectSelected ? '' : normalizeRepo(currentProjectRepo)
-  return { expectedRepo, prExpectedRepo, prProjectSelected }
+  if (isCloudMode) return { expectedRepo, prExpectedRepo: expectedRepo }
+  return { expectedRepo, prExpectedRepo: normalizeRepo(currentProjectRepo) }
 }
 
 // The TRUSTED current-checkout repo for the "Current project" PR anchor. Always
@@ -548,11 +543,10 @@ function buildWorkPrompt({ key, issue, org, prTargets, model: modelOverride, ass
   const targetRepo = issueRepo || cloudRepo || defaults.repo || '(current repository)'
   // The draft PR is opened where the fix session runs. Use a best-effort PR-repo
   // hint for the Step-0 open-PR dedup SEARCH only (never an authorization anchor):
-  // the trusted PR anchor when we have one, else the selected project's declared
-  // repo (model-relayed — acceptable for a search hint), else the issue repo. Issue
+  // the trusted PR anchor when we have one, else the issue repo. Issue
   // lookup/creation stays on the issue repo (targetRepo).
   const { prExpectedRepo } = deriveRepoAnchors(prTargets, issueRepo, currentCheckoutRepo(defaults))
-  const prSearchRepo = prExpectedRepo || normalizeRepo(prTargets?.local?.repo) || targetRepo
+  const prSearchRepo = prExpectedRepo || targetRepo
   const plain = sanitizeForPrompt(issue.plainEnglish || issue.summary || 'User-visible failure in production', 200)
   const issueTitle = `[sentry-triage][${key}] ${plain}`.slice(0, 120)
   const markerLabel = 'sentry-triage'
@@ -652,24 +646,16 @@ Return JSON only (no markdown), using one of these shapes:
   }
 
   const sessionLocation = prMode === 'cloud' ? 'cloud' : 'local'
-  const localProjectId = prTargets?.local?.projectId || ''
-  const localProjectName = prTargets?.local?.projectName || ''
-  // Local mode can target a specific registered project (chosen in Settings). When
-  // one is picked we tell the agent to create the session in THAT project by id;
-  // otherwise it falls back to the current project the canvas is driving.
-  const createSessionTarget = sessionLocation === 'local' && localProjectId
-    ? `- Use the create_session tool targeting project_id "${localProjectId}"${localProjectName ? ` (project "${localProjectName}")` : ''}.`
-    : '- Use the create_session tool in the CURRENT project.'
   const prFlow = [
     'Step 2 (Draft PR): Spin up a DEDICATED, separate session for THIS bug only — do NOT draft the PR inline in the current session.',
-    createSessionTarget,
+    '- Use the create_session tool in the CURRENT project.',
     model
       ? `- Run that session under model "${model}": pass model: "${model}" to the create_session tool.`
       : '- Let that session use its default model (do not set the model parameter).',
     `- execution_location: "${sessionLocation}".`,
     sessionLocation === 'cloud'
       ? `- Cloud target repo: ${cloudRepo || '(current repository)'}; base ref: ${cloudBase || 'repository default'}.`
-      : `- Local checkout: ${localProjectId ? `project "${localProjectName || localProjectId}" (${localPath})` : localPath}; base branch: ${localBase || 'repository default'}.`,
+      : `- Local checkout: ${localPath}; base branch: ${localBase || 'repository default'}.`,
     `- Name the session after the bug (e.g. "Fix ${key}").`,
     '- Keep coordinate_with_creator on so the spawned session reports its PR back.',
     '- Provide a kickoff prompt (autopilot mode) instructing that session to:',
@@ -877,24 +863,6 @@ async function enrichPlainEnglish(entry, categories, isCurrent) {
   const total = all.length
   const noun = total === 1 ? 'issue' : 'issues'
 
-  // Fold the one-time project enumeration into THIS triage round-trip. The list only
-  // populates the Settings dropdown (display + a dedup search hint); it is NOT an
-  // authorization anchor — fix-session PRs are authorized by the host-resolved
-  // project_id chosen at create_session time, never by this model-relayed repo (see
-  // deriveRepoAnchors). So even though this prompt ingests untrusted Sentry titles, a
-  // forged projectId->repo mapping can't steer PR authorization, and no separate
-  // Sentry-free turn is needed. Projects persist in state, so we only ask when we
-  // don't have them yet; the extra tool calls are silent.
-  const loadedProjects = entry.state.getProjectOptions()
-  const needProjects = !Array.isArray(loadedProjects) || loadedProjects.length === 0
-  const projectsToken = needProjects ? makeProjectsToken() : ''
-  const projectsBlock = needProjects
-    ? `
-
-Also, in the SAME turn, silently load the user's registered app projects for the canvas Settings dropdown (do not mention this in your reply):
-- Call the tool "list_projects".
-- Then call the tool "submit_projects" exactly once with token "${projectsToken}" (unchanged) and projects: an array of { id, name, repo, defaultBranch, path } using each project's id, name, github repo, default branch, and local main_repo_path (empty string if a field is missing).`
-    : ''
   // Fold tracking detection into the same round-trip: the canvas files tracking
   // issues with the "sentry-triage" label and the Sentry key in the title, so a
   // single label search of the target repo (matched by key) tells us which board
@@ -905,16 +873,12 @@ Also, in the SAME turn, silently load the user's registered app projects for the
     ? (trackPrTargets?.cloud?.repo || runtimeDefaults.repo || '')
     : ''
   // Issue vs PR repo split for enrichment: the tracking ISSUE lives in trackRepo, but
-  // its linked PR can live in the selected project's repo. deriveRepoAnchors publishes
-  // no TRUSTED PR anchor for an explicitly selected project (it authorizes by
-  // host-resolved project_id, not a model-relayed repo), so for the tracked-PR BADGE —
-  // which is read-only display, not a write/authorization gate — fall back to the
-  // project's declared repo when there's no trusted anchor. Validating a model-reported
-  // PR URL against that model-declared repo still pins the badge number to the URL it
-  // links to and to the trusted host; it only accepts a model-asserted repo, which is
-  // inherent to any model-reported tracking claim. Falls back to the issue repo last.
+  // its linked PR can live in a DIFFERENT repo in local mode (the fix session runs in
+  // the current checkout, whose repo may differ from the issue repo). deriveRepoAnchors
+  // yields the trusted PR anchor for the tracked-PR BADGE — Cloud mode: the configured
+  // repo; Local mode: the current checkout's repo. Falls back to the issue repo last.
   const { prExpectedRepo: trackPrExpectedRepo } = deriveRepoAnchors(trackPrTargets, trackRepo, currentCheckoutRepo(runtimeDefaults))
-  const trackPrRepo = trackPrExpectedRepo || normalizeRepo(trackPrTargets?.local?.repo) || normalizeRepo(trackRepo)
+  const trackPrRepo = trackPrExpectedRepo || normalizeRepo(trackRepo)
   const needTracking = !!trackRepo
   const trackingToken = needTracking ? makeTrackingToken() : ''
   const trackingBlock = needTracking
@@ -945,7 +909,7 @@ Do NOT use class names, exception type names, stack-trace terms, file paths, or 
 
 Do NOT print the summaries or any JSON in your reply. Instead call the tool "submit_issue_summaries" exactly once with:
 - token: "${token}" (pass it back unchanged)
-- summaries: an object mapping each issue key to its sentence, e.g. {"PROJ-123":"Shoppers cannot complete checkout after clicking pay."}${projectsBlock}${trackingBlock}${relatedBlock}
+- summaries: an object mapping each issue key to its sentence, e.g. {"PROJ-123":"Shoppers cannot complete checkout after clicking pay."}${trackingBlock}${relatedBlock}
 
 After the tool call(s), reply to the user with a confirmation sentence, then a blank line, then a clearly-labeled next-step note (no summaries, no JSON). Format it exactly like this (keep the blank line and the bold heading):
 
@@ -994,9 +958,6 @@ ${items.map((i) => `${i.key}: ${i.title}`).join('\n')}`
     // mutates this scan's own — now detached — category objects, which the caller
     // won't publish once isCurrent() is false.
     const current = typeof isCurrent !== 'function' || isCurrent()
-    if (current && projectsToken && projectsInbox.has(projectsToken)) {
-      entry.state.setProjectOptions(projectsInbox.get(projectsToken))
-    }
     // Only rewrite tracked badges when the model actually submitted tracking
     // (an empty {} still counts). If the turn died before submit_tracking ran,
     // leave any prior badges in place rather than wiping them.
@@ -1031,8 +992,7 @@ ${items.map((i) => `${i.key}: ${i.title}`).join('\n')}`
           if (verifiedIssueNumber === null) continue
           // Trust the PR's pr* fields ONLY when a concrete prUrl is a `/pull/<n>` in
           // the PR anchor (which can differ from the issue repo in split-repo local
-          // mode; for a selected project the anchor is the model-declared project
-          // repo — display-only, see trackPrRepo). A model-reported prNumber/prState
+          // mode — see trackPrRepo). A model-reported prNumber/prState
           // with NO url, an issue URL, or a url in the wrong repo is unverifiable:
           // strip EVERY pr* field (the card renders a badge from prNumber alone, and
           // prState alone can keep a closed issue "tracked") but KEEP the authorized
@@ -1090,7 +1050,6 @@ ${items.map((i) => `${i.key}: ${i.title}`).join('\n')}`
     }
   } finally {
     summariesInbox.delete(token)
-    if (projectsToken) projectsInbox.delete(projectsToken)
     if (trackingToken) trackingInbox.delete(trackingToken)
     if (relatedToken) relatedInbox.delete(relatedToken)
   }
@@ -1101,18 +1060,6 @@ ${items.map((i) => `${i.key}: ${i.title}`).join('\n')}`
       issue.plainEnglish = phrased || fallbackPlainEnglish(issue.summary)
     }
   }
-}
-
-// Structured handoff for the registered-projects list. There's no direct SDK API
-// to enumerate the user's app projects, so the model calls its own list_projects
-// tool then hands the result back via submit_projects; the handler drops the list
-// here keyed by a per-request token, and enrichPlainEnglish reads it once the turn
-// settles. Enumeration is folded into the issue-triage round-trip; the list is
-// display/dedup only, not an authorization anchor, so it needs no isolated turn.
-const projectsInbox = new Map() // token -> [{ id, name, repo, defaultBranch, path }]
-
-function makeProjectsToken() {
-  return `proj_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
 }
 
 // Structured handoff for pre-existing GitHub tracking issues/PRs. The model runs
@@ -1392,10 +1339,9 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
   // gates the outside-the-model URL enforcement for the tracking issue: only a
   // well-formed "owner/repo" anchor can validate a model-reported issue URL, so a
   // blank value resolves to '' (fails closed — no URL check, and blocked below).
-  // `prExpectedRepo` is the TRUSTED PR anchor when one exists, or '' for an
-  // explicitly selected project — which authorizes by host-resolved project_id, not
-  // a repo — signalled by `prProjectSelected` so the preflight below does NOT block.
-  const { expectedRepo, prExpectedRepo, prProjectSelected } = deriveRepoAnchors(prTargets, issueRepo, currentCheckoutRepo(runtimeDefaults))
+  // `prExpectedRepo` is the TRUSTED PR anchor: the cloud repo in Cloud mode, or the
+  // current checkout's repo in Local mode — never a model-relayed value.
+  const { expectedRepo, prExpectedRepo } = deriveRepoAnchors(prTargets, issueRepo, currentCheckoutRepo(runtimeDefaults))
   // Trusted host the authorized issue/PR links must live on, paired with
   // `expectedRepo`. Repo alone is not enough: a look-alike host would otherwise
   // let a model-reported link pass the repo check (see urlInRepo). Sourced from
@@ -1417,16 +1363,14 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
   // this trips only when detection fails. The two failures have different fixes, so
   // report the one that actually bit: a missing ISSUE anchor means no target repo is
   // configured (fix in Settings), while a missing PR anchor is "Current project"
-  // running in a checkout with no detectable GitHub remote — an explicitly selected
-  // project is authorized by its host-resolved project_id, needs no repo anchor, and
-  // is exempted here via prProjectSelected (fix: run from a repo-backed checkout, or
-  // pick a registered project).
+  // running in a checkout with no detectable GitHub remote (fix: run from a
+  // repo-backed checkout, or use Cloud mode with a repo set in Settings).
   const missingIssueRepo = isGithubTracker && !expectedRepo
-  const missingPrRepo = wantsCopilot && !prExpectedRepo && !prProjectSelected
+  const missingPrRepo = wantsCopilot && !prExpectedRepo
   if (missingIssueRepo || missingPrRepo) {
     const error = missingIssueRepo
       ? 'No target repository is configured, so issue creation cannot be verified. Set a target repository in Settings before starting work.'
-      : 'The pull request destination has no valid repository (owner/repo), so it cannot be verified. Open this canvas from a checkout with a GitHub remote, or select a registered project, before starting work.'
+      : 'The pull request destination has no valid repository (owner/repo), so it cannot be verified. Open this canvas from a checkout with a GitHub remote, or use Cloud mode with a repository set in Settings, before starting work.'
     for (const key of startableKeys) {
       entry.notifyWork(key, {
         phase: 'error',
@@ -1480,9 +1424,9 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
     // Capture the repo the PR is authorized against AT hand-off time (frozen, not
     // recomputed from live settings) so retargeting the canvas mid-flight can't
     // reject a legitimate PR in the original repo or admit one in a newly-set repo.
-    // This anchor is '' for an explicitly selected project — such work is authorized
-    // by its host-resolved project_id, not a model-relayed repo — and submit_work_pr
-    // treats an empty anchor as "no URL gate" accordingly.
+    // This anchor is '' only for non-GitHub trackers or a local checkout with no
+    // detectable GitHub remote; submit_work_pr treats an empty anchor as "no URL
+    // gate" accordingly.
     const workToken = randomUUID()
     workRegistry.set(workToken, { entry, key, scopeGen, authorizedRepo: prExpectedRepo, authorizedHost: allowedHost })
 
@@ -1540,31 +1484,24 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
         // so the user can retry.
         const ACTIVE_PR_STATES = new Set(['open', 'draft'])
         // An authoritative "already being worked on" skip SUPPRESSES the trusted
-        // host-resolved create_session flow and surfaces a PR link on the card, so it
-        // must rest on a TRUSTED PR-repo anchor. Otherwise injected Sentry text — this
-        // dedup result and the project list come from the same model turn — could both
-        // block real work and surface an attacker-chosen PR. When a concrete
-        // prExpectedRepo is known, require the confirming PR to carry a URL (validated
-        // against it just below); a number-only reference counts as no confirming PR
-        // and surfaces the retryable "no open pull request" error rather than a
-        // spoofable skip. For an explicitly selected project there is NO trusted
-        // anchor (deriveRepoAnchors publishes prExpectedRepo=''), so no skip is
-        // confirmable at all: fail closed to a retryable error instead of honoring an
-        // unverifiable skip. The PR lives in the PR repo, which in local mode can
-        // differ from the issue repo, so anchor this guard on prExpectedRepo — not
-        // expectedRepo.
-        const hasTrustedPrAnchor = Boolean(prExpectedRepo)
-        const hasPrRef = hasTrustedPrAnchor && Boolean(result.existingPrUrl)
+        // create_session flow and surfaces a PR link on the card, so it must rest on a
+        // TRUSTED PR-repo anchor (Cloud mode: the configured repo; Local mode: the
+        // current checkout's repo — never a model-relayed value). Require the
+        // confirming PR to carry a URL, validated against that anchor just below; a
+        // number-only reference, a missing anchor (a checkout with no detectable
+        // remote), or a non-open state all count as no confirmed PR and surface a
+        // retryable error rather than a spoofable skip. The PR lives in the PR repo,
+        // which in local mode can differ from the issue repo, so anchor this guard on
+        // prExpectedRepo — not expectedRepo.
+        const hasPrRef = Boolean(prExpectedRepo) && Boolean(result.existingPrUrl)
         const hasActivePr = hasPrRef && ACTIVE_PR_STATES.has(result.existingPrState)
         if (!hasActivePr) {
           workRegistry.delete(workToken)
           entry.notifyWork(key, {
             phase: 'error',
-            error: !hasTrustedPrAnchor
-              ? 'Agent reported this issue as already being worked on, but that can’t be confirmed for a selected project (its pull-request repository isn’t verifiable). Retry to start fresh work, or open the existing pull request manually if there is one.'
-              : hasPrRef
-                ? 'Agent reported this issue as already being worked on, but the referenced pull request is not open (it may be closed or merged). Retry to open fresh work.'
-                : 'Agent reported this issue as already being worked on but returned no open pull request to confirm it.',
+            error: hasPrRef
+              ? 'Agent reported this issue as already being worked on, but the referenced pull request is not open (it may be closed or merged). Retry to open fresh work.'
+              : 'Agent reported this issue as already being worked on but returned no verifiable open pull request to confirm it.',
           })
           continue
         }
@@ -1576,10 +1513,10 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
         // is paired with the repo it must ACTUALLY live in: the issue URL with the
         // issue repo (`expectedRepo`, GitHub tracker only — Linear/Jira issue URLs
         // legitimately live elsewhere), and the PR URL with the PR repo
-        // (`prExpectedRepo`). The PR anchor is guaranteed concrete here (a selected
-        // project has no trusted anchor and already failed closed above), so only the
-        // issue anchor can be empty — on a non-GitHub tracker — in which case its
-        // check is skipped (failing closed for it) instead of shadowing the PR.
+        // (`prExpectedRepo`). The PR anchor is guaranteed concrete here (the skip
+        // guard above requires it), so only the issue anchor can be empty — on a
+        // non-GitHub tracker — in which case its check is skipped (failing closed for
+        // it) instead of shadowing the PR.
         const dedupArtifacts = [
           ...(isGithubTracker && expectedRepo ? [['issue', result.existingIssueUrl, expectedRepo, 'issue']] : []),
           ['pull request', result.existingPrUrl, prExpectedRepo, 'pull'],
@@ -1828,42 +1765,6 @@ const session = await joinSession({
       },
     },
     {
-      name: 'submit_projects',
-      description:
-        'Submit the list of the user\'s registered app projects for the Sentry Triage canvas Local target dropdown. Call this exactly once after list_projects; pass back the token from the request unchanged.',
-      parameters: {
-        type: 'object',
-        properties: {
-          token: {
-            type: 'string',
-            description: 'The exact token given in the request. Pass it back unchanged.',
-          },
-          projects: {
-            type: 'array',
-            description: 'The registered app projects.',
-            items: {
-              type: 'object',
-              properties: {
-                id: { type: 'string', description: 'The project id.' },
-                name: { type: 'string', description: 'The project display name.' },
-                repo: { type: 'string', description: 'The github repo (owner/name), if any.' },
-                defaultBranch: { type: 'string', description: 'The project default branch, if any.' },
-                path: { type: 'string', description: 'The local main_repo_path, if any.' },
-              },
-              required: ['id'],
-            },
-          },
-        },
-        required: ['token', 'projects'],
-      },
-      handler: async (args) => {
-        const token = typeof args?.token === 'string' ? args.token : ''
-        const projects = Array.isArray(args?.projects) ? args.projects : []
-        if (token) projectsInbox.set(token, projects)
-        return `Recorded ${projects.length} project${projects.length === 1 ? '' : 's'}.`
-      },
-    },
-    {
       name: 'submit_tracking',
       description:
         'Submit the map of Sentry issue keys that already have a tracking GitHub issue/PR for the Sentry Triage canvas. Call this exactly once during a triage scan; pass back the token from the request unchanged.',
@@ -2003,11 +1904,11 @@ const session = await joinSession({
         // retargeting the canvas mid-flight can't reject a legitimate PR in the
         // original repo or admit an attacker one in a newly-set repo. Reject WITHOUT
         // consuming the single-use token so a genuine session can retry the URL.
-        // The authorized repo is '' for an explicitly selected project (authorized by
-        // host-resolved project_id, not a model-relayed repo) and for non-GitHub
-        // trackers; in those cases there is no trusted URL anchor, so the gate below
-        // is skipped and the reported number is shown as-is. When a concrete anchor
-        // IS present (cloud / current-project), '' from repoRefNumber fails closed.
+        // The authorized repo is '' for non-GitHub trackers or a local checkout with
+        // no detectable GitHub remote; in those cases there is no trusted URL anchor,
+        // so the gate below is skipped and the reported number is shown as-is. When a
+        // concrete anchor IS present (cloud / current-project), '' from repoRefNumber
+        // fails closed.
         const regRepo = registered.authorizedRepo || ''
         const regHost = registered.authorizedHost || ''
         // Derive the DISPLAYED PR number from the same validated URL, never from the

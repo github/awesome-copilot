@@ -48,7 +48,6 @@ export function Page({
   prTargets,
   prSettingsOpen,
   plainEnglishView = false,
-  projectOptions = [],
   projects = [],
   availableModels = [],
   issueTrackers,
@@ -157,17 +156,6 @@ export function Page({
         .join('') +
       `</select></label>`
     : ''
-
-  // Registered app projects for the Local hand-off target dropdown. Loaded
-  // eagerly on open via the agent, so this may be empty on the very first render.
-  const projectList = Array.isArray(projectOptions) ? projectOptions : []
-  const localProjectId = prTargets && prTargets.local ? (prTargets.local.projectId || '') : ''
-  const projectOptionsHtml = projectList
-    .map((p) => {
-      const label = p.repo ? `${p.name} (${p.repo})` : p.name
-      return `<option value="${escapeHtml(p.id)}"${p.id === localProjectId ? ' selected' : ''}>${escapeHtml(label)}</option>`
-    })
-    .join('')
 
   return `<!doctype html>
 <html>
@@ -284,13 +272,7 @@ export function Page({
           <p id="mode-hint" class="settings-hint"></p>
           <div id="local-group" class="settings-subgroup${prTargets && prTargets.mode === 'cloud' ? ' dimmed' : ''}">
             <span class="settings-group-title">Local target</span>
-            <label class="settings-label">
-              Project
-              <select id="local-project" class="settings-input">
-                <option value="">Current project (default)</option>
-                ${projectOptionsHtml}
-              </select>
-            </label>
+            <p class="settings-hint">Runs in the <strong>current project</strong> (this checkout). For a different repo, use Cloud mode.</p>
             <div class="settings-row">
               <label class="settings-label">
                 Local path
@@ -611,7 +593,6 @@ export function Page({
       let currentProject = ${jsonForScript(project)};
       let currentPeriod = ${jsonForScript(period)};
       let currentPeriods = ${jsonForScript(periodList)};
-      let currentProjectOptions = ${jsonForScript(projectList)};
       // Sentry project slugs for the current org (SDK-discovered). Drives the
       // project autocomplete; empty = fall back to a typed slug box.
       let currentSentryProjects = ${jsonForScript(projectSlugs)};
@@ -850,14 +831,8 @@ export function Page({
         if (draftMode === "cloud") {
           draftTarget = (currentPrTargets?.cloud?.repo || "current repo") + " @ " + (currentPrTargets?.cloud?.baseBranch || "default");
         } else {
-          const projName = currentPrTargets?.local?.projectName || "";
-          const projId = currentPrTargets?.local?.projectId || "";
           const localBase = currentPrTargets?.local?.baseBranch || "default";
-          if (projId) {
-            draftTarget = (projName || projId) + " @ " + localBase;
-          } else {
-            draftTarget = (currentPrTargets?.local?.path || "current project") + " @ " + localBase;
-          }
+          draftTarget = (currentPrTargets?.local?.path || "current project") + " @ " + localBase;
         }
         const modelId = currentPrTargets?.model || "";
         const models = Array.isArray(currentAvailableModels) ? currentAvailableModels : [];
@@ -932,25 +907,6 @@ export function Page({
         syncCardModels();
         syncModelControls();
 
-        const localProject = document.getElementById("local-project");
-        if (localProject) {
-          const selectedId = currentPrTargets?.local?.projectId || "";
-          const options = Array.isArray(currentProjectOptions) ? currentProjectOptions : [];
-          localProject.innerHTML = "";
-          const base = document.createElement("option");
-          base.value = "";
-          base.textContent = "Current project (default)";
-          localProject.appendChild(base);
-          options.forEach((p) => {
-            const option = document.createElement("option");
-            option.value = p.id;
-            option.textContent = p.repo ? (p.name + " (" + p.repo + ")") : p.name;
-            option.selected = p.id === selectedId;
-            localProject.appendChild(option);
-          });
-          localProject.value = selectedId;
-        }
-
         const localPath = document.getElementById("local-path");
         if (localPath) localPath.value = currentPrTargets?.local?.path || "";
         const localBranch = document.getElementById("local-branch");
@@ -1015,7 +971,6 @@ export function Page({
           if (psel && psel.value !== msg.period) psel.value = msg.period;
         }
         if (Array.isArray(msg.periods)) currentPeriods = msg.periods;
-        if (Array.isArray(msg.projectOptions)) currentProjectOptions = msg.projectOptions;
         if (Array.isArray(msg.projects)) {
           const forOrg = typeof msg.projectsOrg === "string" ? msg.projectsOrg.trim().toLowerCase() : "";
           // Always cache under the org this list belongs to so re-selecting it is
@@ -1735,35 +1690,16 @@ export function Page({
 
       document.addEventListener("change", (e) => {
         if (e.target && e.target.id === "pr-mode") updateModeHint();
-        if (e.target && e.target.id === "local-project") {
-          const id = e.target.value || "";
-          const match = (Array.isArray(currentProjectOptions) ? currentProjectOptions : []).find((p) => p.id === id);
-          const localPath = document.getElementById("local-path");
-          if (localPath) localPath.value = match && match.path ? match.path : "";
-          // Keep the base branch in step with the selected project. Leaving the
-          // previous project's branch here would pair the new projectId with a
-          // stale (possibly nonexistent) base on save; clearing it falls back to
-          // this project's own default branch.
-          const localBranch = document.getElementById("local-branch");
-          if (localBranch) localBranch.value = match && match.defaultBranch ? match.defaultBranch : "";
-        }
       });
 
       document.addEventListener("click", (e) => {
         const btn = e.target.closest("#save-pr-config");
         if (!btn) return;
-        const localProjectEl = document.getElementById("local-project");
-        const localProjectId = localProjectEl?.value || "";
-        // Only the projectId is sent. Its repo/name are re-bound server-side from
-        // this id against the model-populated project list and used ONLY as display
-        // + dedup-search metadata (fix-session PRs are authorized by the host-resolved
-        // project_id, not this repo), so the browser must not supply them.
         const payload = {
           mode: document.getElementById("pr-mode")?.value || "local",
           model: document.getElementById("toolbar-model")?.value || "",
           localPath: document.getElementById("local-path")?.value || "",
           localBranch: document.getElementById("local-branch")?.value || "",
-          localProjectId: localProjectId,
           cloudRepo: document.getElementById("cloud-repo")?.value || "",
           cloudBranch: document.getElementById("cloud-branch")?.value || "",
         };
