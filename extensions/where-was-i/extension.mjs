@@ -3,28 +3,16 @@
 
 import { createServer } from "node:http";
 import { execFile } from "node:child_process";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
+import { randomBytes, timingSafeEqual } from "node:crypto";
+import { writeFile, mkdir } from "node:fs/promises";
+import { join } from "node:path";
+import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
+import { gatherGitContext, getFileDiff } from "./git-context.mjs";
 
 const servers = new Map();
 const sseClients = new Map(); // instanceId → Set<res>
 const contextCache = new Map(); // instanceId → contextData
 
-const isWindows = process.platform === "win32";
-
-// Fallback repo root derived from extension location. Only used when the
-// session's real working directory is unavailable (see captureCwd below).
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const REPO_ROOT = join(__dirname, "..", "..", "..");
-
-// The canvas request context reports the active session's working directory —
-// the actual repo checkout or worktree the user opened the canvas in. This is
-// what git commands must run against; REPO_ROOT (the extension's install dir)
-// and session.workspacePath (the session-state folder) are NOT the repo, which
-// is why the board previously showed an empty branch as "detached HEAD".
 let workspaceCwd = null;
 
 function captureCwd(ctx) {
@@ -32,52 +20,61 @@ function captureCwd(ctx) {
     if (typeof dir === "string" && dir.trim()) workspaceCwd = dir;
 }
 
-function repoCwd() {
-    return workspaceCwd || REPO_ROOT;
+async function activeCwd(ctx) {
+    captureCwd(ctx);
+    if (!workspaceCwd && sessionRef) {
+        const snapshot = await sessionRef.rpc.metadata.snapshot();
+        const dir = snapshot?.workingDirectory;
+        if (typeof dir === "string" && dir.trim()) workspaceCwd = dir;
+    }
+    if (!workspaceCwd) {
+        throw new CanvasError(
+            "workspace_unavailable",
+            "No repository working directory is attached to this session.",
+        );
+    }
+    return workspaceCwd;
 }
 
-// --- Shell helpers ---
-
-function run(cmd, cwd) {
-    const shell = isWindows ? "powershell" : "bash";
-    const args = isWindows
-        ? ["-NoProfile", "-NoLogo", "-Command", cmd]
-        : ["-c", cmd];
-    return new Promise((resolve) => {
-        execFile(shell, args, { cwd, timeout: 15000, maxBuffer: 1024 * 256 }, (err, stdout) => {
-            resolve(err ? "" : (stdout || "").trim());
+function runGhJson(cwd, args) {
+    return new Promise((resolve, reject) => {
+        execFile("gh", args, { cwd, timeout: 15000, maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
+            if (error) {
+                reject(new Error((stderr || error.message || "GitHub CLI command failed").trim()));
+                return;
+            }
+            try {
+                resolve({
+                    data: JSON.parse(stdout || "[]"),
+                    warning: (stderr || "").trim(),
+                });
+            } catch (parseError) {
+                reject(new Error(`GitHub CLI returned invalid JSON: ${parseError.message}`));
+            }
         });
     });
 }
 
 async function gatherContext(cwd) {
-    cwd = cwd || repoCwd();
-    const authorCmd = isWindows
-        ? 'git log --oneline -5 --format="%h %s" --author="$(git config user.name)"'
-        : 'git log --oneline -5 --format="%h %s" --author="$(git config user.name)"';
-    const suppressErr = isWindows ? "2>$null" : "2>/dev/null";
-
-    const [branch, log, status, diff, prs, issues] = await Promise.all([
-        run("git branch --show-current", cwd),
-        run(authorCmd, cwd),
-        run("git status --short", cwd),
-        run("git diff --stat", cwd),
-        run(`gh pr list --author=@me --state=open --limit=10 --json number,title,url,updatedAt,comments ${suppressErr}`, cwd),
-        run(`gh issue list --assignee=@me --state=open --limit=10 --json number,title,url,updatedAt ${suppressErr}`, cwd),
+    const gitContext = await gatherGitContext(cwd);
+    const [prs, issues] = await Promise.allSettled([
+        runGhJson(cwd, [
+            "pr", "list", "--author=@me", "--state=open", "--limit=10",
+            "--json", "number,title,url,updatedAt,comments",
+        ]),
+        runGhJson(cwd, [
+            "issue", "list", "--assignee=@me", "--state=open", "--limit=10",
+            "--json", "number,title,url,updatedAt",
+        ]),
     ]);
 
-    let parsedPrs = [];
-    let parsedIssues = [];
-    try { parsedPrs = JSON.parse(prs || "[]"); } catch {}
-    try { parsedIssues = JSON.parse(issues || "[]"); } catch {}
-
     return {
-        branch,
-        recentCommits: log.split("\n").filter(Boolean),
-        uncommitted: status.split("\n").filter(Boolean),
-        diffStat: diff,
-        openPrs: parsedPrs,
-        assignedIssues: parsedIssues,
+        ...gitContext,
+        openPrs: prs.status === "fulfilled" ? prs.value.data : [],
+        assignedIssues: issues.status === "fulfilled" ? issues.value.data : [],
+        warnings: [prs, issues]
+            .map((result) => result.status === "fulfilled" ? result.value.warning : result.reason.message)
+            .filter(Boolean),
         gatheredAt: new Date().toISOString(),
     };
 }
@@ -87,16 +84,8 @@ async function gatherContext(cwd) {
 async function saveContext(workspacePath, data) {
     if (!workspacePath) return;
     const dir = join(workspacePath, "files");
-    try { await mkdir(dir, { recursive: true }); } catch {}
+    await mkdir(dir, { recursive: true });
     await writeFile(join(dir, "where-was-i-context.json"), JSON.stringify(data, null, 2));
-}
-
-async function loadContext(workspacePath) {
-    if (!workspacePath) return null;
-    try {
-        const raw = await readFile(join(workspacePath, "files", "where-was-i-context.json"), "utf-8");
-        return JSON.parse(raw);
-    } catch { return null; }
 }
 
 // --- SSE ---
@@ -106,20 +95,22 @@ function broadcast(instanceId, data) {
     if (!clients) return;
     const payload = `data: ${JSON.stringify(data)}\n\n`;
     for (const res of clients) {
-        try { res.write(payload); } catch {}
+        try {
+            res.write(payload);
+        } catch {
+            clients.delete(res);
+        }
     }
 }
 
 // --- HTML renderer ---
 
-function renderHtml(instanceId) {
+function renderHtml(instanceId, scriptNonce) {
     return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <title>Where Was I?</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -200,6 +191,25 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   font-weight: 500;
   color: var(--azure);
 }
+.branch-bar .worktree-name {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.branch-bar .divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+.branch-bar .divergence {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
 .branch-bar .label {
   font-size: 0.75rem;
   font-weight: 600;
@@ -255,24 +265,125 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   color: var(--text);
 }
 
+.git-graph {
+  overflow-x: auto;
+}
+.graph-row {
+  display: grid;
+  grid-template-columns: 72px 72px minmax(220px, 1fr) auto;
+  align-items: center;
+  min-height: 34px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+}
+.graph-row:last-child { border-bottom: none; }
+.graph-row.worktree-commit {
+  background: color-mix(in srgb, var(--azure) 5%, transparent);
+}
+.graph-lines {
+  color: var(--azure);
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: pre;
+}
+.graph-hash {
+  color: var(--meta);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+.graph-subject {
+  color: var(--text);
+  font-size: 0.84rem;
+  overflow: hidden;
+  padding-right: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.graph-refs {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+.graph-ref {
+  background: var(--azure-tint);
+  border: 1px solid color-mix(in srgb, var(--azure) 20%, transparent);
+  border-radius: var(--radius-pill);
+  color: var(--azure);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  padding: 2px 7px;
+}
+.graph-history {
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+.graph-history summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  list-style-position: inside;
+  padding: 12px 0 6px;
+  user-select: none;
+}
+.graph-history summary:hover { color: var(--azure); }
+.graph-history[open] summary { margin-bottom: 4px; }
+
 .file-list { list-style: none; }
 .file-list li {
+  padding: 0;
+}
+.file-list .file-change {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--muted);
+  display: flex;
+  gap: 8px;
   font-family: var(--mono);
   font-size: 0.8rem;
-  padding: 4px 0;
-  color: var(--muted);
+  text-align: left;
+  width: 100%;
+  padding: 7px 8px;
 }
-.file-list .status-badge {
+.file-list .file-change {
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.file-list .file-change:hover,
+.file-list .file-change:focus-visible {
+  background: color-mix(in srgb, var(--azure) 7%, transparent);
+  color: var(--text);
+  outline: none;
+}
+.file-list .view-diff {
+  color: var(--meta);
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  margin-left: auto;
+}
+.file-list .status-badge,
+.diff-header .status-badge {
   display: inline-block;
-  width: 18px;
-  text-align: center;
-  margin-right: 6px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
+  min-width: 76px;
+  padding: 2px 8px;
+  text-align: center;
 }
-.file-list .status-badge.M { color: #d97706; }
-.file-list .status-badge.A { color: var(--sage); }
-.file-list .status-badge.D { color: #ef4444; }
-.file-list .status-badge.U { color: var(--coral); }
+.status-badge.modified { background: #fff7ed; color: #b45309; }
+.status-badge.added { background: var(--sage-tint); color: #4d7c0f; }
+.status-badge.deleted { background: #fef2f2; color: #dc2626; }
+.status-badge.untracked { background: var(--coral-tint); color: #c2410c; }
+.status-badge.renamed { background: var(--azure-tint); color: var(--azure); }
+.status-badge.conflicted { background: #fef2f2; color: #b91c1c; }
+.file-list .file-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .thread-cards { display: grid; grid-template-columns: 1fr; gap: 0.6rem; }
 .thread-card {
@@ -284,7 +395,10 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   border: 1px solid var(--border);
   border-radius: var(--radius-compact);
   cursor: pointer;
+  font-family: inherit;
+  text-align: left;
   transition: all 0.15s ease;
+  width: 100%;
 }
 .thread-card:hover {
   border-color: var(--azure);
@@ -357,6 +471,16 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   padding: 8px 0;
 }
 
+.warnings {
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-compact);
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  margin-bottom: 1.5rem;
+}
+
 .refresh-btn {
   display: inline-flex;
   align-items: center;
@@ -388,6 +512,68 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
   line-height: 1.5;
 }
 
+.diff-overlay {
+  align-items: stretch;
+  background: rgba(15, 23, 42, 0.35);
+  display: none;
+  inset: 0;
+  justify-content: flex-end;
+  position: fixed;
+  z-index: 20;
+}
+.diff-overlay.open { display: flex; }
+.diff-panel {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -12px 0 32px rgba(15, 23, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+  max-width: 760px;
+  width: min(78vw, 760px);
+}
+.diff-header {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  padding: 14px 18px;
+}
+.diff-title {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diff-close {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  height: 30px;
+  width: 30px;
+}
+.diff-content {
+  background: #0d1117;
+  color: #c9d1d9;
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  margin: 0;
+  overflow: auto;
+  padding: 18px;
+  tab-size: 4;
+  white-space: pre;
+}
+.diff-loading {
+  color: var(--muted);
+  padding: 24px;
+}
+
 .loading {
   display: flex;
   align-items: center;
@@ -415,10 +601,29 @@ body { padding: 2rem 1.5rem 3rem; max-width: 880px; margin: 0 auto; }
     <span style="margin-left: 8px;">Reconstructing your context…</span>
   </div>
 </div>
+<div id="diff-overlay" class="diff-overlay">
+  <section class="diff-panel" role="dialog" aria-modal="true" aria-labelledby="diff-title" tabindex="-1">
+    <div class="diff-header">
+      <span id="diff-status" class="status-badge modified">Changed</span>
+      <span id="diff-title" class="diff-title"></span>
+      <button id="diff-close" class="diff-close" aria-label="Close diff">×</button>
+    </div>
+    <pre id="diff-content" class="diff-content"></pre>
+  </section>
+</div>
 
-<script>
+<script nonce="${scriptNonce}">
 const instanceId = "${instanceId}";
 let contextData = null;
+let diffPreviousFocus = null;
+let diffRequestController = null;
+const capabilityToken = new URLSearchParams(window.location.search).get("k") || "";
+
+function authorizedUrl(path) {
+  const url = new URL(path, window.location.origin);
+  url.searchParams.set("k", capabilityToken);
+  return url.pathname + url.search;
+}
 
 function timeAgo(isoString) {
   if (!isoString) return "";
@@ -447,25 +652,65 @@ function timeAwayLabel(isoString) {
 }
 
 function escapeHtml(s) {
-  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+function describeStatus(code) {
+  if (code === "??") return { label: "Untracked", kind: "untracked" };
+  if (["DD", "AU", "UD", "UA", "DU", "AA", "UU"].includes(code)) {
+    return { label: "Unmerged", kind: "conflicted" };
+  }
+  const index = code[0];
+  const worktree = code[1];
+  if (index === "R") return { label: worktree === " " ? "Renamed" : "Renamed + edited", kind: "renamed" };
+  if (index === "A") return { label: worktree === " " ? "Staged add" : "Added + edited", kind: "added" };
+  if (index === "D" || worktree === "D") return { label: index !== " " && worktree !== " " ? "Staged + deleted" : "Deleted", kind: "deleted" };
+  if (index !== " " && worktree !== " ") return { label: "Staged + edited", kind: "modified" };
+  if (index !== " ") return { label: "Staged", kind: "modified" };
+  return { label: "Modified", kind: "modified" };
+}
+
+function renderGraphRows(rows, branchHashes) {
+  return rows.map(row => row.hash ? \`
+    <div class="graph-row \${branchHashes.has(row.hash) ? "worktree-commit" : ""}">
+      <span class="graph-lines">\${escapeHtml(row.graph || "* ")}</span>
+      <span class="graph-hash">\${escapeHtml(row.hash)}</span>
+      <span class="graph-subject" title="\${escapeHtml(row.subject)}">\${escapeHtml(row.subject)}</span>
+      <span class="graph-refs">
+        \${(row.refs || "").split(",").map(ref => ref.trim()).filter(Boolean).map(ref => \`<span class="graph-ref">\${escapeHtml(ref)}</span>\`).join("")}
+      </span>
+    </div>
+  \` : \`
+    <div class="graph-row">
+      <span class="graph-lines">\${escapeHtml(row.graph)}</span>
+    </div>
+  \`).join("");
 }
 
 function render(data) {
   contextData = data;
   const app = document.getElementById("app");
 
-  const commits = (data.recentCommits || []).map(c => {
+  const worktreeCommits = data.branchCommits || [];
+  const commitSource = worktreeCommits.length ? worktreeCommits : (data.recentCommits || []);
+  const commits = commitSource.map(c => {
     const parts = c.split(" ");
     const hash = parts[0] || "";
     const msg = parts.slice(1).join(" ");
     return { hash, msg };
   });
 
-  const files = (data.uncommitted || []).map(f => {
-    const status = f.substring(0, 2).trim();
-    const path = f.substring(3);
-    return { status, path };
-  });
+  const files = data.changes || (data.uncommitted || []).map(f => ({
+    code: f.substring(0, 2),
+    path: f.substring(3)
+  }));
+  const branchHashes = new Set(worktreeCommits.map(commit => commit.split(" ")[0]));
+  const graph = data.commitGraph || [];
+  // The server computes the split so only the suffix after the last branch commit collapses.
+  const firstBaseCommit = Number.isInteger(data.baseGraphStart) ? data.baseGraphStart : -1;
+  const focusedGraph = firstBaseCommit >= 0 ? graph.slice(0, firstBaseCommit) : graph;
+  const baseGraph = firstBaseCommit >= 0 ? graph.slice(firstBaseCommit) : [];
+  const baseCommitCount = baseGraph.filter(row => row.hash).length;
 
   const prs = data.openPrs || [];
   const issues = data.assignedIssues || [];
@@ -476,7 +721,7 @@ function render(data) {
       <h1>Where was I?</h1>
       <div style="display:flex;align-items:center;gap:0.75rem;">
         \${data.gatheredAt ? \`<span class="time-away">\${timeAwayLabel(data.gatheredAt)}</span>\` : ""}
-        <button class="refresh-btn" onclick="doRefresh(this)">
+        <button id="refresh-context" class="refresh-btn" type="button">
           <span class="icon">↻</span> Refresh
         </button>
       </div>
@@ -484,24 +729,38 @@ function render(data) {
 
     <div class="branch-bar">
       <span class="icon">⎇</span>
+      <span class="label">Worktree</span>
+      <span class="worktree-name" title="\${escapeHtml(data.worktreeRoot)}">\${escapeHtml(data.worktreeName || data.worktreeRoot) || "unknown"}</span>
+      <span class="divider"></span>
       <span class="label">Branch</span>
       <span class="branch-name">\${escapeHtml(data.branch) || "detached HEAD"}</span>
+      \${data.baseRef ? \`<span class="divergence">\${data.ahead || 0} ahead · \${data.behind || 0} behind \${escapeHtml(data.baseRef)}</span>\` : ""}
     </div>
 
-    \${commits.length ? \`
+    \${(data.warnings || []).length ? \`
+      <div class="warnings">\${data.warnings.map(escapeHtml).join("<br>")}</div>
+    \` : ""}
+
+    \${graph.length ? \`
     <div class="section">
-      <div class="section-title">Recent Commits</div>
-      <div class="card">
-        <ul class="commit-list">
-          \${commits.map(c => \`
-            <li>
-              <span class="commit-hash">\${escapeHtml(c.hash)}</span>
-              <span class="commit-msg">\${escapeHtml(c.msg)}</span>
-            </li>
-          \`).join("")}
-        </ul>
+      <div class="section-title">Git graph</div>
+      <div class="card git-graph">
+        \${renderGraphRows(focusedGraph, branchHashes)}
+        \${baseGraph.length ? \`
+          <details class="graph-history">
+            <summary>Show \${baseCommitCount} earlier commit\${baseCommitCount === 1 ? "" : "s"} from \${escapeHtml(data.baseRef || "base branch")}</summary>
+            \${renderGraphRows(baseGraph, branchHashes)}
+          </details>
+        \` : ""}
       </div>
     </div>
+    \` : commits.length ? \`
+      <div class="section">
+        <div class="section-title">Recent commits</div>
+        <div class="card"><ul class="commit-list">
+          \${commits.map(c => \`<li><span class="commit-hash">\${escapeHtml(c.hash)}</span><span class="commit-msg">\${escapeHtml(c.msg)}</span></li>\`).join("")}
+        </ul></div>
+      </div>
     \` : ""}
 
     \${files.length ? \`
@@ -509,12 +768,18 @@ function render(data) {
       <div class="section-title">Uncommitted Changes</div>
       <div class="card">
         <ul class="file-list">
-          \${files.map(f => \`
+          \${files.map(f => {
+            const status = describeStatus(f.code);
+            return \`
             <li>
-              <span class="status-badge \${escapeHtml(f.status)}">\${escapeHtml(f.status)}</span>
-              \${escapeHtml(f.path)}
+              <button type="button" class="file-change" data-path="\${escapeHtml(encodeURIComponent(f.path))}" data-code="\${escapeHtml(f.code)}">
+                <span class="status-badge \${status.kind}">\${status.label}</span>
+                <span class="file-path">\${escapeHtml(f.path)}</span>
+                <span class="view-diff">View diff</span>
+              </button>
             </li>
-          \`).join("")}
+          \`;
+          }).join("")}
         </ul>
         \${data.diffStat ? \`<div class="diff-stat">\${escapeHtml(data.diffStat)}</div>\` : ""}
       </div>
@@ -525,61 +790,192 @@ function render(data) {
     <div class="section">
       <div class="section-title">Open Threads</div>
       <div class="thread-cards">
-        \${prs.map(pr => \`
-          <div class="thread-card card-clickable" onclick="resumeThread('PR #\${pr.number}: \${escapeHtml(pr.title)}')">
+        \${prs.map((pr, index) => \`
+          <button type="button" class="thread-card card-clickable" data-thread-kind="pr" data-thread-index="\${index}">
             <span class="number">#\${pr.number}</span>
             <span class="title">\${escapeHtml(pr.title)}</span>
             <span class="badge badge-pr">PR</span>
-          </div>
+          </button>
         \`).join("")}
-        \${issues.map(iss => \`
-          <div class="thread-card card-clickable" onclick="resumeThread('Issue #\${iss.number}: \${escapeHtml(iss.title)}')">
+        \${issues.map((iss, index) => \`
+          <button type="button" class="thread-card card-clickable" data-thread-kind="issue" data-thread-index="\${index}">
             <span class="number">#\${iss.number}</span>
             <span class="title">\${escapeHtml(iss.title)}</span>
             <span class="badge badge-issue">Issue</span>
-          </div>
+          </button>
         \`).join("")}
       </div>
     </div>
     \` : ""}
 
     <div class="resume-section">
-      <button class="resume-btn" onclick="doResume()">
+      <button id="resume-context" class="resume-btn" type="button">
         ↩ Resume where I left off
       </button>
       <p class="resume-hint">Sends your full context to the agent so it can help you pick up</p>
     </div>
   \`;
+  wireFileChangeButtons();
+  wireContextButtons(prs, issues);
+}
+
+function wireFileChangeButtons() {
+  document.querySelectorAll(".file-change").forEach((button) => {
+    button.addEventListener("click", () => {
+      showDiff(decodeURIComponent(button.dataset.path), button.dataset.code || "");
+    });
+  });
+}
+
+function wireContextButtons(prs, issues) {
+  document.getElementById("refresh-context").addEventListener("click", (event) => {
+    doRefresh(event.currentTarget);
+  });
+  document.getElementById("resume-context").addEventListener("click", () => {
+    doResume();
+  });
+  document.querySelectorAll(".thread-card").forEach((button) => {
+    button.addEventListener("click", () => {
+      const items = button.dataset.threadKind === "pr" ? prs : issues;
+      const item = items[Number(button.dataset.threadIndex)];
+      if (!item) return;
+      const kind = button.dataset.threadKind === "pr" ? "PR" : "Issue";
+      resumeThread(kind + " #" + item.number + ": " + item.title);
+    });
+  });
 }
 
 async function doRefresh(btn) {
   if (btn) btn.classList.add("spinning");
   try {
-    const res = await fetch("/refresh", { method: "POST" });
+    const res = await fetch(authorizedUrl("/refresh"), { method: "POST" });
     const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Unable to refresh context.");
     render(data);
-  } catch (e) {}
+  } catch (error) {
+    const app = document.getElementById("app");
+    app.insertAdjacentHTML("afterbegin", \`<div class="warnings">\${escapeHtml(error.message)}</div>\`);
+  }
   if (btn) setTimeout(() => btn.classList.remove("spinning"), 300);
 }
 
+async function showDiff(path, code = "") {
+  if (diffRequestController) diffRequestController.abort();
+  const controller = new AbortController();
+  diffRequestController = controller;
+  const overlay = document.getElementById("diff-overlay");
+  const title = document.getElementById("diff-title");
+  const content = document.getElementById("diff-content");
+  const badge = document.getElementById("diff-status");
+  title.textContent = path;
+  badge.textContent = "Loading";
+  badge.className = "status-badge modified";
+  content.textContent = "Loading changes…";
+  diffPreviousFocus = document.activeElement;
+  overlay.classList.add("open");
+  document.getElementById("diff-close").focus();
+  try {
+    const res = await fetch(
+      authorizedUrl("/file-diff?path=" + encodeURIComponent(path) + (code ? "&code=" + encodeURIComponent(code) : "")),
+      { signal: controller.signal }
+    );
+    const data = await res.json();
+    if (diffRequestController !== controller) return;
+    if (!res.ok) throw new Error(data.error || "Unable to load this diff.");
+    const status = describeStatus(data.code);
+    badge.textContent = status.label;
+    badge.className = "status-badge " + status.kind;
+    content.textContent = data.diff || "No textual diff is available.";
+  } catch (error) {
+    if (error.name === "AbortError" || diffRequestController !== controller) return;
+    badge.textContent = "Error";
+    content.textContent = error.message;
+  } finally {
+    if (diffRequestController === controller) diffRequestController = null;
+  }
+}
+
+function closeDiff() {
+  const overlay = document.getElementById("diff-overlay");
+  if (!overlay.classList.contains("open")) return;
+  if (diffRequestController) diffRequestController.abort();
+  diffRequestController = null;
+  overlay.classList.remove("open");
+  if (diffPreviousFocus && typeof diffPreviousFocus.focus === "function") {
+    diffPreviousFocus.focus();
+  }
+  diffPreviousFocus = null;
+}
+
+function handleDiffBackdrop(event) {
+  if (event.target.id === "diff-overlay") closeDiff();
+}
+
+function handleDiffKeydown(event) {
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeDiff();
+    return;
+  }
+  if (event.key !== "Tab") return;
+
+  const panel = document.querySelector(".diff-panel");
+  const focusable = Array.from(panel.querySelectorAll("button, [href], [tabindex]"))
+    .filter((element) => !element.disabled && element.tabIndex >= 0);
+  if (!focusable.length) {
+    event.preventDefault();
+    panel.focus();
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !panel.contains(document.activeElement))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !panel.contains(document.activeElement))) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+const diffOverlay = document.getElementById("diff-overlay");
+diffOverlay.addEventListener("click", handleDiffBackdrop);
+diffOverlay.addEventListener("keydown", handleDiffKeydown);
+document.getElementById("diff-close").addEventListener("click", closeDiff);
+
+function showWarning(message) {
+  const warning = document.createElement("div");
+  warning.className = "warnings";
+  warning.setAttribute("role", "alert");
+  warning.textContent = message;
+  document.getElementById("app").prepend(warning);
+}
+
+async function requestResume(thread) {
+  try {
+    const res = await fetch(authorizedUrl("/resume"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ thread })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Unable to send the resume prompt.");
+  } catch (error) {
+    showWarning(error.message || "Unable to send the resume prompt.");
+  }
+}
+
 async function doResume() {
-  await fetch("/resume", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ thread: null })
-  });
+  await requestResume(null);
 }
 
 async function resumeThread(thread) {
-  await fetch("/resume", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ thread })
-  });
+  await requestResume(thread);
 }
 
 // SSE for live updates
-const evtSource = new EventSource("/events");
+const evtSource = new EventSource(authorizedUrl("/events"));
 evtSource.onmessage = (e) => {
   try {
     const data = JSON.parse(e.data);
@@ -588,7 +984,12 @@ evtSource.onmessage = (e) => {
 };
 
 // Initial load
-fetch("/context").then(r => r.json()).then(render).catch(() => {});
+fetch(authorizedUrl("/context"))
+  .then(r => r.json())
+  .then(render)
+  .catch((error) => {
+    document.getElementById("app").innerHTML = \`<div class="warnings">\${escapeHtml(error.message)}</div>\`;
+  });
 </script>
 </body>
 </html>`;
@@ -596,11 +997,41 @@ fetch("/context").then(r => r.json()).then(render).catch(() => {});
 
 // --- Server ---
 
-async function startServer(instanceId, sessionRef, cwd, workspacePath) {
-    const server = createServer(async (req, res) => {
-        const url = new URL(req.url, "http://localhost");
+function tokenMatches(provided, expected) {
+    if (typeof provided !== "string" || provided.length !== expected.length) return false;
+    try {
+        return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+    } catch {
+        return false;
+    }
+}
 
-        if (url.pathname === "/events") {
+function requestIsAuthorized(req, url, entry) {
+    const host = String(req.headers.host || "").toLowerCase();
+    if (!entry.canonicalHost || host !== entry.canonicalHost) return false;
+    const origin = req.headers.origin;
+    if (origin && origin !== entry.origin) return false;
+    return tokenMatches(url.searchParams.get("k") || "", entry.token);
+}
+
+async function startServer(instanceId, cwd, workspacePath) {
+    const entry = {
+        server: null,
+        url: "",
+        cwd,
+        token: randomBytes(32).toString("base64url"),
+        canonicalHost: "",
+        origin: "",
+    };
+    entry.server = createServer(async (req, res) => {
+        const url = new URL(req.url, "http://localhost");
+        if (!requestIsAuthorized(req, url, entry)) {
+            res.writeHead(403, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Forbidden" }));
+            return;
+        }
+
+        if (url.pathname === "/events" && req.method === "GET") {
             res.writeHead(200, {
                 "Content-Type": "text/event-stream",
                 "Cache-Control": "no-cache",
@@ -621,13 +1052,37 @@ async function startServer(instanceId, sessionRef, cwd, workspacePath) {
             return;
         }
 
+        if (url.pathname === "/file-diff" && req.method === "GET") {
+            const path = url.searchParams.get("path");
+            const code = url.searchParams.get("code");
+            if (!path) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "A file path is required." }));
+                return;
+            }
+            try {
+                const data = await getFileDiff(entry.cwd, path, code && code.length === 2 ? code : null);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(data));
+            } catch (error) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: error.message || "Unable to load this diff." }));
+            }
+            return;
+        }
+
         if (url.pathname === "/refresh" && req.method === "POST") {
-            const data = await gatherContext(cwd);
-            contextCache.set(instanceId, data);
-            await saveContext(workspacePath, data);
-            broadcast(instanceId, data);
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify(data));
+            try {
+                const data = await gatherContext(entry.cwd);
+                contextCache.set(instanceId, data);
+                await saveContext(workspacePath, data);
+                broadcast(instanceId, data);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(data));
+            } catch (error) {
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: error.message || "Unable to refresh context." }));
+            }
             return;
         }
 
@@ -635,21 +1090,30 @@ async function startServer(instanceId, sessionRef, cwd, workspacePath) {
             let body = "";
             for await (const chunk of req) body += chunk;
             let thread = null;
-            try { thread = JSON.parse(body).thread; } catch {}
+            try {
+                thread = JSON.parse(body).thread;
+            } catch {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "The resume request body must be valid JSON." }));
+                return;
+            }
 
             const ctx = contextCache.get(instanceId) || {};
+            const commits = ctx.branchCommits?.length ? ctx.branchCommits : (ctx.recentCommits || []);
             let prompt;
             if (thread) {
                 prompt = `I was working on ${thread} and got interrupted. Here's my current context:\n\n` +
+                    `**Worktree:** ${ctx.worktreeRoot || "unknown"}\n` +
                     `**Branch:** ${ctx.branch || "unknown"}\n` +
-                    `**Recent commits:** ${(ctx.recentCommits || []).join(", ")}\n` +
+                    `**Worktree commits:** ${commits.join(", ")}\n` +
                     `**Uncommitted changes:** ${(ctx.uncommitted || []).join(", ")}\n` +
                     `**Open PRs:** ${(ctx.openPrs || []).map(p => "#" + p.number + " " + p.title).join(", ")}\n\n` +
                     `Help me pick up where I left off on this specific thread.`;
             } else {
                 prompt = `I got interrupted and need to resume my work. Here's my full context:\n\n` +
+                    `**Worktree:** ${ctx.worktreeRoot || "unknown"}\n` +
                     `**Branch:** ${ctx.branch || "unknown"}\n` +
-                    `**Recent commits:**\n${(ctx.recentCommits || []).map(c => "- " + c).join("\n")}\n\n` +
+                    `**Worktree commits:**\n${commits.map(c => "- " + c).join("\n")}\n\n` +
                     `**Uncommitted changes:**\n${(ctx.uncommitted || []).map(f => "- " + f).join("\n")}\n\n` +
                     `**Diff stat:**\n${ctx.diffStat || "none"}\n\n` +
                     `**Open PRs:** ${(ctx.openPrs || []).map(p => "#" + p.number + " " + p.title).join(", ") || "none"}\n` +
@@ -657,21 +1121,47 @@ async function startServer(instanceId, sessionRef, cwd, workspacePath) {
                     `Help me pick up where I left off. What should I focus on first?`;
             }
 
-            try { await sessionRef.send(prompt); } catch {}
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ ok: true }));
+            try {
+                if (!sessionRef) throw new Error("The Copilot session is unavailable.");
+                await sessionRef.send(prompt);
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ ok: true }));
+            } catch (error) {
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: error.message || "Unable to send the resume prompt." }));
+            }
             return;
         }
 
-        // Default: serve HTML
-        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-        res.end(renderHtml(instanceId));
+        if (url.pathname === "/" && req.method === "GET") {
+            const scriptNonce = randomBytes(16).toString("base64url");
+            res.writeHead(200, {
+                "Content-Type": "text/html; charset=utf-8",
+                "Content-Security-Policy": [
+                    "default-src 'none'",
+                    `script-src 'nonce-${scriptNonce}'`,
+                    "style-src 'unsafe-inline' https://fonts.googleapis.com",
+                    "font-src https://fonts.gstatic.com",
+                    "connect-src 'self'",
+                    "base-uri 'none'",
+                    "object-src 'none'",
+                ].join("; "),
+            });
+            res.end(renderHtml(instanceId, scriptNonce));
+            return;
+        }
+
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Not found" }));
     });
 
-    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-    const address = server.address();
+    await new Promise((resolve) => entry.server.listen(0, "127.0.0.1", resolve));
+    const address = entry.server.address();
     const port = typeof address === "object" && address ? address.port : 0;
-    return { server, url: `http://127.0.0.1:${port}/` };
+    entry.canonicalHost = `127.0.0.1:${port}`;
+    entry.origin = `http://${entry.canonicalHost}`;
+    entry.url = `${entry.origin}/?k=${entry.token}`;
+    return entry;
 }
 
 // --- Extension ---
@@ -689,8 +1179,10 @@ const session = await joinSession({
                     name: "refresh",
                     description: "Re-gather all git/project context and push updates to the canvas",
                     handler: async (ctx) => {
-                        captureCwd(ctx);
-                        const data = await gatherContext(repoCwd());
+                        const cwd = await activeCwd(ctx);
+                        const entry = servers.get(ctx.instanceId);
+                        if (entry) entry.cwd = cwd;
+                        const data = await gatherContext(cwd);
                         contextCache.set(ctx.instanceId, data);
                         if (sessionRef) await saveContext(sessionRef.workspacePath, data);
                         broadcast(ctx.instanceId, data);
@@ -702,6 +1194,32 @@ const session = await joinSession({
                     description: "Return the currently assembled developer context as JSON",
                     handler: async (ctx) => {
                         return contextCache.get(ctx.instanceId) || {};
+                    },
+                },
+                {
+                    name: "get_file_diff",
+                    description: "Return the staged, unstaged, or untracked patch for a changed file",
+                    inputSchema: {
+                        type: "object",
+                        properties: {
+                            path: {
+                                type: "string",
+                                minLength: 1,
+                                description: "Repository-relative path from the current context",
+                            },
+                            code: {
+                                type: "string",
+                                minLength: 2,
+                                maxLength: 2,
+                                description: "Optional two-character porcelain status code to disambiguate a path listed more than once",
+                            },
+                        },
+                        required: ["path"],
+                        additionalProperties: false,
+                    },
+                    handler: async (ctx) => {
+                        const cwd = await activeCwd(ctx);
+                        return await getFileDiff(cwd, ctx.input.path, ctx.input.code || null);
                     },
                 },
                 {
@@ -719,11 +1237,14 @@ const session = await joinSession({
                     handler: async (ctx) => {
                         const thread = ctx.input?.thread || null;
                         const data = contextCache.get(ctx.instanceId) || {};
+                        const commits = data.branchCommits?.length
+                            ? data.branchCommits
+                            : (data.recentCommits || []);
                         let prompt;
                         if (thread) {
-                            prompt = `I was working on ${thread} and got interrupted. Context: branch=${data.branch}, recent commits: ${(data.recentCommits || []).join("; ")}. Help me resume.`;
+                            prompt = `I was working on ${thread} and got interrupted. Context: worktree=${data.worktreeRoot}, branch=${data.branch}, worktree commits: ${commits.join("; ")}. Help me resume.`;
                         } else {
-                            prompt = `Help me resume. Branch: ${data.branch}. Commits: ${(data.recentCommits || []).join("; ")}. Uncommitted: ${(data.uncommitted || []).join("; ")}.`;
+                            prompt = `Help me resume. Worktree: ${data.worktreeRoot}. Branch: ${data.branch}. Commits: ${commits.join("; ")}. Uncommitted: ${(data.uncommitted || []).join("; ")}.`;
                         }
                         if (sessionRef) await sessionRef.send(prompt);
                         return { sent: true };
@@ -731,22 +1252,17 @@ const session = await joinSession({
                 },
             ],
             open: async (ctx) => {
-                captureCwd(ctx);
+                const cwd = await activeCwd(ctx);
                 let entry = servers.get(ctx.instanceId);
                 if (!entry) {
-                    entry = await startServer(ctx.instanceId, sessionRef, repoCwd(), sessionRef?.workspacePath);
+                    entry = await startServer(ctx.instanceId, cwd, sessionRef?.workspacePath);
                     servers.set(ctx.instanceId, entry);
+                } else {
+                    entry.cwd = cwd;
                 }
 
-                // Load persisted context or gather fresh. Re-gather when the
-                // saved context is missing or has no branch (e.g. it was saved
-                // before the working directory was known), so the board never
-                // opens stuck on a stale "detached HEAD".
-                let data = await loadContext(sessionRef?.workspacePath);
-                if (!data || !data.branch) {
-                    data = await gatherContext(repoCwd());
-                    await saveContext(sessionRef?.workspacePath, data);
-                }
+                const data = await gatherContext(cwd);
+                await saveContext(sessionRef?.workspacePath, data);
                 contextCache.set(ctx.instanceId, data);
                 // Push to any waiting SSE clients
                 setTimeout(() => broadcast(ctx.instanceId, data), 100);
