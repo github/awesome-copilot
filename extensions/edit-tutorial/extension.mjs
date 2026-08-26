@@ -1280,10 +1280,47 @@ function saveProgress(immediate) {
       .then(function () {
         saveInFlight = false;
         if (saveQueued) { saveQueued = false; doSave(); }
+        else settleFlushWaiters();
       });
   };
   if (immediate) doSave();
   else saveTimer = setTimeout(doSave, 450);
+}
+
+// Waiters for a full drain of the save machinery: no debounce timer armed, no
+// write in flight, no queued follow-up. Actions whose server side snapshots
+// progress (switching lessons archives the departing lesson) await this, so
+// the snapshot contains what the learner just did, with the standard conflict
+// handling applied rather than bypassed.
+var flushWaiters = [];
+
+function settleFlushWaiters() {
+  if (saveTimer || saveInFlight || saveQueued) return;
+  var waiters = flushWaiters;
+  flushWaiters = [];
+  for (var i = 0; i < waiters.length; i++) waiters[i]();
+}
+
+// Pushes the current progress through the full save path (merge and retry on a
+// stale_write conflict, bounded retry then a warning on failure) and resolves
+// once everything has drained. Never rejects: a save that ultimately failed has
+// already warned the learner, and the caller's action goes ahead with exactly
+// the exposure a dropped save always carried.
+function flushProgress() {
+  return new Promise(function (resolve) {
+    flushWaiters.push(resolve);
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+    }
+    if (saveInFlight) {
+      // The running save's completion pass posts the latest content and then
+      // settles the waiters.
+      saveQueued = true;
+    } else {
+      saveProgress(true);
+    }
+  });
 }
 
 function stepProgress(stepId) {
@@ -1608,18 +1645,13 @@ function gotoLesson(index) {
   if (index < 0 || index >= info.count || index === info.index) return;
   var forward = index > (info.index || 0);
   lessonSwitching = true;
-  // The same flush discipline askReview uses: cancel the debounce, post the
-  // current progress directly, and only then switch. A 409 answer is fine, the
-  // server already holds something newer or an authoritative change is on its
-  // way. A network failure must not strand the learner on this lesson either,
-  // so the switch still proceeds; the unflushed keystrokes then carry the same
-  // risk a dropped save always carried, no more.
-  if (saveTimer) {
-    clearTimeout(saveTimer);
-    saveTimer = null;
-  }
-  postProgress()
-    .catch(function () {})
+  // Flush through the standard save machinery, conflict handling included: a
+  // stale_write answer merges the other canvas's progress and re-saves, so by
+  // the time the switch is requested the server holds this canvas's latest
+  // work and the archived snapshot is complete. Failures still drain (the
+  // saver retries once, then warns), so the learner is never stranded on a
+  // lesson they asked to leave.
+  flushProgress()
     .then(function () {
       return api("/lesson", { method: "POST", body: JSON.stringify({ index: index }) });
     })
