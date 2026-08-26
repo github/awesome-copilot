@@ -62,7 +62,9 @@ Start an edit tutorial from the last commit.
 - **Persistence**: lesson content and learner progress are saved to the session
   workspace, so reopening the canvas resumes where the learner left off. Each save
   also refreshes a read-only HTML snapshot of the rendered lesson, so the tutorial
-  survives an app restart as a readable artifact instead of raw state data.
+  survives an app restart as a readable artifact instead of raw state data. All
+  Edit Tutorial canvases open in one session share this same lesson state, so a
+  second canvas is another view of the same lessons, not a separate copy.
 
 For example, if the agent added retry-with-backoff logic to `fetchUser`, the lesson
 walks through that change and then asks the learner to apply the same pattern to

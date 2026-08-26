@@ -17,7 +17,17 @@ import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 
 const servers = new Map(); // instanceId -> { server, url }
 const sseClients = new Map(); // instanceId -> Set<res>
-const stateCache = new Map(); // instanceId -> { tutorial, progress }
+
+// One lesson state for the whole session, shared by every canvas instance.
+// Persistence writes to fixed per-session filenames (STATE_FILENAME and
+// ARTIFACT_FILENAME under the session workspace), so state scoped per instance
+// would let two open canvases hold different lessons while silently overwriting
+// each other's saves, and a reopen would restore whichever instance wrote last.
+// Memory is therefore scoped the way persistence is scoped: every canvas is a
+// view of the same lesson history. Servers and event streams stay per instance,
+// since they are per-window plumbing, and broadcasts reach the clients of all
+// of them.
+let sessionState = null;
 
 const MAX_STEPS = 12;
 const MAX_CODE_CHARS = 20000;
@@ -280,13 +290,11 @@ function freshProgress(tutorial) {
     };
 }
 
-function getState(instanceId) {
-    let state = stateCache.get(instanceId);
-    if (!state) {
-        state = { tutorial: null, progress: null, archive: [], activePos: 0, rev: 0, progressSeq: 0 };
-        stateCache.set(instanceId, state);
+function getState() {
+    if (!sessionState) {
+        sessionState = { tutorial: null, progress: null, archive: [], activePos: 0, rev: 0, progressSeq: 0 };
     }
-    return state;
+    return sessionState;
 }
 
 // --- Lesson history ---
@@ -469,12 +477,14 @@ async function loadState(workspacePath) {
 
 // --- SSE ---
 
-function broadcast(instanceId, payload) {
-    const clients = sseClients.get(instanceId);
-    if (!clients) return;
+// The lesson state is shared by every instance, so a change made through any
+// one of them is announced to the clients of them all.
+function broadcast(payload) {
     const message = "data: " + JSON.stringify(payload) + "\n\n";
-    for (const res of clients) {
-        try { res.write(message); } catch {}
+    for (const clients of sseClients.values()) {
+        for (const res of clients) {
+            try { res.write(message); } catch {}
+        }
     }
 }
 
@@ -993,9 +1003,24 @@ function saveProgress(immediate) {
     saveInFlight = true;
     postProgress()
       .then(function (r) {
-        // 409 is not a failure: the write was superseded, and every revision bump
-        // also broadcasts, so the authoritative state is already on its way.
-        if (r.ok || r.status === 409) { saveFailures = 0; return; }
+        if (r.ok) { saveFailures = 0; return; }
+        if (r.status === 409) {
+          saveFailures = 0;
+          // Two flavors of conflict, neither a failure. A stale revision means
+          // an authoritative change (publish, approval, reset, lesson switch)
+          // superseded this write, and its broadcast is already on its way, so
+          // drop. A stale write number means another open canvas showing this
+          // same lesson has saved since this one last synced; adopt the
+          // server's counter and save again, so moving between two open
+          // canvases does not silently stop persisting.
+          return r.json().then(function (body) {
+            if (body && body.error === "stale_write") {
+              var seq = Number(body.seq);
+              if (isFinite(seq) && seq > progressSeq) progressSeq = seq;
+              saveQueued = true;
+            }
+          }, function () {});
+        }
         throw new Error("save rejected with " + r.status);
       })
       .catch(function () {
@@ -2016,7 +2041,7 @@ async function startServer(instanceId) {
             }
 
             const url = new URL(req.url, "http://" + expected);
-            const state = getState(instanceId);
+            const state = getState();
 
             if (API_PATHS.has(url.pathname)) {
                 if (!hasToken(req, url, token, url.pathname === "/events")) {
@@ -2129,7 +2154,7 @@ async function startServer(instanceId) {
                 state.progress = state.tutorial ? freshProgress(state.tutorial) : null;
                 bumpRev(state);
                 await saveState(sessionRef?.workspacePath, state);
-                broadcast(instanceId, { kind: "reset", state: clientState(state) });
+                broadcast({ kind: "reset", state: clientState(state) });
                 sendJson(res, 200, clientState(state));
                 return;
             }
@@ -2154,7 +2179,7 @@ async function startServer(instanceId) {
                 }
                 bumpRev(state);
                 await saveState(sessionRef?.workspacePath, state);
-                broadcast(instanceId, { kind: "lesson", state: clientState(state) });
+                broadcast({ kind: "lesson", state: clientState(state) });
                 sendJson(res, 200, clientState(state));
                 return;
             }
@@ -2271,11 +2296,11 @@ const session = await joinSession({
                     handler: async (ctx) => {
                         const result = normalizeTutorial(ctx.input);
                         if (result.error) return { ok: false, error: result.error };
-                        const state = getState(ctx.instanceId);
+                        const state = getState();
                         publishLesson(state, result.tutorial);
                         bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
-                        broadcast(ctx.instanceId, { kind: "tutorial", state: clientState(state) });
+                        broadcast({ kind: "tutorial", state: clientState(state) });
                         return {
                             ok: true,
                             steps: result.tutorial.steps.length,
@@ -2290,7 +2315,7 @@ const session = await joinSession({
                     description:
                         "Return the learner's progress: which steps are understood, quiz answers, and the exercise state including their current code attempt. Use it to coach without asking the learner to paste anything. It also returns `attempt`, the digest of the code it shows you, which approve_exercise requires.",
                     handler: async (ctx) => {
-                        const state = getState(ctx.instanceId);
+                        const state = getState();
                         if (!state.tutorial) return { ok: false, error: "No tutorial has been published yet." };
                         return {
                             ok: true,
@@ -2324,7 +2349,7 @@ const session = await joinSession({
                         required: ["attempt"],
                     },
                     handler: async (ctx) => {
-                        const state = getState(ctx.instanceId);
+                        const state = getState();
                         if (!state.tutorial || !state.progress) {
                             return { ok: false, error: "No tutorial in progress." };
                         }
@@ -2347,7 +2372,7 @@ const session = await joinSession({
                         state.progress.exercise.approvalNote = text(ctx.input?.note, 300);
                         bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
-                        broadcast(ctx.instanceId, { kind: "approved", state: clientState(state) });
+                        broadcast({ kind: "approved", state: clientState(state) });
                         return { ok: true };
                     },
                 },
@@ -2355,18 +2380,18 @@ const session = await joinSession({
                     name: "reset_progress",
                     description: "Reset the learner's progress for the current lesson (steps and exercise) without changing the lesson content.",
                     handler: async (ctx) => {
-                        const state = getState(ctx.instanceId);
+                        const state = getState();
                         if (!state.tutorial) return { ok: false, error: "No tutorial has been published yet." };
                         state.progress = freshProgress(state.tutorial);
                         bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
-                        broadcast(ctx.instanceId, { kind: "reset", state: clientState(state) });
+                        broadcast({ kind: "reset", state: clientState(state) });
                         return { ok: true };
                     },
                 },
             ],
             open: async (ctx) => {
-                const state = getState(ctx.instanceId);
+                const state = getState();
 
                 if (ctx.input?.tutorial) {
                     const result = normalizeTutorial(ctx.input.tutorial);
@@ -2374,6 +2399,10 @@ const session = await joinSession({
                         publishLesson(state, result.tutorial);
                         bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
+                        // The state is shared, so canvases already open elsewhere
+                        // must hear about this publish; this instance's own page
+                        // is not connected yet and reads /state when it loads.
+                        broadcast({ kind: "tutorial", state: clientState(state) });
                     }
                 } else if (!state.tutorial) {
                     const persisted = await loadState(sessionRef?.workspacePath);
@@ -2387,6 +2416,9 @@ const session = await joinSession({
                             ? persisted.activePos
                             : state.archive.length;
                         bumpRev(state);
+                        // Any instance already open was showing the empty state;
+                        // let it catch up rather than sit on a dead revision.
+                        broadcast({ kind: "sync", state: clientState(state) });
                     }
                 }
 
@@ -2410,8 +2442,10 @@ const session = await joinSession({
                     servers.delete(ctx.instanceId);
                     await new Promise((resolve) => entry.server.close(() => resolve()));
                 }
+                // The lesson state deliberately survives here: it is session
+                // scoped, other instances may be viewing it, and it is what a
+                // reopened canvas resumes from.
                 sseClients.delete(ctx.instanceId);
-                stateCache.delete(ctx.instanceId);
             },
         }),
     ],
