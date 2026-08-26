@@ -36,6 +36,116 @@ function code(value) {
     return value.replace(/\s+$/, "").slice(0, MAX_CODE_CHARS);
 }
 
+// --- Solution check safety ---
+
+// solutionChecks patterns are authored by the agent and run against whatever the
+// learner typed, so a syntactically valid expression can still hang the canvas by
+// backtracking catastrophically. Two layers guard that: the canvas evaluates
+// checks in a worker with a hard time budget, and this screen refuses the known
+// explosive shapes at publish time so the agent gets an actionable error instead
+// of shipping a lesson that stalls.
+//
+// The explosive shape is a repeated group whose body can match the same input in
+// more than one way: (a+)+, (\s*\w+)*, (\w+,\s*)+. A fixed-width body such as
+// (\d{4})+ has only one possible split, so it stays allowed.
+
+// Reads the quantifier starting at index i, if there is one. `repeats` means the
+// atom can apply more than once; `ambiguous` means it can apply a variable number
+// of times; `unbounded` means it has no upper limit.
+function readQuantifier(src, i) {
+    const ch = src[i];
+    if (ch === "*" || ch === "+") return { length: 1, repeats: true, ambiguous: true, unbounded: true };
+    if (ch === "?") return { length: 1, repeats: false, ambiguous: false, unbounded: false };
+    if (ch !== "{") return null;
+    const m = /^\{(\d+)(,(\d*))?\}/.exec(src.slice(i));
+    if (!m) return null; // a literal brace, not a quantifier
+    const min = Number(m[1]);
+    const openEnded = m[2] !== undefined && m[3] === "";
+    const max = m[2] === undefined ? min : openEnded ? Infinity : Number(m[3]);
+    return { length: m[0].length, repeats: max >= 2, ambiguous: openEnded || max > min, unbounded: openEnded };
+}
+
+// True when a group body can consume the same text in more than one way, which is
+// what turns an enclosing repetition into exponential backtracking.
+function bodyIsAmbiguous(body) {
+    let inClass = false;
+    for (let i = 0; i < body.length; i++) {
+        const ch = body[i];
+        if (ch === "\\") { i++; continue; }
+        if (inClass) { if (ch === "]") inClass = false; continue; }
+        if (ch === "[") { inClass = true; continue; }
+        const q = readQuantifier(body, i);
+        if (q) {
+            if (q.ambiguous) return true;
+            i += q.length - 1;
+        }
+    }
+    return false;
+}
+
+// Alternation at any depth counts: ((a|aa))+ is just as explosive as (a|aa)+.
+function bodyHasAlternation(body) {
+    let inClass = false;
+    for (let i = 0; i < body.length; i++) {
+        const ch = body[i];
+        if (ch === "\\") { i++; continue; }
+        if (inClass) { if (ch === "]") inClass = false; continue; }
+        if (ch === "[") { inClass = true; continue; }
+        if (ch === "|") return true;
+    }
+    return false;
+}
+
+// Returns null when the pattern is safe to run, or a short reason when it is not.
+// Deliberately conservative: it walks the source rather than parsing it fully, and
+// would rather refuse an exotic-but-safe pattern than let a stalling one through.
+function screenPattern(pattern) {
+    const stack = [];
+    let inClass = false;
+    for (let i = 0; i < pattern.length; i++) {
+        const ch = pattern[i];
+        if (ch === "\\") { i++; continue; }
+        if (inClass) { if (ch === "]") inClass = false; continue; }
+        if (ch === "[") { inClass = true; continue; }
+        if (ch === "(") { stack.push(i); continue; }
+        if (ch !== ")") continue;
+
+        const open = stack.pop();
+        if (open === undefined) continue; // unbalanced; the RegExp compile below reports it
+        const q = readQuantifier(pattern, i + 1);
+        if (!q || !q.repeats) continue;
+        const body = pattern.slice(open + 1, i);
+        if (bodyIsAmbiguous(body)) {
+            return "it repeats a group whose body also repeats, such as (a+)+ or (\\s*\\w+)*";
+        }
+        if (q.unbounded && bodyHasAlternation(body)) {
+            return "it repeats a group containing alternatives without a limit, such as (a|ab)+";
+        }
+    }
+    return null;
+}
+
+// Validates one solutionChecks entry. Returns { check } or { error }.
+function normalizeCheck(raw) {
+    const pattern = typeof raw?.pattern === "string" ? raw.pattern.slice(0, 500) : "";
+    if (!pattern) return {};
+    const flags = typeof raw?.flags === "string" && /^[gims]*$/.test(raw.flags) ? raw.flags : "m";
+    try {
+        new RegExp(pattern, flags);
+    } catch {
+        return { error: "solutionChecks pattern is not a valid regular expression: " + pattern };
+    }
+    const unsafe = screenPattern(pattern);
+    if (unsafe) {
+        return {
+            error:
+                "solutionChecks pattern can hang on a near match because " + unsafe + ": " + pattern +
+                ". Match the repeated part once instead, or give it a fixed width like (\\d{4})+.",
+        };
+    }
+    return { check: { pattern, flags, hint: text(raw?.hint, 300) } };
+}
+
 // Validates and normalizes a tutorial payload from the agent. Returns
 // { tutorial } on success or { error } with a message the agent can act on.
 function normalizeTutorial(raw) {
@@ -89,15 +199,9 @@ function normalizeTutorial(raw) {
     const checks = [];
     const rawChecks = Array.isArray(ex.solutionChecks) ? ex.solutionChecks.slice(0, MAX_CHECKS) : [];
     for (const c of rawChecks) {
-        const pattern = typeof c?.pattern === "string" ? c.pattern.slice(0, 500) : "";
-        if (!pattern) continue;
-        const flags = typeof c?.flags === "string" && /^[gims]*$/.test(c.flags) ? c.flags : "m";
-        try {
-            new RegExp(pattern, flags);
-        } catch {
-            return { error: "solutionChecks pattern is not a valid regular expression: " + pattern };
-        }
-        checks.push({ pattern, flags, hint: text(c?.hint, 300) });
+        const result = normalizeCheck(c);
+        if (result.error) return { error: result.error };
+        if (result.check) checks.push(result.check);
     }
     if (!checks.length) {
         return { error: "Exercise needs at least one solutionChecks entry ({ pattern, hint })." };
@@ -166,12 +270,26 @@ async function saveState(workspacePath, state) {
     } catch {}
 }
 
+// A state file written before the backtracking screen existed, or edited by hand,
+// can carry patterns the publish path would now refuse. Drop those on the way back
+// in rather than handing them to the canvas. An exercise left with no runnable
+// checks is still completable through "Ask Copilot for a review".
+function rescreenLoadedChecks(state) {
+    const ex = state?.tutorial?.exercise;
+    if (!ex || !Array.isArray(ex.checks)) return state;
+    ex.checks = ex.checks
+        .map((c) => normalizeCheck(c))
+        .filter((r) => !r.error && r.check)
+        .map((r) => r.check);
+    return state;
+}
+
 async function loadState(workspacePath) {
     if (!workspacePath) return null;
     try {
         const raw = await readFile(join(workspacePath, "files", STATE_FILENAME), "utf-8");
         const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object") return parsed;
+        if (parsed && typeof parsed === "object") return rescreenLoadedChecks(parsed);
     } catch {}
     return null;
 }
@@ -387,6 +505,8 @@ body { padding: 1.75rem 1.5rem 3rem; max-width: 940px; margin: 0 auto; }
 .check-item.pass .mark { color: var(--green); }
 .check-item.fail .mark { color: var(--accent); }
 .check-item.fail { color: var(--muted); }
+.check-item.stalled .mark { color: var(--faint); }
+.check-item.stalled { color: var(--faint); }
 
 .banner-complete {
   background: var(--green-tint); border: 1px solid rgba(46,125,79,0.3); border-radius: var(--radius);
@@ -443,6 +563,7 @@ var view = { kind: "step", index: 0 };
 var requested = false;
 var saveTimer = null;
 var lastCheckResults = null;
+var checking = false;
 
 // Capability token minted by the server for this canvas instance. Every API call
 // carries it, so a page that never received this document cannot read the lesson
@@ -663,9 +784,16 @@ function renderChecks() {
   if (!lastCheckResults) return "";
   var html = '<div class="check-results">';
   lastCheckResults.forEach(function (r) {
-    html += '<div class="check-item ' + (r.pass ? "pass" : "fail") + '">' +
-      '<span class="mark">' + (r.pass ? "[x]" : "[ ]") + "</span>" +
-      "<span>" + esc(r.pass ? r.hint || "Requirement met" : r.hint || "One requirement not met yet") + "</span></div>";
+    // A stalled check is not a failed requirement, so say so rather than telling
+    // the learner their code is wrong.
+    var label = r.pass
+      ? r.hint || "Requirement met"
+      : r.stalled
+        ? "This check could not be run" + (r.hint ? " (" + r.hint + ")" : "") + ". Ask Copilot for a review instead."
+        : r.hint || "One requirement not met yet";
+    html += '<div class="check-item ' + (r.pass ? "pass" : r.stalled ? "stalled" : "fail") + '">' +
+      '<span class="mark">' + (r.pass ? "[x]" : r.stalled ? "[!]" : "[ ]") + "</span>" +
+      "<span>" + esc(label) + "</span></div>";
   });
   return html + "</div>";
 }
@@ -708,7 +836,8 @@ function renderExercise() {
   html += renderChecks();
 
   html += '<div class="actions-row">';
-  html += '<button class="btn btn-accent" onclick="checkWork()">Check my work</button>';
+  html += '<button class="btn btn-accent" onclick="checkWork(this)"' + (checking ? " disabled" : "") + ">" +
+    (checking ? "Checking..." : "Check my work") + "</button>";
   if (pe.hintsRevealed < ex.hints.length) {
     html += '<button class="btn btn-ghost" onclick="revealHint()">Hint (' + (pe.hintsRevealed + 1) + " of " + ex.hints.length + ")</button>";
   }
@@ -797,28 +926,141 @@ function onEditorKey(e) {
   }
 }
 
-function checkWork() {
-  var ex = S.tutorial.exercise;
-  var pe = S.progress.exercise;
-  var codeText = pe.code || "";
-  var allPass = true;
-  lastCheckResults = ex.checks.map(function (c) {
-    var pass = false;
-    try { pass = new RegExp(c.pattern, c.flags || "m").test(codeText); } catch (err) { pass = false; }
-    if (!pass) allPass = false;
-    return { pass: pass, hint: c.hint };
-  });
-  pe.attempts++;
-  if (allPass) {
-    pe.completed = true;
-    pe.completedBy = "checks";
-    pe.completedAt = new Date().toISOString();
-  } else {
-    pe.failedAttempts++;
+// Solution checks are regexes the agent wrote, run against whatever the learner
+// typed. Even a pattern that compiles can backtrack catastrophically on a near
+// match and freeze the tab, so checks never run on the UI thread: a worker
+// evaluates them one at a time and reports each result as it lands. If the batch
+// blows its budget the worker is terminated and the unfinished checks come back
+// as "not evaluated", leaving the canvas responsive.
+var CHECK_BUDGET_MS = 2000;
+var CHECK_WORKER_SRC = [
+  "self.onmessage = function (e) {",
+  "  var d = e.data || {};",
+  "  var checks = d.checks || [];",
+  "  for (var i = 0; i < checks.length; i++) {",
+  "    var pass = false;",
+  "    try { pass = new RegExp(checks[i].pattern, checks[i].flags || 'm').test(d.code || ''); }",
+  "    catch (err) { pass = false; }",
+  "    self.postMessage({ index: i, pass: pass });",
+  "  }",
+  "  self.postMessage({ done: true });",
+  "};"
+].join("\\n");
+
+// Runs the checks and calls done(results), where each entry is true, false, or
+// null for a check that never finished.
+function runChecks(checks, codeText, done) {
+  var results = [], i;
+  for (i = 0; i < checks.length; i++) results.push(null);
+  if (!checks.length) { done(results); return; }
+
+  var worker = null, blobUrl = null;
+  try {
+    blobUrl = URL.createObjectURL(new Blob([CHECK_WORKER_SRC], { type: "text/javascript" }));
+    worker = new Worker(blobUrl);
+  } catch (err) {
+    worker = null;
   }
-  saveProgress(true);
-  render();
-  if (allPass) toast("All checks passed. Nicely done.");
+
+  var release = function () {
+    if (!blobUrl) return;
+    try { URL.revokeObjectURL(blobUrl); } catch (err) {}
+    blobUrl = null;
+  };
+
+  // Evaluating on this thread is the degradation when no worker is usable. It is
+  // acceptable only because every pattern reaching the canvas was screened for
+  // backtracking shapes when the lesson was published.
+  var inline = function () {
+    var out = [], k;
+    for (k = 0; k < checks.length; k++) {
+      try { out.push(new RegExp(checks[k].pattern, checks[k].flags || "m").test(codeText)); }
+      catch (err) { out.push(false); }
+    }
+    return out;
+  };
+
+  if (!worker) {
+    release();
+    done(inline());
+    return;
+  }
+
+  var settled = false, reported = false;
+  var finish = function () {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timer);
+    try { worker.terminate(); } catch (err) {}
+    release();
+    done(results);
+  };
+  var timer = setTimeout(finish, CHECK_BUDGET_MS);
+
+  worker.onmessage = function (e) {
+    var msg = e.data || {};
+    if (msg.done) { finish(); return; }
+    if (typeof msg.index === "number") { reported = true; results[msg.index] = !!msg.pass; }
+  };
+  worker.onerror = function () {
+    // The worker died before producing anything, which is what a policy that
+    // blocks blob: workers looks like. It fails asynchronously, so the try/catch
+    // above never sees it; fall back instead of calling every check unrunnable.
+    if (!reported) results = inline();
+    finish();
+  };
+  worker.postMessage({ checks: checks, code: codeText });
+}
+
+function checkWork(btn) {
+  if (checking) return;
+  var ex = S.tutorial.exercise;
+  var codeText = S.progress.exercise.code || "";
+
+  if (!ex.checks.length) {
+    // A lesson can reach the canvas with no runnable checks (patterns dropped
+    // when the saved state was re-screened). "Nothing to check" must not fall
+    // through to "everything passed".
+    lastCheckResults = null;
+    toast("This exercise has no automatic checks. Ask Copilot for a review.");
+    return;
+  }
+
+  checking = true;
+  // Flip the button in place rather than re-rendering, so a check that finishes
+  // in a millisecond does not blow away the editor the learner is typing in.
+  if (btn) { btn.disabled = true; btn.textContent = "Checking..."; }
+
+  runChecks(ex.checks, codeText, function (results) {
+    checking = false;
+    // The agent can publish a new lesson or reset progress while a check is in
+    // flight. Applying these results to whatever replaced it would credit the
+    // wrong exercise, so drop them; that path always re-renders on its own.
+    if (!S.tutorial || !S.progress || S.tutorial.exercise.checks !== ex.checks) {
+      render();
+      return;
+    }
+    var pe = S.progress.exercise;
+    var allPass = true;
+    lastCheckResults = ex.checks.map(function (c, i) {
+      var pass = results[i] === true;
+      if (!pass) allPass = false;
+      return { pass: pass, stalled: results[i] === null, hint: c.hint };
+    });
+    var stalled = lastCheckResults.some(function (r) { return r.stalled; });
+    pe.attempts++;
+    if (allPass) {
+      pe.completed = true;
+      pe.completedBy = "checks";
+      pe.completedAt = new Date().toISOString();
+    } else {
+      pe.failedAttempts++;
+    }
+    saveProgress(true);
+    render();
+    if (allPass) toast("All checks passed. Nicely done.");
+    else if (stalled) toast("A check took too long to run and was stopped. Ask Copilot for a review instead.");
+  });
 }
 
 function revealHint() {
