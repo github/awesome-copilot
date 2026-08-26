@@ -57,7 +57,7 @@ MODES: list[tuple[str, str]] = [
 
     ("data",
      r"\b(dashboard|pipeline|warehouse|dbt|etl|metric|revenue)\b.*"
-     r"\b(wrong|silently|nulls?|stale|didn'?t notice|coalesc)\b"),
+     r"\b(wrong|silently|nulls?|stale|didn't notice|did not notice|coalesce|coalescing)\b"),
 
     ("ops",
      r"\b(drop(ping)? (a )?column|migration|expand.?contract|blast radius|kill switch)\b|"
@@ -74,7 +74,7 @@ MODES: list[tuple[str, str]] = [
      r"never happens? again|prevent .*recurr|root.?cause|incident review|"
      r"(after|following) (the|an|last night'?s) (incident|outage))\b|"
      r"\b(incident|outage|we (double.?charged|dropped|lost|corrupted|deleted))\b"
-     r"[^.?!]*\b(root.?cause|why|how did|what went wrong|so it (does not|doesn'?t) happen)\b"),
+     r"[^.?!]*\b(root.?cause|why|how did|what went wrong|so it (does not|does not) happen)\b"),
 
     ("guardrails",
      r"\b(pre.?commit|ci gate|required check|branch protection|lint rule)\b|"
@@ -93,10 +93,10 @@ MODES: list[tuple[str, str]] = [
      r"\bwhat should (the )?(types?|signature|api)\b.*\blook like\b|"
      r"\b(design|model|write|writing|about to write)\b[^.?!]*\b(api|sdk|types?|schema|"
      r"interface|signature|state machine|enum|data model)\b|"
-     r"\b(api|types?|schema|interface)\b[^.?!]*\b(hard|impossible|difficult) to (mis)?use\b"),
+     r"\b(api|types?|schema|interface)\b[^.?!]*\b(hard|impossible|difficult) to (use|misuse)\b"),
 
     ("audit",
-     r"\b(footgun|easy to (mis)?use|what could (go wrong|bite)|mistake.?proof|error.?proof|"
+     r"\b(footgun|easy to (use|misuse)|what could (go wrong|bite)|mistake.?proof|error.?proof|"
      r"poka.?yoke|poke.?yoke|foolproof)\b"),
 ]
 

@@ -115,7 +115,7 @@ ignore your validation. Re-validate on submit, and put focus on the first offend
 a back button is one of the most common and most infuriating mistakes an interface permits.
 Draft autosave, restore-on-return, and never clear a form on a failed submit.
 
-**Make defaults safe rather than convenient.** The pre-selected option should be the one whose
+**Make defaults safe rather than convenient.** The preselected option should be the one whose
 consequences are smallest if chosen inattentively, least-privilege, narrowest scope, private
 rather than public, opt-in rather than opt-out. Many users never change a default, so a
 default is a decision you are making for most of your users.
