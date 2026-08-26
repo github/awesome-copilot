@@ -240,7 +240,7 @@ function renderHtml() {
   --surface: #ffffff;
   --text: #1f2933;
   --muted: #5f6c7b;
-  --faint: #8fa1b3;
+  --faint: #5f7082;
   --border: #dce6ef;
   --blue: #1a66c2;
   --blue-dark: #14549f;
@@ -429,7 +429,7 @@ body { padding: 1.75rem 1.5rem 3rem; max-width: 940px; margin: 0 auto; }
     <span style="margin-left: 8px;">Loading your tutorial...</span>
   </div>
 </div>
-<div id="toast" class="toast"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 "use strict";
@@ -635,7 +635,7 @@ function renderExercise() {
     html += "</div>";
   }
 
-  html += '<textarea id="editor" class="editor" spellcheck="false" oninput="onEditorInput(this)" onkeydown="onEditorKey(event)">' +
+  html += '<textarea id="editor" class="editor" aria-label="Exercise code editor" spellcheck="false" oninput="onEditorInput(this)" onkeydown="onEditorKey(event)">' +
     esc(pe.code) + "</textarea>";
 
   html += renderChecks();
@@ -1095,6 +1095,13 @@ const session = await joinSession({
             },
             onClose: async (ctx) => {
                 const entry = servers.get(ctx.instanceId);
+                const clients = sseClients.get(ctx.instanceId);
+                if (clients) {
+                    for (const res of clients) {
+                        try { res.end(); } catch {}
+                    }
+                    clients.clear();
+                }
                 if (entry) {
                     servers.delete(ctx.instanceId);
                     await new Promise((resolve) => entry.server.close(() => resolve()));
