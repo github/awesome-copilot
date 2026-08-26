@@ -258,7 +258,7 @@ function freshProgress(tutorial) {
 function getState(instanceId) {
     let state = stateCache.get(instanceId);
     if (!state) {
-        state = { tutorial: null, progress: null, rev: 0 };
+        state = { tutorial: null, progress: null, rev: 0, progressSeq: 0 };
         stateCache.set(instanceId, state);
     }
     return state;
@@ -271,6 +271,9 @@ function getState(instanceId) {
 // it a debounced progress save can silently undo an approval.
 function bumpRev(state) {
     state.rev = (state.rev || 0) + 1;
+    // The sequence counts writes within one revision, so it restarts here. The
+    // canvas resets its own counter when it applies the new revision.
+    state.progressSeq = 0;
     return state;
 }
 
@@ -370,6 +373,19 @@ function buildTutorialRequestPrompt() {
     ].join("\n");
 }
 
+// Short, stable fingerprint of an attempt. It only has to answer "is this still
+// the code I was shown", so a cheap non-cryptographic hash plus the length is
+// plenty; nothing here is a security boundary.
+function attemptDigest(code) {
+    const s = String(code || "");
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h.toString(36) + "-" + s.length;
+}
+
 function buildReviewPrompt(state) {
     const ex = state.tutorial?.exercise || {};
     const attempt = state.progress?.exercise?.code || "";
@@ -384,7 +400,7 @@ function buildReviewPrompt(state) {
         attempt || "(empty)",
         "```",
         "",
-        "Review it like a coach: tell me what is right, what is missing or off, and nudge me toward the fix without pasting the full solution. If my attempt correctly completes the exercise, call the edit-tutorial canvas action `approve_exercise` with a short congratulatory note.",
+        "Review it like a coach: tell me what is right, what is missing or off, and nudge me toward the fix without pasting the full solution. If my attempt correctly completes the exercise, call the edit-tutorial canvas action `approve_exercise` with a short congratulatory note and `attempt` set to \"" + attemptDigest(attempt) + "\", which identifies the code above. I can keep editing while you read, and that value is how the canvas refuses to mark work complete that you never actually saw.",
     ].join("\n");
 }
 
@@ -584,6 +600,11 @@ body { padding: 1.75rem 1.5rem 3rem; max-width: 940px; margin: 0 auto; }
 }
 .toast.show { opacity: 1; }
 
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
 .footer-row { display: flex; justify-content: flex-end; margin-top: 1.5rem; }
 .reset-link { font-size: 0.75rem; color: var(--faint); background: none; border: none; cursor: pointer; }
 .reset-link:hover { color: var(--accent); text-decoration: underline; }
@@ -603,6 +624,9 @@ body { padding: 1.75rem 1.5rem 3rem; max-width: 940px; margin: 0 auto; }
   </div>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<!-- Lives outside #app so re-rendering never destroys it: a live region that is
+     replaced in the same tick as its text changes is not reliably announced. -->
+<div id="live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 "use strict";
@@ -613,6 +637,7 @@ var requested = false;
 var saveTimer = null;
 var lastCheckResults = null;
 var checking = false;
+var pendingFocus = null;
 
 // Capability token minted by the server for this canvas instance. Every API call
 // carries it, so a page that never received this document cannot read the lesson
@@ -643,6 +668,9 @@ function applyState(next) {
   if (appliedRev !== -1 && rev <= appliedRev) return false;
   S = next;
   appliedRev = rev;
+  // The server restarts its accepted-write counter on every revision, so restart
+  // ours in step or the first save against the new revision looks stale.
+  progressSeq = 0;
   return true;
 }
 
@@ -662,16 +690,39 @@ function toast(msg) {
 // Stamped on every progress write. The server rejects a body whose revision is
 // behind its own, which is what stops a debounced save composed before the agent
 // published, approved, or reset from landing on top of the newer state.
-function progressBody() {
-  return JSON.stringify({ rev: S.rev || 0, progress: S.progress });
+// Writes within one revision all carry the same rev, so they are numbered too.
+// The server keeps the highest number it has accepted and refuses anything below
+// it, which is what stops a slow earlier save from landing last and reinstating
+// answers or editor text the learner has already moved past. The counter restarts
+// at each revision, matching the server resetting it on every bump.
+var progressSeq = 0;
+var saveInFlight = false;
+var saveQueued = false;
+
+function postProgress() {
+  progressSeq++;
+  return api("/progress", {
+    method: "POST",
+    body: JSON.stringify({ rev: S.rev || 0, seq: progressSeq, progress: S.progress }),
+  });
 }
 
 function saveProgress(immediate) {
   if (saveTimer) clearTimeout(saveTimer);
   var doSave = function () {
+    // Only one write is ever in flight. Ordering then holds by construction rather
+    // than by the network delivering in order, and a save asked for meanwhile is
+    // coalesced into one that runs after, carrying whatever the latest state is.
+    if (saveInFlight) { saveQueued = true; return; }
+    saveInFlight = true;
     // A rejected save needs no handling here: every revision bump also broadcasts,
     // so the authoritative state is already on its way over the event stream.
-    api("/progress", { method: "POST", body: progressBody() }).catch(function () {});
+    postProgress()
+      .catch(function () {})
+      .then(function () {
+        saveInFlight = false;
+        if (saveQueued) { saveQueued = false; doSave(); }
+      });
   };
   if (immediate) doSave();
   else saveTimer = setTimeout(doSave, 450);
@@ -719,16 +770,25 @@ function lcsSuffixLengths(b, a) {
   return m;
 }
 
+// Comparison key for one line. Indentation is part of the program in Python and
+// YAML, and re-indenting a block is exactly the kind of edit a lesson teaches, so
+// a line with content keeps its leading whitespace and an indentation-only change
+// is reported. A line that is only whitespace carries no meaning either way and
+// normalizes to empty, which also keeps it out of the marked set entirely, since
+// the renderer only marks lines with a truthy key.
+function diffKey(line) {
+  return line.trim() ? line : "";
+}
+
 // Sequence-aware line diff. Comparing sets of lines collapses duplicates and
 // throws away ordering, so two "x" lines becoming one showed no removal at all
 // and a reordering showed no change. Walking an LCS marks one occurrence per
-// unmatched line and respects position. Lines are keyed on their trimmed text so
-// a pure re-indent is not reported as a change, and blank lines are never marked.
+// unmatched line and respects position.
 function diffLines(before, after) {
   var b = String(before || "").split("\\n");
   var a = String(after || "").split("\\n");
-  var bKey = b.map(function (line) { return line.trim(); });
-  var aKey = a.map(function (line) { return line.trim(); });
+  var bKey = b.map(diffKey);
+  var aKey = a.map(diffKey);
   var removed = {}, added = {};
   var i = 0, j = 0, k;
 
@@ -811,8 +871,14 @@ function renderQuiz(step, p) {
     '<div class="q-text">' + esc(q.question) + "</div>";
   q.options.forEach(function (opt, i) {
     var cls = "quiz-option";
-    if (p.quizAnswer === i) cls += i === q.answerIndex ? " picked-right" : " picked-wrong";
-    html += '<button class="' + cls + '" onclick="answerQuiz(\\'' + step.id + '\\',' + i + ')">' + esc(opt) + "</button>";
+    var picked = p.quizAnswer === i;
+    if (picked) cls += i === q.answerIndex ? " picked-right" : " picked-wrong";
+    // The id lets the re-render put focus back on the option just activated, and
+    // aria-pressed carries the picked state to assistive tech, which cannot see
+    // the picked-right / picked-wrong styling.
+    html += '<button class="' + cls + '" id="' + quizOptionId(step.id, i) + '"' +
+      ' aria-pressed="' + (picked ? "true" : "false") + '"' +
+      ' onclick="answerQuiz(\\'' + step.id + '\\',' + i + ')">' + esc(opt) + "</button>";
   });
   if (p.quizAnswer !== null && p.quizAnswer !== undefined) {
     if (p.quizAnswer === q.answerIndex) {
@@ -954,6 +1020,29 @@ function render() {
   html += '<div class="footer-row"><button class="reset-link" onclick="resetProgress()">Reset my progress</button></div>';
 
   app.innerHTML = html;
+  restoreFocus();
+}
+
+// render() replaces the whole panel, so any element that had focus is gone and
+// the caret lands on the document body. A caller that re-renders in response to a
+// control being activated names that control here so keyboard and screen-reader
+// users stay where they were.
+function restoreFocus() {
+  if (!pendingFocus) return;
+  var el = document.getElementById(pendingFocus);
+  pendingFocus = null;
+  if (el && el.focus) { try { el.focus(); } catch (err) {} }
+}
+
+// Text for the persistent live region. The toast is visual and transient; this is
+// what actually reaches a screen reader.
+function announce(msg) {
+  var el = document.getElementById("live");
+  if (el) el.textContent = String(msg == null ? "" : msg);
+}
+
+function quizOptionId(stepId, i) {
+  return "quiz-" + stepId + "-" + i;
 }
 
 // --- Interactions ---
@@ -973,9 +1062,19 @@ function answerQuiz(stepId, optionIndex) {
   var step = S.tutorial.steps.filter(function (s) { return s.id === stepId; })[0];
   var p = stepProgress(stepId);
   p.quizAnswer = optionIndex;
-  if (step.quiz && optionIndex === step.quiz.answerIndex) p.quizCorrect = true;
+  // Recompute rather than latch: once correct, picking a wrong option afterwards
+  // has to close the gate again, or the panel says "Not quite" while the continue
+  // button stays enabled.
+  p.quizCorrect = !!(step.quiz && optionIndex === step.quiz.answerIndex);
   saveProgress();
+  // render() rebuilds the whole panel, so the option the learner just activated
+  // stops existing and focus falls to the document body. Put focus back on their
+  // choice and announce the verdict, which is otherwise only conveyed visually.
+  pendingFocus = quizOptionId(stepId, optionIndex);
   render();
+  announce(p.quizCorrect
+    ? "Correct. " + (step.quiz.why || "")
+    : "Not quite, try another option." + (step.quiz.why ? " Hint: " + step.quiz.why : ""));
 }
 
 function markUnderstood(stepId, i) {
@@ -1177,12 +1276,12 @@ function askReview(btn) {
     clearTimeout(saveTimer);
     saveTimer = null;
   }
-  api("/progress", { method: "POST", body: progressBody() })
+  postProgress()
     .then(function (r) {
-      // 409 means the server already holds newer progress than this flush, so the
-      // attempt it would review is on the server either way. Only a real failure
-      // to store should stop the review from being asked for.
-      if (!r.ok) throw new Error("progress rejected");
+      // 409 means the server already holds progress at least as new as this flush,
+      // so the attempt it would review is on the server either way. Only a real
+      // failure to store should stop the review from being asked for.
+      if (!r.ok && r.status !== 409) throw new Error("progress rejected");
       return api("/review", { method: "POST" });
     })
     .then(function (r) {
@@ -1434,9 +1533,24 @@ async function startServer(instanceId) {
                     sendJson(res, 409, { ok: false, error: "stale_revision", rev: state.rev || 0 });
                     return;
                 }
+                // Every write inside one revision carries the same rev, so the check
+                // above cannot order two of them. The canvas numbers its writes, and
+                // an older number arriving late would otherwise reinstate answers or
+                // editor text the learner has already moved past.
+                const seq = Number(incoming.seq);
+                if (!Number.isFinite(seq) || seq <= (state.progressSeq || 0)) {
+                    sendJson(res, 409, {
+                        ok: false,
+                        error: "stale_write",
+                        rev: state.rev || 0,
+                        seq: state.progressSeq || 0,
+                    });
+                    return;
+                }
+                state.progressSeq = seq;
                 state.progress = progress;
                 await saveState(sessionRef?.workspacePath, state);
-                sendJson(res, 200, { ok: true, rev: state.rev || 0 });
+                sendJson(res, 200, { ok: true, rev: state.rev || 0, seq: state.progressSeq || 0 });
                 return;
             }
 
@@ -1603,7 +1717,7 @@ const session = await joinSession({
                 {
                     name: "get_progress",
                     description:
-                        "Return the learner's progress: which steps are understood, quiz answers, and the exercise state including their current code attempt. Use it to coach without asking the learner to paste anything.",
+                        "Return the learner's progress: which steps are understood, quiz answers, and the exercise state including their current code attempt. Use it to coach without asking the learner to paste anything. It also returns `attempt`, the digest of the code it shows you, which approve_exercise requires.",
                     handler: async (ctx) => {
                         const state = getState(ctx.instanceId);
                         if (!state.tutorial) return { ok: false, error: "No tutorial has been published yet." };
@@ -1613,23 +1727,44 @@ const session = await joinSession({
                             stepsTotal: state.tutorial.steps.length,
                             stepsUnderstood: Object.values(state.progress?.steps || {}).filter((s) => s.understood).length,
                             progress: state.progress,
+                            // Pairs with approve_exercise: whatever code this call
+                            // reported is the attempt that digest stands for.
+                            attempt: attemptDigest(state.progress?.exercise?.code),
                         };
                     },
                 },
                 {
                     name: "approve_exercise",
                     description:
-                        "Mark the exercise complete after reviewing the learner's attempt and judging it correct. Call this only when their code genuinely satisfies the exercise brief.",
+                        "Mark the exercise complete after reviewing the learner's attempt and judging it correct. Call this only when their code genuinely satisfies the exercise brief. Pass `attempt`, the digest of the code you actually read, which comes with the review request or from get_progress; the learner can keep typing while you review, and approval is refused if their code has moved on.",
                     inputSchema: {
                         type: "object",
                         properties: {
                             note: { type: "string", description: "Short congratulatory note shown in the completion banner" },
+                            attempt: {
+                                type: "string",
+                                description: "Digest identifying the attempt you reviewed, as given in the review request or by get_progress",
+                            },
                         },
+                        required: ["attempt"],
                     },
                     handler: async (ctx) => {
                         const state = getState(ctx.instanceId);
                         if (!state.tutorial || !state.progress) {
                             return { ok: false, error: "No tutorial in progress." };
+                        }
+                        // The editor stays writable while a review runs, so approval
+                        // has to name the attempt it is approving. Without this the
+                        // learner can replace their code mid-review and have the new,
+                        // unread version marked complete.
+                        const current = attemptDigest(state.progress.exercise?.code);
+                        if (text(ctx.input?.attempt, 120) !== current) {
+                            return {
+                                ok: false,
+                                error:
+                                    "That is not the attempt currently in the canvas, so it was not approved. The learner has edited their code since you read it. Call get_progress to read what they have now, review that, and approve with attempt \"" + current + "\" if it is correct.",
+                                attempt: current,
+                            };
                         }
                         state.progress.exercise.completed = true;
                         state.progress.exercise.completedBy = "copilot";
