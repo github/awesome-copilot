@@ -670,7 +670,7 @@ function applyState(next) {
   appliedRev = rev;
   // The server restarts its accepted-write counter on every revision, so restart
   // ours in step or the first save against the new revision looks stale.
-  progressSeq = 0;
+  progressSeq = Number(next.progressSeq) || 0;
   return true;
 }
 
@@ -1278,10 +1278,7 @@ function askReview(btn) {
   }
   postProgress()
     .then(function (r) {
-      // 409 means the server already holds progress at least as new as this flush,
-      // so the attempt it would review is on the server either way. Only a real
-      // failure to store should stop the review from being asked for.
-      if (!r.ok && r.status !== 409) throw new Error("progress rejected");
+      if (!r.ok) throw new Error("progress rejected");
       return api("/review", { method: "POST" });
     })
     .then(function (r) {
@@ -1432,15 +1429,17 @@ function isCrossSiteRequest(req) {
 // is passed so the handler answers with 413 instead of buffering without limit.
 function readBody(req, limit) {
     return new Promise((resolve) => {
-        let data = "", size = 0, settled = false;
+        const chunks = [];
+        let size = 0, settled = false;
         const settle = (result) => { if (!settled) { settled = true; resolve(result); } };
         req.on("data", (chunk) => {
             if (settled) return;
-            size += chunk.length;
+            const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+            size += buffer.length;
             if (size > limit) { req.pause(); settle({ ok: false, body: "" }); return; }
-            data += chunk;
+            chunks.push(buffer);
         });
-        req.on("end", () => settle({ ok: true, body: data }));
+        req.on("end", () => settle({ ok: true, body: Buffer.concat(chunks).toString("utf8") }));
         req.on("error", () => settle({ ok: false, body: "" }));
     });
 }
