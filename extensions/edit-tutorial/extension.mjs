@@ -1408,8 +1408,9 @@ evtSource.onmessage = function (e) {
     // than announcing a lesson they may have been working through all along.
     view = openingView();
     lastCheckResults = null;
-  } else if (!hadTutorial && S.tutorial) {
+  } else if (msg.kind === "tutorial" && S.tutorial) {
     view = { kind: "step", index: 0 };
+    lastCheckResults = null;
     toast("Your tutorial is ready.");
   }
   if (msg.kind === "approved") toast("Copilot approved your exercise.");
