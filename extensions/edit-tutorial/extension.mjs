@@ -959,16 +959,34 @@ function api(path, options) {
 // read, an event from the stream, and the /reset response. They can arrive out of
 // order, because the read is issued before the stream is open, so a tutorial or
 // reset event can be applied first and the older read would then overwrite it.
-// Revisions only ever move forward, so a snapshot no newer than the one already
+// Revisions only ever move forward, so a snapshot older than the one already
 // applied is dropped. Without that the canvas can end up sitting on a lesson that
 // no longer exists, with no further event coming to correct it, and every save it
-// makes refused as a stale revision.
+// makes refused as a stale revision. A snapshot at the SAME revision is not
+// automatically stale, though: progress saves advance only the write counter,
+// so an equal-revision document can still carry another canvas's newer saves.
 var appliedRev = -1;
 
 function applyState(next) {
   if (!next || typeof next !== "object") return false;
   var rev = Number(next.rev) || 0;
-  if (appliedRev !== -1 && rev <= appliedRev) return false;
+  if (appliedRev !== -1 && rev < appliedRev) return false;
+  if (appliedRev !== -1 && rev === appliedRev) {
+    // Same revision means the same lesson; only the progress can differ, and
+    // only a higher write counter means it is actually newer. A reconnect sync,
+    // or the initial read racing the stream, carries another canvas's saves
+    // exactly this way; discarding them left this view stale until the next
+    // revision bump. Fold them in instead: mergeProgress honors codeDirty, so
+    // text the learner is typing here survives, and the merge stays a
+    // non-event for the caller, with no view reset and no toast, so the
+    // learner keeps their place.
+    var seq = Number(next.progressSeq) || 0;
+    if (seq <= progressSeq || !next.progress || typeof next.progress !== "object") return false;
+    mergeProgress(next.progress);
+    progressSeq = seq;
+    render();
+    return false;
+  }
   S = next;
   appliedRev = rev;
   // A new revision means the agent acted, so nothing is outstanding any more.
