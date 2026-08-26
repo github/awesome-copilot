@@ -1042,7 +1042,8 @@ function renderExercise() {
   if (pe.hintsRevealed < ex.hints.length) {
     html += '<button class="btn btn-ghost" id="reveal-hint" onclick="revealHint()">Hint (' + (pe.hintsRevealed + 1) + " of " + ex.hints.length + ")</button>";
   }
-  html += '<button class="btn btn-ghost" id="ask-review" onclick="askReview(this)">Ask Copilot for a review</button>';
+  html += '<button class="btn btn-ghost" id="ask-review" onclick="askReview(this)"' +
+    (reviewPending ? " disabled" : "") + '>Ask Copilot for a review</button>';
   if (ex.solution && !pe.solutionRevealed && pe.failedAttempts >= 3) {
     html += '<button class="btn btn-ghost" id="reveal-solution" onclick="revealSolution()">Show reference solution</button>';
   }
@@ -1413,9 +1414,7 @@ function askReview(btn) {
   }
   postProgress()
     .then(function (r) {
-      // 409 means the server already holds progress at least as new as this flush,
-      // so the attempt it will describe is on the server either way.
-      if (!r.ok && r.status !== 409) throw new Error("progress rejected");
+      if (!r.ok) throw new Error("progress rejected");
       return api("/review", { method: "POST" });
     })
     .then(function (r) {
