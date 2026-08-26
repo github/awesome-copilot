@@ -9,6 +9,7 @@
 import { createServer } from "node:http";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 
 const servers = new Map(); // instanceId -> { server, url }
@@ -222,12 +223,15 @@ function buildReviewPrompt(state) {
 
 // --- HTML renderer ---
 
-function renderHtml() {
+// Renders the canvas document. The per-instance capability token is embedded in
+// a meta tag so the page - and only the page - can authenticate to the local API.
+function renderHtml(token) {
     return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="tutorial-token" content="${token}" />
 <title>Edit Tutorial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -440,6 +444,19 @@ var requested = false;
 var saveTimer = null;
 var lastCheckResults = null;
 
+// Capability token minted by the server for this canvas instance. Every API call
+// carries it, so a page that never received this document cannot read the lesson
+// or drive the session bridge.
+var TOKEN = (document.querySelector('meta[name="tutorial-token"]') || {}).content || "";
+
+// Single entry point for API calls so the token is never forgotten on a route.
+function api(path, options) {
+  var opts = options || {};
+  var headers = { "x-tutorial-token": TOKEN };
+  if (opts.body) headers["Content-Type"] = "application/json";
+  return fetch(path, { method: opts.method || "GET", headers: headers, body: opts.body });
+}
+
 function esc(s) {
   return String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;")
@@ -456,11 +473,7 @@ function toast(msg) {
 function saveProgress(immediate) {
   if (saveTimer) clearTimeout(saveTimer);
   var doSave = function () {
-    fetch("/progress", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(S.progress)
-    }).catch(function () {});
+    api("/progress", { method: "POST", body: JSON.stringify(S.progress) }).catch(function () {});
   };
   if (immediate) doSave();
   else saveTimer = setTimeout(doSave, 450);
@@ -485,15 +498,67 @@ function exerciseUnlocked() {
   return understoodCount() === (S.tutorial.steps || []).length;
 }
 
+// Above this many matrix cells an exact LCS is not worth the memory, so oversized
+// snippets fall back to a positional compare. 20k characters of realistic code is
+// well under the cap; the guard only fires on pathological input.
+var DIFF_CELL_BUDGET = 250000;
+
+// Suffix LCS table: m[i][j] is the LCS length of b[i..] and a[j..]. Walking it
+// forward reconstructs which occurrences pair up and which do not.
+function lcsSuffixLengths(b, a) {
+  var m = new Array(b.length + 1), i, j;
+  for (i = 0; i <= b.length; i++) {
+    m[i] = new Array(a.length + 1);
+    for (j = 0; j <= a.length; j++) m[i][j] = 0;
+  }
+  for (i = b.length - 1; i >= 0; i--) {
+    for (j = a.length - 1; j >= 0; j--) {
+      m[i][j] = b[i] === a[j]
+        ? m[i + 1][j + 1] + 1
+        : Math.max(m[i + 1][j], m[i][j + 1]);
+    }
+  }
+  return m;
+}
+
+// Sequence-aware line diff. Comparing sets of lines collapses duplicates and
+// throws away ordering, so two "x" lines becoming one showed no removal at all
+// and a reordering showed no change. Walking an LCS marks one occurrence per
+// unmatched line and respects position. Lines are keyed on their trimmed text so
+// a pure re-indent is not reported as a change, and blank lines are never marked.
 function diffLines(before, after) {
   var b = String(before || "").split("\\n");
   var a = String(after || "").split("\\n");
-  var bset = {}, aset = {};
-  b.forEach(function (l) { if (l.trim()) bset[l.trim()] = true; });
-  a.forEach(function (l) { if (l.trim()) aset[l.trim()] = true; });
+  var bKey = b.map(function (l) { return l.trim(); });
+  var aKey = a.map(function (l) { return l.trim(); });
+  var removed = {}, added = {};
+  var i = 0, j = 0, k;
+
+  if ((b.length + 1) * (a.length + 1) <= DIFF_CELL_BUDGET) {
+    var m = lcsSuffixLengths(bKey, aKey);
+    while (i < b.length && j < a.length) {
+      if (bKey[i] === aKey[j]) { i++; j++; continue; }
+      // Drop from whichever side leaves the longer common subsequence behind.
+      if (m[i + 1][j] >= m[i][j + 1]) { removed[i] = true; i++; }
+      else { added[j] = true; j++; }
+    }
+    for (; i < b.length; i++) removed[i] = true;
+    for (; j < a.length; j++) added[j] = true;
+  } else {
+    // Oversized snippet: compare line for line by position instead of building a
+    // quadratic matrix. Coarser on inserts, but bounded and still order-aware.
+    var max = Math.max(b.length, a.length);
+    for (k = 0; k < max; k++) {
+      if (bKey[k] !== aKey[k]) {
+        if (k < b.length) removed[k] = true;
+        if (k < a.length) added[k] = true;
+      }
+    }
+  }
+
   return {
-    before: b.map(function (l) { return { text: l, removed: !!l.trim() && !aset[l.trim()] }; }),
-    after: a.map(function (l) { return { text: l, added: !!l.trim() && !bset[l.trim()] }; })
+    before: b.map(function (l, idx) { return { text: l, removed: !!bKey[idx] && !!removed[idx] }; }),
+    after: a.map(function (l, idx) { return { text: l, added: !!aKey[idx] && !!added[idx] }; })
   };
 }
 
@@ -512,7 +577,7 @@ function renderEmpty() {
   return '<div class="empty-state">' +
     '<h1>Edit Tutorial</h1>' +
     '<p>Copilot just changed your code. Turn those edits into a lesson: a guided walkthrough of every change, then a hands-on exercise where you apply the same idea yourself, with a twist.</p>' +
-    '<button class="btn btn-primary" onclick="requestTutorial(this)">Build my tutorial</button>' +
+    '<button class="btn btn-primary" onclick="requestTutorial()">Build my tutorial</button>' +
     (requested
       ? '<div class="waiting">Copilot is reviewing its edits and writing your lesson. This view updates automatically.</div>'
       : '<p style="margin-top:1rem; font-size:0.8rem;">You can also just ask Copilot: "teach me what you changed".</p>') +
@@ -769,35 +834,59 @@ function revealSolution() {
 function askReview(btn) {
   if (btn) btn.disabled = true;
   saveProgress(true);
-  fetch("/review", { method: "POST" })
-    .then(function () { toast("Sent to Copilot. Watch the chat for coaching."); })
+  api("/review", { method: "POST" })
+    .then(function (r) {
+      // Only a 2xx means the bridge actually accepted the prompt. Anything else
+      // means nothing reached the chat, so do not claim coaching is on its way.
+      toast(r.ok
+        ? "Sent to Copilot. Watch the chat for coaching."
+        : "Copilot did not receive your attempt. Try again in a moment.");
+    })
     .catch(function () { toast("Could not reach the session."); })
     .then(function () { if (btn) setTimeout(function () { btn.disabled = false; }, 2000); });
 }
 
-function requestTutorial(btn) {
-  if (btn) btn.disabled = true;
+function requestTutorial() {
+  if (requested) return;
   requested = true;
-  fetch("/request-tutorial", { method: "POST" })
-    .then(function () { render(); })
-    .catch(function () { toast("Could not reach the session."); if (btn) btn.disabled = false; });
+  render();
+  api("/request-tutorial", { method: "POST" })
+    .then(function (r) {
+      // A failed send leaves the learner staring at "Copilot is writing your
+      // lesson" forever, so drop back out of the waiting state and say so.
+      if (r.ok) return;
+      requested = false;
+      toast("Copilot did not get the request. Try again, or ask in the chat.");
+      render();
+    })
+    .catch(function () {
+      requested = false;
+      toast("Could not reach the session.");
+      render();
+    });
 }
 
 function resetProgress() {
-  fetch("/reset", { method: "POST" })
-    .then(function (r) { return r.json(); })
+  api("/reset", { method: "POST" })
+    .then(function (r) {
+      // An error body is not a state document, so do not let it become S.
+      if (!r.ok) throw new Error("reset rejected");
+      return r.json();
+    })
     .then(function (state) {
       S = state;
       view = { kind: "step", index: 0 };
       lastCheckResults = null;
       render();
     })
-    .catch(function () {});
+    .catch(function () { toast("Could not reset your progress."); });
 }
 
 // --- Wiring ---
 
-var evtSource = new EventSource("/events");
+// EventSource cannot set request headers, so the stream carries the capability
+// token as a query parameter instead.
+var evtSource = new EventSource("/events?token=" + encodeURIComponent(TOKEN));
 evtSource.onmessage = function (e) {
   var msg;
   try { msg = JSON.parse(e.data); } catch (err) { return; }
@@ -818,8 +907,11 @@ evtSource.onmessage = function (e) {
   render();
 };
 
-fetch("/state")
-  .then(function (r) { return r.json(); })
+api("/state")
+  .then(function (r) {
+    if (!r.ok) throw new Error("state rejected");
+    return r.json();
+  })
   .then(function (state) {
     S = state;
     if (S.tutorial && S.progress) {
@@ -839,78 +931,214 @@ fetch("/state")
 
 // --- Server ---
 
+const JSON_HEADERS = { "Content-Type": "application/json" };
+// A progress payload is the exercise code the learner typed plus a little
+// bookkeeping, so a few hundred KB is already far past anything legitimate.
+const MAX_BODY_BYTES = 256 * 1024;
+// Routes that read state or drive the session. All of them require the
+// capability token; the served document at "/" is the only anonymous route.
+const API_PATHS = new Set(["/events", "/state", "/progress", "/review", "/request-tutorial", "/reset"]);
+
+// The exact loopback authority this server bound to. A DNS-rebinding page
+// reaches us under its own hostname (Host: attacker.example:<port>), so pinning
+// Host refuses those requests - including the one that would otherwise read the
+// token straight out of the served document - before any state is touched.
+// An Origin check alone cannot do that, since a rebinding attacker controls both.
+function canonicalHost(server) {
+    const address = server.address();
+    return address && typeof address === "object" ? "127.0.0.1:" + address.port : null;
+}
+
+// Per-instance capability token, minted at startup and embedded in the page we
+// serve. Only that document knows it, so a blind cross-origin caller cannot read
+// the lesson or the code attempt, nor forge a reset or a session prompt.
+// EventSource cannot set request headers, so /events also accepts the token as a
+// query parameter; every other route requires the header.
+function hasToken(req, url, token, allowQuery) {
+    const header = req.headers["x-tutorial-token"];
+    const value = Array.isArray(header) ? header[0] : header;
+    if (typeof value === "string" && value.length > 0 && value === token) return true;
+    if (!allowQuery) return false;
+    const query = url.searchParams.get("token");
+    return typeof query === "string" && query.length > 0 && query === token;
+}
+
+// Reject a state-changing POST the browser marks as cross-site. Fetches from the
+// document we served carry an Origin equal to our own host; anything else is a
+// third-party page trying to drive this canvas.
+function isCrossSiteRequest(req) {
+    const origin = req.headers.origin;
+    if (origin) {
+        if (origin === "http://" + req.headers.host) return false;
+        if (origin === "null") return true;
+        if (/^https?:\/\//i.test(origin)) return true;
+        return false;
+    }
+    const site = req.headers["sec-fetch-site"];
+    return site === "cross-site" || site === "same-site";
+}
+
+// Read a request body under a hard byte cap. Resolves { ok: false } once the cap
+// is passed so the handler answers with 413 instead of buffering without limit.
+function readBody(req, limit) {
+    return new Promise((resolve) => {
+        let data = "", size = 0, settled = false;
+        const settle = (result) => { if (!settled) { settled = true; resolve(result); } };
+        req.on("data", (chunk) => {
+            if (settled) return;
+            size += chunk.length;
+            if (size > limit) { req.pause(); settle({ ok: false, body: "" }); return; }
+            data += chunk;
+        });
+        req.on("end", () => settle({ ok: true, body: data }));
+        req.on("error", () => settle({ ok: false, body: "" }));
+    });
+}
+
+// Deliver a prompt to the chat session. Returns false when no session is joined
+// or the bridge rejects the send, so the canvas can tell the learner nothing was
+// delivered rather than leaving them waiting on a silent failure.
+async function sendToSession(prompt) {
+    if (!sessionRef) return false;
+    try {
+        await sessionRef.send(prompt);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function sendJson(res, status, payload, extraHeaders) {
+    res.writeHead(status, extraHeaders ? { ...JSON_HEADERS, ...extraHeaders } : JSON_HEADERS);
+    res.end(JSON.stringify(payload));
+}
+
 async function startServer(instanceId) {
+    const token = randomUUID();
+    const html = renderHtml(token);
+
     const server = createServer(async (req, res) => {
-        const url = new URL(req.url, "http://localhost");
-        const state = getState(instanceId);
+        try {
+            // Host pin first, ahead of every read and write.
+            const expected = canonicalHost(server);
+            if (!expected || String(req.headers.host || "").toLowerCase() !== expected) {
+                sendJson(res, 403, { ok: false, error: "bad_host" });
+                return;
+            }
 
-        if (url.pathname === "/events") {
-            res.writeHead(200, {
-                "Content-Type": "text/event-stream",
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-            });
-            res.write(":\n\n");
-            let clients = sseClients.get(instanceId);
-            if (!clients) { clients = new Set(); sseClients.set(instanceId, clients); }
-            clients.add(res);
-            req.on("close", () => { clients.delete(res); });
-            return;
-        }
+            const url = new URL(req.url, "http://" + expected);
+            const state = getState(instanceId);
 
-        if (url.pathname === "/state" && req.method === "GET") {
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify(state));
-            return;
-        }
-
-        if (url.pathname === "/progress" && req.method === "POST") {
-            let body = "";
-            for await (const chunk of req) body += chunk;
-            try {
-                const incoming = JSON.parse(body);
-                if (incoming && typeof incoming === "object" && incoming.exercise) {
-                    state.progress = incoming;
-                    await saveState(sessionRef?.workspacePath, state);
+            if (API_PATHS.has(url.pathname)) {
+                if (!hasToken(req, url, token, url.pathname === "/events")) {
+                    sendJson(res, 403, { ok: false, error: "missing_capability_token" });
+                    return;
                 }
-            } catch {}
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ ok: true }));
-            return;
-        }
-
-        if (url.pathname === "/review" && req.method === "POST") {
-            if (state.tutorial && sessionRef) {
-                try { await sessionRef.send(buildReviewPrompt(state)); } catch {}
+                if (req.method === "POST" && isCrossSiteRequest(req)) {
+                    sendJson(res, 403, { ok: false, error: "cross_site_blocked" });
+                    return;
+                }
             }
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ ok: true }));
-            return;
-        }
 
-        if (url.pathname === "/request-tutorial" && req.method === "POST") {
-            if (sessionRef) {
-                try { await sessionRef.send(buildTutorialRequestPrompt()); } catch {}
+            if (url.pathname === "/events" && req.method === "GET") {
+                res.writeHead(200, {
+                    "Content-Type": "text/event-stream",
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                });
+                res.write(":\n\n");
+                let clients = sseClients.get(instanceId);
+                if (!clients) { clients = new Set(); sseClients.set(instanceId, clients); }
+                clients.add(res);
+                req.on("close", () => { clients.delete(res); });
+                return;
             }
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ ok: true }));
-            return;
-        }
 
-        if (url.pathname === "/reset" && req.method === "POST") {
-            state.progress = state.tutorial ? freshProgress(state.tutorial) : null;
-            await saveState(sessionRef?.workspacePath, state);
-            broadcast(instanceId, { kind: "reset", state });
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify(state));
-            return;
-        }
+            if (url.pathname === "/state" && req.method === "GET") {
+                sendJson(res, 200, state);
+                return;
+            }
 
-        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-        res.end(renderHtml());
+            if (url.pathname === "/progress" && req.method === "POST") {
+                const { ok, body } = await readBody(req, MAX_BODY_BYTES);
+                if (!ok) {
+                    // The rest of the body is still in flight and will never be
+                    // read, so close the connection rather than leave a
+                    // half-drained socket in the keep-alive pool.
+                    sendJson(res, 413, { ok: false, error: "payload_too_large" }, { Connection: "close" });
+                    return;
+                }
+                let stored = false;
+                try {
+                    const incoming = JSON.parse(body);
+                    if (incoming && typeof incoming === "object" && incoming.exercise) {
+                        state.progress = incoming;
+                        await saveState(sessionRef?.workspacePath, state);
+                        stored = true;
+                    }
+                } catch {}
+                if (!stored) {
+                    sendJson(res, 400, { ok: false, error: "invalid_progress" });
+                    return;
+                }
+                sendJson(res, 200, { ok: true });
+                return;
+            }
+
+            if (url.pathname === "/review" && req.method === "POST") {
+                if (!state.tutorial) {
+                    sendJson(res, 409, { ok: false, error: "no_tutorial" });
+                    return;
+                }
+                // Report the real outcome: the canvas promises coaching only when
+                // the prompt actually reached the session.
+                const sent = await sendToSession(buildReviewPrompt(state));
+                if (!sent) {
+                    sendJson(res, 502, { ok: false, error: "session_unavailable" });
+                    return;
+                }
+                sendJson(res, 200, { ok: true });
+                return;
+            }
+
+            if (url.pathname === "/request-tutorial" && req.method === "POST") {
+                const sent = await sendToSession(buildTutorialRequestPrompt());
+                if (!sent) {
+                    sendJson(res, 502, { ok: false, error: "session_unavailable" });
+                    return;
+                }
+                sendJson(res, 200, { ok: true });
+                return;
+            }
+
+            if (url.pathname === "/reset" && req.method === "POST") {
+                state.progress = state.tutorial ? freshProgress(state.tutorial) : null;
+                await saveState(sessionRef?.workspacePath, state);
+                broadcast(instanceId, { kind: "reset", state });
+                sendJson(res, 200, state);
+                return;
+            }
+
+            if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
+                res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+                res.end(html);
+                return;
+            }
+
+            sendJson(res, 404, { ok: false, error: "not_found" });
+        } catch {
+            if (!res.headersSent) sendJson(res, 500, { ok: false, error: "internal_error" });
+            else { try { res.end(); } catch {} }
+        }
     });
 
-    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    await new Promise((resolve, reject) => {
+        const onError = (err) => { server.removeListener("listening", onListening); reject(err); };
+        const onListening = () => { server.removeListener("error", onError); resolve(); };
+        server.once("error", onError);
+        server.once("listening", onListening);
+        server.listen(0, "127.0.0.1");
+    });
     const address = server.address();
     const port = typeof address === "object" && address ? address.port : 0;
     return { server, url: `http://127.0.0.1:${port}/` };
