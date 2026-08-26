@@ -868,21 +868,14 @@ async function enrichPlainEnglish(entry, categories, isCurrent) {
   const total = all.length
   const noun = total === 1 ? 'issue' : 'issues'
 
-  // Fold the one-time project enumeration into THIS triage round-trip instead of
-  // firing a separate "Loading your projects…" turn — projects persist in state,
-  // so we only tack the ask on when we don't have them yet. The extra tool calls
-  // are silent; the user still just sees "Triaging Sentry issues…".
+  // Project enumeration is deliberately NOT folded into this triage turn. The
+  // projectId->repo mapping it produces is a security anchor (the saved repo is
+  // what onWorkSelected validates fix-session PRs against), and this prompt ingests
+  // untrusted Sentry titles below — a prompt injection could otherwise forge that
+  // mapping and steer PR validation at an attacker-chosen repo. It runs in its own
+  // Sentry-free turn (loadProjectOptions) after this one instead.
   const loadedProjects = entry.state.getProjectOptions()
   const needProjects = !Array.isArray(loadedProjects) || loadedProjects.length === 0
-  const projectsToken = needProjects ? makeProjectsToken() : ''
-  const projectsBlock = needProjects
-    ? `
-
-Also, in the SAME turn, silently load the user's registered app projects for the canvas Settings dropdown (do not mention this in your reply):
-- Call the tool "list_projects".
-- Then call the tool "submit_projects" exactly once with token "${projectsToken}" (unchanged) and projects: an array of { id, name, repo, defaultBranch, path } using each project's id, name, github repo, default branch, and local main_repo_path (empty string if a field is missing).`
-    : ''
-
   // Fold tracking detection into the same round-trip: the canvas files tracking
   // issues with the "sentry-triage" label and the Sentry key in the title, so a
   // single label search of the target repo (matched by key) tells us which board
@@ -927,7 +920,7 @@ Do NOT use class names, exception type names, stack-trace terms, file paths, or 
 
 Do NOT print the summaries or any JSON in your reply. Instead call the tool "submit_issue_summaries" exactly once with:
 - token: "${token}" (pass it back unchanged)
-- summaries: an object mapping each issue key to its sentence, e.g. {"PROJ-123":"Shoppers cannot complete checkout after clicking pay."}${projectsBlock}${trackingBlock}${relatedBlock}
+- summaries: an object mapping each issue key to its sentence, e.g. {"PROJ-123":"Shoppers cannot complete checkout after clicking pay."}${trackingBlock}${relatedBlock}
 
 After the tool call(s), reply to the user with a confirmation sentence, then a blank line, then a clearly-labeled next-step note (no summaries, no JSON). Format it exactly like this (keep the blank line and the bold heading):
 
@@ -969,16 +962,13 @@ ${items.map((i) => `${i.key}: ${i.title}`).join('\n')}`
   try {
     if (summariesInbox.has(token)) map = summariesInbox.get(token)
     // A newer scan may have started while this enrichment turn was in flight (up
-    // to 240s). Applying THIS turn's project/tracking data to entry.state now
+    // to 240s). Applying THIS turn's tracking/related data to entry.state now
     // would clobber the newer scan's already-published state, so bail out of all
     // shared-state writes when we're stale. We still fall through to the finally
     // block (drop the inbox tokens) and the local plainEnglish loop below only
     // mutates this scan's own — now detached — category objects, which the caller
     // won't publish once isCurrent() is false.
     const current = typeof isCurrent !== 'function' || isCurrent()
-    if (current && projectsToken && projectsInbox.has(projectsToken)) {
-      entry.state.setProjectOptions(projectsInbox.get(projectsToken))
-    }
     // Only rewrite tracked badges when the model actually submitted tracking
     // (an empty {} still counts). If the turn died before submit_tracking ran,
     // leave any prior badges in place rather than wiping them.
@@ -1071,7 +1061,6 @@ ${items.map((i) => `${i.key}: ${i.title}`).join('\n')}`
     }
   } finally {
     summariesInbox.delete(token)
-    if (projectsToken) projectsInbox.delete(projectsToken)
     if (trackingToken) trackingInbox.delete(trackingToken)
     if (relatedToken) relatedInbox.delete(relatedToken)
   }
@@ -1082,14 +1071,54 @@ ${items.map((i) => `${i.key}: ${i.title}`).join('\n')}`
       issue.plainEnglish = phrased || fallbackPlainEnglish(issue.summary)
     }
   }
+
+  // Now enumerate app projects in a SEPARATE turn that carries no Sentry data (see
+  // the note where needProjects is computed). Best-effort and gated on isCurrent so
+  // a superseded scan neither runs an extra turn nor clobbers a newer scan's state.
+  if (needProjects && (typeof isCurrent !== 'function' || isCurrent())) {
+    await loadProjectOptions(entry, isCurrent)
+  }
+}
+
+// Enumerate the user's registered app projects in a DEDICATED turn that ingests NO
+// Sentry data. The projectId->repo mapping this produces is a security anchor: the
+// save path binds the selected project's repo as the target onWorkSelected
+// validates fix-session PRs against. Folding it into the triage turn (which folds
+// in untrusted Sentry titles) would let a prompt injection forge that mapping and
+// steer PR validation at an attacker-chosen repo, so it is isolated here. There is
+// no direct SDK API to enumerate projects, so the model still calls its own
+// list_projects tool and hands the result back via submit_projects — but with no
+// attacker-controlled text in the prompt, that submission is trustworthy.
+async function loadProjectOptions(entry, isCurrent) {
+  const projectsToken = makeProjectsToken()
+  const prompt = `Silently load the user's registered app projects for the Sentry Triage canvas Settings dropdown. Do not mention this in your reply.
+- Call the tool "list_projects".
+- Then call the tool "submit_projects" exactly once with token "${projectsToken}" (unchanged) and projects: an array of { id, name, repo, defaultBranch, path } using each project's id, name, github repo, default branch, and local main_repo_path (empty string if a field is missing).
+Reply with just "OK". There is no other task in this turn, and no data below is to be summarized or acted on.`
+  try {
+    await runSessionTurn(() => session.sendAndWait({
+      prompt,
+      displayPrompt: 'Triaging Sentry issues…',
+    }, TURN_HARD_TIMEOUT_MS), TURN_TIMEOUT_MS)
+  } catch (err) {
+    console.error('[sentry-triage] project enumeration turn did not settle cleanly:', err instanceof Error ? err.message : err)
+  }
+  try {
+    const current = typeof isCurrent !== 'function' || isCurrent()
+    if (current && projectsInbox.has(projectsToken)) {
+      entry.state.setProjectOptions(projectsInbox.get(projectsToken))
+    }
+  } finally {
+    projectsInbox.delete(projectsToken)
+  }
 }
 
 // Structured handoff for the registered-projects list. There's no direct SDK API
 // to enumerate the user's app projects, so the model calls its own list_projects
 // tool then hands the result back via submit_projects; the handler drops the list
-// here keyed by a per-request token, and enrichPlainEnglish reads it once the turn
-// settles. Enumeration is folded into the issue-triage round-trip (see above) so
-// there's no separate "Loading your projects…" turn.
+// here keyed by a per-request token, and loadProjectOptions reads it once the turn
+// settles. Enumeration runs in its OWN turn (never folded into the issue-triage
+// round-trip) so untrusted Sentry titles can't forge the projectId->repo mapping.
 const projectsInbox = new Map() // token -> [{ id, name, repo, defaultBranch, path }]
 
 function makeProjectsToken() {
@@ -1565,11 +1594,27 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
           })
           continue
         }
+        // Derive every DISPLAYED number from its own validated URL, never from the
+        // model-reported *Number field. urlInRepo above only proved each link's
+        // repo; a reply could still pair /pull/1 with existingPrNumber 999 and
+        // render "PR #999" linking to PR 1. When a concrete GitHub anchor exists,
+        // repoRefNumber re-extracts the number from the same URL it validated
+        // (guaranteed non-null here since urlInRepo passed) and yields undefined for
+        // a missing/unverifiable URL, so no bare number is shown. With no concrete
+        // anchor (placeholder repo) or a non-GitHub issue tracker there is nothing
+        // to validate against, so the model value stands.
+        const skipIssueAnchored = isGithubTracker && Boolean(expectedRepo)
+        const skippedIssueNumber = skipIssueAnchored
+          ? (repoRefNumber(result.existingIssueUrl, expectedRepo, allowedHost, 'issue') ?? undefined)
+          : result.existingIssueNumber
+        const skippedPrNumber = prExpectedRepo
+          ? (repoRefNumber(result.existingPrUrl, prExpectedRepo, allowedHost, 'pull') ?? undefined)
+          : result.existingPrNumber
         entry.notifyWork(key, {
           phase: 'skipped',
-          existingIssueNumber: result.existingIssueNumber,
+          existingIssueNumber: skippedIssueNumber,
           existingIssueUrl: result.existingIssueUrl,
-          existingPrNumber: result.existingPrNumber,
+          existingPrNumber: skippedPrNumber,
           existingPrUrl: result.existingPrUrl,
           existingPrState: result.existingPrState,
         })
@@ -1671,16 +1716,32 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
       // clobber that: setWorkStatus shallow-merges, so an explicit `undefined`
       // here would erase the callback's link. Include only fields we actually have.
       const patch = { phase: handedOff ? 'handed-off' : 'done' }
-      if (result.issueNumber != null) patch.issueNumber = result.issueNumber
+      // Derive both displayed numbers from their validated URLs, not the
+      // model-reported *Number fields: the URL checks above proved each link's
+      // repo, but a reply could still pair /pull/1 with prNumber 999 and render
+      // "PR #999" linking to PR 1 (same for the issue). With a concrete GitHub
+      // anchor, repoRefNumber re-extracts the number from the same URL it validated
+      // (null → drop, so a bare unverifiable number is never surfaced). With no
+      // concrete anchor there's nothing to validate against, so the model number
+      // stands. Each field is assigned only when present so this terminal patch —
+      // shallow-merged by setWorkStatus — never overwrites a live submit_work_pr
+      // callback's link with undefined.
+      const doneIssueNumber = (isGithubTracker && expectedRepo)
+        ? repoRefNumber(result.issueUrl, expectedRepo, allowedHost, 'issue')
+        : (result.issueNumber != null ? result.issueNumber : null)
+      if (doneIssueNumber != null) patch.issueNumber = doneIssueNumber
       if (result.issueUrl) patch.issueUrl = result.issueUrl
-      // A PR is always a GitHub artifact. With a concrete repo, only surface its
-      // number when a URL proved (in the block above) it lives in expectedRepo —
+      // A PR is always a GitHub artifact. With a concrete repo, surface only the
+      // number parsed from a URL that proved (above) it lives in prExpectedRepo —
       // otherwise a bare, unverifiable "PR #N" could render as authoritative
-      // success. Without a concrete repo there's nothing to validate against, so a
-      // number still shows. The real PR for a hand-off arrives later via the
+      // success. Without a concrete repo there's nothing to validate against, so the
+      // model number still shows. The real PR for a hand-off arrives later via the
       // validated submit_work_pr callback, so dropping an unverifiable number here
       // loses nothing.
-      if (result.prNumber != null && (result.prUrl || !prExpectedRepo)) patch.prNumber = result.prNumber
+      const donePrNumber = prExpectedRepo
+        ? repoRefNumber(result.prUrl, prExpectedRepo, allowedHost, 'pull')
+        : (result.prNumber != null ? result.prNumber : null)
+      if (donePrNumber != null) patch.prNumber = donePrNumber
       if (result.prUrl) patch.prUrl = result.prUrl
       if (result.sessionId) patch.sessionId = result.sessionId
       if (result.sessionName) patch.sessionName = result.sessionName
@@ -1916,7 +1977,7 @@ const session = await joinSession({
         // 'handed-off' with a dead ("#") link — unrecoverable. Rejecting here
         // leaves the token intact so the session can retry with a real URL.
         const prUrl = safeSentryUrl(args?.prUrl)
-        const prNumber = Number.isFinite(Number(args?.prNumber)) ? Number(args.prNumber) : undefined
+        const reportedPrNumber = Number.isFinite(Number(args?.prNumber)) ? Number(args.prNumber) : undefined
         const prState = typeof args?.prState === 'string' && args.prState.trim() ? args.prState.trim().toLowerCase() : 'draft'
         if (!key || !prUrl) return 'Ignored: a Sentry issue key and a valid http(s) prUrl are both required.'
         if (!workToken) return 'Ignored: a workToken is required — pass the token from the hand-off prompt unchanged.'
@@ -1926,7 +1987,7 @@ const session = await joinSession({
         // would keep that phase through the shallow merge and the PR link — gated
         // on 'done'/'handed-off' by the renderer — would never show.
         const patch = { phase: 'handed-off', prUrl, prState }
-        if (prNumber !== undefined) patch.prNumber = prNumber
+        // patch.prNumber is added after the repo check below, derived from prUrl.
         // The token identifies the exact instance + issue that started this work
         // and is single-use. Consume it so a replayed call can't double-apply,
         // and reject an unknown/expired token instead of falling back to
@@ -1952,9 +2013,20 @@ const session = await joinSession({
         // here because onWorkSelected refuses to start GitHub work without one.
         const regRepo = registered.authorizedRepo || ''
         const regHost = registered.authorizedHost || ''
-        if (regRepo && !urlInRepo(prUrl, regRepo, regHost, 'pull')) {
+        // Derive the DISPLAYED PR number from the same validated URL, never from the
+        // model-reported prNumber: a session could pair /pull/1 with prNumber 999 and
+        // render "PR #999" linking to PR 1. repoRefNumber returns null on any
+        // host/repo/shape mismatch (the reject below, equivalent to the old urlInRepo
+        // guard) and otherwise the number parsed from the URL. '' ("cannot confirm")
+        // fails closed, but if the authorized repo somehow weren't concrete there's
+        // nothing to validate against, so fall back to the reported number.
+        const verifiedPrNumber = regRepo
+          ? repoRefNumber(prUrl, regRepo, regHost, 'pull')
+          : (reportedPrNumber ?? null)
+        if (regRepo && verifiedPrNumber === null) {
           return `Ignored: the reported PR for ${key} is not in the expected repository (${regRepo}).`
         }
+        if (verifiedPrNumber != null) patch.prNumber = verifiedPrNumber
         workRegistry.delete(workToken)
         // Reject a callback whose originating org/scope is no longer current, so a
         // late PR link can't land on a different org's board (short keys collide
@@ -1963,7 +2035,7 @@ const session = await joinSession({
           return `Ignored: ${registered.key} belongs to a previous org/scope that is no longer active.`
         }
         registered.entry.notifyWork(registered.key, patch)
-        return `Updated ${registered.key} with PR #${prNumber ?? '?'} (${prState}).`
+        return `Updated ${registered.key} with PR #${verifiedPrNumber ?? '?'} (${prState}).`
       },
     },
   ],

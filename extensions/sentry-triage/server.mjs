@@ -362,15 +362,30 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
         const payload = parseJson(body)
         const current = state.getPrTargets()
         const pick = (value, fallback) => (typeof value === 'string' ? value : fallback)
+        // The PR-authorization repo (and its display name) must NOT be taken from
+        // the browser payload. The Settings dropdown is populated by the model via
+        // submit_projects, so accepting its repo here would let a forged
+        // projectId->repo mapping choose where fix-session PRs may land. Re-bind both
+        // from the selected projectId against our own trusted project options (loaded
+        // in a Sentry-free turn — see loadProjectOptions), failing closed to '' when
+        // the id isn't in the list. localProjectRepo/localProjectName in the payload
+        // are ignored on purpose.
+        const nextProjectId = pick(payload.localProjectId, current.local.projectId)
+        const trustedProjects = state.getProjectOptions()
+        const boundProject = nextProjectId && Array.isArray(trustedProjects)
+          ? trustedProjects.find((p) => p && p.id === nextProjectId)
+          : null
+        const boundRepo = boundProject && typeof boundProject.repo === 'string' ? boundProject.repo : ''
+        const boundName = boundProject && typeof boundProject.name === 'string' ? boundProject.name : ''
         const next = {
           mode: pick(payload.mode, current.mode),
           model: pick(payload.model, current.model),
           local: {
             path: pick(payload.localPath, current.local.path),
             baseBranch: pick(payload.localBranch, current.local.baseBranch),
-            projectId: pick(payload.localProjectId, current.local.projectId),
-            projectName: pick(payload.localProjectName, current.local.projectName),
-            repo: pick(payload.localProjectRepo, current.local.repo),
+            projectId: nextProjectId,
+            projectName: boundName,
+            repo: boundRepo,
           },
           cloud: {
             repo: pick(payload.cloudRepo, current.cloud.repo),

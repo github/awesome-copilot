@@ -1754,26 +1754,16 @@ export function Page({
         if (!btn) return;
         const localProjectEl = document.getElementById("local-project");
         const localProjectId = localProjectEl?.value || "";
-        let localProjectName = "";
-        let localProjectRepo = "";
-        if (localProjectId) {
-          const match = (Array.isArray(currentProjectOptions) ? currentProjectOptions : []).find((p) => p.id === localProjectId);
-          localProjectName = match ? match.name : "";
-          // Freeze the selected project's repo into config at SAVE time. This is the
-          // repo the fix session's PR will land in, and it can differ from the
-          // issue/cloud repo. Capturing it here (a deliberate user selection) lets
-          // onWorkSelected validate the PR against the right repo without re-reading
-          // the live project list mid-batch.
-          localProjectRepo = match && match.repo ? match.repo : "";
-        }
+        // Only the projectId is sent. The authorization repo (and display name) are
+        // re-bound server-side from this id against the trusted project list — the
+        // dropdown is model-populated, so the browser must not supply the repo that
+        // gates where fix-session PRs may land.
         const payload = {
           mode: document.getElementById("pr-mode")?.value || "local",
           model: document.getElementById("toolbar-model")?.value || "",
           localPath: document.getElementById("local-path")?.value || "",
           localBranch: document.getElementById("local-branch")?.value || "",
           localProjectId: localProjectId,
-          localProjectName: localProjectName,
-          localProjectRepo: localProjectRepo,
           cloudRepo: document.getElementById("cloud-repo")?.value || "",
           cloudBranch: document.getElementById("cloud-branch")?.value || "",
         };
