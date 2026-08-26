@@ -55,7 +55,10 @@ function code(value) {
 function readQuantifier(src, i) {
     const ch = src[i];
     if (ch === "*" || ch === "+") return { length: 1, repeats: true, ambiguous: true, unbounded: true };
-    if (ch === "?") return { length: 1, repeats: false, ambiguous: false, unbounded: false };
+    // "?" is variable width, so a body containing one is ambiguous: (a?){100} is
+    // a real blowup. A "?" on the group itself only makes it optional, which is
+    // why `repeats` stays false.
+    if (ch === "?") return { length: 1, repeats: false, ambiguous: true, unbounded: false };
     if (ch !== "{") return null;
     const m = /^\{(\d+)(,(\d*))?\}/.exec(src.slice(i));
     if (!m) return null; // a literal brace, not a quantifier
@@ -118,8 +121,10 @@ function screenPattern(pattern) {
         if (bodyIsAmbiguous(body)) {
             return "it repeats a group whose body also repeats, such as (a+)+ or (\\s*\\w+)*";
         }
-        if (q.unbounded && bodyHasAlternation(body)) {
-            return "it repeats a group containing alternatives without a limit, such as (a|ab)+";
+        // A bound does not make overlapping alternatives safe: (a|aa){100} has as
+        // many ways to split its input as (a|aa)+ does, so any repeat counts.
+        if (bodyHasAlternation(body)) {
+            return "it repeats a group containing alternatives, such as (a|ab)+ or (a|aa){100}";
         }
     }
     return null;
@@ -931,9 +936,10 @@ function onEditorKey(e) {
 // match and freeze the tab, so whenever a worker can be created the checks run
 // there: it evaluates them one at a time and reports each result as it lands, and
 // if the batch blows its budget the worker is terminated and the unfinished checks
-// come back as "not evaluated", leaving the canvas responsive. Only when no worker
-// is available at all do they run on this thread, under the narrower protection
-// described at the inline fallback below.
+// come back as "not evaluated", leaving the canvas responsive. If no worker can be
+// started at all, the checks stay unevaluated rather than falling back to this
+// thread: without a worker there is no way to stop a runaway pattern, and an agent
+// review is a working alternative where a frozen tab is not.
 var CHECK_BUDGET_MS = 2000;
 var CHECK_WORKER_SRC = [
   "self.onmessage = function (e) {",
@@ -949,12 +955,14 @@ var CHECK_WORKER_SRC = [
   "};"
 ].join("\\n");
 
-// Runs the checks and calls done(results), where each entry is true, false, or
-// null for a check that never finished.
+// Runs the checks and calls done(results, reason). Each result is true, false, or
+// null for a check that was never evaluated. reason is "ok" when the batch ran to
+// completion, "timeout" when it blew the budget, or "unavailable" when no worker
+// could be started, which the caller uses to explain itself accurately.
 function runChecks(checks, codeText, done) {
   var results = [], i;
   for (i = 0; i < checks.length; i++) results.push(null);
-  if (!checks.length) { done(results); return; }
+  if (!checks.length) { done(results, "ok"); return; }
 
   var worker = null, blobUrl = null;
   try {
@@ -970,50 +978,38 @@ function runChecks(checks, codeText, done) {
     blobUrl = null;
   };
 
-  // The degradation when no worker is usable: this runs on the UI thread with no
-  // time bound, so it leans entirely on the publish-time screen, which every
-  // pattern passes before it can reach the canvas (set_tutorial screens on the
-  // way in, loadState re-screens saved lessons on the way back out). That screen
-  // is a conservative heuristic rather than a proof, which is why it is the
-  // fallback and the worker is the normal path.
-  var inline = function () {
-    var out = [], k;
-    for (k = 0; k < checks.length; k++) {
-      try { out.push(new RegExp(checks[k].pattern, checks[k].flags || "m").test(codeText)); }
-      catch (err) { out.push(false); }
-    }
-    return out;
-  };
-
+  // No worker means no way to interrupt a runaway pattern. Evaluating here
+  // instead would put an agent-authored regex on the UI thread with no timeout at
+  // all, and the publish-time screen is a conservative heuristic with known gaps
+  // rather than a proof, so one bad pattern could freeze the canvas outright with
+  // nothing left to stop it. An unevaluated check costs the learner a click on
+  // "Ask Copilot for a review"; a frozen tab costs them their work.
   if (!worker) {
     release();
-    done(inline());
+    done(results, "unavailable");
     return;
   }
 
-  var settled = false, reported = false;
-  var finish = function () {
+  var settled = false;
+  var finish = function (reason) {
     if (settled) return;
     settled = true;
     clearTimeout(timer);
     try { worker.terminate(); } catch (err) {}
     release();
-    done(results);
+    done(results, reason);
   };
-  var timer = setTimeout(finish, CHECK_BUDGET_MS);
+  var timer = setTimeout(function () { finish("timeout"); }, CHECK_BUDGET_MS);
 
   worker.onmessage = function (e) {
     var msg = e.data || {};
-    if (msg.done) { finish(); return; }
-    if (typeof msg.index === "number") { reported = true; results[msg.index] = !!msg.pass; }
+    if (msg.done) { finish("ok"); return; }
+    if (typeof msg.index === "number") results[msg.index] = !!msg.pass;
   };
-  worker.onerror = function () {
-    // The worker died before producing anything, which is what a policy that
-    // blocks blob: workers looks like. It fails asynchronously, so the try/catch
-    // above never sees it; fall back instead of calling every check unrunnable.
-    if (!reported) results = inline();
-    finish();
-  };
+  // A policy that blocks blob: workers fails asynchronously, so the try/catch
+  // above never sees it. Whatever the worker managed to report is kept; the rest
+  // stay unevaluated.
+  worker.onerror = function () { finish("unavailable"); };
   worker.postMessage({ checks: checks, code: codeText });
 }
 
@@ -1036,7 +1032,7 @@ function checkWork(btn) {
   // in a millisecond does not blow away the editor the learner is typing in.
   if (btn) { btn.disabled = true; btn.textContent = "Checking..."; }
 
-  runChecks(ex.checks, codeText, function (results) {
+  runChecks(ex.checks, codeText, function (results, reason) {
     checking = false;
     // The agent can publish a new lesson or reset progress while a check is in
     // flight. Applying these results to whatever replaced it would credit the
@@ -1070,6 +1066,7 @@ function checkWork(btn) {
     saveProgress(true);
     render();
     if (allPass) toast("All checks passed. Nicely done.");
+    else if (reason === "unavailable") toast("Automatic checks cannot run in this view. Ask Copilot for a review instead.");
     else if (stalled) toast("A check took too long to run and was stopped. Ask Copilot for a review instead.");
   });
 }
