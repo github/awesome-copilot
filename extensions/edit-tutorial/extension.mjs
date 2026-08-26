@@ -289,8 +289,9 @@ async function atomicWrite(file, contents) {
     try {
         await writeFile(tmp, contents, "utf-8");
         await rename(tmp, file);
-    } catch {
+    } catch (error) {
         try { await rm(tmp, { force: true }); } catch {}
+        throw error;
     }
 }
 
@@ -1161,7 +1162,7 @@ function askReview(btn) {
       // 409 means the server already holds newer progress than this flush, so the
       // attempt it would review is on the server either way. Only a real failure
       // to store should stop the review from being asked for.
-      if (!r.ok && r.status !== 409) throw new Error("progress rejected");
+      if (!r.ok) throw new Error("progress rejected");
       return api("/review", { method: "POST" });
     })
     .then(function (r) {
@@ -1218,13 +1219,8 @@ evtSource.onmessage = function (e) {
   var msg;
   try { msg = JSON.parse(e.data); } catch (err) { return; }
   if (!msg || !msg.state) return;
-  var editor = document.getElementById("editor");
-  var localCode = editor && document.activeElement === editor ? editor.value : null;
   var hadTutorial = !!S.tutorial;
   S = msg.state;
-  if (localCode !== null && S.progress && S.progress.exercise && !S.progress.exercise.completed) {
-    S.progress.exercise.code = localCode;
-  }
   if (!hadTutorial && S.tutorial) {
     view = { kind: "step", index: 0 };
     toast("Your tutorial is ready.");
