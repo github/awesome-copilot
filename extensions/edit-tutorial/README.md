@@ -6,7 +6,7 @@ commit by default) when the agent made none. The lesson is a step-by-step walkth
 of each change, comprehension quizzes, and a hands-on exercise the learner finishes in
 the canvas in order to understand the updates to the source code.
 
-![Edit Tutorial canvas showing a walkthrough step with a before/after diff and a quiz](assets/preview.png)
+![Edit Tutorial canvas preview](assets/preview.png)
 
 ## Prerequisites
 
@@ -15,7 +15,9 @@ the canvas in order to understand the updates to the source code.
 
 ## Install
 
-Drop this folder at `~/.copilot/extensions/edit-tutorial/` for user scope, or in a repository at `.github/extensions/edit-tutorial/` for project scope. Then install dependencies from inside the copied folder:
+Drop this folder at `~/.copilot/extensions/edit-tutorial/` for user scope, or in a repository at
+`.github/extensions/edit-tutorial/` for project scope. Then install dependencies from inside the
+copied folder:
 
 ```sh
 # User scope
@@ -27,7 +29,8 @@ cd .github/extensions/edit-tutorial
 npm install
 ```
 
-Reload extensions in the GitHub Copilot app, then when updating a repository using the Copilot app, add a line like:
+Reload extensions in the GitHub Copilot app, then when updating a repository using the Copilot app,
+add a line like:
 
 ```text
 Start an edit tutorial for the update.
@@ -87,6 +90,38 @@ behind it. When the history holds several lessons, the artifact shows the active
 and labels it ("Lesson 2 of 3"). The artifact also embeds the state document, lesson
 history included, in a non-executing JSON block, so the lessons can be rebuilt from
 the artifact alone if the state file is ever lost.
+
+That rebuild is automatic. A chat resumes the same session, so the canvas restores
+from the state file directly. A project reopens into a fresh session whose workspace
+holds only what was preserved from the conversation; when the canvas opens and finds
+no state file, the extension scans the workspace for a preserved artifact (under its
+original name or a copied one) and restores the lessons and progress from its
+embedded state block, so the canvas survives wherever the artifact does.
+
+Reopening the canvas is automatic. In a session attached to a repository, the app
+brings the workspace files back after a restart but does not reopen the canvas on
+its own. Shortly after the session starts, the extension checks a few times whether
+a lesson is stored while no canvas has opened, waiting out the app still restoring
+files, and then sends the session a reopen request itself, the same message a
+stranded learner would type by hand, at most one message per session start. It also hands
+the agent the same instruction as context at session start and on each prompt. A
+canvas the learner closed on purpose stays closed, and if the canvas still does not
+come back, the manual paths below always work.
+
+### If the canvas does not come back after a restart
+
+Three manual paths bring the lesson back immediately in a repository session, best
+first:
+
+- **Reopen from the app menu**: click the "+" icon, choose "Extensions", then
+  "Edit Tutorial". The canvas opens and restores the stored lessons and progress
+  from disk on its own. This is the fastest path and needs no agent turn.
+- **Continue by asking**: ask Copilot to "reopen the edit-tutorial canvas". Opening
+  the canvas restores everything the same way; nothing is lost by the canvas having
+  been closed, and asking does not rebuild or reset the lesson.
+- **Read it now**: in the session's Files panel, open `edit-tutorial-artifact.html`
+  and choose "Open in browser". That page is the preserved lesson, progress
+  included, as a read-only snapshot, and it tells you how to resume.
 
 ## Usage
 

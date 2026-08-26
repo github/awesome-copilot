@@ -10,7 +10,7 @@
 // learner flip between lessons without losing progress in any of them.
 
 import { createServer } from "node:http";
-import { readFile, writeFile, rename, rm, mkdir } from "node:fs/promises";
+import { readFile, writeFile, rename, rm, mkdir, readdir, stat } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
@@ -284,6 +284,9 @@ function freshProgress(tutorial) {
             completed: false,
             completedBy: null,
             completedAt: null,
+            // The exact code the checks or an approval passed. `code` keeps
+            // moving with the editor afterwards; this stays what was verified.
+            completedCode: null,
             approvalNote: "",
         },
         startedAt: new Date().toISOString(),
@@ -456,6 +459,68 @@ function rescreenExercise(tutorial) {
         .map((r) => r.check);
 }
 
+// Loaded state comes from disk, and the artifact path accepts the embedded
+// block from any html file in the workspace, so none of it gets the benefit of
+// the doubt on size: every field goes back under the caps the publish path
+// enforces. Content is clamped, never rejected, so a lesson that was legal
+// when it was saved always comes back whole.
+function clampLoadedLesson(tutorial) {
+    if (!tutorial || typeof tutorial !== "object") return;
+    tutorial.title = text(tutorial.title, 160);
+    tutorial.summary = text(tutorial.summary, 1200);
+    tutorial.source = text(tutorial.source, 200);
+    tutorial.steps = (Array.isArray(tutorial.steps) ? tutorial.steps : []).slice(0, MAX_STEPS);
+    tutorial.steps.forEach((step, index) => {
+        if (!step || typeof step !== "object") return;
+        // Ids are regenerated, never trusted: the canvas page interpolates step
+        // ids into inline handlers, and the publish path only ever writes these
+        // positional ids, so for any legitimately saved lesson this is the
+        // identity (progress keys keep matching). A crafted id from a tampered
+        // file dies here instead of reaching the page.
+        step.id = "step-" + (index + 1);
+        step.file = text(step.file, 260);
+        step.heading = text(step.heading, 160);
+        step.explanation = text(step.explanation, 4000);
+        step.before = code(step.before);
+        step.after = code(step.after);
+        if (step.quiz && typeof step.quiz === "object") {
+            step.quiz.question = text(step.quiz.question, 500);
+            // Positions stay meaningful for answerIndex, so options are
+            // clamped in place, never filtered.
+            step.quiz.options = (Array.isArray(step.quiz.options) ? step.quiz.options : [])
+                .slice(0, 5)
+                .map((option) => text(option, 300));
+            step.quiz.why = text(step.quiz.why, 800);
+        }
+    });
+    const ex = tutorial.exercise;
+    if (ex && typeof ex === "object") {
+        ex.heading = text(ex.heading, 160);
+        ex.brief = text(ex.brief, 4000);
+        ex.file = text(ex.file, 260);
+        ex.starterCode = code(ex.starterCode);
+        ex.solution = code(ex.solution);
+        ex.hints = (Array.isArray(ex.hints) ? ex.hints : [])
+            .slice(0, MAX_HINTS)
+            .map((hint) => text(hint, 500));
+    }
+}
+
+function clampLoadedState(state) {
+    clampLoadedLesson(state?.tutorial);
+    state.archive = (Array.isArray(state?.archive) ? state.archive : []).slice(0, MAX_LESSONS);
+    for (const entry of state.archive) clampLoadedLesson(entry?.tutorial);
+    const pe = state?.progress?.exercise;
+    if (pe && typeof pe === "object") {
+        // The attempt is learner text and can legitimately outgrow the snippet
+        // cap, so it gets the progress route's byte budget instead.
+        if (typeof pe.code === "string") pe.code = pe.code.slice(0, MAX_BODY_BYTES);
+        if (typeof pe.completedCode === "string") pe.completedCode = pe.completedCode.slice(0, MAX_BODY_BYTES);
+        pe.approvalNote = text(pe.approvalNote, 300);
+    }
+    return state;
+}
+
 // Archived lessons count too: any of them is one arrow press from the canvas.
 function rescreenLoadedChecks(state) {
     rescreenExercise(state?.tutorial);
@@ -465,13 +530,55 @@ function rescreenLoadedChecks(state) {
     return state;
 }
 
+// The artifact embeds the full state document in a non-executing JSON block
+// precisely so the lesson can be rebuilt when the state file is gone. A chat
+// resumes the same session, so the JSON file is simply found again on reopen;
+// a project resumes into a fresh session whose workspace holds only what the
+// app preserved from the conversation, which is the rendered artifact.
+// Recovering from it is what keeps the canvas alive there. The app may copy
+// the preserved file back under another name, so any html file in the
+// workspace that carries the embedded state block counts, with the canonical
+// name tried first and the search bounded so a large workspace cannot stall
+// the open.
+const ARTIFACT_STATE_RE = /<script[^>]*\bid="edit-tutorial-state"[^>]*>([\s\S]*?)<\/script>/;
+const MAX_ARTIFACT_BYTES = 32 * 1024 * 1024;
+const MAX_ARTIFACT_CANDIDATES = 20;
+
+async function loadStateFromArtifact(workspacePath) {
+    const rank = (name) =>
+        name === ARTIFACT_FILENAME ? 0 : name.includes("edit-tutorial") ? 1 : 2;
+    for (const dir of [join(workspacePath, "files"), workspacePath]) {
+        let names = [];
+        try { names = await readdir(dir); } catch { continue; }
+        const candidates = names
+            .filter((name) => name.toLowerCase().endsWith(".html"))
+            .sort((a, b) => rank(a) - rank(b))
+            .slice(0, MAX_ARTIFACT_CANDIDATES);
+        for (const name of candidates) {
+            const file = join(dir, name);
+            try {
+                const info = await stat(file);
+                if (!info.isFile() || info.size > MAX_ARTIFACT_BYTES) continue;
+                const match = ARTIFACT_STATE_RE.exec(await readFile(file, "utf-8"));
+                if (!match) continue;
+                const parsed = JSON.parse(match[1]);
+                if (parsed && typeof parsed === "object" && parsed.tutorial) return parsed;
+            } catch {}
+        }
+    }
+    return null;
+}
+
 async function loadState(workspacePath) {
     if (!workspacePath) return null;
     try {
         const raw = await readFile(join(workspacePath, "files", STATE_FILENAME), "utf-8");
         const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object") return rescreenLoadedChecks(parsed);
+        if (parsed && typeof parsed === "object") return rescreenLoadedChecks(clampLoadedState(parsed));
     } catch {}
+    // No readable state file: fall back to the state embedded in the artifact.
+    const recovered = await loadStateFromArtifact(workspacePath);
+    if (recovered) return rescreenLoadedChecks(clampLoadedState(recovered));
     return null;
 }
 
@@ -1067,8 +1174,18 @@ function mergeProgress(server) {
     mine.completedBy = re.completedBy;
     mine.completedAt = re.completedAt;
     mine.approvalNote = re.approvalNote || "";
+    // Completion is a verdict on one specific attempt, so it travels with that
+    // attempt's code. Without this, a dirty editor here would keep its own
+    // unverified text below a completion that the checks or a review earned on
+    // entirely different code, and the retry would persist that pairing.
+    mine.completedCode = typeof re.completedCode === "string" ? re.completedCode
+      : typeof re.code === "string" ? re.code
+      : mine.completedCode;
   }
-  if (!codeDirty && typeof re.code === "string") mine.code = re.code;
+  // While a review is pending the editor is frozen precisely so the attempt
+  // cannot change under the agent reading it; a merge must not change it
+  // either, or the freeze's promise is broken from the side no lock covers.
+  if (!codeDirty && !reviewPending && typeof re.code === "string") mine.code = re.code;
 }
 
 function saveProgress(immediate) {
@@ -1692,6 +1809,9 @@ function checkWork(btn) {
       pe.completed = true;
       pe.completedBy = "checks";
       pe.completedAt = new Date().toISOString();
+      // codeText is exactly what the checks evaluated; the guard above already
+      // proved the editor still holds it.
+      pe.completedCode = codeText;
     } else if (!stalled) {
       // Only count a run where every check actually returned a verdict. A stalled
       // check is not the learner getting it wrong, and failedAttempts is what
@@ -1969,8 +2089,13 @@ function artifactExercise(state) {
         });
         html += "</div>";
     }
+    // The completed attempt is the code the checks or the review actually
+    // passed; the live editor text may have moved past it since.
+    const shown = pe.completed && typeof pe.completedCode === "string"
+        ? pe.completedCode
+        : pe.code == null ? ex.starterCode : pe.code;
     html += '<div class="diff-label">' + (pe.completed ? "Completed attempt" : "Attempt in progress") + "</div>" +
-        plainCode(pe.code == null ? ex.starterCode : pe.code);
+        plainCode(shown);
     if (pe.solutionRevealed && ex.solution) {
         html += '<div class="solution-block"><div class="diff-label">Reference solution</div>' + plainCode(ex.solution) + "</div>";
     }
@@ -2017,7 +2142,7 @@ ${FONT_LINKS}
 <h1>${esc(state.tutorial.title)}</h1>
 ${state.tutorial.source ? '<div class="source-line">Source: ' + esc(state.tutorial.source) + "</div>" : ""}</div>
 <div class="header-side"><span class="progress-pill">${done} / ${total} complete</span>${lessonLabel}</div></div>
-<div class="snapshot-note">Read-only snapshot of this lesson and its progress, kept up to date by the Edit Tutorial canvas. Reopen the canvas in a Copilot session to continue.</div>
+<div class="snapshot-note">Read-only snapshot of this lesson and its progress, kept up to date by the Edit Tutorial canvas. To continue working, reopen the canvas from the "+" menu under Extensions, Edit Tutorial, or ask Copilot in this session: "Reopen the edit-tutorial canvas". The live canvas restores everything shown here from disk.</div>
 ${state.tutorial.summary ? '<p class="summary">' + esc(state.tutorial.summary) + "</p>" : ""}
 ${artifactStepper(state)}
 ${steps.map((s, i) => artifactStep(state, s, i)).join("\n")}
@@ -2301,6 +2426,105 @@ async function startServer(instanceId) {
     return { server, url: `http://127.0.0.1:${port}/` };
 }
 
+// --- Session-start restoration ---
+
+// A chat reopens with its canvas restored by the app. A session attached to a
+// repository reopens with the workspace files intact but the canvas simply
+// gone, and the learner has to know to ask for it back. These hooks close that
+// gap: while a stored lesson exists and no canvas instance is open, the agent
+// is handed context telling it to reopen the canvas, which restores the lesson
+// from disk. The nudge stops as soon as a canvas is open, and a canvas the
+// learner closed on purpose stays closed for the rest of this process; a fresh
+// app start clears that.
+
+let canvasClosedByUser = false;
+// The disk probe is memoized once it finds a lesson: this process is the only
+// writer of the stored state, and every path that changes it goes through the
+// in-memory state that is consulted first, so a found lesson cannot be
+// unfound. A probe that finds nothing is NOT final, though: the app restores
+// the workspace files shortly after the session opens, and the session-start
+// hook can easily run before they exist. Caching that early miss for the
+// process lifetime is exactly what disabled restoration in repository
+// sessions, so an empty result clears the memo, and re-probing is only rate
+// limited instead.
+const EMPTY_PROBE_RETRY_MS = 10000;
+let storedLessonProbe = null;
+let lastEmptyProbeAt = 0;
+
+function describeStoredLesson(stored) {
+    const steps = stored.tutorial.steps || [];
+    let understood = 0;
+    for (const step of steps) {
+        if (stored.progress?.steps?.[step.id]?.understood) understood++;
+    }
+    const done = stored.progress?.exercise?.completed ? ", exercise complete" : "";
+    return (
+        "An Edit Tutorial lesson from a previous session is stored in this workspace: \"" +
+        stored.tutorial.title + "\" (" + understood + " of " + steps.length +
+        " steps understood" + done + "), but its canvas is not open. Reopen the " +
+        "edit-tutorial canvas now, with no input: opening it restores the stored " +
+        "lesson and the learner's progress from disk. Do not rebuild or republish " +
+        "the lesson with set_tutorial, which would reset their progress."
+    );
+}
+
+// The stored lesson that needs restoring, or null when there is nothing to do:
+// no lesson, a canvas already open, or a canvas the learner closed on purpose.
+async function storedLessonForRestore() {
+    if (servers.size > 0 || canvasClosedByUser) return null;
+    let stored = sessionState?.tutorial ? sessionState : null;
+    if (!stored) {
+        const workspacePath = sessionRef?.workspacePath;
+        if (!workspacePath) return null;
+        if (!storedLessonProbe) {
+            if (Date.now() - lastEmptyProbeAt < EMPTY_PROBE_RETRY_MS) return null;
+            storedLessonProbe = loadState(workspacePath).catch(() => null);
+        }
+        stored = await storedLessonProbe;
+        if (!stored?.tutorial) {
+            storedLessonProbe = null;
+            lastEmptyProbeAt = Date.now();
+            return null;
+        }
+    }
+    return stored?.tutorial ? stored : null;
+}
+
+async function restoreCanvasContext() {
+    const stored = await storedLessonForRestore();
+    return stored ? { additionalContext: describeStoredLesson(stored) } : undefined;
+}
+
+// The hooks above only take effect once the agent runs, and in a repository
+// session nothing runs it after a restart, so the canvas stays gone until the
+// learner knows to ask. This is the ask, made for them: one message into the
+// session, the same request a stranded learner would type by hand. It fires at
+// most once per process, and only when a lesson is stored, no canvas opened on
+// its own, and the learner did not close it deliberately. A chat's canvas is
+// restored by the app well inside the delay, which makes this a no-op there.
+// The check itself repeats a bounded number of times, because the workspace
+// files can appear well after the first look.
+const RESTORE_NUDGE_DELAY_MS = 12000;
+const RESTORE_NUDGE_ATTEMPTS = 5;
+let restoreNudgeSent = false;
+
+async function nudgeCanvasRestore() {
+    if (restoreNudgeSent) return;
+    const stored = await storedLessonForRestore();
+    // Re-check after the await: the canvas may have opened while the probe ran.
+    if (!stored || servers.size > 0 || canvasClosedByUser) return;
+    restoreNudgeSent = true;
+    const delivered = await sendToSession(
+        "Please reopen the Edit Tutorial canvas from my previous session.\n\n" +
+        describeStoredLesson(stored)
+    );
+    // sendToSession reports failure instead of throwing. A message that never
+    // reached the session must not count as the one nudge this process sends,
+    // or a bridge that was briefly down right after restart consumes it with
+    // nothing delivered; the bounded retry loop gets another try instead.
+    if (!delivered) restoreNudgeSent = false;
+}
+
 // --- Extension ---
 
 const tutorialSchema = {
@@ -2367,6 +2591,14 @@ const tutorialSchema = {
 };
 
 const session = await joinSession({
+    hooks: {
+        // Both hooks run the same check. Session start covers the moment a
+        // reopened session comes back without its canvas; each user prompt
+        // covers a start that ran before this extension had a workspace, or
+        // that raced the app's own canvas restore.
+        onSessionStart: restoreCanvasContext,
+        onUserPromptSubmitted: restoreCanvasContext,
+    },
     canvases: [
         createCanvas({
             id: "edit-tutorial",
@@ -2461,6 +2693,10 @@ const session = await joinSession({
                         state.progress.exercise.completed = true;
                         state.progress.exercise.completedBy = "copilot";
                         state.progress.exercise.completedAt = new Date().toISOString();
+                        // The digest check above pinned this approval to the code
+                        // stored right now; record that attempt as the one the
+                        // approval covers, since `code` keeps moving afterwards.
+                        state.progress.exercise.completedCode = state.progress.exercise.code;
                         state.progress.exercise.approvalNote = text(ctx.input?.note, 300);
                         bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
@@ -2530,6 +2766,9 @@ const session = await joinSession({
                 return { title: "Edit Tutorial", url: entry.url };
             },
             onClose: async (ctx) => {
+                // Closing is a choice the learner made; the restoration hooks
+                // must not argue with it by nudging the agent to reopen.
+                canvasClosedByUser = true;
                 const entry = servers.get(ctx.instanceId);
                 const clients = sseClients.get(ctx.instanceId);
                 if (clients) {
@@ -2552,3 +2791,23 @@ const session = await joinSession({
 });
 
 sessionRef = session;
+
+// Give the app time to restore the canvas itself (a chat does, within moments)
+// before concluding it will not and asking the session to reopen it. The check
+// repeats on the same interval up to the attempt cap, because the workspace
+// files can appear well after the first look; the message is still sent at
+// most once. unref so a pending timer never holds the process open on its own.
+function scheduleRestoreNudge(attemptsLeft) {
+    if (attemptsLeft <= 0) return;
+    const timer = setTimeout(() => {
+        nudgeCanvasRestore()
+            .catch(() => {})
+            .then(() => {
+                if (!restoreNudgeSent && servers.size === 0 && !canvasClosedByUser) {
+                    scheduleRestoreNudge(attemptsLeft - 1);
+                }
+            });
+    }, RESTORE_NUDGE_DELAY_MS);
+    timer.unref?.();
+}
+scheduleRestoreNudge(RESTORE_NUDGE_ATTEMPTS);
