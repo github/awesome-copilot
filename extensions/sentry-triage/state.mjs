@@ -99,7 +99,7 @@ export function createState() {
   const prTargets = {
     mode: 'local',
     model: '',
-    local: { path: '', baseBranch: '', projectId: '', projectName: '' },
+    local: { path: '', baseBranch: '', projectId: '', projectName: '', repo: '' },
     cloud: { repo: '', baseBranch: '' },
   }
 
@@ -116,6 +116,7 @@ export function createState() {
         baseBranch: str(local.baseBranch),
         projectId: str(local.projectId),
         projectName: str(local.projectName),
+        repo: str(local.repo),
       },
       cloud: {
         repo: str(cloud.repo),
@@ -337,6 +338,7 @@ export function createState() {
       prTargets.local.baseBranch = normalized.local.baseBranch
       prTargets.local.projectId = normalized.local.projectId
       prTargets.local.projectName = normalized.local.projectName
+      prTargets.local.repo = normalized.local.repo
       prTargets.cloud.repo = normalized.cloud.repo
       prTargets.cloud.baseBranch = normalized.cloud.baseBranch
       return prTargets

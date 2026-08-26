@@ -1642,10 +1642,23 @@ export function Page({
       document.addEventListener("click", (e) => {
         const btn = e.target.closest("#refresh, #rescan");
         if (!btn) return;
-        fetch("/api/refresh", { method: "POST" });
         const subtitle = document.querySelector(".page-subtitle");
+        const prevSubtitle = subtitle ? subtitle.textContent : "";
         if (subtitle) subtitle.textContent = "Scanning Sentry...";
         showScanOverlay(currentProject ? "Scanning " + currentProject + "…" : "Scanning all projects…");
+        // Like the org/period rescans, verify the POST was accepted and roll the
+        // optimistic overlay back on failure. Fire-and-forget would otherwise leave
+        // the blocking overlay up (no SSE update ever arrives to clear it) until the
+        // long fallback timer expires when the loopback server is unreachable.
+        fetch("/api/refresh", { method: "POST" })
+          .then((res) => {
+            if (!res.ok) throw new Error("refresh " + res.status);
+          })
+          .catch(() => {
+            hideScanOverlay();
+            if (subtitle) subtitle.textContent = prevSubtitle;
+            window.alert("Couldn't start a rescan — the triage server may have stopped responding. Please try again.");
+          });
       });
 
       // Both "Create issue" and "Fix with Copilot" optimistically paint their
@@ -1742,9 +1755,16 @@ export function Page({
         const localProjectEl = document.getElementById("local-project");
         const localProjectId = localProjectEl?.value || "";
         let localProjectName = "";
+        let localProjectRepo = "";
         if (localProjectId) {
           const match = (Array.isArray(currentProjectOptions) ? currentProjectOptions : []).find((p) => p.id === localProjectId);
           localProjectName = match ? match.name : "";
+          // Freeze the selected project's repo into config at SAVE time. This is the
+          // repo the fix session's PR will land in, and it can differ from the
+          // issue/cloud repo. Capturing it here (a deliberate user selection) lets
+          // onWorkSelected validate the PR against the right repo without re-reading
+          // the live project list mid-batch.
+          localProjectRepo = match && match.repo ? match.repo : "";
         }
         const payload = {
           mode: document.getElementById("pr-mode")?.value || "local",
@@ -1753,6 +1773,7 @@ export function Page({
           localBranch: document.getElementById("local-branch")?.value || "",
           localProjectId: localProjectId,
           localProjectName: localProjectName,
+          localProjectRepo: localProjectRepo,
           cloudRepo: document.getElementById("cloud-repo")?.value || "",
           cloudBranch: document.getElementById("cloud-branch")?.value || "",
         };
