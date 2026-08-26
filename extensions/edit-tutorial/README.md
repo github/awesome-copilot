@@ -1,9 +1,10 @@
 # Edit Tutorial
 
-A canvas extension that turns the code edits the agent made in the current session into
-an interactive lesson: a step-by-step walkthrough of each change, comprehension quizzes,
-and a hands-on exercise the learner finishes in the canvas in order to understand the
-updates to the source code.
+A canvas extension that turns a set of code changes into an interactive lesson: the
+edits the agent made in the current session, or the changes in a commit (the last
+commit by default) when the agent made none. The lesson is a step-by-step walkthrough
+of each change, comprehension quizzes, and a hands-on exercise the learner finishes in
+the canvas in order to understand the updates to the source code.
 
 ![Edit Tutorial canvas showing a walkthrough step with a before/after diff and a quiz](assets/preview.png)
 
@@ -28,14 +29,26 @@ npm install
 
 Reload extensions in the GitHub Copilot app, then when updating a repository using the Copilot app, add a line like:
 
-```
+```text
 Start an edit tutorial for the update.
 ```
 
-at the end of the prompt to start the `edit-tutorial` canvas.
+at the end of the prompt to start the `edit-tutorial` canvas. To learn an existing
+change without the agent editing anything, ask on its own:
+
+```text
+Start an edit tutorial from the last commit.
+```
 
 ## What It Does
 
+- **Two sources**: the code edits the agent made in the current session, or the
+  changes in a commit when there are no session edits. The most recent commit is the
+  default; name any commit to learn that one instead.
+- **Lesson history**: each newly titled lesson joins a history of up to 10. When
+  more than one exists, arrows under the progress counter let the learner flip
+  between lessons, each keeping its own progress. Republishing a lesson with the
+  same title replaces it instead of adding a new one.
 - **Walkthrough**: one step per focused edit, each with the file, an explanation, a
   before/after code view with change highlighting, and an optional multiple-choice quiz.
 - **Exercise**: finishing the walkthrough unlocks a hands-on task that applies the same
@@ -47,18 +60,40 @@ at the end of the prompt to start the `edit-tutorial` canvas.
   their code to the agent for a coaching review. Passing the checks, or an approving
   review, completes the lesson.
 - **Persistence**: lesson content and learner progress are saved to the session
-  workspace, so reopening the canvas resumes where the learner left off.
+  workspace, so reopening the canvas resumes where the learner left off. Each save
+  also refreshes a read-only HTML snapshot of the rendered lesson, so the tutorial
+  survives an app restart as a readable artifact instead of raw state data.
 
 For example, if the agent added retry-with-backoff logic to `fetchUser`, the lesson
 walks through that change and then asks the learner to apply the same pattern to
 `fetchOrders` with a different attempt cap and starting delay.
 
+## Preserved Artifact
+
+The live canvas is served by the extension process on a loopback port, so it cannot
+outlive the app. Two files are written to the session workspace on every save:
+
+| File | Purpose |
+| --- | --- |
+| `files/edit-tutorial-state.json` | Machine state used to restore the live canvas on reopen |
+| `files/edit-tutorial-artifact.html` | Self-contained, read-only rendering of the lesson and progress |
+
+After the app is closed and reopened, the conversation can preserve the HTML artifact
+in place of the live canvas: it renders the full walkthrough, quiz results, revealed
+hints, and the learner's exercise attempt, with no scripts, no token, and no server
+behind it. When the history holds several lessons, the artifact shows the active one
+and labels it ("Lesson 2 of 3"). The artifact also embeds the state document, lesson
+history included, in a non-executing JSON block, so the lessons can be rebuilt from
+the artifact alone if the state file is ever lost.
+
 ## Usage
 
 1. Let the agent make a change to your code, then open the Edit Tutorial canvas and
-   click "Build my tutorial" (or just ask: "teach me what you changed").
-2. The agent reviews the edits it made in the session and publishes the lesson to the
-   canvas with the `set_tutorial` action.
+   click "Build my tutorial" (or just ask: "teach me what you changed"). If the agent
+   made no edits in the session, the lesson is built from the last commit instead;
+   you can also ask for that directly: "teach me the last commit".
+2. The agent reviews the session's edits, or the commit's changes, and publishes the
+   lesson to the canvas with the `set_tutorial` action.
 3. Work through the steps, answer the quizzes, and finish the exercise in the canvas
    editor.
 
@@ -66,7 +101,7 @@ walks through that change and then asks the learner to apply the same pattern to
 
 | Action | Purpose |
 | --- | --- |
-| `set_tutorial` | Publish or replace the lesson (title, summary, steps, exercise) |
+| `set_tutorial` | Publish a lesson (title, summary, source, steps, exercise); a new title adds to the lesson history, the active title replaces |
 | `get_progress` | Read the learner's step progress and current exercise attempt |
 | `approve_exercise` | Mark the exercise complete after a successful review |
 | `reset_progress` | Restart the current lesson without changing its content |
@@ -84,6 +119,7 @@ expression the learner's attempt must match; its `hint` is shown when the check 
 {
   "title": "Retry with exponential",
   "summary": "The API client now retries transient failures with exponential.",
+  "source": "Commit a1b2c3d: retry transient API failures",
   "steps": [
     {
       "file": "src/api/client.js",

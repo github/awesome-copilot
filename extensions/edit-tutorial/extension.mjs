@@ -1,14 +1,17 @@
 // Extension: edit-tutorial
-// Learn-by-doing canvas. The agent publishes a tutorial built from the code
-// edits it made in the current session: a step-by-step walkthrough of each
-// change (with optional comprehension quizzes) followed by a hands-on
-// exercise that applies the same technique as a slight variation. The learner
-// completes the exercise in the canvas; local regex checks or an agent review
-// mark it finished.
+// Learn-by-doing canvas. The agent publishes a tutorial built from a set of
+// code changes: the edits it made in the current session, or the changes in a
+// commit (the repository's last commit by default) when it made none. The
+// lesson is a step-by-step walkthrough of each change (with optional
+// comprehension quizzes) followed by a hands-on exercise that applies the same
+// technique as a slight variation. The learner completes the exercise in the
+// canvas; local regex checks or an agent review mark it finished. Each newly
+// titled lesson joins a small history, and arrows in the canvas header let the
+// learner flip between lessons without losing progress in any of them.
 
 import { createServer } from "node:http";
 import { readFile, writeFile, rename, rm, mkdir } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 
@@ -20,7 +23,9 @@ const MAX_STEPS = 12;
 const MAX_CODE_CHARS = 20000;
 const MAX_CHECKS = 10;
 const MAX_HINTS = 5;
+const MAX_LESSONS = 10;
 const STATE_FILENAME = "edit-tutorial-state.json";
+const ARTIFACT_FILENAME = "edit-tutorial-artifact.html";
 
 let sessionRef = null;
 
@@ -169,6 +174,7 @@ function normalizeTutorial(raw) {
     const title = text(raw.title, 160);
     if (!title) return { error: "Tutorial needs a non-empty title." };
     const summary = text(raw.summary, 1200);
+    const source = text(raw.source, 200);
 
     const rawSteps = Array.isArray(raw.steps) ? raw.steps.slice(0, MAX_STEPS) : [];
     if (!rawSteps.length) return { error: "Tutorial needs at least one step describing an edit." };
@@ -234,6 +240,7 @@ function normalizeTutorial(raw) {
         tutorial: {
             title,
             summary,
+            source,
             steps,
             exercise: {
                 heading: text(ex.heading, 160) || "Your turn",
@@ -276,14 +283,91 @@ function freshProgress(tutorial) {
 function getState(instanceId) {
     let state = stateCache.get(instanceId);
     if (!state) {
-        state = { tutorial: null, progress: null, rev: 0, progressSeq: 0 };
+        state = { tutorial: null, progress: null, archive: [], activePos: 0, rev: 0, progressSeq: 0 };
         stateCache.set(instanceId, state);
     }
     return state;
 }
 
-// Bumped by every authoritative change the canvas did not make: publishing a
-// lesson, approving, resetting. The canvas stamps each /progress body with the
+// --- Lesson history ---
+
+// Publishing no longer discards the lesson on screen: it joins a short history
+// the learner can page through with arrows in the canvas header. The active
+// lesson stays in state.tutorial / state.progress exactly as before, so every
+// existing invariant (progress writes, approval digests, resets) keeps meaning
+// "the lesson on screen". The lessons the learner is not looking at wait in
+// state.archive, each with its own progress, and state.activePos records where
+// the active lesson sits in publish order.
+
+function activeLessonPos(state) {
+    if (!state.tutorial) return -1;
+    const archived = Array.isArray(state.archive) ? state.archive.length : 0;
+    const pos = Number.isInteger(state.activePos) ? state.activePos : archived;
+    return Math.max(0, Math.min(pos, archived));
+}
+
+// Every lesson in publish order, oldest first, with the active one in place.
+function lessonList(state) {
+    const list = Array.isArray(state.archive) ? state.archive.slice() : [];
+    if (state.tutorial) {
+        list.splice(activeLessonPos(state), 0, { tutorial: state.tutorial, progress: state.progress });
+    }
+    return list;
+}
+
+// Makes the lesson at `index` (into lessonList order) the one on screen.
+function activateLesson(state, index) {
+    const list = lessonList(state);
+    const chosen = list[index];
+    if (!chosen) return false;
+    list.splice(index, 1);
+    state.archive = list;
+    state.activePos = index;
+    state.tutorial = chosen.tutorial;
+    state.progress = chosen.progress || freshProgress(chosen.tutorial);
+    return true;
+}
+
+// A republish carrying the active lesson's title is a correction and replaces
+// it, which is what "republishing resets learner progress" always meant. A new
+// title is a new lesson: the current one keeps its place and its progress in
+// the history, and the new one starts at the end, active. The history is
+// capped; the oldest lesson falls off first.
+function publishLesson(state, tutorial) {
+    if (!state.tutorial || state.tutorial.title === tutorial.title) {
+        state.tutorial = tutorial;
+        state.progress = freshProgress(tutorial);
+        return;
+    }
+    const list = lessonList(state);
+    list.push({ tutorial, progress: freshProgress(tutorial) });
+    while (list.length > MAX_LESSONS) list.shift();
+    state.archive = list.slice(0, -1);
+    state.activePos = state.archive.length;
+    state.tutorial = tutorial;
+    state.progress = freshProgress(tutorial);
+}
+
+// What the canvas receives: the active lesson plus just enough metadata to draw
+// lesson navigation. The archive can hold several full lessons, and the canvas
+// has no use for their bodies until one is switched to.
+function clientState(state) {
+    const list = lessonList(state);
+    return {
+        tutorial: state.tutorial,
+        progress: state.progress,
+        rev: state.rev || 0,
+        progressSeq: state.progressSeq || 0,
+        lesson: {
+            index: Math.max(0, activeLessonPos(state)),
+            count: list.length,
+            titles: list.map((entry) => entry?.tutorial?.title || ""),
+        },
+    };
+}
+
+// Bumped by every authoritative lesson change: publishing, switching lessons,
+// approving, resetting. The canvas stamps each /progress body with the
 // revision it was composed against, so an update that was already in flight when
 // one of those landed is rejected instead of overwriting the newer state. Without
 // it a debounced progress save can silently undo an approval.
@@ -303,7 +387,7 @@ function bumpRev(state) {
 // only treat a broken document as missing, so the lesson disappears. Writes are
 // queued per file and land through a rename, so a reader only ever sees a whole
 // document and the last save requested is the one that survives.
-const saveQueues = new Map(); // state file path -> tail of that file's write chain
+const saveQueues = new Map(); // file path -> tail of that file's write chain
 
 async function atomicWrite(file, contents) {
     const tmp = file + ".tmp-" + randomUUID();
@@ -316,17 +400,9 @@ async function atomicWrite(file, contents) {
     }
 }
 
-function saveState(workspacePath, state) {
-    if (!workspacePath) return Promise.resolve();
-    const dir = join(workspacePath, "files");
-    const file = join(dir, STATE_FILENAME);
-    // Serialize the snapshot now rather than when the write runs, so a queued save
-    // persists the state as it was when the save was asked for.
-    let contents;
-    try { contents = JSON.stringify(state, null, 2); } catch { return Promise.resolve(); }
-
+function queueWrite(file, contents) {
     const run = async () => {
-        try { await mkdir(dir, { recursive: true }); } catch {}
+        try { await mkdir(dirname(file), { recursive: true }); } catch {}
         await atomicWrite(file, contents);
     };
     const prior = saveQueues.get(file) || Promise.resolve();
@@ -340,17 +416,44 @@ function saveState(workspacePath, state) {
     return chained;
 }
 
+function saveState(workspacePath, state) {
+    if (!workspacePath) return Promise.resolve();
+    const dir = join(workspacePath, "files");
+    // Serialize the snapshot now rather than when the write runs, so a queued save
+    // persists the state as it was when the save was asked for.
+    let contents;
+    try { contents = JSON.stringify(state, null, 2); } catch { return Promise.resolve(); }
+
+    // The rendered artifact rides along with every save, but only as best effort:
+    // the JSON file is what reopening the canvas restores from, so a rendering
+    // problem must never fail the save that protects the learner's progress.
+    if (state.tutorial) {
+        try {
+            queueWrite(join(dir, ARTIFACT_FILENAME), renderArtifactHtml(state)).catch(() => {});
+        } catch {}
+    }
+    return queueWrite(join(dir, STATE_FILENAME), contents);
+}
+
 // A state file written before the backtracking screen existed, or edited by hand,
 // can carry patterns the publish path would now refuse. Drop those on the way back
 // in rather than handing them to the canvas. An exercise left with no runnable
 // checks is still completable through "Ask Copilot for a review".
-function rescreenLoadedChecks(state) {
-    const ex = state?.tutorial?.exercise;
-    if (!ex || !Array.isArray(ex.checks)) return state;
+function rescreenExercise(tutorial) {
+    const ex = tutorial?.exercise;
+    if (!ex || !Array.isArray(ex.checks)) return;
     ex.checks = ex.checks
         .map((c) => normalizeCheck(c))
         .filter((r) => !r.error && r.check)
         .map((r) => r.check);
+}
+
+// Archived lessons count too: any of them is one arrow press from the canvas.
+function rescreenLoadedChecks(state) {
+    rescreenExercise(state?.tutorial);
+    for (const entry of (Array.isArray(state?.archive) ? state.archive : [])) {
+        rescreenExercise(entry?.tutorial);
+    }
     return state;
 }
 
@@ -381,13 +484,18 @@ function buildTutorialRequestPrompt() {
     return [
         "Please build me a lesson in the Edit Tutorial canvas.",
         "",
-        "Review the code edits you made earlier in this session: which files you created or changed, what each change does, and why. Then call the edit-tutorial canvas action `set_tutorial` with:",
+        "First pick the source of the lesson:",
         "",
-        "1. A short `title` and a `summary` of the overall change.",
+        "- If you made code edits earlier in this session, use those: which files you created or changed, what each change does, and why.",
+        "- If you made no code edits in this session, use the repository's most recent commit instead (or the commit I named): read the commit message and its diff, and teach those changes the same way.",
+        "",
+        "Then call the edit-tutorial canvas action `set_tutorial` with:",
+        "",
+        "1. A short `title`, a `summary` of the overall change, and a `source` naming where the lesson comes from, such as 'Edits made in this session' or 'Commit a1b2c3d: add retry with backoff'.",
         "2. Three to six `steps`, each teaching one focused edit: `file`, `heading`, `explanation`, `before` and `after` snippets, and (for the most important steps) a multiple-choice `quiz` with `question`, `options`, `answerIndex`, and `why`.",
-        "3. An `exercise` that applies the same technique as your edits but as a slight variation, never a repeat: same pattern, different target (another function, module, field, or parameter values). Include `brief`, `file`, `starterCode`, two or three `hints` ordered from gentle to specific, `solutionChecks` (regex `pattern` plus a learner-facing `hint` for each), and a reference `solution`.",
+        "3. An `exercise` that applies the same technique as the changes but as a slight variation, never a repeat: same pattern, different target (another function, module, field, or parameter values). Include `brief`, `file`, `starterCode`, two or three `hints` ordered from gentle to specific, `solutionChecks` (regex `pattern` plus a learner-facing `hint` for each), and a reference `solution`.",
         "",
-        "If you made no code edits in this session, ask me which recent change or file I would like to learn instead.",
+        "If there are no session edits and no repository or commits to read, ask me which recent change or file I would like to learn instead.",
     ].join("\n");
 }
 
@@ -422,22 +530,118 @@ function buildReviewPrompt(state) {
     ].join("\n");
 }
 
-// --- HTML renderer ---
+// --- Shared rendering: one implementation for the canvas page and the artifact ---
 
-// Renders the canvas document. The per-instance capability token is embedded in
-// a meta tag so the page - and only the page - can authenticate to the local API.
-function renderHtml(token) {
-    return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="tutorial-token" content="${token}" />
-<title>Edit Tutorial</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<style>
+// These helpers turn lesson content into HTML in two places: inside the served
+// canvas page (interactive, browser-side) and in renderArtifactHtml (static, in
+// this process). Their source is injected into the page verbatim through
+// Function.prototype.toString, the same way CHECK_WORKER_SRC ships code as text,
+// so the two renderings cannot drift apart. That only works while they stay
+// self-contained ES5: no arrow functions, no template literals, and no reference
+// to anything outside this group.
+
+function esc(s) {
+    return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// Above this many matrix cells an exact LCS is not worth the memory, so oversized
+// snippets fall back to a positional compare. 20k characters of realistic code is
+// well under the cap; the guard only fires on pathological input.
+const DIFF_CELL_BUDGET = 250000;
+
+// Suffix LCS table: m[i][j] is the LCS length of b[i..] and a[j..]. Walking it
+// forward reconstructs which occurrences pair up and which do not.
+function lcsSuffixLengths(b, a) {
+    var m = new Array(b.length + 1), i, j;
+    for (i = 0; i <= b.length; i++) {
+        m[i] = new Array(a.length + 1);
+        for (j = 0; j <= a.length; j++) m[i][j] = 0;
+    }
+    for (i = b.length - 1; i >= 0; i--) {
+        for (j = a.length - 1; j >= 0; j--) {
+            m[i][j] = b[i] === a[j]
+                ? m[i + 1][j + 1] + 1
+                : Math.max(m[i + 1][j], m[i][j + 1]);
+        }
+    }
+    return m;
+}
+
+// Comparison key for one line. Indentation is part of the program in Python and
+// YAML, and re-indenting a block is exactly the kind of edit a lesson teaches, so
+// a line with content keeps its leading whitespace and an indentation-only change
+// is reported. A line that is only whitespace carries no meaning either way and
+// normalizes to empty, which also keeps it out of the marked set entirely, since
+// the renderer only marks lines with a truthy key.
+function diffKey(line) {
+    return line.trim() ? line : "";
+}
+
+// Sequence-aware line diff. Comparing sets of lines collapses duplicates and
+// throws away ordering, so two "x" lines becoming one showed no removal at all
+// and a reordering showed no change. Walking an LCS marks one occurrence per
+// unmatched line and respects position.
+function diffLines(before, after) {
+    var b = String(before || "").split("\n");
+    var a = String(after || "").split("\n");
+    var bKey = b.map(diffKey);
+    var aKey = a.map(diffKey);
+    var removed = {}, added = {};
+    var i = 0, j = 0, k;
+
+    if ((b.length + 1) * (a.length + 1) <= DIFF_CELL_BUDGET) {
+        var m = lcsSuffixLengths(bKey, aKey);
+        while (i < b.length && j < a.length) {
+            if (bKey[i] === aKey[j]) { i++; j++; continue; }
+            // Drop from whichever side leaves the longer common subsequence behind.
+            if (m[i + 1][j] >= m[i][j + 1]) { removed[i] = true; i++; }
+            else { added[j] = true; j++; }
+        }
+        for (; i < b.length; i++) removed[i] = true;
+        for (; j < a.length; j++) added[j] = true;
+    } else {
+        // Oversized snippet: compare line for line by position instead of building a
+        // quadratic matrix. Coarser on inserts, but bounded and still order-aware.
+        var max = Math.max(b.length, a.length);
+        for (k = 0; k < max; k++) {
+            if (bKey[k] !== aKey[k]) {
+                if (k < b.length) removed[k] = true;
+                if (k < a.length) added[k] = true;
+            }
+        }
+    }
+
+    return {
+        before: b.map(function (l, idx) { return { text: l, removed: !!bKey[idx] && !!removed[idx] }; }),
+        after: a.map(function (l, idx) { return { text: l, added: !!aKey[idx] && !!added[idx] }; })
+    };
+}
+
+function codeBlock(lines, cls) {
+    var html = '<div class="code-block">';
+    lines.forEach(function (l) {
+        var marker = l[cls] ? " " + cls : "";
+        html += '<div class="code-line' + marker + '">' + (esc(l.text) || " ") + "</div>";
+    });
+    return html + "</div>";
+}
+
+// The bundle injected into the canvas page. DIFF_CELL_BUDGET is a const in this
+// module, so the page gets it restated as a var alongside the function sources.
+const SHARED_RENDER_SRC = [
+    "var DIFF_CELL_BUDGET = " + DIFF_CELL_BUDGET + ";",
+    esc.toString(),
+    lcsSuffixLengths.toString(),
+    diffKey.toString(),
+    diffLines.toString(),
+    codeBlock.toString(),
+].join("\n\n");
+
+// Styling shared by the live canvas and the preserved artifact, so the snapshot
+// looks like the canvas it stands in for.
+const BASE_CSS = `
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -483,12 +687,25 @@ body { padding: 1.75rem 1.5rem 3rem; max-width: 940px; margin: 0 auto; }
   color: var(--blue); margin-bottom: 0.2rem;
 }
 .summary { color: var(--muted); font-size: 0.92rem; max-width: 64ch; margin-bottom: 1.5rem; }
+.source-line { font-family: var(--mono); font-size: 0.72rem; color: var(--faint); margin-top: 0.3rem; }
 
 .progress-pill {
   font-family: var(--mono); font-size: 0.75rem; font-weight: 500; color: var(--blue-dark);
   background: var(--blue-tint); border: 1px solid rgba(26,102,194,0.15);
   padding: 6px 14px; border-radius: var(--radius-pill); white-space: nowrap;
 }
+
+.header-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.lesson-nav { display: flex; align-items: center; gap: 8px; }
+.lesson-nav-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; font-size: 1.05rem; line-height: 1; padding: 0 0 2px;
+  color: var(--muted); background: var(--surface); border: 1px solid var(--border);
+  border-radius: 50%; cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease;
+}
+.lesson-nav-btn:not([disabled]):hover { border-color: var(--blue); color: var(--blue); }
+.lesson-nav-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+.lesson-nav-label { font-family: var(--mono); font-size: 0.72rem; color: var(--faint); white-space: nowrap; }
 
 .stepper { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .step-node {
@@ -639,7 +856,28 @@ body { padding: 1.75rem 1.5rem 3rem; max-width: 940px; margin: 0 auto; }
 .loading .dot:nth-child(2) { animation-delay: 0.2s; }
 .loading .dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-</style>
+`;
+
+// Fonts for both documents. If the network is unavailable, the stacks fall back
+// to system faces.
+const FONT_LINKS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />`;
+
+// --- HTML renderer ---
+
+// Renders the canvas document. The per-instance capability token is embedded in
+// a meta tag so the page - and only the page - can authenticate to the local API.
+function renderHtml(token) {
+    return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="tutorial-token" content="${token}" />
+<title>Edit Tutorial</title>
+${FONT_LINKS}
+<style>${BASE_CSS}</style>
 </head>
 <body>
 <div id="app">
@@ -671,6 +909,8 @@ var tabEscapes = false;
 // changed attempt reaches the server before an approval naming the old one can.
 var reviewPending = false;
 var reviewArmed = false;
+// A lesson switch is in flight; further arrow presses wait until it settles.
+var lessonSwitching = false;
 
 // Capability token minted by the server for this canvas instance. Every API call
 // carries it, so a page that never received this document cannot read the lesson
@@ -710,11 +950,10 @@ function applyState(next) {
   return true;
 }
 
-function esc(s) {
-  return String(s == null ? "" : s)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
+// Rendering helpers injected verbatim from the extension module, so the live
+// canvas and the preserved artifact render content identically: esc,
+// DIFF_CELL_BUDGET, lcsSuffixLengths, diffKey, diffLines, and codeBlock.
+${SHARED_RENDER_SRC}
 
 function toast(msg) {
   var el = document.getElementById("toast");
@@ -795,98 +1034,36 @@ function exerciseUnlocked() {
   return understoodCount() === (S.tutorial.steps || []).length;
 }
 
-// Above this many matrix cells an exact LCS is not worth the memory, so oversized
-// snippets fall back to a positional compare. 20k characters of realistic code is
-// well under the cap; the guard only fires on pathological input.
-var DIFF_CELL_BUDGET = 250000;
-
-// Suffix LCS table: m[i][j] is the LCS length of b[i..] and a[j..]. Walking it
-// forward reconstructs which occurrences pair up and which do not.
-function lcsSuffixLengths(b, a) {
-  var m = new Array(b.length + 1), i, j;
-  for (i = 0; i <= b.length; i++) {
-    m[i] = new Array(a.length + 1);
-    for (j = 0; j <= a.length; j++) m[i][j] = 0;
-  }
-  for (i = b.length - 1; i >= 0; i--) {
-    for (j = a.length - 1; j >= 0; j--) {
-      m[i][j] = b[i] === a[j]
-        ? m[i + 1][j + 1] + 1
-        : Math.max(m[i + 1][j], m[i][j + 1]);
-    }
-  }
-  return m;
-}
-
-// Comparison key for one line. Indentation is part of the program in Python and
-// YAML, and re-indenting a block is exactly the kind of edit a lesson teaches, so
-// a line with content keeps its leading whitespace and an indentation-only change
-// is reported. A line that is only whitespace carries no meaning either way and
-// normalizes to empty, which also keeps it out of the marked set entirely, since
-// the renderer only marks lines with a truthy key.
-function diffKey(line) {
-  return line.trim() ? line : "";
-}
-
-// Sequence-aware line diff. Comparing sets of lines collapses duplicates and
-// throws away ordering, so two "x" lines becoming one showed no removal at all
-// and a reordering showed no change. Walking an LCS marks one occurrence per
-// unmatched line and respects position.
-function diffLines(before, after) {
-  var b = String(before || "").split("\\n");
-  var a = String(after || "").split("\\n");
-  var bKey = b.map(diffKey);
-  var aKey = a.map(diffKey);
-  var removed = {}, added = {};
-  var i = 0, j = 0, k;
-
-  if ((b.length + 1) * (a.length + 1) <= DIFF_CELL_BUDGET) {
-    var m = lcsSuffixLengths(bKey, aKey);
-    while (i < b.length && j < a.length) {
-      if (bKey[i] === aKey[j]) { i++; j++; continue; }
-      // Drop from whichever side leaves the longer common subsequence behind.
-      if (m[i + 1][j] >= m[i][j + 1]) { removed[i] = true; i++; }
-      else { added[j] = true; j++; }
-    }
-    for (; i < b.length; i++) removed[i] = true;
-    for (; j < a.length; j++) added[j] = true;
-  } else {
-    // Oversized snippet: compare line for line by position instead of building a
-    // quadratic matrix. Coarser on inserts, but bounded and still order-aware.
-    var max = Math.max(b.length, a.length);
-    for (k = 0; k < max; k++) {
-      if (bKey[k] !== aKey[k]) {
-        if (k < b.length) removed[k] = true;
-        if (k < a.length) added[k] = true;
-      }
-    }
-  }
-
-  return {
-    before: b.map(function (l, idx) { return { text: l, removed: !!bKey[idx] && !!removed[idx] }; }),
-    after: a.map(function (l, idx) { return { text: l, added: !!aKey[idx] && !!added[idx] }; })
-  };
-}
-
-function codeBlock(lines, cls) {
-  var html = '<div class="code-block">';
-  lines.forEach(function (l) {
-    var marker = l[cls] ? " " + cls : "";
-    html += '<div class="code-line' + marker + '">' + (esc(l.text) || " ") + "</div>";
-  });
-  return html + "</div>";
-}
-
 // --- Views ---
 
 function renderEmpty() {
   return '<div class="empty-state">' +
     '<h1>Edit Tutorial</h1>' +
-    '<p>Copilot just changed your code. Turn those edits into a lesson: a guided walkthrough of every change, then a hands-on exercise where you apply the same idea yourself, with a twist.</p>' +
+    '<p>Turn a change into a lesson: the edits Copilot made in this session, or the latest commit in your repository if it made none. You get a guided walkthrough of every change, then a hands-on exercise where you apply the same idea yourself, with a twist.</p>' +
     '<button class="btn btn-primary" id="build-tutorial" onclick="requestTutorial()">Build my tutorial</button>' +
     (requested
-      ? '<div class="waiting">Copilot is reviewing its edits and writing your lesson. This view updates automatically.</div>'
-      : '<p style="margin-top:1rem; font-size:0.8rem;">You can also just ask Copilot: "teach me what you changed".</p>') +
+      ? '<div class="waiting">Copilot is reviewing the changes and writing your lesson. This view updates automatically.</div>'
+      : '<p style="margin-top:1rem; font-size:0.8rem;">You can also just ask Copilot: "teach me what you changed" or "teach me the last commit".</p>') +
+    "</div>";
+}
+
+// Arrows for paging through the lesson history, shown under the progress pill
+// only when there is more than one lesson to page through. The label between
+// them says which lesson is on screen; each arrow names its destination for
+// assistive tech, since "next" alone says nothing about where it leads.
+function renderLessonNav() {
+  var info = S.lesson || {};
+  if (!(info.count > 1)) return "";
+  var i = info.index || 0;
+  var titles = info.titles || [];
+  var prevTitle = i > 0 ? titles[i - 1] || "" : "";
+  var nextTitle = i < info.count - 1 ? titles[i + 1] || "" : "";
+  return '<div class="lesson-nav" role="navigation" aria-label="Lessons">' +
+    '<button class="lesson-nav-btn" id="lesson-prev"' + (i <= 0 ? " disabled" : "") +
+      ' aria-label="Previous lesson' + (prevTitle ? ": " + esc(prevTitle) : "") + '" onclick="gotoLesson(' + (i - 1) + ')">&#8249;</button>' +
+    '<span class="lesson-nav-label">Lesson ' + (i + 1) + " of " + info.count + "</span>" +
+    '<button class="lesson-nav-btn" id="lesson-next"' + (i >= info.count - 1 ? " disabled" : "") +
+      ' aria-label="Next lesson' + (nextTitle ? ": " + esc(nextTitle) : "") + '" onclick="gotoLesson(' + (i + 1) + ')">&#8250;</button>' +
     "</div>";
 }
 
@@ -1070,8 +1247,11 @@ function render() {
 
   var html = '<div class="header"><div>' +
     '<div class="kicker">Edit Tutorial</div>' +
-    "<h1>" + esc(S.tutorial.title) + "</h1></div>" +
-    '<span class="progress-pill">' + done + " / " + total + " complete</span></div>";
+    "<h1>" + esc(S.tutorial.title) + "</h1>" +
+    (S.tutorial.source ? '<div class="source-line">Source: ' + esc(S.tutorial.source) + "</div>" : "") +
+    "</div>" +
+    '<div class="header-side"><span class="progress-pill">' + done + " / " + total + " complete</span>" +
+    renderLessonNav() + "</div></div>";
   if (S.tutorial.summary) html += '<p class="summary">' + esc(S.tutorial.summary) + "</p>";
 
   html += renderStepper();
@@ -1141,6 +1321,46 @@ function gotoStep(i) {
   view = { kind: "step", index: i };
   lastCheckResults = null;
   render();
+}
+
+// Switches to another lesson in the history. The server owns the swap: it moves
+// the active lesson (with its progress) back into the archive, pulls the chosen
+// one out, and bumps the revision, so a debounced progress save composed
+// against the departing lesson is refused rather than written onto the arriving
+// one.
+function gotoLesson(index) {
+  var info = S.lesson || {};
+  if (lessonSwitching || !(info.count > 1)) return;
+  if (index < 0 || index >= info.count || index === info.index) return;
+  var forward = index > (info.index || 0);
+  lessonSwitching = true;
+  api("/lesson", { method: "POST", body: JSON.stringify({ index: index }) })
+    .then(function (r) {
+      if (!r.ok) throw new Error("switch rejected");
+      return r.json();
+    })
+    .then(function (state) {
+      lessonSwitching = false;
+      // The broadcast for this same switch can land first with the same
+      // revision; this response being dropped as already applied is fine.
+      if (applyState(state)) {
+        view = openingView();
+        lastCheckResults = null;
+      }
+      var at = S.lesson || { index: 0, count: 0 };
+      // Land focus on an arrow that still works: at either end of the history
+      // the arrow just pressed is disabled, so hand focus to its counterpart.
+      pendingFocus = at.index >= at.count - 1 ? "lesson-prev"
+        : at.index <= 0 ? "lesson-next"
+        : forward ? "lesson-next" : "lesson-prev";
+      render();
+      announce("Lesson " + (at.index + 1) + " of " + at.count +
+        (S.tutorial ? ": " + S.tutorial.title : ""));
+    })
+    .catch(function () {
+      lessonSwitching = false;
+      toast("Could not switch lessons.");
+    });
 }
 
 function gotoExercise() {
@@ -1515,6 +1735,9 @@ evtSource.onmessage = function (e) {
   }
   if (msg.kind === "approved") toast("Copilot approved your exercise.");
   if (msg.kind === "reset") { view = { kind: "step", index: 0 }; lastCheckResults = null; }
+  // A lesson switch this canvas did not initiate (its own switch applies through
+  // the /lesson response first and this duplicate is dropped above).
+  if (msg.kind === "lesson") { view = openingView(); lastCheckResults = null; }
   render();
 };
 
@@ -1536,6 +1759,163 @@ api("/state")
 </html>`;
 }
 
+// --- Artifact renderer ---
+
+// The live canvas only exists while this process serves it: a random loopback
+// port, a token minted at startup, a server that dies with the app. What survives
+// a restart is what was written to the workspace, and preserving the raw state
+// JSON shows the learner a wall of data where their lesson used to be. So every
+// save also writes this document: the same lesson, rendered the way the canvas
+// renders it, as one self-contained read-only page with no scripts, no token,
+// and no server behind it, which the app can preserve and display as an
+// artifact. The state document rides along in a non-executing JSON block, so a
+// session can rebuild the live canvas from the artifact alone if the state file
+// is ever lost.
+
+function artifactStepProgress(state, stepId) {
+    const p = state.progress && state.progress.steps ? state.progress.steps[stepId] : null;
+    return p || { understood: false, quizAnswer: null, quizCorrect: false };
+}
+
+function artifactStepper(state) {
+    let html = '<div class="stepper">';
+    (state.tutorial.steps || []).forEach((s, i) => {
+        const p = artifactStepProgress(state, s.id);
+        html += '<span class="step-node' + (p.understood ? " done" : "") + '">' +
+            (p.understood ? "&#10003; " : "") + (i + 1) + "</span>" +
+            '<span class="step-connector"></span>';
+    });
+    const pe = state.progress?.exercise || {};
+    const unlocked = (state.tutorial.steps || []).every((s) => artifactStepProgress(state, s.id).understood);
+    let cls = "step-node exercise-node" + (unlocked ? " unlocked" : " locked");
+    if (pe.completed) cls += " done";
+    html += '<span class="' + cls + '">' + (pe.completed ? "&#10003; " : "") + "Exercise</span>";
+    return html + "</div>";
+}
+
+function artifactQuiz(step, p) {
+    const q = step.quiz;
+    if (!q) return "";
+    let html = '<div class="quiz"><div class="q-label">Check yourself</div>' +
+        '<div class="q-text">' + esc(q.question) + "</div>";
+    q.options.forEach((opt, i) => {
+        let cls = "quiz-option";
+        if (p.quizAnswer === i) cls += i === q.answerIndex ? " picked-right" : " picked-wrong";
+        html += '<div class="' + cls + '">' + esc(opt) + "</div>";
+    });
+    if (p.quizAnswer !== null && p.quizAnswer !== undefined) {
+        html += p.quizAnswer === q.answerIndex
+            ? '<div class="quiz-why right">Correct.' + (q.why ? " " + esc(q.why) : "") + "</div>"
+            : '<div class="quiz-why">Not quite yet.' + (q.why ? " Hint: " + esc(q.why) : "") + "</div>";
+    }
+    return html + "</div>";
+}
+
+function artifactStep(state, step, i) {
+    const p = artifactStepProgress(state, step.id);
+    const d = diffLines(step.before, step.after);
+    let html = '<div class="card">';
+    if (step.file) html += '<span class="file-chip">' + esc(step.file) + "</span>";
+    html += '<div class="step-heading">' + (i + 1) + ". " + esc(step.heading) +
+        (p.understood ? ' <span class="done-mark">&#10003;</span>' : "") + "</div>";
+    html += '<div class="explanation">' + esc(step.explanation) + "</div>";
+    if (step.before || step.after) {
+        html += '<div class="diff-grid">';
+        if (step.before) {
+            html += '<div class="diff-pane"><div class="diff-label">Before</div>' + codeBlock(d.before, "removed") + "</div>";
+        }
+        html += '<div class="diff-pane"><div class="diff-label">' + (step.before ? "After" : "New code") + "</div>" + codeBlock(d.after, "added") + "</div>";
+        html += "</div>";
+    }
+    html += artifactQuiz(step, p);
+    return html + "</div>";
+}
+
+function plainCode(source) {
+    return codeBlock(String(source == null ? "" : source).split("\n").map((t) => ({ text: t })), "none");
+}
+
+function artifactExercise(state) {
+    const ex = state.tutorial.exercise;
+    const pe = state.progress?.exercise || {};
+    let html = "";
+    if (pe.completed) {
+        html += '<div class="banner-complete"><h2>Exercise complete</h2><p>' +
+            (pe.completedBy === "copilot"
+                ? esc(pe.approvalNote || "Copilot reviewed the attempt and approved it.")
+                : "All checks passed. The learner applied the pattern on their own.") +
+            "</p></div>";
+    }
+    html += '<div class="card">';
+    if (ex.file) html += '<span class="file-chip">' + esc(ex.file) + "</span>";
+    html += '<div class="step-heading">' + esc(ex.heading) + "</div>";
+    html += '<div class="exercise-brief">' + esc(ex.brief) + "</div>";
+    const revealed = Math.min(Number(pe.hintsRevealed) || 0, (ex.hints || []).length);
+    if (revealed > 0) {
+        html += '<div class="hints">';
+        ex.hints.slice(0, revealed).forEach((h, i) => {
+            html += '<div class="hint-item">Hint ' + (i + 1) + ": " + esc(h) + "</div>";
+        });
+        html += "</div>";
+    }
+    html += '<div class="diff-label">' + (pe.completed ? "Completed attempt" : "Attempt in progress") + "</div>" +
+        plainCode(pe.code == null ? ex.starterCode : pe.code);
+    if (pe.solutionRevealed && ex.solution) {
+        html += '<div class="solution-block"><div class="diff-label">Reference solution</div>' + plainCode(ex.solution) + "</div>";
+    }
+    return html + "</div>";
+}
+
+function renderArtifactHtml(state) {
+    const steps = state.tutorial.steps || [];
+    const understood = steps.filter((s) => artifactStepProgress(state, s.id).understood).length;
+    const completed = !!state.progress?.exercise?.completed;
+    const done = understood + (completed ? 1 : 0);
+    const total = steps.length + 1;
+    // The snapshot shows the active lesson; the full history rides along in the
+    // embedded state block below.
+    const lessonCount = lessonList(state).length;
+    const lessonLabel = lessonCount > 1
+        ? '<span class="lesson-nav-label">Lesson ' + (Math.max(0, activeLessonPos(state)) + 1) + " of " + lessonCount + "</span>"
+        : "";
+    // The JSON block never executes, but a "</script>" inside one of its strings
+    // would still close the element early, so every "<" leaves as an escape.
+    const stateJson = JSON.stringify(state).replace(/</g, "\\u003c");
+
+    return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${esc(state.tutorial.title)} - Edit Tutorial</title>
+${FONT_LINKS}
+<style>${BASE_CSS}
+/* Artifact-only styling: the stepper and quiz options are records, not controls. */
+.snapshot .step-node, .snapshot .quiz-option { cursor: default; pointer-events: none; }
+.snapshot-note {
+  font-size: 0.84rem; color: var(--blue-dark); background: var(--blue-tint);
+  border: 1px solid rgba(26,102,194,0.2); border-radius: var(--radius-sm);
+  padding: 8px 14px; margin-bottom: 1.25rem;
+}
+.done-mark { color: var(--green); }
+</style>
+</head>
+<body class="snapshot">
+<div class="header"><div>
+<div class="kicker">Edit Tutorial</div>
+<h1>${esc(state.tutorial.title)}</h1>
+${state.tutorial.source ? '<div class="source-line">Source: ' + esc(state.tutorial.source) + "</div>" : ""}</div>
+<div class="header-side"><span class="progress-pill">${done} / ${total} complete</span>${lessonLabel}</div></div>
+<div class="snapshot-note">Read-only snapshot of this lesson and its progress, kept up to date by the Edit Tutorial canvas. Reopen the canvas in a Copilot session to continue.</div>
+${state.tutorial.summary ? '<p class="summary">' + esc(state.tutorial.summary) + "</p>" : ""}
+${artifactStepper(state)}
+${steps.map((s, i) => artifactStep(state, s, i)).join("\n")}
+${artifactExercise(state)}
+<script type="application/json" id="edit-tutorial-state">${stateJson}</script>
+</body>
+</html>`;
+}
+
 // --- Server ---
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
@@ -1544,7 +1924,7 @@ const JSON_HEADERS = { "Content-Type": "application/json" };
 const MAX_BODY_BYTES = 256 * 1024;
 // Routes that read state or drive the session. All of them require the
 // capability token; the served document at "/" is the only anonymous route.
-const API_PATHS = new Set(["/events", "/state", "/progress", "/review", "/request-tutorial", "/reset"]);
+const API_PATHS = new Set(["/events", "/state", "/progress", "/review", "/request-tutorial", "/reset", "/lesson"]);
 
 // The exact loopback authority this server bound to. A DNS-rebinding page
 // reaches us under its own hostname (Host: attacker.example:<port>), so pinning
@@ -1665,12 +2045,12 @@ async function startServer(instanceId) {
                 // itself; otherwise the canvas sits on a revision the server has
                 // moved past and every write it makes is refused as stale, with
                 // nothing left to tell it why.
-                try { res.write("data: " + JSON.stringify({ kind: "sync", state }) + "\n\n"); } catch {}
+                try { res.write("data: " + JSON.stringify({ kind: "sync", state: clientState(state) }) + "\n\n"); } catch {}
                 return;
             }
 
             if (url.pathname === "/state" && req.method === "GET") {
-                sendJson(res, 200, state);
+                sendJson(res, 200, clientState(state));
                 return;
             }
 
@@ -1749,8 +2129,33 @@ async function startServer(instanceId) {
                 state.progress = state.tutorial ? freshProgress(state.tutorial) : null;
                 bumpRev(state);
                 await saveState(sessionRef?.workspacePath, state);
-                broadcast(instanceId, { kind: "reset", state });
-                sendJson(res, 200, state);
+                broadcast(instanceId, { kind: "reset", state: clientState(state) });
+                sendJson(res, 200, clientState(state));
+                return;
+            }
+
+            if (url.pathname === "/lesson" && req.method === "POST") {
+                const { ok, body } = await readBody(req, MAX_BODY_BYTES);
+                if (!ok) {
+                    sendJson(res, 413, { ok: false, error: "payload_too_large" }, { Connection: "close" });
+                    return;
+                }
+                let incoming = null;
+                try { incoming = JSON.parse(body); } catch {}
+                const index = incoming && Number.isInteger(incoming.index) ? incoming.index : -1;
+                if (index === activeLessonPos(state) && state.tutorial) {
+                    // Already the lesson on screen; do not spend a revision on it.
+                    sendJson(res, 200, clientState(state));
+                    return;
+                }
+                if (!activateLesson(state, index)) {
+                    sendJson(res, 400, { ok: false, error: "invalid_lesson_index" });
+                    return;
+                }
+                bumpRev(state);
+                await saveState(sessionRef?.workspacePath, state);
+                broadcast(instanceId, { kind: "lesson", state: clientState(state) });
+                sendJson(res, 200, clientState(state));
                 return;
             }
 
@@ -1783,10 +2188,11 @@ async function startServer(instanceId) {
 
 const tutorialSchema = {
     type: "object",
-    description: "The tutorial to publish, built from the code edits made in this session.",
+    description: "The tutorial to publish, built from the code edits made in this session or from a commit's changes.",
     properties: {
         title: { type: "string", description: "Short lesson title, e.g. 'Adding retry with backoff'" },
         summary: { type: "string", description: "One or two sentences on what changed overall and why" },
+        source: { type: "string", description: "Where the lesson's changes come from, e.g. 'Edits made in this session' or 'Commit a1b2c3d: add retry with backoff'" },
         steps: {
             type: "array",
             description: "One step per focused edit, in reading order (3 to 6 works best)",
@@ -1849,7 +2255,7 @@ const session = await joinSession({
             id: "edit-tutorial",
             displayName: "Edit Tutorial",
             description:
-                "Turns the code edits made in this session into an interactive lesson: a step-by-step walkthrough of each change with before/after views and comprehension quizzes, then a hands-on exercise that varies the same edits so the learner finishes the change themselves. After making code edits, publish a lesson with set_tutorial; check on the learner with get_progress; approve a reviewed attempt with approve_exercise.",
+                "Turns a set of code changes into an interactive lesson: the edits made in this session, or the changes in a commit (the repository's last commit by default) when there are no session edits. The lesson is a step-by-step walkthrough of each change with before/after views and comprehension quizzes, then a hands-on exercise that varies the same changes so the learner finishes the change themselves. Publish a lesson with set_tutorial; check on the learner with get_progress; approve a reviewed attempt with approve_exercise.",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -1860,21 +2266,21 @@ const session = await joinSession({
                 {
                     name: "set_tutorial",
                     description:
-                        "Publish (or replace) the lesson shown in the canvas. Build it from the code edits made in this session: one step per focused change with before/after snippets, and an exercise that is a slight variation of those edits (same technique, different target), never a repeat. Republishing resets learner progress.",
+                        "Publish (or replace) the lesson shown in the canvas. Build it from the code edits made in this session, or from the changes in a commit (the repository's last commit by default) when there are no session edits or the user names a commit: one step per focused change with before/after snippets, and an exercise that is a slight variation of those changes (same technique, different target), never a repeat. A lesson with a new title is added to the lesson history and shown; the learner can flip back to earlier lessons with arrows in the canvas. Republishing with the active lesson's title replaces that lesson and resets its progress.",
                     inputSchema: tutorialSchema,
                     handler: async (ctx) => {
                         const result = normalizeTutorial(ctx.input);
                         if (result.error) return { ok: false, error: result.error };
                         const state = getState(ctx.instanceId);
-                        state.tutorial = result.tutorial;
-                        state.progress = freshProgress(result.tutorial);
+                        publishLesson(state, result.tutorial);
                         bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
-                        broadcast(ctx.instanceId, { kind: "tutorial", state });
+                        broadcast(ctx.instanceId, { kind: "tutorial", state: clientState(state) });
                         return {
                             ok: true,
                             steps: result.tutorial.steps.length,
                             checks: result.tutorial.exercise.checks.length,
+                            lessons: lessonList(state).length,
                             note: "Lesson published. The learner works through the steps, then finishes the exercise in the canvas.",
                         };
                     },
@@ -1889,6 +2295,10 @@ const session = await joinSession({
                         return {
                             ok: true,
                             title: state.tutorial.title,
+                            // Which lesson the learner is looking at (zero-based) and
+                            // how many the history holds; everything else reported
+                            // here describes that active lesson.
+                            lessons: { index: Math.max(0, activeLessonPos(state)), count: lessonList(state).length },
                             stepsTotal: state.tutorial.steps.length,
                             stepsUnderstood: Object.values(state.progress?.steps || {}).filter((s) => s.understood).length,
                             progress: state.progress,
@@ -1937,7 +2347,7 @@ const session = await joinSession({
                         state.progress.exercise.approvalNote = text(ctx.input?.note, 300);
                         bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
-                        broadcast(ctx.instanceId, { kind: "approved", state });
+                        broadcast(ctx.instanceId, { kind: "approved", state: clientState(state) });
                         return { ok: true };
                     },
                 },
@@ -1950,7 +2360,7 @@ const session = await joinSession({
                         state.progress = freshProgress(state.tutorial);
                         bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
-                        broadcast(ctx.instanceId, { kind: "reset", state });
+                        broadcast(ctx.instanceId, { kind: "reset", state: clientState(state) });
                         return { ok: true };
                     },
                 },
@@ -1961,8 +2371,7 @@ const session = await joinSession({
                 if (ctx.input?.tutorial) {
                     const result = normalizeTutorial(ctx.input.tutorial);
                     if (result.tutorial) {
-                        state.tutorial = result.tutorial;
-                        state.progress = freshProgress(result.tutorial);
+                        publishLesson(state, result.tutorial);
                         bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
                     }
@@ -1971,6 +2380,12 @@ const session = await joinSession({
                     if (persisted?.tutorial) {
                         state.tutorial = persisted.tutorial;
                         state.progress = persisted.progress || freshProgress(persisted.tutorial);
+                        state.archive = Array.isArray(persisted.archive)
+                            ? persisted.archive.filter((entry) => entry && entry.tutorial)
+                            : [];
+                        state.activePos = Number.isInteger(persisted.activePos)
+                            ? persisted.activePos
+                            : state.archive.length;
                         bumpRev(state);
                     }
                 }
