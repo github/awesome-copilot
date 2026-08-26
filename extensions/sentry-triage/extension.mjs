@@ -1527,26 +1527,32 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
         // "already being worked on"; surface an unconfirmed-result error instead
         // so the user can retry.
         const ACTIVE_PR_STATES = new Set(['open', 'draft'])
-        // A bare PR number is not proof the dedup work lives in the authorized
-        // repo — the card would render "already being worked on · PR #N" as an
-        // authoritative claim, and the repo check below only covers URL-bearing
-        // artifacts. When a concrete PR-repo anchor is set, require the confirming
-        // PR to carry a URL (validated against prExpectedRepo just below); a
-        // number-only reference counts as no confirming PR and surfaces the
-        // retryable "no open pull request" error rather than a spoofable skip. The
-        // PR lives in the PR repo, which in local mode can differ from the issue
-        // repo, so anchor this guard on prExpectedRepo — not expectedRepo.
-        const hasPrRef = prExpectedRepo
-          ? Boolean(result.existingPrUrl)
-          : Boolean(result.existingPrNumber || result.existingPrUrl)
+        // An authoritative "already being worked on" skip SUPPRESSES the trusted
+        // host-resolved create_session flow and surfaces a PR link on the card, so it
+        // must rest on a TRUSTED PR-repo anchor. Otherwise injected Sentry text — this
+        // dedup result and the project list come from the same model turn — could both
+        // block real work and surface an attacker-chosen PR. When a concrete
+        // prExpectedRepo is known, require the confirming PR to carry a URL (validated
+        // against it just below); a number-only reference counts as no confirming PR
+        // and surfaces the retryable "no open pull request" error rather than a
+        // spoofable skip. For an explicitly selected project there is NO trusted
+        // anchor (deriveRepoAnchors publishes prExpectedRepo=''), so no skip is
+        // confirmable at all: fail closed to a retryable error instead of honoring an
+        // unverifiable skip. The PR lives in the PR repo, which in local mode can
+        // differ from the issue repo, so anchor this guard on prExpectedRepo — not
+        // expectedRepo.
+        const hasTrustedPrAnchor = Boolean(prExpectedRepo)
+        const hasPrRef = hasTrustedPrAnchor && Boolean(result.existingPrUrl)
         const hasActivePr = hasPrRef && ACTIVE_PR_STATES.has(result.existingPrState)
         if (!hasActivePr) {
           workRegistry.delete(workToken)
           entry.notifyWork(key, {
             phase: 'error',
-            error: hasPrRef
-              ? 'Agent reported this issue as already being worked on, but the referenced pull request is not open (it may be closed or merged). Retry to open fresh work.'
-              : 'Agent reported this issue as already being worked on but returned no open pull request to confirm it.',
+            error: !hasTrustedPrAnchor
+              ? 'Agent reported this issue as already being worked on, but that can’t be confirmed for a selected project (its pull-request repository isn’t verifiable). Retry to start fresh work, or open the existing pull request manually if there is one.'
+              : hasPrRef
+                ? 'Agent reported this issue as already being worked on, but the referenced pull request is not open (it may be closed or merged). Retry to open fresh work.'
+                : 'Agent reported this issue as already being worked on but returned no open pull request to confirm it.',
           })
           continue
         }
@@ -1558,12 +1564,13 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
         // is paired with the repo it must ACTUALLY live in: the issue URL with the
         // issue repo (`expectedRepo`, GitHub tracker only — Linear/Jira issue URLs
         // legitimately live elsewhere), and the PR URL with the PR repo
-        // (`prExpectedRepo`), which in local mode can differ from the issue repo.
-        // Each check is gated on its own anchor, so an empty anchor ('') skips just
-        // that artifact (failing closed for it) instead of shadowing the other.
+        // (`prExpectedRepo`). The PR anchor is guaranteed concrete here (a selected
+        // project has no trusted anchor and already failed closed above), so only the
+        // issue anchor can be empty — on a non-GitHub tracker — in which case its
+        // check is skipped (failing closed for it) instead of shadowing the PR.
         const dedupArtifacts = [
           ...(isGithubTracker && expectedRepo ? [['issue', result.existingIssueUrl, expectedRepo, 'issue']] : []),
-          ...(prExpectedRepo ? [['pull request', result.existingPrUrl, prExpectedRepo, 'pull']] : []),
+          ['pull request', result.existingPrUrl, prExpectedRepo, 'pull'],
         ].filter(([, url]) => url)
         const bad = dedupArtifacts.find(([, url, anchor, kind]) => !urlInRepo(url, anchor, allowedHost, kind))
         if (bad) {
@@ -1576,19 +1583,16 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
         // Derive every DISPLAYED number from its own validated URL, never from the
         // model-reported *Number field. urlInRepo above only proved each link's
         // repo; a reply could still pair /pull/1 with existingPrNumber 999 and
-        // render "PR #999" linking to PR 1. When a concrete GitHub anchor exists,
-        // repoRefNumber re-extracts the number from the same URL it validated
-        // (guaranteed non-null here since urlInRepo passed) and yields undefined for
-        // a missing/unverifiable URL, so no bare number is shown. With no concrete
-        // anchor (placeholder repo) or a non-GitHub issue tracker there is nothing
-        // to validate against, so the model value stands.
+        // render "PR #999" linking to PR 1. repoRefNumber re-extracts the number from
+        // the same URL it validated and yields undefined for a missing/unverifiable
+        // URL, so no bare number is shown. The PR anchor is always concrete here; the
+        // issue anchor may be empty on a non-GitHub tracker, where there is nothing to
+        // validate against and the model value stands.
         const skipIssueAnchored = isGithubTracker && Boolean(expectedRepo)
         const skippedIssueNumber = skipIssueAnchored
           ? (repoRefNumber(result.existingIssueUrl, expectedRepo, allowedHost, 'issue') ?? undefined)
           : result.existingIssueNumber
-        const skippedPrNumber = prExpectedRepo
-          ? (repoRefNumber(result.existingPrUrl, prExpectedRepo, allowedHost, 'pull') ?? undefined)
-          : result.existingPrNumber
+        const skippedPrNumber = repoRefNumber(result.existingPrUrl, prExpectedRepo, allowedHost, 'pull') ?? undefined
         entry.notifyWork(key, {
           phase: 'skipped',
           existingIssueNumber: skippedIssueNumber,
