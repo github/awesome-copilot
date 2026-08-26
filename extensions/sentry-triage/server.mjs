@@ -77,7 +77,7 @@ function hasValidToken(req, token) {
   return value === token
 }
 
-export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onRecheck, onListProjects, onInvalidateEnrichment, defaults } = {}) {
+export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onRecheck, onListProjects, onResolveProject, onInvalidateEnrichment, defaults } = {}) {
   // Per-instance state + SSE clients — never shared across canvas instances.
   const state = createState()
   state.applyRepoDefaults(defaults)
@@ -238,6 +238,40 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
           .catch((err) => console.error('[sentry-triage] list-projects failed:', err instanceof Error ? err.message : err))
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ ok: true }))
+      })
+      return
+    }
+
+    // Resolve a single exact "org/slug" via the SDK's project.view — an O(1)
+    // lookup that confirms a project the paged list may never reach. For a
+    // mega-org (e.g. "github" has thousands of projects) list discovery is
+    // budget-capped, so a valid slug the user types can be absent from the
+    // autocomplete; this endpoint tells the client "yes, that project exists"
+    // (with its canonical slug) without paging. Distinguishes three outcomes so
+    // the UI never shows a false negative: found, genuinely-missing, and
+    // could-not-check (network/permission) — the latter returns ok:false.
+    if (req.method === 'POST' && req.url === '/api/resolve-project') {
+      readBody(req, res).then(async (body) => {
+        if (body === null) return
+        const { org, slug } = parseJson(body)
+        const wantedOrg = typeof org === 'string' ? org : ''
+        const wantedSlug = typeof slug === 'string' ? slug.trim() : ''
+        let result = { ok: true, found: false, slug: '' }
+        try {
+          if (onResolveProject && wantedSlug) {
+            const r = await onResolveProject(wantedOrg, wantedSlug)
+            const resolved = r && typeof r.slug === 'string' ? r.slug : ''
+            result = { ok: true, found: !!(r && r.found && resolved), slug: resolved }
+          }
+        } catch (err) {
+          // A lookup failure (transient network / rate limit / permission) must
+          // NOT be reported as "project doesn't exist" — that would train the
+          // user to distrust a correct slug. Signal indeterminate with ok:false.
+          console.error('[sentry-triage] resolve-project failed:', err instanceof Error ? err.message : err)
+          result = { ok: false, found: false, slug: '' }
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(result))
       })
       return
     }

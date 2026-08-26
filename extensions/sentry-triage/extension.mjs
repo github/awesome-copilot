@@ -2,7 +2,7 @@ import { joinSession, createCanvas } from '@github/copilot-sdk/extension'
 import { execSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { startServer } from './server.mjs'
-import { scanIssues, listOrgs, listProjects } from './sentry.mjs'
+import { scanIssues, listOrgs, listProjects, findProject } from './sentry.mjs'
 import { checkConnections, checkConnectionsOnce } from './preflight.mjs'
 import { sanitizeForPrompt } from './escape.mjs'
 
@@ -1089,6 +1089,27 @@ async function discoverProjects(entry, org, { force = false } = {}) {
   }
 }
 
+// Resolve a single exact project slug the user typed, via the SDK's O(1)
+// project.view (findProject) — the counterpart to discoverProjects's paged,
+// budget-capped list. For a mega-org the list can't reach every project, so a
+// valid typed slug may never appear as a suggestion; this confirms it directly.
+// Returns { found, slug } where slug is the canonical spelling. Throws on a
+// genuine lookup failure so the server route can answer "could not check"
+// (ok:false) rather than a misleading "not found".
+async function resolveProject(entry, org, slug) {
+  if (entry.closed) return { found: false, slug: '' }
+  const orgSlug = String(org || entry.state.getOrg() || entry.state.getOrgDefault() || '').trim().toLowerCase()
+  const wanted = String(slug || '').trim()
+  if (!orgSlug || !wanted) return { found: false, slug: '' }
+  const conn = entry.state.getConnections()
+  // Not reachable means we CANNOT check right now — it is not evidence the project
+  // is missing. Throw so the server route answers "couldn't check" (ok:false)
+  // rather than a false "no such project".
+  if (!conn || !conn.sentry || !conn.sentry.reachable) throw new Error('sentry-unreachable')
+  const resolved = await findProject(orgSlug, wanted)
+  return { found: !!resolved, slug: resolved || '' }
+}
+
 async function runConnectionCheck(entry, isCurrent) {
   try {
     const connections = await checkConnections()
@@ -1865,6 +1886,7 @@ const session = await joinSession({
             onWorkSelected: (keys, modelByKey, assignCopilot) => onWorkSelected(entry, keys, modelByKey, assignCopilot),
             onRecheck: () => onRecheckConnections(entry),
             onListProjects: (org) => discoverProjects(entry, org, { force: true }),
+            onResolveProject: (org, slug) => resolveProject(entry, org, slug),
             onInvalidateEnrichment: () => {
               // Bump the scan generation so any enrichment turn still in flight
               // from the previous repo fails its isCurrent() guard and applies

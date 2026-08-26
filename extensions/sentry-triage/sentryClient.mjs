@@ -154,8 +154,18 @@ export async function projectListRaw(org, limit = 100, cursor) {
   return asArray(await (await getSdk()).project.list({ orgProject, limit, ...(cursor ? { cursor } : {}) }))
 }
 
-// Verify a specific project exists / is accessible. Returns the raw project
-// object on success; throws SentryError when the slug is unknown or forbidden.
+// Verify a specific project exists / is accessible via the SDK's O(1)
+// `project.view`. Returns the raw project object on success; throws SentryError
+// when the slug is unknown or forbidden.
+//
+// This runs on the SAME shared `runSerial` chain as every other SDK call — there
+// is deliberately NO separate "fast lane". `sentry@0.42.2` keeps its per-command
+// and pagination state in MODULE-GLOBAL SDK state (see the runSerial note above),
+// so a second SDK instance would NOT be a concurrency-isolation boundary: it would
+// still race the paged list / scan and corrupt that shared state. `project.view`
+// is a single, cursor-free call, so funneling it through the one FIFO chain is
+// both correct and cheap. Interactive callers trigger it only on an explicit
+// commit (not per keystroke), so a real user never floods this queue.
 export async function projectView(org, slug) {
   return runSerial(async () => (await getSdk()).project.view({ orgProject: `${org}/${slug}` }))
 }
