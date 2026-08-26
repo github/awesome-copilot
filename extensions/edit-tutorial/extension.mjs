@@ -835,7 +835,7 @@ function renderEmpty() {
   return '<div class="empty-state">' +
     '<h1>Edit Tutorial</h1>' +
     '<p>Copilot just changed your code. Turn those edits into a lesson: a guided walkthrough of every change, then a hands-on exercise where you apply the same idea yourself, with a twist.</p>' +
-    '<button class="btn btn-primary" onclick="requestTutorial()">Build my tutorial</button>' +
+    '<button class="btn btn-primary" id="build-tutorial" onclick="requestTutorial()">Build my tutorial</button>' +
     (requested
       ? '<div class="waiting">Copilot is reviewing its edits and writing your lesson. This view updates automatically.</div>'
       : '<p style="margin-top:1rem; font-size:0.8rem;">You can also just ask Copilot: "teach me what you changed".</p>') +
@@ -850,7 +850,7 @@ function renderStepper() {
     var isActive = view.kind === "step" && view.index === i;
     if (isActive) cls += " active";
     if (p.understood) cls += " done";
-    html += '<button class="' + cls + '" aria-label="Step ' + (i + 1) + ': ' + esc(s.heading) + '"' +
+    html += '<button class="' + cls + '" id="step-node-' + i + '" aria-label="Step ' + (i + 1) + ': ' + esc(s.heading) + '"' +
       (isActive ? ' aria-current="step"' : "") + ' onclick="gotoStep(' + i + ')">' +
       (p.understood ? "&#10003; " : "") + (i + 1) + "</button>";
     html += '<span class="step-connector"></span>';
@@ -859,7 +859,7 @@ function renderStepper() {
   var exCls = "step-node exercise-node" + (unlocked ? " unlocked" : " locked");
   if (view.kind === "exercise") exCls += " active";
   if (S.progress.exercise.completed) exCls += " done";
-  html += '<button class="' + exCls + '" onclick="gotoExercise()">' +
+  html += '<button class="' + exCls + '" id="exercise-node" onclick="gotoExercise()">' +
     (S.progress.exercise.completed ? "&#10003; " : "") + "Exercise</button>";
   return html + "</div>";
 }
@@ -914,8 +914,8 @@ function renderStep(i) {
   html += renderQuiz(step, p);
 
   html += '<div class="actions-row">';
-  if (i > 0) html += '<button class="btn btn-ghost" onclick="gotoStep(' + (i - 1) + ')">Back</button>';
-  html += '<button class="btn btn-primary" ' + (quizGate ? "disabled" : "") + ' onclick="markUnderstood(\\'' + step.id + '\\',' + i + ')">' +
+  if (i > 0) html += '<button class="btn btn-ghost" id="step-back" onclick="gotoStep(' + (i - 1) + ')">Back</button>';
+  html += '<button class="btn btn-primary" id="step-continue" ' + (quizGate ? "disabled" : "") + ' onclick="markUnderstood(\\'' + step.id + '\\',' + i + ')">' +
     (p.understood ? (isLast ? "Go to exercise" : "Next step") : "Got it" + (isLast ? ", unlock the exercise" : ", next step")) +
     "</button>";
   if (quizGate) html += '<span class="hint-inline">Answer the quiz correctly to continue.</span>';
@@ -968,7 +968,9 @@ function renderExercise() {
   if (pe.hintsRevealed > 0) {
     html += '<div class="hints">';
     ex.hints.slice(0, pe.hintsRevealed).forEach(function (h, i) {
-      html += '<div class="hint-item">Hint ' + (i + 1) + ": " + esc(h) + "</div>";
+      // tabindex -1 makes this focusable only in code: revealing the last hint
+      // removes the button that had focus, so the hint itself receives it.
+      html += '<div class="hint-item" id="hint-' + (i + 1) + '" tabindex="-1">Hint ' + (i + 1) + ": " + esc(h) + "</div>";
     });
     html += "</div>";
   }
@@ -979,19 +981,19 @@ function renderExercise() {
   html += renderChecks();
 
   html += '<div class="actions-row">';
-  html += '<button class="btn btn-accent" onclick="checkWork(this)"' + (checking ? " disabled" : "") + ">" +
+  html += '<button class="btn btn-accent" id="check-work" onclick="checkWork(this)"' + (checking ? " disabled" : "") + ">" +
     (checking ? "Checking..." : "Check my work") + "</button>";
   if (pe.hintsRevealed < ex.hints.length) {
-    html += '<button class="btn btn-ghost" onclick="revealHint()">Hint (' + (pe.hintsRevealed + 1) + " of " + ex.hints.length + ")</button>";
+    html += '<button class="btn btn-ghost" id="reveal-hint" onclick="revealHint()">Hint (' + (pe.hintsRevealed + 1) + " of " + ex.hints.length + ")</button>";
   }
-  html += '<button class="btn btn-ghost" onclick="askReview(this)">Ask Copilot for a review</button>';
+  html += '<button class="btn btn-ghost" id="ask-review" onclick="askReview(this)">Ask Copilot for a review</button>';
   if (ex.solution && !pe.solutionRevealed && pe.failedAttempts >= 3) {
-    html += '<button class="btn btn-ghost" onclick="revealSolution()">Show reference solution</button>';
+    html += '<button class="btn btn-ghost" id="reveal-solution" onclick="revealSolution()">Show reference solution</button>';
   }
   html += "</div>";
 
   if (pe.solutionRevealed && ex.solution) {
-    html += '<div class="solution-block"><div class="diff-label">Reference solution</div>' +
+    html += '<div class="solution-block" id="solution-block" tabindex="-1"><div class="diff-label">Reference solution</div>' +
       codeBlock(String(ex.solution).split("\\n").map(function (t) { return { text: t }; }), "none") +
       '<p class="hint-inline" style="margin-top:0.4rem;">Study it, then adapt your own attempt so the checks pass.</p></div>';
   }
@@ -1017,21 +1019,41 @@ function render() {
 
   html += renderStepper();
   html += view.kind === "exercise" ? renderExercise() : renderStep(view.index);
-  html += '<div class="footer-row"><button class="reset-link" onclick="resetProgress()">Reset my progress</button></div>';
+  html += '<div class="footer-row"><button class="reset-link" id="reset-progress" onclick="resetProgress()">Reset my progress</button></div>';
+
+  // Every control that can hold focus carries a stable id, so whatever was
+  // focused before the swap can be found again afterwards. Relying on each caller
+  // to name its own target would mean every new action silently reintroduces the
+  // bug; this way the default is correct and pendingFocus is only needed where
+  // the focused control is the thing that disappears.
+  var active = document.activeElement;
+  var previousId = active && active.id ? active.id : null;
+  var caret = null;
+  if (previousId === "editor" && active.selectionStart !== undefined) {
+    caret = { start: active.selectionStart, end: active.selectionEnd };
+  }
 
   app.innerHTML = html;
-  restoreFocus();
+  restoreFocus(previousId, caret);
 }
 
-// render() replaces the whole panel, so any element that had focus is gone and
-// the caret lands on the document body. A caller that re-renders in response to a
-// control being activated names that control here so keyboard and screen-reader
-// users stay where they were.
-function restoreFocus() {
-  if (!pendingFocus) return;
-  var el = document.getElementById(pendingFocus);
+// render() replaces the whole panel, so anything focused is gone and the caret
+// lands on the document body. Put it back: on the control a caller explicitly
+// asked for when the old one no longer exists, otherwise on whatever had focus.
+function restoreFocus(previousId, caret) {
+  var target = pendingFocus || previousId;
   pendingFocus = null;
-  if (el && el.focus) { try { el.focus(); } catch (err) {} }
+  if (!target) return;
+  var el = document.getElementById(target);
+  if (!el || !el.focus) return;
+  try {
+    el.focus();
+    // The editor is rebuilt from scratch, so a learner typing through a rerender
+    // would otherwise be dropped at the start of their own code.
+    if (caret && target === "editor" && el.setSelectionRange) {
+      el.setSelectionRange(caret.start, caret.end);
+    }
+  } catch (err) {}
 }
 
 // Text for the persistent live region. The toast is visual and transient; this is
@@ -1045,6 +1067,17 @@ function quizOptionId(stepId, i) {
   return "quiz-" + stepId + "-" + i;
 }
 
+// Where to land when a lesson is applied fresh: the first step not yet marked
+// understood, or the exercise once they all are.
+function openingView() {
+  if (!S.tutorial || !S.progress) return { kind: "step", index: 0 };
+  var firstOpen = -1;
+  (S.tutorial.steps || []).forEach(function (s, i) {
+    if (firstOpen === -1 && !(S.progress.steps[s.id] || {}).understood) firstOpen = i;
+  });
+  return firstOpen === -1 ? { kind: "exercise" } : { kind: "step", index: firstOpen };
+}
+
 // --- Interactions ---
 
 function gotoStep(i) {
@@ -1055,6 +1088,12 @@ function gotoStep(i) {
 
 function gotoExercise() {
   view = { kind: "exercise" };
+  // "step-continue" does not exist on the exercise, so a learner arriving from
+  // the last step would land on the document body. Hand them the primary action.
+  // Coming from the stepper, "exercise-node" survives and focus stays put.
+  if (document.activeElement && document.activeElement.id === "step-continue") {
+    pendingFocus = "check-work";
+  }
   render();
 }
 
@@ -1252,22 +1291,40 @@ function checkWork(btn) {
     }
     saveProgress(true);
     render();
+    // The result list is rendered above the buttons, so nothing announces it on
+    // its own; the toast is visual and transient.
+    var passed = lastCheckResults.filter(function (r) { return r.pass; }).length;
     if (allPass) toast("All checks passed. Nicely done.");
     else if (reason === "unavailable") toast("Automatic checks cannot run in this view. Ask Copilot for a review instead.");
     else if (stalled) toast("A check took too long to run and was stopped. Ask Copilot for a review instead.");
+    announce(allPass
+      ? "All checks passed. Exercise complete."
+      : reason === "unavailable"
+        ? "Automatic checks cannot run here. Ask Copilot for a review instead."
+        : passed + " of " + lastCheckResults.length + " checks passed." +
+          (stalled ? " A check could not be run." : ""));
   });
 }
 
 function revealHint() {
-  S.progress.exercise.hintsRevealed++;
+  var n = ++S.progress.exercise.hintsRevealed;
+  var hint = (S.tutorial.exercise.hints || [])[n - 1] || "";
   saveProgress();
+  // On the last hint the button that was focused stops being rendered, so send
+  // focus to the hint itself. Doing it unconditionally also puts a screen reader
+  // on the new text rather than leaving it to notice a change further up.
+  pendingFocus = "hint-" + n;
   render();
+  announce("Hint " + n + ": " + hint);
 }
 
 function revealSolution() {
   S.progress.exercise.solutionRevealed = true;
   saveProgress();
+  // This button is gone for good once used, so focus the block it revealed.
+  pendingFocus = "solution-block";
   render();
+  announce("Reference solution shown.");
 }
 
 function askReview(btn) {
@@ -1340,10 +1397,18 @@ evtSource.onmessage = function (e) {
   try { msg = JSON.parse(e.data); } catch (err) { return; }
   if (!msg || !msg.state) return;
   var hadTutorial = !!S.tutorial;
+  var firstEver = appliedRev === -1;
   // A replayed or out-of-order event carries a revision already applied; its view
   // changes and toasts would be duplicates, so stop here.
   if (!applyState(msg.state)) return;
-  if (!hadTutorial && S.tutorial) {
+  if (firstEver || msg.kind === "sync") {
+    // Either the stream beat the initial read, or it reconnected and brought a
+    // revision this canvas missed. Either way the only honest thing to do is
+    // re-derive where the learner is from the state just caught up to, rather
+    // than announcing a lesson they may have been working through all along.
+    view = openingView();
+    lastCheckResults = null;
+  } else if (!hadTutorial && S.tutorial) {
     view = { kind: "step", index: 0 };
     toast("Your tutorial is ready.");
   }
@@ -1361,13 +1426,7 @@ api("/state")
     // This read was issued before the stream opened. If an event has already
     // delivered a newer document, this snapshot is stale and the opening step it
     // would pick is wrong, so leave the applied state and its view alone.
-    if (applyState(state) && S.tutorial && S.progress) {
-      var firstOpen = -1;
-      S.tutorial.steps.forEach(function (s, i) {
-        if (firstOpen === -1 && !(S.progress.steps[s.id] || {}).understood) firstOpen = i;
-      });
-      view = firstOpen === -1 ? { kind: "exercise" } : { kind: "step", index: firstOpen };
-    }
+    if (applyState(state)) view = openingView();
     render();
   })
   .catch(function () { render(); });
@@ -1495,11 +1554,17 @@ async function startServer(instanceId) {
                     "Cache-Control": "no-cache",
                     "Connection": "keep-alive",
                 });
-                res.write(":\n\n");
                 let clients = sseClients.get(instanceId);
                 if (!clients) { clients = new Set(); sseClients.set(instanceId, clients); }
                 clients.add(res);
                 req.on("close", () => { clients.delete(res); });
+                // EventSource reconnects on its own, and whatever was broadcast
+                // while the stream was down is gone for good. Opening every
+                // connection with the current state lets a reconnect catch up by
+                // itself; otherwise the canvas sits on a revision the server has
+                // moved past and every write it makes is refused as stale, with
+                // nothing left to tell it why.
+                try { res.write("data: " + JSON.stringify({ kind: "sync", state }) + "\n\n"); } catch {}
                 return;
             }
 
