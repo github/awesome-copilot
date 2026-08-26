@@ -7,7 +7,7 @@
 // mark it finished.
 
 import { createServer } from "node:http";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, rename, rm, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
@@ -258,21 +258,63 @@ function freshProgress(tutorial) {
 function getState(instanceId) {
     let state = stateCache.get(instanceId);
     if (!state) {
-        state = { tutorial: null, progress: null };
+        state = { tutorial: null, progress: null, rev: 0 };
         stateCache.set(instanceId, state);
     }
     return state;
 }
 
+// Bumped by every authoritative change the canvas did not make: publishing a
+// lesson, approving, resetting. The canvas stamps each /progress body with the
+// revision it was composed against, so an update that was already in flight when
+// one of those landed is rejected instead of overwriting the newer state. Without
+// it a debounced progress save can silently undo an approval.
+function bumpRev(state) {
+    state.rev = (state.rev || 0) + 1;
+    return state;
+}
+
 // --- Persistence ---
 
-async function saveState(workspacePath, state) {
-    if (!workspacePath) return;
-    const dir = join(workspacePath, "files");
-    try { await mkdir(dir, { recursive: true }); } catch {}
+// Saves come from HTTP handlers and from canvas actions, which can overlap, and
+// two concurrent writeFile calls to one path interleave their chunks: the file
+// ends up either holding the older snapshot or cut off mid-JSON, and loadState can
+// only treat a broken document as missing, so the lesson disappears. Writes are
+// queued per file and land through a rename, so a reader only ever sees a whole
+// document and the last save requested is the one that survives.
+const saveQueues = new Map(); // state file path -> tail of that file's write chain
+
+async function atomicWrite(file, contents) {
+    const tmp = file + ".tmp-" + randomUUID();
     try {
-        await writeFile(join(dir, STATE_FILENAME), JSON.stringify(state, null, 2));
-    } catch {}
+        await writeFile(tmp, contents, "utf-8");
+        await rename(tmp, file);
+    } catch {
+        try { await rm(tmp, { force: true }); } catch {}
+    }
+}
+
+function saveState(workspacePath, state) {
+    if (!workspacePath) return Promise.resolve();
+    const dir = join(workspacePath, "files");
+    const file = join(dir, STATE_FILENAME);
+    // Serialize the snapshot now rather than when the write runs, so a queued save
+    // persists the state as it was when the save was asked for.
+    let contents;
+    try { contents = JSON.stringify(state, null, 2); } catch { return Promise.resolve(); }
+
+    const run = async () => {
+        try { await mkdir(dir, { recursive: true }); } catch {}
+        await atomicWrite(file, contents);
+    };
+    const prior = saveQueues.get(file) || Promise.resolve();
+    const chained = prior.then(run, run);
+    saveQueues.set(file, chained);
+    // Drop the entry once this write is the tail, so the map does not grow.
+    chained.then(() => {
+        if (saveQueues.get(file) === chained) saveQueues.delete(file);
+    });
+    return chained;
 }
 
 // A state file written before the backtracking screen existed, or edited by hand,
@@ -596,10 +638,19 @@ function toast(msg) {
   setTimeout(function () { el.classList.remove("show"); }, 2600);
 }
 
+// Stamped on every progress write. The server rejects a body whose revision is
+// behind its own, which is what stops a debounced save composed before the agent
+// published, approved, or reset from landing on top of the newer state.
+function progressBody() {
+  return JSON.stringify({ rev: S.rev || 0, progress: S.progress });
+}
+
 function saveProgress(immediate) {
   if (saveTimer) clearTimeout(saveTimer);
   var doSave = function () {
-    api("/progress", { method: "POST", body: JSON.stringify(S.progress) }).catch(function () {});
+    // A rejected save needs no handling here: every revision bump also broadcasts,
+    // so the authoritative state is already on its way over the event stream.
+    api("/progress", { method: "POST", body: progressBody() }).catch(function () {});
   };
   if (immediate) doSave();
   else saveTimer = setTimeout(doSave, 450);
@@ -1105,9 +1156,12 @@ function askReview(btn) {
     clearTimeout(saveTimer);
     saveTimer = null;
   }
-  api("/progress", { method: "POST", body: JSON.stringify(S.progress) })
+  api("/progress", { method: "POST", body: progressBody() })
     .then(function (r) {
-      if (!r.ok) throw new Error("progress rejected");
+      // 409 means the server already holds newer progress than this flush, so the
+      // attempt it would review is on the server either way. Only a real failure
+      // to store should stop the review from being asked for.
+      if (!r.ok && r.status !== 409) throw new Error("progress rejected");
       return api("/review", { method: "POST" });
     })
     .then(function (r) {
@@ -1341,20 +1395,24 @@ async function startServer(instanceId) {
                     sendJson(res, 413, { ok: false, error: "payload_too_large" }, { Connection: "close" });
                     return;
                 }
-                let stored = false;
-                try {
-                    const incoming = JSON.parse(body);
-                    if (incoming && typeof incoming === "object" && incoming.exercise) {
-                        state.progress = incoming;
-                        await saveState(sessionRef?.workspacePath, state);
-                        stored = true;
-                    }
-                } catch {}
-                if (!stored) {
+                let incoming = null;
+                try { incoming = JSON.parse(body); } catch {}
+                const progress = incoming && typeof incoming === "object" ? incoming.progress : null;
+                if (!progress || typeof progress !== "object" || !progress.exercise) {
                     sendJson(res, 400, { ok: false, error: "invalid_progress" });
                     return;
                 }
-                sendJson(res, 200, { ok: true });
+                // This body was composed against a specific revision. If the lesson
+                // was republished, approved, or reset since then, the canvas is
+                // describing an exercise that no longer exists; the broadcast for
+                // that change is already on its way, so drop this write.
+                if (Number(incoming.rev) !== (state.rev || 0)) {
+                    sendJson(res, 409, { ok: false, error: "stale_revision", rev: state.rev || 0 });
+                    return;
+                }
+                state.progress = progress;
+                await saveState(sessionRef?.workspacePath, state);
+                sendJson(res, 200, { ok: true, rev: state.rev || 0 });
                 return;
             }
 
@@ -1386,6 +1444,7 @@ async function startServer(instanceId) {
 
             if (url.pathname === "/reset" && req.method === "POST") {
                 state.progress = state.tutorial ? freshProgress(state.tutorial) : null;
+                bumpRev(state);
                 await saveState(sessionRef?.workspacePath, state);
                 broadcast(instanceId, { kind: "reset", state });
                 sendJson(res, 200, state);
@@ -1506,6 +1565,7 @@ const session = await joinSession({
                         const state = getState(ctx.instanceId);
                         state.tutorial = result.tutorial;
                         state.progress = freshProgress(result.tutorial);
+                        bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
                         broadcast(ctx.instanceId, { kind: "tutorial", state });
                         return {
@@ -1551,6 +1611,7 @@ const session = await joinSession({
                         state.progress.exercise.completedBy = "copilot";
                         state.progress.exercise.completedAt = new Date().toISOString();
                         state.progress.exercise.approvalNote = text(ctx.input?.note, 300);
+                        bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
                         broadcast(ctx.instanceId, { kind: "approved", state });
                         return { ok: true };
@@ -1563,6 +1624,7 @@ const session = await joinSession({
                         const state = getState(ctx.instanceId);
                         if (!state.tutorial) return { ok: false, error: "No tutorial has been published yet." };
                         state.progress = freshProgress(state.tutorial);
+                        bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
                         broadcast(ctx.instanceId, { kind: "reset", state });
                         return { ok: true };
@@ -1577,6 +1639,7 @@ const session = await joinSession({
                     if (result.tutorial) {
                         state.tutorial = result.tutorial;
                         state.progress = freshProgress(result.tutorial);
+                        bumpRev(state);
                         await saveState(sessionRef?.workspacePath, state);
                     }
                 } else if (!state.tutorial) {
@@ -1584,6 +1647,7 @@ const session = await joinSession({
                     if (persisted?.tutorial) {
                         state.tutorial = persisted.tutorial;
                         state.progress = persisted.progress || freshProgress(persisted.tutorial);
+                        bumpRev(state);
                     }
                 }
 
