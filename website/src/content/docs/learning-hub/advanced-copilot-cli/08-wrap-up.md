@@ -3,7 +3,7 @@ title: "Module 8 — Wrap-up and next steps"
 description: "You've worked Copilot CLI through a brownfield, multi-stack codebase, codified your team's conventions, built reusable skills and custom agents, wired up…"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-20
+lastUpdated: 2026-08-27
 ---
 
 
@@ -56,7 +56,7 @@ Talking points:
 - [Copilot CLI documentation][copilot-cli-docs]
 - [GitHub Copilot best practices][copilot-best-practices]
 - [Model Context Protocol introduction][mcp-intro]
-- [Legacy app: `geektrainer/legacy-app`][legacy-app]
+- [Legacy app: `github-samples/contoso-inventory`][contoso-inventory]
 
 ## Resources
 
@@ -69,17 +69,17 @@ Talking points:
 | [← Previous: Managing Copilot's infrastructure][previous-lesson] |  |
 |:--|--:|
 
-[previous-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/07-manage-infrastructure/
-[m01]: /learning-hub/advanced-copilot-cli/multi-stack/01-working-with-copilot-cli/
-[m02]: /learning-hub/advanced-copilot-cli/multi-stack/02-building-ai-infrastructure/
-[m03]: /learning-hub/advanced-copilot-cli/multi-stack/03-test-suite-remote-delegation/
-[m04]: /learning-hub/advanced-copilot-cli/multi-stack/04-lifecycle-hooks/
-[m05]: /learning-hub/advanced-copilot-cli/multi-stack/05-add-feature-barcode/
-[m06]: /learning-hub/advanced-copilot-cli/multi-stack/06-modernize-apps/
-[m07]: /learning-hub/advanced-copilot-cli/multi-stack/07-manage-infrastructure/
+[previous-lesson]: /learning-hub/advanced-copilot-cli/07-manage-infrastructure/
+[m01]: /learning-hub/advanced-copilot-cli/01-working-with-copilot-cli/
+[m02]: /learning-hub/advanced-copilot-cli/02-building-ai-infrastructure/
+[m03]: /learning-hub/advanced-copilot-cli/03-test-suite-remote-delegation/
+[m04]: /learning-hub/advanced-copilot-cli/04-lifecycle-hooks/
+[m05]: /learning-hub/advanced-copilot-cli/05-add-feature-barcode/
+[m06]: /learning-hub/advanced-copilot-cli/06-modernize-apps/
+[m07]: /learning-hub/advanced-copilot-cli/07-manage-infrastructure/
 [copilot-cli-docs]: https://docs.github.com/copilot/how-tos/use-copilot-agents/use-copilot-cli
 [copilot-best-practices]: https://docs.github.com/copilot/get-started/best-practices
 [mcp-intro]: https://modelcontextprotocol.io/introduction
 [mcp-registry]: https://github.com/mcp
-[legacy-app]: https://github.com/geektrainer/legacy-app
+[contoso-inventory]: https://github.com/github-samples/contoso-inventory
 [changelog]: https://github.blog/changelog/label/copilot/

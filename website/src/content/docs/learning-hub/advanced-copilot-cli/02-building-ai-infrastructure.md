@@ -3,7 +3,7 @@ title: "Module 2 — Building an AI infrastructure foundation"
 description: "Every time you start a fresh Copilot CLI session, the agent only sees your raw files in the working directory. Without shared instructions, guidelines and…"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-18
+lastUpdated: 2026-08-27
 ---
 
 
@@ -186,7 +186,7 @@ Now let's add a reusable `Accessibility Expert` custom agent and use it against 
 1. Ask Copilot to work with the Accessibility Expert agent to produce an accessibility report for the Astro frontend with recommendations
 
     ```text
-    Work with the the accessibility expert to review the Astro frontend code and produce an accessibility report with specific recommendations for improvements based on WCAG 2.2 AA standards.
+    Work with the accessibility expert to review the Astro frontend code and produce an accessibility report with specific recommendations for improvements based on WCAG 2.2 AA standards.
     ```
 
     Notice that the main agent passes the task to the Accessibility Expert agent, which then finds the custom instructions for Astro/React you created earlier, tracks the relevant files and produces a report with specific, actionable recommendations that reference WCAG success criteria and specific selectors in the code.
@@ -199,7 +199,7 @@ Now let's add a reusable `Accessibility Expert` custom agent and use it against 
 
 ## Agent skills
 
-Custom agents introduce *specialized personas*. **Agent skills** change what Copilot *knows* to do. A skill is a packaged capability, could include an instruction set, optional scripts and resources - that the agent can invoke **at runtime** when the task matches its trigger. Skills live in `.copilot/skills/` (for repo-scoped) or `~/.copilot/skills/` (for user-scoped) and in Copilot CLI, you use `/skills` to view and manage them.
+Custom agents introduce *specialized personas*. **Agent skills** change what Copilot *knows* to do. A skill is a packaged capability, could include an instruction set, optional scripts and resources - that the agent can invoke **at runtime** when the task matches its trigger. Skills live in `.github/skills/` (for repo-scoped) or `~/.copilot/skills/` (for user-scoped) and in Copilot CLI, you use `/skills` to view and manage them.
 
 The new AI infrastructure for Contoso is coming together nicely, but there's one more piece to add. Now that you have a baseline for how copilot should approach making updates locally, we want to bootstrap the contribution standards that should be followed to land these updates through channels that integrate with the team's existing workflows for enhanced collaboration, human-in-the-loop review and auditability.
 
@@ -265,8 +265,8 @@ Next, you'll close the loop on accessibility with **Playwright tests** and offlo
 | [← Previous: Working with Copilot CLI][previous-lesson] | [Next: Enhancing the test suite with remote and delegation →][next-lesson] |
 |:--|--:|
 
-[previous-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/01-working-with-copilot-cli/
-[next-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/03-test-suite-remote-delegation/
+[previous-lesson]: /learning-hub/advanced-copilot-cli/01-working-with-copilot-cli/
+[next-lesson]: /learning-hub/advanced-copilot-cli/03-test-suite-remote-delegation/
 [copilot-cli-docs]: https://docs.github.com/copilot/how-tos/copilot-cli
 [awesome-copilot]: https://awesome-copilot.github.com/
 [commands-reference]: https://docs.github.com/copilot/reference/copilot-cli-reference/cli-command-reference

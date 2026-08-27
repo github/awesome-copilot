@@ -3,7 +3,7 @@ title: "Module 0 — Prerequisites and environment setup"
 description: "The first step to using any tool or beginning development on a new project is installation. In our case, we'll need:"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-12
+lastUpdated: 2026-08-27
 ---
 
 
@@ -37,16 +37,17 @@ In this lesson, you will:
 
 When doing standard development, the first step is often to fork or clone the repository you'll be contributing to. For our course, since you'll be working through the exercises on your own, you'll grab a separate copy of the project. You'll do this by creating a new instance of the repository by using a [template repository][github-template-docs] on your own personal GitHub account.
 
-1. In your browser, navigate to [https://github.com/geektrainer/legacy-app](https://github.com/geektrainer/legacy-app).
+1. In your browser, navigate to the [contoso-inventory repository][contoso-inventory].
 2. Select **Use this template**.
 3. Select **Create a new repository**.
 4. Under **Owner**, select your personal GitHub account.
 5. For **Repository name**, enter `AssetTrack`.
-6. Leave the remaining options at their defaults.
-7. Select **Create repository**.
-8. Once the new repository has been created, select the **Code** button.
-9. Switch to the **Codespaces** tab.
-10. Select **Create codespace on main**.
+6. Select **Include all branches** so the module catch-up branches (`start-of-module-02` through `start-of-module-07`) are copied to your repository.
+7. Leave the remaining options at their defaults.
+8. Select **Create repository**.
+9. Once the new repository has been created, select the **Code** button.
+10. Switch to the **Codespaces** tab.
+11. Select **Create codespace on main**.
 
 > [!NOTE]
 > The first launch of the codespace will take a few minutes. AssetTrack uses a custom devcontainer that includes the runtimes for all four stacks (Java, Node/Astro, .NET, Python/FastAPI), and the container image needs to be built the first time the codespace starts. Subsequent launches will be much faster.
@@ -90,7 +91,7 @@ Next, [start a real conversation with the codebase][next-lesson].
 
 - [Copilot CLI documentation][copilot-cli-docs]
 - [GitHub Copilot CLI repository][copilot-cli-repo]
-- [Legacy app: `geektrainer/legacy-app`][legacy-app]
+- [Legacy app: `github-samples/contoso-inventory`][contoso-inventory]
 - [GitHub Codespaces overview][codespaces-docs]
 
 ---
@@ -98,8 +99,8 @@ Next, [start a real conversation with the codebase][next-lesson].
 |  | [Next: Getting started with Copilot CLI →][next-lesson] |
 |:--|--:|
 
-[next-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/01-working-with-copilot-cli/
-[legacy-app]: https://github.com/geektrainer/legacy-app
+[next-lesson]: /learning-hub/advanced-copilot-cli/01-working-with-copilot-cli/
+[contoso-inventory]: https://github.com/github-samples/contoso-inventory
 [copilot-cli-docs]: https://docs.github.com/copilot/how-tos/use-copilot-agents/use-copilot-cli
 [copilot-cli-install]: https://docs.github.com/copilot/how-tos/use-copilot-agents/use-copilot-cli#installing-copilot-cli
 [copilot-cli-repo]: https://github.com/github/copilot-cli

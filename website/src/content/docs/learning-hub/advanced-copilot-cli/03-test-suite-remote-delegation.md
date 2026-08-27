@@ -3,7 +3,7 @@ title: "Module 3 — Enhancing the test suite with remote and delegation"
 description: "The accessibility and contribution infrastructure from Module 2 is useful only if the team can prove it keeps working. This module turns the first…"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-18
+lastUpdated: 2026-08-27
 ---
 
 
@@ -15,7 +15,7 @@ The accessibility and contribution infrastructure from [Module 2][m02] is useful
 > [!NOTE]
 > If you're jumping straight to this module without finishing the earlier ones, check out the `start-of-module-03` catch-up branch. It holds the accessibility and contribution infrastructure the earlier modules produced, which the exercises here assume is already in place.
 >
-> 1. Follow the [course prerequisites][prerequisites] to create your AssetTrack repository from the [`geektrainer/legacy-app`][legacy-app] template. Ensure that you select **Include all branches** when you create it so the catch-up branches come along.
+> 1. Follow the [course prerequisites][prerequisites] to create your AssetTrack repository from the [`github-samples/contoso-inventory`][contoso-inventory] template. Ensure that you select **Include all branches** when you create it so the catch-up branches come along.
 > 2. In your codespace terminal, check out the catch-up branch:
 >
 >     ```bash
@@ -220,11 +220,11 @@ Next, you'll use the test commands created here to shape Copilot CLI's lifecycle
 | [← Previous: Building an AI infrastructure foundation][previous-lesson] | [Next: Shaping Copilot CLI's lifecycle with hooks →][next-lesson] |
 |:--|--:|
 
-[previous-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/02-building-ai-infrastructure/
-[next-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/04-lifecycle-hooks/
-[m02]: /learning-hub/advanced-copilot-cli/multi-stack/02-building-ai-infrastructure/
-[prerequisites]: /learning-hub/advanced-copilot-cli/multi-stack/00-prerequisites/
-[legacy-app]: https://github.com/geektrainer/legacy-app
+[previous-lesson]: /learning-hub/advanced-copilot-cli/02-building-ai-infrastructure/
+[next-lesson]: /learning-hub/advanced-copilot-cli/04-lifecycle-hooks/
+[m02]: /learning-hub/advanced-copilot-cli/02-building-ai-infrastructure/
+[prerequisites]: /learning-hub/advanced-copilot-cli/00-prerequisites/
+[contoso-inventory]: https://github.com/github-samples/contoso-inventory
 [remote-docs]: https://docs.github.com/copilot/how-tos/copilot-cli/use-copilot-cli/steer-remotely
 [delegate-docs]: https://docs.github.com/copilot/how-tos/copilot-cli/use-copilot-cli/delegate-tasks-to-cca
 [cloud-agent]: https://docs.github.com/copilot/concepts/agents/cloud-agent/about-cloud-agent

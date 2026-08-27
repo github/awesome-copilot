@@ -3,7 +3,7 @@ title: "Module 5 — Adding a new feature: barcode support"
 description: "Adding a greenfield feature inside a brownfield app is a real test of an agentic workflow. It takes forethought: finding the services that already exist,…"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-18
+lastUpdated: 2026-08-27
 ---
 
 
@@ -69,15 +69,15 @@ Two of those need help from outside the agent's own reasoning. Exploring the run
 Let's start by registering the Playwright MCP server for the quality assurance agent to be able to use later.
 
 > [!NOTE]
-> You'll start Copilot CLI with `--yolo`, which auto-approves every edit, command, and tool call so the work doesn't stop for permission on each step — useful once the `/fleet` build is running. That's appropriate here because a codespace is the kind of sandboxed, disposable container that [Module 1][m01] called out as the right home for YOLO mode. Treat it as the exception: on your own machine, or anywhere near real credentials or unreviewed code, start Copilot with plain `copilot` and approve actions deliberately.
+> This codespace comes with a collection of approved local tools for Copilot to use, like creating files, running builds, and other local operations. It's scoped to just the codespace, and not any external services. When it comes time to use other services, Copilot will ask for approval, or you'll use a command to add it to its list of approved tools. Here you'll register the Playwright MCP server, so you'll start Copilot with `--allow-tool playwright` to add it to that approved list up front — the `/fleet` build can then drive the browser without stopping for permission mid-run.
 
 1. Return to your codespace. If you closed it, navigate to your repository on GitHub.com, select **Code** > **Codespaces**, then reopen your existing codespace.
 2. Open a terminal window by selecting <kbd>Ctrl</kbd> + <kbd>`</kbd>.
 3. Create and switch to a feature branch with `git switch -c feat/barcode-support`.
-4. Start Copilot CLI in YOLO mode from the repository root:
+4. Start Copilot CLI from the repository root, adding the Playwright server you'll register next to its list of approved tools:
 
     ```bash
-    copilot --yolo
+    copilot --allow-tool playwright
     ```
 
 5. In Copilot CLI, run the command `/mcp add` to open the MCP registration panel.
@@ -270,11 +270,10 @@ The throughline is the loop itself: research and planning make the parallel buil
 | [← Previous: Shaping Copilot CLI's lifecycle with hooks][previous-lesson] | [Next: Modernizing apps with Copilot CLI →][next-lesson] |
 |:--|--:|
 
-[previous-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/04-lifecycle-hooks/
-[next-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/06-modernize-apps/
-[m01]: /learning-hub/advanced-copilot-cli/multi-stack/01-working-with-copilot-cli/
-[m02]: /learning-hub/advanced-copilot-cli/multi-stack/02-building-ai-infrastructure/
-[m04]: /learning-hub/advanced-copilot-cli/multi-stack/04-lifecycle-hooks/
+[previous-lesson]: /learning-hub/advanced-copilot-cli/04-lifecycle-hooks/
+[next-lesson]: /learning-hub/advanced-copilot-cli/06-modernize-apps/
+[m02]: /learning-hub/advanced-copilot-cli/02-building-ai-infrastructure/
+[m04]: /learning-hub/advanced-copilot-cli/04-lifecycle-hooks/
 [copilot-plan]: https://docs.github.com/copilot/how-tos/use-copilot-agents/use-copilot-cli
 [copilot-agents]: https://docs.github.com/copilot/concepts/agents/about-copilot-cli
 [copilot-mcp]: https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers

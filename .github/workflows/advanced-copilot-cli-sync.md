@@ -57,22 +57,17 @@ Key conventions in the upstream content:
 
 ## Local mirror layout
 
-The canonical English mirror lives under the Learning Hub. To match how the **Copilot Workshops** course nests a track under its course folder, the nine modules are nested under a single `multi-stack` track:
+The canonical English mirror lives under the Learning Hub. The nine modules live directly under the course folder, alongside a single course landing page:
 
 ```
 website/src/content/docs/learning-hub/advanced-copilot-cli/
-├── index.md                 # course landing ("choose your track")
-└── multi-stack/
-    ├── index.md             # track overview (module table)
-    ├── 00-prerequisites.md
-    ├── 01-working-with-copilot-cli.md
-    └── … (one file per module through 08-wrap-up.md)
+├── index.md                 # course landing (intro + module table)
+├── 00-prerequisites.md
+├── 01-working-with-copilot-cli.md
+└── … (one file per module through 08-wrap-up.md)
 ```
 
 Mirrored images live under `website/public/images/learning-hub/advanced-copilot-cli/` (mirror the upstream `content/images/` filenames; keep them flat unless upstream introduces subfolders).
-
-> [!NOTE]
-> The course is single-track today (`multi-stack`, the canonical AssetTrack scenario). The `advanced-copilot-cli/index.md` landing page is written as a "choose your track" page so additional tracks (for example a .NET legacy or Next.js greenfield scenario) can be added later without restructuring, exactly as the Copilot Workshops course lists multiple harnesses.
 
 ### Exclusions
 
@@ -85,9 +80,9 @@ Do **not** mirror the following as course pages:
 
 Navigation is wired in three places:
 
-- `website/astro.config.mjs` — the sidebar group **"Advanced Copilot CLI"**, with a nested sub-group for the `multi-stack` track. Follow the exact style used by the existing **"Copilot Workshops"** group and its nested per-harness sub-groups.
+- `website/astro.config.mjs` — the sidebar group **"Advanced Copilot CLI"**, listing an Overview link plus each module directly. Follow the exact style used by the existing **"Copilot CLI for Beginners"** group.
 - `website/src/content/docs/learning-hub/index.md` — a short entry linking to the course.
-- `website/src/content/docs/learning-hub/advanced-copilot-cli/index.md` and `.../multi-stack/index.md` — the mirrored landing and track pages whose module tables link to the local pages.
+- `website/src/content/docs/learning-hub/advanced-copilot-cli/index.md` — the mirrored course landing page whose module table links to the local pages.
 
 ## Step 1 — Determine what's new upstream
 
@@ -107,7 +102,7 @@ Navigation is wired in three places:
    - Supporting assets in `content/images/`
    - Any change to module structure, order, or titles
 
-4. If a local mirror **already exists** and **no commits** were found since the last sync, do **not** immediately no-op on the strength of the cached SHA alone. The cached `last_synced_sha` is only advanced optimistically when a PR is opened (see Step 5), so a previously opened sync PR that was later **closed or rejected** can leave the cache pointing at a commit whose content never actually reached `main`. Before short-circuiting, **verify the checked-out mirror is genuinely consistent with the current upstream content** (spot-check that every upstream module and image is present in the mirror and not obviously stale). Only if the mirror both is up to date on SHA **and** matches upstream should you call the `noop` safe output with a message like: "No new commits found in `github-samples/advanced-copilot-cli@main` since last sync (`<last_synced_sha>`), and the local mirror matches upstream. No action needed." If the SHA suggests nothing changed but the mirror is actually missing or stale, proceed to Step 2+ and open a PR anyway so a rejected/closed earlier PR cannot permanently hide the update.
+4. If **no commits** were found since the last sync, stop here and call the `noop` safe output with a message like: "No new commits found in `github-samples/advanced-copilot-cli@main` since last sync (`<last_synced_sha>`). No action needed." Then update the cache with the latest SHA.
 
 ## Step 2 — Read the upstream content
 
@@ -143,9 +138,9 @@ Edit the local docs, assets, and navigation so the website remains a **source-fa
 
 ### File mapping rules
 
-- Upstream `content/NN-slug.md` → `learning-hub/advanced-copilot-cli/multi-stack/NN-slug.md`
+- Upstream `content/NN-slug.md` → `learning-hub/advanced-copilot-cli/NN-slug.md`
 - Upstream `content/images/<file>` → `website/public/images/learning-hub/advanced-copilot-cli/<file>`
-- The course landing `learning-hub/advanced-copilot-cli/index.md` and the track overview `learning-hub/advanced-copilot-cli/multi-stack/index.md` are Learning Hub pages (module table + "choose your track"); update them when modules are added, removed, renamed, or reordered.
+- The course landing `learning-hub/advanced-copilot-cli/index.md` is a Learning Hub page (intro + module table); update it when modules are added, removed, renamed, or reordered.
 
 ### Mirror-first authoring rules
 
@@ -159,24 +154,24 @@ Edit the local docs, assets, and navigation so the website remains a **source-fa
      - `lastUpdated:` — today's date in `YYYY-MM-DD` format (bump only on pages whose mirrored content changed; otherwise preserve the existing value)
    - **GitHub admonitions.** The website renders GitHub admonition syntax (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`) via a remark plugin, so **preserve admonitions exactly as written upstream** — do not convert them to Starlight `:::` asides and do not strip the `[!...]` markers. Keep the marker on its own `>`-prefixed line with the body on subsequent `>`-prefixed lines.
    - **Image paths.** Rewrite upstream relative image references from `./images/<file>` (or `images/<file>`) to the site-absolute path `/images/learning-hub/advanced-copilot-cli/<file>`. Copy the referenced image files into `website/public/images/learning-hub/advanced-copilot-cli/`.
-   - **Internal course links.** Rewrite upstream intra-course links so they resolve on the website. Reference-style and inline relative links to sibling modules (`./NN-slug.md`, `NN-slug.md`, optionally with an `#anchor`) must point at the local mirror routes under `/learning-hub/advanced-copilot-cli/multi-stack/NN-slug/` (with a trailing slash, matching the site's `trailingSlash: always` setting, and the `#anchor` after the slash). Preserve reference-style link definitions when upstream uses them.
+   - **Internal course links.** Rewrite upstream intra-course links so they resolve on the website. Reference-style and inline relative links to sibling modules (`./NN-slug.md`, `NN-slug.md`, optionally with an `#anchor`) must point at the local mirror routes under `/learning-hub/advanced-copilot-cli/NN-slug/` (with a trailing slash, matching the site's `trailingSlash: always` setting, and the `#anchor` after the slash). Preserve reference-style link definitions when upstream uses them.
    - **Repo-root relative links.** Convert links that are only valid inside the upstream repo (for example `.github/...`, `assets/...`, `content/resources/...`, or `src/...` source-file references) into absolute links to the upstream repo: use `https://github.com/github-samples/advanced-copilot-cli/tree/main/...` for directories and `https://github.com/github-samples/advanced-copilot-cli/blob/main/...` for files. Note that many such paths appear in the modules only as inline code spans (backticks), not as markdown links — leave those code spans untouched; only rewrite actual links.
 
 3. If upstream adds, removes, or renames modules:
-   - Create, delete, or rename the corresponding markdown files under `website/src/content/docs/learning-hub/advanced-copilot-cli/multi-stack/`.
-   - Update the **"Advanced Copilot CLI"** sidebar group in `website/astro.config.mjs` so its nested `multi-stack` sub-group lists the Overview link plus each module in upstream order, using the upstream module titles as labels.
-   - Update the course `index.md` and the track `multi-stack/index.md` module tables to match.
+   - Create, delete, or rename the corresponding markdown files under `website/src/content/docs/learning-hub/advanced-copilot-cli/`.
+   - Update the **"Advanced Copilot CLI"** sidebar group in `website/astro.config.mjs` so it lists the Overview link plus each module in upstream order, using the upstream module titles as labels.
+   - Update the course `index.md` module table to match.
    - Update the `website/src/content/docs/learning-hub/index.md` entry only if the course's landing description or link must change.
 
 ### Navigation wiring details
 
-- In `website/astro.config.mjs`, add or maintain a top-level sidebar group labelled `"Advanced Copilot CLI"`. Give it an `items` array whose first entry is an `Overview` link to `/learning-hub/advanced-copilot-cli/`, followed by one nested group labelled `"Multi-stack (AssetTrack)"`. That nested group starts with an `Overview` entry linking to `/learning-hub/advanced-copilot-cli/multi-stack/` and then lists each module slug (e.g. `learning-hub/advanced-copilot-cli/multi-stack/00-prerequisites`). Follow the exact style already used by the existing `"Copilot Workshops"` group.
+- In `website/astro.config.mjs`, add or maintain a top-level sidebar group labelled `"Advanced Copilot CLI"`. Give it an `items` array whose first entry is an `Overview` link to `/learning-hub/advanced-copilot-cli/`, followed by each module slug in upstream order (e.g. `learning-hub/advanced-copilot-cli/00-prerequisites`). Follow the exact style already used by the existing `"Copilot CLI for Beginners"` group.
 - Place the new group in a sensible position relative to the existing Learning Hub groups (after `"Copilot Workshops"` is a natural fit).
 - Every root slug you add to the sidebar **must** correspond to a real mirrored markdown file, or the website build will fail.
 
 ## Step 5 — Update the sync state cache
 
-Write an updated `advanced-copilot-cli-sync-state.json` to `cache-memory` with:
+Before opening the PR, write an updated `advanced-copilot-cli-sync-state.json` to `cache-memory` with:
 
 ```json
 {
@@ -186,9 +181,6 @@ Write an updated `advanced-copilot-cli-sync-state.json` to `cache-memory` with:
   "files_updated": ["<list of local Learning Hub files you edited>"]
 }
 ```
-
-> [!NOTE]
-> The cached `last_synced_sha` is an **optimization hint, not a source of truth**. Because a PR opened by this workflow may later be closed or rejected before it merges to `main`, never treat a matching SHA as proof that the mirror is current — Step 1 must independently confirm the checked-out mirror actually matches upstream before taking the no-op path.
 
 ## Step 6 — Open a pull request
 

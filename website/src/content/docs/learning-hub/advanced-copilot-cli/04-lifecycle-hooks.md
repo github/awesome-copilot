@@ -3,7 +3,7 @@ title: "Module 4 — Shaping Copilot CLI's lifecycle with hooks"
 description: "The AI layer of the agent loop is probabilistic. It may or may not remember to run tests, lint or build after a change. Hooks are the deterministic layer…"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-18
+lastUpdated: 2026-08-27
 ---
 
 
@@ -74,7 +74,7 @@ The harness emits named events across the session lifecycle and your hook config
 For the test-and-lint feedback loop in this module, the events that matter most are:
 
 - `postToolUse` - to run checks after each file edit and feed results back to the agent loop
-- `agentStop` - to optionally block the agent from finishing a turn if checks are red).
+- `agentStop` - to optionally block the agent from finishing a turn if checks are red.
 
 ### Reading hook input and writing hook output
 
@@ -199,8 +199,8 @@ AssetTrack's checks span four different stacks - .NET, Java, Python, TypeScript,
 3. Download `.github/hooks/scripts/test-router.sh`, which reads the edited file path from the `postToolUse` payload, runs the right test runner for that stack and emits the result as `additionalContext`. The same script also handles `agentStop` by looking at changed files and blocking only when the relevant stack's tests fail:
 
     ```bash
-    curl -o .github/hooks/scripts/test-router.sh \
-      https://raw.githubusercontent.com/GeekTrainer/advanced-copilot-cli/main/assets/04/.github/hooks/scripts/test-router.sh
+    curl --fail -o .github/hooks/scripts/test-router.sh \
+      https://raw.githubusercontent.com/github-samples/advanced-copilot-cli/1af928893a2e180dc3b2a469b22712a78b1f74a7/assets/04/.github/hooks/scripts/test-router.sh
     ```
 
 4. Make the script executable:
@@ -357,10 +357,10 @@ Next, you'll put all of the infrastructure to work by adding a real **new featur
 | [← Previous: Enhancing the test suite with remote and delegation][previous-lesson] | [Next: Adding a new feature →][next-lesson] |
 |:--|--:|
 
-[previous-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/03-test-suite-remote-delegation/
-[next-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/05-add-feature-barcode/
-[m02]: /learning-hub/advanced-copilot-cli/multi-stack/02-building-ai-infrastructure/
-[test-router-script]: https://github.com/GeekTrainer/advanced-copilot-cli/blob/main/assets/04/.github/hooks/scripts/test-router.sh
+[previous-lesson]: /learning-hub/advanced-copilot-cli/03-test-suite-remote-delegation/
+[next-lesson]: /learning-hub/advanced-copilot-cli/05-add-feature-barcode/
+[m02]: /learning-hub/advanced-copilot-cli/02-building-ai-infrastructure/
+[test-router-script]: https://github.com/github-samples/advanced-copilot-cli/blob/main/assets/04/.github/hooks/scripts/test-router.sh
 [use-hooks]: https://docs.github.com/copilot/how-tos/copilot-cli/customize-copilot/use-hooks
 [hooks-reference]: https://docs.github.com/copilot/reference/hooks-reference
 [awesome-copilot-hooks]: https://awesome-copilot.github.com/learning-hub/automating-with-hooks/

@@ -3,7 +3,7 @@ title: "Module 1 — Working with Copilot CLI"
 description: "As we begin exploring deeper concepts in Copilot CLI, it helps to know how things work internally. This module grounds you in the agent model, walks through…"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-18
+lastUpdated: 2026-08-27
 ---
 
 
@@ -203,6 +203,9 @@ As you likely expected, there's quite a bit going on behind the scenes with Copi
 
     Selecting **Yes** will allow for the first call only, and the next two will require separate approvals. **Yes, and don't ask again for `gh issue` in this repo (*path*)** will allow Copilot CLI to always call the `gh issue` CLI tool for this repository.
 
+> [!NOTE]
+> "Don't ask again" choices are saved per folder in `~/.copilot/permissions-config.json`, so they carry across sessions in that repository. You can also pre-approve tools when you launch with `--allow-tool` — for example, `copilot --allow-tool write --allow-tool 'shell(git:*)'` — which skips the prompt for exactly those tools while still asking about anything else. The codespace for this course ships with a set of local tools already approved this way, so later modules start Copilot without stopping for permission on routine local work.
+
 > [!IMPORTANT]
 > Ensure you always consider the implications of granting Copilot or any AI tool permissions to perform actions on your behalf.
 
@@ -309,8 +312,8 @@ Next, you'll **build the AI infrastructure** — codify what you just documented
 | [← Previous: Prerequisites and environment setup][previous-lesson] | [Next: Building an AI infrastructure →][next-lesson] |
 |:--|--:|
 
-[previous-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/00-prerequisites/
-[next-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/02-building-ai-infrastructure/
+[previous-lesson]: /learning-hub/advanced-copilot-cli/00-prerequisites/
+[next-lesson]: /learning-hub/advanced-copilot-cli/02-building-ai-infrastructure/
 [copilot-cli-docs]: https://docs.github.com/copilot/concepts/agents/about-copilot-cli
 [copilot-cli-howto]: https://docs.github.com/copilot/how-tos/use-copilot-agents/use-copilot-cli
 [plan-mode]: https://docs.github.com/copilot/how-tos/copilot-cli/use-copilot-cli/overview#use-plan-mode

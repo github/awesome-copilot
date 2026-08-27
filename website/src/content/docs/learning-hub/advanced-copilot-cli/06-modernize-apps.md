@@ -3,7 +3,7 @@ title: "Module 6 — Modernizing apps with Copilot CLI"
 description: "Modernizing a brownfield service is a research problem before it's a coding problem, and an orchestration problem once the research is done. Then, the cycle…"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-18
+lastUpdated: 2026-08-27
 ---
 
 
@@ -71,7 +71,7 @@ GitHub Copilot provides access to numerous models of various levels, including t
 As you work through the application modernization flow, you'll move back and forth between higher-end tasks, like planning and research, to lower-end tasks, like writing code and generating tests. With `/model` you can switch to an appropriate model depending on the needs of the current ask, both saving time and reducing the credit usage necessary to complete the operation. For example, you might choose Claude Opus 4.8 to build the plan, then assign an agent using MAI-Flash-1 to implement the code as defined in the plan.
 
 > [!NOTE]
-> During our exploration here we're going to use `auto` as our model choice, which allows Copilot to choose the model it thinks is most appropriate for the task. This is both to streamline the lesson and to allow for completion of the course with reduced credit usage. When it comes time to being complex operations on your production codebase, you can deploy various strategies to choose the right model at the right time.
+> During our exploration here we're going to use `auto` as our model choice, which allows Copilot to choose the model it thinks is most appropriate for the task. This is both to streamline the lesson and to allow for completion of the course with reduced credit usage. When it comes time to perform complex operations on your production codebase, you can deploy various strategies to choose the right model at the right time.
 
 ## Giving Copilot better signal: LSP and documentation MCP
 
@@ -93,8 +93,10 @@ You'll give Copilot structured intelligence for AssetTrack's Java code and a fir
 
 Start with the code signal: install the Eclipse JDT language server through the `lsp-setup` skill and commit its configuration so the whole team shares the same view of the code.
 
+This codespace comes with a collection of approved local tools for Copilot to use, like creating files, running builds, and other local operations. It's scoped to just the codespace, and not any external services. When it comes time to use other services — like the documentation MCP server you'll add later in this module — Copilot will ask for approval, or you'll use a command to add it to its list of approved tools.
+
 1. Return to your codespace. If you closed it, navigate to your repository on GitHub.com, select **Code** > **Codespaces**, then reopen your existing codespace.
-2. Open a terminal by selecting <kbd>Ctrl</kbd> + <kbd>\`</kbd>, then start Copilot CLI from the repository root by running `copilot --yolo`.
+2. Open a terminal by selecting <kbd>Ctrl</kbd> + <kbd>\`</kbd>, then start Copilot CLI from the repository root by running `copilot`.
 3. If prompted, trust the project folder by selecting **Yes, and remember this folder for future sessions**.
 4. Run `/models`, select **Auto** from the list, and select <kbd>Enter</kbd>.
 5. Ask Copilot to install the skill directly from the [Awesome GitHub Copilot][awesome-copilot] collection by entering the prompt:
@@ -133,7 +135,7 @@ Start with the code signal: install the Eclipse JDT language server through the 
 > [!NOTE]
 > The committed `.github/lsp.json` tells Copilot how to launch `jdtls`, but each environment still needs the server installed — that's what the `lsp-setup` skill does. A teammate who clones the repo runs the same skill once to install `jdtls` locally. It runs on the Java 21 JDK the AssetTrack devcontainer provides, which both builds `audit-svc` and `auth-svc` — they target Java 17 — and analyzes their source without trouble.
 
-9. To complete the installation, exit Copilot CLI by using the command `/exit`, then `/exit` again, then re-open Copilot by running `copilot --yolo`.
+9. To complete the installation, exit Copilot CLI by using the command `/exit`, then `/exit` again, then re-open Copilot by running `copilot`.
 
 With `.github/lsp.json` committed and `jdtls` installed, every contributor now gets the same compiler-backed view of AssetTrack's Java code.
 
@@ -170,12 +172,12 @@ Treat the result as evidence, not as the decision. The upgrade touches real thin
 
 ## Exercise 2: Get a research-backed migration plan for audit-svc
 
-The plan you'll drive the rest of the module from was produced by a real `/research` run — the research prompt in the tip below, pointed at `audit-svc` — and then trimmed so Copilot can consult it without re-reading a 700-line report every time it needs the recipe. It's a representative artifact: citation-backed, phased, and grounded in the actual `legacy-app` source. You'll pull it into the repo now so it becomes the first reusable asset of the modernization, then verify it before it drives any code.
+The plan you'll drive the rest of the module from was produced by a real `/research` run — the research prompt in the tip below, pointed at `audit-svc` — and then trimmed so Copilot can consult it without re-reading a 700-line report every time it needs the recipe. It's a representative artifact: citation-backed, phased, and grounded in the actual `contoso-inventory` source. You'll pull it into the repo now so it becomes the first reusable asset of the modernization, then verify it before it drives any code.
 
 1. In your main session, have Copilot find the representative plan in the course repository and save it into your repo. Copilot CLI ships with the GitHub MCP server, so it can locate the file by repository and name rather than a brittle raw URL:
 
     ```text
-    Using the built-in GitHub MCP server, find the audit-svc migration plan in the GeekTrainer/advanced-copilot-cli repository — it's the resource file under content/resources for modernizing audit-svc. Read its contents and save them to docs/modernization/audit-svc-plan.md in this repo. Save it as-is — don't summarize or reformat it.
+    Using the built-in GitHub MCP server, find the audit-svc migration plan in the github-samples/advanced-copilot-cli repository — it's the resource file under content/resources for modernizing audit-svc. Read its contents and save them to docs/modernization/audit-svc-plan.md in this repo. Save it as-is — don't summarize or reformat it.
     ```
 
 2. Open `docs/modernization/audit-svc-plan.md` and read the phases. Check it against the ground truth so you trust it before it drives code: it names a specific Spring Boot 4.1 parent rather than a generic "4.x", it accounts for the Jackson 2→3 default that Spring Boot 4 brings, and it keeps the existing `JdbcTemplate` data access rather than folding a JPA rewrite into the upgrade. Verify a couple of the cited links resolve. This is the contract the migrator agent works against, so if any phase reads too vaguely to hand to a teammate, ask Copilot to deepen it — ambiguity here becomes drift later.
@@ -266,7 +268,7 @@ As highlighted previously, app modernization follows a cycle of research, coding
 1. Turn what you just learned into a short playbook so the next service reuses the recipe. Ask Copilot to write it from the actual work, not from theory, by sending the following prompt:
 
     ```text
-    Using the the learnings and process we just followed, let's create an updated migration-playbook.md file that will supersede the original. Bring over anything applicable generalized from the original research, and any lessons from the upgrade you just performed.
+    Using the learnings and process we just followed, let's create an updated migration-playbook.md file that will supersede the original. Bring over anything applicable generalized from the original research, and any lessons from the upgrade you just performed.
     ```
 
 2. Ask Copilot to update the agent with any learnings it has that might improve the process by using the following prompt:
@@ -300,7 +302,7 @@ Modernizing the first service was the expensive part. The second one is where bu
     Modernize services/auth-svc following the guidelines provided in the agent, and give me a final status report at the end. The baseline test suite from the previous exercise is already in place, so confirm it passes and start from the toolchain phase.
     ```
 
-    The agent performs the upgrade, following the steps lessons from your research and the first migration process.
+    The agent performs the upgrade, following the steps and lessons from your research and the first migration process.
 
 5. Once the work is complete, ask Copilot to create a PR with your new agent, playbook, and newly upgraded services by using the following prompt:
 
@@ -342,12 +344,12 @@ The throughline is that AI changes the cost of each step, not the need for the s
 | [← Previous: Adding a new feature][previous-lesson] | [Next: Managing Copilot's infrastructure →][next-lesson] |
 |:--|--:|
 
-[previous-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/05-add-feature-barcode/
-[next-lesson]: /learning-hub/advanced-copilot-cli/multi-stack/07-manage-infrastructure/
-[m02]: /learning-hub/advanced-copilot-cli/multi-stack/02-building-ai-infrastructure/
-[m03]: /learning-hub/advanced-copilot-cli/multi-stack/03-test-suite-remote-delegation/
-[m04]: /learning-hub/advanced-copilot-cli/multi-stack/04-lifecycle-hooks/
-[m05]: /learning-hub/advanced-copilot-cli/multi-stack/05-add-feature-barcode/
+[previous-lesson]: /learning-hub/advanced-copilot-cli/05-add-feature-barcode/
+[next-lesson]: /learning-hub/advanced-copilot-cli/07-manage-infrastructure/
+[m02]: /learning-hub/advanced-copilot-cli/02-building-ai-infrastructure/
+[m03]: /learning-hub/advanced-copilot-cli/03-test-suite-remote-delegation/
+[m04]: /learning-hub/advanced-copilot-cli/04-lifecycle-hooks/
+[m05]: /learning-hub/advanced-copilot-cli/05-add-feature-barcode/
 [copilot-cli-lsp-concept]: https://docs.github.com/copilot/concepts/agents/copilot-cli/lsp-servers
 [mcp-concept]: https://docs.github.com/copilot/concepts/context/mcp
 [gitmcp]: https://github.com/idosal/git-mcp
