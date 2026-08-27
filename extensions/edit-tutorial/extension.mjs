@@ -1343,12 +1343,22 @@ function mergeProgress(server) {
     mine.completedAt = re.completedAt;
     mine.approvalNote = re.approvalNote || "";
     // Completion is a verdict on one specific attempt, so it travels with that
-    // attempt's code. Without this, a dirty editor here would keep its own
-    // unverified text below a completion that the checks or a review earned on
-    // entirely different code, and the retry would persist that pairing.
-    mine.completedCode = typeof re.completedCode === "string" ? re.completedCode
+    // attempt's code, and the code takes the editor with it. Recording which
+    // attempt earned the verdict is only half of keeping them together: the
+    // panel draws the editor from the code and the banner from the completed
+    // flag, so a dirty editor left alone would show the learner's own
+    // unverified text, readonly, under "Exercise complete", with the retry
+    // persisting that pairing and the artifact rendering a different attempt
+    // for the same lesson. A completed exercise has nothing left to type into,
+    // so adopting the winning attempt costs the learner nothing they can still
+    // act on, and is what an approval's own broadcast does to every canvas.
+    var earned = typeof re.completedCode === "string" ? re.completedCode
       : typeof re.code === "string" ? re.code
-      : mine.completedCode;
+      : null;
+    if (earned !== null) {
+      mine.completedCode = earned;
+      mine.code = earned;
+    }
   }
   // While a review is pending the editor is frozen precisely so the attempt
   // cannot change under the agent reading it; a merge must not change it
@@ -1871,6 +1881,14 @@ function onEditorInput(el) {
 // the next Tab so it moves focus normally, the convention code editors on the web
 // settle on; the hint under the editor says so, and the release is announced.
 function onEditorKey(e) {
+  // A frozen or finished editor is rendered readonly, which stops typing but not
+  // this handler: readonly does not block assigning el.value from script, so
+  // indenting here would move code the freeze promises is standing still, and
+  // would do it without the oninput the readonly attribute suppressed. Leave Tab
+  // to the browser instead, which is also the right behavior for a textarea the
+  // learner cannot edit: it moves focus on to the next control rather than
+  // trapping a keyboard-only learner inside a box that ignores them.
+  if (reviewPending || (S.progress && S.progress.exercise && S.progress.exercise.completed)) return;
   if (e.key === "Escape") {
     tabEscapes = true;
     announce("Tab will move to the next control. Type to keep editing.");
@@ -2091,28 +2109,61 @@ function askReview(btn) {
     clearTimeout(saveTimer);
     saveTimer = null;
   }
+  // Hold the editor before the write leaves, not after the send comes back.
+  // Approval names the attempt it approves, but that name can only describe what
+  // the server has stored, and both round trips below are a keystroke away from
+  // making it stale: text typed while they are in flight is a debounce behind,
+  // so an approval carrying the old digest still matches, and the revision it
+  // broadcasts replaces what the learner typed. Freezing first is what makes the
+  // attempt reviewed and the attempt on screen the same one. The learner can
+  // release it and lose nothing but the lock.
+  var wasPending = reviewPending;
+  var wasArmed = reviewArmed;
+  reviewPending = true;
+  reviewArmed = true;
+  render();
+  // Nothing is being reviewed after all, so give the editor back. Restoring what
+  // was held before rather than clearing outright keeps an earlier review's lock
+  // intact. The sent flag says the prompt may have reached the session even
+  // though this call could not confirm it: the freeze still lifts, because
+  // stranding the learner on an unknowable is worse, but saves stay immediate
+  // so a review that did land cannot approve text the learner has moved past.
+  var release = function (sent) {
+    reviewPending = wasPending;
+    reviewArmed = sent || wasArmed;
+    render();
+  };
   postProgress()
     .then(function (r) {
-      if (!r.ok) throw new Error("progress rejected");
-      return api("/review", { method: "POST" });
-    })
-    .then(function (r) {
-      if (r.ok) {
-        // Hold the editor while the agent reads. Approval names the attempt it
-        // approves, but that name can only describe what the server has stored,
-        // and a keystroke is a debounce away from making it stale. Freezing the
-        // text is what makes the two agree; the learner can release it and lose
-        // nothing but the lock.
-        reviewPending = true;
-        reviewArmed = true;
-        render();
-        announce("Sent to Copilot. Editing is paused while it reviews, so the review matches what you sent.");
+      if (!r.ok) {
+        // The attempt was refused, so it was never sent and nothing can approve
+        // it. An in-flight authoritative change is the usual reason.
+        release(false);
+        toast("Your attempt was not saved, so it was not sent. Try again in a moment.");
+        return;
       }
-      toast(r.ok
-        ? "Sent to Copilot. Watch the chat for coaching."
-        : "Copilot did not receive your attempt. Try again in a moment.");
+      return api("/review", { method: "POST" }).then(function (sendResult) {
+        if (sendResult.ok) {
+          toast("Sent to Copilot. Watch the chat for coaching.");
+          announce("Sent to Copilot. Editing is paused while it reviews, so the review matches what you sent.");
+          return;
+        }
+        // The server answered, and its answer is that the prompt did not reach
+        // the session, so no review is coming.
+        release(false);
+        toast("Copilot did not receive your attempt. Try again in a moment.");
+      }, function () {
+        // The request itself failed, so whether the session got the prompt is
+        // not knowable from here. Treat it as sent.
+        release(true);
+        toast("Could not reach the session.");
+      });
     })
-    .catch(function () { toast("Could not reach the session."); })
+    .catch(function () {
+      // The save never completed, so the review was never requested.
+      release(false);
+      toast("Could not reach the session.");
+    })
     .then(function () { if (btn) setTimeout(function () { btn.disabled = false; }, 2000); });
 }
 
