@@ -320,11 +320,30 @@ function activeLessonPos(state) {
     return Math.max(0, Math.min(pos, archived));
 }
 
+// Identity of the lesson on screen, independent of where it sits in the history
+// and of the revision counter. Every progress write carries the id of the lesson
+// it was composed against, so a write still unsent when a publish archives that
+// lesson can be applied to the archived entry instead of being dropped: the
+// revision check alone cannot tell a write describing a lesson that no longer
+// exists from one describing the lesson now sitting in the history.
+function lessonId(state) {
+    if (typeof state.lessonId !== "string" || !state.lessonId) state.lessonId = randomUUID();
+    return state.lessonId;
+}
+
 // Every lesson in publish order, oldest first, with the active one in place.
 function lessonList(state) {
     const list = Array.isArray(state.archive) ? state.archive.slice() : [];
     if (state.tutorial) {
-        list.splice(activeLessonPos(state), 0, { tutorial: state.tutorial, progress: state.progress });
+        // The id and the write counter travel with the lesson into the archive,
+        // so a late write naming it lands on the right entry and is still
+        // ordered against the writes that entry had already accepted.
+        list.splice(activeLessonPos(state), 0, {
+            tutorial: state.tutorial,
+            progress: state.progress,
+            id: lessonId(state),
+            progressSeq: state.progressSeq || 0,
+        });
     }
     return list;
 }
@@ -339,6 +358,7 @@ function activateLesson(state, index) {
     state.activePos = index;
     state.tutorial = chosen.tutorial;
     state.progress = chosen.progress || freshProgress(chosen.tutorial);
+    state.lessonId = typeof chosen.id === "string" && chosen.id ? chosen.id : randomUUID();
     return true;
 }
 
@@ -351,15 +371,23 @@ function publishLesson(state, tutorial) {
     if (!state.tutorial || state.tutorial.title === tutorial.title) {
         state.tutorial = tutorial;
         state.progress = freshProgress(tutorial);
+        // A replacement is a different lesson as far as writes are concerned:
+        // its progress was just reset on purpose, so a write composed against
+        // the lesson this one replaces must not be applied to it.
+        state.lessonId = randomUUID();
         return;
     }
+    // The lesson being archived keeps the id it was published with (lessonList
+    // attached it), so writes still naming it can be routed to it afterwards.
     const list = lessonList(state);
-    list.push({ tutorial, progress: freshProgress(tutorial) });
+    const id = randomUUID();
+    list.push({ tutorial, progress: freshProgress(tutorial), id, progressSeq: 0 });
     while (list.length > MAX_LESSONS) list.shift();
     state.archive = list.slice(0, -1);
     state.activePos = state.archive.length;
     state.tutorial = tutorial;
     state.progress = freshProgress(tutorial);
+    state.lessonId = id;
 }
 
 // What the canvas receives: the active lesson plus just enough metadata to draw
@@ -372,6 +400,9 @@ function clientState(state) {
         progress: state.progress,
         rev: state.rev || 0,
         progressSeq: state.progressSeq || 0,
+        // Stamped on every progress write the canvas makes, so a write composed
+        // before a publish archived this lesson can still be routed to it.
+        lessonId: state.tutorial ? lessonId(state) : "",
         lesson: {
             index: Math.max(0, activeLessonPos(state)),
             count: list.length,
@@ -544,6 +575,15 @@ function clampLoadedState(state) {
     }
     state.archive = state.archive.filter((entry) => entry && renderableLesson(entry.tutorial));
     for (const entry of state.archive) entry.progress = structuredProgress(entry.progress);
+    // Lesson ids come off disk like everything else, so they are clamped to a
+    // short string, and a lesson saved before ids existed is given one here
+    // rather than coming back unaddressable by a late write.
+    state.lessonId = text(state.lessonId, 80) || randomUUID();
+    for (const entry of state.archive) {
+        entry.id = text(entry.id, 80) || randomUUID();
+        const seq = Number(entry.progressSeq);
+        entry.progressSeq = Number.isFinite(seq) && seq > 0 ? Math.floor(seq) : 0;
+    }
     state.progress = structuredProgress(state.progress);
     const pe = state?.progress?.exercise;
     if (pe && typeof pe === "object") {
@@ -1089,10 +1129,19 @@ var reviewPending = false;
 var reviewArmed = false;
 // A lesson switch is in flight; further arrow presses wait until it settles.
 var lessonSwitching = false;
-// True once the learner edits the exercise code in this canvas; cleared when a
-// state document replaces S. While set, the editor text is what the learner is
-// looking at and working on, so a progress merge never overwrites it.
+// True while the exercise code in this canvas is ahead of what the server has
+// acknowledged. While set, the editor text is what the learner is looking at and
+// working on, so a progress merge never overwrites it. It has to clear again on
+// acknowledgement: left latched for the life of a revision it stops meaning
+// "unsaved" and starts meaning "this canvas typed once", and a stale_write merge
+// would then keep text the server already has, with the retry writing it back
+// over a newer attempt saved from another canvas.
 var codeDirty = false;
+// Counts edits to the exercise code. A save records the count it carried, and
+// only an acknowledgement of that exact count clears the dirty flag, so typing
+// that happened while the write was in flight is still ahead of the server and
+// keeps winning merges.
+var codeEdits = 0;
 
 // Capability token minted by the server for this canvas instance. Every API call
 // carries it, so a page that never received this document cannot read the lesson
@@ -1139,6 +1188,13 @@ function applyState(next) {
     render();
     return false;
   }
+  // A publish, approval, reset or lesson switch replaces S wholesale, and with
+  // it anything this canvas had not sent yet: editor, quiz and hint writes are
+  // debounced, so the learner's last 450ms of work would vanish along with the
+  // lesson it belongs to. Hand that snapshot to the server tagged with the
+  // lesson it was made in first, so it lands on that lesson in the history.
+  // Lesson switches flush before they ask, so this is a no-op for them.
+  if (saveTimer || saveInFlight || saveQueued) postLateWrite();
   S = next;
   appliedRev = rev;
   // A new revision means the agent acted, so nothing is outstanding any more.
@@ -1180,10 +1236,32 @@ var saveFailures = 0;
 
 function postProgress() {
   progressSeq++;
+  var sentEdits = codeEdits;
   return api("/progress", {
     method: "POST",
-    body: JSON.stringify({ rev: S.rev || 0, seq: progressSeq, progress: S.progress }),
+    body: JSON.stringify({ rev: S.rev || 0, seq: progressSeq, lesson: S.lessonId || "", progress: S.progress }),
+  }).then(function (r) {
+    // Accepted, and nothing was typed while it was in flight: the server now
+    // holds this canvas's editor text, so it is no longer the only copy and a
+    // newer attempt from another canvas is free to replace it.
+    if (r.ok && codeEdits === sentEdits) codeDirty = false;
+    return r;
   });
+}
+
+// Sends the progress this canvas is holding for a lesson it is about to stop
+// showing. It bypasses the save machinery on purpose: the write belongs to a
+// lesson that is no longer on screen, so there is nothing here to merge a
+// conflict into and nothing to retry against. The server applies it to that
+// lesson where it now sits in the history, or refuses it when the change that
+// replaced the lesson reset its progress anyway.
+function postLateWrite() {
+  if (!S || !S.progress) return;
+  progressSeq++;
+  api("/progress", {
+    method: "POST",
+    body: JSON.stringify({ rev: S.rev || 0, seq: progressSeq, lesson: S.lessonId || "", progress: S.progress }),
+  }).catch(function () {});
 }
 
 // Folds the authoritative progress carried by a stale_write refusal into this
@@ -1727,6 +1805,7 @@ function markUnderstood(stepId, i) {
 
 function onEditorInput(el) {
   codeDirty = true;
+  codeEdits++;
   S.progress.exercise.code = el.value;
   // While a review is outstanding the 450ms debounce is exactly the window an
   // approval can slip through, so give it up and write straight away.
@@ -1758,6 +1837,7 @@ function onEditorKey(e) {
   el.value = el.value.slice(0, start) + "  " + el.value.slice(end);
   el.selectionStart = el.selectionEnd = start + 2;
   codeDirty = true;
+  codeEdits++;
   S.progress.exercise.code = el.value;
   saveProgress();
 }
@@ -2400,6 +2480,41 @@ async function startServer(instanceId) {
                     sendJson(res, 400, { ok: false, error: "invalid_progress" });
                     return;
                 }
+                // The write names the lesson it was composed against. Editor,
+                // quiz and hint writes are debounced, so a publish that archives
+                // a lesson can land while a canvas is still holding work for it,
+                // and the revision check below cannot tell that work from a write
+                // describing a lesson that no longer exists. When the named lesson
+                // is sitting in the history, apply the write there: the learner's
+                // last edits stay with the lesson they were made in instead of
+                // being lost to the moment the agent published.
+                const named = text(incoming?.lesson, 80);
+                if (named && state.tutorial && named !== lessonId(state)) {
+                    const entry = (Array.isArray(state.archive) ? state.archive : [])
+                        .find((candidate) => candidate && candidate.id === named);
+                    if (!entry) {
+                        // The lesson is gone for good: replaced by a republish of
+                        // the same title (which resets progress by definition), or
+                        // pushed off the end of the history. Nothing to write to.
+                        sendJson(res, 409, { ok: false, error: "stale_revision", rev: state.rev || 0 });
+                        return;
+                    }
+                    // Archived lessons order their writes by the counter they
+                    // carried into the archive, the same rule the active lesson
+                    // uses. The refusal deliberately carries no progress: the
+                    // canvas has a different lesson on screen now, so there is
+                    // nothing there for this lesson's progress to merge into.
+                    const lateSeq = Number(incoming.seq);
+                    if (!Number.isFinite(lateSeq) || lateSeq <= (entry.progressSeq || 0)) {
+                        sendJson(res, 409, { ok: false, error: "stale_lesson_write", lesson: named });
+                        return;
+                    }
+                    entry.progressSeq = lateSeq;
+                    entry.progress = progress;
+                    await saveState(sessionRef?.workspacePath, state);
+                    sendJson(res, 200, { ok: true, lesson: named, archived: true });
+                    return;
+                }
                 // This body was composed against a specific revision. If the lesson
                 // was republished, approved, or reset since then, the canvas is
                 // describing an exercise that no longer exists; the broadcast for
@@ -2845,6 +2960,9 @@ const session = await joinSession({
                         state.activePos = Number.isInteger(persisted.activePos)
                             ? persisted.activePos
                             : state.archive.length;
+                        state.lessonId = typeof persisted.lessonId === "string" && persisted.lessonId
+                            ? persisted.lessonId
+                            : randomUUID();
                         bumpRev(state);
                         // Any instance already open was showing the empty state;
                         // let it catch up rather than sit on a dead revision.
