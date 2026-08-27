@@ -54,10 +54,6 @@ foreach ($skill in $skills) {
     }
 }
 
-# Remove any generated interview prompt files from the plugin scripts directory.
-$interviewPrompts = Join-Path $pluginDir 'scripts' '*invoke-shepherd-task-20-create-issues-from-plan-skill.md'
-Remove-Item -Path $interviewPrompts -Force -ErrorAction SilentlyContinue
-
 Write-Host ""
 Write-Host "Shepherd-task fully uninstalled."
 Write-Host "Campaign metadata directories in Git repositories were not modified."

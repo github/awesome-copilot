@@ -31,6 +31,8 @@ Write-Host "Installed plugin to $pluginDest"
 $requiredScripts = @(
     'shepherd-task-init-campaign.sh'
     'shepherd-task-init-campaign.ps1'
+    'shepherd-task-prepare-create-issues.sh'
+    'shepherd-task-prepare-create-issues.ps1'
     'redact-secrets.sh'
     'redact-secrets.ps1'
 )
@@ -82,7 +84,8 @@ Write-Host "Campaign initialization scripts available at:"
 Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-init-campaign.sh')"
 Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-init-campaign.ps1')"
 Write-Host ""
-Write-Host "Interview script available at:"
-Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-interview-user-to-create-issues.ps1')"
+Write-Host "Stage-20 preparation scripts available at:"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-prepare-create-issues.sh')"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-prepare-create-issues.ps1')"
 Write-Host ""
 Write-Host "Verify with: copilot skill list"

@@ -13,7 +13,7 @@ This stage (and stage 20) is only needed when a campaign does not yet have an or
 
 ## Inputs
 
-- `FILENAME`: The full relative path for the output markdown file (e.g., `my-project/1234-feature-remove-before-merge/1234-ignorance-reduction-plan.md`).
+- `FILENAME`: The full relative path for the output markdown file. Its basename must end in `ignorance-reduction-plan.md` (e.g., `my-project/1234-feature-remove-before-merge/1234-ignorance-reduction-plan.md`) so stage 20 can discover it without an interview.
 - `CONTEXT`: The user will have already loaded sufficient context (chat history, ADRs, issues, PRs, prior plans) into the conversation before invoking this skill. The skill uses that loaded context to formulate high-quality questions.
 
 ## Prerequisites
@@ -34,7 +34,7 @@ The generated plan MUST follow the structure below. Study the embedded examples 
 2. **Metadata block** — Human DRI, relevant ADRs/references, issue links, related directories
 3. **Goal section** (when the campaign is large enough to warrant one) — concise statement of what success looks like, optionally with a technology stack table and a list of SDK/framework features to exercise
 4. **Completed phases** — phases already done, marked ✅, with brief summaries of what was accomplished and decided
-5. **Ignorance reduction phase** — the core of the plan. A numbered list of questions/spikes, each with:
+5. **Ignorance reduction phase** — exactly one level-two (`##`) heading containing the phrase `Ignorance reduction`. This is the core of the plan. It contains a numbered list of questions/spikes, each with:
    - `### N.M — Short title`
    - `**Question:** <precise question about an unknown>`
    - Context paragraph explaining why this matters, options considered, trade-offs
@@ -42,7 +42,7 @@ The generated plan MUST follow the structure below. Study the embedded examples 
    - `**Spike needed:**` (when hands-on verification is required)
    - `**Recommendation:**` (the plan author's suggested answer, when one exists)
    - `**Resolution:**` (LEFT EMPTY — the human fills this in later)
-6. **Implementation phase(s)** — ordered build steps, each with:
+6. **Implementation phase** — exactly one level-two (`##`) heading containing the word `Implementation`. Put every ordered build step directly beneath it as a level-three (`###`) heading. Each step includes:
    - What to build
    - Files to create/modify
    - Tests to write

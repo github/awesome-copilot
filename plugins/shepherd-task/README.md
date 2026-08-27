@@ -64,6 +64,25 @@ Stages 10 and 20 (campaign planning and issue creation) are only needed when a c
 
 0. (Optional) Stage 10: create the ignorance reduction plan (`shepherd-task-10-create-ignorance-reduction-plan`), then stage 20: create the ordered implementation issues from the resolved plan (`shepherd-task-20-create-issues-from-plan`).
 
+   Prepare stage 20 with `shepherd-task-prepare-create-issues.sh` or
+   `shepherd-task-prepare-create-issues.ps1`. The preparation script derives
+   the plan file, ignorance-reduction section, implementation section, and Git
+   remote from campaign conventions. It fails on ambiguity rather than
+   conducting an interactive interview.
+
+   ```bash
+   ./plugins/shepherd-task/scripts/shepherd-task-prepare-create-issues.sh \
+     123-campaign-name-remove-before-merge
+   ```
+
+   ```powershell
+   .\plugins\shepherd-task\scripts\shepherd-task-prepare-create-issues.ps1 `
+     -CampaignMetadataDirectory 123-campaign-name-remove-before-merge
+   ```
+
+   Run the generated invocation script reported by the preparation command to
+   execute stage 20.
+
 1. User invokes `shepherd-task-given-list`. See [figure 01: script shepherd-task-given-list](figure-01-shepherd-task-given-list.md).
 
 2. For each task, `shepherd-task-given-list` invokes `shepherd-task`. See [figure 02: script shepherd-task](figure-02-shepherd-task.md).
@@ -217,6 +236,8 @@ redactor first and review the diff.
 |------|---------|
 | `plugins/shepherd-task/scripts/shepherd-task-given-list.sh` | Bash: iterates a comma-separated list of issue numbers, invoking shepherd-task.sh for each |
 | `plugins/shepherd-task/scripts/shepherd-task-given-list.ps1` | PowerShell equivalent |
+| `plugins/shepherd-task/scripts/shepherd-task-prepare-create-issues.sh` | Bash: derives stage-20 inputs from campaign conventions and generates invocation artifacts without an interview |
+| `plugins/shepherd-task/scripts/shepherd-task-prepare-create-issues.ps1` | PowerShell equivalent |
 | `plugins/shepherd-task/scripts/shepherd-task.sh` | Bash: orchestrates Phase 1 (stage 30) + Phase 2 (stage 40) for a single task issue with state verification |
 | `plugins/shepherd-task/scripts/shepherd-task.ps1` | PowerShell equivalent |
 | `plugins/shepherd-task/scripts/shepherd-task-inspect-json.sh` | Bash: debug utility to inspect copilot JSON session logs |

@@ -1,6 +1,6 @@
 ---
 name: shepherd-task-20-create-issues-from-plan
-description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child issues under an existing GitHub parent issue, preferring the Task issue type when the repository supports it. Incorporates resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 13 inputs are required. Skip this stage when suitable implementation issues already exist.'
+description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child issues under an existing GitHub parent issue, preferring the Task issue type when the repository supports it. Incorporates resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 12 inputs are required. Skip this stage when suitable implementation issues already exist.'
 ---
 
 # Skill: Create Shepherd Task Issues from a Plan (shepherd-task stage 20 — creation of ordered implementation issues)
@@ -22,12 +22,11 @@ The created issues are specifications, not summaries. A coding agent must be abl
 5. **`PLAN_FILE_NAME`** — Name of the ignorance reduction plan file within `PLAN_DIRECTORY`.
 6. **`QUESTIONS_SECTION`** — Exact heading of the resolved "questions to answer before writing code" section in the plan.
 7. **`IMPLEMENTATION_SECTION`** — Exact heading of the implementation/build-order section whose direct task subsections become child issues.
-8. **`EXAMPLE_ISSUES`** — One or more comma-separated full GitHub issue URLs whose title/body style, specificity, and formatting establish the expected standard. Bare issue numbers are not accepted.
-9. **`BASE_REMOTE`** — Remote name agents should use (e.g. `upstream` or `origin`).
-10. **`SUPPORTING_ARTIFACTS`** — Repo-relative paths or path constraints for spike reports, prototypes, screenshots, etc. that task issues must cite.
-11. **`LOG_DIRECTORY`** — Absolute path to the existing run log directory. The launcher supplies this input; store all drafted issue bodies and the creation ledger here.
-12. **`CAMPAIGN_ID`** — Canonical campaign UUID from `PLAN_DIRECTORY/shepherd-campaign.json`.
-13. **`LESSON_PROPAGATION`** — Immutable campaign mode, exactly `off` or `campaign`.
+8. **`EXPECTED_TASK_COUNT`** — Positive integer count of direct task headings discovered beneath `IMPLEMENTATION_SECTION`.
+9. **`BASE_REMOTE`** — Remote name matching `REPO`; the preparation script derives it from configured Git remote URLs.
+10. **`LOG_DIRECTORY`** — Absolute path to the existing run log directory. The launcher supplies this input; store all drafted issue bodies and the creation ledger here.
+11. **`CAMPAIGN_ID`** — Canonical campaign UUID from `PLAN_DIRECTORY/shepherd-campaign.json`.
+12. **`LESSON_PROPAGATION`** — Immutable campaign mode, exactly `off` or `campaign`.
 
 ## Fixed behaviors
 
@@ -60,10 +59,10 @@ When creating issues, produce issue bodies at least as specific and structured a
 ### Step 1: Validate the invocation
 
 1. Verify `PARENT_ISSUE` matches `^[1-9][0-9]*$`. Reject URLs and other non-numeric values.
-2. Split `EXAMPLE_ISSUES` on commas and trim surrounding whitespace from each item. Verify the list is non-empty and every item is a full GitHub issue URL matching `https://github.com/OWNER/REPO/issues/NUMBER`. Reject bare issue numbers, pull request URLs, and other URL forms.
-3. Verify `LOG_DIRECTORY` is an absolute path to an existing writable directory. Create `LOG_DIRECTORY/issue-bodies`; fail before creating any GitHub issues if this cannot be done.
-4. Verify `BASE_BRANCH` is not `main` or the repository's default branch.
-5. Verify `BASE_BRANCH` exists.
+2. Verify `LOG_DIRECTORY` is an absolute path to an existing writable directory. Create `LOG_DIRECTORY/issue-bodies`; fail before creating any GitHub issues if this cannot be done.
+3. Verify `BASE_BRANCH` is not `main` or the repository's default branch.
+4. Verify `BASE_BRANCH` exists.
+5. Verify `BASE_REMOTE` exists and its configured GitHub URL matches `REPO`.
 6. Verify `PARENT_ISSUE` exists, is open, and belongs to `REPO`.
 7. Determine whether `REPO` supports an enabled issue type named exactly `Task`:
    - Read the repository owner's login and type from `gh api "repos/$REPO"`.
@@ -73,16 +72,17 @@ When creating issues, produce issue bodies at least as specific and structured a
    - Report whether child issues will use `Task` or be created without an issue type before creating anything.
 8. Read `PLAN_DIRECTORY/PLAN_FILE_NAME` from `BASE_BRANCH`. Prefer `git show "$BASE_BRANCH:$PLAN_DIRECTORY/$PLAN_FILE_NAME"`; fall back to `gh api`.
 9. Verify both `QUESTIONS_SECTION` and `IMPLEMENTATION_SECTION` headings occur exactly once.
-10. Verify every question that gates implementation has a non-empty resolution block:
+10. Verify `EXPECTED_TASK_COUNT` is a positive integer and exactly equals the number of direct task headings beneath `IMPLEMENTATION_SECTION`.
+11. Verify every question that gates implementation has a non-empty resolution block:
   - Treat `Resolution:` as a marker, not as a single-line value. Its block includes content on the marker line and all following paragraphs, lists, tables, code blocks, and other Markdown until the next peer question/subsection heading or the end of `QUESTIONS_SECTION`.
   - A standalone `**Resolution:**` line followed by substantive block content is resolved. Never classify it as empty merely because no value appears on the marker line, and never use a same-line-only regular expression as the resolution check.
   - After ignoring blank lines and Markdown formatting delimiters, classify a resolution as unresolved only when its entire block has no substantive content or explicitly states that the gating decision remains unresolved.
   - Before stopping, list each blocking question and quote its complete parsed resolution block, or explicitly state that no resolution block exists. If the block contains a concrete decision, answer, or operational consequence, do not report that question as unresolved.
-11. Read `PLAN_DIRECTORY/shepherd-campaign.json` from `BASE_BRANCH`. Verify its `campaignId` and `lessonPropagation` exactly match `CAMPAIGN_ID` and `LESSON_PROPAGATION`, and verify `campaign-lessons.md` exists.
+12. Read `PLAN_DIRECTORY/shepherd-campaign.json` from `BASE_BRANCH`. Verify its `campaignId` and `lessonPropagation` exactly match `CAMPAIGN_ID` and `LESSON_PROPAGATION`, and verify `campaign-lessons.md` exists.
 
-### Step 2: Study examples and existing children
+### Step 2: Study bundled examples and existing children
 
-1. Parse each URL in `EXAMPLE_ISSUES` into its owner, repository, and issue number. Fetch every issue body and extract conventions for structure, specificity, and formatting.
+1. Study every issue example bundled with this skill and extract conventions for structure, specificity, and formatting. Do not require external example-issue URLs.
 2. List current children of `PARENT_ISSUE` via `gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues"` and retain their issue IDs and numbers as the pre-creation baseline.
 3. Treat issue creation as a one-shot operation, not an idempotent or resumable operation. Do not infer matches between existing children and implementation subsections.
 
@@ -95,7 +95,7 @@ For each direct child heading beneath `IMPLEMENTATION_SECTION`:
 3. Tests and gating criteria from the plan.
 4. Prerequisite task (if not the first).
 5. Every question/resolution from `QUESTIONS_SECTION` that constrains this task — with concrete resolution values.
-6. Relevant spike **findings** (decisions, constraints, rejected approaches) from `PLAN_DIRECTORY` and `SUPPORTING_ARTIFACTS` — extracted as prose, never as source file references (see "Spike firewall" section).
+6. Relevant spike **findings** (decisions, constraints, rejected approaches) from `PLAN_DIRECTORY` and resources referenced by the plan — extracted as prose, never as source file references (see "Spike firewall" section).
 7. Additional gating tests that catch contract, integration, or regression failures before the next serial task starts.
 
 ### Step 4: Draft all issues before creating any

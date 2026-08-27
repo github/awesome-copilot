@@ -51,9 +51,6 @@ for skill in "${SKILLS[@]}"; do
     fi
 done
 
-# Remove any generated interview prompt files from the plugin scripts directory.
-rm -f "$PLUGIN_DIR/scripts/"*invoke-shepherd-task-20-create-issues-from-plan-skill.md 2>/dev/null || true
-
 echo ""
 echo "Shepherd-task fully uninstalled."
 echo "Campaign metadata directories in Git repositories were not modified."

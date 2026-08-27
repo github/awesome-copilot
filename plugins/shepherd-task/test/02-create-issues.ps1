@@ -1,12 +1,11 @@
 <#
 .SYNOPSIS
-    Exercises the stage-20 interview and issue-creation skill for a test campaign.
+    Exercises stage-20 preparation and issue creation for a test campaign.
 
 .DESCRIPTION
-    Generates a deterministic answers file containing the math-tool plan headings
-    and stable example issues, invokes shepherd-task-interview-user-to-create-issues,
-    executes its generated copilot --yolo script, and validates the resulting
-    creation ledger.
+    Invokes shepherd-task-prepare-create-issues, verifies its convention-derived
+    inputs, executes its generated copilot --yolo script, and validates the
+    resulting creation ledger.
 
     This script creates and links real GitHub issues through
     shepherd-task-20-create-issues-from-plan.
@@ -28,28 +27,6 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-
-$exampleIssues = @(
-    'https://github.com/github/copilot-sdk/issues/1758'
-    'https://github.com/github/copilot-sdk/issues/1759'
-    'https://github.com/github/copilot-sdk/issues/1760'
-    'https://github.com/github/copilot-sdk/issues/1761'
-    'https://github.com/github/copilot-sdk/issues/1762'
-    'https://github.com/github/copilot-sdk/issues/1839'
-    'https://github.com/github/copilot-sdk/issues/1840'
-    'https://github.com/github/copilot-sdk/issues/1876'
-    'https://github.com/github/copilot-sdk/issues/1842'
-    'https://github.com/github/copilot-sdk/issues/1843'
-    'https://github.com/github/copilot-sdk/issues/1884'
-    'https://github.com/github/copilot-sdk/issues/2167'
-    'https://github.com/github/copilot-sdk/issues/2168'
-    'https://github.com/github/copilot-sdk/issues/2169'
-    'https://github.com/github/copilot-sdk/issues/2146'
-    'https://github.com/github/copilot-sdk/issues/2147'
-    'https://github.com/github/copilot-sdk/issues/2148'
-    'https://github.com/github/copilot-sdk/issues/2149'
-    'https://github.com/github/copilot-sdk/issues/2150'
-)
 
 $repoRootOutput = git rev-parse --show-toplevel 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $repoRootOutput) {
@@ -73,61 +50,46 @@ if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
 }
 $campaign = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 
-$interviewScript = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-interview-user-to-create-issues.ps1')
+$preparationScript = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-prepare-create-issues.ps1')
 )
-if (-not (Test-Path -LiteralPath $interviewScript -PathType Leaf)) {
-    throw "Stage-20 interview script not found: $interviewScript"
+if (-not (Test-Path -LiteralPath $preparationScript -PathType Leaf)) {
+    throw "Stage-20 preparation script not found: $preparationScript"
 }
 
-$answers = [ordered]@{
-    planFileName = 'math-tool-ignorance-reduction-plan.md'
-    questionsSection = '## Phase 2 — Ignorance reduction'
-    implementationSection = '## Phase 3 — Implementation (build order)'
-    exampleIssues = $exampleIssues
-    baseRemote = 'origin'
-    supportingArtifacts = @($CampaignMetadataDirectory)
-}
-
-$answersFile = Join-Path (
-    [System.IO.Path]::GetTempPath()
-) "shepherd-task-stage-20-answers-$([guid]::NewGuid().ToString('N')).json"
-$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-[System.IO.File]::WriteAllText(
-    $answersFile,
-    ($answers | ConvertTo-Json -Depth 4) + [Environment]::NewLine,
-    $utf8NoBom
-)
-
-try {
-    Write-Host 'Generating stage-20 artifacts through the interview script...'
-    $artifacts = & $interviewScript `
-        -CampaignMetadataDirectory $CampaignMetadataDirectory `
-        -AnswersFile $answersFile `
-        -PassThru
-}
-finally {
-    Remove-Item -LiteralPath $answersFile -Force -ErrorAction SilentlyContinue
-}
+Write-Host 'Preparing stage-20 artifacts from campaign conventions...'
+$artifacts = & $preparationScript `
+    -CampaignMetadataDirectory $CampaignMetadataDirectory `
+    -PassThru
 
 if ($null -eq $artifacts) {
-    throw 'Interview script did not return stage-20 artifact information.'
+    throw 'Preparation script did not return stage-20 artifact information.'
 }
 if (-not (Test-Path -LiteralPath $artifacts.PromptFile -PathType Leaf)) {
-    throw "Interview prompt was not created: $($artifacts.PromptFile)"
+    throw "Stage-20 prompt was not created: $($artifacts.PromptFile)"
 }
 if (-not (Test-Path -LiteralPath $artifacts.InvocationFile -PathType Leaf)) {
-    throw "Interview invocation script was not created: $($artifacts.InvocationFile)"
+    throw "Stage-20 invocation script was not created: $($artifacts.InvocationFile)"
 }
 
 $prompt = Get-Content -LiteralPath $artifacts.PromptFile -Raw
-foreach ($exampleIssue in $exampleIssues) {
-    if (-not $prompt.Contains($exampleIssue)) {
-        throw "Generated stage-20 prompt is missing example issue '$exampleIssue'."
+$expectedInputs = @(
+    '- PLAN_FILE_NAME: math-tool-ignorance-reduction-plan.md'
+    '- QUESTIONS_SECTION: ## Phase 2 — Ignorance reduction'
+    '- IMPLEMENTATION_SECTION: ## Phase 3 — Implementation (build order)'
+    '- EXPECTED_TASK_COUNT: 4'
+    '- BASE_REMOTE: origin'
+)
+foreach ($expectedInput in $expectedInputs) {
+    if (-not $prompt.Contains($expectedInput)) {
+        throw "Generated stage-20 prompt is missing derived input '$expectedInput'."
     }
 }
-if ($prompt -match '(?m)^-\s+ISSUE_TYPE:') {
-    throw 'Generated stage-20 prompt must let the skill select Task automatically when supported.'
+if ($artifacts.TaskCount -ne 4) {
+    throw "Expected four convention-discovered implementation tasks; found $($artifacts.TaskCount)."
+}
+if ($prompt -match '(?m)^-\s+(ISSUE_TYPE|EXAMPLE_ISSUES|SUPPORTING_ARTIFACTS):') {
+    throw 'Generated stage-20 prompt contains an obsolete caller-supplied input.'
 }
 
 Write-Host ''

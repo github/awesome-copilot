@@ -1,24 +1,20 @@
 <#
 .SYNOPSIS
-    Creates stage-20 prompt and invocation artifacts for an initialized campaign.
+    Derives stage-20 inputs and creates prompt and invocation artifacts.
 
 .DESCRIPTION
-    Loads campaign-owned values from shepherd-campaign.json. Remaining stage-20
-    inputs are collected interactively or read from an answers JSON file. Artifacts
-    are written below the campaign metadata directory's prompts directory.
+    Loads campaign-owned values from shepherd-campaign.json, discovers the
+    campaign plan and its semantic sections, resolves the Git remote matching
+    the campaign repository, and writes stage-20 invocation artifacts.
 
 .PARAMETER CampaignMetadataDirectory
     Repository-root-relative campaign metadata directory.
-
-.PARAMETER AnswersFile
-    Optional JSON file containing planFileName, questionsSection,
-    implementationSection, exampleIssues, baseRemote, and supportingArtifacts.
 
 .PARAMETER PassThru
     Return an object describing generated artifacts for automation.
 
 .EXAMPLE
-    ./shepherd-task-interview-user-to-create-issues.ps1 `
+    ./shepherd-task-prepare-create-issues.ps1 `
       -CampaignMetadataDirectory 123-math-tool-test-remove-before-merge
 #>
 
@@ -27,54 +23,11 @@ param(
     [Parameter(Mandatory)]
     [string]$CampaignMetadataDirectory,
 
-    [string]$AnswersFile,
-
     [switch]$PassThru
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-
-function Read-Required {
-    param(
-        [string]$Prompt,
-        [string]$Default = ''
-    )
-
-    $displayPrompt = if ($Default) { "$Prompt [$Default]" } else { $Prompt }
-    do {
-        $value = Read-Host $displayPrompt
-        if ([string]::IsNullOrWhiteSpace($value) -and $Default) {
-            $value = $Default
-        }
-        if ([string]::IsNullOrWhiteSpace($value)) {
-            Write-Host '  This input is required.' -ForegroundColor Yellow
-        }
-    } while ([string]::IsNullOrWhiteSpace($value))
-    return $value.Trim()
-}
-
-function Get-RequiredAnswer {
-    param(
-        [pscustomobject]$Answers,
-        [string]$Name
-    )
-
-    $property = $Answers.PSObject.Properties[$Name]
-    if ($null -eq $property -or $null -eq $property.Value) {
-        throw "Answers file is missing required property '$Name'."
-    }
-
-    $value = if ($property.Value -is [System.Array]) {
-        ($property.Value | ForEach-Object { [string]$_ }) -join ','
-    } else {
-        [string]$property.Value
-    }
-    if ([string]::IsNullOrWhiteSpace($value)) {
-        throw "Answers file property '$Name' must not be empty."
-    }
-    return $value.Trim()
-}
 
 $repoRootOutput = git rev-parse --show-toplevel 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $repoRootOutput) {
@@ -148,67 +101,94 @@ $PLAN_DIRECTORY = [string]$campaign.campaignMetadataDirectory
 $CAMPAIGN_ID = [string]$campaign.campaignId
 $LESSON_PROPAGATION = [string]$campaign.lessonPropagation
 
-Write-Host '=== shepherd-task-20-create-issues-from-plan — Input Interview ===' -ForegroundColor Cyan
+$planFiles = @(
+    Get-ChildItem -LiteralPath $campaignMetadataPath -File |
+        Where-Object { $_.Name -like '*ignorance-reduction-plan.md' }
+)
+if ($planFiles.Count -ne 1) {
+    throw "Expected exactly one *ignorance-reduction-plan.md in the campaign metadata directory; found $($planFiles.Count)."
+}
+$planPath = $planFiles[0].FullName
+$PLAN_FILE_NAME = $planFiles[0].Name
+$planLines = @(Get-Content -LiteralPath $planPath)
+$inFence = $false
+$semanticLines = @(
+    foreach ($line in $planLines) {
+        if ($line -match '^```') {
+            $inFence = -not $inFence
+            continue
+        }
+        if (-not $inFence) { $line }
+    }
+)
+
+$questionHeadings = @($semanticLines | Where-Object { $_ -match '^##\s+.*ignorance reduction' })
+if ($questionHeadings.Count -ne 1) {
+    throw "Expected exactly one level-two ignorance-reduction heading in $PLAN_FILE_NAME; found $($questionHeadings.Count)."
+}
+$QUESTIONS_SECTION = [string]$questionHeadings[0]
+
+$implementationHeadings = @($semanticLines | Where-Object { $_ -match '^##\s+.*implementation' })
+if ($implementationHeadings.Count -ne 1) {
+    throw "Expected exactly one level-two implementation heading in $PLAN_FILE_NAME; found $($implementationHeadings.Count)."
+}
+$IMPLEMENTATION_SECTION = [string]$implementationHeadings[0]
+$implementationIndex = [Array]::IndexOf($planLines, $IMPLEMENTATION_SECTION)
+$taskHeadingCount = 0
+$inFence = $false
+for ($index = $implementationIndex + 1; $index -lt $planLines.Count; $index++) {
+    if ($planLines[$index] -match '^```') {
+        $inFence = -not $inFence
+        continue
+    }
+    if ($inFence) { continue }
+    if ($planLines[$index] -match '^##\s+') { break }
+    if ($planLines[$index] -match '^###\s+') { $taskHeadingCount++ }
+}
+if ($taskHeadingCount -eq 0) {
+    throw "Implementation section '$IMPLEMENTATION_SECTION' has no direct level-three task headings."
+}
+
+function ConvertTo-GitHubRepository {
+    param([string]$Url)
+
+    $normalized = $Url -replace '\.git$', ''
+    if ($normalized -match '^git@github\.com:(.+)$') { return $Matches[1] }
+    if ($normalized -match '^https://github\.com/(.+)$') { return $Matches[1] }
+    if ($normalized -match '^ssh://git@github\.com/(.+)$') { return $Matches[1] }
+    return $null
+}
+
+$matchingRemotes = @()
+$remotes = @(git remote)
+if ($LASTEXITCODE -ne 0) { throw 'Could not list configured Git remotes.' }
+foreach ($remote in $remotes) {
+    $remoteUrl = (git remote get-url $remote 2>$null | Select-Object -First 1)
+    if ($LASTEXITCODE -ne 0 -or -not $remoteUrl) {
+        throw "Could not read URL for Git remote '$remote'."
+    }
+    $remoteRepo = ConvertTo-GitHubRepository $remoteUrl.Trim()
+    if ($remoteRepo -and $remoteRepo.Equals($REPO, [StringComparison]::OrdinalIgnoreCase)) {
+        $matchingRemotes += $remote
+    }
+}
+if ($matchingRemotes.Count -ne 1) {
+    throw "Expected exactly one Git remote whose GitHub URL matches '$REPO'; found $($matchingRemotes.Count)."
+}
+$BASE_REMOTE = [string]$matchingRemotes[0]
+
+Write-Host '=== shepherd-task stage-20 preparation ===' -ForegroundColor Cyan
 Write-Host "Campaign ID:                 $CAMPAIGN_ID"
 Write-Host "Repository:                  $REPO"
 Write-Host "Campaign base branch:        $BASE_BRANCH"
 Write-Host "Campaign issue:              #$PARENT_ISSUE"
 Write-Host "Lesson propagation:          $LESSON_PROPAGATION"
 Write-Host "Campaign metadata directory: $PLAN_DIRECTORY"
-Write-Host ''
-
-if ($AnswersFile) {
-    $answersPath = if ([System.IO.Path]::IsPathRooted($AnswersFile)) {
-        [System.IO.Path]::GetFullPath($AnswersFile)
-    } else {
-        [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $AnswersFile))
-    }
-    if (-not (Test-Path -LiteralPath $answersPath -PathType Leaf)) {
-        throw "Answers file not found: $answersPath"
-    }
-    try {
-        $answers = Get-Content -LiteralPath $answersPath -Raw | ConvertFrom-Json
-    }
-    catch {
-        throw "Answers file is not valid JSON: $answersPath"
-    }
-
-    $PLAN_FILE_NAME = Get-RequiredAnswer $answers 'planFileName'
-    $QUESTIONS_SECTION = Get-RequiredAnswer $answers 'questionsSection'
-    $IMPLEMENTATION_SECTION = Get-RequiredAnswer $answers 'implementationSection'
-    $EXAMPLE_ISSUES = Get-RequiredAnswer $answers 'exampleIssues'
-    $BASE_REMOTE = Get-RequiredAnswer $answers 'baseRemote'
-    $SUPPORTING_ARTIFACTS = Get-RequiredAnswer $answers 'supportingArtifacts'
-} else {
-    $PLAN_FILE_NAME = Read-Required '1/6  PLAN_FILE_NAME (name within campaign metadata directory)'
-
-    Write-Host ''
-    Write-Host '  Hint: copy the exact markdown heading from the plan.' -ForegroundColor DarkGray
-    $QUESTIONS_SECTION = Read-Required '2/6  QUESTIONS_SECTION (exact resolved-questions heading)'
-    $IMPLEMENTATION_SECTION = Read-Required '3/6  IMPLEMENTATION_SECTION (exact implementation heading)'
-
-    Write-Host ''
-    Write-Host '  Hint: provide full GitHub issue URLs separated by commas.' -ForegroundColor DarkGray
-    $EXAMPLE_ISSUES = Read-Required '4/6  EXAMPLE_ISSUES (full issue URLs whose style to follow)'
-    $BASE_REMOTE = Read-Required '5/6  BASE_REMOTE (git remote name)' 'upstream'
-    $SUPPORTING_ARTIFACTS = Read-Required '6/6  SUPPORTING_ARTIFACTS (repo-relative paths or constraints)' $PLAN_DIRECTORY
-}
-
-$planPath = Join-Path $campaignMetadataPath $PLAN_FILE_NAME
-if (-not (Test-Path -LiteralPath $planPath -PathType Leaf)) {
-    throw "Plan file not found in campaign metadata directory: $planPath"
-}
-
-$exampleIssueValues = @($EXAMPLE_ISSUES -split ',' | ForEach-Object { $_.Trim() })
-if ($exampleIssueValues.Count -eq 0) {
-    throw 'EXAMPLE_ISSUES must contain at least one issue URL.'
-}
-foreach ($exampleIssue in $exampleIssueValues) {
-    if ($exampleIssue -notmatch '^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[1-9][0-9]*$') {
-        throw "Invalid EXAMPLE_ISSUES URL: '$exampleIssue'."
-    }
-}
-$EXAMPLE_ISSUES = ($exampleIssueValues | Select-Object -Unique) -join ','
+Write-Host "Plan file:                   $PLAN_FILE_NAME"
+Write-Host "Questions section:           $QUESTIONS_SECTION"
+Write-Host "Implementation section:      $IMPLEMENTATION_SECTION"
+Write-Host "Implementation tasks:        $taskHeadingCount"
+Write-Host "Git remote:                  $BASE_REMOTE"
 
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmm'
 $promptsDirectory = Join-Path $campaignMetadataPath 'prompts'
@@ -236,9 +216,8 @@ Invoke skill ``shepherd-task-20-create-issues-from-plan`` with these inputs:
 - PLAN_FILE_NAME: $PLAN_FILE_NAME
 - QUESTIONS_SECTION: $QUESTIONS_SECTION
 - IMPLEMENTATION_SECTION: $IMPLEMENTATION_SECTION
-- EXAMPLE_ISSUES: $EXAMPLE_ISSUES
+- EXPECTED_TASK_COUNT: $taskHeadingCount
 - BASE_REMOTE: $BASE_REMOTE
-- SUPPORTING_ARTIFACTS: $SUPPORTING_ARTIFACTS
 - LOG_DIRECTORY: $logDirFull
 "@
 
@@ -267,7 +246,6 @@ $copilotExit = 0
 try {
     $prompt | copilot --yolo --output-format json --share $rawSharePath > $rawJsonPath
     $copilotExit = $LASTEXITCODE
-    & '__REDACTOR_PATH__' $tempDir | Out-Null
     if (Test-Path -LiteralPath $rawJsonPath) {
         Move-Item -LiteralPath $rawJsonPath -Destination $sessionJsonPath -Force
     }
@@ -302,5 +280,10 @@ if ($PassThru) {
         ArtifactDirectory = $logDirFull
         PromptFile = $outFile
         InvocationFile = $invocationFile
+        PlanFile = $PLAN_FILE_NAME
+        QuestionsSection = $QUESTIONS_SECTION
+        ImplementationSection = $IMPLEMENTATION_SECTION
+        BaseRemote = $BASE_REMOTE
+        TaskCount = $taskHeadingCount
     }
 }
