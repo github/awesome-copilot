@@ -15,6 +15,11 @@ safe-outputs:
     labels: [automated-update, learning-hub, advanced-copilot-cli]
     title-prefix: "[bot] "
     base-branch: main
+    allowed-files:
+      - "website/src/content/docs/learning-hub/advanced-copilot-cli/**"
+      - "website/public/images/learning-hub/advanced-copilot-cli/**"
+      - "website/astro.config.mjs"
+      - "website/src/content/docs/learning-hub/index.md"
 ---
 
 # Advanced Copilot CLI Content Sync
