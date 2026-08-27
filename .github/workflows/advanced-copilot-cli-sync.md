@@ -102,7 +102,7 @@ Navigation is wired in three places:
    - Supporting assets in `content/images/`
    - Any change to module structure, order, or titles
 
-4. If **no commits** were found since the last sync, stop here and call the `noop` safe output with a message like: "No new commits found in `github-samples/advanced-copilot-cli@main` since last sync (`<last_synced_sha>`). No action needed." Then update the cache with the latest SHA.
+4. If a local mirror **already exists** and **no commits** were found since the last sync, do **not** immediately no-op on the strength of the cached SHA alone. The cached `last_synced_sha` is only advanced optimistically when a PR is opened (see Step 5), so a previously opened sync PR that was later **closed or rejected** can leave the cache pointing at a commit whose content never actually reached `main`. Before short-circuiting, **verify the checked-out mirror is genuinely consistent with the current upstream content** (spot-check that every upstream module and image is present in the mirror and not obviously stale). Only if the mirror both is up to date on SHA **and** matches upstream should you call the `noop` safe output with a message like: "No new commits found in `github-samples/advanced-copilot-cli@main` since last sync (`<last_synced_sha>`), and the local mirror matches upstream. No action needed." If the SHA suggests nothing changed but the mirror is actually missing or stale, proceed to Step 2+ and open a PR anyway so a rejected/closed earlier PR cannot permanently hide the update.
 
 ## Step 2 — Read the upstream content
 
@@ -181,6 +181,9 @@ Before opening the PR, write an updated `advanced-copilot-cli-sync-state.json` t
   "files_updated": ["<list of local Learning Hub files you edited>"]
 }
 ```
+
+> [!NOTE]
+> The cached `last_synced_sha` is an **optimization hint, not a source of truth**. Because a PR opened by this workflow may later be closed or rejected before it merges to `main`, never treat a matching SHA as proof that the mirror is current — Step 1 must independently confirm the checked-out mirror actually matches upstream before taking the no-op path. Advancing the SHA here is acceptable only because that consistency check will re-detect and re-open any update that a rejected PR left unmerged.
 
 ## Step 6 — Open a pull request
 
