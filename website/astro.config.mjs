@@ -114,6 +114,7 @@ export default defineConfig({
       sidebar: [
         {
           label: "Fundamentals",
+          collapsed: true,
           items: [
             "learning-hub/github-copilot-app",
             "learning-hub/working-with-canvas-extensions",
@@ -134,28 +135,38 @@ export default defineConfig({
           ],
         },
         {
-          label: "Reference",
-          items: ["learning-hub/github-copilot-terminology-glossary"],
-        },
-        {
-          label: "Copilot CLI for Beginners",
+          label: "Courses",
+          collapsed: true,
           items: [
             {
-              label: "Overview",
-              link: "/learning-hub/cli-for-beginners/",
+              label: "CLI for Beginners",
+              collapsed: true,
+              items: [
+                {
+                  label: "Overview",
+                  link: "/learning-hub/cli-for-beginners/",
+                },
+                "learning-hub/cli-for-beginners/00-quick-start",
+                "learning-hub/cli-for-beginners/01-setup-and-first-steps",
+                "learning-hub/cli-for-beginners/02-context-and-conversations",
+                "learning-hub/cli-for-beginners/03-development-workflows",
+                "learning-hub/cli-for-beginners/04-agents-and-custom-instructions",
+                "learning-hub/cli-for-beginners/05-skills",
+                "learning-hub/cli-for-beginners/06-mcp-servers",
+                "learning-hub/cli-for-beginners/07-putting-it-all-together",
+              ],
             },
-            "learning-hub/cli-for-beginners/00-quick-start",
-            "learning-hub/cli-for-beginners/01-setup-and-first-steps",
-            "learning-hub/cli-for-beginners/02-context-and-conversations",
-            "learning-hub/cli-for-beginners/03-development-workflows",
-            "learning-hub/cli-for-beginners/04-agents-and-custom-instructions",
-            "learning-hub/cli-for-beginners/05-skills",
-            "learning-hub/cli-for-beginners/06-mcp-servers",
-            "learning-hub/cli-for-beginners/07-putting-it-all-together",
+            // Additional courses slot in here as their content lands:
+            //   Advanced CLI (github/awesome-copilot PR 2800) and
+            //   Copilot App for Beginners (upcoming). Each is a nested
+            //   sub-group like "CLI for Beginners" above. Do not add a
+            //   sidebar entry until the referenced markdown files exist —
+            //   an unresolved slug fails the build.
           ],
         },
         {
-          label: "Copilot Workshops",
+          label: "Workshops",
+          collapsed: true,
           items: [
             {
               label: "Overview",
@@ -163,6 +174,7 @@ export default defineConfig({
             },
             {
               label: "VS Code",
+              collapsed: true,
               items: [
                 {
                   label: "Overview",
@@ -179,6 +191,7 @@ export default defineConfig({
             },
             {
               label: "Copilot CLI",
+              collapsed: true,
               items: [
                 {
                   label: "Overview",
@@ -197,6 +210,7 @@ export default defineConfig({
             },
             {
               label: "Copilot App",
+              collapsed: true,
               items: [
                 {
                   label: "Overview",
@@ -215,6 +229,7 @@ export default defineConfig({
             },
             {
               label: "Copilot Cloud Agent",
+              collapsed: true,
               items: [
                 {
                   label: "Overview",
@@ -231,17 +246,22 @@ export default defineConfig({
           ],
         },
         {
-          label: "Hands-on",
+          label: "Video content",
+          collapsed: true,
+          items: [
+            "learning-hub/videos/cli-for-beginners",
+            "learning-hub/videos/copilot-app",
+          ],
+        },
+        {
+          label: "Additional resources",
+          collapsed: true,
           items: [
             {
               label: "Cookbook",
               link: "/learning-hub/cookbook/",
             },
-          ],
-        },
-        {
-          label: "Browse Resources",
-          items: [
+            "learning-hub/github-copilot-terminology-glossary",
             { label: "Home", link: "/" },
             { label: "Agents", link: "/agents/" },
             { label: "Instructions", link: "/instructions/" },
