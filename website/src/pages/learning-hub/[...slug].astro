@@ -2,6 +2,9 @@
 import { getCollection } from "astro:content";
 
 import LearningHubArticle from "../../layouts/LearningHubArticle.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import GithubCopilotApp from "../../components/brand/learning-hub/GithubCopilotApp";
+import { pageHref } from "../../components/brand/pageHref";
 import {
   hasTranslations,
   isLearningHubArticle,
@@ -9,6 +12,7 @@ import {
   siteLocale,
   splitLocale,
 } from "../../lib/learning-hub-routes";
+import { isBespokeLearningHubArticle } from "../../lib/learning-hub-bespoke-articles";
 
 // Only the English (unprefixed) articles are enumerated here. Astro's i18n
 // `fallback` config auto-generates the locale-prefixed variant of every path in
@@ -36,6 +40,22 @@ const docs = await getCollection("docs");
 const entry = localizedEntry(docs, englishId, locale);
 const slug = locale ? `${locale}/${englishId}` : englishId;
 const showLanguageSelect = hasTranslations(englishId);
+
+// Slugs adopted directly from the design prototype render their own bespoke
+// component instead of the generic markdown pipeline — English only for now;
+// locale routes for these slugs still fall through to the markdown renderer.
+// Astro's client:* hydration directives require a statically-referenced
+// component in the template, so each bespoke slug gets its own branch here
+// rather than a dynamic lookup passed as a prop.
+const bespokeSlug = !locale ? englishId.replace(/^learning-hub\//, "") : undefined;
 ---
 
-<LearningHubArticle entry={entry} slug={slug} showLanguageSelect={showLanguageSelect} />
+{
+  bespokeSlug && isBespokeLearningHubArticle(bespokeSlug) ? (
+    <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
+      <GithubCopilotApp client:load pageHref={pageHref} />
+    </BaseLayout>
+  ) : (
+    <LearningHubArticle entry={entry} slug={slug} showLanguageSelect={showLanguageSelect} />
+  )
+}
