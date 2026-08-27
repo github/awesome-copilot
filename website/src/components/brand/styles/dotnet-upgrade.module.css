@@ -1069,6 +1069,25 @@
   line-height: var(--brand-text-lineHeight-200);
 }
 
+.sourceMetaGroup .metaLabel {
+  padding-inline-start: calc(16px + var(--base-size-8));
+}
+
+.sourceLink {
+  display: inline-flex;
+  align-items: center;
+}
+
+.sourceLink :global([class*="Link--label"]) {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-8);
+}
+
+.sourceLink :global(.octicon) {
+  flex: 0 0 auto;
+}
+
 /* "In this article" table of contents */
 .toc {
   display: flex;

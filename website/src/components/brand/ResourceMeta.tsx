@@ -72,11 +72,12 @@ export function ResourceMeta({
           </div>
         ) : null}
         {sourceUrl ? (
-          <div className={styles.metaGroup}>
+          <div className={`${styles.metaGroup} ${styles.sourceMetaGroup}`}>
             <span className={styles.metaLabel}>Source</span>
             <div className={styles.metaValues}>
-              <Link href={sourceUrl} size="small">
-                <MarkGithubIcon size={16} /> View on GitHub
+              <Link href={sourceUrl} size="small" className={styles.sourceLink}>
+                <MarkGithubIcon size={16} />
+                <span>View on GitHub</span>
               </Link>
             </div>
           </div>
