@@ -30,7 +30,7 @@ import type { SearchItem } from "./searchIndex";
 import styles from "./styles/instructions.module.css";
 
 const CONTRIBUTE_URL =
-  "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md";
+  "https://github.com/github/awesome-copilot/blob/main/docs/README.instructions.md#how-to-contribute";
 
 const REQUEST_URL = "https://github.com/github/awesome-copilot/issues/new";
 

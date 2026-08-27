@@ -25,7 +25,7 @@ import type { SearchItem } from "./searchIndex";
 import styles from "./styles/agents.module.css";
 
 const CONTRIBUTE_URL =
-  "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md";
+  "https://github.com/github/awesome-copilot/blob/main/docs/README.agents.md#how-to-contribute";
 const REQUEST_URL = "https://github.com/github/awesome-copilot/issues/new";
 
 const RAW_BASE = "https://raw.githubusercontent.com/github/awesome-copilot/main";

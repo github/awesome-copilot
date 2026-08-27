@@ -32,7 +32,7 @@ import type { SearchItem } from "./searchIndex";
 import styles from "./styles/skills.module.css";
 
 const CONTRIBUTE_URL =
-  "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md";
+  "https://github.com/github/awesome-copilot/blob/main/docs/README.skills.md#how-to-contribute";
 const REQUEST_URL = "https://github.com/github/awesome-copilot/issues/new";
 
 /** A skill record as emitted into public/data/skills.json. */
