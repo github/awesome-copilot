@@ -660,6 +660,49 @@ async function loadState(workspacePath) {
     return null;
 }
 
+// One read of the stored lesson per extension process, shared by everything that
+// needs it.
+let hydration = null;
+
+// Reads the stored lesson and its history back into the empty state a new
+// extension process starts with. Every entry point that publishes or saves has
+// to come through here first, because saving a state that was never hydrated
+// does not merely miss the history: the save replaces the file the history lived
+// in, so publishing after a restart would take the learner's active lesson and
+// every lesson behind it with it.
+//
+// Adoption happens at most once. A populated in-memory state is by definition
+// the newer of the two, and concurrent callers share the single read, so a slow
+// one cannot come back and lay the disk copy over work another already
+// published. Returns whether this call is what restored the state.
+async function hydrateState(workspacePath) {
+    const state = getState();
+    if (state.tutorial) return false;
+    // No workspace yet means there is no file to read and nothing worth
+    // remembering: a later call, once the session is known, still has to look.
+    if (!workspacePath) return false;
+    if (!hydration) hydration = loadState(workspacePath).catch(() => null);
+    const persisted = await hydration;
+    // A publish, or another hydration, landed while this read was outstanding.
+    if (state.tutorial) return false;
+    if (!persisted?.tutorial) return false;
+    state.tutorial = persisted.tutorial;
+    state.progress = persisted.progress || freshProgress(persisted.tutorial);
+    state.archive = Array.isArray(persisted.archive)
+        ? persisted.archive.filter((entry) => entry && entry.tutorial)
+        : [];
+    state.activePos = Number.isInteger(persisted.activePos)
+        ? persisted.activePos
+        : state.archive.length;
+    state.lessonId = typeof persisted.lessonId === "string" && persisted.lessonId
+        ? persisted.lessonId
+        : randomUUID();
+    // The revision counter deliberately does not come back with it. It restarts
+    // at 0 for the process and the caller bumps it, so a canvas still holding a
+    // revision from before the restart is refused rather than trusted.
+    return true;
+}
+
 // --- SSE ---
 
 // The lesson state is shared by every instance, so a change made through any
@@ -1312,8 +1355,17 @@ function mergeProgress(server) {
 }
 
 function saveProgress(immediate) {
-  if (saveTimer) clearTimeout(saveTimer);
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   var doSave = function () {
+    // A save subsumes any debounce still armed, because it posts whatever the
+    // latest state is by the time it runs. Dropping the handle here is what
+    // keeps saveTimer meaning "a write is still pending" instead of decaying
+    // into "one was armed at some point": the timer callback does not clear its
+    // own handle, and both settleFlushWaiters and applyState read the handle as
+    // pending work. Left set, the first debounced save stranded every flush
+    // waiter after it, so gotoLesson's flush never resolved and the lesson
+    // arrows stopped responding for the rest of the session.
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
     // Only one write is ever in flight. Ordering then holds by construction rather
     // than by the network delivering in order, and a save asked for meanwhile is
     // coalesced into one that runs after, carrying whatever the latest state is.
@@ -2829,6 +2881,12 @@ const session = await joinSession({
                     handler: async (ctx) => {
                         const result = normalizeTutorial(ctx.input);
                         if (result.error) return { ok: false, error: result.error };
+                        // Publishing is reachable without the canvas ever having
+                        // been opened, so this is a second door onto the same
+                        // hazard: on a fresh process the history has to come back
+                        // off disk before the new lesson is published onto it and
+                        // the result saved over the file it came from.
+                        await hydrateState(sessionRef?.workspacePath);
                         const state = getState();
                         publishLesson(state, result.tutorial);
                         bumpRev(state);
@@ -2848,6 +2906,7 @@ const session = await joinSession({
                     description:
                         "Return the learner's progress: which steps are understood, quiz answers, and the exercise state including their current code attempt. Use it to coach without asking the learner to paste anything. It also returns `attempt`, the digest of the code it shows you, which approve_exercise requires.",
                     handler: async (ctx) => {
+                        await hydrateState(sessionRef?.workspacePath);
                         const state = getState();
                         if (!state.tutorial) return { ok: false, error: "No tutorial has been published yet." };
                         return {
@@ -2882,6 +2941,7 @@ const session = await joinSession({
                         required: ["attempt"],
                     },
                     handler: async (ctx) => {
+                        await hydrateState(sessionRef?.workspacePath);
                         const state = getState();
                         if (!state.tutorial || !state.progress) {
                             return { ok: false, error: "No tutorial in progress." };
@@ -2917,6 +2977,7 @@ const session = await joinSession({
                     name: "reset_progress",
                     description: "Reset the learner's progress for the current lesson (steps and exercise) without changing the lesson content.",
                     handler: async (ctx) => {
+                        await hydrateState(sessionRef?.workspacePath);
                         const state = getState();
                         if (!state.tutorial) return { ok: false, error: "No tutorial has been published yet." };
                         state.progress = freshProgress(state.tutorial);
@@ -2929,6 +2990,12 @@ const session = await joinSession({
             ],
             open: async (ctx) => {
                 const state = getState();
+                // Before anything branches on the input: opening with a tutorial
+                // used to skip the only path that read the stored history, so
+                // the publish below landed on an empty state and the save wrote
+                // that over the lesson and archive on disk. The first new lesson
+                // after a restart destroyed every lesson the learner had.
+                const restored = await hydrateState(sessionRef?.workspacePath);
 
                 if (ctx.input?.tutorial) {
                     const result = normalizeTutorial(ctx.input.tutorial);
@@ -2949,25 +3016,13 @@ const session = await joinSession({
                     // must hear about this publish; this instance's own page
                     // is not connected yet and reads /state when it loads.
                     broadcast({ kind: "tutorial", state: clientState(state) });
-                } else if (!state.tutorial) {
-                    const persisted = await loadState(sessionRef?.workspacePath);
-                    if (persisted?.tutorial) {
-                        state.tutorial = persisted.tutorial;
-                        state.progress = persisted.progress || freshProgress(persisted.tutorial);
-                        state.archive = Array.isArray(persisted.archive)
-                            ? persisted.archive.filter((entry) => entry && entry.tutorial)
-                            : [];
-                        state.activePos = Number.isInteger(persisted.activePos)
-                            ? persisted.activePos
-                            : state.archive.length;
-                        state.lessonId = typeof persisted.lessonId === "string" && persisted.lessonId
-                            ? persisted.lessonId
-                            : randomUUID();
-                        bumpRev(state);
-                        // Any instance already open was showing the empty state;
-                        // let it catch up rather than sit on a dead revision.
-                        broadcast({ kind: "sync", state: clientState(state) });
-                    }
+                } else if (restored) {
+                    bumpRev(state);
+                    // Any instance already open was showing the empty state; let
+                    // it catch up rather than sit on a dead revision. A publish
+                    // needs no such announcement: its own broadcast above already
+                    // carries the restored history along with the new lesson.
+                    broadcast({ kind: "sync", state: clientState(state) });
                 }
 
                 let entry = servers.get(ctx.instanceId);
