@@ -894,6 +894,20 @@
   min-height: 0;
   width: 100%;
   overflow-y: auto;
+  /* Without this, the scrollbar always renders with the browser's light-mode
+     chrome (see #2822) because the scroller never tells the UA which colour
+     scheme it's painted in. Firefox reads scrollbar-color directly; WebKit/
+     Blink derive their native scrollbar from color-scheme. */
+  color-scheme: light dark;
+  scrollbar-color: var(--brand-color-border-muted) transparent;
+}
+
+.page[data-mode="dark"] .scrollHost {
+  color-scheme: dark;
+}
+
+.page[data-mode="light"] .scrollHost {
+  color-scheme: light;
 }
 
 .bodyInner {
