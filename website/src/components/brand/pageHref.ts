@@ -31,6 +31,7 @@ const ROUTES: Record<string, string> = {
   "github-copilot-terminology-glossary":
     "learning-hub/github-copilot-terminology-glossary/",
   "cli-for-beginners": "learning-hub/cli-for-beginners/",
+  "copilot-workshops": "learning-hub/copilot-workshops/",
   "dotnet-upgrade": "agent/dotnet-upgrade/",
 };
 

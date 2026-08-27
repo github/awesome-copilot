@@ -187,6 +187,14 @@ const recommendedCards = [
     description:
       "Learn Working with Canvas Extensions to create and evolve interactive canvases with /create-canvas.",
   },
+  {
+    id: "workshop",
+    page: "copilot-workshops",
+    labels: [] as string[],
+    title: "Workshop",
+    description:
+      "Prefer to learn by building? Work through Hands-on with GitHub Copilot's agents — a hands-on workshop with four harnesses (VS Code, Copilot CLI, Copilot app, and cloud agent) built around a shared Tailspin Toys backlog.",
+  },
 ];
 
 export function PlaybookIndex({
