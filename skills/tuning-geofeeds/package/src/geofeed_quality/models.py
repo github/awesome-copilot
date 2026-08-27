@@ -210,7 +210,7 @@ class RowRecord(Model):
 
 
 class Evidence(Model):
-    id: str = Field(pattern="^evidence-[0-9]{6}$")
+    id: str = Field(pattern="^evidence-[0-9]{6,}$")
     type: EvidenceType
     source: str
     observed_at: datetime

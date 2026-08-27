@@ -663,7 +663,7 @@
       "additionalProperties": false,
       "properties": {
         "id": {
-          "pattern": "^evidence-[0-9]{6}$",
+          "pattern": "^evidence-[0-9]{6,}$",
           "title": "Id",
           "type": "string"
         },
