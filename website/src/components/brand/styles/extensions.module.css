@@ -441,9 +441,9 @@
 .cardMedia {
   display: block;
   flex: 0 0 auto;
-  inline-size: 360px;
-  max-inline-size: 100%;
+  inline-size: min(100%, 440px);
   block-size: 205px;
+  margin-inline: auto;
   margin-block-end: var(--base-size-24);
   border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
   border-radius: 6px;
