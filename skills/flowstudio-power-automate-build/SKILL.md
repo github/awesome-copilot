@@ -392,7 +392,7 @@ if runs:
     print(result)   # {"resubmitted": true, "triggerName": "..."}
 ```
 
-### HTTP-triggered flows — custom test payload
+### HTTP, Button, and PowerApps flows — custom test payload
 
 Only use `trigger_live_flow` when you need to send a **different** payload
 than the original run. For verifying a fix, `resubmit_live_flow_run` is
@@ -407,7 +407,8 @@ print("Expected body:", manual.get("inputs", {}).get("schema"))
 result = mcp("trigger_live_flow",
     environmentName=ENV, flowName=FLOW_ID,
     body={"name": "Test", "value": 1})
-print(f"Status: {result['responseStatus']}")
+print(f"Status: {result['responseStatus']}, via: {result['invocation']}")
+print(result.get("warning"))   # set when a required input was missing: the run still ran, with null
 ```
 
 ### Brand-new non-HTTP flows (Recurrence, connector triggers, etc.)
@@ -469,7 +470,7 @@ payload.
 | Flow deployed but state is "Stopped" | Flow won't run on schedule | Call `set_live_flow_state` with `state: "Started"` — do **not** use `update_live_flow` for state changes |
 | Teams "Chat with Flow bot" recipient as object | 400 `GraphUserDetailNotFound` | Use plain string with trailing semicolon (see below) |
 | Copilot/Skills flow not in a solution | Copilot Studio may not discover it as an agent tool | After deploy, call `add_live_flow_to_solution` with the target `solutionId` |
-| Button/Skills trigger used for MCP testing | MCP cannot directly fire the production trigger | Test the same actions through a temporary HTTP twin, then swap the trigger back |
+| Button/Skills trigger used for MCP testing | Runs even when a required input is missing (null) | Pass inputs in `trigger_live_flow` `body`; on `warning`, cancel and retry with the full body |
 | Connector action missing `metadata.operationMetadataId` | Designer/run-only UI can behave inconsistently | Preserve existing IDs; add stable GUIDs for new connector actions |
 | Placeholder Excel `scriptId` | Dynamic validation fails at save time | Resolve the real Office Script ID before deploying |
 | SharePoint `PatchItem` omits required fields | Save can fail even if the field is not changing | Echo unchanged required fields such as `item/Title` |

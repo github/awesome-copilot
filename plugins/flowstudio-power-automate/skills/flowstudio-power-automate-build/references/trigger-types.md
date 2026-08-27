@@ -121,9 +121,9 @@ input names and types.
 
 After deploying a production Skills-triggered flow, call
 `add_live_flow_to_solution` with the target `solutionId`; Copilot Studio agent
-tool discovery expects the flow to be solution-aware. For MCP-driven testing,
-use a temporary HTTP twin with the same actions and payload shape, then restore
-the Skills trigger after the actions are verified.
+tool discovery expects the flow to be solution-aware. To test it from MCP, call
+`trigger_live_flow` with the inputs in `body` — Skills triggers run through the
+connector runtime the same way Button and PowerApps triggers do.
 
 ---
 
