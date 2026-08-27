@@ -133,7 +133,7 @@ issue** or **Fix with Copilot**.
 ## Agent tools
 
 The canvas exposes structured hand-off tools the agent calls instead of printing
-JSON into the timeline: `submit_issue_summaries`, `submit_projects`,
+JSON into the timeline: `submit_issue_summaries`,
 `submit_tracking`, `submit_related`, and `submit_work_pr`.
 
 ## License

@@ -104,7 +104,6 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
       orgDefault: state.getOrgDefault(),
       savedDefaultOrg: state.getSavedDefaultOrg(),
       project: state.getProject(),
-      projectOptions: state.getProjectOptions(),
       period: state.getPeriod(),
       periods: PERIODS,
       projects: state.getProjects(),
@@ -362,14 +361,17 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
         const payload = parseJson(body)
         const current = state.getPrTargets()
         const pick = (value, fallback) => (typeof value === 'string' ? value : fallback)
+        // The local fix-session hand-off always runs in the CURRENT project (the
+        // canvas's own checkout, host-trusted from its git remote), so there is no
+        // model-relayed project selection to bind here. Cross-repo work uses Cloud
+        // mode, whose repo the user types directly in Settings (also trusted). Only
+        // the local path/branch and cloud repo/branch are accepted from the payload.
         const next = {
           mode: pick(payload.mode, current.mode),
           model: pick(payload.model, current.model),
           local: {
             path: pick(payload.localPath, current.local.path),
             baseBranch: pick(payload.localBranch, current.local.baseBranch),
-            projectId: pick(payload.localProjectId, current.local.projectId),
-            projectName: pick(payload.localProjectName, current.local.projectName),
           },
           cloud: {
             repo: pick(payload.cloudRepo, current.cloud.repo),
@@ -384,7 +386,9 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
         // the stale annotations now, invalidate any pending enrichment, and
         // re-derive against the new repo. Model/base-branch-only edits keep them.
         const repoId = (t) =>
-          [t.cloud.repo, t.local.path, t.local.projectId].map((v) => (v || '').trim()).join('\u0000')
+          [t.mode, t.cloud.repo, t.local.path]
+            .map((v) => (v || '').trim())
+            .join('\u0000')
         const repoChanged = repoId(next) !== repoId(current)
         state.setPrTargets(next)
         if (repoChanged) {
