@@ -179,7 +179,29 @@ function normalizeCheck(raw) {
 
 // Validates and normalizes a tutorial payload from the agent. Returns
 // { tutorial } on success or { error } with a message the agent can act on.
+// A caller that JSON-encodes the tutorial sends a string where the schema
+// documents an object. The schema below accepts both so the request survives
+// long enough to get here, and this is where the string becomes the object the
+// rest of the publish path expects. Anything that is not a JSON object once
+// parsed is handed on untouched, so normalizeTutorial reports the real problem
+// rather than this function inventing one.
+function coerceTutorial(raw) {
+    if (typeof raw !== "string") return raw;
+    const trimmed = raw.trim();
+    if (!trimmed) return raw;
+    let parsed;
+    try { parsed = JSON.parse(trimmed); } catch { return raw; }
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : raw;
+}
+
 function normalizeTutorial(raw) {
+    if (typeof raw === "string") {
+        // Only reachable when the text failed to parse: coerceTutorial hands
+        // back anything it could not turn into an object. Naming that is worth
+        // a branch, because "must be an object" reads like a schema complaint
+        // about a payload the caller can see is a tutorial.
+        return { error: "The tutorial arrived as text that is not valid JSON. Send it as an object with title, steps, and exercise." };
+    }
     if (!raw || typeof raw !== "object") {
         return { error: "Tutorial payload must be an object with title, steps, and exercise." };
     }
@@ -2908,6 +2930,25 @@ const tutorialSchema = {
     required: ["title", "steps", "exercise"],
 };
 
+// What set_tutorial and the canvas input actually accept. The SDK validates
+// against this before a handler runs, so a caller that JSON-encodes the payload
+// is refused at the root with "is not of type object" and never reaches a line
+// this extension owns: the lesson is lost, and the message reads like the
+// extension rejecting a payload that plainly matches the documented shape.
+// Agents encode structured arguments as text often enough that strictness here
+// costs real lessons, so the encoded form is accepted and unwrapped in the
+// handler. The object branch stays first and keeps the description, so the
+// shape a caller reads in list_canvas_capabilities is still the one to send.
+const tutorialInputSchema = {
+    oneOf: [
+        tutorialSchema,
+        {
+            type: "string",
+            description: "The same tutorial object encoded as JSON text. Send the object form; this branch exists only so an encoded payload is not thrown away.",
+        },
+    ],
+};
+
 const session = await joinSession({
     hooks: {
         // Both hooks run the same check. Session start covers the moment a
@@ -2926,7 +2967,7 @@ const session = await joinSession({
             inputSchema: {
                 type: "object",
                 properties: {
-                    tutorial: tutorialSchema,
+                    tutorial: tutorialInputSchema,
                 },
             },
             actions: [
@@ -2934,9 +2975,9 @@ const session = await joinSession({
                     name: "set_tutorial",
                     description:
                         "Publish (or replace) the lesson shown in the canvas. Build it from the code edits made in this session, or from the changes in a commit (the repository's last commit by default) when there are no session edits or the user names a commit: one step per focused change with before/after snippets, and an exercise that is a slight variation of those changes (same technique, different target), never a repeat. A lesson with a new title is added to the lesson history and shown; the learner can flip back to earlier lessons with arrows in the canvas. Republishing with the active lesson's title replaces that lesson and resets its progress.",
-                    inputSchema: tutorialSchema,
+                    inputSchema: tutorialInputSchema,
                     handler: async (ctx) => {
-                        const result = normalizeTutorial(ctx.input);
+                        const result = normalizeTutorial(coerceTutorial(ctx.input));
                         if (result.error) return { ok: false, error: result.error };
                         // Publishing is reachable without the canvas ever having
                         // been opened, so this is a second door onto the same
@@ -3055,7 +3096,7 @@ const session = await joinSession({
                 const restored = await hydrateState(sessionRef?.workspacePath);
 
                 if (ctx.input?.tutorial) {
-                    const result = normalizeTutorial(ctx.input.tutorial);
+                    const result = normalizeTutorial(coerceTutorial(ctx.input.tutorial));
                     if (result.error) {
                         // A payload that passes the JSON schema can still fail
                         // normalization (a blank quiz option, an unsafe check
