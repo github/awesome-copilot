@@ -682,7 +682,9 @@ async function hydrateState(workspacePath) {
     // remembering: a later call, once the session is known, still has to look.
     if (!workspacePath) return false;
     if (!hydration) hydration = loadState(workspacePath).catch(() => null);
-    const persisted = await hydration;
+    const pendingHydration = hydration;
+    const persisted = await pendingHydration;
+    if (!persisted?.tutorial && hydration === pendingHydration) hydration = null;
     // A publish, or another hydration, landed while this read was outstanding.
     if (state.tutorial) return false;
     if (!persisted?.tutorial) return false;
@@ -2663,7 +2665,11 @@ async function startServer(instanceId) {
             }
 
             if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
-                res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+                res.writeHead(200, {
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Content-Security-Policy": "frame-ancestors 'none'",
+                    "X-Frame-Options": "DENY",
+                });
                 res.end(html);
                 return;
             }
