@@ -1,75 +1,37 @@
-# Figure 05: Post-Mortem Report Generation
+# Figure 05 — Stage 50: run post-mortem
 
-This diagram shows the detail of the `shepherd-task-50-create-post-mortem` skill. It is invoked from the `finally` block of `shepherd-task-given-list.ps1` (see Figure 01) so that a report is always generated, regardless of whether the run succeeded or failed.
-
-## Sequence Diagram
+The given-list exit path invokes stage 50 for both successful and failed runs.
+It supplies the original script exit code plus campaign and task-list context.
 
 ```mermaid
 sequenceDiagram
-    participant STGL as shepherd-task-given-list.ps1<br/>(finally block)
-    participant Copilot as copilot --yolo
-    participant Skill as shepherd-task-50-create-post-mortem
-    participant LogDir as SHEPHERD_LOG_DIR<br/>(shepherd-tasks-CAMPAIGN-ID-YYYYMMDD-HHMM/)
-    participant ParentDir as Parent Directory<br/>(campaign context)
+    autonumber
+    participant GL as Given-list EXIT/finally path
+    participant PM as Stage 50 Copilot session
+    participant RM as Run manifest
+    participant Art as Phase artifacts
+    participant Ctx as Campaign directory
+    participant Out as Post-mortem Markdown
 
-    rect rgb(255, 245, 220)
-        Note over STGL,Copilot: Invocation (runs on success OR failure)
-        STGL->>Copilot: echo prompt | copilot --yolo<br/>"Invoke skill shepherd-task-50-create-post-mortem"<br/>with SHEPHERD_LOG_DIR, SCRIPT_EXIT_CODE,<br/>TASK_ISSUES, BASE_BRANCH, REPO
+    GL->>PM: Run directory, original exit, issues, repo, base, campaign UUID, directory, lesson mode
+    PM->>PM: Require existing run directory
+    PM->>RM: Read campaign identity, task list, mode, timestamps, and current run state
+    Note over RM: Caller finalizes exitCode and status after this session
+    PM->>Art: Read phase JSON, shares, OTel, and supporting notes
+    PM->>Ctx: Read available memory, prompts, and job logs
+    PM->>PM: Calculate per-task timings, review rounds, failures, idle markers, and token usage
+    alt Successful original run
+        PM->>PM: Analyze throughput, convergence, and quality
+    else Failed original run
+        PM->>PM: Analyze root cause, evidence, and corrective actions
     end
-
-    rect rgb(220, 240, 255)
-        Note over Skill,LogDir: Step 1: Validate & collect run artifacts
-        Copilot->>Skill: Invoke skill
-        Skill->>LogDir: Validate directory exists
-        Skill->>LogDir: Collect phase artifacts:<br/>• phase1-task-*.json (session data)<br/>• phase2-task-*.json (session data)<br/>• phase1-task-*.md (session shares)<br/>• phase2-task-*.md (session shares)
-    end
-
-    rect rgb(230, 245, 230)
-        Note over Skill,ParentDir: Step 2: Collect campaign context from parent directory
-        Skill->>ParentDir: Scan for supplementary files:<br/>• *memory*.md<br/>• *prompts.md<br/>• *job-logs.txt
-    end
-
-    rect rgb(240, 230, 255)
-        Note over Skill: Step 3: Extract quantitative metrics from artifacts
-        Note over Skill: Per-task metrics:<br/>• Issues and PRs touched<br/>• Phase 1 & Phase 2 durations<br/>• Review rounds (Comments generated: N)<br/>• Success/failure and failure signatures<br/>• Idle/timeout markers<br/>• Token usage (inputTokens / outputTokens)
-    end
-
-    rect rgb(255, 240, 230)
-        Note over Skill: Step 4: Compose report (8 required sections)
-        Note over Skill: §1 Executive Summary<br/>  — outcome, completion rate, elapsed time
-        Note over Skill: §2 System Architecture<br/>  — CCA, CCRA, Local CLI responsibilities
-        Note over Skill: §3 Per-Task Metrics<br/>  — table: issue, PR, timings, rounds, result
-        Note over Skill: §4 Aggregate Statistics<br/>  — totals, averages, convergence signals
-        Note over Skill: §5 AI Credits and Token Usage<br/>  — measured values or "data unavailable"
-        Note over Skill: §6 Wall-Clock Timeline<br/>  — batch windows and notable events
-        Note over Skill: §7 Failure Analysis (if any)<br/>  — root causes, evidence, fixes
-        Note over Skill: §8 Observations & Recommendations<br/>  — what worked, what failed, improvements
-    end
-
-    rect rgb(220, 255, 220)
-        Note over Skill,LogDir: Step 5: Write report
-        Skill->>LogDir: Write YYYYMMDD-HHMM-post-mortem.md
-        Note over Skill: Links use full URLs:<br/>[#123](https://github.com/REPO/issues/123)<br/>[#456](https://github.com/REPO/pull/456)
-    end
-
-    Skill-->>Copilot: Report written
-    Copilot-->>STGL: Session complete
+    PM->>Out: Write timestamped eight-section Markdown report
+    PM-->>GL: Report success or failure
+    GL->>GL: Warn if report failed; preserve original run result
+    GL->>RM: Finalize completedAt, exitCode, and status
 ```
 
-## Key Design Points
-
-### Always Runs
-
-The post-mortem skill is invoked from a `finally` block (PowerShell) or `trap EXIT` (Bash), so it executes for **all outcomes** — full success, partial failure, or early abort. The `SCRIPT_EXIT_CODE` input distinguishes these cases.
-
-### Evidence-Based
-
-The report is built entirely from local run artifacts (JSON session logs, markdown shares, OTEL traces). It does not require GitHub API calls unless local artifacts are insufficient, keeping it reliable even when network access is degraded.
-
-### Structured for Both Outcomes
-
-The 8-section structure serves both **successful runs** (throughput, convergence, quality metrics) and **failed runs** (root cause analysis, failure signatures, corrective actions). Sections are populated or marked "N/A" based on available data.
-
-### Link Formatting
-
-All issue and PR references are rendered as full Markdown hyperlinks using the `REPO` input — never plain-text `#123` references. Table-of-contents entries use plain text to avoid nested link issues.
+The report contains an executive summary, system architecture, per-task
+metrics, aggregate statistics, AI-credit/token data, a wall-clock timeline,
+failure analysis when applicable, and actionable observations. When the
+repository is known, issue and PR references are rendered as GitHub links.

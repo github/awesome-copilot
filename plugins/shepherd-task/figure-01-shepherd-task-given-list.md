@@ -1,55 +1,51 @@
-# Figure 01: shepherd-task-given-list — Batch Dispatch
+# Figure 01 — Given-list batch orchestration
 
-This diagram shows the highest-level orchestration: how `shepherd-task-given-list.ps1` takes a comma-separated list of issue numbers and dispatches them serially.
-
-## Example Invocation
-
-```powershell
-shepherd-task-given-list.ps1 -LessonPropagation campaign -TaskIssues "51,52,53,54" -CampaignMetadataDirectory 2-example-remove-before-merge
-```
-
-## Sequence Diagram
+`shepherd-task-given-list` owns one serial run. It validates the durable campaign
+manifest, creates a run manifest, dispatches issues one at a time, stops at the
+first failure, invokes the post-mortem path, and finalizes the run manifest.
 
 ```mermaid
 sequenceDiagram
+    autonumber
     actor User
-    participant STGL as shepherd-task-given-list.ps1
-    participant ST as shepherd-task.ps1
-    participant Copilot as copilot --yolo
-    participant PostMortem as shepherd-task-50-create-post-mortem
+    participant GL as shepherd-task-given-list
+    participant CM as shepherd-campaign.json
+    participant RM as given-list run manifest
+    participant ST as shepherd-task
+    participant GH as GitHub
+    participant PM as Stage 50 Copilot session
 
-    User->>STGL: lessonPropagation=campaign<br/>issues="51,52,53,54"<br/>campaign metadata directory
+    User->>GL: lesson mode, ordered issue CSV, campaign directory
+    GL->>GL: Validate argument shapes and required tools
+    GL->>CM: Validate schema, campaign UUID, repo, non-main base, lesson mode
+    CM-->>GL: Immutable campaign context
+    GL->>GL: Require manifest directory match and campaign-lessons.md
+    GL->>GL: Require requested lesson mode equals manifest mode
+    GL->>RM: Create unique run directory and status=running manifest
 
-    Note over STGL: Validate campaign manifest and mode<br/>Create shepherd-tasks-CAMPAIGN-ID-YYYYMMDD-HHMM/
-
-    Note over STGL: Parse comma-separated list<br/>into [51, 52, 53, 54]
-
-    rect rgb(220, 240, 255)
-        Note over STGL,ST: Serial loop — one issue at a time
-        STGL->>ST: shepherd-task.ps1 -TaskIssue 51<br/>-CampaignMetadataDirectory ...<br/>-RunDirectory shepherd-tasks-CAMPAIGN-ID-.../
-        ST-->>STGL: exit 0 (success)
-
-        STGL->>ST: shepherd-task.ps1 -TaskIssue 52<br/>-CampaignMetadataDirectory ...<br/>-RunDirectory shepherd-tasks-CAMPAIGN-ID-.../
-        ST-->>STGL: exit 0 (success)
-
-        STGL->>ST: shepherd-task.ps1 -TaskIssue 53<br/>-CampaignMetadataDirectory ...<br/>-RunDirectory shepherd-tasks-CAMPAIGN-ID-.../
-        ST-->>STGL: exit 0 (success)
-
-        STGL->>ST: shepherd-task.ps1 -TaskIssue 54<br/>-CampaignMetadataDirectory ...<br/>-RunDirectory shepherd-tasks-CAMPAIGN-ID-.../
-        ST-->>STGL: exit 0 (success)
+    loop Issues in supplied order
+        GL->>ST: issue, campaign directory, run directory
+        ST->>GH: Complete and verify stages 30 and 40
+        alt Issue succeeds
+            GH-->>ST: PR merged to campaign base and issue closed
+            ST-->>GL: Exit 0
+        else Issue fails
+            ST-->>GL: Nonzero exit
+            GL->>GL: Stop before later issues
+        end
     end
 
-    rect rgb(255, 245, 220)
-        Note over STGL,PostMortem: finally block — runs on success OR failure
-        STGL->>Copilot: echo prompt | copilot --yolo<br/>"Invoke skill shepherd-task-50-create-post-mortem"
-        Copilot->>PostMortem: Invoke with run and campaign context,<br/>SCRIPT_EXIT_CODE, TASK_ISSUES,<br/>BASE_BRANCH, REPO
-        PostMortem-->>Copilot: Write YYYYMMDD-HHMM-post-mortem.md<br/>to log directory
-        Copilot-->>STGL: Session complete
-    end
-
-    STGL-->>User: exit 0<br/>"All tasks shepherded successfully"
+    Note over GL,RM: EXIT/finally path runs for success and failure
+    GL->>PM: Run stage 50 with original exit code and campaign/run inputs
+    Note over PM,RM: At this point RM still has status=running and exitCode=null
+    PM->>RM: Read available run identity and task-list evidence
+    PM->>PM: Read phase artifacts and write post-mortem
+    PM-->>GL: Report result
+    GL->>GL: Rescan JSON artifacts for secrets
+    GL->>RM: Set completedAt, original exitCode, succeeded or failed
+    GL-->>User: Preserve original run result unless manifest finalization fails
 ```
 
-## Failure Behavior
-
-If any `shepherd-task.ps1` invocation fails (non-zero exit), the loop stops immediately at that issue. The `finally` block still runs, invoking the post-mortem skill with the non-zero exit code so that a failure report is always generated.
+The run directory name is
+`shepherd-tasks-<campaign-uuid>-YYYYMMDD-HHMM`. A retry is a new given-list
+invocation and therefore a new run directory and run manifest.
