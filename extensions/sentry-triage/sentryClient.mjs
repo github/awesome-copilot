@@ -13,16 +13,71 @@
 // canvas's internal issue model lives in sentry.mjs so this file stays a thin,
 // swappable transport.
 
-import createSentrySDK, { SentryError } from 'sentry'
+// The heavyweight `sentry` CLI package is an OPTIONAL, lazily-loaded dependency.
+// awesome-copilot ships extension *source* only (no node_modules), so an installed
+// plugin may not have it. A top-level `import ... from 'sentry'` would throw
+// `Cannot find package 'sentry'` at module load and take the whole canvas down
+// before any UI renders. Instead we import it dynamically on first use and, when
+// it's absent, throw a clear SentryError (tagged SENTRY_PACKAGE_MISSING) that the
+// setup gate turns into actionable guidance — Copilot can install it for you.
+
+// A stand-in SentryError so callers can `import { SentryError }` at load time and
+// `instanceof`-check even when the package never loads. When the real package IS
+// present we replace this binding (a live ESM export) with the SDK's own
+// SentryError class, so existing `instanceof` + `.exitCode` checks keep matching
+// the errors the SDK actually throws.
+let SentryError = class SentryError extends Error {
+  constructor(message, opts = {}) {
+    super(message)
+    this.name = 'SentryError'
+    if (opts.code) this.code = opts.code
+  }
+}
 
 export { SentryError }
 
+// Fallback message when the optional `sentry` package can't be resolved. The
+// setup gate (preflight.mjs) rewrites this into fuller guidance; this is what
+// surfaces anywhere the raw error is shown.
+const PACKAGE_MISSING_MESSAGE =
+  'The Sentry CLI (the `sentry` npm package) is not installed for this extension. ' +
+  'Ask Copilot to set it up, or run `npm install` in the extension folder.'
+
 let sdk = null
+let sdkFactory = null
+
+// Import the optional `sentry` package exactly once. Throws a SentryError tagged
+// SENTRY_PACKAGE_MISSING when it can't be resolved, and swaps in the SDK's real
+// SentryError class (live ESM binding) when it can.
+async function loadFactory() {
+  if (sdkFactory) return sdkFactory
+  let mod
+  try {
+    mod = await import('sentry')
+  } catch (err) {
+    // Only translate "the `sentry` package itself isn't installed" into the setup
+    // gate. Node reports that as ERR_MODULE_NOT_FOUND naming the `sentry` package.
+    // Any OTHER failure — a missing TRANSITIVE dependency, or the package's own
+    // entrypoint throwing at import — is a real defect we must surface, not mask
+    // behind a misleading "reinstall sentry" message. Rethrow those unchanged.
+    const message = String((err && err.message) || '')
+    const sentryPackageMissing =
+      err && err.code === 'ERR_MODULE_NOT_FOUND' && /Cannot find (?:package|module) 'sentry'/.test(message)
+    if (!sentryPackageMissing) throw err
+    throw new SentryError(PACKAGE_MISSING_MESSAGE, { code: 'SENTRY_PACKAGE_MISSING' })
+  }
+  if (mod.SentryError) SentryError = mod.SentryError
+  sdkFactory = mod.default
+  return sdkFactory
+}
 
 // Lazily construct the SDK once. cwd affects the CLI's project-root / DSN
 // detection; we anchor it to the extension's cwd for determinism.
-function getSdk() {
-  if (!sdk) sdk = createSentrySDK({ cwd: process.cwd() })
+async function getSdk() {
+  if (!sdk) {
+    const create = await loadFactory()
+    sdk = create({ cwd: process.cwd() })
+  }
   return sdk
 }
 
@@ -77,13 +132,13 @@ function asArray(res) {
 // credential is present and valid; throws SentryError ("Not authenticated…")
 // otherwise. Used by preflight to gate the board.
 export async function whoami() {
-  return runSerial(() => getSdk().auth.whoami())
+  return runSerial(async () => (await getSdk()).auth.whoami())
 }
 
 // All organizations the stored credential can see. Raw org objects (each has a
 // `slug`).
 export async function orgList(limit = 100) {
-  return runSerial(async () => asArray(await getSdk().org.list({ limit })))
+  return runSerial(async () => asArray(await (await getSdk()).org.list({ limit })))
 }
 
 // Single-page project fetch within an org. Deliberately NOT wrapped in
@@ -96,13 +151,13 @@ export async function orgList(limit = 100) {
 // (see listProjects in sentry.mjs).
 export async function projectListRaw(org, limit = 100, cursor) {
   const orgProject = `${String(org || '').replace(/\/+$/, '')}/`
-  return asArray(await getSdk().project.list({ orgProject, limit, ...(cursor ? { cursor } : {}) }))
+  return asArray(await (await getSdk()).project.list({ orgProject, limit, ...(cursor ? { cursor } : {}) }))
 }
 
 // Verify a specific project exists / is accessible. Returns the raw project
 // object on success; throws SentryError when the slug is unknown or forbidden.
 export async function projectView(org, slug) {
-  return runSerial(() => getSdk().project.view({ orgProject: `${org}/${slug}` }))
+  return runSerial(async () => (await getSdk()).project.view({ orgProject: `${org}/${slug}` }))
 }
 
 // Search issues. `orgProject` is "org/project" (or the trailing-slash "org/" form
@@ -113,7 +168,7 @@ export async function projectView(org, slug) {
 export async function issueList({ orgProject, query, sort = 'date', limit = 100, period } = {}) {
   return runSerial(async () =>
     asArray(
-      await getSdk().issue.list({
+      await (await getSdk()).issue.list({
         ...(orgProject ? { orgProject } : {}),
         ...(query ? { query } : {}),
         ...(period ? { period } : {}),

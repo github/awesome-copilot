@@ -42,10 +42,11 @@ that drafts a fix pull request.
 - The GitHub Copilot app canvas / UI-extensions experiment enabled.
 - A Sentry sign-in. This canvas reads issues through the
   [Sentry CLI](https://cli.sentry.dev) in library mode — there is no MCP server
-  to configure. Sign in once from your terminal:
+  to configure. After installing the dependency (see **Install** below), sign in
+  once with the package-local CLI, run from the extension folder:
 
   ```sh
-  sentry auth login
+  npx sentry auth login
   ```
 
   This stores an OAuth credential the canvas auto-detects. For non-interactive
@@ -61,10 +62,35 @@ that drafts a fix pull request.
 
 ## Install
 
-Drop this folder at `~/.copilot/extensions/sentry-triage/` for user scope, or in
-a repository at `.github/extensions/sentry-triage/` for project scope. Then
-install dependencies from inside the copied folder (this canvas depends on the
-`sentry` npm package at runtime):
+Drop this folder at `~/.copilot/extensions/sentry-triage/` for user scope, or in a
+repository at `.github/extensions/sentry-triage/` for project scope.
+
+This canvas depends on the [`sentry`](https://cli.sentry.dev) npm package at
+runtime, which isn't bundled with the extension source. If it's missing, the canvas
+still **opens** and shows a setup gate explaining what to do instead of crashing.
+
+### Let Copilot set it up (recommended)
+
+Because the canvas runs inside GitHub Copilot, the agent can install the dependency
+for you. Paste this into Copilot:
+
+> Locate the loaded `sentry-triage` canvas extension folder — the directory that
+> contains its `package.json` — run `npm install` there, then reload extensions.
+
+(That folder is `~/.copilot/extensions/sentry-triage/` for user scope,
+`.github/extensions/sentry-triage/` for project scope, or, if you installed the
+published plugin, `com.github.copilot/extensions/sentry-triage` inside the
+installed plugin.)
+
+Then finish the one interactive step yourself — sign in so Copilot never handles a
+raw secret. Run this from the same extension folder (`npx` resolves the CLI the
+local `npm install` just placed in `node_modules`):
+
+```sh
+npx sentry auth login
+```
+
+### Or install it manually
 
 ```sh
 # User scope
@@ -73,11 +99,15 @@ cd ~/.copilot/extensions/sentry-triage
 # Or project scope, from the repository root
 cd .github/extensions/sentry-triage
 
+# Or, if you installed the published plugin (`copilot plugin install`), the source
+# lives inside the installed plugin — cd into its extension folder:
+cd <installed-plugin-path>/com.github.copilot/extensions/sentry-triage
+
 npm install
+npx sentry auth login
 ```
 
-Reload extensions in the GitHub Copilot app, then open the `sentry-triage`
-canvas.
+Reload extensions in the GitHub Copilot app, then open the `sentry-triage` canvas.
 
 ## Open the canvas in the correct repository scope
 
