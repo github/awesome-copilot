@@ -64,6 +64,27 @@ const contentSecurityPolicy = [
     <meta http-equiv="Content-Security-Policy" content={contentSecurityPolicy} />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 
+    <!--
+      `@primer/react-brand`'s `ThemeProvider colorMode="auto"` only resolves the
+      real OS colour-scheme preference inside a `useEffect`, so its first render
+      (and therefore first paint) is always light — a flash of the wrong theme
+      on every load for dark-mode users. This script runs synchronously before
+      any stylesheet-affected paint and stamps the resolved mode onto `<html>`
+      using the same `data-color-mode` attribute Primer Brand's CSS already
+      keys off, so the correct theme is visible immediately. Once React
+      hydrates, `ThemeProvider` sets its own `data-color-mode` on an inner
+      element, which takes precedence via normal cascade/specificity — this
+      script only needs to hold the line until then.
+    -->
+    <script is:inline>
+      (function () {
+        var mode = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+        document.documentElement.setAttribute("data-color-mode", mode);
+      })();
+    </script>
+
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
