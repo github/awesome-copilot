@@ -28,6 +28,23 @@ export function splitLocale(id: string): { locale?: Locale; path: string } {
 export { LOCALES };
 
 /**
+ * Only the `copilot-workshops/app` track currently has mirrored translations
+ * under `website/src/content/docs/<locale>/…`; every other Playbook article,
+ * workshop track, and cookbook recipe is English-only. The language selector
+ * is only useful (and only correct) on pages that actually have a translation
+ * to switch to, so callers gate it on this check rather than showing it site-wide.
+ */
+const TRANSLATED_PREFIX = "learning-hub/copilot-workshops/app";
+
+/** Whether the (unprefixed, English) article id has mirrored translations. */
+export function hasTranslations(englishId: string): boolean {
+  return (
+    englishId === TRANSLATED_PREFIX ||
+    englishId.startsWith(`${TRANSLATED_PREFIX}/`)
+  );
+}
+
+/**
  * Narrow Astro's `Astro.currentLocale` to a non-default site locale.
  *
  * Astro's i18n `fallback` map auto-generates the locale-prefixed variant of

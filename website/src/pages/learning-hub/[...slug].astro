@@ -3,6 +3,7 @@ import { getCollection } from "astro:content";
 
 import PlaybookArticle from "../../layouts/PlaybookArticle.astro";
 import {
+  hasTranslations,
   isPlaybookArticle,
   localizedEntry,
   siteLocale,
@@ -34,6 +35,7 @@ const locale = siteLocale(Astro.currentLocale);
 const docs = await getCollection("docs");
 const entry = localizedEntry(docs, englishId, locale);
 const slug = locale ? `${locale}/${englishId}` : englishId;
+const showLanguageSelect = hasTranslations(englishId);
 ---
 
-<PlaybookArticle entry={entry} slug={slug} />
+<PlaybookArticle entry={entry} slug={slug} showLanguageSelect={showLanguageSelect} />

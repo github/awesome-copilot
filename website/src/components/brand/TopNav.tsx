@@ -31,6 +31,7 @@ export function TopNav({
   searchIndex,
   contributorsCurrent = false,
   searchAriaLabel = "Search the library",
+  showLanguageSelect = false,
 }: {
   styles: Record<string, string | undefined>;
   links: NavLink[];
@@ -41,6 +42,8 @@ export function TopNav({
   searchIndex?: SearchItem[];
   contributorsCurrent?: boolean;
   searchAriaLabel?: string;
+  /** Only pages with a mirrored translation should offer a language switch. */
+  showLanguageSelect?: boolean;
 }) {
   const playbook = links.find((link) => link.label === playbookLabel);
   const libraryLinks = links.filter((link) => link.label !== playbookLabel);
@@ -180,7 +183,7 @@ export function TopNav({
                   current={contributorsCurrent}
                   total={contributorsTotal}
                 />
-                <LanguageSelect />
+                {showLanguageSelect && <LanguageSelect />}
                 <Button
                   as="a"
                   href={CONTRIBUTING_URL}

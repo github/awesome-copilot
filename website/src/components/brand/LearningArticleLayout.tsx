@@ -27,6 +27,7 @@ import { TypingText } from "./TypingText";
 import type { PrototypePageProps } from "./pageHref";
 import { getAwesomeCopilotNavLinks } from "./navigation";
 import { TopNav } from "./TopNav";
+import { LanguageSelect } from "./LanguageSelect";
 import { SkipLink } from "./SkipLink";
 import {
   type CodeLanguage,
@@ -142,6 +143,12 @@ export type LearningArticleLayoutProps = {
   contributorsTotal?: number;
   /** Optional "Up next" band pinned to the footer's green line. */
   upNext?: { label: string; href: string };
+  /**
+   * Only pages that actually have a mirrored translation should offer a
+   * language switch. Defaults to false; the Playbook article body passes
+   * true for the `copilot-workshops/app` track.
+   */
+  showLanguageSelect?: boolean;
   /** Article body — a sequence of `<section id=...>` blocks (and any ProTip). */
   children: React.ReactNode;
 };
@@ -167,6 +174,7 @@ function LearningArticleLayoutBody({
   searchIndex = [],
   contributorsTotal = siteContributorsTotal,
   upNext,
+  showLanguageSelect = false,
   children,
 }: LearningArticleLayoutProps) {
   const { colorMode } = useTheme();
@@ -363,6 +371,7 @@ function LearningArticleLayoutBody({
             contributorsTotal={contributorsTotal}
             searchIndex={searchIndex}
             searchAriaLabel="Search the library"
+            showLanguageSelect={showLanguageSelect}
           />
           <div className={styles.topBarActions}>
             <TopNavSearch
@@ -374,6 +383,7 @@ function LearningArticleLayoutBody({
               href={pageHref("contributors")}
               total={contributorsTotal}
             />
+            {showLanguageSelect && <LanguageSelect />}
             <Button as="a" href={CONTRIBUTING_URL} variant="subtle" size="small">
               Contribute
             </Button>

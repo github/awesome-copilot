@@ -17,9 +17,11 @@ interface Props {
   entry: CollectionEntry<"docs">;
   /** Site path for this article, without leading or trailing slashes. */
   slug: string;
+  /** Whether this article has real translations, so the language selector should show. */
+  showLanguageSelect?: boolean;
 }
 
-const { entry, slug } = Astro.props;
+const { entry, slug, showLanguageSelect = false } = Astro.props;
 
 const { headings } = await render(entry);
 
@@ -46,5 +48,6 @@ const description = entry.data.description ?? "";
     sections={sections}
     tocSections={tocSections}
     searchIndex={searchIndex}
+    showLanguageSelect={showLanguageSelect}
   />
 </BaseLayout>

@@ -34,6 +34,12 @@ export type PageShellProps = {
    * and render `<LargeFooter />` themselves.
    */
   renderFooter?: boolean;
+  /**
+   * Only pages that actually have a mirrored translation should offer a
+   * language switch. Defaults to false since most of the site is
+   * English-only; opt in per page.
+   */
+  showLanguageSelect?: boolean;
   children: ReactNode;
 };
 
@@ -53,6 +59,7 @@ export function PageShell({
   searchAriaLabel = "Search the library",
   contributorsCurrent = false,
   renderFooter = true,
+  showLanguageSelect = false,
   children,
 }: PageShellProps) {
   return (
@@ -65,6 +72,7 @@ export function PageShell({
         searchAriaLabel={searchAriaLabel}
         contributorsCurrent={contributorsCurrent}
         renderFooter={renderFooter}
+        showLanguageSelect={showLanguageSelect}
       >
         {children}
       </PageShellBody>
@@ -85,6 +93,7 @@ function PageShellBody({
   searchAriaLabel = "Search the library",
   contributorsCurrent = false,
   renderFooter = true,
+  showLanguageSelect = false,
   children,
 }: PageShellProps) {
   const { colorMode } = useTheme();
@@ -108,6 +117,7 @@ function PageShellBody({
             searchIndex={searchIndex}
             contributorsCurrent={contributorsCurrent}
             searchAriaLabel={searchAriaLabel}
+            showLanguageSelect={showLanguageSelect}
           />
           <div className={styles.topBarActions}>
             <TopNavSearch
@@ -120,7 +130,7 @@ function PageShellBody({
               current={contributorsCurrent}
               total={contributorsTotal}
             />
-            <LanguageSelect />
+            {showLanguageSelect && <LanguageSelect />}
             <Button as="a" href={CONTRIBUTING_URL} variant="subtle" size="small">
               Contribute
             </Button>

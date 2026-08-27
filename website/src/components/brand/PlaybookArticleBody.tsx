@@ -62,6 +62,7 @@ export function PlaybookArticleBody({
   tocSections,
   searchIndex = [],
   contributorsTotal = siteContributorsTotal,
+  showLanguageSelect = false,
 }: {
   /** Site path of this article, e.g. `learning-hub/agentic-workflows`. */
   slug: string;
@@ -72,6 +73,7 @@ export function PlaybookArticleBody({
   tocSections: TocSection[];
   searchIndex?: SearchItem[];
   contributorsTotal?: number;
+  showLanguageSelect?: boolean;
 }) {
   return (
     <LearningArticleLayout
@@ -83,6 +85,7 @@ export function PlaybookArticleBody({
       tocSections={tocSections}
       searchIndex={searchIndex}
       contributorsTotal={contributorsTotal}
+      showLanguageSelect={showLanguageSelect}
     >
       {sections.map((section) => (
         <section
