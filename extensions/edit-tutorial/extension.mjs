@@ -359,11 +359,18 @@ function lessonList(state) {
     if (state.tutorial) {
         // The id and the write counter travel with the lesson into the archive,
         // so a late write naming it lands on the right entry and is still
-        // ordered against the writes that entry had already accepted.
+        // ordered against the writes that entry had already accepted. The
+        // revision travels with them because the counter alone cannot order
+        // anything across a bump: it restarts at zero on every one, while the
+        // id survives an approval, a reset, and a round trip through the
+        // archive. Two writes to one lesson are comparable only inside the
+        // revision they were both composed against, which is the rule the
+        // active lesson already follows.
         list.splice(activeLessonPos(state), 0, {
             tutorial: state.tutorial,
             progress: state.progress,
             id: lessonId(state),
+            rev: state.rev || 0,
             progressSeq: state.progressSeq || 0,
         });
     }
@@ -603,6 +610,8 @@ function clampLoadedState(state) {
     state.lessonId = text(state.lessonId, 80) || randomUUID();
     for (const entry of state.archive) {
         entry.id = text(entry.id, 80) || randomUUID();
+        const entryRev = Number(entry.rev);
+        entry.rev = Number.isFinite(entryRev) && entryRev > 0 ? Math.floor(entryRev) : 0;
         const seq = Number(entry.progressSeq);
         entry.progressSeq = Number.isFinite(seq) && seq > 0 ? Math.floor(seq) : 0;
     }
@@ -2626,9 +2635,23 @@ async function startServer(instanceId) {
                         sendJson(res, 409, { ok: false, error: "stale_revision", rev: state.rev || 0 });
                         return;
                     }
-                    // Archived lessons order their writes by the counter they
-                    // carried into the archive, the same rule the active lesson
-                    // uses. The refusal deliberately carries no progress: the
+                    // The id names the lesson but not which of its lives this
+                    // write belongs to, and the counter cannot supply that: it
+                    // restarts at zero on every revision bump, so an id that
+                    // outlives one comes back paired with numbers it has already
+                    // issued. Approving or resetting bumps without touching the
+                    // id, and switching away and back hands the same id to a
+                    // fresh counter, so a delayed write from before either can
+                    // carry a larger number than everything the lesson has
+                    // accepted since. Matching the revision it was composed
+                    // against is what pins it to one life; inside that life the
+                    // counter orders writes exactly as it does for the active
+                    // lesson.
+                    if (Number(incoming.rev) !== (entry.rev || 0)) {
+                        sendJson(res, 409, { ok: false, error: "stale_revision", rev: state.rev || 0 });
+                        return;
+                    }
+                    // The refusal below deliberately carries no progress: the
                     // canvas has a different lesson on screen now, so there is
                     // nothing there for this lesson's progress to merge into.
                     const lateSeq = Number(incoming.seq);
