@@ -3,7 +3,7 @@ import { execSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { startServer } from './server.mjs'
 import { scanIssues, listOrgs, listProjects, findProject } from './sentry.mjs'
-import { checkConnections, checkConnectionsOnce } from './preflight.mjs'
+import { checkConnections, checkConnectionsOnce, installDependencies, authenticate } from './preflight.mjs'
 import { sanitizeForPrompt } from './escape.mjs'
 
 // A Sentry-derived URL is safe to pass through only if it PARSES as a real
@@ -1309,6 +1309,55 @@ async function onRecheckConnections(entry) {
   return connections
 }
 
+// "Install dependencies" button handler on the package-missing setup gate.
+// Delegates to preflight's installDependencies (npm install + re-probe, rooted
+// at the extension's own directory) and publishes the fresh connection state so
+// the gate updates live. On success (Sentry now reachable and an org already
+// committed) kicks a scan, mirroring onRecheckConnections's post-recovery path.
+async function onInstallDependencies(entry) {
+  if (entry.closed) return entry.state.getConnections?.() || { sentry: { reachable: false } }
+  const connections = await installDependencies()
+  if (entry.closed) return connections
+  entry.state.setConnections(connections)
+  entry.notifyClients()
+  if (connections.sentry.reachable && entry.state.getOrg()) {
+    triageSentry(entry).catch((err) => {
+      console.error('[sentry-triage] post-install scan failed:', err instanceof Error ? err.message : err)
+    })
+  } else if (connections.sentry.reachable) {
+    discoverOrgs(entry).catch((err) => {
+      console.error('[sentry-triage] post-install org discovery failed:', err instanceof Error ? err.message : err)
+    })
+  }
+  return connections
+}
+
+// "Sign in with Sentry" button handler on the not-authenticated setup gate
+// (shown only once the package is installed — see components/page.mjs). Runs
+// the SDK's OAuth device-code login (opens the user's browser directly, no
+// terminal) and publishes the fresh connection state so the gate updates
+// live, mirroring onInstallDependencies's post-recovery path. Unlike install,
+// a failed/cancelled login is allowed to propagate so the server route can
+// report the specific reason instead of a generic "still signed out".
+async function onAuthenticate(entry) {
+  if (entry.closed) return entry.state.getConnections?.() || { sentry: { reachable: false } }
+  const connections = await authenticate()
+  if (entry.closed) return connections
+  entry.state.setConnections(connections)
+  entry.notifyClients()
+  if (connections.sentry.reachable && entry.state.getOrg()) {
+    triageSentry(entry).catch((err) => {
+      console.error('[sentry-triage] post-auth scan failed:', err instanceof Error ? err.message : err)
+    })
+  } else if (connections.sentry.reachable) {
+    discoverOrgs(entry).catch((err) => {
+      console.error('[sentry-triage] post-auth org discovery failed:', err instanceof Error ? err.message : err)
+    })
+  }
+  return connections
+}
+
+
 async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
   if (entry.closed) return
   const uniqueKeys = [...new Set(issueKeys)].filter(Boolean)
@@ -1982,6 +2031,8 @@ const session = await joinSession({
             onRefresh: () => refreshAll(entry),
             onWorkSelected: (keys, modelByKey, assignCopilot) => onWorkSelected(entry, keys, modelByKey, assignCopilot),
             onRecheck: () => onRecheckConnections(entry),
+            onInstallDependencies: () => onInstallDependencies(entry),
+            onAuthenticate: () => onAuthenticate(entry),
             onListProjects: (org) => discoverProjects(entry, org, { force: true }),
             onResolveProject: (org, slug) => resolveProject(entry, org, slug),
             onInvalidateEnrichment: () => {
