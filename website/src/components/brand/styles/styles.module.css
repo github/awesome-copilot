@@ -476,14 +476,19 @@
   }
 }
 
-/* Dark-mode override for the Hero secondary CTA ("Become a contributor"): use the
- * requested solid #202020 fill instead of the default translucent white. */
+/* Dark-mode override for the Hero secondary CTA ("Become a contributor"): use
+ * the requested solid #202020 fill instead of the default translucent white.
+ * Not a token: --brand-button-secondary-bgColor-rest resolves to a
+ * translucent overlay (rgba(255,255,255,0.12) in dark mode), which would
+ * visually regress from the prototype's opaque fill — this hex is a
+ * deliberate, verbatim match to the approved design, not an oversight. */
 :global([data-color-mode="dark"]) .heroFrameInner
   :global([class*="Button--secondary"]) {
   background-color: #202020;
 }
 
-/* Light-mode override for the Hero secondary CTA: requested solid #F0F0F0 fill. */
+/* Light-mode override for the Hero secondary CTA: requested solid #F0F0F0
+ * fill, same rationale as above. */
 :global([data-color-mode="light"]) .heroFrameInner
   :global([class*="Button--secondary"]) {
   background-color: #f0f0f0;

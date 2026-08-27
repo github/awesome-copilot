@@ -541,6 +541,16 @@
   color: var(--brand-color-text-link-rest);
 }
 
+/* Long unbroken tokens in raw markdown prose — URLs, install commands, and
+   other text not wrapped in a <pre> — otherwise overflow the content column
+   on narrow viewports instead of wrapping, since browsers don't break at
+   arbitrary points inside a single "word" by default. `.contentCol`/`.layout`
+   already collapse to `minmax(0, 1fr)` so these children can shrink; this is
+   what makes that effective instead of the text pushing the column wider. */
+.articleSection :is(p, li, a) {
+  overflow-wrap: anywhere;
+}
+
 .articleSection a:hover,
 .articleSection a:focus-visible {
   color: var(--brand-color-text-link-pressed);
@@ -1682,6 +1692,23 @@
 .heroBreadcrumbBackIcon {
   margin-inline-end: var(--base-size-4);
   fill: currentColor;
+}
+
+/* At narrow (phone) widths, long titles as the current crumb — or several
+   nested crumbs — can exceed the viewport instead of wrapping (breadcrumbs
+   are a single flex row by design, matching the desktop layout). Let the row
+   scroll horizontally with a touch/keyboard-safe overflow, same pattern used
+   for tables/code, instead of clipping the trailing crumb text. */
+@media (max-width: 48rem) {
+  .heroBreadcrumbs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .heroBreadcrumbs ol {
+    flex-wrap: nowrap;
+    min-inline-size: max-content;
+  }
 }
 
 /* ---- Up next (ported from github-copilot-app) ---- */

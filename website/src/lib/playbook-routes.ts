@@ -73,3 +73,27 @@ export function localizedEntry<T extends { id: string }>(
   const translated = entries.find((entry) => entry.id === `${locale}/${englishId}`);
   return translated ?? (english as T);
 }
+
+/**
+ * The locale of the *content actually rendered* for a page, as distinct from
+ * the locale requested in the URL. Astro's i18n `fallback` config generates a
+ * locale-prefixed variant of every English page (`/es-es/agents/`, etc.), so a
+ * requested locale with no real translation still resolves to English
+ * content. `<html lang>` must reflect what rendered, not what was requested,
+ * or the page misdeclares its language to browsers/assistive tech/search
+ * engines. Pass the result to `BaseLayout`'s `lang` prop.
+ *
+ * `englishId` is only meaningful for Playbook articles, which are the only
+ * content with real mirrored translations today (see `hasTranslations`).
+ * Every other route (Home, catalogs, detail pages) has no translation at all,
+ * so any locale prefix on those always falls back to English — pass no
+ * `englishId` (or omit the call) and this returns `"en"`.
+ */
+export function contentLocale(
+  requestedLocale: Locale | undefined,
+  englishId?: string,
+): "en" | Locale {
+  if (!requestedLocale) return "en";
+  if (englishId && hasTranslations(englishId)) return requestedLocale;
+  return "en";
+}

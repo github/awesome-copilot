@@ -599,7 +599,7 @@ function PlaybookIndexBody({
       <Box className={styles.recommended}>
         <div className={styles.recommendedInner}>
           <div className={styles.recommendedHeader}>
-            <Heading as="h2" className={styles.recommendedTitle}>
+            <Heading as="h2" size="5" className={styles.recommendedTitle}>
               Get started
             </Heading>
             <div className={styles.carouselNav}>
@@ -666,7 +666,7 @@ function PlaybookIndexBody({
         paddingBlockEnd="none"
       >
         <div className={styles.catalogHeader}>
-          <Heading as="h2" className={styles.recommendedTitle}>
+          <Heading as="h2" size="5" className={styles.recommendedTitle}>
             Articles
           </Heading>
           <div className={styles.sortControl}>

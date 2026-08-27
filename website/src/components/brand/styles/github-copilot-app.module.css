@@ -761,6 +761,23 @@
   fill: currentColor;
 }
 
+/* At narrow (phone) widths, long titles as the current crumb — or several
+   nested crumbs — can exceed the viewport instead of wrapping (breadcrumbs
+   are a single flex row by design, matching the desktop layout). Let the row
+   scroll horizontally with a touch/keyboard-safe overflow, same pattern used
+   for tables/code, instead of clipping the trailing crumb text. */
+@media (max-width: 48rem) {
+  .heroBreadcrumbs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .heroBreadcrumbs ol {
+    flex-wrap: nowrap;
+    min-inline-size: max-content;
+  }
+}
+
 .heroEyebrow {
   font-family: var(--brand-fontStack-monospace);
   font-size: var(--base-size-12);
@@ -948,6 +965,14 @@
 .contentCol :is(p, li) {
   font-size: var(--brand-text-size-200);
   line-height: 1.6;
+}
+
+/* Long unbroken tokens in raw markdown prose (URLs, install commands, and
+   other text not wrapped in a <pre>) otherwise overflow the content column
+   on narrow viewports instead of wrapping. `.contentCol` already sets
+   `min-width: 0` above, which is what makes this effective. */
+.contentCol :is(p, li, a) {
+  overflow-wrap: anywhere;
 }
 
 .articleSection {

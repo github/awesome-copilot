@@ -25,6 +25,16 @@ interface Props {
   ogType?: string;
   /** Set false for pages that should not be indexed by search. */
   pagefind?: boolean;
+  /**
+   * BCP 47 language tag for the content actually rendered on this page. Most
+   * pages only ever render English, so the default is safe as-is. Locale
+   * routes that have a real translation (see `contentLocale` in
+   * `lib/playbook-routes.ts`) must pass their translated locale explicitly —
+   * do not default this to `Astro.currentLocale`, which is the *requested*
+   * locale and is wrong on English-fallback pages (fixes a lang/content
+   * mismatch flagged by Brand Engineering review).
+   */
+  lang?: string;
 }
 
 const {
@@ -33,6 +43,7 @@ const {
   socialImage = "/images/social-image.png",
   ogType = "website",
   pagefind = true,
+  lang = "en",
 } = Astro.props;
 
 const basePath = import.meta.env.BASE_URL;
@@ -57,7 +68,7 @@ const contentSecurityPolicy = [
 ---
 
 <!doctype html>
-<html lang={Astro.currentLocale ?? "en"}>
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

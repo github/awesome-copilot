@@ -11,7 +11,9 @@ import BaseLayout from "./BaseLayout.astro";
 import { PlaybookArticleBody } from "../components/brand/PlaybookArticleBody";
 import type { TocSection } from "../components/brand/LearningArticleLayout";
 import { buildArticleSections } from "../lib/playbook-article";
+import { enhanceMarkdownA11y } from "../lib/markdown-a11y";
 import { searchIndex } from "../lib/site-data";
+import { contentLocale, splitLocale } from "../lib/playbook-routes";
 
 interface Props {
   entry: CollectionEntry<"docs">;
@@ -27,7 +29,10 @@ const { headings } = await render(entry);
 
 // `render()` returns an Astro component, not HTML. The rendered markup is
 // available on the entry itself, which is what the section splitter needs.
-const html = entry.rendered?.html ?? "";
+// Scrollable <pre>/<table> blocks in this markdown need to be made keyboard
+// focusable the same way detail-page markdown already is (see
+// lib/detail-page.ts) — Playbook articles were missing this pass entirely.
+const html = enhanceMarkdownA11y(entry.rendered?.html ?? "");
 const sections = buildArticleSections(html, entry.body ?? "");
 
 const tocSections: TocSection[] = headings
@@ -36,9 +41,19 @@ const tocSections: TocSection[] = headings
 
 const title = entry.data.title;
 const description = entry.data.description ?? "";
+
+// `entry` is already the locale-resolved one picked by `localizedEntry` (real
+// translation or English fallback) — its own id tells us what actually
+// rendered, which is what `<html lang>` must reflect.
+const { locale: renderedLocale, path: englishId } = splitLocale(entry.id);
+const lang = contentLocale(renderedLocale, englishId);
 ---
 
-<BaseLayout title={`${title} | Copilot Playbook`} description={description}>
+<BaseLayout
+  title={`${title} | Copilot Playbook`}
+  description={description}
+  lang={lang}
+>
   <PlaybookArticleBody
     client:load
     slug={slug}
