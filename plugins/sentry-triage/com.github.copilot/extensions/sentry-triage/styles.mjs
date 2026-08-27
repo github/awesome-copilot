@@ -236,6 +236,15 @@ export function styles() {
     .project-ac-item .project-ac-all { color: var(--text-color-muted, #8b949e); font-style: italic; }
     .project-ac-item.active .project-ac-all,
     .project-ac-item:hover .project-ac-all { color: var(--color-fg-on-emphasis, #ffffff); }
+    /* Checkmark on a slug confirmed to exist via a live project.view lookup
+       (a project the paged autocomplete list never reached). */
+    .project-ac-item .project-ac-verified {
+      margin-left: 6px;
+      color: var(--color-success-fg, #3fb950);
+      font-weight: 600;
+    }
+    .project-ac-item.active .project-ac-verified,
+    .project-ac-item:hover .project-ac-verified { color: var(--color-fg-on-emphasis, #ffffff); }
     .project-ac-empty,
     .project-ac-more {
       padding: 6px 8px;
