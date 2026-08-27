@@ -159,7 +159,9 @@ privacy-safe, batch-unique `rowKey` of 32–128 characters; import fans its echo
 result into one unique MCP observation for every eligible source row;
 `do_not_geolocate` is a first-class typed status in that common envelope and
 does not invoke backend geocoding. MCP processing must never clear that state
-or populate/apply location fields. Then import all captured responses:
+or populate/apply location fields. If no `batch-*.json` files were exported,
+skip MCP invocation and import, and keep `CURRENT_IR` unchanged. Otherwise,
+import all captured responses:
 
 ```bash
 "$PYTHON" "$RUN" mcp-import "$CURRENT_IR" "$WORK"/mcp-response-*.json \

@@ -390,7 +390,7 @@ def _parse_data_row(
     row.parsed_field_count = len(fields)
     row.raw_fields = fields[:5]
     row.ignored_fields = fields[5:]
-    if len(fields) != 5:
+    if len(fields) < 5:
         builder.add_finding(
             [row],
             category=FindingCategory.RFC8805_VIOLATION,

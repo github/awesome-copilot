@@ -17,7 +17,7 @@ from .corrections import (
     propose_corrections,
     record_approval,
 )
-from .errors import AnalysisError
+from .errors import AnalysisError, CorrectionError
 from .geojson_renderer import export_geojson_file
 from .html_renderer import MapboxOptions, render_html_file
 from .mcp_exchange import export_request_exchange, import_response_batches, request_bytes
@@ -286,13 +286,25 @@ def main(argv: Sequence[str] | None = None) -> int:
             mapping_path = args.output_dir / "mapping.json"
             if any(args.output_dir.glob("batch-*.json")) or mapping_path.exists():
                 raise ValueError("output directory already contains MCP exchange files")
-            for index, batch in enumerate(batches, start=1):
-                path = args.output_dir / f"batch-{index:06d}.json"
-                path.write_bytes(request_bytes(batch))
-            mapping_path.write_text(
-                json.dumps(mapping.model_dump(mode="json", by_alias=True), indent=2) + "\n",
-                encoding="utf-8",
+            exchange_files = [
+                (args.output_dir / f"batch-{index:06d}.json", request_bytes(batch))
+                for index, batch in enumerate(batches, start=1)
+            ]
+            exchange_files.append(
+                (
+                    mapping_path,
+                    (json.dumps(mapping.model_dump(mode="json", by_alias=True), indent=2) + "\n").encode(),
+                )
             )
+            created: list[Path] = []
+            try:
+                for path, content in exchange_files:
+                    _write_atomic_new(path, content)
+                    created.append(path)
+            except (CorrectionError, OSError):
+                for path in created:
+                    path.unlink(missing_ok=True)
+                raise
             return 0
         if args.command == "mcp-import":
             document = json.loads(args.input.read_text(encoding="utf-8"))
