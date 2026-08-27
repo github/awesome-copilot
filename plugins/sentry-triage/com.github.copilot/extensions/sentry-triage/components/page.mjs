@@ -66,6 +66,10 @@ export function Page({
   // required, …). Shown in the gate so users see the real reason instead of a
   // generic "connect" message for problems reconnecting won't fix.
   const gateError = (conn.sentry && conn.sentry.error) || ''
+  // A dedicated setup reason (currently only the optional `sentry` package being
+  // absent) that takes precedence over the auth/connectivity gate variants, so the
+  // install prompt is never shown beneath contradictory "sign in" guidance.
+  const packageMissing = (conn.sentry && conn.sentry.setup) === 'package-missing'
   // Distinguish "not signed in" (needs `sentry auth login`) from a transient
   // connectivity failure where a credential likely exists. probeSentry() reports
   // configured:false only for auth failures, so a gated-but-configured state means
@@ -184,20 +188,24 @@ export function Page({
     <section class="sentry-gate" role="alert">
       <div class="gate-card">
         <div class="gate-icon">⚠️</div>
-        <h2 id="gate-title">${signedOut ? 'Connect Sentry to start triaging' : 'Can’t reach Sentry right now'}</h2>
-        <div class="gate-body gate-body-auth" id="gate-body-auth"${signedOut ? '' : ' style="display:none;"'}>
-          <p class="gate-lead">This canvas reads your live Sentry issues through the Sentry CLI, but it isn't signed in yet.</p>
-          <p class="gate-steps">Run <code>sentry auth login</code> in your terminal to sign in, then re-open this canvas.</p>
+        <h2 id="gate-title">${packageMissing ? 'Set up the Sentry CLI' : (signedOut ? 'Connect Sentry to start triaging' : 'Can’t reach Sentry right now')}</h2>
+        <div class="gate-body gate-body-setup" id="gate-body-setup"${packageMissing ? '' : ' style="display:none;"'}>
+          <p class="gate-lead">This canvas reads your live Sentry issues through the Sentry CLI, but its <code>sentry</code> package isn’t installed for this extension yet.</p>
+          <p class="gate-steps">Ask Copilot to “install the sentry-triage dependencies and reload extensions,” then run <code>npx sentry auth login</code> from the extension folder to sign in and re-open this canvas.</p>
         </div>
-        <div class="gate-body gate-body-conn" id="gate-body-conn"${signedOut || !transientConn ? ' style="display:none;"' : ''}>
+        <div class="gate-body gate-body-auth" id="gate-body-auth"${signedOut && !packageMissing ? '' : ' style="display:none;"'}>
+          <p class="gate-lead">This canvas reads your live Sentry issues through the Sentry CLI, but it isn't signed in yet.</p>
+          <p class="gate-steps">Run <code>npx sentry auth login</code> from the extension folder to sign in, then re-open this canvas.</p>
+        </div>
+        <div class="gate-body gate-body-conn" id="gate-body-conn"${signedOut || !transientConn || packageMissing ? ' style="display:none;"' : ''}>
           <p class="gate-lead">You’re signed in, but this canvas couldn’t reach Sentry — usually a temporary network blip.</p>
           <p class="gate-steps">It should recover on the next check. If it persists, check your network or VPN, then re-open this canvas.</p>
         </div>
-        <div class="gate-body gate-body-unknown" id="gate-body-unknown"${signedOut || transientConn ? ' style="display:none;"' : ''}>
+        <div class="gate-body gate-body-unknown" id="gate-body-unknown"${signedOut || transientConn || packageMissing ? ' style="display:none;"' : ''}>
           <p class="gate-lead">You’re signed in, but this canvas couldn’t reach Sentry.</p>
           <p class="gate-steps">See the details below, then re-open this canvas to try again.</p>
         </div>
-        <p class="gate-error" id="gate-error" ${sentryReady || !gateError ? 'style="display:none;"' : ''}>${escapeHtml(gateError || '')}</p>
+        <p class="gate-error" id="gate-error" ${sentryReady || !gateError || packageMissing ? 'style="display:none;"' : ''}>${escapeHtml(gateError || '')}</p>
       </div>
     </section>
 
@@ -1108,25 +1116,30 @@ export function Page({
         // sentry auth login command, nor promise recovery for what won't self-heal.
         const signedOut = !(c.sentry && c.sentry.configured);
         const transientConn = Boolean(c.sentry && c.sentry.transient);
+        const packageMissing = (c.sentry && c.sentry.setup) === "package-missing";
         const gateTitleEl = document.getElementById("gate-title");
         if (gateTitleEl) {
-          gateTitleEl.textContent = signedOut
+          gateTitleEl.textContent = packageMissing
+            ? "Set up the Sentry CLI"
+            : signedOut
             ? "Connect Sentry to start triaging"
             : "Can’t reach Sentry right now";
         }
+        const setupBody = document.getElementById("gate-body-setup");
         const authBody = document.getElementById("gate-body-auth");
         const connBody = document.getElementById("gate-body-conn");
         const unknownBody = document.getElementById("gate-body-unknown");
-        if (authBody) authBody.style.display = signedOut ? "" : "none";
-        if (connBody) connBody.style.display = !signedOut && transientConn ? "" : "none";
-        if (unknownBody) unknownBody.style.display = !signedOut && !transientConn ? "" : "none";
+        if (setupBody) setupBody.style.display = packageMissing ? "" : "none";
+        if (authBody) authBody.style.display = signedOut && !packageMissing ? "" : "none";
+        if (connBody) connBody.style.display = !signedOut && !packageMissing && transientConn ? "" : "none";
+        if (unknownBody) unknownBody.style.display = !signedOut && !packageMissing && !transientConn ? "" : "none";
 
         // Surface the specific preflight failure in the gate (or hide it when the
         // error clears / there's nothing actionable beyond the sign-in steps).
         const gateErrEl = document.getElementById("gate-error");
         if (gateErrEl) {
           const err = (c.sentry && c.sentry.error) || "";
-          if (gatedNow && err) {
+          if (gatedNow && err && !packageMissing) {
             gateErrEl.textContent = err;
             gateErrEl.style.display = "";
           } else {

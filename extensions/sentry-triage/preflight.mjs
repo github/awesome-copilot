@@ -23,6 +23,7 @@ export function buildConnections({
   sentryReachable = false,
   sentryError = '',
   sentryTransient = false,
+  sentrySetup = '',
 } = {}) {
   return {
     checked: true,
@@ -34,6 +35,10 @@ export function buildConnections({
       // recovery for blips but show neutral guidance for unknown failures that
       // won't self-heal, instead of routing every failure to a "network" message.
       transient: sentryReachable ? false : Boolean(sentryTransient),
+      // Explicit setup reason (currently only 'package-missing') for gate variants
+      // that must NOT be inferred from the auth boolean. Keeps a missing-dependency
+      // install prompt from rendering beneath contradictory "sign in" guidance.
+      setup: sentryReachable ? '' : String(sentrySetup || ''),
       error: sentryReachable ? '' : String(sentryError || ''),
     },
   }
@@ -44,11 +49,16 @@ export function buildConnections({
 export function unknownConnections() {
   return {
     checked: false,
-    sentry: { configured: false, reachable: false, transient: false, error: '' },
+    sentry: { configured: false, reachable: false, transient: false, setup: '', error: '' },
   }
 }
 
 const msg = (err) => (err instanceof Error ? err.message : String(err))
+
+// The optional `sentry` package isn't installed for this extension (a published
+// awesome-copilot plugin ships source only). This is a one-time setup step, not a
+// network blip and not an auth failure, so it gets its own gate branch.
+const isPackageMissing = (err) => Boolean(err) && err.code === 'SENTRY_PACKAGE_MISSING'
 
 // Text used for classification: the message plus any CLI stderr, since a rejected
 // credential (HTTP 401/403) often surfaces its status in stderr rather than the
@@ -82,11 +92,14 @@ const isTransient = (err) =>
 // Turn the raw error into something a human can act on.
 const humanizeSentryError = (err) => {
   const t = msg(err)
+  if (isPackageMissing(err)) {
+    return 'The Sentry CLI isn’t installed for this canvas yet. Ask Copilot to “install the sentry-triage dependencies and reload extensions,” then run `npx sentry auth login` from the extension folder and re-open this canvas.'
+  }
   if (isNotAuthenticated(err)) {
-    return 'Sentry isn’t connected yet. Run `sentry auth login` in your terminal, then re-open this canvas.'
+    return 'Sentry isn’t connected yet. Run `npx sentry auth login` from the extension folder, then re-open this canvas.'
   }
   if (isAuthFailure(err)) {
-    return 'Sentry rejected your credential (expired or invalid). Run `sentry auth login` in your terminal, then re-open this canvas.'
+    return 'Sentry rejected your credential (expired or invalid). Run `npx sentry auth login` from the extension folder, then re-open this canvas.'
   }
   if (isTransient(err)) {
     return 'Couldn’t reach Sentry just now (network). It should recover on the next check.'
@@ -97,14 +110,16 @@ const humanizeSentryError = (err) => {
 // Classify a failed Sentry probe into the two decisions the caller cares about,
 // plus a human message. Pure and exported so the gate/retry branching can be
 // unit-tested without mocking the SDK:
-//   - configured: does a usable credential exist? Auth failures (no login OR a
-//     rejected/expired credential) clear it so the gate shows sign-in guidance;
+//   - configured: is the canvas actually set up to reach Sentry? Auth failures
+//     (no login OR a rejected/expired credential) clear it so the gate shows
+//     sign-in guidance, and a missing `sentry` package clears it too so the gate
+//     shows install guidance instead of a contradictory configured:true state;
 //     everything else keeps it so the gate shows connectivity guidance.
 //   - transient: worth retrying? Only network blips — never auth failures, even
 //     when their text happens to mention a network keyword.
 export function classifySentryError(err) {
   return {
-    configured: !isAuthFailure(err),
+    configured: !isAuthFailure(err) && !isPackageMissing(err),
     transient: isTransient(err),
     message: humanizeSentryError(err),
   }
@@ -135,6 +150,7 @@ const shape = (result) =>
     sentryConfigured: result.configured,
     sentryReachable: result.reachable,
     sentryTransient: result.transient,
+    sentrySetup: !result.reachable && isPackageMissing(result.error) ? 'package-missing' : '',
     sentryError: result.reachable ? '' : humanizeSentryError(result.error),
   })
 
