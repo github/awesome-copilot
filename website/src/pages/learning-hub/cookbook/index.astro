@@ -1,9 +1,9 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { CookbookIndex } from "../../../components/brand/CookbookIndex";
+import CookbookIndex from "../../../components/brand/learning-hub/CookbookIndex";
+import { pageHref } from "../../../components/brand/pageHref";
 import { cookbookSections } from "../../../lib/cookbook-routes";
 import { siteLocale } from "../../../lib/learning-hub-routes";
-import { searchIndex } from "../../../lib/site-data";
 
 // Astro's i18n `fallback` config renders this same component for every
 // locale-prefixed URL, so recipe links must be prefixed to match the URL the
@@ -18,5 +18,5 @@ const description =
   title="Cookbook | Awesome GitHub Copilot"
   description={description}
 >
-  <CookbookIndex client:load sections={sections} searchIndex={searchIndex} />
+  <CookbookIndex client:load pageHref={pageHref} sections={sections} />
 </BaseLayout>

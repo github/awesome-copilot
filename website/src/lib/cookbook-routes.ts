@@ -3,7 +3,7 @@ import samplesData from "../../public/data/samples.json";
 import type {
   CookbookSection,
   RecipeLink,
-} from "../components/brand/CookbookIndex";
+} from "../components/brand/learning-hub/CookbookIndex";
 
 export type RecipeVariant = {
   doc: string;

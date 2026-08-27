@@ -17,7 +17,17 @@
  * `[...slug].astro` branches on this list by name and imports each bespoke
  * component itself; this file is just the shared list of which slugs qualify.
  */
-export const BESPOKE_LEARNING_HUB_SLUGS = ["github-copilot-app"] as const;
+export const BESPOKE_LEARNING_HUB_SLUGS = [
+  "github-copilot-app",
+  "agents-and-subagents",
+  "copilot-configuration-basics",
+  "github-copilot-terminology-glossary",
+  "using-automations-in-copilot-app",
+  "what-are-agents-skills-instructions",
+  "working-with-canvas-extensions",
+  "cli-for-beginners",
+  "cookbook",
+] as const;
 
 export type BespokeLearningHubSlug = (typeof BESPOKE_LEARNING_HUB_SLUGS)[number];
 
