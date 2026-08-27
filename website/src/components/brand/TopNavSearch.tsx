@@ -101,7 +101,7 @@ export function TopNavSearch({
 
   const trimmed = term.trim();
 
-  // Pagefind covers every built HTML page (Playbook articles included), which
+  // Pagefind covers every built HTML page (Learning Hub articles included), which
   // the build-time `index` prop does not. It is only available after a build,
   // so results arrive asynchronously and are merged in when they land.
   const [pagefindHits, setPagefindHits] = useState<SearchItem[]>([]);

@@ -145,7 +145,7 @@ export type LearningArticleLayoutProps = {
   upNext?: { label: string; href: string };
   /**
    * Only pages that actually have a mirrored translation should offer a
-   * language switch. Defaults to false; the Playbook article body passes
+   * language switch. Defaults to false; the Learning Hub article body passes
    * true for the `copilot-workshops/app` track.
    */
   showLanguageSelect?: boolean;
@@ -403,7 +403,7 @@ function LearningArticleLayoutBody({
                     size={16}
                     className={styles.heroBreadcrumbBackIcon}
                   />
-                  Copilot Playbook
+                  GitHub Copilot Learning Hub
                 </Breadcrumbs.Item>
                 <Breadcrumbs.Item href={pageHref(currentPage)} selected>
                   {breadcrumbLabel}

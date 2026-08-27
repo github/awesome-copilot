@@ -2,7 +2,7 @@ import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
 
 /**
- * Playbook content collection. Previously loaded via Starlight's `docsLoader`;
+ * Learning Hub content collection. Previously loaded via Starlight's `docsLoader`;
  * now a plain glob loader over the same directory so the markdown source of
  * truth and all existing URLs are unchanged.
  */

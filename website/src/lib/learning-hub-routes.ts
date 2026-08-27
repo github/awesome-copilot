@@ -2,12 +2,12 @@
 const COOKBOOK_RE = /(^|\/)cookbook(\/|$)/;
 
 /**
- * Playbook article ids, i.e. everything in the `docs` collection under a
+ * Learning Hub article ids, i.e. everything in the `docs` collection under a
  * `learning-hub/` path that is not an index page or a cookbook recipe.
  */
-export function isPlaybookArticle(id: string): boolean {
+export function isLearningHubArticle(id: string): boolean {
   if (COOKBOOK_RE.test(id)) return false;
-  // The Playbook landing page is a real Astro page, not a collection entry.
+  // The Learning Hub landing page is a real Astro page, not a collection entry.
   if (splitLocale(id).path === "learning-hub/index") return false;
   return /(^|\/)learning-hub\//.test(id);
 }
@@ -29,7 +29,7 @@ export { LOCALES };
 
 /**
  * Only the `copilot-workshops/app` track currently has mirrored translations
- * under `website/src/content/docs/<locale>/…`; every other Playbook article,
+ * under `website/src/content/docs/<locale>/…`; every other Learning Hub article,
  * workshop track, and cookbook recipe is English-only. The language selector
  * is only useful (and only correct) on pages that actually have a translation
  * to switch to, so callers gate it on this check rather than showing it site-wide.
@@ -83,7 +83,7 @@ export function localizedEntry<T extends { id: string }>(
  * or the page misdeclares its language to browsers/assistive tech/search
  * engines. Pass the result to `BaseLayout`'s `lang` prop.
  *
- * `englishId` is only meaningful for Playbook articles, which are the only
+ * `englishId` is only meaningful for Learning Hub articles, which are the only
  * content with real mirrored translations today (see `hasTranslations`).
  * Every other route (Home, catalogs, detail pages) has no translation at all,
  * so any locale prefix on those always falls back to English — pass no

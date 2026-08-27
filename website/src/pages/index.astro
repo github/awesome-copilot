@@ -5,10 +5,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import { HomePage } from "../components/brand/HomePage";
 import { counts, searchIndex } from "../lib/site-data";
 
-// Playbook articles live in the docs collection rather than in generated data,
+// Learning Hub articles live in the docs collection rather than in generated data,
 // so the count is derived here to keep every figure on the page live.
 const docs = await getCollection("docs");
-const playbook = docs.filter(
+const learningHub = docs.filter(
   (entry) =>
     entry.id.includes("learning-hub/") &&
     !entry.id.endsWith("/index") &&
@@ -22,7 +22,7 @@ const playbook = docs.filter(
 >
   <HomePage
     client:load
-    counts={{ ...counts, playbook }}
+    counts={{ ...counts, learningHub }}
     searchIndex={searchIndex}
   />
 </BaseLayout>

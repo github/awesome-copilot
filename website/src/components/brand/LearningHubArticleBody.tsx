@@ -8,7 +8,7 @@ import type {
   ArticleBlock,
   ArticleSection,
   CalloutKind,
-} from "../../lib/playbook-article";
+} from "../../lib/learning-hub-article";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
@@ -53,7 +53,7 @@ function Block({ block, index }: { block: ArticleBlock; index: number }) {
   return <div key={index} dangerouslySetInnerHTML={{ __html: block.html }} />;
 }
 
-export function PlaybookArticleBody({
+export function LearningHubArticleBody({
   slug,
   breadcrumbLabel,
   title,

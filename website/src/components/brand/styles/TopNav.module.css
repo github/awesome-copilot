@@ -1,6 +1,6 @@
 /*
  * Mobile navigation. Above 768px the desktop `.subNavList` (Resources dropdown
- * + Playbook tab) is shown and this hamburger is hidden; at/below 768px each
+ * + Learning Hub tab) is shown and this hamburger is hidden; at/below 768px each
  * page module hides `.subNavList`, and this disclosure takes over as the mobile
  * menu. Styling mirrors the desktop `.moreOverlay` / `.moreLink` dropdown so the
  * two navs feel like one system.

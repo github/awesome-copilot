@@ -2,13 +2,13 @@
 import { getCollection } from "astro:content";
 
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { PlaybookIndex } from "../../components/brand/PlaybookIndex";
-import type { PlaybookArticle } from "../../components/brand/PlaybookIndex";
+import { LearningHubIndex } from "../../components/brand/LearningHubIndex";
+import type { LearningHubArticle } from "../../components/brand/LearningHubIndex";
 import { searchIndex } from "../../lib/site-data";
 
 const docs = await getCollection("docs");
 
-// Only the top-level English Playbook articles are catalogued here, plus the
+// Only the top-level English Learning Hub articles are catalogued here, plus the
 // landing page of each multi-page workshop track (`cli-for-beginners` and
 // `copilot-workshops`) so they can be found via the "Workshop" content-type
 // filter; the exercises within each track have their own entry points, and
@@ -17,7 +17,7 @@ const WORKSHOP_LANDING_IDS = [
   "learning-hub/cli-for-beginners/index",
   "learning-hub/copilot-workshops/index",
 ];
-const articles: PlaybookArticle[] = docs
+const articles: LearningHubArticle[] = docs
   .filter(
     (entry) =>
       /^learning-hub\/[^/]+$/.test(entry.id) ||
@@ -42,8 +42,8 @@ const description =
 ---
 
 <BaseLayout
-  title="Copilot Playbook | Awesome GitHub Copilot"
+  title="GitHub Copilot Learning Hub | Awesome GitHub Copilot"
   description={description}
 >
-  <PlaybookIndex client:load articles={articles} searchIndex={searchIndex} />
+  <LearningHubIndex client:load articles={articles} searchIndex={searchIndex} />
 </BaseLayout>

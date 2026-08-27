@@ -24,7 +24,7 @@ import {
 
 import styles from "./styles/learning-hub-copilot-app.module.css";
 import { DuckIcon } from "./DuckIcon";
-import { PlaybookIcon } from "./PlaybookIcon";
+import { LearningHubIcon } from "./LearningHubIcon";
 import { PageShell } from "./PageShell";
 import { ScrambleText } from "./ScrambleText";
 import { pageHref } from "./pageHref";
@@ -41,7 +41,7 @@ type Topic =
 type Kind = "Guide" | "Tutorial" | "Terminology" | "Example" | "Workshop";
 
 /** Article frontmatter projected out of the `docs` collection at build time. */
-export type PlaybookArticle = {
+export type LearningHubArticle = {
   /** Collection entry id, e.g. `learning-hub/agentic-workflows`. */
   id: string;
   title: string;
@@ -52,7 +52,7 @@ export type PlaybookArticle = {
   lastUpdated?: string;
 };
 
-type Entry = PlaybookArticle & {
+type Entry = LearningHubArticle & {
   topic: Topic;
   kind: Kind;
   isNew?: boolean;
@@ -198,12 +198,12 @@ const recommendedCards = [
   },
 ];
 
-export function PlaybookIndex({
+export function LearningHubIndex({
   articles,
   searchIndex = [],
   contributorsTotal = siteContributorsTotal,
 }: {
-  articles: PlaybookArticle[];
+  articles: LearningHubArticle[];
   searchIndex?: SearchItem[];
   contributorsTotal?: number;
 }) {
@@ -212,18 +212,18 @@ export function PlaybookIndex({
       styles={styles}
       searchIndex={searchIndex}
       contributorsTotal={contributorsTotal}
-      searchAriaLabel="Search the Copilot Playbook"
+      searchAriaLabel="Search the Learning Hub"
     >
-      <PlaybookIndexBody articles={articles} searchIndex={searchIndex} />
+      <LearningHubIndexBody articles={articles} searchIndex={searchIndex} />
     </PageShell>
   );
 }
 
-function PlaybookIndexBody({
+function LearningHubIndexBody({
   articles,
   searchIndex,
 }: {
-  articles: PlaybookArticle[];
+  articles: LearningHubArticle[];
   searchIndex: SearchItem[];
 }) {
   const { colorMode } = useTheme();
@@ -420,10 +420,10 @@ function PlaybookIndexBody({
         <div className={styles.heroInner}>
           <div className={styles.heroTop}>
             <span className={styles.heroIcon} aria-hidden="true">
-              <PlaybookIcon size={44} />
+              <LearningHubIcon size={44} />
             </span>
             <Heading as="h1" size="3" className={styles.heroHeading}>
-              Copilot Playbook
+              GitHub Copilot Learning Hub
             </Heading>
           </div>
           <label className={styles.heroSearch}>
@@ -431,7 +431,7 @@ function PlaybookIndexBody({
               type="text"
               ref={heroSearchInputRef}
               className={styles.heroSearchInput}
-              aria-label="Search the Copilot Playbook"
+              aria-label="Search the Learning Hub"
               role="combobox"
               aria-expanded={heroSearchOpen}
               aria-controls="hero-search-results"

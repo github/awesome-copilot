@@ -1,14 +1,14 @@
 ---
 import { getCollection } from "astro:content";
 
-import PlaybookArticle from "../../layouts/PlaybookArticle.astro";
+import LearningHubArticle from "../../layouts/LearningHubArticle.astro";
 import {
   hasTranslations,
-  isPlaybookArticle,
+  isLearningHubArticle,
   localizedEntry,
   siteLocale,
   splitLocale,
-} from "../../lib/playbook-routes";
+} from "../../lib/learning-hub-routes";
 
 // Only the English (unprefixed) articles are enumerated here. Astro's i18n
 // `fallback` config auto-generates the locale-prefixed variant of every path in
@@ -19,7 +19,7 @@ import {
 export async function getStaticPaths() {
   const docs = await getCollection("docs");
   return docs
-    .filter((entry) => isPlaybookArticle(entry.id))
+    .filter((entry) => isLearningHubArticle(entry.id))
     .filter((entry) => !splitLocale(entry.id).locale)
     .map((entry) => ({
       params: { slug: entry.id.replace(/^learning-hub\//, "") },
@@ -38,4 +38,4 @@ const slug = locale ? `${locale}/${englishId}` : englishId;
 const showLanguageSelect = hasTranslations(englishId);
 ---
 
-<PlaybookArticle entry={entry} slug={slug} showLanguageSelect={showLanguageSelect} />
+<LearningHubArticle entry={entry} slug={slug} showLanguageSelect={showLanguageSelect} />

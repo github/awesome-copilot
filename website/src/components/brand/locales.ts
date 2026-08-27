@@ -2,7 +2,7 @@
  * Locale table for the site's language selector.
  *
  * These codes mirror the `i18n.locales` list in `astro.config.mjs` and the
- * locale directory names used by mirrored Playbook content
+ * locale directory names used by mirrored Learning Hub content
  * (`website/src/content/docs/<locale>/…`). The default locale is served at the
  * site root with no prefix (`prefixDefaultLocale: false`).
  */

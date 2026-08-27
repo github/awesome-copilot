@@ -18,14 +18,14 @@ type NavLink = { label: string; href: string; current: boolean };
 /**
  * The top navigation is intentionally reduced to two tabs shared across every
  * page: a "Resources" dropdown that gathers all catalog destinations, plus a
- * standalone "Copilot Playbook" tab. Each page owns its own scoped CSS module,
+ * standalone "GitHub Copilot Learning Hub" tab. Each page owns its own scoped CSS module,
  * so the class map is injected via `styles` to keep the existing look.
  */
 export function TopNav({
   styles,
   links,
   libraryLabel = "Resources",
-  playbookLabel = "Playbook",
+  learningHubLabel = "Learning Hub",
   contributorsHref,
   contributorsTotal = siteContributorsTotal,
   searchIndex,
@@ -36,7 +36,7 @@ export function TopNav({
   styles: Record<string, string | undefined>;
   links: NavLink[];
   libraryLabel?: string;
-  playbookLabel?: string;
+  learningHubLabel?: string;
   contributorsHref?: string;
   contributorsTotal?: number;
   searchIndex?: SearchItem[];
@@ -45,8 +45,8 @@ export function TopNav({
   /** Only pages with a mirrored translation should offer a language switch. */
   showLanguageSelect?: boolean;
 }) {
-  const playbook = links.find((link) => link.label === playbookLabel);
-  const libraryLinks = links.filter((link) => link.label !== playbookLabel);
+  const learningHubLink = links.find((link) => link.label === learningHubLabel);
+  const libraryLinks = links.filter((link) => link.label !== learningHubLabel);
   const libraryActive = libraryLinks.some((link) => link.current);
   const desktopMenuRef = useRef<HTMLDetailsElement>(null);
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
@@ -113,17 +113,17 @@ export function TopNav({
             </div>
           </details>
         </li>
-        {playbook && (
+        {learningHubLink && (
           <li>
             <a
-              href={playbook.href}
+              href={learningHubLink.href}
               className={clsx(
                 styles.subNavLink,
-                playbook.current && styles.subNavLinkActive,
+                learningHubLink.current && styles.subNavLinkActive,
               )}
-              aria-current={playbook.current ? "page" : undefined}
+              aria-current={learningHubLink.current ? "page" : undefined}
             >
-              {playbook.label}
+              {learningHubLink.label}
             </a>
           </li>
         )}
@@ -162,15 +162,15 @@ export function TopNav({
               {link.label}
             </a>
           ))}
-          {playbook && (
+          {learningHubLink && (
             <>
               <span className={mobileStyles.overlayDivider} aria-hidden="true" />
               <a
-                href={playbook.href}
+                href={learningHubLink.href}
                 className={mobileStyles.mobileLink}
-                aria-current={playbook.current ? "page" : undefined}
+                aria-current={learningHubLink.current ? "page" : undefined}
               >
-                {playbook.label}
+                {learningHubLink.label}
               </a>
             </>
           )}

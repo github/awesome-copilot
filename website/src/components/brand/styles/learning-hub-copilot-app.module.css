@@ -1781,7 +1781,7 @@
     min-block-size: auto;
   }
 
-  /* Tighten the gap between the "Copilot Playbook" title and the search field,
+  /* Tighten the gap between the "GitHub Copilot Learning Hub" title and the search field,
      and drop the empty space beneath the field. */
   .heroTop {
     padding-block: var(--base-size-24);

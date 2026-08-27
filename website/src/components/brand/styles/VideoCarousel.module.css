@@ -1,5 +1,5 @@
 /* Video series carousel — mirrors the "Get started" carousel on the Copilot
-   Playbook page (bordered band, header with prev/next, connected 3-up cards),
+   Learning Hub page (bordered band, header with prev/next, connected 3-up cards),
    adapted to hold YouTube video thumbnails that open in a modal player. */
 
 .carousel {

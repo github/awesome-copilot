@@ -55,7 +55,7 @@ export type HomePageCounts = {
   skills: number;
   plugins: number;
   extensions: number;
-  playbook: number;
+  learningHub: number;
 };
 
 export type HomePageProps = {
@@ -112,8 +112,8 @@ const buildResources = (counts: HomePageCounts): Resource[] => [
   },
   {
     icon: BookIcon,
-    name: "Playbook",
-    count: String(counts.playbook),
+    name: "Learning Hub",
+    count: String(counts.learningHub),
     description:
       "Articles and guides for getting the most from every agent and skill.",
     page: "learning-hub-copilot-app",

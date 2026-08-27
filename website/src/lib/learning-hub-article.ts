@@ -1,5 +1,5 @@
 /**
- * Turns rendered markdown HTML into the shape the Playbook article chassis
+ * Turns rendered markdown HTML into the shape the Learning Hub article chassis
  * expects: one `<section>` per `<h2>`, with GitHub admonitions lifted out as
  * discrete callout blocks.
  */

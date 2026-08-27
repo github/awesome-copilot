@@ -10,7 +10,7 @@ export type AwesomeCopilotPage =
 const destinations = [
   { label: "Agents", page: "agents" },
   { label: "Instructions", page: "instructions" },
-  { label: "Playbook", page: "learning-hub-copilot-app" },
+  { label: "Learning Hub", page: "learning-hub-copilot-app" },
   { label: "Skills", page: "skills" },
   { label: "Plugins", page: "plugins" },
   { label: "Extensions", page: "extensions" },
