@@ -77,7 +77,7 @@ function hasValidToken(req, token) {
   return value === token
 }
 
-export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onRecheck, onListProjects, onResolveProject, onInvalidateEnrichment, defaults } = {}) {
+export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onRecheck, onInstallDependencies, onAuthenticate, onListProjects, onResolveProject, onInvalidateEnrichment, defaults } = {}) {
   // Per-instance state + SSE clients — never shared across canvas instances.
   const state = createState()
   state.applyRepoDefaults(defaults)
@@ -221,6 +221,49 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
           console.error('[sentry-triage] recheck failed:', err instanceof Error ? err.message : err)
           res.writeHead(200, { 'Content-Type': 'application/json' })
           res.end(JSON.stringify({ ok: true, connections: state.getConnections() }))
+        })
+      return
+    }
+
+    // One-click install for the "package-missing" setup gate. Runs `npm install`
+    // in the extension's own directory (via onInstallDependencies) and returns
+    // the freshly re-probed connection state, so the gate updates without
+    // requiring the canvas to be reopened.
+    if (req.method === 'POST' && req.url === '/api/install-dependencies') {
+      Promise.resolve(onInstallDependencies ? onInstallDependencies() : null)
+        .then((connections) => {
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: true, connections: connections || state.getConnections() }))
+        })
+        .catch((err) => {
+          console.error('[sentry-triage] install-dependencies failed:', err instanceof Error ? err.message : err)
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: true, connections: state.getConnections() }))
+        })
+      return
+    }
+
+    // One-click sign-in for the "not authenticated" setup gate (only shown once
+    // the package is installed — see components/page.mjs). Runs the SDK's own
+    // OAuth device-code login, which opens the user's browser directly, and
+    // returns the freshly re-probed connection state. Unlike install, a failed
+    // login (denied consent, expired code, closed tab) is reported back as
+    // `ok:false` with a message instead of silently falling back to the stale
+    // connection state — the specific reason is worth surfacing in the gate.
+    if (req.method === 'POST' && req.url === '/api/auth-login') {
+      Promise.resolve(onAuthenticate ? onAuthenticate() : null)
+        .then((connections) => {
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: true, connections: connections || state.getConnections() }))
+        })
+        .catch((err) => {
+          console.error('[sentry-triage] auth-login failed:', err instanceof Error ? err.message : err)
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({
+            ok: false,
+            error: err instanceof Error ? err.message : String(err),
+            connections: state.getConnections(),
+          }))
         })
       return
     }

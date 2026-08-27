@@ -1033,6 +1033,25 @@ export function styles() {
       padding: 8px 10px;
       text-align: left;
     }
+    .gate-action-btn {
+      margin-top: 4px;
+      padding: 6px 14px;
+      font-size: 12.5px;
+      font-weight: var(--font-weight-semibold, 600);
+      color: var(--text-color-default, #e6edf3);
+      background: var(--background-color-default, #21262d);
+      border: 1px solid var(--border-color-default, #30363d);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .gate-action-btn:hover:not(:disabled) { border-color: var(--color-focus-outline, #58a6ff); }
+    .gate-action-btn:disabled { opacity: 0.6; cursor: default; }
+    .gate-install-status {
+      margin: 8px 0 0;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-color-muted, #8b949e);
+    }
 
     .toast {
       position: fixed;

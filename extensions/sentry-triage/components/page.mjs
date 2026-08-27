@@ -179,11 +179,15 @@ export function Page({
         <h2 id="gate-title">${packageMissing ? 'Set up the Sentry CLI' : (signedOut ? 'Connect Sentry to start triaging' : 'Can’t reach Sentry right now')}</h2>
         <div class="gate-body gate-body-setup" id="gate-body-setup"${packageMissing ? '' : ' style="display:none;"'}>
           <p class="gate-lead">This canvas reads your live Sentry issues through the Sentry CLI, but its <code>sentry</code> package isn’t installed for this extension yet.</p>
-          <p class="gate-steps">Ask Copilot to “install the sentry-triage dependencies and reload extensions,” then run <code>npx sentry auth login</code> from the extension folder to sign in and re-open this canvas.</p>
+          <p class="gate-steps">Click below to install it. You'll then be prompted to sign in with Sentry.</p>
+          <button id="install-deps-btn" class="gate-action-btn" type="button">📦 Install dependencies</button>
+          <p class="gate-install-status" id="gate-install-status" role="status" aria-live="polite" style="display:none;"></p>
         </div>
         <div class="gate-body gate-body-auth" id="gate-body-auth"${signedOut && !packageMissing ? '' : ' style="display:none;"'}>
           <p class="gate-lead">This canvas reads your live Sentry issues through the Sentry CLI, but it isn't signed in yet.</p>
-          <p class="gate-steps">Run <code>npx sentry auth login</code> from the extension folder to sign in, then re-open this canvas.</p>
+          <p class="gate-steps">Sign in with Sentry — this opens your browser to approve access, then returns here automatically.</p>
+          <button id="auth-login-btn" class="gate-action-btn" type="button">🔑 Sign in with Sentry</button>
+          <p class="gate-install-status" id="gate-auth-status" role="status" aria-live="polite" style="display:none;"></p>
         </div>
         <div class="gate-body gate-body-conn" id="gate-body-conn"${signedOut || !transientConn || packageMissing ? ' style="display:none;"' : ''}>
           <p class="gate-lead">You’re signed in, but this canvas couldn’t reach Sentry — usually a temporary network blip.</p>
@@ -193,7 +197,7 @@ export function Page({
           <p class="gate-lead">You’re signed in, but this canvas couldn’t reach Sentry.</p>
           <p class="gate-steps">See the details below, then re-open this canvas to try again.</p>
         </div>
-        <p class="gate-error" id="gate-error" ${sentryReady || !gateError || packageMissing ? 'style="display:none;"' : ''}>${escapeHtml(gateError || '')}</p>
+        <p class="gate-error" id="gate-error" ${sentryReady || !gateError || packageMissing || signedOut ? 'style="display:none;"' : ''}>${escapeHtml(gateError || '')}</p>
       </div>
     </section>
 
@@ -489,27 +493,77 @@ export function Page({
       syncScanButtonState();
 
       const orgSelectEl = document.getElementById("org-select");
-      if (orgSelectEl) {
+      const orgSelectMirror = orgSelectEl ? wireOrgSelect(orgSelectEl) : null;
+
+      // (Re)wire an org <select>'s change handler and, when it's freshly
+      // created (post-signin discovery — see the orgOptions SSE handler
+      // below), seed the input/state from its current value the same way the
+      // initial server-render path does just below. Pulled out to a function
+      // so both paths share one implementation instead of drifting.
+      function wireOrgSelect(sel) {
         const orgInputEl = document.getElementById("org-input");
-        const mirrorOrgSelect = () => {
-          if (orgInputEl) orgInputEl.value = orgSelectEl.value;
+        const mirrorOrgSelect = (clearProject = true) => {
+          if (orgInputEl) orgInputEl.value = sel.value;
           // Clear any project slug carried over from the previously-selected org —
           // it won't exist under the new org's project list.
           const projInput = document.getElementById("project-input");
-          if (projInput) projInput.value = "";
+          if (clearProject && projInput) projInput.value = "";
           syncScanButtonState();
           // Load the new org's projects into the autocomplete: instant from cache
           // when we've seen it before, otherwise a "loading projects…" hint until
           // the fetched list arrives over SSE.
-          requestProjectsForOrg(orgSelectEl.value);
+          requestProjectsForOrg(sel.value);
         };
-        orgSelectEl.addEventListener("change", mirrorOrgSelect);
+        sel.addEventListener("change", () => mirrorOrgSelect());
+        return mirrorOrgSelect;
+      }
+      if (orgSelectEl) {
+        const orgInputEl = document.getElementById("org-input");
         // The <select> shows its first option as selected by default, but the
         // input starts empty when there's no detected default — so Scan looks
         // disabled and re-picking the already-shown org fires no change event.
         // Seed the input from the select's current value on load so the visible
         // selection is the effective one and Scan is enabled.
-        if (orgInputEl && !orgInputEl.value.trim() && orgSelectEl.value) mirrorOrgSelect();
+        if (orgInputEl && !orgInputEl.value.trim() && orgSelectEl.value) orgSelectMirror(false);
+      }
+
+      // Rebuild the setup screen's org control as a <select> once 2+ orgs are
+      // known (whether at initial render, or discovered later via SSE after a
+      // post-load sign-in — see the orgOptions handler below). A single-org
+      // account keeps the plain text input. No-ops if a <select> already
+      // reflects the same options, so it's safe to call on every SSE update.
+      function renderSetupOrgSelect() {
+        const orgField = document.getElementById("org-input");
+        if (!orgField) return; // already a <select>, or the setup screen isn't showing
+        const orgSlugs = Array.isArray(currentOrgOptions) ? currentOrgOptions.filter(Boolean) : [];
+        if (orgSlugs.length < 2) return;
+        const current = orgField.value.trim();
+        // Don't clobber an in-progress edit: if the user has typed something
+        // that isn't (yet) one of the discovered orgs, replaceWith() below
+        // would silently discard it and default to the first option. Defer
+        // the rebuild — it'll retry on the next SSE update, and by then the
+        // user will likely have finished typing or the org will be known.
+        if (current && !orgSlugs.includes(current)) return;
+        const sel = document.createElement("select");
+        sel.id = "org-select";
+        sel.className = "org-input org-select";
+        sel.title = "Sentry organizations you can access";
+        orgSlugs.forEach((slug) => {
+          const opt = document.createElement("option");
+          opt.value = slug;
+          opt.textContent = slug;
+          if (slug === current) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        const wasFocused = document.activeElement === orgField;
+        orgField.replaceWith(sel);
+        const mirror = wireOrgSelect(sel);
+        mirror(false);
+        // orgField may have had keyboard focus (e.g. the empty org input's
+        // autofocus on first load) — replaceWith() detaches it from the
+        // document without moving focus anywhere, silently dropping the
+        // keyboard user's position. Move focus onto its replacement.
+        if (wasFocused) sel.focus();
       }
 
       // The org slug currently chosen on the setup screen (typed input wins, else
@@ -586,12 +640,14 @@ export function Page({
       // detected default into the still-empty slug input so the user doesn't have
       // to type it. Never clobber a value the user has started editing.
       function applyOrgDefault(def) {
-        if (!def) return;
+        if (!def) return false;
         const input = document.getElementById("org-input");
         if (input && !input.value) {
           input.value = def;
           syncScanButtonState();
+          return true;
         }
+        return false;
       }
 
       const source = new EventSource("/api/events");
@@ -635,6 +691,12 @@ export function Page({
       // project autocomplete; empty = fall back to a typed slug box.
       let currentSentryProjects = ${jsonForScript(projectSlugs)};
       let currentOrgOptions = ${jsonForScript(orgSlugs)};
+      // Dedupe guard for the setup screen's auto project-fetch-on-org-discovery
+      // (see the orgDefault SSE handler below): discoverProjects's own
+      // notifyClients() re-broadcasts the same orgDefault on every streamed
+      // project page, so without this a single org discovery would recursively
+      // re-request its own project list forever instead of settling once.
+      let lastAutoFetchedOrgDefault = "";
       let currentAvailableModels = ${jsonForScript(Array.isArray(availableModels) ? availableModels : [])};
       let currentPlainEnglishView = ${jsonForScript(plainEnglishView)};
       let currentScanError = ${jsonForScript(scanError || '')};
@@ -993,7 +1055,25 @@ export function Page({
           enterTriageChrome(msg.org);
           updateToolbarVisibility(hasRenderableIssues());
         } else if (typeof msg.orgDefault === "string") {
-          applyOrgDefault(msg.orgDefault);
+          // Org discovery can complete AFTER the setup screen already rendered
+          // (e.g. the user signs in post-load) — there's no #org-select to bind a
+          // change handler to yet, so nothing else would kick off a project fetch
+          // for this org. Only fire when this call actually just populated the
+          // (previously empty) org field, and dedupe per-org: discoverProjects's
+          // own notifyClients() re-broadcasts this same orgDefault on every
+          // streamed page, so firing unconditionally here would recursively
+          // re-request the project list on every page and never settle.
+          // Also skip it when this same snapshot is about to render a
+          // multi-org <select> below (msg.orgOptions has 2+ entries) — that
+          // selector's own mirror() already requests projects for the
+          // selected org, so firing here too would kick off a duplicate,
+          // serialized (and possibly slow, up to the paging budget) traversal.
+          const willRenderOrgSelect = Array.isArray(msg.orgOptions) && msg.orgOptions.filter(Boolean).length >= 2;
+          const justFilled = applyOrgDefault(msg.orgDefault);
+          if (justFilled && !willRenderOrgSelect && !document.getElementById("org-select") && lastAutoFetchedOrgDefault !== msg.orgDefault) {
+            lastAutoFetchedOrgDefault = msg.orgDefault;
+            requestProjectsForOrg(msg.orgDefault);
+          }
         }
         if ("project" in msg) {
           const nextProject = msg.project || "";
@@ -1036,7 +1116,15 @@ export function Page({
             }
           }
         }
-        if (Array.isArray(msg.orgOptions)) currentOrgOptions = msg.orgOptions;
+        if (Array.isArray(msg.orgOptions)) {
+          currentOrgOptions = msg.orgOptions;
+          // Post-load org discovery (e.g. signing in without reloading) can
+          // reveal 2+ orgs after the setup screen already rendered a plain
+          // text input. Rebuild it as a <select> now so the multi-org flow
+          // works without a reload. No-ops once already a <select>, and
+          // no-ops off the setup screen (no #org-input present there).
+          renderSetupOrgSelect();
+        }
         if (typeof msg.savedDefaultOrg === "string" && msg.savedDefaultOrg !== currentSavedDefaultOrg) {
           currentSavedDefaultOrg = msg.savedDefaultOrg;
           refreshDefaultBtn();
@@ -1124,7 +1212,7 @@ export function Page({
         const gateErrEl = document.getElementById("gate-error");
         if (gateErrEl) {
           const err = (c.sentry && c.sentry.error) || "";
-          if (gatedNow && err && !packageMissing) {
+          if (gatedNow && err && !packageMissing && !signedOut) {
             gateErrEl.textContent = err;
             gateErrEl.style.display = "";
           } else {
@@ -1139,6 +1227,20 @@ export function Page({
           showToast("✅ Sentry connected — loading your issues");
         }
         wasGatedPrev = gatedNow;
+      }
+
+      function focusConnectionGateLead(sentryConn) {
+        const panelId = sentryConn && sentryConn.transient ? "gate-body-conn" : "gate-body-unknown";
+        const connLead = document.querySelector("#" + panelId + " .gate-lead");
+        if (connLead) { connLead.setAttribute("tabindex", "-1"); connLead.focus(); }
+      }
+
+      function focusActiveOrgControl() {
+        const orgInput = document.getElementById("org-input");
+        const orgSelect = document.getElementById("org-select");
+        const orgSwitcher = document.getElementById("org-switcher");
+        const focusTarget = orgInput || orgSelect || orgSwitcher;
+        if (focusTarget) focusTarget.focus();
       }
 
       function enterTriageChrome(org) {
@@ -1887,6 +1989,123 @@ export function Page({
       });
 
       document.addEventListener("click", (e) => {
+        const installBtn = e.target.closest("#install-deps-btn");
+        if (installBtn) {
+          const statusEl = document.getElementById("gate-install-status");
+          installBtn.disabled = true;
+          installBtn.textContent = "Installing…";
+          if (statusEl) {
+            statusEl.style.display = "";
+            statusEl.textContent = "Running npm install — this can take a moment…";
+          }
+          fetch("/api/install-dependencies", { method: "POST" })
+            .then((res) => {
+              if (!res.ok) throw new Error("install-dependencies " + res.status);
+              return res.json();
+            })
+            .then((data) => {
+              if (data && data.connections) {
+                currentConnections = data.connections;
+                applyConnectionState();
+              }
+              const stillMissing = data && data.connections && data.connections.sentry && data.connections.sentry.setup === "package-missing";
+              if (stillMissing) {
+                if (statusEl) {
+                  statusEl.textContent = "Install didn't finish — check that npm is available, then try again.";
+                }
+                installBtn.disabled = false;
+                installBtn.textContent = "📦 Install dependencies";
+              } else if (statusEl) {
+                // applyConnectionState() above already repainted the gate for
+                // the fresh connection state — a successful install doesn't
+                // always land on the sign-in panel: an existing stored
+                // credential can make it immediately reachable (clearing the
+                // gate entirely), or the re-probe can hit a transient network
+                // blip (landing on the connectivity panel) instead. Announce
+                // and focus based on what's actually visible now rather than
+                // assuming sign-in is next.
+                const sentryConn = (data.connections && data.connections.sentry) || {};
+                if (sentryConn.reachable) {
+                  showToast("✅ Sentry connected — loading your issues");
+                  focusActiveOrgControl();
+                } else if (sentryConn.configured) {
+                  // configured (has/had a credential) but not reachable and
+                  // not package-missing: connectivity panel is now showing.
+                  statusEl.textContent = "Installed, but couldn't reach Sentry just now — see details below.";
+                  focusConnectionGateLead(sentryConn);
+                } else {
+                  statusEl.textContent = "Installed. Click below to sign in with Sentry.";
+                  // The install panel (and this now-hidden live region) was
+                  // just swapped for the sign-in panel, so focus is left on
+                  // the now-hidden, disabled install button — silent for a
+                  // screen reader user. Move focus to the sign-in button so
+                  // they're notified of the next actionable step.
+                  const nextBtn = document.getElementById("auth-login-btn");
+                  if (nextBtn) nextBtn.focus();
+                }
+              }
+            })
+            .catch(() => {
+              if (statusEl) statusEl.textContent = "Install failed — the extension server may be unreachable. Please try again.";
+              installBtn.disabled = false;
+              installBtn.textContent = "📦 Install dependencies";
+            });
+          return;
+        }
+        const authBtn = e.target.closest("#auth-login-btn");
+        if (authBtn) {
+          const statusEl = document.getElementById("gate-auth-status");
+          authBtn.disabled = true;
+          authBtn.textContent = "Waiting for sign-in…";
+          if (statusEl) {
+            statusEl.style.display = "";
+            statusEl.textContent = "Opening your browser to sign in with Sentry — approve access there, then this will continue automatically.";
+          }
+          fetch("/api/auth-login", { method: "POST" })
+            .then((res) => res.json().then((data) => ({ res, data })))
+            .then(({ res, data }) => {
+              if (data && data.connections) {
+                currentConnections = data.connections;
+                applyConnectionState();
+              }
+              if (!res.ok || (data && data.ok === false)) {
+                if (statusEl) {
+                  statusEl.textContent = (data && data.error) || "Sign-in didn't complete — please try again.";
+                }
+                authBtn.disabled = false;
+                authBtn.textContent = "🔑 Sign in with Sentry";
+                return;
+              }
+              const stillSignedOut = data && data.connections && data.connections.sentry && !data.connections.sentry.configured;
+              if (stillSignedOut) {
+                if (statusEl) statusEl.textContent = "Still not signed in — please try again.";
+                authBtn.disabled = false;
+                authBtn.textContent = "🔑 Sign in with Sentry";
+              } else {
+                // applyConnectionState() above just hid the entire auth gate
+                // (signed in now) — this live region's own node may no longer
+                // be in the accessibility tree, and focus is left on the
+                // now-hidden, disabled sign-in button. Announce via the
+                // always-visible toast instead, and move focus into whatever
+                // view is now actually showing (reachable: the org picker;
+                // otherwise: the connectivity gate that's left, if any).
+                const sentryConn = (data.connections && data.connections.sentry) || {};
+                if (sentryConn.reachable) {
+                  showToast("✅ Signed in — loading your issues");
+                  focusActiveOrgControl();
+                } else {
+                  showToast("✅ Signed in — checking Sentry connectivity");
+                  focusConnectionGateLead(sentryConn);
+                }
+              }
+            })
+            .catch(() => {
+              if (statusEl) statusEl.textContent = "Sign-in failed — the extension server may be unreachable. Please try again.";
+              authBtn.disabled = false;
+              authBtn.textContent = "🔑 Sign in with Sentry";
+            });
+          return;
+        }
         const btn = e.target.closest("#refresh, #rescan");
         if (!btn) return;
         const subtitle = document.querySelector(".page-subtitle");
