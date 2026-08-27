@@ -38,7 +38,7 @@ type Topic =
   | "Automation"
   | "Extensions & MCP"
   | "CLI";
-type Kind = "Guide" | "Tutorial" | "Terminology" | "Example";
+type Kind = "Guide" | "Tutorial" | "Terminology" | "Example" | "Workshop";
 
 /** Article frontmatter projected out of the `docs` collection at build time. */
 export type PlaybookArticle = {
@@ -84,6 +84,7 @@ const TOPIC_BY_TAG: [string, Topic][] = [
 ];
 
 const KIND_BY_TAG: [string, Kind][] = [
+  ["workshop", "Workshop"],
   ["glossary", "Terminology"],
   ["terminology", "Terminology"],
   ["reference", "Terminology"],
@@ -127,7 +128,7 @@ const filterGroups: { id: FilterGroupId; label: string; options: string[] }[] = 
   {
     id: "kind",
     label: "Content type",
-    options: ["Guide", "Tutorial", "Terminology", "Example"],
+    options: ["Guide", "Tutorial", "Terminology", "Example", "Workshop"],
   },
 ];
 

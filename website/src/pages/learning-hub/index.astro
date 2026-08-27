@@ -8,11 +8,21 @@ import { searchIndex } from "../../lib/site-data";
 
 const docs = await getCollection("docs");
 
-// Only the top-level English Playbook articles are catalogued here; the
-// `cli-for-beginners` series and `copilot-workshops` tracks have their own
-// entry points, and locale mirrors are surfaced under their own prefix.
+// Only the top-level English Playbook articles are catalogued here, plus the
+// landing page of each multi-page workshop track (`cli-for-beginners` and
+// `copilot-workshops`) so they can be found via the "Workshop" content-type
+// filter; the exercises within each track have their own entry points, and
+// locale mirrors are surfaced under their own prefix.
+const WORKSHOP_LANDING_IDS = [
+  "learning-hub/cli-for-beginners/index",
+  "learning-hub/copilot-workshops/index",
+];
 const articles: PlaybookArticle[] = docs
-  .filter((entry) => /^learning-hub\/[^/]+$/.test(entry.id))
+  .filter(
+    (entry) =>
+      /^learning-hub\/[^/]+$/.test(entry.id) ||
+      WORKSHOP_LANDING_IDS.includes(entry.id),
+  )
   .filter((entry) => entry.id !== "learning-hub/index")
   .map((entry) => ({
     id: entry.id,
