@@ -40,8 +40,8 @@ corrections remain as authored.
 
 ## MCP schema boundary
 
-`schema/mcp-place-search-request.schema.json` and
-`schema/mcp-place-search-response.schema.json` are frozen local
+`src/geofeed_quality/schema/mcp-place-search-request.schema.json` and
+`src/geofeed_quality/schema/mcp-place-search-response.schema.json` are frozen local
 adapter/exchange contract v1.0 schemas. They validate the analyzer's local
 export/import envelope and retained audit captures; they do not define the live
 Fastah MCP server contract. After normal host OAuth, discover the current tool

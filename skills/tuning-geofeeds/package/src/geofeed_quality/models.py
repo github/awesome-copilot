@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import ipaddress
 import json
+import math
 import unicodedata
 from collections import Counter
 from datetime import datetime
@@ -402,6 +403,28 @@ class McpConfigurationSummary(Model):
     transport: Literal["host_mediated"] = "host_mediated"
 
 
+def validate_mcp_coordinates(
+    center_long_lat: list[float], bounding_box: list[float], *, wire_names: bool = False
+) -> None:
+    center_name = "centerLongLat" if wire_names else "center_long_lat"
+    box_name = "boundingBox" if wire_names else "bounding_box"
+    if len(center_long_lat) not in {0, 2}:
+        raise ValueError(f"{center_name} must be empty or [longitude, latitude]")
+    if len(bounding_box) not in {0, 4}:
+        raise ValueError(f"{box_name} must be empty or [west, south, east, north]")
+    for longitude, latitude in ([center_long_lat] if center_long_lat else []) + (
+        [bounding_box[:2], bounding_box[2:]] if bounding_box else []
+    ):
+        if not math.isfinite(longitude) or not -180 <= longitude <= 180:
+            raise ValueError("longitude must be finite and within -180 through 180")
+        if not math.isfinite(latitude) or not -90 <= latitude <= 90:
+            raise ValueError("latitude must be finite and within -90 through 90")
+    if bounding_box and (
+        bounding_box[0] > bounding_box[2] or bounding_box[1] > bounding_box[3]
+    ):
+        raise ValueError(f"{box_name} must be ordered west, south, east, north")
+
+
 class McpPlaceMatch(Model):
     place_id_geonames: int = Field(ge=1)
     place_type: McpPlaceType
@@ -421,10 +444,7 @@ class McpPlaceMatch(Model):
 
     @model_validator(mode="after")
     def validate_coordinate_shapes(self) -> McpPlaceMatch:
-        if len(self.center_long_lat) not in {0, 2}:
-            raise ValueError("center_long_lat must be empty or [longitude, latitude]")
-        if len(self.bounding_box) not in {0, 4}:
-            raise ValueError("bounding_box must be empty or contain four coordinates")
+        validate_mcp_coordinates(self.center_long_lat, self.bounding_box)
         return self
 
 

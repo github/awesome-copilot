@@ -20,3 +20,6 @@ geofeed-quality = "geofeed_quality.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+geofeed_quality = ["schema/*.json", "assets/design/assets/fonts/*.ttf", "assets/design/assets/logos/*.svg"]

@@ -33,6 +33,7 @@ from .models import (
     RowRecord,
     RowState,
     Severity,
+    validate_mcp_coordinates,
 )
 
 MCP_CONTRACT_VERSION = "1.0"
@@ -179,10 +180,7 @@ class McpWirePlaceMatch(WireModel):
 
     @model_validator(mode="after")
     def validate_coordinate_shapes(self) -> McpWirePlaceMatch:
-        if len(self.center_long_lat) not in {0, 2}:
-            raise ValueError("centerLongLat must be empty or [longitude, latitude]")
-        if len(self.bounding_box) not in {0, 4}:
-            raise ValueError("boundingBox must be empty or contain four coordinates")
+        validate_mcp_coordinates(self.center_long_lat, self.bounding_box, wire_names=True)
         return self
 
     def to_ir(self) -> McpPlaceMatch:

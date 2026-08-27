@@ -34,8 +34,8 @@ reconstruct feed rows.
 - RDAP evidence can be `consistent`, `conflicting`, `unverified`, or
   `unavailable`; it never proves legal ownership. MCP matches are advisory.
   Rank, population weight, and radius are not confidence.
-- `package/schema/mcp-place-search-request.schema.json` and
-  `package/schema/mcp-place-search-response.schema.json` are frozen local
+- `package/src/geofeed_quality/schema/mcp-place-search-request.schema.json` and
+  `package/src/geofeed_quality/schema/mcp-place-search-response.schema.json` are frozen local
   adapter/exchange contract v1.0 schemas. They validate the local export/import
   envelope and audit captures; they are not the live Fastah MCP tool schemas.
 - Do not write parser, validator, schema, renderer, or correction scripts.

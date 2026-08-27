@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
@@ -26,14 +27,14 @@ from .models import (
     CorrectionPlan,
 )
 
-PACKAGE_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_SCHEMA_PATH = PACKAGE_ROOT / "schema" / "analysis.schema.json"
-DEFAULT_MCP_REQUEST_SCHEMA_PATH = PACKAGE_ROOT / "schema" / "mcp-place-search-request.schema.json"
-DEFAULT_MCP_RESPONSE_SCHEMA_PATH = PACKAGE_ROOT / "schema" / "mcp-place-search-response.schema.json"
-DEFAULT_MCP_MAPPING_SCHEMA_PATH = PACKAGE_ROOT / "schema" / "mcp-request-mapping.schema.json"
-DEFAULT_CORRECTION_PLAN_SCHEMA_PATH = PACKAGE_ROOT / "schema" / "correction-plan.schema.json"
+SCHEMA_ROOT = files("geofeed_quality").joinpath("schema")
+DEFAULT_SCHEMA_PATH = SCHEMA_ROOT.joinpath("analysis.schema.json")
+DEFAULT_MCP_REQUEST_SCHEMA_PATH = SCHEMA_ROOT.joinpath("mcp-place-search-request.schema.json")
+DEFAULT_MCP_RESPONSE_SCHEMA_PATH = SCHEMA_ROOT.joinpath("mcp-place-search-response.schema.json")
+DEFAULT_MCP_MAPPING_SCHEMA_PATH = SCHEMA_ROOT.joinpath("mcp-request-mapping.schema.json")
+DEFAULT_CORRECTION_PLAN_SCHEMA_PATH = SCHEMA_ROOT.joinpath("correction-plan.schema.json")
 DEFAULT_CORRECTION_APPROVAL_SCHEMA_PATH = (
-    PACKAGE_ROOT / "schema" / "correction-approval.schema.json"
+    SCHEMA_ROOT.joinpath("correction-approval.schema.json")
 )
 
 

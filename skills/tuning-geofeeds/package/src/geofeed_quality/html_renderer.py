@@ -12,6 +12,7 @@ import json
 import re
 from collections import Counter
 from dataclasses import dataclass
+from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
@@ -42,13 +43,10 @@ class MapboxOptions:
 
 
 def _design_asset(relative_path: str) -> bytes:
-    module = Path(__file__).resolve()
-    package_asset = module.parents[2] / "assets" / relative_path
-    repository_asset = module.parents[4] / relative_path
-    for path in (package_asset, repository_asset):
-        if path.is_file():
-            return path.read_bytes()
-    raise OSError(f"required Design Library asset is unavailable: {relative_path}")
+    asset = files("geofeed_quality").joinpath("assets", relative_path)
+    if not asset.is_file():
+        raise OSError(f"required Design Library asset is unavailable: {relative_path}")
+    return asset.read_bytes()
 
 
 def _data_uri(media_type: str, content: bytes) -> str:
