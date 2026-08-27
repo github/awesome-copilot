@@ -960,8 +960,9 @@
      it here resolves the token inside the themed scope instead. */
   color: var(--brand-color-text-default);
   padding: var(--base-size-32);
-  border-block-start: var(--brand-borderWidth-thin) solid
-    var(--brand-color-border-muted);
+  /* Sections are separated by their padding/gaps, not divider rules, so text
+     content does not pick up stray horizontal lines. */
+  border-block-start: none;
   /* Offset in-page anchor jumps by the pinned hero height so a targeted heading
      lands just below the fixed hero instead of behind it. */
   scroll-margin-top: calc(var(--app-hero-pinned, 17rem) + var(--base-size-24));
@@ -1014,6 +1015,12 @@
   font-size: var(--brand-text-size-100);
   line-height: var(--brand-text-lineHeight-400);
   tab-size: 2;
+}
+
+.articleSection :global(pre.astro-code) {
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .articleSection :global(pre.astro-code):focus-visible {

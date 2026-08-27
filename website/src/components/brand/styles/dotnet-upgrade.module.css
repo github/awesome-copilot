@@ -522,11 +522,8 @@
   color: var(--brand-color-text-default);
   /* Large base padding around the text on all sides of the content column. */
   padding: var(--base-size-32);
-  /* Section divider — kept inside the left (text) column only, spanning from its
-     left vertical line (line 2) to its right vertical line (line 3); it must not
-     cut through the sidebar. */
-  border-block-start: var(--brand-borderWidth-thin) solid
-    var(--brand-color-border-muted);
+  /* Sections are separated by their padding/gaps, not divider rules, so text
+     content does not pick up stray horizontal lines. */
   scroll-margin-top: calc(
     var(--dotnet-hero-pinned, 17rem) + var(--base-size-24)
   );
@@ -578,6 +575,18 @@
   font-size: var(--brand-text-size-100);
   line-height: var(--brand-text-lineHeight-400);
   tab-size: 2;
+}
+
+.articleSection pre {
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.articleSection pre code {
+  display: block;
+  min-inline-size: max-content;
 }
 
 .articleSection :global(pre.astro-code):focus-visible {
@@ -1054,6 +1063,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--base-size-8);
+  min-inline-size: 0;
 }
 
 .metaChip {
@@ -1067,6 +1077,8 @@
   font-family: var(--brand-fontStack-sansSerif);
   font-size: var(--brand-text-size-100);
   line-height: var(--brand-text-lineHeight-200);
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
 }
 
 .sourceMetaGroup .metaLabel {
@@ -1232,11 +1244,10 @@
     padding-block-start: var(--base-size-60);
   }
 
-  /* The article now follows Agent details, so its first section takes the
-     section divider and large base inset on top instead of the hero gap. */
+  /* The article now follows Agent details, so keep the large base inset on top
+     without reintroducing a divider line. */
   .contentCol .articleSection:first-child {
-    border-block-start: var(--brand-borderWidth-thin) solid
-      var(--brand-color-border-muted);
+    border-block-start: none;
     padding-block-start: var(--base-size-32);
   }
 }
@@ -1773,5 +1784,11 @@
     max-width: none;
     flex: 1 1 auto;
     margin-inline: var(--page-gutter);
+  }
+}
+
+@media (max-width: 56.25rem) {
+  .heroBreadcrumbs {
+    border-block-end: none;
   }
 }
