@@ -34,6 +34,10 @@ for binding approvals to the analyzed file.
 
 The skill workflow and safety boundaries are in [`../SKILL.md`](../SKILL.md).
 
+CSV formatting may still be normalized. The meaning of row data must not
+change, except for explicitly approved corrections. Rows without approved
+corrections remain as authored.
+
 ## MCP schema boundary
 
 `schema/mcp-place-search-request.schema.json` and

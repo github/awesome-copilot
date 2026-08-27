@@ -215,6 +215,10 @@ approver label and timezone-aware timestamp:
 
 If no proposal is explicitly approved, stop without a corrected CSV. Otherwise:
 
+CSV formatting may still be normalized. The meaning of row data must not
+change, except for explicitly approved corrections. Rows without approved
+proposals remain as authored.
+
 ```bash
 "$PYTHON" "$RUN" export-csv "$WORK/analysis-proposed.json" \
   "$WORK/correction-approval.json" --source "$INPUT" \

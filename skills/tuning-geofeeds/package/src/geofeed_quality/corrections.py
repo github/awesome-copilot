@@ -27,6 +27,7 @@ from .models import (
     CorrectionProposal,
     Evidence,
     EvidenceType,
+    McpPlaceType,
     McpRowStatus,
     ParseStatus,
     RowKind,
@@ -203,11 +204,12 @@ def propose_corrections(analysis: Analysis) -> tuple[Analysis, CorrectionPlan]:
         if row.location is None:
             continue
         match = observation.matches[0]
-        candidates: tuple[tuple[Literal["country", "region", "city"], str, str], ...] = (
+        candidates: list[tuple[Literal["country", "region", "city"], str, str]] = [
             ("country", match.country_code, row.location.country),
             ("region", match.region_code, row.location.region),
-            ("city", match.place_name, row.location.city),
-        )
+        ]
+        if match.place_type == McpPlaceType.CITY:
+            candidates.append(("city", match.place_name, row.location.city))
         mcp_findings = _related_findings(analysis, row.id, "MCP.MATCHED")
         for field_name, value, normalized_old in candidates:
             if not value or value == normalized_old or not _can_propose(row, field_name):
@@ -315,6 +317,11 @@ def _source_bytes(analysis: Analysis) -> bytes:
 
 
 def _render_changed_row(row: RowRecord, changes: dict[str, str]) -> str:
+    """Serialize a row with approved corrections.
+
+    CSV formatting may normalize, but row-data semantics change only through
+    approved corrections.
+    """
     if row.parsed_field_count is None or row.parse_status != ParseStatus.VALID:
         raise CorrectionError(f"row {row.id} cannot be safely materialized")
     fields = [*row.raw_fields[: min(row.parsed_field_count, 5)], *row.ignored_fields]
