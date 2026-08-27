@@ -654,7 +654,7 @@
     {
       "name": "fastah-ip-geo-tools",
       "source": "plugins/fastah-ip-geo-tools",
-      "description": "This plugin is for network operations engineers who wish to tune, publish, and visualize their IP geolocation RFC 8805 feeds. It consists of an AI Skill and an associated MCP server that geocodes place names to real cities, regions, and countries for accuracy.",
+      "description": "Local-first RFC 8805 geofeed analysis for network operators, with optional approval-gated corrections and Fastah MCP place-search evidence.",
       "version": "0.2.0"
     },
     {
