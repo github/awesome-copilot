@@ -54,6 +54,31 @@
     }
   },
   {
+    "name": "anarlog",
+    "description": "Query Anarlog meeting notes, summaries, transcripts, participants, action items, and recurring history.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Fastrepl",
+      "url": "https://anarlog.so"
+    },
+    "repository": "https://github.com/fastrepl/anarlog",
+    "homepage": "https://docs.anarlog.so/agents/overview",
+    "license": "MIT",
+    "keywords": [
+      "meetings",
+      "notes",
+      "transcripts",
+      "productivity",
+      "mcp"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "fastrepl/anarlog",
+      "path": "agent-plugins/anarlog",
+      "sha": "cf25cb679a7ef8e6cec18e7c6c0d8a3a17e245c3"
+    }
+  },
+  {
     "name": "apify",
     "description": "Helps devs extract data from any website with thousands of trusted scrapers, crawlers, and automations from Apify Store. Integrate ready-made Actors to access all popular social media, video, e-commerce, search engines, maps, and travel sites. Build, debug, publish, and monetize new Actors on Apify.",
     "version": "1.0.0",
