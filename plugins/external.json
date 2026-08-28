@@ -290,6 +290,29 @@
     }
   },
   {
+    "name": "crowdstrike-falcon-foundry",
+    "description": "AI coding assistant skills for building CrowdStrike Falcon Foundry apps: scaffolding, deployment, and best practices for API integrations, collections, functions, UI extensions, UI pages, and workflows.",
+    "version": "1.5.0",
+    "author": {
+      "name": "CrowdStrike",
+      "url": "https://www.crowdstrike.com/"
+    },
+    "repository": "https://github.com/CrowdStrike/foundry-skills",
+    "license": "MIT",
+    "keywords": [
+      "foundry",
+      "crowdstrike",
+      "cybersecurity",
+      "falcon",
+      "security"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "CrowdStrike/foundry-skills",
+      "sha": "d9af175fe2b86836b431ebdb7e088957e6c7820d"
+    }
+  },
+  {
     "name": "datadog",
     "description": "Use Datadog directly in Copilot / VS Code through a preconfigured Datadog MCP server. Query logs, metrics, traces, dashboards, and more through natural conversation.",
     "version": "0.7.21",
