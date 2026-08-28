@@ -71,22 +71,22 @@ function Write-Ok($msg) {
 function Invoke-CopilotRedacted {
     param(
         [string]$Prompt,
-        [string]$JsonPath,
+        [string]$JsonlPath,
         [string]$SharePath
     )
 
     $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "shepherd-redact-$([guid]::NewGuid().ToString('N'))"
     New-Item -ItemType Directory -Path $tempDir | Out-Null
-    $rawJsonPath = Join-Path $tempDir 'session.json'
+    $rawJsonlPath = Join-Path $tempDir 'session.jsonl'
     $rawSharePath = Join-Path $tempDir 'session.md'
     try {
-        $Prompt | copilot --yolo --output-format json --share $rawSharePath > $rawJsonPath
+        $Prompt | copilot --yolo --output-format json --share $rawSharePath > $rawJsonlPath
         $copilotExit = $LASTEXITCODE
         if ($copilotExit -ne 0) {
             throw "copilot exited with code $copilotExit"
         }
         & (Join-Path $scriptDir 'redact-secrets.ps1') $tempDir | Out-Null
-        Move-Item -LiteralPath $rawJsonPath -Destination $JsonPath -Force
+        Move-Item -LiteralPath $rawJsonlPath -Destination $JsonlPath -Force
         Move-Item -LiteralPath $rawSharePath -Destination $SharePath -Force
     }
     finally {
@@ -175,10 +175,10 @@ Invoke skill ``shepherd-task-30-from-assignment-to-ready`` with these inputs:
 
     Write-Status "Phase 1 prompt: $phase1Prompt"
     $phase1Share = Join-Path $LogDir "phase1-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.md"
-    $phase1Json = Join-Path $LogDir "phase1-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.json"
+    $phase1Jsonl = Join-Path $LogDir "phase1-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.jsonl"
     $phase1Otel = Join-Path (Resolve-Path $LogDir) "phase1-otel-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.jsonl"
     $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $phase1Otel
-    Invoke-CopilotRedacted -Prompt $phase1Prompt -JsonPath $phase1Json -SharePath $phase1Share
+    Invoke-CopilotRedacted -Prompt $phase1Prompt -JsonlPath $phase1Jsonl -SharePath $phase1Share
     & (Join-Path $scriptDir 'redact-secrets.ps1') $LogDir | Out-Null
     Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH -ErrorAction SilentlyContinue
 
@@ -240,10 +240,10 @@ Invoke skill ``shepherd-task-40-from-ready-to-merged-to-base`` with these inputs
 
     Write-Status "Phase 2 prompt: $phase2Prompt"
     $phase2Share = Join-Path $LogDir "phase2-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.md"
-    $phase2Json = Join-Path $LogDir "phase2-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.json"
+    $phase2Jsonl = Join-Path $LogDir "phase2-task-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.jsonl"
     $phase2Otel = Join-Path (Resolve-Path $LogDir) "phase2-otel-$(Get-Date -Format 'yyyyMMdd-HHmm')-$TaskIssue.jsonl"
     $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $phase2Otel
-    Invoke-CopilotRedacted -Prompt $phase2Prompt -JsonPath $phase2Json -SharePath $phase2Share
+    Invoke-CopilotRedacted -Prompt $phase2Prompt -JsonlPath $phase2Jsonl -SharePath $phase2Share
     & (Join-Path $scriptDir 'redact-secrets.ps1') $LogDir | Out-Null
     Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH -ErrorAction SilentlyContinue
 

@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Inspect a copilot JSON log file, showing the last N meaningful events.
+    Inspect a Copilot JSONL event log, showing the last N meaningful events.
 
-.PARAMETER JsonFile
-    Path to the JSON log file (relative or absolute).
+.PARAMETER JsonlFile
+    Path to the JSONL event log (relative or absolute).
 
 .PARAMETER Count
     Number of messages to show (default: 20).
@@ -11,13 +11,13 @@
 
 param(
     [Parameter(Mandatory = $true, Position = 0)]
-    [string]$JsonFile,
+    [string]$JsonlFile,
 
     [Parameter(Mandatory = $false, Position = 1)]
     [int]$Count = 20
 )
 
-$events = Get-Content $JsonFile |
+$events = Get-Content $JsonlFile |
   Where-Object { $_ -notmatch '"ephemeral":true' -and $_ -notmatch '"tool.execution_partial_result"' } |
   ForEach-Object {
     try { $_ | ConvertFrom-Json } catch { $null }

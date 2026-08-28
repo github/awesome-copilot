@@ -161,14 +161,14 @@ EOF
     printf 'timestamp=%q\n' "$timestamp"
     printf 'log_dir_full=%q\n' "$log_dir_full"
     printf 'session_share_path="$log_dir_full/create-issues-session-$timestamp.md"\n'
-    printf 'session_json_path="$log_dir_full/create-issues-session-$timestamp.json"\n'
+    printf 'session_jsonl_path="$log_dir_full/create-issues-session-$timestamp.jsonl"\n'
     printf 'session_otel_path="$log_dir_full/create-issues-otel-$timestamp.jsonl"\n'
     printf 'prompt_file=%q\n' "$out_file"
     printf 'prompt=$(cat "$prompt_file")\n'
     printf 'echo "[shepherd-task] Logging create-issues run to: $log_dir_full"\n'
     printf 'export COPILOT_OTEL_FILE_EXPORTER_PATH="$session_otel_path"\n'
     printf 'set +e\n'
-    printf 'printf '\''%%s'\'' "$prompt" | copilot --yolo --output-format json --share "$session_share_path" | "%s" - > "$session_json_path"\n' "$SCRIPT_DIR/redact-secrets.sh"
+    printf 'printf '\''%%s'\'' "$prompt" | copilot --yolo --output-format json --share "$session_share_path" | "%s" - > "$session_jsonl_path"\n' "$SCRIPT_DIR/redact-secrets.sh"
     printf 'pipeline_status=("${PIPESTATUS[@]}")\n'
     printf 'copilot_exit=${pipeline_status[1]}\n'
     printf 'redact_exit=${pipeline_status[2]}\n'

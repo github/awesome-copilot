@@ -133,10 +133,10 @@ else
     status "Phase 1 prompt:"
     echo "$PHASE1_PROMPT"
     PHASE1_SHARE="$LOG_DIR/phase1-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.md"
-    PHASE1_JSON="$LOG_DIR/phase1-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.json"
+    PHASE1_JSONL="$LOG_DIR/phase1-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.jsonl"
     PHASE1_OTEL="$(cd "$LOG_DIR" && pwd)/phase1-otel-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.jsonl"
     export COPILOT_OTEL_FILE_EXPORTER_PATH="$PHASE1_OTEL"
-    run_copilot_redacted "$PHASE1_JSON" --yolo --output-format json --share "$PHASE1_SHARE" <<< "$PHASE1_PROMPT" ||
+    run_copilot_redacted "$PHASE1_JSONL" --yolo --output-format json --share "$PHASE1_SHARE" <<< "$PHASE1_PROMPT" ||
         fail "Phase 1 copilot session or redaction failed."
     "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR" >/dev/null
     unset COPILOT_OTEL_FILE_EXPORTER_PATH
@@ -188,10 +188,10 @@ else
     status "Phase 2 prompt:"
     echo "$PHASE2_PROMPT"
     PHASE2_SHARE="$LOG_DIR/phase2-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.md"
-    PHASE2_JSON="$LOG_DIR/phase2-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.json"
+    PHASE2_JSONL="$LOG_DIR/phase2-task-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.jsonl"
     PHASE2_OTEL="$(cd "$LOG_DIR" && pwd)/phase2-otel-$(date +%Y%m%d-%H%M)-$TASK_ISSUE.jsonl"
     export COPILOT_OTEL_FILE_EXPORTER_PATH="$PHASE2_OTEL"
-    run_copilot_redacted "$PHASE2_JSON" --yolo --output-format json --share "$PHASE2_SHARE" <<< "$PHASE2_PROMPT" ||
+    run_copilot_redacted "$PHASE2_JSONL" --yolo --output-format json --share "$PHASE2_SHARE" <<< "$PHASE2_PROMPT" ||
         fail "Phase 2 copilot session or redaction failed."
     "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR" >/dev/null
     unset COPILOT_OTEL_FILE_EXPORTER_PATH

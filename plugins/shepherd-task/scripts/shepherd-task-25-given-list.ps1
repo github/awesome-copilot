@@ -79,16 +79,16 @@ $scriptExitCode = 0
 $postMortemInvoked = $false
 
 function Invoke-CopilotRedacted {
-    param([string]$Prompt, [string]$JsonPath, [string]$SharePath)
+    param([string]$Prompt, [string]$JsonlPath, [string]$SharePath)
     $tempDir = Join-Path ([IO.Path]::GetTempPath()) "shepherd-redact-$([guid]::NewGuid().ToString('N'))"
     New-Item -ItemType Directory -Path $tempDir | Out-Null
     try {
-        $rawJson = Join-Path $tempDir 'session.json'
+        $rawJsonl = Join-Path $tempDir 'session.jsonl'
         $rawShare = Join-Path $tempDir 'session.md'
-        $Prompt | copilot --yolo --output-format json --share $rawShare > $rawJson
+        $Prompt | copilot --yolo --output-format json --share $rawShare > $rawJsonl
         $exitCode = $LASTEXITCODE
         & (Join-Path $scriptDir 'redact-secrets.ps1') $tempDir | Out-Null
-        Move-Item -LiteralPath $rawJson -Destination $JsonPath -Force
+        Move-Item -LiteralPath $rawJsonl -Destination $JsonlPath -Force
         Move-Item -LiteralPath $rawShare -Destination $SharePath -Force
         if ($exitCode -ne 0) { throw "copilot exited with code $exitCode" }
     } finally {
@@ -126,7 +126,7 @@ Invoke skill ``shepherd-task-50-create-post-mortem`` with these inputs:
 "@
         try {
             Invoke-CopilotRedacted -Prompt $prompt `
-                -JsonPath (Join-Path $logDirFull "post-mortem-session-$pmTimestamp.json") `
+                -JsonlPath (Join-Path $logDirFull "post-mortem-session-$pmTimestamp.jsonl") `
                 -SharePath (Join-Path $logDirFull "post-mortem-session-$pmTimestamp.md")
             & (Join-Path $scriptDir 'redact-secrets.ps1') $logDirFull | Out-Null
         } catch { Write-Warning "Post-mortem generation failed: $($_.Exception.Message)" }

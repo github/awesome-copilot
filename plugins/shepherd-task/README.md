@@ -412,18 +412,18 @@ the final observed result.
 │       ├── ...create-issues-from-plan-skill.(sh|ps1)
 │       ├── creation-ledger.json
 │       ├── issue-bodies/
-│       ├── create-issues-session-....json
+│       ├── create-issues-session-....jsonl
 │       ├── create-issues-session-....md
 │       └── create-issues-otel-....jsonl
 └── shepherd-tasks-CAMPAIGN-UUID-YYYYMMDD-HHMM/
     ├── shepherd-task-25-given-list-run.json
-    ├── phase1-task-....json
+    ├── phase1-task-....jsonl
     ├── phase1-task-....md
     ├── phase1-otel-....jsonl
-    ├── phase2-task-....json
+    ├── phase2-task-....jsonl
     ├── phase2-task-....md
     ├── phase2-otel-....jsonl
-    ├── post-mortem-session-....json
+    ├── post-mortem-session-....jsonl
     ├── post-mortem-session-....md
     └── ...-post-mortem.md
 ```
@@ -435,7 +435,7 @@ multiple run directories because of retries or intentional issue batching.
 
 The given-list exit path invokes stage 50 after success or failure. Stage 50
 receives the original exit code, reads the still-running run manifest,
-phase JSON/session shares, and campaign context, calculates task timings,
+phase JSONL/session shares, and campaign context, calculates task timings,
 review rounds, failures, idle markers, and available token usage, then writes
 an eight-section Markdown report into the run directory. The caller finalizes
 the run manifest after the post-mortem attempt. Post-mortem failure produces a
@@ -443,7 +443,8 @@ warning but does not replace the original run exit code.
 
 ## Logs, telemetry, and redaction
 
-- Phase and post-mortem JSON output is passed through the JSON redactor.
+- Copilot phase and post-mortem event streams are stored as JSONL and passed
+  through the JSON redactor.
 - OTel JSONL files capture input/output token data when available.
 - The run directory is rescanned for `.json*` files after sessions complete.
 - The redactor replaces credential-like keys, content-bearing event fields,
@@ -463,7 +464,7 @@ Inspection helpers:
 
 ```bash
 ./plugins/shepherd-task/scripts/shepherd-task-inspect-json.sh \
-  <session-json-file> [event-count]
+  <session-jsonl-file> [event-count]
 
 ./plugins/shepherd-task/scripts/shepherd-task-inspect-otel-token-summary.sh \
   <otel-jsonl-file-or-run-directory>

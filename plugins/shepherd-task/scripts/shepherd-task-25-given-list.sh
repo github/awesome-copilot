@@ -119,11 +119,11 @@ finalize_run() {
 
     if [[ "$POST_MORTEM_INVOKED" == "0" ]]; then
         POST_MORTEM_INVOKED=1
-        local pm_timestamp post_mortem_path share_path json_path prompt
+        local pm_timestamp post_mortem_path share_path jsonl_path prompt
         pm_timestamp="$(date +%Y%m%d-%H%M)"
         post_mortem_path="$LOG_DIR_FULL/${pm_timestamp}-post-mortem.md"
         share_path="$LOG_DIR_FULL/post-mortem-session-${pm_timestamp}.md"
-        json_path="$LOG_DIR_FULL/post-mortem-session-${pm_timestamp}.json"
+        jsonl_path="$LOG_DIR_FULL/post-mortem-session-${pm_timestamp}.jsonl"
         prompt="Invoke skill \`shepherd-task-50-create-post-mortem\` with these inputs:
 
 - SHEPHERD_LOG_DIR: $LOG_DIR_FULL
@@ -138,7 +138,7 @@ finalize_run() {
 Write the report to:
 - OUTPUT_FILE: $post_mortem_path"
         local pm_exit
-        if run_copilot_redacted "$json_path" --yolo --output-format json --share "$share_path" <<<"$prompt"; then
+        if run_copilot_redacted "$jsonl_path" --yolo --output-format json --share "$share_path" <<<"$prompt"; then
             pm_exit=0
         else
             pm_exit=$?

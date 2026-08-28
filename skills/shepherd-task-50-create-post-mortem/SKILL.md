@@ -61,7 +61,7 @@ Given `SHEPHERD_LOG_DIR`:
    the invocation. Include lesson mode in the executive summary and metrics so
    treatment and control campaign runs can be compared later.
 3. Collect all run artifacts from that directory:
-   - `phase1-task-*.json`, `phase2-task-*.json`
+   - `phase1-task-*.jsonl`, `phase2-task-*.jsonl`
    - `phase1-task-*.md`, `phase2-task-*.md`
    - any supporting markdown notes
 4. Determine the parent campaign directory (`PARENT_DIR = dirname(SHEPHERD_LOG_DIR)`), then collect context files there:

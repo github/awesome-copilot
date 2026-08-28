@@ -207,22 +207,22 @@ $ErrorActionPreference = 'Stop'
 $timestamp = '__TIMESTAMP__'
 $logDirFull = '__LOG_DIRECTORY__'
 $sessionSharePath = Join-Path $logDirFull "create-issues-session-$timestamp.md"
-$sessionJsonPath = Join-Path $logDirFull "create-issues-session-$timestamp.json"
+$sessionJsonlPath = Join-Path $logDirFull "create-issues-session-$timestamp.jsonl"
 $sessionOtelPath = Join-Path $logDirFull "create-issues-otel-$timestamp.jsonl"
 $promptPath = '__PROMPT_PATH__'
 $prompt = Get-Content -LiteralPath $promptPath -Raw
 Write-Output "[shepherd-task] Logging create-issues run to: $logDirFull"
 $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "shepherd-redact-$([guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $tempDir | Out-Null
-$rawJsonPath = Join-Path $tempDir 'session.json'
+$rawJsonlPath = Join-Path $tempDir 'session.jsonl'
 $rawSharePath = Join-Path $tempDir 'session.md'
 $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $sessionOtelPath
 $copilotExit = 0
 try {
-    $prompt | copilot --yolo --output-format json --share $rawSharePath > $rawJsonPath
+    $prompt | copilot --yolo --output-format json --share $rawSharePath > $rawJsonlPath
     $copilotExit = $LASTEXITCODE
-    if (Test-Path -LiteralPath $rawJsonPath) {
-        Move-Item -LiteralPath $rawJsonPath -Destination $sessionJsonPath -Force
+    if (Test-Path -LiteralPath $rawJsonlPath) {
+        Move-Item -LiteralPath $rawJsonlPath -Destination $sessionJsonlPath -Force
     }
     if (Test-Path -LiteralPath $rawSharePath) {
         Move-Item -LiteralPath $rawSharePath -Destination $sessionSharePath -Force
