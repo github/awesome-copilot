@@ -14,6 +14,7 @@ The unit of coordination is an issue in the GitHub issue tracker. Each implement
 | Local orchestration scripts | Invoked by the human campaign owner. Ideally invoked on in an environment that can run for days, such as a [Microsoft Dev Box](https://devbox.microsoft.com/). Validate campaign state, create run artifacts, invoke Copilot CLI, and independently verify PR/issue outcomes |
 | Local Copilot CLI | Executes stages 20, 30, 40, and 50 with `copilot --yolo` |
 | Copilot Coding Agent (CCA) | Implements an assigned issue on a new branch and opens a draft PR against the campaign base branch |
+| GitHub Actions | Gates every commit with CI/CD tests |
 | Copilot code review | Reviews each ready PR head and creates line-level findings |
 | `gh` CLI | Supplies authoritative issue, PR, review, workflow, and merge state |
 
