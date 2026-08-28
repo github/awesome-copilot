@@ -25,6 +25,7 @@ CAMPAIGN_ID="$(jq -r '.campaignId' "$MANIFEST_PATH")"
 BASE_BRANCH="$(jq -r '.baseBranch' "$MANIFEST_PATH")"
 REPO="$(jq -r '.repository' "$MANIFEST_PATH")"
 LESSON_PROPAGATION="$(jq -r '.lessonPropagation' "$MANIFEST_PATH")"
+REMOTE="$("$SCRIPT_DIR/resolve-repository-remote.sh" "$REPO")"
 [[ "$(jq -r '.campaignMetadataDirectory' "$MANIFEST_PATH")" == "$CAMPAIGN_METADATA_DIRECTORY" ]] ||
     { echo "Manifest directory does not match supplied directory." >&2; exit 1; }
 [[ "$LESSON_PROPAGATION" == "off" || "$LESSON_PROPAGATION" == "campaign" ]] ||
@@ -178,6 +179,7 @@ else
 - TASK_ISSUE: $TASK_ISSUE
 - BASE_BRANCH: $BASE_BRANCH
 - REPO: $REPO
+- REMOTE: $REMOTE
 - CAMPAIGN_ID: $CAMPAIGN_ID
 - CAMPAIGN_METADATA_DIRECTORY: $CAMPAIGN_METADATA_DIRECTORY
 - LESSON_PROPAGATION: $LESSON_PROPAGATION

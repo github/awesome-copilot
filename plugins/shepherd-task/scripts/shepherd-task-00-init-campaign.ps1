@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Initializes durable shepherd-task campaign metadata.
+    Stage 00: initializes durable shepherd-task campaign metadata.
 
 .DESCRIPTION
     Creates a repository-root campaign metadata directory, mints one campaign
@@ -23,7 +23,7 @@
     Immutable campaign lesson mode: off or campaign.
 
 .EXAMPLE
-    ./shepherd-task-init-campaign.ps1 3031763 improve-agentic-velocity edburns/dd-3031763-shepherd-task edburns/awesome-copilot campaign
+    ./shepherd-task-00-init-campaign.ps1 3031763 improve-agentic-velocity edburns/dd-3031763-shepherd-task edburns/awesome-copilot campaign
 #>
 
 [CmdletBinding()]

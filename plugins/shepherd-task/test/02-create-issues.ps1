@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Exercises stage-20 preparation and issue creation for a test campaign.
+    Exercises stage-15 preparation and stage-20 issue creation for a test campaign.
 
 .DESCRIPTION
-    Invokes shepherd-task-prepare-create-issues, verifies its convention-derived
+    Invokes stage 15 through shepherd-task-15-prepare-create-issues, verifies its convention-derived
     inputs, executes its generated copilot --yolo script, and validates the
     resulting creation ledger.
 
@@ -51,19 +51,19 @@ if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
 $campaign = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 
 $preparationScript = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-prepare-create-issues.ps1')
+    (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-15-prepare-create-issues.ps1')
 )
 if (-not (Test-Path -LiteralPath $preparationScript -PathType Leaf)) {
-    throw "Stage-20 preparation script not found: $preparationScript"
+    throw "Stage-15 preparation script not found: $preparationScript"
 }
 
-Write-Host 'Preparing stage-20 artifacts from campaign conventions...'
+Write-Host 'Running stage 15 to prepare stage-20 artifacts from campaign conventions...'
 $artifacts = & $preparationScript `
     -CampaignMetadataDirectory $CampaignMetadataDirectory `
     -PassThru
 
 if ($null -eq $artifacts) {
-    throw 'Preparation script did not return stage-20 artifact information.'
+    throw 'Stage-15 preparation script did not return stage-20 artifact information.'
 }
 if (-not (Test-Path -LiteralPath $artifacts.PromptFile -PathType Leaf)) {
     throw "Stage-20 prompt was not created: $($artifacts.PromptFile)"
@@ -140,5 +140,5 @@ Write-Host "  Campaign metadata directory: $CampaignMetadataDirectory"
 Write-Host "  Stage-20 artifacts:          $($artifacts.ArtifactDirectory)"
 Write-Host "  Ordered child issues:        $orderedIssueList"
 Write-Host ''
-Write-Host 'To start a shepherd-task-given-list run:'
-Write-Host "  shepherd-task-given-list.ps1 -LessonPropagation $($campaign.lessonPropagation) -TaskIssues `"$orderedIssueList`" -CampaignMetadataDirectory `"$CampaignMetadataDirectory`""
+Write-Host 'To start a stage-25 given-list run:'
+Write-Host "  shepherd-task-25-given-list.ps1 -LessonPropagation $($campaign.lessonPropagation) -TaskIssues `"$orderedIssueList`" -CampaignMetadataDirectory `"$CampaignMetadataDirectory`""

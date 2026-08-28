@@ -21,18 +21,23 @@ $PluginSrc = (Resolve-Path (Join-Path $ScriptDir '..')).Path
 
 # Install plugin.
 $pluginDest = Join-Path $CopilotHome 'plugins' 'shepherd-task'
-if (-not (Test-Path $pluginDest)) {
-    New-Item -ItemType Directory -Path $pluginDest -Force | Out-Null
+if (Test-Path $pluginDest) {
+    Remove-Item -Path $pluginDest -Recurse -Force
 }
+New-Item -ItemType Directory -Path $pluginDest -Force | Out-Null
 Copy-Item -Path (Join-Path $PluginSrc '*') -Destination $pluginDest -Recurse -Force
 Write-Host "Installed plugin to $pluginDest"
 
-# Verify required campaign initialization and log redaction scripts were installed.
+# Verify required numbered-stage and log redaction scripts were installed.
 $requiredScripts = @(
-    'shepherd-task-init-campaign.sh'
-    'shepherd-task-init-campaign.ps1'
-    'shepherd-task-prepare-create-issues.sh'
-    'shepherd-task-prepare-create-issues.ps1'
+    'shepherd-task-00-init-campaign.sh'
+    'shepherd-task-00-init-campaign.ps1'
+    'shepherd-task-15-prepare-create-issues.sh'
+    'shepherd-task-15-prepare-create-issues.ps1'
+    'shepherd-task-25-given-list.sh'
+    'shepherd-task-25-given-list.ps1'
+    'resolve-repository-remote.sh'
+    'resolve-repository-remote.ps1'
     'redact-secrets.sh'
     'redact-secrets.ps1'
 )
@@ -80,12 +85,16 @@ Write-Host "Installation complete."
 Write-Host "  Plugin: $pluginDest"
 Write-Host "  Skills: $skillsInstalled installed, $skillsSkipped already present"
 Write-Host ""
-Write-Host "Campaign initialization scripts available at:"
-Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-init-campaign.sh')"
-Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-init-campaign.ps1')"
+Write-Host "Stage-00 initialization scripts available at:"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-00-init-campaign.sh')"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-00-init-campaign.ps1')"
 Write-Host ""
-Write-Host "Stage-20 preparation scripts available at:"
-Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-prepare-create-issues.sh')"
-Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-prepare-create-issues.ps1')"
+Write-Host "Stage-15 preparation scripts available at:"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-15-prepare-create-issues.sh')"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-15-prepare-create-issues.ps1')"
+Write-Host ""
+Write-Host "Stage-25 dispatch scripts available at:"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-25-given-list.sh')"
+Write-Host "  $(Join-Path $pluginDest 'scripts' 'shepherd-task-25-given-list.ps1')"
 Write-Host ""
 Write-Host "Verify with: copilot skill list"

@@ -5,7 +5,7 @@
 # Watches a shepherd-task log directory for new files and polls GitHub
 # for real-time PR/review/CI status. Alerts on failures, stalls, and completion.
 #
-# Run this in a SEPARATE terminal while shepherd-task-given-list.sh is running.
+# Run this in a SEPARATE terminal while shepherd-task-25-given-list.sh is running.
 #
 # Usage: ./shepherd-task-monitor.sh <LOG_DIR> <REPO> [POLL_INTERVAL]
 

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Runs an ordered issue subset within an initialized shepherd-task campaign.
+    Stage 25: dispatches an ordered issue subset within an initialized shepherd-task campaign.
 #>
 
 [CmdletBinding()]
@@ -56,7 +56,7 @@ $logDirFull = Join-Path $campaignPath "shepherd-tasks-$campaignId-$timestamp"
 if (Test-Path -LiteralPath $logDirFull) { throw "Given-list run directory already exists: $logDirFull" }
 New-Item -ItemType Directory -Path $logDirFull | Out-Null
 
-$runManifestPath = Join-Path $logDirFull 'shepherd-task-given-list-run.json'
+$runManifestPath = Join-Path $logDirFull 'shepherd-task-25-given-list-run.json'
 $runManifest = [ordered]@{
     schemaVersion = 1
     campaignId = $campaignId
@@ -99,7 +99,7 @@ function Invoke-CopilotRedacted {
 try {
     Write-Host "Campaign ID: $campaignId"
     Write-Host "Lesson propagation: $LessonPropagation"
-    Write-Host "Logging shepherd-task-given-list run to: $logDirFull"
+    Write-Host "Logging shepherd-task-25-given-list run to: $logDirFull"
     foreach ($issue in $TaskIssues -split ',') {
         & $shepherdScript -TaskIssue $issue -CampaignMetadataDirectory $CampaignMetadataDirectory -RunDirectory $logDirFull
         if ($LASTEXITCODE -ne 0) { throw "shepherd-task.ps1 failed for issue #$issue." }

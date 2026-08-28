@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# Derives stage-20 inputs and creates prompt and invocation artifacts.
+# Stage 15: derives stage-20 inputs and creates prompt and invocation artifacts.
 #
 # Usage:
-#   ./shepherd-task-prepare-create-issues.sh <CAMPAIGN_METADATA_DIRECTORY>
+#   ./shepherd-task-15-prepare-create-issues.sh <CAMPAIGN_METADATA_DIRECTORY>
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -112,30 +112,9 @@ TASK_HEADING_COUNT="$(
 [[ "$TASK_HEADING_COUNT" -gt 0 ]] ||
     fail "Implementation section '$IMPLEMENTATION_SECTION' has no direct level-three task headings."
 
-normalize_github_repo() {
-    local url="${1%.git}"
-    case "$url" in
-        git@github.com:*) echo "${url#git@github.com:}" ;;
-        https://github.com/*) echo "${url#https://github.com/}" ;;
-        ssh://git@github.com/*) echo "${url#ssh://git@github.com/}" ;;
-        *) echo "" ;;
-    esac
-}
+BASE_REMOTE="$("$SCRIPT_DIR/resolve-repository-remote.sh" "$REPO")"
 
-MATCHING_REMOTES=()
-while IFS= read -r remote; do
-    remote_url="$(git remote get-url "$remote" 2>/dev/null)" ||
-        fail "Could not read URL for Git remote '$remote'."
-    remote_repo="$(normalize_github_repo "$remote_url")"
-    if [[ -n "$remote_repo" && "${remote_repo,,}" == "${REPO,,}" ]]; then
-        MATCHING_REMOTES+=("$remote")
-    fi
-done < <(git remote)
-[[ ${#MATCHING_REMOTES[@]} -eq 1 ]] ||
-    fail "Expected exactly one Git remote whose GitHub URL matches '$REPO'; found ${#MATCHING_REMOTES[@]}."
-BASE_REMOTE="${MATCHING_REMOTES[0]}"
-
-echo "=== shepherd-task stage-20 preparation ==="
+echo "=== shepherd-task stage-15 preparation for stage 20 ==="
 echo "Campaign ID:                 $CAMPAIGN_ID"
 echo "Repository:                  $REPO"
 echo "Campaign base branch:        $BASE_BRANCH"

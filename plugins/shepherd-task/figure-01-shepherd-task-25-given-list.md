@@ -1,6 +1,6 @@
-# Figure 01 — Given-list batch orchestration
+# Figure 01 — Stage 25 given-list batch orchestration
 
-`shepherd-task-given-list` owns one serial run. It validates the durable campaign
+Stage 25 (`shepherd-task-25-given-list`) owns one serial run. It validates the durable campaign
 manifest, creates a run manifest, dispatches issues one at a time, stops at the
 first failure, invokes the post-mortem path, and finalizes the run manifest.
 
@@ -8,7 +8,7 @@ first failure, invokes the post-mortem path, and finalizes the run manifest.
 sequenceDiagram
     autonumber
     actor User
-    participant GL as shepherd-task-given-list
+    participant GL as Stage 25: shepherd-task-25-given-list
     participant CM as shepherd-campaign.json
     participant RM as given-list run manifest
     participant ST as shepherd-task
@@ -47,5 +47,5 @@ sequenceDiagram
 ```
 
 The run directory name is
-`shepherd-tasks-<campaign-uuid>-YYYYMMDD-HHMM`. A retry is a new given-list
+`shepherd-tasks-<campaign-uuid>-YYYYMMDD-HHMM`. A retry is a new stage 25
 invocation and therefore a new run directory and run manifest.

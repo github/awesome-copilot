@@ -6,7 +6,7 @@
     Watches a shepherd-task log directory for new files and polls the GitHub API
     for real-time PR/review/CI status. Alerts on failures, stalls, and completion.
 
-    Run this in a SEPARATE terminal while shepherd-task-given-list.ps1 is running.
+    Run this in a SEPARATE terminal while shepherd-task-25-given-list.ps1 is running.
 
 .PARAMETER LogDir
     Path to the shepherd-tasks log directory (e.g., shepherd-tasks-20260718-1648).

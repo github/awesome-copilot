@@ -7,7 +7,7 @@ description: "Stage 30 of the shepherd-task campaign lifecycle (each issue from 
 
 ## Purpose
 
-This is stage 30 of the ordered shepherd-task campaign lifecycle (10 → 20 → 30 → 40 → 50): each issue from assignment through the boundary immediately before Ready for review. Automate the lifecycle of a child **Task** issue from "assigned to Copilot" through CI passing and review-agent feedback resolution, stopping just before marking the PR as **Ready for review**.
+This is stage 30 of the ordered shepherd-task campaign lifecycle (00 → 10 → 15 → 20 → 25 → 30 → 40 → 50): each issue from assignment through the boundary immediately before Ready for review. Automate the lifecycle of a child **Task** issue from "assigned to Copilot" through CI passing and review-agent feedback resolution, stopping just before marking the PR as **Ready for review**.
 
 The existence of a draft PR is only evidence that CCA accepted the assignment. CCA commonly opens a draft PR with an empty `Initial plan` commit before it starts implementation. Never treat PR creation, an `Initial plan` commit, passing selector checks, or an absence of review comments as evidence that the task is complete.
 

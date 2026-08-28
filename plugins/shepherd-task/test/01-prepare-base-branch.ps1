@@ -6,7 +6,7 @@
     This script:
     1. Creates a new branch from the currently checked-out commit.
     2. Creates the campaign issue in GitHub.
-    3. Invokes shepherd-task-init-campaign.ps1 to mint the campaign ID and
+    3. Invokes stage 00 via shepherd-task-00-init-campaign.ps1 to mint the campaign ID and
        create the campaign metadata directory.
     4. Writes the ignorance-reduction plan inside the campaign metadata directory.
     5. Commits and pushes the branch to origin.
@@ -102,7 +102,7 @@ script incrementally and exercise the shepherd-task pipeline end to end.
 **Lesson propagation:** ``$LessonPropagation``
 
 The campaign metadata directory and campaign ID are initialized on the
-campaign base branch by ``shepherd-task-init-campaign.ps1``.
+campaign base branch by ``shepherd-task-00-init-campaign.ps1``.
 "@
 
 Write-Host "Creating campaign issue in '$Repo'..."
@@ -117,10 +117,10 @@ $campaignIssueUrl = ($campaignIssueUrlOutput | Select-Object -Last 1).Trim()
 $campaignIssueNumber = [int]($campaignIssueUrl -split '/')[-1]
 Write-Host "Created campaign issue #$campaignIssueNumber`: $campaignIssueUrl"
 
-# ── Initialize campaign metadata ─────────────────────────────────────────
+# ── Stage 00: initialize campaign metadata ───────────────────────────────
 
 $initializer = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-init-campaign.ps1')
+    (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-00-init-campaign.ps1')
 )
 if (-not (Test-Path -LiteralPath $initializer -PathType Leaf)) {
     throw "Campaign initializer not found: $initializer"

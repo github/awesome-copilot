@@ -6,7 +6,8 @@ and merges into the campaign base branch.
 
 ```mermaid
 flowchart TD
-    A[Find linked open PR] --> B[Mark PR Ready for review]
+    R0[Resolve unique remote matching campaign repository] --> A[Find linked open PR]
+    A --> B[Mark PR Ready for review]
     B --> C[Capture target HEAD and previous Copilot review ID]
     C --> D[Request reviewer Copilot, up to 3 attempts]
     D --> E{Request positively acknowledged?}
@@ -21,7 +22,7 @@ flowchart TD
     J -->|Yes| K[Create sibling worktree from PR branch]
     K --> L[Evaluate each finding and implement meritorious fixes locally]
     L --> M[Run applicable tests and commit each fix]
-    M --> N[Push all fixes to configured remote]
+    M --> N[Push all fixes to matching repository remote]
     N --> O[Reply with evidence and resolve each thread]
     O --> P[Wait for CI and fix real failures]
     P --> Q[Approve action_required workflows and wait]

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# shepherd-task-init-campaign.sh — Initializes durable shepherd-task campaign metadata.
+# shepherd-task-00-init-campaign.sh — Stage 00: initialize durable campaign metadata.
 #
 # Usage:
-#   ./shepherd-task-init-campaign.sh \
+#   ./shepherd-task-00-init-campaign.sh \
 #     <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO> \
 #     <LESSON_PROPAGATION>
 

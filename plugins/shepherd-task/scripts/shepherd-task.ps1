@@ -16,7 +16,7 @@
     Repository-root-relative campaign metadata directory.
 
 .PARAMETER RunDirectory
-    Existing shepherd-task-given-list run directory.
+    Existing shepherd-task-25-given-list run directory.
 #>
 
 param(
@@ -47,6 +47,7 @@ $CampaignId = [string]$campaign.campaignId
 $BaseBranch = [string]$campaign.baseBranch
 $Repo = [string]$campaign.repository
 $LessonPropagation = [string]$campaign.lessonPropagation
+$Remote = & (Join-Path $scriptDir 'resolve-repository-remote.ps1') -Repo $Repo
 if ([string]$campaign.campaignMetadataDirectory -ne $CampaignMetadataDirectory) { throw 'Manifest directory does not match supplied directory.' }
 if ($LessonPropagation -notin @('off', 'campaign')) { throw 'Invalid campaign lesson propagation mode.' }
 if (-not (Test-Path -LiteralPath (Join-Path $campaignPath 'campaign-lessons.md') -PathType Leaf)) { throw 'Campaign lessons file not found.' }
@@ -230,6 +231,7 @@ Invoke skill ``shepherd-task-40-from-ready-to-merged-to-base`` with these inputs
 - TASK_ISSUE: $TaskIssue
 - BASE_BRANCH: $BaseBranch
 - REPO: $Repo
+- REMOTE: $Remote
 - CAMPAIGN_ID: $CampaignId
 - CAMPAIGN_METADATA_DIRECTORY: $CampaignMetadataDirectory
 - LESSON_PROPAGATION: $LessonPropagation

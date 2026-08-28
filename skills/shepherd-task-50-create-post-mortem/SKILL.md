@@ -7,9 +7,9 @@ description: 'Stage 50 of the shepherd-task campaign lifecycle (campaign post-mo
 
 ## Purpose
 
-This is stage 50 of the ordered shepherd-task campaign lifecycle (10 → 20 → 30 → 40 → 50): campaign post-mortem after success or failure. Create a comprehensive post-mortem report for a completed **or failed** `shepherd-task` run.
+This is stage 50 of the ordered shepherd-task campaign lifecycle (00 → 10 → 15 → 20 → 25 → 30 → 40 → 50): campaign post-mortem after success or failure. Create a comprehensive post-mortem report for a completed **or failed** `shepherd-task` run.
 
-This skill is designed to be invoked from `shepherd-task-given-list.ps1` / `shepherd-task-given-list.sh` in a `finally` / `trap EXIT` path so it runs for **all outcomes**, not only after success.
+This skill is designed to be invoked from `shepherd-task-25-given-list.ps1` / `shepherd-task-25-given-list.sh` in a `finally` / `trap EXIT` path so it runs for **all outcomes**, not only after success.
 
 ---
 
@@ -56,7 +56,7 @@ Match their structure and tone: concise executive summary, clear sectioning, met
 Given `SHEPHERD_LOG_DIR`:
 
 1. Validate the directory exists; fail clearly if it does not.
-2. If `shepherd-task-given-list-run.json` exists, verify its campaign ID,
+2. If `shepherd-task-25-given-list-run.json` exists, verify its campaign ID,
    repository, base branch, lesson mode, task list, and exit code agree with
    the invocation. Include lesson mode in the executive summary and metrics so
    treatment and control campaign runs can be compared later.

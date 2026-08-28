@@ -7,14 +7,16 @@ description: "Stage 40 of the shepherd-task campaign lifecycle (each issue from 
 
 ## Purpose
 
-This is stage 40 of the ordered shepherd-task campaign lifecycle (10 → 20 → 30 → 40 → 50): each issue from Ready for review through merge to the campaign base branch. Automate the lifecycle of a task PR from marking as **Ready for review** through Copilot code review comment resolution and merge to the specified base branch. This is a follow-up skill intended to be run after `shepherd-task-30-from-assignment-to-ready`.
+This is stage 40 of the ordered shepherd-task campaign lifecycle (00 → 10 → 15 → 20 → 25 → 30 → 40 → 50): each issue from Ready for review through merge to the campaign base branch. Automate the lifecycle of a task PR from marking as **Ready for review** through Copilot code review comment resolution and merge to the specified base branch. This is a follow-up skill intended to be run after `shepherd-task-30-from-assignment-to-ready`.
 
 ## Inputs
 
 - `TASK_ISSUE`: The issue number (e.g., `1850`) or URL of the child task.
 - `BASE_BRANCH`: The base branch the task PR should target (e.g., `edburns/1810-java-tool-ergonomics-tool-as-lambda`).
 - `REPO`: Repository in `OWNER/REPO` format (default: `github/copilot-sdk`).
-- `REMOTE`: Git remote to push to (default: `upstream`).
+- `REMOTE`: Optional Git remote for `REPO`. When omitted, resolve the unique
+  configured remote whose normalized GitHub URL matches `REPO`; do not assume a
+  remote name such as `origin` or `upstream`.
 - `CAMPAIGN_ID`: Canonical campaign UUID.
 - `CAMPAIGN_METADATA_DIRECTORY`: Repository-root-relative campaign metadata directory.
 - `LESSON_PROPAGATION`: Immutable mode, exactly `off` or `campaign`.
@@ -44,6 +46,17 @@ The `copilot --yolo` runtime **terminates the session shortly after the agent go
 ## Procedure
 
 ### Step 0: Find the PR
+
+Before finding the PR, resolve the repository remote:
+
+1. If `REMOTE` was supplied, verify that it exists and that its normalized
+   GitHub URL matches `REPO`.
+2. Otherwise, inspect every configured Git remote and select the unique remote
+   whose normalized GitHub URL matches `REPO`. Support SSH, HTTPS, and
+   `ssh://git@github.com/` URLs, with an optional `.git` suffix.
+3. If zero or multiple remotes match, fail with the expected repository and
+   match count. Never choose a remote based only on the names `origin` or
+   `upstream`.
 
 Use the same multi-strategy approach as the assignment skill:
 
@@ -217,13 +230,13 @@ N=$(gh api "/repos/$REPO/pulls/$PR_NUMBER/comments" \
 
 There will be exactly N individual review comments in this batch to address.
 
-### Step 4: Fetch upstream and set up local worktree
+### Step 4: Fetch the repository remote and set up local worktree
 
 ❌❌❌ This part of the work does not use the remote agent. All comment resolution is done locally. ❌❌❌
 
 ```bash
-# Fetch upstream to get the topic branch
-git fetch upstream
+# Fetch the matching repository remote to get the topic branch
+git fetch "$REMOTE"
 
 # Get the currently logged in username
 GH_CURRENT_USER=$(gh api /user --jq '.login')
@@ -235,7 +248,7 @@ JTBDTASK_BRANCH=$(gh pr view $PR_NUMBER -R $REPO --json headRefName --jq '.headR
 # Use an absolute path derived from the git toplevel to avoid CWD-relative resolution errors.
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 WORKTREE_PATH="$(dirname "$REPO_ROOT")/review-copilot-pr-$PR_NUMBER"
-git worktree add "$WORKTREE_PATH" "upstream/$JTBDTASK_BRANCH"
+git worktree add "$WORKTREE_PATH" "$REMOTE/$JTBDTASK_BRANCH"
 ```
 
 For discussion, this worktree is the `jtbdtask-pr-comments-comment-worktree`.
@@ -476,8 +489,8 @@ MERGEABLE=$(gh pr view $PR_NUMBER -R $REPO --json mergeable --jq '.mergeable')
 if [ "$MERGEABLE" = "CONFLICTING" ]; then
   # Resolve conflicts locally in the worktree (sibling directory)
   cd "$WORKTREE_PATH"
-  git fetch upstream
-  git rebase "upstream/$BASE_BRANCH"
+  git fetch "$REMOTE"
+  git rebase "$REMOTE/$BASE_BRANCH"
   # Resolve conflicts, then:
   git rebase --continue
   git push "$REMOTE" HEAD:$JTBDTASK_BRANCH --force-with-lease

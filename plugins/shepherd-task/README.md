@@ -1,13 +1,8 @@
 # Shepherd Task
 
-`shepherd-task` runs an ordered engineering campaign through GitHub issues. It
-uses GitHub Copilot Coding Agent (CCA) for implementation, Copilot code review
-for review findings, local Copilot CLI sessions for orchestration and review
-fixes, and `gh` for authoritative GitHub state.
+`shepherd-task` runs an ordered engineering campaign through GitHub issues within the scope of a single GitHub repository. It uses GitHub Copilot Coding Agent (CCA) for implementation, Copilot code review for review findings, local Copilot CLI sessions for orchestration and review fixes, and `gh` for authoritative GitHub state. The campaign has several ordered "stages". The numbered lifecycle starts at stage 00 and leaves gaps between stages to allow for future stages as necessary. See [Stages](#stages).
 
-The unit of coordination is an issue. Each implementation issue produces a PR
-against one non-`main` campaign base branch. Issues run serially so every merged
-PR becomes the starting point for the next issue.
+The unit of coordination is an issue in the GitHub issue tracker. Each implementation issue produces a PR against one non-`main` campaign base branch. Issues run serially so every merged PR becomes the starting point for the next issue.
 
 ## System model
 
@@ -16,7 +11,7 @@ PR becomes the starting point for the next issue.
 | Actor | Responsibility |
 |---|---|
 | Human campaign owner | Creates the campaign issue and base branch, resolves research questions, starts runs, handles manual failures, and eventually opens the campaign-base-to-`main` PR |
-| Local orchestration scripts | Validate campaign state, create run artifacts, invoke Copilot CLI, and independently verify PR/issue outcomes |
+| Local orchestration scripts | Invoked by the human campaign owner. Ideally invoked on in an environment that can run for days, such as a [Microsoft Dev Box](https://devbox.microsoft.com/). Validate campaign state, create run artifacts, invoke Copilot CLI, and independently verify PR/issue outcomes |
 | Local Copilot CLI | Executes stages 20, 30, 40, and 50 with `copilot --yolo` |
 | Copilot Coding Agent (CCA) | Implements an assigned issue on a new branch and opens a draft PR against the campaign base branch |
 | Copilot code review | Reviews each ready PR head and creates line-level findings |
@@ -34,7 +29,7 @@ base branch. It has:
 - one `campaign-lessons.md`;
 - zero or one ignorance-reduction plan;
 - ordered child implementation issues;
-- one or more `shepherd-task-given-list` runs.
+- one or more `shepherd-task-25-given-list` runs.
 
 The campaign metadata directory name is:
 
@@ -48,20 +43,20 @@ is merged to `main`.
 
 ### Stages
 
-| Stage | Skill or script | Result |
-|---|---|---|
-| Initialize | `shepherd-task-init-campaign` script | Creates the campaign manifest and lessons file |
-| 10 | `shepherd-task-10-create-ignorance-reduction-plan` | Creates a plan whose research questions have empty `Resolution` blocks |
-| Human gate | Human research/spikes | Fills every implementation-gating `Resolution` block |
-| Prepare 20 | `shepherd-task-prepare-create-issues` script | Derives stage-20 inputs and generates a prompt plus invocation script |
-| 20 | `shepherd-task-20-create-issues-from-plan` | Creates and orders the implementation child issues |
-| Dispatch | `shepherd-task-given-list` script | Runs selected child issues serially and always invokes stage 50 |
-| 30 | `shepherd-task-30-from-assignment-to-ready` | Produces a verified draft PR immediately before Ready for review |
-| 40 | `shepherd-task-40-from-ready-to-merged-to-base` | Reviews, fixes, publishes lessons, and merges the PR to the campaign base |
-| 50 | `shepherd-task-50-create-post-mortem` | Writes an evidence-based report for the given-list run |
+| Stage      | Skill                                              | Script                                            | Result |
+|------------|----------------------------------------------------|---------------------------------------------------|--------|
+| 00         |                                                    | `shepherd-task-00-init-campaign`                  | Creates the campaign manifest and lessons file |
+| 10         | `shepherd-task-10-create-ignorance-reduction-plan` |                                                   | Creates a plan whose research questions have empty `Resolution` blocks |
+| Human gate |                                                    |                                                   | Human + Copilot research/spikes fill every implementation-gating `Resolution` block in the ignorance reduction plan |
+| 15         |                                                    | `shepherd-task-15-prepare-create-issues`          | Derives stage-20 inputs and generates a prompt plus invocation script |
+| 20         | `shepherd-task-20-create-issues-from-plan`         |                                                   | Creates and orders the implementation child issues |
+| 25         |                                                    | `shepherd-task-25-given-list`                     | Runs selected child issues serially and always invokes stage 50 |
+| 30         | `shepherd-task-30-from-assignment-to-ready`        |                                                   | Produces a verified draft PR immediately before Ready for review                     |
+| 40         | `shepherd-task-40-from-ready-to-merged-to-base`    |                                                   | Reviews, fixes, publishes lessons, and merges the PR to the campaign base            |
+| 50         | `shepherd-task-50-create-post-mortem`              |                                                   | Writes an evidence-based report for the given-list run                               |
 
 Stages 10 and 20 are optional only when suitable implementation issues already
-exist. Campaign initialization is still required because stages 30, 40, and 50
+exist. Stage 00 campaign initialization is still required because stages 30, 40, and 50
 consume campaign identity and lesson-mode metadata. In `campaign` lesson mode,
 pre-existing child issues must also contain the required campaign-lessons
 instructions expected by stage 30.
@@ -69,7 +64,7 @@ instructions expected by stage 30.
 ## Prerequisites
 
 - Work in a local checkout of the campaign repository.
-- Check out the exact non-`main` campaign base branch before initialization.
+- Check out the exact non-`main` campaign base branch before stage 00 initialization.
 - Enable and configure Copilot Coding Agent and Copilot code review in the
   repository.
 - Authenticate `gh` with issue, PR, review, Actions, and push permissions.
@@ -79,9 +74,9 @@ instructions expected by stage 30.
 - Provide a local environment capable of running every gating command named in
   the child issues.
 - Configure a Git remote whose GitHub URL exactly matches the repository in the
-  campaign manifest. Stage-20 preparation requires exactly one match.
-- Configure `upstream` for the target repository when using the current
-  stage-40 default remote.
+  campaign manifest. Stages 15 and 40 require exactly one match when a remote is
+  not supplied explicitly. The remote may be named `origin`, `upstream`, or
+  anything else.
 - Use a repository with substantive CI for the changed component. Selector or
   aggregator checks alone cannot satisfy stage 30.
 - Keep the campaign base branch different from the repository default branch
@@ -121,12 +116,12 @@ directories:
 Create one parent campaign issue in GitHub. Create and check out the non-`main`
 base branch from the commit on which all task work should build.
 
-### 2. Initialize campaign metadata
+### 2. Run stage 00: initialize campaign metadata
 
 Bash:
 
 ```bash
-./plugins/shepherd-task/scripts/shepherd-task-init-campaign.sh \
+./plugins/shepherd-task/scripts/shepherd-task-00-init-campaign.sh \
   <campaign-issue-number> \
   <campaign-shortname> \
   <base-branch> \
@@ -137,7 +132,7 @@ Bash:
 PowerShell:
 
 ```powershell
-.\plugins\shepherd-task\scripts\shepherd-task-init-campaign.ps1 `
+.\plugins\shepherd-task\scripts\shepherd-task-00-init-campaign.ps1 `
   -CampaignIssueNumber <campaign-issue-number> `
   -CampaignShortname <campaign-shortname> `
   -BaseBranch <base-branch> `
@@ -145,7 +140,7 @@ PowerShell:
   -LessonPropagation <off|campaign>
 ```
 
-Initialization requires the checked-out branch to equal `BaseBranch`. It
+Stage 00 requires the checked-out branch to equal `BaseBranch`. It
 creates a new directory, mints a UUIDv4, and atomically writes
 `shepherd-campaign.json` and `campaign-lessons.md`. It does not commit, push,
 create issues, or invoke Copilot. Commit and push the initialized campaign state
@@ -168,23 +163,23 @@ implementation-gating question before stage 20. Spikes may inform the
 resolutions, but spike source code remains research material rather than
 production source.
 
-### 4. Prepare and execute stage 20
+### 4. Run stage 15, then execute stage 20
 
 Bash:
 
 ```bash
-./plugins/shepherd-task/scripts/shepherd-task-prepare-create-issues.sh \
+./plugins/shepherd-task/scripts/shepherd-task-15-prepare-create-issues.sh \
   <campaign-metadata-directory>
 ```
 
 PowerShell:
 
 ```powershell
-.\plugins\shepherd-task\scripts\shepherd-task-prepare-create-issues.ps1 `
+.\plugins\shepherd-task\scripts\shepherd-task-15-prepare-create-issues.ps1 `
   -CampaignMetadataDirectory <campaign-metadata-directory>
 ```
 
-Preparation is non-interactive. It derives:
+Stage 15 preparation is non-interactive. It derives:
 
 - the single `*ignorance-reduction-plan.md`;
 - the unique ignorance-reduction and implementation headings;
@@ -210,12 +205,12 @@ Stage 20 creates and links issues one at a time and records every result in
 failure it stops, reconciles the ledger, prints deletion commands, and requires
 manual cleanup before another invocation.
 
-### 5. Run an ordered issue list
+### 5. Run stage 25 with an ordered issue list
 
 Bash:
 
 ```bash
-./plugins/shepherd-task/scripts/shepherd-task-given-list.sh \
+./plugins/shepherd-task/scripts/shepherd-task-25-given-list.sh \
   --lesson-propagation=<off|campaign> \
   "<issue-number>,<issue-number>" \
   <campaign-metadata-directory>
@@ -224,21 +219,21 @@ Bash:
 PowerShell:
 
 ```powershell
-.\plugins\shepherd-task\scripts\shepherd-task-given-list.ps1 `
+.\plugins\shepherd-task\scripts\shepherd-task-25-given-list.ps1 `
   -LessonPropagation <off|campaign> `
   -TaskIssues "<issue-number>,<issue-number>" `
   -CampaignMetadataDirectory <campaign-metadata-directory>
 ```
 
 The requested lesson mode must exactly match the immutable manifest mode. The
-script creates one run directory and run manifest, then invokes
+stage 25 script creates one run directory and run manifest, then invokes
 `shepherd-task` for each issue in order. It stops at the first failed issue.
 Start a later given-list run with the remaining issue subset after correcting
 the failure.
 
 See:
 
-- [Figure 01 — given-list batch orchestration](figure-01-shepherd-task-given-list.md)
+- [Figure 01 — stage 25 given-list batch orchestration](figure-01-shepherd-task-25-given-list.md)
 - [Figure 02 — one-issue orchestration](figure-02-shepherd-task.md)
 - [Figure 03 — stage 30, assignment to ready boundary](figure-03-from-assigned-to-ready.md)
 - [Figure 04 — stage 40, ready boundary to merged](figure-04-from-ready-to-merged.md)
@@ -271,7 +266,7 @@ After all task PRs merge into the campaign base branch:
 
 ## Lesson propagation
 
-The mode is chosen once during initialization and is immutable for the campaign.
+The mode is chosen once during stage 00 initialization and is immutable for the campaign.
 
 ### `off`
 
@@ -382,7 +377,7 @@ campaign state.
 ## Given-list run manifest
 
 Every given-list invocation creates
-`shepherd-task-given-list-run.json`:
+`shepherd-task-25-given-list-run.json`:
 
 ```json
 {
@@ -420,7 +415,7 @@ the final observed result.
 │       ├── create-issues-session-....md
 │       └── create-issues-otel-....jsonl
 └── shepherd-tasks-CAMPAIGN-UUID-YYYYMMDD-HHMM/
-    ├── shepherd-task-given-list-run.json
+    ├── shepherd-task-25-given-list-run.json
     ├── phase1-task-....json
     ├── phase1-task-....md
     ├── phase1-otel-....jsonl
@@ -494,10 +489,11 @@ PowerShell equivalents are included for each helper.
 
 | Path | Purpose |
 |---|---|
-| `scripts/shepherd-task-init-campaign.*` | Create durable campaign identity and lesson state |
-| `scripts/shepherd-task-prepare-create-issues.*` | Derive and generate stage-20 invocation artifacts |
-| `scripts/shepherd-task-given-list.*` | Create a run and dispatch issues serially |
+| `scripts/shepherd-task-00-init-campaign.*` | Run stage 00: create durable campaign identity and lesson state |
+| `scripts/shepherd-task-15-prepare-create-issues.*` | Run stage 15: derive and generate stage-20 invocation artifacts |
+| `scripts/shepherd-task-25-given-list.*` | Run stage 25: create a run and dispatch issues serially |
 | `scripts/shepherd-task.*` | Orchestrate stages 30 and 40 for one issue |
+| `scripts/resolve-repository-remote.*` | Resolve and validate the unique local Git remote matching the campaign repository |
 | `scripts/shepherd-task-monitor.*` | Observe an active run |
 | `scripts/redact-secrets.*` | Redact JSON/JSONL artifacts |
 | `scripts/shepherd-task-inspect-json.*` | Show meaningful Copilot session events |

@@ -7,7 +7,7 @@ description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of orde
 
 ## Purpose
 
-This is stage 20 of the ordered shepherd-task campaign lifecycle (10 → 20 → 30 → 40 → 50): creation of ordered implementation issues. Satisfy the `shepherd-task` precondition that a job specification is encoded as an ordered set of GitHub issues. Create one coding-agent-ready child issue for each direct task subsection in an ignorance reduction plan's implementation section, preserving build order and carrying the relevant resolved research into each issue.
+This is stage 20 of the ordered shepherd-task campaign lifecycle (00 → 10 → 15 → 20 → 25 → 30 → 40 → 50): creation of ordered implementation issues. Satisfy the `shepherd-task` precondition that a job specification is encoded as an ordered set of GitHub issues. Create one coding-agent-ready child issue for each direct task subsection in an ignorance reduction plan's implementation section, preserving build order and carrying the relevant resolved research into each issue.
 
 This stage (and stage 10) is only needed when a campaign does not yet have an ordered set of implementation issues. If suitable issues already exist, skip directly to stage 30 (`shepherd-task-30-from-assignment-to-ready`).
 
@@ -23,7 +23,7 @@ The created issues are specifications, not summaries. A coding agent must be abl
 6. **`QUESTIONS_SECTION`** — Exact heading of the resolved "questions to answer before writing code" section in the plan.
 7. **`IMPLEMENTATION_SECTION`** — Exact heading of the implementation/build-order section whose direct task subsections become child issues.
 8. **`EXPECTED_TASK_COUNT`** — Positive integer count of direct task headings discovered beneath `IMPLEMENTATION_SECTION`.
-9. **`BASE_REMOTE`** — Remote name matching `REPO`; the preparation script derives it from configured Git remote URLs.
+9. **`BASE_REMOTE`** — Remote name matching `REPO`; the stage 15 preparation script derives it from configured Git remote URLs.
 10. **`LOG_DIRECTORY`** — Absolute path to the existing run log directory. The launcher supplies this input; store all drafted issue bodies and the creation ledger here.
 11. **`CAMPAIGN_ID`** — Canonical campaign UUID from `PLAN_DIRECTORY/shepherd-campaign.json`.
 12. **`LESSON_PROPAGATION`** — Immutable campaign mode, exactly `off` or `campaign`.
@@ -199,7 +199,7 @@ If the ledger is empty, explicitly report that no issues were created and no cle
 
 Return:
 1. Ordered table of implementation subsection, issue number, title, URL.
-2. Comma-separated child issue numbers for `shepherd-task-given-list`.
+2. Comma-separated child issue numbers for `shepherd-task-25-given-list`.
 3. Suggested campaign-aware given-list invocation using `LESSON_PROPAGATION`, the ordered issue numbers, and `PLAN_DIRECTORY`.
 4. Whether the issues were created with type `Task` or without an issue type.
 

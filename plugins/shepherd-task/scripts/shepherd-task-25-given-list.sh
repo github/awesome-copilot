@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
+# Stage 25: dispatch an ordered issue subset.
 # Usage:
-#   ./shepherd-task-given-list.sh --lesson-propagation=<off|campaign> \
+#   ./shepherd-task-25-given-list.sh --lesson-propagation=<off|campaign> \
 #     <TASK_ISSUES> <CAMPAIGN_METADATA_DIRECTORY>
 
 set -euo pipefail
@@ -71,7 +72,7 @@ timestamp="$(date +%Y%m%d-%H%M)"
 LOG_DIR_FULL="$CAMPAIGN_METADATA_PATH/shepherd-tasks-$CAMPAIGN_ID-$timestamp"
 [[ ! -e "$LOG_DIR_FULL" ]] || fail_input "Given-list run directory already exists: $LOG_DIR_FULL"
 mkdir -- "$LOG_DIR_FULL"
-RUN_MANIFEST="$LOG_DIR_FULL/shepherd-task-given-list-run.json"
+RUN_MANIFEST="$LOG_DIR_FULL/shepherd-task-25-given-list-run.json"
 started_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 jq -n \
     --argjson schemaVersion 1 \
@@ -98,7 +99,7 @@ jq -n \
 
 echo "Campaign ID: $CAMPAIGN_ID"
 echo "Lesson propagation: $LESSON_PROPAGATION"
-echo "Logging shepherd-task-given-list run to: $LOG_DIR_FULL"
+echo "Logging shepherd-task-25-given-list run to: $LOG_DIR_FULL"
 
 run_copilot_redacted() {
     local output_file="$1"

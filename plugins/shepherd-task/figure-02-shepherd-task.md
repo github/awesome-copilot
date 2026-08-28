@@ -7,7 +7,7 @@ UUID, and lesson mode from `shepherd-campaign.json`.
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GL as Given-list runner
+    participant GL as Stage 25 given-list runner
     participant ST as shepherd-task
     participant CM as Campaign manifest
     participant P1 as Stage 30 Copilot session

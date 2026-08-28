@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Derives stage-20 inputs and creates prompt and invocation artifacts.
+    Stage 15: derives stage-20 inputs and creates prompt and invocation artifacts.
 
 .DESCRIPTION
     Loads campaign-owned values from shepherd-campaign.json, discovers the
@@ -14,7 +14,7 @@
     Return an object describing generated artifacts for automation.
 
 .EXAMPLE
-    ./shepherd-task-prepare-create-issues.ps1 `
+    ./shepherd-task-15-prepare-create-issues.ps1 `
       -CampaignMetadataDirectory 123-math-tool-test-remove-before-merge
 #>
 
@@ -149,35 +149,10 @@ if ($taskHeadingCount -eq 0) {
     throw "Implementation section '$IMPLEMENTATION_SECTION' has no direct level-three task headings."
 }
 
-function ConvertTo-GitHubRepository {
-    param([string]$Url)
+$remoteResolver = Join-Path $PSScriptRoot 'resolve-repository-remote.ps1'
+$BASE_REMOTE = & $remoteResolver -Repo $REPO
 
-    $normalized = $Url -replace '\.git$', ''
-    if ($normalized -match '^git@github\.com:(.+)$') { return $Matches[1] }
-    if ($normalized -match '^https://github\.com/(.+)$') { return $Matches[1] }
-    if ($normalized -match '^ssh://git@github\.com/(.+)$') { return $Matches[1] }
-    return $null
-}
-
-$matchingRemotes = @()
-$remotes = @(git remote)
-if ($LASTEXITCODE -ne 0) { throw 'Could not list configured Git remotes.' }
-foreach ($remote in $remotes) {
-    $remoteUrl = (git remote get-url $remote 2>$null | Select-Object -First 1)
-    if ($LASTEXITCODE -ne 0 -or -not $remoteUrl) {
-        throw "Could not read URL for Git remote '$remote'."
-    }
-    $remoteRepo = ConvertTo-GitHubRepository $remoteUrl.Trim()
-    if ($remoteRepo -and $remoteRepo.Equals($REPO, [StringComparison]::OrdinalIgnoreCase)) {
-        $matchingRemotes += $remote
-    }
-}
-if ($matchingRemotes.Count -ne 1) {
-    throw "Expected exactly one Git remote whose GitHub URL matches '$REPO'; found $($matchingRemotes.Count)."
-}
-$BASE_REMOTE = [string]$matchingRemotes[0]
-
-Write-Host '=== shepherd-task stage-20 preparation ===' -ForegroundColor Cyan
+Write-Host '=== shepherd-task stage-15 preparation for stage 20 ===' -ForegroundColor Cyan
 Write-Host "Campaign ID:                 $CAMPAIGN_ID"
 Write-Host "Repository:                  $REPO"
 Write-Host "Campaign base branch:        $BASE_BRANCH"
