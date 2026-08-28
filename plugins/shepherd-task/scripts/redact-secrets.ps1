@@ -85,10 +85,17 @@ function Redact-File {
             $output.Add((Redact-JsonValue $json '' | ConvertTo-Json -Compress -Depth 100))
         }
         [System.IO.File]::WriteAllLines($temporaryPath, $output)
-        $originalMode = $File.Mode
+        $originalAttributes = [System.IO.File]::GetAttributes($File.FullName)
+        $originalUnixMode = if ($IsWindows) {
+            $null
+        } else {
+            [System.IO.File]::GetUnixFileMode($File.FullName)
+        }
         Move-Item -LiteralPath $temporaryPath -Destination $File.FullName -Force
-        $replacement = Get-Item -LiteralPath $File.FullName
-        $replacement.Mode = $originalMode
+        [System.IO.File]::SetAttributes($File.FullName, $originalAttributes)
+        if ($null -ne $originalUnixMode) {
+            [System.IO.File]::SetUnixFileMode($File.FullName, $originalUnixMode)
+        }
         Write-Output "Redacted $($File.FullName)"
     } catch {
         Remove-Item -LiteralPath $temporaryPath -Force -ErrorAction SilentlyContinue
