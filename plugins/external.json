@@ -868,6 +868,32 @@
     }
   },
   {
+    "name": "rayfin",
+    "description": "Getting-started router skill for Rayfin - scaffold a new app with the Rayfin CLI, then use the version-locked skill installed in the project.",
+    "version": "0.3.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "repository": "https://github.com/microsoft/rayfin",
+    "homepage": "https://github.com/microsoft/rayfin",
+    "license": "MIT",
+    "keywords": [
+      "rayfin",
+      "getting-started",
+      "scaffold",
+      "create-rayfin",
+      "rayfin-cli",
+      "fabric",
+      "typescript"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/rayfin",
+      "ref": "plugin-v0.3.0"
+    }
+  },
+  {
     "name": "skills-for-copilot-studio",
     "description": "Microsoft Copilot Studio plugins for AI coding agents",
     "version": "1.0.3",
