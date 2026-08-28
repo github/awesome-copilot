@@ -1,34 +1,11 @@
 <#
 .SYNOPSIS
-    Creates and initializes a shepherd-task test campaign.
+    Creates one shepherd-task mechanism-experiment campaign.
 
 .DESCRIPTION
-    This script:
-    1. Creates a new branch from the currently checked-out commit.
-    2. Creates the campaign issue in GitHub.
-    3. Invokes stage 00 via shepherd-task-00-init-campaign.ps1 to mint the campaign ID and
-       create the campaign metadata directory.
-    4. Writes the ignorance-reduction plan inside the campaign metadata directory.
-    5. Commits and pushes the branch to origin.
-
-    Enabling assumptions from plugins/shepherd-task/README.md must already
-    be satisfied before running this script. This script creates a real GitHub
-    issue, branch, commit, and remote branch.
-
-.PARAMETER Repo
-    GitHub repository in owner/repo format (e.g. "edburns/my-test-repo").
-
-.PARAMETER BaseBranch
-    The non-main base branch name (e.g. "edburns/dd-3034809-test-01").
-
-.PARAMETER CampaignShortname
-    Lowercase kebab-case short name used in the campaign metadata directory.
-
-.PARAMETER LessonPropagation
-    Immutable campaign lesson mode: off or campaign.
-
-.EXAMPLE
-    .\01-prepare-base-branch.ps1 -Repo edburns/my-test-repo -BaseBranch edburns/dd-3034809-test-01 -CampaignShortname math-tool-test -LessonPropagation campaign
+    Creates a campaign branch from an exact immutable fixture SHA, creates the
+    real campaign issue, initializes stage 00, writes a controlled two-task
+    plan and experiment metadata, then commits and pushes the campaign state.
 #>
 
 [CmdletBinding()]
@@ -46,335 +23,188 @@ param(
 
     [Parameter(Mandatory)]
     [ValidateSet('off', 'campaign')]
-    [string]$LessonPropagation
+    [string]$LessonPropagation,
+
+    [Parameter(Mandatory)]
+    [ValidatePattern('^[0-9a-fA-F]{40}$')]
+    [string]$BaselineSha
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$BaselineSha = $BaselineSha.ToLowerInvariant()
 
-if ($BaseBranch -eq 'main') {
-    throw "BaseBranch must not be 'main'."
-}
-
+if ($BaseBranch -eq 'main') { throw "BaseBranch must not be 'main'." }
 & git check-ref-format --branch $BaseBranch *> $null
-if ($LASTEXITCODE -ne 0) {
-    throw "BaseBranch is not a valid Git branch name: '$BaseBranch'."
-}
+if ($LASTEXITCODE -ne 0) { throw "Invalid BaseBranch: '$BaseBranch'." }
 
 $repoRootOutput = git rev-parse --show-toplevel 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $repoRootOutput) {
-    throw 'Run this script inside the test Git worktree.'
+    throw 'Run this script inside the target test worktree.'
 }
 $repoRoot = [System.IO.Path]::GetFullPath(($repoRootOutput | Select-Object -First 1).Trim())
-$planFile = 'math-tool-ignorance-reduction-plan.md'
-
-Write-Host "Repository:          $Repo"
-Write-Host "Campaign base branch: $BaseBranch"
-Write-Host "Campaign shortname:   $CampaignShortname"
-Write-Host "Lesson propagation:   $LessonPropagation"
-Write-Host ""
-
-# ── Verify git state ────────────────────────────────────────────────────
-
-$gitStatus = git -C $repoRoot status --porcelain 2>&1
-if ($gitStatus) {
-    throw "Working tree is not clean. Commit or stash changes before running this script."
+if (git -C $repoRoot status --porcelain) {
+    throw 'Working tree is not clean. Commit or stash changes before creating a campaign.'
 }
 
-# ── Create and switch to the base branch ─────────────────────────────────
+$resolver = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..' 'scripts' 'resolve-repository-remote.ps1')
+)
+$baseRemote = & $resolver -Repo $Repo
+git -C $repoRoot fetch --no-tags $baseRemote
+if ($LASTEXITCODE -ne 0) { throw "Failed to fetch remote '$baseRemote'." }
 
-Write-Host "Creating branch '$BaseBranch' from current HEAD..."
-git -C $repoRoot checkout -b $BaseBranch 2>&1 | Write-Host
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to create branch '$BaseBranch'. Does it already exist?"
+git -C $repoRoot cat-file -e "$BaselineSha^{commit}" 2>$null
+if ($LASTEXITCODE -ne 0) { throw "BaselineSha is not an available commit: '$BaselineSha'." }
+foreach ($baselineFile in @(
+    '.github/workflows/shepherd-task-math-tool.yml',
+    'eng/test-math-tool.ps1'
+)) {
+    git -C $repoRoot cat-file -e "${BaselineSha}:$baselineFile" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Baseline commit '$BaselineSha' does not contain '$baselineFile'."
+    }
 }
 
-# ── Create the campaign issue ────────────────────────────────────────────
+git -C $repoRoot show-ref --verify --quiet "refs/heads/$BaseBranch"
+if ($LASTEXITCODE -eq 0) { throw "Local campaign branch already exists: '$BaseBranch'." }
+git -C $repoRoot ls-remote --exit-code --heads $baseRemote $BaseBranch *> $null
+if ($LASTEXITCODE -eq 0) { throw "Remote campaign branch already exists: '$baseRemote/$BaseBranch'." }
+if ($LASTEXITCODE -ne 2) { throw "Could not determine whether '$baseRemote/$BaseBranch' exists." }
+
+git -C $repoRoot checkout -b $BaseBranch $BaselineSha
+if ($LASTEXITCODE -ne 0) { throw "Failed to create '$BaseBranch' from '$BaselineSha'." }
 
 $campaignIssueBody = @"
-## shepherd-task test campaign: math-tool.ps1
+## Shepherd-task lesson propagation mechanism experiment
 
-This campaign contains four ordered tasks that build a PowerShell math-tool
-script incrementally and exercise the shepherd-task pipeline end to end.
+This is the **$LessonPropagation** arm of a controlled two-campaign mechanism
+experiment. It contains two serial math-tool tasks. This experiment checks that
+the lesson propagation machinery behaves as designed; it does not prove causal
+productivity.
 
-**Campaign base branch:** ``$BaseBranch``
-**Campaign shortname:** ``$CampaignShortname``
-**Lesson propagation:** ``$LessonPropagation``
-
-The campaign metadata directory and campaign ID are initialized on the
-campaign base branch by ``shepherd-task-00-init-campaign.ps1``.
+- Campaign base branch: ``$BaseBranch``
+- Campaign shortname: ``$CampaignShortname``
+- Lesson propagation: ``$LessonPropagation``
+- Shared immutable baseline SHA: ``$BaselineSha``
+- Expected task count: 2
+- Task 1: Fibonacci implementation and unit/CLI tests
+- Task 2: factorial and operation dispatch using the same test infrastructure
 "@
 
-Write-Host "Creating campaign issue in '$Repo'..."
-$campaignIssueUrlOutput = gh issue create `
-    --repo $Repo `
-    --title "[Campaign] shepherd-task test: math-tool.ps1" `
+$campaignIssueOutput = gh issue create --repo $Repo `
+    --title "[Campaign][$LessonPropagation] shepherd-task math mechanism experiment" `
     --body $campaignIssueBody 2>&1
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to create campaign issue: $campaignIssueUrlOutput"
+if ($LASTEXITCODE -ne 0) { throw "Failed to create campaign issue: $campaignIssueOutput" }
+$campaignIssueUrl = ($campaignIssueOutput | Select-Object -Last 1).Trim()
+if ($campaignIssueUrl -notmatch '/issues/([1-9][0-9]*)$') {
+    throw "Could not parse campaign issue number from '$campaignIssueUrl'."
 }
-$campaignIssueUrl = ($campaignIssueUrlOutput | Select-Object -Last 1).Trim()
-$campaignIssueNumber = [int]($campaignIssueUrl -split '/')[-1]
-Write-Host "Created campaign issue #$campaignIssueNumber`: $campaignIssueUrl"
-
-# ── Stage 00: initialize campaign metadata ───────────────────────────────
+$campaignIssueNumber = [int]$Matches[1]
 
 $initializer = [System.IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-00-init-campaign.ps1')
 )
-if (-not (Test-Path -LiteralPath $initializer -PathType Leaf)) {
-    throw "Campaign initializer not found: $initializer"
-}
-
-& $initializer `
-    -CampaignIssueNumber $campaignIssueNumber `
-    -CampaignShortname $CampaignShortname `
-    -BaseBranch $BaseBranch `
-    -Repo $Repo `
+& $initializer -CampaignIssueNumber $campaignIssueNumber `
+    -CampaignShortname $CampaignShortname -BaseBranch $BaseBranch -Repo $Repo `
     -LessonPropagation $LessonPropagation
 
-$manifestFiles = @(
-    Get-ChildItem -LiteralPath $repoRoot -Directory |
-        ForEach-Object {
-            $candidate = Join-Path $_.FullName 'shepherd-campaign.json'
-            if (Test-Path -LiteralPath $candidate -PathType Leaf) {
-                $manifest = Get-Content -LiteralPath $candidate -Raw | ConvertFrom-Json
-                if ($manifest.campaignIssueNumber -eq $campaignIssueNumber) {
-                    Get-Item -LiteralPath $candidate
-                }
-            }
-        }
-)
-if ($manifestFiles.Count -ne 1) {
-    throw "Expected exactly one campaign manifest for issue #$campaignIssueNumber; found $($manifestFiles.Count)."
-}
-
-$manifestPath = $manifestFiles[0].FullName
+$campaignMetadataDirectory = "$campaignIssueNumber-$CampaignShortname-remove-before-merge"
+$campaignMetadataPath = Join-Path $repoRoot $campaignMetadataDirectory
+$manifestPath = Join-Path $campaignMetadataPath 'shepherd-campaign.json'
 $campaign = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-$campaignMetadataDirectory = [string]$campaign.campaignMetadataDirectory
-$campaignMetadataPath = Split-Path -Parent $manifestPath
-$planPath = Join-Path $campaignMetadataPath $planFile
-
-Write-Host "Campaign ID:                $($campaign.campaignId)"
-Write-Host "Lesson propagation:         $($campaign.lessonPropagation)"
-Write-Host "Campaign metadata directory: $campaignMetadataDirectory"
-Write-Host "Plan file:                  $campaignMetadataDirectory/$planFile"
-
-# ── Write ignorance-reduction plan ───────────────────────────────────────
-
-$planContent = @"
-# Implementation plan: PowerShell math-tool ($CampaignShortname)
-
-Human DRI: (test harness — automated)
-Project root: repository root
-Test framework: Pester 5
-
----
-
-## Goal
-
-Build a PowerShell math-tool script (``math-tool.ps1``) incrementally across
-four sequential tasks.  Each task is a separate GitHub issue assigned to the
-Copilot coding agent.  The purpose is to exercise the **shepherd-task**
-pipeline end-to-end: issue assignment → PR creation → CI → code review →
-merge to base branch.
-
-The domain is intentionally trivial (Fibonacci and factorial computation) so
-that token cost is low and failures are easy to diagnose.
-
-### Technology stack
-
-| Concern | Technology |
-|---------|-----------|
-| Runtime | PowerShell 7 (``pwsh``) |
-| Test framework | Pester 5 |
-| CI validation | Script exit codes + Pester ``-PassThru`` |
-
-### Deliverables
-
-| File | Purpose |
-|------|---------|
-| ``math-tool.ps1`` | Main script with math functions and CLI interface |
-| ``math-tool.Tests.ps1`` | Pester 5 test suite |
-
----
-
-## Phase 1 — Architecture
-
-### 1.1 — Script structure
-
-The script follows standard PowerShell conventions:
-
-| Element | Design |
-|---------|--------|
-| Functions | ``Get-Fibonacci``, ``Get-Factorial`` — pure functions, no side effects |
-| Parameters | Script-level ``param()`` block with ``-N``, ``-Operation``, ``-Verbose`` |
-| Output | Single line to stdout: ``<Operation>(<N>) = <result>`` |
-| Types | ``[int]`` for ``-N``, ``[bigint]`` for factorial results |
-| Validation | ``[ValidateRange(0, 100)]`` on ``-N``, ``[ValidateSet()]`` on ``-Operation`` |
-
-### 1.2 — Test structure
-
-| Pattern | Approach |
-|---------|----------|
-| Unit tests | Dot-source ``math-tool.ps1``, test ``Get-Fibonacci`` and ``Get-Factorial`` directly |
-| Integration tests | Invoke ``pwsh -File math-tool.ps1 <args>`` and assert stdout content |
-| Error tests | Invoke with invalid args, assert non-zero exit or error output |
-
-### 1.3 — Final file layout
-
-```
-(repo root)
-├── math-tool.ps1              # Main script
-├── math-tool.Tests.ps1        # Pester 5 test suite
-└── $campaignMetadataDirectory/
-    └── $planFile              # This file
-```
-
----
-
-## Phase 2 — Ignorance reduction
-
-### 2.1 — Pester availability
-
-**Question:** Is Pester 5 available in the Copilot coding agent's GitHub Actions
-runner environment?
-
-**Resolution:** Yes. GitHub-hosted ``ubuntu-latest`` runners include PowerShell 7
-with Pester 5 pre-installed. If not present, ``Install-Module Pester -Force
--Scope CurrentUser`` is a one-line fix that the agent can use.
-
-### 2.2 — BigInt support in PowerShell
-
-**Question:** Does PowerShell support ``[bigint]`` for large factorial values?
-
-**Resolution:** Yes. PowerShell 7 supports ``[bigint]`` (``System.Numerics.BigInteger``)
-natively. ``Get-Factorial -N 100`` produces the correct 158-digit result without
-overflow.
-
-### 2.3 — Script-level param() and dot-sourcing interaction
-
-**Question:** When a Pester test dot-sources ``math-tool.ps1``, does the
-script-level ``param()`` block interfere?
-
-**Resolution:** Yes, this is a known pattern. The script must guard its
-main execution logic so that dot-sourcing only defines the functions.
-Standard pattern:
-
-```powershell
-# Functions defined here are available after dot-sourcing
-function Get-Fibonacci { ... }
-function Get-Factorial { ... }
-
-# Main execution — only runs when script is invoked directly
-if (`$MyInvocation.InvocationName -ne '.') {
-    # param() values are used here
-    ...
+if ([string]$campaign.lessonPropagation -ne $LessonPropagation) {
+    throw 'Initialized campaign mode does not match the requested experiment mode.'
 }
-```
 
-Alternatively, put the main logic after the functions and use ``param()`` at
-the top — Pester tests can dot-source and then call functions directly,
-ignoring the main output.
+$planFile = 'math-tool-ignorance-reduction-plan.md'
+$canonicalCommand = 'pwsh -NoLogo -NoProfile -File ./eng/test-math-tool.ps1'
+$plan = @"
+# PowerShell math-tool mechanism experiment
 
----
+Build the fixture in two cheap, serial tasks. The repository already contains
+deterministic CI pinned to Pester 5.7.1. The acceptance command for every task
+is ``$canonicalCommand``. Task 2 starts only after task 1 is merged.
 
-## Phase 3 — Implementation (build order)
+## Ignorance reduction
 
-Each step is a separate GitHub issue assigned to the Copilot coding agent.
+### Repository-owned validation
 
-### 3.1 — Hardcoded Fibonacci(10) with Pester tests
+**Question:** What command and environment define acceptance?
 
-**What:** Create ``math-tool.ps1`` with a ``Get-Fibonacci`` function and a
-hardcoded call to ``Get-Fibonacci -N 10``.  Create ``math-tool.Tests.ps1``
-with Pester 5 tests.
+**Resolution:** The committed canonical command is
+``$canonicalCommand``. The baseline workflow
+``.github/workflows/shepherd-task-math-tool.yml`` installs exactly Pester
+5.7.1 and invokes that repository-owned runner. Do not replace or bypass it.
 
-**Key files:**
-- ``math-tool.ps1`` — ``Get-Fibonacci`` function (iterative), hardcoded output
-- ``math-tool.Tests.ps1`` — tests for N=0, 1, 10, 20
+### Output and ordering contracts
 
-**Gating criteria:**
-1. ``pwsh -File math-tool.ps1`` prints ``Fibonacci(10) = 55``
-2. ``Invoke-Pester -Path math-tool.Tests.ps1 -PassThru`` — all tests pass
-3. Exit code 0
+**Question:** What externally observable behavior and dependency order are required?
 
-### 3.2 — Parameterize N from command line
+**Resolution:** Direct CLI execution writes exactly one result line to stdout:
+``Fibonacci(N) = value`` or ``Factorial(N) = value``. Functions return the
+numeric value without incidental output. Inputs are non-negative integers.
+Implementation is serial: task 2 depends on merged task 1. The implementation
+and test files are repository-root ``math-tool.ps1`` and
+``math-tool.Tests.ps1``.
 
-**What:** Add a script-level ``param()`` block with ``[int]`$N = 10``.
-Update tests to cover parameterized invocation.
+## Implementation
 
-**Key files:**
-- ``math-tool.ps1`` — add ``param()`` block, dynamic output
-- ``math-tool.Tests.ps1`` — add script invocation tests
+### 1. Implement Fibonacci with unit and isolated CLI coverage
 
-**Gating criteria:**
-1. ``pwsh -File math-tool.ps1`` prints ``Fibonacci(10) = 55`` (default)
-2. ``pwsh -File math-tool.ps1 -N 15`` prints ``Fibonacci(15) = 610``
-3. ``pwsh -File math-tool.ps1 -N 0`` prints ``Fibonacci(0) = 0``
-4. All Pester tests pass
+Create ``math-tool.ps1`` with parameter ``N`` and a pure ``Get-Fibonacci``
+function. Direct execution must print exactly ``Fibonacci(N) = value``.
+Create ``math-tool.Tests.ps1`` containing dot-sourced unit tests for the
+function and isolated child-``pwsh`` process tests for direct CLI behavior.
+Cover N=0, N=1, and a small representative value. Keep changes limited to the
+math tool and its tests.
 
-### 3.3 — Add factorial operation
+Acceptance: ``$canonicalCommand`` exits zero and the pinned pull-request CI
+passes.
 
-**What:** Add ``Get-Factorial`` function and ``-Operation`` parameter with
-``[ValidateSet('fibonacci','factorial')]``.
+### 2. Add factorial and operation dispatch
 
-**Key files:**
-- ``math-tool.ps1`` — add ``Get-Factorial``, ``-Operation`` parameter, dispatch logic
-- ``math-tool.Tests.ps1`` — add factorial unit tests and script invocation tests
+After task 1 is merged, extend the same script with a pure ``Get-Factorial``
+function and an ``Operation`` parameter that dispatches between ``fibonacci``
+and ``factorial`` while retaining ``N``. Preserve Fibonacci behavior. Cover
+factorial edge cases 0 and 1 plus a small representative value. Keep the
+interface and tests objective and small; the issue does not prescribe how to
+extend the tests.
 
-**Gating criteria:**
-1. ``pwsh -File math-tool.ps1 -Operation factorial -N 5`` prints ``Factorial(5) = 120``
-2. ``pwsh -File math-tool.ps1 -Operation fibonacci -N 10`` prints ``Fibonacci(10) = 55``
-3. Default (no ``-Operation``) still prints ``Fibonacci(10) = 55``
-4. All Pester tests pass
-
-### 3.4 — Input validation, error handling, and help
-
-**What:** Add ``[ValidateRange(0, 100)]``, comment-based help, and ``-Verbose``
-output.
-
-**Key files:**
-- ``math-tool.ps1`` — validation attributes, help block, verbose messages
-- ``math-tool.Tests.ps1`` — validation error tests, verbose output test, help test
-
-**Gating criteria:**
-1. ``pwsh -File math-tool.ps1 -N -1`` produces a validation error
-2. ``pwsh -File math-tool.ps1 -N 50 -Operation factorial`` succeeds (large factorial)
-3. ``pwsh -File math-tool.ps1 -Verbose -N 5`` includes verbose text
-4. ``Get-Help .\math-tool.ps1`` shows SYNOPSIS
-5. All Pester tests pass
+Acceptance: ``$canonicalCommand`` exits zero for the combined regression suite
+and the pinned pull-request CI passes.
 "@
+Set-Content -LiteralPath (Join-Path $campaignMetadataPath $planFile) -Value $plan -Encoding utf8NoBOM
 
-Set-Content -LiteralPath $planPath -Value $planContent -Encoding utf8NoBOM
-Write-Host "Wrote ignorance-reduction plan to '$planPath'"
+$experiment = [ordered]@{
+    schemaVersion = 1
+    baselineSha = $BaselineSha
+    lessonPropagation = $LessonPropagation
+    expectedTaskCount = 2
+}
+$experiment | ConvertTo-Json -Depth 3 |
+    Set-Content -LiteralPath (Join-Path $campaignMetadataPath 'shepherd-test-experiment.json') -Encoding utf8NoBOM
 
-# ── Commit and push ──────────────────────────────────────────────────────
-
-Write-Host ""
-Write-Host "Committing and pushing..."
 git -C $repoRoot add -- $campaignMetadataDirectory
-if ($LASTEXITCODE -ne 0) {
-    throw "git add failed"
-}
+if ($LASTEXITCODE -ne 0) { throw 'git add failed.' }
+git -C $repoRoot commit -m "test: initialize $LessonPropagation mechanism campaign #$campaignIssueNumber"
+if ($LASTEXITCODE -ne 0) { throw 'git commit failed.' }
 
-git -C $repoRoot commit -m "chore: initialize shepherd-task campaign #$campaignIssueNumber"
-if ($LASTEXITCODE -ne 0) {
-    throw "git commit failed"
+$firstParent = (git -C $repoRoot rev-parse 'HEAD^').Trim()
+if ($firstParent -ne $BaselineSha) {
+    throw "Campaign init commit parent '$firstParent' is not baseline '$BaselineSha'."
 }
+git -C $repoRoot push -u $baseRemote $BaseBranch
+if ($LASTEXITCODE -ne 0) { throw "Failed to push '$BaseBranch' to '$baseRemote'." }
 
-git -C $repoRoot push -u origin $BaseBranch
-if ($LASTEXITCODE -ne 0) {
-    throw "git push failed"
-}
-
-Write-Host ""
-Write-Host "Done. Campaign #$campaignIssueNumber is initialized."
-Write-Host "  Campaign issue:             $campaignIssueUrl"
-Write-Host "  Campaign ID:                $($campaign.campaignId)"
-Write-Host "  Lesson propagation:         $($campaign.lessonPropagation)"
-Write-Host "  Campaign base branch:       $BaseBranch"
-Write-Host "  Campaign metadata directory: $campaignMetadataDirectory"
-Write-Host "  Plan:                       $campaignMetadataDirectory/$planFile"
-Write-Host ""
-Write-Host "Next step:"
-Write-Host "  02-create-issues.ps1 -CampaignMetadataDirectory `"$campaignMetadataDirectory`""
+Write-Host ''
+Write-Host 'Campaign initialized.' -ForegroundColor Green
+Write-Host "  Mode:               $LessonPropagation"
+Write-Host "  Campaign issue:     $campaignIssueUrl"
+Write-Host "  Campaign ID:        $($campaign.campaignId)"
+Write-Host "  Base remote:        $baseRemote"
+Write-Host "  Baseline SHA:       $BaselineSha"
+Write-Host "  Init commit parent: $firstParent"
+Write-Host "  Metadata directory: $campaignMetadataDirectory"
+Write-Host ''
+Write-Host "Next: 02-create-issues.ps1 -CampaignMetadataDirectory `"$campaignMetadataDirectory`""
