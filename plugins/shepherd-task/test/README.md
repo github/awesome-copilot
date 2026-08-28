@@ -108,6 +108,15 @@ $ShepherdPlugin = Join-Path $CopilotHome 'plugins/shepherd-task'
      -LessonPropagation campaign `
      -BaselineSha $BaselineSha
 
+   $TreatmentMatches = @(
+     Get-ChildItem -Path $Target -Directory `
+       -Filter '*-math-treatment-remove-before-merge'
+   )
+   if ($TreatmentMatches.Count -ne 1) {
+     throw "Expected one treatment campaign directory; found $($TreatmentMatches.Count)."
+   }
+   $TreatmentDirectory = $TreatmentMatches[0].Name
+
    git checkout experiment/shepherd-shared-baseline
    git status --short
 
@@ -117,21 +126,31 @@ $ShepherdPlugin = Join-Path $CopilotHome 'plugins/shepherd-task'
      -CampaignShortname 'math-control' `
      -LessonPropagation off `
      -BaselineSha $BaselineSha
+
+   $ControlMatches = @(
+     Get-ChildItem -Path $Target -Directory `
+       -Filter '*-math-control-remove-before-merge'
+   )
+   if ($ControlMatches.Count -ne 1) {
+     throw "Expected one control campaign directory; found $($ControlMatches.Count)."
+   }
+   $ControlDirectory = $ControlMatches[0].Name
    ```
 
-   Save each printed campaign metadata directory. Verify both campaign init
-   commits report `$BaselineSha` as their first parent.
+   The copied block sets `$TreatmentDirectory` and `$ControlDirectory` for all
+   later commands. Verify both campaign init commits report `$BaselineSha` as
+   their first parent.
 
 5. **Create and verify the two child issues on each campaign branch.**
 
    ```powershell
    git checkout experiment/shepherd-treatment
    & "$ShepherdPlugin/test/02-create-issues.ps1" `
-     -CampaignMetadataDirectory '<TREATMENT-DIRECTORY>'
+     -CampaignMetadataDirectory $TreatmentDirectory
 
    git checkout experiment/shepherd-control
    & "$ShepherdPlugin/test/02-create-issues.ps1" `
-     -CampaignMetadataDirectory '<CONTROL-DIRECTORY>'
+     -CampaignMetadataDirectory $ControlDirectory
    ```
 
    Stage 20 may create ordinary untyped issues in a personal repository. The
@@ -150,13 +169,13 @@ $ShepherdPlugin = Join-Path $CopilotHome 'plugins/shepherd-task'
    & "$ShepherdPlugin/scripts/shepherd-task-25-given-list.ps1" `
      -LessonPropagation campaign `
      -TaskIssues '<TREATMENT-ISSUE-1>,<TREATMENT-ISSUE-2>' `
-     -CampaignMetadataDirectory '<TREATMENT-DIRECTORY>'
+     -CampaignMetadataDirectory $TreatmentDirectory
 
    git checkout experiment/shepherd-control
    & "$ShepherdPlugin/scripts/shepherd-task-25-given-list.ps1" `
      -LessonPropagation off `
      -TaskIssues '<CONTROL-ISSUE-1>,<CONTROL-ISSUE-2>' `
-     -CampaignMetadataDirectory '<CONTROL-DIRECTORY>'
+     -CampaignMetadataDirectory $ControlDirectory
    ```
 
    Do not start issue 2 manually. Stage 25 must start it only after issue 1
@@ -168,13 +187,13 @@ $ShepherdPlugin = Join-Path $CopilotHome 'plugins/shepherd-task'
    git checkout experiment/shepherd-treatment
    git pull --ff-only
    & "$ShepherdPlugin/test/04-verify-lesson-experiment.ps1" `
-     -CampaignMetadataDirectory '<TREATMENT-DIRECTORY>' `
+     -CampaignMetadataDirectory $TreatmentDirectory `
      -SecondIssuePrNumber <TREATMENT-ISSUE-2-PR>
 
    git checkout experiment/shepherd-control
    git pull --ff-only
    & "$ShepherdPlugin/test/04-verify-lesson-experiment.ps1" `
-     -CampaignMetadataDirectory '<CONTROL-DIRECTORY>' `
+     -CampaignMetadataDirectory $ControlDirectory `
      -SecondIssuePrNumber <CONTROL-ISSUE-2-PR>
    ```
 
