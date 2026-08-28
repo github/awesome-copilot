@@ -77,7 +77,7 @@ function hasValidToken(req, token) {
   return value === token
 }
 
-export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onRecheck, onListProjects, onInvalidateEnrichment, defaults } = {}) {
+export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onRecheck, onInstallDependencies, onAuthenticate, onListProjects, onResolveProject, onInvalidateEnrichment, defaults } = {}) {
   // Per-instance state + SSE clients — never shared across canvas instances.
   const state = createState()
   state.applyRepoDefaults(defaults)
@@ -104,7 +104,6 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
       orgDefault: state.getOrgDefault(),
       savedDefaultOrg: state.getSavedDefaultOrg(),
       project: state.getProject(),
-      projectOptions: state.getProjectOptions(),
       period: state.getPeriod(),
       periods: PERIODS,
       projects: state.getProjects(),
@@ -226,6 +225,49 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
       return
     }
 
+    // One-click install for the "package-missing" setup gate. Runs `npm install`
+    // in the extension's own directory (via onInstallDependencies) and returns
+    // the freshly re-probed connection state, so the gate updates without
+    // requiring the canvas to be reopened.
+    if (req.method === 'POST' && req.url === '/api/install-dependencies') {
+      Promise.resolve(onInstallDependencies ? onInstallDependencies() : null)
+        .then((connections) => {
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: true, connections: connections || state.getConnections() }))
+        })
+        .catch((err) => {
+          console.error('[sentry-triage] install-dependencies failed:', err instanceof Error ? err.message : err)
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: true, connections: state.getConnections() }))
+        })
+      return
+    }
+
+    // One-click sign-in for the "not authenticated" setup gate (only shown once
+    // the package is installed — see components/page.mjs). Runs the SDK's own
+    // OAuth device-code login, which opens the user's browser directly, and
+    // returns the freshly re-probed connection state. Unlike install, a failed
+    // login (denied consent, expired code, closed tab) is reported back as
+    // `ok:false` with a message instead of silently falling back to the stale
+    // connection state — the specific reason is worth surfacing in the gate.
+    if (req.method === 'POST' && req.url === '/api/auth-login') {
+      Promise.resolve(onAuthenticate ? onAuthenticate() : null)
+        .then((connections) => {
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ ok: true, connections: connections || state.getConnections() }))
+        })
+        .catch((err) => {
+          console.error('[sentry-triage] auth-login failed:', err instanceof Error ? err.message : err)
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({
+            ok: false,
+            error: err instanceof Error ? err.message : String(err),
+            connections: state.getConnections(),
+          }))
+        })
+      return
+    }
+
     // Fetch the Sentry project list for an org so the project field can render
     // as a dropdown. Fire-and-forget from the client's perspective: the fetched
     // list is broadcast to all clients over SSE by the handler. Used when the
@@ -238,6 +280,40 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
           .catch((err) => console.error('[sentry-triage] list-projects failed:', err instanceof Error ? err.message : err))
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ ok: true }))
+      })
+      return
+    }
+
+    // Resolve a single exact "org/slug" via the SDK's project.view — an O(1)
+    // lookup that confirms a project the paged list may never reach. For a
+    // mega-org (e.g. "github" has thousands of projects) list discovery is
+    // budget-capped, so a valid slug the user types can be absent from the
+    // autocomplete; this endpoint tells the client "yes, that project exists"
+    // (with its canonical slug) without paging. Distinguishes three outcomes so
+    // the UI never shows a false negative: found, genuinely-missing, and
+    // could-not-check (network/permission) — the latter returns ok:false.
+    if (req.method === 'POST' && req.url === '/api/resolve-project') {
+      readBody(req, res).then(async (body) => {
+        if (body === null) return
+        const { org, slug } = parseJson(body)
+        const wantedOrg = typeof org === 'string' ? org : ''
+        const wantedSlug = typeof slug === 'string' ? slug.trim() : ''
+        let result = { ok: true, found: false, slug: '' }
+        try {
+          if (onResolveProject && wantedSlug) {
+            const r = await onResolveProject(wantedOrg, wantedSlug)
+            const resolved = r && typeof r.slug === 'string' ? r.slug : ''
+            result = { ok: true, found: !!(r && r.found && resolved), slug: resolved }
+          }
+        } catch (err) {
+          // A lookup failure (transient network / rate limit / permission) must
+          // NOT be reported as "project doesn't exist" — that would train the
+          // user to distrust a correct slug. Signal indeterminate with ok:false.
+          console.error('[sentry-triage] resolve-project failed:', err instanceof Error ? err.message : err)
+          result = { ok: false, found: false, slug: '' }
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify(result))
       })
       return
     }
@@ -362,14 +438,17 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
         const payload = parseJson(body)
         const current = state.getPrTargets()
         const pick = (value, fallback) => (typeof value === 'string' ? value : fallback)
+        // The local fix-session hand-off always runs in the CURRENT project (the
+        // canvas's own checkout, host-trusted from its git remote), so there is no
+        // model-relayed project selection to bind here. Cross-repo work uses Cloud
+        // mode, whose repo the user types directly in Settings (also trusted). Only
+        // the local path/branch and cloud repo/branch are accepted from the payload.
         const next = {
           mode: pick(payload.mode, current.mode),
           model: pick(payload.model, current.model),
           local: {
             path: pick(payload.localPath, current.local.path),
             baseBranch: pick(payload.localBranch, current.local.baseBranch),
-            projectId: pick(payload.localProjectId, current.local.projectId),
-            projectName: pick(payload.localProjectName, current.local.projectName),
           },
           cloud: {
             repo: pick(payload.cloudRepo, current.cloud.repo),
@@ -384,7 +463,9 @@ export function startServer({ port = 0, onRefresh, onAction, onWorkSelected, onR
         // the stale annotations now, invalidate any pending enrichment, and
         // re-derive against the new repo. Model/base-branch-only edits keep them.
         const repoId = (t) =>
-          [t.cloud.repo, t.local.path, t.local.projectId].map((v) => (v || '').trim()).join('\u0000')
+          [t.mode, t.cloud.repo, t.local.path]
+            .map((v) => (v || '').trim())
+            .join('\u0000')
         const repoChanged = repoId(next) !== repoId(current)
         state.setPrTargets(next)
         if (repoChanged) {

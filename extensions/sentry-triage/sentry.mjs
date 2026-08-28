@@ -284,8 +284,13 @@ async function listProjectsPaged(org, onPage) {
 
 // Verify a specific project slug exists / is accessible. The org's project list
 // is capped, so a valid slug may not appear in it; project view resolves any
-// slug directly. Returns the canonical slug, or '' if it doesn't exist / isn't
-// accessible.
+// slug directly. Returns the canonical slug on success, or '' ONLY when the
+// project is confirmed not to exist. A transient/permission failure (network,
+// rate limit, 403, 5xx) is NOT a "not found": it re-throws so the caller can
+// report "couldn't check" instead of a false "no such project" that would train
+// the user to distrust a correct slug. Runs on the shared serial SDK chain
+// (projectView); interactive callers invoke it only on an explicit commit, so it
+// never floods that queue.
 export async function findProject(org, slug) {
   const wanted = String(slug || '').trim()
   if (!wanted) return ''
@@ -294,9 +299,21 @@ export async function findProject(org, slug) {
     const resolved = String(project?.slug || '').trim()
     return resolved || wanted
   } catch (err) {
-    if (err instanceof SentryError) return ''
+    if (err instanceof SentryError && isProjectNotFound(err)) return ''
     throw err
   }
+}
+
+// Decide whether a failed project.view means the project genuinely does not
+// exist (a confirmed 404 / "not found"), as opposed to a failure that merely
+// prevented the check. A definite non-404 HTTP status (403/429/5xx) is never a
+// not-found; only an explicit 404 or an unambiguous not-found message counts.
+function isProjectNotFound(err) {
+  const info = sentryErrorInfo(err)
+  if (info && info.code) return info.code === 404
+  const t = `${err?.message || ''}\n${err?.stderr || ''}`
+  if (/permission|forbidden|not authorized|unauthorized/i.test(t)) return false
+  return /\bnot found\b|no such project|does(?:n't| not) exist|unknown project/i.test(t)
 }
 
 // Per-query issue search. `limit` bounds a single call; the SDK auto-pages up to

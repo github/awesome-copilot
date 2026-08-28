@@ -236,6 +236,15 @@ export function styles() {
     .project-ac-item .project-ac-all { color: var(--text-color-muted, #8b949e); font-style: italic; }
     .project-ac-item.active .project-ac-all,
     .project-ac-item:hover .project-ac-all { color: var(--color-fg-on-emphasis, #ffffff); }
+    /* Checkmark on a slug confirmed to exist via a live project.view lookup
+       (a project the paged autocomplete list never reached). */
+    .project-ac-item .project-ac-verified {
+      margin-left: 6px;
+      color: var(--color-success-fg, #3fb950);
+      font-weight: 600;
+    }
+    .project-ac-item.active .project-ac-verified,
+    .project-ac-item:hover .project-ac-verified { color: var(--color-fg-on-emphasis, #ffffff); }
     .project-ac-empty,
     .project-ac-more {
       padding: 6px 8px;
@@ -1023,6 +1032,25 @@ export function styles() {
       border-radius: 6px;
       padding: 8px 10px;
       text-align: left;
+    }
+    .gate-action-btn {
+      margin-top: 4px;
+      padding: 6px 14px;
+      font-size: 12.5px;
+      font-weight: var(--font-weight-semibold, 600);
+      color: var(--text-color-default, #e6edf3);
+      background: var(--background-color-default, #21262d);
+      border: 1px solid var(--border-color-default, #30363d);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .gate-action-btn:hover:not(:disabled) { border-color: var(--color-focus-outline, #58a6ff); }
+    .gate-action-btn:disabled { opacity: 0.6; cursor: default; }
+    .gate-install-status {
+      margin: 8px 0 0;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-color-muted, #8b949e);
     }
 
     .toast {

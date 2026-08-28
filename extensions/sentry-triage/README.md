@@ -40,16 +40,11 @@ that drafts a fix pull request.
 
 - **Node.js 22 or newer.**
 - The GitHub Copilot app canvas / UI-extensions experiment enabled.
-- A Sentry sign-in. This canvas reads issues through the
+- **A Sentry sign-in.** This canvas reads issues through the
   [Sentry CLI](https://cli.sentry.dev) in library mode — there is no MCP server
-  to configure. Sign in once from your terminal:
-
-  ```sh
-  sentry auth login
-  ```
-
-  This stores an OAuth credential the canvas auto-detects. For non-interactive
-  environments, export a token instead:
+  to configure. The setup gate walks you through installing the dependency and
+  signing in with one-click buttons (see **Install** below); no terminal
+  required. For non-interactive environments, you can instead export a token:
 
   ```sh
   export SENTRY_AUTH_TOKEN=<your-token>
@@ -61,10 +56,22 @@ that drafts a fix pull request.
 
 ## Install
 
-Drop this folder at `~/.copilot/extensions/sentry-triage/` for user scope, or in
-a repository at `.github/extensions/sentry-triage/` for project scope. Then
-install dependencies from inside the copied folder (this canvas depends on the
-`sentry` npm package at runtime):
+Drop this folder at `~/.copilot/extensions/sentry-triage/` for user scope, or in a
+repository at `.github/extensions/sentry-triage/` for project scope.
+
+This canvas depends on the [`sentry`](https://cli.sentry.dev) npm package at
+runtime, which isn't bundled with the extension source. If it's missing, the canvas
+still **opens** and shows a setup gate — click its **Install dependencies** button
+and the extension runs `npm install` in its own directory (wherever it's actually
+installed, so there's no path to guess). Once installed, if you aren't signed in
+yet the gate shows a **Sign in with Sentry** button that opens your browser to
+approve access and returns automatically — no terminal step required. The gate
+clears once both finish; no reload or Copilot involvement needed.
+
+### Or set it up manually
+
+If you'd rather not use the buttons (or `npm`/a browser isn't available to the
+extension process), you can run the same steps yourself:
 
 ```sh
 # User scope
@@ -73,11 +80,15 @@ cd ~/.copilot/extensions/sentry-triage
 # Or project scope, from the repository root
 cd .github/extensions/sentry-triage
 
+# Or, if you installed the published plugin (`copilot plugin install`), the source
+# lives inside the installed plugin — cd into its extension folder:
+cd <installed-plugin-path>/com.github.copilot/extensions/sentry-triage
+
 npm install
+npx sentry auth login
 ```
 
-Reload extensions in the GitHub Copilot app, then open the `sentry-triage`
-canvas.
+Reload extensions in the GitHub Copilot app, then open the `sentry-triage` canvas.
 
 ## Open the canvas in the correct repository scope
 
@@ -103,7 +114,7 @@ issue** or **Fix with Copilot**.
 ## Agent tools
 
 The canvas exposes structured hand-off tools the agent calls instead of printing
-JSON into the timeline: `submit_issue_summaries`, `submit_projects`,
+JSON into the timeline: `submit_issue_summaries`,
 `submit_tracking`, `submit_related`, and `submit_work_pr`.
 
 ## License

@@ -441,7 +441,7 @@
       "name": "csharp-dotnet-development",
       "source": "plugins/csharp-dotnet-development",
       "description": "Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices.",
-      "version": "1.1.0"
+      "version": "1.2.0"
     },
     {
       "name": "database-data-management",
@@ -611,6 +611,12 @@
       "name": "edge-ai-tasks",
       "source": "plugins/edge-ai-tasks",
       "description": "Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai",
+      "version": "1.0.0"
+    },
+    {
+      "name": "edit-tutorial",
+      "source": "plugins/edit-tutorial",
+      "description": "Turn the code edits Copilot made in your session into an interactive lesson: a step-by-step walkthrough of each change with before/after views and quizzes, then a hands-on exercise that varies those edits so you finish the change yourself.",
       "version": "1.0.0"
     },
     {
@@ -813,7 +819,7 @@
     {
       "name": "github-copilot-modernization",
       "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator → coordinators → executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
-      "version": "1.22.0",
+      "version": "1.23.0",
       "author": {
         "name": "Microsoft",
         "url": "https://github.com/microsoft/github-copilot-modernization"
@@ -837,7 +843,7 @@
         "source": "github",
         "repo": "microsoft/github-copilot-modernization",
         "path": "plugins/github-copilot-modernization",
-        "sha": "8b644bebc7e1f929c01d80788293a37872f480f8"
+        "sha": "5d2a3268d816f794defb03a45cf527360b16071e"
       }
     },
     {
@@ -1349,7 +1355,7 @@
       "name": "sentry-triage",
       "source": "plugins/sentry-triage",
       "description": "Scan live Sentry issues in a Copilot canvas, group them by urgency, and hand issues off for tracking or a fix PR.",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     {
       "name": "signals-dashboard",

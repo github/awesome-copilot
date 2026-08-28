@@ -155,6 +155,24 @@ export default defineConfig({
           ],
         },
         {
+          label: "Advanced Copilot CLI",
+          items: [
+            {
+              label: "Overview",
+              link: "/learning-hub/advanced-copilot-cli/",
+            },
+            "learning-hub/advanced-copilot-cli/00-prerequisites",
+            "learning-hub/advanced-copilot-cli/01-working-with-copilot-cli",
+            "learning-hub/advanced-copilot-cli/02-building-ai-infrastructure",
+            "learning-hub/advanced-copilot-cli/03-test-suite-remote-delegation",
+            "learning-hub/advanced-copilot-cli/04-lifecycle-hooks",
+            "learning-hub/advanced-copilot-cli/05-add-feature-barcode",
+            "learning-hub/advanced-copilot-cli/06-modernize-apps",
+            "learning-hub/advanced-copilot-cli/07-manage-infrastructure",
+            "learning-hub/advanced-copilot-cli/08-wrap-up",
+          ],
+        },
+        {
           label: "Copilot Workshops",
           items: [
             {

@@ -52,11 +52,6 @@ export function createState() {
   // SSE project broadcast to the right org (setup screen switches org before any
   // scan, so the panel's own org isn't a reliable signal).
   let projectsOrg = ''
-  // Registered app projects the "Work on selected" local hand-off can spawn the
-  // fix session in. Enumerated eagerly on canvas open via the agent's
-  // list_projects tool (there is no direct SDK API), each entry is
-  // { id, name, repo, defaultBranch, path }.
-  let projectOptions = []
   // Sentry search window. Defaults to the last day; the user can widen it from
   // the issues list to look further back. Only Sentry's supported periods are
   // accepted (see PERIODS below).
@@ -99,7 +94,7 @@ export function createState() {
   const prTargets = {
     mode: 'local',
     model: '',
-    local: { path: '', baseBranch: '', projectId: '', projectName: '' },
+    local: { path: '', baseBranch: '' },
     cloud: { repo: '', baseBranch: '' },
   }
 
@@ -114,8 +109,6 @@ export function createState() {
       local: {
         path: str(local.path),
         baseBranch: str(local.baseBranch),
-        projectId: str(local.projectId),
-        projectName: str(local.projectName),
       },
       cloud: {
         repo: str(cloud.repo),
@@ -252,25 +245,6 @@ export function createState() {
       return projectsOrg
     },
 
-    getProjectOptions() {
-      return projectOptions
-    },
-
-    setProjectOptions(list) {
-      projectOptions = Array.isArray(list)
-        ? list
-            .filter((p) => p && typeof p === 'object' && typeof p.id === 'string' && p.id)
-            .map((p) => ({
-              id: p.id,
-              name: typeof p.name === 'string' && p.name ? p.name : p.id,
-              repo: typeof p.repo === 'string' ? p.repo : '',
-              defaultBranch: typeof p.defaultBranch === 'string' ? p.defaultBranch : '',
-              path: typeof p.path === 'string' ? p.path : '',
-            }))
-        : []
-      return projectOptions
-    },
-
     getConnections() {
       return connections
     },
@@ -335,8 +309,6 @@ export function createState() {
       prTargets.model = normalized.model
       prTargets.local.path = normalized.local.path
       prTargets.local.baseBranch = normalized.local.baseBranch
-      prTargets.local.projectId = normalized.local.projectId
-      prTargets.local.projectName = normalized.local.projectName
       prTargets.cloud.repo = normalized.cloud.repo
       prTargets.cloud.baseBranch = normalized.cloud.baseBranch
       return prTargets

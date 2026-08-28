@@ -14,7 +14,7 @@ New to GitHub Copilot? Start here to understand the tools available to you.
 
 **Canvases**: Learn [Working with Canvas Extensions](working-with-canvas-extensions/) to create and evolve interactive canvases with `/create-canvas`.
 
-**Terminal**: Looking for a guided path into GitHub Copilot from the terminal? Explore the [Copilot CLI for Beginners](cli-for-beginners/) with a text-based experience or the [YouTube video series](https://www.youtube.com/watch?v=BDxRhhs36ns&list=PL0lo9MOBetEHvO-spzKBAITkkTqv4RvNl).
+**Terminal**: Looking for a guided path into GitHub Copilot from the terminal? Explore the [Copilot CLI for Beginners](cli-for-beginners/) with a text-based experience or the [YouTube video series](https://www.youtube.com/watch?v=BDxRhhs36ns&list=PL0lo9MOBetEHvO-spzKBAITkkTqv4RvNl). Ready to go further? The [Advanced GitHub Copilot CLI](advanced-copilot-cli/) course takes you into real-world brownfield work — building reusable AI infrastructure, hooks, LSP and MCP integrations, and plugins on top of a legacy multi-stack app.
 
 **Workshop**: Prefer to learn by building? Work through [Hands-on with GitHub Copilot's agents](copilot-workshops/) — a hands-on workshop with four harnesses (VS Code, Copilot CLI, Copilot app, and cloud agent) built around a shared Tailspin Toys backlog.
 

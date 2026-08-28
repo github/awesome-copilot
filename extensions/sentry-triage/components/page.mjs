@@ -48,7 +48,6 @@ export function Page({
   prTargets,
   prSettingsOpen,
   plainEnglishView = false,
-  projectOptions = [],
   projects = [],
   availableModels = [],
   issueTrackers,
@@ -66,6 +65,10 @@ export function Page({
   // required, …). Shown in the gate so users see the real reason instead of a
   // generic "connect" message for problems reconnecting won't fix.
   const gateError = (conn.sentry && conn.sentry.error) || ''
+  // A dedicated setup reason (currently only the optional `sentry` package being
+  // absent) that takes precedence over the auth/connectivity gate variants, so the
+  // install prompt is never shown beneath contradictory "sign in" guidance.
+  const packageMissing = (conn.sentry && conn.sentry.setup) === 'package-missing'
   // Distinguish "not signed in" (needs `sentry auth login`) from a transient
   // connectivity failure where a credential likely exists. probeSentry() reports
   // configured:false only for auth failures, so a gated-but-configured state means
@@ -158,17 +161,6 @@ export function Page({
       `</select></label>`
     : ''
 
-  // Registered app projects for the Local hand-off target dropdown. Loaded
-  // eagerly on open via the agent, so this may be empty on the very first render.
-  const projectList = Array.isArray(projectOptions) ? projectOptions : []
-  const localProjectId = prTargets && prTargets.local ? (prTargets.local.projectId || '') : ''
-  const projectOptionsHtml = projectList
-    .map((p) => {
-      const label = p.repo ? `${p.name} (${p.repo})` : p.name
-      return `<option value="${escapeHtml(p.id)}"${p.id === localProjectId ? ' selected' : ''}>${escapeHtml(label)}</option>`
-    })
-    .join('')
-
   return `<!doctype html>
 <html>
   <head>
@@ -184,20 +176,28 @@ export function Page({
     <section class="sentry-gate" role="alert">
       <div class="gate-card">
         <div class="gate-icon">⚠️</div>
-        <h2 id="gate-title">${signedOut ? 'Connect Sentry to start triaging' : 'Can’t reach Sentry right now'}</h2>
-        <div class="gate-body gate-body-auth" id="gate-body-auth"${signedOut ? '' : ' style="display:none;"'}>
-          <p class="gate-lead">This canvas reads your live Sentry issues through the Sentry CLI, but it isn't signed in yet.</p>
-          <p class="gate-steps">Run <code>sentry auth login</code> in your terminal to sign in, then re-open this canvas.</p>
+        <h2 id="gate-title">${packageMissing ? 'Set up the Sentry CLI' : (signedOut ? 'Connect Sentry to start triaging' : 'Can’t reach Sentry right now')}</h2>
+        <div class="gate-body gate-body-setup" id="gate-body-setup"${packageMissing ? '' : ' style="display:none;"'}>
+          <p class="gate-lead">This canvas reads your live Sentry issues through the Sentry CLI, but its <code>sentry</code> package isn’t installed for this extension yet.</p>
+          <p class="gate-steps">Click below to install it. You'll then be prompted to sign in with Sentry.</p>
+          <button id="install-deps-btn" class="gate-action-btn" type="button">📦 Install dependencies</button>
+          <p class="gate-install-status" id="gate-install-status" role="status" aria-live="polite" style="display:none;"></p>
         </div>
-        <div class="gate-body gate-body-conn" id="gate-body-conn"${signedOut || !transientConn ? ' style="display:none;"' : ''}>
+        <div class="gate-body gate-body-auth" id="gate-body-auth"${signedOut && !packageMissing ? '' : ' style="display:none;"'}>
+          <p class="gate-lead">This canvas reads your live Sentry issues through the Sentry CLI, but it isn't signed in yet.</p>
+          <p class="gate-steps">Sign in with Sentry — this opens your browser to approve access, then returns here automatically.</p>
+          <button id="auth-login-btn" class="gate-action-btn" type="button">🔑 Sign in with Sentry</button>
+          <p class="gate-install-status" id="gate-auth-status" role="status" aria-live="polite" style="display:none;"></p>
+        </div>
+        <div class="gate-body gate-body-conn" id="gate-body-conn"${signedOut || !transientConn || packageMissing ? ' style="display:none;"' : ''}>
           <p class="gate-lead">You’re signed in, but this canvas couldn’t reach Sentry — usually a temporary network blip.</p>
           <p class="gate-steps">It should recover on the next check. If it persists, check your network or VPN, then re-open this canvas.</p>
         </div>
-        <div class="gate-body gate-body-unknown" id="gate-body-unknown"${signedOut || transientConn ? ' style="display:none;"' : ''}>
+        <div class="gate-body gate-body-unknown" id="gate-body-unknown"${signedOut || transientConn || packageMissing ? ' style="display:none;"' : ''}>
           <p class="gate-lead">You’re signed in, but this canvas couldn’t reach Sentry.</p>
           <p class="gate-steps">See the details below, then re-open this canvas to try again.</p>
         </div>
-        <p class="gate-error" id="gate-error" ${sentryReady || !gateError ? 'style="display:none;"' : ''}>${escapeHtml(gateError || '')}</p>
+        <p class="gate-error" id="gate-error" ${sentryReady || !gateError || packageMissing || signedOut ? 'style="display:none;"' : ''}>${escapeHtml(gateError || '')}</p>
       </div>
     </section>
 
@@ -284,13 +284,7 @@ export function Page({
           <p id="mode-hint" class="settings-hint"></p>
           <div id="local-group" class="settings-subgroup${prTargets && prTargets.mode === 'cloud' ? ' dimmed' : ''}">
             <span class="settings-group-title">Local target</span>
-            <label class="settings-label">
-              Project
-              <select id="local-project" class="settings-input">
-                <option value="">Current project (default)</option>
-                ${projectOptionsHtml}
-              </select>
-            </label>
+            <p class="settings-hint">Runs in the <strong>current project</strong> (this checkout). For a different repo, use Cloud mode.</p>
             <div class="settings-row">
               <label class="settings-label">
                 Local path
@@ -402,6 +396,21 @@ export function Page({
       // requestProjectsForOrg while seeding the org select. Seeded at init.
       const projectsByOrg = {};
 
+      // Cache of exact-slug resolutions (org "/" slug -> "checking" | "found" |
+      // "missing" | "error", plus the canonical slug when found). The paged
+      // project list can't reach every project in a mega-org, so a valid typed
+      // slug may show "No matching projects"; a live project.view lookup (via
+      // /api/resolve-project) confirms it exists and lets the user select it.
+      const projectResolveCache = {};
+      // Callbacks waiting on an in-flight lookup, keyed the same way. When a check
+      // is already running for a slug, later callers (e.g. the Scan/Fetch gate)
+      // queue here and are flushed when it settles, instead of being dropped.
+      const projectResolveWaiters = {};
+      function projectResolveKey(org, slug) {
+        return String(org || "").trim().toLowerCase() + "/" + String(slug || "").trim().toLowerCase();
+      }
+
+
       function submitScan() {
         const input = document.getElementById("org-input");
         const projectInput = document.getElementById("project-input");
@@ -416,29 +425,44 @@ export function Page({
         const project = projectInput ? projectInput.value.trim() : "";
         const repo = repoInput ? repoInput.value.trim() : "";
         if (!org) { if (input) input.focus(); return; }
-        if (input) { input.value = org; input.disabled = true; }
-        if (projectInput) projectInput.disabled = true;
-        const scanBtn = document.getElementById("scan-btn");
-        if (scanBtn) { scanBtn.disabled = true; scanBtn.textContent = "Scanning…"; }
-        showScanOverlay(project ? "Scanning " + project + "…" : "Scanning all projects…");
-        fetch("/api/set-org", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ org, project, repo })
-        }).then((res) => {
-          if (!res.ok) throw new Error("set-org " + res.status);
-        }).catch(() => {
-          // The loopback POST failed (server stopped, rejected, or a transport
-          // blip). Without this, the overlay would linger until its 250s safety
-          // timer while the form stayed disabled — a dead end with no retry path
-          // short of reopening the canvas. Restore the controls and tell the user
-          // so they can try again.
-          hideScanOverlay();
-          if (input) input.disabled = false;
-          if (projectInput) projectInput.disabled = false;
-          if (scanBtn) { scanBtn.disabled = false; scanBtn.textContent = "Scan"; }
-          syncScanButtonState();
-          window.alert("Couldn't start the scan — the triage server may have stopped responding. Please try again.");
+        // Gate: a typed project must be verified against Sentry before the scan
+        // starts, so clicking Scan (or submitting the form) can't start a scan on
+        // an unverified slug the way Enter in the autocomplete already prevents.
+        // An empty project scans all projects and needs no lookup.
+        verifyProjectForScan(org, project).then((v) => {
+          if (!v.ok) {
+            showToast(v.reason === "missing"
+              ? "No project \u201C" + project + "\u201D in " + org + " — check the slug."
+              : "Couldn't verify that project with Sentry — try again.");
+            if (projectInput) projectInput.focus();
+            return;
+          }
+          const proj = v.slug;
+          if (projectInput && proj !== project) projectInput.value = proj;
+          if (input) { input.value = org; input.disabled = true; }
+          if (projectInput) projectInput.disabled = true;
+          const scanBtn = document.getElementById("scan-btn");
+          if (scanBtn) { scanBtn.disabled = true; scanBtn.textContent = "Scanning…"; }
+          showScanOverlay(proj ? "Scanning " + proj + "…" : "Scanning all projects…");
+          fetch("/api/set-org", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ org, project: proj, repo })
+          }).then((res) => {
+            if (!res.ok) throw new Error("set-org " + res.status);
+          }).catch(() => {
+            // The loopback POST failed (server stopped, rejected, or a transport
+            // blip). Without this, the overlay would linger until its 250s safety
+            // timer while the form stayed disabled — a dead end with no retry path
+            // short of reopening the canvas. Restore the controls and tell the user
+            // so they can try again.
+            hideScanOverlay();
+            if (input) input.disabled = false;
+            if (projectInput) projectInput.disabled = false;
+            if (scanBtn) { scanBtn.disabled = false; scanBtn.textContent = "Scan"; }
+            syncScanButtonState();
+            window.alert("Couldn't start the scan — the triage server may have stopped responding. Please try again.");
+          });
         });
       }
 
@@ -469,27 +493,77 @@ export function Page({
       syncScanButtonState();
 
       const orgSelectEl = document.getElementById("org-select");
-      if (orgSelectEl) {
+      const orgSelectMirror = orgSelectEl ? wireOrgSelect(orgSelectEl) : null;
+
+      // (Re)wire an org <select>'s change handler and, when it's freshly
+      // created (post-signin discovery — see the orgOptions SSE handler
+      // below), seed the input/state from its current value the same way the
+      // initial server-render path does just below. Pulled out to a function
+      // so both paths share one implementation instead of drifting.
+      function wireOrgSelect(sel) {
         const orgInputEl = document.getElementById("org-input");
-        const mirrorOrgSelect = () => {
-          if (orgInputEl) orgInputEl.value = orgSelectEl.value;
+        const mirrorOrgSelect = (clearProject = true) => {
+          if (orgInputEl) orgInputEl.value = sel.value;
           // Clear any project slug carried over from the previously-selected org —
           // it won't exist under the new org's project list.
           const projInput = document.getElementById("project-input");
-          if (projInput) projInput.value = "";
+          if (clearProject && projInput) projInput.value = "";
           syncScanButtonState();
           // Load the new org's projects into the autocomplete: instant from cache
           // when we've seen it before, otherwise a "loading projects…" hint until
           // the fetched list arrives over SSE.
-          requestProjectsForOrg(orgSelectEl.value);
+          requestProjectsForOrg(sel.value);
         };
-        orgSelectEl.addEventListener("change", mirrorOrgSelect);
+        sel.addEventListener("change", () => mirrorOrgSelect());
+        return mirrorOrgSelect;
+      }
+      if (orgSelectEl) {
+        const orgInputEl = document.getElementById("org-input");
         // The <select> shows its first option as selected by default, but the
         // input starts empty when there's no detected default — so Scan looks
         // disabled and re-picking the already-shown org fires no change event.
         // Seed the input from the select's current value on load so the visible
         // selection is the effective one and Scan is enabled.
-        if (orgInputEl && !orgInputEl.value.trim() && orgSelectEl.value) mirrorOrgSelect();
+        if (orgInputEl && !orgInputEl.value.trim() && orgSelectEl.value) orgSelectMirror(false);
+      }
+
+      // Rebuild the setup screen's org control as a <select> once 2+ orgs are
+      // known (whether at initial render, or discovered later via SSE after a
+      // post-load sign-in — see the orgOptions handler below). A single-org
+      // account keeps the plain text input. No-ops if a <select> already
+      // reflects the same options, so it's safe to call on every SSE update.
+      function renderSetupOrgSelect() {
+        const orgField = document.getElementById("org-input");
+        if (!orgField) return; // already a <select>, or the setup screen isn't showing
+        const orgSlugs = Array.isArray(currentOrgOptions) ? currentOrgOptions.filter(Boolean) : [];
+        if (orgSlugs.length < 2) return;
+        const current = orgField.value.trim();
+        // Don't clobber an in-progress edit: if the user has typed something
+        // that isn't (yet) one of the discovered orgs, replaceWith() below
+        // would silently discard it and default to the first option. Defer
+        // the rebuild — it'll retry on the next SSE update, and by then the
+        // user will likely have finished typing or the org will be known.
+        if (current && !orgSlugs.includes(current)) return;
+        const sel = document.createElement("select");
+        sel.id = "org-select";
+        sel.className = "org-input org-select";
+        sel.title = "Sentry organizations you can access";
+        orgSlugs.forEach((slug) => {
+          const opt = document.createElement("option");
+          opt.value = slug;
+          opt.textContent = slug;
+          if (slug === current) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        const wasFocused = document.activeElement === orgField;
+        orgField.replaceWith(sel);
+        const mirror = wireOrgSelect(sel);
+        mirror(false);
+        // orgField may have had keyboard focus (e.g. the empty org input's
+        // autofocus on first load) — replaceWith() detaches it from the
+        // document without moving focus anywhere, silently dropping the
+        // keyboard user's position. Move focus onto its replacement.
+        if (wasFocused) sel.focus();
       }
 
       // The org slug currently chosen on the setup screen (typed input wins, else
@@ -566,12 +640,14 @@ export function Page({
       // detected default into the still-empty slug input so the user doesn't have
       // to type it. Never clobber a value the user has started editing.
       function applyOrgDefault(def) {
-        if (!def) return;
+        if (!def) return false;
         const input = document.getElementById("org-input");
         if (input && !input.value) {
           input.value = def;
           syncScanButtonState();
+          return true;
         }
+        return false;
       }
 
       const source = new EventSource("/api/events");
@@ -611,11 +687,16 @@ export function Page({
       let currentProject = ${jsonForScript(project)};
       let currentPeriod = ${jsonForScript(period)};
       let currentPeriods = ${jsonForScript(periodList)};
-      let currentProjectOptions = ${jsonForScript(projectList)};
       // Sentry project slugs for the current org (SDK-discovered). Drives the
       // project autocomplete; empty = fall back to a typed slug box.
       let currentSentryProjects = ${jsonForScript(projectSlugs)};
       let currentOrgOptions = ${jsonForScript(orgSlugs)};
+      // Dedupe guard for the setup screen's auto project-fetch-on-org-discovery
+      // (see the orgDefault SSE handler below): discoverProjects's own
+      // notifyClients() re-broadcasts the same orgDefault on every streamed
+      // project page, so without this a single org discovery would recursively
+      // re-request its own project list forever instead of settling once.
+      let lastAutoFetchedOrgDefault = "";
       let currentAvailableModels = ${jsonForScript(Array.isArray(availableModels) ? availableModels : [])};
       let currentPlainEnglishView = ${jsonForScript(plainEnglishView)};
       let currentScanError = ${jsonForScript(scanError || '')};
@@ -850,14 +931,8 @@ export function Page({
         if (draftMode === "cloud") {
           draftTarget = (currentPrTargets?.cloud?.repo || "current repo") + " @ " + (currentPrTargets?.cloud?.baseBranch || "default");
         } else {
-          const projName = currentPrTargets?.local?.projectName || "";
-          const projId = currentPrTargets?.local?.projectId || "";
           const localBase = currentPrTargets?.local?.baseBranch || "default";
-          if (projId) {
-            draftTarget = (projName || projId) + " @ " + localBase;
-          } else {
-            draftTarget = (currentPrTargets?.local?.path || "current project") + " @ " + localBase;
-          }
+          draftTarget = (currentPrTargets?.local?.path || "current project") + " @ " + localBase;
         }
         const modelId = currentPrTargets?.model || "";
         const models = Array.isArray(currentAvailableModels) ? currentAvailableModels : [];
@@ -932,25 +1007,6 @@ export function Page({
         syncCardModels();
         syncModelControls();
 
-        const localProject = document.getElementById("local-project");
-        if (localProject) {
-          const selectedId = currentPrTargets?.local?.projectId || "";
-          const options = Array.isArray(currentProjectOptions) ? currentProjectOptions : [];
-          localProject.innerHTML = "";
-          const base = document.createElement("option");
-          base.value = "";
-          base.textContent = "Current project (default)";
-          localProject.appendChild(base);
-          options.forEach((p) => {
-            const option = document.createElement("option");
-            option.value = p.id;
-            option.textContent = p.repo ? (p.name + " (" + p.repo + ")") : p.name;
-            option.selected = p.id === selectedId;
-            localProject.appendChild(option);
-          });
-          localProject.value = selectedId;
-        }
-
         const localPath = document.getElementById("local-path");
         if (localPath) localPath.value = currentPrTargets?.local?.path || "";
         const localBranch = document.getElementById("local-branch");
@@ -999,7 +1055,25 @@ export function Page({
           enterTriageChrome(msg.org);
           updateToolbarVisibility(hasRenderableIssues());
         } else if (typeof msg.orgDefault === "string") {
-          applyOrgDefault(msg.orgDefault);
+          // Org discovery can complete AFTER the setup screen already rendered
+          // (e.g. the user signs in post-load) — there's no #org-select to bind a
+          // change handler to yet, so nothing else would kick off a project fetch
+          // for this org. Only fire when this call actually just populated the
+          // (previously empty) org field, and dedupe per-org: discoverProjects's
+          // own notifyClients() re-broadcasts this same orgDefault on every
+          // streamed page, so firing unconditionally here would recursively
+          // re-request the project list on every page and never settle.
+          // Also skip it when this same snapshot is about to render a
+          // multi-org <select> below (msg.orgOptions has 2+ entries) — that
+          // selector's own mirror() already requests projects for the
+          // selected org, so firing here too would kick off a duplicate,
+          // serialized (and possibly slow, up to the paging budget) traversal.
+          const willRenderOrgSelect = Array.isArray(msg.orgOptions) && msg.orgOptions.filter(Boolean).length >= 2;
+          const justFilled = applyOrgDefault(msg.orgDefault);
+          if (justFilled && !willRenderOrgSelect && !document.getElementById("org-select") && lastAutoFetchedOrgDefault !== msg.orgDefault) {
+            lastAutoFetchedOrgDefault = msg.orgDefault;
+            requestProjectsForOrg(msg.orgDefault);
+          }
         }
         if ("project" in msg) {
           const nextProject = msg.project || "";
@@ -1015,7 +1089,6 @@ export function Page({
           if (psel && psel.value !== msg.period) psel.value = msg.period;
         }
         if (Array.isArray(msg.periods)) currentPeriods = msg.periods;
-        if (Array.isArray(msg.projectOptions)) currentProjectOptions = msg.projectOptions;
         if (Array.isArray(msg.projects)) {
           const forOrg = typeof msg.projectsOrg === "string" ? msg.projectsOrg.trim().toLowerCase() : "";
           // Always cache under the org this list belongs to so re-selecting it is
@@ -1043,7 +1116,15 @@ export function Page({
             }
           }
         }
-        if (Array.isArray(msg.orgOptions)) currentOrgOptions = msg.orgOptions;
+        if (Array.isArray(msg.orgOptions)) {
+          currentOrgOptions = msg.orgOptions;
+          // Post-load org discovery (e.g. signing in without reloading) can
+          // reveal 2+ orgs after the setup screen already rendered a plain
+          // text input. Rebuild it as a <select> now so the multi-org flow
+          // works without a reload. No-ops once already a <select>, and
+          // no-ops off the setup screen (no #org-input present there).
+          renderSetupOrgSelect();
+        }
         if (typeof msg.savedDefaultOrg === "string" && msg.savedDefaultOrg !== currentSavedDefaultOrg) {
           currentSavedDefaultOrg = msg.savedDefaultOrg;
           refreshDefaultBtn();
@@ -1108,25 +1189,30 @@ export function Page({
         // sentry auth login command, nor promise recovery for what won't self-heal.
         const signedOut = !(c.sentry && c.sentry.configured);
         const transientConn = Boolean(c.sentry && c.sentry.transient);
+        const packageMissing = (c.sentry && c.sentry.setup) === "package-missing";
         const gateTitleEl = document.getElementById("gate-title");
         if (gateTitleEl) {
-          gateTitleEl.textContent = signedOut
+          gateTitleEl.textContent = packageMissing
+            ? "Set up the Sentry CLI"
+            : signedOut
             ? "Connect Sentry to start triaging"
             : "Can’t reach Sentry right now";
         }
+        const setupBody = document.getElementById("gate-body-setup");
         const authBody = document.getElementById("gate-body-auth");
         const connBody = document.getElementById("gate-body-conn");
         const unknownBody = document.getElementById("gate-body-unknown");
-        if (authBody) authBody.style.display = signedOut ? "" : "none";
-        if (connBody) connBody.style.display = !signedOut && transientConn ? "" : "none";
-        if (unknownBody) unknownBody.style.display = !signedOut && !transientConn ? "" : "none";
+        if (setupBody) setupBody.style.display = packageMissing ? "" : "none";
+        if (authBody) authBody.style.display = signedOut && !packageMissing ? "" : "none";
+        if (connBody) connBody.style.display = !signedOut && !packageMissing && transientConn ? "" : "none";
+        if (unknownBody) unknownBody.style.display = !signedOut && !packageMissing && !transientConn ? "" : "none";
 
         // Surface the specific preflight failure in the gate (or hide it when the
         // error clears / there's nothing actionable beyond the sign-in steps).
         const gateErrEl = document.getElementById("gate-error");
         if (gateErrEl) {
           const err = (c.sentry && c.sentry.error) || "";
-          if (gatedNow && err) {
+          if (gatedNow && err && !packageMissing && !signedOut) {
             gateErrEl.textContent = err;
             gateErrEl.style.display = "";
           } else {
@@ -1141,6 +1227,20 @@ export function Page({
           showToast("✅ Sentry connected — loading your issues");
         }
         wasGatedPrev = gatedNow;
+      }
+
+      function focusConnectionGateLead(sentryConn) {
+        const panelId = sentryConn && sentryConn.transient ? "gate-body-conn" : "gate-body-unknown";
+        const connLead = document.querySelector("#" + panelId + " .gate-lead");
+        if (connLead) { connLead.setAttribute("tabindex", "-1"); connLead.focus(); }
+      }
+
+      function focusActiveOrgControl() {
+        const orgInput = document.getElementById("org-input");
+        const orgSelect = document.getElementById("org-select");
+        const orgSwitcher = document.getElementById("org-switcher");
+        const focusTarget = orgInput || orgSelect || orgSwitcher;
+        if (focusTarget) focusTarget.focus();
       }
 
       function enterTriageChrome(org) {
@@ -1196,6 +1296,22 @@ export function Page({
       function sentryProjectChoices() {
         const list = Array.isArray(currentSentryProjects) ? currentSentryProjects.filter(Boolean) : [];
         return currentProject && !list.includes(currentProject) ? [currentProject, ...list] : list;
+      }
+
+      // The project slugs known to belong to a specific org. Always read from the
+      // org-keyed cache (populated by the initial seed and every SSE broadcast under
+      // the list's own org), never from the painted currentSentryProjects list: on a
+      // free-text header org switch, fetchScoped() sets currentOrg to the new org
+      // before its project-list broadcast arrives, so the painted list still holds
+      // the previous org's slugs. Trusting currentOrg === slug there would treat
+      // those stale slugs as local and let Enter bypass the exact-slug resolver. The
+      // cache only ever holds each org's own list, so an org with no entry yet
+      // returns [] and every typed slug is verified — the safe direction.
+      function localProjectChoicesForOrg(org) {
+        const slug = String(org || "").trim().toLowerCase();
+        if (!slug) return [];
+        const cached = projectsByOrg[slug];
+        return Array.isArray(cached) ? cached.filter(Boolean) : [];
       }
 
       // The project input on screen — the header switcher in triage chrome, else
@@ -1255,13 +1371,95 @@ export function Page({
         }).catch(() => setProjectLoading(false));
       }
 
-      // Wire a text input as a project autocomplete: a filtered suggestion menu.
+      // Resolve one exact typed slug against Sentry (project.view) and cache the
+      // outcome. Called ONLY from an explicit commit (Enter), never on keystroke,
+      // so at most one lookup per committed slug is ever issued — no per-prefix
+      // queue of stale lookups. onDone runs after the cache is updated
+      // (found/missing/error) so the caller can commit the canonical slug or
+      // repaint an open menu. In-flight and settled lookups are not repeated; a
+      // prior "error" is cleared by the caller before an explicit retry.
+      function resolveProjectSlug(org, slug, onDone) {
+        const o = String(org || "").trim().toLowerCase();
+        const s = String(slug || "").trim();
+        if (!o || !s) return;
+        const key = projectResolveKey(o, s);
+        const cached = projectResolveCache[key];
+        // A settled entry (found/missing/error) fires immediately. A check that's
+        // already in flight can't fire yet, so queue this callback to be flushed
+        // when it settles — otherwise a second caller during "checking" is dropped.
+        if (cached) {
+          if (cached.status === "checking") {
+            if (onDone) (projectResolveWaiters[key] || (projectResolveWaiters[key] = [])).push(onDone);
+          } else if (onDone) {
+            onDone(cached);
+          }
+          return;
+        }
+        projectResolveCache[key] = { status: "checking", slug: "" };
+        // Record the settled entry, notify this caller, then flush anyone who
+        // queued while the request was in flight.
+        const settle = (entry) => {
+          projectResolveCache[key] = entry;
+          if (onDone) onDone(entry);
+          const waiters = projectResolveWaiters[key];
+          if (waiters) {
+            delete projectResolveWaiters[key];
+            for (const fn of waiters) { try { fn(entry); } catch (_) {} }
+          }
+        };
+        fetch("/api/resolve-project", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ org: o, slug: s })
+        })
+          .then((r) => r.json())
+          .then((d) => {
+            if (!d || d.ok === false) settle({ status: "error", slug: "" });
+            else if (d.found) settle({ status: "found", slug: String(d.slug || s) });
+            else settle({ status: "missing", slug: "" });
+          })
+          .catch(() => {
+            settle({ status: "error", slug: "" });
+          });
+      }
+
+      // Ensure a typed project is a real project in the org before any scan starts,
+      // so the "scans never run against an unverified project" invariant holds for
+      // pointer users too — the setup Scan button/form and the header Fetch button,
+      // not just Enter in the autocomplete. Resolves to the canonical slug. An empty
+      // project is an all-projects scan (always allowed); a locally-known project
+      // needs no lookup; anything else is verified via the shared resolver, reusing
+      // its cache and in-flight de-duplication.
+      function verifyProjectForScan(org, project) {
+        return new Promise((resolve) => {
+          const o = String(org || "").trim().toLowerCase();
+          const raw = String(project || "").trim();
+          if (!raw) { resolve({ ok: true, slug: "" }); return; }
+          if (!o) { resolve({ ok: true, slug: raw }); return; }
+          const p = raw.toLowerCase();
+          if (localProjectChoicesForOrg(o).some((s) => s.toLowerCase() === p)) {
+            resolve({ ok: true, slug: raw });
+            return;
+          }
+          const key = projectResolveKey(o, p);
+          const rc = projectResolveCache[key];
+          if (rc && rc.status === "found") { resolve({ ok: true, slug: rc.slug || raw }); return; }
+          if (rc && rc.status === "missing") { resolve({ ok: false, reason: "missing", slug: raw }); return; }
+          if (rc && rc.status === "error") delete projectResolveCache[key];
+          resolveProjectSlug(o, p, (res) => {
+            if (res && res.status === "found") resolve({ ok: true, slug: res.slug || raw });
+            else resolve({ ok: false, reason: (res && res.status) || "error", slug: raw });
+          });
+        });
+      }
+
+
       // (A <select> is unwieldy for orgs with many projects, and a <datalist>
       // does not repaint in this webview.) onCommit(value) runs when the user
       // picks a suggestion; an empty value means "all projects". The project list
       // is read live on each open, so newly-discovered projects appear without a
       // rebuild. Idempotent per input.
-      function attachProjectAutocomplete(input, onCommit) {
+      function attachProjectAutocomplete(input, onCommit, onVerifiedCommit) {
         if (!input || input.dataset.acWired) return;
         input.dataset.acWired = "1";
         // Ensure the input sits in a positioned wrapper with a menu container.
@@ -1284,6 +1482,22 @@ export function Page({
         // readers announce the popup and can follow the active option.
         if (!menu.id) menu.id = (input.id ? input.id : "project-ac") + "-listbox";
         input.setAttribute("aria-controls", menu.id);
+        // A visually-hidden live region announces exact-slug resolution state
+        // (checking / verified / not found / couldn't check) to screen readers,
+        // because the listbox itself is not a live region and its contents are
+        // replaced silently. Associated with the combobox via aria-describedby.
+        let statusEl = wrap.querySelector(".project-ac-status");
+        if (!statusEl) {
+          statusEl = document.createElement("div");
+          statusEl.className = "project-ac-status";
+          statusEl.setAttribute("aria-live", "polite");
+          statusEl.setAttribute("role", "status");
+          statusEl.style.cssText = "position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;";
+          wrap.appendChild(statusEl);
+        }
+        if (!statusEl.id) statusEl.id = menu.id + "-status";
+        const describedBy = (input.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        if (!describedBy.includes(statusEl.id)) { describedBy.push(statusEl.id); input.setAttribute("aria-describedby", describedBy.join(" ")); }
         const optionId = (i) => menu.id + "-opt-" + i;
         function syncActiveDescendant() {
           if (active >= 0 && items[active]) input.setAttribute("aria-activedescendant", optionId(active));
@@ -1294,7 +1508,8 @@ export function Page({
         const CAP = 50;
         function render() {
           const q = input.value.trim().toLowerCase();
-          const source = sentryProjectChoices();
+          const org = selectedOrgSlug();
+          const source = localProjectChoicesForOrg(org);
           let matches = q ? source.filter((s) => s.toLowerCase().includes(q)) : source.slice();
           const truncated = matches.length > CAP;
           matches = matches.slice(0, CAP);
@@ -1302,8 +1517,55 @@ export function Page({
           // Offer an explicit "all projects" reset only when the box is empty.
           if (!q) items.push({ value: "", label: "All projects", all: true });
           matches.forEach((s) => items.push({ value: s, label: s }));
+
+          // Exact-slug resolution: when the user has typed something with no
+          // exact local match, an explicit commit (Enter) asks Sentry directly
+          // whether that project exists (the paged list can't reach every project
+          // in a mega-org). This turns a misleading "No matching projects" into a
+          // selectable verified option — or an honest "not found" — without paging
+          // thousands of projects.
+          let resolveHint = "";
+          let statusText = "";
+          const hasExactLocal = source.some((s) => s.toLowerCase() === q);
+          if (q && org && !hasExactLocal) {
+            const key = projectResolveKey(org, q);
+            const rc = projectResolveCache[key];
+            // Resolution is triggered ONLY on an explicit commit (Enter / click),
+            // never as a side effect of typing. So render() just REFLECTS whatever
+            // the cache already holds: it neither schedules a lookup nor cancels
+            // one. That removes the per-prefix queue of stale lookups AND the
+            // completion-repaint retry loop the earlier keystroke-debounced version
+            // could spin during an outage.
+            if (!rc) {
+              resolveHint = "prompt"; // offer an explicit check on Enter
+            } else if (rc.status === "checking") {
+              resolveHint = "checking";
+              statusText = "Checking Sentry for \u201C" + q + "\u201D\u2026";
+            } else if (rc.status === "found") {
+              // Surface the canonical slug as a verified, selectable option at the
+              // top — deduped against any local match with the same slug.
+              const canon = rc.slug || q;
+              const dup = items.some((it) => it.value && it.value.toLowerCase() === canon.toLowerCase());
+              if (!dup) items.unshift({ value: canon, label: canon, verified: true });
+              statusText = "Verified project \u201C" + canon + "\u201D in " + org;
+            } else if (rc.status === "missing") {
+              resolveHint = "missing";
+              statusText = "No project \u201C" + q + "\u201D in " + org;
+            } else if (rc.status === "error") {
+              resolveHint = "error";
+              statusText = "Couldn't check Sentry for \u201C" + q + "\u201D";
+            }
+          }
+          if (statusEl && statusEl.textContent !== statusText) statusEl.textContent = statusText;
+
           if (!items.length) {
-            menu.innerHTML = '<div class="project-ac-empty">No matching projects</div>';
+            const empty =
+              resolveHint === "checking" ? "Checking Sentry…"
+              : resolveHint === "prompt" ? "Press Enter to check Sentry for \u201C" + escapeHtml(q) + "\u201D"
+              : resolveHint === "missing" ? "No project \u201C" + escapeHtml(q) + "\u201D in " + escapeHtml(org)
+              : resolveHint === "error" ? "Couldn't check Sentry — press Enter to retry"
+              : "No matching projects";
+            menu.innerHTML = '<div class="project-ac-empty">' + empty + '</div>';
             syncActiveDescendant();
             return;
           }
@@ -1313,31 +1575,93 @@ export function Page({
               .map((it, i) =>
                 '<div id="' + optionId(i) + '" class="project-ac-item' + (i === active ? ' active' : '') + '" role="option" aria-selected="' + (i === active) + '" data-idx="' + i + '">' +
                 (it.all ? '<span class="project-ac-all">' + escapeHtml(it.label) + '</span>' : escapeHtml(it.label)) +
+                (it.verified ? '<span class="project-ac-verified" title="Verified in Sentry">\u2713</span>' : '') +
                 '</div>')
               .join('') +
-            (truncated ? '<div class="project-ac-more">Keep typing to narrow…</div>' : '');
+            (resolveHint === "checking" ? '<div class="project-ac-more">Checking Sentry…</div>'
+              : resolveHint === "prompt" ? '<div class="project-ac-more">Press Enter to check Sentry for \u201C' + escapeHtml(q) + '\u201D</div>'
+              : resolveHint === "error" ? "<div class='project-ac-more'>Couldn't check Sentry — press Enter to retry</div>"
+              : resolveHint === "missing" ? '<div class="project-ac-more">No project \u201C' + escapeHtml(q) + '\u201D in ' + escapeHtml(org) + '</div>'
+              : truncated ? '<div class="project-ac-more">Keep typing to narrow…</div>' : '');
           syncActiveDescendant();
         }
         function open() { render(); menu.hidden = false; input.setAttribute("aria-expanded", "true"); }
         function close() { menu.hidden = true; active = -1; input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); }
-        function commit(value) {
+        function commit(value, opts) {
           input.value = value;
           close();
-          if (onCommit) onCommit(value);
+          // Committing the exact-slug *verified* option (an off-list project Sentry
+          // confirmed) uses onVerifiedCommit when provided, so the setup field can
+          // start the scan on it even though its onCommit is null (plain local list
+          // picks there just fill the box). Every other commit uses onCommit. On the
+          // header both callbacks are the same fetchScoped, so behavior is unchanged.
+          const cb = (opts && opts.verified && onVerifiedCommit) ? onVerifiedCommit : onCommit;
+          if (cb) cb(value);
         }
         input.addEventListener("focus", open);
-        input.addEventListener("input", () => { active = -1; open(); });
+        input.addEventListener("input", () => {
+          active = -1;
+          // Editing the query clears a stale transient-failure marker for exactly
+          // this slug, so the menu drops back to the "Press Enter to check" prompt
+          // instead of showing a leftover error. The actual (re)check happens only
+          // when the user presses Enter — never as a side effect of typing.
+          const q = input.value.trim().toLowerCase();
+          const org = selectedOrgSlug();
+          if (q && org) {
+            const key = projectResolveKey(org, q);
+            const rc = projectResolveCache[key];
+            if (rc && rc.status === "error") delete projectResolveCache[key];
+          }
+          open();
+        });
         input.addEventListener("keydown", (e) => {
           if (menu.hidden) {
-            if (e.key === "ArrowDown") { e.preventDefault(); open(); }
-            return;
+            if (e.key === "ArrowDown") { e.preventDefault(); open(); return; }
+            // Enter still needs the exact-slug lookup below even when the menu is
+            // closed (e.g. after Escape); otherwise a typed slug bubbles to the scan
+            // handler and is sent to /api/set-org unverified. Short-circuit the rest.
+            if (e.key !== "Enter") return;
           }
           if (e.key === "ArrowDown") { e.preventDefault(); active = Math.min(active + 1, items.length - 1); render(); }
           else if (e.key === "ArrowUp") { e.preventDefault(); active = Math.max(active - 1, 0); render(); }
           else if (e.key === "Enter") {
-            // Only intercept Enter when a suggestion is highlighted; otherwise let
-            // it bubble to the header handler that applies a typed value.
-            if (active >= 0 && items[active]) { e.preventDefault(); e.stopPropagation(); commit(items[active].value); }
+            // A highlighted suggestion commits directly.
+            if (active >= 0 && items[active]) { e.preventDefault(); e.stopPropagation(); commit(items[active].value, { verified: !!items[active].verified }); return; }
+            // Otherwise, if the user typed a slug with no exact local match, Enter is
+            // the EXPLICIT commit that triggers exact-slug resolution — we never look
+            // up as they type. Verify it once, then commit the canonical slug on
+            // success, or surface an honest "not found" / "couldn't check" in place.
+            const q = input.value.trim().toLowerCase();
+            const org = selectedOrgSlug();
+            if (q && org && !localProjectChoicesForOrg(org).some((s) => s.toLowerCase() === q)) {
+              e.preventDefault(); e.stopPropagation();
+              const key = projectResolveKey(org, q);
+              const rc = projectResolveCache[key];
+              if (rc && rc.status === "found") { commit(rc.slug || q, { verified: true }); return; }
+              if (rc && rc.status === "checking") { open(); return; }
+              // Fresh check, or an explicit retry after a prior transient error.
+              if (rc && rc.status === "error") delete projectResolveCache[key];
+              resolveProjectSlug(org, q, (res) => {
+                // Ignore a stale completion if the box has since moved on — either
+                // the project text changed, or the org was edited while the lookup
+                // was pending (a result verified for the old org must not commit and
+                // let fetchScoped() scan a different, unverified org).
+                if (input.value.trim().toLowerCase() !== q || selectedOrgSlug() !== org) return;
+                // Render the resolved state before acting so the aria-live region
+                // publishes the completion (found/missing/error) to screen readers.
+                // commit() closes the menu without rendering, so a "found" result
+                // would otherwise leave the live region stuck at "Checking Sentry…";
+                // render() first sets it to "Verified project …", then commit closes.
+                render();
+                if (res && res.status === "found") commit(res.slug || q, { verified: true });
+              });
+              // open() (not render()) so the "Checking Sentry…" hint is visible even
+              // when this commit came from a closed menu (e.g. Enter after Escape).
+              open();
+              return;
+            }
+            // Exact local match or empty box: let Enter bubble to the header handler
+            // that applies the typed value.
           } else if (e.key === "Escape") { e.stopPropagation(); close(); }
         });
         // mousedown (not click) so the selection beats the input's blur.
@@ -1346,18 +1670,21 @@ export function Page({
           if (!el) return;
           e.preventDefault();
           const idx = Number(el.dataset.idx);
-          if (items[idx]) commit(items[idx].value);
+          if (items[idx]) commit(items[idx].value, { verified: !!items[idx].verified });
         });
         input.addEventListener("blur", () => { setTimeout(close, 120); });
       }
 
       // Ensure the setup-screen project field behaves as an autocomplete. The
       // suggestion list is read live on each open, so no rebuild is needed when
-      // the org's projects arrive. Picking here just fills the box; the Scan
-      // button reads #project-input on submit.
+      // the org's projects arrive. Picking a local suggestion just fills the box
+      // (the Scan button reads #project-input on submit) — but committing a
+      // Sentry-verified off-list slug starts the scan directly, so keyboard-only
+      // users aren't trapped re-verifying a project that never joins the local
+      // list. submitScan re-reads #project-input, so the committed slug is used.
       function renderSetupProjectField() {
         const el = document.getElementById("project-input");
-        if (el) attachProjectAutocomplete(el, null);
+        if (el) attachProjectAutocomplete(el, null, () => submitScan());
       }
 
       // Ensure the project control exists in the header and reflects the current
@@ -1415,7 +1742,13 @@ export function Page({
           label.appendChild(fetchBtn);
           scope.insertBefore(label, scope.firstChild);
         }
-        input.value = currentProject || "";
+        // Reflect the current project, but never while the user is editing this
+        // field: a streamed project page repaints the switcher (renderProjectSwitcher
+        // runs per SSE page), and clobbering the value mid-type would erase an
+        // in-progress slug — and with it the query captured for exact-slug
+        // resolution, so the first Enter's lookup would be silently dropped by the
+        // stale-completion guard. Only sync when the field isn't focused.
+        if (document.activeElement !== input) input.value = currentProject || "";
         attachProjectAutocomplete(input, () => fetchScoped());
 
         // Org control, injected before the project switcher so the header reads
@@ -1538,40 +1871,56 @@ export function Page({
         const org = orgInput ? orgInput.value.trim() : currentOrg;
         const project = projectInput ? projectInput.value.trim() : "";
         if (!org) { if (orgInput) orgInput.focus(); return; }
-        if (org !== currentOrg || project !== currentProject) resetPerCardState();
-        // Snapshot the last-scanned scope BEFORE the optimistic update so a failed
-        // rescan can roll back. Without this, a network/server failure leaves the
-        // switchers showing the new org/project while the still-rendered cards
-        // belong to the old scope — stale data under a selection we never scanned.
-        const prevOrg = currentOrg;
-        const prevProject = currentProject;
-        const subtitle = document.querySelector(".page-subtitle");
-        const prevSubtitle = subtitle ? subtitle.textContent : "";
-        currentOrg = org;
-        currentProject = project;
-        updateTriageDesc();
-        if (subtitle) subtitle.textContent = "Scanning " + (project || "all projects") + "...";
-        showScanOverlay("Scanning " + (project || "all projects") + "…");
-        fetch("/api/set-org", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ org, project })
-        }).then((res) => {
-          if (!res.ok) throw new Error("set-org " + res.status);
-        }).catch(() => {
-          // Loopback POST failed (server stopped/rejected, or a transport blip).
-          // Roll the optimistic selection back to the last-scanned scope so the
-          // switchers stay consistent with the cards still on screen, clear the
-          // overlay (which would otherwise linger until its safety timer), and
-          // tell the user so they can retry.
-          hideScanOverlay();
-          currentOrg = prevOrg;
-          currentProject = prevProject;
-          if (orgInput) orgInput.value = prevOrg;
-          if (projectInput) projectInput.value = prevProject;
+        // Gate: verify a typed project against Sentry before any optimistic update
+        // or scan, so the Fetch button and header-Enter can't scan an unverified
+        // slug. (The autocomplete's own Enter resolves before committing; this
+        // covers the pointer path and Enter on the raw org/project inputs.) An
+        // empty project scans all projects and needs no lookup.
+        verifyProjectForScan(org, project).then((v) => {
+          if (!v.ok) {
+            showToast(v.reason === "missing"
+              ? "No project \u201C" + project + "\u201D in " + org + " — check the slug."
+              : "Couldn't verify that project with Sentry — try again.");
+            if (projectInput) projectInput.focus();
+            return;
+          }
+          const proj = v.slug;
+          if (projectInput && proj !== project) projectInput.value = proj;
+          if (org !== currentOrg || proj !== currentProject) resetPerCardState();
+          // Snapshot the last-scanned scope BEFORE the optimistic update so a failed
+          // rescan can roll back. Without this, a network/server failure leaves the
+          // switchers showing the new org/project while the still-rendered cards
+          // belong to the old scope — stale data under a selection we never scanned.
+          const prevOrg = currentOrg;
+          const prevProject = currentProject;
+          const subtitle = document.querySelector(".page-subtitle");
+          const prevSubtitle = subtitle ? subtitle.textContent : "";
+          currentOrg = org;
+          currentProject = proj;
           updateTriageDesc();
-          if (subtitle) subtitle.textContent = prevSubtitle;
-          window.alert("Couldn't start the scan — the triage server may have stopped responding. Please try again.");
+          if (subtitle) subtitle.textContent = "Scanning " + (proj || "all projects") + "...";
+          showScanOverlay("Scanning " + (proj || "all projects") + "…");
+          fetch("/api/set-org", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ org, project: proj })
+          }).then((res) => {
+            if (!res.ok) throw new Error("set-org " + res.status);
+          }).catch(() => {
+            // Loopback POST failed (server stopped/rejected, or a transport blip).
+            // Roll the optimistic selection back to the last-scanned scope so the
+            // switchers stay consistent with the cards still on screen, clear the
+            // overlay (which would otherwise linger until its safety timer), and
+            // tell the user so they can retry.
+            hideScanOverlay();
+            currentOrg = prevOrg;
+            currentProject = prevProject;
+            if (orgInput) orgInput.value = prevOrg;
+            if (projectInput) projectInput.value = prevProject;
+            updateTriageDesc();
+            if (subtitle) subtitle.textContent = prevSubtitle;
+            window.alert("Couldn't start the scan — the triage server may have stopped responding. Please try again.");
+          });
         });
       }
 
@@ -1640,12 +1989,142 @@ export function Page({
       });
 
       document.addEventListener("click", (e) => {
+        const installBtn = e.target.closest("#install-deps-btn");
+        if (installBtn) {
+          const statusEl = document.getElementById("gate-install-status");
+          installBtn.disabled = true;
+          installBtn.textContent = "Installing…";
+          if (statusEl) {
+            statusEl.style.display = "";
+            statusEl.textContent = "Running npm install — this can take a moment…";
+          }
+          fetch("/api/install-dependencies", { method: "POST" })
+            .then((res) => {
+              if (!res.ok) throw new Error("install-dependencies " + res.status);
+              return res.json();
+            })
+            .then((data) => {
+              if (data && data.connections) {
+                currentConnections = data.connections;
+                applyConnectionState();
+              }
+              const stillMissing = data && data.connections && data.connections.sentry && data.connections.sentry.setup === "package-missing";
+              if (stillMissing) {
+                if (statusEl) {
+                  statusEl.textContent = "Install didn't finish — check that npm is available, then try again.";
+                }
+                installBtn.disabled = false;
+                installBtn.textContent = "📦 Install dependencies";
+              } else if (statusEl) {
+                // applyConnectionState() above already repainted the gate for
+                // the fresh connection state — a successful install doesn't
+                // always land on the sign-in panel: an existing stored
+                // credential can make it immediately reachable (clearing the
+                // gate entirely), or the re-probe can hit a transient network
+                // blip (landing on the connectivity panel) instead. Announce
+                // and focus based on what's actually visible now rather than
+                // assuming sign-in is next.
+                const sentryConn = (data.connections && data.connections.sentry) || {};
+                if (sentryConn.reachable) {
+                  showToast("✅ Sentry connected — loading your issues");
+                  focusActiveOrgControl();
+                } else if (sentryConn.configured) {
+                  // configured (has/had a credential) but not reachable and
+                  // not package-missing: connectivity panel is now showing.
+                  statusEl.textContent = "Installed, but couldn't reach Sentry just now — see details below.";
+                  focusConnectionGateLead(sentryConn);
+                } else {
+                  statusEl.textContent = "Installed. Click below to sign in with Sentry.";
+                  // The install panel (and this now-hidden live region) was
+                  // just swapped for the sign-in panel, so focus is left on
+                  // the now-hidden, disabled install button — silent for a
+                  // screen reader user. Move focus to the sign-in button so
+                  // they're notified of the next actionable step.
+                  const nextBtn = document.getElementById("auth-login-btn");
+                  if (nextBtn) nextBtn.focus();
+                }
+              }
+            })
+            .catch(() => {
+              if (statusEl) statusEl.textContent = "Install failed — the extension server may be unreachable. Please try again.";
+              installBtn.disabled = false;
+              installBtn.textContent = "📦 Install dependencies";
+            });
+          return;
+        }
+        const authBtn = e.target.closest("#auth-login-btn");
+        if (authBtn) {
+          const statusEl = document.getElementById("gate-auth-status");
+          authBtn.disabled = true;
+          authBtn.textContent = "Waiting for sign-in…";
+          if (statusEl) {
+            statusEl.style.display = "";
+            statusEl.textContent = "Opening your browser to sign in with Sentry — approve access there, then this will continue automatically.";
+          }
+          fetch("/api/auth-login", { method: "POST" })
+            .then((res) => res.json().then((data) => ({ res, data })))
+            .then(({ res, data }) => {
+              if (data && data.connections) {
+                currentConnections = data.connections;
+                applyConnectionState();
+              }
+              if (!res.ok || (data && data.ok === false)) {
+                if (statusEl) {
+                  statusEl.textContent = (data && data.error) || "Sign-in didn't complete — please try again.";
+                }
+                authBtn.disabled = false;
+                authBtn.textContent = "🔑 Sign in with Sentry";
+                return;
+              }
+              const stillSignedOut = data && data.connections && data.connections.sentry && !data.connections.sentry.configured;
+              if (stillSignedOut) {
+                if (statusEl) statusEl.textContent = "Still not signed in — please try again.";
+                authBtn.disabled = false;
+                authBtn.textContent = "🔑 Sign in with Sentry";
+              } else {
+                // applyConnectionState() above just hid the entire auth gate
+                // (signed in now) — this live region's own node may no longer
+                // be in the accessibility tree, and focus is left on the
+                // now-hidden, disabled sign-in button. Announce via the
+                // always-visible toast instead, and move focus into whatever
+                // view is now actually showing (reachable: the org picker;
+                // otherwise: the connectivity gate that's left, if any).
+                const sentryConn = (data.connections && data.connections.sentry) || {};
+                if (sentryConn.reachable) {
+                  showToast("✅ Signed in — loading your issues");
+                  focusActiveOrgControl();
+                } else {
+                  showToast("✅ Signed in — checking Sentry connectivity");
+                  focusConnectionGateLead(sentryConn);
+                }
+              }
+            })
+            .catch(() => {
+              if (statusEl) statusEl.textContent = "Sign-in failed — the extension server may be unreachable. Please try again.";
+              authBtn.disabled = false;
+              authBtn.textContent = "🔑 Sign in with Sentry";
+            });
+          return;
+        }
         const btn = e.target.closest("#refresh, #rescan");
         if (!btn) return;
-        fetch("/api/refresh", { method: "POST" });
         const subtitle = document.querySelector(".page-subtitle");
+        const prevSubtitle = subtitle ? subtitle.textContent : "";
         if (subtitle) subtitle.textContent = "Scanning Sentry...";
         showScanOverlay(currentProject ? "Scanning " + currentProject + "…" : "Scanning all projects…");
+        // Like the org/period rescans, verify the POST was accepted and roll the
+        // optimistic overlay back on failure. Fire-and-forget would otherwise leave
+        // the blocking overlay up (no SSE update ever arrives to clear it) until the
+        // long fallback timer expires when the loopback server is unreachable.
+        fetch("/api/refresh", { method: "POST" })
+          .then((res) => {
+            if (!res.ok) throw new Error("refresh " + res.status);
+          })
+          .catch(() => {
+            hideScanOverlay();
+            if (subtitle) subtitle.textContent = prevSubtitle;
+            window.alert("Couldn't start a rescan — the triage server may have stopped responding. Please try again.");
+          });
       });
 
       // Both "Create issue" and "Fix with Copilot" optimistically paint their
@@ -1722,37 +2201,16 @@ export function Page({
 
       document.addEventListener("change", (e) => {
         if (e.target && e.target.id === "pr-mode") updateModeHint();
-        if (e.target && e.target.id === "local-project") {
-          const id = e.target.value || "";
-          const match = (Array.isArray(currentProjectOptions) ? currentProjectOptions : []).find((p) => p.id === id);
-          const localPath = document.getElementById("local-path");
-          if (localPath) localPath.value = match && match.path ? match.path : "";
-          // Keep the base branch in step with the selected project. Leaving the
-          // previous project's branch here would pair the new projectId with a
-          // stale (possibly nonexistent) base on save; clearing it falls back to
-          // this project's own default branch.
-          const localBranch = document.getElementById("local-branch");
-          if (localBranch) localBranch.value = match && match.defaultBranch ? match.defaultBranch : "";
-        }
       });
 
       document.addEventListener("click", (e) => {
         const btn = e.target.closest("#save-pr-config");
         if (!btn) return;
-        const localProjectEl = document.getElementById("local-project");
-        const localProjectId = localProjectEl?.value || "";
-        let localProjectName = "";
-        if (localProjectId) {
-          const match = (Array.isArray(currentProjectOptions) ? currentProjectOptions : []).find((p) => p.id === localProjectId);
-          localProjectName = match ? match.name : "";
-        }
         const payload = {
           mode: document.getElementById("pr-mode")?.value || "local",
           model: document.getElementById("toolbar-model")?.value || "",
           localPath: document.getElementById("local-path")?.value || "",
           localBranch: document.getElementById("local-branch")?.value || "",
-          localProjectId: localProjectId,
-          localProjectName: localProjectName,
           cloudRepo: document.getElementById("cloud-repo")?.value || "",
           cloudBranch: document.getElementById("cloud-branch")?.value || "",
         };
