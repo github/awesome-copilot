@@ -313,6 +313,30 @@
     }
   },
   {
+    "name": "crowdstrike-falcon-fusion",
+    "description": "AI coding assistant skills for building CrowdStrike Falcon Fusion workflows: action discovery, YAML authoring, deployment, execution monitoring, and best practices for triggers, conditions, loops, and HTTP Actions.",
+    "version": "1.1.0",
+    "author": {
+      "name": "CrowdStrike",
+      "url": "https://www.crowdstrike.com"
+    },
+    "repository": "https://github.com/CrowdStrike/fusion-skills",
+    "license": "MIT",
+    "keywords": [
+      "fusion-workflows",
+      "crowdstrike",
+      "cybersecurity",
+      "falcon",
+      "security"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "CrowdStrike/fusion-skills",
+      "ref": "v1.1.0",
+      "sha": "8df28a78be316f619a0a5227a401b395da990c40"
+    }
+  },
+  {
     "name": "datadog",
     "description": "Use Datadog directly in Copilot / VS Code through a preconfigured Datadog MCP server. Query logs, metrics, traces, dashboards, and more through natural conversation.",
     "version": "0.7.21",
