@@ -31,10 +31,16 @@ validated lesson mechanism is active for issue 2.
   Organization issue type `Task` is preferred when it is enabled, but is not
   required.
 
-The Awesome Copilot **source checkout** and disposable **target repository**
-are different directories. Install the plugin and skills from source first.
-Then keep the current directory in the target clone and invoke every fixture
-or shepherd script by absolute path from the source checkout.
+Before invoking any test fixture, you **must** run the bundled installer from
+an Awesome Copilot source checkout. The installer copies the complete plugin,
+including this `test` directory, to
+`$COPILOT_HOME/plugins/shepherd-task` (default `~/.copilot`) and installs the
+required shepherd skills.
+
+The Awesome Copilot **source checkout**, installed **shepherd-task plugin**,
+and disposable **target repository** are distinct locations. After
+installation, keep the current directory in the target clone and invoke every
+fixture or shepherd script from the installed plugin.
 
 ## Procedure
 
@@ -44,9 +50,26 @@ The examples use PowerShell and these placeholders:
 $Source = '/absolute/path/to/awesome-copilot'
 $Repo = 'OWNER/DISPOSABLE-REPO'
 $Target = '/absolute/path/to/disposable-clone'
+$CopilotHome = if ($env:COPILOT_HOME) {
+    $env:COPILOT_HOME
+} else {
+    Join-Path $HOME '.copilot'
+}
+$ShepherdPlugin = Join-Path $CopilotHome 'plugins/shepherd-task'
 ```
 
-1. **Prepare a fresh target repository and clone.** The default branch must
+1. **Install shepherd-task before running the fixture.** Run the installer
+   from the Awesome Copilot source checkout:
+
+   ```powershell
+   & "$Source/plugins/shepherd-task/scripts/install-task-shepherd.ps1"
+   ```
+
+   Confirm that `$ShepherdPlugin/test/00-prepare-test-baseline.ps1` exists and
+   that `copilot skill list` includes the shepherd-task skills. Do not continue
+   with the fixture until installation succeeds.
+
+2. **Prepare a fresh target repository and clone.** The default branch must
    have at least one commit. Configure exactly one matching remote.
 
    ```powershell
@@ -58,17 +81,11 @@ $Target = '/absolute/path/to/disposable-clone'
    Confirm that the default branch has the generated initial commit and that
    the checkout is clean before continuing.
 
-2. **Install the plugin and all shepherd skills from the source checkout.**
-
-   ```powershell
-   & "$Source/plugins/shepherd-task/scripts/install-task-shepherd.ps1"
-   ```
-
 3. **Create the deterministic baseline once and capture its exact SHA.**
 
    ```powershell
    Set-Location $Target
-   & "$Source/plugins/shepherd-task/test/00-prepare-test-baseline.ps1" `
+   & "$ShepherdPlugin/test/00-prepare-test-baseline.ps1" `
      -Repo $Repo `
      -BaselineBranch 'experiment/shepherd-shared-baseline'
    $BaselineSha = (git rev-parse HEAD).Trim()
@@ -84,7 +101,7 @@ $Target = '/absolute/path/to/disposable-clone'
    delete or rewrite either campaign branch.
 
    ```powershell
-   & "$Source/plugins/shepherd-task/test/01-prepare-base-branch.ps1" `
+   & "$ShepherdPlugin/test/01-prepare-base-branch.ps1" `
      -Repo $Repo `
      -BaseBranch 'experiment/shepherd-treatment' `
      -CampaignShortname 'math-treatment' `
@@ -94,7 +111,7 @@ $Target = '/absolute/path/to/disposable-clone'
    git checkout experiment/shepherd-shared-baseline
    git status --short
 
-   & "$Source/plugins/shepherd-task/test/01-prepare-base-branch.ps1" `
+   & "$ShepherdPlugin/test/01-prepare-base-branch.ps1" `
      -Repo $Repo `
      -BaseBranch 'experiment/shepherd-control' `
      -CampaignShortname 'math-control' `
@@ -109,11 +126,11 @@ $Target = '/absolute/path/to/disposable-clone'
 
    ```powershell
    git checkout experiment/shepherd-treatment
-   & "$Source/plugins/shepherd-task/test/02-create-issues.ps1" `
+   & "$ShepherdPlugin/test/02-create-issues.ps1" `
      -CampaignMetadataDirectory '<TREATMENT-DIRECTORY>'
 
    git checkout experiment/shepherd-control
-   & "$Source/plugins/shepherd-task/test/02-create-issues.ps1" `
+   & "$ShepherdPlugin/test/02-create-issues.ps1" `
      -CampaignMetadataDirectory '<CONTROL-DIRECTORY>'
    ```
 
@@ -126,17 +143,17 @@ $Target = '/absolute/path/to/disposable-clone'
 
 6. **Run stage 25 for treatment and control.** Prefer serial campaign runs and
    preserve every generated log/artifact directory. Use the exact commands
-   printed by script 02, substituting absolute source paths if needed:
+   printed by script 02:
 
    ```powershell
    git checkout experiment/shepherd-treatment
-   & "$Source/plugins/shepherd-task/scripts/shepherd-task-25-given-list.ps1" `
+   & "$ShepherdPlugin/scripts/shepherd-task-25-given-list.ps1" `
      -LessonPropagation campaign `
      -TaskIssues '<TREATMENT-ISSUE-1>,<TREATMENT-ISSUE-2>' `
      -CampaignMetadataDirectory '<TREATMENT-DIRECTORY>'
 
    git checkout experiment/shepherd-control
-   & "$Source/plugins/shepherd-task/scripts/shepherd-task-25-given-list.ps1" `
+   & "$ShepherdPlugin/scripts/shepherd-task-25-given-list.ps1" `
      -LessonPropagation off `
      -TaskIssues '<CONTROL-ISSUE-1>,<CONTROL-ISSUE-2>' `
      -CampaignMetadataDirectory '<CONTROL-DIRECTORY>'
@@ -150,13 +167,13 @@ $Target = '/absolute/path/to/disposable-clone'
    ```powershell
    git checkout experiment/shepherd-treatment
    git pull --ff-only
-   & "$Source/plugins/shepherd-task/test/04-verify-lesson-experiment.ps1" `
+   & "$ShepherdPlugin/test/04-verify-lesson-experiment.ps1" `
      -CampaignMetadataDirectory '<TREATMENT-DIRECTORY>' `
      -SecondIssuePrNumber <TREATMENT-ISSUE-2-PR>
 
    git checkout experiment/shepherd-control
    git pull --ff-only
-   & "$Source/plugins/shepherd-task/test/04-verify-lesson-experiment.ps1" `
+   & "$ShepherdPlugin/test/04-verify-lesson-experiment.ps1" `
      -CampaignMetadataDirectory '<CONTROL-DIRECTORY>' `
      -SecondIssuePrNumber <CONTROL-ISSUE-2-PR>
    ```
