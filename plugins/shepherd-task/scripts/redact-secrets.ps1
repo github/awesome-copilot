@@ -71,20 +71,35 @@ function Redact-File {
 
     $temporaryPath = "$($File.FullName).redact.$([guid]::NewGuid().ToString('N'))"
     try {
-        $output = [System.Collections.Generic.List[string]]::new()
-        foreach ($line in [System.IO.File]::ReadLines($File.FullName)) {
-            if ([string]::IsNullOrWhiteSpace($line)) {
-                $output.Add('')
-                continue
+        if ($File.Extension -eq '.jsonl') {
+            $output = [System.Collections.Generic.List[string]]::new()
+            foreach ($line in [System.IO.File]::ReadLines($File.FullName)) {
+                if ([string]::IsNullOrWhiteSpace($line)) {
+                    $output.Add('')
+                    continue
+                }
+                try {
+                    $json = $line | ConvertFrom-Json -Depth 100
+                } catch {
+                    throw "Invalid JSONL in $($File.FullName)"
+                }
+                $output.Add((Redact-JsonValue $json '' | ConvertTo-Json -Compress -Depth 100))
             }
+            [System.IO.File]::WriteAllLines($temporaryPath, $output)
+        } else {
             try {
-                $json = $line | ConvertFrom-Json -Depth 100
+                $json = Get-Content -LiteralPath $File.FullName -Raw |
+                    ConvertFrom-Json -Depth 100 -NoEnumerate
             } catch {
-                throw "Invalid JSONL in $($File.FullName)"
+                throw "Invalid JSON in $($File.FullName)"
             }
-            $output.Add((Redact-JsonValue $json '' | ConvertTo-Json -Compress -Depth 100))
+            $redacted = Redact-JsonValue $json '' | ConvertTo-Json -Depth 100
+            [System.IO.File]::WriteAllText(
+                $temporaryPath,
+                $redacted + [Environment]::NewLine,
+                [System.Text.UTF8Encoding]::new($false)
+            )
         }
-        [System.IO.File]::WriteAllLines($temporaryPath, $output)
         $originalAttributes = [System.IO.File]::GetAttributes($File.FullName)
         $originalUnixMode = if ($IsWindows) {
             $null

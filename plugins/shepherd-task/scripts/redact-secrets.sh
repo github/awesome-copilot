@@ -44,15 +44,21 @@ redact_file() {
     local temp
     temp=$(mktemp "${file}.redact.XXXXXX")
 
-    if ! while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ -z "$line" ]]; then
-            printf '\n'
-        else
-            printf '%s\n' "$line" | jq -c "$JQ_FILTER"
+    if [[ "$file" == *.jsonl ]]; then
+        if ! while IFS= read -r line || [[ -n "$line" ]]; do
+            if [[ -z "$line" ]]; then
+                printf '\n'
+            else
+                printf '%s\n' "$line" | jq -c "$JQ_FILTER"
+            fi
+        done <"$file" >"$temp"; then
+            rm -f "$temp"
+            echo "Invalid JSONL; left unchanged: $file" >&2
+            exit 1
         fi
-    done <"$file" >"$temp"; then
+    elif ! jq "$JQ_FILTER" "$file" >"$temp"; then
         rm -f "$temp"
-        echo "Invalid JSONL; left unchanged: $file" >&2
+        echo "Invalid JSON; left unchanged: $file" >&2
         exit 1
     fi
 
