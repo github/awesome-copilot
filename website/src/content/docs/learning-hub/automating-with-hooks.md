@@ -176,6 +176,17 @@ You can also use these as **template variables** directly in the `bash` or `powe
 
 This makes it straightforward to write plugin hooks that are portable across machines and projects without hardcoding paths.
 
+### OpenTelemetry Trace Context (v1.0.81+)
+
+Hooks can now receive the current OpenTelemetry trace context so their work can be correlated with the session's telemetry spans. Hook inputs gain a `traceparent` field (plus `tracestate` when the active span carries vendor-specific state), and command hooks also receive these as environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `TRACEPARENT` | The W3C Trace Context `traceparent` header value for the current span |
+| `TRACESTATE` | The W3C Trace Context `tracestate` header value, when present |
+
+This lets hook scripts emit their own OpenTelemetry spans as children of the session's trace, making it possible to see hook execution alongside tool calls and model requests in your observability backend.
+
 ### Event Configuration
 
 Hooks support two types: `"command"` for running local shell scripts, and `"http"` for sending JSON payloads to a URL.
