@@ -1,0 +1,25 @@
+{
+  "name": "sentry-triage",
+  "version": "1.1.0",
+  "main": "extension.mjs",
+  "author": "Liz Tom",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@github/copilot-sdk": "1.0.11",
+    "sentry": "0.42.2"
+  },
+  "description": "Scan live Sentry issues in a Copilot canvas, group them by urgency, and hand issues off for tracking or a fix PR.",
+  "keywords": [
+    "canvas",
+    "copilot-canvas",
+    "copilot-extension",
+    "error-triage",
+    "incident-response",
+    "on-call",
+    "sentry"
+  ]
+}

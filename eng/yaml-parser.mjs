@@ -15,6 +15,24 @@ function safeFileOperation(operation, filePath, defaultValue = null) {
 }
 
 /**
+ * Decide whether a symlinked entry should be left out of a bundled asset list.
+ *
+ * Directory symlinks are skipped because following one can walk outside the
+ * folder or form a cycle. Broken links are skipped too. File symlinks are kept:
+ * plugin materialization dereferences them, so they really are bundled content.
+ *
+ * @param {string} filePath - Path to the symlinked entry
+ * @returns {boolean} True when the entry should be skipped
+ */
+function skipsAsBundledAsset(filePath) {
+  try {
+    return fs.statSync(filePath).isDirectory();
+  } catch {
+    return true;
+  }
+}
+
+/**
  * Parse frontmatter from a markdown file using vfile-matter
  * Works with any markdown file that has YAML frontmatter (agents, prompts, instructions)
  * @param {string} filePath - Path to the markdown file
@@ -142,16 +160,16 @@ function parseSkillMetadata(skillPath) {
         return null;
       }
 
-      // List bundled assets (all files except SKILL.md), recursing through subdirectories
+      // List bundled assets (all files except SKILL.md), recursing through subdirectories.
+      // Directory symlinks are skipped: following one can escape the skill folder.
       const getAllFiles = (dirPath, arrayOfFiles = []) => {
-        const files = fs.readdirSync(dirPath);
-        const assetPaths = ['references', 'assets', 'scripts'];
+        const entries = fs.readdirSync(dirPath, { withFileTypes: true });
 
-        files.forEach((file) => {
-          const filePath = path.join(dirPath, file);
-          if (fs.statSync(filePath).isDirectory() && assetPaths.includes(file)) {
+        entries.forEach((entry) => {
+          const filePath = path.join(dirPath, entry.name);
+          if (entry.isDirectory()) {
             arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
-          } else {
+          } else if (!entry.isSymbolicLink() || !skipsAsBundledAsset(filePath)) {
             const relativePath = path.relative(skillPath, filePath);
             if (relativePath !== "SKILL.md") {
               // Normalize path separators to forward slashes for cross-platform consistency
@@ -218,15 +236,16 @@ function parseHookMetadata(hookPath) {
         }
       }
 
-      // List bundled assets (all files except README.md), recursing through subdirectories
+      // List bundled assets (all files except README.md), recursing through subdirectories.
+      // Directory symlinks are skipped: following one can escape the hook folder.
       const getAllFiles = (dirPath, arrayOfFiles = []) => {
-        const files = fs.readdirSync(dirPath);
+        const entries = fs.readdirSync(dirPath, { withFileTypes: true });
 
-        files.forEach((file) => {
-          const filePath = path.join(dirPath, file);
-          if (fs.statSync(filePath).isDirectory()) {
+        entries.forEach((entry) => {
+          const filePath = path.join(dirPath, entry.name);
+          if (entry.isDirectory()) {
             arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
-          } else {
+          } else if (!entry.isSymbolicLink() || !skipsAsBundledAsset(filePath)) {
             const relativePath = path.relative(hookPath, filePath);
             if (relativePath !== "README.md") {
               // Normalize path separators to forward slashes for cross-platform consistency
