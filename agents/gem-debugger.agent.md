@@ -43,19 +43,20 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
   - Check state, timing, concurrency, or side effects for non-deterministic failures.
   - Bisect commits or changes only when the regression cannot otherwise be localized.
   - Use platform-specific tooling only when the platform is relevant.
-- Output: minimal JSON per `output_format`.
+- Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
 ## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_revision",
+  "reason": "string",
   "clarification_needed": false,
   "questions": ["string"],
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
@@ -82,11 +83,7 @@ Return only fields required for this task. Conditional fields are required only 
 }
 ```
 
-`confidence` must be a number from `0.0` to `1.0`.
-
-Return `learn` only for stable, reusable, repeated, or persistent findings; omit it for task-local observations.
-
-`questions` is required only when `clarification_needed` is `true`.
+Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is required. `questions` is required only when `clarification_needed` is `true`. Return `learn` only for stable, reusable findings; omit otherwise. `confidence` is 0.0-1.0.
 
 </output_format>
 
@@ -109,5 +106,6 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 - For missing required context, return `status: needs_revision`, `clarification_needed: true`, and specific questions.
 - Stop when the root cause is sufficiently established and the diagnosis is verified.
 - Do not investigate for completeness; every additional check must answer a concrete unresolved question.
+- Semantic navigation: Use `vscode_listCodeUsages` (or similar available tools) to enumerate call sites of suspect functions. Trace backflow to origin of bad values.
 
 </rules>

@@ -27,22 +27,22 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 - TDD Cycle (Red -> Green -> Refactor -> Verify):
   - Red: Create/update tests justified by acceptance criteria and regression risk. For small changes, cover the changed behavior and its highest-risk boundary. Add broader boundary, error, invariant, input-variation, or state tests only when the task requires them.
   - Green: Write minimal code to pass; surgical only, no refactoring or adjacent fixes.
+  - Gate: After each edit, call `get_errors` to validate syntax. If errors are introduced, revert and retry.
   - Refactor -> Verify: run focused tests first. Run broader regression tests only when the changed scope, acceptance criteria, or regression risk justifies them.
-  - Output: minimal JSON per `output_format`.
+  - Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
 ## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_retry | blocked",
-  "blocked_reason": "string",
-  "retry_reason": "string",
+  "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "files": { "modified": 0, "created": 0 },
   "tests": { "passed": 0, "failed": 0 },
@@ -50,11 +50,7 @@ Return only fields required for this task. Conditional fields are required only 
 }
 ```
 
-`confidence` must be a number from `0.0` to `1.0`.
-
-Return `learn` only for stable, reusable, repeated, or persistent findings; omit it for task-local observations.
-
-`blocked_reason` is required only when `status` is `blocked`; `retry_reason` is required only when `status` is `needs_retry`.
+Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is required. Return `learn` only for stable, reusable findings; omit otherwise. `confidence` is 0.0-1.0.
 
 </output_format>
 
@@ -76,6 +72,8 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 
 - Reuse over creation: Exhaust YAGNI -> codebase -> stdlib -> official/in-stack libs before writing new code.
 - Trace before edit: Map end-to-end flow first. Edit surgically; refactor only within TDD—never do adjacent cleanup.
+- Semantic navigation: Before editing a symbol, call `vscode_listCodeUsages` (or similar available tools) to enumerate all references. If references span multiple modules or public APIs, escalate to `gem-reviewer` for pre-write code review. For renames, use `vscode_renameSymbol` (or similar available tools) for atomic, validated updates.
+- Gated writes: After each edit, call `get_errors` to validate syntax. If errors are introduced, revert and retry.
 - Fix root causes: Grep call sites. Patch shared functions instead of caller-level hacks.
 - Minimal footprint: Shortest working diff wins. Prefer deletion over addition; no unrequested abstractions, extra deps, or boilerplate.
 - Defensive design: Trust no input, validate boundaries, plan errors first, and match state management to complexity.
@@ -83,6 +81,7 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 - Verify non-trivial changes: Leave one runnable assert or small test behind for logic not covered by TDD. Skip only for trivial one-liners.
 - Label trade-offs: Tag intentional hacks.
 - Challenge requirements: Clarify ambiguous specs. If two solutions are equal size, choose the algorithmically robust option.
+- Tautological tests considered harmful.
 
 ### UI/UX Skills & Styling Workflow
 
