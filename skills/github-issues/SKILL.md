@@ -20,9 +20,17 @@ Manage GitHub issues using the `@modelcontextprotocol/server-github` MCP server.
 | `mcp__github__projects_get` | Get details of a project, field, item, or status update |
 | `mcp__github__projects_write` | Add/update/delete project items, create status updates |
 
+### MCP Tools (write operations)
+
+| Tool | Purpose |
+|------|---------|
+| `mcp__github__issue_write` | Create or update an issue (methods: create, update). Supports title, body, type, labels, assignees, milestone, and issue fields |
+| `mcp__github__add_issue_comment` | Add a comment or a reaction to an issue |
+| `mcp__github__sub_issue_write` | Add, remove, or reprioritize a sub-issue |
+
 ### CLI / REST API (write operations)
 
-The MCP server does not currently support creating, updating, or commenting on issues. Use `gh api` for these operations.
+`gh api` performs the same writes and is the form used in the examples below. Reach for it when the MCP server is not connected, or when you need a REST field the MCP tools do not expose.
 
 | Operation | Command |
 |-----------|---------|
@@ -61,9 +69,16 @@ Add any of these flags to the `gh api` call:
 
 ```
 -f type="Bug"                    # Issue type (Bug, Feature, Task, Epic, etc.)
--f labels[]="bug"                # Labels (repeat for multiple)
--f assignees[]="username"        # Assignees (repeat for multiple)
+-f 'labels[]=bug'                # Labels (repeat for multiple)
+-f 'assignees[]=username'        # Assignees (repeat for multiple)
 -f milestone=1                   # Milestone number
+```
+
+**Quote the whole `name[]=value` pair.** `[]` is a glob pattern in zsh, the default shell
+on macOS, so an unquoted `-f labels[]=bug` never reaches `gh`:
+
+```
+zsh: no matches found: labels[]=bug
 ```
 
 **Issue types** are organization-level metadata. To discover available types, use:
@@ -145,7 +160,7 @@ gh api repos/github/awesome-copilot/issues \
   -X POST \
   -f title="Add dark mode support" \
   -f type="Feature" \
-  -f labels[]="high-priority" \
+  -f 'labels[]=high-priority' \
   -f body="## Summary
 Add dark mode theme option for improved user experience and accessibility.
 
