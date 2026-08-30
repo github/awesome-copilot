@@ -1,0 +1,5365 @@
+{
+  "$schema": "./registry-v2.schema.json",
+  "aliases": {
+    "claude-desktop": "claude/desktop-chat",
+    "codeium": "windsurf/ide",
+    "jetbrains-ai": "jetbrains/ai-assistant",
+    "trae-cn": "trae/cn-ide",
+    "visual-studio": "copilot/visual-studio",
+    "vscode": "copilot/vscode"
+  },
+  "candidate_discovery": {
+    "auto_promote_threshold": {
+      "min_detection_probes": 1,
+      "min_official_sources": 2,
+      "min_surfaces": 2
+    },
+    "enabled": false,
+    "report_format": {
+      "include_archived_products": true,
+      "include_new_paths": true,
+      "include_new_products": true,
+      "include_renamed_products": true,
+      "include_schema_changes": true,
+      "suggest_registry_diff": true
+    },
+    "schedule": "disabled"
+  },
+  "detection_config": {
+    "installation_states": [
+      "installed",
+      "configured-only",
+      "compatibility-only",
+      "cloud-connected",
+      "legacy",
+      "ambiguous",
+      "not-detected"
+    ],
+    "platforms": [
+      "darwin",
+      "linux",
+      "windows",
+      "wsl",
+      "remote-ssh",
+      "dev-container",
+      "codespaces",
+      "vscode-profile",
+      "extension-host"
+    ],
+    "probes": {
+      "app-bundle": {
+        "description": "macOS app bundle identifier lookup"
+      },
+      "binary": {
+        "description": "CLI binary lookup with version command"
+      },
+      "cloud-account": {
+        "description": "Cloud/API account connection check"
+      },
+      "environment": {
+        "description": "Environment variable override for path"
+      },
+      "file-signature": {
+        "description": "File path existence with content fingerprint"
+      },
+      "schema-probe": {
+        "description": "JSON schema validation for config files"
+      },
+      "vscode-extension": {
+        "description": "VS Code extension marketplace lookup"
+      }
+    }
+  },
+  "freshness": {
+    "candidate_discovery_schedule": "disabled",
+    "candidate_discovery_sources": [],
+    "demote_stale_on_detect": true,
+    "max_age_days": 365,
+    "online_checks_enabled": false,
+    "stale_levels": [
+      "stale-partial",
+      "stale-manual",
+      "stale-source-only"
+    ]
+  },
+  "object_policies": {
+    "agent": "manual-template",
+    "automation": "disabled-draft-only",
+    "chat": "forbidden-regenerate",
+    "cloud_knowledge": "official-api-or-rebuild-checklist",
+    "command": "manual-rebuild",
+    "config": "explicit-subobject-only",
+    "cron": "disabled-draft-only",
+    "database": "forbidden-regenerate",
+    "generated_memory": "forbidden-regenerate",
+    "hook": "disabled-draft-only",
+    "instructions": "semantic-ir-with-loss-report",
+    "mcp": "profile-version-adapter",
+    "mode": "manual-template",
+    "persona": "manual-template",
+    "plugin": "manual-rebuild",
+    "policy": "explicit-subobject-only",
+    "prompt": "manual-rebuild",
+    "rag_index": "forbidden-regenerate",
+    "skill": "validate-then-atomic-copy",
+    "trust": "never-migrate",
+    "user_memory": "review-then-instructions-ir",
+    "workflow": "manual-rebuild"
+  },
+  "products": {
+    "aider": {
+      "reference": "ides/aider.md",
+      "template": "manual-reference"
+    },
+    "amazon-q": {
+      "category": "agent-client",
+      "default_profile": "ide",
+      "display_name": "Amazon Q Developer",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "kind": "cli",
+          "migration_policy": "manual-template",
+          "sources": [
+            "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/qdev-mcp.html"
+          ],
+          "surfaces": {
+            "agents": [
+              {
+                "format": "amazon-q-agent",
+                "path": "~/.aws/amazonq/cli-agents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        },
+        "custom-agent": {
+          "kind": "custom-agent",
+          "migration_policy": "manual-template",
+          "sources": [
+            "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/qdev-mcp.html"
+          ],
+          "surfaces": {
+            "agents": [
+              {
+                "format": "amazon-q-agent",
+                "path": "~/.aws/amazonq/agents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        },
+        "ide": {
+          "kind": "ide-extension",
+          "mcp_path_note": "Dual paths documented: ~/.aws/amazonq/default.json and ~/.aws/amazonq/agents/default.json - probe both and validate root key/signature",
+          "migration_policy": "bidirectional-reviewed",
+          "precedence": [
+            "project-default",
+            "user-default",
+            "legacy-mcp"
+          ],
+          "sources": [
+            "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/mcp-ide.html",
+            "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/qdev-mcp.html"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "amazon-q-rule",
+                "path": ".amazonq/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "mcp": [
+              {
+                "compatibility_paths": [
+                  "~/.aws/amazonq/mcp.json",
+                  "~/.aws/amazonq/agents/default.json"
+                ],
+                "format": "json:mcpServers",
+                "path": "~/.aws/amazonq/default.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "compatibility_paths": [
+                  ".amazonq/mcp.json",
+                  ".amazonq/agents/default.json"
+                ],
+                "format": "json:mcpServers",
+                "path": ".amazonq/default.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        }
+      }
+    },
+    "android-studio": {
+      "reference": "ides/android-studio.md",
+      "template": "manual-reference"
+    },
+    "antigravity": {
+      "reference": "ides/antigravity.md",
+      "template": "manual-reference"
+    },
+    "augment-code": {
+      "category": "agent-client",
+      "default_profile": "cli-ide",
+      "display_name": "Augment Code",
+      "lifecycle": "active",
+      "profiles": {
+        "cli-ide": {
+          "kind": "cli-and-ide",
+          "migration_policy": "bidirectional-reviewed",
+          "sources": [
+            "https://docs.augmentcode.com/cli/rules",
+            "https://docs.augmentcode.com/cli/reference",
+            "https://docs.augmentcode.com/cli/config"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "augment-rule",
+                "path": "~/.augment/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "augment-rule",
+                "path": ".augment/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "directory"
+              },
+              {
+                "format": "plain-markdown",
+                "path": "~/.augment/user-guidelines.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "file"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.augment/settings.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "config-subobject"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".augment/settings.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "config-subobject"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".augment/settings.local.json",
+                "policy": "profile-version-adapter",
+                "scope": "local",
+                "storage": "config-subobject"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.augment/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".augment/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        }
+      }
+    },
+    "baidu-comate": {
+      "reference": "ides/baidu-comate.md",
+      "template": "manual-reference"
+    },
+    "baidu-comate-ide": {
+      "reference": "ides/baidu-comate-ide.md",
+      "template": "manual-reference"
+    },
+    "blackbox": {
+      "reference": "ides/blackbox.md",
+      "template": "manual-reference"
+    },
+    "bolt-new": {
+      "reference": "ides/bolt-new.md",
+      "template": "cloud-ui"
+    },
+    "claude": {
+      "category": "agent-suite",
+      "default_profile": "code-cli",
+      "display_name": "Claude",
+      "lifecycle": "active",
+      "profiles": {
+        "code-cli": {
+          "detection": [
+            {
+              "command": [
+                "claude"
+              ],
+              "type": "binary",
+              "version_command": [
+                "claude",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.claude/skills",
+                "CLAUDE.md"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.claude/skills",
+            "linux": "~/.claude/skills",
+            "wsl": "~/.claude/skills"
+          },
+          "sources": [
+            "https://code.claude.com/docs/en/settings",
+            "https://code.claude.com/docs/en/skills",
+            "https://code.claude.com/docs/en/mcp"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "CLAUDE.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.claude.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.claude/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".claude/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-15",
+          "version_range": "current as of 2026-08-15"
+        },
+        "desktop-chat": {
+          "kind": "desktop-chat",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "sources": [
+            "https://support.claude.com/en/articles/12512180-use-skills-in-claude"
+          ],
+          "surfaces": {},
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        },
+        "desktop-code": {
+          "detection": [
+            {
+              "darwin_bundle_id": "com.anthropic.claude-code",
+              "type": "app-bundle"
+            },
+            {
+              "paths": [
+                "~/.claude/skills",
+                "CLAUDE.md"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "desktop-coding",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.claude",
+            "linux": "~/.claude",
+            "wsl": "~/.claude"
+          },
+          "sources": [
+            "https://code.claude.com/docs/en/desktop"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "CLAUDE.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.claude.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.claude/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".claude/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-17",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "claude-desktop": {
+      "alias_of": {
+        "product": "claude",
+        "profile": "desktop-chat"
+      },
+      "reference": "ides/claude-desktop.md",
+      "template": "legacy-alias"
+    },
+    "cline": {
+      "category": "agent-client",
+      "default_profile": "ide",
+      "display_name": "Cline",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "inherits": "ide",
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "sources": [
+            "https://docs.cline.bot/getting-started/config"
+          ],
+          "verified_at": "2026-08-12"
+        },
+        "ide": {
+          "detection": [
+            {
+              "command": [
+                "cline"
+              ],
+              "type": "binary",
+              "version_command": [
+                "cline",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.cline/skills",
+                "~/.clinerules"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.cline/skills",
+            "linux": "~/.cline/skills",
+            "windows": "$APPDATA/cline/skills"
+          },
+          "precedence": [
+            "project",
+            "user",
+            "compatibility"
+          ],
+          "sources": [
+            "https://docs.cline.bot/getting-started/config"
+          ],
+          "surfaces": {
+            "agents": [
+              {
+                "format": "cline-agent",
+                "path": "~/.cline/agents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "cline-agent",
+                "path": ".cline/agents",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "cron": [
+              {
+                "format": "cline-cron",
+                "path": "~/.cline/cron",
+                "policy": "disabled-draft-only",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "cline-cron",
+                "path": ".cline/cron",
+                "policy": "disabled-draft-only",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "generated_memory": [
+              {
+                "path": "~/.cline/data",
+                "policy": "forbidden-regenerate",
+                "scope": "runtime",
+                "storage": "database"
+              }
+            ],
+            "hooks": [
+              {
+                "format": "cline-hook",
+                "path": "~/.cline/hooks",
+                "policy": "disabled-draft-only",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "cline-hook",
+                "path": ".cline/hooks",
+                "policy": "disabled-draft-only",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "instructions": [
+              {
+                "compatibility_paths": [
+                  "~/Documents/Cline/Rules"
+                ],
+                "format": "cline-rule",
+                "path": "~/.cline/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "compatibility_paths": [
+                  ".clinerules"
+                ],
+                "format": "cline-rule",
+                "path": ".cline/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "override_env": "CLINE_DATA_DIR",
+                "override_relative_path": "settings/cline_mcp_settings.json",
+                "path": "~/.cline/data/settings/cline_mcp_settings.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".cline/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "plugins": [
+              {
+                "format": "cline-plugin",
+                "path": "~/.cline/plugins",
+                "policy": "manual-rebuild",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "cline-plugin",
+                "path": ".cline/plugins",
+                "policy": "manual-rebuild",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.cline/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".cline/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "workflows": [
+              {
+                "format": "cline-workflow",
+                "path": "~/.cline/data/workflows",
+                "policy": "manual-rebuild",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "cline-workflow",
+                "path": ".cline/workflows",
+                "policy": "manual-rebuild",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        },
+        "sdk": {
+          "detection": [
+            {
+              "command": [
+                "cline"
+              ],
+              "type": "binary",
+              "version_command": [
+                "cline",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.cline/skills",
+                "~/.cline/rules"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "sdk",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.cline",
+            "linux": "~/.cline",
+            "wsl": "~/.cline"
+          },
+          "sources": [
+            "https://docs.cline.bot/getting-started/config"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "cline-rule",
+                "path": "~/.cline/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "cline-rule",
+                "path": ".cline/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.cline/data/settings/cline_mcp_settings.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".cline/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.cline/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".cline/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-17",
+          "version_range": "current as of 2026-08-17"
+        }
+      }
+    },
+    "codecompanion-nvim": {
+      "reference": "ides/codecompanion-nvim.md",
+      "template": "manual-reference"
+    },
+    "codeium": {
+      "alias_of": {
+        "product": "windsurf",
+        "profile": "ide"
+      },
+      "reference": "ides/codeium.md",
+      "template": "legacy-alias"
+    },
+    "codely": {
+      "reason": "Product surfaces and MCP schema are not version-bound",
+      "reference": "ides/codely.md",
+      "sources": [
+        "https://developer.unity.cn/projects/6a7189bcedbc2a120fe6d4af",
+        "https://codely-docs.tuanjie.cn/learn/ai-programming-environment-setup-guide"
+      ],
+      "template": "manual-reference",
+      "verified_at": "2026-08-13"
+    },
+    "codex": {
+      "category": "coding-agent",
+      "default_profile": "cli",
+      "display_name": "OpenAI Codex",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "codex"
+              ],
+              "type": "binary",
+              "version_command": [
+                "codex",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.codex/AGENTS.md",
+                "~/.codex/skills"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli-and-desktop-runtime",
+          "migration_policy": "bidirectional-reviewed",
+          "precedence": [
+            "nearest-project-override",
+            "project",
+            "user-override",
+            "user"
+          ],
+          "sources": [
+            "https://developers.openai.com/codex/skills",
+            "https://learn.chatgpt.com/docs/agent-configuration/agents-md.md",
+            "https://learn.chatgpt.com/docs/config-file/config-basic.md"
+          ],
+          "surfaces": {
+            "agents": [
+              {
+                "format": "toml",
+                "path": ".codex/agents",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "generated_memory": [
+              {
+                "format": "codex-memory",
+                "path": "~/.codex/memories",
+                "policy": "forbidden-regenerate",
+                "scope": "user",
+                "storage": "generated-state"
+              }
+            ],
+            "hooks": [
+              {
+                "format": "toml:hooks",
+                "path": "~/.codex/config.toml",
+                "policy": "disabled-draft-only",
+                "scope": "user",
+                "storage": "config-subobject"
+              },
+              {
+                "format": "toml:hooks",
+                "path": ".codex/config.toml",
+                "policy": "disabled-draft-only",
+                "scope": "project",
+                "storage": "config-subobject"
+              }
+            ],
+            "instructions": [
+              {
+                "compatibility_behavior": "precedence",
+                "compatibility_paths": [
+                  "~/.codex/AGENTS.override.md"
+                ],
+                "format": "agents-md",
+                "path": "~/.codex/AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "precedence-files"
+              },
+              {
+                "compatibility_behavior": "precedence",
+                "compatibility_paths": [
+                  "AGENTS.override.md"
+                ],
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "toml:mcp_servers",
+                "path": "~/.codex/config.toml",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "config-subobject"
+              },
+              {
+                "format": "toml:mcp_servers",
+                "path": ".codex/config.toml",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "config-subobject"
+              }
+            ],
+            "rules": [
+              {
+                "format": "codex-rule",
+                "path": ".codex/rules",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "trust": [
+              {
+                "path": "~/.codex/config.toml",
+                "policy": "never-migrate",
+                "scope": "user+managed",
+                "storage": "config"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        }
+      }
+    },
+    "cody": {
+      "reference": "ides/cody.md",
+      "template": "cloud-ui"
+    },
+    "continue": {
+      "category": "agent-client",
+      "default_profile": "cli",
+      "display_name": "Continue",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "continue"
+              ],
+              "type": "binary",
+              "version_command": [
+                "continue",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.continue/skills",
+                "~/.continue/config.yaml"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.continue",
+            "linux": "~/.continue",
+            "wsl": "~/.continue"
+          },
+          "sources": [
+            "https://continue.dev/docs/skills"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.continue/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".continue/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "copilot": {
+      "category": "agent-suite",
+      "default_profile": "cli",
+      "display_name": "GitHub Copilot",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "gh",
+                "copilot"
+              ],
+              "type": "binary",
+              "version_command": [
+                "gh",
+                "copilot",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.github/copilot",
+                "~/.copilot"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.github/copilot",
+            "linux": "~/.github/copilot",
+            "wsl": "~/.github/copilot"
+          },
+          "sources": [
+            "https://docs.github.com/en/copilot/how-tos/copilot-cli"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "copilot-instructions",
+                "path": "~/.github/copilot/instructions.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "copilot-instructions",
+                "path": ".github/copilot/instructions.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.copilot/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".github/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "github-com": {
+          "kind": "cloud-ui",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "sources": [
+            "https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot"
+          ],
+          "surfaces": {},
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        },
+        "visual-studio": {
+          "detection": [
+            {
+              "id": "github.copilot",
+              "type": "vscode-extension"
+            },
+            {
+              "paths": [
+                "%APPDATA%/Microsoft/VisualStudio/Copilot"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "windows": "%APPDATA%/Microsoft/VisualStudio/Copilot"
+          },
+          "sources": [
+            "https://learn.microsoft.com/en-us/visualstudio/ide/copilot-agent-skills"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "copilot-instructions",
+                "path": "%APPDATA%/Microsoft/VisualStudio/Copilot/instructions.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "copilot-instructions",
+                "path": "Copilot/instructions.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "%APPDATA%/Microsoft/VisualStudio/Copilot/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": "Copilot/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "vscode": {
+          "detection": [
+            {
+              "id": "github.copilot",
+              "type": "vscode-extension"
+            },
+            {
+              "paths": [
+                "~/.vscode/extensions/github.copilot-*"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.vscode/extensions/github.copilot-*",
+            "dev-container": "~/.vscode/extensions/github.copilot-*",
+            "linux": "~/.vscode/extensions/github.copilot-*",
+            "windows": "%USERPROFILE%/.vscode/extensions/github.copilot-*",
+            "wsl": "~/.vscode/extensions/github.copilot-*"
+          },
+          "sources": [
+            "https://code.visualstudio.com/docs/agent-customization/agent-skills"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "copilot-instructions",
+                "path": "~/.vscode/copilot/instructions.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "copilot-instructions",
+                "path": ".github/copilot/instructions.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.vscode/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".vscode/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.copilot/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".github/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "crush": {
+      "category": "coding-agent",
+      "default_profile": "cli",
+      "display_name": "Crush",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "precedence": [
+            "project-dot",
+            "project",
+            "user"
+          ],
+          "sources": [
+            "https://github.com/charmbracelet/crush"
+          ],
+          "surfaces": {
+            "generated_memory": [
+              {
+                "override_env": "CRUSH_GLOBAL_DATA",
+                "path": "~/.local/share/crush/crush.json",
+                "policy": "forbidden-regenerate",
+                "scope": "user",
+                "storage": "generated-state"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcp",
+                "override_env": "CRUSH_GLOBAL_CONFIG",
+                "path": "~/.config/crush/crush.json",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "config-subobject"
+              },
+              {
+                "compatibility_paths": [
+                  "crush.json"
+                ],
+                "format": "json:mcp",
+                "path": ".crush.json",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "config-subobject"
+              }
+            ],
+            "skills": [
+              {
+                "compatibility_paths": [
+                  "~/.agents/skills",
+                  "~/.claude/skills"
+                ],
+                "format": "agent-skill",
+                "override_env": "CRUSH_SKILLS_DIR",
+                "path": "~/.config/crush/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "compatibility_paths": [
+                  ".agents/skills",
+                  ".claude/skills",
+                  ".cursor/skills"
+                ],
+                "format": "agent-skill",
+                "path": ".crush/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        }
+      }
+    },
+    "cursor": {
+      "category": "ide-extension",
+      "default_profile": "ide",
+      "display_name": "Cursor",
+      "lifecycle": "active",
+      "profiles": {
+        "ide": {
+          "detection": [
+            {
+              "darwin_bundle_id": "com.todesclient.ios",
+              "type": "app-bundle"
+            },
+            {
+              "paths": [
+                "~/.cursor/skills",
+                "~/.cursor/rules"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.cursor/skills",
+            "linux": "~/.cursor/skills",
+            "windows": "$APPDATA/Cursor/skills"
+          },
+          "sources": [
+            "https://docs.cursor.com/context/rules",
+            "https://docs.cursor.com/context/skills",
+            "https://docs.cursor.com/context/mcp"
+          ],
+          "surfaces": {
+            "hooks": [
+              {
+                "format": "cursor-hook",
+                "path": "~/.cursor/hooks",
+                "policy": "disabled-draft-only",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "cursor-hook",
+                "path": ".cursor/hooks",
+                "policy": "disabled-draft-only",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "instructions": [
+              {
+                "format": "cursor-mdc",
+                "path": "~/.cursor/rules",
+                "policy": "manual-rebuild",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "cursor-mdc",
+                "path": ".cursor/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.cursor/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".cursor/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.cursor/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".cursor/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-15",
+          "version_range": "current as of 2026-08-15"
+        }
+      }
+    },
+    "devin": {
+      "category": "agent-suite",
+      "default_profile": "terminal",
+      "display_name": "Devin",
+      "lifecycle": "active",
+      "profiles": {
+        "cloud": {
+          "kind": "cloud-ui",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "sources": [
+            "https://app.devin.ai"
+          ],
+          "surfaces": {},
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "terminal": {
+          "detection": [
+            {
+              "command": [
+                "devin"
+              ],
+              "type": "binary",
+              "version_command": [
+                "devin",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.devin/skills",
+                "~/.devin/sessions"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.devin",
+            "linux": "~/.devin"
+          },
+          "sources": [
+            "https://docs.devin.ai/cli"
+          ],
+          "surfaces": {
+            "handoff": [
+              {
+                "format": "devin-session",
+                "path": "~/.devin/sessions",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              }
+            ],
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.devin/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".devin/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "emacs": {
+      "reference": "ides/emacs.md",
+      "template": "host-editor"
+    },
+    "factory-droid": {
+      "category": "agent-client",
+      "default_profile": "cli",
+      "display_name": "Factory Droid",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "droid"
+              ],
+              "type": "binary",
+              "version_command": [
+                "droid",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.factory/skills",
+                "~/.factory/plugins",
+                "~/.factory/droids"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.factory",
+            "linux": "~/.factory"
+          },
+          "sources": [
+            "https://factory.ai/docs/plugins"
+          ],
+          "surfaces": {
+            "agents": [
+              {
+                "format": "factory-droid",
+                "path": "~/.factory/droids",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "factory-droid",
+                "path": ".factory/droids",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "commands": [
+              {
+                "format": "factory-command",
+                "path": "~/.factory/commands",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "factory-command",
+                "path": ".factory/commands",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "hooks": [
+              {
+                "format": "factory-hooks",
+                "path": "~/.factory/hooks/hooks.json",
+                "policy": "disabled-draft-only",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "factory-hooks",
+                "path": ".factory/hooks/hooks.json",
+                "policy": "disabled-draft-only",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.factory/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".factory/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "plugins": [
+              {
+                "format": "factory-plugin",
+                "path": "~/.factory/plugins",
+                "policy": "preserve-package",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "factory-plugin",
+                "path": ".factory/plugins",
+                "policy": "preserve-package",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.factory/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".factory/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "firebase-studio": {
+      "category": "cloud-ide",
+      "default_profile": "legacy-workspace",
+      "display_name": "Firebase Studio",
+      "lifecycle": "sunsetting-2027-03-22",
+      "profiles": {
+        "legacy-workspace": {
+          "kind": "cloud-ide",
+          "migration_policy": "source-only",
+          "sources": [
+            "https://firebase.google.com/docs/studio/get-started",
+            "https://firebase.google.com/docs/studio/mcp-servers"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "plain-markdown",
+                "path": ".idx/airules.md",
+                "policy": "source-only",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": ".idx/mcp.json",
+                "policy": "source-only",
+                "scope": "project",
+                "storage": "file"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "existing workspaces until 2027-03-22"
+        }
+      }
+    },
+    "forge": {
+      "category": "coding-agent",
+      "default_profile": "cli",
+      "display_name": "ForgeCode",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "forge"
+              ],
+              "type": "binary",
+              "version_command": [
+                "forge",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.forge/skills",
+                "~/.agents/skills"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.forge/skills",
+            "extension-host": "~/.forge/skills",
+            "linux": "~/.forge/skills",
+            "remote-ssh": "~/.forge/skills",
+            "wsl": "~/.forge/skills"
+          },
+          "precedence": [
+            "project",
+            "agents",
+            "user",
+            "built-in"
+          ],
+          "sources": [
+            "https://forgecode.dev/docs/skills/",
+            "https://forgecode.dev/docs/mcp-integration/",
+            "https://forgecode.dev/docs/forgecode-config/"
+          ],
+          "surfaces": {
+            "config": [
+              {
+                "format": "toml",
+                "path": ".forge.toml",
+                "policy": "explicit-subobject-only",
+                "scope": "project",
+                "storage": "file"
+              },
+              {
+                "format": "toml",
+                "path": "~/.forge/.forge.toml",
+                "policy": "explicit-subobject-only",
+                "scope": "user",
+                "storage": "file"
+              }
+            ],
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": ".mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": ".forge/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": "~/.agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "shared-user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": "~/forge/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        }
+      }
+    },
+    "gemini-cli": {
+      "category": "agent-client",
+      "default_profile": "cli",
+      "display_name": "Gemini CLI",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "gemini"
+              ],
+              "type": "binary",
+              "version_command": [
+                "gemini",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.gemini/AGENTS.md",
+                "~/.gemini/skills",
+                "~/.gemini/commands"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.gemini",
+            "linux": "~/.gemini",
+            "wsl": "~/.gemini"
+          },
+          "sources": [
+            "https://github.com/google-gemini/gemini-cli"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "GEMINI.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.gemini/settings.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".gemini/settings.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.gemini/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".gemini/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "gemini-code-assist": {
+      "category": "ide-extension",
+      "default_profile": "vscode",
+      "display_name": "Gemini Code Assist",
+      "lifecycle": "active",
+      "profiles": {
+        "enterprise": {
+          "kind": "cloud-ui",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "sources": [
+            "https://cloud.google.com/gemini-code-assist/docs/enterprise"
+          ],
+          "surfaces": {
+            "policies": [
+              {
+                "format": "json",
+                "path": "~/.gemini-code-assist/enterprise-policies.json",
+                "policy": "manual-template",
+                "scope": "enterprise",
+                "storage": "file"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "jetbrains": {
+          "detection": [
+            {
+              "id": "com.google.gemini.code.assist",
+              "type": "vscode-extension"
+            },
+            {
+              "paths": [
+                "~/.config/JetBrains/GeminiCodeAssist/skills",
+                "~/.config/JetBrains/GeminiCodeAssist/prompts"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.config/JetBrains/GeminiCodeAssist",
+            "linux": "~/.config/JetBrains/GeminiCodeAssist",
+            "windows": "%APPDATA%/JetBrains/GeminiCodeAssist"
+          },
+          "sources": [
+            "https://plugins.jetbrains.com/plugin/gemini-code-assist"
+          ],
+          "surfaces": {
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.config/JetBrains/GeminiCodeAssist/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".gemini-code-assist/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "prompt_library": [
+              {
+                "format": "gemini-prompt-library",
+                "path": "~/.config/JetBrains/GeminiCodeAssist/prompt-library",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "gemini-prompt-library",
+                "path": ".gemini-code-assist/prompt-library",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "prompts": [
+              {
+                "format": "gemini-prompt",
+                "path": "~/.config/JetBrains/GeminiCodeAssist/prompts",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "gemini-prompt",
+                "path": ".gemini-code-assist/prompts",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.config/JetBrains/GeminiCodeAssist/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".gemini-code-assist/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "vscode": {
+          "detection": [
+            {
+              "id": "google.gemini-code-assist",
+              "type": "vscode-extension"
+            },
+            {
+              "paths": [
+                "~/.gemini-code-assist/skills",
+                "~/.gemini-code-assist/prompts"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.gemini-code-assist",
+            "linux": "~/.gemini-code-assist",
+            "windows": "%APPDATA%/GeminiCodeAssist",
+            "wsl": "~/.gemini-code-assist"
+          },
+          "sources": [
+            "https://cloud.google.com/gemini-code-assist/docs/ide"
+          ],
+          "surfaces": {
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.gemini-code-assist/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".gemini-code-assist/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "prompt_library": [
+              {
+                "format": "gemini-prompt-library",
+                "path": "~/.gemini-code-assist/prompt-library",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "gemini-prompt-library",
+                "path": ".gemini-code-assist/prompt-library",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "prompts": [
+              {
+                "format": "gemini-prompt",
+                "path": "~/.gemini-code-assist/prompts",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "gemini-prompt",
+                "path": ".gemini-code-assist/prompts",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.gemini-code-assist/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".gemini-code-assist/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "gitlab-duo": {
+      "category": "agent-suite",
+      "default_profile": "vscode",
+      "display_name": "GitLab Duo Agent Platform",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "glab"
+              ],
+              "type": "binary",
+              "version_command": [
+                "glab",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.gitlab/duo/AGENTS.md"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.gitlab/duo",
+            "linux": "~/.gitlab/duo",
+            "wsl": "~/.gitlab/duo"
+          },
+          "sources": [
+            "https://docs.gitlab.com/ee/user/duo_agent_platform/cli.html"
+          ],
+          "surfaces": {
+            "flows": [
+              {
+                "format": "gitlab-flow",
+                "path": ".gitlab/duo/flows.yaml",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.gitlab/duo/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".gitlab/duo/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "flows": {
+          "detection": [
+            {
+              "paths": [
+                ".gitlab/duo/flows.yaml"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "workflow",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.gitlab/duo",
+            "linux": "~/.gitlab/duo",
+            "wsl": "~/.gitlab/duo"
+          },
+          "sources": [
+            "https://docs.gitlab.com/ee/user/duo_agent_platform/flows.html"
+          ],
+          "surfaces": {
+            "flows": [
+              {
+                "format": "gitlab-flow",
+                "path": ".gitlab/duo/flows.yaml",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ]
+          },
+          "verified_at": "2026-08-17",
+          "version_range": "current as of 2026-08-16"
+        },
+        "jetbrains": {
+          "detection": [
+            {
+              "id": "gitlab.gitlab-duo",
+              "type": "vscode-extension"
+            },
+            {
+              "paths": [
+                "~/.config/JetBrains/GitLabDuo/AGENTS.md"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.config/JetBrains/GitLabDuo",
+            "linux": "~/.config/JetBrains/GitLabDuo",
+            "windows": "%APPDATA%/JetBrains/GitLabDuo"
+          },
+          "sources": [
+            "https://plugins.jetbrains.com/plugin/18657-gitlab-duo"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "~/.config/JetBrains/GitLabDuo/AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.config/JetBrains/GitLabDuo/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".gitlab/duo/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "vscode": {
+          "detection": [
+            {
+              "id": "gitlab.gitlab-duo",
+              "type": "vscode-extension"
+            },
+            {
+              "paths": [
+                "~/.gitlab/duo/AGENTS.md",
+                "~/.config/gitlab/duo/AGENTS.md"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.gitlab/duo",
+            "dev-container": "~/.gitlab/duo",
+            "linux": "~/.gitlab/duo",
+            "wsl": "~/.gitlab/duo"
+          },
+          "sources": [
+            "https://docs.gitlab.com/ee/user/duo_agent_platform/"
+          ],
+          "surfaces": {
+            "flows": [
+              {
+                "format": "gitlab-flow",
+                "path": ".gitlab/duo/flows.yaml",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "~/.gitlab/duo/AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.gitlab/duo/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".gitlab/duo/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "web": {
+          "kind": "cloud-ui",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "sources": [
+            "https://gitlab.com/-/duo"
+          ],
+          "surfaces": {},
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "goose-cli": {
+      "reference": "ides/goose-cli.md",
+      "template": "manual-reference"
+    },
+    "gptel-mcp-el": {
+      "reference": "ides/gptel-mcp-el.md",
+      "template": "manual-reference"
+    },
+    "helix": {
+      "reference": "ides/helix.md",
+      "template": "host-editor"
+    },
+    "hermes": {
+      "category": "agent-client",
+      "default_profile": "cli",
+      "display_name": "Hermes Agent",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "hermes"
+              ],
+              "type": "binary",
+              "version_command": [
+                "hermes",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.hermes/skills",
+                "~/.hermes/memories"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.hermes",
+            "linux": "~/.hermes",
+            "wsl": "~/.hermes"
+          },
+          "sources": [
+            "https://github.com/hermes-agent/hermes"
+          ],
+          "surfaces": {
+            "acp": [
+              {
+                "format": "hermes-acp",
+                "path": "~/.hermes/acp.json",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "hermes-acp",
+                "path": ".hermes/acp.json",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "cron": [
+              {
+                "format": "hermes-cron",
+                "path": "~/.hermes/cron.json",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "hermes-cron",
+                "path": ".hermes/cron.json",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.hermes/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".hermes/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "memory": [
+              {
+                "format": "hermes-memory",
+                "path": "~/.hermes/memories",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "hermes-memory",
+                "path": ".hermes/memories",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.hermes/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".hermes/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "subagents": [
+              {
+                "format": "hermes-subagent",
+                "path": "~/.hermes/subagents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "hermes-subagent",
+                "path": ".hermes/subagents",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "ibm-bob": {
+      "category": "agent-suite",
+      "default_profile": "ide",
+      "display_name": "IBM Bob",
+      "lifecycle": "active",
+      "profiles": {
+        "ide": {
+          "kind": "ide-extension",
+          "mcp_path_note": "IDE global MCP path differs from Shell; see profiles.",
+          "migration_policy": "bidirectional-reviewed",
+          "sources": [
+            "https://www.ibm.com/docs/en/bob"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "plain-markdown",
+                "path": "~/.bob/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "plain-markdown",
+                "path": "~/.bob/rules-agent",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "plain-markdown",
+                "path": "~/.bob/rules-plan",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "plain-markdown",
+                "path": "~/.bob/rules-ask",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.bob/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".bob/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.bob/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".bob/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-15",
+          "version_range": "current as of 2026-08-15"
+        },
+        "shell": {
+          "kind": "cli",
+          "mcp_path_note": "Shell uses ~/.bob/mcp_settings.json (not ~/.bob/mcp.json).",
+          "migration_policy": "bidirectional-reviewed",
+          "sources": [
+            "https://www.ibm.com/docs/en/bob/shell"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "plain-markdown",
+                "path": "~/.bob/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.bob/mcp_settings.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".bob/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.bob/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".bob/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-15",
+          "version_range": "current as of 2026-08-15"
+        }
+      }
+    },
+    "iflycode": {
+      "reference": "ides/ui-only-mcp.md",
+      "template": "manual-reference"
+    },
+    "jetbrains": {
+      "category": "ide-suite",
+      "default_profile": "junie",
+      "display_name": "JetBrains",
+      "lifecycle": "active",
+      "profiles": {
+        "ai-assistant": {
+          "detection": [
+            {
+              "paths": [
+                "~/.config/JetBrains/AI-Assistant/skills"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-assistant",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.config/JetBrains/AI-Assistant",
+            "linux": "~/.config/JetBrains/AI-Assistant",
+            "windows": "%APPDATA%/JetBrains/AI-Assistant"
+          },
+          "sources": [
+            "https://www.jetbrains.com/help/ai-assistant/agent-skills.html"
+          ],
+          "surfaces": {
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.config/JetBrains/AI-Assistant/skills",
+                "policy": "manual-rebuild",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "junie": {
+          "detection": [
+            {
+              "command": [
+                "junie"
+              ],
+              "type": "binary",
+              "version_command": [
+                "junie",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.config/JetBrains/Junie/skills",
+                "~/.junie/skills"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-agent",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.config/JetBrains/Junie",
+            "linux": "~/.config/JetBrains/Junie",
+            "windows": "%APPDATA%/JetBrains/Junie",
+            "wsl": "~/.config/JetBrains/Junie"
+          },
+          "sources": [
+            "https://junie.jetbrains.com/docs/agent-skills.html"
+          ],
+          "surfaces": {
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.junie/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".junie/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "jetbrains-ai": {
+      "alias_of": {
+        "product": "jetbrains",
+        "profile": "ai-assistant"
+      },
+      "reference": "ides/jetbrains-ai.md",
+      "template": "legacy-alias"
+    },
+    "jules": {
+      "category": "agent-suite",
+      "default_profile": "cloud",
+      "display_name": "Google Jules",
+      "lifecycle": "active",
+      "profiles": {
+        "api": {
+          "kind": "cloud-api",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "sources": [
+            "https://cloud.google.com/jules/docs/api"
+          ],
+          "surfaces": {},
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "jules"
+              ],
+              "type": "binary",
+              "version_command": [
+                "jules",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.jules/config.yaml"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.jules",
+            "linux": "~/.jules",
+            "wsl": "~/.jules"
+          },
+          "sources": [
+            "https://cloud.google.com/jules/docs/cli"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "cloud": {
+          "kind": "cloud-ui",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "sources": [
+            "https://jules.google.com"
+          ],
+          "surfaces": {
+            "environment_setup": [
+              {
+                "format": "bash",
+                "path": ".jules/setup.sh",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "environment_snapshot": [
+              {
+                "format": "json",
+                "path": ".jules/snapshot.json",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "schedules": [
+              {
+                "format": "yaml",
+                "path": ".jules/schedules.yaml",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "kilocode": {
+      "reference": "ides/kilocode.md",
+      "template": "manual-reference"
+    },
+    "kimiai": {
+      "reference": "ides/kimiai.md",
+      "template": "manual-reference"
+    },
+    "kiro": {
+      "category": "ide-agent",
+      "default_profile": "ide",
+      "display_name": "Kiro",
+      "lifecycle": "active",
+      "profiles": {
+        "ide": {
+          "detection": [
+            {
+              "command": [
+                "kiro"
+              ],
+              "type": "binary",
+              "version_command": [
+                "kiro",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.kiro/skills",
+                "~/.kiro/steering"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.kiro",
+            "linux": "~/.kiro",
+            "windows": "%APPDATA%/Kiro",
+            "wsl": "~/.kiro"
+          },
+          "sources": [
+            "https://kiro.dev/docs"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "kiro-steering",
+                "path": "~/.kiro/steering",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "kiro-steering",
+                "path": ".kiro/steering",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.kiro/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".kiro/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "letta": {
+      "category": "agent-client",
+      "default_profile": "cli",
+      "display_name": "Letta Code",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "letta"
+              ],
+              "type": "binary",
+              "version_command": [
+                "letta",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.letta/skills",
+                "~/.letta/agents"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.letta",
+            "linux": "~/.letta",
+            "wsl": "~/.letta"
+          },
+          "sources": [
+            "https://docs.letta.com/agents/skills"
+          ],
+          "surfaces": {
+            "agentfile": [
+              {
+                "format": "letta-agentfile",
+                "path": "~/.letta/agent.af",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "letta-agentfile",
+                "path": ".letta/agent.af",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "memory": [
+              {
+                "format": "letta-memory",
+                "path": "~/.letta/editable_memory",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "letta-memory",
+                "path": ".letta/editable_memory",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "scheduling": [
+              {
+                "format": "letta-scheduler",
+                "path": "~/.letta/scheduler.json",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "letta-scheduler",
+                "path": ".letta/scheduler.json",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.letta/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".letta/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "subagents": [
+              {
+                "format": "letta-subagent",
+                "path": "~/.letta/subagents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "letta-subagent",
+                "path": ".letta/subagents",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "letta-code": {
+      "category": "agent-client",
+      "default_profile": "desktop-cli",
+      "display_name": "Letta Code",
+      "lifecycle": "active",
+      "profiles": {
+        "agent-file": {
+          "detection": [
+            {
+              "paths": [
+                "~/.letta/agents.af",
+                ".letta/agents.af"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "agent-file",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.letta",
+            "linux": "~/.letta",
+            "wsl": "~/.letta"
+          },
+          "sources": [
+            "https://docs.letta.ai/agent-file"
+          ],
+          "surfaces": {
+            "agent_file": [
+              {
+                "format": "letta-agent-file",
+                "path": "~/.letta/agents.af",
+                "policy": "preserve-package",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "letta-agent-file",
+                "path": ".letta/agents.af",
+                "policy": "preserve-package",
+                "scope": "project",
+                "storage": "file"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "cloud": {
+          "kind": "cloud-ui",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "sources": [
+            "https://app.letta.com"
+          ],
+          "surfaces": {},
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "desktop-cli": {
+          "detection": [
+            {
+              "command": [
+                "letta"
+              ],
+              "type": "binary",
+              "version_command": [
+                "letta",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.letta/skills",
+                "~/.letta/memories",
+                "~/.letta/agents"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "desktop-cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.letta",
+            "linux": "~/.letta",
+            "wsl": "~/.letta"
+          },
+          "sources": [
+            "https://docs.letta.ai/letta-code"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "~/.letta/AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "memory": [
+              {
+                "format": "letta-memory",
+                "path": "~/.letta/memories",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "letta-memory",
+                "path": ".letta/memories",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.letta/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".letta/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "subagents": [
+              {
+                "format": "letta-agent",
+                "path": "~/.letta/agents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "letta-agent",
+                "path": ".letta/agents",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "lovable": {
+      "reference": "ides/lovable.md",
+      "template": "cloud-ui"
+    },
+    "mcphub-nvim": {
+      "reference": "ides/mcphub-nvim.md",
+      "template": "manual-reference"
+    },
+    "minimax-code": {
+      "reference": "ides/minimax-code.md",
+      "template": "manual-reference"
+    },
+    "mistral-vibe": {
+      "category": "coding-agent",
+      "default_profile": "cli",
+      "display_name": "Mistral Vibe Code",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "precedence": [
+            "custom",
+            "project-agents",
+            "project-vibe",
+            "user-vibe",
+            "user-agents"
+          ],
+          "sources": [
+            "https://github.com/mistralai/mistral-vibe"
+          ],
+          "surfaces": {
+            "agents": [
+              {
+                "format": "toml",
+                "path": "~/.vibe/agents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              }
+            ],
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "~/.vibe/AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "toml:mcp_servers",
+                "path": "~/.vibe/config.toml",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "config-subobject"
+              },
+              {
+                "format": "toml:mcp_servers",
+                "path": ".vibe/config.toml",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "config-subobject"
+              }
+            ],
+            "skills": [
+              {
+                "compatibility_paths": [
+                  "~/.agents/skills"
+                ],
+                "format": "agent-skill",
+                "path": "~/.vibe/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "compatibility_paths": [
+                  ".agents/skills"
+                ],
+                "format": "agent-skill",
+                "path": ".vibe/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        }
+      }
+    },
+    "mmx-cli": {
+      "reference": "ides/mmx-cli.md",
+      "template": "manual-reference"
+    },
+    "monkeycode": {
+      "confidence": "high",
+      "reason": "Cloud/self-hosted development platform with no verified portable local context contract",
+      "reference": "ides/monkeycode.md",
+      "sources": [
+        "https://github.com/chaitin/MonkeyCode"
+      ],
+      "template": "cloud-ui",
+      "verified_at": "2026-08-13"
+    },
+    "neovim": {
+      "reference": "ides/neovim.md",
+      "template": "host-editor"
+    },
+    "openclaw": {
+      "reference": "ides/openclaw.md",
+      "template": "manual-reference"
+    },
+    "opencode": {
+      "category": "agent-client",
+      "default_profile": "cli",
+      "display_name": "OpenCode",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "opencode"
+              ],
+              "type": "binary",
+              "version_command": [
+                "opencode",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.config/opencode/skills",
+                "~/.config/opencode/AGENTS.md"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.config/opencode",
+            "linux": "~/.config/opencode",
+            "wsl": "~/.config/opencode"
+          },
+          "sources": [
+            "https://opencode.ai"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.config/opencode/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".opencode/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "openhands": {
+      "category": "agent-client",
+      "default_profile": "cli",
+      "display_name": "OpenHands",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "openhands"
+              ],
+              "type": "binary",
+              "version_command": [
+                "openhands",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.openhands/skills",
+                "~/.agents/skills"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.openhands",
+            "linux": "~/.openhands",
+            "wsl": "~/.openhands"
+          },
+          "sources": [
+            "https://docs.openhands.dev/modules/skills"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.openhands/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".openhands/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": "~/.agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "pearai": {
+      "reference": "ides/pearai.md",
+      "template": "manual-reference"
+    },
+    "pi": {
+      "category": "coding-agent",
+      "default_profile": "cli",
+      "display_name": "Pi coding agent",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "sources": [
+            "https://pi.dev/docs/latest/skills",
+            "https://pi.dev/docs/latest/settings"
+          ],
+          "surfaces": {
+            "config": [
+              {
+                "format": "json:skills",
+                "path": "~/.pi/agent/settings.json",
+                "policy": "explicit-subobject-only",
+                "scope": "user",
+                "storage": "config-subobject"
+              },
+              {
+                "format": "json:skills",
+                "path": ".pi/settings.json",
+                "policy": "explicit-subobject-only",
+                "scope": "project",
+                "storage": "config-subobject"
+              }
+            ],
+            "skills": [
+              {
+                "compatibility_paths": [
+                  "~/.agents/skills"
+                ],
+                "format": "agent-skill",
+                "path": "~/.pi/agent/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "compatibility_paths": [
+                  ".agents/skills"
+                ],
+                "format": "agent-skill",
+                "path": ".pi/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        }
+      }
+    },
+    "pieces": {
+      "reference": "ides/pieces.md",
+      "template": "provider"
+    },
+    "qoder": {
+      "category": "coding-agent",
+      "default_profile": "cli",
+      "display_name": "Qoder International",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "sources": [
+            "https://docs.qoder.com/en/cli/Skills",
+            "https://docs.qoder.com/en/cli/mcp-servers",
+            "https://docs.qoder.com/cli/hooks"
+          ],
+          "surfaces": {
+            "hooks": [
+              {
+                "format": "json:hooks",
+                "path": "~/.qoder/settings.json",
+                "policy": "disabled-draft-only",
+                "scope": "user",
+                "storage": "config-subobject"
+              },
+              {
+                "format": "json:hooks",
+                "path": ".qoder/settings.json",
+                "policy": "disabled-draft-only",
+                "scope": "project",
+                "storage": "config-subobject"
+              },
+              {
+                "format": "json:hooks",
+                "path": ".qoder/settings.local.json",
+                "policy": "disabled-draft-only",
+                "scope": "local",
+                "storage": "config-subobject"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.qoder/settings.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "config-subobject"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".qoder/settings.local.json",
+                "policy": "profile-version-adapter",
+                "scope": "local",
+                "storage": "config-subobject"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.qoder/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".qoder/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        },
+        "cloud": {
+          "kind": "cloud-agent",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "sources": [
+            "https://docs.qoder.com/"
+          ],
+          "surfaces": {},
+          "verified_at": "2026-08-12",
+          "version_range": "profile boundary only as of 2026-08-12"
+        },
+        "cn-cli": {
+          "detection": [
+            {
+              "command": [
+                "qoder"
+              ],
+              "type": "binary",
+              "version_command": [
+                "qoder",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.qoder/skills"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.qoder",
+            "linux": "~/.qoder"
+          },
+          "sources": [
+            "https://docs.qoder.com/cli"
+          ],
+          "surfaces": {
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.qoder/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".qoder/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-17",
+          "version_range": "current as of 2026-08-16"
+        },
+        "cn-ide": {
+          "detection": [
+            {
+              "darwin_bundle_id": "com.qoder.ide",
+              "type": "app-bundle"
+            },
+            {
+              "paths": [
+                "~/.qoder/skills",
+                "~/.qoder/rules"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.qoder",
+            "linux": "~/.qoder",
+            "windows": "%APPDATA%/Qoder"
+          },
+          "sources": [
+            "https://docs.qoder.com/"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "qoder-rule",
+                "path": "~/.qoder/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "qoder-rule",
+                "path": ".qoder/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.qoder/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".qoder/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.qoder/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".qoder/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-17",
+          "version_range": "current as of 2026-08-16"
+        },
+        "ide": {
+          "inherits": "cli",
+          "kind": "ide",
+          "migration_policy": "bidirectional-reviewed",
+          "sources": [
+            "https://docs.qoder.com/en/cli/Skills",
+            "https://docs.qoder.com/en/cli/mcp-servers",
+            "https://docs.qoder.com/cli/hooks"
+          ],
+          "verified_at": "2026-08-12"
+        },
+        "work": {
+          "kind": "cloud-ui",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "sources": [
+            "https://docs.qoder.com/"
+          ],
+          "surfaces": {},
+          "verified_at": "2026-08-12",
+          "version_range": "profile boundary only as of 2026-08-12"
+        }
+      }
+    },
+    "qoder-cn": {
+      "alias_of": {
+        "product": "qoder",
+        "profile": "cn-ide"
+      },
+      "reference": "ides/qoder-cn.md",
+      "template": "legacy-alias"
+    },
+    "qodo": {
+      "reference": "ides/qodo.md",
+      "template": "manual-reference"
+    },
+    "qwen-code": {
+      "category": "agent-client",
+      "default_profile": "cli",
+      "display_name": "Qwen Code",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "qwen"
+              ],
+              "type": "binary",
+              "version_command": [
+                "qwen",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.qwen/skills",
+                "~/.qwen/commands",
+                "~/.qwen/agents"
+              ],
+              "type": "file-signature"
+            },
+            {
+              "paths": [
+                "~/.qwen/review-context",
+                "~/.qwen/sessions",
+                "~/.qwen/desktop",
+                "~/.qwen/serve"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "codespaces": "~/.qwen",
+            "darwin": "~/.qwen",
+            "dev-container": "~/.qwen",
+            "linux": "~/.qwen",
+            "wsl": "~/.qwen"
+          },
+          "sources": [
+            "https://github.com/QwenLM/Qwen-Code"
+          ],
+          "surfaces": {
+            "agents": [
+              {
+                "format": "qwen-agent",
+                "path": "~/.qwen/agents",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "qwen-agent",
+                "path": ".qwen/agents",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "commands": [
+              {
+                "format": "qwen-command",
+                "path": "~/.qwen/commands",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "qwen-command",
+                "path": ".qwen/commands",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "desktop": [
+              {
+                "format": "qwen-desktop",
+                "path": "~/.qwen/desktop",
+                "policy": "manual-rebuild",
+                "scope": "user",
+                "storage": "directory"
+              }
+            ],
+            "hooks": [
+              {
+                "events": [
+                  "pre-tool-use",
+                  "post-tool-use",
+                  "pre-prompt",
+                  "post-prompt",
+                  "notification"
+                ],
+                "format": "qwen-hook",
+                "path": "~/.qwen/hooks",
+                "policy": "disabled-draft-only",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "events": [
+                  "pre-tool-use",
+                  "post-tool-use",
+                  "pre-prompt",
+                  "post-prompt",
+                  "notification"
+                ],
+                "format": "qwen-hook",
+                "path": ".qwen/hooks",
+                "policy": "disabled-draft-only",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.qwen/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".qwen/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "mcp-plugins": [
+              {
+                "format": "qwen-mcp-plugin",
+                "path": "~/.qwen/mcp-plugins",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "qwen-mcp-plugin",
+                "path": ".qwen/mcp-plugins",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "plugins": [
+              {
+                "format": "qwen-plugin",
+                "path": "~/.qwen/plugins",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "qwen-plugin",
+                "path": ".qwen/plugins",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "review_context": [
+              {
+                "format": "qwen-review-context",
+                "path": ".qwen/review-context.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "file"
+              },
+              {
+                "format": "qwen-review-context",
+                "path": "~/.qwen/review-context.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "file"
+              }
+            ],
+            "serve": [
+              {
+                "format": "qwen-serve",
+                "path": "~/.qwen/serve",
+                "policy": "manual-rebuild",
+                "scope": "user",
+                "storage": "directory"
+              }
+            ],
+            "session": [
+              {
+                "format": "qwen-session",
+                "path": "~/.qwen/sessions",
+                "policy": "forbidden-regenerate",
+                "scope": "user",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.qwen/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".qwen/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-15",
+          "version_range": "current as of 2026-08-15 (08-13 release)"
+        }
+      }
+    },
+    "raccoon-ai": {
+      "reference": "ides/ui-only-mcp.md",
+      "template": "manual-reference"
+    },
+    "replit": {
+      "reference": "ides/replit.md",
+      "template": "manual-reference"
+    },
+    "roo-code": {
+      "reference": "ides/roo-code.md",
+      "template": "legacy-source-only"
+    },
+    "rovodev": {
+      "category": "agent-client",
+      "default_profile": "cli",
+      "display_name": "Atlassian Rovo Dev",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "doc_conflicts": [
+            "MCP path documented at ~/.rovodev/mcp.json and ~/.rovodev/mcp_config.json; resolved via config.yml mcpConfigPath probe."
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "sources": [
+            "https://support.atlassian.com/rovo/docs/use-agent-skills-in-rovo-dev-cli/"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "~/.rovodev/AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.local.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "doc_alternative_paths": [
+                  "~/.rovodev/mcp_config.json"
+                ],
+                "format": "json:mcpServers",
+                "path": "~/.rovodev/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".rovodev/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "prompts": [
+              {
+                "format": "yaml:prompts",
+                "path": "~/.rovodev/prompts.yml",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "yaml:prompts",
+                "path": ".rovodev/prompts.yml",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.rovodev/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": "~/.agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".rovodev/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "subagents": [
+              {
+                "format": "rovodev-subagent",
+                "path": "~/.rovodev/subagents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "rovodev-subagent",
+                "path": ".rovodev/subagents",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-15",
+          "version_range": "current as of 2026-08-15"
+        }
+      }
+    },
+    "sourcegraph-amp": {
+      "category": "agent-client",
+      "default_profile": "cli",
+      "display_name": "Sourcegraph Amp",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "detection": [
+            {
+              "command": [
+                "amp"
+              ],
+              "type": "binary",
+              "version_command": [
+                "amp",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.amp/skills",
+                "~/.config/amp/skills",
+                "~/.agents/skills"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.amp",
+            "linux": "~/.amp",
+            "wsl": "~/.amp"
+          },
+          "sources": [
+            "https://ampcode.com/docs/skills"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.amp/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".amp/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": "~/.config/amp/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": "~/.agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "supermaven": {
+      "reference": "ides/supermaven.md",
+      "template": "legacy-source-only"
+    },
+    "tabnine": {
+      "reference": "ides/tabnine.md",
+      "template": "manual-reference"
+    },
+    "tencent-codebuddy": {
+      "reference": "ides/tencent-codebuddy.md",
+      "template": "manual-reference"
+    },
+    "tencent-codebuddy-ide": {
+      "reference": "ides/tencent-codebuddy-ide.md",
+      "template": "manual-reference"
+    },
+    "tongyi-lingma": {
+      "alias_of": {
+        "product": "qoder",
+        "profile": "cn-ide"
+      },
+      "reference": "ides/tongyi-lingma.md",
+      "template": "legacy-alias"
+    },
+    "trae": {
+      "category": "agent-client",
+      "default_profile": "ide",
+      "display_name": "TRAE",
+      "lifecycle": "active",
+      "profiles": {
+        "cn-ide": {
+          "detection": [
+            {
+              "darwin_bundle_id": "com.trae.ide.cn",
+              "type": "app-bundle"
+            },
+            {
+              "paths": [
+                "~/.trae/skills",
+                "~/.trae/rules"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.trae",
+            "linux": "~/.trae",
+            "windows": "%APPDATA%/TRAE"
+          },
+          "sources": [
+            "https://docs.trae.cn/ide/skills"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "trae-rule",
+                "path": "~/.trae/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "trae-rule",
+                "path": ".trae/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.trae/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".trae/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "ide": {
+          "detection": [
+            {
+              "darwin_bundle_id": "com.trae.ide",
+              "type": "app-bundle"
+            },
+            {
+              "paths": [
+                "~/.trae/skills",
+                "~/.trae/rules"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.trae",
+            "linux": "~/.trae",
+            "windows": "%APPDATA%/TRAE"
+          },
+          "sources": [
+            "https://docs.trae.ai/ide/skills"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "trae-rule",
+                "path": "~/.trae/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "trae-rule",
+                "path": ".trae/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.trae/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".trae/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "trae-cn": {
+      "alias_of": {
+        "product": "trae",
+        "profile": "cn-ide"
+      },
+      "reference": "ides/trae-cn.md",
+      "template": "legacy-alias"
+    },
+    "trae-work": {
+      "alias_of": {
+        "product": "trae",
+        "profile": "ide"
+      },
+      "reference": "ides/trae-work.md",
+      "template": "cloud-ui"
+    },
+    "v0": {
+      "reference": "ides/v0.md",
+      "template": "cloud-ui"
+    },
+    "vecli": {
+      "reference": "ides/vecli.md",
+      "template": "manual-reference"
+    },
+    "visual-studio": {
+      "alias_of": {
+        "product": "copilot",
+        "profile": "visual-studio"
+      },
+      "reference": "ides/visual-studio.md",
+      "template": "legacy-alias"
+    },
+    "void-editor": {
+      "reference": "ides/void-editor.md",
+      "template": "legacy-source-only"
+    },
+    "vscode": {
+      "alias_of": {
+        "product": "copilot",
+        "profile": "vscode"
+      },
+      "reference": "ides/vscode.md",
+      "template": "legacy-alias"
+    },
+    "warp": {
+      "category": "agent-client",
+      "default_profile": "desktop",
+      "display_name": "Warp",
+      "lifecycle": "active",
+      "profiles": {
+        "cloud": {
+          "kind": "cloud-ui",
+          "migration_policy": "official-api-or-rebuild-checklist",
+          "note": "Warp Cloud is a cloud-only UI; no local configuration files. Use Warp desktop app or Warp Drive web interface for configuration.",
+          "sources": [
+            "https://app.warp.dev"
+          ],
+          "surfaces": {},
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "desktop": {
+          "detection": [
+            {
+              "darwin_bundle_id": "dev.warp.Warp",
+              "type": "app-bundle"
+            },
+            {
+              "paths": [
+                "~/.warp/skills",
+                "~/.warp/drive"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "desktop-agent",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.warp",
+            "linux": "~/.warp",
+            "windows": "%APPDATA%/Warp"
+          },
+          "sources": [
+            "https://docs.warp.dev/agents/skills"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "~/.warp/AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.warp/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".warp/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "prompts": [
+              {
+                "format": "warp-prompt",
+                "path": "~/.warp/drive/prompts",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "warp-prompt",
+                "path": ".warp/drive/prompts",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.warp/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".warp/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "workflows": [
+              {
+                "format": "warp-workflow",
+                "path": "~/.warp/drive/workflows",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "warp-workflow",
+                "path": ".warp/drive/workflows",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        },
+        "oz-cli": {
+          "detection": [
+            {
+              "command": [
+                "warp"
+              ],
+              "type": "binary",
+              "version_command": [
+                "warp",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.warp/skills",
+                "~/.warp/drive"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "cli",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.warp",
+            "linux": "~/.warp"
+          },
+          "sources": [
+            "https://docs.warp.dev/warp-oz"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "~/.warp/AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "hierarchy"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.warp/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".warp/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "prompts": [
+              {
+                "format": "warp-prompt",
+                "path": "~/.warp/drive/prompts",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "warp-prompt",
+                "path": ".warp/drive/prompts",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.warp/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              }
+            ],
+            "workflows": [
+              {
+                "format": "warp-workflow",
+                "path": "~/.warp/drive/workflows",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "warp-workflow",
+                "path": ".warp/drive/workflows",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "warp-oz": {
+      "category": "cloud-agent-cli",
+      "default_profile": "cli",
+      "display_name": "Warp Oz",
+      "lifecycle": "active",
+      "profiles": {
+        "cli": {
+          "kind": "local-and-cloud-cli",
+          "migration_policy": "manual-rebuild",
+          "sources": [
+            "https://docs.warp.dev/reference/cli"
+          ],
+          "surfaces": {
+            "agents": [
+              {
+                "format": "warp-agent-profile",
+                "path": "--profile",
+                "policy": "manual-template",
+                "scope": "local",
+                "storage": "profile"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "uuid-or-json",
+                "path": "--mcp",
+                "policy": "manual-rebuild",
+                "scope": "run",
+                "storage": "cli-argument"
+              }
+            ],
+            "skills": [
+              {
+                "format": "repository-skill",
+                "path": "--skill",
+                "policy": "manual-rebuild",
+                "scope": "run",
+                "storage": "cli-argument"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "oz; warp-cli deprecated"
+        }
+      }
+    },
+    "windsurf": {
+      "category": "agent-ide",
+      "default_profile": "ide",
+      "display_name": "Windsurf",
+      "lifecycle": "active",
+      "profiles": {
+        "ide": {
+          "kind": "ide",
+          "migration_policy": "bidirectional-reviewed",
+          "sources": [
+            "https://docs.windsurf.com/windsurf/cascade/skills",
+            "https://docs.windsurf.com/windsurf/cascade/agents-md",
+            "https://docs.windsurf.com/windsurf/cascade/mcp"
+          ],
+          "surfaces": {
+            "generated_memory": [
+              {
+                "path": "~/.codeium/windsurf/memories",
+                "policy": "forbidden-regenerate",
+                "scope": "user",
+                "storage": "generated-state"
+              }
+            ],
+            "instructions": [
+              {
+                "format": "plain-markdown",
+                "path": "~/.codeium/windsurf/memories/global_rules.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "windsurf-rule",
+                "path": ".windsurf/rules",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "directory"
+              },
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.codeium/windsurf/mcp_config.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.codeium/windsurf/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".windsurf/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-12",
+          "version_range": "current as of 2026-08-12"
+        }
+      }
+    },
+    "workbuddy": {
+      "reference": "ides/workbuddy.md",
+      "template": "manual-reference"
+    },
+    "xcode": {
+      "reference": "ides/xcode.md",
+      "template": "manual-reference"
+    },
+    "zcode": {
+      "reference": "ides/zcode.md",
+      "template": "manual-reference"
+    },
+    "zed": {
+      "category": "editor-agent",
+      "default_profile": "ide",
+      "display_name": "Zed",
+      "lifecycle": "active",
+      "profiles": {
+        "ide": {
+          "detection": [
+            {
+              "command": [
+                "zed"
+              ],
+              "type": "binary",
+              "version_command": [
+                "zed",
+                "--version"
+              ]
+            },
+            {
+              "darwin_bundle_id": "dev.zed.Zed",
+              "type": "app-bundle"
+            },
+            {
+              "paths": [
+                "~/.config/zed/skills",
+                "~/.zed/skills"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.config/zed",
+            "linux": "~/.config/zed",
+            "wsl": "~/.config/zed"
+          },
+          "sources": [
+            "https://zed.dev/docs/skills"
+          ],
+          "surfaces": {
+            "instructions": [
+              {
+                "format": "agents-md",
+                "path": "AGENTS.md",
+                "policy": "semantic-ir-with-loss-report",
+                "scope": "project",
+                "storage": "hierarchy"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".agents/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "zencoder": {
+      "category": "agent-client",
+      "default_profile": "ide",
+      "display_name": "Zencoder",
+      "lifecycle": "active",
+      "profiles": {
+        "ide": {
+          "detection": [
+            {
+              "command": [
+                "zencoder"
+              ],
+              "type": "binary",
+              "version_command": [
+                "zencoder",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.zencoder/skills",
+                "~/.zencoder/settings.json"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.zencoder",
+            "linux": "~/.zencoder",
+            "windows": "%APPDATA%/Zencoder",
+            "wsl": "~/.zencoder"
+          },
+          "sources": [
+            "https://docs.zencoder.ai/skills"
+          ],
+          "surfaces": {
+            "agents": [
+              {
+                "format": "zencoder-agent",
+                "path": "~/.zencoder/agents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "zencoder-agent",
+                "path": ".zencoder/agents",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "cloud_task_state": [
+              {
+                "format": "json",
+                "path": "~/.zencoder/cloud_state.json",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.zencoder/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".zencoder/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "prompts": [
+              {
+                "format": "zencoder-prompt",
+                "path": "~/.zencoder/prompts",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "zencoder-prompt",
+                "path": ".zencoder/prompts",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "schedules": [
+              {
+                "format": "json",
+                "path": "~/.zencoder/schedules.json",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json",
+                "path": ".zencoder/schedules.json",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "settings": [
+              {
+                "format": "json",
+                "path": "~/.zencoder/settings.json",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json",
+                "path": ".zencoder/settings.json",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.zencoder/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".zencoder/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "subagents": [
+              {
+                "format": "zencoder-subagent",
+                "path": "~/.zencoder/subagents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "zencoder-subagent",
+                "path": ".zencoder/subagents",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "workflows": [
+              {
+                "format": "zencoder-workflow",
+                "path": "~/.zencoder/workflows",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "zencoder-workflow",
+                "path": ".zencoder/workflows",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    },
+    "zenflow": {
+      "category": "agent-client",
+      "default_profile": "ide",
+      "display_name": "Zenflow",
+      "lifecycle": "active",
+      "profiles": {
+        "ide": {
+          "detection": [
+            {
+              "command": [
+                "zenflow"
+              ],
+              "type": "binary",
+              "version_command": [
+                "zenflow",
+                "--version"
+              ]
+            },
+            {
+              "paths": [
+                "~/.zenflow/skills",
+                "~/.zenflow/settings.json"
+              ],
+              "type": "file-signature"
+            }
+          ],
+          "kind": "ide-extension",
+          "migration_policy": "bidirectional-reviewed",
+          "platforms": {
+            "darwin": "~/.zenflow",
+            "linux": "~/.zenflow",
+            "windows": "%APPDATA%/Zenflow",
+            "wsl": "~/.zenflow"
+          },
+          "sources": [
+            "https://docs.zenflow.ai/skills"
+          ],
+          "surfaces": {
+            "agents": [
+              {
+                "format": "zenflow-agent",
+                "path": "~/.zenflow/agents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "zenflow-agent",
+                "path": ".zenflow/agents",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "mcp": [
+              {
+                "format": "json:mcpServers",
+                "path": "~/.zenflow/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json:mcpServers",
+                "path": ".zenflow/mcp.json",
+                "policy": "profile-version-adapter",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "prompts": [
+              {
+                "format": "zenflow-prompt",
+                "path": "~/.zenflow/prompts",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "zenflow-prompt",
+                "path": ".zenflow/prompts",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "schedules": [
+              {
+                "format": "json",
+                "path": "~/.zenflow/schedules.json",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json",
+                "path": ".zenflow/schedules.json",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "settings": [
+              {
+                "format": "json",
+                "path": "~/.zenflow/settings.json",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "file"
+              },
+              {
+                "format": "json",
+                "path": ".zenflow/settings.json",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "file"
+              }
+            ],
+            "skills": [
+              {
+                "format": "agent-skill",
+                "path": "~/.zenflow/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "agent-skill",
+                "path": ".zenflow/skills",
+                "policy": "validate-then-atomic-copy",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "subagents": [
+              {
+                "format": "zenflow-subagent",
+                "path": "~/.zenflow/subagents",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "zenflow-subagent",
+                "path": ".zenflow/subagents",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ],
+            "workflows": [
+              {
+                "format": "zenflow-workflow",
+                "path": "~/.zenflow/workflows",
+                "policy": "manual-template",
+                "scope": "user",
+                "storage": "directory"
+              },
+              {
+                "format": "zenflow-workflow",
+                "path": ".zenflow/workflows",
+                "policy": "manual-template",
+                "scope": "project",
+                "storage": "directory"
+              }
+            ]
+          },
+          "verified_at": "2026-08-16",
+          "version_range": "current as of 2026-08-16"
+        }
+      }
+    }
+  },
+  "profile_templates": {
+    "cloud-ui": {
+      "confidence": "medium",
+      "kind": "cloud-ui",
+      "migration_policy": "official-api-or-rebuild-checklist",
+      "profile": "cloud",
+      "support_level": "manual",
+      "surfaces": {}
+    },
+    "host-editor": {
+      "confidence": "high",
+      "kind": "editor-host",
+      "migration_policy": "manual-rebuild",
+      "profile": "host",
+      "support_level": "host",
+      "surfaces": {}
+    },
+    "legacy-alias": {
+      "confidence": "high",
+      "kind": "brand-alias",
+      "migration_policy": "alias-only",
+      "profile": "alias",
+      "support_level": "alias",
+      "surfaces": {}
+    },
+    "legacy-source-only": {
+      "confidence": "high",
+      "kind": "retired-product",
+      "migration_policy": "source-only",
+      "profile": "legacy",
+      "support_level": "source-only",
+      "surfaces": {}
+    },
+    "manual-reference": {
+      "confidence": "low",
+      "kind": "documented-reference",
+      "migration_policy": "manual-rebuild",
+      "profile": "reference",
+      "support_level": "unverified",
+      "surfaces": {}
+    },
+    "provider": {
+      "confidence": "high",
+      "kind": "mcp-or-memory-provider",
+      "migration_policy": "configure-consuming-client",
+      "profile": "provider",
+      "support_level": "provider",
+      "surfaces": {}
+    }
+  },
+  "schema_version": 2.1,
+  "support_contract": {
+    "alias-only": {
+      "confidence": "high",
+      "support_level": "alias"
+    },
+    "bidirectional-reviewed": {
+      "confidence": "high",
+      "support_level": "partial"
+    },
+    "configure-consuming-client": {
+      "confidence": "high",
+      "support_level": "provider"
+    },
+    "manual-rebuild": {
+      "confidence": "medium",
+      "support_level": "manual"
+    },
+    "manual-template": {
+      "confidence": "medium",
+      "support_level": "manual"
+    },
+    "official-api-or-rebuild-checklist": {
+      "confidence": "medium",
+      "support_level": "manual"
+    },
+    "source-only": {
+      "confidence": "high",
+      "support_level": "source-only"
+    },
+    "stale-manual": {
+      "confidence": "low",
+      "description": "Profile was manual but exceeded freshness window; may have outdated docs/paths",
+      "support_level": "stale-manual"
+    },
+    "stale-partial": {
+      "confidence": "low",
+      "description": "Profile was partial but exceeded freshness window; may have outdated paths/schemas",
+      "support_level": "stale-partial"
+    },
+    "stale-source-only": {
+      "confidence": "low",
+      "description": "Profile was source-only but exceeded freshness window",
+      "support_level": "stale-source-only"
+    }
+  },
+  "verified_at": "2026-08-12"
+}

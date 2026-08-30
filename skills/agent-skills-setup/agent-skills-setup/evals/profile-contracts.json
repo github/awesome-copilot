@@ -1,0 +1,476 @@
+{
+  "fixture_classes": [
+    "minimal-valid",
+    "complete-valid",
+    "legacy-version",
+    "invalid",
+    "literal-secret",
+    "alias-conflict"
+  ],
+  "profiles": {
+    "amazon-q/ide": {
+      "instructions": [
+        "amazon-q-rule"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ]
+    },
+    "augment-code/cli-ide": {
+      "instructions": [
+        "augment-rule",
+        "plain-markdown"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "claude/code-cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "claude/desktop-code": {
+      "instructions": [
+        "agents-md"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "cline/cli": {
+      "instructions": [
+        "cline-rule"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "cline/ide": {
+      "instructions": [
+        "cline-rule"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "cline/sdk": {
+      "instructions": [
+        "cline-rule"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "codex/cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "continue/cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "copilot/cli": {
+      "instructions": [
+        "copilot-instructions"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "copilot/visual-studio": {
+      "instructions": [
+        "copilot-instructions"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "copilot/vscode": {
+      "instructions": [
+        "copilot-instructions"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "crush/cli": {
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "cursor/ide": {
+      "instructions": [
+        "cursor-mdc"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "devin/terminal": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "factory-droid/cli": {
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "forge/cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "gemini-cli/cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "gemini-code-assist/jetbrains": {
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "gemini-code-assist/vscode": {
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "gitlab-duo/cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "gitlab-duo/flows": {},
+    "gitlab-duo/jetbrains": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "gitlab-duo/vscode": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "hermes/cli": {
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "ibm-bob/ide": {
+      "instructions": [
+        "agents-md",
+        "plain-markdown"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "ibm-bob/shell": {
+      "instructions": [
+        "agents-md",
+        "plain-markdown"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "jetbrains/ai-assistant": {
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "jetbrains/junie": {
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "jules/cli": {
+      "instructions": [
+        "agents-md"
+      ]
+    },
+    "kiro/ide": {
+      "instructions": [
+        "kiro-steering"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "letta-code/agent-file": {},
+    "letta-code/desktop-cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "letta/cli": {
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "mistral-vibe/cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "opencode/cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "openhands/cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "pi/cli": {
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "qoder/cli": {
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "qoder/cn-cli": {
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "qoder/cn-ide": {
+      "instructions": [
+        "qoder-rule"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "qoder/ide": {
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "qwen-code/cli": {
+      "agents": [
+        "qwen-agent"
+      ],
+      "commands": [
+        "qwen-command"
+      ],
+      "instructions": [
+        "agents-md"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "mcp-plugins": [
+        "qwen-mcp-plugin"
+      ],
+      "plugins": [
+        "qwen-plugin"
+      ],
+      "review_context": [
+        "qwen-review-context"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "rovodev/cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "sourcegraph-amp/cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "trae/cn-ide": {
+      "instructions": [
+        "trae-rule"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "trae/ide": {
+      "instructions": [
+        "trae-rule"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "warp/desktop": {
+      "instructions": [
+        "agents-md"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "warp/oz-cli": {
+      "instructions": [
+        "agents-md"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "windsurf/ide": {
+      "instructions": [
+        "agents-md",
+        "plain-markdown",
+        "windsurf-rule"
+      ],
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "zed/ide": {
+      "instructions": [
+        "agents-md"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "zencoder/ide": {
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    },
+    "zenflow/ide": {
+      "mcp": [
+        "json:mcpServers"
+      ],
+      "skills": [
+        "agent-skill"
+      ]
+    }
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,370 @@
+{
+  "antigravity": {
+    "global_skills": "~/.gemini/config/skills",
+    "project_skills": ".agents/skills",
+    "rules": ".agents/rules",
+    "mcp": "~/.gemini/config/mcp_config.json",
+    "project_mcp": ".agents/mcp_config.json",
+    "config": ""
+  },
+  "claude": {
+    "global_skills": "~/.claude/skills",
+    "project_skills": ".claude/skills",
+    "rules": "CLAUDE.md",
+    "mcp": "~/.claude.json",
+    "project_mcp": ".mcp.json",
+    "project_config": ".claude/settings.json",
+    "config": "~/.claude/settings.json"
+  },
+  "codely": {
+    "global_skills": "~/.codely-cli/skills",
+    "project_skills": ".codely-cli/skills",
+    "rules": "CODELY.md",
+    "mcp": "~/.codely-cli/settings.json",
+    "project_mcp": ".codely-cli/settings.json",
+    "project_config": ".codely-cli/settings.json",
+    "config": "~/.codely-cli/settings.json"
+  },
+  "codex": {
+    "global_skills": "~/.agents/skills",
+    "project_skills": ".agents/skills",
+    "rules": "AGENTS.md",
+    "mcp": "~/.codex/config.toml",
+    "project_mcp": ".codex/config.toml",
+    "project_config": ".codex/config.toml",
+    "config": "~/.codex/config.toml"
+  },
+  "copilot": {
+    "global_skills": "~/.copilot/skills",
+    "project_skills": ".github/skills",
+    "rules": ".github/copilot-instructions.md",
+    "mcp": "~/.copilot/mcp-config.json",
+    "project_mcp": ".mcp.json",
+    "config": ""
+  },
+  "cursor": {
+    "global_skills": "~/.cursor/skills",
+    "project_skills": ".cursor/skills",
+    "rules": ".cursor/rules",
+    "mcp": "~/.cursor/mcp.json",
+    "project_mcp": ".cursor/mcp.json",
+    "config": ""
+  },
+  "windsurf": {
+    "global_skills": "~/.codeium/windsurf/skills",
+    "project_skills": ".windsurf/skills",
+    "rules": ".windsurf/rules",
+    "mcp": "~/.codeium/windsurf/mcp_config.json",
+    "config": ""
+  },
+  "jetbrains": {
+    "global_skills": "~/.junie/skills",
+    "project_skills": ".junie/skills",
+    "rules": ".junie/AGENTS.md",
+    "mcp": "~/.junie/mcp/mcp.json",
+    "project_mcp": ".junie/mcp/mcp.json",
+    "config": ""
+  },
+  "openclaw": {
+    "global_skills": "~/.openclaw/skills",
+    "project_skills": "skills",
+    "rules": "AGENTS.md",
+    "mcp": "~/.openclaw/openclaw.json",
+    "config": "~/.openclaw/openclaw.json"
+  },
+  "trae": {
+    "global_skills": "~/.trae/skills",
+    "project_skills": ".trae/skills",
+    "rules": ".trae/rules",
+    "mcp": "",
+    "project_mcp": ".trae/mcp.json",
+    "config": ""
+  },
+  "trae-cn": {
+    "global_skills": "~/.trae-cn/skills",
+    "project_skills": ".trae/skills",
+    "rules": ".trae/rules",
+    "mcp": "",
+    "project_mcp": ".trae/mcp.json",
+    "config": ""
+  },
+  "vscode": {
+    "global_skills": "~/.copilot/skills",
+    "project_skills": ".github/skills",
+    "rules": ".github/copilot-instructions.md",
+    "mcp": "",
+    "project_mcp": ".vscode/mcp.json",
+    "config": ""
+  },
+  "visual-studio": {
+    "global_skills": "~/.copilot/skills",
+    "project_skills": ".github/skills",
+    "rules": ".github/copilot-instructions.md",
+    "mcp": {
+      "darwin": "",
+      "linux": "",
+      "windows": "%USERPROFILE%\\.mcp.json"
+    },
+    "project_mcp": ".mcp.json",
+    "config": ""
+  },
+  "jetbrains-ai": {
+    "global_skills": "",
+    "project_skills": ".agents/skills",
+    "rules": "",
+    "mcp": "",
+    "project_mcp": "",
+    "config": ""
+  },
+  "firebase-studio": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": ".idx/airules.md",
+    "mcp": "",
+    "project_mcp": ".idx/mcp.json",
+    "config": ""
+  },
+  "android-studio": {
+    "global_skills": "~/.agents/skills",
+    "project_skills": ".agents/skills",
+    "rules": "AGENTS.md",
+    "mcp": "",
+    "project_mcp": "",
+    "config": ""
+  },
+  "zed": {
+    "global_skills": "~/.agents/skills",
+    "project_skills": ".agents/skills",
+    "rules": "AGENTS.md",
+    "mcp": "~/.config/zed/settings.json",
+    "project_mcp": ".zed/settings.json",
+    "config": ""
+  },
+  "neovim": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": "",
+    "mcp": "",
+    "config": "~/.config/nvim/init.lua"
+  },
+  "emacs": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "continue": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": ".continue/rules",
+    "mcp": "~/.continue/config.yaml",
+    "project_mcp": ".continue/mcpServers",
+    "config": "~/.continue/config.yaml"
+  },
+  "aider": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": "CONVENTIONS.md",
+    "mcp": "",
+    "config": "~/.aider.conf.yml"
+  },
+  "roo-code": {
+    "global_skills": "~/.roo/skills",
+    "project_skills": ".roo/skills",
+    "rules": ".roorules",
+    "project_mcp": ".roo/mcp.json",
+    "mcp": "",
+    "config": ""
+  },
+  "cline": {
+    "project": "",
+    "global_skills": "~/.cline/skills",
+    "project_skills": ".cline/skills",
+    "rules": ".cline/rules",
+    "mcp": "~/.cline/data/settings/cline_mcp_settings.json",
+    "project_mcp": ".cline/mcp.json",
+    "config": ""
+  },
+  "amazon-q": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": ".amazonq/rules",
+    "mcp": "~/.aws/amazonq/default.json",
+    "project_mcp": ".amazonq/default.json",
+    "config": ""
+  },
+  "cody": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "codeium": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "tabnine": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": ".tabnine/guidelines",
+    "mcp": "~/.tabnine/mcp_servers.json",
+    "project_mcp": ".tabnine/mcp_servers.json",
+    "config": ""
+  },
+  "replit": {
+    "global_skills": "",
+    "project_skills": ".agents/skills",
+    "rules": "replit.md",
+    "mcp": "",
+    "project_config": ".replit",
+    "config": ""
+  },
+  "pearai": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "supermaven": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "pieces": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": "",
+    "mcp": "",
+    "project_mcp": "",
+    "project_config": "",
+    "config": ""
+  },
+  "blackbox": {
+    "global_skills": "",
+    "project_skills": ".blackbox/skills",
+    "rules": "",
+    "mcp": "",
+    "config": ""
+  },
+  "gemini-cli": {
+    "global_skills": "~/.gemini/skills",
+    "project_skills": ".gemini/skills",
+    "rules": "GEMINI.md",
+    "mcp": "~/.gemini/settings.json",
+    "project_mcp": ".gemini/settings.json",
+    "project_config": ".gemini/settings.json",
+    "config": "~/.gemini/settings.json"
+  },
+  "goose-cli": {
+    "global_skills": "~/.agents/skills",
+    "project_skills": ".agents/skills",
+    "rules": ".goosehints",
+    "mcp": "~/.config/goose/config.yaml",
+    "config": "~/.config/goose/config.yaml"
+  },
+  "opencode": {
+    "global_skills": "~/.config/opencode/skills",
+    "project_skills": ".opencode/skills",
+    "rules": "AGENTS.md",
+    "mcp": "~/.config/opencode/opencode.json",
+    "project_mcp": "opencode.json",
+    "project_config": "opencode.json",
+    "config": "~/.config/opencode/opencode.json"
+  },
+  "kilocode": {
+    "project": ".kilo",
+    "global_skills": "~/.kilo/skills",
+    "project_skills": ".kilo/skills",
+    "rules": "AGENTS.md",
+    "mcp": "~/.config/kilo/kilo.jsonc",
+    "project_mcp": ".kilo/kilo.jsonc",
+    "project_config": ".kilo/kilo.jsonc",
+    "config": "~/.config/kilo/kilo.jsonc"
+  },
+  "kimiai": {
+    "global_skills": "~/.kimi-code/skills",
+    "project_skills": ".kimi-code/skills",
+    "rules": "AGENTS.md",
+    "mcp": "~/.kimi-code/mcp.json",
+    "project_mcp": ".kimi-code/mcp.json",
+    "config": "~/.kimi-code/config.toml"
+  },
+  "workbuddy": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": "",
+    "mcp": "~/.workbuddy/mcp.json",
+    "project_mcp": ".workbuddy/mcp.json",
+    "config": ""
+  },
+  "claude-desktop": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": "",
+    "mcp": {
+      "darwin": "~/Library/Application Support/Claude/claude_desktop_config.json",
+      "linux": "",
+      "windows": "%APPDATA%\\Claude\\claude_desktop_config.json"
+    },
+    "config": ""
+  },
+  "kiro": {
+    "global_skills": "~/.kiro/skills",
+    "project_skills": ".kiro/skills",
+    "rules": ".kiro/steering",
+    "mcp": "~/.kiro/settings/mcp.json",
+    "project_mcp": ".kiro/settings/mcp.json",
+    "config": ""
+  },
+  "augment-code": {
+    "global_skills": "~/.augment/skills",
+    "project_skills": ".augment/skills",
+    "rules": ".augment/rules",
+    "mcp": "~/.augment/settings.json",
+    "project_mcp": ".augment/settings.json",
+    "project_config": ".augment/settings.json",
+    "config": "~/.augment/settings.json"
+  },
+  "void-editor": {
+    "global_skills": "",
+    "project_skills": "",
+    "rules": ".voidrules",
+    "mcp": "~/.void-editor/mcp.json",
+    "project_mcp": ".vscode/mcp.json",
+    "config": ""
+  },
+  "baidu-comate": {
+    "global_skills": "~/.comate/skills",
+    "project_skills": ".comate/skills",
+    "rules": "",
+    "mcp": "~/.comate/mcp.json",
+    "project_mcp": ".comate/mcp.json",
+    "config": ""
+  },
+  "tencent-codebuddy": {
+    "global_skills": "~/.codebuddy/skills",
+    "project_skills": ".codebuddy/skills",
+    "rules": "CODEBUDDY.md",
+    "mcp": "~/.codebuddy/.mcp.json",
+    "project_mcp": ".mcp.json",
+    "project_config": ".codebuddy/settings.json",
+    "config": "~/.codebuddy/settings.json"
+  },
+  "zcode": {
+    "global_skills": "~/.zcode/skills",
+    "project_skills": "",
+    "rules": "AGENTS.md",
+    "mcp": "~/.zcode/cli/config.json",
+    "project_mcp": ".zcode/config.json",
+    "project_config": ".zcode/config.json",
+    "config": "~/.zcode/cli/config.json"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "local-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@acme/search-mcp"
+      ],
+      "env": {
+        "ACME_API_KEY": "${env:ACME_API_KEY}",
+        "LITERAL_TOKEN": "__test_placeholder_value__",
+        "LOG_LEVEL": "info"
+      }
+    },
+    "local-docs": {
+      "command": "node",
+      "args": [
+        "./scripts/docs-server.js"
+      ],
+      "env": {
+        "DOCS_AUTH_TOKEN": "${env:ACME_BEARER_TOKEN}",
+        "WORKSPACE_ID": "acme"
+      }
+    }
+  }
+}

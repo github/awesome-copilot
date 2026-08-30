@@ -1,0 +1,320 @@
+# GENERATED from references/ide-paths.json; do not edit.
+aider	global	*
+aider	project-skills	*
+aider	rules	*	CONVENTIONS.md
+aider	mcp	*
+aider	project-mcp	*
+aider	project-config	*
+aider	config	*	~/.aider.conf.yml
+amazon-q	global	*
+amazon-q	project-skills	*
+amazon-q	rules	*	.amazonq/rules
+amazon-q	mcp	*	~/.aws/amazonq/default.json
+amazon-q	project-mcp	*	.amazonq/default.json
+amazon-q	project-config	*
+amazon-q	config	*
+android-studio	global	*	~/.agents/skills
+android-studio	project-skills	*	.agents/skills
+android-studio	rules	*	AGENTS.md
+android-studio	mcp	*
+android-studio	project-mcp	*
+android-studio	project-config	*
+android-studio	config	*
+antigravity	global	*	~/.gemini/config/skills
+antigravity	project-skills	*	.agents/skills
+antigravity	rules	*	.agents/rules
+antigravity	mcp	*	~/.gemini/config/mcp_config.json
+antigravity	project-mcp	*	.agents/mcp_config.json
+antigravity	project-config	*
+antigravity	config	*
+augment-code	global	*	~/.augment/skills
+augment-code	project-skills	*	.augment/skills
+augment-code	rules	*	.augment/rules
+augment-code	mcp	*	~/.augment/settings.json
+augment-code	project-mcp	*	.augment/settings.json
+augment-code	project-config	*	.augment/settings.json
+augment-code	config	*	~/.augment/settings.json
+baidu-comate	global	*	~/.comate/skills
+baidu-comate	project-skills	*	.comate/skills
+baidu-comate	rules	*
+baidu-comate	mcp	*	~/.comate/mcp.json
+baidu-comate	project-mcp	*	.comate/mcp.json
+baidu-comate	project-config	*
+baidu-comate	config	*
+blackbox	global	*
+blackbox	project-skills	*	.blackbox/skills
+blackbox	rules	*
+blackbox	mcp	*
+blackbox	project-mcp	*
+blackbox	project-config	*
+blackbox	config	*
+claude	global	*	~/.claude/skills
+claude	project-skills	*	.claude/skills
+claude	rules	*	CLAUDE.md
+claude	mcp	*	~/.claude.json
+claude	project-mcp	*	.mcp.json
+claude	project-config	*	.claude/settings.json
+claude	config	*	~/.claude/settings.json
+claude-desktop	global	*
+claude-desktop	project-skills	*
+claude-desktop	rules	*
+claude-desktop	mcp	darwin	~/Library/Application Support/Claude/claude_desktop_config.json
+claude-desktop	mcp	linux
+claude-desktop	mcp	windows	%APPDATA%\Claude\claude_desktop_config.json
+claude-desktop	project-mcp	*
+claude-desktop	project-config	*
+claude-desktop	config	*
+cline	global	*	~/.cline/skills
+cline	project-skills	*	.cline/skills
+cline	rules	*	.cline/rules
+cline	mcp	*	~/.cline/data/settings/cline_mcp_settings.json
+cline	project-mcp	*	.cline/mcp.json
+cline	project-config	*
+cline	config	*
+codeium	global	*
+codeium	project-skills	*
+codeium	rules	*
+codeium	mcp	*
+codeium	project-mcp	*
+codeium	project-config	*
+codeium	config	*
+codely	global	*	~/.codely-cli/skills
+codely	project-skills	*	.codely-cli/skills
+codely	rules	*	CODELY.md
+codely	mcp	*	~/.codely-cli/settings.json
+codely	project-mcp	*	.codely-cli/settings.json
+codely	project-config	*	.codely-cli/settings.json
+codely	config	*	~/.codely-cli/settings.json
+codex	global	*	~/.agents/skills
+codex	project-skills	*	.agents/skills
+codex	rules	*	AGENTS.md
+codex	mcp	*	~/.codex/config.toml
+codex	project-mcp	*	.codex/config.toml
+codex	project-config	*	.codex/config.toml
+codex	config	*	~/.codex/config.toml
+cody	global	*
+cody	project-skills	*
+cody	rules	*
+cody	mcp	*
+cody	project-mcp	*
+cody	project-config	*
+cody	config	*
+continue	global	*
+continue	project-skills	*
+continue	rules	*	.continue/rules
+continue	mcp	*	~/.continue/config.yaml
+continue	project-mcp	*	.continue/mcpServers
+continue	project-config	*
+continue	config	*	~/.continue/config.yaml
+copilot	global	*	~/.copilot/skills
+copilot	project-skills	*	.github/skills
+copilot	rules	*	.github/copilot-instructions.md
+copilot	mcp	*	~/.copilot/mcp-config.json
+copilot	project-mcp	*	.mcp.json
+copilot	project-config	*
+copilot	config	*
+cursor	global	*	~/.cursor/skills
+cursor	project-skills	*	.cursor/skills
+cursor	rules	*	.cursor/rules
+cursor	mcp	*	~/.cursor/mcp.json
+cursor	project-mcp	*	.cursor/mcp.json
+cursor	project-config	*
+cursor	config	*
+emacs	global	*
+emacs	project-skills	*
+emacs	rules	*
+emacs	mcp	*
+emacs	project-mcp	*
+emacs	project-config	*
+emacs	config	*
+firebase-studio	global	*
+firebase-studio	project-skills	*
+firebase-studio	rules	*	.idx/airules.md
+firebase-studio	mcp	*
+firebase-studio	project-mcp	*	.idx/mcp.json
+firebase-studio	project-config	*
+firebase-studio	config	*
+gemini-cli	global	*	~/.gemini/skills
+gemini-cli	project-skills	*	.gemini/skills
+gemini-cli	rules	*	GEMINI.md
+gemini-cli	mcp	*	~/.gemini/settings.json
+gemini-cli	project-mcp	*	.gemini/settings.json
+gemini-cli	project-config	*	.gemini/settings.json
+gemini-cli	config	*	~/.gemini/settings.json
+goose-cli	global	*	~/.agents/skills
+goose-cli	project-skills	*	.agents/skills
+goose-cli	rules	*	.goosehints
+goose-cli	mcp	*	~/.config/goose/config.yaml
+goose-cli	project-mcp	*
+goose-cli	project-config	*
+goose-cli	config	*	~/.config/goose/config.yaml
+jetbrains	global	*	~/.junie/skills
+jetbrains	project-skills	*	.junie/skills
+jetbrains	rules	*	.junie/AGENTS.md
+jetbrains	mcp	*	~/.junie/mcp/mcp.json
+jetbrains	project-mcp	*	.junie/mcp/mcp.json
+jetbrains	project-config	*
+jetbrains	config	*
+jetbrains-ai	global	*
+jetbrains-ai	project-skills	*	.agents/skills
+jetbrains-ai	rules	*
+jetbrains-ai	mcp	*
+jetbrains-ai	project-mcp	*
+jetbrains-ai	project-config	*
+jetbrains-ai	config	*
+kilocode	global	*	~/.kilo/skills
+kilocode	project-skills	*	.kilo/skills
+kilocode	rules	*	AGENTS.md
+kilocode	mcp	*	~/.config/kilo/kilo.jsonc
+kilocode	project-mcp	*	.kilo/kilo.jsonc
+kilocode	project-config	*	.kilo/kilo.jsonc
+kilocode	config	*	~/.config/kilo/kilo.jsonc
+kimiai	global	*	~/.kimi-code/skills
+kimiai	project-skills	*	.kimi-code/skills
+kimiai	rules	*	AGENTS.md
+kimiai	mcp	*	~/.kimi-code/mcp.json
+kimiai	project-mcp	*	.kimi-code/mcp.json
+kimiai	project-config	*
+kimiai	config	*	~/.kimi-code/config.toml
+kiro	global	*	~/.kiro/skills
+kiro	project-skills	*	.kiro/skills
+kiro	rules	*	.kiro/steering
+kiro	mcp	*	~/.kiro/settings/mcp.json
+kiro	project-mcp	*	.kiro/settings/mcp.json
+kiro	project-config	*
+kiro	config	*
+neovim	global	*
+neovim	project-skills	*
+neovim	rules	*
+neovim	mcp	*
+neovim	project-mcp	*
+neovim	project-config	*
+neovim	config	*	~/.config/nvim/init.lua
+openclaw	global	*	~/.openclaw/skills
+openclaw	project-skills	*	skills
+openclaw	rules	*	AGENTS.md
+openclaw	mcp	*	~/.openclaw/openclaw.json
+openclaw	project-mcp	*
+openclaw	project-config	*
+openclaw	config	*	~/.openclaw/openclaw.json
+opencode	global	*	~/.config/opencode/skills
+opencode	project-skills	*	.opencode/skills
+opencode	rules	*	AGENTS.md
+opencode	mcp	*	~/.config/opencode/opencode.json
+opencode	project-mcp	*	opencode.json
+opencode	project-config	*	opencode.json
+opencode	config	*	~/.config/opencode/opencode.json
+pearai	global	*
+pearai	project-skills	*
+pearai	rules	*
+pearai	mcp	*
+pearai	project-mcp	*
+pearai	project-config	*
+pearai	config	*
+pieces	global	*
+pieces	project-skills	*
+pieces	rules	*
+pieces	mcp	*
+pieces	project-mcp	*
+pieces	project-config	*
+pieces	config	*
+replit	global	*
+replit	project-skills	*	.agents/skills
+replit	rules	*	replit.md
+replit	mcp	*
+replit	project-mcp	*
+replit	project-config	*	.replit
+replit	config	*
+roo-code	global	*	~/.roo/skills
+roo-code	project-skills	*	.roo/skills
+roo-code	rules	*	.roorules
+roo-code	mcp	*
+roo-code	project-mcp	*	.roo/mcp.json
+roo-code	project-config	*
+roo-code	config	*
+supermaven	global	*
+supermaven	project-skills	*
+supermaven	rules	*
+supermaven	mcp	*
+supermaven	project-mcp	*
+supermaven	project-config	*
+supermaven	config	*
+tabnine	global	*
+tabnine	project-skills	*
+tabnine	rules	*	.tabnine/guidelines
+tabnine	mcp	*	~/.tabnine/mcp_servers.json
+tabnine	project-mcp	*	.tabnine/mcp_servers.json
+tabnine	project-config	*
+tabnine	config	*
+tencent-codebuddy	global	*	~/.codebuddy/skills
+tencent-codebuddy	project-skills	*	.codebuddy/skills
+tencent-codebuddy	rules	*	CODEBUDDY.md
+tencent-codebuddy	mcp	*	~/.codebuddy/.mcp.json
+tencent-codebuddy	project-mcp	*	.mcp.json
+tencent-codebuddy	project-config	*	.codebuddy/settings.json
+tencent-codebuddy	config	*	~/.codebuddy/settings.json
+trae	global	*	~/.trae/skills
+trae	project-skills	*	.trae/skills
+trae	rules	*	.trae/rules
+trae	mcp	*
+trae	project-mcp	*	.trae/mcp.json
+trae	project-config	*
+trae	config	*
+trae-cn	global	*	~/.trae-cn/skills
+trae-cn	project-skills	*	.trae/skills
+trae-cn	rules	*	.trae/rules
+trae-cn	mcp	*
+trae-cn	project-mcp	*	.trae/mcp.json
+trae-cn	project-config	*
+trae-cn	config	*
+visual-studio	global	*	~/.copilot/skills
+visual-studio	project-skills	*	.github/skills
+visual-studio	rules	*	.github/copilot-instructions.md
+visual-studio	mcp	darwin
+visual-studio	mcp	linux
+visual-studio	mcp	windows	%USERPROFILE%\.mcp.json
+visual-studio	project-mcp	*	.mcp.json
+visual-studio	project-config	*
+visual-studio	config	*
+void-editor	global	*
+void-editor	project-skills	*
+void-editor	rules	*	.voidrules
+void-editor	mcp	*	~/.void-editor/mcp.json
+void-editor	project-mcp	*	.vscode/mcp.json
+void-editor	project-config	*
+void-editor	config	*
+vscode	global	*	~/.copilot/skills
+vscode	project-skills	*	.github/skills
+vscode	rules	*	.github/copilot-instructions.md
+vscode	mcp	*
+vscode	project-mcp	*	.vscode/mcp.json
+vscode	project-config	*
+vscode	config	*
+windsurf	global	*	~/.codeium/windsurf/skills
+windsurf	project-skills	*	.windsurf/skills
+windsurf	rules	*	.windsurf/rules
+windsurf	mcp	*	~/.codeium/windsurf/mcp_config.json
+windsurf	project-mcp	*
+windsurf	project-config	*
+windsurf	config	*
+workbuddy	global	*
+workbuddy	project-skills	*
+workbuddy	rules	*
+workbuddy	mcp	*	~/.workbuddy/mcp.json
+workbuddy	project-mcp	*	.workbuddy/mcp.json
+workbuddy	project-config	*
+workbuddy	config	*
+zcode	global	*	~/.zcode/skills
+zcode	project-skills	*
+zcode	rules	*	AGENTS.md
+zcode	mcp	*	~/.zcode/cli/config.json
+zcode	project-mcp	*	.zcode/config.json
+zcode	project-config	*	.zcode/config.json
+zcode	config	*	~/.zcode/cli/config.json
+zed	global	*	~/.agents/skills
+zed	project-skills	*	.agents/skills
+zed	rules	*	AGENTS.md
+zed	mcp	*	~/.config/zed/settings.json
+zed	project-mcp	*	.zed/settings.json
+zed	project-config	*
+zed	config	*

@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "registry-v2.schema.json",
+  "title": "Agent context product profile registry v2",
+  "type": "object",
+  "required": ["schema_version", "verified_at", "object_policies", "support_contract", "profile_templates", "products"],
+  "properties": {
+    "schema_version": {"enum": [2, 2.1]},
+    "verified_at": {"type": "string", "format": "date"},
+    "object_policies": {"type": "object", "additionalProperties": {"type": "string"}},
+    "support_contract": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["support_level", "confidence"],
+        "properties": {
+          "support_level": {"enum": ["partial", "manual", "source-only", "provider", "host", "alias", "unverified", "stale-partial", "stale-manual", "stale-source-only"]},
+          "confidence": {"enum": ["high", "medium", "low"]},
+          "description": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "profile_templates": {"type": "object", "additionalProperties": {"$ref": "#/$defs/profile"}},
+    "products": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/product"
+      }
+    },
+    "$schema": {"type": "string"},
+    "aliases": {"type": "object"},
+    "candidate_discovery": {"type": "object"},
+    "detection_config": {"type": "object"},
+    "freshness": {"type": "object"}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "surface": {
+      "type": "object",
+      "required": ["scope", "storage", "path", "policy"],
+      "properties": {
+        "scope": {"type": "string", "minLength": 1},
+        "storage": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "format": {"type": "string"},
+        "policy": {"type": "string", "minLength": 1},
+        "override_env": {"type": "string"},
+        "override_relative_path": {"type": "string"},
+        "compatibility_paths": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "compatibility_behavior": {"enum": ["alternative", "precedence"]}
+      },
+      "additionalProperties": true
+    },
+    "profile": {
+      "type": "object",
+      "required": ["kind", "migration_policy"],
+      "properties": {
+        "profile": {"type": "string"},
+        "kind": {"type": "string"},
+        "inherits": {"type": "string"},
+        "version_range": {"type": "string"},
+        "verified_at": {"type": "string", "format": "date"},
+        "sources": {
+          "type": "array",
+          "items": {"type": "string", "format": "uri"}
+        },
+        "migration_policy": {"type": "string"},
+        "support_level": {"enum": ["partial", "manual", "source-only", "provider", "host", "alias", "unverified"]},
+        "confidence": {"enum": ["high", "medium", "low"]},
+        "surfaces": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/surface"}
+          }
+        }
+      },
+      "anyOf": [
+        {"required": ["inherits"]},
+        {"required": ["surfaces"]}
+      ]
+    },
+    "product": {
+      "type": "object",
+      "properties": {
+        "display_name": {"type": "string"},
+        "category": {"type": "string"},
+        "lifecycle": {"type": "string"},
+        "template": {"type": "string"},
+        "default_profile": {"type": "string"},
+        "profiles": {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/profile"}
+        }
+      },
+      "anyOf": [
+        {"required": ["template"]},
+        {"required": ["display_name", "category", "lifecycle", "default_profile", "profiles"]}
+      ]
+    }
+  }
+}

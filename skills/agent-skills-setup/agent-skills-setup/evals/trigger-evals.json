@@ -1,0 +1,22 @@
+[
+  {"query": "We are moving this monorepo from Cursor to Claude Code. Preview only the project skills and coding rules under /work/acme; don't scan my home directory or touch files yet.", "should_trigger": true},
+  {"query": "i switched from windsurf to codex yesterday—can you carry over my user MCP servers but strip any literal tokens and show me the no-write command first?", "should_trigger": true},
+  {"query": "Convert ./fixtures/cursor-mcp.json into native OpenCode V2 for /tmp/atlas. I need the dry run and the separate approved apply command, with mcp.servers only.", "should_trigger": true},
+  {"query": "My Android team is standardizing on Gemini CLI. Move the reusable agent skills in this Android Studio Quail workspace into Gemini's native project location without merging duplicate aliases.", "should_trigger": true},
+  {"query": "We're opening an old VS Code solution in Visual Studio 2026. Transfer the repository's Copilot skills and .vscode/mcp.json safely, preserving unrelated target servers.", "should_trigger": true},
+  {"query": "firebase studio is shutting down and this existing workspace has .idx/airules.md; help me migrate those instructions to Antigravity, but leave .idx/dev.nix and API settings alone", "should_trigger": true},
+  {"query": "Can you move Claude Code project MCP from /srv/payments into Zed? First prove the preview writes nothing, then tell me exactly what approval is needed.", "should_trigger": true},
+  {"query": "I have the same deploy skill under .cursor/skills and .agents/skills after changing editors. Consolidate it into Codex for this repo with backups and explain which copy wins.", "should_trigger": true},
+  {"query": "Port the old Roo Code rules in ./legacy-app to Continue. Roo is archived, so call out anything that must be reconstructed instead of pretending the formats match.", "should_trigger": true},
+  {"query": "把 /tmp/demo 里 OpenCode 的 agent 配置迁到 Cursor，先 dry-run；skills、rules 和 prompts 可以迁，hooks 和 memory 不要碰。", "should_trigger": true},
+  {"query": "I'm writing a migration guide. What root key does Cursor use in mcp.json, and how does it differ from Visual Studio's file? No local changes.", "should_trigger": false},
+  {"query": "After moving from Cursor to VS Code, the same MCP server now times out after 30 seconds. Diagnose the connection and logs; don't migrate anything.", "should_trigger": false},
+  {"query": "Install the Playwright MCP server in Claude Code and authenticate it for this project.", "should_trigger": false},
+  {"query": "We're choosing between Cursor, Windsurf, and Visual Studio 2026. Compare current pricing, privacy controls, and C# support.", "should_trigger": false},
+  {"query": "Create a new Codex skill under .agents/skills that reviews SQL migrations and add three eval prompts for it.", "should_trigger": false},
+  {"query": "Where does VS Code store the active Profile's user MCP configuration on macOS? I only need the location and UI command.", "should_trigger": false},
+  {"query": "CI says opencode.json is invalid JSONC near line 18. Validate and fix that one file in place.", "should_trigger": false},
+  {"query": "Update README.md to say we completed the Cursor-to-Claude migration last quarter.", "should_trigger": false},
+  {"query": "Explain when my team should use prompts versus rules versus Agent Skills; include examples for Copilot and Claude.", "should_trigger": false},
+  {"query": "Copy my Cursor user rules from my work laptop profile to the same Cursor profile on a new laptop, byte-for-byte, as a backup.", "should_trigger": false}
+]

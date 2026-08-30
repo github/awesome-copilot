@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-08-15",
+  "checks": [
+    {
+      "id": "agent-skills-spec",
+      "url": "https://raw.githubusercontent.com/agentskills/agentskills/main/docs/specification.mdx",
+      "required_terms": [
+        "name",
+        "description",
+        "metadata"
+      ]
+    },
+    {
+      "id": "cline-config",
+      "url": "https://docs.cline.bot/getting-started/config",
+      "required_terms": [
+        "cline",
+        "configuration"
+      ]
+    },
+    {
+      "id": "forgecode-docs",
+      "url": "https://forgecode.dev/docs/",
+      "required_terms": [
+        "forge",
+        "agent"
+      ]
+    },
+    {
+      "id": "qoder-docs",
+      "url": "https://docs.qoder.com/",
+      "required_terms": [
+        "qoder"
+      ]
+    },
+    {
+      "id": "codex-docs",
+      "url": "https://learn.chatgpt.com/docs/llms.txt",
+      "required_terms": [
+        "codex"
+      ]
+    },
+    {
+      "id": "openhands-docs",
+      "url": "https://docs.openhands.dev/overview/introduction",
+      "required_terms": [
+        "openhands"
+      ]
+    },
+    {
+      "id": "amp-manual",
+      "url": "https://ampcode.com/manual",
+      "required_terms": [
+        "agent skills",
+        "mcp"
+      ]
+    },
+    {
+      "id": "monkeycode-readme",
+      "url": "https://raw.githubusercontent.com/chaitin/MonkeyCode/main/README.md",
+      "required_terms": [
+        "monkeycode",
+        "development platform"
+      ]
+    },
+    {
+      "id": "cursor-rules",
+      "url": "https://docs.cursor.com/context/rules",
+      "required_terms": [
+        "cursor",
+        "rule"
+      ]
+    },
+    {
+      "id": "claude-code-skills",
+      "url": "https://code.claude.com/docs/en/skills",
+      "required_terms": [
+        "skill"
+      ]
+    },
+    {
+      "id": "github-copilot-cli",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-cli",
+      "required_terms": [
+        "copilot",
+        "cli"
+      ]
+    },
+    {
+      "id": "vscode-agent-skills",
+      "url": "https://code.visualstudio.com/docs/agent-customization/agent-skills",
+      "required_terms": [
+        "skill"
+      ]
+    },
+    {
+      "id": "gemini-cli-skills",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/main/docs/skills.md",
+      "required_terms": [
+        "gemini",
+        "skill"
+      ]
+    },
+    {
+      "id": "kiro-steering",
+      "url": "https://kiro.dev/docs/steering",
+      "required_terms": [
+        "kiro",
+        "steering"
+      ]
+    },
+    {
+      "id": "rovodev-cli-skills",
+      "url": "https://support.atlassian.com/rovo/docs/use-agent-skills-in-rovo-dev-cli/",
+      "required_terms": [
+        "rovo",
+        "skill"
+      ]
+    },
+    {
+      "id": "ibm-bob-docs",
+      "url": "https://www.ibm.com/docs/en/bob",
+      "required_terms": [
+        "bob",
+        "agent"
+      ]
+    },
+    {
+      "id": "warp-drive-prompts",
+      "url": "https://docs.warp.dev/agents/prompts",
+      "required_terms": [
+        "warp",
+        "prompt"
+      ]
+    },
+    {
+      "id": "windsurf-rules",
+      "url": "https://docs.codeium.com/windsurf/rules",
+      "required_terms": [
+        "windsurf",
+        "rule"
+      ]
+    }
+  ]
+}
