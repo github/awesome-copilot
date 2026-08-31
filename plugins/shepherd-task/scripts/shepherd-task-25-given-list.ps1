@@ -125,6 +125,9 @@ finally {
     if (-not $postMortemInvoked) {
         $postMortemInvoked = $true
         $pmTimestamp = Get-Date -Format 'yyyyMMdd-HHmm'
+        $postMortemPath = Join-Path $logDirFull "$pmTimestamp-post-mortem.md"
+        $sharePath = Join-Path $logDirFull "post-mortem-session-$pmTimestamp.md"
+        $jsonlPath = Join-Path $logDirFull "post-mortem-session-$pmTimestamp.jsonl"
         $prompt = @"
 Invoke skill ``shepherd-task-50-create-post-mortem`` with these inputs:
 - SHEPHERD_LOG_DIR: $logDirFull
@@ -135,12 +138,25 @@ Invoke skill ``shepherd-task-50-create-post-mortem`` with these inputs:
 - CAMPAIGN_ID: $campaignId
 - CAMPAIGN_METADATA_DIRECTORY: $CampaignMetadataDirectory
 - LESSON_PROPAGATION: $LessonPropagation
+
+Write the report to:
+- OUTPUT_FILE: $postMortemPath
 "@
+        Write-Host '[shepherd-task] Stage 50: Generating campaign post-mortem...'
+        Write-Host "[shepherd-task] Stage 50 report:  $postMortemPath"
+        Write-Host "[shepherd-task] Stage 50 session: $sharePath"
+        Write-Host "[shepherd-task] Stage 50 events:  $jsonlPath"
+        Write-Host "[shepherd-task] Stage 50 prompt: $prompt"
         try {
             Invoke-CopilotRedacted -Prompt $prompt `
-                -JsonlPath (Join-Path $logDirFull "post-mortem-session-$pmTimestamp.jsonl") `
-                -SharePath (Join-Path $logDirFull "post-mortem-session-$pmTimestamp.md")
+                -JsonlPath $jsonlPath `
+                -SharePath $sharePath
             & (Join-Path $scriptDir 'redact-secrets.ps1') $logDirFull | Out-Null
+            if (Test-Path -LiteralPath $postMortemPath -PathType Leaf) {
+                Write-Host "[shepherd-task] Stage 50 COMPLETE: Post-mortem created: $postMortemPath"
+            } else {
+                Write-Warning "Stage 50 completed, but the expected post-mortem was not created: $postMortemPath"
+            }
         } catch { Write-Warning "Post-mortem generation failed: $($_.Exception.Message)" }
     }
 }

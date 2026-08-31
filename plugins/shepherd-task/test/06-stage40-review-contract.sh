@@ -32,4 +32,20 @@ if [[ -z "$manifest_line" || -z "$post_mortem_line" || "$manifest_line" -ge "$po
     exit 1
 fi
 
+stage25_required=(
+    '[shepherd-task] Stage 50: Generating campaign post-mortem...'
+    '[shepherd-task] Stage 50 report:'
+    '[shepherd-task] Stage 50 session:'
+    '[shepherd-task] Stage 50 events:'
+    '[shepherd-task] Stage 50 prompt:'
+    '[shepherd-task] Stage 50 COMPLETE: Post-mortem created:'
+    '- OUTPUT_FILE: $post_mortem_path'
+)
+for text in "${stage25_required[@]}"; do
+    grep -Fq -- "$text" "$STAGE25" || {
+        echo "Bash stage 25 is missing required post-mortem logging text: $text" >&2
+        exit 1
+    }
+done
+
 echo 'Stage-40 Bash contract tests passed.'

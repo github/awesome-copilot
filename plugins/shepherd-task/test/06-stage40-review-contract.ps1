@@ -36,4 +36,19 @@ if ($manifestFinalization -lt 0 -or
     throw 'PowerShell stage 25 does not finalize its run manifest before post-mortem generation.'
 }
 
+$requiredStage25Text = @(
+    '[shepherd-task] Stage 50: Generating campaign post-mortem...',
+    '[shepherd-task] Stage 50 report:',
+    '[shepherd-task] Stage 50 session:',
+    '[shepherd-task] Stage 50 events:',
+    '[shepherd-task] Stage 50 prompt:',
+    '[shepherd-task] Stage 50 COMPLETE: Post-mortem created:',
+    '- OUTPUT_FILE: $postMortemPath'
+)
+foreach ($required in $requiredStage25Text) {
+    if (-not $stage25.Contains($required)) {
+        throw "PowerShell stage 25 is missing required post-mortem logging text: $required"
+    }
+}
+
 Write-Host 'Stage-40 PowerShell contract tests passed.' -ForegroundColor Green

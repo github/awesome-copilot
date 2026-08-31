@@ -150,6 +150,11 @@ finalize_run() {
 
 Write the report to:
 - OUTPUT_FILE: $post_mortem_path"
+        echo "[shepherd-task] Stage 50: Generating campaign post-mortem..."
+        echo "[shepherd-task] Stage 50 report:  $post_mortem_path"
+        echo "[shepherd-task] Stage 50 session: $share_path"
+        echo "[shepherd-task] Stage 50 events:  $jsonl_path"
+        echo "[shepherd-task] Stage 50 prompt: $prompt"
         local pm_exit
         if run_copilot_redacted "$jsonl_path" --yolo --output-format json --share "$share_path" <<<"$prompt"; then
             pm_exit=0
@@ -159,7 +164,13 @@ Write the report to:
         set +e
         "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR_FULL" >/dev/null 2>&1
         set -e
-        [[ $pm_exit -eq 0 ]] || echo "[shepherd-task] WARNING: post-mortem generation failed." >&2
+        if [[ $pm_exit -ne 0 ]]; then
+            echo "[shepherd-task] WARNING: post-mortem generation failed." >&2
+        elif [[ -f "$post_mortem_path" ]]; then
+            echo "[shepherd-task] Stage 50 COMPLETE: Post-mortem created: $post_mortem_path"
+        else
+            echo "[shepherd-task] WARNING: Stage 50 completed, but the expected post-mortem was not created: $post_mortem_path" >&2
+        fi
     fi
     exit "$final_exit"
 }
