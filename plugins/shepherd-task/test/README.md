@@ -69,6 +69,13 @@ Before starting:
 Personal repositories are supported with ordinary untyped issues.
 Organization issue type `Task` is preferred when enabled but is not required.
 
+The local stage-20 artifact contract regression can be run without GitHub
+mutation:
+
+```powershell
+& "$ShepherdPlugin/test/05-stage20-artifact-contract.ps1"
+```
+
 ## 1. Define the session variables
 
 Set all paths before changing directories:

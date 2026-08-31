@@ -40,6 +40,10 @@ $requiredScripts = @(
     'resolve-repository-remote.ps1'
     'redact-secrets.sh'
     'redact-secrets.ps1'
+    'validate-stage20-drafts.sh'
+    'validate-stage20-drafts.ps1'
+    'assert-stage20-result.sh'
+    'assert-stage20-result.ps1'
 )
 foreach ($script in $requiredScripts) {
     $installedScript = Join-Path $pluginDest 'scripts' $script

@@ -57,6 +57,9 @@ CAMPAIGN_SHORTNAME="$(jq -r '.campaignShortname' "$MANIFEST_PATH")"
 REPO="$(jq -r '.repository' "$MANIFEST_PATH")"
 BASE_BRANCH="$(jq -r '.baseBranch' "$MANIFEST_PATH")"
 LESSON_PROPAGATION="$(jq -r '.lessonPropagation' "$MANIFEST_PATH")"
+DRAFT_VALIDATOR="$SCRIPT_DIR/validate-stage20-drafts.sh"
+[[ -x "$DRAFT_VALIDATOR" ]] ||
+    fail "Stage-20 draft validator is missing or not executable: $DRAFT_VALIDATOR"
 PLAN_DIRECTORY="$(jq -r '.campaignMetadataDirectory' "$MANIFEST_PATH")"
 EXPECTED_DIRECTORY="${PARENT_ISSUE}-${CAMPAIGN_SHORTNAME}-remove-before-merge"
 [[ "$PLAN_DIRECTORY" == "$EXPECTED_DIRECTORY" && "$CAMPAIGN_METADATA_DIRECTORY" == "$EXPECTED_DIRECTORY" ]] ||
@@ -153,6 +156,7 @@ Invoke skill \`shepherd-task-20-create-issues-from-plan\` with these inputs:
 - EXPECTED_TASK_COUNT: $TASK_HEADING_COUNT
 - BASE_REMOTE: $BASE_REMOTE
 - LOG_DIRECTORY: $log_dir_full
+- DRAFT_VALIDATOR: $DRAFT_VALIDATOR
 EOF
 
 {
@@ -176,6 +180,7 @@ EOF
     printf '"%s" "$log_dir_full" >/dev/null\n' "$SCRIPT_DIR/redact-secrets.sh"
     printf 'unset COPILOT_OTEL_FILE_EXPORTER_PATH\n'
     printf 'if [[ $copilot_exit -ne 0 || $redact_exit -ne 0 ]]; then echo "[shepherd-task] FAILED: copilot or redaction exited with code $copilot_exit/$redact_exit" >&2; exit 1; fi\n'
+    printf '"%s" "$log_dir_full/stage-20-result.json"\n' "$SCRIPT_DIR/assert-stage20-result.sh"
     printf 'echo "[shepherd-task] Create-issues session complete."\n'
 } >"$invocation_file"
 chmod +x "$invocation_file"

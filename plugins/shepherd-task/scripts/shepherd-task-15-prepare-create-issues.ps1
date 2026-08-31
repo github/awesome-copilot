@@ -100,6 +100,12 @@ $PARENT_ISSUE = [int]$campaign.campaignIssueNumber
 $PLAN_DIRECTORY = [string]$campaign.campaignMetadataDirectory
 $CAMPAIGN_ID = [string]$campaign.campaignId
 $LESSON_PROPAGATION = [string]$campaign.lessonPropagation
+$DRAFT_VALIDATOR = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot 'validate-stage20-drafts.ps1')
+)
+if (-not (Test-Path -LiteralPath $DRAFT_VALIDATOR -PathType Leaf)) {
+    throw "Stage-20 draft validator not found: $DRAFT_VALIDATOR"
+}
 
 $planFiles = @(
     Get-ChildItem -LiteralPath $campaignMetadataPath -File |
@@ -194,6 +200,7 @@ Invoke skill ``shepherd-task-20-create-issues-from-plan`` with these inputs:
 - EXPECTED_TASK_COUNT: $taskHeadingCount
 - BASE_REMOTE: $BASE_REMOTE
 - LOG_DIRECTORY: $logDirFull
+- DRAFT_VALIDATOR: $DRAFT_VALIDATOR
 "@
 
 Set-Content -LiteralPath $outFile -Value $body -Encoding utf8NoBOM
@@ -201,6 +208,7 @@ Set-Content -LiteralPath $outFile -Value $body -Encoding utf8NoBOM
 $escapedOutFile = $outFile.Replace("'", "''")
 $escapedLogDir = $logDirFull.Replace("'", "''")
 $redactorPath = (Join-Path $PSScriptRoot 'redact-secrets.ps1').Replace("'", "''")
+$resultAssertionPath = (Join-Path $PSScriptRoot 'assert-stage20-result.ps1').Replace("'", "''")
 $command = @'
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -237,9 +245,17 @@ if ($copilotExit -ne 0) {
     [Console]::Error.WriteLine("[shepherd-task] FAILED: copilot exited with code $copilotExit")
     exit $copilotExit
 }
+$resultPath = Join-Path $logDirFull 'stage-20-result.json'
+try {
+    & '__RESULT_ASSERTION_PATH__' -ResultPath $resultPath | Out-Null
+}
+catch {
+    [Console]::Error.WriteLine("[shepherd-task] FAILED: $($_.Exception.Message)")
+    exit 1
+}
 Write-Output '[shepherd-task] Create-issues session complete.'
 exit 0
-'@.Replace('__TIMESTAMP__', $timestamp).Replace('__LOG_DIRECTORY__', $escapedLogDir).Replace('__PROMPT_PATH__', $escapedOutFile).Replace('__REDACTOR_PATH__', $redactorPath)
+'@.Replace('__TIMESTAMP__', $timestamp).Replace('__LOG_DIRECTORY__', $escapedLogDir).Replace('__PROMPT_PATH__', $escapedOutFile).Replace('__REDACTOR_PATH__', $redactorPath).Replace('__RESULT_ASSERTION_PATH__', $resultAssertionPath)
 
 Set-Content -LiteralPath $invocationFile -Value $command -Encoding utf8NoBOM
 
@@ -260,5 +276,6 @@ if ($PassThru) {
         ImplementationSection = $IMPLEMENTATION_SECTION
         BaseRemote = $BASE_REMOTE
         TaskCount = $taskHeadingCount
+        DraftValidator = $DRAFT_VALIDATOR
     }
 }

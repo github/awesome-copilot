@@ -193,7 +193,9 @@ Ambiguity is a hard failure. The command creates:
 ```text
 <campaign-directory>/prompts/shepherd-task-20-YYYYMMDD-HHMM/
 ├── YYYYMMDD-HHMM-invoke-shepherd-task-20-create-issues-from-plan-skill.md
-└── YYYYMMDD-HHMM-invoke-shepherd-task-20-create-issues-from-plan-skill.(sh|ps1)
+├── YYYYMMDD-HHMM-invoke-shepherd-task-20-create-issues-from-plan-skill.(sh|ps1)
+├── creation-ledger.json
+└── stage-20-result.json
 ```
 
 Run the generated invocation script. Stage 20 validates the plan and campaign,
@@ -204,7 +206,9 @@ before creating anything. It prefers an enabled organization issue type named
 Stage 20 creates and links issues one at a time and records every result in
 `creation-ledger.json`. It is deliberately one-shot, not resumable. On partial
 failure it stops, reconciles the ledger, prints deletion commands, and requires
-manual cleanup before another invocation.
+manual cleanup before another invocation. The launcher requires
+`stage-20-result.json` to explicitly report `complete`; a zero Copilot process
+exit alone is not treated as successful issue creation.
 
 ### 5. Run stage 25 with an ordered issue list
 

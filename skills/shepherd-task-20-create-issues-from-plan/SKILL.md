@@ -1,6 +1,6 @@
 ---
 name: shepherd-task-20-create-issues-from-plan
-description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child issues under an existing GitHub parent issue, preferring the Task issue type when the repository supports it. Incorporates resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 12 inputs are required. Skip this stage when suitable implementation issues already exist.'
+description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child issues under an existing GitHub parent issue, preferring the Task issue type when the repository supports it. Incorporates resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 13 inputs are required. Skip this stage when suitable implementation issues already exist.'
 ---
 
 # Skill: Create Shepherd Task Issues from a Plan (shepherd-task stage 20 — creation of ordered implementation issues)
@@ -24,9 +24,10 @@ The created issues are specifications, not summaries. A coding agent must be abl
 7. **`IMPLEMENTATION_SECTION`** — Exact heading of the implementation/build-order section whose direct task subsections become child issues.
 8. **`EXPECTED_TASK_COUNT`** — Positive integer count of direct task headings discovered beneath `IMPLEMENTATION_SECTION`.
 9. **`BASE_REMOTE`** — Remote name matching `REPO`; the stage 15 preparation script derives it from configured Git remote URLs.
-10. **`LOG_DIRECTORY`** — Absolute path to the existing run log directory. The launcher supplies this input; store all drafted issue bodies and the creation ledger here.
+10. **`LOG_DIRECTORY`** — Absolute path to the existing run log directory. The launcher supplies this input; store all drafted issue bodies, the creation ledger, and the stage result here.
 11. **`CAMPAIGN_ID`** — Canonical campaign UUID from `PLAN_DIRECTORY/shepherd-campaign.json`.
 12. **`LESSON_PROPAGATION`** — Immutable campaign mode, exactly `off` or `campaign`.
+13. **`DRAFT_VALIDATOR`** — Absolute path to the platform-specific `validate-stage20-drafts.ps1` or `validate-stage20-drafts.sh` script supplied by the stage 15 launcher.
 
 ## Fixed behaviors
 
@@ -135,7 +136,31 @@ Title each issue with its implementation subsection identity and an actionable o
 
 ### Step 5: Create and link issues in order
 
-Before creating the first issue, write every drafted body to `LOG_DIRECTORY/issue-bodies/NN-SUBSECTION-body.md`, where `NN` is its zero-padded creation order and `SUBSECTION` is a filesystem-safe form of the implementation subsection identity. Verify that the expected number of non-empty body files exists. Never write issue bodies to a temporary directory and never delete these files.
+Before creating the first issue, write every drafted body to `LOG_DIRECTORY/issue-bodies/NN-SUBSECTION-body.md`, where `NN` is its zero-padded creation order and `SUBSECTION` is a filesystem-safe form of the implementation subsection identity. Never write issue bodies to a temporary directory and never delete these files.
+
+Invoke `DRAFT_VALIDATOR` against `LOG_DIRECTORY/issue-bodies`, passing `EXPECTED_TASK_COUNT` and `LESSON_PROPAGATION`, before the first GitHub mutation. Re-read every persisted body from disk as part of that validation. Fail before creating any issue unless all of these checks pass:
+
+```powershell
+& $DRAFT_VALIDATOR `
+  -BodyDirectory (Join-Path $LOG_DIRECTORY 'issue-bodies') `
+  -ExpectedCount $EXPECTED_TASK_COUNT `
+  -LessonPropagation $LESSON_PROPAGATION
+```
+
+```bash
+"$DRAFT_VALIDATOR" \
+  "$LOG_DIRECTORY/issue-bodies" \
+  "$EXPECTED_TASK_COUNT" \
+  "$LESSON_PROPAGATION"
+```
+
+- Exactly `EXPECTED_TASK_COUNT` non-empty `*-body.md` files exist.
+- Every file contains physical newline characters and more than one physical line.
+- The first nonblank line is a level-two Markdown heading.
+- Every required level-two section heading begins at the start of its own physical line.
+- The re-read content contains the complete drafted specification; do not validate only a whitespace-normalized or in-memory copy.
+
+If a tool flattened Markdown into one line, repair and re-read every affected file before proceeding.
 
 Create issues with the REST API. Use `-F/--field`, not `-f/--raw-field`, for `body=@...`; only `-F` reads the body from the referenced file.
 
@@ -167,23 +192,45 @@ printf '{"sub_issue_id": %s}' "$CHILD_ID" | \
   gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" -X POST --input -
 ```
 
-Before creating the first issue, initialize `LOG_DIRECTORY/creation-ledger.json` as a JSON array. Immediately after each successful create call, append an object with these exact fields: `implementationSubsection`, `bodyFile`, `id`, `number`, `title`, `url`, `body_verified`, and `linked`. Store `bodyFile` as a path relative to `LOG_DIRECTORY`, set `body_verified=false` and `linked=false`, then persist the ledger. Never keep the ledger only in memory.
+Before creating the first issue, initialize `LOG_DIRECTORY/creation-ledger.json` as a JSON array. Also initialize `LOG_DIRECTORY/stage-20-result.json` with this shape:
 
-Before linking the new issue, fetch its body from GitHub and verify it exactly equals the complete contents of `BODY_FILE` (allowing only a single trailing newline difference). If it differs, record the observed body in `LOG_DIRECTORY/issue-bodies/NN-SUBSECTION-observed-body.md` and enter the failure flow without creating another issue. After a match, set `body_verified=true` and persist the ledger. Immediately after successfully linking it, set `linked=true` and persist the ledger.
+```json
+{
+  "schemaVersion": 1,
+  "status": "in_progress",
+  "ledgerFile": "creation-ledger.json",
+  "issueNumbers": [],
+  "operationError": null
+}
+```
+
+Write both JSON documents atomically. Immediately after each successful create call, append an object to the ledger with these exact fields: `implementationSubsection`, `bodyFile`, `id`, `number`, `title`, `url`, `body_verified`, and `linked`. Store `bodyFile` as a path relative to `LOG_DIRECTORY`, set `body_verified=false` and `linked=false`, then persist the ledger. Never keep the ledger only in memory.
+
+Before linking the new issue, fetch its body from GitHub and verify it exactly equals the complete contents of `BODY_FILE` (allowing only a single trailing newline difference). On PowerShell, fetch the complete JSON object and then read its body property:
+
+```powershell
+$issue = gh api "repos/$REPO/issues/$ISSUE_NUMBER" | ConvertFrom-Json
+$observedBody = [string]$issue.body
+```
+
+Do **not** capture `gh api ... --jq '.body'` into a PowerShell variable. Native multiline stdout becomes an `Object[]`, and coercing that array to a string replaces line boundaries with spaces, causing a false body mismatch.
+
+On Bash, preserve multiline content in a file or variable without line-by-line array coercion. If the body differs, record the observed body in `LOG_DIRECTORY/issue-bodies/NN-SUBSECTION-observed-body.md` and enter the failure flow without creating another issue. After a match, set `body_verified=true` and persist the ledger. Immediately after successfully linking it, set `linked=true` and persist the ledger.
 
 Create and link one at a time in plan order. On linking failure, retry up to 3 times. If any create, link, or postcondition-verification step fails:
 
 1. Stop immediately. Do not create, link, edit, or delete anything else.
 2. Use read-only GitHub queries to reconcile every ledger entry against current repository and parent-child state. Update each `linked` value from observed server state.
-3. Report the failed operation and its error.
-4. Print the complete reconciled creation ledger in creation order, including issue number, title, URL, body-file path, `body_verified`, and whether it was linked to `PARENT_ISSUE`.
-5. Print one cleanup command per created issue:
+3. Atomically write `stage-20-result.json` with `status` set to `failed`, `issueNumbers` set to the ordered ledger issue numbers, and `operationError` set to the failed operation and error. Preserve the other fields and schema shown above.
+4. Report the failed operation and its error.
+5. Print the complete reconciled creation ledger in creation order, including issue number, title, URL, body-file path, `body_verified`, and whether it was linked to `PARENT_ISSUE`.
+6. Print one cleanup command per created issue:
 
    ```bash
    gh issue delete ISSUE_NUMBER --repo "$REPO" --yes
    ```
 
-6. Tell the invoking user that the operation did not complete, that the skill performed no automatic rollback, and that they must delete every issue in the ledger before invoking the skill again.
+7. Tell the invoking user that the operation did not complete, that the skill performed no automatic rollback, and that they must delete every issue in the ledger before invoking the skill again.
 
 If the ledger is empty, explicitly report that no issues were created and no cleanup is required.
 
@@ -194,6 +241,7 @@ If the ledger is empty, explicitly report that no issues were created and no cle
 - The newly linked child order matches plan order.
 - Every issue in the ledger has a body exactly matching its persisted body file, is open, and has no assignees.
 - When `SELECTED_ISSUE_TYPE=Task`, every created issue has type `Task`. When it is empty, no issue-type postcondition is required.
+- After every other postcondition passes, atomically write `stage-20-result.json` with `status` set to `complete`, `issueNumbers` set to the ordered ledger issue numbers, and `operationError` set to `null`. A successful Copilot process exit is not a stage-success signal; this result document is authoritative.
 
 ### Step 7: Report the ordered handoff
 
@@ -214,6 +262,7 @@ Return:
 - Never invent spike findings — cite available evidence or identify missing evidence as a blocker.
 - Never attempt automatic rollback or resume a partial run. Report the creation ledger and cleanup commands, then stop.
 - Never rerun after a partial failure until the invoking user confirms that every issue in the creation ledger has been deleted.
+- Never report success or leave `stage-20-result.json` as `in_progress` after a known failure.
 - Do not run `shepherd-task` or assign Copilot. This skill only creates and verifies the ordered issue backlog.
 
 ## Spike firewall — findings vs. code

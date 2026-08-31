@@ -22,6 +22,57 @@ function Normalize-Whitespace {
     return ([regex]::Replace($Text, '\s+', ' ')).Trim()
 }
 
+function Get-Stage20FailureDetail {
+    param(
+        [string]$ArtifactDirectory,
+        [string]$Repository
+    )
+
+    $details = @()
+    $resultPath = Join-Path $ArtifactDirectory 'stage-20-result.json'
+    if (Test-Path -LiteralPath $resultPath -PathType Leaf) {
+        try {
+            $result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
+            $details += "Stage result: $($result.status)."
+            if (-not [string]::IsNullOrWhiteSpace([string]$result.operationError)) {
+                $details += "Operation error: $($result.operationError)"
+            }
+        }
+        catch {
+            $details += "Stage result is invalid JSON: $($_.Exception.Message)"
+        }
+    }
+    else {
+        $details += 'The required stage-20-result.json document is missing.'
+    }
+
+    $ledgerPath = Join-Path $ArtifactDirectory 'creation-ledger.json'
+    if (Test-Path -LiteralPath $ledgerPath -PathType Leaf) {
+        try {
+            $partialLedger = @(Get-Content -LiteralPath $ledgerPath -Raw | ConvertFrom-Json)
+            if ($partialLedger.Count -gt 0) {
+                $entries = @(
+                    foreach ($entry in $partialLedger) {
+                        "#$($entry.number) (body_verified=$($entry.body_verified), linked=$($entry.linked))"
+                    }
+                )
+                $commands = @(
+                    foreach ($entry in $partialLedger) {
+                        "gh issue delete $($entry.number) --repo `"$Repository`" --yes"
+                    }
+                )
+                $details += "Partial creation ledger: $($entries -join ', ')."
+                $details += "Delete every ledger issue before rerunning: $($commands -join '; ')"
+            }
+        }
+        catch {
+            $details += "Creation ledger is invalid JSON: $($_.Exception.Message)"
+        }
+    }
+
+    return $details -join ' '
+}
+
 $repoRootOutput = git rev-parse --show-toplevel 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $repoRootOutput) {
     throw 'Run this script inside the target test worktree.'
@@ -67,7 +118,8 @@ $expectedInputs = @(
     '- QUESTIONS_SECTION: ## Ignorance reduction',
     '- IMPLEMENTATION_SECTION: ## Implementation',
     '- EXPECTED_TASK_COUNT: 2',
-    "- BASE_REMOTE: $($artifacts.BaseRemote)"
+    "- BASE_REMOTE: $($artifacts.BaseRemote)",
+    "- DRAFT_VALIDATOR: $($artifacts.DraftValidator)"
 )
 foreach ($expectedInput in $expectedInputs) {
     if (-not $prompt.Contains($expectedInput)) {
@@ -81,16 +133,38 @@ if ($prompt -match '(?m)^-\s+(ISSUE_TYPE|EXAMPLE_ISSUES|SUPPORTING_ARTIFACTS):')
 
 Write-Host 'Executing the generated stage-20 Copilot invocation...'
 & pwsh -NoLogo -NoProfile -File $artifacts.InvocationFile
-if ($LASTEXITCODE -ne 0) { throw "Stage-20 invocation failed with exit code $LASTEXITCODE." }
+if ($LASTEXITCODE -ne 0) {
+    $detail = Get-Stage20FailureDetail `
+        -ArtifactDirectory $artifacts.ArtifactDirectory `
+        -Repository $campaign.repository
+    throw "Stage-20 invocation failed with exit code $LASTEXITCODE. $detail"
+}
 
 $ledgerPath = Join-Path $artifacts.ArtifactDirectory 'creation-ledger.json'
+$resultPath = Join-Path $artifacts.ArtifactDirectory 'stage-20-result.json'
+try {
+    $result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
+}
+catch {
+    throw "Stage result is missing or invalid JSON: $resultPath. $($_.Exception.Message)"
+}
+if ($result.schemaVersion -ne 1 -or
+    [string]$result.status -ne 'complete' -or
+    [string]$result.ledgerFile -ne 'creation-ledger.json') {
+    throw "Stage result does not report a completed stage 20: $($result | ConvertTo-Json -Compress)"
+}
 try {
     $ledger = @(Get-Content -LiteralPath $ledgerPath -Raw | ConvertFrom-Json)
 }
 catch {
     throw "Creation ledger is missing or invalid JSON: $ledgerPath. $($_.Exception.Message)"
 }
-if ($ledger.Count -ne 2) { throw "Creation ledger contains $($ledger.Count) entries; expected 2." }
+if ($ledger.Count -ne 2) {
+    $detail = Get-Stage20FailureDetail `
+        -ArtifactDirectory $artifacts.ArtifactDirectory `
+        -Repository $campaign.repository
+    throw "Creation ledger contains $($ledger.Count) entries; expected 2. $detail"
+}
 
 $issueNumbers = @()
 $actualBodies = @()
@@ -156,6 +230,9 @@ foreach ($entry in $ledger) {
     }
     $issueNumbers += $issueNumber
     $actualBodies += [ordered]@{ number = $issueNumber; state = [string]$issue.state; bodyVerified = $true }
+}
+if ((@($result.issueNumbers) -join ',') -ne ($issueNumbers -join ',')) {
+    throw "Stage-result issue order '$(@($result.issueNumbers) -join ',')' does not match the verified ledger order '$($issueNumbers -join ',')'."
 }
 
 $expectedLessonCategory = 'Non-obvious repository-tested implementation pattern that lets dot-sourced unit tests coexist with direct CLI execution.'
