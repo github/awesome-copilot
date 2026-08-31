@@ -26,7 +26,7 @@ function Redact-String {
     param([string]$Value)
 
     $result = $Value -replace '(?i)bearer\s+[A-Za-z0-9._~+/-]+', 'Bearer [REDACTED]'
-    $result = $result -replace 'gh[opsu]_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]+', '[REDACTED]'
+    $result = $result -replace '\b(?:gh[opsu]_[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]+)', '[REDACTED]'
     $result -replace $secretStringPattern, '[REDACTED]'
 }
 

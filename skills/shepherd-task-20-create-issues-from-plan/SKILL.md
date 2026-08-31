@@ -167,7 +167,7 @@ printf '{"sub_issue_id": %s}' "$CHILD_ID" | \
   gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" -X POST --input -
 ```
 
-Before creating the first issue, initialize `LOG_DIRECTORY/creation-ledger.json` as a JSON array. Immediately after each successful create call, append the implementation subsection, body-file path, returned issue ID, number, title, and URL with `body_verified=false` and `linked=false`, then persist the ledger. Never keep the ledger only in memory.
+Before creating the first issue, initialize `LOG_DIRECTORY/creation-ledger.json` as a JSON array. Immediately after each successful create call, append an object with these exact fields: `implementationSubsection`, `bodyFile`, `id`, `number`, `title`, `url`, `body_verified`, and `linked`. Store `bodyFile` as a path relative to `LOG_DIRECTORY`, set `body_verified=false` and `linked=false`, then persist the ledger. Never keep the ledger only in memory.
 
 Before linking the new issue, fetch its body from GitHub and verify it exactly equals the complete contents of `BODY_FILE` (allowing only a single trailing newline difference). If it differs, record the observed body in `LOG_DIRECTORY/issue-bodies/NN-SUBSECTION-observed-body.md` and enter the failure flow without creating another issue. After a match, set `body_verified=true` and persist the ledger. Immediately after successfully linking it, set `linked=true` and persist the ledger.
 

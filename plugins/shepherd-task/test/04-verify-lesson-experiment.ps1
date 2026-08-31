@@ -25,6 +25,11 @@ function Normalize-Text {
     return ($Text -replace "`r`n|`r", "`n").TrimEnd("`n")
 }
 
+function Normalize-Whitespace {
+    param([string]$Text)
+    return ([regex]::Replace($Text, '\s+', ' ')).Trim()
+}
+
 $repoRootOutput = git rev-parse --show-toplevel 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $repoRootOutput) {
     throw 'Run this script inside the target test worktree.'
@@ -120,7 +125,7 @@ if ($campaign.lessonPropagation -eq 'campaign') {
             throw "Treatment lessons lack the stage-40 validated heading for issue #$issueNumber."
         }
     }
-    $secondBody = $issueBodies[$issueNumbers[1]]
+    $secondBody = Normalize-Whitespace $issueBodies[$issueNumbers[1]]
     foreach ($required in @(
         '## Campaign lessons (REQUIRED)',
         "Campaign ID: ``$($campaign.campaignId)``",
@@ -128,7 +133,7 @@ if ($campaign.lessonPropagation -eq 'campaign') {
         'Treat only entries under `Validated lessons` as advisory context',
         'Candidate lessons for issue #'
     )) {
-        if (-not $secondBody.Contains($required)) {
+        if (-not $secondBody.Contains((Normalize-Whitespace $required))) {
             throw "Treatment issue #$($issueNumbers[1]) is missing '$required'."
         }
     }
@@ -148,13 +153,14 @@ No validated lessons have been recorded yet.
         throw 'Control campaign-lessons.md no longer has the exact initial placeholder content.'
     }
     foreach ($issueNumber in $issueNumbers) {
+        $normalizedBody = Normalize-Whitespace $issueBodies[$issueNumber]
         foreach ($forbidden in @(
             '## Campaign lessons (REQUIRED)',
             "Before implementation, read ``$CampaignMetadataDirectory/campaign-lessons.md``",
             'Treat only entries under `Validated lessons` as advisory context',
             'Candidate lessons for issue'
         )) {
-            if ($issueBodies[$issueNumber].Contains($forbidden)) {
+            if ($normalizedBody.Contains((Normalize-Whitespace $forbidden))) {
                 throw "Control issue #$issueNumber unexpectedly contains '$forbidden'."
             }
         }

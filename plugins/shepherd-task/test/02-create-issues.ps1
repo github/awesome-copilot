@@ -17,6 +17,11 @@ function Normalize-Text {
     return ($Text -replace "`r`n|`r", "`n").TrimEnd("`n")
 }
 
+function Normalize-Whitespace {
+    param([string]$Text)
+    return ([regex]::Replace($Text, '\s+', ' ')).Trim()
+}
+
 $repoRootOutput = git rev-parse --show-toplevel 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $repoRootOutput) {
     throw 'Run this script inside the target test worktree.'
@@ -104,20 +109,25 @@ foreach ($entry in $ledger) {
     if ($issue.state -ne 'OPEN') { throw "Issue #$issueNumber is not open; state is '$($issue.state)'." }
 
     $body = [string]$issue.body
-    $bodyFileProperty = $entry.PSObject.Properties['body_file']
-    if ($null -ne $bodyFileProperty -and -not [string]::IsNullOrWhiteSpace([string]$bodyFileProperty.Value)) {
-        $bodyFile = [string]$bodyFileProperty.Value
-        if (-not [System.IO.Path]::IsPathRooted($bodyFile)) {
-            $bodyFile = Join-Path $artifacts.ArtifactDirectory $bodyFile
-        }
-        if (Test-Path -LiteralPath $bodyFile -PathType Leaf) {
-            $expectedBody = Get-Content -LiteralPath $bodyFile -Raw
-            if ((Normalize-Text $body) -cne (Normalize-Text $expectedBody)) {
-                throw "Actual body for issue #$issueNumber differs from its persisted draft."
-            }
-        }
+    $bodyFileProperty = $entry.PSObject.Properties['bodyFile']
+    if ($null -eq $bodyFileProperty -or
+        [string]::IsNullOrWhiteSpace([string]$bodyFileProperty.Value)) {
+        throw "Ledger entry for issue #$issueNumber has no bodyFile."
+    }
+    $bodyFile = [string]$bodyFileProperty.Value
+    if ([System.IO.Path]::IsPathRooted($bodyFile)) {
+        throw "Ledger bodyFile for issue #$issueNumber must be relative to the artifact directory."
+    }
+    $bodyFile = Join-Path $artifacts.ArtifactDirectory $bodyFile
+    if (-not (Test-Path -LiteralPath $bodyFile -PathType Leaf)) {
+        throw "Persisted draft for issue #$issueNumber was not found: $bodyFile"
+    }
+    $expectedBody = Get-Content -LiteralPath $bodyFile -Raw
+    if ((Normalize-Text $body) -cne (Normalize-Text $expectedBody)) {
+        throw "Actual body for issue #$issueNumber differs from its persisted draft."
     }
 
+    $normalizedBody = Normalize-Whitespace $body
     if ($campaign.lessonPropagation -eq 'campaign') {
         $required = @(
             '## Campaign lessons (REQUIRED)',
@@ -127,7 +137,9 @@ foreach ($entry in $ledger) {
             'Candidate lessons for issue #'
         )
         foreach ($text in $required) {
-            if (-not $body.Contains($text)) { throw "Treatment issue #$issueNumber is missing '$text'." }
+            if (-not $normalizedBody.Contains((Normalize-Whitespace $text))) {
+                throw "Treatment issue #$issueNumber is missing '$text'."
+            }
         }
     }
     else {
@@ -137,7 +149,9 @@ foreach ($entry in $ledger) {
             'Treat only entries under `Validated lessons` as advisory context',
             'Candidate lessons for issue'
         )) {
-            if ($body.Contains($forbidden)) { throw "Control issue #$issueNumber unexpectedly contains '$forbidden'." }
+            if ($normalizedBody.Contains((Normalize-Whitespace $forbidden))) {
+                throw "Control issue #$issueNumber unexpectedly contains '$forbidden'."
+            }
         }
     }
     $issueNumbers += $issueNumber
