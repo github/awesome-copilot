@@ -1,0 +1,68 @@
+/*
+ * Global base styles.
+ *
+ * Primer Brand supplies all design tokens and component styling; this file only
+ * covers the document-level basics and the small number of utilities the ported
+ * prototype markup relies on. Page-specific styling lives in the CSS modules
+ * under src/components/brand/styles/, exactly as the prototype authored them.
+ */
+
+@import "@primer/react-brand/lib/css/main.css";
+@import "@primer/react-brand/fonts/fonts.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  margin: 0;
+  background-color: var(--brand-color-canvas-default);
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-body-fontFamily);
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* `<main>` receives tabindex="-1" so the skip link can move focus to it; the
+   resulting focus ring is not meaningful to sighted users. */
+main:focus {
+  outline: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

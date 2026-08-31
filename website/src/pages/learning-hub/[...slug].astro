@@ -1,0 +1,100 @@
+---
+import { getCollection } from "astro:content";
+
+import LearningHubArticle from "../../layouts/LearningHubArticle.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AgentsAndSubagents from "../../components/brand/learning-hub/AgentsAndSubagents";
+import CliForBeginnersOverview from "../../components/brand/learning-hub/CliForBeginnersOverview";
+import CopilotConfigurationBasics from "../../components/brand/learning-hub/CopilotConfigurationBasics";
+import GithubCopilotApp from "../../components/brand/learning-hub/GithubCopilotApp";
+import GithubCopilotTerminologyGlossary from "../../components/brand/learning-hub/GithubCopilotTerminologyGlossary";
+import UsingAutomationsInCopilotApp from "../../components/brand/learning-hub/UsingAutomationsInCopilotApp";
+import WhatAreAgentsSkillsInstructions from "../../components/brand/learning-hub/WhatAreAgentsSkillsInstructions";
+import WorkingWithCanvasExtensions from "../../components/brand/learning-hub/WorkingWithCanvasExtensions";
+import { pageHref } from "../../components/brand/pageHref";
+import {
+  hasTranslations,
+  isLearningHubArticle,
+  localizedEntry,
+  siteLocale,
+  splitLocale,
+} from "../../lib/learning-hub-routes";
+import { isBespokeLearningHubArticle } from "../../lib/learning-hub-bespoke-articles";
+
+// Only the English (unprefixed) articles are enumerated here. Astro's i18n
+// `fallback` config auto-generates the locale-prefixed variant of every path in
+// this route, so this one route file owns every locale URL. Declaring a
+// separate `/[locale]/learning-hub/[...slug]` route as well would produce the
+// same paths at lower priority and be dropped with a build warning, leaving the
+// English fallback to shadow real translations.
+export async function getStaticPaths() {
+  const docs = await getCollection("docs");
+  return docs
+    .filter((entry) => isLearningHubArticle(entry.id))
+    .filter((entry) => !splitLocale(entry.id).locale)
+    .map((entry) => ({
+      params: { slug: entry.id.replace(/^learning-hub\//, "") },
+      props: { englishId: entry.id },
+    }));
+}
+
+const { englishId } = Astro.props;
+
+// On a fallback-generated page `Astro.url` is the rewritten English URL, so the
+// requested locale has to come from `Astro.currentLocale`.
+const locale = siteLocale(Astro.currentLocale);
+const docs = await getCollection("docs");
+const entry = localizedEntry(docs, englishId, locale);
+const slug = locale ? `${locale}/${englishId}` : englishId;
+const showLanguageSelect = hasTranslations(englishId);
+
+// Slugs adopted directly from the design prototype render their own bespoke
+// component instead of the generic markdown pipeline — English only for now;
+// locale routes for these slugs still fall through to the markdown renderer.
+// Astro's client:* hydration directives require a statically-referenced
+// component in the template, so each bespoke slug gets its own branch here
+// rather than a dynamic lookup passed as a prop.
+const bespokeSlug = !locale ? englishId.replace(/^learning-hub\//, "") : undefined;
+---
+
+{
+  bespokeSlug && isBespokeLearningHubArticle(bespokeSlug) ? (
+    bespokeSlug === "github-copilot-app" ? (
+      <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
+        <GithubCopilotApp client:load pageHref={pageHref} />
+      </BaseLayout>
+    ) : bespokeSlug === "agents-and-subagents" ? (
+      <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
+        <AgentsAndSubagents client:load pageHref={pageHref} />
+      </BaseLayout>
+    ) : bespokeSlug === "copilot-configuration-basics" ? (
+      <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
+        <CopilotConfigurationBasics client:load pageHref={pageHref} />
+      </BaseLayout>
+    ) : bespokeSlug === "github-copilot-terminology-glossary" ? (
+      <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
+        <GithubCopilotTerminologyGlossary client:load pageHref={pageHref} />
+      </BaseLayout>
+    ) : bespokeSlug === "using-automations-in-copilot-app" ? (
+      <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
+        <UsingAutomationsInCopilotApp client:load pageHref={pageHref} />
+      </BaseLayout>
+    ) : bespokeSlug === "what-are-agents-skills-instructions" ? (
+      <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
+        <WhatAreAgentsSkillsInstructions client:load pageHref={pageHref} />
+      </BaseLayout>
+    ) : bespokeSlug === "working-with-canvas-extensions" ? (
+      <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
+        <WorkingWithCanvasExtensions client:load pageHref={pageHref} />
+      </BaseLayout>
+    ) : bespokeSlug === "cli-for-beginners" ? (
+      <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
+        <CliForBeginnersOverview client:load pageHref={pageHref} />
+      </BaseLayout>
+    ) : (
+      <LearningHubArticle entry={entry} slug={slug} showLanguageSelect={showLanguageSelect} />
+    )
+  ) : (
+    <LearningHubArticle entry={entry} slug={slug} showLanguageSelect={showLanguageSelect} />
+  )
+}

@@ -1,0 +1,49 @@
+---
+import { getCollection } from "astro:content";
+
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { LearningHubIndex } from "../../components/brand/LearningHubIndex";
+import type { LearningHubArticle } from "../../components/brand/LearningHubIndex";
+import { searchIndex } from "../../lib/site-data";
+
+const docs = await getCollection("docs");
+
+// Only the top-level English Learning Hub articles are catalogued here, plus the
+// landing page of each multi-page workshop track (`cli-for-beginners` and
+// `copilot-workshops`) so they can be found via the "Workshop" content-type
+// filter; the exercises within each track have their own entry points, and
+// locale mirrors are surfaced under their own prefix.
+const WORKSHOP_LANDING_IDS = [
+  "learning-hub/cli-for-beginners/index",
+  "learning-hub/copilot-workshops/index",
+];
+const articles: LearningHubArticle[] = docs
+  .filter(
+    (entry) =>
+      /^learning-hub\/[^/]+$/.test(entry.id) ||
+      WORKSHOP_LANDING_IDS.includes(entry.id),
+  )
+  .filter((entry) => entry.id !== "learning-hub/index")
+  .map((entry) => ({
+    id: entry.id,
+    title: entry.data.title,
+    description: entry.data.description ?? "",
+    href: `/${entry.id}/`,
+    tags: entry.data.tags ?? [],
+    lastUpdated:
+      entry.data.lastUpdated instanceof Date
+        ? entry.data.lastUpdated.toISOString()
+        : (entry.data.lastUpdated ?? undefined),
+  }))
+  .sort((a, b) => (b.lastUpdated ?? "").localeCompare(a.lastUpdated ?? ""));
+
+const description =
+  "Guides, tutorials, and reference material for getting the most out of GitHub Copilot — curated by the community.";
+---
+
+<BaseLayout
+  title="GitHub Copilot Learning Hub | Awesome GitHub Copilot"
+  description={description}
+>
+  <LearningHubIndex client:load articles={articles} searchIndex={searchIndex} />
+</BaseLayout>

@@ -1,0 +1,42 @@
+/* "Skip to main content" link. Off-screen until focused, then slides into the
+   top-left corner on top of everything else. All colors and sizes use Primer
+   Brand tokens so it adapts across light and dark color modes. */
+.skipLink {
+  position: fixed;
+  top: var(--base-size-8);
+  left: var(--base-size-8);
+  z-index: 1000;
+  display: inline-block;
+  padding: var(--base-size-8) var(--base-size-16);
+  background-color: var(--brand-color-canvas-default);
+  color: var(--brand-color-text-link-rest);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-default);
+  border-radius: var(--brand-borderRadius-medium);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-weight: var(--brand-text-weight-600);
+  line-height: var(--brand-text-lineHeight-200);
+  text-decoration: none;
+  /* Park the link above the viewport until it is focused. */
+  transform: translateY(calc(-100% - var(--base-size-16)));
+  transition: transform 0.16s ease-in-out;
+}
+
+.skipLink:focus,
+.skipLink:focus-visible {
+  transform: translateY(0);
+  outline: var(--brand-borderWidth-thick) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+/* The skip target is a large region; focusing it should not paint a full-width
+   ring — the scroll + context change already signals the jump. */
+:global(#main-content:focus) {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skipLink {
+    transition: none;
+  }
+}

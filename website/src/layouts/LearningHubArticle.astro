@@ -1,0 +1,68 @@
+---
+/**
+ * Renders a `docs` collection entry through the Learning Hub article chassis.
+ *
+ * The chassis owns its own scroll host, hero pinning, and footer, so it
+ * replaces `PageShell` here rather than nesting inside it.
+ */
+import { render, type CollectionEntry } from "astro:content";
+
+import BaseLayout from "./BaseLayout.astro";
+import { LearningHubArticleBody } from "../components/brand/LearningHubArticleBody";
+import type { TocSection } from "../components/brand/LearningArticleLayout";
+import { buildArticleSections } from "../lib/learning-hub-article";
+import { enhanceMarkdownA11y } from "../lib/markdown-a11y";
+import { searchIndex } from "../lib/site-data";
+import { contentLocale, splitLocale } from "../lib/learning-hub-routes";
+
+interface Props {
+  entry: CollectionEntry<"docs">;
+  /** Site path for this article, without leading or trailing slashes. */
+  slug: string;
+  /** Whether this article has real translations, so the language selector should show. */
+  showLanguageSelect?: boolean;
+}
+
+const { entry, slug, showLanguageSelect = false } = Astro.props;
+
+const { headings } = await render(entry);
+
+// `render()` returns an Astro component, not HTML. The rendered markup is
+// available on the entry itself, which is what the section splitter needs.
+// Scrollable <pre>/<table> blocks in this markdown need to be made keyboard
+// focusable the same way detail-page markdown already is (see
+// lib/detail-page.ts) — Learning Hub articles were missing this pass entirely.
+const html = enhanceMarkdownA11y(entry.rendered?.html ?? "");
+const sections = buildArticleSections(html, entry.body ?? "");
+
+const tocSections: TocSection[] = headings
+  .filter((heading) => heading.depth === 2)
+  .map((heading) => ({ id: heading.slug, label: heading.text }));
+
+const title = entry.data.title;
+const description = entry.data.description ?? "";
+
+// `entry` is already the locale-resolved one picked by `localizedEntry` (real
+// translation or English fallback) — its own id tells us what actually
+// rendered, which is what `<html lang>` must reflect.
+const { locale: renderedLocale, path: englishId } = splitLocale(entry.id);
+const lang = contentLocale(renderedLocale, englishId);
+---
+
+<BaseLayout
+  title={`${title} | GitHub Copilot Learning Hub`}
+  description={description}
+  lang={lang}
+>
+  <LearningHubArticleBody
+    client:load
+    slug={slug}
+    breadcrumbLabel={title}
+    title={title}
+    description={description}
+    sections={sections}
+    tocSections={tocSections}
+    searchIndex={searchIndex}
+    showLanguageSelect={showLanguageSelect}
+  />
+</BaseLayout>

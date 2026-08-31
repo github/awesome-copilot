@@ -1,0 +1,195 @@
+/*
+ * Mobile navigation. Above 768px the desktop `.subNavList` (Resources dropdown
+ * + Learning Hub tab) is shown and this hamburger is hidden; at/below 768px each
+ * page module hides `.subNavList`, and this disclosure takes over as the mobile
+ * menu. Styling mirrors the desktop `.moreOverlay` / `.moreLink` dropdown so the
+ * two navs feel like one system.
+ */
+.mobileMenu {
+  display: none;
+  position: relative;
+  align-items: center;
+  /* Sit at the far right of the header row (after the heart + Contribute
+     actions) so the right-anchored dropdown opens inward and stays on screen. */
+  order: 5;
+  margin-inline-end: var(--base-size-16);
+}
+
+.mobileTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--base-size-40);
+  height: var(--base-size-40);
+  color: var(--brand-color-text-default);
+  background-color: transparent;
+  border: var(--brand-borderWidth-thin) solid transparent;
+  border-radius: var(--brand-borderRadius-medium);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.mobileTrigger::-webkit-details-marker {
+  display: none;
+}
+
+.mobileTrigger:hover {
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.mobileTrigger:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+.triggerBars {
+  display: inline-flex;
+}
+
+.triggerClose {
+  display: none;
+}
+
+.mobileMenu[open] .triggerBars {
+  display: none;
+}
+
+.mobileMenu[open] .triggerClose {
+  display: inline-flex;
+}
+
+.mobileOverlay {
+  position: absolute;
+  /* Meet the top bar flush: the panel's top edge lands on the top bar's own
+     bottom border, so nav and menu read as one connected surface (no gap). */
+  inset-block-start: 100%;
+  /* Break out of the right-anchored menu so the panel spans the full mobile
+     viewport: the trigger sits 16px + the top bar's 1px border from the screen
+     edge, so pull the panel's end edge out by that much and size it to 100vw. */
+  inset-inline-end: calc(
+    -1 * (var(--base-size-16) + var(--brand-borderWidth-thin))
+  );
+  z-index: 30;
+  inline-size: 100vw;
+  max-inline-size: 100vw;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-2);
+  padding: var(--base-size-8);
+  background-color: var(--brand-color-canvas-subtle);
+  border-block: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  box-shadow: var(--brand-SubNav-shadow);
+}
+
+.overlayLabel {
+  padding-block: var(--base-size-8) var(--base-size-4);
+  padding-inline: var(--base-size-12);
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand-color-text-muted);
+}
+
+/* Site-wide search relocated into the mobile menu (the desktop top-bar search
+   is hidden below 48rem). Sits at the top of the panel so search is the first
+   thing available when the menu opens. */
+.mobileSearch {
+  padding-block: var(--base-size-4);
+  padding-inline: var(--base-size-12);
+}
+
+.mobileLink {
+  padding-block: var(--base-size-8);
+  padding-inline: var(--base-size-12);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-default);
+  text-decoration: none;
+  border-radius: var(--brand-borderRadius-medium);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.mobileLink:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.mobileLink:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+}
+
+.mobileLink[aria-current="page"],
+.mobileLink[aria-current="page"]:hover {
+  color: var(--brand-color-text-default);
+  font-weight: var(--brand-text-weight-semibold);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.overlayDivider {
+  height: var(--brand-borderWidth-thin);
+  margin-block: var(--base-size-8);
+  margin-inline: var(--base-size-12);
+  background-color: var(--brand-color-border-muted);
+}
+
+/* Action cluster relocated from the header bar on mobile: the contributors
+   heart and the Contribute button, stacked (heart above, Contribute below)
+   under the nav links so the full-width panel reads top-to-bottom. */
+.mobileActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--base-size-12);
+  padding-block: var(--base-size-8);
+  padding-inline: var(--base-size-12);
+}
+
+/* The contributors heart button carries its own inline padding for the header
+   pill; in the stacked mobile menu that indents the heart past the nav links.
+   Drop the leading pad here so the heart lines up flush with the links, the
+   RESOURCES label and the site title (issue #18). The Contribute button's box
+   already sits on that same content edge. */
+.mobileActions :global(button[class*="trigger"]) {
+  padding-inline-start: 0;
+}
+
+/* On the tablet band the top bar is inset from the screen edge by the page
+   gutter, so the right-anchored breakout above (which only clears the trigger's
+   16px + border) leaves the full-width panel hanging off the left of the screen.
+   Pull the end edge out by the gutter as well so the 100vw panel stays aligned
+   to the viewport here too. Phones (<48rem) have no gutter and keep the base
+   value above. */
+@media screen and (min-width: 48rem) and (max-width: 74.99rem) {
+  .mobileOverlay {
+    inset-inline-end: calc(
+      -1 *
+        (
+          var(--page-gutter) + var(--base-size-16) +
+            var(--brand-borderWidth-thin)
+        )
+    );
+  }
+}
+
+/* Show the hamburger across phones AND the tablet band (up to 74.99rem/1199px):
+   the full desktop nav row doesn't fit below ~1200px — it wraps to two rows and
+   opening search pushes the GitHub wordmark off-screen (issue #19). Each page
+   module hides its desktop `.subNavList` / `.topBarActions` over the same range,
+   so this disclosure takes over as the nav through the whole band. */
+@media screen and (max-width: 74.99rem) {
+  .mobileMenu {
+    display: inline-flex;
+  }
+}

@@ -1,0 +1,1998 @@
+.page {
+  min-height: 100dvh;
+}
+
+/* Combined top navigation: brand mark, title, divider, content-type tabs,
+   and trailing actions, framed by the same gridlines as the hero */
+.topBar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.topBarInner {
+  width: 1280px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  border-inline-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  padding-inline-start: var(--base-size-24);
+  padding-inline-end: var(--base-size-24);
+  color: var(--brand-color-text-default);
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.brandMark:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-4);
+}
+
+.topBarActions {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-12);
+  padding-inline-start: var(--base-size-16);
+  padding-inline-end: var(--base-size-24);
+}
+
+.searchButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--base-size-32);
+  block-size: var(--base-size-32);
+  padding: 0;
+  border: 0;
+  border-radius: var(--brand-borderRadius-medium);
+  background-color: transparent;
+  color: var(--brand-color-text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.searchButton:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--base-color-scale-gray-1);
+}
+
+.page[data-mode="dark"] .searchButton:hover {
+  background-color: var(--base-color-scale-gray-6);
+}
+
+.searchButton:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+.searchFieldWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.searchField {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  inline-size: 12rem;
+  max-inline-size: 100%;
+  block-size: var(--base-size-32);
+  padding-inline: var(--base-size-12);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  background-color: var(--brand-color-canvas-default);
+  color: var(--brand-color-text-muted);
+  overflow: hidden;
+  transform-origin: right center;
+  animation: searchFieldExpand 0.18s ease;
+  transition: border-color 0.2s ease;
+}
+
+@keyframes searchFieldExpand {
+  from {
+    inline-size: var(--base-size-32);
+    opacity: 0.4;
+  }
+  to {
+    inline-size: 12rem;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .searchField {
+    animation: none;
+  }
+}
+
+.searchField:focus-within {
+  border-color: var(--brand-color-focus);
+}
+
+.searchInput {
+  flex: 1;
+  min-inline-size: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-100);
+  color: var(--brand-color-text-default);
+}
+
+.searchInput::placeholder {
+  color: var(--brand-color-text-muted);
+}
+
+.searchInput:focus {
+  outline: none;
+}
+
+.searchKbd {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--base-size-6);
+  padding-block: var(--base-size-2);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-small);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: 1;
+  color: var(--brand-color-text-muted);
+}
+
+.subNavTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  text-decoration: none;
+  padding-block: var(--base-size-16);
+  padding-inline: var(--base-size-24);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-weight: var(--brand-text-weight-medium);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-default);
+  white-space: nowrap;
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.subNavList {
+  flex: 1 1 auto;
+  margin: 0;
+  padding-block: var(--base-size-16);
+  padding-inline: var(--base-size-16);
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-8);
+}
+
+.subNavLink {
+  display: inline-flex;
+  align-items: center;
+  margin-block: 0;
+  padding-block: var(--base-size-4);
+  padding-inline: var(--base-size-16);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-muted);
+  text-decoration: none;
+  border-radius: var(--brand-borderRadius-full);
+  background-color: transparent;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.subNavLink:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.subNavLink:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-4);
+}
+
+.subNavTitle:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+}
+
+.subNavLinkActive,
+.subNavLinkActive:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--base-color-scale-gray-1);
+}
+
+.page[data-mode="dark"] .subNavLinkActive,
+.page[data-mode="dark"] .subNavLinkActive:hover {
+  background-color: var(--base-color-scale-gray-6);
+}
+
+/* "More" overflow dropdown, trigger styled as a tab */
+.moreItem {
+  display: flex;
+  align-items: center;
+}
+
+.moreMenu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.moreTrigger {
+  gap: var(--base-size-4);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.moreTrigger::-webkit-details-marker {
+  display: none;
+}
+
+.moreChevron {
+  transition: transform 0.2s ease;
+}
+
+.moreMenu[open] .moreChevron {
+  transform: rotate(180deg);
+}
+
+.moreOverlay {
+  position: absolute;
+  inset-block-start: calc(100% + var(--base-size-4));
+  inset-inline-start: 0;
+  z-index: 20;
+  min-inline-size: 12rem;
+  display: flex;
+  flex-direction: column;
+  padding: var(--base-size-8);
+  background-color: var(--brand-color-canvas-default);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  box-shadow: var(--brand-SubNav-shadow);
+}
+
+.moreLink {
+  padding-block: var(--base-size-8);
+  padding-inline: var(--base-size-12);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: var(--brand-borderRadius-medium);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.moreLink:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.moreLink:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+}
+
+/* Active dropdown item: mark the current Resources page so it stays
+   indicated when the menu is reopened. */
+.moreLink[aria-current="page"],
+.moreLink[aria-current="page"]:hover {
+  color: var(--brand-color-text-default);
+  font-weight: var(--brand-text-weight-semibold);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* Centered hero framed by gridlines; bottom line uses the default muted
+   gridline color to match the rest of the frame. */
+.hero {
+  width: 100%;
+  min-block-size: 17rem;
+  display: flex;
+  justify-content: center;
+  border-block-end: var(--brand-borderWidth-thick) solid
+    var(--brand-color-border-muted);
+}
+
+.heroInner {
+  width: 1280px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  gap: 0;
+  padding-block: 0;
+  padding-inline: var(--base-size-24);
+  background-color: var(--brand-color-canvas-default);
+  border-inline-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.heroTop {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--base-size-24);
+  width: 100%;
+  padding-block: var(--base-size-64);
+  text-align: center;
+}
+
+.heroDescription {
+  margin: 0;
+  max-width: 34rem;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-300);
+  line-height: var(--brand-text-lineHeight-300);
+  color: var(--brand-color-text-muted);
+}
+
+.heroHeading {
+  margin: 0;
+}
+
+.heroIcon {
+  display: inline-flex;
+  line-height: 0;
+}
+
+.heroText {
+  max-width: 34rem;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--base-size-16);
+  margin-block-start: var(--base-size-8);
+}
+
+.heroEyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: var(--brand-text-letterSpacing-100, 0.05em);
+  font-weight: var(--brand-text-weight-300, 600);
+  color: var(--base-color-scale-green-2);
+}
+
+.page[data-mode="light"] .heroEyebrow {
+  color: var(--base-color-scale-green-6);
+}
+
+.heroSearch {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--base-size-12);
+  cursor: text;
+  width: calc(100% + (var(--base-size-24) * 2));
+  margin-inline: calc(var(--base-size-24) * -1);
+  padding-inline: var(--base-size-24);
+  padding-block-start: var(--base-size-24);
+  block-size: 88px;
+  border: 0;
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-radius: 0;
+  background-color: var(--brand-color-canvas-subtle);
+  transition: border-color 0.2s ease,
+    block-size 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    margin-block-start 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.heroSearch:focus-within {
+  border-block-start-color: var(--brand-color-focus);
+}
+
+.heroSearch:hover {
+  block-size: 136px;
+  margin-block-start: calc(var(--base-size-48) * -1);
+  border-block-start-color: var(--brand-color-border-subtle);
+}
+
+.heroSearchHint {
+  position: absolute;
+  inset-inline-start: var(--base-size-24);
+  inset-block-start: var(--base-size-24);
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  pointer-events: none;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-500);
+  line-height: var(--brand-text-lineHeight-500);
+  color: var(--brand-color-border-default);
+}
+
+/* The placeholder text is painted from a gradient so a green highlight can
+   sweep through it in sync with the duck, then settle back to the muted
+   placeholder color once the duck stops. */
+.heroSearchHintText {
+  background-image: linear-gradient(
+    90deg,
+    var(--brand-color-border-default) 0%,
+    var(--brand-color-border-default) 42%,
+    var(--brand-color-accent-primary) 50%,
+    var(--brand-color-border-default) 58%,
+    var(--brand-color-border-default) 100%
+  );
+  background-size: 250% 100%;
+  background-position: 0% 0;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.heroSearch:hover .heroSearchHintText {
+  animation: heroSearchSweep 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.heroSearchHintMono {
+  font-family: var(--brand-fontStack-monospace);
+  color: var(--brand-color-border-default);
+  margin-inline-end: 0.35em;
+}
+
+@keyframes heroSearchSweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+
+.heroSearchDuck {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  display: inline-flex;
+  color: var(--brand-color-accent-primary);
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: inset-inline-start 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.25s ease;
+}
+
+.heroSearch:hover .heroSearchDuck {
+  inset-inline-start: calc(100% + var(--base-size-8));
+  opacity: 1;
+  animation: heroSearchDuckSettle 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Duck stays green as it travels, then fades to the placeholder text color
+   when it comes to rest at the end of the text. */
+@keyframes heroSearchDuckSettle {
+  0%,
+  72% {
+    color: var(--brand-color-accent-primary);
+  }
+  100% {
+    color: var(--brand-color-border-default);
+  }
+}
+
+/* Once the duck lands, a blue caret fades in to the left of the placeholder
+   text and blinks slowly, like a text cursor waiting for input. */
+.heroSearchCaret {
+  position: absolute;
+  inset-inline-end: calc(100% + var(--base-size-4));
+  inset-block-start: 50%;
+  inline-size: 2px;
+  block-size: 1.15em;
+  border-radius: var(--brand-borderRadius-full);
+  background-color: var(--base-color-scale-blue-4);
+  opacity: 0;
+  transform: translateY(-50%);
+}
+
+.heroSearch:hover .heroSearchCaret {
+  animation: heroCaretBlink 1.2s step-end 0.55s infinite;
+}
+
+/* Once the field is focused the real text cursor takes over, so the decorative
+   blue caret is hidden — even while the pointer is still hovering. */
+.heroSearch:focus-within .heroSearchCaret {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes heroCaretBlink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroSearch {
+    transition: border-color 0.2s ease;
+  }
+
+  .heroSearch:hover {
+    block-size: 88px;
+    margin-block-start: 0;
+  }
+
+  .heroSearchDuck {
+    transition: opacity 0.2s ease;
+  }
+
+  .heroSearch:hover .heroSearchDuck {
+    inset-inline-start: calc(100% + var(--base-size-8));
+    animation: none;
+    color: var(--brand-color-border-default);
+  }
+
+  .heroSearch:hover .heroSearchHintText {
+    animation: none;
+  }
+
+  .heroSearch:hover .heroSearchCaret {
+    animation: none;
+    opacity: 1;
+  }
+
+  .heroSearch:focus-within .heroSearchCaret {
+    opacity: 0;
+  }
+}
+
+.heroSearchIcon {
+  flex-shrink: 0;
+  color: var(--brand-color-text-muted);
+}
+
+.heroSearchInput {
+  flex: 1;
+  min-inline-size: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-500);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-500);
+  color: var(--brand-color-text-default);
+}
+
+.heroSearchInput::placeholder {
+  color: var(--brand-color-border-default);
+}
+
+.heroSearchInput:focus {
+  outline: none;
+}
+
+.heroSearchKbd {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 42px;
+  block-size: 42px;
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-small);
+  background-color: var(--brand-color-border-muted);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: 1;
+  color: var(--brand-color-text-default);
+  cursor: pointer;
+}
+
+/* Once the field has text, the "/" becomes a clickable button that clears it. */
+.heroSearchKbdButton {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.heroSearchKbdButton:hover {
+  border-color: var(--brand-color-border-default);
+  background-color: var(--brand-color-canvas-default);
+  color: var(--brand-color-accent-primary);
+}
+
+.heroSearchKbdButton:focus-visible {
+  outline: var(--brand-borderWidth-thick) solid var(--brand-color-focus);
+  outline-offset: 2px;
+}
+
+/* Live results dropdown: matches from this page's articles and from resources
+   across the library. Styled after the Docs 2026 search overlay. */
+.heroSearchResults {
+  position: absolute;
+  z-index: 30;
+  inset-inline: 0;
+  inset-block-start: calc(100% + var(--base-size-8));
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-24);
+  padding: var(--base-size-24);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-default);
+  background-color: var(--brand-color-canvas-muted);
+  box-shadow: var(--brand-SubNav-shadow);
+  text-align: start;
+  animation: heroSearchResultsIn 0.16s ease;
+}
+
+@keyframes heroSearchResultsIn {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--base-size-6) * -1));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.heroSearchGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.heroSearchGroupLabel {
+  margin: 0 0 var(--base-size-4);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  color: var(--brand-color-text-muted);
+}
+
+.heroSearchResult {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-16);
+  padding-block: var(--base-size-12);
+  border-block-start: var(--brand-borderWidth-thin) dashed
+    var(--brand-color-border-subtle);
+  color: var(--brand-color-text-default);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.heroSearchResult:first-of-type {
+  border-block-start: 0;
+}
+
+.heroSearchResult:focus-visible,
+.heroSearchResultActive {
+  outline: var(--brand-borderWidth-thick) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+  border-radius: var(--brand-borderRadius-small);
+}
+
+.heroSearchResultText {
+  display: flex;
+  align-items: baseline;
+  gap: var(--base-size-8);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-weight: var(--brand-text-weight-semibold);
+  color: inherit;
+}
+
+.heroSearchResultMeta {
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  color: var(--brand-color-text-muted);
+}
+
+.heroSearchResultIcon {
+  flex-shrink: 0;
+  color: var(--brand-color-text-muted);
+}
+
+.heroSearchResult:hover .heroSearchResultText,
+.heroSearchResult:focus-visible .heroSearchResultText,
+.heroSearchResultActive .heroSearchResultText,
+.heroSearchResult:hover .heroSearchResultIcon,
+.heroSearchResult:focus-visible .heroSearchResultIcon,
+.heroSearchResultActive .heroSearchResultIcon {
+  color: var(--brand-color-text-link-rest);
+}
+
+.heroSearchMore {
+  align-self: flex-start;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-weight: var(--brand-text-weight-medium);
+  color: var(--brand-color-text-link-rest);
+}
+
+.heroSearchMore:hover {
+  text-decoration: underline;
+}
+
+.heroSearchMore:focus-visible {
+  outline: var(--brand-borderWidth-thick) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+  border-radius: var(--brand-borderRadius-small);
+}
+
+.heroSearchEmpty {
+  margin: 0;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  color: var(--brand-color-text-muted);
+}
+
+/* Compact variant of the hero search dropdown, anchored to the top-nav field. */
+.topSearchResults {
+  position: absolute;
+  z-index: 30;
+  inset-block-start: calc(100% + var(--base-size-8));
+  inset-inline-end: 0;
+  inline-size: 20rem;
+  max-inline-size: min(20rem, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  padding: var(--base-size-16);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-default);
+  background-color: var(--brand-color-canvas-muted);
+  box-shadow: var(--brand-SubNav-shadow);
+  text-align: start;
+  animation: heroSearchResultsIn 0.16s ease;
+}
+
+.topSearchResults .heroSearchResult {
+  gap: var(--base-size-12);
+  padding-block: var(--base-size-8);
+}
+
+.topSearchResults .heroSearchResultText {
+  font-size: var(--brand-text-size-100);
+}
+
+.topSearchResults .heroSearchMore,
+.topSearchResults .heroSearchEmpty {
+  font-size: var(--brand-text-size-100);
+}
+
+/* Recommended carousel section, sits between the hero and the catalog. */
+.recommended {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-block: var(--base-size-64);
+  background-color: var(--brand-color-canvas-default);
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.recommendedInner {
+  width: 1280px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-40);
+  padding-block: 48px 0;
+  border-inline: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.recommendedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-16);
+  padding-inline: var(--base-size-24);
+}
+
+.recommendedTitle {
+  margin: 0;
+  font-size: var(--brand-text-size-500);
+  font-weight: var(--brand-text-weight-400, 500);
+  color: var(--brand-color-text-default);
+}
+
+.scrambleSrOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.scrambleWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.scrambleChars {
+  position: relative;
+  z-index: 0;
+}
+
+/* Keep each word's characters on the same line so the phrase only wraps between
+   words, never mid-word. */
+.scrambleWord {
+  white-space: nowrap;
+}
+
+.scrambleChar {
+  display: inline-block;
+  text-align: center;
+  white-space: pre;
+}
+
+.scrambleGlyph {
+  color: var(--brand-color-accent-primary);
+}
+
+.scrambleCursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0.62em;
+  height: 0.62em;
+  background-color: var(--brand-color-accent-primary);
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.carouselNav {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-24);
+}
+
+.carouselButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--base-size-4);
+  border: 0;
+  background: transparent;
+  color: var(--brand-color-text-default);
+  cursor: pointer;
+  border-radius: var(--brand-borderRadius-small);
+  transition: color 0.2s ease;
+}
+
+.carouselButton:first-child {
+  color: var(--brand-color-text-muted);
+}
+
+.carouselButton:hover {
+  color: var(--brand-color-text-default);
+}
+
+.carouselButton:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: 2px;
+}
+
+.carouselTrack {
+  display: flex;
+  flex-wrap: wrap;
+  overflow: hidden;
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  animation: recPageFade 0.28s var(--brand-animation-easing-default, ease);
+}
+
+@keyframes recPageFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carouselTrack {
+    animation: none;
+  }
+}
+
+.carouselTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.recCard {
+  position: relative;
+  flex: 0 0 calc(100% / 3);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  padding: 60px var(--base-size-40) var(--base-size-32);
+  text-decoration: none;
+  background-color: var(--brand-color-canvas-default);
+  transition: background-color var(--brand-animation-duration-extended)
+    var(--brand-animation-easing-default);
+}
+
+/* Keep an integer number of cards visible so the carousel never cuts a card
+   mid-width. Steps 3-up -> 2-up -> 1-up as the container narrows. */
+@media screen and (max-width: 56.24rem) {
+  .recCard {
+    flex-basis: calc(100% / 2);
+  }
+}
+
+@media screen and (max-width: 37.49rem) {
+  .recCard {
+    flex-basis: 100%;
+  }
+
+  /* When the cards stack, swap the between-card vertical rule for a horizontal
+     one so each card is divided by a gridline (the left/right verticals come
+     from .recommendedInner). */
+  .recCard:not(:first-child) {
+    border-inline-start: 0;
+    border-block-start: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+}
+
+.recCard:not(:first-child) {
+  border-inline-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.recCard:is(:hover, :focus-visible) {
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* Rounded focus ring on an inset overlay, matching Primer Brand's Card: the
+   subtle fill covers the full cell while the ring sits inset within it with a
+   filled gutter and medium (8px) corners. Insetting also keeps the ring clear
+   of the carousel track's overflow clip, so it stays fully visible. */
+.recCard::before {
+  content: "";
+  position: absolute;
+  inset: var(--base-size-28);
+  border-radius: var(--brand-borderRadius-medium);
+  pointer-events: none;
+}
+
+/* Suppress the default anchor outline; the inset ring below replaces it. */
+.recCard:focus-visible {
+  outline: none;
+}
+
+.recCard:focus-visible::before {
+  outline: var(--brand-borderWidth-thick) solid var(--brand-color-focus);
+}
+
+.recCardLabels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--base-size-8);
+  min-block-size: var(--base-size-12);
+}
+
+.recCardLabel {
+  display: inline-flex;
+  align-items: center;
+  padding-block: 7px;
+  padding-inline: var(--base-size-8);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-medium);
+  line-height: 10px;
+  color: var(--brand-color-text-muted);
+  background-color: var(--brand-color-canvas-subtle);
+  border-radius: var(--brand-borderRadius-small);
+}
+
+/* Green fill reserved for the "New" label only (per brand cards). */
+.recCardLabelAccent {
+  color: var(--brand-color-success-fg);
+  background-color: var(--brand-color-success-subtle);
+}
+
+/*
+ * In light mode the brand's success-fg on success-subtle only reaches 4.09:1 at
+ * this text size. Step one down the same green ramp to clear WCAG AA (6.14:1)
+ * without leaving the brand palette. Dark mode already passes, and its green-7
+ * is near-black, so this is deliberately light-mode only.
+ */
+.page[data-mode="light"] .recCardLabelAccent {
+  color: var(--base-color-scale-green-7);
+}
+
+/*
+ * Secondary label variant: stroke only, no fill. Pairs with the neutral filled
+ * .recCardLabel so the two tags on a card read as distinct (per brand cards).
+ */
+.recCardLabelOutline {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--brand-borderWidth-thin)
+    var(--brand-color-border-default);
+  color: var(--brand-color-text-muted);
+}
+
+.page[data-mode="light"] .recCardLabel:not(.recCardLabelAccent):not(.recCardLabelOutline) {
+  color: var(--brand-color-text-muted);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.recCardHeading {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--base-size-8);
+  margin: 0;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-400);
+  font-weight: var(--brand-text-weight-600, 600);
+  line-height: var(--brand-text-lineHeight-400);
+  color: var(--brand-color-text-default);
+}
+
+.recCardHeading svg {
+  flex-shrink: 0;
+  margin-block-start: calc(
+    (var(--brand-text-lineHeight-400) * 1em - 20px) / 2
+  );
+}
+
+.recCardDesc {
+  margin: 0;
+  margin-block-end: var(--base-size-12);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  line-height: var(--brand-text-lineHeight-300);
+  color: var(--brand-color-text-muted);
+}
+
+.recCardImage {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-block-start: auto;
+  aspect-ratio: 1616 / 720;
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--brand-color-canvas-subtle);
+  background-image: url("/media/dither-light.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.page[data-mode="dark"] .recCardImage {
+  background-image: url("/media/dither-dark.webp");
+}
+
+/* Desktop App card: dock screenshot sized to fill the slot with no letterbox */
+.recCardImageDesktop {
+  background-image: url("/media/desktop-app-light.webp");
+}
+
+.page[data-mode="dark"] .recCardImageDesktop {
+  background-image: url("/media/desktop-app.webp");
+}
+
+/* Terminal card: CLI screenshot, light and dark variants */
+.recCardImageTerminal {
+  background-image: url("/media/terminal-light.webp");
+}
+
+.page[data-mode="dark"] .recCardImageTerminal {
+  background-image: url("/media/terminal.webp");
+}
+
+/* Fundamentals card: tool icons, light and dark variants */
+.recCardImageFundamentals {
+  background-image: url("/media/fundamentals-light.webp");
+}
+
+.page[data-mode="dark"] .recCardImageFundamentals {
+  background-image: url("/media/fundamentals.webp");
+}
+
+/* Automations card: New automation dialog screenshot, light variant */
+.recCardImageAutomations {
+  background-image: url("/media/automations-light.webp");
+}
+
+/* Dark variant screenshot fills the slot like the light one */
+.page[data-mode="dark"] .recCardImageAutomations {
+  background-image: url("/media/automations-dark.webp");
+}
+
+/* Canvases card: /create-canvas prompt screenshot, light and dark variants */
+.recCardImageCanvases {
+  background-image: url("/media/canvases-light.webp");
+}
+
+.page[data-mode="dark"] .recCardImageCanvases {
+  background-image: url("/media/canvases-dark.webp");
+}
+
+/* Reference card: glossary illustration, light and dark variants */
+.recCardImageReference {
+  background-image: url("/media/reference-light.webp");
+}
+
+.page[data-mode="dark"] .recCardImageReference {
+  background-image: url("/media/reference-dark.webp");
+}
+
+/* Connected gridline frame shared by the stats row and the agents grid */
+.gridFrame {
+  width: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+/* Full-bleed horizontal rule spanning the entire viewport width */
+.rule {
+  width: 100%;
+  height: 0;
+  margin: 0;
+  border: 0;
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.gridContent {
+  width: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.col {
+  display: flex;
+}
+
+.item {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 60px;
+  background-color: var(--brand-color-canvas-default);
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  transition: background-color var(--brand-animation-duration-extended)
+    var(--brand-animation-easing-default);
+}
+
+.itemHover:is(:hover, :focus-within) {
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* Rounded focus ring on an inset overlay, matching Primer Brand's Card: the
+   subtle fill covers the full cell out to the gridlines while the ring sits
+   inset within it with a filled gutter and medium (8px) corners. */
+.item::before {
+  content: "";
+  position: absolute;
+  inset: var(--base-size-28);
+  border-radius: var(--brand-borderRadius-medium);
+  pointer-events: none;
+}
+
+/* Suppress the card link's default (sharp, content-hugging) outline; the inset
+   ring below replaces it. */
+.catalogCard:focus-visible {
+  outline: none;
+}
+
+.item:has(.catalogCard:focus-visible)::before {
+  outline: var(--brand-borderWidth-thick) solid var(--brand-color-focus);
+}
+
+.col:first-child .item {
+  border-block-start: 0;
+}
+
+.item .card {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  padding: 0;
+}
+
+.catalogCard {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  height: 100%;
+  text-decoration: none;
+}
+
+.cardDescText {
+  display: block;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--base-size-8);
+  margin-block-start: var(--base-size-16);
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-8);
+  margin-block-start: var(--base-size-20);
+}
+
+/* Icon-only download button: keep it square to match the brand button height */
+.iconButton {
+  padding-inline: var(--base-size-12);
+  align-items: center;
+}
+
+.iconButton svg {
+  display: block;
+}
+
+/*
+ * ActionMenu hard-locks the split-button overlay to light color mode, so its
+ * brand tokens can't see the page's dark palette and the dropdown renders light
+ * on a dark page. When the prototype is in dark mode (the agents grid frame is
+ * tagged data-mode="dark"), capture the dark canvas/subtle, text, border, and
+ * item-hover tokens on .cardActions (which sits in the page's dark context,
+ * above the overlay's forced-light wrapper) and feed them back into the overlay
+ * so the dropdown matches the dark theme. Custom properties resolve to concrete
+ * dark values at this scope and inherit unchanged into the light-locked overlay.
+ */
+.gridFrame[data-mode="dark"] .cardActions {
+  --menu-canvas: var(--brand-color-canvas-subtle);
+  --menu-text: var(--brand-color-text-default);
+  --menu-border: var(--brand-color-border-muted);
+  --menu-item-hover: var(--brand-ActionMenu-color-item-hover);
+}
+
+.gridFrame[data-mode="dark"] .cardActions :global([class*="ActionMenu__menu"]) {
+  --brand-color-canvas-default: var(--menu-canvas);
+  --brand-color-text-default: var(--menu-text);
+  --brand-color-border-muted: var(--menu-border);
+  --brand-ActionMenu-color-item-hover: var(--menu-item-hover);
+}
+
+/* Model + meta line inside cards */
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-8);
+}
+
+.updated {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-4);
+}
+
+/* Toolbar above the grid */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--base-size-16);
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.sortControl {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Catalog layout: filter sidebar + main content */
+.catalogSection {
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.catalogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-16);
+  padding: 48px var(--base-size-24) var(--base-size-32);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-inline: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.sortControl {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  flex-shrink: 0;
+}
+
+.sortLabel {
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  color: var(--brand-color-text-muted);
+  white-space: nowrap;
+}
+
+/* Custom sort dropdown (replaces the native <select> so the menu background
+   follows the brand canvas token in dark mode instead of the OS-native popup). */
+.sortMenu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sortTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-4);
+  padding-block: var(--base-size-4);
+  padding-inline: var(--base-size-8);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  color: var(--brand-color-text-default);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  border: var(--brand-borderWidth-thin) solid transparent;
+  border-radius: var(--brand-borderRadius-medium);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.sortTrigger::-webkit-details-marker {
+  display: none;
+}
+
+.sortMenu:hover .sortTrigger,
+.sortMenu[open] .sortTrigger,
+.sortTrigger:focus-visible {
+  border-color: var(--brand-color-border-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.sortChevron {
+  transition: transform 0.2s ease;
+}
+
+.sortMenu[open] .sortChevron {
+  transform: rotate(180deg);
+}
+
+.sortOverlay {
+  position: absolute;
+  inset-block-start: calc(100% + var(--base-size-4));
+  inset-inline-end: 0;
+  z-index: 20;
+  min-inline-size: 11rem;
+  display: flex;
+  flex-direction: column;
+  padding: var(--base-size-8);
+  background-color: var(--brand-color-canvas-default);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  box-shadow: var(--brand-SubNav-shadow);
+}
+
+.sortOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-12);
+  padding-block: var(--base-size-8);
+  padding-inline: var(--base-size-12);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-muted);
+  text-align: start;
+  background-color: transparent;
+  border: 0;
+  border-radius: var(--brand-borderRadius-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.sortOption:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.sortOptionActive {
+  color: var(--brand-color-text-default);
+  font-weight: var(--brand-text-weight-medium);
+}
+
+.sortOption:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+}
+
+.sortOptionCheck {
+  flex-shrink: 0;
+  color: var(--brand-color-accent-primary);
+}
+
+.sortOption[aria-checked="false"] .sortOptionCheck {
+  visibility: hidden;
+}
+
+.catalog {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding-block-start: 0;
+  width: 100%;
+  /* Full-height vertical gridlines drawn as background layers so they span the
+     entire catalog and meet the full-bleed .rule below: the nav-left line at 0
+     and the cards-left line at 336px (= fixed nav width). */
+  background-image: linear-gradient(
+      var(--brand-color-border-muted),
+      var(--brand-color-border-muted)
+    ),
+    linear-gradient(
+      var(--brand-color-border-muted),
+      var(--brand-color-border-muted)
+    );
+  background-size: var(--brand-borderWidth-thin) 100%;
+  background-position: 0 0, 336px 0;
+  background-repeat: no-repeat;
+}
+
+.catalogMain {
+  flex: 1 1 960px;
+  width: 960px;
+  max-width: 960px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-24);
+  /* Cards-right gridline; continued to the footer by .paginationRow below */
+  background-image: linear-gradient(
+    var(--brand-color-border-muted),
+    var(--brand-color-border-muted)
+  );
+  background-size: var(--brand-borderWidth-thin) 100%;
+  background-position: 100% 0;
+  background-repeat: no-repeat;
+}
+
+/* Pagination now sits between full-bleed rules with no vertical gridlines. */
+.paginationRow {
+  display: flex;
+  justify-content: center;
+  padding-block-start: var(--base-size-48);
+  padding-block-end: 60px;
+  padding-inline: var(--base-size-24);
+}
+
+/* Brand divider: mirrors the Home page divider — full-width artwork inside a
+   Section, with no side or top framing lines. */
+.dividerFrame {
+  width: 100%;
+}
+
+/* Pagination: always show the Previous/Next chevrons (they are hidden on
+   desktop by default) and strip the arrow stem so they read as clean
+   chevrons; give the current page a neutral grey surface instead of green. */
+.pagination :global([class*="Pagination__controlArrowWrapper"]) {
+  display: flex;
+}
+
+.pagination :global([class*="ExpandableArrow-stem"]) {
+  display: none;
+}
+
+.pagination :global([aria-current="page"]),
+.pagination :global([aria-current="page"]:hover) {
+  background: var(--base-color-scale-green-6);
+  border-color: var(--base-color-scale-green-6);
+}
+
+.page[data-mode="dark"] .pagination :global([aria-current="page"]),
+.page[data-mode="dark"] .pagination :global([aria-current="page"]:hover) {
+  background: var(--base-color-scale-green-5);
+  border-color: var(--base-color-scale-green-5);
+}
+
+.pagination :global([aria-current="page"] [class*="Button--label"]) {
+  color: var(--brand-color-text-onEmphasis);
+}
+
+/* In dark mode text-onEmphasis flips to black; keep the current page number
+   white against the green surface. */
+.page[data-mode="dark"]
+  .pagination
+  :global([aria-current="page"] [class*="Button--label"]) {
+  color: var(--base-color-scale-white-0);
+}
+
+.filterNav {
+  flex: 0 0 336px;
+  width: 336px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-32);
+  padding-block-start: 60px;
+  padding-block-end: 60px;
+  padding-inline-start: 60px;
+  padding-inline-end: 60px;
+}
+
+.filterBody {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-32);
+}
+
+/* Mobile-only disclosure trigger for the filter panel */
+.filterToggle {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-8);
+  width: 100%;
+  padding: var(--base-size-12) var(--base-size-16);
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-200);
+  color: var(--brand-color-text-default);
+  background: var(--brand-color-canvas-subtle);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  cursor: pointer;
+}
+
+.filterToggle:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+.filterToggleChevron {
+  transition: transform var(--brand-animation-duration-fast)
+    var(--brand-animation-easing-default);
+}
+
+.filterToggleChevronOpen {
+  transform: rotate(180deg);
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+}
+
+.filterNav .filterHeading {
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-regular);
+  text-transform: uppercase;
+  letter-spacing: var(--brand-text-letterSpacing-100);
+  color: var(--brand-color-text-default);
+}
+
+.filterOption :global(label) {
+  color: var(--brand-color-text-muted);
+}
+
+.filterOptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-4);
+}
+
+.filterOption {
+  border: var(--brand-borderWidth-thin) solid transparent;
+  border-radius: var(--brand-borderRadius-medium);
+  padding: var(--base-size-4) var(--base-size-12);
+  transition: background var(--brand-animation-duration-extended)
+    var(--brand-animation-easing-default);
+}
+
+.filterOption:has(input:checked) {
+  background: var(--brand-color-canvas-subtle);
+  border-color: var(--brand-color-border-muted);
+}
+
+.filterActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--base-size-12);
+  margin-block-start: auto;
+  padding-block-start: var(--base-size-32);
+}
+
+.emptyState {
+  padding: var(--base-size-32);
+  text-align: center;
+}
+
+/* Stack the filter sidebar above the grid on smaller screens */
+@media screen and (max-width: 63.25rem) {
+  .catalog {
+    flex-direction: column;
+    background-image: none;
+  }
+
+  .catalogMain {
+    width: 100%;
+    max-width: 100%;
+    flex-basis: auto;
+    background-image: none;
+    border-inline: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  .filterNav {
+    flex: 0 0 auto;
+    align-self: stretch;
+    height: auto;
+    width: 100%;
+    border-inline-start: 0;
+    padding-block-start: var(--base-size-32);
+    padding-block-end: 0;
+    padding-inline-start: var(--base-size-24);
+    padding-inline-end: var(--base-size-24);
+  }
+
+  .filterActions {
+    margin-block-start: var(--base-size-8);
+    padding-block-start: 0;
+  }
+}
+
+/* Tablet nav: the full desktop nav row (tabs + search + heart + Contribute)
+   doesn't fit from 48rem up to this breakpoint — it wraps to two rows, and
+   opening search shoves the wordmark off-screen (issue #19). Collapse to the
+   hamburger across this band too; the wordmark grows to fill so the menu
+   button sits at the far right. */
+@media screen and (min-width: 48rem) and (max-width: 74.99rem) {
+  .subNavList {
+    display: none;
+  }
+
+  .topBarActions {
+    display: none;
+  }
+
+  .searchButton,
+  .searchField {
+    display: none;
+  }
+
+  .subNavTitle {
+    flex: 1 1 auto;
+    border-inline-end: 0;
+  }
+}
+
+@media screen and (max-width: 47.99rem) {
+  .subNavList {
+    display: none;
+  }
+
+  /* Heart + Contribute relocate into the hamburger dropdown on mobile
+     (see TopNav); the header action cluster (incl. search) is hidden here. */
+  .topBarActions {
+    display: none;
+  }
+
+  .subNavTitle {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--brand-text-size-100);
+    /* Align the wordmark with the hero's left gridline: the full-bleed header's
+       inner border sits at x=0, so inset by the page gutter less that border. */
+    padding-inline-start: calc(
+      var(--page-gutter) - var(--brand-borderWidth-thin)
+    );
+    padding-inline-end: var(--base-size-12);
+    border-inline-end: 0;
+  }
+
+  /* Keep the GitHub mark on the wordmark at every viewport so the page still
+     reads as official; it stays fixed while the title text ellipsizes. */
+  .subNavTitle svg {
+    flex-shrink: 0;
+  }
+
+  .item {
+    padding: var(--base-size-32) var(--base-size-24);
+  }
+
+  /* Restore the hero's bottom gridline on phones so the search field is closed
+     off by the same full-bleed line used at wider widths. */
+  .hero {
+    min-block-size: auto;
+  }
+
+  /* Tighten the gap between the "GitHub Copilot Learning Hub" title and the search field,
+     and drop the empty space beneath the field. */
+  .heroTop {
+    padding-block: var(--base-size-24);
+  }
+
+  .heroInner {
+    padding-block-start: var(--base-size-24);
+    padding-block-end: 0;
+  }
+
+  .filterNav {
+    padding-block-start: 0;
+    padding-block-end: 0;
+  }
+
+  /* On phones the Filters toggle moves into the catalog header (replacing the
+     sort control), so the sidebar only holds the collapsible filter body. */
+  .sortControl {
+    display: none;
+  }
+
+  .filterToggle {
+    display: inline-flex;
+    width: auto;
+    flex-shrink: 0;
+    padding: var(--base-size-8) var(--base-size-12);
+    font-size: var(--brand-text-size-100);
+    border-radius: var(--brand-borderRadius-small);
+  }
+
+  .filterBodyCollapsed {
+    display: none;
+  }
+
+  .filterBody {
+    gap: var(--base-size-24);
+    padding-block-start: var(--base-size-20);
+    padding-block-end: var(--base-size-24);
+  }
+
+  .cardDescText,
+  .filterOption :global(label) {
+    font-size: var(--brand-text-size-200);
+  }
+
+  /* On phones the "What would you like to learn?" placeholder wraps onto two
+     lines at a readable size rather than shrinking to fit one line. */
+  .heroSearchInput,
+  .heroSearchHint,
+  .heroSearchHintMono {
+    font-size: clamp(0.9375rem, 4.4vw, var(--brand-text-size-400));
+    line-height: var(--brand-text-lineHeight-300);
+  }
+
+  .heroSearch {
+    block-size: auto;
+    min-block-size: var(--base-size-112);
+    align-items: center;
+    padding-block-start: 0;
+  }
+
+  .heroSearchHint {
+    inset-inline-end: var(--base-size-24);
+    inset-block-start: 50%;
+    width: auto;
+    max-width: 11em;
+    white-space: normal;
+    transform: translateY(-50%);
+  }
+
+  /* The duck fly-out is a hover flourish that has no place in the touch/mobile
+     decode animation — hide it below the mobile breakpoint. */
+  .heroSearchDuck {
+    display: none;
+  }
+}
+
+/* Break the catalog out to its full 336 + 960 width on wide screens */
+@media screen and (min-width: 84rem) {
+  .catalog {
+    width: 1296px;
+    margin-inline: -8px;
+  }
+
+  .catalogHeader {
+    width: 1296px;
+    margin-inline: -8px;
+  }
+
+  .heroInner {
+    width: 1296px;
+  }
+
+  .recommendedInner {
+    width: 1296px;
+  }
+
+  .subNavInner,
+  .topBarInner {
+    width: 1296px;
+  }
+}
+
+/* Three-up agents grid: gridlines between connected columns (large screens) */
+@media screen and (min-width: 63.25rem) {
+  .threeUp {
+    grid-auto-rows: min-content;
+    /* Close the card grid with a bottom line under the last row. */
+    border-block-end: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  .threeUp .item {
+    border-block-start: 0;
+    border-inline-start: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  .threeUp .col:nth-child(n + 3) .item {
+    border-block-start: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  .threeUp .col:nth-child(2n) .item,
+  .threeUp .col:last-child .item {
+    border-inline-end: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  /* Four-up stats row */
+  .fourUp .item {
+    border-block-start: 0;
+    border-inline-start: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  .fourUp .col:first-child .item {
+    border-inline-start: 0;
+  }
+}
+
+/*
+ * Responsive page gutters (mirrors styles.module.css; see there for the tier
+ * rationale): <768→20 · 768–1279→91 · 1280–1919→152 · ≥1920→native 1296.
+ * Below 1920px we neutralise the Primer Section 1280 cap and the ≥84rem 1296
+ * break-out and inset each framed band (header, hero, recommended carousel,
+ * catalog header + rail, divider) by the tiered --page-gutter so the vertical
+ * gridlines track the content edge. The catalog cards column goes fluid while
+ * the 336px filter rail stays fixed.
+ */
+.page {
+  --page-gutter: var(--base-size-20);
+  --page-pad-block: var(--base-size-40);
+  /* Footer tracks this page's ≥1920 native 1296 frame (see largeFooter). */
+  --footer-frame-width: 1296px;
+}
+
+@media screen and (min-width: 48rem) and (max-width: 79.99rem) {
+  .page {
+    --page-gutter: 91px;
+  }
+}
+
+@media screen and (min-width: 80rem) and (max-width: 119.99rem) {
+  .page {
+    --page-gutter: 152px;
+    --page-pad-block: 60px;
+  }
+}
+
+@media screen and (max-width: 119.99rem) {
+  :global([class*="Section__container"]) {
+    max-width: none;
+  }
+
+  /* Flex-centered bands: grow to fill minus symmetric gutter margins. */
+  .heroInner,
+  .recommendedInner {
+    width: auto;
+    max-width: none;
+    flex: 1 1 auto;
+    margin-inline: var(--page-gutter);
+  }
+
+  /* Catalog header + rail: inset to the gutter (cards column goes fluid, the
+     336px filter rail stays fixed so the middle gridline holds at 336px). */
+  .catalogHeader,
+  .catalog {
+    width: auto;
+    margin-inline: var(--page-gutter);
+  }
+
+  .catalogMain {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+  }
+
+  /* Divider image: inset within its full-bleed Section frame. */
+  .dividerFrame :global([class*="Section__container"]) > * {
+    padding-inline: var(--page-gutter);
+  }
+}
+
+/* Header bar gridline alignment: 768–1919px only (phones keep the full-bleed
+   collapsed bar). Grow-to-fill minus symmetric gutter margins. */
+@media screen and (min-width: 48rem) and (max-width: 119.99rem) {
+  .topBarInner {
+    width: auto;
+    max-width: none;
+    flex: 1 1 auto;
+    margin-inline: var(--page-gutter);
+  }
+}
