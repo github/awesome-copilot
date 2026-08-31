@@ -76,6 +76,13 @@ mutation:
 & "$ShepherdPlugin/test/05-stage20-artifact-contract.ps1"
 ```
 
+The stage-40 reviewer and run-finalization contracts can also be checked
+without GitHub mutation:
+
+```powershell
+& "$ShepherdPlugin/test/06-stage40-review-contract.ps1"
+```
+
 ## 1. Define the session variables
 
 Set all paths before changing directories:

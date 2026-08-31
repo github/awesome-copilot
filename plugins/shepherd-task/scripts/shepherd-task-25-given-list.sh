@@ -117,6 +117,19 @@ finalize_run() {
     local final_exit="$original_exit"
     trap - EXIT
 
+    local completed_at status temp_manifest
+    completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+    status="failed"
+    [[ $original_exit -eq 0 ]] && status="succeeded"
+    temp_manifest="$RUN_MANIFEST.tmp"
+    if ! jq --arg completedAt "$completed_at" --arg status "$status" --argjson exitCode "$original_exit" \
+        '.completedAt=$completedAt | .status=$status | .exitCode=$exitCode' \
+        "$RUN_MANIFEST" >"$temp_manifest" ||
+        ! mv -- "$temp_manifest" "$RUN_MANIFEST"; then
+        echo "[shepherd-task] FAILED: could not finalize run manifest." >&2
+        [[ $final_exit -ne 0 ]] || final_exit=1
+    fi
+
     if [[ "$POST_MORTEM_INVOKED" == "0" ]]; then
         POST_MORTEM_INVOKED=1
         local pm_timestamp post_mortem_path share_path jsonl_path prompt
@@ -127,7 +140,7 @@ finalize_run() {
         prompt="Invoke skill \`shepherd-task-50-create-post-mortem\` with these inputs:
 
 - SHEPHERD_LOG_DIR: $LOG_DIR_FULL
-- SCRIPT_EXIT_CODE: $original_exit
+- SCRIPT_EXIT_CODE: $final_exit
 - TASK_ISSUES: $TASK_ISSUES
 - BASE_BRANCH: $BASE_BRANCH
 - REPO: $REPO
@@ -147,19 +160,6 @@ Write the report to:
         "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR_FULL" >/dev/null 2>&1
         set -e
         [[ $pm_exit -eq 0 ]] || echo "[shepherd-task] WARNING: post-mortem generation failed." >&2
-    fi
-
-    local completed_at status temp_manifest
-    completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-    status="failed"
-    [[ $original_exit -eq 0 ]] && status="succeeded"
-    temp_manifest="$RUN_MANIFEST.tmp"
-    if ! jq --arg completedAt "$completed_at" --arg status "$status" --argjson exitCode "$original_exit" \
-        '.completedAt=$completedAt | .status=$status | .exitCode=$exitCode' \
-        "$RUN_MANIFEST" >"$temp_manifest" ||
-        ! mv -- "$temp_manifest" "$RUN_MANIFEST"; then
-        echo "[shepherd-task] FAILED: could not finalize run manifest." >&2
-        [[ $final_exit -ne 0 ]] || final_exit=1
     fi
     exit "$final_exit"
 }

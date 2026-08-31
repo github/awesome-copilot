@@ -110,6 +110,18 @@ catch {
     Write-Error $_ -ErrorAction Continue
 }
 finally {
+    $runManifest.completedAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $runManifest.exitCode = $scriptExitCode
+    $runManifest.status = if ($scriptExitCode -eq 0) { 'succeeded' } else { 'failed' }
+    $tempManifest = "$runManifestPath.tmp"
+    try {
+        [IO.File]::WriteAllText($tempManifest, ($runManifest | ConvertTo-Json -Depth 4) + [Environment]::NewLine, $utf8)
+        Move-Item -LiteralPath $tempManifest -Destination $runManifestPath -Force
+    } catch {
+        Write-Error "Could not finalize run manifest: $_" -ErrorAction Continue
+        if ($scriptExitCode -eq 0) { $scriptExitCode = 1 }
+    }
+
     if (-not $postMortemInvoked) {
         $postMortemInvoked = $true
         $pmTimestamp = Get-Date -Format 'yyyyMMdd-HHmm'
@@ -130,18 +142,6 @@ Invoke skill ``shepherd-task-50-create-post-mortem`` with these inputs:
                 -SharePath (Join-Path $logDirFull "post-mortem-session-$pmTimestamp.md")
             & (Join-Path $scriptDir 'redact-secrets.ps1') $logDirFull | Out-Null
         } catch { Write-Warning "Post-mortem generation failed: $($_.Exception.Message)" }
-    }
-
-    $runManifest.completedAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
-    $runManifest.exitCode = $scriptExitCode
-    $runManifest.status = if ($scriptExitCode -eq 0) { 'succeeded' } else { 'failed' }
-    $tempManifest = "$runManifestPath.tmp"
-    try {
-        [IO.File]::WriteAllText($tempManifest, ($runManifest | ConvertTo-Json -Depth 4) + [Environment]::NewLine, $utf8)
-        Move-Item -LiteralPath $tempManifest -Destination $runManifestPath -Force
-    } catch {
-        Write-Error "Could not finalize run manifest: $_" -ErrorAction Continue
-        if ($scriptExitCode -eq 0) { $scriptExitCode = 1 }
     }
 }
 
