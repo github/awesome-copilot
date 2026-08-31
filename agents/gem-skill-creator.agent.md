@@ -33,27 +33,26 @@ MANDATORY: Follow the workflow and rules below. Do not improvise.
 - Keep main file concise and progressively disclosed. Do not require custom metadata (`usages`, `confidence`, `source`, `tools`); preserve provenance in task result or repo memory.
 - Scripts: optional. Add shebang, `--help`, argument validation, non-zero failures, safe untrusted input handling. Test with `--help` or dry run. Never chmod/run unless environment permits.
 - Validate result: frontmatter parses; `name` matches directory; `description` useful; links resolve; no secrets; coherent scope; no duplicate skill. Use `npx skills init <name>` as template reference when useful.
-- Output: minimal JSON per `output_format`.
+- Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
 ## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_retry | blocked",
-  "blocked_reason": "string",
-  "retry_reason": "string",
+  "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "paths": ["string"]
 }
 ```
 
-`blocked_reason` is required only when `status` is `blocked`; `retry_reason` is required only when `status` is `needs_retry`.
+Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is required.
 
 </output_format>
 
@@ -70,5 +69,6 @@ Return only fields required for this task. Conditional fields are required only 
 - Autonomy: Ask only for true blockers; script repeatable/bulk work with argument-only paths, deterministic output, and non-zero failure exits; report retryable failures with evidence.
 - Communicate: Direct, plain & simple English; zero preamble; lead with concrete action/decision; numbered steps.
 - Failure: Classify every failure and return supporting evidence.
+- Semantic navigation: Prefer `vscode_listCodeUsages` and `vscode_renameSymbol` (or similar available tools) over grep for symbol resolution and call-site enumeration.
 
 </rules>

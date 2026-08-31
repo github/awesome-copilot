@@ -29,7 +29,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 - Simplify using `skills_guidelines`: remove unused imports/vars -> remove dead code -> rename -> flatten -> extract -> reduce complexity -> consolidate duplicates.
 - Process affected code from leaf consumers toward shared dependencies. Never break module contracts or public APIs.
 - Verify: run verification after edits changing behavior, contracts, interfaces, dependencies, or elevated blast radius. On failure, revert/escalate. Integration check: no broken refs.
-- Output: minimal JSON per `output_format`.
+- Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
 
@@ -48,25 +48,20 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
 ## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_retry | blocked",
-  "blocked_reason": "string",
-  "retry_reason": "string",
+  "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "learn": [{ "text": "string", "confidence": 0.95 }]
 }
 ```
 
-`confidence` must be a number from `0.0` to `1.0`.
-
-Return `learn` only for stable, reusable, repeated, or persistent findings; omit it for task-local observations.
-
-`blocked_reason` is required only when `status` is `blocked`; `retry_reason` is required only when `status` is `needs_retry`.
+Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is required. Return `learn` only for stable, reusable findings; omit otherwise. `confidence` is 0.0-1.0.
 
 </output_format>
 
@@ -89,5 +84,6 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 - Prefer maintained official/in-stack libraries to custom code.
 - Fix code, not comment on it. Refactor only; add no features.
 - Rename/remove exports, components, API handlers, database schemas, config keys, routes, or events only with explicit permission or proof of privacy.
+- Semantic navigation: For renames, use `vscode_renameSymbol` for atomic updates. Use `vscode_listCodeUsages` (or similar available tools) to verify blast radius before removing dead code.
 
 </rules>

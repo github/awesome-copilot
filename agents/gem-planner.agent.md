@@ -51,21 +51,22 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 
 - Output & Storage Contract:
   - Write complete plan to `docs/plan/{plan_id}/plan.yaml`.
-  - Return minimal JSON matching `output_format`.
+  - Return a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
 ## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_revision",
-  "revision_findings": ["string"],
+  "reason": "string",
   "fail": "fixable | needs_replan | escalate",
+  "revision_findings": ["string"],
   "plan_id": "string",
   "plan_path": "string",
   "complexity": "MEDIUM | HIGH",
@@ -75,10 +76,7 @@ Return only fields required for this task. Conditional fields are required only 
 }
 ```
 
-`fail` is required only when `status` is `failed`.
-`revision_findings` is required only when `status` is `needs_revision`.
-
-Return `learn` only for stable, reusable, repeated, or persistent findings; omit it for task-local observations. `confidence` must be a number from `0.0` to `1.0`.
+Omit `reason` when `status` is `completed`. `fail` is required when `status` is `failed`. `revision_findings` is required when `status` is `needs_revision`. Return `learn` only for stable, reusable findings; omit otherwise. `confidence` is 0.0-1.0.
 
 </output_format>
 
@@ -87,48 +85,63 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 ## Plan Format Guide
 
 ```yaml
-plan_id: string
-status: pending | approved | in_progress | completed | failed
+plan_id: str
+status: "pending | approved | in_progress | completed | failed"
 tldr: |
-created_at: string
-created_by: string
-revision: number
-replan_count: number
+created_at: str
+created_by: str
+revision: int
+replan_count: int
 planner_revision_used: false
 
 baseline:
-  objective: string
-  acceptance_criteria: [string]
-  captured_at: string
+  objective: str
+  acceptance_criteria:
+    - str
+  captured_at: str
 
-decisions: [string]
-assumptions: [string]
+decisions:
+  - str
+assumptions:
+  - str
 
-replan: # conditional: required only when replanning
-  reason: string
-  changed_tasks: [string]
-  added_tasks: [string]
-  removed_tasks: [string]
-  preserved_acceptance_criteria: [string]
-  new_risks: [string]
-  progress_signal: string
-  revised_tasks: [string]
-  invalidated_tasks: [string]
-  invalidated_assumptions: [string]
+replan:
+  reason: str
+  changed_tasks:
+    - str
+  added_tasks:
+    - str
+  removed_tasks:
+    - str
+  preserved_acceptance_criteria:
+    - str
+  new_risks:
+    - str
+  progress_signal: str
+  revised_tasks:
+    - str
+  invalidated_tasks:
+    - str
+  invalidated_assumptions:
+    - str
 
 tasks:
-  - id: string
-    title: string
-    description: string
-    wave: number
-    depends_on: [task_id] # conditional: omit when the task has no direct dependency
-    agent: string
-    status: pending | in_progress | completed | failed | blocked | needs_revision | needs_replan
+  - id: str
+    title: str
+    description: str
+    wave: int
+    depends_on:
+      - str
+    agent: str
+    status: "pending | in_progress | completed | failed | blocked | needs_revision | needs_replan"
     retries_used: 0
-    acceptance_criteria: [string]
+    acceptance_criteria:
+      - str
     handoff:
-      constraints: [string]
-      relevant_context: [string]
+      constraints:
+        - str
+      relevant_context:
+        - str
 ```
 
 </plan_format_guide>
@@ -159,6 +172,7 @@ tasks:
 - Do not create additional wave barriers merely to make the plan easier to describe.
 - Declare resource ownership for affected paths; the orchestrator derives safe parallelism from ownership within each wave.
 - Complexity Contract: Treat supplied `MEDIUM`/`HIGH` as a floor; promote only when plan evidence justifies it, never downgrade; always return `complexity_reason` and preserve all supplied `risk_signals`.
+- Semantic navigation: Before scoping tasks, use `vscode_listCodeUsages` (or similar available tools) to verify symbol boundaries and call-site impact.
 
 ### Acceptance
 

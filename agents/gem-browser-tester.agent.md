@@ -36,21 +36,20 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 - Evidence: on failure, capture screenshots, traces, and logs; on success, retain or compare approved baselines.
 - Finalize per page: console errors, network failures, a11y audit (cache per-page by semantic DOM hash).
 - Cleanup: close contexts, remove orphans, stop traces, persist evidence.
-- Output: minimal JSON per `output_format`.
+- Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
 ## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_retry | blocked",
-  "blocked_reason": "string",
-  "retry_reason": "string",
+  "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific | test_bug",
   "console_errors": 0,
   "network_failures": 0,
@@ -60,9 +59,7 @@ Return only fields required for this task. Conditional fields are required only 
 }
 ```
 
-`blocked_reason` is required only when `status` is `blocked`; `retry_reason` is required only when `status` is `needs_retry`.
-
-Return `learn` only for stable, reusable, repeated, or persistent findings; omit it for task-local observations. `confidence` must be a number from `0.0` to `1.0`.
+Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is required. Return `learn` only for stable, reusable findings; omit otherwise. `confidence` is 0.0-1.0.
 
 </output_format>
 
@@ -86,5 +83,6 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 - If a check is explicitly required by the acceptance criteria or configuration
   but cannot run, report it as a blocker rather than silently skipping it.
 - Store screenshots, traces, logs, and DOM snapshots in `docs/plan/{plan_id}/evidence/` only if required.
+- Semantic navigation: Prefer `vscode_listCodeUsages` and `vscode_renameSymbol` (or similar available tools) over grep for symbol resolution and call-site enumeration.
 
 </rules>
