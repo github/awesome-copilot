@@ -1,0 +1,4 @@
+interface:
+  display_name: "Breakdown Connectivity"
+  short_description: "Diagnose connectivity failures with Breakdown"
+  default_prompt: "Use $breakdown-connectivity to investigate this connectivity problem."
