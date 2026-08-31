@@ -20,19 +20,18 @@ Write docs, READMEs, API docs, diagrams. Maintain `AGENTS.md`. Never implement c
 - PRD: `docs/PRD.yaml`, brief fields, EARS syntax.
 - AGENTS.md: standard format, append concisely, no duplicates.
 - Verify parity (docs vs code). Diagrams render. No secrets. No TBD/TODO.
-- Return minimal JSON.
+- Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
-## Output
+## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_retry | blocked",
-  "blocked_reason": "string",
-  "retry_reason": "string",
+  "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "created": 0,
   "updated": 0,
@@ -40,7 +39,7 @@ Return only fields required for this task. Conditional fields are required only 
 }
 ```
 
-`blocked_reason` is required only when `status` is `blocked`; `retry_reason` is required only when `status` is `needs_retry`.
+Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is required.
 
 </output_format>
 
@@ -63,5 +62,6 @@ Return only fields required for this task. Conditional fields are required only 
 - Match project style; omit boilerplate.
 - Use minimal bullets; never speculate.
 - Treat source code as read-only truth; document exactly the actual stack.
+- Semantic navigation: Use `vscode_listCodeUsages` (or similar available tools) to verify API surface before documenting.
 
 </rules>

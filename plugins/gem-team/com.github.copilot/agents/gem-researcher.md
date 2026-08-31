@@ -45,19 +45,19 @@ Use `exploration_mode` as the research budget (Default: `scan`):
   - `trace`: requested chain only.
   - `deep`: only relationships relevant to the task.
 - Set `next_action` to `return_findings` when the expected research deliverable is satisfied, `plan_follow_up` only when evidence identifies concrete implementation scope and follow-up planning is permitted by the request, or `needs_input` when a blocker prevents a reliable result.
-- Output: minimal JSON per `output_format`.
-
-</workflow>
+- Output: a raw JSON object per `output_format`. No markdown fences, no prose.
+  </workflow>
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
 ## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_revision",
+  "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "mode": "scan | deep | audit | trace | question",
   "next_action": "return_findings | plan_follow_up | needs_input",
@@ -68,6 +68,8 @@ Return only fields required for this task. Conditional fields are required only 
   "next_questions": ["string: max 3"]
 }
 ```
+
+Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is required.
 
 </output_format>
 
@@ -92,5 +94,6 @@ Return only fields required for this task. Conditional fields are required only 
   - Expand scope only when required evidence is unavailable or conflicting, relationships/flows remain unresolved, impact must be verified, or acceptance criteria cannot be verified.
 - Before expanding, identify the missing question/evidence and confirm it can change the conclusion.
 - Stop once required questions and decision blockers are resolved; record non-impacting unknowns as gaps.
+- Semantic navigation: Prefer `vscode_listCodeUsages` (or similar available tools) over grep for symbol resolution and call-site enumeration.
 
 </rules>

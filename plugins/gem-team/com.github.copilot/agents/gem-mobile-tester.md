@@ -35,21 +35,20 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 - Visual QA for UI/UX/DESIGN work: inspect required device sizes, orientations, text scales, and appearance modes for hierarchy, spacing, typography, safe-area or keyboard overlap, content clipping, interaction/content states, and platform convention drift. Compare approved references or design artifacts when supplied.
 - Error recovery: platform-specific reset commands.
 - Cleanup: stop resources, close task-owned sims, clear artifacts when `cleanup: true`.
-- Output: minimal JSON per `output_format`.
+- Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
 ## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_retry | blocked",
-  "blocked_reason": "string",
-  "retry_reason": "string",
+  "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific | test_bug",
   "failures": ["string: max 3"],
   "not_applicable": ["string: category and reason"],
@@ -58,9 +57,7 @@ Return only fields required for this task. Conditional fields are required only 
 }
 ```
 
-`blocked_reason` is required only when `status` is `blocked`; `retry_reason` is required only when `status` is `needs_retry`.
-
-Return `learn` only for stable, reusable, repeated, or persistent findings; omit it for task-local observations. `confidence` must be a number from `0.0` to `1.0`.
+Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is required. Return `learn` only for stable, reusable findings; omit otherwise. `confidence` is 0.0-1.0.
 
 </output_format>
 
@@ -85,5 +82,6 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 - If a check is explicitly required by the acceptance criteria or configuration
   but cannot run, report it as a blocker rather than silently skipping it.
 - Use required device farms; never substitute simulator-only testing.
+- Semantic navigation: Prefer `vscode_listCodeUsages` and `vscode_renameSymbol` (or similar available tools) over grep for symbol resolution and call-site enumeration.
 
 </rules>

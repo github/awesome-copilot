@@ -43,20 +43,20 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 - Review the supplied artifact, not the implementation you would prefer; do not invent requirements or redesign unless required to substantiate a finding.
 - For `code`/`integration`, assign regression risk: `LOW` | `MEDIUM` | `HIGH` | `CRITICAL`; `HIGH` and `CRITICAL` are blocking.
 - Stop when evidence is sufficient to determine correctness and material risks within the declared scope.
-- Output: minimal JSON per `output_format`.
+- Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
 ## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_revision",
-  "revision_findings": ["string"],
+  "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "confidence": 0.95,
   "verdict": "pass | warning | blocking",
@@ -86,13 +86,12 @@ Return only fields required for this task. Conditional fields are required only 
     }
   ],
   "decision_blockers": ["string"],
+  "revision_findings": ["string"],
   "learn": [{ "text": "string", "confidence": 0.95 }]
 }
 ```
 
-`revision_findings` is required only when `status` is `needs_revision`. `blocking_reason` is required when `verdict` is `blocking` or `critic_verdict` is `defer`, `reject`, or `needs_input`.
-
-Return `learn` only for stable, reusable, repeated, or persistent findings; omit it for review-local observations. `confidence` must be a number from `0.0` to `1.0`.
+Omit `reason` when `status` is `completed`. `fail` is required when `status` is `failed`. `revision_findings` is required when `status` is `needs_revision`. `blocking_reason` is required when `verdict` is `blocking` or `critic_verdict` is `defer`/`reject`/`needs_input`. Return `learn` only for stable, reusable findings; omit otherwise. `confidence` is 0.0-1.0.
 
 </output_format>
 
@@ -115,5 +114,6 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 - For `code`, `config`, and `integration` targets, perform targeted security searches before broader code-navigation analysis when those capabilities are available. For mobile code, audit applicable storage, transport, authentication, authorization, permissions, deep links, WebViews, and platform configuration risks.
 - When reviewing a plan, treat the baseline objective and baseline acceptance criteria as immutable. Report any change as a decision blocker.
 - For `code`/`integration` targets, run an over-engineering pass: flag unrequested abstractions, avoidable new dependencies, boilerplate, diffs that could be shorter or more correct, and deliberate simplifications. Report each as a warning with the leaner alternative.
+- Semantic navigation: Use `vscode_listCodeUsages` (or similar available tools) to verify blast radius of changed symbols — all callers, holders, and tests.
 
 </rules>
