@@ -231,10 +231,6 @@ foreach ($entry in $ledger) {
     $issueNumbers += $issueNumber
     $actualBodies += [ordered]@{ number = $issueNumber; state = [string]$issue.state; bodyVerified = $true }
 }
-if ((@($result.issueNumbers) -join ',') -ne ($issueNumbers -join ',')) {
-    throw "Stage-result issue order '$(@($result.issueNumbers) -join ',')' does not match the verified ledger order '$($issueNumbers -join ',')'."
-}
-
 $expectedLessonCategory = 'Non-obvious repository-tested implementation pattern that lets dot-sourced unit tests coexist with direct CLI execution.'
 $handoff = [ordered]@{
     schemaVersion = 1

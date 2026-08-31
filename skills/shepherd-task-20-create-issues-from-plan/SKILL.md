@@ -199,7 +199,6 @@ Before creating the first issue, initialize `LOG_DIRECTORY/creation-ledger.json`
   "schemaVersion": 1,
   "status": "in_progress",
   "ledgerFile": "creation-ledger.json",
-  "issueNumbers": [],
   "operationError": null
 }
 ```
@@ -221,7 +220,7 @@ Create and link one at a time in plan order. On linking failure, retry up to 3 t
 
 1. Stop immediately. Do not create, link, edit, or delete anything else.
 2. Use read-only GitHub queries to reconcile every ledger entry against current repository and parent-child state. Update each `linked` value from observed server state.
-3. Atomically write `stage-20-result.json` with `status` set to `failed`, `issueNumbers` set to the ordered ledger issue numbers, and `operationError` set to the failed operation and error. Preserve the other fields and schema shown above.
+3. Atomically write `stage-20-result.json` with `status` set to `failed` and `operationError` set to the failed operation and error. Preserve the other fields and schema shown above. Do not duplicate issue identities in this document; `creation-ledger.json` is their single source of truth.
 4. Report the failed operation and its error.
 5. Print the complete reconciled creation ledger in creation order, including issue number, title, URL, body-file path, `body_verified`, and whether it was linked to `PARENT_ISSUE`.
 6. Print one cleanup command per created issue:
@@ -241,7 +240,7 @@ If the ledger is empty, explicitly report that no issues were created and no cle
 - The newly linked child order matches plan order.
 - Every issue in the ledger has a body exactly matching its persisted body file, is open, and has no assignees.
 - When `SELECTED_ISSUE_TYPE=Task`, every created issue has type `Task`. When it is empty, no issue-type postcondition is required.
-- After every other postcondition passes, atomically write `stage-20-result.json` with `status` set to `complete`, `issueNumbers` set to the ordered ledger issue numbers, and `operationError` set to `null`. A successful Copilot process exit is not a stage-success signal; this result document is authoritative.
+- After every other postcondition passes, atomically write `stage-20-result.json` with `status` set to `complete` and `operationError` set to `null`. Do not add issue identities; `creation-ledger.json` is their single source of truth. A successful Copilot process exit is not a stage-success signal; the status document plus the complete ledger are authoritative.
 
 ### Step 7: Report the ordered handoff
 

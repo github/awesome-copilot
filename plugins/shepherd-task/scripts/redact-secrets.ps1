@@ -49,17 +49,23 @@ function Redact-JsonValue {
     if ($Value -is [System.Collections.IDictionary]) {
         $result = [ordered]@{}
         foreach ($entry in $Value.GetEnumerator()) {
-            $result[$entry.Key] = Redact-JsonValue $entry.Value ([string]$entry.Key)
+            $result[$entry.Key] = Redact-JsonValue -Value $entry.Value -Key ([string]$entry.Key)
         }
         return [pscustomobject]$result
     }
     if ($Value -is [System.Collections.IEnumerable] -and $Value -isnot [string]) {
-        return @($Value | ForEach-Object { Redact-JsonValue $_ $Key })
+        $items = [System.Collections.Generic.List[object]]::new()
+        foreach ($item in $Value) {
+            $items.Add((Redact-JsonValue -Value $item -Key $Key))
+        }
+        return ,$items.ToArray()
     }
     if ($Value -is [pscustomobject]) {
         $result = [ordered]@{}
         foreach ($property in $Value.PSObject.Properties) {
-            $result[$property.Name] = Redact-JsonValue $property.Value $property.Name
+            $result[$property.Name] = Redact-JsonValue `
+                -Value $property.Value `
+                -Key $property.Name
         }
         return [pscustomobject]$result
     }
@@ -138,8 +144,10 @@ if (-not (Test-Path -LiteralPath $LogDirectory -PathType Container)) {
     throw "Log directory not found: $LogDirectory"
 }
 
-$files = Get-ChildItem -LiteralPath $LogDirectory -File -Recurse |
-    Where-Object { $_.Name -like '*.json*' }
+$files = @(
+    Get-ChildItem -LiteralPath $LogDirectory -File -Recurse |
+        Where-Object { $_.Name -like '*.json*' }
+)
 if ($files.Count -eq 0) {
     throw "No .json* files found in $LogDirectory"
 }
