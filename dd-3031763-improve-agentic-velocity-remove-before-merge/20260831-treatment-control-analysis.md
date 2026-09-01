@@ -8,7 +8,9 @@ The treatment produced five durable, evidence-backed lessons. The three lessons 
 
 The outcome result is different:
 
-- The treatment campaign took **53m 27s**, versus **42m 52s** for control: treatment was **10m 35s slower**, or **24.7%**.
+- The treatment campaign required two stage-25 attempts. Their task-execution windows totaled **77m 55s**, versus **42m 52s** for control: treatment consumed **35m 03s more observed execution time**, or **81.8%**.
+- The treatment's captured task-session time totaled **76m 13s**, versus **41m 31s** for control: **34m 42s more**, or **83.6%**.
+- One **8m 06s** treatment stage-40 session failed because shepherd requested reviewer `Copilot` instead of the required `@copilot`. Excluding that unrelated orchestration defect, treatment still consumed **69m 49s**, **26m 57s more than control**, or **62.9%**.
 - The treatment used **9 review rounds**, versus **6** for control: **50% more**.
 - The treatment generated **8 review comments**, versus **5** for control: **60% more**.
 - The downstream treatment task, issue #10, took **33m 37s**, versus **9m 51s** for the corresponding control task, issue #13: treatment was **23m 46s slower**, or **3.41 times as long**.
@@ -24,6 +26,10 @@ This is a result from one paired campaign, not a statistically reliable rejectio
 
 This analysis compares:
 
+- Earlier treatment attempt artifacts:
+  `C:\Users\edburns\workareas\dd-3056162-shepherd-treatment\1-math-treatment-remove-before-merge\shepherd-tasks-083cc76e-92d7-42a1-bb16-b1b4f769cbd0-20260831-1240`
+- Earlier treatment attempt post-mortem:
+  `C:\Users\edburns\workareas\dd-3056162-shepherd-treatment\1-math-treatment-remove-before-merge\shepherd-tasks-083cc76e-92d7-42a1-bb16-b1b4f769cbd0-20260831-1240\20260831-1306-post-mortem.md`
 - Treatment post-mortem:
   `C:\Users\edburns\workareas\dd-3056162-shepherd-treatment\1-math-treatment-remove-before-merge\shepherd-tasks-083cc76e-92d7-42a1-bb16-b1b4f769cbd0-20260831-1325\20260831-1422-post-mortem.md`
 - Control post-mortem:
@@ -32,6 +38,8 @@ This analysis compares:
 - Final control lesson file on `experiment/shepherd-control`
 
 The treatment task pair was issue #9 / PR #14 followed by issue #10 / PR #15. The corresponding control pair was issue #12 / PR #16 followed by issue #13 / PR #17.
+
+The earlier treatment directory does contain a generated post-mortem even though the stage-25 run failed. That report was created before the run manifest was finalized, so its statement that the manifest remained `running` is stale. Its phase timings, failure boundary, and issue-#9 stage-30 observations are corroborated by `phase1-task-20260831-1240-9.md`, `phase2-task-20260831-1256-9.md`, and the now-finalized failed run manifest.
 
 ## Experiment comparability
 
@@ -57,11 +65,12 @@ The principal experimental difference was lesson mode:
 
 There are important limits to direct comparison:
 
-1. **Treatment issue #9 entered the measured run already ready for stage 40.** Its stage-30 implementation time is absent. Control issue #12 includes both stage 30 and stage 40. Campaign elapsed time is therefore not a complete implementation-cost comparison.
-2. **The agents are stochastic.** The treatment and control generated materially different first-task implementations, which created different bases for the second task.
-3. **The second task inherited merged code in both campaigns.** Control had no textual lessons, but it still inherited the corrected implementation, tests, CI contract, and public API produced by issue #12.
-4. **The sample contains one downstream task.** It can reveal mechanisms and failure modes, but not establish a general effect size.
-5. **Token cost cannot be compared.** Treatment reports 4,373,818 combined local tokens, while control token values are redacted and unavailable.
+1. **Treatment spans two stage-25 attempts.** The first attempt contains issue #9's complete stage-30 session and an unsuccessful stage-40 session. The second resumes issue #9 at stage 40, merges it, and completes issue #10. Summing task-execution windows excludes the human/reinstallation delay between attempts.
+2. **Treatment incurred an unrelated orchestration defect.** Its first stage-40 attempt spent 8m 06s failing to request Copilot review because the reviewer token was wrong. Total observed cost should include this real campaign cost, but lesson-efficacy analysis should also show a normalized value excluding it.
+3. **The agents are stochastic.** The treatment and control generated materially different first-task implementations, which created different bases for the second task.
+4. **The second task inherited merged code in both campaigns.** Control had no textual lessons, but it still inherited the corrected implementation, tests, CI contract, and public API produced by issue #12.
+5. **The sample contains one downstream task.** It can reveal mechanisms and failure modes, but not establish a general effect size.
+6. **Token cost cannot be compared.** The successful treatment run reports 4,373,818 combined local tokens, while control token values are redacted and unavailable. The earlier treatment attempt adds additional AI usage, making the unavailable comparison even less favorable to a precise cost claim.
 
 Because of these limits, the most informative comparisons are:
 
@@ -76,18 +85,22 @@ Because of these limits, the most informative comparisons are:
 
 | Metric | Treatment | Control | Treatment difference |
 |---|---:|---:|---:|
-| Campaign elapsed time | 53m 27s | 42m 52s | +10m 35s (+24.7%) |
-| Captured active session time | 52m 10s | 41m 31s | +10m 39s (+25.7%) |
+| Task-execution time across stage-25 attempts | 77m 55s | 42m 52s | +35m 03s (+81.8%) |
+| Captured active task-session time | 76m 13s | 41m 31s | +34m 42s (+83.6%) |
+| Failure-normalized task-execution time | 69m 49s | 42m 52s | +26m 57s (+62.9%) |
+| Stage-25 attempts | 2 | 1 | +1 |
+| Task Copilot sessions | 5 | 4 | +1 |
 | CCRA review rounds | 9 | 6 | +3 (+50.0%) |
 | Review comments | 8 | 5 | +3 (+60.0%) |
 | Actionable implementation comments | 6 | 5 | +1 (+20.0%) |
 | Nonmeritorious lesson-lifecycle comments | 2 | 0 | +2 |
+| Pre-review shepherd change-request cycles on first task | 2 | 0 reported | +2 |
 | Tasks approved on first review | 0/2 | 1/2 | -1 task |
 | Tasks requiring local fixes | 2/2 | 1/2 | +1 task |
 | Tasks merged | 2/2 | 2/2 | no difference |
 | Final unresolved comments | 0 | 0 | no difference |
 
-Treatment was slower even though its measured run omitted issue #9's stage-30 session. That does not prove lesson mode caused the entire difference, but it rules out any claim that this treatment run demonstrated end-to-end velocity improvement.
+The observed treatment total includes the failed reviewer-request session because it was part of the actual campaign cost. The failure-normalized row removes only that 8m 06s deterministic orchestration defect. It does not remove lesson capture, lesson publication, lesson-content fixes, or rereviews. Treatment remains 62.9% slower after this normalization.
 
 ### Paired task comparison
 
@@ -98,19 +111,36 @@ Treatment was slower even though its measured run omitted issue #9's stage-30 se
 
 #### First task: Fibonacci
 
-Only stage 40 is directly comparable because treatment stage 30 was not captured.
-
 | Metric | Treatment #9 | Control #12 | Treatment difference |
 |---|---:|---:|---:|
-| Stage-40 time | 18m 33s | 24m 46s | -6m 13s (-25.1%) |
+| Stage-30 time | 15m 57s | 6m 54s | +9m 03s (+131.2%) |
+| Failed stage-40 attempt | 8m 06s | none | +8m 06s |
+| Successful stage-40 time | 18m 33s | 24m 46s | -6m 13s (-25.1%) |
+| Total observed active time | 42m 36s | 31m 40s | +10m 56s (+34.5%) |
+| Failure-normalized active time | 34m 30s | 31m 40s | +2m 50s (+8.9%) |
+| Pre-review shepherd change-request cycles | 2 | 0 reported | +2 |
 | Total review rounds | 4 | 5 | -1 |
 | Actionable findings | 2 | 5 | -3 |
 | Lesson-lifecycle findings | 1 | 0 | +1 |
 | Review-fix commits reported | not directly reported | 4 | not comparable |
 
-Treatment #9's implementation reached a clean implementation review after two rounds. Control #12 required five rounds and four correction commits.
+Treatment #9's first stage-25 attempt provides the previously missing stage-30 evidence:
+
+1. Stage 30 ran from 12:40:32 to 12:56:29 PDT, **15m 57s**.
+2. Shepherd caused two CCA correction cycles:
+   - correct the exact candidate-lesson heading;
+   - initialize the shared script path in Pester's run phase rather than discovery scope.
+3. The final stage-30 head passed six canonical tests and two substantive workflow checks.
+4. The first stage-40 session then ran for **8m 06s** and failed before any CCRA review because `gh pr edit --add-reviewer Copilot` could not resolve login `copilot`.
+5. The later `1325` run resumed the already-ready PR and completed the **18m 33s** successful stage-40 convergence.
+
+Treatment #9's successful review sequence reached a clean implementation review after two rounds. Control #12 required five rounds and four correction commits.
 
 This difference **cannot be credited to propagated lessons**, because #9 and #12 were each the first task in their campaign. No earlier campaign lesson was available to either one. It instead demonstrates ordinary variance in initial implementation and review convergence.
+
+The full first-task comparison is less favorable to treatment than the earlier report showed. Treatment consumed 42m 36s of active task sessions versus 31m 40s for control. Removing the unrelated 8m 06s reviewer-token failure narrows the difference to 2m 50s, or 8.9%.
+
+The stage-30 correction categories also matter. One treatment correction fixed product-test execution scope. The other fixed lesson metadata required only because lesson mode was active. Lesson collection therefore imposed measurable work before CCRA review began.
 
 Treatment #9 then incurred two additional rounds after implementation convergence:
 
@@ -233,7 +263,26 @@ The treatment lesson that was not redundant -- the numeric-boundary advice -- wa
 
 ## Costs introduced by treatment
 
-### 1. Deterministic publication and rereview cost
+### 1. Retry and orchestration cost
+
+The treatment campaign required two stage-25 attempts.
+
+The first attempt completed issue #9 stage 30, then spent 8m 06s in stage 40 before failing to request Copilot review. This failure was caused by shepherd's reviewer-token defect, not lesson content:
+
+```text
+gh pr edit --add-reviewer Copilot
+```
+
+The installed GitHub CLI required the special token `@copilot`. The failed attempt left PR #14 open and resumable, so the second run preserved useful work rather than restarting stage 30.
+
+This demonstrates both a cost and a strength:
+
+- **Cost:** 8m 06s of active failed stage-40 work plus another stage-25 invocation.
+- **Strength:** resumability prevented repetition of the 15m 57s stage-30 implementation and validation session.
+
+The failure should not be attributed to lesson efficacy, which is why the quantitative comparison reports a failure-normalized total. It remains part of total observed campaign cost because the treatment campaign actually consumed it.
+
+### 2. Deterministic publication and rereview cost
 
 Each treatment task reached a clean implementation review, then changed the PR head to publish validated lessons. That required another head-specific review.
 
@@ -256,7 +305,7 @@ This is roughly 15 minutes of treatment tail across the campaign. It is not all 
 
 Four of treatment's nine review rounds occurred after implementation had already reached a clean review. Two of those rounds contained the lifecycle false positive, and two were the final clean rereviews.
 
-### 2. Additional specification surface
+### 3. Additional specification surface
 
 Treatment added another artifact with its own lifecycle:
 
@@ -275,7 +324,9 @@ Issue #10 had two actionable findings in this metadata itself:
 
 The artifact can preserve knowledge, but it also creates new correctness obligations.
 
-### 3. Overgeneralization risk
+Issue #9 also required a stage-30 correction to restore the exact candidate-lesson heading before it could be declared ready. This correction was neither product behavior nor test correctness; it was work introduced solely by the lesson artifact contract.
+
+### 4. Overgeneralization risk
 
 The issue-#9 numeric lesson combined a general principle with evidence tied to Fibonacci's 32-bit boundary.
 
@@ -288,7 +339,7 @@ The next implementation generalized the concrete boundary rather than the abstra
 
 The lesson was marked `Confidence: high`, but confidence in the source observation did not guarantee transferability to a new target.
 
-### 4. Increased review noise
+### 5. Increased review noise
 
 Raw treatment review counts overstate implementation defects because two comments were lifecycle conflicts. Even after removing them, however, treatment had six actionable findings versus five in control.
 
@@ -316,7 +367,9 @@ This is a real capability that the control lacks.
 
 The measured campaign and downstream-task results do not support a velocity benefit:
 
-- treatment campaign elapsed time was 24.7% higher;
+- observed treatment task-execution time across both attempts was 81.8% higher;
+- failure-normalized treatment task-execution time was still 62.9% higher;
+- treatment issue #9 active time was 34.5% higher as observed and 8.9% higher after excluding the reviewer-token failure;
 - downstream treatment active time was 241.3% higher;
 - downstream treatment stage 40 was 532.9% higher;
 - downstream treatment needed five reviews instead of one;
