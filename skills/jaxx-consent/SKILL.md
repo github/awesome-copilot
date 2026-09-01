@@ -183,6 +183,13 @@ the consent being asked for.
   exactly; do not re-draft it in the moment, and do not regenerate it after a restart. An open gate
   with no stored introduction means entry was approved but the wording was not: post nothing and ask
   the owner for the text.
+- **Record that it was sent, in `watch[].introducedAt`.** `introduction` is what to say;
+  `introducedAt` is whether it has been said, and only the second one answers "have I already been
+  introduced here?" after a restart. Lookback is finite, so an old introduction may simply be out of
+  view — an agent reading the room to decide would either repeat it or skip it, and both break this
+  rail. The rule is positional: gate open and `introducedAt` null means the introduction is the only
+  thing that may be posted next; once it is set, normal posting begins. Write it as the post goes
+  out, and never infer it from a message in the room that looks like an introduction.
 - Don't re-ask. One request, then wait.
 
 Why it's a separate rail: permission to act ("you may answer status questions") is about *scope*.
@@ -207,10 +214,10 @@ A summoned room is written into `chat.watch` like any other, at `notes-only` wit
 so it is visible, reviewable, and revocable in one place. Never leave a summoned room live only in
 the agent's head.
 
-**The summon write is the only write the agent ever makes to `chat.watch`**, and "it may touch
-`chat.watch`" is not a tight enough limit — the fields that authorise the agent now live in
-`chat.watch` too. So the permission is an **exhaustive list of fields**, not an object path. The
-agent may append one entry and set exactly: `id`, `name`, `mode` (`notes-only`), `replyScope`
+**The summon write is the only write the agent ever makes that *adds a room* to `chat.watch`**, and
+"it may touch `chat.watch`" is not a tight enough limit — the fields that authorise the agent now
+live in `chat.watch` too. So the permission is an **exhaustive list of fields**, not an object path.
+The agent may append one entry and set exactly: `id`, `name`, `mode` (`notes-only`), `replyScope`
 (`status-only`), `entryGate` (`closed`), `entryRequestedAt` (the summon timestamp), `readFrom` (the
 same timestamp), and `note`.
 
@@ -222,13 +229,27 @@ only ever consent to *listen*, reaching the exact surveillance case rail 3 exist
 the one path that was supposed to be consensual. Write it in the same append, or the timeout is
 decoration.
 
-It may never set `entryGate` to `open`, write `entryGrantedBy`, write `introduction`, write
-`disclosureAskedAt`, move `readFrom` or `entryRequestedAt` backwards, add to `allowFrom`, widen a
-scope, flip a rail, or edit `configAuthority`. A summon is consent to *listen*, and the write that
-records it must not be the write that grants speech. An agent that can rewrite its own mandate has no
-mandate. Its only other autonomous writes are appends to `chat.discovered` and
-`chat.readExclusions` — one a record of what it read, the other of where it may not; neither can
-grant anything.
+That list governs **adding**, not every later write. The rails elsewhere on this page *require* the
+agent to keep durable state current on rooms that already exist — setting `disclosureAskedAt` when
+someone asks the question, setting `introducedAt` when the introduction goes out, appending to
+`stopRequestsHandled`, moving `readFrom` forward, and removing an entry outright on timeout or
+withdrawal. Those writes are permitted and necessary. A prohibition broad enough to block them would
+make the state fields unwritable and the rails that depend on them unenforceable — a rail whose
+bookkeeping is forbidden is a rail that lapses at the next restart.
+
+The dividing line is authority, not the file:
+
+> **The agent may record what happened. Only the owner may change what it is allowed to do.**
+
+So on **any** path it may never set `entryGate` to `open`, write `entryGrantedBy`, write or edit
+`introduction` (the approved wording, as opposed to the fact that it was sent), widen `mode`,
+`replyScope` or `tagline`, set `askOpenToAll`, `writeActions` or `commandChannel`, move `readFrom` or
+`entryRequestedAt` backwards, add to `allowFrom`, flip a rail, or edit `configAuthority`. Removing an
+entry is always allowed, because removal only ever subtracts authority. A summon is consent to
+*listen*, and the write that records it must not be the write that grants speech. An agent that can
+rewrite its own mandate has no mandate. Outside `chat.watch` its only autonomous writes are appends
+to `chat.discovered` and `chat.readExclusions` — one a record of what it read, the other of where it
+may not; neither can grant anything.
 
 Closing the obvious ways in:
 
@@ -458,6 +479,7 @@ depends on lost state was never enforced — it was hoped for.
 | Never read a summoned room's back-history | `watch[].readFrom` — the stored high-water mark. `lookbackMinutes` may never reach past it. |
 | The person who let the agent in can put it back out | `watch[].entryGrantedBy` — without it, a restarted agent gives the one binding withdrawal the third-party brush-off. |
 | The first post is the approved wording, verbatim | `watch[].introduction` — an agent that regenerates it is composing an unapproved first impression. |
+| The introduction happens exactly once | `watch[].introducedAt` — the wording alone can't say whether it was ever sent, and past the lookback window the original post is invisible, so the agent either repeats it or skips it. |
 | A closed gate expires | `watch[].entryRequestedAt` + `chat.entryGateTimeoutHours` — a deadline with no stored start never expires. Written on every path that opens a room, **including summon**, where the gate is closed and reading has already begun. |
 | An unanswered disclosure question expires | `watch[].disclosureAskedAt` — its own field, deliberately not the one above. Two deadlines starting at different moments cannot share a slot: reusing it either expires the question on arrival or silently extends the gate. |
 | A room read under `readScope: all` is eventually disclosed or dropped | `chat.discovered[].firstReadAt` — such rooms have no gate to expire, so without this the one broad-read path is the one with no lifecycle, and the timeout can never fire. |
