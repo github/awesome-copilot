@@ -20,6 +20,14 @@ Approve all pending workflow runs (`action_required` status) on a PR's topic bra
 - `gh` CLI authenticated with sufficient permissions (actions, PRs).
 - The PR exists and has workflow runs triggered on `JTBDTASK_BRANCH`.
 
+## PowerShell native-command safety
+
+When translating the Bash examples in this skill to PowerShell, capture native
+command output and `$LASTEXITCODE` before applying PowerShell transformations
+such as `Select-Object`, `Select-String`, or `ConvertFrom-Json`. Never pipe a
+native producer directly into those commands. A pipeline whose final command
+is native is allowed when `$LASTEXITCODE` is captured immediately afterward.
+
 ---
 
 ## ⚠️ CRITICAL: Never go idle while waiting

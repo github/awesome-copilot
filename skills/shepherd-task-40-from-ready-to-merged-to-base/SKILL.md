@@ -29,6 +29,14 @@ This is stage 40 of the ordered shepherd-task campaign lifecycle (00 → 10 → 
 - The PR is in draft state with all CI checks passing, or is already ready
   because a prior resumable stage-40 attempt completed that transition.
 
+## PowerShell native-command safety
+
+When translating the Bash examples in this skill to PowerShell, capture native
+command output and `$LASTEXITCODE` before applying PowerShell transformations
+such as `Select-Object`, `Select-String`, or `ConvertFrom-Json`. Never pipe a
+native producer directly into those commands. A pipeline whose final command
+is native is allowed when `$LASTEXITCODE` is captured immediately afterward.
+
 ---
 
 ## ⚠️ CRITICAL: Never go idle while waiting
@@ -83,8 +91,15 @@ fi
 On PowerShell, perform the equivalent check with:
 
 ```powershell
-$supportsCopilotReviewer = gh pr edit --help |
-    Select-String -SimpleMatch '@copilot' -Quiet
+$helpOutput = @(gh pr edit --help 2>&1)
+$ghExitCode = $LASTEXITCODE
+if ($ghExitCode -ne 0) {
+    throw "SHEPHERD FAILED: could not inspect gh pr edit capabilities; gh exited $ghExitCode."
+}
+
+$supportsCopilotReviewer = [bool](
+    $helpOutput | Select-String -SimpleMatch '@copilot'
+)
 if (-not $supportsCopilotReviewer) {
     throw 'SHEPHERD FAILED: installed gh does not support the @copilot reviewer token.'
 }

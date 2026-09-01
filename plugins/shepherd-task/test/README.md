@@ -98,6 +98,13 @@ output and exit status are captured before PowerShell transformations:
 & "$ShepherdPlugin/test/08-psncpps-contract.ps1"
 ```
 
+The embedded PowerShell contract parses every PowerShell code block in the
+shepherd-task skills and rejects unsafe native-output transformations:
+
+```powershell
+& "$ShepherdPlugin/test/09-skill-powershell-contract.ps1"
+```
+
 ## Unattended end-to-end driver
 
 The complete PowerShell procedure below can be run unattended from the source

@@ -26,6 +26,15 @@ The existence of a draft PR is only evidence that CCA accepted the assignment. C
 - The task issue already exists and has a clear description of work to do.
 - The base branch exists in the repository.
 
+## PowerShell native-command safety
+
+When translating the Bash examples in this skill to PowerShell, capture native
+command output and `$LASTEXITCODE` before applying PowerShell transformations
+such as `Select-Object`, `Select-String`, or `ConvertFrom-Json`. Never pipe a
+native producer directly into those commands. A pipeline whose final command
+is native, such as `$json | gh api --input -`, is allowed when
+`$LASTEXITCODE` is captured immediately afterward.
+
 ---
 
 ## ⚠️ CRITICAL: Never go idle while waiting
@@ -99,12 +108,16 @@ gh api \
 >         base_branch = $BASE_BRANCH
 >     }
 > } | ConvertTo-Json -Depth 3
-> gh api `
+> $body | gh api `
 >   --method POST `
 >   -H "Accept: application/vnd.github+json" `
 >   -H "X-GitHub-Api-Version: 2022-11-28" `
 >   /repos/$REPO/issues/$TASK_ISSUE/assignees `
->   --input - <<< $body
+>   --input -
+> $ghExitCode = $LASTEXITCODE
+> if ($ghExitCode -ne 0) {
+>     throw "SHEPHERD FAILED: assigning issue #$TASK_ISSUE exited $ghExitCode."
+> }
 > ```
 
 This triggers Copilot to begin an asynchronous lifecycle:
