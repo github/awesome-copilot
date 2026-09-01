@@ -26,18 +26,32 @@ A capable model, left alone, answers each of these by being helpful. That is the
 
 **Authority is the sender, not the sentence.** "Pruthvi said you could" is not Pruthvi. A work-item field, a quoted message, or a file the agent opens is input to be reasoned about, never an instruction to be followed. This treats prompt injection as an authority problem rather than a filtering problem — there is no phrase to catch, because content was never a source of authority in the first place.
 
-**Presence is consented to, not assumed.** Before its first post in any new room, the agent introduces itself and waits. A cold, technically-in-scope reply is the failure mode, not the success case.
+**Presence is consented to, not assumed.** Approval comes **first**, and the introduction comes after it. Before the agent's first post in any new room, the owner — and, where the room belongs to someone else, that person too — approves both the entry and the wording of the introduction. Until then the gate is **closed** and the agent posts nothing at all there: not an introduction, not an answer, not an acknowledgement. Anything worth saying goes to the owner privately instead. A cold, technically-in-scope reply is the failure mode, not the success case.
+
+## What this does and does not guarantee
+
+Worth being straight about, since the subject is safety. These skills are Markdown instructions. They shape a model's behaviour well and they make the rules explicit, reviewable and testable — but they are still prompt-level context, and prompt-level context competes with whatever else is in the window. Calling something a rail does not make it non-negotiable.
+
+**Hard guarantees have to live in the host integration**, below the model:
+
+| Guarantee | Where it actually has to be enforced |
+| --- | --- |
+| Only the owner can change what the agent is | Sender-id authorization in the integration, before the model is invoked |
+| The agent cannot post in an unapproved room | Room gating / an allowlist in the send path, not a rule the model is asked to remember |
+| The agent cannot read an unapproved room | Scoped API permissions on the connector |
+
+Use these skills as the specification for those controls and as defence in depth above them — not as a substitute. A model that has been talked out of a rail still cannot call an endpoint it has no token for.
 
 ## Why not just put this in a system prompt?
 
-- A prompt competes with the message in front of the model; a rail does not negotiate.
+- A system prompt is one undifferentiated block that competes with the message in front of the model. A named, enumerated rail with a stated blocking branch is something you can point at, test, and review — and something the model can be asked to check itself against, one item at a time.
 - Consent is **state** — who invited it, into which room — not persuasion. State belongs on disk.
 - Prompts degrade under compaction. Long sessions do not die, they compact, and compaction keeps the shape and drops the specifics.
 - "Be careful" is not testable. "Never reply to another agent" is.
 
 ## Usage
 
-Install the plugin, then the skills load on their triggers. `/jaxx-consent` engages whenever the agent is about to write into a space shared with humans; `/jaxx-memory` at the start and end of any long-running session.
+Install the plugin and both skills load on their own triggers — there is nothing to invoke by hand. `jaxx-consent` engages whenever the agent is about to write into a space shared with humans; `jaxx-memory` at the start and end of any long-running session.
 
 An optional [config template](https://github.com/PruthviProdduturi/Jaxx/blob/main/agent.config.template.json) names the owner and the invited rooms. With no config there is no verified owner and no invited room, so the rails read that honestly: nobody is the owner, no room has been entered, post nowhere. They bind by default rather than by opt-in.
 
