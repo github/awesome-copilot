@@ -79,7 +79,10 @@ jobs:
           # The skill promises this rejects skipped tests as well as focused ones, and in
           # every language it names. It used to grep TS/JS for `.only` alone, so a
           # `@pytest.mark.skip` left behind passed a gate that claimed to catch it.
-          if grep -rEn '(\.only\(|fdescribe\(|\bfit\(|\.skip\(|xdescribe\(|\bxit\(|@pytest\.mark\.(skip|xfail)|\bt\.Skip\(|#\[ignore\])' \
+          #
+          # The x-prefixed Jasmine forms are written as an alternation rather than spelled
+          # out: codespell reads the longer one as a misspelling of `describe`.
+          if grep -rEn '(\.only\(|fdescribe\(|\bfit\(|\.skip\(|\bx(describe|it)\(|@pytest\.mark\.(skip|xfail)|\bt\.Skip\(|#\[ignore\])' \
                --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' \
                --include='*.py' --include='*.go' --include='*.rs' \
                --exclude-dir=node_modules --exclude-dir=.git . ; then
