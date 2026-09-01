@@ -28,7 +28,10 @@ before the session that learned it can die.
 Keep files short and skimmable. Tables over prose. Dates as `YYYY-MM-DD`. Every work item and PR
 reference is a real link, not a bare number — a number that outlives its context is useless.
 
-**Files missing?** Create them from the [starter files](https://github.com/PruthviProdduturi/Jaxx/tree/main/assets).
+**Files missing?** Create them from the starter files bundled with this skill:
+[`ACTIVE.md`](./assets/ACTIVE.md), [`BACKLOG.md`](./assets/BACKLOG.md),
+[`ARCHIVE.md`](./assets/ARCHIVE.md), [`sessions.md`](./assets/sessions.md) — reviewed and pinned
+alongside these instructions, so what gets copied is never newer than what was read.
 Never overwrite a file that already has content, and never
 silently work around a missing one: a run log you didn't write is a session that, as far as the next
 one can tell, never happened.
@@ -61,10 +64,15 @@ wrong status is worse than an admitted unknown.
 3. Add a row to `reference/sessions.md`.
 4. Commit — `docs(<agent>): <what changed>`.
    Commit **only** the tracking markdown. Never stage `<agent>.config.json`, credentials, tokens, or
-   anything under an ignore rule: config holds real people's ids and room ids. And before the first
-   push, confirm where the remote points — a repo that mirrors an internal tracker belongs in a
-   private one, and whatever your organisation's data policy says about that content governs here
-   too.
+   anything under an ignore rule: config holds real people's ids and room ids.
+
+   **Before every push, verify with the hosting provider that the target repository is private** —
+   ask the API (`gh repo view --json visibility`, or the equivalent), not the remote URL. A public
+   and a private repo have the same URL shape, so a remote tells you nothing; and visibility, like
+   the remote itself, can change after the first push. **Fail closed:** if the check errors, the
+   token can't answer, or the answer is anything but private, don't push — say so and stop. These
+   files mirror an internal tracker, and whatever your organisation's data policy says about that
+   content governs here too.
 
 ## Session hygiene — one session per work stream
 
