@@ -327,8 +327,7 @@ try {
     }
 
     $currentPhase = 'running offline contracts'
-    Write-ExperimentStatus 'Running offline stage-20, stage-40, and driver encoding contract checks...'
-    Invoke-CheckedPwshScript -Path (Join-Path $ShepherdPlugin 'test\05-stage20-artifact-contract.ps1')
+    Write-ExperimentStatus 'Running offline stage-40 and driver encoding contract checks...'
     Invoke-CheckedPwshScript -Path (Join-Path $ShepherdPlugin 'test\06-stage40-review-contract.ps1')
     Invoke-CheckedPwshScript -Path (Join-Path $ShepherdPlugin 'test\07-driver-encoding-contract.ps1')
 

@@ -29,8 +29,12 @@ if ($CampaignMetadataDirectory -notmatch '^[1-9][0-9]*-[a-z0-9][a-z0-9-]*-remove
     throw 'CampaignMetadataDirectory does not follow the campaign directory naming contract.'
 }
 
-$repoRoot = (& git rev-parse --show-toplevel 2>$null | Select-Object -First 1)
-if ($LASTEXITCODE -ne 0 -or -not $repoRoot) { throw 'Run inside the campaign Git worktree.' }
+$repoRootOutput = @(& git rev-parse --show-toplevel 2>$null)
+$gitExitCode = $LASTEXITCODE
+if ($gitExitCode -ne 0 -or $repoRootOutput.Count -eq 0) {
+    throw 'Run inside the campaign Git worktree.'
+}
+$repoRoot = $repoRootOutput | Select-Object -First 1
 $repoRoot = [IO.Path]::GetFullPath($repoRoot.Trim())
 $campaignPath = [IO.Path]::GetFullPath((Join-Path $repoRoot $CampaignMetadataDirectory))
 if (-not (Test-Path -LiteralPath $campaignPath -PathType Container)) { throw "Campaign metadata directory not found: $campaignPath" }

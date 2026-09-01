@@ -22,8 +22,10 @@ function ConvertTo-GitHubRepository {
 function Get-RemoteRepository {
     param([string]$RemoteName)
 
-    $remoteUrl = (git remote get-url $RemoteName 2>$null | Select-Object -First 1)
-    if ($LASTEXITCODE -ne 0 -or -not $remoteUrl) {
+    $remoteUrlOutput = @(git remote get-url $RemoteName 2>$null)
+    $gitExitCode = $LASTEXITCODE
+    $remoteUrl = $remoteUrlOutput | Select-Object -First 1
+    if ($gitExitCode -ne 0 -or -not $remoteUrl) {
         throw "Could not read URL for Git remote '$RemoteName'."
     }
     return ConvertTo-GitHubRepository $remoteUrl.Trim()

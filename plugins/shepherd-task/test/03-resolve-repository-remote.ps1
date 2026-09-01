@@ -51,6 +51,14 @@ try {
     git remote add origin https://github.com/example/project.git
     Assert-Remote -Expected origin -Repo example/project
     Assert-Remote -Expected origin -Repo example/project -Remote origin
+    $freshOutput = @(
+        & pwsh -NoLogo -NoProfile -File $resolver `
+            -Repo example/project `
+            -Remote origin 2>&1
+    )
+    if ($LASTEXITCODE -ne 0 -or ($freshOutput -join "`n").Trim() -ne 'origin') {
+        throw "Fresh-process remote resolution failed: $($freshOutput -join [Environment]::NewLine)"
+    }
 
     git remote rename origin upstream
     Assert-Remote -Expected upstream -Repo example/project

@@ -100,16 +100,26 @@ function Find-PR {
     param([string]$Issue)
 
     # Strategy A: issue timeline
-    $pr = gh api "/repos/$Repo/issues/$Issue/timeline" `
-        --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number' 2>$null |
-        Select-Object -First 1
+    $prCandidates = @(gh api "/repos/$Repo/issues/$Issue/timeline" `
+        --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number' 2>$null)
+    $ghExitCode = $LASTEXITCODE
+    if ($ghExitCode -ne 0) {
+        Write-Alert "Unable to query the issue timeline for issue #$Issue; retrying on the next poll."
+        return $null
+    }
+    $pr = $prCandidates | Select-Object -First 1
 
     if ($pr) { return $pr.Trim() }
 
     # Strategy B: PR body search
-    $pr = gh pr list -R $Repo --state all --json number,body `
-        --jq ".[] | select(.body | test(`"#$Issue`")) | .number" 2>$null |
-        Select-Object -First 1
+    $prCandidates = @(gh pr list -R $Repo --state all --json number,body `
+        --jq ".[] | select(.body | test(`"#$Issue`")) | .number" 2>$null)
+    $ghExitCode = $LASTEXITCODE
+    if ($ghExitCode -ne 0) {
+        Write-Alert "Unable to search PR bodies for issue #$Issue; retrying on the next poll."
+        return $null
+    }
+    $pr = $prCandidates | Select-Object -First 1
 
     if ($pr) { return $pr.Trim() }
 
@@ -120,7 +130,13 @@ function Find-PR {
 function Get-PRStatus {
     param([string]$PRNumber)
 
-    $info = gh pr view $PRNumber -R $Repo --json state,isDraft,baseRefName,headRefName,mergeable,reviews,reviewRequests 2>$null | ConvertFrom-Json
+    $infoOutput = @(gh pr view $PRNumber -R $Repo --json state,isDraft,baseRefName,headRefName,mergeable,reviews,reviewRequests 2>$null)
+    $ghExitCode = $LASTEXITCODE
+    if ($ghExitCode -ne 0) {
+        Write-Alert "Unable to query PR #$PRNumber; retrying on the next poll."
+        return $null
+    }
+    $info = ($infoOutput -join [Environment]::NewLine) | ConvertFrom-Json
     if (-not $info) { return $null }
 
     $reviewCount = 0

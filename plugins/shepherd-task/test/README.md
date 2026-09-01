@@ -91,6 +91,13 @@ page:
 & "$ShepherdPlugin/test/07-driver-encoding-contract.ps1"
 ```
 
+The PowerShell native command pipeline propagation contract checks that native
+output and exit status are captured before PowerShell transformations:
+
+```powershell
+& "$ShepherdPlugin/test/08-psncpps-contract.ps1"
+```
+
 ## Unattended end-to-end driver
 
 The complete PowerShell procedure below can be run unattended from the source

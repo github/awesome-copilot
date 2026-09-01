@@ -36,7 +36,12 @@ if ($CampaignMetadataDirectory -notmatch '^[1-9][0-9]*-[a-z0-9][a-z0-9-]*-remove
     throw 'Invalid campaign metadata directory name.'
 }
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = (& git rev-parse --show-toplevel | Select-Object -First 1).Trim()
+$repoRootOutput = @(& git rev-parse --show-toplevel 2>$null)
+$gitExitCode = $LASTEXITCODE
+if ($gitExitCode -ne 0 -or $repoRootOutput.Count -eq 0) {
+    throw 'Run inside the campaign Git worktree.'
+}
+$repoRoot = ([string]($repoRootOutput | Select-Object -First 1)).Trim()
 $campaignPath = Join-Path $repoRoot $CampaignMetadataDirectory
 $manifestPath = Join-Path $campaignPath 'shepherd-campaign.json'
 if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf) -or -not (Test-Path -LiteralPath $RunDirectory -PathType Container)) {
@@ -97,23 +102,35 @@ function Invoke-CopilotRedacted {
 # --- Helper: Find the PR linked to the task issue ---
 function Find-LinkedPR {
     # Strategy A: Issue timeline for cross-referenced PRs
-    $prNumber = gh api "/repos/$Repo/issues/$TaskIssue/timeline" `
-        --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number' 2>$null |
-        Select-Object -First 1
+    $prCandidates = @(gh api "/repos/$Repo/issues/$TaskIssue/timeline" `
+        --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number' 2>$null)
+    $ghExitCode = $LASTEXITCODE
+    if ($ghExitCode -ne 0) {
+        throw "Unable to query the issue timeline for issue #$TaskIssue."
+    }
+    $prNumber = $prCandidates | Select-Object -First 1
 
     if ($prNumber) { return $prNumber.Trim() }
 
     # Strategy B: Search PR bodies for the issue number
-    $prNumber = gh pr list -R $Repo --state open --json number,body `
-        --jq ".[] | select(.body | test(`"#$TaskIssue`")) | .number" 2>$null |
-        Select-Object -First 1
+    $prCandidates = @(gh pr list -R $Repo --state open --json number,body `
+        --jq ".[] | select(.body | test(`"#$TaskIssue`")) | .number" 2>$null)
+    $ghExitCode = $LASTEXITCODE
+    if ($ghExitCode -ne 0) {
+        throw "Unable to search open PR bodies for issue #$TaskIssue."
+    }
+    $prNumber = $prCandidates | Select-Object -First 1
 
     if ($prNumber) { return $prNumber.Trim() }
 
     # Strategy C: Title or branch name match
-    $prNumber = gh pr list -R $Repo --state open --json number,title,headRefName `
-        --jq ".[] | select((.title | test(`"$TaskIssue`"; `"i`")) or (.headRefName | test(`"$TaskIssue`"))) | .number" 2>$null |
-        Select-Object -First 1
+    $prCandidates = @(gh pr list -R $Repo --state open --json number,title,headRefName `
+        --jq ".[] | select((.title | test(`"$TaskIssue`"; `"i`")) or (.headRefName | test(`"$TaskIssue`"))) | .number" 2>$null)
+    $ghExitCode = $LASTEXITCODE
+    if ($ghExitCode -ne 0) {
+        throw "Unable to search open PR titles and branches for issue #$TaskIssue."
+    }
+    $prNumber = $prCandidates | Select-Object -First 1
 
     if ($prNumber) { return $prNumber.Trim() }
 
