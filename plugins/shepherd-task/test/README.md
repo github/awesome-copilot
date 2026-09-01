@@ -83,6 +83,45 @@ without GitHub mutation:
 & "$ShepherdPlugin/test/06-stage40-review-contract.ps1"
 ```
 
+## Unattended end-to-end driver
+
+The complete PowerShell procedure below can be run unattended from the source
+checkout. It uses the already-installed shepherd-task plugin:
+
+```powershell
+& "$Source/plugins/shepherd-task/test/20260831-run-treatment-control-experiment.ps1" `
+  'https://github.com/OWNER/DISPOSABLE-REPO'
+```
+
+When the argument is omitted, the driver defaults to:
+
+```text
+https://github.com/edburns/dd-3057440
+```
+
+The installed shepherd-task plugin is a precondition. By default the driver
+creates deterministic sibling checkout paths under `$HOME\workareas`. Override
+that root when necessary:
+
+```powershell
+& "$Source/plugins/shepherd-task/test/20260831-run-treatment-control-experiment.ps1" `
+  -RepositoryUrl 'https://github.com/OWNER/DISPOSABLE-REPO' `
+  -WorkareasDir 'D:\workareas' `
+  -ComparisonDir 'D:\experiment-reports'
+```
+
+The driver runs both campaigns serially, executes the automated mechanism
+verifier, invokes `copilot --yolo` to create a detailed comparison post-mortem,
+writes a machine-readable experiment summary in the workareas directory, and
+preserves all worktrees and untracked evidence. `ComparisonDir` defaults to the
+directory from which the driver was invoked. The comparison report performs
+the semantic analysis, while distinguishing artifact-proven lesson delivery
+from inferred lesson use.
+
+The disposable repository must already exist with a default-branch commit,
+GitHub Actions, Copilot Coding Agent, and Copilot code review enabled. The
+driver does not create or configure the repository.
+
 ## 1. Define the session variables
 
 Set all paths before changing directories:
