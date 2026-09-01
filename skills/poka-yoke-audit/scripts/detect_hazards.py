@@ -541,17 +541,7 @@ def main() -> int:
         for p in collect_paths(args.paths):
             scanned += 1
             findings += scan_file(p, None)
-        if scanned == 0:
-            # Zero findings from zero files is not an all-clear, and it used to be
-            # indistinguishable from one. Exit non-zero: failing to do the job should
-            # not look like doing the job and finding nothing.
-            msg = ("Scanned 0 files. This is NOT an all-clear.\n"
-                   f"Nothing under {', '.join(args.paths)} has a supported extension.\n"
-                   f"Supported: {', '.join(sorted(ALL_EXTS))}")
-            print(json.dumps({"scope": scope, "files_scanned": 0, "count": 0,
-                              "findings": [], "error": msg}, indent=2)
-                  if args.json else msg, file=sys.stdout if args.json else sys.stderr)
-            return 2
+        empty_because = f"Nothing under {', '.join(args.paths)} has a supported extension."
     else:
         mode = "staged" if args.staged else ("since" if args.since else "diff")
         scope = {"staged": "staged changes",
@@ -569,17 +559,34 @@ def main() -> int:
                               "findings": [], "error": str(exc)}, indent=2)
                   if args.json else msg, file=sys.stdout if args.json else sys.stderr)
             return 2
-        if not changed:
-            msg = ("No changed files found. The tree may be clean and have no recent commits, "
-                   "or this may not be a git repository.\nUse --paths to scan explicitly, "
-                   "e.g. detect_hazards.py --paths src/")
-            print(json.dumps({"findings": [], "note": msg}) if args.json else msg)
-            return 0
         for rel, lines in changed.items():
             fp = repo / rel
             if fp.suffix in ALL_EXTS and fp.exists():
                 scanned += 1
                 findings += scan_file(fp, lines)
+        empty_because = (
+            "No changed files found: the tree may be clean, or this may not be a git "
+            "repository." if not changed else
+            f"None of the {len(changed)} changed file(s) could be scanned. They were "
+            "deleted, or have no supported extension.")
+
+    # poka-yoke: one exit for "scanned nothing", shared by every mode [control]
+    #
+    # This check used to live inside the --paths branch. --diff, --staged and --since each
+    # reached the end with scanned == 0 and returned 0, printing "No hazards detected" --
+    # a false all-clear in precisely the modes a pre-commit hook and a CI gate use. The
+    # marker above said [control] while holding on one branch of three.
+    #
+    # It is out here now because a check placed after the branches cannot be present on one
+    # and missing from another. Adding a fourth input mode inherits it without remembering to.
+    if scanned == 0:
+        msg = (f"Scanned 0 files. This is NOT an all-clear.\n{empty_because}\n"
+               f"Supported extensions: {', '.join(sorted(ALL_EXTS))}\n"
+               "Use --paths to scan explicitly, e.g. detect_hazards.py --paths src/")
+        print(json.dumps({"scope": scope, "files_scanned": 0, "count": 0,
+                          "findings": [], "error": msg}, indent=2)
+              if args.json else msg, file=sys.stdout if args.json else sys.stderr)
+        return 2
 
     threshold = SEV_ORDER[args.severity]
     findings = [f for f in findings if SEV_ORDER[f["severity"]] <= threshold]
@@ -598,9 +605,12 @@ def main() -> int:
             # len(COVERED_BY) counts ENTRIES, and one entry can suppress several
             # per-language rules, so it under-reported by three. Count the rules.
             n_suppressed = sum(1 for r in RULES if (r.id, r.name) in COVERED_BY)
+            # Names the linters rather than a path. `assets/devices/lint/` resolves only
+            # when this script runs from inside the full plugin; installed as a standalone
+            # skill it pointed at a directory the user does not have.
             print(f"\nNot checked here, {n_suppressed} further hazard rules are covered "
-                  f"better by {', '.join(tools)}.\nEnable those rather than relying on this: "
-                  f"see assets/devices/lint/. Use --all to run them anyway.")
+                  f"better by {', '.join(tools)}.\nEnable those in your own linter config "
+                  f"rather than relying on this. Use --all to run them anyway.")
 
     if args.fail_on != "none":
         rank = {"high": 3, "medium": 2, "low": 1}

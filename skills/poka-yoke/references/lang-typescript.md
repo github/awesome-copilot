@@ -92,7 +92,15 @@ the language: one line per switch.
 Encode required steps in the type so `.delete()` doesn't exist until they've run:
 
 ```ts
+declare const state: unique symbol;
+
 class QueryBuilder<HasFrom extends boolean = false, HasWhere extends boolean = false> {
+  // Load-bearing. TypeScript is structural: a type parameter that no member mentions does
+  // not affect assignability, so without this line QueryBuilder<false, false> is assignable
+  // to QueryBuilder<true, true> and `delete()` is callable with no where clause -- the exact
+  // mistake the class claims to prevent, silently permitted. Verified with tsc 5 --strict.
+  private declare readonly [state]: [HasFrom, HasWhere];
+
   from(t: string): QueryBuilder<true, HasWhere> { /* … */ }
   where(c: Cond): QueryBuilder<HasFrom, true> { /* … */ }
 
@@ -101,8 +109,8 @@ class QueryBuilder<HasFrom extends boolean = false, HasWhere extends boolean = f
 }
 ```
 
-The `this` parameter is the key trick: it constrains which instances a method exists on.
-This makes "delete without a where clause" a compile error rather than an incident.
+The `this` parameter is the key trick: it constrains which instances a method exists on. With
+the phantom member present, `new QueryBuilder().delete()` is `TS2684` rather than an incident.
 
 ## Motion-step, required idempotency
 

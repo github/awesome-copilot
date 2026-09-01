@@ -1,7 +1,6 @@
 ---
 name: poka-yoke-guardrails
-description: >-
-  Pre-commit hooks, CI gates, lint rules, database constraints and branch protection. Use when a rule needs enforcing rather than documenting: "set up enforcement", "unformatted or untyped code must not get merged", "gate this in CI", "we agreed to X and people still do not", "stop secrets getting committed". Covers baselining and ratcheting so existing violations do not block anyone. For constraining an AI agent use agent-guardrails.
+description: 'Pre-commit hooks, CI gates, lint rules, database constraints and branch protection. Use when a rule needs enforcing rather than documenting: "set up enforcement", "unformatted or untyped code must not get merged", "gate this in CI", "we agreed to X and people still do not", "stop secrets getting committed". Covers baselining and ratcheting so existing violations do not block anyone. For constraining an AI agent use agent-guardrails.'
 license: MIT
 ---
 

@@ -397,9 +397,8 @@ switch, `# type: ignore`, `unsafe`, `cast()`, `Object` as a parameter type.
 in the boundary code that most needs the guarantee.
 
 **Device**: ban them by lint at error level with a narrow, justified allowlist; replace with
-parsing at the boundary. **Warning**: a required CI gate is still rung 2 by the ladder in
-[method.md](../../../docs/method.md): it announces the mistake rather than removing the
-ability to make it. Reach **Control** only when the unchecked value cannot be constructed.
+parsing at the boundary. **Warning**: a required CI gate is still rung 2 on the ladder: it announces the mistake
+rather than removing the ability to make it. Reach **Control** only when the unchecked value cannot be constructed.
 
 ### X5. Mutable shared defaults
 

@@ -1,7 +1,6 @@
 ---
 name: poka-yoke-audit
-description: >-
-  Find footguns in code that already exists: swappable arguments, silent fallbacks, unguarded deletes, signatures that are easy to misuse. Use when someone asks "what could bite us here", "what is easy to misuse", "poka-yoke this repo", or wants a diff or PR reviewed for ways to get it wrong. Ranks by blast radius. For code not yet written use design; for something that already broke use retro.
+description: 'Find footguns in code that already exists: swappable arguments, silent fallbacks, unguarded deletes, signatures that are easy to misuse. Use when someone asks "what could bite us here", "what is easy to misuse", "poka-yoke this repo", or wants a diff or PR reviewed for ways to get it wrong. Ranks by blast radius. For code not yet written use design; for something that already broke use retro.'
 license: MIT
 ---
 

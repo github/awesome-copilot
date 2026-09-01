@@ -1,7 +1,6 @@
 ---
 name: poka-yoke-retro
-description: >-
-  Turn a bug, outage or repeated mistake into a device that makes the whole class impossible. Use when something already broke: "make sure this never happens again", "this is the third time", "postmortem", "how did this get through". Root-causes to the missing constraint, then sweeps every other site where the mistake is still available. For a pipeline use data, a deploy use ops, cross-tenant use authz, an AI feature use llm.
+description: 'Turn a bug, outage or repeated mistake into a device that makes the whole class impossible. Use when something already broke: "make sure this never happens again", "this is the third time", "postmortem", "how did this get through". Root-causes to the missing constraint, then sweeps every other site where the mistake is still available. For a pipeline use data, a deploy use ops, cross-tenant use authz, an AI feature use llm.'
 license: MIT
 ---
 

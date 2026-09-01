@@ -240,7 +240,8 @@ COVERED_BY: dict[tuple[str, str], str] = {
 }
 
 
-def covered(rule_id: str, name: str) -> str:
+# poka-yoke: keyword-only, so the id and the name cannot be passed transposed [control]
+def covered(*, rule_id: str, name: str) -> str:
     return COVERED_BY.get((rule_id, name), "")
 
 
@@ -325,12 +326,25 @@ SKIP_DIRS = {
 }
 
 
+class GitUnavailable(RuntimeError):
+    """git could not answer the question asked of it.
+
+    Previously any git failure became an empty string, which the caller could not tell from
+    "the tree is clean". A detector that reports a clean bill of health because git is broken
+    is the exact failure this file's own rules exist to catch.
+    """
+
+
 def git(*args: str, cwd: Path) -> str:
     try:
         r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, timeout=30)
-        return r.stdout if r.returncode == 0 else ""
-    except (subprocess.SubprocessError, FileNotFoundError):
-        return ""
+    except (subprocess.SubprocessError, FileNotFoundError) as exc:
+        raise GitUnavailable(f"could not run git {' '.join(args)}: {exc}") from exc
+    if r.returncode != 0:
+        detail = (r.stderr or r.stdout or "").strip().splitlines()
+        raise GitUnavailable(f"git {' '.join(args)} exited {r.returncode}"
+                             + (f": {detail[0]}" if detail else ""))
+    return r.stdout
 
 
 def changed_files_and_lines(cwd: Path, mode: str, since: str | None):
@@ -406,7 +420,7 @@ def scan_file(path: Path, only_lines: set[int] | None) -> list[dict]:
         for rule in RULES:
             if ext not in rule.exts:
                 continue
-            if not INCLUDE_COVERED and covered(rule.id, rule.name):
+            if not INCLUDE_COVERED and covered(rule_id=rule.id, name=rule.name):
                 continue
             if rule.negate and (rule.negate.search(line) or rule.negate.search(str(path))):
                 continue
@@ -422,7 +436,7 @@ def scan_file(path: Path, only_lines: set[int] | None) -> list[dict]:
 
     if ext in PY:
         for f in python_ast_findings(path, source):
-            if not INCLUDE_COVERED and covered(f["id"], f["name"]):
+            if not INCLUDE_COVERED and covered(rule_id=f["id"], name=f["name"]):
                 continue
             if not only_lines or f["line"] in only_lines:
                 findings.append(f)
@@ -497,6 +511,15 @@ def main() -> int:
     src.add_argument("--paths", nargs="+", metavar="PATH", help="scan these files or directories")
     ap.add_argument("--severity", choices=["high", "medium", "low"], default="low",
                     help="minimum severity to report (default: low)")
+    # Until this existed the script ended in a bare `return 0`, so every gate built on it was
+    # decorative: the shipped pre-commit hook, the shipped CI template and this repo's own
+    # "Detector runs clean" step all reported success while printing high-severity findings.
+    # A linter that cannot fail is a linter nobody has to satisfy.
+    ap.add_argument("--fail-on", choices=["high", "medium", "low", "none"], default="low",
+                    metavar="SEVERITY",
+                    help="exit non-zero when a finding of at least this severity is reported "
+                         "(default: low, i.e. any reported finding). Use 'none' to report "
+                         "without gating.")
     ap.add_argument("--id", nargs="+", metavar="ID",
                     help="only report these hazard IDs (e.g. --id C1 F2 M2)")
     ap.add_argument("--all", action="store_true", dest="include_covered",
@@ -518,34 +541,52 @@ def main() -> int:
         for p in collect_paths(args.paths):
             scanned += 1
             findings += scan_file(p, None)
-        if scanned == 0:
-            # Zero findings from zero files is not an all-clear, and it used to be
-            # indistinguishable from one. Exit non-zero: failing to do the job should
-            # not look like doing the job and finding nothing.
-            msg = ("Scanned 0 files. This is NOT an all-clear.\n"
-                   f"Nothing under {', '.join(args.paths)} has a supported extension.\n"
-                   f"Supported: {', '.join(sorted(ALL_EXTS))}")
-            print(json.dumps({"scope": scope, "files_scanned": 0, "count": 0,
-                              "findings": [], "error": msg}, indent=2)
-                  if args.json else msg, file=sys.stdout if args.json else sys.stderr)
-            return 2
+        empty_because = f"Nothing under {', '.join(args.paths)} has a supported extension."
     else:
         mode = "staged" if args.staged else ("since" if args.since else "diff")
         scope = {"staged": "staged changes",
                  "since": f"changes since {args.since}",
                  "diff": "uncommitted changes"}[mode]
-        changed = changed_files_and_lines(repo, mode, args.since)
-        if not changed:
-            msg = ("No changed files found. The tree may be clean and have no recent commits, "
-                   "or this may not be a git repository.\nUse --paths to scan explicitly, "
-                   "e.g. detect_hazards.py --paths src/")
-            print(json.dumps({"findings": [], "note": msg}) if args.json else msg)
-            return 0
+        try:
+            changed = changed_files_and_lines(repo, mode, args.since)
+        except GitUnavailable as exc:
+            # Exit 2, the same code --paths uses for "scanned nothing". Reporting a clean
+            # tree because git is broken is worse than reporting nothing at all: a
+            # pre-commit hook or CI gate reads only the exit code.
+            msg = (f"Could not determine what changed: {exc}\n"
+                   f"This is NOT an all-clear. Use --paths to scan explicitly.")
+            print(json.dumps({"scope": scope, "files_scanned": 0, "count": 0,
+                              "findings": [], "error": str(exc)}, indent=2)
+                  if args.json else msg, file=sys.stdout if args.json else sys.stderr)
+            return 2
         for rel, lines in changed.items():
             fp = repo / rel
             if fp.suffix in ALL_EXTS and fp.exists():
                 scanned += 1
                 findings += scan_file(fp, lines)
+        empty_because = (
+            "No changed files found: the tree may be clean, or this may not be a git "
+            "repository." if not changed else
+            f"None of the {len(changed)} changed file(s) could be scanned. They were "
+            "deleted, or have no supported extension.")
+
+    # poka-yoke: one exit for "scanned nothing", shared by every mode [control]
+    #
+    # This check used to live inside the --paths branch. --diff, --staged and --since each
+    # reached the end with scanned == 0 and returned 0, printing "No hazards detected" --
+    # a false all-clear in precisely the modes a pre-commit hook and a CI gate use. The
+    # marker above said [control] while holding on one branch of three.
+    #
+    # It is out here now because a check placed after the branches cannot be present on one
+    # and missing from another. Adding a fourth input mode inherits it without remembering to.
+    if scanned == 0:
+        msg = (f"Scanned 0 files. This is NOT an all-clear.\n{empty_because}\n"
+               f"Supported extensions: {', '.join(sorted(ALL_EXTS))}\n"
+               "Use --paths to scan explicitly, e.g. detect_hazards.py --paths src/")
+        print(json.dumps({"scope": scope, "files_scanned": 0, "count": 0,
+                          "findings": [], "error": msg}, indent=2)
+              if args.json else msg, file=sys.stdout if args.json else sys.stderr)
+        return 2
 
     threshold = SEV_ORDER[args.severity]
     findings = [f for f in findings if SEV_ORDER[f["severity"]] <= threshold]
@@ -564,9 +605,24 @@ def main() -> int:
             # len(COVERED_BY) counts ENTRIES, and one entry can suppress several
             # per-language rules, so it under-reported by three. Count the rules.
             n_suppressed = sum(1 for r in RULES if (r.id, r.name) in COVERED_BY)
+            # Names the linters rather than a path. `assets/devices/lint/` resolves only
+            # when this script runs from inside the full plugin; installed as a standalone
+            # skill it pointed at a directory the user does not have.
             print(f"\nNot checked here, {n_suppressed} further hazard rules are covered "
-                  f"better by {', '.join(tools)}.\nEnable those rather than relying on this: "
-                  f"see assets/devices/lint/. Use --all to run them anyway.")
+                  f"better by {', '.join(tools)}.\nEnable those in your own linter config "
+                  f"rather than relying on this. Use --all to run them anyway.")
+
+    if args.fail_on != "none":
+        rank = {"high": 3, "medium": 2, "low": 1}
+        threshold = rank[args.fail_on]
+        gating = [f for f in findings if rank.get(f.get("severity", "low"), 1) >= threshold]
+        if gating:
+            worst = max(rank.get(f.get("severity", "low"), 1) for f in gating)
+            name = {3: "high", 2: "medium", 1: "low"}[worst]
+            if not args.json:
+                print(f"\n{len(gating)} finding(s) at or above --fail-on={args.fail_on} "
+                      f"(worst: {name}). Exiting 1.", file=sys.stderr)
+            return 1
 
     return 0
 

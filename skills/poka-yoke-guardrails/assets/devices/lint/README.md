@@ -91,6 +91,10 @@ warn_return_any = true
 ## Go, `.golangci.yml`
 
 ```yaml
+# v2 is not backward compatible: it rejects a v1 file rather than migrating it, so the
+# version key is what stops this template failing on a current golangci-lint.
+version: "2"
+
 linters:
   enable:
     - errcheck        # unchecked errors: Go's error convention is opt-in without this
@@ -103,9 +107,9 @@ linters:
     - noctx           # HTTP requests without a context
     - gosec
 
-linters-settings:
-  exhaustive:
-    default-signifies-exhaustive: false
+  settings:
+    exhaustive:
+      default-signifies-exhaustive: false
 ```
 
 `errcheck` is the non-negotiable one. `_ = doSomething()` is how data loss enters a Go

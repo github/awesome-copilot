@@ -76,10 +76,16 @@ jobs:
       - uses: actions/checkout@v5
       - name: No focused tests
         run: |
-          if grep -rEn '(\.only\(|fdescribe\(|\bfit\()' \
-               --include='*.ts' --include='*.tsx' --include='*.js' \
-               --exclude-dir=node_modules . ; then
-            echo "::error::Focused tests disable the rest of the suite. Remove .only before merging."
+          # The skill promises this rejects skipped tests as well as focused ones, and in
+          # every language it names. It used to grep TS/JS for `.only` alone, so a
+          # `@pytest.mark.skip` left behind passed a gate that claimed to catch it.
+          if grep -rEn '(\.only\(|fdescribe\(|\bfit\(|\.skip\(|xdescribe\(|\bxit\(|@pytest\.mark\.(skip|xfail)|\bt\.Skip\(|#\[ignore\])' \
+               --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' \
+               --include='*.py' --include='*.go' --include='*.rs' \
+               --exclude-dir=node_modules --exclude-dir=.git . ; then
+            echo "::error::A focused or skipped test disables coverage. Both are detection"
+            echo "devices switched off; remove them, or mark the skip with an issue link and"
+            echo "add that path to this step's excludes so the exemption is visible."
             exit 1
           fi
 
@@ -107,8 +113,17 @@ jobs:
           # on spaces as well as newlines, so a migration whose filename contains a space
           # becomes two paths that do not exist, and `git diff` then reports no changes,
           # which this gate would read as "nothing destructive here".
-          mapfile -t CHANGED < <(git diff --name-only "$BASE"...HEAD \
-                                   -- 'migrations/**' 'db/migrate/**' || true)
+          # No `|| true`. A missing base ref or any other git error used to become an
+          # empty CHANGED array, and the next line read that as "No migrations changed"
+          # and exited 0 -- the gate passing precisely because it could not run. mapfile
+          # masks the exit status of a process substitution, so the status is checked
+          # explicitly rather than relied upon.
+          if ! DIFF=$(git diff --name-only "$BASE"...HEAD \
+                        -- 'migrations/**' 'db/migrate/**'); then
+            echo "::error::Could not diff against $BASE. This is NOT an all-clear."
+            exit 1
+          fi
+          mapfile -t CHANGED < <(printf '%s' "$DIFF")
           [ ${#CHANGED[@]} -eq 0 ] && { echo "No migrations changed."; exit 0; }
           if git diff "$BASE"...HEAD -- "${CHANGED[@]}" | grep -iE '^\+.*(DROP (TABLE|COLUMN)|TRUNCATE|ALTER .* DROP)'; then
             echo "::error::Destructive DDL detected. Use expand/contract and drop in a later deploy."

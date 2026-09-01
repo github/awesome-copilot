@@ -1,7 +1,6 @@
 ---
 name: poka-yoke-design
-description: >-
-  Design APIs, schemas, types and state machines so misuse cannot be expressed. Use when writing a new interface and someone asks "what should the types look like", "make invalid states unrepresentable", "so callers cannot screw it up", or wants illegal state transitions rejected. Covers branded types, discriminated unions, typestate, parse-don't-validate. For code that already exists use audit.
+description: 'Design APIs, schemas, types and state machines so misuse cannot be expressed. Use when writing a new interface and someone asks "what should the types look like", "make invalid states unrepresentable", "so callers cannot screw it up", or wants illegal state transitions rejected. Covers branded types, discriminated unions, typestate, parse-don''t-validate. For code that already exists use audit.'
 license: MIT
 ---
 
@@ -82,6 +81,10 @@ with a message naming the mistake and the fix. Two rules decide whether this run
   is genuinely correct, say which failure it absorbs and why that failure is expected.
 - **Destructive operations default to safe.** Dry-run by default; refuse an empty or oversized
   set. `deleteUsers(filter)` with an empty filter should raise, not truncate the table.
+
+`references/hazard-catalog.md` ships beside this skill: the catalogue of recurring hazard
+shapes, with the lens that finds each one and the device that closes it. Read it while
+enumerating misuse above, which is the step it is built for.
 
 ### 6. Where the language can't help, use the data layer
 
