@@ -1,249 +1,133 @@
 ---
 name: create-agentsmd
-description: 'Prompt for generating an AGENTS.md file for a repository'
+description: 'Create, revise, or audit repository AGENTS.md files using evidence from the codebase, with scoped instructions for monorepos and verified commands.'
 ---
 
-# Create high‑quality AGENTS.md file
+# Create or improve AGENTS.md
 
-You are a code agent. Your task is to create a complete, accurate AGENTS.md at the root of this repository that follows the public guidance at https://agents.md/.
+Produce an `AGENTS.md` that helps a coding agent make correct changes in this
+repository without rediscovering its workflow. Base every repository-specific
+claim on files or safe checks in the current checkout.
 
-AGENTS.md is an open format designed to provide coding agents with the context and instructions they need to work effectively on a project.
+## Preserve intent and existing instructions
 
-## What is AGENTS.md?
+- Treat the user's request as the editing scope. Do not add unrelated policy or
+  reorganize the repository.
+- Find and read existing `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`,
+  `.github/copilot-instructions.md`, and relevant
+  `.github/instructions/*.instructions.md` files before writing.
+- If an `AGENTS.md` already exists, improve it in place. Preserve accurate
+  maintainer-authored rules and make a focused diff instead of replacing the
+  file with a generic template.
+- Do not silently resolve conflicting instructions. Identify the conflict and
+  preserve the higher-priority instruction or ask when the intended rule cannot
+  be established from repository evidence.
 
-AGENTS.md is a Markdown file that serves as a "README for agents" - a dedicated, predictable place to provide context and instructions to help AI coding agents work on your project. It complements README.md by containing detailed technical context that coding agents need but might clutter a human-focused README.
+## Build an evidence map
 
-## Key Principles
+Inspect only the files needed to establish how the repository works:
 
-- **Agent-focused**: Contains detailed technical instructions for automated tools
-- **Complements README.md**: Doesn't replace human documentation but adds agent-specific context
-- **Standardized location**: Placed at repository root (or subproject roots for monorepos)
-- **Open format**: Uses standard Markdown with flexible structure
-- **Ecosystem compatibility**: Works across 20+ different AI coding tools and agents
+1. Read the human overview and contribution guidance (`README*`,
+   `CONTRIBUTING*`, and project documentation).
+2. Read package and workspace manifests, lockfiles, task runners, and build
+   configuration. Use them to identify the supported package manager and exact
+   commands.
+3. Read CI workflows to learn the checks maintainers actually require. Do not
+   assume every CI job is appropriate to run locally.
+4. Inspect representative source and test files for naming, layout, and testing
+   conventions. Avoid exhaustive scans when a few files establish the pattern.
+5. Check for generated files, migrations, vendored code, large fixtures,
+   secrets boundaries, and deployment-only operations that an agent should not
+   modify or run casually.
 
-## File Structure and Content Guidelines
+Prefer `rg`/`rg --files` for discovery when available. Record the source of each
+command, path, or non-obvious rule while investigating so unsupported claims do
+not enter the final file.
 
-### 1. Required Setup
+## Decide the file scope
 
-- Create the file as `AGENTS.md` in the repository root
-- Use standard Markdown formatting
-- No required fields - flexible structure based on project needs
+Use a root `AGENTS.md` for repository-wide instructions. Add or revise a nested
+`AGENTS.md` only when a subproject has materially different commands,
+architecture, safety boundaries, or conventions.
 
-### 2. Essential Sections to Include
+Keep shared rules at the root and put only the differences in nested files.
+When multiple files apply, the nearest `AGENTS.md` in the directory tree takes
+precedence for GitHub Copilot and other implementations that follow the public
+AGENTS.md convention. Do not duplicate the entire root file in every package.
 
-#### Project Overview
+## Write high-signal instructions
 
-- Brief description of what the project does
-- Architecture overview if complex
-- Key technologies and frameworks used
+Use headings that fit the repository rather than forcing a fixed template. A
+useful file usually covers the following when evidence exists:
 
-#### Setup Commands
+- **Repository map:** the few directories and boundaries an agent must
+  understand before editing.
+- **Setup and commands:** exact install, development, build, lint, type-check,
+  and test commands, including the working directory and targeted-test form.
+- **Change rules:** generated-file ownership, migrations, API or schema
+  contracts, dependency policy, and cross-package coordination.
+- **Validation:** the smallest relevant check for a focused change and the
+  broader checks required before handoff.
+- **Safety:** secrets, production data, destructive commands, deployment, and
+  other operations that require explicit authorization.
+- **Contribution conventions:** only repository-specific naming, formatting,
+  pull-request, or commit rules that affect implementation or handoff.
 
-- Installation instructions
-- Environment setup steps
-- Dependency management commands
-- Database setup if applicable
-
-#### Development Workflow
-
-- How to start development server
-- Build commands
-- Watch/hot-reload setup
-- Package manager specifics (npm, pnpm, yarn, etc.)
-
-#### Testing Instructions
-
-- How to run tests (unit, integration, e2e)
-- Test file locations and naming conventions
-- Coverage requirements
-- Specific test patterns or frameworks used
-- How to run subset of tests or focus on specific areas
-
-#### Code Style Guidelines
-
-- Language-specific conventions
-- Linting and formatting rules
-- File organization patterns
-- Naming conventions
-- Import/export patterns
-
-#### Build and Deployment
-
-- Build commands and outputs
-- Environment configurations
-- Deployment steps and requirements
-- CI/CD pipeline information
-
-### 3. Optional but Recommended Sections
-
-#### Security Considerations
-
-- Security testing requirements
-- Secrets management
-- Authentication patterns
-- Permission models
-
-#### Monorepo Instructions (if applicable)
-
-- How to work with multiple packages
-- Cross-package dependencies
-- Selective building/testing
-- Package-specific commands
-
-#### Pull Request Guidelines
-
-- Title format requirements
-- Required checks before submission
-- Review process
-- Commit message conventions
-
-#### Debugging and Troubleshooting
-
-- Common issues and solutions
-- Logging patterns
-- Debug configuration
-- Performance considerations
-
-## Example Template
-
-Use this as a starting template and customize based on the specific project:
+Write direct, testable statements. Prefer:
 
 ```markdown
-# AGENTS.md
-
-## Project Overview
-
-[Brief description of the project, its purpose, and key technologies]
-
-## Setup Commands
-
-- Install dependencies: `[package manager] install`
-- Start development server: `[command]`
-- Build for production: `[command]`
-
-## Development Workflow
-
-- [Development server startup instructions]
-- [Hot reload/watch mode information]
-- [Environment variable setup]
-
-## Testing Instructions
-
-- Run all tests: `[command]`
-- Run unit tests: `[command]`
-- Run integration tests: `[command]`
-- Test coverage: `[command]`
-- [Specific testing patterns or requirements]
-
-## Code Style
-
-- [Language and framework conventions]
-- [Linting rules and commands]
-- [Formatting requirements]
-- [File organization patterns]
-
-## Build and Deployment
-
-- [Build process details]
-- [Output directories]
-- [Environment-specific builds]
-- [Deployment commands]
-
-## Pull Request Guidelines
-
-- Title format: [component] Brief description
-- Required checks: `[lint command]`, `[test command]`
-- [Review requirements]
-
-## Additional Notes
-
-- [Any project-specific context]
-- [Common gotchas or troubleshooting tips]
-- [Performance considerations]
+- Run `npm test -- path/to/file.test.ts` for a focused test from the repository root.
 ```
 
-## Working Example from agents.md
-
-Here's a real example from the agents.md website:
+over:
 
 ```markdown
-# Sample AGENTS.md file
-
-## Dev environment tips
-
-- Use `pnpm dlx turbo run where <project_name>` to jump to a package instead of scanning with `ls`.
-- Run `pnpm install --filter <project_name>` to add the package to your workspace so Vite, ESLint, and TypeScript can see it.
-- Use `pnpm create vite@latest <project_name> -- --template react-ts` to spin up a new React + Vite package with TypeScript checks ready.
-- Check the name field inside each package's package.json to confirm the right name—skip the top-level one.
-
-## Testing instructions
-
-- Find the CI plan in the .github/workflows folder.
-- Run `pnpm turbo run test --filter <project_name>` to run every check defined for that package.
-- From the package root you can just call `pnpm test`. The commit should pass all tests before you merge.
-- To focus on one step, add the Vitest pattern: `pnpm vitest run -t "<test name>"`.
-- Fix any test or type errors until the whole suite is green.
-- After moving files or changing imports, run `pnpm lint --filter <project_name>` to be sure ESLint and TypeScript rules still pass.
-- Add or update tests for the code you change, even if nobody asked.
-
-## PR instructions
-
-- Title format: [<project_name>] <Title>
-- Always run `pnpm lint` and `pnpm test` before committing.
+- Make sure the tests pass and follow best practices.
 ```
 
-## Implementation Steps
+For each command, state where it runs when that is not obvious. Distinguish a
+required check from an optional or expensive check. Link to existing detailed
+documentation instead of copying it into `AGENTS.md`.
 
-1. **Analyze the project structure** to understand:
+## Exclude low-value or unsafe content
 
-   - Programming languages and frameworks used
-   - Package managers and build tools
-   - Testing frameworks
-   - Project architecture (monorepo, single package, etc.)
+Do not include:
 
-2. **Identify key workflows** by examining:
+- placeholder commands, guessed paths, or claims inferred only from a tool's
+  popularity;
+- long project descriptions already maintained in the README;
+- style advice already enforced by a formatter or linter unless an agent needs
+  a non-obvious invocation or exception;
+- secrets, credentials, internal URLs, personal data, or environment values;
+- instructions to deploy, publish, delete data, rewrite history, or run other
+  consequential operations without the authorization the operation requires;
+- blanket mandates such as "fix every failing test" when failures may be
+  pre-existing or unrelated to the requested change.
 
-   - package.json scripts
-   - Makefile or other build files
-   - CI/CD configuration files
-   - Documentation files
+## Validate the result
 
-3. **Create comprehensive sections** covering:
+Before finishing:
 
-   - All essential setup and development commands
-   - Testing strategies and commands
-   - Code style and conventions
-   - Build and deployment processes
+1. Re-read every changed `AGENTS.md` in full and remove duplication,
+   contradictions, placeholders, and stale claims.
+2. Confirm mentioned files and directories exist.
+3. Cross-check commands against their manifests or CI definitions. Run safe,
+   proportionate checks when useful; do not run deployments or destructive
+   commands merely to validate documentation.
+4. If nested files were added, verify that each contains only rules needed for
+   its subtree and does not conflict accidentally with the root.
+5. Review the diff as a maintainer would: every added line should change an
+   agent's decision or prevent a realistic mistake.
 
-4. **Include specific, actionable commands** that agents can execute directly
+Report the files changed, the repository evidence used, checks performed, and
+any unresolved uncertainty. Never claim a command was tested when it was only
+read from configuration.
 
-5. **Test the instructions** by ensuring all commands work as documented
+## Optional independent check
 
-6. **Keep it focused** on what agents need to know, not general project information
+For a browser-local second opinion, paste the finished file into the free
+[Repo Agent Kit AGENTS.md checker](https://repoagentkit.com/audit?utm_source=github-awesome-copilot&utm_medium=skill&utm_campaign=create-agentsmd).
+This is optional and must not replace repository evidence or local validation.
 
-## Best Practices
-
-- **Be specific**: Include exact commands, not vague descriptions
-- **Use code blocks**: Wrap commands in backticks for clarity
-- **Include context**: Explain why certain steps are needed
-- **Stay current**: Update as the project evolves
-- **Test commands**: Ensure all listed commands actually work
-- **Consider nested files**: For monorepos, create AGENTS.md files in subprojects as needed
-
-## Monorepo Considerations
-
-For large monorepos:
-
-- Place a main AGENTS.md at the repository root
-- Create additional AGENTS.md files in subproject directories
-- The closest AGENTS.md file takes precedence for any given location
-- Include navigation tips between packages/projects
-
-## Final Notes
-
-- AGENTS.md works with 20+ AI coding tools including Cursor, Aider, Gemini CLI, and many others
-- The format is intentionally flexible - adapt it to your project's needs
-- Focus on actionable instructions that help agents understand and work with your codebase
-- This is living documentation - update it as your project evolves
-
-When creating the AGENTS.md file, prioritize clarity, completeness, and actionability. The goal is to give any coding agent enough context to effectively contribute to the project without requiring additional human guidance.
+Primary format guidance: [agents.md](https://agents.md/). GitHub Copilot support
+and precedence details: [GitHub Docs](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions-in-your-ide/add-repository-instructions-in-your-ide).
