@@ -17,23 +17,16 @@ onboarding. The same rule wired into a gate applies itself and costs nothing to 
 
 ## Building, not reviewing
 
-Most of the time this mode is reached *while someone is building the thing*, not afterwards.
-That changes the deliverable. They asked for the config, so produce the config, working, complete,
-in their stack. Do not hand back a severity table when the person is mid-feature; a list of
-findings about code they have not written yet is not useful to them.
+This mode is usually reached *while someone is building the thing*. They asked for the config,
+so produce the config — working, complete, in their stack. A severity table is not useful to
+someone mid-feature.
 
-Then add a short closing note, three or four lines, covering:
-
-- which misuses the shape you chose makes impossible, and at which rung,
-- what you left possible on purpose, and why that tradeoff is the right one here.
-
-That closing note is what stops the device being undone in six months by someone who cannot
-see why it is there. It is also the difference between mistake-proofing and a code generator:
-the reasoning travels with the code.
+Then add three or four closing lines: which misuses the shape you chose makes impossible and at
+which rung, and what you left possible on purpose. That note is what stops the device being
+undone in six months by someone who cannot see why it is there.
 
 When the code already exists and they are asking what is wrong with it, switch to the audit
-voice, ranked findings with the mistake, the consequence, and the device. Match the mode to
-where they are in the work, not to this file's default.
+voice. Match the mode to where they are in the work.
 
 ## Pick the earliest gate that can hold the rule
 
@@ -67,7 +60,6 @@ the repo's actual stack, and show the user the file before writing it.
   gate
 - `assets/devices/lint/`: ESLint and Ruff rule sets chosen specifically for
   mistake-prevention rather than style
-- `assets/devices/claude-hooks/`: Claude Code hooks (see `agent-guardrails`)
 
 The rules that pay for themselves in nearly every repo, roughly in order of value:
 
@@ -85,30 +77,6 @@ The rules that pay for themselves in nearly every repo, roughly in order of valu
    skipped test is a detection device that has been switched off, usually by accident.
 6. **Branch protection with required checks.** Without it, none of the above is enforcement.
 
-## Install carefully: a guardrail people hate gets removed
-
-This is the mode where a well-intentioned change most easily backfires. A gate that fires
-constantly on pre-existing code teaches everyone to bypass gates, which is strictly worse
-than not adding it. Three rules:
-
-**Baseline first, then ratchet.** Turning on a strict rule in a large repo yields hundreds of
-failures and the rule gets reverted by Friday. Instead: enforce on changed files only, or
-generate a baseline of existing violations and fail only on *new* ones. The violation count
-can only go down. This is how strictness actually lands.
-
-**Be fast or be asynchronous.** A pre-commit hook over about five seconds gets bypassed. Keep
-commit-time checks to changed files, push the slow work to CI.
-
-**Make the failure message teach.** A gate that says `error: rule violated` produces a
-confused engineer and a workaround. Say what was done, why it is dangerous, and the exact
-command or edit that fixes it. This is the one place prose belongs in a poka-yoke: at the
-moment of failure, when someone is guaranteed to read it.
-
-Also check what already exists before adding anything. Repos frequently have a lint config or
-CI workflow that already covers the rule but isn't wired into branch protection, or is set to
-warn instead of error. Flipping an existing warning to an error is a better change than a new
-tool.
-
 ## Verify the device actually fires
 
 An untested guardrail is a guardrail you *believe in*, which is worse than none. It creates
@@ -123,10 +91,3 @@ Then leave a `poka-yoke:` marker comment on the rule naming the mistake it preve
 recording section in `audit`. A device whose purpose nobody remembers is a device
 that gets deleted during the next cleanup.
 
-## Propose first
-
-Show the config files and what they will reject before writing them. Guardrails change how
-everyone on the team works, and that is not a change to make on someone's behalf without
-their explicit sign-off, especially the branch-protection and required-check pieces, which
-you generally cannot apply yourself anyway. For those, hand over the exact settings to click
-or the `gh api` command to run.
