@@ -1,6 +1,6 @@
 ---
 name: jaxx-memory
-description: Use a git repo as an agent's durable memory so work survives context compaction and session death - ACTIVE / BACKLOG / ARCHIVE files, per-stream detail, an append-only run log, and a bidirectional sync rule that forbids work existing only in markdown. WHEN "the agent forgot what we did", "context keeps compacting", "track my work across sessions", "agent memory without a vector db", "standup from my repo", "session hygiene", "how long should an agent session run", or when starting or ending any long-running agent session.
+description: 'Use a git repo as an agent''s durable memory so work survives context compaction and session death - ACTIVE / BACKLOG / ARCHIVE files, per-stream detail, an append-only run log, and a bidirectional sync rule that forbids work existing only in markdown. WHEN "the agent forgot what we did", "context keeps compacting", "track my work across sessions", "agent memory without a vector db", "standup from my repo", "session hygiene", "how long should an agent session run", or when starting or ending any long-running agent session.'
 license: MIT
 ---
 
@@ -35,11 +35,12 @@ one can tell, never happened.
 
 ## Rule zero — never let work exist only in markdown
 
-The tracker mirrors the system of record; it does not replace it. When the human describes new work,
-or the agent discovers untracked work:
+The **tracker** (Azure DevOps, Jira, GitHub Issues) is the system of record. The files in this repo
+are a **mirror** of it, plus the working detail the tracker has nowhere to put. They never replace
+it. When the human describes new work, or the agent discovers untracked work:
 
-1. Create or update the item in the **real tracker** (Azure DevOps, Jira, GitHub Issues).
-2. *Then* record its id and link here, the same session.
+1. Create or update the item in the **tracker** first.
+2. *Then* record its id and link in these files, the same session.
 
 A row here with no id is a to-do the rest of the organisation cannot see. Equally: never invent
 status. If it wasn't verified against the source this session, mark it `(stale)` — a confidently
@@ -54,10 +55,16 @@ wrong status is worse than an admitted unknown.
 
 ## Session end
 
-1. Update `ACTIVE.md` / `BACKLOG.md` / `ARCHIVE.md` with what actually happened.
-2. Add a row to `reference/sessions.md`.
-3. Update or create the matching tracker item.
+1. **Update or create the matching tracker item first** — rule zero. Nothing should reach the files
+   below that doesn't already exist in the system of record.
+2. Update `ACTIVE.md` / `BACKLOG.md` / `ARCHIVE.md` with what actually happened.
+3. Add a row to `reference/sessions.md`.
 4. Commit — `docs(<agent>): <what changed>`.
+   Commit **only** the tracking markdown. Never stage `<agent>.config.json`, credentials, tokens, or
+   anything under an ignore rule: config holds real people's ids and room ids. And before the first
+   push, confirm where the remote points — a repo that mirrors an internal tracker belongs in a
+   private one, and whatever your organisation's data policy says about that content governs here
+   too.
 
 ## Session hygiene — one session per work stream
 

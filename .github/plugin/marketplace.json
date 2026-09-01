@@ -943,6 +943,12 @@
       "version": "1.0.2"
     },
     {
+      "name": "jaxx",
+      "source": "plugins/jaxx",
+      "description": "Rails for an agent that speaks in a named human's name. Owner-only identity, authority from the verified sender id rather than message content, an entry gate before the first post in any room, a never-reply-to-another-agent rule, and a git repo as durable memory so work survives context compaction.",
+      "version": "1.0.0"
+    },
+    {
       "name": "keep-the-why",
       "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
       "version": "0.9.2",
