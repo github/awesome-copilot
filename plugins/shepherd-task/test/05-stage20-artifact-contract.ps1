@@ -35,35 +35,27 @@ function Assert-Fails {
 try {
     New-Item -ItemType Directory -Path $bodyDirectory | Out-Null
     $mockStatePath = Join-Path $tempDirectory 'mock-gh-state.txt'
-    $mockScriptPath = Join-Path $tempDirectory 'mock-gh.ps1'
+    $mockScriptPath = Join-Path $tempDirectory 'mock-gh.mjs'
     $mockCommandPath = Join-Path $tempDirectory 'mock-gh.cmd'
     $mockScript = @'
-$statePath = $env:SHEPHERD_MOCK_GH_STATE
-$count = if (Test-Path -LiteralPath $statePath) {
-    [int](Get-Content -LiteralPath $statePath -Raw)
-}
-else {
-    0
-}
-$count++
-Set-Content -LiteralPath $statePath -Value $count -NoNewline
+import fs from 'node:fs';
 
-if ($env:SHEPHERD_MOCK_GH_MODE -eq 'terminal') {
-    [Console]::Error.WriteLine('HTTP 403: Resource not accessible')
-    exit 1
+const statePath = process.env.SHEPHERD_MOCK_GH_STATE;
+const count = fs.existsSync(statePath)
+    ? Number.parseInt(fs.readFileSync(statePath, 'utf8'), 10) + 1
+    : 1;
+fs.writeFileSync(statePath, String(count));
+
+if (process.env.SHEPHERD_MOCK_GH_MODE === 'terminal') {
+    console.error('HTTP 403: Resource not accessible');
+    process.exit(1);
 }
 
-$body = if ($count -lt [int]$env:SHEPHERD_MOCK_GH_FRESH_ATTEMPT) {
-    [string]$env:SHEPHERD_MOCK_GH_STALE_BODY
-}
-else {
-    [string]$env:SHEPHERD_MOCK_GH_BODY
-}
-[ordered]@{
-    number = 41
-    state = 'open'
-    body = $body
-} | ConvertTo-Json -Compress
+const freshAttempt = Number.parseInt(process.env.SHEPHERD_MOCK_GH_FRESH_ATTEMPT, 10);
+const body = count < freshAttempt
+    ? process.env.SHEPHERD_MOCK_GH_STALE_BODY
+    : process.env.SHEPHERD_MOCK_GH_BODY;
+process.stdout.write(JSON.stringify({ number: 41, state: 'open', body }));
 '@
     [System.IO.File]::WriteAllText(
         $mockScriptPath,
@@ -72,7 +64,7 @@ else {
     )
     $mockCommand = @"
 @echo off
-pwsh -NoLogo -NoProfile -File "$mockScriptPath" %*
+node "$mockScriptPath" %*
 exit /b %ERRORLEVEL%
 "@
     [System.IO.File]::WriteAllText(
@@ -208,11 +200,43 @@ Do not expand scope.
         throw 'Issue body verifier did not recover from a stale first REST response.'
     }
 
+    $unicodeBody = "expected `u{2014} body"
+    [System.IO.File]::WriteAllText(
+        $verificationBodyPath,
+        $unicodeBody,
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    $env:SHEPHERD_MOCK_GH_BODY = $unicodeBody
+    $env:SHEPHERD_MOCK_GH_FRESH_ATTEMPT = '1'
+    Remove-Item -LiteralPath $mockStatePath -ErrorAction SilentlyContinue
+    $originalConsoleOutputEncoding = [Console]::OutputEncoding
+    try {
+        $oemEncoding = [System.Text.Encoding]::GetEncoding(437)
+        [Console]::OutputEncoding = $oemEncoding
+        $verifiedIssue = & $issueBodyVerifier `
+            -Repository 'owner/repository' `
+            -IssueNumber 41 `
+            -ExpectedBodyPath $verificationBodyPath `
+            -MaxAttempts 1 `
+            -DelaySeconds 0 `
+            -GitHubCli $mockCommandPath
+        if ([string]$verifiedIssue.body -cne $unicodeBody) {
+            throw 'Issue body verifier corrupted UTF-8 output under an OEM console code page.'
+        }
+        if ([Console]::OutputEncoding.CodePage -ne $oemEncoding.CodePage) {
+            throw 'Issue body verifier did not restore the caller console encoding.'
+        }
+    }
+    finally {
+        [Console]::OutputEncoding = $originalConsoleOutputEncoding
+    }
+
     [System.IO.File]::WriteAllText(
         $verificationBodyPath,
         "expected`r`nbody",
         [System.Text.UTF8Encoding]::new($false)
     )
+    $env:SHEPHERD_MOCK_GH_BODY = "expected`nbody"
     $env:SHEPHERD_MOCK_GH_FRESH_ATTEMPT = '1'
     Remove-Item -LiteralPath $mockStatePath -ErrorAction SilentlyContinue
     & $issueBodyVerifier `

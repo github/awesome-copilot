@@ -137,44 +137,56 @@ $expected = ConvertTo-NormalizedLineEndings (
 )
 $lastReason = ''
 $lastActual = ''
+$previousConsoleOutputEncoding = [Console]::OutputEncoding
+$previousOutputEncoding = $OutputEncoding
+$utf8Encoding = [System.Text.UTF8Encoding]::new($false)
 
-for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
-    $output = (& $GitHubCli api "repos/$Repository/issues/$IssueNumber" 2>&1 | Out-String).Trim()
-    $exitCode = $LASTEXITCODE
-    if ($exitCode -ne 0) {
-        $lastReason = "GitHub REST request failed with exit code $exitCode."
-        if (Test-TerminalGitHubFailure $output) {
-            Write-Diagnostic -Reason $lastReason -Attempts $attempt -Actual '' -Expected $expected
-            throw "Unable to fetch issue #$IssueNumber from ${Repository}: $output"
+try {
+    [Console]::OutputEncoding = $utf8Encoding
+    $OutputEncoding = $utf8Encoding
+
+    for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+        $output = (& $GitHubCli api "repos/$Repository/issues/$IssueNumber" 2>&1 | Out-String).Trim()
+        $exitCode = $LASTEXITCODE
+        if ($exitCode -ne 0) {
+            $lastReason = "GitHub REST request failed with exit code $exitCode."
+            if (Test-TerminalGitHubFailure $output) {
+                Write-Diagnostic -Reason $lastReason -Attempts $attempt -Actual '' -Expected $expected
+                throw "Unable to fetch issue #$IssueNumber from ${Repository}: $output"
+            }
         }
+        else {
+            try {
+                $issue = $output | ConvertFrom-Json
+                $lastActual = ConvertTo-NormalizedLineEndings ([string]$issue.body)
+                if (Test-EquivalentBody -Actual $lastActual -Expected $expected) {
+                    return $issue
+                }
+                $lastReason = 'GitHub issue body differs from the persisted draft.'
+            }
+            catch {
+                $lastReason = "GitHub REST response was invalid JSON: $($_.Exception.Message)"
+            }
+        }
+
+        if ($attempt -lt $MaxAttempts) {
+            Write-Warning "$lastReason Retrying issue #$IssueNumber body verification ($attempt/$MaxAttempts)."
+            if ($DelaySeconds -gt 0) {
+                Start-Sleep -Seconds $DelaySeconds
+            }
+        }
+    }
+
+    Write-Diagnostic -Reason $lastReason -Attempts $MaxAttempts -Actual $lastActual -Expected $expected
+    $diagnosticSuffix = if ([string]::IsNullOrWhiteSpace($DiagnosticPath)) {
+        ''
     }
     else {
-        try {
-            $issue = $output | ConvertFrom-Json
-            $lastActual = ConvertTo-NormalizedLineEndings ([string]$issue.body)
-            if (Test-EquivalentBody -Actual $lastActual -Expected $expected) {
-                return $issue
-            }
-            $lastReason = 'GitHub issue body differs from the persisted draft.'
-        }
-        catch {
-            $lastReason = "GitHub REST response was invalid JSON: $($_.Exception.Message)"
-        }
+        " Diagnostic: $DiagnosticPath"
     }
-
-    if ($attempt -lt $MaxAttempts) {
-        Write-Warning "$lastReason Retrying issue #$IssueNumber body verification ($attempt/$MaxAttempts)."
-        if ($DelaySeconds -gt 0) {
-            Start-Sleep -Seconds $DelaySeconds
-        }
-    }
+    throw "Issue #$IssueNumber body verification failed after $MaxAttempts attempts. $lastReason$diagnosticSuffix"
 }
-
-Write-Diagnostic -Reason $lastReason -Attempts $MaxAttempts -Actual $lastActual -Expected $expected
-$diagnosticSuffix = if ([string]::IsNullOrWhiteSpace($DiagnosticPath)) {
-    ''
+finally {
+    $OutputEncoding = $previousOutputEncoding
+    [Console]::OutputEncoding = $previousConsoleOutputEncoding
 }
-else {
-    " Diagnostic: $DiagnosticPath"
-}
-throw "Issue #$IssueNumber body verification failed after $MaxAttempts attempts. $lastReason$diagnosticSuffix"
