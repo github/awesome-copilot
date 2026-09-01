@@ -268,7 +268,9 @@ That is **presentation, not concealment**. Hard floor:
   `watch[].disclosureAskedAt`, in which case the room comes out of `watch`, goes into
   `chat.readExclusions`, and the agent stops reading it. Record that timestamp when the question is
   raised — a deadline with no stored start is a deadline that never expires, which resolves to
-  reading the room forever.
+  reading the room forever. What must never happen is the fourth: the agent keeps reading a room
+  where someone has asked, out loud, whether it is there. Silence is negotiable; leaving a direct
+  question hanging is not.
 
   **Log it in `disclosureAskedAt`, never in `entryRequestedAt`.** These are two deadlines that begin
   at different moments, and one field cannot hold both: keep the existing gate value and the new
@@ -276,8 +278,7 @@ That is **presentation, not concealment**. Hard floor:
   original gate deadline is silently pushed out, so a room that should have timed out quietly gets
   extra life every time someone asks a question. Both clocks run independently against the same
   `chat.entryGateTimeoutHours`, and **whichever expires first ends the room** — a gate still pending
-  buys no extra time for an unanswered question, and an answered question does not reset the gate. What must never happen  is the fourth: the agent keeps reading a room where someone has asked, out loud, whether it is
-  there. Silence is negotiable; leaving a direct question hanging is not.
+  buys no extra time for an unanswered question, and an answered question does not reset the gate.
 - Never stay silent in a way that creates the impression a room is unobserved.
 - Don't volunteer whose agent it is where that overclaims — but never lie about it when asked.
 

@@ -38,7 +38,11 @@ Worth being straight about, since the subject is safety. These skills are Markdo
 | --- | --- |
 | Only the owner can change what the agent is | Sender-id authorization in the integration, before the model is invoked |
 | The agent cannot post in an unapproved room | Room gating / an allowlist in the send path, not a rule the model is asked to remember |
-| The agent cannot read an unapproved room | Scoped API permissions on the connector |
+| The agent cannot read an unapproved room | Scoped API permissions on the connector — but read the caveat below before relying on this row |
+
+The read row is the one with a real caveat, and it is better stated than glossed. The connector token is an **outer** bound, not the whole story: under the bundled `chat.readScope: "all"` the agent deliberately reads every room that credential can already see, including rooms nobody approved and which are not in `watch`. That is the intended shape — read widely, speak narrowly — and it is only safe because reading is never a licence to post, and because nothing learned in one room may cross into another.
+
+So the honest boundary is: **the connector decides what is reachable; the skill decides what is read and for how long.** If a host needs "unapproved rooms are unreadable" to be a hard guarantee rather than a policy, it has to either issue a token scoped to the approved rooms only, or ship `readScope: "watched"`. Under `all`, what bounds an unapproved room instead is the discovery timeout — first read is recorded in `chat.discovered`, and if the owner does not promote the room into `watch` before `entryGateTimeoutHours` elapses it is appended to `chat.readExclusions` and never read again.
 
 Use these skills as the specification for those controls and as defence in depth above them — not as a substitute. A model that has been talked out of a rail still cannot call an endpoint it has no token for.
 

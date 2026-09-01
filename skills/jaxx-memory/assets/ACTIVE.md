@@ -5,7 +5,7 @@ Status not verified against the tracker this session is marked `(stale)`.
 
 | Item | Stream | State | Next | Updated |
 | --- | --- | --- | --- | --- |
-| _nothing yet — run `/jaxx-standup`_ | | | | |
+| _nothing yet — replace this row as work starts_ | | | | |
 
 ## Needs a decision
 
