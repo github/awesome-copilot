@@ -3597,6 +3597,24 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "jmatsuzawa",
+      "name": "Jiro Matsuzawa",
+      "avatar_url": "https://avatars.githubusercontent.com/u/545426?v=4",
+      "profile": "http://blogs.gnome.org/jmatsuzawa/",
+      "contributions": [
+        "tool"
+      ]
+    },
+    {
+      "login": "GuoCheng24",
+      "name": "Guo Cheng",
+      "avatar_url": "https://avatars.githubusercontent.com/u/224264187?v=4",
+      "profile": "https://github.com/GuoCheng24",
+      "contributions": [
+        "content"
+      ]
     }
   ]
 }
