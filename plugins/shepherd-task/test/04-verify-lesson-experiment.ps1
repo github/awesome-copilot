@@ -41,11 +41,17 @@ if ([System.IO.Path]::IsPathRooted($CampaignMetadataDirectory) -or
 }
 
 $campaignPath = Join-Path $repoRoot $CampaignMetadataDirectory
+$issueBodyVerifier = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..' 'scripts' 'verify-github-issue-body.ps1')
+)
 $manifestPath = Join-Path $campaignPath 'shepherd-campaign.json'
 $experimentPath = Join-Path $campaignPath 'shepherd-test-experiment.json'
 $lessonsPath = Join-Path $campaignPath 'campaign-lessons.md'
 foreach ($path in @($manifestPath, $experimentPath, $lessonsPath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Required file not found: $path" }
+}
+if (-not (Test-Path -LiteralPath $issueBodyVerifier -PathType Leaf)) {
+    throw "Issue body verifier not found: $issueBodyVerifier"
 }
 
 $campaign = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
@@ -99,15 +105,23 @@ if ($issueNumbers[0] -ne [int]$ledger[0].number -or $issueNumbers[1] -ne [int]$l
 $lessons = Normalize-Text (Get-Content -LiteralPath $lessonsPath -Raw)
 $initialPlaceholder = 'No validated lessons have been recorded yet.'
 $issueBodies = @{}
-foreach ($issueNumber in $issueNumbers) {
-    $issueOutput = gh issue view $issueNumber --repo $campaign.repository --json number,body,state 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "Unable to fetch issue #${issueNumber}: $issueOutput"
+for ($index = 0; $index -lt $issueNumbers.Count; $index++) {
+    $issueNumber = $issueNumbers[$index]
+    $bodyFileProperty = $ledger[$index].PSObject.Properties['bodyFile']
+    if ($null -eq $bodyFileProperty -or
+        [string]::IsNullOrWhiteSpace([string]$bodyFileProperty.Value) -or
+        [System.IO.Path]::IsPathRooted([string]$bodyFileProperty.Value)) {
+        throw "Ledger entry for issue #$issueNumber has no valid relative bodyFile."
     }
-    try { $issue = $issueOutput | ConvertFrom-Json }
-    catch { throw "Issue #${issueNumber} returned invalid JSON: $($_.Exception.Message)" }
-    if ($issue.state -ne 'CLOSED') {
-        throw "Issue #$issueNumber is '$($issue.state)', expected CLOSED after stage 25."
+    $bodyFile = Join-Path $artifactDirectory ([string]$bodyFileProperty.Value)
+    $diagnosticPath = Join-Path $artifactDirectory "issue-$issueNumber-final-body-verification-failure.json"
+    $issue = & $issueBodyVerifier `
+        -Repository $campaign.repository `
+        -IssueNumber $issueNumber `
+        -ExpectedBodyPath $bodyFile `
+        -DiagnosticPath $diagnosticPath
+    if ([string]$issue.state -ne 'closed') {
+        throw "Issue #$issueNumber is '$($issue.state)', expected closed after stage 25."
     }
     $issueBodies[$issueNumber] = [string]$issue.body
 }

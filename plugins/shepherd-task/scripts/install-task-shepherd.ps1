@@ -42,6 +42,8 @@ $requiredScripts = @(
     'redact-secrets.ps1'
     'validate-stage20-drafts.sh'
     'validate-stage20-drafts.ps1'
+    'verify-github-issue-body.sh'
+    'verify-github-issue-body.ps1'
     'assert-stage20-result.sh'
     'assert-stage20-result.ps1'
 )

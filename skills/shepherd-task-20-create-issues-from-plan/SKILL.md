@@ -1,6 +1,6 @@
 ---
 name: shepherd-task-20-create-issues-from-plan
-description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child issues under an existing GitHub parent issue, preferring the Task issue type when the repository supports it. Incorporates resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 13 inputs are required. Skip this stage when suitable implementation issues already exist.'
+description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child issues under an existing GitHub parent issue, preferring the Task issue type when the repository supports it. Incorporates resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 14 inputs are required. Skip this stage when suitable implementation issues already exist.'
 ---
 
 # Skill: Create Shepherd Task Issues from a Plan (shepherd-task stage 20 — creation of ordered implementation issues)
@@ -28,6 +28,7 @@ The created issues are specifications, not summaries. A coding agent must be abl
 11. **`CAMPAIGN_ID`** — Canonical campaign UUID from `PLAN_DIRECTORY/shepherd-campaign.json`.
 12. **`LESSON_PROPAGATION`** — Immutable campaign mode, exactly `off` or `campaign`.
 13. **`DRAFT_VALIDATOR`** — Absolute path to the platform-specific `validate-stage20-drafts.ps1` or `validate-stage20-drafts.sh` script supplied by the stage 15 launcher.
+14. **`ISSUE_BODY_VERIFIER`** — Absolute path to the platform-specific `verify-github-issue-body.ps1` or `verify-github-issue-body.sh` script supplied by the stage 15 launcher.
 
 ## Fixed behaviors
 
@@ -61,25 +62,26 @@ When creating issues, produce issue bodies at least as specific and structured a
 
 1. Verify `PARENT_ISSUE` matches `^[1-9][0-9]*$`. Reject URLs and other non-numeric values.
 2. Verify `LOG_DIRECTORY` is an absolute path to an existing writable directory. Create `LOG_DIRECTORY/issue-bodies`; fail before creating any GitHub issues if this cannot be done.
-3. Verify `BASE_BRANCH` is not `main` or the repository's default branch.
-4. Verify `BASE_BRANCH` exists.
-5. Verify `BASE_REMOTE` exists and its configured GitHub URL matches `REPO`.
-6. Verify `PARENT_ISSUE` exists, is open, and belongs to `REPO`.
-7. Determine whether `REPO` supports an enabled issue type named exactly `Task`:
+3. Verify `DRAFT_VALIDATOR` and `ISSUE_BODY_VERIFIER` are absolute paths to existing platform-appropriate scripts. On Bash, both must be executable.
+4. Verify `BASE_BRANCH` is not `main` or the repository's default branch.
+5. Verify `BASE_BRANCH` exists.
+6. Verify `BASE_REMOTE` exists and its configured GitHub URL matches `REPO`.
+7. Verify `PARENT_ISSUE` exists, is open, and belongs to `REPO`.
+8. Determine whether `REPO` supports an enabled issue type named exactly `Task`:
    - Read the repository owner's login and type from `gh api "repos/$REPO"`.
    - If the owner type is `Organization`, query `gh api "orgs/$OWNER/issue-types"`. If the request succeeds and contains an entry whose `name` is exactly `Task` and whose `is_enabled` value is `true`, set `SELECTED_ISSUE_TYPE=Task`. If it succeeds without such an entry, leave `SELECTED_ISSUE_TYPE` empty.
    - If the owner type is `User`, leave `SELECTED_ISSUE_TYPE` empty because organization issue types are unavailable.
    - Fail on repository lookup errors, unrecognized owner types, or organization issue-type lookup errors. Do not turn authentication, authorization, or transient API failures into an untyped-success fallback.
    - Report whether child issues will use `Task` or be created without an issue type before creating anything.
-8. Read `PLAN_DIRECTORY/PLAN_FILE_NAME` from `BASE_BRANCH`. Prefer `git show "$BASE_BRANCH:$PLAN_DIRECTORY/$PLAN_FILE_NAME"`; fall back to `gh api`.
-9. Verify both `QUESTIONS_SECTION` and `IMPLEMENTATION_SECTION` headings occur exactly once.
-10. Verify `EXPECTED_TASK_COUNT` is a positive integer and exactly equals the number of direct task headings beneath `IMPLEMENTATION_SECTION`.
-11. Verify every question that gates implementation has a non-empty resolution block:
+9. Read `PLAN_DIRECTORY/PLAN_FILE_NAME` from `BASE_BRANCH`. Prefer `git show "$BASE_BRANCH:$PLAN_DIRECTORY/$PLAN_FILE_NAME"`; fall back to `gh api`.
+10. Verify both `QUESTIONS_SECTION` and `IMPLEMENTATION_SECTION` headings occur exactly once.
+11. Verify `EXPECTED_TASK_COUNT` is a positive integer and exactly equals the number of direct task headings beneath `IMPLEMENTATION_SECTION`.
+12. Verify every question that gates implementation has a non-empty resolution block:
   - Treat `Resolution:` as a marker, not as a single-line value. Its block includes content on the marker line and all following paragraphs, lists, tables, code blocks, and other Markdown until the next peer question/subsection heading or the end of `QUESTIONS_SECTION`.
   - A standalone `**Resolution:**` line followed by substantive block content is resolved. Never classify it as empty merely because no value appears on the marker line, and never use a same-line-only regular expression as the resolution check.
   - After ignoring blank lines and Markdown formatting delimiters, classify a resolution as unresolved only when its entire block has no substantive content or explicitly states that the gating decision remains unresolved.
   - Before stopping, list each blocking question and quote its complete parsed resolution block, or explicitly state that no resolution block exists. If the block contains a concrete decision, answer, or operational consequence, do not report that question as unresolved.
-12. Read `PLAN_DIRECTORY/shepherd-campaign.json` from `BASE_BRANCH`. Verify its `campaignId` and `lessonPropagation` exactly match `CAMPAIGN_ID` and `LESSON_PROPAGATION`, and verify `campaign-lessons.md` exists.
+13. Read `PLAN_DIRECTORY/shepherd-campaign.json` from `BASE_BRANCH`. Verify its `campaignId` and `lessonPropagation` exactly match `CAMPAIGN_ID` and `LESSON_PROPAGATION`, and verify `campaign-lessons.md` exists.
 
 ### Step 2: Study bundled examples and existing children
 
@@ -205,16 +207,31 @@ Before creating the first issue, initialize `LOG_DIRECTORY/creation-ledger.json`
 
 Write both JSON documents atomically. Immediately after each successful create call, append an object to the ledger with these exact fields: `implementationSubsection`, `bodyFile`, `id`, `number`, `title`, `url`, `body_verified`, and `linked`. Store `bodyFile` as a path relative to `LOG_DIRECTORY`, set `body_verified=false` and `linked=false`, then persist the ledger. Never keep the ledger only in memory.
 
-Before linking the new issue, fetch its body from GitHub and verify it exactly equals the complete contents of `BODY_FILE` (allowing only a single trailing newline difference). On PowerShell, fetch the complete JSON object and then read its body property:
+Before linking the new issue, invoke `ISSUE_BODY_VERIFIER` to fetch the complete issue through the GitHub REST API and verify that its body exactly equals `BODY_FILE`. The verifier normalizes CRLF and CR to LF, permits only a single trailing newline difference, and retries read-only fetch/comparison failures up to six times with five-second delays. It does not retry authentication or authorization failures.
 
 ```powershell
-$issue = gh api "repos/$REPO/issues/$ISSUE_NUMBER" | ConvertFrom-Json
-$observedBody = [string]$issue.body
+$issue = & $ISSUE_BODY_VERIFIER `
+  -Repository $REPO `
+  -IssueNumber $ISSUE_NUMBER `
+  -ExpectedBodyPath $BODY_FILE `
+  -MaxAttempts 6 `
+  -DelaySeconds 5 `
+  -DiagnosticPath (Join-Path $LOG_DIRECTORY "issue-$ISSUE_NUMBER-body-verification-failure.json")
 ```
 
-Do **not** capture `gh api ... --jq '.body'` into a PowerShell variable. Native multiline stdout becomes an `Object[]`, and coercing that array to a string replaces line boundaries with spaces, causing a false body mismatch.
+```bash
+issue_json="$(
+  "$ISSUE_BODY_VERIFIER" \
+    "$REPO" \
+    "$ISSUE_NUMBER" \
+    "$BODY_FILE" \
+    6 \
+    5 \
+    "$LOG_DIRECTORY/issue-$ISSUE_NUMBER-body-verification-failure.json"
+)"
+```
 
-On Bash, preserve multiline content in a file or variable without line-by-line array coercion. If the body differs, record the observed body in `LOG_DIRECTORY/issue-bodies/NN-SUBSECTION-observed-body.md` and enter the failure flow without creating another issue. After a match, set `body_verified=true` and persist the ledger. Immediately after successfully linking it, set `linked=true` and persist the ledger.
+Do not replace the verifier with `gh issue view`, GraphQL, `--jq '.body'` captured into PowerShell, or whitespace trimming. On final failure, preserve the verifier's metadata-only diagnostic and enter the failure flow without creating another issue. After a match, set `body_verified=true` and persist the ledger. Immediately after successfully linking it, set `linked=true` and persist the ledger.
 
 Create and link one at a time in plan order. On linking failure, retry up to 3 times. If any create, link, or postcondition-verification step fails:
 
@@ -238,7 +255,7 @@ If the ledger is empty, explicitly report that no issues were created and no cle
 - Relative to the pre-creation baseline, the child count increased by exactly the number of ledger entries.
 - Every ledger entry is linked exactly once and corresponds, in creation order, to one implementation subsection.
 - The newly linked child order matches plan order.
-- Every issue in the ledger has a body exactly matching its persisted body file, is open, and has no assignees.
+- Every issue in the ledger has a body exactly matching its persisted body file, is open, and has no assignees. Invoke `ISSUE_BODY_VERIFIER` again for each final body check; do not substitute a GraphQL or single-attempt read.
 - When `SELECTED_ISSUE_TYPE=Task`, every created issue has type `Task`. When it is empty, no issue-type postcondition is required.
 - After every other postcondition passes, atomically write `stage-20-result.json` with `status` set to `complete` and `operationError` set to `null`. Do not add issue identities; `creation-ledger.json` is their single source of truth. A successful Copilot process exit is not a stage-success signal; the status document plus the complete ledger are authoritative.
 

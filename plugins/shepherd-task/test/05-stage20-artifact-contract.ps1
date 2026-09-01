@@ -10,6 +10,7 @@ $scriptsDirectory = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..' 
 $draftValidator = Join-Path $scriptsDirectory 'validate-stage20-drafts.ps1'
 $resultAssertion = Join-Path $scriptsDirectory 'assert-stage20-result.ps1'
 $redactor = Join-Path $scriptsDirectory 'redact-secrets.ps1'
+$issueBodyVerifier = Join-Path $scriptsDirectory 'verify-github-issue-body.ps1'
 $tempDirectory = Join-Path ([System.IO.Path]::GetTempPath()) "shepherd-stage20-contract-$([guid]::NewGuid().ToString('N'))"
 $bodyDirectory = Join-Path $tempDirectory 'issue-bodies'
 
@@ -33,6 +34,56 @@ function Assert-Fails {
 
 try {
     New-Item -ItemType Directory -Path $bodyDirectory | Out-Null
+    $mockStatePath = Join-Path $tempDirectory 'mock-gh-state.txt'
+    $mockScriptPath = Join-Path $tempDirectory 'mock-gh.ps1'
+    $mockCommandPath = Join-Path $tempDirectory 'mock-gh.cmd'
+    $mockScript = @'
+$statePath = $env:SHEPHERD_MOCK_GH_STATE
+$count = if (Test-Path -LiteralPath $statePath) {
+    [int](Get-Content -LiteralPath $statePath -Raw)
+}
+else {
+    0
+}
+$count++
+Set-Content -LiteralPath $statePath -Value $count -NoNewline
+
+if ($env:SHEPHERD_MOCK_GH_MODE -eq 'terminal') {
+    [Console]::Error.WriteLine('HTTP 403: Resource not accessible')
+    exit 1
+}
+
+$body = if ($count -lt [int]$env:SHEPHERD_MOCK_GH_FRESH_ATTEMPT) {
+    [string]$env:SHEPHERD_MOCK_GH_STALE_BODY
+}
+else {
+    [string]$env:SHEPHERD_MOCK_GH_BODY
+}
+[ordered]@{
+    number = 41
+    state = 'open'
+    body = $body
+} | ConvertTo-Json -Compress
+'@
+    [System.IO.File]::WriteAllText(
+        $mockScriptPath,
+        $mockScript,
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    $mockCommand = @"
+@echo off
+pwsh -NoLogo -NoProfile -File "$mockScriptPath" %*
+exit /b %ERRORLEVEL%
+"@
+    [System.IO.File]::WriteAllText(
+        $mockCommandPath,
+        $mockCommand,
+        [System.Text.ASCIIEncoding]::new()
+    )
+    $env:SHEPHERD_MOCK_GH_STATE = $mockStatePath
+    $env:SHEPHERD_MOCK_GH_MODE = 'body'
+    $env:SHEPHERD_MOCK_GH_STALE_BODY = 'stale body'
+
     $validBody = @'
 ## Campaign context and required reading
 
@@ -135,8 +186,114 @@ Do not expand scope.
         [string]$redactedResult.status -ne 'complete') {
         throw 'Redaction corrupted scalar arrays or failed to redact a sensitive field.'
     }
+
+    $verificationBodyPath = Join-Path $tempDirectory 'verification-body.md'
+    [System.IO.File]::WriteAllText(
+        $verificationBodyPath,
+        "expected`nbody",
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    $env:SHEPHERD_MOCK_GH_BODY = "expected`nbody"
+    $env:SHEPHERD_MOCK_GH_FRESH_ATTEMPT = '2'
+    Remove-Item -LiteralPath $mockStatePath -ErrorAction SilentlyContinue
+    $verifiedIssue = & $issueBodyVerifier `
+        -Repository 'owner/repository' `
+        -IssueNumber 41 `
+        -ExpectedBodyPath $verificationBodyPath `
+        -MaxAttempts 2 `
+        -DelaySeconds 0 `
+        -GitHubCli $mockCommandPath
+    if ([string]$verifiedIssue.body -cne "expected`nbody" -or
+        [int](Get-Content -LiteralPath $mockStatePath -Raw) -ne 2) {
+        throw 'Issue body verifier did not recover from a stale first REST response.'
+    }
+
+    [System.IO.File]::WriteAllText(
+        $verificationBodyPath,
+        "expected`r`nbody",
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    $env:SHEPHERD_MOCK_GH_FRESH_ATTEMPT = '1'
+    Remove-Item -LiteralPath $mockStatePath -ErrorAction SilentlyContinue
+    & $issueBodyVerifier `
+        -Repository 'owner/repository' `
+        -IssueNumber 41 `
+        -ExpectedBodyPath $verificationBodyPath `
+        -MaxAttempts 1 `
+        -DelaySeconds 0 `
+        -GitHubCli $mockCommandPath | Out-Null
+
+    [System.IO.File]::WriteAllText(
+        $verificationBodyPath,
+        'expected',
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    $env:SHEPHERD_MOCK_GH_BODY = "expected`n"
+    Remove-Item -LiteralPath $mockStatePath -ErrorAction SilentlyContinue
+    & $issueBodyVerifier `
+        -Repository 'owner/repository' `
+        -IssueNumber 41 `
+        -ExpectedBodyPath $verificationBodyPath `
+        -MaxAttempts 1 `
+        -DelaySeconds 0 `
+        -GitHubCli $mockCommandPath | Out-Null
+
+    $diagnosticPath = Join-Path $tempDirectory 'body-verification-failure.json'
+    $env:SHEPHERD_MOCK_GH_BODY = "expected`n`n"
+    Remove-Item -LiteralPath $mockStatePath -ErrorAction SilentlyContinue
+    Assert-Fails -ExpectedMessage 'failed after 1 attempts' -Operation {
+        & $issueBodyVerifier `
+            -Repository 'owner/repository' `
+            -IssueNumber 41 `
+            -ExpectedBodyPath $verificationBodyPath `
+            -MaxAttempts 1 `
+            -DelaySeconds 0 `
+            -DiagnosticPath $diagnosticPath `
+            -GitHubCli $mockCommandPath
+    }
+    $diagnostic = Get-Content -LiteralPath $diagnosticPath -Raw | ConvertFrom-Json
+    if ($diagnostic.attempts -ne 1 -or
+        $diagnostic.expectedSha256 -eq $diagnostic.actualSha256 -or
+        $null -eq $diagnostic.firstDifference) {
+        throw 'Persistent body mismatch diagnostics are incomplete.'
+    }
+
+    $env:SHEPHERD_MOCK_GH_BODY = 'always wrong'
+    Remove-Item -LiteralPath $mockStatePath -ErrorAction SilentlyContinue
+    Assert-Fails -ExpectedMessage 'failed after 3 attempts' -Operation {
+        & $issueBodyVerifier `
+            -Repository 'owner/repository' `
+            -IssueNumber 41 `
+            -ExpectedBodyPath $verificationBodyPath `
+            -MaxAttempts 3 `
+            -DelaySeconds 0 `
+            -GitHubCli $mockCommandPath
+    }
+    if ([int](Get-Content -LiteralPath $mockStatePath -Raw) -ne 3) {
+        throw 'Persistent body mismatch did not exhaust the configured retry count.'
+    }
+
+    $env:SHEPHERD_MOCK_GH_MODE = 'terminal'
+    Remove-Item -LiteralPath $mockStatePath -ErrorAction SilentlyContinue
+    Assert-Fails -ExpectedMessage 'Unable to fetch issue #41' -Operation {
+        & $issueBodyVerifier `
+            -Repository 'owner/repository' `
+            -IssueNumber 41 `
+            -ExpectedBodyPath $verificationBodyPath `
+            -MaxAttempts 3 `
+            -DelaySeconds 0 `
+            -GitHubCli $mockCommandPath
+    }
+    if ([int](Get-Content -LiteralPath $mockStatePath -Raw) -ne 1) {
+        throw 'Terminal GitHub failure was retried.'
+    }
 }
 finally {
+    Remove-Item Env:\SHEPHERD_MOCK_GH_STATE -ErrorAction SilentlyContinue
+    Remove-Item Env:\SHEPHERD_MOCK_GH_MODE -ErrorAction SilentlyContinue
+    Remove-Item Env:\SHEPHERD_MOCK_GH_STALE_BODY -ErrorAction SilentlyContinue
+    Remove-Item Env:\SHEPHERD_MOCK_GH_BODY -ErrorAction SilentlyContinue
+    Remove-Item Env:\SHEPHERD_MOCK_GH_FRESH_ATTEMPT -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $tempDirectory -Recurse -Force -ErrorAction SilentlyContinue
 }
 

@@ -12,11 +12,6 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Normalize-Text {
-    param([string]$Text)
-    return ($Text -replace "`r`n|`r", "`n").TrimEnd("`n")
-}
-
 function Normalize-Whitespace {
     param([string]$Text)
     return ([regex]::Replace($Text, '\s+', ' ')).Trim()
@@ -119,7 +114,8 @@ $expectedInputs = @(
     '- IMPLEMENTATION_SECTION: ## Implementation',
     '- EXPECTED_TASK_COUNT: 2',
     "- BASE_REMOTE: $($artifacts.BaseRemote)",
-    "- DRAFT_VALIDATOR: $($artifacts.DraftValidator)"
+    "- DRAFT_VALIDATOR: $($artifacts.DraftValidator)",
+    "- ISSUE_BODY_VERIFIER: $($artifacts.IssueBodyVerifier)"
 )
 foreach ($expectedInput in $expectedInputs) {
     if (-not $prompt.Contains($expectedInput)) {
@@ -174,15 +170,6 @@ foreach ($entry in $ledger) {
         throw "Ledger entry is not valid, body-verified, and linked: $($entry | ConvertTo-Json -Compress)"
     }
     $issueNumber = [int]$entry.number
-    $issueOutput = gh issue view $issueNumber --repo $campaign.repository --json number,state,body 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "Unable to fetch issue #${issueNumber}: $issueOutput"
-    }
-    try { $issue = $issueOutput | ConvertFrom-Json }
-    catch { throw "Issue #${issueNumber} returned invalid JSON: $($_.Exception.Message)" }
-    if ($issue.state -ne 'OPEN') { throw "Issue #$issueNumber is not open; state is '$($issue.state)'." }
-
-    $body = [string]$issue.body
     $bodyFileProperty = $entry.PSObject.Properties['bodyFile']
     if ($null -eq $bodyFileProperty -or
         [string]::IsNullOrWhiteSpace([string]$bodyFileProperty.Value)) {
@@ -196,11 +183,17 @@ foreach ($entry in $ledger) {
     if (-not (Test-Path -LiteralPath $bodyFile -PathType Leaf)) {
         throw "Persisted draft for issue #$issueNumber was not found: $bodyFile"
     }
-    $expectedBody = Get-Content -LiteralPath $bodyFile -Raw
-    if ((Normalize-Text $body) -cne (Normalize-Text $expectedBody)) {
-        throw "Actual body for issue #$issueNumber differs from its persisted draft."
+    $diagnosticPath = Join-Path $artifacts.ArtifactDirectory "issue-$issueNumber-body-verification-failure.json"
+    $issue = & $artifacts.IssueBodyVerifier `
+        -Repository $campaign.repository `
+        -IssueNumber $issueNumber `
+        -ExpectedBodyPath $bodyFile `
+        -DiagnosticPath $diagnosticPath
+    if ([string]$issue.state -ne 'open') {
+        throw "Issue #$issueNumber is not open; state is '$($issue.state)'."
     }
 
+    $body = [string]$issue.body
     $normalizedBody = Normalize-Whitespace $body
     if ($campaign.lessonPropagation -eq 'campaign') {
         $required = @(
@@ -229,7 +222,11 @@ foreach ($entry in $ledger) {
         }
     }
     $issueNumbers += $issueNumber
-    $actualBodies += [ordered]@{ number = $issueNumber; state = [string]$issue.state; bodyVerified = $true }
+    $actualBodies += [ordered]@{
+        number = $issueNumber
+        state = ([string]$issue.state).ToUpperInvariant()
+        bodyVerified = $true
+    }
 }
 $expectedLessonCategory = 'Non-obvious repository-tested implementation pattern that lets dot-sourced unit tests coexist with direct CLI execution.'
 $handoff = [ordered]@{

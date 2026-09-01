@@ -106,6 +106,12 @@ $DRAFT_VALIDATOR = [System.IO.Path]::GetFullPath(
 if (-not (Test-Path -LiteralPath $DRAFT_VALIDATOR -PathType Leaf)) {
     throw "Stage-20 draft validator not found: $DRAFT_VALIDATOR"
 }
+$ISSUE_BODY_VERIFIER = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot 'verify-github-issue-body.ps1')
+)
+if (-not (Test-Path -LiteralPath $ISSUE_BODY_VERIFIER -PathType Leaf)) {
+    throw "Stage-20 issue body verifier not found: $ISSUE_BODY_VERIFIER"
+}
 
 $planFiles = @(
     Get-ChildItem -LiteralPath $campaignMetadataPath -File |
@@ -201,6 +207,7 @@ Invoke skill ``shepherd-task-20-create-issues-from-plan`` with these inputs:
 - BASE_REMOTE: $BASE_REMOTE
 - LOG_DIRECTORY: $logDirFull
 - DRAFT_VALIDATOR: $DRAFT_VALIDATOR
+- ISSUE_BODY_VERIFIER: $ISSUE_BODY_VERIFIER
 "@
 
 Set-Content -LiteralPath $outFile -Value $body -Encoding utf8NoBOM
@@ -277,5 +284,6 @@ if ($PassThru) {
         BaseRemote = $BASE_REMOTE
         TaskCount = $taskHeadingCount
         DraftValidator = $DRAFT_VALIDATOR
+        IssueBodyVerifier = $ISSUE_BODY_VERIFIER
     }
 }

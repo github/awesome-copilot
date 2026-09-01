@@ -60,6 +60,9 @@ LESSON_PROPAGATION="$(jq -r '.lessonPropagation' "$MANIFEST_PATH")"
 DRAFT_VALIDATOR="$SCRIPT_DIR/validate-stage20-drafts.sh"
 [[ -x "$DRAFT_VALIDATOR" ]] ||
     fail "Stage-20 draft validator is missing or not executable: $DRAFT_VALIDATOR"
+ISSUE_BODY_VERIFIER="$SCRIPT_DIR/verify-github-issue-body.sh"
+[[ -x "$ISSUE_BODY_VERIFIER" ]] ||
+    fail "Stage-20 issue body verifier is missing or not executable: $ISSUE_BODY_VERIFIER"
 PLAN_DIRECTORY="$(jq -r '.campaignMetadataDirectory' "$MANIFEST_PATH")"
 EXPECTED_DIRECTORY="${PARENT_ISSUE}-${CAMPAIGN_SHORTNAME}-remove-before-merge"
 [[ "$PLAN_DIRECTORY" == "$EXPECTED_DIRECTORY" && "$CAMPAIGN_METADATA_DIRECTORY" == "$EXPECTED_DIRECTORY" ]] ||
@@ -157,6 +160,7 @@ Invoke skill \`shepherd-task-20-create-issues-from-plan\` with these inputs:
 - BASE_REMOTE: $BASE_REMOTE
 - LOG_DIRECTORY: $log_dir_full
 - DRAFT_VALIDATOR: $DRAFT_VALIDATOR
+- ISSUE_BODY_VERIFIER: $ISSUE_BODY_VERIFIER
 EOF
 
 {
