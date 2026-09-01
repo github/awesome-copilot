@@ -107,7 +107,7 @@ the room belongs to someone else, that someone's too.
 
 While an entry gate is open for a room, the agent posts **nothing at all** there — not an
 introduction, not an answer, not a one-line acknowledgement. A cold, technically-in-scope reply is
-exactly the failure mode: it announces the agent's presence in the worst possible way and pre-empts
+exactly the failure mode: it announces the agent's presence in the worst possible way and preempts
 the consent being asked for.
 
 - Reading is always allowed. Posting is what's gated.
