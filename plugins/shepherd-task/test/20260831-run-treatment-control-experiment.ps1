@@ -309,8 +309,9 @@ try {
         throw "Installed shepherd-task test fixture was not found at '$ShepherdPlugin'. Install shepherd-task before running this driver."
     }
 
-    $skillList = copilot skill list 2>&1
-    if ($LASTEXITCODE -ne 0) {
+    $skillListResult = & (Join-Path $PSScriptRoot 'get-copilot-skill-list.ps1')
+    $skillList = @($skillListResult.Output)
+    if ($skillListResult.ExitCode -ne 0) {
         throw "Unable to list installed Copilot skills: $($skillList -join [Environment]::NewLine)"
     }
     $skillList | ForEach-Object { Write-Host $_ }
@@ -326,9 +327,10 @@ try {
     }
 
     $currentPhase = 'running offline contracts'
-    Write-ExperimentStatus 'Running offline stage-20 and stage-40 contract checks...'
+    Write-ExperimentStatus 'Running offline stage-20, stage-40, and driver encoding contract checks...'
     Invoke-CheckedPwshScript -Path (Join-Path $ShepherdPlugin 'test\05-stage20-artifact-contract.ps1')
     Invoke-CheckedPwshScript -Path (Join-Path $ShepherdPlugin 'test\06-stage40-review-contract.ps1')
+    Invoke-CheckedPwshScript -Path (Join-Path $ShepherdPlugin 'test\07-driver-encoding-contract.ps1')
 
     $currentPhase = 'checking disposable repository'
     $repositoryInfoOutput = gh repo view $Repo --json nameWithOwner,defaultBranchRef 2>&1

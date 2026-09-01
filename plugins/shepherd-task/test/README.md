@@ -83,6 +83,14 @@ without GitHub mutation:
 & "$ShepherdPlugin/test/06-stage40-review-contract.ps1"
 ```
 
+The unattended driver's native-output encoding contract verifies that Copilot
+skill descriptions remain UTF-8 even when the caller uses an OEM console code
+page:
+
+```powershell
+& "$ShepherdPlugin/test/07-driver-encoding-contract.ps1"
+```
+
 ## Unattended end-to-end driver
 
 The complete PowerShell procedure below can be run unattended from the source
