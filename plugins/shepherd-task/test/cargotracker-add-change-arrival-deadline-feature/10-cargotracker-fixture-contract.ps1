@@ -73,6 +73,7 @@ if ($taskCount -ne 5) {
 }
 
 $expectedBaselineSha = '9b9f311b2a3a2854bdac947593950d9edb6bca7d'
+$expectedSourceBranch = '20260902-2104Z-commit-e7b651f-liberty'
 foreach ($entry in @(
     [pscustomobject]@{ Name = 'baseline script'; Text = $baseline },
     [pscustomobject]@{ Name = 'driver'; Text = $driver }
@@ -80,6 +81,30 @@ foreach ($entry in @(
     if (-not $entry.Text.Contains($expectedBaselineSha)) {
         throw "$($entry.Name) does not enforce baseline '$expectedBaselineSha'."
     }
+    if (-not $entry.Text.Contains($expectedSourceBranch)) {
+        throw "$($entry.Name) does not enforce source branch '$expectedSourceBranch'."
+    }
+}
+
+foreach ($requiredBaselineText in @(
+    '[string]$SourceBranch',
+    'refs/heads/${SourceBranch}',
+    'merge-base --is-ancestor $ExpectedBaselineSha $fetchedSha'
+)) {
+    if (-not $baseline.Contains($requiredBaselineText)) {
+        throw "Baseline script is missing required source-branch contract text: $requiredBaselineText"
+    }
+}
+foreach ($forbiddenBaselineText in @(
+    'defaultBranchRef',
+    "Fetching '`$defaultBranch'"
+)) {
+    if ($baseline.Contains($forbiddenBaselineText)) {
+        throw "Baseline script still depends on repository default-branch discovery: $forbiddenBaselineText"
+    }
+}
+if (-not $driver.Contains("'-SourceBranch', `$SourceBranch")) {
+    throw 'Driver does not pass the required source branch to baseline preparation.'
 }
 
 foreach ($required in @(

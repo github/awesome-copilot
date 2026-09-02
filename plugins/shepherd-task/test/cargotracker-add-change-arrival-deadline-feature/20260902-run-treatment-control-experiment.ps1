@@ -13,8 +13,8 @@
     requests, worktrees, or untracked evidence after a failure or success.
 
 .PARAMETER RepositoryUrl
-    Fully qualified HTTPS URL of a disposable fork whose default branch points
-    at the prepared feature-absent Cargo Tracker baseline.
+    Fully qualified HTTPS URL of a disposable fork that contains the required
+    prepared Cargo Tracker baseline branch.
 
 .PARAMETER WorkareasDir
     Parent directory for the primary, treatment, and control Git worktrees.
@@ -253,6 +253,7 @@ try {
     $ControlWorktree = Join-Path $WorkareasDir "$repositoryName-shepherd-control"
 
     $BaselineBranch = 'experiment/shepherd-shared-baseline'
+    $SourceBranch = '20260902-2104Z-commit-e7b651f-liberty'
     $TreatmentBranch = 'experiment/shepherd-treatment'
     $ControlBranch = 'experiment/shepherd-control'
     $ExpectedBaselineSha = '9b9f311b2a3a2854bdac947593950d9edb6bca7d'
@@ -276,6 +277,7 @@ try {
     Write-Host "Primary checkout:    $Target"
     Write-Host "Treatment worktree:  $TreatmentWorktree"
     Write-Host "Control worktree:    $ControlWorktree"
+    Write-Host "Source branch:       $SourceBranch"
     Write-Host "Baseline branch:     $BaselineBranch"
     Write-Host "Treatment branch:    $TreatmentBranch"
     Write-Host "Control branch:      $ControlBranch"
@@ -335,7 +337,7 @@ try {
     Invoke-CheckedPwshScript -Path (Join-Path $FixtureRoot '07-driver-encoding-contract.ps1')
 
     $currentPhase = 'checking disposable repository'
-    $repositoryInfoOutput = gh repo view $Repo --json nameWithOwner,defaultBranchRef 2>&1
+    $repositoryInfoOutput = gh repo view $Repo --json nameWithOwner 2>&1
     if ($LASTEXITCODE -ne 0) {
         $repositoryError = $repositoryInfoOutput -join [Environment]::NewLine
         throw "The Cargo Tracker fork must already exist and have Actions, Copilot Coding Agent, and Copilot code review enabled: $repositoryError"
@@ -350,7 +352,7 @@ try {
     $headOutput = @(git -C $Target rev-parse --verify HEAD 2>$null)
     $gitExitCode = $LASTEXITCODE
     if ($gitExitCode -ne 0 -or $headOutput.Count -eq 0) {
-        throw 'The Cargo Tracker fork is empty; its default branch must point at the prepared baseline.'
+        throw 'The Cargo Tracker fork is empty; it must contain the prepared baseline branch.'
     }
 
     $primaryStatus = git -C $Target status --porcelain
@@ -390,6 +392,7 @@ try {
         -Arguments @(
             '-Repo', $Repo,
             '-BaselineBranch', $BaselineBranch,
+            '-SourceBranch', $SourceBranch,
             '-ExpectedBaselineSha', $ExpectedBaselineSha
         )
 
@@ -669,6 +672,7 @@ requested OUTPUT_FILE.
         repositoryUrl = $canonicalRepositoryUrl
         startedAt = $experimentStartedAt.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
         completedAt = [DateTimeOffset]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+        sourceBranch = $SourceBranch
         baselineBranch = $BaselineBranch
         baselineSha = $BaselineSha
         target = $Target

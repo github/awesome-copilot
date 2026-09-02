@@ -11,8 +11,16 @@ Both campaigns start from the same immutable feature-absent commit:
 ```
 
 The fixture does not generate or copy Cargo Tracker domain source. The target
-repository must be a disposable fork whose default branch points exactly at
-that commit. Campaign initialization adds only:
+repository must be a disposable fork containing this required source branch:
+
+```text
+20260902-2104Z-commit-e7b651f-liberty
+```
+
+The fixture fetches that branch, verifies that the immutable feature-absent
+commit is in its history, and creates the shared experiment baseline at the
+exact commit. Later planning-only commits on the source branch are not included
+in either campaign. Campaign initialization adds only:
 
 - shepherd-task campaign metadata;
 - the complete resolved ignorance-reduction plan;
@@ -53,8 +61,10 @@ Only tasks 2 through 5 can benefit from lessons validated by earlier tasks.
 ## Preconditions
 
 - Create a disposable fork of Cargo Tracker.
-- Make the fork's default branch point exactly at
-  `9b9f311b2a3a2854bdac947593950d9edb6bca7d`.
+- Ensure the fork contains branch
+  `20260902-2104Z-commit-e7b651f-liberty`.
+- Ensure commit `9b9f311b2a3a2854bdac947593950d9edb6bca7d`
+  remains in that branch's history.
 - Do not add the historical feature implementation to the fork.
 - Enable GitHub Actions, Copilot Coding Agent, and Copilot code review.
 - Authenticate `gh` with issue, PR, review, Actions, push, merge, and issue
@@ -149,7 +159,8 @@ The driver:
 1. Checks required commands, GitHub authentication, and installed skills.
 2. Runs the selected offline contracts.
 3. Clones the fork and rejects an empty or dirty checkout.
-4. Verifies the default branch is exactly the prepared baseline SHA.
+4. Fetches the required source branch and verifies it contains the prepared
+   baseline SHA.
 5. Publishes the immutable shared-baseline branch without changing source.
 6. Creates persistent treatment and control worktrees at the baseline SHA.
 7. Initializes both campaign branches with identical CI and plan content.
@@ -173,6 +184,7 @@ $TreatmentWorktree = 'C:\workareas\cargotracker-shepherd-treatment'
 $ControlWorktree = 'C:\workareas\cargotracker-shepherd-control'
 
 $BaselineBranch = 'experiment/shepherd-shared-baseline'
+$SourceBranch = '20260902-2104Z-commit-e7b651f-liberty'
 $TreatmentBranch = 'experiment/shepherd-treatment'
 $ControlBranch = 'experiment/shepherd-control'
 ```
@@ -185,7 +197,8 @@ Set-Location $Target
 
 & "$Fixture\00-prepare-test-baseline.ps1" `
     -Repo $Repo `
-    -BaselineBranch $BaselineBranch
+    -BaselineBranch $BaselineBranch `
+    -SourceBranch $SourceBranch
 
 $BaselineSha = (git rev-parse HEAD).Trim()
 if ($BaselineSha -ne '9b9f311b2a3a2854bdac947593950d9edb6bca7d') {

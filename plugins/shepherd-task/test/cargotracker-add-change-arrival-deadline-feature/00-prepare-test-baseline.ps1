@@ -3,9 +3,10 @@
     Publishes the immutable Cargo Tracker feature-absent baseline.
 
 .DESCRIPTION
-    Verifies that the target repository's default branch points at the exact
-    prepared Cargo Tracker commit, creates the shared baseline branch at that
-    commit without modifying domain source, and pushes the branch.
+    Verifies that the target repository contains the required prepared Cargo
+    Tracker branch and that the exact feature-absent commit is an ancestor of
+    that branch. Creates the shared baseline branch at that exact commit
+    without modifying domain source, and pushes the branch.
 #>
 
 [CmdletBinding()]
@@ -16,6 +17,9 @@ param(
 
     [Parameter(Mandatory)]
     [string]$BaselineBranch,
+
+    [ValidateSet('20260902-2104Z-commit-e7b651f-liberty')]
+    [string]$SourceBranch = '20260902-2104Z-commit-e7b651f-liberty',
 
     [ValidatePattern('^[0-9a-fA-F]{40}$')]
     [string]$ExpectedBaselineSha = '9b9f311b2a3a2854bdac947593950d9edb6bca7d'
@@ -28,9 +32,14 @@ $ExpectedBaselineSha = $ExpectedBaselineSha.ToLowerInvariant()
 if ($BaselineBranch -eq 'main') {
     throw "BaselineBranch must not be 'main'."
 }
-& git check-ref-format --branch $BaselineBranch *> $null
-if ($LASTEXITCODE -ne 0) {
-    throw "BaselineBranch is not a valid Git branch name: '$BaselineBranch'."
+foreach ($branch in @($BaselineBranch, $SourceBranch)) {
+    & git check-ref-format --branch $branch *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Invalid Git branch name: '$branch'."
+    }
+}
+if ($BaselineBranch -eq $SourceBranch) {
+    throw 'BaselineBranch must differ from SourceBranch.'
 }
 
 $repoRootOutput = @(git rev-parse --show-toplevel 2>$null)
@@ -50,45 +59,30 @@ $resolver = [System.IO.Path]::GetFullPath(
 )
 $baseRemote = & $resolver -Repo $Repo
 
-$repositoryInfoOutput = @(gh repo view $Repo --json defaultBranchRef 2>&1)
-$ghExitCode = $LASTEXITCODE
-if ($ghExitCode -ne 0) {
-    throw "Unable to query repository '$Repo' default branch: $($repositoryInfoOutput -join [Environment]::NewLine)"
-}
-try {
-    $repositoryInfo = ($repositoryInfoOutput -join [Environment]::NewLine) |
-        ConvertFrom-Json
-}
-catch {
-    throw "Repository '$Repo' returned invalid metadata: $($_.Exception.Message)"
-}
-$defaultBranch = [string]$repositoryInfo.defaultBranchRef.name
-if ([string]::IsNullOrWhiteSpace($defaultBranch)) {
-    throw "Repository '$Repo' did not report a default branch."
-}
-if ($BaselineBranch -eq $defaultBranch) {
-    throw "BaselineBranch must differ from the repository default branch '$defaultBranch'."
-}
-
 git -C $repoRoot show-ref --verify --quiet "refs/heads/$BaselineBranch"
 if ($LASTEXITCODE -eq 0) {
     throw "Local baseline branch already exists: '$BaselineBranch'."
 }
 
-Write-Host "Fetching '$defaultBranch' from remote '$baseRemote'..."
-git -C $repoRoot fetch --no-tags $baseRemote $defaultBranch
+Write-Host "Fetching required source branch '$SourceBranch' from remote '$baseRemote'..."
+git -C $repoRoot fetch --no-tags $baseRemote "refs/heads/${SourceBranch}"
 if ($LASTEXITCODE -ne 0) {
-    throw "Failed to fetch '$defaultBranch' from '$baseRemote'."
+    throw "Required source branch '$baseRemote/$SourceBranch' is missing or could not be fetched."
 }
 
 $fetchedShaOutput = @(git -C $repoRoot rev-parse FETCH_HEAD 2>$null)
 $gitExitCode = $LASTEXITCODE
 if ($gitExitCode -ne 0 -or $fetchedShaOutput.Count -eq 0) {
-    throw "Could not resolve the fetched '$defaultBranch' commit."
+    throw "Could not resolve the fetched '$SourceBranch' commit."
 }
 $fetchedSha = ([string]($fetchedShaOutput | Select-Object -First 1)).Trim().ToLowerInvariant()
-if ($fetchedSha -ne $ExpectedBaselineSha) {
-    throw "Repository '$Repo' default branch is at '$fetchedSha'; expected prepared baseline '$ExpectedBaselineSha'."
+
+git -C $repoRoot merge-base --is-ancestor $ExpectedBaselineSha $fetchedSha
+if ($LASTEXITCODE -eq 1) {
+    throw "Prepared baseline '$ExpectedBaselineSha' is not an ancestor of '$SourceBranch' at '$fetchedSha'."
+}
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not verify prepared baseline ancestry for '$baseRemote/$SourceBranch'."
 }
 
 foreach ($requiredPath in @(
@@ -138,5 +132,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ''
 Write-Host '=== IMMUTABLE SHARED BASELINE SHA ===' -ForegroundColor Green
 Write-Host $ExpectedBaselineSha -ForegroundColor Green
+Write-Host "Required source branch: $baseRemote/$SourceBranch"
+Write-Host "Source branch tip:      $fetchedSha"
 Write-Host 'No domain source or fixture application code was generated.'
 Write-Host 'Use this exact 40-character SHA for both campaigns.'
