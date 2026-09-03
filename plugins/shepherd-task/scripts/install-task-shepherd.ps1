@@ -46,6 +46,8 @@ $requiredScripts = @(
     'verify-github-issue-body.ps1'
     'assert-stage20-result.sh'
     'assert-stage20-result.ps1'
+    'assert-shepherd-session-outcome.sh'
+    'assert-shepherd-session-outcome.ps1'
 )
 foreach ($script in $requiredScripts) {
     $installedScript = Join-Path $pluginDest 'scripts' $script

@@ -37,6 +37,8 @@ REQUIRED_SCRIPTS=(
     "resolve-repository-remote.ps1"
     "redact-secrets.sh"
     "redact-secrets.ps1"
+    "assert-shepherd-session-outcome.sh"
+    "assert-shepherd-session-outcome.ps1"
 )
 for script in "${REQUIRED_SCRIPTS[@]}"; do
     if [ ! -f "$plugin_dest/scripts/$script" ]; then

@@ -131,10 +131,13 @@ These checks perform no GitHub mutation:
 & "$Fixture\09-skill-powershell-contract.ps1"
 & "$Fixture\10-cargotracker-fixture-contract.ps1"
 & "$Fixture\11-stage15-plan-discovery-contract.ps1"
+& "$Fixture\12-session-outcome-contract.ps1"
+& "$Fixture\13-resume-driver-contract.ps1"
 ```
 
-The unattended driver runs the stage-15 plan-discovery, stage-40, and
-driver-encoding contracts before beginning the paid experiment.
+The unattended driver runs the stage-15 plan-discovery, stage-40,
+session-outcome, recovery-driver, and driver-encoding contracts before
+beginning the paid experiment.
 
 ## Unattended end-to-end driver
 
@@ -171,6 +174,24 @@ The driver:
 11. Collects all post-first treatment stage-30 transcripts.
 12. Generates a treatment/control comparison post-mortem and JSON summary.
 13. Preserves all worktrees, branches, transcripts, ledgers, and reports.
+
+## Resume the preserved September 2-3 experiment
+
+The separate recovery driver does not clone, initialize campaigns, or create
+issues. It validates the preserved campaign IDs, issue lists, branches,
+baseline, and original failed control run. It then runs stage 25 only for the
+unfinished suffix of the control issue list and includes both the failed and
+recovery runs in the final comparison:
+
+```powershell
+& .\plugins\shepherd-task\test\cargotracker-add-change-arrival-deadline-feature\202609023-1638Z-run-treatment-control-experiment-resumeable.ps1 `
+    -RepositoryUrl 'https://github.com/edburns/dd-3058828-01-cargotracker' `
+    -ComparisonDir 'C:\Users\edburns\workareas\awesome-copilot-01\dd-3031763-improve-agentic-velocity-remove-before-merge\dd-3058828-01-cargotracker'
+```
+
+The source-of-record plugin must be reinstalled before invoking this driver.
+The original `20260902-run-treatment-control-experiment.ps1` remains a
+fresh-run-only driver.
 
 ## Manual execution
 

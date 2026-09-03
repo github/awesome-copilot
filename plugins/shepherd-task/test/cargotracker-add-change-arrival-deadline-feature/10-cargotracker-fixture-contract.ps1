@@ -109,6 +109,12 @@ if (-not $driver.Contains("'-SourceBranch', `$SourceBranch")) {
 if (-not $driver.Contains("'11-stage15-plan-discovery-contract.ps1'")) {
     throw 'Driver does not run the Cargo Tracker stage-15 plan-discovery contract.'
 }
+if (-not $driver.Contains("'12-session-outcome-contract.ps1'")) {
+    throw 'Driver does not run the shepherd session-outcome contract.'
+}
+if (-not $driver.Contains("'13-resume-driver-contract.ps1'")) {
+    throw 'Driver does not run the Cargo Tracker recovery-driver contract.'
+}
 
 foreach ($required in @(
     "`$planFile = 'add-change-arrival-deadline-feature-ignorance-reduction-plan.md'",
