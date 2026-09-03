@@ -135,9 +135,7 @@ test("validateCanvasPluginMetadata accepts a nested extension entry point", asyn
   assert.deepEqual(warnings, []);
 });
 
-test("validateCanvasPluginMetadata accepts a doubly-nested extension entry point", async () => {
-  // Mirrors this repo's own materialized layout ("com.github.copilot/extensions/<name>/extension.mjs")
-  // and real-world external submissions that nest an "extensions/" folder inside the namespace.
+test("validateCanvasPluginMetadata rejects a doubly-nested extension entry point", async () => {
   const { errors, warnings } = await runValidation({
     trees: buildTrees({
       namespaceSubtree: treeResponse([
@@ -148,22 +146,28 @@ test("validateCanvasPluginMetadata accepts a doubly-nested extension entry point
     }),
   });
 
-  assert.deepEqual(errors, []);
+  assert.equal(
+    errors.some((message) => /must include a canvas extension entry point/.test(message)),
+    true,
+  );
   assert.deepEqual(warnings, []);
 });
 
-test("validateCanvasPluginMetadata accepts a flat extension entry point", async () => {
+test("validateCanvasPluginMetadata rejects a flat extension entry point", async () => {
   const { errors, warnings } = await runValidation({
     trees: buildTrees({
       namespaceSubtree: treeResponse([treeEntry("extension.mjs", "blob")]),
     }),
   });
 
-  assert.deepEqual(errors, []);
+  assert.equal(
+    errors.some((message) => /must include a canvas extension entry point/.test(message)),
+    true,
+  );
   assert.deepEqual(warnings, []);
 });
 
-test("validateCanvasPluginMetadata rejects when no extension.mjs exists flat or nested", async () => {
+test("validateCanvasPluginMetadata rejects when no named extension entry point exists", async () => {
   const { errors } = await runValidation({
     trees: buildTrees({
       namespaceSubtree: treeResponse([
@@ -205,18 +209,19 @@ test("validateCanvasPluginMetadata rejects when com.github.copilot is a file rat
   );
 });
 
-test("validateCanvasPluginMetadata rejects when com.github.copilot/extension.mjs is a directory", async () => {
+test("validateCanvasPluginMetadata rejects when a named extension.mjs is a directory", async () => {
   const { errors } = await runValidation({
     trees: buildTrees({
       namespaceSubtree: treeResponse([
-        treeEntry("extension.mjs", "tree"),
-        treeEntry("extension.mjs/placeholder.txt", "blob"),
+        treeEntry("modernize-dashboard", "tree"),
+        treeEntry("modernize-dashboard/extension.mjs", "tree"),
+        treeEntry("modernize-dashboard/extension.mjs/placeholder.txt", "blob"),
       ]),
     }),
   });
 
   assert.equal(
-    errors.some((message) => /"com\.github\.copilot\/extension\.mjs" must be a file/.test(message)),
+    errors.some((message) => /"com\.github\.copilot\/<extension>\/extension\.mjs" must be a file/.test(message)),
     true,
   );
 });

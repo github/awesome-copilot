@@ -749,15 +749,12 @@ async function resolveDirectoryTreeSha(repo, treeish, segments, token) {
 }
 
 // Inspect the (recursively fetched) "com.github.copilot" subtree for the plugin's canvas
-// extension entry point. Paths are relative to "com.github.copilot/", so the flat form is
-// "extension.mjs" and a nested form is "<...>/extension.mjs" at any depth — e.g. this repo's own
-// materialized plugins nest at "extensions/<name>/extension.mjs" (two levels), so the search
-// cannot be limited to a single path segment. Scoping the recursive fetch to this subtree keeps
+// extension entry point. Paths are relative to "com.github.copilot/" and must use the
+// "<extension-name>/extension.mjs" layout. Scoping the recursive fetch to this subtree keeps
 // the lookup complete without depending on the size of the rest of the repository.
 function analyzeCanvasExtensionSubtree(subtreeEntries) {
-  let flatIsBlob = false;
-  let flatIsTree = false;
   let nestedEntryPath = null;
+  let nestedEntryIsNotFile = false;
 
   for (const entry of subtreeEntries) {
     const entryPath = entry?.path;
@@ -765,27 +762,20 @@ function analyzeCanvasExtensionSubtree(subtreeEntries) {
       continue;
     }
 
-    if (entryPath === "extension.mjs") {
+    const segments = entryPath.split("/");
+    if (segments.length === 2 && segments[1] === "extension.mjs") {
       if (entry.type === "blob") {
-        flatIsBlob = true;
-      } else if (entry.type === "tree") {
-        flatIsTree = true;
+        nestedEntryPath = nestedEntryPath ?? `${COPILOT_CLIENT_NAMESPACE}/${entryPath}`;
+      } else {
+        nestedEntryIsNotFile = true;
       }
-      continue;
-    }
-
-    if (entryPath.endsWith("/extension.mjs") && entry.type === "blob") {
-      nestedEntryPath = nestedEntryPath ?? `${COPILOT_CLIENT_NAMESPACE}/${entryPath}`;
     }
   }
 
-  if (flatIsBlob) {
-    return { status: "found", entryPath: `${COPILOT_CLIENT_NAMESPACE}/extension.mjs` };
-  }
   if (nestedEntryPath) {
     return { status: "found", entryPath: nestedEntryPath };
   }
-  if (flatIsTree) {
+  if (nestedEntryIsNotFile) {
     return { status: "notFile" };
   }
   return { status: "notFound" };
@@ -904,7 +894,7 @@ export async function validateCanvasPluginMetadata(plugin, errors, warnings, tok
     } else {
       const canvasStructure = analyzeCanvasExtensionSubtree(subtreeResponse.data.tree);
       if (canvasStructure.status === "found") {
-        // Entry point located (flat or nested); nothing to report.
+        // Entry point located in the required named extension directory.
       } else if (subtreeResponse.data.truncated) {
         // Absence is only inconclusive if the (already namespace-scoped) subtree itself is
         // truncated, which would take an implausibly large extension directory; flag it as
@@ -912,11 +902,11 @@ export async function validateCanvasPluginMetadata(plugin, errors, warnings, tok
         warnings.push(unverifiableEntryPointWarning);
       } else if (canvasStructure.status === "notFile") {
         errors.push(
-          `submission: "${COPILOT_CLIENT_NAMESPACE}/extension.mjs" must be a file in ${releaseLocatorDescription}`,
+          `submission: "${COPILOT_CLIENT_NAMESPACE}/<extension>/extension.mjs" must be a file in ${releaseLocatorDescription}`,
         );
       } else {
         errors.push(
-          `submission: plugins tagged with "canvas" must include a canvas extension entry point at "${COPILOT_CLIENT_NAMESPACE}/extension.mjs" or "${COPILOT_CLIENT_NAMESPACE}/<extension>/extension.mjs" at ${releaseLocatorDescription}`,
+          `submission: plugins tagged with "canvas" must include a canvas extension entry point at "${COPILOT_CLIENT_NAMESPACE}/<extension>/extension.mjs" at ${releaseLocatorDescription}`,
         );
       }
     }
