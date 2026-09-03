@@ -95,12 +95,22 @@ mapfile -t IMPLEMENTATION_HEADINGS < <(
         /^```/ { in_fence = !in_fence; next }
         !in_fence {
             sub(/\r$/, "")
-            if (tolower($0) ~ /^##[[:space:]].*implementation/) print
+            if ($0 ~ /^##[[:space:]]/) {
+                if (is_implementation && task_count > 0) print implementation_heading
+                is_implementation = (tolower($0) ~ /^##[[:space:]].*implementation/)
+                implementation_heading = $0
+                task_count = 0
+                next
+            }
+            if (is_implementation && $0 ~ /^###[[:space:]]/) task_count++
+        }
+        END {
+            if (is_implementation && task_count > 0) print implementation_heading
         }
     ' "$PLAN_PATH"
 )
 [[ ${#IMPLEMENTATION_HEADINGS[@]} -eq 1 ]] ||
-    fail "Expected exactly one level-two implementation heading in $PLAN_FILE_NAME; found ${#IMPLEMENTATION_HEADINGS[@]}."
+    fail "Expected exactly one level-two implementation heading with direct level-three task headings in $PLAN_FILE_NAME; found ${#IMPLEMENTATION_HEADINGS[@]}."
 IMPLEMENTATION_SECTION="${IMPLEMENTATION_HEADINGS[0]}"
 
 TASK_HEADING_COUNT="$(

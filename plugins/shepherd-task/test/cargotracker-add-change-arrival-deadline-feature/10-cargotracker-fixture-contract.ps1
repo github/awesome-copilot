@@ -106,6 +106,9 @@ foreach ($forbiddenBaselineText in @(
 if (-not $driver.Contains("'-SourceBranch', `$SourceBranch")) {
     throw 'Driver does not pass the required source branch to baseline preparation.'
 }
+if (-not $driver.Contains("'11-stage15-plan-discovery-contract.ps1'")) {
+    throw 'Driver does not run the Cargo Tracker stage-15 plan-discovery contract.'
+}
 
 foreach ($required in @(
     "`$planFile = 'add-change-arrival-deadline-feature-ignorance-reduction-plan.md'",

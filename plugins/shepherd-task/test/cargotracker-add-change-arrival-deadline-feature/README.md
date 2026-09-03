@@ -130,10 +130,11 @@ These checks perform no GitHub mutation:
 & "$Fixture\08-psncpps-contract.ps1"
 & "$Fixture\09-skill-powershell-contract.ps1"
 & "$Fixture\10-cargotracker-fixture-contract.ps1"
+& "$Fixture\11-stage15-plan-discovery-contract.ps1"
 ```
 
-The unattended driver intentionally runs only the stage-40 and driver-encoding
-contracts before beginning the paid experiment.
+The unattended driver runs the stage-15 plan-discovery, stage-40, and
+driver-encoding contracts before beginning the paid experiment.
 
 ## Unattended end-to-end driver
 

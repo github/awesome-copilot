@@ -140,23 +140,44 @@ if ($questionHeadings.Count -ne 1) {
 }
 $QUESTIONS_SECTION = [string]$questionHeadings[0]
 
-$implementationHeadings = @($semanticLines | Where-Object { $_ -match '^##\s+.*implementation' })
-if ($implementationHeadings.Count -ne 1) {
-    throw "Expected exactly one level-two implementation heading in $PLAN_FILE_NAME; found $($implementationHeadings.Count)."
-}
-$IMPLEMENTATION_SECTION = [string]$implementationHeadings[0]
-$implementationIndex = [Array]::IndexOf($planLines, $IMPLEMENTATION_SECTION)
-$taskHeadingCount = 0
-$inFence = $false
-for ($index = $implementationIndex + 1; $index -lt $planLines.Count; $index++) {
-    if ($planLines[$index] -match '^```') {
-        $inFence = -not $inFence
-        continue
+$implementationSections = @(
+    $inFence = $false
+    for ($index = 0; $index -lt $planLines.Count; $index++) {
+        if ($planLines[$index] -match '^```') {
+            $inFence = -not $inFence
+            continue
+        }
+        if ($inFence -or $planLines[$index] -notmatch '^##\s+.*implementation') {
+            continue
+        }
+
+        $directTaskCount = 0
+        $sectionInFence = $false
+        for ($sectionIndex = $index + 1; $sectionIndex -lt $planLines.Count; $sectionIndex++) {
+            if ($planLines[$sectionIndex] -match '^```') {
+                $sectionInFence = -not $sectionInFence
+                continue
+            }
+            if ($sectionInFence) { continue }
+            if ($planLines[$sectionIndex] -match '^##\s+') { break }
+            if ($planLines[$sectionIndex] -match '^###\s+') { $directTaskCount++ }
+        }
+
+        [pscustomobject]@{
+            Heading = [string]$planLines[$index]
+            TaskCount = $directTaskCount
+        }
     }
-    if ($inFence) { continue }
-    if ($planLines[$index] -match '^##\s+') { break }
-    if ($planLines[$index] -match '^###\s+') { $taskHeadingCount++ }
+)
+$taskBearingImplementationSections = @(
+    $implementationSections | Where-Object { $_.TaskCount -gt 0 }
+)
+if ($taskBearingImplementationSections.Count -ne 1) {
+    throw "Expected exactly one level-two implementation heading with direct level-three task headings in $PLAN_FILE_NAME; found $($taskBearingImplementationSections.Count)."
 }
+$IMPLEMENTATION_SECTION = $taskBearingImplementationSections[0].Heading
+$taskHeadingCount = $taskBearingImplementationSections[0].TaskCount
+
 if ($taskHeadingCount -eq 0) {
     throw "Implementation section '$IMPLEMENTATION_SECTION' has no direct level-three task headings."
 }

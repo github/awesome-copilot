@@ -42,7 +42,7 @@ The generated plan MUST follow the structure below. Study the embedded examples 
    - `**Spike needed:**` (when hands-on verification is required)
    - `**Recommendation:**` (the plan author's suggested answer, when one exists)
    - `**Resolution:**` (LEFT EMPTY — the human fills this in later)
-6. **Implementation phase** — exactly one level-two (`##`) heading containing the word `Implementation`. Put every ordered build step directly beneath it as a level-three (`###`) heading. Each step includes:
+6. **Implementation phase** — exactly one level-two (`##`) heading containing the word `Implementation` that has direct level-three (`###`) task headings beneath it. Other level-two headings may mention implementation only when they have no direct task headings. Put every ordered build step directly beneath the implementation phase heading. Each step includes:
    - What to build
    - Files to create/modify
    - Tests to write

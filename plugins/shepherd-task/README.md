@@ -156,8 +156,9 @@ Invoke `shepherd-task-10-create-ignorance-reduction-plan` with:
 - `CONTEXT`: the loaded campaign context.
 
 The plan must contain exactly one level-two heading with `Ignorance reduction`
-and exactly one level-two heading with `Implementation`. Direct implementation
-tasks are level-three headings below the implementation heading.
+and exactly one level-two heading with `Implementation` that has direct
+level-three task headings beneath it. Other level-two headings may mention
+implementation when they contain no direct task headings.
 
 Stage 10 intentionally leaves `Resolution` blocks empty. Resolve every
 implementation-gating question before stage 20. Spikes may inform the
@@ -183,7 +184,8 @@ PowerShell:
 Stage 15 preparation is non-interactive. It derives:
 
 - the single `*ignorance-reduction-plan.md`;
-- the unique ignorance-reduction and implementation headings;
+- the unique ignorance-reduction heading and task-bearing implementation
+  heading;
 - the count of direct implementation tasks;
 - the single Git remote matching the manifest repository;
 - the campaign-owned repository, branch, issue, UUID, and lesson mode.
