@@ -25,6 +25,8 @@ const AGENT_PLUGIN_ALLOWED_TOP_LEVEL_FIELDS = new Set([
 ]);
 const AGENT_PLUGIN_NAME_PATTERN = /^(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/;
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
+const COPILOT_CLIENT_NAMESPACE = "com.github.copilot";
+const COPILOT_EXTENSIONS_DIRECTORY = "extensions";
 
 const INFRA_ERROR_PATTERNS = [
   /\b401\b/,
@@ -804,33 +806,24 @@ function locateCanvasEntryPoint(repoDir, readRef, locator, extensionsDir) {
     return { entryPoint: null, output: listing.output };
   }
 
-  let flatIsBlob = false;
-  let flatIsTree = false;
   let nestedEntryPoint = null;
+  let nestedEntryIsNotFile = false;
   for (const entry of listing.entries) {
-    if (entry.name === "extension.mjs") {
-      if (entry.type === "blob") {
-        flatIsBlob = true;
-      } else if (entry.type === "tree") {
-        flatIsTree = true;
-      }
-      continue;
-    }
-
     const segments = entry.name.split("/");
-    if (segments.length === 2 && segments[1] === "extension.mjs" && entry.type === "blob" && !nestedEntryPoint) {
-      nestedEntryPoint = toPosixPath(extensionsDir, segments[0], "extension.mjs");
+    if (segments.length === 2 && segments[1] === "extension.mjs" && !nestedEntryPoint) {
+      if (entry.type === "blob") {
+        nestedEntryPoint = toPosixPath(extensionsDir, segments[0], "extension.mjs");
+      } else {
+        nestedEntryIsNotFile = true;
+      }
     }
   }
 
-  if (flatIsBlob) {
-    return { entryPoint: toPosixPath(extensionsDir, "extension.mjs"), output: "" };
-  }
   if (nestedEntryPoint) {
     return { entryPoint: nestedEntryPoint, output: "" };
   }
 
-  return { entryPoint: null, output: "", flatKindMismatch: flatIsTree };
+  return { entryPoint: null, output: "", kindMismatch: nestedEntryIsNotFile };
 }
 
 export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
@@ -854,8 +847,8 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
     };
   }
 
-  const extensionsDir = toPosixPath(normalizedPluginPath, "extensions");
-  const extensionEntryPoint = toPosixPath(extensionsDir, "extension.mjs");
+  const namespaceDir = toPosixPath(normalizedPluginPath, COPILOT_CLIENT_NAMESPACE);
+  const extensionsDir = toPosixPath(namespaceDir, COPILOT_EXTENSIONS_DIRECTORY);
 
   let hasFailure = false;
   let hasInfraError = false;
@@ -901,11 +894,13 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
     }
     if (!extensionEntryCheck.entryPoint) {
       hasFailure = true;
-      if (extensionEntryCheck.flatKindMismatch) {
-        messages.push(`- ${locator}: "${extensionEntryPoint}" must be a file.`);
+      if (extensionEntryCheck.kindMismatch) {
+        messages.push(
+          `- ${locator}: "${extensionsDir}/<extension>/extension.mjs" must be a file.`,
+        );
       } else {
         messages.push(
-          `- ${locator}: missing required canvas extension entry point "${extensionEntryPoint}" (or a nested "${extensionsDir}/<extension>/extension.mjs").`,
+          `- ${locator}: missing required canvas extension entry point "${extensionsDir}/<extension>/extension.mjs".`,
         );
       }
       continue;
