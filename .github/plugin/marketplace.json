@@ -271,6 +271,33 @@
       }
     },
     {
+      "name": "cache-stats",
+      "description": "Shows live prompt-cache reuse, expiry, token composition, and AIU cost for the current GitHub Copilot session without making model calls.",
+      "version": "1.0.1",
+      "author": {
+        "name": "Arafat Tehsin",
+        "url": "https://github.com/arafattehsin"
+      },
+      "repository": "https://github.com/arafattehsin/cache-stats-extension",
+      "homepage": "https://github.com/arafattehsin/cache-stats-extension",
+      "license": "MIT",
+      "keywords": [
+        "aiu",
+        "cache",
+        "canvas",
+        "copilot",
+        "cost-visibility",
+        "prompt-cache",
+        "token-usage"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "arafattehsin/cache-stats-extension",
+        "ref": "v1.0.1",
+        "sha": "678c3468977889d5c50a0a5f33898b8d9638523a"
+      }
+    },
+    {
       "name": "cast-imaging",
       "source": "plugins/cast-imaging",
       "description": "A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging.",
