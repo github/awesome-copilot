@@ -1,0 +1,65 @@
+# Poka-yoke pre-commit devices.
+#
+# poka-yoke: stops a mistake reaching a commit, at the cost of being bypassable [warning]
+#
+# Adapt to the repo's actual stack before installing: an unused hook is friction with no
+# protection. Keep the whole run under ~5 seconds; slower than that and people use
+# --no-verify, which turns every hook here into decoration.
+#
+# IMPORTANT: pre-commit is bypassable by design (`git commit --no-verify`). Never rely on it
+# alone for anything that matters. Run the same checks as a required CI check so the hook
+# provides speed and CI provides authority.
+
+repos:
+  # ---- Irreversible mistakes first. A leaked key can only be rotated, never unleaked. ----
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.28.0
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files       # a committed binary is painful to remove later
+        args: [--maxkb=1000]
+      - id: check-merge-conflict          # conflict markers shipped to main
+      - id: check-case-conflict           # breaks on case-insensitive filesystems only
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-json
+      - id: check-yaml
+      - id: check-toml
+
+  # ---- Python: the rules that catch silent failure, not the ones that argue about style ----
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.5
+    hooks:
+      - id: ruff-check
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # ---- Repo-specific hazards. Fast, changed-files-only. ----
+  - repo: local
+    hooks:
+      - id: poka-yoke-hazards
+        name: poka-yoke hazard scan (high severity only)
+        # Point this at wherever you vendored the detector. It is not on your PATH and this
+        # file cannot know where you put it: an entry that silently resolves to nothing
+        # would make the hook pass on every commit, which is worse than not installing it.
+        #   git clone https://github.com/rainmanjam/poka-yoke /tmp/pk
+        #   cp -r /tmp/pk/plugins/poka-yoke/scripts tools/poka-yoke
+        entry: python3 tools/poka-yoke/detect_hazards.py --staged --severity high
+        language: system
+        pass_filenames: false
+        # Fails the commit on high-severity hazards in staged changes only, so pre-existing
+        # code doesn't block anyone. New violations can't be added; the count only goes down.
+
+      - id: no-focused-tests
+        name: no focused or skipped tests
+        entry: '(\.only\(|fdescribe\(|fit\(|@pytest\.mark\.skip|t\.Skip\()'
+        language: pygrep
+        types_or: [python, javascript, ts, tsx, go]
+        exclude: '^(tests/fixtures/|.*\.md$)'
+        # A focused test silently disables the rest of the suite: a detection device
+        # switched off by accident.
