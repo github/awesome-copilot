@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-02
+lastUpdated: 2026-09-03
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -91,6 +91,8 @@ For a hands-on guide to building canvases with `/create-canvas`, see [Working wi
 - Create, edit, or remove your own **personal skills** directly in the app, without hand-authoring a `SKILL.md` file
 
 This makes Customize a good starting point if you want to extend the app's capabilities but don't need the full `copilot plugin` CLI workflow described in [Installing and Using Plugins](../installing-and-using-plugins/).
+
+> **Unified model menu (v1.1.14+)**: Model, reasoning effort, and context window selection now live in a single menu in the message composer, instead of separate controls, so you can adjust all three from one place while composing a prompt.
 
 ### Agent Merge
 
