@@ -183,6 +183,33 @@
     }
   },
   {
+    "name": "cache-stats",
+    "description": "Shows live prompt-cache reuse, expiry, token composition, and AIU cost for the current GitHub Copilot session without making model calls.",
+    "version": "1.0.1",
+    "author": {
+      "name": "Arafat Tehsin",
+      "url": "https://github.com/arafattehsin"
+    },
+    "repository": "https://github.com/arafattehsin/cache-stats-extension",
+    "homepage": "https://github.com/arafattehsin/cache-stats-extension",
+    "license": "MIT",
+    "keywords": [
+      "aiu",
+      "cache",
+      "canvas",
+      "copilot",
+      "cost-visibility",
+      "prompt-cache",
+      "token-usage"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "arafattehsin/cache-stats-extension",
+      "ref": "v1.0.1",
+      "sha": "678c3468977889d5c50a0a5f33898b8d9638523a"
+    }
+  },
+  {
     "name": "catalyst-by-zoho",
     "description": "Official GitHub Copilot plugin for Catalyst by Zoho — a full-stack serverless cloud platform. Includes skills covering services, SDKs, CLI workflows, architecture patterns, pricing, migration guides, and Zoho MCP resource management.",
     "version": "0.0.1",
@@ -737,7 +764,7 @@
   {
     "name": "microsoft-foundry",
     "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -758,7 +785,7 @@
       "source": "github",
       "repo": "microsoft/foundry-dev-tools",
       "path": "microsoft-foundry",
-      "sha": "e0199e45c066a2c96f3f3342d5960b227324f05a"
+      "sha": "553365e9b0193a740daa293e6716415939f804e7"
     }
   },
   {
