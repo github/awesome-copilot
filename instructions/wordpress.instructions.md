@@ -38,8 +38,8 @@ defined('ABSPATH') || exit;
 
 ### Linting setup suggestions
 ```xml
-<!-- phpcs.xml -->
 <?xml version="1.0"?>
+<!-- phpcs.xml -->
 <ruleset name="Project WPCS">
   <description>WordPress Coding Standards for this project.</description>
   <file>./</file>
@@ -53,8 +53,9 @@ defined('ABSPATH') || exit;
 </ruleset>
 ```
 
+`composer.json` (snippet):
+
 ```json
-// composer.json (snippet)
 {
   "require-dev": {
     "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
@@ -68,8 +69,9 @@ defined('ABSPATH') || exit;
 }
 ```
 
+`package.json` (snippet):
+
 ```json
-// package.json (snippet)
 {
   "devDependencies": {
     "@wordpress/eslint-plugin": "^x.y.z"
@@ -93,8 +95,8 @@ defined('ABSPATH') || exit;
 ## 4) Internationalization (i18n)
 - Wrap user‑visible strings with translation functions using your text domain:
   - `__( 'Text', 'awesome-feature' )`, `_x()`, `esc_html__()`.
-- Load translations with `load_plugin_textdomain()` or `load_theme_textdomain()`.
-- Keep a `.pot` in `/languages` and ensure consistent domain usage.
+- For WordPress.org plugins, rely on WordPress automatic translation loading since WordPress 4.6. If older WordPress support requires `load_plugin_textdomain()`, call it on `init`.
+- Keep a `.pot` in `/languages` and ensure consistent domain usage. Do not ship development or compiled translation artifacts such as `.po`, `.mo`, `.l10n.php`, or compiled `.json` files unless a specific WordPress.org requirement calls for them.
 
 ## 5) Performance
 - Defer heavy logic to specific hooks; avoid expensive work on `init`/`wp_loaded` unless necessary.
@@ -175,7 +177,48 @@ require $_tests_dir . '/includes/bootstrap.php';
 - Keep `README.md` up to date: install, usage, capabilities, hooks/filters, and test instructions.
 - Use clear, imperative commit messages; reference issues/tickets and summarize impact.
 
-## 12) What Copilot Must Ensure (Checklist)
+<!-- markdownlint-disable MD013 -->
+
+## 12) WordPress.org Directory Review
+
+- Prefix every global symbol and persistent identifier with a distinctive plugin prefix of at least four characters: functions, classes, interfaces, traits, constants, namespaces, options, transients, metadata, hooks, shortcodes, cron events, script/style handles, and localized JavaScript object names. Do not use `wp_`, `_`, `__`, or generic prefixes such as `ai`, `seo`, `wc`, or `woo`. Do not use `function_exists()` or `class_exists()` guards to hide naming collisions; reserve them for genuinely shared libraries. Migrate renamed option keys so existing installations retain their settings.
+- Define the main plugin file, directory, and URL from `__FILE__` in prefixed constants; keep the version in the plugin header and expose it through a prefixed constant if needed. Do not use `WP_PLUGIN_DIR`, `WP_CONTENT_DIR`, `WP_CONTENT_URL`, `WPMU_PLUGIN_DIR`, or hard-coded paths to locate plugin files. Resolve upload storage at runtime with `wp_upload_dir()`.
+- Store data in the database or media library where appropriate. If filesystem storage is necessary, write only under a plugin-specific directory within the runtime uploads directory, protect non-public files, sanitize user-provided basenames with `sanitize_file_name( basename( $path ) )`, and use `WP_Filesystem`. Never write to the plugin, theme, core, or another plugin's directory, or to an arbitrary user-supplied path.
+- Ship only production files in the distribution archive. Exclude development tooling, `node_modules`, tests, demos, caches, CI metadata, release scripts, and compiled translations with `.distignore` or the 10up ignore list. Build with `wp dist-archive` from a clean, preferably `--no-dev`, dependency tree and inspect the resulting ZIP rather than the working tree.
+- Keep bundled third-party libraries on current stable releases and verify the versions included in the shipped archive. Do not ship obfuscated or minified-only code when readable source is required for review.
+- Do not bundle a self-update checker or contact an external update endpoint in a WordPress.org-hosted plugin. Remove `Update URI` values that point outside WordPress.org and rely on the directory updater.
+- Every `register_setting()` call must specify a `sanitize_callback`. Use a dedicated callback for arrays and nested values; scalar sanitizers are not sufficient for structured options.
+- In `readme.txt`, make `Contributors:` a case-sensitive, comma-separated list of real WordPress.org usernames and include the account that owns the plugin slug.
+- Do not use raw `<script>` or `<style>` tags for executable or stylesheet content. Enqueue files with the WordPress APIs, attach inline content with `wp_add_inline_script()` or `wp_add_inline_style()`, and use `admin_enqueue_scripts` for admin screens. A non-executing data placeholder must be justified and escaped.
+- Escape every dynamic value at the point of output with the narrowest context-appropriate function: `esc_url()` for URLs, `esc_attr()` for attributes, `esc_html()` for text, and `wp_kses()` or `wp_kses_post()` for permitted HTML. Do not suppress escaping sniffs without a specific `--` justification.
+- Avoid trademarks and other project names in a plugin name or slug when they imply affiliation. Lead with a genuinely distinctive name; if a third-party service is referenced, make the non-affiliation clear.
+- For every remote service, disclose in `readme.txt` what service is used, why it is used, what data is sent, when it is sent, and links to its terms and privacy policy. Do not track users without explicit consent, load remote code, or hijack the admin dashboard.
+- Verify that `Plugin URI`, `Author URI`, and repository, documentation, terms, and privacy URLs in `readme.txt` are public and resolve successfully. Remove stale or private links.
+- Keep `readme.txt` accurate and complete: include `Stable tag`, `Requires at least`, `Requires PHP`, `Tested up to`, `License`, `License URI`, clear setup and usage steps, and the current plugin slug in installation paths.
+
+### WordPress.org self-audit
+
+```bash
+grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "function |^[[:space:]]*((abstract|final|readonly)[[:space:]]+)*(class|trait|interface|enum)[[:space:]]|namespace |define\(|const " .
+grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "update_option\(|get_option\(|add_option\(|set_transient\(|get_transient\(" .
+grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "WP_PLUGIN_DIR|WP_CONTENT_DIR|WP_CONTENT_URL|WPMU_PLUGIN_DIR|ABSPATH|__DIR__" .
+grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "file_put_contents|fopen|fwrite|fputs|mkdir|unlink|rename\(|copy\(" .
+grep -rniE --exclude-dir=vendor --exclude-dir=node_modules "plugin-?update-?checker|PucFactory|pre_set_site_transient_update_plugins|puc_" .
+grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "wp_remote_|curl_|file_get_contents\('https?://|https?://" .
+grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "<script|<style" .
+grep -rn --exclude-dir=vendor --exclude-dir=node_modules "load_plugin_textdomain\|phpcs:ignore\|phpcs:disable" .
+grep -rnE "^(Stable tag|Requires at least|Requires PHP|Tested up to|License|License URI|Contributors):" readme.txt
+find . -type f \( -name '*.po' -o -name '*.mo' -o -name '*.l10n.php' -o -name 'phpunit.xml*' -o -name '*.phpunit*' -o -name '*.result.cache' \)
+./vendor/bin/phpcs --standard=phpcs.xml .
+wp plugin check my-plugin
+wp dist-archive . my-plugin.zip
+unzip -l my-plugin.zip
+```
+
+Review every match, do not treat local silence as approval, and inspect the actual archive for unwanted files and stale bundled dependencies.
+
+## 13) What Copilot Must Ensure (Checklist)
+
 - ✅ Unique prefixes/namespaces; no accidental globals.  
 - ✅ Nonce + capability checks for any write action (AJAX/REST/forms).  
 - ✅ Inputs sanitized; outputs escaped.  
@@ -184,3 +227,8 @@ require $_tests_dir . '/includes/bootstrap.php';
 - ✅ Tests added/updated for new behaviors.  
 - ✅ Code passes PHPCS (WPCS) and ESLint where applicable.  
 - ✅ Avoid direct DB concatenation; always prepare queries.
+- ✅ WordPress.org metadata, public URLs, contributor ownership, and external-service disclosures are accurate.
+- ✅ The shipped archive contains only production files and no self-update checker or unreviewed bundled libraries.
+- ✅ Filesystem writes are confined to approved runtime locations and all settings have sanitization callbacks.
+
+<!-- markdownlint-enable MD013 -->
