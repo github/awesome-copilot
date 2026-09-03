@@ -1371,6 +1371,34 @@
       "version": "1.0.0"
     },
     {
+      "name": "radius",
+      "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Radius",
+        "url": "https://radapp.io"
+      },
+      "repository": "https://github.com/radius-project/ai-extensions",
+      "homepage": "https://radapp.io",
+      "license": "Apache-2.0",
+      "keywords": [
+        "radius",
+        "radapp",
+        "app-modeling",
+        "bicep",
+        "application-graph",
+        "deploy",
+        "canvas"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "radius-project/ai-extensions",
+        "path": "plugins/radius",
+        "ref": "radius@0.1.0",
+        "sha": "a8648fb0df79caa6233b017634445154f1c85b76"
+      }
+    },
+    {
       "name": "rayfin",
       "description": "Getting-started router skill for Rayfin - scaffold a new app with the Rayfin CLI, then use the version-locked skill installed in the project.",
       "version": "0.4.0",
