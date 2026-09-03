@@ -87,6 +87,17 @@ function baseContents(extra) {
   };
 }
 
+function manifestWithExtensions(extensions) {
+  return fileNode(
+    JSON.stringify({
+      name: "upgrade-agent",
+      version: "1.0.0",
+      description: "Canvas plugin",
+      extensions,
+    }),
+  );
+}
+
 // Wires up the directory-walk that resolves plugins/upgrade-agent/com.github.copilot to a tree
 // SHA. `namespaceEntry` controls what the walk finds at the final ".../com.github.copilot" step,
 // and `namespaceSubtree` is the recursive listing returned for that resolved tree SHA.
@@ -134,6 +145,56 @@ test("validateCanvasPluginMetadata accepts a nested extension entry point", asyn
 
   assert.deepEqual(errors, []);
   assert.deepEqual(warnings, []);
+});
+
+test("validateCanvasPluginMetadata rejects a manifest missing the com.github.copilot namespace", async () => {
+  const { errors } = await runValidation({
+    contents: {
+      [`${PLUGIN_ROOT}/.github/plugin/plugin.json`]: {
+        status: 200,
+        data: manifestWithExtensions({}),
+      },
+    },
+    trees: buildTrees({
+      namespaceSubtree: treeResponse([
+        treeEntry("extensions", "tree"),
+        treeEntry("extensions/modernize-dashboard", "tree"),
+        treeEntry("extensions/modernize-dashboard/extension.mjs", "blob"),
+      ]),
+    }),
+  });
+
+  assert.equal(
+    errors.some((message) =>
+      /must set "extensions\.com\.github\.copilot\.logo" to "assets\/preview\.png"/.test(message),
+    ),
+    true,
+  );
+});
+
+test("validateCanvasPluginMetadata rejects a manifest with the wrong logo path", async () => {
+  const { errors } = await runValidation({
+    contents: {
+      [`${PLUGIN_ROOT}/.github/plugin/plugin.json`]: {
+        status: 200,
+        data: manifestWithExtensions({ "com.github.copilot": { logo: "logo.png" } }),
+      },
+    },
+    trees: buildTrees({
+      namespaceSubtree: treeResponse([
+        treeEntry("extensions", "tree"),
+        treeEntry("extensions/modernize-dashboard", "tree"),
+        treeEntry("extensions/modernize-dashboard/extension.mjs", "blob"),
+      ]),
+    }),
+  });
+
+  assert.equal(
+    errors.some((message) =>
+      /must set "logo" to "assets\/preview\.png" in "extensions\.com\.github\.copilot"/.test(message),
+    ),
+    true,
+  );
 });
 
 test("validateCanvasPluginMetadata rejects an extension entry point outside the extensions directory", async () => {

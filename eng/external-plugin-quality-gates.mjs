@@ -807,10 +807,15 @@ function locateCanvasEntryPoint(repoDir, readRef, locator, extensionsDir) {
   }
 
   let nestedEntryPoint = null;
+  let nestedEntryIsNotFile = false;
   for (const entry of listing.entries) {
     const segments = entry.name.split("/");
-    if (segments.length === 2 && segments[1] === "extension.mjs" && entry.type === "blob" && !nestedEntryPoint) {
-      nestedEntryPoint = toPosixPath(extensionsDir, segments[0], "extension.mjs");
+    if (segments.length === 2 && segments[1] === "extension.mjs" && !nestedEntryPoint) {
+      if (entry.type === "blob") {
+        nestedEntryPoint = toPosixPath(extensionsDir, segments[0], "extension.mjs");
+      } else {
+        nestedEntryIsNotFile = true;
+      }
     }
   }
 
@@ -818,7 +823,7 @@ function locateCanvasEntryPoint(repoDir, readRef, locator, extensionsDir) {
     return { entryPoint: nestedEntryPoint, output: "" };
   }
 
-  return { entryPoint: null, output: "" };
+  return { entryPoint: null, output: "", kindMismatch: nestedEntryIsNotFile };
 }
 
 export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
@@ -889,9 +894,15 @@ export function runCanvasStructureGate(repoDir, plugin, primaryFetchSpec) {
     }
     if (!extensionEntryCheck.entryPoint) {
       hasFailure = true;
-      messages.push(
-        `- ${locator}: missing required canvas extension entry point "${extensionsDir}/<extension>/extension.mjs".`,
-      );
+      if (extensionEntryCheck.kindMismatch) {
+        messages.push(
+          `- ${locator}: "${extensionsDir}/<extension>/extension.mjs" must be a file.`,
+        );
+      } else {
+        messages.push(
+          `- ${locator}: missing required canvas extension entry point "${extensionsDir}/<extension>/extension.mjs".`,
+        );
+      }
       continue;
     }
 

@@ -103,7 +103,7 @@ test("runCanvasStructureGate fails when the named extension entrypoint path is a
 
   const result = runCanvasStructureGate(repoDir, plugin, sha);
   assert.equal(result.status, "fail");
-  assert.match(result.output, /missing required canvas extension entry point/);
+  assert.match(result.output, /"com\.github\.copilot\/extensions\/<extension>\/extension\.mjs" must be a file/);
 });
 
 test("runCanvasStructureGate fails when the Copilot namespace is missing", () => {
