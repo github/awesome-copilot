@@ -6,7 +6,9 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$scriptsDirectory = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..' 'scripts'))
+$scriptsDirectory = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..' '..' 'scripts')
+)
 $stage25 = Join-Path $scriptsDirectory 'shepherd-task-25-given-list.ps1'
 $powerShellFiles = @(
     Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot '..') -Recurse -File -Filter '*.ps1'
@@ -71,7 +73,6 @@ try {
     try {
         $output = @(
             & pwsh -NoLogo -NoProfile -File $stage25 `
-                -LessonPropagation off `
                 -TaskIssues 1 `
                 -CampaignMetadataDirectory '1-test-remove-before-merge' 2>&1
         )

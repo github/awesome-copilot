@@ -6,7 +6,9 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$scriptsDirectory = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..' 'scripts'))
+$scriptsDirectory = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..' '..' 'scripts')
+)
 $draftValidator = Join-Path $scriptsDirectory 'validate-stage20-drafts.ps1'
 $resultAssertion = Join-Path $scriptsDirectory 'assert-stage20-result.ps1'
 $redactor = Join-Path $scriptsDirectory 'redact-secrets.ps1'

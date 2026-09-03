@@ -264,7 +264,7 @@ If the ledger is empty, explicitly report that no issues were created and no cle
 Return:
 1. Ordered table of implementation subsection, issue number, title, URL.
 2. Comma-separated child issue numbers for `shepherd-task-25-given-list`.
-3. Suggested campaign-aware given-list invocation using `LESSON_PROPAGATION`, the ordered issue numbers, and `PLAN_DIRECTORY`.
+3. Suggested campaign-aware given-list invocation using the ordered issue numbers and `PLAN_DIRECTORY`; stage 25 derives `LESSON_PROPAGATION` from the campaign manifest.
 4. Whether the issues were created with type `Task` or without an issue type.
 
 ## Guardrails

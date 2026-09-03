@@ -332,7 +332,10 @@ try {
     }
 
     $currentPhase = 'running offline contracts'
-    Write-ExperimentStatus 'Running offline stage-15, stage-40, session-outcome, recovery-driver, and encoding contract checks...'
+    Write-ExperimentStatus 'Running offline lesson-default, stage-15, stage-40, session-outcome, recovery-driver, and encoding contract checks...'
+    Invoke-CheckedPwshScript -Path (
+        Join-Path $ShepherdPlugin 'test\lesson-propagation-default-contract.ps1'
+    )
     Invoke-CheckedPwshScript -Path (Join-Path $FixtureRoot '11-stage15-plan-discovery-contract.ps1')
     Invoke-CheckedPwshScript -Path (Join-Path $FixtureRoot '06-stage40-review-contract.ps1')
     Invoke-CheckedPwshScript -Path (Join-Path $FixtureRoot '12-session-outcome-contract.ps1')
@@ -501,7 +504,6 @@ try {
     Invoke-CheckedPwshScript `
         -Path (Join-Path $ShepherdPlugin 'scripts\shepherd-task-25-given-list.ps1') `
         -Arguments @(
-            '-LessonPropagation', 'campaign',
             '-TaskIssues', $TreatmentHandoff.IssueList,
             '-CampaignMetadataDirectory', $TreatmentDirectoryName
         )
@@ -512,7 +514,6 @@ try {
     Invoke-CheckedPwshScript `
         -Path (Join-Path $ShepherdPlugin 'scripts\shepherd-task-25-given-list.ps1') `
         -Arguments @(
-            '-LessonPropagation', 'off',
             '-TaskIssues', $ControlHandoff.IssueList,
             '-CampaignMetadataDirectory', $ControlDirectoryName
         )

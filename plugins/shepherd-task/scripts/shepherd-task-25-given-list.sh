@@ -2,13 +2,12 @@
 #
 # Stage 25: dispatch an ordered issue subset.
 # Usage:
-#   ./shepherd-task-25-given-list.sh --lesson-propagation=<off|campaign> \
-#     <TASK_ISSUES> <CAMPAIGN_METADATA_DIRECTORY>
+#   ./shepherd-task-25-given-list.sh <TASK_ISSUES> <CAMPAIGN_METADATA_DIRECTORY>
 
 set -euo pipefail
 
 usage() {
-    echo "Usage: $0 --lesson-propagation=<off|campaign> <TASK_ISSUES> <CAMPAIGN_METADATA_DIRECTORY>" >&2
+    echo "Usage: $0 <TASK_ISSUES> <CAMPAIGN_METADATA_DIRECTORY>" >&2
 }
 
 fail_input() {
@@ -17,13 +16,10 @@ fail_input() {
     exit 1
 }
 
-[[ $# -eq 3 ]] || fail_input "Expected exactly 3 arguments."
-[[ "$1" =~ ^--lesson-propagation=(off|campaign)$ ]] ||
-    fail_input "First argument must be --lesson-propagation=off or --lesson-propagation=campaign."
+[[ $# -eq 2 ]] || fail_input "Expected exactly 2 arguments."
 
-LESSON_PROPAGATION="${1#*=}"
-TASK_ISSUES="$2"
-CAMPAIGN_METADATA_DIRECTORY="$3"
+TASK_ISSUES="$1"
+CAMPAIGN_METADATA_DIRECTORY="$2"
 [[ "$TASK_ISSUES" =~ ^[1-9][0-9]*(,[1-9][0-9]*)*$ ]] ||
     fail_input "TASK_ISSUES must be a comma-separated list of positive issue numbers."
 [[ "$CAMPAIGN_METADATA_DIRECTORY" != /* && "$CAMPAIGN_METADATA_DIRECTORY" != */* ]] ||
@@ -59,12 +55,10 @@ jq -e '
 CAMPAIGN_ID="$(jq -r '.campaignId' "$MANIFEST_PATH")"
 REPO="$(jq -r '.repository' "$MANIFEST_PATH")"
 BASE_BRANCH="$(jq -r '.baseBranch' "$MANIFEST_PATH")"
-MANIFEST_MODE="$(jq -r '.lessonPropagation' "$MANIFEST_PATH")"
+LESSON_PROPAGATION="$(jq -r '.lessonPropagation' "$MANIFEST_PATH")"
 MANIFEST_DIRECTORY="$(jq -r '.campaignMetadataDirectory' "$MANIFEST_PATH")"
 [[ "$MANIFEST_DIRECTORY" == "$CAMPAIGN_METADATA_DIRECTORY" ]] ||
     fail_input "Manifest campaignMetadataDirectory does not match the supplied directory."
-[[ "$MANIFEST_MODE" == "$LESSON_PROPAGATION" ]] ||
-    fail_input "Requested lesson mode '$LESSON_PROPAGATION' does not match campaign mode '$MANIFEST_MODE'."
 [[ -f "$CAMPAIGN_METADATA_PATH/campaign-lessons.md" ]] ||
     fail_input "Campaign lessons file not found."
 

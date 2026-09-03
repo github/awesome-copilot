@@ -252,4 +252,4 @@ Write-Host 'Exact stage-25 command:'
 $stage25Script = [System.IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot '..' '..' 'scripts' 'shepherd-task-25-given-list.ps1')
 )
-Write-Host "  & `"$stage25Script`" -LessonPropagation $($campaign.lessonPropagation) -TaskIssues `"$orderedIssueList`" -CampaignMetadataDirectory `"$CampaignMetadataDirectory`""
+Write-Host "  & `"$stage25Script`" -TaskIssues `"$orderedIssueList`" -CampaignMetadataDirectory `"$CampaignMetadataDirectory`""

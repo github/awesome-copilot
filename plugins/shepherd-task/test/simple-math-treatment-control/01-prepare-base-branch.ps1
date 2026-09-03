@@ -48,7 +48,7 @@ if (git -C $repoRoot status --porcelain) {
 }
 
 $resolver = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' 'scripts' 'resolve-repository-remote.ps1')
+    (Join-Path $PSScriptRoot '..' '..' 'scripts' 'resolve-repository-remote.ps1')
 )
 $baseRemote = & $resolver -Repo $Repo
 git -C $repoRoot fetch --no-tags $baseRemote
@@ -103,7 +103,7 @@ if ($campaignIssueUrl -notmatch '/issues/([1-9][0-9]*)$') {
 $campaignIssueNumber = [int]$Matches[1]
 
 $initializer = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-00-init-campaign.ps1')
+    (Join-Path $PSScriptRoot '..' '..' 'scripts' 'shepherd-task-00-init-campaign.ps1')
 )
 & $initializer -CampaignIssueNumber $campaignIssueNumber `
     -CampaignShortname $CampaignShortname -BaseBranch $BaseBranch -Repo $Repo `

@@ -133,6 +133,7 @@ These checks perform no GitHub mutation:
 & "$Fixture\11-stage15-plan-discovery-contract.ps1"
 & "$Fixture\12-session-outcome-contract.ps1"
 & "$Fixture\13-resume-driver-contract.ps1"
+& "$ShepherdPlugin\test\lesson-propagation-default-contract.ps1"
 ```
 
 The unattended driver runs the stage-15 plan-discovery, stage-40,
@@ -302,13 +303,11 @@ five-issue list. Preserve the local prompt directories and ledgers.
 ```powershell
 Set-Location $TreatmentWorktree
 & "$ShepherdPlugin\scripts\shepherd-task-25-given-list.ps1" `
-    -LessonPropagation campaign `
     -TaskIssues 'TREATMENT_ISSUE_CSV' `
     -CampaignMetadataDirectory $TreatmentDirectoryName
 
 Set-Location $ControlWorktree
 & "$ShepherdPlugin\scripts\shepherd-task-25-given-list.ps1" `
-    -LessonPropagation off `
     -TaskIssues 'CONTROL_ISSUE_CSV' `
     -CampaignMetadataDirectory $ControlDirectoryName
 ```

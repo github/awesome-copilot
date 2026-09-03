@@ -20,7 +20,10 @@
     GitHub repository in OWNER/REPO format.
 
 .PARAMETER LessonPropagation
-    Immutable campaign lesson mode: off or campaign.
+    Immutable campaign lesson mode: off or campaign. Defaults to off.
+
+.EXAMPLE
+    ./shepherd-task-00-init-campaign.ps1 3031763 improve-agentic-velocity edburns/dd-3031763-shepherd-task edburns/awesome-copilot
 
 .EXAMPLE
     ./shepherd-task-00-init-campaign.ps1 3031763 improve-agentic-velocity edburns/dd-3031763-shepherd-task edburns/awesome-copilot campaign
@@ -40,9 +43,9 @@ param(
     [Parameter(Mandatory = $true, Position = 3)]
     [string]$Repo,
 
-    [Parameter(Mandatory = $true, Position = 4)]
+    [Parameter(Position = 4)]
     [ValidateSet('off', 'campaign')]
-    [string]$LessonPropagation
+    [string]$LessonPropagation = 'off'
 )
 
 Set-StrictMode -Version Latest

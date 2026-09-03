@@ -126,8 +126,7 @@ Bash:
   <campaign-issue-number> \
   <campaign-shortname> \
   <base-branch> \
-  <owner/repo> \
-  <off|campaign>
+  <owner/repo>
 ```
 
 PowerShell:
@@ -137,8 +136,7 @@ PowerShell:
   -CampaignIssueNumber <campaign-issue-number> `
   -CampaignShortname <campaign-shortname> `
   -BaseBranch <base-branch> `
-  -Repo <owner/repo> `
-  -LessonPropagation <off|campaign>
+  -Repo <owner/repo>
 ```
 
 Stage 00 requires the checked-out branch to equal `BaseBranch`. It
@@ -146,6 +144,12 @@ creates a new directory, mints a UUIDv4, and atomically writes
 `shepherd-campaign.json` and `campaign-lessons.md`. It does not commit, push,
 create issues, or invoke Copilot. Commit and push the initialized campaign state
 to the campaign base branch.
+
+Lesson propagation defaults to `off`. To opt in for a new campaign, append
+`campaign` to the Bash command or pass `-LessonPropagation campaign` to the
+PowerShell command. Stage 00 always persists the selected mode explicitly in
+`shepherd-campaign.json`; downstream stages derive the immutable mode from that
+manifest.
 
 ### 3. Create and resolve the plan when issues do not exist
 
@@ -218,7 +222,6 @@ Bash:
 
 ```bash
 ./plugins/shepherd-task/scripts/shepherd-task-25-given-list.sh \
-  --lesson-propagation=<off|campaign> \
   "<issue-number>,<issue-number>" \
   <campaign-metadata-directory>
 ```
@@ -227,16 +230,14 @@ PowerShell:
 
 ```powershell
 .\plugins\shepherd-task\scripts\shepherd-task-25-given-list.ps1 `
-  -LessonPropagation <off|campaign> `
   -TaskIssues "<issue-number>,<issue-number>" `
   -CampaignMetadataDirectory <campaign-metadata-directory>
 ```
 
-The requested lesson mode must exactly match the immutable manifest mode. The
-stage 25 script creates one run directory and run manifest, then invokes
-`shepherd-task` for each issue in order. It stops at the first failed issue.
-Start a later given-list run with the remaining issue subset after correcting
-the failure.
+Stage 25 derives the immutable lesson mode from `shepherd-campaign.json`. It
+creates one run directory and run manifest, then invokes `shepherd-task` for
+each issue in order. It stops at the first failed issue. Start a later
+given-list run with the remaining issue subset after correcting the failure.
 
 See:
 
@@ -370,7 +371,7 @@ GitHub work is still running.
   "campaignShortname": "example-campaign",
   "repository": "owner/repo",
   "baseBranch": "owner/example-campaign",
-  "lessonPropagation": "campaign",
+  "lessonPropagation": "off",
   "campaignMetadataDirectory": "123-example-campaign-remove-before-merge",
   "lessonsFile": "campaign-lessons.md",
   "createdAt": "2026-08-26T20:00:00Z"
@@ -393,7 +394,7 @@ Every given-list invocation creates
   "campaignMetadataDirectory": "123-example-campaign-remove-before-merge",
   "repository": "owner/repo",
   "baseBranch": "owner/example-campaign",
-  "lessonPropagation": "campaign",
+  "lessonPropagation": "off",
   "taskIssues": [201, 202],
   "startedAt": "2026-08-26T20:10:00Z",
   "completedAt": null,

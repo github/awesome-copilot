@@ -42,7 +42,7 @@ if ([System.IO.Path]::IsPathRooted($CampaignMetadataDirectory) -or
 
 $campaignPath = Join-Path $repoRoot $CampaignMetadataDirectory
 $issueBodyVerifier = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' 'scripts' 'verify-github-issue-body.ps1')
+    (Join-Path $PSScriptRoot '..' '..' 'scripts' 'verify-github-issue-body.ps1')
 )
 $manifestPath = Join-Path $campaignPath 'shepherd-campaign.json'
 $experimentPath = Join-Path $campaignPath 'shepherd-test-experiment.json'

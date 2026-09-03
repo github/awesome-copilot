@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-RESOLVER="$SCRIPT_DIR/../scripts/resolve-repository-remote.sh"
+RESOLVER="$SCRIPT_DIR/../../scripts/resolve-repository-remote.sh"
 TEMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TEMP_DIR"' EXIT
 

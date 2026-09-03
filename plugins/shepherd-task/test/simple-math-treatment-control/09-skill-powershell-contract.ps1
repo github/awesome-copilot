@@ -7,7 +7,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' '..' '..')
+    (Join-Path $PSScriptRoot '..' '..' '..' '..')
 )
 $skillsDirectory = Join-Path $repositoryRoot 'skills'
 $skillFiles = @(

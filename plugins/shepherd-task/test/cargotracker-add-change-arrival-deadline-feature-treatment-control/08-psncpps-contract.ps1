@@ -73,7 +73,6 @@ try {
     try {
         $output = @(
             & pwsh -NoLogo -NoProfile -File $stage25 `
-                -LessonPropagation off `
                 -TaskIssues 1 `
                 -CampaignMetadataDirectory '1-test-remove-before-merge' 2>&1
         )

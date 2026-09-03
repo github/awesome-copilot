@@ -105,6 +105,14 @@ shepherd-task skills and rejects unsafe native-output transformations:
 & "$ShepherdPlugin/test/09-skill-powershell-contract.ps1"
 ```
 
+The lesson propagation contract verifies that stage 00 defaults to `off`,
+explicit `campaign` remains available, and stage 25 derives the immutable mode
+from the campaign manifest:
+
+```powershell
+& "$ShepherdPlugin/test/lesson-propagation-default-contract.ps1"
+```
+
 ## Unattended end-to-end driver
 
 The complete PowerShell procedure below can be run unattended from the source
@@ -397,7 +405,6 @@ Treatment:
 ```powershell
 Set-Location $TreatmentWorktree
 & "$ShepherdPlugin/scripts/shepherd-task-25-given-list.ps1" `
-  -LessonPropagation campaign `
   -TaskIssues $TreatmentIssueList `
   -CampaignMetadataDirectory $TreatmentDirectoryName
 ```
@@ -407,7 +414,6 @@ Control:
 ```powershell
 Set-Location $ControlWorktree
 & "$ShepherdPlugin/scripts/shepherd-task-25-given-list.ps1" `
-  -LessonPropagation off `
   -TaskIssues $ControlIssueList `
   -CampaignMetadataDirectory $ControlDirectoryName
 ```

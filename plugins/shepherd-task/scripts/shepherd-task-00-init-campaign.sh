@@ -5,12 +5,12 @@
 # Usage:
 #   ./shepherd-task-00-init-campaign.sh \
 #     <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO> \
-#     <LESSON_PROPAGATION>
+#     [LESSON_PROPAGATION]
 
 set -euo pipefail
 
 usage() {
-    echo "Usage: $0 <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO> <LESSON_PROPAGATION>" >&2
+    echo "Usage: $0 <CAMPAIGN_ISSUE_NUMBER> <CAMPAIGN_SHORTNAME> <BASE_BRANCH> <REPO> [off|campaign]" >&2
 }
 
 fail() {
@@ -19,15 +19,15 @@ fail() {
     exit 1
 }
 
-if [[ $# -ne 5 ]]; then
-    fail "Expected exactly 5 arguments; received $#."
+if [[ $# -lt 4 || $# -gt 5 ]]; then
+    fail "Expected 4 or 5 arguments; received $#."
 fi
 
 CAMPAIGN_ISSUE_NUMBER="$1"
 CAMPAIGN_SHORTNAME="$2"
 BASE_BRANCH="$3"
 REPO="$4"
-LESSON_PROPAGATION="$5"
+LESSON_PROPAGATION="${5:-off}"
 
 if [[ ! "$CAMPAIGN_ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
     fail "CAMPAIGN_ISSUE_NUMBER must be a positive integer; received '$CAMPAIGN_ISSUE_NUMBER'."

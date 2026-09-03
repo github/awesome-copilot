@@ -51,7 +51,7 @@ if (git -C $repoRoot status --porcelain) {
 }
 
 $resolver = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' 'scripts' 'resolve-repository-remote.ps1')
+    (Join-Path $PSScriptRoot '..' '..' 'scripts' 'resolve-repository-remote.ps1')
 )
 $baseRemote = & $resolver -Repo $Repo
 

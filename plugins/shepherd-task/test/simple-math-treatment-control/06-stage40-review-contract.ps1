@@ -6,7 +6,9 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..' '..' '..'))
+$repoRoot = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..' '..' '..' '..')
+)
 $skillPath = Join-Path $repoRoot 'skills\shepherd-task-40-from-ready-to-merged-to-base\SKILL.md'
 $stage25Path = Join-Path $repoRoot 'plugins\shepherd-task\scripts\shepherd-task-25-given-list.ps1'
 $skill = Get-Content -LiteralPath $skillPath -Raw

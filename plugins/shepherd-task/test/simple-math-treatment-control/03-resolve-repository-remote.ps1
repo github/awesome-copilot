@@ -4,7 +4,7 @@ param()
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$resolver = Join-Path $PSScriptRoot '..' 'scripts' 'resolve-repository-remote.ps1'
+$resolver = Join-Path $PSScriptRoot '..' '..' 'scripts' 'resolve-repository-remote.ps1'
 $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "shepherd-remote-$([guid]::NewGuid().ToString('N'))"
 
 function Assert-Remote {

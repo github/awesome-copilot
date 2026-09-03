@@ -99,7 +99,7 @@ if ([string]$experiment.lessonPropagation -ne [string]$campaign.lessonPropagatio
 if ($experiment.expectedTaskCount -ne 2) { throw 'Experiment expectedTaskCount must equal 2.' }
 
 $preparationScript = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-15-prepare-create-issues.ps1')
+    (Join-Path $PSScriptRoot '..' '..' 'scripts' 'shepherd-task-15-prepare-create-issues.ps1')
 )
 $artifacts = & $preparationScript -CampaignMetadataDirectory $CampaignMetadataDirectory -PassThru
 if ($null -eq $artifacts) { throw 'Stage 15 returned no artifact information.' }
@@ -247,6 +247,6 @@ Write-Host 'Stage 20 completed and actual issue bodies were verified.' -Foregrou
 Write-Host "Evidence: $handoffPath"
 Write-Host 'Exact stage-25 command:'
 $stage25Script = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' 'scripts' 'shepherd-task-25-given-list.ps1')
+    (Join-Path $PSScriptRoot '..' '..' 'scripts' 'shepherd-task-25-given-list.ps1')
 )
-Write-Host "  & `"$stage25Script`" -LessonPropagation $($campaign.lessonPropagation) -TaskIssues `"$orderedIssueList`" -CampaignMetadataDirectory `"$CampaignMetadataDirectory`""
+Write-Host "  & `"$stage25Script`" -TaskIssues `"$orderedIssueList`" -CampaignMetadataDirectory `"$CampaignMetadataDirectory`""

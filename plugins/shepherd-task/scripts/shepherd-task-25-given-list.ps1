@@ -6,13 +6,9 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory, Position = 0)]
-    [ValidateSet('off', 'campaign')]
-    [string]$LessonPropagation,
-
-    [Parameter(Mandatory, Position = 1)]
     [string]$TaskIssues,
 
-    [Parameter(Mandatory, Position = 2)]
+    [Parameter(Mandatory, Position = 1)]
     [string]$CampaignMetadataDirectory
 )
 
@@ -46,7 +42,7 @@ if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { throw "Campaig
 $campaign = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 if ($campaign.schemaVersion -ne 1) { throw "Unsupported campaign schemaVersion '$($campaign.schemaVersion)'." }
 if ([string]$campaign.campaignId -notmatch '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$') { throw 'Invalid campaignId.' }
-if ([string]$campaign.lessonPropagation -ne $LessonPropagation) { throw "Requested lesson mode does not match campaign mode '$($campaign.lessonPropagation)'." }
+if ([string]$campaign.lessonPropagation -notin @('off', 'campaign')) { throw 'Invalid campaign lesson propagation mode.' }
 if ([string]$campaign.campaignMetadataDirectory -ne $CampaignMetadataDirectory) { throw 'Manifest directory does not match supplied directory.' }
 if ([string]$campaign.repository -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$') { throw 'Invalid campaign repository.' }
 if (-not [string]$campaign.baseBranch -or [string]$campaign.baseBranch -eq 'main') { throw 'Invalid campaign baseBranch.' }
@@ -55,6 +51,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $campaignPath 'campaign-lessons.md')
 $campaignId = [string]$campaign.campaignId
 $repo = [string]$campaign.repository
 $baseBranch = [string]$campaign.baseBranch
+$LessonPropagation = [string]$campaign.lessonPropagation
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmm'
 $logDirFull = Join-Path $campaignPath "shepherd-tasks-$campaignId-$timestamp"
 if (Test-Path -LiteralPath $logDirFull) { throw "Given-list run directory already exists: $logDirFull" }

@@ -314,6 +314,9 @@ try {
     }
 
     $currentPhase = 'running offline contracts'
+    Invoke-CheckedPwshScript -Path (
+        Join-Path $ShepherdPlugin 'test\lesson-propagation-default-contract.ps1'
+    )
     foreach ($contract in @(
         '11-stage15-plan-discovery-contract.ps1',
         '06-stage40-review-contract.ps1',
@@ -431,7 +434,6 @@ try {
             -Path (Join-Path $ShepherdPlugin `
                 'scripts\shepherd-task-25-given-list.ps1') `
             -Arguments @(
-                '-LessonPropagation', 'off',
                 '-TaskIssues', $unfinishedIssueList,
                 '-CampaignMetadataDirectory', $ControlDirectoryName
             )
