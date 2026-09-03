@@ -65,6 +65,7 @@ const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
 // files live under the client's own namespace directory rather than the repository-local
 // "com.github.awesome-copilot" namespace used to materialize plugins that live in this repo.
 const COPILOT_CLIENT_NAMESPACE = "com.github.copilot";
+const COPILOT_EXTENSIONS_DIRECTORY = "extensions";
 const HOMEPAGE_FETCH_TIMEOUT_MS = 10_000;
 const HOMEPAGE_MAX_BYTES = 512_000;
 const HOMEPAGE_MAX_REDIRECTS = 5;
@@ -750,8 +751,9 @@ async function resolveDirectoryTreeSha(repo, treeish, segments, token) {
 
 // Inspect the (recursively fetched) "com.github.copilot" subtree for the plugin's canvas
 // extension entry point. Paths are relative to "com.github.copilot/" and must use the
-// "<extension-name>/extension.mjs" layout. Scoping the recursive fetch to this subtree keeps
-// the lookup complete without depending on the size of the rest of the repository.
+// "extensions/<extension-name>/extension.mjs" layout used by the Copilot app. Scoping the
+// recursive fetch to this subtree keeps the lookup complete without depending on the size of
+// the rest of the repository.
 function analyzeCanvasExtensionSubtree(subtreeEntries) {
   let nestedEntryPath = null;
   let nestedEntryIsNotFile = false;
@@ -763,7 +765,7 @@ function analyzeCanvasExtensionSubtree(subtreeEntries) {
     }
 
     const segments = entryPath.split("/");
-    if (segments.length === 2 && segments[1] === "extension.mjs") {
+    if (segments.length === 3 && segments[0] === COPILOT_EXTENSIONS_DIRECTORY && segments[2] === "extension.mjs") {
       if (entry.type === "blob") {
         nestedEntryPath = nestedEntryPath ?? `${COPILOT_CLIENT_NAMESPACE}/${entryPath}`;
       } else {
@@ -902,11 +904,11 @@ export async function validateCanvasPluginMetadata(plugin, errors, warnings, tok
         warnings.push(unverifiableEntryPointWarning);
       } else if (canvasStructure.status === "notFile") {
         errors.push(
-          `submission: "${COPILOT_CLIENT_NAMESPACE}/<extension>/extension.mjs" must be a file in ${releaseLocatorDescription}`,
+          `submission: "${COPILOT_CLIENT_NAMESPACE}/${COPILOT_EXTENSIONS_DIRECTORY}/<extension>/extension.mjs" must be a file in ${releaseLocatorDescription}`,
         );
       } else {
         errors.push(
-          `submission: plugins tagged with "canvas" must include a canvas extension entry point at "${COPILOT_CLIENT_NAMESPACE}/<extension>/extension.mjs" at ${releaseLocatorDescription}`,
+          `submission: plugins tagged with "canvas" must include a canvas extension entry point at "${COPILOT_CLIENT_NAMESPACE}/${COPILOT_EXTENSIONS_DIRECTORY}/<extension>/extension.mjs" at ${releaseLocatorDescription}`,
         );
       }
     }

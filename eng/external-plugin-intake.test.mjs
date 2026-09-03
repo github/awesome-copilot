@@ -125,8 +125,9 @@ test("validateCanvasPluginMetadata accepts a nested extension entry point", asyn
   const { errors, warnings } = await runValidation({
     trees: buildTrees({
       namespaceSubtree: treeResponse([
-        treeEntry("modernize-dashboard", "tree"),
-        treeEntry("modernize-dashboard/extension.mjs", "blob"),
+        treeEntry("extensions", "tree"),
+        treeEntry("extensions/modernize-dashboard", "tree"),
+        treeEntry("extensions/modernize-dashboard/extension.mjs", "blob"),
       ]),
     }),
   });
@@ -135,13 +136,12 @@ test("validateCanvasPluginMetadata accepts a nested extension entry point", asyn
   assert.deepEqual(warnings, []);
 });
 
-test("validateCanvasPluginMetadata rejects a doubly-nested extension entry point", async () => {
+test("validateCanvasPluginMetadata rejects an extension entry point outside the extensions directory", async () => {
   const { errors, warnings } = await runValidation({
     trees: buildTrees({
       namespaceSubtree: treeResponse([
-        treeEntry("extensions", "tree"),
-        treeEntry("extensions/radius", "tree"),
-        treeEntry("extensions/radius/extension.mjs", "blob"),
+        treeEntry("radius", "tree"),
+        treeEntry("radius/extension.mjs", "blob"),
       ]),
     }),
   });
@@ -213,15 +213,16 @@ test("validateCanvasPluginMetadata rejects when a named extension.mjs is a direc
   const { errors } = await runValidation({
     trees: buildTrees({
       namespaceSubtree: treeResponse([
-        treeEntry("modernize-dashboard", "tree"),
-        treeEntry("modernize-dashboard/extension.mjs", "tree"),
-        treeEntry("modernize-dashboard/extension.mjs/placeholder.txt", "blob"),
+        treeEntry("extensions", "tree"),
+        treeEntry("extensions/modernize-dashboard", "tree"),
+        treeEntry("extensions/modernize-dashboard/extension.mjs", "tree"),
+        treeEntry("extensions/modernize-dashboard/extension.mjs/placeholder.txt", "blob"),
       ]),
     }),
   });
 
   assert.equal(
-    errors.some((message) => /"com\.github\.copilot\/<extension>\/extension\.mjs" must be a file/.test(message)),
+    errors.some((message) => /"com\.github\.copilot\/extensions\/<extension>\/extension\.mjs" must be a file/.test(message)),
     true,
   );
 });
@@ -262,7 +263,7 @@ test("validateCanvasPluginMetadata treats a truncated walk level as unverifiable
 test("validateCanvasPluginMetadata treats a truncated com.github.copilot subtree without an entry point as unverifiable", async () => {
   const { errors, warnings } = await runValidation({
     trees: buildTrees({
-      namespaceSubtree: treeResponse([treeEntry("modernize-dashboard", "tree")], { truncated: true }),
+      namespaceSubtree: treeResponse([treeEntry("extensions", "tree")], { truncated: true }),
     }),
   });
 
@@ -278,8 +279,8 @@ test("validateCanvasPluginMetadata accepts an entry point found within a truncat
     trees: buildTrees({
       namespaceSubtree: treeResponse(
         [
-          treeEntry("modernize-dashboard", "tree"),
-          treeEntry("modernize-dashboard/extension.mjs", "blob"),
+          treeEntry("extensions/modernize-dashboard", "tree"),
+          treeEntry("extensions/modernize-dashboard/extension.mjs", "blob"),
         ],
         { truncated: true },
       ),
