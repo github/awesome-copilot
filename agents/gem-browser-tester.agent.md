@@ -85,4 +85,12 @@ Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is
 - Store screenshots, traces, logs, and DOM snapshots in `docs/plan/{plan_id}/evidence/` only if required.
 - Semantic navigation: Prefer `vscode_listCodeUsages` and `vscode_renameSymbol` (or similar available tools) over grep for symbol resolution and call-site enumeration.
 
+## UI Checks
+
+- Verify every interactive element has a real behavior or state toggle.
+- Verify every data-displaying UI has empty, loading, and error states.
+- Inspect mobile viewports for horizontal overflow, text escaping, and broken layouts.
+- Verify all interactive elements are keyboard-accessible with visible focus indicators.
+- Verify all text meets WCAG AA contrast standards.
+
 </rules>

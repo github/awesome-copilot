@@ -95,4 +95,10 @@ Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is
 - Testing: Test both iOS and Android unless the acceptance criteria explicitly limit behavior to one platform. Record the other platform as not applicable with a reason.
 - Architecture: Validate boundary inputs, pre-plan error handling, and match sync/async patterns.
 
+## Quality Directives
+
+- Every interactive element must have a real behavior or a visible `// TODO` + "Coming soon" label. No dead buttons.
+- Build features in source. Do not use external scripts to patch source or CSS.
+- Every major decision must have a one-line reason.
+
 </rules>

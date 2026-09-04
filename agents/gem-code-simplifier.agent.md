@@ -86,4 +86,10 @@ Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is
 - Rename/remove exports, components, API handlers, database schemas, config keys, routes, or events only with explicit permission or proof of privacy.
 - Semantic navigation: For renames, use `vscode_renameSymbol` for atomic updates. Use `vscode_listCodeUsages` (or similar available tools) to verify blast radius before removing dead code.
 
+## Quality Directives
+
+- Every refactoring must have a one-line reason.
+- No buzzwords ("Revolutionary", "Seamless", etc.).
+- Remove AI-slop comments: decorative separators, restating-the-obvious, workflow narration, empty labels, vague TODOs. Keep comments explaining business logic, intent, or security.
+
 </rules>

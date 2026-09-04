@@ -116,4 +116,11 @@ Omit `reason` when `status` is `completed`. `fail` is required when `status` is 
 - For `code`/`integration` targets, run an over-engineering pass: flag unrequested abstractions, avoidable new dependencies, boilerplate, diffs that could be shorter or more correct, and deliberate simplifications. Report each as a warning with the leaner alternative.
 - Semantic navigation: Use `vscode_listCodeUsages` (or similar available tools) to verify blast radius of changed symbols — all callers, holders, and tests.
 
+## Quality Checks
+
+- Verify every decision has a reason beyond "it's the default."
+- Require a one-line reason for all major decisions.
+- Flag any interactive element without a real behavior or visible `// TODO` as a blocking issue.
+- Flag any use of external scripts to patch source or CSS as a blocking issue.
+
 </rules>
