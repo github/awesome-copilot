@@ -19,10 +19,41 @@
 .PARAMETER WorkareasDir
     Parent directory for the primary checkout and control worktree.
 
+.PARAMETER ShowDomainFixtureOutput
+    Shows complete output from Cargo Tracker fixture scripts invoked directly
+    by this driver. Nested shepherd-task, Copilot CLI, Git, and GitHub CLI
+    output may be included.
+
+.PARAMETER ShowShepherdTaskScriptOutput
+    Shows complete output from shepherd-task scripts invoked directly by this
+    driver. For stage 25, this includes its nested per-issue and Copilot CLI
+    output.
+
+.PARAMETER ShowContractOutput
+    Shows output from the offline preflight contracts.
+
+.PARAMETER ShowNativeToolOutput
+    Shows routine output from Git and GitHub CLI commands invoked directly by
+    this driver.
+
+.PARAMETER ShowAllOutput
+    Enables all four optional output channels. Hidden output from a failing
+    child command is always shown, even when its channel is disabled.
+
 .EXAMPLE
     .\20260904-run-control-experiment.ps1 `
       -RepositoryUrl https://github.com/OWNER/DISPOSABLE-REPOSITORY `
       -WorkareasDir D:\workareas
+
+.EXAMPLE
+    .\20260904-run-control-experiment.ps1 `
+      -RepositoryUrl https://github.com/OWNER/DISPOSABLE-REPOSITORY `
+      -ShowShepherdTaskScriptOutput
+
+.EXAMPLE
+    .\20260904-run-control-experiment.ps1 `
+      -RepositoryUrl https://github.com/OWNER/DISPOSABLE-REPOSITORY `
+      -ShowAllOutput
 #>
 
 [CmdletBinding()]
@@ -33,7 +64,17 @@ param(
 
     [Parameter(Position = 1)]
     [ValidateNotNullOrEmpty()]
-    [string]$WorkareasDir = (Join-Path $HOME 'workareas')
+    [string]$WorkareasDir = (Join-Path $HOME 'workareas'),
+
+    [switch]$ShowDomainFixtureOutput,
+
+    [switch]$ShowShepherdTaskScriptOutput,
+
+    [switch]$ShowContractOutput,
+
+    [switch]$ShowNativeToolOutput,
+
+    [switch]$ShowAllOutput
 )
 
 Set-StrictMode -Version Latest
@@ -41,6 +82,13 @@ $ErrorActionPreference = 'Stop'
 if (Test-Path Variable:\PSNativeCommandUseErrorActionPreference) {
     $PSNativeCommandUseErrorActionPreference = $false
 }
+
+$ShowDomainFixtureOutput =
+    $ShowDomainFixtureOutput -or $ShowAllOutput
+$ShowShepherdTaskScriptOutput =
+    $ShowShepherdTaskScriptOutput -or $ShowAllOutput
+$ShowContractOutput = $ShowContractOutput -or $ShowAllOutput
+$ShowNativeToolOutput = $ShowNativeToolOutput -or $ShowAllOutput
 
 $initialLocation = (Get-Location).Path
 $runStartedAt = [DateTimeOffset]::Now
@@ -54,19 +102,99 @@ function Write-ControlStatus {
     Write-Host "[shepherd-control] $Message"
 }
 
+function Write-ControlStage {
+    param(
+        [Parameter(Mandatory)][string]$Stage,
+        [Parameter(Mandatory)][string]$Purpose
+    )
+
+    Write-Host ''
+    Write-ControlStatus "Stage $Stage - $Purpose"
+}
+
+function Test-OutputChannelEnabled {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateSet('DomainFixture', 'ShepherdTaskScript', 'Contract')]
+        [string]$OutputChannel
+    )
+
+    switch ($OutputChannel) {
+        'DomainFixture' { return [bool]$ShowDomainFixtureOutput }
+        'ShepherdTaskScript' {
+            return [bool]$ShowShepherdTaskScriptOutput
+        }
+        'Contract' { return [bool]$ShowContractOutput }
+    }
+}
+
+function Write-CapturedOutput {
+    param([object[]]$Output)
+
+    foreach ($line in @($Output)) {
+        if ($null -ne $line) {
+            Write-Host ([string]$line)
+        }
+    }
+}
+
 function Invoke-CheckedPwshScript {
     param(
         [Parameter(Mandatory)][string]$Path,
-        [string[]]$Arguments = @()
+        [string[]]$Arguments = @(),
+
+        [Parameter(Mandatory)]
+        [ValidateSet('DomainFixture', 'ShepherdTaskScript', 'Contract')]
+        [string]$OutputChannel
     )
 
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
         throw "Required PowerShell script was not found: $Path"
     }
 
-    & pwsh -NoLogo -NoProfile -File $Path @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "PowerShell script failed with exit code $LASTEXITCODE`: $Path"
+    $showOutput = Test-OutputChannelEnabled -OutputChannel $OutputChannel
+    if ($showOutput) {
+        & pwsh -NoLogo -NoProfile -File $Path @Arguments
+        $exitCode = $LASTEXITCODE
+    }
+    else {
+        $capturedOutput = @(
+            & pwsh -NoLogo -NoProfile -File $Path @Arguments 2>&1
+        )
+        $exitCode = $LASTEXITCODE
+    }
+
+    if ($exitCode -ne 0) {
+        if (-not $showOutput -and $capturedOutput.Count -gt 0) {
+            Write-ControlStatus "Captured output from failed child script:"
+            Write-CapturedOutput -Output $capturedOutput
+        }
+        throw "PowerShell script failed with exit code $exitCode`: $Path"
+    }
+}
+
+function Invoke-CheckedNativeCommand {
+    param(
+        [Parameter(Mandatory)][string]$FilePath,
+        [string[]]$Arguments = @(),
+        [Parameter(Mandatory)][string]$Operation
+    )
+
+    if ($ShowNativeToolOutput) {
+        & $FilePath @Arguments
+        $exitCode = $LASTEXITCODE
+    }
+    else {
+        $capturedOutput = @(& $FilePath @Arguments 2>&1)
+        $exitCode = $LASTEXITCODE
+    }
+
+    if ($exitCode -ne 0) {
+        if (-not $ShowNativeToolOutput -and $capturedOutput.Count -gt 0) {
+            Write-ControlStatus "Captured output from failed native command:"
+            Write-CapturedOutput -Output $capturedOutput
+        }
+        throw "$Operation failed with exit code $exitCode."
     }
 }
 
@@ -74,6 +202,58 @@ function Assert-NativeSuccess {
     param([Parameter(Mandatory)][string]$Operation)
     if ($LASTEXITCODE -ne 0) {
         throw "$Operation failed with exit code $LASTEXITCODE."
+    }
+}
+
+function ConvertTo-PowerShellDisplayLiteral {
+    param([Parameter(Mandatory)][string]$Value)
+
+    if ($Value -match '^<[A-Z0-9_]+>$') {
+        return $Value
+    }
+    return "'" + $Value.Replace("'", "''") + "'"
+}
+
+function Write-ShepherdScriptInvocation {
+    param(
+        [Parameter(Mandatory)][string]$Stage,
+        [Parameter(Mandatory)][string]$Purpose,
+        [Parameter(Mandatory)]
+        [ValidateSet('Planned', 'Actual')]
+        [string]$InvocationType,
+        [Parameter(Mandatory)][string]$ScriptPath,
+        [Parameter(Mandatory)][object[]]$Arguments
+    )
+
+    Write-ControlStage -Stage $Stage -Purpose $Purpose
+    $scriptName = Split-Path -Leaf $ScriptPath
+    Write-ControlStatus "$InvocationType invocation of ${scriptName}:"
+    $scriptLiteral = ConvertTo-PowerShellDisplayLiteral -Value $ScriptPath
+    if ($Arguments.Count -eq 0) {
+        Write-Host "  & $scriptLiteral"
+        return
+    }
+
+    Write-Host ('  & {0} `' -f $scriptLiteral)
+    for ($index = 0; $index -lt $Arguments.Count; $index++) {
+        $argument = $Arguments[$index]
+        $continuation = if ($index -lt $Arguments.Count - 1) {
+            ' `'
+        }
+        else {
+            ''
+        }
+        if ([bool]$argument.IsSwitch) {
+            Write-Host ('      {0}{1}' -f $argument.Name, $continuation)
+        }
+        else {
+            $valueLiteral = ConvertTo-PowerShellDisplayLiteral `
+                -Value ([string]$argument.Value)
+            Write-Host (
+                '      {0} {1}{2}' -f
+                $argument.Name, $valueLiteral, $continuation
+            )
+        }
     }
 }
 
@@ -204,9 +384,23 @@ Write the report to:
 
     Write-ControlStatus "No campaign post-mortem was found; regenerating it at: $postMortemPath"
     Set-Location -LiteralPath $Worktree
-    $prompt | copilot --yolo
-    if ($LASTEXITCODE -ne 0) {
-        throw "Post-mortem recovery failed with exit code $LASTEXITCODE for '$RunDirectory'."
+    if ($ShowShepherdTaskScriptOutput) {
+        $prompt | copilot --yolo
+        $copilotExitCode = $LASTEXITCODE
+    }
+    else {
+        $capturedOutput = @($prompt | copilot --yolo 2>&1)
+        $copilotExitCode = $LASTEXITCODE
+    }
+    if ($copilotExitCode -ne 0) {
+        if (-not $ShowShepherdTaskScriptOutput -and
+            $capturedOutput.Count -gt 0) {
+            Write-ControlStatus (
+                'Captured output from failed post-mortem recovery:'
+            )
+            Write-CapturedOutput -Output $capturedOutput
+        }
+        throw "Post-mortem recovery failed with exit code $copilotExitCode for '$RunDirectory'."
     }
     if (-not (Test-Path -LiteralPath $postMortemPath -PathType Leaf) -or
         (Get-Item -LiteralPath $postMortemPath).Length -eq 0) {
@@ -249,6 +443,12 @@ try {
     $ShepherdPlugin = Join-Path $CopilotHome 'plugins\shepherd-task'
     $FixtureRoot = Join-Path $ShepherdPlugin `
         'test\cargotracker-add-change-arrival-deadline-feature'
+    $Stage00Script = Join-Path $ShepherdPlugin `
+        'scripts\shepherd-task-00-init-campaign.ps1'
+    $Stage15Script = Join-Path $ShepherdPlugin `
+        'scripts\shepherd-task-15-prepare-create-issues.ps1'
+    $Stage25Script = Join-Path $ShepherdPlugin `
+        'scripts\shepherd-task-25-given-list.ps1'
 
     Write-Host '=== shepherd-task Cargo Tracker control run ===' -ForegroundColor Cyan
     Write-Host "Repository:          $Repo"
@@ -260,15 +460,31 @@ try {
     Write-Host "Baseline branch:     $BaselineBranch"
     Write-Host "Control branch:      $ControlBranch"
     Write-Host ''
+    Write-ControlStatus (
+        'Canonical lifecycle: Stage 00 -> Stage 10 -> research gate -> ' +
+        'Stage 15 -> Stage 20 -> Stage 25 -> Stage 30 -> Stage 40 -> Stage 50.'
+    )
+    Write-ControlStatus (
+        'Stage 10 and the human/Copilot research gate are not run live.'
+    )
+    Write-ControlStatus (
+        'This deterministic control fixture writes an already-resolved plan in their place.'
+    )
+    Write-ControlStatus (
+        'Repository setup, offline contracts, and final verification are experiment operations, not shepherd-task stages.'
+    )
 
     $currentPhase = 'checking required commands'
+    Write-ControlStatus 'Experiment setup: validating prerequisites.'
     foreach ($commandName in @('git', 'gh', 'copilot', 'pwsh')) {
         if (-not (Get-Command $commandName -ErrorAction SilentlyContinue)) {
             throw "Required command was not found on PATH: $commandName"
         }
     }
-    gh auth status
-    Assert-NativeSuccess 'GitHub CLI authentication check'
+    Invoke-CheckedNativeCommand `
+        -FilePath 'gh' `
+        -Arguments @('auth', 'status') `
+        -Operation 'GitHub CLI authentication check'
 
     if (-not (Test-Path -LiteralPath $WorkareasDir -PathType Container)) {
         New-Item -ItemType Directory -Path $WorkareasDir -Force | Out-Null
@@ -303,9 +519,10 @@ try {
     }
 
     $currentPhase = 'running offline contracts'
+    Write-ControlStatus 'Experiment setup: running offline contracts.'
     Invoke-CheckedPwshScript -Path (
         Join-Path $ShepherdPlugin 'test\lesson-propagation-default-contract.ps1'
-    )
+    ) -OutputChannel Contract
     foreach ($contract in @(
         '05-stage20-artifact-contract.ps1',
         '06-stage40-review-contract.ps1',
@@ -316,18 +533,27 @@ try {
         '11-stage15-plan-discovery-contract.ps1',
         '12-session-outcome-contract.ps1'
     )) {
-        Invoke-CheckedPwshScript -Path (Join-Path $FixtureRoot $contract)
+        Invoke-CheckedPwshScript `
+            -Path (Join-Path $FixtureRoot $contract) `
+            -OutputChannel Contract
     }
 
     $currentPhase = 'checking disposable repository'
+    Write-ControlStatus 'Experiment setup: checking the disposable repository.'
     $repositoryInfoOutput = gh repo view $Repo --json nameWithOwner 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "The Cargo Tracker fork must have Actions, Copilot Coding Agent, and Copilot code review enabled: $($repositoryInfoOutput -join [Environment]::NewLine)"
     }
+    if ($ShowNativeToolOutput) {
+        Write-CapturedOutput -Output @($repositoryInfoOutput)
+    }
 
     $currentPhase = 'cloning primary checkout'
-    git clone $cloneUrl $Target
-    Assert-NativeSuccess "Clone of '$Repo'"
+    Write-ControlStatus 'Experiment setup: cloning the primary checkout.'
+    Invoke-CheckedNativeCommand `
+        -FilePath 'git' `
+        -Arguments @('clone', $cloneUrl, $Target) `
+        -Operation "Clone of '$Repo'"
     $headOutput = @(git -C $Target rev-parse --verify HEAD 2>$null)
     if ($LASTEXITCODE -ne 0 -or $headOutput.Count -eq 0) {
         throw 'The Cargo Tracker fork is empty; it must contain the prepared baseline branch.'
@@ -358,6 +584,7 @@ try {
     }
 
     $currentPhase = 'publishing immutable baseline'
+    Write-ControlStatus 'Experiment setup: publishing the immutable baseline.'
     Invoke-CheckedPwshScript `
         -Path (Join-Path $FixtureRoot '00-prepare-test-baseline.ps1') `
         -Arguments @(
@@ -365,7 +592,8 @@ try {
             '-BaselineBranch', $BaselineBranch,
             '-SourceBranch', $SourceBranch,
             '-ExpectedBaselineSha', $ExpectedBaselineSha
-        )
+        ) `
+        -OutputChannel DomainFixture
     $BaselineSha = (git -C $Target rev-parse HEAD).Trim()
     Assert-NativeSuccess 'Baseline SHA lookup'
     if ($BaselineSha -ne $ExpectedBaselineSha) {
@@ -373,8 +601,14 @@ try {
     }
 
     $currentPhase = 'creating control worktree'
-    git -C $Target worktree add --detach $ControlWorktree $BaselineSha
-    Assert-NativeSuccess 'Control worktree creation'
+    Write-ControlStatus 'Experiment setup: creating the control worktree.'
+    Invoke-CheckedNativeCommand `
+        -FilePath 'git' `
+        -Arguments @(
+            '-C', $Target, 'worktree', 'add', '--detach',
+            $ControlWorktree, $BaselineSha
+        ) `
+        -Operation 'Control worktree creation'
     $ControlStart = (git -C $ControlWorktree rev-parse HEAD).Trim()
     Assert-NativeSuccess 'Control starting SHA lookup'
     if ($ControlStart -ne $BaselineSha) {
@@ -383,6 +617,34 @@ try {
 
     $currentPhase = 'initializing control campaign'
     Set-Location -LiteralPath $ControlWorktree
+    $stage00PlannedArguments = @(
+        [pscustomobject]@{
+            Name = '-CampaignIssueNumber'
+            Value = '<CAMPAIGN_ISSUE_NUMBER>'
+            IsSwitch = $false
+        },
+        [pscustomobject]@{
+            Name = '-CampaignShortname'
+            Value = 'arrival-deadline-control'
+            IsSwitch = $false
+        },
+        [pscustomobject]@{
+            Name = '-BaseBranch'
+            Value = $ControlBranch
+            IsSwitch = $false
+        },
+        [pscustomobject]@{
+            Name = '-Repo'
+            Value = $Repo
+            IsSwitch = $false
+        }
+    )
+    Write-ShepherdScriptInvocation `
+        -Stage '00' `
+        -Purpose 'Initialize campaign' `
+        -InvocationType Planned `
+        -ScriptPath $Stage00Script `
+        -Arguments $stage00PlannedArguments
     Invoke-CheckedPwshScript `
         -Path (Join-Path $FixtureRoot '01-prepare-base-branch.ps1') `
         -Arguments @(
@@ -390,11 +652,68 @@ try {
             '-BaseBranch', $ControlBranch,
             '-CampaignShortname', 'arrival-deadline-control',
             '-BaselineSha', $BaselineSha
-        )
+        ) `
+        -OutputChannel DomainFixture
     $controlCampaign = Get-CampaignDirectory `
         -Worktree $ControlWorktree -Shortname 'arrival-deadline-control'
     $ControlDirectory = $controlCampaign.FullName
     $ControlDirectoryName = $controlCampaign.Name
+    $campaignManifestPath = Join-Path $ControlDirectory `
+        'shepherd-campaign.json'
+    try {
+        $CampaignManifest = Get-Content -LiteralPath $campaignManifestPath `
+            -Raw | ConvertFrom-Json
+    }
+    catch {
+        throw "Campaign manifest is invalid JSON: $campaignManifestPath. $($_.Exception.Message)"
+    }
+    if ($CampaignManifest.campaignIssueNumber -notmatch '^[1-9][0-9]*$' -or
+        [string]$CampaignManifest.campaignShortname -ne
+            'arrival-deadline-control' -or
+        [string]$CampaignManifest.baseBranch -ne $ControlBranch -or
+        [string]$CampaignManifest.repository -ne $Repo -or
+        [string]$CampaignManifest.campaignMetadataDirectory -ne
+            $ControlDirectoryName) {
+        throw "Campaign manifest does not match the control invocation: $campaignManifestPath"
+    }
+    $stage00ActualArguments = @(
+        [pscustomobject]@{
+            Name = '-CampaignIssueNumber'
+            Value = [string]$CampaignManifest.campaignIssueNumber
+            IsSwitch = $false
+        },
+        [pscustomobject]@{
+            Name = '-CampaignShortname'
+            Value = 'arrival-deadline-control'
+            IsSwitch = $false
+        },
+        [pscustomobject]@{
+            Name = '-BaseBranch'
+            Value = $ControlBranch
+            IsSwitch = $false
+        },
+        [pscustomobject]@{
+            Name = '-Repo'
+            Value = $Repo
+            IsSwitch = $false
+        }
+    )
+    Write-ShepherdScriptInvocation `
+        -Stage '00' `
+        -Purpose 'Initialize campaign' `
+        -InvocationType Actual `
+        -ScriptPath $Stage00Script `
+        -Arguments $stage00ActualArguments
+    Write-ControlStage -Stage '10' -Purpose 'Create ignorance-reduction plan'
+    Write-ControlStatus (
+        'Normal usage invokes skill shepherd-task-10-create-ignorance-reduction-plan.'
+    )
+    Write-ControlStatus (
+        'Human and Copilot research then fills every implementation-gating Resolution block.'
+    )
+    Write-ControlStatus (
+        'This control fixture substituted an already-resolved plan for Stage 10 and the research gate.'
+    )
     $ControlInitParent = (git -C $ControlWorktree rev-parse 'HEAD^').Trim()
     Assert-NativeSuccess 'Control initialization parent lookup'
     if ($ControlInitParent -ne $BaselineSha) {
@@ -402,28 +721,120 @@ try {
     }
 
     $currentPhase = 'creating control issues'
+    $stage15Arguments = @(
+        [pscustomobject]@{
+            Name = '-CampaignMetadataDirectory'
+            Value = $ControlDirectoryName
+            IsSwitch = $false
+        },
+        [pscustomobject]@{
+            Name = '-PassThru'
+            Value = ''
+            IsSwitch = $true
+        }
+    )
+    Write-ShepherdScriptInvocation `
+        -Stage '15' `
+        -Purpose 'Prepare Stage 20' `
+        -InvocationType Planned `
+        -ScriptPath $Stage15Script `
+        -Arguments $stage15Arguments
+    Write-ControlStage -Stage '20' -Purpose 'Create issues from the resolved plan'
+    Write-ControlStatus (
+        'Stage 15 will generate a launcher that invokes skill shepherd-task-20-create-issues-from-plan.'
+    )
+    $stage25PlannedArguments = @(
+        [pscustomobject]@{
+            Name = '-TaskIssues'
+            Value = '<TASK_ISSUE_LIST>'
+            IsSwitch = $false
+        },
+        [pscustomobject]@{
+            Name = '-CampaignMetadataDirectory'
+            Value = $ControlDirectoryName
+            IsSwitch = $false
+        }
+    )
+    Write-ShepherdScriptInvocation `
+        -Stage '25' `
+        -Purpose 'Dispatch ordered issue list after Stage 20' `
+        -InvocationType Planned `
+        -ScriptPath $Stage25Script `
+        -Arguments $stage25PlannedArguments
     Invoke-CheckedPwshScript `
         -Path (Join-Path $FixtureRoot '02-create-issues.ps1') `
-        -Arguments @('-CampaignMetadataDirectory', $ControlDirectoryName)
+        -Arguments @('-CampaignMetadataDirectory', $ControlDirectoryName) `
+        -OutputChannel DomainFixture
+    Write-ShepherdScriptInvocation `
+        -Stage '15' `
+        -Purpose 'Prepare Stage 20' `
+        -InvocationType Actual `
+        -ScriptPath $Stage15Script `
+        -Arguments $stage15Arguments
+    Write-ControlStatus (
+        'Stage 20 completed through the generated launcher, and the fixture verified all five issue bodies.'
+    )
     $ControlHandoff = Get-CampaignHandoff -CampaignDirectory $ControlDirectory
 
     $currentPhase = 'running control stage 25'
+    $stage25ActualArguments = @(
+        [pscustomobject]@{
+            Name = '-TaskIssues'
+            Value = $ControlHandoff.IssueList
+            IsSwitch = $false
+        },
+        [pscustomobject]@{
+            Name = '-CampaignMetadataDirectory'
+            Value = $ControlDirectoryName
+            IsSwitch = $false
+        }
+    )
+    Write-ShepherdScriptInvocation `
+        -Stage '25' `
+        -Purpose 'Dispatch ordered issue list' `
+        -InvocationType Actual `
+        -ScriptPath $Stage25Script `
+        -Arguments $stage25ActualArguments
+    Write-ControlStatus (
+        "Stage 25 will process issues $($ControlHandoff.IssueList) serially."
+    )
+    Write-ControlStatus (
+        'For each issue, Stage 30 moves assignment to the Ready-for-review boundary, then Stage 40 reviews and merges it.'
+    )
+    Write-ControlStatus (
+        'Stage 50 creates the campaign post-mortem after success or failure.'
+    )
+    Write-ControlStatus (
+        "Run evidence will be written beneath: $ControlDirectory\shepherd-tasks-<CAMPAIGN_ID>-<TIMESTAMP>"
+    )
+    if (-not $ShowShepherdTaskScriptOutput) {
+        Write-ControlStatus (
+            'Detailed per-issue output is hidden; use -ShowShepherdTaskScriptOutput to display it.'
+        )
+    }
     Invoke-CheckedPwshScript `
-        -Path (Join-Path $ShepherdPlugin 'scripts\shepherd-task-25-given-list.ps1') `
+        -Path $Stage25Script `
         -Arguments @(
             '-TaskIssues', $ControlHandoff.IssueList,
             '-CampaignMetadataDirectory', $ControlDirectoryName
-        )
+        ) `
+        -OutputChannel ShepherdTaskScript
+    Write-ControlStatus 'Stage 25 completed successfully for all five issues.'
 
     $currentPhase = 'updating and verifying control campaign'
+    Write-ControlStatus 'Experiment verification: synchronizing and checking the completed campaign.'
     Set-Location -LiteralPath $ControlWorktree
-    git pull --ff-only
-    Assert-NativeSuccess 'Control fast-forward pull'
+    Invoke-CheckedNativeCommand `
+        -FilePath 'git' `
+        -Arguments @('pull', '--ff-only') `
+        -Operation 'Control fast-forward pull'
     Invoke-CheckedPwshScript `
         -Path (Join-Path $FixtureRoot '04-verify-control-campaign.ps1') `
-        -Arguments @('-CampaignMetadataDirectory', $ControlDirectoryName)
+        -Arguments @('-CampaignMetadataDirectory', $ControlDirectoryName) `
+        -OutputChannel DomainFixture
 
     $currentPhase = 'collecting final evidence'
+    Write-ControlStatus 'Experiment verification: collecting final evidence.'
     $ControlRun = Get-OnlyCompletedRunDirectory -CampaignDirectory $ControlDirectory
     $ControlPostMortem = Get-OrCreatePostMortem `
         -RunDirectory $ControlRun.FullName `
