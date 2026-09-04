@@ -26,6 +26,9 @@ skills that all build on this one.
 > compatible Power Automate MCP server). You will need:
 > - MCP endpoint: `https://mcp.flowstudio.app/mcp` (same for all subscribers)
 > - API key / JWT token (`x-api-key` header — NOT Bearer)
+> - In ChatGPT or claude.ai there is no key: add `https://mcp.flowstudio.app/mcp/oauth`
+>   as a connector and sign in with Microsoft — see the
+>   [ChatGPT walkthrough](https://learn.flowstudio.app/chatgpt-power-automate)
 > - Power Platform environment name (e.g. `Default-<tenant-guid>`)
 
 ---

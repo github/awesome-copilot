@@ -1,6 +1,6 @@
 # FlowStudio Power Automate Plugin
 
-Give your AI agent the same visibility you have in the Power Automate portal. The Graph API only returns top-level run status — agents can't see action inputs, loop iterations, nested failures, or who owns a flow. Flow Studio MCP exposes all of it.
+Give your AI agent the same visibility you have in the Power Automate portal. The Graph API only returns top-level run status — agents can't see action inputs, loop iterations, nested failures, or who owns a flow. FlowStudio MCP exposes all of it.
 
 This plugin includes five skills covering the full lifecycle: connect, debug, build, monitor, and govern Power Automate cloud flows.
 
@@ -16,7 +16,7 @@ Requires a [FlowStudio MCP](https://mcp.flowstudio.app) subscription.
 | Flow health and failure rates             | Nothing                          |
 | Who built a flow, what connectors it uses | Nothing                          |
 
-Flow Studio MCP fills these gaps.
+FlowStudio MCP fills these gaps.
 
 ## Installation
 
