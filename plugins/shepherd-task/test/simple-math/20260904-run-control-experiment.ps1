@@ -678,6 +678,9 @@ try {
             $ControlDirectoryName) {
         throw "Campaign manifest does not match the control invocation: $campaignManifestPath"
     }
+    Write-ControlStatus (
+        "Creating campaign issue $($CampaignManifest.campaignIssueNumber) in $canonicalRepositoryUrl"
+    )
     $stage00ActualArguments = @(
         [pscustomobject]@{
             Name = '-CampaignIssueNumber'

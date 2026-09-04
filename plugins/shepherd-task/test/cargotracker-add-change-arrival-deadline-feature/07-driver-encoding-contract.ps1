@@ -126,6 +126,26 @@ try {
             throw "Canonical invocation display $index is out of order: $callText"
         }
     }
+    $campaignIssueMessageCalls = @(
+        $driverAst.FindAll(
+            {
+                param($node)
+                $node -is [System.Management.Automation.Language.CommandAst] -and
+                    $node.GetCommandName() -eq 'Write-ControlStatus' -and
+                    $node.Extent.Text.Contains(
+                        'Creating campaign issue $($CampaignManifest.campaignIssueNumber) in $canonicalRepositoryUrl'
+                    )
+            },
+            $true
+        )
+    )
+    if ($campaignIssueMessageCalls.Count -ne 1 -or
+        $campaignIssueMessageCalls[0].Extent.StartOffset -le
+            $invocationCalls[0].Extent.EndOffset -or
+        $campaignIssueMessageCalls[0].Extent.EndOffset -ge
+            $invocationCalls[1].Extent.StartOffset) {
+        throw 'Campaign issue message must appear between planned and actual Stage 00 invocation output.'
+    }
 
     $stage10Call = @(
         $driverAst.FindAll(
