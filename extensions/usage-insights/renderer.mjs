@@ -725,10 +725,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       }
 
       const values = selected.agents.map((agent) => {
-        const tokens = agent.inputTokens
-          + agent.outputTokens
-          + agent.cacheReadTokens
-          + agent.cacheWriteTokens;
+        const tokens = agent.inputTokens + agent.outputTokens;
         return { agent, value: state.agentMetric === 'credits' ? agent.aiCredits : tokens };
       });
       const maximum = Math.max(...values.map((entry) => entry.value), Number.EPSILON);
@@ -738,7 +735,10 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         const label = element('div', 'bar-label');
         const left = document.createElement('span');
         left.append(element('span', '', entry.agent.displayName));
-        left.append(element('span', 'agent-detail', entry.agent.models.join(', ') + ' · ' + entry.agent.calls + ' calls'));
+        left.append(element('span', 'agent-detail', [
+          entry.agent.models.join(', '),
+          entry.agent.calls + ' calls',
+        ].filter(Boolean).join(' · ')));
         label.append(left);
         label.append(element('span', '', state.agentMetric === 'credits'
           ? formatCredits(entry.value) + ' AI credits'
@@ -764,10 +764,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         { label: 'Reasoning', value: totals.reasoningTokens, color: 5 },
       ];
       const maximum = Math.max(...values.map((entry) => entry.value), Number.EPSILON);
-      const total = totals.inputTokens
-        + totals.cacheReadTokens
-        + totals.cacheWriteTokens
-        + totals.outputTokens;
+      const total = totals.inputTokens + totals.outputTokens;
       text('tokenTotal', formatNumber(total) + ' total tokens');
 
       for (const entry of values) {
