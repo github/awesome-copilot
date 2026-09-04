@@ -519,9 +519,11 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
     <section class="section" aria-labelledby="creditsHeading">
       <div class="section-head">
-        <button class="collapsible" id="chartToggle" type="button" aria-expanded="true">
-          <h2 id="creditsHeading"><span class="chevron">›</span>AI credits · <span id="chartCredits">—</span></h2>
-        </button>
+        <h2 id="creditsHeading">
+          <button class="collapsible" id="chartToggle" type="button" aria-expanded="true">
+            <span class="chevron">›</span>AI credits · <span id="chartCredits">—</span>
+          </button>
+        </h2>
       </div>
       <div id="chartContent">
         <div class="chart" id="creditChart"></div>
@@ -538,7 +540,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     <section class="section" aria-labelledby="agentUsageHeading">
       <div class="section-head">
         <h2 id="agentUsageHeading">Usage by agent</h2>
-        <div class="segmented" id="agentMetricControl" aria-label="Agent metric">
+        <div class="segmented" id="agentMetricControl" role="group" aria-label="Agent metric">
           <button type="button" data-metric="credits" aria-pressed="true">AI credits</button>
           <button type="button" data-metric="tokens" aria-pressed="false">Tokens</button>
         </div>
@@ -560,7 +562,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           <h2 id="historyHeading">Session history</h2>
           <p id="rangeLabel">Recent locally recorded usage</p>
         </div>
-        <div class="segmented" id="rangeControl" aria-label="History range"></div>
+        <div class="segmented" id="rangeControl" role="group" aria-label="History range"></div>
       </div>
       <div class="history-summary">
         <div class="history-stat"><strong id="rangeCredits">—</strong><span>AI credits</span></div>
@@ -790,7 +792,6 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         button.addEventListener('click', () => {
           if (state.range !== range.id) {
             state.range = range.id;
-            if (bootstrap) render(bootstrap);
             load();
           }
         });
@@ -916,7 +917,12 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       text('liveStatus', 'Reconnecting');
     };
 
-    load();
+    if (bootstrap) {
+      render(bootstrap);
+      app.classList.remove('loading');
+    } else {
+      load();
+    }
     setInterval(load, 5000);
   </script>
 </body>
