@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "usage-insights",
+  "description": "Inspect current and historical GitHub Copilot token and AI-credit usage with per-agent rollups and in-canvas session drill-down.",
+  "version": "1.0.0",
+  "author": {
+    "name": "David Kaya",
+    "url": "https://github.com/davidkaya"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "ai-credits",
+    "canvas",
+    "copilot-extension",
+    "session-analytics",
+    "token-usage",
+    "usage-insights"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/usage-insights"
+      ]
+    }
+  }
+}
