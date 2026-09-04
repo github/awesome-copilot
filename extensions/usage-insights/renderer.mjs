@@ -620,6 +620,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       const seconds = Math.floor(ms / 1000);
       const minutes = Math.floor(seconds / 60);
       const hours = Math.floor(minutes / 60);
+      if (ms < 1000) return Math.max(1, Math.round(ms)) + 'ms';
       if (hours) return hours + 'h ' + (minutes % 60) + 'm';
       if (minutes) return minutes + 'm ' + (compact ? '' : (seconds % 60) + 's').trim();
       return Math.max(1, seconds) + 's';
@@ -725,7 +726,6 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       const values = selected.agents.map((agent) => {
         const tokens = agent.inputTokens
           + agent.outputTokens
-          + agent.reasoningTokens
           + agent.cacheReadTokens
           + agent.cacheWriteTokens;
         return { agent, value: state.agentMetric === 'credits' ? agent.aiCredits : tokens };
@@ -763,7 +763,10 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         { label: 'Reasoning', value: totals.reasoningTokens, color: 5 },
       ];
       const maximum = Math.max(...values.map((entry) => entry.value), 1);
-      const total = values.reduce((sum, entry) => sum + entry.value, 0);
+      const total = totals.inputTokens
+        + totals.cacheReadTokens
+        + totals.cacheWriteTokens
+        + totals.outputTokens;
       text('tokenTotal', formatNumber(total) + ' total tokens');
 
       for (const entry of values) {

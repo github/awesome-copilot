@@ -68,6 +68,30 @@ function runtimeAggregate(metrics) {
     return aggregate;
 }
 
+function mergeAggregates(persisted, runtime) {
+    if (!runtime) {
+        return persisted;
+    }
+
+    const merged = {};
+    for (const key of [
+        "apiDurationMs",
+        "cacheReadTokens",
+        "cacheWriteTokens",
+        "calls",
+        "inputTokens",
+        "outputTokens",
+        "reasoningTokens",
+        "sessions",
+        "subagents",
+        "totalNanoAiu",
+    ]) {
+        merged[key] = Math.max(number(persisted[key]), number(runtime[key]));
+    }
+    merged.aiCredits = credits(merged.totalNanoAiu);
+    return merged;
+}
+
 function cutoffFor(range) {
     const duration = {
         "24h": 24 * 60 * 60 * 1000,
@@ -452,7 +476,7 @@ export class UsageInsightsStore {
             selectedSessionId === currentSessionId && currentRuntime
                 ? runtimeAggregate(currentRuntime)
                 : undefined;
-        const selectedTotals = liveWindow || dbTotals;
+        const selectedTotals = mergeAggregates(dbTotals, liveWindow);
         const agents = this.getSessionAgents(selectedSessionId, agentMetadata);
         const selectedNanoAiu = selectedTotals.totalNanoAiu || dbTotals.totalNanoAiu;
         for (const agent of agents) {
