@@ -1,5 +1,5 @@
 import { createReadStream, existsSync } from "node:fs";
-import { join } from "node:path";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { createInterface } from "node:readline";
 import { DatabaseSync } from "node:sqlite";
 
@@ -131,7 +131,16 @@ export class AgentMetadataStore {
         }
 
         const map = new Map();
-        const eventPath = join(this.copilotHome, "session-state", sessionId, "events.jsonl");
+        const sessionStateRoot = resolve(this.copilotHome, "session-state");
+        const eventPath = resolve(sessionStateRoot, sessionId, "events.jsonl");
+        const relativeEventPath = relative(sessionStateRoot, eventPath);
+        if (
+            isAbsolute(relativeEventPath) ||
+            relativeEventPath === ".." ||
+            relativeEventPath.startsWith(`..${sep}`)
+        ) {
+            throw new Error("Invalid session ID.");
+        }
         if (existsSync(eventPath)) {
             const lines = createInterface({
                 crlfDelay: Infinity,

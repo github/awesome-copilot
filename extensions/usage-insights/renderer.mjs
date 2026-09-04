@@ -648,6 +648,8 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       const calls = selected.timeline.calls;
       if (!calls.length) {
         host.append(element('div', 'empty', 'No credit activity has been recorded yet.'));
+        text('latestCallLabel', 'Latest model call');
+        text('latestCallDuration', '—');
         return;
       }
 
@@ -719,7 +721,11 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       }
 
       const values = selected.agents.map((agent) => {
-        const tokens = agent.inputTokens + agent.outputTokens + agent.reasoningTokens;
+        const tokens = agent.inputTokens
+          + agent.outputTokens
+          + agent.reasoningTokens
+          + agent.cacheReadTokens
+          + agent.cacheWriteTokens;
         return { agent, value: state.agentMetric === 'credits' ? agent.aiCredits : tokens };
       });
       const maximum = Math.max(...values.map((entry) => entry.value), 1);
@@ -750,6 +756,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       const values = [
         { label: 'Input', value: totals.inputTokens, color: 1 },
         { label: 'Cache read', value: totals.cacheReadTokens, color: 2 },
+        { label: 'Cache write', value: totals.cacheWriteTokens, color: 0 },
         { label: 'Output', value: totals.outputTokens, color: 3 },
         { label: 'Reasoning', value: totals.reasoningTokens, color: 5 },
       ];
@@ -843,30 +850,43 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       renderHistory(data.range);
     }
 
+    let loadController;
+
     async function load() {
-      if (state.loading) return;
+      loadController?.abort();
+      const controller = new AbortController();
+      loadController = controller;
       state.loading = true;
       app.classList.add('loading');
       errorState.hidden = true;
       try {
-        const params = new URLSearchParams({ range: state.range });
+        const params = new URLSearchParams({
+          range: state.range,
+          token: initial.capabilityToken,
+        });
         if (state.sessionId) params.set('sessionId', state.sessionId);
-        const response = await fetch('/api/stats?' + params.toString(), { cache: 'no-store' });
+        const response = await fetch('/api/stats?' + params.toString(), {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Unable to load session metrics.');
         render(data);
       } catch (error) {
+        if (controller.signal.aborted) return;
         errorState.textContent = error instanceof Error ? error.message : 'Unable to load session metrics.';
         errorState.hidden = false;
         text('liveStatus', 'Unavailable');
       } finally {
-        state.loading = false;
-        app.classList.remove('loading');
+        if (loadController === controller) {
+          state.loading = false;
+          app.classList.remove('loading');
+        }
       }
     }
 
     backButton.addEventListener('click', () => {
-      state.sessionId = '';
+      state.sessionId = state.latestData?.currentSessionId || '';
       load();
     });
 
@@ -886,7 +906,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       if (state.latestData) renderAgentBars(state.latestData.selected);
     });
 
-    const events = new EventSource('/events');
+    const events = new EventSource('/events?token=' + encodeURIComponent(initial.capabilityToken));
     let refreshTimer;
     events.addEventListener('refresh', () => {
       clearTimeout(refreshTimer);

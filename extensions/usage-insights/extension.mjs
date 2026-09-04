@@ -1,3 +1,4 @@
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -22,6 +23,12 @@ function json(res, status, value) {
         "Content-Type": "application/json; charset=utf-8",
     });
     res.end(JSON.stringify(value));
+}
+
+function hasCapabilityToken(url, capabilityToken) {
+    const supplied = Buffer.from(url.searchParams.get("token") || "");
+    const expected = Buffer.from(capabilityToken);
+    return supplied.length === expected.length && timingSafeEqual(supplied, expected);
 }
 
 function notifyCanvases() {
@@ -54,9 +61,14 @@ async function buildDashboardData({ range = "7d", sessionId } = {}) {
 }
 
 async function startServer(instanceId, defaults) {
+    const capabilityToken = randomBytes(32).toString("base64url");
     const clients = new Set();
     const server = createServer(async (req, res) => {
         const url = new URL(req.url || "/", "http://127.0.0.1");
+        if (!hasCapabilityToken(url, capabilityToken)) {
+            json(res, 403, { error: "Forbidden" });
+            return;
+        }
 
         if (req.method === "GET" && url.pathname === "/") {
             try {
@@ -65,7 +77,13 @@ async function startServer(instanceId, defaults) {
                     "Cache-Control": "no-store",
                     "Content-Type": "text/html; charset=utf-8",
                 });
-                res.end(renderDashboardHtml({ instanceId, defaults, initialData }));
+                res.end(
+                    renderDashboardHtml({
+                        instanceId,
+                        defaults: { ...defaults, capabilityToken },
+                        initialData,
+                    }),
+                );
             } catch (error) {
                 res.writeHead(500, {
                     "Cache-Control": "no-store",
@@ -112,7 +130,11 @@ async function startServer(instanceId, defaults) {
     });
     const address = server.address();
     const port = typeof address === "object" && address ? address.port : 0;
-    return { clients, server, url: `http://127.0.0.1:${port}/` };
+    return {
+        clients,
+        server,
+        url: `http://127.0.0.1:${port}/?token=${encodeURIComponent(capabilityToken)}`,
+    };
 }
 
 const usageInsightsCanvas = createCanvas({

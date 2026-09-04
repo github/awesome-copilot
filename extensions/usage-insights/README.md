@@ -17,6 +17,7 @@ the canvas is open.
 All metrics are read locally from Copilot's session data. The extension:
 
 - binds its renderer to `127.0.0.1`
+- requires a per-instance capability token on every local HTTP and SSE route
 - opens local session databases read-only
 - does not send usage data to an external service
 - keeps historical session drill-down inside the canvas
