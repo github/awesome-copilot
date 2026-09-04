@@ -199,8 +199,10 @@ require $_tests_dir . '/includes/bootstrap.php';
 ### WordPress.org self-audit
 
 ```bash
-grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "function |^[[:space:]]*((abstract|final|readonly)[[:space:]]+)*(class|trait|interface|enum)[[:space:]]|namespace |define\(|const " .
-grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "update_option\(|get_option\(|add_option\(|set_transient\(|get_transient\(" .
+grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "function |^[[:space:]]*((abstract|final|readonly)[[:space:]]+)*(class|trait|interface|enum)[[:space:]]|namespace |define\(|const |^[[:space:]]*global[[:space:]]" .
+grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "(add|get|update|delete)_option\(|(add|get|update|delete)_site_option\(|(get|update|delete)_network_option\(|(set|get|delete)_transient\(|(set|get|delete)_site_transient\(" .
+grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "register_meta\(|(add|get|update|delete)_(post|user|term|comment)_meta\(|add_shortcode\(|wp_schedule_(single_)?event\(|wp_next_scheduled\(|wp_clear_scheduled_hook\(" .
+grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "do_action\(|apply_filters\(|add_action\(|add_filter\(|wp_(register|enqueue)_(script|style)\(|wp_localize_script\(|wp_set_script_translations\(|wp_add_inline_(script|style)\(" .
 grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "WP_PLUGIN_DIR|WP_CONTENT_DIR|WP_CONTENT_URL|WPMU_PLUGIN_DIR|ABSPATH|__DIR__" .
 grep -rnE --include='*.php' --exclude-dir=vendor --exclude-dir=node_modules "file_put_contents|fopen|fwrite|fputs|mkdir|unlink|rename\(|copy\(" .
 grep -rniE --exclude-dir=vendor --exclude-dir=node_modules "plugin-?update-?checker|PucFactory|pre_set_site_transient_update_plugins|puc_" .
@@ -215,7 +217,7 @@ wp dist-archive . my-plugin.zip
 unzip -l my-plugin.zip
 ```
 
-Review every match, do not treat local silence as approval, and inspect the actual archive for unwanted files and stale bundled dependencies.
+These commands are a starting point, not a complete prefix check: they surface the declaration and registration/access call sites (options, site/network options, transients, metadata, shortcodes, cron events, hooks, asset handles, and localized script objects), but you must still read each matched line to confirm the actual option keys, hook/shortcode/cron string names, script/style handles, and localized JavaScript object names are prefixed. Review every match, do not treat local silence as approval, and inspect the actual archive for unwanted files and stale bundled dependencies.
 
 ## 13) What Copilot Must Ensure (Checklist)
 
