@@ -507,7 +507,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         <span class="summary-meta" id="sessionTitle">Loading session...</span>
       </div>
       <div class="header-actions">
-        <button class="button" id="backButton" type="button" hidden>
+        <button class="button" id="backButton" type="button" aria-label="Return to current session" hidden>
           <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M6.5 3.5 2 8l4.5 4.5M2.5 8H14" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -821,7 +821,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         button.addEventListener('click', () => {
           state.sessionId = item.id;
           load();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          window.scrollTo({ top: 0 });
         });
         const labels = document.createElement('span');
         labels.append(element('span', 'session-name', item.title));

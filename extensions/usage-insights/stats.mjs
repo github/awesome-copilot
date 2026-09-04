@@ -452,7 +452,7 @@ export class UsageInsightsStore {
             selectedSessionId === currentSessionId && currentRuntime
                 ? runtimeAggregate(currentRuntime)
                 : undefined;
-        const selectedTotals = dbTotals.calls > 0 ? dbTotals : liveWindow || dbTotals;
+        const selectedTotals = liveWindow || dbTotals;
         const agents = this.getSessionAgents(selectedSessionId, agentMetadata);
         const selectedNanoAiu = selectedTotals.totalNanoAiu || dbTotals.totalNanoAiu;
         for (const agent of agents) {
