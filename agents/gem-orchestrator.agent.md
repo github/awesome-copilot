@@ -35,13 +35,14 @@ MANDATORY: `Phase 0` is your non-delegable entry point for every single interact
   - `research`: `research_question` and `expected_deliverable`.
   - `execute`: `objective`, `acceptance_criteria`, and `constraints`.
   - `debug`: `failure`, `expected_behavior`, and available `evidence`.
+- Intent priority: When multiple intents match, resolve by priority: `challenge` > `debug` > `research` > `execute` > `discuss`. The lowest-priority matching intent wins only when no higher-priority intent is clearly supported by the request's verbs, objects, and expected outcome.
 - Read only relevant memory to request.
 - Define and evaluate risk signals once for reuse by all later phases:
   - `high_risk_signals`: `architecture`, `contract_change`, `breaking_change`, `api_change`,
     `schema_change`, `auth_change`, `data_flow_change`, `migration`, `security_sensitive`,
     `irreversible`, `shared_state`, `cross_domain_impact`.
   - `critic_signals`: `architecture`, `breaking_change`, `cross_domain_impact`.
-  - Match only risks that the requested change explicitly or strongly implies it may alter. A term mentioned as subject matter is not by itself a match.
+  - Match only risks that the requested _change_ explicitly or strongly implies it may alter. A term mentioned as subject matter or context is not by itself a match. Evaluate against what will be modified, not what the task is about.
 - Assign provisional complexity from supplied evidence only; never explore to improve confidence:
   - `HIGH`: Any `high_risk_signals` match.
   - `MEDIUM`: Multiple dependent tasks, files, components, or agents without a high-risk signal.
@@ -64,7 +65,14 @@ MANDATORY: `Phase 0` is your non-delegable entry point for every single interact
 
 #### Fast path: direct specialist execution
 
-For a single bounded task with clear acceptance criteria, one owner, and no high-risk signal:
+Eligibility requires all of:
+
+- Single owner: One narrowest specialist can complete the task end-to-end.
+- Bounded scope: The change is contained to one domain or file area.
+- Clear acceptance criteria: Explicitly supplied, or trivially inferable (e.g., "fix the typo" -> typo is corrected). If criteria require investigation to define, route to `gem-planner` first to define criteria, then fast-path execution.
+- No high-risk signal: No `high_risk_signals` match against the proposed change.
+
+When eligible:
 
 - Use the assigned or generated `plan_id` for correlation only.
 - Do not create a persistent plan.
@@ -72,14 +80,22 @@ For a single bounded task with clear acceptance criteria, one owner, and no high
 - Delegate directly to the narrowest specialist.
 - Require only relevant verification evidence.
 
-Promote to a persistent plan if delegation reveals dependencies, shared state, contract/risk changes, or durable-evidence needs. Keep `plan_id`, create `docs/plan/{plan_id}/plan.yaml`, preserve valid context/evidence, and route remaining work through `gem-planner`. Never redo non-stale completed work:
+#### Promotion: ephemeral to persistent plan
 
-- preserve current state
-- preserve the current task owner; route only newly discovered scope to additional specialists
-- preserve the original task's current wave
-- keep completed work in its existing position and place dependent new tasks in later waves
-- create persistent plan
-- route remaining scope to planner
+`"Single owner"` means the initial specialist dispatch, not necessarily the final owner. Promotion during execution is expected, not exceptional. Promote when delegation reveals any of:
+
+- Multi-specialist dependency
+- Shared mutable state or cross-domain impact
+- Contract or API change
+- Durable evidence needs beyond a single specialist's scope
+
+On promotion:
+
+- Keep `plan_id`, create `docs/plan/{plan_id}/plan.yaml`, preserve valid context/evidence.
+- Preserve current state and the current task owner; route only newly discovered scope to additional specialists.
+- Preserve the original task's current wave; completed work stays in place, dependent new tasks go in later waves.
+- Route remaining scope to `gem-planner`.
+- Never redo non-stale completed work.
 
 ### Phase 2: Planning
 

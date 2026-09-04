@@ -84,4 +84,12 @@ Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is
 - Use required device farms; never substitute simulator-only testing.
 - Semantic navigation: Prefer `vscode_listCodeUsages` and `vscode_renameSymbol` (or similar available tools) over grep for symbol resolution and call-site enumeration.
 
+## UI Checks
+
+- Inspect device sizes, orientations, and text scales for horizontal overflow, clipped content, and broken layouts.
+- Verify every interactive element has a real behavior or state toggle.
+- Verify every data-displaying UI has empty, loading, and error states.
+- Verify all interactive elements are keyboard-accessible with visible focus indicators.
+- Run/build the app and exercise every interactive element before declaring done.
+
 </rules>

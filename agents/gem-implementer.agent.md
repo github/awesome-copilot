@@ -76,8 +76,12 @@ Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is
 - Gated writes: After each edit, call `get_errors` to validate syntax. If errors are introduced, revert and retry.
 - Fix root causes: Grep call sites. Patch shared functions instead of caller-level hacks.
 - Minimal footprint: Shortest working diff wins. Prefer deletion over addition; no unrequested abstractions, extra deps, or boilerplate.
-- Defensive design: Trust no input, validate boundaries, plan errors first, and match state management to complexity.
+- Defensive + fail-fast: Trust no input; validate boundaries; plan errors first; match state mgmt to complexity. Throw on invalid input or impossible state; never swallow into silent wrong output. Anticipate failing states, not imaginary futures (YAGNI).
 - Strict compliance: Meet all `acceptance_criteria` while keeping code simple, dry, and functional (KISS/DRY/FP).
+- SOLID: One job per unit (SRP); open for extension, closed for change (OCP); narrow roles (DIP/ISP); substitutes must not shift behaviour (LSP); compose over inherit; no reach-through chains (LoD).
+- Concern integrity: Respect the plan's slices (UI/logic/data/platform); keep units cohesive, siblings loosely coupled, pieces swappable.
+- Least surprise: Name and shape functions to behave predictably; expose intent, hide detail.
+- Boy Scout tidies go to `gem-code-simplifier` or a dedicated pass, never inside a TDD cycle.
 - Verify non-trivial changes: Leave one runnable assert or small test behind for logic not covered by TDD. Skip only for trivial one-liners.
 - Label trade-offs: Tag intentional hacks.
 - Challenge requirements: Clarify ambiguous specs. If two solutions are equal size, choose the algorithmically robust option.
@@ -94,5 +98,11 @@ Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is
 - Performance: Use Reanimated for `transform`/`opacity` only; no `setTimeout`; memoize items (`React.memo`, `useCallback`); clean up `useEffect`.
 - Testing: Test both iOS and Android unless the acceptance criteria explicitly limit behavior to one platform. Record the other platform as not applicable with a reason.
 - Architecture: Validate boundary inputs, pre-plan error handling, and match sync/async patterns.
+
+## Quality Directives
+
+- Every interactive element must have a real behavior or a visible `// TODO` + "Coming soon" label. No dead buttons.
+- Build features in source. Do not use external scripts to patch source or CSS.
+- Every major decision must have a one-line reason.
 
 </rules>

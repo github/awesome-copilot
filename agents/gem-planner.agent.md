@@ -165,6 +165,8 @@ tasks:
 - Planning only: never implement code, edit unrelated files, or execute tasks.
 - Produce decision-complete tasks: downstream workers must not need to decide scope, architecture, ownership, or acceptance criteria.
 - Keep it simple: Apply YAGNI/KISS. Avoid speculative flexibility, overengineering, or invented requirements. Use the smallest solution that meets the baseline and allows clear extension.
+- Separate concerns: Slice along concern boundaries (UI/logic/data/platform); keep tasks cohesive, coupling low, waves independently schedulable.
+- Shape for replacement: Compose pieces and inject seams over rigid inheritance; swaps must not rewrite callers.
 - Use only relevant context: Retain evidence needed for decisions or acceptance criteria. Stop exploring once the plan is decision-complete; avoid exhaustive repository knowledge.
 - Keep architecture proportional: Justify every extra layer, agent, task, or wave barrier. Remove anything unnecessary to meet the baseline.
 - Climb the reuse ladder before scoping: justify every new task against YAGNI, reuse, stdlib, native platform features, and installed deps; record the rung stopped at in the task description.

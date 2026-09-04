@@ -139,6 +139,7 @@ Gem Team uses a structured workflow to turn AI coding into a reliable engineerin
 - **Cost Efficiency**: Model routing, output hygiene, and compact handoffs ensure you only use the tokens you need. Evidence travels by reference, not by copy — keeping context usage low and cache hits high across waves.
 - **Failure Classification**: Every failure is classified (retry, fixable, replan, flaky, regression, platform-specific, test-bug) so the Orchestrator routes it to the right agent instead of blindly retrying.
 - **Verification Boundary**: The Orchestrator never re-verifies or second-guesses specialist output. Verification is owned exclusively by the specialist responsible for the work.
+- **Quality Directives**: Every agent follows specific rules that prevent common AI coding issues: no dead buttons, no buzzwords, no template filler, and every decision has a reason.
 
 ## How it Works
 
@@ -150,20 +151,20 @@ Gem Team installs a set of specialized agents that work together under the guida
 
 ### Agent Roles
 
-| Role                | Description                                                                                                         |
-| :------------------ | :------------------------------------------------------------------------------------------------------------------ |
-| **Orchestrator**    | Classifies intent, routes work, tracks state, and enforces verification gates. Never re-verifies specialist output. |
-| **Planner**         | Creates bounded wave plans with YAGNI/KISS scope reduction: milestones, routing, handoffs, risks, and criteria.     |
-| **Implementer**     | Implements features, fixes, and refactors with TDD. Covers happy paths, boundaries, errors, and state transitions.  |
-| **Reviewer**        | Independent reviews for quality, security, and compliance. Read-only critic mode for decisions.                     |
-| **Debugger**        | Root-cause analysis, stack traces, regression bisection. Adds a reproduction test; never implements fixes.          |
-| **Researcher**      | Codebase exploration in five budgeted modes: scan, question, audit, trace, deep.                                    |
-| **Browser Tester**  | E2E browser tests with visual, accessibility, performance, network, and regression checks.                          |
-| **Mobile Tester**   | Mobile E2E on iOS/Android with Detox, Maestro, or Appium.                                                           |
-| **DevOps**          | Infrastructure, CI/CD, containers, health checks, rollback, and production approvals.                               |
-| **Documentation**   | Technical docs, READMEs, API references, diagrams, and walkthroughs.                                                |
-| **Code Simplifier** | Removes dead code, reduces complexity, consolidates duplicates, and improves naming.                                |
-| **Skill Creator**   | Extracts high-confidence patterns into reusable `SKILL.md` files and assets.                                        |
+| Role                | Description                                                                                                                                                                                                                   |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Orchestrator**    | Classifies intent, routes work, tracks state, and enforces verification gates. Never re-verifies specialist output.                                                                                                           |
+| **Planner**         | Creates bounded wave plans with YAGNI/KISS scope reduction and concern-separated slices: milestones, routing, handoffs, risks, and criteria.                                                                                  |
+| **Implementer**     | Implements features, fixes, and refactors with TDD. Covers happy paths, boundaries, errors, and state transitions. Applies SOLID, fail-fast, and least-surprise. Every major decision has a one-line reason. No dead buttons. |
+| **Reviewer**        | Independent reviews for quality, security, and compliance. Read-only critic mode for decisions. Verifies every decision has a reason. Flags dead buttons and external script patches as blocking issues.                      |
+| **Debugger**        | Root-cause analysis, stack traces, regression bisection. Adds a reproduction test; never implements fixes.                                                                                                                    |
+| **Researcher**      | Codebase exploration in five budgeted modes: scan, question, audit, trace, deep.                                                                                                                                              |
+| **Browser Tester**  | E2E browser tests with visual, accessibility, performance, network, and regression checks.                                                                                                                                    |
+| **Mobile Tester**   | Mobile E2E on iOS/Android with Detox, Maestro, or Appium.                                                                                                                                                                     |
+| **DevOps**          | Infrastructure, CI/CD, containers, health checks, rollback, and production approvals.                                                                                                                                         |
+| **Documentation**   | Technical docs, READMEs, API references, diagrams, and walkthroughs. No buzzwords. Every section exists because the product needs it. No fabricated statistics.                                                               |
+| **Code Simplifier** | Removes dead code, reduces complexity, consolidates duplicates, and improves naming. Every refactoring has a one-line reason. No buzzwords. Removes AI-slop comments.                                                         |
+| **Skill Creator**   | Extracts high-confidence patterns into reusable `SKILL.md` files and assets.                                                                                                                                                  |
 
 ## Compatible Tools
 

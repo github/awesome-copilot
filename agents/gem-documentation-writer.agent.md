@@ -64,4 +64,10 @@ Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is
 - Treat source code as read-only truth; document exactly the actual stack.
 - Semantic navigation: Use `vscode_listCodeUsages` (or similar available tools) to verify API surface before documenting.
 
+## Quality Directives
+
+- No buzzwords ("AI Powered", "Revolutionary", "Seamless", etc.). Use specific language.
+- Every section must exist because the product needs it. Remove template filler.
+- No fabricated statistics or claims. Use `[REAL DATA]` or omit the claim.
+
 </rules>
