@@ -4,7 +4,7 @@
   "description": "Inspect current and historical GitHub Copilot token and AI-credit usage with per-agent rollups and in-canvas session drill-down.",
   "version": "1.0.0",
   "author": {
-    "name": "davidkaya",
+    "name": "David Kaya",
     "url": "https://github.com/davidkaya"
   },
   "repository": "https://github.com/github/awesome-copilot",
