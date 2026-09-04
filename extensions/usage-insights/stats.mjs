@@ -19,6 +19,22 @@ function credits(nanoAiu) {
     return number(nanoAiu) / BILLION;
 }
 
+function timestampMs(value) {
+    if (!value) {
+        return Number.NaN;
+    }
+    const timestamp = String(value);
+    const normalized = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(timestamp)
+        ? `${timestamp.replace(" ", "T")}Z`
+        : timestamp;
+    return Date.parse(normalized);
+}
+
+function normalizeTimestamp(value) {
+    const milliseconds = timestampMs(value);
+    return Number.isFinite(milliseconds) ? new Date(milliseconds).toISOString() : value;
+}
+
 function normalizeAggregate(row = {}) {
     return {
         aiCredits: credits(row.total_nano_aiu),
@@ -179,6 +195,27 @@ export class UsageInsightsStore {
         this.appDb = existsSync(appDbPath)
             ? new DatabaseSync(appDbPath, { readOnly: true })
             : undefined;
+        this.appSessionColumns = new Set(
+            this.appDb
+                ?.prepare("PRAGMA table_info(sessions)")
+                .all()
+                .map((column) => column.name) || [],
+        );
+    }
+
+    getAppSession(sessionId, requestedColumns) {
+        if (!this.appDb || !this.appSessionColumns.has("id")) {
+            return {};
+        }
+        const columns = requestedColumns.filter((column) => this.appSessionColumns.has(column));
+        if (!columns.length) {
+            return {};
+        }
+        return (
+            this.appDb
+                .prepare(`SELECT ${columns.join(", ")} FROM sessions WHERE id = ?`)
+                .get(sessionId) || {}
+        );
     }
 
     queryAggregate(whereSql = "", params = []) {
@@ -211,18 +248,18 @@ export class UsageInsightsStore {
                     WHERE id = ?
                 `)
                 .get(sessionId) || {};
-        const app =
-            this.appDb
-                ?.prepare(`
-                    SELECT title, agent, model, mode, created_at, updated_at
-                    FROM sessions
-                    WHERE id = ?
-                `)
-                .get(sessionId) || {};
+        const app = this.getAppSession(sessionId, [
+            "title",
+            "agent",
+            "model",
+            "mode",
+            "created_at",
+            "updated_at",
+        ]);
         return {
             agent: app.agent || "Copilot",
             branch: local.branch,
-            createdAt: app.created_at || local.created_at,
+            createdAt: normalizeTimestamp(app.created_at || local.created_at),
             cwd: local.cwd,
             id: sessionId,
             mode: app.mode,
@@ -230,7 +267,7 @@ export class UsageInsightsStore {
             repository: local.repository,
             summary: local.summary,
             title: app.title || local.summary || `Session ${sessionId.slice(0, 8)}`,
-            updatedAt: app.updated_at || local.updated_at,
+            updatedAt: normalizeTimestamp(app.updated_at || local.updated_at),
         };
     }
 
@@ -263,7 +300,7 @@ export class UsageInsightsStore {
                 agentId: row.agent_id,
                 displayName: row.agent_id === "root" ? "Root agent" : meta?.displayName || "Sub-agent",
                 internalName: meta?.internalName,
-                lastSeen: row.last_seen,
+                lastSeen: normalizeTimestamp(row.last_seen),
                 models: row.models ? String(row.models).split(",") : [],
                 status: row.agent_id === "root" ? "primary" : meta?.status || "recorded",
             };
@@ -308,16 +345,16 @@ export class UsageInsightsStore {
                     created_at
                 FROM assistant_usage_events
                 WHERE session_id = ?
-                ORDER BY created_at, id
+                ORDER BY datetime(created_at), id
             `)
             .all(sessionId)
             .map((row) => {
-                const endedAtMs = Date.parse(row.created_at);
+                const endedAtMs = timestampMs(row.created_at);
                 const durationMs = Math.max(1, number(row.duration_ms));
                 return {
                     agentId: row.agent_id,
                     aiCredits: credits(row.total_nano_aiu),
-                    createdAt: row.created_at,
+                    createdAt: normalizeTimestamp(row.created_at),
                     durationMs,
                     endedAtMs,
                     id: row.id,
@@ -349,7 +386,7 @@ export class UsageInsightsStore {
 
     getRange(range) {
         const cutoff = cutoffFor(range);
-        const whereSql = cutoff ? "WHERE created_at >= ?" : "";
+        const whereSql = cutoff ? "WHERE datetime(created_at) >= datetime(?)" : "";
         const params = cutoff ? [cutoff] : [];
         const totals = this.queryAggregate(whereSql, params);
 
@@ -410,22 +447,19 @@ export class UsageInsightsStore {
                     SUM(COALESCE(e.duration_ms, 0)) AS duration_ms
                 FROM assistant_usage_events e
                 LEFT JOIN sessions s ON s.id = e.session_id
-                ${cutoff ? "WHERE e.created_at >= ?" : ""}
+                ${cutoff ? "WHERE datetime(e.created_at) >= datetime(?)" : ""}
                 GROUP BY e.session_id, s.summary, s.repository
                 ORDER BY total_nano_aiu DESC
                 LIMIT 8
             `)
             .all(...params)
             .map((row) => {
-                const app =
-                    this.appDb
-                        ?.prepare("SELECT title, agent, model FROM sessions WHERE id = ?")
-                        .get(row.session_id) || {};
+                const app = this.getAppSession(row.session_id, ["title", "agent", "model"]);
                 return {
                     ...normalizeAggregate(row),
                     agent: app.agent,
                     id: row.session_id,
-                    lastSeen: row.last_seen,
+                    lastSeen: normalizeTimestamp(row.last_seen),
                     model: app.model,
                     repository: row.repository,
                     title: app.title || row.summary || `Session ${String(row.session_id).slice(0, 8)}`,
