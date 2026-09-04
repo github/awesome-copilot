@@ -40,8 +40,10 @@ function runtimeAggregate(metrics) {
         return undefined;
     }
 
+    const totalNanoAiu =
+        number(metrics.totalNanoAiu) || number(metrics.totalPremiumRequestCost) * BILLION;
     const aggregate = {
-        aiCredits: credits(metrics.totalNanoAiu),
+        aiCredits: credits(totalNanoAiu),
         apiDurationMs: number(metrics.totalApiDurationMs),
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
@@ -51,7 +53,7 @@ function runtimeAggregate(metrics) {
         reasoningTokens: 0,
         sessions: 1,
         subagents: 0,
-        totalNanoAiu: number(metrics.totalNanoAiu),
+        totalNanoAiu,
     };
 
     for (const metric of Object.values(metrics.modelMetrics || {})) {
@@ -66,30 +68,6 @@ function runtimeAggregate(metrics) {
         aggregate.cacheWriteTokens += number(metric.usage?.cacheWriteTokens);
     }
     return aggregate;
-}
-
-function mergeAggregates(persisted, runtime) {
-    if (!runtime) {
-        return persisted;
-    }
-
-    const merged = {};
-    for (const key of [
-        "apiDurationMs",
-        "cacheReadTokens",
-        "cacheWriteTokens",
-        "calls",
-        "inputTokens",
-        "outputTokens",
-        "reasoningTokens",
-        "sessions",
-        "subagents",
-        "totalNanoAiu",
-    ]) {
-        merged[key] = Math.max(number(persisted[key]), number(runtime[key]));
-    }
-    merged.aiCredits = credits(merged.totalNanoAiu);
-    return merged;
 }
 
 function cutoffFor(range) {
@@ -476,9 +454,9 @@ export class UsageInsightsStore {
             selectedSessionId === currentSessionId && currentRuntime
                 ? runtimeAggregate(currentRuntime)
                 : undefined;
-        const selectedTotals = mergeAggregates(dbTotals, liveWindow);
+        const selectedTotals = dbTotals.calls > 0 ? dbTotals : liveWindow || dbTotals;
         const agents = this.getSessionAgents(selectedSessionId, agentMetadata);
-        const selectedNanoAiu = selectedTotals.totalNanoAiu || dbTotals.totalNanoAiu;
+        const selectedNanoAiu = selectedTotals.totalNanoAiu;
         for (const agent of agents) {
             agent.share =
                 selectedNanoAiu > 0 ? Math.min(1, agent.totalNanoAiu / selectedNanoAiu) : 0;

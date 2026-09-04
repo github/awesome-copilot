@@ -521,7 +521,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       <div class="section-head">
         <h2 id="creditsHeading">
           <button class="collapsible" id="chartToggle" type="button" aria-expanded="true">
-            <span class="chevron">›</span>AI credits · <span id="chartCredits">—</span>
+            <span class="chevron" aria-hidden="true">›</span>AI credits · <span id="chartCredits">—</span>
           </button>
         </h2>
       </div>
