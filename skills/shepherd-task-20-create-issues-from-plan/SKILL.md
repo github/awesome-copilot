@@ -207,6 +207,45 @@ Before creating the first issue, initialize `LOG_DIRECTORY/creation-ledger.json`
 
 Write both JSON documents atomically. Immediately after each successful create call, append an object to the ledger with these exact fields: `implementationSubsection`, `bodyFile`, `id`, `number`, `title`, `url`, `body_verified`, and `linked`. Store `bodyFile` as a path relative to `LOG_DIRECTORY`, set `body_verified=false` and `linked=false`, then persist the ledger. Never keep the ledger only in memory.
 
+On PowerShell, preserve the ledger as a flat object array for zero, one, and multiple entries. Use `ConvertFrom-Json -NoEnumerate`, verify that the JSON root is an array, reject nested array entries, and return entries normally:
+
+```powershell
+function Read-CreationLedger {
+    $parsed = [IO.File]::ReadAllText($ledgerPath) |
+        ConvertFrom-Json -NoEnumerate
+    if ($parsed -isnot [System.Array]) {
+        throw 'Creation ledger JSON root must be an array.'
+    }
+
+    $ledger = [object[]]$parsed
+    if (@($ledger | Where-Object { $_ -is [System.Array] }).Count -ne 0) {
+        throw 'Creation ledger must not contain nested array entries.'
+    }
+    return $ledger
+}
+
+$ledger = @(Read-CreationLedger)
+```
+
+Never use unary-comma returns such as `return ,([object[]]@())` or `return ,@(...)`; when the caller uses `@(...)`, those forms turn an empty ledger or the complete parsed ledger into one nested array entry. When writing, pass an explicit array to `ConvertTo-Json -InputObject`, including for zero or one entry, so the persisted JSON root remains an array:
+
+```powershell
+$json = ConvertTo-Json -InputObject ([object[]]$ledger) -Depth 10
+```
+
+For every PowerShell native command, including read-only reconciliation calls, capture output and then capture `$LASTEXITCODE` immediately before piping, parsing, formatting, or invoking another command. For example:
+
+```powershell
+$childrenOutput = & gh api "repos/$REPO/issues/$PARENT_ISSUE/sub_issues" --paginate 2>&1
+$childrenExitCode = $LASTEXITCODE
+if ($childrenExitCode -ne 0) {
+    throw "Unable to query parent children: $($childrenOutput | Out-String)"
+}
+$serverChildren = @(($childrenOutput | Out-String) | ConvertFrom-Json)
+```
+
+Never use `gh ... | ConvertFrom-Json` and then inspect `$LASTEXITCODE`; the PowerShell transformation can obscure the native command result.
+
 Before linking the new issue, invoke `ISSUE_BODY_VERIFIER` to fetch the complete issue through the GitHub REST API and verify that its body exactly equals `BODY_FILE`. The verifier normalizes CRLF and CR to LF, permits only a single trailing newline difference, and retries read-only fetch/comparison failures up to six times with five-second delays. It does not retry authentication or authorization failures.
 
 ```powershell

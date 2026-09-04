@@ -13,6 +13,9 @@ $draftValidator = Join-Path $scriptsDirectory 'validate-stage20-drafts.ps1'
 $resultAssertion = Join-Path $scriptsDirectory 'assert-stage20-result.ps1'
 $redactor = Join-Path $scriptsDirectory 'redact-secrets.ps1'
 $issueBodyVerifier = Join-Path $scriptsDirectory 'verify-github-issue-body.ps1'
+$stage20Skill = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..\..\..\..\skills\shepherd-task-20-create-issues-from-plan\SKILL.md')
+)
 $tempDirectory = Join-Path ([System.IO.Path]::GetTempPath()) "shepherd-stage20-contract-$([guid]::NewGuid().ToString('N'))"
 $bodyDirectory = Join-Path $tempDirectory 'issue-bodies'
 
@@ -34,8 +37,87 @@ function Assert-Fails {
     throw "Expected operation to fail with '$ExpectedMessage'."
 }
 
+function Read-ContractLedger {
+    param([Parameter(Mandatory)][string]$Path)
+
+    $parsed = [System.IO.File]::ReadAllText($Path) |
+        ConvertFrom-Json -NoEnumerate
+    if ($parsed -isnot [System.Array]) {
+        throw 'Creation ledger JSON root must be an array.'
+    }
+
+    $ledger = [object[]]$parsed
+    if (@($ledger | Where-Object { $_ -is [System.Array] }).Count -ne 0) {
+        throw 'Creation ledger must not contain nested array entries.'
+    }
+    return $ledger
+}
+
+function Write-ContractLedger {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Ledger
+    )
+
+    $json = ConvertTo-Json -InputObject ([object[]]$Ledger) -Depth 10
+    [System.IO.File]::WriteAllText(
+        $Path,
+        $json,
+        [System.Text.UTF8Encoding]::new($false)
+    )
+}
+
 try {
     New-Item -ItemType Directory -Path $bodyDirectory | Out-Null
+    $stage20SkillText = [System.IO.File]::ReadAllText($stage20Skill)
+    if (-not $stage20SkillText.Contains('ConvertFrom-Json -NoEnumerate') -or
+        -not $stage20SkillText.Contains('return ,([object[]]@())') -or
+        -not $stage20SkillText.Contains('capture output and then capture `$LASTEXITCODE` immediately')) {
+        throw 'Stage-20 skill does not preserve the ledger and native exit-code safety requirements.'
+    }
+
+    $ledgerRoundTripPath = Join-Path $tempDirectory 'ledger-round-trip.json'
+    Write-ContractLedger -Path $ledgerRoundTripPath -Ledger @()
+    $emptyLedger = @(Read-ContractLedger -Path $ledgerRoundTripPath)
+    if ($emptyLedger.Count -ne 0) {
+        throw 'An empty creation ledger was read as one or more entries.'
+    }
+
+    $firstEntry = [ordered]@{
+        number = 41
+        body_verified = $false
+        linked = $false
+    }
+    Write-ContractLedger -Path $ledgerRoundTripPath -Ledger @($firstEntry)
+    $singleEntryLedger = @(Read-ContractLedger -Path $ledgerRoundTripPath)
+    if ($singleEntryLedger.Count -ne 1 -or
+        $singleEntryLedger[0] -is [System.Array] -or
+        [int]$singleEntryLedger[0].number -ne 41) {
+        throw 'A single-entry creation ledger did not remain a flat one-entry array.'
+    }
+
+    $singleEntryLedger += [ordered]@{
+        number = 42
+        body_verified = $true
+        linked = $true
+    }
+    Write-ContractLedger -Path $ledgerRoundTripPath -Ledger $singleEntryLedger
+    $multipleEntryLedger = @(Read-ContractLedger -Path $ledgerRoundTripPath)
+    if ($multipleEntryLedger.Count -ne 2 -or
+        @($multipleEntryLedger | Where-Object { $_ -is [System.Array] }).Count -ne 0 -or
+        (@($multipleEntryLedger.number) -join ',') -ne '41,42') {
+        throw 'A multiple-entry creation ledger did not remain a flat ordered array.'
+    }
+
+    [System.IO.File]::WriteAllText(
+        $ledgerRoundTripPath,
+        '[[],{"number":41}]',
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    Assert-Fails -ExpectedMessage 'must not contain nested array entries' -Operation {
+        Read-ContractLedger -Path $ledgerRoundTripPath
+    }
+
     $mockStatePath = Join-Path $tempDirectory 'mock-gh-state.txt'
     $mockScriptPath = Join-Path $tempDirectory 'mock-gh.mjs'
     $mockCommandPath = Join-Path $tempDirectory 'mock-gh.cmd'
