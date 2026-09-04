@@ -664,12 +664,13 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       const bottom = 18;
       const plotWidth = width - left - right;
       const plotHeight = height - top - bottom;
-      const total = Math.max(.001, calls.reduce((sum, call) => sum + call.aiCredits, 0));
+      const total = calls.reduce((sum, call) => sum + call.aiCredits, 0);
+      const scaleTotal = Math.max(total, Number.EPSILON);
       let cumulative = 0;
       const points = calls.map((call) => {
         cumulative += call.aiCredits;
         const x = left + (call.endedAtMs - selected.timeline.startedAtMs) / selected.timeline.durationMs * plotWidth;
-        const y = top + plotHeight - cumulative / total * plotHeight;
+        const y = top + plotHeight - cumulative / scaleTotal * plotHeight;
         return { x, y };
       });
 
@@ -730,7 +731,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           + agent.cacheWriteTokens;
         return { agent, value: state.agentMetric === 'credits' ? agent.aiCredits : tokens };
       });
-      const maximum = Math.max(...values.map((entry) => entry.value), 1);
+      const maximum = Math.max(...values.map((entry) => entry.value), Number.EPSILON);
 
       values.forEach((entry, index) => {
         const row = element('div', 'bar-row');
@@ -762,7 +763,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         { label: 'Output', value: totals.outputTokens, color: 3 },
         { label: 'Reasoning', value: totals.reasoningTokens, color: 5 },
       ];
-      const maximum = Math.max(...values.map((entry) => entry.value), 1);
+      const maximum = Math.max(...values.map((entry) => entry.value), Number.EPSILON);
       const total = totals.inputTokens
         + totals.cacheReadTokens
         + totals.cacheWriteTokens
