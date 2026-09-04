@@ -38,10 +38,13 @@ function commitAll(repoDir, message) {
   return runGit(repoDir, "rev-parse", "HEAD");
 }
 
-test("runCanvasStructureGate passes when extensions/extension.mjs exists", () => {
+test("runCanvasStructureGate passes when a named extension exists", () => {
   const repoDir = createTempRepo();
-  fs.mkdirSync(path.join(repoDir, "extensions"), { recursive: true });
-  fs.writeFileSync(path.join(repoDir, "extensions", "extension.mjs"), "export default {};\n");
+  fs.mkdirSync(path.join(repoDir, "com.github.copilot", "extensions", "canvas-plugin"), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, "com.github.copilot", "extensions", "canvas-plugin", "extension.mjs"),
+    "export default {};\n",
+  );
   const sha = commitAll(repoDir, "Add canvas extension container");
 
   const plugin = {
@@ -56,7 +59,7 @@ test("runCanvasStructureGate passes when extensions/extension.mjs exists", () =>
 
   const result = runCanvasStructureGate(repoDir, plugin, sha);
   assert.equal(result.status, "pass");
-  assert.match(result.output, /found "extensions"/);
+  assert.match(result.output, /found "com\.github\.copilot\/extensions"/);
 });
 
 test("runCanvasStructureGate fails when extension entrypoint is only at repo root", () => {
@@ -76,13 +79,16 @@ test("runCanvasStructureGate fails when extension entrypoint is only at repo roo
 
   const result = runCanvasStructureGate(repoDir, plugin, sha);
   assert.equal(result.status, "fail");
-  assert.match(result.output, /missing required canvas extension directory "extensions"/);
+  assert.match(result.output, /missing required canvas extension directory "com\.github\.copilot\/extensions"/);
 });
 
-test("runCanvasStructureGate fails when extension entrypoint path is a directory", () => {
+test("runCanvasStructureGate fails when the named extension entrypoint path is a directory", () => {
   const repoDir = createTempRepo();
-  fs.mkdirSync(path.join(repoDir, "extensions", "extension.mjs"), { recursive: true });
-  fs.writeFileSync(path.join(repoDir, "extensions", "extension.mjs", "placeholder.txt"), "not-a-module\n");
+  fs.mkdirSync(path.join(repoDir, "com.github.copilot", "extensions", "canvas-plugin", "extension.mjs"), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, "com.github.copilot", "extensions", "canvas-plugin", "extension.mjs", "placeholder.txt"),
+    "not-a-module\n",
+  );
   const sha = commitAll(repoDir, "Add invalid extension entrypoint directory");
 
   const plugin = {
@@ -97,17 +103,14 @@ test("runCanvasStructureGate fails when extension entrypoint path is a directory
 
   const result = runCanvasStructureGate(repoDir, plugin, sha);
   assert.equal(result.status, "fail");
-  assert.match(result.output, /"extensions\/extension\.mjs" must be a file/);
+  assert.match(result.output, /"com\.github\.copilot\/extensions\/<extension>\/extension\.mjs" must be a file/);
 });
 
-test("runCanvasStructureGate passes when extension lives in a nested subfolder", () => {
+test("runCanvasStructureGate fails when the Copilot namespace is missing", () => {
   const repoDir = createTempRepo();
   fs.mkdirSync(path.join(repoDir, "extensions", "modernize-dashboard"), { recursive: true });
-  fs.writeFileSync(
-    path.join(repoDir, "extensions", "modernize-dashboard", "extension.mjs"),
-    "export default {};\n",
-  );
-  const sha = commitAll(repoDir, "Add nested canvas extension");
+  fs.writeFileSync(path.join(repoDir, "extensions", "modernize-dashboard", "extension.mjs"), "export default {};\n");
+  const sha = commitAll(repoDir, "Add extension outside Copilot namespace");
 
   const plugin = {
     name: "canvas-plugin",
@@ -120,15 +123,15 @@ test("runCanvasStructureGate passes when extension lives in a nested subfolder",
   };
 
   const result = runCanvasStructureGate(repoDir, plugin, sha);
-  assert.equal(result.status, "pass");
-  assert.match(result.output, /entry point "extensions\/modernize-dashboard\/extension\.mjs"/);
+  assert.equal(result.status, "fail");
+  assert.match(result.output, /missing required canvas extension directory "com\.github\.copilot\/extensions"/);
 });
 
-test("runCanvasStructureGate fails when no extension.mjs exists flat or nested", () => {
+test("runCanvasStructureGate fails when no extension.mjs exists in a named directory", () => {
   const repoDir = createTempRepo();
-  fs.mkdirSync(path.join(repoDir, "extensions", "modernize-dashboard"), { recursive: true });
+  fs.mkdirSync(path.join(repoDir, "com.github.copilot", "extensions", "modernize-dashboard"), { recursive: true });
   fs.writeFileSync(
-    path.join(repoDir, "extensions", "modernize-dashboard", "index.mjs"),
+    path.join(repoDir, "com.github.copilot", "extensions", "modernize-dashboard", "index.mjs"),
     "export default {};\n",
   );
   const sha = commitAll(repoDir, "Add extensions directory without entry point");
@@ -156,15 +159,16 @@ test("runCanvasStructureGate finds a nested extension listed past the legacy out
   for (let index = 0; index < 160; index += 1) {
     const filler = path.join(
       repoDir,
+      "com.github.copilot",
       "extensions",
       `filler-directory-that-pads-the-tree-listing-${String(index).padStart(4, "0")}`,
     );
     fs.mkdirSync(filler, { recursive: true });
     fs.writeFileSync(path.join(filler, "readme.txt"), "filler\n");
   }
-  fs.mkdirSync(path.join(repoDir, "extensions", "zzz-real-extension"), { recursive: true });
+  fs.mkdirSync(path.join(repoDir, "com.github.copilot", "extensions", "zzz-real-extension"), { recursive: true });
   fs.writeFileSync(
-    path.join(repoDir, "extensions", "zzz-real-extension", "extension.mjs"),
+    path.join(repoDir, "com.github.copilot", "extensions", "zzz-real-extension", "extension.mjs"),
     "export default {};\n",
   );
   const sha = commitAll(repoDir, "Add nested extension after many siblings");
@@ -181,7 +185,7 @@ test("runCanvasStructureGate finds a nested extension listed past the legacy out
 
   const result = runCanvasStructureGate(repoDir, plugin, sha);
   assert.equal(result.status, "pass");
-  assert.match(result.output, /entry point "extensions\/zzz-real-extension\/extension\.mjs"/);
+  assert.match(result.output, /entry point "com\.github\.copilot\/extensions\/zzz-real-extension\/extension\.mjs"/);
 });
 
 // Regression tests for issue #2397: a tag-name locator (e.g. "v1.0.0") must be
@@ -207,8 +211,11 @@ function writeValidPluginContent(repoDir) {
     path.join(repoDir, ".github", "plugin", "plugin.json"),
     `${JSON.stringify({ name: "tag-plugin", version: "1.0.0" }, null, 2)}\n`,
   );
-  fs.mkdirSync(path.join(repoDir, "extensions"), { recursive: true });
-  fs.writeFileSync(path.join(repoDir, "extensions", "extension.mjs"), "export default {};\n");
+  fs.mkdirSync(path.join(repoDir, "com.github.copilot", "extensions", "tag-plugin"), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, "com.github.copilot", "extensions", "tag-plugin", "extension.mjs"),
+    "export default {};\n",
+  );
 }
 
 // Mirrors cloneSubmissionRepository in external-plugin-quality-gates.mjs: fetch only the
@@ -259,8 +266,8 @@ test("runCanvasStructureGate passes for a tag ref alongside a sha", () => {
 
   const result = runCanvasStructureGate(repoDir, plugin, sha);
   assert.equal(result.status, "pass", result.output);
-  assert.match(result.output, /- v1\.0\.0: found "extensions"/);
-  assert.match(result.output, new RegExp(`- ${sha}: found "extensions"`));
+  assert.match(result.output, /- v1\.0\.0: found "com\.github\.copilot\/extensions"/);
+  assert.match(result.output, new RegExp(`- ${sha}: found "com\\.github\\.copilot/extensions"`));
 });
 
 test("runVersionMatchGate passes when the primary locator is a tag ref", () => {
@@ -296,7 +303,7 @@ test("runCanvasStructureGate passes when the primary locator is a tag ref", () =
 
   const result = runCanvasStructureGate(repoDir, plugin, "v1.0.0");
   assert.equal(result.status, "pass", result.output);
-  assert.match(result.output, /- v1\.0\.0: found "extensions"/);
+  assert.match(result.output, /- v1\.0\.0: found "com\.github\.copilot\/extensions"/);
 });
 
 test("runRefShaConsistencyGate fails when ref and sha point to different commits", () => {

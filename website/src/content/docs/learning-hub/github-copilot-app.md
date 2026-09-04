@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-07
+lastUpdated: 2026-09-02
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -82,6 +82,16 @@ Closing the app's main window keeps it running in the background instead of quit
 
 For a hands-on guide to building canvases with `/create-canvas`, see [Working with Canvas Extensions](../working-with-canvas-extensions/).
 
+### Customize
+
+**Customize** *(v1.1.13+)* is a single place in the Copilot app to browse and manage everything that extends your agents: plugins, skills, MCP servers, and canvases. Instead of hunting through separate settings pages, open **Customize** to:
+
+- Browse **Featured** integrations (for example Azure DevOps or Figma) and install them with one click
+- See what's already **Installed**, with consistent icons and source labels across plugin, skill, MCP server, canvas, and connector types
+- Create, edit, or remove your own **personal skills** directly in the app, without hand-authoring a `SKILL.md` file
+
+This makes Customize a good starting point if you want to extend the app's capabilities but don't need the full `copilot plugin` CLI workflow described in [Installing and Using Plugins](../installing-and-using-plugins/).
+
 ### Agent Merge
 
 **Agent Merge** is a feature that can carry your pull requests through the entire workflow:
@@ -158,6 +168,8 @@ Once installed, you can create a session by:
 Each session runs in its own worktree with its own isolated environment. You can run multiple sessions in parallel.
 
 ### Launching Sessions from the Terminal with Deep Links
+
+> **New (v1.0.81+)**: Run `copilot app` from GitHub Copilot CLI to open the GitHub Copilot app directly in the current directory — a quicker alternative to constructing a deep link by hand when you just want to hand off your current working directory to the desktop app.
 
 The GitHub Copilot app supports URL deep links. This is useful when you want to open the app or start a session directly from your terminal workflow.
 

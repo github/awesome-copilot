@@ -74,7 +74,11 @@
 
 # INOUT - PostgreSQL stored procedure parameter mode (IN, OUT, INOUT) in migrating-oracle-to-postgres-data-access-code/SKILL.md
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,INOUT,pixelX,aNULL,Wee,Sherif,queston,extenions,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally,checkin,ACI,soruce,straightaway,crystalize
+# implementors - path segment in the containers.dev specification URLs (https://containers.dev/implementors/spec/, /implementors/json_reference/, /implementors/features/) cited in devcontainers.instructions.md
+
+# evaulated - verbatim inside a quotation from the Dev Container Features specification in devcontainers.instructions.md, which spells it that way
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,INOUT,pixelX,aNULL,Wee,Sherif,queston,extenions,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally,checkin,ACI,soruce,straightaway,crystalize,implementors,evaulated
 
 # Skip certain files and directories
 
