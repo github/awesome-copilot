@@ -93,9 +93,9 @@ Response: wrapper object with `connections` array.
 > Filter by status: prefer `overallStatus == "Connected"` when present; otherwise
 > check `statuses[0].status == "Connected"`.
 >
-> For build workflows, pass `environmentName` to avoid using a connection from
-> the wrong environment. Omit it only when intentionally inventorying connections
-> across all environments.
+> `environmentName` is required — the platform cannot list connections across
+> environments (omitting it answers 400 MissingEnvironmentFilter). Get one from
+> `list_live_environments`.
 >
 > Pass `search=<connector or account>` to narrow output and receive
 > `connectionReferenceTemplate` plus `hostTemplate` values that can be copied
@@ -448,9 +448,10 @@ Response keys: `flowKey`, `triggerName`, `triggerKind`, `invocation`, `triggerUr
 `requiresAadAuth`, `authType`, `responseStatus`, `responseBody`, `runName`, and
 `warning` when a required trigger input was not supplied.
 
-> **Works for `Request` triggers: HTTP request, Button, and PowerApps.** Returns an
-> error for Recurrence and connector triggers:
-> `"only HTTP Request triggers can be invoked via this tool"`.
+> **Works for `Request` triggers (HTTP request, Button, PowerApps) and for
+> scheduled (Recurrence) flows.** A scheduled flow runs immediately, like the
+> portal's "Run flow" button, and takes no `body` — one is refused. Automated
+> connector triggers only fire from their source event and return an error.
 >
 > HTTP triggers go through the signed callback URL (`invocation: callbackUrl`).
 > Button and PowerApps triggers have no callback URL; with a `body` they run
@@ -483,8 +484,7 @@ Response keys: `flowKey`, `triggerName`, `triggerKind`, `invocation`, `triggerUr
 
 ### `set_live_flow_state`
 
-Start or stop a Power Automate flow via the live PA API. Does **not** require
-a Power Clarity workspace — works for any flow the impersonated account can access.
+Start or stop a Power Automate flow in any environment you have access to.
 Reads the current state first and only issues the start/stop call if a change is
 actually needed.
 
@@ -594,11 +594,11 @@ tool schemas cannot tell you.
   connectionReferences. Use `set_live_flow_state` to start/stop a flow.
 
 ### `trigger_live_flow`
-- **Works for HTTP, Button, and PowerApps triggers.** Returns error for Recurrence,
-  connector, and other trigger types.
+- **Works for HTTP, Button, PowerApps, and scheduled (Recurrence) triggers.**
+  A scheduled flow runs with no `body`. Automated connector triggers error.
 - Pass trigger inputs as `body`. A `warning` in the result means a required input
   was missing and the run started with it null.
-- AAD-authenticated triggers are handled automatically (impersonated Bearer token).
+- AAD-authenticated triggers are handled automatically (Bearer token attached).
 
 ### `get_live_flow_runs`
 - `top` defaults to **30** with automatic pagination for higher values.
@@ -611,8 +611,9 @@ tool schemas cannot tell you.
 - `poster`: `"Flow bot"` for Workflows bot identity, `"User"` for user identity.
 
 ### `list_live_connections`
-- For build workflows, pass `environmentName`; omitting it inventories
-  connections across environments.
+- `environmentName` is required; the platform cannot list connections across
+  environments. `top` is applied after `search` and the result carries
+  `truncated` + `matchedCount` when the cap drops matches.
 - Use `search=<connector/account>` to get smaller output and paste-ready
   `connectionReferenceTemplate` / `hostTemplate` values.
 - `id` is the value you need for `connectionName` in `connectionReferences`.

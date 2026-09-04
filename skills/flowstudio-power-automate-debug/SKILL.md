@@ -409,10 +409,10 @@ print(new_runs[0]["status"])   # Succeeded = done
 | Scenario | Use | Why |
 |---|---|---|
 | **Testing a fix** on any flow | `resubmit_live_flow_run` | Replays the exact trigger payload that caused the failure — best way to verify |
-| Recurrence / scheduled flow | `resubmit_live_flow_run` | Cannot be triggered on demand any other way |
+| Recurrence / scheduled flow | `trigger_live_flow` (no `body`) | Runs it now, like the portal's "Run flow" button; resubmit replays a past run's data |
 | SharePoint / connector trigger | `resubmit_live_flow_run` | Cannot be triggered without creating a real SP item |
 | HTTP, Button, or PowerApps trigger with **custom** test payload | `trigger_live_flow` | When you need to send different data than the original run |
-| Brand-new flow, never run | `trigger_live_flow` (HTTP, Button, PowerApps) | No prior run exists to resubmit |
+| Brand-new flow, never run | `trigger_live_flow` | No prior run exists to resubmit |
 
 ### Testing HTTP, Button, and PowerApps flows with custom payloads
 
@@ -445,8 +445,10 @@ if result.get("warning"):
 ```
 
 > `trigger_live_flow` handles AAD-authenticated triggers automatically.
-> Works for `Request` triggers only: HTTP request, Button, and PowerApps.
-> Scheduled and connector triggers cannot be run this way.
+> Works for `Request` triggers (HTTP request, Button, PowerApps) and for
+> scheduled (Recurrence) flows, which it runs immediately — with no `body`,
+> since a scheduled trigger takes no inputs (a body is refused). Automated
+> connector triggers only fire from their source event.
 >
 > Power Automate does not enforce a trigger's `required` inputs. If you leave
 > one out the run still starts, with that input null, and the result carries a
