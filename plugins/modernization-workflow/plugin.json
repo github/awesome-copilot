@@ -1,0 +1,33 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "modernization-workflow",
+  "description": "Visualize and guide the GitHub Copilot Modernize CLI Assess, Plan, and Execute workflow for .NET, Java, and C++ application repositories.",
+  "version": "1.0.0",
+  "author": {
+    "name": "EMEA App GBB",
+    "url": "https://github.com/EmeaAppGbb"
+  },
+  "homepage": "https://github.com/EmeaAppGbb/modernization-canvas",
+  "repository": "https://github.com/EmeaAppGbb/modernization-canvas",
+  "license": "MIT",
+  "keywords": [
+    "app-modernization",
+    "assessment-dashboard",
+    "azure-migration",
+    "cpp-modernization",
+    "dotnet-modernization",
+    "java-modernization",
+    "modernization-canvas",
+    "modernize-cli"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/modernization-workflow"
+      ]
+    }
+  }
+}
