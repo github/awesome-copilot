@@ -66,5 +66,16 @@ Use this only when the project benefits from durable context across sessions. Ke
 - Dev: implementation and verification
 - QA: optional independent behavioral verification
 
+## Onboarding checklist (add to brief)
+
+- Setup verified: `npm ci` / `pip -r requirements.txt`
+- Tests run: `npm test` / `pytest -q`
+- Lint pass: `npm run lint`
+- Where to find CI logs and deploy dashboards
+
+## Where to record decisions
+
+- Add short entries to DECISIONS.md or create an issue with the decision tag. Each entry should include: title, date, owner, 1-line summary, rationale, and link to PR/issue.
+
 Record material decisions, blockers, and the next action here or in the active plan. Use GitHub Issues or the repository's tracker for bugs and follow-up work.
 ```
