@@ -205,6 +205,35 @@ function safeIssueKey(value) {
 
 const servers = new Map()
 
+// Live model catalog fetched from the host (session.rpc.model.list()), cached
+// here so a newly opened panel gets it immediately instead of waiting on
+// another RPC round trip. Stays null until the first successful fetch; every
+// server keeps its state.mjs static fallback list until then.
+let liveModels = null
+
+// Fetches the host's current model catalog and pushes it into every open
+// panel's state (plus caches it for panels opened afterward), so the picker
+// tracks whatever models the host makes available without editing this
+// extension's static list every time a model ships or is retired. Best-effort:
+// on any failure (older host, RPC error) every panel just keeps using the
+// static fallback list already seeded in state.mjs.
+async function refreshAvailableModels() {
+  try {
+    const result = await session.rpc.model.list()
+    const models = (result?.list || [])
+      .map((m) => ({ id: String(m?.id ?? ''), label: String(m?.name ?? m?.id ?? '') }))
+      .filter((m) => m.id)
+    if (models.length === 0) return
+    liveModels = models
+    for (const entry of servers.values()) {
+      entry.state.setAvailableModels(models)
+      entry.notifyClients()
+    }
+  } catch (err) {
+    console.error('[sentry-triage] could not fetch live model list, using static fallback:', err?.message || err)
+  }
+}
+
 // Maps an opaque per-work token -> { entry, key } for a "Work on selected"
 // hand-off. The spawned fix session echoes this token back via `submit_work_pr`
 // so the PR update lands on the EXACT canvas instance and issue that started the
@@ -739,6 +768,20 @@ OR
 {"status":"error","error":"plain explanation","issue":{"number":123,"url":"https://..."},"session":{"id":null,"name":""}}`
 }
 
+// Reset the plain-English enriching flag when an in-flight enrichment is
+// invalidated (scan generation bumped) by a path that will NOT start a
+// replacement scan to clear it. triageSentry's isCurrent() guard deliberately
+// stops a STALE scan from clearing a NEWER scan's flag; the side effect is that
+// an invalidation with no successor (a refresh that finds Sentry unreachable, or
+// a repo switch via onInvalidateEnrichment) would otherwise strand the flag
+// `true` forever and leave the plain-English toggle disabled. Clearing it here
+// is safe: a reachable scan's triageSentry re-sets it true before it drops the
+// scanning overlay, so the toggle is never interactive with a false flag.
+function resetEnrichingFlag(entry) {
+  entry.state.setPlainEnglishEnriching(false)
+  if (entry.notifyPlainEnglishEnriching) entry.notifyPlainEnglishEnriching(false)
+}
+
 async function triageSentry(entry) {
   if (entry.closed) return
   const org = entry.state.getOrg()
@@ -788,8 +831,16 @@ async function triageSentry(entry) {
     // 240s; blocking the whole board on it would leave the user staring at a
     // spinner. The card renderer already falls back to the raw title when
     // `plainEnglish` is absent, so an early render is fully usable.
+    // Set the enriching flag BEFORE publishing the categories snapshot so that
+    // snapshot already reports enrichment as in-progress. Publishing categories
+    // first would emit a snapshot saying enrichment is idle (re-enabling the
+    // toggle), and a user action slipping in before the separate
+    // plainEnglishEnriching:true event preserves a narrow version of the race
+    // this flag exists to remove.
+    entry.state.setPlainEnglishEnriching(true)
     entry.state.setCategories(categories)
     entry.notifyClients()
+    if (entry.notifyPlainEnglishEnriching) entry.notifyPlainEnglishEnriching(true)
     // End the scanning overlay NOW that the board is published — enrichment is
     // optional polish (plain-English titles + tracked badges) that streams in via
     // a later publish. Leaving the overlay up for the whole ≤240s enrich turn
@@ -805,7 +856,14 @@ async function triageSentry(entry) {
     // so a stale turn (a newer scan started meanwhile) can't apply its inbox data
     // over the newer scan's state.
     await enrichPlainEnglish(entry, categories, isCurrent)
+    // A stale turn (a newer scan started during our ≤240s enrich) must NOT clear
+    // or broadcast the shared enriching flag: doing so would re-enable the toggle
+    // while the newer scan is still enriching, recreating the exact race this
+    // flag prevents. Bail before touching it — the current scan owns the flag and
+    // clears it when IT finishes (and the guarded `finally` is the fallback).
     if (!isCurrent()) return
+    entry.state.setPlainEnglishEnriching(false)
+    if (entry.notifyPlainEnglishEnriching) entry.notifyPlainEnglishEnriching(false)
     entry.state.setCategories(categories)
     entry.notifyClients()
     console.error('[sentry-triage] Scan complete, categories:', categories.length, error ? `error: ${error}` : '')
@@ -821,6 +879,10 @@ async function triageSentry(entry) {
       entry.notifyClients()
     }
   } finally {
+    if (isCurrent()) {
+      entry.state.setPlainEnglishEnriching(false)
+      if (entry.notifyPlainEnglishEnriching) entry.notifyPlainEnglishEnriching(false)
+    }
     if (isCurrent() && entry.notifyScanning) entry.notifyScanning(false)
   }
 }
@@ -915,7 +977,7 @@ After the tool call(s), reply to the user with a confirmation sentence, then a b
 
 Triaged ${total} Sentry ${noun}.
 
-**📋 Next steps in the canvas:** Card titles show the raw Sentry error by default — flip the **Plain-English titles** switch above the issue list for readable summaries. Open the ⚙️ Settings panel to confirm the open-issue and draft-PR targets point at the right repo, then select issues to work.
+**📋 Next steps in the canvas:** Card titles show the raw Sentry error by default — flip the **Plain-English messages** switch above the issue list for readable summaries. Open the ⚙️ Settings panel to confirm the open-issue and draft-PR targets point at the right repo, then select issues to work.
 
 Keep it friendly and brief; do not include the summaries or JSON.
 
@@ -1134,19 +1196,62 @@ async function discoverProjects(entry, org, { force = false } = {}) {
   const conn = entry.state.getConnections()
   if (!conn || !conn.sentry || !conn.sentry.reachable) return
   if (!force && entry._projectsFetchedFor === slug) return
+  // Each page now releases the shared SDK queue, so discoveries for different
+  // orgs (A then B) can interleave. Stamp this discovery with a generation
+  // token; a newer discoverProjects call bumps it, and every publish below
+  // (streamed partial, final store, catch path) bails once superseded — so a
+  // slow org-A traversal can't write A's slugs into the snapshot after org B
+  // has taken over (which would leave org === B but projectsOrg === A).
+  const myGen = (entry._projectsGen = (entry._projectsGen || 0) + 1)
+  const isCurrentGen = () => entry._projectsGen === myGen && !entry.closed
   try {
+    // Seed the keep-longest guard from any list a PRIOR run already published for
+    // this org. The streamed partials below feed newly connected clients (they
+    // read this server snapshot), so an early page of a retry must not overwrite
+    // a longer prior result — the final-store guard alone can't protect a client
+    // that connects mid-stream.
+    const priorKnown = entry.state.getProjectsOrg() === slug ? entry.state.getProjects() : []
+    let storedLen = Array.isArray(priorKnown) ? priorKnown.length : 0
     // Stream results: push each page to the panel as it arrives so the first
     // ~100 projects light up the autocomplete in ~1s while the rest fill in.
-    const projects = await listProjects(slug, (partial) => {
-      entry.state.setProjects(partial, slug)
+    const { projects, complete } = await listProjects(slug, (partial) => {
+      // A newer discovery has superseded this one — drop the partial rather than
+      // publishing a stale org's slugs into the shared snapshot.
+      if (!isCurrentGen()) return
+      // Only store a partial that GROWS the snapshot beyond what's already
+      // published for this org. Within one traversal partials grow monotonically;
+      // this guard is what stops a retry's small first page from shrinking a
+      // longer prior list for clients that connect between pages.
+      if (!Array.isArray(partial) || partial.length <= storedLen) return
+      storedLen = partial.length
+      entry.state.setProjects(partial, slug, false)
       entry.notifyClients()
     })
-    entry._projectsFetchedFor = slug
-    entry.state.setProjects(projects, slug)
+    // Superseded while we were traversing: skip the final store (and the cache
+    // marker) so the winning discovery owns the snapshot.
+    if (!isCurrentGen()) return
+    // A COMPLETE traversal is authoritative: publish it as-is even if it's
+    // shorter than a prior run, so projects deleted upstream actually leave the
+    // dropdown. Only an INCOMPLETE traversal (a mid-mega-org page stall/failure)
+    // must be prevented from shrinking a longer list we already have — the
+    // "sometimes the list is much shorter" symptom. The finality flag rides
+    // along in the snapshot so the client applies the same rule.
+    const known = entry.state.getProjectsOrg() === slug ? entry.state.getProjects() : []
+    const best = complete
+      ? projects
+      : (Array.isArray(known) && known.length > projects.length ? known : projects)
+    // Only treat the list as definitively cached when the traversal actually
+    // ran to completion. A truncated run must stay retryable, otherwise the
+    // first unlucky attempt pins a partial list for the life of the panel.
+    if (complete) entry._projectsFetchedFor = slug
+    entry.state.setProjects(best, slug, complete)
     entry.notifyClients()
-    console.error('[sentry-triage] discovered projects for', slug, '->', projects.length)
+    console.error('[sentry-triage] discovered projects for', slug, '->', best.length)
   } catch (err) {
     console.error('[sentry-triage] project discovery failed:', err instanceof Error ? err.message : err)
+    // Superseded by a newer discovery — its own publish owns the snapshot; don't
+    // clobber it with this stale org's partial/empty list.
+    if (!isCurrentGen()) return
     // The client already received a 200 from POST /api/list-projects (that
     // request just kicks off this async fetch), so its own catch never runs and
     // the autocomplete's loading indicator would pulse forever. Push a project
@@ -1155,7 +1260,7 @@ async function discoverProjects(entry, org, { force = false } = {}) {
     // set `_projectsFetchedFor` here, so a later navigation or force refresh can
     // retry a transient failure instead of caching the empty result.
     const partial = entry.state.getProjectsOrg() === slug ? entry.state.getProjects() : []
-    entry.state.setProjects(partial, slug)
+    entry.state.setProjects(partial, slug, false)
     entry.notifyClients()
   }
 }
@@ -1236,6 +1341,11 @@ async function refreshAll(entry) {
   // generation up front fails their isCurrent() guard immediately. triageSentry()
   // bumps it again when it runs, which is fine.
   entry.scanGen = (entry.scanGen || 0) + 1
+  // The bump above invalidated any enrichment still in flight. Clear its flag now
+  // so a path that never runs a replacement triageSentry (the Sentry-unreachable
+  // return below) can't leave the plain-English toggle disabled forever. A
+  // reachable scan re-sets it true before dropping the overlay.
+  resetEnrichingFlag(entry)
   // Claim an ordering token for THIS refresh. The refresh endpoint is fire-and-
   // forget, so two rapid refresh/period/project actions can resolve out of order:
   // a slower, older refresh could publish stale connection state, clear the newer
@@ -1460,7 +1570,7 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
     // error) before re-queuing, so stale issue/PR/session links don't survive the
     // shallow-merge into the new run's status.
     entry.state.startWorkAttempt(key)
-    entry.notifyWork(key, { phase: 'queued' })
+    entry.notifyWork(key, { phase: 'queued', copilotFix: wantsCopilot })
   }
 
   // On a timeout we must `return` (can't pile a new turn onto the shared session
@@ -1500,7 +1610,7 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
     const workToken = randomUUID()
     workRegistry.set(workToken, { entry, key, scopeGen, authorizedRepo: prExpectedRepo, authorizedHost: allowedHost })
 
-    entry.notifyWork(key, { phase: 'working', error: '' })
+    entry.notifyWork(key, { phase: 'working', error: '', copilotFix: wantsCopilot })
     try {
       const response = await runSessionTurn(() => {
         // This closure runs only when the shared-session chain drains to it,
@@ -1665,7 +1775,7 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
         // retry can't race the live session into a duplicate. Otherwise there's no
         // session to wait on — release the token and surface a retryable error.
         if (handedOff) {
-          entry.notifyWork(key, { phase: 'working' })
+          entry.notifyWork(key, { phase: 'working', copilotFix: wantsCopilot })
           scheduleWorkReconcile(entry, key, workToken, scopeCurrent)
           continue
         }
@@ -1776,7 +1886,7 @@ async function onWorkSelected(entry, issueKeys, modelByKey, assignCopilot) {
         // session and then dies without spawning, no callback ever arrives; the
         // bounded scheduleWorkReconcile below is the safety net that eventually
         // releases the token and returns the card to a retryable error.
-        entry.notifyWork(key, { phase: 'working' })
+        entry.notifyWork(key, { phase: 'working', copilotFix: wantsCopilot })
         scheduleWorkReconcile(entry, key, workToken, scopeCurrent)
         strandRemaining(i + 1)
         return
@@ -2040,10 +2150,19 @@ const session = await joinSession({
               // from the previous repo fails its isCurrent() guard and applies
               // none of its (now stale) tracking / related-issue data.
               entry.scanGen = (entry.scanGen || 0) + 1
+              // No replacement scan runs on a repo switch, so clear the enriching
+              // flag here too — otherwise the invalidated enrichment (barred from
+              // clearing it by its isCurrent() guard) would leave the toggle
+              // disabled forever.
+              resetEnrichingFlag(entry)
             },
             defaults: runtimeDefaults,
           })
           servers.set(ctx.instanceId, entry)
+          // Apply whatever live catalog we already fetched (best-effort; the
+          // static fallback in state.mjs stands until refreshAvailableModels
+          // resolves for the first time).
+          if (liveModels) entry.state.setAvailableModels(liveModels)
         } else if (runtimeDefaults.repo) {
           // Panel already existed (e.g. opened before the repo resolved) — top
           // up its targets now and push the update to any connected clients.
@@ -2094,3 +2213,8 @@ const session = await joinSession({
 // Now that we're joined to the host, resolve the driving session's real repo so
 // the PR/Issue targets default correctly (must run before any canvas opens).
 await seedDefaultsFromSession()
+
+// Kick off the live model catalog fetch in the background; the static list in
+// state.mjs stands until it resolves, so panels are usable immediately either
+// way. Not awaited: model.list() is best-effort and shouldn't delay startup.
+refreshAvailableModels()
