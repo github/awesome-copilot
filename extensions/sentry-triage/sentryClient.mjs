@@ -143,9 +143,11 @@ async function getSdk() {
 //
 // `runSerial(task)` runs `task` only once all previously enqueued work has
 // settled, so at most one SDK operation is ever in flight process-wide. It is the
-// single choke point; the public functions below are thin queued wrappers, and
-// multi-call traversals (see projectListRaw) run as ONE task so their paging
-// can't interleave with anything.
+// single choke point; the public functions below are thin queued wrappers. Each
+// task should be a SINGLE SDK call: a multi-call traversal that holds the queue
+// for its whole run starves every interactive lookup behind it (see
+// projectListPage, which pages via an explicit cursor so each page queues
+// independently).
 let sdkQueue = Promise.resolve()
 
 export function runSerial(task) {
@@ -279,17 +281,39 @@ export async function orgList(limit = 100) {
   return runSerial(async () => asArray(await (await getSdk()).org.list({ limit })))
 }
 
-// Single-page project fetch within an org. Deliberately NOT wrapped in
-// runSerial on its own: the CLI's positional org/project value treats a BARE
-// slug as a *project*, so listing every project in an org requires the trailing
-// `<org>/` form — we normalize to exactly one trailing slash here. Raw project
-// objects (each has a `slug`). `cursor` navigates pages ("next"/"prev"/raw
-// cursor). Callers that page through the full list must instead run
-// projectListRaw inside a single runSerial task so the whole traversal is atomic
-// (see listProjects in sentry.mjs).
-export async function projectListRaw(org, limit = 100, cursor) {
+// Single page of an org's project list, fetched as its OWN queued task and
+// returning an explicit `nextCursor` so the caller can resume without holding
+// the queue between pages.
+//
+// This is what keeps a mega-org's multi-page traversal from starving the rest of
+// the UI. The symbolic "next" cursor resolves through the SDK's module-global
+// per-command state, so a traversal that used it had to hold the whole sdkQueue
+// for every page (otherwise an interleaved call would clobber that state) —
+// which meant a slow `github`-sized list blocked the O(1) project.view lookup
+// behind it for minutes and left "Checking Sentry…" spinning. The envelope's
+// `nextCursor` is a self-contained opaque token, so each page can be an
+// independent runSerial task and interactive lookups can slot in between them.
+//
+// The CLI's positional org/project value treats a BARE slug as a *project*, so
+// listing every project in an org requires the trailing `<org>/` form — we
+// normalize to exactly one trailing slash here.
+//
+// Returns { projects, nextCursor, hasMore }. `hasMore` is the SDK envelope's own
+// "there are further pages" signal (defaults to false when the envelope omits
+// it); `nextCursor` is '' unless the SDK handed back a usable opaque token. The
+// two are reported separately so the caller can tell "genuinely done" (hasMore
+// false) apart from "more pages exist but we have no cursor to fetch them" — the
+// latter is an incomplete traversal, not a terminal one, and must stay retryable.
+export async function projectListPage(org, limit = 100, cursor) {
   const orgProject = `${String(org || '').replace(/\/+$/, '')}/`
-  return asArray(await (await getSdk()).project.list({ orgProject, limit, ...(cursor ? { cursor } : {}) }))
+  const res = await runSerial(async () => (await getSdk()).project.list({ orgProject, limit, ...(cursor ? { cursor } : {}) }))
+  const projects = asArray(res)
+  // Only trust an explicit opaque cursor. A truthy `hasMore` without a usable
+  // `nextCursor` would otherwise tempt us back onto the symbolic "next" token
+  // and reintroduce the global-state coupling this function exists to avoid.
+  const next = res && typeof res === 'object' && typeof res.nextCursor === 'string' ? res.nextCursor.trim() : ''
+  const hasMore = res && typeof res === 'object' ? res.hasMore === true : false
+  return { projects, nextCursor: hasMore ? next : '', hasMore }
 }
 
 // Verify a specific project exists / is accessible via the SDK's O(1)
