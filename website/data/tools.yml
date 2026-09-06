@@ -86,6 +86,48 @@ tools:
       - knowledge-base
       - semantic-search
 
+  - id: deja-vu
+    name: deja-vu
+    description: >-
+      Memory for coding agents built from the session history already on disk. deja indexes
+      the transcripts VS Code Copilot Chat, Copilot CLI, Claude Code, Codex, Cursor and
+      eighteen other agents write locally, including months from before it was installed,
+      and exposes recall, fix-lookup and per-file history through a stdio MCP server. One Go
+      binary, no LLM, no embeddings, nothing leaves the machine.
+    category: MCP Servers
+    featured: false
+    requirements:
+      - deja binary on PATH (brew install deja-vu, or npm i -g @vshulcz/deja-vu)
+      - Existing session history from any supported agent (indexed on first use)
+    links:
+      github: https://github.com/vshulcz/deja-vu
+      npm: https://www.npmjs.com/package/@vshulcz/deja-vu
+      documentation: https://vshulcz.github.io/deja-vu/guide/memory-for-copilot.html
+    features:
+      - "Reads 23 agents' stores: VS Code Copilot Chat, Copilot CLI, Claude Code, Codex, Cursor, OpenClaw, Hermes and more"
+      - "Starts full: the sessions already on disk are searchable the minute it is installed"
+      - "One MCP tool with modes: recall, fix (what was run after this error), blame (a file's session history), how, context, remember"
+      - "Credentials stripped as the index is built; local index, no network"
+      - "Millisecond lexical retrieval over gigabytes of transcripts"
+    configuration:
+      type: json
+      content: |
+        {
+          "servers": {
+            "deja": {
+              "type": "stdio",
+              "command": "deja",
+              "args": ["mcp"]
+            }
+          }
+        }
+    tags:
+      - mcp
+      - memory
+      - session-history
+      - recall
+      - local-first
+
   - id: vscode-extension
     name: Awesome GitHub Copilot Browser
     description: >-
