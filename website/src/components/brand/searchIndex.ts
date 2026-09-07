@@ -96,7 +96,7 @@ export const staticPages = (base: string): SearchItem[] => {
       href: at("/extensions/"),
     },
     {
-      title: "Learning Hub",
+      title: "Playbook",
       description:
         "Articles and guides for getting the most from every agent, skill, and instruction.",
       category: "Pages",
@@ -129,5 +129,5 @@ export function buildSearchIndex(
       href: route ? at(`/${route}/${record.id}/`) : at("/"),
     });
   }
-  return items;
+  return [...staticPages(base), ...items];
 }

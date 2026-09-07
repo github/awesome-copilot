@@ -26,6 +26,7 @@ import {
   updatedBucketOf,
 } from "./catalogFilters";
 import { pageHref } from "./pageHref";
+import { downloadFile } from "./resourceActions";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/instructions.module.css";
 
@@ -111,7 +112,7 @@ export function InstructionsCatalog({
   contributorsTotal?: number;
 }) {
   const { colorMode } = useTheme();
-  const [sortMode] = useState<SortMode>("az");
+  const [sortMode, setSortMode] = useState<SortMode>("az");
   const [currentPage, setCurrentPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
@@ -458,6 +459,23 @@ export function InstructionsCatalog({
           </aside>
 
           <Box className={styles.catalogMain}>
+            <Box className={styles.toolbar}>
+              <label className={styles.sortControl}>
+                <span>Sort by:</span>
+                <select
+                  className={styles.sortSelect}
+                  value={sortMode}
+                  onChange={(event) => {
+                    setSortMode(event.target.value as SortMode);
+                    setCurrentPage(1);
+                  }}
+                  aria-label="Sort instructions"
+                >
+                  <option value="az">A-Z</option>
+                  <option value="newest">Recently updated</option>
+                </select>
+              </label>
+            </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
@@ -514,10 +532,11 @@ export function InstructionsCatalog({
                             </ActionMenu.Overlay>
                           </ActionMenu>
                           <Button
-                            as="a"
-                            href={downloadUrl(item)}
+                            as="button"
                             variant="secondary"
-                            download
+                            onClick={() =>
+                              void downloadFile(downloadUrl(item), item.filename)
+                            }
                             aria-label={`Download ${item.title} instruction file`}
                             className={styles.iconButton}
                           >

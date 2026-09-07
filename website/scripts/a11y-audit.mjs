@@ -32,6 +32,9 @@ const routes = [
   '/plugins/',
   '/contributors/',
   '/learning-hub/',
+  // Keep a representative Playbook article in the matrix so the article
+  // chassis is audited in addition to the Learning Hub landing page.
+  '/learning-hub/github-copilot-app/',
   '/learning-hub/cookbook/',
   // Representative dedicated detail pages (one per resource type) so the audit
   // covers the shared detail layout, sidebar, install buttons, and file browser.

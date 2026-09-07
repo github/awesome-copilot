@@ -12,6 +12,7 @@ import {
   type CodeLanguage,
 } from "./SyntaxHighlightedCode";
 import { pageHref } from "./pageHref";
+import { downloadFile } from "./resourceActions";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/dotnet-upgrade.module.css";
 import fileStyles from "./styles/skill-files.module.css";
@@ -271,11 +272,12 @@ export function CookbookRecipe({
               </Button>
               {activeRawUrl ? (
                 <Button
-                  as="a"
-                  href={activeRawUrl}
+                  as="button"
                   variant="secondary"
                   size="small"
-                  download
+                  onClick={() =>
+                    void downloadFile(activeRawUrl, active.name)
+                  }
                   className={styles.iconButton}
                   aria-label={`Download ${active.name}`}
                 >

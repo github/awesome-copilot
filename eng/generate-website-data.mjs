@@ -1463,7 +1463,8 @@ function generateSearchIndex(
   agents,
   instructions,
   skills,
-  plugins
+  plugins,
+  extensions
 ) {
   const index = [];
 
@@ -1516,6 +1517,20 @@ function generateSearchIndex(
       tags: plugin.tags,
       lastUpdated: plugin.lastUpdated,
       searchText: plugin.searchText,
+    });
+  }
+
+  for (const extension of extensions) {
+    index.push({
+      type: "extension",
+      id: extension.id,
+      title: extension.name || extension.title || extension.id,
+      description: extension.description || "",
+      path: extension.path,
+      lastUpdated: extension.lastUpdated,
+      searchText:
+        extension.searchText ||
+        `${extension.name || extension.title || extension.id} ${extension.description || ""}`.toLowerCase(),
     });
   }
 
@@ -1724,7 +1739,8 @@ async function main() {
     agents,
     instructions,
     skills,
-    plugins
+    plugins,
+    extensions
   );
   console.log(`✓ Generated search index with ${searchIndex.length} items`);
 

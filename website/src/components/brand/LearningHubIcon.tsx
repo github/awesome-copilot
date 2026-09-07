@@ -10,7 +10,7 @@ export function LearningHubIcon({ size = 36 }: LearningHubIconProps) {
       viewBox="0 0 96 96"
       fill="none"
       role="img"
-      aria-label="GitHub Copilot Learning Hub"
+      aria-label="GitHub Copilot Playbook"
       xmlns="http://www.w3.org/2000/svg"
     >
       <g clipPath="url(#Learning Hub-icon-clip)">

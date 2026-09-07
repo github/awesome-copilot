@@ -60,8 +60,13 @@ function InstallCommand({ command }: { command: string }) {
 
   React.useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  const handleCopy = () => {
-    navigator.clipboard?.writeText(command).catch(() => undefined);
+  const handleCopy = async () => {
+    if (!navigator.clipboard?.writeText) return;
+    try {
+      await navigator.clipboard.writeText(command);
+    } catch {
+      return;
+    }
     setCopied(true);
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setCopied(false), 2000);
@@ -182,13 +187,13 @@ export function ExtensionDetail({
       {hasPreview ? (
         <section id={PREVIEW_SECTION_ID} className={styles.articleSection}>
           <h2 className={styles.articleHeading}>Preview</h2>
-          {images.map((image) => (
+          {images.map((image, index) => (
             <figure key={image.url} className={appStyles.videoFigure}>
               <img
                 className={appStyles.gif}
                 src={image.url}
                 alt={image.alt}
-                loading="eager"
+                loading={index === 0 ? "eager" : "lazy"}
                 decoding="async"
                 width={1280}
                 height={720}

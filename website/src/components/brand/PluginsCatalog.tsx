@@ -15,15 +15,16 @@ import {
   useTheme,
 } from "@primer/react-brand";
 import { clsx } from "clsx";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { externalRepoUrl, type ExternalSource } from "../../lib/external-source";
 import { PageShell } from "./PageShell";
 import { PluginsIcon } from "./PluginsIcon";
-import { toggleValue } from "./catalogFilters";
+import { daysSince, toggleValue } from "./catalogFilters";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/plugins.module.css";
+import { getScrollBehavior } from "./scrollBehavior";
 
 const CONTRIBUTE_URL =
   "https://github.com/github/awesome-copilot/blob/main/docs/README.plugins.md#how-to-contribute";
@@ -122,8 +123,9 @@ export function PluginsCatalog({
   tags?: string[];
 }) {
   const { colorMode } = useTheme();
-  const [sortMode] = useState<SortMode>("az");
+  const [sortMode, setSortMode] = useState<SortMode>("az");
   const [currentPage, setCurrentPage] = useState(1);
+  const previousPage = useRef(currentPage);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
@@ -160,7 +162,11 @@ export function PluginsCatalog({
         (size !== null && filters.size.includes(size));
       return sourceOk && categoryOk && sizeOk;
     });
-    if (sortMode === "az") {
+    if (sortMode === "newest") {
+      copy.sort(
+        (a, b) => daysSince(a.lastUpdated ?? undefined) - daysSince(b.lastUpdated ?? undefined),
+      );
+    } else {
       copy.sort((a, b) => a.name.localeCompare(b.name));
     }
     return copy;
@@ -191,6 +197,18 @@ export function PluginsCatalog({
     page * pageSize,
   );
 
+  useEffect(() => {
+    if (previousPage.current === currentPage) return;
+    previousPage.current = currentPage;
+    const frame = window.requestAnimationFrame(() => {
+      const catalog = document.getElementById("catalog");
+      if (!catalog) return;
+      catalog.scrollIntoView({ behavior: getScrollBehavior(), block: "start" });
+      catalog.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentPage]);
+
   return (
     <PageShell
       styles={styles}
@@ -213,7 +231,12 @@ export function PluginsCatalog({
         </div>
       </Box>
 
-      <Section id="catalog" paddingBlockStart="none" paddingBlockEnd="none">
+      <Section
+        id="catalog"
+        tabIndex={-1}
+        paddingBlockStart="none"
+        paddingBlockEnd="none"
+      >
         <Box className={styles.catalog}>
           <aside className={styles.filterNav} aria-label="Filter plugins">
             <button
@@ -296,6 +319,23 @@ export function PluginsCatalog({
           </aside>
 
           <Box className={styles.catalogMain}>
+            <Box className={styles.toolbar}>
+              <label className={styles.sortControl}>
+                <span>Sort by:</span>
+                <select
+                  className={styles.sortSelect}
+                  value={sortMode}
+                  onChange={(event) => {
+                    setSortMode(event.target.value as SortMode);
+                    setCurrentPage(1);
+                  }}
+                  aria-label="Sort plugins"
+                >
+                  <option value="az">A-Z</option>
+                  <option value="newest">Recently updated</option>
+                </select>
+              </label>
+            </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid

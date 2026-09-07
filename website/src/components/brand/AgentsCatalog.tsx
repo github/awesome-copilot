@@ -21,6 +21,7 @@ import { useMemo, useState } from "react";
 import { PageShell } from "./PageShell";
 import { daysSince, toggleValue, updatedBuckets, updatedBucketOf } from "./catalogFilters";
 import { pageHref } from "./pageHref";
+import { downloadFile } from "./resourceActions";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/agents.module.css";
 
@@ -86,6 +87,8 @@ type FilterState = Record<FilterGroupId, string[]>;
 
 const emptyFilters: FilterState = { model: [], tools: [], updated: [] };
 
+type SortMode = "az" | "newest";
+
 const PAGE_SIZE = 6;
 
 /**
@@ -113,6 +116,7 @@ export function AgentsCatalog({
   contributorsTotal?: number;
 }) {
   const { colorMode } = useTheme();
+  const [sortMode, setSortMode] = useState<SortMode>("az");
   const [currentPage, setCurrentPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
@@ -157,8 +161,13 @@ export function AgentsCatalog({
         filters.updated.includes(updatedBucketOf(daysSince(agent.lastUpdated)));
       return modelOk && toolsOk && updatedOk;
     });
-    return copy.sort((a, b) => a.title.localeCompare(b.title));
-  }, [agents, filters]);
+    if (sortMode === "newest") {
+      copy.sort((a, b) => daysSince(a.lastUpdated) - daysSince(b.lastUpdated));
+    } else {
+      copy.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return copy;
+  }, [agents, filters, sortMode]);
 
   const toggleFilter = (groupId: FilterGroupId, option: string) => {
     setFilters((prev) => ({
@@ -327,6 +336,23 @@ export function AgentsCatalog({
           </aside>
 
           <Box className={styles.catalogMain}>
+            <Box className={styles.toolbar}>
+              <label className={styles.sortControl}>
+                <span>Sort by:</span>
+                <select
+                  className={styles.sortSelect}
+                  value={sortMode}
+                  onChange={(event) => {
+                    setSortMode(event.target.value as SortMode);
+                    setCurrentPage(1);
+                  }}
+                  aria-label="Sort agents"
+                >
+                  <option value="az">A-Z</option>
+                  <option value="newest">Recently updated</option>
+                </select>
+              </label>
+            </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
@@ -377,10 +403,11 @@ export function AgentsCatalog({
                             </ActionMenu.Overlay>
                           </ActionMenu>
                           <Button
-                            as="a"
-                            href={downloadUrl(agent)}
+                            as="button"
                             variant="secondary"
-                            download
+                            onClick={() =>
+                              void downloadFile(downloadUrl(agent), agent.filename)
+                            }
                             aria-label={`Download ${agent.title} agent file`}
                             className={styles.iconButton}
                           >

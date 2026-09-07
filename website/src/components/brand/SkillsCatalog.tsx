@@ -28,6 +28,7 @@ import {
   updatedBucketOf,
 } from "./catalogFilters";
 import { pageHref } from "./pageHref";
+import { downloadFile } from "./resourceActions";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/skills.module.css";
 
@@ -41,12 +42,12 @@ export type SkillItem = {
   title: string;
   description: string;
   assetCount: number;
-  files: number;
+  files: { path: string; name: string; size: number }[];
   lastUpdated: string;
 };
 
 const skillSourceUrl = (skill: SkillItem) =>
-  `https://github.com/github/awesome-copilot/blob/main/skills/${skill.id}`;
+  `https://github.com/github/awesome-copilot/tree/main/skills/${skill.id}`;
 
 const installCommand = (skill: SkillItem) =>
   `gh skills install github/awesome-copilot ${skill.id}`;
@@ -69,6 +70,8 @@ const filterGroups: { id: FilterGroupId; label: string; options: string[] }[] = 
 type FilterState = Record<FilterGroupId, string[]>;
 
 const emptyFilters: FilterState = { resources: [], files: [], updated: [] };
+
+type SortMode = "az" | "newest";
 
 const resourceOf = (skill: SkillItem) =>
   skill.assetCount > 0 ? "Includes assets" : "Instructions only";
@@ -97,6 +100,7 @@ export function SkillsCatalog({
   contributorsTotal?: number;
 }) {
   const { colorMode } = useTheme();
+  const [sortMode, setSortMode] = useState<SortMode>("az");
   const [currentPage, setCurrentPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
@@ -107,6 +111,7 @@ export function SkillsCatalog({
     setExpandedGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
   };
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
   const copyTimer = React.useRef<number | undefined>(undefined);
 
   React.useEffect(
@@ -115,10 +120,12 @@ export function SkillsCatalog({
   );
 
   const copyInstall = async (skill: SkillItem) => {
+    setCopyError(false);
     try {
       await navigator.clipboard.writeText(installCommand(skill));
     } catch {
-      /* clipboard unavailable */
+      setCopyError(true);
+      return;
     }
     setCopied(true);
     window.clearTimeout(copyTimer.current);
@@ -132,14 +139,19 @@ export function SkillsCatalog({
         filters.resources.includes(resourceOf(skill));
       const filesOk =
         filters.files.length === 0 ||
-        filters.files.includes(fileBucketOf(skill.files));
+        filters.files.includes(fileBucketOf(skill.files.length));
       const updatedOk =
         filters.updated.length === 0 ||
         filters.updated.includes(updatedBucketOf(daysSince(skill.lastUpdated)));
       return resourcesOk && filesOk && updatedOk;
     });
-    return filtered.sort((a, b) => a.title.localeCompare(b.title));
-  }, [skills, filters]);
+    if (sortMode === "newest") {
+      filtered.sort((a, b) => daysSince(a.lastUpdated) - daysSince(b.lastUpdated));
+    } else {
+      filtered.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return filtered;
+  }, [skills, filters, sortMode]);
 
   const toggleFilter = (groupId: FilterGroupId, option: string) => {
     setFilters((prev) => ({
@@ -265,6 +277,23 @@ export function SkillsCatalog({
           </aside>
 
           <Box className={styles.catalogMain}>
+            <Box className={styles.toolbar}>
+              <label className={styles.sortControl}>
+                <span>Sort by:</span>
+                <select
+                  className={styles.sortSelect}
+                  value={sortMode}
+                  onChange={(event) => {
+                    setSortMode(event.target.value as SortMode);
+                    setCurrentPage(1);
+                  }}
+                  aria-label="Sort skills"
+                >
+                  <option value="az">A-Z</option>
+                  <option value="newest">Recently updated</option>
+                </select>
+              </label>
+            </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
@@ -304,10 +333,11 @@ export function SkillsCatalog({
                             Copy install
                           </Button>
                           <Button
-                            as="a"
-                            href={downloadUrl(skill)}
+                            as="button"
                             variant="secondary"
-                            download
+                            onClick={() =>
+                              void downloadFile(downloadUrl(skill), "SKILL.md")
+                            }
                             aria-label={`Download ${skill.title} skill file`}
                             className={styles.iconButton}
                           >
@@ -386,11 +416,13 @@ export function SkillsCatalog({
 
       <div
         className={styles.toast}
-        role="status"
-        aria-live="polite"
-        data-visible={copied ? "true" : undefined}
+        role={copyError ? "alert" : "status"}
+        aria-live={copyError ? "assertive" : "polite"}
+        data-visible={copied || copyError ? "true" : undefined}
       >
-        Install command copied!
+        {copyError
+          ? "Unable to copy install command. Please try again."
+          : "Install command copied!"}
       </div>
     </PageShell>
   );

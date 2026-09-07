@@ -35,6 +35,8 @@ interface Props {
    * mismatch flagged by Brand Engineering review).
    */
   lang?: string;
+  /** Canonical public path when Astro.url is rewritten by i18n fallback. */
+  canonicalPath?: string;
 }
 
 const {
@@ -44,10 +46,14 @@ const {
   ogType = "website",
   pagefind = true,
   lang = "en",
+  canonicalPath,
 } = Astro.props;
 
 const basePath = import.meta.env.BASE_URL;
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+const canonicalUrl = new URL(
+  canonicalPath ?? Astro.url.pathname,
+  Astro.site,
+).toString();
 const socialImageUrl = new URL(socialImage, Astro.site).toString();
 const twitterDomain = Astro.site ? new URL(Astro.site).hostname : undefined;
 

@@ -212,7 +212,7 @@ export function LearningHubIndex({
       styles={styles}
       searchIndex={searchIndex}
       contributorsTotal={contributorsTotal}
-      searchAriaLabel="Search the Learning Hub"
+      searchAriaLabel="Search the Playbook"
     >
       <LearningHubIndexBody articles={articles} searchIndex={searchIndex} />
     </PageShell>
@@ -423,7 +423,7 @@ function LearningHubIndexBody({
               <LearningHubIcon size={44} />
             </span>
             <Heading as="h1" size="3" className={styles.heroHeading}>
-              GitHub Copilot Learning Hub
+              GitHub Copilot Playbook
             </Heading>
           </div>
           <label className={styles.heroSearch}>
@@ -431,7 +431,7 @@ function LearningHubIndexBody({
               type="text"
               ref={heroSearchInputRef}
               className={styles.heroSearchInput}
-              aria-label="Search the Learning Hub"
+              aria-label="Search the Playbook"
               role="combobox"
               aria-expanded={heroSearchOpen}
               aria-controls="hero-search-results"

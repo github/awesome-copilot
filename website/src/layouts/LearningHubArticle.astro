@@ -10,7 +10,11 @@ import { render, type CollectionEntry } from "astro:content";
 import BaseLayout from "./BaseLayout.astro";
 import { LearningHubArticleBody } from "../components/brand/LearningHubArticleBody";
 import type { TocSection } from "../components/brand/LearningArticleLayout";
-import { buildArticleSections, stripEmoji } from "../lib/learning-hub-article";
+import {
+  buildArticleSections,
+  stripEmoji,
+  stripLeadingH1,
+} from "../lib/learning-hub-article";
 import { enhanceMarkdownA11y } from "../lib/markdown-a11y";
 import { searchIndex } from "../lib/site-data";
 import { contentLocale, splitLocale } from "../lib/learning-hub-routes";
@@ -21,9 +25,10 @@ interface Props {
   slug: string;
   /** Whether this article has real translations, so the language selector should show. */
   showLanguageSelect?: boolean;
+  canonicalPath?: string;
 }
 
-const { entry, slug, showLanguageSelect = false } = Astro.props;
+const { entry, slug, showLanguageSelect = false, canonicalPath } = Astro.props;
 
 const { headings } = await render(entry);
 
@@ -32,7 +37,7 @@ const { headings } = await render(entry);
 // Scrollable <pre>/<table> blocks in this markdown need to be made keyboard
 // focusable the same way detail-page markdown already is (see
 // lib/detail-page.ts) — Learning Hub articles were missing this pass entirely.
-const html = enhanceMarkdownA11y(entry.rendered?.html ?? "");
+const html = stripLeadingH1(enhanceMarkdownA11y(entry.rendered?.html ?? ""));
 const sections = buildArticleSections(html, entry.body ?? "");
 
 const tocSections: TocSection[] = headings
@@ -50,9 +55,10 @@ const lang = contentLocale(renderedLocale, englishId);
 ---
 
 <BaseLayout
-  title={`${title} | GitHub Copilot Learning Hub`}
+  title={`${title} | GitHub Copilot Playbook`}
   description={description}
   lang={lang}
+  canonicalPath={canonicalPath}
 >
   <LearningHubArticleBody
     client:load

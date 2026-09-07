@@ -1,5 +1,7 @@
 import React from "react";
 
+import { getScrollBehavior } from "./scrollBehavior";
+
 const MIN_HERO_READING = 464;
 const TWO_COLUMN_QUERY = "(min-width: 75rem)";
 
@@ -130,9 +132,9 @@ export function useAgentDetailProgress(
     const scrollHost = contentScrollRef.current;
     if (!scrollHost) return;
     if (window.matchMedia(TWO_COLUMN_QUERY).matches) {
-      scrollHost.scrollTo({ top: 0, behavior: "smooth" });
+      scrollHost.scrollTo({ top: 0, behavior: getScrollBehavior() });
     } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: getScrollBehavior() });
     }
   }, [contentScrollRef]);
 }

@@ -5,17 +5,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { LearningHubIndex } from "../../components/brand/LearningHubIndex";
 import type { LearningHubArticle } from "../../components/brand/LearningHubIndex";
 import { searchIndex } from "../../lib/site-data";
+import { normalizeLearningHubPath } from "../../lib/learning-hub-routes";
 
 const docs = await getCollection("docs");
 
-// Only the top-level English Learning Hub articles are catalogued here, plus the
-// landing page of each multi-page workshop track (`cli-for-beginners` and
-// `copilot-workshops`) so they can be found via the "Workshop" content-type
-// filter; the exercises within each track have their own entry points, and
-// locale mirrors are surfaced under their own prefix.
+// Keep each workshop landing page explicit so the Playbook can surface tracks
+// whose entries live below a nested directory, including translated app tracks.
 const WORKSHOP_LANDING_IDS = [
   "learning-hub/cli-for-beginners/index",
   "learning-hub/copilot-workshops/index",
+  "learning-hub/copilot-workshops/app/index",
+  "learning-hub/copilot-workshops/cli/index",
+  "learning-hub/copilot-workshops/cloud/index",
+  "learning-hub/copilot-workshops/vscode/index",
 ];
 const articles: LearningHubArticle[] = docs
   .filter(
@@ -28,7 +30,7 @@ const articles: LearningHubArticle[] = docs
     id: entry.id,
     title: entry.data.title,
     description: entry.data.description ?? "",
-    href: `/${entry.id}/`,
+    href: `/${normalizeLearningHubPath(entry.id)}/`,
     tags: entry.data.tags ?? [],
     lastUpdated:
       entry.data.lastUpdated instanceof Date
@@ -42,7 +44,7 @@ const description =
 ---
 
 <BaseLayout
-  title="GitHub Copilot Learning Hub | Awesome GitHub Copilot"
+  title="GitHub Copilot Playbook | Awesome GitHub Copilot"
   description={description}
 >
   <LearningHubIndex client:load articles={articles} searchIndex={searchIndex} />

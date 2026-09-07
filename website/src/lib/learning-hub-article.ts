@@ -85,6 +85,11 @@ export function stripEmoji(text: string): string {
     .trim();
 }
 
+/** Remove the markdown title because the article chassis already renders it. */
+export function stripLeadingH1(html: string): string {
+  return html.replace(/^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*/, "");
+}
+
 /**
  * @param html Rendered article HTML.
  * @param markdown Raw markdown body, used only to recover admonition types.
@@ -126,11 +131,14 @@ export function buildArticleSections(
     const to = bounds[index + 1]?.from ?? trimmedHtml.length;
     const chunk = trimmedHtml.slice(bound.from, to);
     if (!chunk.trim()) return;
+    const sectionHtml = bound.id
+      ? chunk.replace(/(<h2\b[^>]*?)\s+id="[^"]+"/i, "$1")
+      : chunk;
     sections.push({
       id: bound.id ?? "introduction",
       heading: bound.heading,
       // Callout kinds are consumed in document order across the whole article.
-      blocks: splitCallouts(chunk, kinds),
+      blocks: splitCallouts(sectionHtml, kinds),
     });
   });
   return sections;

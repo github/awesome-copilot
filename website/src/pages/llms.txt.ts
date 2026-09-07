@@ -47,10 +47,10 @@ export const GET: APIRoute = async () => {
   content +=
     "- **Skills**: Self-contained folders with instructions and bundled resources for specialized tasks\n";
   content +=
-    "- **Learning Hub**: Curated guides, tutorials, and reference material published on the website\n\n";
+    "- **Playbook**: Curated guides, tutorials, and reference material published on the website\n\n";
 
-  // Process Learning Hub documentation
-  content += "## Learning Hub\n\n";
+  // Process Playbook documentation.
+  content += "## Playbook\n\n";
   for (const article of learningHubArticles) {
     const description = normalizeDescription(article.data.description);
     content += `- [${article.data.title}](${siteUrl(learningHubRoute(article.id))}): ${description}\n`;

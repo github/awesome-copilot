@@ -79,6 +79,9 @@ const KIND_LABELS: Record<string, string> = {
 const kindLabel = (kind: string) =>
   KIND_LABELS[kind] ?? kind.charAt(0).toUpperCase() + kind.slice(1);
 
+const GITHUB_TREE_BASE = "https://github.com/github/awesome-copilot/tree/main";
+const GITHUB_BLOB_BASE = "https://github.com/github/awesome-copilot/blob/main";
+
 /** Fall back to the trailing path segment when an item carries no title. */
 function itemTitle(item: PluginIncludedItem): string {
   if (item.title) return item.title;
@@ -88,6 +91,16 @@ function itemTitle(item: PluginIncludedItem): string {
     .filter(Boolean);
   const last = segments[segments.length - 1] ?? "";
   return last.replace(/\.[^.]+$/, "") || kindLabel(item.kind);
+}
+
+/** Resolve unresolved plugin contents to their specific repository source. */
+function itemSourceUrl(item: PluginIncludedItem, fallback: string): string {
+  const itemPath = item.path?.replace(/^\.?\//, "").replace(/\/+$/, "");
+  if (!itemPath) return fallback;
+  const base = /\.[^/]+$/.test(itemPath)
+    ? GITHUB_BLOB_BASE
+    : GITHUB_TREE_BASE;
+  return `${base}/${itemPath}`;
 }
 
 /**
@@ -280,7 +293,7 @@ export function PluginDetail({
                           href={
                             included.detailUrl
                               ? pageHref(included.detailUrl)
-                              : githubUrl
+                              : itemSourceUrl(included, githubUrl)
                           }
                           fullWidth
                           ctaVariant="none"

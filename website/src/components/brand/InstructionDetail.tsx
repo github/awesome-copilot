@@ -6,6 +6,7 @@ import { ActionMenu, Button, Token } from "@primer/react-brand";
 import { DetailChassis, type DetailSibling } from "./DetailChassis";
 import { ResourceMeta } from "./ResourceMeta";
 import { pageHref } from "./pageHref";
+import { downloadFile } from "./resourceActions";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/dotnet-upgrade.module.css";
 
@@ -65,6 +66,15 @@ export function InstructionDetail({
     }
   }, [rawMarkdown]);
 
+  const handleDownload = React.useCallback(
+    () =>
+      downloadFile(
+        downloadUrl,
+        item.filename ?? `${item.id}.instructions.md`,
+      ),
+    [downloadUrl, item.filename, item.id],
+  );
+
   const install = (
     <>
       <ActionMenu mode="split-button" menuAlignment="start">
@@ -85,7 +95,7 @@ export function InstructionDetail({
           <ActionMenu.Item as="a" href={insidersUrl}>
             Install in VS Code Insiders
           </ActionMenu.Item>
-          <ActionMenu.Item as="a" href={downloadUrl} download>
+          <ActionMenu.Item onClick={() => void handleDownload()}>
             Download file
           </ActionMenu.Item>
           <ActionMenu.Item onClick={handleCopyMarkdown}>
@@ -103,10 +113,9 @@ export function InstructionDetail({
         <MarkGithubIcon size={16} />
       </Button>
       <Button
-        as="a"
-        href={downloadUrl}
+        as="button"
         variant="secondary"
-        download
+        onClick={() => void handleDownload()}
         className={styles.iconButton}
         aria-label={`Download the ${item.title} instructions file`}
       >

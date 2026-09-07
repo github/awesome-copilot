@@ -191,7 +191,7 @@ const configurationTerms: GlossaryTerm[] = [
       },
       {
         type: "paragraph",
-        text: "**Used in**: Skills, agents, instructions, and Learning Hub articles.",
+        text: "**Used in**: Skills, agents, instructions, and Playbook articles.",
       },
     ],
   },
@@ -613,7 +613,7 @@ export default function TerminologyGlossary() {
         </Heading>
         <Text as="p" size="300" variant="muted">
           Use this page as a quick reference when reading articles in the
-          Learning Hub or browsing the repository.
+          Playbook or browsing the repository.
         </Text>
         <GlossaryList terms={coreTerms} />
         <figure className={styles.videoFigure}>

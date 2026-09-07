@@ -26,6 +26,7 @@ import { LargeFooter } from "./LargeFooter";
 import { TypingText } from "./TypingText";
 import type { PrototypePageProps } from "./pageHref";
 import { getAwesomeCopilotNavLinks } from "./navigation";
+import { getScrollBehavior } from "./scrollBehavior";
 import { TopNav } from "./TopNav";
 import { LanguageSelect } from "./LanguageSelect";
 import { SkipLink } from "./SkipLink";
@@ -178,7 +179,10 @@ function LearningArticleLayoutBody({
   children,
 }: LearningArticleLayoutProps) {
   const { colorMode } = useTheme();
-  const subNavLinks = getAwesomeCopilotNavLinks(pageHref);
+  const subNavLinks = getAwesomeCopilotNavLinks(
+    pageHref,
+    "learning-hub-copilot-app",
+  );
   const contentScrollRef = React.useRef<HTMLDivElement>(null);
   const [showBackToTop, setShowBackToTop] = React.useState(false);
   const [heroBurst, setHeroBurst] = React.useState(false);
@@ -192,7 +196,10 @@ function LearningArticleLayoutBody({
   const [pinnedHeight, setPinnedHeight] = React.useState(0);
 
   const scrollToTop = () => {
-    contentScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    contentScrollRef.current?.scrollTo({
+      top: 0,
+      behavior: getScrollBehavior(),
+    });
   };
 
   // Scroll-spy: highlight the current section in the "In this article" list. The
@@ -403,7 +410,7 @@ function LearningArticleLayoutBody({
                     size={16}
                     className={styles.heroBreadcrumbBackIcon}
                   />
-                  GitHub Copilot Learning Hub
+                  GitHub Copilot Playbook
                 </Breadcrumbs.Item>
                 <Breadcrumbs.Item href={pageHref(currentPage)} selected>
                   {breadcrumbLabel}
@@ -518,7 +525,7 @@ function LearningArticleLayoutBody({
                                   document
                                     .getElementById(section.id)
                                     ?.scrollIntoView({
-                                      behavior: "smooth",
+                                      behavior: getScrollBehavior(),
                                       block: "start",
                                     });
                                   setActiveSection(section.id);

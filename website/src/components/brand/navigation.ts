@@ -4,13 +4,14 @@ export type AwesomeCopilotPage =
   | "agents"
   | "extensions"
   | "instructions"
+  | "learning-hub-copilot-app"
   | "plugins"
   | "skills";
 
 const destinations = [
   { label: "Agents", page: "agents" },
   { label: "Instructions", page: "instructions" },
-  { label: "Learning Hub", page: "learning-hub-copilot-app" },
+  { label: "Playbook", page: "learning-hub-copilot-app" },
   { label: "Skills", page: "skills" },
   { label: "Plugins", page: "plugins" },
   { label: "Extensions", page: "extensions" },

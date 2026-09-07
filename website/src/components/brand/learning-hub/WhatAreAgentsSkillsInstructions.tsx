@@ -343,7 +343,7 @@ export default function AgentsSkillsInstructions() {
           </li>
           <li>
             Try generating your own artifacts, then add them to the repo to keep
-            the Learning Hub evolving.
+            the Playbook evolving.
           </li>
         </ul>
       </section>

@@ -25,6 +25,7 @@ import {
 import { ExtensionsIcon } from "./ExtensionsIcon";
 import { PageShell } from "./PageShell";
 import { TypingText } from "./TypingText";
+import { httpUrl } from "./resourceActions";
 import {
   daysSince,
   toggleValue,
@@ -34,6 +35,7 @@ import {
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/extensions.module.css";
+import { getScrollBehavior } from "./scrollBehavior";
 
 const CONTRIBUTE_URL =
   "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md#adding-canvas-extensions";
@@ -46,6 +48,7 @@ export type ExtensionItem = {
   name: string;
   description: string;
   lastUpdated: string;
+  pluginName?: string | null;
   imageUrl?: string | null;
   installUrl?: string | null;
   installCommand?: string | null;
@@ -58,7 +61,16 @@ export type ExtensionItem = {
 /** Where the "view on GitHub" action points: an external extension carries its
  *  own source repo, an in-repo one is covered by the install URL. */
 const extensionSourceUrl = (ext: ExtensionItem) =>
-  ext.sourceUrl ?? ext.installUrl ?? undefined;
+  ext.external
+    ? httpUrl(ext.sourceUrl ?? ext.installUrl)
+    : ext.sourceUrl ?? ext.installUrl ?? undefined;
+
+const appInstallUrl = (ext: ExtensionItem) =>
+  !ext.external && ext.pluginName
+    ? `ghapp://plugins/install?source=${encodeURIComponent(
+        `${ext.pluginName}@awesome-copilot`,
+      )}`
+    : undefined;
 
 const uniqueSorted = (values: string[]) =>
   Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
@@ -72,6 +84,8 @@ type FilterState = Record<FilterGroupId, string[]>;
 const emptyFilters: FilterState = { author: [], updated: [], keyword: [] };
 
 const PAGE_SIZE = 6;
+
+type SortMode = "az" | "newest";
 
 function CopyInstallButton({
   ext,
@@ -87,9 +101,12 @@ function CopyInstallButton({
 
   React.useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  const onCopy = () => {
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(command).catch(() => undefined);
+  const onCopy = async () => {
+    if (!navigator.clipboard?.writeText) return;
+    try {
+      await navigator.clipboard.writeText(command);
+    } catch {
+      return;
     }
     setCopied(true);
     onCopied();
@@ -129,7 +146,9 @@ export function ExtensionsCatalog({
   contributorsTotal?: number;
 }) {
   const { colorMode } = useTheme();
+  const [sortMode, setSortMode] = useState<SortMode>("az");
   const [currentPage, setCurrentPage] = useState(1);
+  const previousPage = React.useRef(currentPage);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyTimer = React.useRef<number | undefined>(undefined);
@@ -190,9 +209,13 @@ export function ExtensionsCatalog({
         );
       return authorOk && updatedOk && keywordOk;
     });
-    copy.sort((a, b) => a.name.localeCompare(b.name));
+    if (sortMode === "newest") {
+      copy.sort((a, b) => daysSince(a.lastUpdated) - daysSince(b.lastUpdated));
+    } else {
+      copy.sort((a, b) => a.name.localeCompare(b.name));
+    }
     return copy;
-  }, [extensions, filters]);
+  }, [extensions, filters, sortMode]);
 
   const toggleFilter = (groupId: FilterGroupId, option: string) => {
     setFilters((prev) => ({
@@ -217,6 +240,18 @@ export function ExtensionsCatalog({
     page * PAGE_SIZE,
   );
 
+  React.useEffect(() => {
+    if (previousPage.current === currentPage) return;
+    previousPage.current = currentPage;
+    const frame = window.requestAnimationFrame(() => {
+      const catalog = document.getElementById("catalog");
+      if (!catalog) return;
+      catalog.scrollIntoView({ behavior: getScrollBehavior(), block: "start" });
+      catalog.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentPage]);
+
   return (
     <PageShell
       styles={styles}
@@ -240,7 +275,12 @@ export function ExtensionsCatalog({
         </div>
       </Box>
 
-      <Section id="catalog" paddingBlockStart="none" paddingBlockEnd="none">
+      <Section
+        id="catalog"
+        tabIndex={-1}
+        paddingBlockStart="none"
+        paddingBlockEnd="none"
+      >
         <Box className={styles.catalog}>
           <aside className={styles.filterNav} aria-label="Filter extensions">
             <button
@@ -323,6 +363,23 @@ export function ExtensionsCatalog({
           </aside>
 
           <Box className={styles.catalogMain}>
+            <Box className={styles.toolbar}>
+              <label className={styles.sortControl}>
+                <span>Sort by:</span>
+                <select
+                  className={styles.sortSelect}
+                  value={sortMode}
+                  onChange={(event) => {
+                    setSortMode(event.target.value as SortMode);
+                    setCurrentPage(1);
+                  }}
+                  aria-label="Sort extensions"
+                >
+                  <option value="az">A-Z</option>
+                  <option value="newest">Recently updated</option>
+                </select>
+              </label>
+            </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
                 <Grid
@@ -331,9 +388,10 @@ export function ExtensionsCatalog({
                   rowGap="none"
                   enableGutters={false}
                 >
-                  {visibleExtensions.map((ext) => {
+                  {visibleExtensions.map((ext, index) => {
                     const detailHref = pageHref(`extension/${ext.id}`);
                     const sourceUrl = extensionSourceUrl(ext);
+                    const installUrl = appInstallUrl(ext);
                     return (
                       <Grid.Column
                         key={ext.id}
@@ -352,7 +410,7 @@ export function ExtensionsCatalog({
                                 className={styles.cardImage}
                                 src={ext.imageUrl}
                                 alt={`${ext.name} preview`}
-                                loading="lazy"
+                                loading={index === 0 ? "eager" : "lazy"}
                                 decoding="async"
                                 width={1280}
                                 height={720}
@@ -374,10 +432,10 @@ export function ExtensionsCatalog({
                             </Card.Description>
                           </Card>
                           <div className={styles.cardActions}>
-                            {ext.installUrl ? (
+                            {installUrl ? (
                               <Button
                                 as="a"
-                                href={ext.installUrl}
+                                href={installUrl}
                                 variant="primary"
                                 hasArrow={false}
                               >

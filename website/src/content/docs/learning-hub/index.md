@@ -1,5 +1,5 @@
 ---
-title: Learning Hub
+title: Playbook
 description: "Curated articles, walkthroughs, and reference material to help you unlock everything you can do with GitHub Copilot"
 tableOfContents: false
 ---

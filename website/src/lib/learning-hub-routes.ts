@@ -12,6 +12,16 @@ export function isLearningHubArticle(id: string): boolean {
   return /(^|\/)learning-hub\//.test(id);
 }
 
+/** Remove the collection-only `/index` suffix from a public Learning Hub path. */
+export function normalizeLearningHubPath(path: string): string {
+  return path.replace(/\/index$/, "");
+}
+
+/** Return the canonical public path for a collection entry id. */
+export function learningHubEntryPath(id: string): string {
+  return normalizeLearningHubPath(splitLocale(id).path);
+}
+
 const LOCALES = ["es-es", "ja-jp", "ko-kr", "pt-br", "zh-cn"] as const;
 
 export type Locale = (typeof LOCALES)[number];
@@ -35,12 +45,15 @@ export { LOCALES };
  * to switch to, so callers gate it on this check rather than showing it site-wide.
  */
 const TRANSLATED_PREFIX = "learning-hub/copilot-workshops/app";
+const TRANSLATED_WORKSHOP_LANDING = "learning-hub/copilot-workshops";
 
 /** Whether the (unprefixed, English) article id has mirrored translations. */
 export function hasTranslations(englishId: string): boolean {
+  const normalized = normalizeLearningHubPath(englishId);
   return (
-    englishId === TRANSLATED_PREFIX ||
-    englishId.startsWith(`${TRANSLATED_PREFIX}/`)
+    normalized === TRANSLATED_WORKSHOP_LANDING ||
+    normalized === TRANSLATED_PREFIX ||
+    normalized.startsWith(`${TRANSLATED_PREFIX}/`)
   );
 }
 
