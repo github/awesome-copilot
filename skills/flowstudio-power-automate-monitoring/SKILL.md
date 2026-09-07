@@ -39,7 +39,7 @@ enriched with governance metadata and remediation hints.
 
 ## How Monitoring Works
 
-Flow Studio scans the Power Automate API daily for each subscriber and caches
+FlowStudio scans the Power Automate API daily for each subscriber and caches
 the results. There are two levels:
 
 - **All flows** get metadata scanned: definition, connections, owners, trigger
@@ -54,7 +54,7 @@ the results. There are two levels:
 a flow was last scanned. If stale, the scanning pipeline may not be running.
 
 **Enabling monitoring:** Set `monitor: true` via `update_store_flow` or the
-Flow Studio for Teams app
+FlowStudio for Teams app
 ([how to select flows](https://learn.flowstudio.app/teams-monitoring)).
 
 **Designating critical flows:** Use `update_store_flow` with `critical=true`

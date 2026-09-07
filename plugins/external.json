@@ -29,7 +29,7 @@
   {
     "name": "ai-ready",
     "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
-    "version": "1.1.0",
+    "version": "1.3.0",
     "author": {
       "name": "John Papa",
       "url": "https://github.com/johnpapa"
@@ -50,7 +50,7 @@
       "source": "github",
       "repo": "johnpapa/ai-ready",
       "path": ".github/plugin",
-      "ref": "v1.1.0"
+      "ref": "v1.3.0"
     }
   },
   {
@@ -687,7 +687,7 @@
   {
     "name": "keep-the-why",
     "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
-    "version": "0.10.1",
+    "version": "0.12.0",
     "author": {
       "name": "Oliver Zehentleitner",
       "url": "https://github.com/oliver-zehentleitner"
@@ -706,7 +706,7 @@
     "source": {
       "source": "github",
       "repo": "oliver-zehentleitner/keep-the-why",
-      "ref": "v0.10.1"
+      "ref": "v0.12.0"
     }
   },
   {
@@ -1229,7 +1229,7 @@
   {
     "name": "upgrade-agent",
     "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-    "version": "1.1.441",
+    "version": "1.1.485",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1248,8 +1248,8 @@
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "ref": "v1.1.441",
-      "sha": "f8abab778cfb5b57a3c745d540631b7aab15d5b3"
+      "ref": "v1.1.485",
+      "sha": "de2dd654a288726652de81998fbaff7a849891dc"
     }
   },
   {
