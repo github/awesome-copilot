@@ -912,8 +912,10 @@
     padding-block: var(--base-size-48);
   }
 
+  /* Match the Extension cards' padding at this breakpoint — was previously a
+     narrower 24px horizontal inset, out of step with the other catalogs. */
   .item {
-    padding: var(--base-size-32) var(--base-size-24);
+    padding: var(--base-size-32);
   }
 
   .filterNav {

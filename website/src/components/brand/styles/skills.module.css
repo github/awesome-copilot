@@ -905,6 +905,12 @@
     display: none;
   }
 
+  /* Match the reduced card padding used on the Extension cards at this
+     breakpoint; the desktop 60px inset is excessive on phone-width cards. */
+  .item {
+    padding: var(--base-size-32);
+  }
+
   /* Restore left/right gridlines on the single-column card column, inset to the
      20px content gutter (the desktop bg-gridlines drop below 63.25rem). */
   .catalogMain {
