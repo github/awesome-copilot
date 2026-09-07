@@ -21,6 +21,23 @@ html {
   scroll-behavior: smooth;
 }
 
+/*
+ * Native scrollbars (the page scrollbar, and any overflow container that
+ * doesn't have its own custom scrollbar styling, e.g. `<pre>` code blocks)
+ * are painted by the browser based on `color-scheme`, not by our design
+ * tokens. Without this, they stay light even when `data-color-mode="dark"`
+ * is set on `<html>` (see BaseLayout.astro), making them stand out sharply
+ * against the dark UI. Tie `color-scheme` to the same attribute so every
+ * native scrollbar (and other UA-drawn form controls) matches the theme.
+ */
+html[data-color-mode="dark"] {
+  color-scheme: dark;
+}
+
+html[data-color-mode="light"] {
+  color-scheme: light;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
