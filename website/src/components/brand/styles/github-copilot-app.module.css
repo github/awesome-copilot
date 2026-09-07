@@ -1449,7 +1449,13 @@
 
 /* "Pro tip" callout — a card in the article flow (not a numbered section). */
 .proTip {
-  margin: 0 var(--base-size-32) var(--base-size-32);
+  /* The prototype places this as a sibling of `.articleSection` (which has
+     no horizontal padding of its own) and uses this margin to align its
+     edges with the padded section content. Our port always nests it
+     *inside* an already-padded `.articleSection`, so a horizontal margin
+     here would double up with that padding and make the callout narrower
+     than the surrounding article text. Only the bottom spacing is kept. */
+  margin: 0 0 var(--base-size-32);
   border-radius: var(--brand-borderRadius-medium);
   border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
   background-color: var(--brand-color-canvas-muted);

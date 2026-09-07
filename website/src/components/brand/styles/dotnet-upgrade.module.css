@@ -747,7 +747,11 @@
 /* "Pro tip" callout — a dismissible card in the article flow (not a numbered
    section). Header uses the canvas/subtle surface; body uses canvas/default. */
 .proTip {
-  margin: 0 var(--base-size-32) var(--base-size-32);
+  /* Nested inside an already-padded `.articleSection`; a horizontal margin
+     here would double up with that padding and narrow the callout relative
+     to the surrounding article text/table content. Only bottom spacing is
+     kept — see the matching comment in github-copilot-app.module.css. */
+  margin: 0 0 var(--base-size-32);
   border-radius: var(--brand-borderRadius-medium);
   border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
   background-color: var(--brand-color-canvas-default);
