@@ -1,0 +1,22 @@
+---
+export function getStaticPaths() {
+  return [
+    "daily-issues-report",
+    "ospo-contributors-report",
+    "ospo-org-health",
+    "ospo-release-compliance-checker",
+    "ospo-stale-repos",
+    "relevance-check",
+    "relevance-summary",
+    "weekly-comment-sync",
+  ].map((slug) => ({
+    params: { slug },
+    props: {
+      target: `https://github.com/github/awesome-copilot/blob/main/workflows/${slug}.md`,
+    },
+  }));
+}
+
+const { target } = Astro.props;
+return Astro.redirect(target);
+---

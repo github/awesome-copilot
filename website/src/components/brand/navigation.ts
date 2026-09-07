@@ -6,7 +6,10 @@ export type AwesomeCopilotPage =
   | "instructions"
   | "learning-hub-copilot-app"
   | "plugins"
-  | "skills";
+  | "skills"
+  | "hooks"
+  | "workflows"
+  | "tools";
 
 const destinations = [
   { label: "Agents", page: "agents" },
@@ -15,6 +18,9 @@ const destinations = [
   { label: "Skills", page: "skills" },
   { label: "Plugins", page: "plugins" },
   { label: "Extensions", page: "extensions" },
+  { label: "Hooks", page: "hooks" },
+  { label: "Workflows", page: "workflows" },
+  { label: "Tools", page: "tools" },
 ] as const;
 
 export function getAwesomeCopilotNavLinks(

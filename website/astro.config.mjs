@@ -102,6 +102,9 @@ export default defineConfig({
   integrations: [react(), sitemap(), pagefindResources()],
   redirects: {
     "/samples/": "/learning-hub/cookbook/",
+    "/hooks/": "https://github.com/github/awesome-copilot/tree/main/hooks",
+    "/workflows/": "https://github.com/github/awesome-copilot/tree/main/workflows",
+    "/tools/": "https://github.com/github/awesome-copilot/blob/main/website/data/tools.yml",
   },
   build: {
     assets: "assets",
