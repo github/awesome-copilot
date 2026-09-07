@@ -1490,6 +1490,16 @@
   outline-offset: calc(-1 * var(--base-size-2));
 }
 
+/* A code block placed in the hero (via `heroExtra`) sits on `.heroInner`'s own
+   canvas/subtle surface, so a canvas/subtle block background is
+   indistinguishable from it — canvas/default is needed there to visibly lift
+   the block off the hero (#2963). Article-body code blocks are unaffected:
+   they sit on the canvas/default page body, where canvas/subtle already
+   reads as a distinct surface. */
+.heroContent .codeBlock {
+  background-color: var(--brand-color-canvas-default);
+}
+
 .codeLine {
   display: block;
   min-inline-size: max-content;

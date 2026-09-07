@@ -809,6 +809,17 @@
   outline-offset: calc(-1 * var(--base-size-2));
 }
 
+/* Detail-page heroes (Skill/Agent/Instruction/Plugin/Extension) place an
+   install-command code block via `heroExtras`, on top of `.heroInner`'s own
+   canvas/subtle surface — a canvas/subtle block background there is
+   indistinguishable from the hero itself. Use canvas/default instead so the
+   block visibly lifts off the hero (#2963). Article-body code blocks (e.g.
+   Cookbook recipe steps) are unaffected: they sit on the canvas/default page
+   body, where canvas/subtle already reads as a distinct surface. */
+.heroContent .codeBlock {
+  background-color: var(--brand-color-canvas-default);
+}
+
 .codeLine {
   display: block;
   min-inline-size: max-content;
