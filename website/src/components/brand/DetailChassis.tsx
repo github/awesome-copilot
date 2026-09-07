@@ -243,7 +243,9 @@ export function DetailChassis({
                     </div>
                   ) : null}
                   {next ? (
-                    <div className={styles.nextUpMain}>
+                    <div
+                      className={clsx(styles.nextUpMain, styles.nextUpNext)}
+                    >
                       <div className={styles.nextUpKickerRow}>
                         <span className={styles.nextUpKicker}>Up next</span>
                       </div>

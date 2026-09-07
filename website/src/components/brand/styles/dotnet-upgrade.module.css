@@ -1820,11 +1820,18 @@
   }
 }
 
-/* ---- Up next (ported from github-copilot-app) ---- */
+/* ---- Up next (ported from github-copilot-app) ----
+   Unlike the Learning Hub layout this is ported from, catalog Detail pages
+   can have both a Previous *and* an Up next link (catalog order is
+   bidirectional). The prototype only ever renders a single "Up next" link,
+   so there's no upstream pattern for two — lay them out side by side
+   (Previous left, Up next right) on wider viewports, falling back to the
+   original stacked layout once the row gets too narrow to read comfortably. */
 .nextUp {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
   min-height: calc(2 * var(--base-size-96));
   gap: var(--base-size-24);
   padding: var(--base-size-48) var(--base-size-32) var(--base-size-24);
@@ -1837,6 +1844,28 @@
   display: flex;
   flex-direction: column;
   gap: var(--base-size-8);
+}
+
+/* The "Up next" link right-aligns its own kicker/link text (independent of
+   whether a Previous link is also present) so the arrow sits nearest the
+   edge of the card, matching the Previous link's arrow-then-text order on
+   the opposite side. */
+.nextUpNext {
+  align-items: flex-end;
+  text-align: end;
+  margin-inline-start: auto;
+}
+
+@media (max-width: 40rem) {
+  .nextUp {
+    flex-direction: column;
+  }
+
+  .nextUpNext {
+    align-items: flex-start;
+    text-align: start;
+    margin-inline-start: 0;
+  }
 }
 
 .nextUpKickerRow {
