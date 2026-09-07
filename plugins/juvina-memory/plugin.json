@@ -1,0 +1,27 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "juvina-memory",
+  "description": "Persistent, team-shared memory for Copilot agents — encode decisions and recall project knowledge across repositories, sessions, and time via the Juvina memory engine's MCP tools.",
+  "version": "1.0.0",
+  "author": {
+    "name": "juvina.ai",
+    "url": "https://juvina.ai"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "memory",
+    "persistent-memory",
+    "team-memory",
+    "mcp",
+    "agent-memory",
+    "knowledge-management"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/juvina-memory/"
+      ]
+    }
+  }
+}

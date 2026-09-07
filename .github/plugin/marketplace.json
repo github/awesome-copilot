@@ -977,6 +977,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "juvina-memory",
+      "source": "plugins/juvina-memory",
+      "description": "Persistent, team-shared memory for Copilot agents — encode decisions and recall project knowledge across repositories, sessions, and time via the Juvina memory engine's MCP tools.",
+      "version": "1.0.0"
+    },
+    {
       "name": "keep-the-why",
       "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
       "version": "0.10.1",
