@@ -168,8 +168,14 @@ function parseSkillMetadata(skillPath) {
         entries.forEach((entry) => {
           const filePath = path.join(dirPath, entry.name);
           if (entry.isDirectory()) {
+            if (entry.name === "bin" || entry.name === "obj") {
+              return; // Skip bin and obj directories as they are .NET project output folders and not part of the skill assets
+            }
             arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
-          } else if (!entry.isSymbolicLink() || !skipsAsBundledAsset(filePath)) {
+          } else if (
+            !entry.isSymbolicLink() ||
+            !skipsAsBundledAsset(filePath)
+          ) {
             const relativePath = path.relative(skillPath, filePath);
             if (relativePath !== "SKILL.md") {
               // Normalize path separators to forward slashes for cross-platform consistency
@@ -245,7 +251,10 @@ function parseHookMetadata(hookPath) {
           const filePath = path.join(dirPath, entry.name);
           if (entry.isDirectory()) {
             arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
-          } else if (!entry.isSymbolicLink() || !skipsAsBundledAsset(filePath)) {
+          } else if (
+            !entry.isSymbolicLink() ||
+            !skipsAsBundledAsset(filePath)
+          ) {
             const relativePath = path.relative(hookPath, filePath);
             if (relativePath !== "README.md") {
               // Normalize path separators to forward slashes for cross-platform consistency
@@ -337,8 +346,8 @@ export {
   extractMcpServerConfigs,
   extractMcpServers,
   parseFrontmatter,
-  parseSkillMetadata,
   parseHookMetadata,
+  parseSkillMetadata,
   parseWorkflowMetadata,
   parseYamlFile,
   safeFileOperation,
