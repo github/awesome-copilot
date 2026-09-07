@@ -71,7 +71,11 @@ const canvasManifest = fileNode(
     name: "upgrade-agent",
     version: "1.0.0",
     description: "Canvas plugin",
-    logo: "assets/preview.png",
+    extensions: {
+      "com.github.copilot": {
+        logo: "assets/preview.png",
+      },
+    },
   }),
 );
 
@@ -83,19 +87,30 @@ function baseContents(extra) {
   };
 }
 
-// Wires up the directory-walk that resolves plugins/upgrade-agent/extensions to a tree SHA.
-// `extensionsEntry` controls what the walk finds at the final ".../extensions" step, and
-// `extensionsSubtree` is the recursive listing returned for that resolved tree SHA.
-function buildTrees({ extensionsEntry, extensionsSubtree, overrides } = {}) {
+function manifestWithExtensions(extensions) {
+  return fileNode(
+    JSON.stringify({
+      name: "upgrade-agent",
+      version: "1.0.0",
+      description: "Canvas plugin",
+      extensions,
+    }),
+  );
+}
+
+// Wires up the directory-walk that resolves plugins/upgrade-agent/com.github.copilot to a tree
+// SHA. `namespaceEntry` controls what the walk finds at the final ".../com.github.copilot" step,
+// and `namespaceSubtree` is the recursive listing returned for that resolved tree SHA.
+function buildTrees({ namespaceEntry, namespaceSubtree, overrides } = {}) {
   const trees = {
     [SHA]: treeResponse([treeEntry("plugins", "tree", TREE_PLUGINS)]),
     [TREE_PLUGINS]: treeResponse([treeEntry("upgrade-agent", "tree", TREE_UPGRADE_AGENT)]),
     [TREE_UPGRADE_AGENT]: treeResponse([
-      extensionsEntry ?? treeEntry("extensions", "tree", TREE_EXTENSIONS),
+      namespaceEntry ?? treeEntry("com.github.copilot", "tree", TREE_EXTENSIONS),
     ]),
   };
-  if (extensionsSubtree) {
-    trees[TREE_EXTENSIONS] = extensionsSubtree;
+  if (namespaceSubtree) {
+    trees[TREE_EXTENSIONS] = namespaceSubtree;
   }
   return { ...trees, ...overrides };
 }
@@ -120,9 +135,10 @@ async function runValidation({ contents, trees }) {
 test("validateCanvasPluginMetadata accepts a nested extension entry point", async () => {
   const { errors, warnings } = await runValidation({
     trees: buildTrees({
-      extensionsSubtree: treeResponse([
-        treeEntry("modernize-dashboard", "tree"),
-        treeEntry("modernize-dashboard/extension.mjs", "blob"),
+      namespaceSubtree: treeResponse([
+        treeEntry("extensions", "tree"),
+        treeEntry("extensions/modernize-dashboard", "tree"),
+        treeEntry("extensions/modernize-dashboard/extension.mjs", "blob"),
       ]),
     }),
   });
@@ -131,21 +147,91 @@ test("validateCanvasPluginMetadata accepts a nested extension entry point", asyn
   assert.deepEqual(warnings, []);
 });
 
-test("validateCanvasPluginMetadata accepts a flat extension entry point", async () => {
-  const { errors, warnings } = await runValidation({
+test("validateCanvasPluginMetadata rejects a manifest missing the com.github.copilot namespace", async () => {
+  const { errors } = await runValidation({
+    contents: {
+      [`${PLUGIN_ROOT}/.github/plugin/plugin.json`]: {
+        status: 200,
+        data: manifestWithExtensions({}),
+      },
+    },
     trees: buildTrees({
-      extensionsSubtree: treeResponse([treeEntry("extension.mjs", "blob")]),
+      namespaceSubtree: treeResponse([
+        treeEntry("extensions", "tree"),
+        treeEntry("extensions/modernize-dashboard", "tree"),
+        treeEntry("extensions/modernize-dashboard/extension.mjs", "blob"),
+      ]),
     }),
   });
 
-  assert.deepEqual(errors, []);
+  assert.equal(
+    errors.some((message) =>
+      /must set "extensions\.com\.github\.copilot\.logo" to "assets\/preview\.png"/.test(message),
+    ),
+    true,
+  );
+});
+
+test("validateCanvasPluginMetadata rejects a manifest with the wrong logo path", async () => {
+  const { errors } = await runValidation({
+    contents: {
+      [`${PLUGIN_ROOT}/.github/plugin/plugin.json`]: {
+        status: 200,
+        data: manifestWithExtensions({ "com.github.copilot": { logo: "logo.png" } }),
+      },
+    },
+    trees: buildTrees({
+      namespaceSubtree: treeResponse([
+        treeEntry("extensions", "tree"),
+        treeEntry("extensions/modernize-dashboard", "tree"),
+        treeEntry("extensions/modernize-dashboard/extension.mjs", "blob"),
+      ]),
+    }),
+  });
+
+  assert.equal(
+    errors.some((message) =>
+      /must set "logo" to "assets\/preview\.png" in "extensions\.com\.github\.copilot"/.test(message),
+    ),
+    true,
+  );
+});
+
+test("validateCanvasPluginMetadata rejects an extension entry point outside the extensions directory", async () => {
+  const { errors, warnings } = await runValidation({
+    trees: buildTrees({
+      namespaceSubtree: treeResponse([
+        treeEntry("radius", "tree"),
+        treeEntry("radius/extension.mjs", "blob"),
+      ]),
+    }),
+  });
+
+  assert.equal(
+    errors.some((message) => /must include a canvas extension entry point/.test(message)),
+    true,
+  );
   assert.deepEqual(warnings, []);
 });
 
-test("validateCanvasPluginMetadata rejects when no extension.mjs exists flat or nested", async () => {
+test("validateCanvasPluginMetadata rejects a flat extension entry point", async () => {
+  const { errors, warnings } = await runValidation({
+    trees: buildTrees({
+      namespaceSubtree: treeResponse([treeEntry("extension.mjs", "blob")]),
+    }),
+  });
+
+  assert.equal(
+    errors.some((message) => /must include a canvas extension entry point/.test(message)),
+    true,
+  );
+  assert.deepEqual(warnings, []);
+});
+
+test("validateCanvasPluginMetadata rejects when no named extension entry point exists", async () => {
   const { errors } = await runValidation({
     trees: buildTrees({
-      extensionsSubtree: treeResponse([
+      namespaceSubtree: treeResponse([
         treeEntry("modernize-dashboard", "tree"),
         treeEntry("modernize-dashboard/index.mjs", "blob"),
       ]),
@@ -158,44 +244,46 @@ test("validateCanvasPluginMetadata rejects when no extension.mjs exists flat or 
   );
 });
 
-test("validateCanvasPluginMetadata rejects when the extensions directory is missing", async () => {
+test("validateCanvasPluginMetadata rejects when the com.github.copilot directory is missing", async () => {
   const { errors } = await runValidation({
     trees: buildTrees({
-      extensionsEntry: treeEntry("other-dir", "tree", "tree-other"),
+      namespaceEntry: treeEntry("other-dir", "tree", "tree-other"),
     }),
   });
 
   assert.equal(
-    errors.some((message) => /must include an "extensions" directory/.test(message)),
+    errors.some((message) => /must include a "com\.github\.copilot" directory/.test(message)),
     true,
   );
 });
 
-test("validateCanvasPluginMetadata rejects when extensions is a file rather than a directory", async () => {
+test("validateCanvasPluginMetadata rejects when com.github.copilot is a file rather than a directory", async () => {
   const { errors } = await runValidation({
     trees: buildTrees({
-      extensionsEntry: treeEntry("extensions", "blob", "blob-extensions"),
+      namespaceEntry: treeEntry("com.github.copilot", "blob", "blob-extensions"),
     }),
   });
 
   assert.equal(
-    errors.some((message) => /"extensions" must be a directory/.test(message)),
+    errors.some((message) => /"com\.github\.copilot" must be a directory/.test(message)),
     true,
   );
 });
 
-test("validateCanvasPluginMetadata rejects when extensions/extension.mjs is a directory", async () => {
+test("validateCanvasPluginMetadata rejects when a named extension.mjs is a directory", async () => {
   const { errors } = await runValidation({
     trees: buildTrees({
-      extensionsSubtree: treeResponse([
-        treeEntry("extension.mjs", "tree"),
-        treeEntry("extension.mjs/placeholder.txt", "blob"),
+      namespaceSubtree: treeResponse([
+        treeEntry("extensions", "tree"),
+        treeEntry("extensions/modernize-dashboard", "tree"),
+        treeEntry("extensions/modernize-dashboard/extension.mjs", "tree"),
+        treeEntry("extensions/modernize-dashboard/extension.mjs/placeholder.txt", "blob"),
       ]),
     }),
   });
 
   assert.equal(
-    errors.some((message) => /"extensions\/extension\.mjs" must be a file/.test(message)),
+    errors.some((message) => /"com\.github\.copilot\/extensions\/<extension>\/extension\.mjs" must be a file/.test(message)),
     true,
   );
 });
@@ -219,7 +307,7 @@ test("validateCanvasPluginMetadata treats a truncated walk level as unverifiable
     trees: buildTrees({
       overrides: {
         [TREE_UPGRADE_AGENT]: treeResponse(
-          [treeEntry("extensions", "tree", TREE_EXTENSIONS)],
+          [treeEntry("com.github.copilot", "tree", TREE_EXTENSIONS)],
           { truncated: true },
         ),
       },
@@ -233,10 +321,10 @@ test("validateCanvasPluginMetadata treats a truncated walk level as unverifiable
   );
 });
 
-test("validateCanvasPluginMetadata treats a truncated extensions subtree without an entry point as unverifiable", async () => {
+test("validateCanvasPluginMetadata treats a truncated com.github.copilot subtree without an entry point as unverifiable", async () => {
   const { errors, warnings } = await runValidation({
     trees: buildTrees({
-      extensionsSubtree: treeResponse([treeEntry("modernize-dashboard", "tree")], { truncated: true }),
+      namespaceSubtree: treeResponse([treeEntry("extensions", "tree")], { truncated: true }),
     }),
   });
 
@@ -250,10 +338,10 @@ test("validateCanvasPluginMetadata treats a truncated extensions subtree without
 test("validateCanvasPluginMetadata accepts an entry point found within a truncated subtree", async () => {
   const { errors, warnings } = await runValidation({
     trees: buildTrees({
-      extensionsSubtree: treeResponse(
+      namespaceSubtree: treeResponse(
         [
-          treeEntry("modernize-dashboard", "tree"),
-          treeEntry("modernize-dashboard/extension.mjs", "blob"),
+          treeEntry("extensions/modernize-dashboard", "tree"),
+          treeEntry("extensions/modernize-dashboard/extension.mjs", "blob"),
         ],
         { truncated: true },
       ),

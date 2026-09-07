@@ -13,6 +13,12 @@
 // canvas's internal issue model lives in sentry.mjs so this file stays a thin,
 // swappable transport.
 
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
+import { fileURLToPath } from 'node:url'
+
+const execFileAsync = promisify(execFile)
+
 // The heavyweight `sentry` CLI package is an OPTIONAL, lazily-loaded dependency.
 // awesome-copilot ships extension *source* only (no node_modules), so an installed
 // plugin may not have it. A top-level `import ... from 'sentry'` would throw
@@ -27,10 +33,11 @@
 // SentryError class, so existing `instanceof` + `.exitCode` checks keep matching
 // the errors the SDK actually throws.
 let SentryError = class SentryError extends Error {
-  constructor(message, opts = {}) {
+  constructor(message, exitCode = 0, stderr = '') {
     super(message)
     this.name = 'SentryError'
-    if (opts.code) this.code = opts.code
+    this.exitCode = exitCode
+    this.stderr = stderr
   }
 }
 
@@ -45,26 +52,68 @@ const PACKAGE_MISSING_MESSAGE =
 
 let sdk = null
 let sdkFactory = null
+let installPromise = null
+let loginPromise = null
+
+// One-click install for the missing `sentry` package, driven by the setup
+// gate's "Install dependencies" button (see extension.mjs installDependencies /
+// server.mjs POST /api/install-dependencies). Runs `npm install` rooted at THIS
+// file's own directory — i.e. the extension's actual on-disk location, whatever
+// that is (repo source, a user/project extensions folder, or an installed
+// plugin's materialized copy) — so it never depends on a user or agent guessing
+// the right path (the earlier manual "ask Copilot to install" flow's failure
+// mode). Serialized on the same sdkQueue as every other SDK call so it can't run
+// concurrently with an in-flight probe. Concurrent install clicks share one
+// in-flight install instead of queueing redundant npm installs.
+export function installPackage() {
+  if (installPromise) return installPromise
+  installPromise = runSerial(async () => {
+    // Windows can't exec the `npm.cmd` shim directly without a shell, and a raw
+    // `new URL('.', import.meta.url).pathname` yields a URL-style path like
+    // "/C:/..." rather than a native Windows path — fileURLToPath handles both
+    // platforms correctly.
+    const cwd = fileURLToPath(new URL('.', import.meta.url))
+    // Async execFile (not execFileSync): this module and its loopback HTTP/SSE
+    // servers are shared by every canvas instance in the process, so a
+    // synchronous, up-to-120s install would freeze all of them. runSerial's
+    // queue already prevents this from overlapping with other SDK/install
+    // calls, so there's no concurrency downside to awaiting it instead.
+    await execFileAsync('npm', ['install', '--omit=dev', '--no-audit', '--no-fund'], {
+      cwd,
+      timeout: 120_000,
+      shell: process.platform === 'win32',
+    })
+    sdkFactory = null
+    sdk = null
+  }).finally(() => {
+    installPromise = null
+  })
+  return installPromise
+}
 
 // Import the optional `sentry` package exactly once. Throws a SentryError tagged
 // SENTRY_PACKAGE_MISSING when it can't be resolved, and swaps in the SDK's real
 // SentryError class (live ESM binding) when it can.
+//
 async function loadFactory() {
   if (sdkFactory) return sdkFactory
   let mod
   try {
     mod = await import('sentry')
   } catch (err) {
-    // Only translate "the `sentry` package itself isn't installed" into the setup
-    // gate. Node reports that as ERR_MODULE_NOT_FOUND naming the `sentry` package.
-    // Any OTHER failure — a missing TRANSITIVE dependency, or the package's own
-    // entrypoint throwing at import — is a real defect we must surface, not mask
-    // behind a misleading "reinstall sentry" message. Rethrow those unchanged.
+    if (!(err && err.code === 'ERR_MODULE_NOT_FOUND')) throw err
+    // ERR_MODULE_NOT_FOUND is also what Node throws when `sentry` itself
+    // resolves fine but one of ITS OWN dependencies is missing (e.g. a
+    // corrupt or partial install) — that's a real defect, not a "not
+    // installed" state, and must not be masked as package-missing. Only the
+    // "Cannot find package/module 'sentry'" message means the bare specifier
+    // itself failed to resolve.
     const message = String((err && err.message) || '')
-    const sentryPackageMissing =
-      err && err.code === 'ERR_MODULE_NOT_FOUND' && /Cannot find (?:package|module) 'sentry'/.test(message)
-    if (!sentryPackageMissing) throw err
-    throw new SentryError(PACKAGE_MISSING_MESSAGE, { code: 'SENTRY_PACKAGE_MISSING' })
+    const sentryItselfMissing = /Cannot find (?:package|module) 'sentry'/.test(message)
+    if (!sentryItselfMissing) throw err
+    const missing = new SentryError(PACKAGE_MISSING_MESSAGE, 0, '')
+    missing.code = 'SENTRY_PACKAGE_MISSING'
+    throw missing
   }
   if (mod.SentryError) SentryError = mod.SentryError
   sdkFactory = mod.default
@@ -133,6 +182,95 @@ function asArray(res) {
 // otherwise. Used by preflight to gate the board.
 export async function whoami() {
   return runSerial(async () => (await getSdk()).auth.whoami())
+}
+
+// One-click sign-in for the "not authenticated" setup gate, driven by the
+// gate's "Sign in with Sentry" button (see preflight.mjs authenticate() /
+// server.mjs POST /api/auth-login). Runs the SDK's own OAuth device-code
+// flow — the exact same flow `npx sentry auth login` drives from a
+// terminal — which opens the user's default browser and waits for them to
+// approve. Serialized on the same sdkQueue as every other SDK call (this
+// module's whole reason for existing single-flights everything): the CLI
+// keeps global auth state, so a concurrent whoami()/scan while login() is
+// mid-flow would race the same on-disk credential login() is about to write.
+// Any caller queued behind this one simply waits for the user to finish
+// approving in their browser, same as a real terminal `sentry auth login`
+// would block the shell.
+//
+// A closed tab or an ignored prompt would otherwise wait forever (the SDK
+// default timeout is 900s / 15 minutes) and wedge the sdkQueue for every
+// other Sentry call behind it — so we bound it here to something the setup
+// gate can reasonably ask a user to wait through. On timeout the device code
+// is left stale server-side; the caller can just click "Sign in" again to
+// mint a fresh one.
+//
+// NOTE: the SDK's `timeout` is in SECONDS, not milliseconds (see
+// AuthLoginParams in the sentry package's type defs) — do not multiply by
+// 1000 here.
+//
+// `force: true` because this button is also how a signed-in-but-invalid
+// credential (expired/revoked token) re-authenticates: in this non-TTY
+// extension process, auth.login() silently declines to replace an existing
+// credential unless forced, which would otherwise leave "Sign in again"
+// wired to a no-op. `readOnly: true` requests only the read-only OAuth
+// scopes (project:read, org:read, event:read, member:read, team:read) since
+// this canvas only ever reads Sentry data — no need for the default
+// write/admin scopes.
+const LOGIN_TIMEOUT_SECONDS = 120
+
+export function login() {
+  if (loginPromise) return loginPromise
+  loginPromise = runSerial(async () => {
+    // SENTRY_AUTH_TOKEN / SENTRY_TOKEN take precedence over the stored OAuth
+    // credential (see the module header). If one is set, auth.login() can
+    // still "succeed" and write a fresh OAuth login, but every subsequent
+    // call (including the whoami() probe authenticate() runs right after)
+    // keeps using the env token instead — so an invalid/expired env token
+    // would make this button look like it worked while leaving the gate
+    // signed out. Fail fast with actionable guidance instead of running an
+    // OAuth flow that can't actually take effect.
+    const envToken = process.env.SENTRY_AUTH_TOKEN || process.env.SENTRY_TOKEN
+    if (envToken) {
+      const envVar = process.env.SENTRY_AUTH_TOKEN ? 'SENTRY_AUTH_TOKEN' : 'SENTRY_TOKEN'
+      const err = new SentryError(
+        `${envVar} is set in this environment and takes precedence over signing in here. Unset it (or replace it with a valid token) and try again.`,
+        0,
+        ''
+      )
+      err.code = 'SENTRY_ENV_TOKEN_ACTIVE'
+      throw err
+    }
+    // sentry@0.42.2's login command sets the SHARED extension process's
+    // process.exitCode (not just its own in-process return value) when the
+    // device flow is denied, cancelled, or expires — a signal meant for a
+    // one-shot CLI process exiting non-zero, not for this long-lived host
+    // that keeps running other extensions after the call returns. Save and
+    // restore it around the call so a failed sign-in here doesn't leave the
+    // whole extension host marked to exit unsuccessfully.
+    const savedExitCode = process.exitCode
+    let result
+    try {
+      result = await (await getSdk()).auth.login({ timeout: LOGIN_TIMEOUT_SECONDS, force: true, readOnly: true })
+    } finally {
+      process.exitCode = savedExitCode
+    }
+    // sentry@0.42.2's login command does not reliably reject when the device
+    // flow is denied, cancelled, or expires — it can resolve with an empty/
+    // falsy result after only setting its own CLI exit code, which this SDK
+    // wrapper doesn't surface. Left unchecked, authenticate() would silently
+    // re-probe and the caller (the auth-login route) would report ok:true for
+    // what was actually a failed sign-in. Treat an empty result as a failure
+    // so the specific "still not signed in" path in the gate is reachable.
+    if (!result) {
+      const err = new SentryError('Sign-in was not completed (denied, cancelled, or the code expired).', 0, '')
+      err.code = 'SENTRY_LOGIN_INCOMPLETE'
+      throw err
+    }
+    return result
+  }).finally(() => {
+    loginPromise = null
+  })
+  return loginPromise
 }
 
 // All organizations the stored credential can see. Raw org objects (each has a

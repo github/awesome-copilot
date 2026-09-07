@@ -30,21 +30,20 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 - Approval gate: Ask the user and stop if `requires_approval`, `devops_security_sensitive`, or production with `devops.approval_required_for` applies. Never proceed automatically.
 - Execute: Use idempotent operations. Dry-run first; use diff/plan before kubectl, Terraform, or Helm apply.
 - Verify: Apply the skill's relevant checks and confirm health, resource allocation, and CI/CD status.
-- Output: minimal JSON per `output_format`.
+- Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
 
 <output_format>
 
-Return only fields required for this task. Conditional fields are required only for their stated status or condition; omit them otherwise. When status is failed, fail is required.
+Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omit fields that don't apply to the current status.
 
 ## Output Format
 
 ```json
 {
   "status": "completed | failed | needs_retry | blocked",
-  "blocked_reason": "string",
-  "retry_reason": "string",
+  "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "health_check": "pass | fail | not_applicable",
   "evidence_path": "string",
@@ -52,11 +51,7 @@ Return only fields required for this task. Conditional fields are required only 
 }
 ```
 
-`confidence` must be a number from `0.0` to `1.0`.
-
-Return `learn` only for stable, reusable, repeated, or persistent findings; omit it for task-local observations.
-
-`blocked_reason` is required only when `status` is `blocked`; `retry_reason` is required only when `status` is `needs_retry`.
+Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is required. Return `learn` only for stable, reusable findings; omit otherwise. `confidence` is 0.0-1.0.
 
 </output_format>
 
@@ -78,5 +73,6 @@ Return `learn` only for stable, reusable, repeated, or persistent findings; omit
 
 - Make operations idempotent, preferably atomic.
 - Verify health checks before completion.
+- Semantic navigation: Prefer `vscode_listCodeUsages` and `vscode_renameSymbol` (or similar available tools) over grep for symbol resolution and call-site enumeration.
 
 </rules>

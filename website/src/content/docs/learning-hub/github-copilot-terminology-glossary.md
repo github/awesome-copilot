@@ -3,7 +3,7 @@ title: 'GitHub Copilot Terminology Glossary'
 description: 'A quick reference guide defining common GitHub Copilot and platform-specific terms.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-02
+lastUpdated: 2026-09-02
 estimatedReadingTime: '8 minutes'
 tags:
   - glossary
@@ -244,6 +244,20 @@ An installable package that extends GitHub Copilot CLI with a bundled set of age
 **Learn more**: [Installing and Using Plugins](../installing-and-using-plugins/)
 
 **Related terms**: [Agent](#agent), [Skill](#skill), [Hook](#hook)
+
+---
+
+### Agent Merge
+
+A feature available in both the GitHub Copilot app and VS Code's Agents window (v1.136+, Preview) that automates carrying a pull request to completion. It monitors CI/CD checks, addresses review feedback and failing tests, resolves merge conflicts, reruns workflows, and can merge the pull request once everything passes—repeating the cycle until the PR is ready.
+
+**Example**: Enabling Agent Merge on a session so that once its PR is opened, Copilot keeps addressing CI failures and reviewer comments without you manually re-prompting it.
+
+**When to use**: For routine PR follow-through where you want Copilot to handle the iterative fix-review-merge loop instead of you monitoring it manually.
+
+**Learn more**: [Getting Started with the GitHub Copilot app](../github-copilot-app/)
+
+**Related terms**: [Coding Agent](#coding-agent), [Agent](#agent)
 
 ---
 

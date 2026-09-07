@@ -1,0 +1,16 @@
+{
+  "name": "jupyter-notebooks",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "Create, edit, run, save, and checkpoint Jupyter notebooks in an interactive Copilot canvas.",
+  "keywords": [
+    "data-analysis",
+    "interactive-notebooks",
+    "jupyter",
+    "python"
+  ],
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  }
+}

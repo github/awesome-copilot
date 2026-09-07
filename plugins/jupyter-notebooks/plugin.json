@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "jupyter-notebooks",
+  "description": "Create, edit, run, save, and checkpoint Jupyter notebooks in an interactive Copilot canvas.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Pierce Boggan",
+    "url": "https://github.com/pierceboggan"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "data-analysis",
+    "interactive-notebooks",
+    "jupyter",
+    "python"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/jupyter-notebooks"
+      ]
+    }
+  }
+}

@@ -210,6 +210,7 @@ Models have a finite context window measured in tokens. When designing conversat
 - Exact-input caching for conversations is often ineffective. Consider semantic caching (embedding-based) for repeated meaning-level queries.
 - Semantic caching introduces dependency on embeddings and is not universally suitable.
 - Cache only where it reduces cost and meets correctness requirements (e.g., FAQ bots).
+- Configure caches through `set_llm_cache(...)` from `langchain_core.globals`; exact-match backends include `InMemoryCache`, `SQLiteCache`, `RedisCache`, and `UpstashRedisCache` (serverless Redis over HTTP, with optional `ttl`), and `RedisSemanticCache` is an embedding-based option.
 
 ## Best practices
 

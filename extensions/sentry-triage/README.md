@@ -40,17 +40,11 @@ that drafts a fix pull request.
 
 - **Node.js 22 or newer.**
 - The GitHub Copilot app canvas / UI-extensions experiment enabled.
-- A Sentry sign-in. This canvas reads issues through the
+- **A Sentry sign-in.** This canvas reads issues through the
   [Sentry CLI](https://cli.sentry.dev) in library mode — there is no MCP server
-  to configure. After installing the dependency (see **Install** below), sign in
-  once with the package-local CLI, run from the extension folder:
-
-  ```sh
-  npx sentry auth login
-  ```
-
-  This stores an OAuth credential the canvas auto-detects. For non-interactive
-  environments, export a token instead:
+  to configure. The setup gate walks you through installing the dependency and
+  signing in with one-click buttons (see **Install** below); no terminal
+  required. For non-interactive environments, you can instead export a token:
 
   ```sh
   export SENTRY_AUTH_TOKEN=<your-token>
@@ -67,30 +61,17 @@ repository at `.github/extensions/sentry-triage/` for project scope.
 
 This canvas depends on the [`sentry`](https://cli.sentry.dev) npm package at
 runtime, which isn't bundled with the extension source. If it's missing, the canvas
-still **opens** and shows a setup gate explaining what to do instead of crashing.
+still **opens** and shows a setup gate — click its **Install dependencies** button
+and the extension runs `npm install` in its own directory (wherever it's actually
+installed, so there's no path to guess). Once installed, if you aren't signed in
+yet the gate shows a **Sign in with Sentry** button that opens your browser to
+approve access and returns automatically — no terminal step required. The gate
+clears once both finish; no reload or Copilot involvement needed.
 
-### Let Copilot set it up (recommended)
+### Or set it up manually
 
-Because the canvas runs inside GitHub Copilot, the agent can install the dependency
-for you. Paste this into Copilot:
-
-> Locate the loaded `sentry-triage` canvas extension folder — the directory that
-> contains its `package.json` — run `npm install` there, then reload extensions.
-
-(That folder is `~/.copilot/extensions/sentry-triage/` for user scope,
-`.github/extensions/sentry-triage/` for project scope, or, if you installed the
-published plugin, `com.github.copilot/extensions/sentry-triage` inside the
-installed plugin.)
-
-Then finish the one interactive step yourself — sign in so Copilot never handles a
-raw secret. Run this from the same extension folder (`npx` resolves the CLI the
-local `npm install` just placed in `node_modules`):
-
-```sh
-npx sentry auth login
-```
-
-### Or install it manually
+If you'd rather not use the buttons (or `npm`/a browser isn't available to the
+extension process), you can run the same steps yourself:
 
 ```sh
 # User scope

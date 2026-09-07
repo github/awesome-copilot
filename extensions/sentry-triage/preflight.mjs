@@ -15,7 +15,7 @@
 // buildConnections() is pure so it can be unit-tested offline; checkConnections()
 // is the thin wrapper that talks to Sentry.
 
-import { whoami, SentryError } from './sentryClient.mjs'
+import { whoami, installPackage, login, SentryError } from './sentryClient.mjs'
 
 // Shape the raw signals into the connection status the UI consumes. Pure.
 export function buildConnections({
@@ -60,6 +60,12 @@ const msg = (err) => (err instanceof Error ? err.message : String(err))
 // network blip and not an auth failure, so it gets its own gate branch.
 const isPackageMissing = (err) => Boolean(err) && err.code === 'SENTRY_PACKAGE_MISSING'
 
+// An active SENTRY_AUTH_TOKEN/SENTRY_TOKEN in the environment takes precedence
+// over any OAuth login, so the "Sign in" button can't do anything useful while
+// one is set — sentryClient's login() detects this up front and fails fast
+// with this code instead of running an OAuth flow that can't take effect.
+const isEnvTokenActive = (err) => Boolean(err) && err.code === 'SENTRY_ENV_TOKEN_ACTIVE'
+
 // Text used for classification: the message plus any CLI stderr, since a rejected
 // credential (HTTP 401/403) often surfaces its status in stderr rather than the
 // Error message.
@@ -95,11 +101,14 @@ const humanizeSentryError = (err) => {
   if (isPackageMissing(err)) {
     return 'The Sentry CLI isn’t installed for this canvas yet. Ask Copilot to “install the sentry-triage dependencies and reload extensions,” then run `npx sentry auth login` from the extension folder and re-open this canvas.'
   }
+  if (isEnvTokenActive(err)) {
+    return t
+  }
   if (isNotAuthenticated(err)) {
-    return 'Sentry isn’t connected yet. Run `npx sentry auth login` from the extension folder, then re-open this canvas.'
+    return 'Sentry isn’t connected yet.'
   }
   if (isAuthFailure(err)) {
-    return 'Sentry rejected your credential (expired or invalid). Run `npx sentry auth login` from the extension folder, then re-open this canvas.'
+    return 'Sentry rejected your credential (expired or invalid). Sign in again below.'
   }
   if (isTransient(err)) {
     return 'Couldn’t reach Sentry just now (network). It should recover on the next check.'
@@ -173,4 +182,36 @@ export async function checkConnections() {
     result = await probeSentry()
   }
   return shape(result)
+}
+
+// One-click fix for the package-missing gate: run `npm install` in the
+// extension's own directory (via sentryClient's installPackage, so the path is
+// never guessed by an agent or user) and immediately re-probe. Returns the fresh
+// connection state either way so the gate/setup UI can render the outcome —
+// success clears the gate, and a failed install surfaces as a normal probe error
+// (e.g. still package-missing, or an npm/network failure) rather than throwing.
+export async function installDependencies() {
+  try {
+    await installPackage()
+  } catch (err) {
+    console.error('[sentry-triage] npm install failed:', err instanceof Error ? err.message : err)
+  }
+  const { connections } = await checkConnectionsOnce()
+  return connections
+}
+
+// One-click fix for the "not authenticated" setup gate: run the SDK's own
+// OAuth device-code login (sentryClient's login(), the in-process equivalent
+// of `sentry auth login`) and immediately re-probe. Only ever called for a
+// package-present, not-signed-in state — the gate never shows this button
+// while the package itself is missing (see components/page.mjs) — so unlike
+// installDependencies() a thrown login error (user closed the browser tab,
+// denied consent, or the device code expired) is left to propagate: the
+// caller (extension.mjs onAuthenticate) surfaces it to the gate rather than
+// silently falling back to a generic "still signed out" re-probe, since the
+// specific reason (denied vs. expired vs. cancelled) is worth showing.
+export async function authenticate() {
+  await login()
+  const { connections } = await checkConnectionsOnce()
+  return connections
 }

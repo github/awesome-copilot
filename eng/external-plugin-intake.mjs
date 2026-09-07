@@ -61,6 +61,11 @@ const LEGACY_FIELD_TITLES = Object.freeze({
 });
 const EXTERNAL_CANVAS_KEYWORD = "canvas";
 const EXTERNAL_CANVAS_PREVIEW_PATH = "assets/preview.png";
+// External plugins target the Copilot app client harness directly, so their canvas extension
+// files live under the client's own namespace directory rather than the repository-local
+// "com.github.awesome-copilot" namespace used to materialize plugins that live in this repo.
+const COPILOT_CLIENT_NAMESPACE = "com.github.copilot";
+const COPILOT_EXTENSIONS_DIRECTORY = "extensions";
 const HOMEPAGE_FETCH_TIMEOUT_MS = 10_000;
 const HOMEPAGE_MAX_BYTES = 512_000;
 const HOMEPAGE_MAX_REDIRECTS = 5;
@@ -744,14 +749,14 @@ async function resolveDirectoryTreeSha(repo, treeish, segments, token) {
   return { status: "found", treeSha: currentTreeish };
 }
 
-// Inspect the (recursively fetched) "extensions" subtree for the plugin's canvas extension
-// entry point. Paths are relative to "extensions/", so the flat form is "extension.mjs" and a
-// nested form is "<name>/extension.mjs". Scoping the recursive fetch to this subtree keeps the
-// lookup complete without depending on the size of the rest of the repository.
+// Inspect the (recursively fetched) "com.github.copilot" subtree for the plugin's canvas
+// extension entry point. Paths are relative to "com.github.copilot/" and must use the
+// "extensions/<extension-name>/extension.mjs" layout used by the Copilot app. Scoping the
+// recursive fetch to this subtree keeps the lookup complete without depending on the size of
+// the rest of the repository.
 function analyzeCanvasExtensionSubtree(subtreeEntries) {
-  let flatIsBlob = false;
-  let flatIsTree = false;
   let nestedEntryPath = null;
+  let nestedEntryIsNotFile = false;
 
   for (const entry of subtreeEntries) {
     const entryPath = entry?.path;
@@ -759,28 +764,20 @@ function analyzeCanvasExtensionSubtree(subtreeEntries) {
       continue;
     }
 
-    if (entryPath === "extension.mjs") {
-      if (entry.type === "blob") {
-        flatIsBlob = true;
-      } else if (entry.type === "tree") {
-        flatIsTree = true;
-      }
-      continue;
-    }
-
     const segments = entryPath.split("/");
-    if (segments.length === 2 && segments[1] === "extension.mjs" && entry.type === "blob") {
-      nestedEntryPath = nestedEntryPath ?? `extensions/${entryPath}`;
+    if (segments.length === 3 && segments[0] === COPILOT_EXTENSIONS_DIRECTORY && segments[2] === "extension.mjs") {
+      if (entry.type === "blob") {
+        nestedEntryPath = nestedEntryPath ?? `${COPILOT_CLIENT_NAMESPACE}/${entryPath}`;
+      } else {
+        nestedEntryIsNotFile = true;
+      }
     }
   }
 
-  if (flatIsBlob) {
-    return { status: "found", entryPath: "extensions/extension.mjs" };
-  }
   if (nestedEntryPath) {
     return { status: "found", entryPath: nestedEntryPath };
   }
-  if (flatIsTree) {
+  if (nestedEntryIsNotFile) {
     return { status: "notFile" };
   }
   return { status: "notFound" };
@@ -859,46 +856,39 @@ export async function validateCanvasPluginMetadata(plugin, errors, warnings, tok
     return;
   }
 
-  if (manifest.logo !== EXTERNAL_CANVAS_PREVIEW_PATH) {
+  const copilotNamespace = manifest.extensions?.[COPILOT_CLIENT_NAMESPACE];
+  if (!copilotNamespace || typeof copilotNamespace !== "object" || Array.isArray(copilotNamespace)) {
     errors.push(
-      `submission: plugins tagged with "canvas" must set "logo" to "${EXTERNAL_CANVAS_PREVIEW_PATH}" in "${manifestPath}"`,
+      `submission: plugins tagged with "canvas" must set "extensions.${COPILOT_CLIENT_NAMESPACE}.logo" to "${EXTERNAL_CANVAS_PREVIEW_PATH}" in "${manifestPath}"`,
     );
-  }
-
-  if (manifest.extenions !== undefined) {
+  } else if (copilotNamespace.logo !== EXTERNAL_CANVAS_PREVIEW_PATH) {
     errors.push(
-      `submission: plugins tagged with "canvas" must use "extensions" (found misspelled key "extenions") in "${manifestPath}"`,
-    );
-  }
-
-  if (manifest.extensions !== undefined && manifest.extensions !== "extensions") {
-    errors.push(
-      `submission: plugins tagged with "canvas" may omit "extensions", but if provided it must be "extensions" in "${manifestPath}"`,
+      `submission: plugins tagged with "canvas" must set "logo" to "${EXTERNAL_CANVAS_PREVIEW_PATH}" in "extensions.${COPILOT_CLIENT_NAMESPACE}" of "${manifestPath}"`,
     );
   }
 
   const unverifiableEntryPointWarning =
     `submission: could not verify the canvas extension entry point in GitHub repository "${repo}" at ${releaseLocatorDescription}; a maintainer should re-run intake`;
-  const extensionsSegments = [...(pluginRoot ? pluginRoot.split("/") : []), "extensions"];
-  const extensionsTree = await resolveDirectoryTreeSha(
+  const namespaceSegments = [...(pluginRoot ? pluginRoot.split("/") : []), COPILOT_CLIENT_NAMESPACE];
+  const namespaceTree = await resolveDirectoryTreeSha(
     repo,
     normalizeTreeish(releaseLocator),
-    extensionsSegments,
+    namespaceSegments,
     token,
   );
-  if (extensionsTree.status === "apiError") {
+  if (namespaceTree.status === "apiError") {
     warnings.push(unverifiableEntryPointWarning);
-  } else if (extensionsTree.status === "missing") {
+  } else if (namespaceTree.status === "missing") {
     errors.push(
-      `submission: plugins tagged with "canvas" must include an "extensions" directory at ${releaseLocatorDescription}`,
+      `submission: plugins tagged with "canvas" must include a "${COPILOT_CLIENT_NAMESPACE}" directory at ${releaseLocatorDescription}`,
     );
-  } else if (extensionsTree.status === "notDirectory") {
+  } else if (namespaceTree.status === "notDirectory") {
     errors.push(
-      `submission: "extensions" must be a directory in ${releaseLocatorDescription}`,
+      `submission: "${COPILOT_CLIENT_NAMESPACE}" must be a directory in ${releaseLocatorDescription}`,
     );
   } else {
     const subtreeResponse = await fetchGitHubJson(
-      buildGitTreePath(repo, extensionsTree.treeSha, { recursive: true }),
+      buildGitTreePath(repo, namespaceTree.treeSha, { recursive: true }),
       token,
     );
     if (subtreeResponse.kind !== "found" || !Array.isArray(subtreeResponse.data?.tree)) {
@@ -906,19 +896,19 @@ export async function validateCanvasPluginMetadata(plugin, errors, warnings, tok
     } else {
       const canvasStructure = analyzeCanvasExtensionSubtree(subtreeResponse.data.tree);
       if (canvasStructure.status === "found") {
-        // Entry point located (flat or nested); nothing to report.
+        // Entry point located in the required named extension directory.
       } else if (subtreeResponse.data.truncated) {
-        // Absence is only inconclusive if the (already extensions-scoped) subtree itself is
-        // truncated, which would take an implausibly large extensions directory; flag it as
+        // Absence is only inconclusive if the (already namespace-scoped) subtree itself is
+        // truncated, which would take an implausibly large extension directory; flag it as
         // unverifiable rather than falsely rejecting.
         warnings.push(unverifiableEntryPointWarning);
       } else if (canvasStructure.status === "notFile") {
         errors.push(
-          `submission: "extensions/extension.mjs" must be a file in ${releaseLocatorDescription}`,
+          `submission: "${COPILOT_CLIENT_NAMESPACE}/${COPILOT_EXTENSIONS_DIRECTORY}/<extension>/extension.mjs" must be a file in ${releaseLocatorDescription}`,
         );
       } else {
         errors.push(
-          `submission: plugins tagged with "canvas" must include a canvas extension entry point at "extensions/extension.mjs" or "extensions/<extension>/extension.mjs" at ${releaseLocatorDescription}`,
+          `submission: plugins tagged with "canvas" must include a canvas extension entry point at "${COPILOT_CLIENT_NAMESPACE}/${COPILOT_EXTENSIONS_DIRECTORY}/<extension>/extension.mjs" at ${releaseLocatorDescription}`,
         );
       }
     }
