@@ -172,7 +172,10 @@ function parseSkillMetadata(skillPath) {
           if (entry.isDirectory()) {
             if (BUILD_OUTPUT_DIRECTORIES.has(entry.name)) return;
             arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
-          } else if (!entry.isSymbolicLink() || !skipsAsBundledAsset(filePath)) {
+          } else if (
+            !entry.isSymbolicLink() ||
+            !skipsAsBundledAsset(filePath)
+          ) {
             const relativePath = path.relative(skillPath, filePath);
             if (relativePath !== "SKILL.md") {
               // Normalize path separators to forward slashes for cross-platform consistency
@@ -248,7 +251,10 @@ function parseHookMetadata(hookPath) {
           const filePath = path.join(dirPath, entry.name);
           if (entry.isDirectory()) {
             arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
-          } else if (!entry.isSymbolicLink() || !skipsAsBundledAsset(filePath)) {
+          } else if (
+            !entry.isSymbolicLink() ||
+            !skipsAsBundledAsset(filePath)
+          ) {
             const relativePath = path.relative(hookPath, filePath);
             if (relativePath !== "README.md") {
               // Normalize path separators to forward slashes for cross-platform consistency
@@ -340,8 +346,8 @@ export {
   extractMcpServerConfigs,
   extractMcpServers,
   parseFrontmatter,
-  parseSkillMetadata,
   parseHookMetadata,
+  parseSkillMetadata,
   parseWorkflowMetadata,
   parseYamlFile,
   safeFileOperation,

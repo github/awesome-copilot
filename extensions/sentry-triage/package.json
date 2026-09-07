@@ -1,6 +1,6 @@
 {
   "name": "sentry-triage",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "main": "extension.mjs",
   "author": "Liz Tom",
   "license": "MIT",

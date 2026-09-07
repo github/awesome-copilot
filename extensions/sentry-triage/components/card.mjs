@@ -2,7 +2,9 @@ import { escapeHtml, safeHref } from '../escape.mjs'
 
 function statusLabel(workStatus) {
   if (!workStatus || typeof workStatus !== 'object') return ''
-  if (workStatus.phase === 'working' || workStatus.phase === 'queued') return '⏳ working…'
+  if (workStatus.phase === 'working' || workStatus.phase === 'queued') {
+    return workStatus.copilotFix ? '⏳ starting Copilot fix session…' : '⏳ filing tracking issue…'
+  }
   if (workStatus.phase === 'done') {
     // Numbers move into clickable links (statusLinks); keep the label a plain badge.
     return 'created ✓'
