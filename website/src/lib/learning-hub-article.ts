@@ -83,8 +83,15 @@ export function buildArticleSections(
   markdown: string,
 ): ArticleSection[] {
   const kinds = admonitionKinds(markdown);
+  // Several Learning Hub articles end their markdown body with a trailing
+  // `---` thematic break (left over from an earlier authoring template).
+  // Rendered as-is it becomes a stray `<hr>` between the article content and
+  // the site footer, with no section boundary it's meant to mark (see #2961).
+  // Stripping just the final one here — rather than editing every content
+  // file — also protects future articles authored with the same habit.
+  const trimmedHtml = html.replace(/\s*<hr\s*\/?>\s*$/i, "");
   const headings = Array.from(
-    html.matchAll(/<h2\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/gi),
+    trimmedHtml.matchAll(/<h2\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/gi),
   );
 
   const bounds: { id: string | null; heading: string | null; from: number }[] = [
@@ -100,8 +107,8 @@ export function buildArticleSections(
 
   const sections: ArticleSection[] = [];
   bounds.forEach((bound, index) => {
-    const to = bounds[index + 1]?.from ?? html.length;
-    const chunk = html.slice(bound.from, to);
+    const to = bounds[index + 1]?.from ?? trimmedHtml.length;
+    const chunk = trimmedHtml.slice(bound.from, to);
     if (!chunk.trim()) return;
     sections.push({
       id: bound.id ?? "introduction",
