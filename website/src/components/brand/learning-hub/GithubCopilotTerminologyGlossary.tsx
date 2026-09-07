@@ -3,7 +3,7 @@ import { Heading, Text } from "@primer/react-brand";
 import { BookIcon, PlayIcon, GlobeIcon, ArrowUpRightIcon } from "@primer/octicons-react";
 
 import styles from "../styles/github-copilot-app.module.css";
-import type { PageHref } from "../pageHref";
+import { pageHref } from "../pageHref";
 import {
   CopyBlock,
   LearningArticleLayout,
@@ -592,9 +592,7 @@ function GlossaryList({ terms }: { terms: GlossaryTerm[] }) {
   );
 }
 
-export default function TerminologyGlossary({
-  pageHref,
-}: PrototypePageProps) {
+export default function TerminologyGlossary() {
   return (
     <LearningArticleLayout
       pageHref={pageHref}

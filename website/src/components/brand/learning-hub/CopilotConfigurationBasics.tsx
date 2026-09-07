@@ -1,7 +1,7 @@
 import { Heading, Text } from "@primer/react-brand";
 
 import styles from "../styles/github-copilot-app.module.css";
-import type { PageHref } from "../pageHref";
+import { pageHref } from "../pageHref";
 import {
   CopyBlock,
   LearningArticleLayout,
@@ -18,7 +18,7 @@ const articleSections: TocSection[] = [
   { id: "next-steps", label: "Next Steps" },
 ];
 
-export default function CopilotConfigurationBasics({ pageHref }: { pageHref: PageHref }) {
+export default function CopilotConfigurationBasics() {
   return (
     <LearningArticleLayout
       pageHref={pageHref}

@@ -2,7 +2,7 @@ import { Heading, Text } from "@primer/react-brand";
 
 import styles from "../styles/github-copilot-app.module.css";
 import { LearningArticleLayout, type TocSection } from "../LearningArticleLayout";
-import type { PageHref } from "../pageHref";
+import { pageHref } from "../pageHref";
 
 export type RecipeLink = {
   label: string;
@@ -35,10 +35,8 @@ export type CookbookSection = {
  * `public/data/samples.json`.
  */
 export default function CookbookIndex({
-  pageHref,
   sections,
 }: {
-  pageHref: PageHref;
   sections: CookbookSection[];
 }) {
   const articleSections: TocSection[] = sections.map((section) => ({

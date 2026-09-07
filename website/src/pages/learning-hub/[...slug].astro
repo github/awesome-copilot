@@ -11,7 +11,6 @@ import GithubCopilotTerminologyGlossary from "../../components/brand/learning-hu
 import UsingAutomationsInCopilotApp from "../../components/brand/learning-hub/UsingAutomationsInCopilotApp";
 import WhatAreAgentsSkillsInstructions from "../../components/brand/learning-hub/WhatAreAgentsSkillsInstructions";
 import WorkingWithCanvasExtensions from "../../components/brand/learning-hub/WorkingWithCanvasExtensions";
-import { pageHref } from "../../components/brand/pageHref";
 import {
   hasTranslations,
   isLearningHubArticle,
@@ -61,35 +60,35 @@ const bespokeSlug = !locale ? englishId.replace(/^learning-hub\//, "") : undefin
   bespokeSlug && isBespokeLearningHubArticle(bespokeSlug) ? (
     bespokeSlug === "github-copilot-app" ? (
       <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
-        <GithubCopilotApp client:load pageHref={pageHref} />
+        <GithubCopilotApp client:load />
       </BaseLayout>
     ) : bespokeSlug === "agents-and-subagents" ? (
       <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
-        <AgentsAndSubagents client:load pageHref={pageHref} />
+        <AgentsAndSubagents client:load />
       </BaseLayout>
     ) : bespokeSlug === "copilot-configuration-basics" ? (
       <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
-        <CopilotConfigurationBasics client:load pageHref={pageHref} />
+        <CopilotConfigurationBasics client:load />
       </BaseLayout>
     ) : bespokeSlug === "github-copilot-terminology-glossary" ? (
       <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
-        <GithubCopilotTerminologyGlossary client:load pageHref={pageHref} />
+        <GithubCopilotTerminologyGlossary client:load />
       </BaseLayout>
     ) : bespokeSlug === "using-automations-in-copilot-app" ? (
       <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
-        <UsingAutomationsInCopilotApp client:load pageHref={pageHref} />
+        <UsingAutomationsInCopilotApp client:load />
       </BaseLayout>
     ) : bespokeSlug === "what-are-agents-skills-instructions" ? (
       <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
-        <WhatAreAgentsSkillsInstructions client:load pageHref={pageHref} />
+        <WhatAreAgentsSkillsInstructions client:load />
       </BaseLayout>
     ) : bespokeSlug === "working-with-canvas-extensions" ? (
       <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
-        <WorkingWithCanvasExtensions client:load pageHref={pageHref} />
+        <WorkingWithCanvasExtensions client:load />
       </BaseLayout>
     ) : bespokeSlug === "cli-for-beginners" ? (
       <BaseLayout title={`${entry.data.title} | GitHub Copilot Learning Hub`} description={entry.data.description}>
-        <CliForBeginnersOverview client:load pageHref={pageHref} />
+        <CliForBeginnersOverview client:load />
       </BaseLayout>
     ) : (
       <LearningHubArticle entry={entry} slug={slug} showLanguageSelect={showLanguageSelect} />

@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import CookbookIndex from "../../../components/brand/learning-hub/CookbookIndex";
-import { pageHref } from "../../../components/brand/pageHref";
 import { cookbookSections } from "../../../lib/cookbook-routes";
 import { siteLocale } from "../../../lib/learning-hub-routes";
 
@@ -18,5 +17,5 @@ const description =
   title="Cookbook | Awesome GitHub Copilot"
   description={description}
 >
-  <CookbookIndex client:load pageHref={pageHref} sections={sections} />
+  <CookbookIndex client:load sections={sections} />
 </BaseLayout>

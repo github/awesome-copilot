@@ -20,7 +20,7 @@ import { BookIcon, PlayIcon, GlobeIcon, ArrowUpRightIcon } from "@primer/octicon
 import styles from "../styles/github-copilot-app.module.css";
 import { CopyBlock, LearningArticleLayout, ProTip, type TocSection } from "../LearningArticleLayout";
 import { VideoCarousel, type Video } from "../VideoCarousel";
-import type { PageHref } from "../pageHref";
+import { pageHref } from "../pageHref";
 
 const DOWNLOAD_URL = "https://github.com/features/ai/github-app?locale=en-US";
 
@@ -226,7 +226,7 @@ const videoSeries: Video[] = [
   },
 ];
 
-export default function GithubCopilotApp({ pageHref }: { pageHref: PageHref }) {
+export default function GithubCopilotApp() {
   return (
     <LearningArticleLayout
       pageHref={pageHref}

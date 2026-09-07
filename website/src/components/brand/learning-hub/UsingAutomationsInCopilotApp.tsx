@@ -16,7 +16,7 @@ import { Heading, Text } from "@primer/react-brand";
 import { BookIcon, PlayIcon, GlobeIcon, ArrowUpRightIcon } from "@primer/octicons-react";
 
 import styles from "../styles/github-copilot-app.module.css";
-import type { PageHref } from "../pageHref";
+import { pageHref } from "../pageHref";
 import {
   LearningArticleLayout,
   type TocSection,
@@ -119,7 +119,7 @@ const articleSections: TocSection[] = [
   { id: "learn-more", label: "Learn more" },
 ];
 
-export default function UsingAutomationsInCopilotApp({ pageHref }: { pageHref: PageHref }) {
+export default function UsingAutomationsInCopilotApp() {
   return (
     <LearningArticleLayout
       pageHref={pageHref}

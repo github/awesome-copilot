@@ -2,7 +2,7 @@ import { Heading, Text } from "@primer/react-brand";
 import { BookIcon, PlayIcon, GlobeIcon, ArrowUpRightIcon } from "@primer/octicons-react";
 
 import styles from "../styles/github-copilot-app.module.css";
-import type { PageHref } from "../pageHref";
+import { pageHref } from "../pageHref";
 import { InstallCommandBar } from "../InstallCommandBar";
 import { LearningArticleLayout, type TocSection } from "../LearningArticleLayout";
 import { VideoCarousel, type Video } from "../VideoCarousel";
@@ -62,7 +62,7 @@ const videoSeries: Video[] = [
   },
 ];
 
-export default function CliForBeginnersOverview({ pageHref }: { pageHref: PageHref }) {
+export default function CliForBeginnersOverview() {
   return (
     <LearningArticleLayout
       pageHref={pageHref}
