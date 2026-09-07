@@ -75,6 +75,17 @@ function splitCallouts(html: string, kinds: CalloutKind[]): ArticleBlock[] {
 }
 
 /**
+ * Removes decorative emoji (and the variation-selector/ZWJ glyphs that
+ * usually trail them) from heading text used in the "In this article" nav.
+ */
+export function stripEmoji(text: string): string {
+  return text
+    .replace(/[\p{Extended_Pictographic}\u200d\ufe0f]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/**
  * @param html Rendered article HTML.
  * @param markdown Raw markdown body, used only to recover admonition types.
  */
@@ -100,7 +111,12 @@ export function buildArticleSections(
   for (const heading of headings) {
     bounds.push({
       id: heading[1],
-      heading: heading[2].replace(/<[^>]+>/g, "").trim(),
+      // Some articles (e.g. the CLI for Beginners lessons) prefix/suffix
+      // their `##` headings with decorative emoji. Those read fine inline in
+      // the article body, but stripped down to plain text in the "In this
+      // article" nav they read as stray glyphs — other Learning Hub pages
+      // don't emoji-decorate their nav, so strip them here for consistency (#2962).
+      heading: stripEmoji(heading[2].replace(/<[^>]+>/g, "").trim()),
       from: heading.index ?? 0,
     });
   }

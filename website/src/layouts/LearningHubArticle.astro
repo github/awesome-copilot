@@ -10,7 +10,7 @@ import { render, type CollectionEntry } from "astro:content";
 import BaseLayout from "./BaseLayout.astro";
 import { LearningHubArticleBody } from "../components/brand/LearningHubArticleBody";
 import type { TocSection } from "../components/brand/LearningArticleLayout";
-import { buildArticleSections } from "../lib/learning-hub-article";
+import { buildArticleSections, stripEmoji } from "../lib/learning-hub-article";
 import { enhanceMarkdownA11y } from "../lib/markdown-a11y";
 import { searchIndex } from "../lib/site-data";
 import { contentLocale, splitLocale } from "../lib/learning-hub-routes";
@@ -37,7 +37,7 @@ const sections = buildArticleSections(html, entry.body ?? "");
 
 const tocSections: TocSection[] = headings
   .filter((heading) => heading.depth === 2)
-  .map((heading) => ({ id: heading.slug, label: heading.text }));
+  .map((heading) => ({ id: heading.slug, label: stripEmoji(heading.text) }));
 
 const title = entry.data.title;
 const description = entry.data.description ?? "";
