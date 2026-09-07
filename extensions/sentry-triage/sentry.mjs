@@ -16,8 +16,7 @@ import {
   orgList,
   projectView,
   issueList,
-  projectListRaw,
-  runSerial,
+  projectListPage,
   SentryError,
 } from './sentryClient.mjs'
 
@@ -221,52 +220,45 @@ export function categorize({ issues = [], regressed = new Set(), escalating = ne
 }
 
 // All project slugs in an org. Pages through the list (the API caps each page at
-// 100) so orgs with many projects are fully represented in the dropdown. The
-// loop is bounded and stops as soon as a page adds no new slugs, so it stays
-// safe even if the underlying cursor doesn't advance. Throws SentryError on an
-// auth/permission failure.
+// 100) so orgs with many projects are fully represented in the dropdown. Throws
+// SentryError on an auth/permission failure.
 //
 // `onPage(slugsSoFar)` — if provided, called after each page with a snapshot of
 // everything collected so far. This lets callers stream results to the UI: the
 // first ~100 projects land in ~1s and the rest fill in over the following
 // seconds, instead of the caller waiting for the whole (potentially large) list.
 export async function listProjects(org, onPage) {
-  // Run the ENTIRE paged traversal as one atomic SDK operation. The CLI resolves
-  // the symbolic "next" cursor through global per-command state, so pages must not
-  // interleave with each other or with any other SDK call (a concurrent issue
-  // scan, another instance's discovery, a second traversal of this same org).
-  // runSerial holds the module-wide queue for the whole loop, which guarantees
-  // that. Inside the task we use projectListRaw (un-queued) to avoid re-entering
-  // the queue we already hold.
-  return runSerial(() => listProjectsPaged(org, onPage))
-}
-
-async function listProjectsPaged(org, onPage) {
+  // Each page is its own runSerial task (see projectListPage), so a mega-org's
+  // traversal no longer holds the shared SDK queue end-to-end. That is what lets
+  // an interactive project.view lookup interleave and answer in ~1s instead of
+  // waiting out the whole list — the "Checking Sentry…" hang.
   const seen = new Set()
   const out = []
   const PAGE = 100
-  const MAX_PAGES = 20
-  // Wall-clock budget: mega-orgs (e.g. "github" has thousands of projects) can
-  // take minutes to fully page through, leaving the autocomplete spinning. Stop
-  // once we've spent this long and return what we have — the client filters the
-  // collected slugs, and a few hundred is plenty to type against. With streaming
-  // (onPage) the first page is usable almost immediately regardless.
-  const BUDGET_MS = 8000
-  const started = Date.now()
+  // Bound the traversal by PAGES, not wall-clock. A time budget made the result
+  // depend on how fast the network happened to be, so the same org yielded a
+  // different-length list run to run (and a slow run could cache a truncated list
+  // over a previously complete one). A page cap is deterministic: the same org
+  // always yields the same list.
+  const MAX_PAGES = 60
   let cursor
+  let complete = false
   for (let page = 0; page < MAX_PAGES; page++) {
-    let raw
+    let result
     try {
-      raw = await projectListRaw(org, PAGE, cursor)
+      result = await projectListPage(org, PAGE, cursor)
     } catch (err) {
       // A transient page failure (network blip / rate limit) mid-pagination must
-      // not discard the projects we already collected. Surface the error only
-      // when we have nothing at all (e.g. page 0 failed => likely auth/bad org).
+      // not discard the projects we already collected. Observed against a
+      // mega-org: the first pages return in ~300ms each and then a later page
+      // stalls before failing, so this path is routine, not exceptional. Surface
+      // the error only when we have nothing at all (e.g. page 0 failed => likely
+      // auth/bad org).
       if (out.length) break
       throw err
     }
     let added = 0
-    for (const slug of mapProjects(raw)) {
+    for (const slug of mapProjects(result.projects)) {
       if (seen.has(slug)) continue
       seen.add(slug)
       out.push(slug)
@@ -275,11 +267,26 @@ async function listProjectsPaged(org, onPage) {
     if (added && typeof onPage === 'function') {
       try { onPage(out.slice()) } catch { /* streaming is best-effort */ }
     }
-    if (raw.length < PAGE || added === 0) break
-    if (Date.now() - started > BUDGET_MS) break
-    cursor = 'next'
+    // Terminal condition: the SDK's own envelope says there are no further
+    // pages. A short page is NOT authoritative on its own — the SDK can return
+    // fewer than requested and still report hasMore:true — so `hasMore` is the
+    // only signal that marks the traversal complete and cacheable. (When the
+    // envelope omits hasMore, projectListPage defaults it to false, which
+    // conservatively ends the traversal rather than looping forever.)
+    if (!result.hasMore) { complete = true; break }
+    // The SDK says more pages exist but handed back no usable cursor to fetch
+    // them, or the cursor did not advance (it returned the same token again).
+    // Either way we can't safely continue, and the traversal is NOT complete —
+    // leave `complete` false so the caller keeps it retryable rather than
+    // pinning a truncated list. Detect this by CURSOR progress, not record
+    // content: a page can legitimately add zero new slugs (all duplicates or
+    // filtered records) while still advancing its cursor, and stopping on
+    // `added === 0` would pin that boundary so every retry halts there and later
+    // projects never reach the dropdown.
+    if (!result.nextCursor || result.nextCursor === cursor) break
+    cursor = result.nextCursor
   }
-  return out
+  return { projects: out, complete }
 }
 
 // Verify a specific project slug exists / is accessible. The org's project list
