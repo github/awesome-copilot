@@ -604,6 +604,104 @@
   outline-offset: calc(-1 * var(--base-size-2));
 }
 
+/* Raw markdown headings (h1-h6) are injected as-is via dangerouslySetInnerHTML
+   with no wrapping component, so they fall back to browser UA sizes unless
+   mapped onto the brand type scale here. `.articleHeading` above is a
+   different, React-rendered element (the numbered section title) — these
+   rules are for headings that appear *inside* a section's own markdown body,
+   e.g. "## Focus Area Mode" within a SKILL.md file. */
+.articleSection :global(h1),
+.articleSection :global(h2),
+.articleSection :global(h3),
+.articleSection :global(h4),
+.articleSection :global(h5),
+.articleSection :global(h6) {
+  margin: var(--base-size-8) 0 0;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-weight: var(--brand-text-weight-semibold);
+  line-height: var(--brand-text-lineHeight-300);
+  color: var(--brand-color-text-default);
+}
+
+.articleSection :global(h1) {
+  font-size: var(--brand-text-size-600);
+}
+
+.articleSection :global(h2) {
+  font-size: var(--brand-text-size-500);
+}
+
+.articleSection :global(h3) {
+  font-size: var(--brand-text-size-400);
+}
+
+.articleSection :global(h4) {
+  font-size: var(--brand-text-size-300);
+}
+
+.articleSection :global(h5),
+.articleSection :global(h6) {
+  font-size: var(--brand-text-size-200);
+}
+
+/* Full-width horizontal dividers between markdown content, matching the
+   reference page's border colour and thickness instead of the browser's
+   2px inset default. */
+.articleSection :global(hr) {
+  margin: var(--base-size-8) 0;
+  border: none;
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+/* GitHub-flavoured-markdown blockquotes get a left accent bar rather than
+   the browser's default indent-only treatment. */
+.articleSection :global(blockquote) {
+  margin: 0;
+  padding-inline-start: var(--base-size-16);
+  border-inline-start: var(--base-size-4) solid var(--brand-color-border-muted);
+  color: var(--brand-color-text-muted);
+}
+
+/* Inline code (a bare `code` token in running text, as opposed to a fenced
+   ```block``` handled by the `pre.astro-code` rules above) renders as a
+   small chip — the same treatment `.inlineCode` gives hand-authored tokens
+   elsewhere, applied generically to raw markdown output. */
+.articleSection :global(:not(pre) > code) {
+  padding: var(--base-size-2) var(--base-size-4);
+  border-radius: var(--brand-borderRadius-small);
+  background-color: var(--brand-color-border-muted);
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-monospace);
+  font-size: 0.9em;
+}
+
+/* GitHub-flavoured-markdown tables: bordered cells with a subtle header
+   row, matching the reference page's treatment. Scrolls horizontally on
+   narrow viewports instead of overflowing the content column. */
+.articleSection :global(table) {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-collapse: collapse;
+  font-size: var(--brand-text-size-100);
+}
+
+.articleSection :global(th),
+.articleSection :global(td) {
+  padding: var(--base-size-8) var(--base-size-12);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  text-align: start;
+  vertical-align: top;
+}
+
+.articleSection :global(th) {
+  background-color: var(--brand-color-canvas-subtle);
+  font-weight: var(--brand-text-weight-semibold);
+  white-space: nowrap;
+}
+
 .articleHeading {
   margin: 0;
   /* Two medium gaps separate the title from the text below, while the
