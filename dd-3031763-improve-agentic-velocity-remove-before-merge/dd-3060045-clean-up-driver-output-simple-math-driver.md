@@ -7,7 +7,7 @@ Work autonomously in the current `awesome-copilot` repository. Implement the com
 Change only the simple-math control experiment driver:
 
 ```text
-plugins/shepherd-task/test/simple-math/20260904-run-control-experiment.ps1
+plugins/shepherd-task/test/simple-math/run-campaign.ps1
 ```
 
 Make its default terminal output teach a human how to use the canonical shepherd-task workflow while hiding successful intermediate implementation output.
@@ -26,7 +26,7 @@ Provide opt-in switches for exposing intermediate child-process output. Preserve
 This driver is the faster simple-math counterpart of:
 
 ```text
-plugins/shepherd-task/test/cargotracker-add-change-arrival-deadline-feature/20260904-run-control-experiment.ps1
+plugins/shepherd-task/test/cargotracker-add-change-arrival-deadline-feature/run-campaign.ps1
 ```
 
 If the Cargo Tracker driver has already received the output-cleanup implementation described by:

@@ -10,7 +10,7 @@ $initializerPath = Join-Path $PSScriptRoot '01-prepare-base-branch.ps1'
 $baselinePath = Join-Path $PSScriptRoot '00-prepare-test-baseline.ps1'
 $issueCreatorPath = Join-Path $PSScriptRoot '02-create-issues.ps1'
 $verifierPath = Join-Path $PSScriptRoot '04-verify-control-campaign.ps1'
-$driverPath = Join-Path $PSScriptRoot '20260904-run-control-experiment.ps1'
+$driverPath = Join-Path $PSScriptRoot 'run-campaign.ps1'
 
 $initializer = [System.IO.File]::ReadAllText($initializerPath)
 $baseline = [System.IO.File]::ReadAllText($baselinePath)

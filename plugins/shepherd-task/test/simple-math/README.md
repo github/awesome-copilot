@@ -69,7 +69,7 @@ Install the current source first:
 Then run:
 
 ```powershell
-.\plugins\shepherd-task\test\simple-math\20260904-run-control-experiment.ps1 `
+.\plugins\shepherd-task\test\simple-math\run-campaign.ps1 `
   -RepositoryUrl 'https://github.com/OWNER/DISPOSABLE-REPOSITORY' `
   -WorkareasDir 'C:\workareas'
 ```

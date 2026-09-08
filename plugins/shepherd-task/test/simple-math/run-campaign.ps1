@@ -39,17 +39,17 @@
     child command is always shown, even when its channel is disabled.
 
 .EXAMPLE
-    .\20260904-run-control-experiment.ps1 `
+    .\run-campaign.ps1 `
       -RepositoryUrl https://github.com/OWNER/DISPOSABLE-REPOSITORY `
       -WorkareasDir D:\workareas
 
 .EXAMPLE
-    .\20260904-run-control-experiment.ps1 `
+    .\run-campaign.ps1 `
       -RepositoryUrl https://github.com/OWNER/DISPOSABLE-REPOSITORY `
       -ShowShepherdTaskScriptOutput
 
 .EXAMPLE
-    .\20260904-run-control-experiment.ps1 `
+    .\run-campaign.ps1 `
       -RepositoryUrl https://github.com/OWNER/DISPOSABLE-REPOSITORY `
       -ShowAllOutput
 #>

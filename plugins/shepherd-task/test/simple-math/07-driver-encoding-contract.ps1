@@ -7,7 +7,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $skillListHelper = Join-Path $PSScriptRoot 'get-copilot-skill-list.ps1'
-$driverPath = Join-Path $PSScriptRoot '20260904-run-control-experiment.ps1'
+$driverPath = Join-Path $PSScriptRoot 'run-campaign.ps1'
 $tempDirectory = Join-Path ([System.IO.Path]::GetTempPath()) "shepherd-driver-encoding-$([guid]::NewGuid().ToString('N'))"
 
 try {

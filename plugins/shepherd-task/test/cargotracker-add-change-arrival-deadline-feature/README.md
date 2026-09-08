@@ -84,7 +84,7 @@ Install the current source first:
 Then run:
 
 ```powershell
-.\plugins\shepherd-task\test\cargotracker-add-change-arrival-deadline-feature\20260904-run-control-experiment.ps1 `
+.\plugins\shepherd-task\test\cargotracker-add-change-arrival-deadline-feature\run-campaign.ps1 `
   -RepositoryUrl 'https://github.com/OWNER/DISPOSABLE-CARGOTRACKER-FORK' `
   -WorkareasDir 'C:\workareas'
 ```
