@@ -1470,6 +1470,26 @@
       "version": "1.0.2"
     },
     {
+      "name": "remotion",
+      "description": "Make videos agentically.",
+      "version": "4.0.519",
+      "author": {
+        "name": "Jonny Burger"
+      },
+      "repository": "https://github.com/remotion-dev/agent-plugin",
+      "homepage": "https://remotion.dev/plugins",
+      "license": "Remotion License",
+      "keywords": [
+        "video",
+        "motion-graphics"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "remotion-dev/agent-plugin",
+        "sha": "ef892905120340970357997f20bcb8ce9bb341da"
+      }
+    },
+    {
       "name": "repo-actions-hub",
       "source": "plugins/repo-actions-hub",
       "description": "Browse repository GitHub Actions workflows, inspect recent runs, and trigger manual workflow_dispatch runs from a Copilot canvas.",
