@@ -660,21 +660,6 @@ jobs:
               return;
             }
 
-            if (labelNames.has('rejected')) {
-              core.info('Ignoring /rerun-intake because the issue was rejected by a maintainer.');
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: [
-                  '`/rerun-intake` cannot reopen a maintainer-rejected submission.',
-                  '',
-                  'This issue was rejected and closed, so it is no longer eligible for another intake pass. If you believe the concerns raised in the rejection have been fully addressed, please open a new external plugin submission issue instead.'
-                ].join('\n')
-              });
-              return;
-            }
-
             const issueAuthor = currentIssue.user?.login;
             const isIssueAuthor = Boolean(issueAuthor && commentAuthor === issueAuthor);
 
@@ -690,6 +675,43 @@ jobs:
 
             if (!isIssueAuthor && !hasWriteAccess) {
               core.info(`Ignoring /rerun-intake because ${commentAuthor} is neither the issue author nor a maintainer.`);
+              return;
+            }
+
+            if (labelNames.has('rejected')) {
+              core.info('Ignoring /rerun-intake because the issue was rejected by a maintainer.');
+              const marker = '<!-- external-plugin-rerun-rejected -->';
+              const body = [
+                marker,
+                '`/rerun-intake` cannot reopen a maintainer-rejected submission.',
+                '',
+                'This issue was rejected and closed, so it is no longer eligible for another intake pass. If you believe the concerns raised in the rejection have been fully addressed, please open a new external plugin submission issue instead.'
+              ].join('\n');
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100
+              });
+              const existingComment = comments.find((comment) =>
+                comment.user?.login === 'github-actions[bot]' &&
+                comment.body?.includes(marker)
+              );
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body
+                });
+              }
               return;
             }
 
