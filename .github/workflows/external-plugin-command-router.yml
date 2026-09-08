@@ -441,7 +441,7 @@ jobs:
               '',
               reason,
               '',
-              'If you address the feedback, edit this issue with the updated details and have the issue author or a maintainer comment `/rerun-intake` to re-run automated intake.'
+              'This issue is now closed and `/rerun-intake` will no longer reopen it. If you address the feedback, please open a new external plugin submission issue.'
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({
@@ -678,9 +678,45 @@ jobs:
               return;
             }
 
-            const canRerunFromCurrentState = currentIssue.state === 'open' || labelNames.has('rejected');
-            if (!canRerunFromCurrentState) {
-              core.info('Ignoring /rerun-intake because the issue is closed outside the intake/rejection flow.');
+            if (labelNames.has('rejected')) {
+              core.info('Ignoring /rerun-intake because the issue was rejected by a maintainer.');
+              const marker = '<!-- external-plugin-rerun-rejected -->';
+              const body = [
+                marker,
+                '`/rerun-intake` cannot reopen a maintainer-rejected submission.',
+                '',
+                'This issue was rejected and closed, so it is no longer eligible for another intake pass. If you believe the concerns raised in the rejection have been fully addressed, please open a new external plugin submission issue instead.'
+              ].join('\n');
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                per_page: 100
+              });
+              const existingComment = comments.find((comment) =>
+                comment.user?.login === 'github-actions[bot]' &&
+                comment.body?.includes(marker)
+              );
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body
+                });
+              }
+              return;
+            }
+
+            if (currentIssue.state !== 'open') {
+              core.info('Ignoring /rerun-intake because the issue is closed.');
               return;
             }
 

@@ -52,6 +52,12 @@ export function createState() {
   // SSE project broadcast to the right org (setup screen switches org before any
   // scan, so the panel's own org isn't a reliable signal).
   let projectsOrg = ''
+  // Finality of the current `projects` list: true only when the traversal that
+  // produced it ran to completion (SDK reported no further pages). A COMPLETE
+  // list is authoritative and may legitimately be shorter than a prior one
+  // (projects deleted upstream); an INCOMPLETE/streamed one must not shrink a
+  // longer list. Consumed by the client's keep-longest guard via the snapshot.
+  let projectsComplete = false
   // Sentry search window. Defaults to the last day; the user can widen it from
   // the issues list to look further back. Only Sentry's supported periods are
   // accepted (see PERIODS below).
@@ -68,6 +74,7 @@ export function createState() {
   // Sentry error. Canvas-wide, defaults to the raw error so on-call sees exactly
   // what Sentry reported first; the user can flip to plain English from the header.
   let plainEnglishView = false
+  let plainEnglishEnriching = false
   let selectedTracker = 'github'
   const workByIssueKey = {}
   // The issue trackers the "Work on selected" hand-off can file into. The agent
@@ -79,18 +86,27 @@ export function createState() {
     { id: 'linear', label: 'Linear', connected: true },
     { id: 'atlassian', label: 'Jira (Atlassian)', connected: true },
   ]
-  // Models the spawned remediation session can run under. The empty id means
-  // "let the session pick its default model"; every other id must match a value
-  // the host create_session tool accepts, or the hand-off would fail.
-  const availableModels = [
-    { id: '', label: 'Auto (session default)' },
+  // Models the spawned remediation session can run under. The empty id always
+  // means "let the session pick its default model". The rest of the list is
+  // seeded with a static fallback (used until the live catalog loads, or if
+  // that fetch ever fails) and is normally replaced at startup by
+  // setAvailableModels() with the host's live model list (see extension.mjs,
+  // which calls session.rpc.model.list()) so this never needs to be hand-edited
+  // again when new models ship.
+  const AUTO_MODEL = { id: '', label: 'Auto (session default)' }
+  const FALLBACK_MODELS = [
     { id: 'claude-sonnet-5', label: 'Claude Sonnet 5' },
+    { id: 'claude-opus-5', label: 'Claude Opus 5' },
     { id: 'claude-opus-4.8', label: 'Claude Opus 4.8' },
+    { id: 'gpt-5.6-sol', label: 'GPT-5.6 Sol' },
     { id: 'gpt-5.5', label: 'GPT-5.5' },
     { id: 'gpt-5.4', label: 'GPT-5.4' },
     { id: 'gpt-5.3-codex', label: 'GPT-5.3-Codex' },
+    { id: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash' },
+    { id: 'grok-4.5', label: 'Grok 4.5' },
   ]
-  const MODEL_IDS = new Set(availableModels.map((model) => model.id))
+  let availableModels = [AUTO_MODEL, ...FALLBACK_MODELS]
+  let MODEL_IDS = new Set(availableModels.map((model) => model.id))
   const prTargets = {
     mode: 'local',
     model: '',
@@ -245,6 +261,10 @@ export function createState() {
       return projectsOrg
     },
 
+    getProjectsComplete() {
+      return projectsComplete
+    },
+
     getConnections() {
       return connections
     },
@@ -259,6 +279,26 @@ export function createState() {
     },
     getAvailableModels() {
       return availableModels
+    },
+
+    // Replaces the model list with the host's live catalog (see
+    // session.rpc.model.list() in extension.mjs). Keeps the current selection
+    // if it's still valid in the new list; otherwise falls back to Auto so a
+    // model retired upstream can't leave prTargets pointing at a dead id.
+    setAvailableModels(models) {
+      const seen = new Set([''])
+      const deduped = []
+      for (const m of Array.isArray(models) ? models : []) {
+        const id = typeof m?.id === 'string' ? m.id.trim() : ''
+        const label = typeof m?.label === 'string' && m.label.trim() ? m.label.trim() : id
+        if (!id || seen.has(id)) continue
+        seen.add(id)
+        deduped.push({ id, label })
+      }
+      if (deduped.length === 0) return
+      availableModels = [AUTO_MODEL, ...deduped]
+      MODEL_IDS = new Set(availableModels.map((model) => model.id))
+      if (prTargets.model && !MODEL_IDS.has(prTargets.model)) prTargets.model = ''
     },
 
     getIssueTrackers() {
@@ -289,7 +329,7 @@ export function createState() {
       project = typeof slug === 'string' ? slug.trim() : ''
     },
 
-    setProjects(list, org) {
+    setProjects(list, org, complete = false) {
       const seen = new Set()
       const out = []
       for (const item of Array.isArray(list) ? list : []) {
@@ -300,6 +340,7 @@ export function createState() {
       }
       projects = out
       if (typeof org === 'string') projectsOrg = org.trim().toLowerCase()
+      projectsComplete = complete === true
       return projects
     },
 
@@ -346,7 +387,17 @@ export function createState() {
       return plainEnglishView
     },
 
+    getPlainEnglishEnriching() {
+      return plainEnglishEnriching
+    },
+
+    setPlainEnglishEnriching(on) {
+      plainEnglishEnriching = Boolean(on)
+      return plainEnglishEnriching
+    },
+
     togglePlainEnglishView() {
+      if (plainEnglishEnriching) return plainEnglishView
       plainEnglishView = !plainEnglishView
       return plainEnglishView
     },
