@@ -439,6 +439,31 @@ Installed skill copies receive a generated `shepherd-task-component.json`
 stamp, and `install-manifest.json` records the version shared by the plugin and
 all six installed skills.
 
+Use `version.sh` or `version.ps1` from the plugin root to inspect or update
+version metadata:
+
+```bash
+./plugins/shepherd-task/version.sh
+./plugins/shepherd-task/version.sh -incrementMicro
+./plugins/shepherd-task/version.sh -incrementMinor
+./plugins/shepherd-task/version.sh -incrementMajor
+./plugins/shepherd-task/version.sh -newSchemaVersion 2.0.0
+```
+
+```powershell
+.\plugins\shepherd-task\version.ps1
+.\plugins\shepherd-task\version.ps1 -IncrementMicro
+.\plugins\shepherd-task\version.ps1 -IncrementMinor
+.\plugins\shepherd-task\version.ps1 -IncrementMajor
+.\plugins\shepherd-task\version.ps1 -NewSchemaVersion 2.0.0
+```
+
+Increment operations update only the authoritative lineup version and reset
+lower-order SemVer components as appropriate. Pre-release and build metadata
+are removed by an increment. `-newSchemaVersion` updates the Agent Plugins
+schema URL in `plugin.json` and, when present, the matching schema URL in
+`mcp.json`; it does not change the shepherd-task lineup version.
+
 ## Artifact layout
 
 ```text
@@ -531,6 +556,7 @@ PowerShell equivalents are included for each helper.
 
 | Path | Purpose |
 |---|---|
+| `version.*` | Report or update the lineup and Agent Plugins schema versions |
 | `shepherd-task-version-contract.json` | Define internal artifact and stage-outcome protocol schema versions |
 | `scripts/read-shepherd-task-version.*` | Validate and expose the authoritative lineup and contract versions |
 | `scripts/shepherd-task-00-init-campaign.*` | Run stage 00: create durable campaign identity and lesson state |

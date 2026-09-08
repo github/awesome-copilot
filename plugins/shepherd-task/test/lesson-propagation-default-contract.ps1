@@ -6,6 +6,10 @@ $scriptsDirectory = [System.IO.Path]::GetFullPath(
 )
 $stage00 = Join-Path $scriptsDirectory 'shepherd-task-00-init-campaign.ps1'
 $stage25 = Join-Path $scriptsDirectory 'shepherd-task-25-given-list.ps1'
+$shepherdTaskVersion = [string](
+    Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\plugin.json') -Raw |
+        ConvertFrom-Json
+).version
 $tempDirectory = Join-Path (
     [System.IO.Path]::GetTempPath()
 ) "shepherd-lesson-default-$([guid]::NewGuid().ToString('N'))"
@@ -87,7 +91,7 @@ try {
     if ([string]$defaultManifest.lessonPropagation -ne 'off') {
         throw 'Stage 00 did not persist lessonPropagation=off by default.'
     }
-    if ([string]$defaultManifest.createdBy.shepherdTaskVersion -ne '1.0.0' -or
+    if ([string]$defaultManifest.createdBy.shepherdTaskVersion -ne $shepherdTaskVersion -or
         [int]$defaultManifest.createdBy.stageOutcomeProtocolVersion -ne 1) {
         throw 'Stage 00 did not stamp the shepherd-task lineup.'
     }
@@ -158,14 +162,14 @@ try {
                 '$versionInfo = & (Join-Path $PSScriptRoot ''read-shepherd-task-version.ps1'')',
                 @'
 $versionInfo = [pscustomobject]@{
-    ShepherdTaskVersion = '1.0.0'
+    ShepherdTaskVersion = '__SHEPHERD_TASK_VERSION__'
     StageOutcomeProtocolVersion = 1
     ArtifactSchemaVersions = [pscustomobject]@{
         campaign = 1
         givenListRun = 1
     }
 }
-'@
+'@.Replace('__SHEPHERD_TASK_VERSION__', $shepherdTaskVersion)
             ).
             Replace(
                 '$postMortemInvoked = $false',
@@ -211,9 +215,9 @@ exit 0
     if ([string]$runManifest.lessonPropagation -ne 'campaign') {
         throw 'Stage 25 did not copy the campaign manifest lesson mode into its run manifest.'
     }
-    if ([string]$runManifest.shepherdTaskVersion -ne '1.0.0' -or
+    if ([string]$runManifest.shepherdTaskVersion -ne $shepherdTaskVersion -or
         [int]$runManifest.stageOutcomeProtocolVersion -ne 1 -or
-        [string]$runManifest.campaignCreatedWithVersion -ne '1.0.0') {
+        [string]$runManifest.campaignCreatedWithVersion -ne $shepherdTaskVersion) {
         throw 'Stage 25 did not stamp the shepherd-task lineup.'
     }
     if ([string]$runManifest.status -ne 'succeeded') {

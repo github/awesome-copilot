@@ -6,6 +6,7 @@ TEST_DIR="$(cd "$(dirname "$0")" && pwd)"
 SCRIPTS_DIR="$(cd "$TEST_DIR/../scripts" && pwd)"
 STAGE00="$SCRIPTS_DIR/shepherd-task-00-init-campaign.sh"
 STAGE25="$SCRIPTS_DIR/shepherd-task-25-given-list.sh"
+SHEPHERD_TASK_VERSION="$(jq -r '.version' "$TEST_DIR/../plugin.json")"
 TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/shepherd-lesson-default.XXXXXX")"
 BIN_DIR="$TEMP_DIR/bin"
 
@@ -41,9 +42,9 @@ default_manifest="${default_repository[0]}/1-default-remove-before-merge/shepher
 grep -Fq '"lessonPropagation": "off"' "$default_manifest" ||
     { echo "Stage 00 did not persist lessonPropagation=off by default." >&2; exit 1; }
 jq -e '
-  .createdBy.shepherdTaskVersion == "1.0.0" and
+  .createdBy.shepherdTaskVersion == $version and
   .createdBy.stageOutcomeProtocolVersion == 1
-' "$default_manifest" >/dev/null ||
+' --arg version "$SHEPHERD_TASK_VERSION" "$default_manifest" >/dev/null ||
     { echo "Stage 00 did not stamp the shepherd-task lineup." >&2; exit 1; }
 [[ -f "${default_repository[0]}/1-default-remove-before-merge/campaign-lessons.md" ]] ||
     { echo "Stage 00 did not create campaign-lessons.md in off mode." >&2; exit 1; }
