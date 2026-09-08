@@ -41,5 +41,14 @@
     "axe-core": "^4.10.2",
     "pagefind": "^1.5.2",
     "playwright": "^1.49.0"
+  },
+  "overrides": {
+    "js-yaml": "^4.3.2",
+    "front-matter": {
+      "js-yaml": "^3.15.2"
+    },
+    "gray-matter": {
+      "js-yaml": "^3.15.2"
+    }
   }
 }
