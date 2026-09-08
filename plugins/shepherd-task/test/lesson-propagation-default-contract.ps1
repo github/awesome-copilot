@@ -87,6 +87,10 @@ try {
     if ([string]$defaultManifest.lessonPropagation -ne 'off') {
         throw 'Stage 00 did not persist lessonPropagation=off by default.'
     }
+    if ([string]$defaultManifest.createdBy.shepherdTaskVersion -ne '1.0.0' -or
+        [int]$defaultManifest.createdBy.stageOutcomeProtocolVersion -ne 1) {
+        throw 'Stage 00 did not stamp the shepherd-task lineup.'
+    }
     if (-not (Test-Path -LiteralPath (
         Join-Path $defaultCampaignPath 'campaign-lessons.md'
     ) -PathType Leaf)) {
@@ -149,10 +153,24 @@ try {
     $utf8 = [System.Text.UTF8Encoding]::new($false)
     [System.IO.File]::WriteAllText(
         (Join-Path $harnessDirectory 'shepherd-task-25-given-list.ps1'),
-        $stage25Source.Replace(
-            '$postMortemInvoked = $false',
-            '$postMortemInvoked = $true'
-        ),
+        $stage25Source.
+            Replace(
+                '$versionInfo = & (Join-Path $PSScriptRoot ''read-shepherd-task-version.ps1'')',
+                @'
+$versionInfo = [pscustomobject]@{
+    ShepherdTaskVersion = '1.0.0'
+    StageOutcomeProtocolVersion = 1
+    ArtifactSchemaVersions = [pscustomobject]@{
+        campaign = 1
+        givenListRun = 1
+    }
+}
+'@
+            ).
+            Replace(
+                '$postMortemInvoked = $false',
+                '$postMortemInvoked = $true'
+            ),
         $utf8
     )
     [System.IO.File]::WriteAllText(
@@ -192,6 +210,11 @@ exit 0
     ) -Raw | ConvertFrom-Json
     if ([string]$runManifest.lessonPropagation -ne 'campaign') {
         throw 'Stage 25 did not copy the campaign manifest lesson mode into its run manifest.'
+    }
+    if ([string]$runManifest.shepherdTaskVersion -ne '1.0.0' -or
+        [int]$runManifest.stageOutcomeProtocolVersion -ne 1 -or
+        [string]$runManifest.campaignCreatedWithVersion -ne '1.0.0') {
+        throw 'Stage 25 did not stamp the shepherd-task lineup.'
     }
     if ([string]$runManifest.status -ne 'succeeded') {
         throw "Stage 25 harness did not succeed: $($runManifest.status)."

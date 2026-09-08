@@ -51,6 +51,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$versionInfo = & (Join-Path $PSScriptRoot 'read-shepherd-task-version.ps1')
+
 if ($CampaignIssueNumber -notmatch '^[1-9][0-9]*$') {
     throw "CAMPAIGN_ISSUE_NUMBER must be a positive integer; received '$CampaignIssueNumber'."
 }
@@ -112,7 +114,7 @@ try {
     )
 
     $manifest = [ordered]@{
-        schemaVersion = 1
+        schemaVersion = [int]$versionInfo.ArtifactSchemaVersions.campaign
         campaignId = $campaignId
         campaignIssueNumber = [long]$CampaignIssueNumber
         campaignShortname = $CampaignShortname
@@ -121,6 +123,10 @@ try {
         lessonPropagation = $LessonPropagation
         campaignMetadataDirectory = $campaignMetadataDirectory
         lessonsFile = 'campaign-lessons.md'
+        createdBy = [ordered]@{
+            shepherdTaskVersion = $versionInfo.ShepherdTaskVersion
+            stageOutcomeProtocolVersion = $versionInfo.StageOutcomeProtocolVersion
+        }
         createdAt = $createdAt
     }
 
@@ -167,5 +173,6 @@ Write-Host "  Campaign ID:                 $campaignId"
 Write-Host "  Repository:                  $Repo"
 Write-Host "  Base branch:                 $BaseBranch"
 Write-Host "  Lesson propagation:         $LessonPropagation"
+Write-Host "  Shepherd-task version:       $($versionInfo.ShepherdTaskVersion)"
 Write-Host "  Campaign metadata directory: $campaignMetadataDirectory"
 Write-Host "  Absolute path:               $campaignMetadataPath"

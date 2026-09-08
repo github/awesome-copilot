@@ -86,8 +86,8 @@ instructions expected by stage 30.
 ## Installation
 
 From a checkout of this repository, the bundled installer copies the plugin to
-`$COPILOT_HOME/plugins/shepherd-task` (default `~/.copilot`) and installs all
-six shepherd skills that are not already present:
+`$COPILOT_HOME/plugins/shepherd-task` (default `~/.copilot`) and replaces all
+six shepherd skills as one validated lineup:
 
 ```bash
 ./plugins/shepherd-task/scripts/install-task-shepherd.sh
@@ -95,6 +95,18 @@ six shepherd skills that are not already present:
 
 ```powershell
 .\plugins\shepherd-task\scripts\install-task-shepherd.ps1
+```
+
+The installer stages the complete plugin and skill lineup before replacing an
+existing installation, rolls back an incomplete publication, and writes
+`install-manifest.json` last. It rejects a downgrade unless explicitly allowed:
+
+```bash
+./plugins/shepherd-task/scripts/install-task-shepherd.sh --allow-downgrade
+```
+
+```powershell
+.\plugins\shepherd-task\scripts\install-task-shepherd.ps1 -AllowDowngrade
 ```
 
 The scripts can also be run directly from this checkout.
@@ -374,6 +386,10 @@ GitHub work is still running.
   "lessonPropagation": "off",
   "campaignMetadataDirectory": "123-example-campaign-remove-before-merge",
   "lessonsFile": "campaign-lessons.md",
+  "createdBy": {
+    "shepherdTaskVersion": "1.0.0",
+    "stageOutcomeProtocolVersion": 1
+  },
   "createdAt": "2026-08-26T20:00:00Z"
 }
 ```
@@ -390,6 +406,9 @@ Every given-list invocation creates
 ```json
 {
   "schemaVersion": 1,
+  "shepherdTaskVersion": "1.0.0",
+  "campaignCreatedWithVersion": "1.0.0",
+  "stageOutcomeProtocolVersion": 1,
   "campaignId": "12345678-1234-4234-8234-123456789abc",
   "campaignMetadataDirectory": "123-example-campaign-remove-before-merge",
   "repository": "owner/repo",
@@ -405,6 +424,20 @@ Every given-list invocation creates
 
 The exit trap/finally block changes `completedAt`, `exitCode`, and `status` to
 the final observed result.
+
+## Version contract
+
+`plugin.json.version` is the single authoritative shepherd-task lineup
+version. Scripts and all six skills are installed and advanced together; no
+component has an independent release version.
+
+`shepherd-task-version-contract.json` independently versions persisted artifact
+schemas and the machine-consumed stage outcome protocol. Stages 00, 15, and 25
+read this contract rather than embedding their supported campaign and run
+schema versions.
+Installed skill copies receive a generated `shepherd-task-component.json`
+stamp, and `install-manifest.json` records the version shared by the plugin and
+all six installed skills.
 
 ## Artifact layout
 
@@ -498,6 +531,8 @@ PowerShell equivalents are included for each helper.
 
 | Path | Purpose |
 |---|---|
+| `shepherd-task-version-contract.json` | Define internal artifact and stage-outcome protocol schema versions |
+| `scripts/read-shepherd-task-version.*` | Validate and expose the authoritative lineup and contract versions |
 | `scripts/shepherd-task-00-init-campaign.*` | Run stage 00: create durable campaign identity and lesson state |
 | `scripts/shepherd-task-15-prepare-create-issues.*` | Run stage 15: derive and generate stage-20 invocation artifacts |
 | `scripts/shepherd-task-25-given-list.*` | Run stage 25: create a run and dispatch issues serially |

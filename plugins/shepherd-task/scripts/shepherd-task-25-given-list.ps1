@@ -15,6 +15,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$versionInfo = & (Join-Path $PSScriptRoot 'read-shepherd-task-version.ps1')
+
 if ($TaskIssues -notmatch '^[1-9][0-9]*(,[1-9][0-9]*)*$') {
     throw 'TaskIssues must be a comma-separated list of positive issue numbers.'
 }
@@ -40,7 +42,9 @@ if ([IO.Directory]::GetParent($campaignPath).FullName -ne $repoRoot) { throw 'Ca
 $manifestPath = Join-Path $campaignPath 'shepherd-campaign.json'
 if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { throw "Campaign manifest not found: $manifestPath" }
 $campaign = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-if ($campaign.schemaVersion -ne 1) { throw "Unsupported campaign schemaVersion '$($campaign.schemaVersion)'." }
+if ([int]$campaign.schemaVersion -ne [int]$versionInfo.ArtifactSchemaVersions.campaign) {
+    throw "Unsupported campaign schemaVersion '$($campaign.schemaVersion)'."
+}
 if ([string]$campaign.campaignId -notmatch '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$') { throw 'Invalid campaignId.' }
 if ([string]$campaign.lessonPropagation -notin @('off', 'campaign')) { throw 'Invalid campaign lesson propagation mode.' }
 if ([string]$campaign.campaignMetadataDirectory -ne $CampaignMetadataDirectory) { throw 'Manifest directory does not match supplied directory.' }
@@ -58,8 +62,16 @@ if (Test-Path -LiteralPath $logDirFull) { throw "Given-list run directory alread
 New-Item -ItemType Directory -Path $logDirFull | Out-Null
 
 $runManifestPath = Join-Path $logDirFull 'shepherd-task-25-given-list-run.json'
+$campaignCreatedWithVersion = $null
+$createdByProperty = $campaign.PSObject.Properties['createdBy']
+if ($createdByProperty -and $createdByProperty.Value) {
+    $campaignCreatedWithVersion = [string]$createdByProperty.Value.shepherdTaskVersion
+}
 $runManifest = [ordered]@{
-    schemaVersion = 1
+    schemaVersion = [int]$versionInfo.ArtifactSchemaVersions.givenListRun
+    shepherdTaskVersion = $versionInfo.ShepherdTaskVersion
+    campaignCreatedWithVersion = $campaignCreatedWithVersion
+    stageOutcomeProtocolVersion = $versionInfo.StageOutcomeProtocolVersion
     campaignId = $campaignId
     campaignMetadataDirectory = $CampaignMetadataDirectory
     repository = $repo
@@ -100,6 +112,7 @@ function Invoke-CopilotRedacted {
 try {
     Write-Host "Campaign ID: $campaignId"
     Write-Host "Lesson propagation: $LessonPropagation"
+    Write-Host "Shepherd-task version: $($versionInfo.ShepherdTaskVersion)"
     Write-Host "Logging shepherd-task-25-given-list run to: $logDirFull"
     foreach ($issue in $TaskIssues -split ',') {
         & $shepherdScript -TaskIssue $issue -CampaignMetadataDirectory $CampaignMetadataDirectory -RunDirectory $logDirFull

@@ -16,49 +16,6 @@ echo "12345678-1234-4234-8234-123456789abc"
 EOF
 chmod +x "$BIN_DIR/uuidgen"
 
-cat >"$BIN_DIR/jq" <<'EOF'
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-declare -A values=()
-declare -A json_values=()
-
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -n)
-            shift
-            ;;
-        --arg)
-            values["$2"]="$3"
-            shift 3
-            ;;
-        --argjson)
-            json_values["$2"]="$3"
-            shift 3
-            ;;
-        *)
-            shift
-            ;;
-    esac
-done
-
-cat <<JSON
-{
-  "schemaVersion": ${json_values[schemaVersion]},
-  "campaignId": "${values[campaignId]}",
-  "campaignIssueNumber": ${json_values[campaignIssueNumber]},
-  "campaignShortname": "${values[campaignShortname]}",
-  "repository": "${values[repository]}",
-  "baseBranch": "${values[baseBranch]}",
-  "lessonPropagation": "${values[lessonPropagation]}",
-  "campaignMetadataDirectory": "${values[campaignMetadataDirectory]}",
-  "lessonsFile": "${values[lessonsFile]}",
-  "createdAt": "${values[createdAt]}"
-}
-JSON
-EOF
-chmod +x "$BIN_DIR/jq"
 export PATH="$BIN_DIR:$PATH"
 
 cleanup() {
@@ -83,6 +40,11 @@ mapfile -t default_repository < <(new_test_repository default)
 default_manifest="${default_repository[0]}/1-default-remove-before-merge/shepherd-campaign.json"
 grep -Fq '"lessonPropagation": "off"' "$default_manifest" ||
     { echo "Stage 00 did not persist lessonPropagation=off by default." >&2; exit 1; }
+jq -e '
+  .createdBy.shepherdTaskVersion == "1.0.0" and
+  .createdBy.stageOutcomeProtocolVersion == 1
+' "$default_manifest" >/dev/null ||
+    { echo "Stage 00 did not stamp the shepherd-task lineup." >&2; exit 1; }
 [[ -f "${default_repository[0]}/1-default-remove-before-merge/campaign-lessons.md" ]] ||
     { echo "Stage 00 did not create campaign-lessons.md in off mode." >&2; exit 1; }
 

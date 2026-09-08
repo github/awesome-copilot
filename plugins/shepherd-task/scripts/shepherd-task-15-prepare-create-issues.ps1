@@ -29,6 +29,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$versionInfo = & (Join-Path $PSScriptRoot 'read-shepherd-task-version.ps1')
+
 $repoRootOutput = git rev-parse --show-toplevel 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $repoRootOutput) {
     throw 'Run this script inside the campaign Git worktree.'
@@ -64,7 +66,7 @@ catch {
     throw "Campaign manifest is not valid JSON: $manifestPath"
 }
 
-if ($campaign.schemaVersion -ne 1) {
+if ([int]$campaign.schemaVersion -ne [int]$versionInfo.ArtifactSchemaVersions.campaign) {
     throw "Unsupported campaign manifest schemaVersion '$($campaign.schemaVersion)'."
 }
 if ([string]$campaign.campaignId -notmatch '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$') {

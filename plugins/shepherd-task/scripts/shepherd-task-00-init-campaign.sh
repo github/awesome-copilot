@@ -59,6 +59,13 @@ for command in git jq uuidgen; do
     fi
 done
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VERSION_INFO="$("$SCRIPT_DIR/read-shepherd-task-version.sh")" ||
+    fail "Unable to load the shepherd-task version contract."
+SHEPHERD_TASK_VERSION="$(jq -r '.shepherdTaskVersion' <<<"$VERSION_INFO")"
+STAGE_OUTCOME_PROTOCOL_VERSION="$(jq -r '.stageOutcomeProtocolVersion' <<<"$VERSION_INFO")"
+CAMPAIGN_SCHEMA_VERSION="$(jq -r '.artifactSchemaVersions.campaign' <<<"$VERSION_INFO")"
+
 if ! REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; then
     fail "Run this command inside the campaign Git worktree."
 fi
@@ -112,7 +119,9 @@ fi
 CREATED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 jq -n \
-    --argjson schemaVersion 1 \
+    --argjson schemaVersion "$CAMPAIGN_SCHEMA_VERSION" \
+    --arg shepherdTaskVersion "$SHEPHERD_TASK_VERSION" \
+    --argjson stageOutcomeProtocolVersion "$STAGE_OUTCOME_PROTOCOL_VERSION" \
     --arg campaignId "$CAMPAIGN_ID" \
     --argjson campaignIssueNumber "$CAMPAIGN_ISSUE_NUMBER" \
     --arg campaignShortname "$CAMPAIGN_SHORTNAME" \
@@ -132,6 +141,10 @@ jq -n \
         lessonPropagation: $lessonPropagation,
         campaignMetadataDirectory: $campaignMetadataDirectory,
         lessonsFile: $lessonsFile,
+        createdBy: {
+          shepherdTaskVersion: $shepherdTaskVersion,
+          stageOutcomeProtocolVersion: $stageOutcomeProtocolVersion
+        },
         createdAt: $createdAt
     }' >"$TEMP_MANIFEST_PATH"
 
@@ -157,5 +170,6 @@ echo "  Campaign ID:                $CAMPAIGN_ID"
 echo "  Repository:                 $REPO"
 echo "  Base branch:                $BASE_BRANCH"
 echo "  Lesson propagation:         $LESSON_PROPAGATION"
+echo "  Shepherd-task version:       $SHEPHERD_TASK_VERSION"
 echo "  Campaign metadata directory: $CAMPAIGN_METADATA_DIRECTORY"
 echo "  Absolute path:              $CAMPAIGN_METADATA_PATH"

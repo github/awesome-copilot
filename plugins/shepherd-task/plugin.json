@@ -21,8 +21,11 @@
   "extensions": {
     "com.github.awesome-copilot": {
       "skills": [
+        "./skills/shepherd-task-10-create-ignorance-reduction-plan/",
+        "./skills/shepherd-task-20-create-issues-from-plan/",
         "./skills/shepherd-task-30-from-assignment-to-ready/",
         "./skills/shepherd-task-40-from-ready-to-merged-to-base/",
+        "./skills/shepherd-task-50-create-post-mortem/",
         "./skills/shepherd-task-approve-workflows-and-wait-for-completion/"
       ]
     }

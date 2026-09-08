@@ -23,6 +23,10 @@ for command in git jq awk find; do
         fail "Required command '$command' was not found."
 done
 
+VERSION_INFO="$("$SCRIPT_DIR/read-shepherd-task-version.sh")" ||
+    fail "Unable to load the shepherd-task version contract."
+CAMPAIGN_SCHEMA_VERSION="$(jq -r '.artifactSchemaVersions.campaign' <<<"$VERSION_INFO")"
+
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" ||
     fail "Run this script inside the campaign Git worktree."
 REPO_ROOT="$(cd "$REPO_ROOT" && pwd -P)"
@@ -41,8 +45,10 @@ CAMPAIGN_METADATA_PATH="$(cd "$CAMPAIGN_METADATA_PATH" && pwd -P)"
 MANIFEST_PATH="$CAMPAIGN_METADATA_PATH/shepherd-campaign.json"
 [[ -f "$MANIFEST_PATH" ]] || fail "Campaign manifest not found: $MANIFEST_PATH"
 
-jq -e '
-    .schemaVersion == 1 and
+jq -e \
+  --argjson campaignSchemaVersion "$CAMPAIGN_SCHEMA_VERSION" \
+  '
+    .schemaVersion == $campaignSchemaVersion and
     (.campaignId | type == "string" and test("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")) and
     (.campaignIssueNumber | type == "number" and . > 0 and floor == .) and
     (.campaignShortname | type == "string" and test("^[a-z0-9]+(-[a-z0-9]+)*$")) and

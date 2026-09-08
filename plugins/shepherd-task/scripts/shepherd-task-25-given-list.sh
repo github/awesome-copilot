@@ -32,6 +32,12 @@ for command in git jq copilot; do
 done
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VERSION_INFO="$("$SCRIPT_DIR/read-shepherd-task-version.sh")" ||
+    fail_input "Unable to load the shepherd-task version contract."
+SHEPHERD_TASK_VERSION="$(jq -r '.shepherdTaskVersion' <<<"$VERSION_INFO")"
+STAGE_OUTCOME_PROTOCOL_VERSION="$(jq -r '.stageOutcomeProtocolVersion' <<<"$VERSION_INFO")"
+CAMPAIGN_SCHEMA_VERSION="$(jq -r '.artifactSchemaVersions.campaign' <<<"$VERSION_INFO")"
+RUN_SCHEMA_VERSION="$(jq -r '.artifactSchemaVersions.givenListRun' <<<"$VERSION_INFO")"
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" ||
     fail_input "Run this script inside the campaign Git worktree."
 REPO_ROOT="$(cd "$REPO_ROOT" && pwd -P)"
@@ -43,8 +49,10 @@ CAMPAIGN_METADATA_PATH="$(cd "$CAMPAIGN_METADATA_PATH" && pwd -P)"
 
 MANIFEST_PATH="$CAMPAIGN_METADATA_PATH/shepherd-campaign.json"
 [[ -f "$MANIFEST_PATH" ]] || fail_input "Campaign manifest not found: $MANIFEST_PATH"
-jq -e '
-  .schemaVersion == 1 and
+jq -e \
+  --argjson campaignSchemaVersion "$CAMPAIGN_SCHEMA_VERSION" \
+  '
+  .schemaVersion == $campaignSchemaVersion and
   (.campaignId | type == "string" and test("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")) and
   (.campaignIssueNumber | type == "number" and . > 0) and
   (.repository | type == "string" and test("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")) and
@@ -53,6 +61,7 @@ jq -e '
 ' "$MANIFEST_PATH" >/dev/null || fail_input "Campaign manifest is invalid."
 
 CAMPAIGN_ID="$(jq -r '.campaignId' "$MANIFEST_PATH")"
+CAMPAIGN_CREATED_WITH_VERSION="$(jq -r '.createdBy.shepherdTaskVersion // ""' "$MANIFEST_PATH")"
 REPO="$(jq -r '.repository' "$MANIFEST_PATH")"
 BASE_BRANCH="$(jq -r '.baseBranch' "$MANIFEST_PATH")"
 LESSON_PROPAGATION="$(jq -r '.lessonPropagation' "$MANIFEST_PATH")"
@@ -69,7 +78,10 @@ mkdir -- "$LOG_DIR_FULL"
 RUN_MANIFEST="$LOG_DIR_FULL/shepherd-task-25-given-list-run.json"
 started_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 jq -n \
-    --argjson schemaVersion 1 \
+    --argjson schemaVersion "$RUN_SCHEMA_VERSION" \
+    --arg shepherdTaskVersion "$SHEPHERD_TASK_VERSION" \
+    --arg campaignCreatedWithVersion "$CAMPAIGN_CREATED_WITH_VERSION" \
+    --argjson stageOutcomeProtocolVersion "$STAGE_OUTCOME_PROTOCOL_VERSION" \
     --arg campaignId "$CAMPAIGN_ID" \
     --arg campaignMetadataDirectory "$CAMPAIGN_METADATA_DIRECTORY" \
     --arg repository "$REPO" \
@@ -79,6 +91,11 @@ jq -n \
     --arg startedAt "$started_at" \
     '{
       schemaVersion: $schemaVersion,
+      shepherdTaskVersion: $shepherdTaskVersion,
+      campaignCreatedWithVersion: (
+        if $campaignCreatedWithVersion == "" then null else $campaignCreatedWithVersion end
+      ),
+      stageOutcomeProtocolVersion: $stageOutcomeProtocolVersion,
       campaignId: $campaignId,
       campaignMetadataDirectory: $campaignMetadataDirectory,
       repository: $repository,
@@ -93,6 +110,7 @@ jq -n \
 
 echo "Campaign ID: $CAMPAIGN_ID"
 echo "Lesson propagation: $LESSON_PROPAGATION"
+echo "Shepherd-task version: $SHEPHERD_TASK_VERSION"
 echo "Logging shepherd-task-25-given-list run to: $LOG_DIR_FULL"
 
 run_copilot_redacted() {
