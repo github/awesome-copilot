@@ -1022,6 +1022,26 @@
     }
   },
   {
+    "name": "remotion",
+    "description": "Make videos agentically.",
+    "version": "4.0.519",
+    "author": {
+      "name": "Jonny Burger"
+    },
+    "repository": "https://github.com/remotion-dev/agent-plugin",
+    "homepage": "https://remotion.dev/plugins",
+    "license": "Remotion License",
+    "keywords": [
+      "video",
+      "motion-graphics"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "remotion-dev/agent-plugin",
+      "sha": "ef892905120340970357997f20bcb8ce9bb341da"
+    }
+  },
+  {
     "name": "skills-for-copilot-studio",
     "description": "Microsoft Copilot Studio plugins for AI coding agents",
     "version": "1.0.3",
