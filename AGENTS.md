@@ -202,7 +202,7 @@ To bundle an extension into another plugin without making a second source copy, 
 3. In v1, only GitHub-hosted plugins are accepted for public submission, using a public repo plus an immutable `ref`, `sha`, or both
 4. The shared validator in `eng/external-plugin-validation.mjs` is the canonical source of truth for external plugin data rules; reuse it instead of duplicating checks in scripts or workflows
 5. Submission issues move through `external-plugin` + `awaiting-review` and then either `ready-for-review` or `requires-submitter-fixes` based on automated quality gates
-6. After issue edits, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake and quality gates without opening a new submission issue
+6. While a submission issue is open, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake and quality gates. Maintainer-rejected issues are terminal; contributors who address the rejection feedback must open a new submission issue
 7. Maintainers can explicitly override a quality-gate blocker with `/mark-ready-for-review [optional reason]`, which moves the issue to `ready-for-review`
 8. Maintainers make the decision with `/approve` or `/reject <reason>` issue comments once the issue is in `ready-for-review`; approved issues are closed and used as the six-month re-review anchor
 9. Approval automation creates or updates the PR against `main`, updates `plugins/external.json`, and regenerates marketplace outputs
