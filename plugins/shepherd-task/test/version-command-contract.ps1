@@ -11,13 +11,37 @@ $currentSchemaVersion = [regex]::Match(
     '/schemas/([^/]+)/plugin\.schema\.json$'
 ).Groups[1].Value
 
-function Copy-VersionCommand {
+function Copy-InstalledVersionCommand {
     param([Parameter(Mandatory)][string]$Destination)
 
     New-Item -ItemType Directory -Path $Destination | Out-Null
     foreach ($file in @('plugin.json', 'shepherd-task-version-contract.json', 'version.ps1')) {
         Copy-Item -LiteralPath (Join-Path $pluginRoot $file) -Destination (Join-Path $Destination $file)
     }
+}
+
+function New-SourceCheckout {
+    param([Parameter(Mandatory)][string]$Destination)
+
+    $sourcePlugin = Join-Path $Destination 'plugins\shepherd-task'
+    Copy-InstalledVersionCommand -Destination $sourcePlugin
+    $plugin = Read-Plugin -Directory $sourcePlugin
+    foreach ($skillReference in $plugin.extensions.'com.github.awesome-copilot'.skills) {
+        $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
+        $skillDirectory = Join-Path $Destination $skillPath
+        New-Item -ItemType Directory -Path $skillDirectory -Force | Out-Null
+        $skillName = Split-Path -Leaf $skillPath
+        [IO.File]::WriteAllText(
+            (Join-Path $skillDirectory 'SKILL.md'),
+            "---`nname: $skillName`ndescription: Contract fixture for $skillName.`n---`n",
+            $utf8NoBom
+        )
+    }
+    & git -C $Destination init --quiet
+    if ($LASTEXITCODE -ne 0) { throw 'Could not initialize temporary source checkout.' }
+    & git -C $Destination add plugins/shepherd-task/plugin.json skills
+    if ($LASTEXITCODE -ne 0) { throw 'Could not track temporary shepherd-task sources.' }
+    return $sourcePlugin
 }
 
 function Read-Plugin {
@@ -28,13 +52,28 @@ function Read-Plugin {
 try {
     New-Item -ItemType Directory -Path $tempRoot | Out-Null
 
-    $micro = Join-Path $tempRoot 'micro'
-    Copy-VersionCommand -Destination $micro
-    $output = @(& (Join-Path $micro 'version.ps1'))
+    $installed = Join-Path $tempRoot 'installed'
+    Copy-InstalledVersionCommand -Destination $installed
+    $output = @(& (Join-Path $installed 'version.ps1'))
     if (-not ($output -contains "  Lineup version:                  $currentVersion") -or
         -not ($output -contains "  Agent Plugins schema version:    $currentSchemaVersion")) {
         throw 'PowerShell version command did not print verbose current information.'
     }
+    $installedBefore = [IO.File]::ReadAllText((Join-Path $installed 'plugin.json'))
+    try {
+        & (Join-Path $installed 'version.ps1') -IncrementMicro | Out-Null
+        throw 'PowerShell version command mutated an installed copy.'
+    }
+    catch {
+        if (-not $_.Exception.Message.Contains('must run from the shepherd-task source checkout')) {
+            throw
+        }
+    }
+    if ($installedBefore -cne [IO.File]::ReadAllText((Join-Path $installed 'plugin.json'))) {
+        throw 'Rejected installed-copy mutation changed plugin.json.'
+    }
+
+    $micro = New-SourceCheckout -Destination (Join-Path $tempRoot 'micro')
     & (Join-Path $micro 'version.ps1') -IncrementMicro | Out-Null
     $currentCore = ($currentVersion -split '[-+]', 2)[0]
     $currentParts = @($currentCore -split '\.' | ForEach-Object { [long]$_ })
@@ -43,8 +82,7 @@ try {
         throw 'PowerShell micro increment failed.'
     }
 
-    $minor = Join-Path $tempRoot 'minor'
-    Copy-VersionCommand -Destination $minor
+    $minor = New-SourceCheckout -Destination (Join-Path $tempRoot 'minor')
     $minorPlugin = Read-Plugin -Directory $minor
     $minorPlugin.version = '2.7.9-beta.2+build.5'
     [IO.File]::WriteAllText(
@@ -57,8 +95,7 @@ try {
         throw 'PowerShell minor increment failed.'
     }
 
-    $major = Join-Path $tempRoot 'major'
-    Copy-VersionCommand -Destination $major
+    $major = New-SourceCheckout -Destination (Join-Path $tempRoot 'major')
     $majorPlugin = Read-Plugin -Directory $major
     $majorPlugin.version = '2.7.9'
     [IO.File]::WriteAllText(
@@ -71,8 +108,7 @@ try {
         throw 'PowerShell major increment failed.'
     }
 
-    $schema = Join-Path $tempRoot 'schema'
-    Copy-VersionCommand -Destination $schema
+    $schema = New-SourceCheckout -Destination (Join-Path $tempRoot 'schema')
     [IO.File]::WriteAllText(
         (Join-Path $schema 'mcp.json'),
         @'

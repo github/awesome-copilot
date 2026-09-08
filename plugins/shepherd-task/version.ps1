@@ -74,6 +74,49 @@ function Assert-SemVer {
     }
 }
 
+function Assert-SourceCheckout {
+    try {
+        $repoRootOutput = @(& git -C $pluginRoot rev-parse --show-toplevel 2>$null)
+    }
+    catch {
+        throw 'Mutating version operations require Git and a shepherd-task source checkout.'
+    }
+    if ($LASTEXITCODE -ne 0 -or $repoRootOutput.Count -eq 0) {
+        throw 'Version increments must run from the shepherd-task source checkout, not an installed copy.'
+    }
+
+    $repoRoot = [IO.Path]::GetFullPath(
+        [string]($repoRootOutput | Select-Object -First 1)
+    ).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+    $expectedPluginRoot = [IO.Path]::GetFullPath(
+        (Join-Path $repoRoot 'plugins\shepherd-task')
+    ).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+    $actualPluginRoot = [IO.Path]::GetFullPath(
+        $pluginRoot
+    ).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+    if ($actualPluginRoot -cne $expectedPluginRoot) {
+        throw "Version increments must run from '$expectedPluginRoot', not '$actualPluginRoot'."
+    }
+
+    & git -C $repoRoot ls-files --error-unmatch -- 'plugins/shepherd-task/plugin.json' *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw 'The source plugin manifest is not tracked by the current Git repository.'
+    }
+
+    $pluginManifest = Read-Json -Path $pluginManifestPath
+    foreach ($skillReference in $pluginManifest.extensions.'com.github.awesome-copilot'.skills) {
+        $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
+        $skillManifestPath = Join-Path $repoRoot "$skillPath\SKILL.md"
+        if (-not (Test-Path -LiteralPath $skillManifestPath -PathType Leaf)) {
+            throw "Declared shepherd-task source skill is missing: $skillManifestPath"
+        }
+        & git -C $repoRoot ls-files --error-unmatch -- "$skillPath/SKILL.md" *> $null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Declared shepherd-task source skill is not tracked: $skillPath/SKILL.md"
+        }
+    }
+}
+
 function Get-SchemaVersion {
     param([Parameter(Mandatory)][object]$PluginManifest)
 
@@ -121,6 +164,7 @@ function Show-VersionInformation {
 function Update-LineupVersion {
     param([Parameter(Mandatory)][ValidateSet('Micro', 'Minor', 'Major')][string]$Segment)
 
+    Assert-SourceCheckout
     $pluginManifest = Read-Json -Path $pluginManifestPath
     $current = [string]$pluginManifest.version
     Assert-SemVer -Version $current -Label 'Plugin version'
@@ -142,6 +186,7 @@ function Update-LineupVersion {
 function Update-SchemaVersion {
     param([Parameter(Mandatory)][string]$Version)
 
+    Assert-SourceCheckout
     Assert-SemVer -Version $Version -Label 'Schema version'
     $pluginManifest = Read-Json -Path $pluginManifestPath
     $current = Get-SchemaVersion -PluginManifest $pluginManifest

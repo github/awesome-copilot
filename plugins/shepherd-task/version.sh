@@ -44,6 +44,35 @@ validate_semver() {
     [[ "$1" =~ $SEMVER_PATTERN ]]
 }
 
+assert_source_checkout() {
+    command -v git >/dev/null 2>&1 ||
+        fail "Mutating version operations require Git and a shepherd-task source checkout."
+
+    local repo_root expected_plugin_root
+    repo_root="$(git -C "$PLUGIN_ROOT" rev-parse --show-toplevel 2>/dev/null)" ||
+        fail "Version increments must run from the shepherd-task source checkout, not an installed copy."
+    repo_root="$(cd "$repo_root" && pwd -P)"
+    expected_plugin_root="$repo_root/plugins/shepherd-task"
+    [[ "$PLUGIN_ROOT" == "$expected_plugin_root" ]] ||
+        fail "Version increments must run from '$expected_plugin_root', not '$PLUGIN_ROOT'."
+
+    git -C "$repo_root" ls-files --error-unmatch \
+        "plugins/shepherd-task/plugin.json" >/dev/null 2>&1 ||
+        fail "The source plugin manifest is not tracked by the current Git repository."
+
+    local skill_ref skill_path
+    while IFS= read -r skill_ref; do
+        skill_path="${skill_ref#./}"
+        [[ -f "$repo_root/$skill_path/SKILL.md" ]] ||
+            fail "Declared shepherd-task source skill is missing: $repo_root/$skill_path/SKILL.md"
+        git -C "$repo_root" ls-files --error-unmatch \
+            "$skill_path/SKILL.md" >/dev/null 2>&1 ||
+            fail "Declared shepherd-task source skill is not tracked: $skill_path/SKILL.md"
+    done < <(
+        jq -er '.extensions["com.github.awesome-copilot"].skills[]' "$PLUGIN_MANIFEST"
+    )
+}
+
 write_json_atomically() {
     local target="$1"
     local filter="$2"
@@ -88,6 +117,7 @@ print_version_information() {
 increment_version() {
     local segment="$1"
     local current major minor micro next
+    assert_source_checkout
     current="$(read_plugin_version)" ||
         fail "plugin.json does not contain a string version."
     validate_semver "$current" ||
@@ -119,6 +149,7 @@ increment_version() {
 
 set_schema_version() {
     local requested="$1"
+    assert_source_checkout
     validate_semver "$requested" ||
         fail "Schema version '$requested' is not valid Semantic Versioning."
     local current

@@ -462,7 +462,11 @@ Increment operations update only the authoritative lineup version and reset
 lower-order SemVer components as appropriate. Pre-release and build metadata
 are removed by an increment. `-newSchemaVersion` updates the Agent Plugins
 schema URL in `plugin.json` and, when present, the matching schema URL in
-`mcp.json`; it does not change the shepherd-task lineup version.
+`mcp.json`; it does not change the shepherd-task lineup version. Mutating
+operations refuse to run from an installed copy: the script must be located at
+the tracked `plugins/shepherd-task` path in a Git source checkout containing
+the declared top-level skill sources. The no-argument information operation
+remains available in installed copies.
 
 ## Artifact layout
 
