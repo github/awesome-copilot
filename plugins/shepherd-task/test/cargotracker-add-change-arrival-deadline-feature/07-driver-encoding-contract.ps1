@@ -71,6 +71,42 @@ try {
             throw "ShowAllOutput does not enable: $allOutputAssignment"
         }
     }
+    if ($driverContent.Contains('[shepherd-control]')) {
+        throw 'Driver emitter prefix must not include -control.'
+    }
+    foreach ($requiredOutputContract in @(
+        'Write-Host "[shepherd] $Message" -ForegroundColor $Color',
+        '[System.ConsoleColor]$Color = [System.ConsoleColor]::White',
+        '[System.ConsoleColor]$Color = [System.ConsoleColor]::Gray',
+        'Write-ControlStatus "Stage $Stage - $Purpose" -Color Cyan',
+        "Write-Warning '[shepherd] Captured output from failed child script:'",
+        "Write-Warning '[shepherd] Captured output from failed native command:'",
+        'Write-Error -ErrorRecord $failure -ErrorAction Stop',
+        "Write-Warning '[shepherd] No automated cleanup was performed.",
+        '-Color Green'
+    )) {
+        if (-not $driverContent.Contains($requiredOutputContract)) {
+            throw "Driver output contract is missing: $requiredOutputContract"
+        }
+    }
+    if ([regex]::Matches(
+        $driverContent,
+        '\[System\.ConsoleColor\]::DarkGray'
+    ).Count -ne 1) {
+        throw 'DarkGray must be used exactly once, for planned invocation displays.'
+    }
+    if ([regex]::Matches(
+        $driverContent,
+        '\[System\.ConsoleColor\]::Magenta'
+    ).Count -ne 1) {
+        throw 'Magenta must be used exactly once, for actual invocation displays.'
+    }
+    if ([regex]::Matches(
+        $driverContent,
+        '-ForegroundColor Yellow'
+    ).Count -ne 1) {
+        throw 'Yellow must be limited to preserved-path details beneath the semantic warning.'
+    }
 
     $lifecycleSummaryCalls = @(
         $driverAst.FindAll(
@@ -145,6 +181,26 @@ try {
         $campaignIssueMessageCalls[0].Extent.EndOffset -ge
             $invocationCalls[1].Extent.StartOffset) {
         throw 'Campaign issue message must appear between planned and actual Stage 00 invocation output.'
+    }
+
+    $invocationFunction = @(
+        $driverAst.FindAll(
+            {
+                param($node)
+                $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+                    $node.Name -eq 'Write-ShepherdScriptInvocation'
+            },
+            $true
+        )
+    )
+    if ($invocationFunction.Count -ne 1 -or
+        -not $invocationFunction[0].Extent.Text.Contains(
+            "[System.ConsoleColor]::DarkGray"
+        ) -or
+        -not $invocationFunction[0].Extent.Text.Contains(
+            "[System.ConsoleColor]::Magenta"
+        )) {
+        throw 'Invocation renderer does not distinguish planned DarkGray from actual Magenta.'
     }
 
     $stage10Call = @(
@@ -398,6 +454,7 @@ try {
     )
     $displayText = $displayOutput -join "`n"
     foreach ($expectedDisplay in @(
+        '[shepherd] Planned invocation of shepherd-task.ps1:',
         "'C:\Program Files\O''Brien\shepherd-task.ps1'",
         '<CAMPAIGN_ISSUE_NUMBER>',
         "'owner/o''brien'"

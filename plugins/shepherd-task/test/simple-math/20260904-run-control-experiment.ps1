@@ -96,8 +96,12 @@ $ControlWorktree = $null
 $ControlDirectory = $null
 
 function Write-ControlStatus {
-    param([Parameter(Mandatory)][string]$Message)
-    Write-Host "[shepherd-control] $Message"
+    param(
+        [Parameter(Mandatory)][string]$Message,
+        [System.ConsoleColor]$Color = [System.ConsoleColor]::White
+    )
+
+    Write-Host "[shepherd] $Message" -ForegroundColor $Color
 }
 
 function Write-ControlStage {
@@ -107,7 +111,7 @@ function Write-ControlStage {
     )
 
     Write-Host ''
-    Write-ControlStatus "Stage $Stage - $Purpose"
+    Write-ControlStatus "Stage $Stage - $Purpose" -Color Cyan
 }
 
 function Test-OutputChannelEnabled {
@@ -127,11 +131,14 @@ function Test-OutputChannelEnabled {
 }
 
 function Write-CapturedOutput {
-    param([object[]]$Output)
+    param(
+        [object[]]$Output,
+        [System.ConsoleColor]$Color = [System.ConsoleColor]::Gray
+    )
 
     foreach ($line in @($Output)) {
         if ($null -ne $line) {
-            Write-Host ([string]$line)
+            Write-Host ([string]$line) -ForegroundColor $Color
         }
     }
 }
@@ -164,8 +171,8 @@ function Invoke-CheckedPwshScript {
 
     if ($exitCode -ne 0) {
         if (-not $showOutput -and $capturedOutput.Count -gt 0) {
-            Write-ControlStatus "Captured output from failed child script:"
-            Write-CapturedOutput -Output $capturedOutput
+            Write-Warning '[shepherd] Captured output from failed child script:'
+            Write-CapturedOutput -Output $capturedOutput -Color Red
         }
         throw "PowerShell script failed with exit code $exitCode`: $Path"
     }
@@ -189,8 +196,8 @@ function Invoke-CheckedNativeCommand {
 
     if ($exitCode -ne 0) {
         if (-not $ShowNativeToolOutput -and $capturedOutput.Count -gt 0) {
-            Write-ControlStatus "Captured output from failed native command:"
-            Write-CapturedOutput -Output $capturedOutput
+            Write-Warning '[shepherd] Captured output from failed native command:'
+            Write-CapturedOutput -Output $capturedOutput -Color Red
         }
         throw "$Operation failed with exit code $exitCode."
     }
@@ -225,14 +232,22 @@ function Write-ShepherdScriptInvocation {
 
     Write-ControlStage -Stage $Stage -Purpose $Purpose
     $scriptName = Split-Path -Leaf $ScriptPath
-    Write-ControlStatus "$InvocationType invocation of ${scriptName}:"
+    $invocationColor = if ($InvocationType -eq 'Planned') {
+        [System.ConsoleColor]::DarkGray
+    }
+    else {
+        [System.ConsoleColor]::Magenta
+    }
+    Write-Host "[shepherd] $InvocationType invocation of ${scriptName}:" `
+        -ForegroundColor $invocationColor
     $scriptLiteral = ConvertTo-PowerShellDisplayLiteral -Value $ScriptPath
     if ($Arguments.Count -eq 0) {
-        Write-Host "  & $scriptLiteral"
+        Write-Host "  & $scriptLiteral" -ForegroundColor $invocationColor
         return
     }
 
-    Write-Host ('  & {0} `' -f $scriptLiteral)
+    Write-Host ('  & {0} `' -f $scriptLiteral) `
+        -ForegroundColor $invocationColor
     for ($index = 0; $index -lt $Arguments.Count; $index++) {
         $argument = $Arguments[$index]
         $continuation = if ($index -lt $Arguments.Count - 1) {
@@ -242,7 +257,8 @@ function Write-ShepherdScriptInvocation {
             ''
         }
         if ([bool]$argument.IsSwitch) {
-            Write-Host ('      {0}{1}' -f $argument.Name, $continuation)
+            Write-Host ('      {0}{1}' -f $argument.Name, $continuation) `
+                -ForegroundColor $invocationColor
         }
         else {
             $valueLiteral = ConvertTo-PowerShellDisplayLiteral `
@@ -250,7 +266,7 @@ function Write-ShepherdScriptInvocation {
             Write-Host (
                 '      {0} {1}{2}' -f
                 $argument.Name, $valueLiteral, $continuation
-            )
+            ) -ForegroundColor $invocationColor
         }
     }
 }
@@ -380,7 +396,7 @@ Write the report to:
 - OUTPUT_FILE: $postMortemPath
 "@
 
-    Write-ControlStatus "No campaign post-mortem was found; regenerating it at: $postMortemPath"
+    Write-Warning "[shepherd] No campaign post-mortem was found; regenerating it at: $postMortemPath"
     Set-Location -LiteralPath $Worktree
     if ($ShowShepherdTaskScriptOutput) {
         $prompt | copilot --yolo
@@ -393,10 +409,10 @@ Write the report to:
     if ($copilotExitCode -ne 0) {
         if (-not $ShowShepherdTaskScriptOutput -and
             $capturedOutput.Count -gt 0) {
-            Write-ControlStatus (
-                'Captured output from failed post-mortem recovery:'
+            Write-Warning (
+                '[shepherd] Captured output from failed post-mortem recovery:'
             )
-            Write-CapturedOutput -Output $capturedOutput
+            Write-CapturedOutput -Output $capturedOutput -Color Red
         }
         throw "Post-mortem recovery failed with exit code $copilotExitCode for '$RunDirectory'."
     }
@@ -445,7 +461,7 @@ try {
     $Stage25Script = Join-Path $ShepherdPlugin `
         'scripts\shepherd-task-25-given-list.ps1'
 
-    Write-Host '=== shepherd-task simple-math control run ===' -ForegroundColor Cyan
+    Write-Host '=== shepherd-task simple-math run ===' -ForegroundColor Cyan
     Write-Host "Repository:          $Repo"
     Write-Host "Workareas directory: $WorkareasDir"
     Write-Host "Fixture root:        $FixtureRoot"
@@ -457,16 +473,16 @@ try {
     Write-ControlStatus (
         'Canonical lifecycle: Stage 00 -> Stage 10 -> research gate -> ' +
         'Stage 15 -> Stage 20 -> Stage 25 -> Stage 30 -> Stage 40 -> Stage 50.'
-    )
+    ) -Color Gray
     Write-ControlStatus (
         'Stage 10 and the human/Copilot research gate are not run live.'
-    )
+    ) -Color Gray
     Write-ControlStatus (
         'This deterministic simple-math control fixture writes an already-resolved plan in their place.'
-    )
+    ) -Color Gray
     Write-ControlStatus (
         'Repository setup, offline contracts, and final verification are experiment operations, not shepherd-task stages.'
-    )
+    ) -Color Gray
 
     $currentPhase = 'checking required commands'
     Write-ControlStatus 'Experiment setup: validating prerequisites.'
@@ -712,13 +728,13 @@ try {
     Write-ControlStage -Stage '10' -Purpose 'Create ignorance-reduction plan'
     Write-ControlStatus (
         'Normal usage invokes skill shepherd-task-10-create-ignorance-reduction-plan.'
-    )
+    ) -Color Gray
     Write-ControlStatus (
         'Human and Copilot research then fills every implementation-gating Resolution block.'
-    )
+    ) -Color Gray
     Write-ControlStatus (
         'This simple-math fixture substituted an already-resolved math-tool-ignorance-reduction-plan.md for Stage 10 and the research gate.'
-    )
+    ) -Color Gray
     $ControlInitParent = (git -C $ControlWorktree rev-parse 'HEAD^').Trim()
     Assert-NativeSuccess 'Control initialization parent lookup'
     if ($ControlInitParent -ne $BaselineSha) {
@@ -747,7 +763,7 @@ try {
     Write-ControlStage -Stage '20' -Purpose 'Create issues from the resolved plan'
     Write-ControlStatus (
         'Stage 15 will generate a launcher that invokes skill shepherd-task-20-create-issues-from-plan.'
-    )
+    ) -Color Gray
     $stage25PlannedArguments = @(
         [pscustomobject]@{
             Name = '-TaskIssues'
@@ -805,16 +821,17 @@ try {
     )
     Write-ControlStatus (
         'For each issue, Stage 30 moves assignment to the Ready-for-review boundary, then Stage 40 reviews and merges it.'
-    )
+    ) -Color Gray
     Write-ControlStatus (
         'Stage 50 creates the campaign post-mortem after success or failure.'
-    )
+    ) -Color Gray
     Write-ControlStatus (
         "Run evidence will be written beneath: $ControlDirectory\shepherd-tasks-<CAMPAIGN_ID>-<TIMESTAMP>"
-    )
+    ) -Color Gray
     if (-not $ShowShepherdTaskScriptOutput) {
-        Write-ControlStatus (
-            'Detailed per-issue output is hidden; use -ShowShepherdTaskScriptOutput to display it.'
+        Write-Warning (
+            '[shepherd] Detailed per-issue output is hidden; use ' +
+            '-ShowShepherdTaskScriptOutput to display it.'
         )
     }
     Invoke-CheckedPwshScript `
@@ -824,7 +841,8 @@ try {
             '-CampaignMetadataDirectory', $ControlDirectoryName
         ) `
         -OutputChannel ShepherdTaskScript
-    Write-ControlStatus 'Stage 25 completed successfully for both issues.'
+    Write-ControlStatus 'Stage 25 completed successfully for both issues.' `
+        -Color Green
 
     $currentPhase = 'updating and verifying control campaign'
     Write-ControlStatus 'Experiment verification: synchronizing and checking the completed campaign.'
@@ -881,10 +899,10 @@ try {
     )
 
     Write-Host ''
-    Write-Host '=== CONTROL CAMPAIGN LESSONS ===' -ForegroundColor Green
+    Write-Host '=== CAMPAIGN LESSONS ===' -ForegroundColor Green
     Get-Content -LiteralPath $ControlLessons
     Write-Host ''
-    Write-Host '=== CONTROL RUN COMPLETE ===' -ForegroundColor Green
+    Write-Host '=== RUN COMPLETE ===' -ForegroundColor Green
     Write-Host "Repository:               $canonicalRepositoryUrl"
     Write-Host "Baseline SHA:             $BaselineSha"
     Write-Host "Issues:                   $($ControlHandoff.IssueList)"
@@ -894,16 +912,16 @@ try {
     Write-Host 'All evidence and worktrees were preserved. No cleanup was performed.'
 }
 catch {
+    $failure = $_
     Write-Host ''
-    Write-Host "=== CONTROL RUN FAILED DURING: $currentPhase ===" -ForegroundColor Red
-    Write-Host $_.Exception.Message -ForegroundColor Red
-    Write-Host 'No automated cleanup was performed. Preserve and inspect any paths that exist:' -ForegroundColor Yellow
+    Write-Host "=== RUN FAILED DURING: $currentPhase ===" -ForegroundColor Red
+    Write-Warning '[shepherd] No automated cleanup was performed. Preserve and inspect any paths that exist:'
     foreach ($path in @($Target, $ControlWorktree, $ControlDirectory)) {
         if ($path -and (Test-Path -LiteralPath $path)) {
-            Write-Host "  $path"
+            Write-Host "  $path" -ForegroundColor Yellow
         }
     }
-    throw
+    Write-Error -ErrorRecord $failure -ErrorAction Stop
 }
 finally {
     Set-Location -LiteralPath $initialLocation
