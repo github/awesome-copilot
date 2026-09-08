@@ -105,6 +105,35 @@
     }
   },
   {
+    "name": "atlassian-twg-cli",
+    "description": "Installs and configures Atlassian Teamwork Graph CLI (`twg`) for use with GitHub Copilot. After setup, the CLI provides access to authorized work context across Jira, Confluence, Bitbucket, and connected tools.",
+    "version": "1.0.10",
+    "author": {
+      "name": "Atlassian",
+      "url": "https://www.atlassian.com"
+    },
+    "repository": "https://github.com/atlassian-labs/twg-plugins",
+    "homepage": "https://developer.atlassian.com/cloud/twg-cli/",
+    "license": "Apache-2.0",
+    "keywords": [
+      "atlassian",
+      "teamwork-graph",
+      "twg",
+      "jira",
+      "confluence",
+      "bitbucket",
+      "jsm",
+      "rovo",
+      "work-context",
+      "project-management"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "atlassian-labs/twg-plugins",
+      "sha": "49f3a6f9c3fbcd4cd9edb5fd3282bb878322e447"
+    }
+  },
+  {
     "name": "azure",
     "description": "Microsoft Azure MCP Server and skills for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Copilot.",
     "version": "1.0.0",
