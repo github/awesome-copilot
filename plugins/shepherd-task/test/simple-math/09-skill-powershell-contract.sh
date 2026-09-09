@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -14,7 +14,10 @@ done
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 skills_directory="$script_dir/../../../../skills"
-mapfile -t skill_files < <(find "$skills_directory" -mindepth 2 -maxdepth 2 \
+skill_files=()
+while IFS= read -r skill_file; do
+    skill_files+=("$skill_file")
+done < <(find "$skills_directory" -mindepth 2 -maxdepth 2 \
     -path '*/shepherd-task-*/SKILL.md' -type f | sort)
 [[ ${#skill_files[@]} -gt 0 ]] || fail "No shepherd-task skills were found."
 

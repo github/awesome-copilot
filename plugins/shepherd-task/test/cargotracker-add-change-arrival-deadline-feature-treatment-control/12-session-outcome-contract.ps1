@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 <#
 .SYNOPSIS
     Verifies semantic shepherd-session outcome enforcement.

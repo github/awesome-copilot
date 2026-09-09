@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -25,9 +25,12 @@ lesson_propagation="$3"
     exit 1
 }
 
-mapfile -d '' body_files < <(
+body_files=()
+while IFS= read -r -d '' body_file; do
+    body_files+=("$body_file")
+done < <(
     find "$body_directory" -maxdepth 1 -type f -name '*-body.md' \
-        ! -name '*-observed-body.md' -print0 | sort -z
+        ! -name '*-observed-body.md' -print0
 )
 [[ ${#body_files[@]} -eq $expected_count ]] || {
     echo "Expected $expected_count persisted stage-20 body files; found ${#body_files[@]}." >&2

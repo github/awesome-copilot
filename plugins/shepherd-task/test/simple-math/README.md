@@ -22,7 +22,7 @@ There is one campaign, one stage-25 run, and no paired comparison phase.
 
 ## Requirements
 
-- Bash 4.4+ on Linux, macOS, or Git Bash, or PowerShell 7
+- Bash 3.2+ on GNU/Linux or macOS, Git Bash, or PowerShell 7
 - For the Bash driver: `bash`, `git`, `gh`, `copilot`, `jq`, and `find` on
   `PATH`
 - For the PowerShell driver: `git`, `gh`, `copilot`, and `pwsh` on `PATH`

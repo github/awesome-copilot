@@ -35,7 +35,7 @@ exact fixture content across installed and checked-out locations.
 
 ## Requirements
 
-- Bash 4.4+ on Linux, macOS, or Git Bash, or PowerShell 7
+- Bash 3.2+ on GNU/Linux or macOS, Git Bash, or PowerShell 7
 - Bash driver: `bash`, `git`, `gh`, `copilot`, `jq`, `find`, `base64`,
   `gzip`, and either `sha256sum` or `shasum` on `PATH`
 - PowerShell driver: `git`, `gh`, `copilot`, and `pwsh` on `PATH`

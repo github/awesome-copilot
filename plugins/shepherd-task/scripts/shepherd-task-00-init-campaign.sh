@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 #
 # shepherd-task-00-init-campaign.sh — Stage 00: initialize durable campaign metadata.
 #
@@ -29,12 +29,14 @@ CAMPAIGN_SHORTNAME="$2"
 BASE_BRANCH="$3"
 REPO="$4"
 LESSON_PROPAGATION="${5:-off}"
+CAMPAIGN_SHORTNAME_PATTERN='^[a-z0-9]+(-[a-z0-9]+)*$'
+CAMPAIGN_ID_PATTERN='^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
 
 if [[ ! "$CAMPAIGN_ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
     fail "CAMPAIGN_ISSUE_NUMBER must be a positive integer; received '$CAMPAIGN_ISSUE_NUMBER'."
 fi
 
-if [[ ! "$CAMPAIGN_SHORTNAME" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+if [[ ! "$CAMPAIGN_SHORTNAME" =~ $CAMPAIGN_SHORTNAME_PATTERN ]]; then
     fail "CAMPAIGN_SHORTNAME must be lowercase ASCII kebab-case; received '$CAMPAIGN_SHORTNAME'."
 fi
 
@@ -98,8 +100,8 @@ cleanup_failure() {
     local exit_code="$1"
     trap - ERR INT TERM
     if [[ "$CREATED_DIRECTORY" == "1" ]]; then
-        rm -f -- "$TEMP_MANIFEST_PATH" "$TEMP_LESSONS_PATH" "$MANIFEST_PATH" "$LESSONS_PATH"
-        rmdir -- "$CAMPAIGN_METADATA_PATH" 2>/dev/null || true
+        rm -f "$TEMP_MANIFEST_PATH" "$TEMP_LESSONS_PATH" "$MANIFEST_PATH" "$LESSONS_PATH"
+        rmdir "$CAMPAIGN_METADATA_PATH" 2>/dev/null || true
     fi
     exit "$exit_code"
 }
@@ -108,11 +110,11 @@ trap 'cleanup_failure $?' ERR
 trap 'cleanup_failure 130' INT
 trap 'cleanup_failure 143' TERM
 
-mkdir -- "$CAMPAIGN_METADATA_PATH"
+mkdir "$CAMPAIGN_METADATA_PATH"
 CREATED_DIRECTORY=1
 
 CAMPAIGN_ID="$(uuidgen | tr '[:upper:]' '[:lower:]')"
-if [[ ! "$CAMPAIGN_ID" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$ ]]; then
+if [[ ! "$CAMPAIGN_ID" =~ $CAMPAIGN_ID_PATTERN ]]; then
     echo "Error: uuidgen did not produce a canonical UUID version 4: '$CAMPAIGN_ID'." >&2
     false
 fi
@@ -160,8 +162,8 @@ The issue specification and repository instructions remain authoritative.
 No validated lessons have been recorded yet.
 EOF
 
-mv -- "$TEMP_MANIFEST_PATH" "$MANIFEST_PATH"
-mv -- "$TEMP_LESSONS_PATH" "$LESSONS_PATH"
+mv "$TEMP_MANIFEST_PATH" "$MANIFEST_PATH"
+mv "$TEMP_LESSONS_PATH" "$LESSONS_PATH"
 
 CREATED_DIRECTORY=0
 trap - ERR INT TERM

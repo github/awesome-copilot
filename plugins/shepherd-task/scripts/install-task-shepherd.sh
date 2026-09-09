@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -33,7 +33,10 @@ SOURCE_REPO="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 PLUGIN_SRC="$SCRIPT_DIR/.."
 PLUGIN_DEST="$COPILOT_HOME/plugins/shepherd-task"
 SKILLS_DEST="$COPILOT_HOME/skills"
-mapfile -t SKILLS < <(
+SKILLS=()
+while IFS= read -r skill; do
+    SKILLS+=("$skill")
+done < <(
     jq -er '
       .extensions["com.github.awesome-copilot"].skills[] |
       sub("^./skills/"; "") |
@@ -110,20 +113,20 @@ cleanup() {
     local exit_code=$?
     trap - EXIT
     if [[ "$PUBLISH_STARTED" == "1" && "$PUBLISHED" != "1" ]]; then
-        rm -rf -- "$PLUGIN_DEST"
+        rm -rf "$PLUGIN_DEST"
         if [[ -d "$BACKUP_ROOT/plugin" ]]; then
             mkdir -p "$(dirname "$PLUGIN_DEST")"
-            mv -- "$BACKUP_ROOT/plugin" "$PLUGIN_DEST"
+            mv "$BACKUP_ROOT/plugin" "$PLUGIN_DEST"
         fi
         for skill in "${SKILLS[@]}"; do
-            rm -rf -- "$SKILLS_DEST/$skill"
+            rm -rf "$SKILLS_DEST/$skill"
             if [[ -d "$BACKUP_ROOT/skills/$skill" ]]; then
                 mkdir -p "$SKILLS_DEST"
-                mv -- "$BACKUP_ROOT/skills/$skill" "$SKILLS_DEST/$skill"
+                mv "$BACKUP_ROOT/skills/$skill" "$SKILLS_DEST/$skill"
             fi
         done
     fi
-    rm -rf -- "$STAGING_ROOT" "$BACKUP_ROOT"
+    rm -rf "$STAGING_ROOT" "$BACKUP_ROOT"
     exit "$exit_code"
 }
 trap cleanup EXIT
@@ -196,17 +199,17 @@ done
 mkdir -p "$(dirname "$PLUGIN_DEST")" "$SKILLS_DEST" "$BACKUP_ROOT/skills"
 PUBLISH_STARTED=1
 if [[ -e "$PLUGIN_DEST" || -L "$PLUGIN_DEST" ]]; then
-    mv -- "$PLUGIN_DEST" "$BACKUP_ROOT/plugin"
+    mv "$PLUGIN_DEST" "$BACKUP_ROOT/plugin"
 fi
 for skill in "${SKILLS[@]}"; do
     if [[ -e "$SKILLS_DEST/$skill" || -L "$SKILLS_DEST/$skill" ]]; then
-        mv -- "$SKILLS_DEST/$skill" "$BACKUP_ROOT/skills/$skill"
+        mv "$SKILLS_DEST/$skill" "$BACKUP_ROOT/skills/$skill"
     fi
 done
 
-mv -- "$STAGED_PLUGIN" "$PLUGIN_DEST"
+mv "$STAGED_PLUGIN" "$PLUGIN_DEST"
 for skill in "${SKILLS[@]}"; do
-    mv -- "$STAGED_SKILLS/$skill" "$SKILLS_DEST/$skill"
+    mv "$STAGED_SKILLS/$skill" "$SKILLS_DEST/$skill"
 done
 
 SOURCE_COMMIT="$(git -C "$SOURCE_REPO" rev-parse HEAD 2>/dev/null || true)"
@@ -245,7 +248,7 @@ jq -n \
         )
       }
     }' >"$TEMP_INSTALL_MANIFEST"
-mv -- "$TEMP_INSTALL_MANIFEST" "$PLUGIN_DEST/install-manifest.json"
+mv "$TEMP_INSTALL_MANIFEST" "$PLUGIN_DEST/install-manifest.json"
 
 bash "$PLUGIN_DEST/scripts/read-shepherd-task-version.sh" >/dev/null
 PUBLISHED=1

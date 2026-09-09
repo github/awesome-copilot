@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -61,7 +61,8 @@ task_pattern="task #${task_issue}([^0-9]|$)"
 
 required_outcome=ready
 [[ "$stage" == 30 ]] || required_outcome=merged
-[[ "${terminal_marker,,}" == *"$required_outcome"* ]] || {
+terminal_marker_lower="$(printf '%s' "$terminal_marker" | tr '[:upper:]' '[:lower:]')"
+[[ "$terminal_marker_lower" == *"$required_outcome"* ]] || {
     echo "Stage $stage terminal marker does not report '$required_outcome': $terminal_marker" >&2
     exit 1
 }

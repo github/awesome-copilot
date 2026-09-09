@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -7,7 +7,7 @@ fixture_root="$(cd "$(dirname "$0")" && pwd)"
 scripts_directory="$fixture_root/../../scripts"
 stage25="$scripts_directory/shepherd-task-25-given-list.sh"
 temp_directory="$(mktemp -d "$fixture_root/.pipeline-contract.XXXXXX")"
-trap 'rm -rf -- "$temp_directory"' EXIT
+trap 'rm -rf "$temp_directory"' EXIT
 
 fail() {
     echo "Error: $*" >&2
@@ -19,9 +19,14 @@ for command_name in bash find grep git mktemp; do
         fail "Required command was not found on PATH: $command_name"
 done
 
-mapfile -t shell_files < <(
+shell_files=()
+while IFS= read -r shell_file; do
+    shell_files+=("$shell_file")
+done < <(
     find "$fixture_root" "$scripts_directory" -maxdepth 1 -type f -name '*.sh' -print
 )
+[[ ${#shell_files[@]} -gt 0 ]] ||
+    fail "No Bash scripts were found for syntax validation."
 for shell_file in "${shell_files[@]}"; do
     bash -n "$shell_file" || fail "Bash parse errors in '$shell_file'."
 done

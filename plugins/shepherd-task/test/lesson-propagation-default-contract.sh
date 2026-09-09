@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -11,7 +11,7 @@ SHEPHERD_TASK_VERSION="$(jq -r '.version' "$TEST_DIR/../plugin.json")"
 TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/shepherd-lesson-default.XXXXXX")"
 BIN_DIR="$TEMP_DIR/bin"
 
-mkdir -p -- "$BIN_DIR"
+mkdir -p "$BIN_DIR"
 cat >"$BIN_DIR/uuidgen" <<'EOF'
 #!/usr/bin/env bash
 echo "12345678-1234-4234-8234-123456789abc"
@@ -21,7 +21,7 @@ chmod +x "$BIN_DIR/uuidgen"
 export PATH="$BIN_DIR:$PATH"
 
 cleanup() {
-    rm -rf -- "$TEMP_DIR"
+    rm -rf "$TEMP_DIR"
 }
 trap cleanup EXIT
 
@@ -29,12 +29,15 @@ new_test_repository() {
     local name="$1"
     local path="$TEMP_DIR/$name"
     local branch="experiment/$name"
-    mkdir -p -- "$path"
+    mkdir -p "$path"
     git -C "$path" init --quiet --initial-branch "$branch"
     printf '%s\n%s\n' "$path" "$branch"
 }
 
-mapfile -t default_repository < <(new_test_repository default)
+default_repository=()
+while IFS= read -r value; do
+    default_repository+=("$value")
+done < <(new_test_repository default)
 (
     cd "${default_repository[0]}"
     "$STAGE00" 1 default "${default_repository[1]}" owner/repository >/dev/null
@@ -50,7 +53,10 @@ jq -e '
 [[ -f "${default_repository[0]}/1-default-remove-before-merge/campaign-lessons.md" ]] ||
     { echo "Stage 00 did not create campaign-lessons.md in off mode." >&2; exit 1; }
 
-mapfile -t campaign_repository < <(new_test_repository campaign)
+campaign_repository=()
+while IFS= read -r value; do
+    campaign_repository+=("$value")
+done < <(new_test_repository campaign)
 (
     cd "${campaign_repository[0]}"
     "$STAGE00" 2 campaign "${campaign_repository[1]}" owner/repository campaign >/dev/null
@@ -59,7 +65,10 @@ campaign_manifest="${campaign_repository[0]}/2-campaign-remove-before-merge/shep
 grep -Fq '"lessonPropagation": "campaign"' "$campaign_manifest" ||
     { echo "Stage 00 did not preserve explicit campaign lesson propagation." >&2; exit 1; }
 
-mapfile -t invalid_repository < <(new_test_repository invalid)
+invalid_repository=()
+while IFS= read -r value; do
+    invalid_repository+=("$value")
+done < <(new_test_repository invalid)
 if (
     cd "${invalid_repository[0]}"
     "$STAGE00" 3 invalid "${invalid_repository[1]}" owner/repository invalid >/dev/null 2>&1

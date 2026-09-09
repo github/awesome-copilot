@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -35,7 +35,21 @@ create_source_checkout() {
         "$source_plugin/plugin.json" >"$source_plugin/plugin.json.tmp"
     mv "$source_plugin/plugin.json.tmp" "$source_plugin/plugin.json"
     while IFS= read -r file; do
-        sed -i "s/^# shepherd-task-version: $current_version$/# shepherd-task-version: $fixture_version/" "$file"
+        temporary="$file.version-contract.$$"
+        sed "s/^# shepherd-task-version: $current_version$/# shepherd-task-version: $fixture_version/" \
+            "$file" >"$temporary"
+        if mode="$(stat -f '%Lp' "$file" 2>/dev/null)" &&
+            [[ "$mode" =~ ^[0-7]{3,4}$ ]]; then
+            :
+        elif mode="$(stat -c '%a' "$file" 2>/dev/null)" &&
+            [[ "$mode" =~ ^[0-7]{3,4}$ ]]; then
+            :
+        else
+            echo "Unable to determine file mode: $file" >&2
+            exit 1
+        fi
+        chmod "$mode" "$temporary"
+        mv "$temporary" "$file"
     done < <(find "$source_plugin" -type f \( -name '*.sh' -o -name '*.ps1' \) -print)
     while IFS= read -r skill_ref; do
         local skill_path="${skill_ref#./}"

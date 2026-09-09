@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -52,7 +52,7 @@ experiment_mode="$(jq -r '.lessonPropagation' <<<"$experiment")"
 before_file="$campaign_path/.stage20-before.$$"
 after_file="$campaign_path/.stage20-after.$$"
 cleanup_lists() {
-    rm -f -- "$before_file" "$after_file"
+    rm -f "$before_file" "$after_file"
 }
 trap cleanup_lists EXIT
 if [[ -d "$campaign_path/prompts" ]]; then
@@ -70,13 +70,22 @@ echo "Executing stage 15 preparation..."
 
 find "$campaign_path/prompts" -mindepth 1 -maxdepth 1 -type d -print |
     sort >"$after_file"
-mapfile -t new_artifact_directories < <(comm -13 "$before_file" "$after_file")
+new_artifact_directories=()
+while IFS= read -r directory; do
+    new_artifact_directories+=("$directory")
+done < <(comm -13 "$before_file" "$after_file")
 [[ ${#new_artifact_directories[@]} -eq 1 ]] ||
     fail "Expected stage 15 to create one artifact directory; found ${#new_artifact_directories[@]}."
 artifact_directory="${new_artifact_directories[0]}"
-mapfile -t prompt_files < <(find "$artifact_directory" -maxdepth 1 -type f \
+prompt_files=()
+while IFS= read -r prompt_file_path; do
+    prompt_files+=("$prompt_file_path")
+done < <(find "$artifact_directory" -maxdepth 1 -type f \
     -name '*-invoke-shepherd-task-20-create-issues-from-plan-skill.md' -print)
-mapfile -t invocation_files < <(find "$artifact_directory" -maxdepth 1 -type f \
+invocation_files=()
+while IFS= read -r invocation_file_path; do
+    invocation_files+=("$invocation_file_path")
+done < <(find "$artifact_directory" -maxdepth 1 -type f \
     -name '*-invoke-shepherd-task-20-create-issues-from-plan-skill.sh' -print)
 [[ ${#prompt_files[@]} -eq 1 && ${#invocation_files[@]} -eq 1 ]] ||
     fail "Stage 15 did not create exactly one prompt and one Bash invocation."

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 #
 # shepherd-task-monitor.sh — Monitors an ongoing shepherd-task run.
 #
@@ -32,11 +32,13 @@ echo "Press Ctrl+C to stop."
 echo ""
 
 # --- State tracking ---
-declare -A KNOWN_FILES      # filename -> size
-declare -A ISSUE_PHASE1     # issue# -> done|none
-declare -A ISSUE_PHASE2     # issue# -> done|none
-declare -A ISSUE_PR         # issue# -> PR number
-declare -A ISSUE_STATUS     # issue# -> merged|failed|open|unknown
+KNOWN_FILE_NAMES=()
+KNOWN_FILE_SIZES=()
+ISSUES=()
+ISSUE_PHASE1=()
+ISSUE_PHASE2=()
+ISSUE_PR=()
+ISSUE_STATUS=()
 LAST_ACTIVITY=$(date +%s)
 
 timestamp() { date +%H:%M:%S; }
@@ -46,10 +48,42 @@ alert()    { echo "[$(timestamp)] ⚠️  $*"; }
 success()  { echo "[$(timestamp)] ✅ $*"; }
 failure()  { echo "[$(timestamp)] ❌ $*"; }
 
+file_size() {
+    local path="$1"
+    local size
+    if size="$(stat -f '%z' "$path" 2>/dev/null)" &&
+        [[ "$size" =~ ^[0-9]+$ ]]; then
+        printf '%s' "$size"
+    elif size="$(stat -c '%s' "$path" 2>/dev/null)" &&
+        [[ "$size" =~ ^[0-9]+$ ]]; then
+        printf '%s' "$size"
+    else
+        printf '0'
+    fi
+}
+
+ensure_issue() {
+    local requested_issue="$1"
+    local index
+    for index in "${!ISSUES[@]}"; do
+        if [[ "${ISSUES[$index]}" == "$requested_issue" ]]; then
+            ISSUE_INDEX="$index"
+            return
+        fi
+    done
+    ISSUES+=("$requested_issue")
+    ISSUE_PHASE1+=("none")
+    ISSUE_PHASE2+=("none")
+    ISSUE_PR+=("")
+    ISSUE_STATUS+=("unknown")
+    ISSUE_INDEX=$((${#ISSUES[@]} - 1))
+}
+
 # Extract issue number from filename like "phase1-task-20260718-1650-33.md"
 get_issue() {
     local name="$1"
-    if [[ "$name" =~ -([0-9]+)\.(md|json|jsonl)$ ]]; then
+    local issue_pattern='-([0-9]+)\.(md|json|jsonl)$'
+    if [[ "$name" =~ $issue_pattern ]]; then
         echo "${BASH_REMATCH[1]}"
     fi
 }
@@ -57,7 +91,8 @@ get_issue() {
 # Extract phase from filename
 get_phase() {
     local name="$1"
-    if [[ "$name" =~ ^(phase[12]) ]]; then
+    local phase_pattern='^(phase[12])'
+    if [[ "$name" =~ $phase_pattern ]]; then
         echo "${BASH_REMATCH[1]}"
     fi
 }
@@ -123,86 +158,97 @@ while true; do
     # Scan log directory for new or changed files
     while IFS= read -r line; do
         filename=$(basename "$line")
-        size=$(stat -f%z "$line" 2>/dev/null || stat -c%s "$line" 2>/dev/null || echo "0")
+        size="$(file_size "$line")"
 
-        if [[ -z "${KNOWN_FILES[$filename]+x}" ]]; then
-            KNOWN_FILES[$filename]="$size"
+        file_index=-1
+        for index in "${!KNOWN_FILE_NAMES[@]}"; do
+            if [[ "${KNOWN_FILE_NAMES[$index]}" == "$filename" ]]; then
+                file_index="$index"
+                break
+            fi
+        done
+        if [[ "$file_index" -lt 0 ]]; then
+            KNOWN_FILE_NAMES+=("$filename")
+            KNOWN_FILE_SIZES+=("$size")
             NEW_FILES+=("$filename")
             LAST_ACTIVITY=$NOW
-        elif [[ "${KNOWN_FILES[$filename]}" != "$size" ]]; then
-            KNOWN_FILES[$filename]="$size"
+        elif [[ "${KNOWN_FILE_SIZES[$file_index]}" != "$size" ]]; then
+            KNOWN_FILE_SIZES[$file_index]="$size"
             LAST_ACTIVITY=$NOW
         fi
     done < <(find "$LOG_DIR_FULL" -maxdepth 1 -type f 2>/dev/null)
 
     # Process new files
-    for filename in "${NEW_FILES[@]}"; do
-        issue=$(get_issue "$filename")
-        phase=$(get_phase "$filename")
-        ext="${filename##*.}"
+    if ((${#NEW_FILES[@]} > 0)); then
+        for filename in "${NEW_FILES[@]}"; do
+            issue=$(get_issue "$filename")
+            phase=$(get_phase "$filename")
+            ext="${filename##*.}"
 
-        [[ -z "$issue" || -z "$phase" ]] && continue
+            [[ -z "$issue" || -z "$phase" ]] && continue
 
-        # Initialize issue state if needed
-        : "${ISSUE_PHASE1[$issue]:=none}"
-        : "${ISSUE_PHASE2[$issue]:=none}"
-        : "${ISSUE_STATUS[$issue]:=unknown}"
+            ensure_issue "$issue"
 
-        if [[ "$ext" == "md" ]]; then
-            if [[ "$phase" == "phase1" ]]; then
-                ISSUE_PHASE1[$issue]="done"
-                monitor "Issue #$issue: Phase 1 session exported ($filename)"
+            if [[ "$ext" == "md" ]]; then
+                if [[ "$phase" == "phase1" ]]; then
+                    ISSUE_PHASE1[$ISSUE_INDEX]="done"
+                    monitor "Issue #$issue: Phase 1 session exported ($filename)"
 
-                # Try to find the PR
-                pr=$(find_pr "$issue") || true
-                if [[ -n "$pr" ]]; then
-                    ISSUE_PR[$issue]="$pr"
-                    monitor "Issue #$issue: Linked to PR #$pr"
+                    # Try to find the PR
+                    pr=$(find_pr "$issue") || true
+                    if [[ -n "$pr" ]]; then
+                        ISSUE_PR[$ISSUE_INDEX]="$pr"
+                        monitor "Issue #$issue: Linked to PR #$pr"
+                    fi
+                elif [[ "$phase" == "phase2" ]]; then
+                    ISSUE_PHASE2[$ISSUE_INDEX]="done"
+                    monitor "Issue #$issue: Phase 2 session exported ($filename)"
                 fi
-            elif [[ "$phase" == "phase2" ]]; then
-                ISSUE_PHASE2[$issue]="done"
-                monitor "Issue #$issue: Phase 2 session exported ($filename)"
             fi
-        fi
-    done
+        done
+    fi
 
     # For issues with known PRs, check status
     ACTIVE_ISSUE=""
-    for issue in "${!ISSUE_PR[@]}"; do
-        pr="${ISSUE_PR[$issue]}"
+    ACTIVE_ISSUE_INDEX=-1
+    for index in "${!ISSUES[@]}"; do
+        issue="${ISSUES[$index]}"
+        pr="${ISSUE_PR[$index]}"
+        [[ -n "$pr" ]] || continue
 
         # Detect active issue (has PR, phase2 not done)
-        if [[ "${ISSUE_PHASE2[$issue]}" != "done" ]]; then
+        if [[ "${ISSUE_PHASE2[$index]}" != "done" ]]; then
             ACTIVE_ISSUE="$issue"
+            ACTIVE_ISSUE_INDEX="$index"
         fi
 
         # If phase2 just completed, check final state
-        if [[ "${ISSUE_PHASE2[$issue]}" == "done" && "${ISSUE_STATUS[$issue]}" != "merged" && "${ISSUE_STATUS[$issue]}" != "failed" ]]; then
+        if [[ "${ISSUE_PHASE2[$index]}" == "done" && "${ISSUE_STATUS[$index]}" != "merged" && "${ISSUE_STATUS[$index]}" != "failed" ]]; then
             pr_state=$(gh pr view "$pr" -R "$REPO" --json state --jq '.state' 2>/dev/null)
             review_count=$(gh api "/repos/$REPO/pulls/$pr/reviews" \
                 --jq '[.[] | select(.user.login | test("copilot-pull-request-reviewer|Copilot"))] | length' 2>/dev/null || echo "?")
             if [[ "$pr_state" == "MERGED" ]]; then
-                ISSUE_STATUS[$issue]="merged"
+                ISSUE_STATUS[$index]="merged"
                 success "Issue #$issue: PR #$pr MERGED ($review_count review rounds)"
             elif [[ "$pr_state" == "CLOSED" ]]; then
-                ISSUE_STATUS[$issue]="failed"
+                ISSUE_STATUS[$index]="failed"
                 failure "Issue #$issue: PR #$pr CLOSED (not merged)"
             else
-                ISSUE_STATUS[$issue]="open"
+                ISSUE_STATUS[$index]="open"
                 failure "Issue #$issue: PR #$pr still OPEN after Phase 2 exited"
             fi
         fi
     done
 
     # Poll active PR for real-time status
-    if [[ -n "$ACTIVE_ISSUE" && -n "${ISSUE_PR[$ACTIVE_ISSUE]+x}" ]]; then
-        pr="${ISSUE_PR[$ACTIVE_ISSUE]}"
+    if [[ -n "$ACTIVE_ISSUE" && "$ACTIVE_ISSUE_INDEX" -ge 0 ]]; then
+        pr="${ISSUE_PR[$ACTIVE_ISSUE_INDEX]}"
         status_line=$(get_pr_status "$pr")
         if [[ -n "$status_line" ]]; then
             full_line="Issue #$ACTIVE_ISSUE PR #$pr: $status_line"
             if [[ "$status_line" == *"state=MERGED"* ]]; then
                 success "$full_line"
-                ISSUE_STATUS[$ACTIVE_ISSUE]="merged"
+                ISSUE_STATUS[$ACTIVE_ISSUE_INDEX]="merged"
             elif [[ "$status_line" == *"CI=failing"* ]]; then
                 alert "$full_line"
             else
@@ -213,11 +259,12 @@ while true; do
 
     # Try to find PRs for issues that don't have one yet
     if [[ $ITERATION -eq 1 ]] || [[ ${#NEW_FILES[@]} -gt 0 ]]; then
-        for issue in "${!ISSUE_PHASE1[@]}"; do
-            if [[ -z "${ISSUE_PR[$issue]+x}" ]]; then
+        for index in "${!ISSUES[@]}"; do
+            issue="${ISSUES[$index]}"
+            if [[ -z "${ISSUE_PR[$index]}" ]]; then
                 pr=$(find_pr "$issue") || true
                 if [[ -n "$pr" ]]; then
-                    ISSUE_PR[$issue]="$pr"
+                    ISSUE_PR[$index]="$pr"
                     monitor "Issue #$issue: Found PR #$pr"
                 fi
             fi
@@ -232,14 +279,15 @@ while true; do
     fi
 
     # Periodic summary (every 5 iterations)
-    if [[ $(( ITERATION % 5 )) -eq 0 ]] && [[ ${#ISSUE_PHASE1[@]} -gt 0 ]]; then
+    if [[ $(( ITERATION % 5 )) -eq 0 ]] && [[ ${#ISSUES[@]} -gt 0 ]]; then
         echo ""
         echo "[$(timestamp)] === Summary ==="
-        for issue in $(echo "${!ISSUE_PHASE1[@]}" | tr ' ' '\n' | sort -n); do
-            p1="${ISSUE_PHASE1[$issue]}"
-            p2="${ISSUE_PHASE2[$issue]:-none}"
-            pr="${ISSUE_PR[$issue]:-none}"
-            status="${ISSUE_STATUS[$issue]:-unknown}"
+        for issue in $(printf '%s\n' "${ISSUES[@]}" | sort -n); do
+            ensure_issue "$issue"
+            p1="${ISSUE_PHASE1[$ISSUE_INDEX]}"
+            p2="${ISSUE_PHASE2[$ISSUE_INDEX]}"
+            pr="${ISSUE_PR[$ISSUE_INDEX]:-none}"
+            status="${ISSUE_STATUS[$ISSUE_INDEX]}"
             [[ "$pr" != "none" ]] && pr="PR #$pr"
             echo "  Issue #$issue : P1=$p1 P2=$p2 $pr status=$status"
         done

@@ -65,6 +65,7 @@ instructions expected by stage 30.
 ## Prerequisites
 
 - Work in a local checkout of the campaign repository.
+- Bash entrypoints support Bash 3.2+ on GNU/Linux and macOS.
 - Check out the exact non-`main` campaign base branch before stage 00 initialization.
 - Enable and configure Copilot Coding Agent and Copilot code review in the
   repository.
@@ -581,6 +582,7 @@ PowerShell equivalents are included for each helper.
 | `scripts/install-task-shepherd.*` | Install plugin and skills into Copilot home |
 | `scripts/uninstall-task-shepherd.*` | Remove installed plugin and skills |
 | `test/simple-math/run-campaign.*` | Run the installed two-task simple-math control campaign end to end |
-| `test/simple-math/00-*` through `10-*` | Prepare, create, verify, and contract-test the simple-math campaign in Bash or PowerShell |
+| `test/simple-math/00-*` through `11-*` | Prepare, create, verify, and contract-test the simple-math campaign in Bash or PowerShell |
 | `test/cargotracker-add-change-arrival-deadline-feature/run-campaign.*` | Run the installed five-task Cargo Tracker control campaign end to end |
 | `test/cargotracker-add-change-arrival-deadline-feature/00-*` through `12-*` | Prepare, create, verify, and contract-test the Cargo Tracker campaign in Bash or PowerShell |
+| `test/macos-bash-compatibility-contract.sh` | Reject Bash 4-only syntax and GNU-only command usage from installed Bash scripts |

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -41,7 +41,10 @@ jq -e '.schemaVersion == 1 and (.baselineSha | test("^[0-9a-f]{40}$")) and
 [[ "$(jq -r '.lessonPropagation' <<<"$campaign")" == off ]] ||
     fail "Control campaign must use lessonPropagation=off."
 
-mapfile -d '' handoff_files < <(
+handoff_files=()
+while IFS= read -r -d '' handoff_file; do
+    handoff_files+=("$handoff_file")
+done < <(
     find "$campaign_path/prompts" -type f -name shepherd-test-experiment-handoff.json -print0
 )
 [[ ${#handoff_files[@]} -eq 1 ]] ||
@@ -60,7 +63,10 @@ jq -e '.expectedLessonCategory | type == "string" and length > 0' <<<"$handoff" 
 jq -e 'length == 2' "$ledger_path" >/dev/null || fail "Stage-20 ledger must contain exactly two issues."
 jq -e '.issueNumbers | length == 2 and all(.[]; type == "number" and . > 0)' <<<"$handoff" >/dev/null ||
     fail "Stage-20 handoff must contain exactly two ordered issues."
-mapfile -t issue_numbers < <(jq -r '.issueNumbers[]' <<<"$handoff")
+issue_numbers=()
+while IFS= read -r issue_number; do
+    issue_numbers+=("$issue_number")
+done < <(jq -r '.issueNumbers[]' <<<"$handoff")
 [[ "${issue_numbers[0]},${issue_numbers[1]}" == "$(jq -r 'map(.number) | join(",")' "$ledger_path")" ]] ||
     fail "Handoff issue order does not match the creation ledger."
 
@@ -100,21 +106,26 @@ for index in 0 1; do
             fail "Control issue #$issue_number unexpectedly contains '$forbidden'."
     done
 
-    mapfile -t references < <(gh api "/repos/$repository/issues/$issue_number/timeline?per_page=100" \
+    references=()
+    while IFS= read -r reference; do
+        references+=("$reference")
+    done < <(gh api "/repos/$repository/issues/$issue_number/timeline?per_page=100" \
         -H 'Accept: application/vnd.github+json' \
         --jq '.[] | select(.event == "cross-referenced") |
           select(.source.issue.pull_request != null) | .source.issue.number' | sort -nu)
     matching='[]'
-    for pr_number in "${references[@]}"; do
-        [[ "$pr_number" =~ ^[1-9][0-9]*$ ]] || continue
-        pr_json="$(gh pr view "$pr_number" --repo "$repository" \
-            --json number,state,mergedAt,createdAt,baseRefName,headRefOid,url,title 2>&1)" ||
-            fail "Unable to fetch linked PR #$pr_number for issue #$issue_number: $pr_json"
-        if [[ "$(jq -r '.state' <<<"$pr_json")" == MERGED &&
-              "$(jq -r '.baseRefName' <<<"$pr_json")" == "$base_branch" ]]; then
-            matching="$(jq --argjson pr "$pr_json" '. + [$pr]' <<<"$matching")"
-        fi
-    done
+    if ((${#references[@]} > 0)); then
+        for pr_number in "${references[@]}"; do
+            [[ "$pr_number" =~ ^[1-9][0-9]*$ ]] || continue
+            pr_json="$(gh pr view "$pr_number" --repo "$repository" \
+                --json number,state,mergedAt,createdAt,baseRefName,headRefOid,url,title 2>&1)" ||
+                fail "Unable to fetch linked PR #$pr_number for issue #$issue_number: $pr_json"
+            if [[ "$(jq -r '.state' <<<"$pr_json")" == MERGED &&
+                  "$(jq -r '.baseRefName' <<<"$pr_json")" == "$base_branch" ]]; then
+                matching="$(jq --argjson pr "$pr_json" '. + [$pr]' <<<"$matching")"
+            fi
+        done
+    fi
     [[ "$(jq 'length' <<<"$matching")" -gt 0 ]] ||
         fail "Expected a merged PR to '$base_branch' linked to issue #$issue_number; found none."
     selected="$(jq 'sort_by(.createdAt) | first' <<<"$matching")"

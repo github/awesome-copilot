@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 #
 # Stage 15: derives stage-20 inputs and creates prompt and invocation artifacts.
 #
@@ -75,7 +75,10 @@ EXPECTED_DIRECTORY="${PARENT_ISSUE}-${CAMPAIGN_SHORTNAME}-remove-before-merge"
 [[ "$PLAN_DIRECTORY" == "$EXPECTED_DIRECTORY" && "$CAMPAIGN_METADATA_DIRECTORY" == "$EXPECTED_DIRECTORY" ]] ||
     fail "Campaign manifest and directory must both use '$EXPECTED_DIRECTORY'."
 
-mapfile -d '' PLAN_FILES < <(
+PLAN_FILES=()
+while IFS= read -r -d '' plan_file; do
+    PLAN_FILES+=("$plan_file")
+done < <(
     find "$CAMPAIGN_METADATA_PATH" -maxdepth 1 -type f \
         -iname '*ignorance-reduction-plan.md' -print0
 )
@@ -84,7 +87,10 @@ mapfile -d '' PLAN_FILES < <(
 PLAN_PATH="${PLAN_FILES[0]}"
 PLAN_FILE_NAME="$(basename "$PLAN_PATH")"
 
-mapfile -t QUESTION_HEADINGS < <(
+QUESTION_HEADINGS=()
+while IFS= read -r heading; do
+    QUESTION_HEADINGS+=("$heading")
+done < <(
     awk '
         /^```/ { in_fence = !in_fence; next }
         !in_fence {
@@ -97,7 +103,10 @@ mapfile -t QUESTION_HEADINGS < <(
     fail "Expected exactly one level-two ignorance-reduction heading in $PLAN_FILE_NAME; found ${#QUESTION_HEADINGS[@]}."
 QUESTIONS_SECTION="${QUESTION_HEADINGS[0]}"
 
-mapfile -t IMPLEMENTATION_HEADINGS < <(
+IMPLEMENTATION_HEADINGS=()
+while IFS= read -r heading; do
+    IMPLEMENTATION_HEADINGS+=("$heading")
+done < <(
     awk '
         /^```/ { in_fence = !in_fence; next }
         !in_fence {
@@ -152,11 +161,11 @@ echo "Git remote:                  $BASE_REMOTE"
 
 timestamp="$(date +%Y%m%d-%H%M)"
 prompts_directory="$CAMPAIGN_METADATA_PATH/prompts"
-mkdir -p -- "$prompts_directory"
+mkdir -p "$prompts_directory"
 log_dir_full="$prompts_directory/shepherd-task-20-$timestamp"
 [[ ! -e "$log_dir_full" ]] ||
     fail "Stage-20 artifact directory already exists: $log_dir_full"
-mkdir -- "$log_dir_full"
+mkdir "$log_dir_full"
 
 out_file="$log_dir_full/${timestamp}-invoke-shepherd-task-20-create-issues-from-plan-skill.md"
 invocation_file="$log_dir_full/${timestamp}-invoke-shepherd-task-20-create-issues-from-plan-skill.sh"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -26,7 +26,7 @@ done
     fail "Repo must be in OWNER/REPO format."
 [[ "$expected_baseline_sha" =~ ^[0-9a-fA-F]{40}$ ]] ||
     fail "ExpectedBaselineSha must be a 40-character hexadecimal SHA."
-expected_baseline_sha="${expected_baseline_sha,,}"
+expected_baseline_sha="$(printf '%s' "$expected_baseline_sha" | tr '[:upper:]' '[:lower:]')"
 [[ "$source_branch" == "20260902-2104Z-commit-e7b651f-liberty" ]] ||
     fail "Unsupported SourceBranch: '$source_branch'."
 [[ "$baseline_branch" != "main" ]] ||
@@ -58,7 +58,7 @@ git -C "$repo_root" fetch --no-tags "$base_remote" "refs/heads/$source_branch" |
     fail "Required source branch '$base_remote/$source_branch' is missing or could not be fetched."
 fetched_sha="$(git -C "$repo_root" rev-parse FETCH_HEAD 2>/dev/null)" ||
     fail "Could not resolve the fetched '$source_branch' commit."
-fetched_sha="${fetched_sha,,}"
+fetched_sha="$(printf '%s' "$fetched_sha" | tr '[:upper:]' '[:lower:]')"
 
 set +e
 git -C "$repo_root" merge-base --is-ancestor "$expected_baseline_sha" "$fetched_sha"

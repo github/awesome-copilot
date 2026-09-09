@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -11,7 +11,7 @@ campaign_directory_name="1-stage15-installed-remove-before-merge"
 campaign_directory="$temp_directory/$campaign_directory_name"
 
 cleanup() {
-    rm -rf -- "$temp_directory"
+    rm -rf "$temp_directory"
 }
 trap cleanup EXIT
 
@@ -27,7 +27,7 @@ done
 [[ -x "$preparation_script" ]] ||
     fail "Installed Stage 15 script was not found: $preparation_script"
 
-mkdir -p -- "$campaign_directory"
+mkdir -p "$campaign_directory"
 git -C "$temp_directory" init --quiet
 git -C "$temp_directory" remote add origin https://github.com/owner/repository.git
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -16,7 +16,7 @@ fail() {
 repo="$1"
 base_branch="$2"
 campaign_shortname="$3"
-baseline_sha="${4,,}"
+baseline_sha="$(printf '%s' "$4" | tr '[:upper:]' '[:lower:]')"
 
 for command_name in git gh jq base64 gzip awk tail; do
     command -v "$command_name" >/dev/null 2>&1 ||
@@ -27,7 +27,8 @@ command -v sha256sum >/dev/null 2>&1 ||
     fail "Required SHA-256 command was not found on PATH: sha256sum or shasum"
 [[ "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] ||
     fail "Repo must be in OWNER/REPO format."
-[[ "$campaign_shortname" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] ||
+campaign_shortname_pattern='^[a-z0-9]+(-[a-z0-9]+)*$'
+[[ "$campaign_shortname" =~ $campaign_shortname_pattern ]] ||
     fail "CampaignShortname must be lowercase kebab-case."
 [[ "$baseline_sha" =~ ^[0-9a-f]{40}$ ]] ||
     fail "BaselineSha must be a 40-character hexadecimal SHA."
@@ -126,7 +127,8 @@ set -e
 [[ $gh_exit -eq 0 ]] ||
     fail "Failed to create campaign issue: $campaign_issue_output"
 campaign_issue_url="$(printf '%s\n' "$campaign_issue_output" | tail -n 1)"
-[[ "$campaign_issue_url" =~ /issues/([1-9][0-9]*)$ ]] ||
+campaign_issue_url_pattern='/issues/([1-9][0-9]*)$'
+[[ "$campaign_issue_url" =~ $campaign_issue_url_pattern ]] ||
     fail "Could not parse campaign issue number from '$campaign_issue_url'."
 campaign_issue_number="${BASH_REMATCH[1]}"
 
@@ -155,7 +157,7 @@ set -e
 printf '\n' >>"$plan_path"
 
 workflow_directory="$repo_root/.github/workflows"
-mkdir -p -- "$workflow_directory"
+mkdir -p "$workflow_directory"
 cat >"$workflow_directory/shepherd-task-cargotracker.yml" <<'EOF'
 name: Shepherd task Cargo Tracker
 

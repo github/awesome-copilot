@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 #
 # Stage 25: dispatch an ordered issue subset.
 # Usage:
@@ -21,7 +21,8 @@ fail_input() {
 
 TASK_ISSUES="$1"
 CAMPAIGN_METADATA_DIRECTORY="$2"
-[[ "$TASK_ISSUES" =~ ^[1-9][0-9]*(,[1-9][0-9]*)*$ ]] ||
+TASK_ISSUES_PATTERN='^[1-9][0-9]*(,[1-9][0-9]*)*$'
+[[ "$TASK_ISSUES" =~ $TASK_ISSUES_PATTERN ]] ||
     fail_input "TASK_ISSUES must be a comma-separated list of positive issue numbers."
 [[ "$CAMPAIGN_METADATA_DIRECTORY" != /* && "$CAMPAIGN_METADATA_DIRECTORY" != */* ]] ||
     fail_input "CAMPAIGN_METADATA_DIRECTORY must be a repository-root-relative basename."
@@ -75,7 +76,7 @@ MANIFEST_DIRECTORY="$(jq -r '.campaignMetadataDirectory' "$MANIFEST_PATH")"
 timestamp="$(date +%Y%m%d-%H%M)"
 LOG_DIR_FULL="$CAMPAIGN_METADATA_PATH/shepherd-tasks-$CAMPAIGN_ID-$timestamp"
 [[ ! -e "$LOG_DIR_FULL" ]] || fail_input "Given-list run directory already exists: $LOG_DIR_FULL"
-mkdir -- "$LOG_DIR_FULL"
+mkdir "$LOG_DIR_FULL"
 RUN_MANIFEST="$LOG_DIR_FULL/shepherd-task-25-given-list-run.json"
 started_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 jq -n \
@@ -138,7 +139,7 @@ finalize_run() {
     if ! jq --arg completedAt "$completed_at" --arg status "$status" --argjson exitCode "$original_exit" \
         '.completedAt=$completedAt | .status=$status | .exitCode=$exitCode' \
         "$RUN_MANIFEST" >"$temp_manifest" ||
-        ! mv -- "$temp_manifest" "$RUN_MANIFEST"; then
+        ! mv "$temp_manifest" "$RUN_MANIFEST"; then
         echo "[shepherd-task] FAILED: could not finalize run manifest." >&2
         [[ $final_exit -ne 0 ]] || final_exit=1
     fi

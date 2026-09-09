@@ -1,5 +1,5 @@
 ---
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 name: shepherd-task-approve-workflows-and-wait-for-completion
 description: "Use this skill to approve pending workflow runs on a PR branch and wait for them to complete."
 ---

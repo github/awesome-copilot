@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -153,7 +153,9 @@ get_campaign_directory() {
     local worktree="$1"
     local shortname="$2"
     local matches=()
-    mapfile -d '' matches < <(
+    while IFS= read -r -d '' match; do
+        matches+=("$match")
+    done < <(
         find "$worktree" -mindepth 1 -maxdepth 1 -type d \
             -name "*-$shortname-remove-before-merge" -print0
     )
@@ -165,7 +167,9 @@ get_campaign_directory() {
 get_campaign_handoff() {
     local campaign_directory="$1"
     local handoffs=()
-    mapfile -d '' handoffs < <(
+    while IFS= read -r -d '' handoff; do
+        handoffs+=("$handoff")
+    done < <(
         find "$campaign_directory" -type f \
             -name shepherd-test-experiment-handoff.json -print0
     )
@@ -204,7 +208,9 @@ get_or_create_post_mortem() {
     local base_branch="$6"
     local repository="$7"
     local post_mortems=()
-    mapfile -d '' post_mortems < <(
+    while IFS= read -r -d '' post_mortem; do
+        post_mortems+=("$post_mortem")
+    done < <(
         find "$run_directory" -maxdepth 1 -type f -name '*-post-mortem.md' -print0
     )
     if [[ ${#post_mortems[@]} -eq 1 ]]; then
@@ -305,14 +311,15 @@ fi
 current_phase="validating repository URL"
 repository_url="${repository_url%/}"
 repository_url="${repository_url%.git}"
-[[ "$repository_url" =~ ^https://github\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)$ ]] ||
+repository_url_pattern='^https://github\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)$'
+[[ "$repository_url" =~ $repository_url_pattern ]] ||
     fail "RepositoryUrl must be a fully qualified HTTPS GitHub repository URL."
 repository_owner="${BASH_REMATCH[1]}"
 repository_name="${BASH_REMATCH[2]}"
 repo="$repository_owner/$repository_name"
 canonical_repository_url="https://github.com/$repo"
 
-mkdir -p -- "$workareas_dir"
+mkdir -p "$workareas_dir"
 workareas_dir="$(cd "$workareas_dir" && pwd -P)"
 target="$workareas_dir/$repository_name-shepherd-target"
 control_worktree="$workareas_dir/$repository_name-shepherd-control"
@@ -370,6 +377,7 @@ done
 
 current_phase="running offline contracts"
 status "Experiment setup: running offline contracts."
+invoke_checked_script Contract "$shepherd_plugin/test/macos-bash-compatibility-contract.sh"
 invoke_checked_script Contract "$shepherd_plugin/test/lesson-propagation-default-contract.sh"
 for contract in \
     03-resolve-repository-remote.sh \
@@ -404,7 +412,10 @@ git -C "$target" rev-parse --verify HEAD >/dev/null 2>&1 ||
     fail "The Cargo Tracker fork is empty; it must contain the prepared baseline branch."
 [[ -z "$(git -C "$target" status --porcelain)" ]] ||
     fail "The primary target checkout is not clean."
-mapfile -t remotes < <(git -C "$target" remote)
+remotes=()
+while IFS= read -r remote; do
+    remotes+=("$remote")
+done < <(git -C "$target" remote)
 [[ ${#remotes[@]} -eq 1 ]] ||
     fail "The primary checkout must have exactly one Git remote; found ${#remotes[@]}."
 cd "$target"

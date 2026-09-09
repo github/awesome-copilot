@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 #
 # shepherd-task.sh — Shepherds a child Task issue end-to-end:
 # from Copilot assignment through merge.
@@ -63,7 +63,8 @@ run_copilot_redacted() {
 # Find the PR linked to the task issue using three strategies.
 find_linked_pr() {
     local desired_state="${1:-OPEN}"
-    local list_state="${desired_state,,}"
+    local list_state
+    list_state="$(printf '%s' "$desired_state" | tr '[:upper:]' '[:lower:]')"
     local pr_number=""
     local candidate_state=""
     local candidate_info=""

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -60,7 +60,7 @@ ensure_capture_directory() {
         script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         CAPTURE_DIRECTORY="$script_dir/.driver-captures-$$"
     }
-    mkdir -p -- "$CAPTURE_DIRECTORY"
+    mkdir -p "$CAPTURE_DIRECTORY"
 }
 
 invoke_checked_script() {
@@ -86,10 +86,10 @@ invoke_checked_script() {
         while IFS= read -r line || [[ -n "$line" ]]; do
             printf '%s%s%s\n' "$RED" "$line" "$RESET" >&2
         done <"$capture"
-        rm -f -- "$capture"
+        rm -f "$capture"
         return "$exit_code"
     fi
-    rm -f -- "$capture"
+    rm -f "$capture"
 }
 
 invoke_checked_native() {
@@ -113,11 +113,11 @@ invoke_checked_native() {
         while IFS= read -r line || [[ -n "$line" ]]; do
             printf '%s%s%s\n' "$RED" "$line" "$RESET" >&2
         done <"$capture"
-        rm -f -- "$capture"
+        rm -f "$capture"
         echo "$operation failed with exit code $exit_code." >&2
         return "$exit_code"
     fi
-    rm -f -- "$capture"
+    rm -f "$capture"
 }
 
 display_literal() {
@@ -165,7 +165,10 @@ EOF
 get_campaign_directory() {
     local worktree="$1"
     local shortname="$2"
-    mapfile -d '' matches < <(
+    local matches=()
+    while IFS= read -r -d '' match; do
+        matches+=("$match")
+    done < <(
         find "$worktree" -mindepth 1 -maxdepth 1 -type d \
             -name "*-$shortname-remove-before-merge" -print0
     )
@@ -176,7 +179,10 @@ get_campaign_directory() {
 
 get_campaign_handoff() {
     local campaign_directory="$1"
-    mapfile -d '' handoffs < <(
+    local handoffs=()
+    while IFS= read -r -d '' handoff; do
+        handoffs+=("$handoff")
+    done < <(
         find "$campaign_directory" -type f -name shepherd-test-experiment-handoff.json -print0
     )
     [[ ${#handoffs[@]} -eq 1 ]] ||
@@ -212,7 +218,10 @@ get_or_create_post_mortem() {
     local issue_list="$5"
     local base_branch="$6"
     local repository="$7"
-    mapfile -d '' post_mortems < <(
+    local post_mortems=()
+    while IFS= read -r -d '' post_mortem; do
+        post_mortems+=("$post_mortem")
+    done < <(
         find "$run_directory" -mindepth 1 -maxdepth 1 -type f -name '*-post-mortem.md' -print0
     )
     if [[ ${#post_mortems[@]} -eq 1 ]]; then
@@ -254,10 +263,10 @@ Write the report to:
             while IFS= read -r line || [[ -n "$line" ]]; do
                 printf '%s%s%s\n' "$RED" "$line" "$RESET" >&2
             done <"$capture"
-            rm -f -- "$capture"
+            rm -f "$capture"
             fail "Post-mortem recovery failed with exit code $exit_code for '$run_directory'."
         fi
-        rm -f -- "$capture"
+        rm -f "$capture"
     fi
     [[ -s "$post_mortem_path" ]] ||
         fail "Post-mortem recovery did not create a nonempty report: $post_mortem_path"
@@ -303,7 +312,8 @@ main() {
     CURRENT_PHASE='validating repository URL'
     repository_url="${repository_url%/}"
     repository_url="${repository_url%.git}"
-    if [[ "$repository_url" =~ ^https://github\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)$ ]]; then
+    local repository_url_pattern='^https://github\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)$'
+    if [[ "$repository_url" =~ $repository_url_pattern ]]; then
         local repository_owner="${BASH_REMATCH[1]}"
         local repository_name="${BASH_REMATCH[2]}"
     else
@@ -311,7 +321,7 @@ main() {
     fi
     local repo="$repository_owner/$repository_name"
     local canonical_url="https://github.com/$repo"
-    mkdir -p -- "$workareas_dir"
+    mkdir -p "$workareas_dir"
     workareas_dir="$(cd "$workareas_dir" && pwd -P)"
     TARGET="$workareas_dir/$repository_name-shepherd-target"
     CONTROL_WORKTREE="$workareas_dir/$repository_name-shepherd-control"
@@ -363,8 +373,9 @@ main() {
     CURRENT_PHASE='running offline contracts'
     status 'Experiment setup: running offline contracts.'
     local contract_root="$fixture_root/.contract-work/driver-$$"
-    mkdir -p -- "$contract_root"
+    mkdir -p "$contract_root"
     export TMPDIR="$contract_root"
+    invoke_checked_script "$shepherd_plugin/test/macos-bash-compatibility-contract.sh" contract
     invoke_checked_script "$shepherd_plugin/test/lesson-propagation-default-contract.sh" contract
     for contract in 03-resolve-repository-remote.sh 05-stage20-artifact-contract.sh \
         06-stage40-review-contract.sh 07-driver-encoding-contract.sh \
@@ -373,8 +384,8 @@ main() {
         11-stage15-installed-path-contract.sh; do
         invoke_checked_script "$fixture_root/$contract" contract
     done
-    rm -rf -- "$contract_root"
-    rmdir -- "$fixture_root/.contract-work" 2>/dev/null || true
+    rm -rf "$contract_root"
+    rmdir "$fixture_root/.contract-work" 2>/dev/null || true
     unset TMPDIR
     if [[ "$validate_installed_only" == 1 ]]; then
         status 'Installed simple-math driver validation completed without paid or mutating operations.' "$GREEN"
@@ -400,7 +411,10 @@ main() {
         invoke_checked_native 'Initial README push' git -C "$TARGET" push -u origin HEAD
     fi
     [[ -z "$(git -C "$TARGET" status --porcelain)" ]] || fail "The primary target checkout is not clean."
-    mapfile -t remotes < <(git -C "$TARGET" remote)
+    remotes=()
+    while IFS= read -r remote; do
+        remotes+=("$remote")
+    done < <(git -C "$TARGET" remote)
     [[ ${#remotes[@]} -eq 1 ]] || fail "The primary checkout must have exactly one Git remote; found ${#remotes[@]}."
     local resolved_remote
     resolved_remote="$(cd "$TARGET" && "$shepherd_plugin/scripts/resolve-repository-remote.sh" "$repo")"
@@ -530,7 +544,7 @@ if [[ "${SHEPHERD_DRIVER_LIB_ONLY:-0}" != 1 ]]; then
         local exit_code=$?
         trap - EXIT
         cd "$initial_directory"
-        [[ -z "$CAPTURE_DIRECTORY" ]] || rm -rf -- "$CAPTURE_DIRECTORY"
+        [[ -z "$CAPTURE_DIRECTORY" ]] || rm -rf "$CAPTURE_DIRECTORY"
         if [[ $exit_code -ne 0 ]]; then
             printf '\n%s=== RUN FAILED DURING: %s ===%s\n' "$RED" "$CURRENT_PHASE" "$RESET" >&2
             warning 'No automated cleanup was performed. Preserve and inspect any paths that exist:'

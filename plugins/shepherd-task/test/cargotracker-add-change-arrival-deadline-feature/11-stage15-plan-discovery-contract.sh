@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -11,11 +11,11 @@ CAMPAIGN_DIRECTORY_NAME="1-stage15-contract-remove-before-merge"
 CAMPAIGN_DIRECTORY="$TEMP_DIRECTORY/$CAMPAIGN_DIRECTORY_NAME"
 
 cleanup() {
-    rm -rf -- "$TEMP_DIRECTORY"
+    rm -rf "$TEMP_DIRECTORY"
 }
 trap cleanup EXIT
 
-mkdir -p -- "$CAMPAIGN_DIRECTORY"
+mkdir -p "$CAMPAIGN_DIRECTORY"
 git -C "$TEMP_DIRECTORY" init --quiet
 git -C "$TEMP_DIRECTORY" remote add origin https://github.com/owner/repository.git
 

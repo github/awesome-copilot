@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -61,11 +61,11 @@ done
 
 contract_root="$script_dir/.contract-work"
 temp_directory="$contract_root/driver-$$"
-mkdir -p -- "$temp_directory"
+mkdir -p "$temp_directory"
 cleanup() {
-    [[ -z "${CAPTURE_DIRECTORY:-}" ]] || rm -rf -- "$CAPTURE_DIRECTORY"
-    rm -rf -- "$temp_directory"
-    rmdir -- "$contract_root" 2>/dev/null || true
+    [[ -z "${CAPTURE_DIRECTORY:-}" ]] || rm -rf "$CAPTURE_DIRECTORY"
+    rm -rf "$temp_directory"
+    rmdir "$contract_root" 2>/dev/null || true
 }
 trap cleanup EXIT
 

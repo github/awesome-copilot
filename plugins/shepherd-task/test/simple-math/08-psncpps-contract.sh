@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -21,10 +21,10 @@ done < <(find "$script_dir" "$scripts_directory" -maxdepth 1 -type f -name '*.sh
 
 contract_root="$script_dir/.contract-work"
 temp_directory="$contract_root/bash-native-$$"
-mkdir -p -- "$temp_directory"
+mkdir -p "$temp_directory"
 cleanup() {
-    rm -rf -- "$temp_directory"
-    rmdir -- "$contract_root" 2>/dev/null || true
+    rm -rf "$temp_directory"
+    rmdir "$contract_root" 2>/dev/null || true
 }
 trap cleanup EXIT
 git -C "$temp_directory" init --quiet

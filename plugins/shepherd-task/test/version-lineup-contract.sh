@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -81,7 +81,7 @@ done
 [[ -x "$COPILOT_HOME/plugins/shepherd-task/test/cargotracker-add-change-arrival-deadline-feature/run-campaign.sh" ]]
 
 mock_bin="$temp_root/mock-bin"
-mkdir -p -- "$mock_bin"
+mkdir -p "$mock_bin"
 cat >"$mock_bin/gh" <<'EOF'
 #!/usr/bin/env bash
 if [[ "$*" == "auth status" ]]; then
@@ -106,19 +106,25 @@ exit 92
 EOF
 chmod +x "$mock_bin/gh" "$mock_bin/copilot"
 validation_workareas="$temp_root/validation-workareas"
-mkdir -p -- "$validation_workareas"
+mkdir -p "$validation_workareas"
 (
     cd "$temp_root"
-    PATH="$mock_bin:$PATH" \
+    if ! PATH="$mock_bin:$PATH" \
         "$COPILOT_HOME/plugins/shepherd-task/test/simple-math/run-campaign.sh" \
         https://github.com/owner/simple-math-validation \
         "$validation_workareas" \
-        --validate-installed-only >/dev/null
-    PATH="$mock_bin:$PATH" \
+        --validate-installed-only >/dev/null; then
+        echo "Installed simple-math Bash driver validation failed." >&2
+        exit 1
+    fi
+    if ! PATH="$mock_bin:$PATH" \
         "$COPILOT_HOME/plugins/shepherd-task/test/cargotracker-add-change-arrival-deadline-feature/run-campaign.sh" \
         https://github.com/owner/cargotracker-validation \
         "$validation_workareas" \
-        --validate-installed-only >/dev/null
+        --validate-installed-only >/dev/null; then
+        echo "Installed Cargo Tracker Bash driver validation failed." >&2
+        exit 1
+    fi
 )
 [[ ! -e "$validation_workareas/simple-math-validation-shepherd-target" ]]
 [[ ! -e "$validation_workareas/cargotracker-validation-shepherd-target" ]]

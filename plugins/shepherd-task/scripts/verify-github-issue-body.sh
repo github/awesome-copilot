@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 set -euo pipefail
 
 fail() {
@@ -30,7 +30,7 @@ gh_command="${GH_COMMAND:-gh}"
     fail "expected issue body file not found: $expected_body_path"
 
 temp_directory="$(mktemp -d)"
-trap 'rm -rf -- "$temp_directory"' EXIT
+trap 'rm -rf "$temp_directory"' EXIT
 response_path="$temp_directory/response.json"
 actual_path="$temp_directory/actual.txt"
 actual_normalized="$temp_directory/actual-normalized.txt"
@@ -46,10 +46,10 @@ equivalent_files() {
     local candidate="$temp_directory/candidate.txt"
 
     cmp -s -- "$actual" "$expected" && return 0
-    cp -- "$actual" "$candidate"
+    cp "$actual" "$candidate"
     printf '\n' >>"$candidate"
     cmp -s -- "$candidate" "$expected" && return 0
-    cp -- "$expected" "$candidate"
+    cp "$expected" "$candidate"
     printf '\n' >>"$candidate"
     cmp -s -- "$actual" "$candidate"
 }
@@ -67,7 +67,7 @@ write_diagnostic() {
     local attempts="$2"
     [[ -n "$diagnostic_path" ]] || return 0
 
-    mkdir -p -- "$(dirname -- "$diagnostic_path")"
+    mkdir -p "$(dirname "$diagnostic_path")"
     local expected_length actual_length expected_hash actual_hash first_offset
     expected_length="$(wc -c <"$expected_normalized" | tr -d ' ')"
     actual_length="$(wc -c <"$actual_normalized" | tr -d ' ')"
@@ -116,7 +116,8 @@ for ((attempt = 1; attempt <= max_attempts; attempt++)); do
     if [[ $exit_code -ne 0 ]]; then
         last_reason="GitHub REST request failed with exit code $exit_code."
         error_message="$(cat "$temp_directory/error.txt")"
-        if [[ "$error_message" =~ HTTP[[:space:]]+(401|403)|[Aa]uthentication|[Nn]ot[[:space:]]authorized|[Rr]esource[[:space:]]not[[:space:]]accessible ]]; then
+        authentication_error_pattern='HTTP[[:space:]]+(401|403)|[Aa]uthentication|[Nn]ot[[:space:]]authorized|[Rr]esource[[:space:]]not[[:space:]]accessible'
+        if [[ "$error_message" =~ $authentication_error_pattern ]]; then
             : >"$actual_normalized"
             write_diagnostic "$last_reason" "$attempt"
             fail "unable to fetch issue #$issue_number from $repository: $error_message"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -69,7 +69,7 @@ set -e
 git -C "$repo_root" checkout -b "$baseline_branch" FETCH_HEAD ||
     fail "Failed to create '$baseline_branch' from fetched default-branch tip."
 
-mkdir -p -- "$repo_root/.github/workflows" "$repo_root/eng"
+mkdir -p "$repo_root/.github/workflows" "$repo_root/eng"
 cat >"$repo_root/.github/workflows/shepherd-task-math-tool.yml" <<EOF
 name: Shepherd task math tool
 

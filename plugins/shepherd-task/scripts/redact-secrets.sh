@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 #
 # redact-secrets.sh — Redact secret-bearing fields from shepherd JSONL logs.
 #
@@ -63,7 +63,19 @@ redact_file() {
         exit 1
     fi
 
-    chmod --reference="$file" "$temp"
+    local mode
+    if mode="$(stat -f '%Lp' "$file" 2>/dev/null)" &&
+        [[ "$mode" =~ ^[0-7]{3,4}$ ]]; then
+        :
+    elif mode="$(stat -c '%a' "$file" 2>/dev/null)" &&
+        [[ "$mode" =~ ^[0-7]{3,4}$ ]]; then
+        :
+    else
+        rm -f "$temp"
+        echo "Unable to determine file mode: $file" >&2
+        exit 1
+    fi
+    chmod "$mode" "$temp"
     mv "$temp" "$file"
     echo "Redacted $file"
 }
@@ -85,7 +97,10 @@ if [[ ! -d "$LOG_DIR" ]]; then
     exit 1
 fi
 
-mapfile -d '' files < <(find "$LOG_DIR" -type f -name '*.json*' -print0)
+files=()
+while IFS= read -r -d '' file; do
+    files+=("$file")
+done < <(find "$LOG_DIR" -type f -name '*.json*' -print0)
 if [[ ${#files[@]} -eq 0 ]]; then
     echo "No .json* files found in $LOG_DIR" >&2
     exit 1

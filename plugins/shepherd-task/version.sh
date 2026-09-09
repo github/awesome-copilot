@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -76,7 +76,10 @@ assert_estate_version_stamps() {
     local expected_version="$2"
     local file count
     local -a files
-    mapfile -t files < <(collect_estate_version_files "$repo_root" | sort -u)
+    files=()
+    while IFS= read -r file; do
+        files+=("$file")
+    done < <(collect_estate_version_files "$repo_root" | sort -u)
     ((${#files[@]} > 0)) ||
         fail "The shepherd-task estate contains no versioned scripts or skills."
 
@@ -93,9 +96,13 @@ update_estate_version_stamps() {
     local repo_root="$1"
     local current_version="$2"
     local next_version="$3"
-    local file temporary index
+    local file temporary index mode
     local -a files temporaries
-    mapfile -t files < <(collect_estate_version_files "$repo_root" | sort -u)
+    files=()
+    temporaries=()
+    while IFS= read -r file; do
+        files+=("$file")
+    done < <(collect_estate_version_files "$repo_root" | sort -u)
     assert_estate_version_stamps "$repo_root" "$current_version"
 
     for file in "${files[@]}"; do
@@ -105,12 +112,21 @@ update_estate_version_stamps() {
             -v replacement="# shepherd-task-version: $next_version" \
             '{ print ($0 == current ? replacement : $0) }' \
             "$file" >"$temporary"
-        chmod --reference="$file" "$temporary"
+        if mode="$(stat -f '%Lp' "$file" 2>/dev/null)" &&
+            [[ "$mode" =~ ^[0-7]{3,4}$ ]]; then
+            :
+        elif mode="$(stat -c '%a' "$file" 2>/dev/null)" &&
+            [[ "$mode" =~ ^[0-7]{3,4}$ ]]; then
+            :
+        else
+            fail "Could not determine permissions for $file."
+        fi
+        chmod "$mode" "$temporary"
         temporaries+=("$temporary")
     done
 
     for index in "${!files[@]}"; do
-        mv -- "${temporaries[$index]}" "${files[$index]}"
+        mv "${temporaries[$index]}" "${files[$index]}"
     done
 }
 
@@ -158,9 +174,9 @@ write_json_atomically() {
     shift 2
     local temporary="$target.tmp.$$"
     if jq "$@" "$filter" "$target" >"$temporary"; then
-        mv -- "$temporary" "$target"
+        mv "$temporary" "$target"
     else
-        rm -f -- "$temporary"
+        rm -f "$temporary"
         return 1
     fi
 }
@@ -226,7 +242,7 @@ increment_version() {
     jq --arg version "$next" '.version = $version' "$PLUGIN_MANIFEST" >"$plugin_temporary" ||
         fail "Could not prepare the shepherd-task plugin version update."
     update_estate_version_stamps "$repo_root" "$current" "$next"
-    mv -- "$plugin_temporary" "$PLUGIN_MANIFEST"
+    mv "$plugin_temporary" "$PLUGIN_MANIFEST"
     echo "Incremented shepherd-task lineup version: $current -> $next"
     print_version_information
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -26,10 +26,10 @@ done
 contract_root="$script_dir/.contract-work"
 temp_directory="$contract_root/stage20-$$"
 body_directory="$temp_directory/issue-bodies"
-mkdir -p -- "$body_directory"
+mkdir -p "$body_directory"
 cleanup() {
-    rm -rf -- "$temp_directory"
-    rmdir -- "$contract_root" 2>/dev/null || true
+    rm -rf "$temp_directory"
+    rmdir "$contract_root" 2>/dev/null || true
 }
 trap cleanup EXIT
 export TMPDIR="$temp_directory"
@@ -47,7 +47,7 @@ printf '[{"number":41,"body_verified":false,"linked":false}]\n' >"$ledger"
 jq -e 'type == "array" and length == 1 and .[0].number == 41' "$ledger" >/dev/null ||
     fail "A single-entry creation ledger did not remain a flat array."
 jq '. + [{"number":42,"body_verified":true,"linked":true}]' "$ledger" >"$ledger.next"
-mv -- "$ledger.next" "$ledger"
+mv "$ledger.next" "$ledger"
 jq -e 'length == 2 and map(.number) == [41,42] and all(.[]; type == "object")' "$ledger" >/dev/null ||
     fail "A multiple-entry creation ledger did not remain a flat ordered array."
 printf '[[],{"number":41}]\n' >"$ledger"
@@ -102,7 +102,7 @@ if output="$("$result_assertion" "$result" 2>&1)"; then
     fail "Result assertion accepted failed status: $output"
 fi
 [[ "$output" == *"status: failed"* ]] || fail "Result assertion failure omitted status: $output"
-rm -- "$result"
+rm "$result"
 if output="$("$result_assertion" "$result" 2>&1)"; then
     fail "Result assertion accepted a missing result document: $output"
 fi
@@ -154,7 +154,7 @@ verified="$("$issue_body_verifier" owner/repository 41 "$verification_body" 2 0)
 printf 'expected' >"$verification_body"
 export SHEPHERD_MOCK_GH_BODY=$'expected\n\n'
 export SHEPHERD_MOCK_GH_FRESH_ATTEMPT=1
-rm -f -- "$state"
+rm -f "$state"
 diagnostic="$temp_directory/body-verification-failure.json"
 if output="$("$issue_body_verifier" owner/repository 41 "$verification_body" 1 0 "$diagnostic" 2>&1)"; then
     fail "Issue body verifier accepted a persistent mismatch: $output"
@@ -164,7 +164,7 @@ jq -e '.attempts == 1 and .expectedSha256 != .actualSha256 and has("firstDiffere
     "$diagnostic" >/dev/null || fail "Persistent body mismatch diagnostics are incomplete."
 
 export SHEPHERD_MOCK_GH_MODE=terminal
-rm -f -- "$state"
+rm -f "$state"
 if output="$("$issue_body_verifier" owner/repository 41 "$verification_body" 3 0 2>&1)"; then
     fail "Issue body verifier accepted terminal GitHub failure: $output"
 fi

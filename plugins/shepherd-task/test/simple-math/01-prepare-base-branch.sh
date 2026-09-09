@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -13,12 +13,13 @@ fail() {
 repo="$1"
 base_branch="$2"
 campaign_shortname="$3"
-baseline_sha="${4,,}"
+baseline_sha="$(printf '%s' "$4" | tr '[:upper:]' '[:lower:]')"
 
 [[ "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || fail "Invalid REPO: '$repo'."
 [[ "$base_branch" != main ]] || fail "BASE_BRANCH must not be 'main'."
 git check-ref-format --branch "$base_branch" >/dev/null 2>&1 || fail "Invalid BASE_BRANCH: '$base_branch'."
-[[ "$campaign_shortname" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] || fail "Invalid CAMPAIGN_SHORTNAME."
+campaign_shortname_pattern='^[a-z0-9]+(-[a-z0-9]+)*$'
+[[ "$campaign_shortname" =~ $campaign_shortname_pattern ]] || fail "Invalid CAMPAIGN_SHORTNAME."
 [[ "$baseline_sha" =~ ^[0-9a-f]{40}$ ]] || fail "Invalid BASELINE_SHA."
 for command in git gh jq; do
     command -v "$command" >/dev/null 2>&1 || fail "Required command '$command' was not found."
@@ -78,7 +79,8 @@ campaign_issue_output="$(gh issue create --repo "$repo" \
     --body "$campaign_body" 2>&1)" ||
     fail "Failed to create campaign issue: $campaign_issue_output"
 campaign_issue_url="$(printf '%s\n' "$campaign_issue_output" | tail -n 1)"
-[[ "$campaign_issue_url" =~ /issues/([1-9][0-9]*)$ ]] ||
+campaign_issue_url_pattern='/issues/([1-9][0-9]*)$'
+[[ "$campaign_issue_url" =~ $campaign_issue_url_pattern ]] ||
     fail "Could not parse campaign issue number from '$campaign_issue_url'."
 campaign_issue_number="${BASH_REMATCH[1]}"
 

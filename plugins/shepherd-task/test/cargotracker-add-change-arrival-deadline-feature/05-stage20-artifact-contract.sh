@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -12,7 +12,7 @@ issue_body_verifier="$scripts_directory/verify-github-issue-body.sh"
 stage20_skill="$fixture_root/../../../../skills/shepherd-task-20-create-issues-from-plan/SKILL.md"
 temp_directory="$(mktemp -d "$fixture_root/.stage20-contract.XXXXXX")"
 body_directory="$temp_directory/issue-bodies"
-trap 'rm -rf -- "$temp_directory"' EXIT
+trap 'rm -rf "$temp_directory"' EXIT
 
 fail() {
     echo "Error: $*" >&2
@@ -47,7 +47,7 @@ grep -Fq 'JSON root is an array' "$stage20_skill" ||
 grep -Fq 'capture output and then capture `$LASTEXITCODE` immediately' "$stage20_skill" ||
     fail "Stage-20 skill does not preserve native pipeline exit-code safety."
 
-mkdir -p -- "$body_directory"
+mkdir -p "$body_directory"
 ledger_round_trip="$temp_directory/ledger-round-trip.json"
 printf '[]\n' >"$ledger_round_trip"
 jq -e 'type == "array" and length == 0' "$ledger_round_trip" >/dev/null ||
@@ -57,7 +57,7 @@ jq -e 'type == "array" and length == 1 and .[0].number == 41' "$ledger_round_tri
     fail "A single-entry creation ledger did not remain a flat one-entry array."
 jq '. + [{"number":42,"body_verified":true,"linked":true}]' \
     "$ledger_round_trip" >"$ledger_round_trip.next"
-mv -- "$ledger_round_trip.next" "$ledger_round_trip"
+mv "$ledger_round_trip.next" "$ledger_round_trip"
 jq -e 'type == "array" and length == 2 and map(.number) == [41,42] and
     all(.[]; type == "object")' "$ledger_round_trip" >/dev/null ||
     fail "A multiple-entry creation ledger did not remain a flat ordered array."
@@ -106,7 +106,7 @@ printf '{"schemaVersion":1,"status":"complete","ledgerFile":"creation-ledger.jso
 "$result_assertion" "$result_path" >/dev/null
 printf '{"schemaVersion":1,"status":"failed","ledgerFile":"creation-ledger.json","operationError":"Body verification failed."}\n' >"$result_path"
 expect_failure "did not report completion" "$result_assertion" "$result_path"
-rm -- "$result_path"
+rm "$result_path"
 expect_failure "did not write its required result document" "$result_assertion" "$result_path"
 
 printf '{"schemaVersion":1,"status":"complete","ledgerFile":"creation-ledger.json","operationError":null}\n' >"$result_path"
@@ -151,7 +151,7 @@ verification_body="$temp_directory/verification-body.md"
 printf 'expected\nbody' >"$verification_body"
 export SHEPHERD_MOCK_GH_BODY=$'expected\nbody'
 export SHEPHERD_MOCK_GH_FRESH_ATTEMPT=2
-rm -f -- "$mock_state"
+rm -f "$mock_state"
 verified="$("$issue_body_verifier" owner/repository 41 "$verification_body" 2 0)"
 [[ "$(jq -r '.body' <<<"$verified")" == $'expected\nbody' && "$(cat "$mock_state")" == 2 ]] ||
     fail "Issue body verifier did not recover from a stale first REST response."
@@ -159,22 +159,22 @@ verified="$("$issue_body_verifier" owner/repository 41 "$verification_body" 2 0)
 printf 'expected — body' >"$verification_body"
 export SHEPHERD_MOCK_GH_BODY='expected — body'
 export SHEPHERD_MOCK_GH_FRESH_ATTEMPT=1
-rm -f -- "$mock_state"
+rm -f "$mock_state"
 "$issue_body_verifier" owner/repository 41 "$verification_body" 1 0 >/dev/null ||
     fail "Issue body verifier corrupted UTF-8 output."
 
 printf 'expected\r\nbody' >"$verification_body"
 export SHEPHERD_MOCK_GH_BODY=$'expected\nbody'
-rm -f -- "$mock_state"
+rm -f "$mock_state"
 "$issue_body_verifier" owner/repository 41 "$verification_body" 1 0 >/dev/null
 printf 'expected' >"$verification_body"
 export SHEPHERD_MOCK_GH_BODY=$'expected\n'
-rm -f -- "$mock_state"
+rm -f "$mock_state"
 "$issue_body_verifier" owner/repository 41 "$verification_body" 1 0 >/dev/null
 
 diagnostic_path="$temp_directory/body-verification-failure.json"
 export SHEPHERD_MOCK_GH_BODY=$'expected\n\n'
-rm -f -- "$mock_state"
+rm -f "$mock_state"
 expect_failure "failed after 1 attempts" \
     "$issue_body_verifier" owner/repository 41 "$verification_body" 1 0 "$diagnostic_path"
 jq -e '.attempts == 1 and .expectedSha256 != .actualSha256 and
@@ -182,14 +182,14 @@ jq -e '.attempts == 1 and .expectedSha256 != .actualSha256 and
     fail "Persistent body mismatch diagnostics are incomplete."
 
 export SHEPHERD_MOCK_GH_BODY='always wrong'
-rm -f -- "$mock_state"
+rm -f "$mock_state"
 expect_failure "failed after 3 attempts" \
     "$issue_body_verifier" owner/repository 41 "$verification_body" 3 0
 [[ "$(cat "$mock_state")" == 3 ]] ||
     fail "Persistent body mismatch did not exhaust the configured retry count."
 
 export SHEPHERD_MOCK_GH_MODE=terminal
-rm -f -- "$mock_state"
+rm -f "$mock_state"
 expect_failure "unable to fetch issue #41" \
     "$issue_body_verifier" owner/repository 41 "$verification_body" 3 0
 [[ "$(cat "$mock_state")" == 1 ]] ||

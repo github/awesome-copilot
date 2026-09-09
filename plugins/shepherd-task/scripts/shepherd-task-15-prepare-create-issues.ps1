@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 <#
 .SYNOPSIS
     Stage 15: derives stage-20 inputs and creates prompt and invocation artifacts.

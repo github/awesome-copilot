@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -9,6 +9,10 @@ EXPLICIT_REMOTE="${2:-}"
 fail() {
     echo "Error: $1" >&2
     exit 1
+}
+
+lowercase() {
+    printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
 }
 
 normalize_github_repo() {
@@ -31,7 +35,7 @@ remote_repository() {
 
 if [[ -n "$EXPLICIT_REMOTE" ]]; then
     REMOTE_REPO="$(remote_repository "$EXPLICIT_REMOTE")"
-    [[ -n "$REMOTE_REPO" && "${REMOTE_REPO,,}" == "${REPO,,}" ]] ||
+    [[ -n "$REMOTE_REPO" && "$(lowercase "$REMOTE_REPO")" == "$(lowercase "$REPO")" ]] ||
         fail "Git remote '$EXPLICIT_REMOTE' does not have a GitHub URL matching '$REPO'."
     echo "$EXPLICIT_REMOTE"
     exit 0
@@ -40,7 +44,7 @@ fi
 MATCHING_REMOTES=()
 while IFS= read -r remote; do
     REMOTE_REPO="$(remote_repository "$remote")"
-    if [[ -n "$REMOTE_REPO" && "${REMOTE_REPO,,}" == "${REPO,,}" ]]; then
+    if [[ -n "$REMOTE_REPO" && "$(lowercase "$REMOTE_REPO")" == "$(lowercase "$REPO")" ]]; then
         MATCHING_REMOTES+=("$remote")
     fi
 done < <(git remote)

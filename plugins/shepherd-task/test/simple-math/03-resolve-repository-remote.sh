@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -18,10 +18,10 @@ done
 
 CONTRACT_ROOT="$SCRIPT_DIR/.contract-work"
 TEMP_DIR="$CONTRACT_ROOT/remote-$$"
-mkdir -p -- "$TEMP_DIR"
+mkdir -p "$TEMP_DIR"
 cleanup() {
-    rm -rf -- "$TEMP_DIR"
-    rmdir -- "$CONTRACT_ROOT" 2>/dev/null || true
+    rm -rf "$TEMP_DIR"
+    rmdir "$CONTRACT_ROOT" 2>/dev/null || true
 }
 trap cleanup EXIT
 

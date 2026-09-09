@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -48,7 +48,10 @@ jq -e '.schemaVersion == 1' <<<"$campaign" >/dev/null &&
 [[ "$(jq -r '.lessonPropagation' <<<"$campaign")" == "$(jq -r '.lessonPropagation' <<<"$experiment")" ]] ||
     fail "Experiment lesson mode does not match the campaign."
 
-mapfile -t handoff_files < <(find "$campaign_path/prompts" -type f \
+handoff_files=()
+while IFS= read -r handoff_file; do
+    handoff_files+=("$handoff_file")
+done < <(find "$campaign_path/prompts" -type f \
     -name shepherd-test-experiment-handoff.json -print)
 [[ ${#handoff_files[@]} -eq 1 ]] ||
     fail "Expected exactly one stage-20 experiment handoff; found ${#handoff_files[@]}."

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -88,7 +88,10 @@ jq -e '.schemaVersion == 1 and .status == "complete" and .ledgerFile == "creatio
 jq -e 'type == "array" and length == 2' "$ledger_path" >/dev/null ||
     fail "Creation ledger must contain exactly two entries."
 
-mapfile -t issue_numbers < <(jq -r '.[].number' "$ledger_path")
+issue_numbers=()
+while IFS= read -r issue_number; do
+    issue_numbers+=("$issue_number")
+done < <(jq -r '.[].number' "$ledger_path")
 actual_bodies='[]'
 repository="$(jq -r '.repository' <<<"$campaign")"
 for index in 0 1; do

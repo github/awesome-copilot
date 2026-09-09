@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.1
+# shepherd-task-version: 1.0.2
 
 set -euo pipefail
 
@@ -7,7 +7,7 @@ fixture_root="$(cd "$(dirname "$0")" && pwd)"
 driver="$fixture_root/run-campaign.sh"
 skill_list_helper="$fixture_root/get-copilot-skill-list.sh"
 temp_directory="$(mktemp -d "$fixture_root/.driver-contract.XXXXXX")"
-trap 'rm -rf -- "$temp_directory"' EXIT
+trap 'rm -rf "$temp_directory"' EXIT
 
 fail() {
     echo "Error: $*" >&2
