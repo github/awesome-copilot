@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -144,6 +144,27 @@ try {
         throw 'PowerShell micro increment failed.'
     }
     Assert-FixtureVersionStamps -Destination (Join-Path $tempRoot 'micro') -ExpectedVersion $expectedMicro
+
+    $untracked = New-SourceCheckout -Destination (Join-Path $tempRoot 'untracked')
+    $untrackedScript = Join-Path $untracked 'test\untracked-version-fixture.ps1'
+    [IO.File]::WriteAllText(
+        $untrackedScript,
+        "# shepherd-task-version: $currentVersion`n",
+        $utf8NoBom
+    )
+    & git -C (Join-Path $tempRoot 'untracked') ls-files --error-unmatch -- `
+        'plugins/shepherd-task/test/untracked-version-fixture.ps1' *> $null
+    if ($LASTEXITCODE -eq 0) {
+        throw 'Untracked version fixture was unexpectedly tracked.'
+    }
+    & (Join-Path $untracked 'version.ps1') -IncrementMicro | Out-Null
+    $untrackedMarkers = @(
+        [IO.File]::ReadAllLines($untrackedScript) |
+            Where-Object { $_ -ceq "# shepherd-task-version: $expectedMicro" }
+    )
+    if ($untrackedMarkers.Count -ne 1) {
+        throw 'PowerShell version command did not update an untracked estate script.'
+    }
 
     $minor = New-SourceCheckout -Destination (Join-Path $tempRoot 'minor') -Version '2.7.9-beta.2+build.5'
     & (Join-Path $minor 'version.ps1') -IncrementMinor | Out-Null

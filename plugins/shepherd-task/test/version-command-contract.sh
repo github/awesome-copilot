@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 
 set -euo pipefail
 
@@ -93,6 +93,17 @@ IFS=. read -r current_major current_minor current_micro <<<"$current_core"
 expected_micro="$current_major.$current_minor.$((10#$current_micro + 1))"
 [[ "$(jq -r '.version' "$temp_root/micro/plugins/shepherd-task/plugin.json")" == "$expected_micro" ]]
 assert_fixture_stamps "$temp_root/micro" "$expected_micro"
+
+create_source_checkout "$temp_root/untracked"
+untracked_script="$temp_root/untracked/plugins/shepherd-task/test/untracked-version-fixture.sh"
+printf '%s\n' '#!/usr/bin/env bash' "# shepherd-task-version: $current_version" >"$untracked_script"
+if git -C "$temp_root/untracked" ls-files --error-unmatch \
+    plugins/shepherd-task/test/untracked-version-fixture.sh >/dev/null 2>&1; then
+    echo 'Untracked version fixture was unexpectedly tracked.' >&2
+    exit 1
+fi
+"$temp_root/untracked/plugins/shepherd-task/version.sh" -incrementMicro >/dev/null
+[[ "$(grep -Fxc "# shepherd-task-version: $expected_micro" "$untracked_script")" == 1 ]]
 
 create_source_checkout "$temp_root/minor" "2.7.9-beta.2+build.5"
 "$temp_root/minor/plugins/shepherd-task/version.sh" -incrementMinor >/dev/null

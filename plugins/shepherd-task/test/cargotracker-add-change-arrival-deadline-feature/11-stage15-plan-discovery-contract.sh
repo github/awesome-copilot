@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PREPARATION_SCRIPT="$SCRIPT_DIR/../../scripts/shepherd-task-15-prepare-create-issues.sh"
-TEMP_DIRECTORY="$(mktemp -d)"
+SCRIPTS_DIRECTORY="$(cd "$SCRIPT_DIR/../../scripts" && pwd -P)"
+PREPARATION_SCRIPT="$SCRIPTS_DIRECTORY/shepherd-task-15-prepare-create-issues.sh"
+TEMP_DIRECTORY="$(mktemp -d "$SCRIPT_DIR/.stage15-contract.XXXXXX")"
 CAMPAIGN_DIRECTORY_NAME="1-stage15-contract-remove-before-merge"
 CAMPAIGN_DIRECTORY="$TEMP_DIRECTORY/$CAMPAIGN_DIRECTORY_NAME"
 
@@ -67,8 +68,17 @@ prompt_file="$(
     find "$CAMPAIGN_DIRECTORY/prompts" -type f \
         -name '*-invoke-shepherd-task-20-create-issues-from-plan-skill.md'
 )"
+invocation_file="$(
+    find "$CAMPAIGN_DIRECTORY/prompts" -type f \
+        -name '*-invoke-shepherd-task-20-create-issues-from-plan-skill.sh'
+)"
 [[ -f "$prompt_file" ]]
+[[ -x "$invocation_file" ]]
 grep -Fq -- '- IMPLEMENTATION_SECTION: ## Phase 4 — Implementation (five serial issues)' "$prompt_file"
 grep -Fq -- '- EXPECTED_TASK_COUNT: 5' "$prompt_file"
+grep -Fq -- "- DRAFT_VALIDATOR: $SCRIPTS_DIRECTORY/validate-stage20-drafts.sh" "$prompt_file"
+grep -Fq -- "- ISSUE_BODY_VERIFIER: $SCRIPTS_DIRECTORY/verify-github-issue-body.sh" "$prompt_file"
+grep -Fq -- "$SCRIPTS_DIRECTORY/redact-secrets.sh" "$invocation_file"
+grep -Fq -- "$SCRIPTS_DIRECTORY/assert-stage20-result.sh" "$invocation_file"
 
-echo 'Cargo Tracker Bash stage-15 plan-discovery contract tests passed.'
+echo 'Cargo Tracker Bash stage-15 plan and installed-path contract tests passed.'

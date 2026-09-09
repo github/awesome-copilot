@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 <#
 .SYNOPSIS
     Verifies the simple-math control-only fixture definition.
@@ -33,11 +33,14 @@ if ($initializer.Contains('[string]$LessonPropagation') -or
 
 foreach ($required in @(
     "'04-verify-control-campaign.ps1'",
+    "'03-resolve-repository-remote.ps1'",
     "'-CampaignShortname', 'math-control'",
     "lessonPropagation = 'off'",
     "'05-stage20-artifact-contract.ps1'",
     "'09-skill-powershell-contract.ps1'",
     "'10-simple-math-fixture-contract.ps1'",
+    "'11-stage15-installed-path-contract.ps1'",
+    "-Arguments @('repo', 'clone', `$Repo, `$Target)",
     "'test\lesson-propagation-default-contract.ps1'"
 )) {
     if (-not $driver.Contains($required)) {
@@ -49,6 +52,28 @@ if ($driver.Contains("'-LessonPropagation', 'campaign'") -or
     $driver.Contains('$Comparison') -or
     $driver.Contains('treatment-control')) {
     throw 'Simple-math driver still contains treatment or comparison behavior.'
+}
+if ($driver -match '(?i)\$cloneUrl\s*=|Arguments\s+@\(''clone''') {
+    throw 'Simple-math PowerShell driver bypasses gh-managed Git transport.'
+}
+$pluginRoot = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..' '..')
+)
+$runtimeFiles = @(
+    Get-Item -LiteralPath $initializerPath,
+        $issueCreatorPath,
+        $verifierPath,
+        $driverPath,
+        (Join-Path $PSScriptRoot 'get-copilot-skill-list.ps1')
+    Get-ChildItem -LiteralPath (Join-Path $pluginRoot 'scripts') `
+        -File -Filter '*.ps1'
+)
+$unsafeGitTransportPattern = '(?is)\$cloneUrl\s*=|(?:^|\W)git\s+(?:-C\s+\S+\s+)?clone|git\s+(?:-C\s+\S+\s+)?remote\s+(?:add|set-url)\s+.*https://github\.com|-FilePath\s+[''"]git[''"].{0,240}-Arguments\s+@\(\s*[''"]clone[''"]'
+foreach ($runtimeFile in $runtimeFiles) {
+    $runtimeText = [System.IO.File]::ReadAllText($runtimeFile.FullName)
+    if ($runtimeText -match $unsafeGitTransportPattern) {
+        throw "Simple-math PowerShell runtime bypasses gh-managed Git transport: $($runtimeFile.FullName)"
+    }
 }
 $stage25Invocations = [regex]::Matches(
     $driver,

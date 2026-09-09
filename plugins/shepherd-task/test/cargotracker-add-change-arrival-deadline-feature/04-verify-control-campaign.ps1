@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 <#
 .SYNOPSIS
     Verifies the completed shepherd-task Cargo Tracker control campaign.

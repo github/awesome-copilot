@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 <#
 .SYNOPSIS
     Regression coverage for Cargo Tracker stage-15 plan-section discovery.
@@ -8,9 +8,11 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $initializerPath = Join-Path $PSScriptRoot '01-prepare-base-branch.ps1'
-$preparationScript = [System.IO.Path]::GetFullPath(
-    (Join-Path $PSScriptRoot '..' '..' 'scripts' 'shepherd-task-15-prepare-create-issues.ps1')
+$scriptsDirectory = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..' '..' 'scripts')
 )
+$preparationScript = Join-Path $scriptsDirectory `
+    'shepherd-task-15-prepare-create-issues.ps1'
 $tempDirectory = Join-Path (
     [System.IO.Path]::GetTempPath()
 ) "shepherd-stage15-plan-$([guid]::NewGuid().ToString('N'))"
@@ -97,10 +99,32 @@ try {
         -not (Test-Path -LiteralPath $artifacts.InvocationFile -PathType Leaf)) {
         throw 'Stage 15 did not create both required artifacts.'
     }
+    $expectedDraftValidator = Join-Path $scriptsDirectory `
+        'validate-stage20-drafts.ps1'
+    $expectedIssueBodyVerifier = Join-Path $scriptsDirectory `
+        'verify-github-issue-body.ps1'
+    if ([string]$artifacts.DraftValidator -cne $expectedDraftValidator -or
+        [string]$artifacts.IssueBodyVerifier -cne $expectedIssueBodyVerifier) {
+        throw 'Stage 15 did not return canonical installed helper paths.'
+    }
+    $prompt = [System.IO.File]::ReadAllText($artifacts.PromptFile)
+    if (-not $prompt.Contains("- DRAFT_VALIDATOR: $expectedDraftValidator") -or
+        -not $prompt.Contains("- ISSUE_BODY_VERIFIER: $expectedIssueBodyVerifier")) {
+        throw 'Stage 15 prompt does not contain canonical installed helper paths.'
+    }
+    $invocation = [System.IO.File]::ReadAllText($artifacts.InvocationFile)
+    foreach ($requiredPath in @(
+        (Join-Path $scriptsDirectory 'redact-secrets.ps1'),
+        (Join-Path $scriptsDirectory 'assert-stage20-result.ps1')
+    )) {
+        if (-not $invocation.Contains($requiredPath)) {
+            throw "Stage 15 invocation is missing '$requiredPath'."
+        }
+    }
 }
 finally {
     Set-Location -LiteralPath $initialLocation
     Remove-Item -LiteralPath $tempDirectory -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host 'Cargo Tracker stage-15 plan-discovery contract tests passed.' -ForegroundColor Green
+Write-Host 'Cargo Tracker Stage 15 plan and installed-path contract tests passed.' -ForegroundColor Green

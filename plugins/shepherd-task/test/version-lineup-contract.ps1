@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -74,6 +74,16 @@ try {
     & $installer | Out-Null
 
     $installedPlugin = Join-Path $env:COPILOT_HOME 'plugins\shepherd-task'
+    foreach ($installedDriver in @(
+        (Join-Path $installedPlugin 'test\simple-math\run-campaign.sh'),
+        (Join-Path $installedPlugin 'test\simple-math\run-campaign.ps1'),
+        (Join-Path $installedPlugin 'test\cargotracker-add-change-arrival-deadline-feature\run-campaign.sh'),
+        (Join-Path $installedPlugin 'test\cargotracker-add-change-arrival-deadline-feature\run-campaign.ps1')
+    )) {
+        if (-not (Test-Path -LiteralPath $installedDriver -PathType Leaf)) {
+            throw "Installed campaign driver is missing: $installedDriver"
+        }
+    }
     $installManifestPath = Join-Path $installedPlugin 'install-manifest.json'
     $installManifest = Get-Content -LiteralPath $installManifestPath -Raw | ConvertFrom-Json
     if ([string]$installManifest.shepherdTaskVersion -ne $version -or

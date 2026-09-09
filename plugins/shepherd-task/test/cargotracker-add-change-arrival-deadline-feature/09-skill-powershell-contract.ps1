@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 <#
 .SYNOPSIS
     Validates PowerShell examples embedded in shepherd-task skills.
@@ -135,6 +135,25 @@ if (-not $preflightBlock -or
     $preflightBlock.Text -notmatch 'gh pr edit --help 2>&1\)\r?\n\$ghExitCode = \$LASTEXITCODE' -or
     -not $preflightBlock.Text.Contains('if ($ghExitCode -ne 0)')) {
     throw 'The stage-40 PowerShell capability preflight must check the gh exit code immediately.'
+}
+
+$stage30Skill = [System.IO.File]::ReadAllText(
+    (Join-Path $skillsDirectory 'shepherd-task-30-from-assignment-to-ready\SKILL.md')
+)
+$stage40Skill = [System.IO.File]::ReadAllText(
+    (Join-Path $skillsDirectory 'shepherd-task-40-from-ready-to-merged-to-base\SKILL.md')
+)
+foreach ($skillText in @($stage30Skill, $stage40Skill)) {
+    if ($skillText.Contains(
+        'skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md'
+    )) {
+        throw 'A shepherd skill uses a repository-relative path for an installed nested skill.'
+    }
+    if (-not $skillText.Contains(
+        'Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-completion`** skill by name'
+    )) {
+        throw 'A shepherd skill does not invoke the workflow-approval skill by installed name.'
+    }
 }
 
 Write-Host 'Shepherd-task embedded PowerShell contract tests passed.' -ForegroundColor Green

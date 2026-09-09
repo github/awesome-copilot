@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 
 set -euo pipefail
 
@@ -7,7 +7,7 @@ fixture_root="$(cd "$(dirname "$0")" && pwd)"
 plugin_root="$(cd "$fixture_root/../.." && pwd)"
 assertion="$plugin_root/scripts/assert-shepherd-session-outcome.sh"
 orchestrator="$plugin_root/scripts/shepherd-task.sh"
-temp_directory="$(mktemp -d)"
+temp_directory="$(mktemp -d "$fixture_root/.session-outcome-contract.XXXXXX")"
 trap 'rm -rf "$temp_directory"' EXIT
 
 cat >"$temp_directory/stage30-success.md" <<'EOF'

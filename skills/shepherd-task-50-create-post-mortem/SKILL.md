@@ -1,5 +1,5 @@
 ---
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 name: shepherd-task-50-create-post-mortem
 description: 'Stage 50 of the shepherd-task campaign lifecycle (campaign post-mortem after success or failure). Create a structured post-mortem report from shepherd-task run artifacts, including metrics, timeline, failures, and actionable recommendations.'
 ---
@@ -17,7 +17,7 @@ This skill is designed to be invoked from `shepherd-task-25-given-list.ps1` / `s
 ## Inputs
 
 - `SHEPHERD_LOG_DIR` (**required**)  
-  Absolute path to the shepherd run log directory (for example: `C:\Users\edburns\workareas\BRK206-02\28-python-agent-demo-remove-before-merge\shepherd-tasks-20260718-1827`).
+  Absolute path to the shepherd run log directory (for example: `C:\workareas\campaign\shepherd-tasks-20260718-1827`).
 - `SCRIPT_EXIT_CODE` (optional but recommended)  
   Exit code from the caller script, to classify success vs failure.
 - `TASK_ISSUES` (optional)

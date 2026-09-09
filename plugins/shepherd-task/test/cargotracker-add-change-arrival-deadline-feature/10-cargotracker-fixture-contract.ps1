@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 <#
 .SYNOPSIS
     Verifies the Cargo Tracker control-only fixture definition.
@@ -51,7 +51,7 @@ $planBytes = [System.Text.UTF8Encoding]::new($false).GetBytes($plan)
 $planHash = [Convert]::ToHexString(
     [System.Security.Cryptography.SHA256]::HashData($planBytes)
 ).ToLowerInvariant()
-$expectedPlanHash = 'd3418d12912f4262b7633df710350669b485c4e42a7351387d36d50da6e4fd8c'
+$expectedPlanHash = '6fdedc8d42a586fe8dc74bf4155d4d2b927b2dd35754093e6719b2061835e882'
 if ($planHash -ne $expectedPlanHash) {
     throw "Embedded Cargo Tracker plan hash '$planHash' does not match '$expectedPlanHash'."
 }
@@ -117,6 +117,35 @@ if (-not $driver.Contains("'11-stage15-plan-discovery-contract.ps1'")) {
 if (-not $driver.Contains("'12-session-outcome-contract.ps1'")) {
     throw 'Driver does not run the shepherd session-outcome contract.'
 }
+if (-not $driver.Contains("'03-resolve-repository-remote.ps1'")) {
+    throw 'Driver does not run the repository-remote contract.'
+}
+if (-not $driver.Contains("-Arguments @('repo', 'clone', `$Repo, `$Target)")) {
+    throw 'Driver does not clone through the authenticated GitHub CLI.'
+}
+if ($driver -match '(?i)\$cloneUrl\s*=|Arguments\s+@\(''clone''') {
+    throw 'Cargo Tracker PowerShell driver bypasses gh-managed Git transport.'
+}
+$pluginRoot = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot '..' '..')
+)
+$runtimeFiles = @(
+    Get-Item -LiteralPath $baselinePath,
+        $initializerPath,
+        $issueCreatorPath,
+        $verifierPath,
+        $driverPath,
+        (Join-Path $PSScriptRoot 'get-copilot-skill-list.ps1')
+    Get-ChildItem -LiteralPath (Join-Path $pluginRoot 'scripts') `
+        -File -Filter '*.ps1'
+)
+$unsafeGitTransportPattern = '(?is)\$cloneUrl\s*=|(?:^|\W)git\s+(?:-C\s+\S+\s+)?clone|git\s+(?:-C\s+\S+\s+)?remote\s+(?:add|set-url)\s+.*https://github\.com|-FilePath\s+[''"]git[''"].{0,240}-Arguments\s+@\(\s*[''"]clone[''"]'
+foreach ($runtimeFile in $runtimeFiles) {
+    $runtimeText = [System.IO.File]::ReadAllText($runtimeFile.FullName)
+    if ($runtimeText -match $unsafeGitTransportPattern) {
+        throw "Cargo Tracker PowerShell runtime bypasses gh-managed Git transport: $($runtimeFile.FullName)"
+    }
+}
 if (-not $driver.Contains("'test\lesson-propagation-default-contract.ps1'")) {
     throw 'Driver does not run the lesson-propagation default contract.'
 }
@@ -151,6 +180,11 @@ foreach ($required in @(
     if (-not $initializer.Contains($required)) {
         throw "Cargo Tracker initializer is missing required fixture text: $required"
     }
+}
+if ($plan.Contains('/home/') -or
+    $plan -match '(?i)[A-Z]:\\' -or
+    $plan.Contains('dd-3058828-cargotracker-remove-before-merge')) {
+    throw 'Cargo Tracker plan contains a machine- or source-checkout-specific path.'
 }
 if ($initializer.Contains('[string]$LessonPropagation') -or
     $initializer.Contains('-LessonPropagation $LessonPropagation')) {

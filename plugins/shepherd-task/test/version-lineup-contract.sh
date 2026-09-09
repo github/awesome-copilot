@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 
 set -euo pipefail
 
@@ -67,6 +67,62 @@ export COPILOT_HOME="$temp_root/copilot-home"
 bash "$installer" >/dev/null
 
 install_manifest="$COPILOT_HOME/plugins/shepherd-task/install-manifest.json"
+for installed_driver in \
+    "$COPILOT_HOME/plugins/shepherd-task/test/simple-math/run-campaign.sh" \
+    "$COPILOT_HOME/plugins/shepherd-task/test/simple-math/run-campaign.ps1" \
+    "$COPILOT_HOME/plugins/shepherd-task/test/cargotracker-add-change-arrival-deadline-feature/run-campaign.sh" \
+    "$COPILOT_HOME/plugins/shepherd-task/test/cargotracker-add-change-arrival-deadline-feature/run-campaign.ps1"; do
+    [[ -f "$installed_driver" ]] || {
+        echo "Installed campaign driver is missing: $installed_driver" >&2
+        exit 1
+    }
+done
+[[ -x "$COPILOT_HOME/plugins/shepherd-task/test/simple-math/run-campaign.sh" ]]
+[[ -x "$COPILOT_HOME/plugins/shepherd-task/test/cargotracker-add-change-arrival-deadline-feature/run-campaign.sh" ]]
+
+mock_bin="$temp_root/mock-bin"
+mkdir -p -- "$mock_bin"
+cat >"$mock_bin/gh" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$*" == "auth status" ]]; then
+    exit 0
+fi
+echo "Unexpected gh invocation during installed-only validation: $*" >&2
+exit 91
+EOF
+cat >"$mock_bin/copilot" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$*" == "skill list" ]]; then
+    cat <<'SKILLS'
+shepherd-task-20-create-issues-from-plan
+shepherd-task-30-from-assignment-to-ready
+shepherd-task-40-from-ready-to-merged-to-base
+shepherd-task-50-create-post-mortem
+SKILLS
+    exit 0
+fi
+echo "Unexpected copilot invocation during installed-only validation: $*" >&2
+exit 92
+EOF
+chmod +x "$mock_bin/gh" "$mock_bin/copilot"
+validation_workareas="$temp_root/validation-workareas"
+mkdir -p -- "$validation_workareas"
+(
+    cd "$temp_root"
+    PATH="$mock_bin:$PATH" \
+        "$COPILOT_HOME/plugins/shepherd-task/test/simple-math/run-campaign.sh" \
+        https://github.com/owner/simple-math-validation \
+        "$validation_workareas" \
+        --validate-installed-only >/dev/null
+    PATH="$mock_bin:$PATH" \
+        "$COPILOT_HOME/plugins/shepherd-task/test/cargotracker-add-change-arrival-deadline-feature/run-campaign.sh" \
+        https://github.com/owner/cargotracker-validation \
+        "$validation_workareas" \
+        --validate-installed-only >/dev/null
+)
+[[ ! -e "$validation_workareas/simple-math-validation-shepherd-target" ]]
+[[ ! -e "$validation_workareas/cargotracker-validation-shepherd-target" ]]
+
 jq -e --arg version "$version" '
   .shepherdTaskVersion == $version and
   .components.plugin.shepherdTaskVersion == $version and

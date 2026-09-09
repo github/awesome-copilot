@@ -1,5 +1,5 @@
 ---
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 name: shepherd-task-30-from-assignment-to-ready
 description: "Stage 30 of the shepherd-task campaign lifecycle (each issue from assignment through the boundary immediately before Ready for review). Use this skill to shepherd a child Task issue from 'assigned to Copilot' through CI approval and review-agent feedback resolution, stopping just before marking the PR as **Ready for review**."
 ---
@@ -343,7 +343,7 @@ Rules:
 
 ### Steps 5–6: Approve pending workflow runs and wait for completion
 
-Invoke the **`shepherd-task-approve-workflows-and-wait-for-completion`** skill (`skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md`) with:
+Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-completion`** skill by name with:
 
 - `REPO` = `$REPO`
 - `JTBDTASK_BRANCH` = the PR's topic branch

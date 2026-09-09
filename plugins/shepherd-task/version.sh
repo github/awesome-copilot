@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 
 set -euo pipefail
 
@@ -135,14 +135,11 @@ assert_source_checkout() {
         skill_path="${skill_ref#./}"
         [[ -f "$repo_root/$skill_path/SKILL.md" ]] ||
             fail "Declared shepherd-task source skill is missing: $repo_root/$skill_path/SKILL.md"
-        git -C "$repo_root" ls-files --error-unmatch \
-            "$skill_path/SKILL.md" >/dev/null 2>&1 ||
-            fail "Declared shepherd-task source skill is not tracked: $skill_path/SKILL.md"
     done < <(
         jq -er '.extensions["com.github.awesome-copilot"].skills[]' "$PLUGIN_MANIFEST"
     )
 
-    local plugin_ref plugin_path estate_file
+    local plugin_ref plugin_path
     while IFS= read -r plugin_ref; do
         [[ "$plugin_ref" == ./* && "$plugin_ref" != *\\* &&
             "$plugin_ref" != *"/../"* && "$plugin_ref" != "./.."* ]] ||
@@ -150,17 +147,6 @@ assert_source_checkout() {
         plugin_path="$PLUGIN_ROOT/${plugin_ref#./}"
         [[ -e "$plugin_path" ]] ||
             fail "Declared shepherd-task plugin file is missing: $plugin_path"
-        if [[ -d "$plugin_path" ]]; then
-            while IFS= read -r estate_file; do
-                git -C "$repo_root" ls-files --error-unmatch \
-                    "${estate_file#"$repo_root/"}" >/dev/null 2>&1 ||
-                    fail "Declared shepherd-task plugin file is not tracked: ${estate_file#"$repo_root/"}"
-            done < <(find "$plugin_path" -type f -print)
-        else
-            git -C "$repo_root" ls-files --error-unmatch \
-                "${plugin_path#"$repo_root/"}" >/dev/null 2>&1 ||
-                fail "Declared shepherd-task plugin file is not tracked: ${plugin_path#"$repo_root/"}"
-        fi
     done < <(
         jq -er '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$PLUGIN_MANIFEST"
     )

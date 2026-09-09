@@ -1,5 +1,5 @@
 ---
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 name: shepherd-task-20-create-issues-from-plan
 description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child issues under an existing GitHub parent issue, preferring the Task issue type when the repository supports it. Incorporates resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 14 inputs are required. Skip this stage when suitable implementation issues already exist.'
 ---

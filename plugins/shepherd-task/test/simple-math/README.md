@@ -22,8 +22,10 @@ There is one campaign, one stage-25 run, and no paired comparison phase.
 
 ## Requirements
 
-- Windows PowerShell or PowerShell 7
-- `git`, `gh`, `copilot`, and `pwsh` on `PATH`
+- Bash 4.4+ on Linux, macOS, or Git Bash, or PowerShell 7
+- For the Bash driver: `bash`, `git`, `gh`, `copilot`, `jq`, and `find` on
+  `PATH`
+- For the PowerShell driver: `git`, `gh`, `copilot`, and `pwsh` on `PATH`
 - Authenticated GitHub CLI
 - A disposable GitHub repository with Actions, Copilot Coding Agent, and
   Copilot code review enabled
@@ -47,35 +49,75 @@ $Fixture = '.\plugins\shepherd-task\test\simple-math'
 & "$Fixture\08-psncpps-contract.ps1"
 & "$Fixture\09-skill-powershell-contract.ps1"
 & "$Fixture\10-simple-math-fixture-contract.ps1"
+& "$Fixture\11-stage15-installed-path-contract.ps1"
 ```
 
-The Bash contracts can be run with Git Bash:
+The native Bash contracts use only local fixture data, temporary directories
+under this fixture, and the installed shepherd-task Bash scripts. They do not
+invoke paid Copilot or mutating GitHub operations. From the repository root:
 
-```powershell
-& "C:\Program Files\Git\bin\bash.exe" `
-  "plugins/shepherd-task/test/simple-math/03-resolve-repository-remote.sh"
-& "C:\Program Files\Git\bin\bash.exe" `
-  "plugins/shepherd-task/test/simple-math/06-stage40-review-contract.sh"
+```bash
+fixture=plugins/shepherd-task/test/simple-math
+for contract in \
+  03-resolve-repository-remote.sh \
+  05-stage20-artifact-contract.sh \
+  06-stage40-review-contract.sh \
+  07-driver-encoding-contract.sh \
+  08-psncpps-contract.sh \
+  09-skill-powershell-contract.sh \
+  10-simple-math-fixture-contract.sh \
+  11-stage15-installed-path-contract.sh
+do
+  "$fixture/$contract"
+done
 ```
 
 ## Run the end-to-end control campaign
 
-Install the current source first:
+Install the current source first. Bash installation:
+
+```bash
+plugins/shepherd-task/scripts/install-task-shepherd.sh
+```
+
+PowerShell installation:
 
 ```powershell
 .\plugins\shepherd-task\scripts\install-task-shepherd.ps1
 ```
 
-Then run:
+Then run the installed Bash driver from any working directory:
+
+```bash
+"${COPILOT_HOME:-$HOME/.copilot}/plugins/shepherd-task/test/simple-math/run-campaign.sh" \
+  'https://github.com/OWNER/DISPOSABLE-REPOSITORY' \
+  "$HOME/workareas"
+```
+
+To validate the installed Bash layout and all offline integration contracts
+without cloning, creating issues, or invoking paid Copilot operations:
+
+```bash
+"${COPILOT_HOME:-$HOME/.copilot}/plugins/shepherd-task/test/simple-math/run-campaign.sh" \
+  'https://github.com/OWNER/REPOSITORY' \
+  "$HOME/workareas" \
+  --validate-installed-only
+```
+
+Or run the installed PowerShell driver:
 
 ```powershell
-.\plugins\shepherd-task\test\simple-math\run-campaign.ps1 `
+& "$HOME\.copilot\plugins\shepherd-task\test\simple-math\run-campaign.ps1" `
   -RepositoryUrl 'https://github.com/OWNER/DISPOSABLE-REPOSITORY' `
   -WorkareasDir 'C:\workareas'
 ```
 
-The control driver intentionally omits `-LessonPropagation` when invoking
-stage 00. The resulting manifest must explicitly contain:
+Use `-ValidateInstalledOnly` for the equivalent non-mutating installed-layout
+validation in PowerShell.
+
+Both control drivers intentionally omit the optional lesson-propagation
+argument when invoking stage 00. The resulting manifest must explicitly
+contain:
 
 ```json
 {

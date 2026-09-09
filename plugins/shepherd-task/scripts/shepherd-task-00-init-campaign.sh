@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 #
 # shepherd-task-00-init-campaign.sh — Stage 00: initialize durable campaign metadata.
 #

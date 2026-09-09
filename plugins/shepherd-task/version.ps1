@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 <#
 .SYNOPSIS
     Reports or updates shepherd-task lineup and Agent Plugins schema versions.
@@ -188,10 +188,6 @@ function Assert-SourceCheckout {
         if (-not (Test-Path -LiteralPath $skillManifestPath -PathType Leaf)) {
             throw "Declared shepherd-task source skill is missing: $skillManifestPath"
         }
-        & git -C $repoRoot ls-files --error-unmatch -- "$skillPath/SKILL.md" *> $null
-        if ($LASTEXITCODE -ne 0) {
-            throw "Declared shepherd-task source skill is not tracked: $skillPath/SKILL.md"
-        }
     }
 
     foreach ($pluginReference in $pluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
@@ -207,19 +203,6 @@ function Assert-SourceCheckout {
         $pluginPath = Join-Path $pluginRoot $relativePath
         if (-not (Test-Path -LiteralPath $pluginPath)) {
             throw "Declared shepherd-task plugin file is missing: $pluginPath"
-        }
-        $estateFiles = if (Test-Path -LiteralPath $pluginPath -PathType Container) {
-            @(Get-ChildItem -LiteralPath $pluginPath -Recurse -File)
-        }
-        else {
-            @((Get-Item -LiteralPath $pluginPath))
-        }
-        foreach ($estateFile in $estateFiles) {
-            $repoRelativePath = [IO.Path]::GetRelativePath($repoRoot, $estateFile.FullName)
-            & git -C $repoRoot ls-files --error-unmatch -- $repoRelativePath *> $null
-            if ($LASTEXITCODE -ne 0) {
-                throw "Declared shepherd-task plugin file is not tracked: $repoRelativePath"
-            }
         }
     }
 

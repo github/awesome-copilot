@@ -580,5 +580,7 @@ PowerShell equivalents are included for each helper.
 | `scripts/shepherd-task-inspect-otel-token-summary.*` | Summarize OTel token usage |
 | `scripts/install-task-shepherd.*` | Install plugin and skills into Copilot home |
 | `scripts/uninstall-task-shepherd.*` | Remove installed plugin and skills |
-| `test/01-prepare-base-branch.ps1` | Create a real test campaign and plan |
-| `test/02-create-issues.ps1` | Run real stage-20 issue creation for that campaign |
+| `test/simple-math/run-campaign.*` | Run the installed two-task simple-math control campaign end to end |
+| `test/simple-math/00-*` through `10-*` | Prepare, create, verify, and contract-test the simple-math campaign in Bash or PowerShell |
+| `test/cargotracker-add-change-arrival-deadline-feature/run-campaign.*` | Run the installed five-task Cargo Tracker control campaign end to end |
+| `test/cargotracker-add-change-arrival-deadline-feature/00-*` through `12-*` | Prepare, create, verify, and contract-test the Cargo Tracker campaign in Bash or PowerShell |

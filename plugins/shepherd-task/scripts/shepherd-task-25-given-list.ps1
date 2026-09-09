@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 <#
 .SYNOPSIS
     Stage 25: dispatches an ordered issue subset within an initialized shepherd-task campaign.

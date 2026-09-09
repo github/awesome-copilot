@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 <#
 .SYNOPSIS
     Creates the shepherd-task Cargo Tracker control campaign.
@@ -130,10 +130,10 @@ $plan = @'
 
 Human DRI: Ed Burns
 Starting commit: `9b9f311b2a3a2854bdac947593950d9edb6bca7d` (`Make the system ready for implementation`)
-Working directory: `/home/edburns/workareas/cargotracker-01/`
+Working directory: repository root of the current campaign worktree
 Runtime baseline: Java 17, Java EE 7 (`javax.*`), Open Liberty 26.0.0.8, PrimeFaces 8.0
 Baseline run instructions: `README.md`
-Baseline preparation prompt: `dd-3058828-cargotracker-remove-before-merge/20260902-make-e7b651f-run-with-production-baseline.md`
+Baseline preparation: fixed source branch and immutable SHA validated by the campaign fixture
 Historical issue: `eclipse-ee4j/cargotracker#64`
 
 Related directories and files:

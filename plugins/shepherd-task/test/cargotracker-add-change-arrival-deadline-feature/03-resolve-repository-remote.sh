@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 RESOLVER="$SCRIPT_DIR/../../scripts/resolve-repository-remote.sh"
-TEMP_DIR="$(mktemp -d)"
+TEMP_DIR="$(mktemp -d "$SCRIPT_DIR/.remote-contract.XXXXXX")"
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
 git -C "$TEMP_DIR" init --quiet

@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 <#
 .SYNOPSIS
     Runs the simple-math shepherd-task control campaign end to end.
@@ -39,6 +39,10 @@
     Enables all four optional output channels. Hidden output from a failing
     child command is always shown, even when its channel is disabled.
 
+.PARAMETER ValidateInstalledOnly
+    Runs installed-layout preflight and offline contracts, then exits before
+    repository mutation or paid Copilot operations.
+
 .EXAMPLE
     .\run-campaign.ps1 `
       -RepositoryUrl https://github.com/OWNER/DISPOSABLE-REPOSITORY `
@@ -73,7 +77,9 @@ param(
 
     [switch]$ShowNativeToolOutput,
 
-    [switch]$ShowAllOutput
+    [switch]$ShowAllOutput,
+
+    [switch]$ValidateInstalledOnly
 )
 
 Set-StrictMode -Version Latest
@@ -439,7 +445,6 @@ try {
     $repositoryName = $repositoryMatch.Groups['name'].Value
     $Repo = "$repositoryOwner/$repositoryName"
     $canonicalRepositoryUrl = "https://github.com/$Repo"
-    $cloneUrl = "$canonicalRepositoryUrl.git"
 
     $WorkareasDir = [IO.Path]::GetFullPath($WorkareasDir)
     $Target = Join-Path $WorkareasDir "$repositoryName-shepherd-target"
@@ -501,12 +506,6 @@ try {
         New-Item -ItemType Directory -Path $WorkareasDir -Force | Out-Null
     }
     $WorkareasDir = (Resolve-Path -LiteralPath $WorkareasDir).Path
-    foreach ($path in @($Target, $ControlWorktree)) {
-        if (Test-Path -LiteralPath $path) {
-            throw "Control-run path already exists. Preserve or remove it before starting: $path"
-        }
-    }
-
     $currentPhase = 'checking installed shepherd-task'
     if (-not (Test-Path -LiteralPath (
         Join-Path $FixtureRoot '00-prepare-test-baseline.ps1'
@@ -535,16 +534,30 @@ try {
         Join-Path $ShepherdPlugin 'test\lesson-propagation-default-contract.ps1'
     ) -OutputChannel Contract
     foreach ($contract in @(
+        '03-resolve-repository-remote.ps1',
         '05-stage20-artifact-contract.ps1',
         '06-stage40-review-contract.ps1',
         '07-driver-encoding-contract.ps1',
         '08-psncpps-contract.ps1',
         '09-skill-powershell-contract.ps1',
-        '10-simple-math-fixture-contract.ps1'
+        '10-simple-math-fixture-contract.ps1',
+        '11-stage15-installed-path-contract.ps1'
     )) {
         Invoke-CheckedPwshScript `
             -Path (Join-Path $FixtureRoot $contract) `
             -OutputChannel Contract
+    }
+    if ($ValidateInstalledOnly) {
+        Write-ControlStatus `
+            'Installed simple-math driver validation completed without paid or mutating operations.' `
+            -Color Green
+        return
+    }
+
+    foreach ($path in @($Target, $ControlWorktree)) {
+        if (Test-Path -LiteralPath $path) {
+            throw "Control-run path already exists. Preserve or remove it before starting: $path"
+        }
     }
 
     $currentPhase = 'checking disposable repository'
@@ -560,8 +573,8 @@ try {
     $currentPhase = 'cloning primary checkout'
     Write-ControlStatus 'Experiment setup: cloning the primary checkout.'
     Invoke-CheckedNativeCommand `
-        -FilePath 'git' `
-        -Arguments @('clone', $cloneUrl, $Target) `
+        -FilePath 'gh' `
+        -Arguments @('repo', 'clone', $Repo, $Target) `
         -Operation "Clone of '$Repo'"
     $headOutput = git -C $Target rev-parse --verify HEAD 2>$null
     if ($LASTEXITCODE -ne 0 -or -not $headOutput) {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 #
 # shepherd-task.sh — Shepherds a child Task issue end-to-end:
 # from Copilot assignment through merge.

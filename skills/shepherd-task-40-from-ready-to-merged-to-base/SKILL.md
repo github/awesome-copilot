@@ -1,5 +1,5 @@
 ---
-# shepherd-task-version: 1.0.0
+# shepherd-task-version: 1.0.1
 name: shepherd-task-40-from-ready-to-merged-to-base
 description: "Stage 40 of the shepherd-task campaign lifecycle (each issue from Ready for review through merge to the campaign base branch). Use this skill to shepherd a task PR from 'Ready for review' through Copilot code review, local comment resolution, and merge to the specified base branch."
 ---
@@ -332,7 +332,7 @@ For discussion, this worktree is the `jtbdtask-pr-comments-comment-worktree`.
 
 ### Step 5: Approve workflows and wait for completion
 
-Invoke the **`shepherd-task-approve-workflows-and-wait-for-completion`** skill (`skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md`) with:
+Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-completion`** skill by name with:
 
 - `REPO` = `$REPO`
 - `JTBDTASK_BRANCH` = the PR's topic branch
@@ -449,7 +449,7 @@ The push triggers CI/CD. Use the same approach as `shepherd-task-30-from-assignm
 
 ### Step 11: Approve workflows and wait for completion
 
-Invoke the **`shepherd-task-approve-workflows-and-wait-for-completion`** skill (`skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md`) with:
+Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-completion`** skill by name with:
 
 - `REPO` = `$REPO`
 - `JTBDTASK_BRANCH` = the PR's topic branch
@@ -514,7 +514,7 @@ Before this final approval step, perform lesson publication when
 
 When `LESSON_PROPAGATION=off`, do not read or modify the campaign lessons file.
 
-Invoke the **`shepherd-task-approve-workflows-and-wait-for-completion`** skill (`skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md`) with:
+Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-completion`** skill by name with:
 
 - `REPO` = `$REPO`
 - `JTBDTASK_BRANCH` = the PR's topic branch
