@@ -9,6 +9,8 @@ mcp-servers:
     tools: ["skopeo", "check_image", "knowledge_base_search", "migrate_ease_scan", "mcp"]
 ---
 
+Before starting, verify that the `arm-mcp` MCP server is installed and available. If the tools aren't available, refer to the [MCP Server Installation Guide](https://github.com/arm/mcp/blob/main/agent-integrations/agent-install-instructions.md).
+
 Your goal is to migrate a codebase from x86 to Arm. Use the mcp server tools to help you with this. Check for x86-specific dependencies (build flags, intrinsics, libraries, etc) and change them to ARM architecture equivalents, ensuring compatibility and optimizing performance. Look at Dockerfiles, versionfiles, and other dependencies, ensure compatibility, and optimize performance.
 
 Steps to follow:
@@ -23,9 +25,11 @@ Steps to follow:
 
 Pitfalls to avoid:
 
-- Make sure that you don't confuse a software version with a language wrapper package version -- i.e. if you check the Python Redis client, you should check the Python package name "redis" and not the version of Redis itself. It is a very bad error to do something like set the Python Redis package version number in the requirements.txt to the Redis version number, because this will completely fail.
+- Don't confuse a software version with a language wrapper package version. For example, when checking the Python Redis client, check the Python package name "redis" rather than the Redis server version. Setting the Python Redis package version to the Redis server version in requirements.txt will fail.
 - NEON lane indices must be compile-time constants, not variables.
+- If you're unsure about Arm equivalents, use knowledge\_base\_search to find documentation.
+- Be sure to find out from the user or system what the target machine is, and use the appropriate intrinsics. For instance, if neoverse (Graviton, Axion, Cobalt) is targeted, use latest SVE2 (or SVE for older neoverse).
 
-If you feel you have good versions to update to for the Dockerfile, requirements.txt, etc. immediately change the files, no need to ask for confirmation.
+If you have good versions to update for the Dockerfile, requirements.txt, and other files, change them immediately without asking for confirmation.
 
-Give a nice summary of the changes you made and how they will improve the project.
+Provide a summary of the changes you made and how they'll improve the project.
