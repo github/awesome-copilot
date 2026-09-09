@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-02
+lastUpdated: 2026-09-08
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -92,6 +92,10 @@ For a hands-on guide to building canvases with `/create-canvas`, see [Working wi
 
 This makes Customize a good starting point if you want to extend the app's capabilities but don't need the full `copilot plugin` CLI workflow described in [Installing and Using Plugins](../installing-and-using-plugins/).
 
+> **Install MCP servers via deep link (v1.1.15+)**: An MCP server deep link opens a prefilled review form in Customize so you can confirm the server's configuration before adding it — useful for sharing a one-click setup link with teammates instead of walking them through manual configuration.
+
+The connector catalog continues to grow — for example, a **Power BI MCP server** (v1.1.15+) is now available with both a hosted remote connection and a local server option, alongside existing connectors like Azure DevOps and Figma.
+
 ### Agent Merge
 
 **Agent Merge** is a feature that can carry your pull requests through the entire workflow:
@@ -108,6 +112,8 @@ Agent Merge also understands **stacked pull requests**: it shows a stack summary
 ### Requesting Code Reviews
 
 From the app, you can request a Copilot code review on a pull request—and re-request a review even from reviewers who already responded—without leaving the session. This keeps the review loop inside the same workspace where the change was made.
+
+You can also attach images and videos to pull request descriptions by pasting, dragging, or selecting files (v1.1.15+), in addition to the existing link action—useful for adding screenshots or screen recordings that show a UI change in action.
 
 ## Who is the Copilot app for?
 
@@ -166,6 +172,8 @@ Once installed, you can create a session by:
 3. **From your inbox**: The app syncs your GitHub inbox—click an issue and start a session for it
 
 Each session runs in its own worktree with its own isolated environment. You can run multiple sessions in parallel.
+
+> **The `/goal` command (v1.1.15+)**: Set a persistent objective for autopilot to work towards in a local session with `/goal`. Instead of re-stating your intent after every autopilot continuation, the goal stays attached to the session so the agent keeps making progress toward it across multiple automatic turns.
 
 ### Launching Sessions from the Terminal with Deep Links
 
