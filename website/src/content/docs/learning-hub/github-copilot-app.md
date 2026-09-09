@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-02
+lastUpdated: 2026-09-09
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -103,7 +103,19 @@ This makes Customize a good starting point if you want to extend the app's capab
 
 You control the automation level—decide whether Agent Merge should just run CI, address feedback, or go all the way to merging. It's a way to let Copilot handle the tedious parts of the review and merge process.
 
-Agent Merge also understands **stacked pull requests**: it shows a stack summary in the merge drawer with the pull requests that will be included, and lets you merge an entire stack together instead of merging each PR one at a time.
+Agent Merge also understands **stacked pull requests**: it shows a stack summary in the merge drawer with the pull requests that will be included, and lets you merge an entire stack together instead of merging each PR one at a time. *(v1.1.15+)* The stack card and merge drawer now show the stack's number (e.g. "Stack #123"), pull request numbers open directly in your browser, and you can jump to or create a session for another pull request in the stack right from the merge box.
+
+### Autopilot Goals
+
+*(v1.1.15+)* The `/goal` command sets a persistent objective for autopilot to work towards in a local session, so a long-running unattended session keeps a clear target instead of drifting after the first prompt. Your last prompt is shown as the inferred objective in the autopilot status panel if you haven't set one explicitly.
+
+### Attaching Images and Videos to Pull Requests
+
+*(v1.1.15+)* You can attach images and videos directly to a pull request description by pasting, dragging, or selecting files in the composer — in addition to the existing link action. This is useful for including screenshots or screen recordings that demonstrate a change without leaving the app.
+
+### Installing MCP Servers via Deep Link
+
+*(v1.1.15+)* MCP servers can now be installed through a deep link, which opens a prefilled review form so you can confirm the server's details before it's added to your configuration. This makes it easier to share a one-click MCP setup link with teammates instead of walking them through manual configuration. See [Understanding MCP Servers](../understanding-mcp-servers/) for more on configuring MCP servers.
 
 ### Requesting Code Reviews
 

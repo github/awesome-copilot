@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-07
+lastUpdated: 2026-09-09
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -461,6 +461,8 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 **Model fallback lists** *(v1.0.83+)*: Custom agents can set `model` to a list of several models instead of a single name. Copilot tries each one in order until it finds one available to your account — useful when your preferred model is temporarily rate-limited or not enrolled. Pair this with `model-policy: required` to keep the agent restricted to that list even if you try to switch models mid-session. See [Building Custom Agents](../building-custom-agents/) for the frontmatter syntax.
 
+**GPT-6 Astra** *(v1.0.84+)*: Added support for GPT-6 Astra as a selectable model in the `/model` picker, alongside the existing family aliases and recent additions above.
+
 **Plan mode model** *(v1.0.74+)*: When using plan mode (which blocks file mutations and keeps changes in a planning phase), you can assign a *separate* model specifically for planning — different from your regular session model. This lets you use a fast, cost-effective model for plan drafting while keeping a more capable model on standby for the implementation phase:
 
 ```
@@ -539,7 +541,9 @@ With the sidebar open, you can see all running and backgrounded sessions in a sp
 
 **Sidebar sort order** *(v1.0.83+)*: The split Sessions sidebar supports **Recent**, **Created**, **Name**, and classic **None** sorting so you can order the list the way that fits your workflow. Your chosen order is remembered across CLI restarts.
 
-**Windows 11 taskbar status** *(v1.0.83+)*: On Windows 11, running Copilot CLI sessions now appear in the taskbar with live hover status cards, so you can check on a background session's progress without switching back to its terminal window.
+**Windows 11 taskbar status** *(v1.0.83+)*: On Windows 11, running Copilot CLI sessions now appear in the taskbar with live hover status cards, so you can check on a background session's progress without switching back to its terminal window. Disable this with `/settings taskbarPresence false` if you don't want session status shown in the taskbar; loader-managed sessions apply the change immediately, while standalone sessions need a manual restart.
+
+**Vim mode** *(v1.0.84+)*: Modal editing is now available to everyone in the prompt composer. Turn it on with `/vim`, or set `"editorMode": "vim"` in your settings, to get familiar vim-style navigation and editing while composing prompts. The current mode is shown while you type.
 
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history. You can also trigger it by pressing **double-Esc**:
 
