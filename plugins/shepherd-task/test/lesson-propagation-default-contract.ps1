@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 

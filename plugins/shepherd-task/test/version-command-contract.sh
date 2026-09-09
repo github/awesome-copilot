@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shepherd-task-version: 1.0.0
 
 set -euo pipefail
 
@@ -54,11 +55,19 @@ assert_fixture_stamps() {
     local marker="# shepherd-task-version: $expected_version"
     local source_plugin="$destination/plugins/shepherd-task"
     local file skill_ref skill_path
-    while IFS= read -r file; do
-        [[ "$(grep -Fxc "$marker" "$file" || true)" == 1 ]]
-    done < <(find "$source_plugin/scripts" -type f \( -name '*.sh' -o -name '*.ps1' \) -print)
-    [[ "$(grep -Fxc "$marker" "$source_plugin/version.sh" || true)" == 1 ]]
-    [[ "$(grep -Fxc "$marker" "$source_plugin/version.ps1" || true)" == 1 ]]
+    while IFS= read -r plugin_ref; do
+        plugin_path="$source_plugin/${plugin_ref#./}"
+        if [[ -d "$plugin_path" ]]; then
+            while IFS= read -r file; do
+                [[ "$(grep -Fxc "$marker" "$file" || true)" == 1 ]]
+            done < <(find "$plugin_path" -type f \( -name '*.sh' -o -name '*.ps1' \) -print)
+        elif [[ "$plugin_path" == *.sh || "$plugin_path" == *.ps1 ]]; then
+            [[ "$(grep -Fxc "$marker" "$plugin_path" || true)" == 1 ]]
+        fi
+    done < <(
+        jq -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
+            "$source_plugin/plugin.json"
+    )
     while IFS= read -r skill_ref; do
         skill_path="${skill_ref#./}"
         [[ "$(grep -Fxc "$marker" "$destination/$skill_path/SKILL.md" || true)" == 1 ]]

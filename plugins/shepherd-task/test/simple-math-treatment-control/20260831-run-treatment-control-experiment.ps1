@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 <#
 .SYNOPSIS
     Runs the shepherd-task treatment/control mechanism experiment end to end.

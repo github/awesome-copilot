@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 <#
 .SYNOPSIS
     Regression coverage for UTF-8 Copilot skill-list output in the driver.

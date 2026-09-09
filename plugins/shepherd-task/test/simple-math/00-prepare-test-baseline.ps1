@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 <#
 .SYNOPSIS
     Bootstraps the immutable baseline for shepherd-task mechanism experiments.

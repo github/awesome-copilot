@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shepherd-task-version: 1.0.0
 
 set -euo pipefail
 
@@ -20,6 +21,7 @@ expected_skills='[
 expected_plugin_files='[
   "./scripts/",
   "./shepherd-task-version-contract.json",
+  "./test/",
   "./version.ps1",
   "./version.sh"
 ]'
@@ -39,11 +41,19 @@ version="$(jq -r '.shepherdTaskVersion' <<<"$version_info")"
 [[ "$(jq -r '.artifactSchemaVersions.givenListRun' <<<"$version_info")" == "1" ]]
 
 marker="# shepherd-task-version: $version"
-while IFS= read -r script; do
-    [[ "$(grep -Fxc "$marker" "$script" || true)" == 1 ]]
-done < <(find "$plugin_root/scripts" -type f \( -name '*.sh' -o -name '*.ps1' \) -print)
-[[ "$(grep -Fxc "$marker" "$plugin_root/version.sh" || true)" == 1 ]]
-[[ "$(grep -Fxc "$marker" "$plugin_root/version.ps1" || true)" == 1 ]]
+while IFS= read -r plugin_ref; do
+    plugin_path="$plugin_root/${plugin_ref#./}"
+    if [[ -d "$plugin_path" ]]; then
+        while IFS= read -r script; do
+            [[ "$(grep -Fxc "$marker" "$script" || true)" == 1 ]]
+        done < <(find "$plugin_path" -type f \( -name '*.sh' -o -name '*.ps1' \) -print)
+    elif [[ "$plugin_path" == *.sh || "$plugin_path" == *.ps1 ]]; then
+        [[ "$(grep -Fxc "$marker" "$plugin_path" || true)" == 1 ]]
+    fi
+done < <(
+    jq -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
+        "$plugin_root/plugin.json"
+)
 for skill_ref in $(jq -r '.extensions["com.github.awesome-copilot"].skills[]' "$plugin_root/plugin.json"); do
     skill_path="${skill_ref#./}"
     [[ "$(grep -Fxc "$marker" "$plugin_root/../../$skill_path/SKILL.md" || true)" == 1 ]]

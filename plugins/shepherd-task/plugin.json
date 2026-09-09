@@ -23,6 +23,7 @@
       "pluginFiles": [
         "./scripts/",
         "./shepherd-task-version-contract.json",
+        "./test/",
         "./version.ps1",
         "./version.sh"
       ],

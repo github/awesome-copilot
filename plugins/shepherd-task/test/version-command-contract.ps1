@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -79,16 +80,23 @@ function Assert-FixtureVersionStamps {
 
     $marker = "# shepherd-task-version: $ExpectedVersion"
     $pluginDirectory = Join-Path $Destination 'plugins\shepherd-task'
-    $files = @(
-        Get-ChildItem -LiteralPath (Join-Path $pluginDirectory 'scripts') -Recurse -File |
-            Where-Object { $_.Extension -in @('.sh', '.ps1') }
-    )
-    $files += Get-Item -LiteralPath (Join-Path $pluginDirectory 'version.sh')
-    $files += Get-Item -LiteralPath (Join-Path $pluginDirectory 'version.ps1')
     $plugin = Read-Plugin -Directory $pluginDirectory
+    $files = [Collections.Generic.List[IO.FileInfo]]::new()
+    foreach ($pluginReference in $plugin.extensions.'com.github.awesome-copilot'.pluginFiles) {
+        $relativePath = ([string]$pluginReference).Substring(2).TrimEnd('/')
+        $pluginPath = Join-Path $pluginDirectory $relativePath
+        if (Test-Path -LiteralPath $pluginPath -PathType Container) {
+            Get-ChildItem -LiteralPath $pluginPath -Recurse -File |
+                Where-Object { $_.Extension -in @('.sh', '.ps1') } |
+                ForEach-Object { $files.Add($_) }
+        }
+        elseif ([IO.Path]::GetExtension($pluginPath) -in @('.sh', '.ps1')) {
+            $files.Add((Get-Item -LiteralPath $pluginPath))
+        }
+    }
     foreach ($skillReference in $plugin.extensions.'com.github.awesome-copilot'.skills) {
         $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
-        $files += Get-Item -LiteralPath (Join-Path $Destination "$skillPath\SKILL.md")
+        $files.Add((Get-Item -LiteralPath (Join-Path $Destination "$skillPath\SKILL.md")))
     }
     foreach ($file in $files) {
         $matches = @([IO.File]::ReadAllLines($file.FullName) | Where-Object { $_ -ceq $marker })

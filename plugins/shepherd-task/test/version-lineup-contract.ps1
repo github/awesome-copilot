@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -17,6 +18,7 @@ $expectedSkills = @(
 $expectedPluginFiles = @(
     './scripts/'
     './shepherd-task-version-contract.json'
+    './test/'
     './version.ps1'
     './version.sh'
 )
@@ -42,15 +44,24 @@ try {
         throw 'Version reader did not return the authoritative plugin version.'
     }
     $marker = "# shepherd-task-version: $version"
-    $estateFiles = @(
-        Get-ChildItem -LiteralPath (Join-Path $pluginRoot 'scripts') -Recurse -File |
-            Where-Object { $_.Extension -in @('.sh', '.ps1') }
-    )
-    $estateFiles += Get-Item -LiteralPath (Join-Path $pluginRoot 'version.sh')
-    $estateFiles += Get-Item -LiteralPath (Join-Path $pluginRoot 'version.ps1')
+    $estateFiles = [Collections.Generic.List[IO.FileInfo]]::new()
+    foreach ($pluginReference in $pluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
+        $relativePath = ([string]$pluginReference).Substring(2).TrimEnd('/')
+        $pluginPath = Join-Path $pluginRoot $relativePath
+        if (Test-Path -LiteralPath $pluginPath -PathType Container) {
+            Get-ChildItem -LiteralPath $pluginPath -Recurse -File |
+                Where-Object { $_.Extension -in @('.sh', '.ps1') } |
+                ForEach-Object { $estateFiles.Add($_) }
+        }
+        elseif ([IO.Path]::GetExtension($pluginPath) -in @('.sh', '.ps1')) {
+            $estateFiles.Add((Get-Item -LiteralPath $pluginPath))
+        }
+    }
     foreach ($skillReference in $pluginManifest.extensions.'com.github.awesome-copilot'.skills) {
         $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
-        $estateFiles += Get-Item -LiteralPath (Join-Path $pluginRoot "..\..\$skillPath\SKILL.md")
+        $estateFiles.Add(
+            (Get-Item -LiteralPath (Join-Path $pluginRoot "..\..\$skillPath\SKILL.md"))
+        )
     }
     foreach ($estateFile in $estateFiles) {
         $matches = @([IO.File]::ReadAllLines($estateFile.FullName) | Where-Object { $_ -ceq $marker })

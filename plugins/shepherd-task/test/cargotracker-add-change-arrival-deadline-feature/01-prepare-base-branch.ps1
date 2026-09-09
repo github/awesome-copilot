@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 <#
 .SYNOPSIS
     Creates the shepherd-task Cargo Tracker control campaign.

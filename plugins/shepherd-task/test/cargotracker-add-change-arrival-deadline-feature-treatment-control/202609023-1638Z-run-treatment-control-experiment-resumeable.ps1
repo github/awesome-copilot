@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 <#
 .SYNOPSIS
     Resumes the preserved Cargo Tracker treatment/control experiment.

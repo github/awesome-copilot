@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 <#
 .SYNOPSIS
     Publishes the immutable Cargo Tracker feature-absent baseline.
