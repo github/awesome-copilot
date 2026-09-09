@@ -14,6 +14,12 @@ $expectedSkills = @(
     'shepherd-task-50-create-post-mortem'
     'shepherd-task-approve-workflows-and-wait-for-completion'
 )
+$expectedPluginFiles = @(
+    './scripts/'
+    './shepherd-task-version-contract.json'
+    './version.ps1'
+    './version.sh'
+)
 
 try {
     New-Item -ItemType Directory -Path $tempRoot | Out-Null
@@ -25,11 +31,32 @@ try {
     if ([string]::Join("`n", $declaredSkills) -ne [string]::Join("`n", $expectedSkills)) {
         throw 'Plugin manifest does not declare the complete ordered shepherd-task skill lineup.'
     }
+    $declaredPluginFiles = @($pluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles)
+    if ([string]::Join("`n", $declaredPluginFiles) -ne [string]::Join("`n", $expectedPluginFiles)) {
+        throw 'Plugin manifest does not declare the complete shepherd-task plugin-file lineup.'
+    }
 
     $versionInfo = & $versionReader
     $version = [string]$versionInfo.ShepherdTaskVersion
     if ($version -ne [string]$pluginManifest.version) {
         throw 'Version reader did not return the authoritative plugin version.'
+    }
+    $marker = "# shepherd-task-version: $version"
+    $estateFiles = @(
+        Get-ChildItem -LiteralPath (Join-Path $pluginRoot 'scripts') -Recurse -File |
+            Where-Object { $_.Extension -in @('.sh', '.ps1') }
+    )
+    $estateFiles += Get-Item -LiteralPath (Join-Path $pluginRoot 'version.sh')
+    $estateFiles += Get-Item -LiteralPath (Join-Path $pluginRoot 'version.ps1')
+    foreach ($skillReference in $pluginManifest.extensions.'com.github.awesome-copilot'.skills) {
+        $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
+        $estateFiles += Get-Item -LiteralPath (Join-Path $pluginRoot "..\..\$skillPath\SKILL.md")
+    }
+    foreach ($estateFile in $estateFiles) {
+        $matches = @([IO.File]::ReadAllLines($estateFile.FullName) | Where-Object { $_ -ceq $marker })
+        if ($matches.Count -ne 1) {
+            throw "Expected exactly one '$marker' marker in $($estateFile.FullName)."
+        }
     }
 
     $env:COPILOT_HOME = Join-Path $tempRoot 'copilot-home'

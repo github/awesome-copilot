@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shepherd-task-version: 1.0.0
 #
 # Stage 15: derives stage-20 inputs and creates prompt and invocation artifacts.
 #

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shepherd-task-version: 1.0.0
 #
 # redact-secrets.sh — Redact secret-bearing fields from shepherd JSONL logs.
 #

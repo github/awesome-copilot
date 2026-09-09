@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shepherd-task-version: 1.0.0
 
 set -euo pipefail
 
@@ -32,35 +33,12 @@ SOURCE_REPO="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 PLUGIN_SRC="$SCRIPT_DIR/.."
 PLUGIN_DEST="$COPILOT_HOME/plugins/shepherd-task"
 SKILLS_DEST="$COPILOT_HOME/skills"
-SKILLS=(
-    "shepherd-task-10-create-ignorance-reduction-plan"
-    "shepherd-task-20-create-issues-from-plan"
-    "shepherd-task-30-from-assignment-to-ready"
-    "shepherd-task-40-from-ready-to-merged-to-base"
-    "shepherd-task-50-create-post-mortem"
-    "shepherd-task-approve-workflows-and-wait-for-completion"
-)
-REQUIRED_SCRIPTS=(
-    "shepherd-task-00-init-campaign.sh"
-    "shepherd-task-00-init-campaign.ps1"
-    "shepherd-task-15-prepare-create-issues.sh"
-    "shepherd-task-15-prepare-create-issues.ps1"
-    "shepherd-task-25-given-list.sh"
-    "shepherd-task-25-given-list.ps1"
-    "resolve-repository-remote.sh"
-    "resolve-repository-remote.ps1"
-    "redact-secrets.sh"
-    "redact-secrets.ps1"
-    "validate-stage20-drafts.sh"
-    "validate-stage20-drafts.ps1"
-    "verify-github-issue-body.sh"
-    "verify-github-issue-body.ps1"
-    "assert-stage20-result.sh"
-    "assert-stage20-result.ps1"
-    "assert-shepherd-session-outcome.sh"
-    "assert-shepherd-session-outcome.ps1"
-    "read-shepherd-task-version.sh"
-    "read-shepherd-task-version.ps1"
+mapfile -t SKILLS < <(
+    jq -er '
+      .extensions["com.github.awesome-copilot"].skills[] |
+      sub("^./skills/"; "") |
+      sub("/$"; "")
+    ' "$PLUGIN_SRC/plugin.json"
 )
 
 semver_is_downgrade() {
@@ -196,12 +174,15 @@ for skill in "${SKILLS[@]}"; do
     done
 done
 
-for script in "${REQUIRED_SCRIPTS[@]}"; do
-    [[ -f "$STAGED_PLUGIN/scripts/$script" ]] || {
-        echo "ERROR: Required script was not staged: $script" >&2
+while IFS= read -r plugin_ref; do
+    [[ -e "$STAGED_PLUGIN/${plugin_ref#./}" ]] || {
+        echo "Error: Declared plugin file was not staged: $plugin_ref" >&2
         exit 1
     }
-done
+done < <(
+    jq -er '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
+        "$STAGED_PLUGIN/plugin.json"
+)
 
 for skill in "${SKILLS[@]}"; do
     jq -e \

@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 <#
 .SYNOPSIS
     Monitors an ongoing shepherd-task run by watching its log directory and polling GitHub.

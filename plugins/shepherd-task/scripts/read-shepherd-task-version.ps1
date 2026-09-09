@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 [CmdletBinding()]
 param()
 
@@ -39,12 +40,10 @@ if ($requiredContractVersions | Where-Object { $_ -lt 1 }) {
 }
 
 $expectedSkills = @(
-    'shepherd-task-10-create-ignorance-reduction-plan'
-    'shepherd-task-20-create-issues-from-plan'
-    'shepherd-task-30-from-assignment-to-ready'
-    'shepherd-task-40-from-ready-to-merged-to-base'
-    'shepherd-task-50-create-post-mortem'
-    'shepherd-task-approve-workflows-and-wait-for-completion'
+    $pluginManifest.extensions.'com.github.awesome-copilot'.skills |
+        ForEach-Object {
+            ([string]$_).Substring(('./skills/').Length).TrimEnd('/')
+        }
 )
 
 if (Test-Path -LiteralPath $installManifestPath -PathType Leaf) {

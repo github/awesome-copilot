@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shepherd-task-version: 1.0.0
 #
 # shepherd-task-monitor.sh — Monitors an ongoing shepherd-task run.
 #

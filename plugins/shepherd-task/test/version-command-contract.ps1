@@ -15,17 +15,44 @@ function Copy-InstalledVersionCommand {
     param([Parameter(Mandatory)][string]$Destination)
 
     New-Item -ItemType Directory -Path $Destination | Out-Null
-    foreach ($file in @('plugin.json', 'shepherd-task-version-contract.json', 'version.ps1')) {
-        Copy-Item -LiteralPath (Join-Path $pluginRoot $file) -Destination (Join-Path $Destination $file)
+    Copy-Item -LiteralPath (Join-Path $pluginRoot 'plugin.json') -Destination (Join-Path $Destination 'plugin.json')
+    foreach ($pluginReference in $sourcePlugin.extensions.'com.github.awesome-copilot'.pluginFiles) {
+        $relativePath = ([string]$pluginReference).Substring(2).TrimEnd('/')
+        $sourcePath = Join-Path $pluginRoot $relativePath
+        $destinationPath = Join-Path $Destination $relativePath
+        New-Item -ItemType Directory -Path (Split-Path -Parent $destinationPath) -Force | Out-Null
+        Copy-Item -LiteralPath $sourcePath -Destination $destinationPath -Recurse
     }
 }
 
 function New-SourceCheckout {
-    param([Parameter(Mandatory)][string]$Destination)
+    param(
+        [Parameter(Mandatory)][string]$Destination,
+        [string]$Version = $currentVersion
+    )
 
     $sourcePlugin = Join-Path $Destination 'plugins\shepherd-task'
     Copy-InstalledVersionCommand -Destination $sourcePlugin
     $plugin = Read-Plugin -Directory $sourcePlugin
+    $plugin.version = $Version
+    [IO.File]::WriteAllText(
+        (Join-Path $sourcePlugin 'plugin.json'),
+        ($plugin | ConvertTo-Json -Depth 20) + [Environment]::NewLine,
+        $utf8NoBom
+    )
+    Get-ChildItem -LiteralPath $sourcePlugin -Recurse -File |
+        Where-Object { $_.Extension -in @('.sh', '.ps1') } |
+        ForEach-Object {
+            $content = [IO.File]::ReadAllText($_.FullName)
+            [IO.File]::WriteAllText(
+                $_.FullName,
+                $content.Replace(
+                    "# shepherd-task-version: $currentVersion",
+                    "# shepherd-task-version: $Version"
+                ),
+                $utf8NoBom
+            )
+        }
     foreach ($skillReference in $plugin.extensions.'com.github.awesome-copilot'.skills) {
         $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
         $skillDirectory = Join-Path $Destination $skillPath
@@ -33,15 +60,42 @@ function New-SourceCheckout {
         $skillName = Split-Path -Leaf $skillPath
         [IO.File]::WriteAllText(
             (Join-Path $skillDirectory 'SKILL.md'),
-            "---`nname: $skillName`ndescription: Contract fixture for $skillName.`n---`n",
+            "---`n# shepherd-task-version: $Version`nname: $skillName`ndescription: Contract fixture for $skillName.`n---`n",
             $utf8NoBom
         )
     }
     & git -C $Destination init --quiet
     if ($LASTEXITCODE -ne 0) { throw 'Could not initialize temporary source checkout.' }
-    & git -C $Destination add plugins/shepherd-task/plugin.json skills
+    & git -C $Destination add plugins/shepherd-task skills
     if ($LASTEXITCODE -ne 0) { throw 'Could not track temporary shepherd-task sources.' }
     return $sourcePlugin
+}
+
+function Assert-FixtureVersionStamps {
+    param(
+        [Parameter(Mandatory)][string]$Destination,
+        [Parameter(Mandatory)][string]$ExpectedVersion
+    )
+
+    $marker = "# shepherd-task-version: $ExpectedVersion"
+    $pluginDirectory = Join-Path $Destination 'plugins\shepherd-task'
+    $files = @(
+        Get-ChildItem -LiteralPath (Join-Path $pluginDirectory 'scripts') -Recurse -File |
+            Where-Object { $_.Extension -in @('.sh', '.ps1') }
+    )
+    $files += Get-Item -LiteralPath (Join-Path $pluginDirectory 'version.sh')
+    $files += Get-Item -LiteralPath (Join-Path $pluginDirectory 'version.ps1')
+    $plugin = Read-Plugin -Directory $pluginDirectory
+    foreach ($skillReference in $plugin.extensions.'com.github.awesome-copilot'.skills) {
+        $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
+        $files += Get-Item -LiteralPath (Join-Path $Destination "$skillPath\SKILL.md")
+    }
+    foreach ($file in $files) {
+        $matches = @([IO.File]::ReadAllLines($file.FullName) | Where-Object { $_ -ceq $marker })
+        if ($matches.Count -ne 1) {
+            throw "Expected exactly one '$marker' marker in $($file.FullName)."
+        }
+    }
 }
 
 function Read-Plugin {
@@ -81,32 +135,21 @@ try {
     if ([string](Read-Plugin -Directory $micro).version -ne $expectedMicro) {
         throw 'PowerShell micro increment failed.'
     }
+    Assert-FixtureVersionStamps -Destination (Join-Path $tempRoot 'micro') -ExpectedVersion $expectedMicro
 
-    $minor = New-SourceCheckout -Destination (Join-Path $tempRoot 'minor')
-    $minorPlugin = Read-Plugin -Directory $minor
-    $minorPlugin.version = '2.7.9-beta.2+build.5'
-    [IO.File]::WriteAllText(
-        (Join-Path $minor 'plugin.json'),
-        ($minorPlugin | ConvertTo-Json -Depth 20) + [Environment]::NewLine,
-        $utf8NoBom
-    )
+    $minor = New-SourceCheckout -Destination (Join-Path $tempRoot 'minor') -Version '2.7.9-beta.2+build.5'
     & (Join-Path $minor 'version.ps1') -IncrementMinor | Out-Null
     if ([string](Read-Plugin -Directory $minor).version -ne '2.8.0') {
         throw 'PowerShell minor increment failed.'
     }
+    Assert-FixtureVersionStamps -Destination (Join-Path $tempRoot 'minor') -ExpectedVersion '2.8.0'
 
-    $major = New-SourceCheckout -Destination (Join-Path $tempRoot 'major')
-    $majorPlugin = Read-Plugin -Directory $major
-    $majorPlugin.version = '2.7.9'
-    [IO.File]::WriteAllText(
-        (Join-Path $major 'plugin.json'),
-        ($majorPlugin | ConvertTo-Json -Depth 20) + [Environment]::NewLine,
-        $utf8NoBom
-    )
+    $major = New-SourceCheckout -Destination (Join-Path $tempRoot 'major') -Version '2.7.9'
     & (Join-Path $major 'version.ps1') -IncrementMajor | Out-Null
     if ([string](Read-Plugin -Directory $major).version -ne '3.0.0') {
         throw 'PowerShell major increment failed.'
     }
+    Assert-FixtureVersionStamps -Destination (Join-Path $tempRoot 'major') -ExpectedVersion '3.0.0'
 
     $schema = New-SourceCheckout -Destination (Join-Path $tempRoot 'schema')
     [IO.File]::WriteAllText(
@@ -126,6 +169,7 @@ try {
         [string]$schemaMcp.'$schema' -ne 'https://agent-plugins.org/schemas/2.1.0/mcp.schema.json') {
         throw 'PowerShell schema-version update failed.'
     }
+    Assert-FixtureVersionStamps -Destination (Join-Path $tempRoot 'schema') -ExpectedVersion $currentVersion
 
     $before = [IO.File]::ReadAllText((Join-Path $schema 'plugin.json'))
     try {

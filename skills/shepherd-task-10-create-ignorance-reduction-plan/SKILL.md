@@ -1,4 +1,5 @@
 ---
+# shepherd-task-version: 1.0.0
 name: shepherd-task-10-create-ignorance-reduction-plan
 description: "Stage 10 of the shepherd-task campaign lifecycle (campaign planning). Use this skill when creating a new ignorance reduction plan — a structured document that maps unknowns, spikes, and phased implementation steps for a multi-day engineering campaign. Skip this stage when suitable implementation issues already exist."
 ---

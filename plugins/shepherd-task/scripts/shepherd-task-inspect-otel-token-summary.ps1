@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 <#
 .SYNOPSIS
     Summarize token usage from OTel JSONL exports produced by shepherd-task.

@@ -428,8 +428,10 @@ the final observed result.
 ## Version contract
 
 `plugin.json.version` is the single authoritative shepherd-task lineup
-version. Scripts and all six skills are installed and advanced together; no
-component has an independent release version.
+version. The `extensions.com.github.awesome-copilot.pluginFiles` and `skills`
+arrays define the complete shepherd-task estate: plugin-local runtime files
+plus all six skills. Scripts and skills are installed and advanced together;
+no component has an independent release version.
 
 `shepherd-task-version-contract.json` independently versions persisted artifact
 schemas and the machine-consumed stage outcome protocol. Stages 00, 15, and 25
@@ -458,15 +460,18 @@ version metadata:
 .\plugins\shepherd-task\version.ps1 -NewSchemaVersion 2.0.0
 ```
 
-Increment operations update only the authoritative lineup version and reset
-lower-order SemVer components as appropriate. Pre-release and build metadata
-are removed by an increment. `-newSchemaVersion` updates the Agent Plugins
-schema URL in `plugin.json` and, when present, the matching schema URL in
-`mcp.json`; it does not change the shepherd-task lineup version. Mutating
-operations refuse to run from an installed copy: the script must be located at
-the tracked `plugins/shepherd-task` path in a Git source checkout containing
-the declared top-level skill sources. The no-argument information operation
-remains available in installed copies.
+Every estate script and skill contains a
+`# shepherd-task-version: <version>` header comment. Increment operations
+update the authoritative lineup version and every embedded estate version,
+resetting lower-order SemVer components as appropriate. Pre-release and build
+metadata are removed by an increment. `-newSchemaVersion` updates the Agent
+Plugins schema URL in `plugin.json` and, when present, the matching schema URL
+in `mcp.json`; it does not change the shepherd-task lineup version or embedded
+estate versions. Mutating operations refuse to run from an installed copy:
+the script must be located at the tracked `plugins/shepherd-task` path in a Git
+source checkout containing every declared plugin file and top-level skill
+source. The no-argument information operation remains available in installed
+copies.
 
 ## Artifact layout
 

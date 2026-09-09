@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 <#
 .SYNOPSIS
     Installs one coherent shepherd-task plugin and skill lineup.
@@ -66,35 +67,12 @@ $sourceRepo = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 $pluginSrc = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $pluginDest = Join-Path $copilotHome 'plugins\shepherd-task'
 $skillsDest = Join-Path $copilotHome 'skills'
+$sourcePluginManifest = Get-Content -LiteralPath (Join-Path $pluginSrc 'plugin.json') -Raw | ConvertFrom-Json
 $skills = @(
-    'shepherd-task-10-create-ignorance-reduction-plan'
-    'shepherd-task-20-create-issues-from-plan'
-    'shepherd-task-30-from-assignment-to-ready'
-    'shepherd-task-40-from-ready-to-merged-to-base'
-    'shepherd-task-50-create-post-mortem'
-    'shepherd-task-approve-workflows-and-wait-for-completion'
-)
-$requiredScripts = @(
-    'shepherd-task-00-init-campaign.sh'
-    'shepherd-task-00-init-campaign.ps1'
-    'shepherd-task-15-prepare-create-issues.sh'
-    'shepherd-task-15-prepare-create-issues.ps1'
-    'shepherd-task-25-given-list.sh'
-    'shepherd-task-25-given-list.ps1'
-    'resolve-repository-remote.sh'
-    'resolve-repository-remote.ps1'
-    'redact-secrets.sh'
-    'redact-secrets.ps1'
-    'validate-stage20-drafts.sh'
-    'validate-stage20-drafts.ps1'
-    'verify-github-issue-body.sh'
-    'verify-github-issue-body.ps1'
-    'assert-stage20-result.sh'
-    'assert-stage20-result.ps1'
-    'assert-shepherd-session-outcome.sh'
-    'assert-shepherd-session-outcome.ps1'
-    'read-shepherd-task-version.sh'
-    'read-shepherd-task-version.ps1'
+    $sourcePluginManifest.extensions.'com.github.awesome-copilot'.skills |
+        ForEach-Object {
+            ([string]$_).Substring(('./skills/').Length).TrimEnd('/')
+        }
 )
 
 New-Item -ItemType Directory -Path $copilotHome -Force | Out-Null
@@ -157,9 +135,11 @@ try {
         }
     }
 
-    foreach ($script in $requiredScripts) {
-        if (-not (Test-Path -LiteralPath (Join-Path $stagedPlugin "scripts\$script") -PathType Leaf)) {
-            throw "Required script was not staged: $script"
+    $stagedPluginManifest = Get-Content -LiteralPath (Join-Path $stagedPlugin 'plugin.json') -Raw | ConvertFrom-Json
+    foreach ($pluginReference in $stagedPluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
+        $relativePath = ([string]$pluginReference).Substring(2).TrimEnd('/')
+        if (-not (Test-Path -LiteralPath (Join-Path $stagedPlugin $relativePath))) {
+            throw "Declared plugin file was not staged: $pluginReference"
         }
     }
 

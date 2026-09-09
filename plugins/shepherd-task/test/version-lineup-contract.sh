@@ -17,9 +17,19 @@ expected_skills='[
   "./skills/shepherd-task-50-create-post-mortem/",
   "./skills/shepherd-task-approve-workflows-and-wait-for-completion/"
 ]'
+expected_plugin_files='[
+  "./scripts/",
+  "./shepherd-task-version-contract.json",
+  "./version.ps1",
+  "./version.sh"
+]'
 jq -e \
-    --argjson expected "$expected_skills" \
-    '.extensions["com.github.awesome-copilot"].skills == $expected' \
+    --argjson expectedSkills "$expected_skills" \
+    --argjson expectedPluginFiles "$expected_plugin_files" \
+    '
+      .extensions["com.github.awesome-copilot"].skills == $expectedSkills and
+      .extensions["com.github.awesome-copilot"].pluginFiles == $expectedPluginFiles
+    ' \
     "$plugin_root/plugin.json" >/dev/null
 
 version_info="$(bash "$version_reader")"
@@ -27,6 +37,17 @@ version="$(jq -r '.shepherdTaskVersion' <<<"$version_info")"
 [[ "$version" == "$(jq -r '.version' "$plugin_root/plugin.json")" ]]
 [[ "$(jq -r '.artifactSchemaVersions.campaign' <<<"$version_info")" == "1" ]]
 [[ "$(jq -r '.artifactSchemaVersions.givenListRun' <<<"$version_info")" == "1" ]]
+
+marker="# shepherd-task-version: $version"
+while IFS= read -r script; do
+    [[ "$(grep -Fxc "$marker" "$script" || true)" == 1 ]]
+done < <(find "$plugin_root/scripts" -type f \( -name '*.sh' -o -name '*.ps1' \) -print)
+[[ "$(grep -Fxc "$marker" "$plugin_root/version.sh" || true)" == 1 ]]
+[[ "$(grep -Fxc "$marker" "$plugin_root/version.ps1" || true)" == 1 ]]
+for skill_ref in $(jq -r '.extensions["com.github.awesome-copilot"].skills[]' "$plugin_root/plugin.json"); do
+    skill_path="${skill_ref#./}"
+    [[ "$(grep -Fxc "$marker" "$plugin_root/../../$skill_path/SKILL.md" || true)" == 1 ]]
+done
 
 grep -Fq 'read-shepherd-task-version.sh' "$plugin_root/scripts/shepherd-task-00-init-campaign.sh"
 grep -Fq 'createdBy:' "$plugin_root/scripts/shepherd-task-00-init-campaign.sh"

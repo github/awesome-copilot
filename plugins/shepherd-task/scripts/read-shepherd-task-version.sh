@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shepherd-task-version: 1.0.0
 
 set -euo pipefail
 
@@ -45,14 +46,15 @@ jq -e '
 
 SHEPHERD_TASK_VERSION="$(jq -r '.version' "$PLUGIN_MANIFEST")"
 INSTALLATION_MANIFEST_SCHEMA_VERSION="$(jq -r '.artifactSchemaVersions.installationManifest' "$VERSION_CONTRACT")"
-EXPECTED_SKILLS='[
-  "shepherd-task-10-create-ignorance-reduction-plan",
-  "shepherd-task-20-create-issues-from-plan",
-  "shepherd-task-30-from-assignment-to-ready",
-  "shepherd-task-40-from-ready-to-merged-to-base",
-  "shepherd-task-50-create-post-mortem",
-  "shepherd-task-approve-workflows-and-wait-for-completion"
-]'
+EXPECTED_SKILLS="$(
+    jq -c '
+      [
+        .extensions["com.github.awesome-copilot"].skills[] |
+        sub("^./skills/"; "") |
+        sub("/$"; "")
+      ]
+    ' "$PLUGIN_MANIFEST"
+)"
 
 if [[ -f "$INSTALL_MANIFEST" ]]; then
     jq -e \

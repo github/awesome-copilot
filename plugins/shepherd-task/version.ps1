@@ -1,3 +1,4 @@
+# shepherd-task-version: 1.0.0
 <#
 .SYNOPSIS
     Reports or updates shepherd-task lineup and Agent Plugins schema versions.
@@ -74,6 +75,83 @@ function Assert-SemVer {
     }
 }
 
+function Get-EstateVersionFiles {
+    param([Parameter(Mandatory)][string]$RepoRoot)
+
+    $pluginManifest = Read-Json -Path $pluginManifestPath
+    $files = [Collections.Generic.List[string]]::new()
+    foreach ($skillReference in $pluginManifest.extensions.'com.github.awesome-copilot'.skills) {
+        $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
+        $files.Add((Join-Path $RepoRoot "$skillPath\SKILL.md"))
+    }
+    foreach ($pluginReference in $pluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
+        $reference = [string]$pluginReference
+        if (-not $reference.StartsWith('./') -or
+            $reference.Contains('\') -or
+            @($reference.Substring(2).TrimEnd('/').Split('/') | Where-Object {
+                $_ -eq '' -or $_ -eq '.' -or $_ -eq '..'
+            }).Count -ne 0) {
+            throw "Invalid shepherd-task pluginFiles reference: $reference"
+        }
+        $relativePath = $reference.Substring(2).TrimEnd('/')
+        $pluginPath = Join-Path $pluginRoot $relativePath
+        if (Test-Path -LiteralPath $pluginPath -PathType Container) {
+            Get-ChildItem -LiteralPath $pluginPath -Recurse -File |
+                Where-Object { $_.Extension -in @('.sh', '.ps1') } |
+                ForEach-Object { $files.Add($_.FullName) }
+        }
+        elseif ([IO.Path]::GetExtension($pluginPath) -in @('.sh', '.ps1')) {
+            $files.Add($pluginPath)
+        }
+    }
+    return @($files | Sort-Object -Unique)
+}
+
+function Assert-EstateVersionStamps {
+    param(
+        [Parameter(Mandatory)][string]$RepoRoot,
+        [Parameter(Mandatory)][string]$ExpectedVersion
+    )
+
+    $files = @(Get-EstateVersionFiles -RepoRoot $RepoRoot)
+    if ($files.Count -eq 0) {
+        throw 'The shepherd-task estate contains no versioned scripts or skills.'
+    }
+    $expectedMarker = "# shepherd-task-version: $ExpectedVersion"
+    foreach ($file in $files) {
+        if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
+            throw "Declared shepherd-task estate file is missing: $file"
+        }
+        $matches = @(
+            [IO.File]::ReadAllLines($file) |
+                Where-Object { $_ -ceq $expectedMarker }
+        )
+        if ($matches.Count -ne 1) {
+            throw "Expected exactly one '$expectedMarker' marker in $file."
+        }
+    }
+}
+
+function Update-EstateVersionStamps {
+    param(
+        [Parameter(Mandatory)][string]$RepoRoot,
+        [Parameter(Mandatory)][string]$CurrentVersion,
+        [Parameter(Mandatory)][string]$NextVersion
+    )
+
+    Assert-EstateVersionStamps -RepoRoot $RepoRoot -ExpectedVersion $CurrentVersion
+    $currentMarker = "# shepherd-task-version: $CurrentVersion"
+    $nextMarker = "# shepherd-task-version: $NextVersion"
+    foreach ($file in @(Get-EstateVersionFiles -RepoRoot $RepoRoot)) {
+        $content = [IO.File]::ReadAllText($file)
+        [IO.File]::WriteAllText(
+            $file,
+            $content.Replace($currentMarker, $nextMarker),
+            $utf8NoBom
+        )
+    }
+}
+
 function Assert-SourceCheckout {
     try {
         $repoRootOutput = @(& git -C $pluginRoot rev-parse --show-toplevel 2>$null)
@@ -115,6 +193,37 @@ function Assert-SourceCheckout {
             throw "Declared shepherd-task source skill is not tracked: $skillPath/SKILL.md"
         }
     }
+
+    foreach ($pluginReference in $pluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
+        $reference = [string]$pluginReference
+        if (-not $reference.StartsWith('./') -or
+            $reference.Contains('\') -or
+            @($reference.Substring(2).TrimEnd('/').Split('/') | Where-Object {
+                $_ -eq '' -or $_ -eq '.' -or $_ -eq '..'
+            }).Count -ne 0) {
+            throw "Invalid shepherd-task pluginFiles reference: $reference"
+        }
+        $relativePath = $reference.Substring(2).TrimEnd('/')
+        $pluginPath = Join-Path $pluginRoot $relativePath
+        if (-not (Test-Path -LiteralPath $pluginPath)) {
+            throw "Declared shepherd-task plugin file is missing: $pluginPath"
+        }
+        $estateFiles = if (Test-Path -LiteralPath $pluginPath -PathType Container) {
+            @(Get-ChildItem -LiteralPath $pluginPath -Recurse -File)
+        }
+        else {
+            @((Get-Item -LiteralPath $pluginPath))
+        }
+        foreach ($estateFile in $estateFiles) {
+            $repoRelativePath = [IO.Path]::GetRelativePath($repoRoot, $estateFile.FullName)
+            & git -C $repoRoot ls-files --error-unmatch -- $repoRelativePath *> $null
+            if ($LASTEXITCODE -ne 0) {
+                throw "Declared shepherd-task plugin file is not tracked: $repoRelativePath"
+            }
+        }
+    }
+
+    return $repoRoot
 }
 
 function Get-SchemaVersion {
@@ -164,7 +273,7 @@ function Show-VersionInformation {
 function Update-LineupVersion {
     param([Parameter(Mandatory)][ValidateSet('Micro', 'Minor', 'Major')][string]$Segment)
 
-    Assert-SourceCheckout
+    $repoRoot = Assert-SourceCheckout
     $pluginManifest = Read-Json -Path $pluginManifestPath
     $current = [string]$pluginManifest.version
     Assert-SemVer -Version $current -Label 'Plugin version'
@@ -177,6 +286,7 @@ function Update-LineupVersion {
         'Major' { $parts[0]++; $parts[1] = 0; $parts[2] = 0; break }
     }
     $next = [string]::Join('.', $parts)
+    Update-EstateVersionStamps -RepoRoot $repoRoot -CurrentVersion $current -NextVersion $next
     $pluginManifest.version = $next
     Write-JsonAtomically -Path $pluginManifestPath -Value $pluginManifest
     Write-Output "Incremented shepherd-task lineup version: $current -> $next"
@@ -186,7 +296,7 @@ function Update-LineupVersion {
 function Update-SchemaVersion {
     param([Parameter(Mandatory)][string]$Version)
 
-    Assert-SourceCheckout
+    $null = Assert-SourceCheckout
     Assert-SemVer -Version $Version -Label 'Schema version'
     $pluginManifest = Read-Json -Path $pluginManifestPath
     $current = Get-SchemaVersion -PluginManifest $pluginManifest

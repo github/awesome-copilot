@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shepherd-task-version: 1.0.0
 
 set -euo pipefail
 
@@ -44,6 +45,75 @@ validate_semver() {
     [[ "$1" =~ $SEMVER_PATTERN ]]
 }
 
+collect_estate_version_files() {
+    local repo_root="$1"
+    local skill_ref skill_path plugin_ref plugin_path
+
+    while IFS= read -r skill_ref; do
+        skill_path="${skill_ref#./}"
+        printf '%s\n' "$repo_root/$skill_path/SKILL.md"
+    done < <(
+        jq -er '.extensions["com.github.awesome-copilot"].skills[]' "$PLUGIN_MANIFEST"
+    )
+
+    while IFS= read -r plugin_ref; do
+        [[ "$plugin_ref" == ./* && "$plugin_ref" != *\\* &&
+            "$plugin_ref" != *"/../"* && "$plugin_ref" != "./.."* ]] ||
+            fail "Invalid shepherd-task pluginFiles reference: $plugin_ref"
+        plugin_path="$PLUGIN_ROOT/${plugin_ref#./}"
+        if [[ -d "$plugin_path" ]]; then
+            find "$plugin_path" -type f \( -name '*.sh' -o -name '*.ps1' \) -print
+        elif [[ "$plugin_path" == *.sh || "$plugin_path" == *.ps1 ]]; then
+            printf '%s\n' "$plugin_path"
+        fi
+    done < <(
+        jq -er '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$PLUGIN_MANIFEST"
+    )
+}
+
+assert_estate_version_stamps() {
+    local repo_root="$1"
+    local expected_version="$2"
+    local file count
+    local -a files
+    mapfile -t files < <(collect_estate_version_files "$repo_root" | sort -u)
+    ((${#files[@]} > 0)) ||
+        fail "The shepherd-task estate contains no versioned scripts or skills."
+
+    for file in "${files[@]}"; do
+        [[ -f "$file" ]] ||
+            fail "Declared shepherd-task estate file is missing: $file"
+        count="$(grep -Fxc "# shepherd-task-version: $expected_version" "$file" || true)"
+        [[ "$count" == 1 ]] ||
+            fail "Expected exactly one '# shepherd-task-version: $expected_version' marker in $file."
+    done
+}
+
+update_estate_version_stamps() {
+    local repo_root="$1"
+    local current_version="$2"
+    local next_version="$3"
+    local file temporary index
+    local -a files temporaries
+    mapfile -t files < <(collect_estate_version_files "$repo_root" | sort -u)
+    assert_estate_version_stamps "$repo_root" "$current_version"
+
+    for file in "${files[@]}"; do
+        temporary="$file.shepherd-task-version.$$"
+        awk \
+            -v current="# shepherd-task-version: $current_version" \
+            -v replacement="# shepherd-task-version: $next_version" \
+            '{ print ($0 == current ? replacement : $0) }' \
+            "$file" >"$temporary"
+        chmod --reference="$file" "$temporary"
+        temporaries+=("$temporary")
+    done
+
+    for index in "${!files[@]}"; do
+        mv -- "${temporaries[$index]}" "${files[$index]}"
+    done
+}
+
 assert_source_checkout() {
     command -v git >/dev/null 2>&1 ||
         fail "Mutating version operations require Git and a shepherd-task source checkout."
@@ -70,6 +140,29 @@ assert_source_checkout() {
             fail "Declared shepherd-task source skill is not tracked: $skill_path/SKILL.md"
     done < <(
         jq -er '.extensions["com.github.awesome-copilot"].skills[]' "$PLUGIN_MANIFEST"
+    )
+
+    local plugin_ref plugin_path estate_file
+    while IFS= read -r plugin_ref; do
+        [[ "$plugin_ref" == ./* && "$plugin_ref" != *\\* &&
+            "$plugin_ref" != *"/../"* && "$plugin_ref" != "./.."* ]] ||
+            fail "Invalid shepherd-task pluginFiles reference: $plugin_ref"
+        plugin_path="$PLUGIN_ROOT/${plugin_ref#./}"
+        [[ -e "$plugin_path" ]] ||
+            fail "Declared shepherd-task plugin file is missing: $plugin_path"
+        if [[ -d "$plugin_path" ]]; then
+            while IFS= read -r estate_file; do
+                git -C "$repo_root" ls-files --error-unmatch \
+                    "${estate_file#"$repo_root/"}" >/dev/null 2>&1 ||
+                    fail "Declared shepherd-task plugin file is not tracked: ${estate_file#"$repo_root/"}"
+            done < <(find "$plugin_path" -type f -print)
+        else
+            git -C "$repo_root" ls-files --error-unmatch \
+                "${plugin_path#"$repo_root/"}" >/dev/null 2>&1 ||
+                fail "Declared shepherd-task plugin file is not tracked: ${plugin_path#"$repo_root/"}"
+        fi
+    done < <(
+        jq -er '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$PLUGIN_MANIFEST"
     )
 }
 
@@ -116,8 +209,9 @@ print_version_information() {
 
 increment_version() {
     local segment="$1"
-    local current major minor micro next
+    local current major minor micro next repo_root plugin_temporary
     assert_source_checkout
+    repo_root="$(git -C "$PLUGIN_ROOT" rev-parse --show-toplevel)"
     current="$(read_plugin_version)" ||
         fail "plugin.json does not contain a string version."
     validate_semver "$current" ||
@@ -142,7 +236,11 @@ increment_version() {
             ;;
     esac
     next="$major.$minor.$micro"
-    write_json_atomically "$PLUGIN_MANIFEST" '.version = $version' --arg version "$next"
+    plugin_temporary="$PLUGIN_MANIFEST.tmp.$$"
+    jq --arg version "$next" '.version = $version' "$PLUGIN_MANIFEST" >"$plugin_temporary" ||
+        fail "Could not prepare the shepherd-task plugin version update."
+    update_estate_version_stamps "$repo_root" "$current" "$next"
+    mv -- "$plugin_temporary" "$PLUGIN_MANIFEST"
     echo "Incremented shepherd-task lineup version: $current -> $next"
     print_version_information
 }
