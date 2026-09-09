@@ -156,22 +156,6 @@ function renderItems(items: Skill[], query = ""): void {
     )
     .join("");
 
-  // Use a single delegated handler so re-rendering doesn't rebind every row.
-  list.addEventListener("click", (e) => {
-    const target = e.target as HTMLElement;
-    const downloadBtn = target.closest(".download-skill-btn") as HTMLButtonElement | null;
-    if (downloadBtn) {
-      e.stopPropagation();
-      const skillId = downloadBtn.dataset.skillId;
-      if (skillId) downloadSkill(skillId, downloadBtn);
-      return;
-    }
-
-    const item = target.closest(".resource-item") as HTMLElement | null;
-    if (!item || target.closest(".resource-actions")) return;
-    const path = item.dataset.path;
-    if (path) openFileModal(path, resourceType);
-  });
 }
 
 async function downloadSkill(
@@ -265,6 +249,24 @@ export async function initSkillsPage(): Promise<void> {
 
   allItems = data.items;
   search.setItems(allItems);
+
+  list?.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const downloadBtn = target.closest(
+      ".download-skill-btn"
+    ) as HTMLButtonElement | null;
+    if (downloadBtn) {
+      e.stopPropagation();
+      const skillId = downloadBtn.dataset.skillId;
+      if (skillId) downloadSkill(skillId, downloadBtn);
+      return;
+    }
+
+    const item = target.closest(".resource-item") as HTMLElement | null;
+    if (!item || target.closest(".resource-actions")) return;
+    const path = item.dataset.path;
+    if (path) openFileModal(path, resourceType);
+  });
 
   categorySelect = createChoices("#filter-category", {
     placeholderValue: "All Categories",
