@@ -1,0 +1,7 @@
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "I"]
+
+[lint.isort]
+known-first-party = ["plugin_logic", "openapi_client"]
