@@ -27,7 +27,7 @@ fixtures/
   katalon-test-data.ts
 ```
 
-Prefer `npm init playwright@latest` or the repository's package manager equivalent. Choose TypeScript, install browser dependencies only when needed, and avoid overwriting existing application files.
+Prefer `npm init playwright` or the repository's package manager equivalent. Choose TypeScript, install browser dependencies only when needed, and avoid overwriting existing application files.
 
 ## Page Object Model
 

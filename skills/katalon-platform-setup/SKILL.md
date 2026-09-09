@@ -75,8 +75,10 @@ When MCP tools are missing:
 4. Fall back to the `mcp-remote` wrapper only for agents without native remote-MCP support (Kiro, Continue, Codex):
 
    ```sh
-   npx -y mcp-remote https://platform.katalon.io/mcp --transport http-first
+   npx mcp-remote https://platform.katalon.io/mcp --transport http-first
    ```
+
+   On first run `npx` asks before installing `mcp-remote`; answer it yourself rather than pre-approving. The JSON/TOML config form below passes `-y` because a spawned MCP server has no terminal to answer on.
 
    - Codex declares the same command/args in TOML under `[mcp_servers.katalon-prod-mcp]`.
    - For the exact file path per agent, read the repository `README.md` install section.
@@ -100,7 +102,7 @@ Use this when Katalon MCP tools are missing from the active session or direct re
 3. Run the proxy with the Katalon endpoint:
 
    ```sh
-   npx -y mcp-remote "https://platform.katalon.io/mcp" --transport http-first
+   npx mcp-remote "https://platform.katalon.io/mcp" --transport http-first
    ```
 
    If this prints an authorization URL or opens the browser, wait for the user/browser callback to complete. `mcp-remote` stores OAuth state under its own auth cache, such as `~/.mcp-auth`, not in the workspace.
