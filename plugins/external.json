@@ -1253,30 +1253,6 @@
     }
   },
   {
-    "name": "usage-insights",
-    "description": "Inspect current and historical GitHub Copilot token and AI-credit usage with per-agent rollups and in-canvas session drill-down.",
-    "version": "1.0.0",
-    "author": {
-      "name": "David Kaya",
-      "url": "https://github.com/davidkaya"
-    },
-    "repository": "https://github.com/davidkaya/github-copilot-usage-insights",
-    "license": "MIT",
-    "keywords": [
-      "ai-credits",
-      "canvas",
-      "copilot-extension",
-      "session-analytics",
-      "token-usage",
-      "usage-insights"
-    ],
-    "source": {
-      "source": "github",
-      "repo": "davidkaya/github-copilot-usage-insights",
-      "sha": "206d53faab1d8a3331de96e203d0206ad21845aa"
-    }
-  },
-  {
     "name": "vercel-plugin",
     "description": "Build and deploy web apps and agents. Comprehensive Vercel ecosystem plugin — relational knowledge graph, skills for every major product, specialized agents, and Vercel conventions. Turns any AI agent into a Vercel expert.",
     "version": "0.48.1",
