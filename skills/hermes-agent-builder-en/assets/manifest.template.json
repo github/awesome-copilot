@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "system_slug": "example-agent",
+  "status": "draft",
+  "target_agents": ["codex", "hermes"],
+  "entrypoint": "START-HERE.md",
+  "implementation_instruction": "IMPLEMENTATION.md",
+  "critical_unknowns": [
+    "Replace this example with a real critical unknown or remove it"
+  ],
+  "profiles": [
+    {
+      "slug": "example-agent",
+      "kind": "primary",
+      "specification": "blueprint/profiles/example-agent/profile.md",
+      "distribution": "blueprint/profiles/example-agent/distribution"
+    }
+  ],
+  "expected_results": [
+    "implementation/",
+    "implementation/IMPLEMENTATION-RESULT.md"
+  ]
+}
