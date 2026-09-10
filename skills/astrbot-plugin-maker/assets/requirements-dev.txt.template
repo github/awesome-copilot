@@ -1,5 +1,5 @@
 pytest>=8,<10
 PyYAML>=6,<7
-packaging>=24
-ruff>=0.15
+packaging==26.3
+ruff==0.16.6
 # Install the target AstrBot separately to run runtime_tests/.

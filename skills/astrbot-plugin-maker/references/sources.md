@@ -58,6 +58,6 @@ its required attribution/license material.
 
 ## Skill provenance
 
-Adapted from [Elysium-Seeker/astrbot_plugin_maker_skill](https://github.com/Elysium-Seeker/astrbot_plugin_maker_skill/tree/40887d7827fa6ef3dd8e656f38eddbd369efe689),
+Adapted from [Elysium-Seeker/astrbot_plugin_maker_skill](https://github.com/Elysium-Seeker/astrbot_plugin_maker_skill/tree/13e3838870b88aff47970b678f1425907c30acec),
 which contains the scaffold regression suite and Windows/Linux/real-SDK CI workflow.
 The contributed copy is self-contained; using it does not require cloning that repository.
