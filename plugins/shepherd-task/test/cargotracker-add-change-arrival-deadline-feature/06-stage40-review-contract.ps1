@@ -17,6 +17,11 @@ $stage25 = Get-Content -LiteralPath $stage25Path -Raw
 
 $requiredSkillText = @(
     '--add-reviewer "@copilot"',
+    'if GH_PR_EDIT_HELP=$(gh pr edit --help 2>&1); then',
+    'GH_PR_EDIT_HELP_STATUS=$?',
+    'case "$GH_PR_EDIT_HELP" in',
+    "*'@copilot'*)",
+    'gh path:',
     '$helpOutput = @(gh pr edit --help 2>&1)',
     '$ghExitCode = $LASTEXITCODE',
     'if ($ghExitCode -ne 0)',
@@ -32,6 +37,9 @@ foreach ($required in $requiredSkillText) {
 }
 if ($skill.Contains('--add-reviewer Copilot')) {
     throw 'Stage-40 skill still requests Copilot as an ordinary login.'
+}
+if ($skill -match 'gh pr edit --help\s*\|\s*grep\s+-Fq') {
+    throw 'Stage-40 skill still uses an early-closing Bash grep pipeline for capability detection.'
 }
 if ($skill -match 'gh pr edit --help\s*\|\s*Select-String') {
     throw 'Stage-40 skill still transforms native help output before capturing its exit code.'

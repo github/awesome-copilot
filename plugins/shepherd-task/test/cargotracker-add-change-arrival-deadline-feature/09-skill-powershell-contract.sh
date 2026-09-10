@@ -71,8 +71,11 @@ grep -Fq 'gh api \' "$stage30" &&
     grep -Fq '/assignees \' "$stage30" &&
     grep -Fq -- '--input - <<< "{' "$stage30" ||
     fail "The stage-30 Bash assignment example must execute gh directly under fail-fast semantics."
-grep -Fq 'gh pr edit --help | grep -Fq' "$stage40" ||
-    fail "The stage-40 Bash capability preflight must fail when @copilot support is absent."
+grep -Fq 'if GH_PR_EDIT_HELP=$(gh pr edit --help 2>&1); then' "$stage40" &&
+    grep -Fq 'case "$GH_PR_EDIT_HELP" in' "$stage40" ||
+    fail "The stage-40 Bash capability preflight must capture help before inspecting it."
+! grep -Eq 'gh pr edit --help[[:space:]]*\|[[:space:]]*grep[[:space:]]+-Fq' "$stage40" ||
+    fail "The stage-40 Bash capability preflight still uses an early-closing grep pipeline."
 for skill_file in "$stage30" "$stage40"; do
     ! grep -Fq 'skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md' "$skill_file" ||
         fail "$(basename "$(dirname "$skill_file")") uses a repository-relative path for an installed skill."

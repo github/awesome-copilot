@@ -83,10 +83,27 @@ special Copilot reviewer token. This is a local capability preflight and must
 complete before `gh pr ready`:
 
 ```bash
-if ! gh pr edit --help | grep -Fq '@copilot'; then
-  echo "SHEPHERD FAILED: installed gh does not support the @copilot reviewer token."
+if GH_PR_EDIT_HELP=$(gh pr edit --help 2>&1); then
+  GH_PR_EDIT_HELP_STATUS=0
+else
+  GH_PR_EDIT_HELP_STATUS=$?
+fi
+if [ "$GH_PR_EDIT_HELP_STATUS" -ne 0 ]; then
+  echo "SHEPHERD FAILED: could not inspect gh pr edit capabilities; gh exited $GH_PR_EDIT_HELP_STATUS."
+  echo "gh path: $(command -v gh || printf '%s' '<not found>')"
+  gh --version 2>&1 || true
   exit 1
 fi
+case "$GH_PR_EDIT_HELP" in
+*'@copilot'*)
+  ;;
+*)
+  echo "SHEPHERD FAILED: installed gh does not support the @copilot reviewer token."
+  echo "gh path: $(command -v gh || printf '%s' '<not found>')"
+  gh --version 2>&1 || true
+  exit 1
+  ;;
+esac
 ```
 
 On PowerShell, perform the equivalent check with:

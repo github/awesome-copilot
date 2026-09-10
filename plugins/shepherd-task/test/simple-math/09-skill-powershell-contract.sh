@@ -33,8 +33,11 @@ stage30="$skills_directory/shepherd-task-30-from-assignment-to-ready/SKILL.md"
 stage40="$skills_directory/shepherd-task-40-from-ready-to-merged-to-base/SKILL.md"
 grep -Fq '/assignees \' "$stage30" || fail "Stage-30 Bash assignment example is missing."
 grep -Fq -- '--input - <<< "{' "$stage30" || fail "Stage-30 Bash assignment body is missing."
-grep -Fq 'if ! gh pr edit --help | grep -Fq '\''@copilot'\''; then' "$stage40" ||
-    fail "Stage-40 Bash capability preflight is missing."
+grep -Fq 'if GH_PR_EDIT_HELP=$(gh pr edit --help 2>&1); then' "$stage40" &&
+    grep -Fq 'case "$GH_PR_EDIT_HELP" in' "$stage40" ||
+    fail "Stage-40 Bash capability preflight does not capture help before inspecting it."
+! grep -Eq 'gh pr edit --help[[:space:]]*\|[[:space:]]*grep[[:space:]]+-Fq' "$stage40" ||
+    fail "Stage-40 Bash capability preflight still uses an early-closing grep pipeline."
 for skill_file in "$stage30" "$stage40"; do
     ! grep -Fq 'skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md' "$skill_file" ||
         fail "$(basename "$(dirname "$skill_file")") uses a repository-relative path for an installed skill."
