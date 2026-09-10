@@ -8,6 +8,25 @@ Stop generic UI from shipping. UIZZE helps GitHub Copilot build product-specific
 copilot plugin install uizze@awesome-copilot
 ```
 
+## Try It on a Real Screen
+
+Open a project with a billing settings screen and give Copilot its file path:
+
+```text
+Use anti-ui-slop to improve the billing settings screen in [file path].
+Reuse this project's components and design tokens. Make the current plan,
+usage limits, invoices, and upgrade or cancel actions easy to find.
+Cover loading, empty, payment-failed, and permission-denied states where
+they apply. Inspect the rendered result if the environment supports it,
+then fix observable layout and interaction problems.
+```
+
+Adapt the prompt to the features your product actually has. The skill should
+preserve your product's design system and finish the requested screen's states.
+It should not invent billing behavior, data, or backend integrations.
+
+For other tasks, see the [data table, permissions, iOS, and UI review examples](https://github.com/uizze/uizze/blob/main/examples/agent-workflows.md).
+
 ## What's Included
 
 | Skill | Description |
@@ -27,7 +46,7 @@ The skill works from repository evidence alone. UIZZE references are optional, a
 
 - No account, credential, token, or external server is required.
 - No MCP server is bundled with this plugin.
-- The skill is MIT licensed and useful on its own.
+- The free workflow is useful on its own. See the license scope below for the bundled playbooks.
 
 The optional, separate authenticated UIZZE MCP exposes exactly `find_ui_references` and `find_ui_materials`. It is not required by this plugin.
 
@@ -37,4 +56,8 @@ This plugin is part of [Awesome Copilot](https://github.com/github/awesome-copil
 
 ## License
 
-MIT
+The plugin entry point is MIT licensed. The bundled design playbooks carry
+[Apache-2.0](https://github.com/github/awesome-copilot/blob/main/skills/anti-ui-slop/LICENSE)
+terms and [third-party notices](https://github.com/github/awesome-copilot/blob/main/skills/anti-ui-slop/NOTICE).
+See the upstream [license map](https://github.com/uizze/uizze/blob/main/LICENSING.md)
+for the package scope.
