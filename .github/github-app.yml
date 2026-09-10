@@ -1,0 +1,10 @@
+scripts:
+  - name: Generate readme
+    command: npm run build
+  - name: Run website
+    command: "npm run website:dev"
+  - name: Install dependencies
+    command: npm install && cd website && npm install
+automation:
+  auto_issue_session: true
+  remote_control: false

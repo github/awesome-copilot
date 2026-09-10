@@ -1,0 +1,798 @@
+.page {
+  min-height: 100vh;
+  /*
+   * Responsive page gutters (Figma "card" spec). A fixed side inset and block
+   * padding per breakpoint tier, exposed as variables so every section band
+   * below can share them:
+   *   <768px      →  L/R 20px · T/B 40px
+   *   768–1279px  →  L/R 91px · T/B 40px
+   *   1280–1919px →  L/R 152px · T/B 60px
+   *   ≥1920px     →  variables stop applying → native centered-1280 layout
+   * (91/152/60 have no base-size token, so they are raw px.)
+   */
+  --page-gutter: var(--base-size-20);
+  --page-pad-block: var(--base-size-40);
+}
+
+@media screen and (min-width: 48rem) and (max-width: 79.99rem) {
+  .page {
+    --page-gutter: 91px;
+  }
+}
+
+@media screen and (min-width: 80rem) and (max-width: 119.99rem) {
+  .page {
+    --page-gutter: 152px;
+    --page-pad-block: 60px;
+  }
+}
+
+/* Combined top navigation: brand mark, title, divider, content-type tabs,
+   and trailing actions, framed by the same gridlines as the hero. Ported from
+  the catalog pages. */
+.topBar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.topBarInner {
+  width: 1280px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  border-inline-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  padding-inline-start: var(--base-size-24);
+  padding-inline-end: var(--base-size-24);
+  color: var(--brand-color-text-default);
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.brandMark:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-4);
+}
+
+.topBarActions {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-12);
+  padding-inline-start: var(--base-size-16);
+  padding-inline-end: var(--base-size-24);
+}
+
+.searchButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--base-size-32);
+  block-size: var(--base-size-32);
+  padding: 0;
+  border: 0;
+  border-radius: var(--brand-borderRadius-medium);
+  background-color: transparent;
+  color: var(--brand-color-text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.searchButton:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--base-color-scale-gray-1);
+}
+
+.page[data-mode="dark"] .searchButton:hover {
+  background-color: var(--base-color-scale-gray-6);
+}
+
+.searchButton:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+.searchField {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  inline-size: 12rem;
+  max-inline-size: 100%;
+  block-size: var(--base-size-32);
+  padding-inline: var(--base-size-12);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  background-color: var(--brand-color-canvas-default);
+  color: var(--brand-color-text-muted);
+  overflow: hidden;
+  transform-origin: right center;
+  animation: searchFieldExpand 0.18s ease;
+  transition: border-color 0.2s ease;
+}
+
+@keyframes searchFieldExpand {
+  from {
+    inline-size: var(--base-size-32);
+    opacity: 0.4;
+  }
+  to {
+    inline-size: 12rem;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .searchField {
+    animation: none;
+  }
+}
+
+.searchField:focus-within {
+  border-color: var(--brand-color-focus);
+}
+
+.searchInput {
+  flex: 1;
+  min-inline-size: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-100);
+  color: var(--brand-color-text-default);
+}
+
+.searchInput::placeholder {
+  color: var(--brand-color-text-muted);
+}
+
+.searchInput:focus {
+  outline: none;
+}
+
+.searchKbd {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--base-size-6);
+  padding-block: var(--base-size-2);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-small);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: 1;
+  color: var(--brand-color-text-muted);
+}
+
+.subNavTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  text-decoration: none;
+  padding-block: var(--base-size-16);
+  padding-inline: var(--base-size-24);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-weight: var(--brand-text-weight-medium);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-default);
+  white-space: nowrap;
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.subNavList {
+  flex: 1 1 auto;
+  margin: 0;
+  padding-block: var(--base-size-16);
+  padding-inline: var(--base-size-16);
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-8);
+}
+
+.subNavLink {
+  display: inline-flex;
+  align-items: center;
+  margin-block: 0;
+  padding-block: var(--base-size-4);
+  padding-inline: var(--base-size-16);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-muted);
+  text-decoration: none;
+  border-radius: var(--brand-borderRadius-full);
+  background-color: transparent;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.subNavLink:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.subNavLink:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-4);
+}
+
+.subNavTitle:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+}
+
+.subNavLinkActive,
+.subNavLinkActive:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--base-color-scale-gray-1);
+}
+
+.page[data-mode="dark"] .subNavLinkActive,
+.page[data-mode="dark"] .subNavLinkActive:hover {
+  background-color: var(--base-color-scale-gray-6);
+}
+
+/* "More" overflow dropdown, trigger styled as a tab */
+.moreItem {
+  display: flex;
+  align-items: center;
+}
+
+.moreMenu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.moreTrigger {
+  gap: var(--base-size-4);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.moreTrigger::-webkit-details-marker {
+  display: none;
+}
+
+.moreChevron {
+  transition: transform 0.2s ease;
+}
+
+.moreMenu[open] .moreChevron {
+  transform: rotate(180deg);
+}
+
+.moreOverlay {
+  position: absolute;
+  inset-block-start: calc(100% + var(--base-size-4));
+  inset-inline-start: 0;
+  z-index: 20;
+  min-inline-size: 12rem;
+  display: flex;
+  flex-direction: column;
+  padding: var(--base-size-8);
+  background-color: var(--brand-color-canvas-default);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  box-shadow: var(--brand-SubNav-shadow);
+}
+
+.moreLink {
+  padding-block: var(--base-size-8);
+  padding-inline: var(--base-size-12);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: var(--brand-borderRadius-medium);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.moreLink:hover {
+  color: var(--brand-color-text-default);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.moreLink:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+}
+
+/* Active dropdown item: mark the current Resources page so it stays
+   indicated when the menu is reopened. */
+.moreLink[aria-current="page"],
+.moreLink[aria-current="page"]:hover {
+  color: var(--brand-color-text-default);
+  font-weight: var(--brand-text-weight-semibold);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/*
+ * Because gridlines stretch outside the native Grid, we use a wrapper frame
+ * that draws the shared connecting lines around the card grid.
+ * Adapted from templates/marketing/overview/styles.module.css.
+ */
+.cardGridFrame {
+  width: 100%;
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.cardGridContent {
+  width: 100%;
+}
+
+.cardGridColumn {
+  display: flex;
+}
+
+.cardGridItem {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* 28px + the Primer Card's 32px inner padding = 60px, matching the catalog
+     card padding used across the rest of the site. */
+  padding: var(--base-size-28);
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+/* Subtle hover/focus fill covers the full cell rectangle, out to the gridlines,
+   like Primer Brand's Card surface. The rounded focus ring below sits inset
+   within it (see the ::before layer). */
+.cardGridColumnArrowHover .cardGridItem {
+  transition: background-color var(--brand-animation-duration-extended)
+    var(--brand-animation-easing-default);
+}
+
+.cardGridColumnArrowHover .cardGridItem:is(:hover, :focus-within) {
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+/* Ring layer: inset from the gridline boundary by the cell padding, so a gutter
+   sits between the ring and the gridlines, with medium (8px) corners, matching
+   Primer Brand's Card, whose focus ring hugs the Card box inset within its grid
+   cell. A transparent overlay (pointer-events: none) that only paints the ring
+   on focus; the subtle fill above stays on the full cell. */
+.cardGridItem::before {
+  content: "";
+  position: absolute;
+  inset: var(--base-size-28);
+  border-radius: var(--brand-borderRadius-medium);
+  pointer-events: none;
+}
+
+.cardGridColumn:first-child .cardGridItem {
+  border-block-start: 0;
+}
+
+.resourceCard {
+  min-block-size: 100%;
+}
+
+/* Suppress the Card's built-in ring so it doesn't stack with the surface ring. */
+.cardGridItem :global([class*="Card__outer"]):focus-within {
+  outline: none;
+}
+
+/* On card-link focus, draw the ring on the inset layer (offset 0, medium 8px
+   corners), so it hugs the card inset within the filled cell. Fires on mouse or
+   keyboard focus of the card link (action buttons keep their own rings). */
+.cardGridItem:has(:global([class*="Card__link"]):focus)::before {
+  outline: var(--brand-borderWidth-thick) solid var(--brand-color-focus);
+}
+
+/*
+ * Gridline frame around the Hero: full-bleed horizontal rules top and bottom,
+ * with vertical rules inset to the Section content edges — two horizontal and
+ * two vertical lines forming a connected box, matching the CTA frame below.
+ */
+.heroFrame {
+  width: 100%;
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.heroFrameInner {
+  background-color: var(--brand-color-canvas-subtle);
+  border-inline: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  padding-block: var(--base-size-80);
+}
+
+/* Zero the Hero's native block padding so the 60px frame padding above sets the
+ * exact, symmetric top/bottom whitespace. */
+.heroFrameInner :global([class*="Hero-module__Hero___"]) {
+  padding-block: 0;
+}
+
+/* Pin the Hero title to 48px (base-size-48 = 3rem). Cap the line box just past
+   "The community library" so the title wraps to two lines after that word
+   instead of splitting mid-word. */
+.heroFrameInner :global([class*="Hero-module__Hero-heading___"]) {
+  font-size: var(--base-size-48);
+  max-width: 33.5rem;
+  margin-inline: auto;
+  animation: heroRiseUp 0.6s ease-out 0.09s both;
+}
+
+/* Hero icon, title, and description rise up from below and fade in on load, in
+   a subtle stagger — matching the Agents page hero entrance. */
+@keyframes heroRiseUp {
+  from {
+    opacity: 0;
+    transform: translateY(var(--base-size-24));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.heroRiseIcon {
+  animation: heroRiseUp 0.6s ease-out both;
+}
+
+.heroFrameInner :global([class*="Hero-module__Hero-description___"]) {
+  animation: heroRiseUp 0.6s ease-out 0.18s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroRiseIcon,
+  .heroFrameInner :global([class*="Hero-module__Hero-heading___"]),
+  .heroFrameInner :global([class*="Hero-module__Hero-description___"]) {
+    animation: none;
+  }
+}
+
+/* Dark-mode override for the Hero secondary CTA ("Become a contributor"): use
+ * the requested solid #202020 fill instead of the default translucent white.
+ * Not a token: --brand-button-secondary-bgColor-rest resolves to a
+ * translucent overlay (rgba(255,255,255,0.12) in dark mode), which would
+ * visually regress from the prototype's opaque fill — this hex is a
+ * deliberate, verbatim match to the approved design, not an oversight. */
+:global([data-color-mode="dark"]) .heroFrameInner
+  :global([class*="Button--secondary"]) {
+  background-color: #202020;
+}
+
+/* Light-mode override for the Hero secondary CTA: requested solid #F0F0F0
+ * fill, same rationale as above. */
+:global([data-color-mode="light"]) .heroFrameInner
+  :global([class*="Button--secondary"]) {
+  background-color: #f0f0f0;
+}
+
+/*
+ * Lay the heading out as a row: title on the left with the count label sitting
+ * just after it (not pushed to the far card edge).
+ */
+.cardHeadingRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--base-size-12);
+}
+
+/* Keep the count label at full width; let the title take the remaining space. */
+.cardHeadingRow :global([class*="Token"]) {
+  flex-shrink: 0;
+}
+
+/*
+ * Gridline frame around the closing CTA banner: full-bleed horizontal rules
+ * top and bottom, with vertical rules inset to the banner (Section content)
+ * edges — mirrors the connected gridline aesthetic of the card grid above.
+ */
+.ctaFrame {
+  width: 100%;
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.ctaFrameInner {
+  border-inline: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+/*
+ * CTABanner caps its own width at --brand-breakpoint-xlarge and centers itself,
+ * so on wide viewports the subtle background stops short of the frame's vertical
+ * gridlines, leaving a gap. Let the banner (and its subtle background) fill the
+ * full frame edge to edge; the inner content keeps its own max-width and stays
+ * centered.
+ */
+.ctaFrameInner :global([class*="CTABanner-module__CTABanner___"]) {
+  max-width: none;
+}
+
+/*
+ * CTABanner.Logo caps its SVG at 40px tall; render the learning icon at its
+ * intended 64px instead.
+ */
+.ctaFrameInner :global([class*="CTABanner-logo"]) > svg {
+  height: var(--base-size-64);
+}
+
+/*
+ * Constrain the CTA body copy so the first line wraps after "…get the most
+ * out" instead of stretching the full banner width. Centered to match the
+ * banner's align="center" layout.
+ */
+.ctaFrameInner :global([class*="CTABanner-description"]) {
+  max-width: 40rem;
+  margin-inline: auto;
+}
+
+/* The branded page divider sits flush above the footer. */
+.dividerFrame {
+  width: 100%;
+}
+
+/*
+ * Render the Card's arrow-only CTA as a circular chevron affordance, matching
+ * the reference design. The Card link still wraps the whole card, so the
+ * chevron stays accessible and clickable. Colour tracks the Primer Brand Card
+ * default: the arrow uses the link accent, not the green accent-primary.
+ */
+.resourceCard :global([class*="Card__actionIcon--arrowOnly"]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--base-size-40);
+  block-size: var(--base-size-40);
+  overflow: hidden;
+  color: var(--brand-Link-color-accent);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-default);
+  border-radius: var(--brand-borderRadius-full);
+}
+
+/* Tablet nav: the full desktop nav row (tabs + search + heart + Contribute)
+   doesn't fit from 48rem up to this breakpoint — it wraps to two rows, and
+   opening search shoves the wordmark off-screen (issue #19). Collapse to the
+   hamburger across this band too; the wordmark grows to fill so the menu
+   button sits at the far right. */
+@media screen and (min-width: 48rem) and (max-width: 74.99rem) {
+  .subNavList {
+    display: none;
+  }
+
+  .topBarActions {
+    display: none;
+  }
+
+  .searchButton,
+  .searchField {
+    display: none;
+  }
+
+  .subNavTitle {
+    flex: 1 1 auto;
+    border-inline-end: 0;
+  }
+}
+
+@media screen and (max-width: 47.99rem) {
+  .subNavList {
+    display: none;
+  }
+
+  /* Inset the hero content 20px from the frame's vertical gridlines so the
+     icon, title, description, and buttons keep breathing room off the lines
+     (and the buttons pick up the same side margin as the CTA banner below). */
+  .heroFrameInner {
+    padding-inline: var(--base-size-20);
+  }
+
+  /* Shrink the community icon to sit proportionally with the smaller mobile
+     hero type (down from the 56px desktop size). */
+  .heroRiseIcon svg {
+    width: var(--base-size-44);
+    height: var(--base-size-44);
+  }
+
+  /* Mobile hero heading: step the title down to the 28px brand type scale
+     (Heading, size-700) so it sits smaller and fits narrow viewports. */
+  .heroFrameInner :global([class*="Hero-module__Hero-heading___"]) {
+    font-size: var(--brand-text-size-700);
+    line-height: 1.2;
+    max-width: none;
+  }
+
+  /* Mobile hero description: step the body copy down to the 14px brand scale
+     (size-100) to match the smaller title. */
+  .heroFrameInner :global([class*="Hero-module__Hero-description___"]) {
+    font-size: var(--brand-text-size-100);
+  }
+
+  /* Mobile hero actions: stack the two CTAs and stretch them to equal
+     (full) width so they read as a matched pair — mirroring the CTA banner's
+     stacked, equal-width buttons below. */
+  .heroFrameInner :global([class*="Hero-module__Hero-actions___"]) {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .heroFrameInner
+    :global([class*="Hero-module__Hero-actions___"])
+    :global([class*="Button-module__Button___"]) {
+    width: 100%;
+  }
+
+  /* Restore the vertical gridlines on the single-column card grid: the desktop
+     lines come from the cards' inline borders (added at >=768px), so on mobile
+     the stack has none. Add them back, inset to the 20px content gutter so the
+     framed box's side rules stay continuous with the hero/CTA above and below. */
+  .cardGridItem {
+    border-inline: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  .subNavTitle {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--brand-text-size-100);
+    /* Align the wordmark with the hero's left gridline: the full-bleed header's
+       inner border sits at x=0, so inset by the page gutter less that border. */
+    padding-inline-start: calc(
+      var(--page-gutter) - var(--brand-borderWidth-thin)
+    );
+    padding-inline-end: var(--base-size-12);
+    border-inline-end: 0;
+  }
+
+  /* Keep the GitHub mark on the wordmark at every viewport so the page still
+     reads as official; it stays fixed while the title text ellipsizes. */
+  .subNavTitle svg {
+    flex-shrink: 0;
+  }
+
+  .brandMark {
+    padding-inline-start: var(--base-size-16);
+    padding-inline-end: var(--base-size-16);
+  }
+
+  /* The heart (contributors) and Contribute action move into the hamburger
+     dropdown on mobile (see TopNav), so hide the header action cluster here.
+     The search field is already hidden below. */
+  .topBarActions {
+    display: none;
+  }
+
+  .searchButton,
+  .searchField {
+    display: none;
+  }
+}
+
+/* Two-column band: from tablet (768px) up to just below xlarge (1280px), the
+   grid renders two columns (span small:6 holds through the large breakpoint).
+   Draw the vertical rule on both edges of every card and clear the top border
+   on the first row (items 1 and 2). */
+@media screen and (min-width: 48rem) and (max-width: 79.99rem) {
+  .cardGridItem {
+    padding: var(--base-size-28);
+    border-inline: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  /* two columns: reset the top border on the first two items */
+  .cardGridColumn:nth-child(2) .cardGridItem {
+    border-block-start: 0;
+  }
+}
+
+/* Three-column band: the grid only becomes three columns at xlarge (1280px),
+   where span drops to 4. */
+@media screen and (min-width: 80rem) {
+  .cardGridItem {
+    padding: var(--base-size-28);
+    border-block-start: 0;
+    border-inline-end: 0;
+    border-inline-start: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  /* rows 2+ (3 columns, so row 2 starts at item 4) draw the inter-row line,
+     which also serves as the bottom line of the cards in the row above */
+  .cardGridColumn:nth-child(n + 4) .cardGridItem {
+    border-block-start: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+
+  /* close the right edge of each row (every 3rd card and the last one) */
+  .cardGridColumn:nth-child(3n) .cardGridItem,
+  .cardGridColumn:last-child .cardGridItem {
+    border-inline-end: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+}
+
+/*
+ * Responsive gutters (below 1920px). Neutralise the native Section/Grid
+ * 1280px-centered layout and inset each band's framed content by the tiered
+ * --page-gutter, so the vertical gridlines track the content edge at every
+ * width. At >=1920px this block drops out and the original layout returns.
+ */
+@media screen and (max-width: 119.99rem) {
+  .heroFrame :global([class*="Section__container"]),
+  .ctaFrame :global([class*="Section__container"]),
+  .dividerFrame :global([class*="Section__container"]) {
+    max-width: none;
+  }
+
+  /* Header bar: inset its side gridlines to the same gutter so the vertical
+     rules stay continuous with the hero/content frame below. Only from 768px
+     up — on phones the collapsed bar (title + heart + Contribute) needs the
+     full width, so it stays full-bleed there. It is a centered flex child, so
+     grow-to-fill minus symmetric gutter margins (never width:100% + margin,
+     which would overflow). */
+
+  .heroFrameInner,
+  .ctaFrameInner {
+    margin-inline: var(--page-gutter);
+  }
+
+  .heroFrameInner {
+    padding-block: var(--page-pad-block);
+  }
+
+  .cardGridContent {
+    padding-inline: var(--page-gutter);
+  }
+
+  .cardGridContent :global([class*="Grid-module__Grid_"]) {
+    max-width: none;
+  }
+
+  .dividerFrame :global([class*="Section__container"]) > * {
+    padding-inline: var(--page-gutter);
+  }
+}
+
+/* Header bar gridline alignment: 768–1919px only (phones keep the full-bleed
+   collapsed bar). Grow-to-fill minus symmetric gutter margins. */
+@media screen and (min-width: 48rem) and (max-width: 119.99rem) {
+  .topBarInner {
+    width: auto;
+    max-width: none;
+    flex: 1 1 auto;
+    margin-inline: var(--page-gutter);
+  }
+}

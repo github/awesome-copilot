@@ -32,6 +32,8 @@ function skipsAsBundledAsset(filePath) {
   }
 }
 
+const BUILD_OUTPUT_DIRECTORIES = new Set(["bin", "obj"]);
+
 /**
  * Parse frontmatter from a markdown file using vfile-matter
  * Works with any markdown file that has YAML frontmatter (agents, prompts, instructions)
@@ -168,9 +170,7 @@ function parseSkillMetadata(skillPath) {
         entries.forEach((entry) => {
           const filePath = path.join(dirPath, entry.name);
           if (entry.isDirectory()) {
-            if (entry.name === "bin" || entry.name === "obj") {
-              return; // Skip bin and obj directories as they are .NET project output folders and not part of the skill assets
-            }
+            if (BUILD_OUTPUT_DIRECTORIES.has(entry.name)) return;
             arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
           } else if (
             !entry.isSymbolicLink() ||

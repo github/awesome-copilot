@@ -28,21 +28,19 @@ const routes = [
   '/agents/',
   '/instructions/',
   '/skills/',
-  '/hooks/',
-  '/workflows/',
   '/extensions/',
   '/plugins/',
-  '/tools/',
   '/contributors/',
-  '/learning-hub/cookbook/',
+  '/learning-hub/',
+  // Keep a representative Playbook article in the matrix so the article
+  // chassis is audited in addition to the Learning Hub landing page.
   '/learning-hub/github-copilot-app/',
+  '/learning-hub/cookbook/',
   // Representative dedicated detail pages (one per resource type) so the audit
   // covers the shared detail layout, sidebar, install buttons, and file browser.
   '/agent/accessibility/',
   '/instruction/a11y/',
   '/skill/acquire-codebase-knowledge/',
-  '/hook/dependency-license-checker/',
-  '/workflow/daily-issues-report/',
   '/plugin/accessibility-kanban/',
   '/extension/accessibility-kanban/',
 ];

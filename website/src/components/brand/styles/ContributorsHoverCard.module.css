@@ -1,0 +1,20 @@
+/* The hero community icon links directly to the full contributors page. */
+.wrapper {
+  display: inline-flex;
+  justify-content: center;
+}
+
+.trigger {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+  border-radius: var(--brand-borderRadius-full);
+}
+
+.trigger:focus-visible {
+  outline: var(--brand-borderWidth-thick) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-4);
+}

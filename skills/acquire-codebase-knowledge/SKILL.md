@@ -157,7 +157,6 @@ Use these sections during Phase 2 to inform investigation questions and identify
 | Asset | When to load |
 |-------|-------------|
 | [`scripts/scan.py`](scripts/scan.py) | Phase 1 — run first, before reading any code (Python 3.8+ required) |
-
 | [`references/inquiry-checkpoints.md`](references/inquiry-checkpoints.md) | Phase 2 — load for per-template investigation questions |
 | [`references/stack-detection.md`](references/stack-detection.md) | Phase 2 — only if stack is ambiguous |
 | [`assets/templates/STACK.md`](assets/templates/STACK.md) | Phase 3 step 1 |

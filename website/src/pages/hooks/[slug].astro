@@ -1,0 +1,20 @@
+---
+export function getStaticPaths() {
+  return [
+    "attester-import-check",
+    "dependency-license-checker",
+    "fix-broken-links",
+    "governance-audit",
+    "secrets-scanner",
+    "session-auto-commit",
+    "session-logger",
+    "tool-guardian",
+  ].map((slug) => ({
+    params: { slug },
+    props: { target: `https://github.com/github/awesome-copilot/tree/main/hooks/${slug}` },
+  }));
+}
+
+const { target } = Astro.props;
+return Astro.redirect(target);
+---
