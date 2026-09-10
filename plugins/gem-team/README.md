@@ -17,6 +17,12 @@
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="Pull requests welcome">
 </p>
 
+## Real-world performance
+
+> Sub-$0.001 per API call on 100K+ token contexts. 82.8M+ tokens processed across 666 agent runs, with typical responses completing in 2-5 seconds. Prompt caching turns large contexts into sub-penny operations — a 10x cost reduction vs. uncached input.
+
+_Observed during Gem-Team development using DeepSeek V4.1 Flash via CommandCode._
+
 ## The Problem
 
 Current AI coding is often one-off and ad-hoc. You get code, but you don't get a repeatable process. This leads to inconsistent quality, wasted tokens, and a lack of long-term learning.
@@ -231,7 +237,7 @@ handoff:
 
 - [Documentation](https://mubaidr.github.io/gem-team/)
 - [Contributing](https://mubaidr.github.io/gem-team/5.resources/2.contributing.html)
-- [License](https://github.com/mubaidr/gem-team/blob/main/LICENSE)
+- [License](LICENSE)
 
 ## Support
 

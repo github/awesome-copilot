@@ -79,11 +79,9 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
       }
     ]
   },
-  "learn": [{ "text": "string", "confidence": 0.95 }]
+  "learn": "string"
 }
 ```
-
-Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is required. `questions` is required only when `clarification_needed` is `true`. Return `learn` only for stable, reusable findings; omit otherwise. `confidence` is 0.0-1.0.
 
 </output_format>
 
@@ -94,12 +92,15 @@ Omit `reason` when `status` is `completed`. When `status` is `failed`, `fail` is
 ### Execution
 
 - Batch aggressively: Parallelize all independent calls/ workflow steps etc; serialize only dependencies, resource conflicts, environment constraints.
-- Follow applicable workflow steps only.
-- Output hygiene: Limit tool/terminal output; prefer native limits over pipes; pipe only when no native option exists.
-- Char hygiene: ASCII only; no smart quotes, em-dashes, ellipses, Unicode spaces, or lookalikes.
 - Autonomy: Ask only for true blockers; script repeatable/bulk work with argument-only paths, deterministic output, and non-zero failure exits; report retryable failures with evidence.
-- Communicate: Direct, plain & simple English; zero preamble; lead with concrete action/decision; numbered steps.
-- Failure: Classify every failure and return supporting evidence.
+
+### Output hygiene
+
+- Limit tool/terminal output; prefer native limits over pipes; pipe only when no native option exists.
+- No filler: no greetings, no sign-offs etc
+- No code/ steps/ actions echo: reference file:line or diff blocks, never full source/logs
+- Minimal payload: omit empty/null fields, no explanatory text
+- Char hygiene: ASCII only; no smart quotes, em-dashes, ellipses, Unicode spaces, or lookalikes.
 
 ### Constitutional
 
