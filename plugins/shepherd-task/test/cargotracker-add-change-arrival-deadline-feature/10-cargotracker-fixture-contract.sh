@@ -27,9 +27,9 @@ command -v sha256sum >/dev/null 2>&1 ||
 
 decode_plan_archive() {
     if base64 --decode </dev/null >/dev/null 2>&1; then
-        base64 --decode "$plan_archive"
+        base64 --decode <"$plan_archive"
     else
-        base64 -D "$plan_archive"
+        base64 -D <"$plan_archive"
     fi
 }
 
@@ -73,6 +73,12 @@ grep -Fq 'merge-base --is-ancestor "$expected_baseline_sha" "$fetched_sha"' "$ba
     fail "Baseline script does not enforce prepared source-branch ancestry."
 ! grep -Fq 'defaultBranchRef' "$baseline" ||
     fail "Baseline script still depends on repository default-branch discovery."
+for decode_command in \
+    'base64 --decode <"$plan_archive"' \
+    'base64 -D <"$plan_archive"'; do
+    grep -Fq "$decode_command" "$initializer" ||
+        fail "Baseline script does not decode the plan archive portably: $decode_command"
+done
 
 for required in \
     11-stage15-plan-discovery-contract.sh \

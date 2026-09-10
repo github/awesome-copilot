@@ -52,9 +52,9 @@ plan_archive="$script_dir/cargotracker-plan.md.gz.b64"
 
 decode_plan_archive() {
     if base64 --decode </dev/null >/dev/null 2>&1; then
-        base64 --decode "$plan_archive"
+        base64 --decode <"$plan_archive"
     else
-        base64 -D "$plan_archive"
+        base64 -D <"$plan_archive"
     fi
 }
 

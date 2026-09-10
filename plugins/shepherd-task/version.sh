@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-PLUGIN_ROOT="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "$(dirname "$0")" && pwd -P)"
 PLUGIN_MANIFEST="$PLUGIN_ROOT/plugin.json"
 VERSION_CONTRACT="$PLUGIN_ROOT/shepherd-task-version-contract.json"
 MCP_MANIFEST="$PLUGIN_ROOT/mcp.json"
