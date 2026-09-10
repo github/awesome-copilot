@@ -492,7 +492,7 @@ try {
 
     $currentPhase = 'checking required commands'
     Write-ControlStatus 'Experiment setup: validating prerequisites.'
-    foreach ($commandName in @('git', 'gh', 'copilot', 'pwsh')) {
+    foreach ($commandName in @('git', 'gh', 'copilot', 'pwsh', 'jq')) {
         if (-not (Get-Command $commandName -ErrorAction SilentlyContinue)) {
             throw "Required command was not found on PATH: $commandName"
         }

@@ -183,6 +183,9 @@ if (-not $driver.Contains("'test\lesson-propagation-default-contract.ps1'")) {
 if (-not $driver.Contains("'04-verify-control-campaign.ps1'")) {
     throw 'Driver does not run the control-campaign verifier.'
 }
+if (-not $driver.Contains("@('git', 'gh', 'copilot', 'pwsh', 'jq')")) {
+    throw 'Driver does not require jq before running offline contracts.'
+}
 if (-not $driver.Contains("lessonPropagation = 'off'")) {
     throw 'Driver summary does not record lessonPropagation=off.'
 }

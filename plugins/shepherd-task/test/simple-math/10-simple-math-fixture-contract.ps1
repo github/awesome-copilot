@@ -63,6 +63,7 @@ foreach ($required in @(
     "'09-skill-powershell-contract.ps1'",
     "'10-simple-math-fixture-contract.ps1'",
     "'11-stage15-installed-path-contract.ps1'",
+    "@('git', 'gh', 'copilot', 'pwsh', 'jq')",
     "-Arguments @('repo', 'clone', `$Repo, `$Target)",
     "'test\lesson-propagation-default-contract.ps1'"
 )) {
