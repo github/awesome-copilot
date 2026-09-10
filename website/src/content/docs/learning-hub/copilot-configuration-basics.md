@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-07
+lastUpdated: 2026-09-10
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -431,8 +431,11 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
 | `defaultMode` | Startup mode for new interactive sessions (e.g., `interactive`, `autopilot`, `plan`) (v1.0.81+) |
 | `defaultPermissionMode` | Default approval behaviour for new interactive sessions, independent from `defaultMode` (v1.0.81+) |
+| `editorMode` | Set to `vim` to enable modal (Vim-style) editing in the composer (v1.0.84+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
+
+**Vim mode (v1.0.84+)**: Vim mode is now available to everyone. Turn it on with the `/vim` slash command, or set `editorMode` to `vim` in your config file, to get modal editing (normal, insert, visual modes) in the composer. The current mode is shown while you type.
 
 > **Session restore after a crash (v1.0.81+)**: If the CLI is interrupted unexpectedly — a crash or a machine restart — startup now offers to restore any sessions that were still open, so you don't have to reopen each terminal by hand.
 
@@ -784,6 +787,14 @@ The `/permissions` command *(v1.0.78+)* opens an interactive picker for switchin
 ```
 
 Use `/permissions` as a quick mode switcher when you want to change how the agent handles tool approvals without remembering individual command names.
+
+**Focusing autopilot with `/goal` (v1.0.84+)**: The `/autopilot <objective>` command (also available as its alias `/goal <objective>`) sets a persistent objective for autopilot to work towards, keeping long-running autonomous sessions anchored to the original ask instead of drifting as the conversation continues:
+
+```
+/goal Migrate the auth module to the new session API and keep tests passing
+```
+
+A pinned goal panel shows the objective, live progress, and (on a short terminal) collapses to a compact identity row you can expand with **ctrl+x → g**. This pairs well with `--plan --mode autopilot` for long delegated tasks where you want the agent to stay on-track across many turns.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
