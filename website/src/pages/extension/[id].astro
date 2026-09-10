@@ -109,15 +109,16 @@ const { html } = buildDetailToc(markdownHtml);
 const lastUpdated = formatLastUpdated(item.lastUpdated ?? null);
 
 // The catalog data's `installUrl` is a GitHub tree URL; the Copilot app deep
-// link is the `ghapp://` scheme the prototype installs with. External
-// extensions ship neither an install command nor a plugin name.
+// link is the `ghapp://` scheme the prototype installs with. Only extensions
+// with no marketplace plugin entry (e.g. plain-repo external canvases) omit
+// `pluginName`, so gate on that rather than on `external` -- external plugins
+// registered in the awesome-copilot marketplace remain installable by id.
 const pluginSource = item.pluginName
   ? `${item.pluginName}@awesome-copilot`
   : null;
-const appInstallUrl =
-  !item.external && pluginSource
-    ? `ghapp://plugins/install?source=${encodeURIComponent(pluginSource)}`
-    : null;
+const appInstallUrl = pluginSource
+  ? `ghapp://plugins/install?source=${encodeURIComponent(pluginSource)}`
+  : null;
 const sourceUrl = safeUrl(item.sourceUrl) || safeUrl(item.installUrl) || null;
 
 const base = import.meta.env.BASE_URL ?? "/";
@@ -140,7 +141,7 @@ const siblingOf = (sibling?: ExtensionItem) =>
     images={images}
     markdownHtml={html}
     installUrl={appInstallUrl}
-    installCommand={item.external ? null : item.installCommand}
+    installCommand={item.installCommand}
     sourceUrl={sourceUrl}
     lastUpdated={lastUpdated}
     previous={siblingOf(previous)}

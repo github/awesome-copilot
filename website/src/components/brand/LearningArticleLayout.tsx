@@ -37,7 +37,10 @@ import {
 import { TopNavSearch } from "./TopNavSearch";
 import { ContributorsNavButton } from "./ContributorsNavButton";
 import type { SearchItem } from "./searchIndex";
-import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
+import {
+  contributorsTotal as siteContributorsTotal,
+  searchIndex as siteSearchIndex,
+} from "../../lib/site-data";
 
 const CONTRIBUTING_URL =
   "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md";
@@ -172,7 +175,7 @@ function LearningArticleLayoutBody({
   heroCta,
   heroExtra,
   tocSections,
-  searchIndex = [],
+  searchIndex = siteSearchIndex,
   contributorsTotal = siteContributorsTotal,
   upNext,
   showLanguageSelect = false,

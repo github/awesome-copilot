@@ -7,6 +7,7 @@ import { Box, Breadcrumbs, Heading, Section, Text } from "@primer/react-brand";
 import { PageShell } from "./PageShell";
 import { LargeFooter } from "./LargeFooter";
 import type { AwesomeCopilotPage } from "./navigation";
+import { getScrollBehavior } from "./scrollBehavior";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/dotnet-upgrade.module.css";
 import {
@@ -208,7 +209,7 @@ export function DetailChassis({
                                     document
                                       .getElementById(section.id)
                                       ?.scrollIntoView({
-                                        behavior: "smooth",
+                                        behavior: getScrollBehavior(),
                                         block: "start",
                                       });
                                     setActiveSection(section.id);

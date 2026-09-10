@@ -28,6 +28,7 @@ const TYPE_LABELS: Record<string, string> = {
   workflow: "Workflow",
   plugin: "Plugin",
   tool: "Tool",
+  extension: "Extension",
 };
 
 const TYPE_PAGES: Record<string, string> = {
@@ -38,6 +39,7 @@ const TYPE_PAGES: Record<string, string> = {
   workflow: "/workflows/",
   plugin: "/plugins/",
   tool: "/tools/",
+  extension: "/extensions/",
 };
 
 // Resource types that have a dedicated detail page at /<type>/<id>/. Search
@@ -49,6 +51,7 @@ const DETAIL_ROUTE_TYPES = new Set([
   "hook",
   "workflow",
   "plugin",
+  "extension",
 ]);
 
 export default function pagefindResources(): AstroIntegration {

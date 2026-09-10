@@ -3,6 +3,7 @@ import { Avatar, Box, Button, Heading, Text } from "@primer/react-brand";
 import { clsx } from "clsx";
 import { useEffect, useState } from "react";
 
+import { sanitizeHttpUrl } from "../../lib/external-source";
 import { PageShell } from "./PageShell";
 import type { SearchItem } from "./searchIndex";
 import contributorsStyles from "./styles/contributorsPage.module.css";
@@ -81,17 +82,10 @@ export function ContributorsPage({
       <section className={contributorsStyles.section} aria-label="Contributors">
         <div className={contributorsStyles.sectionInner}>
           <ul className={contributorsStyles.grid}>
-            {contributors.map((contributor) => (
-              <li
-                className={contributorsStyles.gridCell}
-                key={contributor.login}
-              >
-                <a
-                  className={contributorsStyles.contributorLink}
-                  href={contributor.profileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+            {contributors.map((contributor) => {
+              const safeProfileUrl = sanitizeHttpUrl(contributor.profileUrl);
+              const profileContent = (
+                <>
                   <Avatar
                     src={contributor.avatarUrl}
                     alt=""
@@ -104,9 +98,31 @@ export function ContributorsPage({
                   <span className={contributorsStyles.contributorLogin}>
                     @{contributor.login}
                   </span>
-                </a>
-              </li>
-            ))}
+                </>
+              );
+
+              return (
+                <li
+                  className={contributorsStyles.gridCell}
+                  key={contributor.login}
+                >
+                  {safeProfileUrl !== "#" ? (
+                    <a
+                      className={contributorsStyles.contributorLink}
+                      href={safeProfileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {profileContent}
+                    </a>
+                  ) : (
+                    <div className={contributorsStyles.contributorLink}>
+                      {profileContent}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </section>

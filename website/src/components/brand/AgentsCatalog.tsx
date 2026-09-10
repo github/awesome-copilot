@@ -16,13 +16,14 @@ import {
   useTheme,
 } from "@primer/react-brand";
 import { clsx } from "clsx";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { PageShell } from "./PageShell";
 import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
 import { daysSince, toggleValue, updatedBuckets, updatedBucketOf } from "./catalogFilters";
 import { pageHref } from "./pageHref";
 import { downloadFile } from "./resourceActions";
+import { getScrollBehavior } from "./scrollBehavior";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/agents.module.css";
 
@@ -119,6 +120,7 @@ export function AgentsCatalog({
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
   const [currentPage, setCurrentPage] = useState(1);
+  const previousPage = useRef(currentPage);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
   const [expandedGroups, setExpandedGroups] = useState<
@@ -190,6 +192,18 @@ export function AgentsCatalog({
   const page = Math.min(currentPage, pageCount);
   const visibleAgents = sortedAgents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  useEffect(() => {
+    if (previousPage.current === currentPage) return;
+    previousPage.current = currentPage;
+    const frame = window.requestAnimationFrame(() => {
+      const catalog = document.getElementById("catalog");
+      if (!catalog) return;
+      catalog.scrollIntoView({ behavior: getScrollBehavior(), block: "start" });
+      catalog.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentPage]);
+
   return (
     <PageShell
       styles={styles}
@@ -254,7 +268,12 @@ export function AgentsCatalog({
         </div>
       </Box>
 
-      <Section id="catalog" paddingBlockStart="none" paddingBlockEnd="none">
+      <Section
+        id="catalog"
+        tabIndex={-1}
+        paddingBlockStart="none"
+        paddingBlockEnd="none"
+      >
         <Box className={styles.catalog}>
           <aside className={styles.filterNav} aria-label="Filter agents">
             <button

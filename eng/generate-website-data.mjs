@@ -1389,7 +1389,7 @@ function generateCanvasManifest(gitDates, commitSha) {
       canvasId: id,
       extensionId: id,
       extensionName: name,
-      pluginName: null,
+      pluginName: name,
       name: displayName,
       version: normalizeText(ext?.version, "1.0.0"),
       readmeFile: null,
@@ -1414,7 +1414,10 @@ function generateCanvasManifest(gitDates, commitSha) {
       imageUrl,
       assetPath: null,
       installUrl: null,
-      installCommand: null,
+      // Registered in plugins/external.json, so it is installable from the
+      // awesome-copilot marketplace by plugin name even though it is hosted
+      // externally.
+      installCommand: `copilot plugin install ${name}@awesome-copilot`,
       sourceUrl,
       externalSource,
       external: true,

@@ -1,5 +1,6 @@
 import samplesData from "../../public/data/samples.json";
 
+import { sanitizeHttpUrl } from "./external-source";
 import type {
   CookbookSection,
   RecipeLink,
@@ -109,10 +110,11 @@ export function cookbookSections(locale?: string): CookbookSection[] {
       const links: RecipeLink[] = [];
 
       if (recipe.external) {
-        if (recipe.url) {
+        const safeUrl = sanitizeHttpUrl(recipe.url);
+        if (safeUrl !== "#") {
           links.push({
             label: "View on GitHub",
-            href: recipe.url,
+            href: safeUrl,
             external: true,
           });
         }
@@ -144,14 +146,18 @@ export function cookbookSections(locale?: string): CookbookSection[] {
         }
       }
 
+      const safeAuthorUrl = recipe.author?.url
+        ? sanitizeHttpUrl(recipe.author.url)
+        : "#";
+
       return {
         id: recipe.id,
         title: recipe.name,
         description: recipe.description,
         badge: recipe.external ? "Community" : undefined,
         author:
-          recipe.author && recipe.author.url
-            ? { name: recipe.author.name, href: recipe.author.url }
+          recipe.author && recipe.author.url && safeAuthorUrl !== "#"
+            ? { name: recipe.author.name, href: safeAuthorUrl }
             : undefined,
         tags: recipe.tags,
         links,
