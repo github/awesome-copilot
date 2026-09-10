@@ -264,10 +264,7 @@ PowerShell:
   -CampaignMetadataDirectory <campaign-metadata-directory>
 ```
 
-Stage 25 derives the immutable lesson mode from `shepherd-campaign.json`. It
-creates one run directory and run manifest, then invokes `shepherd-task` for
-each issue in order. It stops at the first failed issue. Start a later
-given-list run with the remaining issue subset after correcting the failure.
+Stage 25 invokes `shepherd-task` for each issue in order. 
 
 See:
 
@@ -302,17 +299,17 @@ After all task PRs merge into the campaign base branch:
 4. Open the final PR from the campaign base branch to `main`.
 5. Apply normal human review and repository merge policy.
 
-## Lesson propagation
+## ❌❌Experimental❌❌ Lesson propagation
 
 The mode is chosen once during stage 00 initialization and is immutable for the campaign.
 
-### `off`
+### `off` (default)
 
 - `campaign-lessons.md` still exists because the campaign schema requires it.
 - Stage-20 issue bodies omit lesson consumption and production instructions.
 - Stages 30 and 40 must not read or modify campaign lessons.
 
-### `campaign`
+### `campaign` ❌❌Experimental❌❌
 
 1. Stage 20 tells every child issue to read only previously validated lessons.
 2. CCA adds `Candidate lessons for issue #N` to `campaign-lessons.md`.
