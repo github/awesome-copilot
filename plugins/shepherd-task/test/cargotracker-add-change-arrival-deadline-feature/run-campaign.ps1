@@ -761,6 +761,7 @@ try {
             IsSwitch = $true
         }
     )
+    Write-ControlStatus "Working directory: $ControlWorktree" -Color Gray
     Write-ShepherdScriptInvocation `
         -Stage '15' `
         -Purpose 'Prepare Stage 20' `
@@ -793,6 +794,7 @@ try {
         -Path (Join-Path $FixtureRoot '02-create-issues.ps1') `
         -Arguments @('-CampaignMetadataDirectory', $ControlDirectoryName) `
         -OutputChannel DomainFixture
+    Write-ControlStatus "Working directory: $ControlWorktree" -Color Gray
     Write-ShepherdScriptInvocation `
         -Stage '15' `
         -Purpose 'Prepare Stage 20' `

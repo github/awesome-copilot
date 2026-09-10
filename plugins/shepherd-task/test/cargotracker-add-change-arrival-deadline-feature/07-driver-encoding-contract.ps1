@@ -163,6 +163,29 @@ try {
             throw "Canonical invocation display $index is out of order: $callText"
         }
     }
+    $workingDirectoryCalls = @(
+        $driverAst.FindAll(
+            {
+                param($node)
+                $node -is [System.Management.Automation.Language.CommandAst] -and
+                    $node.GetCommandName() -eq 'Write-ControlStatus' -and
+                    $node.Extent.Text.Contains(
+                        'Working directory: $ControlWorktree'
+                    )
+            },
+            $true
+        ) |
+            Sort-Object { $_.Extent.StartOffset }
+    )
+    if ($workingDirectoryCalls.Count -ne 2 -or
+        $workingDirectoryCalls[0].Extent.EndOffset -ge
+            $invocationCalls[2].Extent.StartOffset -or
+        $workingDirectoryCalls[1].Extent.StartOffset -le
+            $invocationCalls[3].Extent.EndOffset -or
+        $workingDirectoryCalls[1].Extent.EndOffset -ge
+            $invocationCalls[4].Extent.StartOffset) {
+        throw 'Stage 15 invocation displays must identify the control worktree as their working directory.'
+    }
     $campaignIssueMessageCalls = @(
         $driverAst.FindAll(
             {

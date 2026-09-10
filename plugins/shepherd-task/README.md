@@ -195,17 +195,23 @@ production source.
 
 ### 4. Run stage 15, then execute stage 20
 
+Run stage 15 from the root of the campaign Git worktree.
+`CampaignMetadataDirectory` is a directory basename relative to that worktree
+root.
+
 Bash:
 
 ```bash
-./plugins/shepherd-task/scripts/shepherd-task-15-prepare-create-issues.sh \
+cd <campaign-git-worktree>
+"$HOME/.copilot/plugins/shepherd-task/scripts/shepherd-task-15-prepare-create-issues.sh" \
   <campaign-metadata-directory>
 ```
 
 PowerShell:
 
 ```powershell
-.\plugins\shepherd-task\scripts\shepherd-task-15-prepare-create-issues.ps1 `
+Set-Location '<campaign-git-worktree>'
+& (Join-Path $HOME '.copilot\plugins\shepherd-task\scripts\shepherd-task-15-prepare-create-issues.ps1') `
   -CampaignMetadataDirectory <campaign-metadata-directory>
 ```
 
