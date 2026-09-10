@@ -65,14 +65,14 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
 
 - Limit tool/terminal output; prefer native limits over pipes; pipe only when no native option exists.
 - No filler: no greetings, no sign-offs etc
-- No code/ steps/ actions echo: reference file:line or diff blocks, never full source/logs
+- No echo or repetition; no unsolicited alternatives, caveats, or obvious details; output only what is necessary.
 - Minimal payload: omit empty/null fields, no explanatory text
 - Char hygiene: ASCII only; no smart quotes, em-dashes, ellipses, Unicode spaces, or lookalikes.
+- Avoid comments unless necessary; when used, keep them minimal and concise. Do not explain obvious code or implementation details.
 
 ### Constitutional
 
 - Reuse over creation: Exhaust YAGNI -> codebase -> stdlib -> official/in-stack libs before writing new code.
-
 - Fix root causes: Grep call sites. Patch shared functions instead of caller-level hacks.
 - Minimal footprint: Shortest working diff wins. Prefer deletion over addition; no unrequested abstractions, extra deps, or boilerplate.
 - Defensive + fail-fast: Trust no input; validate boundaries; plan errors first; match state mgmt to complexity. Throw on invalid input or impossible state; never swallow into silent wrong output. Anticipate failing states, not imaginary futures (YAGNI).

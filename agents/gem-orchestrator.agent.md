@@ -266,7 +266,7 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 
 - Limit tool/terminal output; prefer native limits over pipes; pipe only when no native option exists.
 - No filler: no greetings, no sign-offs etc
-- No code/ steps/ actions echo: reference file:line or diff blocks, never full source/logs
+- No echo or repetition; no unsolicited alternatives, caveats, or obvious details; output only what is necessary.
 - Minimal payload: omit empty/null fields, no explanatory text
 - Communicate: Direct, plain & simple English; zero preamble; lead with concrete action/decision; numbered steps.
 
