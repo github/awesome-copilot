@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.2
+# shepherd-task-version: 1.0.3
 <#
 .SYNOPSIS
     Validates persisted stage-20 issue bodies before GitHub mutation.

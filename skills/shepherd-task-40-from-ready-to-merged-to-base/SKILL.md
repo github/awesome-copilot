@@ -1,5 +1,5 @@
 ---
-# shepherd-task-version: 1.0.2
+# shepherd-task-version: 1.0.3
 name: shepherd-task-40-from-ready-to-merged-to-base
 description: "Stage 40 of the shepherd-task campaign lifecycle (each issue from Ready for review through merge to the campaign base branch). Use this skill to shepherd a task PR from 'Ready for review' through Copilot code review, local comment resolution, and merge to the specified base branch."
 ---

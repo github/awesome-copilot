@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.2
+# shepherd-task-version: 1.0.3
 <#
 .SYNOPSIS
     Runs the simple-math shepherd-task control campaign end to end.

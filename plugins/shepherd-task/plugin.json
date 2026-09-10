@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "shepherd-task",
   "description": "End-to-end task shepherding system that automates the full lifecycle of GitHub issues through Copilot coding agent assignment, CI approval, code review resolution, and merge. Includes orchestration scripts for both Bash and PowerShell.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": {
     "name": "Ed Burns"
   },

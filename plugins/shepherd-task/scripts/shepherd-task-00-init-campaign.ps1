@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.2
+# shepherd-task-version: 1.0.3
 <#
 .SYNOPSIS
     Stage 00: initializes durable shepherd-task campaign metadata.

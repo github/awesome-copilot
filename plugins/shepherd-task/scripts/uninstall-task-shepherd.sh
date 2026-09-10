@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.2
+# shepherd-task-version: 1.0.3
 #
 # uninstall-task-shepherd.sh — Removes the shepherd-task plugin and skills
 # from the user's Copilot home directory.

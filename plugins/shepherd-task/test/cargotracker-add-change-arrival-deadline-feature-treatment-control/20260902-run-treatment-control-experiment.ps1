@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.2
+# shepherd-task-version: 1.0.3
 <#
 .SYNOPSIS
     Runs the Cargo Tracker shepherd-task treatment/control experiment end to end.

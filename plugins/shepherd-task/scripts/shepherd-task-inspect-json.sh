@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.2
+# shepherd-task-version: 1.0.3
 #
 # shepherd-task-inspect-json.sh — Show the last N meaningful events from a Copilot JSONL log.
 #

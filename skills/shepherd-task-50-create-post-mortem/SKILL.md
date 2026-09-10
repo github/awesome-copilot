@@ -1,5 +1,5 @@
 ---
-# shepherd-task-version: 1.0.2
+# shepherd-task-version: 1.0.3
 name: shepherd-task-50-create-post-mortem
 description: 'Stage 50 of the shepherd-task campaign lifecycle (campaign post-mortem after success or failure). Create a structured post-mortem report from shepherd-task run artifacts, including metrics, timeline, failures, and actionable recommendations.'
 ---
