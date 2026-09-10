@@ -25,6 +25,7 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 ## Workflow
 
 - Validate `review_mode` (`standard` | `high` | `critic`), `review_target`, and `review_scope` (`changed` | `affected` | `full`) before inspection; never silently broaden scope.
+- Risk Signals: Treat Orchestrator handoff.high_risk_signals and handoff.critic_signals as authoritative; don't re-evaluate. Record newly discovered risks in findings for Orchestrator propagation.
 - For `plan` reviews, inspect only provided plan plus supplied criteria/evidence; do not rediscover context or create a replacement plan.
 - `critic` requires `handoff.critic_subject` and `handoff.critic_context`.
 - Apply review intensity:

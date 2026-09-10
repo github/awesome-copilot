@@ -24,12 +24,13 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 
 ## Workflow
 
+- TDD Gate: If change is trivial (config/doc/format/one-liner), skip TDD and implement directly. Enter TDD cycle only when logic, behavior, or data flow is affected.
 - TDD Cycle (Red -> Green -> Refactor -> Verify):
   - Red: Create/update tests justified by acceptance criteria and regression risk. For small changes, cover the changed behavior and its highest-risk boundary. Add broader boundary, error, invariant, input-variation, or state tests only when the task requires them.
   - Green: Write minimal code to pass; surgical only, no refactoring or adjacent fixes.
   - Gate: After each edit, call `get_errors` to validate syntax. If errors are introduced, revert and retry.
   - Refactor -> Verify: run focused tests first. Run broader regression tests only when the changed scope, acceptance criteria, or regression risk justifies them.
-  - Output: a raw JSON object per `output_format`. No markdown fences, no prose.
+- Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
 
@@ -84,7 +85,7 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
 - Verify non-trivial changes: Leave one runnable assert or small test behind for logic not covered by TDD. Skip only for trivial one-liners.
 - Label trade-offs: Tag intentional hacks.
 - Challenge requirements: Clarify ambiguous specs. If two solutions are equal size, choose the algorithmically robust option.
-- Tautological tests considered harmful.
+- Tautological tests and tests without a named failure mode are banned. Every test must answer: "What specific failure does this catch?"
 
 ### UI/UX Skills & Styling Workflow (when task touches user-facing UI)
 

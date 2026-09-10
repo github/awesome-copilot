@@ -37,7 +37,7 @@ MANDATORY: `Phase 0` is your non-delegable entry point for every single interact
   - `debug`: `failure`, `expected_behavior`, and available `evidence`.
 - Intent priority: When multiple intents match, resolve by priority: `challenge` > `debug` > `research` > `execute` > `discuss`. The lowest-priority matching intent wins only when no higher-priority intent is clearly supported by the request's verbs, objects, and expected outcome.
 - Read only relevant memory to request.
-- Define and evaluate risk signals once for reuse by all later phases:
+- Define and evaluate risk signals once; pass via handoff for reuse by all later phases:
   - `high_risk_signals`: `architecture`, `contract_change`, `breaking_change`, `api_change`,
     `schema_change`, `auth_change`, `data_flow_change`, `migration`, `security_sensitive`,
     `irreversible`, `shared_state`, `cross_domain_impact`.
@@ -177,6 +177,11 @@ agent_input_reference:
       provisional_complexity: "MEDIUM | HIGH"
       risk_signals:
         - str
+      handoff:
+        high_risk_signals:
+          - str
+        critic_signals:
+          - str
       planning_context:
         task_clarifications:
           - str
@@ -197,6 +202,10 @@ agent_input_reference:
       handoff:
         target_reference: str
         criteria:
+          - str
+        high_risk_signals:
+          - str
+        critic_signals:
           - str
         evidence:
           - str
