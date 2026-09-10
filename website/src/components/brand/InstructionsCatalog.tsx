@@ -19,6 +19,7 @@ import { clsx } from "clsx";
 import { useMemo, useState } from "react";
 
 import { PageShell } from "./PageShell";
+import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
 import {
   daysSince,
   toggleValue,
@@ -460,21 +461,16 @@ export function InstructionsCatalog({
 
           <Box className={styles.catalogMain}>
             <Box className={styles.toolbar}>
-              <label className={styles.sortControl}>
-                <span>Sort by:</span>
-                <select
-                  className={styles.sortSelect}
-                  value={sortMode}
-                  onChange={(event) => {
-                    setSortMode(event.target.value as SortMode);
-                    setCurrentPage(1);
-                  }}
-                  aria-label="Sort instructions"
-                >
-                  <option value="az">A-Z</option>
-                  <option value="newest">Recently updated</option>
-                </select>
-              </label>
+              <CatalogSortControl
+                ariaLabel="Sort instructions"
+                value={sortMode}
+                options={CATALOG_SORT_OPTIONS}
+                styles={styles}
+                onChange={(value) => {
+                  setSortMode(value);
+                  setCurrentPage(1);
+                }}
+              />
             </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>

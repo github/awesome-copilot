@@ -19,6 +19,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { externalRepoUrl, type ExternalSource } from "../../lib/external-source";
 import { PageShell } from "./PageShell";
+import { CatalogSortControl, CATALOG_SORT_OPTIONS } from "./CatalogSortControl";
 import { PluginsIcon } from "./PluginsIcon";
 import { daysSince, toggleValue } from "./catalogFilters";
 import { pageHref } from "./pageHref";
@@ -320,21 +321,16 @@ export function PluginsCatalog({
 
           <Box className={styles.catalogMain}>
             <Box className={styles.toolbar}>
-              <label className={styles.sortControl}>
-                <span>Sort by:</span>
-                <select
-                  className={styles.sortSelect}
-                  value={sortMode}
-                  onChange={(event) => {
-                    setSortMode(event.target.value as SortMode);
-                    setCurrentPage(1);
-                  }}
-                  aria-label="Sort plugins"
-                >
-                  <option value="az">A-Z</option>
-                  <option value="newest">Recently updated</option>
-                </select>
-              </label>
+              <CatalogSortControl
+                ariaLabel="Sort plugins"
+                value={sortMode}
+                options={CATALOG_SORT_OPTIONS}
+                styles={styles}
+                onChange={(value) => {
+                  setSortMode(value);
+                  setCurrentPage(1);
+                }}
+              />
             </Box>
             <Box className={styles.gridFrame} data-mode={colorMode}>
               <Box className={styles.gridContent}>
