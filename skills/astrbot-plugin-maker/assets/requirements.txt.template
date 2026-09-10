@@ -1,0 +1,3 @@
+# Runtime dependency for the optional openapi_client.py example.
+# Add dependencies actually imported by your implementation.
+httpx>=0.28,<1

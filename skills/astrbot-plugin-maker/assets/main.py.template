@@ -1,0 +1,29 @@
+from astrbot.api import AstrBotConfig
+from astrbot.api.event import AstrMessageEvent, filter
+from astrbot.api.star import Context, Star
+
+from .plugin_logic import build_greeting
+
+
+class GreetingPlugin(Star):
+    """A small command plugin with settings supplied by AstrBot."""
+
+    def __init__(self, context: Context, config: AstrBotConfig):
+        super().__init__(context)
+        self.config = config
+
+    @filter.command("{{command}}")
+    async def greet(self, event: AstrMessageEvent):
+        """Greet the sender using the configured greeting and name length."""
+        try:
+            reply = build_greeting(
+                event.get_sender_name(),
+                self.config.get("greeting", "Hello"),
+                self.config.get("max_name_length", 40),
+            )
+        except (TypeError, ValueError):
+            yield event.plain_result(
+                "Please check greeting and max_name_length in plugin settings."
+            )
+            return
+        yield event.plain_result(reply)

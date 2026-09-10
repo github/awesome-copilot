@@ -1,0 +1,10 @@
+"""Business logic shared by the command handler and offline tests."""
+
+
+def build_greeting(name: str, greeting: str, max_name_length: int) -> str:
+    if not isinstance(greeting, str):
+        raise TypeError("greeting must be a string")
+    if type(max_name_length) is not int or not 1 <= max_name_length <= 200:
+        raise ValueError("max_name_length must be an integer between 1 and 200")
+    display_name = (name.strip() or "friend")[:max_name_length]
+    return f"{greeting}, {display_name}!"

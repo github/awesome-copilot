@@ -1,0 +1,25 @@
+# Run only when the task needs a local AstrBot development runtime.
+# Official source setup: https://docs.astrbot.app/deploy/astrbot/cli.html
+# Baseline verified: v4.28.0 requires Python 3.12+ and uv.
+
+# If no existing checkout was selected:
+git clone --branch v4.28.0 --depth 1 https://github.com/AstrBotDevs/AstrBot.git AstrBot
+
+# POSIX shell:
+mkdir -p AstrBot/data/plugins
+git clone <your_plugin_repo_url> AstrBot/data/plugins/<your_plugin_name>
+cd AstrBot
+uv sync
+uv run main.py
+
+# PowerShell (alternative to the POSIX block):
+New-Item -ItemType Directory -Force -Path AstrBot/data/plugins
+git clone <your_plugin_repo_url> AstrBot/data/plugins/<your_plugin_name>
+Set-Location AstrBot
+uv sync
+uv run main.py
+
+# Replace placeholders with the user's real plugin repo and directory.
+# For another target, use its version and setup instructions.
+# After startup: WebUI -> plugin management -> reload the plugin.
+# Check logs and invoke the configured command to verify the actual behavior.

@@ -1,0 +1,11 @@
+name: {{name_yaml}}
+desc: {{description_yaml}}
+version: {{version_yaml}}
+author: {{author_yaml}}
+astrbot_version: {{astrbot_version_yaml}}
+{{repo_line}}
+# Add only when appropriate; verify adapter keys for the target runtime.
+# display_name: My Plugin
+# short_desc: A one-line summary
+# support_platforms:
+#   - telegram
