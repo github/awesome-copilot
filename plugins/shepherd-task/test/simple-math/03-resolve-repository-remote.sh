@@ -55,6 +55,9 @@ expect_remote origin example/project origin
 fresh_output="$("$RESOLVER" example/project origin)"
 [[ "$fresh_output" == origin ]] ||
     { echo "Fresh-process remote resolution failed: $fresh_output" >&2; exit 1; }
+git remote add upstream https://github.com/example/parent.git
+expect_remote origin example/project
+git remote remove upstream
 
 git remote rename origin upstream
 expect_remote upstream example/project

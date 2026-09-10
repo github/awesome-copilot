@@ -47,6 +47,14 @@ foreach ($required in @(
         throw "Simple-math driver is missing required control behavior: $required"
     }
 }
+if (-not $driver.Contains(
+    'ls-remote --exit-code --heads $resolvedRemote $branch'
+)) {
+    throw 'Simple-math driver does not probe branches through the resolved repository remote.'
+}
+if ($driver.Contains('must have exactly one Git remote')) {
+    throw 'Simple-math driver still rejects fork checkouts with an upstream remote.'
+}
 if ($driver.Contains("'-LessonPropagation', 'campaign'") -or
     $driver.Contains('$Treatment') -or
     $driver.Contains('$Comparison') -or

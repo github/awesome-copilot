@@ -123,6 +123,14 @@ if (-not $driver.Contains("'03-resolve-repository-remote.ps1'")) {
 if (-not $driver.Contains("-Arguments @('repo', 'clone', `$Repo, `$Target)")) {
     throw 'Driver does not clone through the authenticated GitHub CLI.'
 }
+if (-not $driver.Contains(
+    'ls-remote --exit-code --heads $resolvedRemote $branch'
+)) {
+    throw 'Driver does not probe branches through the resolved repository remote.'
+}
+if ($driver.Contains('must have exactly one Git remote')) {
+    throw 'Driver still rejects fork checkouts with an upstream remote.'
+}
 if ($driver -match '(?i)\$cloneUrl\s*=|Arguments\s+@\(''clone''') {
     throw 'Cargo Tracker PowerShell driver bypasses gh-managed Git transport.'
 }
@@ -208,7 +216,8 @@ $operationalFiles = @(
     Get-ChildItem -LiteralPath $PSScriptRoot -File |
         Where-Object {
             $_.Extension -in @('.ps1', '.sh') -and
-            $_.FullName -ne $PSCommandPath
+            $_.FullName -ne $PSCommandPath -and
+            $_.Name -ne '10-cargotracker-fixture-contract.sh'
         }
 )
 foreach ($file in $operationalFiles) {

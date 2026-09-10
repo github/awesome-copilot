@@ -93,6 +93,10 @@ for required in \
     grep -Fq -- "$required" "$driver" "$initializer" ||
         fail "Cargo Tracker Bash fixture is missing required text: $required"
 done
+grep -Fq 'ls-remote --exit-code --heads "$resolved_remote" "$branch"' "$driver" ||
+    fail "Cargo Tracker driver does not probe branches through the resolved repository remote."
+! grep -Fq 'must have exactly one Git remote' "$driver" ||
+    fail "Cargo Tracker driver still rejects fork checkouts with an upstream remote."
 if decode_plan_archive | gzip -dc |
     grep -Eq '/home/|[A-Za-z]:\\|dd-3058828-cargotracker-remove-before-merge'; then
     fail "Embedded Cargo Tracker plan contains a machine- or source-checkout-specific path."

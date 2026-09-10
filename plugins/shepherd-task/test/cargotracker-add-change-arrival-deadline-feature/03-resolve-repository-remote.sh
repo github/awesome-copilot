@@ -35,6 +35,9 @@ cd "$TEMP_DIR"
 git remote add origin https://github.com/example/project.git
 expect_remote origin example/project
 expect_remote origin example/project origin
+git remote add upstream https://github.com/example/parent.git
+expect_remote origin example/project
+git remote remove upstream
 
 git remote rename origin upstream
 expect_remote upstream example/project

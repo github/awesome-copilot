@@ -411,17 +411,12 @@ main() {
         invoke_checked_native 'Initial README push' git -C "$TARGET" push -u origin HEAD
     fi
     [[ -z "$(git -C "$TARGET" status --porcelain)" ]] || fail "The primary target checkout is not clean."
-    remotes=()
-    while IFS= read -r remote; do
-        remotes+=("$remote")
-    done < <(git -C "$TARGET" remote)
-    [[ ${#remotes[@]} -eq 1 ]] || fail "The primary checkout must have exactly one Git remote; found ${#remotes[@]}."
     local resolved_remote
     resolved_remote="$(cd "$TARGET" && "$shepherd_plugin/scripts/resolve-repository-remote.sh" "$repo")"
     [[ -n "$resolved_remote" ]] || fail "Could not resolve the unique Git remote for '$repo'."
     for branch in "$baseline_branch" "$control_branch"; do
         local branch_status
-        if git -C "$TARGET" ls-remote --exit-code --heads "${remotes[0]}" "$branch" >/dev/null 2>&1; then
+        if git -C "$TARGET" ls-remote --exit-code --heads "$resolved_remote" "$branch" >/dev/null 2>&1; then
             branch_status=0
         else
             branch_status=$?

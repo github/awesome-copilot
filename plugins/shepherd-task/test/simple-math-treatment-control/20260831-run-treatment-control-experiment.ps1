@@ -367,21 +367,17 @@ try {
         throw 'The primary target checkout is not clean.'
     }
 
-    $remotes = @(git -C $Target remote)
-    Assert-NativeSuccess 'Git remote listing'
-    if ($remotes.Count -ne 1) {
-        throw "The primary checkout must have exactly one Git remote; found $($remotes.Count)."
-    }
     Set-Location -LiteralPath $Target
     $resolvedRemote = & (Join-Path $ShepherdPlugin 'scripts\resolve-repository-remote.ps1') `
         -Repo $Repo
     if ([string]::IsNullOrWhiteSpace([string]$resolvedRemote)) {
         throw "Could not resolve the unique Git remote for '$Repo'."
     }
-    Write-ExperimentStatus "Resolved repository remote: $($resolvedRemote.Trim())"
+    $resolvedRemote = ([string]$resolvedRemote).Trim()
+    Write-ExperimentStatus "Resolved repository remote: $resolvedRemote"
 
     foreach ($branch in @($BaselineBranch, $TreatmentBranch, $ControlBranch)) {
-        git -C $Target ls-remote --exit-code --heads $remotes[0] $branch *> $null
+        git -C $Target ls-remote --exit-code --heads $resolvedRemote $branch *> $null
         if ($LASTEXITCODE -eq 0) {
             throw "Remote experiment branch already exists: $branch"
         }

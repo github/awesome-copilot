@@ -412,18 +412,12 @@ git -C "$target" rev-parse --verify HEAD >/dev/null 2>&1 ||
     fail "The Cargo Tracker fork is empty; it must contain the prepared baseline branch."
 [[ -z "$(git -C "$target" status --porcelain)" ]] ||
     fail "The primary target checkout is not clean."
-remotes=()
-while IFS= read -r remote; do
-    remotes+=("$remote")
-done < <(git -C "$target" remote)
-[[ ${#remotes[@]} -eq 1 ]] ||
-    fail "The primary checkout must have exactly one Git remote; found ${#remotes[@]}."
 cd "$target"
 resolved_remote="$("$shepherd_plugin/scripts/resolve-repository-remote.sh" "$repo")"
 [[ -n "$resolved_remote" ]] || fail "Could not resolve the unique Git remote for '$repo'."
 for branch in "$baseline_branch" "$control_branch"; do
     set +e
-    git -C "$target" ls-remote --exit-code --heads "${remotes[0]}" "$branch" >/dev/null 2>&1
+    git -C "$target" ls-remote --exit-code --heads "$resolved_remote" "$branch" >/dev/null 2>&1
     branch_exit=$?
     set -e
     if [[ $branch_exit -eq 0 ]]; then

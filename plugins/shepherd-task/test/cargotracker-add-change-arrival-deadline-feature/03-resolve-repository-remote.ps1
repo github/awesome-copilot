@@ -60,6 +60,9 @@ try {
     if ($LASTEXITCODE -ne 0 -or ($freshOutput -join "`n").Trim() -ne 'origin') {
         throw "Fresh-process remote resolution failed: $($freshOutput -join [Environment]::NewLine)"
     }
+    git remote add upstream https://github.com/example/parent.git
+    Assert-Remote -Expected origin -Repo example/project
+    git remote remove upstream
 
     git remote rename origin upstream
     Assert-Remote -Expected upstream -Repo example/project

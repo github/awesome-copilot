@@ -44,6 +44,10 @@ driver_required=(
 for text in "${driver_required[@]}"; do
     grep -Fq -- "$text" "$driver" || fail "Simple-math driver is missing required control behavior: $text"
 done
+grep -Fq 'ls-remote --exit-code --heads "$resolved_remote" "$branch"' "$driver" ||
+    fail "Simple-math driver does not probe branches through the resolved repository remote."
+! grep -Fq 'must have exactly one Git remote' "$driver" ||
+    fail "Simple-math driver still rejects fork checkouts with an upstream remote."
 grep -Fq 'scripts_directory="$(cd "$script_dir/../../scripts" && pwd -P)"' "$issue_creator" ||
     fail "Simple-math issue creator does not canonicalize the installed scripts directory."
 for forbidden in treatment comparison treatment-control; do
