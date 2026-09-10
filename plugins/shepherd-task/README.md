@@ -264,7 +264,29 @@ PowerShell:
   -CampaignMetadataDirectory <campaign-metadata-directory>
 ```
 
-Stage 25 invokes `shepherd-task` for each issue in order. 
+Stage 25 invokes `shepherd-task` for each issue in order.
+
+**Note:** Manually invoking `shepherd-task` is also supported entry-point.
+
+Bash:
+
+```bash
+./plugins/shepherd-task/scripts/shepherd-task.sh \
+  <issue-number> \
+  <campaign-metadata-directory> \
+  <run-directory>
+```
+
+PowerShell:
+
+```powershell
+.\plugins\shepherd-task\scripts\shepherd-task.ps1 `
+  -TaskIssue <issue-number> `
+  -CampaignMetadataDirectory <campaign-metadata-directory> `
+  -RunDirectory <run-directory>
+```
+
+This script is the heart of the system. It performs stages 30 and 40 on the given issue.
 
 See:
 
