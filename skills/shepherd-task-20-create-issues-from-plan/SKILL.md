@@ -208,6 +208,23 @@ Before creating the first issue, initialize `LOG_DIRECTORY/creation-ledger.json`
 
 Write both JSON documents atomically. Immediately after each successful create call, append an object to the ledger with these exact fields: `implementationSubsection`, `bodyFile`, `id`, `number`, `title`, `url`, `body_verified`, and `linked`. Store `bodyFile` as a path relative to `LOG_DIRECTORY`, set `body_verified=false` and `linked=false`, then persist the ledger. Never keep the ledger only in memory.
 
+On Bash, use this exact multiline structure when updating `body_verified` or `linked`. Every continued `jq` argument line must end with `\`; never place the filter on a new physical line after an argument that lacks a continuation, because Bash will execute the filter as a separate command:
+
+```bash
+update_ledger_flag() {
+  local number="$1" field="$2" value="$3" updated
+  updated="$(
+    jq \
+      --argjson number "$number" \
+      --arg field "$field" \
+      --argjson value "$value" \
+      'map(if .number == $number then .[$field] = $value else . end)' \
+      "$LEDGER"
+  )" || return 1
+  atomic_write "$LEDGER" "$updated"
+}
+```
+
 On PowerShell, preserve the ledger as a flat object array for zero, one, and multiple entries. Use `ConvertFrom-Json -NoEnumerate`, verify that the JSON root is an array, reject nested array entries, and return entries normally:
 
 ```powershell

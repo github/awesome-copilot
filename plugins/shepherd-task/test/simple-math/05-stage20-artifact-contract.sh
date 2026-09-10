@@ -38,6 +38,10 @@ grep -Fq 'as a JSON array' "$stage20_skill" ||
     fail "Stage-20 skill does not preserve the Bash ledger array requirement."
 grep -Fq 'capture output and then capture `$LASTEXITCODE` immediately' "$stage20_skill" ||
     fail "Stage-20 skill does not preserve the native exit-code safety requirement."
+grep -Fq -- '--argjson value "$value" \' "$stage20_skill" ||
+    fail "Stage-20 skill does not preserve the Bash jq argument continuation requirement."
+grep -Fq -- "'map(if .number == \$number then .[\$field] = \$value else . end)' \\" "$stage20_skill" ||
+    fail "Stage-20 skill does not preserve the Bash ledger update filter template."
 
 ledger="$temp_directory/ledger-round-trip.json"
 printf '[]\n' >"$ledger"
