@@ -133,6 +133,28 @@ if ($artifacts.TaskCount -ne 5) { throw "Stage 15 found $($artifacts.TaskCount) 
 if ($prompt -match '(?m)^-\s+(ISSUE_TYPE|EXAMPLE_ISSUES|SUPPORTING_ARTIFACTS):') {
     throw 'Generated stage-20 prompt contains an obsolete caller-supplied input.'
 }
+$paginationContract = @'
+
+Fixture pagination response contract (mandatory):
+
+- `gh api ... --paginate --slurp` returns a JSON array of page payloads, so a
+  one-page response has the shape `[[{...}]]`, not `[{...}]`.
+- Before indexing child issue fields such as `.id`, normalize the response to
+  one flat issue array exactly once.
+- In Bash, use:
+  `jq 'if length == 0 then [] elif all(.[]; type == "array") then add else . end'`.
+- In PowerShell, capture the `gh` output and `$LASTEXITCODE` first, then pass
+  the complete JSON through the same `jq` normalization before
+  `ConvertFrom-Json`.
+- Use the normalized flat array for the pre-creation baseline, final child
+  count/order checks, and failure reconciliation. Do not apply `add` a second
+  time to an already-flat array.
+'@
+[System.IO.File]::AppendAllText(
+    $artifacts.PromptFile,
+    $paginationContract,
+    [System.Text.UTF8Encoding]::new($false)
+)
 
 Write-Host 'Executing the generated stage-20 Copilot invocation...'
 & pwsh -NoLogo -NoProfile -File $artifacts.InvocationFile

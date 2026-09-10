@@ -16,6 +16,29 @@ $issueCreator = [System.IO.File]::ReadAllText($issueCreatorPath)
 $verifier = [System.IO.File]::ReadAllText($verifierPath)
 $driver = [System.IO.File]::ReadAllText($driverPath)
 
+$paginationFilter = 'if length == 0 then [] elif all(.[]; type == "array") then add else . end'
+foreach ($fixture in @(
+    [pscustomobject]@{ Input = '[]'; Expected = '[]' },
+    [pscustomobject]@{ Input = '[[{"id":1}]]'; Expected = '[{"id":1}]' },
+    [pscustomobject]@{ Input = '[[{"id":1}],[{"id":2}]]'; Expected = '[{"id":1},{"id":2}]' },
+    [pscustomobject]@{ Input = '[{"id":1},{"id":2}]'; Expected = '[{"id":1},{"id":2}]' }
+)) {
+    $actual = $fixture.Input | jq -c $paginationFilter
+    if ($LASTEXITCODE -ne 0 -or ([string]$actual).Trim() -ne $fixture.Expected) {
+        throw "Pagination normalization produced '$actual'; expected '$($fixture.Expected)'."
+    }
+}
+foreach ($required in @(
+    'Fixture pagination response contract (mandatory):',
+    'one-page response has the shape `[[{...}]]`, not `[{...}]`',
+    $paginationFilter,
+    'capture the `gh` output and `$LASTEXITCODE` first'
+)) {
+    if (-not $issueCreator.Contains($required)) {
+        throw "Simple-math issue creator is missing pagination guidance: $required"
+    }
+}
+
 foreach ($required in @(
     "`$planFile = 'math-tool-ignorance-reduction-plan.md'",
     "lessonPropagation = 'off'",

@@ -18,6 +18,27 @@ for path in "$initializer" "$issue_creator" "$verifier" "$driver"; do
     [[ -f "$path" ]] || fail "Required Bash fixture file not found: $path"
 done
 
+pagination_filter='if length == 0 then [] elif all(.[]; type == "array") then add else . end'
+for fixture in \
+    '[]|[]' \
+    '[[{"id":1}]]|[{"id":1}]' \
+    '[[{"id":1}],[{"id":2}]]|[{"id":1},{"id":2}]' \
+    '[{"id":1},{"id":2}]|[{"id":1},{"id":2}]'; do
+    input="${fixture%%|*}"
+    expected="${fixture#*|}"
+    actual="$(printf '%s' "$input" | jq -c "$pagination_filter")"
+    [[ "$actual" == "$expected" ]] ||
+        fail "Pagination normalization produced '$actual'; expected '$expected'."
+done
+for text in \
+    'Fixture pagination response contract (mandatory):' \
+    'one-page response has the shape `[[{...}]]`, not `[{...}]`' \
+    "$pagination_filter" \
+    'capture the `gh` output and `$LASTEXITCODE` first'; do
+    grep -Fq -- "$text" "$issue_creator" ||
+        fail "Simple-math issue creator is missing pagination guidance: $text"
+done
+
 initializer_required=(
     "plan_file='math-tool-ignorance-reduction-plan.md'"
     'lessonPropagation:"off"'

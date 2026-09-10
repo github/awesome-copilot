@@ -109,6 +109,23 @@ done
 if grep -Eq '^- (ISSUE_TYPE|EXAMPLE_ISSUES|SUPPORTING_ARTIFACTS):' "$prompt_file"; then
     fail "Generated stage-20 prompt contains an obsolete caller-supplied input."
 fi
+cat >>"$prompt_file" <<'EOF'
+
+Fixture pagination response contract (mandatory):
+
+- `gh api ... --paginate --slurp` returns a JSON array of page payloads, so a
+  one-page response has the shape `[[{...}]]`, not `[{...}]`.
+- Before indexing child issue fields such as `.id`, normalize the response to
+  one flat issue array exactly once.
+- In Bash, use:
+  `jq 'if length == 0 then [] elif all(.[]; type == "array") then add else . end'`.
+- In PowerShell, capture the `gh` output and `$LASTEXITCODE` first, then pass
+  the complete JSON through the same `jq` normalization before
+  `ConvertFrom-Json`.
+- Use the normalized flat array for the pre-creation baseline, final child
+  count/order checks, and failure reconciliation. Do not apply `add` a second
+  time to an already-flat array.
+EOF
 
 echo "Executing the generated stage-20 Copilot invocation..."
 set +e

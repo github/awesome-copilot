@@ -45,6 +45,27 @@ for required_file in "$initializer" "$baseline" "$issue_creator" "$verifier" "$d
     [[ -f "$required_file" ]] || fail "Required fixture file is missing: $required_file"
 done
 
+pagination_filter='if length == 0 then [] elif all(.[]; type == "array") then add else . end'
+for fixture in \
+    '[]|[]' \
+    '[[{"id":1}]]|[{"id":1}]' \
+    '[[{"id":1}],[{"id":2}]]|[{"id":1},{"id":2}]' \
+    '[{"id":1},{"id":2}]|[{"id":1},{"id":2}]'; do
+    input="${fixture%%|*}"
+    expected="${fixture#*|}"
+    actual="$(printf '%s' "$input" | jq -c "$pagination_filter")"
+    [[ "$actual" == "$expected" ]] ||
+        fail "Pagination normalization produced '$actual'; expected '$expected'."
+done
+for text in \
+    'Fixture pagination response contract (mandatory):' \
+    'one-page response has the shape `[[{...}]]`, not `[{...}]`' \
+    "$pagination_filter" \
+    'capture the `gh` output and `$LASTEXITCODE` first'; do
+    grep -Fq -- "$text" "$issue_creator" ||
+        fail "Cargo Tracker issue creator is missing pagination guidance: $text"
+done
+
 plan_hash="$(decode_plan_archive | gzip -dc | sha256_stream)"
 expected_plan_hash='6fdedc8d42a586fe8dc74bf4155d4d2b927b2dd35754093e6719b2061835e882'
 [[ "$plan_hash" == "$expected_plan_hash" ]] ||
