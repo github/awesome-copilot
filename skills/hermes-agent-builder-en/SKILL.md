@@ -3,9 +3,11 @@ name: hermes-agent-builder-en
 description: Conducts a plain-language discovery interview about the desired outcome and real work, then designs a Hermes system and uses explicit criteria to distinguish deterministic processes, tools, skills, subagents, profiles, and an orchestrator. Use when creating, splitting, or revising an agent system; do not use for ordinary domain-task execution.
 license: MIT
 metadata:
-  hermes:
-    tags: [hermes, agents, architecture, skills, orchestration]
-    category: engineering
+  author: kotlyar
+  version: "1.0.1"
+  source: https://github.com/kotlyar/agent-architecture-builder
+  hermes-category: engineering
+  hermes-tags: hermes, agents, architecture, skills, orchestration
 ---
 # Hermes Agent Builder
 
