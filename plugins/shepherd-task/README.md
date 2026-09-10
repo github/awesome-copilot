@@ -51,7 +51,7 @@ is merged to `main`.
 | Human gate |                                                    |                                                   | Human + Copilot research/spikes fill every implementation-gating `Resolution` block in the ignorance reduction plan |
 | 15         |                                                    | `shepherd-task-15-prepare-create-issues`          | Derives stage-20 inputs and generates a prompt plus invocation script |
 | 20         | `shepherd-task-20-create-issues-from-plan`         |                                                   | Creates and orders the implementation child issues |
-| 25         |                                                    | `shepherd-task-25-given-list`                     | Runs selected child issues serially and always invokes stage 50 |
+| 25         |                                                    | `shepherd-task-25-given-list`                     | Runs selected child issues serially, invokes `shepherd-task` separately for each issue to perform stages 30 and 40, and always invokes stage 50 |
 | 30         | `shepherd-task-30-from-assignment-to-ready`        |                                                   | Produces a verified draft PR immediately before Ready for review                     |
 | 40         | `shepherd-task-40-from-ready-to-merged-to-base`    |                                                   | Reviews, fixes, publishes lessons, and merges the PR to the campaign base            |
 | 50         | `shepherd-task-50-create-post-mortem`              |                                                   | Writes an evidence-based report for the given-list run                               |
