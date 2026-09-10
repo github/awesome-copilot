@@ -416,10 +416,12 @@ cd "$target"
 resolved_remote="$("$shepherd_plugin/scripts/resolve-repository-remote.sh" "$repo")"
 [[ -n "$resolved_remote" ]] || fail "Could not resolve the unique Git remote for '$repo'."
 for branch in "$baseline_branch" "$control_branch"; do
-    set +e
-    git -C "$target" ls-remote --exit-code --heads "$resolved_remote" "$branch" >/dev/null 2>&1
-    branch_exit=$?
-    set -e
+    if git -C "$target" ls-remote --exit-code --heads \
+        "$resolved_remote" "$branch" >/dev/null 2>&1; then
+        branch_exit=0
+    else
+        branch_exit=$?
+    fi
     if [[ $branch_exit -eq 0 ]]; then
         fail "Remote control-run branch already exists: $branch"
     elif [[ $branch_exit -ne 2 ]]; then

@@ -93,8 +93,9 @@ for required in \
     grep -Fq -- "$required" "$driver" "$initializer" ||
         fail "Cargo Tracker Bash fixture is missing required text: $required"
 done
-grep -Fq 'ls-remote --exit-code --heads "$resolved_remote" "$branch"' "$driver" ||
-    fail "Cargo Tracker driver does not probe branches through the resolved repository remote."
+grep -Fq 'if git -C "$target" ls-remote --exit-code --heads \' "$driver" &&
+    grep -Fq '"$resolved_remote" "$branch" >/dev/null 2>&1; then' "$driver" ||
+    fail "Cargo Tracker driver does not probe branches through a trap-safe resolved-remote condition."
 ! grep -Fq 'must have exactly one Git remote' "$driver" ||
     fail "Cargo Tracker driver still rejects fork checkouts with an upstream remote."
 if decode_plan_archive | gzip -dc |
