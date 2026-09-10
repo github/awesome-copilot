@@ -405,6 +405,9 @@ review IDs, commit IDs, review comments, and GraphQL thread state.
 `shepherd-task-approve-workflows-and-wait-for-completion` finds branch runs with
 `action_required`, reruns them with `gh run rerun`, and blocks on
 `gh pr checks --watch --fail-fast`. No pending approval is a successful no-op.
+The PR check command is the authoritative completion gate. Historical runs for
+obsolete commits may be listed for diagnostics, but they do not block a merge
+after the current PR checks pass.
 The stages use blocking waits so the Copilot CLI session does not go idle while
 GitHub work is still running.
 

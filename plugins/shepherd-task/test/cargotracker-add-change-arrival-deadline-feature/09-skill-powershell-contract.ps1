@@ -156,4 +156,56 @@ foreach ($skillText in @($stage30Skill, $stage40Skill)) {
     }
 }
 
+$workflowApprovalSkill = [System.IO.File]::ReadAllText(
+    (Join-Path $skillsDirectory 'shepherd-task-approve-workflows-and-wait-for-completion\SKILL.md')
+)
+if (-not $workflowApprovalSkill.Contains(
+    '`gh pr checks` is the sole authoritative completion gate.'
+)) {
+    throw 'The workflow-approval skill must make gh pr checks authoritative.'
+}
+if ($workflowApprovalSkill -notmatch
+    'an obsolete-SHA\s+run that remains queued after the PR''s current checks pass is non-blocking\.') {
+    throw 'The workflow-approval skill must classify stale queued runs as non-blocking.'
+}
+if ($workflowApprovalSkill.Contains(
+    "--jq '.[] | select(.status != `"completed`")'"
+)) {
+    throw 'The workflow-approval skill still offers branch-wide incomplete-run polling.'
+}
+if (-not $workflowApprovalSkill.Contains(
+    'Never use this diagnostic listing to control the completion wait'
+)) {
+    throw 'The workflow-approval skill must restrict branch history to diagnostics.'
+}
+
+$currentHead = 'current-head'
+$prCheckExitCode = 0
+# Regression: a superseded run may remain queued after current-head checks pass.
+$branchRuns = @(
+    [pscustomobject]@{
+        headSha = $currentHead
+        status = 'completed'
+        conclusion = 'success'
+    },
+    [pscustomobject]@{
+        headSha = 'obsolete-head'
+        status = 'queued'
+        conclusion = ''
+    }
+)
+$obsoletePendingRuns = @(
+    $branchRuns |
+        Where-Object {
+            $_.headSha -ne $currentHead -and
+            $_.status -ne 'completed'
+        }
+)
+if ($obsoletePendingRuns.Count -ne 1) {
+    throw 'The stale-workflow regression fixture is invalid.'
+}
+if ($prCheckExitCode -ne 0) {
+    throw 'A successful current-head PR check result must remain mergeable.'
+}
+
 Write-Host 'Shepherd-task embedded PowerShell contract tests passed.' -ForegroundColor Green

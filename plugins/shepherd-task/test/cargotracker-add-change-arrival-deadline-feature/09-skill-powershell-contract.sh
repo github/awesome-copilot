@@ -85,4 +85,32 @@ grep -Fq 'Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-c
 grep -Fq 'Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-completion`** skill by name' "$stage40" ||
     fail "Stage 40 does not invoke the workflow-approval skill by installed name."
 
+workflow_approval="$skills_directory/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md"
+grep -Fq '`gh pr checks` is the sole authoritative completion gate.' "$workflow_approval" ||
+    fail "The workflow-approval skill must make gh pr checks authoritative."
+grep -Fq 'an obsolete-SHA' "$workflow_approval" &&
+    grep -Fq "run that remains queued after the PR's current checks pass is non-blocking." "$workflow_approval" ||
+    fail "The workflow-approval skill must classify stale queued runs as non-blocking."
+! grep -Fq -- "--jq '.[] | select(.status != \"completed\")'" "$workflow_approval" ||
+    fail "The workflow-approval skill still offers branch-wide incomplete-run polling."
+grep -Fq 'Never use this diagnostic listing to control the completion wait' "$workflow_approval" ||
+    fail "The workflow-approval skill must restrict branch history to diagnostics."
+
+current_head='current-head'
+pr_check_exit_code=0
+# Regression: a superseded run may remain queued after current-head checks pass.
+current_run_head='current-head'
+current_run_status='completed'
+current_run_conclusion='success'
+obsolete_run_head='obsolete-head'
+obsolete_run_status='queued'
+[[ "$current_run_head" == "$current_head" &&
+    "$current_run_status" == 'completed' &&
+    "$current_run_conclusion" == 'success' &&
+    "$obsolete_run_head" != "$current_head" &&
+    "$obsolete_run_status" == 'queued' ]] ||
+    fail "The stale-workflow regression fixture is invalid."
+[[ $pr_check_exit_code -eq 0 ]] ||
+    fail "A successful current-head PR check result must remain mergeable."
+
 echo "Shepherd-task embedded Bash contract tests passed."

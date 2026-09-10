@@ -1,14 +1,17 @@
 ---
 # shepherd-task-version: 1.0.3
 name: shepherd-task-approve-workflows-and-wait-for-completion
-description: "Use this skill to approve pending workflow runs on a PR branch and wait for them to complete."
+description: 'Use this skill to approve pending workflow runs and wait for the PR''s required checks to complete.'
 ---
 
 # Skill: Approve Workflows and Wait for Completion
 
 ## Purpose
 
-Approve all pending workflow runs (`action_required` status) on a PR's topic branch and wait for them to complete. This is a reusable sub-skill invoked by other shepherd skills whenever workflow approval is needed.
+Approve pending workflow runs (`action_required` status) on a PR's topic
+branch, then wait for the PR's required checks to complete. This is a reusable
+sub-skill invoked by other shepherd skills whenever workflow approval is
+needed.
 
 ## Inputs
 
@@ -63,18 +66,25 @@ done
 ### Step 2: Wait for workflow runs to complete
 
 ```bash
-# Watch all runs on the branch until they complete
-# Use gh pr checks with --watch for convenience
+# Watch the PR's required checks until they complete
 gh pr checks $PR_NUMBER -R $REPO --watch --fail-fast
 ```
 
-Alternatively, poll with:
+`gh pr checks` is the sole authoritative completion gate. A successful exit
+means the workflow gate passed, even if the topic branch has queued or failed
+runs for obsolete commits. Do not add a second wait that requires every
+historical run on `JTBDTASK_BRANCH` to complete.
+
+Branch-wide workflow history may be inspected only for diagnostics:
 
 ```bash
 gh run list -R $REPO --branch "$JTBDTASK_BRANCH" \
-  --json databaseId,status,conclusion,name \
-  --jq '.[] | select(.status != "completed")'
+  --json databaseId,status,conclusion,name,headSha,url
 ```
+
+Never use this diagnostic listing to control the completion wait, determine
+the command's exit status, or block a merge. In particular, an obsolete-SHA
+run that remains queued after the PR's current checks pass is non-blocking.
 
 ---
 
@@ -82,7 +92,9 @@ gh run list -R $REPO --branch "$JTBDTASK_BRANCH" \
 
 - **No pending runs found**: This is not an error — it means runs were already approved (possibly manually). Proceed directly to waiting for completion.
 - **`gh run rerun` fails**: Retry up to 3 times with 10-second backoff, then report and stop.
-- **Runs do not complete within a reasonable time**: The `--watch` flag on `gh pr checks` will block until completion or failure. If it times out, report and stop.
+- **Required PR checks do not complete within a reasonable time**: The
+  `--watch` flag on `gh pr checks` will block until completion or failure. If
+  it times out, report and stop.
 
 ## Notes
 
