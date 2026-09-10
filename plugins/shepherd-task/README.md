@@ -62,19 +62,29 @@ consume campaign identity and lesson-mode metadata. In `campaign` lesson mode,
 pre-existing child issues must also contain the required campaign-lessons
 instructions expected by stage 30.
 
-## Prerequisites
+## Local prerequisites
 
-- Work in a local checkout of the campaign repository.
-- Bash entrypoints support Bash 3.2+ on GNU/Linux and macOS.
-- Check out the exact non-`main` campaign base branch before stage 00 initialization.
-- Enable and configure Copilot Coding Agent and Copilot code review in the
-  repository.
+- `gh` version `gh version 2.100.0 (2026-09-03)` or later.
 - Authenticate `gh` with issue, PR, review, Actions, and push permissions.
+- `copilot` version `GitHub Copilot CLI 1.0.84-3.` or later.
 - Authenticate the `copilot` CLI and accept that orchestration uses
   `copilot --yolo`.
 - Install `git`, `jq`, and `uuidgen`; PowerShell users need PowerShell 7.
 - Provide a local environment capable of running every gating command named in
   the child issues.
+
+## Repository prerequisites
+  
+- Enable and configure Copilot Coding Agent and Copilot code review in the
+  repository.
+- Enable GitHub Actions.
+- Enable Issues.
+
+## Enabling assumptions
+
+- Work in a local checkout of the campaign repository.
+- Bash entrypoints support Bash 3.2+ on GNU/Linux and macOS.
+- Check out the exact non-`main` campaign base branch before stage 00 initialization.
 - Configure a Git remote whose GitHub URL exactly matches the repository in the
   campaign manifest. Stages 15 and 40 require exactly one match when a remote is
   not supplied explicitly. The remote may be named `origin`, `upstream`, or
@@ -83,6 +93,7 @@ instructions expected by stage 30.
   aggregator checks alone cannot satisfy stage 30.
 - Keep the campaign base branch different from the repository default branch
   and from `main`.
+
 
 ## Installation
 
@@ -172,10 +183,10 @@ Invoke `shepherd-task-10-create-ignorance-reduction-plan` with:
   `ignorance-reduction-plan.md`;
 - `CONTEXT`: the loaded campaign context.
 
-The plan must contain exactly one level-two heading with `Ignorance reduction`
+✅✅The plan must contain exactly one level-two heading with `Ignorance reduction`
 and exactly one level-two heading with `Implementation` that has direct
 level-three task headings beneath it. Other level-two headings may mention
-implementation when they contain no direct task headings.
+implementation when they contain no direct task headings.✅✅
 
 Stage 10 intentionally leaves `Resolution` blocks empty. Resolve every
 implementation-gating question before stage 20. Spikes may inform the
