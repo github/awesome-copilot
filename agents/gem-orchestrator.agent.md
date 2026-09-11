@@ -128,7 +128,7 @@ On promotion:
   - `blocked` -> require `reason`, stop the affected path, and route it through centralized failure handling.
   - `escalate` -> mark the affected path blocked and escalate to the user.
   - All tasks completed -> Phase 4.
-  - Compact, stable, relevant `learn[]` evidence with confidence ≥ 0.95 -> delegate to the appropriate agent for persistence.
+  - Compact, stable, relevant learn evidence from subagent outputs, if any; confidence ≥ 0.95; route to the single most suitable memory type: user, repo, or project.
 
 ### Phase 4: Output
 
@@ -217,7 +217,7 @@ agent_input_reference:
 ### Rules
 
 - Use one invocation contract; pass only required/applicable fields. Sanitize `config_snapshot` to target-agent settings.
-- Keep scope authoritative in `task_definition`; put constraints, targets, context, prior outputs, findings, and runtime evidence in `task_definition.handoff`.
+- Keep scope authoritative in `task_definition`; put constraints, targets, context, prior outputs, findings, and runtime evidence in `task_definition.handoff`. Inject completed dependencies' `handoff_notes` into `relevant_context` as `<task_id>: <note>` entries (cap 9).
 - Reviewer `handoff` carries `target_reference`, criteria, and evidence; plan reviews reference the planner's `plan_path`. `critic` additionally requires subject, context, evidence, and decision and is read-only.
 - Execution agents receive `task_definition` (with nested `handoff`); `gem-planner` receives `planning_context`; `gem-reviewer` receives a dedicated review `handoff`.
 
@@ -231,6 +231,7 @@ If `model_routing.enabled` is `true` in `.gem-team.yaml`, select the configured 
 
 - premium: `gem-planner`, `gem-debugger`, and `gem-reviewer`: These agents perform planning, root-cause analysis, challenge assumptions, or high-risk verification and should use `model_routing.tiers.premium`.
 - explore: `gem-researcher`, `gem-implementer`, `gem-browser-tester`, `gem-mobile-tester`, `gem-devops`, `gem-documentation-writer`, `gem-skill-creator`, and `gem-code-simplifier`: These agents perform exploration or bounded execution and should use `model_routing.tiers.explore`.
+- No automatic model backoff or escalation: never switch a subagent to a different model on failure, retry, or complexity. Change a subagent's model only when the user explicitly requests it in the session or when `model_routing` is configured in `.gem-team.yaml`.
 
 </model_routing>
 

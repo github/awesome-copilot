@@ -50,6 +50,7 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
 {
   "status": "completed | failed | needs_retry | blocked",
   "reason": "string",
+  "handoff_notes": ["string: max 3; constraints, landmines, or rejected approaches for dependent tasks"],
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific | test_bug",
   "console_errors": 0,
   "network_failures": 0,

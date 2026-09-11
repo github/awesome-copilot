@@ -41,13 +41,17 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
   - Scope Limits: Define affected feature modules or non-negotiable architectural boundaries.
 
 - Specialist Routing Matrix:
+  - Exploration / Discovery: `gem-researcher` -> owning specialist
   - Bug Diagnosis: `gem-debugger` -> `gem-implementer`
   - Security Audit/Fix: `gem-reviewer` -> `gem-implementer`
   - Refactoring: `gem-code-simplifier`
   - PRD / Docs: `gem-documentation-writer`
+  - Infrastructure / CI-CD: `gem-devops`
+  - Skill Packaging: `gem-skill-creator`
   - App Testing: `gem-browser-tester` or `gem-mobile-tester`
   - Fallback/Default: `gem-implementer`
   - Use the narrowest specialist chain that satisfies the task; do not add agents without a material reason.
+  - Verification pairing: when a task's acceptance criteria include UI behavior or E2E flows, add a paired tester task in the following wave, owned by `gem-browser-tester` or `gem-mobile-tester`.
 
 - Output & Storage Contract:
   - Write complete plan to `docs/plan/{plan_id}/plan.yaml`.
