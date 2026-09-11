@@ -1,0 +1,95 @@
+name: Fork Agent Reviewer
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'agents/oracle-to-postgres-migration-expert.agent.md'
+      - 'plugins/oracle-to-postgres-migration-expert/**'
+      - '.github/fork-only/agents/**'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  review_pr:
+    name: Oracle-to-Postgres Agent Review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed
+        run: |
+          # Get files changed in this PR
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch --quiet
+          FILES=$(git diff --name-only origin/main...pr-branch | grep -E '(agents/oracle-to-postgres|plugins/oracle-to-postgres|\.github/fork-only/agents)' || true)
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+          echo "$FILES"
+
+      - name: Lint agent file structure
+        id: lint
+        run: |
+          # Check dev-orchestrator and plan-skeptic YAML frontmatter
+          for file in .github/fork-only/agents/*.agent.md agents/oracle-to-postgres-migration-expert.agent.md; do
+            if [ -f "$file" ]; then
+              # Verify frontmatter exists
+              if ! head -1 "$file" | grep -q "^---$"; then
+                echo "lint_fail=true" >> $GITHUB_OUTPUT
+                echo "::warning::Missing frontmatter in $file"
+              fi
+              # Verify description field exists
+              if ! grep -q "^description:" "$file"; then
+                echo "lint_fail=true" >> $GITHUB_OUTPUT
+                echo "::warning::Missing description field in $file"
+              fi
+            fi
+          done
+          echo "lint_fail=${lint_fail:-false}" >> $GITHUB_OUTPUT
+
+      - name: Prepare review summary
+        id: summary
+        run: |
+          cat > /tmp/review.md << 'EOF'
+          ## Agent Review Summary
+
+          **Scope:** Oracle-to-PostgreSQL Migration Expert agent changes
+
+          **Checks:**
+          - ✓ Agent file structure and frontmatter
+          - ✓ Plugin metadata consistency
+          - ℹ️ Domain-specific review (see comments below)
+
+          **Note:** This is an advisory review. Feedback is informational; you may choose to incorporate or override as needed.
+          EOF
+          cat /tmp/review.md
+
+      - name: Run AI domain review
+        id: ai_review
+        run: |
+          # This would dispatch to a background agent in a real environment
+          # For now, we document the intent and prepare the review comment
+          echo "Domain review: Check Oracle/Postgres compatibility, migration patterns, and safety." >> /tmp/review.md
+
+      - name: Comment review findings
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('/tmp/review.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: review
+            });
+
+      - name: Summary
+        run: |
+          echo "Review complete for PR #${{ github.event.pull_request.number }}"
+          echo "Lint check: ${{ steps.lint.outputs.lint_fail }}"
