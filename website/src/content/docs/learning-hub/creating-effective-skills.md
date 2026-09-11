@@ -379,9 +379,13 @@ copilot skill list                      # list all currently loaded skills
 copilot skill add ./my-skill/           # add a skill from a local directory
 copilot skill add https://example.com/skill.zip  # add a skill from a URL
 copilot skill remove my-skill           # remove an installed skill by name
+copilot skill enable my-skill           # re-enable a disabled skill (v1.0.84+)
+copilot skill disable my-skill          # disable a skill without removing it (v1.0.84+)
 ```
 
 You can also run `/skill` (or the existing `/skills`) inside an interactive session to see what's loaded. The `copilot skill` subcommand is the recommended way to install skills that aren't packaged inside a plugin.
+
+> **Command restructuring (v1.0.84+)**: `copilot skill add [--project]` replaces the older `copilot plugins install --skill [--scope project]` syntax — the `--scope` spelling is gone. Enabling and disabling a skill now happens directly on `copilot skill enable`/`disable` instead of the retired cross-kind `copilot plugins enable/disable --skill`.
 
 **Q: How are skills different from prompts?**
 
