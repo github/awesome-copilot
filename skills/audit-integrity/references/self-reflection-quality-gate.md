@@ -1,46 +1,43 @@
 # Self-Reflection Quality Gate
 
-After completing analysis, internally score the output across domain-relevant categories (1–10 scale).
+After you complete the analysis, score the output across domain categories on a 1–10 scale.
 
-## Scoring Rules
+**Threshold**: Every category must score **≥ 8** to pass. If any category scores < 8, resolve the gaps before you deliver the report (maximum 2 rework iterations).
 
-- **Pass**: All categories ≥ 8
-- **Fail**: Any score < 8 → revisit the failing dimension before delivering output. Max 2 rework iterations.
-- **If unresolvable after 2 iterations**: Deliver output with an explicit confidence note stating which dimension fell short and why.
+## Core Scoring Rubric (Universal)
 
-## Base Categories (All Agents)
+| Category           | Score 9–10                                                                                  | Score 7–8                                                             | Score 5–6                                                           | Score 1–4                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **Completeness**   | All phases, categories, boundaries, and checklists evaluated with explicit evidence         | Minor omissions that do not affect the risk profile                   | Noticeable gaps in coverage; entire sections omitted                | Superficial pass; major sections missing                        |
+| **Accuracy**       | Precise file:line references, confirmed CVE IDs, verified taint flows, correct CWE mappings | Minor version ambiguity or indirect references; core findings correct | Plausible findings with unverified details or questionable mappings | Fabricated references, wrong CWE mappings, or hallucinated CVEs |
+| **Actionability**  | Concrete remediation code, exact package upgrade targets, step-by-step guidance             | Clear direction but requires human adjustment                         | High-level advice without code or version targets                   | Generic platitudes ("sanitize inputs", "keep packages updated") |
+| **Consistency**    | Risk ratings match evidence, framework verdicts align with findings, formatting uniform     | Minor formatting or taxonomy inconsistencies                          | Severity ratings conflict with impact descriptions                  | Contradictory findings or incompatible verdicts                 |
+| **Evidence Rigor** | Every claim backed by code, manifest, trace, or threat model element                        | Most findings backed; some secondary claims lack citations            | Assertions made without code citations                              | Speculative findings with zero code or manifest backing         |
 
-| Category          | Question                                                                                | Threshold |
-| ----------------- | --------------------------------------------------------------------------------------- | :-------: |
-| **Completeness**  | Were all required phases/categories evaluated with evidence?                            |    ≥ 8    |
-| **Accuracy**      | Are findings backed by concrete references (code, architecture, CVEs), not speculation? |    ≥ 8    |
-| **Actionability** | Does every Critical/High finding have a specific, implementable fix or mitigation?      |    ≥ 8    |
-| **Consistency**   | Are severity ratings, mappings, and verdicts internally consistent?                     |    ≥ 8    |
-| **Coverage**      | Were all entry points, trust boundaries, modules, or manifests identified and analyzed? |    ≥ 8    |
+## Scoring Threshold
 
-## Domain-Specific Extensions
+| Final Score                  | Action                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| All categories ≥ 8           | **PASS** — Proceed to final delivery                                      |
+| Any category < 8 (attempt 1) | **REWORK** — Address deficiencies and re-score                            |
+| Any category < 8 (attempt 2) | **REWORK** — Final attempt to resolve gaps                                |
+| Any category < 8 (attempt 3) | **FLAG & DELIVER** — Deliver with explicit quality gap disclosure to user |
 
-### Multi-tool Pipeline — add:
+## Domain-Specific Rubrics
 
-| **Deduplication** | Are cross-tool duplicates properly merged with corroboration notes? | ≥ 8 |
+### SAST/SCA
 
-### Code Quality (SonarQube-style) — adapt Completeness to:
+| Category          | Question                                                                               | Threshold |
+| ----------------- | -------------------------------------------------------------------------------------- | :-------: |
+| **Completeness**  | Did you evaluate all SAST flaw categories and SCA ecosystems?                          |    ≥ 8    |
+| **Accuracy**      | Are findings supported by concrete taint traces and verified CVE IDs?                  |    ≥ 8    |
+| **Actionability** | Does each Critical and High finding have a concrete code fix or upgrade step?          |    ≥ 8    |
+| **Consistency**   | Are severity ratings, CWE mappings, and policy verdicts consistent across the report?  |    ≥ 8    |
+| **Coverage**      | Did you trace all entry points from source to sink and audit all dependency manifests? |    ≥ 8    |
 
-| **Completeness** | Were all issue types (Bugs, Vulnerabilities, Hotspots, Smells, Duplication) evaluated? | ≥ 8 |
+### Threat Modeling and Code Review
 
-### SAST/SCA — adapt Coverage to:
-
-| **Coverage** | Were all entry points taint-traced and all dependency manifests audited? | ≥ 8 |
-
-### STRIDE Threat Modeling — adapt Completeness to:
-
-| **Completeness** | Were all six STRIDE categories evaluated for every trust boundary and data flow? | ≥ 8 |
-
-### STRIDE-LM — adapt Completeness and Coverage to:
-
-| **Completeness** | Were all seven STRIDE-LM categories evaluated for every asset and trust boundary? | ≥ 8 |
-| **Coverage** | Were all lateral movement paths, trust boundaries, and post-exploitation chains assessed? | ≥ 8 |
-
-### Code Review — adapt Coverage to:
-
-| **Coverage** | Were all entry points, trust boundaries, and data flows traced from source to sink? | ≥ 8 |
+| Category         | Question                                                                            | Threshold |
+| ---------------- | ----------------------------------------------------------------------------------- | :-------: |
+| **Completeness** | Did you evaluate all six STRIDE categories for each trust boundary and data flow?   |    ≥ 8    |
+| **Coverage**     | Were all entry points, trust boundaries, and data flows traced from source to sink? |    ≥ 8    |
