@@ -14,20 +14,20 @@ Deliver final reports matching this structure:
 **Detected Languages**: <List of languages>  
 **Scanned Modules**: <List of modules or directory paths>  
 **Evaluated Policy**: <Policy name or "Standard Baseline">  
-**Overall Status**: PASS | FAIL | CONDITIONAL  
+**Overall Status**: PASS | FAIL | CONDITIONAL
 
 ---
 
 ## Executive Summary
 
-| Severity | SAST Findings | SCA Vulnerabilities | Total Count |
-| :--- | :---: | :---: | :---: |
-| **Critical** | <count> | <count> | <total> |
-| **High** | <count> | <count> | <total> |
-| **Medium** | <count> | <count> | <total> |
-| **Low** | <count> | <count> | <total> |
-| **Informational** | <count> | <count> | <total> |
-| **Total** | <count> | <count> | <total> |
+| Severity          | SAST Findings | SCA Vulnerabilities | Total Count |
+| :---------------- | :-----------: | :-----------------: | :---------: |
+| **Critical**      |    <count>    |       <count>       |   <total>   |
+| **High**          |    <count>    |       <count>       |   <total>   |
+| **Medium**        |    <count>    |       <count>       |   <total>   |
+| **Low**           |    <count>    |       <count>       |   <total>   |
+| **Informational** |    <count>    |       <count>       |   <total>   |
+| **Total**         |    <count>    |       <count>       |   <total>   |
 
 **Risk Posture Summary**: <Provide one concise sentence describing the overall security posture>.
 
@@ -36,8 +36,8 @@ Deliver final reports matching this structure:
 ## Module Summary
 
 | Module Path | Files Evaluated | SAST Findings | SCA Vulnerabilities | Highest Severity |
-| :--- | :---: | :---: | :---: | :--- |
-| `<path>` | <count> | <count> | <count> | <Severity> |
+| :---------- | :-------------: | :-----------: | :-----------------: | :--------------- |
+| `<path>`    |     <count>     |    <count>    |       <count>       | <Severity>       |
 
 ---
 
@@ -83,20 +83,20 @@ Deliver final reports matching this structure:
 
 ## License Risk Summary
 
-| Package Name | License (SPDX) | Risk Level | Commercial Use Status |
-| :--- | :--- | :--- | :--- |
-| `<name>` | `<SPDX ID>` | Low \| Medium \| High | Permitted \| Restricted \| Prohibited |
+| Package Name | License (SPDX) | Risk Level            | Commercial Use Status                 |
+| :----------- | :------------- | :-------------------- | :------------------------------------ |
+| `<name>`     | `<SPDX ID>`    | Low \| Medium \| High | Permitted \| Restricted \| Prohibited |
 
 ---
 
 ## Policy Compliance Verdicts
 
-| Policy Framework | Status | Failing Requirements |
-| :--- | :---: | :--- |
-| OWASP Top 10 2025 | PASS \| FAIL | <List failing categories or "None"> |
-| PCI-DSS v4.0.1 | PASS \| FAIL | <List failing requirements or "None"> |
-| CWE Top 25 (2025) | PASS \| FAIL | <List confirmed CWEs or "None"> |
-| NIST SP 800-218 | PASS \| FAIL | <List failing controls or "None"> |
+| Policy Framework  |    Status    | Failing Requirements                  |
+| :---------------- | :----------: | :------------------------------------ |
+| OWASP Top 10 2025 | PASS \| FAIL | <List failing categories or "None">   |
+| PCI-DSS v4.0.1    | PASS \| FAIL | <List failing requirements or "None"> |
+| CWE Top 25 (2025) | PASS \| FAIL | <List confirmed CWEs or "None">       |
+| NIST SP 800-218   | PASS \| FAIL | <List failing controls or "None">     |
 
 ---
 
