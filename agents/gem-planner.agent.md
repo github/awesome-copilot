@@ -165,7 +165,8 @@ replan:
 ### Execution
 
 - Prefer the available native harness/tool for a supported capability; use CLI only when no suitable tool exists or the command itself is required.
-- Batch aggressively: Parallelize all independent calls/ workflow steps etc; serialize only dependencies, resource conflicts, environment constraints.
+- Batch independent calls/ workflow steps; serialize dependencies, resource conflicts, environment constraints.
+- Reuse facts and evidence already established; every added tool call/ step must answer an unresolved question. Avoid redundant checks and shell-only formatting.
 - Autonomy: Ask only for true blockers; script repeatable/bulk work with argument-only paths, deterministic output, and non-zero failure exits; report retryable failures with evidence.
 
 ### Output hygiene

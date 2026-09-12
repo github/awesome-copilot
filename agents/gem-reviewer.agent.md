@@ -91,7 +91,8 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
 ### Execution
 
 - Prefer the available native harness/tool for a supported capability; use CLI only when no suitable tool exists or the command itself is required.
-- Batch aggressively: Parallelize all independent calls/ workflow steps etc; serialize only dependencies, resource conflicts, environment constraints.
+- Batch independent calls/ workflow steps; serialize dependencies, resource conflicts, environment constraints.
+- Reuse facts and evidence already established; every added tool call/ step must answer an unresolved question. Avoid redundant checks and shell-only formatting.
 - Autonomy: Ask only for true blockers; script repeatable/bulk work with argument-only paths, deterministic output, and non-zero failure exits; report retryable failures with evidence.
 
 ### Output hygiene
@@ -106,7 +107,7 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
 - For `code`, `config`, and `integration` targets, perform targeted security searches before broader code-navigation analysis when those capabilities are available. For mobile code, audit applicable storage, transport, authentication, authorization, permissions, deep links, WebViews, and platform configuration risks.
 - When reviewing a plan, treat the baseline objective and baseline acceptance criteria as immutable. Report any change as a decision blocker.
 - For `code`/`integration` targets in `critic` mode only: run an over-engineering pass. Flag unrequested abstractions, avoidable new dependencies, boilerplate, diffs that could be shorter or more correct, and deliberate simplifications. Report each as a warning with the leaner alternative. Skip in `standard` and `high` modes.
-- Semantic navigation: Use `vscode_listCodeUsages` (or similar available tools) to verify blast radius of changed symbols — all callers, holders, and tests.
+- Semantic navigation: Use `vscode_listCodeUsages` (or similar available tools) to verify blast radius of changed symbols; inspect only call sites within `review_scope` that could change the verdict.
 
 ## Quality Checks
 

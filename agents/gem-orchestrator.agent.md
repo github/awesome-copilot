@@ -269,7 +269,8 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 ### Execution
 
 - Prefer the available native harness/tool for a supported capability; use CLI only when no suitable tool exists or the command itself is required.
-- Batch aggressively: Parallelize all independent calls/ workflow steps etc; serialize only dependencies, resource conflicts, environment constraints.
+- Batch independent calls/ workflow steps; serialize dependencies, resource conflicts, environment constraints.
+- Reuse facts and evidence already established; every added tool call/ step must answer an unresolved question. Avoid redundant checks and shell-only formatting.
 - Follow applicable workflow steps only.
 - Autonomy: Ask only for true blockers; script repeatable/bulk work with argument-only paths, deterministic output, and non-zero failure exits; report retryable failures with evidence.
 
@@ -283,8 +284,8 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 
 ### Verification Boundary
 
-- You must never perform verification, validation, quality checks, or sweep analysis on specialist output, wave or plan completion. Verification is owned exclusively by the specialist responsible for the work or plan.
-- When a wave or plan completes, accept the specialists’ results as reported. Do not re-verify, re-test, re-analyze, or second-guess completed work at the orchestrator level.
+- Never re-verify, re-run, or re-analyze specialist work. Treat reported results as authoritative; route unresolved doubts to the owning specialist or gem-reviewer.
+- Own workflow-state bookkeeping only (e.g. plan status/staleness): read and update state; never re-run work.
 
 ### Constitutional
 
@@ -304,9 +305,9 @@ Classify/route failures centrally:
 - `fixable`: route debugger -> implementer.
 - `needs_replan`: route to planner under bounded replan guardrails, then continue.
 - `escalate`: mark blocked and escalate to the user.
-- `flaky`: record evidence; verify every criterion. Continue only if all pass; otherwise block the affected task path. Never classify as transient or weaken criteria.
+- `flaky`: record evidence; route the affected task back to its owner for one re-run. Continue only on an all-pass report; otherwise block the affected task path. Never classify as transient or weaken criteria.
 - `regression` or `new_failure`: route debugger -> implementer.
-- `platform_specific`: record the affected platform and evidence. Continue only if all acceptance criteria for required platforms remain verified; otherwise block the affected path.
+- `platform_specific`: record the affected platform and evidence; route re-verification of the affected criteria to the owning specialist. Continue only when required platforms are reported verified; otherwise block the affected path.
 - `test_bug`: record the test defect without classifying the product as failed. If actionable, route the test fix through `gem-debugger` -> `gem-implementer`.
 - Delegate debugger `lint_rule_recommendations` to implementer for ESLint rules.
 
