@@ -68,7 +68,7 @@ Do not add streaming as a default improvement; require a concrete need and an ex
 
 ## Security and Resource Boundaries
 
-- Enforce authentication and authorization per method; adding a method can bypass policy maps that enumerate paths.
+- Enforce authentication and authorization per method; update policy maps that enumerate paths whenever a method is added.
 - Use transport security appropriate to the deployment, and avoid logging credentials or sensitive metadata.
 - Bound request size, response size, concurrency, fan-out, and expensive repeated fields where input is untrusted.
 - Validate before starting irreversible or costly work.
