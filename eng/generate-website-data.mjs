@@ -651,6 +651,7 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
         fs.readFileSync(externalJsonPath, "utf-8")
       );
       if (Array.isArray(externalPlugins)) {
+        const localPluginIds = new Set(plugins.map((plugin) => plugin.id));
         let addedCount = 0;
         for (const ext of externalPlugins) {
           if (!ext.name || !ext.description) {
@@ -661,7 +662,7 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
           }
 
           // Skip if a local plugin with the same name already exists
-          if (plugins.some((p) => p.id === ext.name)) {
+          if (localPluginIds.has(ext.name)) {
             console.warn(
               `Skipping external plugin "${ext.name}" — local plugin with same name exists`
             );
@@ -690,6 +691,7 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
               " "
             )} ${ext.author?.name || ""} ${ext.repository || ""}`.toLowerCase(),
           });
+          localPluginIds.add(ext.name);
           addedCount++;
         }
         console.log(
