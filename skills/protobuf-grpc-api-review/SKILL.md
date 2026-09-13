@@ -89,7 +89,7 @@ Impact: concrete failing mixed-version scenario
 Remediation: smallest safe schema change or staged migration
 ```
 
-Use **blocker** for corruption, unparseable data, tag reuse, or an unavoidable production break; **high** for likely cross-version data loss or unsafe RPC behavior; **medium** for bounded compatibility or operability risks; and **low** for maintainability issues that do not break the contract. Do not inflate style preferences into compatibility findings.
+Use **blocker** for corruption, unparsable data, tag reuse, or an unavoidable production break; **high** for likely cross-version data loss or unsafe RPC behavior; **medium** for bounded compatibility or operability risks; and **low** for maintainability issues that do not break the contract. Do not inflate style preferences into compatibility findings.
 
 Conclude with:
 
