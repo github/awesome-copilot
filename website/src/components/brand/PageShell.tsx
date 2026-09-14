@@ -45,7 +45,7 @@ export type PageShellProps = {
 
 /**
  * Shared chrome for every page: skip link, the combined top navigation
- * (brand mark, Resources menu, Playbook tab, search, contributors, contribute),
+ * (brand mark, Resources menu, Learning Hub tab, search, contributors, contribute),
  * the `<main>` landmark, and the footer.
  *
  * The prototype repeated this block verbatim at the top of each page; it is

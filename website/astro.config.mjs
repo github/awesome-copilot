@@ -35,7 +35,7 @@ function readContributorsTotal() {
   }
 }
 
-// Playbook course content mirrored from external workshop repos is authored in
+// Learning Hub course content mirrored from external workshop repos is authored in
 // GitHub admonition syntax (`> [!NOTE]`). This remark plugin rewrites those
 // callouts into directives before rendering, so the same syntax used in the
 // source repos and on github.com also produces styled callouts here.
@@ -83,7 +83,7 @@ export default defineConfig({
   // existing URLs. Additional locales are served under a locale prefix
   // (e.g. /es-es/…) and fall back to the English page when a translation does
   // not yet exist. These keys match the locale directory names used by mirrored
-  // Playbook course content (website/src/content/docs/<locale>/…).
+  // Learning Hub course content (website/src/content/docs/<locale>/…).
   i18n: {
     defaultLocale: "en",
     locales: ["en", "es-es", "ja-jp", "ko-kr", "pt-br", "zh-cn"],

@@ -9,7 +9,7 @@ import { normalizeLearningHubPath } from "../../lib/learning-hub-routes";
 
 const docs = await getCollection("docs");
 
-// Keep each workshop landing page explicit so the Playbook can surface tracks
+// Keep each workshop landing page explicit so the Learning Hub can surface tracks
 // whose entries live below a nested directory, including translated app tracks.
 const WORKSHOP_LANDING_IDS = [
   "learning-hub/cli-for-beginners/index",

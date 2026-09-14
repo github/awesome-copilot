@@ -32,7 +32,7 @@ const routes = [
   '/plugins/',
   '/contributors/',
   '/learning-hub/',
-  // Keep a representative Playbook article in the matrix so the article
+  // Keep a representative Learning Hub article in the matrix so the article
   // chassis is audited in addition to the Learning Hub landing page.
   '/learning-hub/github-copilot-app/',
   '/learning-hub/cookbook/',
