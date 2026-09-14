@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://searchd.ai/schemas/searchd-aeo-audit-v1.json",
+  "title": "Searchd AEO audit",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "audit", "questions", "runs", "insights"],
+  "properties": {
+    "schema_version": {
+      "const": "searchd-aeo-audit-v1"
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brand",
+        "domain",
+        "market",
+        "language",
+        "measured_at",
+        "measurement_method",
+        "scope_note"
+      ],
+      "properties": {
+        "brand": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "market": { "type": "string", "minLength": 1 },
+        "language": { "type": "string", "minLength": 1 },
+        "measured_at": { "type": "string", "format": "date-time" },
+        "measurement_method": { "type": "string", "minLength": 1 },
+        "scope_note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 25,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "intent"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^q[0-9]{2}$" },
+          "text": { "type": "string", "minLength": 10 },
+          "intent": {
+            "enum": [
+              "commercial",
+              "comparison",
+              "informational",
+              "trust",
+              "market_fit"
+            ]
+          }
+        }
+      }
+    },
+    "runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "question_id",
+          "agent",
+          "agent_version",
+          "searched_at",
+          "search_queries",
+          "status",
+          "brand_mentioned",
+          "brand_position",
+          "competitors",
+          "citations",
+          "answer_text",
+          "answer_excerpt",
+          "analyst_note"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^r[0-9]{2,}$" },
+          "question_id": { "type": "string", "pattern": "^q[0-9]{2}$" },
+          "agent": { "type": "string", "minLength": 1 },
+          "agent_version": { "type": "string", "minLength": 1 },
+          "searched_at": { "type": "string", "format": "date-time" },
+          "search_queries": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "status": { "enum": ["completed", "failed"] },
+          "brand_mentioned": { "type": "boolean" },
+          "brand_position": {
+            "oneOf": [
+              { "type": "integer", "minimum": 1 },
+              { "type": "null" }
+            ]
+          },
+          "competitors": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "uniqueItems": true
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["url", "title", "relationship"],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https?://[^\\s]+$"
+                },
+                "title": { "type": "string", "minLength": 1 },
+                "relationship": {
+                  "enum": [
+                    "first_party",
+                    "competitor_owned",
+                    "editorial",
+                    "directory",
+                    "community",
+                    "other"
+                  ]
+                }
+              }
+            }
+          },
+          "answer_text": { "type": "string" },
+          "answer_excerpt": { "type": "string" },
+          "analyst_note": { "type": "string" }
+        }
+      }
+    },
+    "insights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "priority",
+          "observation",
+          "action",
+          "evidence_ids",
+          "remeasure"
+        ],
+        "properties": {
+          "priority": { "type": "integer", "minimum": 1 },
+          "observation": { "type": "string", "minLength": 1 },
+          "action": { "type": "string", "minLength": 1 },
+          "evidence_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "pattern": "^r[0-9]{2,}$" },
+            "uniqueItems": true
+          },
+          "remeasure": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}
