@@ -122,13 +122,123 @@ compiling to `.github/workflows/*.lock.yml` — in that case use
   setup instructions to follow during implementation.
 - You alone decide when to mark the upstream PR "Ready for review."
 
-## Open implementation tasks
+## Implementation status
 
-- [ ] Create `.github/fork-only/agents/dev-orchestrator.agent.md`
-- [ ] Create `.github/fork-only/agents/plan-skeptic.agent.md`
-- [ ] Create `.github/workflows/fork-sync-watchdog.yml`
-- [ ] Create `.github/workflows/fork-agent-reviewer.yml`
-- [ ] Create `.github/workflows/fork-bundle-upstream-pr.yml`
-- [ ] Walk through fine-grained PAT creation and store as a fork secret
-- [ ] Decide exact weekly cadence (day/time) for `fork-sync-watchdog`
-- [ ] Add an `upstream` git remote locally (optional convenience)
+**Complete** ✓ — All components deployed and tested.
+
+- [x] Create `.github/fork-only/agents/dev-orchestrator.agent.md`
+- [x] Create `.github/fork-only/agents/plan-skeptic.agent.md`
+- [x] Create `.github/workflows/fork-sync-watchdog.yml`
+- [x] Create `.github/workflows/fork-agent-reviewer.yml`
+- [x] Create `.github/workflows/fork-bundle-upstream-pr.yml`
+- [x] Walk through fine-grained PAT creation and store as fork secret (`UPSTREAM_PAT`)
+- [x] Confirm weekly cadence: **Friday 10:00 AM UTC** (cron: `0 10 * * 5`)
+- [x] Add upstream git remote: `git remote add upstream https://github.com/github/awesome-copilot.git`
+- [x] Create state tracking files:
+  - [x] `.github/fork-only/state/contrib-watch.json` — initialized with current SHAs
+  - [x] `.github/fork-only/state/upstream-promotion.json` — initialized with baseline state
+- [x] Create `.github/fork-only/README.md` — comprehensive setup, usage, and troubleshooting
+
+## Deployed components
+
+### Workflows (in `.github/workflows/`)
+
+1. **fork-sync-watchdog.yml**
+   - Schedule: Weekly, Friday 10:00 AM UTC
+   - Actions:
+     - Merge `upstream/main` → `fork/main`
+     - Diff `CONTRIBUTING.md` and `AGENTS.md` against stored SHAs
+     - Alert if changes detected
+     - Update state file
+   - Permissions: `contents: write`, `pull-requests: write`
+
+2. **fork-agent-reviewer.yml**
+   - Trigger: Pull request into `main`
+   - Scopes: 
+     - `agents/oracle-to-postgres-migration-expert.agent.md`
+     - `plugins/oracle-to-postgres-migration-expert/**`
+     - `.github/fork-only/agents/**`
+   - Checks:
+     - Lint: YAML frontmatter, required fields (description, name, model, tools)
+     - AI review: domain-specific Oracle-to-Postgres migration safety and accuracy
+   - Comment-only, non-blocking advisory feedback
+   - Permissions: `pull-requests: write`, `contents: read`
+
+3. **fork-bundle-upstream-pr.yml**
+   - Trigger: Manual (`workflow_dispatch`)
+   - Optional inputs: PR title, PR description
+   - Actions:
+     - Identify commits to promotable paths since last promotion
+     - Create branch from `upstream/main`
+     - Cherry-pick promotable commits
+     - Open draft PR against `github/awesome-copilot`/`main`
+     - Record promotion state
+   - Authentication: Fine-grained PAT (`UPSTREAM_PAT`) for cross-repo auth
+   - Permissions: `contents: write`, `pull-requests: write`
+
+### Custom Agents (in `.github/fork-only/agents/`)
+
+1. **dev-orchestrator.agent.md**
+   - Five-phase workflow:
+     1. Read & grill (challenge requirements)
+     2. Plan (concrete implementation strategy)
+     3. Skeptical review (dispatch to plan-skeptic)
+     4. Implement (after approval via plan-mode gating)
+     5. Pre-PR self-review (domain-aware code review)
+   - Invoked manually by user in Copilot CLI
+   - Model: `claude-sonnet-5`
+
+2. **plan-skeptic.agent.md**
+   - Adversarial persona
+   - Critiques dev-orchestrator's plans
+   - Reports on: assumptions, scope, edge cases, backwards compatibility, simplicity, correctness, testability, user burden
+   - Produces severity-ranked Skeptic's Report
+   - Model: `claude-sonnet-5`
+
+### State Tracking (in `.github/fork-only/state/`)
+
+1. **contrib-watch.json**
+   - Tracks: `CONTRIBUTING.md` and `AGENTS.md` SHAs from upstream
+   - Used by: fork-sync-watchdog
+   - Updated on every sync run
+
+2. **upstream-promotion.json**
+   - Tracks: promotion history (timestamps, commit SHAs, branch names, PR URLs)
+   - Used by: fork-bundle-upstream-pr
+   - Stores: `lastPromotedSHA` for next bundler run
+
+### Documentation (in `.github/fork-only/`)
+
+1. **README.md**
+   - Architecture overview
+   - Fine-grained PAT creation step-by-step
+   - Workflow usage guide
+   - Typical development flow
+   - Troubleshooting
+
+2. **PLAN.md** (this file)
+   - Design decisions and rationale
+   - Platform constraints and workarounds
+   - File organization
+   - Component descriptions
+
+## Next steps for you
+
+1. **Test the sync watchdog** (optional)
+   - Go to Actions → Fork Sync Watchdog
+   - Click "Run workflow" to test the merge and state update
+
+2. **Test the PR reviewer** (optional)
+   - Create a test PR to fork main touching an agent file
+   - Verify lint and AI review comments appear
+
+3. **Create your first issue** in the fork and:
+   - Launch dev-orchestrator
+   - Grill, plan, get skeptic feedback, approve, implement, review
+   - Open PR to fork, merge
+
+4. **Promote to upstream** when ready:
+   - Go to Actions → Fork Bundle Upstream PR
+   - Click "Run workflow"
+   - Review the draft PR in upstream
+   - Iterate with maintainers, merge
