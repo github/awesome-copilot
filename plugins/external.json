@@ -1167,6 +1167,37 @@
     }
   },
   {
+    "name": "tmforge",
+    "description": "The Strider agent that comes with the tmforge plugin adds evidence-backed STRIDE threat modeling to GitHub Copilot, with structured risk assessment, deterministic validation, and Markdown reports. Optional tmforge integration supports creating, updating, and verifying Microsoft Threat Modeling Tool (.tm7) models.",
+    "version": "0.11.0",
+    "author": {
+      "name": "Mark Dalton Gray",
+      "url": "https://github.com/Hacks4Snacks"
+    },
+    "repository": "https://github.com/Hacks4Snacks/tmforge",
+    "homepage": "https://github.com/Hacks4Snacks/tmforge/tree/main/plugins/tmforge",
+    "license": "MIT",
+    "keywords": [
+      "data-flow-diagrams",
+      "risk-assessment",
+      "security-review",
+      "stride",
+      "strider",
+      "threat-modeling",
+      "threat-modeling-as-code",
+      "tm7",
+      "tmforge",
+      "trust-boundaries"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Hacks4Snacks/tmforge",
+      "path": "plugins/tmforge",
+      "ref": "v0.11.0",
+      "sha": "8c22d85c4cb65f416c228bb2a73ae9f364aa549b"
+    }
+  },
+  {
     "name": "ui-theme-designer",
     "description": "Equips AI coding agents with knowledge and tooling for working with UI theme designer, the SAP Design System, and SAP Fiori design tokens.",
     "version": "2.0.0",
