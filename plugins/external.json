@@ -396,7 +396,7 @@
   {
     "name": "crowdstrike-falcon-fusion",
     "description": "AI coding assistant skills for building CrowdStrike Falcon Fusion workflows: action discovery, YAML authoring, deployment, execution monitoring, and best practices for triggers, conditions, loops, and HTTP Actions.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": {
       "name": "CrowdStrike",
       "url": "https://www.crowdstrike.com"
@@ -413,8 +413,8 @@
     "source": {
       "source": "github",
       "repo": "CrowdStrike/fusion-skills",
-      "ref": "v1.1.0",
-      "sha": "8df28a78be316f619a0a5227a401b395da990c40"
+      "ref": "v1.2.0",
+      "sha": "3e15710a94b712473e87ce7cd7c43d026156a3f3"
     }
   },
   {
@@ -793,7 +793,7 @@
   {
     "name": "microsoft-foundry",
     "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-    "version": "1.0.12",
+    "version": "1.0.13",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -814,7 +814,7 @@
       "source": "github",
       "repo": "microsoft/foundry-dev-tools",
       "path": "microsoft-foundry",
-      "sha": "c6e140164b4c2d3d6c6baa5b63c65120fd994278"
+      "sha": "06c4e486af9588d4d7fea8d413a13debe78b1453"
     }
   },
   {
@@ -1167,6 +1167,37 @@
     }
   },
   {
+    "name": "tmforge",
+    "description": "The Strider agent that comes with the tmforge plugin adds evidence-backed STRIDE threat modeling to GitHub Copilot, with structured risk assessment, deterministic validation, and Markdown reports. Optional tmforge integration supports creating, updating, and verifying Microsoft Threat Modeling Tool (.tm7) models.",
+    "version": "0.11.0",
+    "author": {
+      "name": "Mark Dalton Gray",
+      "url": "https://github.com/Hacks4Snacks"
+    },
+    "repository": "https://github.com/Hacks4Snacks/tmforge",
+    "homepage": "https://github.com/Hacks4Snacks/tmforge/tree/main/plugins/tmforge",
+    "license": "MIT",
+    "keywords": [
+      "data-flow-diagrams",
+      "risk-assessment",
+      "security-review",
+      "stride",
+      "strider",
+      "threat-modeling",
+      "threat-modeling-as-code",
+      "tm7",
+      "tmforge",
+      "trust-boundaries"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Hacks4Snacks/tmforge",
+      "path": "plugins/tmforge",
+      "ref": "v0.11.0",
+      "sha": "8c22d85c4cb65f416c228bb2a73ae9f364aa549b"
+    }
+  },
+  {
     "name": "ui-theme-designer",
     "description": "Equips AI coding agents with knowledge and tooling for working with UI theme designer, the SAP Design System, and SAP Fiori design tokens.",
     "version": "2.0.0",
@@ -1278,7 +1309,7 @@
   {
     "name": "upgrade-agent",
     "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-    "version": "1.1.485",
+    "version": "1.1.514",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1297,8 +1328,8 @@
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "ref": "v1.1.485",
-      "sha": "de2dd654a288726652de81998fbaff7a849891dc"
+      "ref": "v1.1.514",
+      "sha": "edfa6465916b5f4b9c6f8ca558b69518621ab810"
     }
   },
   {
@@ -1387,7 +1418,7 @@
   {
     "name": "winui",
     "description": "Agents and skills for WinUI 3 app development. Create new WinUI 3 desktop apps, convert from other frameworks (WPF, WinForms, Electron, Tauri, Flutter) to WinUI 3, or add features to existing WinUI 3 applications. Includes MSIX packaging, code signing, UI automation testing, and Windows App SDK guidance.",
-    "version": "0.3.0",
+    "version": "0.6.0",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1410,7 +1441,9 @@
     "source": {
       "source": "github",
       "repo": "microsoft/win-dev-skills",
-      "path": "plugins/winui"
+      "path": "plugins/winui/agent-plugin",
+      "ref": "v0.6.0",
+      "sha": "68ae65d5c65ee87c3265a7f5abe3aaf97c7e6932"
     }
   }
 ]
