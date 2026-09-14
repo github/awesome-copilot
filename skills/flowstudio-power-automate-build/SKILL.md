@@ -411,50 +411,43 @@ print(f"Status: {result['responseStatus']}, via: {result['invocation']}")
 print(result.get("warning"))   # set when a required input was missing: the run still ran, with null
 ```
 
-### Brand-new non-HTTP flows (Recurrence, connector triggers, etc.)
+### Brand-new non-HTTP flows
 
-A brand-new Recurrence or connector-triggered flow has **no prior runs** to
-resubmit and no HTTP endpoint to call. This is the ONLY scenario where you
-need the temporary HTTP trigger approach below. **Deploy with a temporary
-HTTP trigger first, test the actions, then swap to the production trigger.**
+A brand-new **Recurrence** flow needs no workaround: deploy it, then run it
+immediately with `trigger_live_flow` and no `body` — same as the portal's
+"Run flow" button. A body is refused; scheduled triggers take no inputs.
 
-Compact recipe:
+A brand-new **connector-triggered** flow (SharePoint, webhooks) has no prior
+runs and cannot fire without a real source event. Deploy with a temporary
+HTTP trigger, test the actions, then swap to the production trigger:
 
 ```python
 production_trigger = definition["triggers"]
 definition["triggers"] = {
     "manual": {"type": "Request", "kind": "Http", "inputs": {"schema": {}}}
 }
-
-result = mcp("update_live_flow",
-    environmentName=ENV,
+result = mcp("update_live_flow", environmentName=ENV,
     flowName=FLOW_ID,       # omit if creating new
-    definition=definition,
-    connectionReferences=connection_references,
+    definition=definition, connectionReferences=connection_references,
     displayName="Overdue Invoice Notifications")
-FLOW_ID = FLOW_ID or result["created"]
+FLOW_ID = FLOW_ID or result["flowName"]
 
-test = mcp("trigger_live_flow", environmentName=ENV, flowName=FLOW_ID,
-           body={"sample": "payload"})
+mcp("trigger_live_flow", environmentName=ENV, flowName=FLOW_ID,
+    body={"sample": "payload"})
 runs = mcp("get_live_flow_runs", environmentName=ENV, flowName=FLOW_ID, top=1)
-
 if runs[0]["status"] == "Failed":
     err = mcp("get_live_flow_run_error",
         environmentName=ENV, flowName=FLOW_ID, runName=runs[0]["name"])
     raise Exception(err["failedActions"][-1])
 
 definition["triggers"] = production_trigger
-mcp("update_live_flow",
-    environmentName=ENV,
-    flowName=FLOW_ID,
-    definition=definition,
-    connectionReferences=connection_references)
+mcp("update_live_flow", environmentName=ENV, flowName=FLOW_ID,
+    definition=definition, connectionReferences=connection_references)
 ```
 
 The trigger is only the entry point; testing through HTTP still exercises the
 same actions. If actions use `triggerBody()` or `triggerOutputs()`, pass a
-representative `trigger_live_flow.body` shaped like the production trigger
-payload.
+representative `body` shaped like the production trigger payload.
 
 ---
 

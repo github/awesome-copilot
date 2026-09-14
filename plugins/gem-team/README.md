@@ -230,7 +230,7 @@ handoff:
 
 - [Documentation](https://mubaidr.github.io/gem-team/)
 - [Contributing](https://mubaidr.github.io/gem-team/5.resources/2.contributing.html)
-- [License](LICENSE)
+- [License](https://github.com/mubaidr/gem-team/blob/main/LICENSE)
 
 ## Support
 

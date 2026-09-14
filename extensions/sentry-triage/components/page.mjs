@@ -48,6 +48,7 @@ export function Page({
   prTargets,
   prSettingsOpen,
   plainEnglishView = false,
+  plainEnglishEnriching = false,
   projects = [],
   availableModels = [],
   issueTrackers,
@@ -313,14 +314,14 @@ export function Page({
     </div>
 
     <div id="title-mode-bar" class="title-mode-bar" style="${hasOrg && totalIssues > 0 ? '' : 'display:none;'}">
-      <label class="switch-label" for="title-mode-switch" title="Switch every card title between the raw Sentry error and a plain-English summary">
+      <label class="switch-label" for="title-mode-switch" title="Switch every card message between the raw Sentry error and a plain-English summary">
         <span class="switch">
-          <input type="checkbox" id="title-mode-switch" class="switch-input"${plainEnglishView ? ' checked' : ''} />
+          <input type="checkbox" id="title-mode-switch" class="switch-input"${plainEnglishView ? ' checked' : ''}${plainEnglishEnriching ? ' disabled' : ''} />
           <span class="switch-slider" aria-hidden="true"></span>
         </span>
-        <span class="switch-text">Plain-English titles</span>
+        <span class="switch-text">Plain-English messages</span>
       </label>
-      <span class="title-mode-hint">Showing <strong id="title-mode-state">${plainEnglishView ? 'plain-English summaries' : 'raw errors'}</strong></span>
+      <span class="title-mode-hint">${plainEnglishEnriching ? '<strong id="title-mode-state">Preparing plain-English summaries — toggle available shortly…</strong>' : `Showing <strong id="title-mode-state">${plainEnglishView ? 'plain-English summaries' : 'raw errors'}</strong>`}</span>
     </div>
 
     <main id="categories">
@@ -406,6 +407,10 @@ export function Page({
       // is already running for a slug, later callers (e.g. the Scan/Fetch gate)
       // queue here and are flushed when it settles, instead of being dropped.
       const projectResolveWaiters = {};
+      // Ceiling for a single exact-slug lookup before we give up and report a
+      // transient failure. Generous enough to absorb a normal queue wait behind
+      // an in-progress scan, short enough that the user is never stranded.
+      const RESOLVE_TIMEOUT_MS = 20000;
       function projectResolveKey(org, slug) {
         return String(org || "").trim().toLowerCase() + "/" + String(slug || "").trim().toLowerCase();
       }
@@ -431,6 +436,10 @@ export function Page({
         // An empty project scans all projects and needs no lookup.
         verifyProjectForScan(org, project).then((v) => {
           if (!v.ok) {
+            // "stale" means the user changed the org/project while the lookup was
+            // in flight — they've already moved on, so don't scan the old scope
+            // and don't nag them about a slug they abandoned.
+            if (v.reason === "stale") return;
             showToast(v.reason === "missing"
               ? "No project \u201C" + project + "\u201D in " + org + " — check the slug."
               : "Couldn't verify that project with Sentry — try again.");
@@ -699,6 +708,7 @@ export function Page({
       let lastAutoFetchedOrgDefault = "";
       let currentAvailableModels = ${jsonForScript(Array.isArray(availableModels) ? availableModels : [])};
       let currentPlainEnglishView = ${jsonForScript(plainEnglishView)};
+      let currentPlainEnglishEnriching = ${jsonForScript(plainEnglishEnriching)};
       let currentScanError = ${jsonForScript(scanError || '')};
       let currentScannedTotal = ${jsonForScript(scannedTotal)};
       let currentScannedCapped = ${jsonForScript(scannedCapped)};
@@ -741,7 +751,7 @@ export function Page({
 
       function statusText(status) {
         if (!status || typeof status !== "object") return "";
-        if (status.phase === "queued" || status.phase === "working") return "⏳ working…";
+        if (status.phase === "queued" || status.phase === "working") return status.copilotFix ? "⏳ starting Copilot fix session…" : "⏳ filing tracking issue…";
         if (status.phase === "skipped") return "🔒 already being worked on";
         if (status.phase === "tracked") return "👀 Tracked";
         if (status.phase === "done") {
@@ -1089,17 +1099,34 @@ export function Page({
           if (psel && psel.value !== msg.period) psel.value = msg.period;
         }
         if (Array.isArray(msg.periods)) currentPeriods = msg.periods;
+        if (typeof msg.plainEnglishEnriching === "boolean" && msg.plainEnglishEnriching !== currentPlainEnglishEnriching) {
+          currentPlainEnglishEnriching = msg.plainEnglishEnriching;
+          syncTitleSwitch();
+        }
         if (Array.isArray(msg.projects)) {
           const forOrg = typeof msg.projectsOrg === "string" ? msg.projectsOrg.trim().toLowerCase() : "";
+          const projectsComplete = msg.projectsComplete === true;
+          // Keep-longest ONLY for streamed/incomplete snapshots. The server
+          // streams partial pages (each broadcast is a growing snapshot), and a
+          // discovery run that fails or is cut short mid-traversal publishes a
+          // truncated snapshot for an org we already have fully loaded — the
+          // dropdown "sometimes comes back much shorter" symptom. But a COMPLETE
+          // traversal is authoritative and may legitimately be shorter (projects
+          // deleted upstream), so it must be allowed to replace the cache —
+          // otherwise deleted slugs would linger in autocomplete for the panel's
+          // whole life. Growth within a run still lands normally.
+          const known = forOrg ? projectsByOrg[forOrg] : null;
+          const regression = !projectsComplete && Array.isArray(known) && known.length > msg.projects.length;
+          const projects = regression ? known : msg.projects;
           // Always cache under the org this list belongs to so re-selecting it is
           // instant next time.
-          if (forOrg) projectsByOrg[forOrg] = msg.projects;
+          if (forOrg && !regression) projectsByOrg[forOrg] = msg.projects;
           // Only paint the on-screen field if this broadcast matches the org the
           // user currently has selected — a background refresh for a previous org
           // must not clobber the current list.
           const sel = selectedOrgSlug();
           if (!forOrg || !sel || forOrg === sel) {
-            currentSentryProjects = msg.projects;
+            currentSentryProjects = projects;
             setProjectLoading(false);
             // Repaint whichever project field is on screen with the new options.
             if (currentOrg) renderProjectSwitcher();
@@ -1129,7 +1156,20 @@ export function Page({
           currentSavedDefaultOrg = msg.savedDefaultOrg;
           refreshDefaultBtn();
         }
-        if (Array.isArray(msg.availableModels)) currentAvailableModels = msg.availableModels;
+        if (Array.isArray(msg.availableModels)) {
+          currentAvailableModels = msg.availableModels;
+          // The host's model catalog can change under us (models ship or retire).
+          // Drop any per-card override whose id is no longer offered: otherwise the
+          // <select> falls back to rendering "Default" while modelByKey still holds
+          // the dead id, counts it as an override, and POSTs it — where the server
+          // silently discards it. Prune, then re-sync the card selects.
+          const validModelIds = new Set(currentAvailableModels.map((m) => m && m.id).filter(Boolean));
+          let prunedModelOverride = false;
+          for (const k of Object.keys(modelByKey)) {
+            if (!validModelIds.has(modelByKey[k])) { delete modelByKey[k]; prunedModelOverride = true; }
+          }
+          if (prunedModelOverride) syncCardModels();
+        }
         if (typeof msg.plainEnglishView === "boolean" && msg.plainEnglishView !== currentPlainEnglishView) {
           currentPlainEnglishView = msg.plainEnglishView;
           syncTitleSwitch();
@@ -1397,8 +1437,15 @@ export function Page({
         }
         projectResolveCache[key] = { status: "checking", slug: "" };
         // Record the settled entry, notify this caller, then flush anyone who
-        // queued while the request was in flight.
+        // queued while the request was in flight. Idempotent: whichever of the
+        // response and the timeout below fires first wins, and the loser is a
+        // no-op (so a late response can't overwrite the timeout's "error" and
+        // silently re-arm a lookup the user was already told had failed).
+        let settled = false;
         const settle = (entry) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
           projectResolveCache[key] = entry;
           if (onDone) onDone(entry);
           const waiters = projectResolveWaiters[key];
@@ -1407,6 +1454,13 @@ export function Page({
             for (const fn of waiters) { try { fn(entry); } catch (_) {} }
           }
         };
+        // Hard ceiling on a single lookup. The server side runs on a shared,
+        // strictly-serial Sentry SDK queue, so this request can end up waiting
+        // behind other work; without a bound the UI would sit on "Checking
+        // Sentry…" indefinitely with no way out. Settling as a transient "error"
+        // (not "missing") keeps the honest distinction — the user gets a
+        // "couldn't check — press Enter to retry" they can act on.
+        const timer = setTimeout(() => settle({ status: "error", slug: "" }), RESOLVE_TIMEOUT_MS);
         fetch("/api/resolve-project", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1430,6 +1484,14 @@ export function Page({
       // project is an all-projects scan (always allowed); a locally-known project
       // needs no lookup; anything else is verified via the shared resolver, reusing
       // its cache and in-flight de-duplication.
+      //
+      // Resolves { ok: false, reason: "stale" } if the user changed the org or
+      // project while the lookup was in flight. A slow lookup (it queues behind
+      // whatever else is using the shared Sentry SDK chain) can settle long after
+      // the user has moved on; without this guard its callback would go on to
+      // overwrite the project input and scan the OLD slug — the "I selected ace
+      // but it scanned github-app" bug. The autocomplete's Enter path has always
+      // had this guard; this brings the Scan/Fetch path in line.
       function verifyProjectForScan(org, project) {
         return new Promise((resolve) => {
           const o = String(org || "").trim().toLowerCase();
@@ -1446,7 +1508,15 @@ export function Page({
           if (rc && rc.status === "found") { resolve({ ok: true, slug: rc.slug || raw }); return; }
           if (rc && rc.status === "missing") { resolve({ ok: false, reason: "missing", slug: raw }); return; }
           if (rc && rc.status === "error") delete projectResolveCache[key];
+          // Snapshot the scope this lookup was started for, so a late completion
+          // can be discarded rather than applied to a scope the user has left.
+          const scopeStillCurrent = () => {
+            const inp = activeProjectInput();
+            const nowProject = inp ? inp.value.trim().toLowerCase() : p;
+            return selectedOrgSlug() === o && nowProject === p;
+          };
           resolveProjectSlug(o, p, (res) => {
+            if (!scopeStillCurrent()) { resolve({ ok: false, reason: "stale", slug: raw }); return; }
             if (res && res.status === "found") resolve({ ok: true, slug: res.slug || raw });
             else resolve({ ok: false, reason: (res && res.status) || "error", slug: raw });
           });
@@ -1843,9 +1913,16 @@ export function Page({
       // issue list; this keeps the toggle in sync with state (checkbox + hint).
       function syncTitleSwitch() {
         const box = document.getElementById("title-mode-switch");
-        if (box) box.checked = currentPlainEnglishView;
-        const state = document.getElementById("title-mode-state");
-        if (state) state.textContent = currentPlainEnglishView ? "plain-English summaries" : "raw errors";
+        if (box) {
+          box.checked = currentPlainEnglishView;
+          box.disabled = currentPlainEnglishEnriching;
+        }
+        const hint = document.querySelector(".title-mode-hint");
+        if (hint) {
+          hint.innerHTML = currentPlainEnglishEnriching
+            ? '<strong id="title-mode-state">Preparing plain-English summaries — toggle available shortly…</strong>'
+            : 'Showing <strong id="title-mode-state">' + (currentPlainEnglishView ? "plain-English summaries" : "raw errors") + '</strong>';
+        }
       }
 
       // Flip the whole canvas between raw error and plain-English titles. Optimistic:
@@ -1854,6 +1931,7 @@ export function Page({
       document.addEventListener("change", (e) => {
         const box = e.target.closest("#title-mode-switch");
         if (!box) return;
+        if (currentPlainEnglishEnriching) return;
         currentPlainEnglishView = box.checked;
         syncTitleSwitch();
         renderCategories(currentCategories);
@@ -1878,6 +1956,10 @@ export function Page({
         // empty project scans all projects and needs no lookup.
         verifyProjectForScan(org, project).then((v) => {
           if (!v.ok) {
+            // "stale" means the user changed the org/project while the lookup was
+            // in flight — they've already moved on, so don't scan the old scope
+            // and don't nag them about a slug they abandoned.
+            if (v.reason === "stale") return;
             showToast(v.reason === "missing"
               ? "No project \u201C" + project + "\u201D in " + org + " — check the slug."
               : "Couldn't verify that project with Sentry — try again.");
@@ -2167,7 +2249,7 @@ export function Page({
         const keys = startableSelectedKeys();
         if (keys.length === 0) return;
         keys.forEach((key) => {
-          workByIssue[key] = { phase: "queued" };
+          workByIssue[key] = { phase: "queued", copilotFix: false };
           selectedKeys.delete(key);
         });
         applySelections();
@@ -2184,12 +2266,12 @@ export function Page({
         const models = {};
         keys.forEach((key) => {
           if (modelByKey[key]) models[key] = modelByKey[key];
-          workByIssue[key] = { phase: "queued" };
+          workByIssue[key] = { phase: "queued", copilotFix: true };
           selectedKeys.delete(key);
         });
         applySelections();
         applyWorkStates();
-        showToast("🔧 Creating/reusing issues and starting Copilot for " + keys.length + " issues…");
+        showToast("🔧 Starting a background Copilot session for " + keys.length + " issue" + (keys.length === 1 ? "" : "s") + " — you can keep triaging while it runs…");
         postWorkSelected(keys, { keys, modelByKey: models, assignCopilot: true });
       });
 
