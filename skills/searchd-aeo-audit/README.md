@@ -9,24 +9,24 @@ The Skill produces a self-contained HTML report with run-level evidence.
 Install with the portable Agent Skills CLI:
 
 ```bash
-npx skills add runbear-io/skills --skill searchd-aeo-audit
+npx skills add runbear-io/searchd-skills --skill searchd-aeo-audit
 ```
 
 The same package can be installed for compatible agents, including Claude Code
 and Codex:
 
 ```bash
-npx skills add runbear-io/skills \
+npx skills add runbear-io/searchd-skills \
   --skill searchd-aeo-audit \
   --agent claude-code \
   --agent codex
 ```
 
-Claude Code users can also install it from the Runbear marketplace:
+Claude Code users can also install it from the SearchD marketplace:
 
 ```text
-/plugin marketplace add runbear-io/skills
-/plugin install searchd-aeo-audit@runbear-skills
+/plugin marketplace add runbear-io/searchd-skills
+/plugin install searchd-aeo-audit@searchd-skills
 ```
 
 ## Use
