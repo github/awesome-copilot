@@ -112,7 +112,7 @@ const buildResources = (counts: HomePageCounts): Resource[] => [
   },
   {
     icon: BookIcon,
-    name: "Playbook",
+    name: "Learning Hub",
     count: String(counts.learningHub),
     description:
       "Articles and guides for getting the most from every agent and skill.",

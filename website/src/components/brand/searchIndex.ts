@@ -96,7 +96,7 @@ export const staticPages = (base: string): SearchItem[] => {
       href: at("/extensions/"),
     },
     {
-      title: "Playbook",
+      title: "Learning Hub",
       description:
         "Articles and guides for getting the most from every agent, skill, and instruction.",
       category: "Pages",

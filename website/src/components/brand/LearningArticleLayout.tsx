@@ -413,7 +413,7 @@ function LearningArticleLayoutBody({
                     size={16}
                     className={styles.heroBreadcrumbBackIcon}
                   />
-                  GitHub Copilot Playbook
+                  GitHub Copilot Learning Hub
                 </Breadcrumbs.Item>
                 <Breadcrumbs.Item href={pageHref(currentPage)} selected>
                   {breadcrumbLabel}

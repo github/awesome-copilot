@@ -103,7 +103,7 @@ const resources: Resource[] = [
   },
   {
     icon: BookIcon,
-    name: "Playbook",
+    name: "Learning Hub",
     count: "27",
     description:
       "Articles and guides for getting the most from every agent and skill.",
