@@ -82,7 +82,9 @@
 
 # shouldBe - Kotlin/Scala assertion method name matched by the assertion-detection regex in the same script
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,lod,InOut,INOUT,pixelX,aNULL,Wee,Sherif,queston,extenions,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally,checkin,ACI,soruce,straightaway,crystalize,implementors,evaulated,testng,shouldbe
+# SearchD/searchd/Searchd - SearchD product and repository name
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,lod,InOut,INOUT,pixelX,aNULL,Wee,Sherif,queston,extenions,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally,checkin,ACI,soruce,straightaway,crystalize,implementors,evaulated,testng,shouldbe,SearchD,searchd,Searchd
 
 # Skip certain files and directories
 
