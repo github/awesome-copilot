@@ -193,6 +193,31 @@ The renderer creates a self-contained HTML file with:
 - Methodology and limitations.
 - Embedded machine-readable audit JSON.
 
+## Bundled resources
+
+Use the bundled files as follows:
+
+- `scripts/render_report.py` is the CLI entry point.
+- `scripts/aggregate.py`, `scripts/audit_fields.py`,
+  `scripts/audit_parse.py`, and `scripts/audit_types.py` parse and aggregate
+  the audit contract.
+- `scripts/report_common.py`, `scripts/report_evidence.py`,
+  `scripts/report_locale.py`, and `scripts/report_questions.py` render the
+  report sections.
+- `schemas/audit.schema.json` defines the machine-readable audit contract.
+- `references/data-contract.md` documents question, run, citation, and insight
+  fields.
+- `references/methodology.md` documents measurement boundaries and
+  interpretation.
+- `templates/report.css` provides the self-contained responsive and print
+  styles.
+- `examples/searchd-ai-audit.json` is a complete renderer input example.
+- `tests/test_render_report.py` and `pyrightconfig.json` provide regression and
+  type-check coverage for maintainers.
+- `DESIGN.md` records the report design and accessibility decisions.
+- `README.md`, `LICENSE`, and `.gitignore` provide package usage, licensing,
+  and generated-file exclusions.
+
 Open the report in a real browser and inspect desktop and mobile widths before
 delivering it.
 
