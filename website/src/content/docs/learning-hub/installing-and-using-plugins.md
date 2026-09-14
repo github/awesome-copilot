@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-01
+lastUpdated: 2026-09-12
 relatedArticles:
   - ./building-custom-agents.md
   - ./creating-effective-skills.md
@@ -236,6 +236,8 @@ copilot plugin uninstall my-plugin
 ```
 
 > **Auto-update for first-party plugins** *(v1.0.78+)*: Plugins sourced from the official `copilot-plugins` marketplace automatically update to their latest version at the start of each session. You do not need to run `copilot plugin update` for first-party plugins — updates are applied silently on startup. Community plugins from `awesome-copilot` and other marketplace registries still require a manual `copilot plugin update` command.
+
+> **Component-specific commands (v1.0.84+)**: Individual component kinds now have their own dedicated CLI commands instead of relying on cross-kind flags on `copilot plugins`. Use `copilot instruction list` and `copilot lsp list` to inspect loaded instructions and LSP servers, and use `enable`/`disable` directly on `copilot plugin`, `copilot mcp`, and `copilot skill` (for example, `copilot skill disable my-skill`) instead of the removed `copilot plugins enable/disable --plugin|--mcp|--skill` flags. Installing a standalone skill now uses `copilot skill add [--project]` in place of the retired `copilot plugins install --skill [--scope project]`.
 
 ### Enabling and Disabling Plugin Components
 
