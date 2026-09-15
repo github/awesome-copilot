@@ -1,0 +1,136 @@
+# Poka-yoke CI gates.
+#
+# poka-yoke: refuses to merge a change that fails a gate, once the jobs are marked required [control]
+#
+# This is where enforcement actually lives. Pre-commit hooks are bypassable; a required
+# check with branch protection is not. Every job here should also be marked "Required" in
+# branch protection settings, without that, this workflow is advisory and the whole device
+# is inert.
+#
+# Design note: jobs enforce on CHANGED FILES where possible. Turning a strict rule on across
+# a large existing codebase produces hundreds of failures and gets reverted by Friday;
+# ratcheting on new code only means the violation count can only go down.
+
+name: poka-yoke
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  hazards:
+    name: hazard scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0          # needed to diff against the base branch
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Scan changed lines for high-severity hazards
+        # Context values go through env, never inline into run:. Interpolating
+        # ${{ }} directly into a shell command is how workflow injection happens.
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: |
+          python3 scripts/detect_hazards.py \
+            --since "origin/${BASE_REF}" \
+            --severity high
+
+  types:
+    # The gate that makes every design-time device load-bearing. A branded type in a repo
+    # that doesn't typecheck in CI is a comment.
+    name: type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # --- pick the one that matches this repo and delete the rest ---
+      # - run: npx tsc --noEmit
+      # - run: uv run mypy --strict src/
+      # - run: go vet ./... && go build ./...
+      # - run: cargo clippy --all-targets -- -D warnings
+      - run: echo "Replace with this repo's type checker, then delete this line."
+
+  secrets:
+    name: secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-integrity:
+    # A skipped or focused test is a detection device switched off. Usually temporarily.
+    # Permanently.
+    name: test integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: No focused tests
+        run: |
+          # The skill promises this rejects skipped tests as well as focused ones, and in
+          # every language it names. It used to grep TS/JS for `.only` alone, so a
+          # `@pytest.mark.skip` left behind passed a gate that claimed to catch it.
+          #
+          # The x-prefixed Jasmine forms are written as an alternation rather than spelled
+          # out: codespell reads the longer one as a misspelling of `describe`.
+          if grep -rEn '(\.only\(|fdescribe\(|\bfit\(|\.skip\(|\bx(describe|it)\(|@pytest\.mark\.(skip|xfail)|\bt\.Skip\(|#\[ignore\])' \
+               --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' \
+               --include='*.py' --include='*.go' --include='*.rs' \
+               --exclude-dir=node_modules --exclude-dir=.git . ; then
+            echo "::error::A focused or skipped test disables coverage. Both are detection"
+            echo "devices switched off; remove them, or mark the skip with an issue link and"
+            echo "add that path to this step's excludes so the exemption is visible."
+            exit 1
+          fi
+
+  migration-safety:
+    # Destructive DDL co-deployed with application code is an outage during the rollout
+    # window, because old code necessarily runs against the new schema. Use expand/contract:
+    # add, backfill, dual-write, switch reads, and drop in a LATER deploy.
+    #
+    # Escape hatch: label the PR `destructive-migration-approved` when the drop is genuinely
+    # intended and nothing references the column. The label is the explicit acknowledgment
+    # that turns an accident into a decision.
+    name: migration safety
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.labels.*.name, 'destructive-migration-approved')"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Block destructive DDL
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: |
+          BASE="origin/${BASE_REF}"
+          # Read into an array rather than splitting a string: an unquoted $CHANGED splits
+          # on spaces as well as newlines, so a migration whose filename contains a space
+          # becomes two paths that do not exist, and `git diff` then reports no changes,
+          # which this gate would read as "nothing destructive here".
+          # No `|| true`. A missing base ref or any other git error used to become an
+          # empty CHANGED array, and the next line read that as "No migrations changed"
+          # and exited 0 -- the gate passing precisely because it could not run. mapfile
+          # masks the exit status of a process substitution, so the status is checked
+          # explicitly rather than relied upon.
+          if ! DIFF=$(git diff --name-only "$BASE"...HEAD \
+                        -- 'migrations/**' 'db/migrate/**'); then
+            echo "::error::Could not diff against $BASE. This is NOT an all-clear."
+            exit 1
+          fi
+          mapfile -t CHANGED < <(printf '%s' "$DIFF")
+          [ ${#CHANGED[@]} -eq 0 ] && { echo "No migrations changed."; exit 0; }
+          if git diff "$BASE"...HEAD -- "${CHANGED[@]}" | grep -iE '^\+.*(DROP (TABLE|COLUMN)|TRUNCATE|ALTER .* DROP)'; then
+            echo "::error::Destructive DDL detected. Use expand/contract and drop in a later deploy."
+            echo "If this drop is intentional and nothing references the column, add the"
+            echo "'destructive-migration-approved' label to this PR."
+            exit 1
+          fi
