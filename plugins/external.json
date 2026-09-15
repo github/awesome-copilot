@@ -268,6 +268,31 @@
     }
   },
   {
+    "name": "chat-fork-map",
+    "description": "Maps branching Copilot conversations so parallel follow-up questions and exploration paths from complex tasks or learning can be navigated without losing context. Its visual layout makes breadth-first exploration easier than managing multiple active threads in a traditional conversation list.",
+    "version": "0.0.5",
+    "author": {
+      "name": "jdneo",
+      "url": "https://github.com/jdneo"
+    },
+    "repository": "https://github.com/jdneo/copilot-chat-map",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "conversation-history",
+      "copilot-cli",
+      "developer-productivity",
+      "session-branching",
+      "visualization"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "jdneo/copilot-chat-map",
+      "ref": "0.0.5",
+      "sha": "c35ecbc860fa9a108faebc95218435a01c88160d"
+    }
+  },
+  {
     "name": "chrome-devtools-plugin",
     "description": "Reliable automation, in-depth debugging, and performance analysis in Chrome using Chrome DevTools and Puppeteer.",
     "version": "1.0.1",
