@@ -117,6 +117,16 @@ From the app, you can request a Copilot code review on a pull request—and re-r
 
 Open app settings directly from the message composer with **`/settings`** *(v1.1.16+)*, without leaving your current conversation. You can also now edit issue and pull request titles and descriptions, and edit, delete, or hide comments *(v1.1.18+)*, directly from the app—useful when a Copilot-drafted PR description needs a quick fix before merge. Pull request fix buttons also gained a **"Fix with instructions"** option *(v1.1.18+)* so you can add guidance before Copilot runs the fix.
 
+### Generated Artifacts in the Files Tab
+
+*(v1.1.20+)* Generated Markdown artifacts—such as plans, summaries, or reports an agent writes during a session—now open in the **Files tab** alongside your repository's own files, with a switcher to move between them. You can also promote a generated artifact into the repository directly from this view, turning a scratch document into a tracked file without manually copying its contents.
+
+### Multi-Plugin Agent Disambiguation
+
+*(v1.1.20+)* If two installed plugins each ship a custom agent with the same display name, the agent picker now distinguishes them by their owning plugin, so you can tell at a glance which agent you're selecting when names collide.
+
+> **Terminology note (v1.1.20+)**: The "Start from scratch" option in session creation menus and project pickers has been renamed to **"Chat"**.
+
 ## Who is the Copilot app for?
 
 The Copilot app isn't a replacement for existing Copilot experiences—it's another tool in the toolbox. Here's who it serves best:
