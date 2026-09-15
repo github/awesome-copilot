@@ -578,6 +578,35 @@
     }
   },
   {
+    "name": "excel-mcp",
+    "description": "The most comprehensive native Excel automation for complex workbooks, with 300+ operations performed by Excel itself to preserve native workbook fidelity—including Python in Excel, VBA, Power Query, DAX/Data Model, PivotTables, charts, tables, formatting, external connections, and what-if analysis. Windows and Excel required.",
+    "version": "2.0.1",
+    "author": {
+      "name": "Stefan Brönner",
+      "url": "https://github.com/sbroenne"
+    },
+    "repository": "https://github.com/sbroenne/mcp-server-excel-plugins",
+    "homepage": "https://excelmcpserver.dev/",
+    "license": "MIT",
+    "keywords": [
+      "excel",
+      "windows",
+      "mcp",
+      "power-query",
+      "dax",
+      "pivottable",
+      "vba",
+      "com-interop"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "sbroenne/mcp-server-excel-plugins",
+      "path": "plugins/excel-mcp",
+      "ref": "v2.0.1",
+      "sha": "6c33486d2c74db050259411c73b5d87dfae9499e"
+    }
+  },
+  {
     "name": "figma",
     "description": "Plugin that includes the Figma MCP server and Skills for common workflows.",
     "version": "2.2.96",
