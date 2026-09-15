@@ -76,47 +76,6 @@ const contentSecurityPolicy = [
   })();
 </script>
 
-<!-- Anchor-only smooth scrolling.
-     `html { scroll-behavior: smooth }` was removed (see global.css) because it
-     animates every root scroll, including keyboard Page Up/Down. Here we enable
-     it just for the duration of a same-page anchor navigation so in-page links
-     (e.g. the sidebar and table of contents) still animate, then reset it so
-     wheel/keyboard scrolling stays instant. -->
-<script is:inline>
-  (function () {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    document.addEventListener('click', (event) => {
-      if (event.defaultPrevented || event.button !== 0) return;
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-      const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
-      if (!link) return;
-
-      // Only same-document fragment links should animate.
-      const url = new URL(link.href, window.location.href);
-      if (url.origin !== window.location.origin) return;
-      if (url.pathname !== window.location.pathname || url.search !== window.location.search) return;
-      if (!url.hash || url.hash === '#') return;
-
-      const root = document.documentElement;
-      // Let the browser perform its normal anchor navigation (so scroll-padding,
-      // focus handling and the URL update all behave natively) — just animate it.
-      root.style.scrollBehavior = 'smooth';
-
-      const reset = () => {
-        root.style.scrollBehavior = '';
-        window.removeEventListener('scrollend', reset);
-      };
-      if ('onscrollend' in window) {
-        window.addEventListener('scrollend', reset, { once: true });
-      }
-      // Safety net for browsers without `scrollend`.
-      window.setTimeout(reset, 1200);
-    });
-  })();
-</script>
-
 <script is:inline define:vars={{ basePath }}>
   // basePath setup for runtime use
   document.addEventListener('DOMContentLoaded', () => {
