@@ -124,13 +124,23 @@
 }
 
 /* Full-width page gradient on custom pages (not Starlight docs).
-   Applied to body so it spans the entire viewport width,
-   similar to how github.github.com/gh-aw/ handles its gradient. */
+   Painted on a `position: fixed` layer instead of using
+   `background-attachment: fixed`, which forces the browser to repaint the
+   whole viewport on every scroll frame and blocks the compositor fast path.
+   The fixed layer is painted once and then only re-composited, so the
+   gradient still spans the viewport and stays put while scrolling. */
 body:has(#main-content) {
-  background: var(--gradient-hero);
-  background-attachment: fixed;
-  background-size: cover;
   min-height: 100vh;
+}
+
+body:has(#main-content)::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--gradient-hero);
+  background-size: cover;
 }
 
 /* body styles removed — Starlight handles base body styling.
@@ -674,9 +684,12 @@ body:has(#main-content) {
   color: #fff;
 }
 
+/* No `backdrop-filter`: listing pages render two of these buttons per card
+   (~840 per page), and each blurred element costs compositor work on every
+   scroll frame. The button sits on an already near-opaque card, so the blur
+   had no visible effect. */
 .btn-secondary {
   background: var(--color-glass);
-  backdrop-filter: blur(10px);
   color: var(--color-text);
   border-color: var(--color-glass-border);
 }
@@ -1415,9 +1428,14 @@ body:has(#main-content) {
   gap: 16px;
 }
 
+/* NOTE: deliberately no `backdrop-filter` here. Listing pages render hundreds of
+   cards (the skills page renders 418), and a blur on each one forces the
+   compositor to re-read and re-blur every backdrop on every scroll frame. That
+   produced reproducible ~35ms stall frames with GPU acceleration, and dropped
+   scroll to single-digit FPS without it. The card background is already 80-90%
+   opaque, so the blur was barely visible anyway. */
 .resource-item {
   background: var(--color-card-bg);
-  backdrop-filter: blur(10px);
   border: 1px solid var(--color-glass-border);
   border-radius: var(--border-radius-lg);
   padding: 20px 24px;
@@ -2697,10 +2715,12 @@ body:has(#main-content) {
   display: none;
 }
 
-/* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
-}
+/* Smooth scrolling is deliberately NOT applied to the root scroller. Setting
+   `scroll-behavior: smooth` on `html` animates every root scroll, including
+   keyboard Page Up/Down, which makes the page feel sluggish while giving no
+   benefit to wheel/trackpad scrolling. Smooth behaviour is applied
+   per-navigation to same-page anchor links instead — see the anchor handler in
+   src/components/Head.astro. */
 
 /* Loading state for counts */
 .card-count {
