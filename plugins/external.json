@@ -159,6 +159,31 @@
     }
   },
   {
+    "name": "bd-skills",
+    "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
+    "version": "0.1.26",
+    "author": {
+      "name": "Bitdrift",
+      "url": "https://bitdrift.ai"
+    },
+    "repository": "https://github.com/bitdriftlabs/bd-skills",
+    "homepage": "https://bitdrift.ai",
+    "license": "PolyForm-Shield-1.0.0",
+    "keywords": [
+      "bitdrift",
+      "mobile",
+      "observability",
+      "debugging",
+      "telemetry",
+      "cli"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "bitdriftlabs/bd-skills",
+      "sha": "ab96a8415025b666164e2b46685cecba2303fc89"
+    }
+  },
+  {
     "name": "blea",
     "description": "Safe, agent-first Bluetooth Low Energy diagnostics with portable evidence capture/diff/replay and guarded writes through a Skill, CLI, and local MCP server.",
     "version": "0.6.1",
