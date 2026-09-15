@@ -1,51 +1,17 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import ContributeCTA from '../components/ContributeCTA.astro';
-import PageHeader from '../components/PageHeader.astro';
-import EmbeddedPageData from '../components/EmbeddedPageData.astro';
-import BackToTop from '../components/BackToTop.astro';
-import skillsData from '../../public/data/skills.json';
-import { renderSkillsHtml, sortSkills } from '../scripts/pages/skills-render';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { SkillsCatalog } from "../components/brand/SkillsCatalog";
+import { skills, searchIndex } from "../lib/site-data";
 
-const initialItems = sortSkills(skillsData.items, 'title');
 ---
 
-<StarlightPage frontmatter={{ title: 'Skills', description: 'Self-contained agent skills with instructions and bundled resources', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content" class="skills-page listing-cards-page">
-    <PageHeader title="Skills" description="Self-contained agent skills with instructions and bundled resources" icon="lightning" />
-
-    <div class="page-content">
-      <div class="container">
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} skills</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" aria-label="Sort by">
-                      <option value="title">Name (A-Z)</option>
-                      <option value="lastUpdated">Recently Updated</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </details>
-          </div>
-        </div>
-        <div class="resource-list" id="resource-list" role="list" set:html={renderSkillsHtml(initialItems)}></div>
-        <ContributeCTA resourceType="skills" />
-      </div>
-    </div>
-  </div>
-
-  <BackToTop />
-
-  <EmbeddedPageData filename="skills.json" data={skillsData} />
-  <script>
-    import '../scripts/listing-flyouts';
-    import '../scripts/pages/skills';
-  </script>
-</StarlightPage>
+<BaseLayout
+  title="Skills | Awesome GitHub Copilot"
+  description="Browse community-contributed agent skills for GitHub Copilot."
+>
+  <SkillsCatalog
+    client:load
+    skills={skills as any}
+    searchIndex={searchIndex}
+  />
+</BaseLayout>
