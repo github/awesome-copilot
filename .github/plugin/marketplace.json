@@ -1531,6 +1531,31 @@
       "version": "1.0.2"
     },
     {
+      "name": "rhost",
+      "description": "Use an installed rhost CLI to run ordinary commands on SSH-reachable Linux hosts with local-like stdin, output, and exit behavior.",
+      "version": "1.0.0",
+      "author": {
+        "name": "starfield17",
+        "url": "https://github.com/starfield17"
+      },
+      "repository": "https://github.com/starfield17/rhost",
+      "homepage": "https://github.com/starfield17/rhost",
+      "license": "MIT",
+      "keywords": [
+        "remote-execution",
+        "ssh",
+        "coding-agents",
+        "agent-skills",
+        "developer-tools",
+        "copilot"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "starfield17/rhost",
+        "sha": "f26c676ba0c4c76860df18e9182b7672f589547d"
+      }
+    },
+    {
       "name": "roundup",
       "source": "plugins/roundup",
       "description": "Self-configuring status briefing generator. Learns your communication style from examples, discovers your data sources, and produces draft updates for any audience on demand.",
