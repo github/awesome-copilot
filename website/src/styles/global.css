@@ -124,13 +124,23 @@
 }
 
 /* Full-width page gradient on custom pages (not Starlight docs).
-   Applied to body so it spans the entire viewport width,
-   similar to how github.github.com/gh-aw/ handles its gradient. */
+   Painted on a `position: fixed` layer instead of using
+   `background-attachment: fixed`, which forces the browser to repaint the
+   whole viewport on every scroll frame and blocks the compositor fast path.
+   The fixed layer is painted once and then only re-composited, so the
+   gradient still spans the viewport and stays put while scrolling. */
 body:has(#main-content) {
-  background: var(--gradient-hero);
-  background-attachment: fixed;
-  background-size: cover;
   min-height: 100vh;
+}
+
+body:has(#main-content)::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--gradient-hero);
+  background-size: cover;
 }
 
 /* body styles removed — Starlight handles base body styling.
@@ -676,7 +686,6 @@ body:has(#main-content) {
 
 .btn-secondary {
   background: var(--color-glass);
-  backdrop-filter: blur(10px);
   color: var(--color-text);
   border-color: var(--color-glass-border);
 }
@@ -1417,7 +1426,6 @@ body:has(#main-content) {
 
 .resource-item {
   background: var(--color-card-bg);
-  backdrop-filter: blur(10px);
   border: 1px solid var(--color-glass-border);
   border-radius: var(--border-radius-lg);
   padding: 20px 24px;
@@ -2697,9 +2705,12 @@ body:has(#main-content) {
   display: none;
 }
 
-/* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
+/* Global smooth scrolling on the root scroller, so in-page anchor links and the
+   sidebar / table-of-contents jumps animate instead of snapping instantly. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 /* Loading state for counts */
