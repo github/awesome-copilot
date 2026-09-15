@@ -1204,10 +1204,6 @@
   overflow-wrap: anywhere;
 }
 
-.sourceMetaGroup .metaLabel {
-  padding-inline-start: calc(16px + var(--base-size-8));
-}
-
 .sourceLink {
   display: inline-flex;
   align-items: center;
