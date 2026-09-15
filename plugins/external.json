@@ -293,6 +293,31 @@
     }
   },
   {
+    "name": "chat-fork-map",
+    "description": "Maps branching Copilot conversations so parallel follow-up questions and exploration paths from complex tasks or learning can be navigated without losing context. Its visual layout makes breadth-first exploration easier than managing multiple active threads in a traditional conversation list.",
+    "version": "0.0.5",
+    "author": {
+      "name": "jdneo",
+      "url": "https://github.com/jdneo"
+    },
+    "repository": "https://github.com/jdneo/copilot-chat-map",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "conversation-history",
+      "copilot-cli",
+      "developer-productivity",
+      "session-branching",
+      "visualization"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "jdneo/copilot-chat-map",
+      "ref": "0.0.5",
+      "sha": "c35ecbc860fa9a108faebc95218435a01c88160d"
+    }
+  },
+  {
     "name": "chrome-devtools-plugin",
     "description": "Reliable automation, in-depth debugging, and performance analysis in Chrome using Chrome DevTools and Puppeteer.",
     "version": "1.0.1",
@@ -1127,6 +1152,31 @@
     }
   },
   {
+    "name": "rhost",
+    "description": "Use an installed rhost CLI to run ordinary commands on SSH-reachable Linux hosts with local-like stdin, output, and exit behavior.",
+    "version": "1.0.0",
+    "author": {
+      "name": "starfield17",
+      "url": "https://github.com/starfield17"
+    },
+    "repository": "https://github.com/starfield17/rhost",
+    "homepage": "https://github.com/starfield17/rhost",
+    "license": "MIT",
+    "keywords": [
+      "remote-execution",
+      "ssh",
+      "coding-agents",
+      "agent-skills",
+      "developer-tools",
+      "copilot"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "starfield17/rhost",
+      "sha": "f26c676ba0c4c76860df18e9182b7672f589547d"
+    }
+  },
+  {
     "name": "skills-for-copilot-studio",
     "description": "Microsoft Copilot Studio plugins for AI coding agents",
     "version": "1.0.3",
@@ -1414,6 +1464,31 @@
       "path": "plugins/upgrade-agent",
       "ref": "v1.1.514",
       "sha": "edfa6465916b5f4b9c6f8ca558b69518621ab810"
+    }
+  },
+  {
+    "name": "usage-insights",
+    "description": "Inspect current and historical GitHub Copilot token and AI-credit usage with per-agent rollups and in-canvas session drill-down.",
+    "version": "1.0.0",
+    "author": {
+      "name": "David Kaya",
+      "url": "https://github.com/davidkaya"
+    },
+    "repository": "https://github.com/davidkaya/github-copilot-usage-insights",
+    "homepage": "https://github.com/davidkaya/github-copilot-usage-insights",
+    "license": "MIT",
+    "keywords": [
+      "ai-credits",
+      "canvas",
+      "copilot-extension",
+      "session-analytics",
+      "token-usage",
+      "usage-insights"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "davidkaya/github-copilot-usage-insights",
+      "sha": "3b018ccef438d7086c30bd347f0df707689073ee"
     }
   },
   {
