@@ -780,6 +780,37 @@
       "version": "1.2.0"
     },
     {
+      "name": "excel-cli",
+      "description": "Token-efficient native Excel automation for coding agents, with 300+ operations performed by Excel itself to preserve native workbook fidelity—including Python in Excel, VBA, Power Query, DAX/Data Model, PivotTables, charts, tables, formatting, external connections, and what-if analysis. Windows and Excel required.",
+      "version": "2.0.1",
+      "author": {
+        "name": "Stefan Brönner",
+        "url": "https://github.com/sbroenne"
+      },
+      "repository": "https://github.com/sbroenne/mcp-server-excel-plugins",
+      "homepage": "https://excelmcpserver.dev/",
+      "license": "MIT",
+      "keywords": [
+        "excel",
+        "windows",
+        "cli",
+        "automation",
+        "scripting",
+        "batch",
+        "power-query",
+        "dax",
+        "pivottable",
+        "ci-cd"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "sbroenne/mcp-server-excel-plugins",
+        "path": "plugins/excel-cli",
+        "ref": "v2.0.1",
+        "sha": "6c33486d2c74db050259411c73b5d87dfae9499e"
+      }
+    },
+    {
       "name": "eyeball",
       "source": "plugins/eyeball",
       "description": "Document analysis with inline source screenshots. When you ask Copilot to analyze a document, Eyeball generates a Word doc where every factual claim includes a highlighted screenshot from the source material so you can verify it with your own eyes.",
