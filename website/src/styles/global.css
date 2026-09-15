@@ -2715,12 +2715,19 @@ body:has(#main-content)::before {
   display: none;
 }
 
-/* Smooth scrolling is deliberately NOT applied to the root scroller. Setting
-   `scroll-behavior: smooth` on `html` animates every root scroll, including
-   keyboard Page Up/Down, which makes the page feel sluggish while giving no
-   benefit to wheel/trackpad scrolling. Smooth behaviour is applied
-   per-navigation to same-page anchor links instead — see the anchor handler in
-   src/components/Head.astro. */
+/* Global smooth scrolling on the root scroller, so in-page anchor links and the
+   sidebar / table-of-contents jumps animate instead of snapping instantly. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Note this applies to every root scroll, not just anchors, so keyboard
+     Page Up/Down and Home/End animate as well rather than jumping.
+     The `no-preference` guard is required rather than decorative: the
+     `scroll-behavior: auto` override in the reduced-motion block above is
+     declared earlier in this file, and an unguarded `html` rule here would win
+     on source order and silently defeat it. */
+  html {
+    scroll-behavior: smooth;
+  }
+}
 
 /* Loading state for counts */
 .card-count {
