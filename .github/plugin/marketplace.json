@@ -247,6 +247,31 @@
       "version": "1.0.0"
     },
     {
+      "name": "bd-skills",
+      "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
+      "version": "0.1.26",
+      "author": {
+        "name": "Bitdrift",
+        "url": "https://bitdrift.ai"
+      },
+      "repository": "https://github.com/bitdriftlabs/bd-skills",
+      "homepage": "https://bitdrift.ai",
+      "license": "PolyForm-Shield-1.0.0",
+      "keywords": [
+        "bitdrift",
+        "mobile",
+        "observability",
+        "debugging",
+        "telemetry",
+        "cli"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "bitdriftlabs/bd-skills",
+        "sha": "ab96a8415025b666164e2b46685cecba2303fc89"
+      }
+    },
+    {
       "name": "blea",
       "description": "Safe, agent-first Bluetooth Low Energy diagnostics with portable evidence capture/diff/replay and guarded writes through a Skill, CLI, and local MCP server.",
       "version": "0.6.1",
@@ -778,6 +803,37 @@
       "source": "plugins/ember",
       "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
       "version": "1.2.0"
+    },
+    {
+      "name": "excel-cli",
+      "description": "Token-efficient native Excel automation for coding agents, with 300+ operations performed by Excel itself to preserve native workbook fidelity—including Python in Excel, VBA, Power Query, DAX/Data Model, PivotTables, charts, tables, formatting, external connections, and what-if analysis. Windows and Excel required.",
+      "version": "2.0.1",
+      "author": {
+        "name": "Stefan Brönner",
+        "url": "https://github.com/sbroenne"
+      },
+      "repository": "https://github.com/sbroenne/mcp-server-excel-plugins",
+      "homepage": "https://excelmcpserver.dev/",
+      "license": "MIT",
+      "keywords": [
+        "excel",
+        "windows",
+        "cli",
+        "automation",
+        "scripting",
+        "batch",
+        "power-query",
+        "dax",
+        "pivottable",
+        "ci-cd"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "sbroenne/mcp-server-excel-plugins",
+        "path": "plugins/excel-cli",
+        "ref": "v2.0.1",
+        "sha": "6c33486d2c74db050259411c73b5d87dfae9499e"
+      }
     },
     {
       "name": "eyeball",
@@ -1673,6 +1729,34 @@
       "source": "plugins/structured-autonomy",
       "description": "Premium planning, thrifty implementation",
       "version": "1.0.0"
+    },
+    {
+      "name": "sumo-logic",
+      "description": "Query Sumo Logic logs, alerts, dashboards, and SIEM insights directly from Copilot.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Sumo Logic",
+        "url": "https://www.sumologic.com"
+      },
+      "repository": "https://github.com/SumoLogic/sumologic-ai-plugins",
+      "homepage": "https://www.sumologic.com/help/docs/api/mcp-server/",
+      "license": "Apache-2.0",
+      "keywords": [
+        "sumo-logic",
+        "observability",
+        "logs",
+        "mcp",
+        "monitoring",
+        "alerts",
+        "copilot",
+        "siem"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "SumoLogic/sumologic-ai-plugins",
+        "ref": "v1.0.0",
+        "sha": "804c0909c20cf3b247df3b5de60bb94f8b65c315"
+      }
     },
     {
       "name": "swift-mcp-development",
