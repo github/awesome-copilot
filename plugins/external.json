@@ -1143,6 +1143,34 @@
     }
   },
   {
+    "name": "sumo-logic",
+    "description": "Query Sumo Logic logs, alerts, dashboards, and SIEM insights directly from Copilot.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Sumo Logic",
+      "url": "https://www.sumologic.com"
+    },
+    "repository": "https://github.com/SumoLogic/sumologic-ai-plugins",
+    "homepage": "https://www.sumologic.com/help/docs/api/mcp-server/",
+    "license": "Apache-2.0",
+    "keywords": [
+      "sumo-logic",
+      "observability",
+      "logs",
+      "mcp",
+      "monitoring",
+      "alerts",
+      "copilot",
+      "siem"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "SumoLogic/sumologic-ai-plugins",
+      "ref": "v1.0.0",
+      "sha": "804c0909c20cf3b247df3b5de60bb94f8b65c315"
+    }
+  },
+  {
     "name": "timebase",
     "description": "Connect your AI agent to TimeBase, a high-performance database for financial market and other time-series data, via MCP tools and skills for QQL query and TimeBase client code generation.",
     "version": "0.1.3",
