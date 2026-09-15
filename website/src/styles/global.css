@@ -684,10 +684,6 @@ body:has(#main-content)::before {
   color: #fff;
 }
 
-/* No `backdrop-filter`: listing pages render two of these buttons per card
-   (~840 per page), and each blurred element costs compositor work on every
-   scroll frame. The button sits on an already near-opaque card, so the blur
-   had no visible effect. */
 .btn-secondary {
   background: var(--color-glass);
   color: var(--color-text);
@@ -1428,12 +1424,6 @@ body:has(#main-content)::before {
   gap: 16px;
 }
 
-/* NOTE: deliberately no `backdrop-filter` here. Listing pages render hundreds of
-   cards (the skills page renders 418), and a blur on each one forces the
-   compositor to re-read and re-blur every backdrop on every scroll frame. That
-   produced reproducible ~35ms stall frames with GPU acceleration, and dropped
-   scroll to single-digit FPS without it. The card background is already 80-90%
-   opaque, so the blur was barely visible anyway. */
 .resource-item {
   background: var(--color-card-bg);
   border: 1px solid var(--color-glass-border);
