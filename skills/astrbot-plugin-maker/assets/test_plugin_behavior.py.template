@@ -1,0 +1,24 @@
+"""Offline tests for the production function used by main.py."""
+
+import pytest
+
+from plugin_logic import build_greeting
+
+
+@pytest.mark.parametrize(
+    ("name", "greeting", "limit", "expected"),
+    [
+        ("  Alice  ", "Hello", 40, "Hello, Alice!"),
+        ("小明", "你好", 40, "你好, 小明!"),
+        ("   ", "Hello", 40, "Hello, friend!"),
+        ("abcdef", "Hi", 3, "Hi, abc!"),
+    ],
+)
+def test_greeting(name, greeting, limit, expected):
+    assert build_greeting(name, greeting, limit) == expected
+
+
+@pytest.mark.parametrize("limit", [0, -1, 201])
+def test_invalid_name_limit(limit):
+    with pytest.raises(ValueError):
+        build_greeting("Alice", "Hello", limit)

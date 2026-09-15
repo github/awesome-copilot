@@ -1,0 +1,44 @@
+"""Optional client for GET /api/v1/im/bots, verified against AstrBot v4.28.0.
+
+The caller owns the AsyncClient lifetime. Other endpoints need their own parsers;
+chat can return SSE and file endpoints return bytes.
+"""
+
+import httpx
+
+
+class ApiAuthError(RuntimeError):
+    """The API key is invalid or lacks the required scope."""
+
+
+class ApiResponseError(ValueError):
+    """The server returned an unexpected JSON envelope or bot list."""
+
+
+async def get_bot_ids(
+    client: httpx.AsyncClient, base_url: str, api_key: str
+) -> list[str]:
+    if not api_key.strip():
+        raise ValueError("Configure an AstrBot API key before making requests")
+    response = await client.get(
+        f"{base_url.rstrip('/')}/api/v1/im/bots",
+        headers={"X-API-Key": api_key},
+        timeout=15.0,
+        follow_redirects=False,
+    )
+    if response.status_code == 401:
+        raise ApiAuthError("AstrBot rejected the API key (401)")
+    if response.status_code == 403:
+        raise ApiAuthError("AstrBot API key requires the im scope (403)")
+    response.raise_for_status()
+    try:
+        payload = response.json()
+    except ValueError as exc:
+        raise ApiResponseError("Expected a JSON response from /im/bots") from exc
+    if not isinstance(payload, dict) or payload.get("status") != "ok":
+        raise ApiResponseError("AstrBot returned an unsuccessful response")
+    data = payload.get("data")
+    bot_ids = data.get("bot_ids") if isinstance(data, dict) else None
+    if not isinstance(bot_ids, list) or any(not isinstance(x, str) for x in bot_ids):
+        raise ApiResponseError("Expected data.bot_ids to be a list of strings")
+    return bot_ids
