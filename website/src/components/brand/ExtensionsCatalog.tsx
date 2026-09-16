@@ -388,6 +388,7 @@ export function ExtensionsCatalog({
                     const detailHref = pageHref(`extension/${ext.id}`);
                     const sourceUrl = extensionSourceUrl(ext);
                     const installUrl = appInstallUrl(ext);
+                    const safeImageUrl = httpUrl(ext.imageUrl);
                     return (
                       <Grid.Column
                         key={ext.id}
@@ -395,7 +396,7 @@ export function ExtensionsCatalog({
                         className={styles.col}
                       >
                         <Box className={clsx(styles.item, styles.itemHover)}>
-                          {ext.imageUrl ? (
+                          {safeImageUrl ? (
                             <a
                               href={detailHref}
                               className={styles.cardMedia}
@@ -404,7 +405,7 @@ export function ExtensionsCatalog({
                             >
                               <img
                                 className={styles.cardImage}
-                                src={ext.imageUrl}
+                                src={safeImageUrl}
                                 alt={`${ext.name} preview`}
                                 loading={index === 0 ? "eager" : "lazy"}
                                 decoding="async"

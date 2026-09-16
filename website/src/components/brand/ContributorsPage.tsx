@@ -84,14 +84,17 @@ export function ContributorsPage({
           <ul className={contributorsStyles.grid}>
             {contributors.map((contributor) => {
               const safeProfileUrl = sanitizeHttpUrl(contributor.profileUrl);
+              const safeAvatarUrl = sanitizeHttpUrl(contributor.avatarUrl);
               const profileContent = (
                 <>
-                  <Avatar
-                    src={contributor.avatarUrl}
-                    alt=""
-                    size={64}
-                    loading="lazy"
-                  />
+                  {safeAvatarUrl !== "#" ? (
+                    <Avatar
+                      src={safeAvatarUrl}
+                      alt=""
+                      size={64}
+                      loading="lazy"
+                    />
+                  ) : null}
                   <span className={contributorsStyles.contributorName}>
                     {contributor.name}
                   </span>

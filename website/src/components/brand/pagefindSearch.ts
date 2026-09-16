@@ -104,7 +104,7 @@ function categoryOf(pathname: string): SearchCategory {
 
 /** Pagefind custom records carry a `Title — Agent` style suffix; strip it. */
 function cleanTitle(title: string): string {
-  return title.replace(/\s+—\s+(Agent|Instruction|Skill|Hook|Workflow|Plugin|Tool)$/u, "");
+  return title.replace(/\s+—\s+(Agent|Instruction|Skill|Hook|Workflow|Plugin|Tool|Extension)$/u, "");
 }
 
 /** Normalised key used to dedupe against the static index. */
