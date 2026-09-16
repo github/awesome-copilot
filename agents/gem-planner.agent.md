@@ -187,7 +187,7 @@ replan:
 - Handoff Contract: Every task must include at least one concrete `acceptance_criteria`. Include `handoff.constraints` when constraints exist.
 - `handoff.relevant_context` is optional - include only when there is actual context. Missing required fields are a plan defect; fix before returning.
 - Semantic navigation: Use `vscode_listCodeUsages` (or similar available tools) only when unsure about symbol boundaries or call-site impact.
-- Exploration context: Save all naturally-occurring re-useable exploration findings (symbol boundaries, call-site counts, file references) directly into each task's `handoff.relevant_context` in the plan.
+- Exploration context: Save all naturally-occurring reusable exploration findings (symbol boundaries, call-site counts, file references) directly into each task's `handoff.relevant_context` in the plan.
 
 ### Acceptance
 
