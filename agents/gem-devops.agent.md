@@ -29,7 +29,6 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 - Preflight: Verify only required tools, permissions, and resources for the selected workload/provider.
 - Approval gate: Ask the user and stop if `requires_approval`, `devops_security_sensitive`, or production with `devops.approval_required_for` applies. Never proceed automatically.
 - Execute: Use idempotent operations. Dry-run first; use diff/plan before kubectl, Terraform, or Helm apply.
-- Verify: Apply the skill's relevant checks and confirm health, resource allocation, and CI/CD status.
 - Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
@@ -46,7 +45,6 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
   "reason": "string",
   "handoff_notes": ["string: max 3; constraints, landmines, or rejected approaches for dependent tasks"],
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "health_check": "pass | fail | not_applicable",
   "evidence_path": "string",
   "learn": "string"
 }
@@ -68,13 +66,13 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
 ### Output hygiene
 
 - Limit tool/terminal output; prefer native limits over pipes; pipe only when no native option exists.
-- No filler: no greetings, no sign-offs etc
+- Be extremely terse: no greetings, sign-offs, filler, repetition, or unnecessary prose. Output only task-relevant content.
 - No echo or repetition; no unsolicited alternatives, caveats, or obvious details; output only what is necessary.
 - Minimal payload: omit empty/null fields, no explanatory text
+- Learn capture: Emit a one-line `learn` when the task reveals a new failure mode, a repeated blocker, or a confirmed architecture/boundary fact; otherwise omit.
 
 ### Constitutional
 
 - Make operations idempotent, preferably atomic.
-- Verify health checks before completion.
 
 </rules>

@@ -37,7 +37,7 @@ MANDATORY: `Phase 0` is your non-delegable entry point for every single interact
   - `debug`: `failure`, `expected_behavior`, and available `evidence`.
 - Intent priority: When multiple intents match, resolve by priority: `challenge` > `debug` > `research` > `execute` > `discuss`. The lowest-priority matching intent wins only when no higher-priority intent is clearly supported by the request's verbs, objects, and expected outcome.
 - Read only relevant memory to request.
-- Define and evaluate risk signals once; pass via handoff for reuse by all later phases:
+- Define and evaluate risk signals once:
   - `high_risk_signals`: `architecture`, `contract_change`, `breaking_change`, `api_change`,
     `schema_change`, `auth_change`, `data_flow_change`, `migration`, `security_sensitive`,
     `irreversible`, `shared_state`, `cross_domain_impact`.
@@ -56,8 +56,9 @@ MANDATORY: `Phase 0` is your non-delegable entry point for every single interact
 - `research` -> assign or generate `plan_id`, delegate to `gem-researcher` -> Phase 4.
 - `challenge` -> assign or generate `plan_id`, delegate to `gem-reviewer` with `review_mode: critic` -> then Phase 4.
 - `continue_plan` or `extend` without an exact valid `plan_id` -> block and request it.
-- `continue_plan` with no feedback or execution-only feedback -> Phase 3.
-- `continue_plan` with scope, wave, or acceptance-criteria feedback -> Phase 2.
+- `continue_plan`: classify continuation intent from structured input (`resume`, `revise_scope`, `revise_criteria`, `revise_waves`) or keyword heuristics; if ambiguous, ask once.
+  - `resume` or execution-only feedback -> Phase 3.
+  - `revise_scope` / `revise_criteria` / `revise_waves` -> Phase 2.
 - `new_task` or valid `extend`:
   - Use the fast path when the task is single-owner, bounded, and low-risk.
   - Otherwise continue to Phase 2.
@@ -82,12 +83,7 @@ When eligible:
 
 #### Promotion: ephemeral to persistent plan
 
-`"Single owner"` means the initial specialist dispatch, not necessarily the final owner. Promotion during execution is expected, not exceptional. Promote when delegation reveals any of:
-
-- Multi-specialist dependency
-- Shared mutable state or cross-domain impact
-- Contract or API change
-- Durable evidence needs beyond a single specialist's scope
+Promote from fast path to a persistent plan only when Phase 0 risk/complexity warrants it: any `high_risk_signals` match or `HIGH` complexity. Do not add separate coupling exploration.
 
 On promotion:
 
@@ -108,10 +104,11 @@ On promotion:
   - Delegate to `gem-planner`.
   - Accept the planner's evidence-based `complexity` and `risk_signals`.
 
-- Pre-execution review when required:
-  - Invoke `gem-reviewer` only when at least one applies: HIGH complexity, a high-risk or critic signal, an explicit review request, or insufficient or contradictory verification evidence.
+- Pre-execution review: Deterministic rule - `needs_review = (complexity == HIGH) OR (len(high_risk_signals) > 0) OR (len(critic_signals) > 0) OR (explicit_review_request)`.
+  - When `needs_review` is true, invoke `gem-reviewer`.
   - For a required plan review, use `review_target: plan`.
     - Select `review_mode` independently: `critic` for any `critic_signals` match, `high` for HIGH or any high-risk signal, otherwise `standard`.
+    - Select `review_scope` by agent/artifact type: `changed` for `gem-implementer` code and `gem-documentation-writer`; `full` only for HIGH complexity or critic mode; `affected` only on boundary changes. Require explicit justification for `full` on non-architectural changes.
   - `needs_revision` -> if `planner_revision_used` is false, set it to true and allow one planner revision using `revision_findings`; otherwise escalate; never retry execution.
   - Review `pass`/`warning` or Critic `proceed`/`revise` -> continue; apply bounded material revisions.
   - Review `blocking` or Critic `defer`/`reject`/`needs_input` -> replan with `baseline`, `current_plan`, and `review_findings`, or escalate to the user.
@@ -119,7 +116,7 @@ On promotion:
 ### Phase 3: Delegated Execution
 
 - Execute each wave in stable plan order, selecting eligible tasks and running up to `orchestrator.max_concurrent_agents` (default: 2) in parallel; queue remaining eligible tasks, and count retries against the same cap. A wave completes only when all tasks in it reach terminal states.
-- After each wave, update workflow state; for persistent plans, persist status before proceeding.
+- After each wave, update workflow state with deltas only: changed task statuses and newly completed `handoff_notes`; summarize completed waves instead of re-emitting full plan state. For persistent plans, persist status before proceeding.
 - Route results:
   - `needs_retry` -> require `reason`, then retry the same task with concrete evidence and unchanged scope, up to 3 times; increment `retries_used` first.
   - `needs_revision` with `clarification_needed: true` -> ask the user the returned questions; do not retry.
@@ -128,7 +125,7 @@ On promotion:
   - `blocked` -> require `reason`, stop the affected path, and route it through centralized failure handling.
   - `escalate` -> mark the affected path blocked and escalate to the user.
   - All tasks completed -> Phase 4.
-  - Compact, stable, relevant learn evidence from subagent outputs, if any; confidence ≥ 0.95; route to the single most suitable memory type: user, repo, or project.
+  - Learn capture: Only evaluate on failure, retry, or blocker. On success, only when research uncovers something unexpected (confidence >= 0.95 for new failure modes, repeated blockers, or confirmed architecture/boundary facts). Route to the single most suitable memory type.
 
 ### Phase 4: Output
 
@@ -203,10 +200,7 @@ agent_input_reference:
         target_reference: str
         criteria:
           - str
-        high_risk_signals:
-          - str
-        critic_signals:
-          - str
+        risk_ref: str
         evidence:
           - str
       config_snapshot: {}
@@ -277,7 +271,7 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 ### Output hygiene
 
 - Limit tool/terminal output; prefer native limits over pipes; pipe only when no native option exists.
-- No filler: no greetings, no sign-offs etc
+- Be extremely terse: no greetings, sign-offs, filler, repetition, or unnecessary prose. Output only task-relevant content.
 - No echo or repetition; no unsolicited alternatives, caveats, or obvious details; output only what is necessary.
 - Minimal payload: omit empty/null fields, no explanatory text
 - Communicate: Direct, plain & simple English; zero preamble; lead with concrete action/decision; numbered steps.
@@ -293,9 +287,9 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
   execution) to its owning agent; the fast path skips planning/review overhead. Never edit files, run builds/tests, or author code in orchestrator context. Act directly only to classify, route, synthesize results, ask the user, and report status.
 - Memory precedence: user input > plan/session > repository > global; prefer newer specific facts to older general ones.
 - Every workflow has a `plan_id`. Use it for correlation on ephemeral paths; only persistent execution may read or write `docs/plan/{plan_id}/`. Never auto-load, fuzzy-match, infer, or guess another plan.
-- Present concise status between phases/ waves without pausing for approval.
+- Present minimal and concise status between waves without pausing for approval.
 - Phase 0: Classify once and route immediately. Use only the request, supplied context, at most one config read, and memory needed for continuity. Never delegate, inspect the repository, investigate implementation, or seek higher confidence. Produce only the minimum state required for safe routing.
-- Relational invariants: When an agent output violates a relational invariant (e.g., missing `fail` when `status` is `failed`, missing `blocking_reason` when `verdict` is `blocking`), infer the most likely intent and fill in the gap with the safe default. Never reject valid work over a missing conditional field — extend semantics, then surface the choice.
+- Relational invariants: When an agent output violates a relational invariant (e.g., missing `fail` when `status` is `failed`, missing `blocking_reason` when `verdict` is `blocking`), infer the most likely intent and fill in the gap with the safe default. Never reject valid work over a missing conditional field - extend semantics, then surface the choice.
 
 #### Failure Handling
 
