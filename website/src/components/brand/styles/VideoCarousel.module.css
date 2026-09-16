@@ -1,0 +1,339 @@
+/* Video series carousel — mirrors the "Get started" carousel on the Copilot
+   Learning Hub page (bordered band, header with prev/next, connected 3-up cards),
+   adapted to hold YouTube video thumbnails that open in a modal player. */
+
+.carousel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--brand-color-canvas-default);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-16);
+  padding: var(--base-size-16) var(--base-size-24);
+  background-color: var(--brand-color-canvas-muted);
+}
+
+.header .headerLabel {
+  margin: 0;
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-regular);
+  letter-spacing: var(--brand-text-letterSpacing-100);
+  text-transform: uppercase;
+  color: var(--brand-color-text-muted);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-24);
+}
+
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--base-size-4);
+  border: 0;
+  background: transparent;
+  color: var(--brand-color-text-default);
+  cursor: pointer;
+  border-radius: var(--brand-borderRadius-small);
+  transition: color 0.2s ease;
+}
+
+.navButton:hover {
+  color: var(--brand-color-text-default);
+}
+
+.navButton:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+.track {
+  display: flex;
+  flex-wrap: wrap;
+  overflow: hidden;
+  border-block-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+  animation: videoPageFade 0.28s var(--brand-animation-easing-default, ease);
+}
+
+@keyframes videoPageFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+  }
+}
+
+.card {
+  flex: 0 0 calc(100% / 3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  padding: var(--base-size-24);
+  margin: 0;
+  text-align: start;
+  border: 0;
+  background-color: var(--brand-color-canvas-default);
+  cursor: pointer;
+  transition: background-color var(--brand-animation-duration-extended)
+    var(--brand-animation-easing-default);
+}
+
+/* Keep an integer number of cards visible so the row never cuts a card
+   mid-width. Steps 3-up -> 2-up -> 1-up as the container narrows. */
+@media screen and (max-width: 56.24rem) {
+  .card {
+    flex-basis: calc(100% / 2);
+  }
+
+  /* Full row is now 2-up: reset the 3-up edge rule and add a right edge only
+     when the trailing card doesn't complete a pair. */
+  .card:last-child:not(:nth-child(3n)) {
+    border-inline-end: 0;
+  }
+
+  .card:last-child:not(:nth-child(2n)) {
+    border-inline-end: var(--brand-borderWidth-thin) solid
+      var(--brand-color-border-muted);
+  }
+}
+
+@media screen and (max-width: 37.49rem) {
+  .card {
+    flex-basis: 100%;
+  }
+
+  /* 1-up: every card fills the width, so the carousel border is the right edge. */
+  .card:last-child:not(:nth-child(2n)),
+  .card:last-child:not(:nth-child(3n)) {
+    border-inline-end: 0;
+  }
+}
+
+.card:not(:first-child) {
+  border-inline-start: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+/* When the last row isn't full (e.g. a single video), the trailing card still
+   needs a right edge so it reads as a complete card rather than an open band.
+   Skip it when the card already fills to the container edge (a full 3-up row),
+   where the carousel's own border supplies the right edge. */
+.card:last-child:not(:nth-child(3n)) {
+  border-inline-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.card:is(:hover, :focus-visible) {
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.card:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: calc(-1 * var(--base-size-4));
+}
+
+.thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.thumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--brand-animation-duration-extended)
+    var(--brand-animation-easing-default);
+}
+
+.card:is(:hover, :focus-visible) .thumbImage {
+  transform: scale(1.03);
+}
+
+.playBadge {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--base-size-48);
+  block-size: var(--base-size-48);
+  border-radius: var(--brand-borderRadius-full);
+  color: var(--base-color-scale-white-0);
+  background-color: color-mix(
+    in srgb,
+    var(--base-color-scale-black-0) 68%,
+    transparent
+  );
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.card:is(:hover, :focus-visible) .playBadge {
+  background-color: var(--base-color-scale-green-5);
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.cardMeta {
+  margin: 0;
+  font-family: var(--brand-fontStack-monospace);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-regular);
+  letter-spacing: var(--brand-text-letterSpacing-100);
+  text-transform: uppercase;
+  color: var(--brand-color-text-muted);
+}
+
+.cardTitle {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-300);
+  font-weight: var(--brand-text-weight-600, 600);
+  line-height: var(--brand-text-lineHeight-300);
+  color: var(--brand-color-text-default);
+}
+
+/* ---- Modal player ---------------------------------------------------- */
+
+.backdrop {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  /* Use the dynamic viewport height so the dialog stays centred in the visible
+     area on mobile, where the browser chrome shrinks the layout viewport. */
+  block-size: 100dvh;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--base-size-24);
+  background-color: color-mix(
+    in srgb,
+    var(--base-color-scale-black-0) 72%,
+    transparent
+  );
+  animation: videoBackdropIn 0.18s ease-out both;
+}
+
+@keyframes videoBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  inline-size: min(60rem, 100%);
+  max-block-size: 100%;
+  overflow: hidden;
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-default);
+  box-shadow: var(--brand-River-visual-shadow);
+  animation: videoDialogIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes videoDialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(var(--base-size-8));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-16);
+  padding: var(--base-size-16) var(--base-size-24);
+  border-block-end: var(--brand-borderWidth-thin) solid
+    var(--brand-color-border-muted);
+}
+
+.dialogTitle {
+  margin: 0;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-300);
+  font-weight: var(--brand-text-weight-600, 600);
+  line-height: var(--brand-text-lineHeight-300);
+  color: var(--brand-color-text-default);
+}
+
+.closeButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--base-size-8);
+  appearance: none;
+  -webkit-appearance: none;
+  border: var(--brand-borderWidth-thick) solid var(--brand-color-border-default);
+  border-radius: var(--brand-borderRadius-medium);
+  background-color: var(--brand-color-canvas-subtle);
+  line-height: 1;
+  color: var(--brand-color-text-muted);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.closeButton:hover {
+  color: var(--brand-color-text-default);
+  border-color: var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-default);
+}
+
+.closeButton:focus-visible {
+  outline: var(--brand-borderWidth-thin) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+.videoFrame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: var(--base-color-scale-black-0);
+}
+
+.videoFrame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}

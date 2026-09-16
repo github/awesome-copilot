@@ -1,0 +1,177 @@
+/* Dropdown styling for the shared top-navigation search. The search field,
+ * button, and ⌘K hint reuse each page's own scoped classes (passed in via
+ * `styles`); only the results popover lives here so it looks identical on
+ * every page. */
+
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.results {
+  position: absolute;
+  z-index: 30;
+  inset-block-start: calc(100% + var(--base-size-8));
+  inset-inline-end: 0;
+  inline-size: 22rem;
+  max-inline-size: min(22rem, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  padding: var(--base-size-16);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  background-color: var(--brand-color-canvas-muted);
+  box-shadow: var(--brand-SubNav-shadow);
+  text-align: start;
+  animation: topNavSearchResultsIn 0.16s ease;
+}
+
+@keyframes topNavSearchResultsIn {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--base-size-6) * -1));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .results {
+    animation: none;
+  }
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+}
+
+.groupLabel {
+  margin: 0 0 var(--base-size-4);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-normal);
+  color: var(--brand-color-text-muted);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-12);
+  padding-block: var(--base-size-8);
+  border-block-start: var(--brand-borderWidth-thin) dashed
+    var(--brand-color-border-subtle);
+  color: var(--brand-color-text-default);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.result:first-of-type {
+  border-block-start: 0;
+}
+
+.result:focus-visible {
+  outline: var(--brand-borderWidth-thick) solid var(--brand-color-focus);
+  outline-offset: calc(var(--base-size-2) * -1);
+  border-radius: var(--brand-borderRadius-small);
+}
+
+.resultText {
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-semibold);
+  color: inherit;
+}
+
+.resultIcon {
+  flex-shrink: 0;
+  color: var(--brand-color-text-muted);
+}
+
+.result:hover .resultText,
+.result:focus-visible .resultText,
+.resultActive .resultText,
+.result:hover .resultIcon,
+.result:focus-visible .resultIcon,
+.resultActive .resultIcon {
+  color: var(--brand-color-text-link-rest);
+}
+
+.resultActive {
+  background-color: var(--brand-color-canvas-default);
+}
+
+.empty {
+  margin: 0;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  color: var(--brand-color-text-muted);
+}
+
+/* Inline variant: an always-open, full-width search used inside the mobile
+ * hamburger menu (where the desktop top-bar search is hidden). The field and
+ * results flow in normal document order so search reads as the first item of
+ * the menu, keeping an equivalent search UX at every viewport. */
+.inlineWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+  inline-size: 100%;
+}
+
+.inlineField {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  inline-size: 100%;
+  block-size: var(--base-size-40);
+  padding-inline: var(--base-size-12);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  background-color: var(--brand-color-canvas-default);
+  color: var(--brand-color-text-muted);
+}
+
+.inlineField:focus-within {
+  border-color: var(--brand-color-focus);
+}
+
+.inlineIcon {
+  flex-shrink: 0;
+  color: var(--brand-color-text-muted);
+}
+
+.inlineInput {
+  flex: 1;
+  min-inline-size: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-200);
+  font-weight: var(--brand-text-weight-normal);
+  line-height: var(--brand-text-lineHeight-200);
+  color: var(--brand-color-text-default);
+}
+
+.inlineInput::placeholder {
+  color: var(--brand-color-text-muted);
+}
+
+.inlineInput:focus {
+  outline: none;
+}
+
+.inlineResults {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  padding: var(--base-size-12);
+  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-muted);
+  border-radius: var(--brand-borderRadius-medium);
+  background-color: var(--brand-color-canvas-muted);
+  text-align: start;
+}

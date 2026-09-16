@@ -1,10 +1,9 @@
 /**
- * Custom Pagefind integration that extends Starlight's search index
- * with resource records (agents, skills, instructions, hooks, workflows, plugins).
+ * Builds the Pagefind search index after the static build completes.
  *
- * Starlight's pagefind is enabled (pagefind: true) so the search UI renders,
- * but this integration runs AFTER Starlight's and overwrites the index with
- * HTML pages + custom resource records combined.
+ * Indexes every built HTML page and additionally injects synthetic records for
+ * catalog resources (agents, skills, instructions, hooks, workflows, plugins)
+ * so they are findable even where they are rendered client-side.
  */
 import type { AstroIntegration } from "astro";
 import { readFileSync } from "node:fs";
@@ -29,6 +28,7 @@ const TYPE_LABELS: Record<string, string> = {
   workflow: "Workflow",
   plugin: "Plugin",
   tool: "Tool",
+  extension: "Extension",
 };
 
 const TYPE_PAGES: Record<string, string> = {
@@ -39,6 +39,7 @@ const TYPE_PAGES: Record<string, string> = {
   workflow: "/workflows/",
   plugin: "/plugins/",
   tool: "/tools/",
+  extension: "/extensions/",
 };
 
 // Resource types that have a dedicated detail page at /<type>/<id>/. Search
@@ -50,6 +51,7 @@ const DETAIL_ROUTE_TYPES = new Set([
   "hook",
   "workflow",
   "plugin",
+  "extension",
 ]);
 
 export default function pagefindResources(): AstroIntegration {
@@ -79,7 +81,7 @@ export default function pagefindResources(): AstroIntegration {
             throw new Error("Pagefind index is undefined");
           }
 
-          // Index all built HTML pages (same as Starlight's default)
+          // Index all built HTML pages
           const indexResult = await index.addDirectory({
             path: fileURLToPath(dir),
           });
