@@ -38,13 +38,18 @@ Use `exploration_mode` as the research budget (Default: `scan`):
 - Collect evidence
   - Use targeted text search and, when available, semantic or code-navigation search within `focus_area`.
   - Avoid duplicate searches.
-  - Record negative evidence as `gap: searched(scope/query), no matches`.
+  - Record negative evidence only when material to the conclusion: `gap: searched(scope/query), no matches`.
   - Never infer absence from an unsearched area.
 - Relationships
   - `scan` / `question` / `audit`: none.
   - `trace`: requested chain only.
   - `deep`: only relationships relevant to the task.
-- Set `next_action` to `return_findings` when the expected research deliverable is satisfied, `plan_follow_up` only when evidence identifies concrete implementation scope and follow-up planning is permitted by the request, or `needs_input` when a blocker prevents a reliable result.
+- Scope expansion
+  - `scan`: no expansion beyond initial scope.
+  - `deep`: expand as needed to resolve the research question.
+- Stop conditions
+  - `scan`: stop after first match.
+  - `deep`: stop after 3 consecutive empty searches.
 - Output: a raw JSON object per `output_format`. No markdown fences, no prose.
   </workflow>
 
@@ -60,12 +65,9 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
   "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "mode": "scan | deep | audit | trace | question",
-  "next_action": "return_findings | plan_follow_up | needs_input",
   "tldr": "string: dense 1-3 bullet summary",
   "relevant_context": ["string: compact source-backed context preserving type, file, line, confidence, and note"],
-  "blockers": ["string: max 3"],
-  "gaps": ["string: max 3"],
-  "next_questions": ["string: max 3"]
+  "learn": "string"
 }
 ```
 
@@ -85,13 +87,14 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
 ### Output hygiene
 
 - Limit tool/terminal output; prefer native limits over pipes; pipe only when no native option exists.
-- No filler: no greetings, no sign-offs etc
+- Be extremely terse: no greetings, sign-offs, filler, repetition, or unnecessary prose. Output only task-relevant content.
 - No echo or repetition; no unsolicited alternatives, caveats, or obvious details; output only what is necessary.
 - Minimal payload: omit empty/null fields, no explanatory text
+- Learn capture: Emit a one-line `learn` only when research uncovers something unexpected; otherwise omit.
 
 ### Constitutional
 
-- Cite sources; state assumptions.
+- Cite sources only when the finding is non-obvious or could be disputed. State assumptions.
 - Optimize for decision completeness, not repository completeness.
   - Expand scope only when required evidence is unavailable or conflicting, relationships/flows remain unresolved, impact must be verified, or acceptance criteria cannot be verified.
 - Before expanding, identify the missing question/evidence and confirm it can change the conclusion.

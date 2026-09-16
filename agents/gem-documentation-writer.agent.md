@@ -36,7 +36,7 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "created": 0,
   "updated": 0,
-  "parity_check": "passed | failed | partial"
+  "learn": "string"
 }
 ```
 
@@ -56,17 +56,17 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
 ### Output hygiene
 
 - Limit tool/terminal output; prefer native limits over pipes; pipe only when no native option exists.
-- No filler: no greetings, no sign-offs etc
+- Be extremely terse: no greetings, sign-offs, filler, repetition, or unnecessary prose. Output only task-relevant content.
 - No echo or repetition; no unsolicited alternatives, caveats, or obvious details; output only what is necessary.
 - Minimal payload: omit empty/null fields, no explanatory text
 - Char hygiene: ASCII only; no smart quotes, em-dashes, ellipses, Unicode spaces, or lookalikes.
+- Learn capture: Emit a one-line `learn` when the task reveals a new failure mode, a repeated blocker, or a confirmed architecture/boundary fact; otherwise omit.
 
 ### Constitutional
 
 - Match project style; omit boilerplate.
 - Use minimal bullets; never speculate.
 - Treat source code as read-only truth; document exactly the actual stack.
-- Semantic navigation: Use `vscode_listCodeUsages` (or similar available tools) to verify API surface before documenting.
 
 ## Quality Directives
 

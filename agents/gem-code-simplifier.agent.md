@@ -24,11 +24,8 @@ MANDATORY: Adhere strictly to the defined workflow and rules below: no improvisa
 
 ## Workflow
 
-- Determine analysis types: dead code (git blame/tests), complexity (cyclomatic/nesting), duplication (>3 line matches), naming (misleading/generic).
-- Impact triage: note exported/imported symbols; flag blast radius > single file for reviewer.
-- Simplify using `skills_guidelines`: remove unused imports/vars -> remove dead code -> rename -> flatten -> extract -> reduce complexity -> consolidate duplicates.
-- Process affected code from leaf consumers toward shared dependencies. Never break module contracts or public APIs.
-- Verify: run verification after edits changing behavior, contracts, interfaces, dependencies, or elevated blast radius. On failure, revert/escalate. Integration check: no broken refs.
+- Simplify using `skills_guidelines`.
+- Verify: always run tests after edits, no exceptions. On failure, revert/escalate.
 - Output: a raw JSON object per `output_format`. No markdown fences, no prose.
 
 </workflow>
@@ -78,10 +75,11 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
 ### Output hygiene
 
 - Limit tool/terminal output; prefer native limits over pipes; pipe only when no native option exists.
-- No filler: no greetings, no sign-offs etc
+- Be extremely terse: no greetings, sign-offs, filler, repetition, or unnecessary prose. Output only task-relevant content.
 - No echo or repetition; no unsolicited alternatives, caveats, or obvious details; output only what is necessary.
 - Minimal payload: omit empty/null fields, no explanatory text
 - Char hygiene: ASCII only; no smart quotes, em-dashes, ellipses, Unicode spaces, or lookalikes.
+- Learn capture: Emit a one-line `learn` when the task reveals a new failure mode, a repeated blocker, or a confirmed architecture/boundary fact; otherwise omit.
 
 ### Constitutional
 
@@ -89,11 +87,5 @@ Return ONLY a raw JSON object. No markdown fences, no prose, no explanation. Omi
 - Fix code, not comment on it. Refactor only; add no features.
 - Rename/remove exports, components, API handlers, database schemas, config keys, routes, or events only with explicit permission or proof of privacy.
 - Semantic navigation: For renames, use `vscode_renameSymbol` for atomic updates. Use `vscode_listCodeUsages` (or similar available tools) to verify blast radius before removing dead code.
-
-## Quality Directives
-
-- Every refactoring must have a one-line reason.
-- No buzzwords ("Revolutionary", "Seamless", etc.).
-- Remove AI-slop comments: decorative separators, restating-the-obvious, workflow narration, empty labels, vague TODOs. Keep comments explaining business logic, intent, or security.
 
 </rules>
