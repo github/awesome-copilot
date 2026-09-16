@@ -25,3 +25,4 @@ website/public/llms.txt
 obj/
 bin/
 .impeccable
+.playwright-mcp

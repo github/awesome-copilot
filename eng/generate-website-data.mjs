@@ -1389,7 +1389,7 @@ function generateCanvasManifest(gitDates, commitSha) {
       canvasId: id,
       extensionId: id,
       extensionName: name,
-      pluginName: null,
+      pluginName: name,
       name: displayName,
       version: normalizeText(ext?.version, "1.0.0"),
       readmeFile: null,
@@ -1414,7 +1414,10 @@ function generateCanvasManifest(gitDates, commitSha) {
       imageUrl,
       assetPath: null,
       installUrl: null,
-      installCommand: null,
+      // Registered in plugins/external.json, so it is installable from the
+      // awesome-copilot marketplace by plugin name even though it is hosted
+      // externally.
+      installCommand: `copilot plugin install ${name}@awesome-copilot`,
       sourceUrl,
       externalSource,
       external: true,
@@ -1463,7 +1466,8 @@ function generateSearchIndex(
   agents,
   instructions,
   skills,
-  plugins
+  plugins,
+  extensions
 ) {
   const index = [];
 
@@ -1516,6 +1520,20 @@ function generateSearchIndex(
       tags: plugin.tags,
       lastUpdated: plugin.lastUpdated,
       searchText: plugin.searchText,
+    });
+  }
+
+  for (const extension of extensions) {
+    index.push({
+      type: "extension",
+      id: extension.id,
+      title: extension.name || extension.title || extension.id,
+      description: extension.description || "",
+      path: extension.path,
+      lastUpdated: extension.lastUpdated,
+      searchText:
+        extension.searchText ||
+        `${extension.name || extension.title || extension.id} ${extension.description || ""}`.toLowerCase(),
     });
   }
 
@@ -1724,7 +1742,8 @@ async function main() {
     agents,
     instructions,
     skills,
-    plugins
+    plugins,
+    extensions
   );
   console.log(`✓ Generated search index with ${searchIndex.length} items`);
 

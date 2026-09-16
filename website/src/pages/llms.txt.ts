@@ -49,7 +49,7 @@ export const GET: APIRoute = async () => {
   content +=
     "- **Learning Hub**: Curated guides, tutorials, and reference material published on the website\n\n";
 
-  // Process Learning Hub documentation
+  // Process Learning Hub documentation.
   content += "## Learning Hub\n\n";
   for (const article of learningHubArticles) {
     const description = normalizeDescription(article.data.description);

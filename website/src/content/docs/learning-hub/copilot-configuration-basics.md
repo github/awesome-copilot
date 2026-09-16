@@ -926,6 +926,26 @@ copilot skill enable my-skill    # enable a specific skill
 
 > **Breaking change (v1.0.84+)**: The cross-kind `--kind`, `--scope`, `--mcp`, and `--skill` flags have been removed from `copilot plugins`. `copilot plugins list` is now an alias of `copilot plugin list` and reports only plugins — not MCP servers, skills, instructions, or LSP servers. Scripts that installed skills with `copilot plugins install --skill [--scope project]` should switch to `copilot skill add [--project]`, and scripts reading `.plugins` from `copilot plugins list --json` should expect a flat array instead of the previous `{ plugins, errors }` object.
 
+### The `/config` Sidebar
+
+*(v1.0.84+)* Run `/config` to open a dedicated sidebar configuration screen inside the CLI, giving you a browsable view of your active settings without leaving the terminal session or hand-editing `config.json`:
+
+```
+/config
+```
+
+### Sandbox Network Allow/Deny Rules
+
+*(v1.0.84+)* `/sandbox` now supports per-host network allow/deny rules that layer on top of your configured upstream proxy, instead of replacing it. This lets you permit or block specific hosts for sandboxed commands without reconfiguring your whole proxy setup — useful when a sandboxed build or test needs to reach one extra domain (like a package registry mirror) while keeping the rest of your network policy intact.
+
+### Memory and Session Import
+
+*(v1.0.84+)* New session and memory import commands accept the semantic JSONL interchange format, making it possible to bring saved session history or memory entries into Copilot CLI from an external export rather than starting from scratch.
+
+### Command-Line Parsing Rewrite
+
+*(v1.0.84+)* Command-line parsing moved from Commander to a Rust-based grammar that mirrors what the CLI actually parses, which also generates shell completions directly from that grammar — so `copilot <TAB>` now offers root flags alongside subcommands, and each subcommand only shows its own options. As a result of this change, some error and help wording changed, `copilot login --host` now works correctly, and `--max-autopilot-continues` no longer accepts scientific notation as a value.
+
 ## Common Questions
 
 **Q: How do I disable Copilot for specific files?**
