@@ -4,7 +4,7 @@ description: 'Measure how often a company is named in answer-engine research, wh
 license: MIT
 ---
 
-# Searchd AEO Audit
+# SearchD AEO Audit
 
 Produce an evidence-first AEO report from a company domain. The report measures
 controlled agent research, not impressions or traffic from consumer AI apps.
@@ -156,7 +156,7 @@ must cite run IDs and state what to re-measure.
 
 Good:
 
-> Searchd was absent from three market-entry questions (`q03`, `q06`, `q09`).
+> SearchD was absent from three market-entry questions (`q03`, `q06`, `q09`).
 > Publish a page addressing US-market AEO for Asian brands, then repeat those
 > three questions.
 

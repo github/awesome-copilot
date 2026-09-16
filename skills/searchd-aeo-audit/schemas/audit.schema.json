@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://searchd.ai/schemas/searchd-aeo-audit-v1.json",
-  "title": "Searchd AEO audit",
+  "title": "SearchD AEO audit",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "audit", "questions", "runs", "insights"],

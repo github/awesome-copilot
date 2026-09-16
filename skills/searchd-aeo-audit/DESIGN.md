@@ -1,4 +1,4 @@
-# Searchd AEO Audit Report Design System
+# SearchD AEO Audit Report Design System
 
 ## 0. Research Log
 
@@ -29,7 +29,7 @@ questions, sources, and run records.
 | Primary text | `--ink` | `#191a18` | Headings and body |
 | Secondary text | `--muted` | `#66675f` | Notes and metadata |
 | Rule | `--rule` | `#c9c5b8` | Borders and table rules |
-| Signal | `--signal` | `#a13f32` | Searchd emphasis and links |
+| Signal | `--signal` | `#a13f32` | SearchD emphasis and links |
 | Signal surface | `--signal-soft` | `#ead7d1` | Measurement-boundary callout |
 | Positive | `--positive` | `#2f6250` | Explicit named status |
 | Neutral surface | `--neutral` | `#e7e3d8` | Unmeasured and secondary cells |

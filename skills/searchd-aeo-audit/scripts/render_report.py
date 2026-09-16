@@ -78,7 +78,7 @@ def render(audit: Audit, locale: ReportLocale) -> str:
 
 def _parse_arguments() -> CliArguments:
     parser = argparse.ArgumentParser(
-        description="Render a self-contained Searchd AEO audit report.",
+        description="Render a self-contained SearchD AEO audit report.",
     )
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)

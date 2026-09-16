@@ -1,4 +1,4 @@
-# Searchd AEO audit methodology
+# SearchD AEO audit methodology
 
 ## What the audit measures
 
