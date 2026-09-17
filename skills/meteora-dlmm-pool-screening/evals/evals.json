@@ -1,0 +1,23 @@
+{
+  "skill_name": "meteora-dlmm-pool-screening",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "screen trending Meteora DLMM pools for LP and give me a ranked pass/watch/skip table",
+      "expected_output": "Uses public Meteora APIs or scripts/screen.py, reports timeframe, applies hard filters, ranks by fee/TVL, no deploy/swap/wallet actions",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "which Meteora DLMM pool should I LP for BONK? compare fee/TVL and bin step",
+      "expected_output": "Pair query for BONK, table of pools with bin_step and windowed fee/TVL, verdicts, read-only",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "dex-pool-screening on Solana, volatile meme preset, top 5 only",
+      "expected_output": "Triggers this skill, volatile preset gates (bin 80-125, TVL 10k-150k), limit 5, no Etemaro CLI deploy",
+      "files": []
+    }
+  ]
+}
