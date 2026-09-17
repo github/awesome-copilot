@@ -30,6 +30,7 @@ jobs:
       upstream_sha: ${{ steps.diff.outputs.upstream_sha }}
       guideline_files: ${{ steps.diff.outputs.guideline_files }}
       new_workflows: ${{ steps.diff.outputs.new_workflows }}
+      changed_workflows: ${{ steps.diff.outputs.changed_workflows }}
     steps:
       - name: Checkout fork
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -74,12 +75,24 @@ jobs:
           echo "guideline_files=$GUIDELINES" >> "$GITHUB_OUTPUT"
 
           # Workflow files added upstream (each one will start running in this fork once merged)
-          NEW_WF=$(git diff --name-only --diff-filter=A origin/main...upstream/main -- '.github/workflows/*.yml' | paste -sd ',' -)
-          echo "new_workflows=$NEW_WF" >> "$GITHUB_OUTPUT"
+NEW_WF=$(git diff --name-only --diff-filter=A origin/main...upstream/main -- '.github/workflows/*.yml' '.github/workflows/*.yaml' | paste -sd ',' -)
+echo "new_workflows=$NEW_WF" >> "$GITHUB_OUTPUT"
+
+# Existing upstream workflow files that were modified (may change what a kept workflow does)
+CHANGED_WF=$(git diff --name-only --diff-filter=M origin/main...upstream/main -- '.github/workflows/*.yml' '.github/workflows/*.yaml' | paste -sd ',' -)
+echo "changed_workflows=$CHANGED_WF" >> "$GITHUB_OUTPUT"
 
       - name: Push upstream mirror branch
         if: steps.diff.outputs.has_changes == 'true'
-        run: git push --quiet origin upstream/main:refs/heads/fork-sync/upstream
+        run: |
+          # Upstream routinely changes .github/workflows/*; pushing those needs the PAT to have the `workflow` scope.
+          if ! git push --quiet origin upstream/main:refs/heads/fork-sync/upstream 2> push.err; then
+            cat push.err
+            if grep -q "workflow" push.err; then
+              echo "::error::FORK_AUTOMATION_PAT lacks the 'workflow' scope. Edit the classic PAT, tick 'workflow', and update the repository secret (see .github/fork-only/README.md)."
+            fi
+            exit 1
+          fi
 
       - name: Open or reuse sync PR
         id: pr
@@ -135,6 +148,15 @@ You are summarising an upstream sync for the maintainer of the fork **${{ github
 - Upstream HEAD: `${{ needs.sync.outputs.upstream_sha }}`
 - Contribution-guideline files changed upstream (comma-separated, may be empty): `${{ needs.sync.outputs.guideline_files }}`
 - Workflow files **added** upstream (comma-separated, may be empty): `${{ needs.sync.outputs.new_workflows }}`
+- Workflow files **modified** upstream (comma-separated, may be empty): `${{ needs.sync.outputs.changed_workflows }}`
+
+## About this fork
+
+The fork exists to develop one custom agent — `agents/oracle-to-postgres-migration-expert.agent.md`, its plugin `plugins/oracle-to-postgres-migration-expert/`, and `skills/*oracle-to-postgres*` — and promote it upstream. Upstream workflows all run here after a sync unless the maintainer disables them in the Actions tab. The maintainer's policy, from `.github/fork-only/README.md`:
+
+- **Keep** workflows that lint or validate agents, plugins, skills, or READMEs (e.g. `skill-check*.yml`, `validate-plugins.yml`, `validate-readme.yml`, `validate-agentic-workflows-pr.yml`) — they are the checks an upstream PR will face, so failing early in the fork is valuable.
+- **Disable** workflows that assume upstream-only context: org secrets, upstream-only labels or teams, publishing/deploy steps, release automation, stale-issue bots, or anything that would post noise or fail permanently in a fork.
+- **Integrate** is an option when a new upstream workflow does something the fork's own tooling (`.github/workflows/fork-*`, `.github/fork-only/`) also does or should do — e.g. a new lint the bundler should run before promoting, or a check the `fork-agent-reviewer` should mirror.
 
 ## Steps
 
@@ -143,7 +165,8 @@ You are summarising an upstream sync for the maintainer of the fork **${{ github
    - `git log --oneline origin/main..upstream/main` to list incoming commits
    - `git diff --stat origin/main...upstream/main` for the change footprint
 2. If the guideline list above is non-empty, run `git diff origin/main...upstream/main -- CONTRIBUTING.md AGENTS.md` and read the full diff.
-3. Read the diff of any newly added workflow files listed above (`git diff origin/main...upstream/main -- <file>`).
+3. For each **added** workflow file, read the whole file (`git show upstream/main:<file>`): its triggers (`on:`), `permissions:`, any `secrets.*` it references, and what it does.
+4. For each **modified** workflow file, read the diff (`git diff origin/main...upstream/main -- <file>`) and judge whether the change matters to a fork that has it enabled.
 
 ## Output 1 — comment on the sync PR (always)
 
@@ -152,7 +175,9 @@ Use `add_comment` with `pull_request_number` = ${{ needs.sync.outputs.pr_number 
 - **Summary** — 2–4 sentences on what this sync brings in.
 - **Incoming commits** — the `git log --oneline` list (truncate to the most recent 40 if longer and say so).
 - **Change footprint** — the `--stat` output inside a collapsed `<details>` block.
-- **Affects this fork?** — call out anything touching `agents/oracle-to-postgres-migration-expert.agent.md`, `plugins/oracle-to-postgres-migration-expert/`, `skills/*oracle-to-postgres*`, or `.github/workflows/`. If new workflow files were added, list them and remind the maintainer to decide whether to disable each one in the fork's Actions tab after merging.
+- **Affects this fork?** — call out anything touching `agents/oracle-to-postgres-migration-expert.agent.md`, `plugins/oracle-to-postgres-migration-expert/`, or `skills/*oracle-to-postgres*`.
+- **New upstream workflows** — if the added list is empty write "No new workflow files." Otherwise render a table with one row per file: `File | Trigger | Needs upstream-only context? | Recommendation | Why`. Recommendation is exactly one of **Keep**, **Disable**, or **Integrate**, applying the policy above. For every **Disable**, follow the table with the steps: *after merging this PR* → Actions tab → select the workflow → `⋯` → **Disable workflow**. For every **Integrate**, say concretely what to change in which fork file. Finish with a reminder to update the *Which upstream workflows to leave enabled* list in `.github/fork-only/README.md` if any verdict changes it.
+- **Modified upstream workflows** — if the modified list is empty write "No existing workflow files changed." Otherwise list each file with one line on whether the change affects a fork that keeps it enabled (e.g. new secret required, new required check, trigger change); say "no fork impact" where that is the case.
 - **Contribution guidelines** — if the guideline list is empty write "No changes to CONTRIBUTING.md or AGENTS.md." Otherwise summarise the changes and link to the issue you create in Output 2.
 
 ## Output 2 — issue (only if guideline files changed)

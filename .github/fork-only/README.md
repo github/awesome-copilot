@@ -30,7 +30,7 @@ flowchart LR
 
 | File | Kind | Trigger | What it does |
 | --- | --- | --- | --- |
-| `fork-sync-watchdog.md` → `.lock.yml` | gh-aw | Weekly Fri 10:00 UTC, manual | Deterministic `sync` job pushes `upstream/main` to branch `fork-sync/upstream` and opens/refreshes a PR into `main` (with the PAT so CI runs). AI agent comments on that PR with a summary, incoming commits, change footprint, anything touching this agent, and newly added upstream workflow files. If `CONTRIBUTING.md` or `AGENTS.md` changed, it also opens an issue with the full diff and what it means for this fork. |
+| `fork-sync-watchdog.md` → `.lock.yml` | gh-aw | Weekly Fri 10:00 UTC, manual | Deterministic `sync` job pushes `upstream/main` to branch `fork-sync/upstream` and opens/refreshes a PR into `main` (with the PAT so CI runs). AI agent comments on that PR with a summary, incoming commits, change footprint, anything touching this agent, and a **Keep / Disable / Integrate** verdict for every newly added upstream workflow file (with disable steps and, for Integrate, which fork file to change), plus a one-line impact note for each modified upstream workflow. If `CONTRIBUTING.md` or `AGENTS.md` changed, it also opens an issue with the full diff and what it means for this fork. |
 | `fork-agent-reviewer.md` → `.lock.yml` | gh-aw | `pull_request` into `main`, path-scoped to the agent, plugin, and `skills/*oracle-to-postgres*` | `version_check` job fails if `plugin.json` version equals upstream. AI agent applies the `ai-prompt-engineering-safety-review` skill plus an Oracle→PostgreSQL domain checklist and submits one review (`COMMENT` or `REQUEST_CHANGES`; can never `APPROVE`). |
 | `fork-bundle-upstream-pr.yml` | plain YAML | `workflow_dispatch` | Computes the single diff between `upstream/main` and fork `main` for the agent paths (agent file, plugin, every skill listed in `plugin.json`), applies it on a branch based on `upstream/main`, runs `npm run build` + `eng/fix-line-endings.sh`, commits, force-pushes `upstream-promotion/oracle-to-postgres-migration-expert` to the fork, and opens a **draft** PR against upstream (or reports the existing one). Fails hard if there is no delta, the version was not bumped, or the diff does not apply. Supports `dry_run`. |
 
@@ -67,11 +67,11 @@ Upstream ships ~40 workflows that will all run in the fork. Disable the ones tha
 - `validate-plugins.yml`, `validate-readme.yml`, `validate-agentic-workflows-pr.yml` — the checks an upstream PR will face
 - `fork-*` — ours
 
-The watchdog lists any **newly added** upstream workflow files in its sync-PR comment so you can decide per file after merging.
+The watchdog applies this policy to every **newly added** upstream workflow file in its sync-PR comment: a per-file **Keep / Disable / Integrate** recommendation with reasoning, the exact disable steps, and — for *Integrate* — what to change in the fork's own tooling. It also notes whether **modified** upstream workflows change anything for a fork that keeps them enabled. The verdicts are suggestions; you decide after merging. If you change this list, the agent's policy lives in the *About this fork* section of `fork-sync-watchdog.md` — keep the two in step.
 
 ## Secret: `FORK_AUTOMATION_PAT`
 
-One **classic** PAT with the **`public_repo`** scope only. Fine-grained PATs cannot be granted on `github/awesome-copilot` (you do not own it), and `public_repo` is the minimum classic scope that can open a PR against a public repo you do not own.
+One **classic** PAT with the **`public_repo`** and **`workflow`** scopes. Fine-grained PATs cannot be granted on `github/awesome-copilot` (you do not own it), and `public_repo` is the minimum classic scope that can open a PR against a public repo you do not own. `workflow` is required because the watchdog pushes `upstream/main` — which routinely contains changes under `.github/workflows/` — and GitHub refuses any push that touches workflow files from a token without that scope (`GITHUB_TOKEN` cannot do it either).
 
 Used for exactly two things, both in deterministic (non-agent) jobs:
 
@@ -98,7 +98,7 @@ The gh-aw workflows use the Copilot engine and request `copilot-requests: write`
 
 ### Weekly sync
 
-Friday 10:00 UTC (or **Actions → Fork Sync Watchdog → Run workflow**). A PR titled `chore(fork-sync): merge upstream main (YYYY-MM-DD)` appears with an AI comment. Merge with **Create a merge commit**. If `CONTRIBUTING.md`/`AGENTS.md` changed, an issue labelled `fork-automation`, `contribution-guidelines` explains the impact — read it before the next promotion.
+Friday 10:00 UTC (or **Actions → Fork Sync Watchdog → Run workflow**). A PR titled `chore(fork-sync): merge upstream main (YYYY-MM-DD)` appears with an AI comment. Merge with **Create a merge commit**. Then act on the comment's workflow table: disable each **Disable** verdict in the Actions tab, open an issue for each **Integrate** you agree with, and update the keep-list above if it changed. If `CONTRIBUTING.md`/`AGENTS.md` changed, an issue labelled `fork-automation`, `contribution-guidelines` explains the impact — read it before the next promotion.
 
 If the branch already has an open PR, the watchdog fast-forwards it rather than opening another.
 
@@ -113,7 +113,7 @@ Run with `dry_run` first; the job summary shows the diff stat. Then run for real
 - [x] Merge this branch to fork `main` (schedule/dispatch only fire from the default branch).
 - [x] Confirm the three `fork-*` workflows appear in the Actions tab.
 - [x] Disable upstream workflows you do not want (see list above).
-- [x] Add `FORK_AUTOMATION_PAT` secret.
+- [x] Add `FORK_AUTOMATION_PAT` secret (`public_repo` + `workflow` scopes).
 - [ ] **Watchdog**: Run workflow → expect a sync PR with an AI comment (or a "nothing to sync" notice).
 - [ ] **Reviewer**: open a test PR that edits the agent file *without* bumping the version → expect `version_check` red and an AI review; bump the version → expect green.
 - [ ] **Bundler**: run with `dry_run` → inspect the summary; then run for real → confirm the draft PR on upstream.
@@ -125,6 +125,7 @@ Run with `dry_run` first; the job summary shows the diff stat. Then run for real
 | --- | --- | --- |
 | Every workflow fails at `actions/checkout` | Actions allow-list excludes GitHub-owned actions, or an action is not SHA-pinned | Settings → Actions → General |
 | Watchdog: `gh pr create` 403 | PAT missing/expired or lacks `public_repo` | Rotate secret |
+| Watchdog: push fails with `refusing to allow a Personal Access Token to create or update workflow ... without workflow scope` | PAT lacks the `workflow` scope | Edit the classic PAT → tick `workflow` → update the `FORK_AUTOMATION_PAT` secret → re-run |
 | Watchdog sync PR shows merge conflict | Fork `main` has edits to upstream-owned files | Resolve locally: `git fetch upstream && git merge upstream/main`, push to a branch, PR it |
 | Reviewer `version_check` red | `plugin.json` version equals upstream | Bump it on the PR branch |
 | Bundler: "No unpromoted changes" | Fork `main` matches upstream for the agent paths | Nothing to promote |
