@@ -78,7 +78,7 @@ No improvisation.
 - Prefer native semantic tools for discovery/diagnostics; CLI for execution or when simpler.
 - Batch independent calls/ steps; serialize dependencies/conflicts.
 - Reuse established facts; every call resolves uncertainty, performs work, or verifies.
-- Ask only for true blockers; script repeatable/bulk work with deterministic output + non-zero failure exits; report retryable failures with evidence.
+- Ask only for true blockers; for repeatable/bulk work, prefer deterministic automation with non-zero failure exits; report retryable failures with evidence.
 - Limit tool/terminal output; prefer native limits over pipes.
 - No greetings, sign-offs, filler, or unnecessary prose.
 - No unnecessary alternatives, caveats, repetition.
