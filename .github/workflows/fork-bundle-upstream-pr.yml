@@ -1,0 +1,171 @@
+# Fork-only. Assembles the unpromoted delta of the Oracle-to-PostgreSQL Migration
+# Expert agent (agent file, plugin, skills) onto a branch based on upstream main,
+# regenerates README/marketplace, and opens or refreshes a draft PR against
+# github/awesome-copilot. Never proposed upstream itself.
+name: Fork Bundle Upstream PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: 'PR title (optional; auto-generated if omitted)'
+        required: false
+        default: ''
+      ai_authored:
+        description: 'Append the 🤖🤖🤖 fast-track marker (CONTRIBUTING.md: AI-authored PRs)'
+        type: boolean
+        default: true
+      dry_run:
+        description: 'Build the branch and show the diff, but do not push or open a PR'
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: fork-bundle-upstream-pr
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: github/awesome-copilot
+  PROMOTION_BRANCH: upstream-promotion/oracle-to-postgres-migration-expert
+  PLUGIN_MANIFEST: plugins/oracle-to-postgres-migration-expert/plugin.json
+
+jobs:
+  bundle:
+    name: Bundle agent changes into upstream PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --quiet upstream main
+
+      - name: Compute unpromoted delta
+        id: delta
+        run: |
+          # Paths that belong to this agent. Must match what plugin.json references.
+          PATHS=(
+            "agents/oracle-to-postgres-migration-expert.agent.md"
+            "plugins/oracle-to-postgres-migration-expert"
+          )
+          # Skills referenced by the plugin manifest (./skills/<name>/ -> skills/<name>)
+          while IFS= read -r skill; do
+            PATHS+=("skills/${skill}")
+          done < <(jq -r '.extensions["com.github.awesome-copilot"].skills[]? | ltrimstr("./skills/") | rtrimstr("/")' "$PLUGIN_MANIFEST")
+
+          printf '%s\n' "${PATHS[@]}" > /tmp/promote-paths.txt
+          echo "Promotable paths:"; cat /tmp/promote-paths.txt
+
+          git diff --quiet upstream/main origin/main -- "${PATHS[@]}" && {
+            echo "::error::No unpromoted changes under the agent's paths. Fork main matches upstream main for these files."
+            exit 1
+          }
+
+          FORK_VERSION=$(git show origin/main:"$PLUGIN_MANIFEST" | jq -r .version)
+          UPSTREAM_VERSION=$(git show upstream/main:"$PLUGIN_MANIFEST" | jq -r .version)
+          if [ "$FORK_VERSION" = "$UPSTREAM_VERSION" ]; then
+            echo "::error file=$PLUGIN_MANIFEST::plugin.json version ($FORK_VERSION) equals upstream. Bump it on fork main before promoting."
+            exit 1
+          fi
+          echo "fork_version=$FORK_VERSION" >> "$GITHUB_OUTPUT"
+          echo "upstream_version=$UPSTREAM_VERSION" >> "$GITHUB_OUTPUT"
+          echo "fork_sha=$(git rev-parse --short origin/main)" >> "$GITHUB_OUTPUT"
+          echo "upstream_sha=$(git rev-parse --short upstream/main)" >> "$GITHUB_OUTPUT"
+
+      - name: Build promotion branch from upstream main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout --quiet -B "$PROMOTION_BRANCH" upstream/main
+          # Single squashed diff of the promotable paths (handles adds, deletes, renames, binaries).
+          # Always applies cleanly because the branch *is* upstream/main; a failure here is a real bug.
+          mapfile -t PATHS < /tmp/promote-paths.txt
+          git diff --binary upstream/main origin/main -- "${PATHS[@]}" | git apply --index --whitespace=nowarn
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Regenerate README and marketplace (npm run build)
+        run: |
+          npm ci --silent
+          npm run build
+          git add -A README.md docs .github/plugin/marketplace.json
+          bash eng/fix-line-endings.sh
+          git add -A
+
+      - name: Commit
+        env:
+          FORK_VERSION: ${{ steps.delta.outputs.fork_version }}
+          FORK_SHA: ${{ steps.delta.outputs.fork_sha }}
+        run: |
+          git commit --quiet -m "Update Oracle-to-PostgreSQL Migration Expert agent to v${FORK_VERSION}" \
+            -m "Promoted from PrimedPaul/awesome-copilot main @ ${FORK_SHA}."
+          echo "## Promotion diff (vs upstream main)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          git diff --stat upstream/main HEAD >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Push promotion branch to fork
+        if: ${{ !inputs.dry_run }}
+        run: git push --quiet --force-with-lease origin "$PROMOTION_BRANCH"
+
+      - name: Open or refresh draft PR against upstream
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ secrets.FORK_AUTOMATION_PAT }}
+          INPUT_TITLE: ${{ inputs.title }}
+          AI_AUTHORED: ${{ inputs.ai_authored }}
+          FORK_VERSION: ${{ steps.delta.outputs.fork_version }}
+          UPSTREAM_VERSION: ${{ steps.delta.outputs.upstream_version }}
+          FORK_SHA: ${{ steps.delta.outputs.fork_sha }}
+          UPSTREAM_SHA: ${{ steps.delta.outputs.upstream_sha }}
+        run: |
+          TITLE="${INPUT_TITLE:-Update Oracle-to-PostgreSQL Migration Expert agent to v${FORK_VERSION}}"
+          if [ "$AI_AUTHORED" = "true" ]; then TITLE="${TITLE} 🤖🤖🤖"; fi
+
+          HEAD_REF="${GITHUB_REPOSITORY_OWNER}:${PROMOTION_BRANCH}"
+          EXISTING=$(gh pr list --repo "$UPSTREAM_REPO" --head "$HEAD_REF" --base main --state open --json number,url --jq '.[0].url // empty')
+          if [ -n "$EXISTING" ]; then
+            echo "::notice::Existing upstream PR refreshed by branch push: $EXISTING"
+            echo "Upstream PR: $EXISTING" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          BODY_FILE=$(mktemp)
+          cat > "$BODY_FILE" <<EOF
+          ## Summary
+
+          Updates the **Oracle-to-PostgreSQL Migration Expert** custom agent, its plugin manifest, and bundled skills from \`${UPSTREAM_VERSION}\` to \`${FORK_VERSION}\`.
+
+          Changes were developed and reviewed in the fork \`${GITHUB_REPOSITORY}\` (main @ \`${FORK_SHA}\`) and squashed onto upstream \`main\` @ \`${UPSTREAM_SHA}\`. \`npm run build\` was run so README and marketplace outputs are in sync.
+
+          ## Checklist
+
+          - [x] Branch created from \`main\`
+          - [x] \`npm run build\` executed
+          - [x] \`bash eng/fix-line-endings.sh\` executed
+          - [x] plugin.json version bumped (\`${UPSTREAM_VERSION}\` → \`${FORK_VERSION}\`)
+          - [ ] Maintainer review
+
+          ## Source
+
+          Opened by the fork's \`fork-bundle-upstream-pr\` workflow (run ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}).
+          EOF
+
+          PR_URL=$(gh pr create --repo "$UPSTREAM_REPO" --draft \
+            --base main --head "$HEAD_REF" \
+            --title "$TITLE" --body-file "$BODY_FILE")
+          echo "::notice::Opened draft PR $PR_URL"
+          echo "Upstream PR: $PR_URL" >> "$GITHUB_STEP_SUMMARY"
