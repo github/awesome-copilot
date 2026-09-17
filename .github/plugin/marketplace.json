@@ -2031,7 +2031,7 @@
     {
       "name": "upgrade-agent",
       "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-      "version": "1.1.514",
+      "version": "1.1.539",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -2050,14 +2050,14 @@
         "source": "github",
         "repo": "microsoft/upgrade-agent-plugins",
         "path": "plugins/upgrade-agent",
-        "ref": "v1.1.514",
-        "sha": "edfa6465916b5f4b9c6f8ca558b69518621ab810"
+        "ref": "v1.1.539",
+        "sha": "681dbf0b0dc470f63776f44728e76bbc6acc5c45"
       }
     },
     {
       "name": "usage-insights",
       "description": "Inspect current and historical GitHub Copilot token and AI-credit usage with per-agent rollups and in-canvas session drill-down.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "David Kaya",
         "url": "https://github.com/davidkaya"
@@ -2076,7 +2076,7 @@
       "source": {
         "source": "github",
         "repo": "davidkaya/github-copilot-usage-insights",
-        "sha": "3b018ccef438d7086c30bd347f0df707689073ee"
+        "sha": "0e4b3e157efc3a49090a413f7e42e2be4bd293ba"
       }
     },
     {
