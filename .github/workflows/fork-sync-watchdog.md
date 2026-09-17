@@ -13,6 +13,10 @@ concurrency:
   group: fork-sync-watchdog
   cancel-in-progress: false
 timeout-minutes: 15
+network:
+  allowed:
+    - defaults
+    - github
 tools:
   github:
     toolsets: [repos, pull_requests]
