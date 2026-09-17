@@ -93,9 +93,9 @@ Response: wrapper object with `connections` array.
 > Filter by status: prefer `overallStatus == "Connected"` when present; otherwise
 > check `statuses[0].status == "Connected"`.
 >
-> For build workflows, pass `environmentName` to avoid using a connection from
-> the wrong environment. Omit it only when intentionally inventorying connections
-> across all environments.
+> `environmentName` is required — the platform cannot list connections across
+> environments (omitting it answers 400 MissingEnvironmentFilter). Get one from
+> `list_live_environments`.
 >
 > Pass `search=<connector or account>` to narrow output and receive
 > `connectionReferenceTemplate` plus `hostTemplate` values that can be copied
@@ -435,31 +435,48 @@ responseSchemaCount - Number of Response actions that define output schemas
 
 ### `get_live_flow_trigger_url`
 
-Deprecated. Prefer `trigger_live_flow` when you need to invoke an HTTP-triggered
-flow; it fetches the current callback URL internally.
+Deprecated. Prefer `trigger_live_flow` when you need to run a flow; it fetches the
+callback URL internally for HTTP triggers and uses the connector runtime for
+Button and PowerApps triggers, which have no callback URL.
 
 Returns the signed callback URL for HTTP-triggered flows. Response includes
 `flowKey`, `triggerName`, `triggerType`, `triggerKind`, `triggerMethod`, `triggerUrl`.
 
 ### `trigger_live_flow`
 
-Response keys: `flowKey`, `triggerName`, `triggerUrl`, `requiresAadAuth`, `authType`,
-`responseStatus`, `responseBody`.
+Response keys: `flowKey`, `triggerName`, `triggerKind`, `invocation`, `triggerUrl`,
+`requiresAadAuth`, `authType`, `responseStatus`, `responseBody`, `runName`, and
+`warning` when a required trigger input was not supplied.
 
-> **Only works for `Request` (HTTP) triggers.** Returns an error for Recurrence
-> and other trigger types: `"only HTTP Request triggers can be invoked via this tool"`.
-> `Button`-kind triggers return `ListCallbackUrlOperationBlocked`.
+> **Works for `Request` triggers (HTTP request, Button, PowerApps) and for
+> scheduled (Recurrence) flows.** A scheduled flow runs immediately, like the
+> portal's "Run flow" button, and takes no `body` — one is refused. Automated
+> connector triggers only fire from their source event and return an error.
+>
+> HTTP triggers go through the signed callback URL (`invocation: callbackUrl`).
+> Button and PowerApps triggers have no callback URL; with a `body` they run
+> through the Power Platform connector runtime (`connectorFlowToken` or
+> `connectorApihubToken`), which is the only route that delivers the inputs.
+> With no body they use the cheaper direct run (`directRun`).
+>
+> `runName` is returned only for connector-runtime runs. Otherwise look the run
+> up with `get_live_flow_runs`.
+>
+> Power Automate does not enforce a trigger's `required` list. A missing input
+> still starts the run with a null value; `warning` names the missing keys and
+> the body shape to retry with.
+>
+> Browser-extension keys cannot reach the connector runtime, so Button and
+> PowerApps triggers run only with an empty body over that key type. The error
+> lists the alternatives (resubmit a past run, default the inputs inside the flow
+> with `coalesce()`, or use a standard key).
 >
 > `responseStatus` + `responseBody` contain the flow's Response action output.
 > AAD-authenticated triggers are handled automatically.
 >
-> **Content-type note**: The body is sent as `application/octet-stream` (raw),
-> not `application/json`. Flows with a trigger schema that has `required` fields
-> will reject the request with `InvalidRequestContent` (400) because PA validates
-> `Content-Type` before parsing against the schema. Flows without a schema, or
-> flows designed to accept raw input (e.g. Baker-pattern flows that parse the body
-> internally), will work fine. The flow receives the JSON as base64-encoded
-> `$content` with `$content-type: application/octet-stream`.
+> **Content type**: `body` is sent as `application/json`, so `triggerBody()` and
+> the trigger schema see the object you passed. Verified 2026-08-27 on server 1.2.43
+> against Button, PowerAppV2, and Skills triggers with `required` schemas.
 
 ---
 
@@ -467,8 +484,7 @@ Response keys: `flowKey`, `triggerName`, `triggerUrl`, `requiresAadAuth`, `authT
 
 ### `set_live_flow_state`
 
-Start or stop a Power Automate flow via the live PA API. Does **not** require
-a Power Clarity workspace — works for any flow the impersonated account can access.
+Start or stop a Power Automate flow in any environment you have access to.
 Reads the current state first and only issues the start/stop call if a change is
 actually needed.
 
@@ -578,9 +594,11 @@ tool schemas cannot tell you.
   connectionReferences. Use `set_live_flow_state` to start/stop a flow.
 
 ### `trigger_live_flow`
-- **Only works for HTTP Request triggers.** Returns error for Recurrence, connector,
-  and other trigger types.
-- AAD-authenticated triggers are handled automatically (impersonated Bearer token).
+- **Works for HTTP, Button, PowerApps, and scheduled (Recurrence) triggers.**
+  A scheduled flow runs with no `body`. Automated connector triggers error.
+- Pass trigger inputs as `body`. A `warning` in the result means a required input
+  was missing and the run started with it null.
+- AAD-authenticated triggers are handled automatically (Bearer token attached).
 
 ### `get_live_flow_runs`
 - `top` defaults to **30** with automatic pagination for higher values.
@@ -593,8 +611,9 @@ tool schemas cannot tell you.
 - `poster`: `"Flow bot"` for Workflows bot identity, `"User"` for user identity.
 
 ### `list_live_connections`
-- For build workflows, pass `environmentName`; omitting it inventories
-  connections across environments.
+- `environmentName` is required; the platform cannot list connections across
+  environments. `top` is applied after `search` and the result carries
+  `truncated` + `matchedCount` when the cap drops matches.
 - Use `search=<connector/account>` to get smaller output and paste-ready
   `connectionReferenceTemplate` / `hostTemplate` values.
 - `id` is the value you need for `connectionName` in `connectionReferences`.

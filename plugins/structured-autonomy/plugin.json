@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "structured-autonomy",
+  "description": "Premium planning, thrifty implementation",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/structured-autonomy-generate/",
+        "./skills/structured-autonomy-implement/",
+        "./skills/structured-autonomy-plan/"
+      ]
+    }
+  }
+}

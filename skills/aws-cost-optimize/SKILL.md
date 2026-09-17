@@ -140,7 +140,7 @@ Wait for user confirmation before proceeding.
 **Title**: `[COST-OPT] [Resource Type] - [Brief Description] - $X/month savings`
 
 **Body**:
-```markdown
+````markdown
 ## 💰 Cost Optimization: [Brief Title]
 
 **Monthly Savings**: $X | **Risk Level**: [Low/Medium/High] | **Effort**: X days
@@ -170,7 +170,7 @@ Wait for user confirmation before proceeding.
 - [Risk and mitigation]
 
 **Priority Score**: X | **Value**: X/10 | **Risk**: X/10
-```
+````
 
 ### Step 7: Create EPIC Coordinating Issue
 **Action**: Create master tracking issue. Label with "cost-optimization" (green), "aws" (orange), "epic" (purple).

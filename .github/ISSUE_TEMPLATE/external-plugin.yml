@@ -15,6 +15,8 @@ body:
         - Public submissions are **GitHub-only** in v1.
         - The plugin must live in a **public GitHub repository**.
         - Provide an immutable **ref**, **sha**, or both for review.
+        - If your plugin includes a canvas extension, include the **canvas** keyword.
+        - Canvas plugins are validated for `logo: "assets/preview.png"` using the submitted immutable **sha** or **ref**.
         - Do **not** open a PR that edits `plugins/external.json` directly.
   - type: input
     id: plugin-name
@@ -106,7 +108,7 @@ body:
     id: keywords
     attributes:
       label: Keywords
-      description: Comma-separated or newline-separated lowercase tags.
+      description: Comma-separated or newline-separated lowercase tags. Include `canvas` if the plugin contains a canvas extension.
       placeholder: |
         automation
         github

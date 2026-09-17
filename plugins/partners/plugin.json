@@ -1,0 +1,49 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "partners",
+  "description": "Custom agents that have been created by GitHub partners",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "devops",
+    "security",
+    "database",
+    "cloud",
+    "infrastructure",
+    "observability",
+    "feature-flags",
+    "cicd",
+    "migration",
+    "performance"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/amplitude-experiment-implementation.md",
+        "./agents/apify-integration-expert.md",
+        "./agents/arm-migration.md",
+        "./agents/comet-opik.md",
+        "./agents/diffblue-cover.md",
+        "./agents/droid.md",
+        "./agents/dynatrace-expert.md",
+        "./agents/elasticsearch-observability.md",
+        "./agents/jfrog-sec.md",
+        "./agents/launchdarkly-flag-cleanup.md",
+        "./agents/lingodotdev-i18n.md",
+        "./agents/monday-bug-fixer.md",
+        "./agents/mongodb-performance-advisor.md",
+        "./agents/neo4j-docker-client-generator.md",
+        "./agents/neon-migration-specialist.md",
+        "./agents/neon-optimization-analyzer.md",
+        "./agents/octopus-deploy-release-notes-mcp.md",
+        "./agents/pagerduty-incident-responder.md",
+        "./agents/stackhawk-security-onboarding.md",
+        "./agents/terraform.md"
+      ]
+    }
+  }
+}

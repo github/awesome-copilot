@@ -261,8 +261,6 @@ function getHTML() {
     es.addEventListener('color', (e) => {
       const { color } = JSON.parse(e.data);
       orb.style.setProperty('--orb-color', color);
-      orb.style.background = color;
-      orb.style.boxShadow = '0 0 60px ' + color + ', 0 0 120px ' + color + '66';
     });
     es.addEventListener('log', (e) => {
       const { entries } = JSON.parse(e.data);

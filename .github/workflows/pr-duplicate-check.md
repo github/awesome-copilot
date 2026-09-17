@@ -1,8 +1,9 @@
 ---
 description: 'Checks PRs for potential duplicate agents, instructions, skills, and workflows already in the repository'
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened]
+    forks: "*"
 checkout: false
 permissions:
   contents: read
@@ -11,10 +12,42 @@ permissions:
 tools:
   github:
     toolsets: [repos, pull_requests]
+post-steps:
+  - name: Write PR context artifact
+    if: always()
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      BASE_REF: ${{ github.event.pull_request.base.ref }}
+    run: |
+      mkdir -p /tmp/gh-aw
+      jq -n \
+        --arg schema_version "pr-duplicate-check-context/v1" \
+        --argjson pr_number "$PR_NUMBER" \
+        --arg head_sha "$HEAD_SHA" \
+        --arg base_ref "$BASE_REF" \
+        --arg run_id "$GITHUB_RUN_ID" \
+        '{schema_version:$schema_version,pr_number:$pr_number,head_sha:$head_sha,base_ref:$base_ref,run_id:$run_id}' \
+        > /tmp/gh-aw/pr-context.json
+  - name: Upload PR context artifact
+    if: always()
+    uses: actions/upload-artifact@v7.0.1
+    with:
+      name: pr-duplicate-check-context
+      path: /tmp/gh-aw/pr-context.json
+      if-no-files-found: error
+      retention-days: 7
 safe-outputs:
+  staged: true
+  report-failure-as-issue: false
+  report-failed-jobs: false
   add-comment:
     max: 1
     hide-older-comments: true
+  missing-tool:
+    create-issue: false
+  report-incomplete:
+    create-issue: false
   noop:
     report-as-issue: false
 ---

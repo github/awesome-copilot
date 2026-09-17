@@ -1,0 +1,29 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "uizze",
+  "description": "Build product-specific interfaces with a focused UIZZE workflow, optional real-screen evidence, and a practical finish check.",
+  "version": "1.2.13",
+  "author": {
+    "name": "UIZZE",
+    "url": "https://uizze.com"
+  },
+  "homepage": "https://uizze.com",
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "ui",
+    "design",
+    "frontend",
+    "ios",
+    "web",
+    "design-review",
+    "quality-gate"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/anti-ui-slop/"
+      ]
+    }
+  }
+}

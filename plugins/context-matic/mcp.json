@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "context-matic": {
+      "type": "streamable-http",
+      "url": "https://chatbotapi.apimatic.io/mcp/plugins",
+      "headers": {
+        "X-Apimatic-Mcp-Client": "VsCode"
+      }
+    }
+  }
+}

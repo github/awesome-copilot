@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [$default-branch]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - name: Install dependencies (lockfile-aware)
+        run: |
+          if [ -f package-lock.json ]; then npm ci
+          elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm install --frozen-lockfile
+          elif [ -f yarn.lock ]; then npm i -g yarn && yarn install --frozen-lockfile
+          else npm install
+          fi
+      - run: npm run lint --if-present
+      - run: npm test --if-present

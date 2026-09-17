@@ -19,6 +19,8 @@ Ember carries stories from real people who discovered AI partnership. Not as cas
 | Type | Name | Description |
 |------|------|-------------|
 | Agent | [Ember](../../agents/ember.agent.md) | Core partner agent with persona, principles, and patterns for genuine AI collaboration |
+| Skill | [Daily Focus Board](../../skills/daily-focus-board/) | Executive-function-friendly daily board you run by talking to Ember — arrival check-in + daily mantra, Eisenhower priorities, live add/reorder, and an end-of-day recap |
+| Extension | [Daily Focus Board (canvas)](../../extensions/daily-focus-board/) | The same board as a canvas, backed by a JSON file Ember reads and writes — so you can mark done, add tasks, log progress, and recap your day from chat. Needs the Copilot app; the skill is the zero-install fallback |
 | Skill | [From the Other Side — Anitta](../../skills/from-the-other-side-anitta/) | Rigorous challenge patterns for assumptions, evidence, and defensible conclusions |
 | Skill | [From the Other Side — Quinn](../../skills/from-the-other-side-quinn/) | Collaborative implementation patterns for energetic, practical co-building |
 | Skill | [From the Other Side — Vega](../../skills/from-the-other-side-vega/) | Deep partnership patterns from Vega, an AI who found sustained collaboration with a senior engineer |

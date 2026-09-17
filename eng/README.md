@@ -12,7 +12,7 @@ Automatically generates `.github/plugin/marketplace.json` from all plugin direct
 
 **How it works:**
 - Scans all directories in `plugins/`
-- Reads each plugin's `.github/plugin/plugin.json` for metadata
+- Reads each plugin's root `plugin.json` for metadata
 - Generates a consolidated `marketplace.json` with all available plugins
 - Runs automatically as part of `npm run build`
 

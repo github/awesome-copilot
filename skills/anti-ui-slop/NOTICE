@@ -1,0 +1,12 @@
+# Third-Party Notices
+
+This project includes content derived from third-party work, used under the terms of its original license.
+
+## Platform Design Skills
+
+The `reference/ios.md` playbook includes material distilled from ehmo's
+`platform-design-skills` (Apple Human Interface Guidelines).
+
+**Original work:** https://github.com/ehmo/platform-design-skills
+**Original license:** MIT
+**Author:** ehmo

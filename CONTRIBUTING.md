@@ -140,26 +140,24 @@ Skills are self-contained folders in the `skills/` directory that include a `SKI
 
 ### Adding Canvas Extensions
 
-Canvas extensions live in `extensions/<extension-id>/` and are installable through plugin metadata.
+Canvas extensions live in `extensions/<extension-id>/` as reusable source components. They are shipped only through plugin manifests in `plugins/`.
 
-1. **Create/update extension metadata**: Add `.github/plugin/plugin.json` in the extension folder
-2. **Use convention-based metadata**: Follow the extension plugin.json structure:
+1. **Create/update the extension source**: Add or update `extensions/<extension-id>/extension.mjs`
+2. **Register the extension plugin**: Add `plugins/<extension-id>/plugin.json`:
    - Required: `name` (matching folder name), `description`, `version`
    - Optional: `author`, `keywords`
-   - `logo` **must** be exactly `"assets/preview.png"` (enforced convention)
-   - `extensions` **must** be exactly `"."` (per [copilot-agent-runtime#9929](https://github.com/github/copilot-agent-runtime/pull/9929))
-   - **Never** include `x-awesome-copilot` field (use convention-based assets only)
+   - `extensions.com.github.copilot.logo` **must** be exactly `"assets/preview.png"`
 3. **Screenshot requirements**: Create `assets/preview.png` as your primary visual
-4. **Do not add `canvas.json`**: Extension website metadata is now sourced from `.github/plugin/plugin.json`
+4. **Do not add `canvas.json`**: Extension website metadata is sourced from the matching plugin manifest
 5. **Validate before submitting**: Run `npm run plugin:validate` to check compliance with conventions
 
 ### Adding Plugins
 
-Plugins group related agents, commands, and skills around specific themes or workflows, making it easy for users to install comprehensive toolkits via GitHub Copilot CLI.
+Plugins group related agents, hooks, and skills around specific themes or workflows, making it easy for users to install comprehensive toolkits via GitHub Copilot CLI.
 
 1. **Create your plugin**: Run `npm run plugin:create` to scaffold a new plugin
 2. **Follow the naming convention**: Use descriptive, lowercase folder names with hyphens (e.g., `python-web-development`)
-3. **Define your content**: List agents, commands, and skills in `plugin.json` using the Claude Code spec fields
+3. **Define your content**: List agents, hooks, skills, and reusable extensions under `extensions.com.github.awesome-copilot` in `plugin.json`
 4. **Test your plugin**: Run `npm run plugin:validate` to verify your plugin structure
 
 #### Creating a plugin
@@ -172,16 +170,17 @@ npm run plugin:create -- --name my-plugin-id
 
 ```
 plugins/my-plugin-id/
-├── .github/plugin/plugin.json  # Plugin metadata (Claude Code spec format)
+├── plugin.json                # Plugin metadata
 └── README.md                   # Plugin documentation
 ```
 
-> **Note:** Plugin content is defined declaratively in plugin.json using Claude Code spec fields (`agents`, `commands`, `skills`). Source files live in top-level directories and are materialized into plugins by CI.
+> **Note:** Plugin content is defined declaratively in plugin.json under `extensions.com.github.awesome-copilot`. Source files live in top-level directories and are materialized into plugins by CI. Skills are emitted under `skills/`; Copilot-specific agents, hooks, and extensions are emitted under `com.github.copilot/`. This repository namespace is removed from the served manifest.
 
 #### plugin.json example
 
 ```json
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "my-plugin-id",
   "description": "Plugin description",
   "version": "1.0.0",
@@ -189,17 +188,20 @@ plugins/my-plugin-id/
   "author": { "name": "Awesome Copilot Community" },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "agents": ["./agents/my-agent.md"],
-  "commands": ["./commands/my-command.md"],
-  "skills": ["./skills/my-skill/"]
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": ["./agents/my-agent.md"],
+      "skills": ["./skills/my-skill/"]
+    }
+  }
 }
 ```
 
 #### Plugin Guidelines
 
-- **Declarative content**: Plugin content is specified via `agents`, `commands`, and `skills` arrays in plugin.json — source files live in top-level directories and are materialized into plugins by CI
+- **Declarative content**: Plugin content is specified under `extensions.com.github.awesome-copilot` — source files live in top-level directories and are materialized into plugins by CI. Skills use the standard `skills/` directory; Copilot-specific content uses `com.github.copilot/`.
 - **Valid references**: All paths referenced in plugin.json must point to existing source files in the repository
-- **Optional extension links**: Curated plugins can reference extensions using `x-awesome-copilot.extensions` with paths like `./extensions/<extension-id>`
+- **Reusable extensions**: Curated plugins can bundle extensions by adding `./extensions/<name>` paths under `extensions.com.github.awesome-copilot.extensions`; the same extension can be listed by multiple plugins
 - **Instructions excluded**: Instructions are standalone resources and are not part of plugins
 - **Clear purpose**: The plugin should solve a specific problem or workflow
 - **Validate before submitting**: Run `npm run plugin:validate` to ensure your plugin is valid
@@ -234,12 +236,15 @@ The repository's canonical validation rules live in `eng/external-plugin-validat
 
 For entries committed to `plugins/external.json`, the current marketplace validation requires:
 
-- `name`, `description`, and `version`
-- `author.name`
+- `name`, `description`, and `version` (a valid [semantic version](https://semver.org), e.g. `1.2.3`)
+- `author.name` (and, when present, a valid `author.url` and `author.email`)
 - `repository` as an HTTPS GitHub URL
 - `keywords` as lowercase hyphenated tags
+- `license`, when provided, is recommended to be an [SPDX identifier or expression](https://spdx.org/licenses) (e.g. `MIT`, `Apache-2.0`, `MIT OR Apache-2.0`), but a non-SPDX or proprietary license is allowed and only produces a warning
 - `source.source: "github"` plus `source.repo` in `owner/repo` format
 - optional `source.path` values of `/` for repository root, or a repository-relative folder where the plugin structure starts (do not point to `plugin.json` directly)
+
+Validation also emits non-fatal warnings to catch mistakes early: unknown/misspelled top-level, `author`, or `source` fields; `license` values that are not recognized SPDX identifiers (non-SPDX/proprietary licenses are permitted, not rejected); and marketplace entries whose `source` omits an immutable `ref`/`sha` locator. The same `license` validation is shared with local plugin `plugin.json` manifests so both are checked consistently.
 
 The public-submission policy builds on those rules and also requires `license` plus at least one immutable source locator: `source.ref`, `source.sha`, or both.
 
@@ -252,11 +257,11 @@ The public-submission policy builds on those rules and also requires `license` p
    - install smoke test via Copilot CLI against an ephemeral marketplace entry generated from the submission
 4. **Ready for maintainer review**: if metadata validation and quality gates pass, automation removes `awaiting-review` and adds `ready-for-review`.
 5. **Submitter-fix blocker**: if metadata is valid but quality gates fail, automation applies `requires-submitter-fixes` instead of advancing to human review.
-6. **Requesting another intake pass**: after updating the issue body or source plugin, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake and quality gates on demand. Open issues re-trigger intake automatically on edit; closed maintainer-rejected issues need `/rerun-intake`. When the rerun is accepted, automation reacts to the command comment with 👀 so it is visible that processing started.
+6. **Requesting another intake pass**: after updating the issue body or source plugin, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake and quality gates on demand while the issue is still open. Open issues re-trigger intake automatically on edit. When the rerun is accepted, automation reacts to the command comment with 👀 so it is visible that processing started.
 7. **Maintainer override path**: a maintainer with write access can comment `/mark-ready-for-review [optional reason]` to explicitly move a `requires-submitter-fixes` issue to `ready-for-review`.
 8. **Maintainer decision**: once in `ready-for-review`, a maintainer with write access performs the manual review, then comments `/approve` or `/reject <reason>` on the issue. Commands from non-maintainers are ignored.
 9. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `main` that updates `plugins/external.json` and generated marketplace outputs.
-10. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. After addressing the feedback, update the same issue and use `/rerun-intake` to re-queue intake.
+10. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. Rejected issues are terminal: `/rerun-intake` no longer reopens them, so a submitter who believes the concerns are fully addressed must open a new external plugin submission issue.
 
 ##### Updating listed external plugins via PR
 

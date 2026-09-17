@@ -1,0 +1,37 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "power-bi-development",
+  "description": "Comprehensive Power BI development resources including data modeling, DAX optimization, performance tuning, visualization design, security best practices, and DevOps/ALM guidance for building enterprise-grade Power BI solutions.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "power-bi",
+    "dax",
+    "data-modeling",
+    "performance",
+    "visualization",
+    "security",
+    "devops",
+    "business-intelligence"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/power-bi-data-modeling-expert.md",
+        "./agents/power-bi-dax-expert.md",
+        "./agents/power-bi-performance-expert.md",
+        "./agents/power-bi-visualization-expert.md"
+      ],
+      "skills": [
+        "./skills/power-bi-dax-optimization/",
+        "./skills/power-bi-model-design-review/",
+        "./skills/power-bi-performance-troubleshooting/",
+        "./skills/power-bi-report-design-consultation/"
+      ]
+    }
+  }
+}

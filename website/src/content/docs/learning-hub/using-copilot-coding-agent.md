@@ -327,7 +327,7 @@ This repository provides a curated collection of agents, skills, and hooks desig
 
 ### Adding Hooks from This Repo
 
-1. Browse the [Hooks Directory](../../hooks/) for automation hooks
+1. Browse the [Hooks documentation](https://github.com/github/awesome-copilot/blob/main/docs/README.hooks.md) for automation hooks
 2. Copy the `hooks.json` content into a file in `.github/hooks/` in your repository
 3. Copy any referenced scripts alongside it
 4. The hooks will run automatically during coding agent sessions
@@ -451,6 +451,6 @@ A: Yes. You can specify which agent to use when assigning work — the coding ag
 - **Add Guardrails**: [Automating with Hooks](../automating-with-hooks/) — Ensure code quality in autonomous sessions
 - **Build Custom Agents**: [Building Custom Agents](../building-custom-agents/) — Create specialized agents for the coding agent to use
 - **Explore Configuration**: [Copilot Configuration Basics](../copilot-configuration-basics/) — Set up repository-level customizations
-- **Browse Community Resources**: Explore the [Agents](../../agents/), [Skills](../../skills/), and [Hooks](../../hooks/) directories for ready-to-use resources
+- **Browse Community Resources**: Explore the [Agents](../../agents/), [Skills](../../skills/), and [Plugins](../../plugins/) directories for ready-to-use resources
 
 ---

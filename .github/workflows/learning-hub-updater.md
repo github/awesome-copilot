@@ -8,13 +8,13 @@ permissions:
   contents: read
   copilot-requests: write
 tools:
-  bash: ["curl", "gh"]
   edit:
   web-fetch:
   github:
     toolsets: [repos]
 safe-outputs:
   allowed-domains:
+    - github.com
     - github.blog
     - code.visualstudio.com
     - nishanil.github.io
@@ -34,11 +34,12 @@ Use `web-fetch` to read the following pages and extract the latest entries from 
 
 - https://github.blog/changelog/label/copilot/ — official changelog
 - https://github.com/github/copilot-cli/blob/main/changelog.md — CLI changelog
+- https://github.com/github/github-app/blob/main/changelog/changelog.md — GitHub Copilot app changelog
 - https://github.blog/ai-and-ml/github-copilot/ — blog posts
 - https://code.visualstudio.com/updates - VS Code release notes (filter for Copilot-related updates)
 - https://nishanil.github.io/copilot-guide/ - community-maintained guide (check for recent commits or updates)
 
-Also use `gh` CLI to check the latest releases and commits in the `github/copilot-cli` repo.
+Also use GitHub tooling to check the latest releases and commits in the `github/copilot-cli` and `github/github-app` repos.
 
 Look for:
 

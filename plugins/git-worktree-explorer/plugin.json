@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "git-worktree-explorer",
+  "description": "Visualize the active Git repository through worktrees, branches, commits, and optional GitHub pull request context.",
+  "version": "1.0.0",
+  "author": {
+    "name": "James Montemagno",
+    "url": "https://github.com/jamesmontemagno"
+  },
+  "keywords": [
+    "branch-visualization",
+    "canvas",
+    "commit-history",
+    "git",
+    "repository-topology",
+    "worktrees"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/git-worktree-explorer"
+      ]
+    }
+  }
+}

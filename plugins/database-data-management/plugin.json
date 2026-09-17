@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "database-data-management",
+  "description": "Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "database",
+    "sql",
+    "postgresql",
+    "sql-server",
+    "dba",
+    "optimization",
+    "queries",
+    "data-management"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/ms-sql-dba.md",
+        "./agents/postgresql-dba.md"
+      ],
+      "skills": [
+        "./skills/postgresql-code-review/",
+        "./skills/postgresql-optimization/",
+        "./skills/sql-code-review/",
+        "./skills/sql-optimization/"
+      ]
+    }
+  }
+}

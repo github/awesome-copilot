@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pcf-development",
+  "description": "Complete toolkit for developing custom code components using Power Apps Component Framework for model-driven and canvas apps",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "power-apps",
+    "pcf",
+    "component-framework",
+    "typescript",
+    "power-platform"
+  ]
+}

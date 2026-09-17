@@ -23,6 +23,7 @@ copilot plugin install csharp-dotnet-development@awesome-copilot
 | `/csharp-dotnet-development:csharp-tunit` | Get best practices for TUnit unit testing, including data-driven tests |
 | `/csharp-dotnet-development:dotnet-best-practices` | Ensure .NET/C# code meets best practices for the solution/project. |
 | `/csharp-dotnet-development:dotnet-upgrade` | Ready-to-use prompts for comprehensive .NET framework upgrade analysis and execution |
+| `/csharp-dotnet-development:resx-source-generator-migration` | Migrates a project that uses checked-in .designer.cs files behind .resx to using a source-generator instead |
 
 ### Agents
 

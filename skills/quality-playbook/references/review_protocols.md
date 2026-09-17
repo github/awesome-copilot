@@ -591,7 +591,6 @@ grep -c '^| [0-9]' quality/PROGRESS.md
 find quality/code_reviews -name "*.md" -size +500c | wc -l  # should be >= 1
 find quality/spec_audits -name "*triage*" -size +500c | wc -l  # should be >= 1
 ```
-```
 
 **Baseline vs with-docs comparison pattern:** Run the skill twice on the same repo — once without supplemental docs, once with a `reference_docs/` folder containing project history. Compare: requirement count, scenario count, bug count, and pipeline completion. The with-docs run should produce equal or more requirements and equal or more bugs. If the baseline outperforms the with-docs run on bug detection, that's a finding about the docs quality, not a skill failure.
 

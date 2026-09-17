@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "backlog-swipe-triage",
+  "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
+  "version": "1.0.2",
+  "author": {
+    "name": "James Montemagno",
+    "url": "https://github.com/jamesmontemagno"
+  },
+  "keywords": [
+    "agent-assignment",
+    "backlog-triage",
+    "github-issues",
+    "issue-prioritization",
+    "swipe-interface",
+    "workflow-automation"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/backlog-swipe-triage"
+      ]
+    }
+  }
+}

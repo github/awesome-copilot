@@ -9,7 +9,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 - **Skills** - Self-contained folders with instructions and bundled resources for specialized tasks
 - **Hooks** - Automated workflows triggered by specific events during development
 - **Workflows** - [Agentic Workflows](https://github.github.com/gh-aw) for AI-powered repository automation in GitHub Actions
-- **Plugins** - Installable packages that group related agents, commands, and skills around specific themes
+- **Plugins** - Installable packages that group related agents, hooks, and skills around specific themes
 
 ## Repository Structure
 
@@ -21,7 +21,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 ├── hooks/            # Automated workflow hooks (folders with README.md + hooks.json)
 ├── workflows/        # Agentic Workflows (.md files for GitHub Actions automation)
 ├── plugins/          # Installable plugin packages (folders with plugin.json)
-├── extensions/       # Canvas extensions (each with extension.mjs and plugin metadata)
+├── extensions/       # Reusable canvas extension sources (extension.mjs and assets)
 ├── docs/             # Documentation for different resource types
 ├── eng/              # Build and automation scripts
 └── scripts/          # Utility scripts
@@ -85,15 +85,11 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 #### Canvas Extensions (extensions/\*)
 
 - Each extension folder must include `extension.mjs`
-- Extension metadata must live at `.github/plugin/plugin.json`
-- Extension `plugin.json` **must** follow the convention:
-  - `name`, `description`, `version` are required
-  - `logo` **must** be exactly `"assets/preview.png"` (enforced convention)
-  - `extensions` **must** be exactly `"."` (per [copilot-agent-runtime#9929](https://github.com/github/copilot-agent-runtime/pull/9929))
-  - Optional: `author`, `keywords` fields
-  - **Must not** include `x-awesome-copilot` field (use convention-based `assets/preview.png` only)
+- Extensions are reusable source components, not standalone plugins
+- A shippable extension plugin is registered by a matching `plugins/<extension-id>/plugin.json`
+- A plugin can bundle additional reusable extensions by listing `./extensions/<name>` paths in `extensions.com.github.awesome-copilot.extensions`
 - Each extension must have `assets/preview.png` as the primary visual asset
-- Do not add `canvas.json`; website metadata is sourced from `.github/plugin/plugin.json`
+- Extension metadata is sourced from the matching plugin manifest in `plugins/`
 
 #### Hook Folders (hooks/\*/README.md)
 
@@ -119,11 +115,13 @@ All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must 
 
 #### Plugin Folders (plugins/\*)
 
-- Each plugin is a folder containing a `.github/plugin/plugin.json` file with metadata
+- Each plugin is a folder containing a root `plugin.json` file with metadata
+- plugin.json **must** have `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"` (Agent Plugins v1.0.0)
 - plugin.json must have `name` field (matching the folder name)
 - plugin.json must have `description` field (describing the plugin's purpose)
 - plugin.json must have `version` field (semantic version, e.g., "1.0.0")
-- Plugin content is defined declaratively in plugin.json using Claude Code spec fields (`agents`, `commands`, `skills`). Source files live in top-level directories and are materialized into plugins by CI.
+- Plugin content is defined declaratively in plugin.json under `extensions.com.github.awesome-copilot` using source-only composition fields (`agents`, `hooks`, `skills`, and `extensions`). Source files live in top-level directories and are materialized into plugins by CI. This namespace is stripped from the served manifest — skills use the standard `skills/` directory and Copilot-specific content uses `com.github.copilot/`.
+- MCP servers are **not** a composition field. Per the Agent Plugins spec they are declared in an `mcp.json` file at the plugin root, which is committed alongside `plugin.json` and shipped as-is. Do not add `mcpServers` to `plugin.json`, and do not use the legacy `.mcp.json` filename.
 - The `marketplace.json` file is automatically generated from all plugins during build
 - Plugins are discoverable and installable via GitHub Copilot CLI
 
@@ -168,7 +166,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 **For Plugins:**
 
 1. Run `npm run plugin:create -- --name <plugin-name>` to scaffold a new plugin
-2. Define agents, commands, and skills in `plugin.json` using Claude Code spec fields
+2. Define agents, hooks, skills, and reusable extensions under `extensions.com.github.awesome-copilot` in `plugin.json`
 3. Edit the generated `plugin.json` with your metadata
 4. Run `npm run plugin:validate` to validate the plugin structure
 5. Run `npm run build` to update README.md and marketplace.json
@@ -177,10 +175,25 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 **For Canvas Extensions:**
 
 1. Create/update the extension in `extensions/<extension-id>/` with `extension.mjs`
-2. Add `.github/plugin/plugin.json` metadata (required: `name`, `description`, `version`, `logo: "assets/preview.png"`, `extensions: "."`; optional: `author`, `keywords`)
+2. Add the matching plugin manifest under `plugins/<extension-id>/plugin.json`:
+   ```json
+   {
+     "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+     "name": "<extension-id>",
+     "description": "...",
+     "version": "1.0.0",
+     "extensions": {
+       "com.github.copilot": {
+         "logo": "assets/preview.png"
+       }
+     }
+   }
+   ```
 3. Ensure `assets/preview.png` exists as the primary visual asset
 4. Run `npm run plugin:validate` to validate plugin and extension metadata
 5. Run `npm run build` to regenerate website data and marketplace output
+
+To bundle an extension into another plugin without making a second source copy, add sorted `./extensions/<name>` paths to `plugins/<plugin-id>/plugin.json` under `extensions.com.github.awesome-copilot.extensions`.
 
 **For External Plugins:**
 
@@ -189,7 +202,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 3. In v1, only GitHub-hosted plugins are accepted for public submission, using a public repo plus an immutable `ref`, `sha`, or both
 4. The shared validator in `eng/external-plugin-validation.mjs` is the canonical source of truth for external plugin data rules; reuse it instead of duplicating checks in scripts or workflows
 5. Submission issues move through `external-plugin` + `awaiting-review` and then either `ready-for-review` or `requires-submitter-fixes` based on automated quality gates
-6. After issue edits, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake and quality gates without opening a new submission issue
+6. While a submission issue is open, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake and quality gates. Maintainer-rejected issues are terminal; contributors who address the rejection feedback must open a new submission issue
 7. Maintainers can explicitly override a quality-gate blocker with `/mark-ready-for-review [optional reason]`, which moves the issue to `ready-for-review`
 8. Maintainers make the decision with `/approve` or `/reject <reason>` issue comments once the issue is in `ready-for-review`; approved issues are closed and used as the six-month re-review anchor
 9. Approval automation creates or updates the PR against `main`, updates `plugins/external.json`, and regenerates marketplace outputs
@@ -310,16 +323,18 @@ For workflow files (workflows/\*.md):
 
 For plugins (plugins/\*/):
 
-- [ ] Directory contains a `.github/plugin/plugin.json` file
+- [ ] Directory contains a root `plugin.json` file
 - [ ] Directory contains a `README.md` file
+- [ ] `plugin.json` has `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"`
 - [ ] `plugin.json` has `name` field matching the directory name (lowercase with hyphens)
 - [ ] `plugin.json` has non-empty `description` field
 - [ ] `plugin.json` has `version` field (semantic version, e.g., "1.0.0")
 - [ ] Directory name is lower case with hyphens
 - [ ] If `keywords` is present, it is an array of lowercase hyphenated strings
-- [ ] If `agents`, `commands`, or `skills` arrays are present, each entry is a valid relative path
+- [ ] If composition arrays are present under `extensions.com.github.awesome-copilot`, each entry is a valid relative path
+- [ ] If the plugin ships MCP servers, they are declared in `mcp.json` at the plugin root (with the `mcp.schema.json` `$schema`), not in `plugin.json` or `.mcp.json`
 - [ ] The plugin does not reference non-existent files
-- [ ] Run `npm run build` to verify marketplace.json is updated correctly
+- [ ] Run `npm run plugin:validate` and `npm run build` to verify the plugin passes all checks
 
 ## Contributing
 

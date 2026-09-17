@@ -279,6 +279,15 @@ app.post('/api/auth/login', loginHandler);
 import rateLimit from 'express-rate-limit';
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5 });
 app.post('/api/auth/login', authLimiter, loginHandler);
+
+// GOOD — serverless / multi-instance: the default in-memory store is per process,
+// so back the counter with shared storage (e.g. rate-limit-redis for Express,
+// or a Redis-backed limiter such as @upstash/ratelimit in edge/serverless handlers)
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+const loginLimiter = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(5, '15 m'), prefix: 'auth:login' });
+const { success } = await loginLimiter.limit(`login:${clientIp}`);
+if (!success) return new Response('Too Many Requests', { status: 429 });
 ```
 
 ### AU6: Missing Session Regeneration on Login (Session Fixation)
@@ -672,6 +681,28 @@ ALWAYS validate on server too. Use zod, joi, or class-validator.
 
 - **Severity**: IMPORTANT
 - **OWASP**: A05
+
+```typescript
+// BAD — new endpoint shipped without a limiter
+app.post('/api/export', exportHandler);
+
+// GOOD — Express: per-route limiter sized to the endpoint's cost
+import rateLimit from 'express-rate-limit';
+const exportLimiter = rateLimit({ windowMs: 60 * 1000, max: 10 });
+app.post('/api/export', exportLimiter, exportHandler);
+
+// GOOD — Next.js route handler / serverless or edge: use a store shared across instances
+// (e.g. rate-limit-redis with Express, or @upstash/ratelimit as shown)
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+const limiter = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(10, '1 m') });
+export async function POST(req: Request) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'anonymous';
+  const { success } = await limiter.limit(ip);
+  if (!success) return new Response('Too Many Requests', { status: 429 });
+  // ...
+}
+```
 
 ### AP2: GraphQL Without Depth Limiting
 

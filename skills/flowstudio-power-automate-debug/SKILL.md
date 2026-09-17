@@ -409,15 +409,16 @@ print(new_runs[0]["status"])   # Succeeded = done
 | Scenario | Use | Why |
 |---|---|---|
 | **Testing a fix** on any flow | `resubmit_live_flow_run` | Replays the exact trigger payload that caused the failure — best way to verify |
-| Recurrence / scheduled flow | `resubmit_live_flow_run` | Cannot be triggered on demand any other way |
+| Recurrence / scheduled flow | `trigger_live_flow` (no `body`) | Runs it now, like the portal's "Run flow" button; resubmit replays a past run's data |
 | SharePoint / connector trigger | `resubmit_live_flow_run` | Cannot be triggered without creating a real SP item |
-| HTTP trigger with **custom** test payload | `trigger_live_flow` | When you need to send different data than the original run |
-| Brand-new flow, never run | `trigger_live_flow` (HTTP only) | No prior run exists to resubmit |
+| HTTP, Button, or PowerApps trigger with **custom** test payload | `trigger_live_flow` | When you need to send different data than the original run |
+| Brand-new flow, never run | `trigger_live_flow` | No prior run exists to resubmit |
 
-### Testing HTTP-Triggered Flows with custom payloads
+### Testing HTTP, Button, and PowerApps flows with custom payloads
 
-For flows with a `Request` (HTTP) trigger, use `trigger_live_flow` when you
-need to send a **different** payload than the original run:
+For flows with a `Request` trigger (HTTP request, manual Button, or PowerApps),
+use `trigger_live_flow` when you need to send a **different** payload than the
+original run. Pass trigger inputs as `body` for every kind:
 
 ```python
 # First inspect what the trigger expects — read directly from the flow definition
@@ -438,10 +439,29 @@ result = mcp("trigger_live_flow",
     flowName=FLOW_ID,
     body={"name": "Test User", "value": 42})
 print(f"Status: {result['responseStatus']}, Body: {result.get('responseBody')}")
+print(f"Kind: {result['triggerKind']}, via: {result['invocation']}, run: {result.get('runName')}")
+if result.get("warning"):
+    print(result["warning"])   # required trigger inputs you left out
 ```
 
 > `trigger_live_flow` handles AAD-authenticated triggers automatically.
-> Only works for flows with a `Request` (HTTP) trigger type.
+> Works for `Request` triggers (HTTP request, Button, PowerApps) and for
+> scheduled (Recurrence) flows, which it runs immediately — with no `body`,
+> since a scheduled trigger takes no inputs (a body is refused). Automated
+> connector triggers only fire from their source event.
+>
+> Power Automate does not enforce a trigger's `required` inputs. If you leave
+> one out the run still starts, with that input null, and the result carries a
+> `warning` naming the missing keys. Cancel the run and call again with the
+> full body if that matters.
+>
+> `runName` is only returned for Button and PowerApps runs. For HTTP triggers
+> find the run with `get_live_flow_runs`.
+>
+> Over a browser-extension key, Button and PowerApps triggers run only with an
+> empty body. The tool says so and lists the ways round it: resubmit a past run,
+> default the inputs inside the flow with `coalesce(triggerBody()?['x'], 'value')`,
+> or use a standard API key.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: github-issues
-description: 'Create, update, and manage GitHub issues using MCP tools. Use this skill when users want to create bug reports, feature requests, or task issues, update existing issues, add labels/assignees/milestones, set issue fields (dates, priority, custom fields), set issue types, manage issue workflows, link issues, add dependencies, or track blocked-by/blocking relationships. Triggers on requests like "create an issue", "file a bug", "request a feature", "update issue X", "set the priority", "set the start date", "link issues", "add dependency", "blocked by", "blocking", or any GitHub issue management task.'
+description: 'Create, update, and manage GitHub issues using MCP tools. Use this skill when users want to create bug reports, feature requests, or task issues, update existing issues, add labels/assignees/milestones, manage repository labels, set issue fields (dates, priority, custom fields), set issue types, manage issue workflows, link issues, add dependencies, or track blocked-by/blocking relationships. Triggers on requests like "create an issue", "file a bug", "request a feature", "update issue X", "set the priority", "set the start date", "create a label", "rename a label", "list repo labels", "link issues", "add dependency", "blocked by", "blocking", or any GitHub issue management task.'
 ---
 
 # GitHub Issues
@@ -20,9 +20,17 @@ Manage GitHub issues using the `@modelcontextprotocol/server-github` MCP server.
 | `mcp__github__projects_get` | Get details of a project, field, item, or status update |
 | `mcp__github__projects_write` | Add/update/delete project items, create status updates |
 
+### MCP Tools (write operations)
+
+| Tool | Purpose |
+|------|---------|
+| `mcp__github__issue_write` | Create or update an issue (methods: create, update). Supports title, body, type, labels, assignees, milestone, and issue fields |
+| `mcp__github__add_issue_comment` | Add a comment or a reaction to an issue |
+| `mcp__github__sub_issue_write` | Add, remove, or reprioritize a sub-issue |
+
 ### CLI / REST API (write operations)
 
-The MCP server does not currently support creating, updating, or commenting on issues. Use `gh api` for these operations.
+`gh api` performs the same writes and is the form used in the examples below. Reach for it when the MCP server is not connected, or when you need a REST field the MCP tools do not expose.
 
 | Operation | Command |
 |-----------|---------|
@@ -61,9 +69,16 @@ Add any of these flags to the `gh api` call:
 
 ```
 -f type="Bug"                    # Issue type (Bug, Feature, Task, Epic, etc.)
--f labels[]="bug"                # Labels (repeat for multiple)
--f assignees[]="username"        # Assignees (repeat for multiple)
+-f 'labels[]=bug'                # Labels (repeat for multiple)
+-f 'assignees[]=username'        # Assignees (repeat for multiple)
 -f milestone=1                   # Milestone number
+```
+
+**Quote the whole `name[]=value` pair.** `[]` is a glob pattern in zsh, the default shell
+on macOS, so an unquoted `-f labels[]=bug` never reaches `gh`:
+
+```
+zsh: no matches found: labels[]=bug
 ```
 
 **Issue types** are organization-level metadata. To discover available types, use:
@@ -145,7 +160,7 @@ gh api repos/github/awesome-copilot/issues \
   -X POST \
   -f title="Add dark mode support" \
   -f type="Feature" \
-  -f labels[]="high-priority" \
+  -f 'labels[]=high-priority' \
   -f body="## Summary
 Add dark mode theme option for improved user experience and accessibility.
 
@@ -194,6 +209,8 @@ The following features require REST or GraphQL APIs beyond the basic MCP tools. 
 |------------|-------------|-----------|
 | Advanced search | Complex queries with boolean logic, date ranges, cross-repo search, issue field filters (`field.name:value`) | [references/search.md](references/search.md) |
 | Sub-issues & parent issues | Breaking work into hierarchical tasks | [references/sub-issues.md](references/sub-issues.md) |
+| Milestones | Create, read, update, close, reopen, delete milestones and manage milestone issues | [references/milestones.md](references/milestones.md) |
+| Labels | Discover, create, rename, recolor, and delete repository labels; add or replace labels on an issue | [references/labels.md](references/labels.md) |
 | Issue dependencies | Tracking blocked-by / blocking relationships | [references/dependencies.md](references/dependencies.md) |
 | Issue types (advanced) | GraphQL operations beyond MCP `list_issue_types` / `type` param | [references/issue-types.md](references/issue-types.md) |
 | Projects V2 | Project boards, progress reports, field management | [references/projects.md](references/projects.md) |

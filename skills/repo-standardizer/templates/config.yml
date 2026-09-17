@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions
+    url: https://github.com/OWNER/REPO/discussions
+    about: Ask questions and share ideas here
+  - name: Security
+    url: https://github.com/OWNER/REPO/security/policy
+    about: Please report security vulnerabilities here

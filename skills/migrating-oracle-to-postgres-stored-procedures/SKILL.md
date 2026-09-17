@@ -39,8 +39,10 @@ Apply these translation rules:
 - Treat `UNION ALL` as a review checkpoint. Validate plan quality per branch and restructure if combined-branch planning causes regressions (for example, unexpected sequential scans on large tables).
 - Leverage the `orafce` extension when it improves clarity or fidelity.
 
-Consult the PostgreSQL table/view definitions at `.github/oracle-to-postgres-migration/DDL/Postgres/Tables and Views/` for target schema details.
+Consult the PostgreSQL table/view definitions at `.github/oracle-to-postgres-migration/DDL/Postgres/{ProjectName}/Tables and Views/` for target schema details.
 
 **Step 3: Write the migrated procedure to Postgres output directory**
 
-Place each migrated procedure in its own file under `.github/oracle-to-postgres-migration/DDL/Postgres/Procedures and Functions/{PACKAGE_NAME_IF_APPLICABLE}/`. One procedure per file.
+Place each migrated procedure in its own file under `.github/oracle-to-postgres-migration/DDL/Postgres/{ProjectName}/Procedures and Functions/{PACKAGE_NAME_IF_APPLICABLE}/`. One procedure per file.
+
+> `{ProjectName}` is the project's assembly/folder name with spaces normalized to `-` (e.g. `MyApp.DataAccess`). This matches the path used by the agent and other migration skills.

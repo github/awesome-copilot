@@ -667,7 +667,7 @@ class McpServerTest {
 
 ## README.md Template
 
-```markdown
+````markdown
 # My MCP Server
 
 A Model Context Protocol server built with Java and the official MCP Java SDK.
@@ -740,7 +740,7 @@ Add to `claude_desktop_config.json`:
 ## License
 
 MIT
-```
+````
 
 ## Generation Instructions
 

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "chat-cards",
+  "description": "Interactive card deck in a GHCP canvas: tab cards, tables, SVG charts, show/hide sections, numbered outlines, rendered markdown documents, video clips, and forms whose submissions come back to the conversation as prompts.",
+  "version": "0.1.0",
+  "keywords": [
+    "interactive-cards",
+    "charts",
+    "forms",
+    "education",
+    "visual-explanations"
+  ],
+  "author": { "name": "John Haugabook" },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/chat-cards"
+      ]
+    }
+  }
+}

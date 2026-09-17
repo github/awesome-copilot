@@ -168,3 +168,6 @@ All supported — MS Docs are automatically consulted to generate at the same qu
 | `references/azure-dynamic-sources.md` | MS Docs URL registry |
 | `references/azure-common-patterns.md` | PE/security/naming patterns |
 | `references/ai-data.md` | AI/Data service guide |
+| `assets/06-architecture-diagram.png` | Example generated architecture diagram |
+| `assets/07-azure-portal-resources.png` | Example Azure portal resource view |
+| `assets/08-deployment-succeeded.png` | Example successful deployment result |

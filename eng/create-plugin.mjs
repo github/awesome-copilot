@@ -128,11 +128,11 @@ async function createPlugin() {
     }
 
     // Create directory structure
-    const githubPluginDir = path.join(pluginDir, ".github", "plugin");
-    fs.mkdirSync(githubPluginDir, { recursive: true });
+    fs.mkdirSync(pluginDir, { recursive: true });
 
     // Generate plugin.json
     const pluginJson = {
+      "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
       name: pluginId,
       description,
       version: "1.0.0",
@@ -140,10 +140,16 @@ async function createPlugin() {
       author: { name: "Awesome Copilot Community" },
       repository: "https://github.com/github/awesome-copilot",
       license: "MIT",
+      extensions: {
+        "com.github.awesome-copilot": {
+          agents: [],
+          skills: [],
+        },
+      },
     };
 
     fs.writeFileSync(
-      path.join(githubPluginDir, "plugin.json"),
+      path.join(pluginDir, "plugin.json"),
       JSON.stringify(pluginJson, null, 2) + "\n"
     );
 
@@ -176,7 +182,7 @@ MIT
     console.log(`\n✅ Created plugin: ${pluginDir}`);
     console.log("\n📝 Next steps:");
     console.log(`1. Add agents, prompts, or instructions to plugins/${pluginId}/`);
-    console.log(`2. Update plugins/${pluginId}/.github/plugin/plugin.json with your metadata`);
+    console.log(`2. Update plugins/${pluginId}/plugin.json with your metadata`);
     console.log(`3. Edit plugins/${pluginId}/README.md to describe your plugin`);
     console.log("4. Run 'npm run build' to regenerate documentation");
   } catch (error) {

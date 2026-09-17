@@ -3,7 +3,7 @@ title: 'GitHub Copilot Terminology Glossary'
 description: 'A quick reference guide defining common GitHub Copilot and platform-specific terms.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-02
+lastUpdated: 2026-09-07
 estimatedReadingTime: '8 minutes'
 tags:
   - glossary
@@ -247,6 +247,20 @@ An installable package that extends GitHub Copilot CLI with a bundled set of age
 
 ---
 
+### Agent Merge
+
+A feature available in both the GitHub Copilot app and VS Code's Agents window (v1.136+, Preview) that automates carrying a pull request to completion. It monitors CI/CD checks, addresses review feedback and failing tests, resolves merge conflicts, reruns workflows, and can merge the pull request once everything passes—repeating the cycle until the PR is ready.
+
+**Example**: Enabling Agent Merge on a session so that once its PR is opened, Copilot keeps addressing CI failures and reviewer comments without you manually re-prompting it.
+
+**When to use**: For routine PR follow-through where you want Copilot to handle the iterative fix-review-merge loop instead of you monitoring it manually.
+
+**Learn more**: [Getting Started with the GitHub Copilot app](../github-copilot-app/)
+
+**Related terms**: [Coding Agent](#coding-agent), [Agent](#agent)
+
+---
+
 ### Tools
 
 Capabilities that GitHub Copilot can invoke to perform actions or retrieve information. Tools fall into two categories:
@@ -262,6 +276,18 @@ tools: ['codebase', 'terminalCommand', 'github']
 ```
 
 **Related terms**: [MCP](#mcp-model-context-protocol), [Built-in Tool](#built-in-tool), [Agent](#agent)
+
+---
+
+### Agent Host
+
+A VS Code component (v1.136+) that lets multiple VS Code windows connect to the same agent session. It runs agent harnesses (such as Copilot or Claude) in a dedicated process built on the open **Agent Host Protocol (AHP)**. The agent host's Copilot harness is powered by the [Copilot SDK](https://www.npmjs.com/package/@github/copilot-sdk), which keeps its behavior aligned with the Copilot CLI, the standalone GitHub Copilot app, and other Copilot products.
+
+**Example**: Starting a session in one VS Code window, then reconnecting to the same live session from a second window without losing state.
+
+**When to use**: When you want a consistent agent session shared across multiple editor windows, or when you want the same underlying agent behavior across VS Code, the CLI, and the Copilot app.
+
+**Related terms**: [Agent](#agent), [Coding Agent](#coding-agent)
 
 ---
 

@@ -13,10 +13,11 @@ The GitHub Copilot SDK exposes the same engine behind Copilot CLI: a production-
 
 ## Prerequisites
 
-1. **GitHub Copilot CLI** installed and authenticated ([Installation guide](https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli))
-2. **Language runtime**: Node.js 18+, Python 3.8+, Go 1.21+, or .NET 8.0+
+1. **GitHub Copilot access** and an authenticated environment
+2. **Language runtime**: Node.js ^20.19.0 or >=22.12.0, Python 3.11+, Go 1.24+, or a .NET Standard 2.0-compatible implementation
+3. **Go**: GitHub Copilot CLI installed and authenticated ([Installation guide](https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli))
 
-Verify CLI: `copilot --version`
+The TypeScript, Python, and .NET packages use a bundled Copilot runtime by default, so they do not need a separate CLI installation.
 
 ## Installation
 
@@ -30,7 +31,12 @@ npm install @github/copilot-sdk tsx
 ### Python
 ```bash
 pip install github-copilot-sdk
+
+# Optional: pre-download the bundled runtime instead of downloading it on first use
+python -m copilot download-runtime
 ```
+
+Published Python wheels include a pinned runtime version. The pre-download command caches that runtime locally; if skipped, the SDK attempts to download it automatically on first use.
 
 ### Go
 ```bash
@@ -72,17 +78,13 @@ import asyncio
 from copilot import CopilotClient, PermissionHandler
 
 async def main():
-    client = CopilotClient()
-    await client.start()
-
-    session = await client.create_session({
-        "on_permission_request": PermissionHandler.approve_all,
-        "model": "gpt-4.1",
-    })
-    response = await session.send_and_wait({"prompt": "What is 2 + 2?"})
-
-    print(response.data.content)
-    await client.stop()
+    async with CopilotClient() as client:
+        async with await client.create_session(
+            on_permission_request=PermissionHandler.approve_all,
+            model="gpt-4.1",
+        ) as session:
+            response = await session.send_and_wait("What is 2 + 2?")
+            print(response.data.content)
 
 asyncio.run(main())
 ```
@@ -178,25 +180,21 @@ from copilot import CopilotClient, PermissionHandler
 from copilot.generated.session_events import SessionEventType
 
 async def main():
-    client = CopilotClient()
-    await client.start()
+    async with CopilotClient() as client:
+        async with await client.create_session(
+            on_permission_request=PermissionHandler.approve_all,
+            model="gpt-4.1",
+            streaming=True,
+        ) as session:
+            def handle_event(event):
+                if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
+                    sys.stdout.write(event.data.delta_content)
+                    sys.stdout.flush()
+                if event.type == SessionEventType.SESSION_IDLE:
+                    print()
 
-    session = await client.create_session({
-        "on_permission_request": PermissionHandler.approve_all,
-        "model": "gpt-4.1",
-        "streaming": True,
-    })
-
-    def handle_event(event):
-        if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
-            sys.stdout.write(event.data.delta_content)
-            sys.stdout.flush()
-        if event.type == SessionEventType.SESSION_IDLE:
-            print()
-
-    session.on(handle_event)
-    await session.send_and_wait({"prompt": "Tell me a short joke"})
-    await client.stop()
+            session.on(handle_event)
+            await session.send_and_wait("Tell me a short joke")
 
 asyncio.run(main())
 ```
@@ -315,28 +313,22 @@ async def get_weather(params: GetWeatherParams) -> dict:
     return {"city": city, "temperature": f"{temp}°F", "condition": condition}
 
 async def main():
-    client = CopilotClient()
-    await client.start()
+    async with CopilotClient() as client:
+        async with await client.create_session(
+            on_permission_request=PermissionHandler.approve_all,
+            model="gpt-4.1",
+            streaming=True,
+            tools=[get_weather],
+        ) as session:
+            def handle_event(event):
+                if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
+                    sys.stdout.write(event.data.delta_content)
+                    sys.stdout.flush()
 
-    session = await client.create_session({
-        "on_permission_request": PermissionHandler.approve_all,
-        "model": "gpt-4.1",
-        "streaming": True,
-        "tools": [get_weather],
-    })
-
-    def handle_event(event):
-        if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
-            sys.stdout.write(event.data.delta_content)
-            sys.stdout.flush()
-
-    session.on(handle_event)
-
-    await session.send_and_wait({
-        "prompt": "What's the weather like in Seattle and Tokyo?"
-    })
-
-    await client.stop()
+            session.on(handle_event)
+            await session.send_and_wait(
+                "What's the weather like in Seattle and Tokyo?"
+            )
 
 asyncio.run(main())
 ```
@@ -500,40 +492,35 @@ async def get_weather(params: GetWeatherParams) -> dict:
     return {"city": params.city, "temperature": f"{temp}°F", "condition": condition}
 
 async def main():
-    client = CopilotClient()
-    await client.start()
+    async with CopilotClient() as client:
+        async with await client.create_session(
+            on_permission_request=PermissionHandler.approve_all,
+            model="gpt-4.1",
+            streaming=True,
+            tools=[get_weather],
+        ) as session:
+            def handle_event(event):
+                if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
+                    sys.stdout.write(event.data.delta_content)
+                    sys.stdout.flush()
 
-    session = await client.create_session({
-        "on_permission_request": PermissionHandler.approve_all,
-        "model": "gpt-4.1",
-        "streaming": True,
-        "tools": [get_weather],
-    })
+            session.on(handle_event)
 
-    def handle_event(event):
-        if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
-            sys.stdout.write(event.data.delta_content)
-            sys.stdout.flush()
+            print("Weather Assistant (type 'exit' to quit)")
+            print("Try: 'What's the weather in Paris?'\n")
 
-    session.on(handle_event)
+            while True:
+                try:
+                    user_input = input("You: ")
+                except EOFError:
+                    break
 
-    print("Weather Assistant (type 'exit' to quit)")
-    print("Try: 'What's the weather in Paris?'\n")
+                if user_input.lower() == "exit":
+                    break
 
-    while True:
-        try:
-            user_input = input("You: ")
-        except EOFError:
-            break
-
-        if user_input.lower() == "exit":
-            break
-
-        sys.stdout.write("Assistant: ")
-        await session.send_and_wait({"prompt": user_input})
-        print("\n")
-
-    await client.stop()
+                sys.stdout.write("Assistant: ")
+                await session.send_and_wait(user_input)
+                print("\n")
 
 asyncio.run(main())
 ```
@@ -558,16 +545,17 @@ const session = await client.createSession({
 
 ### Python
 ```python
-session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
-    "mcp_servers": {
+async with await client.create_session(
+    on_permission_request=PermissionHandler.approve_all,
+    model="gpt-4.1",
+    mcp_servers={
         "github": {
             "type": "http",
             "url": "https://api.githubcopilot.com/mcp/",
         },
     },
-})
+) as session:
+    ...
 ```
 
 ### Go
@@ -621,16 +609,17 @@ const session = await client.createSession({
 
 ### Python
 ```python
-session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
-    "custom_agents": [{
+async with await client.create_session(
+    on_permission_request=PermissionHandler.approve_all,
+    model="gpt-4.1",
+    custom_agents=[{
         "name": "pr-reviewer",
         "display_name": "PR Reviewer",
         "description": "Reviews pull requests for best practices",
         "prompt": "You are an expert code reviewer. Focus on security, performance, and maintainability.",
     }],
-})
+) as session:
+    ...
 ```
 
 ## System Message
@@ -650,13 +639,14 @@ const session = await client.createSession({
 
 ### Python
 ```python
-session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
-    "system_message": {
+async with await client.create_session(
+    on_permission_request=PermissionHandler.approve_all,
+    model="gpt-4.1",
+    system_message={
         "content": "You are a helpful assistant for our engineering team. Always be concise.",
     },
-})
+) as session:
+    ...
 ```
 
 ## External CLI Server
@@ -684,15 +674,16 @@ const session = await client.createSession({
 
 #### Python
 ```python
-client = CopilotClient({
-    "cli_url": "localhost:4321"
-})
-await client.start()
+from copilot import CopilotClient, PermissionHandler, RuntimeConnection
 
-session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
-})
+async with CopilotClient(
+    connection=RuntimeConnection.for_uri("localhost:4321")
+) as client:
+    async with await client.create_session(
+        on_permission_request=PermissionHandler.approve_all,
+        model="gpt-4.1",
+    ) as session:
+        ...
 ```
 
 #### Go
@@ -725,7 +716,7 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
 });
 ```
 
-**Note:** When `cliUrl` is provided, the SDK will not spawn or manage a CLI process - it only connects to the existing server.
+**Note:** When configured to use an external server, the SDK manages only its connection and does not manage the external process.
 
 ## Event Types
 
@@ -879,7 +870,7 @@ const models = await client.getModels();
 
 ## Best Practices
 
-1. **Always cleanup**: Use `try-finally` or `defer` to ensure `client.stop()` is called
+1. **Always clean up**: Use language-native context managers or disposal, or explicitly disconnect sessions and stop clients
 2. **Set timeouts**: Use `sendAndWait` with timeout for long operations
 3. **Handle events**: Subscribe to error events for robust error handling
 4. **Use streaming**: Enable streaming for better UX on long responses

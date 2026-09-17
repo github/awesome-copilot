@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-08-28
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -213,6 +213,8 @@ Hooks support two types: `"command"` for running local shell scripts, and `"http
 **timeoutSec**: Maximum execution time in seconds (default: 30). The hook is killed if it exceeds this limit.
 
 **env**: Additional environment variables merged with the existing environment.
+
+> **New (v1.0.81+)**: Hooks can now receive the current OpenTelemetry trace context so they can emit correlated spans. Hook inputs gain a `traceparent` field (plus `tracestate` when the span carries vendor-specific state); command hooks also receive these as environment variables, making it possible to link hook telemetry with the rest of a session's trace.
 
 #### HTTP hooks (`type: "http"`)
 
@@ -681,7 +683,6 @@ A: Yes. Hooks are especially valuable with the coding agent because they provide
 
 ## Next Steps
 
-- **Explore Examples**: Browse the [Hooks Directory](../../hooks/) for ready-to-use hook configurations
 - **Build Agents**: [Building Custom Agents](../building-custom-agents/) — Create agents that complement hooks
 - **Automate Further**: [Using the Copilot Coding Agent](../using-copilot-coding-agent/) — Run hooks in autonomous agent sessions
 

@@ -90,6 +90,8 @@ This style lets you assert on the *exposed* behaviour (what a real client sees),
 
 ## Testing tools that use sampling/elicitation/roots
 
+(Sampling and roots are deprecated on 2.x — expect `MCP9005` warnings in test projects that exercise them; suppress in the test csproj if you're deliberately covering legacy paths.)
+
 Inject the MCP server, but supply mock client capabilities. With the in-memory pattern above, register handlers on the client:
 
 ```csharp

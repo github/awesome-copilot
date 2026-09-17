@@ -1,0 +1,96 @@
+name: Validate Plugins and Extensions
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "plugins/**"
+      - "extensions/**"
+      - "eng/validate-plugins.mjs"
+      - ".github/workflows/validate-plugins.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    name: Plugin & extension spec validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate plugins and extensions
+        id: validate
+        run: npm run plugin:validate
+
+      - name: Manage validation summary on PR
+        if: always()
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const marker = '<!-- plugin-extension-validation -->';
+            const validationOutcome = '${{ steps.validate.outcome }}';
+            const validationFailed = validationOutcome === 'failure';
+            const validationPassed = validationOutcome === 'success';
+            const body = [
+              marker,
+              '🛑 **Plugin/extension validation failed**',
+              '',
+              'One or more plugins or extensions in this PR do not pass spec validation.',
+              '',
+              'All internal plugins and extensions must include:',
+              '- `"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"` in `plugin.json`',
+              '- A valid `name`, `description`, and `version`',
+              '- Repository composition (`agents`, `commands`, `hooks`, `skills`, and reusable `extensions`) under `extensions.com.github.awesome-copilot`',
+              '- MCP servers declared in `mcp.json` at the plugin root, not in `plugin.json`',
+              '- For **extensions**: `extensions.com.github.copilot.logo` must be set to `"assets/preview.png"`',
+              '',
+              'Do not put repository composition fields at the manifest top level or directly under `extensions`; they must be nested under `extensions.com.github.awesome-copilot`.',
+              '',
+              'Run `npm run plugin:validate` locally to see the full list of errors. See `.github/skills/create-canvas-extension/SKILL.md` and `CONTRIBUTING.md` for examples.',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+
+            const existing = comments.find((comment) => comment.body.includes(marker));
+
+            if (validationFailed && existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+              console.log(`Updated existing validation comment ${existing.id}`);
+            } else if (validationFailed) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+              console.log('Created validation comment');
+            } else if (validationPassed && existing) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+              });
+              console.log(`Deleted stale validation comment ${existing.id}`);
+            }

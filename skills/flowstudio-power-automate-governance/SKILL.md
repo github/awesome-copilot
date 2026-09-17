@@ -64,18 +64,18 @@ If a deleted flow has `monitor=true`, suggest disabling monitoring
 
 ## The Write Tool: `update_store_flow`
 
-`update_store_flow` writes governance metadata to the **Flow Studio cache
+`update_store_flow` writes governance metadata to the **FlowStudio cache
 only** — it does NOT modify the flow in Power Automate. These fields are
 not visible via `get_live_flow` or the PA portal. They exist only in the
-Flow Studio store and are used by Flow Studio's scanning pipeline and
+FlowStudio store and are used by FlowStudio's scanning pipeline and
 notification rules.
 
 This means:
-- `ownerTeam` / `supportEmail` — sets who Flow Studio considers the
+- `ownerTeam` / `supportEmail` — sets who FlowStudio considers the
   governance contact. Does NOT change the actual PA flow owner.
-- `rule_notify_email` — sets who receives Flow Studio failure/missing-run
+- `rule_notify_email` — sets who receives FlowStudio failure/missing-run
   notifications. Does NOT change Microsoft's built-in flow failure alerts.
-- `monitor` / `critical` / `businessImpact` — Flow Studio classification
+- `monitor` / `critical` / `businessImpact` — FlowStudio classification
   only. Power Automate has no equivalent fields.
 
 Merge semantics — only fields you provide are updated. Returns the full
@@ -218,7 +218,7 @@ store tags, so read/append/write. Avoid overriding computed `tier` unless asked.
 ### 7. Maker Offboarding
 
 When an employee leaves, identify their flows and apps, and reassign
-Flow Studio governance contacts and notification recipients.
+FlowStudio governance contacts and notification recipients.
 
 ```
 1. get_store_maker(makerKey="<departing-user-aad-oid>")
@@ -234,7 +234,7 @@ Flow Studio governance contacts and notification recipients.
    apps needing manual reassignment
 ```
 
-This changes Flow Studio governance contacts, not actual PA ownership. Power
+This changes FlowStudio governance contacts, not actual PA ownership. Power
 Apps ownership changes are manual/admin-center work.
 
 ### 8. Security Review
