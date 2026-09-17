@@ -247,6 +247,31 @@
       "version": "1.0.0"
     },
     {
+      "name": "bd-skills",
+      "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
+      "version": "0.1.26",
+      "author": {
+        "name": "Bitdrift",
+        "url": "https://bitdrift.ai"
+      },
+      "repository": "https://github.com/bitdriftlabs/bd-skills",
+      "homepage": "https://bitdrift.ai",
+      "license": "PolyForm-Shield-1.0.0",
+      "keywords": [
+        "bitdrift",
+        "mobile",
+        "observability",
+        "debugging",
+        "telemetry",
+        "cli"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "bitdriftlabs/bd-skills",
+        "sha": "ab96a8415025b666164e2b46685cecba2303fc89"
+      }
+    },
+    {
       "name": "blea",
       "description": "Safe, agent-first Bluetooth Low Energy diagnostics with portable evidence capture/diff/replay and guarded writes through a Skill, CLI, and local MCP server.",
       "version": "0.6.1",
@@ -366,6 +391,31 @@
       "source": "plugins/chat-cards",
       "description": "Interactive card deck in a GHCP canvas: tab cards, tables, SVG charts, show/hide sections, numbered outlines, rendered markdown documents, video clips, and forms whose submissions come back to the conversation as prompts.",
       "version": "0.1.0"
+    },
+    {
+      "name": "chat-fork-map",
+      "description": "Maps branching Copilot conversations so parallel follow-up questions and exploration paths from complex tasks or learning can be navigated without losing context. Its visual layout makes breadth-first exploration easier than managing multiple active threads in a traditional conversation list.",
+      "version": "0.0.5",
+      "author": {
+        "name": "jdneo",
+        "url": "https://github.com/jdneo"
+      },
+      "repository": "https://github.com/jdneo/copilot-chat-map",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "conversation-history",
+        "copilot-cli",
+        "developer-productivity",
+        "session-branching",
+        "visualization"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "jdneo/copilot-chat-map",
+        "ref": "0.0.5",
+        "sha": "c35ecbc860fa9a108faebc95218435a01c88160d"
+      }
     },
     {
       "name": "chrome-devtools-plugin",
@@ -778,6 +828,37 @@
       "source": "plugins/ember",
       "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
       "version": "1.2.0"
+    },
+    {
+      "name": "excel-cli",
+      "description": "Token-efficient native Excel automation for coding agents, with 300+ operations performed by Excel itself to preserve native workbook fidelity—including Python in Excel, VBA, Power Query, DAX/Data Model, PivotTables, charts, tables, formatting, external connections, and what-if analysis. Windows and Excel required.",
+      "version": "2.0.1",
+      "author": {
+        "name": "Stefan Brönner",
+        "url": "https://github.com/sbroenne"
+      },
+      "repository": "https://github.com/sbroenne/mcp-server-excel-plugins",
+      "homepage": "https://excelmcpserver.dev/",
+      "license": "MIT",
+      "keywords": [
+        "excel",
+        "windows",
+        "cli",
+        "automation",
+        "scripting",
+        "batch",
+        "power-query",
+        "dax",
+        "pivottable",
+        "ci-cd"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "sbroenne/mcp-server-excel-plugins",
+        "path": "plugins/excel-cli",
+        "ref": "v2.0.1",
+        "sha": "6c33486d2c74db050259411c73b5d87dfae9499e"
+      }
     },
     {
       "name": "excel-mcp",
@@ -1560,6 +1641,31 @@
       "version": "1.0.2"
     },
     {
+      "name": "rhost",
+      "description": "Use an installed rhost CLI to run ordinary commands on SSH-reachable Linux hosts with local-like stdin, output, and exit behavior.",
+      "version": "1.0.0",
+      "author": {
+        "name": "starfield17",
+        "url": "https://github.com/starfield17"
+      },
+      "repository": "https://github.com/starfield17/rhost",
+      "homepage": "https://github.com/starfield17/rhost",
+      "license": "MIT",
+      "keywords": [
+        "remote-execution",
+        "ssh",
+        "coding-agents",
+        "agent-skills",
+        "developer-tools",
+        "copilot"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "starfield17/rhost",
+        "sha": "f26c676ba0c4c76860df18e9182b7672f589547d"
+      }
+    },
+    {
       "name": "roundup",
       "source": "plugins/roundup",
       "description": "Self-configuring status briefing generator. Learns your communication style from examples, discovers your data sources, and produces draft updates for any audience on demand.",
@@ -1702,6 +1808,34 @@
       "source": "plugins/structured-autonomy",
       "description": "Premium planning, thrifty implementation",
       "version": "1.0.0"
+    },
+    {
+      "name": "sumo-logic",
+      "description": "Query Sumo Logic logs, alerts, dashboards, and SIEM insights directly from Copilot.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Sumo Logic",
+        "url": "https://www.sumologic.com"
+      },
+      "repository": "https://github.com/SumoLogic/sumologic-ai-plugins",
+      "homepage": "https://www.sumologic.com/help/docs/api/mcp-server/",
+      "license": "Apache-2.0",
+      "keywords": [
+        "sumo-logic",
+        "observability",
+        "logs",
+        "mcp",
+        "monitoring",
+        "alerts",
+        "copilot",
+        "siem"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "SumoLogic/sumologic-ai-plugins",
+        "ref": "v1.0.0",
+        "sha": "804c0909c20cf3b247df3b5de60bb94f8b65c315"
+      }
     },
     {
       "name": "swift-mcp-development",
@@ -1924,7 +2058,7 @@
     {
       "name": "upgrade-agent",
       "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-      "version": "1.1.514",
+      "version": "1.1.539",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -1943,8 +2077,33 @@
         "source": "github",
         "repo": "microsoft/upgrade-agent-plugins",
         "path": "plugins/upgrade-agent",
-        "ref": "v1.1.514",
-        "sha": "edfa6465916b5f4b9c6f8ca558b69518621ab810"
+        "ref": "v1.1.539",
+        "sha": "681dbf0b0dc470f63776f44728e76bbc6acc5c45"
+      }
+    },
+    {
+      "name": "usage-insights",
+      "description": "Inspect current and historical GitHub Copilot token and AI-credit usage with per-agent rollups and in-canvas session drill-down.",
+      "version": "1.1.0",
+      "author": {
+        "name": "David Kaya",
+        "url": "https://github.com/davidkaya"
+      },
+      "repository": "https://github.com/davidkaya/github-copilot-usage-insights",
+      "homepage": "https://github.com/davidkaya/github-copilot-usage-insights",
+      "license": "MIT",
+      "keywords": [
+        "ai-credits",
+        "canvas",
+        "copilot-extension",
+        "session-analytics",
+        "token-usage",
+        "usage-insights"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "davidkaya/github-copilot-usage-insights",
+        "sha": "0e4b3e157efc3a49090a413f7e42e2be4bd293ba"
       }
     },
     {

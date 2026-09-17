@@ -1,8 +1,11 @@
 ---
 title: "Hands-on with GitHub Copilot's agents"
+description: "A hands-on workshop with four harnesses (VS Code, Copilot CLI, Copilot app, and cloud agent) built around a shared Tailspin Toys backlog."
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-08-03
+tags:
+  - workshop
 ---
 
 The recent additions to the capabilities of GitHub Copilot provide powerful tools to the developer across the entire software development lifecycle (SDLC). This includes working with issues and pull requests on GitHub, interacting with external services, and of course code creation. This lab explores the functionality, providing real-world use cases and tips on how to get the most out of the tools.
