@@ -174,15 +174,19 @@ The fork exists to develop one custom agent — `agents/oracle-to-postgres-migra
 
 ## Output 1 — comment on the sync PR (always)
 
-Use `add_comment` with `pull_request_number` = ${{ needs.sync.outputs.pr_number }}. Structure:
+Use `add_comment` with `pull_request_number` = ${{ needs.sync.outputs.pr_number }}.
 
-- **Summary** — 2–4 sentences on what this sync brings in.
-- **Incoming commits** — the `git log --oneline` list (truncate to the most recent 40 if longer and say so).
+**Formatting rules for the whole comment:** prefer bullet points over prose everywhere. Never write a paragraph longer than one sentence; if you have two things to say, use two bullets. Lead each bullet with a bolded 2–5 word headline, then a dash and the detail. Use `##` headings for each section below so the maintainer can scan it.
+
+Structure:
+
+- **Summary** — 3–6 bullets, one per main theme of the sync (e.g. new agents, plugin/skill changes, workflow changes, docs, tooling), not one per commit. Open each with a bold headline and, where useful, the count of files or commits involved. End with a single **Action needed** bullet that says either "None — merge when ready" or lists the concrete things the maintainer must do after merging (disable workflows, update fork docs, review guideline changes).
+- **Incoming commits** — the `git log --oneline` list inside a collapsed `<details>` block (truncate to the most recent 40 if longer and say so).
 - **Change footprint** — the `--stat` output inside a collapsed `<details>` block.
-- **Affects this fork?** — call out anything touching `agents/oracle-to-postgres-migration-expert.agent.md`, `plugins/oracle-to-postgres-migration-expert/`, or `skills/*oracle-to-postgres*`.
+- **Affects this fork?** — bullets calling out anything touching `agents/oracle-to-postgres-migration-expert.agent.md`, `plugins/oracle-to-postgres-migration-expert/`, or `skills/*oracle-to-postgres*`. If nothing does, write one bullet: "**No direct impact** — none of the fork's owned paths changed."
 - **New upstream workflows** — if the added list is empty write "No new workflow files." Otherwise render a table with one row per file: `File | Trigger | Needs upstream-only context? | Recommendation | Why`. Recommendation is exactly one of **Keep**, **Disable**, or **Integrate**, applying the policy above. For every **Disable**, follow the table with the steps: *after merging this PR* → Actions tab → select the workflow → `⋯` → **Disable workflow**. For every **Integrate**, say concretely what to change in which fork file. Finish with a reminder to update the *Which upstream workflows to leave enabled* list in `.github/fork-only/README.md` if any verdict changes it.
-- **Modified upstream workflows** — if the modified list is empty write "No existing workflow files changed." Otherwise list each file with one line on whether the change affects a fork that keeps it enabled (e.g. new secret required, new required check, trigger change); say "no fork impact" where that is the case.
-- **Contribution guidelines** — if the guideline list is empty write "No changes to CONTRIBUTING.md or AGENTS.md." Otherwise summarise the changes and link to the issue you create in Output 2.
+- **Modified upstream workflows** — if the modified list is empty write "No existing workflow files changed." Otherwise one bullet per file: bold file name, then whether the change affects a fork that keeps it enabled (e.g. new secret required, new required check, trigger change); say "no fork impact" where that is the case.
+- **Contribution guidelines** — if the guideline list is empty write "No changes to CONTRIBUTING.md or AGENTS.md." Otherwise one bullet per substantive change, and link to the issue you create in Output 2.
 
 ## Output 2 — issue (only if guideline files changed)
 
@@ -197,4 +201,5 @@ If no guideline files changed, do **not** create an issue.
 
 - Do not edit files, do not push, do not merge. The maintainer merges the sync PR by hand.
 - Be factual; quote file paths and SHAs rather than paraphrasing them.
+- Bullets, not paragraphs. The maintainer skims this on a Friday morning — make every line earn its place.
 - If you cannot access the repository or the diff, call `noop` with a one-line reason.
