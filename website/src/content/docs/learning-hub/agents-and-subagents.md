@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-12
+lastUpdated: 2026-09-17
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -201,6 +201,12 @@ When an agent delegates work to multiple chats, VS Code's **Agents window** now 
 This pairs with **improved workspace resolution**: agents can resolve a workspace by project name (for example, "run this in the vscode workspace") in addition to absolute paths, which simplifies prompts that hand off work across multiple repositories.
 
 **Shareable session links** *(VS Code 1.138+)*: Agent Host sessions and chats now provide browser-addressable links, so you can reopen or share a specific Agents window session directly from another app, a GitHub issue, or terminal output — useful when handing off a delegated subagent's work to a teammate for review. You can also start a new session beside the current one in one step, keeping the current work visible while a second session starts.
+
+**Run agent sessions in a local Dev Container** *(VS Code 1.138+, experimental)*: Enable `chat.agentHost.devContainer.enabled` to run an Agent Host session inside a local folder's Dev Container instead of on your host machine. The agent then uses the project's own toolchain and dependencies — useful when a subagent's work (like running tests or a build) depends on a specific environment that differs from your local setup. Docker must be installed.
+
+**Create pull requests directly from agent sessions** *(VS Code 1.138+)*: The Agents window can generate a pull request title and description from a session's changes, let you review and edit them, choose draft status, and open the PR — without leaving the Agents window. This is useful once a subagent's delegated work is ready to hand off for review.
+
+**Keep completed sessions organized** *(VS Code 1.138+, preview)*: Enable `chat.agentSessions.archiveNudge.enabled` to get a suggestion to mark a session as done once all its pull requests have merged, and optionally configure automatic cleanup (`chat.agentSessions.autoMarkAsDoneMergedSessionsAfterDays`, `chat.agentSessions.autoDeleteArchivedMergedSessionsAfterDays`) so finished delegated-work sessions don't pile up in your sessions list.
 
 ## Common questions
 
