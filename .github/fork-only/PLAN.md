@@ -21,6 +21,7 @@ This file records **design decisions and their rationale**. Operating instructio
 - Workflow YAML must be under `.github/workflows/`; fork files coexist with ~40 upstream workflows, distinguished by a `fork-` prefix.
 - `GITHUB_TOKEN` is scoped to the repository running the workflow. It cannot open a PR against upstream, and PRs it creates do **not** trigger `pull_request` workflows. Both need a user PAT.
 - Fine-grained PATs can only be granted on repositories you own. Opening a PR against `github/awesome-copilot` requires a **classic** PAT; `public_repo` is the minimum scope.
+- Any push that creates or updates a file under `.github/workflows/` is rejected unless the token has the `workflow` scope — and `GITHUB_TOKEN` can never do it. Mirroring `upstream/main` almost always touches workflow files, so the PAT must also carry `workflow`.
 - gh-aw's `create-pull-request` safe output bundles *agent commits*. It is the wrong tool for mirroring `upstream/main`, so the sync is a deterministic job and the agent only comments.
 - The repo's own live gh-aw workflows are `.github/workflows/<name>.md` + `.lock.yml`; the top-level `workflows/` is the contribution catalog. Fork gh-aw sources follow the former.
 
@@ -45,11 +46,13 @@ This file records **design decisions and their rationale**. Operating instructio
 | D15 | **Fork `main` ruleset: PR required, 0 approvals, no bypass.** | 1 approval (original) | Solo maintainer cannot approve own PR; 1 approval made `main` un-mergeable. |
 | D16 | **`dry_run` input on the bundler.** | None | Lets the maintainer inspect the promotion diff before touching upstream. |
 | D17 | **Idempotent PR handling**: watchdog reuses an open sync PR; bundler force-pushes a fixed promotion branch and reuses its open upstream PR. | New branch/PR per run | Avoids PR spam; makes re-runs safe. |
+| D18 | **PAT carries `public_repo` + `workflow`**; the watchdog's push step detects the missing-scope refusal and emits a targeted `::error::`. | Pre-flight scope probe via `X-OAuth-Scopes` header; filtering workflow files out of the sync | First run failed on exactly this. A pre-flight only works for classic PATs and adds a request per run; filtering files would make the mirror branch diverge from `upstream/main`, breaking D2/D14. |
+| D19 | **Watchdog recommends Keep / Disable / Integrate per new upstream workflow**, using the README keep-list policy embedded in its prompt, and flags modified workflows. It only advises; disabling stays a manual UI action. | Bare list of new files (original); auto-disable via the Actions REST API | A bare list pushed the triage work onto the maintainer every week. Auto-disable needs `actions: write` in the agent's environment and would act on an LLM judgement without review — violates D1/D13. |
 
 ## Not done / deferred
 
 - **Auto-merge of sync PRs** (`gh pr merge --auto`) — wait until several cycles have been observed by hand.
-- **Disabling upstream workflows** in the fork is a manual, per-workflow UI action; documented in README, flagged per-sync by the watchdog.
+- **Disabling upstream workflows** in the fork is a manual, per-workflow UI action; documented in README. The watchdog recommends a verdict per new file (D19) but does not act on it.
 - **`require_extra_approval_for_unattributed_changes`** in the ruleset — recommended off; automation commits use the `github-actions[bot]` identity.
 - **gh-aw fuzzy schedule** (`weekly on friday`) — compiler suggests it to spread load; kept the explicit cron per maintainer preference.
 
@@ -79,4 +82,5 @@ This file records **design decisions and their rationale**. Operating instructio
 | 2026-09-17 | `gh aw compile --validate` both gh-aw workflows | Pass (expected "new restricted secret" note for `FORK_AUTOMATION_PAT`) |
 | 2026-09-17 | `actionlint` on `fork-bundle-upstream-pr.yml` | Pass (lock-file findings are actionlint schema lag on `copilot-requests` / `concurrency.queue`, identical in upstream lock files) |
 | 2026-09-17 | Repo settings via REST: Actions enabled, GitHub-owned actions allowed, SHA pinning required, ruleset shape | Confirmed |
+| 2026-09-17 | Watchdog first run | **Failed** at `Push upstream mirror branch`: PAT lacked `workflow` scope (D18). Scope added; re-run pending |
 | — | First real run of each workflow | **Pending** — see README first-run checklist |
