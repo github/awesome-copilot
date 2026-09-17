@@ -75,12 +75,12 @@ jobs:
           echo "guideline_files=$GUIDELINES" >> "$GITHUB_OUTPUT"
 
           # Workflow files added upstream (each one will start running in this fork once merged)
-NEW_WF=$(git diff --name-only --diff-filter=A origin/main...upstream/main -- '.github/workflows/*.yml' '.github/workflows/*.yaml' | paste -sd ',' -)
-echo "new_workflows=$NEW_WF" >> "$GITHUB_OUTPUT"
+          NEW_WF=$(git diff --name-only --diff-filter=A origin/main...upstream/main -- '.github/workflows/*.yml' '.github/workflows/*.yaml' | paste -sd ',' -)
+          echo "new_workflows=$NEW_WF" >> "$GITHUB_OUTPUT"
 
-# Existing upstream workflow files that were modified (may change what a kept workflow does)
-CHANGED_WF=$(git diff --name-only --diff-filter=M origin/main...upstream/main -- '.github/workflows/*.yml' '.github/workflows/*.yaml' | paste -sd ',' -)
-echo "changed_workflows=$CHANGED_WF" >> "$GITHUB_OUTPUT"
+          # Existing upstream workflow files that were modified (may change what a kept workflow does)
+          CHANGED_WF=$(git diff --name-only --diff-filter=M origin/main...upstream/main -- '.github/workflows/*.yml' '.github/workflows/*.yaml' | paste -sd ',' -)
+          echo "changed_workflows=$CHANGED_WF" >> "$GITHUB_OUTPUT"
 
       - name: Push upstream mirror branch
         if: steps.diff.outputs.has_changes == 'true'
