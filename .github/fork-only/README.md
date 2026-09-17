@@ -1,178 +1,145 @@
 # Fork-Only Automation Tooling
 
-This directory contains all fork-specific workflows, agents, and state files used to manage the Oracle-to-PostgreSQL Migration Expert agent development in the fork of `github/awesome-copilot`.
+Fork-specific workflows, agents, and documentation for developing the **Oracle-to-PostgreSQL Migration Expert** custom agent in `PrimedPaul/awesome-copilot` (a fork of `github/awesome-copilot`) and promoting it upstream.
 
-## Architecture Overview
+> **Fork-only.** Nothing in `.github/fork-only/` or `.github/workflows/fork-*` is ever proposed upstream. Only the agent file, its plugin, and its skills are promoted.
 
-### Workflows (`.github/workflows/fork-*.yml`)
+## Status
 
-These run on the fork and are **never** upstreamed:
+**Authored, compiled, and lint-checked — not yet exercised in Actions.** See [First-run checklist](#first-run-checklist). Treat every claim below as unverified until you have seen a green run.
 
-1. **fork-sync-watchdog.yml** — Runs weekly (Friday 10:00 AM UTC)
-   - Merges upstream `main` into fork `main`
-   - Watches for changes to `CONTRIBUTING.md` and `AGENTS.md`
-   - Alerts if contribution instructions change (requires manual review)
-   - Stores state in `state/contrib-watch.json`
+## Architecture
 
-2. **fork-agent-reviewer.yml** — Runs on every PR to fork main (path-scoped)
-   - Lint checks agent file structure (YAML frontmatter, required fields)
-   - Runs domain-aware AI review (Oracle-to-Postgres migration best practices)
-   - Comments on PR with findings (advisory, non-blocking)
-   - Scoped to: `agents/oracle-to-postgres-*`, `plugins/oracle-to-postgres-*`, `.github/fork-only/agents/**`
+```mermaid
+flowchart LR
+  subgraph fork [PrimedPaul/awesome-copilot]
+    issue[Issue] --> orch[dev-orchestrator agent<br/>Copilot CLI]
+    orch --> pr[PR into fork main]
+    pr --> vally[skill-check vally lint<br/>upstream workflow]
+    pr --> rev[fork-agent-reviewer<br/>gh-aw: AI domain review + version check]
+    pr --> main[(fork main)]
+    wd[fork-sync-watchdog<br/>gh-aw, weekly] --> syncpr[Sync PR fork-sync/upstream → main]
+    syncpr --> main
+    main --> bundle[fork-bundle-upstream-pr<br/>workflow_dispatch]
+  end
+  upstream[(github/awesome-copilot main)] --> wd
+  bundle --> uppr[Draft PR against upstream main]
+```
 
-3. **fork-bundle-upstream-pr.yml** — Runs on-demand (`workflow_dispatch`)
-   - Gathers all commits to agent/plugin paths since last promotion
-   - Creates a branch from upstream `main` and cherry-picks commits
-   - Opens a **draft PR** against upstream
-   - Stores promotion state in `state/upstream-promotion.json`
-   - **Requires:** `UPSTREAM_PAT` secret (fine-grained PAT from your account)
+### Workflows (`.github/workflows/fork-*`)
+
+| File | Kind | Trigger | What it does |
+|---|---|---|---|
+| `fork-sync-watchdog.md` → `.lock.yml` | gh-aw | Weekly Fri 10:00 UTC, manual | Deterministic `sync` job pushes `upstream/main` to branch `fork-sync/upstream` and opens/refreshes a PR into `main` (with the PAT so CI runs). AI agent comments on that PR with a summary, incoming commits, change footprint, anything touching this agent, and newly added upstream workflow files. If `CONTRIBUTING.md` or `AGENTS.md` changed, it also opens an issue with the full diff and what it means for this fork. |
+| `fork-agent-reviewer.md` → `.lock.yml` | gh-aw | `pull_request` into `main`, path-scoped to the agent, plugin, and `skills/*oracle-to-postgres*` | `version_check` job fails if `plugin.json` version equals upstream. AI agent applies the `ai-prompt-engineering-safety-review` skill plus an Oracle→PostgreSQL domain checklist and submits one review (`COMMENT` or `REQUEST_CHANGES`; can never `APPROVE`). |
+| `fork-bundle-upstream-pr.yml` | plain YAML | `workflow_dispatch` | Computes the single diff between `upstream/main` and fork `main` for the agent paths (agent file, plugin, every skill listed in `plugin.json`), applies it on a branch based on `upstream/main`, runs `npm run build` + `eng/fix-line-endings.sh`, commits, force-pushes `upstream-promotion/oracle-to-postgres-migration-expert` to the fork, and opens a **draft** PR against upstream (or reports the existing one). Fails hard if there is no delta, the version was not bumped, or the diff does not apply. Supports `dry_run`. |
+
+The gh-aw sources live in `.github/workflows/*.md` alongside their compiled `.lock.yml`, following upstream's convention for its own live agentic workflows (the top-level `workflows/` directory is the *contribution catalog*, not where this repo's automation runs). Recompile after editing a source: `gh aw compile --validate fork-sync-watchdog fork-agent-reviewer`.
 
 ### Agents (`.github/fork-only/agents/`)
 
-Custom agents that run in Copilot CLI or via workflow dispatch:
+Custom agents for interactive Copilot CLI sessions; they are not run by Actions.
 
-1. **dev-orchestrator.agent.md** — Your development workflow coordinator
-   - Reads GitHub issues
-   - Grills requirements (challenge assumptions, clarify scope)
-   - Plans implementation (with specific diffs)
-   - Dispatches to plan-skeptic for adversarial critique
-   - Waits for your approval (plan-mode gating)
-   - Implements changes
-   - Self-reviews before PR
+- **dev-orchestrator.agent.md** — issue → grill → plan → skeptic critique → approval gate → implement → pre-PR self-review. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators).
+- **plan-skeptic.agent.md** — adversarial sub-agent the orchestrator dispatches to critique its own plan.
 
-2. **plan-skeptic.agent.md** — Skeptical sub-agent
-   - Reviews dev-orchestrator's plans adversarially
-   - Challenges assumptions, exposes edge cases
-   - Questions scope and implementation approach
-   - Reports severity-ranked concerns
+### No state files
 
-### State Files (`.github/fork-only/state/`)
+Earlier drafts tracked "last seen" SHAs in JSON. That was a second source of truth that could drift. Everything is now computed against `upstream/main`: unmerged upstream commits are simply `origin/main..upstream/main`, and the unpromoted agent delta is simply `git diff upstream/main origin/main -- <agent paths>`.
 
-JSON files tracking fork operations (committed to repo):
+## Repository settings this design depends on
 
-1. **contrib-watch.json**
-   - Tracks last-seen SHAs for `CONTRIBUTING.md` and `AGENTS.md` from upstream
-   - Used by fork-sync-watchdog to detect upstream changes
-   - Updated on every sync run
+Verified via the REST API on 2026-09-17. Re-check if behaviour looks wrong.
 
-2. **upstream-promotion.json**
-   - Tracks promotion history (when commits were bundled and promoted)
-   - Records last promoted SHA to identify new changes for next promotion
-   - Used by fork-bundle-upstream-pr to scope cherry-picks
-   - Stores promotion IDs and workflow run URLs
+| Setting | Value | Why |
+|---|---|---|
+| Actions → General → Actions permissions | *Allow PrimedPaul, and select non-PrimedPaul actions* with **Allow actions created by GitHub** ticked | The allow-list governs `uses:` steps, not which workflow files run. Without GitHub-owned actions every workflow fails at checkout. |
+| Actions → General → **Require actions to be pinned to a full-length commit SHA** | **On** | Enforces SHA pinning at the runner. Any unpinned `uses:` is rejected. |
+| Actions → General → Workflow permissions | Read-only; cannot approve PRs | Least privilege. Each workflow declares the `permissions:` it needs. |
+| Ruleset "Branch Protection for 'main'" | deletion, non-fast-forward, `pull_request` (0 approvals), Copilot code review | Nothing pushes to `main` directly — the watchdog and bundler open PRs. Linear history is **off** so sync PRs can use *Create a merge commit*. |
+| Ruleset → `pull_request` → *Require approval of the most recent reviewable push* / *extra approval for unattributed changes* | Recommended **off** | Automation commits are authored by `github-actions[bot]`; with 0 required approvals these are harmless but noisy. |
 
-## Setup: Fine-Grained PAT Creation
+### Which upstream workflows to leave enabled
 
-The `fork-bundle-upstream-pr.yml` workflow requires a fine-grained Personal Access Token (PAT) with minimal permissions.
+Upstream ships ~40 workflows that will all run in the fork. Disable the ones that assume upstream secrets or org context via the Actions tab (**⋯ → Disable workflow**; this is repository state, not a file, so it survives syncs). Keep enabled:
 
-### Step 1: Create the Token
+- `skill-check.yml` + `skill-check-comment.yml` — free vally lint on agent/skill changes
+- `validate-plugins.yml`, `validate-readme.yml`, `validate-agentic-workflows-pr.yml` — the checks an upstream PR will face
+- `fork-*` — ours
 
-1. Go to https://github.com/settings/tokens?type=beta
-2. Click **"Generate new token"**
-3. Fill in:
-   - **Token name:** `fork-bundle-upstream-pat` (or similar)
-   - **Description:** "Fork promotion to awesome-copilot upstream"
-   - **Expiration:** 90 days (or your preference)
-4. Under **Resource owner**, select your personal account
-5. Under **Repository access**, select **"Only select repositories"**
-6. Search for and select `github/awesome-copilot`
-7. Under **Permissions**, grant:
-   - **Contents:** Read and write
-   - **Pull requests:** Read and write
-8. Click **"Generate token"** and **copy it immediately** (you won't see it again)
+The watchdog lists any **newly added** upstream workflow files in its sync-PR comment so you can decide per file after merging.
 
-### Step 2: Store as Repository Secret
+## Secret: `FORK_AUTOMATION_PAT`
 
-1. Go to your fork's repository settings: `https://github.com/YOUR_USERNAME/awesome-copilot/settings/secrets/actions`
-2. Click **"New repository secret"**
-3. **Name:** `UPSTREAM_PAT`
-4. **Value:** Paste the token from Step 1
-5. Click **"Add secret"**
+One **classic** PAT with the **`public_repo`** scope only. Fine-grained PATs cannot be granted on `github/awesome-copilot` (you do not own it), and `public_repo` is the minimum classic scope that can open a PR against a public repo you do not own.
 
-### Step 3: Verify
+Used for exactly two things, both in deterministic (non-agent) jobs:
 
-The workflow will use the secret when you trigger `fork-bundle-upstream-pr.yml` manually from the Actions tab.
+1. **Watchdog `sync` job** — checkout token, pushing `fork-sync/upstream`, and `gh pr create` on the fork. A PR created with `GITHUB_TOKEN` would not trigger `pull_request` workflows; a PAT-created one does.
+2. **Bundler** — `gh pr create --repo github/awesome-copilot`. The promotion branch itself is pushed to the fork with `GITHUB_TOKEN`.
 
-## Workflow: Using the System
+The PAT is **never** available to a gh-aw agent job. gh-aw's compiler reports it as a "new restricted secret" on first compile of the watchdog; that is expected and has been reviewed.
 
-### Development Flow (You)
+Set an expiry (90 days) and note the renewal date in your calendar. To rotate: **Settings → Secrets and variables → Actions → `FORK_AUTOMATION_PAT`**.
 
-1. **Create an issue** in the fork describing what you want to improve in the agent
-2. **Trigger the dev-orchestrator** (via Copilot CLI or as a workflow input):
-   ```bash
-   gh workflow run fork-orchestrator-dispatch.yml -f issue_number=<NUMBER>
-   ```
-   Or, use this session's Copilot agent to call the dev-orchestrator directly
-3. The orchestrator will:
-   - Grill your issue (challenge requirements)
-   - Present a plan with skeptic's critique
-   - Wait for your approval
-   - Implement changes
-   - Self-review before PR
-4. **Open a PR** against your fork's `main` from the result branch
-5. The **fork-agent-reviewer** will comment with lint + AI review findings (advisory)
-6. **Merge the PR** into your fork's `main`
+### Copilot for gh-aw
 
-### Promotion to Upstream (Periodically)
+The gh-aw workflows use the Copilot engine and request `copilot-requests: write`. Your account's Copilot subscription is what runs them. If the agent job fails at engine start-up, check the gh-aw [engines reference](https://github.github.com/gh-aw/reference/engines/) for the current credential requirement.
 
-1. Go to **Actions** → **Fork Bundle Upstream PR**
-2. Click **"Run workflow"** on `main`
-3. Optionally provide:
-   - Custom PR title (auto-generated if omitted)
-   - Custom description
-4. The workflow will:
-   - Find all commits to agent/plugin paths since last promotion
-   - Create a branch from upstream `main`
-   - Cherry-pick your commits
-   - Open a **draft PR** against upstream
-   - Store promotion state
-5. **Review the draft PR** in the upstream repository
-6. If ready, convert to regular PR and iterate with upstream maintainers
+## Using the system
 
-### Weekly Sync (Automatic)
+### Development flow
 
-- Every **Friday at 10:00 AM UTC**, the fork-sync-watchdog:
-  - Merges upstream `main` into your fork `main`
-  - Checks for updates to `CONTRIBUTING.md` and `AGENTS.md`
-  - Alerts you if contribution instructions changed
-  - Stores state for next week's comparison
+1. Open an issue in the fork describing the change.
+2. In Copilot CLI, select the **Development Orchestrator** agent (`.github/fork-only/agents/dev-orchestrator.agent.md`) and give it the issue number.
+3. It grills, plans, sends the plan to **Plan Skeptic**, waits for your approval, implements, bumps `plugin.json` version, runs `npm run build`, and self-reviews.
+4. Open a PR against fork `main`. `skill-check` (vally) and `fork-agent-reviewer` run. The reviewer's `version_check` job fails if the version was not bumped.
+5. Merge when satisfied — you are the sole reviewer.
 
-## Important Notes
+### Weekly sync
 
-- **Fork-only tooling is committed to `main`:** Workflows and agents live in `.github/fork-only/` and `.github/workflows/fork-*.*` — this is intentional. They are excluded from promotion by path-scoping in the bundler.
-- **State files are committed:** `contrib-watch.json` and `upstream-promotion.json` track system state across runs. Commit them as part of normal fork work.
-- **PAT Security:** The `UPSTREAM_PAT` is stored securely as a repository secret. It is only used by `fork-bundle-upstream-pr.yml` and is scoped to `github/awesome-copilot` only (not your fork).
-- **No force-pushes:** The system uses merge (watchdog) and cherry-pick (bundler), never rebases or force-pushes. This keeps history clean and audit-able.
-- **Least privilege:** All workflows use minimal permissions. The bundler uses a fine-grained PAT (not `GITHUB_TOKEN`) scoped to a single remote repository and specific permissions.
+Friday 10:00 UTC (or **Actions → Fork Sync Watchdog → Run workflow**). A PR titled `chore(fork-sync): merge upstream main (YYYY-MM-DD)` appears with an AI comment. Merge with **Create a merge commit**. If `CONTRIBUTING.md`/`AGENTS.md` changed, an issue labelled `fork-automation`, `contribution-guidelines` explains the impact — read it before the next promotion.
+
+If the branch already has an open PR, the watchdog fast-forwards it rather than opening another.
+
+### Promote to upstream
+
+**Actions → Fork Bundle Upstream PR → Run workflow.** Inputs: optional title, `ai_authored` (default on — appends `🤖🤖🤖` per `CONTRIBUTING.md` fast-track rule), `dry_run`.
+
+Run with `dry_run` first; the job summary shows the diff stat. Then run for real. The draft PR is opened as **you**. Review it on GitHub, then mark it *Ready for review*. Re-running after further fork merges refreshes the same branch/PR.
+
+## First-run checklist
+
+- [ ] Merge this branch to fork `main` (schedule/dispatch only fire from the default branch).
+- [ ] Confirm the three `fork-*` workflows appear in the Actions tab.
+- [ ] Disable upstream workflows you do not want (see list above).
+- [ ] Add `FORK_AUTOMATION_PAT` secret.
+- [ ] **Watchdog**: Run workflow → expect a sync PR with an AI comment (or a "nothing to sync" notice).
+- [ ] **Reviewer**: open a test PR that edits the agent file *without* bumping the version → expect `version_check` red and an AI review; bump the version → expect green.
+- [ ] **Bundler**: run with `dry_run` → inspect the summary; then run for real → confirm the draft PR on upstream.
+- [ ] Update the *Status* section above once each is green.
 
 ## Troubleshooting
 
-### Sync Watchdog Fails to Merge
-- **Issue:** Merge conflict with upstream
-- **Fix:** Manually merge upstream/main in your fork, resolve conflicts, push to main
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Every workflow fails at `actions/checkout` | Actions allow-list excludes GitHub-owned actions, or an action is not SHA-pinned | Settings → Actions → General |
+| Watchdog: `gh pr create` 403 | PAT missing/expired or lacks `public_repo` | Rotate secret |
+| Watchdog sync PR shows merge conflict | Fork `main` has edits to upstream-owned files | Resolve locally: `git fetch upstream && git merge upstream/main`, push to a branch, PR it |
+| Reviewer `version_check` red | `plugin.json` version equals upstream | Bump it on the PR branch |
+| Bundler: "No unpromoted changes" | Fork `main` matches upstream for the agent paths | Nothing to promote |
+| Bundler: `git apply` fails | Should be impossible (branch *is* `upstream/main`); indicates a fetch problem | Re-run; if it persists, open an issue with the log |
+| gh-aw agent job fails at engine start | Copilot credential requirement changed | See gh-aw engines reference |
 
-### Bundler Finds No Changes
-- **Issue:** No commits to agent/plugin paths since last promotion
-- **Fix:** Make a change to the agent or plugin, commit, push, then re-run the bundler
+## Editing fork-only tooling
 
-### PR Opens But We Want Custom Scope
-- **Issue:** Cherry-pick included unrelated commits
-- **Fix:** Edit `upstream-promotion.json` `lastPromotedSHA` to the correct commit SHA, re-run bundler with fewer commits
-
-### UPSTREAM_PAT Secret Not Found
-- **Issue:** Workflow fails on auth
-- **Fix:** Go to repository settings → Secrets → verify `UPSTREAM_PAT` exists and is not expired
-
-## Contributing
-
-To modify fork-only tooling:
-1. Edit files in `.github/fork-only/` or `.github/workflows/fork-*.*`
-2. Test locally (workflows run on push/schedule)
-3. Commit and push — these changes never go upstream
+- Plain YAML: edit, then `actionlint` locally.
+- gh-aw: edit the `.md`, then `gh aw compile --validate <name>` and commit **both** the `.md` and `.lock.yml`. The compiler also rewrites `.gitattributes` and `.github/aw/actions-lock.json` — those are **upstream-owned**; `git checkout -- .gitattributes .github/aw/actions-lock.json` before committing or every weekly sync will conflict.
+- Never let these paths leak into a promotion — the bundler only takes the agent's paths, but check the dry-run diff anyway.
 
 ## References
 
-- GitHub Agentic Workflows: https://github.github.com/gh-aw/
-- GitHub Actions: https://docs.github.com/en/actions
-- Git Cherry-pick: https://git-scm.com/docs/git-cherry-pick
-- Fine-grained PATs: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token
+- [GitHub Agentic Workflows](https://github.github.com/gh-aw/) — frontmatter, safe-outputs, custom jobs
+- [Security hardening for GitHub Actions](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions) — SHA pinning, script injection, least privilege
+- [Workflow triggers run from the default branch](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#schedule)
+- [Classic PAT scopes](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes)

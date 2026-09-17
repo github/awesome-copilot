@@ -1,244 +1,82 @@
 # Fork Automation Plan — Oracle-to-PostgreSQL Migration Expert
 
-> **Fork-only.** Nothing in this document, or anything it describes under
-> `.github/fork-only/` or with a `fork-` prefix, is ever proposed upstream to
-> `github/awesome-copilot`. Only changes to the custom agent itself
-> (`agents/oracle-to-postgres-migration-expert.agent.md` and its companion
-> `plugins/oracle-to-postgres-migration-expert/` content) get bundled into an
-> upstream PR.
+> **Fork-only.** Nothing in this document, or anything under `.github/fork-only/` or `.github/workflows/fork-*`, is ever proposed upstream to `github/awesome-copilot`. Only the custom agent (`agents/oracle-to-postgres-migration-expert.agent.md`), its plugin (`plugins/oracle-to-postgres-migration-expert/`), and the skills its manifest references (`skills/*oracle-to-postgres*/`) are promoted.
+
+This file records **design decisions and their rationale**. Operating instructions are in [README.md](README.md).
 
 ## Context
 
-- Fork: `PrimedPaul/awesome-copilot` (confirmed via `gh repo view` — `isFork: true`)
-- Upstream (parent): `github/awesome-copilot`
+- Fork: `PrimedPaul/awesome-copilot` (`isFork: true`, parent `github/awesome-copilot`)
 - Default branch on both sides: `main`
-- Upstream contribution rules (`CONTRIBUTING.md`):
-  - Branches must be created from `main`, not `staged`.
-  - PRs must target upstream `main`.
-  - AI-authored PR titles should end with `🤖🤖🤖` to fast-track review.
-  - Run `npm run build` before submitting so README/marketplace stay in sync.
+- Upstream contribution rules that shape the design (`CONTRIBUTING.md`, `AGENTS.md`):
+  - Branch from `main`, PR against `main` (not `staged`)
+  - AI-authored PR titles end with `🤖🤖🤖` for fast-track review
+  - Run `npm run build` and `bash eng/fix-line-endings.sh` before submitting
+  - Plugins carry a semver `version` in `plugin.json`
+- The agent already exists upstream (PRs #950, #2284, #2566). Every prior PR touched the agent file, the plugin, several `skills/*oracle-to-postgres*` folders, `docs/README.*.md`, and `.github/plugin/marketplace.json`.
 
-## Platform constraints that shaped this plan
+## Platform constraints
 
-- `schedule` and `workflow_dispatch` (and similar events) **only** trigger using
-  the workflow file version present on the repo's **default branch**. There is
-  no way around this — confirmed against GitHub's own docs. This is why fork
-  tooling must live on `main` rather than a separate branch.
-- `pull_request`-triggered workflows are not restricted to the default branch,
-  but since our PR-gate reviewer needs to run on *every* PR into `main` anyway,
-  it lives there too.
-- GitHub Actions only discovers workflow YAML under `.github/workflows/` — that
-  path can't be relocated. Fork-only workflow files therefore coexist with this
-  repo's ~42 upstream workflow files in that same directory, distinguished only
-  by a `fork-` naming prefix.
-- `GITHUB_TOKEN` is scoped to the repo the workflow runs in; it cannot open or
-  update a PR against a different repository (upstream). Opening the upstream
-  PR automatically requires a fine-grained PAT belonging to the user's own
-  GitHub identity.
+- `schedule` and `workflow_dispatch` only fire from the workflow file on the **default branch**. Fork tooling therefore lives on `main`.
+- Workflow YAML must be under `.github/workflows/`; fork files coexist with ~40 upstream workflows, distinguished by a `fork-` prefix.
+- `GITHUB_TOKEN` is scoped to the repository running the workflow. It cannot open a PR against upstream, and PRs it creates do **not** trigger `pull_request` workflows. Both need a user PAT.
+- Fine-grained PATs can only be granted on repositories you own. Opening a PR against `github/awesome-copilot` requires a **classic** PAT; `public_repo` is the minimum scope.
+- gh-aw's `create-pull-request` safe output bundles *agent commits*. It is the wrong tool for mirroring `upstream/main`, so the sync is a deterministic job and the agent only comments.
+- The repo's own live gh-aw workflows are `.github/workflows/<name>.md` + `.lock.yml`; the top-level `workflows/` is the contribution catalog. Fork gh-aw sources follow the former.
 
-## File organization
+## Decisions
+
+| # | Decision | Alternatives rejected | Why |
+|---|---|---|---|
+| D1 | **Automation proposes, human merges.** Watchdog and bundler open PRs; nothing pushes to `main`. | Direct push with `contents: write` | Ruleset on `main` requires PRs; keeps an audit trail; matches the least-privilege pattern. |
+| D2 | **Stateless.** Unmerged upstream = `origin/main..upstream/main`. Unpromoted delta = `git diff upstream/main origin/main -- <paths>`. | JSON state files with "last seen"/"last promoted" SHAs | A second source of truth that could drift; the original draft's `lastPromotedSHA` pointed at a branch off upstream, making the next range nonsensical. |
+| D3 | **Single squashed diff** onto `upstream/main`, `git apply --index`, fail hard. | Cherry-picking fork commits, `--abort` and continue on conflict | Cherry-pick silently shipped partial change sets; upstream squash-merges anyway; the diff from `upstream/main` always applies. |
+| D4 | **Promotion scope = `plugin.json`'s `skills` array + agent file + plugin dir**, computed at run time. | Hard-coded two paths | Prior upstream PRs touched eight skill folders; hard-coding drifts when skills are added. |
+| D5 | **Bundler runs `npm run build` + `fix-line-endings.sh`** and commits the output. | Leave to the human | Upstream CI (`validate-readme`, `validate-plugins`) fails otherwise; CONTRIBUTING requires it. |
+| D6 | **Version bump enforced twice**: `version_check` job on fork PRs (early signal) and a hard fail in the bundler (last line of defence). Orchestrator checklist reminds the human. | Trust the developer | Cheap, deterministic, catches the most common promotion rejection. |
+| D7 | **Watchdog and reviewer are gh-aw**; bundler is plain YAML. | All plain YAML / all gh-aw | gh-aw adds value where an LLM summarises or reviews; the bundler is pure git plumbing. gh-aw also pins actions and containers by SHA/digest and sandboxes the agent. |
+| D8 | **Dropped the custom lint.** | Keep a frontmatter grep | Upstream's `skill-check` (vally) already lints `agents/**` and `plugins/**` on every PR and checks more than the custom script did. |
+| D9 | **Reviewer may `REQUEST_CHANGES` but never `APPROVE`**; `supersede-older-reviews: true`. | `COMMENT` only | A blocking review for factual domain errors is useful signal; approval must stay human. |
+| D10 | **SHA-pin every `uses:`** and enable *Require actions to be pinned to a full-length commit SHA*. | Mutable tags | Supply-chain: tags can be retargeted (tj-actions/changed-files, March 2025). gh-aw lock files and upstream already pin. Dependabot (`github-actions` ecosystem, inherited from upstream) keeps pins fresh. |
+| D11 | **Inputs and event data reach `run:` via `env:`**, never `${{ }}` interpolation inside bash. | Inline `${{ inputs.title }}` | Script-injection vector: a PR title or input containing `"; curl …` would execute. |
+| D12 | **`concurrency:` groups on all three** (watchdog and bundler non-cancelling; reviewer cancels superseded runs per PR). | None | Manual + scheduled runs racing on the same branch; stale reviews on rapid pushes. |
+| D13 | **Job-level `permissions:`** with top-level `permissions: {}` in the bundler; gh-aw agent jobs get `contents: read` only, write scopes live in the deterministic jobs. | Workflow-wide `write` | Least privilege; the PAT and write tokens are never in the agent's environment. |
+| D14 | **Sync PRs merged with a merge commit**; linear-history rule removed. | Squash/rebase sync | Squash destroys shared ancestry and causes conflicts on every subsequent sync. |
+| D15 | **Fork `main` ruleset: PR required, 0 approvals, no bypass.** | 1 approval (original) | Solo maintainer cannot approve own PR; 1 approval made `main` un-mergeable. |
+| D16 | **`dry_run` input on the bundler.** | None | Lets the maintainer inspect the promotion diff before touching upstream. |
+| D17 | **Idempotent PR handling**: watchdog reuses an open sync PR; bundler force-pushes a fixed promotion branch and reuses its open upstream PR. | New branch/PR per run | Avoids PR spam; makes re-runs safe. |
+
+## Not done / deferred
+
+- **Auto-merge of sync PRs** (`gh pr merge --auto`) — wait until several cycles have been observed by hand.
+- **Disabling upstream workflows** in the fork is a manual, per-workflow UI action; documented in README, flagged per-sync by the watchdog.
+- **`require_extra_approval_for_unattributed_changes`** in the ruleset — recommended off; automation commits use the `github-actions[bot]` identity.
+- **gh-aw fuzzy schedule** (`weekly on friday`) — compiler suggests it to spread load; kept the explicit cron per maintainer preference.
+
+## File organisation
 
 ```
 .github/
   workflows/
-    fork-sync-watchdog.yml          # weekly: sync + contribution-instructions check
-    fork-bundle-upstream-pr.yml     # on-demand: assemble + open/update upstream PR
-    fork-agent-reviewer.yml         # pull_request: lint + AI review of agent changes
-    ...                            # (existing upstream workflows, untouched)
+    fork-sync-watchdog.md            # gh-aw source
+    fork-sync-watchdog.lock.yml      # compiled — commit both
+    fork-agent-reviewer.md           # gh-aw source
+    fork-agent-reviewer.lock.yml     # compiled — commit both
+    fork-bundle-upstream-pr.yml      # plain YAML
   fork-only/
-    PLAN.md                         # this file
+    README.md                        # how to operate
+    PLAN.md                          # this file — why it is built this way
     agents/
-      dev-orchestrator.agent.md     # drives issue -> plan -> implement -> review
-      plan-skeptic.agent.md         # adversarial reviewer of the orchestrator's plan
-    state/
-      contrib-watch.json            # last-seen SHAs for CONTRIBUTING.md / AGENTS.md
-      upstream-promotion.json       # last-promoted commit/state for bundling
-    scripts/
-      (helper scripts for sync / bundling, as needed)
+      dev-orchestrator.agent.md
+      plan-skeptic.agent.md
 ```
 
-(gh-aw workflow *sources*, if used instead of hand-written YAML, follow this
-repo's existing convention of living under top-level `workflows/` and
-compiling to `.github/workflows/*.lock.yml` — in that case use
-`workflows/fork-*.md` for the sources.)
+## Verification log
 
-## 1. Fork topology & sync
-
-- `main` stays the default branch and permanently carries both the mirrored
-  upstream content and the fork-only tooling above.
-- `fork-sync-watchdog` runs weekly (`schedule`):
-  1. Fetches `github/awesome-copilot` `main`.
-  2. Merges it into the fork's `main` and pushes (should always be a clean
-     merge since fork-only files don't overlap with upstream paths). If a
-     conflict ever occurs, open an issue instead of failing silently.
-  3. Diffs `CONTRIBUTING.md` and `AGENTS.md` against the last-seen SHAs stored
-     in `.github/fork-only/state/contrib-watch.json`.
-  4. If either changed, opens a GitHub issue flagging it — a signal the
-     contribution/automation strategy may need revisiting.
-
-## 2. Custom-agent development workflow
-
-- You file a GitHub issue describing the feature/change for the agent.
-- You invoke the fork-only `dev-orchestrator` agent explicitly (not the
-  session default) in an interactive Copilot CLI session:
-  1. Reads the issue.
-  2. Grills/plans using the `grilling` skill.
-  3. Dispatches the `plan-skeptic` persona as a sub-agent to critique the plan
-     before it's presented to you.
-  4. Presents the plan for your approval via native plan-mode gating.
-  5. Once approved, implements the change.
-  6. Dispatches a domain-aware code-review sub-agent (same Oracle/Postgres
-     criteria as the PR-gate reviewer, see below) as a pre-PR self-check.
-- You are the sole approver/merger of the resulting PR into the fork's `main`.
-
-## 3. PR-gate reviewer (`fork-agent-reviewer`)
-
-- Trigger: `pull_request` into fork `main`, path-scoped strictly to the
-  agent's files (`agents/oracle-to-postgres-migration-expert.agent.md`,
-  `plugins/oracle-to-postgres-migration-expert/**`).
-- Deterministic lint (can be a required/blocking check): front matter
-  completeness (`description`, `name`, `model`, `tools`), file naming, and the
-  repo's own "Agent file guide" checklist.
-- AI review (comment-only, non-blocking): imports the existing
-  `skills/ai-prompt-engineering-safety-review` skill for structural/safety/bias
-  diligence, layered with bespoke Oracle-to-PostgreSQL domain-accuracy checks.
-  Bounded with a timeout since domain review is more expensive.
-- Uses gh-aw's `submit-pull-request-review` with
-  `allowed-events: [COMMENT, REQUEST_CHANGES]` (the default `GITHUB_TOKEN` can
-  never `APPROVE`).
-
-## 4. Upstream promotion (`fork-bundle-upstream-pr`)
-
-- Trigger: `workflow_dispatch` only, run by you when ready.
-- Assembles every merged-but-not-yet-promoted change to the agent's files
-  since the last promotion (tracked in
-  `.github/fork-only/state/upstream-promotion.json`), strictly scoped to those
-  paths.
-- Builds a clean branch containing only that diff, opens or updates a PR
-  against `github/awesome-copilot` `main`.
-- PR title includes the `🤖🤖🤖` fast-track marker per `CONTRIBUTING.md`.
-- Authenticates with a fine-grained PAT (repo-scoped to `github/awesome-copilot`,
-  `pull requests: write` + `contents: write` on your fork) stored as a secret —
-  setup instructions to follow during implementation.
-- You alone decide when to mark the upstream PR "Ready for review."
-
-## Implementation status
-
-**Complete** ✓ — All components deployed and tested.
-
-- [x] Create `.github/fork-only/agents/dev-orchestrator.agent.md`
-- [x] Create `.github/fork-only/agents/plan-skeptic.agent.md`
-- [x] Create `.github/workflows/fork-sync-watchdog.yml`
-- [x] Create `.github/workflows/fork-agent-reviewer.yml`
-- [x] Create `.github/workflows/fork-bundle-upstream-pr.yml`
-- [x] Walk through fine-grained PAT creation and store as fork secret (`UPSTREAM_PAT`)
-- [x] Confirm weekly cadence: **Friday 10:00 AM UTC** (cron: `0 10 * * 5`)
-- [x] Add upstream git remote: `git remote add upstream https://github.com/github/awesome-copilot.git`
-- [x] Create state tracking files:
-  - [x] `.github/fork-only/state/contrib-watch.json` — initialized with current SHAs
-  - [x] `.github/fork-only/state/upstream-promotion.json` — initialized with baseline state
-- [x] Create `.github/fork-only/README.md` — comprehensive setup, usage, and troubleshooting
-
-## Deployed components
-
-### Workflows (in `.github/workflows/`)
-
-1. **fork-sync-watchdog.yml**
-   - Schedule: Weekly, Friday 10:00 AM UTC
-   - Actions:
-     - Merge `upstream/main` → `fork/main`
-     - Diff `CONTRIBUTING.md` and `AGENTS.md` against stored SHAs
-     - Alert if changes detected
-     - Update state file
-   - Permissions: `contents: write`, `pull-requests: write`
-
-2. **fork-agent-reviewer.yml**
-   - Trigger: Pull request into `main`
-   - Scopes: 
-     - `agents/oracle-to-postgres-migration-expert.agent.md`
-     - `plugins/oracle-to-postgres-migration-expert/**`
-     - `.github/fork-only/agents/**`
-   - Checks:
-     - Lint: YAML frontmatter, required fields (description, name, model, tools)
-     - AI review: domain-specific Oracle-to-Postgres migration safety and accuracy
-   - Comment-only, non-blocking advisory feedback
-   - Permissions: `pull-requests: write`, `contents: read`
-
-3. **fork-bundle-upstream-pr.yml**
-   - Trigger: Manual (`workflow_dispatch`)
-   - Optional inputs: PR title, PR description
-   - Actions:
-     - Identify commits to promotable paths since last promotion
-     - Create branch from `upstream/main`
-     - Cherry-pick promotable commits
-     - Open draft PR against `github/awesome-copilot`/`main`
-     - Record promotion state
-   - Authentication: Fine-grained PAT (`UPSTREAM_PAT`) for cross-repo auth
-   - Permissions: `contents: write`, `pull-requests: write`
-
-### Custom Agents (in `.github/fork-only/agents/`)
-
-1. **dev-orchestrator.agent.md**
-   - Five-phase workflow:
-     1. Read & grill (challenge requirements)
-     2. Plan (concrete implementation strategy)
-     3. Skeptical review (dispatch to plan-skeptic)
-     4. Implement (after approval via plan-mode gating)
-     5. Pre-PR self-review (domain-aware code review)
-   - Invoked manually by user in Copilot CLI
-   - Model: `claude-sonnet-5`
-
-2. **plan-skeptic.agent.md**
-   - Adversarial persona
-   - Critiques dev-orchestrator's plans
-   - Reports on: assumptions, scope, edge cases, backwards compatibility, simplicity, correctness, testability, user burden
-   - Produces severity-ranked Skeptic's Report
-   - Model: `claude-sonnet-5`
-
-### State Tracking (in `.github/fork-only/state/`)
-
-1. **contrib-watch.json**
-   - Tracks: `CONTRIBUTING.md` and `AGENTS.md` SHAs from upstream
-   - Used by: fork-sync-watchdog
-   - Updated on every sync run
-
-2. **upstream-promotion.json**
-   - Tracks: promotion history (timestamps, commit SHAs, branch names, PR URLs)
-   - Used by: fork-bundle-upstream-pr
-   - Stores: `lastPromotedSHA` for next bundler run
-
-### Documentation (in `.github/fork-only/`)
-
-1. **README.md**
-   - Architecture overview
-   - Fine-grained PAT creation step-by-step
-   - Workflow usage guide
-   - Typical development flow
-   - Troubleshooting
-
-2. **PLAN.md** (this file)
-   - Design decisions and rationale
-   - Platform constraints and workarounds
-   - File organization
-   - Component descriptions
-
-## Next steps for you
-
-1. **Test the sync watchdog** (optional)
-   - Go to Actions → Fork Sync Watchdog
-   - Click "Run workflow" to test the merge and state update
-
-2. **Test the PR reviewer** (optional)
-   - Create a test PR to fork main touching an agent file
-   - Verify lint and AI review comments appear
-
-3. **Create your first issue** in the fork and:
-   - Launch dev-orchestrator
-   - Grill, plan, get skeptic feedback, approve, implement, review
-   - Open PR to fork, merge
-
-4. **Promote to upstream** when ready:
-   - Go to Actions → Fork Bundle Upstream PR
-   - Click "Run workflow"
-   - Review the draft PR in upstream
-   - Iterate with maintainers, merge
+| Date | Check | Result |
+|---|---|---|
+| 2026-09-17 | `npm run build`, `npm run plugin:validate` with fork-only files present | Pass; no leakage into README/marketplace/docs |
+| 2026-09-17 | `gh aw compile --validate` both gh-aw workflows | Pass (expected "new restricted secret" note for `FORK_AUTOMATION_PAT`) |
+| 2026-09-17 | `actionlint` on `fork-bundle-upstream-pr.yml` | Pass (lock-file findings are actionlint schema lag on `copilot-requests` / `concurrency.queue`, identical in upstream lock files) |
+| 2026-09-17 | Repo settings via REST: Actions enabled, GitHub-owned actions allowed, SHA pinning required, ruleset shape | Confirmed |
+| — | First real run of each workflow | **Pending** — see README first-run checklist |

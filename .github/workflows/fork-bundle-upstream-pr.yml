@@ -1,166 +1,171 @@
+# Fork-only. Assembles the unpromoted delta of the Oracle-to-PostgreSQL Migration
+# Expert agent (agent file, plugin, skills) onto a branch based on upstream main,
+# regenerates README/marketplace, and opens or refreshes a draft PR against
+# github/awesome-copilot. Never proposed upstream itself.
 name: Fork Bundle Upstream PR
+
 on:
   workflow_dispatch:
     inputs:
       title:
-        description: 'PR title (optional, auto-generated if omitted)'
+        description: 'PR title (optional; auto-generated if omitted)'
         required: false
         default: ''
-      description:
-        description: 'PR description (optional)'
-        required: false
-        default: ''
+      ai_authored:
+        description: 'Append the 🤖🤖🤖 fast-track marker (CONTRIBUTING.md: AI-authored PRs)'
+        type: boolean
+        default: true
+      dry_run:
+        description: 'Build the branch and show the diff, but do not push or open a PR'
+        type: boolean
+        default: false
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
+
+concurrency:
+  group: fork-bundle-upstream-pr
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: github/awesome-copilot
+  PROMOTION_BRANCH: upstream-promotion/oracle-to-postgres-migration-expert
+  PLUGIN_MANIFEST: plugins/oracle-to-postgres-migration-expert/plugin.json
 
 jobs:
-  bundle_upstream_pr:
-    name: Bundle Agent Changes into Upstream PR
+  bundle:
+    name: Bundle agent changes into upstream PR
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout fork
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
 
-      - name: Add upstream remote
+      - name: Fetch upstream
         run: |
-          git remote add upstream https://github.com/github/awesome-copilot.git || true
-          git fetch upstream main --quiet
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --quiet upstream main
 
-      - name: Identify commits to promote
-        id: changes
+      - name: Compute unpromoted delta
+        id: delta
         run: |
-          # Load last promotion state
-          LAST_PROMOTED=$(jq -r '.lastPromotedSHA' .github/fork-only/state/upstream-promotion.json)
-          CURRENT_HEAD=$(git rev-parse HEAD)
+          # Paths that belong to this agent. Must match what plugin.json references.
+          PATHS=(
+            "agents/oracle-to-postgres-migration-expert.agent.md"
+            "plugins/oracle-to-postgres-migration-expert"
+          )
+          # Skills referenced by the plugin manifest (./skills/<name>/ -> skills/<name>)
+          while IFS= read -r skill; do
+            PATHS+=("skills/${skill}")
+          done < <(jq -r '.extensions["com.github.awesome-copilot"].skills[]? | ltrimstr("./skills/") | rtrimstr("/")' "$PLUGIN_MANIFEST")
 
-          # Find commits between last promoted and current HEAD that touch agent/plugin paths
-          COMMITS=$(git log ${LAST_PROMOTED}..HEAD --format="%H" -- \
-            "agents/oracle-to-postgres-migration-expert.agent.md" \
-            "plugins/oracle-to-postgres-migration-expert/" || echo "")
+          printf '%s\n' "${PATHS[@]}" > /tmp/promote-paths.txt
+          echo "Promotable paths:"; cat /tmp/promote-paths.txt
 
-          if [ -z "$COMMITS" ]; then
-            echo "::notice::No promotable changes found since last promotion."
+          git diff --quiet upstream/main origin/main -- "${PATHS[@]}" && {
+            echo "::error::No unpromoted changes under the agent's paths. Fork main matches upstream main for these files."
+            exit 1
+          }
+
+          FORK_VERSION=$(git show origin/main:"$PLUGIN_MANIFEST" | jq -r .version)
+          UPSTREAM_VERSION=$(git show upstream/main:"$PLUGIN_MANIFEST" | jq -r .version)
+          if [ "$FORK_VERSION" = "$UPSTREAM_VERSION" ]; then
+            echo "::error file=$PLUGIN_MANIFEST::plugin.json version ($FORK_VERSION) equals upstream. Bump it on fork main before promoting."
             exit 1
           fi
+          echo "fork_version=$FORK_VERSION" >> "$GITHUB_OUTPUT"
+          echo "upstream_version=$UPSTREAM_VERSION" >> "$GITHUB_OUTPUT"
+          echo "fork_sha=$(git rev-parse --short origin/main)" >> "$GITHUB_OUTPUT"
+          echo "upstream_sha=$(git rev-parse --short upstream/main)" >> "$GITHUB_OUTPUT"
 
-          COMMIT_COUNT=$(echo "$COMMITS" | wc -l)
-          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
-          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
-          echo "last_promoted=$LAST_PROMOTED" >> $GITHUB_OUTPUT
-          echo "Found $COMMIT_COUNT promotable commits"
-
-      - name: Create promotion branch
-        id: branch
+      - name: Build promotion branch from upstream main
         run: |
-          BRANCH_NAME="fork-promotion-$(date +%s)"
-          git config user.name "GitHub Actions (Fork Bundler)"
-          git config user.email "noreply@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Create branch from upstream/main
-          git checkout -b $BRANCH_NAME upstream/main --quiet
+          git checkout --quiet -B "$PROMOTION_BRANCH" upstream/main
+          # Single squashed diff of the promotable paths (handles adds, deletes, renames, binaries).
+          # Always applies cleanly because the branch *is* upstream/main; a failure here is a real bug.
+          mapfile -t PATHS < /tmp/promote-paths.txt
+          git diff --binary upstream/main origin/main -- "${PATHS[@]}" | git apply --index --whitespace=nowarn
 
-          # Cherry-pick commits
-          for COMMIT in ${{ steps.changes.outputs.commits }}; do
-            echo "Cherry-picking $COMMIT"
-            git cherry-pick $COMMIT --quiet || {
-              echo "::warning::Conflict or failure on $COMMIT; attempting auto-resolve"
-              git cherry-pick --abort || true
-            }
-          done
-
-          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          git push origin $BRANCH_NAME --quiet
-
-      - name: Generate PR title and body
-        id: pr_content
-        run: |
-          if [ -z "${{ github.event.inputs.title }}" ]; then
-            TITLE="[Fork Promotion] Oracle-to-PostgreSQL Migration Expert Agent Updates"
-          else
-            TITLE="${{ github.event.inputs.title }}"
-          fi
-
-          if [ -z "${{ github.event.inputs.description }}" ]; then
-            BODY="This PR bundles changes from the fork's Oracle-to-PostgreSQL Migration Expert development.
-
-## Changes
-- Agent improvements and refinements
-- Plugin metadata updates
-- Documentation enhancements
-
-## Testing
-Please review for:
-- Consistency with upstream standards
-- No breaking changes to existing agent behavior
-- Alignment with Awesome Copilot contribution guidelines
-
-## Source
-This PR was generated by fork-bundle-upstream-pr workflow.
-Promotion ID: ${{ github.run_id }}
-Fork branch: ${{ steps.branch.outputs.branch_name }}"
-          else
-            BODY="${{ github.event.inputs.description }}"
-          fi
-
-          echo "title=$TITLE" >> $GITHUB_OUTPUT
-          # Save body to file for use in next step
-          echo "$BODY" > /tmp/pr_body.txt
-
-      - name: Create upstream PR (draft)
-        id: create_pr
-        uses: actions/github-script@v7
-        env:
-          GH_TOKEN: ${{ secrets.UPSTREAM_PAT }}
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          script: |
-            const fs = require('fs');
-            const body = fs.readFileSync('/tmp/pr_body.txt', 'utf8');
-            const result = await exec.getExecOutput('gh', [
-              'pr', 'create',
-              '--repo', 'github/awesome-copilot',
-              '--title', '${{ steps.pr_content.outputs.title }}',
-              '--body', body,
-              '--head', '${{ github.repository_owner }}:${{ steps.branch.outputs.branch_name }}',
-              '--base', 'main',
-              '--draft'
-            ]);
-            console.log(result.stdout);
+          node-version: 20
+          cache: npm
 
-      - name: Record promotion state
-        if: success()
+      - name: Regenerate README and marketplace (npm run build)
         run: |
-          # Update upstream-promotion.json with new promotion entry
-          PROMOTION_ID="promo-$(date +%s)"
-          NEW_SHA=$(git rev-parse origin/${{ steps.branch.outputs.branch_name }})
+          npm ci --silent
+          npm run build
+          git add -A README.md docs .github/plugin/marketplace.json
+          bash eng/fix-line-endings.sh
+          git add -A
 
-          jq ".promotions += [{
-            \"id\": \"$PROMOTION_ID\",
-            \"timestamp\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\",
-            \"forkHeadBefore\": \"$(git rev-parse HEAD)\",
-            \"promoteHeadBefore\": \"${{ steps.changes.outputs.last_promoted }}\",
-            \"branchName\": \"${{ steps.branch.outputs.branch_name }}\",
-            \"commitCount\": ${{ steps.changes.outputs.commit_count }},
-            \"status\": \"pr-opened\",
-            \"notes\": \"PR opened at $(date -u +'%Y-%m-%dT%H:%M:%SZ')\",
-            \"workflowRunUrl\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
-          }]" \
-          .github/fork-only/state/upstream-promotion.json > /tmp/promotion.tmp
-
-          jq ".lastPromotedSHA = \"$NEW_SHA\"" /tmp/promotion.tmp > /tmp/promotion.tmp2
-
-          mv /tmp/promotion.tmp2 .github/fork-only/state/upstream-promotion.json
-
-          git add .github/fork-only/state/upstream-promotion.json
-          git commit -m "chore(fork-promote): record promotion $PROMOTION_ID" --quiet
-          git push origin main --quiet
-
-      - name: Notify completion
+      - name: Commit
+        env:
+          FORK_VERSION: ${{ steps.delta.outputs.fork_version }}
+          FORK_SHA: ${{ steps.delta.outputs.fork_sha }}
         run: |
-          echo "::notice::Promotion workflow completed"
-          echo "::notice::Branch: ${{ steps.branch.outputs.branch_name }}"
-          echo "::notice::Commits promoted: ${{ steps.changes.outputs.commit_count }}"
-          echo "::notice::PR opened as draft — review and merge when ready"
+          git commit --quiet -m "Update Oracle-to-PostgreSQL Migration Expert agent to v${FORK_VERSION}" \
+            -m "Promoted from PrimedPaul/awesome-copilot main @ ${FORK_SHA}."
+          echo "## Promotion diff (vs upstream main)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          git diff --stat upstream/main HEAD >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Push promotion branch to fork
+        if: ${{ !inputs.dry_run }}
+        run: git push --quiet --force-with-lease origin "$PROMOTION_BRANCH"
+
+      - name: Open or refresh draft PR against upstream
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ secrets.FORK_AUTOMATION_PAT }}
+          INPUT_TITLE: ${{ inputs.title }}
+          AI_AUTHORED: ${{ inputs.ai_authored }}
+          FORK_VERSION: ${{ steps.delta.outputs.fork_version }}
+          UPSTREAM_VERSION: ${{ steps.delta.outputs.upstream_version }}
+          FORK_SHA: ${{ steps.delta.outputs.fork_sha }}
+          UPSTREAM_SHA: ${{ steps.delta.outputs.upstream_sha }}
+        run: |
+          TITLE="${INPUT_TITLE:-Update Oracle-to-PostgreSQL Migration Expert agent to v${FORK_VERSION}}"
+          if [ "$AI_AUTHORED" = "true" ]; then TITLE="${TITLE} 🤖🤖🤖"; fi
+
+          HEAD_REF="${GITHUB_REPOSITORY_OWNER}:${PROMOTION_BRANCH}"
+          EXISTING=$(gh pr list --repo "$UPSTREAM_REPO" --head "$HEAD_REF" --base main --state open --json number,url --jq '.[0].url // empty')
+          if [ -n "$EXISTING" ]; then
+            echo "::notice::Existing upstream PR refreshed by branch push: $EXISTING"
+            echo "Upstream PR: $EXISTING" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          BODY_FILE=$(mktemp)
+          cat > "$BODY_FILE" <<EOF
+          ## Summary
+
+          Updates the **Oracle-to-PostgreSQL Migration Expert** custom agent, its plugin manifest, and bundled skills from \`${UPSTREAM_VERSION}\` to \`${FORK_VERSION}\`.
+
+          Changes were developed and reviewed in the fork \`${GITHUB_REPOSITORY}\` (main @ \`${FORK_SHA}\`) and squashed onto upstream \`main\` @ \`${UPSTREAM_SHA}\`. \`npm run build\` was run so README and marketplace outputs are in sync.
+
+          ## Checklist
+
+          - [x] Branch created from \`main\`
+          - [x] \`npm run build\` executed
+          - [x] \`bash eng/fix-line-endings.sh\` executed
+          - [x] plugin.json version bumped (\`${UPSTREAM_VERSION}\` → \`${FORK_VERSION}\`)
+          - [ ] Maintainer review
+
+          ## Source
+
+          Opened by the fork's \`fork-bundle-upstream-pr\` workflow (run ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}).
+          EOF
+
+          PR_URL=$(gh pr create --repo "$UPSTREAM_REPO" --draft \
+            --base main --head "$HEAD_REF" \
+            --title "$TITLE" --body-file "$BODY_FILE")
+          echo "::notice::Opened draft PR $PR_URL"
+          echo "Upstream PR: $PR_URL" >> "$GITHUB_STEP_SUMMARY"
