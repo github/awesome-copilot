@@ -37,6 +37,20 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.FORK_AUTOMATION_PAT }}
 
+      - name: Configure git push credentials
+        env:
+          FORK_AUTOMATION_PAT: ${{ secrets.FORK_AUTOMATION_PAT }}
+        run: |
+          # actions/checkout runs with persist-credentials: false, so origin has no
+          # stored auth; git push needs an explicit authenticated remote URL.
+          if [ -z "${FORK_AUTOMATION_PAT}" ]; then
+            echo "::error::FORK_AUTOMATION_PAT is not configured"
+            exit 1
+          fi
+          git remote set-url origin "https://x-access-token:${FORK_AUTOMATION_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Fetch upstream
         run: |
           git remote add upstream https://github.com/github/awesome-copilot.git

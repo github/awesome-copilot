@@ -29,7 +29,7 @@ flowchart LR
 ### Workflows (`.github/workflows/fork-*`)
 
 | File | Kind | Trigger | What it does |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `fork-sync-watchdog.md` → `.lock.yml` | gh-aw | Weekly Fri 10:00 UTC, manual | Deterministic `sync` job pushes `upstream/main` to branch `fork-sync/upstream` and opens/refreshes a PR into `main` (with the PAT so CI runs). AI agent comments on that PR with a summary, incoming commits, change footprint, anything touching this agent, and newly added upstream workflow files. If `CONTRIBUTING.md` or `AGENTS.md` changed, it also opens an issue with the full diff and what it means for this fork. |
 | `fork-agent-reviewer.md` → `.lock.yml` | gh-aw | `pull_request` into `main`, path-scoped to the agent, plugin, and `skills/*oracle-to-postgres*` | `version_check` job fails if `plugin.json` version equals upstream. AI agent applies the `ai-prompt-engineering-safety-review` skill plus an Oracle→PostgreSQL domain checklist and submits one review (`COMMENT` or `REQUEST_CHANGES`; can never `APPROVE`). |
 | `fork-bundle-upstream-pr.yml` | plain YAML | `workflow_dispatch` | Computes the single diff between `upstream/main` and fork `main` for the agent paths (agent file, plugin, every skill listed in `plugin.json`), applies it on a branch based on `upstream/main`, runs `npm run build` + `eng/fix-line-endings.sh`, commits, force-pushes `upstream-promotion/oracle-to-postgres-migration-expert` to the fork, and opens a **draft** PR against upstream (or reports the existing one). Fails hard if there is no delta, the version was not bumped, or the diff does not apply. Supports `dry_run`. |
@@ -52,7 +52,7 @@ Earlier drafts tracked "last seen" SHAs in JSON. That was a second source of tru
 Verified via the REST API on 2026-09-17. Re-check if behaviour looks wrong.
 
 | Setting | Value | Why |
-|---|---|---|
+| --- | --- | --- |
 | Actions → General → Actions permissions | *Allow PrimedPaul, and select non-PrimedPaul actions* with **Allow actions created by GitHub** ticked | The allow-list governs `uses:` steps, not which workflow files run. Without GitHub-owned actions every workflow fails at checkout. |
 | Actions → General → **Require actions to be pinned to a full-length commit SHA** | **On** | Enforces SHA pinning at the runner. Any unpinned `uses:` is rejected. |
 | Actions → General → Workflow permissions | Read-only; cannot approve PRs | Least privilege. Each workflow declares the `permissions:` it needs. |
@@ -110,10 +110,10 @@ Run with `dry_run` first; the job summary shows the diff stat. Then run for real
 
 ## First-run checklist
 
-- [ ] Merge this branch to fork `main` (schedule/dispatch only fire from the default branch).
-- [ ] Confirm the three `fork-*` workflows appear in the Actions tab.
-- [ ] Disable upstream workflows you do not want (see list above).
-- [ ] Add `FORK_AUTOMATION_PAT` secret.
+- [x] Merge this branch to fork `main` (schedule/dispatch only fire from the default branch).
+- [x] Confirm the three `fork-*` workflows appear in the Actions tab.
+- [x] Disable upstream workflows you do not want (see list above).
+- [x] Add `FORK_AUTOMATION_PAT` secret.
 - [ ] **Watchdog**: Run workflow → expect a sync PR with an AI comment (or a "nothing to sync" notice).
 - [ ] **Reviewer**: open a test PR that edits the agent file *without* bumping the version → expect `version_check` red and an AI review; bump the version → expect green.
 - [ ] **Bundler**: run with `dry_run` → inspect the summary; then run for real → confirm the draft PR on upstream.
@@ -122,7 +122,7 @@ Run with `dry_run` first; the job summary shows the diff stat. Then run for real
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |
-|---|---|---|
+| --- | --- | --- |
 | Every workflow fails at `actions/checkout` | Actions allow-list excludes GitHub-owned actions, or an action is not SHA-pinned | Settings → Actions → General |
 | Watchdog: `gh pr create` 403 | PAT missing/expired or lacks `public_repo` | Rotate secret |
 | Watchdog sync PR shows merge conflict | Fork `main` has edits to upstream-owned files | Resolve locally: `git fetch upstream && git merge upstream/main`, push to a branch, PR it |
