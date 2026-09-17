@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-12
+lastUpdated: 2026-09-17
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -945,6 +945,33 @@ copilot skill enable my-skill    # enable a specific skill
 ### Command-Line Parsing Rewrite
 
 *(v1.0.84+)* Command-line parsing moved from Commander to a Rust-based grammar that mirrors what the CLI actually parses, which also generates shell completions directly from that grammar — so `copilot <TAB>` now offers root flags alongside subcommands, and each subcommand only shows its own options. As a result of this change, some error and help wording changed, `copilot login --host` now works correctly, and `--max-autopilot-continues` no longer accepts scientific notation as a value.
+
+### Concise Transcript View
+
+*(v1.0.85+)* Set `transcriptView` to `"concise"` in `/settings` to group tool activity into expandable work summaries instead of showing every tool call inline. This keeps the timeline scannable during long sessions with heavy tool use — expand a summary only when you need to inspect the individual steps behind it.
+
+### Opting In to Context Management Tools for Subagents
+
+*(v1.0.85+)* New `/settings` options let you opt subagents (and the main agent) into **context management tools** — capabilities that let an agent actively manage its own context window (for example, summarizing or trimming stale history) rather than relying solely on automatic compaction. This is useful for long-running orchestrated workflows where subagents accumulate a lot of intermediate context. See [Agents and Subagents](../agents-and-subagents/) for more on how delegated work affects context usage.
+
+### Sandbox Session Opt-Out from an Approved Bypass
+
+*(v1.0.85+)* Managed sandbox sessions can now be disabled for the rest of the session directly from an approved sandbox bypass prompt, instead of having to separately run `/sandbox disable` afterward.
+
+### Custom Agents Can Opt Into Repository Instruction Files
+
+*(v1.0.86+)* Custom agents can set `include-custom-instructions: true` in their frontmatter to opt into repository instruction files (`AGENTS.md`, `copilot-instructions.md`, `CLAUDE.md`) that would otherwise be skipped in favor of the agent's own instructions:
+
+```yaml
+---
+name: 'Security Reviewer'
+description: 'Expert security auditor'
+include-custom-instructions: true
+tools: ['codebase', 'terminal']
+---
+```
+
+See [Building Custom Agents](../building-custom-agents/) for more on agent frontmatter fields.
 
 ## Common Questions
 
