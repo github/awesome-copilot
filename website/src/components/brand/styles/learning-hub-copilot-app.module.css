@@ -1547,6 +1547,10 @@
 /* Pagination: always show the Previous/Next chevrons (they are hidden on
    desktop by default) and strip the arrow stem so they read as clean
    chevrons; give the current page a neutral grey surface instead of green. */
+.pagination {
+  composes: pagination from "./catalog-pagination.module.css";
+}
+
 .pagination :global([class*="Pagination__controlArrowWrapper"]) {
   display: flex;
 }

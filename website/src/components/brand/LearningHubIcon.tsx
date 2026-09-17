@@ -1,8 +1,11 @@
+import { useId } from "react";
+
 type LearningHubIconProps = {
   size?: number;
 };
 
 export function LearningHubIcon({ size = 36 }: LearningHubIconProps) {
+  const clipId = `learning-hub-icon-${useId()}`;
   return (
     <svg
       width={size}
@@ -13,7 +16,7 @@ export function LearningHubIcon({ size = 36 }: LearningHubIconProps) {
       aria-label="GitHub Copilot Learning Hub"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g clipPath="url(#Learning Hub-icon-clip)">
+      <g clipPath={`url(#${clipId})`}>
         <path
           d="M48 23C50 12.9543 59.9543 6 71 6H90C92.2091 6 94 7.79086 94 10V81C94 83.2091 92.2091 85 90 85H72.5C68.0769 85 63.9581 87.061 61.3028 90.4876C60.3979 91.6553 59.0772 92.5 57.6 92.5H38.4C36.9228 92.5 35.6021 91.6553 34.6972 90.4876C32.0419 87.061 27.9231 85 23.5 85H6C3.79086 85 2 83.2091 2 81V43.5"
           stroke="var(--brand-color-text-default)"
@@ -52,7 +55,7 @@ export function LearningHubIcon({ size = 36 }: LearningHubIconProps) {
         />
       </g>
       <defs>
-        <clipPath id="Learning Hub-icon-clip">
+        <clipPath id={clipId}>
           <rect width="96" height="96" />
         </clipPath>
       </defs>

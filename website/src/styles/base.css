@@ -66,6 +66,56 @@ video {
   height: auto;
 }
 
+[data-reading-content] img[data-markdown-block-image] {
+  display: block;
+  margin-block: var(--base-size-24);
+}
+
+.heading-texture {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--brand-color-text-muted) 14%, transparent) 0.7px,
+    transparent 0.8px
+  );
+  background-size: 8px 8px;
+}
+
+.heading-grid {
+  position: relative;
+  isolation: isolate;
+  background-image: radial-gradient(
+    ellipse 60% 80% at 50% 100%,
+    color-mix(in srgb, var(--base-color-scale-green-5) 16%, transparent),
+    transparent 80%
+  );
+}
+
+.heading-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--base-color-scale-green-5) 24%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--base-color-scale-green-5) 24%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 60% 80% at 50% 100%, black 10%, transparent 80%);
+}
+
+.heading-grid > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (forced-colors: active) {
+  .heading-grid,
+  .heading-grid::before,
+  .heading-texture {
+    background-image: none;
+  }
+}
+
 /* `<main>` receives tabindex="-1" so the skip link can move focus to it; the
    resulting focus ring is not meaningful to sighted users. */
 main:focus {
