@@ -109,7 +109,7 @@ Write the finished Markdown to `.github/fork-only/plans/issue-<N>.md` using your
 
 Required sections, in order:
 
-- **Frontmatter** — a YAML block with `issue: <N>`, `title: '<issue title>'`, `scope: agent|fork-tooling|out-of-scope`, and `status: draft`.
+- **Frontmatter** — begin the file with an un-fenced YAML frontmatter block delimited by `---` on its own line before and after the metadata, containing `issue: <N>`, `title: '<issue title>'`, `scope: agent|fork-tooling|out-of-scope`, and `status: draft`; do not use a fenced code block such as ````yaml`.
 - **Issue summary** — 2–4 bullets restating what is being asked, in your own words. If your restatement differs from the literal issue text, say so — that gap is usually the real ambiguity.
 - **Grilling** — the adversarial pass over the requirements. Four sub-sections, each a bullet list:
   - *Ambiguities* — what the issue does not pin down, and why it matters.
@@ -147,8 +147,8 @@ Post exactly one comment on issue **#${{ github.event.issue.number || inputs.iss
 
 Comment contents, in order:
 
-- One line: the draft PR link and the scope classification.
-- **Open questions** — the list from the plan, verbatim, each with your recommended answer. This is the point of the comment: the maintainer answers here, in the issue, and the orchestrator picks the answers up later.
+- One line: a Markdown link to the draft PR using the exact URL returned by `create_pull_request`, followed by the scope classification.
+- **Open questions** — copy the complete `## Open questions` list from the finished plan verbatim, preserving its wording, options, formatting, and recommendation text; do not rewrite it as a summary, change `I would pick` to another recommendation label, or add/remove questions. This is the point of the comment: the maintainer answers here, in the issue, and the orchestrator picks the answers up later.
 - **Biggest risk** — a single bullet: the one concern from the skeptic's report most likely to sink the change.
 - One line telling the maintainer how to continue: check out `plan/issue-<N>` and run the Development Orchestrator agent against issue #<N>.
 
