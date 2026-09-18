@@ -1,0 +1,13 @@
+{
+  "greeting": {
+    "description": "Greeting prefix",
+    "type": "string",
+    "default": "Hello"
+  },
+  "max_name_length": {
+    "description": "Maximum displayed sender name length",
+    "type": "int",
+    "default": 40,
+    "hint": "Choose an integer from 1 to 200."
+  }
+}

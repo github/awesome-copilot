@@ -1,0 +1,43 @@
+# {{plugin_name}}
+
+Configurable greeting example. Replace its command, business logic, and tests with
+your intended feature before release. In AstrBot, send `/{{command}}` using your
+configured command prefix.
+
+Settings in `_conf_schema.json`:
+
+- `greeting`: greeting prefix; default `Hello`.
+- `max_name_length`: displayed name length, 1–200; default `40`.
+
+## Development
+
+Run from the plugin directory in an isolated development environment:
+
+```bash
+python -m pip install -r requirements-dev.txt
+{{runtime_install}}
+python -m pytest -q
+python -m ruff check .
+python -m ruff format --check .
+```
+
+The default tests exercise `plugin_logic.py` without importing AstrBot. If generated
+with `--with-openapi`, they also test `openapi_client.py` through a mocked HTTP
+transport. That client is an optional building block; wire it into your requested
+handler/configuration before claiming an HTTP feature is implemented.
+
+## Runtime smoke test
+
+In a development environment with the **target AstrBot and its dependencies**
+installed, run `python -m pytest runtime_tests -q`. The template baseline is AstrBot
+4.28.0 on Python 3.12+. The test uses real SDK registration, config, and event/result
+classes. It does not boot the loader or contact a messaging platform.
+
+For a loader/reload check, place the plugin in the runtime's
+`data/plugins/{{plugin_name}}`, start AstrBot, and use WebUI plugin management to
+reload it. Confirm the command reply and a changed configuration value. Check the
+log for load errors. Adapt the runtime test when changing the example class/handler.
+
+Set real author, description, repository, supported platforms, and verified version
+constraints before publication. Keep runtime data and credentials outside the plugin
+source tree. No platform compatibility claim is implied by this scaffold.

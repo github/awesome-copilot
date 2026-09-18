@@ -1,0 +1,87 @@
+"""Run explicitly with the real AstrBot SDK: python -m pytest runtime_tests -q.
+
+This uses real registration, config, and event/result classes, but does not start
+AstrBot's loader, send messages to a platform, or verify WebUI reload behavior.
+Missing AstrBot is a failure, not a silently skipped integration test.
+"""
+
+import asyncio
+import importlib
+import json
+import sys
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+from astrbot.api import AstrBotConfig
+from astrbot.api.event import AstrMessageEvent
+from astrbot.api.platform import AstrBotMessage, MessageMember, MessageType
+from astrbot.api.star import Star
+from astrbot.core.platform.platform_metadata import PlatformMetadata
+from astrbot.core.star.filter.command import CommandFilter
+from astrbot.core.star.star import star_map
+from astrbot.core.star.star_handler import star_handlers_registry
+
+PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture
+def plugin_class():
+    sys.path.insert(0, str(PLUGIN_ROOT.parent))
+    try:
+        module = importlib.import_module(f"{PLUGIN_ROOT.name}.main")
+        return module.GreetingPlugin
+    finally:
+        sys.path.remove(str(PLUGIN_ROOT.parent))
+
+
+def registered_command(plugin_class):
+    handler = star_handlers_registry.get_handler_by_full_name(
+        f"{plugin_class.__module__}_greet"
+    )
+    assert handler is not None
+    return next(
+        item for item in handler.event_filters if isinstance(item, CommandFilter)
+    )
+
+
+def test_real_sdk_registration(plugin_class):
+    assert issubclass(plugin_class, Star)
+    assert star_map[plugin_class.__module__].star_cls_type is plugin_class
+    assert registered_command(plugin_class).command_name == "{{command}}"
+
+
+def test_real_config_and_command_result(plugin_class, tmp_path):
+    schema = json.loads((PLUGIN_ROOT / "_conf_schema.json").read_text(encoding="utf-8"))
+    config = AstrBotConfig(str(tmp_path / "plugin_config.json"), schema=schema)
+    config["greeting"] = "Welcome"
+    config["max_name_length"] = 3
+    plugin = plugin_class(context=SimpleNamespace(), config=config)
+    message = AstrBotMessage()
+    message.type = MessageType.FRIEND_MESSAGE
+    message.sender = MessageMember(user_id="offline-user", nickname="Alice")
+    message.message = []
+    message.message_str = "/{{command}}"
+    event = AstrMessageEvent(
+        "{{command}}",  # The framework strips the wake prefix before CommandFilter.
+        message,
+        PlatformMetadata(name="webchat", description="Offline test", id="test-bot"),
+        "test-session",
+    )
+    event.is_at_or_wake_command = True
+    assert registered_command(plugin_class).filter(event, config)
+
+    async def collect():
+        return [
+            result
+            async for result in plugin.greet(event, **event.get_extra("parsed_params"))
+        ]
+
+    result = asyncio.run(collect())
+    assert len(result) == 1
+    assert result[0].chain[0].text == "Welcome, Ali!"
+
+    config["greeting"] = "Hi"
+    assert asyncio.run(collect())[0].chain[0].text == "Hi, Ali!"
+    config["max_name_length"] = 0
+    assert "plugin settings" in asyncio.run(collect())[0].chain[0].text
