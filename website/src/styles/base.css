@@ -98,8 +98,9 @@ video {
   pointer-events: none;
   background-image:
     linear-gradient(to right, color-mix(in srgb, var(--base-color-scale-green-5) 24%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--base-color-scale-green-5) 24%, transparent) 1px, transparent 1px);
+    linear-gradient(to top, color-mix(in srgb, var(--base-color-scale-green-5) 24%, transparent) 1px, transparent 1px);
   background-size: 40px 40px;
+  background-position: left bottom;
   mask-image: radial-gradient(ellipse 60% 80% at 50% 100%, black 10%, transparent 80%);
 }
 

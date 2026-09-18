@@ -37,11 +37,13 @@ rest, hover, and pressed states instead of fixed gray fills.
 The resource grid stays single-column below 768px, uses two columns up to
 1280px, then three columns. Nested card padding decreases on narrower layouts
 so full CTA labels remain on one line without shrinking their text.
-At 1920px and wider, the homepage header and content share the catalogs'
-centered 1296px frame; smaller viewports retain the same responsive gutters.
+All pages share a centered maximum content width of 1280px. Responsive gutters
+remain on smaller viewports; intermediate desktop widths cannot grow beyond
+the same cap. Catalogs no longer break out 8px past each side of the frame.
 The landing hero concentrates a green-tinted square grid and soft glow around
 the lower center, fading toward the headline and side edges rather than covering
-the panel uniformly. Other heading panels use a static theme-token texture. Both treatments
+the panel uniformly. Its grid starts at the bottom edge and repeats upward, avoiding
+a partial final row. Other heading panels use a static theme-token texture. Both treatments
 are disabled in forced-colors mode.
 The bottom learning panel links to YouTube and the GitHub Copilot docs; the
 primary hero remains the entry point to the Learning Hub. Its outer frame shares
@@ -69,12 +71,17 @@ Run the landing/navigation and reported image regressions against a built site:
 ```bash
 node website/scripts/site-refinement-regression.mjs
 node website/scripts/resource-card-layout-regression.mjs
+node website/scripts/page-width-regression.mjs
 node website/scripts/mobile-nav-regression.mjs
 ```
 
 These browser regressions default to Astro's `http://127.0.0.1:4321`.
 Set `SITE_BASE_URL` to target another development or production-preview server.
 On PowerShell, use `$env:SITE_BASE_URL = 'http://127.0.0.1:4331'`.
+
+The page-width regression measures shared content frames across homepage, catalogs,
+contributors, resource details, and learning pages in both themes, including
+intermediate desktop widths and reserved scrollbar space.
 
 The mobile menu spans the actual header width (excluding scrollbars), with
 content aligned to the wordmark and a scrollable panel on short screens.

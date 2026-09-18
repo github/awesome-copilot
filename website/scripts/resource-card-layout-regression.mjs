@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { chromium } from "playwright";
 
 const base = process.env.SITE_BASE_URL ?? "http://127.0.0.1:4321";
-const widths = [320, 390, 543, 544, 682, 696, 767, 768, 1024, 1279, 1280, 1366, 1439, 1440, 1919, 1920, 2560];
+const widths = [320, 390, 543, 544, 682, 696, 767, 768, 1024, 1279, 1280, 1366, 1439, 1440, 1600, 1800, 1919, 1920, 2560];
 const browser = await chromium.launch();
 
 try {
@@ -15,6 +15,7 @@ try {
       await page.evaluate(() => document.fonts.ready);
       await page.addStyleTag({ content: "html { scrollbar-gutter: stable; }" });
       const homeFrame = await page.locator('[class*="heroFrameInner"]').boundingBox();
+      assert.ok(homeFrame.width <= 1281, `${width}px: content stays within the 1280px maximum`);
       const frameSelectors = [
         '#resources [class*="Grid-module__Grid___"]',
         '[class*="ctaFrameInner"]',

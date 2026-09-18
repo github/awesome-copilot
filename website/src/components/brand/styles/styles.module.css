@@ -6,8 +6,8 @@
    * below can share them:
    *   <768px      →  L/R 20px · T/B 40px
    *   768–1279px  →  L/R 91px · T/B 40px
-   *   1280–1919px →  L/R 152px · T/B 60px
-   *   ≥1920px     →  variables stop applying → centered-1296 catalog layout
+   *   1280–1919px →  L/R at least 152px, content capped at 1280px · T/B 60px
+   *   ≥1920px     →  variables stop applying → native centered-1280 layout
    * (91/152/60 have no base-size token, so they are raw px.)
    */
   --page-gutter: var(--base-size-20);
@@ -22,7 +22,7 @@
 
 @media screen and (min-width: 80rem) and (max-width: 119.99rem) {
   .page {
-    --page-gutter: 152px;
+    --page-gutter: max(152px, calc((100% - var(--brand-breakpoint-xlarge)) / 2));
     --page-pad-block: 60px;
   }
 }
@@ -814,7 +814,7 @@
  * Responsive gutters (below 1920px). Neutralise the native Section/Grid
  * 1280px-centered layout and inset each band's framed content by the tiered
  * --page-gutter, so the vertical gridlines track the content edge at every
- * width. At >=1920px the frame matches the catalog's centered 1296px layout.
+ * width. At >=1920px the native centered 1280px layout returns.
  */
 @media screen and (max-width: 119.99rem) {
   .heroFrame :global([class*="Section__container"]),
@@ -860,18 +860,5 @@
     max-width: none;
     flex: 1 1 auto;
     margin-inline: var(--page-gutter);
-  }
-}
-
-@media screen and (min-width: 120rem) {
-  .topBarInner {
-    width: 1296px;
-  }
-
-  .heroFrame :global([class*="Section__container"]),
-  .ctaFrame :global([class*="Section__container"]),
-  .dividerFrame :global([class*="Section__container"]),
-  .cardGridContent :global([class*="Grid-module__Grid_"]) {
-    max-width: 1296px;
   }
 }

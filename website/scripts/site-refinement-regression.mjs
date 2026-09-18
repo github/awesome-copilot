@@ -91,16 +91,20 @@ try {
             image: style.backgroundImage,
             fade: style.maskImage,
             pointerEvents: style.pointerEvents,
+            positionY: style.backgroundPositionY,
           };
         });
         assert.ok(grid.image.includes("linear-gradient") && !grid.image.includes("radial-gradient"));
         assert.ok(grid.fade.includes("radial-gradient"), "Grid fades outward from the lower focal area");
         assert.equal(grid.pointerEvents, "none");
+        assert.ok(grid.image.includes("to top"), "Horizontal lines start at the bottom of each tile");
+        assert.ok(grid.positionY.split(", ").every(position => position === "100%"),
+          "Grid tiles anchor to the hero's bottom edge at every viewport size");
         if (width === 1440) {
           const heroBounds = await hero.boundingBox();
-          const capturePixels = async (x, y) => {
+          const capturePixels = async (x, y, height = 64) => {
             const png = await page.screenshot({
-              clip: { x: Math.ceil(heroBounds.x + x), y: Math.ceil(heroBounds.y + y), width: 120, height: 64 },
+              clip: { x: Math.ceil(heroBounds.x + x), y: Math.ceil(heroBounds.y + y), width: 120, height },
             });
             return page.evaluate(async (base64) => {
               const bytes = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
@@ -117,6 +121,7 @@ try {
             focal: await capturePixels(center, lower),
             top: await capturePixels(center, 24),
             edge: await capturePixels(16, lower),
+            bottom: await capturePixels(center, Math.floor(heroBounds.y + heroBounds.height) - heroBounds.y - 2, 2),
           });
           const withGrid = await sampleRegions();
           const hideGrid = await page.addStyleTag({ content: ".heading-grid::before { background-image: none !important; }" });
@@ -131,6 +136,12 @@ try {
           );
           assert.ok(contrast("top") < contrast("focal") * 0.1, `${colorScheme}: headline area stays quiet`);
           assert.ok(contrast("edge") < contrast("focal") * 0.5, `${colorScheme}: grid fades at the sides`);
+          const bottomLinePixels = Array.from({ length: 240 }, (_, pixel) =>
+            [0, 1, 2].some(channel =>
+              Math.abs(withGrid.bottom[pixel * 4 + channel] - withoutGrid.bottom[pixel * 4 + channel]) >= 6,
+            ),
+          ).filter(Boolean).length;
+          assert.ok(bottomLinePixels >= 100, `${colorScheme}: a horizontal grid line meets the bottom edge`);
         }
         const bottom = page.locator("#learning-hub");
         assert.equal(await bottom.locator('[class*="CTABanner-container--border-gridlines"]').count(), 0,

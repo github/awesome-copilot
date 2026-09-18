@@ -1030,23 +1030,6 @@
   }
 }
 
-/* Break the catalog out to its full 336 + 960 width on wide screens */
-@media screen and (min-width: 84rem) {
-  .catalog {
-    width: 1296px;
-    margin-inline: -8px;
-  }
-
-  .heroInner {
-    width: 1296px;
-  }
-
-  .subNavInner,
-  .topBarInner {
-    width: 1296px;
-  }
-}
-
 /* Three-up agents grid: gridlines between connected columns (large screens) */
 @media screen and (min-width: 63.25rem) {
   .threeUp {
@@ -1087,17 +1070,14 @@
 
 /*
  * Responsive page gutters (mirrors styles.module.css; see there for the tier
- * rationale): <768→20 · 768–1279→91 · 1280–1919→152 · ≥1920→native 1296.
- * Below 1920px we neutralise the Primer Section 1280 cap and the ≥84rem 1296
- * break-out and inset each framed band by the tiered --page-gutter, so the
+ * rationale): <768→20 · 768–1279→91 · 1280–1919→at least 152 · ≥1920→native 1280.
+ * Below 1920px we inset each framed band by --page-gutter, capped at 1280px, so the
  * outer vertical gridlines track the content edge. The catalog's cards column
  * goes fluid while the 336px filter rail stays fixed (middle gridline holds).
  */
 .page {
   --page-gutter: var(--base-size-20);
   --page-pad-block: var(--base-size-40);
-  /* Footer tracks this page's ≥1920 native 1296 frame (see largeFooter). */
-  --footer-frame-width: 1296px;
 }
 
 @media screen and (min-width: 48rem) and (max-width: 79.99rem) {
@@ -1108,7 +1088,7 @@
 
 @media screen and (min-width: 80rem) and (max-width: 119.99rem) {
   .page {
-    --page-gutter: 152px;
+    --page-gutter: max(152px, calc((100% - var(--brand-breakpoint-xlarge)) / 2));
     --page-pad-block: 60px;
   }
 }

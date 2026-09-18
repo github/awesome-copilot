@@ -25,10 +25,7 @@
 
 @media screen and (min-width: 80rem) and (max-width: 119.99rem) {
   .page {
-    --page-gutter: calc(
-      var(--base-size-48) + var(--base-size-48) + var(--base-size-48) +
-        var(--base-size-8)
-    );
+    --page-gutter: max(152px, calc((100% - var(--brand-breakpoint-xlarge)) / 2));
     --page-pad-block: var(--base-size-60);
   }
 }
