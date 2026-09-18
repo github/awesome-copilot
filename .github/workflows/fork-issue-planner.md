@@ -53,7 +53,8 @@ safe-outputs:
     protected-files:
       policy: request_review
       exclude:
-        - .github/fork-only/plans/
+        # Dot-folder exclusions match only the top-level directory; allowed-files remains the strict scope.
+        - .github/
   add-comment:
     target: "*"
     max: 1
