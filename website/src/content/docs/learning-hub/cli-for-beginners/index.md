@@ -4,6 +4,9 @@ description: "A source-faithful mirror of the companion GitHub Copilot CLI for B
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-03-20
+tags:
+  - workshop
+  - cli
 ---
 
 ![GitHub Copilot CLI for Beginners](/images/learning-hub/copilot-cli-for-beginners/overview/copilot-banner.png)

@@ -117,7 +117,7 @@ az boards work-item delete --id {work-item-id} --destroy --yes
 
 ```bash
 # List relations
-az boards work-item relation list --id {work-item-id}
+az boards work-item relation show --id {work-item-id}
 
 # List supported relation types
 az boards work-item relation list-type
