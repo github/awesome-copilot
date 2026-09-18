@@ -1,0 +1,6 @@
+interface:
+  display_name: "Agent Context Lifecycle"
+  short_description: "Preserve decisions and reconcile project context"
+  default_prompt: "Use $agent-context-lifecycle to checkpoint project context and reconcile materially related documents and artifacts."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,11 @@
+# Recoverable migration
+
+This mode applies only to explicitly authorized relocation of working documents/artifacts. It does not independently authorize removing tracked documentation.
+
+1. **Inventory dependencies.** Materialize exact source paths, formats, tracked/ignored state, hashes, sizes and confirmed consumers. Inspect instruction, link, CI/build/test/eval/config dependencies. Keep required contracts and executable inputs tracked. A filename such as “research” does not prove removal is safe. Exclude secrets and caches.
+2. **Manifest and backup.** In an authorized private maintenance location, record source-to-destination mapping, original hash, reason, dependency disposition and recovery location. Back up original bytes outside the removal set. Verify readback/hashes and at least a restore into a separate temporary target. A manifest alone is not a backup.
+3. **Copy and validate before retiring.** Copy each approved target, compare hashes and read back. Keep an original snapshot and lineage for rewritten summaries. Update navigation, consumer paths and instructions minimally without losing their rules. Keep CI independent of private files and required tracked exceptions usable.
+4. **Validate each removal separately.** Only after backup/readback and within authorized scope, resolve individual literal absolute paths. Independently filter and display the candidate count/targets; prove every target lies strictly inside the narrow intended source area. Never pipe recursive enumeration directly into deletion. Reject home, workspace, repository, skill, configuration, `.git` and control roots. Fail closed on uncertainty and preserve non-reproducible data.
+5. **Verify boundary and recovery.** Check the Git index, ignore rules across the private area, links and executable contract dependencies. Same-checkout success does not prove fresh-clone portability. Keep completed and pending entries separate; replay compares hashes and avoids recopying completed entries.
+
+Concurrent source changes invalidate retirement based on the old hash. Recompute only affected mappings; a second drift leaves them blocked. On partial failure keep successful copies/backups and continue pending work. Do not delete recovery data as cleanup or publish a private archive to make a handoff easier.
