@@ -32,6 +32,12 @@ try {
       );
       assert.equal(columns, width < 768 ? 1 : width < 1280 ? 2 : 3, `${width}px: responsive column count`);
       for (const card of await cards.all()) {
+        await card.hover();
+        assert.equal(
+          await card.getByRole("link").evaluate(element => getComputedStyle(element).textDecorationLine),
+          "none",
+          `${colorScheme} ${width}px: hovering never underlines the card title or count badge`,
+        );
         await card.getByRole("link").focus();
         const result = await card.evaluate((element) => {
           const label = element.querySelector('[class*="Card__actionLabel___"]');

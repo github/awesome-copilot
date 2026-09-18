@@ -399,6 +399,11 @@
   min-block-size: 100%;
 }
 
+/* Override Primer's important hover underline for cards with disableAnimation. */
+.cardGridItem .resourceCard:hover :global([class*="Card__link"]) {
+  text-decoration: none !important;
+}
+
 /* Suppress the Card's built-in ring so it doesn't stack with the surface ring. */
 .cardGridItem :global([class*="Card__outer"]):focus-within {
   outline: none;
