@@ -13,7 +13,10 @@ Fork-specific workflows, agents, and documentation for developing the **Oracle-t
 ```mermaid
 flowchart LR
   subgraph fork [PrimedPaul/awesome-copilot]
-    issue[Issue] --> orch[dev-orchestrator agent<br/>Copilot CLI]
+    issue[Issue] --> planner[fork-issue-planner<br/>gh-aw: grill + plan + skeptic]
+    planner --> planpr[Draft PR: plan/issue-N<br/>+ open questions on the issue]
+    issue --> orch[dev-orchestrator agent<br/>Copilot CLI]
+    planpr -.resume on branch.-> orch
     orch --> pr[PR into fork main]
     pr --> vally[skill-check vally lint<br/>upstream workflow]
     pr --> rev[fork-agent-reviewer<br/>gh-aw: AI domain review + version check]
@@ -30,22 +33,25 @@ flowchart LR
 
 | File | Kind | Trigger | What it does |
 | --- | --- | --- | --- |
+| `fork-issue-planner.md` → `.lock.yml` | gh-aw | `issues: [opened]` by the repo owner (excluding `fork-automation`-labelled issues), plus `workflow_dispatch` with an `issue_number` input | Does the first round of grilling and planning without a human in the loop. Reads the issue and the files it plausibly touches, classifies scope (agent / fork tooling / out of scope), writes `.github/fork-only/plans/issue-<N>.md` containing a grilling pass (ambiguities, IN/OUT scope, constraints, **assumptions made**), a concrete plan with the semver bump level, acceptance criteria, a self-adversarial skeptic's report with a confidence rating, open questions, and verification commands. Opens a **draft** PR on branch `plan/issue-<N>` and posts one comment on the issue with the open questions and the biggest risk. `allowed-files` restricts it to `.github/fork-only/plans/issue-*.md` — it can never touch the agent, the plugin, the skills, or any workflow. |
 | `fork-sync-watchdog.md` → `.lock.yml` | gh-aw | Weekly Fri 10:00 UTC, manual | Deterministic `sync` job pushes `upstream/main` to branch `fork-sync/upstream` and opens/refreshes a PR into `main` (with the PAT so CI runs). AI agent comments on that PR with a summary, incoming commits, change footprint, anything touching this agent, and a **Keep / Disable / Integrate** verdict for every newly added upstream workflow file (with disable steps and, for Integrate, which fork file to change), plus a one-line impact note for each modified upstream workflow. If `CONTRIBUTING.md` or `AGENTS.md` changed, it also opens an issue with the full diff and what it means for this fork. |
 | `fork-agent-reviewer.md` → `.lock.yml` | gh-aw | `pull_request` into `main`, path-scoped to the agent, plugin, and `skills/*oracle-to-postgres*` | `version_check` job fails if `plugin.json` version equals upstream. AI agent applies the `ai-prompt-engineering-safety-review` skill plus an Oracle→PostgreSQL domain checklist and submits one review (`COMMENT` or `REQUEST_CHANGES`; can never `APPROVE`). |
 | `fork-bundle-upstream-pr.yml` | plain YAML | `workflow_dispatch` | Computes the single diff between `upstream/main` and fork `main` for the agent paths (agent file, plugin, every skill listed in `plugin.json`), applies it on a branch based on `upstream/main`, runs `npm run build` + `eng/fix-line-endings.sh`, commits, force-pushes `upstream-promotion/oracle-to-postgres-migration-expert` to the fork, and opens a **draft** PR against upstream (or reports the existing one). Fails hard if there is no delta, the version was not bumped, or the diff does not apply. Supports `dry_run`. |
 
-The gh-aw sources live in `.github/workflows/*.md` alongside their compiled `.lock.yml`, following upstream's convention for its own live agentic workflows (the top-level `workflows/` directory is the *contribution catalog*, not where this repo's automation runs). Recompile after editing a source: `gh aw compile --validate fork-sync-watchdog fork-agent-reviewer`.
+The gh-aw sources live in `.github/workflows/*.md` alongside their compiled `.lock.yml`, following upstream's convention for its own live agentic workflows (the top-level `workflows/` directory is the *contribution catalog*, not where this repo's automation runs). Recompile after editing a source: `gh aw compile --validate fork-sync-watchdog fork-agent-reviewer fork-issue-planner`.
 
 ### Agents (`.github/fork-only/agents/`)
 
 Custom agents for interactive Copilot CLI sessions; they are not run by Actions.
 
-- **dev-orchestrator.agent.md** — issue → grill → plan → skeptic critique → approval gate → implement → pre-PR self-review. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators).
-- **plan-skeptic.agent.md** — adversarial sub-agent the orchestrator dispatches to critique its own plan.
+- **dev-orchestrator.agent.md** — issue → grill → plan → skeptic critique → approval gate → implement → pre-PR self-review. Reads `.github/fork-only/plans/issue-<N>.md` first if the planner produced one. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators).
+- **plan-skeptic.agent.md** — adversarial sub-agent the orchestrator dispatches to critique its own plan. `fork-issue-planner` adopts the same persona for its self-critique section.
 
 ### No state files
 
 Earlier drafts tracked "last seen" SHAs in JSON. That was a second source of truth that could drift. Everything is now computed against `upstream/main`: unmerged upstream commits are simply `origin/main..upstream/main`, and the unpromoted agent delta is simply `git diff upstream/main origin/main -- <agent paths>`.
+
+Plan files under `.github/fork-only/plans/` are the one exception, and deliberately so: they are **advisory artefacts, not state**. Nothing reads them automatically and nothing branches on their contents, so a stale plan is a stale note, not a drifting source of truth.
 
 ## Repository settings this design depends on
 
@@ -80,6 +86,8 @@ Used for exactly two things, both in deterministic (non-agent) jobs:
 
 The PAT is **never** available to a gh-aw agent job. gh-aw's compiler reports it as a "new restricted secret" on first compile of the watchdog; that is expected and has been reviewed.
 
+`fork-issue-planner` does **not** use the PAT. Its draft PR is opened with `GITHUB_TOKEN`, which means the plan PR does not trigger `pull_request` workflows — harmless, because a plan-only PR has nothing for CI to check. CI starts once you push implementation commits to that branch yourself.
+
 Set an expiry (90 days) and note the renewal date in your calendar. To rotate: **Settings → Secrets and variables → Actions → `FORK_AUTOMATION_PAT`**.
 
 ### Copilot for gh-aw
@@ -91,10 +99,14 @@ The gh-aw workflows use the Copilot engine and request `copilot-requests: write`
 ### Development flow
 
 1. Open an issue in the fork describing the change.
-2. In Copilot CLI, select the **Development Orchestrator** agent (`.github/fork-only/agents/dev-orchestrator.agent.md`) and give it the issue number.
-3. It grills, plans, sends the plan to **Plan Skeptic**, waits for your approval, implements, bumps `plugin.json` version, runs `npm run build`, and self-reviews.
-4. Open a PR against fork `main`. `skill-check` (vally) and `fork-agent-reviewer` run. The reviewer's `version_check` job fails if the version was not bumped.
-5. Merge when satisfied — you are the sole reviewer.
+2. **Fork Issue Planner** fires automatically (owner-opened issues only, `fork-automation`-labelled ones excluded). Within a few minutes you get a draft PR `[plan] plan: issue #N — …` on branch `plan/issue-<N>` containing `.github/fork-only/plans/issue-<N>.md`, plus a comment on the issue listing the open questions and the biggest risk.
+3. Answer the open questions in the issue. That is the human half of the grilling the CI run could not do.
+4. In Copilot CLI, check out `plan/issue-<N>`, select the **Development Orchestrator** agent (`.github/fork-only/agents/dev-orchestrator.agent.md`) and give it the issue number. It reads the plan file as a starting point — the plan is advisory, so the orchestrator re-grills with your answers and rewrites it freely.
+5. It grills, plans, sends the plan to **Plan Skeptic**, waits for your approval, implements, bumps `plugin.json` version, runs `npm run build`, and self-reviews.
+6. Mark the plan PR *Ready for review* once it carries the implementation (or close it and open a fresh PR — the branch is yours). `skill-check` (vally) and `fork-agent-reviewer` run. The reviewer's `version_check` job fails if the version was not bumped.
+7. Merge when satisfied — you are the sole reviewer.
+
+The planner never touches anything outside `.github/fork-only/plans/issue-*.md`, so a bad plan costs you a `git rm` and nothing else. To re-plan after the issue is clarified, **Actions → Fork Issue Planner → Run workflow** with the issue number; it force-refreshes the same branch and PR.
 
 ### Weekly sync
 
@@ -111,12 +123,13 @@ Run with `dry_run` first; the job summary shows the diff stat. Then run for real
 ## First-run checklist
 
 - [x] Merge this branch to fork `main` (schedule/dispatch only fire from the default branch).
-- [x] Confirm the three `fork-*` workflows appear in the Actions tab.
+- [x] Confirm the four `fork-*` workflows appear in the Actions tab.
 - [x] Disable upstream workflows you do not want (see list above).
 - [x] Add `FORK_AUTOMATION_PAT` secret (`public_repo` + `workflow` scopes).
 - [ ] **Watchdog**: Run workflow → expect a sync PR with an AI comment (or a "nothing to sync" notice).
 - [ ] **Reviewer**: open a test PR that edits the agent file *without* bumping the version → expect `version_check` red and an AI review; bump the version → expect green.
 - [ ] **Bundler**: run with `dry_run` → inspect the summary; then run for real → confirm the draft PR on upstream.
+- [ ] **Planner**: open a throwaway issue describing a small agent tweak → expect a `[plan] …` draft PR on `plan/issue-<N>` and a comment with open questions. Delete the branch and close the issue afterwards.
 - [ ] Update the *Status* section above once each is green.
 
 ## Troubleshooting
@@ -130,6 +143,9 @@ Run with `dry_run` first; the job summary shows the diff stat. Then run for real
 | Reviewer `version_check` red | `plugin.json` version equals upstream | Bump it on the PR branch |
 | Bundler: "No unpromoted changes" | Fork `main` matches upstream for the agent paths | Nothing to promote |
 | Bundler: `git apply` fails | Should be impossible (branch *is* `upstream/main`); indicates a fetch problem | Re-run; if it persists, open an issue with the log |
+| Planner did not run on a new issue | Issue was not opened by the repo owner, or carries the `fork-automation` label (the watchdog's own issues are excluded by design) | Re-run manually: Actions → Fork Issue Planner → Run workflow → issue number |
+| Planner run fails at `create_pull_request` with a protected-files or allowed-files error | The agent tried to write outside `.github/fork-only/plans/issue-*.md` | Working as designed — the planner must never edit code. Re-run; if it repeats, tighten the *Rules* section of `fork-issue-planner.md` |
+| Planner PR has the `fork-automation` label but the label does not exist | The repository has no `fork-automation` label yet | Create it once in Issues → Labels (the watchdog needs it too) |
 | gh-aw agent job fails at engine start | Copilot credential requirement changed | See gh-aw engines reference |
 
 ## Editing fork-only tooling
