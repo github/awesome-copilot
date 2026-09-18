@@ -85,7 +85,7 @@ Rules to follow when generating or editing V code:
 - **No globals by default.** Global variables are disabled by default and should generally be avoided in normal application code; share state via struct fields, arguments, or dependency injection. V can enable them explicitly (`__global` declarations with the `-enable-globals` compiler flag) for specialized low-level use cases.
 - **String interpolation** uses `'${expr}'` inside single-quoted strings.
 - **C interop** is explicit: `#include`, `#flag`, and `C.func()` calls. Only suggest it when the user asks for system-level interop.
-- Prefer the standard library (`os`, `json`, `net.http`, `time`, `flag`) before suggesting third-party modules.
+- Prefer the standard library (`os`, `json2`, `net.http`, `time`, `flag`) before suggesting third-party modules. Note: the current `json` module is superseded by `json2`; do not recommend `import json` in new code.
 
 ## Important behavioral rules
 
