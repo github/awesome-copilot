@@ -78,6 +78,18 @@ export function formatLastUpdated(
 }
 
 /**
+ * Detail pages render a hero `<h1>` from frontmatter (see DetailChassis), but
+ * the resource's own markdown document typically starts with its own `# Title`
+ * — usually the same title restated. Left in place, that renders as a second
+ * `<h1>` in the page's heading outline. Strip only the first leading `<h1>`
+ * (whichever heading level `marked` gave the document's opening `#`), since
+ * the hero already carries that title; keep any subsequent headings intact.
+ */
+function stripLeadingH1(html: string): string {
+  return html.replace(/^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*/, "");
+}
+
+/**
  * Read a resource's markdown file at build time and return its rendered HTML,
  * trimmed frontmatter block, and the raw file contents.
  */
@@ -95,7 +107,9 @@ export function readResourceMarkdown(filePath: string): {
     const parsed = matter(raw);
     frontmatterText = parsed.matter?.trim() ?? "";
     markdownHtml = enhanceMarkdownA11y(
-      sanitizeHtml(marked.parse(parsed.content, { async: false }) as string)
+      stripLeadingH1(
+        sanitizeHtml(marked.parse(parsed.content, { async: false }) as string)
+      )
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

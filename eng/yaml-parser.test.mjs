@@ -72,6 +72,19 @@ test("recurses into nested and non-spec subdirectories instead of listing the di
   }
 });
 
+test("excludes ignored build output directories from bundled assets", () => {
+  const skillPath = createSkill({
+    "SKILL.md": SKILL_MD,
+    "scripts/generate.cs": "source",
+    "scripts/bin/Debug/tool.dll": "build output",
+    "scripts/obj/project.assets.json": "build output",
+  });
+
+  const metadata = parseSkillMetadata(skillPath);
+
+  assert.deepEqual(metadata.assets, ["scripts/generate.cs"]);
+});
+
 test("excludes only the root SKILL.md, keeping nested ones as bundled assets", () => {
   const skillPath = createSkill({
     "SKILL.md": SKILL_MD,

@@ -1,0 +1,76 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-6);
+  block-size: var(--base-size-32);
+  padding-inline: var(--base-size-12);
+  border: 0;
+  border-radius: var(--brand-borderRadius-full);
+  background-color: transparent;
+  color: var(--brand-color-text-default);
+  font-family: var(--brand-fontStack-sansSerif);
+  font-size: var(--brand-text-size-100);
+  font-weight: var(--brand-text-weight-semibold);
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.16s ease;
+}
+
+.trigger:hover {
+  background-color: var(--brand-color-canvas-subtle);
+}
+
+.trigger:focus-visible {
+  outline: var(--brand-borderWidth-thick) solid var(--brand-color-focus);
+  outline-offset: var(--base-size-2);
+}
+
+.heart {
+  display: inline-flex;
+  align-items: center;
+  color: var(--brand-color-success-fg);
+  line-height: 1;
+  transform-origin: center;
+}
+
+/* The heart only beats while the contributors button (heart + count) is
+   hovered or keyboard-focused, so the motion is intentional, not ambient. */
+.trigger:hover .heart,
+.trigger:focus-visible .heart {
+  animation: heartbeat 3s ease-in-out infinite;
+}
+
+/* Lub-dub pulse: two quick beats early in the cycle, then a long rest
+   before it repeats — reads like a resting human heartbeat. */
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  10% {
+    transform: scale(1.5);
+  }
+  20% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.35);
+  }
+  42% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.countLabel {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger:hover .heart,
+  .trigger:focus-visible .heart {
+    animation: none;
+  }
+}
