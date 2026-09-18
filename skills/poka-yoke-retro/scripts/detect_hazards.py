@@ -5,7 +5,8 @@ This is a fast first pass, not an oracle. It finds textually-detectable hazards 
 reviewer can spend their attention on the interface-level questions a regex cannot ask.
 Expect real false positives; every hit is a question, not a verdict.
 
-Hazard IDs match references/hazard-catalog.md. Standard library only.
+Hazard IDs match the hazard catalogue that ships with the poka-yoke skill.
+Standard library only.
 
 Examples:
     detect_hazards.py --diff                  # uncommitted changes, changed lines only
