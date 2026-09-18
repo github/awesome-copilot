@@ -58,7 +58,6 @@ module main
 
 struct Config {
 	host string
-mut:
 	port int
 }
 
