@@ -36,7 +36,7 @@ import {
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/extensions.module.css";
-import { getScrollBehavior } from "./scrollBehavior";
+import { useCatalogPageFocus } from "./useCatalogPageFocus";
 
 const CONTRIBUTE_URL =
   "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md#adding-canvas-extensions";
@@ -149,7 +149,7 @@ export function ExtensionsCatalog({
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
   const [currentPage, setCurrentPage] = useState(1);
-  const previousPage = React.useRef(currentPage);
+  useCatalogPageFocus(currentPage);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyTimer = React.useRef<number | undefined>(undefined);
@@ -241,18 +241,6 @@ export function ExtensionsCatalog({
     page * PAGE_SIZE,
   );
 
-  React.useEffect(() => {
-    if (previousPage.current === currentPage) return;
-    previousPage.current = currentPage;
-    const frame = window.requestAnimationFrame(() => {
-      const catalog = document.getElementById("catalog");
-      if (!catalog) return;
-      catalog.scrollIntoView({ behavior: getScrollBehavior(), block: "start" });
-      catalog.focus({ preventScroll: true });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [currentPage]);
-
   return (
     <PageShell
       styles={styles}
@@ -261,17 +249,17 @@ export function ExtensionsCatalog({
       contributorsTotal={contributorsTotal}
       searchAriaLabel="Search extensions"
     >
-      <Box className={styles.hero}>
+      <Box className={clsx(styles.hero, "heading-texture")}>
         <div className={styles.heroInner}>
           <span className={styles.heroIcon} aria-hidden="true">
             <ExtensionsIcon size={36} />
           </span>
           <Heading as="h1" size="3" className={styles.heroHeading}>
-            Canvas Extensions
+            Extensions
           </Heading>
           <Text as="p" size="300" variant="muted" className={styles.heroText}>
-            Canvas extensions that bring interactive GitHub Copilot app
-            experiences to life — contributed and curated by the community.
+            Interactive panels for the GitHub Copilot app, supplied by
+            community-built canvas extensions.
           </Text>
         </div>
       </Box>
@@ -511,18 +499,15 @@ export function ExtensionsCatalog({
                 Don&rsquo;t see what you&rsquo;re looking for?
               </CTABanner.Heading>
               <CTABanner.Description>
-                This collection is community-built. Share your own canvas
-                extension
-                <br />
-                &mdash;or request one&mdash;to help others get more out of the
-                GitHub Copilot app.
+                Share your own canvas extension or request a canvas to help
+                others get more out of the GitHub Copilot app.
               </CTABanner.Description>
               <CTABanner.ButtonGroup>
                 <Button as="a" href={CONTRIBUTE_URL}>
-                  Submit an extension
+                  Submit a canvas
                 </Button>
                 <Button as="a" href={REQUEST_URL}>
-                  Request an extension
+                  Request a canvas
                 </Button>
               </CTABanner.ButtonGroup>
             </CTABanner>

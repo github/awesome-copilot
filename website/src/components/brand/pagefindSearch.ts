@@ -7,7 +7,7 @@
  * dev` it simply fails and search degrades to the static in-memory index.
  */
 import { pageHref } from "./pageHref";
-import type { SearchCategory, SearchItem } from "./searchIndex";
+import { categoryOf, filterSearchItemsByLocale, mergeSearchItems, type SearchItem } from "./searchIndex";
 
 type PagefindResultData = {
   url: string;
@@ -26,8 +26,6 @@ function stripTags(html: string): string {
   } while (text !== previous);
   return text;
 }
-
-
 type PagefindModule = {
   options?: (opts: Record<string, unknown>) => Promise<void>;
   init?: () => Promise<void>;
@@ -54,6 +52,13 @@ function basePath(): string {
 
 let modulePromise: Promise<PagefindModule | null> | null = null;
 
+/** Match Pagefind's language selection, not an untranslated URL prefix. */
+export function currentSearchLocale(): string {
+  return typeof document !== "undefined"
+    ? document.documentElement.lang?.toLowerCase() || "en"
+    : "en";
+}
+
 /** Load (once) the Pagefind bundle, or resolve to `null` when unavailable. */
 export function loadPagefind(): Promise<PagefindModule | null> {
   if (modulePromise) return modulePromise;
@@ -74,53 +79,30 @@ export function loadPagefind(): Promise<PagefindModule | null> {
   return modulePromise;
 }
 
-const CATEGORY_BY_SEGMENT: Record<string, SearchCategory> = {
-  agent: "Agents",
-  agents: "Agents",
-  instruction: "Instructions",
-  instructions: "Instructions",
-  skill: "Skills",
-  skills: "Skills",
-  plugin: "Plugins",
-  plugins: "Plugins",
-  extension: "Extensions",
-  extensions: "Extensions",
-  "learning-hub": "Articles",
-};
-
-/** Derive a result category from the result URL, relative to the base path. */
-function categoryOf(pathname: string): SearchCategory {
-  const base = basePath();
-  const relative = pathname.startsWith(base)
-    ? pathname.slice(base.length)
-    : pathname.replace(/^\//, "");
-  const segments = relative.split("/").filter(Boolean);
-  if (segments.length === 0) return "Pages";
-  // A bare section landing page (e.g. /skills/) is a destination, not a record.
-  if (segments.length === 1 && !CATEGORY_BY_SEGMENT[segments[0]]) return "Pages";
-  if (segments.length === 1) return "Pages";
-  return CATEGORY_BY_SEGMENT[segments[0]] ?? "Pages";
-}
-
 /** Pagefind custom records carry a `Title — Agent` style suffix; strip it. */
 function cleanTitle(title: string): string {
-  return title.replace(/\s+—\s+(Agent|Instruction|Skill|Hook|Workflow|Plugin|Tool|Extension)$/u, "");
+  return title.replace(/\s+—\s+(Agent|Instruction|Skill|Hook|Workflow|Plugin|Tool|Extension|Canvas)$/u, "");
 }
 
-/** Normalised key used to dedupe against the static index. */
-export function hrefKey(href: string): string {
-  try {
-    const url = new URL(href, window.location.origin);
-    return url.pathname.replace(/\/+$/, "").toLowerCase() || "/";
-  } catch {
-    return href.replace(/\/+$/, "").toLowerCase() || "/";
-  }
+export function pagefindItem(entry: PagefindResultData, base = "/"): SearchItem {
+  const href = entry.meta?.canonical || entry.url;
+  return {
+    title: entry.meta?.resourceTitle ||
+      cleanTitle(entry.meta?.title?.trim() || entry.url),
+    description: entry.meta?.description ||
+      (entry.excerpt ? stripTags(entry.excerpt) : ""),
+    category: categoryOf(href, base),
+    href,
+    canonicalHref: entry.meta?.canonical,
+    locale: entry.meta?.locale,
+  };
 }
 
 /** Run a Pagefind query and adapt the hits to `SearchItem`s. */
 export async function searchPagefind(
   term: string,
   limit: number,
+  locale = currentSearchLocale(),
 ): Promise<SearchItem[]> {
   const pagefind = await loadPagefind();
   if (!pagefind) return [];
@@ -130,23 +112,24 @@ export async function searchPagefind(
       : await pagefind.search(term);
     // `debouncedSearch` resolves to null when superseded by a newer query.
     if (!response) return [];
-    const data = await Promise.all(
-      response.results.slice(0, limit).map((result) => result.data()),
-    );
-    const items: SearchItem[] = [];
-    for (const entry of data) {
-      if (!entry?.url) continue;
-      const title = cleanTitle(entry.meta?.title?.trim() || entry.url);
-      if (!title) continue;
-      items.push({
-        title,
-        description: entry.excerpt ? stripTags(entry.excerpt) : "",
-        category: categoryOf(entry.url.split(/[?#]/)[0]),
-        href: entry.url,
-      });
+    let items: SearchItem[] = [];
+    // Fetch bounded batches, but apply the result limit after identity merging.
+    for (let offset = 0; offset < response.results.length && items.length < limit; offset += limit) {
+      const data = await Promise.all(
+        response.results.slice(offset, offset + limit).map((result) => result.data()),
+      );
+      items = mergeSearchItems([
+        ...items,
+        ...filterSearchItemsByLocale(
+          data.filter((entry) => entry?.url).map((entry) => pagefindItem(entry, basePath())),
+          locale,
+          basePath(),
+        ),
+      ]);
     }
-    return items;
-  } catch {
+    return items.slice(0, limit);
+  } catch (error) {
+    console.warn("[search] Pagefind query failed; using the static index.", error);
     return [];
   }
 }

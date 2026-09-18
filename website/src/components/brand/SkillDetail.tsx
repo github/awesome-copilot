@@ -282,6 +282,17 @@ export function SkillDetail({
         { label: item.title },
       ]}
       install={install}
+      compactInstall={
+        <Button
+          variant="primary"
+          size="small"
+          hasArrow={false}
+          onClick={handleCopyInstall}
+          leadingVisual={copied ? CheckIcon : CopyIcon}
+        >
+          {copied ? "Copied" : "Copy install command"}
+        </Button>
+      }
       heroExtras={
         <div className={styles.codeBlockWrap}>
           <span className={styles.codeLabel}>Install with the GitHub CLI</span>
@@ -423,7 +434,7 @@ function FileView({
   // Non-primary markdown assets are parsed in the browser; `marked` and the
   // sanitizer are only pulled in when such a file is actually opened.
   React.useEffect(() => {
-    if (isPrimary || kind !== "markdown" || text === undefined) {
+    if (!active || isPrimary || kind !== "markdown" || text === undefined) {
       setMarkdown(null);
       return;
     }
@@ -436,14 +447,17 @@ function FileView({
       if (cancelled) return;
       setMarkdown(
         enhanceMarkdownA11y(
-          sanitizeHtml(marked.parse(text, { async: false }) as string),
+          sanitizeHtml(marked.parse(text, { async: false }) as string, {
+            rawBase,
+            filePath: active.path,
+          }),
         ),
       );
     });
     return () => {
       cancelled = true;
     };
-  }, [isPrimary, kind, text]);
+  }, [active?.path, isPrimary, kind, text, rawBase]);
 
   if (!active) return null;
 
