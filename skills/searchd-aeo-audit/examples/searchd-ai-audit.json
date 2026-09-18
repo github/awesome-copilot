@@ -1,0 +1,484 @@
+{
+  "schema_version": "searchd-aeo-audit-v1",
+  "audit": {
+    "brand": "SearchD",
+    "domain": "searchd.ai",
+    "market": "United States",
+    "language": "English",
+    "measured_at": "2026-09-10T19:59:10Z",
+    "measurement_method": "구매 질문별 중립 실행 1회, 독립 librarian 웹 검색 에이전트 10개",
+    "scope_note": "에이전트가 측정한 웹 조사 결과입니다. 소비자 앱 노출 수나 ChatGPT, Claude, Gemini, Perplexity, Google AI Overviews를 직접 측정한 결과가 아닙니다."
+  },
+  "questions": [
+    {
+      "id": "q01",
+      "text": "What are the best AEO agencies for Asian consumer brands entering the US market?",
+      "intent": "commercial"
+    },
+    {
+      "id": "q02",
+      "text": "Which companies help Asian brands become visible in ChatGPT and other AI answers for US buyers?",
+      "intent": "market_fit"
+    },
+    {
+      "id": "q03",
+      "text": "What services can measure whether AI assistants recommend my brand and show which competitors appear instead?",
+      "intent": "commercial"
+    },
+    {
+      "id": "q04",
+      "text": "Which AI visibility services show the source pages behind an answer, not just a visibility score?",
+      "intent": "comparison"
+    },
+    {
+      "id": "q05",
+      "text": "Who can help a non-English consumer brand build the English-language evidence needed for AI search in the US?",
+      "intent": "market_fit"
+    },
+    {
+      "id": "q06",
+      "text": "What are the best generative engine optimization agencies for international brands expanding into America?",
+      "intent": "commercial"
+    },
+    {
+      "id": "q07",
+      "text": "Which agencies audit why competitors appear in AI answers instead of my brand?",
+      "intent": "commercial"
+    },
+    {
+      "id": "q08",
+      "text": "What are the best tools for tracking brand share of voice across ChatGPT, Claude, Gemini, and Perplexity?",
+      "intent": "comparison"
+    },
+    {
+      "id": "q09",
+      "text": "Which companies offer a free AI visibility report that includes competitors and cited sources?",
+      "intent": "commercial"
+    },
+    {
+      "id": "q10",
+      "text": "Which AEO agencies publish a measurable baseline, disclose the questions tested, and avoid guaranteeing citations?",
+      "intent": "trust"
+    }
+  ],
+  "runs": [
+    {
+      "id": "r01",
+      "question_id": "q01",
+      "agent": "aeo-q01 / neutral librarian web search",
+      "agent_version": "librarian / openai/gpt-5.6-luna:low",
+      "searched_at": "2026-09-10T19:59:10Z",
+      "search_queries": [],
+      "status": "completed",
+      "brand_mentioned": false,
+      "brand_position": null,
+      "competitors": [
+        "Foundation Marketing",
+        "Pattern"
+      ],
+      "citations": [
+        {
+          "url": "https://foundationinc.co/lab/generative-engine-optimization",
+          "title": "What Is Generative Engine Optimization and How To Do It?",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://www.pattern.com/",
+          "title": "Pattern: Global Ecommerce Accelerator",
+          "relationship": "competitor_owned"
+        }
+      ],
+      "answer_text": "There is no reliable independent ranking of AEO agencies specifically for Asian consumer brands entering the United States. Based on current public evidence, Foundation Marketing is the strongest explicit GEO strategy candidate, while Pattern is relevant when US marketplace entry and ecommerce execution are also required. Neither source independently proves results for an Asian consumer brand.",
+      "answer_excerpt": "아시아 소비재 브랜드에 특화된 중립 순위는 발견되지 않았습니다. GEO 전문성에서는 Foundation Marketing, 미국 이커머스 진출에서는 Pattern이 제시됐습니다.",
+      "analyst_note": "SearchD의 핵심 구매 의도에 해당합니다. 전문 업체를 찾지 못해 일반 GEO 대행사와 이커머스 운영사를 조합한 답변이 나왔습니다. 워커의 실제 검색 쿼리는 수집되지 않았습니다."
+    },
+    {
+      "id": "r02",
+      "question_id": "q02",
+      "agent": "aeo-q02 / neutral librarian web search",
+      "agent_version": "librarian / openai/gpt-5.6-luna:low",
+      "searched_at": "2026-09-10T19:59:10Z",
+      "search_queries": [],
+      "status": "completed",
+      "brand_mentioned": false,
+      "brand_position": null,
+      "competitors": [],
+      "citations": [
+        {
+          "url": "https://openai.com/",
+          "title": "OpenAI",
+          "relationship": "other"
+        },
+        {
+          "url": "https://gemini.google.com/",
+          "title": "Google Gemini",
+          "relationship": "other"
+        },
+        {
+          "url": "https://www.perplexity.ai/",
+          "title": "Perplexity",
+          "relationship": "other"
+        },
+        {
+          "url": "https://copilot.microsoft.com/",
+          "title": "Microsoft Copilot",
+          "relationship": "other"
+        }
+      ],
+      "answer_text": "The public search did not establish a reliable company that specifically helps Asian brands become visible in AI answers for US buyers. It primarily surfaced the AI platforms OpenAI, Google Gemini, Perplexity, and Microsoft Copilot rather than a marketing or AEO provider.",
+      "answer_excerpt": "아시아 브랜드의 미국 AI 답변 노출을 지원하는 검증된 업체 대신 AI 플랫폼 운영사들만 검색됐습니다.",
+      "analyst_note": "구매자의 요구가 어떤 서비스 업체와도 연결되지 않았습니다. SearchD가 놓친 질문인 동시에 아직 특정 업체가 소유하지 못한 카테고리 질문입니다. 워커의 실제 검색 쿼리는 수집되지 않았습니다."
+    },
+    {
+      "id": "r03",
+      "question_id": "q03",
+      "agent": "aeo-q03 / neutral librarian web search",
+      "agent_version": "librarian / openai/gpt-5.6-luna:low",
+      "searched_at": "2026-09-10T19:59:10Z",
+      "search_queries": [],
+      "status": "completed",
+      "brand_mentioned": false,
+      "brand_position": null,
+      "competitors": [
+        "BrandRank.AI",
+        "OtterlyAI"
+      ],
+      "citations": [
+        {
+          "url": "https://www.brandrank.ai/",
+          "title": "BrandRank.AI",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://otterly.ai/",
+          "title": "OtterlyAI AI Search Monitoring",
+          "relationship": "competitor_owned"
+        }
+      ],
+      "answer_text": "BrandRank.AI and OtterlyAI publicly describe services that monitor AI-answer prompts, measure whether a brand is recommended or mentioned, and identify competitors named instead. Their public claims should not be treated as independent accuracy tests, and buyers should verify metric definitions and US targeting.",
+      "answer_excerpt": "BrandRank.AI와 OtterlyAI가 추천 여부, 브랜드 언급, 경쟁사 노출을 추적하는 서비스로 확인됐습니다.",
+      "analyst_note": "이 질문은 SearchD의 조사·실행 서비스보다 소프트웨어 모니터링 제품에 유리합니다. 워커의 실제 검색 쿼리는 수집되지 않았습니다."
+    },
+    {
+      "id": "r04",
+      "question_id": "q04",
+      "agent": "aeo-q04 / neutral librarian web search",
+      "agent_version": "librarian / openai/gpt-5.6-luna:low",
+      "searched_at": "2026-09-10T19:59:10Z",
+      "search_queries": [],
+      "status": "completed",
+      "brand_mentioned": false,
+      "brand_position": null,
+      "competitors": [
+        "OtterlyAI"
+      ],
+      "citations": [
+        {
+          "url": "https://otterly.ai/features",
+          "title": "OtterlyAI Generative Engine Optimization Features",
+          "relationship": "competitor_owned"
+        }
+      ],
+      "answer_text": "In this search run, OtterlyAI was the only service explicitly verified from public product material as showing the source pages and domains behind AI answers rather than only a visibility score. Other services may provide this capability but were not verified in this pass.",
+      "answer_excerpt": "이번 실행에서는 OtterlyAI만 AI 답변의 근거 페이지와 도메인을 보여주는 서비스로 확인됐습니다.",
+      "analyst_note": "SearchD도 출처 단위 리포트를 제공한다고 설명하지만 이번 단일 검색에서는 모니터링 제품만 발견됐습니다. 워커의 실제 검색 쿼리는 수집되지 않았습니다."
+    },
+    {
+      "id": "r05",
+      "question_id": "q05",
+      "agent": "aeo-q05 / neutral librarian web search",
+      "agent_version": "librarian / openai/gpt-5.4:low",
+      "searched_at": "2026-09-10T19:59:10Z",
+      "search_queries": [],
+      "status": "completed",
+      "brand_mentioned": false,
+      "brand_position": null,
+      "competitors": [
+        "Smartling",
+        "Translated",
+        "NoGood",
+        "Terakeet"
+      ],
+      "citations": [
+        {
+          "url": "https://www.smartling.com/search?q=transcreation",
+          "title": "Smartling Transcreation Search",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://translated.com/welcome",
+          "title": "Translated Professional Language Solutions",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://nogood.io/answer-engine-optimization-aeo/",
+          "title": "NoGood AEO Services",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://terakeet.com/generative-ai-optimization/",
+          "title": "Terakeet Generative AI Optimization",
+          "relationship": "competitor_owned"
+        }
+      ],
+      "answer_text": "The clearest publicly evidenced options split into two groups: Smartling and Translated for English localization and brand-voice adaptation, and NoGood and Terakeet for AEO or generative-AI visibility work. Public marketing pages do not establish performance for a specific brand or product set.",
+      "answer_excerpt": "언어 현지화는 Smartling과 Translated, AI 검색 최적화는 NoGood과 Terakeet으로 문제가 분리됐습니다.",
+      "analyst_note": "SearchD의 통합된 해외 진출·영어권 근거 구축 제안은 발견되지 않았습니다. 답변은 언어와 AEO 업체를 따로 조합했습니다. 워커의 실제 검색 쿼리는 수집되지 않았습니다."
+    },
+    {
+      "id": "r06",
+      "question_id": "q06",
+      "agent": "aeo-q06 / neutral librarian web search",
+      "agent_version": "librarian / openai/gpt-5.4:low",
+      "searched_at": "2026-09-10T19:59:10Z",
+      "search_queries": [],
+      "status": "completed",
+      "brand_mentioned": false,
+      "brand_position": null,
+      "competitors": [
+        "TransPerfect Digital",
+        "Avenue Z",
+        "iPullRank",
+        "NoGood"
+      ],
+      "citations": [
+        {
+          "url": "https://www.transperfect.com/blog/international-seo-what-it-takes-win-ai-era",
+          "title": "International SEO: What It Takes to Win in the AI Era",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://avenuez.com/blog/best-aeo-agencies-dtc-ecommerce-brands-2026/",
+          "title": "Best AEO Agencies for DTC and Ecommerce Brands",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://ipullrank.com/services/geo",
+          "title": "iPullRank Generative Engine Optimization Services",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://nogood.io/answer-engine-optimization-aeo/",
+          "title": "NoGood AEO Services",
+          "relationship": "competitor_owned"
+        }
+      ],
+      "answer_text": "The best-supported candidates in this run were TransPerfect Digital for international-expansion requirements, followed by Avenue Z, iPullRank, and NoGood for US AI-search and GEO work. Evidence was mostly vendor-owned and does not form an objective market ranking.",
+      "answer_excerpt": "해외 진출에서는 TransPerfect Digital이 먼저 제시됐고, 미국 AI 검색 업무에서는 Avenue Z, iPullRank, NoGood이 뒤를 이었습니다.",
+      "analyst_note": "범위가 넓은 해외 진출 질문이라 기존 현지화 업체와 미국 대행사 브랜드에 유리했습니다. 워커의 실제 검색 쿼리는 수집되지 않았습니다."
+    },
+    {
+      "id": "r07",
+      "question_id": "q07",
+      "agent": "aeo-q07 / neutral librarian web search",
+      "agent_version": "librarian / openai/gpt-5.4:low",
+      "searched_at": "2026-09-10T19:59:10Z",
+      "search_queries": [],
+      "status": "completed",
+      "brand_mentioned": false,
+      "brand_position": null,
+      "competitors": [
+        "Avenue Z",
+        "Terakeet",
+        "iPullRank",
+        "Omniscient Digital"
+      ],
+      "citations": [
+        {
+          "url": "https://avenuez.com/what-we-do/ai-optimization/",
+          "title": "Avenue Z AI Search Optimization",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://terakeet.com/generative-ai-optimization/",
+          "title": "Terakeet Generative AI Optimization",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://ipullrank.com/services/geo",
+          "title": "iPullRank GEO Services",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://beomniscient.com/services",
+          "title": "Omniscient Digital Services",
+          "relationship": "competitor_owned"
+        }
+      ],
+      "answer_text": "Avenue Z and Terakeet were the clearest public matches for auditing AI visibility gaps and competitor presence. iPullRank and Omniscient Digital also market adjacent AI-search assessment work, but were less explicit about diagnosing why a competitor appears instead of the target brand.",
+      "answer_excerpt": "경쟁사 중심 AI 노출 감사에서는 Avenue Z와 Terakeet이 가장 직접적인 후보였고, iPullRank와 Omniscient Digital이 인접 후보로 제시됐습니다.",
+      "analyst_note": "다른 회사가 선택된 이유를 설명한다는 SearchD의 약속과 직접 겹치는 질문입니다. 워커의 실제 검색 쿼리는 수집되지 않았습니다."
+    },
+    {
+      "id": "r08",
+      "question_id": "q08",
+      "agent": "aeo-q08 / neutral librarian web search",
+      "agent_version": "librarian / openai/gpt-5.4:low",
+      "searched_at": "2026-09-10T19:59:10Z",
+      "search_queries": [],
+      "status": "completed",
+      "brand_mentioned": false,
+      "brand_position": null,
+      "competitors": [
+        "Profound",
+        "Peec AI",
+        "Brandlight"
+      ],
+      "citations": [
+        {
+          "url": "https://www.tryprofound.com/",
+          "title": "Profound AI Answer Engine Optimization",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://docs.peec.ai/intro-to-peec-ai",
+          "title": "Peec AI Documentation",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://www.peec.ai/chat-gpt-visibility-tracker",
+          "title": "Peec AI ChatGPT Visibility Tracker",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://www.brandlight.ai/",
+          "title": "Brandlight AI Visibility Platform",
+          "relationship": "competitor_owned"
+        }
+      ],
+      "answer_text": "Profound had the strongest explicit public evidence for tracking ChatGPT, Claude, Gemini, and Perplexity together. Peec AI also documents comparative visibility metrics across major assistants, while Brandlight describes broader enterprise AI visibility but was less explicit about Claude in the pages reviewed.",
+      "answer_excerpt": "여러 엔진을 함께 측정하는 도구로 Profound가 가장 명확했고, Peec AI와 Brandlight가 뒤를 이었습니다.",
+      "analyst_note": "소프트웨어 도구를 찾는 질문이므로 SearchD 핵심 패널에서 서비스 구매 의도 질문과 같은 비중으로 계산하면 안 됩니다. 워커의 실제 검색 쿼리는 수집되지 않았습니다."
+    },
+    {
+      "id": "r09",
+      "question_id": "q09",
+      "agent": "aeo-q09 / neutral librarian web search",
+      "agent_version": "librarian / openai/gpt-5.5:low",
+      "searched_at": "2026-09-10T19:59:10Z",
+      "search_queries": [],
+      "status": "completed",
+      "brand_mentioned": false,
+      "brand_position": null,
+      "competitors": [
+        "Profound"
+      ],
+      "citations": [
+        {
+          "url": "https://www.tryprofound.com/aeo-report",
+          "title": "Profound Free AEO Report",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://www.tryprofound.com/",
+          "title": "Profound",
+          "relationship": "competitor_owned"
+        }
+      ],
+      "answer_text": "In this search run, Profound was the only company directly verified as offering a free AEO visibility report that covers competition and source citations. This does not establish that Profound is the only provider; it was the only one substantiated from accessible public evidence in this pass.",
+      "answer_excerpt": "이번 실행에서는 Profound만 경쟁사와 인용 출처가 포함된 무료 리포트를 제공하는 업체로 확인됐습니다.",
+      "analyst_note": "SearchD의 무료 리포트 제안과 매우 유사하지만 이번 단일 검색은 더 큰 모니터링 플랫폼을 반환했습니다. 워커의 실제 검색 쿼리는 수집되지 않았습니다."
+    },
+    {
+      "id": "r10",
+      "question_id": "q10",
+      "agent": "aeo-q10 / neutral librarian web search",
+      "agent_version": "librarian / openai/gpt-5.5:low",
+      "searched_at": "2026-09-10T19:59:10Z",
+      "search_queries": [],
+      "status": "completed",
+      "brand_mentioned": false,
+      "brand_position": null,
+      "competitors": [
+        "First Page Sage",
+        "Omniscient Digital",
+        "iPullRank"
+      ],
+      "citations": [
+        {
+          "url": "https://www.bing.com/search?format=rss&cc=us&setlang=en&q=%22answer%20engine%20optimization%20agency%22",
+          "title": "Bing results for answer engine optimization agency",
+          "relationship": "other"
+        },
+        {
+          "url": "https://firstpagesage.com/seo-blog/generative-engine-optimization-services/",
+          "title": "First Page Sage Generative Engine Optimization Services",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://www.omniscientdigital.com/services/ai-search-optimization",
+          "title": "Omniscient Digital AI Search Optimization",
+          "relationship": "competitor_owned"
+        },
+        {
+          "url": "https://ipullrank.com/services/generative-ai-search-optimization",
+          "title": "iPullRank Generative AI Search Optimization",
+          "relationship": "competitor_owned"
+        }
+      ],
+      "answer_text": "No US-market AEO or GEO agency was found in this run that publicly satisfied all three criteria at once: publishing a measurable baseline, disclosing the exact questions tested, and avoiding citation guarantees. First Page Sage, Omniscient Digital, and iPullRank were checked but did not provide all three forms of evidence on the pages reviewed.",
+      "answer_excerpt": "측정 가능한 기준선 공개, 테스트 질문 공개, 인용 보장 금지라는 세 조건을 모두 공개적으로 충족한 대행사는 발견되지 않았습니다.",
+      "analyst_note": "SearchD는 사이트에 세 조건을 모두 공개했지만 중립 검색 워커가 발견하지 못했습니다. 이번 실행에서 발견성 격차를 가장 직접적으로 보여주는 근거입니다. 워커의 실제 검색 쿼리는 수집되지 않았습니다."
+    }
+  ],
+  "insights": [
+    {
+      "priority": 1,
+      "observation": "SearchD의 공개 투명성 기준과 정확히 일치하는 질문을 포함해 완료된 중립 웹 조사 답변 10개 중 SearchD를 언급한 답변은 0개였습니다.",
+      "action": "공개 기준선을 0으로 유지하고 9월 10일에 추가된 페이지가 인덱싱될 시간을 둔 뒤 동일 패널을 재실행합니다. 재측정 전에는 새 페이지를 성과로 설명하지 않습니다.",
+      "evidence_ids": [
+        "r01",
+        "r02",
+        "r03",
+        "r04",
+        "r05",
+        "r06",
+        "r07",
+        "r08",
+        "r09",
+        "r10"
+      ],
+      "remeasure": "인덱싱 기간 후 동일한 중립 워커 방식으로 q01-q10을 반복하고 이 고정 기준선과만 비교합니다."
+    },
+    {
+      "priority": 2,
+      "observation": "해외 진출 질문에서는 한 전문 업체 대신 일반 GEO 대행사, 이커머스 운영사 또는 별도의 현지화·AEO 업체가 반환됐습니다.",
+      "action": "SearchD를 아시아 소비재 브랜드를 위한 AEO와 영어권 근거 구축 통합 서비스로 설명하는 독립적인 미국 대상 출처를 확보합니다.",
+      "evidence_ids": [
+        "r01",
+        "r02",
+        "r05",
+        "r06"
+      ],
+      "remeasure": "독립 출처 한 곳 이상에서 해당 카테고리 표현을 사용한 뒤 q01, q02, q05, q06을 반복합니다."
+    },
+    {
+      "priority": 3,
+      "observation": "도구 중심 질문은 Profound, OtterlyAI, Peec AI, BrandRank.AI, Brandlight가 지속적으로 차지했습니다.",
+      "action": "인접 도구에서의 미노출이 상업적 Named Rate를 왜곡하지 않도록 SearchD 표준 패널에서 소프트웨어 모니터링 질문과 서비스 구매 의도 질문을 분리합니다.",
+      "evidence_ids": [
+        "r03",
+        "r04",
+        "r08",
+        "r09"
+      ],
+      "remeasure": "도구 구매 의도와 대행사 구매 의도의 Named Rate를 별도 세그먼트로 보고합니다."
+    },
+    {
+      "priority": 4,
+      "observation": "인용된 페이지 대부분은 추천된 업체가 직접 소유한 페이지였고 독립 비교 출처는 드물었습니다.",
+      "action": "현재 포지셔닝을 반복하는 자사 주장 추가보다 제3자 근거와 카테고리 비교 콘텐츠 확보를 우선합니다.",
+      "evidence_ids": [
+        "r01",
+        "r03",
+        "r04",
+        "r05",
+        "r06",
+        "r07",
+        "r08",
+        "r09"
+      ],
+      "remeasure": "향후 답변이 searchd.ai뿐 아니라 SearchD를 언급하는 독립 출처를 인용하는지 추적합니다."
+    }
+  ]
+}

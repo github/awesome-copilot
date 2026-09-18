@@ -1,0 +1,15 @@
+{
+  "include": ["scripts", "tests"],
+  "typeCheckingMode": "basic",
+  "executionEnvironments": [
+    {
+      "root": "scripts",
+      "extraPaths": ["scripts"]
+    },
+    {
+      "root": "tests",
+      "extraPaths": ["scripts"]
+    }
+  ],
+  "reportImplicitRelativeImport": "none"
+}
