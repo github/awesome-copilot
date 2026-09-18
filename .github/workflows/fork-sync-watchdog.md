@@ -22,6 +22,7 @@ tools:
     toolsets: [repos, pull_requests]
   bash:
     - "git *"
+    - "jq *"
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -174,7 +175,16 @@ The fork exists to develop one custom agent — `agents/oracle-to-postgres-migra
 
 ## Output 1 — comment on the sync PR (always)
 
-Use `add_comment` with `pull_request_number` = ${{ needs.sync.outputs.pr_number }}. Call it **once**, after all analysis is done, with the complete comment body — see Rules.
+Post the comment on PR **#${{ needs.sync.outputs.pr_number }}**. Call `add_comment` **once**, after all analysis is done, with the complete comment body — see Rules.
+
+**How to post it (do exactly this — nothing else):**
+
+1. Write the finished Markdown body to `/tmp/gh-aw/agent/comment.md` using your file-creation tool (not a shell heredoc).
+2. Run this single command to post it:
+   ```bash
+   jq -Rs '{pr: ${{ needs.sync.outputs.pr_number }}, body: .}' /tmp/gh-aw/agent/comment.md | safeoutputs add_comment .
+   ```
+   `jq -Rs` slurps the file into a proper JSON string. Do **not** use `cat file | safeoutputs …`, `--body -`, `--body="$(cat …)"`, `printf` with embedded newlines, `python3`, `node`, or `bash -c` — those are either blocked in this sandbox or silently post the wrong body. If the `jq` command itself is denied, call `report_incomplete` explaining that; do not improvise another transport.
 
 **Formatting rules for the whole comment:** prefer bullet points over prose everywhere. Never write a paragraph longer than one sentence; if you have two things to say, use two bullets. Lead each bullet with a bolded 2–5 word headline, then a dash and the detail. Use `##` headings for each section below so the maintainer can scan it.
 
@@ -190,7 +200,7 @@ Structure:
 
 ## Output 2 — issue (only if guideline files changed)
 
-If `${{ needs.sync.outputs.guideline_files }}` is non-empty, use `create_issue`:
+If `${{ needs.sync.outputs.guideline_files }}` is non-empty, use `create_issue` (same transport as the comment: write the body to `/tmp/gh-aw/agent/issue.md`, then `jq -Rs '{title: "Upstream contribution guidelines changed — review fork automation", body: .}' /tmp/gh-aw/agent/issue.md | safeoutputs create_issue .`):
 
 - Title: `Upstream contribution guidelines changed — review fork automation`
 - Body must include: which files changed; the full diff of those files in a fenced ```diff block; a plain-language explanation of what each change **means for this fork's workflow** (branching, PR titles, build steps, required checks, path conventions); and a checklist of fork files that may need updating (`.github/fork-only/README.md`, `.github/fork-only/PLAN.md`, `.github/fork-only/agents/dev-orchestrator.agent.md`, `.github/workflows/fork-bundle-upstream-pr.yml`).
@@ -199,7 +209,7 @@ If no guideline files changed, do **not** create an issue.
 
 ## Rules
 
-- **`add_comment` exactly once, and only with the finished summary.** The run permits a single comment. Never make a test, placeholder, "checking the tool works", or partial call — the first call is the only one that will ever land, so it must contain the complete Output 1 content. Do all analysis first, draft the full comment, then call `add_comment` once.
+- **`add_comment` exactly once, and only with the finished summary.** The run permits a single comment. Never make a test, placeholder, "checking the tool works", or partial call — the first call is the only one that will ever land, so it must contain the complete Output 1 content. Do all analysis first, write the full comment to a file, then post it with the exact `jq … | safeoutputs add_comment .` command in Output 1. If you are unsure whether a command will populate `body` correctly, do not run it.
 - Do not edit files, do not push, do not merge. The maintainer merges the sync PR by hand.
 - Be factual; quote file paths and SHAs rather than paraphrasing them.
 - Bullets, not paragraphs. The maintainer skims this on a Friday morning — make every line earn its place.
