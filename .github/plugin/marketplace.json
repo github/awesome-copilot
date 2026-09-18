@@ -998,7 +998,7 @@
     {
       "name": "gh-skills-builder",
       "description": "Repo: https://github.com/arilivigni/gh-skills-builder\nThis plugin is for people that want to create a GitHub Skills exercise which are self-paced learning GitHub within GitHub.\nhttps://learn.github.com/skills\nexamples:\nhttps://github.com/skills/agent-orchestration-build-your-ai-dream-team\nhttps://github.com/skills/agentic-workflows-that-read-the-room",
-      "version": "1.0.4",
+      "version": "1.1.0",
       "author": {
         "name": "Ari LiVigni",
         "url": "https://github.com/arilivigni"
@@ -1017,8 +1017,8 @@
       "source": {
         "source": "github",
         "repo": "arilivigni/gh-skills-builder",
-        "ref": "v1.0.4",
-        "sha": "6ec77a69d7203e5df01fd4caa4745089f6930f5d"
+        "ref": "v1.1.0",
+        "sha": "ea22105c191554d4eeaeb05952e071526b93d73f"
       }
     },
     {
