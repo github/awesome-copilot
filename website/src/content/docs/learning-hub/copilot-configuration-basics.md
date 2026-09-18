@@ -946,6 +946,18 @@ copilot skill enable my-skill    # enable a specific skill
 
 *(v1.0.84+)* Command-line parsing moved from Commander to a Rust-based grammar that mirrors what the CLI actually parses, which also generates shell completions directly from that grammar — so `copilot <TAB>` now offers root flags alongside subcommands, and each subcommand only shows its own options. As a result of this change, some error and help wording changed, `copilot login --host` now works correctly, and `--max-autopilot-continues` no longer accepts scientific notation as a value.
 
+### Agent Factory
+
+*(v1.0.84+)* The `/factories` dialog lets you pause and resume Agent Factory runs — long-running automated pipelines that generate or refine agent configurations — instead of only starting or stopping them outright.
+
+### Concise Transcript View
+
+*(v1.0.84+)* Set `transcriptView` to `"concise"` in your settings to group tool activity into expandable work summaries, collapsing noisy intermediate tool calls into a single line you can expand when you need the detail.
+
+### Context Management Tools Opt-In
+
+*(v1.0.84+)* New `/settings` options let you opt in to context management tools for agents and subagents, giving primary agents and their delegated subagents more control over how their context window is curated during long sessions.
+
 ## Common Questions
 
 **Q: How do I disable Copilot for specific files?**
