@@ -14,7 +14,7 @@ Install from <https://github.com/vlang/v> (prebuilt binaries or build from sourc
 | Task | Command |
 |---|---|
 | Run a program | `v run main.v` |
-| Run a project folder | `v run .` (compiles every `.v` file in the folder) |
+| Run a project folder | `v run .` (compiles the folder's program files; `*_test.v` files are built separately via `v test .`) |
 | Build a binary | `v -o app .` |
 | Run tests | `v test .` (runs `*_test.v` files) |
 | Format code | `v fmt -w file.v` |
@@ -80,8 +80,8 @@ fn main() {
 
 Rules to follow when generating or editing V code:
 
-- **No null.** Absence is expressed with `Option` (`?Type`, value or `none`) and failures with `Result` (`!Type`). Handle them with `or { ... }` blocks; never invent null checks.
-- **Immutable by default.** Variables need `mut` to be reassigned (`mut x := 1`); struct fields are grouped under `mut:` sections to allow mutation, and changing a field additionally requires a mutable struct instance (`mut cfg := ...`). Function arguments are immutable; take `mut` receivers (`fn (mut s Struct)`) only when mutation is needed.
+- **No null in ordinary code.** In ordinary safe V application code, model absence with `Option` (`?Type`, value or `none`) rather than nullable values; failures use `Result` (`!Type`). Handle them with `or { ... }` blocks; never invent null checks. Pointer-level `nil` exists only in low-level `unsafe`/C-interop contexts (e.g. `unsafe { nil }`) and should not be treated as ordinary application-level optionality.
+- **Immutable by default.** Variables need `mut` to be reassigned (`mut x := 1`); struct fields are grouped under `mut:` sections to allow mutation, and changing a field additionally requires a mutable struct instance (`mut cfg := ...`). Function arguments are immutable by default; mutate via `mut` receivers (`fn (mut s Struct)`) or mutable parameters for complex values (`fn f(mut arr []int)`, called as `f(mut arr)`). Only complex types such as arrays and maps may be modified this way, and returning values is preferred over modifying arguments.
 - **Explicit error propagation.** Functions that can fail declare `!ReturnType` (or `?Type` for absence). Handle results with `or { }` blocks, propagate with postfix `!` (errors) or `?` (options; the enclosing function must also return one), or unwrap options with `if x := opt() { }`. V has no forced unwrap. Do not ignore errors.
 - **No globals by default.** Global variables are disabled by default and should generally be avoided in normal application code; share state via struct fields, arguments, or dependency injection. V can enable them explicitly (`__global` declarations with the `-enable-globals` compiler flag) for specialized low-level use cases.
 - **String interpolation** uses `'${expr}'` inside single-quoted strings.
