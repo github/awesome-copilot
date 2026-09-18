@@ -6,7 +6,7 @@ Fork-specific workflows, agents, and documentation for developing the **Oracle-t
 
 ## Status
 
-**Authored, compiled, and lint-checked — not yet exercised in Actions.** See [First-run checklist](#first-run-checklist). Treat every claim below as unverified until you have seen a green run.
+**Authored, compiled, lint-checked, and watchdog-exercised in Actions.** The remaining first-run items are still unverified; see [First-run checklist](#first-run-checklist).
 
 ## Architecture
 
@@ -126,7 +126,7 @@ Run with `dry_run` first; the job summary shows the diff stat. Then run for real
 - [x] Confirm the four `fork-*` workflows appear in the Actions tab.
 - [x] Disable upstream workflows you do not want (see list above).
 - [x] Add `FORK_AUTOMATION_PAT` secret (`public_repo` + `workflow` scopes).
-- [ ] **Watchdog**: Run workflow → expect a sync PR with an AI comment (or a "nothing to sync" notice).
+- [x] **Watchdog**: Run workflow → successful run [#35353935549](https://github.com/PrimedPaul/awesome-copilot/actions/runs/35353935549) created sync PR [#17](https://github.com/PrimedPaul/awesome-copilot/pull/17), posted one AI summary comment, and the PR was merged.
 - [ ] **Reviewer**: open a test PR that edits the agent file *without* bumping the version → expect `version_check` red and an AI review; bump the version → expect green.
 - [ ] **Bundler**: run with `dry_run` → inspect the summary; then run for real → confirm the draft PR on upstream.
 - [ ] **Planner**: open a throwaway issue describing a small agent tweak → expect a `[plan] …` draft PR on `plan/issue-<N>` and a comment with open questions. Delete the branch and close the issue afterwards.
