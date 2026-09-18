@@ -1,0 +1,4 @@
+interface:
+  display_name: "Clean Closed Issue Worktrees"
+  short_description: "Safely audit and remove worktrees for closed issues"
+  default_prompt: "Use $clean-closed-issue-worktrees to audit this repository and propose safe cleanup for worktrees tied to closed issues."
