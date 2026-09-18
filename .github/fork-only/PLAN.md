@@ -82,5 +82,6 @@ This file records **design decisions and their rationale**. Operating instructio
 | 2026-09-17 | `gh aw compile --validate` both gh-aw workflows | Pass (expected "new restricted secret" note for `FORK_AUTOMATION_PAT`) |
 | 2026-09-17 | `actionlint` on `fork-bundle-upstream-pr.yml` | Pass (lock-file findings are actionlint schema lag on `copilot-requests` / `concurrency.queue`, identical in upstream lock files) |
 | 2026-09-17 | Repo settings via REST: Actions enabled, GitHub-owned actions allowed, SHA pinning required, ruleset shape | Confirmed |
-| 2026-09-17 | Watchdog first run | **Failed** at `Push upstream mirror branch`: PAT lacked `workflow` scope (D18). Scope added; re-run pending |
-| — | First real run of each workflow | **Pending** — see README first-run checklist |
+| 2026-09-17 | Watchdog first run | **Failed** at `Push upstream mirror branch`: PAT lacked `workflow` scope (D18). Scope was added before the successful rerun |
+| 2026-09-18 | Watchdog rerun ([run #35353935549](https://github.com/PrimedPaul/awesome-copilot/actions/runs/35353935549)) | **Pass** — sync, agent, safe outputs, and conclusion jobs succeeded; one complete AI comment was posted to [PR #17](https://github.com/PrimedPaul/awesome-copilot/pull/17), which was merged |
+| — | First real run of each workflow | **Watchdog complete; reviewer, bundler, and planner pending** — see README first-run checklist |
