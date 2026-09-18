@@ -55,8 +55,8 @@
   },
   {
     "name": "anarlog",
-    "description": "Query Anarlog meeting notes, summaries, transcripts, participants, action items, and recurring history.",
-    "version": "1.0.0",
+    "description": "Query Anarlog meetings locally, or connect through OAuth to read opted-in Cloud snapshots.",
+    "version": "1.3.0",
     "author": {
       "name": "Fastrepl",
       "url": "https://anarlog.so"
@@ -75,7 +75,7 @@
       "source": "github",
       "repo": "fastrepl/anarlog",
       "path": "agent-plugins/anarlog",
-      "sha": "cf25cb679a7ef8e6cec18e7c6c0d8a3a17e245c3"
+      "sha": "259b68866a7d6c331cd428aaa33a33300a700c5d"
     }
   },
   {
