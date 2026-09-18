@@ -174,7 +174,7 @@ The fork exists to develop one custom agent — `agents/oracle-to-postgres-migra
 
 ## Output 1 — comment on the sync PR (always)
 
-Use `add_comment` with `pull_request_number` = ${{ needs.sync.outputs.pr_number }}.
+Use `add_comment` with `pull_request_number` = ${{ needs.sync.outputs.pr_number }}. Call it **once**, after all analysis is done, with the complete comment body — see Rules.
 
 **Formatting rules for the whole comment:** prefer bullet points over prose everywhere. Never write a paragraph longer than one sentence; if you have two things to say, use two bullets. Lead each bullet with a bolded 2–5 word headline, then a dash and the detail. Use `##` headings for each section below so the maintainer can scan it.
 
@@ -199,7 +199,8 @@ If no guideline files changed, do **not** create an issue.
 
 ## Rules
 
+- **`add_comment` exactly once, and only with the finished summary.** The run permits a single comment. Never make a test, placeholder, "checking the tool works", or partial call — the first call is the only one that will ever land, so it must contain the complete Output 1 content. Do all analysis first, draft the full comment, then call `add_comment` once.
 - Do not edit files, do not push, do not merge. The maintainer merges the sync PR by hand.
 - Be factual; quote file paths and SHAs rather than paraphrasing them.
 - Bullets, not paragraphs. The maintainer skims this on a Friday morning — make every line earn its place.
-- If you cannot access the repository or the diff, call `noop` with a one-line reason.
+- If you cannot access the repository or the diff, call `noop` with a one-line reason. Never post a placeholder comment instead.
