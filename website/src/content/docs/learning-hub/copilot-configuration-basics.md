@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-12
+lastUpdated: 2026-09-18
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -945,6 +945,18 @@ copilot skill enable my-skill    # enable a specific skill
 ### Command-Line Parsing Rewrite
 
 *(v1.0.84+)* Command-line parsing moved from Commander to a Rust-based grammar that mirrors what the CLI actually parses, which also generates shell completions directly from that grammar — so `copilot <TAB>` now offers root flags alongside subcommands, and each subcommand only shows its own options. As a result of this change, some error and help wording changed, `copilot login --host` now works correctly, and `--max-autopilot-continues` no longer accepts scientific notation as a value.
+
+### Context Management Tools for Agents and Subagents
+
+*(v1.0.85+)* Opt in to context management tools for agents and subagents from `/settings`, giving agents more direct control over how their context window is curated during long-running sessions.
+
+### Concise Transcript View
+
+*(v1.0.85+)* Set `transcriptView` to `"concise"` to group tool activity into expandable work summaries instead of a flat scrolling log — useful for keeping long sessions readable while still letting you drill into the details of any step.
+
+### Repository Instructions in Custom Agents
+
+*(Copilot CLI v1.0.86+)* Custom agents can opt into repository instruction files by setting `include-custom-instructions: true` in their frontmatter, layering `AGENTS.md`, `copilot-instructions.md`, and `CLAUDE.md` on top of the agent's own persona and instructions. See [Building Custom Agents](../building-custom-agents/) for the frontmatter syntax.
 
 ## Common Questions
 
