@@ -81,8 +81,8 @@ fn main() {
 Rules to follow when generating or editing V code:
 
 - **No null.** Absence is expressed with `Option` (`?Type`, value or `none`) and failures with `Result` (`!Type`). Handle them with `or { ... }` blocks; never invent null checks.
-- **Immutable by default.** Struct fields and variables cannot be reassigned unless declared `mut:`. Function arguments are immutable; take `mut` receivers (`fn (mut s Struct)`) only when mutation is needed.
-- **Explicit error propagation.** Functions that can fail declare `!ReturnType`. Callers must use `or { }`, `!` propagation, or `?` unwrapping. Do not ignore errors.
+- **Immutable by default.** Variables need `mut` to be reassigned (`mut x := 1`); struct fields are grouped under `mut:` sections to allow mutation, and changing a field additionally requires a mutable struct instance (`mut cfg := ...`). Function arguments are immutable; take `mut` receivers (`fn (mut s Struct)`) only when mutation is needed.
+- **Explicit error propagation.** Functions that can fail declare `!ReturnType` (or `?Type` for absence). Handle results with `or { }` blocks, propagate with postfix `!` (errors) or `?` (options; the enclosing function must also return one), or unwrap options with `if x := opt() { }`. V has no forced unwrap. Do not ignore errors.
 - **No globals by default.** Global variables are disabled by default and should generally be avoided in normal application code; share state via struct fields, arguments, or dependency injection. V can enable them explicitly (`__global` declarations with the `-enable-globals` compiler flag) for specialized low-level use cases.
 - **String interpolation** uses `'${expr}'` inside single-quoted strings.
 - **C interop** is explicit: `#include`, `#flag`, and `C.func()` calls. Only suggest it when the user asks for system-level interop.
