@@ -861,6 +861,35 @@
       }
     },
     {
+      "name": "excel-mcp",
+      "description": "The most comprehensive native Excel automation for complex workbooks, with 300+ operations performed by Excel itself to preserve native workbook fidelity—including Python in Excel, VBA, Power Query, DAX/Data Model, PivotTables, charts, tables, formatting, external connections, and what-if analysis. Windows and Excel required.",
+      "version": "2.0.1",
+      "author": {
+        "name": "Stefan Brönner",
+        "url": "https://github.com/sbroenne"
+      },
+      "repository": "https://github.com/sbroenne/mcp-server-excel-plugins",
+      "homepage": "https://excelmcpserver.dev/",
+      "license": "MIT",
+      "keywords": [
+        "excel",
+        "windows",
+        "mcp",
+        "power-query",
+        "dax",
+        "pivottable",
+        "vba",
+        "com-interop"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "sbroenne/mcp-server-excel-plugins",
+        "path": "plugins/excel-mcp",
+        "ref": "v2.0.1",
+        "sha": "6c33486d2c74db050259411c73b5d87dfae9499e"
+      }
+    },
+    {
       "name": "eyeball",
       "source": "plugins/eyeball",
       "description": "Document analysis with inline source screenshots. When you ask Copilot to analyze a document, Eyeball generates a Word doc where every factual claim includes a highlighted screenshot from the source material so you can verify it with your own eyes.",
@@ -958,7 +987,7 @@
       "name": "gem-team",
       "source": "plugins/gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification. With smarter tool calling and leaner context.",
-      "version": "1.125.0"
+      "version": "1.131.0"
     },
     {
       "name": "gesture-review",
@@ -969,7 +998,7 @@
     {
       "name": "gh-skills-builder",
       "description": "Repo: https://github.com/arilivigni/gh-skills-builder\nThis plugin is for people that want to create a GitHub Skills exercise which are self-paced learning GitHub within GitHub.\nhttps://learn.github.com/skills\nexamples:\nhttps://github.com/skills/agent-orchestration-build-your-ai-dream-team\nhttps://github.com/skills/agentic-workflows-that-read-the-room",
-      "version": "1.0.4",
+      "version": "1.1.0",
       "author": {
         "name": "Ari LiVigni",
         "url": "https://github.com/arilivigni"
@@ -988,8 +1017,8 @@
       "source": {
         "source": "github",
         "repo": "arilivigni/gh-skills-builder",
-        "ref": "v1.0.4",
-        "sha": "6ec77a69d7203e5df01fd4caa4745089f6930f5d"
+        "ref": "v1.1.0",
+        "sha": "ea22105c191554d4eeaeb05952e071526b93d73f"
       }
     },
     {
@@ -1783,7 +1812,7 @@
     {
       "name": "sumo-logic",
       "description": "Query Sumo Logic logs, alerts, dashboards, and SIEM insights directly from Copilot.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "Sumo Logic",
         "url": "https://www.sumologic.com"
@@ -1799,13 +1828,15 @@
         "monitoring",
         "alerts",
         "copilot",
-        "siem"
+        "devops",
+        "search",
+        "security"
       ],
       "source": {
         "source": "github",
         "repo": "SumoLogic/sumologic-ai-plugins",
-        "ref": "v1.0.0",
-        "sha": "804c0909c20cf3b247df3b5de60bb94f8b65c315"
+        "ref": "v1.0.1",
+        "sha": "f905b914984fabb5e0571290eafd3013c277d9b1"
       }
     },
     {
