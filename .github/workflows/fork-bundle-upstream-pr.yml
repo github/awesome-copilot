@@ -197,7 +197,9 @@ jobs:
             PATCH_FILE=$(mktemp)
             jq -n --arg title "$TITLE" --rawfile body "$BODY_FILE" \
               '{title: $title, body: $body}' > "$PATCH_FILE"
-            gh api --method PATCH "repos/${UPSTREAM_REPO}/pulls/${EXISTING_NUMBER}" \
+            # A pull request is also an issue. Updating its issue metadata lets the
+            # PR author change the title and body without upstream write access.
+            gh api --method PATCH "repos/${UPSTREAM_REPO}/issues/${EXISTING_NUMBER}" \
               --input "$PATCH_FILE" --silent
             echo "::notice::Existing upstream PR refreshed: $EXISTING_URL"
             echo "Upstream PR: $EXISTING_URL" >> "$GITHUB_STEP_SUMMARY"
