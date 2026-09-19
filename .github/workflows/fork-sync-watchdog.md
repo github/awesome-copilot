@@ -128,7 +128,7 @@ jobs:
             --base main --head fork-sync/upstream \
             --title "chore(fork-sync): merge upstream main ($(date -u +%Y-%m-%d))" \
             --body-file "$BODY_FILE")
-          PR_URL=$(printf '%s\n' "$PR_OUTPUT" | grep -Eo 'https://github\.com/[^[:space:]]+/pull/[0-9]+' | tail -n1)
+          PR_URL=$(printf '%s\n' "$PR_OUTPUT" | grep -Eo 'https?://[^[:space:]]+/pull/[0-9]+' | tail -n1)
           PR_NUMBER=${PR_URL##*/}
           if [ -z "$PR_URL" ] || [ -z "$PR_NUMBER" ]; then
             echo "::error::Unable to determine the sync PR number from gh output"
