@@ -53,6 +53,7 @@ export function isWebMCPAvailable() {
 }
 
 const scopes = new Map();
+let warnedMissingModelContext = false;
 
 /**
  * @param {() => void} dispose
@@ -87,10 +88,20 @@ function makeHandle(dispose, ready) {
  */
 export function createToolScope(key, tools, options) {
   const mc = getModelContext();
-  if (!mc) return makeHandle(() => {}, Promise.resolve(false));
+  const validate = shouldValidate(options);
+  if (!mc) {
+    if (validate && !warnedMissingModelContext) {
+      warnedMissingModelContext = true;
+      console.warn(
+        `webmcpify: WebMCP is unavailable for scope "${key}". Check window.isSecureContext, the verification origin, current Chrome, and the WebMCP feature flag. Registration remains a safe no-op.`,
+      );
+    }
+    return makeHandle(() => {}, Promise.resolve(false));
+  }
   if (scopes.has(key)) return makeHandle(() => {}, Promise.resolve(false));
 
-  if (shouldValidate(options)) for (const tool of tools) validateTool(tool);
+  if (validate) for (const tool of tools) validateTool(tool);
+  const guardedTools = tools.map((tool) => guardToolResult(tool, validate));
 
   const controller = new AbortController();
   scopes.set(key, controller);
@@ -110,7 +121,9 @@ export function createToolScope(key, tools, options) {
   try {
     // Legacy registerTool implementations throw synchronously instead of
     // rejecting — normalize so the rollback path below covers both.
-    registrations = Promise.all(tools.map((tool) => mc.registerTool(tool, registerOptions)));
+    registrations = Promise.all(
+      guardedTools.map((tool) => mc.registerTool(tool, registerOptions)),
+    );
   } catch (error) {
     registrations = Promise.reject(error);
   }
@@ -133,6 +146,27 @@ export function createToolScope(key, tools, options) {
     disposed = true;
     rollback();
   }, ready);
+}
+
+/**
+ * Imperative tools must never hand Chrome an ambiguous absent result.
+ * @param {object & { name: string, execute: (input: Record<string, unknown>) => unknown }} tool
+ * @param {boolean} reportInDevelopment
+ * @returns {object}
+ */
+function guardToolResult(tool, reportInDevelopment) {
+  return {
+    ...tool,
+    async execute(input) {
+      const result = await tool.execute(input);
+      if (result !== null && result !== undefined) return result;
+      const error =
+        `Tool "${tool.name}" returned ${result === null ? 'null' : 'undefined'}. ` +
+        'Return a JSON-safe structured result before any route-changing UI action.';
+      if (reportInDevelopment) console.error(`webmcpify: ${error}`);
+      return { ok: false, error };
+    },
+  };
 }
 
 /**

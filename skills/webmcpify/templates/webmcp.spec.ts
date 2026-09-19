@@ -30,22 +30,33 @@
  * below show the complete patterns with REAL assertions — generated blocks must
  * assert, never comment out.
  *
- * Requirements: real Chrome, HEADED (WebMCP needs a visible tab — headless will
- * never work; use xvfb-run in CI). Enumeration/execution uses the production
- * document.modelContext.getTools()/executeTool() surface (Chrome 2026-07+), with a
- * probe fallback to the removed navigator.modelContextTesting for older builds.
+ * Requirements: real current Chrome, HEADED (headless exposes no modelContext in
+ * the supported verification path), a virtual display when needed, and a dedicated
+ * user-data directory. Enumeration/execution uses the production
+ * document.modelContext.getTools()/executeTool() surface (Chrome 2026-07+).
  * Alternative harness: Puppeteer's first-class WebMCP API (pptr.dev/guides/webmcp).
  */
 import { chromium, expect, test } from '@playwright/test';
 import type { BrowserContext, Page } from '@playwright/test';
+// @ts-expect-error — shared JS helper; inlined copies live inside page.evaluate (browser boundary)
+import { parseInputSchema } from './webmcp-compat.js';
 
-const BASE_URL = process.env.WEBMCP_BASE_URL ?? 'http://localhost:5173';
+function requiredEnv(name: 'WEBMCP_BASE_URL' | 'WEBMCP_PROFILE_DIR'): string {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(`${name} is required; do not pin a host port or profile path in the spec`);
+  return value;
+}
+
+const BASE_URL = requiredEnv('WEBMCP_BASE_URL');
+const PROFILE_DIR = requiredEnv('WEBMCP_PROFILE_DIR');
 
 let context: BrowserContext;
 let page: Page;
+type ExecuteInputMode = 'object' | 'json-string';
+let executeInputMode: ExecuteInputMode | undefined;
 
 test.beforeAll(async () => {
-  context = await chromium.launchPersistentContext('', {
+  context = await chromium.launchPersistentContext(PROFILE_DIR, {
     channel: 'chrome',
     headless: false,
     args: ['--enable-features=WebMCP,WebMCPTesting'],
@@ -57,20 +68,62 @@ test.afterAll(async () => {
   await context.close();
 });
 
-/** Enumerate registered tools; inputSchema comes back as a STRING (JSON Schema). */
+/** Enumerate registered tools; older native builds may stringify JSON Schema while current builds return objects — handle both. */
 async function listTools(p: Page): Promise<
   Array<{
     name: string;
-    inputSchema?: string;
-    annotations?: { readOnlyHint?: boolean; untrustedContentHint?: boolean };
+    inputSchema?: string | object;
+    annotations?: {
+      readOnlyHint?: boolean;
+      untrustedContentHint?: boolean;
+      consequentialHint?: boolean;
+    };
   }>
 > {
   return p.evaluate(async () => {
-    const mc = (document as any).modelContext ?? (navigator as any).modelContext;
+    const mc = (document as any).modelContext;
     if (mc?.getTools) return mc.getTools();
-    const legacy = (navigator as any).modelContextTesting; // removed 2026-07; older builds only
-    if (legacy?.listTools) return legacy.listTools();
-    throw new Error('No WebMCP enumeration surface — wrong Chrome build or flags');
+    throw new Error('No document.modelContext enumeration surface — insecure origin, headless/wrong Chrome, reused profile, or missing flag');
+  });
+}
+
+/**
+ * Probe the browser contract with a temporary, side-effect-free tool. Chrome
+ * 150 requires JSON strings; the current CG draft and Chrome docs use objects.
+ * Real application tools are never retried to avoid duplicating mutations.
+ */
+async function detectExecuteInputMode(p: Page): Promise<ExecuteInputMode> {
+  return p.evaluate(async () => {
+    const mc = (document as any).modelContext;
+    if ((mc as any)?.__webmcpStubObjectMode) return 'object';
+    if (!mc?.registerTool || !mc?.getTools || !mc?.executeTool) {
+      throw new Error('No complete document.modelContext execution surface for capability probe');
+    }
+    const controller = new AbortController();
+    const name = `webmcpify_input_probe_${crypto.randomUUID().replaceAll('-', '')}`;
+    const probeState = { calls: 0 };
+    await mc.registerTool({
+      name,
+      description: 'Side-effect-free verification of the browser executeTool input contract.',
+      inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+      async execute() { probeState.calls += 1; return 'webmcpify-input-probe'; },
+    }, { signal: controller.signal });
+    try {
+      const tool = (await mc.getTools()).find((candidate: { name: string }) => candidate.name === name);
+      if (!tool) throw new Error('WebMCP input-contract probe did not register');
+      try {
+        await mc.executeTool(tool, {});
+        if (Number(probeState.calls) !== 1) throw new Error('Object-input probe did not execute exactly once');
+        return 'object';
+      } catch (error) {
+        if (Number(probeState.calls) !== 0) throw error;
+        await mc.executeTool(tool, '{}');
+        if (Number(probeState.calls) !== 1) throw new Error('JSON-string input probe did not execute exactly once');
+        return 'json-string';
+      }
+    } finally {
+      controller.abort();
+    }
   });
 }
 
@@ -80,20 +133,31 @@ async function listTools(p: Page): Promise<
  * expect(...).rejects where a failure is the expected outcome.
  */
 async function executeTool(p: Page, name: string, args: object): Promise<string | null> {
+  executeInputMode ??= await detectExecuteInputMode(p);
   return p.evaluate(
-    async ({ name, args }) => {
-      const mc = (document as any).modelContext ?? (navigator as any).modelContext;
-      if (mc?.getTools && mc?.executeTool) {
+    async ({ name, args, inputMode }) => {
+      // inline helpers: page.evaluate cannot close over outer imports — keep in sync with webmcp-compat.js
+      const normalizeResult = (r: unknown) => (r == null ? null : typeof r === 'string' ? (r as string) : JSON.stringify(r));
+      const mc = (document as any).modelContext;
+      if (mc?.getTools) {
         const tools = await mc.getTools();
         const tool = tools.find((t: { name: string }) => t.name === name);
         if (!tool) throw new Error(`tool ${name} is not registered`);
-        return mc.executeTool(tool, JSON.stringify(args));
+        // Explicit adapter mode — a harmless probe chose the native shape.
+        // - tool.execute(object): headless-era stub
+        // - mc.__webmcpStubObjectMode + mc.executeTool(tool, object): spec-shaped stub (enumerated tool has no .execute)
+        // - current native/spec mc.executeTool(tool, object)
+        // - legacy Chrome mc.executeTool(tool, JSON string)
+        // Real tools are never retried: a handler failure may follow a mutation.
+        if (typeof tool?.execute === 'function') return normalizeResult(await tool.execute(args));
+        if (mc.executeTool) {
+          const input = inputMode === 'object' ? args : JSON.stringify(args);
+          return normalizeResult(await mc.executeTool(tool, input));
+        }
       }
-      const legacy = (navigator as any).modelContextTesting;
-      if (legacy?.executeTool) return legacy.executeTool(name, JSON.stringify(args));
-      throw new Error('No WebMCP execution surface — wrong Chrome build or flags');
+      throw new Error('No document.modelContext execution surface — insecure origin, headless/wrong Chrome, reused profile, or missing flag');
     },
-    { name, args },
+    { name, args, inputMode: executeInputMode },
   );
 }
 
@@ -111,22 +175,22 @@ async function waitForTool(p: Page, name: string, timeoutMs = 5000): Promise<boo
   }
 }
 
-/** The modern surface exposes annotations; the legacy fallback does not. */
-async function hasModernSurface(p: Page): Promise<boolean> {
-  return p.evaluate(() => {
-    const mc = (document as any).modelContext ?? (navigator as any).modelContext;
-    return !!mc?.getTools;
-  });
-}
-
-test('WebMCP is available in the test environment', async () => {
+test('verification origin is secure and WebMCP is available', async () => {
   await page.goto(BASE_URL);
-  const available = await page.evaluate(
-    () => !!(document as any).modelContext || !!(navigator as any).modelContext,
-  );
-  expect(available, 'Enable chrome://flags/#enable-webmcp-testing and use current Chrome').toBe(
-    true,
-  );
+  const probe = await page.evaluate(() => ({
+    secureContext: window.isSecureContext,
+    hasDocumentModelContext: !!(document as any).modelContext,
+  }));
+  expect(probe.secureContext, `Verification origin must be secure: ${BASE_URL}`).toBe(true);
+  expect(
+    probe.hasDocumentModelContext,
+    'Use current headed Chrome, a dedicated profile, and enable chrome://flags/#enable-webmcp-testing',
+  ).toBe(true);
+  executeInputMode = await detectExecuteInputMode(page);
+  test.info().annotations.push({
+    type: 'webmcp-compatibility',
+    description: `executeTool input mode: ${executeInputMode}`,
+  });
 });
 
 // ── Generated per manifest tool ──────────────────────────────────────────────
@@ -145,18 +209,21 @@ test.describe('search_tickets', () => {
     expect(await waitForTool(page, 'search_tickets')).toBe(true); // async registration — poll
     const tools = await listTools(page);
     const tool = tools.find((t) => t.name === 'search_tickets')!;
-    const schema = JSON.parse(tool.inputSchema ?? '{}'); // stringified → parse first
+    const schema = parseInputSchema(tool.inputSchema); // handles string, object, or undefined
     expect(schema.required).toContain('query'); // manifest: inputSchema
-    if (await hasModernSurface(page)) {
-      // manifest: annotations — assert exactly what the manifest recorded
-      expect(tool.annotations?.readOnlyHint).toBe(true);
-      expect(tool.annotations?.untrustedContentHint).toBe(true);
+    // manifest: annotations — assert exactly what the manifest recorded
+    expect(tool.annotations?.readOnlyHint).toBe(true);
+    expect(tool.annotations?.untrustedContentHint).toBe(true);
+    // CG draft + current Chrome docs define consequentialHint, but Chrome 150
+    // accepted it at registration without returning it from getTools(). Assert
+    // native propagation when present; keep the registration object covered by
+    // app/unit tests and report an omitted field as browser compatibility evidence.
+    if (tool.annotations?.consequentialHint !== undefined) {
+      expect(tool.annotations.consequentialHint).toBe(false);
     } else {
-      // Legacy modelContextTesting fallback cannot enumerate annotations —
-      // skip the assertion and record the gap in the report.
       test.info().annotations.push({
-        type: 'webmcpify',
-        description: 'annotations not enumerable on this Chrome build — assertion skipped',
+        type: 'webmcp-compatibility',
+        description: 'Browser omitted consequentialHint from getTools(); last reproduced in Chrome 150',
       });
     }
   });
@@ -242,7 +309,7 @@ test.describe('get_page_summary', () => {
     } catch (err) {
       // Rejected: acceptable only as a validation rejection — a missing surface
       // or unregistered tool is a real failure, not a pass.
-      expect(String(err)).not.toMatch(/No WebMCP|is not registered/);
+      expect(String(err)).not.toMatch(/No document\.modelContext|is not registered/);
     }
   });
 });
