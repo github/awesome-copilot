@@ -48,6 +48,7 @@ This file records **design decisions and their rationale**. Operating instructio
 | D17 | **Idempotent PR handling**: watchdog reuses an open sync PR; bundler force-pushes a fixed promotion branch and reuses its open upstream PR. | New branch/PR per run | Avoids PR spam; makes re-runs safe. |
 | D18 | **PAT carries `public_repo` + `workflow`**; the watchdog's push step detects the missing-scope refusal and emits a targeted `::error::`. | Pre-flight scope probe via `X-OAuth-Scopes` header; filtering workflow files out of the sync | First run failed on exactly this. A pre-flight only works for classic PATs and adds a request per run; filtering files would make the mirror branch diverge from `upstream/main`, breaking D2/D14. |
 | D19 | **Watchdog recommends Keep / Disable / Integrate per new upstream workflow**, using the README keep-list policy embedded in its prompt, and flags modified workflows. It only advises; disabling stays a manual UI action. | Bare list of new files (original); auto-disable via the Actions REST API | A bare list pushed the triage work onto the maintainer every week. Auto-disable needs `actions: write` in the agent's environment and would act on an LLM judgement without review — violates D1/D13. |
+| D20 | **`dev-orchestrator.agent.md` and `plan-skeptic.agent.md` live in `.github/agents/`**, not `.github/fork-only/agents/`. Orchestrator carries `mode: primary`/`hidden: false`/`user-invocable: true`; skeptic carries `mode: subagent`/`hidden: true`/`user-invocable: false`. | Leave both under `.github/fork-only/agents/` | Copilot CLI's `/agent` picker only scans `.github/agents/` (repo) and `~/.copilot/agents/` (user) — a `.github/fork-only/agents/` file is invisible to it, which is why the orchestrator couldn't be selected. `.github/agents/` is never touched by `npm run build`/`skill-check` (top-level `agents/**` only) or by the bundler's hard-coded promotion-path list (D4), so relocating them there doesn't create an upstream-leak risk. The `hidden`/`user-invocable` split keeps the skeptic reachable only as a sub-agent dispatch, matching the convention already used by `agents/gem-researcher.agent.md`. |
 
 ## Not done / deferred
 
@@ -66,12 +67,12 @@ This file records **design decisions and their rationale**. Operating instructio
     fork-agent-reviewer.md           # gh-aw source
     fork-agent-reviewer.lock.yml     # compiled — commit both
     fork-bundle-upstream-pr.yml      # plain YAML
+  agents/
+    dev-orchestrator.agent.md         # selectable via /agent (mode: primary)
+    plan-skeptic.agent.md             # sub-agent only (mode: subagent, hidden: true)
   fork-only/
     README.md                        # how to operate
     PLAN.md                          # this file — why it is built this way
-    agents/
-      dev-orchestrator.agent.md
-      plan-skeptic.agent.md
 ```
 
 ## Verification log
@@ -85,3 +86,4 @@ This file records **design decisions and their rationale**. Operating instructio
 | 2026-09-17 | Watchdog first run | **Failed** at `Push upstream mirror branch`: PAT lacked `workflow` scope (D18). Scope was added before the successful rerun |
 | 2026-09-18 | Watchdog rerun ([run #35353935549](https://github.com/PrimedPaul/awesome-copilot/actions/runs/35353935549)) | **Pass** — sync, agent, safe outputs, and conclusion jobs succeeded; one complete AI comment was posted to [PR #17](https://github.com/PrimedPaul/awesome-copilot/pull/17), which was merged |
 | — | First real run of each workflow | **Watchdog complete; reviewer, bundler, and planner pending** — see README first-run checklist |
+| 2026-09-18 | Relocated `dev-orchestrator.agent.md`/`plan-skeptic.agent.md` to `.github/agents/` (D20); `gh aw compile --validate fork-issue-planner fork-sync-watchdog` after updating their path references | Pass (pre-existing fuzzy-schedule warning only, unrelated) |

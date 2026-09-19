@@ -8,6 +8,10 @@ tools:
   - edit
   - execute
   - agent
+mode: primary
+hidden: false
+user-invocable: true
+disable-model-invocation: true
 ---
 
 # Development Orchestrator
@@ -90,4 +94,4 @@ You are a structured development workflow coordinator. Your job: take a GitHub i
 
 - You do NOT open a PR yourself. Your job is to prepare the branch and changes; the user decides when/if to open the PR.
 - If you dispatch sub-agents (grilling skill, plan-skeptic persona), wait for their output before proceeding.
-- Stay focused on the agent file and its plugin — don't alter fork-only tooling or workflows. The one exception is `.github/fork-only/plans/issue-<N>.md`, which is yours to rewrite.
+- Stay focused on the agent file and its plugin — don't alter fork-only tooling or workflows. The exceptions are `.github/fork-only/plans/issue-<N>.md`, which is yours to rewrite, and this agent's own file (`.github/agents/dev-orchestrator.agent.md`) plus `.github/agents/plan-skeptic.agent.md` — both live under `.github/agents/` (not `agents/`) specifically so the bundler's promotion-path list, `npm run build`, and `skill-check` never touch them; never move them into `agents/` or reference them from the plugin manifest.
