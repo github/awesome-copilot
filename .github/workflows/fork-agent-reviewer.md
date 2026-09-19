@@ -12,6 +12,11 @@ permissions:
   contents: read
   pull-requests: read
   copilot-requests: write
+network:
+  allowed:
+    - defaults
+    - github
+checkout: false
 concurrency:
   group: fork-agent-reviewer-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -24,6 +29,16 @@ tools:
   bash:
     - "git *"
     - "cat *"
+steps:
+  - name: Checkout PR merge ref
+    uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+    with:
+      persist-credentials: false
+  - name: Restore agent config folders from base branch
+    env:
+      GH_AW_AGENT_FOLDERS: ".agents .github"
+      GH_AW_AGENT_FILES: "AGENTS.md"
+    run: bash "${RUNNER_TEMP}/gh-aw/actions/restore_base_github_folders.sh"
 jobs:
   version_check:
     runs-on: ubuntu-latest
