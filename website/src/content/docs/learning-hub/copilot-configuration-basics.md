@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-12
+lastUpdated: 2026-09-19
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -925,6 +925,22 @@ copilot skill enable my-skill    # enable a specific skill
 ```
 
 > **Breaking change (v1.0.84+)**: The cross-kind `--kind`, `--scope`, `--mcp`, and `--skill` flags have been removed from `copilot plugins`. `copilot plugins list` is now an alias of `copilot plugin list` and reports only plugins — not MCP servers, skills, instructions, or LSP servers. Scripts that installed skills with `copilot plugins install --skill [--scope project]` should switch to `copilot skill add [--project]`, and scripts reading `.plugins` from `copilot plugins list --json` should expect a flat array instead of the previous `{ plugins, errors }` object.
+
+**Scriptable plugin listings** *(v1.0.85+)*: Add `--json` to `copilot plugin list`, `copilot plugin marketplace list`, and `copilot plugin marketplace browse` to get machine-readable output for scripts and CI checks instead of parsing the interactive table:
+
+```bash
+copilot plugin list --json
+copilot plugin marketplace list --json
+copilot plugin marketplace browse awesome-copilot --json
+```
+
+### Context Management Tools for Agents and Subagents
+
+*(v1.0.85+)* Opt in from `/settings` to give agents and subagents dedicated context management tools, letting them actively manage what stays in their own context window during long or complex sessions instead of relying solely on automatic compaction.
+
+### Concise Transcript View
+
+*(v1.0.85+)* Set `transcriptView` to `"concise"` in `/settings` to group related tool activity into expandable work summaries instead of a long flat list of individual tool calls. This keeps the timeline readable during sessions that make many small tool calls in a row, while still letting you expand any summary to see the underlying steps.
 
 ### The `/config` Sidebar
 
