@@ -7,10 +7,6 @@ name: Fork Bundle Upstream PR
 on:
   workflow_dispatch:
     inputs:
-      change_summary:
-        description: 'Concise description of the substantive change; do not describe only the version bump'
-        required: true
-        type: string
       title:
         description: 'PR title (optional; auto-generated if omitted)'
         required: false
@@ -55,21 +51,7 @@ jobs:
 
       - name: Compute unpromoted delta
         id: delta
-        env:
-          CHANGE_SUMMARY: ${{ inputs.change_summary }}
         run: |
-          if [ -z "${CHANGE_SUMMARY//[[:space:]]/}" ]; then
-            echo "::error::change_summary must describe the substantive change and cannot be blank."
-            exit 1
-          fi
-          if [[ "$CHANGE_SUMMARY" == *$'\n'* || "$CHANGE_SUMMARY" == *$'\r'* ]]; then
-            echo "::error::change_summary must be a single line."
-            exit 1
-          fi
-          echo "change_summary<<EOF" >> "$GITHUB_OUTPUT"
-          printf '%s\n' "$CHANGE_SUMMARY" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-
           # Paths that belong to this agent. Must match what plugin.json references.
           PATHS=(
             "agents/oracle-to-postgres-migration-expert.agent.md"
@@ -94,10 +76,21 @@ jobs:
             echo "::error file=$PLUGIN_MANIFEST::plugin.json version ($FORK_VERSION) equals upstream. Bump it on fork main before promoting."
             exit 1
           fi
+          COMMIT_SUBJECTS=$(git log --no-merges --format='%s' upstream/main..origin/main -- "${PATHS[@]}")
+          if [ -z "$COMMIT_SUBJECTS" ]; then
+            COMMIT_SUBJECTS="Update the Oracle-to-PostgreSQL Migration Expert agent"
+          fi
+          DIFF_STAT=$(git diff --stat upstream/main origin/main -- "${PATHS[@]}")
           echo "fork_version=$FORK_VERSION" >> "$GITHUB_OUTPUT"
           echo "upstream_version=$UPSTREAM_VERSION" >> "$GITHUB_OUTPUT"
           echo "fork_sha=$(git rev-parse --short origin/main)" >> "$GITHUB_OUTPUT"
           echo "upstream_sha=$(git rev-parse --short upstream/main)" >> "$GITHUB_OUTPUT"
+          echo "commit_subjects<<EOF" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$COMMIT_SUBJECTS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "diff_stat<<EOF" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$DIFF_STAT" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Build promotion branch from upstream main
         run: |
@@ -145,33 +138,44 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.FORK_AUTOMATION_PAT }}
           INPUT_TITLE: ${{ inputs.title }}
-          CHANGE_SUMMARY: ${{ steps.delta.outputs.change_summary }}
+          COMMIT_SUBJECTS: ${{ steps.delta.outputs.commit_subjects }}
+          DIFF_STAT: ${{ steps.delta.outputs.diff_stat }}
           AI_AUTHORED: ${{ inputs.ai_authored }}
           FORK_VERSION: ${{ steps.delta.outputs.fork_version }}
           UPSTREAM_VERSION: ${{ steps.delta.outputs.upstream_version }}
           FORK_SHA: ${{ steps.delta.outputs.fork_sha }}
           UPSTREAM_SHA: ${{ steps.delta.outputs.upstream_sha }}
         run: |
-          TITLE="${INPUT_TITLE:-Update Oracle-to-PostgreSQL Migration Expert: ${CHANGE_SUMMARY}}"
+          if [ -n "$INPUT_TITLE" ]; then
+            TITLE="$INPUT_TITLE"
+          else
+            FIRST_SUBJECT=$(printf '%s\n' "$COMMIT_SUBJECTS" | head -n 1)
+            SUBJECT_COUNT=$(printf '%s\n' "$COMMIT_SUBJECTS" | sed '/^$/d' | wc -l)
+            TITLE="Update Oracle-to-PostgreSQL Migration Expert: ${FIRST_SUBJECT}"
+            if [ "$SUBJECT_COUNT" -gt 1 ]; then
+              TITLE="${TITLE} (+$((SUBJECT_COUNT - 1)) related changes)"
+            fi
+          fi
           if [ "$AI_AUTHORED" = "true" ]; then TITLE="${TITLE} 🤖🤖🤖"; fi
 
           HEAD_REF="${GITHUB_REPOSITORY_OWNER}:${PROMOTION_BRANCH}"
-          EXISTING=$(gh pr list --repo "$UPSTREAM_REPO" --head "$HEAD_REF" --base main --state open --json number,url --jq '.[0].url // empty')
-          if [ -n "$EXISTING" ]; then
-            echo "::notice::Existing upstream PR refreshed by branch push: $EXISTING"
-            echo "Upstream PR: $EXISTING" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
           BODY_FILE=$(mktemp)
           cat > "$BODY_FILE" <<EOF
           ## Summary
 
-          Updates the **Oracle-to-PostgreSQL Migration Expert** custom agent: ${CHANGE_SUMMARY}
+          This promotion contains the following changes to the **Oracle-to-PostgreSQL Migration Expert**:
 
-          The plugin version is bumped from \`${UPSTREAM_VERSION}\` to \`${FORK_VERSION}\` because of this change.
+          $(printf '%s\n' "$COMMIT_SUBJECTS" | sed 's/^/- /')
 
-          Changes were developed and reviewed in the fork \`${GITHUB_REPOSITORY}\` (main @ \`${FORK_SHA}\`) and squashed onto upstream \`main\` @ \`${UPSTREAM_SHA}\`. \`npm run build\` was run so README and marketplace outputs are in sync.
+          The plugin version is bumped from \`${UPSTREAM_VERSION}\` to \`${FORK_VERSION}\` as part of these changes.
+
+          ## Changed paths
+
+          \`\`\`
+          ${DIFF_STAT}
+          \`\`\`
+
+          These changes were developed and reviewed in the fork \`${GITHUB_REPOSITORY}\` (main @ \`${FORK_SHA}\`) and bundled onto upstream \`main\` @ \`${UPSTREAM_SHA}\`. \`npm run build\` was run so README and marketplace outputs are in sync.
 
           ## Checklist
 
@@ -185,6 +189,16 @@ jobs:
 
           Opened by the fork's \`fork-bundle-upstream-pr\` workflow (run ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}).
           EOF
+
+          EXISTING=$(gh pr list --repo "$UPSTREAM_REPO" --head "$HEAD_REF" --base main --state open --json number,url --jq '.[0] | "\(.number)\t\(.url)"')
+          if [ -n "$EXISTING" ]; then
+            EXISTING_NUMBER="${EXISTING%%$'\t'*}"
+            EXISTING_URL="${EXISTING#*$'\t'}"
+            gh pr edit "$EXISTING_NUMBER" --repo "$UPSTREAM_REPO" --title "$TITLE" --body-file "$BODY_FILE"
+            echo "::notice::Existing upstream PR refreshed: $EXISTING_URL"
+            echo "Upstream PR: $EXISTING_URL" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
 
           PR_URL=$(gh pr create --repo "$UPSTREAM_REPO" --draft \
             --base main --head "$HEAD_REF" \
