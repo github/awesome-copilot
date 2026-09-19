@@ -42,8 +42,26 @@ the evidence even when frontend files did not change.
 
 Manifest v4 adds `mutationExecutions: []` on each tool. This is a required
 workflow journal for new mutation runs, not a browser API or an automatic feature
-of the vendored runtime. Before using a runner, implement its Node/host-side
-pre-dispatch and settlement hooks; a browser-only callback is not durable.
+of the vendored runtime. Vendor `templates/mutation-journal.{ts,js}` next to the
+spec and use its Node/host-side `openMutationJournal`, `beforeDispatch`, `settle`
+and `close` operations; a browser-only callback is not durable. The helper prefers
+`flock(1)`, falls back to macOS/FreeBSD `lockf(1)` descriptor mode (which implies
+`-k`), and fails closed when neither advisory-lock command is available. Other
+runners must adapt dispatch through these same hooks rather than reproduce the
+locking and durability protocol.
+
+The helper opens the sidecar once without following symlinks, rejects non-regular
+or multiply linked files, and passes that verified descriptor to the lock backend.
+The short acquisition process exits while the runner retains the locked open-file
+description itself, so there is no separately killable holder between a journal
+write and dispatch. A competing descriptor verifies that the kernel lock survived
+acquisition; device/inode checks at every durable I/O boundary fence pathname
+replacement. Existing journals are validated in full before use; only an actually
+absent `mutationExecutions` field is migrated, while malformed entries, duplicate
+execution IDs and invalid cleanup-parent links fail closed without a rewrite.
+On its first execution-capable open it also records one stable
+`mutationLockIdentity` in the manifest and sidecar metadata; a missing or different
+sidecar identity thereafter cannot become a second operational lock.
 
 Each entry has `executionId`, `tool`, `contractRevision`, `origin`, `role`,
 `fixtureRevision`, `argumentsFingerprint` (SHA-256 of canonical JSON with sorted

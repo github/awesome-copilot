@@ -38,8 +38,12 @@
  */
 import { chromium, expect, test } from '@playwright/test';
 import type { BrowserContext, Page } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
 // @ts-expect-error — shared JS helper; inlined copies live inside page.evaluate (browser boundary)
 import { parseInputSchema } from './webmcp-compat.js';
+import { openMutationJournal, type MutationJournal } from './mutation-journal.js';
+
+test.describe.configure({ mode: 'serial', retries: 0 });
 
 function requiredEnv(name: 'WEBMCP_BASE_URL' | 'WEBMCP_PROFILE_DIR'): string {
   const value = process.env[name]?.trim();
@@ -49,23 +53,44 @@ function requiredEnv(name: 'WEBMCP_BASE_URL' | 'WEBMCP_PROFILE_DIR'): string {
 
 const BASE_URL = requiredEnv('WEBMCP_BASE_URL');
 const PROFILE_DIR = requiredEnv('WEBMCP_PROFILE_DIR');
+const MANIFEST_PATH = fileURLToPath(new URL('./manifest.json', import.meta.url));
 
-let context: BrowserContext;
+let context: BrowserContext | undefined;
 let page: Page;
+let mutationJournal: MutationJournal | undefined;
 type ExecuteInputMode = 'object' | 'json-string';
 let executeInputMode: ExecuteInputMode | undefined;
 
 test.beforeAll(async () => {
-  context = await chromium.launchPersistentContext(PROFILE_DIR, {
-    channel: 'chrome',
-    headless: false,
-    args: ['--enable-features=WebMCP,WebMCPTesting'],
-  });
-  page = await context.newPage();
+  // The helper acquires the permanent manifest.lock sidecar before its first
+  // manifest read and holds it through every dispatch, cleanup and settlement.
+  mutationJournal = await openMutationJournal({ manifestPath: MANIFEST_PATH });
+  if (mutationJournal.unresolved.length > 0) {
+    const ids = mutationJournal.unresolved.map(({ executionId }) => executionId).join(', ');
+    await mutationJournal.close();
+    mutationJournal = undefined;
+    throw new Error(`reconcile unresolved mutation executions before running the harness: ${ids}`);
+  }
+  try {
+    context = await chromium.launchPersistentContext(PROFILE_DIR, {
+      channel: 'chrome',
+      headless: false,
+      args: ['--enable-features=WebMCP,WebMCPTesting'],
+    });
+    page = await context.newPage();
+  } catch (error) {
+    await mutationJournal.close();
+    mutationJournal = undefined;
+    throw error;
+  }
 });
 
 test.afterAll(async () => {
-  await context.close();
+  try {
+    await context?.close();
+  } finally {
+    await mutationJournal?.close();
+  }
 });
 
 /** Enumerate registered tools; older native builds may stringify JSON Schema while current builds return objects — handle both. */
@@ -265,11 +290,23 @@ test.describe('send_contact_message', () => {
 
   test('executes via the concurrent submit-click pattern', async () => {
     expect(await waitForTool(page, 'send_contact_message')).toBe(true);
-    // 1. Start the execution WITHOUT awaiting it (Chrome pauses it at the form).
-    const pending = executeTool(page, 'send_contact_message', {
+    const args = {
       email: 'qa@example.test', // manifest: examples.valid
       message: '[webmcpify verification] harness test message',
+    };
+    // Persist `started` BEFORE dispatch. Any exception after this line leaves it
+    // unresolved for authoritative read-path reconciliation on the next run.
+    const execution = await mutationJournal!.beforeDispatch({
+      tool: 'send_contact_message',
+      contractRevision: 1, // manifest: contractRevision
+      origin: BASE_URL, // manifest: app.verificationOrigin
+      role: 'none', // manifest: auth fixture role
+      fixtureRevision: 'contact-seed-v1', // manifest: app.authFixtures fixture revision
+      arguments: args,
+      evidence: '.webmcpify/evidence/send-contact-message.json',
     });
+    // 1. Start the execution WITHOUT awaiting it (Chrome pauses it at the form).
+    const pending = executeTool(page, 'send_contact_message', args);
     // 2. Wait until the agent-filled value is visible in the form.
     await expect(page.getByLabel('Email')).toHaveValue('qa@example.test');
     // 3. Perform the real submit interaction that resumes the paused execution.
@@ -284,8 +321,54 @@ test.describe('send_contact_message', () => {
       expect(out).not.toMatch(/^ERROR:/);
       expect(out).toContain('received'); // manifest: expect.result
     }
-    // manifest: cleanup — mutating:"server" tools MUST undo the side effect here
-    // (e.g. delete the test message via the UI's own admin path).
+    // manifest: cleanup — this UI action mutates too, so it gets its own durable
+    // entry linked to the still-started parent. Replace selectors with the
+    // manifest's concrete cleanup/read path when instantiating the template.
+    const cleanup = await mutationJournal!.beforeDispatch({
+      tool: 'cleanup:send_contact_message',
+      manifestTool: 'send_contact_message',
+      contractRevision: 1,
+      origin: BASE_URL,
+      role: 'none',
+      fixtureRevision: 'contact-seed-v1',
+      arguments: { email: 'qa@example.test' },
+      evidence: '.webmcpify/evidence/send-contact-message-cleanup.json',
+      parentExecutionId: execution.executionId,
+    });
+    await page.goto(`${BASE_URL}/admin/messages`); // manifest: cleanup read path
+    const fixtureRow = page.getByRole('row', { name: /qa@example\.test/ });
+    await expect(fixtureRow).toHaveCount(1); // independent read path proves the mutation before cleanup
+    await fixtureRow.getByRole('button', { name: 'Delete' }).click();
+    await expect(fixtureRow).toHaveCount(0); // independently prove cleanup
+    await mutationJournal!.settle(cleanup.executionId, {
+      outcome: 'fixture removed',
+      evidence: '.webmcpify/evidence/send-contact-message-cleanup-settled.json',
+    });
+    await mutationJournal!.settle(execution.executionId, {
+      outcome: 'effect verified and cleanup reconciled',
+      evidence: '.webmcpify/evidence/send-contact-message-settled.json',
+    });
+  });
+
+  test('rejects the invalid example without changing server state', async () => {
+    expect(await waitForTool(page, 'send_contact_message')).toBe(true);
+    const before = await page.getByRole('status', { name: 'Sent message count' }).innerText();
+    const execution = await mutationJournal!.beforeDispatch({
+      tool: 'send_contact_message',
+      contractRevision: 1,
+      origin: BASE_URL,
+      role: 'none',
+      fixtureRevision: 'contact-seed-v1',
+      arguments: {}, // manifest: examples.invalid
+      evidence: '.webmcpify/evidence/send-contact-message-invalid.json',
+    });
+    await expect(executeTool(page, 'send_contact_message', {})).rejects.toThrow();
+    const after = await page.getByRole('status', { name: 'Sent message count' }).innerText();
+    expect(after).toBe(before); // independent read path proves absence of an effect
+    await mutationJournal!.settle(execution.executionId, {
+      outcome: 'validation rejected; no effect observed',
+      evidence: '.webmcpify/evidence/send-contact-message-invalid-settled.json',
+    });
   });
 });
 

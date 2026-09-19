@@ -109,7 +109,12 @@ as the expected property in the actual target Chrome build.
 
 ## Harness
 
-Instantiate `templates/webmcp.spec.ts` + `templates/webmcp-compat.js` (bundled with this skill — vendor both together; the spec imports `parseInputSchema` from the helper on the Node side, and carries an inlined `normalizeResult` copy inside `page.evaluate` because the browser cannot close over imports) — Playwright,
+Instantiate `templates/webmcp.spec.ts`, `templates/webmcp-compat.js` and the
+`templates/mutation-journal.{ts,js}` pair (bundled with this skill — vendor all
+of them together). The spec imports `parseInputSchema` from the compatibility
+helper on the Node side, and carries an inlined `normalizeResult` copy inside
+`page.evaluate` because the browser cannot close over imports. The mutation
+journal is host-side and must never be copied into browser code. Use Playwright,
 headed persistent Chrome, one describe-block per tool generated from the manifest,
 with real assertions (never commented-out placeholders). Put the generated spec
 next to the repo's existing e2e tests.
@@ -121,19 +126,25 @@ harness OUTSIDE the repo so the target gains no dependencies:
 
 ```sh
 mkdir -p /tmp/webmcpify-harness && cd /tmp/webmcpify-harness
-npm init -y && npm i -D @playwright/test typescript @types/node
+npm init -y && npm i -D --save-exact @playwright/test@1.61.1 typescript@5.9.3 @types/node@22.20.1
 cat > playwright.config.ts <<'EOF'
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: process.env.WEBMCP_SPEC_DIR,   // → <target-repo>/.webmcpify
   workers: 1,                              // one shared headed Chrome — never parallelize
+  retries: 0,                              // never replay a possibly-mutating call
 });
 EOF
 WEBMCP_SPEC_DIR=<target-repo>/.webmcpify \
 WEBMCP_BASE_URL=<recorded-app.verificationOrigin> \
 WEBMCP_PROFILE_DIR=<dedicated-writable-profile-dir> \
-NODE_PATH=/tmp/webmcpify-harness/node_modules npx playwright test
+NODE_PATH=/tmp/webmcpify-harness/node_modules ./node_modules/.bin/playwright test
 ```
+
+The harness versions are the ones this skill is tested with, and `@playwright/test`
+matches the Workbench's Playwright (`scripts/workbench.mjs`). Bump them together,
+never to `latest`. The local binary is called directly, so a missing install fails
+instead of downloading a package.
 
 `NODE_PATH` lets the out-of-repo spec resolve `@playwright/test`; if the target's
 tooling ignores `NODE_PATH`, symlink instead:
@@ -156,12 +167,19 @@ the page-context Playwright harness above, which was measured against Chrome 150
 
 Before using the spec template, Puppeteer, Workbench, smoke or model runners,
 read [the durable journal protocol](reverify.md#durable-mutation-execution-journal).
-The supplied browser/runtime helpers do not implement host persistence. Instrument
-all mutation dispatches and cleanup with its atomic pre-dispatch/settlement hooks,
-acquire its stable sidecar OS lock before the initial manifest scan, and disable
-automatic retries. A runner without such hooks is read-only for this
-workflow; report mutation checks not-run. Reconcile existing started entries
-before selecting tools, including entries on verified/skipped tools.
+Use the shipped `templates/mutation-journal.{ts,js}` helper instead of hand-rolling
+the lock or write sequence: call `openMutationJournal` before the runner's first
+manifest read, `beforeDispatch` immediately before every mutation (invalid examples
+and cleanup included), and `settle` only after the effect or proven absence plus
+cleanup has been independently established. Keep the journal open until the final
+settlement and disable automatic retries. The helper uses `flock(1)` where present,
+falls back to macOS/FreeBSD `lockf(1)` descriptor mode without replacing the sidecar, and fails
+closed if neither command is available. A runner that cannot expose these hooks is
+read-only for this workflow; report mutation checks not-run. Reconcile existing
+started entries before selecting tools, including entries on verified/skipped tools.
+Do not repair a malformed journal or sidecar in place: the helper deliberately
+rejects corrupt entries, symlinks, hard links and lock-identity changes without
+authorizing a mutation.
 
 ## Agent evals (recommended; required evidence for SaaS-scale readiness claims)
 
