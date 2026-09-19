@@ -6,7 +6,7 @@ Fork-specific workflows, agents, and documentation for developing the **Oracle-t
 
 ## Status
 
-**Authored, compiled, lint-checked, watchdog-exercised, and reviewer green-path verified in Actions.** The reviewer’s negative version-bump scenario and the bundler remain unverified; see [First-run checklist](#first-run-checklist).
+**Authored, compiled, lint-checked, watchdog-exercised, and reviewer green- and negative-path verified in Actions.** The bundler remains unverified; see [First-run checklist](#first-run-checklist).
 
 ## Architecture
 
@@ -128,10 +128,10 @@ Run with `dry_run` first; the job summary shows the diff stat. Then run for real
 - [x] Add `FORK_AUTOMATION_PAT` secret (`public_repo` + `workflow` scopes).
 - [x] **Watchdog**: Run workflow → successful run [#35353935549](https://github.com/PrimedPaul/awesome-copilot/actions/runs/35353935549) created sync PR [#17](https://github.com/PrimedPaul/awesome-copilot/pull/17), posted one AI summary comment, and the PR was merged.
 - [x] **Reviewer green path**: PR [#37](https://github.com/PrimedPaul/awesome-copilot/pull/37) ran successfully after the fork-safe merge-ref checkout and GitHub network allowlist were restored. Its [reviewer run](https://github.com/PrimedPaul/awesome-copilot/actions/runs/35414912410) completed `version_check`, agent review, safe outputs, and conclusion successfully.
-- [ ] **Reviewer negative path**: open a test PR that edits the agent file *without* bumping the version → expect `version_check` red and an AI review.
+- [x] **Reviewer negative path**: PR [#39](https://github.com/PrimedPaul/awesome-copilot/pull/39) changed the agent with the plugin version set to upstream `1.1.0`; `version_check` failed as expected in [the reviewer run](https://github.com/PrimedPaul/awesome-copilot/actions/runs/35421185433).
 - [ ] **Bundler**: run with `dry_run` → inspect the summary; then run for real → confirm the draft PR on upstream.
 - [x] **Planner**: open a throwaway issue describing a small agent tweak → expect a `[plan] …` draft PR on `plan/issue-<N>` and a comment with open questions. Delete the branch and close the issue afterwards. Verified via [issue #28](https://github.com/PrimedPaul/awesome-copilot/issues/28) → draft PR [#29](https://github.com/PrimedPaul/awesome-copilot/pull/29) ([run](https://github.com/PrimedPaul/awesome-copilot/actions/runs/35381990328)): correct scope classification, accurate file reads, full plan sections, one PR + one comment as designed.
-- [ ] Verify the remaining reviewer negative path and bundler, then update the *Status* section above.
+- [ ] Verify the remaining bundler path, then update the *Status* section above.
 
 ## Troubleshooting
 
