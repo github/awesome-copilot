@@ -2,7 +2,7 @@
 issue: 32
 title: 'Update Oracle-to-Postgres Custom Agent Model'
 scope: agent
-status: draft
+status: approved
 ---
 
 ## Issue summary
