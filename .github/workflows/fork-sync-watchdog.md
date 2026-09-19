@@ -114,15 +114,14 @@ jobs:
           fi
 
           BODY_FILE=$(mktemp)
-          cat > "$BODY_FILE" <<EOF
-          Weekly mirror of \`github/awesome-copilot\` \`main\` into this fork.
-
-          - Upstream HEAD: \`$UPSTREAM_SHA\`
-          - Merge with **Create a merge commit** so shared history is preserved for future syncs.
-          - An AI summary of what changed (and anything that affects contribution rules or fork workflows) follows as a comment.
-
-          _Opened by the fork-sync-watchdog workflow._
-          EOF
+          printf '%s\n' \
+            'Weekly mirror of `github/awesome-copilot` `main` into this fork.' \
+            '' \
+            "- Upstream HEAD: \`$UPSTREAM_SHA\`" \
+            '- Merge with **Create a merge commit** so shared history is preserved for future syncs.' \
+            '- An AI summary of what changed (and anything that affects contribution rules or fork workflows) follows as a comment.' \
+            '' \
+            '_Opened by the fork-sync-watchdog workflow._' > "$BODY_FILE"
 
           PR_OUTPUT=$(gh pr create --repo "$GITHUB_REPOSITORY" \
             --base main --head fork-sync/upstream \
