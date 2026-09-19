@@ -194,7 +194,11 @@ jobs:
           if [ -n "$EXISTING" ]; then
             EXISTING_NUMBER="${EXISTING%%$'\t'*}"
             EXISTING_URL="${EXISTING#*$'\t'}"
-            gh pr edit "$EXISTING_NUMBER" --repo "$UPSTREAM_REPO" --title "$TITLE" --body-file "$BODY_FILE"
+            PATCH_FILE=$(mktemp)
+            jq -n --arg title "$TITLE" --rawfile body "$BODY_FILE" \
+              '{title: $title, body: $body}' > "$PATCH_FILE"
+            gh api --method PATCH "repos/${UPSTREAM_REPO}/pulls/${EXISTING_NUMBER}" \
+              --input "$PATCH_FILE" --silent
             echo "::notice::Existing upstream PR refreshed: $EXISTING_URL"
             echo "Upstream PR: $EXISTING_URL" >> "$GITHUB_STEP_SUMMARY"
             exit 0
