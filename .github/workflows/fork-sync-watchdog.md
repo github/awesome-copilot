@@ -124,12 +124,13 @@ jobs:
           _Opened by the fork-sync-watchdog workflow._
           EOF
 
-          PR_URL=$(gh pr create --repo "$GITHUB_REPOSITORY" \
+          PR_NUMBER=$(gh pr create --repo "$GITHUB_REPOSITORY" \
             --base main --head fork-sync/upstream \
             --title "chore(fork-sync): merge upstream main ($(date -u +%Y-%m-%d))" \
-            --body-file "$BODY_FILE")
-          echo "pr_number=${PR_URL##*/}" >> "$GITHUB_OUTPUT"
-          echo "::notice::Opened sync PR $PR_URL"
+            --body-file "$BODY_FILE" \
+            --json number --jq '.number')
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "::notice::Opened sync PR #$PR_NUMBER"
   agent:
     needs: [sync]
     if: needs.sync.outputs.has_changes == 'true'
