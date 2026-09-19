@@ -25,7 +25,7 @@ What it provides:
 |---|---|
 | `getModelContext()` | The ONLY place `document.modelContext` / deprecated `navigator.modelContext` is referenced — spec churn stays a one-file fix |
 | `isWebMCPAvailable()` | Feature detection — the app must work identically without WebMCP |
-| `createToolScope(key, tools, options?)` | Registers a tool set under one AbortController; returns a **callable dispose handle** carrying `ready: Promise<boolean>` (true = all registrations committed; false = no WebMCP / duplicate key / failure / disposed first — never rejects). Validates contracts BEFORE registering; **rolls back the whole scope** on any failure, including sync-throwing legacy `registerTool` (reported via `options.onError`, default `console.error` — NOT called when disposed before settling). An already-active key returns a no-op handle — safe under React StrictMode |
+| `createToolScope(key, tools, options?)` | Registers a tool set under one AbortController; returns a **callable dispose handle** carrying `ready: Promise<boolean>` (true = all registrations committed; false = no WebMCP / duplicate key / failure / disposed first — never rejects). Missing WebMCP remains a safe no-op, but development builds warn once with secure-origin/Chrome/flag diagnostics. Validates contracts BEFORE registering; wraps every imperative `execute()` so bare `null`/`undefined` becomes a structured error; **rolls back the whole scope** on any registration failure, including sync-throwing legacy `registerTool` (reported via `options.onError`, default `console.error` — NOT called when disposed before settling). An already-active key returns a no-op handle — safe under React StrictMode |
 | `dispatchAndWait(event, detail?, timeoutMs?)` | Bridges `execute()` to the app's own event/state flow. The dispatched detail carries `requestId` plus `signal` — an AbortSignal aborted on timeout; pass it to `fetch()` and skip state commits once aborted. Resolves only after the component confirms with an explicit **boolean** `ok`; a completion with missing/non-boolean `ok` **fails closed** to an `"ERROR: ..."` string, as do timeouts and `ok: false` (self-correction convention — never rejects). For tools whose confirmation involves a network round-trip (mailers, slow APIs), pass an explicit `timeoutMs` (e.g. `20_000`) instead of relying on the 10 s default |
 | `singleFlight(fn, busyMessage?)` | Serializes a tool's `execute`: while one call is in flight, further calls resolve immediately to a busy `"ERROR: ..."` string instead of racing shared UI state |
 
@@ -33,6 +33,14 @@ Validation note: budget checks auto-enable when the bundler substitutes
 `process.env.NODE_ENV` (Vite/webpack automatic; esbuild via `--define`) and it
 isn't `'production'`; unbundled projects default to off — pass `{ validate: true }`
 during development.
+
+Result note: application tools must return a JSON-safe value. Bare `null` and
+`undefined` are forbidden for imperative tools because current Chrome clients can
+surface them as ambiguous success, the string `"null"`, or an execution-context
+failure. The runtime converts an accidental absent result to
+`{ ok: false, error: "…" }` (and logs it in development), but integrations should
+return the intended structured result themselves. A browser-owned `null` from a
+navigating declarative form is a different execution path and remains valid.
 
 ## The completion contract (the part integrators get wrong)
 
