@@ -1885,14 +1885,18 @@ jobs:
             echo "::error::FORK_AUTOMATION_PAT is not configured"
             exit 1
           fi
-          git remote set-url origin "https://x-access-token:${FORK_AUTOMATION_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+          SERVER_HOST="${GITHUB_SERVER_URL#https://}"
+          SERVER_HOST="${SERVER_HOST#http://}"
+          git remote set-url origin "https://x-access-token:${FORK_AUTOMATION_PAT}@${SERVER_HOST}/${GITHUB_REPOSITORY}.git"
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         env:
           FORK_AUTOMATION_PAT: ${{ secrets.FORK_AUTOMATION_PAT }}
       - name: Fetch upstream
+        env:
+          FORK_SYNC_UPSTREAM_URL: ${{ vars.FORK_SYNC_UPSTREAM_URL || 'https://github.com/github/awesome-copilot.git' }}
         run: |
-          git remote add upstream https://github.com/github/awesome-copilot.git
+          git remote add upstream "$FORK_SYNC_UPSTREAM_URL"
           git fetch --quiet upstream main
       - name: Compute unmerged upstream changes
         id: diff
