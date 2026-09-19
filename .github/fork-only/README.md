@@ -144,6 +144,7 @@ Run with `dry_run` first; the job summary shows the diff stat. Then run for real
 | Reviewer `version_check` red | `plugin.json` version equals upstream | Bump it on the PR branch |
 | Bundler: "No unpromoted changes" | Fork `main` matches upstream for the agent paths | Nothing to promote |
 | Bundler: `git apply` fails | Should be impossible (branch *is* `upstream/main`); indicates a fetch problem | Re-run; if it persists, open an issue with the log |
+| Bundler: PR creation returns 404 after a prior promotion PR was closed | GitHub will not create another PR for the same fork head branch | The bundler reopens and refreshes the prior promotion PR automatically. Do not delete or rename the promotion branch manually. |
 | Planner did not run on a new issue | Issue was not opened by the repo owner, or carries the `fork-automation` label (the watchdog's own issues are excluded by design) | Re-run manually: Actions → Fork Issue Planner → Run workflow → issue number |
 | Planner run fails at `create_pull_request` with a protected-files or allowed-files error | The agent tried to write outside `.github/fork-only/plans/issue-*.md` | Working as designed — the planner must never edit code. Re-run; if it repeats, tighten the *Rules* section of `fork-issue-planner.md` |
 | Planner PR has the `fork-automation` label but the label does not exist | The repository has no `fork-automation` label yet | Create it once in Issues → Labels (the watchdog needs it too) |

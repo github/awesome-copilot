@@ -190,18 +190,25 @@ jobs:
           Opened by the fork's \`fork-bundle-upstream-pr\` workflow (run ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}).
           EOF
 
-          EXISTING=$(gh pr list --repo "$UPSTREAM_REPO" --head "$HEAD_REF" --base main --state open --json number,url --jq '.[0] | "\(.number)\t\(.url)"')
+          EXISTING=$(gh api "repos/${UPSTREAM_REPO}/pulls?state=all&head=${HEAD_REF}&base=main&per_page=1" \
+            --jq '.[0] | select(.) | "\(.number)\t\(.state)\t\(.html_url)"')
           if [ -n "$EXISTING" ]; then
             EXISTING_NUMBER="${EXISTING%%$'\t'*}"
-            EXISTING_URL="${EXISTING#*$'\t'}"
+            EXISTING_STATE_AND_URL="${EXISTING#*$'\t'}"
+            EXISTING_STATE="${EXISTING_STATE_AND_URL%%$'\t'*}"
+            EXISTING_URL="${EXISTING_STATE_AND_URL#*$'\t'}"
             PATCH_FILE=$(mktemp)
             jq -n --arg title "$TITLE" --rawfile body "$BODY_FILE" \
               '{title: $title, body: $body}' > "$PATCH_FILE"
+            if [ "$EXISTING_STATE" = "closed" ]; then
+              gh api --method PATCH "repos/${UPSTREAM_REPO}/pulls/${EXISTING_NUMBER}" \
+                -f state=open --silent
+            fi
             # A pull request is also an issue. Updating its issue metadata lets the
             # PR author change the title and body without upstream write access.
             gh api --method PATCH "repos/${UPSTREAM_REPO}/issues/${EXISTING_NUMBER}" \
               --input "$PATCH_FILE" --silent
-            echo "::notice::Existing upstream PR refreshed: $EXISTING_URL"
+            echo "::notice::Existing upstream PR found in state ${EXISTING_STATE}; refreshed: $EXISTING_URL"
             echo "Upstream PR: $EXISTING_URL" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
