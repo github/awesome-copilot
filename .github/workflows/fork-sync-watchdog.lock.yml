@@ -1951,11 +1951,17 @@ jobs:
           _Opened by the fork-sync-watchdog workflow._
           EOF
 
-          PR_NUMBER=$(gh pr create --repo "$GITHUB_REPOSITORY" \
+          PR_OUTPUT=$(gh pr create --repo "$GITHUB_REPOSITORY" \
             --base main --head fork-sync/upstream \
             --title "chore(fork-sync): merge upstream main ($(date -u +%Y-%m-%d))" \
-            --body-file "$BODY_FILE" \
-            --json number --jq '.number')
+            --body-file "$BODY_FILE")
+          PR_URL=$(printf '%s\n' "$PR_OUTPUT" | grep -Eo 'https://github\.com/[^[:space:]]+/pull/[0-9]+' | tail -n1)
+          PR_NUMBER=${PR_URL##*/}
+          if [ -z "$PR_URL" ] || [ -z "$PR_NUMBER" ]; then
+            echo "::error::Unable to determine the sync PR number from gh output"
+            printf '%s\n' "$PR_OUTPUT"
+            exit 1
+          fi
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "::notice::Opened sync PR #$PR_NUMBER"
         env:
