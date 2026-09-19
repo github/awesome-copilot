@@ -29,7 +29,7 @@ concurrency:
 
 env:
   UPSTREAM_REPO: github/awesome-copilot
-  PROMOTION_BRANCH: upstream-promotion/oracle-to-postgres-migration-expert
+  PROMOTION_BRANCH: upstream-promotion/oracle-to-postgres-migration-expert-v1.1.1
   PLUGIN_MANIFEST: plugins/oracle-to-postgres-migration-expert/plugin.json
 
 jobs:
