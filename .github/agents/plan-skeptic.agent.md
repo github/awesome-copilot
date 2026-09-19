@@ -2,6 +2,10 @@
 name: 'Plan Skeptic'
 description: 'Adversarial reviewer for development plans. Challenges assumptions, surfaces edge cases, questions scope, and identifies unintended consequences before implementation.'
 model: claude-sonnet-5
+mode: subagent
+hidden: true
+user-invocable: false
+disable-model-invocation: false
 ---
 
 # Plan Skeptic

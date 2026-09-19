@@ -40,12 +40,12 @@ flowchart LR
 
 The gh-aw sources live in `.github/workflows/*.md` alongside their compiled `.lock.yml`, following upstream's convention for its own live agentic workflows (the top-level `workflows/` directory is the *contribution catalog*, not where this repo's automation runs). Recompile after editing a source: `gh aw compile --validate fork-sync-watchdog fork-agent-reviewer fork-issue-planner`.
 
-### Agents (`.github/fork-only/agents/`)
+### Agents (`.github/agents/`)
 
-Custom agents for interactive Copilot CLI sessions; they are not run by Actions.
+Custom agents for interactive Copilot CLI sessions; they are not run by Actions. They live under `.github/agents/` — not `.github/fork-only/agents/` — because Copilot CLI only discovers selectable custom agents in `.github/agents/` (repo-level) or `~/.copilot/agents/` (user-level); a `.github/fork-only/agents/` file is never scanned and cannot be selected with `/agent`. This is still fork-only tooling: neither `npm run build`/`skill-check` (which only walk the top-level `agents/**`) nor `fork-bundle-upstream-pr` (which diffs a hard-coded list of the migration-expert agent's own paths) ever look at `.github/agents/`, so nothing here can leak upstream.
 
-- **dev-orchestrator.agent.md** — issue → grill → plan → skeptic critique → approval gate → implement → pre-PR self-review. Reads `.github/fork-only/plans/issue-<N>.md` first if the planner produced one. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators).
-- **plan-skeptic.agent.md** — adversarial sub-agent the orchestrator dispatches to critique its own plan. `fork-issue-planner` adopts the same persona for its self-critique section.
+- **dev-orchestrator.agent.md** — issue → grill → plan → skeptic critique → approval gate → implement → pre-PR self-review. Reads `.github/fork-only/plans/issue-<N>.md` first if the planner produced one. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators). Selectable via `/agent` (`mode: primary`, `hidden: false`, `user-invocable: true`).
+- **plan-skeptic.agent.md** — adversarial sub-agent the orchestrator dispatches to critique its own plan. `fork-issue-planner` adopts the same persona for its self-critique section. Not selectable via `/agent` — only reachable as a sub-agent dispatch (`mode: subagent`, `hidden: true`, `user-invocable: false`).
 
 ### No state files
 
@@ -101,7 +101,7 @@ The gh-aw workflows use the Copilot engine and request `copilot-requests: write`
 1. Open an issue in the fork describing the change.
 2. **Fork Issue Planner** fires automatically (owner-opened issues only, `fork-automation`-labelled ones excluded). Within a few minutes you get a draft PR `[plan] plan: issue #N — …` on branch `plan/issue-<N>` containing `.github/fork-only/plans/issue-<N>.md` with `---`-delimited YAML frontmatter, plus an issue comment linking the draft PR and repeating the plan's open questions verbatim with the biggest risk.
 3. Answer the open questions in the issue. That is the human half of the grilling the CI run could not do.
-4. In Copilot CLI, check out `plan/issue-<N>`, select the **Development Orchestrator** agent (`.github/fork-only/agents/dev-orchestrator.agent.md`) and give it the issue number. It reads the plan file as a starting point — the plan is advisory, so the orchestrator re-grills with your answers and rewrites it freely.
+4. In Copilot CLI, check out `plan/issue-<N>`, select the **Development Orchestrator** agent (`/agent` → `.github/agents/dev-orchestrator.agent.md`) and give it the issue number. It reads the plan file as a starting point — the plan is advisory, so the orchestrator re-grills with your answers and rewrites it freely.
 5. It grills, plans, sends the plan to **Plan Skeptic**, waits for your approval, implements, bumps `plugin.json` version, runs `npm run build`, and self-reviews.
 6. Mark the plan PR *Ready for review* once it carries the implementation (or close it and open a fresh PR — the branch is yours). `skill-check` (vally) and `fork-agent-reviewer` run. The reviewer's `version_check` job fails if the version was not bumped.
 7. Merge when satisfied — you are the sole reviewer.

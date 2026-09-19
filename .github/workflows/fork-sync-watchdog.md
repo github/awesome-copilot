@@ -203,7 +203,7 @@ Structure:
 If `${{ needs.sync.outputs.guideline_files }}` is non-empty, use `create_issue` (same transport as the comment: write the body to `/tmp/gh-aw/agent/issue.md`, then `jq -Rs '{title: "Upstream contribution guidelines changed — review fork automation", body: .}' /tmp/gh-aw/agent/issue.md | safeoutputs create_issue .`):
 
 - Title: `Upstream contribution guidelines changed — review fork automation`
-- Body must include: which files changed; the full diff of those files in a fenced ```diff block; a plain-language explanation of what each change **means for this fork's workflow** (branching, PR titles, build steps, required checks, path conventions); and a checklist of fork files that may need updating (`.github/fork-only/README.md`, `.github/fork-only/PLAN.md`, `.github/fork-only/agents/dev-orchestrator.agent.md`, `.github/workflows/fork-bundle-upstream-pr.yml`).
+- Body must include: which files changed; the full diff of those files in a fenced ```diff block; a plain-language explanation of what each change **means for this fork's workflow** (branching, PR titles, build steps, required checks, path conventions); and a checklist of fork files that may need updating (`.github/fork-only/README.md`, `.github/fork-only/PLAN.md`, `.github/agents/dev-orchestrator.agent.md`, `.github/workflows/fork-bundle-upstream-pr.yml`).
 
 If no guideline files changed, do **not** create an issue.
 

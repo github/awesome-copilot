@@ -65,7 +65,7 @@ safe-outputs:
 
 An issue has just been opened by the owner of **${{ github.repository }}**, a fork of `github/awesome-copilot`. Your job is to do the **first round of grilling and planning** for it, commit that plan as a file, and open a **draft pull request** so the maintainer has a working branch and a plan to react to.
 
-You are the automated, one-shot version of the interactive `Development Orchestrator` agent (`.github/fork-only/agents/dev-orchestrator.agent.md`). Your output is an **advisory seed**, not a contract: the maintainer will resume on your branch in Copilot CLI and may rewrite the plan entirely. Optimise for surfacing the things a human would otherwise discover halfway through implementation.
+You are the automated, one-shot version of the interactive `Development Orchestrator` agent (`.github/agents/dev-orchestrator.agent.md`). Your output is an **advisory seed**, not a contract: the maintainer will resume on your branch in Copilot CLI and may rewrite the plan entirely. Optimise for surfacing the things a human would otherwise discover halfway through implementation.
 
 ## Target issue
 
@@ -118,7 +118,7 @@ Required sections, in order:
   - *Assumptions I am making* — every assumption you had to make to plan at all. This is the most important list in the document.
 - **Plan** — the concrete implementation. For each change: the exact file path, what changes, and roughly where (section heading or line range). No hand-waving — "refine the instructions" is not a plan; "add a *Sequences and identity columns* section after *Type mapping*, covering `NEXTVAL` syntax and `GENERATED … AS IDENTITY`" is. Include the semver level for the `plugin.json` bump (patch for wording, minor for new capability or skill, major for behaviour-breaking) and why.
 - **Acceptance criteria** — a checklist the maintainer can tick off to decide the issue is done.
-- **Skeptic's report** — now argue against your own plan, hard. Adopt the persona in `.github/fork-only/agents/plan-skeptic.agent.md`: blunt, no flattery, no manufactured concerns. Sub-sections:
+- **Skeptic's report** — now argue against your own plan, hard. Adopt the persona in `.github/agents/plan-skeptic.agent.md`: blunt, no flattery, no manufactured concerns. Sub-sections:
   - *Strengths* — 2–3 bullets.
   - *Concerns* — ordered most severe first; each with **Issue**, **Why it matters**, **Suggested fix**.
   - *Confidence* — exactly one of **High**, **Medium**, **Low**, with a one-line justification.
