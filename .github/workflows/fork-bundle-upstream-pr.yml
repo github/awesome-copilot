@@ -7,9 +7,14 @@ name: Fork Bundle Upstream PR
 on:
   workflow_dispatch:
     inputs:
+      change_summary:
+        description: 'Concise description of the substantive change; do not describe only the version bump'
+        required: true
+        type: string
       title:
         description: 'PR title (optional; auto-generated if omitted)'
         required: false
+        type: string
         default: ''
       ai_authored:
         description: 'Append the 🤖🤖🤖 fast-track marker (CONTRIBUTING.md: AI-authored PRs)'
@@ -50,7 +55,21 @@ jobs:
 
       - name: Compute unpromoted delta
         id: delta
+        env:
+          CHANGE_SUMMARY: ${{ inputs.change_summary }}
         run: |
+          if [ -z "${CHANGE_SUMMARY//[[:space:]]/}" ]; then
+            echo "::error::change_summary must describe the substantive change and cannot be blank."
+            exit 1
+          fi
+          if [[ "$CHANGE_SUMMARY" == *$'\n'* || "$CHANGE_SUMMARY" == *$'\r'* ]]; then
+            echo "::error::change_summary must be a single line."
+            exit 1
+          fi
+          echo "change_summary<<EOF" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$CHANGE_SUMMARY" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
           # Paths that belong to this agent. Must match what plugin.json references.
           PATHS=(
             "agents/oracle-to-postgres-migration-expert.agent.md"
@@ -126,13 +145,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.FORK_AUTOMATION_PAT }}
           INPUT_TITLE: ${{ inputs.title }}
+          CHANGE_SUMMARY: ${{ steps.delta.outputs.change_summary }}
           AI_AUTHORED: ${{ inputs.ai_authored }}
           FORK_VERSION: ${{ steps.delta.outputs.fork_version }}
           UPSTREAM_VERSION: ${{ steps.delta.outputs.upstream_version }}
           FORK_SHA: ${{ steps.delta.outputs.fork_sha }}
           UPSTREAM_SHA: ${{ steps.delta.outputs.upstream_sha }}
         run: |
-          TITLE="${INPUT_TITLE:-Update Oracle-to-PostgreSQL Migration Expert agent to v${FORK_VERSION}}"
+          TITLE="${INPUT_TITLE:-Update Oracle-to-PostgreSQL Migration Expert: ${CHANGE_SUMMARY}}"
           if [ "$AI_AUTHORED" = "true" ]; then TITLE="${TITLE} 🤖🤖🤖"; fi
 
           HEAD_REF="${GITHUB_REPOSITORY_OWNER}:${PROMOTION_BRANCH}"
@@ -147,7 +167,9 @@ jobs:
           cat > "$BODY_FILE" <<EOF
           ## Summary
 
-          Updates the **Oracle-to-PostgreSQL Migration Expert** custom agent, its plugin manifest, and bundled skills from \`${UPSTREAM_VERSION}\` to \`${FORK_VERSION}\`.
+          Updates the **Oracle-to-PostgreSQL Migration Expert** custom agent: ${CHANGE_SUMMARY}
+
+          The plugin version is bumped from \`${UPSTREAM_VERSION}\` to \`${FORK_VERSION}\` because of this change.
 
           Changes were developed and reviewed in the fork \`${GITHUB_REPOSITORY}\` (main @ \`${FORK_SHA}\`) and squashed onto upstream \`main\` @ \`${UPSTREAM_SHA}\`. \`npm run build\` was run so README and marketplace outputs are in sync.
 
