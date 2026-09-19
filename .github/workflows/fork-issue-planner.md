@@ -58,6 +58,8 @@ safe-outputs:
   add-comment:
     target: "*"
     max: 1
+  report-incomplete:
+    create-issue: false
   noop:
 ---
 

@@ -148,6 +148,8 @@ safe-outputs:
     title-prefix: "[fork-watchdog] "
     labels: [fork-automation, contribution-guidelines]
     max: 1
+  report-incomplete:
+    create-issue: false
   noop:
 ---
 
@@ -173,7 +175,7 @@ The fork exists to develop one custom agent — `agents/oracle-to-postgres-migra
 ## Steps
 
 1. In the checked-out repository run:
-   - `git remote add upstream https://github.com/github/awesome-copilot.git && git fetch --quiet upstream main`
+   - `git fetch --quiet upstream main`
    - `git log --oneline origin/main..upstream/main` to list incoming commits
    - `git diff --stat origin/main...upstream/main` for the change footprint
 2. If the guideline list above is non-empty, run `git diff origin/main...upstream/main -- CONTRIBUTING.md AGENTS.md` and read the full diff.
