@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-12
+lastUpdated: 2026-09-20
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -945,6 +945,34 @@ copilot skill enable my-skill    # enable a specific skill
 ### Command-Line Parsing Rewrite
 
 *(v1.0.84+)* Command-line parsing moved from Commander to a Rust-based grammar that mirrors what the CLI actually parses, which also generates shell completions directly from that grammar — so `copilot <TAB>` now offers root flags alongside subcommands, and each subcommand only shows its own options. As a result of this change, some error and help wording changed, `copilot login --host` now works correctly, and `--max-autopilot-continues` no longer accepts scientific notation as a value.
+
+### Concise Transcript View
+
+*(v1.0.85+)* Set `transcriptView` to `concise` in `/settings` to group tool activity into expandable work summaries instead of showing every tool call inline. This keeps long sessions easier to scan, especially when an agent runs many small tool calls in a row — expand a summary only when you need to see the underlying detail:
+
+```
+/settings transcriptView concise
+```
+
+### Context Management Tools for Agents and Subagents
+
+*(v1.0.85+)* `/settings` now includes an opt-in for context management tools that agents and subagents can call directly, giving them more control over what stays in context during long-running or multi-agent sessions rather than relying solely on automatic compaction.
+
+### Sandbox Bypass Refinements
+
+*(v1.0.85+/v1.0.86+)* Managed sandbox sessions can now be disabled for the rest of the session directly from an approved bypass prompt, and `/sandbox` policy reporting for local-network access now reflects your actual configured setting rather than a generic message.
+
+### Repository Instructions for Custom Agents
+
+*(v1.0.86+)* Custom agents can opt into repository instruction files — `AGENTS.md`, `copilot-instructions.md`, and `CLAUDE.md` — by setting `include-custom-instructions: true` in their frontmatter. This lets an agent inherit your team's shared conventions instead of relying solely on its own persona instructions:
+
+```yaml
+---
+name: 'Release Manager'
+description: 'Automates release preparation and changelog generation'
+include-custom-instructions: true
+---
+```
 
 ## Common Questions
 
