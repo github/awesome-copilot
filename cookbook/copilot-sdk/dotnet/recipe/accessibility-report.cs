@@ -31,7 +31,7 @@ Console.WriteLine("Please wait...\n");
 // Create a session with Playwright MCP server
 await using var session = await client.CreateSessionAsync(new SessionConfig
 {
-  Model = "claude-opus-4.6",
+  Model = "auto",
   Streaming = true,
   OnPermissionRequest = PermissionHandler.ApproveAll,
   McpServers = new Dictionary<string, McpServerConfig>()

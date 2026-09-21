@@ -20,7 +20,7 @@ try
 
     var session = await client.CreateSessionAsync(new SessionConfig
     {
-        Model = "gpt-5",
+        Model = "auto",
         OnPermissionRequest = PermissionHandler.ApproveAll
     });
 

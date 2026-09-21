@@ -164,7 +164,7 @@ await client.StartAsync();
 
 var session = await client.CreateSessionAsync(new SessionConfig
 {
-    Model = "gpt-5",
+    Model = "auto",
     OnPermissionRequest = PermissionHandler.ApproveAll,
     SystemMessage = new SystemMessageConfig
     {
@@ -268,7 +268,7 @@ up front:
 ```csharp
 var session = await client.CreateSessionAsync(new SessionConfig
 {
-    Model = "gpt-5",
+    Model = "auto",
     OnPermissionRequest = PermissionHandler.ApproveAll,
     ToolSearch = new ToolSearchConfig
     {
