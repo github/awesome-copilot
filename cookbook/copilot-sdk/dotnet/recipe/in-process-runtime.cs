@@ -24,18 +24,9 @@ try
         OnPermissionRequest = PermissionHandler.ApproveAll
     });
 
-    var done = new TaskCompletionSource<string>();
-    session.On<SessionEvent>(evt =>
-    {
-        if (evt is AssistantMessageEvent msg)
-        {
-            done.SetResult(msg.Data.Content);
-        }
-    });
-
-    await session.SendAsync(new MessageOptions { Prompt = "Hello from the in-process runtime!" });
-    var response = await done.Task;
-    Console.WriteLine(response);
+    var response = await session.SendAndWaitAsync(
+        new MessageOptions { Prompt = "Hello from the in-process runtime!" });
+    Console.WriteLine(response?.Data.Content);
 
     await session.DisposeAsync();
 }

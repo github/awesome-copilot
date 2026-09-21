@@ -36,17 +36,9 @@ var session = await client.CreateSessionAsync(new SessionConfig
     OnPermissionRequest = PermissionHandler.ApproveAll
 });
 
-var done = new TaskCompletionSource<string>();
-session.On<SessionEvent>(evt =>
-{
-    if (evt is AssistantMessageEvent msg)
-    {
-        done.SetResult(msg.Data.Content);
-    }
-});
-
-await session.SendAsync(new MessageOptions { Prompt = "Hello from the in-process runtime!" });
-Console.WriteLine(await done.Task);
+var response = await session.SendAndWaitAsync(
+    new MessageOptions { Prompt = "Hello from the in-process runtime!" });
+Console.WriteLine(response?.Data.Content);
 
 await client.StopAsync();
 ```
