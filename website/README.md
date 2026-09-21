@@ -63,6 +63,8 @@ Search groups use stronger headings and solid dividers between groups. Hover
 and keyboard selection fill the entire result-row width while text remains inset.
 Arrow, Home, and End navigation keep the selected result visible inside scrollable
 panels without moving focus away from the search field.
+Asynchronous result updates clear the active selection so reordered results cannot
+silently change the destination selected by Enter.
 Dropdown links that leave the site have a trailing external-link arrow, including
 Hooks, Workflows, and Tools (local redirects to GitHub), and the mobile Contribute button.
 

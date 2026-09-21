@@ -182,7 +182,7 @@ export function TopNavSearch({
 
   useEffect(() => {
     setActiveIndex(-1);
-  }, [trimmed]);
+  }, [trimmed, flatResults]);
 
   const resultsOpen = open && focused && trimmed.length > 0;
   const hasResults = groups.length > 0;

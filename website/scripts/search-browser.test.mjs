@@ -176,6 +176,54 @@ for (const withIndex of [true, false]) {
   }
 }
 
+for (const width of [1440, 390]) {
+  test(`asynchronous result reordering clears keyboard selection at ${width}px`, async () => {
+    const page = await browser.newPage({ viewport: { width, height: 900 }, reducedMotion: "reduce" });
+    try {
+      await page.route("**/pagefind/pagefind.js", route => route.fulfill({
+        contentType: "text/javascript",
+        body: `
+          export async function search() {
+            await new Promise(resolve => { window.releaseSearchResults = resolve; });
+            return { results: [{ data: async () => ({
+              url: "/learning-hub/async-result/",
+              meta: { resourceTitle: "Artifact Explorer article", locale: "en" }
+            }) }] };
+          }
+        `,
+      }));
+      await page.goto(base);
+      await page.waitForFunction(() => !document.querySelector("astro-island[ssr]"));
+      if (width > 1200) await page.getByRole("button", { name: "Search", exact: true }).click();
+      else await page.getByLabel("Open Resources menu", { exact: true }).click();
+      const input = page.locator('input[role="combobox"]:visible').first();
+      await input.fill("Artifact Explorer");
+      const results = page.getByRole("listbox", { name: "Search results" });
+      await results.getByRole("option").first().waitFor();
+      await page.waitForFunction(() => typeof window.releaseSearchResults === "function");
+      await input.press("Home");
+      const selectedId = await input.getAttribute("aria-activedescendant");
+      const selectedHref = await page.locator(`[id="${selectedId}"]`).getAttribute("href");
+      await page.evaluate(() => window.releaseSearchResults());
+      await results.locator('a[href="/learning-hub/async-result/"]').waitFor();
+      assert.notEqual(await page.locator(`[id="${selectedId}"]`).getAttribute("href"), selectedHref,
+        "Delayed article inserts ahead of the previously selected static result");
+      assert.equal(await input.getAttribute("aria-activedescendant"), null,
+        "Reordered results must not silently select a different destination");
+      assert.equal(await results.locator('[aria-selected="true"]').count(), 0);
+      assert.equal(await input.evaluate(element => document.activeElement === element), true);
+      const url = page.url();
+      await input.press("Enter");
+      assert.equal(page.url(), url, "Enter without a fresh selection must not navigate");
+      await input.press("Home");
+      await input.press("Enter");
+      await page.waitForURL("**/learning-hub/async-result/");
+    } finally {
+      await page.close();
+    }
+  });
+}
+
 for (const colorScheme of ["light", "dark"]) {
   for (const viewport of [
     { width: 1440, height: 900 }, { width: 1280, height: 600 },
