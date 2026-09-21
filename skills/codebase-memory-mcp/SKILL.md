@@ -41,7 +41,7 @@ Match the evidence level to the claim. If Auditor evidence cannot be completed, 
 
 - Pass `mode="moderate"` explicitly for normal indexing: the tool defaults to `full`. Moderate filters files while retaining similarity and semantic edges. Pass `persistence=false` (the default) unless the user explicitly requests a shared `.codebase-memory` artifact.
 - Use `fast` only for an explicitly requested smoke index, or when `moderate` is blocked and a degraded fallback is useful. Disclose that similarity and semantic edges are absent.
-- Use `full` when the question needs supported content that moderate omits: files excluded by moderate's discovery filters (generated, docs, scripts, tools, build, fixtures, `*.test.*`, lockfiles and similar) or `#define` Macro nodes in C-preprocessor languages (C, C++, CUDA, GLSL, Objective-C, ISPC), and the extra indexing cost is justified. Full still honors `.gitignore`, `.cbmignore`, always-skip directories, symlink exclusions, and always-ignored suffixes. Full and moderate both compute similarity and semantic edges; only `fast` omits them. A project already indexed `full` stays `full`: a later `moderate` request is promoted, not downgraded. Source inspection remains a bounded alternative.
+- Use `full` when the question needs supported content that moderate omits: files excluded by moderate's discovery filters (generated, docs, scripts, tools, build, fixtures, `*.test.*`, lockfiles and similar) or `#define` Macro nodes in C-preprocessor languages (C, C++, CUDA, GLSL, Objective-C, ISPC), and the extra indexing cost is justified. Full still honors `.gitignore`, `.cbmignore`, symlink exclusions, and always-ignored suffixes. It also skips the built-in skip directories unless a `.cbmignore` negation such as `!target/` re-includes one; `.git`, `node_modules`, `.worktrees`, and `.claude-worktrees` can never be re-included. Full and moderate both compute similarity and semantic edges; only `fast` omits them. A project already indexed `full` stays `full`: a later `moderate` request is promoted, not downgraded. Source inspection remains a bounded alternative.
 
 For lightweight positive discovery, an optional read-only endpoint may use `--tool-profile=scout`. For Verify or Auditor read-only analysis, it may use `--tool-profile=analysis`. Treat these as supplemental restricted profiles, not as the only primary server when an explicitly approved mutation is required.
 
@@ -75,7 +75,7 @@ Cypher for `query_graph` (read-only openCypher subset):
 ```
 MATCH (f:Function)-[:CALLS]->(g) WITH f, count(g) AS fan_out WHERE fan_out >= 30 RETURN f.name, f.file_path, fan_out ORDER BY fan_out DESC LIMIT 20
 MATCH (f:Function)<-[:CALLS]-(c) WITH f, count(c) AS fan_in WHERE fan_in >= 100 RETURN f.name, f.file_path, fan_in ORDER BY fan_in DESC LIMIT 20
-MATCH (f:Function) WHERE NOT EXISTS { (f)<-[:CALLS]-() } AND NOT EXISTS { (f)<-[:USAGE]-() } RETURN f.name, f.file_path, f.is_entry_point, f.is_exported LIMIT 50
+MATCH (f:Function) WHERE NOT EXISTS { (f)<-[:CALLS]-() } AND NOT EXISTS { (f)<-[:USAGE]-() } AND NOT EXISTS { (f)<-[:CALL_REFERENCE]-() } RETURN f.name, f.file_path, f.is_entry_point, f.is_exported LIMIT 50
 MATCH (a)-[r:HTTP_CALLS]->(b) RETURN a.name, b.name, r.url_path, r.via LIMIT 20
 ```
 
@@ -86,6 +86,6 @@ Gotchas verified against 0.11.0:
 3. Default page limits are 50 for `search_graph`, 10 for `search_code`, and 200 visible rows for `query_graph`; output budgets may reduce them. Follow each tool's advertised continuation fields and independent streams.
 4. `get_architecture(aspects=["cycles"])` ignores `path`; cycles are computed over the whole graph.
 5. `check_index_coverage` statuses: `partial` (read the listed ranges), `excluded` and `unusable` (read the source directly), `no_recorded_issue` (no recorded gap, not proof of completeness).
-6. `HTTP_CALLS` edges carry `url_path`, `via`, `args`, `callee`; there is no `confidence` property.
+6. `HTTP_CALLS` edges always carry `callee` and `url_path`; `method`, `args`, and `via` depend on the extraction path (`via="arg_url"` marks the argument-URL heuristic, while `via="route_registration"` sits on a `CALLS` edge), so a blank column is not evidence of absence. There is no `confidence` property.
 7. Apply the single authorization rule in Safety and Fallbacks. Ordinary graph reads do not authorize indexing, deletion, ADR writes, trace ingestion, installation, or configuration changes.
 8. `query` and `semantic_query` are mutually exclusive in one `search_graph` call; the server rejects both together, so issue two requests and page each stream separately.
