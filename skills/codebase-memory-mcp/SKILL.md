@@ -63,7 +63,7 @@ Seventeen tools: `index_repository`, `index_status`, `list_projects`, `delete_pr
 | What does X call? | `trace_path(function_name="X", direction="outbound")` |
 | Find by keywords / by name | `search_graph(query="...")` / `search_graph(name_pattern="...")` |
 | Declarations of one file | `get_file_outline(file_path="...")` |
-| Dead code (provisional) | `search_graph(max_degree=0, exclude_entry_points=true)` |
+| Dead code (provisional) | `search_graph(label="Function", max_degree=0)`; repeat with `label="Method"` |
 | Fan-in / fan-out | `query_graph` Cypher below |
 | Cross-service edges | `query_graph` Cypher, or `trace_path(mode="cross_service")` |
 | Impact of local changes | `detect_changes()` (`base_branch` defaults to `main`) |
@@ -89,3 +89,5 @@ Gotchas verified against 0.11.0:
 6. `HTTP_CALLS` edges always carry `callee` and `url_path`; `method`, `args`, and `via` depend on the extraction path (`via="arg_url"` marks the argument-URL heuristic, while `via="route_registration"` sits on a `CALLS` edge), so a blank column is not evidence of absence. There is no `confidence` property.
 7. Apply the single authorization rule in Safety and Fallbacks. Ordinary graph reads do not authorize indexing, deletion, ADR writes, trace ingestion, installation, or configuration changes.
 8. `query` and `semantic_query` are mutually exclusive in one `search_graph` call; the server rejects both together, so issue two requests and page each stream separately.
+9. `manage_adr(mode="update")` replaces the whole document. For an approved ADR edit prefer `mode="set_sections"` with `section_updates={"<heading>": "<new body>"}`: it rewrites only the named sections. Names match exactly, including case, and an unmatched name is appended as a new section, so read the headings with the default `outline` mode first.
+10. `compare_graphs` identities are full qualified names, which begin with each snapshot's project name. An unchanged symbol therefore appears in both `added` and `removed`, as does every edge that touches it: strip each project prefix and discard the matching pairs before reporting a change.
