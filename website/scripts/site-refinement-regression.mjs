@@ -235,9 +235,14 @@ try {
               arrow: arrow.getBoundingClientRect().toJSON(),
               transform: getComputedStyle(clip).transform,
               opacity: Number(getComputedStyle(clip).opacity),
+              transitions: [action, clip, arrow].map(element => getComputedStyle(element).transitionDuration),
             };
           });
           const initial = await measure();
+          if (reducedMotion === "reduce") {
+            assert.ok(initial.transitions.every(duration => duration === "0s"),
+              "Reduced motion disables action, label, and arrow transitions");
+          }
           assert.equal(initial.opacity, width < 768 ? 1 : 0);
           await card.hover();
           if (width >= 768 && reducedMotion === "no-preference") {

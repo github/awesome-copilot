@@ -19,6 +19,8 @@ try {
       await page.waitForFunction(() => !document.querySelector("astro-island[ssr]"));
       await page.evaluate(() => document.fonts.ready);
       const header = page.locator("[data-reading-header]");
+      assert.equal(await header.locator("[title]").getAttribute("aria-hidden"), "true",
+        `${route}: the original heading is the sole accessible title`);
       const host = page.locator('[class*="_scrollHost_"]');
       const geometry = await host.evaluate((element) => ({
         height: element.scrollHeight,

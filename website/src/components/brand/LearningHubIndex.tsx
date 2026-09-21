@@ -229,7 +229,7 @@ function LearningHubIndexBody({
 }) {
   const { colorMode } = useTheme();
   const [currentPage, setCurrentPage] = useState(1);
-  useCatalogPageFocus(currentPage);
+  const focusCatalogPage = useCatalogPageFocus();
   const [searchTerm, setSearchTerm] = useState("");
   const [heroSearchFocused, setHeroSearchFocused] = useState(false);
   const [heroActiveIndex, setHeroActiveIndex] = useState(-1);
@@ -847,6 +847,7 @@ function LearningHubIndexBody({
             onPageChange={(e, n) => {
               e.preventDefault();
               setCurrentPage(n);
+              focusCatalogPage();
             }}
           />
         </Stack>

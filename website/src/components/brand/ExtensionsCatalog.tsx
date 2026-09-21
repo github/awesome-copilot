@@ -149,7 +149,7 @@ export function ExtensionsCatalog({
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
   const [currentPage, setCurrentPage] = useState(1);
-  useCatalogPageFocus(currentPage);
+  const focusCatalogPage = useCatalogPageFocus();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyTimer = React.useRef<number | undefined>(undefined);
@@ -484,6 +484,7 @@ export function ExtensionsCatalog({
             onPageChange={(e, n) => {
               e.preventDefault();
               setCurrentPage(n);
+              focusCatalogPage();
             }}
           />
         </Stack>

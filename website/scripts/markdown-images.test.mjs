@@ -60,6 +60,19 @@ test("inline icons, text, and badge rows do not receive block image spacing", ()
   }
 });
 
+test("raw HTML image rows do not receive standalone-image margins", () => {
+  for (const tag of ["div", "section", "article", "li"]) {
+    for (const images of [
+      '<img src="assets/one.png"><img src="assets/two.png">',
+      '<a href="https://example.com"><img src="assets/one.png"></a><picture><img src="assets/two.png"></picture>',
+    ]) {
+      assert.doesNotMatch(render(`<${tag}>${images}</${tag}>`), /data-markdown-block-image/);
+    }
+    assert.match(render(`<${tag}><img src="assets/one.png"></${tag}>`), /data-markdown-block-image/);
+  }
+  assert.doesNotMatch(sanitizeHtml('<img src="/one.png"><img src="/two.png">'), /data-markdown-block-image/);
+});
+
 test("relative images resolve against the document directory and revision", () => {
   for (const [input, expected] of [
     ["assets/preview.png", "extensions/pr-artifact-explorer/assets/preview.png"],

@@ -126,7 +126,7 @@ export function PluginsCatalog({
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
   const [currentPage, setCurrentPage] = useState(1);
-  useCatalogPageFocus(currentPage);
+  const focusCatalogPage = useCatalogPageFocus();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
@@ -402,6 +402,7 @@ export function PluginsCatalog({
             onPageChange={(e, n) => {
               e.preventDefault();
               setCurrentPage(n);
+              focusCatalogPage();
             }}
           />
         </Stack>

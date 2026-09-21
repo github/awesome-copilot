@@ -136,6 +136,15 @@ test("Pagefind result limits apply after dedupe and locale filtering", async () 
   await mkdir(fixture);
   await writeFile(join(fixture, "pagefind.js"), `
     export async function search(term) {
+      if (term === "locale-miss" || term === "duplicates") {
+        globalThis.pagefindInspections = 0;
+        return { results: Array.from({ length: 200 }, () => ({
+          data: async () => {
+            globalThis.pagefindInspections++;
+            return { url: "/skill/one/", meta: { locale: "en" } };
+          }
+        })) };
+      }
       if (term === "localized") {
         return { results: [
           { url: "/skill/english/", meta: { locale: "en" } },
@@ -166,9 +175,14 @@ test("Pagefind result limits apply after dedupe and locale filtering", async () 
     assert.deepEqual(localized.map((item) => item.href), [
       "/es-es/learning-hub/one/", "/es-es/learning-hub/two/",
     ]);
+    assert.deepEqual(await searchPagefind("locale-miss", 7, "es-es"), []);
+    assert.equal(globalThis.pagefindInspections, 48, "Locale misses stop at the scan budget, even mid-batch");
+    assert.equal((await searchPagefind("duplicates", 7, "en")).length, 1);
+    assert.equal(globalThis.pagefindInspections, 48, "Duplicate hits cannot cause unbounded scanning");
     globalThis.document.documentElement.lang = "en";
     assert.equal(currentSearchLocale(), "en");
   } finally {
+    delete globalThis.pagefindInspections;
     if (originalWindow === undefined) delete globalThis.window;
     else globalThis.window = originalWindow;
     if (originalDocument === undefined) delete globalThis.document;

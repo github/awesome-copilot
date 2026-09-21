@@ -18,7 +18,7 @@ export function ReadingHeader({
     <div className={styles.slot} data-reading-header inert aria-hidden="true">
       <div className={clsx(styles.surface, className)}>
         <div className={styles.row}>
-          <div className={styles.title} title={title}>{title}</div>
+          <div className={styles.title} title={title} aria-hidden="true">{title}</div>
           {action ? <div className={styles.action} data-reading-action>{action}</div> : null}
         </div>
         {children}

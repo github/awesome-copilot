@@ -32,9 +32,9 @@ function ensureMarkdownHooks(): void {
     if (container.parentElement?.tagName === "A") container = container.parentElement;
     const parent = container.parentElement;
     if (!parent || !["P", "DIV", "BODY", "SECTION", "ARTICLE", "LI"].includes(parent.tagName)) return;
-    // Image-only paragraphs are blocks; text and badge rows stay inline.
-    if (parent.tagName === "P" &&
-      (parent.textContent?.trim() || parent.querySelectorAll("img").length !== 1)) return;
+    // A standalone image is a block; text and multi-image rows stay inline.
+    if (parent.querySelectorAll("img").length !== 1) return;
+    if (parent.tagName === "P" && parent.textContent?.trim()) return;
     if (Array.from(parent.childNodes).some((child) =>
       child.nodeType === 3 && child.textContent?.trim(),
     )) return;

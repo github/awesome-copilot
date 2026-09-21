@@ -51,6 +51,7 @@ function basePath(): string {
 }
 
 let modulePromise: Promise<PagefindModule | null> | null = null;
+const MAX_PAGEFIND_SCAN = 48;
 
 /** Match Pagefind's language selection, not an untranslated URL prefix. */
 export function currentSearchLocale(): string {
@@ -113,10 +114,11 @@ export async function searchPagefind(
     // `debouncedSearch` resolves to null when superseded by a newer query.
     if (!response) return [];
     let items: SearchItem[] = [];
-    // Fetch bounded batches, but apply the result limit after identity merging.
-    for (let offset = 0; offset < response.results.length && items.length < limit; offset += limit) {
+    // Bound inspected records as well as results, including locale misses and duplicates.
+    const scanLimit = Math.min(response.results.length, MAX_PAGEFIND_SCAN);
+    for (let offset = 0; offset < scanLimit && items.length < limit; offset += limit) {
       const data = await Promise.all(
-        response.results.slice(offset, offset + limit).map((result) => result.data()),
+        response.results.slice(offset, Math.min(offset + limit, scanLimit)).map((result) => result.data()),
       );
       items = mergeSearchItems([
         ...items,

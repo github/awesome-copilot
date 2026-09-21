@@ -56,6 +56,50 @@ async function catalog(page, route) {
     await previous.click();
     await page.waitForFunction(() => document.activeElement?.id === "catalog");
     assert.equal(await nav.locator('[aria-current="page"]').innerText(), "1");
+    if (page.viewportSize().width >= 1200) {
+      const settle = () => page.evaluate(() => new Promise(resolve =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      ));
+      const goToSecondPage = async () => {
+        await next.click();
+        await page.waitForFunction(() => document.activeElement?.id === "catalog");
+        assert.equal(await nav.locator('[aria-current="page"]').innerText(), "2");
+      };
+      await goToSecondPage();
+      const filter = page.getByRole("checkbox").first();
+      await filter.focus();
+      const filterScroll = await page.evaluate(() => scrollY);
+      await page.keyboard.press("Space");
+      await settle();
+      assert.equal(await filter.evaluate(element => element === document.activeElement), true,
+        `${route}: filtering from page two retains checkbox focus`);
+      assert.ok(Math.abs(await page.evaluate(() => scrollY) - filterScroll) <= 1,
+        `${route}: filtering does not scroll to the catalog`);
+      await page.keyboard.press("Space");
+      await settle();
+      await goToSecondPage();
+      const sort = page.locator('[class*="sortMenu"]');
+      await sort.locator("summary").click();
+      await sort.getByRole("menuitemradio").last().click();
+      await settle();
+      assert.notEqual(await page.evaluate(() => document.activeElement?.id), "catalog",
+        `${route}: sorting does not move focus to the catalog`);
+      assert.equal(await nav.locator('[aria-current="page"]').innerText(), "1");
+      if (route === "learning-hub") {
+        await goToSecondPage();
+        const search = page.getByRole("combobox", { name: "Search the Learning Hub" });
+        await search.focus();
+        const searchScroll = await page.evaluate(() => scrollY);
+        await page.keyboard.type("c");
+        await settle();
+        assert.equal(await search.evaluate(element => element === document.activeElement), true,
+          "Learning Hub search retains focus after resetting pagination");
+        assert.ok(Math.abs(await page.evaluate(() => scrollY) - searchScroll) <= 1,
+          "Learning Hub search does not scroll to the catalog");
+        await page.keyboard.type("opilot");
+        assert.equal(await search.inputValue(), "copilot");
+      }
+    }
   }
   console.log(`PASS ${route}: pagination centers and keyboard/focus handoff`);
   checks++;

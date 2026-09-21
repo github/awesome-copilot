@@ -94,6 +94,8 @@ Resource details and learning articles let their expanded title, description,
 and actions scroll away. On roomy desktop viewports, an observer reveals a
 compact title with a small, right-aligned primary install action where available.
 Its right edge aligns with the top bar's trailing actions.
+The compact title is a visual duplicate hidden from assistive technology; the
+original heading remains accessible, as does the compact install action.
 The full install menu stays in the expanded hero. The strip fades in as the
 remaining hero reaches the strip's height, without changing document height or
 briefly exposing a bare progress line. Hidden install actions are inert.
@@ -105,6 +107,8 @@ learning articles, rather than waiting for the footer or stopping at a heading.
 
 All six catalogs share the pagination control alignment correction, preserving
 Primer's current-page styling and the keyboard scroll/focus handoff to `#catalog`.
+Only pagination activation triggers that handoff. Filter, sort, and search resets
+do not move focus or scroll away from the control being used.
 With the website running locally, run the focused browser regressions:
 
 ```bash
@@ -127,6 +131,8 @@ before grouping and result limits. English fallback pages search English even
 when their URL has another locale prefix. Real translated pages do not mix in
 English catalog records; without Pagefind, they show no results rather than
 silently searching another language.
+Each query inspects at most 48 Pagefind records, including locale misses and
+duplicates; the returned-result limit still applies after filtering and merging.
 
 Run `node --test website/scripts/search.test.mjs` for adapter coverage and
 `node --test website/scripts/search-browser.test.mjs` after a production build
