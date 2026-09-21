@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Agent Architecture"
+  short_description: "Interview, design, and audit agent architecture"
+  default_prompt: "Use $agent-architecture: help me design an AI agent architecture step by step for my requirements, or review an existing agent for design flaws, without writing code."
