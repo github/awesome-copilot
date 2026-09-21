@@ -49,7 +49,7 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
 // Wait for response using session.idle event
 var done = new TaskCompletionSource();
 
-session.On(evt =>
+session.On<SessionEvent>(evt =>
 {
   switch (evt)
   {

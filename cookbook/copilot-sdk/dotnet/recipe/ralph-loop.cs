@@ -55,7 +55,7 @@ try
         try
         {
             var done = new TaskCompletionSource<string>();
-            session.On(evt =>
+            session.On<SessionEvent>(evt =>
             {
                 // Log tool usage for visibility
                 if (evt is ToolExecutionStartEvent toolStart)

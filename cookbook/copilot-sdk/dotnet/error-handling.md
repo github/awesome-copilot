@@ -29,7 +29,7 @@ try
     });
 
     var done = new TaskCompletionSource<string>();
-    session.On(evt =>
+    session.On<SessionEvent>(evt =>
     {
         if (evt is AssistantMessageEvent msg)
         {
@@ -52,6 +52,13 @@ finally
     await client.StopAsync();
 }
 ```
+
+> `Session.On` is now generic: `On<T>(Action<T> handler) where T : SessionEvent`. The type
+> argument can no longer be inferred from a lambda that only pattern-matches inside the body, so
+> calls like `session.On(evt => { if (evt is AssistantMessageEvent msg) ... })` fail to compile
+> with `CS0411`. Either specify `On<SessionEvent>` and pattern-match inside (as above), or
+> subscribe directly to the concrete event type you care about, e.g.
+> `session.On<AssistantMessageEvent>(evt => Console.WriteLine(evt.Data?.Content))`.
 
 ## Handling specific error types
 
@@ -86,7 +93,7 @@ var session = await client.CreateSessionAsync(new SessionConfig
 try
 {
     var done = new TaskCompletionSource<string>();
-    session.On(evt =>
+    session.On<SessionEvent>(evt =>
     {
         if (evt is AssistantMessageEvent msg)
         {
@@ -167,6 +174,46 @@ var session = await client.CreateSessionAsync(new SessionConfig
 
 // client.StopAsync() is automatically called when exiting scope
 ```
+
+## Tagging message provenance
+
+Since v1.0.14, `MessageOptions` has a `Source` property so you can tag *why* a message was sent —
+useful when errors or unexpected turns show up in transcripts and you need to tell human input
+apart from messages an automated system (a webhook handler, a scheduled job, another agent) sent
+on the user's behalf.
+
+```csharp
+using GitHub.Copilot;
+
+// Ordinary human input (also the default when Source is omitted).
+await session.SendAsync(new MessageOptions
+{
+    Prompt = "What changed in the last release?",
+    Source = MessageSource.User
+});
+
+// A message injected by your own system rather than typed by a person,
+// e.g. a scheduled health check or automated retry.
+await session.SendAsync(new MessageOptions
+{
+    Prompt = "Re-run the failed step and report the result.",
+    Source = MessageSource.System
+});
+
+// A message sent by another agent or automation acting on the user's behalf,
+// tagged with a caller-supplied identifier.
+await session.SendAsync(new MessageOptions
+{
+    Prompt = "Summarize the open incidents.",
+    Source = MessageSource.Agent("incident-bot")
+});
+```
+
+`MessageSource` is a closed record with `User`, `System`, and a `MessageSource.Agent(string id)`
+factory (serialized as `"agent-<id>"`). Tagging a source only records provenance on the message —
+it does not change how the message is delivered, replace the session's system prompt, or grant
+extra permissions. When `Source` is omitted, the field is left unset and the runtime treats the
+message as ordinary user input.
 
 ## Best practices
 

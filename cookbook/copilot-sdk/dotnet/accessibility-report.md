@@ -80,7 +80,7 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
 // Wait for response using session.idle event
 var done = new TaskCompletionSource();
 
-session.On(evt =>
+session.On<SessionEvent>(evt =>
 {
     switch (evt)
     {
@@ -226,7 +226,7 @@ This gives the model access to Playwright browser tools like `browser_navigate`,
 Unlike `SendAndWaitAsync`, this recipe uses streaming for real-time output:
 
 ```csharp
-session.On(evt =>
+session.On<SessionEvent>(evt =>
 {
     switch (evt)
     {

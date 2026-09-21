@@ -66,7 +66,7 @@ try
         try
         {
             var done = new TaskCompletionSource<string>();
-            session.On(evt =>
+            session.On<SessionEvent>(evt =>
             {
                 if (evt is AssistantMessageEvent msg)
                     done.TrySetResult(msg.Data.Content);
@@ -134,7 +134,7 @@ try
         try
         {
             var done = new TaskCompletionSource<string>();
-            session.On(evt =>
+            session.On<SessionEvent>(evt =>
             {
                 // Log tool usage for visibility
                 if (evt is ToolExecutionStartEvent toolStart)

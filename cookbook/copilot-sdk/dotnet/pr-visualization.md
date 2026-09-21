@@ -185,7 +185,7 @@ The current working directory is: {Environment.CurrentDirectory}
 });
 
 // Set up event handling
-session.On(evt =>
+session.On<SessionEvent>(evt =>
 {
     switch (evt)
     {
@@ -256,3 +256,37 @@ while (true)
 | Flexibility     | Fixed logic       | **AI decides best approach**      |
 | Chart types     | What you coded    | **Any type Copilot can generate** |
 | Data grouping   | Hardcoded buckets | **Intelligent grouping**          |
+
+## Deferring tools with tool search
+
+The GitHub MCP Server alone exposes dozens of tools, and this recipe also has the file and code
+execution tools available — well past the point where stuffing every tool description into the
+model's context on every turn helps more than it costs. `SessionConfig.ToolSearch` controls when
+the SDK defers less-frequently-needed tools behind a search step instead of listing them all
+up front:
+
+```csharp
+var session = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+    ToolSearch = new ToolSearchConfig
+    {
+        Enabled = true,
+        DeferThreshold = 20
+    },
+    SystemMessage = new SystemMessageConfig { Content = "..." }
+});
+```
+
+- `Enabled` turns tool search on or off explicitly; leave it `null` to use the runtime default.
+- `DeferThreshold` is the tool count above which MCP/external tools are deferred behind a
+  `tool_search_tool` call instead of being listed directly (the runtime default is 30 when
+  unset). Lowering it — as above — is useful once a recipe pulls in a large MCP server like the
+  GitHub MCP Server alongside file and code-execution tools, since it keeps the per-turn tool
+  list small while still letting Copilot search for the exact tool it needs.
+- To customize how the search itself behaves, register your own tool named `"tool_search_tool"`
+  with `OverridesBuiltInTool = true` to replace the built-in implementation.
+
+This is a per-session setting, not a global one, so you can tune it independently for
+tool-heavy recipes like this one versus lighter sessions elsewhere in your app.

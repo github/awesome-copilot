@@ -32,7 +32,7 @@ var session = await client.CreateSessionAsync(new SessionConfig
 // Wait for completion
 var done = new TaskCompletionSource();
 
-session.On(evt =>
+session.On<SessionEvent>(evt =>
 {
     switch (evt)
     {
