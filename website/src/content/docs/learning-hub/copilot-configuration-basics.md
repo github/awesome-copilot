@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-09-12
+lastUpdated: 2026-09-22
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -945,6 +945,52 @@ copilot skill enable my-skill    # enable a specific skill
 ### Command-Line Parsing Rewrite
 
 *(v1.0.84+)* Command-line parsing moved from Commander to a Rust-based grammar that mirrors what the CLI actually parses, which also generates shell completions directly from that grammar — so `copilot <TAB>` now offers root flags alongside subcommands, and each subcommand only shows its own options. As a result of this change, some error and help wording changed, `copilot login --host` now works correctly, and `--max-autopilot-continues` no longer accepts scientific notation as a value.
+
+### Agent Factory
+
+*(v1.0.86+)* Open `/factories` to launch and monitor **Agent Factory** runs — batches of automated agent work you can pause and resume from the dialog instead of leaving them running unattended in the background. This is useful for large, multi-step automation jobs where you want the ability to check in, pause for review, and resume without restarting the whole batch.
+
+```
+/factories
+```
+
+### Worktree Path Template
+
+*(v1.0.87+)* The `worktreePathTemplate` setting controls **where** `/worktree`, `/move`, `/new`, and `--worktree` create new worktrees. Set a custom path pattern using placeholders such as `{repoPath}`, `{repo}`, `{branch}`, and `{branchSlug}`:
+
+```json
+{
+  "worktreePathTemplate": "~/src/worktrees/{repo}/{branch}"
+}
+```
+
+Leaving the setting unset preserves the current default layout (`<repo>.worktrees/`, with slashes in the branch name flattened to dashes).
+
+### Concise Transcript View
+
+*(v1.0.85+)* Set `transcriptView` to `"concise"` in `/settings` to group tool activity into expandable work summaries instead of showing every tool call inline. This keeps long sessions easier to scan while still letting you expand a summary to see the underlying tool calls when you need the detail.
+
+### Subagent Context Management Tools
+
+*(v1.0.85+)* New `/settings` options let you opt agents and subagents into context management tools, giving delegated workers the same context-trimming capabilities available to the primary session. Enable this if your subagents run long enough to accumulate context that needs active management.
+
+### Repository Instructions for Custom Agents
+
+*(v1.0.86+)* Custom agents can opt into reading repository instruction files — `AGENTS.md`, `copilot-instructions.md`, and `CLAUDE.md` — by setting `include-custom-instructions: true` in their frontmatter:
+
+```yaml
+---
+name: 'Code Reviewer'
+description: 'Reviews code against repository conventions'
+include-custom-instructions: true
+---
+```
+
+Without this flag, a custom agent's behavior is defined solely by its own frontmatter and instructions, ignoring repository-wide instruction files. Turn it on when you want an agent to combine its specialized persona with your team's general conventions.
+
+### Auto Routing Tier Defaults
+
+*(v1.0.87+)* Organizations can set startup defaults for the **Auto** model routing tier, including a strict policy that locks the default for all users or a user-overridable default that individuals can change. This gives administrators a way to steer cost/quality tradeoffs for teams that haven't picked an explicit model, while still allowing per-user overrides where appropriate.
 
 ## Common Questions
 
