@@ -146,6 +146,8 @@ Standalone documentation images receive 24px of vertical margin through a
 shared reading-content rule. The markdown sanitizer marks image-only blocks,
 including linked images and themed pictures; inline icons and badge rows retain
 their existing layout. Component-owned hero and gallery images are unaffected.
+Adjacent inline text prevents block spacing even when nested in elements such as
+`strong` or `span`; text in separate paragraphs or headings does not.
 
 Resource details and skill/cookbook file previews resolve embedded `src` and
 picture/image `srcset` URLs from the originating repository document directory

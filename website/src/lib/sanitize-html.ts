@@ -34,9 +34,14 @@ function ensureMarkdownHooks(): void {
     if (!parent || !["P", "DIV", "BODY", "SECTION", "ARTICLE", "LI"].includes(parent.tagName)) return;
     // A standalone image is a block; text and multi-image rows stay inline.
     if (parent.querySelectorAll("img").length !== 1) return;
-    if (parent.tagName === "P" && parent.textContent?.trim()) return;
+    // Separate block siblings do not make an image inline with their text.
+    const blockTags = [
+      "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DETAILS", "DIV", "DL",
+      "FIELDSET", "FIGURE", "FOOTER", "FORM", "H1", "H2", "H3", "H4", "H5",
+      "H6", "HEADER", "HR", "MAIN", "NAV", "OL", "P", "PRE", "SECTION", "TABLE", "UL",
+    ];
     if (Array.from(parent.childNodes).some((child) =>
-      child.nodeType === 3 && child.textContent?.trim(),
+      child.textContent?.trim() && !blockTags.includes(child.nodeName),
     )) return;
     node.setAttribute("data-markdown-block-image", "");
   });

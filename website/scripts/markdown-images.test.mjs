@@ -60,6 +60,27 @@ test("inline icons, text, and badge rows do not receive block image spacing", ()
   }
 });
 
+test("nested text prevents block image spacing in every supported container", () => {
+  for (const tag of ["p", "div", "section", "article", "li", null]) {
+    const wrap = content => tag ? `<${tag}>${content}</${tag}>` : content;
+    for (const image of [
+      '<img src="/preview.png" alt="Preview" data-markdown-block-image="">',
+      '<a href="https://example.com"><picture><img src="/preview.png" alt="Preview"></picture></a>',
+    ]) {
+      for (const content of [
+        `<strong>Before</strong>${image}`,
+        `${image}<span><em>After</em></span>`,
+      ]) {
+        const html = sanitizeHtml(wrap(content));
+        assert.doesNotMatch(html, /data-markdown-block-image/, `${tag ?? "body"}: ${content}`);
+        assert.equal(sanitizeHtml(html), html);
+      }
+      assert.match(sanitizeHtml(wrap(` \n${image}\n `)), /data-markdown-block-image/,
+        `${tag ?? "body"}: whitespace-only surroundings still permit standalone images`);
+    }
+  }
+});
+
 test("raw HTML image rows do not receive standalone-image margins", () => {
   for (const tag of ["div", "section", "article", "li"]) {
     for (const images of [
@@ -71,6 +92,15 @@ test("raw HTML image rows do not receive standalone-image margins", () => {
     assert.match(render(`<${tag}><img src="assets/one.png"></${tag}>`), /data-markdown-block-image/);
   }
   assert.doesNotMatch(sanitizeHtml('<img src="/one.png"><img src="/two.png">'), /data-markdown-block-image/);
+});
+
+test("separate prose blocks do not suppress standalone picture spacing", () => {
+  const content = '<p><strong>Before</strong></p><picture><img src="/preview.png"></picture><h2>After</h2>';
+  for (const tag of ["div", "section", "article", "li", null]) {
+    const html = sanitizeHtml(tag ? `<${tag}>${content}</${tag}>` : content);
+    assert.match(html, /data-markdown-block-image/, tag ?? "body");
+    assert.equal(sanitizeHtml(html), html);
+  }
 });
 
 test("relative images resolve against the document directory and revision", () => {
