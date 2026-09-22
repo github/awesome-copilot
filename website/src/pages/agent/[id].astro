@@ -1,0 +1,74 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { AgentDetail } from "../../components/brand/AgentDetail";
+import { buildDetailToc } from "../../components/brand/DetailChassis";
+import { agents, searchIndex } from "../../lib/site-data";
+import { loadDetailPage } from "../../lib/detail-page";
+
+const RAW_BASE = "https://raw.githubusercontent.com/github/awesome-copilot/main";
+
+interface Item {
+  id: string;
+  title?: string;
+  name?: string;
+  description?: string;
+  path: string;
+  lastUpdated?: string | null;
+}
+
+const labelOf = (entry: Item) => entry.title ?? entry.name ?? entry.id;
+
+export function getStaticPaths() {
+  const name = (entry: Item) => entry.title ?? entry.name ?? entry.id;
+  const list = [...(agents as unknown as Item[])].sort((a, b) =>
+    name(a).localeCompare(name(b)),
+  );
+  return list.map((item, index) => ({
+    params: { id: item.id },
+    props: {
+      item,
+      previous: index > 0 ? list[index - 1] : undefined,
+      next: index < list.length - 1 ? list[index + 1] : undefined,
+    },
+  }));
+}
+
+const { item, previous, next } = Astro.props as {
+  item: Item;
+  previous?: Item;
+  next?: Item;
+};
+
+const detail = loadDetailPage(item, "agent");
+const { html } = buildDetailToc(detail.markdownHtml);
+
+const base = import.meta.env.BASE_URL ?? "/";
+const prefix = base.endsWith("/") ? base : base + "/";
+const detailHref = (id: string) =>
+  (prefix + "agent/" + id + "/").replace(/\/{2,}/g, "/");
+
+const siblingOf = (sibling?: Item) =>
+  sibling ? { label: labelOf(sibling), href: detailHref(sibling.id) } : undefined;
+
+const downloadUrl = RAW_BASE + "/" + item.path;
+---
+
+<BaseLayout
+  title={labelOf(item) + " | Awesome GitHub Copilot"}
+  description={item.description}
+>
+  <AgentDetail
+    client:load
+    item={item as any}
+    markdownHtml={html}
+    vscodeUrl={detail.vscodeUrl}
+    insidersUrl={detail.insidersUrl}
+    githubUrl={detail.githubUrl}
+    downloadUrl={downloadUrl}
+    rawMarkdown={detail.rawMarkdown}
+    lastUpdated={detail.lastUpdated}
+    previous={siblingOf(previous)}
+    next={siblingOf(next)}
+    searchIndex={searchIndex}
+  />
+</BaseLayout>

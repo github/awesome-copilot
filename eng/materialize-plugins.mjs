@@ -2,9 +2,14 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
+const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
+const COPILOT_NAMESPACE = "com.github.copilot";
+const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
+const COPILOT_CONTENT_DIR = COPILOT_NAMESPACE;
 
 /**
  * Recursively copy a directory.
@@ -38,10 +43,35 @@ function resolveSource(relPath) {
     const skillName = relPath.replace(/^\.\/skills\//, "").replace(/\/$/, "");
     return path.join(ROOT_FOLDER, "skills", skillName);
   }
+  if (relPath.startsWith("./extensions/")) {
+    const extensionName = relPath.replace(/^\.\/extensions\//, "").replace(/\/$/, "");
+    return path.join(ROOT_FOLDER, "extensions", extensionName);
+  }
+  if (relPath.startsWith("./hooks/")) {
+    return path.join(ROOT_FOLDER, "hooks", relPath.replace(/^\.\/hooks\//, ""));
+  }
   return null;
 }
 
-function materializePlugins() {
+function readExtensionReferences(metadata, pluginName) {
+  const extensionData = metadata.extensions?.[AWESOME_COPILOT_NAMESPACE];
+  const directories = extensionData?.extensions ?? [];
+  if (!Array.isArray(directories) ||
+      directories.some((entry) => typeof entry !== "string" || !entry.startsWith("./extensions/"))) {
+    throw new Error(`extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions must contain plugin-relative paths`);
+  }
+
+  const names = new Set(directories.map((entry) =>
+    entry.replace(/^\.\/extensions\//, "").replace(/\/$/, "")
+  ));
+  if (fs.existsSync(path.join(EXTENSIONS_DIR, pluginName, "extension.mjs"))) {
+    names.add(pluginName);
+  }
+
+  return [...names].sort();
+}
+
+export function materializePlugins() {
   console.log("Materializing plugin files...\n");
 
   if (!fs.existsSync(PLUGINS_DIR)) {
@@ -56,12 +86,13 @@ function materializePlugins() {
 
   let totalAgents = 0;
   let totalSkills = 0;
+  let totalExtensions = 0;
   let warnings = 0;
   let errors = 0;
 
   for (const dirName of pluginDirs) {
     const pluginPath = path.join(PLUGINS_DIR, dirName);
-    const pluginJsonPath = path.join(pluginPath, ".github/plugin", "plugin.json");
+    const pluginJsonPath = path.join(pluginPath, "plugin.json");
 
     if (!fs.existsSync(pluginJsonPath)) {
       continue;
@@ -78,80 +109,91 @@ function materializePlugins() {
 
     const pluginName = metadata.name || dirName;
 
-    // Process agents
-    if (Array.isArray(metadata.agents)) {
-      for (const relPath of metadata.agents) {
+    const composition = metadata.extensions?.[AWESOME_COPILOT_NAMESPACE] ?? {};
+
+    // Process repository composition fields.
+    for (const field of ["agents", "hooks", "skills"]) {
+      const entries = composition[field];
+      if (!Array.isArray(entries)) continue;
+      for (const relPath of entries) {
         const src = resolveSource(relPath);
         if (!src) {
-          console.warn(`  ⚠ ${pluginName}: Unknown path format: ${relPath}`);
+          console.warn(`  ⚠ ${pluginName}: Unknown ${field} path format: ${relPath}`);
           warnings++;
           continue;
         }
         if (!fs.existsSync(src)) {
-          console.warn(`  ⚠ ${pluginName}: Source not found: ${src}`);
+          console.warn(`  ⚠ ${pluginName}: ${field} source not found: ${src}`);
           warnings++;
           continue;
         }
-        const dest = path.join(pluginPath, relPath.replace(/^\.\//, ""));
+        const relativeDestination = relPath.replace(/^\.\//, "").replace(/\/$/, "");
+        const dest = field === "skills"
+          ? path.join(pluginPath, relativeDestination)
+          : path.join(pluginPath, COPILOT_CONTENT_DIR, relativeDestination);
         fs.mkdirSync(path.dirname(dest), { recursive: true });
-        fs.copyFileSync(src, dest);
-        totalAgents++;
+        if (fs.statSync(src).isDirectory()) copyDirRecursive(src, dest);
+        else fs.copyFileSync(src, dest);
+        if (field === "agents") totalAgents++;
+        if (field === "skills") totalSkills++;
       }
     }
 
-    // Process skills
-    if (Array.isArray(metadata.skills)) {
-      for (const relPath of metadata.skills) {
-        const src = resolveSource(relPath);
-        if (!src) {
-          console.warn(`  ⚠ ${pluginName}: Unknown path format: ${relPath}`);
-          warnings++;
-          continue;
+    // Process reusable extensions declared in the repository namespace.
+    const extensionRefs = readExtensionReferences(metadata, pluginName);
+    for (const extensionName of extensionRefs) {
+      const relPath = `./extensions/${extensionName}`;
+      const src = resolveSource(relPath);
+      if (!src) {
+        console.warn(`  ⚠ ${pluginName}: Unknown extension path format: ${relPath}`);
+        warnings++;
+        continue;
+      }
+      if (!fs.existsSync(src) || !fs.statSync(src).isDirectory()) {
+        console.warn(`  ⚠ ${pluginName}: Extension source directory not found: ${src}`);
+        warnings++;
+        continue;
+      }
+      const dest = path.join(pluginPath, COPILOT_CONTENT_DIR, "extensions", extensionName);
+      copyDirRecursive(src, dest);
+      totalExtensions++;
+    }
+
+    // Emit a spec-compliant served manifest for the marketplace branch.
+    // Source manifests keep repository composition fields for build tooling.
+    // The served manifest retains only Agent Plugins v1.0.0 fields; standard
+    // skills are discovered from skills/, while Copilot-specific content is
+    // discovered from com.github.copilot/.
+    const SPEC_FIELDS = new Set(["$schema", "name", "version", "description", "author",
+      "homepage", "repository", "license", "keywords", "extensions"]);
+    const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
+
+    const served = { "$schema": AGENT_PLUGINS_SCHEMA };
+    for (const [key, val] of Object.entries(metadata)) {
+      if (SPEC_FIELDS.has(key) && key !== "$schema") {
+        if (key === "extensions") {
+          const copilot = val?.[COPILOT_NAMESPACE];
+          if (copilot) {
+            served.extensions = { [COPILOT_NAMESPACE]: { ...copilot } };
+          }
+        } else {
+          served[key] = val;
         }
-        if (!fs.existsSync(src) || !fs.statSync(src).isDirectory()) {
-          console.warn(`  ⚠ ${pluginName}: Source directory not found: ${src}`);
-          warnings++;
-          continue;
-        }
-        const dest = path.join(pluginPath, relPath.replace(/^\.\//, "").replace(/\/$/, ""));
-        copyDirRecursive(src, dest);
-        totalSkills++;
       }
     }
 
-    // Rewrite plugin.json to use folder paths instead of individual file paths.
-    // On staged, paths like ./agents/foo.md point to individual source files.
-    // On main, after materialization, we only need the containing directory.
-    const rewritten = { ...metadata };
-    let changed = false;
-
-    for (const field of ["agents", "commands"]) {
-      if (Array.isArray(rewritten[field]) && rewritten[field].length > 0) {
-        const dirs = [...new Set(rewritten[field].map(p => path.dirname(p)))];
-        rewritten[field] = dirs;
-        changed = true;
-      }
-    }
-
-    if (Array.isArray(rewritten.skills) && rewritten.skills.length > 0) {
-      // Skills are already folder refs (./skills/name/); strip trailing slash
-      rewritten.skills = rewritten.skills.map(p => p.replace(/\/$/, ""));
-      changed = true;
-    }
-
-    if (changed) {
-      fs.writeFileSync(pluginJsonPath, JSON.stringify(rewritten, null, 2) + "\n", "utf8");
-    }
+    fs.writeFileSync(pluginJsonPath, JSON.stringify(served, null, 2) + "\n", "utf8");
 
     const counts = [];
-    if (metadata.agents?.length) counts.push(`${metadata.agents.length} agents`);
-    if (metadata.skills?.length) counts.push(`${metadata.skills.length} skills`);
+    if (composition.agents?.length) counts.push(`${composition.agents.length} agents`);
+    if (composition.skills?.length) counts.push(`${composition.skills.length} skills`);
+    if (extensionRefs.length) counts.push(`${extensionRefs.length} extensions`);
     if (counts.length) {
       console.log(`✓ ${pluginName}: ${counts.join(", ")}`);
     }
   }
 
-  console.log(`\nDone. Copied ${totalAgents} agents, ${totalSkills} skills.`);
+  console.log(`\nDone. Copied ${totalAgents} agents, ${totalSkills} skills, ${totalExtensions} extensions.`);
   if (warnings > 0) {
     console.log(`${warnings} warning(s).`);
   }
@@ -161,4 +203,6 @@ function materializePlugins() {
   }
 }
 
-materializePlugins();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  materializePlugins();
+}

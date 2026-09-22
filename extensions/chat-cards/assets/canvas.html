@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat Cards</title>
+<style id="mcc-theme">
+/* Card theme for the Chat Cards deck.
+   Palette: 60% light cool primary surfaces, 30% secondary cool tones,
+   10% accent, dark neutral text on light backgrounds. The dark palette is
+   applied via data-theme on the root element. */
+:root {
+  --mcc-bg-a: #f5f8fb;
+  --mcc-bg-b: #eef3f8;
+  --mcc-surface: #ffffff;
+  --mcc-text: #1f2328;
+  --mcc-muted: #5b6b7b;
+  --mcc-border: #d8e2ec;
+  --mcc-primary: #2b6cb0;
+  --mcc-primary-dark: #1a4f86;
+  --mcc-primary-soft: #e7f0f9;
+  --mcc-green: #2f855a;
+  --mcc-accent: #b45309;
+  --mcc-head-a: #f2f7fc;
+  --mcc-head-b: #eaf1f8;
+  --mcc-soft-bg: #f7fafc;
+  --mcc-code-bg: #f3f6fa;
+  --mcc-reveal-bg: #fbfdfe;
+  --mcc-radius: 10px;
+}
+:root[data-theme="dark"] {
+  --mcc-bg-a: #161a20;
+  --mcc-bg-b: #12161b;
+  --mcc-surface: #1d232b;
+  --mcc-text: #e8edf2;
+  --mcc-muted: #9aa7b4;
+  --mcc-border: #313c48;
+  --mcc-primary: #5b9bd5;
+  --mcc-primary-dark: #93bfe8;
+  --mcc-primary-soft: #253444;
+  --mcc-green: #5cbd8f;
+  --mcc-accent: #d9a05f;
+  --mcc-head-a: #222933;
+  --mcc-head-b: #1c232c;
+  --mcc-soft-bg: #191f26;
+  --mcc-code-bg: #171d24;
+  --mcc-reveal-bg: #1a2129;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--mcc-text);
+  background: linear-gradient(180deg, var(--mcc-bg-a), var(--mcc-bg-b));
+  padding: 10px;
+  min-height: 100vh;
+}
+.mcc-card {
+  background: var(--mcc-surface);
+  border: 1px solid var(--mcc-border);
+  border-radius: var(--mcc-radius);
+  box-shadow: 0 1px 3px rgba(31, 35, 40, 0.08);
+  overflow: hidden;
+}
+.mcc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, var(--mcc-head-a), var(--mcc-head-b));
+  border-bottom: 1px solid var(--mcc-border);
+}
+.mcc-head h1 { font-size: 16px; margin: 0; font-weight: 600; }
+.mcc-subtitle { margin: 2px 0 0; font-size: 12px; color: var(--mcc-muted); }
+.mcc-tools { display: flex; gap: 6px; flex-shrink: 0; }
+.mcc-body { padding: 14px; }
+.mcc-foot {
+  padding: 6px 14px;
+  font-size: 11px;
+  color: var(--mcc-muted);
+  border-top: 1px solid var(--mcc-border);
+  background: var(--mcc-soft-bg);
+}
+.mcc-btn {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--mcc-border);
+  background: var(--mcc-surface);
+  color: var(--mcc-primary-dark);
+  cursor: pointer;
+}
+.mcc-btn:hover { background: var(--mcc-primary-soft); }
+.mcc-btn:focus-visible { outline: 2px solid var(--mcc-primary); outline-offset: 1px; }
+.mcc-btn-primary { background: var(--mcc-primary); border-color: var(--mcc-primary-dark); color: #ffffff; }
+.mcc-btn-primary:hover { background: var(--mcc-primary-dark); }
+
+.mcc-block { position: relative; margin: 0 0 12px; }
+.mcc-block:last-child { margin-bottom: 0; }
+
+/* Tabs */
+.mcc-tabs [role="tablist"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 2px solid var(--mcc-border);
+  margin-bottom: 10px;
+}
+.mcc-tab {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  color: var(--mcc-muted);
+  cursor: pointer;
+  margin-bottom: -2px;
+}
+.mcc-tab:hover { color: var(--mcc-primary-dark); background: var(--mcc-primary-soft); }
+.mcc-tab[aria-selected="true"] {
+  color: var(--mcc-primary-dark);
+  font-weight: 600;
+  background: var(--mcc-surface);
+  border-color: var(--mcc-border) var(--mcc-border) var(--mcc-surface);
+  border-bottom: 2px solid var(--mcc-surface);
+}
+.mcc-panel[hidden] { display: none; }
+
+/* Tables */
+table.mcc-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.mcc-table caption { caption-side: top; text-align: left; color: var(--mcc-muted); font-size: 12px; padding-bottom: 6px; }
+.mcc-table th, .mcc-table td { border: 1px solid var(--mcc-border); padding: 6px 10px; text-align: left; vertical-align: top; }
+.mcc-table thead th { background: var(--mcc-primary-soft); color: var(--mcc-primary-dark); }
+.mcc-table tbody tr:nth-child(even) { background: var(--mcc-soft-bg); }
+.mcc-table a { color: var(--mcc-primary); }
+.mcc-table-scroll { overflow-x: auto; }
+
+/* Forms */
+.mcc-form { display: grid; gap: 10px; }
+.mcc-field { display: grid; gap: 3px; }
+.mcc-field label { font-size: 13px; font-weight: 600; }
+.mcc-required { color: var(--mcc-accent); margin-left: 2px; }
+.mcc-help { font-size: 12px; color: var(--mcc-muted); }
+.mcc-field input[type="text"], .mcc-field input[type="email"], .mcc-field input[type="number"],
+.mcc-field input[type="url"], .mcc-field input[type="date"], .mcc-field input[type="password"],
+.mcc-field select, .mcc-field textarea {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--mcc-border);
+  border-radius: 6px;
+  background: var(--mcc-surface);
+  color: var(--mcc-text);
+  width: 100%;
+}
+.mcc-field textarea { min-height: 70px; resize: vertical; }
+.mcc-field input:focus-visible, .mcc-field select:focus-visible, .mcc-field textarea:focus-visible {
+  outline: 2px solid var(--mcc-primary);
+  outline-offset: 0;
+}
+.mcc-choice { display: flex; align-items: center; gap: 6px; font-weight: 400; }
+.mcc-form-status { font-size: 12px; color: var(--mcc-green); min-height: 16px; }
+.mcc-form-fallback { display: none; }
+.mcc-form-fallback.mcc-visible { display: block; }
+.mcc-form-fallback textarea { width: 100%; min-height: 90px; font-family: Consolas, monospace; font-size: 12px; }
+
+/* Code */
+.mcc-codewrap { position: relative; }
+.mcc-codewrap pre {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--mcc-code-bg);
+  border: 1px solid var(--mcc-border);
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12.5px;
+}
+.mcc-copy-code { position: absolute; top: 6px; right: 6px; }
+
+/* Show/hide sections */
+details.mcc-reveal {
+  border: 1px solid var(--mcc-border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: var(--mcc-reveal-bg);
+}
+details.mcc-reveal > summary {
+  cursor: pointer;
+  padding: 8px 12px;
+  font-weight: 600;
+  color: var(--mcc-primary-dark);
+  list-style: none;
+}
+details.mcc-reveal > summary::before { content: "\25B8"; display: inline-block; margin-right: 6px; transition: transform 0.15s; }
+details.mcc-reveal[open] > summary::before { transform: rotate(90deg); }
+details.mcc-reveal > .mcc-reveal-body { padding: 0 12px 10px; }
+
+/* Sequential nested lists: 1., 1.1., 1.1.1. via CSS counters */
+ol.mcc-seq { counter-reset: mccseq; list-style: none; padding-left: 6px; margin: 0; }
+ol.mcc-seq li { counter-increment: mccseq; margin: 4px 0; }
+ol.mcc-seq li::before {
+  content: counters(mccseq, ".") ". ";
+  font-weight: 600;
+  color: var(--mcc-primary-dark);
+}
+ol.mcc-seq ol.mcc-seq { padding-left: 22px; }
+
+/* Charts */
+.mcc-chart svg { max-width: 100%; height: auto; display: block; }
+ul.mcc-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 0; margin: 8px 0 0; font-size: 12px; }
+ul.mcc-legend .mcc-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; }
+
+/* Video */
+.mcc-video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 360px;
+  min-height: 160px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #1f2328;
+}
+.mcc-video video, .mcc-video-frame video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  max-height: 360px;
+  border-radius: 6px;
+  background: #1f2328;
+  object-fit: contain;
+}
+.mcc-video-fallback { margin: 6px 0 0; font-size: 12px; }
+
+/* Tutor terms and tooltip */
+.mcc-term { border-bottom: 1px dotted var(--mcc-primary); cursor: help; }
+.mcc-term:focus-visible { outline: 2px solid var(--mcc-primary); outline-offset: 1px; }
+#mcc-tooltip {
+  position: fixed;
+  z-index: 40;
+  max-width: 280px;
+  background: #24384c;
+  color: #f0f4f8;
+  font-size: 12px;
+  padding: 6px 9px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(31, 35, 40, 0.25);
+  pointer-events: none;
+  display: none;
+}
+
+/* Context menu */
+#mcc-menu {
+  position: fixed;
+  z-index: 50;
+  min-width: 180px;
+  background: var(--mcc-surface);
+  border: 1px solid var(--mcc-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(31, 35, 40, 0.18);
+  padding: 4px;
+  display: none;
+}
+#mcc-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--mcc-text);
+  cursor: pointer;
+}
+#mcc-menu button:hover { background: var(--mcc-primary-soft); color: var(--mcc-primary-dark); }
+#mcc-menu .mcc-menu-sep { border-top: 1px solid var(--mcc-border); margin: 4px 2px; }
+
+p { margin: 0 0 8px; }
+img { max-width: 100%; height: auto; }
+
+/* Document card typography (rendered markdown) */
+.mcc-doc h2, .mcc-doc h3, .mcc-doc h4 { color: var(--mcc-primary-dark); margin: 14px 0 6px; }
+.mcc-doc h2 { font-size: 15px; }
+.mcc-doc h3 { font-size: 14px; }
+.mcc-doc ul, .mcc-doc ol { margin: 0 0 8px; padding-left: 22px; }
+.mcc-doc li { margin: 2px 0; }
+.mcc-doc blockquote {
+  margin: 0 0 8px;
+  padding: 6px 12px;
+  border-left: 3px solid var(--mcc-primary);
+  background: var(--mcc-primary-soft);
+  border-radius: 0 6px 6px 0;
+}
+.mcc-doc hr { border: none; border-top: 1px solid var(--mcc-border); margin: 12px 0; }
+.mcc-doc a { color: var(--mcc-primary); }
+.mcc-body code {
+  background: var(--mcc-code-bg);
+  border: 1px solid var(--mcc-border);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12.5px;
+}
+.mcc-codewrap pre code { background: transparent; border: none; padding: 0; }
+
+/* Deck chrome (canvas-only, not part of a copied card) */
+.mcc-deck-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  max-width: 860px;
+  margin: 0 auto 12px;
+  padding: 8px 12px;
+  background: var(--mcc-surface);
+  border: 1px solid var(--mcc-border);
+  border-radius: var(--mcc-radius);
+  box-shadow: 0 1px 3px rgba(31, 35, 40, 0.08);
+}
+.mcc-deck-brand { font-weight: 600; font-size: 14px; color: var(--mcc-primary-dark); }
+.mcc-deck-count { font-size: 12px; color: var(--mcc-muted); }
+#mcc-deck { max-width: 860px; margin: 0 auto; }
+#mcc-deck > .mcc-card { margin-bottom: 14px; }
+.mcc-empty {
+  max-width: 860px;
+  margin: 40px auto;
+  text-align: center;
+  color: var(--mcc-muted);
+  font-size: 13px;
+}
+.mcc-empty h2 { color: var(--mcc-primary-dark); font-size: 16px; margin: 0 0 6px; }
+.mcc-card.mcc-collapsed .mcc-body,
+.mcc-card.mcc-collapsed .mcc-foot,
+.mcc-card.mcc-collapsed .mcc-code-panel { display: none; }
+.mcc-code-panel { border-bottom: 1px solid var(--mcc-border); }
+.mcc-code-panel pre {
+  margin: 0;
+  padding: 10px 12px;
+  max-height: 260px;
+  overflow: auto;
+  background: var(--mcc-code-bg);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 11.5px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.mcc-head[draggable="true"] { cursor: grab; }
+.mcc-card.mcc-dragging { opacity: 0.5; }
+.mcc-card.mcc-drop-target { outline: 2px dashed var(--mcc-primary); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<header class="mcc-deck-bar">
+  <div>
+    <span class="mcc-deck-brand">Chat Cards</span>
+    <span class="mcc-deck-count" id="mcc-count"></span>
+    <span class="mcc-deck-count" id="mcc-conn" role="status" aria-live="polite"></span>
+  </div>
+  <div class="mcc-tools">
+    <button type="button" class="mcc-btn" id="mcc-theme-btn" title="Toggle light/dark theme">&#x263E;</button>
+  </div>
+</header>
+<div class="mcc-empty" id="mcc-empty">
+  <h2>No cards yet</h2>
+  <p>Ask your agent for a tab, table, chart, form, show/hide, list, document, or video card<br>and it will appear here.</p>
+</div>
+<main id="mcc-deck"></main>
+<div id="mcc-tooltip" role="tooltip"></div>
+<div id="mcc-menu"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var qs = new URLSearchParams(location.search);
+  var AUTH = "instance=" + encodeURIComponent(qs.get("instance") || "") +
+    "&token=" + encodeURIComponent(qs.get("token") || "");
+  var DEMO = Array.isArray(window.__MCC_DEMO__) ? window.__MCC_DEMO__ : null;
+
+  var deck = document.getElementById("mcc-deck");
+  var emptyState = document.getElementById("mcc-empty");
+  var countEl = document.getElementById("mcc-count");
+  var connEl = document.getElementById("mcc-conn");
+  var tooltip = document.getElementById("mcc-tooltip");
+  var menu = document.getElementById("mcc-menu");
+  var configs = {}; // cardId -> runtime config (kind, dwellMs, contextActions, draggable)
+
+  function esc(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  // ---- theme -------------------------------------------------------------
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    var btn = document.getElementById("mcc-theme-btn");
+    btn.innerHTML = theme === "dark" ? "&#x2600;&#xFE0E;" : "&#x263E;";
+  }
+  var storedTheme = null;
+  try { storedTheme = localStorage.getItem("mcc-theme"); } catch (e) {}
+  applyTheme(storedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  document.getElementById("mcc-theme-btn").addEventListener("click", function () {
+    var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem("mcc-theme", next); } catch (e) {}
+  });
+
+  // ---- transport ---------------------------------------------------------
+  function api(path, body) {
+    if (DEMO) return Promise.resolve({ ok: true, delivered: false });
+    return fetch(path + "?" + AUTH, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {}),
+    }).then(function (res) {
+      if (!res.ok) throw new Error("Request failed: " + res.status);
+      return res.json();
+    });
+  }
+
+  function updateChrome() {
+    var count = deck.children.length;
+    countEl.textContent = count === 0 ? "" : "- " + count + " card" + (count === 1 ? "" : "s");
+    emptyState.style.display = count === 0 ? "" : "none";
+  }
+
+  function mountCard(card, beforeId) {
+    configs[card.id] = card.config || {};
+    var holder = document.createElement("template");
+    holder.innerHTML = card.articleHtml.trim();
+    var article = holder.content.firstElementChild;
+    if (!article) return;
+    var existing = deck.querySelector('[data-card-id="' + CSS.escape(card.id) + '"]');
+    if (existing) {
+      existing.replaceWith(article);
+    } else if (beforeId) {
+      var anchor = deck.querySelector('[data-card-id="' + CSS.escape(beforeId) + '"]');
+      deck.insertBefore(article, anchor || null);
+    } else {
+      deck.appendChild(article);
+    }
+    updateChrome();
+  }
+
+  function removeCard(cardId) {
+    var el = deck.querySelector('[data-card-id="' + CSS.escape(cardId) + '"]');
+    if (el) el.remove();
+    delete configs[cardId];
+    updateChrome();
+  }
+
+  function setDeck(cards) {
+    deck.innerHTML = "";
+    configs = {};
+    (cards || []).forEach(function (card) { mountCard(card); });
+    updateChrome();
+  }
+
+  function applyOrder(order) {
+    (order || []).forEach(function (cardId) {
+      var el = deck.querySelector('[data-card-id="' + CSS.escape(cardId) + '"]');
+      if (el) deck.appendChild(el);
+    });
+  }
+
+  // The extension process (and with it this page's /events endpoint) dies
+  // whenever the host stops it, while this page can live on inside a hidden
+  // WebView. EventSource's built-in retry would then hit localhost every
+  // couple of seconds forever from an orphaned panel, so reconnection is
+  // managed by hand: a few backed-off attempts, then stop for good. When the
+  // deck comes back, the host hands the panel a fresh URL via canvas.open.
+  var source = null;
+  var reconnectAttempts = 0;
+  var MAX_RECONNECT_ATTEMPTS = 8;
+
+  function connectEvents() {
+    source = new EventSource("/events?" + AUTH);
+    source.addEventListener("init", function (event) {
+      reconnectAttempts = 0;
+      connEl.textContent = "";
+      setDeck(JSON.parse(event.data).cards);
+    });
+    source.addEventListener("upsert", function (event) {
+      mountCard(JSON.parse(event.data).card);
+    });
+    source.addEventListener("remove", function (event) {
+      removeCard(JSON.parse(event.data).cardId);
+    });
+    source.addEventListener("clear", function () { setDeck([]); });
+    source.addEventListener("reorder", function (event) {
+      applyOrder(JSON.parse(event.data).order);
+    });
+    source.onerror = function () {
+      source.close();
+      reconnectAttempts += 1;
+      if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
+        connEl.textContent = "- disconnected; reopen the canvas panel to reconnect";
+        return;
+      }
+      connEl.textContent = "- reconnecting...";
+      setTimeout(connectEvents, Math.min(30000, 1000 * Math.pow(2, reconnectAttempts)));
+    };
+  }
+
+  if (DEMO) {
+    setDeck(DEMO);
+  } else {
+    connectEvents();
+    updateChrome();
+  }
+
+  // ---- copy helpers ------------------------------------------------------
+  function flashButton(button, text) {
+    var original = button.textContent;
+    button.textContent = text;
+    setTimeout(function () { button.textContent = original; }, 1400);
+  }
+
+  function copyText(text, button) {
+    var done = function () { if (button) flashButton(button, "Copied ✓"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
+    } else {
+      fallbackCopy(text);
+      done();
+    }
+  }
+
+  function fallbackCopy(text) {
+    var area = document.createElement("textarea");
+    area.value = text;
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    area.remove();
+  }
+
+  // Standalone document for "Copy card": the page theme plus the card article
+  // plus a minimal runtime for tabs, reveals, and code copying.
+  var MINI_RUNTIME =
+    'document.addEventListener("click",function(ev){' +
+    'var t=ev.target.closest(".mcc-tab");' +
+    'if(t){var list=t.closest("[role=tablist]");var sec=list.parentElement;' +
+    'list.querySelectorAll(".mcc-tab").forEach(function(b){b.setAttribute("aria-selected",b===t?"true":"false");});' +
+    'sec.querySelectorAll(".mcc-panel").forEach(function(p){p.hidden=p.id!==t.getAttribute("aria-controls");});return;}' +
+    'var x=ev.target.closest("[data-mcc-expand]");' +
+    'if(x){var open=x.getAttribute("data-mcc-expand")==="all";' +
+    'x.closest(".mcc-body").querySelectorAll("details.mcc-reveal").forEach(function(d){d.open=open;});return;}' +
+    'var c=ev.target.closest(".mcc-copy-code");' +
+    'if(c){var pre=c.closest(".mcc-codewrap").querySelector("pre");' +
+    'if(navigator.clipboard)navigator.clipboard.writeText(pre.textContent);}' +
+    '});';
+
+  function standaloneDocument(article) {
+    var clone = article.cloneNode(true);
+    var tools = clone.querySelector(".mcc-tools");
+    if (tools) tools.remove();
+    var panel = clone.querySelector(".mcc-code-panel");
+    if (panel) panel.remove();
+    clone.classList.remove("mcc-collapsed", "mcc-dragging", "mcc-drop-target");
+    var titleEl = clone.querySelector(".mcc-head h1");
+    // The Copilot host injects its own <style> elements into the canvas page,
+    // so the theme must be looked up by id, never as the first style element.
+    var pageStyle = document.getElementById("mcc-theme").textContent;
+    return "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n" +
+      "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" +
+      "<title>" + esc(titleEl ? titleEl.textContent : "Card") + "</title>\n" +
+      "<style>" + pageStyle + "</style>\n</head>\n<body>\n" +
+      clone.outerHTML +
+      "\n<script>" + MINI_RUNTIME + "<\/script>\n</body>\n</html>";
+  }
+
+  function cardSource(article) {
+    var clone = article.cloneNode(true);
+    var panel = clone.querySelector(".mcc-code-panel");
+    if (panel) panel.remove();
+    clone.classList.remove("mcc-collapsed", "mcc-dragging", "mcc-drop-target");
+    return clone.outerHTML;
+  }
+
+  // ---- click handling (event delegation over the whole deck) -------------
+  document.addEventListener("click", function (event) {
+    var tab = event.target.closest(".mcc-tab");
+    if (tab) {
+      var tablist = tab.closest('[role="tablist"]');
+      var section = tablist.parentElement;
+      tablist.querySelectorAll(".mcc-tab").forEach(function (button) {
+        button.setAttribute("aria-selected", button === tab ? "true" : "false");
+      });
+      section.querySelectorAll(".mcc-panel").forEach(function (p) {
+        p.hidden = p.id !== tab.getAttribute("aria-controls");
+      });
+      return;
+    }
+
+    var expand = event.target.closest("[data-mcc-expand]");
+    if (expand) {
+      var open = expand.getAttribute("data-mcc-expand") === "all";
+      expand.closest(".mcc-body").querySelectorAll("details.mcc-reveal").forEach(function (details) {
+        details.open = open;
+      });
+      return;
+    }
+
+    var copyCode = event.target.closest(".mcc-copy-code");
+    if (copyCode) {
+      var pre = copyCode.closest(".mcc-codewrap").querySelector("pre");
+      copyText(pre.textContent, copyCode);
+      return;
+    }
+
+    var copyCard = event.target.closest(".mcc-copy-card");
+    if (copyCard) {
+      copyText(standaloneDocument(copyCard.closest(".mcc-card")), copyCard);
+      return;
+    }
+
+    var toggleCode = event.target.closest(".mcc-toggle-code");
+    if (toggleCode) {
+      var codeArticle = toggleCode.closest(".mcc-card");
+      var codePanel = codeArticle.querySelector(".mcc-code-panel");
+      if (codePanel) {
+        codePanel.remove();
+      } else {
+        codePanel = document.createElement("div");
+        codePanel.className = "mcc-code-panel";
+        var codePre = document.createElement("pre");
+        codePre.textContent = cardSource(codeArticle);
+        codePanel.appendChild(codePre);
+        codeArticle.querySelector(".mcc-head").insertAdjacentElement("afterend", codePanel);
+      }
+      return;
+    }
+
+    var collapse = event.target.closest(".mcc-toggle-collapse");
+    if (collapse) {
+      var collapseArticle = collapse.closest(".mcc-card");
+      var collapsed = collapseArticle.classList.toggle("mcc-collapsed");
+      collapse.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      return;
+    }
+
+    var remove = event.target.closest(".mcc-remove-card");
+    if (remove) {
+      var removeArticle = remove.closest(".mcc-card");
+      var removeId = removeArticle.getAttribute("data-card-id");
+      removeCard(removeId);
+      api("/api/remove", { cardId: removeId }).catch(function () {});
+      return;
+    }
+
+    var copyPrompt = event.target.closest(".mcc-copy-prompt");
+    if (copyPrompt) {
+      copyText(copyPrompt.closest(".mcc-form-fallback").querySelector("textarea").value, copyPrompt);
+    }
+  });
+
+  // ---- forms -------------------------------------------------------------
+  function collectValues(form) {
+    var data = new FormData(form);
+    var values = {};
+    Array.prototype.forEach.call(form.elements, function (element) {
+      if (!element.name || values[element.name] !== undefined) return;
+      var all = data.getAll(element.name).map(String);
+      values[element.name] = all.join(", ");
+    });
+    return values;
+  }
+
+  function buildPrompt(form, values) {
+    var template = form.getAttribute("data-prompt-template");
+    if (template) {
+      var prompt = template;
+      Object.keys(values).forEach(function (name) {
+        prompt = prompt.split("{{" + name + "}}").join(values[name]);
+      });
+      return prompt;
+    }
+    var title = form.getAttribute("data-card-title") || "Form";
+    var lines = Object.keys(values).map(function (name) {
+      return "- " + name + ": " + values[name];
+    });
+    return 'Form "' + title + '" submitted:\n' + lines.join("\n");
+  }
+
+  // A required multi-checkbox group means "check at least one". HTML cannot
+  // express that natively, so the builder marks the fieldset with
+  // data-mcc-require-one and the first box carries a custom validity that
+  // checkValidity()/reportValidity() surface like any native constraint.
+  function enforceRequiredGroups(form) {
+    var groups = form.querySelectorAll("[data-mcc-require-one]");
+    Array.prototype.forEach.call(groups, function (group) {
+      var boxes = group.querySelectorAll('input[type="checkbox"]');
+      if (boxes.length === 0) return;
+      var satisfied = Array.prototype.some.call(boxes, function (box) { return box.checked; });
+      boxes[0].setCustomValidity(satisfied ? "" : "Select at least one option.");
+    });
+  }
+
+  document.addEventListener("change", function (event) {
+    var form = event.target.form;
+    if (form && event.target.closest("[data-mcc-require-one]")) enforceRequiredGroups(form);
+  });
+
+  document.addEventListener("submit", function (event) {
+    var form = event.target.closest(".mcc-form");
+    if (!form) return;
+    event.preventDefault();
+    enforceRequiredGroups(form);
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    var article = form.closest(".mcc-card");
+    var status = form.querySelector(".mcc-form-status");
+    var fallback = form.querySelector(".mcc-form-fallback");
+    var values = collectValues(form);
+    var prompt = buildPrompt(form, values);
+    status.textContent = "Sending to the conversation...";
+    api("/api/submit", {
+      cardId: article ? article.getAttribute("data-card-id") : null,
+      values: values,
+      prompt: prompt,
+    }).then(function (result) {
+      if (result.delivered) {
+        status.textContent = "Sent to the conversation ✓";
+        fallback.classList.remove("mcc-visible");
+      } else {
+        status.textContent = "The agent could not be reached automatically.";
+        fallback.querySelector("textarea").value = prompt;
+        fallback.classList.add("mcc-visible");
+      }
+    }).catch(function () {
+      status.textContent = "Sending failed. Copy the prompt below instead.";
+      fallback.querySelector("textarea").value = prompt;
+      fallback.classList.add("mcc-visible");
+    });
+  });
+
+  // ---- tutor term tooltips ----------------------------------------------
+  var dwellTimer = null;
+
+  function showTooltip(term) {
+    var tip = term.getAttribute("data-tip");
+    if (!tip) return;
+    tooltip.textContent = tip;
+    tooltip.style.display = "block";
+    var rect = term.getBoundingClientRect();
+    var x = Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 12);
+    var y = rect.bottom + 8;
+    if (y + tooltip.offsetHeight > window.innerHeight) y = rect.top - tooltip.offsetHeight - 8;
+    tooltip.style.left = Math.max(6, x) + "px";
+    tooltip.style.top = Math.max(6, y) + "px";
+    term.setAttribute("aria-describedby", "mcc-tooltip");
+  }
+
+  function hideTooltip() {
+    clearTimeout(dwellTimer);
+    tooltip.style.display = "none";
+    var described = document.querySelectorAll('[aria-describedby="mcc-tooltip"]');
+    Array.prototype.forEach.call(described, function (el) {
+      el.removeAttribute("aria-describedby");
+    });
+  }
+
+  document.addEventListener("mouseover", function (event) {
+    var term = event.target.closest(".mcc-term");
+    if (!term) return;
+    var article = term.closest(".mcc-card");
+    var config = article ? configs[article.getAttribute("data-card-id")] : null;
+    var dwellMs = config && config.dwellMs ? config.dwellMs : 1200;
+    clearTimeout(dwellTimer);
+    dwellTimer = setTimeout(function () { showTooltip(term); }, dwellMs);
+  });
+  document.addEventListener("mouseout", function (event) {
+    if (!event.target.closest || !event.target.closest(".mcc-term")) return;
+    hideTooltip();
+  });
+  // Keyboard access: term spans are focusable (tabindex from the builder).
+  // Focus shows the definition immediately; blur or Escape dismisses it.
+  document.addEventListener("focusin", function (event) {
+    var term = event.target.closest && event.target.closest(".mcc-term");
+    if (!term) return;
+    clearTimeout(dwellTimer);
+    showTooltip(term);
+  });
+  document.addEventListener("focusout", function (event) {
+    if (!event.target.closest || !event.target.closest(".mcc-term")) return;
+    hideTooltip();
+  });
+  document.addEventListener("scroll", function () {
+    hideTooltip();
+  }, true);
+
+  // ---- context menu (per-card model-defined actions) ---------------------
+  function hideMenu() { menu.style.display = "none"; menu.innerHTML = ""; }
+
+  document.addEventListener("contextmenu", function (event) {
+    var article = event.target.closest(".mcc-card");
+    if (!article) { hideMenu(); return; }
+    var config = configs[article.getAttribute("data-card-id")] || {};
+    var actions = config.contextActions || [];
+    event.preventDefault();
+    var selection = String(window.getSelection() || "");
+    menu.innerHTML = "";
+    actions.forEach(function (action) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.textContent = action.label;
+      button.addEventListener("click", function () {
+        hideMenu();
+        api("/api/prompt", { prompt: action.prompt.split("{{selection}}").join(selection) }).catch(function () {});
+      });
+      menu.appendChild(button);
+    });
+    if (actions.length > 0) {
+      var sep = document.createElement("div");
+      sep.className = "mcc-menu-sep";
+      menu.appendChild(sep);
+    }
+    var copyItem = document.createElement("button");
+    copyItem.type = "button";
+    copyItem.textContent = "Copy card";
+    copyItem.addEventListener("click", function () {
+      hideMenu();
+      copyText(standaloneDocument(article), null);
+    });
+    menu.appendChild(copyItem);
+    menu.style.display = "block";
+    var x = Math.min(event.clientX, window.innerWidth - menu.offsetWidth - 8);
+    var y = Math.min(event.clientY, window.innerHeight - menu.offsetHeight - 8);
+    menu.style.left = x + "px";
+    menu.style.top = y + "px";
+  });
+  document.addEventListener("click", function (event) {
+    if (!event.target.closest("#mcc-menu")) hideMenu();
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      hideMenu();
+      hideTooltip();
+    }
+  });
+
+  // ---- drag to reorder cards --------------------------------------------
+  var draggingCard = null;
+  document.addEventListener("dragstart", function (event) {
+    var head = event.target.closest('.mcc-head[draggable="true"]');
+    if (!head) return;
+    draggingCard = head.closest(".mcc-card");
+    draggingCard.classList.add("mcc-dragging");
+    event.dataTransfer.effectAllowed = "move";
+    // Carry the card HTML in the drag data so dropping outside the canvas
+    // pastes something meaningful.
+    try {
+      event.dataTransfer.setData("text/html", draggingCard.outerHTML);
+      event.dataTransfer.setData("text/plain", standaloneDocument(draggingCard));
+    } catch (e) {}
+  });
+  document.addEventListener("dragover", function (event) {
+    if (!draggingCard) return;
+    var over = event.target.closest("#mcc-deck > .mcc-card");
+    if (!over || over === draggingCard) return;
+    event.preventDefault();
+    var rect = over.getBoundingClientRect();
+    var after = event.clientY > rect.top + rect.height / 2;
+    deck.insertBefore(draggingCard, after ? over.nextSibling : over);
+  });
+  document.addEventListener("dragend", function () {
+    if (!draggingCard) return;
+    draggingCard.classList.remove("mcc-dragging");
+    draggingCard = null;
+    var order = Array.prototype.map.call(deck.children, function (el) {
+      return el.getAttribute("data-card-id");
+    });
+    api("/api/reorder", { order: order }).catch(function () {});
+  });
+})();
+</script>
+</body>
+</html>

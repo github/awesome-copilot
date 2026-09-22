@@ -526,7 +526,7 @@ end
 
 ## README.md Template
 
-```markdown
+````markdown
 # My MCP Server
 
 A Model Context Protocol server built with Ruby and the official MCP Ruby SDK.
@@ -644,7 +644,7 @@ my-mcp-server/
 ## License
 
 MIT
-```
+````
 
 ## Generation Instructions
 

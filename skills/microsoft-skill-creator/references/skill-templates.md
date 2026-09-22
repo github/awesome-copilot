@@ -18,7 +18,7 @@ Run directly with `npx @microsoft/learn-cli <command>` or install globally with 
 
 For client libraries, SDKs, and programming frameworks.
 
-```markdown
+````markdown
 ---
 name: {sdk-name}
 description: {What it does}. Use when agents need to {primary task} with {technology context}. Supports {languages/platforms}.
@@ -83,7 +83,7 @@ See [best-practices.md](references/best-practices.md) for detailed guidance.
 | {Advanced topic 1} | `microsoft_docs_search(query="{sdk} {topic}")` |
 | {Advanced topic 2} | `microsoft_docs_fetch(url="{url}")` |
 | {Code examples} | `microsoft_code_sample_search(query="{sdk} {scenario}", language="{lang}")` |
-```
+````
 
 ---
 
@@ -91,7 +91,7 @@ See [best-practices.md](references/best-practices.md) for detailed guidance.
 
 For Azure services and cloud resources.
 
-```markdown
+````markdown
 ---
 name: {service-name}
 description: Work with {Azure Service}. Use when agents need to {primary capabilities}. Covers provisioning, configuration, and SDK usage.
@@ -169,7 +169,7 @@ For more issues: `microsoft_docs_search(query="{service} troubleshoot {symptom}"
 | REST API | `microsoft_docs_fetch(url="{url}")` |
 | ARM/Bicep | `microsoft_docs_search(query="{service} bicep template")` |
 | Security | `microsoft_docs_search(query="{service} security best practices")` |
-```
+````
 
 ---
 
@@ -177,7 +177,7 @@ For more issues: `microsoft_docs_search(query="{service} troubleshoot {symptom}"
 
 For development frameworks and platforms (e.g., ASP.NET, MAUI, Blazor).
 
-```markdown
+````markdown
 ---
 name: {framework-name}
 description: Build {type of apps} with {Framework}. Use when agents need to create, modify, or debug {framework} applications.
@@ -248,7 +248,7 @@ For detailed deployment: `microsoft_docs_search(query="{framework} deploy {targe
 | {Advanced feature} | `microsoft_docs_search(query="{framework} {feature}")` |
 | {Integration} | `microsoft_docs_fetch(url="{url}")` |
 | {Samples} | `microsoft_code_sample_search(query="{framework} {scenario}")` |
-```
+````
 
 ---
 
@@ -256,7 +256,7 @@ For detailed deployment: `microsoft_docs_search(query="{framework} deploy {targe
 
 For APIs, protocols, and specifications (e.g., Microsoft Graph, OOXML).
 
-```markdown
+````markdown
 ---
 name: {api-name}
 description: Interact with {API/Protocol}. Use when agents need to {primary operations}. Covers authentication, endpoints, and common operations.
@@ -321,7 +321,7 @@ description: Interact with {API/Protocol}. Use when agents need to {primary oper
 | Full endpoint reference | `microsoft_docs_fetch(url="{url}")` |
 | Permissions | `microsoft_docs_search(query="{api} permissions {resource}")` |
 | SDKs | `microsoft_docs_search(query="{api} SDK {language}")` |
-```
+````
 
 ---
 

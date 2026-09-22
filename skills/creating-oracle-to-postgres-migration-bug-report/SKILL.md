@@ -40,4 +40,6 @@ Use the template in [references/BUG-REPORT-TEMPLATE.md](references/BUG-REPORT-TE
 
 ## Filename Convention
 
-Save bug reports as `BUG_REPORT_<DescriptiveSlug>.md` where `<DescriptiveSlug>` is a short PascalCase identifier (e.g., `EmptyStringNullHandling`, `RefCursorUnwrapFailure`).
+Save bug reports to `.github/oracle-to-postgres-migration/Reports/{ProjectName}/BUG_REPORT_<DescriptiveSlug>.md` where:
+- `{ProjectName}` is the project's assembly/folder name with spaces normalized to `-` (e.g. `MyApp.DataAccess`)
+- `<DescriptiveSlug>` is a short PascalCase identifier describing the defect (e.g., `EmptyStringNullHandling`, `RefCursorUnwrapFailure`)

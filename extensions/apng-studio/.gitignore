@@ -1,0 +1,11 @@
+# Runtime user data — per-project frames and exports the extension writes
+# under its own directory at runtime. This is local state, not source.
+artifacts/
+
+# Exported animations
+*.apng
+
+# Node / editor / OS cruft
+node_modules/
+.DS_Store
+*.log

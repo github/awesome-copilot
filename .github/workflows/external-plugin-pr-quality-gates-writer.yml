@@ -1,0 +1,397 @@
+name: External Plugin PR Quality Gates Writer
+
+on:
+  workflow_run:
+    workflows: ["External Plugin PR Quality Gates"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: epqw-${{ github.event.workflow_run.head_repository.id || 'unknown-repo' }}-${{ github.event.workflow_run.head_branch || 'unknown-branch' }}
+  cancel-in-progress: true
+
+jobs:
+  sync-pr-state:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: main
+          persist-credentials: false
+          submodules: false
+
+      - name: Download quality result artifact
+        id: download-result
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: external-plugin-pr-quality-result
+          path: ${{ runner.temp }}/external-plugin-pr-quality-result
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Sync labels and PR status comment
+        if: steps.download-result.outcome == 'success'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const workflowRun = context.payload.workflow_run;
+            const artifactPath = path.join(process.env.RUNNER_TEMP, 'external-plugin-pr-quality-result', 'result.json');
+            const payload = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+            const allowedJobResults = new Set(['success', 'failure', 'cancelled', 'skipped']);
+
+            function fail(message) {
+              throw new Error(`Invalid external plugin quality artifact: ${message}`);
+            }
+
+            if (payload.schema_version !== 'external-plugin-pr-quality-result/v1') fail('unexpected schema_version');
+            if (payload.event !== 'pull_request') fail('unexpected event');
+            if (!Number.isInteger(payload.pr_number) || payload.pr_number < 1) fail('invalid pr_number');
+            if (!/^[0-9a-f]{40}$/i.test(String(payload.head_sha || ''))) fail('invalid head_sha');
+            if (!/^[0-9a-f]{40}$/i.test(String(payload.base_sha || ''))) fail('invalid base_sha');
+            if (payload.base_ref !== 'main') fail('unexpected base_ref');
+            if (workflowRun.event !== 'pull_request') fail('unexpected workflow_run event');
+            if (String(payload.run_id || '') !== String(workflowRun.id)) fail('run_id did not match workflow_run');
+            if (payload.head_sha !== workflowRun.head_sha) fail('head_sha did not match workflow_run');
+            if (!allowedJobResults.has(payload.detect_job_result)) fail('invalid detect_job_result');
+            if (!allowedJobResults.has(payload.quality_job_result)) fail('invalid quality_job_result');
+            if (!Number.isInteger(payload.changed_count) || payload.changed_count < 0 || payload.changed_count > 1000) fail('invalid changed_count');
+            if (typeof payload.should_run !== 'boolean') fail('invalid should_run');
+            if (typeof payload.quality_result_json !== 'string' || payload.quality_result_json.length > 250000) fail('invalid quality_result_json');
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: payload.pr_number,
+            });
+
+            if (pr.state !== 'open') {
+              core.info(`Skipping non-open PR #${payload.pr_number}.`);
+              return;
+            }
+            const expectedBaseRepository = `${context.repo.owner}/${context.repo.repo}`.toLowerCase();
+            const runHeadRepository = String(workflowRun.head_repository?.full_name || '');
+            const runHeadRepositoryParts = runHeadRepository.split('/');
+            const runHeadRef = String(workflowRun.head_branch || '');
+            if (String(pr.base?.repo?.full_name || '').toLowerCase() !== expectedBaseRepository) {
+              fail(`PR #${payload.pr_number} does not target this repository`);
+            }
+            if (pr.head.sha !== workflowRun.head_sha) {
+              core.warning(`Skipping stale external plugin result for PR #${payload.pr_number}: artifact head ${payload.head_sha}, current head ${pr.head.sha}`);
+              return;
+            }
+            if (
+              runHeadRepositoryParts.length !== 2 ||
+              !runHeadRepositoryParts[0] ||
+              !runHeadRepositoryParts[1] ||
+              !runHeadRef ||
+              String(pr.head?.repo?.full_name || '').toLowerCase() !== runHeadRepository.toLowerCase() ||
+              String(pr.head?.ref || '') !== runHeadRef
+            ) {
+              fail(`PR #${payload.pr_number} head did not match workflow_run`);
+            }
+
+            const workflowRunPullRequests = Array.isArray(workflowRun.pull_requests) ? workflowRun.pull_requests : [];
+            if (workflowRunPullRequests.length > 0) {
+              if (!workflowRunPullRequests.some((pullRequest) => pullRequest.number === payload.pr_number)) {
+                fail(`PR #${payload.pr_number} was not present in workflow_run.pull_requests`);
+              }
+            } else {
+              const candidatePullRequests = await github.paginate(github.rest.pulls.list, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${runHeadRepositoryParts[0]}:${runHeadRef}`,
+                per_page: 100,
+              });
+              const trustedMatches = candidatePullRequests.filter((candidate) =>
+                candidate.head?.sha === workflowRun.head_sha &&
+                String(candidate.head?.ref || '') === runHeadRef &&
+                String(candidate.head?.repo?.full_name || '').toLowerCase() === runHeadRepository.toLowerCase() &&
+                String(candidate.base?.repo?.full_name || '').toLowerCase() === expectedBaseRepository
+              );
+              if (trustedMatches.length !== 1 || trustedMatches[0].number !== payload.pr_number) {
+                fail(`PR #${payload.pr_number} could not be uniquely associated with workflow_run`);
+              }
+            }
+            if (pr.base.ref !== 'main' || pr.base.sha !== payload.base_sha) {
+              core.warning(`Skipping external plugin result for PR #${payload.pr_number}: base branch/ref changed since the read-only run.`);
+              return;
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: payload.pr_number,
+              per_page: 100,
+            });
+            if (!files.some((file) => file.filename === 'plugins/external.json')) {
+              core.warning(`Skipping external plugin result for PR #${payload.pr_number}: plugins/external.json is no longer in the PR file list.`);
+              return;
+            }
+
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+            const marker = '<!-- external-plugin-pr-quality -->';
+            const detectJobResult = payload.detect_job_result;
+            const shouldRun = payload.should_run;
+            const changedCount = payload.changed_count;
+            const qualityJobResult = payload.quality_job_result;
+
+            let qualityResult = {
+              overall_status: 'not_run',
+              spec_compliance_status: 'not_run',
+              failure_class: 'none',
+              checked_plugins: [],
+              summary: 'No changed external plugin entries were detected in this PR.',
+            };
+
+            if (detectJobResult === 'failure' || detectJobResult === 'cancelled') {
+              qualityResult = {
+                overall_status: 'infra_error',
+                spec_compliance_status: 'not_run',
+                failure_class: 'infra',
+                checked_plugins: [],
+                version_match_status: 'infra_error',
+                canvas_structure_status: 'infra_error',
+                summary: 'External plugin PR change detection failed unexpectedly. Re-run this workflow.',
+              };
+            } else if (shouldRun) {
+              if (qualityJobResult === 'failure' || qualityJobResult === 'cancelled') {
+                qualityResult = {
+                  overall_status: 'infra_error',
+                  spec_compliance_status: 'not_run',
+                  failure_class: 'infra',
+                  checked_plugins: [],
+                  version_match_status: 'infra_error',
+                  canvas_structure_status: 'infra_error',
+                  summary: 'External plugin PR quality checks failed unexpectedly. Re-run this workflow.',
+                };
+              } else if (payload.quality_result_json) {
+                qualityResult = JSON.parse(payload.quality_result_json);
+                if (!qualityResult || typeof qualityResult !== 'object' || Array.isArray(qualityResult)) {
+                  fail('quality_result_json did not parse to an object');
+                }
+              } else {
+                qualityResult = {
+                  overall_status: 'infra_error',
+                  spec_compliance_status: 'not_run',
+                  failure_class: 'infra',
+                  checked_plugins: [],
+                  version_match_status: 'infra_error',
+                  canvas_structure_status: 'infra_error',
+                  summary: 'External plugin PR quality checks did not return a result payload.',
+                };
+              }
+            }
+
+            const stateLabel = qualityResult.failure_class === 'submitter_fixes'
+              ? 'requires-submitter-fixes'
+              : qualityResult.overall_status === 'pass' || !shouldRun
+                ? 'ready-for-review'
+                : 'awaiting-review';
+
+            const desiredLabels = new Set(['external-plugin', stateLabel]);
+            await intakeState.syncExternalPluginIntakeLabels({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: payload.pr_number,
+              desiredLabels,
+            });
+
+            const checkedPlugins = Array.isArray(qualityResult.checked_plugins) ? qualityResult.checked_plugins.slice(0, 50) : [];
+            const hasSpecWarnings = checkedPlugins.some((entry) => String(entry?.quality?.spec_compliance_status || '') === 'warning');
+            const header = qualityResult.failure_class === 'submitter_fixes'
+              ? '## 🛑 External plugin PR checks failed (submitter fixes required)'
+              : qualityResult.overall_status === 'infra_error'
+                ? '## 🛑 External plugin PR checks failed (maintainer follow-up)'
+                : hasSpecWarnings
+                  ? '## ⚠️ External plugin PR checks passed with spec warnings'
+                  : qualityResult.overall_status === 'pass' || !shouldRun
+                    ? '## ✅ External plugin PR checks passed'
+                    : '## ⚠️ External plugin PR checks need maintainer follow-up';
+            const formatStatus = (rawStatus, gateName) => {
+              const status = String(rawStatus || 'not_run');
+              if (status === 'pass') {
+                return '✅ pass';
+              }
+              if (status === 'warning' || (gateName === 'spec compliance' && status === 'fail')) {
+                return '⚠️ warning';
+              }
+              if (status === 'fail' || status === 'infra_error') {
+                return '🛑 fail';
+              }
+              return '⚪ not_run';
+            };
+            const MAX_GATE_OUTPUT_CHARS = 2000;
+            const escapeHtml = (value) =>
+              String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            const escapeMarkdownTableCell = (value) =>
+              String(value ?? '')
+                .replace(/\r\n?|\n/g, '\n')
+                .split('\n')
+                .map((line) =>
+                  Array.from(line, (character) =>
+                    /^[A-Za-z0-9 .-]$/.test(character)
+                      ? character
+                      : `&#${character.codePointAt(0)};`
+                  ).join('')
+                )
+                .join('<br>');
+            const normalizeGitHubUrl = (value) => {
+              const raw = String(value || '').trim();
+              if (!raw) {
+                return '';
+              }
+
+              try {
+                const parsed = new URL(raw);
+                if (parsed.protocol !== 'https:' || parsed.hostname !== 'github.com') {
+                  return '';
+                }
+                return parsed.toString();
+              } catch {
+                return '';
+              }
+            };
+            const TRUNCATED_OUTPUT_MARKER = '\n...output truncated...';
+            const truncateGateOutput = (rawOutput) => {
+              const normalized = escapeHtml(String(rawOutput || '').trim());
+              if (!normalized) {
+                return '_No output captured._';
+              }
+              if (normalized.length <= MAX_GATE_OUTPUT_CHARS) {
+                return normalized;
+              }
+              return `${normalized.slice(0, Math.max(0, MAX_GATE_OUTPUT_CHARS - TRUNCATED_OUTPUT_MARKER.length))}${TRUNCATED_OUTPUT_MARKER}`;
+            };
+            const formatGateOutput = (pluginName, gateName, gateStatus, rawOutput) => {
+              const summaryPluginName = escapeHtml(String(pluginName || 'unknown'));
+              const summaryGateName = escapeHtml(String(gateName || 'gate'));
+              const summaryGateStatus = escapeHtml(String(gateStatus || 'not_run'));
+              const output = truncateGateOutput(rawOutput);
+              return [
+                '<details>',
+                `<summary>${summaryPluginName} - ${summaryGateName} (${summaryGateStatus})</summary>`,
+                '',
+                '<pre><code>',
+                output,
+                '</code></pre>',
+                '</details>',
+              ].join('\n');
+            };
+
+            const rows = checkedPlugins.length > 0
+              ? checkedPlugins.map((entry) => {
+                  const name = escapeMarkdownTableCell(entry?.name || 'unknown');
+                  const quality = entry?.quality || {};
+                  const sourceUrl = normalizeGitHubUrl(entry?.source_tree_url);
+                  const locator = escapeMarkdownTableCell(entry?.source?.sha || entry?.source?.ref || 'repository');
+                  const sourceCell = sourceUrl ? `[${locator}](${sourceUrl})` : locator;
+                  return `| ${name} | ${formatStatus(quality.spec_compliance_status, 'spec compliance')} | ${formatStatus(quality.vally_lint_status, 'vally lint')} | ${formatStatus(quality.smoke_status, 'install smoke test')} | ${formatStatus(quality.version_match_status, 'version match')} | ${formatStatus(quality.ref_sha_consistency_status, 'ref/sha consistency')} | ${formatStatus(quality.canvas_structure_status, 'canvas structure')} | ${formatStatus(quality.overall_status, 'overall')} | ${sourceCell} |`;
+                })
+              : ['| _none_ | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | ⚪ not_run | _n/a_ |'];
+            const failureDetails = checkedPlugins.flatMap((entry) => {
+              const name = String(entry?.name || 'unknown');
+              const quality = entry?.quality || {};
+              const shouldShowSpec = quality.spec_compliance_status === 'warning' || String(quality.spec_compliance_output || '').trim().length > 0;
+              const shouldShowVally = quality.vally_lint_status === 'fail' || quality.vally_lint_status === 'infra_error' || String(quality.vally_lint_output || '').trim().length > 0;
+              const shouldShowSmoke = quality.smoke_status === 'fail' || quality.smoke_status === 'infra_error' || String(quality.smoke_output || '').trim().length > 0;
+              const shouldShowVersionMatch = quality.version_match_status === 'fail' || quality.version_match_status === 'infra_error' || String(quality.version_match_output || '').trim().length > 0;
+              const shouldShowRefShaConsistency = quality.ref_sha_consistency_status === 'fail' || quality.ref_sha_consistency_status === 'infra_error' || String(quality.ref_sha_consistency_output || '').trim().length > 0;
+              const shouldShowCanvasStructure = quality.canvas_structure_status === 'fail' || quality.canvas_structure_status === 'infra_error' || String(quality.canvas_structure_output || '').trim().length > 0;
+
+              const details = [];
+              if (shouldShowSpec) {
+                details.push(formatGateOutput(name, 'spec compliance', formatStatus(quality.spec_compliance_status, 'spec compliance'), quality.spec_compliance_output));
+              }
+              if (shouldShowVally) {
+                details.push(formatGateOutput(name, 'vally lint', formatStatus(quality.vally_lint_status, 'vally lint'), quality.vally_lint_output));
+              }
+              if (shouldShowSmoke) {
+                details.push(formatGateOutput(name, 'install smoke test', formatStatus(quality.smoke_status, 'install smoke test'), quality.smoke_output));
+              }
+              if (shouldShowVersionMatch) {
+                details.push(formatGateOutput(name, 'version match', quality.version_match_status, quality.version_match_output));
+              }
+              if (shouldShowRefShaConsistency) {
+                details.push(formatGateOutput(name, 'ref/sha consistency', quality.ref_sha_consistency_status, quality.ref_sha_consistency_output));
+              }
+              if (shouldShowCanvasStructure) {
+                details.push(formatGateOutput(name, 'canvas structure', quality.canvas_structure_status, quality.canvas_structure_output));
+              }
+              return details;
+            });
+
+            const body = [
+              marker,
+              header,
+              '',
+              `- **Changed entries detected:** ${changedCount}`,
+              `- **Workflow state label:** \`${stateLabel}\``,
+              '- **Status legend:** ✅ pass · ⚠️ warning · 🛑 fail',
+              '',
+              '### Per-plugin quality summary',
+              '',
+              '| Plugin | spec compliance (non-blocking) | vally lint | install smoke test | version match | ref/sha consistency | canvas structure | overall | source tree |',
+              '|---|---|---|---|---|---|---|---|---|',
+              ...rows,
+              '',
+              ...(failureDetails.length > 0
+                ? [
+                    '### Gate output details',
+                    '',
+                    ...failureDetails,
+                    '',
+                  ]
+                : []),
+              String(qualityResult.summary || '').trim()
+                ? `<pre><code>${escapeHtml(String(qualityResult.summary).trim())}</code></pre>`
+                : '_No summary provided._',
+            ].join('\n');
+            const MAX_COMMENT_BODY_BYTES = 60000;
+            const truncationNotice = '\n\n_Additional gate output was truncated to fit GitHub comment limits._';
+            const truncateUtf8 = (value, maxBytes) => {
+              const encoded = Buffer.from(value, 'utf8');
+              if (encoded.length <= maxBytes) {
+                return value;
+              }
+
+              let end = maxBytes;
+              while (end > 0 && (encoded[end] & 0xc0) === 0x80) {
+                end -= 1;
+              }
+              return encoded.subarray(0, end).toString('utf8');
+            };
+            const boundedBody = Buffer.byteLength(body, 'utf8') <= MAX_COMMENT_BODY_BYTES
+              ? body
+              : `${truncateUtf8(body, MAX_COMMENT_BODY_BYTES - Buffer.byteLength(truncationNotice, 'utf8'))}${truncationNotice}`;
+
+            await intakeState.upsertExternalPluginIntakeComment({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: payload.pr_number,
+              marker,
+              body: boundedBody,
+            });
+
+      - name: Note missing artifact
+        if: steps.download-result.outcome != 'success'
+        run: echo "No external-plugin-pr-quality-result artifact was available; nothing to synchronize."

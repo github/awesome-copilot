@@ -1,5 +1,5 @@
 ---
-description: 'Astro development standards and best practices for content-driven websites'
+description: 'Astro 7 development standards and best practices for content-driven websites'
 applyTo: '**/*.astro, **/*.ts, **/*.js, **/*.md, **/*.mdx'
 ---
 
@@ -7,14 +7,16 @@ applyTo: '**/*.astro, **/*.ts, **/*.js, **/*.md, **/*.mdx'
 
 Instructions for building high-quality Astro applications following the content-driven, server-first architecture with modern best practices.
 
+> [!NOTE]
+> Examples and APIs in this guide target Astro 7.x.
+
 ## Project Context
-- Astro 5.x with Islands Architecture and Content Layer API
+- Astro 7.x with Islands Architecture and the Content Layer API
 - TypeScript for type safety and better DX with auto-generated types
 - Content-driven websites (blogs, marketing, e-commerce, documentation)
 - Server-first rendering with selective client-side hydration
 - Support for multiple UI frameworks (React, Vue, Svelte, Solid, etc.)
 - Static site generation (SSG) by default with optional server-side rendering (SSR)
-- Enhanced performance with modern content loading and build optimizations
 
 ## Development Standards
 
@@ -27,7 +29,7 @@ Instructions for building high-quality Astro applications following the content-
 - Follow Multi-Page App (MPA) approach over Single-Page App (SPA) patterns
 
 ### TypeScript Integration
-- Configure `tsconfig.json` with recommended v5.0 settings:
+- Extend Astro's base config in `tsconfig.json`:
 ```json
 {
   "extends": "astro/tsconfigs/base",
@@ -35,10 +37,9 @@ Instructions for building high-quality Astro applications following the content-
   "exclude": ["dist"]
 }
 ```
-- Types auto-generated in `.astro/types.d.ts` (replaces `src/env.d.ts`)
-- Run `astro sync` to generate/update type definitions
+- Types are auto-generated in `.astro/types.d.ts`; run `astro sync` after changing collections or config
 - Define component props with TypeScript interfaces
-- Leverage auto-generated types for content collections and Content Layer API
+- Leverage auto-generated types for content collections and the Content Layer API
 
 ### Component Design
 - Use `.astro` components for static, server-rendered content
@@ -47,16 +48,17 @@ Instructions for building high-quality Astro applications following the content-
 - Use meaningful component names following PascalCase convention
 - Keep components focused and composable
 - Implement proper prop validation and default values
+- Write valid, fully-closed HTML: the compiler errors on unclosed tags and does not auto-correct invalid nesting (e.g. block elements inside `<p>`)
 
 ### Content Collections
-
-#### Modern Content Layer API (v5.0+)
-- Define collections in `src/content.config.ts` using the new Content Layer API
-- Use built-in loaders: `glob()` for file-based content, `file()` for single files
-- Leverage enhanced performance and scalability with the new loading system
-- Example with Content Layer API:
+- Define collections in `src/content.config.ts` with the Content Layer API
+- Use built-in loaders: `glob()` for file-based content, `file()` for a single data file
+- Import `z` from `astro/zod` (not from `astro:content`) and prefer top-level Zod helpers such as `z.email()` and `z.url()`
+- Query content with type-safe `getCollection()` and `getEntry()`
+- Example collection definition:
 ```typescript
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
@@ -64,19 +66,15 @@ const blog = defineCollection({
   schema: z.object({
     title: z.string(),
     pubDate: z.date(),
-    tags: z.array(z.string()).optional()
-  })
+    tags: z.array(z.string()).optional(),
+  }),
 });
+
+export const collections = { blog };
 ```
 
-#### Legacy Collections (backward compatible)
-- Legacy `type: 'content'` collections still supported via automatic glob() implementation
-- Migrate existing collections by adding explicit `loader` configuration
-- Use type-safe queries with `getCollection()` and `getEntry()`
-- Structure content with frontmatter validation and auto-generated types
-
 ### View Transitions & Client-Side Routing
-- Enable with `<ClientRouter />` component in layout head (renamed from `<ViewTransitions />` in v5.0)
+- Enable with the `<ClientRouter />` component in your layout `<head>`
 - Import from `astro:transitions`: `import { ClientRouter } from 'astro:transitions'`
 - Provides SPA-like navigation without full page reloads
 - Customize transition animations with CSS and view-transition-name
@@ -98,6 +96,7 @@ const blog = defineCollection({
 - Follow mobile-first responsive design principles
 - Ensure accessibility with semantic HTML and proper ARIA attributes
 - Consider utility-first frameworks (Tailwind CSS) for rapid development
+- Astro strips whitespace using JSX rules by default (`compressHTML: 'jsx'`); add an explicit `{" "}` between inline elements when a visible space is required
 
 ### Client-Side Interactivity
 - Use framework components (React, Vue, Svelte) for interactive elements
@@ -106,6 +105,47 @@ const blog = defineCollection({
 - Handle client-side routing carefully to maintain MPA benefits
 - Use Web Components for framework-agnostic interactivity
 - Share state between islands using stores or custom events
+
+### Server Islands
+- Use `server:defer` to render a server island on demand without blocking the rest of the page
+- Provide fallback content for the loading state via a `slot="fallback"`
+- Requires an SSR adapter (on-demand rendering) to be configured
+- Example:
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+---
+<Avatar server:defer>
+  <div slot="fallback">Loading…</div>
+</Avatar>
+```
+
+### Actions
+- Define type-safe server functions in `src/actions/index.ts` and prefer them over ad-hoc API routes for mutations and form handling
+- Validate input with a Zod schema; set `accept: 'form'` to handle HTML form submissions
+- Call actions from the client via the `astro:actions` module and handle the `{ data, error }` result
+- Example:
+```typescript
+// src/actions/index.ts
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  subscribe: defineAction({
+    accept: 'form',
+    input: z.object({ email: z.email() }),
+    handler: async ({ email }) => {
+      // persist the subscription
+      return { success: true };
+    },
+  }),
+};
+```
+
+### Sessions
+- Read and write server-side state with `Astro.session` (`get`, `set`) instead of overloading cookies
+- Requires an SSR adapter with session storage configured
+- Useful for carts, flash messages, and other per-visitor data that should not live on the client
 
 ### API Routes and SSR
 - Create API routes in `src/pages/api/` for dynamic functionality
@@ -138,45 +178,3 @@ const blog = defineCollection({
 - Cache expensive operations during build process
 - Use Astro's built-in fetch with automatic TypeScript inference
 - Handle loading states and fallbacks appropriately
-
-### Build & Deployment
-- Optimize static assets with Astro's built-in optimizations
-- Configure deployment for static (SSG) or hybrid (SSR) rendering
-- Use environment variables for configuration management
-- Enable compression and caching for production builds
-
-## Key Astro v5.0 Updates
-
-### Breaking Changes
-- **ClientRouter**: Use `<ClientRouter />` instead of `<ViewTransitions />`
-- **TypeScript**: Auto-generated types in `.astro/types.d.ts` (run `astro sync`)
-- **Content Layer API**: New `glob()` and `file()` loaders for enhanced performance
-
-### Migration Example
-```typescript
-// Modern Content Layer API
-import { defineCollection, z } from 'astro:content';
-import { glob } from 'astro/loaders';
-
-const blog = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
-  schema: z.object({ title: z.string(), pubDate: z.date() })
-});
-```
-
-## Implementation Guidelines
-
-### Development Workflow
-1. Use `npm create astro@latest` with TypeScript template
-2. Configure Content Layer API with appropriate loaders
-3. Set up TypeScript with `astro sync` for type generation
-4. Create layout components with Islands Architecture
-5. Implement content pages with SEO and performance optimization
-
-### Astro-Specific Best Practices
-- **Islands Architecture**: Server-first with selective hydration using client directives
-- **Content Layer API**: Use `glob()` and `file()` loaders for scalable content management
-- **Zero JavaScript**: Default to static rendering, add interactivity only when needed
-- **View Transitions**: Enable SPA-like navigation with `<ClientRouter />`
-- **Type Safety**: Leverage auto-generated types from Content Collections
-- **Performance**: Optimize with built-in image optimization and minimal client bundles

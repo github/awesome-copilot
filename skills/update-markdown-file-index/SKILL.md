@@ -41,10 +41,12 @@ Choose format based on file types and existing content:
 
 ### Option 2: Detailed Table
 
+```markdown
 | File | Type | Description |
 |------|------|-------------|
 | [filename.ext](path/to/filename.ext) | Extension | Description |
 | [filename2.ext](path/to/filename2.ext) | Extension | Description |
+```
 
 ### Option 3: Categorized Sections
 

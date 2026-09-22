@@ -1,0 +1,108 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { PluginDetail } from "../../components/brand/PluginDetail";
+import { buildDetailToc } from "../../components/brand/DetailChassis";
+import pluginsData from "../../../public/data/plugins.json";
+import { searchIndex } from "../../lib/site-data";
+import { formatLastUpdated, readResourceMarkdown } from "../../lib/detail-page";
+import { externalRepoUrl, type ExternalSource } from "../../lib/external-source";
+
+const GITHUB_TREE = "https://github.com/github/awesome-copilot/tree/main";
+
+interface PluginIncludedItem {
+  kind: string;
+  path?: string;
+  title?: string | null;
+  detailUrl?: string | null;
+}
+
+interface PluginItem {
+  id: string;
+  name: string;
+  description?: string;
+  path: string;
+  readmeFile?: string | null;
+  version?: string | null;
+  tags?: string[];
+  itemCount?: number;
+  items?: PluginIncludedItem[];
+  external?: boolean;
+  repository?: string | null;
+  homepage?: string | null;
+  license?: string | null;
+  author?: { name?: string; url?: string } | null;
+  source?: ExternalSource | null;
+  lastUpdated?: string | null;
+}
+
+export function getStaticPaths() {
+  const items = [...(pluginsData.items as PluginItem[])].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+  return items.map((item, index) => ({
+    params: { id: item.id },
+    props: {
+      item,
+      previous: index > 0 ? items[index - 1] : undefined,
+      next: index < items.length - 1 ? items[index + 1] : undefined,
+    },
+  }));
+}
+
+const { item, previous, next } = Astro.props as {
+  item: PluginItem;
+  previous?: PluginItem;
+  next?: PluginItem;
+};
+
+// External plugins are referenced, not vendored: no README exists in this
+// repository for them, so the markdown body is simply empty.
+const { markdownHtml } = item.readmeFile
+  ? readResourceMarkdown(item.readmeFile)
+  : { markdownHtml: "" };
+
+const { html } = buildDetailToc(markdownHtml);
+
+const githubUrl = item.external
+  ? externalRepoUrl(item.source, [item.repository, item.homepage, GITHUB_TREE])
+  : `${GITHUB_TREE}/${item.path}`;
+
+const installCommand = `copilot plugin install ${item.id}@awesome-copilot`;
+
+// Deep link handled by the Copilot app's `ghapp://` protocol handler. The
+// marketplace-qualified source is encoded because the `@` separator is not
+// safe unescaped in a query value.
+const appInstallUrl = `ghapp://plugins/install?source=${encodeURIComponent(
+  `${item.id}@awesome-copilot`,
+)}`;
+
+const lastUpdated = formatLastUpdated(item.lastUpdated);
+
+const base = import.meta.env.BASE_URL ?? "/";
+const detailHref = (id: string) =>
+  `${base.endsWith("/") ? base : `${base}/`}plugin/${id}/`.replace(
+    /\/{2,}/g,
+    "/",
+  );
+
+const siblingOf = (sibling?: PluginItem) =>
+  sibling ? { label: sibling.name, href: detailHref(sibling.id) } : undefined;
+---
+
+<BaseLayout
+  title={`${item.name} | Awesome GitHub Copilot`}
+  description={item.description}
+>
+  <PluginDetail
+    client:load
+    item={item}
+    markdownHtml={html}
+    githubUrl={githubUrl}
+    installCommand={installCommand}
+    appInstallUrl={appInstallUrl}
+    lastUpdated={lastUpdated}
+    previous={siblingOf(previous)}
+    next={siblingOf(next)}
+    searchIndex={searchIndex}
+  />
+</BaseLayout>

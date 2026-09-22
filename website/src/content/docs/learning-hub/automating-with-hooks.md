@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-23
+lastUpdated: 2026-08-28
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -89,7 +89,7 @@ Hooks can trigger on several lifecycle events:
 |-------|---------------|------------------|
 | `sessionStart` | Agent session begins or resumes | Initialize environments, log session starts, validate project state |
 | `sessionEnd` | Agent session completes or is terminated | Clean up temp files, generate reports, send notifications |
-| `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance; handle requests directly without invoking the LLM (v1.0.44+) |
+| `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance; handle requests directly without invoking the LLM (v1.0.44+); inject `additionalContext` into the model prompt (v1.0.65+) |
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool **successfully** completes execution | Log results, track usage, format code after edits |
 | `postToolUseFailure` | When a tool call **fails with an error** | Log errors for debugging, send failure alerts, track error patterns |
@@ -117,6 +117,28 @@ cat <<EOF
 }
 EOF
 ```
+
+### userPromptSubmitted additionalContext (v1.0.65+)
+
+The `userPromptSubmitted` hook also supports the `additionalContext` field. When your hook returns `{"additionalContext": "..."}`, that text is **injected into the model-facing prompt** before the model processes the user's message. This is distinct from the `response` field (which bypasses the model entirely) — here the model still runs, but with extra context prepended.
+
+This is useful for per-prompt enrichment: adding the current git diff, environment state, or dynamic instructions that should influence the model's response for this specific request.
+
+```bash
+#!/usr/bin/env bash
+# Inject the current git status into every prompt for context awareness
+INPUT=$(cat)
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+STAGED=$(git diff --cached --stat 2>/dev/null | tail -1)
+
+cat <<EOF
+{
+  "additionalContext": "Active branch: $BRANCH. Staged changes: ${STAGED:-none}."
+}
+EOF
+```
+
+> **How it works**: If your hook writes `{"additionalContext": "..."}` to stdout and exits with code `0`, the text is prepended to the model prompt for this turn. The hook can also write both `additionalContext` and `response` — if `response` is present, that wins and the model call is skipped.
 
 ### Extension Hooks Merging
 
@@ -191,6 +213,8 @@ Hooks support two types: `"command"` for running local shell scripts, and `"http
 **timeoutSec**: Maximum execution time in seconds (default: 30). The hook is killed if it exceeds this limit.
 
 **env**: Additional environment variables merged with the existing environment.
+
+> **New (v1.0.81+)**: Hooks can now receive the current OpenTelemetry trace context so they can emit correlated spans. Hook inputs gain a `traceparent` field (plus `tracestate` when the span carries vendor-specific state); command hooks also receive these as environment variables, making it possible to link hook telemetry with the rest of a session's trace.
 
 #### HTTP hooks (`type: "http"`)
 
@@ -369,6 +393,8 @@ Block dangerous commands before they execute. Use the `matcher` field to target 
 ```
 
 The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with a non-zero code to **deny** the tool execution, or exit with zero to **approve** it.
+
+> **Exit code 2 — silent deny (v1.0.69+)**: A `preToolUse` hook that exits with code `2` **denies the tool call silently** — the agent receives a denial without any error message being surfaced to the user. This is useful when you want to block a tool call as a policy decision without triggering a noisy failure (for example, blocking network access in CI without alarming users). Exit with any other non-zero code (e.g., `1`) to deny and show an error message.
 
 ### Modifying Tool Arguments with preToolUse
 
@@ -657,7 +683,6 @@ A: Yes. Hooks are especially valuable with the coding agent because they provide
 
 ## Next Steps
 
-- **Explore Examples**: Browse the [Hooks Directory](../../hooks/) for ready-to-use hook configurations
 - **Build Agents**: [Building Custom Agents](../building-custom-agents/) — Create agents that complement hooks
 - **Automate Further**: [Using the Copilot Coding Agent](../using-copilot-coding-agent/) — Run hooks in autonomous agent sessions
 

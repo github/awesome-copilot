@@ -114,7 +114,7 @@ When relevant, combine with:
 - `azure-resource-visualizer` for relationship diagrams.
 - `appinsights-instrumentation` for app and service telemetry patterns.
 
-Also use `references/arduino-official-best-practices.md` as a quality baseline for firmware and hardware recommendations.
+Also use `references/arduino-official-best-practices.md` as a quality baseline for firmware and hardware recommendations, and `references/arduino-iot-checklist.md` before finalizing architecture or implementation guidance.
 
 ## Required output
 

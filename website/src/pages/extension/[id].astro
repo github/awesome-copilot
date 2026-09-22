@@ -1,0 +1,151 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { ExtensionDetail } from "../../components/brand/ExtensionDetail";
+import { buildDetailToc } from "../../components/brand/DetailChassis";
+import extensionsData from "../../../public/data/extensions.json";
+import { searchIndex } from "../../lib/site-data";
+import { formatLastUpdated, readResourceMarkdown } from "../../lib/detail-page";
+import { sanitizeHttpUrl } from "../../lib/external-source";
+
+const RAW_BASE = "https://raw.githubusercontent.com/github/awesome-copilot";
+
+type Screenshot = { path?: string | null; type?: string | null } | null;
+
+interface ExtensionItem {
+  id: string;
+  name: string;
+  description?: string;
+  version?: string | null;
+  pluginName?: string | null;
+  readmeFile?: string | null;
+  path?: string | null;
+  ref?: string | null;
+  lastUpdated?: string | null;
+  screenshots?: {
+    icon?: Screenshot;
+    gallery?: Screenshot | Screenshot[];
+  } | null;
+  imageUrl?: string | null;
+  installUrl?: string | null;
+  installCommand?: string | null;
+  sourceUrl?: string | null;
+  externalSource?: string | null;
+  external?: boolean;
+  author?: { name?: string; url?: string } | null;
+  keywords?: string[];
+}
+
+// Sorted by display name so prev/next follows the catalog's ordering.
+export function getStaticPaths() {
+  const items = (extensionsData.items as ExtensionItem[])
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return items.map((item, index) => ({
+    params: { id: item.id },
+    props: {
+      item,
+      previous: index > 0 ? items[index - 1] : undefined,
+      next: index < items.length - 1 ? items[index + 1] : undefined,
+    },
+  }));
+}
+
+const { item, previous, next } = Astro.props as {
+  item: ExtensionItem;
+  previous?: ExtensionItem;
+  next?: ExtensionItem;
+};
+
+// Only http(s) URLs may reach an href/src; anything else collapses to "" so the
+// truthiness guards below drop it.
+const safeUrl = (value?: string | null): string => {
+  const sanitized = sanitizeHttpUrl(value);
+  return sanitized === "#" ? "" : sanitized;
+};
+
+/**
+ * Preview assets are not copied into the site bundle; they are served from
+ * raw.githubusercontent.com. In-repo extensions record a repo-relative path
+ * pinned to the generated commit `ref`, external ones already record an
+ * absolute URL.
+ */
+const toAssetUrl = (assetPath?: string | null): string => {
+  if (!assetPath) return "";
+  const normalized = assetPath.replace(/\\/g, "/");
+  if (/^https?:\/\//i.test(normalized)) return safeUrl(normalized);
+  if (!item.ref) return "";
+  const encoded = normalized.split("/").map(encodeURIComponent).join("/");
+  return safeUrl(`${RAW_BASE}/${item.ref}/${encoded}`);
+};
+
+const screenshotList = (value?: Screenshot | Screenshot[]): Screenshot[] =>
+  !value ? [] : Array.isArray(value) ? value.filter(Boolean) : [value];
+
+const images = Array.from(
+  new Set(
+    [
+      ...screenshotList(item.screenshots?.gallery).map((s) =>
+        toAssetUrl(s?.path),
+      ),
+      toAssetUrl(item.screenshots?.icon?.path),
+      safeUrl(item.imageUrl),
+    ].filter(Boolean),
+  ),
+).map((url, index) => ({
+  url,
+  alt:
+    index === 0
+      ? `${item.name} preview`
+      : `${item.name} screenshot ${index + 1}`,
+}));
+
+// `loadDetailPage` only covers the VS Code-installable resource types; an
+// extension body is its README, read straight off disk when one exists.
+const { markdownHtml } = item.readmeFile
+  ? readResourceMarkdown(item.readmeFile)
+  : { markdownHtml: "" };
+const { html } = buildDetailToc(markdownHtml);
+
+const lastUpdated = formatLastUpdated(item.lastUpdated ?? null);
+
+// The catalog data's `installUrl` is a GitHub tree URL; the Copilot app deep
+// link is the `ghapp://` scheme the prototype installs with. Only extensions
+// with no marketplace plugin entry (e.g. plain-repo external canvases) omit
+// `pluginName`, so gate on that rather than on `external` -- external plugins
+// registered in the awesome-copilot marketplace remain installable by id.
+const pluginSource = item.pluginName
+  ? `${item.pluginName}@awesome-copilot`
+  : null;
+const appInstallUrl = pluginSource
+  ? `ghapp://plugins/install?source=${encodeURIComponent(pluginSource)}`
+  : null;
+const sourceUrl = safeUrl(item.sourceUrl) || safeUrl(item.installUrl) || null;
+
+const base = import.meta.env.BASE_URL ?? "/";
+const detailHref = (id: string) =>
+  `${base.endsWith("/") ? base : `${base}/`}extension/${id}/`.replace(
+    /\/{2,}/g,
+    "/",
+  );
+const siblingOf = (sibling?: ExtensionItem) =>
+  sibling ? { label: sibling.name, href: detailHref(sibling.id) } : undefined;
+---
+
+<BaseLayout
+  title={`${item.name} | Awesome GitHub Copilot`}
+  description={item.description}
+>
+  <ExtensionDetail
+    client:load
+    item={item}
+    images={images}
+    markdownHtml={html}
+    installUrl={appInstallUrl}
+    installCommand={item.installCommand}
+    sourceUrl={sourceUrl}
+    lastUpdated={lastUpdated}
+    previous={siblingOf(previous)}
+    next={siblingOf(next)}
+    searchIndex={searchIndex}
+  />
+</BaseLayout>

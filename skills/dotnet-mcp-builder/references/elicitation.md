@@ -2,7 +2,9 @@
 
 Elicitation lets a tool **ask the user for input mid-execution**, via the client. The LLM doesn't see the question; the client surfaces it directly to the user. This turns one-shot tool calls into interactive flows — collecting confirmation, missing parameters, credentials (URL mode), etc.
 
-> **Spec version:** 2025-11-25. URL mode is the newer addition (originally 2025-06-18 had only form mode).
+> **Spec version:** current through 2026-07-28 (elicitation is *not* among the v2 deprecations — sampling/roots/logging are). URL mode is the newer addition (originally 2025-06-18 had only form mode).
+
+> **2026-07-28 changes the rules on HTTP.** The current revision removes HTTP sessions and the server→client `elicitation/create` request, so **`ElicitAsync` cannot be used on 2026-07-28 Streamable HTTP at all** — a server with `Stateless = false` refuses that revision and serves clients via the legacy `initialize` fallback. The current-protocol way to ask mid-tool is the **multi-round-trip pattern**: throw `InputRequiredException` from the tool (building requests with `InputRequest.ForElicitation(...)`), and on the client's retried call read `context.Params.InputResponses` back as an `ElicitResult`. It works under both protocol revisions and both session modes, including fully stateless HTTP. The `ElicitAsync` guidance below applies to **STDIO and down-level stateful HTTP** — see the [SDK elicitation docs](https://csharp.sdk.modelcontextprotocol.io/v2/concepts/elicitation/elicitation.html) for the full MRTR pattern.
 
 ## Two modes
 
@@ -11,13 +13,13 @@ Elicitation lets a tool **ask the user for input mid-execution**, via the client
 | **Form (in-band)** | Server sends a JSON Schema; client renders a form; user submits values back through the same MCP channel. | Confirmations, missing parameters, structured choices. |
 | **URL (out-of-band)** | Server sends a URL; client opens it in a browser; user completes the flow there; server checks state separately. | OAuth, payments, anything the MCP channel must not see. |
 
-## Prerequisite: stateful transport
+## Prerequisite for `ElicitAsync`: stateful transport (down-level revisions)
 
-Elicitation requires the server to send a request *to* the client and wait for a response. That only works on:
+`ElicitAsync` requires the server to send a request *to* the client and wait for a response. That only works on:
 - STDIO (always).
-- Stateful HTTP (`options.Stateless = false`).
+- Stateful HTTP (`options.Stateless = false`) — which, on 2.x, means down-level clients on an initialize-capable revision (see banner above).
 
-In stateless HTTP, `ElicitAsync` will throw — there's no transport channel back.
+In stateless HTTP — including all 2026-07-28 Streamable HTTP — `ElicitAsync` throws (`InvalidOperationException`): there's no transport channel back. Use the multi-round-trip `InputRequiredException` pattern instead.
 
 ## Form mode — full example
 

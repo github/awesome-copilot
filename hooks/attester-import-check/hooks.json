@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "hooks/attester-import-check/check-imports.py",
+        "cwd": ".",
+        "env": {
+          "ATTESTER_MODE": "block"
+        },
+        "timeoutSec": 30
+      }
+    ]
+  }
+}

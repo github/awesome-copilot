@@ -1,148 +1,92 @@
 ---
 name: ai-team-orchestration
-description: 'Bootstrap and run a multi-agent AI development team. Use when: starting a new software project with AI agents, setting up parallel dev/QA teams, creating sprint plans, writing brainstorm prompts with distinct agent voices, recovering a project workflow, or planning sprints.'
+description: 'Bootstrap and run a lightweight multi-agent development team. Use when starting or adopting a project, planning work, coordinating implementation and optional QA, brainstorming with distinct perspectives, or preserving context across sessions.'
 ---
 
 # AI Team Orchestration
 
-## When to Use
-- Starting a new project that needs planning, development, testing, and deployment
-- Setting up parallel AI agent teams (dev, QA, DevOps)
-- Writing brainstorm prompts that produce real debate (not generic output)
-- Creating sprint plans with cross-chat context survival
-- Recovering from context overflow mid-sprint
+Use three stable agents:
 
-## Team Roles
+| Agent | Purpose |
+|---|---|
+| `@ai-team-producer` | Clarify scope, plan proportionately, coordinate, and merge |
+| `@ai-team-dev` | Implement, test, self-review, and prepare the pull request |
+| `@ai-team-qa` | Independently test behavior when dedicated QA is useful |
 
-| Agent | Name | Role | Focus |
-|-------|------|------|-------|
-| Producer | **Remy** | Sprint planning, coordination, merging PRs | Scope control, handoffs, issue triage |
-| Product Designer | **Kira** | UX, mechanics, user experience | Fun factor, user flows, feature design |
-| Visual/Art Director | **Milo** | CSS, animations, visual identity | Design system, polish, accessibility |
-| Frontend Engineer | **Nova** | UI framework, state management, components | React/Vue/Svelte, client-side logic |
-| Backend Engineer | **Sage** | API, database, auth, security | Server-side logic, infrastructure |
-| DevOps Engineer | **Dash** | CI/CD, cloud deployment, pipelines | GitHub Actions, Azure/AWS/GCP |
-| QA Engineer | **Ivy** | E2E tests, automation, playtesting | Playwright/Cypress, bug filing, sign-off |
+Nova, Sage, and Milo are perspectives inside the Dev agent, not mandatory project layers.
 
-Customize names and roles for your project. Not every project needs all roles.
+## Default Workflow
 
-## Chat Architecture
+**Plan -> Implement -> Test -> optional review or QA -> Merge -> update project state**
 
-The human (CEO) is the message bus between parallel chats:
+Keep the workflow proportional:
 
-```
-┌────────────────────────────────────────┐
-│  @ai-team-producer — Plans, merges     │
-│  NEVER writes code                     │
-└────────────────┬───────────────────────┘
-                 │ Human carries messages
-      ┌──────────┼──────────┐
-      ▼          ▼          ▼
-┌──────────┐ ┌────────┐ ┌────────┐
-│@ai-team  │ │@ai-team│ │DevOps  │
-│-dev      │ │-qa     │ │(on     │
-│          │ │        │ │demand) │
-│ Nova     │ │ Ivy    │ │        │
-│ Sage     │ │        │ │        │
-│ Milo     │ │        │ │        │
-│          │ │feature/│ │feature/│
-│ feature/ │ │qa-N    │ │devops-N│
-│ sprint-N │ └────────┘ └────────┘
-└──────────┘
-```
+- Skip formal planning for small, obvious changes.
+- Use a short plan for multi-step or cross-cutting work.
+- Add independent review or QA when risk, uncertainty, or repository policy justifies it.
+- Let branch protection, required checks, permissions, and merge queues enforce repository merge policy.
 
-Each team works in a **separate VS Code window** with its own clone:
-```bash
-git clone <repo> project-dev    # Dev team
-git clone <repo> project-qa     # QA
-git clone <repo> project-devops # DevOps (only when needed)
-```
+## Start or Adopt a Project
 
-## Project Bootstrap
+1. Read existing repository instructions and documentation.
+2. Discover the actual stack, architecture, commands, deployment model, and risks.
+3. Create or update `PROJECT_BRIEF.md` only when durable cross-session context is useful. Start from the [project brief template](./references/project-brief-template.md) and omit irrelevant sections.
+4. For substantial work, create a concise plan from the [sprint plan template](./references/sprint-plan-template.md).
+5. Use a separate branch or clone when parallel sessions could conflict, following the repository's own Git policy.
 
-### 1. Create PROJECT_BRIEF.md
+## Execute
 
-The single source of truth across all chats. See the [project brief template](./references/project-brief-template.md).
+### Producer
 
-**Required sections (do not abbreviate):**
-1. Project Overview
-2. Concept / Product Description
-3. Tech Stack
-4. Architecture (ASCII diagram)
-5. Key Files Map
-6. Team Roles
-7. Sprint Status (updated every sprint)
-8. Current State (rewritten every sprint)
-9. Security Rules
-10. How to Run Locally
-11. How to Deploy
-12. **Cross-Chat Handoff Protocol** — how context survives between chats
-13. **Bug & Fix Tracking** — GitHub Issues as single source of truth
-14. **Multi-Repo Setup** — separate clones, branch strategy, merge rules
+- Define the outcome, constraints, acceptance criteria, and explicit exclusions.
+- Choose review and QA based on risk rather than ceremony.
+- Keep durable project state concise and current.
 
-### 2. Run a Brainstorm
+### Dev
 
-See the [brainstorm format](./references/brainstorm-format.md). Key: name each agent explicitly with distinct personality and perspective. Require at least 2 genuine disagreements to prevent groupthink.
+- Follow repository conventions and implement the smallest complete solution.
+- Run relevant checks and inspect the final diff.
+- Open or update the pull request with summary, verification, and limitations.
 
-### 3. Create Sprint Plans
+### QA
 
-See the [sprint plan template](./references/sprint-plan-template.md). Every sprint gets:
-- `docs/sprint-N/plan.md` — prioritized tasks, success criteria
-- `docs/sprint-N/progress.md` — live tracker, enables recovery
-- `docs/sprint-N/done.md` — handoff doc written at sprint end
+- Use only when dedicated behavioral verification adds value.
+- Test the requested change and important regressions.
+- Report reproducible findings and verify fixes.
 
-### 4. Execute Sprints
+## Brainstorms
 
-```
-Read PROJECT_BRIEF.md, then read docs/sprint-N/plan.md. Execute Sprint N.
-
-First: git pull origin main && git checkout -b feature/sprint-N
-
-Close GitHub Issues in commits: "fix: description (Fixes #NN)"
-Update docs/sprint-N/progress.md after each phase.
-When done, push and create PR: git push origin feature/sprint-N
-Follow Sections 12-14 of PROJECT_BRIEF.md.
-```
-
-### 5. QA Sign-off
-
-After dev merges, QA does a full playthrough:
-```
-Read PROJECT_BRIEF.md. You are Ivy (QA).
-Sprint N is merged to main. Do full playthrough.
-File bugs as GitHub Issues. Write docs/qa/sprint-N-signoff.md.
-```
+Use the [brainstorm format](./references/brainstorm-format.md) for product or architecture decisions that benefit from competing perspectives. For ordinary implementation choices, let Dev decide using repository conventions.
 
 ## Context Recovery
 
-When a chat gets long (>100 messages), save state and start fresh:
+Before ending a long or interrupted session:
 
-**Before closing:**
-1. Update `docs/sprint-N/progress.md` with current status
-2. Update `PROJECT_BRIEF.md` sections 7+8
-3. Write `docs/sprint-N/done.md`
+1. Update the active plan or progress note if one exists.
+2. Record material decisions, blockers, and the next action in repository context.
+3. Use a cold-start prompt such as:
 
-**Cold start prompt:**
+```text
+Read the repository instructions, then read whichever sources exist for this
+work: the active issue or request, PROJECT_BRIEF.md, and the active plan or
+progress note.
+Continue from the recorded next action.
 ```
-Read PROJECT_BRIEF.md and docs/sprint-N/progress.md.
-Continue from where it left off.
-```
 
-## Anti-Patterns
+## Tool and Model Inheritance
 
-See [anti-patterns reference](./references/anti-patterns.md) for the full list. Top 5:
+The bundled agents intentionally omit `tools` and `model` frontmatter:
 
-| Don't | Do Instead |
-|-------|------------|
-| Rebase feature branches | Merge (rebase loses commits) |
-| Producer writes code | Producer only plans, merges, files issues |
-| Batch "fix everything" commits | One commit per fix with issue reference |
-| Vague brainstorm prompts | Name each agent with distinct perspective |
-| Keep bugs only in chat | File GitHub Issues (chat context dies) |
+- available built-in, MCP, and extension tools remain usable;
+- developers keep control of model selection;
+- role boundaries are defined by instructions and normal trust, permission, authentication, and approval controls.
 
-## Tips for Better Results
+If the environment exposes too many tools, deselect irrelevant tools or MCP servers, or use VS Code virtual-tool management. Do not add a machine-specific plugin allowlist.
 
-- **"Take your time, do it right"** in prompts produces better output than rushing
-- **Test before merge** — you playtest, file issues, dev fixes, then merge
-- **Run team consiliums** before major sprints — each agent reviews the plan from their perspective
-- **Save lessons to memory** after every milestone
+## Principles
+
+- Prefer working software and clear handoffs over process artifacts.
+- Follow repository policy instead of embedding universal Git commands.
+- Preserve unknown work and ask before destructive or privileged actions.
+- Keep bugs and important decisions in durable project systems, not only chat.
+- See [anti-patterns](./references/anti-patterns.md) for concise lessons.

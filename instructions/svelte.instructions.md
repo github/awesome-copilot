@@ -1,5 +1,5 @@
 ---
-description: 'Svelte 5 and SvelteKit development standards and best practices for component-based user interfaces and full-stack applications'
+description: 'Svelte 5 and SvelteKit 2 development standards and best practices for component-based user interfaces and full-stack applications'
 applyTo: '**/*.svelte, **/*.ts, **/*.js, **/*.css, **/*.scss, **/*.json'
 ---
 
@@ -7,9 +7,12 @@ applyTo: '**/*.svelte, **/*.ts, **/*.js, **/*.css, **/*.scss, **/*.json'
 
 Instructions for building high-quality Svelte 5 and SvelteKit applications with modern runes-based reactivity, TypeScript, and performance optimization.
 
+> [!NOTE]
+> Examples and APIs in this guide target Svelte 5.x and SvelteKit 2.x. Features noted as experimental (`await` expressions and remote functions) require opt-in config flags and may change before they stabilize.
+
 ## Project Context
 - Svelte 5.x with runes system ($state, $derived, $effect, $props, $bindable)
-- SvelteKit for full-stack applications with file-based routing
+- SvelteKit 2.x for full-stack applications with file-based routing
 - TypeScript for type safety and better developer experience
 - Component-scoped styling with CSS custom properties
 - Progressive enhancement and performance-first approach
@@ -34,6 +37,9 @@ Instructions for building high-quality Svelte 5 and SvelteKit applications with 
 - Use slots for component composition and content projection
 - Pass `children` snippet for flexible parent-child composition
 - Design components to be testable and reusable
+- Prefer attachments (`{@attach}`, Svelte 5.29+) over actions (`use:`) for DOM interaction and third-party library integration — attachments react to state and compose cleanly
+- Follow naming conventions: PascalCase for components, camelCase for functions and variables
+- Document complex components and logic with JSDoc comments
 
 ## Reactivity and State
 
@@ -46,6 +52,7 @@ Instructions for building high-quality Svelte 5 and SvelteKit applications with 
 - Use `untrack()` to prevent infinite loops when reading/writing same state in effects
 - Define component props with `$props()` and destructuring with TypeScript annotations
 - Use `$bindable()` for two-way data binding between components
+- Use function bindings (`bind:value={() => value, (v) => (value = v)}`) when a binding needs to derive or validate the value
 - Migrate from legacy stores to runes for better performance
 - Override derived values directly for optimistic UI patterns (Svelte 5.25+)
 
@@ -54,7 +61,7 @@ Instructions for building high-quality Svelte 5 and SvelteKit applications with 
 - Implement type-safe context with `createContext()` helper over raw `setContext`/`getContext`
 - Use context API for sharing reactive state down component trees
 - Avoid global `$state` modules for SSR - use context to prevent cross-request data leaks
-- Use SvelteKit stores for global application state when needed
+- Read SvelteKit app and navigation state from `$app/state` (`page`, `navigating`, `updated`); `$app/stores` is the legacy equivalent for SvelteKit < 2.12
 - Keep state normalized for complex data structures
 - Prefer `$derived()` over `$effect()` for computed values
 - Implement proper state persistence for client-side data
@@ -86,6 +93,21 @@ Instructions for building high-quality Svelte 5 and SvelteKit applications with 
 - Implement optimistic updates for better user experience
 - Handle offline scenarios and network errors gracefully
 
+### Remote Functions (experimental)
+- Use remote functions (SvelteKit 2.27+) for type-safe client-server calls that always run on the server; define them in `.remote.ts` files as one of `query`, `form`, `command`, or `prerender`
+- Opt in by setting `kit.experimental.remoteFunctions` and `compilerOptions.experimental.async` in `svelte.config.js`
+- Read data with `query` and resolve it directly in markup with `await getPosts()`:
+```ts
+// src/routes/blog/data.remote.ts
+import { query } from '$app/server';
+import * as db from '$lib/server/database';
+
+export const getPosts = query(async () => {
+  return await db.sql`SELECT title, slug FROM post ORDER BY published_at DESC`;
+});
+```
+- Remote files may import `$lib/server` modules for secrets and DB access, but must not live inside `src/lib/server`
+
 ### Forms and Validation
 - Use SvelteKit's form actions for server-side form handling
 - Implement progressive enhancement with `use:enhance`
@@ -112,9 +134,7 @@ Instructions for building high-quality Svelte 5 and SvelteKit applications with 
 - Use `|local` modifier to trigger transitions only on direct changes
 - Combine transitions with keyed `{#each}` blocks for list animations
 
-## TypeScript and Tooling
-
-### TypeScript Integration
+## TypeScript Integration
 - Enable strict mode in `tsconfig.json` for maximum type safety
 - Annotate props with TypeScript: `let { name }: { name: string } = $props()`
 - Type event handlers, refs, and SvelteKit's generated types
@@ -123,84 +143,36 @@ Instructions for building high-quality Svelte 5 and SvelteKit applications with 
 - Implement proper type checking with `svelte-check`
 - Use type inference where possible to reduce boilerplate
 
-### Development Tools
-- Use ESLint with eslint-plugin-svelte and Prettier for code consistency
-- Use Svelte DevTools for debugging and performance analysis
-- Keep dependencies up to date and audit for security vulnerabilities
-- Document complex components and logic with JSDoc
-- Follow Svelte's naming conventions (PascalCase for components, camelCase for functions)
-
-## Production Readiness
+## Code Quality
 
 ### Performance Optimization
 - Use keyed `{#each}` blocks for efficient list rendering
-- Implement lazy loading with dynamic imports and `<svelte:component>`
+- Implement lazy loading with dynamic `import()`; in Svelte 5 components are dynamic by default — assign the imported component to a capitalized variable and render `<Component />` (`<svelte:component>` is no longer needed in runes mode)
 - Use `$derived()` for expensive computations to avoid unnecessary recalculations
 - Use `$derived.by()` for complex derived values that require multiple statements
 - Avoid `$effect()` for derived state - it's less efficient than `$derived()`
 - Leverage SvelteKit's automatic code splitting and preloading
 - Optimize bundle size with tree shaking and proper imports
-- Profile with Svelte DevTools to identify performance bottlenecks
 - Use `$effect.tracking()` in abstractions to conditionally create reactive listeners
 
 ### Error Handling
 - Implement `+error.svelte` pages for route-level error boundaries
+- Use `<svelte:boundary>` (Svelte 5.3+) to contain rendering and effect errors at the component level, providing a `failed` snippet (with `reset`) or an `onerror` handler for fallback UI
 - Use try/catch blocks in load functions and form actions
 - Provide meaningful error messages and fallback UI
-- Log errors appropriately for debugging and monitoring
+- Log errors appropriately for debugging
 - Handle validation errors in forms with proper user feedback
 - Use SvelteKit's `error()` and `redirect()` helpers for proper responses
-- Track pending promises with `$effect.pending()` for loading states
-
-### Testing
-- Write unit tests for components using Vitest and Testing Library
-- Test component behavior, not implementation details
-- Use Playwright for end-to-end testing of user workflows
-- Mock SvelteKit's load functions and stores appropriately
-- Test form actions and API endpoints thoroughly
-- Implement accessibility testing with axe-core
+- With the experimental `await` syntax (Svelte 5.36+, opt-in via `experimental.async`), show first-render UI with a `<svelte:boundary>` `pending` snippet and later loading states with `$effect.pending()`
 
 ### Security
 - Sanitize user inputs to prevent XSS attacks
 - Use `@html` directive carefully and validate HTML content
-- Implement proper CSRF protection with SvelteKit
 - Validate and sanitize data in load functions and form actions
-- Use HTTPS for all external API calls and production deployments
-- Store sensitive data securely with proper session management
 
 ### Accessibility
 - Use semantic HTML elements and proper heading hierarchy
 - Implement keyboard navigation for all interactive elements
 - Provide proper ARIA labels and descriptions
 - Ensure color contrast meets WCAG guidelines
-- Test with screen readers and accessibility tools
 - Implement focus management for dynamic content
-
-### Deployment
-- Use environment variables for configuration across different deployment stages
-- Implement proper SEO with SvelteKit's meta tags and structured data
-- Deploy with appropriate SvelteKit adapter based on hosting platform
-
-## Implementation Process
-1. Initialize SvelteKit project with TypeScript and desired adapters
-2. Set up project structure with proper folder organization
-3. Define TypeScript interfaces and component props
-4. Implement core components with Svelte 5 runes
-5. Add routing, layouts, and navigation with SvelteKit
-6. Implement data loading and form handling
-7. Add styling system with custom properties and responsive design
-8. Implement error handling and loading states
-9. Add comprehensive testing coverage
-10. Optimize performance and bundle size
-11. Ensure accessibility compliance
-12. Deploy with appropriate SvelteKit adapter
-
-## Common Patterns
-- Renderless components with slots for flexible UI composition
-- Custom actions (`use:` directives) for cross-cutting concerns and DOM manipulation
-- `{#snippet}` blocks for reusable template logic within components
-- Type-safe context with `createContext()` for component tree state sharing
-- Progressive enhancement for forms and interactive features with `use:enhance`
-- Server-side rendering with client-side hydration for optimal performance
-- Function bindings (`bind:value={() => value, setValue}`) for two-way binding
-- Avoid `$effect()` for state synchronization - use `$derived()` or callbacks instead

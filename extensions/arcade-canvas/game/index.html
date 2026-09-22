@@ -929,6 +929,9 @@
   <div id="game"></div>
   <script src="./hud.js"></script>
   <script src="./phaser.min.js"></script>
-  <script type="module" src="./game.js"></script>
+  <script type="module">
+    await window.__agentArcadePhaserReady;
+    await import("./game.js");
+  </script>
 </body>
 </html>

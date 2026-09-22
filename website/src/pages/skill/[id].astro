@@ -1,0 +1,85 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { SkillDetail } from "../../components/brand/SkillDetail";
+import { buildDetailToc } from "../../components/brand/DetailChassis";
+import skillsData from "../../../public/data/skills.json";
+import { searchIndex } from "../../lib/site-data";
+import { readResourceMarkdown, formatLastUpdated } from "../../lib/detail-page";
+
+const GITHUB_TREE_BASE = "https://github.com/github/awesome-copilot/tree/main";
+const GITHUB_BLOB_BASE = "https://github.com/github/awesome-copilot/blob/main";
+const RAW_BASE = "https://raw.githubusercontent.com/github/awesome-copilot/main";
+const REPO_IDENTIFIER = "github/awesome-copilot";
+
+interface SkillFile {
+  path: string;
+  name: string;
+  size?: number;
+}
+
+interface SkillItem {
+  id: string;
+  name?: string;
+  title: string;
+  description?: string;
+  path: string;
+  skillFile: string;
+  files?: SkillFile[];
+  assets?: string[];
+  hasAssets?: boolean;
+  assetCount?: number;
+  lastUpdated?: string | null;
+}
+
+export function getStaticPaths() {
+  const items = skillsData.items as SkillItem[];
+  return items.map((item, index) => ({
+    params: { id: item.id },
+    props: {
+      item,
+      previous: index > 0 ? items[index - 1] : undefined,
+      next: index < items.length - 1 ? items[index + 1] : undefined,
+    },
+  }));
+}
+
+const { item, previous, next } = Astro.props as {
+  item: SkillItem;
+  previous?: SkillItem;
+  next?: SkillItem;
+};
+
+// Skills are folders, so `loadDetailPage` (single-file, VS Code install URI)
+// does not apply: SKILL.md is read directly and installation is a `gh` command.
+const { markdownHtml, rawMarkdown } = readResourceMarkdown(item.skillFile);
+const lastUpdated = formatLastUpdated(item.lastUpdated);
+
+const { html } = buildDetailToc(markdownHtml);
+
+const githubUrl = `${GITHUB_TREE_BASE}/${item.path}`;
+const installCommand = `gh skills install ${REPO_IDENTIFIER} ${item.id}`;
+
+const base = import.meta.env.BASE_URL ?? "/";
+const detailHref = (id: string) =>
+  `${base.endsWith("/") ? base : `${base}/`}skill/${id}/`.replace(/\/{2,}/g, "/");
+
+const siblingOf = (sibling?: SkillItem) =>
+  sibling ? { label: sibling.title, href: detailHref(sibling.id) } : undefined;
+---
+
+<BaseLayout title={`${item.title} | Awesome GitHub Copilot`} description={item.description}>
+  <SkillDetail
+    client:load
+    item={item}
+    markdownHtml={html}
+    githubUrl={githubUrl}
+    githubBlobBase={GITHUB_BLOB_BASE}
+    rawBase={RAW_BASE}
+    installCommand={installCommand}
+    rawMarkdown={rawMarkdown}
+    lastUpdated={lastUpdated}
+    previous={siblingOf(previous)}
+    next={siblingOf(next)}
+    searchIndex={searchIndex}
+  />
+</BaseLayout>

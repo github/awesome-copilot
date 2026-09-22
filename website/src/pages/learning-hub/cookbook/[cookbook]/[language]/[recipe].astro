@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../../../../../layouts/BaseLayout.astro";
+import { CookbookRecipe } from "../../../../../components/brand/CookbookRecipe";
+import { buildDetailToc } from "../../../../../components/brand/DetailChassis";
+import {
+  GITHUB_BLOB_BASE,
+  GITHUB_RAW_BASE,
+  recipeRoutes,
+} from "../../../../../lib/cookbook-routes";
+import { readResourceMarkdown } from "../../../../../lib/detail-page";
+import { searchIndex } from "../../../../../lib/site-data";
+
+export function getStaticPaths() {
+  return recipeRoutes().map(({ cookbook, recipe, language, variant }) => ({
+    params: { cookbook: cookbook.id, language: language.id, recipe: recipe.id },
+    props: { cookbook, recipe, language, variant },
+  }));
+}
+
+const { cookbook, recipe, language, variant } = Astro.props;
+
+const { markdownHtml, rawMarkdown } = readResourceMarkdown(variant.doc);
+const { html, toc } = buildDetailToc(markdownHtml);
+
+const files = [
+  { path: variant.doc, name: variant.doc.split("/").pop() ?? variant.doc },
+];
+if (variant.example) {
+  files.push({
+    path: variant.example,
+    name: variant.example.split("/").pop() ?? variant.example,
+  });
+}
+---
+
+<BaseLayout
+  title={`${recipe.name} (${language.name}) | Awesome GitHub Copilot`}
+  description={recipe.description}
+>
+  <CookbookRecipe
+    client:load
+    cookbookName={cookbook.name}
+    recipeName={recipe.name}
+    recipeDescription={recipe.description}
+    languageName={language.name}
+    languageIcon={language.icon}
+    tags={recipe.tags}
+    files={files}
+    primaryPath={variant.doc}
+    markdownHtml={html}
+    rawMarkdown={rawMarkdown}
+    toc={toc}
+    githubBlobBase={GITHUB_BLOB_BASE}
+    rawBase={GITHUB_RAW_BASE}
+    searchIndex={searchIndex}
+  />
+</BaseLayout>

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "fluentui-blazor",
+  "description": "Build Blazor apps with the Microsoft Fluent UI Blazor library. Bundles the fluentui-blazor skill for correct usage patterns (providers, service registration, icons, dialogs, data grid, theming) with the official Fluent UI Blazor MCP server for live lookup of components, parameters, enums, icons, and documentation, plus v4-to-v5 migration guidance.",
+  "version": "1.0.0",
+  "keywords": [
+    "fluentui",
+    "blazor",
+    "dotnet",
+    "components",
+    "aspnetcore",
+    "mcp",
+    "model-context-protocol",
+    "migration",
+    "icons",
+    "theming"
+  ],
+  "author": {
+    "name": "Adrien Clerbois",
+    "url": "https://github.com/AClerbois"
+  },
+  "homepage": "https://www.fluentui-blazor.net",
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "skills": [
+        "./skills/fluentui-blazor/"
+      ]
+    }
+  }
+}

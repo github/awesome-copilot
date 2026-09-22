@@ -1,0 +1,29 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "openapi-to-application-nodejs-nestjs",
+  "description": "Generate production-ready NestJS applications from OpenAPI specifications. Includes project scaffolding, controller and service generation, TypeScript best practices, and enterprise patterns.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "openapi",
+    "code-generation",
+    "api",
+    "nodejs",
+    "typescript",
+    "nestjs"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "agents": [
+        "./agents/openapi-to-application.md"
+      ],
+      "skills": [
+        "./skills/openapi-to-application-code/"
+      ]
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "bug": {"color": "d73a4a", "description": "Something isn't working as expected"},
+  "enhancement": {"color": "a2eeef", "description": "New feature or request"},
+  "documentation": {"color": "0075ca", "description": "Improvements or additions to documentation"},
+  "question": {"color": "d876e3", "description": "Further information is requested"},
+  "help wanted": {"color": "008672", "description": "Extra attention is needed; contributions welcome"},
+  "good first issue": {"color": "7057ff", "description": "Good for newcomers"},
+  "P0": {"color": "b60205", "description": "Emergency: data loss, security bypass, crash loop, or unusable core"},
+  "P1": {"color": "d93f0b", "description": "High: blocks planned work, needs attention soon"},
+  "P2": {"color": "fbca04", "description": "Medium: normal priority"},
+  "P3": {"color": "1a7f37", "description": "Low: nice to have"},
+  "status: blocked": {"color": "5319e7", "description": "Blocked by something else"},
+  "status: in progress": {"color": "1d76db", "description": "Work is underway"},
+  "status: ready to merge": {"color": "0e8a16", "description": "Approved and ready to merge — green means go"},
+  "status: merged": {"color": "2da44e", "description": "Already merged"},
+  "status: wontfix": {"color": "d4d4d4", "description": "Will not be addressed"},
+  "impact: security": {"color": "b60205", "description": "Security boundary, credentials, authz, sandbox, or sensitive-data risk"},
+  "impact: data-loss": {"color": "d93f0b", "description": "Can lose, corrupt, or silently drop user/session/config data"},
+  "impact: availability": {"color": "fbca04", "description": "Crash, hang, restart loop, or process-level outage"},
+  "dependencies": {"color": "0366d6", "description": "Pull requests that update a dependency"},
+  "security": {"color": "ff0000", "description": "Security-related issues"}
+}

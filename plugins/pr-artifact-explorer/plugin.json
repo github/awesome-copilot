@@ -1,0 +1,29 @@
+{
+  "name": "pr-artifact-explorer",
+  "description": "Navigate pull requests and securely explore GitHub Actions artifacts, including test results, static sites, terminal recordings, and source files.",
+  "version": "1.0.0",
+  "author": {
+    "name": "David Pine",
+    "url": "https://github.com/IEvangelist"
+  },
+  "keywords": [
+    "actions-artifacts",
+    "artifact-browser",
+    "canvas",
+    "copilot-extension",
+    "github-actions",
+    "pull-requests",
+    "test-results"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/pr-artifact-explorer"
+      ]
+    }
+  },
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+}

@@ -169,6 +169,10 @@ locals {
 
 - **Versioning**: Target latest stable Terraform and Azure provider versions. Specify versions in code and keep updated (TFFR3).
 
+- **Provider selection (AzureRM vs AzAPI)**: Use the `azurerm` provider for most scenarios; it is stable and covers the majority of Azure services. Use the `azapi` provider only when you need the very latest Azure features or a resource not yet supported in `azurerm`. Document the choice in code comments, and prefer `azurerm` when in doubt.
+
+- **Minimal provider dependencies**: Do not introduce additional providers (e.g., `random`, `tls`) or external modules beyond the project's scope without user confirmation. Where one is required, add a comment explaining why and keep the stack lean.
+
 ## 10. Folder Structure
 
 Use a consistent folder structure for Terraform configurations.
@@ -194,7 +198,6 @@ my-azure-app/
 │       ├── test.tfvars             # Test environment
 │       └── prod.tfvars             # Production environment
 ├── .github/workflows/              # CI/CD pipelines (if using github)
-├── .azdo/                          # CI/CD pipelines (suggested if using Azure DevOps)
 └── README.md                       # Documentation
 ```
 
@@ -228,6 +231,12 @@ Follow AVM specifications TFNFR1, TFNFR2, TFNFR3, and TFNFR4 for consistent file
 - Implement Key Vault with appropriate RBAC.
 - Enable diagnostic settings for audit trails
 - Follow principle of least privilege
+
+## Documentation
+
+- Keep documentation up to date. Update `README.md` with any new variables, outputs, or usage instructions whenever the code changes.
+- Consider automating reference documentation with a tool such as `terraform-docs`.
+- Update architecture diagrams to reflect infrastructure changes after each significant update.
 
 ## Cost Management
 

@@ -3,7 +3,7 @@ title: '04 · Create Specialized AI Assistants'
 description: 'Mirror the source chapter on custom agents and custom instructions for GitHub Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-19
+lastUpdated: 2026-07-10
 ---
 
 ![Chapter 04: Agents and Custom Instructions](/images/learning-hub/copilot-cli-for-beginners/04/chapter-header.png)

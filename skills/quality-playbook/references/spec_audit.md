@@ -208,7 +208,6 @@ This prevents the failure mode observed in v1.3.4 where express and zod silently
 
 Save audit reports to `quality/spec_audits/YYYY-MM-DD-[model].md`
 Save triage summary to `quality/spec_audits/YYYY-MM-DD-triage.md`
-```
 
 ## The Four Guardrails (Critical for All Auditors)
 

@@ -102,6 +102,8 @@ public static Forecast[] GetForecast(string city) =>
 
 The SDK emits the array as both a JSON text block (for older clients) and `structuredContent` (for newer ones), and infers an output schema from `Forecast`.
 
+> **v2 behavior change:** non-object results are emitted as raw `structuredContent` values — returning `72` produces `"structuredContent": 72`, where 1.x wrapped it as `{ "result": 72 }`. Clients reading structured output should follow the advertised output schema. If you hand-write `Tool` definitions (rather than using attributes), note that `inputSchema` is **required** on deserialization in 2.x — an empty `{}` is sufficient.
+
 ### Returning images / audio
 
 ```csharp

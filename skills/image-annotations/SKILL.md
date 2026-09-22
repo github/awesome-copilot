@@ -416,7 +416,8 @@ def annotate_image(image_path, annotations, *,
         cyan = (eb[0] - em_pad, eb[1] - em_pad, eb[2] + em_pad, eb[3] + em_pad)
         lines = spec['label'].split('\n')
         tw = max(font.getbbox(line)[2] - font.getbbox(line)[0] for line in lines)
-        line_h = font.getbbox('Ay')[3] - font.getbbox('Ay')[0]
+        bbox = font.getbbox('Ay')
+        line_h = bbox[3] - bbox[1]
         th = line_h * len(lines) + 4 * (len(lines) - 1)
         pw, ph = tw + 2 * TEXT_PAD, th + 2 * TEXT_PAD
         cands = _find_candidates(pixels, W, H, cyan, pw, ph, font)

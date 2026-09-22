@@ -1,0 +1,18 @@
+{
+  "name": "site-studio",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "description": "A shared canvas for planning, drafting, and tracking a personal website section by section, collaboratively with your agent.",
+  "keywords": [
+    "agent-collaboration",
+    "content-authoring",
+    "personal-website",
+    "progress-tracking",
+    "section-planning",
+    "site-builder"
+  ]
+}

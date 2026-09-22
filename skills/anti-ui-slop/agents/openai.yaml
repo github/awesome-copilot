@@ -1,0 +1,4 @@
+interface:
+  display_name: "Uizze Anti UI Slop"
+  short_description: "Design guidance with quiet visual evidence"
+  default_prompt: "Use Uizze for design judgment. Retrieve evidence or materials only for one concrete unresolved need."

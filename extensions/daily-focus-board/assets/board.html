@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="board-token" content="__BOARD_TOKEN__"/>
+<title>Daily Focus Board · let's go 🔥</title>
+<!--
+  daily-focus-board (Ember) — CANVAS extension UI. Executive-function-friendly
+  daily board, served by the extension's local server and backed by a JSON state
+  file that BOTH this canvas and your AI partner read and write.
+  - Data comes from GET /api/state; every change POSTs to /api/* (no localStorage).
+  - The board is seeded by the extension (via its `seed` input or a demo); the
+    agent can also add tasks / mark done / log progress from chat, and this canvas
+    polls so those edits appear live.
+  - numeric `goal` → counter card (progress bar); otherwise a status card
+    (to-do → in progress → done) with progress notes. `due` → gentle countdown.
+  - Built-in EF affordances: Focus mode, kind "not today" carryover, a 🧠
+    brain-dump box, a reduced-motion toggle, and an always-visible clock.
+-->
+<style>
+  :root{--bg:#0f1117;--card:#191d29;--line:#2b3150;--ink:#eef1fa;--sub:#98a2bd;
+    --ember:#ff7a3c;--ember2:#ffb23c;--good:#37d39a;--urgent:#ff5d73;}
+  *{box-sizing:border-box} html,body{margin:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+    background:radial-gradient(1100px 560px at 82% -12%,#34204a 0%,var(--bg) 55%);
+    color:var(--ink);min-height:100vh;padding:34px 18px 90px;}
+  body.rm *{transition:none!important;animation:none!important}
+  .wrap{max-width:800px;margin:0 auto}
+  header{display:flex;align-items:flex-start;gap:22px;margin-bottom:4px}
+  .ring{width:98px;height:98px;flex:none;border-radius:50%;position:relative;background:conic-gradient(var(--ember) 0deg,var(--line) 0deg)}
+  .ring b{position:absolute;inset:12px;border-radius:50%;background:#12141c;display:grid;place-items:center;font-size:22px;font-weight:800}
+  h1{font-size:27px;margin:0 0 3px}
+  .date{color:var(--sub);font-size:14px;margin:0}
+  .date .clock{color:var(--ember2);font-variant-numeric:tabular-nums;font-weight:600}
+  .tally{color:var(--ember2);font-size:13.5px;margin:6px 0 0;font-weight:600}
+  .spark{color:var(--sub);font-size:13.5px;margin:8px 0 0;min-height:18px;font-style:italic}
+  .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .chip{font-size:12px;padding:5px 11px;border-radius:999px;background:#232a42;border:1px solid var(--line);color:#aab4d6;cursor:pointer;user-select:none}
+  .chip:hover{border-color:var(--ember)}
+  .chip.on{background:#3a2f18;border-color:#5c471f;color:#ffce7a}
+  .focusbar{display:none;align-items:center;gap:10px;margin:16px 0 0;padding:10px 14px;background:#20182c;border:1px solid #4a3a6b;border-radius:12px;font-size:14px}
+  body.focusing .focusbar{display:flex}
+  .focusbar .x{margin-left:auto;color:#c3a9ff;cursor:pointer;font-weight:600}
+  .cards{margin-top:16px;display:flex;flex-direction:column;gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;transition:border-color .2s,background .2s,opacity .2s}
+  .card.done{background:#141826;border-color:#243a30}
+  .card.doing{border-color:#4a3a1e}
+  body.focusing .card{opacity:.24;filter:saturate(.5)}
+  body.focusing .card.focused{opacity:1;filter:none;border-color:#6b52a0}
+  .card.carried{opacity:.5}
+  .top{display:flex;align-items:center;gap:14px}
+  .box{width:30px;height:30px;flex:none;border-radius:9px;border:2px solid #3b4472;display:grid;place-items:center;font-size:16px;color:#12141c;cursor:pointer;transition:.2s;user-select:none}
+  .box.doing{background:var(--ember2);border-color:var(--ember2)}
+  .box.done{background:var(--good);border-color:var(--good)}
+  .emoji{font-size:22px;flex:none;width:26px;text-align:center}
+  .body{flex:1;min-width:0}
+  .title{font-size:16px;font-weight:600}
+  .card.done .title{color:var(--sub)}
+  .sub{font-size:12.5px;color:var(--sub);margin-top:2px}
+  .due{font-size:11.5px;margin-top:3px;color:var(--ember2);font-weight:600}
+  .due.over{color:#ffab6b}
+  .due.done{color:var(--good)}
+  .pill{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:4px 9px;border-radius:999px;cursor:pointer;flex:none;user-select:none;border:1px solid transparent}
+  .pill.todo{background:#232a42;color:#aab4d6}
+  .pill.doing{background:#3a2f18;color:#ffce7a;border-color:#5c471f}
+  .pill.done{background:#16311f;color:#7fe3bb;border-color:#204d33}
+  .pill.carried{background:#241f30;color:#b9a6dd;border-color:#3d2f57}
+  .fbtn{background:none;border:none;color:#6b7599;cursor:pointer;font-size:15px;flex:none;padding:2px}
+  .fbtn:hover{color:#c3a9ff}
+  .tag{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:#232a42;color:#8b96b8;flex:none}
+  .tag.deadline{background:#3a1d26;color:#ff9caa}
+  .tag.new{background:#22322c;color:#7fe3bb}
+  .tag.career{background:#2c2540;color:#c3a9ff}
+  .cardfoot{margin:9px 0 0 44px;display:flex;align-items:center;gap:12px}
+  .soft{font-size:11.5px;color:var(--sub);cursor:pointer;background:none;border:none;padding:0}
+  .soft:hover{color:var(--ember2)}
+  .notes{margin:11px 0 0 44px;display:flex;flex-direction:column;gap:6px}
+  .note{display:flex;align-items:flex-start;gap:8px;font-size:13px;background:#12141c;border:1px solid var(--line);border-radius:9px;padding:6px 10px}
+  .note .nt{color:var(--ember2);font-variant-numeric:tabular-nums;font-size:11.5px;flex:none;padding-top:1px}
+  .note .nx{margin-left:auto;color:#556079;cursor:pointer;flex:none;font-size:14px;line-height:1}
+  .note .nx:hover{color:var(--urgent)}
+  .addrow{margin:9px 0 0 44px;display:flex;gap:7px}
+  .addrow input{flex:1;background:#12141c;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:7px 10px;font-size:13px}
+  .addrow input::placeholder{color:#566079}
+  .addrow input:focus{outline:none;border-color:var(--ember)}
+  .addrow button{background:#232a42;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:0 13px;cursor:pointer;font-size:15px}
+  .addrow button:hover{border-color:var(--ember);color:var(--ember2)}
+  .bar{height:12px;border-radius:999px;background:#232a42;overflow:hidden;margin:12px 0 0 0}
+  .fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--ember),var(--ember2));transition:width .7s cubic-bezier(.2,.8,.2,1)}
+  .stepctl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);margin-top:10px}
+  .stepctl input{width:92px;background:#12141c;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 8px;font-size:14px}
+  .stepctl button{background:#232a42;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px}
+  .stepctl button:hover{border-color:var(--ember)}
+  .panel{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .panel h2{font-size:16px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+  .panel .hint{color:var(--sub);font-size:12px;margin:0 0 12px}
+  .chips{display:flex;flex-direction:column;gap:8px}
+  .fitem{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;padding:8px 11px;background:#12141c;border:1px solid var(--line);border-radius:10px;border-left:3px solid var(--ember)}
+  .fitem.think{border-left-color:#c3a9ff}
+  .fitem .ft{color:var(--ember2);font-variant-numeric:tabular-nums;font-size:11.5px;flex:none;padding-top:1px;min-width:52px}
+  .fitem .fx{margin-left:auto;color:#556079;cursor:pointer;flex:none}
+  .fitem .fx:hover{color:var(--urgent)}
+  .empty{color:var(--sub);font-size:13px;font-style:italic;padding:6px 2px}
+  .foot{text-align:center;color:var(--sub);font-size:12px;margin-top:24px}
+  #cc{position:fixed;inset:0;pointer-events:none;z-index:50}
+</style>
+</head>
+<body>
+<canvas id="cc"></canvas>
+<div class="wrap">
+  <header>
+    <div class="ring" id="ring"><b id="ringtxt">0/0</b></div>
+    <div style="flex:1">
+      <h1 id="h1">Let's go 🔥</h1>
+      <p class="date" id="date"></p>
+      <p class="tally" id="tally"></p>
+      <p class="spark" id="spark"></p>
+      <div class="controls">
+        <span class="chip" id="focuschip">🎯 Focus mode</span>
+        <span class="chip" id="rmchip">🌙 Reduce motion</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="focusbar" id="focusbar"><span id="focustxt"></span><span class="x" id="focusexit">show all ✕</span></div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="panel">
+    <h2>🧠 Parked thoughts</h2>
+    <p class="hint">Something pulling at your attention? Park it here so it's out of your head — deal with it later, not now.</p>
+    <div class="addrow" style="margin-left:0"><input id="brainin" placeholder="get it out of your head…"/><button id="brainbtn" title="park it">＋</button></div>
+    <div class="chips" id="brain" style="margin-top:12px"></div>
+  </div>
+
+  <div class="panel">
+    <h2>🔥 Today's momentum</h2>
+    <p class="hint">Every step you log lands here, newest first. Starting counts. Small wins count.</p>
+    <div class="addrow" style="margin-left:0"><input id="dayin" placeholder="log a win / milestone for the day…"/><button id="daybtn" title="add">＋</button></div>
+    <div class="chips" id="feed" style="margin-top:12px"></div>
+  </div>
+
+  <p class="foot">progress saves to a file your AI partner can read · 🔥 built with Ember</p>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const sparks=["One block at a time.","Starting is the win. The rest follows.","You don't have to feel ready — just start the next one.","Small, real, done. Repeat.","Progress over perfect.","Pick one thing. Just one."];
+let doc=null,tasks=[],NAME="",state=null,confettiStarted=false;
+const cardsEl=document.getElementById("cards"),feedEl=document.getElementById("feed"),brainEl=document.getElementById("brain");
+// Per-server capability token the extension embedded in this page; sent on every
+// request so the local server accepts reads/writes only from the page it served.
+const TOKEN=(document.querySelector('meta[name="board-token"]')||{}).content||"";
+
+function esc(s){return (s||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));}
+function fmt(ms){return new Date(ms).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}).toLowerCase().replace(" ","");}
+const LABEL={todo:"to do",doing:"in progress",done:"done"};
+function isCounter(t){return typeof t.goal==="number";}
+function statusOf(t){if(isCounter(t)){const v=state.counters[t.id]||0;return v>=t.goal?"done":(v>(t.start||0)?"doing":"todo");}return (state.t[t.id]||{}).status||"todo";}
+function carriedOf(t){return !isCounter(t)&&!!(state.t[t.id]||{}).carried;}
+
+// --- server-backed state (the file the AI partner also reads/writes) ---
+async function pull(){try{const r=await fetch("api/state",{headers:{"x-board-token":TOKEN}});const j=await r.json();if(j&&j.state&&(!doc||j.state.updatedAt!==doc.updatedAt))apply(j.state);}catch(e){}}
+async function api(path,body){try{const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json","x-board-token":TOKEN},body:JSON.stringify(body||{})});const j=await r.json();if(j&&j.state)apply(j.state);return j;}catch(e){return {ok:false};}}
+function apply(d){
+  doc=d;NAME=d.name||"";tasks=d.tasks||[];state=d.progress;
+  document.getElementById("h1").textContent=NAME?`Let's go, ${NAME} 🔥`:"Let's go 🔥";
+  if(!document.getElementById("spark").textContent)document.getElementById("spark").textContent=sparks[Math.floor(Math.random()*sparks.length)];
+  document.body.classList.toggle("rm",!!state.rm);
+  document.getElementById("rmchip").classList.toggle("on",!!state.rm);
+  render();
+  if(!confettiStarted){confettiStarted=true;loop();}
+}
+
+function dueStr(t){
+  if(!t.due)return null;
+  const ms=new Date(t.due).getTime()-Date.now();
+  if(statusOf(t)==="done")return {cls:"done",txt:"⏰ done — nice"};
+  if(ms<=0){const h=Math.floor(-ms/3600e3),m=Math.round((-ms%3600e3)/60e3);return {cls:"over",txt:`⏰ was due ${fmt(new Date(t.due))}${h||m?` · ${h?h+"h ":""}${m}m ago`:""} — still worth doing`};}
+  const h=Math.floor(ms/3600e3),m=Math.round((ms%3600e3)/60e3);
+  return {cls:"",txt:`⏰ ${h?h+"h ":""}${m}m left (due ${fmt(new Date(t.due))})`};
+}
+
+function render(){
+  cardsEl.innerHTML="";
+  const ordered=[...tasks].sort((a,b)=>(carriedOf(a)?1:0)-(carriedOf(b)?1:0));
+  ordered.forEach(t=>{
+    const st=statusOf(t),carried=carriedOf(t);
+    const c=document.createElement("div");
+    c.className="card "+st+(carried?" carried":"")+(state.focus===t.id?" focused":"");
+    c.setAttribute("role","group");c.setAttribute("aria-label",t.title||"task");
+    const tagHtml=t.tag?`<span class="tag ${t.tagc||""}">${esc(t.tag)}</span>`:"";
+    const dh=dueStr(t);
+    if(isCounter(t)){
+      const v=state.counters[t.id]||0,pct=Math.min(100,Math.round(v/t.goal*100)),inc=t.inc||Math.max(1,Math.round(t.goal/10)),unit=t.unit||"";
+      c.innerHTML=`<div class="top"><div class="emoji">${esc(t.emoji||"🎯")}</div>
+        <div class="body"><div class="title">${esc(t.title)}</div>
+          <div class="sub"><b style="color:var(--ink)">${v.toLocaleString()}</b> / ${t.goal.toLocaleString()} ${esc(unit)} · ${pct}%${st==="done"?" — done 🎉":""}</div>
+          ${dh?`<div class="due ${dh.cls}" data-duefor="${t.id}">${dh.txt}</div>`:""}</div>
+        <span class="pill ${st}">${LABEL[st]}</span>
+        <button class="fbtn" data-focus="${t.id}" title="focus on this">🎯</button>${tagHtml}</div>
+        <div class="bar"><div class="fill" data-fill="${t.id}"></div></div>
+        <div class="stepctl">update: <input type="number" data-cin="${t.id}" value="${v}" min="0" step="1"/>
+          <button data-cset="${t.id}">set</button><button data-cinc="${t.id}">+${inc.toLocaleString()}</button></div>`;
+      cardsEl.appendChild(c);
+      requestAnimationFrame(()=>{const f=cardsEl.querySelector(`[data-fill="${t.id}"]`);if(f)f.style.width=pct+"%";});
+    } else {
+      const o=state.t[t.id]||{status:"todo",notes:[]},notes=o.notes||[];
+      const pillCls=carried?"carried":st, pillTxt=carried?"→ tomorrow":LABEL[st];
+      c.innerHTML=`<div class="top">
+        <div class="box ${st}" data-cyc="${t.id}">${st==="done"?"✓":(st==="doing"?"…":"")}</div>
+        <div class="emoji">${esc(t.emoji||"•")}</div>
+        <div class="body"><div class="title">${esc(t.title)}</div>${t.sub?`<div class="sub">${esc(t.sub)}</div>`:""}${dh?`<div class="due ${dh.cls}" data-duefor="${t.id}">${dh.txt}</div>`:""}</div>
+        <span class="pill ${pillCls}" data-cyc="${t.id}">${pillTxt}</span>
+        <button class="fbtn" data-focus="${t.id}" title="focus on this">🎯</button>${tagHtml}</div>
+        ${notes.length?`<div class="notes">${notes.map((n,i)=>`<div class="note"><span class="nt">${fmt(n.t)}</span><span>${esc(n.txt)}</span><span class="nx" data-del="${t.id}:${i}">×</span></div>`).join("")}</div>`:""}
+        <div class="cardfoot"><button class="soft" data-carry="${t.id}">${carried?"↩ bring back to today":"⤳ not today"}</button></div>
+        <div class="addrow"><input placeholder="log a step…" data-in="${t.id}"/><button data-add="${t.id}" title="add note">＋</button></div>`;
+      cardsEl.appendChild(c);
+    }
+  });
+  cardsEl.querySelectorAll("[data-cyc]").forEach(el=>el.onclick=()=>cycle(el.dataset.cyc));
+  cardsEl.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{const inp=cardsEl.querySelector(`[data-in="${b.dataset.add}"]`);addNote(b.dataset.add,inp.value);});
+  cardsEl.querySelectorAll("[data-in]").forEach(inp=>inp.addEventListener("keydown",e=>{if(e.key==="Enter")addNote(inp.dataset.in,inp.value);}));
+  cardsEl.querySelectorAll("[data-del]").forEach(x=>x.onclick=()=>{const[id,i]=x.dataset.del.split(":");api("api/note-del",{id,idx:+i});});
+  cardsEl.querySelectorAll("[data-cset]").forEach(b=>b.onclick=()=>{const inp=cardsEl.querySelector(`[data-cin="${b.dataset.cset}"]`);setCounter(b.dataset.cset,+inp.value);});
+  cardsEl.querySelectorAll("[data-cinc]").forEach(b=>b.onclick=()=>incCounter(b.dataset.cinc));
+  cardsEl.querySelectorAll("[data-focus]").forEach(b=>b.onclick=()=>api("api/focus",{id:b.dataset.focus}));
+  cardsEl.querySelectorAll("[data-carry]").forEach(b=>b.onclick=()=>api("api/carry",{id:b.dataset.carry}));
+  renderBrain(); renderFeed(); updateRing(); updateFocusBar(); tick();
+}
+function renderFeed(){
+  const items=[];
+  tasks.forEach(t=>{if(isCounter(t))return;((state.t[t.id]||{}).notes||[]).forEach((n,i)=>items.push({t:n.t,txt:n.txt,emoji:t.emoji||"•",src:t.id,idx:i}));});
+  state.day.forEach((n,i)=>items.push({t:n.t,txt:n.txt,emoji:"📌",src:"day",idx:i}));
+  items.sort((a,b)=>b.t-a.t);
+  if(!items.length){feedEl.innerHTML=`<div class="empty">No steps logged yet — starting counts. Log your first one 👆</div>`;return;}
+  feedEl.innerHTML=items.map(it=>`<div class="fitem"><span class="ft">${fmt(it.t)}</span><span>${esc(it.emoji)}</span><span>${esc(it.txt)}</span><span class="fx" data-fdel="${it.src}:${it.idx}">×</span></div>`).join("");
+  feedEl.querySelectorAll("[data-fdel]").forEach(x=>x.onclick=()=>{const[src,i]=x.dataset.fdel.split(":");if(src==="day")api("api/day-del",{idx:+i});else api("api/note-del",{id:src,idx:+i});});
+}
+function renderBrain(){
+  if(!state.brain.length){brainEl.innerHTML=`<div class="empty">Nothing parked. When a stray thought hits, drop it here and keep going.</div>`;return;}
+  brainEl.innerHTML=state.brain.map((n,i)=>`<div class="fitem think"><span class="ft">${fmt(n.t)}</span><span>💭</span><span>${esc(n.txt)}</span><span class="fx" data-bdel="${i}">×</span></div>`).join("");
+  brainEl.querySelectorAll("[data-bdel]").forEach(x=>x.onclick=()=>api("api/brain-del",{idx:+x.dataset.bdel}));
+}
+
+// --- mutations go to the server (which the agent shares) ---
+async function cycle(id){const t=tasks.find(x=>x.id===id);const was=statusOf(t)==="done";await api("api/status",{id});if(!was&&statusOf(t)==="done"){burst(70);checkAll();}}
+async function addNote(id,txt){txt=(txt||"").trim();if(!txt)return;const inp=cardsEl.querySelector(`[data-in="${id}"]`);if(inp)inp.value="";await api("api/progress",{id,txt});}
+async function setCounter(id,v){const t=tasks.find(x=>x.id===id);const was=(state.counters[id]||0)>=t.goal;await api("api/count",{id,value:Math.max(0,Math.round(v||0))});if(!was&&(state.counters[id]||0)>=t.goal){burst(160);checkAll();}}
+async function incCounter(id){const t=tasks.find(x=>x.id===id);const was=(state.counters[id]||0)>=t.goal;await api("api/count",{id,inc:(t.inc||Math.max(1,Math.round(t.goal/10)))});if(!was&&(state.counters[id]||0)>=t.goal){burst(160);checkAll();}}
+async function addDayNote(txt){txt=(txt||"").trim();if(!txt)return;await api("api/day",{txt});}
+async function addBrain(txt){txt=(txt||"").trim();if(!txt)return;await api("api/brain",{txt});}
+
+document.getElementById("daybtn").onclick=()=>{const i=document.getElementById("dayin");addDayNote(i.value);i.value="";};
+document.getElementById("dayin").addEventListener("keydown",e=>{if(e.key==="Enter"){addDayNote(e.target.value);e.target.value="";}});
+document.getElementById("brainbtn").onclick=()=>{const i=document.getElementById("brainin");addBrain(i.value);i.value="";};
+document.getElementById("brainin").addEventListener("keydown",e=>{if(e.key==="Enter"){addBrain(e.target.value);e.target.value="";}});
+document.getElementById("focuschip").onclick=()=>{
+  if(state.focus){api("api/focus",{id:null});return;}
+  const cand=tasks.find(t=>statusOf(t)==="doing"&&!carriedOf(t))||tasks.find(t=>statusOf(t)==="todo"&&!carriedOf(t))||tasks[0];
+  api("api/focus",{id:cand?cand.id:null});
+};
+document.getElementById("focusexit").onclick=()=>api("api/focus",{id:null});
+document.getElementById("rmchip").onclick=()=>api("api/rm",{value:!state.rm});
+
+function checkAll(){const live=tasks.filter(t=>!carriedOf(t));if(live.length&&live.every(t=>statusOf(t)==="done"))setTimeout(()=>{burst(320);document.getElementById("spark").textContent="Everything you kept for today — done. 🔥";},250);}
+function updateFocusBar(){
+  document.body.classList.toggle("focusing",!!state.focus);
+  if(state.focus){const t=tasks.find(x=>x.id===state.focus);document.getElementById("focustxt").innerHTML=`🎯 Just this one right now: <b>${esc(t?t.title:"")}</b>`;}
+}
+function updateRing(){
+  const live=tasks.filter(t=>!carriedOf(t));
+  const done=live.filter(t=>statusOf(t)==="done").length,doing=live.filter(t=>statusOf(t)==="doing").length,carried=tasks.length-live.length;
+  const n=live.length;
+  document.getElementById("ring").style.background=`conic-gradient(var(--ember) ${n?done/n*360:0}deg,var(--line) 0deg)`;
+  document.getElementById("ringtxt").textContent=done+"/"+n;
+  document.getElementById("tally").textContent=`${done} done · ${doing} in progress · ${n-done-doing} to go`+(carried?` · ${carried} for tomorrow`:"");
+}
+function tick(){
+  const now=new Date();
+  document.getElementById("date").innerHTML=now.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})+` · <span class="clock">${fmt(now.getTime())}</span>`;
+  tasks.forEach(t=>{const el=document.querySelector(`[data-duefor="${t.id}"]`);const dh=dueStr(t);if(el&&dh){el.className="due "+dh.cls;el.textContent=dh.txt;}});
+}
+setInterval(tick,30000);
+// Poll so the agent's edits (mark done, add task, log progress from chat) appear
+// live — but not while the user is typing into an input, so we never clobber it.
+setInterval(()=>{const ae=document.activeElement;if(ae&&(ae.tagName==="INPUT"||ae.tagName==="TEXTAREA"))return;pull();},4000);
+
+const cv=document.getElementById("cc"),cx=cv.getContext("2d");let parts=[];
+function size(){cv.width=innerWidth;cv.height=innerHeight;}addEventListener("resize",size);size();
+const COL=["#ff7a3c","#ffb23c","#37d39a","#c3a9ff","#ff5d73","#eef1fa"];
+function burst(n){if(state&&state.rm)return;for(let i=0;i<n;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*220,y:innerHeight*0.28,vx:(Math.random()-.5)*11,vy:Math.random()*-13-4,g:.42,life:70+Math.random()*40,c:COL[i%COL.length],s:5+Math.random()*6,rot:Math.random()*6});}
+function loop(){cx.clearRect(0,0,cv.width,cv.height);parts.forEach(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.life--;p.rot+=.2;cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*1.6);cx.restore();});parts=parts.filter(p=>p.life>0&&p.y<cv.height+40);requestAnimationFrame(loop);}
+
+pull();
+</script>
+</body>
+</html>
