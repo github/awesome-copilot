@@ -25,7 +25,7 @@ Before drafting a post, check the post store (see **Where the post is stored**) 
 This section configures how the rest of this file is applied. It is relevant only to this instruction file.
 
 - **automation-mode** : false
-  - `true` when this instruction runs inside an unattended or agent-driven flow.
+  - `true` when this instruction runs inside an agent-driven flow with an interactive approver.
   - `false` when a person is present for the exchange.
 - **post-store-root** : the entry for the host OS listed under **Where the post is stored**.
   - Windows: `C:\Users\<user>\Documents\blogPosts\`
@@ -372,7 +372,7 @@ Committing or pushing the post is a separate action and needs its own request fr
 
 ## Linking in documentation
 
-After the post is written, decide whether to add a link to it from the repository's documentation.
+Before Gate 1, decide whether to add a link to the post from the repository's documentation. Include the exact documentation file and proposed link in Gate 1, and modify it only after Gate 2 approval.
 
 Add the link when:
 
