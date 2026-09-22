@@ -354,7 +354,7 @@ Both modes reach the same guarantee: nothing is written without confirmation, an
 
 In `paste` mode the rendered block is this gate. Present it, invite edits, and revise on request. The user does the posting, so approval governs their action rather than any action taken here.
 
-In `staged` mode this gate closes at the hand-off summary. Do not treat approval as permission to post on the user's behalf.
+In `staged` mode, this gate closes when the user approves the full draft. Then write the staged file and provide the hand-off summary; do not treat approval as permission to post on the user's behalf.
 
 ## Publishing
 
