@@ -53,7 +53,7 @@ If the user names a destination, use it. Everything below is inference, and infe
 - **A named path, folder, repository, or venue is the destination.** Do not re-derive it, and do not relocate the post because a different location would fit the conventions better.
 - **Echo the resolved destination at Gate 1** as a full path, or as the venue plus file name. A short instruction such as "put it in the blog" is still an instruction; resolve it against the workspace, then show what it resolved to so a wrong reading is caught before anything is written.
 - **Create missing category folders** under a root that already exists. If the named root itself does not exist, stop and ask rather than building a tree that may be a typo.
-- **Say so once if the instruction conflicts** with the site's conventions or with a rule in this file, then follow the instruction anyway. The exception is **Security and content rules**, which are not overridable: strip the offending data and say what was stripped.
+- **Say so once if the instruction conflicts** with the site's conventions or with a rule in this file, then follow the instruction anyway. The exceptions are **Security and content rules** and **Confirmation gates**, which are not overridable: strip offending data and always obtain the required confirmations.
 
 When no destination was named, infer one as follows.
 
