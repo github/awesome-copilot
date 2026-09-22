@@ -97,7 +97,7 @@ Rules that apply to all of them:
 
 - **Read a neighbor first.** Open an existing post in the same folder and copy its field set exactly. The live posts are more reliable than any general rule here.
 - **Satisfy the schema, then stop.** Do not invent front matter fields the site does not read.
-- **Write as a draft where the platform supports it.** Set `draft: true`, `published: false`, or the platform's equivalent at Gate 1, and flip it only after Gate 2 approval. On a platform with no draft flag, the file itself stays unwritten until Gate 1 passes.
+- **Prepare a draft where the platform supports it.** After Gate 1 confirmation, include `draft: true`, `published: false`, or the platform's equivalent in the in-memory draft shown for Gate 2. Do not write the file until Gate 2 approval; when writing after approval, clear the draft flag. On a platform with no draft flag, likewise keep the file unwritten until Gate 2 approval.
 - **Respect the file naming rule.** A date-prefixed name is required on some platforms and wrong on others.
 
 ## Pseudo-blog venues
