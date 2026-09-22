@@ -247,6 +247,7 @@ Keep it to one post file with one code sample. A walkthrough that needs several 
 ### Post file layout
 
 ```
+---
 title: <Post title>
 description: <One sentence stating what the post demonstrates>
 slug: <lowercase-hyphenated-slug>
@@ -344,7 +345,7 @@ In `paste` mode there is no file to guard, so this gate does not need its own ro
 
 ### Gate 2 - before posting
 
-After the post file is written, show the post and get approval before it is published, committed, or pushed anywhere.
+After Gate 1 confirmation, draft the post without writing it to disk, show the full content, and get approval before any file is written, published, committed, or pushed.
 
 - If **automation-mode** is `true`: show the full post content, then ask a direct yes or no for posting. Take no publishing action on silence or on anything short of an explicit yes.
 - If **automation-mode** is `false`: show the full post content and ask for approval, inviting edits. Apply any requested changes, show the revised post, and ask again. Publish only on approval.
