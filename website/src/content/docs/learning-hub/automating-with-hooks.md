@@ -650,8 +650,8 @@ echo "Pre-commit checks passed ✅"
 
 This section collects behavior changes from past releases that may explain historical bugs or inconsistent-looking output — everything above describes current behavior.
 
-- **The `matcher` field bug fixes**: Older CLI versions had two now-fixed `matcher` bugs — one where `matcher` was silently ignored entirely (hooks fired for all tool calls regardless of the regex), and a follow-up where `postToolUse` matchers using pipe-separated patterns (e.g., `"matcher": "Edit|Write"`) were silently dropped. If a hook using `matcher` doesn't fire selectively as expected, ensure you're on a current CLI version.
-- **`postToolUse` used to also fire on tool failures.** It now only fires on success; failures are reported to the dedicated `postToolUseFailure` event. Migrate any failure-handling logic in a `postToolUse` hook to `postToolUseFailure`.
+- **The `matcher` field bug fixes**: Before **v1.0.36**, `matcher` was silently ignored entirely, so hooks fired for all tool calls regardless of the regex. In **v1.0.63**, a follow-up bug affecting `postToolUse` matchers with pipe-separated patterns (e.g., `"matcher": "Edit|Write"`) was fixed; before that release, those matchers were silently dropped. If a hook using `matcher` doesn't fire selectively as expected, check the CLI version before troubleshooting the hook configuration.
+- **`postToolUse` used to also fire on tool failures.** Before **v1.0.15**, it fired for both successful and failed tool calls. It now only fires on success; failures are reported to the dedicated `postToolUseFailure` event. Migrate any failure-handling logic in a `postToolUse` hook to `postToolUseFailure`.
 
 ## Common Questions
 

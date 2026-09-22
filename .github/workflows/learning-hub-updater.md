@@ -66,7 +66,7 @@ If there is nothing new or everything is already up to date, stop here and repor
 
 If updates are needed, make a decision on whether a new page needs to be added (e.g., for a major new feature) or if existing pages can be updated with new sections.
 
-**Content model — read this before editing.** The Learning Hub distinguishes between two kinds of content, and each page should stay clearly on one side:
+**Content model — read this before editing.** The Learning Hub distinguishes between two kinds of content, and each page should keep them clearly separated into distinct sections:
 
 - **Evergreen guides** (most pages, e.g. `copilot-configuration-basics.md`, `building-custom-agents.md`, `installing-and-using-plugins.md`, `understanding-mcp-servers.md`, `automating-with-hooks.md`) must describe **current behavior as the primary voice** — write "Use X to do Y", not "In vA.B.C, X was added". These pages are not a changelog and must not be allowed to become one.
 - **Compatibility and migration notes** are where release-specific history belongs: breaking changes, renamed settings, removed commands, and minimum-version requirements that a reader upgrading from an older version needs. Put this material in a `## Compatibility and Migration Notes` section at the bottom of the relevant page (create the section if it doesn't exist yet) instead of inline in the main teaching flow.
