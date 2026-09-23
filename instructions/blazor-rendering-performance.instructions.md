@@ -69,8 +69,8 @@ Rerendering, event, and virtualization guidance applies to components that rende
 - `Virtualize` renders no items until its JavaScript side reports the viewport size, so it only shows items once the component is interactive: nothing during static SSR or prerendering. Page the data on the server for statically rendered lists.
 - Use `Items` for an in-memory `ICollection<T>`. Use `ItemsProvider` for large or remote data sets, or non-generic sources such as `DataRow`, and never set both (the component throws `InvalidOperationException`).
 - In an items provider, fetch only `request.Count` items starting at `request.StartIndex`, pass `request.CancellationToken` to the data call, and return the total item count in `ItemsProviderResult<T>`.
-- Set `ItemSize` to the rendered item height in pixels (default `50`) so the first render and the scroll position are correct. On .NET 8 through 10, keep items and placeholder content the same height. .NET 11 treats `ItemSize` as an initial estimate and positions items using a running average of measured heights.
-- In every version, render items as a single vertical stack (`display: block` or `table-row`) and don't style the spacer elements.
+- Set `ItemSize` to the rendered item height in pixels (default `50`) so the first render and the scroll position are correct. On .NET 11, `ItemSize` is only the initial estimate: the component then positions items using a running average of measured heights.
+- In every version, keep items and placeholder content the same height, render them as a single vertical stack (`display: block` or `table-row`), and don't style the spacer elements.
 - Inside a `<tbody>`, set `SpacerElement="tr"` and render one `<tr>` per item.
 - Provide `<Placeholder>` content when items load asynchronously and `<EmptyContent>` for empty results.
 - Call `RefreshDataAsync()` on the `Virtualize` reference when data behind an `ItemsProvider` changes. If that happens outside a Blazor event or lifecycle method, wrap the refresh and `StateHasChanged()` in `InvokeAsync`.
@@ -272,8 +272,8 @@ Rerendering, event, and virtualization guidance applies to components that rende
 
 ### Call `StateHasChanged` Only When the Framework Can't Render for You
 
-- Don't call it at the end of event handlers or in `OnInitialized{Async}` and `OnParametersSet{Async}`. `ComponentBase` already renders at those points.
-- Do call it to show intermediate progress in a multi-step async handler, to refresh a component from outside Blazor's event system (timers, C# events raised by a state container, background work), wrapped in `InvokeAsync(...)` when running off the renderer's synchronization context, or to rerender a component outside the subtree that handled the event.
+- Don't call it at the end of an event handler or lifecycle method (`OnInitialized{Async}`, `OnParametersSet{Async}`). `ComponentBase` already renders there, and when an async handler or lifecycle method first yields at an `await`.
+- Do call it to show intermediate progress between later `await`s of a multi-step async event handler or lifecycle method, to refresh a component from outside Blazor's event system (timers, C# events raised by a state container, background work), wrapped in `InvokeAsync(...)` when running off the renderer's synchronization context, or to rerender a component outside the subtree that handled the event.
 - To render partway through otherwise synchronous work, call `StateHasChanged()` followed by `await Task.Yield()`, not `await Task.Delay(1)`.
 - Never call `StateHasChanged()` unconditionally from `OnAfterRender{Async}`, which creates a render loop. Guard it with `firstRender` or an explicit state check.
 
