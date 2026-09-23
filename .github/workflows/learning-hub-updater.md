@@ -58,12 +58,25 @@ Identify:
 - **Missing features** — new capabilities not yet documented
 - **Outdated information** — features that have been renamed, deprecated, or significantly changed
 - **Missing links** — new official docs or blog posts not in the Further Reading section
+- **Stale version notes** — inline `vX.Y.Z+` callouts, "previously"/"as of"/"breaking change" notes, or superseded feature descriptions that are candidates for consolidation or removal now that a newer release has landed
 
 If there is nothing new or everything is already up to date, stop here and report that no updates are needed.
 
 ## Step 3 — Update the Learning Hub
 
 If updates are needed, make a decision on whether a new page needs to be added (e.g., for a major new feature) or if existing pages can be updated with new sections.
+
+**Content model — read this before editing.** The Learning Hub distinguishes between two kinds of content, and each page should keep them clearly separated into distinct sections:
+
+- **Evergreen guides** (most pages, e.g. `copilot-configuration-basics.md`, `building-custom-agents.md`, `installing-and-using-plugins.md`, `understanding-mcp-servers.md`, `automating-with-hooks.md`) must describe **current behavior as the primary voice** — write "Use X to do Y", not "In vA.B.C, X was added". These pages are not a changelog and must not be allowed to become one.
+- **Compatibility and migration notes** are where release-specific history belongs: breaking changes, renamed settings, removed commands, and minimum-version requirements that a reader upgrading from an older version needs. Put this material in a `## Compatibility and Migration Notes` section at the bottom of the relevant page (create the section if it doesn't exist yet) instead of inline in the main teaching flow.
+
+Prefer **consolidation over addition**:
+
+- Before adding a new inline `(vX.Y.Z+)` note, check whether the same section already has one or more older version notes on the same setting, command, or field. If so, rewrite that passage to describe only the current behavior, and move any genuinely useful migration detail (old name, old default, what breaks) into the Compatibility and Migration Notes section.
+- Do not add a new inline version tag for a feature that has been generally available for more than a couple of releases — just document it as the current behavior.
+- Only keep an inline version tag when a reader must know the version to make a decision right now (e.g., "requires v1.0.80 or later").
+- If a page's main teaching flow already has more than roughly 8–10 inline version tags outside of a Compatibility and Migration Notes section, treat that as a signal to do a consolidation pass on that page during this run, not just append another note.
 
 ### For new pages:
 
@@ -77,7 +90,7 @@ To create a new page:
 
 ### For updates to existing pages:
 
-If the new information can be added to existing pages, edit those pages to include refinements, new sections, or updated information as needed. Make sure to update any relevant links in the "Further Reading" sections.
+If the new information can be added to existing pages, edit those pages to include refinements, new sections, or updated information as needed, following the content model above. Make sure to update any relevant links in the "Further Reading" sections.
 
 ## Step 4 — Open a pull request
 
@@ -86,5 +99,6 @@ Create a pull request with your changes, using the `main` branch as the base bra
 1. What new features or changes were found
 2. What sections of the guide were updated
 3. Links to the source announcements
+4. **Content cleanup** — what older inline version notes were consolidated, rewritten as current behavior, or moved into a Compatibility and Migration Notes section, or a brief note that none needed changes this run
 
 The PR should target the `main` branch and include the labels `automated-update` and `copilot-updates`.
