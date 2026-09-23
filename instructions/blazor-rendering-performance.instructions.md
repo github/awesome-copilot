@@ -22,7 +22,7 @@ Rerendering, event, and virtualization guidance applies to components that rende
 ## Understand When Blazor Rerenders
 
 - After an event handler runs, `ComponentBase` rerenders the component that owns the handler. Each child then receives a new set of parameters and rerenders too, recursively, unless change detection proves nothing changed or its `ShouldRender` returns `false`.
-- Change detection skips a child only when **every** parameter is a known immutable type whose value hasn't changed. On .NET 8 and later these are `bool`, `char`, the integer types except `nint` and `nuint`, `float`, `double`, `decimal`, `string`, `DateTime`, enums, `Guid`, `EventCallback`, and `EventCallback<T>`, plus the nullable forms of those value types (`int?`, `DateTime?`). .NET 10 adds `DateOnly` and `TimeOnly`. The framework can change this list between releases.
+- Change detection skips a child only when **every** parameter is a known immutable type whose value hasn't changed. On .NET 8 and later these are `bool`, `char`, `byte`, `sbyte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, `decimal`, `string`, `DateTime`, enums, `Guid`, `EventCallback`, and `EventCallback<T>`, plus the nullable forms of those value types (`int?`, `DateTime?`). .NET 10 adds `DateOnly` and `TimeOnly`. The framework can change this list between releases.
 - Any other parameter type counts as "may have changed" on every parent render, even when the value is identical. This includes records, `DateTimeOffset`, `TimeSpan`, tuples, custom structs, collections, class instances, and `RenderFragment` (so any component that takes `ChildContent`).
 - `ShouldRender` is not consulted for the first render. A component always renders when it's first added to the tree.
 
