@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import fs from "fs";
+import path from "path";
 import { runExternalPluginQualityGates } from "./external-plugin-quality-gates.mjs";
 import { validateExternalPlugin } from "./external-plugin-validation.mjs";
 
@@ -86,16 +88,52 @@ function createValidationFailureQuality(errors) {
   };
 }
 
-export async function runExternalPluginPrQualityGates(plugins) {
+function createLogFilePath(logsDirectory, pluginName, index) {
+  if (!logsDirectory) {
+    return undefined;
+  }
+
+  const safeName = String(pluginName || "unknown")
+    .toLowerCase()
+    .replace(/[^a-z0-9.-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64) || "unknown";
+  return path.join(logsDirectory, `${String(index + 1).padStart(2, "0")}-${safeName}.log`);
+}
+
+function writeValidationFailureLog(logFile, plugin, quality) {
+  if (!logFile) {
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(logFile), { recursive: true });
+  fs.writeFileSync(
+    logFile,
+    [
+      `External plugin quality gate log: ${plugin?.name || "unknown"}`,
+      "",
+      "External plugin entry validation",
+      quality.vally_lint_output || "No output captured.",
+      "",
+    ].join("\n"),
+  );
+}
+
+export async function runExternalPluginPrQualityGates(plugins, { logsDirectory } = {}) {
   if (!Array.isArray(plugins)) {
     throw new Error("plugins must be an array");
   }
 
-  const checkedPlugins = await Promise.all(plugins.map(async (plugin) => {
+  const checkedPlugins = await Promise.all(plugins.map(async (plugin, index) => {
     const validation = validateExternalPlugin(plugin, "changed-plugin", { policy: "marketplace" });
-    const quality = validation.errors.length > 0
-      ? createValidationFailureQuality(validation.errors)
-      : await runExternalPluginQualityGates(plugin);
+    const logFile = createLogFilePath(logsDirectory, plugin?.name, index);
+    let quality;
+    if (validation.errors.length > 0) {
+      quality = createValidationFailureQuality(validation.errors);
+      writeValidationFailureLog(logFile, plugin, quality);
+    } else {
+      quality = await runExternalPluginQualityGates(plugin, { logFile });
+    }
     return {
       name: plugin?.name ?? "unknown",
       source: plugin?.source ?? {},
@@ -143,6 +181,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 
   const plugins = JSON.parse(args["plugins-json"]);
-  const result = await runExternalPluginPrQualityGates(plugins);
+  const result = await runExternalPluginPrQualityGates(plugins, {
+    logsDirectory: args["logs-directory"],
+  });
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }

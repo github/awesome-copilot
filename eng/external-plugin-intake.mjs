@@ -1242,7 +1242,7 @@ function getIntakeStateFromQualityResult(baseResult, qualityResult) {
   return "ready-for-review";
 }
 
-function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo) {
+function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo, qualityLogUrl) {
   if (!baseResult.valid) {
     return baseResult.commentBody;
   }
@@ -1250,6 +1250,9 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo)
   const marker = baseResult.commentMarker ?? EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER;
   const qualitySection = buildQualityGatesCommentSection(qualityResult);
   const runLink = runId && owner && repo ? `_[View workflow run](https://github.com/${owner}/${repo}/actions/runs/${runId})_` : "";
+  const logLink = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/actions\/runs\/\d+\/artifacts\/\d+$/.test(String(qualityLogUrl || ""))
+    ? `_[Download full quality gate logs](${qualityLogUrl})_`
+    : "";
 
   const hasSpecWarnings = String(qualityResult.spec_compliance_status || "") === "warning";
   const intro =
@@ -1276,6 +1279,8 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo)
     "",
     statusLine,
     "",
+    [runLink, logLink].filter(Boolean).join(" · "),
+    "",
     `- **Plugin:** ${baseResult.plugin?.name ?? "unknown"}`,
     `- **Repository:** ${baseResult.plugin?.repository ?? "unknown"}`,
     baseResult.plugin?.source?.ref ? `- **Ref:** [\`${baseResult.plugin.source.ref.replaceAll('\`', '\\\`')}\`](https://github.com/${encodeRepoPath(baseResult.plugin.source.repo)}/tree/${encodeURIComponent(baseResult.plugin.source.ref).replaceAll("%2F", "/")})` : undefined,
@@ -1295,11 +1300,10 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo)
     baseResult.warnings?.length
       ? ["", "### Warnings", "", ...baseResult.warnings.map((warning) => `- ${warning}`)].join("\n")
       : "",
-    runLink ? `\n${runLink}` : "",
   ].join("\n");
 }
 
-export function applyQualityGateResult(baseEvaluation, qualityGateResult, runId, owner, repo) {
+export function applyQualityGateResult(baseEvaluation, qualityGateResult, runId, owner, repo, qualityLogUrl) {
   const baseResult = typeof baseEvaluation === "string" ? JSON.parse(baseEvaluation) : baseEvaluation;
   const qualityResult = normalizeQualityGateResult(
     typeof qualityGateResult === "string" ? JSON.parse(qualityGateResult) : qualityGateResult,
@@ -1310,7 +1314,7 @@ export function applyQualityGateResult(baseEvaluation, qualityGateResult, runId,
     ...baseResult,
     qualityGates: qualityResult,
     intakeState,
-    commentBody: buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo),
+    commentBody: buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo, qualityLogUrl),
   };
 }
 
