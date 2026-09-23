@@ -1,7 +1,7 @@
 ---
 # shepherd-task-version: 1.0.4
 name: shepherd-task-30-from-assignment-to-ready
-description: "Stage 30 of the shepherd-task campaign lifecycle (each issue from assignment through the boundary immediately before Ready for review). Use this skill to shepherd a child Task issue from 'assigned to Copilot' through CI approval and review-agent feedback resolution, stopping just before marking the PR as **Ready for review**."
+description: 'Stage 30 of the shepherd-task campaign lifecycle (each issue from assignment through the boundary immediately before Ready for review). Use this skill to shepherd a child Task issue from ''assigned to Copilot'' through CI approval and review-agent feedback resolution, stopping just before marking the PR as **Ready for review**.'
 ---
 
 # Skill: Shepherd Task to Ready for Review (shepherd-task stage 30 — assignment through the boundary before Ready for review)
