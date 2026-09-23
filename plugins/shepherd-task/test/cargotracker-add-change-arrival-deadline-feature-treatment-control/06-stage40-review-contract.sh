@@ -19,6 +19,12 @@ required=(
     'copilot-pull-request-reviewer(\\[bot\\])?'
     'gh pr ready "$PR_NUMBER" -R "$REPO" --undo'
     'DETERMINISTIC_REQUEST_ERROR'
+    'REPO_OWNER=${REPO%%/*}'
+    'REPO_NAME=${REPO#*/}'
+    '-F owner="$REPO_OWNER"'
+    '-F name="$REPO_NAME"'
+    'query($owner: String!, $name: String!, $number: Int!)'
+    'repository(owner: $owner, name: $name)'
 )
 for text in "${required[@]}"; do
     grep -Fq -- "$text" <<<"$SKILL_CONTENT" || {
@@ -26,6 +32,10 @@ for text in "${required[@]}"; do
         exit 1
     }
 done
+if grep -Fq -- 'repository(owner: "github", name: "copilot-sdk")' <<<"$SKILL_CONTENT"; then
+    echo 'Stage-40 skill hard-codes the GraphQL repository lookup.' >&2
+    exit 1
+fi
 if grep -Fq -- '--add-reviewer Copilot' <<<"$SKILL_CONTENT"; then
     echo 'Stage-40 skill still requests Copilot as an ordinary login.' >&2
     exit 1

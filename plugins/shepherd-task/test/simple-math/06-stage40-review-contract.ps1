@@ -32,12 +32,21 @@ $requiredSkillText = @(
     '$helpOutput | Select-String -SimpleMatch ''@copilot''',
     'copilot-pull-request-reviewer(\\[bot\\])?',
     'gh pr ready "$PR_NUMBER" -R "$REPO" --undo',
-    'DETERMINISTIC_REQUEST_ERROR'
+    'DETERMINISTIC_REQUEST_ERROR',
+    'REPO_OWNER=${REPO%%/*}',
+    'REPO_NAME=${REPO#*/}',
+    '-F owner="$REPO_OWNER"',
+    '-F name="$REPO_NAME"',
+    'query($owner: String!, $name: String!, $number: Int!)',
+    'repository(owner: $owner, name: $name)'
 )
 foreach ($required in $requiredSkillText) {
     if (-not $skill.Contains($required)) {
         throw "Stage-40 skill is missing required review contract text: $required"
     }
+}
+if ($skill.Contains('repository(owner: "github", name: "copilot-sdk")')) {
+    throw 'Stage-40 skill hard-codes the GraphQL repository lookup.'
 }
 if ($skill.Contains('--add-reviewer Copilot')) {
     throw 'Stage-40 skill still requests Copilot as an ordinary login.'

@@ -208,9 +208,15 @@ To resolve the thread, use the GraphQL API (the REST API does not support thread
 
 ```bash
 # 1. Get the GraphQL thread node ID for the comment
-THREAD_ID=$(gh api graphql -F number=$PR_NUMBER -f query='
-query($number: Int!) {
-  repository(owner: "github", name: "copilot-sdk") {
+REPO_OWNER=${REPO%%/*}
+REPO_NAME=${REPO#*/}
+THREAD_ID=$(gh api graphql \
+  -F owner="$REPO_OWNER" \
+  -F name="$REPO_NAME" \
+  -F number="$PR_NUMBER" \
+  -f query='
+query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
       reviewThreads(first: 100) {
         nodes {
