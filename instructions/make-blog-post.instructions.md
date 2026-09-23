@@ -18,6 +18,8 @@ It qualifies when **all** of these are true:
 
 If any condition is false, do nothing and do not mention this instruction.
 
+Code or a topic the user supplies directly in the conversation is in scope as well. That is the one case where this instruction runs on request rather than on its own reading of the workspace: the same four conditions apply, the subject is the supplied code rather than anything found in the repository, and **Security and content rules** still govern what reaches the page.
+
 Before drafting a post, check the post store (see **Where the post is stored**) for an existing post covering the same code. If one exists, skip.
 
 ## Instruction Configuration
@@ -64,7 +66,7 @@ Before drafting, read the working context and decide what kind of work is being 
 Look at:
 
 - **Is this a repository or a loose folder?** A folder with no version control is scratch work; its posts go to the post store.
-- **Is the workspace a blog or site?** Signs include a posts folder (`_posts/`, `content/posts/`, `src/content/blog/` are conventional names, not the only ones), a static site generator config (`_config.yml`, `hugo.toml`, `astro.config.mjs`, `src/content.config.ts`), or an existing body of dated articles. If so, the workspace is the natural home for the post, and **Common blog platforms** says how to read the generator's own configuration for the folder it actually uses.
+- **Is the workspace a blog or site?** Signs include a posts folder (`_posts/`, `content/posts/`, `src/content/blog/` are conventional names, not the only ones), a static site generator config (`_config.yml`, `hugo.toml`, `astro.config.*`, `src/content.config.*`, and the other config basenames in **Common blog platforms**, in any of their extensions), or an existing body of dated articles. If so, the workspace is the natural home for the post, and **Common blog platforms** says how to read the generator's own configuration for the folder it actually uses.
 - **Is there a pseudo-blog venue in play?** The user may publish standalone posts somewhere that is not a blog at all, such as a gist. That is a valid destination with its own shape; see **Pseudo-blog venues**.
 - **Is the workspace a documentation set?** A `docs/` tree or a documentation-only repository. A walkthrough may belong there as a new doc file.
 - **Is the workspace an application or library?** The code lives here but the writing does not. Store the post in the post store and consider only a link back (see **Linking in documentation**).
@@ -86,12 +88,12 @@ The **Default posts folder** column records each generator's convention, not a g
 | Platform | Detect by | Default posts folder | Contract to honor |
 | --- | --- | --- | --- |
 | Jekyll | `_config.yml`, `Gemfile` with `jekyll` | `_posts/` | File name must be `YYYY-MM-DD-slug.md`. YAML front matter with `layout`, `title`, `date`, `categories`, `tags`. A `source` or `collections_dir` setting in `_config.yml` moves the folder. |
-| Hugo | `hugo.toml`, `hugo.yaml`, `config.toml` | `content/posts/` | TOML or YAML front matter matching the theme. `draft: true` keeps it out of the build. `contentDir` moves the content root, and the section folder is whichever one the theme lists. |
-| Astro | `astro.config.mjs` | Whatever the content collection declares, commonly `src/content/blog/` | Read the collection config first: `src/content.config.ts` on Astro 5, `src/content/config.ts` on Astro 4. A collection's `loader` chooses the directory, so `glob({ base: './src/data/blog' })` puts posts there and not under `src/content/`. Front matter must satisfy that collection's `schema`, and a required field left out fails the build. |
-| Eleventy | `.eleventy.js`, `eleventy.config.js` | `posts/`, or the folder named in the config | Front matter plus the directory data file. A `tags` value is what puts the post in the feed. |
+| Hugo | `hugo.toml`, `hugo.yaml`, `hugo.json`, `config.toml`, or a `config/` directory | `content/posts/` | TOML or YAML front matter matching the theme. `draft: true` keeps it out of the build. `contentDir` moves the content root, and the section folder is whichever one the theme lists. |
+| Astro | `astro.config.*` | Whatever the content collection declares, commonly `src/content/blog/` | Detect on any `astro.config.*` extension, then read the collection config: `src/content.config.*` on Astro 5, `src/content/config.*` on Astro 4, in whichever JavaScript or TypeScript extension the project uses. A collection's `loader` chooses the directory, so `glob({ base: './src/data/blog' })` puts posts there and not under `src/content/`. Front matter must satisfy that collection's `schema`, and a required field left out fails the build. |
+| Eleventy | `.eleventy.js`, `eleventy.config.*` | `posts/`, or the folder named in the config | Front matter plus the directory data file. A `tags` value is what puts the post in the feed. |
 | Next.js | `next.config.*` with an MDX or content pipeline | `content/`, `posts/`, `app/blog/`, or wherever the content pipeline reads from | MDX rules apply: components must be imported or provided, and raw `<` in prose breaks the parse. |
-| Gatsby | `gatsby-config.js` | `content/blog/` | Front matter fields must exist in the GraphQL schema the templates query. The `path` given to `gatsby-source-filesystem` is the folder actually sourced. |
-| Docusaurus | `docusaurus.config.js` | `blog/` | Date from the file name prefix or a `date` field. `<!--truncate-->` marks where the excerpt ends. The blog plugin's `path` option moves the folder. |
+| Gatsby | `gatsby-config.*` | `content/blog/` | Front matter fields must exist in the GraphQL schema the templates query. The `path` given to `gatsby-source-filesystem` is the folder actually sourced. |
+| Docusaurus | `docusaurus.config.*` | `blog/` | Date from the file name prefix or a `date` field. `<!--truncate-->` marks where the excerpt ends. The blog plugin's `path` option moves the folder. |
 | Hexo | `_config.yml` with `hexo` dependencies | `source/_posts/` | YAML front matter. `<!-- more -->` marks the excerpt break. `source_dir` in `_config.yml` moves the source root. |
 | Zola | `config.toml` with `base_url` | `content/` | TOML front matter fenced by `+++`, not `---`. The post belongs to a section, which is a subfolder of `content/` carrying its own `_index.md`. |
 | VitePress | `.vitepress/` | the folder the theme configures | Front matter plus whatever index page lists the posts. |
@@ -99,6 +101,7 @@ The **Default posts folder** column records each generator's convention, not a g
 
 Rules that apply to all of them:
 
+- **Match a config file by its basename, not by one extension.** Every `Detect by` entry written with `.*` stands for a family, and a project may spell it `.js`, `.mjs`, `.cjs`, `.ts`, `.mts`, or `.cts`. Glob the basename before concluding a generator is absent, because detecting only one spelling misreads a real blog as a plain repository and sends the post to the fallback store.
 - **The project's configuration outranks this table.** Open the generator's config before choosing a path. Where a project declares its content in code - an Astro `loader`, an Eleventy directory setting, a Gatsby filesystem source, a Docusaurus plugin `path` - that declaration is both the destination and the schema, and the default above applies only when no such setting exists.
 - **Read a neighbor first.** Open an existing post in the resolved folder and copy its field set exactly. The live posts are more reliable than any general rule here.
 - **Settle a disagreement before writing, not after.** When the config and the existing posts point at different folders, stop and ask which one is current. When the config names a folder that holds no posts yet, the config wins.
@@ -170,7 +173,7 @@ With **delivery-mode** set to `auto`, read the request:
 
 The reply is the deliverable, so it has to survive a single copy with no cleanup.
 
-- **Render the post in one fenced block.** The post contains its own fenced code sample, so fence the outer block with four backticks so the inner three-backtick fence survives intact.
+- **Render the post in one fenced block.** The post contains its own fenced code blocks, so fence the outer block with four backticks so the inner three-backtick fences survive intact.
 - **One block, nothing interleaved.** Do not split the post across several blocks with commentary between them. Notes go after the block.
 - **Include front matter only if the target parses it.** For a hosted editor or a venue with no front matter, deliver the venue shape from **Pseudo-blog venues** instead.
 - **List field values separately when the target has separate fields.** For a hosted editor, provide only the fields it actually exposes. For a gist, list the description and file name; put the title in the body's `H1`, use the file name as the slug, and omit tags.
@@ -236,7 +239,7 @@ These rules are absolute and apply to everything that goes into a post.
 
 1. **Never include credentials or secure data.** This covers API keys, tokens, passwords, secrets, connection strings, private URLs, internal hostnames or IPs, account IDs, environment variable values, file paths revealing user or machine names, and any personal information. If the code needs one of these, replace it with an obvious placeholder such as `YOUR_API_KEY` or `https://api.example.com`.
 2. **Use cliche sample data only.** Examples: `"Hello, World!"`, `John Doe`, `Jane Smith`, `user@example.com`, `foo` / `bar` / `baz`, `123 Main St`, `Lorem ipsum`, `42`, `widgets`, `Acme Corp`.
-3. **Never use prompt data.** Do not copy, paraphrase, or recycle anything from the conversation, the user's request, or the repository's real data into the post. No real names, project names, business terms, file names, or values from the working context.
+3. **Never carry sensitive or project-specific data over from the prompt.** The conversation, the user's request, and the repository's working context are not source material for the post's incidental detail: no real names, project names, client or product names, business terms, internal file names, or values lifted from the working context. Code or a topic the user supplies directly is the exception, because it is the subject of the post rather than incidental detail. Use it, generalize it under rule 4, and hold it to rule 1.
 4. **Rewrite, don't copy.** Generalize the code into a clean demonstration: rename project-specific identifiers to generic ones, strip unrelated logic, and remove internal dependencies.
 
 ## Building the post
@@ -249,7 +252,7 @@ The post explains **one specific purpose** of the code, framed as an information
 - A minimal usage example with cliche data and the expected output.
 - A closing note on limits or edge cases, when there is something worth saying.
 
-Keep it to one post file with one code sample. A walkthrough that needs several files is not a fit for this instruction.
+Keep it to one post file covering one worked example. That example is normally two fenced blocks, the implementation followed by the usage, and the two count as one sample because they demonstrate the same single purpose. Combining them into a single block is fine where the language makes that natural. What does not fit this instruction is a second unrelated example, or a walkthrough that needs several files.
 
 ### Post file layout
 
@@ -265,7 +268,7 @@ date: <YYYY-MM-DD>
 <post body in Markdown>
 ```
 
-The description is one sentence, written with no project or prompt details. It doubles as the meta description, so keep it between 140 and 160 characters and lead with what the reader gets.
+The description is one sentence, written with no project, client, or working-context details. It doubles as the meta description, so keep it between 140 and 160 characters and lead with what the reader gets.
 
 When the workspace is a blog or site, its own front matter fields win over this layout. Map these values onto the fields that site already uses and drop any it does not read.
 
