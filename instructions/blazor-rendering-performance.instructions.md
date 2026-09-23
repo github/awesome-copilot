@@ -28,7 +28,8 @@ Rerendering, event, and virtualization guidance applies to components that rende
 
 ## Avoid Unnecessary Rerendering of Subtrees
 
-- Give components that repeat at scale parameters of known immutable types. Pass the values the child needs (`OrderId="order.Id"`) rather than the whole model object when that keeps every parameter immutable.
+- Give components that repeat at scale parameters of known immutable types. Pass the values the child needs (`OrderId="order.Id" Customer="@order.Customer"`) rather than the whole model object when that keeps every parameter immutable.
+- Prefix expressions assigned to `string` parameters with `@`. Without it, Razor passes the attribute text literally: `Customer="order.Customer"` renders the text "order.Customer".
 - On repeated children, bind `EventCallback` parameters to method groups and let the child pass its own key back: `<OrderRow OrderId="order.Id" OnSelect="SelectOrder" />`, then `OnSelect.InvokeAsync(OrderId)` in the child. A lambda that captures a loop variable (`OnSelect="() => SelectOrder(order.Id)"`) produces a new delegate target on every render, so the child is always seen as changed.
 - When a child must accept complex parameters, override `ShouldRender` and compare a cheap change key captured in `OnParametersSet`:
 
@@ -240,7 +241,12 @@ Rerendering, event, and virtualization guidance applies to components that rende
       public static Func<Task> AsNonRenderingEventHandler(Func<Task> handler)
           => new NonRenderingTarget(null, handler).InvokeAsync;
 
-      // Add Action<T> and Func<T, Task> overloads the same way for handlers that take event args.
+      public static Action<T> AsNonRenderingEventHandler<T>(Action<T> handler)
+          => new NonRenderingTarget<T>(handler, null).Invoke;
+
+      public static Func<T, Task> AsNonRenderingEventHandler<T>(Func<T, Task> handler)
+          => new NonRenderingTarget<T>(null, handler).InvokeAsync;
+
       private sealed class NonRenderingTarget(Action? handler, Func<Task>? asyncHandler) : IHandleEvent
       {
           public void Invoke() => handler!();
@@ -248,10 +254,18 @@ Rerendering, event, and virtualization guidance applies to components that rende
 
           Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem item, object? arg) => item.InvokeAsync(arg);
       }
+
+      private sealed class NonRenderingTarget<T>(Action<T>? handler, Func<T, Task>? asyncHandler) : IHandleEvent
+      {
+          public void Invoke(T arg) => handler!(arg);
+          public Task InvokeAsync(T arg) => asyncHandler!(arg);
+
+          Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem item, object? arg) => item.InvokeAsync(arg);
+      }
   }
   ```
 
-  Use it as `@onclick="EventUtil.AsNonRenderingEventHandler(TrackClick)"`.
+  Use it as `@onclick="EventUtil.AsNonRenderingEventHandler(TrackClick)"`, or pass the event args type explicitly when the handler takes them: `@onclick="EventUtil.AsNonRenderingEventHandler<MouseEventArgs>(TrackClickAsync)"`.
 - Exceptions thrown by these handlers don't reach an `ErrorBoundary`. If you rely on error boundaries, catch the exception and call `await DispatchExceptionAsync(ex)`.
 
 ### Call `StateHasChanged` Only When the Framework Can't Render for You
@@ -303,7 +317,7 @@ Rerendering, event, and virtualization guidance applies to components that rende
 ## Review Checklist for Components Rendered at Scale
 
 - [ ] Long scrollable collections in interactive components use `<Virtualize>` with an accurate `ItemSize`.
-- [ ] Repeated children receive only known immutable parameters, or override `ShouldRender` with a cheap change key that local state changes also update.
+- [ ] Repeated children receive only known immutable parameters (with `@` before expressions assigned to `string` parameters), or override `ShouldRender` with a cheap change key that local state changes also update.
 - [ ] Items without independent state are inlined or rendered through a `RenderFragment` rather than one component each.
 - [ ] Event handlers in large loops don't use lambdas that capture the loop variable, and repeated children get method-group `EventCallback`s.
 - [ ] No `CaptureUnmatchedValues` on per-row or per-cell components.
