@@ -69,8 +69,8 @@ Rerendering, event, and virtualization guidance applies to components that rende
 - `Virtualize` renders no items until its JavaScript side reports the viewport size, so it only shows items once the component is interactive: nothing during static SSR or prerendering. Page the data on the server for statically rendered lists.
 - Use `Items` for an in-memory `ICollection<T>`. Use `ItemsProvider` for large or remote data sets, or non-generic sources such as `DataRow`, and never set both (the component throws `InvalidOperationException`).
 - In an items provider, fetch only `request.Count` items starting at `request.StartIndex`, pass `request.CancellationToken` to the data call, and return the total item count in `ItemsProviderResult<T>`.
-- Set `ItemSize` to the rendered item height in pixels (default `50`) so the first render and the scroll position are correct. On .NET 11, `ItemSize` is only the initial estimate: the component then positions items using a running average of measured heights.
-- In every version, keep items and placeholder content the same height, render them as a single vertical stack (`display: block` or `table-row`), and don't style the spacer elements.
+- Set `ItemSize` to the rendered item height in pixels (default `50`) so the first render and the scroll position are correct. On .NET 11, `ItemSize` is only the initial estimate: the component measures items at runtime, positions them using a running average of measured heights, and no longer assumes that every item has the same height.
+- On .NET 8 through 10, keep items and placeholder content the same height. In every version, render items and placeholders as a single vertical stack (`display: block` or `table-row`), and don't style the spacer elements.
 - Inside a `<tbody>`, set `SpacerElement="tr"` and render one `<tr>` per item.
 - Provide `<Placeholder>` content when items load asynchronously and `<EmptyContent>` for empty results.
 - Call `RefreshDataAsync()` on the `Virtualize` reference when data behind an `ItemsProvider` changes. If that happens outside a Blazor event or lifecycle method, wrap the refresh and `StateHasChanged()` in `InvokeAsync`.
@@ -115,12 +115,12 @@ Rerendering, event, and virtualization guidance applies to components that rende
   <ul class="log">
       @foreach (var entry in logEntries)
       {
-          @LogLine(entry)
+          @logLine(entry)
       }
   </ul>
 
   @code {
-      private RenderFragment<LogEntry> LogLine = entry =>
+      private RenderFragment<LogEntry> logLine = entry =>
           @<li class="log-@entry.Level">@entry.Timestamp.ToString("T") @entry.Message</li>;
   }
   ```
