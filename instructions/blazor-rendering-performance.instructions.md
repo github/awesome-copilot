@@ -30,7 +30,8 @@ Rerendering, event, and virtualization guidance applies to components that rende
 
 - Give components that repeat at scale parameters of known immutable types. Pass the values the child needs (`OrderId="order.Id" Customer="@order.Customer"`) rather than the whole model object when that keeps every parameter immutable.
 - Prefix expressions assigned to `string` parameters with `@`. Without it, Razor passes the attribute text literally: `Customer="order.Customer"` renders the text "order.Customer".
-- On repeated children, bind `EventCallback` parameters to method groups and let the child pass its own key back: `<OrderRow OrderId="order.Id" OnSelect="SelectOrder" />`, then `OnSelect.InvokeAsync(OrderId)` in the child. A lambda that captures a loop variable (`OnSelect="() => SelectOrder(order.Id)"`) produces a new delegate target on every render, so the child is always seen as changed.
+- On repeated children, let the child pass its own key back (`OnSelect.InvokeAsync(OrderId)`) instead of capturing the item in a lambda. A lambda that captures a loop variable (`OnSelect="() => SelectOrder(order.Id)"`) produces a new delegate target on every render, so the child is always seen as changed.
+- Keep that `EventCallback` equal across renders. On .NET 10 and later, bind a method group: `<OrderRow OrderId="order.Id" OnSelect="SelectOrder" />`. On .NET 8 and 9, `EventCallback` equality compares delegate references and every method-group conversion creates a new delegate, so create the callback once and reuse it: assign `selectOrder = EventCallback.Factory.Create<int>(this, SelectOrder);` in `OnInitialized`, then pass `OnSelect="selectOrder"`.
 - When a child must accept complex parameters, override `ShouldRender` and compare a cheap change key captured in `OnParametersSet`:
 
   ```razor
@@ -68,7 +69,8 @@ Rerendering, event, and virtualization guidance applies to components that rende
 - `Virtualize` renders no items until its JavaScript side reports the viewport size, so it only shows items once the component is interactive: nothing during static SSR or prerendering. Page the data on the server for statically rendered lists.
 - Use `Items` for an in-memory `ICollection<T>`. Use `ItemsProvider` for large or remote data sets, or non-generic sources such as `DataRow`, and never set both (the component throws `InvalidOperationException`).
 - In an items provider, fetch only `request.Count` items starting at `request.StartIndex`, pass `request.CancellationToken` to the data call, and return the total item count in `ItemsProviderResult<T>`.
-- Set `ItemSize` to the rendered item height in pixels (default `50`) so the first render and the scroll position are correct. Keep items and placeholder content the same height, rendered as a single vertical stack (`display: block` or `table-row`), and don't style the spacer elements.
+- Set `ItemSize` to the rendered item height in pixels (default `50`) so the first render and the scroll position are correct. On .NET 8 through 10, keep items and placeholder content the same height. .NET 11 treats `ItemSize` as an initial estimate and positions items using a running average of measured heights.
+- In every version, render items as a single vertical stack (`display: block` or `table-row`) and don't style the spacer elements.
 - Inside a `<tbody>`, set `SpacerElement="tr"` and render one `<tr>` per item.
 - Provide `<Placeholder>` content when items load asynchronously and `<EmptyContent>` for empty results.
 - Call `RefreshDataAsync()` on the `Virtualize` reference when data behind an `ItemsProvider` changes. If that happens outside a Blazor event or lifecycle method, wrap the refresh and `StateHasChanged()` in `InvokeAsync`.
@@ -278,7 +280,7 @@ Rerendering, event, and virtualization guidance applies to components that rende
 ### Don't Recreate Delegates for Many Repeated Elements
 
 - A lambda that captures the loop variable (`@onclick="() => Select(item.Id)"`) creates a new delegate for every element on every render. Blazor then treats each handler as changed, replaces its event handler registration, and sends an attribute update per element (over the circuit for Interactive Server).
-- That's fine for a handful of elements. For large lists, create the delegates once and reuse them, or move the item into a child component that takes an immutable key and a method-group `EventCallback`.
+- That's fine for a handful of elements. For large lists, create the delegates once and reuse them, or move the item into a child component that takes an immutable key and a stable `EventCallback` (a method group on .NET 10 and later, a cached callback on .NET 8 and 9).
 
   ```razor
   @inject ICatalogService Catalog
@@ -319,7 +321,7 @@ Rerendering, event, and virtualization guidance applies to components that rende
 - [ ] Long scrollable collections in interactive components use `<Virtualize>` with an accurate `ItemSize`.
 - [ ] Repeated children receive only known immutable parameters (with `@` before expressions assigned to `string` parameters), or override `ShouldRender` with a cheap change key that local state changes also update.
 - [ ] Items without independent state are inlined or rendered through a `RenderFragment` rather than one component each.
-- [ ] Event handlers in large loops don't use lambdas that capture the loop variable, and repeated children get method-group `EventCallback`s.
+- [ ] Event handlers in large loops don't use lambdas that capture the loop variable, and repeated children get stable `EventCallback`s (method groups on .NET 10 and later, cached callbacks on .NET 8 and 9).
 - [ ] No `CaptureUnmatchedValues` on per-row or per-cell components.
 - [ ] `<CascadingValue>` uses `IsFixed="true"` for values that never change.
 - [ ] High-frequency DOM events are throttled in JavaScript.
