@@ -13,11 +13,13 @@ Fork-specific workflows, agents, and documentation for developing the **Oracle-t
 ```mermaid
 flowchart LR
   subgraph fork [PrimedPaul/awesome-copilot]
-    issue[Issue] --> planner[fork-issue-planner<br/>gh-aw: grill + plan + skeptic]
+    issue[Issue] --> planner[fork-issue-planner<br/>gh-aw: grill + advisory plan]
     planner --> planpr[Draft PR: plan/issue-N<br/>+ open questions on the issue]
-    issue --> orch[dev-orchestrator agent<br/>Copilot CLI]
-    planpr -.resume on branch.-> orch
-    orch --> pr[PR into fork main]
+    planpr -.answers + resume on branch.-> orch[dev-orchestrator<br/>revises plan]
+    orch --> duck[rubber-duck review<br/>revised plan]
+    duck --> approval[Maintainer approval]
+    approval --> impl[dev-orchestrator<br/>implements + self-reviews]
+    impl --> pr[PR into fork main]
     pr --> vally[skill-check vally lint<br/>upstream workflow]
     pr --> rev[fork-agent-reviewer<br/>gh-aw: AI domain review + version check]
     pr --> main[(fork main)]
@@ -33,7 +35,7 @@ flowchart LR
 
 | File | Kind | Trigger | What it does |
 | --- | --- | --- | --- |
-| `fork-issue-planner.md` → `.lock.yml` | gh-aw | `issues: [opened]` by the repo owner (excluding `fork-automation`-labelled issues), plus `workflow_dispatch` with an `issue_number` input | Does the first round of grilling and planning without a human in the loop. Reads the issue and the files it plausibly touches, classifies scope (agent / fork tooling / out of scope), writes `.github/fork-only/plans/issue-<N>.md` beginning with parseable YAML frontmatter delimited by `---` and containing a grilling pass (ambiguities, IN/OUT scope, constraints, **assumptions made**), a concrete plan with the semver bump level, acceptance criteria, a self-adversarial skeptic's report with a confidence rating, open questions, and verification commands. Opens a **draft** PR on branch `plan/issue-<N>` and posts one comment on the issue linking that PR and repeating the plan's open-questions list verbatim, along with the biggest risk. `allowed-files` restricts it to `.github/fork-only/plans/issue-*.md` — it can never touch the agent, the plugin, the skills, or any workflow. |
+| `fork-issue-planner.md` → `.lock.yml` | gh-aw | `issues: [opened]` by the repo owner (excluding `fork-automation`-labelled issues), plus `workflow_dispatch` with an `issue_number` input | Does the first round of grilling and planning without a human in the loop. Reads the issue and the files it plausibly touches, classifies scope (agent / fork tooling / out of scope), writes `.github/fork-only/plans/issue-<N>.md` beginning with parseable YAML frontmatter delimited by `---` and containing a grilling pass (ambiguities, IN/OUT scope, constraints, **assumptions made**), a concrete plan with the semver bump level, acceptance criteria, open questions, and verification commands. Opens a **draft** PR on branch `plan/issue-<N>` and posts one comment on the issue linking that PR and repeating the plan's open-questions list verbatim, plus a material risk if one was identified. `allowed-files` restricts it to `.github/fork-only/plans/issue-*.md` — it can never touch the agent, the plugin, the skills, or any workflow. |
 | `fork-sync-watchdog.md` → `.lock.yml` | gh-aw | Weekly Fri 10:00 UTC, manual | Deterministic `sync` job pushes `upstream/main` to branch `fork-sync/upstream` and opens/refreshes a PR into `main` (with the PAT so CI runs). AI agent comments on that PR with a summary, incoming commits, change footprint, anything touching this agent, and a **Keep / Disable / Integrate** verdict for every newly added upstream workflow file (with disable steps and, for Integrate, which fork file to change), plus a one-line impact note for each modified upstream workflow. If `CONTRIBUTING.md` or `AGENTS.md` changed, it also opens an issue with the full diff and what it means for this fork. |
 | `fork-agent-reviewer.md` → `.lock.yml` | gh-aw | `pull_request` into `main`, path-scoped to the agent, plugin, and `skills/*oracle-to-postgres*` | `version_check` job fails if `plugin.json` version equals upstream. AI agent applies the `ai-prompt-engineering-safety-review` skill plus an Oracle→PostgreSQL domain checklist and submits one review (`COMMENT` or `REQUEST_CHANGES`; can never `APPROVE`). |
 | `fork-bundle-upstream-pr.yml` | plain YAML | `workflow_dispatch` | Computes the single diff between `upstream/main` and fork `main` for the agent paths (agent file, plugin, every skill listed in `plugin.json`), applies it on a branch based on `upstream/main`, runs `npm run build` + `eng/fix-line-endings.sh`, commits, force-pushes `upstream-promotion/oracle-to-postgres-migration-expert-v1.1.1` to the fork, and opens a **draft** PR against upstream (or reports the existing one). Fails hard if there is no delta, the version was not bumped, or the diff does not apply. Supports `dry_run`. |
@@ -44,8 +46,7 @@ The gh-aw sources live in `.github/workflows/*.md` alongside their compiled `.lo
 
 Custom agents for interactive Copilot CLI sessions; they are not run by Actions. They live under `.github/agents/` — not `.github/fork-only/agents/` — because Copilot CLI only discovers selectable custom agents in `.github/agents/` (repo-level) or `~/.copilot/agents/` (user-level); a `.github/fork-only/agents/` file is never scanned and cannot be selected with `/agent`. This is still fork-only tooling: neither `npm run build`/`skill-check` (which only walk the top-level `agents/**`) nor `fork-bundle-upstream-pr` (which diffs a hard-coded list of the migration-expert agent's own paths) ever look at `.github/agents/`, so nothing here can leak upstream.
 
-- **dev-orchestrator.agent.md** — issue → grill → plan → skeptic critique → approval gate → implement → pre-PR self-review. Reads `.github/fork-only/plans/issue-<N>.md` first if the planner produced one. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators). Selectable via `/agent` (`mode: primary`, `hidden: false`, `user-invocable: true`).
-- **plan-skeptic.agent.md** — adversarial sub-agent the orchestrator dispatches to critique its own plan. `fork-issue-planner` adopts the same persona for its self-critique section. Not selectable via `/agent` — only reachable as a sub-agent dispatch (`mode: subagent`, `hidden: true`, `user-invocable: false`).
+- **dev-orchestrator.agent.md** — issue → maintainer answers and re-grilling → revised plan → rubber-duck review → approval gate → implement → pre-PR self-review. Reads `.github/fork-only/plans/issue-<N>.md` first if the planner produced one, but treats it as advisory. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators). Selectable via `/agent` (`mode: primary`, `hidden: false`, `user-invocable: true`). The rubber-duck reviewer is a dispatched reviewer, not a fork-specific agent file.
 
 ### No state files
 
@@ -99,10 +100,10 @@ The gh-aw workflows use the Copilot engine and request `copilot-requests: write`
 ### Development flow
 
 1. Open an issue in the fork describing the change.
-2. **Fork Issue Planner** fires automatically (owner-opened issues only, `fork-automation`-labelled ones excluded). Within a few minutes you get a draft PR `[plan] plan: issue #N — …` on branch `plan/issue-<N>` containing `.github/fork-only/plans/issue-<N>.md` with `---`-delimited YAML frontmatter, plus an issue comment linking the draft PR and repeating the plan's open questions verbatim with the biggest risk.
+2. **Fork Issue Planner** fires automatically (owner-opened issues only, `fork-automation`-labelled ones excluded). Within a few minutes you get a draft PR `[plan] plan: issue #N — …` on branch `plan/issue-<N>` containing `.github/fork-only/plans/issue-<N>.md` with `---`-delimited YAML frontmatter, plus an issue comment linking the draft PR and repeating the plan's open questions verbatim with a material risk if identified (otherwise an explicit "No material risk identified").
 3. Answer the open questions in the issue. That is the human half of the grilling the CI run could not do.
 4. In Copilot CLI, check out `plan/issue-<N>`, select the **Development Orchestrator** agent (`/agent` → `.github/agents/dev-orchestrator.agent.md`) and give it the issue number. It reads the plan file as a starting point — the plan is advisory, so the orchestrator re-grills with your answers and rewrites it freely.
-5. It grills, plans, sends the plan to **Plan Skeptic**, waits for your approval, implements, bumps `plugin.json` version, runs `npm run build`, and self-reviews.
+5. It incorporates your answers, revises the plan, has a rubber-duck reviewer check that revised plan for concrete gaps, incorporates valid findings, and then asks for your approval. After approval it implements, bumps `plugin.json` version, runs `npm run build`, and self-reviews. The reviewer can report "No material concerns"; older plans' skeptic sections are historical context, not a gate.
 6. Mark the plan PR *Ready for review* once it carries the implementation (or close it and open a fresh PR — the branch is yours). `skill-check` (vally) and `fork-agent-reviewer` run. The reviewer's `version_check` job fails if the version was not bumped.
 7. Merge when satisfied — you are the sole reviewer.
 
