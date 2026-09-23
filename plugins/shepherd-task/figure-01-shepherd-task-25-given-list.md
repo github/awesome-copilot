@@ -2,7 +2,8 @@
 
 Stage 25 (`shepherd-task-25-given-list`) owns one serial run. It validates the durable campaign
 manifest, creates a run manifest, dispatches issues one at a time, stops at the
-first failure, invokes the post-mortem path, and finalizes the run manifest.
+first failure, finalizes the run manifest, and then invokes the post-mortem path
+with that finalized result.
 
 ```mermaid
 sequenceDiagram
@@ -36,13 +37,14 @@ sequenceDiagram
     end
 
     Note over GL,RM: EXIT/finally path runs for success and failure
-    GL->>PM: Run stage 50 with original exit code and campaign/run inputs
-    Note over PM,RM: At this point RM still has status=running and exitCode=null
-    PM->>RM: Read available run identity and task-list evidence
+    GL->>RM: Set completedAt, exitCode, and succeeded or failed status
+    RM-->>GL: Finalized run result
+    GL->>PM: Run stage 50 with finalized exit code and campaign/run inputs
+    Note over PM,RM: RM now contains the completed outcome
+    PM->>RM: Read finalized run identity, task list, and outcome
     PM->>PM: Read phase artifacts and write post-mortem
     PM-->>GL: Report result
     GL->>GL: Rescan JSON artifacts for secrets
-    GL->>RM: Set completedAt, original exitCode, succeeded or failed
     GL-->>User: Preserve original run result unless manifest finalization fails
 ```
 

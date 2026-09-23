@@ -21,15 +21,16 @@ sequenceDiagram
     ST->>ST: Require lessons file and run directory inside campaign directory
     ST->>GH: Find an open linked PR by timeline, body, then title or branch
 
-    alt No open linked PR
-        ST->>P1: Invoke stage 30 with issue and campaign context
-        P1->>GH: Assign CCA, iterate, and validate draft PR
-        P1-->>Art: Redacted phase-1 JSON, share, and OTel JSONL
-        P1-->>ST: Session exits
-        ST->>GH: Require an open linked PR
-    else Open linked PR exists
-        ST->>ST: Skip stage-30 Copilot session
+    alt Open linked PR exists
+        ST->>ST: Log resuming Phase 1 for the existing PR
+    else No open linked PR
+        ST->>ST: Begin Phase 1 without an existing PR
     end
+    ST->>P1: Invoke stage 30 with issue and campaign context
+    P1->>GH: Reuse existing PR or assign CCA, iterate, and validate draft PR
+    P1-->>Art: Redacted phase-1 JSON, share, and OTel JSONL
+    P1-->>ST: Session exits
+    ST->>GH: Require an open linked PR
 
     ST->>GH: Ensure PR base equals campaign base
     ST->>GH: Reject non-exempt failed CI checks
@@ -51,5 +52,7 @@ sequenceDiagram
 ```
 
 The outer script does not trust a successful Copilot process exit as proof of
-completion. It re-queries GitHub after each phase. The stage skills perform the
-deeper issue, SHA, CI, review, and lesson gates shown in Figures 03 and 04.
+completion. It re-queries GitHub after each phase. An existing open linked PR
+resumes the Stage 30 session without a second CCA assignment; it does not skip
+Stage 30. The stage skills perform the deeper issue, SHA, CI, review, and lesson
+gates shown in Figures 03 and 04.
