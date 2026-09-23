@@ -52,31 +52,52 @@ jobs:
       - name: Compute unpromoted delta
         id: delta
         run: |
-          # Paths that belong to this agent. Must match what plugin.json references.
-          # Element 0 is always a file; every other element is always a directory.
-          PATHS=(
-            "agents/oracle-to-postgres-migration-expert.agent.md"
-            "plugins/oracle-to-postgres-migration-expert"
-          )
+          # Paths that belong to this agent, derived from plugin.json itself rather
+          # than duplicated as literals, so the guard can't silently drift from the
+          # manifest it's supposed to mirror.
+          #
+          # PATHS/TYPES are built in lockstep: TYPES[i] tags PATHS[i] as file (f) or
+          # directory (d) by construction, so the promotion path guard never has to
+          # infer this from on-disk presence (a deleted/missing file must stay a file,
+          # not fall back to directory-prefix matching).
+          PATHS=()
+          TYPES=()
+
+          # Agent files referenced by the plugin manifest. Source files live at
+          # agents/<name>.agent.md, but plugin.json's agents[] entries reference them
+          # as ./agents/<name>.md (the ".agent" suffix is dropped by convention; see
+          # eng/materialize-plugins.mjs and eng/validate-plugins.mjs, which apply the
+          # same ".md" -> ".agent.md" transform).
+          while IFS= read -r agent_rel; do
+            agent_base="${agent_rel#./agents/}"
+            agent_base="${agent_base%.md}"
+            PATHS+=("agents/${agent_base}.agent.md")
+            TYPES+=("f")
+          done < <(jq -r '.extensions["com.github.awesome-copilot"].agents[]?' "$PLUGIN_MANIFEST")
+
+          if [ "${#PATHS[@]}" -eq 0 ]; then
+            echo "::error file=$PLUGIN_MANIFEST::No agents[] entries found; cannot determine the promotable agent file(s)."
+            exit 1
+          fi
+
+          # The plugin directory itself: derived from where the manifest lives, since
+          # a manifest can't reference its own containing directory. This is the one
+          # path that is structurally not derivable from the manifest's contents.
+          PATHS+=("$(dirname "$PLUGIN_MANIFEST")")
+          TYPES+=("d")
+
           # Skills referenced by the plugin manifest (./skills/<name>/ -> skills/<name>)
           while IFS= read -r skill; do
             PATHS+=("skills/${skill}")
+            TYPES+=("d")
           done < <(jq -r '.extensions["com.github.awesome-copilot"].skills[]? | ltrimstr("./skills/") | rtrimstr("/")' "$PLUGIN_MANIFEST")
 
           printf '%s\n' "${PATHS[@]}" > /tmp/promote-paths.txt
           echo "Promotable paths:"; cat /tmp/promote-paths.txt
 
-          # Typed guard manifest: tags each entry as file (f) or directory (d) by
-          # construction, so the promotion path guard never has to infer this from
-          # on-disk presence (a deleted/missing file must stay a file, not fall back to
-          # directory-prefix matching).
           : > /tmp/promote-paths-typed.txt
           for i in "${!PATHS[@]}"; do
-            if [ "$i" -eq 0 ]; then
-              echo "f ${PATHS[$i]}" >> /tmp/promote-paths-typed.txt
-            else
-              echo "d ${PATHS[$i]}" >> /tmp/promote-paths-typed.txt
-            fi
+            echo "${TYPES[$i]} ${PATHS[$i]}" >> /tmp/promote-paths-typed.txt
           done
 
           git diff --quiet upstream/main origin/main -- "${PATHS[@]}" && {
@@ -159,7 +180,18 @@ jobs:
               fi
             done < /tmp/promote-paths-typed.txt
             case "$path" in
-              README.md|docs/README*.md|.github/plugin/marketplace.json)
+              # Exact, literal filenames only (no globs): this must match precisely what
+              # `npm run build` (eng/update-readme.mjs) writes, so a crafted file that
+              # merely resembles a generated doc (e.g. docs/README-evil.md) can't ride
+              # along under a loose wildcard.
+              README.md | \
+              docs/README.instructions.md | \
+              docs/README.agents.md | \
+              docs/README.hooks.md | \
+              docs/README.workflows.md | \
+              docs/README.skills.md | \
+              docs/README.plugins.md | \
+              .github/plugin/marketplace.json)
                 allowed=true
                 ;;
             esac
