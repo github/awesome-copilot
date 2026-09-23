@@ -72,8 +72,8 @@ The following are real, completed ignorance reduction plans. Study them to under
 ```markdown
 # Implementation plan: `@CopilotTool` ergonomics (issue #1682)
 
-Human DRI: Ed Burns  
-ADR: `java/docs/adr/adr-005-tool-definition.md`  
+Human DRI: Ed Burns<br>
+ADR: `java/docs/adr/adr-005-tool-definition.md`<br>
 Issue: https://github.com/github/copilot-sdk/issues/1682
 
 ---
@@ -268,9 +268,9 @@ After Phase 3 questions are resolved, implement in this order. Each step should 
 ```markdown
 # Implementation plan: Java Real Estate Agent Orchestrator Demo (dd-3017826)
 
-Human DRI: Ed Burns  
-Reference C# demo: `BRK206-00/src/AgentOrchestrator/`  
-Copilot SDK for Java: `copilot-sdk/java/` (version 1.0.7-SNAPSHOT)  
+Human DRI: Ed Burns<br>
+Reference C# demo: `BRK206-00/src/AgentOrchestrator/`<br>
+Copilot SDK for Java: `copilot-sdk/java/` (version 1.0.7-SNAPSHOT)<br>
 Related ADRs: `java/docs/adr/adr-005-tool-definition.md`, `java/docs/adr/adr-006-tool-definition-inline.md`
 
 ---
@@ -394,9 +394,9 @@ Options:
 ```markdown
 # Implementation plan: Python Real Estate Agent Orchestrator Demo (28-python-agent-demo)
 
-Human DRI: Ed Burns  
-Reference C# demo: `src/AgentOrchestrator/`  
-Reference Java demo: `src/java-agent-orchestrator/`  
+Human DRI: Ed Burns<br>
+Reference C# demo: `src/AgentOrchestrator/`<br>
+Reference Java demo: `src/java-agent-orchestrator/`<br>
 Python project root: `src/python_agent_orchestrator/`
 
 ---

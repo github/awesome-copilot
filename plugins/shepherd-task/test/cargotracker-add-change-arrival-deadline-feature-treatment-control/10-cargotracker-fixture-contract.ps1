@@ -47,7 +47,7 @@ $planBytes = [System.Text.UTF8Encoding]::new($false).GetBytes($plan)
 $planHash = [Convert]::ToHexString(
     [System.Security.Cryptography.SHA256]::HashData($planBytes)
 ).ToLowerInvariant()
-$expectedPlanHash = '773876d0013586a1eb29efe821be82f7ef12219ae4ba2b57f6f9dda568b8c703'
+$expectedPlanHash = '8dba7def4e2c8e9ff3218dcaa77ea85c94a1468106e26f5315baf8008934f229'
 if ($planHash -ne $expectedPlanHash) {
     throw "Embedded Cargo Tracker plan hash '$planHash' does not match '$expectedPlanHash'."
 }

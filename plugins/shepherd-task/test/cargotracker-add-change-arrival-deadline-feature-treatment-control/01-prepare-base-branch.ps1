@@ -135,13 +135,13 @@ $planFile = 'add-change-arrival-deadline-feature-ignorance-reduction-plan.md'
 $plan = @'
 # Implementation plan: Change Arrival Deadline Date (`eclipse-ee4j/cargotracker#64`)
 
-Human DRI: Ed Burns  
-Starting commit: `9b9f311b2a3a2854bdac947593950d9edb6bca7d` (`Make the system ready for implementation`)  
-Working directory: `/home/edburns/workareas/cargotracker-01/`  
-Runtime baseline: Java 17, Java EE 7 (`javax.*`), Open Liberty 26.0.0.8, PrimeFaces 8.0  
-Baseline run instructions: `README.md`  
-Baseline preparation prompt: `dd-3058828-cargotracker-remove-before-merge/20260902-make-e7b651f-run-with-production-baseline.md`  
-Historical issue: `eclipse-ee4j/cargotracker#64`  
+Human DRI: Ed Burns<br>
+Starting commit: `9b9f311b2a3a2854bdac947593950d9edb6bca7d` (`Make the system ready for implementation`)<br>
+Working directory: `/home/edburns/workareas/cargotracker-01/`<br>
+Runtime baseline: Java 17, Java EE 7 (`javax.*`), Open Liberty 26.0.0.8, PrimeFaces 8.0<br>
+Baseline run instructions: `README.md`<br>
+Baseline preparation prompt: `dd-3058828-cargotracker-remove-before-merge/20260902-make-e7b651f-run-with-production-baseline.md`<br>
+Historical issue: `eclipse-ee4j/cargotracker#64`<br>
 
 Related directories and files:
 
@@ -319,7 +319,7 @@ RouteSpecification specification = new RouteSpecification(
         cargo.getOrigin(),
         cargo.getRouteSpecification().getDestination(),
         deadline);
-        
+
 cargo.specifyNewRoute(specification);
 cargoRepository.store(cargo);
 ```

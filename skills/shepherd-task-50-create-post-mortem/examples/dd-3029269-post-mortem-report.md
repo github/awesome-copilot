@@ -1,8 +1,8 @@
 # Post-Mortem Report: Agentic Development of Epic [#2](https://github.com/edburns/Build26-BRK206-your-agent-anywhere-multiclient-multidevice-with-github-copilot-sdk/issues/2)
 
-**Epic:** [Java demo implementation](https://github.com/edburns/Build26-BRK206-your-agent-anywhere-multiclient-multidevice-with-github-copilot-sdk/issues/2)  
-**Report generated:** 2026-07-09  
-**Period covered:** 2026-07-08 16:03 UTC → 2026-07-09 13:02 UTC  
+**Epic:** [Java demo implementation](https://github.com/edburns/Build26-BRK206-your-agent-anywhere-multiclient-multidevice-with-github-copilot-sdk/issues/2)<br>
+**Report generated:** 2026-07-09<br>
+**Period covered:** 2026-07-08 16:03 UTC → 2026-07-09 13:02 UTC<br>
 
 ## Table of Contents
 

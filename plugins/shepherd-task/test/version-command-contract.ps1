@@ -5,10 +5,10 @@ $ErrorActionPreference = 'Stop'
 $pluginRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) "shepherd-version-command-$([guid]::NewGuid().ToString('N'))"
 $utf8NoBom = [Text.UTF8Encoding]::new($false)
-$sourcePlugin = Get-Content -LiteralPath (Join-Path $pluginRoot 'plugin.json') -Raw | ConvertFrom-Json
-$currentVersion = [string]$sourcePlugin.version
+$sourceManifest = Get-Content -LiteralPath (Join-Path $pluginRoot 'plugin.json') -Raw | ConvertFrom-Json
+$currentVersion = [string]$sourceManifest.version
 $currentSchemaVersion = [regex]::Match(
-    [string]$sourcePlugin.'$schema',
+    [string]$sourceManifest.'$schema',
     '/schemas/([^/]+)/plugin\.schema\.json$'
 ).Groups[1].Value
 
@@ -17,7 +17,7 @@ function Copy-InstalledVersionCommand {
 
     New-Item -ItemType Directory -Path $Destination | Out-Null
     Copy-Item -LiteralPath (Join-Path $pluginRoot 'plugin.json') -Destination (Join-Path $Destination 'plugin.json')
-    foreach ($pluginReference in $sourcePlugin.extensions.'com.github.awesome-copilot'.pluginFiles) {
+    foreach ($pluginReference in $sourceManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
         $relativePath = ([string]$pluginReference).Substring(2).TrimEnd('/')
         $sourcePath = Join-Path $pluginRoot $relativePath
         $destinationPath = Join-Path $Destination $relativePath

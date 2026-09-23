@@ -16,9 +16,9 @@ This skill is designed to be invoked from `shepherd-task-25-given-list.ps1` / `s
 
 ## Inputs
 
-- `SHEPHERD_LOG_DIR` (**required**)  
+- `SHEPHERD_LOG_DIR` (**required**)
   Absolute path to the shepherd run log directory (for example: `C:\workareas\campaign\shepherd-tasks-20260718-1827`).
-- `SCRIPT_EXIT_CODE` (optional but recommended)  
+- `SCRIPT_EXIT_CODE` (optional but recommended)
   Exit code from the caller script, to classify success vs failure.
 - `TASK_ISSUES` (optional)
 - `BASE_BRANCH` (optional)
@@ -43,9 +43,9 @@ Use local time for `YYYYMMDD-HHMM`.
 
 Use both of these as concrete examples:
 
-1. `examples/dd-3029269-post-mortem-report.md`  
+1. `examples/dd-3029269-post-mortem-report.md`
    (prior complete Java post-mortem; canonical sectioning and depth)
-2. `examples/28-python-agent-demo-post-mortem.md`  
+2. `examples/28-python-agent-demo-post-mortem.md`
    (Python shepherd-task run post-mortem)
 
 Match their structure and tone: concise executive summary, clear sectioning, metrics tables, explicit timeline, and action-oriented recommendations.
@@ -84,21 +84,21 @@ Given `SHEPHERD_LOG_DIR`:
 
 ## Report Structure (required)
 
-1. **Section 1: Executive Summary**  
+1. **Section 1: Executive Summary**
    High-level outcome, completion rate, elapsed time, key totals.
-2. **Section 2: System Architecture**  
+2. **Section 2: System Architecture**
    CCA, CCRA, Local Copilot CLI responsibilities.
-3. **Section 3: Per-Task Metrics**  
+3. **Section 3: Per-Task Metrics**
    Table with issue, PR, phase timings, rounds, comments, result.
-4. **Section 4: Aggregate Statistics**  
+4. **Section 4: Aggregate Statistics**
    Totals/averages and convergence signals.
-5. **Section 5: AI Credits and Token Usage**  
+5. **Section 5: AI Credits and Token Usage**
    Include measured values; state clearly when data is unavailable.
-6. **Section 6: Wall-Clock Timeline**  
+6. **Section 6: Wall-Clock Timeline**
    Batch windows and notable events.
-7. **Section 7: Failure Analysis (if any)**  
+7. **Section 7: Failure Analysis (if any)**
    Root cause(s), evidence, and fixes.
-8. **Section 8: Observations and Recommendations**  
+8. **Section 8: Observations and Recommendations**
    What worked, what failed, and specific script/skill improvements.
 
 Use Markdown tables for metrics and keep assertions tied to observable logs.

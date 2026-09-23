@@ -1,8 +1,8 @@
 # Post-Mortem Report: Shepherd-Task Runs for Python Demo Tasks [#34-#39](https://github.com/edburns/Build26-BRK206-your-agent-anywhere-multiclient-multidevice-with-github-copilot-sdk/issues)
 
-**Campaign:** Python agent demo shepherding in `28-python-agent-demo-remove-before-merge`  
-**Report generated:** 2026-07-20  
-**Period covered:** 2026-07-17 19:34 ET -> 2026-07-18 22:34 ET  
+**Campaign:** Python agent demo shepherding in `28-python-agent-demo-remove-before-merge`<br>
+**Report generated:** 2026-07-20<br>
+**Period covered:** 2026-07-17 19:34 ET -> 2026-07-18 22:34 ET<br>
 **Primary successful batch:** `shepherd-tasks-20260718-1827`
 
 ## Table of Contents

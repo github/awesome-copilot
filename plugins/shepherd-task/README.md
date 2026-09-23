@@ -74,7 +74,7 @@ instructions expected by stage 30.
   the child issues.
 
 ## Repository prerequisites
-  
+
 - Enable and configure Copilot Coding Agent and Copilot code review in the
   repository.
 - Enable GitHub Actions.
