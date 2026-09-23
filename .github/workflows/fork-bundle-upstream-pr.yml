@@ -51,6 +51,7 @@ jobs:
 
       - name: Compute unpromoted delta
         id: delta
+        shell: bash
         run: |
           # Paths that belong to this agent, derived from plugin.json itself rather
           # than duplicated as literals, so the guard can't silently drift from the
@@ -67,12 +68,22 @@ jobs:
           # agents/<name>.agent.md, but plugin.json's agents[] entries reference them
           # as ./agents/<name>.md (the ".agent" suffix is dropped by convention; see
           # eng/materialize-plugins.mjs and eng/validate-plugins.mjs, which apply the
-          # same ".md" -> ".agent.md" transform).
+          # same ".md" -> ".agent.md" transform). Fail closed on any entry that
+          # doesn't match this exact shape, rather than silently mis-deriving a path
+          # (e.g. a missing "./" prefix would otherwise produce agents/agents/foo.md).
           while IFS= read -r agent_rel; do
-            agent_base="${agent_rel#./agents/}"
-            agent_base="${agent_base%.md}"
-            PATHS+=("agents/${agent_base}.agent.md")
-            TYPES+=("f")
+            case "$agent_rel" in
+              ./agents/*.md)
+                agent_base="${agent_rel#./agents/}"
+                agent_base="${agent_base%.md}"
+                PATHS+=("agents/${agent_base}.agent.md")
+                TYPES+=("f")
+                ;;
+              *)
+                echo "::error file=$PLUGIN_MANIFEST::Unexpected agents[] entry '$agent_rel'; expected the form ./agents/<name>.md."
+                exit 1
+                ;;
+            esac
           done < <(jq -r '.extensions["com.github.awesome-copilot"].agents[]?' "$PLUGIN_MANIFEST")
 
           if [ "${#PATHS[@]}" -eq 0 ]; then
@@ -86,11 +97,26 @@ jobs:
           PATHS+=("$(dirname "$PLUGIN_MANIFEST")")
           TYPES+=("d")
 
-          # Skills referenced by the plugin manifest (./skills/<name>/ -> skills/<name>)
-          while IFS= read -r skill; do
+          # Skills referenced by the plugin manifest (./skills/<name>/ -> skills/<name>).
+          # Same fail-closed shape check as agents above: don't rely on jq's
+          # ltrimstr()/rtrimstr() silently no-op'ing on an unexpected prefix.
+          while IFS= read -r skill_rel; do
+            case "$skill_rel" in
+              ./skills/*/)
+                skill="${skill_rel#./skills/}"
+                skill="${skill%/}"
+                ;;
+              ./skills/*)
+                skill="${skill_rel#./skills/}"
+                ;;
+              *)
+                echo "::error file=$PLUGIN_MANIFEST::Unexpected skills[] entry '$skill_rel'; expected the form ./skills/<name>/."
+                exit 1
+                ;;
+            esac
             PATHS+=("skills/${skill}")
             TYPES+=("d")
-          done < <(jq -r '.extensions["com.github.awesome-copilot"].skills[]? | ltrimstr("./skills/") | rtrimstr("/")' "$PLUGIN_MANIFEST")
+          done < <(jq -r '.extensions["com.github.awesome-copilot"].skills[]?' "$PLUGIN_MANIFEST")
 
           printf '%s\n' "${PATHS[@]}" > /tmp/promote-paths.txt
           echo "Promotable paths:"; cat /tmp/promote-paths.txt
