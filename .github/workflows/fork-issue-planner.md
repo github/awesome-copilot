@@ -1,5 +1,5 @@
 ---
-description: 'Fork-only: when the repo owner opens an issue, grill the requirements, draft an implementation plan with a skeptical critique, and open a draft plan PR'
+description: 'Fork-only: when the repo owner opens an issue, grill the requirements, draft an advisory implementation plan, and open a draft plan PR'
 on:
   issues:
     types: [opened]
@@ -118,11 +118,6 @@ Required sections, in order:
   - *Assumptions I am making* — every assumption you had to make to plan at all. This is the most important list in the document.
 - **Plan** — the concrete implementation. For each change: the exact file path, what changes, and roughly where (section heading or line range). No hand-waving — "refine the instructions" is not a plan; "add a *Sequences and identity columns* section after *Type mapping*, covering `NEXTVAL` syntax and `GENERATED … AS IDENTITY`" is. Include the semver level for the `plugin.json` bump (patch for wording, minor for new capability or skill, major for behaviour-breaking) and why.
 - **Acceptance criteria** — a checklist the maintainer can tick off to decide the issue is done.
-- **Skeptic's report** — now argue against your own plan, hard. Adopt the persona in `.github/agents/plan-skeptic.agent.md`: blunt, no flattery, no manufactured concerns. Sub-sections:
-  - *Strengths* — 2–3 bullets.
-  - *Concerns* — ordered most severe first; each with **Issue**, **Why it matters**, **Suggested fix**.
-  - *Confidence* — exactly one of **High**, **Medium**, **Low**, with a one-line justification.
-  If the skeptic pass genuinely changes your mind about the plan, go back and fix the **Plan** section rather than leaving a contradiction in the document.
 - **Open questions** — the questions only the maintainer can answer, each with the options you see and which one you would pick. These are repeated verbatim in Output 2.
 - **Verification** — the commands that prove the change is sound: `npm run build`, `bash eng/fix-line-endings.sh`, `npm run skill:validate`, `npm run plugin:validate`, plus anything domain-specific.
 
@@ -130,7 +125,7 @@ Then emit `create_pull_request` with:
 
 - `branch`: `plan/issue-<N>`
 - `title`: `plan: issue #<N> — <short description>` (the `[plan] ` prefix is added for you)
-- `body`: a short summary — the scope classification, the skeptic's confidence level, the open-questions count, and a line linking the issue as `Refs #<N>` (**not** `Fixes` — this PR must not close the issue). End with: _"Advisory seed. Resume this branch with the Development Orchestrator agent; rewrite the plan freely."_
+- `body`: a short summary — the scope classification, the open-questions count, and a line linking the issue as `Refs #<N>` (**not** `Fixes` — this PR must not close the issue). End with: _"Advisory seed. Resume this branch with the Development Orchestrator agent; rewrite the plan freely."_
 
 ## Output 2 — comment on the issue (always)
 
@@ -149,7 +144,7 @@ Comment contents, in order:
 
 - One line: a Markdown link to the draft PR using the exact URL returned by `create_pull_request`, followed by the scope classification.
 - **Open questions** — copy the complete `## Open questions` list from the finished plan verbatim, preserving its wording, options, formatting, and recommendation text; do not rewrite it as a summary, change `I would pick` to another recommendation label, or add/remove questions. This is the point of the comment: the maintainer answers here, in the issue, and the orchestrator picks the answers up later.
-- **Biggest risk** — a single bullet: the one concern from the skeptic's report most likely to sink the change.
+- **Material risk** — a single bullet naming a concrete risk from the plan's ambiguities, assumptions, or constraints, if one was identified; otherwise say "No material risk identified." Do not invent one to fill this slot.
 - One line telling the maintainer how to continue: check out `plan/issue-<N>` and run the Development Orchestrator agent against issue #<N>.
 
 ## Rules
