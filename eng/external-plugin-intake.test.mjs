@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import http from "node:http";
 import { afterEach, test } from "node:test";
 import {
+  applyQualityGateResult,
   evaluateExternalPluginIssue,
   PinnedAddressDispatcher,
   validateCanvasPluginMetadata,
@@ -14,6 +15,34 @@ const PLUGIN_ROOT = "plugins/upgrade-agent";
 const TREE_PLUGINS = "tree-plugins";
 const TREE_UPGRADE_AGENT = "tree-upgrade-agent";
 const TREE_EXTENSIONS = "tree-extensions";
+
+test("applyQualityGateResult links the full quality log artifact", () => {
+  const artifactUrl = "https://github.com/github/awesome-copilot/actions/runs/123/artifacts/456";
+  const result = applyQualityGateResult(
+    {
+      valid: true,
+      plugin: {
+        name: "example-plugin",
+        repository: "https://github.com/example/plugin",
+        source: { repo: "example/plugin", ref: "v1.0.0" },
+      },
+      warnings: [],
+    },
+    {
+      overall_status: "fail",
+      failure_class: "submitter_fixes",
+      vally_lint_status: "fail",
+      vally_lint_output: "...output truncated...",
+    },
+    123,
+    "github",
+    "awesome-copilot",
+    artifactUrl,
+  );
+
+  assert.match(result.commentBody, /Download full quality gate logs/);
+  assert.match(result.commentBody, new RegExp(artifactUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
 
 function fileNode(content) {
   return { type: "file", content: Buffer.from(content, "utf8").toString("base64") };

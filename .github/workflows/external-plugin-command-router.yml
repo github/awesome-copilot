@@ -767,6 +767,7 @@ jobs:
           BASE_RESULT_JSON: ${{ needs.rerun-intake-parse.outputs.base-result }}
           BASE_VALID: ${{ needs.rerun-intake-parse.outputs.valid }}
           QUALITY_RESULT_JSON: ${{ needs.rerun-intake-quality-gates.outputs.quality-result }}
+          QUALITY_LOG_URL: ${{ needs.rerun-intake-quality-gates.outputs.quality-log-url }}
           QUALITY_JOB_RESULT: ${{ needs.rerun-intake-quality-gates.result }}
           ISSUE_STATE: ${{ needs.rerun-intake-parse.outputs.issue-state }}
           ISSUE_LABELS: ${{ needs.rerun-intake-parse.outputs.issue-labels }}
@@ -809,7 +810,14 @@ jobs:
                 };
               }
 
-              finalResult = intake.applyQualityGateResult(baseResult, qualityResult, context.runId, context.repo.owner, context.repo.repo);
+              finalResult = intake.applyQualityGateResult(
+                baseResult,
+                qualityResult,
+                context.runId,
+                context.repo.owner,
+                context.repo.repo,
+                process.env.QUALITY_LOG_URL
+              );
             }
 
             await intakeState.applyExternalPluginIntakeEvaluation({
