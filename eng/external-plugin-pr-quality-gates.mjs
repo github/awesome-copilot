@@ -96,7 +96,8 @@ function createLogFilePath(logsDirectory, pluginName, index) {
   const safeName = String(pluginName || "unknown")
     .toLowerCase()
     .replace(/[^a-z0-9.-]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "unknown";
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64) || "unknown";
   return path.join(logsDirectory, `${String(index + 1).padStart(2, "0")}-${safeName}.log`);
 }
 
