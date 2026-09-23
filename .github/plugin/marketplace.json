@@ -1058,7 +1058,7 @@
     {
       "name": "github-copilot-modernization",
       "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator → coordinators → executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
-      "version": "1.23.0",
+      "version": "1.24.0",
       "author": {
         "name": "Microsoft",
         "url": "https://github.com/microsoft/github-copilot-modernization"
@@ -1082,7 +1082,7 @@
         "source": "github",
         "repo": "microsoft/github-copilot-modernization",
         "path": "plugins/github-copilot-modernization",
-        "sha": "5d2a3268d816f794defb03a45cf527360b16071e"
+        "sha": "a9c9469d86e9dc078018e8fb391abc7744088078"
       }
     },
     {
@@ -1207,7 +1207,7 @@
     {
       "name": "microsoft-foundry",
       "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-      "version": "1.0.13",
+      "version": "1.0.14",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -1228,7 +1228,7 @@
         "source": "github",
         "repo": "microsoft/foundry-dev-tools",
         "path": "microsoft-foundry",
-        "sha": "06c4e486af9588d4d7fea8d413a13debe78b1453"
+        "sha": "5fd2e70c47ebdd888e537713cd002ef275bef405"
       }
     },
     {

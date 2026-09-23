@@ -16,6 +16,7 @@ Repository overlay (optional):
 Read only the files you need:
 Load these files from `github/gh-aw` (they are not available locally).
 - `.github/aw/action-container-substitutions.md`
+- `.github/aw/agent-runtime-instructions.md`
 - `.github/aw/agentic-chat.md`
 - `.github/aw/agentic-workflows-mcp.md`
 - `.github/aw/asciicharts.md`
@@ -23,6 +24,7 @@ Load these files from `github/gh-aw` (they are not available locally).
 - `.github/aw/charts-trending.md`
 - `.github/aw/charts.md`
 - `.github/aw/cli-commands.md`
+- `.github/aw/compat.md`
 - `.github/aw/configure-agentic-engine.md`
 - `.github/aw/context.md`
 - `.github/aw/create-agentic-workflow-trigger-details.md`
@@ -31,13 +33,19 @@ Load these files from `github/gh-aw` (they are not available locally).
 - `.github/aw/debug-agentic-workflow.md`
 - `.github/aw/dependabot.md`
 - `.github/aw/deployment-status.md`
+- `.github/aw/designer-mappings.md`
 - `.github/aw/designer.md`
+- `.github/aw/drive-memory.md`
+- `.github/aw/enclaves.md`
 - `.github/aw/evals.md`
 - `.github/aw/experiments.md`
 - `.github/aw/github-agentic-workflows.md`
 - `.github/aw/github-mcp-server-pagination.md`
+- `.github/aw/github-mcp-server-tools.md`
 - `.github/aw/github-mcp-server.md`
 - `.github/aw/instructions.md`
+- `.github/aw/intent.md`
+- `.github/aw/jobs.md`
 - `.github/aw/linter-workflows.md`
 - `.github/aw/llms.md`
 - `.github/aw/loop.md`
@@ -51,6 +59,7 @@ Load these files from `github/gh-aw` (they are not available locally).
 - `.github/aw/network.md`
 - `.github/aw/optimize-agentic-workflow.md`
 - `.github/aw/patterns.md`
+- `.github/aw/playwright.md`
 - `.github/aw/pr-reviewer.md`
 - `.github/aw/release-workflow.md`
 - `.github/aw/report.md`
@@ -98,5 +107,6 @@ After loading the matching workflow prompt or skill, follow it directly:
 - Choose workflow architecture and patterns: `.github/aw/patterns.md`
 - Optimize token usage and cost: `.github/aw/token-optimization.md`
 - Design long-running multi-agent research workflows: `.github/aw/multi-agent-research.md`
+- Add skills or agent plugins requested by the user (`skills:` / `plugins:` frontmatter, never on-the-fly installs): `.github/aw/skills.md`
 
 When the task involves OTEL, OTLP, traces, observability backends, or telemetry-driven analysis, also read and follow `skills/otel-queries/SKILL.md` after loading the matching workflow prompt or skill.
