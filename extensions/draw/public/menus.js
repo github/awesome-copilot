@@ -1,0 +1,286 @@
+// Top bar menus: drawings, theme, export, Ask Copilot, and the shortcuts help.
+import { icon } from "./icons.js";
+import { esc, blobToBase64, fileName } from "./util.js";
+
+const $ = (id) => document.getElementById(id);
+
+const CHIPS = ["Tidy up the layout", "What is missing?", "Explain this diagram", "Suggest improvements"];
+
+const THEME_CHOICES = [
+  ["app", "contrast", "Match app"],
+  ["light", "sun", "Light"],
+  ["dark", "moon", "Dark"],
+];
+
+const HELP = [
+  [["V", "H"], "Select, pan"],
+  [["R", "O", "D", "C"], "Rectangle, ellipse, diamond, database"],
+  [["A", "T", "P"], "Arrow, text, pen"],
+  ["Click +", "Add the next connected shape"],
+  ["Drag +", "Connect to a shape, or drop to add one"],
+  [["Tab"], "Add the next step (Shift+Tab adds a sibling)"],
+  [["Enter"], "Edit the label (or double-click it)"],
+  ["Double-click", "Empty space adds text"],
+  [["Ctrl+Arrow"], "Add a shape in that direction"],
+  [["Arrows"], "Nudge (Alt: 1px, Shift: 50px)"],
+  ["Shift+drag", "Keep proportions or lock the axis"],
+  ["Alt+drag", "Turn off snapping"],
+  ["Space+drag", "Pan (scrolling pans too)"],
+  ["Ctrl+scroll", "Zoom"],
+  [["Shift+1"], "Fit the drawing"],
+  [["Ctrl+Z"], "Undo (Ctrl+Shift+Z redoes)"],
+  [["Ctrl+C", "Ctrl+V", "Ctrl+D"], "Copy, paste, duplicate"],
+  [["Del"], "Delete the selection"],
+];
+
+const menuItem = (act, iconName, label, cls = "") =>
+  `<button type="button" class="menu-item ${cls}" role="menuitem" data-act="${act}">${icon(iconName)}<span class="grow">${label}</span></button>`;
+
+export function attachMenus(ui) {
+  const ed = ui.ed;
+
+  async function drawingsAction(body) {
+    try {
+      await ui.sync.flush(true);
+      const res = await ui.sync.post("drawings", body);
+      ui.setDrawings(res.drawings);
+      if (res.drawing.id !== ui.sync.drawingId) await ui.sync.switchTo(res.drawing);
+      else ui.setDoc(res.drawing);
+      return res;
+    } catch (err) {
+      ui.toast(err.message, { error: true });
+      return null;
+    }
+  }
+
+  async function reveal(path) {
+    try {
+      await ui.sync.post("reveal", { path });
+    } catch (err) {
+      ui.toast(err.message, { error: true });
+    }
+  }
+
+  function openDrawingsMenu() {
+    ui.togglePopover($("doc-button"), (pop, close) => {
+      const cur = ui.doc && ui.doc.id;
+      const list = ui.drawings.map((d) => {
+        const count = d.id === cur ? ed.elements.length : d.count;
+        return `<button type="button" class="menu-item${d.id === cur ? " is-current" : ""}" role="menuitem" data-open="${esc(d.id)}">` +
+          `<span class="grow">${esc(d.name)}</span><span class="meta">${count} item${count === 1 ? "" : "s"}</span></button>`;
+      }).join("");
+      const render = () => {
+        pop.innerHTML =
+          `<div class="menu-label">Drawings in this session</div>${list}<div class="menu-rule"></div>` +
+          menuItem("new", "plus", "New drawing") + menuItem("rename", "edit", "Rename") +
+          menuItem("duplicate", "duplicate", "Duplicate") + menuItem("reveal", "folder", "Show in folder") +
+          `<div class="menu-rule"></div>${menuItem("delete", "trash", "Delete drawing", "danger")}`;
+      };
+      render();
+      pop.addEventListener("click", async (e) => {
+        const b = e.target.closest("button");
+        if (!b) return;
+        if (b.dataset.open) {
+          close();
+          if (b.dataset.open !== cur) drawingsAction({ action: "open", id: b.dataset.open });
+          return;
+        }
+        const act = b.dataset.act;
+        if (act === "new") {
+          close();
+          drawingsAction({ action: "new" });
+        } else if (act === "rename") {
+          close();
+          startRename();
+        } else if (act === "duplicate") {
+          close();
+          const res = await drawingsAction({ action: "duplicate", id: cur });
+          if (res) ui.toast(`Made a copy: ${res.drawing.name}`);
+        } else if (act === "reveal") {
+          close();
+          reveal(`${ui.folder}/${cur}.json`);
+        } else if (act === "delete") {
+          pop.innerHTML =
+            `<div class="menu-note">Delete "${esc(ui.doc.name)}"? This cannot be undone.</div>` +
+            '<div class="menu-actions"><button type="button" class="btn" data-act="cancel">Cancel</button>' +
+            '<button type="button" class="btn btn-danger" data-act="confirm-delete">Delete</button></div>';
+          pop.querySelector("[data-act=cancel]").focus();
+        } else if (act === "cancel") {
+          close();
+        } else if (act === "confirm-delete") {
+          const name = ui.doc.name;
+          close();
+          const res = await drawingsAction({ action: "delete", id: cur });
+          if (res) ui.toast(`Deleted "${name}".`);
+        }
+      });
+      pop.querySelector(".is-current, .menu-item")?.focus();
+    }, { className: "menu", role: "menu" });
+  }
+
+  function startRename() {
+    const button = $("doc-button");
+    const input = $("doc-rename");
+    input.value = ui.doc ? ui.doc.name : "";
+    button.hidden = true;
+    input.hidden = false;
+    input.focus();
+    input.select();
+    let finished = false;
+    const finish = async (save) => {
+      if (finished) return;
+      finished = true;
+      input.hidden = true;
+      button.hidden = false;
+      const name = input.value.trim();
+      if (save && name && ui.doc && name !== ui.doc.name) await drawingsAction({ action: "rename", id: ui.doc.id, name });
+      ed.stage.focus({ preventScroll: true });
+    };
+    input.onkeydown = (e) => {
+      e.stopPropagation();
+      if (e.key === "Enter") {
+        e.preventDefault();
+        finish(true);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        finish(false);
+      }
+    };
+    input.onblur = () => finish(true);
+  }
+
+  function openExportMenu() {
+    ui.togglePopover($("export-button"), (pop, close) => {
+      pop.innerHTML =
+        menuItem("copy", "copy", "Copy as image") + menuItem("png", "download", "Save as PNG") + menuItem("svg", "download", "Save as SVG") +
+        '<div class="menu-rule"></div><div class="menu-note">Files go in this session\'s drawings folder.</div>';
+      pop.addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-act]");
+        if (!b) return;
+        close();
+        exportAs(b.dataset.act);
+      });
+      pop.querySelector(".menu-item").focus();
+    }, { className: "menu", role: "menu", align: "end" });
+  }
+
+  async function exportAs(kind) {
+    if (!ed.elements.length) {
+      ui.toast("Draw something first.");
+      return;
+    }
+    let note = "Saved";
+    if (kind === "copy") {
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.write || typeof ClipboardItem === "undefined") throw new Error("unsupported");
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": ed.exportPNG() })]);
+        ui.toast("Copied the drawing as an image.");
+        return;
+      } catch {
+        kind = "png";
+        note = "Copying images is blocked here, so it was saved";
+      }
+    }
+    try {
+      const data = kind === "svg" ? ed.exportSVG() : await blobToBase64(await ed.exportPNG());
+      const res = await ui.sync.post("export", { drawingId: ui.doc.id, format: kind, data });
+      ui.toast(`${note} as ${fileName(res.path)}`, { action: { label: "Show in folder", run: () => reveal(res.path) } });
+    } catch (err) {
+      ui.toast(`Export failed: ${err.message}`, { error: true });
+    }
+  }
+
+  function openAsk() {
+    ui.togglePopover($("ask-button"), (pop, close) => {
+      pop.innerHTML =
+        '<p class="ask-title">Ask Copilot about this drawing</p>' +
+        '<p class="ask-sub">Copilot gets a picture of the drawing and can change it for you.</p>' +
+        '<textarea rows="3" aria-label="Your question" placeholder="For example: add a cache between the API and the database"></textarea>' +
+        `<div class="chips">${CHIPS.map((c) => `<button type="button" class="chip">${esc(c)}</button>`).join("")}</div>` +
+        '<div class="ask-foot"><span class="ask-hint">Ctrl+Enter to send</span><button type="button" class="btn btn-primary" data-send>Send</button></div>';
+      const ta = pop.querySelector("textarea");
+      const send = pop.querySelector("[data-send]");
+      ta.value = ui.askDraft || "";
+      ta.addEventListener("input", () => {
+        ui.askDraft = ta.value;
+      });
+      pop.querySelector(".chips").addEventListener("click", (e) => {
+        const chip = e.target.closest(".chip");
+        if (!chip) return;
+        ta.value = chip.textContent;
+        ui.askDraft = ta.value;
+        ta.focus();
+      });
+      const submit = async () => {
+        const text = ta.value.trim();
+        if (!text) {
+          ta.focus();
+          return;
+        }
+        send.disabled = true;
+        send.textContent = "Sending";
+        try {
+          await ui.sync.flush(true);
+          const png = ed.elements.length ? await blobToBase64(await ed.exportPNG(2, 2000)) : "";
+          await ui.sync.post("ask", { drawingId: ui.doc.id, text, png });
+          ui.askDraft = "";
+          close();
+          ui.toast("Sent to Copilot. The answer shows up in the chat.");
+        } catch (err) {
+          send.disabled = false;
+          send.textContent = "Send";
+          ui.toast(err.message, { error: true });
+        }
+      };
+      send.addEventListener("click", submit);
+      ta.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          submit();
+        }
+      });
+      setTimeout(() => ta.focus(), 0);
+    }, { className: "ask", align: "end" });
+  }
+
+  function openThemeMenu() {
+    ui.togglePopover($("theme-button"), (pop, close) => {
+      const cur = ui.themeMode();
+      pop.innerHTML = '<div class="menu-label">Theme</div>' + THEME_CHOICES.map(([mode, iconName, label]) =>
+        `<button type="button" class="menu-item" role="menuitemradio" aria-checked="${mode === cur}" data-mode="${mode}">` +
+        `${icon(iconName)}<span class="grow">${label}</span><span class="tick">${mode === cur ? icon("check") : ""}</span></button>`,
+      ).join("");
+      pop.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-mode]");
+        if (!b) return;
+        close();
+        ui.setThemeMode(b.dataset.mode);
+      });
+      pop.querySelector('[aria-checked="true"]')?.focus();
+    }, { className: "menu", role: "menu", align: "end" });
+  }
+
+  function syncThemeButton() {
+    const [, iconName, label] = THEME_CHOICES.find(([mode]) => mode === ui.themeMode()) || THEME_CHOICES[0];
+    const b = $("theme-button");
+    b.innerHTML = icon(iconName);
+    b.title = `Theme: ${label}`;
+    b.setAttribute("aria-label", `Theme: ${label}`);
+  }
+
+  function toggleHelp() {
+    ui.togglePopover($("help-button"), (pop) => {
+      const keys = (k) => (Array.isArray(k) ? k.map((s) => `<kbd>${esc(s)}</kbd>`).join(" ") : esc(k));
+      pop.innerHTML = `<h2>Shortcuts</h2><dl>${HELP.map(([k, d]) => `<dt>${keys(k)}</dt><dd>${esc(d)}</dd>`).join("")}</dl>`;
+    }, { className: "help", placement: "above" });
+  }
+
+  $("doc-button").addEventListener("click", openDrawingsMenu);
+  $("theme-button").addEventListener("click", openThemeMenu);
+  $("export-button").addEventListener("click", openExportMenu);
+  $("ask-button").addEventListener("click", openAsk);
+  $("help-button").addEventListener("click", toggleHelp);
+  ui.toggleHelp = toggleHelp;
+  ui.startRename = startRename;
+  ui.syncThemeButton = syncThemeButton;
+}
