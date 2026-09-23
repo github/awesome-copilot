@@ -22,7 +22,7 @@ Rerendering, event, and virtualization guidance applies to components that rende
 ## Understand When Blazor Rerenders
 
 - After an event handler runs, `ComponentBase` rerenders the component that owns the handler. Each child then receives a new set of parameters and rerenders too, recursively, unless change detection proves nothing changed or its `ShouldRender` returns `false`.
-- Change detection skips a child only when **every** parameter is a known immutable type whose value hasn't changed. Currently these are primitives (`bool`, `char`, integral types, `float`, `double`), `decimal`, `string`, `DateTime`, enums, `Guid`, `DateOnly`, `TimeOnly`, `EventCallback`, and `EventCallback<T>`. The framework can change this list between releases.
+- Change detection skips a child only when **every** parameter is a known immutable type whose value hasn't changed. On .NET 8 and later these are primitives (`bool`, `char`, integral types, `float`, `double`), `decimal`, `string`, `DateTime`, enums, `Guid`, `EventCallback`, and `EventCallback<T>`. .NET 10 adds `DateOnly` and `TimeOnly`. The framework can change this list between releases.
 - Any other parameter type counts as "may have changed" on every parent render, even when the value is identical. This includes records, `DateTimeOffset`, `TimeSpan`, tuples, custom structs, collections, class instances, and `RenderFragment` (so any component that takes `ChildContent`).
 - `ShouldRender` is not consulted for the first render. A component always renders when it's first added to the tree.
 
@@ -72,12 +72,12 @@ Rerendering, event, and virtualization guidance applies to components that rende
 - Inside a `<tbody>`, set `SpacerElement="tr"` and render one `<tr>` per item.
 - Provide `<Placeholder>` content when items load asynchronously and `<EmptyContent>` for empty results.
 - Call `RefreshDataAsync()` on the `Virtualize` reference when data behind an `ItemsProvider` changes. If that happens outside a Blazor event or lifecycle method, wrap the refresh and `StateHasChanged()` in `InvokeAsync`.
-- Make the scroll container focusable (for example `tabindex="-1"`) so keyboard scrolling works in Chromium-based browsers.
+- Make the scroll container focusable so keyboard scrolling works in Chromium-based browsers. Use `tabindex="0"` so keyboard users can tab to a standalone scroll region, and give it an accessible name (`role="region" aria-label="Orders"`). Reserve `tabindex="-1"` for containers that code focuses explicitly.
 
 ```razor
 @inject IOrderService Orders
 
-<div style="height: 600px; overflow-y: auto" tabindex="-1">
+<div style="height: 600px; overflow-y: auto" tabindex="0" role="region" aria-label="Orders">
     <Virtualize ItemsProvider="LoadOrdersAsync" ItemSize="48" Context="order">
         <ItemContent>
             <OrderRow @key="order.Id" OrderId="order.Id" Customer="@order.Customer" Total="order.Total" />
