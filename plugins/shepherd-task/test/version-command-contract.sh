@@ -7,9 +7,9 @@ test_root="$(cd "$(dirname "$0")" && pwd)"
 plugin_root="$(cd "$test_root/.." && pwd)"
 temp_root="$(mktemp -d)"
 trap 'rm -rf "$temp_root"' EXIT
-current_version="$(jq -r '.version' "$plugin_root/plugin.json")"
+current_version="$(jq -b -r '.version' "$plugin_root/plugin.json")"
 current_schema_version="$(
-    jq -r '."$schema"' "$plugin_root/plugin.json" |
+    jq -b -r '."$schema"' "$plugin_root/plugin.json" |
         sed -n 's#^.*/schemas/\([^/]*\)/plugin\.schema\.json$#\1#p'
 )"
 
@@ -21,7 +21,7 @@ copy_installed_plugin() {
         local relative_path="${plugin_ref#./}"
         mkdir -p "$destination/$(dirname "$relative_path")"
         cp -R "$plugin_root/$relative_path" "$destination/$relative_path"
-    done < <(jq -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$plugin_root/plugin.json")
+    done < <(jq -b -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$plugin_root/plugin.json")
     chmod +x "$destination/version.sh"
 }
 
@@ -31,7 +31,7 @@ create_source_checkout() {
     local source_plugin="$destination/plugins/shepherd-task"
     mkdir -p "$source_plugin"
     copy_installed_plugin "$source_plugin"
-    jq --arg version "$fixture_version" '.version = $version' \
+    jq -b --arg version "$fixture_version" '.version = $version' \
         "$source_plugin/plugin.json" >"$source_plugin/plugin.json.tmp"
     mv "$source_plugin/plugin.json.tmp" "$source_plugin/plugin.json"
     while IFS= read -r file; do
@@ -58,7 +58,7 @@ create_source_checkout() {
             "name: $(basename "$skill_path")" \
             "description: Contract fixture for $(basename "$skill_path")." '---' \
             >"$destination/$skill_path/SKILL.md"
-    done < <(jq -r '.extensions["com.github.awesome-copilot"].skills[]' "$source_plugin/plugin.json")
+    done < <(jq -b -r '.extensions["com.github.awesome-copilot"].skills[]' "$source_plugin/plugin.json")
     git -C "$destination" init --quiet
     git -C "$destination" add plugins/shepherd-task skills
 }
@@ -79,13 +79,13 @@ assert_fixture_stamps() {
             [[ "$(grep -Fxc "$marker" "$plugin_path" || true)" == 1 ]]
         fi
     done < <(
-        jq -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
+        jq -b -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
             "$source_plugin/plugin.json"
     )
     while IFS= read -r skill_ref; do
         skill_path="${skill_ref#./}"
         [[ "$(grep -Fxc "$marker" "$destination/$skill_path/SKILL.md" || true)" == 1 ]]
-    done < <(jq -r '.extensions["com.github.awesome-copilot"].skills[]' "$source_plugin/plugin.json")
+    done < <(jq -b -r '.extensions["com.github.awesome-copilot"].skills[]' "$source_plugin/plugin.json")
 }
 
 copy_installed_plugin "$temp_root/installed"
@@ -105,7 +105,7 @@ create_source_checkout "$temp_root/micro"
 current_core="${current_version%%[-+]*}"
 IFS=. read -r current_major current_minor current_micro <<<"$current_core"
 expected_micro="$current_major.$current_minor.$((10#$current_micro + 1))"
-[[ "$(jq -r '.version' "$temp_root/micro/plugins/shepherd-task/plugin.json")" == "$expected_micro" ]]
+[[ "$(jq -b -r '.version' "$temp_root/micro/plugins/shepherd-task/plugin.json")" == "$expected_micro" ]]
 assert_fixture_stamps "$temp_root/micro" "$expected_micro"
 
 create_source_checkout "$temp_root/untracked"
@@ -121,12 +121,12 @@ fi
 
 create_source_checkout "$temp_root/minor" "2.7.9-beta.2+build.5"
 "$temp_root/minor/plugins/shepherd-task/version.sh" -incrementMinor >/dev/null
-[[ "$(jq -r '.version' "$temp_root/minor/plugins/shepherd-task/plugin.json")" == "2.8.0" ]]
+[[ "$(jq -b -r '.version' "$temp_root/minor/plugins/shepherd-task/plugin.json")" == "2.8.0" ]]
 assert_fixture_stamps "$temp_root/minor" "2.8.0"
 
 create_source_checkout "$temp_root/major" "2.7.9"
 "$temp_root/major/plugins/shepherd-task/version.sh" -incrementMajor >/dev/null
-[[ "$(jq -r '.version' "$temp_root/major/plugins/shepherd-task/plugin.json")" == "3.0.0" ]]
+[[ "$(jq -b -r '.version' "$temp_root/major/plugins/shepherd-task/plugin.json")" == "3.0.0" ]]
 assert_fixture_stamps "$temp_root/major" "3.0.0"
 
 create_source_checkout "$temp_root/schema"
@@ -137,9 +137,9 @@ cat >"$temp_root/schema/plugins/shepherd-task/mcp.json" <<'EOF'
 }
 EOF
 "$temp_root/schema/plugins/shepherd-task/version.sh" -newSchemaVersion 2.1.0 >/dev/null
-[[ "$(jq -r '."$schema"' "$temp_root/schema/plugins/shepherd-task/plugin.json")" == \
+[[ "$(jq -b -r '."$schema"' "$temp_root/schema/plugins/shepherd-task/plugin.json")" == \
     "https://agent-plugins.org/schemas/2.1.0/plugin.schema.json" ]]
-[[ "$(jq -r '."$schema"' "$temp_root/schema/plugins/shepherd-task/mcp.json")" == \
+[[ "$(jq -b -r '."$schema"' "$temp_root/schema/plugins/shepherd-task/mcp.json")" == \
     "https://agent-plugins.org/schemas/2.1.0/mcp.schema.json" ]]
 assert_fixture_stamps "$temp_root/schema" "$current_version"
 

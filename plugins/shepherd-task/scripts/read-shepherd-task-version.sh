@@ -44,10 +44,10 @@ jq -e '
     exit 1
 }
 
-SHEPHERD_TASK_VERSION="$(jq -r '.version' "$PLUGIN_MANIFEST")"
-INSTALLATION_MANIFEST_SCHEMA_VERSION="$(jq -r '.artifactSchemaVersions.installationManifest' "$VERSION_CONTRACT")"
+SHEPHERD_TASK_VERSION="$(jq -b -r '.version' "$PLUGIN_MANIFEST")"
+INSTALLATION_MANIFEST_SCHEMA_VERSION="$(jq -b -r '.artifactSchemaVersions.installationManifest' "$VERSION_CONTRACT")"
 EXPECTED_SKILLS="$(
-    jq -c '
+    jq -b -c '
       [
         .extensions["com.github.awesome-copilot"].skills[] |
         sub("^./skills/"; "") |
@@ -71,7 +71,7 @@ if [[ -f "$INSTALL_MANIFEST" ]]; then
         echo "Error: Installed shepherd-task components do not match plugin version $SHEPHERD_TASK_VERSION." >&2
         exit 1
     }
-    for skill in $(jq -r '.[]' <<<"$EXPECTED_SKILLS"); do
+    for skill in $(jq -b -r '.[]' <<<"$EXPECTED_SKILLS"); do
         component_manifest="$PLUGIN_ROOT/skills/$skill/shepherd-task-component.json"
         jq -e \
             --arg version "$SHEPHERD_TASK_VERSION" \
@@ -84,7 +84,7 @@ if [[ -f "$INSTALL_MANIFEST" ]]; then
     done
 fi
 
-jq -n \
+jq -b -n \
     --arg shepherdTaskVersion "$SHEPHERD_TASK_VERSION" \
     --slurpfile contract "$VERSION_CONTRACT" \
     '{

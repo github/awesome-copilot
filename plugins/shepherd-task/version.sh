@@ -31,11 +31,11 @@ command -v jq >/dev/null 2>&1 || fail "Required command 'jq' was not found."
 [[ -f "$VERSION_CONTRACT" ]] || fail "Version contract not found: $VERSION_CONTRACT"
 
 read_plugin_version() {
-    jq -er '.version | select(type == "string")' "$PLUGIN_MANIFEST"
+    jq -b -e -r '.version | select(type == "string")' "$PLUGIN_MANIFEST"
 }
 
 read_schema_version() {
-    jq -er '
+    jq -b -e -r '
       ."$schema" |
       capture("^https://agent-plugins\\.org/schemas/(?<version>[^/]+)/plugin\\.schema\\.json$").version
     ' "$PLUGIN_MANIFEST"
@@ -53,7 +53,7 @@ collect_estate_version_files() {
         skill_path="${skill_ref#./}"
         printf '%s\n' "$repo_root/$skill_path/SKILL.md"
     done < <(
-        jq -er '.extensions["com.github.awesome-copilot"].skills[]' "$PLUGIN_MANIFEST"
+        jq -b -e -r '.extensions["com.github.awesome-copilot"].skills[]' "$PLUGIN_MANIFEST"
     )
 
     while IFS= read -r plugin_ref; do
@@ -67,7 +67,7 @@ collect_estate_version_files() {
             printf '%s\n' "$plugin_path"
         fi
     done < <(
-        jq -er '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$PLUGIN_MANIFEST"
+        jq -b -e -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$PLUGIN_MANIFEST"
     )
 }
 
@@ -152,7 +152,7 @@ assert_source_checkout() {
         [[ -f "$repo_root/$skill_path/SKILL.md" ]] ||
             fail "Declared shepherd-task source skill is missing: $repo_root/$skill_path/SKILL.md"
     done < <(
-        jq -er '.extensions["com.github.awesome-copilot"].skills[]' "$PLUGIN_MANIFEST"
+        jq -b -e -r '.extensions["com.github.awesome-copilot"].skills[]' "$PLUGIN_MANIFEST"
     )
 
     local plugin_ref plugin_path
@@ -164,7 +164,7 @@ assert_source_checkout() {
         [[ -e "$plugin_path" ]] ||
             fail "Declared shepherd-task plugin file is missing: $plugin_path"
     done < <(
-        jq -er '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$PLUGIN_MANIFEST"
+        jq -b -e -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$PLUGIN_MANIFEST"
     )
 }
 
@@ -173,7 +173,7 @@ write_json_atomically() {
     local filter="$2"
     shift 2
     local temporary="$target.tmp.$$"
-    if jq "$@" "$filter" "$target" >"$temporary"; then
+    if jq -b "$@" "$filter" "$target" >"$temporary"; then
         mv "$temporary" "$target"
     else
         rm -f "$temporary"
@@ -203,10 +203,10 @@ print_version_information() {
     echo "Shepherd-task version information"
     echo "  Lineup version:                  $plugin_version"
     echo "  Agent Plugins schema version:    $schema_version"
-    echo "  Version contract schema version: $(jq -r '.schemaVersion' "$VERSION_CONTRACT")"
-    echo "  Stage outcome protocol version:  $(jq -r '.stageOutcomeProtocolVersion' "$VERSION_CONTRACT")"
+    echo "  Version contract schema version: $(jq -b -r '.schemaVersion' "$VERSION_CONTRACT")"
+    echo "  Stage outcome protocol version:  $(jq -b -r '.stageOutcomeProtocolVersion' "$VERSION_CONTRACT")"
     echo "  Artifact schema versions:"
-    jq -r '.artifactSchemaVersions | to_entries[] | "    \(.key): \(.value)"' "$VERSION_CONTRACT"
+    jq -b -r '.artifactSchemaVersions | to_entries[] | "    \(.key): \(.value)"' "$VERSION_CONTRACT"
 }
 
 increment_version() {
@@ -239,7 +239,7 @@ increment_version() {
     esac
     next="$major.$minor.$micro"
     plugin_temporary="$PLUGIN_MANIFEST.tmp.$$"
-    jq --arg version "$next" '.version = $version' "$PLUGIN_MANIFEST" >"$plugin_temporary" ||
+    jq -b --arg version "$next" '.version = $version' "$PLUGIN_MANIFEST" >"$plugin_temporary" ||
         fail "Could not prepare the shepherd-task plugin version update."
     update_estate_version_stamps "$repo_root" "$current" "$next"
     mv "$plugin_temporary" "$PLUGIN_MANIFEST"

@@ -35,10 +35,10 @@ jq -e \
     "$plugin_root/plugin.json" >/dev/null
 
 version_info="$(bash "$version_reader")"
-version="$(jq -r '.shepherdTaskVersion' <<<"$version_info")"
-[[ "$version" == "$(jq -r '.version' "$plugin_root/plugin.json")" ]]
-[[ "$(jq -r '.artifactSchemaVersions.campaign' <<<"$version_info")" == "1" ]]
-[[ "$(jq -r '.artifactSchemaVersions.givenListRun' <<<"$version_info")" == "1" ]]
+version="$(jq -b -r '.shepherdTaskVersion' <<<"$version_info")"
+[[ "$version" == "$(jq -b -r '.version' "$plugin_root/plugin.json")" ]]
+[[ "$(jq -b -r '.artifactSchemaVersions.campaign' <<<"$version_info")" == "1" ]]
+[[ "$(jq -b -r '.artifactSchemaVersions.givenListRun' <<<"$version_info")" == "1" ]]
 
 marker="# shepherd-task-version: $version"
 while IFS= read -r plugin_ref; do
@@ -51,10 +51,10 @@ while IFS= read -r plugin_ref; do
         [[ "$(grep -Fxc "$marker" "$plugin_path" || true)" == 1 ]]
     fi
 done < <(
-    jq -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
+    jq -b -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
         "$plugin_root/plugin.json"
 )
-for skill_ref in $(jq -r '.extensions["com.github.awesome-copilot"].skills[]' "$plugin_root/plugin.json"); do
+for skill_ref in $(jq -b -r '.extensions["com.github.awesome-copilot"].skills[]' "$plugin_root/plugin.json"); do
     skill_path="${skill_ref#./}"
     [[ "$(grep -Fxc "$marker" "$plugin_root/../../$skill_path/SKILL.md" || true)" == 1 ]]
 done
@@ -136,7 +136,7 @@ jq -e --arg version "$version" '
   all(.components.skills[]; .shepherdTaskVersion == $version)
 ' "$install_manifest" >/dev/null
 
-for skill_ref in $(jq -r '.extensions["com.github.awesome-copilot"].skills[]' "$plugin_root/plugin.json"); do
+for skill_ref in $(jq -b -r '.extensions["com.github.awesome-copilot"].skills[]' "$plugin_root/plugin.json"); do
     skill="${skill_ref#./skills/}"
     skill="${skill%/}"
     for skill_root in \
@@ -156,7 +156,7 @@ touch "$sentinel"
 bash "$installer" >/dev/null
 [[ ! -e "$sentinel" ]]
 
-jq '.shepherdTaskVersion = "9.0.0"' "$install_manifest" >"$install_manifest.tmp"
+jq -b '.shepherdTaskVersion = "9.0.0"' "$install_manifest" >"$install_manifest.tmp"
 mv "$install_manifest.tmp" "$install_manifest"
 if bash "$installer" >"$temp_root/downgrade.out" 2>&1; then
     echo "Installer accepted an accidental downgrade." >&2

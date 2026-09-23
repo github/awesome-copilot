@@ -37,7 +37,7 @@ actual_normalized="$temp_directory/actual-normalized.txt"
 expected_normalized="$temp_directory/expected-normalized.txt"
 
 normalize_file() {
-    jq -Rsj 'gsub("\r\n|\r"; "\n")' "$1" >"$2"
+    jq -b -Rsj 'gsub("\r\n|\r"; "\n")' "$1" >"$2"
 }
 
 equivalent_files() {
@@ -125,7 +125,7 @@ for ((attempt = 1; attempt <= max_attempts; attempt++)); do
     elif ! jq -e 'type == "object" and has("body")' "$response_path" >/dev/null 2>&1; then
         last_reason="GitHub REST response was invalid JSON."
     else
-        jq -j '.body // ""' "$response_path" >"$actual_path"
+        jq -b -j '.body // ""' "$response_path" >"$actual_path"
         normalize_file "$actual_path" "$actual_normalized"
         if equivalent_files "$actual_normalized" "$expected_normalized"; then
             cat "$response_path"

@@ -37,7 +37,7 @@ SKILLS=()
 while IFS= read -r skill; do
     SKILLS+=("$skill")
 done < <(
-    jq -er '
+    jq -b -e -r '
       .extensions["com.github.awesome-copilot"].skills[] |
       sub("^./skills/"; "") |
       sub("/$"; "")
@@ -135,15 +135,15 @@ mkdir -p "$STAGED_PLUGIN" "$STAGED_SKILLS"
 cp -R "$PLUGIN_SRC/." "$STAGED_PLUGIN/"
 
 VERSION_INFO="$(bash "$STAGED_PLUGIN/scripts/read-shepherd-task-version.sh")"
-SHEPHERD_TASK_VERSION="$(jq -r '.shepherdTaskVersion' <<<"$VERSION_INFO")"
-INSTALL_MANIFEST_SCHEMA_VERSION="$(jq -r '.artifactSchemaVersions.installationManifest' <<<"$VERSION_INFO")"
-INSTALLED_COMPONENT_SCHEMA_VERSION="$(jq -r '.artifactSchemaVersions.installedComponent' <<<"$VERSION_INFO")"
-STAGE_OUTCOME_PROTOCOL_VERSION="$(jq -r '.stageOutcomeProtocolVersion' <<<"$VERSION_INFO")"
+SHEPHERD_TASK_VERSION="$(jq -b -r '.shepherdTaskVersion' <<<"$VERSION_INFO")"
+INSTALL_MANIFEST_SCHEMA_VERSION="$(jq -b -r '.artifactSchemaVersions.installationManifest' <<<"$VERSION_INFO")"
+INSTALLED_COMPONENT_SCHEMA_VERSION="$(jq -b -r '.artifactSchemaVersions.installedComponent' <<<"$VERSION_INFO")"
+STAGE_OUTCOME_PROTOCOL_VERSION="$(jq -b -r '.stageOutcomeProtocolVersion' <<<"$VERSION_INFO")"
 
 if [[ -f "$PLUGIN_DEST/install-manifest.json" ]]; then
-    EXISTING_VERSION="$(jq -r '.shepherdTaskVersion // empty' "$PLUGIN_DEST/install-manifest.json")"
+    EXISTING_VERSION="$(jq -b -r '.shepherdTaskVersion // empty' "$PLUGIN_DEST/install-manifest.json")"
 elif [[ -f "$PLUGIN_DEST/plugin.json" ]]; then
-    EXISTING_VERSION="$(jq -r '.version // empty' "$PLUGIN_DEST/plugin.json")"
+    EXISTING_VERSION="$(jq -b -r '.version // empty' "$PLUGIN_DEST/plugin.json")"
 else
     EXISTING_VERSION=""
 fi
@@ -165,7 +165,7 @@ for skill in "${SKILLS[@]}"; do
     cp -R "$skill_src" "$STAGED_SKILLS/$skill"
     cp -R "$skill_src" "$STAGED_PLUGIN/skills/$skill"
     for staged_skill in "$STAGED_SKILLS/$skill" "$STAGED_PLUGIN/skills/$skill"; do
-        jq -n \
+        jq -b -n \
             --argjson schemaVersion "$INSTALLED_COMPONENT_SCHEMA_VERSION" \
             --arg shepherdTaskVersion "$SHEPHERD_TASK_VERSION" \
             --arg component "$skill" \
@@ -183,7 +183,7 @@ while IFS= read -r plugin_ref; do
         exit 1
     }
 done < <(
-    jq -er '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
+    jq -b -e -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
         "$STAGED_PLUGIN/plugin.json"
 )
 
@@ -213,13 +213,13 @@ for skill in "${SKILLS[@]}"; do
 done
 
 SOURCE_COMMIT="$(git -C "$SOURCE_REPO" rev-parse HEAD 2>/dev/null || true)"
-SOURCE_REPOSITORY="$(jq -r '.repository // empty' "$PLUGIN_DEST/plugin.json")"
-AGENT_PLUGINS_SPEC_VERSION="$(jq -r '."$schema"' "$PLUGIN_DEST/plugin.json" |
+SOURCE_REPOSITORY="$(jq -b -r '.repository // empty' "$PLUGIN_DEST/plugin.json")"
+AGENT_PLUGINS_SPEC_VERSION="$(jq -b -r '."$schema"' "$PLUGIN_DEST/plugin.json" |
     sed -n 's#^.*/schemas/\([^/]*\)/plugin\.schema\.json$#\1#p')"
 INSTALLED_AT="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 SKILL_NAMES="$(IFS=,; echo "${SKILLS[*]}")"
 TEMP_INSTALL_MANIFEST="$PLUGIN_DEST/.install-manifest.json.tmp.$$"
-jq -n \
+jq -b -n \
     --argjson schemaVersion "$INSTALL_MANIFEST_SCHEMA_VERSION" \
     --arg shepherdTaskVersion "$SHEPHERD_TASK_VERSION" \
     --arg agentPluginsSpecVersion "$AGENT_PLUGINS_SPEC_VERSION" \

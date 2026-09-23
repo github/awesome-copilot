@@ -157,7 +157,8 @@ export SHEPHERD_MOCK_GH_BODY=$'expected\nbody'
 export SHEPHERD_MOCK_GH_FRESH_ATTEMPT=2
 rm -f "$mock_state"
 verified="$("$issue_body_verifier" owner/repository 41 "$verification_body" 2 0)"
-[[ "$(jq -r '.body' <<<"$verified")" == $'expected\nbody' && "$(cat "$mock_state")" == 2 ]] ||
+jq -e --arg expected $'expected\nbody' '.body == $expected' <<<"$verified" >/dev/null &&
+    [[ "$(cat "$mock_state")" == 2 ]] ||
     fail "Issue body verifier did not recover from a stale first REST response."
 
 printf 'expected — body' >"$verification_body"
