@@ -125,15 +125,21 @@ jobs:
           while IFS= read -r path; do
             allowed=false
             while IFS= read -r promotable; do
-              case "$path" in
-                "$promotable"|"$promotable"/*)
-                  allowed=true
-                  break
-                  ;;
-              esac
+              if [[ -f "$promotable" ]]; then
+                # File entry (e.g. the agent file): exact match only, never a directory prefix.
+                [[ "$path" == "$promotable" ]] && { allowed=true; break; }
+              else
+                # Directory entry (e.g. the plugin or a skill folder): allow its descendants.
+                case "$path" in
+                  "$promotable"/*)
+                    allowed=true
+                    break
+                    ;;
+                esac
+              fi
             done < /tmp/promote-paths.txt
             case "$path" in
-              README.md|docs/*|.github/plugin/marketplace.json)
+              README.md|docs/README.*.md|.github/plugin/marketplace.json)
                 allowed=true
                 ;;
             esac
