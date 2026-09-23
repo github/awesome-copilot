@@ -50,10 +50,12 @@ Confirmation (see **Confirmation gates**) is not configurable. It applies in bot
 
 If the user names a destination, use it. Everything below is inference, and inference loses to an instruction.
 
-- **A named path, folder, repository, or venue is the destination.** Do not re-derive it, and do not relocate the post because a different location would fit the conventions better.
+- **A named path, folder, repository, or venue is the destination.** Do not re-derive it, and do not relocate the post to a different project or venue because another location would fit the conventions better.
+- **Resolve a partial name through the generator.** An instruction that names a project, repository, or site without naming the exact folder ("put it in the blog") fixes which project receives the post and leaves the folder open. Settle that folder from the generator's own configuration per **Common blog platforms** rather than from a guess, then echo what it resolved to.
 - **Echo the resolved destination at Gate 1** as a full path, or as the venue plus file name. A short instruction such as "put it in the blog" is still an instruction; resolve it against the workspace, then show what it resolved to so a wrong reading is caught before anything is written.
 - **Create missing category folders** under a root that already exists. If the named root itself does not exist, stop and ask rather than building a tree that may be a typo.
-- **Say so once if the instruction conflicts** with the site's conventions or with a rule in this file, then follow the instruction anyway. The exceptions are **Security and content rules** and **Confirmation gates**, which are not overridable: strip offending data and always obtain the required confirmations.
+- **Ask before writing a file the generator cannot read.** When the user names an exact file path and that path breaks the detected generator's contract - the wrong folder for the collection, or a file name missing a required date prefix - neither write it silently nor relocate it silently. State in one line what will break, give the compatible path beside it, and ask which to use. This is the one case where a named destination waits on an answer, because the alternative is a file that fails the build or never appears.
+- **Say so once if the instruction conflicts** with the site's conventions or with a rule in this file, then follow the instruction anyway. The exceptions are **Security and content rules**, **Confirmation gates**, and the generator-compatibility question above: strip offending data, always obtain the required confirmations, and ask before writing a post the site cannot publish.
 
 When no destination was named, infer one as follows.
 
@@ -176,11 +178,12 @@ The reply is the deliverable, so it has to survive a single copy with no cleanup
 
 ### Staged mode
 
-The post is written, but the user does the posting.
+The post is written, but the user does the posting. Staged mode has two destinations and they are not the same thing: the **staging path**, a real writable location on this machine, and the **final venue**, where the user posts it by hand. Settle them separately.
 
-- **Write to the resolved destination** when the user named one, or to the post store under the chosen category when they did not.
-- **Shape the file for its final home**, not for the staging folder. A post staged for a hosted platform carries what that platform expects, per **Common blog platforms**.
-- **Follow the file with a hand-off summary**: the destination, the path written, the title, description, slug, and tags, and which of those go in which field at the destination.
+- **The staging path is always a filesystem path this session can write.** Use the path the user named when they named a real writable one. Otherwise use the post store under the chosen category. A venue name such as a hosted platform, a publication, an account, or a site title is not a path and is never written to, so it never becomes the staging path.
+- **The final venue is a name, not a location to write.** Record it for the hand-off and keep it out of the write. Because the staging path falls back to the post store, Gate 1 always has a real path to report even when the user named only a venue.
+- **Shape the file for its final venue**, not for the staging folder. A post staged for a hosted platform carries what that platform expects, per **Common blog platforms**.
+- **Follow the file with a hand-off summary**: the final venue, the staging path written, the title, description, slug, and tags, and which of those go in which field at the venue.
 - **Name any manual step that remains**, such as clearing a draft flag, choosing a canonical URL, or selecting the tags from a fixed list.
 - **Do not post, upload, commit, or push.** Staged mode ends at the hand-off.
 
@@ -342,7 +345,7 @@ Do not create or modify any file until the user confirms. Present, in a few line
 - When the destination came from a generator's configuration, the config file that was read and the folder it resolved to.
 - The category and file name.
 - The working title, the slug, and the SEO level in effect.
-- The delivery mode, and the destination as it resolved.
+- The delivery mode, and the destination as it resolved. In `staged` mode, report both the staging path to be written and the final venue the file is shaped for.
 
 Wait for confirmation. On a decline, stop and write nothing.
 
