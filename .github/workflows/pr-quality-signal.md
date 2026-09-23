@@ -1,4 +1,5 @@
 ---
+name: PR Quality Signal Review
 description: 'Advisory review for PR quality signals: repo fit, AI disclosure, duplication risk, and marketing-heavy submissions'
 on:
   pull_request:
