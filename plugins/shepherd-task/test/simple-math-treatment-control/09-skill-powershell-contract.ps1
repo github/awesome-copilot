@@ -14,10 +14,7 @@ $skillsDirectory = Join-Path $repositoryRoot 'skills'
 $skillFiles = @(
     Get-ChildItem -LiteralPath $skillsDirectory -Directory -Filter 'shepherd-task-*' |
         ForEach-Object {
-            $skillFile = Join-Path $_.FullName 'SKILL.md'
-            if (Test-Path -LiteralPath $skillFile -PathType Leaf) {
-                Get-Item -LiteralPath $skillFile
-            }
+            Get-ChildItem -LiteralPath $_.FullName -Recurse -File -Filter *.md
         } |
         Sort-Object FullName
 )

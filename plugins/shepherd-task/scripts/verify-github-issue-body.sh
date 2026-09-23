@@ -116,7 +116,7 @@ for ((attempt = 1; attempt <= max_attempts; attempt++)); do
     if [[ $exit_code -ne 0 ]]; then
         last_reason="GitHub REST request failed with exit code $exit_code."
         error_message="$(cat "$temp_directory/error.txt")"
-        authentication_error_pattern='HTTP[[:space:]]+(401|403)|[Aa]uthentication|[Nn]ot[[:space:]]authorized|[Rr]esource[[:space:]]not[[:space:]]accessible'
+        authentication_error_pattern='HTTP[[:space:]]+(401|403)|[Aa]uthentication|[Nn][Oo][Tt][[:space:]]authorized|[Rr]esource[[:space:]]not[[:space:]]accessible'
         if [[ "$error_message" =~ $authentication_error_pattern ]]; then
             : >"$actual_normalized"
             write_diagnostic "$last_reason" "$attempt"

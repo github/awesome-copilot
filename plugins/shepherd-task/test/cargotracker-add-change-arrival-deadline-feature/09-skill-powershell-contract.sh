@@ -59,30 +59,30 @@ while IFS= read -r skill_file; do
             }
         ' "$skill_file"
     ) || fail "Unterminated Bash code block in '$skill_file'."
-done < <(find "$skills_directory" -mindepth 2 -maxdepth 2 -type f \
-    -path '*/shepherd-task-*/SKILL.md' | sort)
+done < <(find "$skills_directory" -mindepth 2 -type f -name '*.md' \
+    -path '*/shepherd-task-*/*' | sort)
 
 [[ $block_count -ge 4 ]] ||
     fail "Expected at least 4 shepherd-task Bash code blocks; found $block_count."
 
-stage30="$skills_directory/shepherd-task-30-from-assignment-to-ready/SKILL.md"
-stage40="$skills_directory/shepherd-task-40-from-ready-to-merged-to-base/SKILL.md"
-grep -Fq 'gh api \' "$stage30" &&
-    grep -Fq '/assignees \' "$stage30" &&
-    grep -Fq -- '--input - <<< "{' "$stage30" ||
+stage30="$(find "$skills_directory/shepherd-task-30-from-assignment-to-ready" -type f -name '*.md' -exec cat {} +)"
+stage40="$(find "$skills_directory/shepherd-task-40-from-ready-to-merged-to-base" -type f -name '*.md' -exec cat {} +)"
+grep -Fq 'gh api \' <<<"$stage30" &&
+    grep -Fq '/assignees \' <<<"$stage30" &&
+    grep -Fq -- '--input - <<< "{' <<<"$stage30" ||
     fail "The stage-30 Bash assignment example must execute gh directly under fail-fast semantics."
-grep -Fq 'if GH_PR_EDIT_HELP=$(gh pr edit --help 2>&1); then' "$stage40" &&
-    grep -Fq 'case "$GH_PR_EDIT_HELP" in' "$stage40" ||
+grep -Fq 'if GH_PR_EDIT_HELP=$(gh pr edit --help 2>&1); then' <<<"$stage40" &&
+    grep -Fq 'case "$GH_PR_EDIT_HELP" in' <<<"$stage40" ||
     fail "The stage-40 Bash capability preflight must capture help before inspecting it."
-! grep -Eq 'gh pr edit --help[[:space:]]*\|[[:space:]]*grep[[:space:]]+-Fq' "$stage40" ||
+! grep -Eq 'gh pr edit --help[[:space:]]*\|[[:space:]]*grep[[:space:]]+-Fq' <<<"$stage40" ||
     fail "The stage-40 Bash capability preflight still uses an early-closing grep pipeline."
-for skill_file in "$stage30" "$stage40"; do
-    ! grep -Fq 'skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md' "$skill_file" ||
-        fail "$(basename "$(dirname "$skill_file")") uses a repository-relative path for an installed skill."
+for skill_text in "$stage30" "$stage40"; do
+    ! grep -Fq 'skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md' <<<"$skill_text" ||
+        fail "A shepherd skill uses a repository-relative path for an installed skill."
 done
-grep -Fq 'Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-completion`** skill by name' "$stage30" ||
+grep -Fq 'Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-completion`** skill by name' <<<"$stage30" ||
     fail "Stage 30 does not invoke the workflow-approval skill by installed name."
-grep -Fq 'Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-completion`** skill by name' "$stage40" ||
+grep -Fq 'Invoke the installed **`shepherd-task-approve-workflows-and-wait-for-completion`** skill by name' <<<"$stage40" ||
     fail "Stage 40 does not invoke the workflow-approval skill by installed name."
 
 workflow_approval="$skills_directory/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md"

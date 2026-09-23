@@ -10,9 +10,13 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot '..' '..' '..' '..')
 )
-$skillPath = Join-Path $repoRoot 'skills\shepherd-task-40-from-ready-to-merged-to-base\SKILL.md'
+$skillDirectory = Join-Path $repoRoot 'skills\shepherd-task-40-from-ready-to-merged-to-base'
 $stage25Path = Join-Path $repoRoot 'plugins\shepherd-task\scripts\shepherd-task-25-given-list.ps1'
-$skill = Get-Content -LiteralPath $skillPath -Raw
+$skill = @(
+    Get-ChildItem -LiteralPath $skillDirectory -Recurse -File -Filter *.md |
+        Sort-Object FullName |
+        ForEach-Object { [System.IO.File]::ReadAllText($_.FullName) }
+) -join [Environment]::NewLine
 $stage25 = Get-Content -LiteralPath $stage25Path -Raw
 
 $requiredSkillText = @(

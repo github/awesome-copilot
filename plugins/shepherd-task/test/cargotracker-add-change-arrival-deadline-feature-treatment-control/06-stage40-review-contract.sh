@@ -5,7 +5,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
-SKILL="$REPO_ROOT/skills/shepherd-task-40-from-ready-to-merged-to-base/SKILL.md"
+SKILL_DIR="$REPO_ROOT/skills/shepherd-task-40-from-ready-to-merged-to-base"
+SKILL_CONTENT="$(find "$SKILL_DIR" -type f -name '*.md' -exec cat {} +)"
 STAGE25="$REPO_ROOT/plugins/shepherd-task/scripts/shepherd-task-25-given-list.sh"
 
 required=(
@@ -20,16 +21,16 @@ required=(
     'DETERMINISTIC_REQUEST_ERROR'
 )
 for text in "${required[@]}"; do
-    grep -Fq -- "$text" "$SKILL" || {
+    grep -Fq -- "$text" <<<"$SKILL_CONTENT" || {
         echo "Stage-40 skill is missing required review contract text: $text" >&2
         exit 1
     }
 done
-if grep -Fq -- '--add-reviewer Copilot' "$SKILL"; then
+if grep -Fq -- '--add-reviewer Copilot' <<<"$SKILL_CONTENT"; then
     echo 'Stage-40 skill still requests Copilot as an ordinary login.' >&2
     exit 1
 fi
-if grep -Eq 'gh pr edit --help[[:space:]]*\|[[:space:]]*grep[[:space:]]+-Fq' "$SKILL"; then
+if grep -Eq 'gh pr edit --help[[:space:]]*\|[[:space:]]*grep[[:space:]]+-Fq' <<<"$SKILL_CONTENT"; then
     echo 'Stage-40 skill still uses an early-closing grep pipeline for capability detection.' >&2
     exit 1
 fi

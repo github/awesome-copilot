@@ -14,10 +14,7 @@ $skillsDirectory = Join-Path $repositoryRoot 'skills'
 $skillFiles = @(
     Get-ChildItem -LiteralPath $skillsDirectory -Directory -Filter 'shepherd-task-*' |
         ForEach-Object {
-            $skillFile = Join-Path $_.FullName 'SKILL.md'
-            if (Test-Path -LiteralPath $skillFile -PathType Leaf) {
-                Get-Item -LiteralPath $skillFile
-            }
+            Get-ChildItem -LiteralPath $_.FullName -Recurse -File -Filter *.md
         } |
         Sort-Object FullName
 )
@@ -137,12 +134,16 @@ if (-not $preflightBlock -or
     throw 'The stage-40 PowerShell capability preflight must check the gh exit code immediately.'
 }
 
-$stage30Skill = [System.IO.File]::ReadAllText(
-    (Join-Path $skillsDirectory 'shepherd-task-30-from-assignment-to-ready\SKILL.md')
-)
-$stage40Skill = [System.IO.File]::ReadAllText(
-    (Join-Path $skillsDirectory 'shepherd-task-40-from-ready-to-merged-to-base\SKILL.md')
-)
+$stage30Skill = @(
+    Get-ChildItem -LiteralPath (Join-Path $skillsDirectory 'shepherd-task-30-from-assignment-to-ready') -Recurse -File -Filter *.md |
+        Sort-Object FullName |
+        ForEach-Object { [System.IO.File]::ReadAllText($_.FullName) }
+) -join [Environment]::NewLine
+$stage40Skill = @(
+    Get-ChildItem -LiteralPath (Join-Path $skillsDirectory 'shepherd-task-40-from-ready-to-merged-to-base') -Recurse -File -Filter *.md |
+        Sort-Object FullName |
+        ForEach-Object { [System.IO.File]::ReadAllText($_.FullName) }
+) -join [Environment]::NewLine
 foreach ($skillText in @($stage30Skill, $stage40Skill)) {
     if ($skillText.Contains(
         'skills/shepherd-task-approve-workflows-and-wait-for-completion/SKILL.md'
