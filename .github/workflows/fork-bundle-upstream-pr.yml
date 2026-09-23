@@ -114,6 +114,13 @@ jobs:
                 exit 1
                 ;;
             esac
+            # Guard against a bare "./skills/" (or "./skills//") entry: both match
+            # the case patterns above but strip down to an empty name, which would
+            # otherwise allowlist the entire skills/ directory instead of one skill.
+            if [ -z "$skill" ]; then
+              echo "::error file=$PLUGIN_MANIFEST::Unexpected skills[] entry '$skill_rel'; empty skill name after stripping the ./skills/ prefix."
+              exit 1
+            fi
             PATHS+=("skills/${skill}")
             TYPES+=("d")
           done < <(jq -r '.extensions["com.github.awesome-copilot"].skills[]?' "$PLUGIN_MANIFEST")
