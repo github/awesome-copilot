@@ -53,6 +53,7 @@ jobs:
         id: delta
         run: |
           # Paths that belong to this agent. Must match what plugin.json references.
+          # Element 0 is always a file; every other element is always a directory.
           PATHS=(
             "agents/oracle-to-postgres-migration-expert.agent.md"
             "plugins/oracle-to-postgres-migration-expert"
@@ -64,6 +65,19 @@ jobs:
 
           printf '%s\n' "${PATHS[@]}" > /tmp/promote-paths.txt
           echo "Promotable paths:"; cat /tmp/promote-paths.txt
+
+          # Typed guard manifest: tags each entry as file (f) or directory (d) by
+          # construction, so the promotion path guard never has to infer this from
+          # on-disk presence (a deleted/missing file must stay a file, not fall back to
+          # directory-prefix matching).
+          : > /tmp/promote-paths-typed.txt
+          for i in "${!PATHS[@]}"; do
+            if [ "$i" -eq 0 ]; then
+              echo "f ${PATHS[$i]}" >> /tmp/promote-paths-typed.txt
+            else
+              echo "d ${PATHS[$i]}" >> /tmp/promote-paths-typed.txt
+            fi
+          done
 
           git diff --quiet upstream/main origin/main -- "${PATHS[@]}" && {
             echo "::error::No unpromoted changes under the agent's paths. Fork main matches upstream main for these files."
@@ -111,9 +125,12 @@ jobs:
 
           BASE_REF="$1"
           if [[ "$#" -eq 2 ]]; then
+            # Two refs: compare committed history (e.g. upstream/main HEAD).
             CHANGED=$(git diff --name-only "$BASE_REF...$2")
           else
-            CHANGED=$(git diff --name-only "$BASE_REF")
+            # One ref: validate the staged (index) contents, not the working tree,
+            # since the index is what a subsequent commit/push will actually publish.
+            CHANGED=$(git diff --name-only --cached "$BASE_REF")
           fi
 
           if [[ -z "$CHANGED" ]]; then
@@ -124,9 +141,12 @@ jobs:
           invalid=()
           while IFS= read -r path; do
             allowed=false
-            while IFS= read -r promotable; do
-              if [[ -f "$promotable" ]]; then
-                # File entry (e.g. the agent file): exact match only, never a directory prefix.
+            while IFS= read -r typed_entry; do
+              kind="${typed_entry%% *}"
+              promotable="${typed_entry#* }"
+              if [[ "$kind" == "f" ]]; then
+                # File entry (e.g. the agent file): exact match only, never a directory
+                # prefix, regardless of whether the file currently exists on disk.
                 [[ "$path" == "$promotable" ]] && { allowed=true; break; }
               else
                 # Directory entry (e.g. the plugin or a skill folder): allow its descendants.
@@ -137,9 +157,9 @@ jobs:
                     ;;
                 esac
               fi
-            done < /tmp/promote-paths.txt
+            done < /tmp/promote-paths-typed.txt
             case "$path" in
-              README.md|docs/README.*.md|.github/plugin/marketplace.json)
+              README.md|docs/README*.md|.github/plugin/marketplace.json)
                 allowed=true
                 ;;
             esac
