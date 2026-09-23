@@ -476,6 +476,6 @@ Next step: Mark as Ready for Review (use separate skill).
 
 - This skill runs in a `copilot --yolo` session on a Dev Box, executing as the authenticated user.
 - The skill does NOT mark the PR as "Ready for review" — that is a separate skill.
-- The `gh api .../actions/runs/{id}/approve` endpoint is the programmatic equivalent of the "Approve and run" button in the GitHub UI.
+- For same-repository `action_required` runs, invoke the workflow helper, which uses `gh run rerun`; the `gh api .../actions/runs/{id}/approve` endpoint is fork-only and returns HTTP 403 for same-repository PRs.
 - Review comments from bots/agents are treated the same as CI failures for iteration purposes.
 - **Do NOT edit any plan/checklist files** (e.g., `1810-ignorance-reduction-for-implementation-plan.md`) to mark tasks as complete. Marking checklist items is outside the scope of this skill.
