@@ -62,7 +62,7 @@ Before drafting, read the working context and decide what kind of work is being 
 Look at:
 
 - **Is this a repository or a loose folder?** A folder with no version control is scratch work; its posts go to the post store.
-- **Is the workspace a blog or site?** Signs include a posts folder (`_posts/`, `content/posts/`, `src/content/blog/`), a static site generator config (`_config.yml`, `hugo.toml`, `astro.config.mjs`), or an existing body of dated articles. If so, the workspace is the natural home for the post, and **Common blog platforms** says what that generator expects.
+- **Is the workspace a blog or site?** Signs include a posts folder (`_posts/`, `content/posts/`, `src/content/blog/` are conventional names, not the only ones), a static site generator config (`_config.yml`, `hugo.toml`, `astro.config.mjs`, `src/content.config.ts`), or an existing body of dated articles. If so, the workspace is the natural home for the post, and **Common blog platforms** says how to read the generator's own configuration for the folder it actually uses.
 - **Is there a pseudo-blog venue in play?** The user may publish standalone posts somewhere that is not a blog at all, such as a gist. That is a valid destination with its own shape; see **Pseudo-blog venues**.
 - **Is the workspace a documentation set?** A `docs/` tree or a documentation-only repository. A walkthrough may belong there as a new doc file.
 - **Is the workspace an application or library?** The code lives here but the writing does not. Store the post in the post store and consider only a link back (see **Linking in documentation**).
@@ -79,25 +79,29 @@ When the workspace is a blog or site, match its existing posts: same folder, sam
 
 When the workspace is a blog, identify the generator before writing anything. Each one has its own posts folder, file naming rule, and front matter contract, and a post that ignores the contract either fails the build or silently never appears.
 
-| Platform | Detect by | Posts live in | Contract to honor |
+The **Default posts folder** column records each generator's convention, not a guarantee. Every one of these projects can move that folder, and several declare it in code rather than in a settings file. Read the column as where to look first, and the project's own configuration as the answer.
+
+| Platform | Detect by | Default posts folder | Contract to honor |
 | --- | --- | --- | --- |
-| Jekyll | `_config.yml`, `Gemfile` with `jekyll` | `_posts/` | File name must be `YYYY-MM-DD-slug.md`. YAML front matter with `layout`, `title`, `date`, `categories`, `tags`. |
-| Hugo | `hugo.toml`, `hugo.yaml`, `config.toml` | `content/posts/` | TOML or YAML front matter matching the theme. `draft: true` keeps it out of the build. |
-| Astro | `astro.config.mjs` | `src/content/blog/` | Front matter must satisfy the collection schema in `src/content/config.ts`. A missing or extra field fails the build. |
+| Jekyll | `_config.yml`, `Gemfile` with `jekyll` | `_posts/` | File name must be `YYYY-MM-DD-slug.md`. YAML front matter with `layout`, `title`, `date`, `categories`, `tags`. A `source` or `collections_dir` setting in `_config.yml` moves the folder. |
+| Hugo | `hugo.toml`, `hugo.yaml`, `config.toml` | `content/posts/` | TOML or YAML front matter matching the theme. `draft: true` keeps it out of the build. `contentDir` moves the content root, and the section folder is whichever one the theme lists. |
+| Astro | `astro.config.mjs` | Whatever the content collection declares, commonly `src/content/blog/` | Read the collection config first: `src/content.config.ts` on Astro 5, `src/content/config.ts` on Astro 4. A collection's `loader` chooses the directory, so `glob({ base: './src/data/blog' })` puts posts there and not under `src/content/`. Front matter must satisfy that collection's `schema`, and a required field left out fails the build. |
 | Eleventy | `.eleventy.js`, `eleventy.config.js` | `posts/`, or the folder named in the config | Front matter plus the directory data file. A `tags` value is what puts the post in the feed. |
-| Next.js | `next.config.*` with an MDX or content pipeline | `content/`, `posts/`, `app/blog/` | MDX rules apply: components must be imported or provided, and raw `<` in prose breaks the parse. |
-| Gatsby | `gatsby-config.js` | `content/blog/` | Front matter fields must exist in the GraphQL schema the templates query. |
-| Docusaurus | `docusaurus.config.js` | `blog/` | Date from the file name prefix or a `date` field. `<!--truncate-->` marks where the excerpt ends. |
-| Hexo | `_config.yml` with `hexo` dependencies | `source/_posts/` | YAML front matter. `<!-- more -->` marks the excerpt break. |
-| Zola | `config.toml` with `base_url` | `content/` | TOML front matter fenced by `+++`, not `---`. |
+| Next.js | `next.config.*` with an MDX or content pipeline | `content/`, `posts/`, `app/blog/`, or wherever the content pipeline reads from | MDX rules apply: components must be imported or provided, and raw `<` in prose breaks the parse. |
+| Gatsby | `gatsby-config.js` | `content/blog/` | Front matter fields must exist in the GraphQL schema the templates query. The `path` given to `gatsby-source-filesystem` is the folder actually sourced. |
+| Docusaurus | `docusaurus.config.js` | `blog/` | Date from the file name prefix or a `date` field. `<!--truncate-->` marks where the excerpt ends. The blog plugin's `path` option moves the folder. |
+| Hexo | `_config.yml` with `hexo` dependencies | `source/_posts/` | YAML front matter. `<!-- more -->` marks the excerpt break. `source_dir` in `_config.yml` moves the source root. |
+| Zola | `config.toml` with `base_url` | `content/` | TOML front matter fenced by `+++`, not `---`. The post belongs to a section, which is a subfolder of `content/` carrying its own `_index.md`. |
 | VitePress | `.vitepress/` | the folder the theme configures | Front matter plus whatever index page lists the posts. |
 | Hosted platforms | No repository present | Composed locally, entered by the user | The post is written to the post store and handed over. Some accept a front matter block on paste; most do not. |
 
 Rules that apply to all of them:
 
-- **Read a neighbor first.** Open an existing post in the same folder and copy its field set exactly. The live posts are more reliable than any general rule here.
-- **Satisfy the schema, then stop.** Do not invent front matter fields the site does not read.
-- **Prepare a draft where the platform supports it.** After Gate 1 confirmation, include `draft: true`, `published: false`, or the platform's equivalent in the in-memory draft shown for Gate 2. Do not write the file until Gate 2 approval; when writing after approval, clear the draft flag. On a platform with no draft flag, likewise keep the file unwritten until Gate 2 approval.
+- **The project's configuration outranks this table.** Open the generator's config before choosing a path. Where a project declares its content in code - an Astro `loader`, an Eleventy directory setting, a Gatsby filesystem source, a Docusaurus plugin `path` - that declaration is both the destination and the schema, and the default above applies only when no such setting exists.
+- **Read a neighbor first.** Open an existing post in the resolved folder and copy its field set exactly. The live posts are more reliable than any general rule here.
+- **Settle a disagreement before writing, not after.** When the config and the existing posts point at different folders, stop and ask which one is current. When the config names a folder that holds no posts yet, the config wins.
+- **Satisfy the schema, then stop.** Match the schema the config actually declares, and do not invent front matter fields the site does not read.
+- **Prepare a draft where the platform supports it.** After Gate 1 confirmation, include `draft: true`, `published: false`, or the platform's equivalent in the in-memory draft shown for Gate 2, using the flag the resolved schema declares rather than assuming one exists. Do not write the file until Gate 2 approval; when writing after approval, clear the draft flag. On a platform with no draft flag, likewise keep the file unwritten until Gate 2 approval.
 - **Respect the file naming rule.** A date-prefixed name is required on some platforms and wrong on others.
 
 ## Pseudo-blog venues
@@ -335,6 +339,7 @@ Do not create or modify any file until the user confirms. Present, in a few line
 
 - The code being written up and the single purpose the post covers.
 - Whether this creates a new doc file in the workspace, and the exact path the post will be written to.
+- When the destination came from a generator's configuration, the config file that was read and the folder it resolved to.
 - The category and file name.
 - The working title, the slug, and the SEO level in effect.
 - The delivery mode, and the destination as it resolved.
