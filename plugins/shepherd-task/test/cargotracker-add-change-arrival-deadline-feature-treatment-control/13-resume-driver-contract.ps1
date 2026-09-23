@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.3
+# shepherd-task-version: 1.0.4
 <#
 .SYNOPSIS
     Verifies the separate Cargo Tracker preserved-run recovery driver.

@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.3
+# shepherd-task-version: 1.0.4
 <#
 .SYNOPSIS
     Validates PowerShell examples embedded in shepherd-task skills.

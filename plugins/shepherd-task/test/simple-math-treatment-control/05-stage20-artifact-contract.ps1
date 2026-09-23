@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.3
+# shepherd-task-version: 1.0.4
 <#
 .SYNOPSIS
     Regression coverage for stage-20 draft and result contracts.

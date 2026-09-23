@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.3
+# shepherd-task-version: 1.0.4
 <#
 .SYNOPSIS
     Shepherds a child Task issue end-to-end: from Copilot assignment through merge.

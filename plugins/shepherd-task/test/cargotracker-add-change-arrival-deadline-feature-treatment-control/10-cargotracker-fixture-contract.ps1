@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.3
+# shepherd-task-version: 1.0.4
 <#
 .SYNOPSIS
     Verifies the Cargo Tracker treatment/control fixture definition.

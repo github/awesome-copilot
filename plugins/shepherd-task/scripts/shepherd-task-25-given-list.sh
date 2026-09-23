@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.3
+# shepherd-task-version: 1.0.4
 #
 # Stage 25: dispatch an ordered issue subset.
 # Usage:
