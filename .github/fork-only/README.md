@@ -16,7 +16,7 @@ flowchart LR
     issue[Issue] --> planner[fork-issue-planner<br/>gh-aw: grill + advisory plan]
     planner --> planpr[Draft PR: plan/issue-N<br/>+ open questions on the issue]
     planpr -.answers + resume on branch.-> orch[dev-orchestrator<br/>revises plan]
-    orch --> duck[rubber-duck review<br/>revised plan]
+    orch --> duck[plan-reviewer sub-agent<br/>revised plan + verdict]
     duck --> approval[Maintainer approval]
     approval --> impl[dev-orchestrator<br/>implements + self-reviews]
     impl --> pr[PR into fork main]
@@ -46,7 +46,8 @@ The gh-aw sources live in `.github/workflows/*.md` alongside their compiled `.lo
 
 Custom agents for interactive Copilot CLI sessions; they are not run by Actions. They live under `.github/agents/` — not `.github/fork-only/agents/` — because Copilot CLI only discovers selectable custom agents in `.github/agents/` (repo-level) or `~/.copilot/agents/` (user-level); a `.github/fork-only/agents/` file is never scanned and cannot be selected with `/agent`. This is still fork-only tooling: neither `npm run build`/`skill-check` (which only walk the top-level `agents/**`) nor `fork-bundle-upstream-pr` (which diffs a hard-coded list of the migration-expert agent's own paths) ever look at `.github/agents/`, so nothing here can leak upstream.
 
-- **dev-orchestrator.agent.md** — issue → maintainer answers and re-grilling → revised plan → rubber-duck review → approval gate → implement → pre-PR self-review. Reads `.github/fork-only/plans/issue-<N>.md` first if the planner produced one, but treats it as advisory. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators). Selectable via `/agent` (`mode: primary`, `hidden: false`, `user-invocable: true`). The rubber-duck reviewer is a dispatched reviewer, not a fork-specific agent file.
+- **dev-orchestrator.agent.md** — issue → maintainer answers and re-grilling → revised plan → Plan Reviewer verdict → approval gate → implement → pre-PR self-review. Reads `.github/fork-only/plans/issue-<N>.md` first if the planner produced one, but treats it as advisory. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators). Selectable via `/agent` (`mode: primary`, `hidden: false`, `user-invocable: true`).
+- **plan-reviewer.agent.md** — focused read-only rubber-duck review of the revised plan. The orchestrator dispatches this hidden sub-agent (`mode: subagent`, `hidden: true`, `user-invocable: false`) and requires a verdict of `no material concerns` or `material concerns` with evidenced findings. A failed dispatch or invalid result is not a completed review; the maintainer decides whether to retry or explicitly proceed without one.
 
 ### No state files
 
@@ -103,7 +104,7 @@ The gh-aw workflows use the Copilot engine and request `copilot-requests: write`
 2. **Fork Issue Planner** fires automatically (owner-opened issues only, `fork-automation`-labelled ones excluded). Within a few minutes you get a draft PR `[plan] plan: issue #N — …` on branch `plan/issue-<N>` containing `.github/fork-only/plans/issue-<N>.md` with `---`-delimited YAML frontmatter, plus an issue comment linking the draft PR and repeating the plan's open questions verbatim with a material risk if identified (otherwise an explicit "No material risk identified").
 3. Answer the open questions in the issue. That is the human half of the grilling the CI run could not do.
 4. In Copilot CLI, check out `plan/issue-<N>`, select the **Development Orchestrator** agent (`/agent` → `.github/agents/dev-orchestrator.agent.md`) and give it the issue number. It reads the plan file as a starting point — the plan is advisory, so the orchestrator re-grills with your answers and rewrites it freely.
-5. It incorporates your answers, revises the plan, has a rubber-duck reviewer check that revised plan for concrete gaps, incorporates valid findings, and then asks for your approval. After approval it implements, bumps `plugin.json` version, runs `npm run build`, and self-reviews. The reviewer can report "No material concerns"; older plans' skeptic sections are historical context, not a gate.
+5. It incorporates your answers, revises the plan, dispatches **Plan Reviewer** to check it for concrete gaps, incorporates valid findings, and presents the verdict before asking for your approval. If dispatch or the verdict fails, it tells you the plan was not reviewed and asks whether to retry or proceed without review. After approval it implements, bumps `plugin.json` version, runs `npm run build`, and self-reviews. The reviewer can report "No material concerns"; older plans' skeptic sections are historical context, not a gate.
 6. Mark the plan PR *Ready for review* once it carries the implementation (or close it and open a fresh PR — the branch is yours). `skill-check` (vally) and `fork-agent-reviewer` run. The reviewer's `version_check` job fails if the version was not bumped.
 7. Merge when satisfied — you are the sole reviewer.
 
