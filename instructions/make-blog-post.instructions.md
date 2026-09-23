@@ -1,5 +1,5 @@
 ---
-description: 'When working in a workspace or repository, and deemed that a function, method, tool, etc. can be used independently; then make a blog post where that code is written up as an informational walkthrough for 1 specific purpose'
+description: 'When a function, method, tool, or other code in a workspace can be used independently, create a blog post that presents it as an informational walkthrough for one specific purpose'
 applyTo: '**'
 ---
 
@@ -141,7 +141,7 @@ These pages are indexed but have no tag system, no internal link graph, and no s
 Writing the file is this instruction's job. Uploading it is not.
 
 1. Write the post to the post store under the chosen category, with full front matter.
-2. Write the venue-shaped copy alongside it, named as the venue needs it.
+2. Write the venue-shaped copy in a venue-specific subdirectory (for example, `gist/slugify-text.md`), using the file name the venue needs without overwriting the archive copy.
 3. Report both paths, and state the venue description and file name to use.
 4. Stop there. Creating the gist, opening the discussion, or editing the wiki is a separate action and needs its own request from the user, exactly as committing and pushing do.
 
@@ -171,7 +171,7 @@ The reply is the deliverable, so it has to survive a single copy with no cleanup
 - **Render the post in one fenced block.** The post contains its own fenced code sample, so fence the outer block with four backticks so the inner three-backtick fence survives intact.
 - **One block, nothing interleaved.** Do not split the post across several blocks with commentary between them. Notes go after the block.
 - **Include front matter only if the target parses it.** For a hosted editor or a venue with no front matter, deliver the venue shape from **Pseudo-blog venues** instead.
-- **List field values separately when the target has separate fields.** A hosted editor or a gist takes the title, description, tags, and slug in its own inputs, so give each as a labeled one-liner under the block rather than burying them in the text.
+- **List field values separately when the target has separate fields.** For a hosted editor, provide only the fields it actually exposes. For a gist, list the description and file name; put the title in the body's `H1`, use the file name as the slug, and omit tags.
 - **Write no file.** Do not save a copy for safekeeping unless asked. Offer the archive copy in one line and let the user decide.
 
 ### Staged mode
@@ -302,7 +302,7 @@ Choose one primary search phrase and at most two secondary phrases. Write the ph
 
 - Lowercase, hyphenated, three to six words, derived from the primary phrase.
 - No dates, no numbering, no stop words that carry no search weight.
-- Match the file name so the file and the URL stay in step (`slugify-text.md` serves `/slugify-text`).
+- Match the slug to the semantic part of the file name (`slugify-text.md` uses `slugify-text`). Keep platform-required filename prefixes, such as Jekyll's date, out of the slug unless the site's own convention requires them.
 - When the workspace is a site with an established slug convention, follow the site.
 
 ### Headings and body
