@@ -122,7 +122,8 @@ $expectedInputs = @(
     '- EXPECTED_TASK_COUNT: 5',
     "- BASE_REMOTE: $($artifacts.BaseRemote)",
     "- DRAFT_VALIDATOR: $($artifacts.DraftValidator)",
-    "- ISSUE_BODY_VERIFIER: $($artifacts.IssueBodyVerifier)"
+    "- ISSUE_BODY_VERIFIER: $($artifacts.IssueBodyVerifier)",
+    "- CHILD_LINK_VERIFIER: $($artifacts.ChildLinkVerifier)"
 )
 foreach ($expectedInput in $expectedInputs) {
     if (-not $prompt.Contains($expectedInput)) {

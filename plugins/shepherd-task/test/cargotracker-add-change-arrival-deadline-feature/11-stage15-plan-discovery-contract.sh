@@ -78,6 +78,7 @@ grep -Fq -- '- IMPLEMENTATION_SECTION: ## Phase 4 — Implementation (five seria
 grep -Fq -- '- EXPECTED_TASK_COUNT: 5' "$prompt_file"
 grep -Fq -- "- DRAFT_VALIDATOR: $SCRIPTS_DIRECTORY/validate-stage20-drafts.sh" "$prompt_file"
 grep -Fq -- "- ISSUE_BODY_VERIFIER: $SCRIPTS_DIRECTORY/verify-github-issue-body.sh" "$prompt_file"
+grep -Fq -- "- CHILD_LINK_VERIFIER: $SCRIPTS_DIRECTORY/verify-stage20-child-links.sh" "$prompt_file"
 grep -Fq -- "$SCRIPTS_DIRECTORY/redact-secrets.sh" "$invocation_file"
 grep -Fq -- "$SCRIPTS_DIRECTORY/assert-stage20-result.sh" "$invocation_file"
 grep -Fq -- 'stage-20-result.json" 5' "$invocation_file"

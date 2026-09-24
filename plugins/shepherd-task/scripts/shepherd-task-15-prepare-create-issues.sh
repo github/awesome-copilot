@@ -70,6 +70,9 @@ DRAFT_VALIDATOR="$SCRIPT_DIR/validate-stage20-drafts.sh"
 ISSUE_BODY_VERIFIER="$SCRIPT_DIR/verify-github-issue-body.sh"
 [[ -x "$ISSUE_BODY_VERIFIER" ]] ||
     fail "Stage-20 issue body verifier is missing or not executable: $ISSUE_BODY_VERIFIER"
+CHILD_LINK_VERIFIER="$SCRIPT_DIR/verify-stage20-child-links.sh"
+[[ -x "$CHILD_LINK_VERIFIER" ]] ||
+    fail "Stage-20 child-link verifier is missing or not executable: $CHILD_LINK_VERIFIER"
 PLAN_DIRECTORY="$(jq -r '.campaignMetadataDirectory' "$MANIFEST_PATH")"
 EXPECTED_DIRECTORY="${PARENT_ISSUE}-${CAMPAIGN_SHORTNAME}-remove-before-merge"
 [[ "$PLAN_DIRECTORY" == "$EXPECTED_DIRECTORY" && "$CAMPAIGN_METADATA_DIRECTORY" == "$EXPECTED_DIRECTORY" ]] ||
@@ -188,6 +191,7 @@ Invoke skill \`shepherd-task-20-create-issues-from-plan\` with these inputs:
 - LOG_DIRECTORY: $log_dir_full
 - DRAFT_VALIDATOR: $DRAFT_VALIDATOR
 - ISSUE_BODY_VERIFIER: $ISSUE_BODY_VERIFIER
+- CHILD_LINK_VERIFIER: $CHILD_LINK_VERIFIER
 EOF
 
 {

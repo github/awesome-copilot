@@ -105,6 +105,7 @@ expected_inputs=(
     "- BASE_REMOTE: $base_remote"
     "- DRAFT_VALIDATOR: $scripts_directory/validate-stage20-drafts.sh"
     "- ISSUE_BODY_VERIFIER: $scripts_directory/verify-github-issue-body.sh"
+    "- CHILD_LINK_VERIFIER: $scripts_directory/verify-stage20-child-links.sh"
 )
 for expected_input in "${expected_inputs[@]}"; do
     grep -Fq -- "$expected_input" "$prompt_file" ||

@@ -52,6 +52,7 @@ invocation_file="$(printf '%s\n' "$stage15_output" | sed -n 's/^  Script:    //p
 base_remote="$("$scripts_directory/resolve-repository-remote.sh" "$(jq -r '.repository' <<<"$campaign")")"
 draft_validator="$scripts_directory/validate-stage20-drafts.sh"
 issue_body_verifier="$scripts_directory/verify-github-issue-body.sh"
+child_link_verifier="$scripts_directory/verify-stage20-child-links.sh"
 required_prompt=(
     '- PLAN_FILE_NAME: math-tool-ignorance-reduction-plan.md'
     '- QUESTIONS_SECTION: ## Ignorance reduction'
@@ -60,6 +61,7 @@ required_prompt=(
     "- BASE_REMOTE: $base_remote"
     "- DRAFT_VALIDATOR: $draft_validator"
     "- ISSUE_BODY_VERIFIER: $issue_body_verifier"
+    "- CHILD_LINK_VERIFIER: $child_link_verifier"
 )
 for expected in "${required_prompt[@]}"; do
     grep -Fq -- "$expected" "$prompt_file" || fail "Generated stage-20 prompt is missing '$expected'."

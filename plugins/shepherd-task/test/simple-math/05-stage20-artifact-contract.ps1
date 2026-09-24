@@ -14,6 +14,7 @@ $draftValidator = Join-Path $scriptsDirectory 'validate-stage20-drafts.ps1'
 $resultAssertion = Join-Path $scriptsDirectory 'assert-stage20-result.ps1'
 $redactor = Join-Path $scriptsDirectory 'redact-secrets.ps1'
 $issueBodyVerifier = Join-Path $scriptsDirectory 'verify-github-issue-body.ps1'
+$childLinkVerifier = Join-Path $scriptsDirectory 'verify-stage20-child-links.ps1'
 $stage20Skill = [System.IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot '..\..\..\..\skills\shepherd-task-20-create-issues-from-plan\SKILL.md')
 )
@@ -73,7 +74,9 @@ try {
     $stage20SkillText = [System.IO.File]::ReadAllText($stage20Skill)
     if (-not $stage20SkillText.Contains('ConvertFrom-Json -NoEnumerate') -or
         -not $stage20SkillText.Contains('return ,([object[]]@())') -or
-        -not $stage20SkillText.Contains('capture output and then capture `$LASTEXITCODE` immediately')) {
+        -not $stage20SkillText.Contains('capture output and then capture `$LASTEXITCODE` immediately') -or
+        -not $stage20SkillText.Contains('Use `CHILD_LINK_VERIFIER` as the sole authority') -or
+        -not $stage20SkillText.Contains('Do not independently implement or repeat its checks.')) {
         throw 'Stage-20 skill does not preserve the ledger and native exit-code safety requirements.'
     }
 
@@ -117,6 +120,65 @@ try {
     )
     Assert-Fails -ExpectedMessage 'must not contain nested array entries' -Operation {
         Read-ContractLedger -Path $ledgerRoundTripPath
+    }
+
+    $baselineChildrenPath = Join-Path $tempDirectory 'pre-creation-children.json'
+    $finalChildrenPath = Join-Path $tempDirectory 'final-children.json'
+    $linkLedgerPath = Join-Path $tempDirectory 'link-creation-ledger.json'
+    [System.IO.File]::WriteAllText(
+        $baselineChildrenPath,
+        '[{"id":900,"number":9}]',
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    [System.IO.File]::WriteAllText(
+        $finalChildrenPath,
+        '[{"id":900,"number":9},{"id":1001,"number":41},{"id":1002,"number":42}]',
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    [System.IO.File]::WriteAllText(
+        $linkLedgerPath,
+        '[{"id":1001,"number":41},{"id":1002,"number":42}]',
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    & $childLinkVerifier `
+        -PreCreationChildrenPath $baselineChildrenPath `
+        -FinalChildrenPath $finalChildrenPath `
+        -CreationLedgerPath $linkLedgerPath | Out-Null
+
+    [System.IO.File]::WriteAllText(
+        $finalChildrenPath,
+        '[{"id":900,"number":9},{"id":1002,"number":42},{"id":1001,"number":41}]',
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    Assert-Fails -ExpectedMessage 'do not match creation-ledger order' -Operation {
+        & $childLinkVerifier `
+            -PreCreationChildrenPath $baselineChildrenPath `
+            -FinalChildrenPath $finalChildrenPath `
+            -CreationLedgerPath $linkLedgerPath
+    }
+
+    [System.IO.File]::WriteAllText(
+        $finalChildrenPath,
+        '[{"id":900,"number":9},{"id":1001,"number":41}]',
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    Assert-Fails -ExpectedMessage 'final child count' -Operation {
+        & $childLinkVerifier `
+            -PreCreationChildrenPath $baselineChildrenPath `
+            -FinalChildrenPath $finalChildrenPath `
+            -CreationLedgerPath $linkLedgerPath
+    }
+
+    [System.IO.File]::WriteAllText(
+        $finalChildrenPath,
+        '[{"id":900,"number":9},{"id":1001,"number":41},{"id":1001,"number":41}]',
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    Assert-Fails -ExpectedMessage 'duplicate issue identities' -Operation {
+        & $childLinkVerifier `
+            -PreCreationChildrenPath $baselineChildrenPath `
+            -FinalChildrenPath $finalChildrenPath `
+            -CreationLedgerPath $linkLedgerPath
     }
 
     $mockStatePath = Join-Path $tempDirectory 'mock-gh-state.txt'

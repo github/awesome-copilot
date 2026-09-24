@@ -78,6 +78,8 @@ grep -Fq -- "- DRAFT_VALIDATOR: $scripts_directory/validate-stage20-drafts.sh" "
     fail "Installed Stage 15 emitted a noncanonical draft-validator path."
 grep -Fq -- "- ISSUE_BODY_VERIFIER: $scripts_directory/verify-github-issue-body.sh" "$prompt_file" ||
     fail "Installed Stage 15 emitted a noncanonical issue-body-verifier path."
+grep -Fq -- "- CHILD_LINK_VERIFIER: $scripts_directory/verify-stage20-child-links.sh" "$prompt_file" ||
+    fail "Installed Stage 15 emitted a noncanonical child-link-verifier path."
 grep -Fq -- "$scripts_directory/redact-secrets.sh" "$invocation_file" ||
     fail "Installed Stage 15 invocation does not use the installed redactor."
 grep -Fq -- "$scripts_directory/assert-stage20-result.sh" "$invocation_file" ||

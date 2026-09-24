@@ -73,16 +73,22 @@ Resolution: Resolved.
         'validate-stage20-drafts.ps1'
     $expectedIssueBodyVerifier = Join-Path $scriptsDirectory `
         'verify-github-issue-body.ps1'
+    $expectedChildLinkVerifier = Join-Path $scriptsDirectory `
+        'verify-stage20-child-links.ps1'
     if ([string]$artifacts.DraftValidator -cne $expectedDraftValidator) {
         throw "Installed Stage 15 emitted a noncanonical draft-validator path: $($artifacts.DraftValidator)"
     }
     if ([string]$artifacts.IssueBodyVerifier -cne $expectedIssueBodyVerifier) {
         throw "Installed Stage 15 emitted a noncanonical issue-body-verifier path: $($artifacts.IssueBodyVerifier)"
     }
+    if ([string]$artifacts.ChildLinkVerifier -cne $expectedChildLinkVerifier) {
+        throw "Installed Stage 15 emitted a noncanonical child-link-verifier path: $($artifacts.ChildLinkVerifier)"
+    }
 
     $prompt = [System.IO.File]::ReadAllText($artifacts.PromptFile)
     if (-not $prompt.Contains("- DRAFT_VALIDATOR: $expectedDraftValidator") -or
-        -not $prompt.Contains("- ISSUE_BODY_VERIFIER: $expectedIssueBodyVerifier")) {
+        -not $prompt.Contains("- ISSUE_BODY_VERIFIER: $expectedIssueBodyVerifier") -or
+        -not $prompt.Contains("- CHILD_LINK_VERIFIER: $expectedChildLinkVerifier")) {
         throw 'Installed Stage 15 prompt does not contain canonical helper paths.'
     }
     $invocation = [System.IO.File]::ReadAllText($artifacts.InvocationFile)

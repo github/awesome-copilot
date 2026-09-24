@@ -1,7 +1,7 @@
 ---
 # shepherd-task-version: 1.0.4
 name: shepherd-task-20-create-issues-from-plan
-description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child issues under an existing GitHub parent issue, preferring the Task issue type when the repository supports it. Incorporates resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 14 inputs are required. Skip this stage when suitable implementation issues already exist.'
+description: 'Stage 20 of the shepherd-task campaign lifecycle (creation of ordered implementation issues). Use this skill to turn the ordered implementation section of an ignorance reduction plan into detailed, serial child issues under an existing GitHub parent issue, preferring the Task issue type when the repository supports it. Incorporates resolved research, campaign lesson mode, spike artifacts, branch instructions, gating tests, persistent run artifacts, and verified sub-issue ordering. All 15 inputs are required. Skip this stage when suitable implementation issues already exist.'
 ---
 
 # Skill: Create Shepherd Task Issues from a Plan (shepherd-task stage 20 — creation of ordered implementation issues)
@@ -30,6 +30,7 @@ The created issues are specifications, not summaries. A coding agent must be abl
 12. **`LESSON_PROPAGATION`** — Immutable campaign mode, exactly `off` or `campaign`.
 13. **`DRAFT_VALIDATOR`** — Absolute path to the platform-specific `validate-stage20-drafts.ps1` or `validate-stage20-drafts.sh` script supplied by the stage 15 launcher.
 14. **`ISSUE_BODY_VERIFIER`** — Absolute path to the platform-specific `verify-github-issue-body.ps1` or `verify-github-issue-body.sh` script supplied by the stage 15 launcher.
+15. **`CHILD_LINK_VERIFIER`** — Absolute path to the platform-specific `verify-stage20-child-links.ps1` or `verify-stage20-child-links.sh` script supplied by the stage 15 launcher.
 
 ## Fixed behaviors
 
@@ -45,6 +46,7 @@ The created issues are specifications, not summaries. A coding agent must be abl
 - Never cite a resolution without its concrete value or operational consequence.
 - Prefer the enabled `Task` issue type when the repository owner provides it; otherwise create ordinary untyped issues.
 - In `campaign` mode, every issue must tell CCA to consume validated campaign lessons and contribute candidate lessons. In `off` mode, omit all lesson consumption and production instructions.
+- Use `CHILD_LINK_VERIFIER` as the sole authority for final child count, exact-once linkage, and newly linked child order. Do not hand-write or substitute `jq`, PowerShell, GraphQL, or other logic for those postconditions.
 
 ## Bundled examples
 
@@ -309,9 +311,9 @@ If the ledger is empty, explicitly report that no issues were created and no cle
 
 ### Step 6: Verify postconditions
 
-- Relative to the pre-creation baseline, the child count increased by exactly the number of ledger entries.
-- Every ledger entry is linked exactly once and corresponds, in creation order, to one implementation subsection.
-- The newly linked child order matches plan order.
+- Persist the normalized pre-creation child array as `LOG_DIRECTORY/pre-creation-children.json` and the normalized final child array as `LOG_DIRECTORY/final-children.json`.
+- Invoke `CHILD_LINK_VERIFIER` with those two snapshots and `LOG_DIRECTORY/creation-ledger.json`. For Bash, pass the three paths in that order. For PowerShell, use `-PreCreationChildrenPath`, `-FinalChildrenPath`, and `-CreationLedgerPath`. If it fails, enter the failure flow. Do not independently implement or repeat its checks.
+- `CHILD_LINK_VERIFIER` is authoritative that the final child count increased by exactly the ledger length, every ledger identity is linked exactly once, pre-existing children remain linked, and newly linked child order matches plan order.
 - Every issue in the ledger has a body exactly matching its persisted body file, is open, and has no assignees. Invoke `ISSUE_BODY_VERIFIER` again for each final body check; do not substitute a GraphQL or single-attempt read.
 - When `SELECTED_ISSUE_TYPE=Task`, every created issue has type `Task`. When it is empty, no issue-type postcondition is required.
 - After every other postcondition passes, atomically write `stage-20-result.json` with `status` set to `complete` and `operationError` set to `null`. Do not add issue identities; `creation-ledger.json` is their single source of truth. A successful Copilot process exit is not a stage-success signal; the status document plus the complete ledger are authoritative.

@@ -103,13 +103,17 @@ try {
         'validate-stage20-drafts.ps1'
     $expectedIssueBodyVerifier = Join-Path $scriptsDirectory `
         'verify-github-issue-body.ps1'
+    $expectedChildLinkVerifier = Join-Path $scriptsDirectory `
+        'verify-stage20-child-links.ps1'
     if ([string]$artifacts.DraftValidator -cne $expectedDraftValidator -or
-        [string]$artifacts.IssueBodyVerifier -cne $expectedIssueBodyVerifier) {
+        [string]$artifacts.IssueBodyVerifier -cne $expectedIssueBodyVerifier -or
+        [string]$artifacts.ChildLinkVerifier -cne $expectedChildLinkVerifier) {
         throw 'Stage 15 did not return canonical installed helper paths.'
     }
     $prompt = [System.IO.File]::ReadAllText($artifacts.PromptFile)
     if (-not $prompt.Contains("- DRAFT_VALIDATOR: $expectedDraftValidator") -or
-        -not $prompt.Contains("- ISSUE_BODY_VERIFIER: $expectedIssueBodyVerifier")) {
+        -not $prompt.Contains("- ISSUE_BODY_VERIFIER: $expectedIssueBodyVerifier") -or
+        -not $prompt.Contains("- CHILD_LINK_VERIFIER: $expectedChildLinkVerifier")) {
         throw 'Stage 15 prompt does not contain canonical installed helper paths.'
     }
     $invocation = [System.IO.File]::ReadAllText($artifacts.InvocationFile)

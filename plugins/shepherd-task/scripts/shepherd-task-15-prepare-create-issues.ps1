@@ -115,6 +115,12 @@ $ISSUE_BODY_VERIFIER = [System.IO.Path]::GetFullPath(
 if (-not (Test-Path -LiteralPath $ISSUE_BODY_VERIFIER -PathType Leaf)) {
     throw "Stage-20 issue body verifier not found: $ISSUE_BODY_VERIFIER"
 }
+$CHILD_LINK_VERIFIER = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot 'verify-stage20-child-links.ps1')
+)
+if (-not (Test-Path -LiteralPath $CHILD_LINK_VERIFIER -PathType Leaf)) {
+    throw "Stage-20 child-link verifier not found: $CHILD_LINK_VERIFIER"
+}
 
 $planFiles = @(
     Get-ChildItem -LiteralPath $campaignMetadataPath -File |
@@ -232,6 +238,7 @@ Invoke skill ``shepherd-task-20-create-issues-from-plan`` with these inputs:
 - LOG_DIRECTORY: $logDirFull
 - DRAFT_VALIDATOR: $DRAFT_VALIDATOR
 - ISSUE_BODY_VERIFIER: $ISSUE_BODY_VERIFIER
+- CHILD_LINK_VERIFIER: $CHILD_LINK_VERIFIER
 "@
 
 Set-Content -LiteralPath $outFile -Value $body -Encoding utf8NoBOM
@@ -311,5 +318,6 @@ if ($PassThru) {
         TaskCount = $taskHeadingCount
         DraftValidator = $DRAFT_VALIDATOR
         IssueBodyVerifier = $ISSUE_BODY_VERIFIER
+        ChildLinkVerifier = $CHILD_LINK_VERIFIER
     }
 }

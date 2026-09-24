@@ -18,8 +18,9 @@ draft_validator="$scripts_directory/validate-stage20-drafts.sh"
 result_assertion="$scripts_directory/assert-stage20-result.sh"
 redactor="$scripts_directory/redact-secrets.sh"
 issue_body_verifier="$scripts_directory/verify-github-issue-body.sh"
+child_link_verifier="$scripts_directory/verify-stage20-child-links.sh"
 stage20_skill="$script_dir/../../../../skills/shepherd-task-20-create-issues-from-plan/SKILL.md"
-for path in "$draft_validator" "$result_assertion" "$redactor" "$issue_body_verifier" "$stage20_skill"; do
+for path in "$draft_validator" "$result_assertion" "$redactor" "$issue_body_verifier" "$child_link_verifier" "$stage20_skill"; do
     [[ -f "$path" ]] || fail "Required contract input not found: $path"
 done
 
@@ -42,6 +43,10 @@ grep -Fq -- '--argjson value "$value" \' "$stage20_skill" ||
     fail "Stage-20 skill does not preserve the Bash jq argument continuation requirement."
 grep -Fq -- "'map(if .number == \$number then .[\$field] = \$value else . end)' \\" "$stage20_skill" ||
     fail "Stage-20 skill does not preserve the Bash ledger update filter template."
+grep -Fq 'Use `CHILD_LINK_VERIFIER` as the sole authority' "$stage20_skill" ||
+    fail "Stage-20 skill does not require the deterministic child-link verifier."
+grep -Fq 'Do not independently implement or repeat its checks.' "$stage20_skill" ||
+    fail "Stage-20 skill permits model-generated child-link verification."
 
 ledger="$temp_directory/ledger-round-trip.json"
 printf '[]\n' >"$ledger"
@@ -58,6 +63,35 @@ printf '[[],{"number":41}]\n' >"$ledger"
 if jq -e 'type == "array" and all(.[]; type == "object")' "$ledger" >/dev/null; then
     fail "Creation ledger accepted a nested array entry."
 fi
+
+baseline_children="$temp_directory/pre-creation-children.json"
+final_children="$temp_directory/final-children.json"
+link_ledger="$temp_directory/link-creation-ledger.json"
+printf '[{"id":900,"number":9}]\n' >"$baseline_children"
+printf '[{"id":900,"number":9},{"id":1001,"number":41},{"id":1002,"number":42}]\n' >"$final_children"
+printf '[{"id":1001,"number":41},{"id":1002,"number":42}]\n' >"$link_ledger"
+"$child_link_verifier" "$baseline_children" "$final_children" "$link_ledger" >/dev/null
+
+printf '[{"id":900,"number":9},{"id":1002,"number":42},{"id":1001,"number":41}]\n' >"$final_children"
+if output="$("$child_link_verifier" "$baseline_children" "$final_children" "$link_ledger" 2>&1)"; then
+    fail "Child-link verifier accepted newly linked children out of plan order: $output"
+fi
+[[ "$output" == *"do not match creation-ledger order"* ]] ||
+    fail "Out-of-order child-link failure was unexpected: $output"
+
+printf '[{"id":900,"number":9},{"id":1001,"number":41}]\n' >"$final_children"
+if output="$("$child_link_verifier" "$baseline_children" "$final_children" "$link_ledger" 2>&1)"; then
+    fail "Child-link verifier accepted a missing linked child: $output"
+fi
+[[ "$output" == *"final child count"* ]] ||
+    fail "Missing child-link failure was unexpected: $output"
+
+printf '[{"id":900,"number":9},{"id":1001,"number":41},{"id":1001,"number":41}]\n' >"$final_children"
+if output="$("$child_link_verifier" "$baseline_children" "$final_children" "$link_ledger" 2>&1)"; then
+    fail "Child-link verifier accepted a duplicate linked child: $output"
+fi
+[[ "$output" == *"duplicate issue identities"* ]] ||
+    fail "Duplicate child-link failure was unexpected: $output"
 
 valid_body="$(cat <<'EOF'
 ## Campaign context and required reading
