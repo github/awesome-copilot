@@ -76,12 +76,13 @@ EXPECTED_DIRECTORY="${PARENT_ISSUE}-${CAMPAIGN_SHORTNAME}-remove-before-merge"
     fail "Campaign manifest and directory must both use '$EXPECTED_DIRECTORY'."
 
 PLAN_FILES=()
-while IFS= read -r -d '' plan_file; do
-    PLAN_FILES+=("$plan_file")
-done < <(
-    find "$CAMPAIGN_METADATA_PATH" -maxdepth 1 -type f \
-        -iname '*ignorance-reduction-plan.md' -print0
-)
+for plan_file in "$CAMPAIGN_METADATA_PATH"/*; do
+    [[ -f "$plan_file" ]] || continue
+    plan_name="$(basename "$plan_file" | tr '[:upper:]' '[:lower:]')"
+    case "$plan_name" in
+        *ignorance-reduction-plan.md) PLAN_FILES+=("$plan_file") ;;
+    esac
+done
 [[ ${#PLAN_FILES[@]} -eq 1 ]] ||
     fail "Expected exactly one *ignorance-reduction-plan.md in the campaign metadata directory; found ${#PLAN_FILES[@]}."
 PLAN_PATH="${PLAN_FILES[0]}"

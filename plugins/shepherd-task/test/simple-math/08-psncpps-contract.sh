@@ -15,9 +15,12 @@ done
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 scripts_directory="$script_dir/../../scripts"
 stage25="$scripts_directory/shepherd-task-25-given-list.sh"
-while IFS= read -r -d '' file; do
-    bash -n "$file" || fail "Bash parse errors in '$file'."
-done < <(find "$script_dir" "$scripts_directory" -maxdepth 1 -type f -name '*.sh' -print0)
+for directory in "$script_dir" "$scripts_directory"; do
+    for file in "$directory"/*.sh; do
+        [[ -f "$file" ]] || continue
+        bash -n "$file" || fail "Bash parse errors in '$file'."
+    done
+done
 
 contract_root="$script_dir/.contract-work"
 temp_directory="$contract_root/bash-native-$$"

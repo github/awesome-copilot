@@ -20,11 +20,12 @@ for command_name in bash find grep git mktemp; do
 done
 
 shell_files=()
-while IFS= read -r shell_file; do
-    shell_files+=("$shell_file")
-done < <(
-    find "$fixture_root" "$scripts_directory" -maxdepth 1 -type f -name '*.sh' -print
-)
+for directory in "$fixture_root" "$scripts_directory"; do
+    for shell_file in "$directory"/*.sh; do
+        [[ -f "$shell_file" ]] || continue
+        shell_files+=("$shell_file")
+    done
+done
 [[ ${#shell_files[@]} -gt 0 ]] ||
     fail "No Bash scripts were found for syntax validation."
 for shell_file in "${shell_files[@]}"; do

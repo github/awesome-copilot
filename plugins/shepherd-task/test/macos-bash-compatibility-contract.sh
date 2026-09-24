@@ -13,7 +13,7 @@ fi
 
 bash4_array_pattern='(^|[^[:alnum:]_])(mapfile|readarray)([^[:alnum:]_]|$)|declare[[:space:]]+-A|local[[:space:]]+-n|declare[[:space:]]+-n'
 bash4_case_pattern='\$\{[^}]+,,\}|\$\{[^}]+\^\^\}'
-gnu_command_pattern='chmod[[:space:]]+--reference|sort[[:space:]]+-z|sed[[:space:]]+-i([[:space:]]|$)'
+gnu_command_pattern='chmod[[:space:]]+--reference|sort[[:space:]]+-z|sed[[:space:]]+-i([[:space:]]|$)|-(maxdepth|mindepth)([[:space:]]|$)'
 base64_operand_pattern='base64[[:space:]]+(--decode|-D|-d)[[:space:]]+[^<[:space:]]'
 
 fail() {
@@ -47,7 +47,8 @@ while IFS= read -r shell_file; do
 done < <(find "$plugin_root" -type f -name '*.sh' -print)
 
 skill_count=0
-while IFS= read -r skill_file; do
+for skill_file in "$skills_root"/shepherd-task-*/SKILL.md; do
+    [[ -f "$skill_file" ]] || continue
     skill_count=$((skill_count + 1))
     bash_blocks="$(extract_bash_blocks "$skill_file")"
     [[ -n "$bash_blocks" ]] || continue
@@ -59,10 +60,7 @@ while IFS= read -r skill_file; do
         grep -Eq "$gnu_command_pattern|$base64_operand_pattern"; then
         fail "GNU/Linux-only command usage found in Bash snippets in '$skill_file'."
     fi
-done < <(
-    find "$skills_root" -mindepth 2 -maxdepth 2 -type f \
-        -path '*/shepherd-task-*/SKILL.md' -print
-)
+done
 [[ "$skill_count" -eq 6 ]] ||
     fail "Expected to scan 6 shepherd-task skills; found $skill_count under '$skills_root'."
 

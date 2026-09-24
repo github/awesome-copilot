@@ -56,8 +56,9 @@ cleanup_lists() {
 }
 trap cleanup_lists EXIT
 if [[ -d "$campaign_path/prompts" ]]; then
-    find "$campaign_path/prompts" -mindepth 1 -maxdepth 1 -type d -print |
-        sort >"$before_file"
+    for directory in "$campaign_path/prompts"/*; do
+        [[ -d "$directory" ]] && printf '%s\n' "$directory"
+    done | sort >"$before_file"
 else
     : >"$before_file"
 fi
@@ -68,8 +69,9 @@ echo "Executing stage 15 preparation..."
     "$preparation_script" "$campaign_metadata_directory"
 )
 
-find "$campaign_path/prompts" -mindepth 1 -maxdepth 1 -type d -print |
-    sort >"$after_file"
+for directory in "$campaign_path/prompts"/*; do
+    [[ -d "$directory" ]] && printf '%s\n' "$directory"
+done | sort >"$after_file"
 new_artifact_directories=()
 while IFS= read -r directory; do
     new_artifact_directories+=("$directory")
@@ -78,15 +80,17 @@ done < <(comm -13 "$before_file" "$after_file")
     fail "Expected stage 15 to create one artifact directory; found ${#new_artifact_directories[@]}."
 artifact_directory="${new_artifact_directories[0]}"
 prompt_files=()
-while IFS= read -r prompt_file_path; do
+for prompt_file_path in \
+    "$artifact_directory"/*-invoke-shepherd-task-20-create-issues-from-plan-skill.md; do
+    [[ -f "$prompt_file_path" ]] || continue
     prompt_files+=("$prompt_file_path")
-done < <(find "$artifact_directory" -maxdepth 1 -type f \
-    -name '*-invoke-shepherd-task-20-create-issues-from-plan-skill.md' -print)
+done
 invocation_files=()
-while IFS= read -r invocation_file_path; do
+for invocation_file_path in \
+    "$artifact_directory"/*-invoke-shepherd-task-20-create-issues-from-plan-skill.sh; do
+    [[ -f "$invocation_file_path" ]] || continue
     invocation_files+=("$invocation_file_path")
-done < <(find "$artifact_directory" -maxdepth 1 -type f \
-    -name '*-invoke-shepherd-task-20-create-issues-from-plan-skill.sh' -print)
+done
 [[ ${#prompt_files[@]} -eq 1 && ${#invocation_files[@]} -eq 1 ]] ||
     fail "Stage 15 did not create exactly one prompt and one Bash invocation."
 prompt_file="${prompt_files[0]}"

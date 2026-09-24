@@ -153,12 +153,11 @@ get_campaign_directory() {
     local worktree="$1"
     local shortname="$2"
     local matches=()
-    while IFS= read -r -d '' match; do
+    local match
+    for match in "$worktree"/*-"$shortname"-remove-before-merge; do
+        [[ -d "$match" ]] || continue
         matches+=("$match")
-    done < <(
-        find "$worktree" -mindepth 1 -maxdepth 1 -type d \
-            -name "*-$shortname-remove-before-merge" -print0
-    )
+    done
     [[ ${#matches[@]} -eq 1 ]] ||
         fail "Expected one '$shortname' campaign directory in '$worktree'; found ${#matches[@]}."
     printf '%s\n' "${matches[0]}"
@@ -185,15 +184,16 @@ get_campaign_handoff() {
 get_only_completed_run_directory() {
     local campaign_directory="$1"
     local completed=()
-    while IFS= read -r -d '' directory; do
+    local directory
+    for directory in "$campaign_directory"/shepherd-tasks-*; do
+        [[ -d "$directory" ]] || continue
         local manifest="$directory/shepherd-task-25-given-list-run.json"
         [[ -f "$manifest" ]] || continue
         if jq -e '.status == "succeeded" and .exitCode == 0 and
             .lessonPropagation == "off"' "$manifest" >/dev/null 2>&1; then
             completed+=("$directory")
         fi
-    done < <(find "$campaign_directory" -mindepth 1 -maxdepth 1 -type d \
-        -name 'shepherd-tasks-*' -print0)
+    done
     [[ ${#completed[@]} -eq 1 ]] ||
         fail "Expected one successful control stage-25 run under '$campaign_directory'; found ${#completed[@]}."
     printf '%s\n' "${completed[0]}"
@@ -208,11 +208,11 @@ get_or_create_post_mortem() {
     local base_branch="$6"
     local repository="$7"
     local post_mortems=()
-    while IFS= read -r -d '' post_mortem; do
+    local post_mortem
+    for post_mortem in "$run_directory"/*-post-mortem.md; do
+        [[ -f "$post_mortem" ]] || continue
         post_mortems+=("$post_mortem")
-    done < <(
-        find "$run_directory" -maxdepth 1 -type f -name '*-post-mortem.md' -print0
-    )
+    done
     if [[ ${#post_mortems[@]} -eq 1 ]]; then
         [[ -s "${post_mortems[0]}" ]] || fail "Post-mortem is empty: ${post_mortems[0]}"
         printf '%s\n' "${post_mortems[0]}"

@@ -156,7 +156,8 @@ while true; do
     NEW_FILES=()
 
     # Scan log directory for new or changed files
-    while IFS= read -r line; do
+    for line in "$LOG_DIR_FULL"/*; do
+        [[ -f "$line" ]] || continue
         filename=$(basename "$line")
         size="$(file_size "$line")"
 
@@ -176,7 +177,7 @@ while true; do
             KNOWN_FILE_SIZES[$file_index]="$size"
             LAST_ACTIVITY=$NOW
         fi
-    done < <(find "$LOG_DIR_FULL" -maxdepth 1 -type f 2>/dev/null)
+    done
 
     # Process new files
     if ((${#NEW_FILES[@]} > 0)); then

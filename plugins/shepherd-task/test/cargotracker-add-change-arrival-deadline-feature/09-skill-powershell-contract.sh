@@ -59,7 +59,7 @@ while IFS= read -r skill_file; do
             }
         ' "$skill_file"
     ) || fail "Unterminated Bash code block in '$skill_file'."
-done < <(find "$skills_directory" -mindepth 2 -type f -name '*.md' \
+done < <(find "$skills_directory" -type f -name '*.md' \
     -path '*/shepherd-task-*/*' | sort)
 
 [[ $block_count -ge 4 ]] ||

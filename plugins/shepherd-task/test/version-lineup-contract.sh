@@ -166,11 +166,13 @@ grep -Fq 'Refusing to downgrade shepherd-task from 9.0.0' "$temp_root/downgrade.
 bash "$installer" --allow-downgrade >/dev/null
 jq -e --arg version "$version" '.shepherdTaskVersion == $version' "$install_manifest" >/dev/null
 
-if find "$COPILOT_HOME" -maxdepth 1 \
-    \( -name '.shepherd-task-install.*' -o -name '.shepherd-task-backup.*' \) |
-    grep -q .; then
-    echo "Installer left staging or backup directories behind." >&2
-    exit 1
-fi
+for transient_path in \
+    "$COPILOT_HOME"/.shepherd-task-install.* \
+    "$COPILOT_HOME"/.shepherd-task-backup.*; do
+    if [[ -e "$transient_path" ]]; then
+        echo "Installer left staging or backup directories behind." >&2
+        exit 1
+    fi
+done
 
 echo "Bash shepherd-task version lineup contract tests passed."

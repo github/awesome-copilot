@@ -151,10 +151,11 @@ if grep -Ein "$unsafe_git_transport_pattern" "${runtime_files[@]}" >/dev/null; t
     fail "Cargo Tracker Bash runtime bypasses gh-managed Git transport."
 fi
 
-while IFS= read -r operational_file; do
+for operational_file in "$fixture_root"/*.sh; do
+    [[ -f "$operational_file" ]] || continue
     [[ "$operational_file" != "$fixture_root/10-cargotracker-fixture-contract.sh" ]] || continue
     ! grep -Fq 'simple-math' "$operational_file" ||
         fail "Cargo Tracker operational script depends on simple-math: $operational_file"
-done < <(find "$fixture_root" -maxdepth 1 -type f -name '*.sh')
+done
 
 echo "Cargo Tracker Bash fixture contract tests passed."

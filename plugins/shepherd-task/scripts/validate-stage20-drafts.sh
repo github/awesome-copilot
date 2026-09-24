@@ -26,12 +26,11 @@ lesson_propagation="$3"
 }
 
 body_files=()
-while IFS= read -r -d '' body_file; do
+for body_file in "$body_directory"/*-body.md; do
+    [[ -f "$body_file" ]] || continue
+    [[ "$body_file" != *-observed-body.md ]] || continue
     body_files+=("$body_file")
-done < <(
-    find "$body_directory" -maxdepth 1 -type f -name '*-body.md' \
-        ! -name '*-observed-body.md' -print0
-)
+done
 [[ ${#body_files[@]} -eq $expected_count ]] || {
     echo "Expected $expected_count persisted stage-20 body files; found ${#body_files[@]}." >&2
     exit 1

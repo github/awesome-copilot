@@ -17,7 +17,7 @@ skills_directory="$script_dir/../../../../skills"
 skill_files=()
 while IFS= read -r skill_file; do
     skill_files+=("$skill_file")
-done < <(find "$skills_directory" -mindepth 2 -type f -name '*.md' \
+done < <(find "$skills_directory" -type f -name '*.md' \
     -path '*/shepherd-task-*/*' | sort)
 [[ ${#skill_files[@]} -gt 0 ]] || fail "No shepherd-task skills were found."
 
