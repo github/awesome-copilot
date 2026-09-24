@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { SignaturePad } from "./components/SignaturePad";
 import { createDraftStore, shouldClearDraft } from "./lib/draftStorage";
+import { UPDATE_READY_EVENT, applyUpdate } from "./lib/registerSW";
 import { formatKms, formatPatente, isValidPatente, parseKms } from "./lib/formatters";
 import {
   PayloadTooLargeError,
@@ -59,6 +60,14 @@ export default function App() {
   const [compressing, setCompressing] = useState(false);
   const [status, setStatus] = useState<Status>({ phase: "idle" });
   const inFlight = useRef(false); // guard de doble tap: un ref, no solo estado (skill §6)
+  const [updateReady, setUpdateReady] = useState(false);
+
+  // Version nueva disponible: se avisa, no se recarga sola (las fotos no se guardan, skill §7).
+  useEffect(() => {
+    const onReady = () => setUpdateReady(true);
+    window.addEventListener(UPDATE_READY_EVENT, onReady);
+    return () => window.removeEventListener(UPDATE_READY_EVENT, onReady);
+  }, []);
 
   // Autoguardado del borrador (solo texto + firma).
   useEffect(() => {
@@ -174,6 +183,16 @@ export default function App() {
   return (
     <main className="app">
       <h1>Formulario de ejemplo</h1>
+
+      {updateReady && (
+        <div className="banner banner-demo" role="status">
+          <strong>Hay una version nueva.</strong> Termina y envia tu formulario; cuando quieras, actualiza
+          (las fotos elegidas no se guardan).{" "}
+          <button type="button" className="btn-secondary" onClick={applyUpdate}>
+            Actualizar ahora
+          </button>
+        </div>
+      )}
 
       {isDemoMode() && (
         <div className="banner banner-demo" role="status">
@@ -309,6 +328,19 @@ export default function App() {
 
         <button type="submit" className="btn-primary" disabled={!canSubmit}>
           {busy ? "Enviando..." : "Enviar"}
+        </button>
+
+        {/* Dispositivo compartido: el usuario puede borrar su borrador (con firma) cuando quiera (skill §33.3). */}
+        <button
+          type="button"
+          className="btn-secondary"
+          disabled={busy}
+          onClick={() => {
+            draftStore.clear();
+            startOver();
+          }}
+        >
+          Borrar mis datos de este dispositivo
         </button>
       </form>
     </main>

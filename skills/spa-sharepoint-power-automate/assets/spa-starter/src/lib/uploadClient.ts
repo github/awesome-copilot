@@ -52,6 +52,7 @@ export type SubmitErrorKind =
   | "auth" //             401/403: trigger mal configurado o x-app-key incorrecta
   | "throttled" //        429
   | "server" //           5xx (salvo 502/504)
+  | "unconfirmed" //      2xx sin la confirmacion esperada (200 con el folio): NO se sabe si se guardo
   | "gateway-timeout" //  502/504: probable limite de 120 s del flow
   | "payload-too-large" // 413 o presupuesto local excedido
   | "client" //           otros 4xx (400, 404, 409...)
@@ -100,8 +101,14 @@ export interface SubmitOptions {
    * flow, para que un 502/504 del gateway llegue antes que nuestro abort.
    */
   timeoutMs?: number;
-  /** Reintentos ADEMAS del primer intento, solo para 429/500/503. Default 2. */
+  /** Reintentos ADEMAS del primer intento. Siempre para 429; para 500/503 solo con `serverIdempotent`. Default 2. */
   maxRetries?: number;
+  /**
+   * true = el flow DEDUPLICA por folio (busca el folio antes de crear el item). Solo entonces
+   * se reintentan solos los 500/503: si el primer POST creo el item y devolvio 5xx, reintentar
+   * sin esa garantia crea un duplicado (skill §22.4). Default false.
+   */
+  serverIdempotent?: boolean;
   /** Base del backoff exponencial cuando no hay Retry-After. Default 1000 ms. */
   baseDelayMs?: number;
   /** Si Retry-After supera esto, no se espera: se devuelve el error. Default 30 s. */
@@ -207,6 +214,9 @@ export const ERROR_MESSAGES = {
     "Error 502/504: probablemente el flow supero el limite de 120 s. Envia menos o mas livianas las fotos, " +
     "y verifica que la accion Response este ANTES de los bucles del flow.",
   tooLarge: "El envio es demasiado grande. Quita algunas fotos o usa imagenes mas chicas.",
+  unconfirmed:
+    "El servidor no confirmo el envio (no devolvio el folio). Puede que se haya guardado o no: " +
+    "tus datos siguen en este dispositivo; reintenta con el mismo folio.",
   client: "El flow rechazo el envio. Revisa los datos e intenta de nuevo.",
   aborted: "Envio cancelado.",
 } as const;
@@ -238,9 +248,12 @@ export function classifyStatus(
   return { kind: "client", message: ERROR_MESSAGES.client, retryable: false, ...base };
 }
 
-/** Solo 429 / 500 / 503 se reintentan solos. 502/504 NO: repetir un envio que ya
- *  paso los 120 s vuelve a fallar y puede duplicar trabajo (queda a criterio del usuario). */
-const AUTO_RETRY_STATUSES = new Set([429, 500, 503]);
+/** 429 siempre se reintenta solo (el flow no proceso el envio). 500/503 solo si el flow deduplica
+ *  por folio (`serverIdempotent`). 502/504 NUNCA: repetir un envio que ya paso los 120 s vuelve a
+ *  fallar y puede duplicar trabajo (queda a criterio del usuario). */
+function canAutoRetry(status: number, serverIdempotent: boolean): boolean {
+  return status === 429 || (serverIdempotent && (status === 500 || status === 503));
+}
 
 const defaultSleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
@@ -264,6 +277,7 @@ export async function submit(payload: Payload, options: SubmitOptions = {}): Pro
   const baseDelayMs = options.baseDelayMs ?? DEFAULT_BASE_DELAY_MS;
   const maxWaitMs = options.maxWaitMs ?? DEFAULT_MAX_WAIT_MS;
   const sleep = options.sleep ?? defaultSleep;
+  const serverIdempotent = options.serverIdempotent ?? false;
 
   const body = JSON.stringify(payload);
 
@@ -281,7 +295,9 @@ export async function submit(payload: Payload, options: SubmitOptions = {}): Pro
   }
 
   // application/json es OBLIGATORIO: con text/plain el flow ve un String y
-  // triggerBody()?['folio'] falla (skill §9). El flow maneja el preflight CORS.
+  // triggerBody()?['folio'] falla (skill §9). application/json y x-app-key hacen que el navegador
+  // mande antes un preflight OPTIONS; Microsoft no documenta que el trigger lo responda (skill §9,
+  // NO VERIFICADO): probalo desde un navegador contra el trigger real y, si falla, usa un proxy.
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (appKey) headers["x-app-key"] = appKey;
 
@@ -297,15 +313,21 @@ export async function submit(payload: Payload, options: SubmitOptions = {}): Pro
 
     const { response } = attempt;
     if (response.status >= 200 && response.status < 300) {
-      // Si el flow NO tiene Response en alguna rama, Power Automate contesta 202 vacio:
-      // para el cliente igual es "aceptado". El cuerpo no se usa: nada interno llega a la UI.
-      return { ok: true, demo: false, folio, attempts };
+      // Exito SOLO con 200 y el folio de vuelta (la Response del flow, skill §9). Un 202 vacio
+      // (rama sin Response) o un 200 sin el folio NO confirma nada: no se borra el borrador.
+      if (await isConfirmed(response, folio)) return { ok: true, demo: false, folio, attempts };
+      return fail(folio, attempts, {
+        kind: "unconfirmed",
+        status: response.status,
+        message: ERROR_MESSAGES.unconfirmed,
+        retryable: true,
+      });
     }
 
     const retryAfterMs = parseRetryAfter(response.headers.get("retry-after"));
     const error = classifyStatus(response.status, retryAfterMs, await safeText(response))!;
 
-    const canRetry = AUTO_RETRY_STATUSES.has(response.status) && attempts <= maxRetries;
+    const canRetry = canAutoRetry(response.status, serverIdempotent) && attempts <= maxRetries;
     if (!canRetry) return fail(folio, attempts, error);
 
     // Respetar Retry-After; si no vino, backoff exponencial. Nunca reintentar de inmediato.
@@ -360,6 +382,17 @@ async function postOnce(
   } finally {
     clearTimeout(timer);
     external?.removeEventListener("abort", onExternalAbort);
+  }
+}
+
+/** 200 + JSON con el mismo folio que se envio. */
+async function isConfirmed(response: Response, folio: string): Promise<boolean> {
+  if (response.status !== 200) return false;
+  try {
+    const data: unknown = await response.json();
+    return typeof data === "object" && data !== null && (data as { folio?: unknown }).folio === folio;
+  } catch {
+    return false;
   }
 }
 

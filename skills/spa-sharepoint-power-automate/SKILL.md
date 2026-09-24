@@ -3,7 +3,7 @@ name: spa-sharepoint-power-automate
 description: 'Use when building or troubleshooting public no-login web apps (React/Vite SPA or static PWA on GitHub Pages) that send data to SharePoint through a Power Automate HTTP-trigger flow, and for Power Automate + SharePoint pipeline problems: trigger auth default (401/403), Premium licensing, 120 s / 100 MB limits (502/504), Get items 5,000 threshold and pagination, 429 throttling, try/catch/Terminate and silent failures after an early Response, idempotent retries, solutions/connection references/environment variables, PAC CLI and Dataverse, flows-as-code, SharePoint REST columns, list design, flows triggered by a file upload (''Route did not match''), PWA/service worker, GitHub Pages deploy and an error catalog. Also tenant governance (DLP, corporate network), Outlook limits, Power BI on lists, Sites.Selected and personal data. Includes a tested SPA starter kit. This file is an index: open the referenced file for the section you need.'
 license: MIT
 metadata:
-  version: 1.4.3
+  version: 1.4.4
   updated: '2026-09-24'
 ---
 
@@ -163,6 +163,7 @@ Las que más cuestan cuando se olvidan. Cada una remite a la sección con el por
 
 ## Historial
 
+- **2026-09-24 (9)** — Kit de arranque corregido tras una revisión externa (117 tests): los 500/503 se reintentan solos solo con `serverIdempotent`; el éxito exige 200 con el folio (un 202 vacío es *no confirmado*); el borrador caduca a los 7 días y hay botón para borrarlo; las fotos se re-codifican siempre (sin EXIF); el service worker avisa en vez de recargar; la firma tiene alternativa escrita. Versión 1.4.4.
 - **2026-09-24 (8)** — Correcciones tras una revisión externa, verificadas contra Microsoft Learn: DirectQuery no existe para el conector de listas (§31), los enviados del buzón compartido van a la carpeta de quien envía salvo configuración de Exchange (§30.3), el CORS del trigger pasa a NO VERIFICADO (§9), aclaración sobre la paginación de Get items (§23), validación obligatoria del lado del flow y entrada no confiable en el correo (§9), control de abuso desde el inicio (§1). Versión 1.4.3.
 - **2026-09-24 (7)** — §26.7 completado: prueba de punta a punta con SharePoint (una lista y una columna creadas por un flow programado con llamadas REST, y una fila escrita por un flow HTTP: 200 con el `Id`), la trampa de "Crear elemento" (valida columnas al guardar) y lo que no se confirmó. Versión 1.4.2.
 - **2026-09-24 (6)** — §26.7 nuevo: receta probada para crear un flow HTTP desde cero solo con `pac` (prueba real en un entorno de desarrollador: import, activación, POST, corridas, cambio por código; trampas de mayúsculas del GUID y de la connection reference; lo no probado, marcado). Versión 1.4.1.

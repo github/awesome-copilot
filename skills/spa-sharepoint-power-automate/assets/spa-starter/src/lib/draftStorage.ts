@@ -9,12 +9,17 @@
  *    politicas del navegador) o no existir. Un fallo NUNCA rompe la app.
  *  - El borrador NO se borra hasta confirmar el exito del envio
  *    (ver `shouldClearDraft`).
+ *  - El borrador CADUCA (DRAFT_MAX_AGE_MS) y la UI ofrece "borrar mis datos" (clear()).
  *
  * Las fotos NO se guardan aca (blobs grandes, cuota de ~5 MB): solo texto y firma.
  */
 
 export const DRAFT_VERSION = 1;
 export const DRAFT_KEY = `app-draft-v${DRAFT_VERSION}`;
+
+/** Un borrador abandonado (con firma y datos personales) caduca: en un dispositivo compartido
+ *  no puede quedar indefinidamente (skill §33.3). Default 7 dias. */
+export const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Claves de versiones anteriores. Agregar aca la clave vieja al subir DRAFT_VERSION. */
 export const LEGACY_KEYS: readonly string[] = ["app-draft", "app-draft-v0"];
@@ -49,6 +54,8 @@ export interface DraftStoreOptions {
   key?: string;
   legacyKeys?: readonly string[];
   now?: () => number;
+  /** Vida maxima del borrador en ms. Pasado ese tiempo load() lo borra y devuelve null. */
+  maxAgeMs?: number;
 }
 
 /** Acceder a `window.localStorage` puede lanzar SecurityError: se envuelve. */
@@ -64,6 +71,7 @@ export function createDraftStore<T>(options: DraftStoreOptions = {}): DraftStore
   const key = options.key ?? DRAFT_KEY;
   const legacy = options.legacyKeys ?? LEGACY_KEYS;
   const now = options.now ?? Date.now;
+  const maxAgeMs = options.maxAgeMs ?? DRAFT_MAX_AGE_MS;
   // `storage: null` explicito = sin storage (no caer al default).
   const getStorage = (): StorageLike | null =>
     options.storage === undefined ? getDefaultStorage() : options.storage;
@@ -92,6 +100,11 @@ export function createDraftStore<T>(options: DraftStoreOptions = {}): DraftStore
         if (!raw) return null;
         const env = JSON.parse(raw) as Partial<Envelope<T>> | null;
         if (!env || typeof env !== "object" || env.v !== DRAFT_VERSION || !("data" in env)) {
+          return null;
+        }
+        // Caducidad: sin `ts` valido o pasado el plazo, se borra y no se devuelve.
+        if (typeof env.ts !== "number" || !Number.isFinite(env.ts) || now() - env.ts > maxAgeMs) {
+          s.removeItem(key);
           return null;
         }
         return env.data as T;

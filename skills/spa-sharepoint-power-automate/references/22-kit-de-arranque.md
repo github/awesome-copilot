@@ -13,7 +13,7 @@ Ubicación: `assets/spa-starter/` (junto a este directorio `references/`). Es un
 cp -r assets/spa-starter mi-app && cd mi-app
 npm install
 npm run dev            # sin VITE_POWER_AUTOMATE_URL corre en MODO DEMO (no envía nada)
-npm test               # 108 tests: funciones puras, cliente de envío, firma, App
+npm test               # 117 tests: funciones puras, cliente de envío, firma, App
 npm run build
 ```
 
@@ -75,7 +75,7 @@ Todos aceptan `--help`. Los secretos van **solo por variables de entorno**, nunc
 
 ## 34.7 Estado de verificación (2026-09-24)
 
-**Probado** (comandos ejecutados, salida real): `npx tsc --noEmit` sin errores; `npm test` → **8 archivos, 108 tests verdes**; `npm run build` correcto (≈162 kB de JS, ≈53 kB comprimido); los cuatro scripts responden a `--help`; búsqueda de datos de empresa sin resultados. Los tests de `spfetch` corren contra un servidor HTTP local.
+**Probado** (comandos ejecutados, salida real): `npx tsc --noEmit` sin errores; `npm test` → **8 archivos, 117 tests verdes**; `npm run build` correcto (≈164 kB de JS, ≈54 kB comprimido); los cuatro scripts responden a `--help`; búsqueda de datos de empresa sin resultados. Los tests de `spfetch` corren contra un servidor HTTP local.
 
 **NO probado**:
 - En un **navegador real**: compresión con `canvas`, firma táctil, service worker instalado y su auto-actualización, instalación de la PWA.

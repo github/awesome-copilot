@@ -122,3 +122,40 @@ describe("shouldClearDraft: no borrar hasta confirmar exito", () => {
     expect(store.load()).toBeNull();
   });
 });
+
+describe("createDraftStore: caducidad", () => {
+  it("un borrador dentro del plazo se devuelve", () => {
+    const { storage } = fakeStorage();
+    let t = 1_000;
+    const s = createDraftStore<Form>({ storage, now: () => t, maxAgeMs: 500 });
+    s.save({ a: "x", n: 1 });
+    t = 1_400;
+    expect(s.load()).toEqual({ a: "x", n: 1 });
+  });
+
+  it("pasado el plazo load() devuelve null y BORRA el borrador", () => {
+    const { storage, data } = fakeStorage();
+    let t = 1_000;
+    const s = createDraftStore<Form>({ storage, now: () => t, maxAgeMs: 500 });
+    s.save({ a: "x", n: 1 });
+    t = 1_501;
+    expect(s.load()).toBeNull();
+    expect(data.has(DRAFT_KEY)).toBe(false);
+  });
+
+  it("un borrador sin marca de tiempo valida se descarta", () => {
+    const { storage, data } = fakeStorage();
+    data.set(DRAFT_KEY, JSON.stringify({ v: DRAFT_VERSION, data: { a: "x", n: 1 } }));
+    const s = createDraftStore<Form>({ storage });
+    expect(s.load()).toBeNull();
+    expect(data.has(DRAFT_KEY)).toBe(false);
+  });
+
+  it("clear() (\"borrar mis datos\") elimina el borrador aunque no haya vencido", () => {
+    const { storage, data } = fakeStorage();
+    const s = createDraftStore<Form>({ storage });
+    s.save({ a: "x", n: 1 });
+    expect(s.clear()).toBe(true);
+    expect(data.has(DRAFT_KEY)).toBe(false);
+  });
+});

@@ -384,6 +384,8 @@ Canonical end-to-end set of UI inputs to give a user when guiding them to assemb
 
 > **Server-side validation is mandatory.** An empty schema means the flow accepts any body, and callers can bypass the SPA. Before creating any item, add a Condition (or `Terminate`) that checks required fields, total and per-file size, attachment count and allowed file extensions, and answer a `400` `Response` when a check fails.
 
+> **Duplicate check (required before enabling automatic retries of 500/503).** The starter's client does not retry `500`/`503` unless `serverIdempotent: true`, because a first POST can create the item and still answer `5xx`. Only turn it on if the flow first looks up the folio (`Get items` filtered by `Title eq '<folio>'`, ideally with a unique column) and, when it already exists, skips `Create item` and returns `200` with the same folio.
+
 After Save, the URL appears under the trigger header — copy it then.
 
 ### 2) `Check_key` — Condition (optional anti-bot gate)

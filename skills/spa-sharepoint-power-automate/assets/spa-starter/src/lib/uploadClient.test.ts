@@ -39,11 +39,15 @@ function mockFetch(...steps: Array<Response | Error>) {
 const res = (status: number, headers: Record<string, string> = {}, body = "") =>
   new Response(body || null, { status, headers });
 
+/** Respuesta del flow que confirma el envio: 200 + folio (skill §9). */
+const ok = (folio = FOLIO) =>
+  res(200, { "content-type": "application/json" }, JSON.stringify({ id: 1, folio }));
+
 const noSleep = () => vi.fn(async (_ms: number) => {});
 
 describe("submit: exito y modo demo", () => {
   it("200 -> ok, con Content-Type application/json y x-app-key", async () => {
-    const f = mockFetch(res(200, { "content-type": "application/json" }, '{"id":7,"folio":"X"}'));
+    const f = mockFetch(ok());
     const r = await submit(makePayload(), { url: URL_OK, appKey: "k-123", fetchImpl: f });
     expect(r).toEqual({ ok: true, demo: false, folio: FOLIO, attempts: 1 });
 
@@ -58,7 +62,7 @@ describe("submit: exito y modo demo", () => {
   });
 
   it("sin appKey no manda la cabecera x-app-key", async () => {
-    const f = mockFetch(res(200));
+    const f = mockFetch(ok());
     await submit(makePayload(), { url: URL_OK, appKey: "", fetchImpl: f });
     const headers = f.mock.calls[0]![1]?.headers as Record<string, string>;
     expect("x-app-key" in headers).toBe(false);
@@ -77,6 +81,27 @@ describe("submit: exito y modo demo", () => {
     expect(isDemoMode("")).toBe(true);
     expect(isDemoMode("  ")).toBe(true);
     expect(isDemoMode(URL_OK)).toBe(false);
+  });
+});
+
+describe("submit: exito solo con 200 + folio", () => {
+  it("202 vacio (rama sin Response) -> unconfirmed, no exito", async () => {
+    const f = mockFetch(res(202));
+    const r = await submit(makePayload(), { url: URL_OK, fetchImpl: f });
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error.kind).toBe("unconfirmed");
+    expect(r.error.status).toBe(202);
+    expect(r.error.retryable).toBe(true);
+  });
+
+  it("200 sin cuerpo o con otro folio -> unconfirmed", async () => {
+    for (const r200 of [res(200), ok("OTRO-FOLIO"), res(200, {}, "no es json")]) {
+      const f = mockFetch(r200);
+      const r = await submit(makePayload(), { url: URL_OK, fetchImpl: f });
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.error.kind).toBe("unconfirmed");
+    }
   });
 });
 
@@ -101,7 +126,7 @@ describe("submit: 401/403 (Who can trigger the flow mal configurado)", () => {
 
 describe("submit: 429 y reintentos acotados", () => {
   it("429 con Retry-After: espera exactamente eso y reintenta", async () => {
-    const f = mockFetch(res(429, { "retry-after": "2" }), res(200));
+    const f = mockFetch(res(429, { "retry-after": "2" }), ok());
     const sleep = noSleep();
     const r = await submit(makePayload(), { url: URL_OK, fetchImpl: f, sleep });
     expect(r).toMatchObject({ ok: true, attempts: 2 });
@@ -111,7 +136,7 @@ describe("submit: 429 y reintentos acotados", () => {
   });
 
   it("reintenta con el MISMO folio (idempotencia)", async () => {
-    const f = mockFetch(res(429, { "retry-after": "1" }), res(200));
+    const f = mockFetch(res(429, { "retry-after": "1" }), ok());
     await submit(makePayload(), { url: URL_OK, fetchImpl: f, sleep: noSleep() });
     const folios = f.mock.calls.map((c) => (JSON.parse(c[1]?.body as string) as Payload).folio);
     expect(folios).toEqual([FOLIO, FOLIO]);
@@ -131,7 +156,7 @@ describe("submit: 429 y reintentos acotados", () => {
   });
 
   it("sin Retry-After usa backoff exponencial (1 s, 2 s)", async () => {
-    const f = mockFetch(res(429), res(429), res(200));
+    const f = mockFetch(res(429), res(429), ok());
     const sleep = noSleep();
     await submit(makePayload(), { url: URL_OK, fetchImpl: f, sleep, baseDelayMs: 1000 });
     expect(sleep.mock.calls.map((c) => c[0])).toEqual([1000, 2000]);
@@ -154,9 +179,19 @@ describe("submit: 429 y reintentos acotados", () => {
     expect(f).toHaveBeenCalledTimes(1);
   });
 
-  it("500 y 503 tambien se reintentan", async () => {
-    const f = mockFetch(res(500), res(503), res(200));
-    const r = await submit(makePayload(), { url: URL_OK, fetchImpl: f, sleep: noSleep() });
+  it("500 NO se reintenta solo por defecto: podria duplicar el item", async () => {
+    const f = mockFetch(res(500), ok());
+    const sleep = noSleep();
+    const r = await submit(makePayload(), { url: URL_OK, fetchImpl: f, sleep });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.kind).toBe("server");
+    expect(f).toHaveBeenCalledTimes(1);
+    expect(sleep).not.toHaveBeenCalled();
+  });
+
+  it("500 y 503 se reintentan solo con serverIdempotent (el flow deduplica por folio)", async () => {
+    const f = mockFetch(res(500), res(503), ok());
+    const r = await submit(makePayload(), { url: URL_OK, fetchImpl: f, sleep: noSleep(), serverIdempotent: true });
     expect(r).toMatchObject({ ok: true, attempts: 3 });
   });
 });
@@ -220,7 +255,7 @@ describe("submit: timeout, red, tamano, cancelacion", () => {
   });
 
   it("senal externa ya abortada -> aborted", async () => {
-    const f = mockFetch(res(200));
+    const f = mockFetch(ok());
     const ac = new AbortController();
     ac.abort();
     const r = await submit(makePayload(), { url: URL_OK, fetchImpl: f, signal: ac.signal });

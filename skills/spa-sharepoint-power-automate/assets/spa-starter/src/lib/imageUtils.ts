@@ -154,8 +154,8 @@ export function formatBytes(bytes: number): string {
 const alreadyProcessed = new WeakSet<Blob>();
 
 /**
- * Comprime a JPEG con canvas. Idempotente: si ya esta comprimida (la salida de
- * una llamada anterior, o un JPEG chico) devuelve el mismo archivo.
+ * Comprime a JPEG con canvas y descarta el EXIF. Idempotente: si el archivo es la salida de una
+ * llamada anterior devuelve el mismo archivo. Un JPEG chico igual se re-codifica (para quitar EXIF).
  * Ante cualquier error devuelve el original (no bloquear al usuario).
  *
  * Se llama en DOS puntos (skill §5): al elegir el archivo y de nuevo al
@@ -173,26 +173,13 @@ export async function compressImage(
   try {
     const bmp = await createImageBitmap(file);
     try {
-      const meta: ImageMeta = {
-        type: file.type,
-        width: bmp.width,
-        height: bmp.height,
-        size: file.size,
-      };
-      if (isAlreadyCompressed(meta, { maxSide })) {
-        alreadyProcessed.add(file);
-        return file;
-      }
-
+      // SIEMPRE se re-codifica por canvas, aunque el JPEG ya sea chico: el canvas no copia los
+      // metadatos, asi que se descarta el EXIF (GPS, modelo del equipo). Devolver el archivo
+      // original conservaria esos datos personales (skill §33). La idempotencia la da
+      // `alreadyProcessed`: solo se saltea lo que salio de esta misma funcion.
       const { width, height } = fitWithin(bmp.width, bmp.height, maxSide);
       const blob = await drawToJpeg(bmp, width, height, quality);
       if (!blob) return file;
-
-      // Si no ayudo (raro), quedarse con el original cuando ya era JPEG.
-      if (blob.size >= file.size && file.type === "image/jpeg") {
-        alreadyProcessed.add(file);
-        return file;
-      }
       const out = new File([blob], withExtension(file.name || "foto", "jpg"), {
         type: "image/jpeg",
         lastModified: Date.now(),

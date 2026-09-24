@@ -53,6 +53,11 @@ npm run build                # tsc --noEmit + vite build -> dist/
 ## Notas
 
 - Las **fotos no se guardan en el borrador** (cuota de `localStorage`); solo texto y firma. El folio sí, para reintentar con el mismo.
-- **502/504 y timeouts no se reintentan solos**: probable límite de 120 s; repetir a ciegas puede duplicar. Se ofrece *Reintentar* con el mismo folio. Solo 429/500/503 se reintentan (acotado, respetando `Retry-After`).
+- **502/504 y timeouts no se reintentan solos**: probable límite de 120 s; repetir a ciegas puede duplicar. Se ofrece *Reintentar* con el mismo folio. Solo el **429** se reintenta solo (acotado, respetando `Retry-After`); **500/503 solo con `serverIdempotent: true`**, que hay que activar únicamente si el flow deduplica por folio. El éxito exige **200 con el folio de vuelta**: un 202 vacío o un 200 sin folio se trata como *no confirmado* y el borrador se conserva.
+- El **borrador caduca a los 7 días** (`DRAFT_MAX_AGE_MS`) y hay un botón *Borrar mis datos de este dispositivo* (§33.3).
+- Las **fotos se re-codifican siempre por canvas**, aunque ya sean chicas: así se descarta el EXIF (GPS, modelo del equipo). El canvas no copia los metadatos.
+- El service worker **no recarga solo**: avisa con un banner *Hay una versión nueva* para no perder las fotos elegidas (no se guardan).
+- La firma tiene una **alternativa sin puntero**: escribir el nombre, que se convierte en la imagen de firma (teclado y lectores de pantalla).
+- `application/json` y `x-app-key` provocan un **preflight `OPTIONS`** en el navegador; Microsoft no documenta que el trigger lo responda (NO VERIFICADO, §9): probalo desde un navegador contra el trigger real y, si falla, usá un proxy.
 - `sp-upload-test-file.mjs` **no se probó contra un tenant real**: probalo en una biblioteca de prueba. En Git Bash de Windows anteponé `MSYS_NO_PATHCONV=1` para que `FOLDER` no se convierta en ruta de disco.
 - Falta verificar en un teléfono real: cámara, firma táctil, service worker instalado y actualización (§19.6).

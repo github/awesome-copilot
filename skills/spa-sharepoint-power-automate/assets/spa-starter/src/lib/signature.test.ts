@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { SIGNATURE_MIN_LENGTH, isValidSignature } from "./signature";
+import { describe, expect, it, vi } from "vitest";
+import { SIGNATURE_MIN_LENGTH, isValidSignature, signatureFromText } from "./signature";
 
 describe("isValidSignature", () => {
   const real = "data:image/png;base64," + "A".repeat(SIGNATURE_MIN_LENGTH);
@@ -18,5 +18,19 @@ describe("isValidSignature", () => {
   });
   it("rechaza cadenas largas que no son imagen", () => {
     expect(isValidSignature("x".repeat(500))).toBe(false);
+  });
+});
+
+describe("signatureFromText (alternativa accesible)", () => {
+  it("rechaza nombres vacios o demasiado cortos", () => {
+    expect(signatureFromText("")).toBeNull();
+    expect(signatureFromText("  ")).toBeNull();
+    expect(signatureFromText("A")).toBeNull();
+  });
+
+  it("sin canvas disponible (jsdom) devuelve null en vez de lanzar", () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(signatureFromText("Ana Perez")).toBeNull();
+    err.mockRestore();
   });
 });

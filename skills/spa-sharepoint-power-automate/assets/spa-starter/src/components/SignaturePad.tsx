@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { isValidSignature } from "../lib/signature";
+import { isValidSignature, signatureFromText } from "../lib/signature";
 
 /**
  * Firma manuscrita con Pointer Events (skill §5).
@@ -34,6 +34,7 @@ export function SignaturePad({ value, onChange, height = 160, disabled = false }
   const hasInkRef = useRef(false);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const [typedName, setTypedName] = useState("");
 
   const applyStrokeStyle = (c: HTMLCanvasElement): CanvasRenderingContext2D | null => {
     const ctx = c.getContext("2d");
@@ -196,7 +197,7 @@ export function SignaturePad({ value, onChange, height = 160, disabled = false }
         className="signature-canvas"
         style={{ touchAction: "none", height }}
         role="img"
-        aria-label="Area de firma: dibuja con el dedo o el mouse"
+        aria-label="Area de firma: dibuja con el dedo o el mouse. Si no puedes dibujar, usa el campo de nombre escrito que sigue"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={finishStroke}
@@ -205,6 +206,33 @@ export function SignaturePad({ value, onChange, height = 160, disabled = false }
       <button type="button" className="btn-secondary" onClick={handleClear} disabled={disabled}>
         Borrar firma
       </button>
+
+      {/* Alternativa sin puntero (teclado, lector de pantalla, dificultad motriz): el nombre escrito. */}
+      <div className="signature-typed">
+        <label htmlFor="signature-typed-name">O escribe tu nombre completo como firma</label>
+        <input
+          id="signature-typed-name"
+          type="text"
+          value={typedName}
+          maxLength={40}
+          autoComplete="name"
+          disabled={disabled}
+          onChange={(e) => setTypedName(e.target.value)}
+        />
+        <button
+          type="button"
+          className="btn-secondary"
+          disabled={disabled || typedName.trim().length < 2}
+          onClick={() => {
+            const url = signatureFromText(typedName);
+            if (!url) return;
+            clearCanvas();
+            onChangeRef.current(url);
+          }}
+        >
+          Usar nombre escrito como firma
+        </button>
+      </div>
     </div>
   );
 }

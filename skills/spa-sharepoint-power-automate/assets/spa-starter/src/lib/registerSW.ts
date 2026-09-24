@@ -3,20 +3,29 @@
  *
  * Subir la version del cache en sw.js NO alcanza si la pagina ya esta abierta:
  * el SW viejo sigue controlando la pestana hasta que el usuario recarga a mano.
- * Este registro empuja al SW nuevo a activarse (SKIP_WAITING) y recarga UNA vez
- * cuando toma el control (controllerchange).
+ * Este registro empuja al SW nuevo a activarse (SKIP_WAITING). NO recarga solo: las fotos
+ * elegidas no se guardan, y una recarga a mitad del formulario las perderia. En su lugar avisa
+ * (evento UPDATE_READY_EVENT) para que la UI ofrezca "Actualizar" cuando el usuario quiera.
  */
+
+/** Se dispara en `window` cuando hay una version nueva lista para usar. */
+export const UPDATE_READY_EVENT = "app:update-ready";
+
+/** Recarga para usar la version nueva (llamar solo cuando el usuario lo pida). */
+export function applyUpdate(): void {
+  window.location.reload();
+}
 export function registerSW(): void {
   if (!("serviceWorker" in navigator)) return;
 
-  // Recargar exactamente una vez cuando un SW nuevo toma el control.
-  let reloading = false;
-  // En la primera instalacion no hay controller previo: no recargar en ese caso.
+  // Avisar exactamente una vez cuando un SW nuevo toma el control (sin recargar).
+  let notified = false;
+  // En la primera instalacion no hay controller previo: no avisar en ese caso.
   const hadController = Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (reloading || !hadController) return;
-    reloading = true;
-    window.location.reload();
+    if (notified || !hadController) return;
+    notified = true;
+    window.dispatchEvent(new Event(UPDATE_READY_EVENT));
   });
 
   window.addEventListener("load", () => {
