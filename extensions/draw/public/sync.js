@@ -49,6 +49,8 @@ export class Sync {
     this.diskError = null;
     // Set when the server says this drawing was deleted, so there is nothing left to save it to.
     this.gone = false;
+    // Drawings this panel is moving to, each waiting for the edits on the current one to be saved.
+    this.switching = new Set();
     this.source = null;
     this.connectedOnce = false;
     editor.on("change", () => this.schedule());
@@ -118,12 +120,14 @@ export class Sync {
     on("export", (req) => this.handlers.exportRequest?.(req));
     on("select", ({ drawingId, ids }) => {
       if (drawingId === this.drawingId) this.handlers.select?.(ids);
+      for (const t of this.switching) if (t.drawing.id === drawingId) t.selection = ids;
     });
     on("settings", ({ settings, origin }) => {
       if (origin !== this.clientId) this.handlers.settings?.(settings);
     });
     on("save", ({ drawingId, error }) => {
       if (drawingId === this.drawingId) this.setDiskError(error);
+      for (const t of this.switching) if (t.drawing.id === drawingId) t.drawing = { ...t.drawing, saveError: error };
     });
   }
 
@@ -145,7 +149,10 @@ export class Sync {
   }
 
   onRemote(drawing) {
-    if (!drawing || drawing.id !== this.drawingId || drawing.rev <= this.rev) return;
+    if (!drawing) return;
+    // A drawing this panel is about to show: keep the newest copy of it for when it does.
+    for (const t of this.switching) if (t.drawing.id === drawing.id && drawing.rev > t.drawing.rev) t.drawing = drawing;
+    if (drawing.id !== this.drawingId || drawing.rev <= this.rev) return;
     if (this.inflight || this.editor.busy) {
       if (!this.deferred || drawing.rev > this.deferred.rev) this.deferred = drawing;
       return;
@@ -172,16 +179,38 @@ export class Sync {
   // false, and the unsaved handler lets the user discard them. `discard` skips that check.
   // A deleted drawing has nowhere left to save to, so it never holds the panel.
   async switchTo(drawing, { discard = false } = {}) {
-    if (!discard && !(await this.flush(true)) && !this.gone) {
+    // Showing the drawing that is already on screen loses nothing, so it is only an update to it.
+    if (drawing.id === this.drawingId) {
+      this.onRemote(drawing);
+      return true;
+    }
+    // The server already treats the other drawing as shown, so while the flush below waits, it
+    // sends that drawing's changes, save status and selection. They are kept here until then.
+    const target = { drawing, selection: null };
+    this.switching.add(target);
+    let ready;
+    try {
+      ready = discard || (await this.flush(true)) || this.gone;
+    } finally {
+      this.switching.delete(target);
+    }
+    if (!ready) {
       // The server has already moved this panel to the other drawing, so move it back.
       this.post("drawings", { action: "open", id: this.drawingId })
         .then(() => this.sendSelection([...this.editor.selection]))
         .catch(() => {});
-      this.handlers.unsaved?.(drawing);
+      this.handlers.unsaved?.(target.drawing);
       return false;
+    }
+    drawing = target.drawing;
+    // Another switch can show this drawing first. Then this copy is only an update to it.
+    if (drawing.id === this.drawingId) {
+      this.onRemote(drawing);
+      return true;
     }
     this.setDoc(drawing);
     this.handlers.switched?.(drawing);
+    if (target.selection) this.handlers.select?.(target.selection);
     // Messages about the last drawing do not apply to this one.
     this.refusal = null;
     this.diskError = null;

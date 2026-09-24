@@ -159,8 +159,9 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
     }
 
     function showDrawing(instanceId, doc) {
+        // The selection is of the drawing on screen, so it only goes when the panel shows another one.
+        if (store.drawingForInstance(instanceId)?.id !== doc.id) selections.delete(instanceId);
         store.bindInstance(instanceId, doc.id);
-        selections.delete(instanceId);
         for (const c of clientsFor(instanceId)) send(c, "switch", { drawing: pub(doc) });
     }
 

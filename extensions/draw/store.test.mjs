@@ -2,7 +2,7 @@
 // Run `node --test` in the extension folder.
 import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -151,4 +151,28 @@ test("exports of one drawing written in the same millisecond all finish", async 
     const files = await Promise.all(payloads.map((data) => store.writeExport("plan", "svg", data)));
     assert.equal(new Set(files).size, 1);
     assert.ok(payloads.includes(await readFile(files[0], "utf8")));
+});
+
+test("a save that fails part way through writing leaves no temp file behind", async (t) => {
+    const store = await openStore(t);
+    const doc = store.create("Plan");
+    await store.flush();
+    // Like a full disk: the temp file gets part of the drawing, and then the write fails.
+    const write = fs.writeFile;
+    const failing = t.mock.method(fs, "writeFile", async (file, data, ...rest) => {
+        if (!String(file).endsWith(".tmp")) return write(file, data, ...rest);
+        await write(file, String(data).slice(0, 10), ...rest);
+        throw Object.assign(new Error(`ENOSPC: no space left on device, write '${file}'`), { code: "ENOSPC", syscall: "write" });
+    });
+    const temps = async () => (await readdir(store.dir)).filter((name) => name.endsWith(".tmp"));
+
+    store.replace(doc.id, [rect("a")], "test");
+    await assert.rejects(store.flush(), { code: "save_failed" });
+    await assert.rejects(store.flush(), { code: "save_failed" });
+    assert.deepEqual(await temps(), []);
+
+    failing.mock.restore();
+    await store.flush();
+    assert.deepEqual(await temps(), []);
+    assert.deepEqual(JSON.parse(await readFile(store.filePath(doc.id), "utf8")).elements.map((e) => e.id), ["a"]);
 });

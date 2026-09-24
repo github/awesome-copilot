@@ -37,6 +37,31 @@ test("a blank reference never matches an unlabeled shape", () => {
   assert.equal(errors.length, 1);
 });
 
+test("x and y come together, so one without the other is an error and not dropped", () => {
+  const partial = buildFromSpec({
+    nodes: [{ id: "a", label: "A", x: 100 }, { id: "b", label: "B", y: 50 }],
+    edges: [{ from: "a", to: "b" }],
+    texts: [{ text: "Sign-in\nflow", x: 10 }],
+  });
+  assert.deepEqual(partial.errors, [
+    'Node "a" has only x. Give x and y together, or leave both out for automatic layout.',
+    'Node "b" has only y. Give x and y together, or leave both out for automatic layout.',
+    'Text "Sign-in flow" has only x. Give x and y together, or leave both out to put it above the diagram.',
+  ]);
+  const strings = buildFromSpec({ nodes: [{ id: "a", label: "A", x: "100", y: 0 }] });
+  assert.deepEqual(strings.errors, ['Node "a" needs numbers for x and y.']);
+
+  const { elements, errors } = buildFromSpec({
+    nodes: [{ id: "a", label: "A", x: 120, y: 40 }, { id: "b", label: "B" }],
+    edges: [{ from: "a", to: "b" }],
+    texts: [{ text: "Note", x: 5, y: 6 }],
+  });
+  assert.deepEqual(errors, []);
+  const at = (el) => [el.x, el.y];
+  assert.deepEqual(at(elements.find((e) => e.id === "a")), [120, 40]);
+  assert.deepEqual(at(elements.find((e) => e.text === "Note")), [5, 6]);
+});
+
 test("new nodes are placed clear of everything already on the canvas", () => {
   const existing = [
     shape("a", "A", 0),

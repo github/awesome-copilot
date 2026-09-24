@@ -40,19 +40,23 @@ let tmpCount = 0;
 async function atomicWrite(file, data) {
     // The count keeps two writes of one file in the same millisecond from sharing a temp file.
     const tmp = `${file}.${process.pid}.${Date.now().toString(36)}.${(tmpCount++).toString(36)}.tmp`;
-    await fs.writeFile(tmp, data, "utf8");
-    for (let attempt = 0; ; attempt++) {
-        try {
-            await fs.rename(tmp, file);
-            return;
-        } catch (err) {
-            // Windows can briefly lock a file that an antivirus or indexer is reading.
-            if (attempt >= 5 || !["EPERM", "EBUSY", "EACCES"].includes(err.code)) {
-                await fs.rm(tmp, { force: true }).catch(() => {});
-                throw err;
+    try {
+        await fs.writeFile(tmp, data, "utf8");
+        for (let attempt = 0; ; attempt++) {
+            try {
+                await fs.rename(tmp, file);
+                return;
+            } catch (err) {
+                // Windows can briefly lock a file that an antivirus or indexer is reading.
+                if (attempt >= 5 || !["EPERM", "EBUSY", "EACCES"].includes(err.code)) throw err;
+                await sleep(40 * (attempt + 1));
             }
-            await sleep(40 * (attempt + 1));
         }
+    } catch (err) {
+        // A write that fails part way (a full disk, say) leaves part of the temp file, and every
+        // retry picks a new name, so remove it.
+        await fs.rm(tmp, { force: true }).catch(() => {});
+        throw err;
     }
 }
 

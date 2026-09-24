@@ -210,6 +210,16 @@ test("a panel's selection can hold as many ids as a drawing has elements", async
     assert.deepEqual(server.selection(PANEL, "another-drawing"), []);
 });
 
+test("showing the drawing already on screen keeps its selection, and showing another drops it", async (t) => {
+    const { server, store, doc } = await setup(t);
+    await post(server, "/api/selection", { drawingId: doc.id, ids: ["a"] });
+    server.showDrawing(PANEL, store.get(doc.id));
+    assert.deepEqual(server.selection(PANEL, doc.id), ["a"]);
+    server.showDrawing(PANEL, store.create("Other"));
+    server.showDrawing(PANEL, store.get(doc.id));
+    assert.deepEqual(server.selection(PANEL, doc.id), []);
+});
+
 test("a page's older change that arrives after a newer one is dropped", async (t) => {
     const { server, store, doc } = await setup(t);
     const send = (clientId, seq, ops) => post(server, "/api/ops", { clientId, drawingId: doc.id, baseRev: 0, seq, ops });

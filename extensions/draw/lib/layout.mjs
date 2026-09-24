@@ -347,6 +347,17 @@ export function slugId(label, taken, fallback = "node") {
   return id;
 }
 
+// x and y come together: with both, the item goes there, and with neither it is placed for you.
+// Anything else goes in errors, because placing the item anyway would drop the coordinate given.
+function pinnedAt(item, name, auto, errors) {
+  const hasX = item.x != null;
+  const hasY = item.y != null;
+  if (hasX !== hasY) errors.push(`${name} has only ${hasX ? "x" : "y"}. Give x and y together, or leave both out ${auto}.`);
+  else if (hasX && !(isNum(item.x) && isNum(item.y))) errors.push(`${name} needs numbers for x and y.`);
+  else return hasX;
+  return false;
+}
+
 // Converts { nodes, edges, texts } into elements. With `existing`, new nodes are placed next to
 // the existing nodes they connect to, or beside the current content.
 // Returns { elements, errors }. Nothing should be applied when errors is non-empty.
@@ -375,7 +386,7 @@ export function buildFromSpec(spec, { existing = [], direction = "right", measur
       id, type, text: label, color: n.color, fill: n.fill, dash: n.dashed ?? n.dash, size,
       x: n.x, y: n.y, w: n.w ?? auto.w, h: n.h ?? auto.h,
     });
-    if (isNum(n.x) && isNum(n.y)) pinned.add(id);
+    if (pinnedAt(n, `Node "${id}"`, "for automatic layout", errors)) pinned.add(id);
     nodes.push(el);
   }
 
@@ -465,9 +476,12 @@ export function buildFromSpec(spec, { existing = [], direction = "right", measur
     let id = t.id != null && String(t.id) !== "" ? String(t.id) : null;
     if (id && (!ID_PATTERN.test(id) || taken.has(id))) { errors.push(`Text id "${id}" is not valid or already used.`); continue; }
     if (id) taken.add(id);
-    else id = uniqueId("t", taken);
+    const words = text.replace(/\s+/g, " ").trim();
+    const name = `Text "${id || (words.length > 40 ? `${words.slice(0, 37)}...` : words)}"`;
+    const placed = pinnedAt(t, name, "to put it above the diagram", errors);
+    if (!id) id = uniqueId("t", taken);
     const el = normalizeElement({ id, type: "text", text, color: t.color, size: t.size ?? "l", x: t.x, y: t.y });
-    if (!(isNum(t.x) && isNum(t.y))) {
+    if (!placed) {
       const l = textLayout(el, measure);
       textCursor -= l.h;
       el.x = shapeBox ? shapeBox.x : 0;
