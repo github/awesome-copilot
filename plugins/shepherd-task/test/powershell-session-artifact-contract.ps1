@@ -15,15 +15,20 @@ $ast = [System.Management.Automation.Language.Parser]::ParseFile(
 if ($parseErrors.Count -ne 0) {
     throw "Unable to parse $orchestratorPath."
 }
-$functionAst = $ast.Find({
-    param($node)
-    $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
-        $node.Name -eq 'Invoke-CopilotRedacted'
-}, $true)
-if (-not $functionAst) {
-    throw 'Invoke-CopilotRedacted was not found.'
+foreach ($functionName in @(
+    'Invoke-CopilotRedacted',
+    'Invoke-CopilotPhaseRedacted'
+)) {
+    $functionAst = $ast.Find({
+        param($node)
+        $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -eq $functionName
+    }, $true)
+    if (-not $functionAst) {
+        throw "$functionName was not found."
+    }
+    Invoke-Expression $functionAst.Extent.Text
 }
-Invoke-Expression $functionAst.Extent.Text
 
 $tempDirectory = Join-Path (
     [System.IO.Path]::GetTempPath()
@@ -69,6 +74,47 @@ try {
         'ghp_abcdefghijklmnopqrstuvwxyz1234567890'
     )) {
         throw 'Failed-session JSONL was not redacted before persistence.'
+    }
+
+    function Invoke-CopilotRedacted {
+        if ($env:COPILOT_OTEL_FILE_EXPORTER_PATH -ne 'phase-otel.jsonl') {
+            throw 'Phase OTel path was not applied.'
+        }
+        throw 'mock phase failure'
+    }
+
+    $env:COPILOT_OTEL_FILE_EXPORTER_PATH = 'caller-otel.jsonl'
+    try {
+        Invoke-CopilotPhaseRedacted `
+            -Prompt 'contract prompt' `
+            -JsonlPath $jsonlPath `
+            -SharePath $sharePath `
+            -OtelPath 'phase-otel.jsonl'
+    }
+    catch {
+        if ($_.Exception.Message -ne 'mock phase failure') {
+            throw
+        }
+    }
+    if ($env:COPILOT_OTEL_FILE_EXPORTER_PATH -ne 'caller-otel.jsonl') {
+        throw 'The caller OTel path was not restored after failure.'
+    }
+
+    Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH
+    try {
+        Invoke-CopilotPhaseRedacted `
+            -Prompt 'contract prompt' `
+            -JsonlPath $jsonlPath `
+            -SharePath $sharePath `
+            -OtelPath 'phase-otel.jsonl'
+    }
+    catch {
+        if ($_.Exception.Message -ne 'mock phase failure') {
+            throw
+        }
+    }
+    if (Test-Path Env:\COPILOT_OTEL_FILE_EXPORTER_PATH) {
+        throw 'The phase OTel path leaked into the caller environment.'
     }
 
     Write-Host 'PowerShell session artifact contract tests passed.'

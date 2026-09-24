@@ -114,6 +114,35 @@ function Invoke-CopilotRedacted {
     }
 }
 
+function Invoke-CopilotPhaseRedacted {
+    param(
+        [string]$Prompt,
+        [string]$JsonlPath,
+        [string]$SharePath,
+        [string]$OtelPath
+    )
+
+    $hadOtelPath = Test-Path Env:\COPILOT_OTEL_FILE_EXPORTER_PATH
+    $previousOtelPath = $env:COPILOT_OTEL_FILE_EXPORTER_PATH
+    try {
+        $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $OtelPath
+        Invoke-CopilotRedacted `
+            -Prompt $Prompt `
+            -JsonlPath $JsonlPath `
+            -SharePath $SharePath
+        & (Join-Path $scriptDir 'redact-secrets.ps1') $LogDir | Out-Null
+    }
+    finally {
+        if ($hadOtelPath) {
+            $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $previousOtelPath
+        }
+        else {
+            Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH `
+                -ErrorAction SilentlyContinue
+        }
+    }
+}
+
 # --- Helper: Find the PR linked to the task issue ---
 function Find-LinkedPR {
     param(
@@ -329,10 +358,11 @@ Write-Status "Phase 1 prompt: $phase1Prompt"
 $phase1Share = Join-Path $LogDir "phase1-task-$phase1Timestamp-$TaskIssue.md"
 $phase1Jsonl = Join-Path $LogDir "phase1-task-$phase1Timestamp-$TaskIssue.jsonl"
 $phase1Otel = Join-Path (Resolve-Path $LogDir) "phase1-otel-$phase1Timestamp-$TaskIssue.jsonl"
-$env:COPILOT_OTEL_FILE_EXPORTER_PATH = $phase1Otel
-Invoke-CopilotRedacted -Prompt $phase1Prompt -JsonlPath $phase1Jsonl -SharePath $phase1Share
-& (Join-Path $scriptDir 'redact-secrets.ps1') $LogDir | Out-Null
-Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH -ErrorAction SilentlyContinue
+Invoke-CopilotPhaseRedacted `
+    -Prompt $phase1Prompt `
+    -JsonlPath $phase1Jsonl `
+    -SharePath $phase1Share `
+    -OtelPath $phase1Otel
 
 Write-Status "Phase 1: copilot exited. Verifying semantic outcome and state..."
 
@@ -412,10 +442,11 @@ Invoke skill ``shepherd-task-40-from-ready-to-merged-to-base`` with these inputs
     $phase2Share = Join-Path $LogDir "phase2-task-$phase2Timestamp-$TaskIssue.md"
     $phase2Jsonl = Join-Path $LogDir "phase2-task-$phase2Timestamp-$TaskIssue.jsonl"
     $phase2Otel = Join-Path (Resolve-Path $LogDir) "phase2-otel-$phase2Timestamp-$TaskIssue.jsonl"
-    $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $phase2Otel
-    Invoke-CopilotRedacted -Prompt $phase2Prompt -JsonlPath $phase2Jsonl -SharePath $phase2Share
-    & (Join-Path $scriptDir 'redact-secrets.ps1') $LogDir | Out-Null
-    Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH -ErrorAction SilentlyContinue
+    Invoke-CopilotPhaseRedacted `
+        -Prompt $phase2Prompt `
+        -JsonlPath $phase2Jsonl `
+        -SharePath $phase2Share `
+        -OtelPath $phase2Otel
 
     Write-Status "Phase 2: copilot exited. Verifying semantic outcome and state..."
 
