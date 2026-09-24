@@ -9,6 +9,47 @@ function isWithinRoot(rootPath, candidatePath) {
   return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative));
 }
 
+function inspectDirectorySymlinks(pluginRoot, directoryPath, relativePath, entryName) {
+  const errors = [];
+  const visitedDirectories = new Set();
+
+  function inspect(currentPath, currentRelativePath) {
+    const realDirectory = fs.realpathSync(currentPath);
+    if (visitedDirectories.has(realDirectory)) {
+      return;
+    }
+    visitedDirectories.add(realDirectory);
+
+    for (const directoryEntry of fs.readdirSync(currentPath, { withFileTypes: true })) {
+      const nestedPath = path.join(currentPath, directoryEntry.name);
+      const nestedRelativePath = path.posix.join(currentRelativePath, directoryEntry.name);
+      if (directoryEntry.isSymbolicLink()) {
+        let realNestedPath;
+        try {
+          realNestedPath = fs.realpathSync(nestedPath);
+        } catch {
+          errors.push(`${entryName} contains a dangling symbolic link: ${nestedRelativePath}`);
+          continue;
+        }
+        if (!isWithinRoot(pluginRoot, realNestedPath)) {
+          errors.push(`${entryName} contains a symbolic link that resolves outside the plugin root: ${nestedRelativePath}`);
+          continue;
+        }
+        if (fs.statSync(realNestedPath).isDirectory()) {
+          inspect(realNestedPath, nestedRelativePath);
+        }
+        continue;
+      }
+      if (directoryEntry.isDirectory()) {
+        inspect(nestedPath, nestedRelativePath);
+      }
+    }
+  }
+
+  inspect(directoryPath, relativePath);
+  return errors;
+}
+
 export function inspectPluginFiles(plugin, pluginDir) {
   const value = plugin.extensions?.[AWESOME_COPILOT_NAMESPACE]?.pluginFiles;
   if (value === undefined) {
@@ -87,6 +128,13 @@ export function inspectPluginFiles(plugin, pluginDir) {
     if (!isDirectoryReference && stats.isDirectory()) {
       errors.push(`${entryName} references a directory and must end with "/"`);
       continue;
+    }
+    if (stats.isDirectory()) {
+      const directoryErrors = inspectDirectorySymlinks(pluginRoot, targetPath, segments.join("/"), entryName);
+      errors.push(...directoryErrors);
+      if (directoryErrors.length > 0) {
+        continue;
+      }
     }
 
     entries.push({ reference, path: targetPath, isDirectory: stats.isDirectory() });
