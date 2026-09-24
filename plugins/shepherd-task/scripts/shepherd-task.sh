@@ -57,7 +57,35 @@ run_copilot_redacted() {
     copilot_exit=${pipeline_status[0]}
     redact_exit=${pipeline_status[1]}
     set -e
-    [[ $copilot_exit -eq 0 && $redact_exit -eq 0 ]]
+    if [[ $copilot_exit -ne 0 ]]; then
+        return "$copilot_exit"
+    fi
+    return "$redact_exit"
+}
+
+run_copilot_phase_redacted() {
+    local output_file="$1"
+    local otel_file="$2"
+    shift 2
+    local phase_exit log_redact_exit
+
+    export COPILOT_OTEL_FILE_EXPORTER_PATH="$otel_file"
+    if run_copilot_redacted "$output_file" "$@"; then
+        phase_exit=0
+    else
+        phase_exit=$?
+    fi
+    if "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR" >/dev/null; then
+        log_redact_exit=0
+    else
+        log_redact_exit=$?
+    fi
+    unset COPILOT_OTEL_FILE_EXPORTER_PATH
+
+    if [[ $phase_exit -ne 0 ]]; then
+        return "$phase_exit"
+    fi
+    return "$log_redact_exit"
 }
 
 # Find the PR linked to the task issue using three strategies.
@@ -225,11 +253,17 @@ PHASE1_TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 PHASE1_SHARE="$LOG_DIR/phase1-task-$PHASE1_TIMESTAMP-$TASK_ISSUE.md"
 PHASE1_JSONL="$LOG_DIR/phase1-task-$PHASE1_TIMESTAMP-$TASK_ISSUE.jsonl"
 PHASE1_OTEL="$(cd "$LOG_DIR" && pwd)/phase1-otel-$PHASE1_TIMESTAMP-$TASK_ISSUE.jsonl"
-export COPILOT_OTEL_FILE_EXPORTER_PATH="$PHASE1_OTEL"
-run_copilot_redacted "$PHASE1_JSONL" --yolo --output-format json --share "$PHASE1_SHARE" <<< "$PHASE1_PROMPT" ||
-    fail "Phase 1 copilot session or redaction failed."
-"$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR" >/dev/null
-unset COPILOT_OTEL_FILE_EXPORTER_PATH
+if run_copilot_phase_redacted \
+    "$PHASE1_JSONL" "$PHASE1_OTEL" \
+    --yolo --output-format json --share "$PHASE1_SHARE" <<<"$PHASE1_PROMPT"; then
+    PHASE1_EXIT=0
+else
+    PHASE1_EXIT=$?
+fi
+if [[ $PHASE1_EXIT -ne 0 ]]; then
+    echo "[shepherd-task] FAILED: Phase 1 copilot session or redaction failed." >&2
+    exit "$PHASE1_EXIT"
+fi
 
 status "Phase 1: copilot exited. Verifying semantic outcome and state..."
 
@@ -291,11 +325,17 @@ else
     PHASE2_SHARE="$LOG_DIR/phase2-task-$PHASE2_TIMESTAMP-$TASK_ISSUE.md"
     PHASE2_JSONL="$LOG_DIR/phase2-task-$PHASE2_TIMESTAMP-$TASK_ISSUE.jsonl"
     PHASE2_OTEL="$(cd "$LOG_DIR" && pwd)/phase2-otel-$PHASE2_TIMESTAMP-$TASK_ISSUE.jsonl"
-    export COPILOT_OTEL_FILE_EXPORTER_PATH="$PHASE2_OTEL"
-    run_copilot_redacted "$PHASE2_JSONL" --yolo --output-format json --share "$PHASE2_SHARE" <<< "$PHASE2_PROMPT" ||
-        fail "Phase 2 copilot session or redaction failed."
-    "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR" >/dev/null
-    unset COPILOT_OTEL_FILE_EXPORTER_PATH
+    if run_copilot_phase_redacted \
+        "$PHASE2_JSONL" "$PHASE2_OTEL" \
+        --yolo --output-format json --share "$PHASE2_SHARE" <<<"$PHASE2_PROMPT"; then
+        PHASE2_EXIT=0
+    else
+        PHASE2_EXIT=$?
+    fi
+    if [[ $PHASE2_EXIT -ne 0 ]]; then
+        echo "[shepherd-task] FAILED: Phase 2 copilot session or redaction failed." >&2
+        exit "$PHASE2_EXIT"
+    fi
 
     status "Phase 2: copilot exited. Verifying semantic outcome and state..."
 

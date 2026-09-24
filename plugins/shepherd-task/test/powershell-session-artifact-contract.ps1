@@ -34,8 +34,10 @@ $tempDirectory = Join-Path (
     [System.IO.Path]::GetTempPath()
 ) "shepherd-session-artifact-contract-$([guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $tempDirectory | Out-Null
+$script:LogDir = $tempDirectory
 $jsonlPath = Join-Path $tempDirectory 'failed-session.jsonl'
 $sharePath = Join-Path $tempDirectory 'failed-session.md'
+$otelPath = Join-Path $tempDirectory 'phase-otel.jsonl'
 
 function global:copilot {
     $shareIndex = [Array]::IndexOf($args, '--share')
@@ -77,9 +79,14 @@ try {
     }
 
     function Invoke-CopilotRedacted {
-        if ($env:COPILOT_OTEL_FILE_EXPORTER_PATH -ne 'phase-otel.jsonl') {
+        if ($env:COPILOT_OTEL_FILE_EXPORTER_PATH -ne $otelPath) {
             throw 'Phase OTel path was not applied.'
         }
+        [IO.File]::WriteAllText(
+            $otelPath,
+            '{"token":"ghp_failed_phase_secret"}' + [Environment]::NewLine,
+            [Text.UTF8Encoding]::new($false)
+        )
         throw 'mock phase failure'
     }
 
@@ -89,7 +96,7 @@ try {
             -Prompt 'contract prompt' `
             -JsonlPath $jsonlPath `
             -SharePath $sharePath `
-            -OtelPath 'phase-otel.jsonl'
+            -OtelPath $otelPath
     }
     catch {
         if ($_.Exception.Message -ne 'mock phase failure') {
@@ -99,6 +106,11 @@ try {
     if ($env:COPILOT_OTEL_FILE_EXPORTER_PATH -ne 'caller-otel.jsonl') {
         throw 'The caller OTel path was not restored after failure.'
     }
+    if ((Get-Content -LiteralPath $otelPath -Raw).Contains(
+        'ghp_failed_phase_secret'
+    )) {
+        throw 'Failed-phase OTel was not redacted before rethrow.'
+    }
 
     Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH
     try {
@@ -106,7 +118,7 @@ try {
             -Prompt 'contract prompt' `
             -JsonlPath $jsonlPath `
             -SharePath $sharePath `
-            -OtelPath 'phase-otel.jsonl'
+            -OtelPath $otelPath
     }
     catch {
         if ($_.Exception.Message -ne 'mock phase failure') {

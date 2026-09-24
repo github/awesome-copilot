@@ -130,15 +130,19 @@ function Invoke-CopilotPhaseRedacted {
             -Prompt $Prompt `
             -JsonlPath $JsonlPath `
             -SharePath $SharePath
-        & (Join-Path $scriptDir 'redact-secrets.ps1') $LogDir | Out-Null
     }
     finally {
-        if ($hadOtelPath) {
-            $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $previousOtelPath
+        try {
+            & (Join-Path $scriptDir 'redact-secrets.ps1') $LogDir | Out-Null
         }
-        else {
-            Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH `
-                -ErrorAction SilentlyContinue
+        finally {
+            if ($hadOtelPath) {
+                $env:COPILOT_OTEL_FILE_EXPORTER_PATH = $previousOtelPath
+            }
+            else {
+                Remove-Item Env:\COPILOT_OTEL_FILE_EXPORTER_PATH `
+                    -ErrorAction SilentlyContinue
+            }
         }
     }
 }
