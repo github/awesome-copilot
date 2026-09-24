@@ -13,6 +13,36 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+function Test-PositiveIntegralJsonNumber {
+    param([object]$Value)
+
+    if ($null -eq $Value -or
+        [Type]::GetTypeCode($Value.GetType()) -notin @(
+            [TypeCode]::SByte,
+            [TypeCode]::Byte,
+            [TypeCode]::Int16,
+            [TypeCode]::UInt16,
+            [TypeCode]::Int32,
+            [TypeCode]::UInt32,
+            [TypeCode]::Int64,
+            [TypeCode]::UInt64,
+            [TypeCode]::Single,
+            [TypeCode]::Double,
+            [TypeCode]::Decimal
+        )) {
+        return $false
+    }
+
+    try {
+        $numericValue = [decimal]$Value
+    }
+    catch {
+        return $false
+    }
+    return $numericValue -ge 1 -and
+        [decimal]::Truncate($numericValue) -eq $numericValue
+}
+
 if (-not (Test-Path -LiteralPath $ResultPath -PathType Leaf)) {
     throw "Stage 20 did not write its required result document: $ResultPath"
 }
@@ -58,7 +88,7 @@ if ($ledger.Count -eq 0) {
 
 $issueNumbers = @()
 foreach ($entry in $ledger) {
-    if ($entry.number -notmatch '^[1-9][0-9]*$' -or
+    if (-not (Test-PositiveIntegralJsonNumber $entry.number) -or
         $entry.body_verified -ne $true -or
         $entry.linked -ne $true) {
         throw "Completed stage 20 has an incomplete ledger entry: $($entry | ConvertTo-Json -Compress)"

@@ -225,6 +225,25 @@ Do not expand scope.
     } | ConvertTo-Json | Set-Content -LiteralPath $resultPath -Encoding utf8NoBOM
     & $resultAssertion -ResultPath $resultPath | Out-Null
 
+    foreach ($invalidNumber in @('41', 41.5)) {
+        $invalidLedger = @(
+            [ordered]@{
+                implementationSubsection = '1. First task'
+                bodyFile = 'issue-bodies/01-task-body.md'
+                id = 1001
+                number = $invalidNumber
+                url = 'https://github.com/owner/repo/issues/41'
+                body_verified = $true
+                linked = $true
+            }
+        )
+        Write-ContractLedger -Path $ledgerPath -Ledger $invalidLedger
+        Assert-Fails -ExpectedMessage 'incomplete ledger entry' -Operation {
+            & $resultAssertion -ResultPath $resultPath
+        }
+    }
+    Write-ContractLedger -Path $ledgerPath -Ledger $validLedger
+
     $validLedger[0] | ConvertTo-Json | Set-Content -LiteralPath $ledgerPath -Encoding utf8NoBOM
     Assert-Fails -ExpectedMessage 'creation ledger root must be an array' -Operation {
         & $resultAssertion -ResultPath $resultPath
