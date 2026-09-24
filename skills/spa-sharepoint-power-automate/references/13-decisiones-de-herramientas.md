@@ -55,4 +55,3 @@ Búsqueda con `npx skills find` y búsqueda de código en GitHub; ~40 candidatas
 
 Referencia de tamaño: esta skill cubre los 12 temas (≈3.100 líneas antes de §26–§28); la mejor competidora (`alvinwills/power-automate-claude-skills`) cubre 8 con ≈1.300.
 
-Nota sobre el cliente `9bc3ab49-b65d-410a-85ad-de819febfddc` (§18.1): figura en herramientas legítimas (`pnp/cli-microsoft365`, `cisagov/ScubaGear`) y también en herramientas ofensivas (AADInternals, Nebula). Es una razón más para mantener el aviso de uso responsable donde se documenta.

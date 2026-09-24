@@ -106,33 +106,9 @@ If the string is present → deploy is live, user-visible problem is browser-sid
 
 # 12 · Credentials & device code auth
 
-## Reading credentials from Windows Credential Manager
+## GitHub credentials
 
-When git-cli/gh isn't available but git itself works (HTTPS push works via Windows credential), extract the token via Win32 API:
-
-```powershell
-$sig = @'
-[DllImport("advapi32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
-public static extern bool CredRead(string target, int type, int flags, out IntPtr credential);
-[StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
-public struct CRED {
-    public uint Flags; public int Type; public string TargetName;
-    public string Comment; public System.Runtime.InteropServices.ComTypes.FILETIME LastWritten;
-    public uint CredentialBlobSize; public IntPtr CredentialBlob;
-    public uint Persist; public uint AttributeCount; public IntPtr Attributes;
-    public string TargetAlias; public string UserName;
-}
-'@
-Add-Type -MemberDefinition $sig -Name "CredAPI" -Namespace "Win32"
-$ptr = [IntPtr]::Zero
-[Win32.CredAPI]::CredRead("git:https://github.com", 1, 0, [ref]$ptr) | Out-Null
-$c = [System.Runtime.InteropServices.Marshal]::PtrToStructure($ptr, [type][Win32.CredAPI+CRED])
-$bytes = New-Object byte[] $c.CredentialBlobSize
-[System.Runtime.InteropServices.Marshal]::Copy($c.CredentialBlob, $bytes, 0, $c.CredentialBlobSize)
-$token = [System.Text.Encoding]::Unicode.GetString($bytes)
-```
-
-For GitHub API: `Authorization = "Basic <base64(user:token)>"` works. `Bearer $token` may fail with `gho_*` OAuth tokens — use Basic auth as fallback.
+Authenticate with `gh auth login`, a credential helper you control, or a dedicated least-privilege token supplied through a secret. Do not read tokens out of the operating system credential store into scripts.
 
 ## Device code flow: cannot be automated
 

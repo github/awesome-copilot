@@ -70,7 +70,7 @@ Todos aceptan `--help`. Los secretos van **solo por variables de entorno**, nunc
 ## 34.6 Lo que NO incluye
 
 - **PDF en el cliente** (jsPDF): por la trampa de las tildes y el tamaño, está como receta en §5, no como código.
-- Web Push, mapas y GPS de campo, cola sin conexión: ver §19, §5 y la lista de pendientes del `CHANGELOG`.
+- Web Push, mapas y GPS de campo, cola sin conexión: ver §19, §5 y la sección *Planned* del `CHANGELOG.md` del repositorio de la skill.
 - El **flow** en sí: se arma con §9 (plantilla) o se genera por código con §20 / §26.
 
 ## 34.7 Estado de verificación (2026-09-24)

@@ -32,7 +32,7 @@ Datos verificados:
 
 ## 30.3 Buzón compartido y "enviar como"
 
-- Para enviar **desde un buzón compartido o lista de distribución**: acción **`Send an email from a shared mailbox (V2)`** con la dirección del buzón. El administrador tiene que **darte permiso** antes. El mensaje queda en la carpeta *Enviados* de ese buzón.
+- Para enviar **desde un buzón compartido o lista de distribución**: acción **`Send an email from a shared mailbox (V2)`** con la dirección del buzón. El administrador tiene que **darte permiso** antes. Por defecto el mensaje se guarda en *Enviados* de **quien envía** (el dueño de la conexión), no en el del buzón compartido. Para conservar una copia en el buzón, un administrador de Exchange tiene que activar `MessageCopyForSentAsEnabled` (enviar como) o `MessageCopyForSendOnBehalfEnabled` (en nombre de) con `Set-Mailbox`.
 - Error conocido con buzones compartidos: **`Item ID doesn't belong to current mailbox`**. Aparece cuando una acción de correo usa un id de otro buzón; revisá que la acción y el id correspondan al **mismo** buzón.
 - Un flow envía **como el dueño de la conexión**. Si la conexión es de una persona, los correos salen con su nombre y se rompen cuando cambie su contraseña o se vaya (§9, §28.5). Usá **cuenta de servicio o buzón compartido** como remitente estable.
 

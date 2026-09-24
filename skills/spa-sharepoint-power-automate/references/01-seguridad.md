@@ -22,7 +22,7 @@ The endpoint is open to the internet. Realistic mitigations, in order of effort:
 2. **Payload-shape validation** — reject requests missing required fields or with absurd sizes before doing SP work.
 3. **Size cap** — see *Payload & attachment limits* below; reject oversized bodies early with a Response 413.
 4. **Rate awareness** — Power Automate per-flow run limits exist but are generous; for real rate limiting put the flow behind Azure API Management or a Cloudflare Worker proxy. Usually overkill for an internal-tool checklist; document the decision either way.
-5. **CAPTCHA** — only if abuse is observed. Adds friction to a no-login form; default to *not* having it.
+5. **CAPTCHA / verification** — the trigger URL and any shared key are readable in the public bundle, so neither is an abuse control. Beyond a low-value internal form, put rate limiting and bot verification (for example Cloudflare Turnstile) in a gateway in front of the flow **from the start**, not after abuse appears. A CAPTCHA adds friction: weigh it against spam records, quota exhaustion and outbound email.
 
 The honest posture: this is an **internal tool with a public URL**, secured by obscurity + low value to attackers. Write that assumption down in the repo so nobody mistakes it for a hardened public API.
 

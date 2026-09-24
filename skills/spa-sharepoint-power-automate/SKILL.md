@@ -1,18 +1,9 @@
 ---
 name: spa-sharepoint-power-automate
-description: >-
-  Use when building or troubleshooting public no-login web apps (React/Vite SPA or static PWA on GitHub Pages)
-  that send data to SharePoint through a Power Automate HTTP-trigger flow, and for Power Automate + SharePoint
-  pipeline problems: trigger auth default (401/403), Premium licensing, 120 s / 100 MB limits (502/504), Get
-  items 5,000 threshold and pagination, 429 throttling, try/catch/Terminate and silent failures after an early
-  Response, idempotent retries, solutions/connection references/environment variables, PAC CLI and Dataverse,
-  flows-as-code, SharePoint REST columns, list design, flows triggered by a file upload ('Route did not match'),
-  PWA/service worker, GitHub Pages deploy and an error catalog. Also tenant governance (DLP, corporate network),
-  Outlook limits, Power BI on lists, Sites.Selected and personal data. Includes a tested SPA starter kit. This
-  file is an index: open the referenced file for the section you need.
+description: 'Use when building or troubleshooting public no-login web apps (React/Vite SPA or static PWA on GitHub Pages) that send data to SharePoint through a Power Automate HTTP-trigger flow, and for Power Automate + SharePoint pipeline problems: trigger auth default (401/403), Premium licensing, 120 s / 100 MB limits (502/504), Get items 5,000 threshold and pagination, 429 throttling, try/catch/Terminate and silent failures after an early Response, idempotent retries, solutions/connection references/environment variables, PAC CLI and Dataverse, flows-as-code, SharePoint REST columns, list design, flows triggered by a file upload (''Route did not match''), PWA/service worker, GitHub Pages deploy and an error catalog. Also tenant governance (DLP, corporate network), Outlook limits, Power BI on lists, Sites.Selected and personal data. Includes a tested SPA starter kit. This file is an index: open the referenced file for the section you need.'
 license: MIT
 metadata:
-  version: 1.4.0
+  version: 1.4.3
   updated: '2026-09-24'
 ---
 
@@ -172,6 +163,9 @@ Las que más cuestan cuando se olvidan. Cada una remite a la sección con el por
 
 ## Historial
 
+- **2026-09-24 (8)** — Correcciones tras una revisión externa, verificadas contra Microsoft Learn: DirectQuery no existe para el conector de listas (§31), los enviados del buzón compartido van a la carpeta de quien envía salvo configuración de Exchange (§30.3), el CORS del trigger pasa a NO VERIFICADO (§9), aclaración sobre la paginación de Get items (§23), validación obligatoria del lado del flow y entrada no confiable en el correo (§9), control de abuso desde el inicio (§1). Versión 1.4.3.
+- **2026-09-24 (7)** — §26.7 completado: prueba de punta a punta con SharePoint (una lista y una columna creadas por un flow programado con llamadas REST, y una fila escrita por un flow HTTP: 200 con el `Id`), la trampa de "Crear elemento" (valida columnas al guardar) y lo que no se confirmó. Versión 1.4.2.
+- **2026-09-24 (6)** — §26.7 nuevo: receta probada para crear un flow HTTP desde cero solo con `pac` (prueba real en un entorno de desarrollador: import, activación, POST, corridas, cambio por código; trampas de mayúsculas del GUID y de la connection reference; lo no probado, marcado). Versión 1.4.1.
 - **2026-09-24 (5)** — Traducción al inglés de §21, §22, §23, §26, §29, §30 y §32 (`references/en/`, misma numeración; el original en español es la fuente). Nuevo router en inglés. Versión 1.4.0.
 - **2026-09-24 (4)** — Nuevo: §34 kit de arranque (`assets/spa-starter/`: SPA Vite + React + TypeScript con firma, fotos, borrador versionado, service worker y cliente de envío con reintentos; 108 tests; 4 scripts sin dependencias). Versión 1.3.0.
 - **2026-09-24 (3)** — Nuevos: §29 gobernanza del tenant (DLP, firewall de IP, acceso condicional, dominios de red), §30 correo, §31 reportes y Power BI, §32 `Sites.Selected` y Graph, §33 datos personales. §14 actualizado con la pirámide de pruebas. Versión 1.2.0.

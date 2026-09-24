@@ -17,13 +17,13 @@ Las listas que llena el pipeline terminan alimentando **tableros** (Power BI o u
 | Tamaño máximo de un modelo importado | **1 GB**; en capacidad compartida hay además un tope de **10 GB** de datos sin comprimir procesados por refresco |
 | Fallos consecutivos | Tras **4** fallos seguidos, Power BI **desactiva** el refresco programado |
 | Inactividad | Tras **2 meses** sin que nadie abra un informe del modelo, se **pausa** el refresco programado |
-| DirectQuery | Devuelve como máximo **1 millón de filas** y tiene un tiempo de respuesta máximo de **225 segundos** |
+| DirectQuery | **No está disponible** con el conector *SharePoint Online list*: solo Import (la documentación del conector lista únicamente «Site URL» como capacidad). Para usar DirectQuery hay que mover o sincronizar los datos a un origen que lo admita (SQL, Dataverse); en esos orígenes devuelve como máximo **1 millón de filas** y tiene un tiempo de respuesta máximo de **225 segundos** |
 
 ### Consecuencias prácticas
 
 - **"El tablero muestra datos de ayer"** casi siempre es uno de estos: refresco **desactivado por 4 fallos** (mirá el correo del propietario), **credenciales vencidas** (cambio de contraseña), o refresco **pausado por inactividad**.
 - Si la lista tiene **muchas columnas Lookup/Persona**, no importes la lista entera: creá una **vista** solo con las columnas necesarias y usala como origen (§27.4).
-- Para tableros de **campo** donde el dato tiene que estar en minutos, 8 refrescos por día no alcanza: considerá capacidad Premium, **DirectQuery** (con su límite de 1 M de filas y 225 s), o un flow que precalcule un resumen en una lista chica.
+- Para tableros de **campo** donde el dato tiene que estar en minutos, 8 refrescos por día no alcanza: considerá capacidad Premium, **sincronizar la lista a Dataverse o SQL** para poder usar **DirectQuery** (el conector de listas no lo admite; con su límite de 1 M de filas y 225 s), o un flow que precalcule un resumen en una lista chica.
 - **Refresco incremental** para modelos de más de 1 GB o que tardan horas.
 - Enviá los **avisos de fallo de refresco** a un alias del equipo, no solo al propietario (Power BI permite contactos adicionales). No admite alias de grupo para las notificaciones móviles.
 

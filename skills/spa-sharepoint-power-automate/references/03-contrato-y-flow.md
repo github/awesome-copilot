@@ -66,7 +66,7 @@ The whole pipeline has size ceilings — exceed them and you get opaque 502s or 
 
 > "Property selection is not supported on values of type 'String'"
 
-**Fix**: send `Content-Type: application/json`. Power Automate's HTTP trigger handles CORS preflight natively, so this works from a browser without extra config.
+**Fix**: send `Content-Type: application/json`. **CORS — NOT VERIFIED:** Microsoft Learn does not document CORS behaviour for this trigger. `application/json` and any custom header (such as `x-app-key`) make the browser send a preflight `OPTIONS` request first. In the author's own pipeline the browser call worked, but that is a field observation, not a documented guarantee, and trigger URL formats have changed over time. **Test the call from a browser against the real trigger URL.** If the preflight fails, put a small CORS-capable proxy in front (Cloudflare Worker, Azure Functions or API Management) and keep the trigger URL on the server side.
 
 ```ts
 const headers = { "Content-Type": "application/json" };
@@ -382,6 +382,8 @@ Canonical end-to-end set of UI inputs to give a user when guiding them to assemb
 | Method (Show advanced) | `POST` |
 | Request Body JSON Schema | **EMPTY** — leave blank |
 
+> **Server-side validation is mandatory.** An empty schema means the flow accepts any body, and callers can bypass the SPA. Before creating any item, add a Condition (or `Terminate`) that checks required fields, total and per-file size, attachment count and allowed file extensions, and answer a `400` `Response` when a check fails.
+
 After Save, the URL appears under the trigger header — copy it then.
 
 ### 2) `Check_key` — Condition (optional anti-bot gate)
@@ -463,6 +465,8 @@ Click `⋯` → **Configure run after** → uncheck `is failed`/`has timed out`/
 | Show advanced → **Attachments** → + Add new item |  |
 | Name (`fx`) | `triggerBody()?['attachments']?[0]?['name']` (PDF is always index 0 by SPA convention) |
 | Content (`fx`) | `base64ToBinary(triggerBody()?['attachments']?[0]?['contentBase64'])` |
+
+> **Untrusted input.** Every field comes from a public caller. HTML-encode values before putting them in an HTML body (or send plain text). Do not forward raw public uploads to a mailbox: prefer a restricted SharePoint link, and add type, signature and size checks plus malware scanning or quarantine first.
 
 ### 9) Save and copy URL
 

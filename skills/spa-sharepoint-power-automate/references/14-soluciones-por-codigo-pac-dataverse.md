@@ -124,6 +124,35 @@ DELETE …/workflows(<workflowid>)
 
 Skills de terceros que tocan este camino: `alvinwills/power-automate-claude-skills` (`power-automate-pac`: exportar con PAC, editar el JSON en disco, reimportar), `tomdam/flowforger` (traer y subir flows desde Dataverse), `excelano/paxc` (compilador de un DSL), `ericrisco/rsc-harness` y `mbadali25/useful-claude-add-ons` (Dataverse Web API / API de flows). Ninguna cubre nuestro contexto de SPA pública ni las trampas de §20.4. Registro completo en §25.
 
+## 26.7 Receta probada: un flow HTTP creado desde cero, solo con `pac` (prueba real, 2026-09-24)
+
+Probado con `pac` 2.12.2 en un entorno de **desarrollador** (no producción). Lo que no se probó está marcado.
+
+1. **`pac` tiene que arrancar.** En una máquina, la 2.7.4 instalada fallaba con "no puede encontrar el archivo especificado"; `pac install latest` la dejó en 2.12.2 y anduvo. `pac --version` no existe: usar `pac help`. En Git Bash de Windows `pac` no está en el PATH: correrlo con `powershell -NoProfile -Command "pac ..."`.
+2. **Sesión sin navegador:** `pac auth create --name Dev --environment "<url>" --deviceCode`, y confirmar con `pac auth who` y `pac org who`. Si el token venció, el error es `AADSTS50173` y hay que crear el perfil de nuevo.
+3. **Proyecto:** `pac solution init --publisher-name X --publisher-prefix xx --outputDirectory sol`. **No crea la carpeta de flows.** El `UniqueName` de la solución sale del nombre de la carpeta de salida: corregirlo en `Other/Solution.xml` **antes del primer import**, porque cambiarlo después crea una segunda solución en el entorno.
+4. **El flow:** generar `src/Workflows/<Nombre>-<GUID EN MAYÚSCULAS>.json` con un script que serialice JSON (no plantillas de texto): `properties.definition` con un trigger `Request` / `Http` y `"triggerAuthenticationType": "All"` si lo llama una web pública (§21.1).
+5. **Registrarlo:** en `Other/Customizations.xml`, dentro de `<Workflows>`, un `<Workflow WorkflowId="{GUID EN MAYÚSCULAS}" Name="...">` con `JsonFileName`, `Type` 1, `Category` 5, `Scope` 4, `StateCode` 1, `StatusCode` 2 y `PrimaryEntity` none (mismos campos que un export real). En `Other/Solution.xml`: `<Managed>0</Managed>` y, en `<RootComponents>`, `<RootComponent type="29" id="{guid en minúsculas}" behavior="0" />`.
+6. **Empaquetar e importar:** `pac solution pack --zipfile x.zip --folder .\sol\src --packagetype Unmanaged` y `pac solution import --path x.zip --publish-changes`.
+
+**Lo observado:**
+
+- `StateCode` 1 / `StatusCode` 2 en el XML dejó el flow activado al importar (un flow sin conexiones). `pac power-automate list-cloud-flows --workflow-id <id>` mostró `stateCode: Published`.
+- Un POST desde fuera a la URL del trigger respondió 200, y `pac power-automate list-flow-runs --workflow-id <id>` mostró la corrida `Succeeded`.
+- Cambiar el flow por código (un campo nuevo en el esquema y en la respuesta), volver a empaquetar y reimportar dio "The original workflow definition has been deactivated and replaced", y la definición nueva quedó activa.
+
+**Trampas observadas** (no están en la documentación de Microsoft: **NO VERIFICADO** fuera de esta prueba):
+
+- **Mayúsculas y minúsculas del GUID.** Con el GUID en minúsculas en el `<Workflow>` y en el `RootComponent`, `pack` avisó "root components are not defined in customizations". Con mayúsculas en ambos, `import` falló con "component ... of type 29 is not declared in the solution file as a root component". Funcionó con `WorkflowId` y nombre de archivo en mayúsculas y el `id` del `RootComponent` en minúsculas.
+- **La URL del trigger no sale de `pac`.** Se copia del diseñador (§26.5, punto 1). `pac power-automate` (2.12, en versión preliminar, solo lectura: `list-cloud-flows`, `list-flow-actions`, `list-flow-runs`) sirve para ver el estado y las corridas, no para obtener la URL.
+- **Tipo del valor.** Una expresión `@{...}` dentro de un objeto JSON devolvió texto (`"True"`). Con la expresión sola, `"@coalesce(...)"`, la respuesta devolvió el booleano real (`true`): probado.
+- **Flow con SharePoint: la connection reference.** Crearla una vez en el portal (Soluciones, Nuevo, Más, Connection reference) y exportar la solución (`pac solution export` y `unpack`) para copiar su XML. Queda en `Other/Customizations.xml` como `<connectionreferences><connectionreference connectionreferencelogicalname="...">` con `connectionreferencedisplayname`, `connectorid`, `iscustomizable`, `promptingbehavior`, `statecode` y `statuscode`, y **no** figura como `RootComponent`. Declararla como `RootComponent` de tipo 372 falló ("not in the target system") y con 10150 falló ("Invalid component type"). El id de la conexión va en el archivo de despliegue (`--settings-file`, §26.3). Con la referencia y ese archivo, el import terminó bien.
+- **"Crear elemento" valida las columnas al guardar.** La acción `PostItem` con columnas dinámicas se valida contra la lista real: con la lista inexistente, guardar dio `WorkflowOperationParametersExtraParameter` ("La operación API no contiene una definición para el parámetro 'item/Comentario'") y el flow quedó en borrador tras el import. Crear la lista antes de importar el flow, o usar la llamada REST de abajo.
+- **Escribir en SharePoint (probado de punta a punta).** Dos flows. Uno con trigger `Recurrence` y dos acciones "Send an HTTP request to SharePoint" (`POST _api/web/lists` y `POST _api/web/lists/getbytitle('<lista>')/fields`) creó la lista y la columna sin abrir SharePoint. Otro con trigger HTTP escribió la fila con `POST _api/web/lists/getbytitle('<lista>')/items`, y el POST desde fuera respondió 200 con el `Id` de la fila. Con `Accept` y `Content-Type` en `application/json;odata=nometadata`. La conexión y la connection reference se crearon en el portal.
+- **Tras el import, con conexión, los flows no arrancaron solos.** Quedaron en borrador o sin corridas hasta que se abrieron, se activaron y se ejecutaron en el portal; no se confirmó cuál de esos pasos fue el que hizo falta. Una vez activos, todo funcionó.
+- **Solo texto en el cuerpo REST.** Con `@{...}` dentro de un JSON armado como texto, un valor con comillas o saltos de línea rompe el JSON: sin probar cómo escaparlo.
+- **`pac power-automate list-flow-runs` puede ir por detrás.** Justo después del POST mostró la corrida anterior y no la nueva; la respuesta del propio flow (`Id` de la fila) fue la evidencia.
+
 ## Fuentes (Microsoft Learn)
 
 - *Work with cloud flows using code* — `learn.microsoft.com/power-automate/manage-flows-with-code`

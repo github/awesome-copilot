@@ -32,7 +32,7 @@ Verified facts:
 
 ## 30.3 Shared mailbox and "send as"
 
-- To send **from a shared mailbox or distribution list**: use the **`Send an email from a shared mailbox (V2)`** action with the mailbox address. The administrator has to **grant you permission** first. The message is saved in that mailbox's *Sent Items* folder.
+- To send **from a shared mailbox or distribution list**: use the **`Send an email from a shared mailbox (V2)`** action with the mailbox address. The administrator has to **grant you permission** first. By default the message is saved in the *Sent Items* of **the sender** (the connection owner), not of the shared mailbox. To keep a copy in the mailbox, an Exchange administrator must enable `MessageCopyForSentAsEnabled` (send as) or `MessageCopyForSendOnBehalfEnabled` (send on behalf) with `Set-Mailbox`.
 - Known error with shared mailboxes: **`Item ID doesn't belong to current mailbox`**. It appears when an email action uses an id from another mailbox; check that the action and the id correspond to the **same** mailbox.
 - A flow sends **as the owner of the connection**. If the connection belongs to a person, emails go out under their name and break when they change their password or leave (§9, §28.5). Use a **service account or shared mailbox** as a stable sender.
 

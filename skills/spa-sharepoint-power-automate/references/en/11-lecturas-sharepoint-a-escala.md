@@ -9,7 +9,7 @@ A list that has 300 rows today and 12,000 in a year **breaks flows and scripts t
 
 | Concept | Value | Detail |
 |---|---|---|
-| Default items | **100** | If you only specify site and list, it returns 100 (paginated by default) |
+| Default items | **100** | If you only specify site and list, it returns **100**. Microsoft Learn says items are "paginated by default", but that does not fetch more: to go past **Top Count** you must **turn on Pagination** in the action settings and set a threshold |
 | **Top Count** (Advanced options) | up to **5,000** | This is the list view threshold. Exceeding it makes the action fail |
 | **Pagination** + *Threshold* (Settings → Networking) | up to **100,000** (5,000 on the Low profile) | Fetches in batches until the configured threshold is reached |
 

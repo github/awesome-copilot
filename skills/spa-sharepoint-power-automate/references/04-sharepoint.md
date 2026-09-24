@@ -47,47 +47,7 @@ Real-world example: user creates a list at URL `/Lists/CheckListSemiRemolque/...
 
 ## Idempotent column setup script
 
-For repeatability, create columns from a versioned PowerShell script using **device code auth** (no app registration needed for tenant admin scenarios):
-
-```powershell
-$ClientId = "9bc3ab49-b65d-410a-85ad-de819febfddc"  # SharePoint Online native client
-$Resource = "https://$Hostname"
-
-# Device code flow
-$dcBody = "client_id=$ClientId&resource=$Resource"
-$dcResp = Invoke-RestMethod -Method POST `
-  -Uri "https://login.microsoftonline.com/common/oauth2/devicecode" -Body $dcBody
-Write-Host "URL:    $($dcResp.verification_url)"
-Write-Host "CODIGO: $($dcResp.user_code)"
-
-# Poll for token (60s × 5s)
-do {
-  Start-Sleep -Seconds 5
-  try {
-    $tok = Invoke-RestMethod -Method POST `
-      -Uri "https://login.microsoftonline.com/common/oauth2/token" `
-      -Body "grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id=$ClientId&code=$($dcResp.device_code)"
-    break
-  } catch { if ($_.ErrorDetails.Message -notmatch "authorization_pending") { throw } }
-} while ($true)
-$accessToken = $tok.access_token
-
-# Idempotent column add
-$h = @{ Authorization = "Bearer $accessToken"; Accept = "application/json;odata=verbose" }
-foreach ($col in $columns) {
-  $url = "$Resource/sites/X/_api/web/lists/getbytitle('Y')/fields/getbyinternalnameortitle('$($col.Name)')"
-  try {
-    Invoke-RestMethod -Uri $url -Headers $h | Out-Null
-    Write-Host "✓ $($col.Name) ya existe"
-  } catch {
-    # Crear
-    $body = @{ '__metadata' = @{ type = "SP.Field" }; Title = $col.Name; FieldTypeKind = $col.Type } | ConvertTo-Json
-    Invoke-RestMethod -Method POST -Uri "$baseListUrl/fields" -Headers $h -Body $body
-  }
-}
-```
-
-Run idempotently any time. The script never fails on existing columns.
+For repeatability, create columns from a versioned script that authenticates with an **organization-approved app registration** (for example PnP PowerShell with your own Entra app, or an app limited to the site with `Sites.Selected`, §32). Add each column only if it does not exist, and keep the script in Git. This distribution does not include a sample that borrows a Microsoft first-party client ID.
 
 ## REST + PowerShell — UTF-8 trap
 
@@ -184,20 +144,13 @@ The script update needs the SP MERGE pattern (`X-HTTP-Method: MERGE` + `IF-MATCH
 
 # 18 · Bulk data sync: Excel → SharePoint list via REST (NO Power Automate)
 
-When the task is "load/update an **existing** SP list from an Excel" (not a public form pipeline), skip the flow entirely. Drive SharePoint REST directly with a resource token from a script. Reference impl in this tree: `app SINIESTROS EXPERTA/` (`auth-sp.ps1` + `sync-siniestros-sprest.ps1`).
+When the task is "load/update an **existing** SP list from an Excel" (not a public form pipeline), skip the flow entirely. Drive SharePoint REST directly with a resource token from a script.
 
-## 18.1 Auth without per-app admin consent and without re-prompts
+## 18.1 Authentication for scripts that write to SharePoint
 
-> **Scope and responsible use — read first.**
-> - This is a **delegated, user-context** technique: the token can only do what the signed-in person can already do in SharePoint. It grants no extra permission.
-> - It is meant for people building automation with their **own** access who get stuck on per-app admin consent. It is a pragmatic workaround, **not** a substitute for the proper route (an app registration with admin-approved permissions, ideally `Sites.Selected`), and not a way to reach anything you couldn't already open in the browser.
-> - Check your organization's policy first. It is **fully visible** in Entra sign-in logs (client *SharePoint Online Management Shell*, device-code flow) and can be blocked by Conditional Access or by disabling the device-code flow. Microsoft may change that client's pre-authorization at any time, so don't build production on it.
-> - Treat the refresh token like a password: encrypted at rest, never shared, never committed.
+Use an **organization-approved app registration** with the least privilege that works: delegated permissions for a person-run script, or `Sites.Selected` scoped to the site (§32). Ask IT to approve it; §32 has a one-paragraph request they can sign off. Cache refresh tokens only in an OS-protected store, never in the repository, and never share them.
 
-- **Do NOT** use the Graph PowerShell device flow (`Connect-MgGraph -UseDeviceAuthentication`, client `14d82eec-204b-4c2f-b7e8-296a70dab67e`) for ad-hoc scripts. In many tenants a **non-admin** user hits *"Se necesita la aprobación del administrador"* — the app isn't pre-consented. Dead end unless an admin consents.
-- **Do** use the first-party, pre-consented **SharePoint Online Management Shell** client `9bc3ab49-b65d-410a-85ad-de819febfddc` with a **resource-based v1 device flow** (`resource = https://<tenant>.sharepoint.com`). No admin consent needed; the token is for SharePoint REST.
-- **Cache the refresh_token** so the human does the device code **once**: DPAPI-protect it (`ProtectedData` / `DataProtectionScope.CurrentUser`) to a file under `%LOCALAPPDATA%` (NOT OneDrive — the encrypted blob is machine+user bound; no point syncing it). Subsequent runs redeem `grant_type=refresh_token&resource=...` silently (~90-day TTL). This is the `auth-sp.ps1` Save/Read-RefreshToken pattern.
-- **v2 scope trap**: don't concatenate a full-resource scope URL (`https://graph.microsoft.com/Sites.ReadWrite.All`) with `offline_access` in one v2 request → `AADSTS70011 invalid_scope`. Either short scopes (`Sites.ReadWrite.All offline_access`) on v2, or the resource-based v1 flow above.
+Do not borrow a Microsoft first-party client ID to avoid the consent review: that skips your tenant's app-approval process.
 
 ## 18.2 Reading existing items — the `/items` returns 0 quirk
 

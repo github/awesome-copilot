@@ -9,7 +9,7 @@ Una lista que hoy tiene 300 filas y en un año 12.000 **rompe flows y scripts qu
 
 | Concepto | Valor | Detalle |
 |---|---|---|
-| Ítems por defecto | **100** | Si solo indicás sitio y lista, devuelve 100 (paginado por defecto) |
+| Ítems por defecto | **100** | Si solo indicás sitio y lista, devuelve **100**. Microsoft Learn dice que los ítems se «paginan por defecto», pero eso no trae más: para pasar de **Top Count** hay que **activar Pagination** en los ajustes de la acción y fijar un umbral |
 | **Top Count** (Advanced options) | hasta **5.000** | Es el umbral de vista de lista. Pasarse falla la acción |
 | **Pagination** + *Threshold* (Settings → Networking) | hasta **100.000** (5.000 en perfil Low) | Trae por lotes hasta alcanzar el umbral configurado |
 
