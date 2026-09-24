@@ -356,11 +356,19 @@ export function buildFromSpec(spec, { existing = [], direction = "right", measur
 
   const allShapes = [...existingShapes, ...nodes];
   const byId = new Map(allShapes.map((s) => [s.id, s]));
+  // Label to id, or null when several shapes share the label. Built on the first label lookup.
+  let byLabel = null;
   const resolveRef = (ref) => {
     if (typeof ref !== "string" || !ref) return null;
     if (byId.has(ref)) return ref;
-    const matches = allShapes.filter((s) => lower(s.text) === lower(ref));
-    return matches.length === 1 ? matches[0].id : null;
+    if (!byLabel) {
+      byLabel = new Map();
+      for (const s of allShapes) {
+        const key = lower(s.text);
+        if (key) byLabel.set(key, byLabel.has(key) ? null : s.id);
+      }
+    }
+    return byLabel.get(lower(ref)) || null;
   };
   const edges = [];
   for (const e of spec.edges || []) {
@@ -381,7 +389,8 @@ export function buildFromSpec(spec, { existing = [], direction = "right", measur
   }
 
   // Place nodes that have no x/y.
-  const obstacles = existing.map((e) => elementBounds(e, new Map(existing.map((x) => [x.id, x])), measure)).filter(Boolean);
+  const existingById = new Map(existing.map((e) => [e.id, e]));
+  const obstacles = existing.map((e) => elementBounds(e, existingById, measure)).filter(Boolean);
   for (const n of nodes) if (pinned.has(n.id)) obstacles.push({ x: n.x, y: n.y, w: n.w, h: n.h });
   const anchored = new Map([...existingShapes, ...nodes.filter((n) => pinned.has(n.id))].map((s) => [s.id, s]));
   const unplaced = nodes.filter((n) => !pinned.has(n.id));

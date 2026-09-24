@@ -303,11 +303,13 @@ export class UI {
 
   // ---------- popovers ----------
 
-  openPopover(anchor, build, { className = "", placement = "below", align = "start", role = "dialog" } = {}) {
+  openPopover(anchor, build, { className = "", placement = "below", align = "start", role = "dialog", label = "" } = {}) {
     this.closePopover();
     const pop = document.createElement("div");
     pop.className = `popover ${className}`;
     pop.setAttribute("role", role);
+    // Screen readers announce a dialog or menu by its name, so each one gets one.
+    pop.setAttribute("aria-label", label || anchor.getAttribute("aria-label") || anchor.title || anchor.textContent.trim());
     $("popovers").append(pop);
     const close = () => this.closePopover();
     build(pop, close);
@@ -331,7 +333,7 @@ export class UI {
         anchor.focus({ preventScroll: true });
         return;
       }
-      if (role === "menu" && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      if (pop.getAttribute("role") === "menu" && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
         const list = [...pop.querySelectorAll(".menu-item")];
         const i = list.indexOf(document.activeElement);
         const next = list[(i + (e.key === "ArrowDown" ? 1 : -1) + list.length) % list.length];

@@ -71,10 +71,10 @@ export function attachMenus(ui) {
       }).join("");
       const render = () => {
         pop.innerHTML =
-          `<div class="menu-label">Drawings in this session</div>${list}<div class="menu-rule"></div>` +
+          `<div class="menu-label">Drawings in this session</div>${list}<div class="menu-rule" role="separator"></div>` +
           menuItem("new", "plus", "New drawing") + menuItem("rename", "edit", "Rename") +
           menuItem("duplicate", "duplicate", "Duplicate") + menuItem("reveal", "folder", "Show in folder") +
-          `<div class="menu-rule"></div>${menuItem("delete", "trash", "Delete drawing", "danger")}`;
+          `<div class="menu-rule" role="separator"></div>${menuItem("delete", "trash", "Delete drawing", "danger")}`;
       };
       render();
       pop.addEventListener("click", async (e) => {
@@ -100,8 +100,12 @@ export function attachMenus(ui) {
           close();
           reveal(`${ui.folder}/${cur}.json`);
         } else if (act === "delete") {
+          // The confirmation is a small dialog, not a menu.
+          pop.setAttribute("role", "alertdialog");
+          pop.setAttribute("aria-label", "Delete drawing");
+          pop.setAttribute("aria-describedby", "delete-note");
           pop.innerHTML =
-            `<div class="menu-note">Delete "${esc(ui.doc.name)}"? This cannot be undone.</div>` +
+            `<div class="menu-note" id="delete-note">Delete "${esc(ui.doc.name)}"? This cannot be undone.</div>` +
             '<div class="menu-actions"><button type="button" class="btn" data-act="cancel">Cancel</button>' +
             '<button type="button" class="btn btn-danger" data-act="confirm-delete">Delete</button></div>';
           pop.querySelector("[data-act=cancel]").focus();
@@ -115,7 +119,7 @@ export function attachMenus(ui) {
         }
       });
       pop.querySelector(".is-current, .menu-item")?.focus();
-    }, { className: "menu", role: "menu" });
+    }, { className: "menu", role: "menu", label: "Drawings" });
   }
 
   function startRename() {
@@ -153,7 +157,7 @@ export function attachMenus(ui) {
     ui.togglePopover($("export-button"), (pop, close) => {
       pop.innerHTML =
         menuItem("copy", "copy", "Copy as image") + menuItem("png", "download", "Save as PNG") + menuItem("svg", "download", "Save as SVG") +
-        '<div class="menu-rule"></div><div class="menu-note">Files go in this session\'s drawings folder.</div>';
+        '<div class="menu-rule" role="separator"></div><div class="menu-note">Files go in this session\'s drawings folder.</div>';
       pop.addEventListener("click", (e) => {
         const b = e.target.closest("button[data-act]");
         if (!b) return;
@@ -161,7 +165,7 @@ export function attachMenus(ui) {
         exportAs(b.dataset.act);
       });
       pop.querySelector(".menu-item").focus();
-    }, { className: "menu", role: "menu", align: "end" });
+    }, { className: "menu", role: "menu", align: "end", label: "Export" });
   }
 
   async function exportAs(kind) {
@@ -240,7 +244,7 @@ export function attachMenus(ui) {
         }
       });
       setTimeout(() => ta.focus(), 0);
-    }, { className: "ask", align: "end" });
+    }, { className: "ask", align: "end", label: "Ask Copilot about this drawing" });
   }
 
   function openThemeMenu() {
@@ -257,7 +261,7 @@ export function attachMenus(ui) {
         ui.setThemeMode(b.dataset.mode);
       });
       pop.querySelector('[aria-checked="true"]')?.focus();
-    }, { className: "menu", role: "menu", align: "end" });
+    }, { className: "menu", role: "menu", align: "end", label: "Theme" });
   }
 
   function syncThemeButton() {
@@ -272,7 +276,7 @@ export function attachMenus(ui) {
     ui.togglePopover($("help-button"), (pop) => {
       const keys = (k) => (Array.isArray(k) ? k.map((s) => `<kbd>${esc(s)}</kbd>`).join(" ") : esc(k));
       pop.innerHTML = `<h2>Shortcuts</h2><dl>${HELP.map(([k, d]) => `<dt>${keys(k)}</dt><dd>${esc(d)}</dd>`).join("")}</dl>`;
-    }, { className: "help", placement: "above" });
+    }, { className: "help", placement: "above", label: "Keyboard shortcuts" });
   }
 
   $("doc-button").addEventListener("click", openDrawingsMenu);

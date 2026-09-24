@@ -68,3 +68,11 @@ Press `?` in the canvas to see all of them. On macOS, use `Cmd` instead of `Ctrl
 ## Security
 
 The canvas is served by a local server that listens on `127.0.0.1` on a random port. It checks the `Host` header, requires a random per-server token on every API request, and sends a content security policy that only allows scripts and connections from itself. The extension has no dependencies besides the Copilot SDK and makes no requests to the internet. The only process it starts is your file manager (Explorer, Finder or `xdg-open`), when you choose **Show in folder** after an export.
+
+## Tests
+
+The tests use Node's built-in test runner, so there is nothing to install. From this folder, run:
+
+```sh
+node --test
+```
