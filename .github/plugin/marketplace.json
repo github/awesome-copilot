@@ -83,8 +83,8 @@
     },
     {
       "name": "anarlog",
-      "description": "Query Anarlog meeting notes, summaries, transcripts, participants, action items, and recurring history.",
-      "version": "1.0.0",
+      "description": "Query Anarlog meetings locally, or connect through OAuth to read opted-in Cloud snapshots.",
+      "version": "1.3.0",
       "author": {
         "name": "Fastrepl",
         "url": "https://anarlog.so"
@@ -103,7 +103,7 @@
         "source": "github",
         "repo": "fastrepl/anarlog",
         "path": "agent-plugins/anarlog",
-        "sha": "cf25cb679a7ef8e6cec18e7c6c0d8a3a17e245c3"
+        "sha": "259b68866a7d6c331cd428aaa33a33300a700c5d"
       }
     },
     {
@@ -1058,7 +1058,7 @@
     {
       "name": "github-copilot-modernization",
       "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator → coordinators → executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
-      "version": "1.23.0",
+      "version": "1.24.0",
       "author": {
         "name": "Microsoft",
         "url": "https://github.com/microsoft/github-copilot-modernization"
@@ -1082,7 +1082,7 @@
         "source": "github",
         "repo": "microsoft/github-copilot-modernization",
         "path": "plugins/github-copilot-modernization",
-        "sha": "5d2a3268d816f794defb03a45cf527360b16071e"
+        "sha": "a9c9469d86e9dc078018e8fb391abc7744088078"
       }
     },
     {
@@ -1118,7 +1118,7 @@
     {
       "name": "keep-the-why",
       "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
-      "version": "0.15.0",
+      "version": "0.17.0",
       "author": {
         "name": "Oliver Zehentleitner",
         "url": "https://github.com/oliver-zehentleitner"
@@ -1137,7 +1137,7 @@
       "source": {
         "source": "github",
         "repo": "oliver-zehentleitner/keep-the-why",
-        "ref": "v0.15.0"
+        "ref": "v0.17.0"
       }
     },
     {
@@ -1207,7 +1207,7 @@
     {
       "name": "microsoft-foundry",
       "description": "Skills and interactive Copilot canvas for designing, configuring, testing and deploying agents to Microsoft Foundry.",
-      "version": "1.0.13",
+      "version": "1.0.14",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -1228,7 +1228,7 @@
         "source": "github",
         "repo": "microsoft/foundry-dev-tools",
         "path": "microsoft-foundry",
-        "sha": "06c4e486af9588d4d7fea8d413a13debe78b1453"
+        "sha": "5fd2e70c47ebdd888e537713cd002ef275bef405"
       }
     },
     {
@@ -1313,7 +1313,7 @@
     {
       "name": "modernize-java",
       "description": "GitHub Copilot modernization – Java Upgrade CLI Plugin helps you upgrade Java applications from the command line. It brings intelligent modernization capabilities to your terminal and CI/CD pipelines: analyze your project and generate an upgrade plan, automatically transform your codebase, fix build issues, validate against known CVEs, and output a detailed summary of file changes and updated dependencies.",
-      "version": "1.23.0",
+      "version": "1.24.0",
       "author": {
         "name": "microsoft",
         "url": "https://github.com/microsoft/modernize-java"
@@ -1331,8 +1331,8 @@
         "source": "github",
         "repo": "microsoft/modernize-java",
         "path": "plugins/modernize-java",
-        "ref": "1.23.0",
-        "sha": "5ccc2ad4011314602e1b80f0b818c95bcf198f67"
+        "ref": "1.24.0",
+        "sha": "b02350dad12888d3064c07c58fd1cc407e0c7b6f"
       }
     },
     {
@@ -1758,7 +1758,7 @@
     {
       "name": "sonarqube",
       "description": "SonarQube is the AI code quality and security verification platform used by millions of developers to catch bugs, vulnerabilities, and leaked secrets. This plugin enforces those standards in the coding loop: 7,500+ distinct issue types, secrets scanning, agentic analysis, and quality gates across 40+ languages.",
-      "version": "2.5.0",
+      "version": "2.6.0",
       "author": {
         "name": "Sonar",
         "url": "https://sonarsource.com/"
@@ -1776,7 +1776,7 @@
       "source": {
         "source": "github",
         "repo": "SonarSource/sonarqube-agent-plugins",
-        "ref": "2.5.0"
+        "ref": "2.6.0"
       }
     },
     {
