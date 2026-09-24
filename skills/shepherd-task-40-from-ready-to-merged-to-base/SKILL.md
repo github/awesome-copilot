@@ -350,10 +350,21 @@ git branch -D "$JTBDTASK_BRANCH" 2>/dev/null || true
 ❌❌❌ Ensure the base branch is NEVER `main` ❌❌❌ and always the `BASE_BRANCH` from this invocation.
 
 ```bash
-ACTUAL_BASE=$(gh pr view $PR_NUMBER -R $REPO --json baseRefName --jq '.baseRefName')
-if [ "$ACTUAL_BASE" = "main" ]; then
-  echo "ERROR: PR base is 'main' — must be '$BASE_BRANCH'. Fixing..."
-  gh pr edit $PR_NUMBER -R $REPO --base "$BASE_BRANCH"
+if [ "$BASE_BRANCH" = "main" ]; then
+  echo "ERROR: BASE_BRANCH must never be 'main'."
+  exit 1
+fi
+
+ACTUAL_BASE=$(gh pr view "$PR_NUMBER" -R "$REPO" --json baseRefName --jq '.baseRefName')
+if [ "$ACTUAL_BASE" != "$BASE_BRANCH" ]; then
+  echo "PR base is '$ACTUAL_BASE'; fixing it to '$BASE_BRANCH'..."
+  gh pr edit "$PR_NUMBER" -R "$REPO" --base "$BASE_BRANCH"
+
+  ACTUAL_BASE=$(gh pr view "$PR_NUMBER" -R "$REPO" --json baseRefName --jq '.baseRefName')
+  if [ "$ACTUAL_BASE" != "$BASE_BRANCH" ]; then
+    echo "ERROR: Could not set PR base to '$BASE_BRANCH'."
+    exit 1
+  fi
 fi
 ```
 

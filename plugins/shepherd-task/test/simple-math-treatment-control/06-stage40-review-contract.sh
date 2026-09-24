@@ -25,6 +25,9 @@ required=(
     '-F name="$REPO_NAME"'
     'query($owner: String!, $name: String!, $number: Int!)'
     'repository(owner: $owner, name: $name)'
+    'if [ "$BASE_BRANCH" = "main" ]; then'
+    'if [ "$ACTUAL_BASE" != "$BASE_BRANCH" ]; then'
+    'ERROR: Could not set PR base to'
 )
 for text in "${required[@]}"; do
     grep -Fq -- "$text" <<<"$SKILL_CONTENT" || {
@@ -34,6 +37,10 @@ for text in "${required[@]}"; do
 done
 if grep -Fq -- 'repository(owner: "github", name: "copilot-sdk")' <<<"$SKILL_CONTENT"; then
     echo 'Stage-40 skill hard-codes the GraphQL repository lookup.' >&2
+    exit 1
+fi
+if grep -Fq -- 'if [ "$ACTUAL_BASE" = "main" ]; then' <<<"$SKILL_CONTENT"; then
+    echo 'Stage-40 skill only checks for a literal main base instead of the requested base.' >&2
     exit 1
 fi
 if grep -Fq -- '--add-reviewer Copilot' <<<"$SKILL_CONTENT"; then

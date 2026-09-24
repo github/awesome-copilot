@@ -38,7 +38,10 @@ $requiredSkillText = @(
     '-F owner="$REPO_OWNER"',
     '-F name="$REPO_NAME"',
     'query($owner: String!, $name: String!, $number: Int!)',
-    'repository(owner: $owner, name: $name)'
+    'repository(owner: $owner, name: $name)',
+    'if [ "$BASE_BRANCH" = "main" ]; then',
+    'if [ "$ACTUAL_BASE" != "$BASE_BRANCH" ]; then',
+    'ERROR: Could not set PR base to'
 )
 foreach ($required in $requiredSkillText) {
     if (-not $skill.Contains($required)) {
@@ -47,6 +50,9 @@ foreach ($required in $requiredSkillText) {
 }
 if ($skill.Contains('repository(owner: "github", name: "copilot-sdk")')) {
     throw 'Stage-40 skill hard-codes the GraphQL repository lookup.'
+}
+if ($skill.Contains('if [ "$ACTUAL_BASE" = "main" ]; then')) {
+    throw 'Stage-40 skill only checks for a literal main base instead of the requested base.'
 }
 if ($skill.Contains('--add-reviewer Copilot')) {
     throw 'Stage-40 skill still requests Copilot as an ordinary login.'
