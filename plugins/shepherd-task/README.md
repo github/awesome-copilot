@@ -549,12 +549,13 @@ multiple run directories because of retries or intentional issue batching.
 ## Post-mortem behavior
 
 The given-list exit path invokes stage 50 after success or failure. Stage 50
-receives the original exit code, reads the still-running run manifest,
+receives the original exit code, reads the finalized run manifest,
 phase JSONL/session shares, and campaign context, calculates task timings,
 review rounds, failures, idle markers, and available token usage, then writes
 an eight-section Markdown report into the run directory. The caller finalizes
-the run manifest after the post-mortem attempt. Post-mortem failure produces a
-warning but does not replace the original run exit code.
+the run manifest before starting the post-mortem, so the report reads the
+completed timestamp, exit code, and succeeded or failed status. Post-mortem
+failure produces a warning but does not replace the original run exit code.
 
 ## Logs, telemetry, and redaction
 
