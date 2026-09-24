@@ -100,29 +100,77 @@ function Get-PhaseFromFilename {
 function Find-PR {
     param([string]$Issue)
 
-    # Strategy A: issue timeline
+    $candidateNumbers = [Collections.Generic.HashSet[int]]::new()
+
     $prCandidates = @(gh api "/repos/$Repo/issues/$Issue/timeline" `
-        --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number' 2>$null)
+        --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url' 2>$null)
     $ghExitCode = $LASTEXITCODE
     if ($ghExitCode -ne 0) {
         Write-Alert "Unable to query the issue timeline for issue #$Issue; retrying on the next poll."
         return $null
     }
-    $pr = $prCandidates | Select-Object -First 1
+    $pullRequestApiPrefix = "https://api.github.com/repos/$Repo/pulls/"
+    foreach ($candidateUrl in @($prCandidates | Select-Object -Unique)) {
+        if (-not ([string]$candidateUrl).StartsWith(
+            $pullRequestApiPrefix,
+            [StringComparison]::OrdinalIgnoreCase
+        )) {
+            continue
+        }
+        $candidate = ([string]$candidateUrl).Substring(
+            $pullRequestApiPrefix.Length
+        )
+        if ($candidate -match '^[1-9][0-9]*$') {
+            [void]$candidateNumbers.Add([int]$candidate)
+        }
+    }
 
-    if ($pr) { return $pr.Trim() }
-
-    # Strategy B: PR body search
-    $prCandidates = @(gh pr list -R $Repo --state all --json number,body `
-        --jq ".[] | select(.body | test(`"#$Issue`")) | .number" 2>$null)
+    $prCandidates = @(gh pr list -R $Repo --state open --json number,body `
+        --jq ".[] | select((.body // `"`") | test(`"(^|[^0-9])#$Issue([^0-9]|$)`")) | .number" 2>$null)
     $ghExitCode = $LASTEXITCODE
     if ($ghExitCode -ne 0) {
         Write-Alert "Unable to search PR bodies for issue #$Issue; retrying on the next poll."
         return $null
     }
-    $pr = $prCandidates | Select-Object -First 1
+    foreach ($candidate in $prCandidates) {
+        if ([string]$candidate -match '^[1-9][0-9]*$') {
+            [void]$candidateNumbers.Add([int]$candidate)
+        }
+    }
 
-    if ($pr) { return $pr.Trim() }
+    $matchingNumbers = @()
+    foreach ($candidate in $candidateNumbers) {
+        $candidateOutput = @(gh pr view $candidate -R $Repo `
+            --json state,closingIssuesReferences 2>$null)
+        $ghExitCode = $LASTEXITCODE
+        if ($ghExitCode -ne 0 -or $candidateOutput.Count -eq 0) {
+            continue
+        }
+        try {
+            $candidateInfo =
+                ($candidateOutput -join [Environment]::NewLine) |
+                ConvertFrom-Json
+        }
+        catch {
+            Write-Alert "PR #$candidate returned invalid JSON; retrying on the next poll."
+            return $null
+        }
+        $closesIssue = @(
+            $candidateInfo.closingIssuesReferences |
+                Where-Object { [int]$_.number -eq [int]$Issue }
+        ).Count -gt 0
+        if ([string]$candidateInfo.state -eq 'OPEN' -and $closesIssue) {
+            $matchingNumbers += [int]$candidate
+        }
+    }
+
+    if ($matchingNumbers.Count -gt 1) {
+        Write-Alert "Multiple open PRs close issue #${Issue}: $($matchingNumbers -join ', ')"
+        return $null
+    }
+    if ($matchingNumbers.Count -eq 1) {
+        return [string]$matchingNumbers[0]
+    }
 
     return $null
 }
