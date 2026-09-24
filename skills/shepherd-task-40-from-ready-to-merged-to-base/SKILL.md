@@ -335,17 +335,7 @@ Verify:
   positively acknowledged, and the authoritative Step 9 GraphQL query reports
   no unresolved review threads or pending actionable findings.
 
-### Step 16: Clean up worktree
-
-```bash
-# Remove the worktree (sibling directory)
-git worktree remove "$WORKTREE_PATH"
-
-# Remove the local branch tracking the PR topic branch (if created)
-git branch -D "$JTBDTASK_BRANCH" 2>/dev/null || true
-```
-
-### Step 17: Verify base branch
+### Step 16: Verify base branch
 
 ❌❌❌ Ensure the base branch is NEVER `main` ❌❌❌ and always the `BASE_BRANCH` from this invocation.
 
@@ -368,7 +358,7 @@ if [ "$ACTUAL_BASE" != "$BASE_BRANCH" ]; then
 fi
 ```
 
-### Step 18: Handle merge conflicts
+### Step 17: Handle merge conflicts
 
 If there are conflicts between the PR branch and `BASE_BRANCH`:
 
@@ -383,16 +373,35 @@ if [ "$MERGEABLE" = "CONFLICTING" ]; then
   # Resolve conflicts, then:
   git rebase --continue
   git push "$REMOTE" HEAD:$JTBDTASK_BRANCH --force-with-lease
+
+  # STOP this merge attempt. The rebase changed PR HEAD.
+  # Return to Step 10 and repeat Steps 10–17 for the new HEAD.
 fi
 ```
 
-### Step 19: Merge the PR
+Never continue directly to merge after pushing a conflict resolution. Return to
+Step 10, approve and await workflows, repeat Copilot review and thread
+resolution, republish lessons if required, and repeat the Step 15 final gate.
+Then verify the base and mergeability again through Steps 16–17. Only a HEAD
+that has completed that full post-rebase loop may proceed.
+
+### Step 18: Merge the PR
 
 ```bash
 gh pr merge $PR_NUMBER -R $REPO --merge --delete-branch
 ```
 
 This merges the work to `BASE_BRANCH`.
+
+### Step 19: Clean up worktree
+
+```bash
+# Remove the worktree (sibling directory)
+git worktree remove "$WORKTREE_PATH"
+
+# Remove the local branch tracking the PR topic branch (if created)
+git branch -D "$JTBDTASK_BRANCH" 2>/dev/null || true
+```
 
 ### Step 20: Close the corresponding issue
 
