@@ -131,63 +131,81 @@ Steps 1–3 are startup signals, not completion signals.
 
 ### Step 2: Find the corresponding PR
 
-Use **all three** of the following strategies (in order) each polling iteration. Copilot often creates PRs whose title or branch name does NOT contain the issue number — it may use a descriptive name instead. Therefore, relying on title/branch regex alone is insufficient.
-
-#### Strategy A: Query the issue timeline for linked PRs
-
-The GitHub timeline API shows PRs linked via "Fixes #N" or the UI link feature. This is the most reliable signal.
-
-```bash
-# Query issue timeline for cross-referenced or connected PRs
-PR_NUMBER=$(gh api "/repos/$REPO/issues/$TASK_ISSUE/timeline" \
-  --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number' | head -1)
-```
-
-#### Strategy B: Search PR bodies for "Fixes #N" or "#N"
-
-Copilot PRs typically include "Fixes #1876" in the body even when the title is descriptive.
-
-```bash
-# Search open PR bodies for the issue number
-PR_NUMBER=$(gh pr list -R $REPO --state open --json number,body \
-  --jq ".[] | select(.body | test(\"#$TASK_ISSUE\")) | .number" | head -1)
-```
-
-#### Strategy C: Match title or branch name (original approach)
-
-```bash
-PR_NUMBER=$(gh pr list -R $REPO --state open --json number,title,headRefName \
-  --jq ".[] | select((.title | test(\"$TASK_ISSUE\"; \"i\")) or (.headRefName | test(\"$TASK_ISSUE\"))) | .number" | head -1)
-```
+Use the issue timeline, PR bodies, titles, and branch names only to discover
+candidates. Free text is not authoritative: require the selected PR's
+`closingIssuesReferences` to contain the exact task issue. Match numeric
+boundaries so task `14` does not match `140`, reconcile every candidate, and
+stop if more than one open PR authoritatively closes the task.
 
 #### Polling loop
 
-Try all three strategies each iteration. Poll every 30 seconds for up to 15 minutes (Copilot coding agent can take 5-12 minutes to produce a PR).
+Poll every 30 seconds for up to 15 minutes (Copilot coding agent can take 5-12 minutes to produce a PR).
 
 ```bash
+find_linked_pr() {
+  local candidate candidate_info candidate_url
+  local candidate_numbers="" matching_numbers="" pr_candidates=""
+  local api_prefix="https://api.github.com/repos/$REPO/pulls/"
+
+  pr_candidates=$(gh api "/repos/$REPO/issues/$TASK_ISSUE/timeline" \
+    --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url') ||
+    return 2
+  while IFS= read -r candidate_url; do
+    [[ "$candidate_url" == "$api_prefix"* ]] || continue
+    candidate=${candidate_url#"$api_prefix"}
+    [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+    case $'\n'"$candidate_numbers"$'\n' in
+      *$'\n'"$candidate"$'\n'*) ;;
+      *) candidate_numbers="${candidate_numbers}${candidate_numbers:+$'\n'}$candidate" ;;
+    esac
+  done <<<"$pr_candidates"
+
+  pr_candidates=$(gh pr list -R "$REPO" --state open \
+    --json number,body,title,headRefName \
+    --jq ".[] | select(
+      ((.body // \"\") | test(\"(^|[^0-9])#$TASK_ISSUE([^0-9]|$)\")) or
+      ((.title // \"\") | test(\"(^|[^0-9])$TASK_ISSUE([^0-9]|$)\"; \"i\")) or
+      ((.headRefName // \"\") | test(\"(^|[^0-9])$TASK_ISSUE([^0-9]|$)\"))
+    ) | .number") || return 2
+  while IFS= read -r candidate; do
+    [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+    case $'\n'"$candidate_numbers"$'\n' in
+      *$'\n'"$candidate"$'\n'*) ;;
+      *) candidate_numbers="${candidate_numbers}${candidate_numbers:+$'\n'}$candidate" ;;
+    esac
+  done <<<"$pr_candidates"
+
+  while IFS= read -r candidate; do
+    [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+    candidate_info=$(gh pr view "$candidate" -R "$REPO" \
+      --json state,closingIssuesReferences) || continue
+    if jq -e --argjson issue "$TASK_ISSUE" '
+      .state == "OPEN" and
+      any(.closingIssuesReferences[]?; .number == $issue)
+    ' <<<"$candidate_info" >/dev/null; then
+      matching_numbers="${matching_numbers}${matching_numbers:+$'\n'}$candidate"
+    fi
+  done <<<"$candidate_numbers"
+
+  local match_count
+  match_count=$(printf '%s\n' "$matching_numbers" | sed '/^$/d' | wc -l | tr -d ' ')
+  if [ "$match_count" -gt 1 ]; then
+    echo "ERROR: Multiple open PRs close task #$TASK_ISSUE: $(tr '\n' ' ' <<<"$matching_numbers")" >&2
+    return 2
+  fi
+  [ "$match_count" -eq 1 ] || return 1
+  printf '%s\n' "$matching_numbers"
+}
+
 TIMEOUT=900
 INTERVAL=30
 ELAPSED=0
 
 while [ $ELAPSED -lt $TIMEOUT ]; do
-  # Strategy A: issue timeline
-  PR_NUMBER=$(gh api "/repos/$REPO/issues/$TASK_ISSUE/timeline" \
-    --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number' 2>/dev/null | head -1)
-
-  # Strategy B: PR body search
-  if [ -z "$PR_NUMBER" ]; then
-    PR_NUMBER=$(gh pr list -R $REPO --state open --json number,body \
-      --jq ".[] | select(.body | test(\"#$TASK_ISSUE\")) | .number" | head -1)
-  fi
-
-  # Strategy C: title/branch match
-  if [ -z "$PR_NUMBER" ]; then
-    PR_NUMBER=$(gh pr list -R $REPO --state open --json number,title,headRefName \
-      --jq ".[] | select((.title | test(\"$TASK_ISSUE\"; \"i\")) or (.headRefName | test(\"$TASK_ISSUE\"))) | .number" | head -1)
-  fi
-
-  if [ -n "$PR_NUMBER" ]; then
+  if PR_NUMBER=$(find_linked_pr); then
     break
+  elif [ "$?" -eq 2 ]; then
+    exit 2
   fi
 
   sleep $INTERVAL
