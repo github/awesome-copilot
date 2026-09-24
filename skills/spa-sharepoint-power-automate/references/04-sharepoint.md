@@ -47,7 +47,7 @@ Real-world example: user creates a list at URL `/Lists/CheckListSemiRemolque/...
 
 ## Idempotent column setup script
 
-For repeatability, create columns from a versioned script that authenticates with an **organization-approved app registration** (for example PnP PowerShell with your own Entra app, or an app limited to the site with `Sites.Selected`, §32). Add each column only if it does not exist, and keep the script in Git. This distribution does not include a sample that borrows a Microsoft first-party client ID.
+For repeatability, create columns from a versioned script that authenticates with an **organization-approved app registration** (for example PnP PowerShell with your own Entra app, or an app limited to the site with `Sites.Selected`, §32). Add each column only if it does not exist, and keep the script in Git. This distribution does not include a sample that borrows a Microsoft first-party client ID; the complete edition is maintained at https://github.com/apu242007/power-automate-sharepoint-skills.
 
 ## REST + PowerShell — UTF-8 trap
 
@@ -150,7 +150,7 @@ When the task is "load/update an **existing** SP list from an Excel" (not a publ
 
 Use an **organization-approved app registration** with the least privilege that works: delegated permissions for a person-run script, or `Sites.Selected` scoped to the site (§32). Ask IT to approve it; §32 has a one-paragraph request they can sign off. Cache refresh tokens only in an OS-protected store, never in the repository, and never share them.
 
-Do not borrow a Microsoft first-party client ID to avoid the consent review: that skips your tenant's app-approval process.
+Do not borrow a Microsoft first-party client ID to avoid the consent review: that skips your tenant's app-approval process. The complete edition of this skill, with additional authentication techniques and their responsible-use notes, is maintained at https://github.com/apu242007/power-automate-sharepoint-skills.
 
 ## 18.2 Reading existing items — the `/items` returns 0 quirk
 

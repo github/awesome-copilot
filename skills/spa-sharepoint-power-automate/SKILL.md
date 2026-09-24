@@ -11,6 +11,8 @@ metadata:
 
 End-to-end reference for building **public, no-login** web apps that let visitors submit structured data + attachments to a SharePoint list. The owner's identity (and Microsoft 365 tenant) is provided by the Power Automate flow; visitors never authenticate.
 
+> **Complete edition.** This copy is the version distributed through this catalog. The complete edition, with the full starter-kit history, the additional authentication techniques with their responsible-use notes and the changelog, is maintained at https://github.com/apu242007/power-automate-sharepoint-skills.
+
 ## Architecture
 
 ```

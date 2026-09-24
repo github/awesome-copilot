@@ -108,7 +108,7 @@ If the string is present → deploy is live, user-visible problem is browser-sid
 
 ## GitHub credentials
 
-Authenticate with `gh auth login`, a credential helper you control, or a dedicated least-privilege token supplied through a secret. Do not read tokens out of the operating system credential store into scripts.
+Authenticate with `gh auth login`, a credential helper you control, or a dedicated least-privilege token supplied through a secret. Do not read tokens out of the operating system credential store into scripts. The complete edition of this skill is maintained at https://github.com/apu242007/power-automate-sharepoint-skills.
 
 ## Device code flow: cannot be automated
 
