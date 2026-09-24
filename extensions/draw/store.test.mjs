@@ -176,3 +176,50 @@ test("a save that fails part way through writing leaves no temp file behind", as
     assert.deepEqual(await temps(), []);
     assert.deepEqual(JSON.parse(await readFile(store.filePath(doc.id), "utf8")).elements.map((e) => e.id), ["a"]);
 });
+
+test("state writes go one at a time, and flush waits for one that has already started", async (t) => {
+    const store = await openStore(t);
+    const a = store.create("A");
+    const b = store.create("B");
+    await store.flush();
+    // Holds the next rename of the state file until it is released, like a file an antivirus is reading.
+    const rename = fs.rename;
+    let hold = null;
+    t.mock.method(fs, "rename", async (from, to) => {
+        const h = String(to).endsWith(".state.json") ? hold : null;
+        if (!h) return rename(from, to);
+        hold = null;
+        h.started();
+        await h.gate;
+        try {
+            return await rename(from, to);
+        } finally {
+            h.finished();
+        }
+    });
+    const holdNext = () => {
+        const h = {};
+        h.gate = new Promise((resolve) => (h.release = resolve));
+        h.waiting = new Promise((resolve) => (h.started = resolve));
+        h.done = new Promise((resolve) => (h.finished = resolve));
+        return (hold = h);
+    };
+    const shown = async () => JSON.parse(await readFile(path.join(store.dir, ".state.json"), "utf8")).instances.panel;
+
+    const first = holdNext();
+    store.bindInstance("panel", a.id);
+    await first.waiting;
+    setTimeout(first.release, 50);
+    await store.flush();
+    assert.equal(await shown(), a.id);
+
+    // A newer binding made while an older write is held is the one left on disk.
+    const second = holdNext();
+    store.bindInstance("panel", b.id);
+    await second.waiting;
+    store.bindInstance("panel", a.id);
+    setTimeout(second.release, 50);
+    await store.flush();
+    await second.done;
+    assert.equal(await shown(), a.id);
+});

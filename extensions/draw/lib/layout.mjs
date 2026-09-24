@@ -311,13 +311,15 @@ export function layeredLayout(nodes, edges, { direction = "right", measure = app
 }
 
 // Finds a spot for a new w x h box next to an anchor box in a direction, avoiding obstacles.
+// When every spot near the anchor is taken, it goes just past everything, in line with the anchor.
 export function findFreeSpot(anchor, dir, w, h, obstacles, gap = 60) {
   const horizontal = dir === "left" || dir === "right";
   const forward = dir === "right" || dir === "down";
   const cx = anchor.x + anchor.w / 2;
   const cy = anchor.y + anchor.h / 2;
-  const blocked = (x, y) => obstacles.some((o) => x < o.x + o.w + 20 && x + w > o.x - 20 && y < o.y + o.h + 20 && y + h > o.y - 20);
-  let first = null;
+  // How far apart the new box and any obstacle stay.
+  const pad = 20;
+  const blocked = (x, y) => obstacles.some((o) => x < o.x + o.w + pad && x + w > o.x - pad && y < o.y + o.h + pad && y + h > o.y - pad);
   for (let step = 0; step < 6; step++) {
     for (const k of [0, 1, -1, 2, -2]) {
       let x;
@@ -329,11 +331,13 @@ export function findFreeSpot(anchor, dir, w, h, obstacles, gap = 60) {
         y = forward ? anchor.y + anchor.h + gap + step * (h + gap) : anchor.y - gap - h - step * (h + gap);
         x = cx - w / 2 + k * (w + 30);
       }
-      first ||= { x, y };
       if (!blocked(x, y)) return { x, y };
     }
   }
-  return first;
+  const all = unionBounds([anchor, ...obstacles]);
+  const room = Math.max(gap, pad);
+  if (horizontal) return { x: forward ? all.x + all.w + room : all.x - room - w, y: cy - h / 2 };
+  return { x: cx - w / 2, y: forward ? all.y + all.h + room : all.y - room - h };
 }
 
 export const oppositeDir = (d) => ({ right: "left", left: "right", up: "down", down: "up" })[d] || "left";

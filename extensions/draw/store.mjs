@@ -87,6 +87,8 @@ export class DrawingStore extends EventEmitter {
         this.saving = new Map();
         this.saveErrors = new Map();
         this.stateTimer = null;
+        // State writes run one at a time, so an older one cannot finish after a newer one.
+        this.stateSaving = Promise.resolve();
         this.listTimer = null;
         this.state = { lastOpened: null, instances: {} };
         this.ready = this.#load();
@@ -367,10 +369,11 @@ export class DrawingStore extends EventEmitter {
 
     #saveState() {
         this.stateTimer = null;
-        const data = JSON.stringify(this.state, null, 2) + "\n";
-        return atomicWrite(path.join(this.dir, STATE_FILE), data).catch((err) =>
-            this.log(`Draw: failed to save state: ${err.message}`),
-        );
+        // Each write takes the state as it is when its turn comes, so the last one has every change.
+        this.stateSaving = this.stateSaving
+            .then(() => atomicWrite(path.join(this.dir, STATE_FILE), JSON.stringify(this.state, null, 2) + "\n"))
+            .catch((err) => this.log(`Draw: failed to save state: ${err.message}`));
+        return this.stateSaving;
     }
 
     async flush() {
@@ -382,8 +385,10 @@ export class DrawingStore extends EventEmitter {
         const results = await Promise.allSettled([...this.saving.values()]);
         if (this.stateTimer) {
             clearTimeout(this.stateTimer);
-            await this.#saveState();
+            this.#saveState();
         }
+        // Also waits for a state write that had already started.
+        await this.stateSaving;
         const failed = results.filter((r) => r.status === "rejected");
         if (failed.length) {
             const what = failed.length === 1 ? "a drawing" : `${failed.length} drawings`;

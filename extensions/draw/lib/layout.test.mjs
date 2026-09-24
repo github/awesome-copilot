@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { boxesIntersect, elementBounds } from "./geometry.mjs";
-import { buildFromSpec, countCrossings, outlinePage } from "./layout.mjs";
+import { buildFromSpec, countCrossings, findFreeSpot, outlinePage } from "./layout.mjs";
 import { normalizeElement } from "./model.mjs";
 
 const shape = (id, text, x) => normalizeElement({ id, type: "rect", x, y: 0, text });
@@ -81,6 +81,33 @@ test("new nodes are placed clear of everything already on the canvas", () => {
       assert.ok(!boxesIntersect(node, box), `${node.id} overlaps ${existing[i].id}`);
     }
   }
+});
+
+test("when every spot near a shape is taken, a new one goes past everything, in line with it", () => {
+  const anchor = { x: 0, y: 0, w: 100, h: 60 };
+  // Shapes on all four sides of the anchor cover every spot that placement tries.
+  const crowd = [
+    { x: 120, y: -2000, w: 3000, h: 4000 },
+    { x: -3020, y: -2000, w: 3000, h: 4000 },
+    { x: -2000, y: 80, w: 4000, h: 3000 },
+    { x: -2000, y: -3020, w: 4000, h: 3000 },
+  ];
+  for (const dir of ["right", "left", "down", "up"]) {
+    const spot = findFreeSpot(anchor, dir, 100, 60, [anchor, ...crowd]);
+    const box = { ...spot, w: 100, h: 60 };
+    for (const c of crowd) assert.ok(!boxesIntersect(box, c), `the spot to the ${dir} is on top of a shape`);
+    assert.equal(dir === "right" || dir === "left" ? spot.y : spot.x, 0, `the spot to the ${dir} is not in line with the shape`);
+  }
+
+  // add_elements places a new connected node the same way.
+  const existing = [
+    normalizeElement({ id: "a", type: "rect", ...anchor, text: "A" }),
+    ...crowd.map((c, i) => normalizeElement({ id: `c${i}`, type: "rect", ...c })),
+  ];
+  const { elements, errors } = buildFromSpec({ nodes: [{ id: "b", label: "B" }], edges: [{ from: "a", to: "b" }] }, { existing });
+  assert.deepEqual(errors, []);
+  const b = elements.find((e) => e.id === "b");
+  for (const e of existing) assert.ok(!boxesIntersect(b, e), `b overlaps ${e.id}`);
 });
 
 test("crossings are counted the same as by comparing every pair of edges", () => {
