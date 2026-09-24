@@ -8,6 +8,8 @@ Answer the open questions **on the issue** — that is the canonical channel for
 
 `status` goes to `approved` only after all three gates pass: every question answered, the review completed or explicitly waived, and your approval given. Answering the questions is not approval, and neither is a clean reviewer verdict.
 
+The draft plan PR starts with `Refs #<N>`, so merging or abandoning an advisory plan cannot close the issue accidentally. After approval, implementation, validation, and self-review, the Development Orchestrator changes only that marked line to `Fixes #<N>` and verifies GitHub's `closingIssuesReferences`. GitHub then closes the issue as completed only if that implementation PR merges into `main`; closing the PR without merging leaves the issue open.
+
 Plans are fork-only and are never promoted upstream. Nothing reads them automatically; they exist for you and for the orchestrator.
 
 The planner may only ever write `issue-*.md` in this directory — the workflow's `allowed-files` policy enforces it, so this README is out of its reach.

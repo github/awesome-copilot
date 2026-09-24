@@ -19,10 +19,10 @@ flowchart LR
     orch --> duck[plan-reviewer sub-agent<br/>revised plan + verdict]
     duck --> approval[Maintainer approval]
     approval --> impl[dev-orchestrator<br/>implements + self-reviews]
-    impl --> pr[PR into fork main]
+    impl --> pr[PR into fork main<br/>Refs N → Fixes N]
     pr --> vally[skill-check vally lint<br/>upstream workflow]
     pr --> rev[fork-agent-reviewer<br/>gh-aw: AI domain review + version check]
-    pr --> main[(fork main)]
+    pr -->|successful merge closes issue| main[(fork main)]
     wd[fork-sync-watchdog<br/>gh-aw, weekly] --> syncpr[Sync PR fork-sync/upstream → main]
     syncpr --> main
     main --> bundle[fork-bundle-upstream-pr<br/>workflow_dispatch]
@@ -46,7 +46,7 @@ The gh-aw sources live in `.github/workflows/*.md` alongside their compiled `.lo
 
 Custom agents for interactive Copilot CLI sessions; they are not run by Actions. They live under `.github/agents/` — not `.github/fork-only/agents/` — because Copilot CLI only discovers selectable custom agents in `.github/agents/` (repo-level) or `~/.copilot/agents/` (user-level); a `.github/fork-only/agents/` file is never scanned and cannot be selected with `/agent`. This is still fork-only tooling: neither `npm run build`/`skill-check` (which only walk the top-level `agents/**`) nor `fork-bundle-upstream-pr` (which derives its promotion allowlist from the migration-expert agent's own `plugin.json` — the agent file and plugin directory from its `agents[]` entries and manifest location, skills from its `skills[]` entries) ever look at `.github/agents/`, so nothing here can leak upstream.
 
-- **dev-orchestrator.agent.md** — issue → maintainer answers and re-grilling → revised plan → Plan Reviewer verdict → approval gate → implement → pre-PR self-review. Reads `.github/fork-only/plans/issue-<N>.md` first if the planner produced one, but treats it as advisory. Stops before planning if any of the seed's open questions is unanswered on the issue, records the answers in the plan's decision record, and only sets `status: approved` after review plus your explicit approval. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators). Selectable via `/agent` (`mode: primary`, `hidden: false`, `user-invocable: true`).
+- **dev-orchestrator.agent.md** — issue → maintainer answers and re-grilling → revised plan → Plan Reviewer verdict → approval gate → implement → pre-PR self-review → arm native issue closure. Reads `.github/fork-only/plans/issue-<N>.md` first if the planner produced one, but treats it as advisory. Stops before planning if any of the seed's open questions is unanswered on the issue, records the answers in the plan's decision record, and only sets `status: approved` after review plus your explicit approval. After implementation and validation, it changes the marked PR link from `Refs #N` to `Fixes #N` and verifies GitHub's closing reference before declaring the PR merge-ready. Ends with the promotion checklist (version bump, `npm run build`, line endings, validators). Selectable via `/agent` (`mode: primary`, `hidden: false`, `user-invocable: true`).
 - **plan-reviewer.agent.md** — focused read-only rubber-duck review of the revised plan. The orchestrator dispatches this hidden sub-agent (`mode: subagent`, `hidden: true`, `user-invocable: false`) and requires a verdict of `no material concerns` or `material concerns` with evidenced findings. It returns `material concerns` for gate violations too — an unanswered question, an answer with no issue-comment evidence, or a plan already marked `approved` before review and sign-off. A failed dispatch or invalid result is not a completed review; the maintainer decides whether to retry or explicitly proceed without one.
 
 ### No state files
@@ -115,8 +115,18 @@ Answering the questions is not approval, and a clean Plan Reviewer verdict is no
 3. Answer the open questions **in the issue**. That is the human half of the grilling the CI run could not do, and it is a hard gate: the orchestrator stops before planning if any `Q<n>` is unanswered.
 4. In Copilot CLI, check out `plan/issue-<N>`, select the **Development Orchestrator** agent (`/agent` → `.github/agents/dev-orchestrator.agent.md`) and give it the issue number. It reads the plan file as a starting point — the plan is advisory, so the orchestrator re-grills with your answers and rewrites it freely.
 5. It reconciles every open question against your issue comments and refuses to continue while any is unanswered. Once they are all answered it records them in the plan's `## Decision record` with links to the comments, revises the plan, dispatches **Plan Reviewer** to check it for concrete gaps, incorporates valid findings, and presents the verdict before asking for your approval. If dispatch or the verdict fails, it tells you the plan was not reviewed and asks whether to retry or proceed without review. After your explicit approval it flips the plan to `status: approved`, implements, bumps `plugin.json` version, runs `npm run build`, and self-reviews. The reviewer can report "No material concerns"; older plans' skeptic sections are historical context, not a gate.
-6. Mark the plan PR *Ready for review* once it carries the implementation (or close it and open a fresh PR — the branch is yours). `skill-check` (vally) and `fork-agent-reviewer` run. The reviewer's `version_check` job fails if the version was not bumped.
-7. Merge when satisfied — you are the sole reviewer.
+6. Once implementation and validation pass, the orchestrator upgrades the marked PR-body line from `Refs #N` to `Fixes #N`, then reads the PR back and verifies that GitHub lists issue #N in `closingIssuesReferences`. It refuses to arm a plan-only PR or a second PR for the same issue. If you closed the plan PR and opened a fresh implementation PR, put both `Fixes #N` and `<!-- fork-issue-link: #N -->` in the new body.
+7. Mark the implementation PR *Ready for review*. `skill-check` (vally) and `fork-agent-reviewer` run. The reviewer's `version_check` job fails if the version was not bumped.
+8. Merge when satisfied — you are the sole reviewer. GitHub closes issue #N as completed only after the PR merges into `main`; closing or abandoning the PR leaves the issue open.
+
+The issue-link lifecycle is deliberately two-stage:
+
+```text
+Draft advisory PR       Approved implementation PR       Successful merge
+Refs #N            ->   Fixes #N                    ->   issue closed as completed
+```
+
+GitHub's native closing reference is the source of truth; no post-merge workflow edits issue state. Squash, merge-commit, and rebase merges all close the linked issue when the PR targets the repository's default branch.
 
 The planner never touches anything outside `.github/fork-only/plans/issue-*.md`, so a bad plan costs you a `git rm` and nothing else. To re-plan after the issue is clarified, **Actions → Fork Issue Planner → Run workflow** with the issue number; it force-refreshes the same branch and PR.
 
@@ -158,6 +168,7 @@ Run with `dry_run` first; the job summary shows the diff stat. Then run for real
 | Bundler: PR creation fails after a prior promotion PR was closed and its head branch was deleted | GitHub will not reuse a deleted PR head, even if a same-named branch is recreated | Bump `plugin.json` version — the promotion branch is version-scoped, so a bump produces a fresh head ref. If the head branch still exists, the bundler reopens and refreshes its prior PR. |
 | Planner did not run on a new issue | Issue was not opened by the repo owner, or carries the `fork-automation` label (the watchdog's own issues are excluded by design) | Re-run manually: Actions → Fork Issue Planner → Run workflow → issue number |
 | Orchestrator stops with "unanswered open questions" | One or more `Q<n>` from the seed plan has no maintainer answer on the issue | Working as designed. Answer every question in an issue comment (the planner's comment includes a copyable template), then re-run the orchestrator |
+| Orchestrator cannot verify `closingIssuesReferences` | The PR body lacks a marked `Refs #N` or `Fixes #N` line, targets a branch other than `main`, or another open PR already closes the issue | Add `Fixes #N` followed by `<!-- fork-issue-link: #N -->`, ensure this is the canonical implementation PR into `main`, then re-run the orchestrator |
 | Planner run fails at `create_pull_request` with a protected-files or allowed-files error | The agent tried to write outside `.github/fork-only/plans/issue-*.md` | Working as designed — the planner must never edit code. Re-run; if it repeats, tighten the *Rules* section of `fork-issue-planner.md` |
 | Planner PR has the `fork-automation` label but the label does not exist | The repository has no `fork-automation` label yet | Create it once in Issues → Labels (the watchdog needs it too) |
 | gh-aw agent job fails at engine start | Copilot credential requirement changed | See gh-aw engines reference |
