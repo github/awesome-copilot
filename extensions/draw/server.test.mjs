@@ -199,6 +199,15 @@ test("ops that would go past 5,000 elements are refused and change nothing", asy
     assert.equal(store.get(doc.id).elements.length, 0);
 });
 
+test("a panel's selection can hold as many ids as a drawing has elements", async (t) => {
+    const { server, doc } = await setup(t);
+    const ids = Array.from({ length: 5010 }, (_, i) => `r${i}`);
+    const res = await post(server, "/api/selection", { drawingId: doc.id, ids: [42, ...ids] });
+    assert.equal(res.status, 200);
+    assert.deepEqual(server.selection(PANEL, doc.id), ids.slice(0, 5000));
+    assert.deepEqual(server.selection(PANEL, "another-drawing"), []);
+});
+
 test("bad requests get a clear error", async (t) => {
     const { server } = await setup(t);
     for (const body of ["not json", "[1, 2]", "null"]) {

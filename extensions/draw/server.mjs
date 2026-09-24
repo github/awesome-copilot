@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { describe } from "./lib/layout.mjs";
+import { MAX_ELEMENTS } from "./lib/model.mjs";
 import { Settings, THEMES } from "./settings.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -205,7 +206,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
             return sendJson(res, 200, stale ? { rev: doc.rev, drawing: pub(doc) } : { rev: doc.rev });
         }
         if (route === "/api/selection") {
-            const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string").slice(0, 1000) : [];
+            const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string").slice(0, MAX_ELEMENTS) : [];
             selections.set(instanceId, { drawingId: body.drawingId, ids });
             return sendJson(res, 200, { ok: true });
         }

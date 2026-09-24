@@ -1,9 +1,9 @@
-// Tests for turning a { nodes, edges } spec into elements.
+// Tests for turning a { nodes, edges } spec into elements, and for the layout's crossing count.
 // Run `node --test` in the extension folder.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { boxesIntersect, elementBounds } from "./geometry.mjs";
-import { buildFromSpec } from "./layout.mjs";
+import { buildFromSpec, countCrossings } from "./layout.mjs";
 import { normalizeElement } from "./model.mjs";
 
 const shape = (id, text, x) => normalizeElement({ id, type: "rect", x, y: 0, text });
@@ -54,5 +54,45 @@ test("new nodes are placed clear of everything already on the canvas", () => {
     for (const [i, box] of taken.entries()) {
       assert.ok(!boxesIntersect(node, box), `${node.id} overlaps ${existing[i].id}`);
     }
+  }
+});
+
+test("crossings are counted the same as by comparing every pair of edges", () => {
+  // a-d and b-c cross. a-c and b-c only share an end, which is not a crossing.
+  assert.equal(countCrossings(["a", "b"], { a: ["d", "c"], b: ["c"] }, { c: 0, d: 1 }, 2), 1);
+
+  let seed = 1;
+  const rand = (n) => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed % n;
+  };
+  const shuffled = (list) => {
+    const out = [...list];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = rand(i + 1);
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  };
+  for (let round = 0; round < 300; round++) {
+    // Upper vertices are 0 to upperSize - 1 and lower ones come after, each layer in a shuffled
+    // order. Every upper vertex links to a random set of lower ones, listed in any order.
+    const upperSize = 1 + rand(10);
+    const lowerSize = 1 + rand(10);
+    const upper = shuffled([...Array(upperSize).keys()]);
+    const lower = shuffled(Array.from({ length: lowerSize }, (_, i) => upperSize + i));
+    const pos = {};
+    lower.forEach((v, i) => { pos[v] = i; });
+    const down = {};
+    for (const u of upper) down[u] = shuffled(lower).slice(0, rand(lowerSize + 1));
+
+    const edges = upper.flatMap((u, i) => down[u].map((v) => [i, pos[v]]));
+    let expected = 0;
+    for (let i = 0; i < edges.length; i++) {
+      for (let j = i + 1; j < edges.length; j++) {
+        if ((edges[i][0] - edges[j][0]) * (edges[i][1] - edges[j][1]) < 0) expected++;
+      }
+    }
+    assert.equal(countCrossings(upper, down, pos, lowerSize), expected, JSON.stringify({ upper, down, pos }));
   }
 });

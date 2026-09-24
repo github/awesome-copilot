@@ -294,6 +294,16 @@ export class UI {
     setTimeout(remove, action ? Math.max(timeout, 6000) : error ? Math.max(timeout, 5000) : timeout);
   }
 
+  // Draw stayed on this drawing because the edits on screen are not saved, and switching would
+  // lose them. The status line says why. `discard` goes ahead anyway.
+  warnUnsaved(discard) {
+    this.toast("Your latest changes are not saved yet, so Draw stayed on this drawing.", {
+      error: true,
+      timeout: 12000,
+      action: { label: "Discard changes", run: discard },
+    });
+  }
+
   fatal(message) {
     $("stage").innerHTML =
       `<div class="empty" style="pointer-events:auto"><p class="empty-title">This drawing could not load</p><p>${esc(message)}</p>` +

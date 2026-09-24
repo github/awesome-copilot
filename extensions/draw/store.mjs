@@ -330,6 +330,17 @@ export class DrawingStore extends EventEmitter {
         return this.saveErrors.get(id)?.message || null;
     }
 
+    // Writes a drawing now instead of after the usual short wait, and waits for the write.
+    // Resolves with the reason it failed, or null once the drawing is on disk.
+    async persist(id) {
+        if (this.timers.has(id)) {
+            clearTimeout(this.timers.get(id));
+            this.#save(id);
+        }
+        await this.saving.get(id)?.catch(() => {});
+        return this.saveError(id);
+    }
+
     #scheduleState() {
         clearTimeout(this.stateTimer);
         this.stateTimer = setTimeout(() => this.#saveState(), 300);

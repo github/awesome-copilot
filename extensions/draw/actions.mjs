@@ -152,7 +152,8 @@ export function makeActions({ runtime, CanvasError }) {
         if (err instanceof StoreError) fail(err.code, err.message);
         throw err;
       }
-      const saveError = result?.drawing?.id ? store.saveError(result.drawing.id) : null;
+      // Write the change now, so a disk problem is reported by this action instead of never.
+      const saveError = result?.drawing?.id ? await store.persist(result.drawing.id) : null;
       if (saveError) {
         result.warning = `This drawing could not be saved to disk (${saveError}). The changes are kept in memory and saving is being retried, so tell the user.`;
       }

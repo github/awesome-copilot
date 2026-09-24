@@ -54,6 +54,32 @@ function placeRow(desired, seps, weights) {
   return out;
 }
 
+// Crossings between two neighboring layers. upper lists the upper layer's vertices in order,
+// down[u] the lower-layer vertices that u links to, pos[v] a lower vertex's position, and
+// lowerSize how many vertices the lower layer has.
+// Two edges cross when their ends are in opposite orders. Taking the edges in order of their upper
+// end, each one crosses the earlier edges whose lower end is further along. A Fenwick tree counts
+// those in O(log n), so this is O(E log V) rather than comparing every pair of edges.
+export function countCrossings(upper, down, pos, lowerSize) {
+  const tree = new Uint32Array(lowerSize + 1);
+  let crossings = 0;
+  let seen = 0;
+  const add = (b) => {
+    let atOrBefore = 0;
+    for (let i = b + 1; i > 0; i -= i & -i) atOrBefore += tree[i];
+    crossings += seen - atOrBefore;
+    for (let i = b + 1; i <= lowerSize; i += i & -i) tree[i]++;
+    seen++;
+  };
+  for (const u of upper) {
+    const targets = down[u];
+    // Edges from the same vertex never cross each other, so they go in increasing order.
+    if (targets.length === 1) add(pos[targets[0]]);
+    else if (targets.length > 1) for (const b of targets.map((v) => pos[v]).sort((x, y) => x - y)) add(b);
+  }
+  return crossings;
+}
+
 // Layered (Sugiyama-style) layout. nodes: [{id, w, h}], edges: [{from, to, label?}].
 // Returns Map id -> {x, y} (top-left), with the layout's top-left corner at 0,0.
 export function layeredLayout(nodes, edges, { direction = "right", measure = approxMeasure } = {}) {
@@ -154,33 +180,32 @@ export function layeredLayout(nodes, edges, { direction = "right", measure = app
   }
   for (let li = 0; li < layers.length; li++) layers[li] ||= [];
 
-  // Crossing reduction: barycenter sweeps, keeping the best ordering seen.
-  const pos = new Map();
-  const setPos = () => layers.forEach((L) => L.forEach((v, i) => pos.set(v, i)));
+  // Crossing reduction: barycenter sweeps, keeping the best ordering seen. Per-vertex numbers live
+  // in typed arrays, since long edges can add hundreds of thousands of placeholder vertices.
+  const pos = new Int32Array(up.length);
+  const setPos = () => layers.forEach((L) => L.forEach((v, i) => { pos[v] = i; }));
   setPos();
   const crossings = () => {
     let c = 0;
-    for (let li = 0; li < layers.length - 1; li++) {
-      const es = [];
-      for (const u of layers[li]) for (const v of down[u]) es.push([pos.get(u), pos.get(v)]);
-      for (let i = 0; i < es.length; i++) for (let j = i + 1; j < es.length; j++) if ((es[i][0] - es[j][0]) * (es[i][1] - es[j][1]) < 0) c++;
-    }
+    for (let li = 0; li < layers.length - 1; li++) c += countCrossings(layers[li], down, pos, layers[li + 1].length);
     return c;
   };
   let best = layers.map((L) => [...L]);
   let bestC = crossings();
+  const bc = new Float64Array(up.length);
   for (let iter = 0; iter < 12 && bestC > 0; iter++) {
     const downward = iter % 2 === 0;
     const order = [...layers.keys()];
     if (!downward) order.reverse();
     for (const li of order.slice(1)) {
-      const bc = new Map();
       for (const v of layers[li]) {
         const nb = downward ? up[v] : down[v];
-        bc.set(v, nb.length ? nb.reduce((s, n) => s + pos.get(n), 0) / nb.length : pos.get(v));
+        let sum = 0;
+        for (const n of nb) sum += pos[n];
+        bc[v] = nb.length ? sum / nb.length : pos[v];
       }
-      layers[li].sort((a, b) => bc.get(a) - bc.get(b) || pos.get(a) - pos.get(b));
-      layers[li].forEach((v, i) => pos.set(v, i));
+      layers[li].sort((a, b) => bc[a] - bc[b] || pos[a] - pos[b]);
+      layers[li].forEach((v, i) => { pos[v] = i; });
     }
     const c = crossings();
     if (c < bestC) { bestC = c; best = layers.map((L) => [...L]); }
@@ -205,12 +230,12 @@ export function layeredLayout(nodes, edges, { direction = "right", measure = app
   }
   const gapBetween = (a, b) => (isDummy[a] && isDummy[b] ? 10 : isDummy[a] || isDummy[b] ? nodeGap / 2 : nodeGap);
   const seps = (L) => L.slice(1).map((v, i) => (size(L[i], false) + size(v, false)) / 2 + gapBetween(L[i], v));
-  const cross = new Map();
+  const cross = new Float64Array(up.length);
   for (const L of layers) {
     const s = seps(L);
     const total = s.reduce((a, b) => a + b, 0);
     let c = -total / 2;
-    L.forEach((v, i) => { if (i) c += s[i - 1]; cross.set(v, c); });
+    L.forEach((v, i) => { if (i) c += s[i - 1]; cross[v] = c; });
   }
   // Edge placeholders follow real nodes, not the other way around.
   const desiredOf = (v, nb) => {
@@ -218,10 +243,10 @@ export function layeredLayout(nodes, edges, { direction = "right", measure = app
     let weight = 0;
     for (const n of nb) {
       const k = isDummy[n] ? 0.1 : 1;
-      sum += cross.get(n) * k;
+      sum += cross[n] * k;
       weight += k;
     }
-    return weight ? sum / weight : cross.get(v);
+    return weight ? sum / weight : cross[v];
   };
   for (let iter = 0; iter < 10; iter++) {
     const mode = iter === 9 ? "both" : iter % 2 === 0 ? "down" : "up";
@@ -231,7 +256,7 @@ export function layeredLayout(nodes, edges, { direction = "right", measure = app
       const L = layers[li];
       if (!L.length) continue;
       const desired = L.map((v) => desiredOf(v, mode === "down" ? up[v] : mode === "up" ? down[v] : [...up[v], ...down[v]]));
-      placeRow(desired, seps(L), L.map((v) => (isDummy[v] ? 0.05 : 1))).forEach((c, i) => cross.set(L[i], c));
+      placeRow(desired, seps(L), L.map((v) => (isDummy[v] ? 0.05 : 1))).forEach((c, i) => { cross[L[i]] = c; });
     }
   }
   // Straighten one-to-one links at the ends of a flow: a node with a single link, whose neighbor
@@ -242,10 +267,10 @@ export function layeredLayout(nodes, edges, { direction = "right", measure = app
       if (isDummy[v] || up[v].length + down[v].length !== 1) return;
       const n = up[v].length ? up[v][0] : down[v][0];
       if ((up[v].length ? down[n] : up[n]).length !== 1) return;
-      let c = cross.get(n);
-      if (i > 0) c = Math.max(c, cross.get(L[i - 1]) + s[i - 1]);
-      if (i < L.length - 1) c = Math.min(c, cross.get(L[i + 1]) - s[i]);
-      cross.set(v, c);
+      let c = cross[n];
+      if (i > 0) c = Math.max(c, cross[L[i - 1]] + s[i - 1]);
+      if (i < L.length - 1) c = Math.min(c, cross[L[i + 1]] - s[i]);
+      cross[v] = c;
     });
   }
 
@@ -254,8 +279,8 @@ export function layeredLayout(nodes, edges, { direction = "right", measure = app
     const n = nodes[i];
     const li = layer[i];
     const m = flipMain ? -mainCenter[li] : mainCenter[li];
-    const cx = snap(horizontal ? m : cross.get(v));
-    const cy = snap(horizontal ? cross.get(v) : m);
+    const cx = snap(horizontal ? m : cross[v]);
+    const cy = snap(horizontal ? cross[v] : m);
     result.set(n.id, { x: cx - n.w / 2, y: cy - n.h / 2 });
   }
 

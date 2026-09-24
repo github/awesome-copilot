@@ -39,19 +39,28 @@ const menuItem = (act, iconName, label, cls = "") =>
 export function attachMenus(ui) {
   const ed = ui.ed;
 
-  async function drawingsAction(body) {
+  // Runs a drawings menu command. Commands that show another drawing first make sure the edits
+  // on screen are saved, since switching would lose them, unless the user chose to discard them.
+  async function drawingsAction(body, { discard = false } = {}) {
     try {
-      await ui.sync.flush(true);
+      const switches = body.action === "new" || body.action === "open" || body.action === "duplicate";
+      // Discarded edits are not worth sending.
+      if (!discard && !(await ui.sync.flush(true)) && switches) {
+        ui.warnUnsaved(() => drawingsAction(body, { discard: true }));
+        return null;
+      }
       const res = await ui.sync.post("drawings", body);
       ui.setDrawings(res.drawings);
-      if (res.drawing.id !== ui.sync.drawingId) await ui.sync.switchTo(res.drawing);
-      else ui.setDoc(res.drawing);
+      if (res.drawing.id !== ui.sync.drawingId) {
+        if (!(await ui.sync.switchTo(res.drawing, { discard }))) return null;
+      } else ui.setDoc(res.drawing);
       return res;
     } catch (err) {
       ui.toast(err.message, { error: true });
       return null;
     }
   }
+  ui.drawingsAction = drawingsAction;
 
   async function reveal(path) {
     try {
@@ -224,7 +233,9 @@ export function attachMenus(ui) {
         send.disabled = true;
         send.textContent = "Sending";
         try {
-          await ui.sync.flush(true);
+          if (!(await ui.sync.flush(true))) {
+            throw new Error("Your latest changes are not saved yet, so Copilot would not see them. Send again once the drawing is saved.");
+          }
           const png = ed.elements.length ? await blobToBase64(await ed.exportPNG(2, 2000)) : "";
           await ui.sync.post("ask", { drawingId: ui.doc.id, text, png });
           ui.askDraft = "";

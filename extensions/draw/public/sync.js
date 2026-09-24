@@ -43,6 +43,8 @@ export class Sync {
     // to disk (it still has the changes in memory). Both show as errors until they clear.
     this.refusal = null;
     this.diskError = null;
+    // Set when the server says this drawing was deleted, so there is nothing left to save it to.
+    this.gone = false;
     this.source = null;
     this.connectedOnce = false;
     editor.on("change", () => this.schedule());
@@ -81,6 +83,7 @@ export class Sync {
     this.rev = doc.rev;
     this.synced = new Map(doc.elements.map((e) => [e.id, e]));
     this.deferred = null;
+    this.gone = false;
   }
 
   connect() {
@@ -99,6 +102,9 @@ export class Sync {
       const again = this.connectedOnce;
       this.connectedOnce = true;
       this.handlers.connection?.(true);
+      // "Reconnecting" covered the status line, so bring back an error that still applies.
+      if (this.refusal) this.handlers.status?.("error", this.refusal);
+      else if (this.diskError) this.settled();
       if (again) this.resync();
     });
     source.addEventListener("error", () => this.handlers.connection?.(false));
@@ -156,8 +162,19 @@ export class Sync {
     if (pending) this.schedule();
   }
 
-  async switchTo(drawing) {
-    await this.flush(true);
+  // Shows another drawing. Edits on screen that are not saved yet would be lost, so when they
+  // cannot be saved first, the panel stays on this drawing, tells the server so, and resolves
+  // false, and the unsaved handler lets the user discard them. `discard` skips that check.
+  // A deleted drawing has nowhere left to save to, so it never holds the panel.
+  async switchTo(drawing, { discard = false } = {}) {
+    if (!discard && !(await this.flush(true)) && !this.gone) {
+      // The server has already moved this panel to the other drawing, so move it back.
+      this.post("drawings", { action: "open", id: this.drawingId })
+        .then(() => this.sendSelection([...this.editor.selection]))
+        .catch(() => {});
+      this.handlers.unsaved?.(drawing);
+      return false;
+    }
     this.setDoc(drawing);
     this.handlers.switched?.(drawing);
     // Messages about the last drawing do not apply to this one.
@@ -165,6 +182,7 @@ export class Sync {
     this.diskError = null;
     this.setDiskError(drawing.saveError);
     if (!this.diskError) this.settled();
+    return true;
   }
 
   // The extension has all our changes, so show "saved", unless it cannot write them to disk.
@@ -202,18 +220,23 @@ export class Sync {
     return !!this.drawingId && !!diffOps(this.synced, this.editor.elements);
   }
 
+  // Sends the edits the extension does not have yet. Resolves true once it has everything the
+  // editor shows, false while something is still unsaved. `force` waits for a request that is
+  // already out and sends even in the middle of a gesture, for callers that need the saved copy
+  // to match the screen.
   async flush(force = false) {
     if (this.inflight) {
-      if (force) while (this.inflight) await sleep(30);
-      else return;
+      if (!force) return false;
+      while (this.inflight) await sleep(30);
     }
-    if (!this.drawingId || (!force && this.editor.busy)) return;
+    if (!this.drawingId) return true;
+    if (!force && this.editor.busy) return false;
     const sent = this.editor.elements;
     const ops = diffOps(this.synced, sent);
     if (!ops) {
       this.refusal = null;
       this.settled();
-      return;
+      return true;
     }
     this.inflight = true;
     this.handlers.status?.("saving");
@@ -233,6 +256,7 @@ export class Sync {
     } catch (err) {
       if (err.status === 404) {
         refused = true;
+        this.gone = drawingId === this.drawingId;
         this.handlers.status?.("error", "This drawing was deleted.");
       } else if (err.status === 400 || err.status === 413) {
         // Sending the same changes again would fail the same way, so the next edit tries again
@@ -253,17 +277,23 @@ export class Sync {
     if (retry) {
       clearTimeout(this.retryTimer);
       this.retryTimer = setTimeout(() => this.schedule(0), Math.min(8000, 400 * 2 ** this.failures));
-      return;
+      return false;
     }
-    if (drawingId !== this.drawingId) return;
+    if (drawingId !== this.drawingId) return !this.dirty;
     if (this.deferred && !this.editor.busy) {
       const d = this.deferred;
       this.deferred = null;
       if (d.rev > this.rev) this.rebase(d);
     }
-    if (refused) return;
-    if (diffOps(this.synced, this.editor.elements)) this.schedule();
-    else this.settled();
+    if (refused) return false;
+    if (diffOps(this.synced, this.editor.elements)) {
+      // Edits made while the request was out. A forced flush sends them now too.
+      if (force) return this.flush(true);
+      this.schedule();
+      return false;
+    }
+    this.settled();
+    return true;
   }
 
   // Best effort save when the iframe goes away.
