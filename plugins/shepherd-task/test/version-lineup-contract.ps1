@@ -43,6 +43,68 @@ try {
     if ($version -ne [string]$pluginManifest.version) {
         throw 'Version reader did not return the authoritative plugin version.'
     }
+
+    $malformedPluginRoot = Join-Path $tempRoot 'malformed-plugin'
+    $malformedScripts = Join-Path $malformedPluginRoot 'scripts'
+    New-Item -ItemType Directory -Path $malformedScripts | Out-Null
+    Copy-Item -LiteralPath (Join-Path $pluginRoot 'plugin.json') `
+        -Destination $malformedPluginRoot
+    Copy-Item -LiteralPath $versionReader -Destination $malformedScripts
+    $malformedContractPath = Join-Path (
+        $malformedPluginRoot
+    ) 'shepherd-task-version-contract.json'
+    $malformedVersionReader = Join-Path (
+        $malformedScripts
+    ) 'read-shepherd-task-version.ps1'
+    $validContract = Get-Content -LiteralPath (
+        Join-Path $pluginRoot 'shepherd-task-version-contract.json'
+    ) -Raw | ConvertFrom-Json
+    foreach ($malformedCase in @(
+        @{
+            Name = 'fractional contract schema'
+            Mutate = { param($contract) $contract.schemaVersion = 1.4 }
+        },
+        @{
+            Name = 'fractional protocol version'
+            Mutate = {
+                param($contract)
+                $contract.stageOutcomeProtocolVersion = 1.5
+            }
+        },
+        @{
+            Name = 'string artifact schema'
+            Mutate = {
+                param($contract)
+                $contract.artifactSchemaVersions.campaign = '1'
+            }
+        },
+        @{
+            Name = 'zero artifact schema'
+            Mutate = {
+                param($contract)
+                $contract.artifactSchemaVersions.givenListRun = 0
+            }
+        }
+    )) {
+        $contract = $validContract | ConvertTo-Json -Depth 8 | ConvertFrom-Json
+        & $malformedCase.Mutate $contract
+        [IO.File]::WriteAllText(
+            $malformedContractPath,
+            ($contract | ConvertTo-Json -Depth 8) + [Environment]::NewLine,
+            [Text.UTF8Encoding]::new($false)
+        )
+        $rejected = $false
+        try {
+            & $malformedVersionReader | Out-Null
+        }
+        catch {
+            $rejected = $true
+        }
+        if (-not $rejected) {
+            throw "Version reader accepted $($malformedCase.Name)."
+        }
+    }
+
     $marker = "# shepherd-task-version: $version"
     $estateFiles = [Collections.Generic.List[IO.FileInfo]]::new()
     foreach ($pluginReference in $pluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {

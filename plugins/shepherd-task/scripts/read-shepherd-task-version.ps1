@@ -21,23 +21,59 @@ $pluginManifest = Get-Content -LiteralPath $pluginManifestPath -Raw | ConvertFro
 $versionContract = Get-Content -LiteralPath $versionContractPath -Raw | ConvertFrom-Json
 $version = [string]$pluginManifest.version
 
+function Test-PositiveIntegralJsonNumber {
+    param([object]$Value)
+
+    if ($null -eq $Value -or
+        [Type]::GetTypeCode($Value.GetType()) -notin @(
+            [TypeCode]::SByte,
+            [TypeCode]::Byte,
+            [TypeCode]::Int16,
+            [TypeCode]::UInt16,
+            [TypeCode]::Int32,
+            [TypeCode]::UInt32,
+            [TypeCode]::Int64,
+            [TypeCode]::UInt64,
+            [TypeCode]::Single,
+            [TypeCode]::Double,
+            [TypeCode]::Decimal
+        )) {
+        return $false
+    }
+
+    try {
+        $numericValue = [decimal]$Value
+    }
+    catch {
+        return $false
+    }
+    return $numericValue -ge 1 -and
+        [decimal]::Truncate($numericValue) -eq $numericValue
+}
+
 if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$') {
     throw 'Shepherd-task plugin version is missing or is not Semantic Versioning.'
 }
-if ([int]$versionContract.schemaVersion -ne 1) {
+if (-not (Test-PositiveIntegralJsonNumber $versionContract.schemaVersion) -or
+    [int]$versionContract.schemaVersion -ne 1) {
     throw "Unsupported shepherd-task version-contract schemaVersion '$($versionContract.schemaVersion)'."
 }
 
-$requiredContractVersions = @(
-    [int]$versionContract.stageOutcomeProtocolVersion
-    [int]$versionContract.artifactSchemaVersions.campaign
-    [int]$versionContract.artifactSchemaVersions.givenListRun
-    [int]$versionContract.artifactSchemaVersions.installationManifest
-    [int]$versionContract.artifactSchemaVersions.installedComponent
+$requiredContractValues = @(
+    $versionContract.stageOutcomeProtocolVersion
+    $versionContract.artifactSchemaVersions.campaign
+    $versionContract.artifactSchemaVersions.givenListRun
+    $versionContract.artifactSchemaVersions.installationManifest
+    $versionContract.artifactSchemaVersions.installedComponent
 )
-if ($requiredContractVersions | Where-Object { $_ -lt 1 }) {
+if (@($requiredContractValues | Where-Object {
+    -not (Test-PositiveIntegralJsonNumber $_)
+}).Count -ne 0) {
     throw 'Shepherd-task version contract contains an invalid protocol or artifact schema version.'
 }
+$requiredContractVersions = @(
+    $requiredContractValues | ForEach-Object { [int]$_ }
+)
 
 $expectedSkills = @(
     $pluginManifest.extensions.'com.github.awesome-copilot'.skills |
