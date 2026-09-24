@@ -1092,6 +1092,32 @@
       "version": "1.0.0"
     },
     {
+      "name": "incident-io",
+      "description": "Official incident.io plugins for AI agents: skills for working with [incident.io](https://incident.io/) — incidents, on-call, and investigations — and for authoring the operational content our platform draws on.",
+      "version": "0.18.0",
+      "author": {
+        "name": "incident.io",
+        "url": "https://incident.io"
+      },
+      "repository": "https://github.com/incident-io/skills",
+      "homepage": "https://incident.io",
+      "license": "MIT",
+      "keywords": [
+        "incident-response",
+        "on-call",
+        "investigations",
+        "runbooks",
+        "sre",
+        "devops"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "incident-io/skills",
+        "path": "plugins/incident-io",
+        "sha": "6d0bbfc9e52256fc39326b9ba6d08f16831b60ae"
+      }
+    },
+    {
       "name": "java-development",
       "source": "plugins/java-development",
       "description": "Comprehensive collection of prompts and instructions for Java development including Spring Boot, Quarkus, testing, documentation, and best practices.",
