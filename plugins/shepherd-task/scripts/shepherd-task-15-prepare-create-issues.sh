@@ -211,7 +211,8 @@ EOF
     printf '"%s" "$log_dir_full" >/dev/null\n' "$SCRIPT_DIR/redact-secrets.sh"
     printf 'unset COPILOT_OTEL_FILE_EXPORTER_PATH\n'
     printf 'if [[ $copilot_exit -ne 0 || $redact_exit -ne 0 ]]; then echo "[shepherd-task] FAILED: copilot or redaction exited with code $copilot_exit/$redact_exit" >&2; exit 1; fi\n'
-    printf '"%s" "$log_dir_full/stage-20-result.json"\n' "$SCRIPT_DIR/assert-stage20-result.sh"
+    printf '"%s" "$log_dir_full/stage-20-result.json" %d\n' \
+        "$SCRIPT_DIR/assert-stage20-result.sh" "$TASK_HEADING_COUNT"
     printf 'echo "[shepherd-task] Create-issues session complete."\n'
 } >"$invocation_file"
 chmod +x "$invocation_file"

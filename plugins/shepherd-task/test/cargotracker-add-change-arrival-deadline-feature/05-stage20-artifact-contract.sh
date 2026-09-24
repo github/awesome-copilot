@@ -102,16 +102,30 @@ ledger_path="$temp_directory/creation-ledger.json"
 result_path="$temp_directory/stage-20-result.json"
 cat >"$ledger_path" <<'EOF'
 [
-  {"number":41,"body_verified":true,"linked":true},
-  {"number":42,"body_verified":true,"linked":true}
+  {"implementationSubsection":"1. First task","bodyFile":"issue-bodies/01-task-body.md","id":1001,"number":41,"title":"First task","url":"https://github.example/issues/41","body_verified":true,"linked":true},
+  {"implementationSubsection":"2. Second task","bodyFile":"issue-bodies/02-task-body.md","id":1002,"number":42,"title":"Second task","url":"https://github.example/issues/42","body_verified":true,"linked":true}
 ]
 EOF
 printf '{"schemaVersion":1,"status":"complete","ledgerFile":"creation-ledger.json","operationError":null}\n' >"$result_path"
-"$result_assertion" "$result_path" >/dev/null
+"$result_assertion" "$result_path" 2 >/dev/null
+cp "$ledger_path" "$ledger_path.valid"
+jq '.[0:1]' "$ledger_path.valid" >"$ledger_path"
+expect_failure "exactly 2 complete entries" "$result_assertion" "$result_path" 2
+for field in implementationSubsection bodyFile id number title url body_verified linked; do
+    jq --arg field "$field" '.[0] |= del(.[$field])' "$ledger_path.valid" >"$ledger_path"
+    expect_failure "exactly 2 complete entries" "$result_assertion" "$result_path" 2
+done
+jq '.[0].unexpected = true' "$ledger_path.valid" >"$ledger_path"
+expect_failure "exactly 2 complete entries" "$result_assertion" "$result_path" 2
+for mutation in '.[0].id = "1001"' '.[0].title = 1' '.[0].body_verified = 1'; do
+    jq "$mutation" "$ledger_path.valid" >"$ledger_path"
+    expect_failure "exactly 2 complete entries" "$result_assertion" "$result_path" 2
+done
+mv "$ledger_path.valid" "$ledger_path"
 printf '{"schemaVersion":1,"status":"failed","ledgerFile":"creation-ledger.json","operationError":"Body verification failed."}\n' >"$result_path"
-expect_failure "did not report completion" "$result_assertion" "$result_path"
+expect_failure "did not report completion" "$result_assertion" "$result_path" 2
 rm "$result_path"
-expect_failure "did not write its required result document" "$result_assertion" "$result_path"
+expect_failure "did not write its required result document" "$result_assertion" "$result_path" 2
 
 printf '{"schemaVersion":1,"status":"complete","ledgerFile":"creation-ledger.json","operationError":null}\n' >"$result_path"
 telemetry_path="$temp_directory/telemetry.json"

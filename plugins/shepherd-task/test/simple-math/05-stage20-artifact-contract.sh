@@ -95,19 +95,43 @@ ledger="$temp_directory/creation-ledger.json"
 result="$temp_directory/stage-20-result.json"
 cat >"$ledger" <<'EOF'
 [
-  {"number":41,"body_verified":true,"linked":true},
-  {"number":42,"body_verified":true,"linked":true}
+  {"implementationSubsection":"1. First task","bodyFile":"issue-bodies/01-task-body.md","id":1001,"number":41,"title":"First task","url":"https://github.example/issues/41","body_verified":true,"linked":true},
+  {"implementationSubsection":"2. Second task","bodyFile":"issue-bodies/02-task-body.md","id":1002,"number":42,"title":"Second task","url":"https://github.example/issues/42","body_verified":true,"linked":true}
 ]
 EOF
 printf '%s\n' '{"schemaVersion":1,"status":"complete","ledgerFile":"creation-ledger.json","operationError":null}' >"$result"
-"$result_assertion" "$result" >/dev/null
+"$result_assertion" "$result" 2 >/dev/null
+cp "$ledger" "$ledger.valid"
+jq '.[0:1]' "$ledger.valid" >"$ledger"
+if output="$("$result_assertion" "$result" 2 2>&1)"; then
+    fail "Result assertion accepted a partial ledger: $output"
+fi
+[[ "$output" == *"exactly 2 complete entries"* ]] ||
+    fail "Partial-ledger failure was unexpected: $output"
+for field in implementationSubsection bodyFile id number title url body_verified linked; do
+    jq --arg field "$field" '.[0] |= del(.[$field])' "$ledger.valid" >"$ledger"
+    if output="$("$result_assertion" "$result" 2 2>&1)"; then
+        fail "Result assertion accepted a ledger missing '$field': $output"
+    fi
+done
+jq '.[0].unexpected = true' "$ledger.valid" >"$ledger"
+if output="$("$result_assertion" "$result" 2 2>&1)"; then
+    fail "Result assertion accepted an unexpected ledger field: $output"
+fi
+for mutation in '.[0].id = "1001"' '.[0].title = 1' '.[0].body_verified = 1'; do
+    jq "$mutation" "$ledger.valid" >"$ledger"
+    if output="$("$result_assertion" "$result" 2 2>&1)"; then
+        fail "Result assertion accepted an invalid ledger field type: $output"
+    fi
+done
+mv "$ledger.valid" "$ledger"
 printf '%s\n' '{"schemaVersion":1,"status":"failed","ledgerFile":"creation-ledger.json","operationError":"Body verification failed."}' >"$result"
-if output="$("$result_assertion" "$result" 2>&1)"; then
+if output="$("$result_assertion" "$result" 2 2>&1)"; then
     fail "Result assertion accepted failed status: $output"
 fi
 [[ "$output" == *"status: failed"* ]] || fail "Result assertion failure omitted status: $output"
 rm "$result"
-if output="$("$result_assertion" "$result" 2>&1)"; then
+if output="$("$result_assertion" "$result" 2 2>&1)"; then
     fail "Result assertion accepted a missing result document: $output"
 fi
 [[ "$output" == *"did not write its required result document"* ]] ||

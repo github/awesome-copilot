@@ -223,7 +223,55 @@ Do not expand scope.
         ledgerFile = 'creation-ledger.json'
         operationError = $null
     } | ConvertTo-Json | Set-Content -LiteralPath $resultPath -Encoding utf8NoBOM
-    & $resultAssertion -ResultPath $resultPath | Out-Null
+    & $resultAssertion -ResultPath $resultPath -ExpectedTaskCount 2 | Out-Null
+
+    Write-ContractLedger -Path $ledgerPath -Ledger @($validLedger[0])
+    Assert-Fails -ExpectedMessage 'has 1 entries; expected 2' -Operation {
+        & $resultAssertion -ResultPath $resultPath -ExpectedTaskCount 2
+    }
+    foreach ($missingField in @(
+        'implementationSubsection',
+        'bodyFile',
+        'id',
+        'number',
+        'title',
+        'url',
+        'body_verified',
+        'linked'
+    )) {
+        $invalidLedger = @(
+            $validLedger | ConvertTo-Json -Depth 10 | ConvertFrom-Json
+        )
+        $invalidLedger[0].PSObject.Properties.Remove($missingField)
+        Write-ContractLedger -Path $ledgerPath -Ledger $invalidLedger
+        Assert-Fails -ExpectedMessage 'incomplete ledger entry' -Operation {
+            & $resultAssertion -ResultPath $resultPath -ExpectedTaskCount 2
+        }
+    }
+    $invalidLedger = @(
+        $validLedger | ConvertTo-Json -Depth 10 | ConvertFrom-Json
+    )
+    $invalidLedger[0] | Add-Member -NotePropertyName unexpected -NotePropertyValue $true
+    Write-ContractLedger -Path $ledgerPath -Ledger $invalidLedger
+    Assert-Fails -ExpectedMessage 'incomplete ledger entry' -Operation {
+        & $resultAssertion -ResultPath $resultPath -ExpectedTaskCount 2
+    }
+    foreach ($invalidField in @(
+        @{ Name = 'id'; Value = '1001' },
+        @{ Name = 'title'; Value = 1 },
+        @{ Name = 'body_verified'; Value = 1 }
+    )) {
+        $invalidLedger = @(
+            $validLedger | ConvertTo-Json -Depth 10 | ConvertFrom-Json
+        )
+        $invalidLedger[0].PSObject.Properties[$invalidField.Name].Value =
+            $invalidField.Value
+        Write-ContractLedger -Path $ledgerPath -Ledger $invalidLedger
+        Assert-Fails -ExpectedMessage 'incomplete ledger entry' -Operation {
+            & $resultAssertion -ResultPath $resultPath -ExpectedTaskCount 2
+        }
+    }
+    Write-ContractLedger -Path $ledgerPath -Ledger $validLedger
 
     foreach ($invalidNumber in @('41', 41.5)) {
         $invalidLedger = @(
@@ -232,6 +280,7 @@ Do not expand scope.
                 bodyFile = 'issue-bodies/01-task-body.md'
                 id = 1001
                 number = $invalidNumber
+                title = 'First task'
                 url = 'https://github.com/owner/repo/issues/41'
                 body_verified = $true
                 linked = $true
@@ -239,14 +288,14 @@ Do not expand scope.
         )
         Write-ContractLedger -Path $ledgerPath -Ledger $invalidLedger
         Assert-Fails -ExpectedMessage 'incomplete ledger entry' -Operation {
-            & $resultAssertion -ResultPath $resultPath
+            & $resultAssertion -ResultPath $resultPath -ExpectedTaskCount 1
         }
     }
     Write-ContractLedger -Path $ledgerPath -Ledger $validLedger
 
     $validLedger[0] | ConvertTo-Json | Set-Content -LiteralPath $ledgerPath -Encoding utf8NoBOM
     Assert-Fails -ExpectedMessage 'creation ledger root must be an array' -Operation {
-        & $resultAssertion -ResultPath $resultPath
+        & $resultAssertion -ResultPath $resultPath -ExpectedTaskCount 2
     }
     $validLedger | ConvertTo-Json | Set-Content -LiteralPath $ledgerPath -Encoding utf8NoBOM
 
@@ -257,12 +306,12 @@ Do not expand scope.
         operationError = 'Body verification failed.'
     } | ConvertTo-Json | Set-Content -LiteralPath $resultPath -Encoding utf8NoBOM
     Assert-Fails -ExpectedMessage "reported status 'failed'" -Operation {
-        & $resultAssertion -ResultPath $resultPath
+        & $resultAssertion -ResultPath $resultPath -ExpectedTaskCount 2
     }
 
     Remove-Item -LiteralPath $resultPath
     Assert-Fails -ExpectedMessage 'did not write its required result document' -Operation {
-        & $resultAssertion -ResultPath $resultPath
+        & $resultAssertion -ResultPath $resultPath -ExpectedTaskCount 2
     }
 
     [ordered]@{

@@ -278,7 +278,9 @@ if ($copilotExit -ne 0) {
 }
 $resultPath = Join-Path $logDirFull 'stage-20-result.json'
 try {
-    & '__RESULT_ASSERTION_PATH__' -ResultPath $resultPath | Out-Null
+    & '__RESULT_ASSERTION_PATH__' `
+        -ResultPath $resultPath `
+        -ExpectedTaskCount __EXPECTED_TASK_COUNT__ | Out-Null
 }
 catch {
     [Console]::Error.WriteLine("[shepherd-task] FAILED: $($_.Exception.Message)")
@@ -286,7 +288,7 @@ catch {
 }
 Write-Output '[shepherd-task] Create-issues session complete.'
 exit 0
-'@.Replace('__TIMESTAMP__', $timestamp).Replace('__LOG_DIRECTORY__', $escapedLogDir).Replace('__PROMPT_PATH__', $escapedOutFile).Replace('__REDACTOR_PATH__', $redactorPath).Replace('__RESULT_ASSERTION_PATH__', $resultAssertionPath)
+'@.Replace('__TIMESTAMP__', $timestamp).Replace('__LOG_DIRECTORY__', $escapedLogDir).Replace('__PROMPT_PATH__', $escapedOutFile).Replace('__REDACTOR_PATH__', $redactorPath).Replace('__RESULT_ASSERTION_PATH__', $resultAssertionPath).Replace('__EXPECTED_TASK_COUNT__', [string]$taskHeadingCount)
 
 Set-Content -LiteralPath $invocationFile -Value $command -Encoding utf8NoBOM
 

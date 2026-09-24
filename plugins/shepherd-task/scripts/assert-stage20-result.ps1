@@ -7,7 +7,11 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [string]$ResultPath
+    [string]$ResultPath,
+
+    [Parameter(Mandatory)]
+    [ValidateRange(1, [int]::MaxValue)]
+    [int]$ExpectedTaskCount
 )
 
 Set-StrictMode -Version Latest
@@ -41,6 +45,13 @@ function Test-PositiveIntegralJsonNumber {
     }
     return $numericValue -ge 1 -and
         [decimal]::Truncate($numericValue) -eq $numericValue
+}
+
+function Test-NonEmptyJsonString {
+    param([object]$Value)
+
+    return $Value -is [string] -and
+        -not [string]::IsNullOrWhiteSpace($Value)
 }
 
 if (-not (Test-Path -LiteralPath $ResultPath -PathType Leaf)) {
@@ -82,14 +93,40 @@ if ($parsedLedger -isnot [System.Array]) {
 }
 $ledger = [object[]]$parsedLedger
 
-if ($ledger.Count -eq 0) {
-    throw "Completed stage 20 has an empty creation ledger: $ledgerPath"
+if ($ledger.Count -ne $ExpectedTaskCount) {
+    throw "Completed stage 20 ledger has $($ledger.Count) entries; expected $ExpectedTaskCount."
 }
 
+$expectedFields = @(
+    'body_verified',
+    'bodyFile',
+    'id',
+    'implementationSubsection',
+    'linked',
+    'number',
+    'title',
+    'url'
+) | Sort-Object
 $issueNumbers = @()
 foreach ($entry in $ledger) {
-    if (-not (Test-PositiveIntegralJsonNumber $entry.number) -or
+    $actualFields = if ($null -eq $entry) {
+        @()
+    }
+    else {
+        @($entry.PSObject.Properties.Name | Sort-Object)
+    }
+    if ($entry -isnot [pscustomobject] -or
+        [string]::Join("`n", $actualFields) -cne
+        [string]::Join("`n", $expectedFields) -or
+        -not (Test-NonEmptyJsonString $entry.implementationSubsection) -or
+        -not (Test-NonEmptyJsonString $entry.bodyFile) -or
+        -not (Test-PositiveIntegralJsonNumber $entry.id) -or
+        -not (Test-PositiveIntegralJsonNumber $entry.number) -or
+        -not (Test-NonEmptyJsonString $entry.title) -or
+        -not (Test-NonEmptyJsonString $entry.url) -or
+        $entry.body_verified -isnot [bool] -or
         $entry.body_verified -ne $true -or
+        $entry.linked -isnot [bool] -or
         $entry.linked -ne $true) {
         throw "Completed stage 20 has an incomplete ledger entry: $($entry | ConvertTo-Json -Compress)"
     }

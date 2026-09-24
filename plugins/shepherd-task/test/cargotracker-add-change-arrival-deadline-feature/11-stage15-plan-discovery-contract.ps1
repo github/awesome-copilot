@@ -121,6 +121,9 @@ try {
             throw "Stage 15 invocation is missing '$requiredPath'."
         }
     }
+    if (-not $invocation.Contains('-ExpectedTaskCount 5')) {
+        throw 'Stage 15 invocation does not assert the expected task count.'
+    }
 }
 finally {
     Set-Location -LiteralPath $initialLocation

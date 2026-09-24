@@ -158,7 +158,7 @@ fi
 
 result_path="$artifact_directory/stage-20-result.json"
 ledger_path="$artifact_directory/creation-ledger.json"
-"$scripts_directory/assert-stage20-result.sh" "$result_path"
+"$scripts_directory/assert-stage20-result.sh" "$result_path" 5
 jq -e 'type == "array" and length == 5' "$ledger_path" >/dev/null ||
     fail "Creation ledger must contain exactly five entries."
 

@@ -82,5 +82,7 @@ grep -Fq -- "$scripts_directory/redact-secrets.sh" "$invocation_file" ||
     fail "Installed Stage 15 invocation does not use the installed redactor."
 grep -Fq -- "$scripts_directory/assert-stage20-result.sh" "$invocation_file" ||
     fail "Installed Stage 15 invocation does not use the installed result assertion."
+grep -Fq -- 'stage-20-result.json" 2' "$invocation_file" ||
+    fail "Installed Stage 15 invocation does not assert the expected task count."
 
 echo 'Simple-math Bash installed Stage 15 path contract tests passed.'

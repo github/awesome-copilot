@@ -80,5 +80,6 @@ grep -Fq -- "- DRAFT_VALIDATOR: $SCRIPTS_DIRECTORY/validate-stage20-drafts.sh" "
 grep -Fq -- "- ISSUE_BODY_VERIFIER: $SCRIPTS_DIRECTORY/verify-github-issue-body.sh" "$prompt_file"
 grep -Fq -- "$SCRIPTS_DIRECTORY/redact-secrets.sh" "$invocation_file"
 grep -Fq -- "$SCRIPTS_DIRECTORY/assert-stage20-result.sh" "$invocation_file"
+grep -Fq -- 'stage-20-result.json" 5' "$invocation_file"
 
 echo 'Cargo Tracker Bash stage-15 plan and installed-path contract tests passed.'

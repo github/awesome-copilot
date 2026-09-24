@@ -3,12 +3,13 @@
 
 set -euo pipefail
 
-[[ $# -eq 1 ]] || {
-    echo "Usage: $0 <stage-20-result.json>" >&2
+[[ $# -eq 2 && "$2" =~ ^[1-9][0-9]*$ ]] || {
+    echo "Usage: $0 <stage-20-result.json> <expected-task-count>" >&2
     exit 1
 }
 
 result_path="$1"
+expected_task_count="$2"
 [[ -f "$result_path" ]] || {
     echo "Stage 20 did not write its required result document: $result_path" >&2
     exit 1
@@ -26,16 +27,32 @@ jq -e '
 }
 
 ledger_path="$(dirname "$result_path")/creation-ledger.json"
-jq -e '
+jq -e --argjson expectedTaskCount "$expected_task_count" '
     type == "array" and
-    length > 0 and
+    length == $expectedTaskCount and
     all(.[];
+        type == "object" and
+        (keys | sort) == ([
+            "implementationSubsection",
+            "bodyFile",
+            "id",
+            "number",
+            "title",
+            "url",
+            "body_verified",
+            "linked"
+        ] | sort) and
+        (.implementationSubsection | type == "string" and length > 0) and
+        (.bodyFile | type == "string" and length > 0) and
+        (.id | type == "number" and . > 0 and floor == .) and
         (.number | type == "number" and . > 0 and floor == .) and
+        (.title | type == "string" and length > 0) and
+        (.url | type == "string" and length > 0) and
         .body_verified == true and
         .linked == true
     ) and
     ((map(.number) | unique | length) == length)
 ' "$ledger_path" >/dev/null || {
-    echo "Completed stage 20 has a missing, invalid, or incomplete creation ledger: $ledger_path" >&2
+    echo "Completed stage 20 ledger does not contain exactly $expected_task_count complete entries: $ledger_path" >&2
     exit 1
 }
