@@ -22,7 +22,7 @@ const HELP = [
   [["Enter"], "With the arrow tool: start an arrow at the selected shape, then again to end it at the next one you select"],
   ["Click +", "Add the next connected shape"],
   ["Drag +", "Connect to a shape, or drop to add one"],
-  [["Tab"], "While typing a label: add the next step (Shift+Tab adds a sibling)"],
+  [["Tab"], "While typing a shape's label: add the next step (Shift+Tab adds a sibling)"],
   ["Double-click", "Empty space adds text"],
   [["Ctrl+Arrow"], "Add a shape in that direction"],
   [["Arrows"], "Nudge (Alt: 1px, Shift: 50px)"],

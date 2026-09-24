@@ -74,14 +74,15 @@ export class LabelEditor {
       return;
     }
     if (e.key === "Tab") {
-      e.preventDefault();
       const id = ed.editing.id;
-      this.commit();
       const el = ed.byId.get(id);
-      if (el && isShape(el)) {
-        if (e.shiftKey) ed.addSibling(id);
-        else ed.addConnected(id, ed.lastDirection || "right");
-      }
+      // Only a shape has a next step to add. Anywhere else Tab moves focus on as usual, and the
+      // blur saves the edit.
+      if (!el || !isShape(el)) return;
+      e.preventDefault();
+      this.commit();
+      if (e.shiftKey) ed.addSibling(id);
+      else ed.addConnected(id, ed.lastDirection || "right");
     }
   }
 

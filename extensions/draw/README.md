@@ -7,7 +7,7 @@ Draw simple diagrams in a GitHub Copilot app canvas: boxes, ellipses, diamonds a
 ## What it does
 
 - Draws rectangles, ellipses, diamonds, databases, arrows, text and freehand pen strokes. Arrows stay attached when you move shapes.
-- Connects shapes quickly: hover a shape and drag a **+** handle to another shape, or click **+** to add the next step. From the keyboard, `Ctrl+Arrow` adds the next step, and so does `Tab` while you type a label.
+- Connects shapes quickly: hover a shape and drag a **+** handle to another shape, or click **+** to add the next step. From the keyboard, `Ctrl+Arrow` adds the next step, and so does `Tab` while you type a shape's label.
 - Works without a mouse: add, select, connect, move and resize shapes from the keyboard. Screen readers announce the current tool, the selected element, and each arrow, resize or delete.
 - Styles shapes and arrows with 8 colors, 3 fills, dashed lines, 4 text sizes, arrow heads, and straight, elbow or curved routes.
 - Snaps to a grid, and supports zoom, pan, undo, redo, copy, paste and duplicate.
@@ -58,7 +58,7 @@ Press `?` in the canvas to see all of them. `Tab` moves focus between the canvas
 | `Enter` or double-click | Edit a label |
 | `Enter` with a shape or text tool | Add one in the middle of the view |
 | `Enter` with the arrow tool | Start an arrow at the selected shape, then press it again to end the arrow at the next shape you select |
-| `Tab` while typing a label | Add the next step (`Shift+Tab` adds a sibling) |
+| `Tab` while typing a shape's label | Add the next step (`Shift+Tab` adds a sibling) |
 | `Ctrl+Arrow` | Add a shape in that direction |
 | Arrow keys | Move the selection (`Alt`: 1 px, `Shift`: 50 px), or pan when nothing is selected |
 | `Ctrl+Shift+Arrow` | Resize the selected shape |
