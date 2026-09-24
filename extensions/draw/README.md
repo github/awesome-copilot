@@ -7,7 +7,7 @@ Draw simple diagrams in a GitHub Copilot app canvas: boxes, ellipses, diamonds a
 ## What it does
 
 - Draws rectangles, ellipses, diamonds, databases, arrows, text and freehand pen strokes. Arrows stay attached when you move shapes.
-- Connects shapes quickly: hover a shape and drag a **+** handle to another shape, or click **+** (or press `Tab`) to add the next step.
+- Connects shapes quickly: hover a shape and drag a **+** handle to another shape, or click **+** (or select the shape and press `Tab`) to add the next step.
 - Styles shapes and arrows with 8 colors, 3 fills, dashed lines, 4 text sizes, arrow heads, and straight, elbow or curved routes.
 - Snaps to a grid, and supports zoom, pan, undo, redo, copy, paste and duplicate.
 - Keeps several drawings per session. Switch, rename, duplicate or delete them from the drawing menu.
@@ -53,7 +53,7 @@ Press `?` in the canvas to see all of them. On macOS, use `Cmd` instead of `Ctrl
 | `V`, `H` | Select, pan |
 | `R`, `O`, `D`, `C` | Rectangle, ellipse, diamond, database |
 | `A`, `T`, `P` | Arrow, text, pen |
-| `Tab` | Add the next connected step (`Shift+Tab` adds a sibling) |
+| `Tab` | Add the next step to the selected shape (`Shift+Tab` adds a sibling) |
 | `Enter` or double-click | Edit a label |
 | `Ctrl+Arrow` | Add a shape in that direction |
 | `Ctrl+Z`, `Ctrl+Shift+Z` | Undo, redo |
@@ -62,6 +62,7 @@ Press `?` in the canvas to see all of them. On macOS, use `Cmd` instead of `Ctrl
 ## Where your data goes
 
 - Drawings are JSON files in the current session's `files/drawings` folder, and exports are saved in `files/drawings/exports`. Each session has its own drawings.
+- If a drawing can't be written to disk, the canvas says so, keeps your changes in memory and keeps trying to save them.
 - The theme choice is saved in `~/.copilot/draw/settings.json` (under `COPILOT_HOME` when it is set) and applies to every session.
 
 ## Security

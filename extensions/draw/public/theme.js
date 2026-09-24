@@ -1,5 +1,5 @@
 // Resolves the host app's theme tokens into hex colors, and measures text with the real font.
-import { LIGHT_PALETTE, DARK_PALETTE, staticPaint, luminance, mixHex } from "/lib/model.mjs";
+import { LIGHT_PALETTE, DARK_PALETTE, staticPaint, luminance, mixHex, textOn } from "/lib/model.mjs";
 import { DEFAULT_FONT } from "/lib/render.mjs";
 
 export const HOST_TOKENS = [
@@ -78,12 +78,13 @@ export function applyThemeVars(root, t) {
   set("--d-muted", t.muted);
   set("--d-border", t.border);
   set("--d-accent", t.accent);
-  set("--d-on-accent", luminance(t.accent) > 0.4 ? "#1f2328" : "#ffffff");
+  set("--d-on-accent", textOn(t.accent));
   set("--d-hover", mixHex(t.ink, t.bg, t.dark ? 0.1 : 0.06));
   set("--d-active", mixHex(t.ink, t.bg, t.dark ? 0.16 : 0.1));
   set("--d-accent-soft", mixHex(t.accent, t.bg, t.dark ? 0.24 : 0.12));
   set("--d-dot", mixHex(t.ink, t.bg, t.dark ? 0.22 : 0.2));
   set("--d-danger", t.danger);
+  set("--d-on-danger", textOn(t.danger));
   set("--d-font", t.font);
   set("--d-mono", t.mono);
   set("--d-shadow", t.dark ? "0 1px 2px rgba(0,0,0,0.4)" : "0 1px 2px rgba(31,35,40,0.06)");

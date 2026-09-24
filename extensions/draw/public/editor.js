@@ -276,6 +276,10 @@ export class Editor {
   reorder(toFront) {
     if (!this.selection.size) return;
     const picked = this.elements.filter((e) => this.selection.has(e.id));
+    if (picked.length && picked.every((e) => e.type === "arrow")) {
+      this.emit("hint", "Arrows always stay on top of shapes.");
+      return;
+    }
     const rest = this.elements.filter((e) => !this.selection.has(e.id));
     this.setElements(toFront ? [...rest, ...picked] : [...picked, ...rest]);
   }

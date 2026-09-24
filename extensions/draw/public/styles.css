@@ -8,6 +8,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
   --border: var(--d-border, #d1d9e0);
   --accent: var(--d-accent, #0969da);
   --on-accent: var(--d-on-accent, #ffffff);
+  --on-danger: var(--d-on-danger, #ffffff);
   --hover: var(--d-hover, rgba(128, 128, 128, 0.12));
   --active: var(--d-active, rgba(128, 128, 128, 0.2));
   --accent-soft: var(--d-accent-soft, rgba(9, 105, 218, 0.12));
@@ -54,6 +55,7 @@ kbd {
 }
 .bar-group { display: flex; align-items: center; gap: 4px; min-width: 0; }
 .bar-doc { flex: 1 1 auto; }
+.bar-actions { flex: none; }
 .doc-button {
   display: flex; align-items: center; gap: 6px;
   max-width: 240px; min-width: 0;
@@ -73,7 +75,8 @@ kbd {
   font: 600 13px var(--font); color: var(--ink);
   background: var(--bg); border: 1px solid var(--accent); border-radius: 6px; outline: none;
 }
-.status { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A long status gives up its room before the drawing name does. */
+.status { flex-shrink: 1000; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .status.is-error { color: var(--d-danger, #cf222e); }
 .sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; flex: none; }
 
@@ -87,7 +90,7 @@ kbd {
 .btn-primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
 .btn-primary:hover, .btn-primary[aria-expanded="true"] { background: var(--accent); filter: brightness(1.08); }
 .btn:disabled { opacity: 0.5; cursor: default; }
-.btn-danger { background: var(--d-danger, #cf222e); color: #fff; border-color: transparent; }
+.btn-danger { background: var(--d-danger, #cf222e); color: var(--on-danger); border-color: transparent; }
 .btn-danger:hover { background: var(--d-danger, #cf222e); filter: brightness(1.08); }
 
 .icon-btn {
@@ -263,7 +266,7 @@ kbd {
   font-size: 12.5px;
   animation: toast-in 140ms ease-out;
 }
-.toast.is-error { background: var(--d-danger, #cf222e); color: #fff; }
+.toast.is-error { background: var(--d-danger, #cf222e); color: var(--on-danger); }
 .toast button {
   border: 0; background: transparent; color: inherit; font-weight: 600; text-decoration: underline;
   cursor: pointer; padding: 2px 4px;

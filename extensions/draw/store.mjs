@@ -2,11 +2,22 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { EventEmitter } from "node:events";
-import { normalizeElements, applyOps } from "./lib/model.mjs";
+import { normalizeElements, mergeOps, MAX_ELEMENTS } from "./lib/model.mjs";
 
 const VERSION = 1;
 const STATE_FILE = ".state.json";
 const MAX_INSTANCES = 50;
+const MAX_SLUG = 48;
+const SLUG_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// An error with a code for agent actions and an HTTP status for the canvas API.
+export class StoreError extends Error {
+    constructor(code, message, status = 400) {
+        super(message);
+        this.code = code;
+        this.status = status;
+    }
+}
 
 export function slugifyName(name) {
     return String(name || "")
@@ -15,7 +26,7 @@ export function slugifyName(name) {
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-+|-+$/g, "")
-        .slice(0, 48)
+        .slice(0, MAX_SLUG)
         .replace(/-+$/g, "");
 }
 
@@ -43,6 +54,13 @@ async function atomicWrite(file, data) {
     }
 }
 
+// File system errors name the temp file, which changes on every try, so keep just "CODE: description".
+// Otherwise each retry would read as a new problem and warn the user again.
+function saveProblem(err) {
+    const message = String(err?.message || err);
+    return err?.code && err.syscall ? message.split(", ")[0] : message;
+}
+
 function serialize(doc) {
     const { elements, ...meta } = doc;
     const head = JSON.stringify(meta, null, 2).replace(/\n}$/, "");
@@ -61,6 +79,7 @@ export class DrawingStore extends EventEmitter {
         this.docs = new Map();
         this.timers = new Map();
         this.saving = new Map();
+        this.saveErrors = new Map();
         this.stateTimer = null;
         this.state = { lastOpened: null, instances: {} };
         this.ready = this.#load();
@@ -72,9 +91,13 @@ export class DrawingStore extends EventEmitter {
         for (const name of names) {
             if (!name.endsWith(".json") || name.startsWith(".")) continue;
             const id = name.slice(0, -5);
-            if (id !== slugifyName(id)) continue;
+            // Ids made before the length fix could run a little past MAX_SLUG, so allow some slack.
+            if (!SLUG_ID.test(id) || id.length > MAX_SLUG + 16) continue;
             try {
                 const raw = JSON.parse(await fs.readFile(path.join(this.dir, name), "utf8"));
+                if (Array.isArray(raw?.elements) && raw.elements.length > MAX_ELEMENTS) {
+                    this.log(`Draw: ${name} has ${raw.elements.length} elements, so only the first ${MAX_ELEMENTS} were loaded.`);
+                }
                 this.docs.set(id, this.#clean(raw, id));
             } catch (err) {
                 this.log(`Draw: skipping unreadable drawing ${name}: ${err.message}`);
@@ -140,7 +163,10 @@ export class DrawingStore extends EventEmitter {
         const finalName = cleanName(name) || this.#nextName();
         const root = slugifyName(finalName) || "drawing";
         let id = root;
-        for (let i = 2; this.docs.has(id); i++) id = `${root}-${i}`;
+        for (let i = 2; this.docs.has(id); i++) {
+            const suffix = `-${i}`;
+            id = root.slice(0, MAX_SLUG - suffix.length).replace(/-+$/, "") + suffix;
+        }
         const now = new Date().toISOString();
         const doc = { version: VERSION, id, name: finalName, rev: 0, createdAt: now, updatedAt: now, elements: [] };
         this.docs.set(id, doc);
@@ -173,15 +199,25 @@ export class DrawingStore extends EventEmitter {
         return doc;
     }
 
+    // A change that would go over MAX_ELEMENTS fails with an error, instead of the extra
+    // elements quietly disappearing.
     mutate(id, fn, origin = "agent") {
         const doc = this.#require(id);
-        doc.elements = normalizeElements(fn(doc.elements));
+        const next = normalizeElements(fn(doc.elements), Infinity);
+        if (next.length > MAX_ELEMENTS) {
+            const fmt = (n) => n.toLocaleString("en-US");
+            throw new StoreError(
+                "too_many_elements",
+                `A drawing can hold up to ${fmt(MAX_ELEMENTS)} elements, and this change would make ${fmt(next.length)}.`,
+            );
+        }
+        doc.elements = next;
         this.#touch(doc, origin);
         return doc;
     }
 
     applyOps(id, ops, origin) {
-        return this.mutate(id, (elements) => applyOps(elements, ops), origin);
+        return this.mutate(id, (elements) => mergeOps(elements, ops), origin);
     }
 
     replace(id, elements, origin) {
@@ -189,13 +225,22 @@ export class DrawingStore extends EventEmitter {
     }
 
     async remove(id) {
-        this.#require(id);
+        const doc = this.#require(id);
         clearTimeout(this.timers.get(id));
         this.timers.delete(id);
         this.docs.delete(id);
-        await (this.saving.get(id) || Promise.resolve());
+        await (this.saving.get(id) || Promise.resolve()).catch(() => {});
+        try {
+            await fs.rm(this.filePath(id), { force: true });
+        } catch (err) {
+            // The file is still there, so keep the drawing rather than have it come back after a restart.
+            if (!this.docs.has(id)) this.docs.set(id, doc);
+            this.#scheduleSave(id);
+            this.emit("list");
+            throw new StoreError("delete_failed", `Could not delete "${doc.name}": ${err.message}`, 500);
+        }
         this.saving.delete(id);
-        await fs.rm(this.filePath(id), { force: true }).catch((err) => this.log(`Draw: could not delete ${id}: ${err.message}`));
+        this.saveErrors.delete(id);
         if (this.state.lastOpened === id) this.state.lastOpened = null;
         for (const [inst, drawing] of Object.entries(this.state.instances)) {
             if (drawing === id) delete this.state.instances[inst];
@@ -237,13 +282,52 @@ export class DrawingStore extends EventEmitter {
     #save(id) {
         this.timers.delete(id);
         const run = (this.saving.get(id) || Promise.resolve())
+            .catch(() => {})
             .then(async () => {
                 const doc = this.docs.get(id);
                 if (doc) await atomicWrite(this.filePath(id), serialize(doc));
             })
-            .catch((err) => this.log(`Draw: failed to save ${id}: ${err.message}`));
+            .then(
+                () => this.#saved(id, null),
+                (err) => {
+                    this.#saved(id, err);
+                    throw err;
+                },
+            );
+        run.catch(() => {});
         this.saving.set(id, run);
         return run;
+    }
+
+    // Tracks failed writes: panels get a "save" event when a drawing starts or stops failing, and
+    // the write is retried until the disk takes it, since the edit only exists in memory until then.
+    #saved(id, err) {
+        const failure = this.saveErrors.get(id);
+        if (!err) {
+            if (failure) {
+                this.saveErrors.delete(id);
+                this.log(`Draw: saved ${id} again.`);
+                this.emit("save", id, null);
+            }
+            return;
+        }
+        const attempts = (failure ? failure.attempts : 0) + 1;
+        const message = saveProblem(err);
+        this.saveErrors.set(id, { message, attempts });
+        if (!failure || failure.message !== message) {
+            this.log(`Draw: failed to save ${id}: ${err.message}`);
+            this.emit("save", id, message);
+        }
+        if (this.docs.has(id) && !this.timers.has(id)) {
+            const timer = setTimeout(() => this.#save(id), Math.min(30000, 1000 * 2 ** (attempts - 1)));
+            timer.unref?.();
+            this.timers.set(id, timer);
+        }
+    }
+
+    // Why the latest write of a drawing failed, or null when it is safely on disk.
+    saveError(id) {
+        return this.saveErrors.get(id)?.message || null;
     }
 
     #scheduleState() {
@@ -265,10 +349,15 @@ export class DrawingStore extends EventEmitter {
             clearTimeout(this.timers.get(id));
             this.#save(id);
         }
-        await Promise.all([...this.saving.values()]);
+        const results = await Promise.allSettled([...this.saving.values()]);
         if (this.stateTimer) {
             clearTimeout(this.stateTimer);
             await this.#saveState();
+        }
+        const failed = results.filter((r) => r.status === "rejected");
+        if (failed.length) {
+            const what = failed.length === 1 ? "a drawing" : `${failed.length} drawings`;
+            throw new StoreError("save_failed", `Could not save ${what}: ${failed[0].reason.message}`, 500);
         }
     }
 }

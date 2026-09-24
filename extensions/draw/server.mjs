@@ -96,8 +96,8 @@ function revealInFolder(file) {
     child.unref();
 }
 
-export function publicDoc(doc) {
-    return { id: doc.id, name: doc.name, rev: doc.rev, updatedAt: doc.updatedAt, elements: doc.elements };
+export function publicDoc(doc, saveError = null) {
+    return { id: doc.id, name: doc.name, rev: doc.rev, updatedAt: doc.updatedAt, elements: doc.elements, saveError };
 }
 
 export function createDrawServer({ store, settings = new Settings(), getSession, log = () => {} }) {
@@ -115,6 +115,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         }
     };
     const clientsFor = (instanceId) => [...clients].filter((c) => c.instanceId === instanceId);
+    const pub = (doc) => publicDoc(doc, store.saveError(doc.id));
 
     // Makes sure an instance points at a real drawing, creating "Drawing 1" when there are none.
     function ensureDrawing(instanceId) {
@@ -130,7 +131,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
     function showDrawing(instanceId, doc) {
         store.bindInstance(instanceId, doc.id);
         selections.delete(instanceId);
-        for (const c of clientsFor(instanceId)) send(c, "switch", { drawing: publicDoc(doc) });
+        for (const c of clientsFor(instanceId)) send(c, "switch", { drawing: pub(doc) });
     }
 
     // Settings apply to every panel, so every client hears about a change.
@@ -143,7 +144,12 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
     store.on("change", (doc, origin) => {
         for (const c of clients) {
             if (c.clientId === origin) continue;
-            if (store.state.instances[c.instanceId] === doc.id) send(c, "doc", { drawing: publicDoc(doc), origin });
+            if (store.state.instances[c.instanceId] === doc.id) send(c, "doc", { drawing: pub(doc), origin });
+        }
+    });
+    store.on("save", (id, error) => {
+        for (const c of clients) {
+            if (store.state.instances[c.instanceId] === id) send(c, "save", { drawingId: id, error });
         }
     });
     store.on("list", () => {
@@ -168,7 +174,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
             const doc = ensureDrawing(instanceId);
             return sendJson(res, 200, {
                 instanceId,
-                drawing: publicDoc(doc),
+                drawing: pub(doc),
                 drawings: store.list(),
                 folder: store.dir,
                 settings: await settings.read(),
@@ -196,7 +202,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
             const doc = store.applyOps(body.drawingId, ops, clientId);
             // If someone else changed the drawing since the client's last known rev, send the full doc back.
             const stale = Number.isInteger(body.baseRev) && doc.rev !== body.baseRev + 1;
-            return sendJson(res, 200, stale ? { rev: doc.rev, drawing: publicDoc(doc) } : { rev: doc.rev });
+            return sendJson(res, 200, stale ? { rev: doc.rev, drawing: pub(doc) } : { rev: doc.rev });
         }
         if (route === "/api/selection") {
             const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string").slice(0, 1000) : [];
@@ -222,10 +228,6 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
             if (!THEMES.includes(body.theme)) throw new HttpError(400, `Theme must be one of: ${THEMES.join(", ")}.`);
             return sendJson(res, 200, { settings: await updateSettings({ theme: body.theme }, clientId) });
         }
-        if (route === "/api/client-info") {
-            process.stderr.write(`[draw] client info: ${JSON.stringify(body).slice(0, 2000)}\n`);
-            return sendJson(res, 200, { ok: true });
-        }
         throw new HttpError(404, "Not found.");
     }
 
@@ -243,7 +245,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
             } catch (err) {
                 throw new HttpError(400, err.message);
             }
-            return { drawing: publicDoc(doc), drawings: store.list() };
+            return { drawing: pub(doc), drawings: store.list() };
         } else if (action === "duplicate") {
             const source = store.get(body.id);
             if (!source) throw new HttpError(404, "That drawing no longer exists.");
@@ -262,7 +264,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         }
         store.bindInstance(instanceId, doc.id);
         selections.delete(instanceId);
-        return { drawing: publicDoc(doc), drawings: store.list() };
+        return { drawing: pub(doc), drawings: store.list() };
     }
 
     const clientIdOf = (body) => (typeof body.clientId === "string" ? body.clientId.slice(0, 64) : "user");
@@ -349,7 +351,8 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
 
     const server = http.createServer((req, res) => {
         handle(req, res).catch((err) => {
-            const status = err instanceof HttpError ? err.status : 500;
+            // HttpError and StoreError carry their own status.
+            const status = Number.isInteger(err.status) ? err.status : 500;
             if (status === 500) log(`Draw server error: ${err.stack || err.message}`);
             if (!res.headersSent) sendJson(res, status, { error: err.message });
             else res.end();

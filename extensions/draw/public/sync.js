@@ -38,6 +38,11 @@ export class Sync {
     this.timer = 0;
     this.deferred = null;
     this.failures = 0;
+    this.retryTimer = 0;
+    // Why the server refused our last changes, and why the extension cannot write this drawing
+    // to disk (it still has the changes in memory). Both show as errors until they clear.
+    this.refusal = null;
+    this.diskError = null;
     this.source = null;
     this.connectedOnce = false;
     editor.on("change", () => this.schedule());
@@ -107,6 +112,9 @@ export class Sync {
     on("settings", ({ settings, origin }) => {
       if (origin !== this.clientId) this.handlers.settings?.(settings);
     });
+    on("save", ({ drawingId, error }) => {
+      if (drawingId === this.drawingId) this.setDiskError(error);
+    });
   }
 
   // After a reconnect we may have missed events, so fetch the latest state.
@@ -115,8 +123,12 @@ export class Sync {
       const state = await this.loadState();
       this.handlers.list?.(state.drawings);
       if (state.settings) this.handlers.settings?.(state.settings);
-      if (state.drawing.id !== this.drawingId) this.switchTo(state.drawing);
-      else this.onRemote(state.drawing);
+      if (state.drawing.id !== this.drawingId) {
+        this.switchTo(state.drawing);
+      } else {
+        this.onRemote(state.drawing);
+        this.setDiskError(state.drawing.saveError);
+      }
     } catch {
       // The next reconnect will try again.
     }
@@ -137,7 +149,9 @@ export class Sync {
     this.synced = new Map(drawing.elements.map((e) => [e.id, e]));
     this.rev = drawing.rev;
     this.deferred = null;
-    const next = pending ? applyOps(drawing.elements, pending) : drawing.elements;
+    // No element cap here. Going over it makes the server refuse the save and say why, which is
+    // better than the user's newest elements quietly disappearing.
+    const next = pending ? applyOps(drawing.elements, pending, Infinity) : drawing.elements;
     this.editor.applyRemote(next, drawing);
     if (pending) this.schedule();
   }
@@ -146,6 +160,25 @@ export class Sync {
     await this.flush(true);
     this.setDoc(drawing);
     this.handlers.switched?.(drawing);
+    // Messages about the last drawing do not apply to this one.
+    this.refusal = null;
+    this.diskError = null;
+    this.setDiskError(drawing.saveError);
+    if (!this.diskError) this.settled();
+  }
+
+  // The extension has all our changes, so show "saved", unless it cannot write them to disk.
+  settled() {
+    if (this.diskError) this.handlers.status?.("error", `Not saved to disk: ${this.diskError}`);
+    else this.handlers.status?.("saved");
+  }
+
+  setDiskError(error) {
+    const was = this.diskError;
+    this.diskError = error || null;
+    if (this.diskError === was) return;
+    if (this.diskError) this.handlers.problem?.(`This drawing could not be saved to disk: ${this.diskError}. Draw will keep trying.`);
+    if (this.diskError || (!this.inflight && !this.dirty)) this.settled();
   }
 
   onIdle() {
@@ -178,16 +211,19 @@ export class Sync {
     const sent = this.editor.elements;
     const ops = diffOps(this.synced, sent);
     if (!ops) {
-      this.handlers.status?.("saved");
+      this.refusal = null;
+      this.settled();
       return;
     }
     this.inflight = true;
     this.handlers.status?.("saving");
     const drawingId = this.drawingId;
     let retry = false;
+    let refused = false;
     try {
       const res = await this.post("ops", { drawingId, baseRev: this.rev, ops });
       this.failures = 0;
+      this.refusal = null;
       if (drawingId === this.drawingId) {
         this.synced = new Map(sent.map((e) => [e.id, e]));
         this.rev = res.rev;
@@ -196,17 +232,27 @@ export class Sync {
       }
     } catch (err) {
       if (err.status === 404) {
+        refused = true;
         this.handlers.status?.("error", "This drawing was deleted.");
+      } else if (err.status === 400 || err.status === 413) {
+        // Sending the same changes again would fail the same way, so the next edit tries again
+        // (undoing, for example, can bring the drawing back under a limit).
+        refused = true;
+        const msg = `Not saved: ${err.message}`;
+        this.handlers.status?.("error", msg);
+        if (msg !== this.refusal) this.handlers.problem?.(msg);
+        this.refusal = msg;
       } else {
         this.failures += 1;
-        retry = this.failures <= 6;
-        this.handlers.status?.("error", retry ? "Not saved yet, retrying" : "Could not save. Check that Copilot is running.");
+        retry = true;
+        this.handlers.status?.("error", this.failures <= 6 ? "Not saved yet, retrying" : "Could not save. Check that Copilot is running.");
       }
     } finally {
       this.inflight = false;
     }
     if (retry) {
-      setTimeout(() => this.schedule(0), Math.min(8000, 400 * 2 ** this.failures));
+      clearTimeout(this.retryTimer);
+      this.retryTimer = setTimeout(() => this.schedule(0), Math.min(8000, 400 * 2 ** this.failures));
       return;
     }
     if (drawingId !== this.drawingId) return;
@@ -215,8 +261,9 @@ export class Sync {
       this.deferred = null;
       if (d.rev > this.rev) this.rebase(d);
     }
+    if (refused) return;
     if (diffOps(this.synced, this.editor.elements)) this.schedule();
-    else this.handlers.status?.("saved");
+    else this.settled();
   }
 
   // Best effort save when the iframe goes away.

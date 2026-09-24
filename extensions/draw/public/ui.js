@@ -201,9 +201,10 @@ export class UI {
     const sizeTitle = cats.size === 1 && cats.has("pen") ? "Stroke" : "Text size";
     parts.push(group(sizeTitle, SIZE_KEYS.map((k) => btn("size", k, k === size, `${SIZE_LABELS[k]} ${sizeTitle.toLowerCase()}`, k.toUpperCase(), "size-btn")).join("")));
     if (sel.length) {
+      // Arrows are always drawn on top, so only other elements can move between layers.
+      const layered = sel.some((el) => el.type !== "arrow");
       parts.push(group("Arrange", [
-        act("front", "front", "Bring to front (Ctrl+])"),
-        act("back", "back", "Send to back (Ctrl+[)"),
+        ...(layered ? [act("front", "front", "Bring to front (Ctrl+])"), act("back", "back", "Send to back (Ctrl+[)")] : []),
         act("duplicate", "duplicate", "Duplicate (Ctrl+D)"),
         act("delete", "trash", "Delete (Del)"),
       ].join("")));
@@ -257,6 +258,8 @@ export class UI {
   showStatus(text, error = false) {
     const el = $("save-status");
     el.textContent = text;
+    // A long message gets cut off, so hovering shows all of it.
+    el.title = text;
     el.classList.toggle("is-error", error);
   }
 

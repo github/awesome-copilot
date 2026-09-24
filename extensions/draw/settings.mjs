@@ -18,6 +18,8 @@ export class Settings {
     this.file = file;
     this.log = log;
     this.values = { ...DEFAULTS };
+    // What the file holds, so a failed write can put the in-memory copy back to match it.
+    this.saved = this.values;
     this.writing = Promise.resolve();
   }
 
@@ -26,7 +28,7 @@ export class Settings {
     if (this.file) {
       try {
         const raw = JSON.parse(await fs.readFile(this.file, "utf8"));
-        if (THEMES.includes(raw.theme)) this.values = { ...this.values, theme: raw.theme };
+        if (THEMES.includes(raw.theme)) this.values = this.saved = { ...this.values, theme: raw.theme };
       } catch (err) {
         if (err.code !== "ENOENT") this.log(`could not read ${this.file}: ${err.message}`);
       }
@@ -34,22 +36,31 @@ export class Settings {
     return { ...this.values };
   }
 
+  // Resolves once the file is written, and rejects (leaving the old values in place) if it cannot be.
   async update(patch) {
     if (patch.theme !== undefined && !THEMES.includes(patch.theme)) {
       throw new Error(`Theme must be one of: ${THEMES.join(", ")}.`);
     }
-    this.values = { ...this.values, ...(patch.theme !== undefined && { theme: patch.theme }) };
-    const values = { ...this.values };
+    const next = { ...this.values, ...(patch.theme !== undefined && { theme: patch.theme }) };
+    this.values = next;
     if (this.file) {
-      const data = `${JSON.stringify(values, null, 2)}\n`;
-      this.writing = this.writing
-        .then(async () => {
-          await fs.mkdir(path.dirname(this.file), { recursive: true });
-          await fs.writeFile(this.file, data);
-        })
-        .catch((err) => this.log(`could not save ${this.file}: ${err.message}`));
-      await this.writing;
+      const data = `${JSON.stringify(next, null, 2)}\n`;
+      const write = this.writing.then(async () => {
+        await fs.mkdir(path.dirname(this.file), { recursive: true });
+        await fs.writeFile(this.file, data);
+        this.saved = next;
+      });
+      // Only this update fails, so a later one still gets its turn to write.
+      this.writing = write.catch(() => {});
+      try {
+        await write;
+      } catch (err) {
+        // Leave a newer update alone, since it has its own write coming.
+        if (this.values === next) this.values = this.saved;
+        this.log(`could not save ${this.file}: ${err.message}`);
+        throw err;
+      }
     }
-    return values;
+    return { ...next };
   }
 }

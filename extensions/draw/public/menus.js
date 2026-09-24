@@ -18,7 +18,7 @@ const HELP = [
   [["A", "T", "P"], "Arrow, text, pen"],
   ["Click +", "Add the next connected shape"],
   ["Drag +", "Connect to a shape, or drop to add one"],
-  [["Tab"], "Add the next step (Shift+Tab adds a sibling)"],
+  [["Tab"], "Add the next step to the selected shape (Shift+Tab adds a sibling)"],
   [["Enter"], "Edit the label (or double-click it)"],
   ["Double-click", "Empty space adds text"],
   [["Ctrl+Arrow"], "Add a shape in that direction"],

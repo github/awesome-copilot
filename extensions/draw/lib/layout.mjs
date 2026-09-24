@@ -486,6 +486,14 @@ export function describe(doc) {
     lines.push("Text:");
     for (const t of texts) lines.push(`- ${t.id}: ${q(t.text)} at ${Math.round(t.x)},${Math.round(t.y)}`);
   }
+  if (pens.length) {
+    lines.push("Pen strokes:");
+    for (const p of pens) {
+      const b = elementBounds(p, null);
+      const style = [p.color !== "gray" ? p.color : null, `width ${p.width}`].filter(Boolean).join(", ");
+      lines.push(`- ${p.id} (${style}) ${p.points.length} points at ${Math.round(b.x)},${Math.round(b.y)} size ${Math.round(b.w)}x${Math.round(b.h)}`);
+    }
+  }
   return lines.join("\n");
 }
 

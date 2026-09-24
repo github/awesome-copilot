@@ -53,7 +53,6 @@ async function boot() {
       ed.setTheme(theme);
       ui.refresh();
       ui.syncThemeButton();
-      if (instanceId && token) reportTheme("mode-change");
     }
     if (save) {
       sync.post("settings", { theme: next }).catch((err) => ui.toast(`Could not save the theme: ${err.message}`, { error: true }));
@@ -87,34 +86,18 @@ async function boot() {
         if (!ed.busy) ed.select(ids);
       },
       status: (kind, msg) => ui.setStatus(kind, msg),
+      problem: (msg) => ui.toast(msg, { error: true, timeout: 8000 }),
       settings: (values) => applyMode(values.theme, false),
     },
   });
   ui.sync = sync;
   ed.on("selection", () => sync.sendSelection([...ed.selection]));
 
-  const reportTheme = (reason) => {
-    sync.post("client-info", {
-      reason,
-      ms: Math.round(performance.now()),
-      shown: !$("app").classList.contains("booting"),
-      tokens: theme.present,
-      tone: document.documentElement.dataset.themeTone || null,
-      mode,
-      dark: theme.dark,
-      colors: { bg: theme.bg, ink: theme.ink, accent: theme.accent },
-      font: theme.font,
-      size: [innerWidth, innerHeight],
-      dpr: devicePixelRatio,
-    }).catch(() => {});
-  };
-
   watchTheme(() => {
     theme = loadTheme(mode);
     ed.setTheme(theme);
     ui.refresh();
     if (theme.present.length) reveal();
-    if (instanceId && token) reportTheme("theme-change");
   });
   document.fonts?.ready.then(() => {
     clearMeasureCache();
@@ -139,9 +122,9 @@ async function boot() {
   ui.setup(state);
   ed.load(state.drawing);
   ui.syncEmpty();
+  sync.setDiskError(state.drawing.saveError);
   sync.connect();
   ed.stage.focus({ preventScroll: true });
-  reportTheme("boot");
 }
 
 boot().catch((err) => {

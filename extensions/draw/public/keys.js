@@ -7,10 +7,14 @@ const DIRS = { ArrowRight: "right", ArrowLeft: "left", ArrowDown: "down", ArrowU
 export function attachKeys(ed, ui) {
   const typing = (target) =>
     !!target && target !== ed.stage && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable || !!target.closest?.(".popover"));
+  // A focused button keeps its normal keys: Space and Enter press it, and Tab moves focus on.
+  const control = (target) =>
+    !!target && target !== ed.stage && !!target.closest?.("button, a[href], select, summary, [role='button']");
 
   window.addEventListener("keydown", (e) => {
     if (e.defaultPrevented || e.isComposing || typing(e.target)) return;
     const key = e.key;
+    if ((key === " " || key === "Enter" || key === "Tab") && control(e.target)) return;
     const lower = key.length === 1 ? key.toLowerCase() : key;
     const mod = e.ctrlKey || e.metaKey;
     const one = ed.single();
@@ -52,11 +56,10 @@ export function attachKeys(ed, ui) {
     if (e.altKey && !DIRS[key]) return;
     if (key === "Delete" || key === "Backspace") { ed.deleteSelection(); return done(); }
     if ((key === "Enter" || key === "F2") && one && one.type !== "pen") { ed.labels.open(one.id); return done(); }
-    if (key === "Tab") {
-      if (one && isShape(one)) {
-        if (e.shiftKey) ed.addSibling(one.id);
-        else ed.addConnected(one.id, ed.lastDirection || "right");
-      }
+    // With a shape selected, Tab adds the next step. Otherwise it moves focus like it normally does.
+    if (key === "Tab" && one && isShape(one)) {
+      if (e.shiftKey) ed.addSibling(one.id);
+      else ed.addConnected(one.id, ed.lastDirection || "right");
       return done();
     }
     if (DIRS[key]) {

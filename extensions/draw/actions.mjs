@@ -8,6 +8,7 @@ import { DIRECTIONS, buildFromSpec, relayout, describe } from "./lib/layout.mjs"
 import { approxMeasure, neededHeight } from "./lib/geometry.mjs";
 import { renderStandaloneSVG } from "./lib/render.mjs";
 import { THEMES } from "./settings.mjs";
+import { StoreError } from "./store.mjs";
 
 const OUTLINE_LIMIT = 80;
 
@@ -144,7 +145,18 @@ export function makeActions({ runtime, CanvasError }) {
     handler: async (ctx) => {
       const { store, server } = await runtime(ctx);
       const doc = server.ensureDrawing(ctx.instanceId);
-      return handler({ store, server, doc, instanceId: ctx.instanceId }, ctx.input || {});
+      let result;
+      try {
+        result = await handler({ store, server, doc, instanceId: ctx.instanceId }, ctx.input || {});
+      } catch (err) {
+        if (err instanceof StoreError) fail(err.code, err.message);
+        throw err;
+      }
+      const saveError = result?.drawing?.id ? store.saveError(result.drawing.id) : null;
+      if (saveError) {
+        result.warning = `This drawing could not be saved to disk (${saveError}). The changes are kept in memory and saving is being retried, so tell the user.`;
+      }
+      return result;
     },
   });
 
@@ -358,7 +370,12 @@ export function makeActions({ runtime, CanvasError }) {
       { theme: { type: "string", enum: THEMES, description: "app (match the Copilot app), light or dark." } },
       ["theme"],
       async ({ server, instanceId }, input) => {
-        const settings = await server.updateSettings({ theme: input.theme });
+        let settings;
+        try {
+          settings = await server.updateSettings({ theme: input.theme });
+        } catch (err) {
+          fail("save_failed", `Could not save the theme: ${err.message}`);
+        }
         return { ok: true, theme: settings.theme, canvasOpen: server.hasClient(instanceId) };
       },
     ),

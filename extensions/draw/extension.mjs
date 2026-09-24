@@ -70,7 +70,13 @@ const canvas = createCanvas({
   // Panels come and go, but the server and the instance's drawing binding stay,
   // so reopening the same instance shows the same drawing.
   onClose: async () => {
-    if (runtimePromise) await (await runtimePromise).store.flush();
+    if (!runtimePromise) return;
+    try {
+      await (await runtimePromise).store.flush();
+    } catch (err) {
+      // The store keeps retrying failed saves, so closing a panel only needs to log it.
+      log(`could not save on close: ${err.message}`);
+    }
   },
 });
 

@@ -206,10 +206,11 @@ export function normalizeElement(raw) {
 }
 
 // Normalizes a whole list: fixes duplicate ids and drops arrows that point at missing shapes.
-export function normalizeElements(list) {
+// Anything past `limit` elements is dropped.
+export function normalizeElements(list, limit = MAX_ELEMENTS) {
   const out = [];
   const taken = new Set();
-  for (const raw of Array.isArray(list) ? list.slice(0, MAX_ELEMENTS) : []) {
+  for (const raw of Array.isArray(list) ? list.slice(0, limit) : []) {
     const el = normalizeElement(raw);
     if (!el) continue;
     if (taken.has(el.id)) el.id = uniqueId(ID_PREFIX[el.type], taken);
@@ -228,7 +229,12 @@ export function normalizeElements(list) {
 }
 
 // Merges element-level changes: { upserts: [element], deletes: [id], order?: [id] }.
-export function applyOps(elements, ops = {}) {
+export function applyOps(elements, ops = {}, limit = MAX_ELEMENTS) {
+  return normalizeElements(mergeOps(elements, ops), limit);
+}
+
+// The merge step of applyOps, before the list is cleaned up.
+export function mergeOps(elements, ops = {}) {
   const map = new Map(elements.map((e) => [e.id, e]));
   for (const id of Array.isArray(ops.deletes) ? ops.deletes : []) map.delete(id);
   for (const raw of Array.isArray(ops.upserts) ? ops.upserts : []) {
@@ -241,7 +247,7 @@ export function applyOps(elements, ops = {}) {
     const known = list.filter((e) => rank.has(e.id)).sort((a, b) => rank.get(a.id) - rank.get(b.id));
     list = [...known, ...list.filter((e) => !rank.has(e.id))];
   }
-  return normalizeElements(list);
+  return list;
 }
 
 // Removes elements plus any arrows attached to them.
@@ -289,6 +295,11 @@ export function luminance(hex) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+// Text color for a solid background. Dark and white text have equal contrast at about 0.21.
+export function textOn(hex) {
+  return luminance(hex) > 0.21 ? "#1f2328" : "#ffffff";
+}
+
 // Returns paint(color, role) resolving element colors to hex for a palette.
 // Roles: stroke, soft (tinted fill), solid (strong fill), onSolid (text on solid), ink (text), bg.
 export function staticPaint(palette = LIGHT_PALETTE) {
@@ -299,7 +310,7 @@ export function staticPaint(palette = LIGHT_PALETTE) {
     const c = base(color);
     switch (role) {
       case "soft": return mixHex(c, pal.bg, color === "gray" ? (dark ? 0.12 : 0.06) : (dark ? 0.24 : 0.14));
-      case "onSolid": return luminance(c) > 0.21 ? "#1f2328" : "#ffffff";
+      case "onSolid": return textOn(c);
       case "bg": return pal.bg;
       default: return c;
     }
