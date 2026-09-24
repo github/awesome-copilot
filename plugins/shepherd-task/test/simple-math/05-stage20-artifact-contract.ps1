@@ -76,8 +76,11 @@ try {
         -not $stage20SkillText.Contains('return ,([object[]]@())') -or
         -not $stage20SkillText.Contains('capture output and then capture `$LASTEXITCODE` immediately') -or
         -not $stage20SkillText.Contains('Use `CHILD_LINK_VERIFIER` as the sole authority') -or
-        -not $stage20SkillText.Contains('Do not independently implement or repeat its checks.')) {
-        throw 'Stage-20 skill does not preserve the ledger and native exit-code safety requirements.'
+        -not $stage20SkillText.Contains('Do not independently implement or repeat its checks.') -or
+        -not $stage20SkillText.Contains('it returns the verified issue as a PowerShell object') -or
+        -not $stage20SkillText.Contains('Do not inspect `$LASTEXITCODE`, redirect `2>&1`') -or
+        -not $stage20SkillText.Contains('use the returned object directly to inspect `state` and `assignees`')) {
+        throw 'Stage-20 skill does not preserve PowerShell ledger, native-command, and verifier-output safety requirements.'
     }
 
     $ledgerRoundTripPath = Join-Path $tempDirectory 'ledger-round-trip.json'

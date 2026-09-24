@@ -266,6 +266,26 @@ $serverChildren = @(($childrenOutput | Out-String) | ConvertFrom-Json)
 
 Never use `gh ... | ConvertFrom-Json` and then inspect `$LASTEXITCODE`; the PowerShell transformation can obscure the native command result.
 
+`ISSUE_BODY_VERIFIER` is platform-specific. On PowerShell, it is a PowerShell script, not a native command, and it returns the verified issue as a PowerShell object. Invoke it inside `try`/`catch` and assign its success output directly. Do not inspect `$LASTEXITCODE`, redirect `2>&1`, pipe the returned object through `Out-String`, or pass it to `ConvertFrom-Json`. Those patterns either apply native-command semantics to a PowerShell script or convert the object into display text that is not JSON.
+
+```powershell
+try {
+    $observedIssue = & $ISSUE_BODY_VERIFIER `
+        -Repository $REPO `
+        -IssueNumber $ISSUE_NUMBER `
+        -ExpectedBodyPath $BODY_FILE `
+        -MaxAttempts 6 `
+        -DelaySeconds 5 `
+        -DiagnosticPath (
+            Join-Path $LOG_DIRECTORY `
+                "issue-$ISSUE_NUMBER-body-verification-failure.json"
+        )
+}
+catch {
+    throw "Issue body verification failed for issue #${ISSUE_NUMBER}: $($_.Exception.Message)"
+}
+```
+
 Before linking the new issue, invoke `ISSUE_BODY_VERIFIER` to fetch the complete issue through the GitHub REST API and verify that its body exactly equals `BODY_FILE`. The verifier normalizes CRLF and CR to LF, permits only a single trailing newline difference, and retries read-only fetch/comparison failures up to six times with five-second delays. It does not retry authentication or authorization failures.
 
 ```powershell
@@ -314,7 +334,7 @@ If the ledger is empty, explicitly report that no issues were created and no cle
 - Persist the normalized pre-creation child array as `LOG_DIRECTORY/pre-creation-children.json` and the normalized final child array as `LOG_DIRECTORY/final-children.json`.
 - Invoke `CHILD_LINK_VERIFIER` with those two snapshots and `LOG_DIRECTORY/creation-ledger.json`. For Bash, pass the three paths in that order. For PowerShell, use `-PreCreationChildrenPath`, `-FinalChildrenPath`, and `-CreationLedgerPath`. If it fails, enter the failure flow. Do not independently implement or repeat its checks.
 - `CHILD_LINK_VERIFIER` is authoritative that the final child count increased by exactly the ledger length, every ledger identity is linked exactly once, pre-existing children remain linked, and newly linked child order matches plan order.
-- Every issue in the ledger has a body exactly matching its persisted body file, is open, and has no assignees. Invoke `ISSUE_BODY_VERIFIER` again for each final body check; do not substitute a GraphQL or single-attempt read.
+- Every issue in the ledger has a body exactly matching its persisted body file, is open, and has no assignees. Invoke `ISSUE_BODY_VERIFIER` again for each final body check; do not substitute a GraphQL or single-attempt read. On PowerShell, use the returned object directly to inspect `state` and `assignees`; do not stringify or reparse it.
 - When `SELECTED_ISSUE_TYPE=Task`, every created issue has type `Task`. When it is empty, no issue-type postcondition is required.
 - After every other postcondition passes, atomically write `stage-20-result.json` with `status` set to `complete` and `operationError` set to `null`. Do not add issue identities; `creation-ledger.json` is their single source of truth. A successful Copilot process exit is not a stage-success signal; the status document plus the complete ledger are authoritative.
 

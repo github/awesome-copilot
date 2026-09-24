@@ -73,8 +73,11 @@ try {
     $stage20SkillText = [System.IO.File]::ReadAllText($stage20Skill)
     if (-not $stage20SkillText.Contains('ConvertFrom-Json -NoEnumerate') -or
         -not $stage20SkillText.Contains('return ,([object[]]@())') -or
-        -not $stage20SkillText.Contains('capture output and then capture `$LASTEXITCODE` immediately')) {
-        throw 'Stage-20 skill does not preserve the ledger and native exit-code safety requirements.'
+        -not $stage20SkillText.Contains('capture output and then capture `$LASTEXITCODE` immediately') -or
+        -not $stage20SkillText.Contains('it returns the verified issue as a PowerShell object') -or
+        -not $stage20SkillText.Contains('Do not inspect `$LASTEXITCODE`, redirect `2>&1`') -or
+        -not $stage20SkillText.Contains('use the returned object directly to inspect `state` and `assignees`')) {
+        throw 'Stage-20 skill does not preserve PowerShell ledger, native-command, and verifier-output safety requirements.'
     }
 
     $ledgerRoundTripPath = Join-Path $tempDirectory 'ledger-round-trip.json'
