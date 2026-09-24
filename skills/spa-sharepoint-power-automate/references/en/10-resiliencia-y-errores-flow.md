@@ -1,0 +1,111 @@
+<!-- spa-sharepoint-power-automate · references/10-resiliencia-y-errores-flow.md · section §22 · English translation of the Spanish original -->
+<!-- New (2026-09-24). Complements §9 (build), §17 (catalog) and §20.4 (runtime traps). Verified against Microsoft Learn; see Sources. Index: ../SKILL.md -->
+
+# 22 · Flow resilience: errors, retries, concurrency and sensitive data
+
+The pipeline in §9 responds `200` **before** the loops (to stay under 120 s). That has a cost you must design for: **if something fails after `Respuesta`, the browser has already received "OK"**. Without this chapter, those failures are silent.
+
+## 22.1 · Try / Catch / Finally with Scopes
+
+```
+Scope  Try        ← Create item, attachment and checklist loops
+Scope  Catch      ← Configure run after: has failed + has timed out (+ is skipped)
+Scope  Finally    ← Configure run after: ALL (succeeded, failed, skipped, timed out)
+```
+
+- **Configure run after** decides in which states each action runs. By default only `is successful`.
+- `result('Try')` returns an array with the result of the scope's **top-level** actions (status, inputs, outputs, codes). It does **not** include those nested inside a `Condition`/`Switch`/loop. Filter it with **Filter array** on `@equals(item()?['status'], 'Failed')`.
+- `workflow()` gives run metadata (environment, flow, run). With that you build the **run link** for the error email:
+  `https://make.powerautomate.com/environments/<env>/flows/<flowName>/runs/<runName>`
+  (the values come from `workflow()?['tags']?['environmentName']`, `workflow()?['tags']?['logicAppName']` and `workflow()?['run']?['name']`. **Verify it with a `Compose` in a real run** before trusting the link: the `workflow()` schema is in the error handling docs).
+
+**What to do in `Catch`, given that 200 has already been sent:**
+
+1. **Do not** try a `Response` (it was already sent; it would be a "response already sent" error).
+2. Send an email to the support mailbox with: folio (`varFolio`), failed action (`Filter array` over `result('Try')`), and the run link.
+3. Optional and very useful: write a row to an `ErroresFlow` list (folio, action, message, `utcNow()` date), so you can **reconcile** against the main list.
+4. End with **Terminate → Failed** (see 22.2).
+
+> ⚠️ **A `Catch` that runs successfully leaves the run as `Succeeded`.** For Run history, analytics and the owner's automatic failure email (§13) to see the error, the `Catch` must end with `Terminate` in **Failed** status (with a code and message). Otherwise you have covered up the error: the run looks green and nobody finds out.
+
+## 22.2 · `Terminate` is not `Response`
+
+| | `Response` | `Terminate` |
+|---|---|---|
+| What it does | Answers the HTTP request to the client | Stops the run with status Succeeded / Failed / Cancelled |
+| Can be used after responding | No (only one response) | Yes |
+| Use in this pipeline | Early 200, 401 from `Check_key`, 409/4xx from guards | Close the `Catch` as Failed; cut off after an error `Response` |
+
+The §20.4 rule still holds: **every branch ends in `Response`**, or the client gets a silent `202`.
+
+## 22.3 · Concurrency
+
+- **Apply to each** runs **in sequence by default**; you can raise it from 1 to 50. Nested: only the outermost one allows parallelism.
+- **Attachments → always 1** (several `Add attachment` on the same item give `Save Conflict`, §9). **Child checklist → raise it**, it is independent per row (the template uses 20; more than that rarely speeds things up and does trigger 429 in SharePoint, §21.5).
+- **Trigger concurrency**: it comes turned off. Turning it on is **irreversible without recreating the trigger** (or the flow). Also, with concurrency on there is a bounded waiting queue; if it fills up, the extra triggers **may be lost or retried with no guarantee**. For a public endpoint with bursts (several inspectors submitting at once) **leave it off**, which is what Microsoft documents so that "all triggers generate a run".
+- If you need to serialize a critical write (for example generating a sequential folio), do not solve it with trigger concurrency: do it with a counter row using ETag/`If-Match` or with a unique identifier generated on the client (see 22.4).
+
+## 22.4 · Retries and idempotency
+
+- By default, actions that support a retry policy use an **exponential policy of up to 4 retries**, with bounded intervals (on the order of 5 to 45 s). It retries on **408, 429 and 5xx**; a **400** is never retried.
+- It is configured per action: Settings → **Retry policy** (Default / None / Fixed / Exponential). For SharePoint calls through `Send an HTTP request` or to external services, **set an explicit policy** instead of relying on the default.
+- **The real risk is duplicating.** If `Create item` is retried after a timeout where SharePoint had in fact created the item, the **same folio appears twice**. Countermeasures, from least to most costly:
+  1. The folio is generated by the **SPA** (UUID/timestamp+random) and included in the payload; the flow uses it as the key.
+  2. Before creating: `Get items` with `$filter=Folio eq '<folio>'` and `Top Count = 1`. If it exists, **do not create** and return the existing one.
+  3. `Folio` column **indexed and with unique values** (Enforce unique values) in the list: SharePoint rejects the duplicate.
+- Setting `None` on non-idempotent actions is a valid decision if you prefer to fail hard rather than duplicate; document it.
+
+## 22.5 · A `Foreach` with a handled failure still ends up `Failed`
+
+If an action inside the loop fails and you handle it with its own `run after`, **the loop container is still marked as Failed**. Whatever comes after with `run after = Succeeded` **is skipped** (`ActionSkipped`), for example the `Send_email`.
+
+- If partial success is acceptable: the next step runs after `Succeeded` **and** `Failed`, and includes an error summary.
+- If the loop is all-or-nothing: wrap the risky work in a **Scope** and resolve success/failure at the edge of the Scope.
+- Diagnosis: look at the status of the parent action (loop) **and** of the children of the iteration that failed.
+
+## 22.6 · Sensitive data: secure inputs and outputs
+
+Turning on **Secure inputs** and **Secure outputs** (Settings → Security) keeps the content from appearing in Run history and in audit logs. Use it on:
+
+- Actions that touch the **PIN** or tokens (§19.4) and on the trigger itself if the payload carries them.
+- Compose / Set variable that build credentials or `Authorization` headers.
+- Personal data (ID document, home address) that should not remain in the history.
+
+Cost: **debugging gets harder**, because exactly what you hid is what you would have looked at. Apply it only where appropriate, and note in `Flow-*.md` which actions have it.
+
+## 22.7 · Expression traps that cause data failures (not syntax failures)
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `InvalidTemplate` … *function 'split' expects its first argument 'text' to be of type string* | A `null` reached a text function | `coalesce(item()?['Nombre'], '')` or guard with `not(empty(...))` |
+| `InvalidTemplate` … *is of type 'Null'* | Property name differs (upper/lower case) from the one in the payload | Copy the name from the **trigger Inputs** in Run history. Keys are case-sensitive |
+| `… expected type 'Array' but got type 'Object'` | Object where a list goes (single response vs OData list) | `body('X')?['value']` for OData lists; `createArray(...)` to wrap an object |
+| Records with `null` fields after merging two arrays | `union(a, b)` keeps the **first** one on matches | `union(nuevos, viejos)`, never the other way around |
+| A `Filter array` returns the wrong record or an empty one | The lookup key is `null`/empty and matches rows that also have `null` | Non-empty guard before the filter, normalize with `trim()`/`toLower()`, explicit branch for "no matches" |
+| Only the first row of the array is used | `first()` was taken without checking the length | `length(body('Filter'))` first |
+
+(For `Choice`/`Hyperlink` that arrive as an object **or** as a string and for `PatchItem`, see §20.4.)
+
+## 22.8 · New rows for the error catalog (§17)
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| The SPA receives 401/403 and Run history is empty (newly created flow) | Trigger on "Any user in my tenant" (new default) | Change to **Anyone** (§21.1) |
+| `DirectApiAuthorizationRequired` | Premium connector without the right license on owner/flow | Premium for the owner or Process for the flow (§21.2) |
+| 429 *Rate limit is exceeded* on SharePoint actions | Connector limit (~600/min per connection) | Lower concurrency; spread the load; Process (§21.5, §22.3) |
+| The flow "stopped working" with no changes; it shows as off | Continuous failures for 14 days or no use for 90 days (§21.3) | Reactivate and test; license that exempts; monitoring |
+| 502/504 `ResponseTimeout` in the SPA | The response took longer than 120 s | `Respuesta` before the loops; reduce weight (§21.4) |
+| The run shows `Succeeded` but attachments/child items are missing | `Catch` handled the error and did not end in `Failed` | `Terminate → Failed` at the end of the Catch (§22.1) |
+| The final email was not sent even though the items were created | A `Foreach` with a handled failure ended up `Failed` and the email requires `Succeeded` | §22.5 |
+| Same folio duplicated in the list | `Create item` retry after a timeout | Client folio + prior check + unique column (§22.4) |
+| `Get items` returns only 100 rows | Default of 100 with `Top Count` not raised / no pagination | §23.1 |
+| `Get items` with a filter returns empty on a large list | 5,000 threshold: the filter only looks at the first 5,000 | Index the column and turn on Pagination (§23.2) |
+| `ConnectionAuthorizationFailed` / `InvalidConnectionCredentials` | Another user's connection, or expired token | Repair/reauthorize the connection in the environment; use connections from a stable service account (§9 "Connector authorization expires") |
+
+## Sources (Microsoft Learn)
+
+- *Employ robust error handling* (Scopes, run after, `result()`, `workflow()`, retry policy) — `learn.microsoft.com/power-automate/guidance/coding-guidelines/error-handling`
+- *Handle workflow errors and exceptions in Azure Logic Apps* (default retry policy) — `learn.microsoft.com/azure/logic-apps/error-exception-handling`
+- *Optimize flows with parallel execution and concurrency* — `learn.microsoft.com/power-automate/guidance/coding-guidelines/implement-parallel-execution`
+- *Optimize Power Automate triggers* (trigger concurrency) — `learn.microsoft.com/power-automate/guidance/coding-guidelines/optimize-power-automate-triggers`
+- *Secure data used in cloud flows* — `learn.microsoft.com/power-automate/guidance/coding-guidelines/use-secure-inputs-outputs-triggers`
