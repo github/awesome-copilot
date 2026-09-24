@@ -100,17 +100,62 @@ get_phase() {
 # Find PR linked to an issue
 find_pr() {
     local issue="$1"
-    local pr=""
+    local candidate candidate_info candidate_url
+    local candidate_numbers="" matching_numbers="" pr_candidates=""
+    local api_prefix="https://api.github.com/repos/$REPO/pulls/"
 
-    # Strategy A: issue timeline
-    pr=$(gh api "/repos/$REPO/issues/$issue/timeline" \
-        --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | select(.source.issue.state == "open") | .source.issue.number' 2>/dev/null | head -1)
-    if [[ -n "$pr" ]]; then echo "$pr"; return 0; fi
+    pr_candidates=$(gh api "/repos/$REPO/issues/$issue/timeline" \
+        --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url' 2>/dev/null) || {
+        alert "Unable to query the issue timeline for issue #$issue."
+        return 1
+    }
+    while IFS= read -r candidate_url; do
+        [[ "$candidate_url" == "$api_prefix"* ]] || continue
+        candidate="${candidate_url#"$api_prefix"}"
+        [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+        case $'\n'"$candidate_numbers"$'\n' in
+            *$'\n'"$candidate"$'\n'*) ;;
+            *) candidate_numbers="${candidate_numbers}${candidate_numbers:+$'\n'}$candidate" ;;
+        esac
+    done <<<"$pr_candidates"
 
-    # Strategy B: PR body search
-    pr=$(gh pr list -R "$REPO" --state all --json number,body \
-        --jq ".[] | select(.body | test(\"#$issue\")) | .number" 2>/dev/null | head -1)
-    if [[ -n "$pr" ]]; then echo "$pr"; return 0; fi
+    pr_candidates=$(gh pr list -R "$REPO" --state open --json number,body \
+        --jq ".[] | select((.body // \"\") | test(\"(^|[^0-9])#$issue([^0-9]|$)\")) | .number" 2>/dev/null) || {
+        alert "Unable to search PR bodies for issue #$issue."
+        return 1
+    }
+    while IFS= read -r candidate; do
+        [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+        case $'\n'"$candidate_numbers"$'\n' in
+            *$'\n'"$candidate"$'\n'*) ;;
+            *) candidate_numbers="${candidate_numbers}${candidate_numbers:+$'\n'}$candidate" ;;
+        esac
+    done <<<"$pr_candidates"
+
+    while IFS= read -r candidate; do
+        [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+        candidate_info=$(gh pr view "$candidate" -R "$REPO" \
+            --json state,closingIssuesReferences 2>/dev/null) || continue
+        if jq -e --argjson issue "$issue" '
+            .state == "OPEN" and
+            any(.closingIssuesReferences[]?; .number == $issue)
+        ' <<<"$candidate_info" >/dev/null; then
+            matching_numbers="${matching_numbers}${matching_numbers:+$'\n'}$candidate"
+        fi
+    done <<<"$candidate_numbers"
+
+    local match_count=0
+    while IFS= read -r candidate; do
+        [[ -n "$candidate" ]] && match_count=$((match_count + 1))
+    done <<<"$matching_numbers"
+    if [[ $match_count -gt 1 ]]; then
+        alert "Multiple open PRs close issue #$issue: $(tr '\n' ' ' <<<"$matching_numbers")"
+        return 1
+    fi
+    if [[ $match_count -eq 1 ]]; then
+        printf '%s\n' "$matching_numbers"
+        return 0
+    fi
 
     return 1
 }
