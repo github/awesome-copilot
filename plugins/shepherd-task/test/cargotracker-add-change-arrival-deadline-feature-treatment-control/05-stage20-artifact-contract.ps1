@@ -194,7 +194,7 @@ Do not expand scope.
 
     $resultPath = Join-Path $tempDirectory 'stage-20-result.json'
     $ledgerPath = Join-Path $tempDirectory 'creation-ledger.json'
-    @(
+    $validLedger = @(
         [ordered]@{
             implementationSubsection = '1. First task'
             bodyFile = 'issue-bodies/01-task-body.md'
@@ -215,7 +215,8 @@ Do not expand scope.
             body_verified = $true
             linked = $true
         }
-    ) | ConvertTo-Json | Set-Content -LiteralPath $ledgerPath -Encoding utf8NoBOM
+    )
+    $validLedger | ConvertTo-Json | Set-Content -LiteralPath $ledgerPath -Encoding utf8NoBOM
     [ordered]@{
         schemaVersion = 1
         status = 'complete'
@@ -223,6 +224,12 @@ Do not expand scope.
         operationError = $null
     } | ConvertTo-Json | Set-Content -LiteralPath $resultPath -Encoding utf8NoBOM
     & $resultAssertion -ResultPath $resultPath | Out-Null
+
+    $validLedger[0] | ConvertTo-Json | Set-Content -LiteralPath $ledgerPath -Encoding utf8NoBOM
+    Assert-Fails -ExpectedMessage 'creation ledger root must be an array' -Operation {
+        & $resultAssertion -ResultPath $resultPath
+    }
+    $validLedger | ConvertTo-Json | Set-Content -LiteralPath $ledgerPath -Encoding utf8NoBOM
 
     [ordered]@{
         schemaVersion = 1

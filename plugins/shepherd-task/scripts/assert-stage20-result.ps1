@@ -40,11 +40,17 @@ if ($status -ne 'complete') {
 
 $ledgerPath = Join-Path (Split-Path -Parent $ResultPath) ([string]$result.ledgerFile)
 try {
-    $ledger = @(Get-Content -LiteralPath $ledgerPath -Raw | ConvertFrom-Json)
+    $parsedLedger = Get-Content -LiteralPath $ledgerPath -Raw |
+        ConvertFrom-Json -NoEnumerate
 }
 catch {
     throw "Completed stage 20 has a missing or invalid ledger: $ledgerPath. $($_.Exception.Message)"
 }
+
+if ($parsedLedger -isnot [System.Array]) {
+    throw "Completed stage 20 creation ledger root must be an array: $ledgerPath"
+}
+$ledger = [object[]]$parsedLedger
 
 if ($ledger.Count -eq 0) {
     throw "Completed stage 20 has an empty creation ledger: $ledgerPath"
