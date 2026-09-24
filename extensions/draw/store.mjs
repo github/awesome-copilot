@@ -35,9 +35,11 @@ function cleanName(name) {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+let tmpCount = 0;
 
 async function atomicWrite(file, data) {
-    const tmp = `${file}.${process.pid}.${Date.now().toString(36)}.tmp`;
+    // The count keeps two writes of one file in the same millisecond from sharing a temp file.
+    const tmp = `${file}.${process.pid}.${Date.now().toString(36)}.${(tmpCount++).toString(36)}.tmp`;
     await fs.writeFile(tmp, data, "utf8");
     for (let attempt = 0; ; attempt++) {
         try {

@@ -1,11 +1,14 @@
 // Editor core: elements, selection, view, history, rendering and element-level commands.
 import {
   isShape, snap, clamp, normalizeElement, normalizeElements, removeWithArrows, newId, idPrefix,
-  PEN_WIDTHS, SHAPE_TYPES, MAX_SIDE,
+  PEN_WIDTHS, SHAPE_TYPES, MAX_SIDE, DEFAULT_SIZES,
 } from "/lib/model.mjs";
 import { renderElements, renderStandaloneSVG, outline, penPath } from "/lib/render.mjs";
-import { fmt, arrowGeometry, elementBounds, contentBounds, unionBounds, neededHeight } from "/lib/geometry.mjs";
+import {
+  fmt, arrowGeometry, elementBounds, contentBounds, unionBounds, neededHeight, lineHeight, fontSizeOf,
+} from "/lib/geometry.mjs";
 import { findFreeSpot } from "/lib/layout.mjs";
+import { describeElement } from "./announce.js";
 
 export const MIN_ZOOM = 0.1;
 export const MAX_ZOOM = 4;
@@ -52,6 +55,8 @@ export class Editor {
     this.hover = null;
     this.hoverHandle = null;
     this.target = null;
+    // The shape an arrow made from the keyboard starts at, until Enter picks where it ends.
+    this.linkFrom = null;
     this.marquee = null;
     this.guides = [];
     this.preview = null;
@@ -98,6 +103,7 @@ export class Editor {
     let pruned = false;
     for (const id of this.selection) if (!this.byId.has(id)) { this.selection.delete(id); pruned = true; }
     if (this.hover && !this.byId.has(this.hover)) this.hover = null;
+    if (this.linkFrom && !this.byId.has(this.linkFrom)) this.linkFrom = null;
     this.contentDirty = true;
     this.requestRender();
     if (pruned) this.emit("selection");
@@ -170,6 +176,7 @@ export class Editor {
     this.history = [];
     this.future = [];
     this.hover = null;
+    this.linkFrom = null;
     this.contentDirty = true;
     this.fit();
     this.emit("history");
@@ -238,6 +245,47 @@ export class Editor {
     return this.addConnected(id, across, { from: incoming ? incoming.from : null });
   }
 
+  // Enter with a shape or text tool adds one without a mouse: in the middle of the view, or the
+  // nearest free spot beside it. Then it edits the label, as a click on the canvas does.
+  addAtCenter(type) {
+    const text = type === "text";
+    if (!text && !SHAPE_TYPES.includes(type)) return null;
+    const [w, h] = text ? [120, lineHeight(fontSizeOf(this.styles.text))] : DEFAULT_SIZES[type];
+    const c = this.viewCenter();
+    // The first spot findFreeSpot tries is one gap past its anchor, so this one centers it.
+    const spot = findFreeSpot({ x: c.x - w / 2 - 40, y: c.y - h / 2, w: 0, h }, "right", w, h, this.obstacles(), 40);
+    const at = { x: snap(spot.x), y: snap(spot.y) };
+    const el = text ? this.newText(at) : this.newShape(type, { ...at, w, h });
+    const before = this.elements;
+    this.setElements([...this.elements, el], { record: false });
+    this.select([el.id]);
+    this.setTool("select");
+    this.ensureVisible([el]);
+    this.labels.open(el.id, { fresh: !text, before });
+    return el;
+  }
+
+  // Enter with the arrow tool connects shapes without a mouse: the first Enter starts an arrow at
+  // the selected shape, and the next one ends it at the shape selected by then.
+  linkStep() {
+    const one = this.single();
+    const from = this.linkFrom ? this.byId.get(this.linkFrom) : null;
+    if (!from) {
+      if (!one || !isShape(one)) return this.emit("hint", "Select a shape with N first, then press Enter to start an arrow from it.");
+      this.linkFrom = one.id;
+      this.requestRender();
+      return this.emit("announce", `Arrow from ${describeElement(one, this.byId)}. Select the shape it goes to with N, then press Enter.`);
+    }
+    if (!one || !isShape(one) || one.id === from.id) {
+      return this.emit("hint", "Select the shape the arrow goes to with N, then press Enter. Esc cancels.");
+    }
+    const arrow = this.newArrow({ from: from.id, to: one.id });
+    this.setElements([...this.elements, arrow]);
+    this.select([arrow.id]);
+    this.setTool("select");
+    this.emit("announce", `Added an arrow from ${describeElement(from, this.byId)} to ${describeElement(one, this.byId)}.`);
+  }
+
   // ---------- selection ----------
 
   selected() {
@@ -246,6 +294,19 @@ export class Editor {
 
   single() {
     return this.selection.size === 1 ? this.byId.get([...this.selection][0]) || null : null;
+  }
+
+  // N and Shift+N: select the next or previous element in drawing order, wrapping around.
+  selectStep(delta) {
+    const n = this.elements.length;
+    if (!n) return null;
+    const last = [...this.selection].pop();
+    const at = last ? this.elements.findIndex((e) => e.id === last) : -1;
+    const index = at < 0 ? (delta > 0 ? 0 : n - 1) : (at + delta + n) % n;
+    const el = this.elements[index];
+    this.select([el.id]);
+    this.ensureVisible([el]);
+    return { el, index, total: n };
   }
 
   select(ids, { toggle = false, add = false } = {}) {
@@ -274,6 +335,22 @@ export class Editor {
   nudge(dx, dy) {
     if (!this.selection.size) return;
     this.setElements(this.elements.map((e) => (this.selection.has(e.id) ? translateElement(e, dx, dy) : e)));
+  }
+
+  // Ctrl+Shift+Arrow: resizes the selected shapes, keeping their top left corner. Like dragging a
+  // handle, it stops at 20 px, but a shape that is smaller already keeps its size when shrunk.
+  resizeBy(dw, dh) {
+    const shapes = this.selected().filter(isShape);
+    if (!shapes.length) return this.emit("hint", "Select a shape to resize it.");
+    const sized = new Map();
+    for (const s of shapes) {
+      const w = clamp(s.w + dw, Math.min(20, s.w), MAX_SIDE);
+      const h = clamp(s.h + dh, Math.min(20, s.h), MAX_SIDE);
+      if (w !== s.w || h !== s.h) sized.set(s.id, normalizeElement({ ...s, w, h }));
+    }
+    if (sized.size) this.setElements(this.elements.map((e) => sized.get(e.id) || e));
+    const one = this.single();
+    if (one && isShape(one)) this.emit("announce", `${Math.round(one.w)} by ${Math.round(one.h)}`);
   }
 
   reorder(toFront) {
@@ -391,9 +468,15 @@ export class Editor {
     if (tool === this.tool) return;
     if (this.editing) this.labels.commit();
     this.tool = tool;
+    this.linkFrom = null;
     if (tool !== "select") this.hover = null;
     this.requestRender();
     this.emit("tool", tool);
+  }
+
+  // The canvas is the SVG: it takes the keys, and screen readers hear it as the drawing.
+  focusCanvas() {
+    this.svg.focus({ preventScroll: true });
   }
 
   setTheme(theme) {
@@ -620,6 +703,14 @@ export class Editor {
     if (hovered) parts.push(outline(hovered, ` fill="none" stroke="${A}" stroke-width="${sw(1.5)}" opacity="0.45"`));
     const target = this.target ? this.byId.get(this.target) : null;
     if (target) parts.push(outline(target, ` fill="${A}" fill-opacity="0.08" stroke="${A}" stroke-width="${sw(2)}"`));
+    // An arrow started from the keyboard: its start, and a dashed line to the selected shape.
+    const from = this.linkFrom ? this.byId.get(this.linkFrom) : null;
+    if (from) {
+      parts.push(outline(from, ` fill="${A}" fill-opacity="0.08" stroke="${A}" stroke-width="${sw(2)}"`));
+      const to = this.single();
+      const g = to && isShape(to) && to.id !== from.id ? arrowGeometry(this.newArrow({ id: "link", from: from.id, to: to.id }), this.byId) : null;
+      if (g) parts.push(`<path d="${g.d}" fill="none" stroke="${A}" stroke-width="${sw(1.5)}" stroke-dasharray="${sw(6)} ${sw(4)}" stroke-linecap="round"/>`);
+    }
     const sel = this.selected();
     for (const el of sel) {
       if (el.type === "arrow") {

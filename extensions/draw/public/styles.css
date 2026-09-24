@@ -114,7 +114,12 @@ kbd {
   background-color: var(--bg);
   background-image: radial-gradient(circle at 1px 1px, var(--d-dot, rgba(128, 128, 128, 0.35)) 1px, transparent 1.4px);
 }
-.svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; font-family: var(--font); }
+.svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; font-family: var(--font); outline: none; }
+.svg:focus-visible:not(.pointer-used) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
 .layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .label-editor {
   position: absolute;

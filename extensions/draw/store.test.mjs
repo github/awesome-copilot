@@ -1,6 +1,7 @@
 // Tests for how drawings are kept on disk: ids, the element limit, loading, and failed writes.
 // Run `node --test` in the extension folder.
 import assert from "node:assert/strict";
+import { promises as fs } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -129,4 +130,25 @@ test("drawings load back from disk, and unreadable files are skipped", async (t)
     assert.deepEqual(again.get(doc.id).elements, doc.elements);
     assert.equal(again.drawingForInstance("panel").id, doc.id);
     assert.ok(logs.some((message) => message.includes("broken.json")));
+});
+
+test("exports of one drawing written in the same millisecond all finish", async (t) => {
+    const store = await openStore(t);
+    // Temp file names hold the time, so stop the clock. Then rename only once every temp file is
+    // written, one at a time: temp files that shared a name would be renamed out from under each other.
+    t.mock.method(Date, "now", () => 1700000000000);
+    const rename = fs.rename;
+    let waiting = 0;
+    let release;
+    let queue = new Promise((resolve) => (release = resolve));
+    t.mock.method(fs, "rename", (...args) => {
+        if (++waiting === 3) release();
+        const done = queue.then(() => rename(...args));
+        queue = done.catch(() => {});
+        return done;
+    });
+    const payloads = ["<svg id='a'/>", "<svg id='b'/>", "<svg id='c'/>"];
+    const files = await Promise.all(payloads.map((data) => store.writeExport("plan", "svg", data)));
+    assert.equal(new Set(files).size, 1);
+    assert.ok(payloads.includes(await readFile(files[0], "utf8")));
 });

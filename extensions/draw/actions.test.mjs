@@ -103,3 +103,22 @@ test("get_drawing reads the biggest drawing in parts of limited size", async (t)
     assert.deepEqual(selected.selectedIds, ["r3", "r1"]);
     assert.deepEqual(listed(selected), ["r1", "r3"]);
 });
+
+test("an action that names another drawing than the one shown changes nothing", async (t) => {
+    const { store, doc, run } = await setup(t);
+    const nodes = [{ id: "api", label: "API" }];
+    await assert.rejects(run("add_elements", { drawingId: "old-plan", nodes }), (err) => {
+        assert.equal(err.code, "drawing_changed");
+        assert.ok(err.message.includes(`id ${doc.id}`));
+        return true;
+    });
+    assert.equal(store.get(doc.id).elements.length, 0);
+    assert.equal((await run("add_elements", { drawingId: doc.id, nodes })).ok, true);
+    assert.equal(store.get(doc.id).elements.length, 1);
+});
+
+test("every action on the shown drawing can name the drawing it means", () => {
+    const actions = makeActions({ runtime: async () => ({}), CanvasError });
+    const unpinned = actions.filter((a) => !a.inputSchema.properties.drawingId).map((a) => a.name);
+    assert.deepEqual(unpinned.sort(), ["list_drawings", "open_drawing", "set_theme"]);
+});

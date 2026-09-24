@@ -1,17 +1,30 @@
 // Keyboard shortcuts and clipboard.
-import { isShape } from "/lib/model.mjs";
+import { isShape, SHAPE_TYPES } from "/lib/model.mjs";
+import { describeElement } from "./announce.js";
 
 export const TOOL_KEYS = { v: "select", h: "hand", r: "rect", o: "ellipse", d: "diamond", c: "cylinder", a: "arrow", t: "text", p: "pen" };
 const DIRS = { ArrowRight: "right", ArrowLeft: "left", ArrowDown: "down", ArrowUp: "up" };
+const STEPS = { right: [1, 0], left: [-1, 0], down: [0, 1], up: [0, -1] };
 
 export function attachKeys(ed, ui) {
   const typing = (target) =>
-    !!target && target !== ed.stage && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable || !!target.closest?.(".popover"));
+    !!target && target !== ed.svg && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable || !!target.closest?.(".popover"));
   // A focused button keeps its normal keys: Space and Enter press it, and Tab moves focus on.
   const control = (target) =>
-    !!target && target !== ed.stage && !!target.closest?.("button, a[href], select, summary, [role='button']");
+    !!target && target !== ed.svg && !!target.closest?.("button, a[href], select, summary, [role='button']");
+  // N and Shift+N reach every element in turn, and say which one is selected.
+  const selectStep = (delta) => {
+    const hit = ed.selectStep(delta);
+    ui.announce(hit ? `${describeElement(hit.el, ed.byId)}, ${hit.index + 1} of ${hit.total}` : "The drawing is empty.");
+  };
+
+  // The canvas takes focus on every click and after every label edit, so it only shows a focus ring
+  // while the keyboard is in use: a click hides the ring, and Tab brings it back.
+  ed.svg.classList.add("pointer-used");
+  window.addEventListener("pointerdown", () => ed.svg.classList.add("pointer-used"), true);
 
   window.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") ed.svg.classList.remove("pointer-used");
     if (e.defaultPrevented || e.isComposing || typing(e.target)) return;
     const key = e.key;
     if ((key === " " || key === "Enter" || key === "Tab") && control(e.target)) return;
@@ -30,9 +43,13 @@ export function attachKeys(ed, ui) {
     }
     if (key === "Escape") {
       if (ed.pointerActive?.()) ed.cancelPointer();
-      else if (ui.closePopover()) ed.stage.focus({ preventScroll: true });
-      else if (ed.tool !== "select") ed.setTool("select");
-      else ed.select([]);
+      else if (ui.closePopover()) ed.focusCanvas();
+      // From the tools, the style bar or the zoom buttons, Esc goes back to the canvas.
+      else if (e.target !== ed.svg && ed.stage.contains(e.target)) ed.focusCanvas();
+      else if (ed.tool !== "select") {
+        ed.setTool("select");
+        ui.announceTool("select");
+      } else ed.select([]);
       return done();
     }
     if (mod) {
@@ -50,28 +67,47 @@ export function attachKeys(ed, ui) {
       if (key === "-" || key === "_") { ed.zoomBy(0.8); return done(); }
       if (key === "]") { ed.reorder(true); return done(); }
       if (key === "[") { ed.reorder(false); return done(); }
+      if (DIRS[key] && e.shiftKey) {
+        const [dx, dy] = STEPS[DIRS[key]];
+        if (!ed.interaction) ed.resizeBy(dx * 10, dy * 10);
+        return done();
+      }
       if (DIRS[key] && one && isShape(one)) { ed.addConnected(one.id, DIRS[key]); return done(); }
       return;
     }
     if (e.altKey && !DIRS[key]) return;
-    if (key === "Delete" || key === "Backspace") { ed.deleteSelection(); return done(); }
+    if (key === "Delete" || key === "Backspace") {
+      const gone = ed.selected();
+      const what = gone.length === 1 ? describeElement(gone[0], ed.byId) : `${gone.length} elements`;
+      ed.deleteSelection();
+      if (gone.length) ui.announce(`Deleted ${what}.`);
+      return done();
+    }
+    // With a shape or text tool, Enter adds one. With the arrow tool, it starts or ends an arrow.
+    if (key === "Enter" && !ed.interaction && (SHAPE_TYPES.includes(ed.tool) || ed.tool === "text")) {
+      ed.addAtCenter(ed.tool);
+      return done();
+    }
+    if (key === "Enter" && !ed.interaction && ed.tool === "arrow") { ed.linkStep(); return done(); }
     if ((key === "Enter" || key === "F2") && one && one.type !== "pen") { ed.labels.open(one.id); return done(); }
-    // With a shape selected, Tab adds the next step. Otherwise it moves focus like it normally does.
-    if (key === "Tab" && one && isShape(one)) {
-      if (e.shiftKey) ed.addSibling(one.id);
-      else ed.addConnected(one.id, ed.lastDirection || "right");
+    if (lower === "n") {
+      if (!ed.interaction) selectStep(e.shiftKey ? -1 : 1);
       return done();
     }
     if (DIRS[key]) {
-      const step = e.altKey ? 1 : e.shiftKey ? 50 : 10;
-      const [dx, dy] = { right: [1, 0], left: [-1, 0], down: [0, 1], up: [0, -1] }[DIRS[key]];
-      if (ed.selection.size) ed.nudge(dx * step, dy * step);
-      else ed.panBy(dx * step * 4, dy * step * 4);
+      const px = e.altKey ? 1 : e.shiftKey ? 50 : 10;
+      const [dx, dy] = STEPS[DIRS[key]];
+      if (ed.selection.size) ed.nudge(dx * px, dy * px);
+      else ed.panBy(dx * px * 4, dy * px * 4);
       return done();
     }
     if (key === "!" || (e.shiftKey && e.code === "Digit1")) { ed.fit({ maxZoom: 2 }); return done(); }
     if (key === "?") { ui.toggleHelp(); return done(); }
-    if (!e.shiftKey && TOOL_KEYS[lower]) { ed.setTool(TOOL_KEYS[lower]); return done(); }
+    if (!e.shiftKey && TOOL_KEYS[lower]) {
+      ed.setTool(TOOL_KEYS[lower]);
+      ui.announceTool(TOOL_KEYS[lower]);
+      return done();
+    }
   });
 
   window.addEventListener("keyup", (e) => {

@@ -392,6 +392,23 @@ test("ask needs a question and a connected session, then sends the drawing to Co
     assert.match(failed.json.error, /offline/);
 });
 
+test("a question is only sent while its panel still shows the drawing it is about", async (t) => {
+    const ctx = await setup(t);
+    const { server, store, doc } = ctx;
+    const sent = [];
+    ctx.session = { send: async (message) => sent.push(message) };
+    const other = store.create("Other");
+    server.showDrawing(PANEL, other);
+
+    const stale = await post(server, "/api/ask", { drawingId: doc.id, text: "Explain this" });
+    assert.equal(stale.status, 409);
+    assert.match(stale.json.error, /was not sent/);
+    assert.equal(sent.length, 0);
+
+    assert.equal((await post(server, "/api/ask", { drawingId: other.id, text: "Explain this" })).status, 200);
+    assert.ok(sent[0].prompt.includes(`instanceId "${PANEL}" and drawingId "${other.id}"`));
+});
+
 test("ask sends only part of a big drawing's outline, and says how to read the rest", async (t) => {
     const ctx = await setup(t);
     const { server, store, doc } = ctx;

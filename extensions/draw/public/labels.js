@@ -4,6 +4,7 @@ import {
   labelMaxWidth, labelCenterY, lineHeight, fontSizeOf, textLayout, neededHeight, arrowGeometry,
 } from "/lib/geometry.mjs";
 import { autoSize } from "/lib/layout.mjs";
+import { TYPE_NAMES } from "./announce.js";
 
 export class LabelEditor {
   constructor(ed) {
@@ -22,7 +23,7 @@ export class LabelEditor {
     if (!el || el.type === "pen") return;
     const ta = document.createElement("textarea");
     ta.className = "label-editor";
-    ta.setAttribute("aria-label", el.type === "arrow" ? "Arrow label" : "Label");
+    ta.setAttribute("aria-label", el.type === "text" ? "Text" : `${TYPE_NAMES[el.type] || "Shape"} label`);
     ta.spellcheck = true;
     ta.value = el.text || "";
     ed.layer.append(ta);
@@ -170,7 +171,7 @@ export class LabelEditor {
     ed.emit("editing", false);
     ed.emit("change");
     ed.emit("idle");
-    if (refocus) ed.stage.focus({ preventScroll: true });
+    if (refocus) ed.focusCanvas();
   }
 
   // Drops the editor without recording anything (used when a different drawing is loaded).

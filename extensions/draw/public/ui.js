@@ -3,6 +3,7 @@ import { COLORS, SHAPE_TYPES, SIZE_KEYS, PEN_WIDTHS } from "/lib/model.mjs";
 import { icon } from "./icons.js";
 import { categoryOf, STYLE_KEYS } from "./editor.js";
 import { esc, capitalize } from "./util.js";
+import { makeAnnouncer, TYPE_NAMES } from "./announce.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -11,7 +12,14 @@ const TOOLS = [
   ["rect", "R", "Rectangle"], ["ellipse", "O", "Ellipse"], ["diamond", "D", "Diamond (decision)"], ["cylinder", "C", "Database"], null,
   ["arrow", "A", "Arrow"], ["text", "T", "Text"], ["pen", "P", "Pen"],
 ];
-const TYPE_LABELS = { rect: "Rectangle", ellipse: "Ellipse", diamond: "Diamond", cylinder: "Database" };
+// What each tool does, read out when it is picked from the keyboard. Shape tools share one.
+const TOOL_TIPS = {
+  select: "Select tool. N selects the next element.",
+  hand: "Pan tool. Drag to pan, or use the arrow keys when nothing is selected.",
+  arrow: "Arrow tool. Select a shape and press Enter, then select the shape it goes to and press Enter.",
+  text: "Text tool. Press Enter to add text in the middle, or click the canvas.",
+  pen: "Pen tool. Draw with a mouse, pen or touch.",
+};
 const SIZE_LABELS = { s: "Small", m: "Medium", l: "Large", xl: "Extra large" };
 const FILL_OPTIONS = [["none", "No fill"], ["soft", "Light fill"], ["solid", "Solid fill"]];
 const HEAD_OPTIONS = [["end", "Arrow at the end"], ["both", "Arrows at both ends"], ["none", "No arrowheads"]];
@@ -31,6 +39,7 @@ export class UI {
     this.connected = true;
     this.sbHtml = "";
     this.sbRaf = 0;
+    this.announce = makeAnnouncer($("announce"));
     this.buildTools();
     this.buildButtons();
     this.bindEditor();
@@ -48,9 +57,21 @@ export class UI {
     nav.addEventListener("mousedown", (e) => e.preventDefault());
     nav.addEventListener("click", (e) => {
       const b = e.target.closest("[data-tool]");
-      if (b) this.ed.setTool(b.dataset.tool);
+      if (!b) return;
+      this.ed.setTool(b.dataset.tool);
+      // Picked with the keyboard (a click without a pointer), so go on to the canvas, where Enter
+      // adds a shape.
+      if (e.detail === 0) {
+        this.ed.focusCanvas();
+        this.announceTool(b.dataset.tool);
+      }
     });
     this.syncTools();
+  }
+
+  announceTool(tool) {
+    const name = TOOLS.find((t) => t && t[0] === tool)?.[2] || "Shape";
+    this.announce(TOOL_TIPS[tool] || `${name} tool. Press Enter to add one in the middle, or click the canvas.`);
   }
 
   syncTools() {
@@ -99,6 +120,7 @@ export class UI {
     ed.on("history", () => this.syncHistory());
     ed.on("view", () => this.syncZoom());
     ed.on("hint", (msg) => this.toast(msg));
+    ed.on("announce", (msg) => this.announce(msg));
   }
 
   setup(state) {
@@ -114,6 +136,7 @@ export class UI {
   setDoc(doc) {
     this.doc = { id: doc.id, name: doc.name };
     $("doc-name").textContent = doc.name;
+    $("svg").setAttribute("aria-label", doc.name);
     document.title = `${doc.name} - Draw`;
   }
 
@@ -164,7 +187,7 @@ export class UI {
     }
     if (!items.length) {
       // A hidden bar cannot keep focus, so the canvas gets it, as when Escape closes a menu.
-      if (bar.contains(document.activeElement)) ed.stage.focus({ preventScroll: true });
+      if (bar.contains(document.activeElement)) ed.focusCanvas();
       bar.hidden = true;
       return;
     }
@@ -189,7 +212,7 @@ export class UI {
     ];
     if (cats.has("shape") && sel.length) {
       const type = common("type");
-      parts.push(group("Shape", SHAPE_TYPES.map((t) => btn("type", t, t === type, TYPE_LABELS[t], icon(t))).join("")));
+      parts.push(group("Shape", SHAPE_TYPES.map((t) => btn("type", t, t === type, TYPE_NAMES[t], icon(t))).join("")));
     }
     if (cats.has("shape")) parts.push(group("Fill", options("fill", FILL_OPTIONS, common("fill"), "fill-")));
     if (cats.has("shape") || cats.has("arrow")) {
@@ -221,7 +244,8 @@ export class UI {
       if (focused) {
         const same = [...bar.querySelectorAll("button")].find((b) =>
           b.dataset.k === focused.k && b.dataset.v === focused.v && b.dataset.act === focused.act);
-        (same || ed.stage).focus({ preventScroll: true });
+        if (same) same.focus({ preventScroll: true });
+        else ed.focusCanvas();
       }
     }
     bar.hidden = false;
@@ -389,7 +413,7 @@ export class UI {
     this.popover = null;
     const hadFocus = p.pop.contains(document.activeElement);
     p.cleanup();
-    if (hadFocus) this.ed.stage.focus({ preventScroll: true });
+    if (hadFocus) this.ed.focusCanvas();
     return true;
   }
 }

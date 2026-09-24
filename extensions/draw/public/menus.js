@@ -16,13 +16,17 @@ const HELP = [
   [["V", "H"], "Select, pan"],
   [["R", "O", "D", "C"], "Rectangle, ellipse, diamond, database"],
   [["A", "T", "P"], "Arrow, text, pen"],
+  [["N"], "Select the next element (Shift+N goes back)"],
+  [["Enter"], "Edit the label (or double-click it)"],
+  [["Enter"], "With a shape or text tool: add one in the middle"],
+  [["Enter"], "With the arrow tool: start an arrow at the selected shape, then again to end it at the next one you select"],
   ["Click +", "Add the next connected shape"],
   ["Drag +", "Connect to a shape, or drop to add one"],
-  [["Tab"], "Add the next step to the selected shape (Shift+Tab adds a sibling)"],
-  [["Enter"], "Edit the label (or double-click it)"],
+  [["Tab"], "While typing a label: add the next step (Shift+Tab adds a sibling)"],
   ["Double-click", "Empty space adds text"],
   [["Ctrl+Arrow"], "Add a shape in that direction"],
   [["Arrows"], "Nudge (Alt: 1px, Shift: 50px)"],
+  [["Ctrl+Shift+Arrow"], "Resize the selected shape"],
   ["Shift+drag", "Keep proportions or lock the axis"],
   ["Alt+drag", "Turn off snapping"],
   ["Space+drag", "Pan (scrolling pans too)"],
@@ -31,6 +35,7 @@ const HELP = [
   [["Ctrl+Z"], "Undo (Ctrl+Shift+Z redoes)"],
   [["Ctrl+C", "Ctrl+V", "Ctrl+D"], "Copy, paste, duplicate"],
   [["Del"], "Delete the selection"],
+  [["Esc"], "Cancel, or go back to the canvas from a toolbar"],
 ];
 
 const menuItem = (act, iconName, label, cls = "") =>
@@ -147,7 +152,7 @@ export function attachMenus(ui) {
       button.hidden = false;
       const name = input.value.trim();
       if (save && name && ui.doc && name !== ui.doc.name) await drawingsAction({ action: "rename", id: ui.doc.id, name });
-      ed.stage.focus({ preventScroll: true });
+      ed.focusCanvas();
     };
     input.onkeydown = (e) => {
       e.stopPropagation();

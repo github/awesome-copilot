@@ -129,7 +129,7 @@ async function boot() {
   ui.syncEmpty();
   sync.setDiskError(state.drawing.saveError);
   sync.connect();
-  ed.stage.focus({ preventScroll: true });
+  ed.focusCanvas();
 }
 
 boot().catch((err) => {

@@ -142,17 +142,30 @@ export function makeActions({ runtime, CanvasError }) {
     throw new CanvasError(code, message);
   };
   const specErrors = (errors) => fail("invalid_diagram", `Nothing was changed. Fix these and try again:\n- ${errors.join("\n- ")}`);
+  // The user can open another drawing at any time, so actions on the shown drawing can name the one
+  // they mean and then refuse to touch a different one.
+  const pin = {
+    type: "string",
+    description: "Optional. The id of the drawing you mean. If the canvas shows a different drawing now, nothing is done and the error says which one it shows.",
+  };
 
-  const action = (name, description, properties, required, handler) => ({
+  const action = (name, description, properties, required, handler, { anyDrawing = false } = {}) => ({
     name,
     description,
-    inputSchema: { type: "object", properties, required, additionalProperties: false },
+    inputSchema: { type: "object", properties: anyDrawing ? properties : { ...properties, drawingId: pin }, required, additionalProperties: false },
     handler: async (ctx) => {
       const { store, server } = await runtime(ctx);
+      const input = ctx.input || {};
       const doc = server.ensureDrawing(ctx.instanceId);
+      if (!anyDrawing && input.drawingId && input.drawingId !== doc.id) {
+        fail(
+          "drawing_changed",
+          `Nothing was done: this canvas shows "${doc.name}" (id ${doc.id}) now, not drawing ${input.drawingId}. The user may have opened it on purpose, so ask before calling open_drawing to go back.`,
+        );
+      }
       let result;
       try {
-        result = await handler({ store, server, doc, instanceId: ctx.instanceId }, ctx.input || {});
+        result = await handler({ store, server, doc, instanceId: ctx.instanceId }, input);
       } catch (err) {
         if (err instanceof StoreError) fail(err.code, err.message);
         throw err;
@@ -359,6 +372,7 @@ export function makeActions({ runtime, CanvasError }) {
       {},
       [],
       ({ store, doc }) => ({ currentId: doc.id, drawings: store.list() }),
+      { anyDrawing: true },
     ),
 
     action(
@@ -380,6 +394,7 @@ export function makeActions({ runtime, CanvasError }) {
         server.showDrawing(instanceId, doc);
         return { ...summary(doc, created ? `Created and opened "${doc.name}".` : `Opened "${doc.name}".`), created };
       },
+      { anyDrawing: true },
     ),
 
     action(
@@ -412,6 +427,7 @@ export function makeActions({ runtime, CanvasError }) {
         }
         return { ok: true, theme: settings.theme, canvasOpen: server.hasClient(instanceId) };
       },
+      { anyDrawing: true },
     ),
   ];
 }

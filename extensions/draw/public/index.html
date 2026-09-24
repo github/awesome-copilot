@@ -27,16 +27,17 @@
     </div>
   </header>
 
-  <main id="stage" class="stage" tabindex="-1">
-    <svg id="svg" class="svg" xmlns="http://www.w3.org/2000/svg" aria-label="Drawing canvas" role="img">
+  <main id="stage" class="stage">
+    <svg id="svg" class="svg" xmlns="http://www.w3.org/2000/svg" tabindex="0" role="application" aria-roledescription="drawing canvas" aria-label="Drawing" aria-describedby="canvas-help">
       <g id="world"><g id="content"></g><g id="overlay"></g></g>
     </svg>
+    <p id="canvas-help" hidden>N and Shift+N select the next or previous element. Enter edits its label, the arrow keys move it and Delete removes it. To add a shape, press R for a rectangle, O for an ellipse, D for a diamond or C for a database, then press Enter. T and then Enter adds text. To connect two shapes, select one, press A and then Enter, select the other with N, and press Enter. Tab moves on to the style bar and the tools. Press question mark for all shortcuts.</p>
     <div id="layer" class="layer"></div>
-    <nav id="tools" class="tools" role="toolbar" aria-label="Tools" aria-orientation="vertical"></nav>
     <div id="stylebar" class="stylebar" role="toolbar" aria-label="Style" hidden></div>
+    <nav id="tools" class="tools" role="toolbar" aria-label="Tools" aria-orientation="vertical"></nav>
     <div id="empty" class="empty" hidden>
       <p class="empty-title">Start a diagram</p>
-      <p>Pick a shape on the left (or press <kbd>R</kbd>) and click the canvas.</p>
+      <p>Pick a shape on the left (or press <kbd>R</kbd>), then click the canvas or press <kbd>Enter</kbd>.</p>
       <p>Hover a shape and drag a <b>+</b> handle to connect it, or click <b>+</b> to add the next step.</p>
       <p>Or ask Copilot in the chat to draw one for you.</p>
     </div>
@@ -51,6 +52,7 @@
 
   <div id="popovers"></div>
   <div id="toasts" class="toasts" aria-live="polite"></div>
+  <div id="announce" class="sr-only" role="status"></div>
 </div>
 <script type="module" src="/app.js"></script>
 </body>

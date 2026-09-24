@@ -342,6 +342,10 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         if (!text) throw new HttpError(400, "Type a question first.");
         const doc = store.get(body.drawingId);
         if (!doc) throw new HttpError(404, "That drawing no longer exists.");
+        // The context tells Copilot to use this panel, so it must still show the drawing asked about.
+        if (store.drawingForInstance(instanceId)?.id !== doc.id) {
+            throw new HttpError(409, "Another drawing opened, so your question was not sent. It is still in Ask, so you can send it about this one.");
+        }
         const session = getSession();
         if (!session) throw new HttpError(503, "Copilot is not connected yet. Try again in a moment.");
         const png = typeof body.png === "string" ? body.png : "";
@@ -351,7 +355,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
                 (png ? " The attached image shows the drawing exactly as the user sees it." : ""),
             part.text,
             part.next === null ? null : `The outline stops after ${part.shown.length} of ${part.total} elements. Call get_drawing with start ${part.next} to read the rest.`,
-            `To change this drawing, call the Draw canvas actions with instanceId "${instanceId}" (get_drawing, add_elements, update_elements, delete_elements, set_diagram, layout). Element ids are listed above.]`,
+            `To change this drawing, call the Draw canvas actions with instanceId "${instanceId}" and drawingId "${doc.id}" (get_drawing, add_elements, update_elements, delete_elements, set_diagram, layout). With drawingId, an action changes nothing if the user has opened another drawing since. Element ids are listed above.]`,
         ].filter(Boolean).join("\n");
         const attachments = png ? [{ type: "blob", data: png, mimeType: "image/png", displayName: `${doc.name}.png` }] : [];
         try {

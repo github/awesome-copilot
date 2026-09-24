@@ -139,7 +139,7 @@ export function attachPointer(ed) {
     if (it || (e.button !== 0 && e.button !== 1)) return;
     e.preventDefault();
     if (ed.editing) ed.labels.commit({ refocus: false });
-    ed.stage.focus({ preventScroll: true });
+    ed.focusCanvas();
     const s = local(e);
     const p = ed.toWorld(e.clientX, e.clientY);
     ed.lastPointer = p;
