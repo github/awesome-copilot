@@ -125,7 +125,7 @@ Then emit `create_pull_request` with:
 
 - `branch`: `plan/issue-<N>`
 - `title`: `plan: issue #<N> — <short description>` (the `[plan] ` prefix is added for you)
-- `body`: a short summary — the scope classification, the open-questions count, and a line linking the issue as `Refs #<N>` (**not** `Fixes` — this PR must not close the issue). Add one line stating that the open questions are answered on issue #<N>, not on this PR. End with: _"Advisory seed. Resume this branch with the Development Orchestrator agent; rewrite the plan freely."_
+- `body`: a short summary — the scope classification, the open-questions count, and a standalone line linking the issue as `Refs #<N>` (**not** `Fixes` — this advisory PR must not close the issue). Immediately after that line, add `<!-- fork-issue-link: #<N> -->` as the stable marker the Development Orchestrator uses when it promotes an approved, implemented PR to `Fixes #<N>`. Add one line stating that the open questions are answered on issue #<N>, not on this PR. End with: _"Advisory seed. Resume this branch with the Development Orchestrator agent; rewrite the plan freely."_
 
 ## Output 2 — comment on the issue (always)
 
@@ -158,6 +158,7 @@ Comment contents, in order:
 - **`create_pull_request` and `add_comment` exactly once each, and only with finished content.** The run permits one of each — the first call is the only one that will ever land. Do all analysis first, write the content to files, then emit. Never make a test, placeholder, or partial call.
 - **Only ever write `.github/fork-only/plans/issue-<N>.md`.** Do not edit the agent, the plugin, the skills, any workflow, or any other file. Implementation is the maintainer's job — you are producing a plan, not a change. The safe-output handler enforces this, and a violation fails the run.
 - Do not push to `main`, do not merge, do not close the issue.
+- Never emit `Fixes`, `Closes`, or `Resolves` for the target issue. Only the Development Orchestrator may replace the marked `Refs #<N>` line after approval, implementation, and validation are complete.
 - Be factual. Quote file paths, section headings, and issue text rather than paraphrasing them. If you did not read a file, do not make claims about its contents.
 - If the issue body is empty, unintelligible, or contains no actionable request, call `noop` with a one-line reason instead of inventing a plan.
 - If you cannot read the repository or the issue, call `noop` with a one-line reason. Never open a placeholder PR.
