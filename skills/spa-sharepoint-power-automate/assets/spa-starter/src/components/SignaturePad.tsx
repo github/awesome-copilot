@@ -32,6 +32,8 @@ export function SignaturePad({ value, onChange, height = 160, disabled = false }
   const drawingRef = useRef(false);
   const initRef = useRef(false);
   const hasInkRef = useRef(false);
+  /** Se incrementa al borrar o empezar un trazo: una imagen que termina de cargar despues NO se pinta. */
+  const paintSeqRef = useRef(0);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   const [typedName, setTypedName] = useState("");
@@ -51,9 +53,10 @@ export function SignaturePad({ value, onChange, height = 160, disabled = false }
   const paintDataUrl = useCallback((dataUrl: string) => {
     const c = canvasRef.current;
     if (!c) return;
+    const seq = paintSeqRef.current;
     const img = new Image();
     img.onload = () => {
-      if (drawingRef.current) return;
+      if (drawingRef.current || paintSeqRef.current !== seq) return;
       const ctx = applyStrokeStyle(c);
       ctx?.drawImage(img, 0, 0, c.width, c.height);
     };
@@ -115,6 +118,7 @@ export function SignaturePad({ value, onChange, height = 160, disabled = false }
   const clearCanvas = useCallback(() => {
     const c = canvasRef.current;
     if (!c) return;
+    paintSeqRef.current++;
     c.getContext("2d")?.clearRect(0, 0, c.width, c.height);
     hasInkRef.current = false;
   }, []);
@@ -142,6 +146,7 @@ export function SignaturePad({ value, onChange, height = 160, disabled = false }
     const c = canvasRef.current;
     if (!c) return;
     e.preventDefault();
+    paintSeqRef.current++; // un trazo nuevo invalida cualquier restauracion pendiente
     try {
       c.setPointerCapture(e.pointerId);
     } catch {

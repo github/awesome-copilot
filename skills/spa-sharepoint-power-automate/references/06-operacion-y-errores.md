@@ -67,7 +67,7 @@ When a user reports "your fix didn't work" / changes aren't visible:
 1. **Did the commit get pushed?** `git log origin/main -5` — if commit not in remote, push.
 2. **Did the workflow finish?** Check Actions tab. If running, wait. If failed, fix the workflow.
 3. **Is the new code in the live bundle?** `curl` the hashed asset, grep for a unique string from the change. If absent → re-trigger workflow. If present → continue.
-4. **Is the user's SW serving stale JS?** They installed the PWA pre-auto-reload-fix. Tell them: DevTools → Application → Service Workers → Unregister → reload. Or Clear site data.
+4. **Is the user's SW serving stale JS?** They installed an older version of the app and the new service worker has not taken over yet. Tell them to use the *Update now* banner if it is shown, or: DevTools → Application → Service Workers → Unregister → reload. Or Clear site data.
 5. **Is the user's localStorage holding stale state?** (Old draft, old config.) Bump storage version, add to LEGACY_KEYS purge list, push.
 6. **Is the user looking at the right URL?** Sometimes there's a forked stale deploy at an old repo path AND the new one.
 
@@ -94,7 +94,7 @@ Doing these in **exactly this order** prevents 90% of the "what do I do now?" lo
 4. **Build the Power Automate flow** in the UI (see §9 flow build template):
    - HTTP trigger with **empty schema**
    - Optional `Check_key` 401 gate
-   - Init varFolio → Create item (parent) with `fx` + defensive wrappers
+   - Init varFolio → **`Validate_body` (mandatory)** → **`Check_duplicate` by folio (mandatory)** → Create item (parent) with `fx` + defensive wrappers
    - `Respuesta` 200 before the loops
    - Loop `triggerBody()?['attachments']` (concurrency 1) → Add attachment
    - Loop `triggerBody()?['checklist']` (concurrency 20) → Create child item with lookup = parent ID
@@ -154,7 +154,7 @@ Three places to keep in sync — plus the SP column:
 | `data:,` saved as signature | empty canvas serialized | Validate `dataUrl.length > 200` before `onChange` |
 | PDF text shows `Ã³` / `Ã±` / empty boxes where accents go | jsPDF built-in font isn't UTF-8 | Embed a UTF-8 TTF (`addFileToVFS` + `addFont`); ASCII-only is last resort |
 | Cache.put TypeError in SW | `chrome-extension://` or `blob:` URL hit fetch listener | Early-return when `url.protocol !== "http(s):"` |
-| PWA users see old version after deploy | Old SW still controlling tab; needs reload | Implement `controllerchange` auto-reload (see §7) |
+| PWA users see old version after deploy | Old SW still controlling tab; needs reload | Notify on `controllerchange` and let the user reload from an *Update now* banner; do not reload by itself (see §7) |
 | Removed checklist items still appear after deploy | Stale draft in localStorage with old items array | Bump `STORAGE_KEY` version + add old key to `LEGACY_KEYS` purge |
 | Lighthouse: "icon size 'any' is not specific enough" | Manifest uses `sizes:"any"` | Provide explicit `192x192` and `512x512` entries |
 | First push to new GitHub repo rejected | Repo was auto-initialized with README | `pull --allow-unrelated-histories` + `checkout --ours` |

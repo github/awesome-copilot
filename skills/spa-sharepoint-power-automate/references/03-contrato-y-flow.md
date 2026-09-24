@@ -488,6 +488,8 @@ Save the flow. Click on the trigger header card → **Copy URL** button at the r
 When a HTTP request is received
 ├─ Check_key              ← optional 401 gate
 ├─ Init_varFolio
+├─ Validate_body          ← mandatory: 400 + Terminate on failure (step 3b)
+├─ Check_duplicate        ← mandatory: existing folio → 200 + Terminate (step 3c)
 ├─ CreateHeaderItem
 ├─ Respuesta              ← 200 returned here, before loops
 ├─ Loop_attachments       (concurrency = 1)
@@ -499,7 +501,8 @@ When a HTTP request is received
 
 ### Pre-flight checklist (read out loud before saving the flow)
 
-- [ ] Trigger schema **empty** (not synced — empty)
+- [ ] Trigger schema **empty** (not synced — empty), **and** `Validate_body` (step 3b) rejects anything the SPA would never send
+- [ ] `Check_duplicate` (step 3c) sits **before** `CreateHeaderItem`, and the `Title` column enforces unique values
 - [ ] varFolio uses `concat('<PREFIX>-', formatDateTime(utcNow(),'yyyyMMdd-HHmmss'))` fallback
 - [ ] Action renamed to `CreateHeaderItem` (or whatever name your other expressions reference)
 - [ ] Every header field used `fx Expression` tab (no orange chips from Dynamic Content panel)

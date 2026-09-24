@@ -732,8 +732,8 @@ function registerSW() {
 Combined with the SW already calling `self.skipWaiting()` on install and `self.clients.claim()` on activate:
 1. Browser fetches new `sw.js` (changed because CACHE bumped) → installs as waiting
 2. `updatefound` → `statechange("installed")` → SPA posts `SKIP_WAITING` → new SW activates
-3. `clients.claim()` → controllerchange fires → SPA reloads exactly once
-4. Reloaded page now serves new JS bundle
+3. `clients.claim()` → controllerchange fires → the SPA dispatches `app:update-ready` **once** (it does not reload)
+4. The UI shows an *Update now* banner; when the user taps it, `window.location.reload()` serves the new JS bundle
 
 Without this, you'll keep telling users "Ctrl+Shift+R" or "Clear site data" — and on installed PWAs they can't even do that easily.
 
