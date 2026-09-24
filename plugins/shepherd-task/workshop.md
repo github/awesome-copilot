@@ -93,9 +93,8 @@ This workshop includes two prepared campaigns to illustrate the operation of the
    macOS, GNU/Linux
    
    ```bash
-   cd $HOME/.copilot/plugins/shepherd-task/test/simple-math
-   ./run-campaign.sh -h
-   ./run-campaign.sh 'myRepositoryUrl'
+   $HOME/.copilot/plugins/shepherd-task/test/simple-math/run-campaign.sh -h
+   $HOME/.copilot/plugins/shepherd-task/test/simple-math/run-campaign.sh 'myRepositoryUrl'
    ```
    
 ### Commentary on the prepared `simple-math` campaign
