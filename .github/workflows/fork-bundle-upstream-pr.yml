@@ -343,8 +343,34 @@ jobs:
           Opened by the fork's \`fork-bundle-upstream-pr\` workflow (run ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}).
           EOF
 
-          EXISTING=$(gh api "repos/${UPSTREAM_REPO}/pulls?state=all&head=${HEAD_REF}&base=main&per_page=1" \
-            --jq '.[0] | select(.) | "\(.number)\t\(.state)\t\(.html_url)"')
+          # Neither GET /pulls?head= nor `gh pr list --head` returns closed PRs
+          # from this fork, causing `gh pr create` to fail with HTTP 422. Query
+          # GitHub's GraphQL PR connection directly and include closed PRs.
+          UPSTREAM_OWNER="${UPSTREAM_REPO%%/*}"
+          UPSTREAM_NAME="${UPSTREAM_REPO#*/}"
+          EXISTING=$(gh api graphql \
+            -f query='
+              query($owner: String!, $name: String!, $base: String!, $head: String!) {
+                repository(owner: $owner, name: $name) {
+                  pullRequests(first: 100, states: [OPEN, CLOSED], baseRefName: $base, headRefName: $head) {
+                    nodes {
+                      number
+                      state
+                      url
+                      headRepository { owner { login } }
+                    }
+                  }
+                }
+              }' \
+            -f owner="$UPSTREAM_OWNER" \
+            -f name="$UPSTREAM_NAME" \
+            -f base=main \
+            -f head="$PROMOTION_BRANCH" |
+            jq -r --arg fork_owner "$GITHUB_REPOSITORY_OWNER" \
+              '.data.repository.pullRequests.nodes[]
+               | select(.headRepository?.owner?.login == $fork_owner)
+               | "\(.number)\t\(.state | ascii_downcase)\t\(.url)"' |
+            head -n 1)
           if [ -n "$EXISTING" ]; then
             EXISTING_NUMBER="${EXISTING%%$'\t'*}"
             EXISTING_STATE_AND_URL="${EXISTING#*$'\t'}"
