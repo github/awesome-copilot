@@ -64,7 +64,10 @@ grep -Fq 'createdBy:' "$plugin_root/scripts/shepherd-task-00-init-campaign.sh"
 grep -Fq 'stageOutcomeProtocolVersion:' "$plugin_root/scripts/shepherd-task-25-given-list.sh"
 
 export COPILOT_HOME="$temp_root/copilot-home"
-bash "$installer" >/dev/null
+source_repo="$(cd "$plugin_root/../.." && pwd)"
+expected_source_commit="$(git -C "$source_repo" rev-parse HEAD)"
+installer_output="$(bash "$installer")"
+grep -Fq "  System commit: $expected_source_commit" <<<"$installer_output"
 
 install_manifest="$COPILOT_HOME/plugins/shepherd-task/install-manifest.json"
 for installed_driver in \
@@ -134,6 +137,9 @@ jq -e --arg version "$version" '
   .components.plugin.shepherdTaskVersion == $version and
   (.components.skills | length == 6) and
   all(.components.skills[]; .shepherdTaskVersion == $version)
+' "$install_manifest" >/dev/null
+jq -e --arg sourceCommit "$expected_source_commit" '
+  .sourceCommit == $sourceCommit
 ' "$install_manifest" >/dev/null
 
 for skill_ref in $(jq -b -r '.extensions["com.github.awesome-copilot"].skills[]' "$plugin_root/plugin.json"); do

@@ -215,6 +215,7 @@ try {
     $published = $true
 
     Write-Host "Installed shepherd-task $version."
+    Write-Host "  System commit: $(if ($sourceCommit) { $sourceCommit } else { 'unavailable' })"
     Write-Host "  Plugin: $pluginDest"
     Write-Host "  Skills: $($skills.Count) replaced as one lineup"
     Write-Host "  Manifest: $(Join-Path $pluginDest 'install-manifest.json')"

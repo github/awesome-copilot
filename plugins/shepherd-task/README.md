@@ -111,7 +111,9 @@ six shepherd skills as one validated lineup:
 
 The installer stages the complete plugin and skill lineup before replacing an
 existing installation, rolls back an incomplete publication, and writes
-`install-manifest.json` last. It rejects a downgrade unless explicitly allowed:
+`install-manifest.json` last. Its success output reports both the lineup version
+and the source checkout's `HEAD` commit; the manifest records the same commit
+as `sourceCommit`. It rejects a downgrade unless explicitly allowed:
 
 ```bash
 ./plugins/shepherd-task/scripts/install-task-shepherd.sh --allow-downgrade

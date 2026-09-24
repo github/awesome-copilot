@@ -254,6 +254,7 @@ bash "$PLUGIN_DEST/scripts/read-shepherd-task-version.sh" >/dev/null
 PUBLISHED=1
 
 echo "Installed shepherd-task $SHEPHERD_TASK_VERSION."
+echo "  System commit: ${SOURCE_COMMIT:-unavailable}"
 echo "  Plugin: $PLUGIN_DEST"
 echo "  Skills: ${#SKILLS[@]} replaced as one lineup"
 echo "  Manifest: $PLUGIN_DEST/install-manifest.json"

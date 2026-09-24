@@ -133,7 +133,17 @@ try {
     }
 
     $env:COPILOT_HOME = Join-Path $tempRoot 'copilot-home'
-    & $installer | Out-Null
+    $sourceRepo = (Resolve-Path (Join-Path $pluginRoot '..\..')).Path
+    $expectedSourceCommitOutput = @(& git -C $sourceRepo rev-parse HEAD)
+    if ($LASTEXITCODE -ne 0 -or $expectedSourceCommitOutput.Count -eq 0) {
+        throw 'Could not determine the expected plugin.json source commit.'
+    }
+    $expectedSourceCommit = [string]($expectedSourceCommitOutput | Select-Object -First 1)
+    $installerOutput = @(& $installer 6>&1 | ForEach-Object { [string]$_ })
+    $expectedCommitMessage = "  System commit: $expectedSourceCommit"
+    if ($expectedCommitMessage -notin $installerOutput) {
+        throw "Installer did not report the system commit '$expectedSourceCommit'."
+    }
 
     $installedPlugin = Join-Path $env:COPILOT_HOME 'plugins\shepherd-task'
     foreach ($installedDriver in @(
@@ -149,6 +159,7 @@ try {
     $installManifestPath = Join-Path $installedPlugin 'install-manifest.json'
     $installManifest = Get-Content -LiteralPath $installManifestPath -Raw | ConvertFrom-Json
     if ([string]$installManifest.shepherdTaskVersion -ne $version -or
+        [string]$installManifest.sourceCommit -ne $expectedSourceCommit -or
         @($installManifest.components.skills).Count -ne 6 -or
         @($installManifest.components.skills | Where-Object {
             [string]$_.shepherdTaskVersion -ne $version
