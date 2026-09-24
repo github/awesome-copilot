@@ -5,6 +5,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { setTimeout as sleep } from "node:timers/promises";
 import { MAX_ELEMENTS } from "./lib/model.mjs";
 import { DrawingStore, StoreError } from "./store.mjs";
 
@@ -90,6 +91,26 @@ test("changes past the element limit are refused and leave the drawing alone", a
     assert.deepEqual(doc.elements.map((e) => e.id), ["a"]);
     store.replace(doc.id, many.slice(0, MAX_ELEMENTS), "test");
     assert.equal(doc.elements.length, MAX_ELEMENTS);
+});
+
+test("edits send the drawing list out again, once for a burst of them", async (t) => {
+    const store = await openStore(t);
+    const lists = [];
+    store.on("list", () => lists.push(store.list()));
+
+    // A new drawing is listed once its elements are in, so a copy never shows up empty.
+    const doc = store.create("Plan");
+    store.replace(doc.id, [rect("a"), rect("b")], "test");
+    assert.equal(lists.length, 0);
+    await sleep(400);
+    assert.deepEqual(lists.map((list) => list[0].count), [2]);
+
+    store.applyOps(doc.id, { upserts: [rect("c")] }, "user");
+    store.applyOps(doc.id, { deletes: ["a"] }, "user");
+    store.rename(doc.id, "Architecture");
+    await sleep(400);
+    assert.equal(lists.length, 2);
+    assert.deepEqual(lists[1], [{ id: doc.id, name: "Architecture", updatedAt: doc.updatedAt, count: 2 }]);
 });
 
 test("drawings load back from disk, and unreadable files are skipped", async (t) => {

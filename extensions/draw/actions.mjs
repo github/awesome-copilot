@@ -1,7 +1,7 @@
 // Agent-callable actions for the Draw canvas. Each action works on the drawing
 // that the calling canvas instance is showing.
 import {
-  SHAPE_TYPES, COLORS, FILLS, HEADS, ROUTES, SIZE_KEYS, isShape,
+  SHAPE_TYPES, COLORS, FILLS, HEADS, ROUTES, SIZE_KEYS, MAX_SIDE, isShape,
   normalizeElement, removeWithArrows, staticPaint, LIGHT_PALETTE, DARK_PALETTE,
 } from "./lib/model.mjs";
 import { DIRECTIONS, buildFromSpec, relayout, describe, outlinePage } from "./lib/layout.mjs";
@@ -125,9 +125,10 @@ function patchElement(el, u, byId) {
   }
   if (kind === "arrow" && p.from && p.from === p.to) return { error: `Arrow "${el.id}" cannot start and end at the same shape.` };
   let next = normalizeElement(p);
-  // Like the editor, grow a shape's height to fit a longer label, keeping its center.
+  // Like the editor, grow a shape's height to fit a longer label, keeping its center. The size
+  // limit applies first, so the shape is centered on the height it really gets.
   if (kind === "shape" && u.h === undefined && ["label", "size", "shape", "w"].some((k) => u[k] !== undefined)) {
-    const need = neededHeight(next, approxMeasure);
+    const need = Math.min(MAX_SIDE, neededHeight(next, approxMeasure));
     if (need > next.h) {
       next = normalizeElement({ ...next, h: need, y: u.y === undefined ? next.y - (need - next.h) / 2 : next.y });
     }
@@ -330,7 +331,7 @@ export function makeActions({ runtime, CanvasError }) {
         const format = input.format || "png";
         if (!doc.elements.length) fail("empty", "The drawing is empty, so there is nothing to export.");
         let data = null;
-        const pending = server.requestExport(instanceId, format);
+        const pending = server.requestExport(instanceId, doc.id, format);
         if (pending) {
           try {
             const res = await pending;

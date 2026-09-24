@@ -1,5 +1,5 @@
 // In-place label editing with a textarea laid over the element.
-import { isShape, normalizeElement, LABEL_WEIGHT, TEXT_WEIGHT } from "/lib/model.mjs";
+import { isShape, normalizeElement, LABEL_WEIGHT, TEXT_WEIGHT, MAX_SIDE } from "/lib/model.mjs";
 import {
   labelMaxWidth, labelCenterY, lineHeight, fontSizeOf, textLayout, neededHeight, arrowGeometry,
 } from "/lib/geometry.mjs";
@@ -51,12 +51,13 @@ export class LabelEditor {
     ed.replaceElement(normalizeElement(next) || next, { record: false, emit: false });
   }
 
-  // Grows the shape to fit its label (never below its size when editing started), keeping the center.
+  // Grows the shape to fit its label (never below its size when editing started, never past the
+  // size limit), keeping the center.
   grow(el, st) {
     const measure = this.ed.measure;
     let w = st.start.w;
     if (st.fresh) w = Math.max(w, autoSize(el.text, el.type, measure, el.size).w);
-    const h = Math.max(st.start.h, Math.ceil(neededHeight({ ...el, w }, measure) / 10) * 10);
+    const h = Math.min(MAX_SIDE, Math.max(st.start.h, Math.ceil(neededHeight({ ...el, w }, measure) / 10) * 10));
     const cx = st.start.x + st.start.w / 2;
     const cy = st.start.y + st.start.h / 2;
     return { ...el, w, h, x: Math.round(cx - w / 2), y: Math.round(cy - h / 2) };

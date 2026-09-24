@@ -6,12 +6,14 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { normalizeElement } from "./lib/model.mjs";
 import { createDrawServer } from "./server.mjs";
 import { Settings } from "./settings.mjs";
 import { DrawingStore } from "./store.mjs";
 
 const PANEL = "panel";
-const rect = (id, x = 0) => ({ id, type: "rect", x, y: 0, w: 100, h: 60 });
+// Elements as the canvas sends them: complete, in the form the drawing stores.
+const rect = (id, x = 0) => normalizeElement({ id, type: "rect", x, y: 0, w: 100, h: 60 });
 
 // A server on a temp folder. When the test ends, it stops and the folder is removed.
 async function setup(t) {
@@ -233,6 +235,43 @@ test("a page's older change that arrives after a newer one is dropped", async (t
     assert.equal(x(), 400);
 });
 
+test("a page gets the saved drawing back when saving tidied up what it sent", async (t) => {
+    const { server, doc } = await setup(t);
+    let rev = 0;
+    const send = async (ops) => {
+        const res = await post(server, "/api/ops", { drawingId: doc.id, baseRev: rev, ops });
+        assert.equal(res.status, 200);
+        rev = res.json.rev;
+        return res.json;
+    };
+    const byId = (res, id) => res.drawing.elements.find((e) => e.id === id);
+
+    // Saved just as sent, whatever order the keys are in, so nothing comes back.
+    assert.deepEqual(await send({ upserts: [rect("a"), rect("b", 200)] }), { rev: 1 });
+    const moved = Object.fromEntries(Object.entries({ ...rect("a"), x: 40 }).reverse());
+    assert.deepEqual(await send({ upserts: [moved] }), { rev: 2 });
+    const arrow = normalizeElement({ id: "ab", type: "arrow", from: "a", to: "b" });
+    assert.deepEqual(await send({ upserts: [arrow] }), { rev: 3 });
+
+    const wide = await send({ upserts: [{ ...rect("a"), w: 6000 }] });
+    assert.equal(wide.cleaned, true);
+    assert.equal(byId(wide, "a").w, 5000);
+
+    const pen = await send({ upserts: [{ id: "p", type: "pen", points: [[0, 0], [12.34, 5.67]], color: "gray", width: 2.5 }] });
+    assert.equal(pen.cleaned, true);
+    assert.deepEqual(byId(pen, "p").points, [[0, 0], [12.3, 5.7]]);
+
+    // Deleting a shape but not its arrow: the arrow goes too.
+    const orphan = await send({ deletes: ["b"] });
+    assert.equal(orphan.cleaned, true);
+    assert.deepEqual(orphan.drawing.elements.map((e) => e.id), ["a", "p"]);
+
+    // A page that is behind gets the whole drawing anyway, as someone else's change.
+    const behind = await post(server, "/api/ops", { drawingId: doc.id, baseRev: 0, ops: { upserts: [{ ...rect("c"), w: 6000 }] } });
+    assert.equal(byId(behind.json, "c").w, 5000);
+    assert.equal(behind.json.cleaned, undefined);
+});
+
 test("bad requests get a clear error", async (t) => {
     const { server } = await setup(t);
     for (const body of ["not json", "[1, 2]", "null"]) {
@@ -295,6 +334,29 @@ test("exports are written to the drawings folder", async (t) => {
     assert.equal(await readFile(res.json.path, "utf8"), svg);
     assert.equal((await post(server, "/api/export", { drawingId: doc.id, format: "png", data: "" })).status, 400);
     assert.equal((await post(server, "/api/export", { drawingId: "missing", format: "svg", data: svg })).status, 404);
+});
+
+test("an export the agent asks for is only taken from the drawing it named", async (t) => {
+    const { server, doc } = await setup(t);
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg"/>';
+    assert.equal(server.requestExport(PANEL, doc.id, "svg"), null);
+    const events = await listen(t, server);
+    const answer = (requestId, drawingId) => post(server, "/api/export", { requestId, drawingId, format: "svg", data: svg });
+
+    // The panel moved to another drawing before it drew this one.
+    const switched = assert.rejects(server.requestExport(PANEL, doc.id, "svg"), /switched to another drawing/);
+    const first = await events.next("export");
+    assert.equal(first.drawingId, doc.id);
+    assert.equal(first.format, "svg");
+    assert.deepEqual((await answer(first.requestId, "another-drawing")).json, { ok: true });
+    await switched;
+
+    const drawn = server.requestExport(PANEL, doc.id, "svg");
+    const second = await events.next("export");
+    await answer(second.requestId, doc.id);
+    assert.deepEqual(await drawn, { format: "svg", data: svg });
+    // An answer to a request that is already done is ignored.
+    assert.deepEqual((await answer(second.requestId, doc.id)).json, { ok: false });
 });
 
 test("reveal refuses paths outside the drawings folder", async (t) => {

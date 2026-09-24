@@ -195,8 +195,11 @@ export function attachMenus(ui) {
       }
     }
     try {
+      // The picture shows the drawing on screen right now, so it is saved under that drawing
+      // even if another one opens while the picture is being made.
+      const drawingId = ui.doc.id;
       const data = kind === "svg" ? ed.exportSVG() : await blobToBase64(await ed.exportPNG());
-      const res = await ui.sync.post("export", { drawingId: ui.doc.id, format: kind, data });
+      const res = await ui.sync.post("export", { drawingId, format: kind, data });
       ui.toast(`${note} as ${fileName(res.path)}`, { action: { label: "Show in folder", run: () => reveal(res.path) } });
     } catch (err) {
       ui.toast(`Export failed: ${err.message}`, { error: true });
@@ -230,14 +233,23 @@ export function attachMenus(ui) {
           ta.focus();
           return;
         }
+        // The question is about the drawing on screen now. If another one opens before it goes
+        // out, Copilot would get the wrong drawing, so it does not go out.
+        const drawingId = ui.doc.id;
+        const checkSameDrawing = () => {
+          if (ui.doc.id !== drawingId) throw new Error("Another drawing opened, so your question was not sent. It is still in Ask, so you can send it about this one.");
+        };
         send.disabled = true;
         send.textContent = "Sending";
         try {
-          if (!(await ui.sync.flush(true))) {
+          const saved = await ui.sync.flush(true);
+          checkSameDrawing();
+          if (!saved) {
             throw new Error("Your latest changes are not saved yet, so Copilot would not see them. Send again once the drawing is saved.");
           }
           const png = ed.elements.length ? await blobToBase64(await ed.exportPNG(2, 2000)) : "";
-          await ui.sync.post("ask", { drawingId: ui.doc.id, text, png });
+          checkSameDrawing();
+          await ui.sync.post("ask", { drawingId, text, png });
           ui.askDraft = "";
           close();
           ui.toast("Sent to Copilot. The answer shows up in the chat.");

@@ -56,6 +56,15 @@ test("a change that cannot be saved is reported by the action that made it", asy
     await rm(file, { recursive: true });
 });
 
+test("a shape that grows to fit a longer label keeps its center, even at the size limit", async (t) => {
+    const { store, doc, run } = await setup(t);
+    store.replace(doc.id, [{ id: "a", type: "rect", x: 0, y: 1000, w: 20, h: 100 }], "test");
+    await run("update_elements", { updates: [{ id: "a", label: "ab ".repeat(1300), size: "xl" }] });
+    const [a] = store.get(doc.id).elements;
+    assert.equal(a.h, 5000);
+    assert.equal(a.y + a.h / 2, 1050);
+});
+
 test("get_drawing reads the biggest drawing in parts of limited size", async (t) => {
     const { store, doc, run, server } = await setup(t);
     // The most a drawing can hold: 5,000 shapes with 4,000 character labels.

@@ -87,6 +87,27 @@ function isInside(dir, file) {
     return !!rel && !rel.startsWith("..") && !path.isAbsolute(rel);
 }
 
+// Whether two JSON values hold the same data, whatever order their keys are in.
+function sameJson(a, b) {
+    if (a === b) return true;
+    if (!a || !b || typeof a !== "object" || typeof b !== "object" || Array.isArray(a) !== Array.isArray(b)) return false;
+    const keys = Object.keys(a);
+    return keys.length === Object.keys(b).length && keys.every((k) => Object.hasOwn(b, k) && sameJson(a[k], b[k]));
+}
+
+// Whether saving a page's ops stored something other than what the page has, because the model
+// tidied it up: a size past the limit, say, or an arrow whose shape is gone.
+function tidiedOnSave(before, ops, after) {
+    const saved = new Map(after.map((e) => [e.id, e]));
+    const ids = new Set(before.map((e) => e.id));
+    for (const id of Array.isArray(ops.deletes) ? ops.deletes : []) ids.delete(id);
+    for (const el of Array.isArray(ops.upserts) ? ops.upserts : []) {
+        if (!sameJson(el, saved.get(el?.id))) return true;
+        ids.add(el.id);
+    }
+    return ids.size !== after.length;
+}
+
 function revealInFolder(file) {
     const opts = { detached: true, stdio: "ignore" };
     let child;
@@ -213,6 +234,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
                 return sendJson(res, 200, { rev: current.rev, drawing: pub(current), ignored: true });
             }
             const ops = body.ops && typeof body.ops === "object" ? body.ops : {};
+            const before = current.elements;
             const doc = store.applyOps(body.drawingId, ops, clientId);
             // Only changes that were applied count, so a refused one cannot hide an older one.
             if (seq !== null) {
@@ -222,6 +244,9 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
             }
             // If someone else changed the drawing since the client's last known rev, send the full doc back.
             const stale = Number.isInteger(body.baseRev) && doc.rev !== body.baseRev + 1;
+            // Also when the drawing was saved tidier than the page sent it, so the page shows what was saved.
+            const cleaned = !stale && tidiedOnSave(before, ops, doc.elements);
+            if (cleaned) return sendJson(res, 200, { rev: doc.rev, drawing: pub(doc), cleaned: true });
             return sendJson(res, 200, stale ? { rev: doc.rev, drawing: pub(doc) } : { rev: doc.rev });
         }
         if (route === "/api/selection") {
@@ -296,7 +321,11 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
             if (!pending) return { ok: false };
             pendingExports.delete(body.requestId);
             clearTimeout(pending.timer);
-            if (body.error) pending.reject(new Error(String(body.error)));
+            // The panel says which drawing it drew, and a picture of another one must not be
+            // saved under this one's name.
+            if (body.drawingId !== pending.drawingId) {
+                pending.reject(new Error("The canvas switched to another drawing before it drew this one, so nothing was saved. Call export_image again to save the drawing it shows now."));
+            } else if (body.error) pending.reject(new Error(String(body.error)));
             else pending.resolve({ format, data: String(body.data || "") });
             return { ok: true };
         }
@@ -412,8 +441,9 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
             selections.set(instanceId, { drawingId, ids });
             for (const c of clientsFor(instanceId)) send(c, "select", { drawingId, ids });
         },
-        // Asks the open iframe to render the drawing (it has the real fonts and theme).
-        requestExport(instanceId, format, timeoutMs = 15000) {
+        // Asks the open iframe to render a drawing (it has the real fonts and theme). The request
+        // names the drawing, so a panel that has moved on to another one cannot answer for it.
+        requestExport(instanceId, drawingId, format, timeoutMs = 15000) {
             const target = clientsFor(instanceId).pop();
             if (!target) return null;
             const requestId = randomBytes(8).toString("hex");
@@ -422,13 +452,15 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
                     pendingExports.delete(requestId);
                     reject(new Error("The Draw canvas did not answer the export request in time."));
                 }, timeoutMs);
-                pendingExports.set(requestId, { resolve, reject, timer });
-                send(target, "export", { requestId, format });
+                pendingExports.set(requestId, { resolve, reject, timer, drawingId });
+                send(target, "export", { requestId, drawingId, format });
             });
         },
         close() {
             clearInterval(heartbeat);
             for (const c of clients) c.res.end();
+            // Saves and list updates can still fire on timers, and they must not write to ended streams.
+            clients.clear();
             server.close();
         },
     };

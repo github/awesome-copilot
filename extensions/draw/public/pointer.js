@@ -1,5 +1,5 @@
 // Pointer input: select, move, resize, connect, create, draw, pan and zoom.
-import { isShape, snap, newId, idPrefix, normalizeElement, DEFAULT_SIZES, SHAPE_TYPES } from "/lib/model.mjs";
+import { isShape, snap, clamp, newId, idPrefix, normalizeElement, DEFAULT_SIZES, SHAPE_TYPES, MAX_SIDE } from "/lib/model.mjs";
 import {
   hitTest, shapeAt, pointInShape, elementBounds, unionBounds, boxContains, arrowGeometry, lineHeight, fontSizeOf,
 } from "/lib/geometry.mjs";
@@ -287,10 +287,11 @@ export function attachPointer(ed) {
     const fy = north ? s.y + s.h : s.y;
     const px = grid(p.x, e);
     const py = grid(p.y, e);
-    let w = Math.max(20, west ? fx - px : px - fx);
-    let h = Math.max(20, north ? fy - py : py - fy);
+    let w = clamp(west ? fx - px : px - fx, 20, MAX_SIDE);
+    let h = clamp(north ? fy - py : py - fy, 20, MAX_SIDE);
     if (e.shiftKey) {
-      const k = Math.max(w / s.w, h / s.h);
+      // Keeps the proportions, up to the size limit.
+      const k = Math.min(Math.max(w / s.w, h / s.h), MAX_SIDE / Math.max(s.w, s.h));
       w = Math.max(20, s.w * k);
       h = Math.max(20, s.h * k);
     }

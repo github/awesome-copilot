@@ -59,12 +59,16 @@ async function boot() {
     }
   }
 
-  async function answerExport({ requestId, format }) {
+  // Draws the picture an agent asked for. The reply names the drawing this panel shows, so the
+  // server can turn it down when that is not the one it asked for.
+  async function answerExport({ requestId, format, drawingId: wanted }) {
+    const drawingId = sync.drawingId;
+    const reply = (fields) => sync.post("export", { requestId, drawingId, format, ...fields });
     try {
-      const data = format === "svg" ? ed.exportSVG() : await blobToBase64(await ed.exportPNG());
-      await sync.post("export", { requestId, format, data });
+      if (wanted !== drawingId) return await reply({});
+      await reply({ data: format === "svg" ? ed.exportSVG() : await blobToBase64(await ed.exportPNG()) });
     } catch (err) {
-      sync.post("export", { requestId, format, error: err.message || String(err) }).catch(() => {});
+      reply({ error: err.message || String(err) }).catch(() => {});
     }
   }
 

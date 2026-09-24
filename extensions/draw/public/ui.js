@@ -163,6 +163,8 @@ export class UI {
       items = cat ? [{ cat, v: ed.styles[cat] }] : [];
     }
     if (!items.length) {
+      // A hidden bar cannot keep focus, so the canvas gets it, as when Escape closes a menu.
+      if (bar.contains(document.activeElement)) ed.stage.focus({ preventScroll: true });
       bar.hidden = true;
       return;
     }
@@ -211,8 +213,16 @@ export class UI {
     }
     const html = `<div class="stylebar-inner">${parts.join("")}</div>`;
     if (html !== this.sbHtml) {
+      // Rebuilding the bar removes the focused button, so the same button in the new bar gets
+      // focus, and keyboard users stay where they were.
+      const focused = bar.contains(document.activeElement) ? { ...document.activeElement.dataset } : null;
       bar.innerHTML = html;
       this.sbHtml = html;
+      if (focused) {
+        const same = [...bar.querySelectorAll("button")].find((b) =>
+          b.dataset.k === focused.k && b.dataset.v === focused.v && b.dataset.act === focused.act);
+        (same || ed.stage).focus({ preventScroll: true });
+      }
     }
     bar.hidden = false;
   }

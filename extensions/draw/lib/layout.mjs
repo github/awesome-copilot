@@ -1,7 +1,7 @@
 // Automatic placement: layered graph layout, label-based sizing, free-spot search,
 // and turning an agent's { nodes, edges, texts } spec into positioned elements.
 import {
-  DEFAULT_SIZES, FONT_SIZES, LABEL_WEIGHT, ID_PATTERN, isShape, isNum, snap,
+  DEFAULT_SIZES, FONT_SIZES, LABEL_WEIGHT, ID_PATTERN, MAX_SIDE, isShape, isNum, snap,
   normalizeElement, normalizeSize, normalizeText, resolveShapeType, uniqueId,
 } from "./model.mjs";
 import {
@@ -23,7 +23,7 @@ export function autoSize(text, type, measure = approxMeasure, size = "m") {
   if (type === "ellipse") need = (widest + 12) / 0.72;
   if (type === "diamond") need = (widest + 12) / 0.56;
   const w = Math.min(Math.max(ceil20(need), dw), type === "rect" ? 280 : 240);
-  const h = Math.max(dh, ceil20(neededHeight({ type, x: 0, y: 0, w, h: dh, size, text: str }, measure)));
+  const h = Math.min(MAX_SIDE, Math.max(dh, ceil20(neededHeight({ type, x: 0, y: 0, w, h: dh, size, text: str }, measure))));
   return { w, h };
 }
 

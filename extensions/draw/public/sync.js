@@ -153,8 +153,9 @@ export class Sync {
     this.rebase(drawing);
   }
 
-  // Replaces our base with the remote doc and re-applies unsaved local changes on top.
-  rebase(drawing) {
+  // Replaces our base with the remote doc and re-applies unsaved local changes on top. `record`
+  // is false when the doc differs only because the server tidied up what we sent.
+  rebase(drawing, { record = true } = {}) {
     const pending = diffOps(this.synced, this.editor.elements);
     this.synced = new Map(drawing.elements.map((e) => [e.id, e]));
     this.rev = drawing.rev;
@@ -162,7 +163,7 @@ export class Sync {
     // No element cap here. Going over it makes the server refuse the save and say why, which is
     // better than the user's newest elements quietly disappearing.
     const next = pending ? applyOps(drawing.elements, pending, Infinity) : drawing.elements;
-    this.editor.applyRemote(next, drawing);
+    this.editor.applyRemote(next, { record });
     if (pending) this.schedule();
   }
 
@@ -258,7 +259,9 @@ export class Sync {
         if (!res.ignored) this.synced = new Map(sent.map((e) => [e.id, e]));
         this.rev = res.rev;
         this.inflight = false;
-        if (res.drawing) this.rebase(res.drawing);
+        // "cleaned" means the server saved our changes in a tidier form than we sent (a size
+        // past the limit, say), so the screen takes that form, without an undo step of its own.
+        if (res.drawing) this.rebase(res.drawing, { record: !res.cleaned });
       }
     } catch (err) {
       if (err.status === 404) {

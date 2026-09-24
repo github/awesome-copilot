@@ -1,7 +1,7 @@
 // Editor core: elements, selection, view, history, rendering and element-level commands.
 import {
   isShape, snap, clamp, normalizeElement, normalizeElements, removeWithArrows, newId, idPrefix,
-  PEN_WIDTHS, SHAPE_TYPES,
+  PEN_WIDTHS, SHAPE_TYPES, MAX_SIDE,
 } from "/lib/model.mjs";
 import { renderElements, renderStandaloneSVG, outline, penPath } from "/lib/render.mjs";
 import { fmt, arrowGeometry, elementBounds, contentBounds, unionBounds, neededHeight } from "/lib/geometry.mjs";
@@ -11,6 +11,8 @@ export const MIN_ZOOM = 0.1;
 export const MAX_ZOOM = 4;
 const HISTORY_LIMIT = 200;
 const round = (v) => Math.round(v * 100) / 100;
+// The model keeps pen points to one decimal, so moved points are rounded the same way.
+const roundPoint = (v) => Math.round(v * 10) / 10;
 export const STYLE_KEYS = {
   shape: ["color", "fill", "dash", "size", "type"],
   text: ["color", "size"],
@@ -22,7 +24,7 @@ export const categoryOf = (el) => (isShape(el) ? "shape" : el.type);
 const sameElements = (a, b) => a === b || (a.length === b.length && a.every((e, i) => e === b[i]));
 
 export function translateElement(el, dx, dy) {
-  if (el.type === "pen") return { ...el, points: el.points.map(([x, y]) => [round(x + dx), round(y + dy)]) };
+  if (el.type === "pen") return { ...el, points: el.points.map(([x, y]) => [roundPoint(x + dx), roundPoint(y + dy)]) };
   if (el.type === "arrow") {
     const next = { ...el };
     if (!el.from) { next.x1 = round(el.x1 + dx); next.y1 = round(el.y1 + dy); }
@@ -175,12 +177,13 @@ export class Editor {
     this.emit("change", { loaded: true });
   }
 
-  // Remote (agent) changes: undoable, and new content is brought into view.
-  applyRemote(next) {
+  // Remote (agent) changes: undoable, and new content is brought into view. record: false is for
+  // the server tidying up our own change (a size past the limit, say), which is no step to undo.
+  applyRemote(next, { record = true } = {}) {
     const before = this.elements;
     if (before.length === next.length && JSON.stringify(before) === JSON.stringify(next)) return;
     const known = new Set(before.map((e) => e.id));
-    this.setElements(next, { record: true });
+    this.setElements(next, { record });
     const added = next.filter((e) => !known.has(e.id));
     if (!before.length) this.fit();
     else if (added.length && !this.isVisible(added)) this.fit({ maxZoom: this.view.zoom });
@@ -363,7 +366,8 @@ export class Editor {
         if (!Object.keys(p).length) return el;
         let out = normalizeElement({ ...el, ...p }) || el;
         if (isShape(out)) {
-          const need = Math.ceil(neededHeight(out, this.measure) / 10) * 10;
+          // Tall enough for the label, up to the size limit, so it stays centered where it was.
+          const need = Math.min(MAX_SIDE, Math.ceil(neededHeight(out, this.measure) / 10) * 10);
           if (need > out.h) out = { ...out, y: round(out.y - (need - out.h) / 2), h: need };
         }
         return out;

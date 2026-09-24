@@ -81,6 +81,7 @@ export class DrawingStore extends EventEmitter {
         this.saving = new Map();
         this.saveErrors = new Map();
         this.stateTimer = null;
+        this.listTimer = null;
         this.state = { lastOpened: null, instances: {} };
         this.ready = this.#load();
     }
@@ -171,7 +172,8 @@ export class DrawingStore extends EventEmitter {
         const doc = { version: VERSION, id, name: finalName, rev: 0, createdAt: now, updatedAt: now, elements: [] };
         this.docs.set(id, doc);
         this.#scheduleSave(id, 0);
-        this.emit("list");
+        // Soon rather than now, so a copy is listed once its elements are in.
+        this.#listSoon();
         return doc;
     }
 
@@ -186,6 +188,18 @@ export class DrawingStore extends EventEmitter {
         doc.updatedAt = new Date().toISOString();
         this.#scheduleSave(doc.id);
         this.emit("change", doc, origin);
+        this.#listSoon();
+    }
+
+    // An edit changes the drawing's count and time in the drawings list, so the list goes out
+    // again, once for a burst of edits rather than once per edit.
+    #listSoon() {
+        if (this.listTimer) return;
+        this.listTimer = setTimeout(() => {
+            this.listTimer = null;
+            this.emit("list");
+        }, 300);
+        this.listTimer.unref?.();
     }
 
     rename(id, name) {
@@ -195,7 +209,6 @@ export class DrawingStore extends EventEmitter {
         if (finalName === doc.name) return doc;
         doc.name = finalName;
         this.#touch(doc, "rename");
-        this.emit("list");
         return doc;
     }
 

@@ -15,6 +15,8 @@ export const DEFAULT_SIZES = { rect: [160, 60], ellipse: [160, 80], diamond: [18
 export const LABEL_WEIGHT = 500;
 export const TEXT_WEIGHT = 400;
 export const MAX_ELEMENTS = 5000;
+// The biggest width or height a shape can have.
+export const MAX_SIDE = 5000;
 
 const ID_PREFIX = { rect: "r", ellipse: "o", diamond: "d", cylinder: "c", text: "t", arrow: "a", pen: "p" };
 export const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$/;
@@ -179,8 +181,8 @@ export function normalizeElement(raw) {
     return {
       id, type,
       x: coord(raw.x), y: coord(raw.y),
-      w: round2(clamp(toNum(raw.w ?? raw.width, dw), 10, 5000)),
-      h: round2(clamp(toNum(raw.h ?? raw.height, dh), 10, 5000)),
+      w: round2(clamp(toNum(raw.w ?? raw.width, dw), 10, MAX_SIDE)),
+      h: round2(clamp(toNum(raw.h ?? raw.height, dh), 10, MAX_SIDE)),
       text: normalizeText(raw.text ?? raw.label),
       color, fill: normalizeFill(raw.fill), dash, size: normalizeSize(raw.size ?? raw.fontSize),
     };
