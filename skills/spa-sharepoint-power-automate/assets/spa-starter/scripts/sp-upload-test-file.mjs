@@ -5,7 +5,7 @@
 //
 // NO se ejecuto contra un tenant real al escribirlo: probalo primero en una biblioteca de prueba.
 import { pathToFileURL } from "node:url";
-import { spFetch } from "./spfetch.mjs";
+import { isSharePointHttps, spFetch } from "./spfetch.mjs";
 
 const HELP = `sp-upload-test-file - sube un PDF minimo de prueba a SharePoint (REST, Files/add)
 
@@ -91,6 +91,11 @@ export async function main(argv = process.argv.slice(2), env = process.env) {
   const missing = required.filter((k) => !env[k]);
   if (missing.length) {
     console.error(`Error: faltan variables de entorno: ${missing.join(", ")}\n\n${HELP}`);
+    return 2;
+  }
+
+  if (!args.dryRun && !isSharePointHttps(SITE_URL)) {
+    console.error("Error: SITE_URL debe ser una URL https de SharePoint (*.sharepoint.com/.us/.cn/.de): el token no se manda a otro host.");
     return 2;
   }
 

@@ -13,6 +13,16 @@ import { pathToFileURL } from "node:url";
 const RETRY_STATUSES = new Set([429, 503]);
 
 /** Retry-After puede ser segundos o una fecha HTTP. Devuelve segundos o undefined. */
+/** true si la URL es HTTPS y el host es de SharePoint Online (incluye nubes soberanas). */
+export function isSharePointHttps(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && /(^|\.)sharepoint\.(com|us|cn|de)$/i.test(u.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function parseRetryAfterSeconds(value, nowMs = Date.now()) {
   if (value == null || String(value).trim() === "") return undefined;
   const secs = Number(value);
@@ -145,6 +155,13 @@ export async function main(argv = process.argv.slice(2)) {
 
   const headers = { ...args.headers };
   if (process.env.SP_TOKEN && !Object.keys(headers).some((k) => k.toLowerCase() === "authorization")) {
+    // El token NUNCA se manda a un host que no sea de SharePoint (una URL copiada o mal escrita
+    // filtraria el bearer). Para otro destino, pasa la cabecera Authorization a mano (--header).
+    if (!isSharePointHttps(args.url)) {
+      console.error("Error: SP_TOKEN solo se adjunta a URLs https de SharePoint (*.sharepoint.com/.us/.cn/.de). " +
+        "Para otro destino, pasa la cabecera Authorization a mano.");
+      return 2;
+    }
     headers.Authorization = `Bearer ${process.env.SP_TOKEN}`;
   }
   const opts = { method: args.method, headers };

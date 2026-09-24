@@ -13,7 +13,7 @@ Ubicación: `assets/spa-starter/` (junto a este directorio `references/`). Es un
 cp -r assets/spa-starter mi-app && cd mi-app
 npm install
 npm run dev            # sin VITE_POWER_AUTOMATE_URL corre en MODO DEMO (no envía nada)
-npm test               # 117 tests: funciones puras, cliente de envío, firma, App
+npm test               # 122 tests: funciones puras, cliente de envío, firma, App
 npm run build
 ```
 
@@ -28,7 +28,7 @@ Conectarlo a un flow real:
 
 | Archivo | Qué resuelve | Sección |
 |---|---|---|
-| `src/lib/uploadClient.ts` | `buildPayload()` y `submit()`: JSON con `application/json` y cabecera `x-app-key`; **folio generado en el cliente** (idempotencia); errores tipados; 401/403 con mensaje accionable; reintento automático solo para 429/500/503 respetando `Retry-After`; 502/504 = probable límite de 120 s; timeout con `AbortController`; modo demo | §8, §9, §21, §22.4, §23.4 |
+| `src/lib/uploadClient.ts` | `buildPayload()` y `submit()`: JSON con `application/json` y cabecera `x-app-key`; **folio generado en el cliente** (idempotencia); errores tipados; 401/403 con mensaje accionable; reintento automático solo para 429 respetando `Retry-After` (500/503 únicamente con `serverIdempotent: true`, después de implementar la deduplicación por folio en el flow); 502/504 = probable límite de 120 s; timeout con `AbortController`; modo demo | §8, §9, §21, §22.4, §23.4 |
 | `src/lib/draftStorage.ts` | Borrador en `localStorage` con **clave versionada**, purga de claves viejas, `try/catch` (el almacenamiento puede fallar); no se borra hasta confirmar el envío | §6 |
 | `src/lib/imageUtils.ts` | Compresión de fotos en el cliente con `canvas` (idempotente, lado máximo, calidad), límite total de payload, base64 sin prefijo | §5, §21.4 |
 | `src/components/SignaturePad.tsx` | Firma con **Pointer Events** + `setPointerCapture`, `ResizeObserver` que conserva el dibujo, guardia de StrictMode, validación de firma vacía, canvas fuera de `<label>` | §5 |
@@ -55,7 +55,7 @@ Todos aceptan `--help`. Los secretos van **solo por variables de entorno**, nunc
 ## 34.4 Decisiones de diseño (para adaptarlo sin romperlo)
 
 - `submit()` **no lanza excepciones**: devuelve `{ ok: true | false }`. El borrador solo se borra si `shouldClearDraft(result)`, y en modo demo tampoco se borra.
-- Solo **429, 500 y 503** se reintentan solos (2 reintentos, con tope de espera de 30 s). **502/504 y timeouts no**: repetir un envío que ya pasó los 120 s puede **duplicar** datos. La app ofrece "Reintentar" con el **mismo folio** para poder detectar el duplicado (§22.4).
+- Solo el **429** se reintenta solo (2 reintentos, con tope de espera de 30 s); **500/503 solo con `serverIdempotent: true`**, que hay que activar únicamente si el flow deduplica por folio (el valor por defecto es `false`). **502/504 y timeouts no**: repetir un envío que ya pasó los 120 s puede **duplicar** datos. La app ofrece "Reintentar" con el **mismo folio** para poder detectar el duplicado (§22.4).
 - La patente se **muestra** como `ABC-123` o `AB-123-CD` y se **envía compacta** (`ABC123`).
 - `formatKms` está escrito a mano para no depender del ICU del entorno.
 - `SignaturePad` exige haber dibujado: un canvas vacío grande puede superar los 200 caracteres.
@@ -75,7 +75,7 @@ Todos aceptan `--help`. Los secretos van **solo por variables de entorno**, nunc
 
 ## 34.7 Estado de verificación (2026-09-24)
 
-**Probado** (comandos ejecutados, salida real): `npx tsc --noEmit` sin errores; `npm test` → **8 archivos, 117 tests verdes**; `npm run build` correcto (≈164 kB de JS, ≈54 kB comprimido); los cuatro scripts responden a `--help`; búsqueda de datos de empresa sin resultados. Los tests de `spfetch` corren contra un servidor HTTP local.
+**Probado** (comandos ejecutados, salida real): `npx tsc --noEmit` sin errores; `npm test` → **8 archivos, 122 tests verdes**; `npm run build` correcto (≈164 kB de JS, ≈54 kB comprimido); los cuatro scripts responden a `--help`; búsqueda de datos de empresa sin resultados. Los tests de `spfetch` corren contra un servidor HTTP local.
 
 **NO probado**:
 - En un **navegador real**: compresión con `canvas`, firma táctil, service worker instalado y su auto-actualización, instalación de la PWA.

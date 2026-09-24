@@ -11,8 +11,7 @@ import {
   compressImage,
   extensionFor,
   formatBytes,
-  prepareImageAttachments,
-} from "./lib/imageUtils";
+  prepareImageAttachments, ImageProcessingError } from "./lib/imageUtils";
 import { isValidSignature } from "./lib/signature";
 import { buildPayload, generateFolio, isDemoMode, submit } from "./lib/uploadClient";
 
@@ -61,6 +60,7 @@ export default function App() {
   const [status, setStatus] = useState<Status>({ phase: "idle" });
   const inFlight = useRef(false); // guard de doble tap: un ref, no solo estado (skill §6)
   const [updateReady, setUpdateReady] = useState(false);
+  const [photoWarning, setPhotoWarning] = useState<string | null>(null);
 
   // Version nueva disponible: se avisa, no se recarga sola (las fotos no se guardan, skill §7).
   useEffect(() => {
@@ -104,7 +104,15 @@ export default function App() {
     setCompressing(true);
     try {
       // Capa 1: comprimir al elegir, asi el File en memoria ya es liviano (skill §5).
-      const compressed = await Promise.all(picked.map((f) => compressImage(f)));
+      // Una foto que no se pueda re-codificar se OMITE con aviso: subir el original conservaria su EXIF.
+      const results = await Promise.allSettled(picked.map((f) => compressImage(f)));
+      const compressed = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+      const failed = results.flatMap((r) => (r.status === "rejected" ? [r.reason] : []));
+      setPhotoWarning(
+        failed.length
+          ? failed.map((e) => (e instanceof Error ? e.message : "No se pudo procesar una foto.")).join(" ")
+          : null,
+      );
       setPhotos((prev) => [...prev, ...compressed].slice(0, MAX_PHOTOS));
     } finally {
       setCompressing(false);
@@ -147,8 +155,10 @@ export default function App() {
       }
     } catch (err) {
       const message =
-        err instanceof PayloadTooLargeError ? err.message : "Ocurrio un error inesperado al preparar el envio.";
-      setStatus({ phase: "error", message, retryable: !(err instanceof PayloadTooLargeError) });
+        err instanceof PayloadTooLargeError || err instanceof ImageProcessingError
+          ? err.message
+          : "Ocurrio un error inesperado al preparar el envio.";
+      setStatus({ phase: "error", message, retryable: !(err instanceof PayloadTooLargeError || err instanceof ImageProcessingError) });
     } finally {
       inFlight.current = false;
     }
@@ -269,6 +279,11 @@ export default function App() {
               aria-label="Adjuntar fotos"
             />
             {compressing && <p className="hint">Comprimiendo imagenes...</p>}
+            {photoWarning && (
+              <p className="field-error" role="alert">
+                {photoWarning}
+              </p>
+            )}
             {photos.length > 0 && (
               <ul className="thumbs">
                 {photos.map((f, i) => (

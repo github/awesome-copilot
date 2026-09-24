@@ -37,15 +37,15 @@ npm run build                # tsc --noEmit + vite build -> dist/
 | `src/lib/imageUtils.ts` | Compresión canvas idempotente (2 capas), presupuesto de payload (límites 100 MB / 120 s), base64 sin prefijo | §5, §8, §9 |
 | `src/components/SignaturePad.tsx` | Pointer Events, `setPointerCapture`, ResizeObserver que preserva el trazo, guard StrictMode, sin `<label>` | §5 |
 | `src/lib/signature.ts` | Validación de firma no vacía (> 200 chars) | §5 |
-| `src/lib/uploadClient.ts` | `buildPayload`/`submit`: JSON + `x-app-key`, folio del cliente, errores tipados, reintentos con `Retry-After`, modo demo, timeout | §2, §8, §9, §22.4 |
+| `src/lib/uploadClient.ts` | `buildPayload`/`submit`: JSON + `x-app-key`, folio del cliente, errores tipados, éxito solo con 200 + folio, reintento automático solo del 429 (500/503 solo con `serverIdempotent`), modo demo, timeout | §2, §8, §9, §22.4 |
 | `src/lib/formatters.ts` | Números es-AR con miles, patente AAA123 / AA123AA con autoformato | §4 |
 | `src/App.tsx` | Estado funcional, panel de *pendientes*, pantalla de éxito sin datos internos, sin `required` nativo | §3, §6 |
 | `src/styles.css` | Reset que no quita `appearance` a checkbox/radio, `.full` en cualquier hijo del grid | §4 |
-| `public/sw.js` + `src/lib/registerSW.ts` | Network-first (index) / cache-first (assets), cache versionado por build, filtra esquemas no http(s), no cachea el flow, auto-update (`controllerchange` → reload) | §7, §19.3 |
+| `public/sw.js` + `src/lib/registerSW.ts` | Network-first (index) / cache-first (assets), cache versionado por build, filtra esquemas no http(s), no cachea el flow, precache de los assets del build, aviso de versión nueva (`controllerchange` → evento; recarga solo cuando el usuario toca *Actualizar*) | §7, §19.3 |
 | `public/manifest.json`, `index.html` | Iconos 192/512 explícitos, `apple-touch-icon`, rutas relativas | §2, §7, §19.3 |
 | `vite.config.ts`, `.env.example` | `base` desde `VITE_BASE` (default `./`), plugin que estampa el id de build en `sw.js` | §2 |
 | `.github/workflows/deploy-pages.yml` | Deploy a Pages, secrets → variables de build, `404.html` de fallback | §2 |
-| `scripts/spfetch.mjs` | fetch con reintento que respeta `Retry-After` (429/503) | §23.4 |
+| `scripts/spfetch.mjs` | fetch con reintento que respeta `Retry-After` (429/503); `SP_TOKEN` solo se adjunta a URLs https de SharePoint | §23.4 |
 | `scripts/test-flow.mjs` | Smoke test del flow: status, latencia, cuerpo; exit ≠ 0 si no es 2xx | §8, §9 |
 | `scripts/sp-upload-test-file.mjs` | Sube un PDF de prueba a una biblioteca (REST, bearer) para disparar flows por archivo | §28.7 |
 | `scripts/make-icons.mjs` | Genera los PNG placeholder (reemplazalos por tu logo) | §7 |
@@ -58,6 +58,9 @@ npm run build                # tsc --noEmit + vite build -> dist/
 - Las **fotos se re-codifican siempre por canvas**, aunque ya sean chicas: así se descarta el EXIF (GPS, modelo del equipo). El canvas no copia los metadatos.
 - El service worker **no recarga solo**: avisa con un banner *Hay una versión nueva* para no perder las fotos elegidas (no se guardan).
 - La firma tiene una **alternativa sin puntero**: escribir el nombre, que se convierte en la imagen de firma (teclado y lectores de pantalla).
-- `application/json` y `x-app-key` provocan un **preflight `OPTIONS`** en el navegador; Microsoft no documenta que el trigger lo responda (NO VERIFICADO, §9): probalo desde un navegador contra el trigger real y, si falla, usá un proxy.
+- `application/json` y `x-app-key` provocan un **preflight `OPTIONS`** en el navegador; Microsoft no documenta que el trigger lo responda (NO VERIFICADO, §9): probalo desde un navegador contra el trigger real y, si falla, usá un proxy. **Para producción**, poné un proxy con CORS (Cloudflare Worker, Azure Functions o API Management) delante del trigger y limitá ahí la tasa de pedidos.
+- Una foto que **no se pueda re-codificar** (formato no admitido o fallo del navegador) se **omite con aviso**: nunca se sube el original, porque conservaría el EXIF.
+- Las claves del borrador incluyen la ruta de la app (`/<repo>/`), así que dos proyectos de GitHub Pages bajo el mismo origen no se pisan.
+- Los reintentos manuales tras un timeout, un error de red, un 502/504 o una respuesta *no confirmada* **solo evitan duplicados si el flow deduplica por folio**: eso es obligatorio en la plantilla del flow (§9, pasos 3b y 3c).
 - `sp-upload-test-file.mjs` **no se probó contra un tenant real**: probalo en una biblioteca de prueba. En Git Bash de Windows anteponé `MSYS_NO_PATHCONV=1` para que `FOLDER` no se convierta en ruta de disco.
 - Falta verificar en un teléfono real: cámara, firma táctil, service worker instalado y actualización (§19.6).

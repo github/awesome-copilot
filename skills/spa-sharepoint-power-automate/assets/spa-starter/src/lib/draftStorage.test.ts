@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  DRAFT_KEY,
+  defaultDraftKey,
   DRAFT_VERSION,
-  LEGACY_KEYS,
+  defaultLegacyKeys,
   createDraftStore,
   shouldClearDraft,
   type StorageLike,
@@ -32,9 +32,9 @@ describe("createDraftStore", () => {
     const { storage, data } = fakeStorage();
     const store = createDraftStore<Form>({ storage, now: () => 42 });
     expect(store.save({ a: "x", n: 1 })).toBe(true);
-    expect(data.has(DRAFT_KEY)).toBe(true);
-    expect(DRAFT_KEY).toContain(`v${DRAFT_VERSION}`);
-    expect(JSON.parse(data.get(DRAFT_KEY)!)).toEqual({ v: DRAFT_VERSION, ts: 42, data: { a: "x", n: 1 } });
+    expect(data.has(defaultDraftKey())).toBe(true);
+    expect(defaultDraftKey()).toContain(`v${DRAFT_VERSION}`);
+    expect(JSON.parse(data.get(defaultDraftKey())!)).toEqual({ v: DRAFT_VERSION, ts: 42, data: { a: "x", n: 1 } });
     expect(store.load()).toEqual({ a: "x", n: 1 });
   });
 
@@ -45,18 +45,18 @@ describe("createDraftStore", () => {
   it("purga las claves legacy en load, save y clear", () => {
     for (const op of ["load", "save", "clear"] as const) {
       const { storage, data } = fakeStorage();
-      for (const k of LEGACY_KEYS) data.set(k, "viejo");
+      for (const k of defaultLegacyKeys()) data.set(k, "viejo");
       const store = createDraftStore<Form>({ storage });
       if (op === "load") store.load();
       if (op === "save") store.save({ a: "", n: 0 });
       if (op === "clear") store.clear();
-      for (const k of LEGACY_KEYS) expect(data.has(k), `${op} debe purgar ${k}`).toBe(false);
+      for (const k of defaultLegacyKeys()) expect(data.has(k), `${op} debe purgar ${k}`).toBe(false);
     }
   });
 
   it("ignora un borrador de otra version (invalidar > migrar)", () => {
     const { storage, data } = fakeStorage();
-    data.set(DRAFT_KEY, JSON.stringify({ v: DRAFT_VERSION + 1, ts: 1, data: { a: "x", n: 1 } }));
+    data.set(defaultDraftKey(), JSON.stringify({ v: DRAFT_VERSION + 1, ts: 1, data: { a: "x", n: 1 } }));
     expect(createDraftStore<Form>({ storage }).load()).toBeNull();
   });
 
@@ -64,7 +64,7 @@ describe("createDraftStore", () => {
     const { storage, data } = fakeStorage();
     const store = createDraftStore<Form>({ storage });
     for (const raw of ["{no es json", "null", '"texto"', "[]", "{}", '{"v":1}']) {
-      data.set(DRAFT_KEY, raw);
+      data.set(defaultDraftKey(), raw);
       expect(store.load()).toBeNull();
     }
   });
@@ -74,7 +74,7 @@ describe("createDraftStore", () => {
     const store = createDraftStore<Form>({ storage });
     store.save({ a: "x", n: 1 });
     expect(store.clear()).toBe(true);
-    expect(data.has(DRAFT_KEY)).toBe(false);
+    expect(data.has(defaultDraftKey())).toBe(false);
     expect(store.load()).toBeNull();
   });
 
@@ -140,15 +140,15 @@ describe("createDraftStore: caducidad", () => {
     s.save({ a: "x", n: 1 });
     t = 1_501;
     expect(s.load()).toBeNull();
-    expect(data.has(DRAFT_KEY)).toBe(false);
+    expect(data.has(defaultDraftKey())).toBe(false);
   });
 
   it("un borrador sin marca de tiempo valida se descarta", () => {
     const { storage, data } = fakeStorage();
-    data.set(DRAFT_KEY, JSON.stringify({ v: DRAFT_VERSION, data: { a: "x", n: 1 } }));
+    data.set(defaultDraftKey(), JSON.stringify({ v: DRAFT_VERSION, data: { a: "x", n: 1 } }));
     const s = createDraftStore<Form>({ storage });
     expect(s.load()).toBeNull();
-    expect(data.has(DRAFT_KEY)).toBe(false);
+    expect(data.has(defaultDraftKey())).toBe(false);
   });
 
   it("clear() (\"borrar mis datos\") elimina el borrador aunque no haya vencido", () => {
@@ -156,6 +156,21 @@ describe("createDraftStore: caducidad", () => {
     const s = createDraftStore<Form>({ storage });
     s.save({ a: "x", n: 1 });
     expect(s.clear()).toBe(true);
-    expect(data.has(DRAFT_KEY)).toBe(false);
+    expect(data.has(defaultDraftKey())).toBe(false);
+  });
+});
+
+describe("createDraftStore: claves por aplicacion (mismo origen, distinta ruta)", () => {
+  it("dos apps con distinto namespace no se pisan ni se purgan", () => {
+    const { storage, data } = fakeStorage();
+    const a = createDraftStore<Form>({ storage, key: defaultDraftKey("/repo-a/"), legacyKeys: defaultLegacyKeys("/repo-a/") });
+    const b = createDraftStore<Form>({ storage, key: defaultDraftKey("/repo-b/"), legacyKeys: defaultLegacyKeys("/repo-b/") });
+    a.save({ a: "A", n: 1 });
+    b.save({ a: "B", n: 2 });
+    expect(a.load()).toEqual({ a: "A", n: 1 });
+    expect(b.load()).toEqual({ a: "B", n: 2 });
+    a.clear();
+    expect(b.load()).toEqual({ a: "B", n: 2 });
+    expect(data.has(defaultDraftKey("/repo-b/"))).toBe(true);
   });
 });

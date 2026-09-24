@@ -400,6 +400,14 @@ First action after the trigger. Compare `triggerOutputs()?['headers']?['x-app-ke
 | Type | `String` |
 | Value (`fx Expression` tab) | `if(empty(triggerBody()?['folio']), concat('<FOLIO_PREFIX>-', formatDateTime(utcNow(),'yyyyMMdd-HHmmss')), triggerBody()?['folio'])` |
 
+### 3b) `Validate_body` — Condition (mandatory)
+
+Check, before creating anything: `folio` present and with the expected pattern, the required fields, attachment count, `length(contentBase64)` per file and in total under your limit, and an allowed file-extension list. On failure answer a `400` `Response` and `Terminate` (`Failed`). Never trust the SPA: callers can post directly.
+
+### 3c) `Check_duplicate` — Get items (mandatory)
+
+`Get items` with Filter Query `Title eq '@{variables('varFolio')}'` and Top Count `1`. If it returns a row, answer `200` with the **existing** item's `id` and the same `folio`, then `Terminate` (`Succeeded`) — do not create again. Also set the `Title` column to **Enforce unique values** (it must be indexed) so two concurrent requests cannot both succeed. Without this step, the client's manual *Retry* after a timeout, a network error, a `502`/`504` or an unconfirmed response can create a duplicate, and `serverIdempotent` must stay `false`.
+
 ### 4) `CreateHeaderItem` — SharePoint **Create item**
 
 Rename the action to `CreateHeaderItem` (or short stable name) — every downstream `outputs(...)` reference must match.

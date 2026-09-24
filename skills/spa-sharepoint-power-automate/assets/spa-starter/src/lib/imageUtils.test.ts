@@ -10,6 +10,8 @@ import {
   extensionFor,
   fitWithin,
   formatBytes,
+  ImageProcessingError,
+  compressImage,
   isAlreadyCompressed,
   isCompressibleType,
   stripDataUrlPrefix,
@@ -129,5 +131,19 @@ describe("helpers de texto", () => {
     expect(formatBytes(512)).toBe("512 B");
     expect(formatBytes(1536)).toBe("1.5 KB");
     expect(formatBytes(5 * 1024 * 1024)).toBe("5.0 MB");
+  });
+});
+
+describe("compressImage: nunca devuelve el original sin sanitizar", () => {
+  it("formato no admitido (gif, svg, pdf) -> ImageProcessingError", async () => {
+    for (const type of ["image/gif", "image/svg+xml", "application/pdf"]) {
+      const f = new File(["x"], "a." + type.split("/")[1], { type });
+      await expect(compressImage(f)).rejects.toBeInstanceOf(ImageProcessingError);
+    }
+  });
+
+  it("si el navegador no puede decodificarla (sin createImageBitmap) -> ImageProcessingError", async () => {
+    const f = new File(["no es una imagen"], "foto.jpg", { type: "image/jpeg" });
+    await expect(compressImage(f)).rejects.toBeInstanceOf(ImageProcessingError);
   });
 });

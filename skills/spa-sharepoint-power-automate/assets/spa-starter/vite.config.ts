@@ -1,11 +1,12 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 import { loadEnv, type Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
 /**
- * Reemplaza `__BUILD_ID__` en dist/sw.js por un id unico por build.
+ * Reemplaza `__BUILD_ID__` en dist/sw.js por un id unico por build y `__BUILD_ASSETS__` por la lista
+ * de assets con hash (precache offline).
  * Asi el nombre del cache cambia en cada deploy y nadie se olvida de
  * "bumpear CACHE" (skill §7). Si el placeholder no esta, no hace nada.
  */
@@ -21,7 +22,18 @@ function swBuildId(): Plugin {
       const file = resolve(outDir, "sw.js");
       if (!existsSync(file)) return;
       const id = Date.now().toString(36);
-      writeFileSync(file, readFileSync(file, "utf8").replaceAll("__BUILD_ID__", id));
+      // Lista de assets del build (JS/CSS con hash) para precachear: rutas relativas al SW.
+      const assetsDir = resolve(outDir, "assets");
+      const assets = existsSync(assetsDir)
+        ? readdirSync(assetsDir, { recursive: true, withFileTypes: false })
+            .map((f) => String(f).replaceAll("\\", "/"))
+            .filter((f) => /\.(js|css)$/.test(f))
+            .map((f) => `./assets/${f}`)
+        : [];
+      writeFileSync(
+        file,
+        readFileSync(file, "utf8").replaceAll("__BUILD_ID__", id).replaceAll("__BUILD_ASSETS__", JSON.stringify(assets)),
+      );
     },
   };
 }

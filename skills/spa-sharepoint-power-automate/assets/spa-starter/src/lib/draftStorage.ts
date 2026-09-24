@@ -24,6 +24,27 @@ export const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 /** Claves de versiones anteriores. Agregar aca la clave vieja al subir DRAFT_VERSION. */
 export const LEGACY_KEYS: readonly string[] = ["app-draft", "app-draft-v0"];
 
+/**
+ * localStorage es por ORIGEN, no por ruta: varios proyectos de GitHub Pages bajo el mismo `*.github.io`
+ * compartirian (y se pisarian o purgarian) las claves genericas. Por eso todas las claves llevan el
+ * camino base de la app (p. ej. "/mi-repo/"), que en GitHub Pages es el nombre del repositorio.
+ */
+export function draftNamespace(): string {
+  try {
+    return typeof document === "undefined" ? "/" : new URL(".", document.baseURI).pathname;
+  } catch {
+    return "/";
+  }
+}
+
+export function defaultDraftKey(namespace: string = draftNamespace()): string {
+  return `${DRAFT_KEY}:${namespace}`;
+}
+
+export function defaultLegacyKeys(namespace: string = draftNamespace()): string[] {
+  return LEGACY_KEYS.map((k) => `${k}:${namespace}`);
+}
+
 /** Subconjunto de la API de Storage que usamos (facilita simularlo en tests). */
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -68,8 +89,8 @@ export function getDefaultStorage(): StorageLike | null {
 }
 
 export function createDraftStore<T>(options: DraftStoreOptions = {}): DraftStore<T> {
-  const key = options.key ?? DRAFT_KEY;
-  const legacy = options.legacyKeys ?? LEGACY_KEYS;
+  const key = options.key ?? defaultDraftKey();
+  const legacy = options.legacyKeys ?? defaultLegacyKeys();
   const now = options.now ?? Date.now;
   const maxAgeMs = options.maxAgeMs ?? DRAFT_MAX_AGE_MS;
   // `storage: null` explicito = sin storage (no caer al default).

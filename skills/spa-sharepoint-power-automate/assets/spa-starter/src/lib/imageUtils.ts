@@ -156,7 +156,8 @@ const alreadyProcessed = new WeakSet<Blob>();
 /**
  * Comprime a JPEG con canvas y descarta el EXIF. Idempotente: si el archivo es la salida de una
  * llamada anterior devuelve el mismo archivo. Un JPEG chico igual se re-codifica (para quitar EXIF).
- * Ante cualquier error devuelve el original (no bloquear al usuario).
+ * Si no se puede re-codificar LANZA ImageProcessingError: nunca se devuelve el original, que
+ * podria conservar EXIF con GPS (skill §33). La UI muestra el aviso y omite esa foto.
  *
  * Se llama en DOS puntos (skill §5): al elegir el archivo y de nuevo al
  * armar el payload, como red de seguridad.
@@ -168,7 +169,10 @@ export async function compressImage(
   const maxSide = opts.maxSide ?? DEFAULT_MAX_SIDE;
   const quality = opts.quality ?? DEFAULT_QUALITY;
 
-  if (alreadyProcessed.has(file) || !isCompressibleType(file.type)) return file;
+  if (alreadyProcessed.has(file)) return file;
+  if (!isCompressibleType(file.type)) {
+    throw new ImageProcessingError(file.name || "foto", "formato no admitido");
+  }
 
   try {
     const bmp = await createImageBitmap(file);
@@ -179,7 +183,7 @@ export async function compressImage(
       // `alreadyProcessed`: solo se saltea lo que salio de esta misma funcion.
       const { width, height } = fitWithin(bmp.width, bmp.height, maxSide);
       const blob = await drawToJpeg(bmp, width, height, quality);
-      if (!blob) return file;
+      if (!blob) throw new ImageProcessingError(file.name || "foto", "el navegador no pudo re-codificarla");
       const out = new File([blob], withExtension(file.name || "foto", "jpg"), {
         type: "image/jpeg",
         lastModified: Date.now(),
@@ -189,8 +193,9 @@ export async function compressImage(
     } finally {
       bmp.close();
     }
-  } catch {
-    return file;
+  } catch (err) {
+    if (err instanceof ImageProcessingError) throw err;
+    throw new ImageProcessingError(file.name || "foto", "no se pudo leer la imagen");
   }
 }
 
@@ -230,6 +235,17 @@ export function blobToBase64(blob: Blob): Promise<string> {
     reader.onload = () => resolve(stripDataUrlPrefix(String(reader.result ?? "")));
     reader.readAsDataURL(blob);
   });
+}
+
+/** La foto no se pudo re-codificar (formato no admitido o fallo del navegador): NO se sube el original,
+ *  porque conservaria EXIF (GPS, modelo del equipo). */
+export class ImageProcessingError extends Error {
+  readonly fileName: string;
+  constructor(fileName: string, reason: string) {
+    super(`No se pudo procesar la foto "${fileName}": ${reason}. Elige otra imagen (JPEG, PNG o WebP).`);
+    this.name = "ImageProcessingError";
+    this.fileName = fileName;
+  }
 }
 
 export class PayloadTooLargeError extends Error {

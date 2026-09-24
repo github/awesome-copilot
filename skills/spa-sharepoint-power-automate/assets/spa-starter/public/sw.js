@@ -12,7 +12,16 @@
 const BUILD_ID = "__BUILD_ID__";
 const CACHE_PREFIX = "app-static-";
 const CACHE = CACHE_PREFIX + BUILD_ID;
-const PRECACHE = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const PRECACHE_BASE = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+// `__BUILD_ASSETS__` lo reemplaza vite.config.ts por la lista de JS/CSS con hash del build. Sin esto,
+// una primera visita seguida de un arranque SIN red serviria el HTML cacheado sin sus assets y la app no arrancaria.
+let BUILD_ASSETS = [];
+try {
+  BUILD_ASSETS = JSON.parse('__BUILD_ASSETS__');
+} catch {
+  /* dev: el placeholder no se reemplaza; no hay assets que precachear */
+}
+const PRECACHE = [...PRECACHE_BASE, ...BUILD_ASSETS];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
