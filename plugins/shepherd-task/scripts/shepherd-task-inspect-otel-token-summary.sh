@@ -16,20 +16,39 @@ summarize_file() {
     local basename
     basename=$(basename "$file")
 
-    local input_tokens output_tokens llm_calls
-    input_tokens=$(jq -r '
-        [.. | objects | select(.key == "gen_ai.usage.input_tokens") | .value.intValue // .value.stringValue // 0 | tonumber] | add // 0
-    ' "$file" 2>/dev/null || echo 0)
+    local summary
+    summary=$(jq -sc '
+        def token_sum($key):
+            [
+                .[]
+                | ..
+                | objects
+                | select(.key? == $key)
+                | (.value.intValue // .value.stringValue // 0)
+                | tonumber
+            ]
+            | add // 0;
+        {
+            input: token_sum("gen_ai.usage.input_tokens"),
+            output: token_sum("gen_ai.usage.output_tokens"),
+            calls: (
+                [
+                    .[]
+                    | ..
+                    | objects
+                    | select((.name? // "") | test("^chat "))
+                ]
+                | length
+            )
+        }
+    ' "$file" 2>/dev/null) || summary='{"input":0,"output":0,"calls":0}'
 
-    output_tokens=$(jq -r '
-        [.. | objects | select(.key == "gen_ai.usage.output_tokens") | .value.intValue // .value.stringValue // 0 | tonumber] | add // 0
-    ' "$file" 2>/dev/null || echo 0)
+    SUMMARY_INPUT=$(jq -r '.input' <<<"$summary")
+    SUMMARY_OUTPUT=$(jq -r '.output' <<<"$summary")
+    SUMMARY_CALLS=$(jq -r '.calls' <<<"$summary")
 
-    llm_calls=$(jq -r '
-        [.. | objects | select(.name? // "" | test("^chat ")) ] | length
-    ' "$file" 2>/dev/null || echo 0)
-
-    printf "%-50s  %8s input  %8s output  %4s calls\n" "$basename" "$input_tokens" "$output_tokens" "$llm_calls"
+    printf "%-50s  %8s input  %8s output  %4s calls\n" \
+        "$basename" "$SUMMARY_INPUT" "$SUMMARY_OUTPUT" "$SUMMARY_CALLS"
 }
 
 echo "=== OTel Token Usage Summary ==="
@@ -47,12 +66,9 @@ if [[ -d "$TARGET" ]]; then
     fi
     for f in "${files[@]}"; do
         summarize_file "$f"
-        input=$(jq -r '[.. | objects | select(.key == "gen_ai.usage.input_tokens") | .value.intValue // .value.stringValue // 0 | tonumber] | add // 0' "$f" 2>/dev/null || echo 0)
-        output=$(jq -r '[.. | objects | select(.key == "gen_ai.usage.output_tokens") | .value.intValue // .value.stringValue // 0 | tonumber] | add // 0' "$f" 2>/dev/null || echo 0)
-        calls=$(jq -r '[.. | objects | select(.name? // "" | test("^chat ")) ] | length' "$f" 2>/dev/null || echo 0)
-        total_input=$((total_input + input))
-        total_output=$((total_output + output))
-        total_calls=$((total_calls + calls))
+        total_input=$((total_input + SUMMARY_INPUT))
+        total_output=$((total_output + SUMMARY_OUTPUT))
+        total_calls=$((total_calls + SUMMARY_CALLS))
     done
     echo ""
     echo "--- TOTALS ---"
