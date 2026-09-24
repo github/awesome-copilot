@@ -94,12 +94,20 @@ function Invoke-CopilotRedacted {
     try {
         $Prompt | copilot --yolo --output-format json --share $rawSharePath > $rawJsonlPath
         $copilotExit = $LASTEXITCODE
+        & (Join-Path $scriptDir 'redact-secrets.ps1') $tempDir | Out-Null
+        if (Test-Path -LiteralPath $rawJsonlPath -PathType Leaf) {
+            Move-Item -LiteralPath $rawJsonlPath -Destination $JsonlPath -Force
+        }
+        if (Test-Path -LiteralPath $rawSharePath -PathType Leaf) {
+            Move-Item -LiteralPath $rawSharePath -Destination $SharePath -Force
+        }
         if ($copilotExit -ne 0) {
             throw "copilot exited with code $copilotExit"
         }
-        & (Join-Path $scriptDir 'redact-secrets.ps1') $tempDir | Out-Null
-        Move-Item -LiteralPath $rawJsonlPath -Destination $JsonlPath -Force
-        Move-Item -LiteralPath $rawSharePath -Destination $SharePath -Force
+        if (-not (Test-Path -LiteralPath $JsonlPath -PathType Leaf) -or
+            -not (Test-Path -LiteralPath $SharePath -PathType Leaf)) {
+            throw 'copilot completed without producing the required session artifacts'
+        }
     }
     finally {
         Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
