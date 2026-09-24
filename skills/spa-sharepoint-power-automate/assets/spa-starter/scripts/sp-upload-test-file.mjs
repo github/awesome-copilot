@@ -20,6 +20,7 @@ Entorno (obligatorio):
 
 Opciones:
   --name <archivo.pdf>   nombre del archivo (default prueba-<timestamp>.pdf: siempre NUEVO)
+  --overwrite            permite PISAR un archivo existente con el mismo nombre (por defecto NO se pisa)
   --dry-run              muestra que haria (URL, tamano) sin llamar a SharePoint
   --help                 esta ayuda
 
@@ -47,22 +48,24 @@ export function buildMinimalPdf() {
   return Buffer.from(pdf, "latin1");
 }
 
-/** Arma la URL de Files/add. Las comillas simples OData se duplican; luego se codifica. */
-export function buildUploadUrl(siteUrl, folder, fileName) {
+/** Arma la URL de Files/add. Por defecto overwrite=false: si el nombre ya existe SharePoint
+ *  responde error y NO pisa el archivo. Las comillas simples OData se duplican; luego se codifica. */
+export function buildUploadUrl(siteUrl, folder, fileName, overwrite = false) {
   // Se conservan las '/' de la ruta; el resto (espacios, #, &, %, acentos) se codifica.
   const odata = (s) => encodeURIComponent(s.replace(/'/g, "''")).replaceAll("%2F", "/");
   return (
     `${siteUrl.replace(/\/+$/, "")}/_api/web/GetFolderByServerRelativeUrl('${odata(folder)}')` +
-    `/Files/add(url='${odata(fileName)}',overwrite=true)`
+    `/Files/add(url='${odata(fileName)}',overwrite=${overwrite ? "true" : "false"})`
   );
 }
 
 function parseArgs(argv) {
-  const out = { name: undefined, dryRun: false };
+  const out = { name: undefined, dryRun: false, overwrite: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--help" || a === "-h") out.help = true;
     else if (a === "--dry-run") out.dryRun = true;
+    else if (a === "--overwrite") out.overwrite = true;
     else if (a === "--name") {
       if (i + 1 >= argv.length) throw new Error("Falta el valor de --name");
       out.name = argv[++i];
@@ -93,7 +96,7 @@ export async function main(argv = process.argv.slice(2), env = process.env) {
 
   const name = args.name ?? `prueba-${Date.now()}.pdf`;
   const pdf = buildMinimalPdf();
-  const url = buildUploadUrl(SITE_URL, FOLDER, name);
+  const url = buildUploadUrl(SITE_URL, FOLDER, name, args.overwrite);
 
   console.log(`archivo: ${name} (${pdf.length} bytes)`);
   console.log(`destino: ${url}`);

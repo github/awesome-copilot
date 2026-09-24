@@ -91,7 +91,8 @@ describe("sp-upload-test-file", () => {
   it("buildUploadUrl escapa comillas OData y codifica la ruta", () => {
     const url = buildUploadUrl("https://<tenant>.sharepoint.com/sites/x/", "/sites/x/Shared Documents/O'Brien", "a b#1.pdf");
     expect(url).toContain("GetFolderByServerRelativeUrl('/sites/x/Shared%20Documents/O''Brien')");
-    expect(url).toContain("Files/add(url='a%20b%231.pdf',overwrite=true)");
+    expect(url).toContain("Files/add(url='a%20b%231.pdf',overwrite=false)"); // por defecto NO pisa
+    expect(buildUploadUrl("https://<tenant>.sharepoint.com/sites/x", "/sites/x/Docs", "a.pdf", true)).toContain("overwrite=true");
     expect(url).not.toContain("x//_api");
   });
   it("--dry-run no llama a la red y sale con 0", async () => {
