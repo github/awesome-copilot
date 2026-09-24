@@ -86,9 +86,7 @@ async function boot() {
         ui.syncEmpty();
       },
       exportRequest: answerExport,
-      select: (ids) => {
-        if (!ed.busy) ed.select(ids);
-      },
+      select: (ids) => ed.select(ids),
       status: (kind, msg) => ui.setStatus(kind, msg),
       problem: (msg) => ui.toast(msg, { error: true, timeout: 8000 }),
       unsaved: (drawing) => ui.warnUnsaved(() => ui.drawingsAction({ action: "open", id: drawing.id }, { discard: true })),

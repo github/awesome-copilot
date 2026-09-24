@@ -377,7 +377,7 @@ export function makeActions({ runtime, CanvasError }) {
 
     action(
       "open_drawing",
-      "Show another drawing in this canvas, found by name or id. Creates a new empty drawing with that name if none matches.",
+      "Show another drawing in this canvas, found by name or id. Creates a new empty drawing with that name if none matches. If a name could mean more than one drawing, nothing opens and the error lists their ids; pass one of those instead, since an id always picks one.",
       {
         name: str("Name or id of the drawing."),
         create: { type: "boolean", description: "Create the drawing when none matches. Defaults to true." },
@@ -392,7 +392,10 @@ export function makeActions({ runtime, CanvasError }) {
           created = true;
         }
         server.showDrawing(instanceId, doc);
-        return { ...summary(doc, created ? `Created and opened "${doc.name}".` : `Opened "${doc.name}".`), created };
+        let message = created ? `Created and opened "${doc.name}".` : `Opened "${doc.name}".`;
+        const sameName = store.list().filter((d) => d.id !== doc.id && d.name.toLowerCase() === doc.name.toLowerCase());
+        if (sameName.length) message += ` Other drawings have this name too: ${sameName.map((d) => d.id).join(", ")}.`;
+        return { ...summary(doc, message), created };
       },
       { anyDrawing: true },
     ),

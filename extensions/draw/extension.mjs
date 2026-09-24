@@ -7,7 +7,7 @@
 import os from "node:os";
 import path from "node:path";
 import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
-import { DrawingStore } from "./store.mjs";
+import { DrawingStore, StoreError } from "./store.mjs";
 import { Settings, settingsFile } from "./settings.mjs";
 import { createDrawServer } from "./server.mjs";
 import { makeActions } from "./actions.mjs";
@@ -50,7 +50,11 @@ const canvas = createCanvas({
   inputSchema: {
     type: "object",
     properties: {
-      drawing: { type: "string", description: "Name or id of the drawing to show. It is created if it does not exist." },
+      drawing: {
+        type: "string",
+        description:
+          "Name or id of the drawing to show. It is created if nothing matches. If a name could mean more than one drawing, nothing opens and the error lists their ids; an id always picks one.",
+      },
     },
     additionalProperties: false,
   },
@@ -60,7 +64,13 @@ const canvas = createCanvas({
     const wanted = typeof ctx.input?.drawing === "string" ? ctx.input.drawing.trim() : "";
     if (wanted) {
       const current = store.drawingForInstance(ctx.instanceId);
-      const doc = store.find(wanted) || store.create(wanted);
+      let doc;
+      try {
+        doc = store.find(wanted) || store.create(wanted);
+      } catch (err) {
+        if (err instanceof StoreError) throw new CanvasError(err.code, err.message);
+        throw err;
+      }
       if (!current || current.id !== doc.id) server.showDrawing(ctx.instanceId, doc);
     } else {
       server.ensureDrawing(ctx.instanceId);

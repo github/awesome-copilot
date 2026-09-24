@@ -13,41 +13,113 @@ export const lineHeight = (fs) => Math.round(fs * 1.35);
 export const baselineOffset = (fs, lh) => lh / 2 + 0.34 * fs;
 export const fontSizeOf = (el) => FONT_SIZES[el.size] || FONT_SIZES.m;
 
+// Width units for ASCII characters, used where no real font measurement exists (Node side).
+// Later groups overwrite earlier ones, so "I", "M" and "W" get the width of their own group
+// rather than the width of the other capitals.
+const ASCII_UNITS = new Float64Array(128).fill(0.54);
+for (const [chars, units] of [
+  ["ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$?_~+=<>*^", 0.64],
+  ["mwMW@%&", 0.86],
+  ["fjtIr()[]{}\"-/\\", 0.38],
+  ["il|!.,:;'`", 0.27],
+  [" ", 0.28],
+]) {
+  for (const ch of chars) ASCII_UNITS[ch.charCodeAt(0)] = units;
+}
+
 // Rough text width used where no real font measurement exists (Node side).
 export function approxMeasure(str, fontSize, weight = 400) {
   let units = 0;
   for (const ch of String(str)) {
-    if (ch === " ") units += 0.28;
-    else if ("il|!.,:;'`".includes(ch)) units += 0.27;
-    else if ("fjtIr()[]{}\"-/\\".includes(ch)) units += 0.38;
-    else if ("mwMW@%&".includes(ch)) units += 0.86;
-    else if (/[A-Z0-9#$?_~+=<>*^]/.test(ch)) units += 0.64;
-    else if (ch.codePointAt(0) > 0x2e7f) units += 1;
-    else units += 0.54;
+    const code = ch.codePointAt(0);
+    units += code < 128 ? ASCII_UNITS[code] : code > 0x2e7f ? 1 : 0.54;
   }
   return units * fontSize * (weight >= 600 ? 1.06 : weight >= 500 ? 1.03 : 1);
 }
 
-// Greedy word wrap. Words longer than the line are broken by character.
+// Greedy word wrap. Words longer than the line are broken by character. Every check measures a
+// whole line, so how many more words (or characters) fit is searched for rather than found by
+// adding them one at a time. The search starts from the last line's count, since lines tend to
+// hold about the same, so most lines take two measurements and none takes more than about
+// 2 log n. Even a 4,000-character label with no spaces wraps quickly.
 export function wrapText(text, maxWidth, fs, weight, measure = approxMeasure) {
   const out = [];
   const fits = (s) => measure(s, fs, weight) <= maxWidth;
+  let wordGuess = 1;
+  let charGuess = 1;
   for (const para of String(text).split("\n")) {
+    const words = para.split(" ");
     let line = "";
-    for (const word of para.split(" ")) {
-      const candidate = line ? `${line} ${word}` : word;
-      if (fits(candidate)) { line = candidate; continue; }
-      if (line) out.push(line);
-      line = "";
-      let chunk = "";
-      for (const ch of word) {
-        if (chunk && !fits(chunk + ch)) { out.push(chunk); chunk = ch; } else chunk += ch;
+    let i = 0;
+    while (i < words.length) {
+      // The line with the next n words added. A word that starts an empty line has no space before it.
+      const withWords = (n) => {
+        let s = line;
+        for (let k = i; k < i + n; k++) s = s ? `${s} ${words[k]}` : words[k];
+        return s;
+      };
+      const n = longestFit(words.length - i, (m) => fits(withWords(m)), wordGuess);
+      wordGuess = Math.max(1, n);
+      if (n > 0) {
+        line = withWords(n);
+        i += n;
+        // n is the most that fit, so a word left over starts a new line. (When only empty words
+        // fit, the line is still empty, and the next word is cut to fit on it instead.)
+        if (i < words.length && line) {
+          out.push(line);
+          line = "";
+        }
+      } else if (line) {
+        // The next word starts a new line.
+        out.push(line);
+        line = "";
+      } else {
+        // It does not fit on a line of its own either, so it is cut into pieces that do (at
+        // least one character each). The last piece starts the next line.
+        const chars = Array.from(words[i++]);
+        const piece = (from, m) => chars.slice(from, from + m).join("");
+        let start = 0;
+        for (;;) {
+          const len = Math.max(1, longestFit(chars.length - start, (m) => fits(piece(start, m)), charGuess));
+          if (start + len >= chars.length) {
+            line = piece(start, len);
+            break;
+          }
+          out.push(piece(start, len));
+          start += len;
+          charGuess = len;
+        }
       }
-      line = chunk;
     }
     out.push(line);
   }
   return out;
+}
+
+// The largest n from 0 to max for which ok(n) holds, when ok holds up to some n and not after
+// it (n = 0 counts as holding). It checks the guess first. Then, from the largest count known to
+// fit (the guess, or 0 when the guess does not fit), it steps out by 1, 2, 4 ... until a step
+// fails, and halves the gap that is left. So a good guess costs two checks, and a bad one never
+// leads to checking much more than twice the answer, apart from the guess itself.
+function longestFit(max, ok, guess = 1) {
+  if (max < 1) return 0;
+  const g = Math.min(Math.max(guess, 1), max);
+  let lo = 0;
+  let hi = max + 1;
+  if (ok(g)) lo = g;
+  else hi = g;
+  let step = 1;
+  while (lo + step < hi && ok(lo + step)) {
+    lo += step;
+    step *= 2;
+  }
+  hi = Math.min(hi, lo + step);
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (ok(mid)) lo = mid;
+    else hi = mid;
+  }
+  return lo;
 }
 
 export function cylinderCap(s) {
@@ -277,7 +349,8 @@ export function arrowGeometry(a, byId) {
   const headEnd = a.head === "end" || a.head === "both";
   const boxA = A || { x: a.x1, y: a.y1, w: 0, h: 0 };
   const boxB = B || { x: a.x2, y: a.y2, w: 0, h: 0 };
-  const sides = a.route !== "straight" && (A || B) ? pickSides(boxA, boxB) : null;
+  // A free end counts as a box with no size, so an arrow attached to nothing follows its route too.
+  const sides = a.route !== "straight" ? pickSides(boxA, boxB) : null;
 
   if (sides && a.route === "curve") {
     const p = A ? sideAnchor(A, sides[0], ARROW_GAP) : { x: a.x1, y: a.y1 };

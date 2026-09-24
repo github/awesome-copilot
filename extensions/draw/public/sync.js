@@ -41,6 +41,8 @@ export class Sync {
     this.sending = null;
     this.timer = 0;
     this.deferred = null;
+    // The agent's newest selection, while the editor cannot show it yet (see showSelection).
+    this.pendingSelection = null;
     this.failures = 0;
     this.retryTimer = 0;
     // Why the server refused our last changes, and why the extension cannot write this drawing
@@ -89,6 +91,7 @@ export class Sync {
     this.rev = doc.rev;
     this.synced = new Map(doc.elements.map((e) => [e.id, e]));
     this.deferred = null;
+    this.pendingSelection = null;
     this.gone = false;
   }
 
@@ -119,7 +122,7 @@ export class Sync {
     on("switch", ({ drawing }) => this.switchTo(drawing));
     on("export", (req) => this.handlers.exportRequest?.(req));
     on("select", ({ drawingId, ids }) => {
-      if (drawingId === this.drawingId) this.handlers.select?.(ids);
+      if (drawingId === this.drawingId) this.showSelection(ids);
       for (const t of this.switching) if (t.drawing.id === drawingId) t.selection = ids;
     });
     on("settings", ({ settings, origin }) => {
@@ -210,7 +213,7 @@ export class Sync {
     }
     this.setDoc(drawing);
     this.handlers.switched?.(drawing);
-    if (target.selection) this.handlers.select?.(target.selection);
+    if (target.selection) this.showSelection(target.selection);
     // Messages about the last drawing do not apply to this one.
     this.refusal = null;
     this.diskError = null;
@@ -234,12 +237,37 @@ export class Sync {
   }
 
   onIdle() {
-    if (this.deferred && !this.inflight) {
+    // Once the handler that ended the edit or drag is done, since it may start the next one right
+    // away (Tab opens the next step's label). Then what waits keeps waiting.
+    queueMicrotask(() => this.applyDeferred());
+    this.schedule();
+  }
+
+  // Shows a selection the agent made. While the user drags or types, or while an agent change
+  // waits for a save to finish (it may add the elements named here), the newest one waits for
+  // applyDeferred.
+  showSelection(ids) {
+    this.pendingSelection = { ids, before: [...this.editor.selection] };
+    this.applyDeferred();
+  }
+
+  // Applies what the server sent while the editor could not take it: the newest remote doc, and
+  // then the agent's newest selection, unless the user picked something else since it came.
+  // Their newer choice stands then, and the server already has it. Elements that are gone do
+  // not count as a different choice, since removing an element also drops it from the selection.
+  applyDeferred() {
+    if (this.inflight || this.editor.busy) return;
+    if (this.deferred) {
       const d = this.deferred;
       this.deferred = null;
       if (d.rev > this.rev) this.rebase(d);
     }
-    this.schedule();
+    const sel = this.pendingSelection;
+    if (!sel) return;
+    this.pendingSelection = null;
+    const now = this.editor.selection;
+    const before = sel.before.filter((id) => this.editor.byId.has(id));
+    if (before.length === now.size && before.every((id) => now.has(id))) this.handlers.select?.(sel.ids);
   }
 
   schedule(delay = 60) {
@@ -325,11 +353,7 @@ export class Sync {
       if (this.dirty) this.schedule();
       return !this.dirty;
     }
-    if (this.deferred && !this.editor.busy) {
-      const d = this.deferred;
-      this.deferred = null;
-      if (d.rev > this.rev) this.rebase(d);
-    }
+    this.applyDeferred();
     if (refused) return false;
     if (diffOps(this.synced, this.editor.elements)) {
       // Edits made while the request was out. A forced flush sends them now too.

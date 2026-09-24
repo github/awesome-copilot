@@ -117,6 +117,30 @@ test("an action that names another drawing than the one shown changes nothing", 
     assert.equal(store.get(doc.id).elements.length, 1);
 });
 
+test("a name more than one drawing has opens nothing and lists their ids", async (t) => {
+    const { store, run, server } = await setup(t);
+    const shown = [];
+    server.showDrawing = (instanceId, d) => shown.push(d.id);
+    assert.equal(store.create("Plan").id, "plan-2");
+    for (const name of ["Plan", "PLAN", "plan!"]) {
+        await assert.rejects(run("open_drawing", { name }), (err) => {
+            assert.ok(err instanceof CanvasError);
+            assert.equal(err.code, "ambiguous_name");
+            assert.match(err.message, /plan \("Plan"\), plan-2 \("Plan"\)/);
+            return true;
+        });
+    }
+    assert.deepEqual(shown, []);
+    assert.equal(store.list().length, 2);
+
+    // An id always picks one, and the result names the others.
+    const second = await run("open_drawing", { name: "plan-2" });
+    assert.equal(second.drawing.id, "plan-2");
+    assert.match(second.message, /Other drawings have this name too: plan\./);
+    assert.equal((await run("open_drawing", { name: "plan" })).drawing.id, "plan");
+    assert.deepEqual(shown, ["plan-2", "plan"]);
+});
+
 test("every action on the shown drawing can name the drawing it means", () => {
     const actions = makeActions({ runtime: async () => ({}), CanvasError });
     const unpinned = actions.filter((a) => !a.inputSchema.properties.drawingId).map((a) => a.name);

@@ -150,15 +150,28 @@ export class DrawingStore extends EventEmitter {
         return (typeof id === "string" && this.docs.get(id)) || null;
     }
 
+    // The drawing nameOrId means: the one with exactly that id, or else the one with that name
+    // (ignoring case), or else the one whose id or name has the same slug ("my plan!" finds "My
+    // Plan"). An exact id always wins, so it is the way to pick one of several drawings that share
+    // a name. When a name could mean more than one drawing, this throws instead of guessing.
     find(nameOrId) {
-        const wanted = cleanName(nameOrId).toLowerCase();
-        if (!wanted) return null;
-        return (
-            this.docs.get(wanted) ||
-            [...this.docs.values()].find((d) => d.name.toLowerCase() === wanted) ||
-            this.docs.get(slugifyName(wanted)) ||
-            null
-        );
+        const raw = cleanName(nameOrId);
+        if (!raw) return null;
+        const byId = this.docs.get(raw);
+        if (byId) return byId;
+        const docs = [...this.docs.values()];
+        const only = (matches) => {
+            if (matches.length > 1) {
+                const list = matches.map((d) => `${d.id} ("${d.name}")`).join(", ");
+                throw new StoreError("ambiguous_name", `More than one drawing matches "${raw}": ${list}. Pass the id of the one you want.`);
+            }
+            return matches[0] || null;
+        };
+        const lower = raw.toLowerCase();
+        const byName = only(docs.filter((d) => d.name.toLowerCase() === lower));
+        if (byName) return byName;
+        const slug = slugifyName(raw);
+        return slug ? only(docs.filter((d) => d.id === slug || slugifyName(d.name) === slug)) : null;
     }
 
     #nextName() {
