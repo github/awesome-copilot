@@ -16,12 +16,11 @@ sequenceDiagram
     participant GH as GitHub
     participant PM as Stage 50 Copilot session
 
-    User->>GL: lesson mode, ordered issue CSV, campaign directory
+    User->>GL: ordered issue CSV, campaign directory
     GL->>GL: Validate argument shapes and required tools
     GL->>CM: Validate schema, campaign UUID, repo, non-main base, lesson mode
-    CM-->>GL: Immutable campaign context
+    CM-->>GL: Immutable campaign context including lesson mode
     GL->>GL: Require manifest directory match and campaign-lessons.md
-    GL->>GL: Require requested lesson mode equals manifest mode
     GL->>RM: Create unique run directory and status=running manifest
 
     loop Issues in supplied order
