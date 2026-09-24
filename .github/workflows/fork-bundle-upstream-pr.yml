@@ -1,0 +1,373 @@
+# Fork-only. Assembles the unpromoted delta of the Oracle-to-PostgreSQL Migration
+# Expert agent (agent file, plugin, skills) onto a branch based on upstream main,
+# regenerates README/marketplace, and opens or refreshes a draft PR against
+# github/awesome-copilot. Never proposed upstream itself.
+name: Fork Bundle Upstream PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: 'PR title (optional; auto-generated if omitted)'
+        required: false
+        type: string
+        default: ''
+      ai_authored:
+        description: 'Append the 🤖🤖🤖 fast-track marker (CONTRIBUTING.md: AI-authored PRs)'
+        type: boolean
+        default: true
+      dry_run:
+        description: 'Build the branch and show the diff, but do not push or open a PR'
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: fork-bundle-upstream-pr
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: github/awesome-copilot
+  PROMOTION_BRANCH: upstream-promotion/oracle-to-postgres-migration-expert-v1.1.1
+  PLUGIN_MANIFEST: plugins/oracle-to-postgres-migration-expert/plugin.json
+
+jobs:
+  bundle:
+    name: Bundle agent changes into upstream PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch --quiet upstream main
+
+      - name: Compute unpromoted delta
+        id: delta
+        shell: bash
+        run: |
+          # Paths that belong to this agent, derived from plugin.json itself rather
+          # than duplicated as literals, so the guard can't silently drift from the
+          # manifest it's supposed to mirror.
+          #
+          # PATHS/TYPES are built in lockstep: TYPES[i] tags PATHS[i] as file (f) or
+          # directory (d) by construction, so the promotion path guard never has to
+          # infer this from on-disk presence (a deleted/missing file must stay a file,
+          # not fall back to directory-prefix matching).
+          PATHS=()
+          TYPES=()
+
+          # Agent files referenced by the plugin manifest. Source files live at
+          # agents/<name>.agent.md, but plugin.json's agents[] entries reference them
+          # as ./agents/<name>.md (the ".agent" suffix is dropped by convention; see
+          # eng/materialize-plugins.mjs and eng/validate-plugins.mjs, which apply the
+          # same ".md" -> ".agent.md" transform). Fail closed on any entry that
+          # doesn't match this exact shape, rather than silently mis-deriving a path
+          # (e.g. a missing "./" prefix would otherwise produce agents/agents/foo.md).
+          while IFS= read -r agent_rel; do
+            case "$agent_rel" in
+              ./agents/*.md)
+                agent_base="${agent_rel#./agents/}"
+                agent_base="${agent_base%.md}"
+                PATHS+=("agents/${agent_base}.agent.md")
+                TYPES+=("f")
+                ;;
+              *)
+                echo "::error file=$PLUGIN_MANIFEST::Unexpected agents[] entry '$agent_rel'; expected the form ./agents/<name>.md."
+                exit 1
+                ;;
+            esac
+          done < <(jq -r '.extensions["com.github.awesome-copilot"].agents[]?' "$PLUGIN_MANIFEST")
+
+          if [ "${#PATHS[@]}" -eq 0 ]; then
+            echo "::error file=$PLUGIN_MANIFEST::No agents[] entries found; cannot determine the promotable agent file(s)."
+            exit 1
+          fi
+
+          # The plugin directory itself: derived from where the manifest lives, since
+          # a manifest can't reference its own containing directory. This is the one
+          # path that is structurally not derivable from the manifest's contents.
+          PATHS+=("$(dirname "$PLUGIN_MANIFEST")")
+          TYPES+=("d")
+
+          # Skills referenced by the plugin manifest (./skills/<name>/ -> skills/<name>).
+          # Same fail-closed shape check as agents above: don't rely on jq's
+          # ltrimstr()/rtrimstr() silently no-op'ing on an unexpected prefix.
+          while IFS= read -r skill_rel; do
+            case "$skill_rel" in
+              ./skills/*/)
+                skill="${skill_rel#./skills/}"
+                skill="${skill%/}"
+                ;;
+              ./skills/*)
+                skill="${skill_rel#./skills/}"
+                ;;
+              *)
+                echo "::error file=$PLUGIN_MANIFEST::Unexpected skills[] entry '$skill_rel'; expected the form ./skills/<name>/."
+                exit 1
+                ;;
+            esac
+            # Guard against a bare "./skills/" (or "./skills//") entry: both match
+            # the case patterns above but strip down to an empty name, which would
+            # otherwise allowlist the entire skills/ directory instead of one skill.
+            if [ -z "$skill" ]; then
+              echo "::error file=$PLUGIN_MANIFEST::Unexpected skills[] entry '$skill_rel'; empty skill name after stripping the ./skills/ prefix."
+              exit 1
+            fi
+            PATHS+=("skills/${skill}")
+            TYPES+=("d")
+          done < <(jq -r '.extensions["com.github.awesome-copilot"].skills[]?' "$PLUGIN_MANIFEST")
+
+          printf '%s\n' "${PATHS[@]}" > /tmp/promote-paths.txt
+          echo "Promotable paths:"; cat /tmp/promote-paths.txt
+
+          : > /tmp/promote-paths-typed.txt
+          for i in "${!PATHS[@]}"; do
+            echo "${TYPES[$i]} ${PATHS[$i]}" >> /tmp/promote-paths-typed.txt
+          done
+
+          git diff --quiet upstream/main origin/main -- "${PATHS[@]}" && {
+            echo "::error::No unpromoted changes under the agent's paths. Fork main matches upstream main for these files."
+            exit 1
+          }
+
+          FORK_VERSION=$(git show origin/main:"$PLUGIN_MANIFEST" | jq -r .version)
+          UPSTREAM_VERSION=$(git show upstream/main:"$PLUGIN_MANIFEST" | jq -r .version)
+          if [ "$FORK_VERSION" = "$UPSTREAM_VERSION" ]; then
+            echo "::error file=$PLUGIN_MANIFEST::plugin.json version ($FORK_VERSION) equals upstream. Bump it on fork main before promoting."
+            exit 1
+          fi
+          COMMIT_SUBJECTS=$(git log --no-merges --format='%s' upstream/main..origin/main -- "${PATHS[@]}")
+          if [ -z "$COMMIT_SUBJECTS" ]; then
+            COMMIT_SUBJECTS="Update the Oracle-to-PostgreSQL Migration Expert agent"
+          fi
+          DIFF_STAT=$(git diff --stat upstream/main origin/main -- "${PATHS[@]}")
+          echo "fork_version=$FORK_VERSION" >> "$GITHUB_OUTPUT"
+          echo "upstream_version=$UPSTREAM_VERSION" >> "$GITHUB_OUTPUT"
+          echo "fork_sha=$(git rev-parse --short origin/main)" >> "$GITHUB_OUTPUT"
+          echo "upstream_sha=$(git rev-parse --short upstream/main)" >> "$GITHUB_OUTPUT"
+          echo "commit_subjects<<EOF" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$COMMIT_SUBJECTS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "diff_stat<<EOF" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$DIFF_STAT" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Build promotion branch from upstream main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout --quiet -B "$PROMOTION_BRANCH" upstream/main
+          # Single squashed diff of the promotable paths (handles adds, deletes, renames, binaries).
+          # Always applies cleanly because the branch *is* upstream/main; a failure here is a real bug.
+          mapfile -t PATHS < /tmp/promote-paths.txt
+          git diff --binary upstream/main origin/main -- "${PATHS[@]}" | git apply --index --whitespace=nowarn
+
+      - name: Install promotion path guard
+        run: |
+          cat > /tmp/validate-promotion-paths.sh <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          BASE_REF="$1"
+          if [[ "$#" -eq 2 ]]; then
+            # Two refs: compare committed history (e.g. upstream/main HEAD).
+            CHANGED=$(git diff --name-only "$BASE_REF...$2")
+          else
+            # One ref: validate the staged (index) contents, not the working tree,
+            # since the index is what a subsequent commit/push will actually publish.
+            CHANGED=$(git diff --name-only --cached "$BASE_REF")
+          fi
+
+          if [[ -z "$CHANGED" ]]; then
+            echo "::error::Promotion contains no changed files."
+            exit 1
+          fi
+
+          invalid=()
+          while IFS= read -r path; do
+            allowed=false
+            while IFS= read -r typed_entry; do
+              kind="${typed_entry%% *}"
+              promotable="${typed_entry#* }"
+              if [[ "$kind" == "f" ]]; then
+                # File entry (e.g. the agent file): exact match only, never a directory
+                # prefix, regardless of whether the file currently exists on disk.
+                [[ "$path" == "$promotable" ]] && { allowed=true; break; }
+              else
+                # Directory entry (e.g. the plugin or a skill folder): allow its descendants.
+                case "$path" in
+                  "$promotable"/*)
+                    allowed=true
+                    break
+                    ;;
+                esac
+              fi
+            done < /tmp/promote-paths-typed.txt
+            case "$path" in
+              # Exact, literal filenames only (no globs): this must match precisely what
+              # `npm run build` (eng/update-readme.mjs) writes, so a crafted file that
+              # merely resembles a generated doc (e.g. docs/README-evil.md) can't ride
+              # along under a loose wildcard.
+              README.md | \
+              docs/README.instructions.md | \
+              docs/README.agents.md | \
+              docs/README.hooks.md | \
+              docs/README.workflows.md | \
+              docs/README.skills.md | \
+              docs/README.plugins.md | \
+              .github/plugin/marketplace.json)
+                allowed=true
+                ;;
+            esac
+            if [[ "$allowed" != true ]]; then
+              invalid+=("$path")
+            fi
+          done <<< "$CHANGED"
+
+          if (( ${#invalid[@]} > 0 )); then
+            echo "::error::Promotion contains paths outside the allowlist:"
+            printf '::error file=%s::This path must not be promoted upstream.\n' "${invalid[@]}"
+            exit 1
+          fi
+
+          if [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
+            echo "::error::Promotion contains untracked files."
+            git ls-files --others --exclude-standard
+            exit 1
+          fi
+
+          printf 'Promotion path guard passed for:\n%s\n' "$CHANGED"
+          EOF
+          chmod +x /tmp/validate-promotion-paths.sh
+
+      - name: Verify staged promotion paths
+        run: /tmp/validate-promotion-paths.sh upstream/main
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Regenerate README and marketplace (npm run build)
+        run: |
+          npm ci --silent
+          npm run build
+          git add -A README.md docs .github/plugin/marketplace.json
+          bash eng/fix-line-endings.sh
+          git add -A
+          /tmp/validate-promotion-paths.sh upstream/main
+
+      - name: Commit
+        env:
+          FORK_VERSION: ${{ steps.delta.outputs.fork_version }}
+          FORK_SHA: ${{ steps.delta.outputs.fork_sha }}
+        run: |
+          git commit --quiet -m "Update Oracle-to-PostgreSQL Migration Expert agent to v${FORK_VERSION}" \
+            -m "Promoted from PrimedPaul/awesome-copilot main @ ${FORK_SHA}."
+          echo "## Promotion diff (vs upstream main)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          git diff --stat upstream/main HEAD >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify committed promotion paths
+        run: /tmp/validate-promotion-paths.sh upstream/main HEAD
+
+      - name: Push promotion branch to fork
+        if: ${{ !inputs.dry_run }}
+        run: git push --quiet --force-with-lease origin "$PROMOTION_BRANCH"
+
+      - name: Open or refresh draft PR against upstream
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ secrets.FORK_AUTOMATION_PAT }}
+          INPUT_TITLE: ${{ inputs.title }}
+          COMMIT_SUBJECTS: ${{ steps.delta.outputs.commit_subjects }}
+          DIFF_STAT: ${{ steps.delta.outputs.diff_stat }}
+          AI_AUTHORED: ${{ inputs.ai_authored }}
+          FORK_VERSION: ${{ steps.delta.outputs.fork_version }}
+          UPSTREAM_VERSION: ${{ steps.delta.outputs.upstream_version }}
+          FORK_SHA: ${{ steps.delta.outputs.fork_sha }}
+          UPSTREAM_SHA: ${{ steps.delta.outputs.upstream_sha }}
+        run: |
+          if [ -n "$INPUT_TITLE" ]; then
+            TITLE="$INPUT_TITLE"
+          else
+            FIRST_SUBJECT=$(printf '%s\n' "$COMMIT_SUBJECTS" | head -n 1)
+            SUBJECT_COUNT=$(printf '%s\n' "$COMMIT_SUBJECTS" | sed '/^$/d' | wc -l)
+            TITLE="Update Oracle-to-PostgreSQL Migration Expert: ${FIRST_SUBJECT}"
+            if [ "$SUBJECT_COUNT" -gt 1 ]; then
+              TITLE="${TITLE} (+$((SUBJECT_COUNT - 1)) related changes)"
+            fi
+          fi
+          if [ "$AI_AUTHORED" = "true" ]; then TITLE="${TITLE} 🤖🤖🤖"; fi
+
+          HEAD_REF="${GITHUB_REPOSITORY_OWNER}:${PROMOTION_BRANCH}"
+          BODY_FILE=$(mktemp)
+          cat > "$BODY_FILE" <<EOF
+          ## Summary
+
+          This promotion contains the following changes to the **Oracle-to-PostgreSQL Migration Expert**:
+
+          $(printf '%s\n' "$COMMIT_SUBJECTS" | sed 's/^/- /')
+
+          The plugin version is bumped from \`${UPSTREAM_VERSION}\` to \`${FORK_VERSION}\` as part of these changes.
+
+          ## Changed paths
+
+          \`\`\`
+          ${DIFF_STAT}
+          \`\`\`
+
+          These changes were developed and reviewed in the fork \`${GITHUB_REPOSITORY}\` (main @ \`${FORK_SHA}\`) and bundled onto upstream \`main\` @ \`${UPSTREAM_SHA}\`. \`npm run build\` was run so README and marketplace outputs are in sync.
+
+          ## Checklist
+
+          - [x] Branch created from \`main\`
+          - [x] \`npm run build\` executed
+          - [x] \`bash eng/fix-line-endings.sh\` executed
+          - [x] plugin.json version bumped (\`${UPSTREAM_VERSION}\` → \`${FORK_VERSION}\`)
+          - [ ] Maintainer review
+
+          ## Source
+
+          Opened by the fork's \`fork-bundle-upstream-pr\` workflow (run ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}).
+          EOF
+
+          EXISTING=$(gh api "repos/${UPSTREAM_REPO}/pulls?state=all&head=${HEAD_REF}&base=main&per_page=1" \
+            --jq '.[0] | select(.) | "\(.number)\t\(.state)\t\(.html_url)"')
+          if [ -n "$EXISTING" ]; then
+            EXISTING_NUMBER="${EXISTING%%$'\t'*}"
+            EXISTING_STATE_AND_URL="${EXISTING#*$'\t'}"
+            EXISTING_STATE="${EXISTING_STATE_AND_URL%%$'\t'*}"
+            EXISTING_URL="${EXISTING_STATE_AND_URL#*$'\t'}"
+            PATCH_FILE=$(mktemp)
+            jq -n --arg title "$TITLE" --rawfile body "$BODY_FILE" \
+              '{title: $title, body: $body}' > "$PATCH_FILE"
+            if [ "$EXISTING_STATE" = "closed" ]; then
+              gh api --method PATCH "repos/${UPSTREAM_REPO}/pulls/${EXISTING_NUMBER}" \
+                -f state=open --silent
+            fi
+            # A pull request is also an issue. Updating its issue metadata lets the
+            # PR author change the title and body without upstream write access.
+            gh api --method PATCH "repos/${UPSTREAM_REPO}/issues/${EXISTING_NUMBER}" \
+              --input "$PATCH_FILE" --silent
+            echo "::notice::Existing upstream PR found in state ${EXISTING_STATE}; refreshed: $EXISTING_URL"
+            echo "Upstream PR: $EXISTING_URL" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          PR_URL=$(gh pr create --repo "$UPSTREAM_REPO" --draft \
+            --base main --head "$HEAD_REF" \
+            --title "$TITLE" --body-file "$BODY_FILE")
+          echo "::notice::Opened draft PR $PR_URL"
+          echo "Upstream PR: $PR_URL" >> "$GITHUB_STEP_SUMMARY"

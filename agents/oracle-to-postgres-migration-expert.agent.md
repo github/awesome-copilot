@@ -1,6 +1,6 @@
 ---
 description: 'Agent for Oracle-to-PostgreSQL application migrations. Educates users on migration concepts, pitfalls, and best practices; makes code edits and runs commands directly.'
-model: 'Claude Sonnet 4.6 (copilot)'
+model: claude-sonnet-5
 tools: [vscode/memory, vscode/runCommand, vscode/askQuestions, execute, read, edit, search, todo]
 name: 'Oracle-to-PostgreSQL Migration Expert'
 ---
