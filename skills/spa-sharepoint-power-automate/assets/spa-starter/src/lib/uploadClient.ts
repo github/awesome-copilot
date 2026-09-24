@@ -296,8 +296,8 @@ export async function submit(payload: Payload, options: SubmitOptions = {}): Pro
 
   // application/json es OBLIGATORIO: con text/plain el flow ve un String y
   // triggerBody()?['folio'] falla (skill §9). application/json y x-app-key hacen que el navegador
-  // mande antes un preflight OPTIONS; Microsoft no documenta que el trigger lo responda (skill §9,
-  // NO VERIFICADO): probalo desde un navegador contra el trigger real y, si falla, usa un proxy.
+  // mande antes un preflight OPTIONS. Microsoft no lo documenta; se observo (2026-09-24, skill §9) que la
+  // pasarela lo responde con 204 y Access-Control-Allow-Origin: *. Probalo con tu propio trigger.
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (appKey) headers["x-app-key"] = appKey;
 
