@@ -1,0 +1,243 @@
+:root {
+  --color-primary: #0f62fe;
+  --color-primary-dark: #0043ce;
+  --color-text: #161616;
+  --color-muted: #525252;
+  --color-border: #c6c6c6;
+  --color-bg: #f4f4f4;
+  --color-card: #ffffff;
+  --color-error: #b3261e;
+  --color-warn-bg: #fff4e5;
+  --color-warn-border: #f1a040;
+  --radius: 8px;
+}
+
+/* ---- Reset minimo --------------------------------------------------------
+   Skill §4: NUNCA `appearance: none` sobre todos los <input>. Rompe la marca
+   visible de checkbox y radio (el usuario cree que "no anda" aunque el estado
+   cambie). Se excluyen esos tipos y se los tiñe con accent-color. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.4;
+  /* notch de iPhone (requiere viewport-fit=cover, ya puesto en index.html) */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--color-primary);
+}
+
+input:focus-visible,
+button:focus-visible,
+canvas:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ---- Layout ------------------------------------------------------------- */
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 8px 0 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* .full sirve en CUALQUIER hijo directo del grid (no solo <label>). */
+.full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+label,
+.field-title {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.counter,
+.hint {
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.label-error input {
+  border-color: var(--color-error);
+}
+
+.field-error {
+  color: var(--color-error);
+  font-weight: 400;
+  font-size: 0.875rem;
+}
+
+/* ---- Firma -------------------------------------------------------------- */
+.signature-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.signature-canvas {
+  width: 100%;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius);
+  background: #fff;
+  cursor: crosshair;
+}
+
+/* ---- Miniaturas --------------------------------------------------------- */
+.thumbs {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.thumbs li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.thumbs img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+/* ---- Botones ------------------------------------------------------------ */
+.btn-primary,
+.btn-secondary {
+  min-height: 48px; /* area tactil grande */
+  padding: 0 20px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  width: 100%;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.btn-secondary {
+  background: #fff;
+  border-color: var(--color-border);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Avisos ------------------------------------------------------------- */
+.banner {
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  border: 1px solid;
+}
+
+.banner p {
+  margin: 0 0 8px;
+}
+
+.banner ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.banner-pending {
+  background: var(--color-warn-bg);
+  border-color: var(--color-warn-border);
+}
+
+.banner-error {
+  background: #fdecea;
+  border-color: var(--color-error);
+}
+
+.banner-demo {
+  background: #e8f0fe;
+  border-color: var(--color-primary);
+}
+
+/* ---- Exito -------------------------------------------------------------- */
+.success-card {
+  background: var(--color-card);
+  border-radius: var(--radius);
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.success-check {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #24a148;
+  color: #fff;
+  font-size: 2rem;
+  line-height: 64px;
+}

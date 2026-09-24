@@ -1,0 +1,77 @@
+# Deploy a GitHub Pages con las actions oficiales.
+# Requisito unico: Settings -> Pages -> Source = "GitHub Actions".
+#
+# ATENCION: todo lo VITE_* termina en el bundle JS y es PUBLICO. Guardarlo como
+# secret evita commitearlo al repo, pero NO lo oculta de quien abra el sitio.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un deploy a la vez; no cancelar uno en curso a la mitad.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck and tests
+        run: |
+          npx tsc --noEmit
+          npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          # Secrets -> variables de build. Vacia = la app queda en MODO DEMO.
+          VITE_POWER_AUTOMATE_URL: ${{ secrets.VITE_POWER_AUTOMATE_URL }}
+          VITE_APP_KEY: ${{ secrets.VITE_APP_KEY }}
+          # Base relativa por defecto (funciona bajo /<repo>/). Para una ruta
+          # absoluta definir la variable de repositorio VITE_BASE, ej: /mi-repo/
+          VITE_BASE: ${{ vars.VITE_BASE || './' }}
+
+      - name: SPA fallback (404.html = index.html)
+        run: cp dist/index.html dist/404.html
+
+      - name: Sanity check del artefacto
+        run: |
+          test -f dist/index.html
+          test -f dist/sw.js
+          test -f dist/manifest.json
+          # el placeholder del service worker debe haberse reemplazado en el build
+          ! grep -q "__BUILD_ID__" dist/sw.js
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
