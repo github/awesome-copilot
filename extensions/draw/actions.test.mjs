@@ -29,7 +29,7 @@ async function setup(t) {
         await store.flush().catch(() => {});
         await rm(dir, { recursive: true, force: true, maxRetries: 3 });
     });
-    return { store, doc, run };
+    return { store, doc, run, server };
 }
 
 test("a change the agent makes is on disk when the action returns", async (t) => {
@@ -54,4 +54,43 @@ test("a change that cannot be saved is reported by the action that made it", asy
     assert.match(result.warning, /could not be saved to disk/);
     assert.ok(result.warning.includes(store.saveError(doc.id)));
     await rm(file, { recursive: true });
+});
+
+test("get_drawing reads the biggest drawing in parts of limited size", async (t) => {
+    const { store, doc, run, server } = await setup(t);
+    // The most a drawing can hold: 5,000 shapes with 4,000 character labels.
+    const label = "x".repeat(4000);
+    const all = Array.from({ length: 5000 }, (_, i) => `r${i}`);
+    store.replace(doc.id, all.map((id, i) => ({ id, type: "rect", x: (i % 100) * 200, y: Math.floor(i / 100) * 100, text: label })), "test");
+    const listed = (result) => [...result.outline.matchAll(/^- (r\d+) /gm)].map((m) => m[1]);
+
+    const seen = [];
+    let start = 0;
+    for (;;) {
+        const result = await run("get_drawing", { start });
+        const size = JSON.stringify(result).length;
+        assert.ok(size < 40000, `a part has ${size} characters`);
+        seen.push(...listed(result));
+        if (result.nextStart === undefined) break;
+        assert.equal(result.nextStart, seen.length);
+        start = result.nextStart;
+    }
+    assert.deepEqual(seen, all);
+
+    // Chosen elements come with their JSON, where labels are not cut.
+    const chosen = await run("get_drawing", { ids: ["r7", "gone"], includeElements: true });
+    assert.deepEqual(chosen.elements.map((e) => [e.id, e.text.length]), [["r7", 4000]]);
+    assert.deepEqual(chosen.missingIds, ["gone"]);
+    assert.equal(chosen.nextStart, undefined);
+
+    // A selection too big to list is counted, and selectedOnly reads it in parts too.
+    server.selection = () => all;
+    const counted = await run("get_drawing", {});
+    assert.equal(counted.selectedIds, undefined);
+    assert.equal(counted.selectedCount, 5000);
+    assert.ok(JSON.stringify(counted).length < 40000);
+    server.selection = () => ["r3", "r1"];
+    const selected = await run("get_drawing", { selectedOnly: true });
+    assert.deepEqual(selected.selectedIds, ["r3", "r1"]);
+    assert.deepEqual(listed(selected), ["r1", "r3"]);
 });

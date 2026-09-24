@@ -1,9 +1,10 @@
-// Tests for turning a { nodes, edges } spec into elements, and for the layout's crossing count.
+// Tests for turning a { nodes, edges } spec into elements, for the layout's crossing count, and
+// for the outline the agent reads.
 // Run `node --test` in the extension folder.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { boxesIntersect, elementBounds } from "./geometry.mjs";
-import { buildFromSpec, countCrossings } from "./layout.mjs";
+import { buildFromSpec, countCrossings, outlinePage } from "./layout.mjs";
 import { normalizeElement } from "./model.mjs";
 
 const shape = (id, text, x) => normalizeElement({ id, type: "rect", x, y: 0, text });
@@ -95,4 +96,38 @@ test("crossings are counted the same as by comparing every pair of edges", () =>
     }
     assert.equal(countCrossings(upper, down, pos, lowerSize), expected, JSON.stringify({ upper, down, pos }));
   }
+});
+
+test("a long outline comes in parts that stay in budget and list each element once", () => {
+  const long = "word ".repeat(800);
+  const elements = [
+    ...Array.from({ length: 300 }, (_, i) => shape(`s${i}`, i % 3 ? `Step ${i}` : long, i * 200)),
+    ...Array.from({ length: 299 }, (_, i) => normalizeElement({ id: `a${i}`, type: "arrow", from: `s${i}`, to: `s${i + 1}` })),
+    normalizeElement({ id: "note", type: "text", x: 0, y: -40, text: long }),
+  ];
+  const doc = { name: "Big", elements };
+  const seen = [];
+  for (let start = 0; start !== null; ) {
+    const part = outlinePage(doc, { start, budget: 5000 });
+    assert.ok(part.text.length <= 5000, `a part has ${part.text.length} characters`);
+    assert.ok(part.text.startsWith('Drawing "Big": 300 shapes, 299 arrows, 1 text, 0 pen strokes.\n'));
+    seen.push(...part.shown.map((e) => e.id));
+    start = part.next;
+  }
+  assert.deepEqual(seen, elements.map((e) => e.id));
+
+  const first = outlinePage(doc).text;
+  assert.ok(!first.includes(long.trim()));
+  assert.ok(first.includes(`- s0 (rect) "${long.slice(0, 300)}..." (cut from 4000 characters) at 0,0 size`));
+  assert.ok(first.includes('- a0: s0 -> s1\n'));
+
+  const some = outlinePage(doc, { only: new Set(["note", "s5"]) });
+  assert.deepEqual(some.shown.map((e) => e.id), ["s5", "note"]);
+  assert.equal(some.total, 2);
+  assert.equal(some.next, null);
+
+  // What a caller sends along counts too, but a part never comes back empty.
+  const heavy = outlinePage(doc, { budget: 100, cost: () => 10000 });
+  assert.deepEqual(heavy.shown.map((e) => e.id), ["s0"]);
+  assert.equal(heavy.next, 1);
 });

@@ -35,6 +35,10 @@ export class Sync {
     this.rev = 0;
     this.synced = new Map();
     this.inflight = false;
+    // Every change sent gets the next number, so the server can tell an old one that arrives late.
+    this.seq = 0;
+    // The ops of the change on its way, if any, and the drawing they are for.
+    this.sending = null;
     this.timer = 0;
     this.deferred = null;
     this.failures = 0;
@@ -241,14 +245,17 @@ export class Sync {
     this.inflight = true;
     this.handlers.status?.("saving");
     const drawingId = this.drawingId;
+    this.sending = { drawingId, ops };
     let retry = false;
     let refused = false;
     try {
-      const res = await this.post("ops", { drawingId, baseRev: this.rev, ops });
+      const res = await this.post("ops", { drawingId, baseRev: this.rev, seq: ++this.seq, ops });
       this.failures = 0;
       this.refusal = null;
       if (drawingId === this.drawingId) {
-        this.synced = new Map(sent.map((e) => [e.id, e]));
+        // "ignored" means the server already had newer changes from this page, so these were
+        // not applied. They are still on screen, so rebasing sends them again.
+        if (!res.ignored) this.synced = new Map(sent.map((e) => [e.id, e]));
         this.rev = res.rev;
         this.inflight = false;
         if (res.drawing) this.rebase(res.drawing);
@@ -273,13 +280,19 @@ export class Sync {
       }
     } finally {
       this.inflight = false;
+      this.sending = null;
     }
     if (retry) {
       clearTimeout(this.retryTimer);
       this.retryTimer = setTimeout(() => this.schedule(0), Math.min(8000, 400 * 2 ** this.failures));
       return false;
     }
-    if (drawingId !== this.drawingId) return !this.dirty;
+    if (drawingId !== this.drawingId) {
+      // The panel moved to another drawing while this was out. Edits made there since then
+      // could not be sent during that time, so send them now.
+      if (this.dirty) this.schedule();
+      return !this.dirty;
+    }
     if (this.deferred && !this.editor.busy) {
       const d = this.deferred;
       this.deferred = null;
@@ -296,14 +309,31 @@ export class Sync {
     return true;
   }
 
-  // Best effort save when the iframe goes away.
+  // Best effort save when the iframe goes away. A change still on its way can reach the server
+  // before or after this one. If it comes after, the server drops it (its number is lower). If
+  // it comes first, this one has to undo whatever the editor no longer shows, so it also sets
+  // every element that change touched to what the editor shows now.
   flushBeacon() {
     if (!this.drawingId) return;
-    const ops = diffOps(this.synced, this.editor.elements);
-    if (!ops) return;
-    const body = JSON.stringify({ clientId: this.clientId, drawingId: this.drawingId, ops });
+    const elements = this.editor.elements;
+    const ops = diffOps(this.synced, elements) || { upserts: [], deletes: [] };
+    const out = this.sending?.drawingId === this.drawingId ? this.sending.ops : null;
+    if (out) {
+      const now = new Map(elements.map((e) => [e.id, e]));
+      const listed = new Set([...ops.upserts.map((e) => e.id), ...ops.deletes]);
+      for (const id of [...out.upserts.map((e) => e.id), ...out.deletes]) {
+        if (listed.has(id)) continue;
+        listed.add(id);
+        if (now.has(id)) ops.upserts.push(now.get(id));
+        else ops.deletes.push(id);
+      }
+      // Its order, or a deleted element coming back at the end, can leave the order wrong.
+      if (out.order || out.deletes.some((id) => now.has(id))) ops.order = elements.map((e) => e.id);
+    }
+    if (!ops.upserts.length && !ops.deletes.length && !ops.order) return;
+    const body = JSON.stringify({ clientId: this.clientId, drawingId: this.drawingId, seq: ++this.seq, ops });
     try {
-      fetch(this.url("ops"), { method: "POST", body, keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" } });
+      fetch(this.url("ops"), { method: "POST", body, keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" } }).catch(() => {});
     } catch {
       // Nothing else we can do while unloading.
     }

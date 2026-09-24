@@ -491,44 +491,72 @@ export function relayout(elements, { direction = "right", measure = approxMeasur
   return elements.map((e) => (isShape(e) && pos.has(e.id) ? { ...e, x: ox + pos.get(e.id).x, y: oy + pos.get(e.id).y } : e));
 }
 
-// A short readable outline of a drawing for the agent.
-export function describe(doc) {
+// Labels longer than this are cut short in outlines. The element JSON has them in full.
+export const OUTLINE_LABEL_MAX = 300;
+
+const quote = (s) => {
+  const flat = String(s).replace(/\n/g, " / ");
+  if (flat.length <= OUTLINE_LABEL_MAX) return JSON.stringify(flat);
+  return `${JSON.stringify(`${flat.slice(0, OUTLINE_LABEL_MAX)}...`)} (cut from ${String(s).length} characters)`;
+};
+
+const OUTLINE_GROUPS = [
+  ["Shapes", isShape, (s) => {
+    const style = [s.type, s.color !== "gray" ? s.color : null, s.fill !== "soft" ? `fill ${s.fill}` : null, s.dash ? "dashed" : null].filter(Boolean).join(", ");
+    return `- ${s.id} (${style}) ${s.text ? quote(s.text) : "(no label)"} at ${Math.round(s.x)},${Math.round(s.y)} size ${Math.round(s.w)}x${Math.round(s.h)}`;
+  }],
+  ["Arrows", (e) => e.type === "arrow", (a) => {
+    const from = a.from || `(${Math.round(a.x1)},${Math.round(a.y1)})`;
+    const to = a.to || `(${Math.round(a.x2)},${Math.round(a.y2)})`;
+    const style = [a.head !== "end" ? `head ${a.head}` : null, a.route !== "straight" ? a.route : null, a.dash ? "dashed" : null, a.color !== "gray" ? a.color : null].filter(Boolean).join(", ");
+    return `- ${a.id}: ${from} -> ${to}${a.text ? ` ${quote(a.text)}` : ""}${style ? ` (${style})` : ""}`;
+  }],
+  ["Text", (e) => e.type === "text", (t) => `- ${t.id}: ${quote(t.text)} at ${Math.round(t.x)},${Math.round(t.y)}`],
+  ["Pen strokes", (e) => e.type === "pen", (p) => {
+    const b = elementBounds(p, null);
+    const style = [p.color !== "gray" ? p.color : null, `width ${p.width}`].filter(Boolean).join(", ");
+    return `- ${p.id} (${style}) ${p.points.length} points at ${Math.round(b.x)},${Math.round(b.y)} size ${Math.round(b.w)}x${Math.round(b.h)}`;
+  }],
+];
+
+// A readable outline of a drawing for the agent: a count of each kind of element, then one line
+// per element with its id, label, position and style (shapes, then arrows, text and pen strokes).
+// A big drawing comes in parts. The text stops before it would pass `budget` characters, where
+// `cost(el)` adds what a caller sends along with an element, but a part always has at least one
+// element. `start` is where in the list to begin, and `next` is where the following part begins,
+// or null after the last part. `only` limits the list to a set of ids.
+export function outlinePage(doc, { start = 0, budget = Infinity, only = null, cost = null } = {}) {
   const els = doc.elements || [];
-  const shapes = els.filter(isShape);
-  const arrows = els.filter((e) => e.type === "arrow");
-  const texts = els.filter((e) => e.type === "text");
-  const pens = els.filter((e) => e.type === "pen");
-  const q = (s) => JSON.stringify(String(s).replace(/\n/g, " / "));
-  const lines = [`Drawing ${q(doc.name)}: ${shapes.length} shapes, ${arrows.length} arrows, ${texts.length} text, ${pens.length} pen strokes.`];
-  if (shapes.length) {
-    lines.push("Shapes:");
-    for (const s of shapes) {
-      const style = [s.type, s.color !== "gray" ? s.color : null, s.fill !== "soft" ? `fill ${s.fill}` : null, s.dash ? "dashed" : null].filter(Boolean).join(", ");
-      lines.push(`- ${s.id} (${style}) ${s.text ? q(s.text) : "(no label)"} at ${Math.round(s.x)},${Math.round(s.y)} size ${Math.round(s.w)}x${Math.round(s.h)}`);
+  const groups = OUTLINE_GROUPS.map(([title, test, line]) => ({ title, line, list: els.filter(test) }));
+  const [shapes, arrows, texts, pens] = groups.map((g) => g.list.length);
+  const header = `Drawing ${quote(doc.name)}: ${shapes} shapes, ${arrows} arrows, ${texts} text, ${pens} pen strokes.`;
+  const order = groups.flatMap((g) => g.list.filter((el) => !only || only.has(el.id)).map((el) => ({ el, g })));
+  const lines = [header];
+  const shown = [];
+  let used = header.length;
+  let group = null;
+  let next = null;
+  for (let i = Math.max(0, start); i < order.length; i++) {
+    const { el, g } = order[i];
+    const line = g.line(el);
+    const heading = g === group ? null : `${g.title}:`;
+    const size = line.length + 1 + (heading ? heading.length + 1 : 0) + (cost ? cost(el) : 0);
+    if (shown.length && used + size > budget) {
+      next = i;
+      break;
     }
+    if (heading) lines.push(heading);
+    lines.push(line);
+    group = g;
+    used += size;
+    shown.push(el);
   }
-  if (arrows.length) {
-    lines.push("Arrows:");
-    for (const a of arrows) {
-      const from = a.from || `(${Math.round(a.x1)},${Math.round(a.y1)})`;
-      const to = a.to || `(${Math.round(a.x2)},${Math.round(a.y2)})`;
-      const style = [a.head !== "end" ? `head ${a.head}` : null, a.route !== "straight" ? a.route : null, a.dash ? "dashed" : null, a.color !== "gray" ? a.color : null].filter(Boolean).join(", ");
-      lines.push(`- ${a.id}: ${from} -> ${to}${a.text ? ` ${q(a.text)}` : ""}${style ? ` (${style})` : ""}`);
-    }
-  }
-  if (texts.length) {
-    lines.push("Text:");
-    for (const t of texts) lines.push(`- ${t.id}: ${q(t.text)} at ${Math.round(t.x)},${Math.round(t.y)}`);
-  }
-  if (pens.length) {
-    lines.push("Pen strokes:");
-    for (const p of pens) {
-      const b = elementBounds(p, null);
-      const style = [p.color !== "gray" ? p.color : null, `width ${p.width}`].filter(Boolean).join(", ");
-      lines.push(`- ${p.id} (${style}) ${p.points.length} points at ${Math.round(b.x)},${Math.round(b.y)} size ${Math.round(b.w)}x${Math.round(b.h)}`);
-    }
-  }
-  return lines.join("\n");
+  return { text: lines.join("\n"), next, total: order.length, shown };
+}
+
+// The whole outline as text, with long labels cut short.
+export function describe(doc) {
+  return outlinePage(doc).text;
 }
 
 export { wrapText, labelMaxWidth, lineHeight };

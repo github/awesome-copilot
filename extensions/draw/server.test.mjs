@@ -208,6 +208,31 @@ test("a panel's selection can hold as many ids as a drawing has elements", async
     assert.deepEqual(server.selection(PANEL, "another-drawing"), []);
 });
 
+test("a page's older change that arrives after a newer one is dropped", async (t) => {
+    const { server, store, doc } = await setup(t);
+    const send = (clientId, seq, ops) => post(server, "/api/ops", { clientId, drawingId: doc.id, baseRev: 0, seq, ops });
+    const x = () => store.get(doc.id).elements[0].x;
+
+    // The page closed while change 1 was still on its way, and its last change, 2, got there first.
+    assert.equal((await send("page", 2, { upserts: [rect("a", 200)] })).status, 200);
+    const late = await send("page", 1, { upserts: [rect("a", 100)] });
+    assert.equal(late.status, 200);
+    assert.equal(late.json.ignored, true);
+    assert.equal(late.json.drawing.elements[0].x, 200);
+    assert.equal(x(), 200);
+    assert.equal(store.get(doc.id).rev, 1);
+
+    // Each page counts on its own.
+    assert.equal((await send("other-page", 1, { upserts: [rect("a", 300)] })).json.ignored, undefined);
+    assert.equal(x(), 300);
+
+    // A change that is refused does not count, so it cannot hide an older one.
+    const tooMany = Array.from({ length: 5001 }, (_, i) => rect(`r${i}`));
+    assert.equal((await send("page", 4, { upserts: tooMany })).status, 400);
+    assert.equal((await send("page", 3, { upserts: [rect("a", 400)] })).json.ignored, undefined);
+    assert.equal(x(), 400);
+});
+
 test("bad requests get a clear error", async (t) => {
     const { server } = await setup(t);
     for (const body of ["not json", "[1, 2]", "null"]) {
@@ -303,6 +328,20 @@ test("ask needs a question and a connected session, then sends the drawing to Co
     const failed = await post(server, "/api/ask", { drawingId: doc.id, text: "Explain this" });
     assert.equal(failed.status, 502);
     assert.match(failed.json.error, /offline/);
+});
+
+test("ask sends only part of a big drawing's outline, and says how to read the rest", async (t) => {
+    const ctx = await setup(t);
+    const { server, store, doc } = ctx;
+    // The most a drawing can hold: 5,000 shapes with 4,000 character labels.
+    store.replace(doc.id, Array.from({ length: 5000 }, (_, i) => ({ ...rect(`r${i}`, i * 10), text: "x".repeat(4000) })), "test");
+    const sent = [];
+    ctx.session = { send: async (message) => sent.push(message) };
+    assert.equal((await post(server, "/api/ask", { drawingId: doc.id, text: "Explain this" })).status, 200);
+    const prompt = sent[0].prompt;
+    assert.ok(prompt.length < 20000, `the prompt has ${prompt.length} characters`);
+    assert.match(prompt, /Drawing ".*": 5000 shapes/);
+    assert.match(prompt, /The outline stops after \d+ of 5000 elements\. Call get_drawing with start \d+ to read the rest\./);
 });
 
 test("live updates reach the other panels, not the one that made the change", async (t) => {

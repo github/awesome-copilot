@@ -31,7 +31,7 @@ Ask in the chat, for example "Draw how our sign-in flow works" or "Add a cache b
 
 | Action | What it does |
 | --- | --- |
-| `get_drawing` | Reads the drawing as an outline with element ids, plus what the user has selected |
+| `get_drawing` | Reads the drawing as an outline with element ids, plus what the user has selected. A big drawing comes back in parts |
 | `set_diagram` | Replaces the drawing with nodes and edges, laid out automatically |
 | `add_elements` | Adds nodes, edges and text next to what is already there |
 | `update_elements` | Changes labels, shapes, colors, sizes, positions and arrow ends |

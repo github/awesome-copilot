@@ -4,13 +4,17 @@ import {
   SHAPE_TYPES, COLORS, FILLS, HEADS, ROUTES, SIZE_KEYS, isShape,
   normalizeElement, removeWithArrows, staticPaint, LIGHT_PALETTE, DARK_PALETTE,
 } from "./lib/model.mjs";
-import { DIRECTIONS, buildFromSpec, relayout, describe } from "./lib/layout.mjs";
+import { DIRECTIONS, buildFromSpec, relayout, describe, outlinePage } from "./lib/layout.mjs";
 import { approxMeasure, neededHeight } from "./lib/geometry.mjs";
 import { renderStandaloneSVG } from "./lib/render.mjs";
 import { THEMES } from "./settings.mjs";
 import { StoreError } from "./store.mjs";
 
 const OUTLINE_LIMIT = 80;
+// About how many characters get_drawing sends at a time, so a big drawing comes in parts.
+const PART_BUDGET = 30000;
+// A selection bigger than this is counted instead of listed, and selectedOnly reads it.
+const SELECTION_BUDGET = 10000;
 
 const str = (description) => ({ type: "string", description });
 const num = (description) => ({ type: "number", description });
@@ -172,17 +176,45 @@ export function makeActions({ runtime, CanvasError }) {
   return [
     action(
       "get_drawing",
-      "Read the drawing shown in this canvas: an outline of every element with its id, label, position, size and style, plus the ids the user has selected right now. Coordinates are pixels, x grows right and y grows down.",
-      { includeElements: { type: "boolean", description: "Also return the raw element JSON. Usually the outline is enough." } },
+      "Read the drawing shown in this canvas: an outline of its elements with their ids, labels, positions, sizes and styles, plus the ids the user has selected right now. Coordinates are pixels, x grows right and y grows down. A big drawing comes in parts: when the result has nextStart, call again with start set to it to read the next part.",
+      {
+        start: { type: "integer", minimum: 0, description: "Where to continue a long outline: the nextStart of the previous result." },
+        ids: { type: "array", items: { type: "string" }, maxItems: 5000, description: "Only list these elements." },
+        selectedOnly: { type: "boolean", description: "Only list the elements the user has selected." },
+        includeElements: { type: "boolean", description: "Also return the raw element JSON of the listed elements, with long labels in full. Usually the outline is enough." },
+      },
       [],
       ({ store, server, doc, instanceId }, input) => {
+        const selected = server.selection(instanceId, doc.id);
+        let only = Array.isArray(input.ids) ? new Set(input.ids) : null;
+        if (input.selectedOnly) only = new Set(selected.filter((id) => !only || only.has(id)));
+        const part = outlinePage(doc, {
+          start: Number.isInteger(input.start) && input.start > 0 ? input.start : 0,
+          budget: PART_BUDGET,
+          only,
+          cost: input.includeElements ? (el) => JSON.stringify(el).length : null,
+        });
         const result = {
           drawing: { id: doc.id, name: doc.name, rev: doc.rev, updatedAt: doc.updatedAt, file: store.filePath(doc.id) },
-          outline: describe(doc),
-          selectedIds: server.selection(instanceId, doc.id),
-          canvasOpen: server.hasClient(instanceId),
+          outline: part.text,
         };
-        if (input.includeElements) result.elements = doc.elements;
+        if (part.next !== null) {
+          result.nextStart = part.next;
+          result.note = `This part lists ${part.shown.length} of ${part.total} elements. Call get_drawing with start ${part.next}${only ? " and the same ids or selectedOnly" : ""} to read the next part.`;
+        }
+        if (JSON.stringify(selected).length <= SELECTION_BUDGET) {
+          result.selectedIds = selected;
+        } else {
+          result.selectedCount = selected.length;
+          result.selectionNote = `The user has selected ${selected.length} elements, too many to list here. Call get_drawing with selectedOnly to read them.`;
+        }
+        result.canvasOpen = server.hasClient(instanceId);
+        if (Array.isArray(input.ids)) {
+          const known = new Set(doc.elements.map((e) => e.id));
+          const missing = input.ids.filter((id) => !known.has(id));
+          if (missing.length) result.missingIds = missing;
+        }
+        if (input.includeElements) result.elements = part.shown;
         return result;
       },
     ),

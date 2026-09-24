@@ -5,7 +5,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
-import { describe } from "./lib/layout.mjs";
+import { outlinePage } from "./lib/layout.mjs";
 import { MAX_ELEMENTS } from "./lib/model.mjs";
 import { Settings, THEMES } from "./settings.mjs";
 
@@ -18,6 +18,10 @@ const MIME = {
     ".svg": "image/svg+xml",
 };
 const MAX_BODY = 40 * 1024 * 1024;
+// About how much outline goes into an Ask prompt. Copilot can read the rest with get_drawing.
+const ASK_OUTLINE_BUDGET = 16000;
+// How many pages the server remembers the last change number of (see lastSeq).
+const SEQ_MEMORY = 500;
 const CSP = [
     "default-src 'self'",
     "script-src 'self'",
@@ -106,6 +110,10 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
     const clients = new Set();
     const selections = new Map();
     const pendingExports = new Map();
+    // The number of the newest change each page has had applied. A page sends one change at a
+    // time, except when it closes: its last change can then overtake one still on the way, and
+    // that older one must not undo it.
+    const lastSeq = new Map();
     let port = 0;
 
     const send = (client, event, data) => {
@@ -198,9 +206,20 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         const clientId = typeof body.clientId === "string" ? body.clientId.slice(0, 64) : "user";
 
         if (route === "/api/ops") {
-            if (!store.get(body.drawingId)) throw new HttpError(404, "That drawing no longer exists.");
+            const current = store.get(body.drawingId);
+            if (!current) throw new HttpError(404, "That drawing no longer exists.");
+            const seq = Number.isSafeInteger(body.seq) ? body.seq : null;
+            if (seq !== null && lastSeq.has(clientId) && seq <= lastSeq.get(clientId)) {
+                return sendJson(res, 200, { rev: current.rev, drawing: pub(current), ignored: true });
+            }
             const ops = body.ops && typeof body.ops === "object" ? body.ops : {};
             const doc = store.applyOps(body.drawingId, ops, clientId);
+            // Only changes that were applied count, so a refused one cannot hide an older one.
+            if (seq !== null) {
+                lastSeq.delete(clientId);
+                lastSeq.set(clientId, seq);
+                if (lastSeq.size > SEQ_MEMORY) lastSeq.delete(lastSeq.keys().next().value);
+            }
             // If someone else changed the drawing since the client's last known rev, send the full doc back.
             const stale = Number.isInteger(body.baseRev) && doc.rev !== body.baseRev + 1;
             return sendJson(res, 200, stale ? { rev: doc.rev, drawing: pub(doc) } : { rev: doc.rev });
@@ -297,12 +316,14 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         const session = getSession();
         if (!session) throw new HttpError(503, "Copilot is not connected yet. Try again in a moment.");
         const png = typeof body.png === "string" ? body.png : "";
+        const part = outlinePage(doc, { budget: ASK_OUTLINE_BUDGET });
         const context = [
             `[Context from the Draw canvas: drawing "${doc.name}" (id ${doc.id}), canvas instance "${instanceId}".` +
                 (png ? " The attached image shows the drawing exactly as the user sees it." : ""),
-            describe(doc),
+            part.text,
+            part.next === null ? null : `The outline stops after ${part.shown.length} of ${part.total} elements. Call get_drawing with start ${part.next} to read the rest.`,
             `To change this drawing, call the Draw canvas actions with instanceId "${instanceId}" (get_drawing, add_elements, update_elements, delete_elements, set_diagram, layout). Element ids are listed above.]`,
-        ].join("\n");
+        ].filter(Boolean).join("\n");
         const attachments = png ? [{ type: "blob", data: png, mimeType: "image/png", displayName: `${doc.name}.png` }] : [];
         try {
             await session.send({ prompt: `${text}\n\n${context}`, displayPrompt: text, attachments });
