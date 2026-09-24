@@ -10,7 +10,9 @@
  *   al flow (POST y otro origen). Un estado cacheado es peor que un error de red.
  */
 const BUILD_ID = "__BUILD_ID__";
-const CACHE_PREFIX = "app-static-";
+// CacheStorage es del ORIGEN: varios proyectos de GitHub Pages bajo el mismo `*.github.io` lo comparten.
+// El prefijo incluye el alcance de este SW (p. ej. /repo-a/) para que `activate` solo borre SUS caches.
+const CACHE_PREFIX = "app-static:" + new URL(self.registration.scope).pathname + ":";
 const CACHE = CACHE_PREFIX + BUILD_ID;
 const PRECACHE_BASE = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 // `__BUILD_ASSETS__` lo reemplaza vite.config.ts por la lista de JS/CSS con hash del build. Sin esto,
@@ -27,8 +29,9 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      // allSettled: un recurso que falle no debe abortar la instalacion entera.
-      .then((cache) => Promise.allSettled(PRECACHE.map((url) => cache.add(url))))
+      // addAll es ATOMICO: si falta cualquier recurso del precache la instalacion FALLA y el SW/cache anterior,
+      // que funcionaba, sigue activo. Un cache incompleto no debe reemplazar a uno completo.
+      .then((cache) => cache.addAll(PRECACHE))
       .then(() => self.skipWaiting()),
   );
 });

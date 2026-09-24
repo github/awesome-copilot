@@ -106,12 +106,12 @@ describe("sp-upload-test-file", () => {
 import { isSharePointHttps } from "./spfetch.mjs";
 describe("isSharePointHttps (el token solo va a SharePoint)", () => {
   it("acepta hosts https de SharePoint, incluidas nubes soberanas", () => {
-    for (const u of ["https://contoso.sharepoint.com/sites/x", "https://gov.sharepoint.us/sites/x", "https://x.sharepoint.cn/a", "https://x.sharepoint.de/a"]) {
+    for (const u of ["https://contoso.sharepoint.com/sites/x", "https://gov.sharepoint.us/sites/x", "https://x.sharepoint.cn/a", "https://x.sharepoint.de/a", "https://dod.sharepoint-mil.us/sites/x"]) {
       expect(isSharePointHttps(u), u).toBe(true);
     }
   });
   it("rechaza http, otros hosts y parecidos", () => {
-    for (const u of ["http://contoso.sharepoint.com/x", "https://evil.example.com/x", "https://sharepoint.com.evil.io/x", "https://notsharepoint.com/x", "no es url"]) {
+    for (const u of ["http://contoso.sharepoint.com/x", "https://evil.example.com/x", "https://sharepoint.com.evil.io/x", "https://notsharepoint.com/x", "https://sharepoint-mil.us.evil.io/x", "no es url"]) {
       expect(isSharePointHttps(u), u).toBe(false);
     }
   });

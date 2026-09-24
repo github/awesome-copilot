@@ -695,18 +695,20 @@ Most visible in dev when extensions inject content scripts; in prod it's rare bu
 
 Bumping `CACHE` in `sw.js` is **not enough** if the page is already loaded — the old SW keeps controlling the tab until the user manually reloads. Symptom: you pushed fixes hours ago, deploy is green, `curl` on the hashed asset shows the new strings, but the user sees old behavior.
 
-Add an auto-reload nudge in the SW registration:
+Tell the page when a new SW takes over, and **let the user choose when to reload**. Do not reload by itself: a reload in the middle of a form discards anything that is not persisted (selected photos, for example).
 
 ```ts
 function registerSW() {
   if (!("serviceWorker" in navigator)) return;
 
-  // Reload exactly once when a new SW takes over (after we bumped CACHE)
-  let reloading = false;
+  // Notify exactly once when a new SW takes over (after we bumped CACHE); the UI shows an
+  // "Update now" banner and calls window.location.reload() only when the user asks.
+  let notified = false;
+  const hadController = Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (reloading) return;
-    reloading = true;
-    window.location.reload();
+    if (notified || !hadController) return;
+    notified = true;
+    window.dispatchEvent(new Event("app:update-ready"));
   });
 
   window.addEventListener("load", () => {
@@ -741,9 +743,9 @@ Chrome's Lighthouse and PWA installers warn when manifest icons use `"sizes": "a
 
 ```json
 "icons": [
-  { "src": "app-logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-  { "src": "app-logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+  { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
 ]
 ```
 
-The browser will downscale automatically. The file doesn't have to match the declared dimensions exactly — just listing both sizes silences the warning and makes Chrome treat the app as installable.
+Ship **two real PNG files whose pixel size matches what the manifest declares**. Declaring several sizes for one file is a misdeclaration: the browser does not resize it to satisfy the manifest, and installability checks can ignore or reject it. Use a generator (the starter has `npm run icons`) or export the sizes from your source artwork.

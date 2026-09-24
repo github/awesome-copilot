@@ -13,11 +13,11 @@ import { pathToFileURL } from "node:url";
 const RETRY_STATUSES = new Set([429, 503]);
 
 /** Retry-After puede ser segundos o una fecha HTTP. Devuelve segundos o undefined. */
-/** true si la URL es HTTPS y el host es de SharePoint Online (incluye nubes soberanas). */
+/** true si la URL es HTTPS y el host es de SharePoint Online (incluye nubes soberanas: .us, .cn, .de y DoD `sharepoint-mil.us`). */
 export function isSharePointHttps(url) {
   try {
     const u = new URL(url);
-    return u.protocol === "https:" && /(^|\.)sharepoint\.(com|us|cn|de)$/i.test(u.hostname);
+    return u.protocol === "https:" && /(^|\.)(sharepoint\.(com|us|cn|de)|sharepoint-mil\.us)$/i.test(u.hostname);
   } catch {
     return false;
   }
