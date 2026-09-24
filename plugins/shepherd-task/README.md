@@ -625,3 +625,8 @@ PowerShell equivalents are included for each helper.
 | `test/cargotracker-add-change-arrival-deadline-feature/run-campaign.*` | Run the installed five-task Cargo Tracker control campaign end to end |
 | `test/cargotracker-add-change-arrival-deadline-feature/00-*` through `12-*` | Prepare, create, verify, and contract-test the Cargo Tracker campaign in Bash or PowerShell |
 | `test/macos-bash-compatibility-contract.sh` | Reject Bash 4-only syntax, nonportable base64 decode operands, and GNU-only command usage from installed Bash scripts and skill snippets |
+
+## Additional resources
+
+- [Making of `shepherd-task`](making-of.md)
+- [Two hour interactive workshop](workshop.md)
