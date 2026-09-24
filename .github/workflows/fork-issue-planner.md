@@ -109,7 +109,7 @@ Write the finished Markdown to `.github/fork-only/plans/issue-<N>.md` using your
 
 Required sections, in order:
 
-- **Frontmatter** — begin the file with an un-fenced YAML frontmatter block delimited by `---` on its own line before and after the metadata, containing `issue: <N>`, `title: '<issue title>'`, `scope: agent|fork-tooling|out-of-scope`, and `status: draft`; do not use a fenced code block such as ````yaml`.
+- **Frontmatter** — begin the file with an un-fenced YAML frontmatter block delimited by `---` on its own line before and after the metadata, containing `issue: <N>`, `title: '<issue title>'`, `scope: agent|fork-tooling|out-of-scope`, and `status: draft`; do not use a fenced code block such as ````yaml`. `status` is **always** `draft` — you are a one-shot machine seed with no maintainer sign-off, so you may never emit `approved` or any other value.
 - **Issue summary** — 2–4 bullets restating what is being asked, in your own words. If your restatement differs from the literal issue text, say so — that gap is usually the real ambiguity.
 - **Grilling** — the adversarial pass over the requirements. Four sub-sections, each a bullet list:
   - *Ambiguities* — what the issue does not pin down, and why it matters.
@@ -118,14 +118,14 @@ Required sections, in order:
   - *Assumptions I am making* — every assumption you had to make to plan at all. This is the most important list in the document.
 - **Plan** — the concrete implementation. For each change: the exact file path, what changes, and roughly where (section heading or line range). No hand-waving — "refine the instructions" is not a plan; "add a *Sequences and identity columns* section after *Type mapping*, covering `NEXTVAL` syntax and `GENERATED … AS IDENTITY`" is. Include the semver level for the `plugin.json` bump (patch for wording, minor for new capability or skill, major for behaviour-breaking) and why.
 - **Acceptance criteria** — a checklist the maintainer can tick off to decide the issue is done.
-- **Open questions** — the questions only the maintainer can answer, each with the options you see and which one you would pick. These are repeated verbatim in Output 2.
+- **Open questions** — the questions only the maintainer can answer, each with the options you see and which one you would pick. Number them `Q1`, `Q2`, `Q3`, … in order, and lead each bullet with its identifier (for example `- **Q1 — exact model identifier** — options: …`). These identifiers are stable handles the maintainer answers against, and are repeated verbatim in Output 2. If there are genuinely none, write a single bullet saying so rather than inventing filler.
 - **Verification** — the commands that prove the change is sound: `npm run build`, `bash eng/fix-line-endings.sh`, `npm run skill:validate`, `npm run plugin:validate`, plus anything domain-specific.
 
 Then emit `create_pull_request` with:
 
 - `branch`: `plan/issue-<N>`
 - `title`: `plan: issue #<N> — <short description>` (the `[plan] ` prefix is added for you)
-- `body`: a short summary — the scope classification, the open-questions count, and a line linking the issue as `Refs #<N>` (**not** `Fixes` — this PR must not close the issue). End with: _"Advisory seed. Resume this branch with the Development Orchestrator agent; rewrite the plan freely."_
+- `body`: a short summary — the scope classification, the open-questions count, and a line linking the issue as `Refs #<N>` (**not** `Fixes` — this PR must not close the issue). Add one line stating that the open questions are answered on issue #<N>, not on this PR. End with: _"Advisory seed. Resume this branch with the Development Orchestrator agent; rewrite the plan freely."_
 
 ## Output 2 — comment on the issue (always)
 
@@ -143,9 +143,15 @@ Post exactly one comment on issue **#${{ github.event.issue.number || inputs.iss
 Comment contents, in order:
 
 - One line: a Markdown link to the draft PR using the exact URL returned by `create_pull_request`, followed by the scope classification.
-- **Open questions** — copy the complete `## Open questions` list from the finished plan verbatim, preserving its wording, options, formatting, and recommendation text; do not rewrite it as a summary, change `I would pick` to another recommendation label, or add/remove questions. This is the point of the comment: the maintainer answers here, in the issue, and the orchestrator picks the answers up later.
+- **Open questions** — copy the complete `## Open questions` list from the finished plan verbatim, preserving its `Q<n>` identifiers, wording, options, formatting, and recommendation text; do not rewrite it as a summary, change `I would pick` to another recommendation label, or add/remove questions. This is the point of the comment: the maintainer answers here, in the issue, and the orchestrator picks the answers up later.
+- **How to answer** — one line stating that the Development Orchestrator will not plan or implement until every question is answered on this issue, followed by a fenced code block the maintainer can copy and fill in, with one line per question you actually asked:
+  ```text
+  Q1: <answer>
+  Q2: <answer>
+  ```
+  Omit this section entirely if you asked no questions.
 - **Material risk** — a single bullet naming a concrete risk from the plan's ambiguities, assumptions, or constraints, if one was identified; otherwise say "No material risk identified." Do not invent one to fill this slot.
-- One line telling the maintainer how to continue: check out `plan/issue-<N>` and run the Development Orchestrator agent against issue #<N>.
+- One line telling the maintainer how to continue: answer the questions above on this issue first, then check out `plan/issue-<N>` and run the Development Orchestrator agent against issue #<N>.
 
 ## Rules
 

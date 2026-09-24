@@ -29,7 +29,10 @@ concurrency:
 
 env:
   UPSTREAM_REPO: github/awesome-copilot
-  PROMOTION_BRANCH: upstream-promotion/oracle-to-postgres-migration-expert-v1.1.1
+  # Version-scoped at run time from plugin.json (see the "Compute unpromoted delta"
+  # step, which exports the full PROMOTION_BRANCH to $GITHUB_ENV). Hard-coding the
+  # version here would leave the branch pinned to a stale release after every bump.
+  PROMOTION_BRANCH_PREFIX: upstream-promotion/oracle-to-postgres-migration-expert
   PLUGIN_MANIFEST: plugins/oracle-to-postgres-migration-expert/plugin.json
 
 jobs:
@@ -144,6 +147,21 @@ jobs:
             echo "::error file=$PLUGIN_MANIFEST::plugin.json version ($FORK_VERSION) equals upstream. Bump it on fork main before promoting."
             exit 1
           fi
+          # Branch name is scoped to the fork's current plugin version so each
+          # promotion gets its own head ref. GitHub refuses to reuse the head of a
+          # closed-and-deleted PR, so a fixed name would wedge after the first
+          # abandoned promotion. Reject anything that is not a plain semver-ish
+          # token rather than interpolating manifest data into a ref name.
+          case "$FORK_VERSION" in
+            ''|*[!0-9A-Za-z.+-]*|.*|-*)
+              echo "::error file=$PLUGIN_MANIFEST::plugin.json version ('$FORK_VERSION') is not a safe branch-name token."
+              exit 1
+              ;;
+          esac
+          PROMOTION_BRANCH="${PROMOTION_BRANCH_PREFIX}-v${FORK_VERSION}"
+          echo "PROMOTION_BRANCH=$PROMOTION_BRANCH" >> "$GITHUB_ENV"
+          echo "Promotion branch: $PROMOTION_BRANCH"
+
           COMMIT_SUBJECTS=$(git log --no-merges --format='%s' upstream/main..origin/main -- "${PATHS[@]}")
           if [ -z "$COMMIT_SUBJECTS" ]; then
             COMMIT_SUBJECTS="Update the Oracle-to-PostgreSQL Migration Expert agent"
