@@ -113,6 +113,8 @@ function Find-LinkedPR {
         [string]$State = 'OPEN'
     )
 
+    $candidateNumbers = [Collections.Generic.HashSet[int]]::new()
+
     # Strategy A: Issue timeline for cross-referenced PRs in this repository.
     $prCandidates = @(gh api "/repos/$Repo/issues/$TaskIssue/timeline" `
         --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url' 2>$null)
@@ -131,6 +133,41 @@ function Find-LinkedPR {
         $candidate = ([string]$candidateUrl).Substring(
             $pullRequestApiPrefix.Length
         )
+        if ($candidate -match '^[1-9][0-9]*$') {
+            [void]$candidateNumbers.Add([int]$candidate)
+        }
+    }
+
+    if ($State -ne 'MERGED') {
+        # Strategy B: Search PR bodies for an exact issue-number reference.
+        $prCandidates = @(gh pr list -R $Repo --state ($State.ToLowerInvariant()) --json number,body `
+            --jq ".[] | select((.body // `"`") | test(`"(^|[^0-9])#$TaskIssue([^0-9]|$)`")) | .number" 2>$null)
+        $ghExitCode = $LASTEXITCODE
+        if ($ghExitCode -ne 0) {
+            throw "Unable to search open PR bodies for issue #$TaskIssue."
+        }
+        foreach ($candidate in $prCandidates) {
+            if ([string]$candidate -match '^[1-9][0-9]*$') {
+                [void]$candidateNumbers.Add([int]$candidate)
+            }
+        }
+
+        # Strategy C: Search titles and branch names for the exact task number.
+        $prCandidates = @(gh pr list -R $Repo --state ($State.ToLowerInvariant()) --json number,title,headRefName `
+            --jq ".[] | select(((.title // `"`") | test(`"(^|[^0-9])$TaskIssue([^0-9]|$)`"; `"i`")) or ((.headRefName // `"`") | test(`"(^|[^0-9])$TaskIssue([^0-9]|$)`"))) | .number" 2>$null)
+        $ghExitCode = $LASTEXITCODE
+        if ($ghExitCode -ne 0) {
+            throw "Unable to search open PR titles and branches for issue #$TaskIssue."
+        }
+        foreach ($candidate in $prCandidates) {
+            if ([string]$candidate -match '^[1-9][0-9]*$') {
+                [void]$candidateNumbers.Add([int]$candidate)
+            }
+        }
+    }
+
+    $matchingNumbers = @()
+    foreach ($candidate in $candidateNumbers) {
         $candidateStateOutput = @(gh pr view $candidate -R $Repo `
             --json state,closingIssuesReferences 2>$null)
         $ghExitCode = $LASTEXITCODE
@@ -149,36 +186,17 @@ function Find-LinkedPR {
             $candidateInfo.closingIssuesReferences |
                 Where-Object { [int]$_.number -eq [int]$TaskIssue }
         ).Count -gt 0
-        if ([string]$candidateInfo.state -eq $State -and
-            ($State -ne 'MERGED' -or $closesTask)) {
-            return ([string]$candidate).Trim()
+        if ([string]$candidateInfo.state -eq $State -and $closesTask) {
+            $matchingNumbers += [int]$candidate
         }
     }
-    if ($State -eq 'MERGED') {
-        return $null
+
+    if ($matchingNumbers.Count -gt 1) {
+        throw "Multiple $State PRs close task issue #${TaskIssue}: $($matchingNumbers -join ', ')"
     }
-
-    # Strategy B: Search PR bodies for the issue number
-    $prCandidates = @(gh pr list -R $Repo --state ($State.ToLowerInvariant()) --json number,body `
-        --jq ".[] | select(.body | test(`"#$TaskIssue`")) | .number" 2>$null)
-    $ghExitCode = $LASTEXITCODE
-    if ($ghExitCode -ne 0) {
-        throw "Unable to search open PR bodies for issue #$TaskIssue."
+    if ($matchingNumbers.Count -eq 1) {
+        return [string]$matchingNumbers[0]
     }
-    $prNumber = $prCandidates | Select-Object -First 1
-
-    if ($prNumber) { return $prNumber.Trim() }
-
-    # Strategy C: Title or branch name match
-    $prCandidates = @(gh pr list -R $Repo --state ($State.ToLowerInvariant()) --json number,title,headRefName `
-        --jq ".[] | select((.title | test(`"$TaskIssue`"; `"i`")) or (.headRefName | test(`"$TaskIssue`"))) | .number" 2>$null)
-    $ghExitCode = $LASTEXITCODE
-    if ($ghExitCode -ne 0) {
-        throw "Unable to search open PR titles and branches for issue #$TaskIssue."
-    }
-    $prNumber = $prCandidates | Select-Object -First 1
-
-    if ($prNumber) { return $prNumber.Trim() }
 
     return $null
 }

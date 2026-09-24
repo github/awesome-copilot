@@ -106,6 +106,10 @@ The GitHub CLI and Copilot CLI both returned process exit code 0.
         '-Stage 40',
         'Find-LinkedPR -State MERGED',
         'closingIssuesReferences',
+        '(^|[^0-9])#$TaskIssue([^0-9]|$)',
+        '(^|[^0-9])$TaskIssue([^0-9]|$)',
+        '[Collections.Generic.HashSet[int]]::new()',
+        'Multiple $State PRs close task issue',
         'was already completed by PR',
         '--json state,isDraft,baseRefName,reviewDecision',
         'gh api graphql --paginate --slurp',
@@ -115,6 +119,9 @@ The GitHub CLI and Copilot CLI both returned process exit code 0.
         if (-not $orchestrator.Contains($required)) {
             throw "PowerShell orchestrator is missing semantic outcome contract text: $required"
         }
+    }
+    if ($orchestrator.Contains('test(`"#$TaskIssue`")')) {
+        throw 'PowerShell orchestrator still uses a prefix-colliding issue body search.'
     }
     if ($orchestrator.Contains('skipping Phase 1')) {
         throw 'PowerShell orchestrator still skips stage 30 when an open PR exists.'

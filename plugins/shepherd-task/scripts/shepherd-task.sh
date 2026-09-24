@@ -65,9 +65,10 @@ find_linked_pr() {
     local desired_state="${1:-OPEN}"
     local list_state
     list_state="$(printf '%s' "$desired_state" | tr '[:upper:]' '[:lower:]')"
-    local pr_number=""
-    local candidate_state=""
+    local candidate=""
     local candidate_info=""
+    local candidate_numbers=""
+    local matching_numbers=""
     local pr_candidates=""
 
     # Strategy A: Issue timeline for cross-referenced PRs in this repository.
@@ -77,36 +78,64 @@ find_linked_pr() {
     local pull_request_api_prefix="https://api.github.com/repos/$REPO/pulls/"
     while IFS= read -r candidate_url; do
         [[ "$candidate_url" == "$pull_request_api_prefix"* ]] || continue
-        pr_number="${candidate_url#"$pull_request_api_prefix"}"
-        candidate_info=$(gh pr view "$pr_number" -R "$REPO" \
-            --json state,closingIssuesReferences 2>/dev/null) || continue
-        candidate_state=$(jq -r '.state' <<<"$candidate_info") || continue
-        if [[ "$candidate_state" == "$desired_state" ]] &&
-           { [[ "$desired_state" != "MERGED" ]] ||
-             jq -e --argjson issue "$TASK_ISSUE" \
-                'any(.closingIssuesReferences[]?; .number == $issue)' \
-                <<<"$candidate_info" >/dev/null; }; then
-            echo "$pr_number"
-            return 0
-        fi
+        candidate="${candidate_url#"$pull_request_api_prefix"}"
+        [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+        case $'\n'"$candidate_numbers"$'\n' in
+            *$'\n'"$candidate"$'\n'*) ;;
+            *) candidate_numbers="${candidate_numbers}${candidate_numbers:+$'\n'}$candidate" ;;
+        esac
     done <<<"$pr_candidates"
-    [[ "$desired_state" != "MERGED" ]] || return 1
 
-    # Strategy B: Search PR bodies for the issue number
-    pr_number=$(gh pr list -R "$REPO" --state "$list_state" --json number,body \
-        --jq ".[] | select(.body | test(\"#$TASK_ISSUE\")) | .number" 2>/dev/null) ||
-        { echo "Unable to search PR bodies for issue #$TASK_ISSUE." >&2; return 2; }
-    pr_number="${pr_number%%$'\n'*}"
+    if [[ "$desired_state" != "MERGED" ]]; then
+        # Strategy B: Search PR bodies for an exact issue-number reference.
+        pr_candidates=$(gh pr list -R "$REPO" --state "$list_state" --json number,body \
+            --jq ".[] | select((.body // \"\") | test(\"(^|[^0-9])#$TASK_ISSUE([^0-9]|$)\")) | .number" 2>/dev/null) ||
+            { echo "Unable to search PR bodies for issue #$TASK_ISSUE." >&2; return 2; }
+        while IFS= read -r candidate; do
+            [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+            case $'\n'"$candidate_numbers"$'\n' in
+                *$'\n'"$candidate"$'\n'*) ;;
+                *) candidate_numbers="${candidate_numbers}${candidate_numbers:+$'\n'}$candidate" ;;
+            esac
+        done <<<"$pr_candidates"
 
-    if [[ -n "$pr_number" ]]; then echo "$pr_number"; return 0; fi
+        # Strategy C: Search titles and branch names for the exact task number.
+        pr_candidates=$(gh pr list -R "$REPO" --state "$list_state" --json number,title,headRefName \
+            --jq ".[] | select(((.title // \"\") | test(\"(^|[^0-9])$TASK_ISSUE([^0-9]|$)\"; \"i\")) or ((.headRefName // \"\") | test(\"(^|[^0-9])$TASK_ISSUE([^0-9]|$)\"))) | .number" 2>/dev/null) ||
+            { echo "Unable to search PR titles and branches for issue #$TASK_ISSUE." >&2; return 2; }
+        while IFS= read -r candidate; do
+            [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+            case $'\n'"$candidate_numbers"$'\n' in
+                *$'\n'"$candidate"$'\n'*) ;;
+                *) candidate_numbers="${candidate_numbers}${candidate_numbers:+$'\n'}$candidate" ;;
+            esac
+        done <<<"$pr_candidates"
+    fi
 
-    # Strategy C: Title or branch name match
-    pr_number=$(gh pr list -R "$REPO" --state "$list_state" --json number,title,headRefName \
-        --jq ".[] | select((.title | test(\"$TASK_ISSUE\"; \"i\")) or (.headRefName | test(\"$TASK_ISSUE\"))) | .number" 2>/dev/null) ||
-        { echo "Unable to search PR titles and branches for issue #$TASK_ISSUE." >&2; return 2; }
-    pr_number="${pr_number%%$'\n'*}"
+    while IFS= read -r candidate; do
+        [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+        candidate_info=$(gh pr view "$candidate" -R "$REPO" \
+            --json state,closingIssuesReferences 2>/dev/null) || continue
+        if jq -e --arg state "$desired_state" --argjson issue "$TASK_ISSUE" '
+            .state == $state and
+            any(.closingIssuesReferences[]?; .number == $issue)
+        ' <<<"$candidate_info" >/dev/null; then
+            matching_numbers="${matching_numbers}${matching_numbers:+$'\n'}$candidate"
+        fi
+    done <<<"$candidate_numbers"
 
-    if [[ -n "$pr_number" ]]; then echo "$pr_number"; return 0; fi
+    local match_count=0
+    while IFS= read -r candidate; do
+        [[ -n "$candidate" ]] && match_count=$((match_count + 1))
+    done <<<"$matching_numbers"
+    if [[ $match_count -gt 1 ]]; then
+        echo "Multiple $desired_state PRs close task issue #$TASK_ISSUE: $(tr '\n' ' ' <<<"$matching_numbers")" >&2
+        return 2
+    fi
+    if [[ $match_count -eq 1 ]]; then
+        echo "$matching_numbers"
+        return 0
+    fi
 
     return 1
 }
@@ -170,7 +199,12 @@ fi
 [[ "$ISSUE_STATE" == "OPEN" ]] ||
     fail "Task issue #$TASK_ISSUE has unsupported state '$ISSUE_STATE'."
 
-PR_NUMBER=$(find_linked_pr OPEN) || true
+set +e
+PR_NUMBER=$(find_linked_pr OPEN)
+FIND_PR_STATUS=$?
+set -e
+[[ $FIND_PR_STATUS -ne 2 ]] ||
+    fail "Unable to determine a unique open PR for task issue #$TASK_ISSUE."
 if [[ -n "$PR_NUMBER" ]]; then
     status "PR #$PR_NUMBER already exists for issue #$TASK_ISSUE — resuming Phase 1."
 fi
@@ -199,7 +233,12 @@ unset COPILOT_OTEL_FILE_EXPORTER_PATH
 
 status "Phase 1: copilot exited. Verifying semantic outcome and state..."
 
-PR_NUMBER=$(find_linked_pr OPEN) || true
+set +e
+PR_NUMBER=$(find_linked_pr OPEN)
+FIND_PR_STATUS=$?
+set -e
+[[ $FIND_PR_STATUS -ne 2 ]] ||
+    fail "Unable to determine a unique open PR for task issue #$TASK_ISSUE."
 "$SESSION_OUTCOME_ASSERTION" "$PHASE1_SHARE" 30 "$TASK_ISSUE" "$PR_NUMBER" >/dev/null ||
     fail "Phase 1 reported semantic failure."
 status "Found PR #$PR_NUMBER"
