@@ -49,7 +49,13 @@ A post that reads like generic documentation is not the author's post. Before dr
 2. A saved voice profile the user points to, in the request or in their custom instructions.
 3. When the destination is a blog repository, the most recent posts there by this author.
 
-If none exist, ask once for two or three links or files. A user with no samples can answer three quick questions instead, or accept a plain, neutral voice. Say at the plan check which of these happened, and never present a neutral draft as a match.
+When these sources give fewer than three samples, ask once for enough links or files to reach three, unless the user has already said there are no more. Then work with what there is:
+
+- **Three or more**: build the full profile.
+- **One or two**: build a thin profile from only the patterns those samples confirm, and offer the three quick questions in the reference to fill the gaps.
+- **None**: offer the three quick questions, or write in a plain, neutral voice.
+
+A saved profile counts as the number of samples it records. Say at the plan check which case applies and how many samples the profile rests on. Never present a thin or neutral draft as a full match.
 
 Build a short profile with [references/voice-profile.md](references/voice-profile.md): person and address, formality, rhythm, openings, headings, how code is introduced and explained, closings, and mechanics such as spelling and punctuation habits. The samples are evidence of style only. Nothing from their content (sentences, anecdotes, names, links) goes into the new post, and no personal experience is invented to fit a pattern.
 
@@ -74,12 +80,12 @@ When writing to a named path:
 Before drafting, present these in a few lines and wait for a yes:
 
 - The subject and the single purpose the post covers.
-- The voice source (which samples or profile) and three to five bullets summarizing it, or a note that the draft will use a neutral voice.
+- The voice source (which samples or profile, and how many samples it rests on) and three to five bullets summarizing it. Call a thin profile or one built from answers a partial match, and a neutral voice no match.
 - The destination as a full path, with the config file it was resolved from when a generator was involved, or "chat only".
 - The working title, the slug, and the SEO level.
 - Any open question, when there is one, such as the real story behind a personal opening, or an existing post at the destination on the same subject (update it, take a new angle, or stop).
 
-On a decline, stop and write nothing. When the post will be delivered in chat, nothing is written, so skip the extra round trip: put the plan at the top of the reply that carries the draft, and let one review cover both.
+On a decline, stop and write nothing. When the post will be delivered in chat, nothing is written, so skip the extra round trip: put the plan at the top of the reply that carries the draft, and let one approval cover both.
 
 ### 5. Draft and get approval
 
@@ -87,7 +93,7 @@ Write the post per **Building the post**, show it in full, and invite edits. Rev
 
 ### 6. Deliver
 
-- **File**: write to the confirmed path in the site's format, using the host's path separators and the repository's line endings. Name a standalone file after what the code does (`slugify-text.md`), not after the project. Approval was the gate, so write the post ready to publish. If the user asks for a draft instead, use the platform's draft mechanism (see [references/blog-platforms.md](references/blog-platforms.md)) and name it in the report.
+- **File**: write to the confirmed path in the site's format, using the host's path separators and the repository's line endings. Name a standalone file after the slug (`slugify-text.md`), which describes what the code does, not the project. Approval was the gate, so write the post ready to publish. If the user asks for a draft instead, use the platform's draft mechanism (see [references/blog-platforms.md](references/blog-platforms.md)) and name it in the report.
 - **Chat**: follow the copy-paste rules in [references/delivery.md](references/delivery.md).
 - **A gist, discussion, wiki page, or hosted platform the user posts to by hand**: shape the post and list its field values per [references/delivery.md](references/delivery.md).
 
@@ -95,8 +101,8 @@ Report what was written and where. Committing, pushing, uploading, or publishing
 
 Close with up to two one-line offers:
 
-- When the repository already documents this code (a README, a docs folder, or a doc comment), offer to add a link to the post next to that documentation. Do not create a docs file just to hold the link.
-- When the voice profile came from samples, offer to save it with [assets/voice-profile-template.md](assets/voice-profile-template.md) at a location the user chooses, so the next post can reuse it.
+- **Link the post from the docs**, when the post has a published URL or a path inside this repository to point to, and the repository already documents this code. That means a README section, a docs page, or a doc comment such as a docstring or JSDoc block that explains what the code does. A plain inline comment, or one that only gives internal context, does not count, and internal-only code gets no offer. The link goes next to that documentation in one line, such as `Walkthrough: <post URL or path>`. Do not create a docs file just to hold it.
+- **Save the voice profile**, when it came from samples, with [assets/voice-profile-template.md](assets/voice-profile-template.md) at a location the user chooses, so the next post can reuse it.
 
 ## Building the post
 
@@ -116,7 +122,7 @@ Apply SEO at the level that fits the destination, per [references/seo.md](refere
 
 ### Default post layout
 
-When the destination has no front matter contract of its own, use:
+Use this layout only where YAML front matter is read as metadata and no site defines its own fields, such as a standalone Markdown file saved at a path the user names, or a platform that accepts front matter on paste:
 
 ```markdown
 ---
@@ -131,7 +137,8 @@ date: <YYYY-MM-DD>
 <post body in Markdown>
 ```
 
-A site's own front matter wins over this layout: map these values onto the fields it already uses and drop any it does not read.
+- A site's own front matter wins over this layout: map these values onto the fields it already uses and drop any it does not read.
+- A destination that does not parse front matter never gets this block. That covers a gist, a Discussions post, a wiki page, most hosted editors, and a chat draft whose target is still unknown. Use the shape in **Venues with no front matter** in [references/delivery.md](references/delivery.md) instead, which moves the title into the first heading and the description into the opening line.
 
 ## Security and content rules
 
@@ -146,5 +153,5 @@ These rules apply to everything that goes into a post, whatever the destination 
 ## Limitations
 
 - One post, one purpose, one worked example.
-- Matching a voice needs samples. Without them the draft is neutral and says so.
+- A full voice match needs at least three samples. With fewer, the profile is thin or neutral, and the plan check says so.
 - The skill writes files. It does not publish, upload, commit, or push.

@@ -8,8 +8,8 @@ When no file is written, the reply is the deliverable, so it has to survive one 
 
 - **One fenced block.** The post contains its own three-backtick fences, so fence the outer block with four backticks.
 - **Nothing interleaved.** Do not split the post across several blocks with commentary between them. Notes go after the block.
-- **Front matter only if the target parses it.** For a hosted editor or a venue with no front matter, deliver the shape in **Venues with no front matter** instead.
-- **List separate fields separately.** When the target has its own title, description, or tag fields, list those values after the block.
+- **Front matter only if the target parses it.** For a hosted editor, a venue with no front matter, or a target that is still unknown, deliver the shape in **Venues with no front matter** instead.
+- **List the metadata after the block.** When the block carries no front matter, or the target has its own title, description, or tag fields, list the title, description, slug, and tags after the block so nothing is lost. Leave the tags out only when the target is known to have nowhere to put them.
 - **No file.** Do not save a copy unless asked. Offer one in a single line.
 
 ## Venues with no front matter

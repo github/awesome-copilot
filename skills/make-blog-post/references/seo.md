@@ -41,7 +41,7 @@ One sentence of 140 to 160 characters that leads with what the reader gets. It d
 
 - Lowercase, hyphenated, three to six words, derived from the primary phrase.
 - No dates, no numbering, and no stop words that carry no search weight.
-- Match the semantic part of the file name (`slugify-text.md` uses `slugify-text`). Keep platform-required prefixes, such as a Jekyll date, out of the slug unless the site's own convention includes them.
+- Choose the slug first, then build any file name from it: `slugify-text` becomes `slugify-text.md`, or `YYYY-MM-DD-slugify-text.md` on Jekyll. A platform-required prefix such as that date belongs to the file name, not the slug, unless the site's own convention puts it in the slug.
 - On a site with an established slug convention, follow the site.
 
 ## Headings and body

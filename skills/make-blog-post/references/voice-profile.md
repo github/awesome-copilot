@@ -4,7 +4,7 @@ How to learn an author's voice from their own writing and apply it to a new post
 
 ## Gathering samples
 
-Use three to five samples. Fewer than three gives a thin read, and more than five rarely adds anything.
+Use three to five samples. Fewer than three gives a thin read (see **Fewer than three samples**), and more than five rarely adds anything.
 
 Sources, in order of preference:
 
@@ -51,7 +51,7 @@ At the plan check, give the author three to five bullets they can correct in sec
 - Explains code after each block, rarely with inline comments.
 - Ends with a short "Wrapping up" and a link to the docs. No emoji.
 
-A correction from the author outranks anything inferred.
+When the profile rests on fewer than three samples, lead with that ("Thin profile, from two posts:") so a partial match never reads as a full one. A correction from the author outranks anything inferred.
 
 ## Applying the profile
 
@@ -71,15 +71,30 @@ Before showing the draft, compare it with the samples:
 - Is any sentence lifted from a sample? Rewrite it.
 - Does any first-person claim of experience lack the author as its source? Remove it, or say it generally.
 
-## Without samples
+## Fewer than three samples
 
-When the user has no samples, offer three quick questions:
+Ask once for enough links or files to reach three, unless the user has already said there are no more. When no more come, work with what there is, and say at the plan check how many samples the profile rests on.
+
+### Quick questions
+
+Three questions fill the gaps that a thin or missing sample set leaves:
 
 1. Do you write as "I", "we", or neither?
 2. Casual or formal?
 3. How do your posts usually open and end?
 
-The answers form a minimal profile. Say at the plan check that it comes from answers rather than samples.
+### One or two samples
+
+Build a thin profile, with a stricter test than "most samples":
+
+- **One sample**: keep only the patterns that hold throughout the post, such as person, formality, heading style, spelling, and punctuation habits. Anything that appears once, such as the opening, the closing, or an aside, is unconfirmed.
+- **Two samples**: keep a pattern only when both samples show it.
+
+Offer the quick questions to confirm the rest, and leave whatever stays unconfirmed neutral. At the plan check, call the profile thin and the match partial.
+
+### No samples
+
+Offer the quick questions. The answers form a minimal profile. Say at the plan check that it comes from answers rather than samples, and that the match is partial.
 
 When the user declines the questions too, write in a neutral voice: second person, plain wording, short paragraphs, sentence-case headings, no humor, no emoji. Say so at the plan check, and offer to rework the draft once samples are available.
 
@@ -87,4 +102,4 @@ When the user declines the questions too, write in a neutral voice: second perso
 
 After delivery, when the profile came from samples, offer once to save it using the template at `assets/voice-profile-template.md`. The user chooses where. Suggest the blog repository when the post went there, so the profile lives next to the posts it describes.
 
-On a later run, use the saved profile when the user points to it, either in the request or in their custom instructions. Refresh it from newer posts when the user asks, or when it no longer matches recent samples.
+Record how many samples the profile was built from, including any left off the saved list. On a later run, use the saved profile when the user points to it, either in the request or in their custom instructions. A saved profile built from fewer than three samples is still thin: treat it as in **Fewer than three samples**, and offer to strengthen it with newer posts. Refresh any profile from newer posts when the user asks, or when it no longer matches recent samples.

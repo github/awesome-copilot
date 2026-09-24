@@ -4,10 +4,11 @@
 
 - **Author**: <name as it appears on posts; optional, used to filter multi-author sites>
 - **Updated**: <YYYY-MM-DD>
-- **Samples**:
-  - <path or URL>
-  - <path or URL>
-  - <path or URL>
+- **Sample count**: <number of samples the profile was built from, including any left off the list below; under three makes it a thin profile>
+- **Samples** (public URLs or repository-relative paths only; omit private URLs and absolute local paths):
+  - `<public URL or repository-relative path>`
+  - `<public URL or repository-relative path>`
+  - `<public URL or repository-relative path>`
 
 ## In brief
 
