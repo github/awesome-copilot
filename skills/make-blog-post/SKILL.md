@@ -1,7 +1,7 @@
 ---
 name: make-blog-post
 description: 'Turn code from the current session into a blog post written in the voice of its author. Covers one function, script, class, or tool as a focused walkthrough with a generalized sample and a usage example, learns tone and structure from existing posts or writing samples by the same author, takes the destination from what the user names or the blog repository in use instead of assumed folders, and writes nothing until the draft is approved. Use when asked to write, draft, or turn code into a blog post, article, tutorial, or gist, or when invoked as /make-blog-post at the end of a turn.'
-argument-hint: 'Optional: code or topic to cover, where the post goes, and links or files of your past posts'
+argument-hint: "Optional: code or topic to cover, where the post goes, and links or files of your past posts"
 ---
 
 # Make Blog Post
