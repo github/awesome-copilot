@@ -13,10 +13,12 @@ sequenceDiagram
     participant Ctx as Campaign directory
     participant Out as Post-mortem Markdown
 
+    GL->>RM: Finalize completedAt, exitCode, and status
+    RM-->>GL: Finalized run result
     GL->>PM: Run directory, original exit, issues, repo, base, campaign UUID, directory, lesson mode
     PM->>PM: Require existing run directory
-    PM->>RM: Read campaign identity, task list, mode, timestamps, and current run state
-    Note over RM: Caller finalizes exitCode and status after this session
+    PM->>RM: Read finalized campaign identity, task list, mode, timestamps, and outcome
+    Note over PM,RM: Manifest already contains the completed run result
     PM->>Art: Read phase JSON, shares, OTel, and supporting notes
     PM->>Ctx: Read available memory, prompts, and job logs
     PM->>PM: Calculate per-task timings, review rounds, failures, idle markers, and token usage
@@ -28,7 +30,6 @@ sequenceDiagram
     PM->>Out: Write timestamped eight-section Markdown report
     PM-->>GL: Report success or failure
     GL->>GL: Warn if report failed; preserve original run result
-    GL->>RM: Finalize completedAt, exitCode, and status
 ```
 
 The report contains an executive summary, system architecture, per-task
