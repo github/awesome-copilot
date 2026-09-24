@@ -10,7 +10,7 @@ The **Default posts folder** column records each generator's convention, not a g
 
 | Platform | Detect by | Default posts folder | Contract to honor |
 | --- | --- | --- | --- |
-| Jekyll | `_config.yml`, `Gemfile` with `jekyll` | `_posts/` | File name must be `YYYY-MM-DD-slug.md`. YAML front matter with `layout`, `title`, `date`, `categories`, `tags`. A `source` or `collections_dir` setting in `_config.yml` moves the folder. |
+| Jekyll | `_config.yml`, `Gemfile` with `jekyll` | `_posts/` | File name must follow `YYYY-MM-DD-slug.<markup-extension>` (for example, `.md` or `.markdown`). Use YAML front matter matching the site's existing posts. A `source` or `collections_dir` setting in `_config.yml` moves the folder. |
 | Hugo | `hugo.toml`, `hugo.yaml`, `hugo.json`, `config.toml`, or a `config/` directory | `content/posts/` | TOML or YAML front matter matching the theme. `draft: true` keeps it out of the build. `contentDir` moves the content root, and the section folder is whichever one the theme lists. |
 | Astro | `astro.config.*` | Whatever the content collection declares, commonly `src/content/blog/` | Read the collection config: `src/content.config.*` on Astro 5, `src/content/config.*` on Astro 4. A collection's `loader` chooses the directory, so `glob({ base: './src/data/blog' })` puts posts there and not under `src/content/`. Front matter must satisfy that collection's `schema`, and a required field left out fails the build. |
 | Eleventy | `.eleventy.js`, `eleventy.config.*` | `posts/`, or the folder named in the config | Front matter plus the directory data file. A `tags` value adds the post to a collection, which is usually what the feed and index read. |
