@@ -1,5 +1,6 @@
 ---
 description: 'Fork-only: when the repo owner opens an issue, grill the requirements, draft an advisory implementation plan, and open a draft plan PR'
+model: large
 on:
   issues:
     types: [opened]

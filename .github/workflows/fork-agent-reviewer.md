@@ -1,5 +1,6 @@
 ---
 description: 'Fork-only: advisory AI review of Oracle-to-PostgreSQL Migration Expert agent changes on PRs into fork main, plus a deterministic plugin version-bump check'
+model: large
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]

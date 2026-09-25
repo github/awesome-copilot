@@ -1,7 +1,7 @@
 ---
 name: 'Development Orchestrator'
 description: 'Orchestrates Oracle-to-PostgreSQL migration expert agent development: resolves issue requirements, revises the seed plan, rubber-duck reviews it, gets your approval, implements changes, and performs pre-PR code review.'
-model: claude-sonnet-5
+model: 'Claude Sonnet 5'
 tools:
   - github
   - read

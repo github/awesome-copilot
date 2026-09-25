@@ -1,7 +1,7 @@
 ---
 name: 'Plan Reviewer'
 description: 'Reviews a revised implementation plan for concrete mistakes, missing acceptance criteria, and simpler approaches before approval.'
-model: claude-sonnet-5
+model: 'Claude Sonnet 5'
 tools:
   - read
   - github
