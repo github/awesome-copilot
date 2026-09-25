@@ -48,7 +48,6 @@ export class Sync {
     // Drawings this panel is moving to, each waiting for the edits on the current one to be saved.
     this.switching = new Set();
     this.source = null;
-    this.connectedOnce = false;
     editor.on("change", () => this.schedule());
     editor.on("idle", () => this.onIdle());
     window.addEventListener("pagehide", () => this.flushBeacon());
@@ -104,13 +103,13 @@ export class Sync {
       fn(data);
     });
     source.addEventListener("open", () => {
-      const again = this.connectedOnce;
-      this.connectedOnce = true;
       this.handlers.connection?.(true);
       // "Reconnecting" covered the status line, so bring back an error that still applies.
       if (this.refusal) this.handlers.status?.("error", this.refusal);
       else if (this.diskError) this.settled();
-      if (again) this.resync();
+      // Changes made before the server knew about this connection (since the drawing was
+      // loaded, or while the connection was down) never come as events.
+      this.resync();
     });
     source.addEventListener("error", () => this.handlers.connection?.(false));
     on("ops", (ev) => this.onOps(ev));
@@ -130,8 +129,8 @@ export class Sync {
     });
   }
 
-  // Fetches the whole drawing again: after a reconnect, when events may have been missed, and when
-  // a change turns out to be missing (see drainOps). Changes that come meanwhile wait in `early`.
+  // Fetches the whole drawing again: each time the events connect, and when a change turns out to
+  // be missing (see drainOps). Changes that come meanwhile wait in `early`.
   async resync() {
     if (this.resyncing) {
       // This one may have asked before the change that was missed, so ask again after it.

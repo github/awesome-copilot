@@ -20,6 +20,8 @@ export const MAX_SIDE = 5000;
 // The most points a pen stroke keeps. Low enough that even the biggest stroke still fits in the
 // 64 KiB a page can send as it closes (see flushBeacon in public/sync.js).
 export const MAX_PEN_POINTS = 2000;
+// How far from 0 a position can be. One further out is moved back to it.
+export const MAX_COORD = 1e6;
 
 const ID_PREFIX = { rect: "r", ellipse: "o", diamond: "d", cylinder: "c", text: "t", arrow: "a", pen: "p" };
 export const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$/;
@@ -36,7 +38,7 @@ function toNum(v, fallback) {
   if (typeof v === "string" && v.trim() !== "" && Number.isFinite(Number(v))) return Number(v);
   return fallback;
 }
-const coord = (v) => round2(clamp(toNum(v, 0), -1e6, 1e6));
+const coord = (v) => round2(clamp(toNum(v, 0), -MAX_COORD, MAX_COORD));
 
 export function newId(prefix = "e") {
   const chars = "abcdefghijkmnpqrstuvwxyz23456789";
@@ -173,7 +175,7 @@ function normalizePoints(points) {
     const nx = toNum(Array.isArray(p) ? p[0] : p?.x, NaN);
     const ny = toNum(Array.isArray(p) ? p[1] : p?.y, NaN);
     if (Number.isFinite(nx) && Number.isFinite(ny)) {
-      out.push([Math.round(clamp(nx, -1e6, 1e6) * 10) / 10, Math.round(clamp(ny, -1e6, 1e6) * 10) / 10]);
+      out.push([Math.round(clamp(nx, -MAX_COORD, MAX_COORD) * 10) / 10, Math.round(clamp(ny, -MAX_COORD, MAX_COORD) * 10) / 10]);
     }
   }
   return out;

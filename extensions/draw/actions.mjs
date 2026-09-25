@@ -4,7 +4,7 @@ import {
   SHAPE_TYPES, COLORS, FILLS, HEADS, ROUTES, SIZE_KEYS, MAX_SIDE, isShape,
   normalizeElement, removeWithArrows, staticPaint, LIGHT_PALETTE, DARK_PALETTE,
 } from "./lib/model.mjs";
-import { DIRECTIONS, buildFromSpec, relayout, describe, outlinePage } from "./lib/layout.mjs";
+import { DIRECTIONS, buildFromSpec, rangeError, relayout, describe, outlinePage } from "./lib/layout.mjs";
 import { approxMeasure, neededHeight } from "./lib/geometry.mjs";
 import { renderStandaloneSVG } from "./lib/render.mjs";
 import { THEMES } from "./settings.mjs";
@@ -20,7 +20,7 @@ const str = (description) => ({ type: "string", description });
 const num = (description) => ({ type: "number", description });
 const color = { type: "string", enum: COLORS, description: "Color. gray is the default." };
 const fill = { type: "string", enum: FILLS, description: "none (outline only), soft (light tint, the default) or solid (strong color)." };
-const size = { type: "string", enum: SIZE_KEYS, description: "Text size: s, m, l or xl. Shapes default to m, text to l." };
+const size = { type: "string", enum: SIZE_KEYS, description: "Text size: s, m, l or xl. Shapes default to m, arrows to s and text to l." };
 const dashed = { type: "boolean", description: "Draw a dashed line." };
 const head = { type: "string", enum: HEADS, description: "Arrowheads: end (the default), start, both or none." };
 const route = { type: "string", enum: ROUTES, description: "Arrow path: straight (the default), elbow (right angles) or curve." };
@@ -190,7 +190,7 @@ export function makeActions({ runtime, CanvasError }) {
   return [
     action(
       "get_drawing",
-      "Read the drawing shown in this canvas: an outline of its elements with their ids, labels, positions, sizes and styles, plus the ids the user has selected right now. Coordinates are pixels, x grows right and y grows down. A big drawing comes in parts: when the result has nextStart, call again with start set to it to read the next part.",
+      "Read the drawing shown in this canvas: an outline of its elements with their ids, labels, positions, sizes and styles (a style that is not listed is the default), plus the ids the user has selected right now. Coordinates are pixels, x grows right and y grows down. A big drawing comes in parts: when the result has nextStart, call again with start set to it to read the next part.",
       {
         start: { type: "integer", minimum: 0, description: "Where to continue a long outline: the nextStart of the previous result." },
         ids: { type: "array", items: { type: "string" }, maxItems: 5000, description: "Only list these elements." },
@@ -322,7 +322,10 @@ export function makeActions({ runtime, CanvasError }) {
       [],
       ({ store, doc }, input) => {
         if (!doc.elements.some(isShape)) fail("empty", "There are no shapes to arrange.");
-        const next = store.replace(doc.id, relayout(doc.elements, { direction: input.direction || "right", measure: approxMeasure }), "agent");
+        const arranged = relayout(doc.elements, { direction: input.direction || "right", measure: approxMeasure });
+        const far = rangeError(arranged);
+        if (far) fail("layout_too_big", `Nothing was changed. ${far}`);
+        const next = store.replace(doc.id, arranged, "agent");
         return summary(next, "Re-arranged the shapes.");
       },
     ),

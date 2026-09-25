@@ -146,3 +146,40 @@ test("every action on the shown drawing can name the drawing it means", () => {
     const unpinned = actions.filter((a) => !a.inputSchema.properties.drawingId).map((a) => a.name);
     assert.deepEqual(unpinned.sort(), ["list_drawings", "open_drawing", "set_theme"]);
 });
+
+test("a layout that would not fit on the canvas changes nothing and says why", async (t) => {
+    const { store, doc, run } = await setup(t);
+    // Long arrow labels spread the layers apart, so this chain would reach past x = 10,000,000.
+    const label = "x".repeat(4000);
+    const nodes = Array.from({ length: 500 }, (_, i) => ({ id: `n${i}`, label: `Step ${i}` }));
+    const edges = nodes.slice(1).map((n, i) => ({ from: `n${i}`, to: n.id, label }));
+    const tooBig = /The layout does not fit: "n\d+" would be at \d+,-?\d+, but positions only go from -1,000,000 to 1,000,000\./;
+    for (const name of ["set_diagram", "add_elements"]) {
+        await assert.rejects(run(name, { nodes, edges }), (err) => {
+            assert.equal(err.code, "invalid_diagram");
+            assert.match(err.message, tooBig);
+            return true;
+        });
+    }
+    assert.deepEqual(store.get(doc.id).elements, []);
+
+    // The same diagram, drawn by hand, cannot be laid out either.
+    store.replace(doc.id, [
+        ...nodes.map((n, i) => ({ id: n.id, type: "rect", x: (i % 25) * 200, y: Math.floor(i / 25) * 100, text: n.label })),
+        ...edges.map((e, i) => ({ id: `e${i}`, type: "arrow", from: e.from, to: e.to, text: e.label })),
+    ], "test");
+    const before = store.get(doc.id);
+    await assert.rejects(run("layout", {}), (err) => {
+        assert.equal(err.code, "layout_too_big");
+        assert.match(err.message, /^Nothing was changed\./);
+        assert.match(err.message, tooBig);
+        return true;
+    });
+    assert.equal(store.get(doc.id).rev, before.rev);
+
+    // With short labels it fits, and no two shapes end up in the same spot.
+    store.replace(doc.id, before.elements.map((e) => (e.type === "arrow" ? { ...e, text: "next" } : e)), "test");
+    assert.equal((await run("layout", {})).ok, true);
+    const spots = new Set(store.get(doc.id).elements.filter((e) => e.type === "rect").map((e) => `${e.x},${e.y}`));
+    assert.equal(spots.size, 500);
+});

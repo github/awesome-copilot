@@ -1,7 +1,7 @@
 // Automatic placement: layered graph layout, label-based sizing, free-spot search,
 // and turning an agent's { nodes, edges, texts } spec into positioned elements.
 import {
-  DEFAULT_SIZES, FONT_SIZES, LABEL_WEIGHT, ID_PATTERN, MAX_SIDE, isShape, isNum, snap,
+  DEFAULT_SIZES, FONT_SIZES, LABEL_WEIGHT, ID_PATTERN, MAX_COORD, MAX_SIDE, isShape, isNum, snap,
   normalizeElement, normalizeSize, normalizeText, resolveShapeType, uniqueId,
 } from "./model.mjs";
 import {
@@ -494,7 +494,19 @@ export function buildFromSpec(spec, { existing = [], direction = "right", measur
     }
     texts.push(el);
   }
+  const far = rangeError([...nodes, ...texts]);
+  if (far) errors.push(far);
   return { elements: [...nodes, ...edges, ...texts], errors };
+}
+
+// Saving moves a position past MAX_COORD back to it, on top of whatever else is there, so a
+// layout that puts a shape or text that far out (very long arrow labels spread the layers far
+// apart, for one) has to be turned down. Says which element it is, or returns null.
+export function rangeError(elements) {
+  const far = elements.find((e) => (isShape(e) || e.type === "text") && (Math.abs(e.x) > MAX_COORD || Math.abs(e.y) > MAX_COORD));
+  if (!far) return null;
+  const limit = MAX_COORD.toLocaleString("en-US");
+  return `The layout does not fit: "${far.id}" would be at ${Math.round(far.x)},${Math.round(far.y)}, but positions only go from -${limit} to ${limit}. Shorten the longest labels, or split the diagram into smaller ones.`;
 }
 
 // Re-lays out all shapes in a drawing, keeping the top-left corner where it was.
@@ -520,16 +532,19 @@ const quote = (s) => {
 
 const OUTLINE_GROUPS = [
   ["Shapes", isShape, (s) => {
-    const style = [s.type, s.color !== "gray" ? s.color : null, s.fill !== "soft" ? `fill ${s.fill}` : null, s.dash ? "dashed" : null].filter(Boolean).join(", ");
+    const style = [s.type, s.color !== "gray" ? s.color : null, s.fill !== "soft" ? `fill ${s.fill}` : null, s.dash ? "dashed" : null, s.size !== "m" ? `text size ${s.size}` : null].filter(Boolean).join(", ");
     return `- ${s.id} (${style}) ${s.text ? quote(s.text) : "(no label)"} at ${Math.round(s.x)},${Math.round(s.y)} size ${Math.round(s.w)}x${Math.round(s.h)}`;
   }],
   ["Arrows", (e) => e.type === "arrow", (a) => {
     const from = a.from || `(${Math.round(a.x1)},${Math.round(a.y1)})`;
     const to = a.to || `(${Math.round(a.x2)},${Math.round(a.y2)})`;
-    const style = [a.head !== "end" ? `head ${a.head}` : null, a.route !== "straight" ? a.route : null, a.dash ? "dashed" : null, a.color !== "gray" ? a.color : null].filter(Boolean).join(", ");
+    const style = [a.head !== "end" ? `head ${a.head}` : null, a.route !== "straight" ? a.route : null, a.dash ? "dashed" : null, a.color !== "gray" ? a.color : null, a.size !== "s" ? `text size ${a.size}` : null].filter(Boolean).join(", ");
     return `- ${a.id}: ${from} -> ${to}${a.text ? ` ${quote(a.text)}` : ""}${style ? ` (${style})` : ""}`;
   }],
-  ["Text", (e) => e.type === "text", (t) => `- ${t.id}: ${quote(t.text)} at ${Math.round(t.x)},${Math.round(t.y)}`],
+  ["Text", (e) => e.type === "text", (t) => {
+    const style = [t.color !== "gray" ? t.color : null, t.size !== "l" ? `text size ${t.size}` : null].filter(Boolean).join(", ");
+    return `- ${t.id}${style ? ` (${style})` : ""}: ${quote(t.text)} at ${Math.round(t.x)},${Math.round(t.y)}`;
+  }],
   ["Pen strokes", (e) => e.type === "pen", (p) => {
     const b = elementBounds(p, null);
     const style = [p.color !== "gray" ? p.color : null, `width ${p.width}`].filter(Boolean).join(", ");
@@ -539,6 +554,7 @@ const OUTLINE_GROUPS = [
 
 // A readable outline of a drawing for the agent: a count of each kind of element, then one line
 // per element with its id, label, position and style (shapes, then arrows, text and pen strokes).
+// A style is left out when it is the default (see the size, color and other inputs in actions.mjs).
 // A big drawing comes in parts. The text stops before it would pass `budget` characters, where
 // `cost(el)` adds what a caller sends along with an element, but a part always has at least one
 // element. `start` is where in the list to begin, and `next` is where the following part begins,

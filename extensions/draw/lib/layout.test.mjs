@@ -183,3 +183,26 @@ test("a long outline comes in parts that stay in budget and list each element on
   assert.deepEqual(heavy.shown.map((e) => e.id), ["s0"]);
   assert.equal(heavy.next, 1);
 });
+
+test("the outline lists every style that is not the default", () => {
+  const doc = {
+    name: "Styles",
+    elements: [
+      normalizeElement({ id: "a", type: "rect", x: 0, y: 0, text: "A", color: "blue", fill: "solid", dash: true, size: "xl" }),
+      normalizeElement({ id: "b", type: "ellipse", x: 300, y: 0, text: "B" }),
+      normalizeElement({ id: "ab", type: "arrow", from: "a", to: "b", text: "calls", head: "both", route: "elbow", dash: true, color: "red", size: "l" }),
+      normalizeElement({ id: "ba", type: "arrow", from: "b", to: "a" }),
+      normalizeElement({ id: "t1", type: "text", x: 0, y: 200, text: "Note", color: "green", size: "s" }),
+      normalizeElement({ id: "t2", type: "text", x: 0, y: 300, text: "Title", size: "l" }),
+    ],
+  };
+  const lines = outlinePage(doc).text.split("\n");
+  for (const line of [
+    '- a (rect, blue, fill solid, dashed, text size xl) "A" at 0,0 size 160x60',
+    '- b (ellipse) "B" at 300,0 size 160x80',
+    '- ab: a -> b "calls" (head both, elbow, dashed, red, text size l)',
+    "- ba: b -> a",
+    '- t1 (green, text size s): "Note" at 0,200',
+    '- t2: "Title" at 0,300',
+  ]) assert.ok(lines.includes(line), `no line ${line} in:\n${lines.join("\n")}`);
+});
