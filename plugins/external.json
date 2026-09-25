@@ -1137,7 +1137,7 @@
   {
     "name": "rayfin",
     "description": "Getting-started router skill for Rayfin - scaffold a new app with the Rayfin CLI, then use the version-locked skill installed in the project.",
-    "version": "0.4.0",
+    "version": "0.4.2",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1157,7 +1157,7 @@
     "source": {
       "source": "github",
       "repo": "microsoft/rayfin",
-      "ref": "plugin-v0.4.0"
+      "sha": "ed4647453c8890f874e072d669ac8b8120b9bf37"
     }
   },
   {
