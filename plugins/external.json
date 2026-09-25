@@ -211,6 +211,31 @@
     }
   },
   {
+    "name": "azure-resources-query",
+    "description": "Browse Azure resources through read-only Resource Graph queries with explicit subscription selection in a Copilot canvas.",
+    "version": "0.1.3",
+    "author": {
+      "name": "Alex Weininger",
+      "url": "https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/?msockid=1add9a5fadea65191f338d23acc864b6"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "resource-graph",
+      "arg",
+      "read-only",
+      "query"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-resources-query",
+      "sha": "a873dfa42ce8e4420b77e94ddca896e8771e3b0c"
+    }
+  },
+  {
     "name": "bd-skills",
     "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
     "version": "0.1.26",
