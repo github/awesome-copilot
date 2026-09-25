@@ -4,7 +4,13 @@ import os from "os";
 import path from "path";
 import { spawnSync } from "child_process";
 import { after, test } from "node:test";
-import { runCanvasStructureGate, runRefShaConsistencyGate, runVersionMatchGate } from "./external-plugin-quality-gates.mjs";
+import {
+  formatQualityGateLog,
+  runCanvasStructureGate,
+  runRefShaConsistencyGate,
+  runVersionMatchGate,
+} from "./external-plugin-quality-gates.mjs";
+import { runExternalPluginPrQualityGates } from "./external-plugin-pr-quality-gates.mjs";
 
 const tempDirs = [];
 
@@ -37,6 +43,46 @@ function commitAll(repoDir, message) {
   runGit(repoDir, "commit", "-m", message, "--quiet");
   return runGit(repoDir, "rev-parse", "HEAD");
 }
+
+test("formatQualityGateLog preserves full vally output for artifacts", () => {
+  const fullVallyOutput = `lint failure\n${"x".repeat(13000)}`;
+  const log = formatQualityGateLog(
+    { name: "example-plugin" },
+    {
+      summary: "- vally lint: fail",
+      spec_compliance_output: "spec output",
+      vally_lint_output: "truncated output",
+      smoke_output: "smoke output",
+      version_match_output: "version output",
+      ref_sha_consistency_output: "ref output",
+      canvas_structure_output: "canvas output",
+    },
+    { vallyLintOutput: fullVallyOutput },
+  );
+
+  assert.match(log, /External plugin quality gate log: example-plugin/);
+  assert.match(log, /lint failure/);
+  assert.equal(log.includes("x".repeat(13000)), true);
+  assert.equal(log.includes("truncated output"), false);
+});
+
+test("runExternalPluginPrQualityGates writes logs for validation failures", async () => {
+  const logsDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "external-plugin-pr-logs-"));
+  tempDirs.push(logsDirectory);
+
+  const result = await runExternalPluginPrQualityGates(
+    [{ name: "Invalid Plugin", source: {} }],
+    { logsDirectory },
+  );
+
+  assert.equal(result.overall_status, "fail");
+  const logFiles = fs.readdirSync(logsDirectory);
+  assert.deepEqual(logFiles, ["01-invalid-plugin.log"]);
+  assert.match(
+    fs.readFileSync(path.join(logsDirectory, logFiles[0]), "utf8"),
+    /External plugin entry validation/,
+  );
+});
 
 test("runCanvasStructureGate passes when a named extension exists", () => {
   const repoDir = createTempRepo();
