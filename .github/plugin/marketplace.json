@@ -235,6 +235,31 @@
       "version": "1.0.1"
     },
     {
+      "name": "azure-cost-health-check",
+      "description": "Read-only Azure cost, forecasts, budget alerts, Advisor recommendations, and AI billing analysis in a Copilot canvas.",
+      "version": "0.4.3",
+      "author": {
+        "name": "Shayne Boyer",
+        "url": "https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/reporting-get-started"
+      },
+      "repository": "https://github.com/microsoft/azure-dev-tools",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "azure",
+        "cost-management",
+        "finops",
+        "ai-foundry",
+        "monitoring"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-dev-tools",
+        "path": "canvases/azure-cost-health-check",
+        "sha": "59e5889e464b099344a8ba8ff13cdf73d401d433"
+      }
+    },
+    {
       "name": "backlog-swipe-triage",
       "source": "plugins/backlog-swipe-triage",
       "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",

@@ -159,6 +159,31 @@
     }
   },
   {
+    "name": "azure-cost-health-check",
+    "description": "Read-only Azure cost, forecasts, budget alerts, Advisor recommendations, and AI billing analysis in a Copilot canvas.",
+    "version": "0.4.3",
+    "author": {
+      "name": "Shayne Boyer",
+      "url": "https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/reporting-get-started"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "cost-management",
+      "finops",
+      "ai-foundry",
+      "monitoring"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-cost-health-check",
+      "sha": "59e5889e464b099344a8ba8ff13cdf73d401d433"
+    }
+  },
+  {
     "name": "bd-skills",
     "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
     "version": "0.1.26",
