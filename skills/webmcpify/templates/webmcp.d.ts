@@ -25,10 +25,9 @@
  *
  * Full text: https://github.com/TueJon/webmcpify/blob/main/LICENSE
  *
- * registerTool/ontoolchange/annotations/getTools follow the CG draft
- * (https://webmachinelearning.github.io/webmcp/); executeTool is a Chrome-only
- * extension not yet in the draft. This API is in flux — re-check against the
- * draft and https://developer.chrome.com/docs/ai/webmcp when updating.
+ * registerTool/ontoolchange/annotations/getTools/executeTool follow the CG draft
+ * (https://webmachinelearning.github.io/webmcp/). Chrome's origin-trial I/O shape
+ * can lag that draft; keep the compatibility notes below dated and explicit.
  *
  * This is a GLOBAL script file — no imports (an import would turn it into a
  * module and un-globalize every interface). React JSX typings for the declarative
@@ -38,7 +37,16 @@
 interface ModelContextToolAnnotations {
   readOnlyHint?: boolean;
   untrustedContentHint?: boolean;
+  /** Significant real-world or non-reversible effect; a hint, never enforcement. */
+  consequentialHint?: boolean;
 }
+
+type ModelContextToolResult =
+  | string
+  | number
+  | boolean
+  | Record<string, unknown>
+  | unknown[];
 
 interface ModelContext extends EventTarget {
   registerTool(
@@ -52,14 +60,16 @@ interface ModelContext extends EventTarget {
    */
   getTools(options?: { fromOrigins?: string[] }): Promise<RegisteredTool[]>;
   /**
-   * Chrome-only execution surface (2026-07+; not yet in the CG draft); replaced
-   * the removed navigator.modelContextTesting API.
+   * Agent/test execution surface in the CG draft. Current Chrome accepts an
+   * object; Chrome 150's JSON-string input remains in the verification adapter.
    */
   executeTool?(
     tool: RegisteredTool,
-    inputJson: string,
+    inputObject?: unknown,
     options?: { signal?: AbortSignal },
-  ): Promise<string | null>;
+  ): Promise<ModelContextToolResult | null>;
+  /** Internal simulation capability used by the vendored Workbench. */
+  __webmcpStubObjectMode?: boolean;
 }
 
 interface ModelContextTool {
@@ -77,16 +87,17 @@ interface ModelContextTool {
    * a promise, so a sync implementation still fulfills this type at runtime;
    * declare it async for type fidelity.
    */
-  execute(input: Record<string, unknown>): Promise<unknown>;
+  /** JSON-safe result; bare null/undefined are intentionally excluded. */
+  execute(input: Record<string, unknown>): Promise<ModelContextToolResult>;
   annotations?: ModelContextToolAnnotations;
 }
 
-/** Shape returned by getTools(). NOTE inputSchema is a STRINGIFIED JSON Schema. */
+/** Shape returned by getTools(). Older Chrome may stringify JSON Schema — handle both forms. */
 interface RegisteredTool {
   name: string;
   title?: string;
   description: string;
-  inputSchema?: string;
+  inputSchema?: string | object;
   annotations?: ModelContextToolAnnotations;
   /** Registering origin (secure origins only). */
   origin: string;
