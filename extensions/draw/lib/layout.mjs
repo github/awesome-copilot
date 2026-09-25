@@ -12,6 +12,14 @@ const ceil20 = (v) => Math.ceil(v / 20) * 20;
 const lower = (v) => (typeof v === "string" ? v.trim().toLowerCase() : "");
 export const DIRECTIONS = ["right", "down", "left", "up"];
 
+// The most placeholders a layout may make (see layeredLayout). An arrow gets one on each layer it
+// passes, and each one takes part in every sweep, so a long chain with many arrows across it could
+// otherwise need millions and keep the extension busy for most of a minute.
+export const MAX_PLACEHOLDERS = 100000;
+
+// Thrown by layeredLayout when a drawing is too big to lay out. The message says why.
+export class LayoutError extends Error {}
+
 // Width/height that fit a label, in multiples of 20 so centers stay on the grid.
 export function autoSize(text, type, measure = approxMeasure, size = "m") {
   const [dw, dh] = DEFAULT_SIZES[type] || DEFAULT_SIZES.rect;
@@ -81,8 +89,9 @@ export function countCrossings(upper, down, pos, lowerSize) {
 }
 
 // Layered (Sugiyama-style) layout. nodes: [{id, w, h}], edges: [{from, to, label?}].
-// Returns Map id -> {x, y} (top-left), with the layout's top-left corner at 0,0.
-export function layeredLayout(nodes, edges, { direction = "right", measure = approxMeasure } = {}) {
+// Returns Map id -> {x, y} (top-left), with the layout's top-left corner at 0,0. Throws a
+// LayoutError when it would need more than maxPlaceholders placeholders.
+export function layeredLayout(nodes, edges, { direction = "right", measure = approxMeasure, maxPlaceholders = MAX_PLACEHOLDERS } = {}) {
   const horizontal = direction === "right" || direction === "left";
   const N = nodes.length;
   const result = new Map();
@@ -148,6 +157,17 @@ export function layeredLayout(nodes, edges, { direction = "right", measure = app
     if (!preds[u].length && dag[u].size) layer[u] = Math.min(...[...dag[u]].map((v) => layer[v])) - 1;
   }
 
+  // Placeholders are counted before any are made (see MAX_PLACEHOLDERS), so turning down a drawing
+  // that needs too many costs only this loop.
+  let placeholders = 0;
+  for (let u = 0; u < N; u++) for (const v of dag[u]) placeholders += layer[v] - layer[u] - 1;
+  if (placeholders > maxPlaceholders) {
+    const count = (n) => n.toLocaleString("en-US");
+    throw new LayoutError(
+      `The layout is too big to work out: an arrow needs a placeholder on each layer of shapes it passes, and this diagram needs ${count(placeholders)}, more than the ${count(maxPlaceholders)} automatic layout handles. Arrows that jump across many layers, like ones back to the start of a long chain, need the most. Split the diagram into smaller ones, or leave out some of those arrows.`,
+    );
+  }
+
   // Layers with dummy vertices for edges that span several layers.
   const layers = [];
   const up = [];
@@ -181,7 +201,7 @@ export function layeredLayout(nodes, edges, { direction = "right", measure = app
   for (let li = 0; li < layers.length; li++) layers[li] ||= [];
 
   // Crossing reduction: barycenter sweeps, keeping the best ordering seen. Per-vertex numbers live
-  // in typed arrays, since long edges can add hundreds of thousands of placeholder vertices.
+  // in typed arrays, since long edges can add up to maxPlaceholders placeholder vertices.
   const pos = new Int32Array(up.length);
   const setPos = () => layers.forEach((L) => L.forEach((v, i) => { pos[v] = i; }));
   setPos();
@@ -362,6 +382,16 @@ function pinnedAt(item, name, auto, errors) {
   return false;
 }
 
+// Runs layeredLayout. Returns { pos }, or { error } when the drawing is too big for it.
+function layOut(nodes, edges, options) {
+  try {
+    return { pos: layeredLayout(nodes, edges, options), error: null };
+  } catch (err) {
+    if (err instanceof LayoutError) return { pos: null, error: err.message };
+    throw err;
+  }
+}
+
 // Converts { nodes, edges, texts } into elements. With `existing`, new nodes are placed next to
 // the existing nodes they connect to, or beside the current content.
 // Returns { elements, errors }. Nothing should be applied when errors is non-empty.
@@ -455,7 +485,8 @@ export function buildFromSpec(spec, { existing = [], direction = "right", measur
   const rest = unplaced.filter((n) => !anchored.has(n.id));
   if (rest.length) {
     const restIds = new Set(rest.map((n) => n.id));
-    const pos = layeredLayout(rest, edges.filter((e) => restIds.has(e.from) && restIds.has(e.to)).map((e) => ({ from: e.from, to: e.to, label: e.text })), { direction, measure });
+    const { pos, error } = layOut(rest, edges.filter((e) => restIds.has(e.from) && restIds.has(e.to)).map((e) => ({ from: e.from, to: e.to, label: e.text })), { direction, measure });
+    if (error) errors.push(error);
     const content = unionBounds(obstacles);
     let ox = 0;
     let oy = 0;
@@ -464,10 +495,13 @@ export function buildFromSpec(spec, { existing = [], direction = "right", measur
       ox = snap(vertical ? content.x : content.x + content.w + 120);
       oy = snap(vertical ? content.y + content.h + 100 : content.y);
     }
-    for (const n of rest) {
-      const p = pos.get(n.id);
-      n.x = ox + p.x;
-      n.y = oy + p.y;
+    // Without a layout the error above means nothing is applied, so they can stay where they are.
+    if (pos) {
+      for (const n of rest) {
+        const p = pos.get(n.id);
+        n.x = ox + p.x;
+        n.y = oy + p.y;
+      }
     }
   }
 
@@ -502,7 +536,7 @@ export function buildFromSpec(spec, { existing = [], direction = "right", measur
 // Saving moves a position past MAX_COORD back to it, on top of whatever else is there, so a
 // layout that puts a shape or text that far out (very long arrow labels spread the layers far
 // apart, for one) has to be turned down. Says which element it is, or returns null.
-export function rangeError(elements) {
+function rangeError(elements) {
   const far = elements.find((e) => (isShape(e) || e.type === "text") && (Math.abs(e.x) > MAX_COORD || Math.abs(e.y) > MAX_COORD));
   if (!far) return null;
   const limit = MAX_COORD.toLocaleString("en-US");
@@ -510,15 +544,18 @@ export function rangeError(elements) {
 }
 
 // Re-lays out all shapes in a drawing, keeping the top-left corner where it was.
+// Returns { elements, error }. Nothing should be applied when error is set.
 export function relayout(elements, { direction = "right", measure = approxMeasure } = {}) {
   const shapes = elements.filter(isShape);
-  if (!shapes.length) return elements;
+  if (!shapes.length) return { elements, error: null };
   const before = unionBounds(shapes.map((s) => ({ x: s.x, y: s.y, w: s.w, h: s.h })));
   const edges = elements.filter((e) => e.type === "arrow" && e.from && e.to).map((e) => ({ from: e.from, to: e.to, label: e.text }));
-  const pos = layeredLayout(shapes, edges, { direction, measure });
+  const { pos, error } = layOut(shapes, edges, { direction, measure });
+  if (error) return { elements, error };
   const ox = snap(before.x);
   const oy = snap(before.y);
-  return elements.map((e) => (isShape(e) && pos.has(e.id) ? { ...e, x: ox + pos.get(e.id).x, y: oy + pos.get(e.id).y } : e));
+  const arranged = elements.map((e) => (isShape(e) && pos.has(e.id) ? { ...e, x: ox + pos.get(e.id).x, y: oy + pos.get(e.id).y } : e));
+  return { elements: arranged, error: rangeError(arranged) };
 }
 
 // Labels longer than this are cut short in outlines. The element JSON has them in full.

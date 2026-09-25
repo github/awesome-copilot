@@ -4,7 +4,7 @@ import {
   SHAPE_TYPES, COLORS, FILLS, HEADS, ROUTES, SIZE_KEYS, MAX_SIDE, isShape,
   normalizeElement, removeWithArrows, staticPaint, LIGHT_PALETTE, DARK_PALETTE,
 } from "./lib/model.mjs";
-import { DIRECTIONS, buildFromSpec, rangeError, relayout, describe, outlinePage } from "./lib/layout.mjs";
+import { DIRECTIONS, buildFromSpec, relayout, describe, outlinePage } from "./lib/layout.mjs";
 import { approxMeasure, neededHeight } from "./lib/geometry.mjs";
 import { renderStandaloneSVG } from "./lib/render.mjs";
 import { THEMES } from "./settings.mjs";
@@ -322,9 +322,8 @@ export function makeActions({ runtime, CanvasError }) {
       [],
       ({ store, doc }, input) => {
         if (!doc.elements.some(isShape)) fail("empty", "There are no shapes to arrange.");
-        const arranged = relayout(doc.elements, { direction: input.direction || "right", measure: approxMeasure });
-        const far = rangeError(arranged);
-        if (far) fail("layout_too_big", `Nothing was changed. ${far}`);
+        const { elements: arranged, error } = relayout(doc.elements, { direction: input.direction || "right", measure: approxMeasure });
+        if (error) fail("layout_too_big", `Nothing was changed. ${error}`);
         const next = store.replace(doc.id, arranged, "agent");
         return summary(next, "Re-arranged the shapes.");
       },

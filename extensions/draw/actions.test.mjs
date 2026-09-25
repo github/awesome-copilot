@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { makeActions } from "./actions.mjs";
+import { MAX_PLACEHOLDERS } from "./lib/layout.mjs";
 import { DrawingStore } from "./store.mjs";
 
 class CanvasError extends Error {
@@ -203,4 +204,43 @@ test("a layout that would not fit on the canvas changes nothing and says why", a
     assert.equal((await run("layout", {})).ok, true);
     const spots = new Set(store.get(doc.id).elements.filter((e) => e.type === "rect").map((e) => `${e.x},${e.y}`));
     assert.equal(spots.size, 500);
+});
+
+test("a layout with too many long arrows changes nothing and says why", async (t) => {
+    const { store, doc, run } = await setup(t);
+    // A chain of 400 steps, with 300 arrows that jump from near its start to near its end. Each
+    // one passes hundreds of layers, and needs a placeholder on every one of them.
+    const nodes = Array.from({ length: 400 }, (_, i) => ({ id: `n${i}`, label: `Step ${i}` }));
+    const edges = nodes.slice(1).map((n, i) => ({ from: `n${i}`, to: n.id }));
+    let needed = 0;
+    for (let k = 0; k < 300; k++) {
+        const from = k % 20;
+        const to = 399 - Math.floor(k / 20);
+        edges.push({ from: `n${from}`, to: `n${to}` });
+        needed += to - from - 1;
+    }
+    assert.ok(needed > MAX_PLACEHOLDERS);
+    const count = (n) => n.toLocaleString("en-US");
+    const tooBig = new RegExp(`The layout is too big to work out: .* this diagram needs ${count(needed)}, more than the ${count(MAX_PLACEHOLDERS)} automatic layout handles\\.`);
+    for (const name of ["set_diagram", "add_elements"]) {
+        await assert.rejects(run(name, { nodes, edges }), (err) => {
+            assert.equal(err.code, "invalid_diagram");
+            assert.match(err.message, tooBig);
+            return true;
+        });
+    }
+    assert.deepEqual(store.get(doc.id).elements, []);
+
+    store.replace(doc.id, [
+        ...nodes.map((n, i) => ({ id: n.id, type: "rect", x: (i % 20) * 200, y: Math.floor(i / 20) * 100, text: n.label })),
+        ...edges.map((e, i) => ({ id: `e${i}`, type: "arrow", from: e.from, to: e.to })),
+    ], "test");
+    const before = store.get(doc.id);
+    await assert.rejects(run("layout", {}), (err) => {
+        assert.equal(err.code, "layout_too_big");
+        assert.match(err.message, /^Nothing was changed\. The layout is too big to work out:/);
+        assert.match(err.message, tooBig);
+        return true;
+    });
+    assert.equal(store.get(doc.id).rev, before.rev);
 });

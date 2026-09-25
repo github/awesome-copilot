@@ -1,10 +1,10 @@
-// Tests for turning a { nodes, edges } spec into elements, for the layout's crossing count, and
-// for the outline the agent reads.
+// Tests for turning a { nodes, edges } spec into elements, for the layout's crossing count and
+// size limit, and for the outline the agent reads.
 // Run `node --test` in the extension folder.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { boxesIntersect, elementBounds } from "./geometry.mjs";
-import { buildFromSpec, countCrossings, findFreeSpot, outlinePage } from "./layout.mjs";
+import { LayoutError, buildFromSpec, countCrossings, findFreeSpot, layeredLayout, outlinePage } from "./layout.mjs";
 import { normalizeElement } from "./model.mjs";
 
 const shape = (id, text, x) => normalizeElement({ id, type: "rect", x, y: 0, text });
@@ -205,4 +205,21 @@ test("the outline lists every style that is not the default", () => {
     '- t1 (green, text size s): "Note" at 0,200',
     '- t2: "Title" at 0,300',
   ]) assert.ok(lines.includes(line), `no line ${line} in:\n${lines.join("\n")}`);
+});
+
+test("a layout counts a placeholder for each layer an arrow passes, and turns down too many", () => {
+  // The chain puts a, b, c and d on layers 0 to 3, so an arrow back from d to a passes 2 layers,
+  // and one from a to c passes 1. The loose node e has no arrows and needs none.
+  const nodes = ["a", "b", "c", "d", "e"].map((id) => ({ id, w: 100, h: 60 }));
+  const chain = [{ from: "a", to: "b" }, { from: "b", to: "c" }, { from: "c", to: "d" }];
+  const back = [...chain, { from: "d", to: "a" }];
+  assert.equal(layeredLayout(nodes, back, { maxPlaceholders: 2 }).size, 5);
+  assert.throws(() => layeredLayout(nodes, back, { maxPlaceholders: 1 }), (err) => {
+    assert.ok(err instanceof LayoutError);
+    assert.match(err.message, /this diagram needs 2, more than the 1 automatic layout handles\./);
+    return true;
+  });
+  assert.equal(layeredLayout(nodes, [...back, { from: "a", to: "c" }], { maxPlaceholders: 3 }).size, 5);
+  assert.throws(() => layeredLayout(nodes, [...back, { from: "a", to: "c" }], { maxPlaceholders: 2 }), /needs 3, more than the 2/);
+  assert.equal(layeredLayout(nodes, chain, { maxPlaceholders: 0 }).size, 5);
 });
