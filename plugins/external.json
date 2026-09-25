@@ -159,6 +159,31 @@
     }
   },
   {
+    "name": "azure-cost-health-check",
+    "description": "Read-only Azure cost, forecasts, budget alerts, Advisor recommendations, and AI billing analysis in a Copilot canvas.",
+    "version": "0.4.3",
+    "author": {
+      "name": "Shayne Boyer",
+      "url": "https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/reporting-get-started"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "cost-management",
+      "finops",
+      "ai-foundry",
+      "monitoring"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-cost-health-check",
+      "sha": "59e5889e464b099344a8ba8ff13cdf73d401d433"
+    }
+  },
+  {
     "name": "azure-functions-hosted-skills",
     "description": "Build, run, and debug Azure Functions Hosted Skills locally or invoke supported functions in an existing Function App from a Copilot canvas.",
     "version": "0.5.3",
