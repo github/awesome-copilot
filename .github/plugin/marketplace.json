@@ -352,6 +352,31 @@
       }
     },
     {
+      "name": "canvas-authoring",
+      "description": "Toolkit setup and Azure or counter starters for the host’s native `create-canvas` skill; skill-only, not a canvas extension.  Includes prebuilt packages and guidance for styles, sign in, subscriptions, telemetry, and more.",
+      "version": "0.1.1",
+      "author": {
+        "name": "Alex Weininger"
+      },
+      "repository": "https://github.com/microsoft/azure-dev-tools",
+      "license": "MIT",
+      "keywords": [
+        "canvas-authoring",
+        "toolkit",
+        "skills",
+        "development",
+        "azure",
+        "scaffolding",
+        "build"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-dev-tools",
+        "path": "plugins/canvas-authoring",
+        "sha": "a6d394bbaa6fb1dc0151257a85cbac0de772b138"
+      }
+    },
+    {
       "name": "cast-imaging",
       "source": "plugins/cast-imaging",
       "description": "A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging.",
