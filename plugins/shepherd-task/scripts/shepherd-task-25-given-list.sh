@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# shepherd-task-version: 1.0.5
+#
+# Stage 25: dispatch an ordered issue subset.
+# Usage:
+#   ./shepherd-task-25-given-list.sh <TASK_ISSUES> <CAMPAIGN_METADATA_DIRECTORY>
+
+set -euo pipefail
+
+usage() {
+    echo "Usage: $0 <TASK_ISSUES> <CAMPAIGN_METADATA_DIRECTORY>" >&2
+}
+
+fail_input() {
+    echo "Error: $1" >&2
+    usage
+    exit 1
+}
+
+[[ $# -eq 2 ]] || fail_input "Expected exactly 2 arguments."
+
+TASK_ISSUES="$1"
+CAMPAIGN_METADATA_DIRECTORY="$2"
+TASK_ISSUES_PATTERN='^[1-9][0-9]*(,[1-9][0-9]*)*$'
+[[ "$TASK_ISSUES" =~ $TASK_ISSUES_PATTERN ]] ||
+    fail_input "TASK_ISSUES must be a comma-separated list of positive issue numbers."
+[[ "$CAMPAIGN_METADATA_DIRECTORY" != /* && "$CAMPAIGN_METADATA_DIRECTORY" != */* ]] ||
+    fail_input "CAMPAIGN_METADATA_DIRECTORY must be a repository-root-relative basename."
+[[ "$CAMPAIGN_METADATA_DIRECTORY" =~ ^[1-9][0-9]*-[a-z0-9][a-z0-9-]*-remove-before-merge$ ]] ||
+    fail_input "CAMPAIGN_METADATA_DIRECTORY does not follow the campaign directory naming contract."
+
+for command in git jq copilot; do
+    command -v "$command" >/dev/null 2>&1 || fail_input "Required command '$command' was not found."
+done
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VERSION_INFO="$("$SCRIPT_DIR/read-shepherd-task-version.sh")" ||
+    fail_input "Unable to load the shepherd-task version contract."
+SHEPHERD_TASK_VERSION="$(jq -r '.shepherdTaskVersion' <<<"$VERSION_INFO")"
+STAGE_OUTCOME_PROTOCOL_VERSION="$(jq -r '.stageOutcomeProtocolVersion' <<<"$VERSION_INFO")"
+CAMPAIGN_SCHEMA_VERSION="$(jq -r '.artifactSchemaVersions.campaign' <<<"$VERSION_INFO")"
+RUN_SCHEMA_VERSION="$(jq -r '.artifactSchemaVersions.givenListRun' <<<"$VERSION_INFO")"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" ||
+    fail_input "Run this script inside the campaign Git worktree."
+REPO_ROOT="$(cd "$REPO_ROOT" && pwd -P)"
+CAMPAIGN_METADATA_PATH="$REPO_ROOT/$CAMPAIGN_METADATA_DIRECTORY"
+[[ -d "$CAMPAIGN_METADATA_PATH" ]] || fail_input "Campaign metadata directory not found."
+CAMPAIGN_METADATA_PATH="$(cd "$CAMPAIGN_METADATA_PATH" && pwd -P)"
+[[ "$(dirname "$CAMPAIGN_METADATA_PATH")" == "$REPO_ROOT" ]] ||
+    fail_input "Campaign metadata directory must be a direct child of the repository root."
+
+MANIFEST_PATH="$CAMPAIGN_METADATA_PATH/shepherd-campaign.json"
+[[ -f "$MANIFEST_PATH" ]] || fail_input "Campaign manifest not found: $MANIFEST_PATH"
+jq -e \
+  --argjson campaignSchemaVersion "$CAMPAIGN_SCHEMA_VERSION" \
+  '
+  .schemaVersion == $campaignSchemaVersion and
+  (.campaignId | type == "string" and test("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")) and
+  (.campaignIssueNumber | type == "number" and . > 0) and
+  (.repository | type == "string" and test("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")) and
+  (.baseBranch | type == "string" and . != "main") and
+  (.lessonPropagation == "off" or .lessonPropagation == "campaign")
+' "$MANIFEST_PATH" >/dev/null || fail_input "Campaign manifest is invalid."
+
+CAMPAIGN_ID="$(jq -r '.campaignId' "$MANIFEST_PATH")"
+CAMPAIGN_CREATED_WITH_VERSION="$(jq -r '.createdBy.shepherdTaskVersion // ""' "$MANIFEST_PATH")"
+REPO="$(jq -r '.repository' "$MANIFEST_PATH")"
+BASE_BRANCH="$(jq -r '.baseBranch' "$MANIFEST_PATH")"
+LESSON_PROPAGATION="$(jq -r '.lessonPropagation' "$MANIFEST_PATH")"
+MANIFEST_DIRECTORY="$(jq -r '.campaignMetadataDirectory' "$MANIFEST_PATH")"
+[[ "$MANIFEST_DIRECTORY" == "$CAMPAIGN_METADATA_DIRECTORY" ]] ||
+    fail_input "Manifest campaignMetadataDirectory does not match the supplied directory."
+[[ -f "$CAMPAIGN_METADATA_PATH/campaign-lessons.md" ]] ||
+    fail_input "Campaign lessons file not found."
+
+timestamp="$(date +%Y%m%d-%H%M)"
+LOG_DIR_FULL="$CAMPAIGN_METADATA_PATH/shepherd-tasks-$CAMPAIGN_ID-$timestamp"
+[[ ! -e "$LOG_DIR_FULL" ]] || fail_input "Given-list run directory already exists: $LOG_DIR_FULL"
+mkdir "$LOG_DIR_FULL"
+RUN_MANIFEST="$LOG_DIR_FULL/shepherd-task-25-given-list-run.json"
+started_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+jq -n \
+    --argjson schemaVersion "$RUN_SCHEMA_VERSION" \
+    --arg shepherdTaskVersion "$SHEPHERD_TASK_VERSION" \
+    --arg campaignCreatedWithVersion "$CAMPAIGN_CREATED_WITH_VERSION" \
+    --argjson stageOutcomeProtocolVersion "$STAGE_OUTCOME_PROTOCOL_VERSION" \
+    --arg campaignId "$CAMPAIGN_ID" \
+    --arg campaignMetadataDirectory "$CAMPAIGN_METADATA_DIRECTORY" \
+    --arg repository "$REPO" \
+    --arg baseBranch "$BASE_BRANCH" \
+    --arg lessonPropagation "$LESSON_PROPAGATION" \
+    --arg taskIssues "$TASK_ISSUES" \
+    --arg startedAt "$started_at" \
+    '{
+      schemaVersion: $schemaVersion,
+      shepherdTaskVersion: $shepherdTaskVersion,
+      campaignCreatedWithVersion: (
+        if $campaignCreatedWithVersion == "" then null else $campaignCreatedWithVersion end
+      ),
+      stageOutcomeProtocolVersion: $stageOutcomeProtocolVersion,
+      campaignId: $campaignId,
+      campaignMetadataDirectory: $campaignMetadataDirectory,
+      repository: $repository,
+      baseBranch: $baseBranch,
+      lessonPropagation: $lessonPropagation,
+      taskIssues: ($taskIssues | split(",") | map(tonumber)),
+      startedAt: $startedAt,
+      completedAt: null,
+      exitCode: null,
+      status: "running"
+    }' >"$RUN_MANIFEST"
+
+echo "Campaign ID: $CAMPAIGN_ID"
+echo "Lesson propagation: $LESSON_PROPAGATION"
+echo "Shepherd-task version: $SHEPHERD_TASK_VERSION"
+echo "Logging shepherd-task-25-given-list run to: $LOG_DIR_FULL"
+
+run_copilot_redacted() {
+    local output_file="$1"
+    shift
+    set +e
+    copilot "$@" | "$SCRIPT_DIR/redact-secrets.sh" - >"$output_file"
+    local statuses=("${PIPESTATUS[@]}")
+    set -e
+    [[ ${statuses[0]} -eq 0 && ${statuses[1]} -eq 0 ]]
+}
+
+POST_MORTEM_INVOKED=0
+finalize_run() {
+    local original_exit="$1"
+    local final_exit="$original_exit"
+    trap - EXIT
+
+    local completed_at status temp_manifest
+    completed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+    status="failed"
+    [[ $original_exit -eq 0 ]] && status="succeeded"
+    temp_manifest="$RUN_MANIFEST.tmp"
+    if ! jq --arg completedAt "$completed_at" --arg status "$status" --argjson exitCode "$original_exit" \
+        '.completedAt=$completedAt | .status=$status | .exitCode=$exitCode' \
+        "$RUN_MANIFEST" >"$temp_manifest" ||
+        ! mv "$temp_manifest" "$RUN_MANIFEST"; then
+        echo "[shepherd-task] FAILED: could not finalize run manifest." >&2
+        [[ $final_exit -ne 0 ]] || final_exit=1
+    fi
+
+    if [[ "$POST_MORTEM_INVOKED" == "0" ]]; then
+        POST_MORTEM_INVOKED=1
+        local pm_timestamp post_mortem_path share_path jsonl_path prompt
+        pm_timestamp="$(date +%Y%m%d-%H%M)"
+        post_mortem_path="$LOG_DIR_FULL/${pm_timestamp}-post-mortem.md"
+        share_path="$LOG_DIR_FULL/post-mortem-session-${pm_timestamp}.md"
+        jsonl_path="$LOG_DIR_FULL/post-mortem-session-${pm_timestamp}.jsonl"
+        prompt="Invoke skill \`shepherd-task-50-create-post-mortem\` with these inputs:
+
+- SHEPHERD_LOG_DIR: $LOG_DIR_FULL
+- SCRIPT_EXIT_CODE: $final_exit
+- TASK_ISSUES: $TASK_ISSUES
+- BASE_BRANCH: $BASE_BRANCH
+- REPO: $REPO
+- CAMPAIGN_ID: $CAMPAIGN_ID
+- CAMPAIGN_METADATA_DIRECTORY: $CAMPAIGN_METADATA_DIRECTORY
+- LESSON_PROPAGATION: $LESSON_PROPAGATION
+
+Write the report to:
+- OUTPUT_FILE: $post_mortem_path"
+        echo "[shepherd-task] Stage 50: Generating campaign post-mortem..."
+        echo "[shepherd-task] Stage 50 report:  $post_mortem_path"
+        echo "[shepherd-task] Stage 50 session: $share_path"
+        echo "[shepherd-task] Stage 50 events:  $jsonl_path"
+        echo "[shepherd-task] Stage 50 prompt: $prompt"
+        local pm_exit
+        if run_copilot_redacted "$jsonl_path" --yolo --output-format json --share "$share_path" <<<"$prompt"; then
+            pm_exit=0
+        else
+            pm_exit=$?
+        fi
+        set +e
+        "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR_FULL" >/dev/null 2>&1
+        set -e
+        if [[ $pm_exit -ne 0 ]]; then
+            echo "[shepherd-task] WARNING: post-mortem generation failed." >&2
+        elif [[ -f "$post_mortem_path" ]]; then
+            echo "[shepherd-task] Stage 50 COMPLETE: Post-mortem created: $post_mortem_path"
+        else
+            echo "[shepherd-task] WARNING: Stage 50 completed, but the expected post-mortem was not created: $post_mortem_path" >&2
+        fi
+    fi
+    exit "$final_exit"
+}
+trap 'finalize_run $?' EXIT
+
+IFS=',' read -ra ISSUES <<<"$TASK_ISSUES"
+for issue in "${ISSUES[@]}"; do
+    echo "=== Shepherding task issue #$issue ==="
+    "$SCRIPT_DIR/shepherd-task.sh" "$issue" "$CAMPAIGN_METADATA_DIRECTORY" "$LOG_DIR_FULL"
+done
+
+echo "=== All tasks shepherded successfully ==="

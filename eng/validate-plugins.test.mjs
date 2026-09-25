@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { isReusableExtensionRegistered, validateCompositionNamespace, validateMcpConfig } from "./validate-plugins.mjs";
+import { inspectPluginFiles } from "./lib/plugin-files.mjs";
 
 const MCP_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json";
 
@@ -39,6 +40,150 @@ test("accepts a spec-compliant mcp.json at the plugin root", () => {
 
 test("accepts a plugin with no mcp.json", () => {
   assert.deepEqual(validateMcpConfig(makePluginDir({})), []);
+});
+
+test("accepts plugin-relative files and directories declared by pluginFiles", () => {
+  const dir = makePluginDir({
+    "version.sh": "#!/usr/bin/env bash\n",
+  });
+  fs.mkdirSync(path.join(dir, "scripts"));
+  fs.writeFileSync(path.join(dir, "scripts", "run.sh"), "#!/usr/bin/env bash\n");
+  const plugin = {
+    extensions: {
+      "com.github.awesome-copilot": {
+        pluginFiles: ["./scripts/", "./version.sh"],
+      },
+    },
+  };
+
+  const result = inspectPluginFiles(plugin, dir);
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.entries.map((entry) => entry.reference), ["./scripts/", "./version.sh"]);
+});
+
+test("rejects invalid pluginFiles references", () => {
+  const dir = makePluginDir({
+    "version.sh": "#!/usr/bin/env bash\n",
+  });
+  fs.mkdirSync(path.join(dir, "scripts"));
+  const plugin = {
+    extensions: {
+      "com.github.awesome-copilot": {
+        pluginFiles: [
+          "./version.sh",
+          "./scripts",
+          "./missing.sh",
+          "./../outside.sh",
+          ".\\windows.ps1",
+        ],
+      },
+    },
+  };
+
+  assert.deepEqual(inspectPluginFiles(plugin, dir).errors, [
+    'extensions["com.github.awesome-copilot"].pluginFiles must be sorted alphabetically',
+    'extensions["com.github.awesome-copilot"].pluginFiles[1] references a directory and must end with "/"',
+    'extensions["com.github.awesome-copilot"].pluginFiles[2] source not found: ./missing.sh',
+    'extensions["com.github.awesome-copilot"].pluginFiles[3] must be a normalized path within the plugin root',
+    'extensions["com.github.awesome-copilot"].pluginFiles[4] must start with "./"',
+  ]);
+});
+
+test("rejects pluginFiles symlinks that escape the plugin root", (t) => {
+  const dir = makePluginDir({});
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "plugin-files-outside-"));
+  const outsideFile = path.join(outside, "tool.sh");
+  fs.writeFileSync(outsideFile, "#!/usr/bin/env bash\n");
+  try {
+    fs.symlinkSync(outsideFile, path.join(dir, "tool.sh"), "file");
+  } catch {
+    t.skip("symlink creation is not available");
+    return;
+  }
+
+  const plugin = {
+    extensions: {
+      "com.github.awesome-copilot": {
+        pluginFiles: ["./tool.sh"],
+      },
+    },
+  };
+  assert.deepEqual(inspectPluginFiles(plugin, dir).errors, [
+    'extensions["com.github.awesome-copilot"].pluginFiles[0] must not resolve outside the plugin root',
+  ]);
+});
+
+test("rejects nested pluginFiles symlinks that escape the plugin root", (t) => {
+  const dir = makePluginDir({});
+  const scriptsDir = path.join(dir, "scripts");
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "plugin-files-outside-"));
+  fs.mkdirSync(scriptsDir);
+  fs.writeFileSync(path.join(outside, "tool.sh"), "#!/usr/bin/env bash\n");
+  try {
+    fs.symlinkSync(path.join(outside, "tool.sh"), path.join(scriptsDir, "external-tool.sh"), "file");
+    fs.symlinkSync(outside, path.join(scriptsDir, "external-tools"), "junction");
+  } catch {
+    t.skip("symlink creation is not available");
+    return;
+  }
+
+  const plugin = {
+    extensions: {
+      "com.github.awesome-copilot": {
+        pluginFiles: ["./scripts/"],
+      },
+    },
+  };
+  assert.deepEqual(inspectPluginFiles(plugin, dir).errors, [
+    'extensions["com.github.awesome-copilot"].pluginFiles[0] contains a symbolic link that resolves outside the plugin root: scripts/external-tool.sh',
+    'extensions["com.github.awesome-copilot"].pluginFiles[0] contains a symbolic link that resolves outside the plugin root: scripts/external-tools',
+  ]);
+});
+
+test("rejects nested dangling pluginFiles symlinks", (t) => {
+  const dir = makePluginDir({});
+  const scriptsDir = path.join(dir, "scripts");
+  fs.mkdirSync(scriptsDir);
+  try {
+    fs.symlinkSync(path.join(scriptsDir, "missing.sh"), path.join(scriptsDir, "dangling.sh"), "file");
+  } catch {
+    t.skip("symlink creation is not available");
+    return;
+  }
+
+  const plugin = {
+    extensions: {
+      "com.github.awesome-copilot": {
+        pluginFiles: ["./scripts/"],
+      },
+    },
+  };
+  assert.deepEqual(inspectPluginFiles(plugin, dir).errors, [
+    'extensions["com.github.awesome-copilot"].pluginFiles[0] contains a dangling symbolic link: scripts/dangling.sh',
+  ]);
+});
+
+test("accepts nested pluginFiles symlinks that stay within the plugin root", (t) => {
+  const dir = makePluginDir({
+    "shared.sh": "#!/usr/bin/env bash\n",
+  });
+  const scriptsDir = path.join(dir, "scripts");
+  fs.mkdirSync(scriptsDir);
+  try {
+    fs.symlinkSync(path.join(dir, "shared.sh"), path.join(scriptsDir, "shared.sh"), "file");
+  } catch {
+    t.skip("symlink creation is not available");
+    return;
+  }
+
+  const plugin = {
+    extensions: {
+      "com.github.awesome-copilot": {
+        pluginFiles: ["./scripts/"],
+      },
+    },
+  };
+  assert.deepEqual(inspectPluginFiles(plugin, dir).errors, []);
 });
 
 test("rejects an mcp.json symlink outside the plugin root", (t) => {
@@ -409,6 +554,13 @@ test("rejects mcpServers declared under extensions in plugin.json", () => {
   assert.deepEqual(
     validateCompositionNamespace({ extensions: { mcpServers: { demo: {} } } }),
     ["extensions.mcpServers is not supported; declare MCP servers in mcp.json at the plugin root"]
+  );
+});
+
+test("rejects pluginFiles outside the awesome-copilot composition namespace", () => {
+  assert.deepEqual(
+    validateCompositionNamespace({ extensions: { pluginFiles: ["./scripts/"] } }),
+    ['extensions.pluginFiles must be moved to extensions["com.github.awesome-copilot"].pluginFiles']
   );
 });
 

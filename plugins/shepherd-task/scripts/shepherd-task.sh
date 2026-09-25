@@ -1,0 +1,366 @@
+#!/usr/bin/env bash
+# shepherd-task-version: 1.0.5
+#
+# shepherd-task.sh — Shepherds a child Task issue end-to-end:
+# from Copilot assignment through merge.
+#
+# Orchestrates two phases by launching separate `copilot --yolo` sessions.
+# Between phases, requires a successful shepherd terminal marker and verifies
+# state independently using gh CLI. A zero Copilot exit is not semantic success.
+#
+# Usage: ./shepherd-task.sh <TASK_ISSUE> <CAMPAIGN_METADATA_DIRECTORY> <RUN_DIRECTORY>
+
+set -euo pipefail
+
+TASK_ISSUE="${1:?Usage: $0 <TASK_ISSUE> <CAMPAIGN_METADATA_DIRECTORY> <RUN_DIRECTORY>}"
+CAMPAIGN_METADATA_DIRECTORY="${2:?Usage: $0 <TASK_ISSUE> <CAMPAIGN_METADATA_DIRECTORY> <RUN_DIRECTORY>}"
+LOG_DIR="${3:?Usage: $0 <TASK_ISSUE> <CAMPAIGN_METADATA_DIRECTORY> <RUN_DIRECTORY>}"
+[[ "$TASK_ISSUE" =~ ^[1-9][0-9]*$ ]] || { echo "TASK_ISSUE must be a positive issue number." >&2; exit 1; }
+[[ "$CAMPAIGN_METADATA_DIRECTORY" =~ ^[1-9][0-9]*-[a-z0-9][a-z0-9-]*-remove-before-merge$ ]] ||
+    { echo "Invalid campaign metadata directory name." >&2; exit 1; }
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SESSION_OUTCOME_ASSERTION="$SCRIPT_DIR/assert-shepherd-session-outcome.sh"
+[[ -x "$SESSION_OUTCOME_ASSERTION" ]] ||
+    { echo "Session outcome assertion script not found or not executable: $SESSION_OUTCOME_ASSERTION" >&2; exit 1; }
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+CAMPAIGN_PATH="$REPO_ROOT/$CAMPAIGN_METADATA_DIRECTORY"
+MANIFEST_PATH="$CAMPAIGN_PATH/shepherd-campaign.json"
+[[ -f "$MANIFEST_PATH" && -d "$LOG_DIR" ]] || { echo "Invalid campaign or run directory." >&2; exit 1; }
+CAMPAIGN_ID="$(jq -r '.campaignId' "$MANIFEST_PATH")"
+BASE_BRANCH="$(jq -r '.baseBranch' "$MANIFEST_PATH")"
+REPO="$(jq -r '.repository' "$MANIFEST_PATH")"
+LESSON_PROPAGATION="$(jq -r '.lessonPropagation' "$MANIFEST_PATH")"
+REMOTE="$("$SCRIPT_DIR/resolve-repository-remote.sh" "$REPO")"
+[[ "$(jq -r '.campaignMetadataDirectory' "$MANIFEST_PATH")" == "$CAMPAIGN_METADATA_DIRECTORY" ]] ||
+    { echo "Manifest directory does not match supplied directory." >&2; exit 1; }
+[[ "$LESSON_PROPAGATION" == "off" || "$LESSON_PROPAGATION" == "campaign" ]] ||
+    { echo "Invalid campaign lesson propagation mode." >&2; exit 1; }
+[[ -f "$CAMPAIGN_PATH/campaign-lessons.md" ]] || { echo "Campaign lessons file not found." >&2; exit 1; }
+EXPECTED_RUN_PARENT="$(cd "$CAMPAIGN_PATH" && pwd -P)"
+ACTUAL_RUN_PARENT="$(cd "$(dirname "$LOG_DIR")" && pwd -P)"
+[[ "$ACTUAL_RUN_PARENT" == "$EXPECTED_RUN_PARENT" ]] || { echo "Run directory is not inside the campaign metadata directory." >&2; exit 1; }
+
+# --- Helpers ---
+
+status()  { echo "[shepherd-task] $*"; }
+fail()    { echo "[shepherd-task] FAILED: $*"; exit 1; }
+ok()      { echo "[shepherd-task] $*"; }
+
+run_copilot_redacted() {
+    local output_file="$1"
+    shift
+    local copilot_exit redact_exit
+
+    set +e
+    copilot "$@" | "$SCRIPT_DIR/redact-secrets.sh" - >"$output_file"
+    local pipeline_status=("${PIPESTATUS[@]}")
+    copilot_exit=${pipeline_status[0]}
+    redact_exit=${pipeline_status[1]}
+    set -e
+    if [[ $copilot_exit -ne 0 ]]; then
+        return "$copilot_exit"
+    fi
+    return "$redact_exit"
+}
+
+run_copilot_phase_redacted() {
+    local output_file="$1"
+    local otel_file="$2"
+    shift 2
+    local phase_exit log_redact_exit
+
+    export COPILOT_OTEL_FILE_EXPORTER_PATH="$otel_file"
+    if run_copilot_redacted "$output_file" "$@"; then
+        phase_exit=0
+    else
+        phase_exit=$?
+    fi
+    if "$SCRIPT_DIR/redact-secrets.sh" "$LOG_DIR" >/dev/null; then
+        log_redact_exit=0
+    else
+        log_redact_exit=$?
+    fi
+    unset COPILOT_OTEL_FILE_EXPORTER_PATH
+
+    if [[ $phase_exit -ne 0 ]]; then
+        return "$phase_exit"
+    fi
+    return "$log_redact_exit"
+}
+
+# Find the PR linked to the task issue using three strategies.
+find_linked_pr() {
+    local desired_state="${1:-OPEN}"
+    local list_state
+    list_state="$(printf '%s' "$desired_state" | tr '[:upper:]' '[:lower:]')"
+    local candidate=""
+    local candidate_info=""
+    local candidate_numbers=""
+    local matching_numbers=""
+    local pr_candidates=""
+
+    # Strategy A: Issue timeline for cross-referenced PRs in this repository.
+    pr_candidates=$(gh api "/repos/$REPO/issues/$TASK_ISSUE/timeline" \
+        --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url' 2>/dev/null) ||
+        { echo "Unable to query the issue timeline for issue #$TASK_ISSUE." >&2; return 2; }
+    local pull_request_api_prefix="https://api.github.com/repos/$REPO/pulls/"
+    while IFS= read -r candidate_url; do
+        [[ "$candidate_url" == "$pull_request_api_prefix"* ]] || continue
+        candidate="${candidate_url#"$pull_request_api_prefix"}"
+        [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+        case $'\n'"$candidate_numbers"$'\n' in
+            *$'\n'"$candidate"$'\n'*) ;;
+            *) candidate_numbers="${candidate_numbers}${candidate_numbers:+$'\n'}$candidate" ;;
+        esac
+    done <<<"$pr_candidates"
+
+    if [[ "$desired_state" != "MERGED" ]]; then
+        # Strategy B: Search PR bodies for an exact issue-number reference.
+        pr_candidates=$(gh pr list -R "$REPO" --state "$list_state" --json number,body \
+            --jq ".[] | select((.body // \"\") | test(\"(^|[^0-9])#$TASK_ISSUE([^0-9]|$)\")) | .number" 2>/dev/null) ||
+            { echo "Unable to search PR bodies for issue #$TASK_ISSUE." >&2; return 2; }
+        while IFS= read -r candidate; do
+            [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+            case $'\n'"$candidate_numbers"$'\n' in
+                *$'\n'"$candidate"$'\n'*) ;;
+                *) candidate_numbers="${candidate_numbers}${candidate_numbers:+$'\n'}$candidate" ;;
+            esac
+        done <<<"$pr_candidates"
+
+        # Strategy C: Search titles and branch names for the exact task number.
+        pr_candidates=$(gh pr list -R "$REPO" --state "$list_state" --json number,title,headRefName \
+            --jq ".[] | select(((.title // \"\") | test(\"(^|[^0-9])$TASK_ISSUE([^0-9]|$)\"; \"i\")) or ((.headRefName // \"\") | test(\"(^|[^0-9])$TASK_ISSUE([^0-9]|$)\"))) | .number" 2>/dev/null) ||
+            { echo "Unable to search PR titles and branches for issue #$TASK_ISSUE." >&2; return 2; }
+        while IFS= read -r candidate; do
+            [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+            case $'\n'"$candidate_numbers"$'\n' in
+                *$'\n'"$candidate"$'\n'*) ;;
+                *) candidate_numbers="${candidate_numbers}${candidate_numbers:+$'\n'}$candidate" ;;
+            esac
+        done <<<"$pr_candidates"
+    fi
+
+    while IFS= read -r candidate; do
+        [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
+        candidate_info=$(gh pr view "$candidate" -R "$REPO" \
+            --json state,closingIssuesReferences 2>/dev/null) || continue
+        if jq -e --arg state "$desired_state" --argjson issue "$TASK_ISSUE" '
+            .state == $state and
+            any(.closingIssuesReferences[]?; .number == $issue)
+        ' <<<"$candidate_info" >/dev/null; then
+            matching_numbers="${matching_numbers}${matching_numbers:+$'\n'}$candidate"
+        fi
+    done <<<"$candidate_numbers"
+
+    local match_count=0
+    while IFS= read -r candidate; do
+        [[ -n "$candidate" ]] && match_count=$((match_count + 1))
+    done <<<"$matching_numbers"
+    if [[ $match_count -gt 1 ]]; then
+        echo "Multiple $desired_state PRs close task issue #$TASK_ISSUE: $(tr '\n' ' ' <<<"$matching_numbers")" >&2
+        return 2
+    fi
+    if [[ $match_count -eq 1 ]]; then
+        echo "$matching_numbers"
+        return 0
+    fi
+
+    return 1
+}
+
+# Verify all CI checks pass (excluding expected failure).
+ci_passing() {
+    local pr_number="$1"
+    local failures
+    failures=$(gh pr checks "$pr_number" -R "$REPO" --json name,state,bucket \
+        --jq '.[] | select(.bucket == "fail") | select(.name != "No remove-before-merge directories") | .name' 2>/dev/null) ||
+        return 1
+
+    [[ -z "$failures" ]]
+}
+
+# Check for unresolved bot review comments.
+no_unresolved_reviews() {
+    local pr_number="$1"
+    local repo_owner="${REPO%%/*}"
+    local repo_name="${REPO##*/}"
+    local review_state
+    review_state=$(gh api graphql --paginate --slurp \
+        -F owner="$repo_owner" -F name="$repo_name" -F number="$pr_number" -f query='
+    query($owner: String!, $name: String!, $number: Int!, $endCursor: String) {
+      repository(owner: $owner, name: $name) {
+        pullRequest(number: $number) {
+          reviewDecision
+          reviewThreads(first: 100, after: $endCursor) {
+            nodes { isResolved }
+            pageInfo { hasNextPage endCursor }
+          }
+        }
+      }
+    }' 2>/dev/null) || return 1
+
+    local thread_count review_decision
+    thread_count="$(jq '[.[].data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false)] | length' <<<"$review_state")" ||
+        return 1
+    review_decision="$(jq -r '[.[].data.repository.pullRequest.reviewDecision // empty] | last // empty' <<<"$review_state")" ||
+        return 1
+    [[ "$thread_count" =~ ^[0-9]+$ &&
+       "$thread_count" -eq 0 &&
+       "$review_decision" != "CHANGES_REQUESTED" ]]
+}
+
+# =============================================================================
+# PHASE 1: Assignment to Ready for Review
+# =============================================================================
+
+ISSUE_STATE=$(gh issue view "$TASK_ISSUE" -R "$REPO" --json state --jq '.state')
+if [[ "$ISSUE_STATE" == "CLOSED" ]]; then
+    MERGED_PR_NUMBER=$(find_linked_pr MERGED) ||
+        fail "Task issue #$TASK_ISSUE is closed, but no linked merged PR was found."
+    MERGED_BASE=$(gh pr view "$MERGED_PR_NUMBER" -R "$REPO" \
+        --json baseRefName --jq '.baseRefName')
+    [[ "$MERGED_BASE" == "$BASE_BRANCH" ]] ||
+        fail "Linked PR #$MERGED_PR_NUMBER was merged into '$MERGED_BASE', expected '$BASE_BRANCH'."
+    ok "SHEPHERD TASK COMPLETE: Task #$TASK_ISSUE was already completed by PR #$MERGED_PR_NUMBER."
+    exit 0
+fi
+[[ "$ISSUE_STATE" == "OPEN" ]] ||
+    fail "Task issue #$TASK_ISSUE has unsupported state '$ISSUE_STATE'."
+
+set +e
+PR_NUMBER=$(find_linked_pr OPEN)
+FIND_PR_STATUS=$?
+set -e
+[[ $FIND_PR_STATUS -ne 2 ]] ||
+    fail "Unable to determine a unique open PR for task issue #$TASK_ISSUE."
+if [[ -n "$PR_NUMBER" ]]; then
+    status "PR #$PR_NUMBER already exists for issue #$TASK_ISSUE — resuming Phase 1."
+fi
+status "Phase 1: Launching copilot --yolo for task #$TASK_ISSUE"
+
+PHASE1_PROMPT="Invoke skill \`shepherd-task-30-from-assignment-to-ready\` with these inputs:
+
+- TASK_ISSUE: $TASK_ISSUE
+- BASE_BRANCH: $BASE_BRANCH
+- REPO: $REPO
+- CAMPAIGN_ID: $CAMPAIGN_ID
+- CAMPAIGN_METADATA_DIRECTORY: $CAMPAIGN_METADATA_DIRECTORY
+- LESSON_PROPAGATION: $LESSON_PROPAGATION"
+
+status "Phase 1 prompt:"
+echo "$PHASE1_PROMPT"
+PHASE1_TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+PHASE1_SHARE="$LOG_DIR/phase1-task-$PHASE1_TIMESTAMP-$TASK_ISSUE.md"
+PHASE1_JSONL="$LOG_DIR/phase1-task-$PHASE1_TIMESTAMP-$TASK_ISSUE.jsonl"
+PHASE1_OTEL="$(cd "$LOG_DIR" && pwd)/phase1-otel-$PHASE1_TIMESTAMP-$TASK_ISSUE.jsonl"
+if run_copilot_phase_redacted \
+    "$PHASE1_JSONL" "$PHASE1_OTEL" \
+    --yolo --output-format json --share "$PHASE1_SHARE" <<<"$PHASE1_PROMPT"; then
+    PHASE1_EXIT=0
+else
+    PHASE1_EXIT=$?
+fi
+if [[ $PHASE1_EXIT -ne 0 ]]; then
+    echo "[shepherd-task] FAILED: Phase 1 copilot session or redaction failed." >&2
+    exit "$PHASE1_EXIT"
+fi
+
+status "Phase 1: copilot exited. Verifying semantic outcome and state..."
+
+set +e
+PR_NUMBER=$(find_linked_pr OPEN)
+FIND_PR_STATUS=$?
+set -e
+[[ $FIND_PR_STATUS -ne 2 ]] ||
+    fail "Unable to determine a unique open PR for task issue #$TASK_ISSUE."
+"$SESSION_OUTCOME_ASSERTION" "$PHASE1_SHARE" 30 "$TASK_ISSUE" "$PR_NUMBER" >/dev/null ||
+    fail "Phase 1 reported semantic failure."
+status "Found PR #$PR_NUMBER"
+
+# Verify state and base branch
+PHASE1_STATE=$(gh pr view "$PR_NUMBER" -R "$REPO" --json state,isDraft,baseRefName,reviewDecision)
+ACTUAL_BASE=$(jq -r '.baseRefName' <<<"$PHASE1_STATE")
+if [[ "$ACTUAL_BASE" != "$BASE_BRANCH" ]]; then
+    status "PR base is '$ACTUAL_BASE', fixing to '$BASE_BRANCH'..."
+    gh pr edit "$PR_NUMBER" -R "$REPO" --base "$BASE_BRANCH"
+fi
+[[ "$(jq -r '.state' <<<"$PHASE1_STATE")" == "OPEN" &&
+   "$(jq -r '.isDraft' <<<"$PHASE1_STATE")" == "true" &&
+   "$(jq -r '.reviewDecision // empty' <<<"$PHASE1_STATE")" != "CHANGES_REQUESTED" ]] ||
+    fail "PR #$PR_NUMBER is not open, draft, and free of requested changes after Phase 1."
+
+# Verify CI passing
+ci_passing "$PR_NUMBER" || fail "CI checks not passing on PR #$PR_NUMBER after Phase 1."
+
+# Verify no unresolved reviews
+no_unresolved_reviews "$PR_NUMBER" || fail "Unresolved review comments remain on PR #$PR_NUMBER after Phase 1."
+
+ok "Phase 1 VERIFIED: PR #$PR_NUMBER is ready. CI passing, no unresolved comments."
+
+# =============================================================================
+# PHASE 2: Ready for Review to Merged
+# =============================================================================
+
+# Idempotency: skip Phase 2 if PR is already merged
+PR_STATE=$(gh pr view "$PR_NUMBER" -R "$REPO" --json state --jq '.state')
+if [[ "$PR_STATE" == "MERGED" ]]; then
+    ok "PR #$PR_NUMBER already merged — skipping Phase 2."
+else
+    status "Phase 2: Launching copilot --yolo for PR #$PR_NUMBER"
+
+    PHASE2_PROMPT="Invoke skill \`shepherd-task-40-from-ready-to-merged-to-base\` with these inputs:
+
+- TASK_ISSUE: $TASK_ISSUE
+- BASE_BRANCH: $BASE_BRANCH
+- REPO: $REPO
+- REMOTE: $REMOTE
+- CAMPAIGN_ID: $CAMPAIGN_ID
+- CAMPAIGN_METADATA_DIRECTORY: $CAMPAIGN_METADATA_DIRECTORY
+- LESSON_PROPAGATION: $LESSON_PROPAGATION
+- PR_NUMBER: $PR_NUMBER"
+
+    status "Phase 2 prompt:"
+    echo "$PHASE2_PROMPT"
+    PHASE2_TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+    PHASE2_SHARE="$LOG_DIR/phase2-task-$PHASE2_TIMESTAMP-$TASK_ISSUE.md"
+    PHASE2_JSONL="$LOG_DIR/phase2-task-$PHASE2_TIMESTAMP-$TASK_ISSUE.jsonl"
+    PHASE2_OTEL="$(cd "$LOG_DIR" && pwd)/phase2-otel-$PHASE2_TIMESTAMP-$TASK_ISSUE.jsonl"
+    if run_copilot_phase_redacted \
+        "$PHASE2_JSONL" "$PHASE2_OTEL" \
+        --yolo --output-format json --share "$PHASE2_SHARE" <<<"$PHASE2_PROMPT"; then
+        PHASE2_EXIT=0
+    else
+        PHASE2_EXIT=$?
+    fi
+    if [[ $PHASE2_EXIT -ne 0 ]]; then
+        echo "[shepherd-task] FAILED: Phase 2 copilot session or redaction failed." >&2
+        exit "$PHASE2_EXIT"
+    fi
+
+    status "Phase 2: copilot exited. Verifying semantic outcome and state..."
+
+    # --- Verify Phase 2 outcome ---
+    "$SESSION_OUTCOME_ASSERTION" "$PHASE2_SHARE" 40 "$TASK_ISSUE" "$PR_NUMBER" >/dev/null ||
+        fail "Phase 2 reported semantic failure."
+    PR_STATE=$(gh pr view "$PR_NUMBER" -R "$REPO" --json state --jq '.state')
+    if [[ "$PR_STATE" != "MERGED" ]]; then
+        fail "PR #$PR_NUMBER is in state '$PR_STATE', expected MERGED."
+    fi
+fi
+
+# Verify merged into correct branch
+MERGED_BASE=$(gh pr view "$PR_NUMBER" -R "$REPO" --json baseRefName --jq '.baseRefName')
+if [[ "$MERGED_BASE" != "$BASE_BRANCH" ]]; then
+    fail "PR #$PR_NUMBER was merged into '$MERGED_BASE', expected '$BASE_BRANCH'."
+fi
+
+# Verify issue is closed
+ISSUE_STATE=$(gh issue view "$TASK_ISSUE" -R "$REPO" --json state --jq '.state')
+if [[ "$ISSUE_STATE" != "CLOSED" ]]; then
+    status "Issue #$TASK_ISSUE still open, closing..."
+    gh issue close "$TASK_ISSUE" -R "$REPO"
+fi
+
+ok "SHEPHERD TASK COMPLETE: Task #$TASK_ISSUE has been fully shepherded."
+ok "PR #$PR_NUMBER merged to $BASE_BRANCH."
+exit 0

@@ -1,0 +1,156 @@
+# shepherd-task-version: 1.0.5
+<#
+.SYNOPSIS
+    Verifies the Cargo Tracker treatment/control fixture definition.
+#>
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$initializerPath = Join-Path $PSScriptRoot '01-prepare-base-branch.ps1'
+$baselinePath = Join-Path $PSScriptRoot '00-prepare-test-baseline.ps1'
+$driverPath = Join-Path $PSScriptRoot '20260902-run-treatment-control-experiment.ps1'
+
+$initializer = [System.IO.File]::ReadAllText($initializerPath)
+$baseline = [System.IO.File]::ReadAllText($baselinePath)
+$driver = [System.IO.File]::ReadAllText($driverPath)
+
+$planStartMarker = '$plan = @' + "'"
+$planStart = $initializer.IndexOf($planStartMarker, [StringComparison]::Ordinal)
+if ($planStart -lt 0) {
+    throw 'Cargo Tracker plan must use a literal single-quoted PowerShell here-string.'
+}
+$planContentStart = $initializer.IndexOf("`n", $planStart) + 1
+$planWriteMarker = 'Set-Content -LiteralPath (Join-Path $campaignMetadataPath $planFile)'
+$planWriteStart = $initializer.IndexOf(
+    $planWriteMarker,
+    $planContentStart,
+    [StringComparison]::Ordinal
+)
+if ($planWriteStart -lt 0) {
+    throw 'Cargo Tracker plan write operation was not found.'
+}
+$planEnd = $initializer.LastIndexOf(
+    "'@",
+    $planWriteStart,
+    [StringComparison]::Ordinal
+)
+if ($planEnd -lt $planContentStart) {
+    throw 'Cargo Tracker plan here-string terminator was not found.'
+}
+
+$plan = (
+    $initializer.Substring($planContentStart, $planEnd - $planContentStart) `
+        -replace "`r`n|`r", "`n"
+).TrimEnd("`n")
+$planBytes = [System.Text.UTF8Encoding]::new($false).GetBytes($plan)
+$planHash = [Convert]::ToHexString(
+    [System.Security.Cryptography.SHA256]::HashData($planBytes)
+).ToLowerInvariant()
+$expectedPlanHash = '8dba7def4e2c8e9ff3218dcaa77ea85c94a1468106e26f5315baf8008934f229'
+if ($planHash -ne $expectedPlanHash) {
+    throw "Embedded Cargo Tracker plan hash '$planHash' does not match '$expectedPlanHash'."
+}
+
+$implementationHeading = '## Phase 4 — Implementation (five serial issues)'
+$implementationStart = $plan.IndexOf($implementationHeading, [StringComparison]::Ordinal)
+if ($implementationStart -lt 0) {
+    throw "Embedded plan is missing '$implementationHeading'."
+}
+$followingSection = $plan.IndexOf(
+    "`n## ",
+    $implementationStart + $implementationHeading.Length,
+    [StringComparison]::Ordinal
+)
+$implementation = if ($followingSection -lt 0) {
+    $plan.Substring($implementationStart)
+}
+else {
+    $plan.Substring($implementationStart, $followingSection - $implementationStart)
+}
+$taskCount = [regex]::Matches($implementation, '(?m)^###\s+4\.[1-5]\s+—').Count
+if ($taskCount -ne 5) {
+    throw "Embedded Cargo Tracker plan contains $taskCount direct implementation tasks; expected 5."
+}
+
+$expectedBaselineSha = '9b9f311b2a3a2854bdac947593950d9edb6bca7d'
+$expectedSourceBranch = '20260902-2104Z-commit-e7b651f-liberty'
+foreach ($entry in @(
+    [pscustomobject]@{ Name = 'baseline script'; Text = $baseline },
+    [pscustomobject]@{ Name = 'driver'; Text = $driver }
+)) {
+    if (-not $entry.Text.Contains($expectedBaselineSha)) {
+        throw "$($entry.Name) does not enforce baseline '$expectedBaselineSha'."
+    }
+    if (-not $entry.Text.Contains($expectedSourceBranch)) {
+        throw "$($entry.Name) does not enforce source branch '$expectedSourceBranch'."
+    }
+}
+
+foreach ($requiredBaselineText in @(
+    '[string]$SourceBranch',
+    'refs/heads/${SourceBranch}',
+    'merge-base --is-ancestor $ExpectedBaselineSha $fetchedSha'
+)) {
+    if (-not $baseline.Contains($requiredBaselineText)) {
+        throw "Baseline script is missing required source-branch contract text: $requiredBaselineText"
+    }
+}
+foreach ($forbiddenBaselineText in @(
+    'defaultBranchRef',
+    "Fetching '`$defaultBranch'"
+)) {
+    if ($baseline.Contains($forbiddenBaselineText)) {
+        throw "Baseline script still depends on repository default-branch discovery: $forbiddenBaselineText"
+    }
+}
+if (-not $driver.Contains("'-SourceBranch', `$SourceBranch")) {
+    throw 'Driver does not pass the required source branch to baseline preparation.'
+}
+if (-not $driver.Contains("'11-stage15-plan-discovery-contract.ps1'")) {
+    throw 'Driver does not run the Cargo Tracker stage-15 plan-discovery contract.'
+}
+if (-not $driver.Contains("'12-session-outcome-contract.ps1'")) {
+    throw 'Driver does not run the shepherd session-outcome contract.'
+}
+if (-not $driver.Contains("'13-resume-driver-contract.ps1'")) {
+    throw 'Driver does not run the Cargo Tracker recovery-driver contract.'
+}
+
+foreach ($required in @(
+    "`$planFile = 'add-change-arrival-deadline-feature-ignorance-reduction-plan.md'",
+    'expectedTaskCount = 5',
+    'name: Shepherd task Cargo Tracker',
+    './mvnw --batch-mode --no-transfer-progress clean package -Popenliberty'
+)) {
+    if (-not $initializer.Contains($required)) {
+        throw "Cargo Tracker initializer is missing required fixture text: $required"
+    }
+}
+
+$operationalFiles = @(
+    Get-ChildItem -LiteralPath $PSScriptRoot -File |
+        Where-Object {
+            $_.Extension -in @('.ps1', '.sh') -and
+            $_.FullName -ne $PSCommandPath
+        }
+)
+foreach ($file in $operationalFiles) {
+    $text = [System.IO.File]::ReadAllText($file.FullName)
+    if ($text.Contains('simple-math')) {
+        throw "Cargo Tracker operational script depends on simple-math: $($file.FullName)"
+    }
+}
+
+foreach ($forbidden in @(
+    'math-tool.ps1',
+    'math-tool.Tests.ps1',
+    'Get-Fibonacci',
+    'Get-Factorial'
+)) {
+    if ($initializer.Contains($forbidden) -or $baseline.Contains($forbidden)) {
+        throw "Cargo Tracker fixture contains copied math domain content: $forbidden"
+    }
+}
+
+Write-Host 'Cargo Tracker fixture contract tests passed.' -ForegroundColor Green

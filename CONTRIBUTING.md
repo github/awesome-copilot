@@ -157,7 +157,7 @@ Plugins group related agents, hooks, and skills around specific themes or workfl
 
 1. **Create your plugin**: Run `npm run plugin:create` to scaffold a new plugin
 2. **Follow the naming convention**: Use descriptive, lowercase folder names with hyphens (e.g., `python-web-development`)
-3. **Define your content**: List agents, hooks, skills, and reusable extensions under `extensions.com.github.awesome-copilot` in `plugin.json`
+3. **Define your content**: List agents, hooks, skills, reusable extensions, and plugin-local support files under `extensions.com.github.awesome-copilot` in `plugin.json`
 4. **Test your plugin**: Run `npm run plugin:validate` to verify your plugin structure
 
 #### Creating a plugin
@@ -174,7 +174,7 @@ plugins/my-plugin-id/
 └── README.md                   # Plugin documentation
 ```
 
-> **Note:** Plugin content is defined declaratively in plugin.json under `extensions.com.github.awesome-copilot`. Source files live in top-level directories and are materialized into plugins by CI. Skills are emitted under `skills/`; Copilot-specific agents, hooks, and extensions are emitted under `com.github.copilot/`. This repository namespace is removed from the served manifest.
+> **Note:** Plugin content is defined declaratively in plugin.json under `extensions.com.github.awesome-copilot`. Reusable source files live in top-level directories and are materialized into plugins by CI. Skills are emitted under `skills/`; Copilot-specific agents, hooks, and extensions are emitted under `com.github.copilot/`. The `pluginFiles` field references plugin-relative files and directories that remain at their existing paths. This repository namespace is removed from the served manifest.
 
 #### plugin.json example
 
@@ -191,6 +191,7 @@ plugins/my-plugin-id/
   "extensions": {
     "com.github.awesome-copilot": {
       "agents": ["./agents/my-agent.md"],
+      "pluginFiles": ["./scripts/"],
       "skills": ["./skills/my-skill/"]
     }
   }
@@ -199,8 +200,9 @@ plugins/my-plugin-id/
 
 #### Plugin Guidelines
 
-- **Declarative content**: Plugin content is specified under `extensions.com.github.awesome-copilot` — source files live in top-level directories and are materialized into plugins by CI. Skills use the standard `skills/` directory; Copilot-specific content uses `com.github.copilot/`.
+- **Declarative content**: Plugin content is specified under `extensions.com.github.awesome-copilot` — reusable source files live in top-level directories and are materialized into plugins by CI, while `pluginFiles` references plugin-relative support files or directories. Skills use the standard `skills/` directory; Copilot-specific content uses `com.github.copilot/`.
 - **Valid references**: All paths referenced in plugin.json must point to existing source files in the repository
+- **Plugin files**: Use sorted `pluginFiles` entries for plugin-owned support files or directories; paths must start with `./`, directories must end with `/`, and references cannot escape the plugin root
 - **Reusable extensions**: Curated plugins can bundle extensions by adding `./extensions/<name>` paths under `extensions.com.github.awesome-copilot.extensions`; the same extension can be listed by multiple plugins
 - **Instructions excluded**: Instructions are standalone resources and are not part of plugins
 - **Clear purpose**: The plugin should solve a specific problem or workflow

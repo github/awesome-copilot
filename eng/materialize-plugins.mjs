@@ -4,11 +4,13 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
+import { inspectPluginFiles } from "./lib/plugin-files.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const COPILOT_NAMESPACE = "com.github.copilot";
 const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
+const SHEPHERD_TASK_RUNTIME_NAMESPACE = "com.github.awesome-copilot.shepherd-task";
 const COPILOT_CONTENT_DIR = COPILOT_NAMESPACE;
 
 /**
@@ -71,6 +73,29 @@ function readExtensionReferences(metadata, pluginName) {
   return [...names].sort();
 }
 
+export function createServedManifest(metadata) {
+  const specFields = new Set(["$schema", "name", "version", "description", "author",
+    "homepage", "repository", "license", "keywords", "extensions"]);
+  const served = { "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json" };
+  for (const [key, value] of Object.entries(metadata)) {
+    if (!specFields.has(key) || key === "$schema") {
+      continue;
+    }
+    if (key === "extensions") {
+      for (const namespace of [COPILOT_NAMESPACE, SHEPHERD_TASK_RUNTIME_NAMESPACE]) {
+        const extension = value?.[namespace];
+        if (extension) {
+          served.extensions ??= {};
+          served.extensions[namespace] = { ...extension };
+        }
+      }
+    } else {
+      served[key] = value;
+    }
+  }
+  return served;
+}
+
 export function materializePlugins() {
   console.log("Materializing plugin files...\n");
 
@@ -87,6 +112,7 @@ export function materializePlugins() {
   let totalAgents = 0;
   let totalSkills = 0;
   let totalExtensions = 0;
+  let totalPluginFiles = 0;
   let warnings = 0;
   let errors = 0;
 
@@ -110,6 +136,15 @@ export function materializePlugins() {
     const pluginName = metadata.name || dirName;
 
     const composition = metadata.extensions?.[AWESOME_COPILOT_NAMESPACE] ?? {};
+    const pluginFiles = inspectPluginFiles(metadata, pluginPath);
+    if (pluginFiles.errors.length > 0) {
+      for (const error of pluginFiles.errors) {
+        console.error(`  ✗ ${pluginName}: ${error}`);
+      }
+      errors += pluginFiles.errors.length;
+      continue;
+    }
+    totalPluginFiles += pluginFiles.entries.length;
 
     // Process repository composition fields.
     for (const field of ["agents", "hooks", "skills"]) {
@@ -161,39 +196,23 @@ export function materializePlugins() {
 
     // Emit a spec-compliant served manifest for the marketplace branch.
     // Source manifests keep repository composition fields for build tooling.
-    // The served manifest retains only Agent Plugins v1.0.0 fields; standard
-    // skills are discovered from skills/, while Copilot-specific content is
-    // discovered from com.github.copilot/.
-    const SPEC_FIELDS = new Set(["$schema", "name", "version", "description", "author",
-      "homepage", "repository", "license", "keywords", "extensions"]);
-    const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
-
-    const served = { "$schema": AGENT_PLUGINS_SCHEMA };
-    for (const [key, val] of Object.entries(metadata)) {
-      if (SPEC_FIELDS.has(key) && key !== "$schema") {
-        if (key === "extensions") {
-          const copilot = val?.[COPILOT_NAMESPACE];
-          if (copilot) {
-            served.extensions = { [COPILOT_NAMESPACE]: { ...copilot } };
-          }
-        } else {
-          served[key] = val;
-        }
-      }
-    }
-
+    // The served manifest retains only Agent Plugins v1.0.0 fields. Standard
+    // skills are discovered from skills/, Copilot-specific content from
+    // com.github.copilot/, and shepherd-task retains its runtime estate contract.
+    const served = createServedManifest(metadata);
     fs.writeFileSync(pluginJsonPath, JSON.stringify(served, null, 2) + "\n", "utf8");
 
     const counts = [];
     if (composition.agents?.length) counts.push(`${composition.agents.length} agents`);
     if (composition.skills?.length) counts.push(`${composition.skills.length} skills`);
     if (extensionRefs.length) counts.push(`${extensionRefs.length} extensions`);
+    if (pluginFiles.entries.length) counts.push(`${pluginFiles.entries.length} plugin files`);
     if (counts.length) {
       console.log(`✓ ${pluginName}: ${counts.join(", ")}`);
     }
   }
 
-  console.log(`\nDone. Copied ${totalAgents} agents, ${totalSkills} skills, ${totalExtensions} extensions.`);
+  console.log(`\nDone. Copied ${totalAgents} agents, ${totalSkills} skills, ${totalExtensions} extensions; retained ${totalPluginFiles} plugin file entries.`);
   if (warnings > 0) {
     console.log(`${warnings} warning(s).`);
   }
