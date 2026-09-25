@@ -1107,6 +1107,33 @@
     }
   },
   {
+    "name": "postgres-skills",
+    "description": "Expert PostgreSQL guidance and live database tools for Postgres anywhere, including local, self-hosted, containers, on-premises, AWS, Google Cloud, Azure Database for PostgreSQL, and Azure HorizonDB. Covers indexing, vector search and RAG, JSONB, partitioning, security, replication, and knowledge graphs with connection-aware guidance.",
+    "version": "0.1.2",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://github.com/microsoft"
+    },
+    "repository": "https://github.com/microsoft/postgres-skills",
+    "homepage": "https://github.com/microsoft/postgres-skills",
+    "license": "MIT",
+    "keywords": [
+      "postgresql",
+      "database",
+      "azure",
+      "pgvector",
+      "rag",
+      "apache-age",
+      "graph"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/postgres-skills",
+      "path": "plugin",
+      "sha": "3ea7816fd1e449916b9277cc2671bc1c4c34f8c9"
+    }
+  },
+  {
     "name": "radius",
     "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
     "version": "0.1.1",
