@@ -10,6 +10,7 @@ const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const COPILOT_NAMESPACE = "com.github.copilot";
 const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
+const SHEPHERD_TASK_RUNTIME_NAMESPACE = "com.github.awesome-copilot.shepherd-task";
 const COPILOT_CONTENT_DIR = COPILOT_NAMESPACE;
 
 /**
@@ -81,9 +82,12 @@ export function createServedManifest(metadata) {
       continue;
     }
     if (key === "extensions") {
-      const copilot = value?.[COPILOT_NAMESPACE];
-      if (copilot) {
-        served.extensions = { [COPILOT_NAMESPACE]: { ...copilot } };
+      for (const namespace of [COPILOT_NAMESPACE, SHEPHERD_TASK_RUNTIME_NAMESPACE]) {
+        const extension = value?.[namespace];
+        if (extension) {
+          served.extensions ??= {};
+          served.extensions[namespace] = { ...extension };
+        }
       }
     } else {
       served[key] = value;
@@ -192,9 +196,9 @@ export function materializePlugins() {
 
     // Emit a spec-compliant served manifest for the marketplace branch.
     // Source manifests keep repository composition fields for build tooling.
-    // The served manifest retains only Agent Plugins v1.0.0 fields; standard
-    // skills are discovered from skills/, while Copilot-specific content is
-    // discovered from com.github.copilot/.
+    // The served manifest retains only Agent Plugins v1.0.0 fields. Standard
+    // skills are discovered from skills/, Copilot-specific content from
+    // com.github.copilot/, and shepherd-task retains its runtime estate contract.
     const served = createServedManifest(metadata);
     fs.writeFileSync(pluginJsonPath, JSON.stringify(served, null, 2) + "\n", "utf8");
 

@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 <#
 .SYNOPSIS
     Regression coverage for Cargo Tracker stage-15 plan-section discovery.

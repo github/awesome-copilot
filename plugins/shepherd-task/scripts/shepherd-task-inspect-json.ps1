@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 <#
 .SYNOPSIS
     Inspect a Copilot JSONL event log, showing the last N meaningful events.

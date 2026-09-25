@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 
 set -euo pipefail
 
@@ -29,8 +29,11 @@ jq -e \
     --argjson expectedSkills "$expected_skills" \
     --argjson expectedPluginFiles "$expected_plugin_files" \
     '
-      .extensions["com.github.awesome-copilot"].skills == $expectedSkills and
-      .extensions["com.github.awesome-copilot"].pluginFiles == $expectedPluginFiles
+      .extensions["com.github.awesome-copilot"] as $source |
+      .extensions["com.github.awesome-copilot.shepherd-task"] as $runtime |
+      ($source | {pluginFiles, skills}) == $runtime and
+      $runtime.skills == $expectedSkills and
+      $runtime.pluginFiles == $expectedPluginFiles
     ' \
     "$plugin_root/plugin.json" >/dev/null
 
@@ -39,6 +42,37 @@ version="$(jq -b -r '.shepherdTaskVersion' <<<"$version_info")"
 [[ "$version" == "$(jq -b -r '.version' "$plugin_root/plugin.json")" ]]
 [[ "$(jq -b -r '.artifactSchemaVersions.campaign' <<<"$version_info")" == "1" ]]
 [[ "$(jq -b -r '.artifactSchemaVersions.givenListRun' <<<"$version_info")" == "1" ]]
+
+served_plugin="$temp_root/served-plugin"
+mkdir -p "$served_plugin"
+while IFS= read -r plugin_ref; do
+    relative_path="${plugin_ref#./}"
+    relative_path="${relative_path%/}"
+    mkdir -p "$served_plugin/$(dirname "$relative_path")"
+    cp -R "$plugin_root/$relative_path" "$served_plugin/$relative_path"
+done < <(
+    jq -b -r '.extensions["com.github.awesome-copilot.shepherd-task"].pluginFiles[]' \
+        "$plugin_root/plugin.json"
+)
+while IFS= read -r skill_ref; do
+    skill_path="${skill_ref#./}"
+    skill_path="${skill_path%/}"
+    mkdir -p "$served_plugin/$(dirname "$skill_path")"
+    cp -R "$plugin_root/../../$skill_path" "$served_plugin/$skill_path"
+done < <(
+    jq -b -r '.extensions["com.github.awesome-copilot.shepherd-task"].skills[]' \
+        "$plugin_root/plugin.json"
+)
+jq -b 'del(.extensions["com.github.awesome-copilot"])' \
+    "$plugin_root/plugin.json" >"$served_plugin/plugin.json"
+served_version_info="$(bash "$served_plugin/scripts/read-shepherd-task-version.sh")"
+[[ "$(jq -b -r '.shepherdTaskVersion' <<<"$served_version_info")" == "$version" ]]
+bash "$served_plugin/version.sh" >/dev/null
+served_copilot_home="$temp_root/served-copilot-home"
+COPILOT_HOME="$served_copilot_home" \
+    bash "$served_plugin/scripts/install-task-shepherd.sh" >/dev/null
+COPILOT_HOME="$served_copilot_home" \
+    bash "$served_copilot_home/plugins/shepherd-task/scripts/read-shepherd-task-version.sh" >/dev/null
 
 marker="# shepherd-task-version: $version"
 while IFS= read -r plugin_ref; do
@@ -51,10 +85,10 @@ while IFS= read -r plugin_ref; do
         [[ "$(grep -Fxc "$marker" "$plugin_path" || true)" == 1 ]]
     fi
 done < <(
-    jq -b -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
+    jq -b -r '.extensions["com.github.awesome-copilot.shepherd-task"].pluginFiles[]' \
         "$plugin_root/plugin.json"
 )
-for skill_ref in $(jq -b -r '.extensions["com.github.awesome-copilot"].skills[]' "$plugin_root/plugin.json"); do
+for skill_ref in $(jq -b -r '.extensions["com.github.awesome-copilot.shepherd-task"].skills[]' "$plugin_root/plugin.json"); do
     skill_path="${skill_ref#./}"
     [[ "$(grep -Fxc "$marker" "$plugin_root/../../$skill_path/SKILL.md" || true)" == 1 ]]
 done
@@ -142,7 +176,7 @@ jq -e --arg sourceCommit "$expected_source_commit" '
   .sourceCommit == $sourceCommit
 ' "$install_manifest" >/dev/null
 
-for skill_ref in $(jq -b -r '.extensions["com.github.awesome-copilot"].skills[]' "$plugin_root/plugin.json"); do
+for skill_ref in $(jq -b -r '.extensions["com.github.awesome-copilot.shepherd-task"].skills[]' "$plugin_root/plugin.json"); do
     skill="${skill_ref#./skills/}"
     skill="${skill%/}"
     for skill_root in \

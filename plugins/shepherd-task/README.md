@@ -470,11 +470,14 @@ the final observed result.
 ## Version contract
 
 `plugin.json.version` is the single authoritative shepherd-task lineup
-version. The `extensions.com.github.awesome-copilot.pluginFiles` and `skills`
-arrays define the complete shepherd-task estate: plugin-local runtime files,
-installed campaign drivers and contract fixtures under `test/`, plus all six
-skills. Scripts and skills are installed and advanced together; no component
-has an independent release version.
+version. The `extensions.com.github.awesome-copilot.shepherd-task` namespace
+defines the complete runtime estate through its `pluginFiles` and `skills`
+arrays: plugin-local runtime files, installed campaign drivers and contract
+fixtures under `test/`, plus all six skills. The source-only
+`extensions.com.github.awesome-copilot` composition arrays must match this
+runtime estate exactly and are removed during publication. Scripts and skills
+are installed and advanced together; no component has an independent release
+version.
 
 `shepherd-task-version-contract.json` independently versions persisted artifact
 schemas and the machine-consumed stage outcome protocol. Stages 00, 15, and 25

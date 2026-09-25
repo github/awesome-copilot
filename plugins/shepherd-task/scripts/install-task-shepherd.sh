@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 
 set -euo pipefail
 
@@ -38,7 +38,7 @@ while IFS= read -r skill; do
     SKILLS+=("$skill")
 done < <(
     jq -b -e -r '
-      .extensions["com.github.awesome-copilot"].skills[] |
+      .extensions["com.github.awesome-copilot.shepherd-task"].skills[] |
       sub("^./skills/"; "") |
       sub("/$"; "")
     ' "$PLUGIN_SRC/plugin.json"
@@ -157,12 +157,16 @@ fi
 
 mkdir -p "$STAGED_PLUGIN/skills"
 for skill in "${SKILLS[@]}"; do
-    skill_src="$SOURCE_REPO/skills/$skill"
+    skill_src="$PLUGIN_SRC/skills/$skill"
+    if [[ ! -f "$skill_src/SKILL.md" ]]; then
+        skill_src="$SOURCE_REPO/skills/$skill"
+    fi
     [[ -f "$skill_src/SKILL.md" ]] || {
-        echo "ERROR: Required source skill not found: $skill_src/SKILL.md" >&2
+        echo "ERROR: Required shepherd-task skill not found: $skill" >&2
         exit 1
     }
     cp -R "$skill_src" "$STAGED_SKILLS/$skill"
+    rm -rf "$STAGED_PLUGIN/skills/$skill"
     cp -R "$skill_src" "$STAGED_PLUGIN/skills/$skill"
     for staged_skill in "$STAGED_SKILLS/$skill" "$STAGED_PLUGIN/skills/$skill"; do
         jq -b -n \
@@ -183,7 +187,7 @@ while IFS= read -r plugin_ref; do
         exit 1
     }
 done < <(
-    jq -b -e -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
+    jq -b -e -r '.extensions["com.github.awesome-copilot.shepherd-task"].pluginFiles[]' \
         "$STAGED_PLUGIN/plugin.json"
 )
 

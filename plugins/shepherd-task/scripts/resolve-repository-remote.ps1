@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]

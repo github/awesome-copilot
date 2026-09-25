@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 
 set -euo pipefail
 
@@ -21,7 +21,7 @@ copy_installed_plugin() {
         local relative_path="${plugin_ref#./}"
         mkdir -p "$destination/$(dirname "$relative_path")"
         cp -R "$plugin_root/$relative_path" "$destination/$relative_path"
-    done < <(jq -b -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$plugin_root/plugin.json")
+    done < <(jq -b -r '.extensions["com.github.awesome-copilot.shepherd-task"].pluginFiles[]' "$plugin_root/plugin.json")
     chmod +x "$destination/version.sh"
 }
 
@@ -58,7 +58,7 @@ create_source_checkout() {
             "name: $(basename "$skill_path")" \
             "description: Contract fixture for $(basename "$skill_path")." '---' \
             >"$destination/$skill_path/SKILL.md"
-    done < <(jq -b -r '.extensions["com.github.awesome-copilot"].skills[]' "$source_plugin/plugin.json")
+    done < <(jq -b -r '.extensions["com.github.awesome-copilot.shepherd-task"].skills[]' "$source_plugin/plugin.json")
     git -C "$destination" init --quiet
     git -C "$destination" add plugins/shepherd-task skills
 }
@@ -79,13 +79,13 @@ assert_fixture_stamps() {
             [[ "$(grep -Fxc "$marker" "$plugin_path" || true)" == 1 ]]
         fi
     done < <(
-        jq -b -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' \
+        jq -b -r '.extensions["com.github.awesome-copilot.shepherd-task"].pluginFiles[]' \
             "$source_plugin/plugin.json"
     )
     while IFS= read -r skill_ref; do
         skill_path="${skill_ref#./}"
         [[ "$(grep -Fxc "$marker" "$destination/$skill_path/SKILL.md" || true)" == 1 ]]
-    done < <(jq -b -r '.extensions["com.github.awesome-copilot"].skills[]' "$source_plugin/plugin.json")
+    done < <(jq -b -r '.extensions["com.github.awesome-copilot.shepherd-task"].skills[]' "$source_plugin/plugin.json")
 }
 
 copy_installed_plugin "$temp_root/installed"

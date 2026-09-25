@@ -22,6 +22,10 @@ test("served manifests strip pluginFiles composition metadata", () => {
       "com.github.copilot": {
         logo: "assets/logo.png",
       },
+      "com.github.awesome-copilot.shepherd-task": {
+        pluginFiles: ["./scripts/"],
+        skills: ["./skills/demo/"],
+      },
     },
   });
 
@@ -33,6 +37,10 @@ test("served manifests strip pluginFiles composition metadata", () => {
     extensions: {
       "com.github.copilot": {
         logo: "assets/logo.png",
+      },
+      "com.github.awesome-copilot.shepherd-task": {
+        pluginFiles: ["./scripts/"],
+        skills: ["./skills/demo/"],
       },
     },
   });

@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 <#
 .SYNOPSIS
     Installs one coherent shepherd-task plugin and skill lineup.
@@ -69,7 +69,7 @@ $pluginDest = Join-Path $copilotHome 'plugins\shepherd-task'
 $skillsDest = Join-Path $copilotHome 'skills'
 $sourcePluginManifest = Get-Content -LiteralPath (Join-Path $pluginSrc 'plugin.json') -Raw | ConvertFrom-Json
 $skills = @(
-    $sourcePluginManifest.extensions.'com.github.awesome-copilot'.skills |
+    $sourcePluginManifest.extensions.'com.github.awesome-copilot.shepherd-task'.skills |
         ForEach-Object {
             ([string]$_).Substring(('./skills/').Length).TrimEnd('/')
         }
@@ -110,13 +110,17 @@ try {
         throw "Refusing to downgrade shepherd-task from $existingVersion to $version. Re-run with -AllowDowngrade to permit this downgrade."
     }
 
-    New-Item -ItemType Directory -Path (Join-Path $stagedPlugin 'skills') | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $stagedPlugin 'skills') -Force | Out-Null
     foreach ($skill in $skills) {
-        $skillSrc = Join-Path $sourceRepo "skills\$skill"
+        $skillSrc = Join-Path $pluginSrc "skills\$skill"
         if (-not (Test-Path -LiteralPath (Join-Path $skillSrc 'SKILL.md') -PathType Leaf)) {
-            throw "Required source skill not found: $skillSrc\SKILL.md"
+            $skillSrc = Join-Path $sourceRepo "skills\$skill"
+        }
+        if (-not (Test-Path -LiteralPath (Join-Path $skillSrc 'SKILL.md') -PathType Leaf)) {
+            throw "Required shepherd-task skill not found: $skill"
         }
         Copy-Item -LiteralPath $skillSrc -Destination (Join-Path $stagedSkills $skill) -Recurse
+        Remove-Item -LiteralPath (Join-Path $stagedPlugin "skills\$skill") -Recurse -Force -ErrorAction SilentlyContinue
         Copy-Item -LiteralPath $skillSrc -Destination (Join-Path $stagedPlugin "skills\$skill") -Recurse
         foreach ($stagedSkill in @(
             (Join-Path $stagedSkills $skill),
@@ -136,7 +140,7 @@ try {
     }
 
     $stagedPluginManifest = Get-Content -LiteralPath (Join-Path $stagedPlugin 'plugin.json') -Raw | ConvertFrom-Json
-    foreach ($pluginReference in $stagedPluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
+    foreach ($pluginReference in $stagedPluginManifest.extensions.'com.github.awesome-copilot.shepherd-task'.pluginFiles) {
         $relativePath = ([string]$pluginReference).Substring(2).TrimEnd('/')
         if (-not (Test-Path -LiteralPath (Join-Path $stagedPlugin $relativePath))) {
             throw "Declared plugin file was not staged: $pluginReference"

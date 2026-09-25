@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 
 set -euo pipefail
 
@@ -27,8 +27,12 @@ done
 
 jq -e '
   (.version | type == "string" and test("^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"))
+  and
+  (.extensions["com.github.awesome-copilot.shepherd-task"] as $estate |
+    ($estate.pluginFiles | type == "array" and length > 0 and all(.[]; type == "string")) and
+    ($estate.skills | type == "array" and length > 0 and all(.[]; type == "string")))
 ' "$PLUGIN_MANIFEST" >/dev/null || {
-    echo "Error: Shepherd-task plugin version is missing or is not Semantic Versioning." >&2
+    echo "Error: Shepherd-task plugin version or runtime estate is invalid." >&2
     exit 1
 }
 
@@ -49,7 +53,7 @@ INSTALLATION_MANIFEST_SCHEMA_VERSION="$(jq -b -r '.artifactSchemaVersions.instal
 EXPECTED_SKILLS="$(
     jq -b -c '
       [
-        .extensions["com.github.awesome-copilot"].skills[] |
+        .extensions["com.github.awesome-copilot.shepherd-task"].skills[] |
         sub("^./skills/"; "") |
         sub("/$"; "")
       ]

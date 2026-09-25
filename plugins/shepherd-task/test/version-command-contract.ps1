@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -17,7 +17,7 @@ function Copy-InstalledVersionCommand {
 
     New-Item -ItemType Directory -Path $Destination | Out-Null
     Copy-Item -LiteralPath (Join-Path $pluginRoot 'plugin.json') -Destination (Join-Path $Destination 'plugin.json')
-    foreach ($pluginReference in $sourceManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
+    foreach ($pluginReference in $sourceManifest.extensions.'com.github.awesome-copilot.shepherd-task'.pluginFiles) {
         $relativePath = ([string]$pluginReference).Substring(2).TrimEnd('/')
         $sourcePath = Join-Path $pluginRoot $relativePath
         $destinationPath = Join-Path $Destination $relativePath
@@ -54,7 +54,7 @@ function New-SourceCheckout {
                 $utf8NoBom
             )
         }
-    foreach ($skillReference in $plugin.extensions.'com.github.awesome-copilot'.skills) {
+    foreach ($skillReference in $plugin.extensions.'com.github.awesome-copilot.shepherd-task'.skills) {
         $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
         $skillDirectory = Join-Path $Destination $skillPath
         New-Item -ItemType Directory -Path $skillDirectory -Force | Out-Null
@@ -82,7 +82,7 @@ function Assert-FixtureVersionStamps {
     $pluginDirectory = Join-Path $Destination 'plugins\shepherd-task'
     $plugin = Read-Plugin -Directory $pluginDirectory
     $files = [Collections.Generic.List[IO.FileInfo]]::new()
-    foreach ($pluginReference in $plugin.extensions.'com.github.awesome-copilot'.pluginFiles) {
+    foreach ($pluginReference in $plugin.extensions.'com.github.awesome-copilot.shepherd-task'.pluginFiles) {
         $relativePath = ([string]$pluginReference).Substring(2).TrimEnd('/')
         $pluginPath = Join-Path $pluginDirectory $relativePath
         if (Test-Path -LiteralPath $pluginPath -PathType Container) {
@@ -94,7 +94,7 @@ function Assert-FixtureVersionStamps {
             $files.Add((Get-Item -LiteralPath $pluginPath))
         }
     }
-    foreach ($skillReference in $plugin.extensions.'com.github.awesome-copilot'.skills) {
+    foreach ($skillReference in $plugin.extensions.'com.github.awesome-copilot.shepherd-task'.skills) {
         $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
         $files.Add((Get-Item -LiteralPath (Join-Path $Destination "$skillPath\SKILL.md")))
     }

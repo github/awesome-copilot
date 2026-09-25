@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 [CmdletBinding()]
 param()
 
@@ -20,6 +20,7 @@ if (-not (Test-Path -LiteralPath $versionContractPath -PathType Leaf)) {
 $pluginManifest = Get-Content -LiteralPath $pluginManifestPath -Raw | ConvertFrom-Json
 $versionContract = Get-Content -LiteralPath $versionContractPath -Raw | ConvertFrom-Json
 $version = [string]$pluginManifest.version
+$runtimeEstate = $pluginManifest.extensions.'com.github.awesome-copilot.shepherd-task'
 
 function Test-PositiveIntegralJsonNumber {
     param([object]$Value)
@@ -54,6 +55,13 @@ function Test-PositiveIntegralJsonNumber {
 if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$') {
     throw 'Shepherd-task plugin version is missing or is not Semantic Versioning.'
 }
+if ($null -eq $runtimeEstate -or
+    @($runtimeEstate.pluginFiles).Count -eq 0 -or
+    @($runtimeEstate.skills).Count -eq 0 -or
+    @($runtimeEstate.pluginFiles | Where-Object { $_ -isnot [string] }).Count -ne 0 -or
+    @($runtimeEstate.skills | Where-Object { $_ -isnot [string] }).Count -ne 0) {
+    throw 'Shepherd-task runtime estate is invalid.'
+}
 if (-not (Test-PositiveIntegralJsonNumber $versionContract.schemaVersion) -or
     [int]$versionContract.schemaVersion -ne 1) {
     throw "Unsupported shepherd-task version-contract schemaVersion '$($versionContract.schemaVersion)'."
@@ -76,7 +84,7 @@ $requiredContractVersions = @(
 )
 
 $expectedSkills = @(
-    $pluginManifest.extensions.'com.github.awesome-copilot'.skills |
+    $runtimeEstate.skills |
         ForEach-Object {
             ([string]$_).Substring(('./skills/').Length).TrimEnd('/')
         }

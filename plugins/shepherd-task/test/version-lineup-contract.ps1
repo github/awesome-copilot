@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -26,14 +26,23 @@ $expectedPluginFiles = @(
 try {
     New-Item -ItemType Directory -Path $tempRoot | Out-Null
     $pluginManifest = Get-Content -LiteralPath (Join-Path $pluginRoot 'plugin.json') -Raw | ConvertFrom-Json
+    $sourceEstate = $pluginManifest.extensions.'com.github.awesome-copilot'
+    $runtimeEstate = $pluginManifest.extensions.'com.github.awesome-copilot.shepherd-task'
+    foreach ($field in @('pluginFiles', 'skills')) {
+        $sourceValues = @($sourceEstate.$field | ForEach-Object { [string]$_ })
+        $runtimeValues = @($runtimeEstate.$field | ForEach-Object { [string]$_ })
+        if ([string]::Join("`n", $sourceValues) -cne [string]::Join("`n", $runtimeValues)) {
+            throw "The shepherd-task source and runtime estate '$field' declarations do not match."
+        }
+    }
     $declaredSkills = @(
-        $pluginManifest.extensions.'com.github.awesome-copilot'.skills |
+        $runtimeEstate.skills |
         ForEach-Object { ([string]$_ -replace '^\./skills/', '').TrimEnd('/') }
     )
     if ([string]::Join("`n", $declaredSkills) -ne [string]::Join("`n", $expectedSkills)) {
         throw 'Plugin manifest does not declare the complete ordered shepherd-task skill lineup.'
     }
-    $declaredPluginFiles = @($pluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles)
+    $declaredPluginFiles = @($runtimeEstate.pluginFiles)
     if ([string]::Join("`n", $declaredPluginFiles) -ne [string]::Join("`n", $expectedPluginFiles)) {
         throw 'Plugin manifest does not declare the complete shepherd-task plugin-file lineup.'
     }
@@ -43,6 +52,40 @@ try {
     if ($version -ne [string]$pluginManifest.version) {
         throw 'Version reader did not return the authoritative plugin version.'
     }
+
+    $servedPluginRoot = Join-Path $tempRoot 'served-plugin'
+    New-Item -ItemType Directory -Path $servedPluginRoot | Out-Null
+    foreach ($pluginReference in $runtimeEstate.pluginFiles) {
+        $relativePath = ([string]$pluginReference).Substring(2).TrimEnd('/')
+        $sourcePath = Join-Path $pluginRoot $relativePath
+        $destinationPath = Join-Path $servedPluginRoot $relativePath
+        New-Item -ItemType Directory -Path (Split-Path -Parent $destinationPath) -Force | Out-Null
+        Copy-Item -LiteralPath $sourcePath -Destination $destinationPath -Recurse
+    }
+    foreach ($skillReference in $runtimeEstate.skills) {
+        $relativePath = ([string]$skillReference).Substring(2).TrimEnd('/')
+        $sourcePath = Join-Path $pluginRoot "..\..\$relativePath"
+        $destinationPath = Join-Path $servedPluginRoot $relativePath
+        New-Item -ItemType Directory -Path (Split-Path -Parent $destinationPath) -Force | Out-Null
+        Copy-Item -LiteralPath $sourcePath -Destination $destinationPath -Recurse
+    }
+    $servedManifest = $pluginManifest | ConvertTo-Json -Depth 20 | ConvertFrom-Json
+    $servedManifest.extensions.PSObject.Properties.Remove('com.github.awesome-copilot')
+    [IO.File]::WriteAllText(
+        (Join-Path $servedPluginRoot 'plugin.json'),
+        ($servedManifest | ConvertTo-Json -Depth 20) + [Environment]::NewLine,
+        [Text.UTF8Encoding]::new($false)
+    )
+    $servedScripts = Join-Path $servedPluginRoot 'scripts'
+    $servedVersionInfo = & (Join-Path $servedScripts 'read-shepherd-task-version.ps1')
+    if ([string]$servedVersionInfo.ShepherdTaskVersion -ne $version) {
+        throw 'Published-layout version reader did not return the authoritative plugin version.'
+    }
+    & (Join-Path $servedPluginRoot 'version.ps1') | Out-Null
+    $env:COPILOT_HOME = Join-Path $tempRoot 'served-copilot-home'
+    & (Join-Path $servedScripts 'install-task-shepherd.ps1') | Out-Null
+    & (Join-Path $env:COPILOT_HOME 'plugins\shepherd-task\scripts\read-shepherd-task-version.ps1') |
+        Out-Null
 
     $malformedPluginRoot = Join-Path $tempRoot 'malformed-plugin'
     $malformedScripts = Join-Path $malformedPluginRoot 'scripts'
@@ -107,7 +150,7 @@ try {
 
     $marker = "# shepherd-task-version: $version"
     $estateFiles = [Collections.Generic.List[IO.FileInfo]]::new()
-    foreach ($pluginReference in $pluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
+    foreach ($pluginReference in $runtimeEstate.pluginFiles) {
         $relativePath = ([string]$pluginReference).Substring(2).TrimEnd('/')
         $pluginPath = Join-Path $pluginRoot $relativePath
         if (Test-Path -LiteralPath $pluginPath -PathType Container) {
@@ -119,7 +162,7 @@ try {
             $estateFiles.Add((Get-Item -LiteralPath $pluginPath))
         }
     }
-    foreach ($skillReference in $pluginManifest.extensions.'com.github.awesome-copilot'.skills) {
+    foreach ($skillReference in $runtimeEstate.skills) {
         $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
         $estateFiles.Add(
             (Get-Item -LiteralPath (Join-Path $pluginRoot "..\..\$skillPath\SKILL.md"))

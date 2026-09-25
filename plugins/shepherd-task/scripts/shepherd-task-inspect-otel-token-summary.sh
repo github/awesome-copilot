@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 #
 # shepherd-task-inspect-otel-token-summary.sh — Summarize token usage from OTel JSONL exports.
 #

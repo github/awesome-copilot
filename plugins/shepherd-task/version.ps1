@@ -1,4 +1,4 @@
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 <#
 .SYNOPSIS
     Reports or updates shepherd-task lineup and Agent Plugins schema versions.
@@ -80,11 +80,11 @@ function Get-EstateVersionFiles {
 
     $pluginManifest = Read-Json -Path $pluginManifestPath
     $files = [Collections.Generic.List[string]]::new()
-    foreach ($skillReference in $pluginManifest.extensions.'com.github.awesome-copilot'.skills) {
+    foreach ($skillReference in $pluginManifest.extensions.'com.github.awesome-copilot.shepherd-task'.skills) {
         $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
         $files.Add((Join-Path $RepoRoot "$skillPath\SKILL.md"))
     }
-    foreach ($pluginReference in $pluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
+    foreach ($pluginReference in $pluginManifest.extensions.'com.github.awesome-copilot.shepherd-task'.pluginFiles) {
         $reference = [string]$pluginReference
         if (-not $reference.StartsWith('./') -or
             $reference.Contains('\') -or
@@ -182,7 +182,17 @@ function Assert-SourceCheckout {
     }
 
     $pluginManifest = Read-Json -Path $pluginManifestPath
-    foreach ($skillReference in $pluginManifest.extensions.'com.github.awesome-copilot'.skills) {
+    $sourceEstate = $pluginManifest.extensions.'com.github.awesome-copilot'
+    $runtimeEstate = $pluginManifest.extensions.'com.github.awesome-copilot.shepherd-task'
+    foreach ($field in @('pluginFiles', 'skills')) {
+        $sourceValues = @($sourceEstate.$field | ForEach-Object { [string]$_ })
+        $runtimeValues = @($runtimeEstate.$field | ForEach-Object { [string]$_ })
+        if ([string]::Join("`n", $sourceValues) -cne [string]::Join("`n", $runtimeValues)) {
+            throw "The shepherd-task source and runtime estate '$field' declarations do not match."
+        }
+    }
+
+    foreach ($skillReference in $runtimeEstate.skills) {
         $skillPath = ([string]$skillReference).Substring(2).TrimEnd('/')
         $skillManifestPath = Join-Path $repoRoot "$skillPath\SKILL.md"
         if (-not (Test-Path -LiteralPath $skillManifestPath -PathType Leaf)) {
@@ -190,7 +200,7 @@ function Assert-SourceCheckout {
         }
     }
 
-    foreach ($pluginReference in $pluginManifest.extensions.'com.github.awesome-copilot'.pluginFiles) {
+    foreach ($pluginReference in $runtimeEstate.pluginFiles) {
         $reference = [string]$pluginReference
         if (-not $reference.StartsWith('./') -or
             $reference.Contains('\') -or

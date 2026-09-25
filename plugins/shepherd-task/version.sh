@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shepherd-task-version: 1.0.4
+# shepherd-task-version: 1.0.5
 
 set -euo pipefail
 
@@ -53,7 +53,7 @@ collect_estate_version_files() {
         skill_path="${skill_ref#./}"
         printf '%s\n' "$repo_root/$skill_path/SKILL.md"
     done < <(
-        jq -b -e -r '.extensions["com.github.awesome-copilot"].skills[]' "$PLUGIN_MANIFEST"
+        jq -b -e -r '.extensions["com.github.awesome-copilot.shepherd-task"].skills[]' "$PLUGIN_MANIFEST"
     )
 
     while IFS= read -r plugin_ref; do
@@ -67,7 +67,7 @@ collect_estate_version_files() {
             printf '%s\n' "$plugin_path"
         fi
     done < <(
-        jq -b -e -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$PLUGIN_MANIFEST"
+        jq -b -e -r '.extensions["com.github.awesome-copilot.shepherd-task"].pluginFiles[]' "$PLUGIN_MANIFEST"
     )
 }
 
@@ -146,13 +146,20 @@ assert_source_checkout() {
         "plugins/shepherd-task/plugin.json" >/dev/null 2>&1 ||
         fail "The source plugin manifest is not tracked by the current Git repository."
 
+    jq -e '
+      .extensions["com.github.awesome-copilot"] as $source |
+      .extensions["com.github.awesome-copilot.shepherd-task"] as $runtime |
+      ($source | {pluginFiles, skills}) == $runtime
+    ' "$PLUGIN_MANIFEST" >/dev/null ||
+        fail "The shepherd-task source and runtime estate declarations do not match."
+
     local skill_ref skill_path
     while IFS= read -r skill_ref; do
         skill_path="${skill_ref#./}"
         [[ -f "$repo_root/$skill_path/SKILL.md" ]] ||
             fail "Declared shepherd-task source skill is missing: $repo_root/$skill_path/SKILL.md"
     done < <(
-        jq -b -e -r '.extensions["com.github.awesome-copilot"].skills[]' "$PLUGIN_MANIFEST"
+        jq -b -e -r '.extensions["com.github.awesome-copilot.shepherd-task"].skills[]' "$PLUGIN_MANIFEST"
     )
 
     local plugin_ref plugin_path
@@ -164,7 +171,7 @@ assert_source_checkout() {
         [[ -e "$plugin_path" ]] ||
             fail "Declared shepherd-task plugin file is missing: $plugin_path"
     done < <(
-        jq -b -e -r '.extensions["com.github.awesome-copilot"].pluginFiles[]' "$PLUGIN_MANIFEST"
+        jq -b -e -r '.extensions["com.github.awesome-copilot.shepherd-task"].pluginFiles[]' "$PLUGIN_MANIFEST"
     )
 }
 
