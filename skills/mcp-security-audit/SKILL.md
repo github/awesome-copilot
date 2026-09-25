@@ -4,8 +4,8 @@ description: |
   Audit MCP (Model Context Protocol) server configurations for security issues. Use this skill when:
   - Reviewing .mcp.json files for security risks
   - Checking MCP server args for hardcoded secrets or shell injection patterns
-  - Validating that MCP servers use pinned versions (not @latest)
-  - Detecting unpinned dependencies in MCP server configurations
+  - Validating that MCP package-runner dependencies use exact reviewed versions, not bare names, @latest, or ranges
+  - Detecting mutable npm/npx, bunx, pnpm dlx, yarn dlx, and npm exec references in MCP configurations
   - Auditing which MCP servers a project registers and whether they're on an approved list
   - Checking for environment variable usage vs. hardcoded credentials in MCP configs
   - Any request like "is my MCP config secure?", "audit my MCP servers", or "check .mcp.json"
@@ -24,7 +24,7 @@ MCP servers give agents direct tool access to external systems. A misconfigured 
 .mcp.json → Parse Servers → Check Each Server:
   1. Secrets in args/env?
   2. Shell injection patterns?
-  3. Unpinned versions (@latest)?
+  3. Mutable package selectors (bare, @latest, ranges)?
   4. Dangerous commands (eval, bash -c)?
   5. Server on approved list?
 → Generate Report
@@ -147,48 +147,87 @@ def check_shell_injection(server_config: dict) -> list[dict]:
 
 ---
 
-## Audit Check 3: Unpinned Dependencies
+## Audit Check 3: Mutable Package References
 
-Flag MCP servers using `@latest` in their package references.
+Review package-runner MCP entries for selectors that can resolve to different package code later. Treat this as a reproducibility and review-boundary signal — not proof that the package is malicious or compromised.
 
 ```python
+import re
+EXACT_SEMVER = re.compile(r"^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$")
+def split_package_spec(spec: str):
+    """Split npm-style package selectors, including scoped packages."""
+    spec = spec.strip()
+    if spec.startswith("@"):
+        slash = spec.find("/")
+        at = spec.rfind("@")
+        if slash >= 0 and at > slash:
+            return spec[:at], spec[at + 1:] or None
+        return spec, None
+    if "@" in spec:
+        package, version = spec.rsplit("@", 1)
+        return package, version or None
+    return spec, None
+
+
+def package_spec_from_runner(server_config: dict):
+    """Extract, but never execute, the package selector from common JS runners."""
+    command = str(server_config.get("command", "")).replace("\\", "/").rsplit("/", 1)[-1].lower()
+    args = [str(arg) for arg in server_config.get("args", []) if isinstance(arg, str)]
+
+    if command in {"npx", "npx.cmd", "bunx"}:
+        return next((arg for arg in args if not arg.startswith("-")), None)
+
+    if command in {"npm", "npm.cmd"} and args[:1] and args[0] in {"exec", "x"}:
+        tail = args[1:]
+        if "--" in tail:
+            tail = tail[tail.index("--") + 1:]
+        return next((arg for arg in tail if not arg.startswith("-")), None)
+
+    if command in {"pnpm", "yarn", "bun"} and args[:1] and args[0] in {"dlx", "x"}:
+        return next((arg for arg in args[1:] if not arg.startswith("-")), None)
+
+    return None
+
+
 def check_pinned_versions(server_config: dict) -> list[dict]:
-    """Check that MCP server dependencies use pinned versions, not @latest."""
-    findings = []
-    args = server_config.get("args", [])
-    for arg in args:
-        if isinstance(arg, str):
-            if "@latest" in arg:
-                findings.append({
-                    "severity": "MEDIUM",
-                    "check": "unpinned-dependency",
-                    "message": f"Unpinned dependency: {arg}",
-                    "fix": f"Pin to specific version: {arg.replace('@latest', '@1.2.3')}"
-                })
-            # npx with unversioned package
-            if arg.startswith("-y") or (not "@" in arg and not arg.startswith("-")):
-                pass  # npx flag or plain arg, ok
-    # Check if using npx without -y (interactive prompt in CI)
-    command = server_config.get("command", "")
-    if command == "npx" and "-y" not in args:
-        findings.append({
+    """Flag package selectors that do not identify one exact reviewed version."""
+    spec = package_spec_from_runner(server_config)
+    if not spec:
+        return []
+
+    package, version = split_package_spec(spec)
+    if not version or version.lower() == "latest":
+        return [{
+            "severity": "MEDIUM",
+            "check": "mutable-dependency",
+            "message": f"Mutable package reference: {spec}",
+            "fix": f"Pin {package} to the exact version your team actually reviewed"
+        }]
+
+    if not EXACT_SEMVER.fullmatch(version):
+        return [{
             "severity": "LOW",
-            "check": "npx-interactive",
-            "message": "npx without -y flag may prompt interactively in CI",
-            "fix": "Add -y flag: npx -y package-name"
-        })
-    return findings
+            "check": "non-exact-dependency",
+            "message": f"Non-exact package selector: {spec}",
+            "fix": f"Replace the range/tag with an exact reviewed version for {package}"
+        }]
+
+    return []
 ```
 
-**Good — pinned version:**
+**Good — exact reviewed version:**
 ```json
-{ "args": ["-y", "my-mcp-server@2.1.0"] }
+{ "command": "npx", "args": ["-y", "my-mcp-server@2.1.0"] }
 ```
 
-**Bad — unpinned:**
+**Review — mutable references:**
 ```json
-{ "args": ["-y", "my-mcp-server@latest"] }
+{ "command": "npx", "args": ["-y", "my-mcp-server@latest"] }
+{ "command": "npx", "args": ["-y", "my-mcp-server"] }
+{ "command": "npx", "args": ["-y", "@scope/server@^2.1.0"] }
 ```
+
+Do **not** invent a remediation pin by substituting today's registry version. Pin a version that was actually reviewed; if that evidence is unknown, record the uncertainty. `-y` / `--yes` suppresses an interactive prompt and may matter for CI ergonomics, but it is not a vulnerability by itself.
 
 ---
 
@@ -265,8 +304,8 @@ Findings: 3 (1 CRITICAL, 1 HIGH, 1 MEDIUM)
 [HIGH] data-processor: Dangerous pattern in MCP server args: bash -c execution
   Fix: Use direct command execution, not shell interpolation
 
-[MEDIUM] analytics: Unpinned dependency: analytics-mcp@latest
-  Fix: Pin to specific version: analytics-mcp@2.1.0
+[MEDIUM] analytics: Mutable package reference: analytics-mcp@latest
+  Fix: Pin analytics-mcp to the exact version your team actually reviewed
 ```
 
 ---
