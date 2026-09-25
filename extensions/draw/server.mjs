@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { outlinePage } from "./lib/layout.mjs";
-import { MAX_ELEMENTS } from "./lib/model.mjs";
+import { MAX_ELEMENTS, sameJson } from "./lib/model.mjs";
 import { Settings, THEMES } from "./settings.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -87,14 +87,6 @@ function isInside(dir, file) {
     return !!rel && !rel.startsWith("..") && !path.isAbsolute(rel);
 }
 
-// Whether two JSON values hold the same data, whatever order their keys are in.
-function sameJson(a, b) {
-    if (a === b) return true;
-    if (!a || !b || typeof a !== "object" || typeof b !== "object" || Array.isArray(a) !== Array.isArray(b)) return false;
-    const keys = Object.keys(a);
-    return keys.length === Object.keys(b).length && keys.every((k) => Object.hasOwn(b, k) && sameJson(a[k], b[k]));
-}
-
 // Whether saving a page's ops stored something other than what the page has, because the model
 // tidied it up: a size past the limit, say, or an arrow whose shape is gone.
 function tidiedOnSave(before, ops, after) {
@@ -137,14 +129,22 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
     const lastSeq = new Map();
     let port = 0;
 
-    const send = (client, event, data) => {
+    // An event is serialized once, however many clients it goes to.
+    const write = (client, frame) => {
         try {
-            client.res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+            client.res.write(frame);
         } catch {
             clients.delete(client);
         }
     };
+    const sendAll = (list, event, data) => {
+        if (!list.length) return;
+        const frame = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+        for (const c of list) write(c, frame);
+    };
+    const send = (client, event, data) => sendAll([client], event, data);
     const clientsFor = (instanceId) => [...clients].filter((c) => c.instanceId === instanceId);
+    const showing = (drawingId) => [...clients].filter((c) => store.state.instances[c.instanceId] === drawingId);
     const pub = (doc) => publicDoc(doc, store.saveError(doc.id));
 
     // Makes sure an instance points at a real drawing, creating "Drawing 1" when there are none.
@@ -162,40 +162,32 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         // The selection is of the drawing on screen, so it only goes when the panel shows another one.
         if (store.drawingForInstance(instanceId)?.id !== doc.id) selections.delete(instanceId);
         store.bindInstance(instanceId, doc.id);
-        for (const c of clientsFor(instanceId)) send(c, "switch", { drawing: pub(doc) });
+        sendAll(clientsFor(instanceId), "switch", { drawing: pub(doc) });
     }
 
     // Settings apply to every panel, so every client hears about a change.
     async function updateSettings(patch, origin = "agent") {
         const values = await settings.update(patch);
-        for (const c of clients) send(c, "settings", { settings: values, origin });
+        sendAll([...clients], "settings", { settings: values, origin });
         return values;
     }
 
-    store.on("change", (doc, origin) => {
-        for (const c of clients) {
-            if (c.clientId === origin) continue;
-            if (store.state.instances[c.instanceId] === doc.id) send(c, "doc", { drawing: pub(doc), origin });
-        }
+    // A change goes out as the ops that made it (see diffOps), for the drawing as it was one
+    // change earlier, rather than as the whole drawing, which can run to many megabytes. A page
+    // that finds it missed a change fetches the whole drawing again.
+    store.on("change", (doc, origin, ops) => {
+        const others = showing(doc.id).filter((c) => c.clientId !== origin);
+        sendAll(others, "ops", { drawingId: doc.id, rev: doc.rev, baseRev: doc.rev - 1, ops, origin });
     });
     store.on("save", (id, error) => {
-        for (const c of clients) {
-            if (store.state.instances[c.instanceId] === id) send(c, "save", { drawingId: id, error });
-        }
+        sendAll(showing(id), "save", { drawingId: id, error });
     });
     store.on("list", () => {
-        const drawings = store.list();
-        for (const c of clients) send(c, "list", { drawings });
+        sendAll([...clients], "list", { drawings: store.list() });
     });
 
     const heartbeat = setInterval(() => {
-        for (const c of clients) {
-            try {
-                c.res.write(": ping\n\n");
-            } catch {
-                clients.delete(c);
-            }
-        }
+        for (const c of clients) write(c, ": ping\n\n");
     }, 25000);
     heartbeat.unref();
 
@@ -444,7 +436,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         },
         select(instanceId, drawingId, ids) {
             selections.set(instanceId, { drawingId, ids });
-            for (const c of clientsFor(instanceId)) send(c, "select", { drawingId, ids });
+            sendAll(clientsFor(instanceId), "select", { drawingId, ids });
         },
         // Asks the open iframe to render a drawing (it has the real fonts and theme). The request
         // names the drawing, so a panel that has moved on to another one cannot answer for it.

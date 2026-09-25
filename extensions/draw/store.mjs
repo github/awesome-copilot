@@ -2,7 +2,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { EventEmitter } from "node:events";
-import { normalizeElements, mergeOps, MAX_ELEMENTS } from "./lib/model.mjs";
+import { normalizeElements, mergeOps, diffOps, MAX_ELEMENTS } from "./lib/model.mjs";
 
 const VERSION = 1;
 const STATE_FILE = ".state.json";
@@ -204,11 +204,13 @@ export class DrawingStore extends EventEmitter {
         return doc;
     }
 
-    #touch(doc, origin) {
+    // `ops` are the element-level ops that made the change (see diffOps), or null when no
+    // element changed.
+    #touch(doc, origin, ops = null) {
         doc.rev += 1;
         doc.updatedAt = new Date().toISOString();
         this.#scheduleSave(doc.id);
-        this.emit("change", doc, origin);
+        this.emit("change", doc, origin, ops);
         this.#listSoon();
     }
 
@@ -245,8 +247,9 @@ export class DrawingStore extends EventEmitter {
                 `A drawing can hold up to ${fmt(MAX_ELEMENTS)} elements, and this change would make ${fmt(next.length)}.`,
             );
         }
+        const ops = diffOps(new Map(doc.elements.map((e) => [e.id, e])), next);
         doc.elements = next;
-        this.#touch(doc, origin);
+        this.#touch(doc, origin, ops);
         return doc;
     }
 

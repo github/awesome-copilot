@@ -1,5 +1,5 @@
 // Geometry for drawings: text layout, shape outlines, arrow routing, bounds and hit testing.
-import { FONT_SIZES, LABEL_WEIGHT, TEXT_WEIGHT, isShape } from "./model.mjs";
+import { FONT_SIZES, LABEL_WEIGHT, TEXT_WEIGHT, isShape, limitPoints } from "./model.mjs";
 
 export const LABEL_PAD = 12;
 export const ARROW_GAP = 3;
@@ -478,6 +478,55 @@ export function distToPolyline(px, py, pts) {
   let best = Infinity;
   for (let i = 1; i < pts.length; i++) best = Math.min(best, distToSegment(px, py, pts[i - 1], pts[i]));
   return best;
+}
+
+// How many points of a pen stroke each piece of simplifyStroke covers.
+const STROKE_PIECE = 512;
+
+// Ramer-Douglas-Peucker simplification of a pen stroke ([x, y] points): drops points within
+// `eps` of the line the rest make. The first and last points always stay. It runs on pieces of
+// STROKE_PIECE points that share their ends (which stay too), because on a jagged stroke the time
+// plain RDP takes can grow with the square of the number of points. In pieces it grows in step
+// with it.
+export function simplifyStroke(points, eps) {
+  if (points.length < 3) return points;
+  const last = points.length - 1;
+  const keep = new Uint8Array(points.length);
+  keep[last] = 1;
+  const stack = [];
+  for (let s = 0; s < last; s += STROKE_PIECE) {
+    keep[s] = 1;
+    stack.push([s, Math.min(s + STROKE_PIECE, last)]);
+  }
+  while (stack.length) {
+    const [a, b] = stack.pop();
+    const [ax, ay] = points[a];
+    const [bx, by] = points[b];
+    const dx = bx - ax;
+    const dy = by - ay;
+    const len = Math.hypot(dx, dy);
+    let max = 0;
+    let idx = -1;
+    for (let i = a + 1; i < b; i++) {
+      const [px, py] = points[i];
+      const d = len < 1e-6 ? Math.hypot(px - ax, py - ay) : Math.abs(dy * px - dx * py + bx * ay - by * ax) / len;
+      if (d > max) {
+        max = d;
+        idx = i;
+      }
+    }
+    if (idx > 0 && max > eps) {
+      keep[idx] = 1;
+      stack.push([a, idx], [idx, b]);
+    }
+  }
+  return points.filter((_, i) => keep[i]);
+}
+
+// A stroke as it is saved: simplified, and then thinned evenly if it still has more points than
+// a stroke keeps, so a long stroke loses detail rather than its end.
+export function fitStroke(points, eps) {
+  return limitPoints(simplifyStroke(points, eps));
 }
 
 const inBox = (b, x, y, tol) => b && x >= b.x - tol && x <= b.x + b.w + tol && y >= b.y - tol && y <= b.y + b.h + tol;

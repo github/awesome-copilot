@@ -1,42 +1,13 @@
 // Pointer input: select, move, resize, connect, create, draw, pan and zoom.
-import { isShape, snap, clamp, newId, idPrefix, normalizeElement, DEFAULT_SIZES, SHAPE_TYPES, MAX_SIDE } from "/lib/model.mjs";
+import { isShape, snap, clamp, newId, idPrefix, normalizeElement, DEFAULT_SIZES, SHAPE_TYPES, MAX_SIDE, MAX_PEN_POINTS } from "/lib/model.mjs";
 import {
-  hitTest, shapeAt, pointInShape, elementBounds, unionBounds, boxContains, arrowGeometry, lineHeight, fontSizeOf,
+  hitTest, shapeAt, pointInShape, elementBounds, unionBounds, boxContains, arrowGeometry, lineHeight, fontSizeOf, fitStroke,
 } from "/lib/geometry.mjs";
 import { translateElement } from "./editor.js";
 
 const DRAG = 3;
 const DOUBLE_MS = 400;
 const r2 = (v) => Math.round(v * 100) / 100;
-
-// Ramer-Douglas-Peucker simplification for pen strokes.
-function simplify(points, eps) {
-  if (points.length < 3) return points;
-  const keep = new Uint8Array(points.length);
-  keep[0] = 1;
-  keep[points.length - 1] = 1;
-  const stack = [[0, points.length - 1]];
-  while (stack.length) {
-    const [a, b] = stack.pop();
-    const [ax, ay] = points[a];
-    const [bx, by] = points[b];
-    const dx = bx - ax;
-    const dy = by - ay;
-    const len = Math.hypot(dx, dy);
-    let max = 0;
-    let idx = -1;
-    for (let i = a + 1; i < b; i++) {
-      const [px, py] = points[i];
-      const d = len < 1e-6 ? Math.hypot(px - ax, py - ay) : Math.abs(dy * px - dx * py + bx * ay - by * ax) / len;
-      if (d > max) { max = d; idx = i; }
-    }
-    if (idx > 0 && max > eps) {
-      keep[idx] = 1;
-      stack.push([a, idx], [idx, b]);
-    }
-  }
-  return points.filter((_, i) => keep[i]);
-}
 
 function snapAxis(pos, size, cands, th) {
   let best = null;
@@ -214,6 +185,9 @@ export function attachPointer(ed) {
     ed.requestRender();
   }
 
+  // How far a pen stroke may stray from what was drawn when it is simplified.
+  const penTolerance = () => 0.6 / ed.view.zoom;
+
   function drawPen(e) {
     const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
     const min = 0.75 / ed.view.zoom;
@@ -221,6 +195,11 @@ export function attachPointer(ed) {
       const q = ed.toWorld(ev.clientX, ev.clientY);
       const last = it.points[it.points.length - 1];
       if (Math.hypot(q.x - last[0], q.y - last[1]) >= min) it.points.push([r2(q.x), r2(q.y)]);
+    }
+    // A long stroke is simplified as it grows, so it never holds much more than a saved one can.
+    if (it.points.length >= 2 * MAX_PEN_POINTS) {
+      it.points = fitStroke(it.points, penTolerance());
+      if (ed.preview) ed.preview.points = it.points;
     }
     it.moved = true;
     ed.requestRender();
@@ -410,7 +389,7 @@ export function attachPointer(ed) {
     } else if (cur.kind === "text") {
       after = () => editOrCreateText(cur.start);
     } else if (cur.kind === "pen") {
-      const el = normalizeElement({ id: newId("p"), type: "pen", points: simplify(cur.points, 0.6 / ed.view.zoom), color: ed.styles.pen.color, width: ed.styles.pen.width });
+      const el = normalizeElement({ id: newId("p"), type: "pen", points: fitStroke(cur.points, penTolerance()), color: ed.styles.pen.color, width: ed.styles.pen.width });
       if (el) ed.setElements([...ed.elements, el]);
     } else if (cur.kind === "connect") {
       if (!cur.moved) {

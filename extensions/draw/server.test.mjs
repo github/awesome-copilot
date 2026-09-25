@@ -6,7 +6,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { normalizeElement } from "./lib/model.mjs";
+import { mergeOps, normalizeElement } from "./lib/model.mjs";
 import { createDrawServer } from "./server.mjs";
 import { Settings } from "./settings.mjs";
 import { DrawingStore } from "./store.mjs";
@@ -438,9 +438,46 @@ test("live updates reach the other panels, not the one that made the change", as
     const events = await listen(t, server, "me");
     await post(server, "/api/ops", { clientId: "me", drawingId: doc.id, ops: { upserts: [rect("a")] } });
     await post(server, "/api/ops", { clientId: "someone-else", drawingId: doc.id, ops: { upserts: [rect("b", 200)] } });
-    const update = await events.next("doc");
-    assert.equal(update.drawing.rev, 2);
+    const update = await events.next("ops");
+    assert.equal(update.rev, 2);
     assert.equal(update.origin, "someone-else");
+});
+
+test("a change goes out as the ops that made it, even on the biggest drawing", async (t) => {
+    const { server, store, doc } = await setup(t);
+    // The most a drawing can hold: 5,000 shapes with 4,000 character labels, about 20 MB.
+    store.replace(doc.id, Array.from({ length: 5000 }, (_, i) => ({ ...rect(`r${i}`, i * 10), text: "x".repeat(4000) })), "test");
+    const events = await listen(t, server);
+    const check = async (change, want, maxSize = 10000) => {
+        const before = store.get(doc.id).elements;
+        await change();
+        const update = await events.next("ops");
+        const size = JSON.stringify(update).length;
+        assert.ok(size < maxSize, `the update has ${size} characters`);
+        assert.equal(update.drawingId, doc.id);
+        assert.equal(update.baseRev, update.rev - 1);
+        assert.equal(update.rev, store.get(doc.id).rev);
+        assert.deepEqual(update.ops, want);
+        // The ops turn the drawing as it was into the drawing as it is.
+        const after = update.ops ? mergeOps(before, update.ops) : before;
+        assert.deepEqual(after, store.get(doc.id).elements);
+    };
+
+    // From a page. The shape it sent past the size limit goes out as it was saved.
+    const wide = { ...rect("new", 50), w: 99999 };
+    await check(() => post(server, "/api/ops", { clientId: "page", drawingId: doc.id, ops: { upserts: [wide], deletes: ["r0"] } }), {
+        upserts: [{ ...wide, w: 5000 }],
+        deletes: ["r0"],
+    });
+    // From the agent: a new label, and the last shape moved to the back, which sends the order
+    // (5,000 ids, still far less than the drawing).
+    await check(
+        () => store.mutate(doc.id, (els) => [els.at(-1), ...els.slice(0, -1).map((e) => (e.id === "r7" ? { ...e, text: "seven" } : e))]),
+        { upserts: [{ ...store.get(doc.id).elements.find((e) => e.id === "r7"), text: "seven" }], deletes: [], order: ["new", ...store.get(doc.id).elements.slice(0, -1).map((e) => e.id)] },
+        100000,
+    );
+    // A rename changes no element.
+    await check(() => store.rename(doc.id, "Renamed"), null);
 });
 
 test("a drawing that cannot be saved is reported to its panel until a save works", async (t) => {

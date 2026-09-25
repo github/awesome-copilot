@@ -17,6 +17,8 @@ export const TEXT_WEIGHT = 400;
 export const MAX_ELEMENTS = 5000;
 // The biggest width or height a shape can have.
 export const MAX_SIDE = 5000;
+// The most points a pen stroke keeps.
+export const MAX_PEN_POINTS = 5000;
 
 const ID_PREFIX = { rect: "r", ellipse: "o", diamond: "d", cylinder: "c", text: "t", arrow: "a", pen: "p" };
 export const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$/;
@@ -155,10 +157,18 @@ function refId(value) {
   return typeof value === "string" && ID_PATTERN.test(value) ? value : null;
 }
 
+// A stroke with more than `max` points keeps an even spread of them, first and last included, so
+// it loses detail rather than its end.
+export function limitPoints(points, max = MAX_PEN_POINTS) {
+  if (points.length <= max) return points;
+  const step = (points.length - 1) / (max - 1);
+  return Array.from({ length: max }, (_, i) => points[Math.round(i * step)]);
+}
+
 function normalizePoints(points) {
   if (!Array.isArray(points)) return [];
   const out = [];
-  for (const p of points.slice(0, 5000)) {
+  for (const p of limitPoints(points)) {
     const nx = toNum(Array.isArray(p) ? p[0] : p?.x, NaN);
     const ny = toNum(Array.isArray(p) ? p[1] : p?.y, NaN);
     if (Number.isFinite(nx) && Number.isFinite(ny)) {
@@ -250,6 +260,42 @@ export function mergeOps(elements, ops = {}) {
     list = [...known, ...list.filter((e) => !rank.has(e.id))];
   }
   return list;
+}
+
+// Whether two JSON values hold the same data, whatever order their keys are in.
+export function sameJson(a, b) {
+  if (a === b) return true;
+  if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (!sameJson(a[i], b[i])) return false;
+    return true;
+  }
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  for (const k of keys) if (!Object.hasOwn(b, k) || !sameJson(a[k], b[k])) return false;
+  return true;
+}
+
+// The ops that turn the elements in `before` (a Map by id) into `elements`, as mergeOps applies
+// them, or null when nothing changed.
+export function diffOps(before, elements) {
+  const upserts = [];
+  const ids = new Set();
+  for (const el of elements) {
+    ids.add(el.id);
+    const prev = before.get(el.id);
+    if (!prev || !sameJson(prev, el)) upserts.push(el);
+  }
+  const deletes = [...before.keys()].filter((id) => !ids.has(id));
+  // mergeOps keeps existing ids in place and appends new ones, so order is only sent when that differs.
+  const mergedOrder = [...before.keys()].filter((id) => ids.has(id));
+  for (const el of elements) if (!before.has(el.id)) mergedOrder.push(el.id);
+  const orderChanged = mergedOrder.some((id, i) => id !== elements[i].id);
+  if (!upserts.length && !deletes.length && !orderChanged) return null;
+  const ops = { upserts, deletes };
+  if (orderChanged) ops.order = elements.map((e) => e.id);
+  return ops;
 }
 
 // Removes elements plus any arrows attached to them.

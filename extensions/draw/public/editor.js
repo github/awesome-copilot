@@ -1,6 +1,6 @@
 // Editor core: elements, selection, view, history, rendering and element-level commands.
 import {
-  isShape, snap, clamp, normalizeElement, normalizeElements, removeWithArrows, newId, idPrefix,
+  isShape, snap, clamp, normalizeElement, normalizeElements, removeWithArrows, newId, idPrefix, sameJson,
   PEN_WIDTHS, SHAPE_TYPES, MAX_SIDE, DEFAULT_SIZES,
 } from "/lib/model.mjs";
 import { renderElements, renderStandaloneSVG, outline, penPath } from "/lib/render.mjs";
@@ -188,7 +188,7 @@ export class Editor {
   // the server tidying up our own change (a size past the limit, say), which is no step to undo.
   applyRemote(next, { record = true } = {}) {
     const before = this.elements;
-    if (before.length === next.length && JSON.stringify(before) === JSON.stringify(next)) return;
+    if (sameJson(before, next)) return;
     const known = new Set(before.map((e) => e.id));
     this.setElements(next, { record });
     const added = next.filter((e) => !known.has(e.id));

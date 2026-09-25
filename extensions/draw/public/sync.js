@@ -1,26 +1,11 @@
 // Keeps the editor and the extension's copy of the drawing in sync.
-// Local edits are sent as small element-level ops; remote (agent) edits are merged on top of
-// whatever the user has not saved yet.
-import { applyOps } from "/lib/model.mjs";
+// Local edits are sent as small element-level ops, and the server sends each change as ops too.
+// Remote (agent) edits are merged on top of whatever the user has not saved yet.
+import { applyOps, diffOps, mergeOps } from "/lib/model.mjs";
 
-export function diffOps(synced, elements) {
-  const upserts = [];
-  const ids = new Set();
-  for (const el of elements) {
-    ids.add(el.id);
-    const prev = synced.get(el.id);
-    if (prev !== el && (!prev || JSON.stringify(prev) !== JSON.stringify(el))) upserts.push(el);
-  }
-  const deletes = [...synced.keys()].filter((id) => !ids.has(id));
-  // The server keeps existing ids in place and appends new ones, so only send order when that differs.
-  const serverOrder = [...synced.keys()].filter((id) => ids.has(id));
-  for (const el of elements) if (!synced.has(el.id)) serverOrder.push(el.id);
-  const orderChanged = serverOrder.some((id, i) => id !== elements[i].id);
-  if (!upserts.length && !deletes.length && !orderChanged) return null;
-  const ops = { upserts, deletes };
-  if (orderChanged) ops.order = elements.map((e) => e.id);
-  return ops;
-}
+// How many changes can wait for the one before them (see drainOps) before the panel gives up on
+// them and fetches the whole drawing again.
+const MAX_EARLY = 200;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -41,6 +26,11 @@ export class Sync {
     this.sending = null;
     this.timer = 0;
     this.deferred = null;
+    // Changes from the server that came before the one they follow (see drainOps).
+    this.early = [];
+    // Set when a change was missed, so the whole drawing has to be fetched again.
+    this.behind = false;
+    this.resyncing = false;
     // The agent's newest selection, while the editor cannot show it yet (see showSelection).
     this.pendingSelection = null;
     this.failures = 0;
@@ -91,6 +81,8 @@ export class Sync {
     this.rev = doc.rev;
     this.synced = new Map(doc.elements.map((e) => [e.id, e]));
     this.deferred = null;
+    this.early = [];
+    this.behind = false;
     this.pendingSelection = null;
     this.gone = false;
   }
@@ -117,7 +109,7 @@ export class Sync {
       if (again) this.resync();
     });
     source.addEventListener("error", () => this.handlers.connection?.(false));
-    on("doc", ({ drawing }) => this.onRemote(drawing));
+    on("ops", (ev) => this.onOps(ev));
     on("list", ({ drawings }) => this.handlers.list?.(drawings));
     on("switch", ({ drawing }) => this.switchTo(drawing));
     on("export", (req) => this.handlers.exportRequest?.(req));
@@ -134,21 +126,83 @@ export class Sync {
     });
   }
 
-  // After a reconnect we may have missed events, so fetch the latest state.
+  // Fetches the whole drawing again: after a reconnect, when events may have been missed, and when
+  // a change turns out to be missing (see drainOps). Changes that come meanwhile wait in `early`.
   async resync() {
-    try {
-      const state = await this.loadState();
-      this.handlers.list?.(state.drawings);
-      if (state.settings) this.handlers.settings?.(state.settings);
-      if (state.drawing.id !== this.drawingId) {
-        this.switchTo(state.drawing);
-      } else {
-        this.onRemote(state.drawing);
-        this.setDiskError(state.drawing.saveError);
-      }
-    } catch {
-      // The next reconnect will try again.
+    if (this.resyncing) {
+      // This one may have asked before the change that was missed, so ask again after it.
+      this.behind = true;
+      return;
     }
+    this.resyncing = true;
+    this.behind = false;
+    let state = null;
+    try {
+      state = await this.loadState();
+    } catch {
+      // The next change or reconnect tries again.
+      this.behind = true;
+    } finally {
+      this.resyncing = false;
+    }
+    if (!state) return;
+    this.handlers.list?.(state.drawings);
+    if (state.settings) this.handlers.settings?.(state.settings);
+    if (state.drawing.id !== this.drawingId) {
+      this.switchTo(state.drawing);
+    } else {
+      this.onRemote(state.drawing);
+      this.setDiskError(state.drawing.saveError);
+      this.drainOps({ refetch: false });
+    }
+  }
+
+  // A change from the server: the ops that turn the drawing at `baseRev` into the one at `rev`.
+  onOps(ev) {
+    for (const t of this.switching) {
+      if (t.drawing.id !== ev.drawingId || ev.rev <= t.drawing.rev) continue;
+      if (ev.baseRev === t.drawing.rev) {
+        t.drawing = { ...t.drawing, rev: ev.rev, elements: ev.ops ? mergeOps(t.drawing.elements, ev.ops) : t.drawing.elements };
+      } else {
+        t.behind = true;
+      }
+    }
+    if (ev.drawingId !== this.drawingId) return;
+    if (this.early.length >= MAX_EARLY) {
+      this.early = [];
+      this.behind = true;
+    }
+    this.early.push(ev);
+    this.drainOps();
+  }
+
+  // Applies the changes that follow on from the newest copy of the drawing this panel has: the one
+  // waiting to be shown, or else the one it last loaded or saved. While our own save is on its way,
+  // a change made after it can come first, and waits for its reply (our change is the one it
+  // follows). Any other gap means a change never came (the panel was on another drawing for a
+  // moment, say), so the whole drawing is fetched again. Right after that fetch (`refetch` false),
+  // a change that still does not follow on can never apply, so it is dropped instead, and the next
+  // change that does not follow on fetches the drawing again.
+  drainOps({ refetch = true } = {}) {
+    const queue = this.early;
+    while (queue.length) {
+      const ev = queue[0];
+      const base = this.deferred || { rev: this.rev, elements: null };
+      if (ev.drawingId !== this.drawingId || ev.rev <= base.rev) {
+        queue.shift();
+        continue;
+      }
+      if (ev.baseRev !== base.rev) break;
+      queue.shift();
+      const elements = base.elements || [...this.synced.values()];
+      this.onRemote({ id: ev.drawingId, rev: ev.rev, elements: ev.ops ? mergeOps(elements, ev.ops) : elements });
+    }
+    if (this.inflight) return;
+    if (queue.length) {
+      if (refetch) this.behind = true;
+      else queue.length = 0;
+    }
+    if (this.behind) this.resync();
   }
 
   onRemote(drawing) {
@@ -189,7 +243,7 @@ export class Sync {
     }
     // The server already treats the other drawing as shown, so while the flush below waits, it
     // sends that drawing's changes, save status and selection. They are kept here until then.
-    const target = { drawing, selection: null };
+    const target = { drawing, selection: null, behind: false };
     this.switching.add(target);
     let ready;
     try {
@@ -198,9 +252,14 @@ export class Sync {
       this.switching.delete(target);
     }
     if (!ready) {
-      // The server has already moved this panel to the other drawing, so move it back.
+      // The server has already moved this panel to the other drawing, so move it back. Changes to
+      // this drawing did not come to the panel in the meantime, so it takes the copy in the reply.
       this.post("drawings", { action: "open", id: this.drawingId })
-        .then(() => this.sendSelection([...this.editor.selection]))
+        .then((res) => {
+          if (res.drawing) this.onRemote(res.drawing);
+          this.drainOps();
+          this.sendSelection([...this.editor.selection]);
+        })
         .catch(() => {});
       this.handlers.unsaved?.(target.drawing);
       return false;
@@ -219,6 +278,8 @@ export class Sync {
     this.diskError = null;
     this.setDiskError(drawing.saveError);
     if (!this.diskError) this.settled();
+    // A change to it came while the panel waited, and one before it never did.
+    if (target.behind) this.resync();
     return true;
   }
 
@@ -342,6 +403,8 @@ export class Sync {
       this.inflight = false;
       this.sending = null;
     }
+    // Changes that came before the reply, and waited for it.
+    this.drainOps();
     if (retry) {
       clearTimeout(this.retryTimer);
       this.retryTimer = setTimeout(() => this.schedule(0), Math.min(8000, 400 * 2 ** this.failures));
