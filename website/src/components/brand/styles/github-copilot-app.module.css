@@ -1,4 +1,4 @@
-/* The GitHub Copilot app guide page. A fixed app-shell: the top bar and hero
+/* The GitHub Copilot app guide page. A fixed app-shell: the top bar and compact title
    stay put while a framed two-column body (article + sticky sidebar) scrolls
    inside .scrollHost. Layout, gridlines, and code/prompt styling mirror the
    other awesome-copilot detail pages; every value resolves to a Primer Brand
@@ -23,7 +23,7 @@
 
 @media screen and (min-width: 80rem) and (max-width: 119.99rem) {
   .page {
-    --page-gutter: 152px;
+    --page-gutter: max(152px, calc((100% - var(--brand-breakpoint-xlarge)) / 2));
     --page-pad-block: 60px;
   }
 }
@@ -332,14 +332,9 @@
 
 .hero {
   width: 100%;
-  /* The hero now lives at the top of the scroll region so the breadcrumbs
-     scroll away with the page. A negative sticky offset equal to the breadcrumb
-     band height (--app-hero-crumb, measured in JS) lets the crumbs scroll up out
-     of view while the hero body pins to the top of the window and stays fixed as
-     the article scrolls beneath it. */
-  position: sticky;
-  top: calc(-1 * var(--app-hero-crumb, calc(var(--base-size-20) * 3)));
-  /* Lift the pinned hero above the scrolling body so open overlays (the
+  /* The expanded heading and its actions stay in natural document flow. */
+  position: relative;
+  /* Lift the hero above the body so open overlays (the
      install-command dropdown) that spill past the hero's bottom edge paint over
      the body instead of being covered by it, and so the article scrolls behind
      the hero rather than over it. Stays below the nav "More" menu (20) and
@@ -357,7 +352,8 @@
    last one as the content region below is scrolled, matching the accent-green
    hero rule used across the library. --app-frame-start / --app-frame-width are
    measured in JS so the line lives between the outer gridlines, not full-bleed. */
-.hero::after {
+.hero::after,
+.readingHeader::after {
   content: "";
   position: absolute;
   inset-inline-start: var(--app-frame-start, 0px);
@@ -366,13 +362,15 @@
   inset-block-end: 0;
   block-size: var(--brand-borderWidth-thick);
   inline-size: calc(var(--app-progress, 0) * var(--app-frame-width, 100%));
+  max-inline-size: calc(100% - var(--app-frame-start, 0px));
   /* Figma Primitives/Green/05 (#0fbf3e) — dark default. The brand green scale
      remaps per color mode, so green-4 (not green-5) resolves to Green/05 here. */
   background-color: var(--base-color-scale-green-4);
   transition: inline-size 0.08s linear;
 }
 
-.page[data-mode="light"] .hero::after {
+.page[data-mode="light"] .hero::after,
+.page[data-mode="light"] .readingHeader::after {
   background-color: var(--base-color-scale-green-6);
 }
 
@@ -382,6 +380,13 @@
    into. The anchor is zero-size and centred on the line's leading edge; its
    children are centred on that point. It starts at the first vertical gridline
    (--app-frame-start) so on load the duck rests exactly on that line. */
+.progressViewport {
+  position: absolute;
+  inset: 0;
+  overflow-x: clip;
+  pointer-events: none;
+}
+
 .progressRider {
   position: absolute;
   z-index: 1;
@@ -607,6 +612,11 @@
     opacity: 1;
     transform: translateX(-50%);
   }
+}
+
+.hero[data-compact="true"]::after,
+.hero[data-compact="true"] > .progressViewport {
+  visibility: hidden;
 }
 
 .heroInner {
@@ -904,13 +914,14 @@
 }
 
 /* The single scroll region wraps the framed two-column body AND the
-   full-page-width footer. The top bar and hero stay fixed above; the sidebar
+   full-page-width footer. The top bar stays fixed above; the sidebar
    stays fixed via sticky positioning inside this scroller. */
 .scrollHost {
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
   overflow-y: auto;
+  scroll-padding-block-start: var(--app-hero-pinned, 0px);
   /* Without this, the scrollbar always renders with the browser's light-mode
      chrome (see #2822) because the scroller never tells the UA which colour
      scheme it's painted in. Firefox reads scrollbar-color directly; WebKit/
@@ -990,7 +1001,7 @@
   border-block-start: none;
   /* Offset in-page anchor jumps by the pinned hero height so a targeted heading
      lands just below the fixed hero instead of behind it. */
-  scroll-margin-top: calc(var(--app-hero-pinned, 17rem) + var(--base-size-24));
+  scroll-margin-top: var(--base-size-24);
 }
 
 .articleSection:first-child {
@@ -1768,10 +1779,8 @@
   min-width: 0;
   align-self: start;
   position: sticky;
-  /* Sit the sticky TOC just below the pinned hero (its visible height is
-     measured into --app-hero-pinned) so it never slides under the fixed hero.
-     The rem fallback matches the hero content's min height before measurement. */
-  top: var(--app-hero-pinned, 17rem);
+  /* Share the compact reading title's measured clearance. */
+  top: var(--app-hero-pinned, 0px);
   overflow: visible;
 }
 
@@ -1779,7 +1788,7 @@
   display: flex;
   flex-direction: column;
   max-block-size: calc(
-    100dvh - var(--app-hero-pinned, 17rem) - var(--base-size-64)
+    100dvh - var(--app-hero-pinned, 0px) - var(--base-size-64)
   );
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -2019,16 +2028,15 @@
   --brand-ActionMenu-color-item-hover: var(--menu-item-hover);
 }
 
-/* Short desktop viewports do not have enough reading space for a pinned hero.
-   The layout's measurement effect sets data-hero-pin="false" on .page whenever
-   pinning would leave less than MIN_HERO_READING of article below the hero (a
-   per-page decision, so the CLI page's taller install-bar hero releases sooner
-   than a plain hero). Release the hero to scroll away; the sticky TOC top and
-   in-page anchor offsets follow automatically because the effect also zeroes
-   --app-hero-pinned. */
-.page[data-hero-pin="false"] .hero {
-  position: relative;
-  top: auto;
+.contentCol :is([id], a, button, input, summary) {
+  scroll-margin-top: var(--base-size-24);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero::after,
+  .readingHeader::after {
+    transition: none;
+  }
 }
 
 @media (max-width: 74.99rem) {

@@ -15,7 +15,7 @@ import {
   useTheme,
 } from "@primer/react-brand";
 import { clsx } from "clsx";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { externalRepoUrl, type ExternalSource } from "../../lib/external-source";
 import { PageShell } from "./PageShell";
@@ -25,7 +25,7 @@ import { daysSince, toggleValue } from "./catalogFilters";
 import { pageHref } from "./pageHref";
 import type { SearchItem } from "./searchIndex";
 import styles from "./styles/plugins.module.css";
-import { getScrollBehavior } from "./scrollBehavior";
+import { useCatalogPageFocus } from "./useCatalogPageFocus";
 
 const CONTRIBUTE_URL =
   "https://github.com/github/awesome-copilot/blob/main/docs/README.plugins.md#how-to-contribute";
@@ -126,7 +126,7 @@ export function PluginsCatalog({
   const { colorMode } = useTheme();
   const [sortMode, setSortMode] = useState<SortMode>("az");
   const [currentPage, setCurrentPage] = useState(1);
-  const previousPage = useRef(currentPage);
+  const focusCatalogPage = useCatalogPageFocus();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
@@ -198,18 +198,6 @@ export function PluginsCatalog({
     page * pageSize,
   );
 
-  useEffect(() => {
-    if (previousPage.current === currentPage) return;
-    previousPage.current = currentPage;
-    const frame = window.requestAnimationFrame(() => {
-      const catalog = document.getElementById("catalog");
-      if (!catalog) return;
-      catalog.scrollIntoView({ behavior: getScrollBehavior(), block: "start" });
-      catalog.focus({ preventScroll: true });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [currentPage]);
-
   return (
     <PageShell
       styles={styles}
@@ -218,7 +206,7 @@ export function PluginsCatalog({
       contributorsTotal={contributorsTotal}
       searchAriaLabel="Search plugins"
     >
-      <Box className={styles.hero}>
+      <Box className={clsx(styles.hero, "heading-texture")}>
         <div className={styles.heroInner}>
           <span className={styles.heroIcon} aria-hidden="true">
             <PluginsIcon size={36} />
@@ -414,6 +402,7 @@ export function PluginsCatalog({
             onPageChange={(e, n) => {
               e.preventDefault();
               setCurrentPage(n);
+              focusCatalogPage();
             }}
           />
         </Stack>

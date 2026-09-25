@@ -4,6 +4,7 @@ import { marked } from "marked";
 import matter from "gray-matter";
 import { enhanceMarkdownA11y } from "./markdown-a11y";
 import { sanitizeHtml } from "./sanitize-html";
+import type { MarkdownImageSource } from "./markdown-images";
 
 /**
  * Build-time helpers shared by the resource detail pages
@@ -93,7 +94,10 @@ function stripLeadingH1(html: string): string {
  * Read a resource's markdown file at build time and return its rendered HTML,
  * trimmed frontmatter block, and the raw file contents.
  */
-export function readResourceMarkdown(filePath: string): {
+export function readResourceMarkdown(
+  filePath: string,
+  imageSource: MarkdownImageSource | null = { rawBase: RAW_BASE, filePath },
+): {
   markdownHtml: string;
   frontmatterText: string;
   rawMarkdown: string;
@@ -108,7 +112,10 @@ export function readResourceMarkdown(filePath: string): {
     frontmatterText = parsed.matter?.trim() ?? "";
     markdownHtml = enhanceMarkdownA11y(
       stripLeadingH1(
-        sanitizeHtml(marked.parse(parsed.content, { async: false }) as string)
+        sanitizeHtml(
+          marked.parse(parsed.content, { async: false }) as string,
+          imageSource,
+        )
       )
     );
   } catch (error) {

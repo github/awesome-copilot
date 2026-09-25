@@ -13,12 +13,38 @@
  * browser DOMPurify when bundled for the client.
  */
 import DOMPurify from "isomorphic-dompurify";
+import {
+  resolveMarkdownImage,
+  resolveMarkdownSrcset,
+  type MarkdownImageSource,
+} from "./markdown-images";
 
-let noopenerHookInstalled = false;
+let markdownHooksInstalled = false;
 
-function ensureNoopenerHook(): void {
-  if (noopenerHookInstalled) return;
-  noopenerHookInstalled = true;
+function ensureMarkdownHooks(): void {
+  if (markdownHooksInstalled) return;
+  markdownHooksInstalled = true;
+
+  DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+    if (node.tagName !== "IMG") return;
+    node.removeAttribute("data-markdown-block-image");
+    let container = node.closest("picture") ?? node;
+    if (container.parentElement?.tagName === "A") container = container.parentElement;
+    const parent = container.parentElement;
+    if (!parent || !["P", "DIV", "BODY", "SECTION", "ARTICLE", "LI"].includes(parent.tagName)) return;
+    // A standalone image is a block; text and multi-image rows stay inline.
+    if (parent.querySelectorAll("img").length !== 1) return;
+    // Separate block siblings do not make an image inline with their text.
+    const blockTags = [
+      "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DETAILS", "DIV", "DL",
+      "FIELDSET", "FIGURE", "FOOTER", "FORM", "H1", "H2", "H3", "H4", "H5",
+      "H6", "HEADER", "HR", "MAIN", "NAV", "OL", "P", "PRE", "SECTION", "TABLE", "UL",
+    ];
+    if (Array.from(parent.childNodes).some((child) =>
+      child.textContent?.trim() && !blockTags.includes(child.nodeName),
+    )) return;
+    node.setAttribute("data-markdown-block-image", "");
+  });
 
   DOMPurify.addHook("afterSanitizeAttributes", (node) => {
     const el = node as unknown as {
@@ -43,12 +69,42 @@ function ensureNoopenerHook(): void {
  * stripping scripts, event handlers, and dangerous URL schemes while keeping
  * the formatting tags GitHub-flavored markdown commonly emits.
  */
-export function sanitizeHtml(html: string): string {
+export function sanitizeHtml(
+  html: string,
+  imageSource?: MarkdownImageSource | null,
+): string {
   if (!html) return html;
-  ensureNoopenerHook();
-  return DOMPurify.sanitize(html, {
-    // Keep links that open in a new tab (target/rel) which some resource docs
-    // author directly as raw HTML.
-    ADD_ATTR: ["target", "rel"],
-  });
+  ensureMarkdownHooks();
+  // Scope provenance to this synchronous render; it must never leak between
+  // documents (or between the build-time and file-browser rendering paths).
+  if (imageSource !== undefined) {
+    DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
+      const image = node.nodeName === "IMG";
+      const pictureSource =
+        node.nodeName === "SOURCE" && node.parentNode?.nodeName === "PICTURE";
+      if (
+        !(image && data.attrName === "src") &&
+        !((image || pictureSource) && data.attrName === "srcset")
+      ) return;
+      try {
+        data.attrValue = data.attrName === "srcset"
+          ? resolveMarkdownSrcset(data.attrValue, imageSource)
+          : resolveMarkdownImage(data.attrValue, imageSource);
+      } catch (error) {
+        data.keepAttr = false;
+        console.warn(
+          `[markdown-images] Dropped ${data.attrName} in "${imageSource?.filePath ?? "unknown source"}": ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    });
+  }
+  try {
+    return DOMPurify.sanitize(html, {
+      // Keep links that open in a new tab (target/rel) which some resource docs
+      // author directly as raw HTML.
+      ADD_ATTR: ["target", "rel"],
+    });
+  } finally {
+    if (imageSource !== undefined) DOMPurify.removeHook("uponSanitizeAttribute");
+  }
 }

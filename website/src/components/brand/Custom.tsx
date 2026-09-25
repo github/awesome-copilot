@@ -25,6 +25,7 @@ import {
 } from "@primer/react-brand";
 
 import styles from "./styles/styles.module.css";
+import navStyles from "./styles/TopNav.module.css";
 import brandDivider from "./brand-divider-copilot-sitting.webp";
 import { LargeFooter } from "./LargeFooter";
 import { ContributorsHoverCard } from "./ContributorsHoverCard";
@@ -121,7 +122,7 @@ export default function AwesomeCopilot({ pageHref }: PrototypePageProps) {
   return (
     <Box className={styles.page} backgroundColor="default" data-mode={colorMode}>
       <SkipLink />
-      <header className={styles.topBar}>
+      <header className={clsx(styles.topBar, navStyles.header)}>
         <nav className={styles.topBarInner} aria-label="Primary">
           <a href={pageHref()} className={styles.subNavTitle}>
             <MarkGithubIcon size={20} />

@@ -1,7 +1,7 @@
-import { ChevronDownIcon, ThreeBarsIcon, XIcon } from "@primer/octicons-react";
+import { ArrowUpRightIcon, ChevronDownIcon, ThreeBarsIcon, XIcon } from "@primer/octicons-react";
 import { clsx } from "clsx";
 import { Button } from "@primer/react-brand";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ComponentType } from "react";
 
 import type { SearchItem } from "./searchIndex";
 import { contributorsTotal as siteContributorsTotal } from "../../lib/site-data";
@@ -13,7 +13,27 @@ import { TopNavSearch } from "./TopNavSearch";
 const CONTRIBUTING_URL =
   "https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md";
 
-type NavLink = { label: string; href: string; current: boolean };
+type NavLink = {
+  label: string;
+  href: string;
+  current: boolean;
+  external?: boolean;
+  icon?: ComponentType<{ size?: number }>;
+};
+
+function NavLabel({ link }: { link: NavLink }) {
+  return (
+    <span className={mobileStyles.linkContent}>
+      {link.icon && (
+        <span className={mobileStyles.linkIcon} aria-hidden="true">
+          <link.icon size={16} />
+        </span>
+      )}
+      {link.label}
+      {link.external && <ArrowUpRightIcon size={16} aria-hidden="true" />}
+    </span>
+  );
+}
 
 /**
  * The top navigation is intentionally reduced to two tabs shared across every
@@ -107,7 +127,7 @@ export function TopNav({
                   className={styles.moreLink}
                   aria-current={link.current ? "page" : undefined}
                 >
-                  {link.label}
+                  <NavLabel link={link} />
                 </a>
               ))}
             </div>
@@ -159,7 +179,7 @@ export function TopNav({
               className={mobileStyles.mobileLink}
               aria-current={link.current ? "page" : undefined}
             >
-              {link.label}
+              <NavLabel link={link} />
             </a>
           ))}
           {learningHubLink && (
@@ -170,7 +190,7 @@ export function TopNav({
                 className={mobileStyles.mobileLink}
                 aria-current={learningHubLink.current ? "page" : undefined}
               >
-                {learningHubLink.label}
+                <NavLabel link={learningHubLink} />
               </a>
             </>
           )}
@@ -189,6 +209,7 @@ export function TopNav({
                   href={CONTRIBUTING_URL}
                   variant="primary"
                   size="medium"
+                  trailingVisual={<ArrowUpRightIcon size={16} aria-hidden="true" />}
                 >
                   Contribute
                 </Button>
