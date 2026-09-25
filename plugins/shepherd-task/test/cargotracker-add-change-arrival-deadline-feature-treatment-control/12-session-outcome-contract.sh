@@ -65,14 +65,14 @@ grep -Fq 'was already completed by PR' "$orchestrator"
 grep -Fq '"$SESSION_OUTCOME_ASSERTION" "$PHASE1_SHARE" 30' "$orchestrator"
 grep -Fq '"$SESSION_OUTCOME_ASSERTION" "$PHASE2_SHARE" 40' "$orchestrator"
 grep -Fq 'state,isDraft,baseRefName,reviewDecision' "$orchestrator"
+grep -Fq 'RUN_PHASE1=true' "$orchestrator"
+grep -Fq 'is already ready for review — resuming Phase 2' "$orchestrator"
+grep -Fq 'has no successful Stage 30 transcript for that PR' "$orchestrator"
+grep -Fq '"$candidate" 30 "$TASK_ISSUE" "$PR_NUMBER"' "$orchestrator"
 grep -Fq 'gh api graphql --paginate --slurp' "$orchestrator"
 grep -Fq '"$review_decision" != "CHANGES_REQUESTED"' "$orchestrator"
 if grep -Fq 'find_linked_pr OPEN) || true' "$orchestrator"; then
     echo 'Bash orchestrator still suppresses linked-PR discovery errors.' >&2
-    exit 1
-fi
-if grep -Fq 'skipping Phase 1' "$orchestrator"; then
-    echo 'Bash orchestrator still skips stage 30 when an open PR exists.' >&2
     exit 1
 fi
 

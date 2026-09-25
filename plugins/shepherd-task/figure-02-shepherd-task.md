@@ -21,16 +21,23 @@ sequenceDiagram
     ST->>ST: Require lessons file and run directory inside campaign directory
     ST->>GH: Find an open linked PR by timeline, body, then title or branch
 
-    alt Open linked PR exists
+    alt Open linked draft PR exists
         ST->>ST: Log resuming Phase 1 for the existing PR
+    else Open linked ready PR has successful Stage 30 transcript
+        ST->>Art: Validate prior Stage 30 completion for this task and PR
+        ST->>ST: Resume Phase 2 without rerunning Stage 30
+    else Open linked ready PR lacks Stage 30 evidence
+        ST->>ST: Fail closed for manual intervention
     else No open linked PR
         ST->>ST: Begin Phase 1 without an existing PR
     end
-    ST->>P1: Invoke stage 30 with issue and campaign context
-    P1->>GH: Reuse existing PR or assign CCA, iterate, and validate draft PR
-    P1-->>Art: Redacted phase-1 JSON, share, and OTel JSONL
-    P1-->>ST: Session exits
-    ST->>GH: Require an open linked PR
+    opt Stage 30 is required
+        ST->>P1: Invoke stage 30 with issue and campaign context
+        P1->>GH: Reuse existing PR or assign CCA, iterate, and validate draft PR
+        P1-->>Art: Redacted phase-1 JSON, share, and OTel JSONL
+        P1-->>ST: Session exits
+        ST->>GH: Require an open linked PR
+    end
 
     ST->>GH: Ensure PR base equals campaign base
     ST->>GH: Reject non-exempt failed CI checks
@@ -53,6 +60,8 @@ sequenceDiagram
 
 The outer script does not trust a successful Copilot process exit as proof of
 completion. It re-queries GitHub after each phase. An existing open linked PR
-resumes the Stage 30 session without a second CCA assignment; it does not skip
-Stage 30. The stage skills perform the deeper issue, SHA, CI, review, and lesson
-gates shown in Figures 03 and 04.
+resumes Stage 30 without a second CCA assignment while the PR is draft. If a
+prior Stage 40 attempt already made the PR ready, the runner resumes Stage 40
+only after validating a successful Stage 30 transcript for that exact task and
+PR in the supplied run directory. The stage skills perform the deeper issue,
+SHA, CI, review, and lesson gates shown in Figures 03 and 04.

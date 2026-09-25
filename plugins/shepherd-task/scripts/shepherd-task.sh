@@ -233,12 +233,40 @@ FIND_PR_STATUS=$?
 set -e
 [[ $FIND_PR_STATUS -ne 2 ]] ||
     fail "Unable to determine a unique open PR for task issue #$TASK_ISSUE."
+PR_RESUME_STATE=""
 if [[ -n "$PR_NUMBER" ]]; then
+    PR_RESUME_STATE=$(gh pr view "$PR_NUMBER" -R "$REPO" \
+        --json state,isDraft,baseRefName) ||
+        fail "Unable to inspect linked PR #$PR_NUMBER."
+    [[ "$(jq -r '.state' <<<"$PR_RESUME_STATE")" == "OPEN" ]] ||
+        fail "Linked PR #$PR_NUMBER is not open."
+    [[ "$(jq -r '.baseRefName' <<<"$PR_RESUME_STATE")" == "$BASE_BRANCH" ]] ||
+        fail "Linked PR #$PR_NUMBER does not target '$BASE_BRANCH'."
+fi
+RUN_PHASE1=true
+if [[ -n "$PR_NUMBER" &&
+      "$(jq -r '.isDraft' <<<"$PR_RESUME_STATE")" == "false" ]]; then
+    PHASE1_EVIDENCE=""
+    for candidate in "$LOG_DIR"/phase1-task-*-"$TASK_ISSUE".md; do
+        [[ -f "$candidate" ]] || continue
+        if "$SESSION_OUTCOME_ASSERTION" \
+            "$candidate" 30 "$TASK_ISSUE" "$PR_NUMBER" >/dev/null 2>&1; then
+            PHASE1_EVIDENCE="$candidate"
+            break
+        fi
+    done
+    [[ -n "$PHASE1_EVIDENCE" ]] ||
+        fail "PR #$PR_NUMBER is ready for review, but this run has no successful Stage 30 transcript for that PR."
+    RUN_PHASE1=false
+    status "PR #$PR_NUMBER is already ready for review — resuming Phase 2 using $(basename "$PHASE1_EVIDENCE")."
+elif [[ -n "$PR_NUMBER" ]]; then
     status "PR #$PR_NUMBER already exists for issue #$TASK_ISSUE — resuming Phase 1."
 fi
-status "Phase 1: Launching copilot --yolo for task #$TASK_ISSUE"
 
-PHASE1_PROMPT="Invoke skill \`shepherd-task-30-from-assignment-to-ready\` with these inputs:
+if [[ "$RUN_PHASE1" == "true" ]]; then
+    status "Phase 1: Launching copilot --yolo for task #$TASK_ISSUE"
+
+    PHASE1_PROMPT="Invoke skill \`shepherd-task-30-from-assignment-to-ready\` with these inputs:
 
 - TASK_ISSUE: $TASK_ISSUE
 - BASE_BRANCH: $BASE_BRANCH
@@ -247,55 +275,56 @@ PHASE1_PROMPT="Invoke skill \`shepherd-task-30-from-assignment-to-ready\` with t
 - CAMPAIGN_METADATA_DIRECTORY: $CAMPAIGN_METADATA_DIRECTORY
 - LESSON_PROPAGATION: $LESSON_PROPAGATION"
 
-status "Phase 1 prompt:"
-echo "$PHASE1_PROMPT"
-PHASE1_TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
-PHASE1_SHARE="$LOG_DIR/phase1-task-$PHASE1_TIMESTAMP-$TASK_ISSUE.md"
-PHASE1_JSONL="$LOG_DIR/phase1-task-$PHASE1_TIMESTAMP-$TASK_ISSUE.jsonl"
-PHASE1_OTEL="$(cd "$LOG_DIR" && pwd)/phase1-otel-$PHASE1_TIMESTAMP-$TASK_ISSUE.jsonl"
-if run_copilot_phase_redacted \
-    "$PHASE1_JSONL" "$PHASE1_OTEL" \
-    --yolo --output-format json --share "$PHASE1_SHARE" <<<"$PHASE1_PROMPT"; then
-    PHASE1_EXIT=0
-else
-    PHASE1_EXIT=$?
+    status "Phase 1 prompt:"
+    echo "$PHASE1_PROMPT"
+    PHASE1_TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+    PHASE1_SHARE="$LOG_DIR/phase1-task-$PHASE1_TIMESTAMP-$TASK_ISSUE.md"
+    PHASE1_JSONL="$LOG_DIR/phase1-task-$PHASE1_TIMESTAMP-$TASK_ISSUE.jsonl"
+    PHASE1_OTEL="$(cd "$LOG_DIR" && pwd)/phase1-otel-$PHASE1_TIMESTAMP-$TASK_ISSUE.jsonl"
+    if run_copilot_phase_redacted \
+        "$PHASE1_JSONL" "$PHASE1_OTEL" \
+        --yolo --output-format json --share "$PHASE1_SHARE" <<<"$PHASE1_PROMPT"; then
+        PHASE1_EXIT=0
+    else
+        PHASE1_EXIT=$?
+    fi
+    if [[ $PHASE1_EXIT -ne 0 ]]; then
+        echo "[shepherd-task] FAILED: Phase 1 copilot session or redaction failed." >&2
+        exit "$PHASE1_EXIT"
+    fi
+
+    status "Phase 1: copilot exited. Verifying semantic outcome and state..."
+
+    set +e
+    PR_NUMBER=$(find_linked_pr OPEN)
+    FIND_PR_STATUS=$?
+    set -e
+    [[ $FIND_PR_STATUS -ne 2 ]] ||
+        fail "Unable to determine a unique open PR for task issue #$TASK_ISSUE."
+    "$SESSION_OUTCOME_ASSERTION" "$PHASE1_SHARE" 30 "$TASK_ISSUE" "$PR_NUMBER" >/dev/null ||
+        fail "Phase 1 reported semantic failure."
+    status "Found PR #$PR_NUMBER"
+
+    # Verify state and base branch
+    PHASE1_STATE=$(gh pr view "$PR_NUMBER" -R "$REPO" --json state,isDraft,baseRefName,reviewDecision)
+    ACTUAL_BASE=$(jq -r '.baseRefName' <<<"$PHASE1_STATE")
+    if [[ "$ACTUAL_BASE" != "$BASE_BRANCH" ]]; then
+        status "PR base is '$ACTUAL_BASE', fixing to '$BASE_BRANCH'..."
+        gh pr edit "$PR_NUMBER" -R "$REPO" --base "$BASE_BRANCH"
+    fi
+    [[ "$(jq -r '.state' <<<"$PHASE1_STATE")" == "OPEN" &&
+       "$(jq -r '.isDraft' <<<"$PHASE1_STATE")" == "true" &&
+       "$(jq -r '.reviewDecision // empty' <<<"$PHASE1_STATE")" != "CHANGES_REQUESTED" ]] ||
+        fail "PR #$PR_NUMBER is not open, draft, and free of requested changes after Phase 1."
+
+    # Verify CI passing
+    ci_passing "$PR_NUMBER" || fail "CI checks not passing on PR #$PR_NUMBER after Phase 1."
+
+    # Verify no unresolved reviews
+    no_unresolved_reviews "$PR_NUMBER" || fail "Unresolved review comments remain on PR #$PR_NUMBER after Phase 1."
+
+    ok "Phase 1 VERIFIED: PR #$PR_NUMBER is ready. CI passing, no unresolved comments."
 fi
-if [[ $PHASE1_EXIT -ne 0 ]]; then
-    echo "[shepherd-task] FAILED: Phase 1 copilot session or redaction failed." >&2
-    exit "$PHASE1_EXIT"
-fi
-
-status "Phase 1: copilot exited. Verifying semantic outcome and state..."
-
-set +e
-PR_NUMBER=$(find_linked_pr OPEN)
-FIND_PR_STATUS=$?
-set -e
-[[ $FIND_PR_STATUS -ne 2 ]] ||
-    fail "Unable to determine a unique open PR for task issue #$TASK_ISSUE."
-"$SESSION_OUTCOME_ASSERTION" "$PHASE1_SHARE" 30 "$TASK_ISSUE" "$PR_NUMBER" >/dev/null ||
-    fail "Phase 1 reported semantic failure."
-status "Found PR #$PR_NUMBER"
-
-# Verify state and base branch
-PHASE1_STATE=$(gh pr view "$PR_NUMBER" -R "$REPO" --json state,isDraft,baseRefName,reviewDecision)
-ACTUAL_BASE=$(jq -r '.baseRefName' <<<"$PHASE1_STATE")
-if [[ "$ACTUAL_BASE" != "$BASE_BRANCH" ]]; then
-    status "PR base is '$ACTUAL_BASE', fixing to '$BASE_BRANCH'..."
-    gh pr edit "$PR_NUMBER" -R "$REPO" --base "$BASE_BRANCH"
-fi
-[[ "$(jq -r '.state' <<<"$PHASE1_STATE")" == "OPEN" &&
-   "$(jq -r '.isDraft' <<<"$PHASE1_STATE")" == "true" &&
-   "$(jq -r '.reviewDecision // empty' <<<"$PHASE1_STATE")" != "CHANGES_REQUESTED" ]] ||
-    fail "PR #$PR_NUMBER is not open, draft, and free of requested changes after Phase 1."
-
-# Verify CI passing
-ci_passing "$PR_NUMBER" || fail "CI checks not passing on PR #$PR_NUMBER after Phase 1."
-
-# Verify no unresolved reviews
-no_unresolved_reviews "$PR_NUMBER" || fail "Unresolved review comments remain on PR #$PR_NUMBER after Phase 1."
-
-ok "Phase 1 VERIFIED: PR #$PR_NUMBER is ready. CI passing, no unresolved comments."
 
 # =============================================================================
 # PHASE 2: Ready for Review to Merged

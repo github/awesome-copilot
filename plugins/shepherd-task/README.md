@@ -601,8 +601,12 @@ PowerShell equivalents are included for each helper.
 - A given-list run stops on the first failed issue but still runs stage 50 and
   finalizes its manifest.
 - Resume a campaign by starting a new given-list run with the remaining issues.
-- An existing open linked PR lets single-issue orchestration skip a second CCA
-  assignment and continue verification.
+- An existing open linked draft PR lets single-issue orchestration skip a
+  second CCA assignment and continue Stage 30 verification.
+- An existing open linked ready PR resumes Stage 40 only when the supplied run
+  directory contains a successful Stage 30 transcript for that exact task and
+  PR. Without that durable evidence, recovery fails closed for manual
+  intervention.
 - Timeouts, unavailable required tests, skipped relevant CI, unacknowledged
   reviews, review file-limit refusal, exhausted iteration budgets, and
   unresolved merge conflicts require manual intervention.

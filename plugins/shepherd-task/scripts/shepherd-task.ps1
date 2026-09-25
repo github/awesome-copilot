@@ -341,12 +341,60 @@ if ($issueState -ne 'OPEN') {
 }
 
 $prNumber = Find-LinkedPR -State OPEN
+$prResumeState = $null
 if ($prNumber) {
+    $prResumeStateOutput = @(gh pr view $prNumber -R $Repo `
+        --json state,isDraft,baseRefName 2>$null)
+    $ghExitCode = $LASTEXITCODE
+    if ($ghExitCode -ne 0 -or $prResumeStateOutput.Count -eq 0) {
+        throw "Unable to inspect linked PR #$prNumber."
+    }
+    $prResumeState = ($prResumeStateOutput -join [Environment]::NewLine) |
+        ConvertFrom-Json
+    if ([string]$prResumeState.state -ne 'OPEN') {
+        throw "Linked PR #$prNumber is not open."
+    }
+    if ([string]$prResumeState.baseRefName -ne $BaseBranch) {
+        throw "Linked PR #$prNumber does not target '$BaseBranch'."
+    }
+}
+
+$runPhase1 = $true
+if ($prNumber -and $prResumeState.isDraft -eq $false) {
+    $phase1Evidence = $null
+    $phase1Candidates = @(
+        Get-ChildItem -LiteralPath $LogDir -File `
+            -Filter "phase1-task-*-$TaskIssue.md" |
+            Sort-Object Name -Descending
+    )
+    foreach ($candidate in $phase1Candidates) {
+        try {
+            & $sessionOutcomeAssertion `
+                -SharePath $candidate.FullName `
+                -Stage 30 `
+                -TaskIssue ([int]$TaskIssue) `
+                -PRNumber ([int]$prNumber) | Out-Null
+            $phase1Evidence = $candidate.FullName
+            break
+        }
+        catch {
+            continue
+        }
+    }
+    if (-not $phase1Evidence) {
+        throw "PR #$prNumber is ready for review, but this run has no successful Stage 30 transcript for that PR."
+    }
+    $runPhase1 = $false
+    Write-Status "PR #$prNumber is already ready for review — resuming Phase 2 using $(Split-Path -Leaf $phase1Evidence)."
+}
+elseif ($prNumber) {
     Write-Status "PR #$prNumber already exists for issue #$TaskIssue — resuming Phase 1."
 }
-Write-Status "Phase 1: Launching copilot --yolo for task #$TaskIssue"
 
-$phase1Prompt = @"
+if ($runPhase1) {
+    Write-Status "Phase 1: Launching copilot --yolo for task #$TaskIssue"
+
+    $phase1Prompt = @"
 Invoke skill ``shepherd-task-30-from-assignment-to-ready`` with these inputs:
 
 - TASK_ISSUE: $TaskIssue
@@ -357,65 +405,66 @@ Invoke skill ``shepherd-task-30-from-assignment-to-ready`` with these inputs:
 - LESSON_PROPAGATION: $LessonPropagation
 "@
 
-$phase1Timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-Write-Status "Phase 1 prompt: $phase1Prompt"
-$phase1Share = Join-Path $LogDir "phase1-task-$phase1Timestamp-$TaskIssue.md"
-$phase1Jsonl = Join-Path $LogDir "phase1-task-$phase1Timestamp-$TaskIssue.jsonl"
-$phase1Otel = Join-Path (Resolve-Path $LogDir) "phase1-otel-$phase1Timestamp-$TaskIssue.jsonl"
-Invoke-CopilotPhaseRedacted `
-    -Prompt $phase1Prompt `
-    -JsonlPath $phase1Jsonl `
-    -SharePath $phase1Share `
-    -OtelPath $phase1Otel
+    $phase1Timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    Write-Status "Phase 1 prompt: $phase1Prompt"
+    $phase1Share = Join-Path $LogDir "phase1-task-$phase1Timestamp-$TaskIssue.md"
+    $phase1Jsonl = Join-Path $LogDir "phase1-task-$phase1Timestamp-$TaskIssue.jsonl"
+    $phase1Otel = Join-Path (Resolve-Path $LogDir) "phase1-otel-$phase1Timestamp-$TaskIssue.jsonl"
+    Invoke-CopilotPhaseRedacted `
+        -Prompt $phase1Prompt `
+        -JsonlPath $phase1Jsonl `
+        -SharePath $phase1Share `
+        -OtelPath $phase1Otel
 
-Write-Status "Phase 1: copilot exited. Verifying semantic outcome and state..."
+    Write-Status "Phase 1: copilot exited. Verifying semantic outcome and state..."
 
-$prNumber = Find-LinkedPR -State OPEN
-& $sessionOutcomeAssertion `
-    -SharePath $phase1Share `
-    -Stage 30 `
-    -TaskIssue ([int]$TaskIssue) `
-    -PRNumber $(if ($prNumber) { [int]$prNumber } else { 0 }) | Out-Null
-Write-Status "Found PR #$prNumber"
+    $prNumber = Find-LinkedPR -State OPEN
+    & $sessionOutcomeAssertion `
+        -SharePath $phase1Share `
+        -Stage 30 `
+        -TaskIssue ([int]$TaskIssue) `
+        -PRNumber $(if ($prNumber) { [int]$prNumber } else { 0 }) | Out-Null
+    Write-Status "Found PR #$prNumber"
 
-# Verify state and base branch
-$phase1StateOutput = @(gh pr view $prNumber -R $Repo `
-    --json state,isDraft,baseRefName,reviewDecision 2>$null)
-$ghExitCode = $LASTEXITCODE
-if ($ghExitCode -ne 0 -or $phase1StateOutput.Count -eq 0) {
-    Write-Fail "Unable to inspect PR #$prNumber after Phase 1."
-    exit 1
-}
-$phase1State = ($phase1StateOutput -join [Environment]::NewLine) |
-    ConvertFrom-Json
-if ($phase1State.baseRefName -ne $BaseBranch) {
-    Write-Status "PR base is '$($phase1State.baseRefName)', fixing to '$BaseBranch'..."
-    gh pr edit $prNumber -R $Repo --base $BaseBranch
-    if ($LASTEXITCODE -ne 0) {
-        Write-Fail "Could not update PR #$prNumber base to '$BaseBranch'."
+    # Verify state and base branch
+    $phase1StateOutput = @(gh pr view $prNumber -R $Repo `
+        --json state,isDraft,baseRefName,reviewDecision 2>$null)
+    $ghExitCode = $LASTEXITCODE
+    if ($ghExitCode -ne 0 -or $phase1StateOutput.Count -eq 0) {
+        Write-Fail "Unable to inspect PR #$prNumber after Phase 1."
         exit 1
     }
-}
-if ($phase1State.state -ne 'OPEN' -or
-    $phase1State.isDraft -ne $true -or
-    [string]$phase1State.reviewDecision -eq 'CHANGES_REQUESTED') {
-    Write-Fail "PR #$prNumber is not ready after Phase 1: state=$($phase1State.state), isDraft=$($phase1State.isDraft), reviewDecision=$($phase1State.reviewDecision)."
-    exit 1
-}
+    $phase1State = ($phase1StateOutput -join [Environment]::NewLine) |
+        ConvertFrom-Json
+    if ($phase1State.baseRefName -ne $BaseBranch) {
+        Write-Status "PR base is '$($phase1State.baseRefName)', fixing to '$BaseBranch'..."
+        gh pr edit $prNumber -R $Repo --base $BaseBranch
+        if ($LASTEXITCODE -ne 0) {
+            Write-Fail "Could not update PR #$prNumber base to '$BaseBranch'."
+            exit 1
+        }
+    }
+    if ($phase1State.state -ne 'OPEN' -or
+        $phase1State.isDraft -ne $true -or
+        [string]$phase1State.reviewDecision -eq 'CHANGES_REQUESTED') {
+        Write-Fail "PR #$prNumber is not ready after Phase 1: state=$($phase1State.state), isDraft=$($phase1State.isDraft), reviewDecision=$($phase1State.reviewDecision)."
+        exit 1
+    }
 
-# Verify CI passing
-if (-not (Test-CIPassing $prNumber)) {
-    Write-Fail "CI checks not passing on PR #$prNumber after Phase 1."
-    exit 1
-}
+    # Verify CI passing
+    if (-not (Test-CIPassing $prNumber)) {
+        Write-Fail "CI checks not passing on PR #$prNumber after Phase 1."
+        exit 1
+    }
 
-# Verify no unresolved reviews
-if (-not (Test-NoUnresolvedReviews $prNumber)) {
-    Write-Fail "Unresolved review comments remain on PR #$prNumber after Phase 1."
-    exit 1
-}
+    # Verify no unresolved reviews
+    if (-not (Test-NoUnresolvedReviews $prNumber)) {
+        Write-Fail "Unresolved review comments remain on PR #$prNumber after Phase 1."
+        exit 1
+    }
 
-Write-Ok "Phase 1 VERIFIED: PR #$prNumber is ready. CI passing, no unresolved comments."
+    Write-Ok "Phase 1 VERIFIED: PR #$prNumber is ready. CI passing, no unresolved comments."
+}
 
 # =============================================================================
 # PHASE 2: Ready for Review to Merged

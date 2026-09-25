@@ -112,6 +112,10 @@ The GitHub CLI and Copilot CLI both returned process exit code 0.
         'Multiple $State PRs close task issue',
         'was already completed by PR',
         '--json state,isDraft,baseRefName,reviewDecision',
+        '$runPhase1 = $true',
+        'is already ready for review — resuming Phase 2',
+        'has no successful Stage 30 transcript for that PR',
+        '-SharePath $candidate.FullName',
         'gh api graphql --paginate --slurp',
         "reviewDecision -eq 'CHANGES_REQUESTED'",
         '$reviewDecision -ne ''CHANGES_REQUESTED'''
@@ -122,9 +126,6 @@ The GitHub CLI and Copilot CLI both returned process exit code 0.
     }
     if ($orchestrator.Contains('test(`"#$TaskIssue`")')) {
         throw 'PowerShell orchestrator still uses a prefix-colliding issue body search.'
-    }
-    if ($orchestrator.Contains('skipping Phase 1')) {
-        throw 'PowerShell orchestrator still skips stage 30 when an open PR exists.'
     }
 }
 finally {
