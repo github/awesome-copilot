@@ -17,8 +17,9 @@ export const TEXT_WEIGHT = 400;
 export const MAX_ELEMENTS = 5000;
 // The biggest width or height a shape can have.
 export const MAX_SIDE = 5000;
-// The most points a pen stroke keeps.
-export const MAX_PEN_POINTS = 5000;
+// The most points a pen stroke keeps. Low enough that even the biggest stroke still fits in the
+// 64 KiB a page can send as it closes (see flushBeacon in public/sync.js).
+export const MAX_PEN_POINTS = 2000;
 
 const ID_PREFIX = { rect: "r", ellipse: "o", diamond: "d", cylinder: "c", text: "t", arrow: "a", pen: "p" };
 export const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$/;

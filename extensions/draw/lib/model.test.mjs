@@ -76,3 +76,20 @@ test("a stroke with too many points keeps both its ends", () => {
   assert.ok(pen.points.every((p, i) => i === 0 || p[0] > pen.points[i - 1][0]));
   assert.equal(normalizeElement({ type: "pen", points: points.slice(0, 10) }).points.length, 10);
 });
+
+test("any one element, however big, fits in what a page can send as it closes", () => {
+  // Browsers only deliver keepalive requests after the page is gone, and refuse them past 64 KiB
+  // in all (see flushBeacon in public/sync.js).
+  const far = -999999.94;
+  const pen = normalizeElement({ id: "p".repeat(64), type: "pen", color: "#123456", points: Array.from({ length: 3 * MAX_PEN_POINTS }, () => [far, far]) });
+  assert.equal(pen.points.length, MAX_PEN_POINTS);
+  assert.deepEqual(pen.points[0], [-999999.9, -999999.9]);
+  // A lone surrogate is written as a 6 byte escape, the most any one character of a label takes.
+  const text = "\ud800".repeat(10000);
+  const labelled = ["rect", "ellipse", "diamond", "cylinder", "text", "arrow"].map((type) =>
+    normalizeElement({ id: type[0].repeat(64), type, text, from: "f".repeat(64), to: "g".repeat(64) }));
+  for (const el of [pen, ...labelled]) {
+    const body = JSON.stringify({ clientId: "c".repeat(64), drawingId: "d".repeat(64), seq: Number.MAX_SAFE_INTEGER, ops: { upserts: [el], deletes: [] } });
+    assert.ok(Buffer.byteLength(body) <= 64 * 1024, `${el.type}: ${Buffer.byteLength(body)} bytes`);
+  }
+});

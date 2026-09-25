@@ -56,6 +56,8 @@ export function attachMenus(ui) {
       }
       const res = await ui.sync.post("drawings", body);
       ui.setDrawings(res.drawings);
+      // A new name never moves the panel, even if it has moved to another drawing meanwhile.
+      if (body.action === "rename") return res;
       if (res.drawing.id !== ui.sync.drawingId) {
         if (!(await ui.sync.switchTo(res.drawing, { discard }))) return null;
       } else ui.setDoc(res.drawing);
@@ -139,7 +141,10 @@ export function attachMenus(ui) {
   function startRename() {
     const button = $("doc-button");
     const input = $("doc-rename");
-    input.value = ui.doc ? ui.doc.name : "";
+    // The panel can move to another drawing before the new name is in (the agent can open one),
+    // and the name belongs to the drawing it was typed for.
+    const doc = ui.doc;
+    input.value = doc ? doc.name : "";
     button.hidden = true;
     input.hidden = false;
     input.focus();
@@ -148,12 +153,14 @@ export function attachMenus(ui) {
     const finish = async (save) => {
       if (finished) return;
       finished = true;
+      ui.cancelRename = null;
       input.hidden = true;
       button.hidden = false;
       const name = input.value.trim();
-      if (save && name && ui.doc && name !== ui.doc.name) await drawingsAction({ action: "rename", id: ui.doc.id, name });
+      if (save && name && doc && doc.id === ui.doc?.id && name !== doc.name) await drawingsAction({ action: "rename", id: doc.id, name });
       ed.focusCanvas();
     };
+    ui.cancelRename = () => finish(false);
     input.onkeydown = (e) => {
       e.stopPropagation();
       if (e.key === "Enter") {

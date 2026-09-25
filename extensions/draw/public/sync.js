@@ -7,6 +7,10 @@ import { applyOps, diffOps, mergeOps } from "/lib/model.mjs";
 // them and fetches the whole drawing again.
 const MAX_EARLY = 200;
 
+// Browsers only send keepalive requests (the kind that still goes out once the page is gone)
+// while their bodies add up to at most 64 KiB (see flushBeacon).
+const KEEPALIVE_BYTES = 64 * 1024;
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export class Sync {
@@ -451,8 +455,15 @@ export class Sync {
     }
     if (!ops.upserts.length && !ops.deletes.length && !ops.order) return;
     const body = JSON.stringify({ clientId: this.clientId, drawingId: this.drawingId, seq: ++this.seq, ops });
+    // Only a keepalive request is sure to arrive once the page is gone, and past the keepalive limit
+    // the browser refuses it outright. Splitting it would not help, since the limit is for all of
+    // them together. Any one element fits (see MAX_PEN_POINTS), and a change is saved about 60 ms
+    // after it is made, so only a bulk change to a big drawing that was not saved yet (a drag of
+    // many shapes that is still going on, say) is bigger. That goes as an ordinary request, which
+    // can still reach the local server but is often cancelled along with the page.
+    const keepalive = new TextEncoder().encode(body).length <= KEEPALIVE_BYTES;
     try {
-      fetch(this.url("ops"), { method: "POST", body, keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" } }).catch(() => {});
+      fetch(this.url("ops"), { method: "POST", body, keepalive, headers: { "Content-Type": "text/plain;charset=utf-8" } }).catch(() => {});
     } catch {
       // Nothing else we can do while unloading.
     }

@@ -81,6 +81,7 @@ async function boot() {
       list: (drawings) => ui.setDrawings(drawings),
       switched: (drawing) => {
         ui.closePopover();
+        ui.cancelRename?.();
         ed.load(drawing);
         ui.setDoc(drawing);
         ui.syncEmpty();
