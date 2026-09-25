@@ -838,6 +838,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "draw",
+      "source": "plugins/draw",
+      "description": "Draw simple diagrams in a Copilot canvas: shapes, arrows that stay attached, text and a freehand pen. Copilot can read, create and edit the same drawing, tidy its layout, and export it as PNG or SVG.",
+      "version": "1.0.0"
+    },
+    {
       "name": "edge-ai-tasks",
       "source": "plugins/edge-ai-tasks",
       "description": "Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai",

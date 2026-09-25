@@ -1,0 +1,414 @@
+// Drawings live as JSON files in the session workspace: <dir>/<id>.json
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import { EventEmitter } from "node:events";
+import { normalizeElements, mergeOps, diffOps, MAX_ELEMENTS } from "./lib/model.mjs";
+
+const VERSION = 1;
+const STATE_FILE = ".state.json";
+const MAX_INSTANCES = 50;
+const MAX_SLUG = 48;
+const SLUG_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// An error with a code for agent actions and an HTTP status for the canvas API.
+export class StoreError extends Error {
+    constructor(code, message, status = 400) {
+        super(message);
+        this.code = code;
+        this.status = status;
+    }
+}
+
+export function slugifyName(name) {
+    return String(name || "")
+        .toLowerCase()
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, MAX_SLUG)
+        .replace(/-+$/g, "");
+}
+
+function cleanName(name) {
+    return typeof name === "string" ? name.replace(/\s+/g, " ").trim().slice(0, 80) : "";
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+let tmpCount = 0;
+
+async function atomicWrite(file, data) {
+    // The count keeps two writes of one file in the same millisecond from sharing a temp file.
+    const tmp = `${file}.${process.pid}.${Date.now().toString(36)}.${(tmpCount++).toString(36)}.tmp`;
+    try {
+        await fs.writeFile(tmp, data, "utf8");
+        for (let attempt = 0; ; attempt++) {
+            try {
+                await fs.rename(tmp, file);
+                return;
+            } catch (err) {
+                // Windows can briefly lock a file that an antivirus or indexer is reading.
+                if (attempt >= 5 || !["EPERM", "EBUSY", "EACCES"].includes(err.code)) throw err;
+                await sleep(40 * (attempt + 1));
+            }
+        }
+    } catch (err) {
+        // A write that fails part way (a full disk, say) leaves part of the temp file, and every
+        // retry picks a new name, so remove it.
+        await fs.rm(tmp, { force: true }).catch(() => {});
+        throw err;
+    }
+}
+
+// File system errors name the temp file, which changes on every try, so keep just "CODE: description".
+// Otherwise each retry would read as a new problem and warn the user again.
+function saveProblem(err) {
+    const message = String(err?.message || err);
+    return err?.code && err.syscall ? message.split(", ")[0] : message;
+}
+
+function serialize(doc) {
+    const { elements, ...meta } = doc;
+    const head = JSON.stringify(meta, null, 2).replace(/\n}$/, "");
+    const body = elements.length
+        ? `[\n${elements.map((e) => "    " + JSON.stringify(e)).join(",\n")}\n  ]`
+        : "[]";
+    return `${head},\n  "elements": ${body}\n}\n`;
+}
+
+export class DrawingStore extends EventEmitter {
+    constructor(dir, { log = () => {} } = {}) {
+        super();
+        this.dir = dir;
+        this.exportsDir = path.join(dir, "exports");
+        this.log = log;
+        this.docs = new Map();
+        this.timers = new Map();
+        this.saving = new Map();
+        this.saveErrors = new Map();
+        this.stateTimer = null;
+        // State writes run one at a time, so an older one cannot finish after a newer one.
+        this.stateSaving = Promise.resolve();
+        this.listTimer = null;
+        this.state = { lastOpened: null, instances: {} };
+        this.ready = this.#load();
+    }
+
+    async #load() {
+        await fs.mkdir(this.dir, { recursive: true });
+        const names = await fs.readdir(this.dir).catch(() => []);
+        for (const name of names) {
+            if (!name.endsWith(".json") || name.startsWith(".")) continue;
+            const id = name.slice(0, -5);
+            // Ids made before the length fix could run a little past MAX_SLUG, so allow some slack.
+            if (!SLUG_ID.test(id) || id.length > MAX_SLUG + 16) continue;
+            try {
+                const raw = JSON.parse(await fs.readFile(path.join(this.dir, name), "utf8"));
+                if (Array.isArray(raw?.elements) && raw.elements.length > MAX_ELEMENTS) {
+                    this.log(`Draw: ${name} has ${raw.elements.length} elements, so only the first ${MAX_ELEMENTS} were loaded.`);
+                }
+                this.docs.set(id, this.#clean(raw, id));
+            } catch (err) {
+                this.log(`Draw: skipping unreadable drawing ${name}: ${err.message}`);
+            }
+        }
+        try {
+            const raw = JSON.parse(await fs.readFile(path.join(this.dir, STATE_FILE), "utf8"));
+            if (raw && typeof raw === "object") {
+                this.state.lastOpened = typeof raw.lastOpened === "string" ? raw.lastOpened : null;
+                if (raw.instances && typeof raw.instances === "object") this.state.instances = { ...raw.instances };
+            }
+        } catch {
+            // No state yet.
+        }
+    }
+
+    #clean(raw, id) {
+        const now = new Date().toISOString();
+        return {
+            version: VERSION,
+            id,
+            name: cleanName(raw?.name) || id,
+            rev: Number.isInteger(raw?.rev) && raw.rev >= 0 ? raw.rev : 0,
+            createdAt: typeof raw?.createdAt === "string" ? raw.createdAt : now,
+            updatedAt: typeof raw?.updatedAt === "string" ? raw.updatedAt : now,
+            elements: normalizeElements(raw?.elements),
+        };
+    }
+
+    filePath(id) {
+        return path.join(this.dir, `${id}.json`);
+    }
+
+    list() {
+        return [...this.docs.values()]
+            .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+            .map((d) => ({ id: d.id, name: d.name, updatedAt: d.updatedAt, count: d.elements.length }));
+    }
+
+    get(id) {
+        return (typeof id === "string" && this.docs.get(id)) || null;
+    }
+
+    // The drawing nameOrId means: the one with exactly that id, or else the one with that name
+    // (ignoring case), or else the one whose id or name has the same slug ("my plan!" finds "My
+    // Plan"). An exact id always wins, so it is the way to pick one of several drawings that share
+    // a name. When a name could mean more than one drawing, this throws instead of guessing.
+    find(nameOrId) {
+        const raw = cleanName(nameOrId);
+        if (!raw) return null;
+        const byId = this.docs.get(raw);
+        if (byId) return byId;
+        const docs = [...this.docs.values()];
+        const only = (matches) => {
+            if (matches.length > 1) {
+                const list = matches.map((d) => `${d.id} ("${d.name}")`).join(", ");
+                throw new StoreError("ambiguous_name", `More than one drawing matches "${raw}": ${list}. Pass the id of the one you want.`);
+            }
+            return matches[0] || null;
+        };
+        const lower = raw.toLowerCase();
+        const byName = only(docs.filter((d) => d.name.toLowerCase() === lower));
+        if (byName) return byName;
+        const slug = slugifyName(raw);
+        return slug ? only(docs.filter((d) => d.id === slug || slugifyName(d.name) === slug)) : null;
+    }
+
+    #nextName() {
+        const taken = new Set([...this.docs.values()].map((d) => d.name.toLowerCase()));
+        let n = this.docs.size + 1;
+        while (taken.has(`drawing ${n}`)) n++;
+        return `Drawing ${n}`;
+    }
+
+    create(name) {
+        const finalName = cleanName(name) || this.#nextName();
+        const root = slugifyName(finalName) || "drawing";
+        let id = root;
+        for (let i = 2; this.docs.has(id); i++) {
+            const suffix = `-${i}`;
+            id = root.slice(0, MAX_SLUG - suffix.length).replace(/-+$/, "") + suffix;
+        }
+        const now = new Date().toISOString();
+        const doc = { version: VERSION, id, name: finalName, rev: 0, createdAt: now, updatedAt: now, elements: [] };
+        this.docs.set(id, doc);
+        this.#scheduleSave(id, 0);
+        // Soon rather than now, so a copy is listed once its elements are in.
+        this.#listSoon();
+        return doc;
+    }
+
+    #require(id) {
+        const doc = this.get(id);
+        if (!doc) throw new Error(`No drawing with id "${id}".`);
+        return doc;
+    }
+
+    // `ops` are the element-level ops that made the change (see diffOps), or null when no
+    // element changed.
+    #touch(doc, origin, ops = null) {
+        doc.rev += 1;
+        doc.updatedAt = new Date().toISOString();
+        this.#scheduleSave(doc.id);
+        this.emit("change", doc, origin, ops);
+        this.#listSoon();
+    }
+
+    // An edit changes the drawing's count and time in the drawings list, so the list goes out
+    // again, once for a burst of edits rather than once per edit.
+    #listSoon() {
+        if (this.listTimer) return;
+        this.listTimer = setTimeout(() => {
+            this.listTimer = null;
+            this.emit("list");
+        }, 300);
+        this.listTimer.unref?.();
+    }
+
+    rename(id, name) {
+        const doc = this.#require(id);
+        const finalName = cleanName(name);
+        if (!finalName) throw new Error("A drawing name cannot be empty.");
+        if (finalName === doc.name) return doc;
+        doc.name = finalName;
+        this.#touch(doc, "rename");
+        return doc;
+    }
+
+    // A change that would go over MAX_ELEMENTS fails with an error, instead of the extra
+    // elements quietly disappearing.
+    mutate(id, fn, origin = "agent") {
+        const doc = this.#require(id);
+        const next = normalizeElements(fn(doc.elements), Infinity);
+        if (next.length > MAX_ELEMENTS) {
+            const fmt = (n) => n.toLocaleString("en-US");
+            throw new StoreError(
+                "too_many_elements",
+                `A drawing can hold up to ${fmt(MAX_ELEMENTS)} elements, and this change would make ${fmt(next.length)}.`,
+            );
+        }
+        const ops = diffOps(new Map(doc.elements.map((e) => [e.id, e])), next);
+        doc.elements = next;
+        this.#touch(doc, origin, ops);
+        return doc;
+    }
+
+    applyOps(id, ops, origin) {
+        return this.mutate(id, (elements) => mergeOps(elements, ops), origin);
+    }
+
+    replace(id, elements, origin) {
+        return this.mutate(id, () => elements, origin);
+    }
+
+    async remove(id) {
+        const doc = this.#require(id);
+        clearTimeout(this.timers.get(id));
+        this.timers.delete(id);
+        this.docs.delete(id);
+        await (this.saving.get(id) || Promise.resolve()).catch(() => {});
+        try {
+            await fs.rm(this.filePath(id), { force: true });
+        } catch (err) {
+            // The file is still there, so keep the drawing rather than have it come back after a restart.
+            if (!this.docs.has(id)) this.docs.set(id, doc);
+            this.#scheduleSave(id);
+            this.emit("list");
+            throw new StoreError("delete_failed", `Could not delete "${doc.name}": ${err.message}`, 500);
+        }
+        this.saving.delete(id);
+        this.saveErrors.delete(id);
+        if (this.state.lastOpened === id) this.state.lastOpened = null;
+        for (const [inst, drawing] of Object.entries(this.state.instances)) {
+            if (drawing === id) delete this.state.instances[inst];
+        }
+        this.#scheduleState();
+        this.emit("list");
+    }
+
+    drawingForInstance(instanceId) {
+        return this.get(this.state.instances[instanceId]);
+    }
+
+    bindInstance(instanceId, drawingId) {
+        const instances = this.state.instances;
+        delete instances[instanceId];
+        instances[instanceId] = drawingId;
+        const keys = Object.keys(instances);
+        for (const key of keys.slice(0, Math.max(0, keys.length - MAX_INSTANCES))) delete instances[key];
+        this.state.lastOpened = drawingId;
+        this.#scheduleState();
+    }
+
+    get lastOpened() {
+        return this.get(this.state.lastOpened);
+    }
+
+    async writeExport(drawingId, ext, data) {
+        await fs.mkdir(this.exportsDir, { recursive: true });
+        const file = path.join(this.exportsDir, `${drawingId}.${ext}`);
+        await atomicWrite(file, data);
+        return file;
+    }
+
+    #scheduleSave(id, delay = 200) {
+        clearTimeout(this.timers.get(id));
+        this.timers.set(id, setTimeout(() => this.#save(id), delay));
+    }
+
+    #save(id) {
+        this.timers.delete(id);
+        const run = (this.saving.get(id) || Promise.resolve())
+            .catch(() => {})
+            .then(async () => {
+                const doc = this.docs.get(id);
+                if (doc) await atomicWrite(this.filePath(id), serialize(doc));
+            })
+            .then(
+                () => this.#saved(id, null),
+                (err) => {
+                    this.#saved(id, err);
+                    throw err;
+                },
+            );
+        run.catch(() => {});
+        this.saving.set(id, run);
+        return run;
+    }
+
+    // Tracks failed writes: panels get a "save" event when a drawing starts or stops failing, and
+    // the write is retried until the disk takes it, since the edit only exists in memory until then.
+    #saved(id, err) {
+        const failure = this.saveErrors.get(id);
+        if (!err) {
+            if (failure) {
+                this.saveErrors.delete(id);
+                this.log(`Draw: saved ${id} again.`);
+                this.emit("save", id, null);
+            }
+            return;
+        }
+        const attempts = (failure ? failure.attempts : 0) + 1;
+        const message = saveProblem(err);
+        this.saveErrors.set(id, { message, attempts });
+        if (!failure || failure.message !== message) {
+            this.log(`Draw: failed to save ${id}: ${err.message}`);
+            this.emit("save", id, message);
+        }
+        if (this.docs.has(id) && !this.timers.has(id)) {
+            const timer = setTimeout(() => this.#save(id), Math.min(30000, 1000 * 2 ** (attempts - 1)));
+            timer.unref?.();
+            this.timers.set(id, timer);
+        }
+    }
+
+    // Why the latest write of a drawing failed, or null when it is safely on disk.
+    saveError(id) {
+        return this.saveErrors.get(id)?.message || null;
+    }
+
+    // Writes a drawing now instead of after the usual short wait, and waits for the write.
+    // Resolves with the reason it failed, or null once the drawing is on disk.
+    async persist(id) {
+        if (this.timers.has(id)) {
+            clearTimeout(this.timers.get(id));
+            this.#save(id);
+        }
+        await this.saving.get(id)?.catch(() => {});
+        return this.saveError(id);
+    }
+
+    #scheduleState() {
+        clearTimeout(this.stateTimer);
+        this.stateTimer = setTimeout(() => this.#saveState(), 300);
+    }
+
+    #saveState() {
+        this.stateTimer = null;
+        // Each write takes the state as it is when its turn comes, so the last one has every change.
+        this.stateSaving = this.stateSaving
+            .then(() => atomicWrite(path.join(this.dir, STATE_FILE), JSON.stringify(this.state, null, 2) + "\n"))
+            .catch((err) => this.log(`Draw: failed to save state: ${err.message}`));
+        return this.stateSaving;
+    }
+
+    async flush() {
+        const pending = [...this.timers.keys()];
+        for (const id of pending) {
+            clearTimeout(this.timers.get(id));
+            this.#save(id);
+        }
+        const results = await Promise.allSettled([...this.saving.values()]);
+        if (this.stateTimer) {
+            clearTimeout(this.stateTimer);
+            this.#saveState();
+        }
+        // Also waits for a state write that had already started.
+        await this.stateSaving;
+        const failed = results.filter((r) => r.status === "rejected");
+        if (failed.length) {
+            const what = failed.length === 1 ? "a drawing" : `${failed.length} drawings`;
+            throw new StoreError("save_failed", `Could not save ${what}: ${failed[0].reason.message}`, 500);
+        }
+    }
+}
