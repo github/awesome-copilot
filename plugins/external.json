@@ -926,6 +926,32 @@
     }
   },
   {
+    "name": "incident-io",
+    "description": "Official incident.io plugins for AI agents: skills for working with [incident.io](https://incident.io/) — incidents, on-call, and investigations — and for authoring the operational content our platform draws on.",
+    "version": "0.18.0",
+    "author": {
+      "name": "incident.io",
+      "url": "https://incident.io"
+    },
+    "repository": "https://github.com/incident-io/skills",
+    "homepage": "https://incident.io",
+    "license": "MIT",
+    "keywords": [
+      "incident-response",
+      "on-call",
+      "investigations",
+      "runbooks",
+      "sre",
+      "devops"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "incident-io/skills",
+      "path": "plugins/incident-io",
+      "sha": "6d0bbfc9e52256fc39326b9ba6d08f16831b60ae"
+    }
+  },
+  {
     "name": "keep-the-why",
     "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
     "version": "0.17.0",
