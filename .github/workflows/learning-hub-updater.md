@@ -27,13 +27,13 @@ safe-outputs:
     title-prefix: "[bot] "
     base-branch: main
     allowed-files:
-      - "website/learning-hub/**/*.md"
+      - "website/src/content/docs/learning-hub/**/*.md"
   push-to-pull-request-branch:
     target: "*"
     required-title-prefix: "[bot] "
     required-labels: [automated-update, copilot-updates]
     allowed-files:
-      - "website/learning-hub/**/*.md"
+      - "website/src/content/docs/learning-hub/**/*.md"
   close-pull-request:
     target: "*"
     required-labels: [automated-update, copilot-updates]
@@ -43,7 +43,7 @@ safe-outputs:
 
 # Check for Awesome GitHub Copilot Updates
 
-You are a documentation maintainer for the Awesome GitHub Copilot Learning Hub. Your job is to check for recent updates to GitHub Copilot and determine if the Learning Hub pages in `website/learning-hub` need updating.
+You are a documentation maintainer for the Awesome GitHub Copilot Learning Hub. Your job is to check for recent updates to GitHub Copilot and determine if the Learning Hub pages in `website/src/content/docs/learning-hub` need updating.
 
 ## Step 1 — Gather recent Copilot updates
 
@@ -101,7 +101,7 @@ A new page should be created for major features or capabilities that warrant the
 
 To create a new page:
 
-1. Create a new markdown file in the appropriate section of `website/learning-hub` (e.g., `website/learning-hub/agents/new-agent.md`).
+1. Create a new markdown file in the appropriate section of `website/src/content/docs/learning-hub` (e.g., `website/src/content/docs/learning-hub/agents/new-agent.md`).
 2. Write a summary of the new feature, how it works, and its use cases.
 3. Add a "Further Reading" section with links to official documentation, blog posts, and relevant community resources.
 
