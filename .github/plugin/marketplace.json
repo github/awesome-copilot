@@ -235,6 +235,33 @@
       "version": "1.0.1"
     },
     {
+      "name": "azure-functions-hosted-skills",
+      "description": "Build, run, and debug Azure Functions Hosted Skills locally or invoke supported functions in an existing Function App from a Copilot canvas.",
+      "version": "0.5.3",
+      "author": {
+        "name": "paulyuk",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-functions/functions-hosted-skills"
+      },
+      "repository": "https://github.com/microsoft/azure-dev-tools",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "azure",
+        "azure-functions",
+        "hosted-skills",
+        "automation",
+        "development",
+        "skills",
+        "event-driven"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-dev-tools",
+        "path": "canvases/azure-functions-hosted-skills",
+        "sha": "a873dfa42ce8e4420b77e94ddca896e8771e3b0c"
+      }
+    },
+    {
       "name": "backlog-swipe-triage",
       "source": "plugins/backlog-swipe-triage",
       "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
@@ -1492,6 +1519,33 @@
         "source": "github",
         "repo": "Avyayalaya/pm-skills-arsenal",
         "ref": "v2.1.0"
+      }
+    },
+    {
+      "name": "postgres-skills",
+      "description": "Expert PostgreSQL guidance and live database tools for Postgres anywhere, including local, self-hosted, containers, on-premises, AWS, Google Cloud, Azure Database for PostgreSQL, and Azure HorizonDB. Covers indexing, vector search and RAG, JSONB, partitioning, security, replication, and knowledge graphs with connection-aware guidance.",
+      "version": "0.1.2",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/microsoft"
+      },
+      "repository": "https://github.com/microsoft/postgres-skills",
+      "homepage": "https://github.com/microsoft/postgres-skills",
+      "license": "MIT",
+      "keywords": [
+        "postgresql",
+        "database",
+        "azure",
+        "pgvector",
+        "rag",
+        "apache-age",
+        "graph"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/postgres-skills",
+        "path": "plugin",
+        "sha": "3ea7816fd1e449916b9277cc2671bc1c4c34f8c9"
       }
     },
     {
