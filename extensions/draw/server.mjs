@@ -22,6 +22,8 @@ const MAX_BODY = 40 * 1024 * 1024;
 const ASK_OUTLINE_BUDGET = 16000;
 // How many pages the server remembers the last change number of (see lastSeq).
 const SEQ_MEMORY = 500;
+// How long open_drawing waits for the panel to say it shows the drawing (see openDrawing).
+const SWITCH_TIMEOUT_MS = 10000;
 const CSP = [
     "default-src 'self'",
     "script-src 'self'",
@@ -123,6 +125,8 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
     const clients = new Set();
     const selections = new Map();
     const pendingExports = new Map();
+    // Drawings an agent opened, until each page of the panel says it shows them (see openDrawing).
+    const pendingSwitches = new Map();
     // The number of the newest change each page has had applied. A page sends one change at a
     // time, except when it closes: its last change can then overtake one still on the way, and
     // that older one must not undo it.
@@ -134,7 +138,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         try {
             client.res.write(frame);
         } catch {
-            clients.delete(client);
+            dropClient(client);
         }
     };
     const sendAll = (list, event, data) => {
@@ -158,11 +162,49 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         return doc;
     }
 
-    function showDrawing(instanceId, doc) {
+    function showDrawing(instanceId, doc, switchId) {
         // The selection is of the drawing on screen, so it only goes when the panel shows another one.
         if (store.drawingForInstance(instanceId)?.id !== doc.id) selections.delete(instanceId);
         store.bindInstance(instanceId, doc.id);
-        sendAll(clientsFor(instanceId), "switch", { drawing: pub(doc) });
+        sendAll(clientsFor(instanceId), "switch", { drawing: pub(doc), switchId });
+    }
+
+    // Shows another drawing in a panel for the agent, and waits for the panel to take it: a page
+    // with edits it cannot save first stays on its drawing and moves the panel back (see switchTo
+    // in public/sync.js). Resolves "shown", "refused" (the panel is back on its drawing by then) or
+    // "unconfirmed" when a page does not answer in time. With no page open there is nothing to wait
+    // for, since a page shows the panel's drawing when it loads.
+    function openDrawing(instanceId, doc, timeoutMs = SWITCH_TIMEOUT_MS) {
+        const waiting = new Set(clientsFor(instanceId).map((c) => c.clientId));
+        if (!waiting.size) {
+            showDrawing(instanceId, doc);
+            return Promise.resolve("shown");
+        }
+        const switchId = randomBytes(8).toString("hex");
+        return new Promise((resolve) => {
+            const finish = (result) => {
+                pendingSwitches.delete(switchId);
+                clearTimeout(timer);
+                resolve(result);
+            };
+            const timer = setTimeout(() => finish("unconfirmed"), timeoutMs);
+            pendingSwitches.set(switchId, { instanceId, waiting, finish });
+            showDrawing(instanceId, doc, switchId);
+        });
+    }
+
+    // A page of the panel took the drawing, or is gone and cannot answer.
+    function switchAnswered(switchId, instanceId, clientId) {
+        const pending = pendingSwitches.get(switchId);
+        if (!pending || pending.instanceId !== instanceId) return;
+        pending.waiting.delete(clientId);
+        if (!pending.waiting.size) pending.finish("shown");
+    }
+
+    function dropClient(client) {
+        clients.delete(client);
+        if (clientsFor(client.instanceId).some((c) => c.clientId === client.clientId)) return;
+        for (const switchId of pendingSwitches.keys()) switchAnswered(switchId, client.instanceId, client.clientId);
     }
 
     // Settings apply to every panel, so every client hears about a change.
@@ -212,7 +254,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
             res.write("retry: 1500\n\n");
             const client = { res, instanceId, clientId: url.searchParams.get("c") || "" };
             clients.add(client);
-            req.on("close", () => clients.delete(client));
+            req.on("close", () => dropClient(client));
             return;
         }
         if (req.method !== "POST") throw new HttpError(404, "Not found.");
@@ -245,6 +287,10 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         if (route === "/api/selection") {
             const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string").slice(0, MAX_ELEMENTS) : [];
             selections.set(instanceId, { drawingId: body.drawingId, ids });
+            return sendJson(res, 200, { ok: true });
+        }
+        if (route === "/api/switched") {
+            switchAnswered(body.switchId, instanceId, clientId);
             return sendJson(res, 200, { ok: true });
         }
         if (route === "/api/drawings") {
@@ -302,6 +348,9 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         }
         store.bindInstance(instanceId, doc.id);
         selections.delete(instanceId);
+        // A page that could not take a drawing the agent opened moves the panel back with this.
+        const refused = action === "open" && pendingSwitches.get(body.switchId);
+        if (refused && refused.instanceId === instanceId) refused.finish("refused");
         return { drawing: pub(doc), drawings: store.list() };
     }
 
@@ -427,6 +476,7 @@ export function createDrawServer({ store, settings = new Settings(), getSession,
         },
         ensureDrawing,
         showDrawing,
+        openDrawing,
         readSettings: () => settings.read(),
         updateSettings,
         hasClient: (instanceId) => clientsFor(instanceId).length > 0,

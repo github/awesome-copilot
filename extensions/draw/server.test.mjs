@@ -68,7 +68,8 @@ const post = (server, route, body) =>
         body: typeof body === "string" ? body : JSON.stringify(body),
     });
 
-// Opens a panel's live event stream. next(type) resolves with the next event of that type.
+// Opens a panel's live event stream. next(type) resolves with the next event of that type, and
+// close() ends the stream the way a page that goes away does.
 async function listen(t, server, clientId = "listener") {
     const queue = [];
     let wake = null;
@@ -95,6 +96,7 @@ async function listen(t, server, clientId = "listener") {
         wake?.();
     });
     return {
+        close: () => req.destroy(),
         async next(type, timeoutMs = 5000) {
             const deadline = Date.now() + timeoutMs;
             for (;;) {
@@ -218,6 +220,55 @@ test("showing the drawing already on screen keeps its selection, and showing ano
     server.showDrawing(PANEL, store.create("Other"));
     server.showDrawing(PANEL, store.get(doc.id));
     assert.deepEqual(server.selection(PANEL, doc.id), []);
+});
+
+test("a drawing the agent opens counts as shown once every page of the panel says so", async (t) => {
+    const { server, store, doc } = await setup(t);
+    const other = store.create("Other");
+    // With no page open, the next page to load shows the panel's drawing.
+    assert.equal(await server.openDrawing(PANEL, other), "shown");
+    assert.equal(server.ensureDrawing(PANEL).id, other.id);
+
+    const first = await listen(t, server, "page1");
+    const second = await listen(t, server, "page2");
+    const answer = (clientId, switchId) => post(server, "/api/switched", { clientId, switchId });
+    const soon = (promise) => Promise.race([promise, new Promise((resolve) => setTimeout(() => resolve("waiting"), 100))]);
+    const opened = async (drawing, timeoutMs) => {
+        const result = server.openDrawing(PANEL, drawing, timeoutMs);
+        const ev = await first.next("switch");
+        assert.equal(ev.drawing.id, drawing.id);
+        assert.equal((await second.next("switch")).switchId, ev.switchId);
+        return { result, switchId: ev.switchId };
+    };
+
+    let { result, switchId } = await opened(doc);
+    await answer("page1", switchId);
+    assert.equal(await soon(result), "waiting");
+    await answer("page2", switchId);
+    assert.equal(await result, "shown");
+
+    // A page that cannot take it moves the panel back, and says why it does.
+    ({ result, switchId } = await opened(other));
+    assert.equal(server.ensureDrawing(PANEL).id, other.id);
+    await post(server, "/api/drawings", { clientId: "page1", action: "open", id: doc.id, switchId });
+    assert.equal(await result, "refused");
+    assert.equal(server.ensureDrawing(PANEL).id, doc.id);
+
+    // A page that goes away cannot answer, so it is not waited for.
+    ({ result, switchId } = await opened(other));
+    await answer("page1", switchId);
+    second.close();
+    assert.equal(await result, "shown");
+});
+
+test("a drawing the agent opens is unconfirmed when the page does not answer in time", async (t) => {
+    const { server, store } = await setup(t);
+    const page = await listen(t, server, "page1");
+    const result = server.openDrawing(PANEL, store.create("Other"), 200);
+    const { switchId } = await page.next("switch");
+    assert.equal(await result, "unconfirmed");
+    // A late answer changes nothing.
+    assert.deepEqual((await post(server, "/api/switched", { clientId: "page1", switchId })).json, { ok: true });
 });
 
 test("a page's older change that arrives after a newer one is dropped", async (t) => {

@@ -114,7 +114,7 @@ export class Sync {
     source.addEventListener("error", () => this.handlers.connection?.(false));
     on("ops", (ev) => this.onOps(ev));
     on("list", ({ drawings }) => this.handlers.list?.(drawings));
-    on("switch", ({ drawing }) => this.switchTo(drawing));
+    on("switch", ({ drawing, switchId }) => this.switchTo(drawing, { switchId }));
     on("export", (req) => this.handlers.exportRequest?.(req));
     on("select", ({ drawingId, ids }) => {
       if (drawingId === this.drawingId) this.showSelection(ids);
@@ -237,11 +237,14 @@ export class Sync {
   // Shows another drawing. Edits on screen that are not saved yet would be lost, so when they
   // cannot be saved first, the panel stays on this drawing, tells the server so, and resolves
   // false, and the unsaved handler lets the user discard them. `discard` skips that check.
-  // A deleted drawing has nowhere left to save to, so it never holds the panel.
-  async switchTo(drawing, { discard = false } = {}) {
+  // A deleted drawing has nowhere left to save to, so it never holds the panel. `switchId` comes
+  // with a drawing the agent opened, and the server hears which way it went (see openDrawing in
+  // server.mjs).
+  async switchTo(drawing, { discard = false, switchId = null } = {}) {
     // Showing the drawing that is already on screen loses nothing, so it is only an update to it.
     if (drawing.id === this.drawingId) {
       this.onRemote(drawing);
+      this.confirmSwitch(switchId);
       return true;
     }
     // The server already treats the other drawing as shown, so while the flush below waits, it
@@ -257,7 +260,7 @@ export class Sync {
     if (!ready) {
       // The server has already moved this panel to the other drawing, so move it back. Changes to
       // this drawing did not come to the panel in the meantime, so it takes the copy in the reply.
-      this.post("drawings", { action: "open", id: this.drawingId })
+      this.post("drawings", { action: "open", id: this.drawingId, switchId })
         .then((res) => {
           if (res.drawing) this.onRemote(res.drawing);
           this.drainOps();
@@ -271,6 +274,7 @@ export class Sync {
     // Another switch can show this drawing first. Then this copy is only an update to it.
     if (drawing.id === this.drawingId) {
       this.onRemote(drawing);
+      this.confirmSwitch(switchId);
       return true;
     }
     this.setDoc(drawing);
@@ -283,7 +287,12 @@ export class Sync {
     if (!this.diskError) this.settled();
     // A change to it came while the panel waited, and one before it never did.
     if (target.behind) this.resync();
+    this.confirmSwitch(switchId);
     return true;
+  }
+
+  confirmSwitch(switchId) {
+    if (switchId) this.post("switched", { switchId }).catch(() => {});
   }
 
   // The extension has all our changes, so show "saved", unless it cannot write them to disk.

@@ -420,6 +420,27 @@ export function arrowLabelBox(a, g, measure = approxMeasure) {
 
 // ---------- bounds and hit testing ----------
 
+// The smallest and largest x and y of a pen stroke's points. Hit testing and marquee selection
+// need them for every stroke on every pointer move, so they are worked out once per points array.
+// Points are never changed in place: a stroke that moves gets new ones (see translateElement).
+const strokeExtents = new WeakMap();
+function penExtents(points) {
+  let e = strokeExtents.get(points);
+  if (!e) {
+    e = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+    for (let i = 0; i < points.length; i++) {
+      const x = points[i][0];
+      const y = points[i][1];
+      if (x < e.minX) e.minX = x;
+      if (x > e.maxX) e.maxX = x;
+      if (y < e.minY) e.minY = y;
+      if (y > e.maxY) e.maxY = y;
+    }
+    strokeExtents.set(points, e);
+  }
+  return e;
+}
+
 export function elementBounds(el, byId, measure = approxMeasure) {
   if (isShape(el)) return { x: el.x, y: el.y, w: el.w, h: el.h };
   if (el.type === "text") {
@@ -427,12 +448,11 @@ export function elementBounds(el, byId, measure = approxMeasure) {
     return { x: el.x, y: el.y, w: l.w, h: l.h };
   }
   if (el.type === "pen") {
-    const xs = el.points.map((p) => p[0]);
-    const ys = el.points.map((p) => p[1]);
+    const e = penExtents(el.points);
     const r = el.width / 2;
-    const x = Math.min(...xs) - r;
-    const y = Math.min(...ys) - r;
-    return { x, y, w: Math.max(...xs) + r - x, h: Math.max(...ys) + r - y };
+    const x = e.minX - r;
+    const y = e.minY - r;
+    return { x, y, w: e.maxX + r - x, h: e.maxY + r - y };
   }
   if (el.type === "arrow") {
     const g = arrowGeometry(el, byId);
@@ -531,6 +551,32 @@ export function fitStroke(points, eps) {
 
 const inBox = (b, x, y, tol) => b && x >= b.x - tol && x <= b.x + b.w + tol && y >= b.y - tol && y <= b.y + b.h + tol;
 
+// Whether a point is within `reach` of a pen stroke. A stroke whose box is further away is
+// skipped without looking at its points, and the rest are measured from the stored [x, y] pairs
+// without making an object for each one.
+function nearStroke(points, x, y, reach) {
+  const e = penExtents(points);
+  if (x < e.minX - reach || x > e.maxX + reach || y < e.minY - reach || y > e.maxY + reach) return false;
+  const r2 = reach * reach;
+  let ax = points[0][0];
+  let ay = points[0][1];
+  if (points.length === 1) return (x - ax) ** 2 + (y - ay) ** 2 <= r2;
+  for (let i = 1; i < points.length; i++) {
+    const bx = points[i][0];
+    const by = points[i][1];
+    const dx = bx - ax;
+    const dy = by - ay;
+    const len2 = dx * dx + dy * dy;
+    const t = len2 ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / len2)) : 0;
+    const ex = x - (ax + t * dx);
+    const ey = y - (ay + t * dy);
+    if (ex * ex + ey * ey <= r2) return true;
+    ax = bx;
+    ay = by;
+  }
+  return false;
+}
+
 // Topmost element under a point. Arrows are drawn on top, so they are tested first.
 // Unfilled shapes only catch clicks on their outline or label unless nothing else is hit.
 export function hitTest(elements, x, y, tol = 4, measure = approxMeasure) {
@@ -547,8 +593,7 @@ export function hitTest(elements, x, y, tol = 4, measure = approxMeasure) {
     const el = elements[i];
     if (el.type === "arrow") continue;
     if (el.type === "pen") {
-      const pts = el.points.map(([px, py]) => ({ x: px, y: py }));
-      if (distToPolyline(x, y, pts) <= el.width / 2 + tol + 2) return el;
+      if (nearStroke(el.points, x, y, el.width / 2 + tol + 2)) return el;
     } else if (el.type === "text") {
       if (inBox(elementBounds(el, byId, measure), x, y, tol)) return el;
     } else if (isShape(el)) {

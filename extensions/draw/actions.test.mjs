@@ -120,7 +120,10 @@ test("an action that names another drawing than the one shown changes nothing", 
 test("a name more than one drawing has opens nothing and lists their ids", async (t) => {
     const { store, run, server } = await setup(t);
     const shown = [];
-    server.showDrawing = (instanceId, d) => shown.push(d.id);
+    server.openDrawing = async (instanceId, d) => {
+        shown.push(d.id);
+        return "shown";
+    };
     assert.equal(store.create("Plan").id, "plan-2");
     for (const name of ["Plan", "PLAN", "plan!"]) {
         await assert.rejects(run("open_drawing", { name }), (err) => {
@@ -139,6 +142,24 @@ test("a name more than one drawing has opens nothing and lists their ids", async
     assert.match(second.message, /Other drawings have this name too: plan\./);
     assert.equal((await run("open_drawing", { name: "plan" })).drawing.id, "plan");
     assert.deepEqual(shown, ["plan-2", "plan"]);
+});
+
+test("open_drawing says when the canvas could not take the drawing, or has not said it did", async (t) => {
+    const { store, run, server } = await setup(t);
+    let outcome = "refused";
+    server.openDrawing = async () => outcome;
+    await assert.rejects(run("open_drawing", { name: "Other" }), (err) => {
+        assert.equal(err.code, "unsaved_changes");
+        assert.match(err.message, /^The canvas stayed on "Plan" \(id plan\): it has changes that could not be saved yet, and opening "Other" would lose them\./);
+        assert.match(err.message, / "Other" was created, so opening it again finds it\.$/);
+        return true;
+    });
+
+    outcome = "unconfirmed";
+    const result = await run("open_drawing", { name: "Other" });
+    assert.equal(result.created, false);
+    assert.match(result.message, /^Opened "Other"\. The canvas has not said yet that it shows it, so pass drawingId "other" to the next actions/);
+    assert.equal(store.list().length, 2);
 });
 
 test("every action on the shown drawing can name the drawing it means", () => {

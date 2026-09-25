@@ -380,13 +380,13 @@ export function makeActions({ runtime, CanvasError }) {
 
     action(
       "open_drawing",
-      "Show another drawing in this canvas, found by name or id. Creates a new empty drawing with that name if none matches. If a name could mean more than one drawing, nothing opens and the error lists their ids; pass one of those instead, since an id always picks one.",
+      "Show another drawing in this canvas, found by name or id. Creates a new empty drawing with that name if none matches. If a name could mean more than one drawing, nothing opens and the error lists their ids; pass one of those instead, since an id always picks one. If the canvas has changes it cannot save yet, it stays on its drawing and the error says so.",
       {
         name: str("Name or id of the drawing."),
         create: { type: "boolean", description: "Create the drawing when none matches. Defaults to true." },
       },
       ["name"],
-      ({ store, server, instanceId }, input) => {
+      async ({ store, server, doc: current, instanceId }, input) => {
         let doc = store.find(input.name);
         let created = false;
         if (!doc) {
@@ -394,8 +394,17 @@ export function makeActions({ runtime, CanvasError }) {
           doc = store.create(input.name);
           created = true;
         }
-        server.showDrawing(instanceId, doc);
+        const outcome = await server.openDrawing(instanceId, doc);
+        if (outcome === "refused") {
+          fail(
+            "unsaved_changes",
+            `The canvas stayed on "${current.name}" (id ${current.id}): it has changes that could not be saved yet, and opening "${doc.name}" would lose them. The user was offered a button to discard them and open it.${created ? ` "${doc.name}" was created, so opening it again finds it.` : ""}`,
+          );
+        }
         let message = created ? `Created and opened "${doc.name}".` : `Opened "${doc.name}".`;
+        if (outcome === "unconfirmed") {
+          message += ` The canvas has not said yet that it shows it, so pass drawingId "${doc.id}" to the next actions: then they change nothing if it stays on another drawing.`;
+        }
         const sameName = store.list().filter((d) => d.id !== doc.id && d.name.toLowerCase() === doc.name.toLowerCase());
         if (sameName.length) message += ` Other drawings have this name too: ${sameName.map((d) => d.id).join(", ")}.`;
         return { ...summary(doc, message), created };

@@ -1,7 +1,7 @@
-// Tests for label wrapping and arrow routes. Run `node --test` in the extension folder.
+// Tests for label wrapping, arrow routes, pen strokes and hit testing. Run `node --test` in the extension folder.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { arrowGeometry, fitStroke, simplifyStroke, wrapText } from "./geometry.mjs";
+import { arrowGeometry, elementBounds, fitStroke, hitTest, simplifyStroke, wrapText } from "./geometry.mjs";
 import { MAX_PEN_POINTS, normalizeElement } from "./model.mjs";
 
 // One unit of width per character, so the expected lines are easy to read.
@@ -72,4 +72,33 @@ test("a fitted stroke is short enough to keep and ends where the pointer did", (
   assert.deepEqual(out[0], zigzag[0]);
   assert.deepEqual(out.at(-1), zigzag.at(-1));
   assert.equal(normalizeElement({ type: "pen", points: out }).points.length, MAX_PEN_POINTS);
+});
+
+test("pointing finds a pen stroke without reading the points of strokes out of reach", () => {
+  const near = normalizeElement({ id: "near", type: "pen", points: [[0, 0], [100, 0], [100, 100]], width: 4 });
+  const dot = normalizeElement({ id: "dot", type: "pen", points: [[300, 300]], width: 4 });
+  const far = normalizeElement({ id: "far", type: "pen", points: Array.from({ length: MAX_PEN_POINTS }, (_, i) => [1000 + i, 1000]), width: 4 });
+  let reads = 0;
+  const points = new Proxy(far.points, {
+    get(target, key, receiver) {
+      if (typeof key === "string" && /^\d+$/.test(key)) reads++;
+      return Reflect.get(target, key, receiver);
+    },
+  });
+  const elements = [near, dot, { ...far, points }];
+
+  // Within half the width plus the tolerance plus 2 (8 here) of a line between two points.
+  assert.equal(hitTest(elements, 50, 5)?.id, "near");
+  reads = 0;
+  assert.equal(hitTest(elements, 50, 9), null);
+  assert.equal(hitTest(elements, 50, 5, 0), null);
+  assert.equal(hitTest(elements, 105, 50)?.id, "near");
+  assert.equal(hitTest(elements, 303, 303)?.id, "dot");
+  assert.equal(hitTest(elements, 306, 306), null);
+  assert.equal(reads, 0);
+  assert.equal(hitTest(elements, 1500, 1006)?.id, "far");
+
+  assert.deepEqual(elementBounds(near), { x: -2, y: -2, w: 104, h: 104 });
+  const moved = { ...near, points: near.points.map(([x, y]) => [x + 50, y]) };
+  assert.deepEqual(elementBounds(moved), { x: 48, y: -2, w: 104, h: 104 });
 });
