@@ -159,6 +159,33 @@
     }
   },
   {
+    "name": "azure-functions-hosted-skills",
+    "description": "Build, run, and debug Azure Functions Hosted Skills locally or invoke supported functions in an existing Function App from a Copilot canvas.",
+    "version": "0.5.3",
+    "author": {
+      "name": "paulyuk",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-functions/functions-hosted-skills"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "azure-functions",
+      "hosted-skills",
+      "automation",
+      "development",
+      "skills",
+      "event-driven"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-functions-hosted-skills",
+      "sha": "a873dfa42ce8e4420b77e94ddca896e8771e3b0c"
+    }
+  },
+  {
     "name": "bd-skills",
     "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
     "version": "0.1.26",

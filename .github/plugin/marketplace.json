@@ -235,6 +235,33 @@
       "version": "1.0.1"
     },
     {
+      "name": "azure-functions-hosted-skills",
+      "description": "Build, run, and debug Azure Functions Hosted Skills locally or invoke supported functions in an existing Function App from a Copilot canvas.",
+      "version": "0.5.3",
+      "author": {
+        "name": "paulyuk",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-functions/functions-hosted-skills"
+      },
+      "repository": "https://github.com/microsoft/azure-dev-tools",
+      "license": "MIT",
+      "keywords": [
+        "canvas",
+        "azure",
+        "azure-functions",
+        "hosted-skills",
+        "automation",
+        "development",
+        "skills",
+        "event-driven"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-dev-tools",
+        "path": "canvases/azure-functions-hosted-skills",
+        "sha": "a873dfa42ce8e4420b77e94ddca896e8771e3b0c"
+      }
+    },
+    {
       "name": "backlog-swipe-triage",
       "source": "plugins/backlog-swipe-triage",
       "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
