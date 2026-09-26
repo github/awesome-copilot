@@ -242,18 +242,18 @@ function Find-LinkedPR {
     return $null
 }
 
-# --- Helper: Verify all CI checks pass (excluding expected failure) ---
+# --- Helper: Verify all CI checks are terminal and acceptable (excluding expected failure) ---
 function Test-CIPassing {
     param([string]$PRNumber)
 
-    $failures = @(gh pr checks $PRNumber -R $Repo --json name,state,bucket `
-        --jq '.[] | select(.bucket == "fail") | select(.name != "No remove-before-merge directories") | .name' 2>$null)
+    $blockingChecks = @(gh pr checks $PRNumber -R $Repo --json name,state,bucket `
+        --jq '.[] | select((.bucket == "pass" or .bucket == "skipping" or (.bucket == "fail" and .name == "No remove-before-merge directories")) | not) | "\(.name): \(.bucket)"' 2>$null)
     $ghExitCode = $LASTEXITCODE
     if ($ghExitCode -ne 0) {
         throw "Unable to query CI checks for PR #$PRNumber."
     }
 
-    return $failures.Count -eq 0
+    return $blockingChecks.Count -eq 0
 }
 
 # --- Helper: Check for unresolved review state ---

@@ -55,6 +55,22 @@ title_branch_matches=$(jq -r '.[] | select(((.title // "") | test("(^|[^0-9])14(
     exit 1
 }
 
+blocking_check_filter='.[] | select((.bucket == "pass" or .bucket == "skipping" or (.bucket == "fail" and .name == "No remove-before-merge directories")) | not) | "\(.name): \(.bucket)"'
+ci_checks_json='[
+  {"name":"passing","state":"SUCCESS","bucket":"pass"},
+  {"name":"skipped","state":"SKIPPED","bucket":"skipping"},
+  {"name":"No remove-before-merge directories","state":"FAILURE","bucket":"fail"},
+  {"name":"pending","state":"PENDING","bucket":"pending"},
+  {"name":"cancelled","state":"CANCELLED","bucket":"cancel"},
+  {"name":"failed","state":"FAILURE","bucket":"fail"},
+  {"name":"future-state","state":"UNKNOWN","bucket":"unknown"}
+]'
+blocking_checks=$(jq -r "$blocking_check_filter" <<<"$ci_checks_json" | tr -d '\r')
+[[ "$blocking_checks" == $'pending: pending\ncancelled: cancel\nfailed: fail\nfuture-state: unknown' ]] || {
+    echo "CI gate accepted a nonterminal or unsuccessful check bucket: $blocking_checks" >&2
+    exit 1
+}
+
 grep -Fq 'resuming Phase 1' "$orchestrator"
 grep -Fq 'find_linked_pr MERGED' "$orchestrator"
 grep -Fq 'closingIssuesReferences' "$orchestrator"
@@ -71,6 +87,11 @@ grep -Fq 'has no successful Stage 30 transcript for that PR' "$orchestrator"
 grep -Fq '"$candidate" 30 "$TASK_ISSUE" "$PR_NUMBER"' "$orchestrator"
 grep -Fq 'gh api graphql --paginate --slurp' "$orchestrator"
 grep -Fq '"$review_decision" != "CHANGES_REQUESTED"' "$orchestrator"
+grep -Fq "$blocking_check_filter" "$orchestrator"
+if grep -Fq '.[] | select(.bucket == "fail") | select(.name != "No remove-before-merge directories")' "$orchestrator"; then
+    echo 'Bash orchestrator still accepts pending checks through the failure-only filter.' >&2
+    exit 1
+fi
 if grep -Fq 'find_linked_pr OPEN) || true' "$orchestrator"; then
     echo 'Bash orchestrator still suppresses linked-PR discovery errors.' >&2
     exit 1

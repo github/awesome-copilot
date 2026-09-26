@@ -40,7 +40,7 @@ sequenceDiagram
     end
 
     ST->>GH: Ensure PR base equals campaign base
-    ST->>GH: Reject non-exempt failed CI checks
+    ST->>GH: Reject pending, cancelled, unknown, or non-exempt failed CI checks
     ST->>GH: Reject unresolved review threads
 
     alt PR is not merged
@@ -65,3 +65,6 @@ prior Stage 40 attempt already made the PR ready, the runner resumes Stage 40
 only after validating a successful Stage 30 transcript for that exact task and
 PR in the supplied run directory. The stage skills perform the deeper issue,
 SHA, CI, review, and lesson gates shown in Figures 03 and 04.
+The outer CI postcondition independently requires every reported check bucket
+to be terminal and acceptable; JSON-mode exit status alone is not treated as
+proof that pending checks completed.

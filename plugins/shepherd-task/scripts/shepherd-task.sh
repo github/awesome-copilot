@@ -168,15 +168,15 @@ find_linked_pr() {
     return 1
 }
 
-# Verify all CI checks pass (excluding expected failure).
+# Verify all CI checks are terminal and acceptable (excluding expected failure).
 ci_passing() {
     local pr_number="$1"
-    local failures
-    failures=$(gh pr checks "$pr_number" -R "$REPO" --json name,state,bucket \
-        --jq '.[] | select(.bucket == "fail") | select(.name != "No remove-before-merge directories") | .name' 2>/dev/null) ||
+    local blocking_checks
+    blocking_checks=$(gh pr checks "$pr_number" -R "$REPO" --json name,state,bucket \
+        --jq '.[] | select((.bucket == "pass" or .bucket == "skipping" or (.bucket == "fail" and .name == "No remove-before-merge directories")) | not) | "\(.name): \(.bucket)"' 2>/dev/null) ||
         return 1
 
-    [[ -z "$failures" ]]
+    [[ -z "$blocking_checks" ]]
 }
 
 # Check for unresolved bot review comments.

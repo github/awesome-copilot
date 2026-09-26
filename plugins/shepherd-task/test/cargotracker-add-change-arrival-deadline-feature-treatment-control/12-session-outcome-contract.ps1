@@ -99,6 +99,33 @@ The GitHub CLI and Copilot CLI both returned process exit code 0.
             -SharePath $successfulStage30 -Stage 30 -TaskIssue 14 -PRNumber 0
     }
 
+    $blockingCheckFilter = '.[] | select((.bucket == "pass" or .bucket == "skipping" or (.bucket == "fail" and .name == "No remove-before-merge directories")) | not) | "\(.name): \(.bucket)"'
+    $ciChecksJson = @'
+[
+  {"name":"passing","state":"SUCCESS","bucket":"pass"},
+  {"name":"skipped","state":"SKIPPED","bucket":"skipping"},
+  {"name":"No remove-before-merge directories","state":"FAILURE","bucket":"fail"},
+  {"name":"pending","state":"PENDING","bucket":"pending"},
+  {"name":"cancelled","state":"CANCELLED","bucket":"cancel"},
+  {"name":"failed","state":"FAILURE","bucket":"fail"},
+  {"name":"future-state","state":"UNKNOWN","bucket":"unknown"}
+]
+'@
+    $blockingChecks = @($ciChecksJson | jq -r $blockingCheckFilter)
+    $jqExitCode = $LASTEXITCODE
+    if ($jqExitCode -ne 0) {
+        throw "Unable to evaluate the CI gate fixture; jq exited $jqExitCode."
+    }
+    $expectedBlockingChecks = @(
+        'pending: pending',
+        'cancelled: cancel',
+        'failed: fail',
+        'future-state: unknown'
+    )
+    if (($blockingChecks -join "`n") -ne ($expectedBlockingChecks -join "`n")) {
+        throw "CI gate accepted a nonterminal or unsuccessful check bucket: $($blockingChecks -join ', ')"
+    }
+
     $orchestrator = [System.IO.File]::ReadAllText($orchestratorPath)
     foreach ($required in @(
         'resuming Phase 1',
@@ -118,11 +145,17 @@ The GitHub CLI and Copilot CLI both returned process exit code 0.
         '-SharePath $candidate.FullName',
         'gh api graphql --paginate --slurp',
         "reviewDecision -eq 'CHANGES_REQUESTED'",
-        '$reviewDecision -ne ''CHANGES_REQUESTED'''
+        '$reviewDecision -ne ''CHANGES_REQUESTED''',
+        $blockingCheckFilter
     )) {
         if (-not $orchestrator.Contains($required)) {
             throw "PowerShell orchestrator is missing semantic outcome contract text: $required"
         }
+    }
+    if ($orchestrator.Contains(
+        '.[] | select(.bucket == "fail") | select(.name != "No remove-before-merge directories")'
+    )) {
+        throw 'PowerShell orchestrator still accepts pending checks through the failure-only filter.'
     }
     if ($orchestrator.Contains('test(`"#$TaskIssue`")')) {
         throw 'PowerShell orchestrator still uses a prefix-colliding issue body search.'
