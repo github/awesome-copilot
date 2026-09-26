@@ -17,6 +17,7 @@ Use this workflow when adding or changing a Roslyn analyzer, code fix, source ge
 - Respect cancellation where APIs expose a token. Do not retain compilations, operations, syntax trees, symbols, or semantic models in static state.
 - Avoid `InternalsVisibleTo`. Test analyzers through their public `DiagnosticAnalyzer` and `CodeFixProvider` APIs and the Roslyn test harness. A small analyzer helper may be public when direct testing is genuinely useful, but most behavior should be tested end to end.
 - Centralize metadata names and member names instead of propagating magic strings. Use one shared static catalog for fully qualified type names, namespaces, and API member names.
+- Never identify a symbol, including an attribute class, by calling `ToDisplayString()` and comparing the result with a string literal. Resolve the expected symbol from the `Compilation` once by metadata name, then compare encountered symbols with `SymbolEqualityComparer.Default.Equals(actual, expected)`. Display strings are for presentation, not identity, and can vary with formatting, aliases, qualification, nullability, and other context.
 - Document every diagnostic ID. When the repository uses Docfx, put analyzer documentation under its Docfx tree, typically `docfx/analyzers`, and include each page in the relevant table of contents.
 - Set every analyzer assembly's version precisely enough that each commit produces a unique assembly version. When using Nerdbank.GitVersioning, give each analyzer project its own `version.json` with `assemblyVersion.precision` set to `revision` and ensure that repository-wide MSBuild properties do not prevent that file from being discovered.
 - Source generators must implement `IIncrementalGenerator`, not `ISourceGenerator`. Design the provider graph so unchanged inputs remain cached and do not regenerate output.
@@ -26,7 +27,7 @@ Use this workflow when adding or changing a Roslyn analyzer, code fix, source ge
 
 1. Write down examples that must report and near-misses that must not report. Decide the exact diagnostic span and message arguments before implementation.
 2. Determine whether the rule is semantic. Prefer, in order, operation actions, operation-block actions, symbol actions, compilation-start actions that register one of those actions, and finally syntax actions.
-3. Resolve well-known types once in a compilation-start action when needed. If a required type is absent, register no inner action. Compare symbols with `SymbolEqualityComparer.Default`, metadata names, arity, containing type, and signature as appropriate; do not identify APIs by simple method name alone.
+3. Resolve well-known types once in a compilation-start action with `Compilation.GetTypeByMetadataName` when needed. If a required type is absent, register no inner action. Capture the resolved `ISymbol` in the registered callback and compare encountered symbols with `SymbolEqualityComparer.Default.Equals`; for attributes, compare `AttributeData.AttributeClass` with the resolved attribute type. Never use `ToDisplayString()` plus a string literal as a substitute for symbol identity. Check metadata names, arity, containing type, and signature as appropriate when selecting members; do not identify APIs by simple method name alone.
 4. Define a stable diagnostic ID and descriptor. Follow repository practices for category, severity, localization, help links, telemetry tags, and release tracking.
 5. Add or update the diagnostic's documentation page and wire the descriptor's `HelpLinkUri` to its published URL.
 6. Report the smallest useful source location. Avoid diagnostics on generated code unless that is intentional.
@@ -467,6 +468,7 @@ A separate `Product.Analyzers` package is also valid. In that model, the main li
 - Shipping analyzer, source-generator, and code-fix projects set `IsAnalyzerCompatibilityProject`, conditionally import a dedicated `Directory.Packages.Analyzers.props`, and retain XML comments explaining the compatibility baseline and override mechanism.
 - Renovate or Dependabot cannot automatically advance that baseline at any SemVer level: patch, minor, or major.
 - API/type/member names come from a shared catalog rather than scattered literals.
+- Symbol and attribute matching resolves the expected symbol from the compilation and uses `SymbolEqualityComparer.Default`; it never compares `ToDisplayString()` output with a literal.
 - Every diagnostic ID has a documentation page, is present in site navigation, and has a `HelpLinkUri` matching the published URL.
 - Every analyzer project produces a unique assembly version per commit; with Nerdbank.GitVersioning, its local `version.json` uses revision precision and any shared `GitVersionBaseDirectory` is overridden correctly.
 - Tests use inline markup where possible and cover positive and negative behavior.
