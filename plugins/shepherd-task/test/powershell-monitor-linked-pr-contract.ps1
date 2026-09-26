@@ -26,6 +26,7 @@ Invoke-Expression $functionAst.Extent.Text
 
 $script:Repo = 'owner/repository'
 $script:bodyQuery = $null
+$script:timelineArguments = $null
 function Write-Alert {
     param([string]$Message)
     throw "Unexpected monitor alert: $Message"
@@ -34,15 +35,20 @@ function global:gh {
     $arguments = @($args | ForEach-Object { [string]$_ })
     $command = $arguments -join ' '
     $global:LASTEXITCODE = 0
-    if ($command -like 'api */issues/14/timeline*') {
+    if ($arguments[0] -eq 'api' -and
+        $arguments[1] -eq '/repos/owner/repository/issues/14/timeline?per_page=100') {
+        if ($arguments -notcontains '--paginate') {
+            throw 'Timeline request did not include --paginate.'
+        }
+        $script:timelineArguments = $arguments
         'https://api.github.com/repos/owner/repository/pulls/240'
+        'https://api.github.com/repos/owner/repository/pulls/14'
         return
     }
     if ($command -like 'pr list *') {
         $queryIndex = [Array]::IndexOf($arguments, '--jq')
         $script:bodyQuery = $arguments[$queryIndex + 1]
         '240'
-        '14'
         return
     }
     if ($command -like 'pr view 240 *') {
@@ -65,6 +71,9 @@ try {
         '(^|[^0-9])#14([^0-9]|$)'
     )) {
         throw 'The monitor body fallback does not use exact numeric boundaries.'
+    }
+    if ($null -eq $script:timelineArguments) {
+        throw 'The monitor did not issue the paginated timeline request.'
     }
 
     Write-Host 'PowerShell monitor linked-PR contract tests passed.'

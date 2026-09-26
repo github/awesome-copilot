@@ -104,7 +104,8 @@ find_pr() {
     local candidate_numbers="" matching_numbers="" pr_candidates=""
     local api_prefix="https://api.github.com/repos/$REPO/pulls/"
 
-    pr_candidates=$(gh api "/repos/$REPO/issues/$issue/timeline" \
+    pr_candidates=$(gh api "/repos/$REPO/issues/$issue/timeline?per_page=100" \
+        --paginate \
         --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url' 2>/dev/null) || {
         alert "Unable to query the issue timeline for issue #$issue."
         return 1

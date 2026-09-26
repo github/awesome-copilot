@@ -102,7 +102,8 @@ function Find-PR {
 
     $candidateNumbers = [Collections.Generic.HashSet[int]]::new()
 
-    $prCandidates = @(gh api "/repos/$Repo/issues/$Issue/timeline" `
+    $prCandidates = @(gh api "/repos/$Repo/issues/$Issue/timeline?per_page=100" `
+        --paginate `
         --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url' 2>$null)
     $ghExitCode = $LASTEXITCODE
     if ($ghExitCode -ne 0) {

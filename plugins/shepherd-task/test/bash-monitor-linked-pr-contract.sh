@@ -29,11 +29,13 @@ alert() {
 gh() {
     local command="$*"
     case "$command" in
-        "api /repos/owner/repository/issues/14/timeline"*)
-            echo "https://api.github.com/repos/owner/repository/pulls/240"
+        "api /repos/owner/repository/issues/14/timeline?per_page=100 --paginate --jq "*)
+            printf '%s\n' \
+                "https://api.github.com/repos/owner/repository/pulls/240" \
+                "https://api.github.com/repos/owner/repository/pulls/14"
             ;;
         "pr list "*)
-            printf '%s\n' 240 14
+            printf '%s\n' 240
             ;;
         "pr view 240 "*)
             printf '%s\n' '{"state":"OPEN","closingIssuesReferences":[{"number":140}]}'
@@ -54,5 +56,9 @@ grep -Fq '(^|[^0-9])#$issue([^0-9]|$)' "$monitor" ||
     fail "The monitor body fallback does not use exact numeric boundaries."
 grep -Fq 'any(.closingIssuesReferences[]?; .number == $issue)' "$monitor" ||
     fail "The monitor does not verify authoritative closing references."
+grep -Fq 'timeline?per_page=100' "$monitor" ||
+    fail "The monitor does not request the maximum timeline page size."
+grep -Fq -- '--paginate' "$monitor" ||
+    fail "The monitor does not paginate issue timeline events."
 
 echo "Bash monitor linked-PR contract tests passed."
