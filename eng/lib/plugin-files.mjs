@@ -73,7 +73,8 @@ export function inspectPluginFiles(plugin, pluginDir) {
     errors.push(`${FIELD_NAME} must not contain duplicate references`);
   }
 
-  const pluginRoot = fs.realpathSync(pluginDir);
+  const lexicalPluginRoot = path.resolve(pluginDir);
+  const pluginRoot = fs.realpathSync(lexicalPluginRoot);
   for (let index = 0; index < value.length; index++) {
     const reference = value[index];
     const entryName = `${FIELD_NAME}[${index}]`;
@@ -98,8 +99,8 @@ export function inspectPluginFiles(plugin, pluginDir) {
       continue;
     }
 
-    const targetPath = path.resolve(pluginDir, ...segments);
-    if (!isWithinRoot(pluginRoot, targetPath)) {
+    const targetPath = path.resolve(lexicalPluginRoot, ...segments);
+    if (!isWithinRoot(lexicalPluginRoot, targetPath)) {
       errors.push(`${entryName} must stay within the plugin root`);
       continue;
     }
