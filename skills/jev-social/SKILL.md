@@ -21,7 +21,7 @@ Do not install software, start onboarding, change browser profiles, or request c
 Run this before research:
 
 ```bash
-npx github:socai-io/jev-social#5270e23cfd27aace9055669ee396926973baa241 status
+npx github:socai-io/jev-social#a4f0b0c9b1b0b7b18936d289014a7a8cbfc20d0e status
 ```
 
 The commit is the tested runtime source included in release `v0.1.8`. Do not add an automatic-consent flag. If the package runner needs to download the source, identify `socai-io/jev-social` and the pinned commit to the user, then continue only after the user approves that download.
@@ -31,7 +31,7 @@ Require a configured decision provider, an installed socai CLI, and support for 
 If setup is missing, identify the exact missing prerequisite. Run interactive onboarding or install software only when the user requested setup or authorized installation:
 
 ```bash
-npx github:socai-io/jev-social#5270e23cfd27aace9055669ee396926973baa241 onboard
+npx github:socai-io/jev-social#a4f0b0c9b1b0b7b18936d289014a7a8cbfc20d0e onboard
 ```
 
 Never place an API key in a shell command, transcript, report, or committed file.
@@ -41,7 +41,7 @@ Never place an API key in a shell command, transcript, report, or committed file
 Use the platform named by the user. Otherwise leave routing to Jev with `auto`. Keep the natural-language goal intact; it can include desired evidence, target counts, and stopping conditions.
 
 ```bash
-npx github:socai-io/jev-social#5270e23cfd27aace9055669ee396926973baa241 search "<research goal>" \
+npx github:socai-io/jev-social#a4f0b0c9b1b0b7b18936d289014a7a8cbfc20d0e search "<research goal>" \
   --platform <auto|instagram|tiktok|linkedin> \
   --limit 4 \
   --max-steps 12
@@ -75,7 +75,7 @@ Lead with the outcome, then present the useful records in a compact table or sho
 When the user asks for an interactive preview instead of a terminal run, start the loopback UI with:
 
 ```bash
-npx github:socai-io/jev-social#5270e23cfd27aace9055669ee396926973baa241 serve --port 8766
+npx github:socai-io/jev-social#a4f0b0c9b1b0b7b18936d289014a7a8cbfc20d0e serve --port 8766
 ```
 
 Report `http://127.0.0.1:8766` and leave the process running only when the user asked for a local demo server.
