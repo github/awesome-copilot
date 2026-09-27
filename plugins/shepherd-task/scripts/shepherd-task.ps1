@@ -157,7 +157,8 @@ function Find-LinkedPR {
     $candidateNumbers = [Collections.Generic.HashSet[int]]::new()
 
     # Strategy A: Issue timeline for cross-referenced PRs in this repository.
-    $prCandidates = @(gh api "/repos/$Repo/issues/$TaskIssue/timeline" `
+    $prCandidates = @(gh api "/repos/$Repo/issues/$TaskIssue/timeline?per_page=100" `
+        --paginate `
         --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url' 2>$null)
     $ghExitCode = $LASTEXITCODE
     if ($ghExitCode -ne 0) {

@@ -100,7 +100,8 @@ find_linked_pr() {
     local pr_candidates=""
 
     # Strategy A: Issue timeline for cross-referenced PRs in this repository.
-    pr_candidates=$(gh api "/repos/$REPO/issues/$TASK_ISSUE/timeline" \
+    pr_candidates=$(gh api "/repos/$REPO/issues/$TASK_ISSUE/timeline?per_page=100" \
+        --paginate \
         --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url' 2>/dev/null) ||
         { echo "Unable to query the issue timeline for issue #$TASK_ISSUE." >&2; return 2; }
     local pull_request_api_prefix="https://api.github.com/repos/$REPO/pulls/"
