@@ -180,6 +180,9 @@ foreach ($runtimeFile in $runtimeFiles) {
 if (-not $driver.Contains("'test\lesson-propagation-default-contract.ps1'")) {
     throw 'Driver does not run the lesson-propagation default contract.'
 }
+if (-not $driver.Contains("'test\stage30-powershell-lifecycle-contract.ps1'")) {
+    throw 'Driver does not run the Stage 30 PowerShell lifecycle contract.'
+}
 if (-not $driver.Contains("'04-verify-control-campaign.ps1'")) {
     throw 'Driver does not run the control-campaign verifier.'
 }

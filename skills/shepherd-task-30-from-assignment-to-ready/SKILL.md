@@ -495,6 +495,159 @@ if [ -z "${LATEST_START:-}" ] || [ -z "${LATEST_FINISH:-}" ] \
 fi
 ```
 
+> **PowerShell equivalent** (when running on Windows):
+> ```powershell
+> function Get-CopilotLifecycleState {
+>     param(
+>         [Parameter(Mandatory)]
+>         [object[]]$Events
+>     )
+>
+>     $latestStart = (
+>         $Events |
+>             Where-Object { $_.event -eq 'copilot_work_started' } |
+>             ForEach-Object { [DateTimeOffset]$_.created_at } |
+>             Sort-Object -Descending |
+>             Select-Object -First 1
+>     )
+>     $latestFinish = (
+>         $Events |
+>             Where-Object { $_.event -eq 'copilot_work_finished' } |
+>             ForEach-Object { [DateTimeOffset]$_.created_at } |
+>             Sort-Object -Descending |
+>             Select-Object -First 1
+>     )
+>     $latestFailure = (
+>         $Events |
+>             Where-Object { $_.event -eq 'copilot_work_finished_failure' } |
+>             ForEach-Object { [DateTimeOffset]$_.created_at } |
+>             Sort-Object -Descending |
+>             Select-Object -First 1
+>     )
+>
+>     [pscustomobject]@{
+>         LatestStart   = $latestStart
+>         LatestFinish  = $latestFinish
+>         LatestFailure = $latestFailure
+>     }
+> }
+>
+> $timeout = [TimeSpan]::FromHours(2)
+> $pollInterval = [TimeSpan]::FromSeconds(30)
+> $startedAtUtc = [DateTimeOffset]::UtcNow
+> $deadlineUtc = $startedAtUtc.Add($timeout)
+> $stopwatch = [Diagnostics.Stopwatch]::StartNew()
+> $latestStart = $null
+> $latestFinish = $null
+>
+> while ($stopwatch.Elapsed -lt $timeout) {
+>     $stateOutput = @(gh pr view $PR_NUMBER -R $REPO `
+>         --json state,isDraft,baseRefName,closingIssuesReferences 2>$null)
+>     $ghExitCode = $LASTEXITCODE
+>     if ($ghExitCode -ne 0 -or $stateOutput.Count -eq 0) {
+>         throw "SHEPHERD FAILED: unable to query PR #$PR_NUMBER state."
+>     }
+>     $state =
+>         ($stateOutput -join [Environment]::NewLine) |
+>         ConvertFrom-Json
+>     $closesTask = @(
+>         $state.closingIssuesReferences |
+>             Where-Object { [int]$_.number -eq [int]$TASK_ISSUE }
+>     ).Count -gt 0
+>     if ([string]$state.state -ne 'OPEN' -or
+>         $state.isDraft -ne $true -or
+>         [string]$state.baseRefName -ne $BASE_BRANCH -or
+>         -not $closesTask) {
+>         throw "SHEPHERD FAILED: PR #$PR_NUMBER violated open, draft, base, or closing-issue invariants before CCA completion."
+>     }
+>
+>     $timelineOutput = @(gh api `
+>         "/repos/$REPO/issues/$PR_NUMBER/timeline?per_page=100" `
+>         --paginate `
+>         --slurp `
+>         -H "Accept: application/vnd.github+json" 2>$null)
+>     $ghExitCode = $LASTEXITCODE
+>     if ($ghExitCode -ne 0 -or $timelineOutput.Count -eq 0) {
+>         throw "SHEPHERD FAILED: unable to query PR #$PR_NUMBER timeline."
+>     }
+>     $timelinePages =
+>         ($timelineOutput -join [Environment]::NewLine) |
+>         ConvertFrom-Json
+>     $events = @(
+>         foreach ($page in @($timelinePages)) {
+>             foreach ($event in @($page)) {
+>                 $event
+>             }
+>         }
+>     )
+>     $lifecycle = Get-CopilotLifecycleState -Events $events
+>     $latestStart = $lifecycle.LatestStart
+>     $latestFinish = $lifecycle.LatestFinish
+>
+>     if ($null -ne $latestStart -and
+>         $null -ne $latestFinish -and
+>         $latestFinish -ge $latestStart) {
+>         break
+>     }
+>
+>     $latestFailure = $lifecycle.LatestFailure
+>     if ($null -ne $latestStart -and
+>         $null -ne $latestFailure -and
+>         $latestFailure -ge $latestStart) {
+>         $changedFilesOutput = @(gh api `
+>             "/repos/$REPO/pulls/$PR_NUMBER" `
+>             --jq '.changed_files' 2>$null)
+>         $ghExitCode = $LASTEXITCODE
+>         if ($ghExitCode -ne 0 -or $changedFilesOutput.Count -eq 0) {
+>             throw "SHEPHERD FAILED: unable to query changed files for PR #$PR_NUMBER."
+>         }
+>         $changedFiles = [int](($changedFilesOutput -join '').Trim())
+>         if ($changedFiles -gt 0) {
+>             Write-Warning "CCA reported failure at $latestFailure, but PR #$PR_NUMBER has $changedFiles changed files. Continuing with validation."
+>             $latestFinish = $latestFailure
+>             break
+>         }
+>
+>         Write-Warning "CCA failed at $latestFailure with no substantive changes. Re-assigning task #$TASK_ISSUE."
+>         $assignmentBody = @{
+>             assignees        = @("copilot-swe-agent[bot]")
+>             agent_assignment = @{
+>                 target_repo = $REPO
+>                 base_branch = $BASE_BRANCH
+>             }
+>         } | ConvertTo-Json -Depth 3
+>         $assignmentOutput = @(
+>             $assignmentBody |
+>                 gh api `
+>                     --method POST `
+>                     -H "Accept: application/vnd.github+json" `
+>                     -H "X-GitHub-Api-Version: 2022-11-28" `
+>                     "/repos/$REPO/issues/$TASK_ISSUE/assignees" `
+>                     --input - 2>&1
+>         )
+>         $ghExitCode = $LASTEXITCODE
+>         if ($ghExitCode -ne 0) {
+>             throw "SHEPHERD FAILED: CCA re-assignment failed: $($assignmentOutput -join [Environment]::NewLine)"
+>         }
+>     }
+>
+>     Start-Sleep -Seconds ([int]$pollInterval.TotalSeconds)
+> }
+>
+> $stopwatch.Stop()
+> if ($null -eq $latestStart -or
+>     $null -eq $latestFinish -or
+>     $latestFinish -lt $latestStart) {
+>     $elapsed = $stopwatch.Elapsed.ToString('c')
+>     throw "SHEPHERD FAILED: CCA did not complete its latest work cycle on PR #$PR_NUMBER within two hours. Started: $($startedAtUtc.ToString('o')); deadline: $($deadlineUtc.ToString('o')); monotonic elapsed: $elapsed."
+> }
+> ```
+>
+> `Stopwatch` supplies monotonic elapsed-time accounting. If Windows sleeps or
+> suspends execution, the loop must fail promptly after execution resumes once
+> the elapsed timeout has been exceeded, and the error must report the start,
+> intended UTC deadline, and observed elapsed duration.
+
 Immediately prove that CCA produced an effective change. All three checks are required so an empty commit, stale comparison, or API anomaly cannot pass:
 
 ```bash

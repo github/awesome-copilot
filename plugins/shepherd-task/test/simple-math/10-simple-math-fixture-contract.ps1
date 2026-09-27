@@ -65,6 +65,7 @@ foreach ($required in @(
     "'11-stage15-installed-path-contract.ps1'",
     "@('git', 'gh', 'copilot', 'pwsh', 'jq')",
     "-Arguments @('repo', 'clone', `$Repo, `$Target)",
+    "'test\stage30-powershell-lifecycle-contract.ps1'",
     "'test\lesson-propagation-default-contract.ps1'"
 )) {
     if (-not $driver.Contains($required)) {
