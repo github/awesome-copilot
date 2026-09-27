@@ -120,7 +120,7 @@ $assignmentBlock = $codeBlocks |
     Where-Object { $_.Text.Contains('/assignees') } |
     Select-Object -First 1
 if (-not $assignmentBlock -or
-    $assignmentBlock.Text -notmatch '--input -\r?\n\$ghExitCode = \$LASTEXITCODE' -or
+    $assignmentBlock.Text -notmatch '--input -\r?\n\s*\$ghExitCode = \$LASTEXITCODE' -or
     -not $assignmentBlock.Text.Contains('if ($ghExitCode -ne 0)')) {
     throw 'The stage-30 PowerShell assignment example must check the gh exit code immediately.'
 }

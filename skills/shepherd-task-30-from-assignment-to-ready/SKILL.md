@@ -71,75 +71,21 @@ Do not weaken or skip an invariant because the task appears small, because CCA h
 
 ## Procedure
 
-### Step 1: Assign the task to @Copilot
+### Step 1: Resume an existing PR or assign the task to @Copilot
 
-Before assignment, validate `CAMPAIGN_METADATA_DIRECTORY/shepherd-campaign.json`
-on `BASE_BRANCH`. Its campaign ID and lesson mode must match this invocation.
-When mode is `campaign`, also verify `campaign-lessons.md` exists and the issue
-body contains the required Campaign lessons section. Fail closed rather than
-assigning an issue that cannot transfer lessons. When mode is `off`, verify the
-issue body does not require lesson consumption or production.
+Before any assignment, validate
+`CAMPAIGN_METADATA_DIRECTORY/shepherd-campaign.json` on `BASE_BRANCH`. Its
+campaign ID and lesson mode must match this invocation. When mode is
+`campaign`, also verify `campaign-lessons.md` exists and the issue body contains
+the required Campaign lessons section. Fail closed rather than assigning an
+issue that cannot transfer lessons. When mode is `off`, verify the issue body
+does not require lesson consumption or production.
 
-Use the GitHub Issues REST API with the `agent_assignment.base_branch` parameter. This is the **only 100% reliable method** — it passes `BASE_BRANCH` directly to CCA as a first-class input, so it cannot default to `main`.
-
-> [!NOTE]
-> Do **not** use `gh issue edit --add-assignee "@copilot"` here. That command uses the plain assignees endpoint which has no `base_branch` parameter; CCA will default to `main`.
-
-```bash
-gh api \
-  --method POST \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  /repos/$REPO/issues/$TASK_ISSUE/assignees \
-  --input - <<< "{
-    \"assignees\": [\"copilot-swe-agent[bot]\"],
-    \"agent_assignment\": {
-      \"target_repo\": \"$REPO\",
-      \"base_branch\": \"$BASE_BRANCH\"
-    }
-  }"
-```
-
-> **PowerShell equivalent** (when running on Windows):
-> ```powershell
-> $body = @{
->     assignees        = @("copilot-swe-agent[bot]")
->     agent_assignment = @{
->         target_repo = $REPO
->         base_branch = $BASE_BRANCH
->     }
-> } | ConvertTo-Json -Depth 3
-> $body | gh api `
->   --method POST `
->   -H "Accept: application/vnd.github+json" `
->   -H "X-GitHub-Api-Version: 2022-11-28" `
->   /repos/$REPO/issues/$TASK_ISSUE/assignees `
->   --input -
-> $ghExitCode = $LASTEXITCODE
-> if ($ghExitCode -ne 0) {
->     throw "SHEPHERD FAILED: assigning issue #$TASK_ISSUE exited $ghExitCode."
-> }
-> ```
-
-This triggers Copilot to begin an asynchronous lifecycle:
-1. Create a topic branch from `$BASE_BRANCH`.
-2. Open a draft PR targeting `$BASE_BRANCH`.
-3. Push an empty `Initial plan` commit in some runs.
-4. Record `copilot_work_started`, implement the issue, push substantive commits, and record `copilot_work_finished`.
-
-Steps 1–3 are startup signals, not completion signals.
-
-### Step 2: Find the corresponding PR
-
-Use the issue timeline, PR bodies, titles, and branch names only to discover
-candidates. Free text is not authoritative: require the selected PR's
-`closingIssuesReferences` to contain the exact task issue. Match numeric
-boundaries so task `14` does not match `140`, reconcile every candidate, and
-stop if more than one open PR authoritatively closes the task.
-
-#### Polling loop
-
-Poll every 30 seconds for up to 15 minutes (Copilot coding agent can take 5-12 minutes to produce a PR).
+Then discover whether an authoritative open linked PR already exists. Candidate
+discovery may use the issue timeline, PR bodies, titles, and branch names, but
+free text is never authoritative. Reconcile every candidate through
+`closingIssuesReferences`, require an exact issue-number match so task `14`
+cannot match `140`, and fail closed if more than one open PR closes the task.
 
 ```bash
 find_linked_pr() {
@@ -147,7 +93,9 @@ find_linked_pr() {
   local candidate_numbers="" matching_numbers="" pr_candidates=""
   local api_prefix="https://api.github.com/repos/$REPO/pulls/"
 
-  pr_candidates=$(gh api "/repos/$REPO/issues/$TASK_ISSUE/timeline" \
+  pr_candidates=$(gh api \
+    "/repos/$REPO/issues/$TASK_ISSUE/timeline?per_page=100" \
+    --paginate \
     --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url') ||
     return 2
   while IFS= read -r candidate_url; do
@@ -178,7 +126,7 @@ find_linked_pr() {
   while IFS= read -r candidate; do
     [[ "$candidate" =~ ^[1-9][0-9]*$ ]] || continue
     candidate_info=$(gh pr view "$candidate" -R "$REPO" \
-      --json state,closingIssuesReferences) || continue
+      --json state,closingIssuesReferences) || return 2
     if jq -e --argjson issue "$TASK_ISSUE" '
       .state == "OPEN" and
       any(.closingIssuesReferences[]?; .number == $issue)
@@ -197,37 +145,270 @@ find_linked_pr() {
   printf '%s\n' "$matching_numbers"
 }
 
-TIMEOUT=900
-INTERVAL=30
-ELAPSED=0
-
-while [ $ELAPSED -lt $TIMEOUT ]; do
-  if PR_NUMBER=$(find_linked_pr); then
-    break
-  elif [ "$?" -eq 2 ]; then
+PR_NUMBER=""
+if PR_NUMBER="$(find_linked_pr)"; then
+  PR_RESUME_STATE=$(gh pr view "$PR_NUMBER" -R "$REPO" \
+    --json state,isDraft,baseRefName,closingIssuesReferences)
+  jq -e --arg base "$BASE_BRANCH" --argjson issue "$TASK_ISSUE" '
+    .state == "OPEN" and
+    .isDraft == true and
+    .baseRefName == $base and
+    any(.closingIssuesReferences[]?; .number == $issue)
+  ' <<<"$PR_RESUME_STATE" >/dev/null || {
+    echo "ERROR: Existing PR #$PR_NUMBER must be open, draft, target '$BASE_BRANCH', and close task #$TASK_ISSUE." >&2
     exit 2
-  fi
-
-  sleep $INTERVAL
-  ELAPSED=$((ELAPSED + INTERVAL))
-done
+  }
+  echo "Resuming Stage 30 with existing draft PR #$PR_NUMBER; skipping assignment."
+else
+  FIND_PR_STATUS=$?
+  [ "$FIND_PR_STATUS" -eq 1 ] || exit "$FIND_PR_STATUS"
+  PR_NUMBER=""
+fi
 ```
 
-If no PR is found after timeout, report failure and stop. Finding the PR does **not** mean CCA has finished.
+> **PowerShell equivalent** (when running on Windows):
+> ```powershell
+> function Find-LinkedOpenPR {
+>     $candidateNumbers = [System.Collections.Generic.HashSet[int]]::new()
+>
+>     $timelineCandidates = @(gh api `
+>         "/repos/$REPO/issues/$TASK_ISSUE/timeline?per_page=100" `
+>         --paginate `
+>         --jq '.[] | select(.event == "cross-referenced") | select(.source.issue.pull_request != null) | .source.issue.pull_request.url' 2>$null)
+>     $ghExitCode = $LASTEXITCODE
+>     if ($ghExitCode -ne 0) {
+>         throw "SHEPHERD FAILED: unable to query issue #$TASK_ISSUE timeline."
+>     }
+>     $apiPrefix = "https://api.github.com/repos/$REPO/pulls/"
+>     foreach ($candidateUrl in $timelineCandidates) {
+>         if (([string]$candidateUrl).StartsWith(
+>             $apiPrefix,
+>             [StringComparison]::OrdinalIgnoreCase
+>         )) {
+>             $candidate = ([string]$candidateUrl).Substring($apiPrefix.Length)
+>             if ($candidate -match '^[1-9][0-9]*$') {
+>                 [void]$candidateNumbers.Add([int]$candidate)
+>             }
+>         }
+>     }
+>
+>     $textCandidates = @(gh pr list -R $REPO --state open `
+>         --json number,body,title,headRefName `
+>         --jq ".[] | select(
+>           ((.body // `"`") | test(`"(^|[^0-9])#$TASK_ISSUE([^0-9]|$)`")) or
+>           ((.title // `"`") | test(`"(^|[^0-9])$TASK_ISSUE([^0-9]|$)`"; `"i`")) or
+>           ((.headRefName // `"`") | test(`"(^|[^0-9])$TASK_ISSUE([^0-9]|$)`"))
+>         ) | .number" 2>$null)
+>     $ghExitCode = $LASTEXITCODE
+>     if ($ghExitCode -ne 0) {
+>         throw "SHEPHERD FAILED: unable to search open PRs for task #$TASK_ISSUE."
+>     }
+>     foreach ($candidate in $textCandidates) {
+>         if ([string]$candidate -match '^[1-9][0-9]*$') {
+>             [void]$candidateNumbers.Add([int]$candidate)
+>         }
+>     }
+>
+>     $matchingNumbers = @()
+>     foreach ($candidate in $candidateNumbers) {
+>         $candidateOutput = @(gh pr view $candidate -R $REPO `
+>             --json state,closingIssuesReferences 2>$null)
+>         $ghExitCode = $LASTEXITCODE
+>         if ($ghExitCode -ne 0 -or $candidateOutput.Count -eq 0) {
+>             throw "SHEPHERD FAILED: unable to verify candidate PR #$candidate."
+>         }
+>         $candidateInfo =
+>             ($candidateOutput -join [Environment]::NewLine) |
+>             ConvertFrom-Json
+>         $closesTask = @(
+>             $candidateInfo.closingIssuesReferences |
+>                 Where-Object { [int]$_.number -eq [int]$TASK_ISSUE }
+>         ).Count -gt 0
+>         if ([string]$candidateInfo.state -eq 'OPEN' -and $closesTask) {
+>             $matchingNumbers += [int]$candidate
+>         }
+>     }
+>
+>     if ($matchingNumbers.Count -gt 1) {
+>         throw "SHEPHERD FAILED: multiple open PRs close task #${TASK_ISSUE}: $($matchingNumbers -join ', ')."
+>     }
+>     if ($matchingNumbers.Count -eq 1) {
+>         return [string]$matchingNumbers[0]
+>     }
+>     return $null
+> }
+>
+> $PR_NUMBER = Find-LinkedOpenPR
+> if ($null -ne $PR_NUMBER) {
+>     $resumeStateOutput = @(gh pr view $PR_NUMBER -R $REPO `
+>         --json state,isDraft,baseRefName,closingIssuesReferences 2>$null)
+>     $ghExitCode = $LASTEXITCODE
+>     if ($ghExitCode -ne 0 -or $resumeStateOutput.Count -eq 0) {
+>         throw "SHEPHERD FAILED: unable to verify existing PR #$PR_NUMBER."
+>     }
+>     $resumeState =
+>         ($resumeStateOutput -join [Environment]::NewLine) |
+>         ConvertFrom-Json
+>     $closesTask = @(
+>         $resumeState.closingIssuesReferences |
+>             Where-Object { [int]$_.number -eq [int]$TASK_ISSUE }
+>     ).Count -gt 0
+>     if ([string]$resumeState.state -ne 'OPEN' -or
+>         $resumeState.isDraft -ne $true -or
+>         [string]$resumeState.baseRefName -ne $BASE_BRANCH -or
+>         -not $closesTask) {
+>         throw "SHEPHERD FAILED: existing PR #$PR_NUMBER must be open, draft, target '$BASE_BRANCH', and close task #$TASK_ISSUE."
+>     }
+>     Write-Output "Resuming Stage 30 with existing draft PR #$PR_NUMBER; skipping assignment."
+> }
+> ```
 
-Once the PR is found, verify the base branch as a sanity check (the `agent_assignment.base_branch` API call in Step 1 guarantees this, but confirm):
+If `PR_NUMBER` is set, retain it for every later Stage 30 step and do not call
+the assignment API. If no matching PR exists, use the GitHub Issues REST API
+with the `agent_assignment.base_branch` parameter. This is the **only 100%
+reliable method** to pass `BASE_BRANCH` directly to CCA as a first-class input,
+so it cannot default to `main`.
+
+> [!NOTE]
+> Do **not** use `gh issue edit --add-assignee "@copilot"` here. That command
+> uses the plain assignees endpoint, which has no `base_branch` parameter; CCA
+> will default to `main`.
 
 ```bash
-# Sanity-check: confirm PR targets the correct base branch
-ACTUAL_BASE=$(gh pr view $PR_NUMBER -R $REPO --json baseRefName --jq '.baseRefName')
-if [ "$ACTUAL_BASE" != "$BASE_BRANCH" ]; then
-  echo "ERROR: PR #$PR_NUMBER targets '$ACTUAL_BASE' instead of '$BASE_BRANCH'."
-  echo "This should not happen when Step 1 used the agent_assignment.base_branch API."
-  echo "Manual intervention required — stop here."
-  exit 1
+if [[ -z "$PR_NUMBER" ]]; then
+  gh api \
+    --method POST \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    /repos/$REPO/issues/$TASK_ISSUE/assignees \
+    --input - <<< "{
+      \"assignees\": [\"copilot-swe-agent[bot]\"],
+      \"agent_assignment\": {
+        \"target_repo\": \"$REPO\",
+        \"base_branch\": \"$BASE_BRANCH\"
+      }
+    }"
 fi
-echo "Base branch confirmed: $ACTUAL_BASE"
 ```
+
+> **PowerShell equivalent** (when running on Windows):
+> ```powershell
+> if ($null -eq $PR_NUMBER) {
+>     $body = @{
+>         assignees        = @("copilot-swe-agent[bot]")
+>         agent_assignment = @{
+>             target_repo = $REPO
+>             base_branch = $BASE_BRANCH
+>         }
+>     } | ConvertTo-Json -Depth 3
+>     $body | gh api `
+>       --method POST `
+>       -H "Accept: application/vnd.github+json" `
+>       -H "X-GitHub-Api-Version: 2022-11-28" `
+>       /repos/$REPO/issues/$TASK_ISSUE/assignees `
+>       --input -
+>     $ghExitCode = $LASTEXITCODE
+>     if ($ghExitCode -ne 0) {
+>         throw "SHEPHERD FAILED: assigning issue #$TASK_ISSUE exited $ghExitCode."
+>     }
+> }
+> ```
+
+Assignment triggers Copilot to create a topic branch from `BASE_BRANCH`, open
+a draft PR targeting it, and begin a work cycle. PR creation and an empty
+`Initial plan` commit are startup signals, not completion signals.
+
+### Step 2: Poll only when assignment created a new work cycle
+
+When Step 1 resumed an existing PR, `PR_NUMBER` is already set: skip this poll
+and continue with that number. After a first-run assignment, poll every 30
+seconds for up to 15 minutes for the new authoritative PR.
+
+```bash
+if [[ -z "$PR_NUMBER" ]]; then
+  TIMEOUT=900
+  INTERVAL=30
+  ELAPSED=0
+
+  while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
+    if PR_NUMBER="$(find_linked_pr)"; then
+      break
+    else
+      FIND_PR_STATUS=$?
+      [ "$FIND_PR_STATUS" -eq 1 ] || exit "$FIND_PR_STATUS"
+    fi
+
+    sleep "$INTERVAL"
+    ELAPSED=$((ELAPSED + INTERVAL))
+  done
+fi
+
+if [[ -z "$PR_NUMBER" ]]; then
+  echo "ERROR: No authoritative linked PR was found within ${TIMEOUT}s." >&2
+  exit 2
+fi
+```
+
+> **PowerShell equivalent** (when running on Windows):
+> ```powershell
+> if ($null -eq $PR_NUMBER) {
+>     $timeoutSeconds = 900
+>     $intervalSeconds = 30
+>     $elapsedSeconds = 0
+>     while ($elapsedSeconds -lt $timeoutSeconds) {
+>         $PR_NUMBER = Find-LinkedOpenPR
+>         if ($null -ne $PR_NUMBER) {
+>             break
+>         }
+>         Start-Sleep -Seconds $intervalSeconds
+>         $elapsedSeconds += $intervalSeconds
+>     }
+> }
+> if ($null -eq $PR_NUMBER) {
+>     throw "SHEPHERD FAILED: no authoritative linked PR was found within 900 seconds."
+> }
+> ```
+
+Finding the PR does **not** mean CCA has finished. Re-query it before
+continuing and require the same open, draft, base-branch, and exact-closing
+reference invariants for both resumed and newly created PRs:
+
+```bash
+PR_STATE=$(gh pr view "$PR_NUMBER" -R "$REPO" \
+  --json state,isDraft,baseRefName,closingIssuesReferences)
+jq -e --arg base "$BASE_BRANCH" --argjson issue "$TASK_ISSUE" '
+  .state == "OPEN" and
+  .isDraft == true and
+  .baseRefName == $base and
+  any(.closingIssuesReferences[]?; .number == $issue)
+' <<<"$PR_STATE" >/dev/null || {
+  echo "ERROR: PR #$PR_NUMBER must be open, draft, target '$BASE_BRANCH', and close task #$TASK_ISSUE." >&2
+  exit 2
+}
+```
+
+> **PowerShell equivalent** (when running on Windows):
+> ```powershell
+> $prStateOutput = @(gh pr view $PR_NUMBER -R $REPO `
+>     --json state,isDraft,baseRefName,closingIssuesReferences 2>$null)
+> $ghExitCode = $LASTEXITCODE
+> if ($ghExitCode -ne 0 -or $prStateOutput.Count -eq 0) {
+>     throw "SHEPHERD FAILED: unable to verify PR #$PR_NUMBER."
+> }
+> $prState =
+>     ($prStateOutput -join [Environment]::NewLine) |
+>     ConvertFrom-Json
+> $closesTask = @(
+>     $prState.closingIssuesReferences |
+>         Where-Object { [int]$_.number -eq [int]$TASK_ISSUE }
+> ).Count -gt 0
+> if ([string]$prState.state -ne 'OPEN' -or
+>     $prState.isDraft -ne $true -or
+>     [string]$prState.baseRefName -ne $BASE_BRANCH -or
+>     -not $closesTask) {
+>     throw "SHEPHERD FAILED: PR #$PR_NUMBER must be open, draft, target '$BASE_BRANCH', and close task #$TASK_ISSUE."
+> }
+> ```
 
 Verify that the PR has an authoritative closing reference to the exact task issue. A title, branch-name, or free-text match was sufficient for discovery but is not sufficient for the readiness invariant:
 

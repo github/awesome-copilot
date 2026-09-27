@@ -354,10 +354,13 @@ and issue-local facts are rejected.
 
 ## Stage 30 readiness boundary
 
+Stage 30 first discovers whether exactly one authoritative open linked draft PR
+already exists. When it does, Stage 30 verifies the PR targets the campaign
+base, retains its number, and skips a second assignment. With zero matches,
 Stage 30 assigns CCA through the REST API using
-`agent_assignment.base_branch`; plain assignee editing is not sufficient. It
-then finds the draft PR, waits for the latest CCA work cycle, and validates one
-unchanged PR head.
+`agent_assignment.base_branch`; plain assignee editing is not sufficient. More
+than one authoritative open PR fails closed. Stage 30 then waits for the latest
+CCA work cycle and validates one unchanged PR head.
 
 The same head must satisfy all of these conditions:
 

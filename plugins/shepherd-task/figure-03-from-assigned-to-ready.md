@@ -8,17 +8,23 @@ flowchart TD
     A[Validate campaign manifest on base branch] --> B{Lesson mode}
     B -->|campaign| C[Require lessons file and issue Campaign lessons section]
     B -->|off| D[Require issue does not mandate lesson production]
-    C --> E[Assign CCA through REST API with agent_assignment.base_branch]
+    C --> E[Discover authoritative open linked PR]
     D --> E
-    E --> F[Poll up to 15 minutes for open linked draft PR]
-    F --> G[Verify PR targets campaign base branch]
-    G --> H[Poll PR timeline up to 2 hours for latest CCA work cycle]
-    H --> I{CCA failure event?}
-    I -->|No| J[Capture candidate HEAD]
-    I -->|Yes, substantive diff| J
-    I -->|Yes, no changes| K[Reassign CCA]
-    K --> H
-    J --> L[Require changed_files, files API entries, and different Git trees]
+    E --> F{Matching PR count}
+    F -->|0| G[Assign CCA through REST API with agent_assignment.base_branch]
+    F -->|1| H[Require open draft PR targeting campaign base and retain PR number]
+    F -->|More than 1| FAIL
+    G --> I[Poll up to 15 minutes for authoritative linked PR]
+    H --> J[Continue with existing PR]
+    I --> J
+    J --> K0[Re-verify open draft state, campaign base, and exact closing issue]
+    K0 --> H0[Poll PR timeline up to 2 hours for latest CCA work cycle]
+    H0 --> I0{CCA failure event?}
+    I0 -->|No| J0[Capture candidate HEAD]
+    I0 -->|Yes, substantive diff| J0
+    I0 -->|Yes, no changes| K[Reassign CCA]
+    K --> H0
+    J0 --> L[Require changed_files, files API entries, and different Git trees]
     L --> M[Build evidence table for every issue requirement]
     M --> N[Approve action_required workflows and wait]
     N --> O[Require relevant substantive CI on candidate HEAD]
@@ -32,7 +38,7 @@ flowchart TD
     U -->|Yes| W[Wait for new completed cycle and new HEAD]
     V --> W
     W --> X{20 correction iterations exhausted?}
-    X -->|No| J
+    X -->|No| J0
     X -->|Yes| FAIL[Stop for manual intervention]
     R -->|Yes| Y{campaign mode?}
     Y -->|Yes| Z[Require preserved validated lessons and substantive Candidate lessons for issue N]
@@ -40,7 +46,7 @@ flowchart TD
     Z --> AB[Atomically re-query PR, CCA, diff, requirements, commands, CI, reviews, lessons]
     AA --> AB
     AB --> AC{HEAD still equals candidate HEAD?}
-    AC -->|No| J
+    AC -->|No| J0
     AC -->|Yes| DONE[Report ready for marking Ready for review]
 ```
 
