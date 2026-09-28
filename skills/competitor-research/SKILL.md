@@ -54,6 +54,8 @@ Do not equate:
 
 Compare like-for-like periods, markets, products, and measurement definitions. Mark provider estimates and data collection dates. When sources conflict, show the conflict; do not silently select the larger number. No evidence of a channel is not evidence that it was never used.
 
+Keep competitor facts separate from the user's product context. Never transfer a competitor's price, paid offering, activation definition, available directories, or existing audience into the user's plan without evidence that the user has the same setup. If the user's monetization or measurement baseline is unknown, make the dependency explicit and suggest a first-use or qualified-interest test; do not invent a paid conversion target or baseline comparison. A free-only test must not include paid listing fees.
+
 Suggest up to three experiments tied to actual evidence and the user's constraints. For each: observation → hypothesis → small test → effort/cost dependencies → success measure → stop/review point. State when none is justified. Avoid copying tactics whose success requires an audience, partner access, budget, or data asset the user does not have.
 
 ## Deliver
