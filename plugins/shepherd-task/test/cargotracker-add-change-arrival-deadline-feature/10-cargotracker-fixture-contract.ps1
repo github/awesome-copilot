@@ -183,6 +183,9 @@ if (-not $driver.Contains("'test\lesson-propagation-default-contract.ps1'")) {
 if (-not $driver.Contains("'test\stage30-powershell-lifecycle-contract.ps1'")) {
     throw 'Driver does not run the Stage 30 PowerShell lifecycle contract.'
 }
+if (-not $driver.Contains("'test\stage30-remediation-timeout-contract.ps1'")) {
+    throw 'Driver does not run the Stage 30 remediation timeout contract.'
+}
 if (-not $driver.Contains("'04-verify-control-campaign.ps1'")) {
     throw 'Driver does not run the control-campaign verifier.'
 }

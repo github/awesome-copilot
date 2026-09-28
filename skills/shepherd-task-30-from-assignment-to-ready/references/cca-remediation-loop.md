@@ -112,8 +112,8 @@ if [ "$CCA_REENGAGED" != true ]; then
     }" > /dev/null
 fi
 
-# --- Phase C: Wait for CCA to complete a full work cycle (up to 10 minutes) ---
-PHASE_C_TIMEOUT=600
+# --- Phase C: Wait for CCA to complete a full work cycle (up to 20 minutes) ---
+PHASE_C_TIMEOUT=1200
 ELAPSED=0
 
 while [ $ELAPSED -lt $PHASE_C_TIMEOUT ]; do

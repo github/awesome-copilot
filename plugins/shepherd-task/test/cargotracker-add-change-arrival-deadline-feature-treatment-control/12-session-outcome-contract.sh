@@ -18,7 +18,7 @@ EOF
 
 cat >"$temp_directory/stage30-failure.md" <<'EOF'
 The GitHub CLI and Copilot CLI both returned process exit code 0.
-**SHEPHERD FAILED:** Copilot completed a follow-up work cycle on PR #24 but did not push a new HEAD within 10 minutes.
+**SHEPHERD FAILED:** Copilot completed a follow-up work cycle on PR #24 but did not push a new HEAD within 20 minutes.
 EOF
 if "$assertion" "$temp_directory/stage30-failure.md" 30 14 24 >/dev/null 2>&1; then
     echo 'Failed stage 30 transcript was incorrectly accepted.' >&2

@@ -378,6 +378,7 @@ done
 current_phase="running offline contracts"
 status "Experiment setup: running offline contracts."
 invoke_checked_script Contract "$shepherd_plugin/test/macos-bash-compatibility-contract.sh"
+invoke_checked_script Contract "$shepherd_plugin/test/stage30-remediation-timeout-contract.sh"
 invoke_checked_script Contract "$shepherd_plugin/test/lesson-propagation-default-contract.sh"
 for contract in \
     03-resolve-repository-remote.sh \

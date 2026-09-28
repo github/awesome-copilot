@@ -534,6 +534,9 @@ try {
         Join-Path $ShepherdPlugin 'test\stage30-powershell-lifecycle-contract.ps1'
     ) -OutputChannel Contract
     Invoke-CheckedPwshScript -Path (
+        Join-Path $ShepherdPlugin 'test\stage30-remediation-timeout-contract.ps1'
+    ) -OutputChannel Contract
+    Invoke-CheckedPwshScript -Path (
         Join-Path $ShepherdPlugin 'test\lesson-propagation-default-contract.ps1'
     ) -OutputChannel Contract
     foreach ($contract in @(

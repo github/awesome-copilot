@@ -819,7 +819,7 @@ Next step: Mark as Ready for Review (use separate skill).
 - **Issue requirement lacks concrete passing evidence**: Request changes or stop for manual intervention.
 - **Issue-specified gating command cannot run or fails**: Request changes or stop for manual intervention.
 - **Only selector/aggregator CI passes while relevant substantive jobs skip**: Report and stop.
-- **Copilot doesn't push after review request within 10 minutes (including re-assignment attempt)**: Report structured diagnostics (review timestamp, last work_started, last work_finished, whether re-assignment was attempted, unchanged HEAD SHA) and stop.
+- **Copilot doesn't push after review request within 20 minutes (including re-assignment attempt)**: Report structured diagnostics (review timestamp, last work_started, last work_finished, whether re-assignment was attempted, unchanged HEAD SHA) and stop.
 - **HEAD changes during validation**: Discard stale results and restart validation at Step 3.
 - **20 iterations exhausted**: Report and stop.
 - **API errors**: Retry up to 3 times with 10-second backoff, then report and stop.

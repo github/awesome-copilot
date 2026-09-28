@@ -377,6 +377,7 @@ main() {
     mkdir -p "$contract_root"
     export TMPDIR="$contract_root"
     invoke_checked_script "$shepherd_plugin/test/macos-bash-compatibility-contract.sh" contract
+    invoke_checked_script "$shepherd_plugin/test/stage30-remediation-timeout-contract.sh" contract
     invoke_checked_script "$shepherd_plugin/test/lesson-propagation-default-contract.sh" contract
     for contract in 03-resolve-repository-remote.sh 05-stage20-artifact-contract.sh \
         06-stage40-review-contract.sh 07-driver-encoding-contract.sh \

@@ -60,6 +60,7 @@ driver_required=(
     '09-skill-powershell-contract.sh'
     '10-simple-math-fixture-contract.sh'
     '11-stage15-installed-path-contract.sh'
+    'test/stage30-remediation-timeout-contract.sh'
     'test/lesson-propagation-default-contract.sh'
 )
 for text in "${driver_required[@]}"; do

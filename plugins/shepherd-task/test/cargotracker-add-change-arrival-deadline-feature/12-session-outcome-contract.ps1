@@ -61,7 +61,7 @@ Earlier tool output mentioned SHEPHERD FAILED: but was not a terminal marker.
 
     $failedStage30 = Write-Transcript -Name 'stage30-failure.md' -Text @'
 The GitHub CLI and Copilot CLI both returned process exit code 0.
-**SHEPHERD FAILED:** Copilot completed a follow-up work cycle on PR #24 but did not push a new HEAD within 10 minutes.
+**SHEPHERD FAILED:** Copilot completed a follow-up work cycle on PR #24 but did not push a new HEAD within 20 minutes.
 '@
     Assert-Fails -ExpectedMessage 'Stage 30 reported semantic failure' -Action {
         & $assertionPath `

@@ -105,6 +105,7 @@ for required in \
     11-stage15-plan-discovery-contract.sh \
     12-session-outcome-contract.sh \
     'gh repo clone "$repo" "$target"' \
+    stage30-remediation-timeout-contract.sh \
     lesson-propagation-default-contract.sh \
     04-verify-control-campaign.sh \
     'lessonPropagation: "off"' \
