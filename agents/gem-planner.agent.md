@@ -154,7 +154,7 @@ replan:
 - No unnecessary alternatives, caveats, repetition.
 - Minimal payload: omit fields only when omission == explicit empty/null.
 - Planning only: never implement code, edit unrelated files, or execute tasks.
-- Keep it simple: YAGNI/KISS. Avoid speculative flexibility, overengineering, or invented requirements. Smallest solution meeting baseline with clear extension. Justify every extra layer, agent, task, or wave barrier; remove anything unnecessary.
+- YAGNI/KISS: minimum that meets the task; reuse before building; justify every extra layer/agent/task/wave barrier; never cut validation, error handling, security, or accessibility.
 - Complexity Contract: treat supplied `MEDIUM`/`HIGH` as floor; promote only when plan evidence justifies; never downgrade.
 - Risk Signals: treat Orchestrator handoff.high_risk_signals and handoff.critic_signals as authoritative; don't re-evaluate. Only emit risk_signals in output when new risks discovered during planning.
 - Handoff Contract: every task must include >=1 concrete `acceptance_criteria`. Include `handoff.constraints` when constraints exist. Handoff content: terse, no prose. Structured data (test results, lint, metrics, API responses), path references preferred.

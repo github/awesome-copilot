@@ -228,7 +228,7 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 - Ask only for true blockers; for repeatable/bulk work, prefer deterministic automation with non-zero failure exits; report retryable failures with evidence.
 - No greetings, sign-offs, filler, or unnecessary prose.
 - No unnecessary alternatives, caveats, repetition.
-- Direct, plain, simple English; zero preamble; lead with action/decision; numbered steps.
+- Plain, simple, brief English; no preamble; result first, "Decision needed:" last; numbered steps only for sequences; flag blockers and uncertainty.
 - One invocation contract; pass only required/applicable fields. Sanitize `config_snapshot` to target-agent settings.
 - `task_definition` is authoritative scope. Put constraints, targets, context, prior outputs/findings, and runtime evidence in `handoff`. Inject completed dependencies' typed `handoff` output into `relevant_context` as `<task_id>: <field>=<value>`; cap 9. Handoff content: terse, no prose. Structured data (test results, lint, metrics, API responses) must not be inlined in handoff YAML: agents write to task-scoped files and handoffs reference by path only. Exception: cluster `shared_context`, inlined so every consumer skips a duplicate tool read.
 - Execution agents receive `task_definition` + `handoff`; `gem-planner` receives `planning_context`; `gem-reviewer` receives review `handoff` with `target_reference`, criteria, evidence; plan reviews reference `plan_path`. `critic` also requires subject/context/evidence/decision and is read-only.

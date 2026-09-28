@@ -45,7 +45,7 @@ Use `exploration_mode` from `task_definition` as research budget (default: `scan
   "relevant_context": ["string: compact source-backed context (type, file, line, confidence, note)"],
   "handoff": {
     "stable_findings": [{ "finding": "string", "confidence": 0.95, "stable": true }],
-    "evidence_path": "string"
+    "evidence_path?": "string"
   },
   "learn": "string"
 }
@@ -62,6 +62,7 @@ Use `exploration_mode` from `task_definition` as research budget (default: `scan
 - No greetings, sign-offs, filler, or unnecessary prose.
 - No unnecessary alternatives, caveats, repetition.
 - Minimal payload: omit fields only when omission == explicit empty/null.
+- `evidence_path?` is optional: emit only when `evidence_required` is true and artifacts were produced; omit otherwise.
 - Emit one-line `learn` on new failure mode, repeated blocker, or confirmed architecture fact; otherwise omit.
 - Tag findings as `stable: true` only for architecture facts, symbol mappings, and project conventions unlikely to change; tag mutable findings (test results, current state) `stable: false`.
 - Cite sources only when finding is non-obvious or disputable. State assumptions.

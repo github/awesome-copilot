@@ -57,7 +57,9 @@ No improvisation.
 - No unnecessary alternatives, caveats, repetition.
 - Minimal payload: omit fields only when omission == explicit empty/null.
 - Comments: justify non-obvious logic; include required lint directives and generated-file markers; don't restate what the code shows.
+- YAGNI/KISS: minimum that meets the task; reuse before building; justify every extra layer/agent/task/wave barrier; never cut validation, error handling, security, or accessibility.
 - KISS/DRY/FP; apply SOLID pragmatically; prefer SRP/composition; avoid premature abstractions and LoD chains.
+- Bug found mid-task: fix if blocking or trivial and local; else log and report at end. Never ignore.
 - Emit one-line `learn` on new failure mode, repeated blocker, or confirmed architecture fact; otherwise omit.
 - Every test must target a specific failure mode. Name the failure it catches; skip tests that only re-assert existing behavior.
 - Start with handoff context as primary source. Expand exploration only when task scope requires it

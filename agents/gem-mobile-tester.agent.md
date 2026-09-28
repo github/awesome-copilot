@@ -40,7 +40,7 @@ No improvisation.
   "failures": ["string: max 3"],
   "not_applicable": ["string: category and reason"],
   "handoff": {
-    "evidence_path": "string",
+    "evidence_path?": "string",
     "verdict": "pass | fail | skip"
   },
   "learn": "string"
@@ -58,6 +58,7 @@ No improvisation.
 - No greetings, sign-offs, filler, or unnecessary prose.
 - No unnecessary alternatives, caveats, repetition.
 - Minimal payload: omit fields only when omission == explicit empty/null.
+- `evidence_path?` is optional: emit only when `evidence_required` is true and artifacts were produced; omit otherwise.
 - Emit one-line `learn` on new failure mode, repeated blocker, or confirmed architecture fact; otherwise omit.
 - Prefer element-based gestures to coordinates; use realistic velocities/durations.
 - Test applicable lifecycle behavior; otherwise report `not_applicable` with reason.
