@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "stageOutcomeProtocolVersion": 1,
+  "artifactSchemaVersions": {
+    "campaign": 1,
+    "givenListRun": 1,
+    "installationManifest": 1,
+    "installedComponent": 1
+  }
+}

@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins } from "./external-plugin-validation.mjs";
 import { validateLicenseField } from "./lib/license.mjs";
+import { inspectPluginFiles } from "./lib/plugin-files.mjs";
 import { AGENT_PLUGIN_SCHEMA_URL, validateAgentPluginManifest, validateAgentPluginMcpConfig } from "./agent-plugin-schema.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
@@ -282,7 +283,7 @@ export function validateMcpConfig(pluginDir) {
 
 export function validateCompositionNamespace(plugin) {
   const errors = [];
-  const compositionFields = ["agents", "hooks", "skills"];
+  const compositionFields = ["agents", "hooks", "pluginFiles", "skills"];
   const extensions = plugin.extensions;
   const composition = extensions?.[AWESOME_COPILOT_NAMESPACE];
 
@@ -386,6 +387,7 @@ function validatePlugin(folderName) {
   // Rule 6: agents, hooks, and skills paths
   const specErrors = validateSpecPaths(plugin);
   errors.push(...specErrors);
+  errors.push(...inspectPluginFiles(plugin, pluginDir).errors);
 
   const extensionRefErrors = validateExtensionReferences(plugin, pluginDir);
   errors.push(...extensionRefErrors);

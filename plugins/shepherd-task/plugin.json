@@ -1,0 +1,57 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "shepherd-task",
+  "description": "End-to-end task shepherding system that automates the full lifecycle of GitHub issues through Copilot coding agent assignment, CI approval, code review resolution, and merge. Includes orchestration scripts for both Bash and PowerShell.",
+  "version": "1.0.5",
+  "author": {
+    "name": "Ed Burns"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "shepherd",
+    "task-automation",
+    "copilot-coding-agent",
+    "ci-cd",
+    "code-review",
+    "github-actions",
+    "workflow-approval",
+    "yolo"
+  ],
+  "extensions": {
+    "com.github.awesome-copilot": {
+      "pluginFiles": [
+        "./scripts/",
+        "./shepherd-task-version-contract.json",
+        "./test/",
+        "./version.ps1",
+        "./version.sh"
+      ],
+      "skills": [
+        "./skills/shepherd-task-10-create-ignorance-reduction-plan/",
+        "./skills/shepherd-task-20-create-issues-from-plan/",
+        "./skills/shepherd-task-30-from-assignment-to-ready/",
+        "./skills/shepherd-task-40-from-ready-to-merged-to-base/",
+        "./skills/shepherd-task-50-create-post-mortem/",
+        "./skills/shepherd-task-approve-workflows-and-wait-for-completion/"
+      ]
+    },
+    "com.github.awesome-copilot.shepherd-task": {
+      "pluginFiles": [
+        "./scripts/",
+        "./shepherd-task-version-contract.json",
+        "./test/",
+        "./version.ps1",
+        "./version.sh"
+      ],
+      "skills": [
+        "./skills/shepherd-task-10-create-ignorance-reduction-plan/",
+        "./skills/shepherd-task-20-create-issues-from-plan/",
+        "./skills/shepherd-task-30-from-assignment-to-ready/",
+        "./skills/shepherd-task-40-from-ready-to-merged-to-base/",
+        "./skills/shepherd-task-50-create-post-mortem/",
+        "./skills/shepherd-task-approve-workflows-and-wait-for-completion/"
+      ]
+    }
+  }
+}
