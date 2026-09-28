@@ -47,6 +47,43 @@ grep -Fq 'Use `CHILD_LINK_VERIFIER` as the sole authority' "$stage20_skill" ||
     fail "Stage-20 skill does not require the deterministic child-link verifier."
 grep -Fq 'Do not independently implement or repeat its checks.' "$stage20_skill" ||
     fail "Stage-20 skill permits model-generated child-link verification."
+grep -Fq 'Keep each local declaration separate' "$stage20_skill" ||
+    fail "Stage-20 skill does not preserve the Bash local-initialization safety requirement."
+grep -Fq 'atomic_write "$LEDGER" '\''[]'\''' "$stage20_skill" ||
+    fail "Stage-20 skill does not exercise atomic ledger initialization before mutation."
+grep -Fq 'atomic_write "$RESULT" \' "$stage20_skill" ||
+    fail "Stage-20 skill does not exercise atomic result initialization before mutation."
+grep -Fq 'Do not initialize these documents with an editor' "$stage20_skill" ||
+    fail "Stage-20 skill permits bypassing the atomic-write preflight."
+
+atomic_write_definition="$(
+    awk '
+        /^atomic_write\(\) \{$/ { capture = 1 }
+        capture { print }
+        capture && /^}$/ { exit }
+    ' "$stage20_skill"
+)"
+[[ -n "$atomic_write_definition" ]] ||
+    fail "Unable to extract the Stage-20 atomic_write helper."
+atomic_write_contract="$temp_directory/atomic-write-contract.sh"
+cat >"$atomic_write_contract" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+$atomic_write_definition
+ledger="\$1/creation-ledger.json"
+result="\$1/stage-20-result.json"
+atomic_write "\$ledger" '[]'
+atomic_write "\$result" \
+  '{"schemaVersion":1,"status":"in_progress","ledgerFile":"creation-ledger.json","operationError":null}'
+jq -e 'type == "array" and length == 0' "\$ledger" >/dev/null
+jq -e \
+  '.schemaVersion == 1 and
+   .status == "in_progress" and
+   .ledgerFile == "creation-ledger.json" and
+   .operationError == null' \
+  "\$result" >/dev/null
+EOF
+/bin/bash "$atomic_write_contract" "$temp_directory"
 
 ledger="$temp_directory/ledger-round-trip.json"
 printf '[]\n' >"$ledger"

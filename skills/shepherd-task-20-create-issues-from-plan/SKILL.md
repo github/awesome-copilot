@@ -208,7 +208,46 @@ Before creating the first issue, initialize `LOG_DIRECTORY/creation-ledger.json`
 }
 ```
 
-Write both JSON documents atomically. Immediately after each successful create call, append an object to the ledger with these exact fields: `implementationSubsection`, `bodyFile`, `id`, `number`, `title`, `url`, `body_verified`, and `linked`. Store `bodyFile` as a path relative to `LOG_DIRECTORY`, set `body_verified=false` and `linked=false`, then persist the ledger. Never keep the ledger only in memory.
+Write both JSON documents atomically. On Bash, use this exact helper. Keep each local declaration separate; never initialize one local from another local in the same `local` command because `set -u` expands the right-hand sides before those assignments take effect.
+
+```bash
+atomic_write() {
+  local destination="$1"
+  local content="$2"
+  local temporary
+
+  temporary="$(mktemp "${destination}.tmp.XXXXXX")" || return 1
+
+  if ! printf '%s\n' "$content" > "$temporary"; then
+    rm -f "$temporary"
+    return 1
+  fi
+
+  if ! mv "$temporary" "$destination"; then
+    rm -f "$temporary"
+    return 1
+  fi
+}
+```
+
+Before the first GitHub mutation, invoke `atomic_write` to initialize both documents, then re-read and validate them from disk:
+
+```bash
+atomic_write "$LEDGER" '[]'
+atomic_write "$RESULT" \
+  '{"schemaVersion":1,"status":"in_progress","ledgerFile":"creation-ledger.json","operationError":null}'
+jq -e 'type == "array" and length == 0' "$LEDGER" >/dev/null
+jq -e \
+  '.schemaVersion == 1 and
+   .status == "in_progress" and
+   .ledgerFile == "creation-ledger.json" and
+   .operationError == null' \
+  "$RESULT" >/dev/null
+```
+
+Treat any initialization or read-back failure as a preflight failure and stop before creating an issue. Do not initialize these documents with an editor or another write path that bypasses `atomic_write`; exercising the runtime helper before mutation is required.
+
+Immediately after each successful create call, append an object to the ledger with these exact fields: `implementationSubsection`, `bodyFile`, `id`, `number`, `title`, `url`, `body_verified`, and `linked`. Store `bodyFile` as a path relative to `LOG_DIRECTORY`, set `body_verified=false` and `linked=false`, then persist the ledger. Never keep the ledger only in memory.
 
 On Bash, use this exact multiline structure when updating `body_verified` or `linked`. Every continued `jq` argument line must end with `\`; never place the filter on a new physical line after an argument that lacks a continuation, because Bash will execute the filter as a separate command:
 
