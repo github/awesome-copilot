@@ -20,6 +20,8 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" ||
     fail "Run this script inside the target test worktree."
 repo_root="$(cd "$repo_root" && pwd -P)"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=git-object-id.sh
+source "$script_dir/git-object-id.sh"
 scripts_directory="$(cd "$script_dir/../../scripts" && pwd -P)"
 stage15="$scripts_directory/shepherd-task-15-prepare-create-issues.sh"
 stage25="$scripts_directory/shepherd-task-25-given-list.sh"
@@ -34,9 +36,12 @@ experiment="$(cat "$experiment_path")"
 current_branch="$(git -C "$repo_root" branch --show-current)"
 [[ "$current_branch" == "$(jq -r '.baseBranch' <<<"$campaign")" ]] ||
     fail "Current branch '$current_branch' does not match campaign base '$(jq -r '.baseBranch' <<<"$campaign")'."
-jq -e '.schemaVersion == 1 and (.baselineSha | test("^[0-9a-f]{40}$")) and
+jq -e '.schemaVersion == 1 and
     .lessonPropagation == "off" and .expectedTaskCount == 2' <<<"$experiment" >/dev/null ||
     fail "Experiment metadata has an unsupported schema or invalid control contract."
+baseline_sha="$(jq -r '.baselineSha' <<<"$experiment")"
+is_full_git_object_id "$repo_root" "$baseline_sha" ||
+    fail "Experiment metadata has an invalid baselineSha for this repository's object format."
 [[ "$(jq -r '.lessonPropagation' <<<"$campaign")" == off ]] ||
     fail "Control campaign must use lessonPropagation=off."
 

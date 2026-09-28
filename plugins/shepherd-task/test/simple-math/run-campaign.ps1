@@ -84,6 +84,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'git-object-id.ps1')
 if (Test-Path Variable:\PSNativeCommandUseErrorActionPreference) {
     $PSNativeCommandUseErrorActionPreference = $false
 }
@@ -547,7 +548,8 @@ try {
         '08-psncpps-contract.ps1',
         '09-skill-powershell-contract.ps1',
         '10-simple-math-fixture-contract.ps1',
-        '11-stage15-installed-path-contract.ps1'
+        '11-stage15-installed-path-contract.ps1',
+        '12-git-object-id-contract.ps1'
     )) {
         Invoke-CheckedPwshScript `
             -Path (Join-Path $FixtureRoot $contract) `
@@ -631,9 +633,10 @@ try {
         -OutputChannel DomainFixture
     $BaselineSha = (git -C $Target rev-parse HEAD).Trim()
     Assert-NativeSuccess 'Baseline SHA lookup'
-    if ($BaselineSha -notmatch '^[0-9a-f]{40}$') {
-        throw "Invalid baseline SHA: $BaselineSha"
-    }
+    $BaselineSha = Assert-GitCommitObjectId `
+        -Repository $Target `
+        -ObjectId $BaselineSha `
+        -Name 'Baseline commit object ID'
 
     $currentPhase = 'creating control worktree'
     Write-ControlStatus 'Experiment setup: creating the control worktree.'

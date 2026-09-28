@@ -36,6 +36,8 @@ repo_root="$(cd "$repo_root" && pwd -P)"
     fail "Working tree is not clean. Commit or stash changes before preparing the baseline."
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=git-object-id.sh
+source "$script_dir/git-object-id.sh"
 resolver="$script_dir/../../scripts/resolve-repository-remote.sh"
 [[ -x "$resolver" ]] || fail "Repository remote resolver not found or not executable: $resolver"
 base_remote="$("$resolver" "$repo")"
@@ -140,12 +142,11 @@ git -C "$repo_root" commit -m 'test: bootstrap shepherd-task math fixture baseli
     fail "git commit failed."
 
 baseline_sha="$(git -C "$repo_root" rev-parse HEAD)"
-[[ "$baseline_sha" =~ ^[0-9a-f]{40}$ ]] ||
-    fail "Could not determine the full baseline commit SHA: '$baseline_sha'."
+require_git_commit_object_id "$repo_root" "$baseline_sha" 'Baseline commit object ID'
 git -C "$repo_root" push -u "$base_remote" "$baseline_branch" ||
     fail "Failed to push '$baseline_branch' to '$base_remote'."
 
 echo
 echo '=== IMMUTABLE SHARED BASELINE SHA ==='
 echo "$baseline_sha"
-echo 'Use this exact 40-character SHA for both campaigns.'
+echo 'Use this exact full Git commit object ID for both campaigns.'

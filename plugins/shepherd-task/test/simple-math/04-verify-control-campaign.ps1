@@ -16,6 +16,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'git-object-id.ps1')
 
 function Normalize-Text {
     param([string]$Text)
@@ -60,7 +61,9 @@ if ($currentBranch -ne [string]$campaign.baseBranch) {
 if ($campaign.schemaVersion -ne 1 -or $experiment.schemaVersion -ne 1) {
     throw 'Unsupported campaign or experiment schemaVersion.'
 }
-if ([string]$experiment.baselineSha -notmatch '^[0-9a-f]{40}$' -or
+if (-not (Test-FullGitObjectId `
+        -Repository $repoRoot `
+        -ObjectId ([string]$experiment.baselineSha)) -or
     $experiment.expectedTaskCount -ne 2 -or
     [string]$experiment.lessonPropagation -ne [string]$campaign.lessonPropagation) {
     throw 'Experiment metadata does not match the two-task campaign.'

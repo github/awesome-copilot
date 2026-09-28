@@ -50,6 +50,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'git-object-id.ps1')
 if (Test-Path Variable:\PSNativeCommandUseErrorActionPreference) {
     $PSNativeCommandUseErrorActionPreference = $false
 }
@@ -334,6 +335,9 @@ try {
     )
     Invoke-CheckedPwshScript -Path (Join-Path $ShepherdPlugin 'test\06-stage40-review-contract.ps1')
     Invoke-CheckedPwshScript -Path (Join-Path $ShepherdPlugin 'test\07-driver-encoding-contract.ps1')
+    Invoke-CheckedPwshScript -Path (
+        Join-Path $ShepherdPlugin 'test\simple-math\12-git-object-id-contract.ps1'
+    )
 
     $currentPhase = 'checking disposable repository'
     $repositoryInfoOutput = gh repo view $Repo --json nameWithOwner,defaultBranchRef 2>&1
@@ -395,9 +399,10 @@ try {
 
     $BaselineSha = (git -C $Target rev-parse HEAD).Trim()
     Assert-NativeSuccess 'Baseline SHA lookup'
-    if ($BaselineSha -notmatch '^[0-9a-f]{40}$') {
-        throw "Invalid baseline SHA: $BaselineSha"
-    }
+    $BaselineSha = Assert-GitCommitObjectId `
+        -Repository $Target `
+        -ObjectId $BaselineSha `
+        -Name 'Baseline commit object ID'
     Write-ExperimentStatus "Immutable baseline SHA: $BaselineSha"
 
     $currentPhase = 'creating treatment and control worktrees'

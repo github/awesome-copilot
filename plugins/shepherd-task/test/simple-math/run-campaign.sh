@@ -331,6 +331,8 @@ main() {
     local copilot_home="${COPILOT_HOME:-$HOME/.copilot}"
     local shepherd_plugin="$copilot_home/plugins/shepherd-task"
     local fixture_root="$shepherd_plugin/test/simple-math"
+    # shellcheck source=git-object-id.sh
+    source "$fixture_root/git-object-id.sh"
     local stage00_script="$shepherd_plugin/scripts/shepherd-task-00-init-campaign.sh"
     local stage15_script="$shepherd_plugin/scripts/shepherd-task-15-prepare-create-issues.sh"
     local stage25_script="$shepherd_plugin/scripts/shepherd-task-25-given-list.sh"
@@ -383,7 +385,8 @@ main() {
         06-stage40-review-contract.sh 07-driver-encoding-contract.sh \
         08-psncpps-contract.sh 09-skill-powershell-contract.sh \
         10-simple-math-fixture-contract.sh \
-        11-stage15-installed-path-contract.sh; do
+        11-stage15-installed-path-contract.sh \
+        12-git-object-id-contract.sh; do
         invoke_checked_script "$fixture_root/$contract" contract
     done
     rm -rf "$contract_root"
@@ -436,7 +439,7 @@ main() {
     (cd "$TARGET" && invoke_checked_script "$fixture_root/00-prepare-test-baseline.sh" domain "$repo" "$baseline_branch")
     local baseline_sha
     baseline_sha="$(git -C "$TARGET" rev-parse HEAD)"
-    [[ "$baseline_sha" =~ ^[0-9a-f]{40}$ ]] || fail "Invalid baseline SHA: $baseline_sha"
+    require_git_commit_object_id "$TARGET" "$baseline_sha" 'Baseline commit object ID'
 
     CURRENT_PHASE='creating control worktree'
     status 'Experiment setup: creating the control worktree.'

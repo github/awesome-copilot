@@ -20,7 +20,6 @@ baseline_sha="$(printf '%s' "$4" | tr '[:upper:]' '[:lower:]')"
 git check-ref-format --branch "$base_branch" >/dev/null 2>&1 || fail "Invalid BASE_BRANCH: '$base_branch'."
 campaign_shortname_pattern='^[a-z0-9]+(-[a-z0-9]+)*$'
 [[ "$campaign_shortname" =~ $campaign_shortname_pattern ]] || fail "Invalid CAMPAIGN_SHORTNAME."
-[[ "$baseline_sha" =~ ^[0-9a-f]{40}$ ]] || fail "Invalid BASELINE_SHA."
 for command in git gh jq; do
     command -v "$command" >/dev/null 2>&1 || fail "Required command '$command' was not found."
 done
@@ -32,13 +31,14 @@ repo_root="$(cd "$repo_root" && pwd -P)"
     fail "Working tree is not clean. Commit or stash changes before creating a campaign."
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=git-object-id.sh
+source "$script_dir/git-object-id.sh"
 resolver="$script_dir/../../scripts/resolve-repository-remote.sh"
 initializer="$script_dir/../../scripts/shepherd-task-00-init-campaign.sh"
 [[ -x "$resolver" && -x "$initializer" ]] || fail "Installed shepherd-task Bash scripts are incomplete."
 base_remote="$("$resolver" "$repo")"
 git -C "$repo_root" fetch --no-tags "$base_remote" || fail "Failed to fetch remote '$base_remote'."
-git -C "$repo_root" cat-file -e "$baseline_sha^{commit}" 2>/dev/null ||
-    fail "BASELINE_SHA is not an available commit: '$baseline_sha'."
+require_git_commit_object_id "$repo_root" "$baseline_sha" 'BASELINE_SHA'
 for baseline_file in .github/workflows/shepherd-task-math-tool.yml eng/test-math-tool.ps1; do
     git -C "$repo_root" cat-file -e "$baseline_sha:$baseline_file" 2>/dev/null ||
         fail "Baseline commit '$baseline_sha' does not contain '$baseline_file'."

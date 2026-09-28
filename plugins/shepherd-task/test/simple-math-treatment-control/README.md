@@ -228,8 +228,12 @@ Set-Location $Target
   -BaselineBranch $BaselineBranch
 
 $BaselineSha = (git rev-parse HEAD).Trim()
-if ($BaselineSha -notmatch '^[0-9a-f]{40}$') {
-    throw "Invalid baseline SHA: $BaselineSha"
+$ObjectFormat = (git rev-parse --show-object-format).Trim()
+$ExpectedLength = if ($ObjectFormat -eq 'sha1') { 40 } elseif ($ObjectFormat -eq 'sha256') { 64 } else {
+    throw "Unsupported Git object format: $ObjectFormat"
+}
+if ($BaselineSha -notmatch "^[0-9a-f]{$ExpectedLength}$") {
+    throw "Invalid full $ObjectFormat baseline object ID: $BaselineSha"
 }
 ```
 

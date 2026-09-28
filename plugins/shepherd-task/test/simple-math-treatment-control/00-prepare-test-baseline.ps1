@@ -33,6 +33,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'git-object-id.ps1')
 
 if ($BaselineBranch -eq 'main') {
     throw "BaselineBranch must not be 'main'."
@@ -176,9 +177,10 @@ git -C $repoRoot commit -m 'test: bootstrap shepherd-task math fixture baseline'
 if ($LASTEXITCODE -ne 0) { throw 'git commit failed.' }
 
 $baselineSha = (git -C $repoRoot rev-parse HEAD).Trim()
-if ($baselineSha -notmatch '^[0-9a-f]{40}$') {
-    throw "Could not determine the full baseline commit SHA: '$baselineSha'."
-}
+$baselineSha = Assert-GitCommitObjectId `
+    -Repository $repoRoot `
+    -ObjectId $baselineSha `
+    -Name 'Baseline commit object ID'
 git -C $repoRoot push -u $baseRemote $BaselineBranch
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to push '$BaselineBranch' to '$baseRemote'."
@@ -187,4 +189,4 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ''
 Write-Host '=== IMMUTABLE SHARED BASELINE SHA ===' -ForegroundColor Green
 Write-Host $baselineSha -ForegroundColor Green
-Write-Host 'Use this exact 40-character SHA for both campaigns.'
+Write-Host 'Use this exact full Git commit object ID for both campaigns.'

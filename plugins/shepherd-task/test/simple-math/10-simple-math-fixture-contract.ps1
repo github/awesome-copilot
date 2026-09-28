@@ -7,10 +7,13 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$baselinePath = Join-Path $PSScriptRoot '00-prepare-test-baseline.ps1'
 $initializerPath = Join-Path $PSScriptRoot '01-prepare-base-branch.ps1'
 $issueCreatorPath = Join-Path $PSScriptRoot '02-create-issues.ps1'
 $verifierPath = Join-Path $PSScriptRoot '04-verify-control-campaign.ps1'
 $driverPath = Join-Path $PSScriptRoot 'run-campaign.ps1'
+$objectIdHelperPath = Join-Path $PSScriptRoot 'git-object-id.ps1'
+$baseline = [System.IO.File]::ReadAllText($baselinePath)
 $initializer = [System.IO.File]::ReadAllText($initializerPath)
 $issueCreator = [System.IO.File]::ReadAllText($issueCreatorPath)
 $verifier = [System.IO.File]::ReadAllText($verifierPath)
@@ -63,6 +66,7 @@ foreach ($required in @(
     "'09-skill-powershell-contract.ps1'",
     "'10-simple-math-fixture-contract.ps1'",
     "'11-stage15-installed-path-contract.ps1'",
+    "'12-git-object-id-contract.ps1'",
     "@('git', 'gh', 'copilot', 'pwsh', 'jq')",
     "-Arguments @('repo', 'clone', `$Repo, `$Target)",
     "'test\stage30-powershell-lifecycle-contract.ps1'",
@@ -90,15 +94,33 @@ if ($driver.Contains("'-LessonPropagation', 'campaign'") -or
 if ($driver -match '(?i)\$cloneUrl\s*=|Arguments\s+@\(''clone''') {
     throw 'Simple-math PowerShell driver bypasses gh-managed Git transport.'
 }
+foreach ($entry in @(
+    [pscustomobject]@{ Name = 'baseline'; Text = $baseline },
+    [pscustomobject]@{ Name = 'initializer'; Text = $initializer },
+    [pscustomobject]@{ Name = 'issue creator'; Text = $issueCreator },
+    [pscustomobject]@{ Name = 'verifier'; Text = $verifier },
+    [pscustomobject]@{ Name = 'driver'; Text = $driver }
+)) {
+    if (-not $entry.Text.Contains('git-object-id.ps1')) {
+        throw "Simple-math $($entry.Name) does not use the format-aware Git object-ID helper."
+    }
+    if ($entry.Text -match '\{40\}' -or $entry.Text.Contains('40-character SHA')) {
+        throw "Simple-math $($entry.Name) still contains a SHA-1-only object-ID assumption."
+    }
+}
 $pluginRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot '..' '..')
 )
 $runtimeFiles = @(
-    Get-Item -LiteralPath $initializerPath,
+    Get-Item -LiteralPath @(
+        $baselinePath,
+        $objectIdHelperPath,
+        $initializerPath,
         $issueCreatorPath,
         $verifierPath,
         $driverPath,
         (Join-Path $PSScriptRoot 'get-copilot-skill-list.ps1')
+    )
     Get-ChildItem -LiteralPath (Join-Path $pluginRoot 'scripts') `
         -File -Filter '*.ps1'
 )

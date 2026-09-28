@@ -10,11 +10,13 @@ fail() {
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 plugin_root="$(cd "$script_dir/../.." && pwd)"
+baseline="$script_dir/00-prepare-test-baseline.sh"
 initializer="$script_dir/01-prepare-base-branch.sh"
 issue_creator="$script_dir/02-create-issues.sh"
 verifier="$script_dir/04-verify-control-campaign.sh"
 driver="$script_dir/run-campaign.sh"
-for path in "$initializer" "$issue_creator" "$verifier" "$driver"; do
+object_id_helper="$script_dir/git-object-id.sh"
+for path in "$baseline" "$initializer" "$issue_creator" "$verifier" "$driver" "$object_id_helper"; do
     [[ -f "$path" ]] || fail "Required Bash fixture file not found: $path"
 done
 
@@ -60,6 +62,7 @@ driver_required=(
     '09-skill-powershell-contract.sh'
     '10-simple-math-fixture-contract.sh'
     '11-stage15-installed-path-contract.sh'
+    '12-git-object-id-contract.sh'
     'test/stage30-remediation-timeout-contract.sh'
     'test/lesson-propagation-default-contract.sh'
 )
@@ -78,11 +81,19 @@ done
 [[ "$(grep -Fc 'scripts/shepherd-task-25-given-list.sh' "$driver")" -eq 1 ]] ||
     fail "Simple-math driver must define the installed stage-25 path exactly once."
 
+for path in "$baseline" "$initializer" "$issue_creator" "$verifier" "$driver"; do
+    grep -Fq 'git-object-id.sh' "$path" ||
+        fail "$(basename "$path") does not use the format-aware Git object-ID helper."
+    ! grep -Eq '\{40\}|40-character SHA' "$path" ||
+        fail "$(basename "$path") still contains a SHA-1-only object-ID assumption."
+done
+
 runtime_files=(
     "$script_dir/00-prepare-test-baseline.sh"
     "$script_dir/01-prepare-base-branch.sh"
     "$script_dir/02-create-issues.sh"
     "$script_dir/04-verify-control-campaign.sh"
+    "$object_id_helper"
     "$script_dir/get-copilot-skill-list.sh"
     "$driver"
     "$plugin_root"/scripts/*.sh

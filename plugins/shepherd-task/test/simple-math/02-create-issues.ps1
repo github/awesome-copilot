@@ -12,6 +12,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'git-object-id.ps1')
 
 function Normalize-Whitespace {
     param([string]$Text)
@@ -91,7 +92,10 @@ $currentBranch = (git -C $repoRoot branch --show-current).Trim()
 if ($currentBranch -ne [string]$campaign.baseBranch) {
     throw "Current branch '$currentBranch' does not match campaign base '$($campaign.baseBranch)'."
 }
-if ($experiment.schemaVersion -ne 1 -or [string]$experiment.baselineSha -notmatch '^[0-9a-f]{40}$') {
+if ($experiment.schemaVersion -ne 1 -or
+    -not (Test-FullGitObjectId `
+        -Repository $repoRoot `
+        -ObjectId ([string]$experiment.baselineSha))) {
     throw 'Experiment metadata has an unsupported schema or invalid baselineSha.'
 }
 if ([string]$experiment.lessonPropagation -ne [string]$campaign.lessonPropagation) {

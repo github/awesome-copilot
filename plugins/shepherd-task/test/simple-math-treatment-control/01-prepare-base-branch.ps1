@@ -27,12 +27,12 @@ param(
     [string]$LessonPropagation,
 
     [Parameter(Mandatory)]
-    [ValidatePattern('^[0-9a-fA-F]{40}$')]
     [string]$BaselineSha
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'git-object-id.ps1')
 $BaselineSha = $BaselineSha.ToLowerInvariant()
 
 if ($BaseBranch -eq 'main') { throw "BaseBranch must not be 'main'." }
@@ -55,8 +55,10 @@ $baseRemote = & $resolver -Repo $Repo
 git -C $repoRoot fetch --no-tags $baseRemote
 if ($LASTEXITCODE -ne 0) { throw "Failed to fetch remote '$baseRemote'." }
 
-git -C $repoRoot cat-file -e "$BaselineSha^{commit}" 2>$null
-if ($LASTEXITCODE -ne 0) { throw "BaselineSha is not an available commit: '$BaselineSha'." }
+$BaselineSha = Assert-GitCommitObjectId `
+    -Repository $repoRoot `
+    -ObjectId $BaselineSha `
+    -Name 'BaselineSha'
 foreach ($baselineFile in @(
     '.github/workflows/shepherd-task-math-tool.yml',
     'eng/test-math-tool.ps1'
