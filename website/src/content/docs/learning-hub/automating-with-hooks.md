@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-28
+lastUpdated: 2026-09-22
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -89,7 +89,7 @@ Hooks can trigger on several lifecycle events:
 |-------|---------------|------------------|
 | `sessionStart` | Agent session begins or resumes | Initialize environments, log session starts, validate project state |
 | `sessionEnd` | Agent session completes or is terminated | Clean up temp files, generate reports, send notifications |
-| `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance; handle requests directly without invoking the LLM (v1.0.44+); inject `additionalContext` into the model prompt (v1.0.65+) |
+| `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance; handle requests directly without invoking the LLM; inject `additionalContext` into the model prompt |
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool **successfully** completes execution | Log results, track usage, format code after edits |
 | `postToolUseFailure` | When a tool call **fails with an error** | Log errors for debugging, send failure alerts, track error patterns |
@@ -118,7 +118,7 @@ cat <<EOF
 EOF
 ```
 
-### userPromptSubmitted additionalContext (v1.0.65+)
+### userPromptSubmitted additionalContext
 
 The `userPromptSubmitted` hook also supports the `additionalContext` field. When your hook returns `{"additionalContext": "..."}`, that text is **injected into the model-facing prompt** before the model processes the user's message. This is distinct from the `response` field (which bypasses the model entirely) — here the model still runs, but with extra context prepended.
 
@@ -202,11 +202,7 @@ Hooks support two types: `"command"` for running local shell scripts, and `"http
 
 **powershell**: The command or script to execute on Windows systems. Either `bash` or `powershell` (or both) must be provided.
 
-**matcher** *(optional)*: A regular expression matched against the tool name. When present, the hook only fires for tools whose name fully matches the regex. For example, `"^bash$"` ensures the hook only runs for the `bash` tool, not for `edit` or other tools. This is particularly useful for `preToolUse` and `postToolUse` hooks where you want to target a specific tool.
-
-> **Important (v1.0.36+)**: Prior to v1.0.36, the `matcher` field was silently ignored — hooks with a `matcher` fired for all tool calls regardless of the regex. After upgrading to v1.0.36 or later, only tool calls whose name fully matches the `matcher` regex will trigger the hook. Review any existing `preToolUse`/`postToolUse` hooks that use `matcher` to ensure they still fire as expected.
-
-> **Fix (v1.0.63+)**: A bug caused `postToolUse` matchers using pipe-separated patterns (e.g., `"matcher": "Edit|Write"`) to be silently dropped, so hooks targeting multiple tools were incorrectly firing for all tool calls. This is fixed in v1.0.63 — `postToolUse` matchers now work correctly. If you rely on a formatter or linter that runs after specific tools, upgrade to v1.0.63 or later to ensure it fires only when intended.
+**matcher** *(optional)*: A regular expression matched against the tool name. When present, the hook only fires for tools whose name fully matches the regex. For example, `"^bash$"` ensures the hook only runs for the `bash` tool, not for `edit` or other tools. This is particularly useful for `preToolUse` and `postToolUse` hooks where you want to target a specific tool. See [Compatibility and Migration Notes](#compatibility-and-migration-notes) for historical matcher bug fixes if a hook using `matcher` doesn't seem to fire as expected on an older CLI version.
 
 **cwd**: Working directory for the command (relative to repository root).
 
@@ -214,7 +210,7 @@ Hooks support two types: `"command"` for running local shell scripts, and `"http
 
 **env**: Additional environment variables merged with the existing environment.
 
-> **New (v1.0.81+)**: Hooks can now receive the current OpenTelemetry trace context so they can emit correlated spans. Hook inputs gain a `traceparent` field (plus `tracestate` when the span carries vendor-specific state); command hooks also receive these as environment variables, making it possible to link hook telemetry with the rest of a session's trace.
+Hooks receive the current OpenTelemetry trace context so they can emit correlated spans. Hook inputs gain a `traceparent` field (plus `tracestate` when the span carries vendor-specific state); command hooks also receive these as environment variables, making it possible to link hook telemetry with the rest of a session's trace.
 
 #### HTTP hooks (`type: "http"`)
 
@@ -265,7 +261,7 @@ automatically before the agent commits changes.
 
 The `PermissionRequest` hook fires when the CLI shows a permission prompt to the user — for example, when the agent wants to run a shell command for the first time. Unlike `preToolUse` (which can block specific tool *calls*), `PermissionRequest` intercepts the permission approval UI itself, making it ideal for **headless and CI environments** where no one is available to click "Allow".
 
-> **Location-based persistence (v1.0.37+)**: Permission approvals are now persisted by directory by default — once you approve a permission for a given working directory, that approval carries over to future sessions started in the same directory. You no longer need to re-approve the same tools every time. Use `PermissionRequest` hooks to automate approvals in CI, and rely on the persisted approvals for interactive local sessions.
+Permission approvals are persisted by directory by default — once you approve a permission for a given working directory, that approval carries over to future sessions started in the same directory. You no longer need to re-approve the same tools every time. Use `PermissionRequest` hooks to automate approvals in CI, and rely on the persisted approvals for interactive local sessions.
 
 When your hook script exits with code `0`, the permission request is **approved**. Exit with a non-zero code to **deny** it (the user will still see the prompt).
 
@@ -299,11 +295,11 @@ exit 1     # deny (let the user decide interactively)
 
 > **Security note**: Use `PermissionRequest` hooks carefully. Blanket auto-approval in non-CI environments removes an important safety check. Scope the auto-approval logic precisely (e.g., only in CI, only for specific tools).
 
-> **Prompt mode security (v1.0.40+)**: When running the CLI in **prompt mode** (`copilot -p "..."`) — the non-interactive mode commonly used in CI pipelines — repo hooks are **disabled by default** for security. To opt in to repo hooks in prompt mode, set the environment variable `GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=true` before running the command:
+When running the CLI in **prompt mode** (`copilot -p "..."`) — the non-interactive mode commonly used in CI pipelines — repo hooks are **disabled by default** for security. To opt in to repo hooks in prompt mode, set the environment variable `GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=true` before running the command:
 > ```bash
 > GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=true copilot -p "..." --no-ask-user
 > ```
-> This is a secure-by-default change: it prevents untrusted repository hooks from firing silently when a user runs a quick prompt command in an unfamiliar repository. Similarly, workspace MCP servers are disabled in prompt mode by default; opt in with `GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP=true`. Extensions follow a mixed model (v1.0.41+): **user-level extensions** (from `~/.copilot/`) load automatically in prompt mode, but **project-level extensions and management tools** are disabled by default — opt in with `GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS=true` to load them.
+> This is a secure-by-default behavior: it prevents untrusted repository hooks from firing silently when a user runs a quick prompt command in an unfamiliar repository. Similarly, workspace MCP servers are disabled in prompt mode by default; opt in with `GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP=true`. Extensions follow a mixed model: **user-level extensions** (from `~/.copilot/`) load automatically in prompt mode, but **project-level extensions and management tools** are disabled by default — opt in with `GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS=true` to load them.
 
 ### Handling Tool Failures with postToolUseFailure
 
@@ -325,9 +321,7 @@ The `postToolUseFailure` hook fires when a tool call fails with an error — dis
 }
 ```
 
-The hook receives JSON input describing which tool failed and the error message. This separation lets you write targeted failure-handling logic without adding conditional checks to your `postToolUse` hooks.
-
-> **Note**: Before v1.0.15, `postToolUse` fired for both successful and failed tool calls. If you have existing `postToolUse` hooks that handle failures, migrate that logic to `postToolUseFailure`.
+The hook receives JSON input describing which tool failed and the error message. This separation lets you write targeted failure-handling logic without adding conditional checks to your `postToolUse` hooks. See [Compatibility and Migration Notes](#compatibility-and-migration-notes) if you have older `postToolUse` hooks that also handle failures.
 
 ### Auto-Format After Edits
 
@@ -394,7 +388,7 @@ Block dangerous commands before they execute. Use the `matcher` field to target 
 
 The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with a non-zero code to **deny** the tool execution, or exit with zero to **approve** it.
 
-> **Exit code 2 — silent deny (v1.0.69+)**: A `preToolUse` hook that exits with code `2` **denies the tool call silently** — the agent receives a denial without any error message being surfaced to the user. This is useful when you want to block a tool call as a policy decision without triggering a noisy failure (for example, blocking network access in CI without alarming users). Exit with any other non-zero code (e.g., `1`) to deny and show an error message.
+> **Exit code 2 — silent deny**: A `preToolUse` hook that exits with code `2` **denies the tool call silently** — the agent receives a denial without any error message being surfaced to the user. This is useful when you want to block a tool call as a policy decision without triggering a noisy failure (for example, blocking network access in CI without alarming users). Exit with any other non-zero code (e.g., `1`) to deny and show an error message.
 
 ### Modifying Tool Arguments with preToolUse
 
@@ -469,9 +463,9 @@ Scan user prompts for potential security threats and log session activity:
 
 This pattern is useful for enterprise environments that need to audit AI interactions for compliance.
 
-### Handling Requests Directly with userPromptSubmitted (v1.0.44+)
+### Handling Requests Directly with userPromptSubmitted
 
-Since v1.0.44, `userPromptSubmitted` hooks can do more than log or block — they can **handle a request entirely**, returning a response to the user without making any model call. When your hook script writes a JSON object with a `response` field to stdout, the CLI delivers that text to the user and skips the LLM altogether.
+`userPromptSubmitted` hooks can do more than log or block — they can **handle a request entirely**, returning a response to the user without making any model call. When your hook script writes a JSON object with a `response` field to stdout, the CLI delivers that text to the user and skips the LLM altogether.
 
 This is useful for:
 - **FAQ bots**: Return canned answers for common questions without spending model quota
@@ -652,6 +646,13 @@ echo "Pre-commit checks passed ✅"
 - **Test locally first**: Run hook scripts manually before relying on them in agent sessions.
 - **Layer hooks, don't overload**: Use multiple hook entries for independent checks rather than one monolithic script.
 
+## Compatibility and Migration Notes
+
+This section collects behavior changes from past releases that may explain historical bugs or inconsistent-looking output — everything above describes current behavior.
+
+- **The `matcher` field bug fixes**: Before **v1.0.36**, `matcher` was silently ignored entirely, so hooks fired for all tool calls regardless of the regex. In **v1.0.63**, a follow-up bug affecting `postToolUse` matchers with pipe-separated patterns (e.g., `"matcher": "Edit|Write"`) was fixed; before that release, those matchers were silently dropped. If a hook using `matcher` doesn't fire selectively as expected, check the CLI version before troubleshooting the hook configuration.
+- **`postToolUse` used to also fire on tool failures.** Before **v1.0.15**, it fired for both successful and failed tool calls. It now only fires on success; failures are reported to the dedicated `postToolUseFailure` event. Migrate any failure-handling logic in a `postToolUse` hook to `postToolUseFailure`.
+
 ## Common Questions
 
 **Q: Where do I put hooks configuration files?**
@@ -667,7 +668,7 @@ For team-wide hooks that everyone should use, `.github/hooks/` is the recommende
 
 **Q: Can hooks access the user's prompt text?**
 
-A: Yes. For `userPromptSubmitted` events the prompt content is available via JSON input to the hook script. Since v1.0.44, these hooks can also **respond directly** by writing `{"response": "..."}` to stdout — the CLI delivers that text to the user and skips the LLM entirely. Other hooks like `preToolUse` and `postToolUse` receive context about the tool being called. See the [GitHub Copilot hooks documentation](https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-hooks) for details.
+A: Yes. For `userPromptSubmitted` events the prompt content is available via JSON input to the hook script. These hooks can also **respond directly** by writing `{"response": "..."}` to stdout — the CLI delivers that text to the user and skips the LLM entirely. Other hooks like `preToolUse` and `postToolUse` receive context about the tool being called. See the [GitHub Copilot hooks documentation](https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-hooks) for details.
 
 **Q: What happens if a hook times out?**
 

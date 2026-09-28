@@ -117,12 +117,23 @@ jobs:
         env:
           CHANGED_PLUGINS_JSON: ${{ needs.detect-changed-plugins.outputs.changed-plugins }}
         run: |
-          result=$(node ./eng/external-plugin-pr-quality-gates.mjs --plugins-json "$CHANGED_PLUGINS_JSON")
+          result=$(node ./eng/external-plugin-pr-quality-gates.mjs \
+            --plugins-json "$CHANGED_PLUGINS_JSON" \
+            --logs-directory "${RUNNER_TEMP}/external-plugin-pr-quality-logs")
           {
             echo 'quality-result<<EOF'
             echo "$result"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
+
+      - name: Upload full quality gate logs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: external-plugin-pr-quality-logs
+          path: ${{ runner.temp }}/external-plugin-pr-quality-logs
+          if-no-files-found: warn
+          retention-days: 14
 
   publish-quality-result:
     runs-on: ubuntu-latest

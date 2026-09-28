@@ -143,6 +143,18 @@ jobs:
 
             const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
             const marker = '<!-- external-plugin-pr-quality -->';
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: workflowRun.id,
+              per_page: 100,
+            });
+            const qualityLogArtifact = artifacts.find((artifact) =>
+              artifact.name === 'external-plugin-pr-quality-logs' && !artifact.expired
+            );
+            const qualityLogUrl = qualityLogArtifact
+              ? `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${workflowRun.id}/artifacts/${qualityLogArtifact.id}`
+              : '';
             const detectJobResult = payload.detect_job_result;
             const shouldRun = payload.should_run;
             const changedCount = payload.changed_count;
@@ -345,6 +357,7 @@ jobs:
               '',
               `- **Changed entries detected:** ${changedCount}`,
               `- **Workflow state label:** \`${stateLabel}\``,
+              qualityLogUrl ? `- **Full logs:** [Download quality gate artifact](${qualityLogUrl})` : '',
               '- **Status legend:** ✅ pass · ⚠️ warning · 🛑 fail',
               '',
               '### Per-plugin quality summary',

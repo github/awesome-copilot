@@ -9,6 +9,10 @@
 /workflows/ @brunoborges
 /.github/workflows/validate-agentic-workflows-pr.yml @brunoborges
 
+# Copilot review policy
+/.github/skills/code-review/ @aaronpowell
+/.github/copilot-instructions.md @aaronpowell
+
 # Added via #codeowner from PR #930
 /plugins/automate-this/ @dvelton
 /skills/automate-this/ @dvelton
