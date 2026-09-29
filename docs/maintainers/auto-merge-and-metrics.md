@@ -163,3 +163,17 @@ The #4184 automation is driven by repository-local configuration and self-contai
 | `eng/lib/review-automation-github.mjs` | 3 | Copy as-is | None (uses `GITHUB_TOKEN` or the `gh` CLI) |
 
 The phase 3 scripts depend only on Node.js 22 and `js-yaml`. Workflows gate automatic runs on `github.repository_owner == 'github'`; update that condition when porting. `.github/workflows/setup-labels.yml` creates the `do-not-merge`, `auto-merge-armed`, and `review-metrics` labels.
+
+### Other marketplaces: `microsoft/azure-dev-tools`
+
+[`microsoft/azure-dev-tools`](https://github.com/microsoft/azure-dev-tools) is another Copilot plugin marketplace (`copilot plugin marketplace add microsoft/azure-dev-tools`, marketplace ID `azure-dev-tools`). It ships canvas plugins such as `azure-functions-hosted-skills`, `azure-resources-query`, `azure-cost-health-check`, and `azure-sre-agent`, plus the skill-only `canvas-authoring` plugin. It can reuse the same review model: CODEOWNERS teams, `review-routing.yml`, risk tiers, `submission-gate`, `canvas-smoke-test`, `auto-merge.yml`, and the metrics workflow.
+
+- **Maps directly:**
+  - Canvas smoke-test and preview evidence: module graph, capability summary, unsafe paths, binaries, and `assets/preview.png` checks.
+  - Risk tiers and `submission-gate` rules.
+  - Weekly metrics.
+  - Label-driven auto-merge config.
+- **Differences:**
+  - The plugins are first-party and Microsoft-owned, so resource ownership comes from CODEOWNERS teams more than contributor front matter. The `min_merged_prs` history check matters less there.
+  - Releases are pinned to immutable per-plugin tags, while awesome-copilot materializes plugins from the default branch. Point the smoke test's install step at the plugin source for the release tag. Treat release-tag or version bumps as their own risk tier, and don't auto-merge them without maintainer review.
+  - Plugins with no canvas extension, such as `canvas-authoring`, report `canvas-smoke-test` as skipped. The check's layout detection (`extensions/<id>/` plus a matching `plugins/<id>/plugin.json`) may need adjusting to that repository's structure.
