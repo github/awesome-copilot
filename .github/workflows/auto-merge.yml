@@ -13,6 +13,11 @@ on:
     branches: [main]
   check_run:
     types: [completed]
+  workflow_run:
+    # The Phase 2 writer applies merge-risk:* and state labels; labels are final
+    # once it completes. Its event does not identify a PR, so this sweeps.
+    workflows: ["Submission Gate Writer"]
+    types: [completed]
   schedule:
     # Periodic sweep: picks up approvals and resolved threads (review events
     # are not used because they run with the PR's workflow definition), label

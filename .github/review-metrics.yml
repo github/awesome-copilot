@@ -40,6 +40,7 @@ external_plugin_state_labels:
 # "not found" and skipped, so later phases can be listed ahead of time.
 automation_workflows:
   - submission-gate.yml
+  - submission-gate-writer.yml
   - review-routing.yml
   - validate-canvas-extensions.yml
   - canvas-smoke-test-comment.yml
