@@ -1,0 +1,128 @@
+# Merge risk tiers.
+#
+# Automation (eng/submission-gate.mjs) applies exactly one of `merge-risk:low`,
+# `merge-risk:medium`, or `merge-risk:high` to every open PR and the
+# `submission-gate` check enforces the approvals each tier requires.
+# See docs/maintainers/submission-gate.md.
+#
+# Evaluation order:
+#   1. high   if any changed file matches `high.paths`, any added line matches a
+#             `high.capabilities` trigger, or a `high.labels` label is present.
+#   2. low    if every changed file matches `low.paths`, or the PR only modifies
+#             existing resource files (no added/removed/renamed files) and the total
+#             change is at most `low.small_update.max_changed_lines`.
+#   3. medium otherwise.
+#
+# This file is a review-policy file: changing it places a PR in merge-risk:high.
+
+high:
+  description: Privileged execution, automation, or review-policy change
+  paths:
+    # Review policy and automation
+    - ".github/**"
+    - "CODEOWNERS"
+    - "docs/CODEOWNERS"
+    # Build, release, and repository scripts
+    - "eng/**"
+    - "scripts/**"
+    - "package.json"
+    - "package-lock.json"
+    # Agentic workflows and hooks
+    - "workflows/**"
+    - "hooks/**"
+    # MCP server configuration
+    - "**/mcp.json"
+    - "**/.mcp.json"
+    # Bundled executable scripts
+    - "**/*.sh"
+    - "**/*.bash"
+    - "**/*.ps1"
+    - "**/*.psm1"
+    - "**/*.bat"
+    - "**/*.cmd"
+    - "**/*.py"
+    - "skills/**/scripts/**"
+    - "plugins/**/scripts/**"
+    - "plugins/**/hooks/**"
+    # Plugin marketplace sources for externally hosted code
+    - "plugins/external.json"
+  # Generated output that lives under a high-risk path but is safe to regenerate.
+  exclude_paths:
+    - ".github/plugin/marketplace.json"
+  # Regexes matched against added lines of the diff. `files` limits where each applies.
+  capabilities:
+    - id: process-execution
+      description: Spawns processes or evaluates code
+      files: ["extensions/**", "plugins/**", "skills/**", "website/**"]
+      pattern: "child_process|\\bexecSync\\(|\\bexecFile(Sync)?\\(|\\bspawn(Sync)?\\(|\\beval\\(|new Function\\(|node:vm|require\\(['\"]vm['\"]\\)"
+    - id: remote-script-execution
+      description: Pipes a downloaded script into a shell
+      pattern: "(curl|wget)[^\\n|]*\\|\\s*(sudo\\s+)?(ba|z)?sh\\b|(iwr|irm|Invoke-WebRequest|Invoke-RestMethod)[^\\n|]*\\|\\s*(iex|Invoke-Expression)|Invoke-Expression"
+    - id: mcp-server-command
+      description: Declares an MCP server or hook command
+      files: ["plugins/**/*.json", "extensions/**/*.json", "skills/**/*.json"]
+      pattern: "\"(mcpServers|command)\"\\s*:"
+  labels:
+    # Applied by the Contributor Reputation Check writer.
+    - "needs-review:HIGH"
+  approvals:
+    required: 2
+    require_core: true
+
+medium:
+  description: New or substantially changed resource without privileged execution
+  approvals:
+    required: 1
+    require_domain: true
+
+low:
+  description: Documentation, metadata, generated output, or a small update to an existing resource
+  paths:
+    - "docs/**"
+    - "README.md"
+    - "CONTRIBUTING.md"
+    - "CODE_OF_CONDUCT.md"
+    - "SECURITY.md"
+    - "SUPPORT.md"
+    - "LICENSE"
+    - ".all-contributorsrc"
+    - ".github/plugin/marketplace.json"
+    - "**/*.png"
+    - "**/*.jpg"
+    - "**/*.jpeg"
+    - "**/*.gif"
+    - "**/*.svg"
+    - "**/*.webp"
+  small_update:
+    max_changed_lines: 40
+    # Existing resources that may be updated in a small change and stay low risk.
+    resource_paths:
+      - "agents/**"
+      - "instructions/**"
+      - "skills/**"
+      - "plugins/**"
+      - "extensions/**"
+  approvals:
+    required: 1
+
+# Areas used to pick the domain reviewer pool from .github/review-routing.yml.
+# `pools` are routing pool keys. When a matching pool has no reviewers yet, any
+# approver with write access satisfies the domain requirement.
+domains:
+  canvas:
+    paths: ["extensions/**"]
+    pools: ["canvas"]
+  plugin:
+    paths: ["plugins/**"]
+    pools: ["plugin"]
+  content:
+    paths: ["agents/**", "instructions/**", "skills/**"]
+    pools: ["content"]
+  workflow-security:
+    paths: ["workflows/**", "hooks/**", ".github/workflows/**"]
+    pools: ["workflow-security"]
+
+# Routing pools whose members count as core or security maintainers for high-risk
+# approvals. Until those pools are staffed, users with admin or maintain permission
+# on the repository count instead.
+core_pools: ["core-maintainers", "workflow-security"]

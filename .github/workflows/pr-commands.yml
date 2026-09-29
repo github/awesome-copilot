@@ -1,0 +1,134 @@
+name: PR Commands
+
+# Contributor and maintainer commands on pull requests:
+#   /rerun-checks    re-run failed or incomplete checks and re-evaluate the submission gate
+#   /request-review  ask reviewer routing to assign a reviewer (adds `needs-reviewer`)
+# Allowed for the PR author and users with write, maintain, or admin access.
+# Runs default-branch code only; the comment body is never interpolated into scripts.
+# See docs/maintainers/submission-gate.md.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-commands-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  pr-command:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      contents: read
+      issues: write
+      pull-requests: write
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.issue.state == 'open' &&
+      github.event.comment.user.type != 'Bot' &&
+      (startsWith(github.event.comment.body, '/rerun-checks') || startsWith(github.event.comment.body, '/request-review'))
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            eng
+            package.json
+            package-lock.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Run command
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const root = process.env.GITHUB_WORKSPACE;
+            const gate = await import(pathToFileURL(path.join(root, 'eng', 'submission-gate.mjs')).href);
+            const config = gate.loadGateConfig(root);
+            const { owner, repo } = context.repo;
+            const comment = context.payload.comment;
+            const issueNumber = context.payload.issue.number;
+
+            const parsed = gate.parsePrCommand(comment.body);
+            if (!parsed) {
+              core.info('No supported PR command found.');
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: issueNumber });
+            if (pr.state !== 'open') {
+              core.info(`Ignoring /${parsed.command} on a closed PR.`);
+              return;
+            }
+
+            let permission = 'none';
+            try {
+              const { data } = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username: comment.user.login });
+              permission = data.permission;
+            } catch (error) {
+              core.info(`Could not read permission for ${comment.user.login}: ${error.status || error.message}`);
+            }
+            if (!gate.canRunPrCommand({ commenter: comment.user.login, prAuthor: pr.user?.login, permission })) {
+              core.info(`Ignoring /${parsed.command} from ${comment.user.login}: only the PR author or maintainers can run it.`);
+              return;
+            }
+
+            await github.rest.reactions.createForIssueComment({ owner, repo, comment_id: comment.id, content: 'eyes' });
+
+            const defaultBranch = context.payload.repository?.default_branch || 'main';
+            async function dispatch(workflowId, ref, inputs) {
+              try {
+                await github.rest.actions.createWorkflowDispatch({ owner, repo, workflow_id: workflowId, ref, inputs });
+                return true;
+              } catch (error) {
+                core.warning(`Could not dispatch ${workflowId}: ${error.status || error.message}`);
+                return false;
+              }
+            }
+            const list = (items) => items.map((item) => `\`${gate.sanitize(item, 80)}\``).join(', ');
+
+            const lines = [];
+            if (parsed.command === 'rerun-checks') {
+              const result = await gate.rerunChecks(github, { owner, repo, headSha: pr.head.sha });
+              await dispatch('submission-gate-writer.yml', defaultBranch, { pr_number: String(pr.number) });
+              lines.push(`🔁 \`/rerun-checks\` for \`${pr.head.sha.slice(0, 7)}\``);
+              lines.push('');
+              lines.push(result.rerun.length > 0 ? `Re-running: ${list(result.rerun)}.` : 'No failed or incomplete checks to re-run.');
+              for (const skipped of result.skipped) {
+                lines.push(`- ${gate.sanitize(skipped.name, 80)} ${gate.sanitize(skipped.reason, 200)}.`);
+              }
+              lines.push('', 'The status comment updates when the checks finish.');
+            } else {
+              const settings = config.gate.commands?.request_review || {};
+              const label = settings.label || 'needs-reviewer';
+              await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: [label] });
+              let dispatched = false;
+              if (settings.dispatch_workflow) {
+                dispatched = await dispatch(settings.dispatch_workflow, settings.dispatch_ref || defaultBranch, { pr_number: String(pr.number) });
+              }
+              const requested = [
+                ...(pr.requested_reviewers || []).map((user) => user.login),
+                ...(pr.requested_teams || []).map((team) => team.slug),
+              ];
+              lines.push(`🙋 Added \`${label}\`. ${dispatched ? 'Reviewer routing is assigning a reviewer now.' : 'Reviewer routing picks this up on its next run.'}`);
+              if (requested.length > 0) lines.push('', `Already requested: ${list(requested)}.`);
+            }
+
+            await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body: lines.join('\n') });

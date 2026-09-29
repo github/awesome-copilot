@@ -1,0 +1,104 @@
+name: Submission Gate
+
+# Aggregate required check for every PR. Waits for the applicable checks listed in
+# .github/submission-gate.yml, classifies the PR into a merge-risk tier
+# (.github/risk-tiers.yml), and verifies the approvals that tier requires.
+# Read-only: labels and the status comment are written by submission-gate-writer.yml.
+# See docs/maintainers/submission-gate.md.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: submission-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  submission-gate:
+    name: submission-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      # Gate logic and policy come from the base commit so a PR cannot change how it is judged.
+      - name: Checkout trusted base
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            eng
+            package.json
+            package-lock.json
+
+      - name: Check for gate logic on base
+        id: base
+        run: |
+          if [ -f eng/submission-gate.mjs ] && [ -f .github/submission-gate.yml ] && [ -f .github/risk-tiers.yml ]; then
+            echo "has-gate=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-gate=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Bootstrap only: the PR that introduces the gate has no base copy of it. This job
+      # has a read-only token, and such PRs are merge-risk:high by path.
+      - name: Checkout PR (bootstrap)
+        if: steps.base.outputs.has-gate != 'true'
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+          clean: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Evaluate submission
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BOOTSTRAP: ${{ steps.base.outputs.has-gate != 'true' }}
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            if (process.env.BOOTSTRAP === 'true') {
+              core.warning('The base branch has no submission gate yet; evaluating with the gate from this PR.');
+            }
+            const root = process.env.GITHUB_WORKSPACE;
+            const gate = await import(pathToFileURL(path.join(root, 'eng', 'submission-gate.mjs')).href);
+            const config = gate.loadGateConfig(root);
+            const pullNumber = context.payload.pull_request.number;
+
+            const evaluation = await gate.evaluateSubmission(github, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pullNumber,
+              config,
+              wait: true,
+              token: process.env.GH_TOKEN,
+              log: (message) => core.info(message),
+            });
+
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await core.summary.addRaw(gate.renderStatusComment(evaluation, { gateRunUrl: runUrl })).write();
+
+            core.info(`PR #${pullNumber}: state=${evaluation.state}, risk=${evaluation.risk.tier}`);
+            if (!evaluation.passed) {
+              core.setFailed(gate.gateFailureSummary(evaluation).join('\n') || `State is ${evaluation.state}`);
+            }
