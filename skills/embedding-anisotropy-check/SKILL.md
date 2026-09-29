@@ -1,6 +1,6 @@
 ---
 name: embedding-anisotropy-check
-description: 'Check a cosine similarity over embeddings or transformer hidden states before reporting it. Measures the anisotropy of each side, centres by the population mean, and scores matched pairs against a permuted floor taken from the same comparison. Use when comparing embeddings across models, precisions, layers, runtimes or modalities, when evaluating retrieval, probes or adapters, or before calling a similarity high, two conditions in agreement, or a small gap a null.'
+description: 'Check a cosine similarity over embeddings or transformer hidden states before reporting it. Measures the anisotropy of each side, centres by the population mean, and scores matched pairs against a permuted floor taken from the same comparison. Use when comparing one model''s embeddings across precisions, runtimes or layers, when evaluating retrieval, probes or adapters, or before calling a similarity high, two conditions in agreement, or a small gap a null.'
 license: MIT
 compatibility: Python 3.9+ with numpy
 ---
@@ -14,9 +14,15 @@ it. This skill makes every such comparison carry its own floor.
 
 ## When to use this skill
 
-- The same inputs under two models, two precisions (bf16 against 4-bit), two layers or two runtimes.
-- Query and passage, image and caption, or any other paired evaluation.
+- The same inputs under one model at two precisions (bf16 against 4-bit), in two runtimes, or at two nearby layers,
+  which share one coordinate space.
+- Query and passage, image and caption, or any other paired evaluation inside one embedding space.
 - Any sentence claiming that a similarity is high, that two conditions agree, or that a small difference is a null.
+
+Not for two independently trained models as they stand. A rotation of one model's space keeps its geometry and changes
+every cosine against the other model, and centring does not align the two bases. Fit an explicit map first, for
+example orthogonal Procrustes on a train split of paired rows, and compare the mapped rows; or compare each model's
+own within-space similarities instead.
 
 ## Procedure
 
@@ -31,7 +37,8 @@ it. This skill makes every such comparison carry its own floor.
    ```
 
    Pass `--shared` when A and B come from one model and one population, so that both sides are centred by one mean.
-   Without `--fit-a` and `--fit-b` the means are fitted on the compared rows themselves, and the output says so.
+   Without `--fit-a` and `--fit-b` the means are fitted on the compared rows themselves, and the output's `means`
+   field says, for each side, which rows its mean came from.
 4. Report, side by side: the anisotropy of each side, matched against floor before centring, matched against floor
    after centring, and `partner_ranked_first` against its chance rate `1/n`.
 
@@ -58,12 +65,14 @@ it. This skill makes every such comparison carry its own floor.
 
 bge-small-en-v1.5 on the first 100 documents of `mteb/scifact`'s corpus, each split into its first and second half at
 the middle sentence boundary, with the halves of one abstract as the matched pair and one mean shared by both sides
-(`--shared`):
+(`--shared`). `scripts/example_scifact_halves.py` rebuilds it: it pins the corpus at revision `cf10ab6` and the model
+at `5c38ec7`, states the sentence split, and needs `datasets` and `sentence-transformers` besides numpy. With datasets
+5.0.1, sentence-transformers 6.0.1, torch 2.13.0 and numpy 2.5.1 it gives:
 
 | | matched | floor (unrelated halves) | gap over floor sd |
 | --- | ---: | ---: | ---: |
 | raw cosine | 0.8636 | 0.6024 | 4.38 |
-| centred cosine | 0.6487 | -0.0141 | 6.04 |
+| centred cosine | 0.6487 | -0.0131 | 5.87 |
 
 The anisotropy is 0.5956 and 0.6148, so before centring an unrelated half already scores 70% of what the matching
 half scores. Both readings put the partner first for most abstracts (97 and 98 of 100), but only the centred one says
