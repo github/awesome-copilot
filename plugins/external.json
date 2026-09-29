@@ -977,6 +977,31 @@
     }
   },
   {
+    "name": "markdstage",
+    "description": "Create, edit, present, and export Markdown slides in a GitHub Copilot Canvas.",
+    "version": "4.2.4",
+    "author": {
+      "name": "Kazuki Ota",
+      "url": "https://github.com/runceel"
+    },
+    "repository": "https://github.com/runceel/MarkdStage",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "copilot-canvas",
+      "markdown",
+      "slides",
+      "presentation"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "runceel/MarkdStage",
+      "path": ".github/plugin/markdstage",
+      "ref": "v4.2.4",
+      "sha": "34621f7217fbf2a10499c229229df4c86241095d"
+    }
+  },
+  {
     "name": "microsoft-docs",
     "description": "Access official Microsoft documentation, API references, and code samples for Azure, .NET, Windows, and more.",
     "version": "1.0.0",
