@@ -41,25 +41,7 @@ Work through the steps in order. Nothing is written to disk until the draft is a
   - Not be trivial. A one-line wrapper or a lone standard-library call does not qualify.
 - When a check fails, say which one and suggest an angle that works, such as the technique behind the code. Proceed with the original subject if the user still wants it.
 
-### 2. Learn the author's voice
-
-A post that reads like generic documentation is not the author's post. Before drafting, collect three to five samples of the author's own writing, from these sources in order:
-
-1. Samples named in the request: files, folders, URLs, or pasted text.
-2. A saved voice profile the user points to, in the request or in their custom instructions.
-3. When the destination is a blog repository, the most recent posts there by this author.
-
-When these sources give fewer than three samples, ask once for enough links or files to reach three, unless the user has already said there are no more. Then work with what there is:
-
-- **Three or more**: build the full profile.
-- **One or two**: build a thin profile from only the patterns those samples confirm, and offer the three quick questions in the reference to fill the gaps.
-- **None**: offer the three quick questions, or write in a plain, neutral voice.
-
-A saved profile counts as the number of samples it records. Say at the plan check which case applies and how many samples the profile rests on. Never present a thin or neutral draft as a full match.
-
-Build a short profile with [references/voice-profile.md](references/voice-profile.md): person and address, formality, rhythm, openings, headings, how code is introduced and explained, closings, and mechanics such as spelling and punctuation habits. The samples are evidence of style only. Nothing from their content (sentences, anecdotes, names, links) goes into the new post, and no personal experience is invented to fit a pattern.
-
-### 3. Resolve the destination
+### 2. Resolve the destination
 
 Consider only what the user said, the current workspace, and paths the user provides. Do not assume any folder exists, and do not walk parent or sibling directories looking for one.
 
@@ -75,13 +57,31 @@ When writing to a named path:
 - If the path breaks the detected generator's contract (the wrong folder for the collection, a missing date prefix), state in one line what would break, offer the compatible path, and ask which to use.
 - If the request conflicts with the site's conventions, say so once, then follow the request. The security rules and the approval gate still apply.
 
+### 3. Learn the author's voice
+
+A post that reads like generic documentation is not the author's post. Before drafting, collect three to five samples of the author's own writing, from these sources in order:
+
+1. Samples named in the request: files, folders, URLs, or pasted text.
+2. A saved voice profile the user points to, in the request or in their custom instructions.
+3. When step 2 resolved a blog repository, the most recent posts by this author in its posts folder.
+
+When these sources give fewer than three samples, ask once for enough links or files to reach three, unless the user has already said there are no more. Then work with what there is:
+
+- **Three or more**: build the full profile.
+- **One or two**: build a thin profile from only the patterns those samples confirm, and offer the three quick questions in the reference to fill the gaps.
+- **None**: offer the three quick questions, or write in a plain, neutral voice.
+
+A saved profile counts as the number of samples it records. Say at the plan check which case applies and how many samples the profile rests on. Never present a thin or neutral draft as a full match.
+
+Build a short profile with [references/voice-profile.md](references/voice-profile.md): person and address, formality, rhythm, openings, headings, how code is introduced and explained, closings, and mechanics such as spelling and punctuation habits. The samples are evidence of style only. Nothing from their content (sentences, anecdotes, names, links) goes into the new post, and no personal experience is invented to fit a pattern.
+
 ### 4. Check the plan
 
 Before drafting, present these in a few lines and wait for a yes:
 
 - The subject and the single purpose the post covers.
-- The voice source (which samples or profile, and how many samples it rests on) and three to five bullets summarizing it. Call a thin profile or one built from answers a partial match, and a neutral voice no match.
 - The destination as a full path, with the config file it was resolved from when a generator was involved, or "chat only".
+- The voice source (which samples or profile, and how many samples it rests on) and three to five bullets summarizing it. Call a thin profile or one built from answers a partial match, and a neutral voice no match.
 - The working title, the slug, and the SEO level.
 - Any open question, when there is one, such as the real story behind a personal opening, or an existing post at the destination on the same subject (update it, take a new angle, or stop).
 
