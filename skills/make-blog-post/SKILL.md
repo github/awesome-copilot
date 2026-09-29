@@ -1,6 +1,6 @@
 ---
 name: make-blog-post
-description: 'Turn code from the current session into a blog post written in the voice of its author. Covers one function, script, class, or tool as a focused walkthrough with a generalized sample and a usage example, learns tone and structure from existing posts or writing samples by the same author, takes the destination from what the user names or the blog repository in use instead of assumed folders, and writes nothing until the draft is approved. Use when asked to write, draft, or turn code into a blog post, article, tutorial, or gist, or when invoked as /make-blog-post at the end of a turn.'
+description: 'Turn code from the current session into a blog post written in the voice of its author. Covers one function, script, class, or tool as a focused walkthrough with a generalized sample and a usage example, learns tone and structure from existing posts or writing samples by the same author, takes the destination from what the user names or the blog repository in use instead of assumed folders, and saves no file until the draft is approved. Use when asked to write, draft, or turn code into a blog post, article, tutorial, or gist, or when invoked as /make-blog-post at the end of a turn.'
 argument-hint: "Optional: code or topic to cover, where the post goes, and links or files of your past posts"
 ---
 
@@ -85,11 +85,11 @@ Before drafting, present these in a few lines and wait for a yes:
 - The working title, the slug, and the SEO level.
 - Any open question, when there is one, such as the real story behind a personal opening, or an existing post at the destination on the same subject (update it, take a new angle, or stop).
 
-On a decline, stop and write nothing. When the post will be delivered in chat, nothing is written, so skip the extra round trip: put the plan at the top of the reply that carries the draft, and let one approval cover both.
+On a decline, stop and write nothing. When the post will be delivered in chat, no file is saved, so skip the extra round trip: put the plan at the top of the reply that carries the draft, and let one approval cover both.
 
 ### 5. Draft and get approval
 
-Write the post per **Building the post**, show it in full, and invite edits. Revise and show it again until the user approves. Silence or an ambiguous reply is not approval. Nothing is written, published, committed, or pushed before an explicit yes.
+Draft the post per **Building the post**, show it in full, and invite edits. Revise and show it again until the user approves. Silence or an ambiguous reply is not approval. Drafting and showing the post in the conversation needs no approval, but nothing is saved to a file, published, committed, or pushed before an explicit yes.
 
 ### 6. Deliver
 
