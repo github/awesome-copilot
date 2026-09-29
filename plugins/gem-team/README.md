@@ -19,7 +19,7 @@
 
 ## Real-world performance
 
-> Sub-$0.001 per API call on 100K+ token contexts. 82.8M+ tokens processed across 666 agent runs, with typical responses completing in 2-5 seconds. Prompt caching turns large contexts into sub-penny operations — a 10x cost reduction vs. uncached input.
+> Sub-$0.001 per API call on 100K+ token contexts. 82.8M+ tokens processed across 666 agent runs, with typical responses completing in 2-5 seconds. Prompt caching turns large contexts into sub-penny operations - a 10x cost reduction vs. uncached input.
 
 _Observed during Gem-Team development using DeepSeek V4.1 Flash via CommandCode._
 
@@ -38,7 +38,7 @@ Gem Team wraps your AI with a disciplined engineering delivery system. It enforc
 - **Works With Your Tools**: Seamless integration with Copilot, Claude, Cursor, Codex, Gemini, and Windsurf. Use your preferred environment.
 - **Learns & Improves**: Remembers what works and extracts reusable skills. Your AI gets smarter and more efficient over time.
 - **Resumable Plans**: Every MEDIUM/HIGH task gets a persistent plan ID. Pause, resume, or extend work without losing context or re-discovering what you already know.
-- **Works With Any Model**: Hardened output contracts and relational invariant fallbacks mean every agent works across commercial and open models — not just the ones that memorized your schema.
+- **Works With Any Model**: Hardened output contracts and relational invariant fallbacks mean every agent works across commercial and open models - not just the ones that memorized your schema.
 
 ### Intelligent Model Routing
 
@@ -137,12 +137,12 @@ Gem Team uses a structured workflow to turn AI coding into a reliable engineerin
 ## Features
 
 - **Risk-Based Quality Gates**: TDD and deterministic verification always apply; specialist reviews and audits run when the plan or changed scope requires them.
-- **Effortless Context**: Progressive context management prevents bloat. Scoped handoffs, bounded `planning_context`, and evidence-by-reference keep each agent's token footprint minimal while maximizing cached token reuse across waves.
+- **Effortless Context**: Progressive context management prevents bloat. Scoped handoffs, context-coalesced tasks, verbatim cluster `shared_context`, a cache-lifetime payload order, and evidence-by-reference keep each agent's token footprint minimal while maximizing cached token reuse across waves.
 - **Smart Routing**: Tasks are automatically routed to the right agents based on complexity.
 - **Parallel Execution**: Independent tasks run in parallel within waves; overlapping ownership is serialized to prevent conflicts.
 - **Resumable Plans**: Every MEDIUM/HIGH task gets a persistent plan ID and `plan.yaml`. Pause, resume, or extend work without losing context.
 - **Reusable Knowledge**: High-confidence patterns and skills are extracted and reused for future tasks.
-- **Cost Efficiency**: Model routing, output hygiene, and compact handoffs ensure you only use the tokens you need. Evidence travels by reference, not by copy — keeping context usage low and cache hits high across waves.
+- **Cost Efficiency**: Model routing, output hygiene, and compact handoffs ensure you only use the tokens you need. Evidence travels by reference, not by copy - keeping context usage low and cache hits high across waves.
 - **Failure Classification**: Every failure is classified (retry, fixable, replan, flaky, regression, platform-specific, test-bug) so the Orchestrator routes it to the right agent instead of blindly retrying.
 - **Verification Boundary**: The Orchestrator never re-verifies or second-guesses specialist output. Verification is owned exclusively by the specialist responsible for the work.
 - **Quality Directives**: Every agent follows specific rules that prevent common AI coding issues: no dead buttons, no buzzwords, no template filler, and every decision has a reason.

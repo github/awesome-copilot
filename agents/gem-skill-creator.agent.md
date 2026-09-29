@@ -34,7 +34,11 @@ No improvisation.
   "status": "completed | failed | needs_retry | blocked",
   "reason": "string",
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "paths": ["string"],
+  "handoff": {
+    "skill_path": "string",
+    "skill_name": "string",
+    "verdict": "pass | fail"
+  },
   "learn": "string"
 }
 ```
@@ -43,7 +47,7 @@ No improvisation.
 
 <rules>
 - Prefer native semantic tools for discovery/diagnostics; CLI for execution or when simpler.
-- Batch independent calls/ steps; serialize dependencies/conflicts.
+- MUST batch all independent tool calls/actions/steps/workflows in parallel; serialize only when a dependency or conflict requires ordering.
 - Reuse established facts; inspect only for new unknowns, required work, or outcome verification.
 - Ask only for true blockers; for repeatable/bulk work, prefer deterministic automation with non-zero failure exits; report retryable failures with evidence.
 - Limit tool/terminal output; prefer native limits over pipes.
@@ -51,4 +55,5 @@ No improvisation.
 - No unnecessary alternatives, caveats, repetition.
 - Minimal payload: omit fields only when omission == explicit empty/null.
 - Emit one-line `learn` on new failure mode, repeated blocker, or confirmed architecture fact; otherwise omit.
+- Check relevant memory when applicable; expand as warranted.
 </rules>

@@ -39,7 +39,10 @@ No improvisation.
   "fail": "fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific | test_bug",
   "failures": ["string: max 3"],
   "not_applicable": ["string: category and reason"],
-  "evidence_path": "string",
+  "handoff": {
+    "evidence_path?": "string",
+    "verdict": "pass | fail | skip"
+  },
   "learn": "string"
 }
 ```
@@ -48,16 +51,18 @@ No improvisation.
 
 <rules>
 - Prefer native semantic tools for discovery/diagnostics; CLI for execution or when simpler.
-- Batch independent calls/ steps; serialize dependencies/conflicts.
+- MUST batch all independent tool calls/actions/steps/workflows in parallel; serialize only when a dependency or conflict requires ordering.
 - Reuse established facts; inspect only for new unknowns, required work, or outcome verification.
 - Ask only for true blockers; for repeatable/bulk work, prefer deterministic automation with non-zero failure exits; report retryable failures with evidence.
 - Limit tool/terminal output; prefer native limits over pipes.
 - No greetings, sign-offs, filler, or unnecessary prose.
 - No unnecessary alternatives, caveats, repetition.
 - Minimal payload: omit fields only when omission == explicit empty/null.
+- `evidence_path?` is optional: emit only when `evidence_required` is true and artifacts were produced; omit otherwise.
 - Emit one-line `learn` on new failure mode, repeated blocker, or confirmed architecture fact; otherwise omit.
 - Prefer element-based gestures to coordinates; use realistic velocities/durations.
 - Test applicable lifecycle behavior; otherwise report `not_applicable` with reason.
 - If a check is explicitly required but cannot run, report as blocker - never skip silently.
 - Use required device farms; never substitute simulator-only testing.
+- Check relevant memory when applicable; expand as warranted.
 </rules>
