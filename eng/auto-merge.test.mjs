@@ -7,6 +7,7 @@ import test from "node:test";
 import {
   codeownersFor,
   evaluateAutoMerge,
+  frontMatterFilesFor,
   globToRegExp,
   loadAutoMergeConfig,
   normalizeConfig,
@@ -14,6 +15,7 @@ import {
   parseArgs,
   parseCodeowners,
   recordedAuthorFromPluginJson,
+  recordedAuthorsFromFrontMatter,
   renderSummary,
   resourceKeyFor,
 } from "./auto-merge.mjs";
@@ -261,4 +263,37 @@ test("CLI arguments and summary rendering", () => {
   assert.match(summary, /dry run/);
   assert.match(summary, /#42 \| arm \| would-arm/);
   assert.match(summary, /#7 \| error/);
+});
+
+test("CODEOWNERS team entries count only for verified active members", () => {
+  const codeowners = parseCodeowners("* @aaronpowell\n/skills/foo/ @github/foo-maintainers\n");
+  const base = { codeowners, recordedAuthors: new Map(), authorMergedPrCount: 3 };
+  assert.equal(evaluateAutoMerge(makePr(), config, base).eligible, false, "unknown membership fails closed");
+  const member = { ...base, teamMemberships: new Map([["@github/foo-maintainers", true]]) };
+  assert.equal(evaluateAutoMerge(makePr(), config, member).action, "arm");
+  const nonMember = { ...base, teamMemberships: new Map([["@github/foo-maintainers", false]]) };
+  assert.equal(evaluateAutoMerge(makePr(), config, nonMember).eligible, false);
+});
+
+test("front matter authors are read from GitHub handles, URLs, and github fields only", () => {
+  const markdown = [
+    "---",
+    "name: foo",
+    "author: '@Alice'",
+    "authors:",
+    "  - github: bob",
+    "  - url: https://github.com/carol",
+    "  - Some Person",
+    "metadata:",
+    "  author: https://github.com/dave/",
+    "---",
+    "# Body",
+  ].join("\n");
+  assert.deepEqual(recordedAuthorsFromFrontMatter(markdown).sort(), ["alice", "bob", "carol", "dave"]);
+  assert.deepEqual(recordedAuthorsFromFrontMatter("# No front matter"), []);
+  assert.deepEqual(recordedAuthorsFromFrontMatter("---\n: [bad\n---\n"), []);
+  assert.deepEqual(frontMatterFilesFor("skills/foo"), ["skills/foo/SKILL.md"]);
+  assert.deepEqual(frontMatterFilesFor("hooks/bar"), ["hooks/bar/README.md"]);
+  assert.deepEqual(frontMatterFilesFor("agents/x.agent.md"), ["agents/x.agent.md"]);
+  assert.deepEqual(frontMatterFilesFor("plugins/foo"), []);
 });

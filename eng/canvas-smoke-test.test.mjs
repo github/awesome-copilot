@@ -185,6 +185,7 @@ test("inspectExtensionFiles flags native binaries, executables, and vendored nod
     "extensions/bin/assets/preview.png": makePng(4, 4),
     "extensions/bin/node_modules/dep/index.js": "module.exports = 1;\n",
     "extensions/bin/data.bin.dat": Buffer.from([0, 1, 2, 3]),
+    "extensions/bin/tool.py": "print(1)\n",
   });
   const modes = new Map([["extensions/bin/run.sh", "100755"]]);
   const result = inspectExtensionFiles(path.join(root, "extensions", "bin"), { rootDir: root, fileModes: modes });
@@ -193,8 +194,9 @@ test("inspectExtensionFiles flags native binaries, executables, and vendored nod
   assert.match(errors, /addon\.node: native\/compiled binary/);
   assert.match(errors, /run\.sh: file is marked executable/);
   assert.match(errors, /node_modules\/: vendored node_modules/);
-  assert.match(result.warnings.join("\n"), /run\.sh: shell\/batch script/);
+  assert.match(result.warnings.join("\n"), /run\.sh: script file/);
   assert.match(result.warnings.join("\n"), /data\.bin\.dat: unexpected binary content/);
+  assert.match(result.warnings.join("\n"), /tool\.py: script file/);
   assert.doesNotMatch(result.warnings.join("\n"), /preview\.png/);
 });
 
@@ -259,4 +261,116 @@ test("runCanvasSmokeTest fails for an unregistered extension with a missing prev
   const errors = report.extensions[0].errors.join("\n");
   assert.match(errors, /preview\.png is missing/);
   assert.match(errors, /not registered by any plugin/);
+});
+
+test("inspectPng rejects images whose decoded data exceeds the budget before inflating", () => {
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(16000, 0);
+  header.writeUInt32BE(16000, 4);
+  header[8] = 16; // bit depth
+  header[9] = 6; // RGBA
+  const png = Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk("IHDR", header),
+    chunk("IDAT", zlib.deflateSync(Buffer.alloc(1024))),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
+  const result = inspectPng(png);
+  assert.equal(result.ok, false);
+  assert.match(result.errors[0], /decoded image data would be/);
+});
+
+test("inspectPng rejects image data larger than IHDR allows", () => {
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(4, 0);
+  header.writeUInt32BE(4, 4);
+  header[8] = 8;
+  header[9] = 2;
+  const png = Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk("IHDR", header),
+    chunk("IDAT", zlib.deflateSync(Buffer.alloc(10_000))),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
+  assert.match(inspectPng(png).errors[0], /larger than the IHDR/);
+});
+
+test("findUnsafeManifestPaths reports file: URLs", () => {
+  const findings = findUnsafeManifestPaths({ main: "file:///tmp/x.mjs", homepage: "https://example.com/x" });
+  assert.deepEqual(findings.map((finding) => finding.field), ["$.main"]);
+  assert.match(findings[0].reason, /file:/);
+});
+
+test("checkExtensionModules follows CommonJS requires and literal dynamic imports", () => {
+  const root = makeRepo({
+    "extensions/graph/extension.mjs": [
+      'import cjs from "./lib/legacy.cjs";',
+      'const worker = await import("./lib/worker.mjs");',
+      'const later = await import("./lib/missing.mjs");',
+      "// import(\"./lib/commented.mjs\")",
+      "export default { cjs, worker, later };",
+    ].join("\n"),
+    "extensions/graph/lib/legacy.cjs": [
+      'const helper = require("./helper");',
+      'const pad = require("left-pad");',
+      'const outside = require("../../other/x.js");',
+      "// require(\"ignored-in-comment\")",
+      "module.exports = { helper, pad, outside };",
+    ].join("\n"),
+    "extensions/graph/lib/helper.js": "module.exports = 1;\n",
+    "extensions/graph/lib/worker.mjs": 'import { spawn } from "node:child_process";\nimport vitest from "vitest";\nexport default { spawn, vitest };\n',
+    "extensions/graph/package.json": { name: "graph", version: "1.0.0", devDependencies: { vitest: "1.0.0" } },
+    "extensions/other/x.js": "module.exports = 1;\n",
+  });
+  const result = checkExtensionModules(path.join(root, "extensions", "graph"));
+  const errors = result.errors.join("\n");
+  assert.match(errors, /legacy\.cjs: require\("left-pad"\) is not a Node\.js builtin/);
+  assert.match(errors, /legacy\.cjs: require\("\.\.\/\.\.\/other\/x\.js"\) escapes the extension directory/);
+  assert.doesNotMatch(errors, /require\("\.\/helper"\)/);
+  assert.doesNotMatch(errors, /ignored-in-comment|commented\.mjs/);
+  assert.match(errors, /dynamic import\("\.\/lib\/missing\.mjs"\) references a missing file/);
+  assert.match(errors, /worker\.mjs: import "vitest" is only declared in devDependencies/);
+  assert.deepEqual(result.builtins, ["child_process"]);
+  assert.ok(result.modules.find((entry) => entry.path === "lib/worker.mjs").reachable);
+  assert.ok(result.modules.find((entry) => entry.path === "lib/helper.js").reachable);
+});
+
+test("removed canvas paths are validated instead of skipped", async () => {
+  // Entry point deleted but the extension directory remains.
+  const partial = makeRepo({
+    "extensions/orb/assets/preview.png": makePng(800, 400),
+    "plugins/orb/plugin.json": extensionPlugin("orb"),
+  });
+  const partialReport = await runCanvasSmokeTest({ rootDir: partial, changedFiles: ["extensions/orb/extension.mjs"], install: "never" });
+  assert.equal(partialReport.status, "fail");
+  assert.match(partialReport.extensions[0].errors.join("\n"), /extension\.mjs: entry point is missing/);
+
+  // Extension deleted, but its direct plugin and a bundling plugin remain.
+  const orphaned = makeRepo({
+    "plugins/orb/plugin.json": extensionPlugin("orb"),
+    "plugins/bundle/plugin.json": {
+      $schema: PLUGIN_SCHEMA,
+      name: "bundle",
+      description: "bundle",
+      version: "1.0.0",
+      extensions: { "com.github.awesome-copilot": { extensions: ["./extensions/orb"] } },
+    },
+  });
+  const orphanedTargets = detectCanvasTargets(["extensions/orb/extension.mjs"], { rootDir: orphaned });
+  assert.deepEqual(orphanedTargets.plugins, ["bundle", "orb"]);
+  const orphanedReport = await runCanvasSmokeTest({ rootDir: orphaned, changedFiles: ["extensions/orb/extension.mjs"], install: "never" });
+  assert.equal(orphanedReport.status, "fail");
+  const pluginErrors = orphanedReport.plugins.flatMap((plugin) => plugin.errors).join("\n");
+  assert.match(pluginErrors, /plugins\/orb is the plugin for removed extension/);
+  assert.match(pluginErrors, /plugins\/bundle\/plugin\.json references missing extension extensions\/orb/);
+
+  // Extension and plugin both deleted: accepted.
+  const clean = makeRepo({ "plugins/plain/plugin.json": { name: "plain" } });
+  const cleanReport = await runCanvasSmokeTest({
+    rootDir: clean,
+    changedFiles: ["extensions/orb/extension.mjs", "plugins/orb/plugin.json"],
+    install: "never",
+  });
+  assert.equal(cleanReport.status, "pass");
+  assert.match(renderMarkdownReport(cleanReport), /removed extensions/);
 });

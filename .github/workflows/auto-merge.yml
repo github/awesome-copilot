@@ -11,11 +11,11 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, labeled, unlabeled]
     branches: [main]
-  check_run:
-    types: [completed]
   workflow_run:
-    # The Phase 2 writer applies merge-risk:* and state labels; labels are final
-    # once it completes. Its event does not identify a PR, so this sweeps.
+    # The Phase 2 writer applies merge-risk:* and state labels once the
+    # submission-gate check completes. Its event does not identify a PR, so this
+    # sweeps. (check_run is not used: GitHub does not trigger workflows for
+    # check runs created by GitHub Actions.)
     workflows: ["Submission Gate Writer"]
     types: [completed]
   schedule:
@@ -40,15 +40,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: auto-merge-${{ github.event.pull_request.number || github.event.check_run.head_sha || github.event_name }}
+  group: auto-merge-${{ github.event.pull_request.number || github.event_name }}
   cancel-in-progress: false
 
 jobs:
   evaluate:
     name: safe-auto-merge
-    if: >-
-      github.repository_owner == 'github' &&
-      (github.event_name != 'check_run' || github.event.check_run.name == 'submission-gate')
+    if: github.repository_owner == 'github'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -80,7 +78,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.AUTO_MERGE_TOKEN || github.token }}
           EVENT_NAME: ${{ github.event_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          CHECK_SHA: ${{ github.event.check_run.head_sha }}
           INPUT_PR: ${{ inputs.pr }}
           INPUT_DRY_RUN: ${{ inputs.dry_run }}
         run: |
@@ -89,9 +86,6 @@ jobs:
           case "$EVENT_NAME" in
             pull_request_target)
               args+=(--pr "$PR_NUMBER")
-              ;;
-            check_run)
-              args+=(--sha "$CHECK_SHA")
               ;;
             workflow_dispatch)
               if [ -n "$INPUT_PR" ]; then args+=(--pr "$INPUT_PR"); else args+=(--all); fi

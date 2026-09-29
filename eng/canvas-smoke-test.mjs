@@ -28,6 +28,9 @@ export const DEFAULT_MIN_PREVIEW_HEIGHT = 160;
 export const MAX_PREVIEW_BYTES = 5 * 1024 * 1024;
 export const MAX_ASSET_BYTES = 5 * 1024 * 1024;
 const MAX_PNG_DIMENSION = 16384;
+// Upper bound on decompressed image data so a small, highly compressed PNG
+// cannot exhaust runner memory (8192×8192 RGBA8 is ~256 MiB).
+export const MAX_PNG_DECODED_BYTES = 256 * 1024 * 1024;
 
 const COPILOT_NAMESPACE = "com.github.copilot";
 const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
@@ -40,7 +43,7 @@ const NATIVE_BINARY_EXTENSIONS = new Set([
   ".lib", ".msi", ".node", ".o", ".pyc", ".rpm", ".so", ".sys", ".wasm",
 ]);
 const SCRIPT_EXTENSIONS = new Set([
-  ".bash", ".bat", ".cmd", ".command", ".fish", ".ps1", ".psm1", ".sh", ".vbs", ".zsh",
+  ".bash", ".bat", ".cmd", ".command", ".fish", ".pl", ".ps1", ".psm1", ".py", ".rb", ".sh", ".vbs", ".zsh",
 ]);
 const ALLOWED_BINARY_EXTENSIONS = new Set([
   ".aac", ".apng", ".avif", ".bmp", ".flac", ".gif", ".ico", ".jpeg", ".jpg", ".m4a", ".mp3", ".mp4",
@@ -111,6 +114,7 @@ export function unsafePathReason(reference) {
 
 function looksLikePath(value) {
   if (typeof value !== "string" || value.length === 0 || value.length > 512) return false;
+  if (/^file:/i.test(value)) return true;
   if (/\s/.test(value) || /^[a-z][a-z0-9+.-]*:\/\//i.test(value)) return false;
   return /^(\.{1,2}[\\/]|\/|[A-Za-z]:[\\/]|\\\\)/.test(value) || /(^|[\\/])\.\.([\\/]|$)/.test(value);
 }
@@ -279,15 +283,21 @@ export function inspectPng(buffer) {
   if (!sawEnd) result.errors.push("missing IEND chunk");
   if (result.errors.length > 0) return result;
 
-  let inflated;
-  try {
-    inflated = zlib.inflateSync(Buffer.concat(idat));
-  } catch (error) {
-    result.errors.push(`image data failed to decompress: ${error.message}`);
-    return result;
-  }
   const bitsPerPixel = PNG_CHANNELS[header.colorType] * header.bitDepth;
   const expected = expectedPngDataLength(header.width, header.height, bitsPerPixel, header.interlace);
+  if (expected > MAX_PNG_DECODED_BYTES) {
+    result.errors.push(`decoded image data would be ${formatBytes(expected)}; maximum is ${formatBytes(MAX_PNG_DECODED_BYTES)}`);
+    return result;
+  }
+  let inflated;
+  try {
+    inflated = zlib.inflateSync(Buffer.concat(idat), { maxOutputLength: expected });
+  } catch (error) {
+    result.errors.push(error.code === "ERR_BUFFER_TOO_LARGE"
+      ? "image data is larger than the IHDR dimensions allow"
+      : `image data failed to decompress: ${error.message}`);
+    return result;
+  }
   if (inflated.length < expected) {
     result.errors.push(`image data is truncated (${inflated.length} of ${expected} bytes)`);
     return result;
@@ -353,22 +363,40 @@ export function parseEsModule(source, identifier = "module.mjs") {
   }
 }
 
-/** Compile a CommonJS script without running it. */
+/**
+ * Compile a CommonJS script without running it and return its literal
+ * require() specifiers.
+ */
 export function parseCommonJs(source, identifier = "module.cjs") {
   try {
     vm.compileFunction(source.replace(/^#!.*/, ""), ["exports", "require", "module", "__filename", "__dirname"], { filename: identifier });
-    return { ok: true, specifiers: [] };
+    return { ok: true, specifiers: findRequireSpecifiers(source) };
   } catch (error) {
     return { ok: false, error: error.message };
   }
 }
 
-export function findDynamicImportSpecifiers(source) {
+// Best-effort removal of comments so commented-out imports are not reported.
+function stripComments(source) {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
+}
+
+function literalCallSpecifiers(source, pattern) {
   const specifiers = new Set();
-  const pattern = /\bimport\s*\(\s*(['"])([^'"\n]+)\1\s*\)/g;
   let match;
-  while ((match = pattern.exec(source))) specifiers.add(match[2]);
+  const text = stripComments(source);
+  while ((match = pattern.exec(text))) specifiers.add(match[2]);
   return [...specifiers];
+}
+
+export function findDynamicImportSpecifiers(source) {
+  return literalCallSpecifiers(source, /\bimport\s*\(\s*(['"])([^'"\n]+)\1\s*\)/g);
+}
+
+export function findRequireSpecifiers(source) {
+  return literalCallSpecifiers(source, /(?<![.\w$])require\s*\(\s*(['"])([^'"\n]+)\1\s*\)/g);
 }
 
 export function packageNameFromSpecifier(specifier) {
@@ -506,7 +534,7 @@ export function inspectExtensionFiles(extensionDir, { rootDir = DEFAULT_ROOT, fi
     } else if (NATIVE_BINARY_EXTENSIONS.has(ext)) {
       errors.push(`${relative}: native/compiled binary file type (${ext}) is not allowed`);
     } else if (SCRIPT_EXTENSIONS.has(ext)) {
-      warnings.push(`${relative}: shell/batch script — confirm it is not executed automatically`);
+      warnings.push(`${relative}: script file — confirm it is not executed automatically`);
     } else if (header.includes(0) && !ALLOWED_BINARY_EXTENSIONS.has(ext)) {
       warnings.push(`${relative}: unexpected binary content (${ext || "no extension"})`);
     }
@@ -584,7 +612,12 @@ export function checkExtensionModules(extensionDir) {
     const record = parseFile(filePath);
     if (!record.ok) continue;
     for (const specifier of record.specifiers) {
-      const resolved = validateSpecifier(specifier, filePath, record.path, { strict: true });
+      const resolved = validateSpecifier(specifier, filePath, record.path, { strict: true, commonjs: !record.esm });
+      if (resolved && MODULE_EXTENSIONS.has(path.extname(resolved))) queue.push(resolved);
+    }
+    // Literal dynamic imports from reachable code are reachable too.
+    for (const specifier of record.dynamic) {
+      const resolved = validateSpecifier(specifier, filePath, record.path, { strict: true, dynamic: true });
       if (resolved && MODULE_EXTENSIONS.has(path.extname(resolved))) queue.push(resolved);
     }
   }
@@ -596,7 +629,7 @@ export function checkExtensionModules(extensionDir) {
       // Unreachable files are often browser assets served to the canvas webview,
       // so accept them if they parse in either module flavour.
       const alternate = record.esm ? parseCommonJs(record.source, record.path) : parseEsModule(record.source, record.path);
-      if (alternate.ok) record = { ...record, ...alternate, error: undefined };
+      if (alternate.ok) record = { ...record, ...alternate, esm: !record.esm, error: undefined };
     }
     if (!record.ok) {
       errors.push(`${record.path}: syntax error — ${record.error}`);
@@ -604,11 +637,11 @@ export function checkExtensionModules(extensionDir) {
     }
     if (!isReachable) {
       for (const specifier of record.specifiers) {
-        validateSpecifier(specifier, filePath, record.path, { strict: false });
+        validateSpecifier(specifier, filePath, record.path, { strict: false, commonjs: !record.esm });
       }
-    }
-    for (const specifier of record.dynamic) {
-      validateDynamicSpecifier(specifier, filePath, record.path, { strict: isReachable });
+      for (const specifier of record.dynamic) {
+        validateDynamicSpecifier(specifier, filePath, record.path);
+      }
     }
     if (isReachable) {
       for (const { pattern, label } of SOURCE_CAPABILITIES) {
@@ -624,9 +657,11 @@ export function checkExtensionModules(extensionDir) {
     else warnings.push(`${message} (module is not reachable from extension.mjs)`);
   }
 
-  function validateSpecifier(specifier, filePath, relativePath, { strict }) {
+  function validateSpecifier(specifier, filePath, relativePath, { strict, dynamic = false, commonjs = false }) {
     const classification = classifySpecifier(specifier, packageJson);
-    const where = `${relativePath}: import "${specifier}"`;
+    const where = dynamic
+      ? `${relativePath}: dynamic import("${specifier}")`
+      : commonjs ? `${relativePath}: require("${specifier}")` : `${relativePath}: import "${specifier}"`;
     switch (classification.kind) {
       case "relative": {
         const cleaned = specifier.replace(/[?#].*$/, "");
@@ -635,15 +670,16 @@ export function checkExtensionModules(extensionDir) {
           flag(strict, `${where} escapes the extension directory`);
           return null;
         }
-        if (!fs.existsSync(target)) {
+        const resolved = commonjs ? resolveCommonJsTarget(target) : target;
+        if (!resolved || !fs.existsSync(resolved)) {
           flag(strict, `${where} references a missing file`);
           return null;
         }
-        if (fs.statSync(target).isDirectory()) {
+        if (fs.statSync(resolved).isDirectory()) {
           flag(strict, `${where} points at a directory (ES modules require a file path)`);
           return null;
         }
-        return target;
+        return resolved;
       }
       case "builtin":
         if (strict) builtins.add(classification.name);
@@ -655,10 +691,8 @@ export function checkExtensionModules(extensionDir) {
         if (strict) externalPackages.add(classification.name);
         return null;
       case "dev-dependency":
-        if (strict) {
-          externalPackages.add(classification.name);
-          warnings.push(`${where} resolves to a devDependency; declare it in dependencies if it is needed at runtime`);
-        }
+        if (strict) externalPackages.add(classification.name);
+        flag(strict, `${where} is only declared in devDependencies; runtime imports must be in dependencies`);
         return null;
       case "unsafe":
         flag(strict, `${where} uses an unsafe ${classification.reason}`);
@@ -675,20 +709,27 @@ export function checkExtensionModules(extensionDir) {
     }
   }
 
-  function validateDynamicSpecifier(specifier, filePath, relativePath, { strict }) {
+  // Dynamic imports in modules that are not reachable from extension.mjs
+  // (typically browser assets served to the canvas webview).
+  function validateDynamicSpecifier(specifier, filePath, relativePath) {
     const where = `${relativePath}: dynamic import("${specifier}")`;
     const classification = classifySpecifier(specifier, packageJson);
     if (classification.kind === "relative") {
       const target = path.resolve(path.dirname(filePath), specifier.replace(/[?#].*$/, ""));
-      if (!isInside(extensionDir, target)) flag(strict, `${where} escapes the extension directory`);
-      else if (!fs.existsSync(target)) warnings.push(`${where} references a missing file`);
+      if (!isInside(extensionDir, target)) flag(false, `${where} escapes the extension directory`);
+      else if (!fs.existsSync(target)) flag(false, `${where} references a missing file`);
     } else if (classification.kind === "unsafe") {
-      flag(strict, `${where} uses an unsafe ${classification.reason}`);
+      flag(false, `${where} uses an unsafe ${classification.reason}`);
     } else if (classification.kind === "remote") {
-      warnings.push(`${where} loads remote code`);
+      flag(false, `${where} loads remote code`);
     } else if (classification.kind === "undeclared") {
-      warnings.push(`${where} is not declared in package.json`);
+      flag(false, `${where} is not declared in package.json`);
     }
+  }
+
+  function resolveCommonJsTarget(target) {
+    const candidates = [target, `${target}.js`, `${target}.cjs`, `${target}.json`, path.join(target, "index.js"), path.join(target, "index.cjs")];
+    return candidates.find((candidate) => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) ?? null;
   }
 
   if (packageJson.scripts) {
@@ -805,8 +846,10 @@ export function detectCanvasTargets(changedFiles, { rootDir = DEFAULT_ROOT } = {
   for (const file of changedFiles) {
     const parts = toPosix(file).split("/");
     if (parts[0] === "extensions" && parts.length >= 3) {
-      if (isExtensionDir(rootDir, parts[1])) extensions.add(parts[1]);
-      else if (!fs.existsSync(path.join(rootDir, "extensions", parts[1]))) removedExtensions.add(parts[1]);
+      // A directory that still exists is validated even if extension.mjs was
+      // deleted, so removing the entry point cannot skip the check.
+      if (fs.existsSync(path.join(rootDir, "extensions", parts[1]))) extensions.add(parts[1]);
+      else removedExtensions.add(parts[1]);
     } else if (parts[0] === "plugins" && parts.length >= 3 && manifests.has(parts[1])) {
       const ids = pluginExtensionIds(rootDir, parts[1], manifests.get(parts[1]));
       if (ids.length > 0) {
@@ -817,7 +860,12 @@ export function detectCanvasTargets(changedFiles, { rootDir = DEFAULT_ROOT } = {
   }
 
   for (const [pluginDir, manifest] of manifests) {
-    if (pluginExtensionIds(rootDir, pluginDir, manifest).some((id) => extensions.has(id))) plugins.add(pluginDir);
+    const ids = pluginExtensionIds(rootDir, pluginDir, manifest);
+    // Plugins that still reference, or were the direct plugin for, a removed
+    // extension are validated so the removal cannot leave them broken.
+    if (ids.some((id) => extensions.has(id) || removedExtensions.has(id)) || removedExtensions.has(pluginDir)) {
+      plugins.add(pluginDir);
+    }
   }
 
   return {
@@ -1102,6 +1150,9 @@ export async function runCanvasSmokeTest({
     warning_count: 0,
   };
   if (targets.extensions.length === 0 && targets.plugins.length === 0) {
+    // A clean removal (extension and its plugin both deleted) is explicitly
+    // accepted rather than reported as skipped.
+    if (targets.removedExtensions.length > 0) report.status = "pass";
     return report;
   }
 
@@ -1155,6 +1206,9 @@ export async function runCanvasSmokeTest({
   for (const pluginDir of targets.plugins) {
     const manifest = targets.manifests.get(pluginDir);
     const check = checkPluginManifest(rootDir, pluginDir, manifest);
+    if (targets.removedExtensions.includes(pluginDir)) {
+      check.errors.push(`plugins/${pluginDir} is the plugin for removed extension extensions/${pluginDir}; delete the plugin too or restore the extension`);
+    }
     report.plugins.push({
       directory: pluginDir,
       name: manifest?.name ?? pluginDir,
@@ -1239,6 +1293,10 @@ export function renderMarkdownReport(report, { previewBaseUrl = "", runUrl = "" 
   const lines = [REPORT_MARKER, "## 🧩 Canvas smoke test", ""];
   if (report.status === "skipped") {
     lines.push("⏭️ **Skipped** — no canvas extension or extension-bearing plugin paths changed.");
+    return `${lines.join("\n")}\n`;
+  }
+  if (report.extensions.length === 0 && report.plugins.length === 0 && report.removed_extensions.length > 0) {
+    lines.push(`✅ **Passed** — removed extensions ${report.removed_extensions.map(code).join(", ")}; no remaining plugin references them.`);
     return `${lines.join("\n")}\n`;
   }
   const headline = {
@@ -1364,8 +1422,8 @@ async function main() {
 
   if (options.detectOnly) {
     const targets = detectCanvasTargets(changedFiles);
-    const canvas = targets.extensions.length > 0 || targets.plugins.length > 0;
-    console.log(JSON.stringify({ canvas, extensions: targets.extensions, plugins: targets.plugins }));
+    const canvas = targets.extensions.length > 0 || targets.plugins.length > 0 || targets.removedExtensions.length > 0;
+    console.log(JSON.stringify({ canvas, extensions: targets.extensions, plugins: targets.plugins, removedExtensions: targets.removedExtensions }));
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `canvas=${canvas}\n`);
     return 0;
   }

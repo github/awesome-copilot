@@ -123,9 +123,13 @@ function isBot(actor) {
 // Metric computation (pure)
 // ---------------------------------------------------------------------------
 
+// First maintainer review submitted at or after the current review clock
+// start, so reviews from before a draft/re-ready cycle are not counted.
 function firstHumanReview(pr) {
+  const clockStart = Date.parse(reviewClockStart(pr) ?? "");
   const reviews = (pr.reviews ?? [])
     .filter((review) => isMaintainerReview(review, pr) && review.submittedAt && review.state !== "PENDING")
+    .filter((review) => !Number.isFinite(clockStart) || Date.parse(review.submittedAt) >= clockStart)
     .sort((a, b) => Date.parse(a.submittedAt) - Date.parse(b.submittedAt));
   return reviews[0] ?? null;
 }

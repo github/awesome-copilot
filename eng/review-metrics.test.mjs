@@ -167,3 +167,25 @@ test("config and CLI parsing", () => {
   assert.throws(() => parseArgs(["--now", "nope"]), /ISO date/);
   assert.throws(() => parseArgs(["--bogus"]), /Unknown argument/);
 });
+
+test("time to first review ignores reviews submitted before the PR was ready", () => {
+  const data = {
+    openPrs: [],
+    externalPluginIssues: [],
+    workflowRuns: [],
+    windowPrs: [
+      {
+        number: 30,
+        createdAt: "2025-01-06T00:00:00Z",
+        readyForReviewAt: "2025-01-07T00:00:00Z",
+        mergedAt: null,
+        author: { login: "x", type: "User" },
+        labels: [],
+        reviews: [maintainer("m1", "2025-01-06T01:00:00Z", "COMMENTED"), maintainer("m2", "2025-01-07T04:00:00Z")],
+      },
+    ],
+  };
+  const metrics = computeMetrics(data, config, { now });
+  assert.equal(metrics.time_to_first_review.count, 1);
+  assert.equal(metrics.time_to_first_review.median_hours, 4);
+});

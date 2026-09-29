@@ -78,7 +78,9 @@ eligibility:
     # or renames).
     modified_only: true
     # Owner sources: CODEOWNERS entries for the touched path (the catch-all `*`
-    # rule is ignored) and the resource's recorded author (plugin.json
+    # rule is ignored; teams need a token that can read team membership, and
+    # lookup failures count as "not an owner") and the resource's recorded
+    # author on main (front matter author/authors GitHub logins, plugin.json
     # author.url / author.name, or the author of the commit that added the
     # resource).
     sources:

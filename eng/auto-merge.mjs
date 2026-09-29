@@ -207,6 +207,57 @@ export function recordedAuthorFromPluginJson(pluginJson) {
   return [...new Set(logins)];
 }
 
+const GITHUB_LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
+
+function loginFromAuthorValue(value) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  const url = trimmed.match(/^https?:\/\/github\.com\/([A-Za-z0-9-]+)\/?$/i);
+  if (url) return normalizeLogin(url[1]);
+  if (trimmed.startsWith("@") && GITHUB_LOGIN.test(trimmed.slice(1))) return normalizeLogin(trimmed);
+  return null;
+}
+
+/**
+ * Extract GitHub logins declared in markdown front matter: `author`/`authors`
+ * entries with a `github` field, a github.com URL, or an `@login` string.
+ * Free-form names are ignored because they cannot be tied to an account.
+ */
+export function recordedAuthorsFromFrontMatter(markdown) {
+  const match = String(markdown ?? "").match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+  if (!match) return [];
+  let data;
+  try {
+    data = yaml.load(match[1]);
+  } catch {
+    return [];
+  }
+  if (!data || typeof data !== "object") return [];
+  const logins = new Set();
+  const entries = [data.author, data.authors, data.metadata?.author, data.metadata?.authors].flat().filter(Boolean);
+  for (const entry of entries) {
+    if (typeof entry === "string") {
+      const login = loginFromAuthorValue(entry);
+      if (login) logins.add(login);
+    } else if (entry && typeof entry === "object") {
+      if (typeof entry.github === "string" && GITHUB_LOGIN.test(entry.github.trim().replace(/^@/, ""))) logins.add(normalizeLogin(entry.github));
+      const login = loginFromAuthorValue(entry.url);
+      if (login) logins.add(login);
+    }
+  }
+  return [...logins];
+}
+
+// Markdown files that carry a resource's front matter, relative to the repo root.
+export function frontMatterFilesFor(resourceKey) {
+  const [root, name] = resourceKey.split("/");
+  if (!name) return [];
+  if (name.endsWith(".md")) return [resourceKey];
+  if (root === "skills") return [`${resourceKey}/SKILL.md`];
+  if (root === "hooks") return [`${resourceKey}/README.md`];
+  return [];
+}
+
 // ---------------------------------------------------------------------------
 // Evaluation (pure)
 // ---------------------------------------------------------------------------
@@ -292,7 +343,10 @@ function isOwner(author, filePath, resourceKey, sources, context) {
   if (!author) return false;
   if (sources.includes("codeowners")) {
     const rule = codeownersFor(context.codeowners ?? [], filePath);
-    if (rule && rule.pattern !== "*" && rule.owners.some((ownerLogin) => normalizeLogin(ownerLogin) === author)) {
+    const memberships = context.teamMemberships;
+    const isTeamMember = (team) => (memberships?.get?.(team.toLowerCase()) ?? memberships?.[team.toLowerCase()]) === true;
+    if (rule && rule.pattern !== "*" && rule.owners.some((entry) =>
+      isTeamEntry(entry) ? isTeamMember(entry) : normalizeLogin(entry) === author)) {
       return true;
     }
   }
@@ -301,6 +355,10 @@ function isOwner(author, filePath, resourceKey, sources, context) {
     if (recorded.map(normalizeLogin).includes(author)) return true;
   }
   return false;
+}
+
+function isTeamEntry(entry) {
+  return /^@[^/\s]+\/[^/\s]+$/.test(String(entry ?? "").trim());
 }
 
 function summarizePaths(paths, limit = 5) {
@@ -492,6 +550,13 @@ export async function fetchPullRequestSnapshot(client, { owner, repo }, number, 
 async function fetchRecordedAuthor(client, { owner, repo }, resourceKey, baseBranch, rootDir) {
   const logins = new Set();
   const [root, name] = resourceKey.split("/");
+  // Declared authors are read from the trusted base-branch checkout, so a PR
+  // cannot make its author an owner by editing the front matter it changes.
+  for (const relative of frontMatterFilesFor(resourceKey)) {
+    const filePath = path.join(rootDir, ...relative.split("/"));
+    if (!fs.existsSync(filePath)) continue;
+    for (const login of recordedAuthorsFromFrontMatter(fs.readFileSync(filePath, "utf8"))) logins.add(login);
+  }
   const pluginName = root === "plugins" || root === "extensions" ? name : null;
   if (pluginName) {
     const manifestPath = path.join(rootDir, "plugins", pluginName, "plugin.json");
@@ -535,6 +600,26 @@ export async function buildEvaluationContext(client, repository, pr, config, roo
     const key = resourceKeyFor(file.path, owner.resource_roots);
     if (key) keys.add(key);
   }
+  if (owner.sources.includes("codeowners")) {
+    // CODEOWNERS teams are resolved to the author's membership. Any lookup
+    // failure (e.g. a token without members:read) fails closed: not an owner.
+    const teams = new Set();
+    for (const file of pr.files) {
+      const rule = codeownersFor(context.codeowners, file.path);
+      if (rule && rule.pattern !== "*") rule.owners.filter(isTeamEntry).forEach((team) => teams.add(team.toLowerCase()));
+    }
+    context.teamMemberships = new Map();
+    for (const team of teams) {
+      const [org, slug] = team.replace(/^@/, "").split("/");
+      try {
+        const response = await client.request("GET", `/orgs/${org}/teams/${slug}/memberships/${encodeURIComponent(pr.author.login)}`, { allowStatuses: [404] });
+        context.teamMemberships.set(team, response.status === 200 && response.data?.state === "active");
+      } catch (error) {
+        console.warn(`Could not resolve membership of @${pr.author.login} in ${team}: ${error.message}`);
+        context.teamMemberships.set(team, false);
+      }
+    }
+  }
   if (owner.sources.includes("recorded_author")) {
     for (const key of keys) {
       try {
@@ -572,7 +657,9 @@ async function armAutoMerge(client, repository, pr, config) {
     // GitHub refuses to arm auto-merge when the PR is already mergeable
     // ("clean status"). Every condition holds, so merge directly at the
     // evaluated head SHA, which is what `gh pr merge --auto` does too.
-    if (!/clean status|unstable status/i.test(error.message)) throw error;
+    // Other refusals (e.g. "unstable status": required checks pending or
+    // failing) are rethrown so nothing merges past branch protection.
+    if (!/clean status/i.test(error.message)) throw error;
     await client.request("PUT", `/repos/${repository.owner}/${repository.repo}/pulls/${pr.number}/merge`, {
       body: { merge_method: config.merge_method, sha: pr.headRefOid },
     });
@@ -661,12 +748,11 @@ async function findCandidatePrs(client, { owner, repo }, config) {
     .map((pull) => pull.number);
 }
 
-async function findPrsForSha(client, { owner, repo }, sha) {
-  const data = await client.graphql(
-    `query($q: String!) { search(query: $q, type: ISSUE, first: 20) { nodes { ... on PullRequest { number } } } }`,
-    { q: `repo:${owner}/${repo} is:pr is:open sha:${sha}` },
-  );
-  return (data?.search?.nodes ?? []).map((node) => node.number).filter(Boolean);
+// Open PRs whose current head is the given commit (works for fork PRs, which
+// the commit-to-pulls endpoint does not report).
+async function findPrsForSha(client, { owner, repo }, sha, config) {
+  const pulls = await client.paginate(`/repos/${owner}/${repo}/pulls`, { query: { state: "open", base: config.base_branch }, maxPages: 10 });
+  return pulls.filter((pull) => pull.head?.sha === sha).map((pull) => pull.number);
 }
 
 export function renderSummary(entries, config, { dryRun }) {
@@ -747,7 +833,7 @@ async function main() {
   const client = createGitHubClient();
 
   const numbers = new Set(options.prs);
-  for (const sha of options.shas) for (const number of await findPrsForSha(client, repository, sha)) numbers.add(number);
+  for (const sha of options.shas) for (const number of await findPrsForSha(client, repository, sha, config)) numbers.add(number);
   if (options.all) for (const number of await findCandidatePrs(client, repository, config)) numbers.add(number);
 
   const entries = [];
