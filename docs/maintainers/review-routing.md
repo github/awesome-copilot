@@ -1,0 +1,123 @@
+# Review routing, ownership, and SLAs
+
+This page describes how pull requests in Awesome Copilot are assigned to reviewers, how quickly a first review is expected, and what happens when that target is missed. It covers Phase 1 of [github/awesome-copilot#4184](https://github.com/github/awesome-copilot/issues/4184).
+
+## Ownership (`CODEOWNERS`)
+
+The root [`CODEOWNERS`](../../CODEOWNERS) file assigns every path to a team, not to an individual.
+
+| Path | Owning team |
+|---|---|
+| `*` (default) | `@github/awesome-copilot-core-maintainers` |
+| `/extensions/` | `@github/awesome-copilot-canvas-reviewers` |
+| `/plugins/` | `@github/awesome-copilot-plugin-reviewers` |
+| `/agents/`, `/instructions/`, `/skills/` | `@github/awesome-copilot-content-reviewers` |
+| `/hooks/`, `/workflows/` | `@github/awesome-copilot-workflow-security-reviewers` |
+| `/.github/`, `/eng/` | `@github/awesome-copilot-core-maintainers` |
+| `/.github/workflows/` | core maintainers and workflow/security reviewers |
+
+GitHub applies the **last** matching rule, so the per-resource entries at the bottom of the file override the team defaults for their paths. Those entries are added through the `#codeowner` command (`.github/workflows/codeowner-update.md`), which appends a block at the end of the file. When you edit `CODEOWNERS` by hand:
+
+- Keep the `*` rule and the domain team block at the top of the file.
+- Never add an individual user to the `*` rule.
+- Append new per-resource owners at the end of the file.
+
+## Reviewer pools (`.github/review-routing.yml`)
+
+[`.github/review-routing.yml`](../../.github/review-routing.yml) is the single source of truth for automatic review requests. Workflows never hard-code reviewer handles.
+
+| Key | Purpose |
+|---|---|
+| `dry_run` | When `true`, workflows log their planned actions to the job summary but make no changes. |
+| `sla.first_review_business_days` | Business days after routing until a first review is due (default `2`). |
+| `sla.escalation_business_days` | Business days after routing until escalation to the core pool (default `4`). |
+| `sla.holidays` | Optional list of `YYYY-MM-DD` UTC dates excluded from business-day math. |
+| `labels` | Names of the labels the routing workflows manage. |
+| `pools.<name>.team` | Team in `<org>/<team-slug>` form. It is requested when no individual is available, and the escalation pool's team is always requested on escalation. |
+| `pools.<name>.reviewers` | Individual GitHub logins that routing chooses from. |
+| `pools.<name>.backup` | Individuals requested when a review is overdue. |
+| `routes` | Ordered list mapping intent labels to pools. The first route whose label is on the PR wins. |
+| `default_pool` | Pool used when no route matches, for example a docs-only PR. |
+| `escalation_pool` | Pool that receives escalations and serves as the last-resort fallback. |
+| `unavailable` | Logins that are temporarily away. They are never selected. |
+| `skip_authors`, `skip_labels` | PRs by these authors, or with these labels, are not routed or escalated. |
+
+Current routes, in priority order:
+
+| Intent label | Pool |
+|---|---|
+| `workflow`, `hooks` | `workflow-security` |
+| `canvas-extension` | `canvas` |
+| `external-plugin`, `plugin` | `plugin` |
+| `skills`, `agent`, `instructions` | `content` |
+| `website-update` | `core-maintainers` |
+
+Intent labels are applied by `.github/workflows/label-pr-intent.yml` and `label-pr-intent-writer.yml`.
+
+### Updating the pools
+
+1. Edit `.github/review-routing.yml`. Keep at least three reviewers per pool, with coverage across time zones.
+2. Validate the file with `node eng/review-routing.mjs validate`, then run the unit tests with `node --test eng/review-routing.test.mjs`.
+3. Open a PR. The file is owned by the core-maintainer team.
+
+To take a reviewer out of rotation temporarily, add their login to `unavailable` instead of removing them from every pool.
+
+## Routing
+
+The **Review Routing** workflow (`.github/workflows/review-routing.yml`) runs when:
+
+- **Label PR Intent** finishes for a PR. Routing uses that run's intent labels even if they have not been applied yet.
+- A person adds the `needs-reviewer` label. The read-only **Review Routing Request** workflow records the request, and Review Routing acts on it.
+- It is dispatched with a `pr_number` input. Automation such as the `/request-review` command uses this path because labels added with `GITHUB_TOKEN` do not trigger other workflows.
+- The hourly schedule runs, or it is dispatched without a `pr_number`. This sweep routes every open, non-draft PR that has not been routed or that has the `needs-reviewer` label.
+
+For each eligible PR, routing does the following:
+
+1. Picks the pool using `routes`, falling back to `default_pool`.
+2. Keeps an individual reviewer who is already requested. Otherwise, it requests one individual from the pool, excluding the PR author, reviewers already requested, bots, and anyone listed in `unavailable`. It prefers the reviewer with the **fewest open review requests** across all open PRs. Ties rotate by PR number.
+3. If the pool has no eligible individual, routing tries the pool's `backup` list, then the escalation pool's reviewers, and finally requests the pool team.
+4. Adds a `review-due:YYYY-MM-DD` label. The date is the routing day plus `first_review_business_days`, in UTC.
+5. If `needs-reviewer` triggered the run, routing removes `needs-reviewer`, `review-overdue`, and `review-escalated`, and restarts the SLA.
+
+Routing skips drafts, closed PRs, and PRs that already have a `review-due:` label or a human review, unless `needs-reviewer` is present. Draft PRs are routed when they are marked ready for review.
+
+## SLA and escalation
+
+The **Review Escalation** workflow (`.github/workflows/review-escalation.yml`) runs at 14:00 UTC on weekdays and can also be dispatched manually. It checks every routed PR, meaning every PR with a `review-due:` label.
+
+| Condition | Action |
+|---|---|
+| A human review arrives after routing | Removes `review-due:*`, `review-overdue`, and `review-escalated` |
+| No review by the end of the due date | Requests a backup from the pool's `backup` list, or from the escalation pool if that list is empty; adds `review-overdue`; posts a comment |
+| No review `escalation_business_days` after routing | Requests the escalation pool team and one core maintainer; adds `review-escalated`; posts a comment |
+
+Business days are Monday through Friday in UTC, minus `sla.holidays`. For example, a PR routed on Monday is due Wednesday, becomes overdue Thursday, and escalates the following Monday. Reviews from the author or from bots, including Copilot code review, don't count as a first review. Each action happens once per SLA cycle because the labels record the state.
+
+The workflow also deletes `review-due:*` labels whose dates are more than 14 days in the past and that are no longer on any open PR.
+
+## Labels
+
+| Label | Meaning |
+|---|---|
+| `needs-reviewer` | Asks routing to (re)assign a reviewer. Routing removes it after it runs. |
+| `review-due:YYYY-MM-DD` | Date by which the first review is expected. |
+| `review-overdue` | The first review is late, and a backup reviewer was requested. |
+| `review-escalated` | The review was escalated to the core-maintainer pool. |
+
+The **Setup Repository Labels** workflow creates `needs-reviewer`, `review-overdue`, and `review-escalated`. Routing creates each `review-due:` label when it first uses it.
+
+## Security model
+
+- Workflows triggered by pull requests (**Label PR Intent** and **Review Routing Request**) run with read-only permissions and only upload a small JSON artifact.
+- **Review Routing** runs from `workflow_run`, `workflow_dispatch`, or `schedule`. It checks out only the default branch, validates the artifact against the triggering run, and never checks out or runs PR code. This is the same approach as `label-pr-intent-writer.yml`.
+- All reviewer logic lives in `eng/review-routing.mjs` and is covered by `eng/review-routing.test.mjs`.
+
+## Enabling routing
+
+The routing workflows ship with `dry_run: true` and empty reviewer lists. To turn them on:
+
+1. Create the five teams listed in `CODEOWNERS`, each with at least three members, and give each team access to the repository.
+2. Add the team members to the matching `reviewers` and `backup` lists in `.github/review-routing.yml`.
+3. Run **Setup Repository Labels**.
+4. Set `dry_run: false`.
+5. Once the teams and coverage are in place, enable **Require review from Code Owners** in the `main` ruleset.

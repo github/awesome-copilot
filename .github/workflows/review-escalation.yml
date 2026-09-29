@@ -1,0 +1,65 @@
+name: Review Escalation
+
+# Enforces the review SLA from .github/review-routing.yml for routed PRs
+# (those with a `review-due:YYYY-MM-DD` label):
+# - no review after the due date  -> request a backup, add `review-overdue`
+# - no review after the escalation window -> request the core-maintainer pool,
+#   add `review-escalated`
+# - first human review received -> clear the SLA labels
+# Business days skip weekends and configured holidays, so the schedule only
+# runs Monday–Friday. Only trusted default-branch code is executed.
+
+on:
+  schedule:
+    - cron: "0 14 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: review-escalation
+  cancel-in-progress: false
+
+jobs:
+  escalate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Apply review SLA
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const routing = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'review-routing.mjs')).href);
+            const config = routing.loadReviewRoutingConfig(path.join(process.env.GITHUB_WORKSPACE, '.github', 'review-routing.yml'));
+
+            const results = await routing.runEscalationSweep({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              config,
+              log: core,
+            });
+
+            await core.summary
+              .addRaw(routing.formatResultsSummary(results.filter((result) => result.action !== 'skip'), { title: 'Review escalation', dryRun: config.dryRun }))
+              .write();
