@@ -130,7 +130,7 @@ title: <Post title>
 description: <One sentence, 140 to 160 characters, leading with what the reader gets>
 slug: <lowercase-hyphenated-slug>
 category: <domain, such as string-utils or file-io>
-tags: <tag>, <tag>, <tag>
+tags: [<tag>, <tag>, <tag>]
 date: <YYYY-MM-DD>
 ---
 
@@ -144,11 +144,12 @@ date: <YYYY-MM-DD>
 
 These rules apply to everything that goes into a post, whatever the destination or voice.
 
-1. **No credentials or secure data.** No API keys, tokens, passwords, secrets, connection strings, private URLs, internal hostnames or IPs, account IDs, environment variable values, file paths that reveal user or machine names, or personal information. Replace anything the code needs with an obvious placeholder such as `YOUR_API_KEY` or `https://api.example.com`.
+1. **No credentials or secure data.** No API keys, tokens, passwords, secrets, connection strings, private URLs, internal hostnames or IPs, account IDs, environment variable values, file paths that reveal user or machine names, or personal information beyond the public byline rule 6 allows. Replace anything the code needs with an obvious placeholder such as `YOUR_API_KEY` or `https://api.example.com`.
 2. **Cliche sample data only.** For example `"Hello, World!"`, `Jane Smith`, `user@example.com`, `foo` / `bar` / `baz`, `123 Main St`, `42`, `Acme Corp`. When the code needs data the list lacks, such as accented text or a date, choose something equally generic (`Café`, `2026-01-01`), never a value from the working context.
-3. **No incidental detail from the working context or the samples.** Real names, project, client, and product names, business terms, internal file names, and values from the conversation stay out, and so does content from the voice samples. Code or a topic the user supplies directly is the subject rather than incidental detail: use it, generalized under rule 4 and held to rule 1.
+3. **No incidental detail from the working context or the samples.** People's names other than the byline, project, client, and internal product names, business terms, internal file names, and values from the conversation stay out, and so does content from the voice samples. Code or a topic the user supplies directly is the subject rather than incidental detail: use it, generalized under rule 4 and held to rule 1.
 4. **Rewrite, don't copy.** Generalize the code into a clean demonstration: rename project-specific identifiers, strip unrelated logic, and remove internal dependencies.
 5. **Paths in samples follow the sample.** A PowerShell or batch sample shows Windows paths, a shell sample shows POSIX paths, and a cross-platform sample shows both or a token such as `<config-dir>`.
+6. **Public attribution and public technology keep their real names.** When the destination has an author or byline field, fill it with the value the author's existing posts there use, or with the name the user gives. Never take it from elsewhere in the working context, such as git config or a system account. The full draft shows it, so approval covers it. Public languages, frameworks, libraries, and tools the code uses, such as Python, React, or SQLite, are named as they are.
 
 ## Limitations
 
