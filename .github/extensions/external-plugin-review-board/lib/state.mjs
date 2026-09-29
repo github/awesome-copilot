@@ -247,7 +247,21 @@ export class BoardStore {
         const labels = new Set(status.labels ?? []);
         const kind = labels.has("approved") ? "approve" : labels.has("rejected") ? "reject" : null;
         if (!kind) return null;
-        const decision = { ...item.pendingDecision, kind, resolvedAt: new Date().toISOString() };
+        const now = new Date().toISOString();
+        const pendingKind = item.pendingDecision.kind;
+        const decision =
+            pendingKind && pendingKind !== kind
+                ? {
+                      kind,
+                      external: true,
+                      comment: "",
+                      body: null,
+                      commentUrl: null,
+                      at: now,
+                      resolvedAt: now,
+                      supersededPending: pendingKind,
+                  }
+                : { ...item.pendingDecision, kind, resolvedAt: now };
         await this.recordDecision(number, decision);
         return decision;
     }

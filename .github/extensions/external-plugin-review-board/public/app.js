@@ -349,16 +349,14 @@ function renderTab(item) {
 function renderReview(item) {
     const wrapper = h("div");
     if (item.decision) {
-        wrapper.append(
-            h(
-                "p",
-                { class: "notice" },
-                `${item.decision.kind === "approve" ? "Approved" : "Rejected"} ${relativeTime(item.decision.at)}: `,
-                h("code", {}, item.decision.body),
-                " ",
-                item.decision.commentUrl ? h("a", { href: item.decision.commentUrl, target: "_blank", rel: "noopener noreferrer" }, "comment ↗") : null,
-            ),
-        );
+        const label = item.decision.kind === "approve" ? "Approved" : "Rejected";
+        const suffix = item.decision.external ? " on GitHub" : "";
+        const parts = [`${label}${suffix} ${relativeTime(item.decision.at)}`];
+        if (item.decision.body) parts.push(": ", h("code", {}, item.decision.body));
+        if (item.decision.commentUrl) {
+            parts.push(" ", h("a", { href: item.decision.commentUrl, target: "_blank", rel: "noopener noreferrer" }, "comment ↗"));
+        }
+        wrapper.append(h("p", { class: "notice" }, parts));
     }
     if (item.pendingDecision && !item.decision) {
         wrapper.append(

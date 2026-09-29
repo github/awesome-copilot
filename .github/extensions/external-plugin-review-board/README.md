@@ -34,4 +34,4 @@ metadata, AI reviews, manual bucket overrides, and a history of decisions made f
 
 ## Agent actions
 
-`get_board`, `refresh`, `start_review`, `start_rereview`, `record_review`, `move_item`, `get_issue`, `post_decision`.
+`get_board`, `refresh`, `start_review`, `start_rereview`, `record_review`, `move_item`, `get_issue`.

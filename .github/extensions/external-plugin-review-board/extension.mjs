@@ -314,22 +314,6 @@ session = await joinSession({
                         issue: await getIssue(ctx.input.number),
                     })),
                 },
-                {
-                    name: "post_decision",
-                    description:
-                        "Post /approve or /reject <comment> on an issue (publicly visible; only use when the user asked). Marks it actioned.",
-                    inputSchema: {
-                        type: "object",
-                        additionalProperties: false,
-                        required: ["number", "kind"],
-                        properties: {
-                            number: { type: "integer" },
-                            kind: { type: "string", enum: ["approve", "reject"] },
-                            comment: { type: "string" },
-                        },
-                    },
-                    handler: wrap((ctx) => postDecision(ctx.input)),
-                },
             ],
             open: async (ctx) => {
                 let entry = servers.get(ctx.instanceId);
