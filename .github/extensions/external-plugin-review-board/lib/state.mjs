@@ -1,4 +1,5 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { randomBytes } from "node:crypto";
 import path from "node:path";
 
 export const RECOMMENDATIONS = ["straight-reject", "probably-reject", "needs-review", "accept"];
@@ -14,6 +15,10 @@ export const COLUMNS = [
 ];
 
 const HISTORY_LIMIT = 200;
+
+function newQueueId() {
+    return randomBytes(6).toString("base64url");
+}
 
 function emptyState(repo) {
     return { version: 1, repo, lastRefreshedAt: null, items: {}, history: [] };
@@ -131,7 +136,7 @@ export class BoardStore {
     }
 
     pendingReview(numbers) {
-        const all = Object.values(this.state.items).filter((item) => !item.decision);
+        const all = Object.values(this.state.items).filter((item) => !item.decision && item.reviewStatus !== "queued");
         if (numbers?.length) {
             const wanted = new Set(numbers.map(Number));
             return all.filter((item) => wanted.has(item.number));
@@ -141,12 +146,40 @@ export class BoardStore {
 
     async markQueued(numbers, { rereviewGuidance } = {}) {
         const now = new Date().toISOString();
+        const snapshots = [];
         for (const number of numbers) {
             const item = this.getItem(number);
+            snapshots.push({
+                number,
+                previous: {
+                    reviewStatus: item.reviewStatus,
+                    queuedAt: item.queuedAt,
+                    queueId: item.queueId,
+                    rereviewGuidance: item.rereviewGuidance,
+                },
+            });
             item.reviewStatus = "queued";
             item.queuedAt = now;
+            item.queueId = newQueueId();
             if (rereviewGuidance !== undefined) item.rereviewGuidance = rereviewGuidance;
             else delete item.rereviewGuidance;
+        }
+        await this.commit();
+        return snapshots;
+    }
+
+    async restoreQueueState(snapshots) {
+        for (const snapshot of snapshots) {
+            const item = this.state.items[String(snapshot.number)];
+            if (!item) continue;
+            const { previous } = snapshot;
+            item.reviewStatus = previous.reviewStatus;
+            if (previous.queuedAt === undefined) delete item.queuedAt;
+            else item.queuedAt = previous.queuedAt;
+            if (previous.queueId === undefined) delete item.queueId;
+            else item.queueId = previous.queueId;
+            if (previous.rereviewGuidance === undefined) delete item.rereviewGuidance;
+            else item.rereviewGuidance = previous.rereviewGuidance;
         }
         await this.commit();
     }
@@ -164,11 +197,16 @@ export class BoardStore {
                 skipped.push({ number: review.number, reason: `invalid recommendation ${review.recommendation}` });
                 continue;
             }
+            if (item.queueId && review.queueId !== item.queueId) {
+                skipped.push({ number: review.number, reason: "stale review result" });
+                continue;
+            }
             const { number, ...rest } = review;
             item.review = { ...rest, reviewedAt: new Date().toISOString() };
             item.reviewStatus = "reviewed";
             item.manualColumn = null;
             delete item.queuedAt;
+            delete item.queueId;
             delete item.rereviewGuidance;
             recorded.push(number);
         }
@@ -184,9 +222,11 @@ export class BoardStore {
             item.reviewStatus = "unreviewed";
             item.manualColumn = null;
             delete item.queuedAt;
+            delete item.queueId;
         } else if (RECOMMENDATIONS.includes(column)) {
             item.manualColumn = item.review?.recommendation === column ? null : column;
             if (item.reviewStatus === "queued") item.reviewStatus = item.review ? "reviewed" : "unreviewed";
+            delete item.queueId;
             delete item.rereviewGuidance;
         } else {
             throw new Error(`Items cannot be moved to "${column}".`);
@@ -195,9 +235,33 @@ export class BoardStore {
         return { number, column: effectiveColumn(item) };
     }
 
+    async recordPendingDecision(number, pendingDecision) {
+        const item = this.getItem(number);
+        item.pendingDecision = pendingDecision;
+        await this.commit();
+    }
+
+    async resolvePendingDecision(number, status) {
+        const item = this.state.items[String(number)];
+        if (!item?.pendingDecision || status.state !== "CLOSED") return null;
+        const labels = new Set(status.labels ?? []);
+        const kind = labels.has("approved") ? "approve" : labels.has("rejected") ? "reject" : null;
+        if (!kind) return null;
+        const decision = { ...item.pendingDecision, kind, resolvedAt: new Date().toISOString() };
+        await this.recordDecision(number, decision);
+        return decision;
+    }
+
+    async pendingDecisionNumbers() {
+        return Object.values(this.state.items)
+            .filter((item) => item.pendingDecision && !item.decision)
+            .map((item) => item.number);
+    }
+
     async recordDecision(number, decision) {
         const item = this.getItem(number);
         item.decision = decision;
+        delete item.pendingDecision;
         this.state.history.unshift({
             number,
             title: item.title,

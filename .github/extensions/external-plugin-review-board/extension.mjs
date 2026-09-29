@@ -9,7 +9,7 @@ import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/exte
 import { BoardStore, RECOMMENDATIONS } from "./lib/state.mjs";
 import * as gh from "./lib/github.mjs";
 import { buildReviewPrompt, buildRereviewPrompt, REVIEW_FIELDS_SCHEMA } from "./lib/review-prompt.mjs";
-import { startBoardServer } from "./lib/server.mjs";
+import { startBoardServer, expectedError } from "./lib/server.mjs";
 
 const CANVAS_ID = "external-plugin-review-board";
 const REPO = "github/awesome-copilot";
@@ -24,9 +24,31 @@ const detailCache = new Map();
 let refreshInFlight = null;
 let session;
 
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function resolvePendingDecisions(numbers = store.pendingDecisionNumbers()) {
+    const resolved = [];
+    for (const number of await numbers) {
+        try {
+            const status = await gh.getIssueStatus(store.state.repo, number);
+            const decision = await store.resolvePendingDecision(number, status);
+            if (decision) {
+                detailCache.delete(number);
+                resolved.push({ number, kind: decision.kind });
+            }
+        } catch (error) {
+            session?.log(`Could not resolve pending decision for #${number}: ${error.message}`, { level: "warning" });
+        }
+    }
+    return resolved;
+}
+
 async function refresh() {
     refreshInFlight ??= (async () => {
         try {
+            await resolvePendingDecisions();
             const issues = await gh.listReadyIssues(store.state.repo);
             detailCache.clear();
             return await store.syncIssues(issues);
@@ -49,7 +71,7 @@ async function startReview({ numbers, instanceId, send }) {
     const items = store.pendingReview(numbers);
     if (!items.length) return { queued: [], message: "Nothing to review — all items already have an AI review." };
     const queued = items.map((item) => item.number);
-    await store.markQueued(queued);
+    const snapshots = await store.markQueued(queued);
     const prompt = buildReviewPrompt({
         items,
         instanceId,
@@ -58,7 +80,12 @@ async function startReview({ numbers, instanceId, send }) {
         history: store.state.history,
     });
     if (send) {
-        await session.send({ prompt });
+        try {
+            await session.send({ prompt });
+        } catch (error) {
+            await store.restoreQueueState(snapshots);
+            throw error;
+        }
         return { queued, message: `Asked the agent to review ${queued.length} submission(s).` };
     }
     return { queued, instructions: prompt };
@@ -71,6 +98,7 @@ async function startRereview({ number, guidance, instanceId, send }) {
     if (item.decision) throw new Error(`#${item.number} was already actioned (${item.decision.kind}).`);
     if (item.reviewStatus === "queued") throw new Error(`#${item.number} is already queued for review.`);
     const text = String(guidance ?? "").trim().slice(0, MAX_GUIDANCE_LENGTH);
+    const snapshots = await store.markQueued([item.number], { rereviewGuidance: text || null });
     const prompt = buildRereviewPrompt({
         item,
         guidance: text,
@@ -80,9 +108,13 @@ async function startRereview({ number, guidance, instanceId, send }) {
         history: store.state.history,
         repo: store.state.repo,
     });
-    await store.markQueued([item.number], { rereviewGuidance: text || null });
     if (send) {
-        await session.send({ prompt });
+        try {
+            await session.send({ prompt });
+        } catch (error) {
+            await store.restoreQueueState(snapshots);
+            throw error;
+        }
         return { queued: [item.number], message: `Asked the agent to start a re-review sub-session for #${item.number}.` };
     }
     return { queued: [item.number], instructions: prompt };
@@ -107,12 +139,18 @@ async function postDecision({ number, kind, comment }) {
     }
 
     const text = stripCommand(comment, kind);
+    if (kind === "reject" && !text) throw new Error("Reject decisions require a non-empty reason.");
     const body = kind === "approve" ? (text ? `/approve\n\n${text}` : "/approve") : text ? `/reject ${text}` : "/reject";
     const commentUrl = await gh.postComment(store.state.repo, number, body);
-    const decision = { kind, comment: text, body, commentUrl, at: new Date().toISOString() };
-    await store.recordDecision(number, decision);
+    const pendingDecision = { kind, comment: text, body, commentUrl, at: new Date().toISOString() };
+    await store.recordPendingDecision(number, pendingDecision);
+    for (const delay of [1000, 2000, 4000]) {
+        await sleep(delay);
+        const resolved = await resolvePendingDecisions([number]);
+        if (resolved.length) return { number, ...pendingDecision, pending: false, resolved: resolved[0] };
+    }
     detailCache.delete(number);
-    return { number, ...decision };
+    return { number, ...pendingDecision, pending: true };
 }
 
 function boardSummary() {
@@ -132,12 +170,15 @@ function boardSummary() {
             manualOverride: item.manualColumn ?? null,
             suggestedComment: item.review?.suggestedComment ?? null,
             decision: item.decision ? { kind: item.decision.kind, at: item.decision.at } : null,
+            pendingDecision: item.pendingDecision
+                ? { kind: item.pendingDecision.kind, at: item.pendingDecision.at }
+                : null,
         })),
     };
 }
 
 function routesFor(instanceId) {
-    return {
+    const routes = {
         "GET /api/board": () => store.snapshot(),
         "POST /api/refresh": () => refresh(),
         "POST /api/review": ({ body }) => startReview({ numbers: body.numbers, instanceId, send: true }),
@@ -149,6 +190,24 @@ function routesFor(instanceId) {
         "POST /api/decision": ({ body }) =>
             postDecision({ number: Number(body.number), kind: body.kind, comment: body.comment }),
     };
+    // Board errors are user-facing messages (e.g. "already actioned", gh failures); surface only the
+    // message text, never the stack, and log the full error for debugging.
+    return Object.fromEntries(
+        Object.entries(routes).map(([key, handler]) => [
+            key,
+            async (args) => {
+                try {
+                    return await handler(args);
+                } catch (error) {
+                    session?.log(`Plugin review board ${key} failed: ${error?.stack ?? error}`, {
+                        level: "warning",
+                        ephemeral: true,
+                    });
+                    throw expectedError(String(error?.message ?? "Request failed"), 400);
+                }
+            },
+        ]),
+    );
 }
 
 function wrap(fn) {
@@ -281,6 +340,10 @@ session = await joinSession({
                             snapshot: () => store.snapshot(),
                             subscribe: (listener) => store.onChange(listener),
                             routes: routesFor(ctx.instanceId),
+                            logger: {
+                                error: (message, error) =>
+                                    session?.log(`${message}: ${error?.stack ?? error}`, { level: "error", ephemeral: true }),
+                            },
                         },
                     });
                     servers.set(ctx.instanceId, entry);

@@ -119,6 +119,8 @@ function signalPills(item) {
     }
     if (item.decision) {
         pills.push(h("span", { class: `pill pill-${item.decision.kind}` }, item.decision.kind === "approve" ? "Approved" : "Rejected"));
+    } else if (item.pendingDecision) {
+        pills.push(h("span", { class: "pill pill-queued" }, `${item.pendingDecision.kind === "approve" ? "Approve" : "Reject"} pending`));
     } else if (item.reviewStatus === "queued") {
         pills.push(h("span", { class: "pill pill-queued" }, "Queued for AI"));
     }
@@ -141,7 +143,9 @@ function findItem(number) {
 }
 
 function pendingReviewCount() {
-    return board ? board.items.filter((item) => !item.decision && item.reviewStatus !== "reviewed").length : 0;
+    return board
+        ? board.items.filter((item) => !item.decision && item.reviewStatus !== "reviewed" && item.reviewStatus !== "queued").length
+        : 0;
 }
 
 // ---------- board ----------
@@ -356,6 +360,19 @@ function renderReview(item) {
             ),
         );
     }
+    if (item.pendingDecision && !item.decision) {
+        wrapper.append(
+            h(
+                "p",
+                { class: "notice" },
+                `${item.pendingDecision.kind === "approve" ? "Approve" : "Reject"} command posted ${relativeTime(item.pendingDecision.at)}; waiting for GitHub Actions to close and label the issue. You can retry if the issue stays ready for review.`,
+                " ",
+                item.pendingDecision.commentUrl
+                    ? h("a", { href: item.pendingDecision.commentUrl, target: "_blank", rel: "noopener noreferrer" }, "comment ↗")
+                    : null,
+            ),
+        );
+    }
     const review = item.review;
     if (item.reviewStatus === "queued" && review) {
         wrapper.append(h("p", { class: "notice" }, `Re-review in progress (started ${relativeTime(item.queuedAt)}). The result below will be replaced when it finishes.`));
@@ -448,7 +465,7 @@ async function loadDetail(number, { force = false } = {}) {
 function commentBody(kind) {
     const text = ui.comment.value.trim().replace(/^\/(approve|reject)\b\s*/i, "");
     if (kind === "approve") return text ? `/approve\n\n${text}` : "/approve";
-    return text ? `/reject ${text}` : "/reject";
+    return text ? `/reject ${text}` : "/reject <reason required>";
 }
 
 function updatePreview() {
@@ -456,6 +473,8 @@ function updatePreview() {
     ui.preview.textContent = kind
         ? `Will post:\n${commentBody(kind)}`
         : `Reject posts: ${commentBody("reject")}\nApprove posts: ${commentBody("approve").replace(/\n+/g, " ⏎ ")}`;
+    ui.reject.disabled = !ui.comment.value.trim().replace(/^\/(approve|reject)\b\s*/i, "");
+    ui.reject.title = ui.reject.disabled ? "Reject requires a reason." : "";
 }
 
 function resetConfirm() {
@@ -473,6 +492,11 @@ function resetConfirm() {
 async function decide(kind) {
     const item = findItem(selected);
     if (!item) return;
+    if (kind === "reject" && !ui.comment.value.trim().replace(/^\/(approve|reject)\b\s*/i, "")) {
+        toast("Reject decisions require a reason.", { error: true });
+        updatePreview();
+        return;
+    }
     if (pendingConfirm.kind !== kind) {
         resetConfirm();
         pendingConfirm.kind = kind;
@@ -488,7 +512,12 @@ async function decide(kind) {
     ui.reject.disabled = true;
     try {
         const result = await api("POST", "/api/decision", { number: item.number, kind, comment: ui.comment.value });
-        toast(`Posted ${result.body.split("\n")[0]} on #${item.number}`, { link: result.commentUrl });
+        toast(
+            result.pending
+                ? `Posted ${result.body.split("\n")[0]} on #${item.number}; waiting for workflow confirmation.`
+                : `Posted ${result.body.split("\n")[0]} on #${item.number}`,
+            { link: result.commentUrl },
+        );
     } catch (error) {
         toast(error.message, { error: true });
     } finally {
@@ -515,10 +544,12 @@ ui.refresh.addEventListener("click", () =>
     withBusy(ui.refresh, "Refreshing…", async () => {
         try {
             const result = await api("POST", "/api/refresh");
+            details.clear();
             const parts = [`${result.total} open`];
             if (result.added.length) parts.push(`${result.added.length} new`);
             if (result.removed.length) parts.push(`${result.removed.length} removed`);
             toast(`Refreshed: ${parts.join(", ")}`);
+            if (selected != null && activeTab !== "review") loadDetail(selected, { force: true });
         } catch (error) {
             toast(error.message, { error: true });
         }

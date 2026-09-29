@@ -18,8 +18,12 @@ submissions before reviewing (see "Calibrate" below).
 
 **Typically rejected (with the maintainer's usual wording)**
 
-- Purely paid SaaS / paywalled connectors — "Sorry, we're not a channel for purely paid services." or
+- Thin connectors to paid services that offer little practical Copilot value beyond promoting the service
+  (no usable free path, narrow scope, sales-led framing) — "Sorry, we're not a channel for purely paid services." or
   "This appears to be a narrow paid SaaS connector rather than a broadly useful Copilot plugin."
+  Being paid or vendor-backed is not on its own a reason to reject: per the
+  [paid-services guidance](https://github.com/github/awesome-copilot/discussions/968), technically useful,
+  broadly relevant, neutrally framed plugins that are clear about their limitations are welcome.
 - Marketing pitches for brand-new products, often vibe-coded dumps (repo days old, 0 stars, few commits) —
   "This is primarily a marketing push for an external service."
 - Crypto / payments / finance niches, or otherwise niche problem spaces — "This is not a fit for the repo."

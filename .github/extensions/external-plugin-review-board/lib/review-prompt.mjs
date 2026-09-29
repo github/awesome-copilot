@@ -4,6 +4,7 @@ export const REVIEW_FIELDS_SCHEMA = {
     required: ["number", "recommendation", "rationale"],
     properties: {
         number: { type: "integer", description: "Issue number." },
+        queueId: { type: "string", description: "Review token from the queued board card." },
         recommendation: {
             type: "string",
             enum: ["straight-reject", "probably-reject", "needs-review", "accept"],
@@ -25,7 +26,7 @@ export const REVIEW_FIELDS_SCHEMA = {
 };
 
 const REVIEW_FIELD_LIST =
-    "number, recommendation (straight-reject | probably-reject | needs-review | accept), pluginName, repository, repoFacts, signals, contents, commercial, rationale, checkNext (optional), suggestedComment (e.g. \"/reject <reason in the maintainer's terse style>\" or \"/approve\")";
+    "number, queueId (copy the reviewToken exactly), recommendation (straight-reject | probably-reject | needs-review | accept), pluginName, repository, repoFacts, signals, contents, commercial, rationale, checkNext (optional), suggestedComment (e.g. \"/reject <reason in the maintainer's terse style>\" or \"/approve\")";
 
 function formatHistory(history) {
     return history.length
@@ -52,6 +53,7 @@ export function buildRereviewPrompt({ item, guidance, instanceId, canvasId, guid
         : "The maintainer didn't give specific guidance; take a fresh, independent look.";
 
     const childPrompt = `Re-review external plugin submission #${item.number} ("${item.title}" by @${item.author}) in ${repo}.
+Review token: ${item.queueId}
 
 Read the review guidance first (use the view tool, absolute path): ${guidancePath}
 Follow its per-issue procedure. Work strictly read-only: do NOT comment on, label, close, or modify any issue or repository, and do not edit files.
@@ -64,7 +66,7 @@ ${previous}
 Recent maintainer decisions (calibrate against these as well as the guidance):
 ${formatHistory(history)}
 
-When you're done, send your result back to the session that created you (your creator) as a single message containing ONLY a JSON object with these fields: ${REVIEW_FIELD_LIST}. In the rationale, explicitly address the maintainer's guidance.`;
+When you're done, send your result back to the session that created you (your creator) as a single message containing ONLY a JSON object with these fields: ${REVIEW_FIELD_LIST}. Include queueId: "${item.queueId}". In the rationale, explicitly address the maintainer's guidance.`;
 
     return `The maintainer requested a guided re-review of #${item.number} from the External Plugin Review Board canvas. Run it as a separate sub-session; do NOT perform the review yourself in this session.
 
@@ -79,7 +81,10 @@ ${childPrompt}
 
 export function buildReviewPrompt({ items, instanceId, canvasId, guidancePath, history }) {
     const list = items
-        .map((item) => `- #${item.number} ${item.title} (by @${item.author}; labels: ${item.labels.join(", ") || "none"})`)
+        .map(
+            (item) =>
+                `- #${item.number} ${item.title} (reviewToken: ${item.queueId}; by @${item.author}; labels: ${item.labels.join(", ") || "none"})`,
+        )
         .join("\n");
 
     const recent = formatHistory(history);

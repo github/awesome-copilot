@@ -15,10 +15,19 @@ const CSP = [
     "img-src 'self' https: data:",
     "media-src https:",
     "connect-src 'self'",
-    "frame-ancestors *",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "object-src 'none'",
+    // The Copilot host loads canvases as a top-level webview (see extensions/sentry-triage/server.mjs),
+    // so framing is never legitimate and denying it blocks clickjacking of the approve/reject controls.
+    "frame-ancestors 'none'",
 ].join("; ");
 
 const MAX_BODY = 64 * 1024;
+
+export function expectedError(message, status) {
+    return Object.assign(new Error(message), { publicMessage: message, status });
+}
 
 function readJson(req) {
     return new Promise((resolve, reject) => {
@@ -27,7 +36,7 @@ function readJson(req) {
         req.on("data", (chunk) => {
             size += chunk.length;
             if (size > MAX_BODY) {
-                reject(Object.assign(new Error("Request body too large"), { status: 413 }));
+                reject(expectedError("Request body too large", 413));
                 req.destroy();
                 return;
             }
@@ -38,7 +47,7 @@ function readJson(req) {
             try {
                 resolve(JSON.parse(Buffer.concat(chunks).toString("utf8")));
             } catch {
-                reject(Object.assign(new Error("Invalid JSON body"), { status: 400 }));
+                reject(expectedError("Invalid JSON body", 400));
             }
         });
         req.on("error", reject);
@@ -48,6 +57,19 @@ function readJson(req) {
 function sendJson(res, status, payload) {
     res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
     res.end(JSON.stringify(payload));
+}
+
+function reportError(api, error) {
+    const logger = api.logger ?? console;
+    if (typeof logger.error === "function") {
+        logger.error("External plugin review board server error", error);
+    }
+}
+
+function clientErrorMessage(error) {
+    const status = Number.isInteger(error?.status) ? error.status : 500;
+    if (status >= 400 && status < 500) return error?.publicMessage || "Request failed";
+    return "Internal server error";
 }
 
 /**
@@ -78,6 +100,7 @@ export async function startBoardServer({ publicDir, api }) {
                 res.writeHead(200, {
                     "Content-Type": "text/html; charset=utf-8",
                     "Content-Security-Policy": CSP,
+                    "X-Frame-Options": "DENY",
                     "Cache-Control": "no-store",
                 });
                 res.end(html.replace("__BOARD_TOKEN__", token));
@@ -129,7 +152,16 @@ export async function startBoardServer({ publicDir, api }) {
             const result = await handler({ body, number: numberMatch ? Number(numberMatch[1]) : undefined });
             sendJson(res, 200, result ?? {});
         } catch (error) {
-            sendJson(res, error.status ?? 500, { error: error.message ?? String(error) });
+            if (!res.headersSent) {
+                const status = Number.isInteger(error?.status) ? error.status : 500;
+                if (status >= 500) reportError(api, error);
+                sendJson(res, status, { error: clientErrorMessage(error) });
+            } else {
+                reportError(api, error);
+                try {
+                    res.end();
+                } catch {}
+            }
         }
     });
 
