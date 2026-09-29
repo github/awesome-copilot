@@ -7,7 +7,9 @@
 #
 # Evaluation order:
 #   1. high   if any changed file matches `high.paths`, any added line matches a
-#             `high.capabilities` trigger, or a `high.labels` label is present.
+#             `high.capabilities` trigger, a `high.labels` label is present, or the
+#             changes can't be fully scanned (GitHub truncated the file list, or a
+#             text file in a capability's scope has no diff to scan).
 #   2. low    if every changed file matches `low.paths`, or the PR only modifies
 #             existing resource files (no added/removed/renamed files) and the total
 #             change is at most `low.small_update.max_changed_lines`.
@@ -62,6 +64,27 @@ high:
       description: Declares an MCP server or hook command
       files: ["plugins/**/*.json", "extensions/**/*.json", "skills/**/*.json"]
       pattern: "\"(mcpServers|command)\"\\s*:"
+  # Files whose missing diff is acceptable: binaries GitHub never diffs, and generated
+  # documentation whose sources are scanned. Other files in a capability's scope without
+  # a diff (binary or too large) fail closed to high because their added lines can't be scanned.
+  unscanned_paths:
+    - "docs/**"
+    - "README.md"
+    - ".github/plugin/marketplace.json"
+    - "**/*.png"
+    - "**/*.jpg"
+    - "**/*.jpeg"
+    - "**/*.gif"
+    - "**/*.webp"
+    - "**/*.ico"
+    - "**/*.pdf"
+    - "**/*.woff"
+    - "**/*.woff2"
+    - "**/*.ttf"
+    - "**/*.otf"
+    - "**/*.mp4"
+    - "**/*.webm"
+    - "**/*.zip"
   labels:
     # Applied by the Contributor Reputation Check writer.
     - "needs-review:HIGH"
@@ -103,7 +126,11 @@ low:
       - "plugins/**"
       - "extensions/**"
   approvals:
+    # One approval from an owner of the changed resource (its domain pool, or the core
+    # pools for files outside every domain). Until pools are staffed, any approver with
+    # write access counts.
     required: 1
+    require_owner: true
 
 # Areas used to pick the domain reviewer pool from .github/review-routing.yml.
 # `pools` are routing pool keys. When a matching pool has no reviewers yet, any

@@ -1,7 +1,8 @@
 name: Submission Gate Writer
 
 # Trusted writer for the submission gate. Recomputes the PR evaluation from the GitHub
-# API with code from the default branch (never from the PR), then applies exactly one
+# API with code from the default branch (never from the PR), then publishes the
+# required `submission-gate` check run on the PR head commit and applies exactly one
 # merge-risk:* label, one state label, and the persistent status comment.
 # See docs/maintainers/submission-gate.md.
 
@@ -22,7 +23,7 @@ on:
 
 permissions:
   actions: read
-  checks: read
+  checks: write
   contents: read
   issues: write
   pull-requests: write
@@ -89,7 +90,12 @@ jobs:
                 core.info(`No open PR matches gate run ${workflowRun.id} at ${workflowRun.head_sha}; it is stale or closed.`);
                 return;
               }
-              targets.push({ pullNumber, finalized: action === 'completed', gateRunUrl: workflowRun.html_url });
+              targets.push({
+                pullNumber,
+                finalized: action === 'completed',
+                gateRunUrl: workflowRun.html_url,
+                expectedHeadSha: workflowRun.head_sha,
+              });
             } else if (process.env.PR_NUMBER) {
               const pullNumber = Number(process.env.PR_NUMBER);
               if (!Number.isInteger(pullNumber) || pullNumber < 1) {
@@ -124,16 +130,19 @@ jobs:
                   pullNumber: target.pullNumber,
                   config,
                   finalized: target.finalized,
+                  expectedHeadSha: target.expectedHeadSha || null,
                   token: process.env.GH_TOKEN,
                   log: (message) => core.info(message),
                 });
-                if (evaluation.pr.state !== 'open') continue;
+                // A stale evaluation describes an older commit; the run for the new head reports.
+                if (evaluation.stale || evaluation.pr.state !== 'open') continue;
                 const gateRunUrl = target.gateRunUrl || evaluation.gateRun?.html_url || null;
                 await gate.syncPullRequestStatus(github, {
                   owner,
                   repo,
                   evaluation,
                   gateRunUrl,
+                  publishCheck: true,
                   log: (message) => core.info(message),
                 });
               } catch (error) {

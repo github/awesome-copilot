@@ -1,7 +1,8 @@
 # Submission gate configuration.
 #
-# The `submission-gate` check (.github/workflows/submission-gate.yml) waits for the
-# checks below on the PR head commit and aggregates them into one required result.
+# The submission gate aggregates the checks below on the PR head commit into one
+# required `submission-gate` check. The read-only Submission Gate workflow waits for
+# them; the trusted Submission Gate Writer publishes the check.
 # Logic lives in eng/submission-gate.mjs. See docs/maintainers/submission-gate.md.
 #
 # This file is a review-policy file: changing it places a PR in merge-risk:high.
@@ -18,6 +19,8 @@
 #                workflow triggers by eng/submission-gate.test.mjs.
 #   required     true: failures block the gate. false: failures are shown as warnings.
 #   optional     true: skip silently when the check never reports (pluggable slot).
+#   allow_skip   true: a run its workflow skipped counts as skipped. Otherwise a skipped
+#                required check is an infrastructure failure, because it validated nothing.
 #   failure_kind auto (default): classify a failed run by its failing step.
 #                infrastructure: every failure of this check is an infrastructure failure.
 #   contribution_steps  Step-name patterns (regex) that mean the contribution failed.
@@ -177,6 +180,8 @@ checks:
     title: Contributor reputation
     workflow: contributor-check.yml
     required: true
+    # Its jobs skip for bot authors (Dependabot, github-actions, Copilot coding agent).
+    allow_skip: true
     failure_kind: infrastructure
 
   # AI-assisted advisory reviews. Their findings are posted as comments and never fail

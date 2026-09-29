@@ -16,6 +16,8 @@ import {
   latestRunsByWorkflow,
   loadGateConfig,
   normalizeRouting,
+  publishGateCheck,
+  GATE_CHECK_EXTERNAL_ID,
   parsePrCommand,
   renderStatusComment,
   rerunChecks,
@@ -31,7 +33,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const config = loadGateConfig(repoRoot);
 const tiers = config.tiers;
 
-const file = (filename, extra = {}) => ({ filename, status: "modified", additions: 1, deletions: 1, changes: 2, ...extra });
+const file = (filename, extra = {}) => ({ filename, status: "modified", additions: 1, deletions: 1, changes: 2, patch: "+x\n-y", ...extra });
 const review = (login, state, submitted_at = "2026-09-29T10:00:00Z", extra = {}) => ({
   user: { login, type: "User" },
   state,
@@ -287,7 +289,14 @@ test("evaluateCheck maps run states to gate outcomes", () => {
   assert.equal(evaluateCheck(check, { found: true, status: "in_progress" }).outcome, "pending");
   assert.equal(evaluateCheck(check, { found: true, status: "in_progress" }, { gaveUp: true }).category, "infrastructure");
   assert.equal(evaluateCheck(check, { found: true, status: "completed", conclusion: "success" }).outcome, "pass");
-  assert.equal(evaluateCheck(check, { found: true, status: "completed", conclusion: "skipped" }).outcome, "skipped");
+  const skipped = evaluateCheck(check, { found: true, status: "completed", conclusion: "skipped" });
+  assert.equal(skipped.outcome, "failure", "a skipped required check validated nothing");
+  assert.equal(skipped.category, "infrastructure");
+  const skippedOk = { found: true, status: "completed", conclusion: "skipped" };
+  assert.equal(evaluateCheck({ ...check, allow_skip: true }, skippedOk).outcome, "skipped");
+  assert.equal(evaluateCheck({ ...check, optional: true }, skippedOk).outcome, "skipped");
+  assert.equal(evaluateCheck({ ...check, required: false }, skippedOk).outcome, "skipped");
+  assert.equal(config.gate.checks.find((c) => c.id === "contributor-reputation").allow_skip, true, "skips for bot authors");
   assert.equal(evaluateCheck(check, { found: true, status: "completed", conclusion: "cancelled" }).category, "infrastructure");
   assert.equal(evaluateCheck(check, { found: true, status: "completed", conclusion: "action_required" }).category, "infrastructure");
   const advisory = evaluateCheck({ ...check, required: false, failure_kind: "infrastructure" }, { found: true, status: "completed", conclusion: "failure" });
@@ -320,9 +329,11 @@ test("latestRunsByWorkflow keeps the newest PR-triggered run per workflow", () =
 
 // --- commands and rendering ------------------------------------------------------
 
-test("parsePrCommand only accepts supported commands on the first line", () => {
+test("parsePrCommand only accepts supported commands at the start of the comment", () => {
   assert.deepEqual(parsePrCommand("/rerun-checks"), { command: "rerun-checks" });
-  assert.deepEqual(parsePrCommand("\n  /Request-Review please\nthanks"), { command: "request-review" });
+  assert.deepEqual(parsePrCommand("/Request-Review please\nthanks"), { command: "request-review" });
+  assert.equal(parsePrCommand("\n/rerun-checks"), null, "matches the workflow's startsWith filter");
+  assert.equal(parsePrCommand("  /rerun-checks"), null);
   assert.equal(parsePrCommand("please /rerun-checks"), null);
   assert.equal(parsePrCommand("/rerun-checksx"), null);
   assert.equal(parsePrCommand(""), null);
@@ -364,7 +375,13 @@ function fakeGithub({ pr, files = [], reviews = [], runs = [], jobs = {}, checkR
       reRunWorkflowFailedJobs: record("actions.reRunWorkflowFailedJobs", async () => ({})),
       reRunWorkflow: record("actions.reRunWorkflow", async () => ({})),
     },
-    checks: { listForRef: record("checks.listForRef", async () => ({ data: { check_runs: checkRuns } })) },
+    checks: {
+      listForRef: record("checks.listForRef", async ({ check_name }) => ({
+        data: { check_runs: checkRuns.filter((checkRun) => !check_name || checkRun.name === check_name) },
+      })),
+      create: record("checks.create", async () => ({ data: { id: 999 } })),
+      update: record("checks.update", async () => ({ data: {} })),
+    },
     repos: {
       getCollaboratorPermissionLevel: record("repos.getCollaboratorPermissionLevel", async ({ username }) => ({
         data: { permission: permissions[username] || "read" },
@@ -613,4 +630,140 @@ test("resolvePullRequestForWorkflowRun requires an exact head match", async () =
     }),
     null
   );
+});
+
+// --- review hardening ------------------------------------------------------------
+
+test("text files without a scannable diff or a truncated file list fail closed to high", () => {
+  const noPatch = classifyRisk({ files: [file("extensions/x/extension.mjs", { patch: undefined })], tiers });
+  assert.equal(noPatch.tier, "high");
+  assert.match(noPatch.reasons.join("\n"), /no diff available/);
+  assert.equal(classifyRisk({ files: [file("skills/x/guide.pdf", { patch: undefined, status: "added" })], tiers }).tier, "medium");
+  assert.equal(classifyRisk({ files: [file("docs/a.md", { patch: undefined })], tiers }).tier, "low", "outside capability scope");
+  assert.equal(classifyRisk({ files: [file("docs/a.md")], tiers, incompleteFiles: true }).tier, "high");
+});
+
+test("low tier requires an approval from an owner of the changed resource", () => {
+  const permissions = new Map([["alice", "write"], ["canvasa", "write"], ["corea", "write"]]);
+  const base = { tier: "low", tiers, author: "author", permissions, routing };
+  const canvas = { ...base, files: [file("extensions/x/README.md")] };
+  assert.equal(evaluateApprovals({ ...canvas, reviews: [review("alice", "APPROVED")] }).satisfied, false);
+  assert.equal(evaluateApprovals({ ...canvas, reviews: [review("canvasa", "APPROVED")] }).satisfied, true);
+  const docs = { ...base, files: [file("docs/a.md")] };
+  assert.equal(evaluateApprovals({ ...docs, reviews: [review("alice", "APPROVED")] }).satisfied, false, "core pools own docs");
+  assert.equal(evaluateApprovals({ ...docs, reviews: [review("corea", "APPROVED")] }).satisfied, true);
+  const unstaffed = evaluateApprovals({ ...base, files: [file("skills/x/SKILL.md")], reviews: [review("alice", "APPROVED")] });
+  assert.equal(unstaffed.satisfied, true, "unstaffed content pool falls back to any writer");
+});
+
+test("approvals fail closed when a reviewer's permission can't be read", async () => {
+  const github = fakeGithub({ pr: basePr, files: [file("docs/a.md")], reviews: [review("alice", "APPROVED", undefined, { author_association: "COLLABORATOR" })] });
+  github.rest.repos.getCollaboratorPermissionLevel = async () => {
+    throw Object.assign(new Error("forbidden"), { status: 403 });
+  };
+  const evaluation = await evaluateSubmission(github, { owner: "github", repo: "awesome-copilot", pullNumber: 7, config, finalized: true, readContributorRisk: () => null });
+  assert.deepEqual(evaluation.approvals.approvers, []);
+});
+
+test("evaluateSubmission blocks when GitHub truncates the changed file list", async () => {
+  const github = fakeGithub({ pr: { ...basePr, changed_files: 3001 }, files: [file("docs/a.md")] });
+  const evaluation = await evaluateSubmission(github, { owner: "github", repo: "awesome-copilot", pullNumber: 7, config, finalized: true, readContributorRisk: () => null });
+  assert.equal(evaluation.risk.tier, "high");
+  const truncated = evaluation.automation.infrastructureFailures.find((result) => result.id === "changed-files");
+  assert.ok(truncated);
+  assert.equal(evaluation.passed, false);
+});
+
+test("evaluateSubmission is stale when the head differs from the expected or re-read head", async () => {
+  const expected = await evaluateSubmission(fakeGithub({ pr: basePr }), {
+    owner: "github", repo: "awesome-copilot", pullNumber: 7, config, expectedHeadSha: "b".repeat(40), readContributorRisk: () => null,
+  });
+  assert.equal(expected.stale, true);
+
+  const github = fakeGithub({ pr: basePr, files: [file("docs/a.md")] });
+  let gets = 0;
+  github.rest.pulls.get = async ({ pull_number }) => {
+    gets += 1;
+    return { data: { ...basePr, number: pull_number, head: { ...basePr.head, sha: gets === 1 ? basePr.head.sha : "c".repeat(40) } } };
+  };
+  const moved = await evaluateSubmission(github, { owner: "github", repo: "awesome-copilot", pullNumber: 7, config, readContributorRisk: () => null });
+  assert.equal(moved.stale, true);
+  assert.notEqual(moved.passed, true);
+});
+
+test("a submission-gate check not published by the writer is flagged as tampering", async () => {
+  const github = fakeGithub({
+    pr: basePr,
+    files: [file("docs/a.md")],
+    reviews: [review("alice", "APPROVED")],
+    permissions: { alice: "write" },
+    checkRuns: [{ id: 5, name: "submission-gate", external_id: "", html_url: "https://example.test/impostor" }],
+    runs: [run(1, "check-line-endings.yml", "success"), run(90, "codespell.yml", "success"), run(2, "validate-readme.yml", "success"), run(3, "contributor-check.yml", "success")],
+  });
+  const evaluation = await evaluateSubmission(github, { owner: "github", repo: "awesome-copilot", pullNumber: 7, config, finalized: true, readContributorRisk: () => null });
+  assert.equal(evaluation.risk.tier, "high");
+  assert.ok(evaluation.automation.contributionFailures.some((result) => result.id === "gate-integrity"));
+  assert.equal(evaluation.passed, false);
+
+  await publishGateCheck(github, { owner: "github", repo: "awesome-copilot", evaluation });
+  const created = github.calls.find((call) => call.name === "checks.create");
+  assert.equal(created.params.name, "submission-gate");
+  assert.equal(created.params.external_id, GATE_CHECK_EXTERNAL_ID);
+  assert.equal(created.params.conclusion, "failure");
+});
+
+test("publishGateCheck updates the writer's check run and reports pending as in progress", async () => {
+  const ours = { id: 42, name: "submission-gate", external_id: GATE_CHECK_EXTERNAL_ID };
+  const github = fakeGithub({ pr: basePr, checkRuns: [ours] });
+  const evaluation = {
+    headSha: basePr.head.sha,
+    state: "approved",
+    passed: true,
+    risk: { tier: "low" },
+    automation: summarizeChecks([]),
+    approvals: { satisfied: true, missing: [] },
+  };
+  await publishGateCheck(github, { owner: "github", repo: "awesome-copilot", evaluation, detailsUrl: "https://example.test/run" });
+  const updated = github.calls.find((call) => call.name === "checks.update");
+  assert.equal(updated.params.check_run_id, 42);
+  assert.equal(updated.params.conclusion, "success");
+  assert.equal(updated.params.details_url, "https://example.test/run");
+
+  const pending = { ...evaluation, state: "awaiting-automation", passed: false, automation: summarizeChecks([{ id: "x", title: "X", required: true, outcome: "pending" }]) };
+  const github2 = fakeGithub({ pr: basePr });
+  await publishGateCheck(github2, { owner: "github", repo: "awesome-copilot", evaluation: pending });
+  const created = github2.calls.find((call) => call.name === "checks.create");
+  assert.equal(created.params.status, "in_progress");
+  assert.equal(created.params.conclusion, undefined);
+});
+
+test("syncPullRequestStatus does not write when the head or reviews changed", async () => {
+  const evaluation = {
+    pr: basePr,
+    headSha: "b".repeat(40),
+    labels: [],
+    reviewsSignature: "",
+    risk: { tier: "low", reasons: [] },
+    automation: summarizeChecks([]),
+    approvals: { required: 1, requirement: "1 approval", approvers: [], changesRequestedBy: [], reviewers: [], missing: [], notes: [], satisfied: true },
+    state: "approved",
+    passed: true,
+    reviewAssignment: { users: [], teams: [], due: null },
+  };
+  const moved = fakeGithub({ pr: basePr });
+  assert.deepEqual(await syncPullRequestStatus(moved, { owner: "github", repo: "awesome-copilot", evaluation, publishCheck: true }), {
+    updated: false,
+    reason: "head-changed",
+  });
+  assert.ok(!moved.calls.some((call) => /addLabels|removeLabel|Comment|checks\.(create|update)/.test(call.name)));
+
+  const reviewed = fakeGithub({ pr: basePr, reviews: [review("alice", "CHANGES_REQUESTED")] });
+  const result = await syncPullRequestStatus(reviewed, {
+    owner: "github",
+    repo: "awesome-copilot",
+    evaluation: { ...evaluation, headSha: basePr.head.sha },
+    publishCheck: true,
+  });
+  assert.equal(result.reason, "reviews-changed");
+  assert.ok(!reviewed.calls.some((call) => /addLabels|checks\.create/.test(call.name)));
 });

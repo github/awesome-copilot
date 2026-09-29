@@ -1,10 +1,12 @@
 name: Submission Gate
 
-# Aggregate required check for every PR. Waits for the applicable checks listed in
+# Read-only preview for every PR. Waits for the applicable checks listed in
 # .github/submission-gate.yml, classifies the PR into a merge-risk tier
-# (.github/risk-tiers.yml), and verifies the approvals that tier requires.
-# Read-only: labels and the status comment are written by submission-gate-writer.yml.
-# See docs/maintainers/submission-gate.md.
+# (.github/risk-tiers.yml), and previews the approvals that tier requires.
+# This workflow never publishes the required `submission-gate` check: a PR can edit
+# pull_request workflows, so the trusted submission-gate-writer.yml recomputes the
+# result with default-branch code and publishes that check, the labels, and the
+# status comment. See docs/maintainers/submission-gate.md.
 
 on:
   pull_request:
@@ -23,8 +25,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  submission-gate:
-    name: submission-gate
+  # Must not be named submission-gate: the writer treats any other check with that name as tampering.
+  evaluate:
+    name: evaluate
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -90,15 +93,19 @@ jobs:
               repo: context.repo.repo,
               pullNumber,
               config,
+              expectedHeadSha: context.payload.pull_request.head.sha,
               wait: true,
               token: process.env.GH_TOKEN,
               log: (message) => core.info(message),
             });
 
+            if (evaluation.stale) {
+              core.info('The PR head changed during evaluation; the run for the new head will report instead.');
+              return;
+            }
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             await core.summary.addRaw(gate.renderStatusComment(evaluation, { gateRunUrl: runUrl })).write();
 
+            // Preview only; the writer publishes the authoritative submission-gate check.
             core.info(`PR #${pullNumber}: state=${evaluation.state}, risk=${evaluation.risk.tier}`);
-            if (!evaluation.passed) {
-              core.setFailed(gate.gateFailureSummary(evaluation).join('\n') || `State is ${evaluation.state}`);
-            }
+            for (const line of gate.gateFailureSummary(evaluation)) core.notice(line);

@@ -11,6 +11,8 @@ import path from "node:path";
 import * as yaml from "js-yaml";
 
 export const GATE_CHECK_NAME = "submission-gate";
+// external_id stamped on the check runs the trusted writer publishes.
+export const GATE_CHECK_EXTERNAL_ID = "submission-gate-writer";
 export const GATE_WORKFLOW_FILE = "submission-gate.yml";
 export const STATUS_MARKER = "<!-- submission-gate-status -->";
 export const RISK_TIERS = ["low", "medium", "high"];
@@ -136,12 +138,15 @@ function addedLines(patch) {
 
 /**
  * Classify a PR into exactly one merge-risk tier.
+ * `incompleteFiles` marks a changed-file list GitHub truncated; that fails closed to high.
  * @returns {{tier: 'low'|'medium'|'high', reasons: string[]}}
  */
-export function classifyRisk({ files, labels = [], contributorRisk = null, tiers }) {
+export function classifyRisk({ files, labels = [], contributorRisk = null, tiers, incompleteFiles = false }) {
   const high = tiers.high || {};
   const low = tiers.low || {};
   const reasons = [];
+
+  if (incompleteFiles) reasons.push("GitHub did not return the complete list of changed files, so the PR is treated as high risk");
 
   for (const file of files) {
     for (const name of fileNames([file])) {
@@ -153,7 +158,22 @@ export function classifyRisk({ files, labels = [], contributorRisk = null, tiers
     }
   }
 
-  for (const capability of high.capabilities || []) {
+  // GitHub omits `patch` for binary files and very large diffs. A text file whose added
+  // lines can't be scanned fails closed instead of skipping the capability triggers.
+  const capabilities = high.capabilities || [];
+  const unscannable = files.filter(
+    (file) =>
+      file.status !== "removed" &&
+      typeof file.patch !== "string" &&
+      Number(file.additions ?? 1) > 0 &&
+      !matchesAny(file.filename, high.unscanned_paths || []) &&
+      capabilities.some((capability) => !Array.isArray(capability.files) || matchesAny(file.filename, capability.files))
+  );
+  for (const file of unscannable) {
+    reasons.push(`\`${file.filename}\` has no diff available to scan for privileged capabilities`);
+  }
+
+  for (const capability of capabilities) {
     const pattern = new RegExp(capability.pattern);
     for (const file of files) {
       if (Array.isArray(capability.files) && !matchesAny(file.filename, capability.files)) continue;
@@ -280,16 +300,22 @@ export function evaluateApprovals({ tier, tiers, reviews = [], author, permissio
   if (approvers.length < required) missing.push(`${required - approvers.length} more approval(s)`);
 
   const coreMembers = unionPools(pools, tiers.core_pools || []);
-  if (policy.require_domain) {
-    const domainPoolKeys = touchedDomains(files, tiers.domains).flatMap((domain) => domain.pools);
+  if (policy.require_domain || policy.require_owner) {
+    const kind = policy.require_owner ? "resource owner" : "domain reviewer";
+    const touched = touchedDomains(files, tiers.domains).flatMap((domain) => domain.pools);
+    // Files outside every domain (docs, metadata) are owned by the core pools.
+    const ownsUntouched = fileNames(files).some(
+      (name) => !Object.values(tiers.domains || {}).some((domain) => matchesAny(name, domain.paths || []))
+    );
+    const domainPoolKeys = [...new Set([...touched, ...(ownsUntouched ? tiers.core_pools || [] : [])])];
     const domainMembers = unionPools(pools, domainPoolKeys);
     if (domainMembers.size > 0) {
-      requirements.push(`including a domain reviewer (${[...new Set(domainPoolKeys)].join(", ")})`);
+      requirements.push(`including a ${kind} (${domainPoolKeys.join(", ")})`);
       if (!approvers.some((login) => domainMembers.has(login) || coreMembers.has(login))) {
-        missing.push(`an approval from the ${[...new Set(domainPoolKeys)].join("/")} reviewer pool`);
+        missing.push(`an approval from a ${kind} (${domainPoolKeys.join("/")} reviewer pool)`);
       }
     } else {
-      notes.push("No staffed domain reviewer pool matches this PR yet; any reviewer with write access satisfies the domain requirement.");
+      notes.push(`No staffed reviewer pool owns these files yet; any reviewer with write access counts as the ${kind}.`);
     }
   }
 
@@ -402,7 +428,15 @@ export function evaluateCheck(check, observation, { gaveUp = false, infrastructu
     case "neutral":
       return { ...base, outcome: "pass", detail: "Passed" };
     case "skipped":
-      return { ...base, outcome: "skipped", detail: "Skipped by its workflow" };
+      if (check.optional || check.allow_skip || check.required === false) {
+        return { ...base, outcome: "skipped", detail: "Skipped by its workflow" };
+      }
+      return {
+        ...base,
+        outcome: "failure",
+        category: "infrastructure",
+        detail: "Skipped by its workflow, so it never validated this commit",
+      };
     case "action_required":
       return {
         ...base,
@@ -582,14 +616,12 @@ export function renderStatusComment(evaluation, { gateRunUrl = null } = {}) {
 // Commands
 // ---------------------------------------------------------------------------
 
-/** Parse a PR command from the first non-empty line of a comment. */
+/**
+ * Parse a PR command. The command must start the comment (matching the workflow's
+ * case-insensitive `startsWith` filter); anything after it on the line is ignored.
+ */
 export function parsePrCommand(body) {
-  const firstLine = String(body || "")
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .find((line) => line.length > 0);
-  if (!firstLine) return null;
-  const match = /^\/(rerun-checks|request-review)(?:\s|$)/i.exec(firstLine);
+  const match = /^\/(rerun-checks|request-review)(?:\s|$)/i.exec(String(body || ""));
   return match ? { command: match[1].toLowerCase() } : null;
 }
 
@@ -738,8 +770,8 @@ async function lookupPermissions(github, { owner, repo, reviews, author }) {
       const { data } = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username: review.user.login });
       permissions.set(login, data.role_name === "maintain" ? "maintain" : data.permission);
     } catch {
-      const association = review.author_association;
-      permissions.set(login, association === "OWNER" || association === "COLLABORATOR" ? "write" : "read");
+      // Fail closed: author_association (for example COLLABORATOR) does not imply write access.
+      permissions.set(login, "none");
     }
   }
   return permissions;
@@ -770,6 +802,7 @@ export async function evaluateSubmission(github, options) {
     repo,
     pullNumber,
     config,
+    expectedHeadSha = null,
     wait = false,
     finalized = false,
     token = null,
@@ -781,7 +814,13 @@ export async function evaluateSubmission(github, options) {
 
   const { data: initialPr } = await github.rest.pulls.get({ owner, repo, pull_number: pullNumber });
   const headSha = initialPr.head.sha;
+  if (expectedHeadSha && expectedHeadSha !== headSha) {
+    log(`PR #${pullNumber} head is ${headSha}, not ${expectedHeadSha}; a newer evaluation will handle it.`);
+    return { stale: true, pr: initialPr, headSha };
+  }
   const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pullNumber, per_page: 100 });
+  // listFiles stops at 3,000 files; a truncated list can't be trusted for checks or risk.
+  const incompleteFiles = Number.isInteger(initialPr.changed_files) && files.length < initialPr.changed_files;
   const applicable = selectApplicableChecks(config.gate.checks, files, initialPr.base.ref);
 
   const waitConfig = config.gate.wait || {};
@@ -813,9 +852,13 @@ export async function evaluateSubmission(github, options) {
     await sleep(intervalMs);
   }
 
-  // Re-read PR state after waiting: labels and reviews may have changed.
+  // Re-read PR state after waiting: labels and reviews may have changed. If the head moved,
+  // these results describe an old commit and must not be applied to the new one.
   const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: pullNumber });
-  if (pr.head.sha !== headSha) log(`PR head moved from ${headSha} to ${pr.head.sha} while evaluating.`);
+  if (pr.head.sha !== headSha) {
+    log(`PR head moved from ${headSha} to ${pr.head.sha} while evaluating; discarding this evaluation.`);
+    return { stale: true, pr, headSha };
+  }
   const labels = (pr.labels || []).map((label) => label.name);
   const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pullNumber, per_page: 100 });
 
@@ -825,7 +868,37 @@ export async function evaluateSubmission(github, options) {
       ? readContributorRisk({ owner, repo, runId: contributorRun.id, headSha, token })
       : null;
 
-  const risk = classifyRisk({ files, labels, contributorRisk, tiers: config.tiers });
+  if (incompleteFiles) {
+    results.push({
+      id: "changed-files",
+      title: "Changed file list",
+      required: true,
+      url: null,
+      hint: null,
+      outcome: "failure",
+      category: "infrastructure",
+      detail: `GitHub returned ${files.length} of ${initialPr.changed_files} changed files; split the PR or ask a maintainer to review it manually`,
+    });
+  }
+  const impostors = await findImpostorGateChecks(github, { owner, repo, headSha });
+  if (impostors.length > 0) {
+    results.push({
+      id: "gate-integrity",
+      title: "Gate integrity",
+      required: true,
+      url: impostors[0].html_url || null,
+      hint: `Remove the workflow job named \`${GATE_CHECK_NAME}\` from this PR; only the Submission Gate Writer may report that check.`,
+      outcome: "failure",
+      category: "contribution",
+      detail: `${impostors.length} other check run(s) named \`${GATE_CHECK_NAME}\` were reported for this commit`,
+    });
+  }
+
+  const risk = classifyRisk({ files, labels, contributorRisk, tiers: config.tiers, incompleteFiles });
+  if (impostors.length > 0) {
+    risk.tier = "high";
+    risk.reasons.unshift(`Another workflow reports a \`${GATE_CHECK_NAME}\` check for this commit`);
+  }
   const permissions = await lookupPermissions(github, { owner, repo, reviews, author: pr.user?.login });
   const approvals = evaluateApprovals({
     tier: risk.tier,
@@ -840,10 +913,12 @@ export async function evaluateSubmission(github, options) {
   const state = computeState({ automation, approvals });
 
   return {
+    stale: false,
     pr,
     headSha,
     files,
     labels,
+    reviewsSignature: reviewsSignature(reviews),
     risk,
     tierDescription: config.tiers[risk.tier]?.description || "",
     automation,
@@ -856,9 +931,31 @@ export async function evaluateSubmission(github, options) {
 }
 
 /** Apply exactly one risk label and one state label, and upsert the status comment. */
-export async function syncPullRequestStatus(github, { owner, repo, evaluation, gateRunUrl = null, log = () => {} }) {
+export async function syncPullRequestStatus(
+  github,
+  { owner, repo, evaluation, gateRunUrl = null, publishCheck = false, log = () => {} }
+) {
   const issueNumber = evaluation.pr.number;
-  const current = new Set(evaluation.labels);
+
+  // Revalidate right before writing so a slow run can't overwrite a newer head or review state.
+  const { data: fresh } = await github.rest.pulls.get({ owner, repo, pull_number: issueNumber });
+  if (fresh.state !== "open") {
+    log(`PR #${issueNumber} is no longer open; not updating.`);
+    return { updated: false, reason: "closed" };
+  }
+  if (fresh.head.sha !== evaluation.headSha) {
+    log(`PR #${issueNumber} head moved to ${fresh.head.sha}; not applying the evaluation of ${evaluation.headSha}.`);
+    return { updated: false, reason: "head-changed" };
+  }
+  if (evaluation.reviewsSignature !== undefined) {
+    const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: issueNumber, per_page: 100 });
+    if (reviewsSignature(reviews) !== evaluation.reviewsSignature) {
+      log(`PR #${issueNumber} reviews changed during evaluation; a newer evaluation will update it.`);
+      return { updated: false, reason: "reviews-changed" };
+    }
+  }
+
+  const current = new Set((fresh.labels || []).map((label) => label.name));
   // External plugin intake (external-plugin-pr-quality-gates-writer.yml) owns the shared
   // state labels on its PRs; only the risk label and comment are managed there.
   const manageState = !STATE_LABEL_OWNERS.some((label) => current.has(label));
@@ -892,6 +989,70 @@ export async function syncPullRequestStatus(github, { owner, repo, evaluation, g
     await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body });
   }
   log(`PR #${issueNumber}: state=${evaluation.state} risk=${evaluation.risk.tier} (+${toAdd.join(",") || "none"} -${toRemove.join(",") || "none"})`);
+  if (publishCheck) await publishGateCheck(github, { owner, repo, evaluation, detailsUrl: gateRunUrl });
+  return { updated: true };
+}
+
+/** Stable fingerprint of the review list, used to detect reviews that arrive mid-evaluation. */
+export function reviewsSignature(reviews) {
+  return reviews.map((review) => `${review.id}:${review.state}`).join(",");
+}
+
+async function listGateCheckRuns(github, { owner, repo, headSha }) {
+  const { data } = await github.rest.checks.listForRef({
+    owner,
+    repo,
+    ref: headSha,
+    check_name: GATE_CHECK_NAME,
+    filter: "all",
+    per_page: 100,
+  });
+  return data.check_runs || [];
+}
+
+/** Check runs named `submission-gate` on the commit that were not published by the gate writer. */
+export async function findImpostorGateChecks(github, { owner, repo, headSha }) {
+  const runs = await listGateCheckRuns(github, { owner, repo, headSha });
+  return runs.filter((run) => run.external_id !== GATE_CHECK_EXTERNAL_ID);
+}
+
+/**
+ * Publish the required `submission-gate` check on the PR head commit. Only the trusted
+ * writer calls this, so the check can't be satisfied by editing a PR-controlled workflow.
+ */
+export async function publishGateCheck(github, { owner, repo, evaluation, detailsUrl = null }) {
+  const pending = evaluation.automation.pending.length > 0;
+  const display = STATE_DISPLAY[evaluation.state];
+  const reasons = gateFailureSummary(evaluation);
+  const output = {
+    title: `${display.text} · merge-risk:${evaluation.risk.tier}`,
+    summary: (evaluation.passed
+      ? "All required checks passed and the approvals required by this risk tier are present."
+      : reasons.map((line) => `- ${sanitize(line, 1000)}`).join("\n") || `State: ${evaluation.state}`
+    ).slice(0, 60_000),
+  };
+  const fields = pending
+    ? { status: "in_progress", output }
+    : { status: "completed", conclusion: evaluation.passed ? "success" : "failure", completed_at: new Date().toISOString(), output };
+  if (detailsUrl) fields.details_url = detailsUrl;
+
+  const runs = await listGateCheckRuns(github, { owner, repo, headSha: evaluation.headSha });
+  const ours = runs.filter((run) => run.external_id === GATE_CHECK_EXTERNAL_ID);
+  const impostors = runs.length > ours.length;
+  // Update in place normally; when another source reports the same name, create a newer run
+  // so the writer's result is the most recent one.
+  if (ours.length > 0 && !impostors) {
+    await github.rest.checks.update({ owner, repo, check_run_id: ours[0].id, ...fields });
+  } else {
+    await github.rest.checks.create({
+      owner,
+      repo,
+      name: GATE_CHECK_NAME,
+      head_sha: evaluation.headSha,
+      external_id: GATE_CHECK_EXTERNAL_ID,
+      ...fields,
+    });
+  }
 }
 
 /**

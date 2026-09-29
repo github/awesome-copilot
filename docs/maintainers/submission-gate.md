@@ -6,8 +6,8 @@ Tracking issue: [github/awesome-copilot#4184](https://github.com/github/awesome-
 
 | Piece | Location |
 |---|---|
-| Aggregate check (reader) | [`.github/workflows/submission-gate.yml`](../../.github/workflows/submission-gate.yml), workflow **Submission Gate**, job `submission-gate` |
-| Labels and status comment (writer) | [`.github/workflows/submission-gate-writer.yml`](../../.github/workflows/submission-gate-writer.yml), workflow **Submission Gate Writer** |
+| Read-only evaluation (reader) | [`.github/workflows/submission-gate.yml`](../../.github/workflows/submission-gate.yml), workflow **Submission Gate**, job `evaluate` |
+| `submission-gate` check, labels, and status comment (writer) | [`.github/workflows/submission-gate-writer.yml`](../../.github/workflows/submission-gate-writer.yml), workflow **Submission Gate Writer** |
 | PR commands | [`.github/workflows/pr-commands.yml`](../../.github/workflows/pr-commands.yml) |
 | Checks the gate waits for | [`.github/submission-gate.yml`](../../.github/submission-gate.yml) |
 | Risk tiers and approval policy | [`.github/risk-tiers.yml`](../../.github/risk-tiers.yml) |
@@ -16,14 +16,18 @@ Tracking issue: [github/awesome-copilot#4184](https://github.com/github/awesome-
 
 ## How the gate works
 
-1. **Submission Gate** runs on every PR (`opened`, `synchronize`, `reopened`, `ready_for_review`) and on every review (`submitted`, `edited`, `dismissed`). It has no path filter, so it always reports.
-2. It checks out the **base commit**, not the PR, and loads its logic and policy from there. A PR therefore can't change how it is judged. The one exception is the bootstrap PR that introduces the gate: the base has no gate yet, so the gate from the PR is used and a warning is logged.
+1. **Submission Gate** runs on every PR (`opened`, `synchronize`, `reopened`, `ready_for_review`) and on every review (`submitted`, `edited`, `dismissed`). It has no path filter, so it always runs. Its job is named `evaluate`, and it never fails: it is a read-only preview whose job summary shows the status table.
+2. It checks out the **base commit**, not the PR, and loads its logic and policy from there. The one exception is the bootstrap PR that introduces the gate: the base has no gate yet, so the gate from the PR is used and a warning is logged.
 3. It lists the PR's changed files and picks the checks in `.github/submission-gate.yml` whose `branches` and `paths` match. These filters mirror each workflow's own `pull_request` trigger. `eng/submission-gate.test.mjs` fails if they drift apart.
 4. It polls the Actions runs for the PR head commit, every 30 seconds for up to 40 minutes. It stops early if a required check reports a contribution failure.
-5. It classifies the merge-risk tier, evaluates reviews against that tier's approval policy, and computes the PR state.
-6. The check **passes only when the state is `approved`**. That means every required check passed and the tier's approvals are present. Otherwise the run fails with a short reason, and the job summary shows the full status table.
+5. When it starts and when it finishes, **Submission Gate Writer** runs through `workflow_run` with default-branch code. It rebuilds the evaluation from the GitHub API: it classifies the merge-risk tier, evaluates reviews against that tier's approval policy, and computes the PR state.
+6. The writer publishes the **`submission-gate` check run** on the PR head commit through the Checks API. The check is `in_progress` while checks are pending, and it **succeeds only when the state is `approved`**, meaning every required check passed and the tier's approvals are present. Otherwise it fails, and its summary lists the reasons.
 
-Because a review re-runs the gate, the check turns green as soon as the last required approval arrives.
+Because a review re-runs the gate, the check turns green as soon as the last required approval arrives. An hourly writer sweep (and `workflow_dispatch` with `pr_number`) refreshes PRs whose events were missed.
+
+The `submission-gate` check comes from the writer, not from a `pull_request` job, because a PR can edit its own `pull_request` workflows. See [Security model](#security-model). A PR therefore doesn't show `submission-gate` until the writer exists on `main`.
+
+The writer revalidates the PR head and reviews right before it writes. If the head moved or a review arrived during an evaluation, it discards that result and leaves the update to the newer run. The reader also discards its result if the head moved while it was waiting.
 
 ### Checks
 
@@ -47,7 +51,8 @@ Because a review re-runs the gate, the check turns green as soon as the last req
 
 Notes on the rows above:
 
-- **Completion only** means the workflow posts its findings as comments or labels and does not fail on them. The gate needs the workflow to finish; any failure of it is an infrastructure failure. The contributor reputation risk level also feeds the risk tier.
+- **Completion only** means the workflow posts its findings as comments or labels and does not fail on them. The gate needs the workflow to finish; any failure of it is an infrastructure failure. The contributor reputation risk level also feeds the risk tier. Contributor reputation skips bot authors, so it sets `allow_skip: true`.
+- A **blocking check that its workflow skipped** validated nothing, so it is an infrastructure failure unless the check sets `allow_skip: true` or `optional: true`.
 - **Advisory** checks never block. If they fail, the status comment shows a warning.
 - **Canvas/plugin smoke test** is a pluggable slot matched by check-run name. Phase 3 of #4184 provides it. If no such check reports, the gate skips it.
 
@@ -69,6 +74,8 @@ A failed run is classified by its first failing step:
 - A failed step matching neither list → contribution failure, so real validation problems are never hidden.
 - `timed_out`, `cancelled`, `startup_failure`, and `action_required` runs → always infrastructure failures.
 - A required check that never reported → infrastructure failure. The gate declares it missing once everything else has finished and 8 minutes have passed, or when the gate times out.
+- A required check whose workflow run was skipped → infrastructure failure, unless it sets `allow_skip` or `optional`.
+- GitHub returned only part of the changed-file list (the API stops at 3,000 files) → infrastructure failure, and the PR is `merge-risk:high`. Split the PR or have a maintainer review it manually.
 - Checks marked `failure_kind: infrastructure` → every failure is an infrastructure failure. Use this for workflows that report findings rather than fail on them.
 
 ### Known intermittent failures in AI-assisted checks
@@ -101,6 +108,10 @@ A PR is high risk if any of these apply:
   - Piping a downloaded script into a shell (`curl … | bash`, `irm … | iex`, `Invoke-Expression`)
   - MCP server or hook `command` declarations in plugin, extension, or skill JSON
 - **Contributor risk is high:** the PR has the `needs-review:HIGH` label, or the contributor reputation artifact for the head commit reports `HIGH`. This signal can raise the tier but never lower it.
+- **The changes can't be fully scanned** (fail closed):
+  - GitHub returned an incomplete changed-file list.
+  - A file in a capability trigger's scope has no diff. GitHub omits the diff for binary files and very large changes. Files in `high.unscanned_paths` are exempt: images, fonts, PDFs, archives, and generated docs whose sources are scanned.
+- **Another source reports a `submission-gate` check** for the head commit. Only the writer may publish it (see [Security model](#security-model)).
 
 ### Low
 
@@ -119,7 +130,7 @@ The status comment includes a collapsed "Why this tier" list with the reasons th
 
 | Tier | Required approvals |
 |---|---|
-| `merge-risk:low` | 1 approval from a reviewer with write access |
+| `merge-risk:low` | 1 approval from an owner of the changed resource: its domain pool, or the core pools for files outside every domain |
 | `merge-risk:medium` | 1 approval from a domain reviewer for the area touched |
 | `merge-risk:high` | 2 approvals, including a core or security maintainer |
 
@@ -127,7 +138,7 @@ How approvals are counted:
 
 - A reviewer's **latest** decisive review counts: `APPROVED`, `CHANGES_REQUESTED`, or `DISMISSED`. A later comment-only review does not reset an approval.
 - The PR author and bots never count.
-- An approval qualifies if the reviewer has write, maintain, or admin permission, or is listed in any pool in `.github/review-routing.yml`.
+- An approval qualifies if the reviewer has write, maintain, or admin permission, or is listed in any pool in `.github/review-routing.yml`. If the permission lookup fails, the reviewer counts as having no permission. `author_association` is never used as a substitute.
 - Any outstanding `CHANGES_REQUESTED` from a qualified reviewer blocks the gate and sets the state to `requires-submitter-fixes`.
 
 Domain reviewers come from the Phase 1 routing file. The `domains` section of `.github/risk-tiers.yml` maps paths to pools:
@@ -139,11 +150,11 @@ Domain reviewers come from the Phase 1 routing file. The `domains` section of `.
 | Content | `agents/**`, `instructions/**`, `skills/**` | `content` |
 | Workflow/security | `workflows/**`, `hooks/**`, `.github/workflows/**` | `workflow-security` |
 
-The core pools are `core-maintainers` and `workflow-security`. Members of a core pool also satisfy the domain requirement.
+The core pools are `core-maintainers` and `workflow-security`. Members of a core pool also satisfy the domain and resource-owner requirements. Files outside every domain, such as `docs/**`, are owned by the core pools.
 
 If routing isn't staffed yet, the gate falls back instead of blocking:
 
-- **`.github/review-routing.yml` missing, or the matching domain pools empty:** any approver with write access satisfies the domain requirement.
+- **`.github/review-routing.yml` missing, or the matching domain pools empty:** any approver with write access satisfies the domain or resource-owner requirement.
 - **Both core pools empty:** a high-risk PR needs one of its two approvals from a user with `admin` or `maintain` permission.
 
 The status comment shows a note whenever a fallback is in effect.
@@ -188,7 +199,7 @@ The writer keeps one comment per PR, marked with `<!-- submission-gate-status --
 
 ## Commands
 
-Comment one of these as the first line of a PR comment.
+Start a PR comment with one of these commands. The command must be the very first text in the comment; letter case doesn't matter.
 
 | Command | Who can run it | What it does |
 |---|---|---|
@@ -203,18 +214,21 @@ Other details:
 
 ## Security model
 
-- **Reader/writer split.** The gate runs in the `pull_request` context with a read-only token. It never writes labels or comments. **Submission Gate Writer** runs on `workflow_run`, hourly `schedule`, and `workflow_dispatch` with default-branch code. It rebuilds the whole evaluation from the GitHub API, so it doesn't trust artifacts from PR runs. It maps a run to a PR only when the head SHA, head repository, head branch, and base repository all match.
+- **Reader/writer split.** The reader runs in the `pull_request` context with a read-only token. It never writes labels, comments, or checks. **Submission Gate Writer** runs on `workflow_run`, hourly `schedule`, and `workflow_dispatch` with default-branch code. It rebuilds the whole evaluation from the GitHub API, so it doesn't trust artifacts from PR runs. It maps a run to a PR only when the head SHA, head repository, head branch, and base repository all match.
+- **The writer publishes the required check.** `pull_request` workflows load their YAML from the PR merge ref, so a PR could replace a `pull_request` job named `submission-gate` with one that always passes. The writer therefore publishes `submission-gate` itself through the Checks API, stamped with `external_id: submission-gate-writer`. Any other `submission-gate` check run on the head commit is treated as tampering: the PR becomes `merge-risk:high`, the gate fails with a "Gate integrity" contribution failure, and the writer publishes a newer failing run so its result is the latest.
 - **Only trusted code runs.** No workflow here executes PR code with a write token. The gate loads its logic from the base commit, except in the bootstrap case described above, which still has only a read-only token. The writer and command workflows check out the default branch and install dependencies with `npm ci --ignore-scripts`.
 - **Contributor reputation artifact.** It is used only as a raise-only signal. It must match schema `contributor-check-result/v1` and the PR head SHA.
 - **Untrusted text.** Comment bodies are read from the event payload and never interpolated into scripts. Reviewer logins, check names, and details are sanitized before they go into markdown.
-- **Tampering with the gate.** A PR can edit `.github/workflows/submission-gate.yml` itself. That edit makes the PR `merge-risk:high`, which requires 2 approvals including a core or security maintainer, and the trusted writer still computes the labels. The ruleset should also require `submission-gate` from the GitHub Actions app so that no other source can satisfy it.
+- **Tampering with other checks.** A PR can also edit the validation workflows the gate waits for. Any such edit touches `.github/**`, which makes the PR `merge-risk:high`: 2 approvals, including a core or security maintainer. The writer computes that tier from default-branch code.
+- **Check source.** Check runs created with `GITHUB_TOKEN` belong to the GitHub Actions app, the same app as `pull_request` jobs. Requiring `submission-gate` from GitHub Actions in the ruleset blocks other apps and commit statuses; impostor detection covers jobs in the same app.
+- **Events.** Check runs created with `GITHUB_TOKEN` don't trigger `check_run` workflows. Automation that reacts to the gate should listen for `workflow_run` on **Submission Gate Writer**.
 - **Rate limits.** The hourly writer sweep refreshes at most 60 open PRs updated in the last 30 days, so a large backlog stays within API rate limits.
 
 ## Maintainer follow-up
 
 These steps need repository-admin action and are not done by automation:
 
-- **Require `submission-gate`** in the `main` ruleset, with GitHub Actions as the source.
+- **Require `submission-gate`** in the `main` ruleset, with GitHub Actions as the source. The writer publishes this check after this change merges; until then no PR reports it.
 - **Create the new labels** by running the **Setup Repository Labels** workflow: `awaiting-automation`, `review-in-progress`, `merge-risk:*`.
 - **Staff the pools** in `.github/review-routing.yml` so the domain and core requirements stop using fallbacks.
 - **Fix PR Quality Signal auth:** add `copilot-requests: write` to `.github/workflows/pr-quality-signal.md` and recompile with gh-aw v0.88.8.

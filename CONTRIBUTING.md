@@ -464,7 +464,7 @@ A required check called `submission-gate` tracks your PR. A bot keeps one status
 - **Medium:** new resources.
 - **High:** workflows, hooks, scripts, MCP config, or review policy files.
 
-**Commands.** You can use these as the PR author:
+**Commands.** As the PR author, you can start a comment with one of these commands:
 
 - `/rerun-checks`: re-runs failed or incomplete checks.
 - `/request-review`: asks the review rotation to assign a reviewer.
