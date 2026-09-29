@@ -26,6 +26,7 @@ dotnet run <filename>.cs
 | Persisting Sessions  | `dotnet run persisting-sessions.cs`  | Save and resume sessions across restarts   |
 | Accessibility Report ℹ️ | `dotnet run accessibility-report.cs` | Analyzes web page accessibility            |
 | Ralph Loop ⚠️         | `dotnet run ralph-loop.cs`           | Autonomous development loop                |
+| In-Process Runtime   | `dotnet run in-process-runtime.cs`  | Runs the Copilot runtime in-process         |
 
 ### Examples with Arguments
 

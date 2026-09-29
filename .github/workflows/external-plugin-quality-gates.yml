@@ -11,6 +11,9 @@ on:
       quality-result:
         description: JSON result for quality checks
         value: ${{ jobs.quality.outputs.quality-result }}
+      quality-log-url:
+        description: URL for the full quality gate log artifact
+        value: ${{ jobs.quality.outputs.quality-log-url }}
 
 permissions:
   contents: read
@@ -20,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       quality-result: ${{ steps.quality.outputs.quality-result }}
+      quality-log-url: ${{ steps.upload-logs.outputs.artifact-url }}
     steps:
       - name: Checkout main branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -44,9 +48,21 @@ jobs:
         env:
           PLUGIN_JSON: ${{ inputs.plugin-json }}
         run: |
-          result=$(node ./eng/external-plugin-quality-gates.mjs --plugin-json "$PLUGIN_JSON")
+          result=$(node ./eng/external-plugin-quality-gates.mjs \
+            --plugin-json "$PLUGIN_JSON" \
+            --log-file "${RUNNER_TEMP}/external-plugin-quality-logs/quality-gates.log")
           {
             echo 'quality-result<<EOF'
             echo "$result"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
+
+      - name: Upload full quality gate logs
+        id: upload-logs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: external-plugin-quality-logs
+          path: ${{ runner.temp }}/external-plugin-quality-logs
+          if-no-files-found: warn
+          retention-days: 14

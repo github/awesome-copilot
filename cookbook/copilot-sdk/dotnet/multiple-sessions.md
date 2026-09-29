@@ -20,20 +20,22 @@ using GitHub.Copilot;
 await using var client = new CopilotClient();
 await client.StartAsync();
 
-// Create multiple independent sessions
+// Create multiple independent sessions. Most sessions should let Copilot pick the
+// best model automatically; pin an explicit model only when you have a deliberate
+// reason to (e.g. an A/B comparison, as with session3 here).
 var session1 = await client.CreateSessionAsync(new SessionConfig
 {
-    Model = "gpt-5",
+    Model = "auto",
     OnPermissionRequest = PermissionHandler.ApproveAll
 });
 var session2 = await client.CreateSessionAsync(new SessionConfig
 {
-    Model = "gpt-5",
+    Model = "auto",
     OnPermissionRequest = PermissionHandler.ApproveAll
 });
 var session3 = await client.CreateSessionAsync(new SessionConfig
 {
-    Model = "claude-sonnet-4.5",
+    Model = "claude-sonnet-5",
     OnPermissionRequest = PermissionHandler.ApproveAll
 });
 
@@ -61,7 +63,7 @@ Use custom IDs for easier tracking:
 var session = await client.CreateSessionAsync(new SessionConfig
 {
     SessionId = "user-123-chat",
-    Model = "gpt-5",
+    Model = "auto",
     OnPermissionRequest = PermissionHandler.ApproveAll
 });
 
@@ -89,4 +91,5 @@ await client.DeleteSessionAsync("user-123-chat");
 
 - **Multi-user applications**: One session per user
 - **Multi-task workflows**: Separate sessions for different tasks
-- **A/B testing**: Compare responses from different models
+- **A/B testing**: Compare responses from different models by pinning an explicit
+  `Model` per session (as `session3` does above) instead of the default `"auto"`

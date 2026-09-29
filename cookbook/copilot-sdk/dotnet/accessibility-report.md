@@ -62,7 +62,7 @@ Console.WriteLine("Please wait...\n");
 // Create a session with Playwright MCP server
 await using var session = await client.CreateSessionAsync(new SessionConfig
 {
-    Model = "claude-opus-4.6",
+    Model = "auto",
     Streaming = true,
     OnPermissionRequest = PermissionHandler.ApproveAll,
     McpServers = new Dictionary<string, McpServerConfig>()
@@ -80,7 +80,7 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
 // Wait for response using session.idle event
 var done = new TaskCompletionSource();
 
-session.On(evt =>
+session.On<SessionEvent>(evt =>
 {
     switch (evt)
     {
@@ -226,7 +226,7 @@ This gives the model access to Playwright browser tools like `browser_navigate`,
 Unlike `SendAndWaitAsync`, this recipe uses streaming for real-time output:
 
 ```csharp
-session.On(evt =>
+session.On<SessionEvent>(evt =>
 {
     switch (evt)
     {

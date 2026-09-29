@@ -9,6 +9,9 @@ This folder hosts short, practical recipes for using the GitHub Copilot SDK with
 - [Managing Local Files](managing-local-files.md): Organize files by metadata using AI-powered grouping strategies.
 - [PR Visualization](pr-visualization.md): Generate interactive PR age charts using GitHub MCP Server.
 - [Persisting Sessions](persisting-sessions.md): Save and resume sessions across restarts.
+- [Ralph Loop](ralph-loop.md): Run an unattended agentic loop that iterates on a task until it's done.
+- [Accessibility Report](accessibility-report.md): Audit a web page for accessibility issues and stream the findings live.
+- [In-Process Runtime](in-process-runtime.md): Run the Copilot runtime in-process instead of launching a separate CLI process.
 
 ## Contributing
 

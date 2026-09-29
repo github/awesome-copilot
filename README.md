@@ -552,6 +552,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/GuoCheng24"><img src="https://avatars.githubusercontent.com/u/224264187?v=4" width="100px;" alt=""/><br /><sub><b>Guo Cheng</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/specialone0007"><img src="https://avatars.githubusercontent.com/u/105648710?v=4" width="100px;" alt=""/><br /><sub><b>Furkan Reha</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/vsinghal13"><img src="https://avatars.githubusercontent.com/u/56007827?v=4" width="100px;" alt=""/><br /><sub><b>Vijit Singhal</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sudhirp25"><img src="https://avatars.githubusercontent.com/u/311668331?v=4" width="100px;" alt=""/><br /><sub><b>sudhirp25</b></sub></a></td>
     </tr>
   </tbody>
 </table>

@@ -1,5 +1,9 @@
 The following instructions are only to be applied when performing a code review.
 
+Use `.github/skills/code-review/SKILL.md` for repository-fit, differentiation,
+provenance, validation, and editorial-quality review criteria. Apply the
+deterministic file-format checks below as well.
+
 ## README updates
 
 - [ ] The new file should be added to the `docs/README.<type>.md`.

@@ -11,7 +11,7 @@ await client.StartAsync();
 var session = await client.CreateSessionAsync(new SessionConfig
 {
     SessionId = "user-123-conversation",
-    Model = "gpt-5",
+    Model = "auto",
     OnPermissionRequest = PermissionHandler.ApproveAll
 });
 

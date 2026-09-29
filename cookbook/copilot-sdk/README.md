@@ -13,6 +13,7 @@ This cookbook collects small, focused recipes showing how to accomplish common t
 - [PR Visualization](dotnet/pr-visualization.md): Generate interactive PR age charts using GitHub MCP Server.
 - [Persisting Sessions](dotnet/persisting-sessions.md): Save and resume sessions across restarts.
 - [Accessibility Report](dotnet/accessibility-report.md): Generate WCAG accessibility reports using the Playwright MCP server.
+- [In-Process Runtime](dotnet/in-process-runtime.md): Run the Copilot runtime in-process instead of launching a separate CLI process.
 
 ### Node.js / TypeScript
 

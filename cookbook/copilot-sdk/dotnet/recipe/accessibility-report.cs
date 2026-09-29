@@ -31,7 +31,7 @@ Console.WriteLine("Please wait...\n");
 // Create a session with Playwright MCP server
 await using var session = await client.CreateSessionAsync(new SessionConfig
 {
-  Model = "claude-opus-4.6",
+  Model = "auto",
   Streaming = true,
   OnPermissionRequest = PermissionHandler.ApproveAll,
   McpServers = new Dictionary<string, McpServerConfig>()
@@ -49,7 +49,7 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
 // Wait for response using session.idle event
 var done = new TaskCompletionSource();
 
-session.On(evt =>
+session.On<SessionEvent>(evt =>
 {
   switch (evt)
   {
