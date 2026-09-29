@@ -227,17 +227,19 @@ export function addBusinessDays(start, days, holidays = []) {
 
 /**
  * SLA milestones for a PR whose review-due label is `dueDate`.
- * - dueDate: last business day for a first review (routing day + first_review_business_days)
- * - overdueOn: first business day after dueDate
- * - escalateOn: first business day after routing day + escalation_business_days
+ * - routedOn: business day the PR was routed (dueDate - first_review_business_days)
+ * - dueDate: last business day for a first review
+ * - overdueOn: first business day after dueDate (backup reviewer requested)
+ * - escalateOn: routedOn + escalation_business_days (core pool requested)
  */
 export function slaMilestones(dueDate, config) {
   const { firstReviewBusinessDays, escalationBusinessDays, holidays } = config.sla;
+  const routedOn = addBusinessDays(dueDate, -firstReviewBusinessDays, holidays);
   return {
-    routedOn: addBusinessDays(dueDate, -firstReviewBusinessDays, holidays),
+    routedOn,
     dueDate,
     overdueOn: addBusinessDays(dueDate, 1, holidays),
-    escalateOn: addBusinessDays(dueDate, escalationBusinessDays - firstReviewBusinessDays + 1, holidays),
+    escalateOn: addBusinessDays(routedOn, escalationBusinessDays, holidays),
   };
 }
 
@@ -268,6 +270,17 @@ export function parseDueLabels(names, config) {
     .sort((left, right) => left.date.localeCompare(right.date));
 }
 
+/**
+ * Labels used for routing decisions. When `intentLabels` is an array (from a
+ * Label PR Intent artifact) it is authoritative: current intent labels are
+ * replaced by it, even when it is empty. `null` means "use current labels".
+ */
+export function effectiveLabelNames(currentLabels, intentLabels = null) {
+  const current = labelNames(currentLabels);
+  if (intentLabels === null || intentLabels === undefined) return new Set(current);
+  return new Set([...current.filter((name) => !INTENT_LABELS.includes(name)), ...intentLabels]);
+}
+
 export function selectPool(names, config) {
   const set = new Set(names);
   const route = config.routes.find((candidate) => set.has(candidate.label));
@@ -276,6 +289,10 @@ export function selectPool(names, config) {
 
 export function teamSlug(team) {
   return team ? team.split("/").pop() : null;
+}
+
+function isTeamRequested(pr, slug) {
+  return Boolean(slug) && (pr.requested_teams ?? []).some((team) => lower(team?.slug) === lower(slug));
 }
 
 /** Count open review requests per reviewer (lower-cased login) across open PRs. */
@@ -309,28 +326,55 @@ export function pickReviewer(candidates, { exclude = new Set(), load = new Map()
   return tied[Math.abs(Number(seed) || 0) % tied.length];
 }
 
-/** True when someone other than the author (and not a bot) submitted a review on/after `since`. */
+function isAfterBoundary(submittedAt, since) {
+  if (!since) return true;
+  if (!submittedAt) return false;
+  if (DATE_KEY_PATTERN.test(since)) return toDateKey(submittedAt) >= since;
+  return Date.parse(submittedAt) >= Date.parse(since);
+}
+
+/**
+ * True when someone other than the author (and not a bot) submitted a review
+ * at or after `since` (an ISO timestamp, or a YYYY-MM-DD date key).
+ */
 export function hasHumanReview(reviews = [], author, since = null) {
   return reviews.some((review) => {
     const login = review?.user?.login;
     if (!login || isBotLogin(login) || review.user.type === "Bot") return false;
     if (lower(login) === lower(author)) return false;
     if (review.state === "PENDING") return false;
-    if (since && review.submitted_at && toDateKey(review.submitted_at) < since) return false;
-    return true;
+    return isAfterBoundary(review.submitted_at, since);
   });
+}
+
+/**
+ * Individuals who can satisfy a pool: its reviewers and backups, plus the
+ * escalation (core) pool, who may review anything.
+ */
+export function coveringReviewers(pr, reviews, poolName, config) {
+  const pool = config.pools[poolName];
+  const escalation = config.pools[config.escalationPool];
+  const cover = new Set([...pool.reviewers, ...pool.backup, ...escalation.reviewers].map(lower));
+  const author = lower(pr.user?.login);
+  const logins = [
+    ...(pr.requested_reviewers ?? []).map((reviewer) => reviewer?.login),
+    ...reviews.filter((review) => review?.state !== "PENDING").map((review) => review?.user?.login),
+  ];
+  const result = [];
+  for (const login of logins) {
+    const key = lower(login);
+    if (key && key !== author && cover.has(key) && !result.some((existing) => lower(existing) === key)) result.push(login);
+  }
+  return result;
 }
 
 function skipped(pr, reason, extra = {}) {
   return { prNumber: pr?.number, action: "skip", reason, ...extra };
 }
 
-function baseExclusions(pr, config) {
+function exclusionSet(pr, config) {
   const requested = (pr.requested_reviewers ?? []).map((reviewer) => reviewer?.login).filter(Boolean);
-  return {
-    requested,
-    exclude: new Set([pr.user?.login, ...requested, ...config.unavailable].filter(Boolean).map(lower)),
-  };
+  return new Set([pr.user?.login, ...requested, ...config.unavailable].filter(Boolean).map(lower));
 }
 
 function commonSkip(pr, names, config) {
@@ -343,6 +387,30 @@ function commonSkip(pr, names, config) {
   return null;
 }
 
+/**
+ * Choose who to request for a pool: pool reviewers, then pool backups, then
+ * the escalation pool, then the pool team (unless already requested).
+ */
+function pickPoolRequest(pr, poolName, config, load) {
+  const pool = config.pools[poolName];
+  const escalation = config.pools[config.escalationPool];
+  const exclude = exclusionSet(pr, config);
+  const tiers = [
+    ["pool", pool.reviewers],
+    ["backup", pool.backup],
+    ["escalation-pool", escalation.reviewers],
+  ];
+  for (const [source, candidates] of tiers) {
+    const login = pickReviewer(candidates, { exclude, load, seed: pr.number });
+    if (login) return { reviewers: [login], teamReviewers: [], source };
+  }
+  const slug = teamSlug(pool.team);
+  if (slug && !isTeamRequested(pr, slug)) return { reviewers: [], teamReviewers: [slug], source: "team" };
+  return { reviewers: [], teamReviewers: [], source: slug ? "existing-team-request" : "none" };
+}
+
+const hasRequest = (plan) => plan.reviewers.length > 0 || plan.teamReviewers.length > 0;
+
 // ---------------------------------------------------------------------------
 // Planning
 // ---------------------------------------------------------------------------
@@ -353,64 +421,51 @@ function commonSkip(pr, names, config) {
  * @param {object} args.pr        Pull request (REST shape: number, state, draft, user, labels, requested_reviewers, requested_teams)
  * @param {object[]} args.reviews Reviews on the PR
  * @param {Map} args.load         Open review requests per reviewer (see computeReviewLoad)
- * @param {string[]} args.intentLabels Extra intent labels (e.g. from the Label PR Intent artifact)
+ * @param {string[]|null} args.intentLabels Authoritative intent labels from a Label PR Intent artifact, or null
  */
-export function planRouting({ pr, reviews = [], load = new Map(), config, now = new Date(), intentLabels = [] }) {
-  const names = new Set([...labelNames(pr?.labels), ...intentLabels]);
+export function planRouting({ pr, reviews = [], load = new Map(), config, now = new Date(), intentLabels = null }) {
+  const names = effectiveLabelNames(pr?.labels, intentLabels);
   const skip = commonSkip(pr, names, config);
   if (skip) return skip;
 
   const author = pr.user?.login ?? "";
   const reviewRequested = names.has(config.labels.needsReviewer);
   const dueLabels = parseDueLabels(names, config);
-  if (!reviewRequested) {
-    if (dueLabels.length > 0) return skipped(pr, "already-routed");
-    if (hasHumanReview(reviews, author)) return skipped(pr, "already-reviewed");
-  }
-
+  const routed = dueLabels.length > 0;
   const poolName = selectPool(names, config);
-  const pool = config.pools[poolName];
-  const escalation = config.pools[config.escalationPool];
-  const { requested, exclude } = baseExclusions(pr, config);
-  const humanRequested = requested.filter((login) => !isBotLogin(login) && lower(login) !== lower(author));
 
-  let reviewers = [];
-  let teamReviewers = [];
-  let source = "none";
+  if (!reviewRequested && !routed && hasHumanReview(reviews, author)) return skipped(pr, "already-reviewed", { pool: poolName });
 
-  if (!reviewRequested && humanRequested.length > 0) {
-    source = "existing-request";
-  } else {
-    const tiers = [
-      ["pool", pool.reviewers],
-      ["backup", pool.backup],
-      ["escalation-pool", escalation.reviewers],
-    ];
-    for (const [tier, candidates] of tiers) {
-      const login = pickReviewer(candidates, { exclude, load, seed: pr.number });
-      if (login) {
-        reviewers = [login];
-        source = tier;
-        break;
-      }
-    }
-    if (reviewers.length === 0 && pool.team) {
-      const slug = teamSlug(pool.team);
-      const alreadyRequested = (pr.requested_teams ?? []).some((team) => lower(team?.slug) === lower(slug));
-      if (alreadyRequested) {
-        source = "existing-team-request";
-      } else {
-        teamReviewers = [slug];
-        source = "team";
-      }
-    }
+  // needs-reviewer always asks for a fresh reviewer; otherwise an individual
+  // who already covers the target pool (requested or reviewed) is enough.
+  const covering = reviewRequested ? [] : coveringReviewers(pr, reviews, poolName, config);
+  const request = covering.length > 0 ? { reviewers: [], teamReviewers: [], source: "covered" } : pickPoolRequest(pr, poolName, config, load);
+
+  if (routed && !reviewRequested) {
+    // Already routed: only act if the target pool changed and is not covered.
+    // The SLA (due label) is kept as-is. With no individuals configured, a
+    // review from anyone counts, so the team is not re-requested repeatedly.
+    if (!hasRequest(request)) return skipped(pr, "already-routed", { pool: poolName });
+    if (request.reviewers.length === 0 && hasHumanReview(reviews, author)) return skipped(pr, "already-routed", { pool: poolName });
+    return {
+      prNumber: pr.number,
+      action: "route",
+      reason: "pool-changed",
+      pool: poolName,
+      ...request,
+      dueDate: dueLabels[dueLabels.length - 1].date,
+      addLabels: [],
+      removeLabels: [],
+    };
   }
 
   const dueDate = addBusinessDays(now, config.sla.firstReviewBusinessDays, config.sla.holidays);
   const dueLabel = dueLabelName(dueDate, config);
-  const addLabels = dueLabels.some((label) => label.name === dueLabel) ? [] : [dueLabel];
-  const removeLabels = dueLabels.filter((label) => label.name !== dueLabel).map((label) => label.name);
+  const removeLabels = [];
   if (reviewRequested) {
+    // Remove every due label (even one with the same date) before re-adding it,
+    // so the label's `labeled` event marks the start of the new SLA cycle.
+    removeLabels.push(...dueLabels.map((label) => label.name));
     const prLabels = new Set(labelNames(pr.labels));
     for (const label of [config.labels.needsReviewer, config.labels.overdue, config.labels.escalated]) {
       if (prLabels.has(label)) removeLabels.push(label);
@@ -422,23 +477,24 @@ export function planRouting({ pr, reviews = [], load = new Map(), config, now = 
     action: "route",
     reason: reviewRequested ? "needs-reviewer" : "unrouted",
     pool: poolName,
-    reviewers,
-    teamReviewers,
-    source,
+    ...request,
     dueDate,
-    addLabels,
+    addLabels: [dueLabel],
     removeLabels,
   };
 }
 
-function mentionList(logins) {
-  return logins.map((login) => `@${login}`).join(", ");
+function mention(login) {
+  return `@${login}`;
 }
+
+const FOOTER = "_Automated by the Review Escalation workflow — see `docs/maintainers/review-routing.md`._";
 
 /**
  * Decide whether a routed PR is overdue or must escalate. Pure: performs no I/O.
+ * @param {string|null} args.routedAt ISO timestamp when the current due label was added (start of the SLA cycle)
  */
-export function planEscalation({ pr, reviews = [], load = new Map(), config, now = new Date() }) {
+export function planEscalation({ pr, reviews = [], load = new Map(), config, now = new Date(), routedAt = null }) {
   const names = new Set(labelNames(pr?.labels));
   const skip = commonSkip(pr, names, config);
   if (skip) return skip;
@@ -451,9 +507,9 @@ export function planEscalation({ pr, reviews = [], load = new Map(), config, now
   const milestones = slaMilestones(dueDate, config);
   const hasOverdue = names.has(config.labels.overdue);
   const hasEscalated = names.has(config.labels.escalated);
-  const base = { prNumber: pr.number, ...milestones };
+  const base = { prNumber: pr.number, ...milestones, routedAt };
 
-  if (hasHumanReview(reviews, author, milestones.routedOn)) {
+  if (hasHumanReview(reviews, author, routedAt ?? milestones.routedOn)) {
     const removeLabels = dueLabels.map((label) => label.name);
     if (hasOverdue) removeLabels.push(config.labels.overdue);
     if (hasEscalated) removeLabels.push(config.labels.escalated);
@@ -464,53 +520,68 @@ export function planEscalation({ pr, reviews = [], load = new Map(), config, now
   const poolName = selectPool(names, config);
   const pool = config.pools[poolName];
   const escalation = config.pools[config.escalationPool];
-  const { requested, exclude } = baseExclusions(pr, config);
-  const currentlyRequested = requested.filter((login) => !isBotLogin(login));
+  const exclude = exclusionSet(pr, config);
+  const escalationTeam = escalation.team;
+  const escalationSlug = teamSlug(escalationTeam);
 
   if (today >= milestones.escalateOn) {
     if (hasEscalated) return { ...base, action: "none", state: "escalated" };
     const reviewer = pickReviewer(escalation.reviewers, { exclude, load, seed: pr.number });
-    const slug = teamSlug(escalation.team);
-    const teamAlreadyRequested = (pr.requested_teams ?? []).some((team) => lower(team?.slug) === lower(slug));
     const reviewers = reviewer ? [reviewer] : [];
-    const teamReviewers = slug && !teamAlreadyRequested ? [slug] : [];
+    const teamReviewers = escalationSlug && !isTeamRequested(pr, escalationSlug) ? [escalationSlug] : [];
     const addLabels = [config.labels.escalated];
     if (!hasOverdue) addLabels.push(config.labels.overdue);
-    const notified = [...reviewers.map((login) => `@${login}`), ...(escalation.team ? [`@${escalation.team}`] : [])];
+    const requested = [...reviewers.map(mention), ...(teamReviewers.length > 0 ? [mention(escalationTeam)] : [])];
     const body = [
       COMMENT_MARKERS.escalated,
       "### 🚨 Review escalated",
       "",
       `This pull request was routed to the **${poolName}** reviewer pool on ${milestones.routedOn} and has not received a review within ${config.sla.escalationBusinessDays} business days.`,
       "",
-      notified.length > 0
-        ? `Escalating to the **${config.escalationPool}** pool: ${notified.join(", ")}.`
-        : `Escalating to the **${config.escalationPool}** pool (no reviewers are configured yet).`,
+      requested.length > 0
+        ? `Escalating to the **${config.escalationPool}** pool: requested ${requested.join(", ")}.`
+        : `Escalating to the **${config.escalationPool}** pool${escalationTeam ? ` (${mention(escalationTeam)})` : ""}. Its reviewers are already requested or unavailable, so no additional reviewer was requested.`,
       "",
-      "_Automated by the Review Escalation workflow — see `docs/maintainers/review-routing.md`._",
+      FOOTER,
     ].join("\n");
     return { ...base, action: "escalate", pool: poolName, reviewers, teamReviewers, addLabels, removeLabels: [], comment: body };
   }
 
   if (today >= milestones.overdueOn) {
     if (hasOverdue) return { ...base, action: "none", state: "overdue" };
-    let backup = pickReviewer(pool.backup, { exclude, load, seed: pr.number });
-    if (!backup) backup = pickReviewer(escalation.reviewers, { exclude, load, seed: pr.number });
+    const backup = pickReviewer(pool.backup, { exclude, load, seed: pr.number }) ?? pickReviewer(escalation.reviewers, { exclude, load, seed: pr.number });
     const reviewers = backup ? [backup] : [];
+    let teamReviewers = [];
+    let fallbackTeam = null;
+    if (!backup) {
+      for (const team of [pool.team, escalationTeam]) {
+        const slug = teamSlug(team);
+        if (slug && !isTeamRequested(pr, slug)) {
+          teamReviewers = [slug];
+          fallbackTeam = team;
+          break;
+        }
+      }
+    }
+    const currentlyRequested = (pr.requested_reviewers ?? []).map((reviewer) => reviewer?.login).filter((login) => login && !isBotLogin(login));
+    let assignment;
+    if (backup) assignment = `Requesting backup reviewer ${mention(backup)}.`;
+    else if (fallbackTeam) assignment = `No individual backup reviewer is available; requesting the ${mention(fallbackTeam)} team.`;
+    else assignment = "No additional reviewer is available: the configured backups and teams are already requested or unavailable.";
     const body = [
       COMMENT_MARKERS.overdue,
       "### ⏰ Review overdue",
       "",
       `This pull request was routed to the **${poolName}** reviewer pool on ${milestones.routedOn}; a first review was due by ${milestones.dueDate}.`,
       "",
-      currentlyRequested.length > 0 ? `Currently requested: ${mentionList(currentlyRequested)}.` : "No individual reviewer is currently requested.",
-      backup ? `Requesting backup reviewer @${backup}.` : "No backup reviewer is configured for this pool.",
+      currentlyRequested.length > 0 ? `Currently requested: ${currentlyRequested.map(mention).join(", ")}.` : "No individual reviewer is currently requested.",
+      assignment,
       "",
       `If no review arrives, this pull request escalates to the **${config.escalationPool}** pool on ${milestones.escalateOn}.`,
       "",
-      "_Automated by the Review Escalation workflow — see `docs/maintainers/review-routing.md`._",
+      FOOTER,
     ].join("\n");
-    return { ...base, action: "overdue", pool: poolName, reviewers, teamReviewers: [], addLabels: [config.labels.overdue], removeLabels: [], comment: body };
+    return { ...base, action: "overdue", pool: poolName, reviewers, teamReviewers, addLabels: [config.labels.overdue], removeLabels: [], comment: body };
   }
 
   return { ...base, action: "none", state: "on-track" };
@@ -520,28 +591,24 @@ export function planEscalation({ pr, reviews = [], load = new Map(), config, now
 // GitHub I/O
 // ---------------------------------------------------------------------------
 
-const LABEL_COLORS = { due: "C5DEF5" };
-
 function createActions({ github, owner, repo, config, log }) {
   const dryRun = config.dryRun;
   const say = (message) => log?.info?.(message);
   const warn = (message) => (log?.warning ?? log?.info)?.(message);
 
-  async function ensureLabel(name) {
+  async function ensureDueLabel(name) {
     try {
-      await github.rest.issues.createLabel({
-        owner,
-        repo,
-        name,
-        color: LABEL_COLORS.due,
-        description: "First review target date (review routing)",
-      });
+      await github.rest.issues.createLabel({ owner, repo, name, color: "C5DEF5", description: "First review target date (review routing)" });
     } catch (error) {
       if (error.status !== 422) throw error;
     }
   }
 
   return {
+    /**
+     * Apply a plan. Reviewer requests happen first; if they fail, no labels or
+     * comments are changed so the next run retries. Returns false on failure.
+     */
     async apply(plan) {
       const prefix = `${dryRun ? "[dry-run] " : ""}PR #${plan.prNumber}`;
       if (plan.reviewers?.length || plan.teamReviewers?.length) {
@@ -557,7 +624,8 @@ function createActions({ github, owner, repo, config, log }) {
             });
           } catch (error) {
             plan.requestError = error.message;
-            warn(`${prefix}: reviewer request failed: ${error.message}`);
+            warn(`${prefix}: reviewer request failed; labels left unchanged so the next run retries: ${error.message}`);
+            return false;
           }
         }
       }
@@ -574,35 +642,18 @@ function createActions({ github, owner, repo, config, log }) {
         say(`${prefix}: add labels ${plan.addLabels.join(", ")}`);
         if (!dryRun) {
           for (const name of plan.addLabels) {
-            if (name.startsWith(config.labels.duePrefix)) await ensureLabel(name);
+            if (name.startsWith(config.labels.duePrefix)) await ensureDueLabel(name);
           }
           await github.rest.issues.addLabels({ owner, repo, issue_number: plan.prNumber, labels: plan.addLabels });
         }
       }
       if (plan.comment) {
         say(`${prefix}: post ${plan.action} comment`);
-        if (!dryRun) {
-          await github.rest.issues.createComment({ owner, repo, issue_number: plan.prNumber, body: plan.comment });
-        }
+        if (!dryRun) await github.rest.issues.createComment({ owner, repo, issue_number: plan.prNumber, body: plan.comment });
       }
-    },
-    async deleteLabel(name) {
-      say(`${dryRun ? "[dry-run] " : ""}delete stale label ${name}`);
-      if (dryRun) return;
-      try {
-        await github.rest.issues.deleteLabel({ owner, repo, name });
-      } catch (error) {
-        if (error.status !== 404) throw error;
-      }
+      return true;
     },
   };
-}
-
-function bumpLoad(load, logins) {
-  for (const login of logins ?? []) {
-    const key = lower(login);
-    load.set(key, (load.get(key) ?? 0) + 1);
-  }
 }
 
 async function listOpenPulls(github, owner, repo) {
@@ -613,9 +664,35 @@ async function listReviews(github, owner, repo, pullNumber) {
   return github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pullNumber, per_page: 100 });
 }
 
-/** Route a single PR. */
-export async function routePullRequest({ github, owner, repo, config, prNumber, intentLabels = [], now = new Date(), log }) {
+/** Timestamp of the most recent `labeled` event for `labelName` on the PR, or null. */
+export async function findLabelAddedAt(github, owner, repo, issueNumber, labelName) {
+  const events = await github.paginate(github.rest.issues.listEvents, { owner, repo, issue_number: issueNumber, per_page: 100 });
+  let latest = null;
+  for (const event of events) {
+    if (event?.event === "labeled" && event.label?.name === labelName && event.created_at) {
+      if (!latest || Date.parse(event.created_at) > Date.parse(latest)) latest = event.created_at;
+    }
+  }
+  return latest;
+}
+
+async function currentRoutedAt(github, owner, repo, pr, config) {
+  const dueLabels = parseDueLabels(labelNames(pr.labels), config);
+  if (dueLabels.length === 0) return null;
+  return findLabelAddedAt(github, owner, repo, pr.number, dueLabels[dueLabels.length - 1].name);
+}
+
+/**
+ * Route a single PR (read, plan, apply). Callers must serialize this per PR.
+ * @param {string[]|null} intentLabels Authoritative intent labels from a Label PR Intent artifact
+ * @param {string|null} expectedHeadSha Skip if the PR head moved since the artifact was produced
+ */
+export async function routePullRequest({ github, owner, repo, config, prNumber, intentLabels = null, expectedHeadSha = null, now = new Date(), log }) {
   const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+  if (expectedHeadSha && pr.head?.sha !== expectedHeadSha) {
+    log?.info?.(`PR #${prNumber}: skipped (head moved; a newer intent run will route it)`);
+    return skipped(pr, "stale-head");
+  }
   const [reviews, openPulls] = await Promise.all([listReviews(github, owner, repo, prNumber), listOpenPulls(github, owner, repo)]);
   const plan = planRouting({ pr, reviews, load: computeReviewLoad(openPulls), config, now, intentLabels });
   if (plan.action === "route") {
@@ -623,59 +700,71 @@ export async function routePullRequest({ github, owner, repo, config, prNumber, 
   } else {
     log?.info?.(`PR #${prNumber}: skipped (${plan.reason})`);
   }
-  return [plan];
+  return plan;
 }
 
-/** Route every open PR that is unrouted or carries the needs-reviewer label. */
-export async function runRoutingSweep({ github, owner, repo, config, now = new Date(), log }) {
+/** Read-only: plan routing for every open PR. Used to pick the PRs a sweep should route. */
+export async function planRoutingSweep({ github, owner, repo, config, now = new Date() }) {
   const openPulls = await listOpenPulls(github, owner, repo);
   const load = computeReviewLoad(openPulls);
-  const actions = createActions({ github, owner, repo, config, log });
-  const results = [];
+  const plans = [];
   for (const pr of openPulls) {
-    const names = new Set(labelNames(pr.labels));
-    const needsRouting = names.has(config.labels.needsReviewer) || parseDueLabels(names, config).length === 0;
-    if (pr.draft || !needsRouting) continue;
+    if (pr.draft) continue;
     const reviews = await listReviews(github, owner, repo, pr.number);
-    const plan = planRouting({ pr, reviews, load, config, now });
-    if (plan.action === "route") {
-      await actions.apply(plan);
-      bumpLoad(load, plan.reviewers);
-    }
-    results.push(plan);
+    plans.push(planRouting({ pr, reviews, load, config, now }));
   }
-  return results;
+  return plans;
 }
 
-/** Mark overdue PRs, request backups, escalate, and clean up stale due labels. */
-export async function runEscalationSweep({ github, owner, repo, config, now = new Date(), log }) {
+/** Enforce the SLA on a single routed PR (read, plan, apply). Callers must serialize this per PR. */
+export async function escalatePullRequest({ github, owner, repo, config, prNumber, now = new Date(), log }) {
+  const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+  const [reviews, openPulls, routedAt] = await Promise.all([
+    listReviews(github, owner, repo, prNumber),
+    listOpenPulls(github, owner, repo),
+    currentRoutedAt(github, owner, repo, pr, config),
+  ]);
+  const plan = planEscalation({ pr, reviews, load: computeReviewLoad(openPulls), config, now, routedAt });
+  if (["reviewed", "overdue", "escalate"].includes(plan.action)) {
+    await createActions({ github, owner, repo, config, log }).apply(plan);
+  } else {
+    log?.info?.(`PR #${prNumber}: no action (${plan.reason ?? plan.state})`);
+  }
+  return plan;
+}
+
+/** Read-only: plan SLA enforcement for every routed open PR. */
+export async function planEscalationSweep({ github, owner, repo, config, now = new Date() }) {
   const openPulls = await listOpenPulls(github, owner, repo);
   const load = computeReviewLoad(openPulls);
-  const actions = createActions({ github, owner, repo, config, log });
-  const results = [];
-  const activeDueLabels = new Set();
-
+  const plans = [];
   for (const pr of openPulls) {
-    const names = new Set(labelNames(pr.labels));
-    const dueLabels = parseDueLabels(names, config);
-    dueLabels.forEach((label) => activeDueLabels.add(label.name));
-    if (pr.draft || dueLabels.length === 0) continue;
-    const reviews = await listReviews(github, owner, repo, pr.number);
-    const plan = planEscalation({ pr, reviews, load, config, now });
-    if (["reviewed", "overdue", "escalate"].includes(plan.action)) {
-      await actions.apply(plan);
-      bumpLoad(load, plan.reviewers);
-    }
-    results.push(plan);
+    if (pr.draft || parseDueLabels(labelNames(pr.labels), config).length === 0) continue;
+    const [reviews, routedAt] = await Promise.all([listReviews(github, owner, repo, pr.number), currentRoutedAt(github, owner, repo, pr, config)]);
+    plans.push(planEscalation({ pr, reviews, load, config, now, routedAt }));
   }
+  return plans;
+}
 
-  const cutoff = toDateKey(new Date(new Date(`${toDateKey(now)}T00:00:00.000Z`).getTime() - DUE_LABEL_RETENTION_DAYS * 86400000));
+/** Delete `review-due:*` labels older than the retention window that no open PR uses. */
+export async function cleanupStaleDueLabels({ github, owner, repo, config, now = new Date(), log }) {
+  const openPulls = await listOpenPulls(github, owner, repo);
+  const active = new Set(openPulls.flatMap((pr) => parseDueLabels(labelNames(pr.labels), config).map((label) => label.name)));
+  const cutoff = shiftDateKey(toDateKey(now), -DUE_LABEL_RETENTION_DAYS);
   const repoLabels = await github.paginate(github.rest.issues.listLabelsForRepo, { owner, repo, per_page: 100 });
+  const deleted = [];
   for (const { name, date } of parseDueLabels(labelNames(repoLabels), config)) {
-    if (date < cutoff && !activeDueLabels.has(name)) await actions.deleteLabel(name);
+    if (date >= cutoff || active.has(name)) continue;
+    log?.info?.(`${config.dryRun ? "[dry-run] " : ""}delete stale label ${name}`);
+    deleted.push(name);
+    if (config.dryRun) continue;
+    try {
+      await github.rest.issues.deleteLabel({ owner, repo, name });
+    } catch (error) {
+      if (error.status !== 404) throw error;
+    }
   }
-
-  return results;
+  return deleted;
 }
 
 // ---------------------------------------------------------------------------
@@ -686,7 +775,8 @@ export async function runEscalationSweep({ github, owner, repo, config, now = ne
  * Validate a reader-workflow artifact and confirm it belongs to an open PR
  * whose head matches the triggering workflow_run. Mirrors the checks in
  * label-pr-intent-writer.yml.
- * @returns {Promise<{ prNumber: number, intentLabels: string[] } | { skip: string }>}
+ * @returns {Promise<{ prNumber: number, headSha: string, intentLabels: string[]|null } | { skip: string }>}
+ *   intentLabels is an array for Label PR Intent artifacts and null for needs-reviewer requests.
  */
 export async function resolveWorkflowRunArtifact({ github, owner, repo, workflowRun, artifact }) {
   const fail = (message) => {
@@ -703,13 +793,9 @@ export async function resolveWorkflowRunArtifact({ github, owner, repo, workflow
   if (String(artifact.run_id || "") !== String(workflowRun.id)) fail("run_id did not match workflow_run");
   if (artifact.head_sha !== workflowRun.head_sha) fail("head_sha did not match workflow_run");
 
-  let intentLabels = [];
+  let intentLabels = null;
   if (schema === INTENT_ARTIFACT_SCHEMA) {
-    if (!Array.isArray(artifact.desired_labels)) fail("invalid desired_labels");
-    for (const label of artifact.desired_labels) {
-      if (!INTENT_LABELS.includes(label)) fail(`unexpected desired label ${label}`);
-    }
-    intentLabels = [...artifact.desired_labels];
+    intentLabels = validateIntentLabels(artifact.desired_labels, fail);
   }
 
   const prNumber = artifact.pr_number;
@@ -748,7 +834,16 @@ export async function resolveWorkflowRunArtifact({ github, owner, repo, workflow
     if (matches.length !== 1 || matches[0].number !== prNumber) fail(`PR #${prNumber} could not be uniquely associated with workflow_run`);
   }
 
-  return { prNumber, intentLabels };
+  return { prNumber, headSha: artifact.head_sha, intentLabels };
+}
+
+/** Validate an intent label list; throws via `fail` (default: Error) on unknown labels. */
+export function validateIntentLabels(value, fail = (message) => { throw new Error(message); }) {
+  if (!Array.isArray(value)) fail("invalid desired_labels");
+  for (const label of value) {
+    if (!INTENT_LABELS.includes(label)) fail(`unexpected desired label ${label}`);
+  }
+  return [...value];
 }
 
 // ---------------------------------------------------------------------------
@@ -764,7 +859,7 @@ export function formatResultsSummary(results, { title, dryRun }) {
   lines.push("| PR | Action | Pool | Reviewers | Labels added | Labels removed | Notes |", "|---:|---|---|---|---|---|---|");
   for (const result of results) {
     const reviewers = [...(result.reviewers ?? []), ...(result.teamReviewers ?? []).map((team) => `team:${team}`)].join(", ");
-    const notes = [result.reason, result.source, result.state, result.requestError].filter(Boolean).join("; ");
+    const notes = [result.reason, result.source, result.state, result.requestError && `request failed: ${result.requestError}`].filter(Boolean).join("; ");
     lines.push(
       `| #${result.prNumber} | ${result.action} | ${result.pool ?? ""} | ${reviewers} | ${(result.addLabels ?? []).join(", ")} | ${(result.removeLabels ?? []).join(", ")} | ${notes} |`
     );

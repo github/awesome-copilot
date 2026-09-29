@@ -14,10 +14,16 @@ import {
   planEscalation,
   planRouting,
   resolveWorkflowRunArtifact,
-  runEscalationSweep,
-  runRoutingSweep,
+  cleanupStaleDueLabels,
+  coveringReviewers,
+  effectiveLabelNames,
+  escalatePullRequest,
+  planEscalationSweep,
+  planRoutingSweep,
+  routePullRequest,
   selectPool,
   slaMilestones,
+  validateIntentLabels,
 } from "./review-routing.mjs";
 
 function rawConfig(overrides = {}) {
@@ -131,7 +137,7 @@ describe("business days", () => {
       routedOn: "2026-09-28",
       dueDate: "2026-09-30",
       overdueOn: "2026-10-01",
-      escalateOn: "2026-10-05",
+      escalateOn: "2026-10-02",
     });
   });
 });
@@ -143,6 +149,19 @@ describe("reviewer selection", () => {
     assert.equal(selectPool(["plugin", "canvas-extension"], cfg), "canvas");
     assert.equal(selectPool(["canvas-extension", "workflow"], cfg), "workflow-security");
     assert.equal(selectPool(["website-update"], cfg), "core-maintainers");
+  });
+
+  test("effectiveLabelNames treats artifact intent labels as authoritative", () => {
+    const labels = [{ name: "workflow" }, { name: "needs-reviewer" }, { name: "review-due:2026-09-30" }];
+    assert.deepEqual([...effectiveLabelNames(labels, null)].sort(), ["needs-reviewer", "review-due:2026-09-30", "workflow"]);
+    assert.deepEqual([...effectiveLabelNames(labels, ["skills"])].sort(), ["needs-reviewer", "review-due:2026-09-30", "skills"]);
+    assert.deepEqual([...effectiveLabelNames(labels, [])].sort(), ["needs-reviewer", "review-due:2026-09-30"]);
+  });
+
+  test("validateIntentLabels rejects unknown labels", () => {
+    assert.deepEqual(validateIntentLabels(["skills", "plugin"]), ["skills", "plugin"]);
+    assert.throws(() => validateIntentLabels(["approved"]), /unexpected desired label/);
+    assert.throws(() => validateIntentLabels("skills"), /invalid desired_labels/);
   });
 
   test("computeReviewLoad counts open review requests case-insensitively", () => {
@@ -160,12 +179,21 @@ describe("reviewer selection", () => {
     assert.equal(pickReviewer([], {}), null);
   });
 
-  test("hasHumanReview ignores the author, bots, pending, and older reviews", () => {
+  test("hasHumanReview ignores the author, bots, pending, and reviews before the boundary", () => {
     assert.equal(hasHumanReview([review("contributor")], "contributor"), false);
     assert.equal(hasHumanReview([review("copilot-pull-request-reviewer[bot]")], "contributor"), false);
     assert.equal(hasHumanReview([review("core1", "2026-09-30T00:00:00Z", "PENDING")], "contributor"), false);
     assert.equal(hasHumanReview([review("core1", "2026-09-20T00:00:00Z")], "contributor", "2026-09-28"), false);
     assert.equal(hasHumanReview([review("core1", "2026-09-29T00:00:00Z")], "contributor", "2026-09-28"), true);
+    assert.equal(hasHumanReview([review("core1", "2026-09-28T10:00:00Z")], "contributor", "2026-09-28T15:00:00Z"), false);
+    assert.equal(hasHumanReview([review("core1", "2026-09-28T16:00:00Z")], "contributor", "2026-09-28T15:00:00Z"), true);
+  });
+
+  test("coveringReviewers counts pool, backup, and core individuals who are requested or reviewed", () => {
+    const cfg = config();
+    const target = pr({ labels: ["plugin"], requested: ["canvas1", "core2"] });
+    assert.deepEqual(coveringReviewers(target, [review("plugin1")], "plugin", cfg), ["core2", "plugin1"]);
+    assert.deepEqual(coveringReviewers(pr({ requested: ["canvas1"] }), [], "workflow-security", cfg), []);
   });
 });
 
@@ -185,10 +213,12 @@ describe("planRouting", () => {
     assert.deepEqual(plan.removeLabels, []);
   });
 
-  test("uses intent labels from the artifact before they are applied", () => {
-    const plan = planRouting({ pr: pr(), intentLabels: ["workflow"], config: config(), now: MONDAY });
-    assert.equal(plan.pool, "workflow-security");
-    assert.deepEqual(plan.reviewers, ["sec1"]);
+  test("artifact intent labels replace stale current intent labels", () => {
+    const cfg = config();
+    const stale = pr({ labels: ["workflow"] });
+    assert.equal(planRouting({ pr: stale, intentLabels: ["plugin"], config: cfg, now: MONDAY }).pool, "plugin");
+    assert.equal(planRouting({ pr: stale, intentLabels: [], config: cfg, now: MONDAY }).pool, "core-maintainers");
+    assert.equal(planRouting({ pr: stale, intentLabels: null, config: cfg, now: MONDAY }).pool, "workflow-security");
   });
 
   test("falls back to backup, then escalation pool, then the team", () => {
@@ -207,23 +237,50 @@ describe("planRouting", () => {
     assert.equal(teamPlan.source, "team");
   });
 
-  test("skips drafts, closed PRs, skip labels, and already-routed or reviewed PRs", () => {
+  test("skips drafts, closed PRs, skip labels, covered routed PRs, and reviewed unrouted PRs", () => {
     const cfg = config();
     assert.equal(planRouting({ pr: pr({ draft: true }), config: cfg }).reason, "draft");
     assert.equal(planRouting({ pr: pr({ state: "closed" }), config: cfg }).reason, "not-open");
     assert.equal(planRouting({ pr: pr({ labels: ["do-not-merge"] }), config: cfg }).reason, "skipped-label");
-    assert.equal(planRouting({ pr: pr({ labels: ["review-due:2026-09-30"] }), config: cfg }).reason, "already-routed");
+    assert.equal(planRouting({ pr: pr({ labels: ["review-due:2026-09-30"], requested: ["core1"] }), config: cfg }).reason, "already-routed");
     assert.equal(planRouting({ pr: pr(), reviews: [review("core1")], config: cfg }).reason, "already-reviewed");
   });
 
-  test("keeps an existing individual request instead of adding another", () => {
-    const plan = planRouting({ pr: pr({ labels: ["plugin"], requested: ["someone"] }), config: config(), now: MONDAY });
-    assert.equal(plan.source, "existing-request");
-    assert.deepEqual(plan.reviewers, []);
-    assert.deepEqual(plan.addLabels, ["review-due:2026-09-30"]);
+  test("a covering reviewer already requested is kept; a non-pool request still gets a pool reviewer", () => {
+    const covered = planRouting({ pr: pr({ labels: ["plugin"], requested: ["plugin1"] }), config: config(), now: MONDAY });
+    assert.equal(covered.source, "covered");
+    assert.deepEqual(covered.reviewers, []);
+    assert.deepEqual(covered.addLabels, ["review-due:2026-09-30"]);
+
+    const manual = planRouting({ pr: pr({ labels: ["plugin"], requested: ["someone"] }), config: config(), now: MONDAY });
+    assert.deepEqual(manual.reviewers, ["plugin1"]);
   });
 
-  test("needs-reviewer re-routes, resets the SLA, and removes the request label", () => {
+  test("re-routes an already-routed PR when a new head changes the pool, keeping the SLA", () => {
+    const routed = pr({ labels: ["canvas-extension", "review-due:2026-09-30"], requested: ["canvas1"] });
+    const plan = planRouting({ pr: routed, intentLabels: ["canvas-extension", "workflow"], config: config(), now: new Date("2026-09-29T10:00:00Z") });
+    assert.equal(plan.action, "route");
+    assert.equal(plan.reason, "pool-changed");
+    assert.equal(plan.pool, "workflow-security");
+    assert.deepEqual(plan.reviewers, ["sec1"]);
+    assert.deepEqual(plan.addLabels, []);
+    assert.deepEqual(plan.removeLabels, []);
+    assert.equal(plan.dueDate, "2026-09-30");
+
+    const unchanged = planRouting({ pr: routed, intentLabels: ["canvas-extension"], config: config() });
+    assert.equal(unchanged.reason, "already-routed");
+  });
+
+  test("does not re-request a team after someone reviewed when no individuals are configured", () => {
+    const empty = config({
+      pools: { ...rawConfig().pools, "core-maintainers": { team: "github/core", reviewers: [] }, content: { team: "github/content" } },
+    });
+    const routed = pr({ labels: ["skills", "review-due:2026-09-30"] });
+    assert.equal(planRouting({ pr: routed, reviews: [review("someone")], config: empty }).reason, "already-routed");
+    assert.deepEqual(planRouting({ pr: routed, config: empty }).teamReviewers, ["content"]);
+  });
+
+  test("needs-reviewer re-routes, restarts the SLA, and removes the request label", () => {
     const plan = planRouting({
       pr: pr({
         labels: ["canvas-extension", "needs-reviewer", "review-due:2026-09-10", "review-overdue", "review-escalated"],
@@ -239,10 +296,17 @@ describe("planRouting", () => {
     assert.deepEqual(plan.addLabels, ["review-due:2026-09-30"]);
     assert.deepEqual(plan.removeLabels.sort(), ["needs-reviewer", "review-due:2026-09-10", "review-escalated", "review-overdue"]);
   });
+
+  test("needs-reviewer removes and re-adds a same-date due label to mark a new SLA cycle", () => {
+    const plan = planRouting({ pr: pr({ labels: ["plugin", "needs-reviewer", "review-due:2026-09-30"] }), config: config(), now: MONDAY });
+    assert.deepEqual(plan.removeLabels, ["review-due:2026-09-30", "needs-reviewer"]);
+    assert.deepEqual(plan.addLabels, ["review-due:2026-09-30"]);
+  });
 });
 
 describe("planEscalation", () => {
-  const routed = (extra = {}) => pr({ labels: ["canvas-extension", "review-due:2026-09-30", ...(extra.labels ?? [])], requested: extra.requested ?? ["canvas1"] });
+  const routed = (extra = {}) =>
+    pr({ labels: [extra.pool ?? "canvas-extension", `review-due:${extra.due ?? "2026-09-30"}`, ...(extra.labels ?? [])], requested: extra.requested ?? ["canvas1"] });
 
   test("is on track through the due date", () => {
     assert.equal(planEscalation({ pr: routed(), config: config(), now: new Date("2026-09-30T20:00:00Z") }).state, "on-track");
@@ -254,20 +318,39 @@ describe("planEscalation", () => {
     assert.deepEqual(plan.reviewers, ["canvasBackup"]);
     assert.deepEqual(plan.addLabels, ["review-overdue"]);
     assert.ok(plan.comment.startsWith(COMMENT_MARKERS.overdue));
-    assert.match(plan.comment, /@canvasBackup/);
-    assert.match(plan.comment, /2026-10-05/);
+    assert.match(plan.comment, /Requesting backup reviewer @canvasBackup/);
+    assert.match(plan.comment, /2026-10-02/);
+  });
+
+  test("falls back to a team when no backup individual is available, and says so", () => {
+    const noBackups = config({ unavailable: ["core1", "core2"], pools: { ...rawConfig().pools, canvas: { team: "github/canvas", reviewers: ["canvas1"] } } });
+    const now = new Date("2026-10-01T14:00:00Z");
+    const plan = planEscalation({ pr: routed(), config: noBackups, now });
+    assert.deepEqual(plan.reviewers, []);
+    assert.deepEqual(plan.teamReviewers, ["canvas"]);
+    assert.match(plan.comment, /requesting the @github\/canvas team/);
+
+    const allRequested = planEscalation({ pr: { ...routed(), requested_teams: [{ slug: "canvas" }, { slug: "core" }] }, config: noBackups, now });
+    assert.deepEqual(allRequested.reviewers, []);
+    assert.deepEqual(allRequested.teamReviewers, []);
+    assert.match(allRequested.comment, /No additional reviewer is available/);
   });
 
   test("does not repeat the overdue action and skips weekends", () => {
     const cfg = config();
-    assert.equal(planEscalation({ pr: routed({ labels: ["review-overdue"] }), config: cfg, now: new Date("2026-10-02T14:00:00Z") }).state, "overdue");
-    // Saturday and Sunday are still before the escalation date (Monday).
-    assert.equal(planEscalation({ pr: routed({ labels: ["review-overdue"] }), config: cfg, now: new Date("2026-10-04T14:00:00Z") }).state, "overdue");
+    // Routed Wednesday 2026-09-30: due Friday, overdue Monday, escalates Tuesday.
+    const wednesday = (labels = []) => routed({ due: "2026-10-02", labels });
+    assert.equal(planEscalation({ pr: wednesday(), config: cfg, now: new Date("2026-10-03T14:00:00Z") }).state, "on-track");
+    assert.equal(planEscalation({ pr: wednesday(), config: cfg, now: new Date("2026-10-04T14:00:00Z") }).state, "on-track");
+    assert.equal(planEscalation({ pr: wednesday(), config: cfg, now: new Date("2026-10-05T14:00:00Z") }).action, "overdue");
+    assert.equal(planEscalation({ pr: wednesday(["review-overdue"]), config: cfg, now: new Date("2026-10-05T20:00:00Z") }).state, "overdue");
+    assert.equal(planEscalation({ pr: wednesday(["review-overdue"]), config: cfg, now: new Date("2026-10-06T14:00:00Z") }).action, "escalate");
   });
 
-  test("escalates to the core pool after four business days", () => {
-    const plan = planEscalation({ pr: routed({ labels: ["review-overdue"] }), config: config(), now: new Date("2026-10-05T14:00:00Z") });
+  test("escalates to the core pool four business days after routing", () => {
+    const plan = planEscalation({ pr: routed({ labels: ["review-overdue"] }), config: config(), now: new Date("2026-10-02T14:00:00Z") });
     assert.equal(plan.action, "escalate");
+    assert.equal(plan.escalateOn, "2026-10-02");
     assert.equal(plan.reviewers.length, 1);
     assert.ok(["core1", "core2"].includes(plan.reviewers[0]));
     assert.deepEqual(plan.teamReviewers, ["core"]);
@@ -284,12 +367,18 @@ describe("planEscalation", () => {
   test("clears SLA labels once a human review arrives after routing", () => {
     const plan = planEscalation({
       pr: routed({ labels: ["review-overdue"] }),
-      reviews: [review("canvas1", "2026-10-02T09:00:00Z", "APPROVED")],
+      reviews: [review("canvas1", "2026-10-01T09:00:00Z", "APPROVED")],
       config: config(),
-      now: new Date("2026-10-05T14:00:00Z"),
+      now: new Date("2026-10-02T14:00:00Z"),
     });
     assert.equal(plan.action, "reviewed");
     assert.deepEqual(plan.removeLabels, ["review-due:2026-09-30", "review-overdue"]);
+  });
+
+  test("uses the exact routing time so earlier same-day reviews do not count", () => {
+    const args = { pr: routed(), config: config(), now: new Date("2026-10-01T14:00:00Z"), routedAt: "2026-09-28T15:00:00Z" };
+    assert.equal(planEscalation({ ...args, reviews: [review("canvas1", "2026-09-28T10:00:00Z")] }).action, "overdue");
+    assert.equal(planEscalation({ ...args, reviews: [review("canvas1", "2026-09-28T16:00:00Z")] }).action, "reviewed");
   });
 
   test("ignores unrouted PRs", () => {
@@ -297,7 +386,7 @@ describe("planEscalation", () => {
   });
 });
 
-function fakeGithub({ pulls = [], reviews = {}, repoLabels = [] } = {}) {
+function fakeGithub({ pulls = [], reviews = {}, events = {}, repoLabels = [], failRequest = false } = {}) {
   const calls = [];
   const record = (name) => async (params) => {
     calls.push({ name, params });
@@ -308,9 +397,14 @@ function fakeGithub({ pulls = [], reviews = {}, repoLabels = [] } = {}) {
       list: Symbol("pulls.list"),
       listReviews: Symbol("pulls.listReviews"),
       get: async ({ pull_number }) => ({ data: pulls.find((pull) => pull.number === pull_number) }),
-      requestReviewers: record("requestReviewers"),
+      requestReviewers: async (params) => {
+        calls.push({ name: "requestReviewers", params });
+        if (failRequest) throw Object.assign(new Error("Reviews may only be requested from collaborators"), { status: 422 });
+        return { data: {} };
+      },
     },
     issues: {
+      listEvents: Symbol("issues.listEvents"),
       listLabelsForRepo: Symbol("issues.listLabelsForRepo"),
       addLabels: record("addLabels"),
       removeLabel: record("removeLabel"),
@@ -325,36 +419,84 @@ function fakeGithub({ pulls = [], reviews = {}, repoLabels = [] } = {}) {
     async paginate(method, params) {
       if (method === rest.pulls.list) return params.head ? pulls.filter((pull) => `${pull.head?.repo?.full_name.split("/")[0]}:${pull.head?.ref}` === params.head) : pulls;
       if (method === rest.pulls.listReviews) return reviews[params.pull_number] ?? [];
+      if (method === rest.issues.listEvents) return events[params.issue_number] ?? [];
       if (method === rest.issues.listLabelsForRepo) return repoLabels.map((name) => ({ name }));
       throw new Error("unexpected paginate call");
     },
   };
 }
 
-describe("sweeps", () => {
-  test("routing sweep spreads requests across the pool and respects dry run", async () => {
-    const pulls = [pr({ number: 1, labels: ["canvas-extension"] }), pr({ number: 2, labels: ["canvas-extension"] }), pr({ number: 3, labels: ["review-due:2026-09-30"] })];
-    const github = fakeGithub({ pulls });
-    const results = await runRoutingSweep({ github, owner: "o", repo: "r", config: config(), now: MONDAY });
-    assert.equal(results.length, 2);
-    const requested = github.calls.filter((call) => call.name === "requestReviewers").map((call) => call.params.reviewers[0]);
-    assert.equal(new Set(requested).size, 2);
-    assert.ok(github.calls.some((call) => call.name === "createLabel" && call.params.name === "review-due:2026-09-30"));
+const writeCalls = (github) => github.calls.map((call) => call.name);
 
-    const dryGithub = fakeGithub({ pulls });
-    await runRoutingSweep({ github: dryGithub, owner: "o", repo: "r", config: config({ dry_run: true }), now: MONDAY });
-    assert.deepEqual(dryGithub.calls, []);
+describe("GitHub runners", () => {
+  test("planRoutingSweep is read-only and returns route plans", async () => {
+    const pulls = [pr({ number: 1, labels: ["canvas-extension"] }), pr({ number: 2, labels: ["review-due:2026-09-30"], requested: ["core1"] }), pr({ number: 3, draft: true })];
+    const github = fakeGithub({ pulls });
+    const plans = await planRoutingSweep({ github, owner: "o", repo: "r", config: config(), now: MONDAY });
+    assert.deepEqual(plans.map((plan) => [plan.prNumber, plan.action]), [[1, "route"], [2, "skip"]]);
+    assert.deepEqual(github.calls, []);
   });
 
-  test("escalation sweep acts on overdue PRs and deletes stale unused due labels", async () => {
+  test("routePullRequest requests, creates the due label, and respects dry run", async () => {
+    const pulls = [pr({ number: 1, labels: ["canvas-extension"] })];
+    const github = fakeGithub({ pulls });
+    const plan = await routePullRequest({ github, owner: "o", repo: "r", config: config(), prNumber: 1, now: MONDAY });
+    assert.equal(plan.action, "route");
+    assert.deepEqual(writeCalls(github), ["requestReviewers", "createLabel", "addLabels"]);
+
+    const dry = fakeGithub({ pulls });
+    await routePullRequest({ github: dry, owner: "o", repo: "r", config: config({ dry_run: true }), prNumber: 1, now: MONDAY });
+    assert.deepEqual(dry.calls, []);
+  });
+
+  test("a failed reviewer request leaves labels untouched so the next run retries", async () => {
+    const pulls = [pr({ number: 1, labels: ["canvas-extension", "needs-reviewer"] })];
+    const github = fakeGithub({ pulls, failRequest: true });
+    const plan = await routePullRequest({ github, owner: "o", repo: "r", config: config(), prNumber: 1, now: MONDAY });
+    assert.match(plan.requestError, /collaborators/);
+    assert.deepEqual(writeCalls(github), ["requestReviewers"]);
+  });
+
+  test("routePullRequest skips when the PR head moved after the intent artifact", async () => {
+    const pulls = [{ ...pr({ number: 1 }), head: { sha: "b".repeat(40) } }];
+    const github = fakeGithub({ pulls });
+    const plan = await routePullRequest({ github, owner: "o", repo: "r", config: config(), prNumber: 1, intentLabels: ["skills"], expectedHeadSha: "a".repeat(40) });
+    assert.equal(plan.reason, "stale-head");
+    assert.deepEqual(github.calls, []);
+  });
+
+  test("escalation uses the due label's labeled event as the review boundary", async () => {
     const pulls = [pr({ number: 7, labels: ["plugin", "review-due:2026-09-30"], requested: ["plugin1"] })];
-    const github = fakeGithub({ pulls, repoLabels: ["review-due:2026-09-01", "review-due:2026-09-30", "review-due:2026-09-25"] });
-    const results = await runEscalationSweep({ github, owner: "o", repo: "r", config: config(), now: new Date("2026-10-01T14:00:00Z") });
-    assert.equal(results[0].action, "overdue");
+    const events = { 7: [{ event: "labeled", label: { name: "review-due:2026-09-30" }, created_at: "2026-09-28T15:00:00Z" }] };
+    const reviews = { 7: [review("plugin1", "2026-09-28T10:00:00Z")] };
+    const now = new Date("2026-10-01T14:00:00Z");
+
+    const plans = await planEscalationSweep({ github: fakeGithub({ pulls, events, reviews }), owner: "o", repo: "r", config: config(), now });
+    assert.equal(plans[0].action, "overdue");
+    assert.equal(plans[0].routedAt, "2026-09-28T15:00:00Z");
+
+    const github = fakeGithub({ pulls, events, reviews });
+    const plan = await escalatePullRequest({ github, owner: "o", repo: "r", config: config(), prNumber: 7, now });
+    assert.equal(plan.action, "overdue");
     assert.ok(github.calls.some((call) => call.name === "addLabels" && call.params.labels.includes("review-overdue")));
     assert.ok(github.calls.some((call) => call.name === "createComment"));
-    const deleted = github.calls.filter((call) => call.name === "deleteLabel").map((call) => call.params.name);
-    assert.deepEqual(deleted, ["review-due:2026-09-01"]);
+  });
+
+  test("a failed escalation request does not add labels or comments", async () => {
+    const pulls = [pr({ number: 7, labels: ["plugin", "review-due:2026-09-30"], requested: ["plugin1"] })];
+    const github = fakeGithub({ pulls, failRequest: true });
+    const plan = await escalatePullRequest({ github, owner: "o", repo: "r", config: config(), prNumber: 7, now: new Date("2026-10-02T14:00:00Z") });
+    assert.equal(plan.action, "escalate");
+    assert.ok(plan.requestError);
+    assert.deepEqual(writeCalls(github), ["requestReviewers"]);
+  });
+
+  test("cleanupStaleDueLabels deletes only old, unused due labels", async () => {
+    const pulls = [pr({ number: 7, labels: ["review-due:2026-09-01"] })];
+    const github = fakeGithub({ pulls, repoLabels: ["review-due:2026-09-01", "review-due:2026-09-02", "review-due:2026-09-30", "plugin"] });
+    const deleted = await cleanupStaleDueLabels({ github, owner: "o", repo: "r", config: config(), now: new Date("2026-10-01T14:00:00Z") });
+    assert.deepEqual(deleted, ["review-due:2026-09-02"]);
+    assert.deepEqual(writeCalls(github), ["deleteLabel"]);
   });
 });
 
@@ -368,7 +510,7 @@ describe("resolveWorkflowRunArtifact", () => {
   };
   const workflowRun = { id: 99, event: "pull_request", head_sha: sha, head_branch: "feature", head_repository: { full_name: "fork/r" }, pull_requests: [] };
 
-  test("accepts a matching intent artifact and returns intent labels", async () => {
+  test("accepts a matching intent artifact and returns authoritative intent labels", async () => {
     const github = fakeGithub({ pulls: [openPr] });
     const result = await resolveWorkflowRunArtifact({
       github,
@@ -377,10 +519,10 @@ describe("resolveWorkflowRunArtifact", () => {
       workflowRun,
       artifact: { schema_version: "label-pr-intent-result/v1", event: "pull_request", pr_number: 5, head_sha: sha, run_id: "99", desired_labels: ["skills"], managed_labels: [] },
     });
-    assert.deepEqual(result, { prNumber: 5, intentLabels: ["skills"] });
+    assert.deepEqual(result, { prNumber: 5, headSha: sha, intentLabels: ["skills"] });
   });
 
-  test("rejects forged or mismatched artifacts", async () => {
+  test("rejects forged or mismatched artifacts; request artifacts carry no intent labels", async () => {
     const github = fakeGithub({ pulls: [openPr] });
     const base = { schema_version: "review-routing-request/v1", event: "pull_request", pr_number: 5, head_sha: sha, run_id: "99" };
     await assert.rejects(resolveWorkflowRunArtifact({ github, owner: "o", repo: "r", workflowRun, artifact: { ...base, run_id: "1" } }), /run_id/);
@@ -389,15 +531,16 @@ describe("resolveWorkflowRunArtifact", () => {
       /unexpected desired label/
     );
     await assert.rejects(resolveWorkflowRunArtifact({ github, owner: "o", repo: "r", workflowRun: { ...workflowRun, head_branch: "other" }, artifact: base }), /head did not match/);
-    assert.deepEqual(await resolveWorkflowRunArtifact({ github, owner: "o", repo: "r", workflowRun, artifact: base }), { prNumber: 5, intentLabels: [] });
+    assert.deepEqual(await resolveWorkflowRunArtifact({ github, owner: "o", repo: "r", workflowRun, artifact: base }), { prNumber: 5, headSha: sha, intentLabels: null });
   });
 });
 
 test("formatResultsSummary renders a table", () => {
-  const summary = formatResultsSummary([{ prNumber: 1, action: "route", pool: "canvas", reviewers: ["a"], teamReviewers: ["t"], addLabels: ["x"], removeLabels: [], source: "pool" }], {
-    title: "Review routing",
-    dryRun: true,
-  });
+  const summary = formatResultsSummary(
+    [{ prNumber: 1, action: "route", pool: "canvas", reviewers: ["a"], teamReviewers: ["t"], addLabels: ["x"], removeLabels: [], source: "pool", requestError: "boom" }],
+    { title: "Review routing", dryRun: true }
+  );
   assert.match(summary, /Review routing \(dry run\)/);
   assert.match(summary, /\| #1 \| route \| canvas \| a, team:t \| x \|/);
+  assert.match(summary, /request failed: boom/);
 });

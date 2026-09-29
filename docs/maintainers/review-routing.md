@@ -69,17 +69,24 @@ The **Review Routing** workflow (`.github/workflows/review-routing.yml`) runs wh
 - **Label PR Intent** finishes for a PR. Routing uses that run's intent labels even if they have not been applied yet.
 - A person adds the `needs-reviewer` label. The read-only **Review Routing Request** workflow records the request, and Review Routing acts on it.
 - It is dispatched with a `pr_number` input. Automation such as the `/request-review` command uses this path because labels added with `GITHUB_TOKEN` do not trigger other workflows.
-- The hourly schedule runs, or it is dispatched without a `pr_number`. This sweep routes every open, non-draft PR that has not been routed or that has the `needs-reviewer` label.
+- The hourly schedule runs, or it is dispatched without a `pr_number`. This sweep evaluates every open, non-draft PR. It routes PRs that are unrouted, that have the `needs-reviewer` label, or whose pool is not covered. Each routed PR is handled in its own job.
 
 For each eligible PR, routing does the following:
 
-1. Picks the pool using `routes`, falling back to `default_pool`.
-2. Keeps an individual reviewer who is already requested. Otherwise, it requests one individual from the pool, excluding the PR author, reviewers already requested, bots, and anyone listed in `unavailable`. It prefers the reviewer with the **fewest open review requests** across all open PRs. Ties rotate by PR number.
+1. Picks the pool using `routes`, falling back to `default_pool`. For runs triggered by **Label PR Intent**, that run's intent labels replace the PR's current intent labels, so stale labels can't pick the wrong pool.
+2. Checks whether the pool is already **covered**. A pool is covered when one of its reviewers or backups, or a core maintainer, is already requested or has already reviewed the PR. If the pool isn't covered, routing requests one individual from the pool, excluding the PR author, reviewers already requested, bots, and anyone listed in `unavailable`. It prefers the reviewer with the **fewest open review requests** across all open PRs. Ties rotate by PR number.
 3. If the pool has no eligible individual, routing tries the pool's `backup` list, then the escalation pool's reviewers, and finally requests the pool team.
-4. Adds a `review-due:YYYY-MM-DD` label. The date is the routing day plus `first_review_business_days`, in UTC.
-5. If `needs-reviewer` triggered the run, routing removes `needs-reviewer`, `review-overdue`, and `review-escalated`, and restarts the SLA.
+4. Adds a `review-due:YYYY-MM-DD` label. The date is the routing day plus `first_review_business_days`, in UTC. The time the label was added marks the start of the SLA cycle.
+5. If `needs-reviewer` triggered the run, routing always requests a new reviewer. It removes `needs-reviewer`, `review-overdue`, and `review-escalated`, then removes and re-adds the due label to restart the SLA.
 
-Routing skips drafts, closed PRs, and PRs that already have a `review-due:` label or a human review, unless `needs-reviewer` is present. Draft PRs are routed when they are marked ready for review.
+A PR that is already routed is checked again whenever a new commit changes its intent labels. If the new target pool isn't covered, for example because a skills PR now also touches a workflow, routing requests a reviewer from that pool. The existing due date stays the same.
+
+Routing skips drafts, closed PRs, and unrouted PRs that already have a human review, unless `needs-reviewer` is present. Draft PRs are routed when they are marked ready for review.
+
+### Failures and concurrency
+
+- Routing requests reviewers before it changes any labels. If GitHub rejects the request, for example because a team is missing or the token lacks access, routing leaves the labels alone and fails the job. Nothing is marked as routed, so the next run or sweep tries again.
+- Each workflow first runs a read-only `plan` job that picks the target PRs. It then handles each PR in a job that uses the `review-routing-pr-<number>` concurrency group. Review Routing and Review Escalation share that group, so their read, plan, and apply steps never overlap for the same PR. These per-PR jobs run one at a time, so reviewer load stays accurate.
 
 ## SLA and escalation
 
@@ -87,11 +94,11 @@ The **Review Escalation** workflow (`.github/workflows/review-escalation.yml`) r
 
 | Condition | Action |
 |---|---|
-| A human review arrives after routing | Removes `review-due:*`, `review-overdue`, and `review-escalated` |
-| No review by the end of the due date | Requests a backup from the pool's `backup` list, or from the escalation pool if that list is empty; adds `review-overdue`; posts a comment |
+| A human review arrives after the due label was added | Removes `review-due:*`, `review-overdue`, and `review-escalated` |
+| No review by the end of the due date | Requests a backup from the pool's `backup` list, then from the escalation pool. If no individual is available, it requests the pool team and then the escalation team, unless they are already requested. Adds `review-overdue` and posts a comment that says who, if anyone, was requested. |
 | No review `escalation_business_days` after routing | Requests the escalation pool team and one core maintainer; adds `review-escalated`; posts a comment |
 
-Business days are Monday through Friday in UTC, minus `sla.holidays`. For example, a PR routed on Monday is due Wednesday, becomes overdue Thursday, and escalates the following Monday. Reviews from the author or from bots, including Copilot code review, don't count as a first review. Each action happens once per SLA cycle because the labels record the state.
+Business days are Monday through Friday in UTC, minus `sla.holidays`. A PR routed on Monday is due Wednesday, becomes overdue Thursday, and escalates Friday, four business days after routing. A PR routed on Wednesday is due Friday, becomes overdue Monday, and escalates Tuesday. Reviews from the author or from bots, including Copilot code review, don't count as a first review. Only reviews submitted after the current due label was added count. Each action happens once per SLA cycle because the labels record the state. If a reviewer request fails, the labels and comment are skipped so the next run retries.
 
 The workflow also deletes `review-due:*` labels whose dates are more than 14 days in the past and that are no longer on any open PR.
 
@@ -110,6 +117,7 @@ The **Setup Repository Labels** workflow creates `needs-reviewer`, `review-overd
 
 - Workflows triggered by pull requests (**Label PR Intent** and **Review Routing Request**) run with read-only permissions and only upload a small JSON artifact.
 - **Review Routing** runs from `workflow_run`, `workflow_dispatch`, or `schedule`. It checks out only the default branch, validates the artifact against the triggering run, and never checks out or runs PR code. This is the same approach as `label-pr-intent-writer.yml`.
+- In both Review Routing and Review Escalation, the `plan` job has read-only permissions. Only the per-PR jobs can write to issues and pull requests.
 - All reviewer logic lives in `eng/review-routing.mjs` and is covered by `eng/review-routing.test.mjs`.
 
 ## Enabling routing
