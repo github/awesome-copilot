@@ -22,6 +22,9 @@ export const DEFAULT_CONFIG = Object.freeze({
   base_branch: "main",
   merge_method: "squash",
   required_checks: ["submission-gate"],
+  // Required checks that must come from a specific publisher, keyed by check name.
+  // Any other check run or status with the same name blocks arming.
+  trusted_checks: { "submission-gate": { external_id: "submission-gate-writer" } },
   required_labels: ["merge-risk:low"],
   blocking_labels: [
     "do-not-merge",
@@ -83,6 +86,7 @@ export function normalizeConfig(raw = {}) {
   for (const key of ["required_checks", "required_labels", "blocking_labels"]) {
     config[key] = toStringList(config[key]);
   }
+  config.trusted_checks = normalizeTrustedChecks(config.trusted_checks);
   config.min_approvals = Math.max(0, Number.parseInt(config.min_approvals ?? 1, 10) || 0);
   generated.authors = toStringList(generated.authors).map(normalizeLogin);
   generated.paths = toStringList(generated.paths);
@@ -99,6 +103,16 @@ export function loadAutoMergeConfig(filePath = DEFAULT_CONFIG_PATH) {
     return normalizeConfig({});
   }
   return normalizeConfig(yaml.load(fs.readFileSync(filePath, "utf8")) ?? {});
+}
+
+function normalizeTrustedChecks(value) {
+  const result = {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) return result;
+  for (const [name, rule] of Object.entries(value)) {
+    const externalId = typeof rule === "string" ? rule : rule?.external_id;
+    if (typeof externalId === "string" && externalId.trim()) result[name] = { external_id: externalId.trim() };
+  }
+  return result;
 }
 
 function toStringList(value) {
@@ -374,9 +388,15 @@ export function evaluateAutoMerge(pr, config, context = {}) {
   add("open", pr.state === "OPEN" && !pr.isDraft, pr.state !== "OPEN" ? `PR is ${String(pr.state).toLowerCase()}` : pr.isDraft ? "PR is a draft" : "open and ready for review");
   add("base-branch", pr.baseRefName === config.base_branch, `targets \`${pr.baseRefName}\`${pr.baseRefName === config.base_branch ? "" : ` (expected \`${config.base_branch}\`)`}`);
 
-  const checks = latestCheckResults(pr.checks);
   for (const name of config.required_checks) {
-    const check = checks.get(name);
+    const trust = config.trusted_checks?.[name];
+    const matching = (pr.checks ?? []).filter((check) => check.name === name);
+    const untrusted = trust ? matching.filter((check) => check.externalId !== trust.external_id) : [];
+    if (untrusted.length > 0) {
+      add(`check:${name}`, false, `\`${name}\` has ${untrusted.length} result(s) not published by \`${trust.external_id}\` on the head commit`);
+      continue;
+    }
+    const check = latestCheckResults(matching).get(name);
     const ok = check?.conclusion === "SUCCESS";
     add(`check:${name}`, ok, !check ? `\`${name}\` has not reported on the head commit` : ok ? `\`${name}\` succeeded` : `\`${name}\` is ${String(check.conclusion ?? check.status ?? "pending").toLowerCase()}`);
   }
@@ -483,7 +503,7 @@ query($owner: String!, $repo: String!, $number: Int!) {
               contexts(first: 100) {
                 nodes {
                   __typename
-                  ... on CheckRun { name status conclusion startedAt completedAt }
+                  ... on CheckRun { name status conclusion startedAt completedAt externalId }
                   ... on StatusContext { context state createdAt }
                 }
               }
@@ -503,7 +523,7 @@ export async function fetchPullRequestSnapshot(client, { owner, repo }, number, 
   const contexts = node.commits?.nodes?.[0]?.commit?.statusCheckRollup?.contexts?.nodes ?? [];
   const checks = contexts.map((context) =>
     context.__typename === "CheckRun"
-      ? { name: context.name, status: context.status, conclusion: context.conclusion, startedAt: context.startedAt, completedAt: context.completedAt }
+      ? { name: context.name, status: context.status, conclusion: context.conclusion, startedAt: context.startedAt, completedAt: context.completedAt, externalId: context.externalId ?? null }
       : { name: context.context, status: context.state === "PENDING" || context.state === "EXPECTED" ? "IN_PROGRESS" : "COMPLETED", conclusion: context.state === "SUCCESS" ? "SUCCESS" : context.state === "PENDING" || context.state === "EXPECTED" ? null : "FAILURE", completedAt: context.createdAt },
   );
 

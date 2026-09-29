@@ -57,7 +57,7 @@ Exit codes: `0` pass or skipped, `1` contribution problems, `2` infrastructure e
 | Condition | Source |
 |---|---|
 | PR is open, not a draft, and targets `main` | PR metadata |
-| Every `required_checks` entry (default `submission-gate`) succeeded on the head SHA | Check runs and commit statuses |
+| Every `required_checks` entry (default `submission-gate`) succeeded on the head SHA, published by its `trusted_checks` source when one is configured | Check runs (with `externalId`) and commit statuses |
 | Every `required_labels` entry (default `merge-risk:low`) is present | Phase 2 risk tier |
 | No `blocking_labels` entry is present | Configurable list |
 | At least `min_approvals` approvals from users with write access, excluding the author and bots, and no outstanding "changes requested" | Latest reviews and review decision |
@@ -88,6 +88,7 @@ When auto-merge is armed or disarmed, one status comment (`<!-- auto-merge-statu
 | `base_branch` | `main` | Only PRs to this branch are considered. |
 | `merge_method` | `squash` | `squash`, `merge`, or `rebase`. |
 | `required_checks` | `[submission-gate]` | Check runs or statuses that must succeed on the head SHA. |
+| `trusted_checks` | `submission-gate: {external_id: submission-gate-writer}` | Pins a required check to its publisher. Phase 2's trusted `Submission Gate Writer` publishes `submission-gate` through the Checks API with this `external_id`. If any other check run or status with that name is on the head SHA, arming is blocked, because a PR's own `pull_request` workflow could otherwise publish a passing job with the same name. Set it to `{}` to disable. |
 | `required_labels` | `[merge-risk:low]` | All must be present. |
 | `blocking_labels` | `do-not-merge`, `requires-submitter-fixes`, `awaiting-automation`, `merge-risk:medium`, `merge-risk:high`, `needs-discussion`, `rejected` | Any one blocks arming. |
 | `min_approvals` | `1` | Approvals from write-access, non-author, non-bot reviewers. |
@@ -101,7 +102,7 @@ When auto-merge is armed or disarmed, one status comment (`<!-- auto-merge-statu
 
 ### Triggers and security
 
-The workflow runs on `pull_request_target` (open, push, draft, and label changes), on completion of the Phase 2 `Submission Gate Writer` workflow (when `merge-risk:*` and state labels are final; this triggers a sweep because the event does not identify a PR), every 30 minutes as a sweep, and on `workflow_dispatch` (optional PR numbers and dry run). The sweep picks up approvals, resolved threads, base-branch updates, and label changes made by other workflows with `GITHUB_TOKEN`, which do not trigger workflows. Review events are intentionally not used because they run the PR's copy of the workflow, and `check_run` is not used because GitHub does not trigger workflows for check runs created by GitHub Actions. Every evaluation re-checks the latest `submission-gate` result on the head SHA, so a writer run that fires before the gate finishes cannot arm anything.
+The workflow runs on `pull_request_target` (open, push, draft, and label changes), on completion of the Phase 2 `Submission Gate Writer` workflow (when `merge-risk:*` and state labels are final; this triggers a sweep because the event does not identify a PR), every 30 minutes as a sweep, and on `workflow_dispatch` (optional PR numbers and dry run). The sweep picks up approvals, resolved threads, base-branch updates, and label changes made by other workflows with `GITHUB_TOKEN`, which do not trigger workflows. Review events are intentionally not used because they run the PR's copy of the workflow, and `check_run` is not used because GitHub does not trigger workflows for check runs created by GitHub Actions. Every evaluation re-checks the latest `submission-gate` result on the head SHA, so a writer run that fires before the gate finishes cannot arm anything. The gate check stays `in_progress` while other checks are pending and only succeeds in the `approved` state.
 
 The workflow checks out only the base branch, never PR code, and evaluates everything from API metadata. It uses the `AUTO_MERGE_TOKEN` secret when present and `GITHUB_TOKEN` otherwise. Merges made with `GITHUB_TOKEN` do not trigger other workflows (for example `publish.yml` on push to `main`), so a GitHub App or fine-grained token with contents, pull requests, and issues write access is recommended. GitHub refuses to arm auto-merge on a PR that is already mergeable ("clean status"); only in that case does the script merge directly at the evaluated head SHA, as `gh pr merge --auto` does. Any other refusal, such as "unstable status" (required checks pending or failing), is reported as an error and nothing is merged.
 

@@ -17,6 +17,15 @@ merge_method: squash
 required_checks:
   - submission-gate
 
+# Required checks that must be published by a specific source, matched by the
+# check run external_id. The phase 2 Submission Gate Writer (a trusted
+# workflow_run from main) publishes `submission-gate` with this external_id. Any
+# other check run or status named `submission-gate` on the head SHA, such as a
+# job a PR adds to its own workflows, blocks arming. Use `{}` to disable.
+trusted_checks:
+  submission-gate:
+    external_id: submission-gate-writer
+
 # Every label listed here must be present.
 required_labels:
   - merge-risk:low

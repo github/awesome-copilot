@@ -44,7 +44,7 @@ function makePr(overrides = {}) {
     labels: ["merge-risk:low", "approved"],
     reviews: [{ state: "APPROVED", author: "maintainer", authorType: "User", authorCanPush: true }],
     reviewThreads: [{ isResolved: true }],
-    checks: [{ name: "submission-gate", status: "COMPLETED", conclusion: "SUCCESS", completedAt: "2025-01-01T00:00:00Z" }],
+    checks: [{ name: "submission-gate", status: "COMPLETED", conclusion: "SUCCESS", completedAt: "2025-01-01T00:00:00Z", externalId: "submission-gate-writer" }],
     files: [{ path: "skills/foo/SKILL.md", status: "modified" }],
     behindBy: 0,
     ...overrides,
@@ -74,7 +74,9 @@ test("each failing condition prevents arming", () => {
     [{ labels: ["merge-risk:low", "do-not-merge"] }, "no-blocking-labels"],
     [{ labels: ["merge-risk:low", "merge-risk:high"] }, "no-blocking-labels"],
     [{ checks: [] }, "check:submission-gate"],
-    [{ checks: [{ name: "submission-gate", status: "COMPLETED", conclusion: "FAILURE" }] }, "check:submission-gate"],
+    [{ checks: [{ name: "submission-gate", status: "COMPLETED", conclusion: "FAILURE", externalId: "submission-gate-writer" }] }, "check:submission-gate"],
+    [{ checks: [{ name: "submission-gate", status: "COMPLETED", conclusion: "SUCCESS", completedAt: "2025-01-01T00:00:00Z" }] }, "check:submission-gate"],
+    [{ checks: [...makePr().checks, { name: "submission-gate", status: "COMPLETED", conclusion: "SUCCESS", completedAt: "2025-01-02T00:00:00Z", externalId: "pr-job" }] }, "check:submission-gate"],
     [{ reviews: [] }, "approvals"],
     [{ reviews: [{ state: "APPROVED", author: "alice", authorType: "User", authorCanPush: true }] }, "approvals"],
     [{ reviews: [{ state: "APPROVED", author: "helper", authorType: "Bot", authorCanPush: true }] }, "approvals"],
@@ -97,8 +99,8 @@ test("each failing condition prevents arming", () => {
 
 test("uses the most recent run of a required check", () => {
   const checks = [
-    { name: "submission-gate", status: "COMPLETED", conclusion: "FAILURE", completedAt: "2025-01-01T00:00:00Z" },
-    { name: "submission-gate", status: "COMPLETED", conclusion: "SUCCESS", completedAt: "2025-01-02T00:00:00Z" },
+    { name: "submission-gate", status: "COMPLETED", conclusion: "FAILURE", completedAt: "2025-01-01T00:00:00Z", externalId: "submission-gate-writer" },
+    { name: "submission-gate", status: "COMPLETED", conclusion: "SUCCESS", completedAt: "2025-01-02T00:00:00Z", externalId: "submission-gate-writer" },
   ];
   assert.equal(evaluateAutoMerge(makePr({ checks }), config, ownerContext).action, "arm");
 });
@@ -296,4 +298,13 @@ test("front matter authors are read from GitHub handles, URLs, and github fields
   assert.deepEqual(frontMatterFilesFor("hooks/bar"), ["hooks/bar/README.md"]);
   assert.deepEqual(frontMatterFilesFor("agents/x.agent.md"), ["agents/x.agent.md"]);
   assert.deepEqual(frontMatterFilesFor("plugins/foo"), []);
+});
+test("trusted_checks can be overridden or disabled", () => {
+  const untrusted = { checks: [{ name: "submission-gate", status: "COMPLETED", conclusion: "SUCCESS", completedAt: "2025-01-01T00:00:00Z" }] };
+  const open = normalizeConfig({ ...config, trusted_checks: {} });
+  assert.deepEqual(open.trusted_checks, {});
+  assert.equal(evaluateAutoMerge(makePr(untrusted), open, ownerContext).action, "arm");
+  const custom = normalizeConfig({ ...config, trusted_checks: { "submission-gate": "other-writer" } });
+  assert.deepEqual(custom.trusted_checks, { "submission-gate": { external_id: "other-writer" } });
+  assert.equal(evaluateAutoMerge(makePr(), custom, ownerContext).action, "none");
 });
