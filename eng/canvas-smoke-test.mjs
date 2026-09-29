@@ -539,7 +539,7 @@ export function checkExtensionModules(extensionDir) {
   const errors = [];
   const warnings = [];
   const builtins = new Set();
-  const thirdParty = new Set();
+  const externalPackages = new Set();
   const sourceCapabilities = new Set();
   const packageJsonPath = path.join(extensionDir, "package.json");
   let packageJson = {};
@@ -553,7 +553,7 @@ export function checkExtensionModules(extensionDir) {
   const entry = path.join(extensionDir, "extension.mjs");
   if (!fs.existsSync(entry)) {
     errors.push("extension.mjs: entry point is missing");
-    return { errors, warnings, modules: [], builtins: [], thirdParty: [], sourceCapabilities: [], packageJson };
+    return { errors, warnings, modules: [], builtins: [], externalPackages: [], sourceCapabilities: [], packageJson };
   }
 
   const moduleFiles = listFiles(extensionDir)
@@ -652,11 +652,11 @@ export function checkExtensionModules(extensionDir) {
       case "internal":
         return null;
       case "dependency":
-        if (strict) thirdParty.add(classification.name);
+        if (strict) externalPackages.add(classification.name);
         return null;
       case "dev-dependency":
         if (strict) {
-          thirdParty.add(classification.name);
+          externalPackages.add(classification.name);
           warnings.push(`${where} resolves to a devDependency; declare it in dependencies if it is needed at runtime`);
         }
         return null;
@@ -711,19 +711,19 @@ export function checkExtensionModules(extensionDir) {
     warnings,
     modules,
     builtins: [...builtins].sort(),
-    thirdParty: [...thirdParty].sort(),
+    externalPackages: [...externalPackages].sort(),
     sourceCapabilities: [...sourceCapabilities].sort(),
     packageJson,
   };
 }
 
-export function describeCapabilities(builtins, sourceCapabilities, thirdParty) {
+export function describeCapabilities(builtins, sourceCapabilities, externalPackages) {
   const capabilities = [];
   for (const { modules, label } of BUILTIN_CAPABILITIES) {
     if (modules.some((name) => builtins.includes(name))) capabilities.push(label);
   }
   capabilities.push(...sourceCapabilities);
-  if (thirdParty.length > 0) capabilities.push(`Third-party runtime packages: ${thirdParty.join(", ")}`);
+  if (externalPackages.length > 0) capabilities.push(`Third-party runtime packages: ${externalPackages.join(", ")}`);
   return capabilities;
 }
 
@@ -1142,8 +1142,8 @@ export async function runCanvasSmokeTest({
       package: modules.packageJson?.name ? { name: modules.packageJson.name, version: modules.packageJson.version } : null,
       modules: modules.modules,
       builtins: modules.builtins,
-      third_party: modules.thirdParty,
-      capabilities: describeCapabilities(modules.builtins, modules.sourceCapabilities, modules.thirdParty),
+      third_party: modules.externalPackages,
+      capabilities: describeCapabilities(modules.builtins, modules.sourceCapabilities, modules.externalPackages),
       preview,
       files: files.inventory,
       changed_files: changedFiles.filter((file) => toPosix(file).startsWith(`extensions/${id}/`)),
