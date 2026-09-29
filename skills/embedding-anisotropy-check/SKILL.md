@@ -45,11 +45,16 @@ own within-space similarities instead.
 
 ## Reading the output
 
-- `anisotropy` is the mean cosine between different rows of one side. Near 0, raw cosine can be read directly. Above
-  about 0.3, read only the centred figures; the script adds a warning.
+- `anisotropy` is the mean cosine between different rows of one side. For large `n` it is close to the squared length
+  of the mean of the unit rows, so it measures how much the rows share one common direction, which is what centring
+  removes. It does not detect every departure from isotropy: rows spread along one axis in both directions score near
+  0 and still give raw cosines of +1 and -1. A value near 0 says there is little shared direction to remove, not that
+  raw cosine can be read without its floor. Above about 0.3, read only the centred figures; the script adds a warning.
 - `raw.floor` is what an unrelated pair scores in this comparison. A matched cosine means something only through its
   distance from this floor.
 - `centred.gap_over_floor_sd` and `centred.cohens_d` say whether matched pairs separate from unrelated ones at all.
+  When unrelated pairs all score the same, the floor has no spread and `gap_over_floor_sd` is `null`: the gap cannot
+  be expressed in floor standard deviations, and the plain `gap` is the figure to read.
 - `partner_ranked_first` is the retrieval view of the same pairs. Centring can move a ranking either way, so report it
   both ways rather than assuming it transfers.
 

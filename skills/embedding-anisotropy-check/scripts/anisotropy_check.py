@@ -24,6 +24,8 @@ import sys
 import numpy as np
 
 BLOCK = 2048
+# Below this a norm or a spread is rounding noise; cosines are bounded by 1.
+TINY = 1e-9
 
 
 def load_rows(path, what):
@@ -44,7 +46,7 @@ def unit(x):
 
 
 def anisotropy(u):
-    """Mean cosine over all pairs of different rows of unit rows u: 0 for an isotropic cloud, near 1 for one direction."""
+    """Mean cosine over all pairs of different rows of unit rows u: near 0 with no shared direction, near 1 for one."""
     n = len(u)
     s = u.sum(0)
     return float((s @ s - n) / (n * (n - 1)))
@@ -79,8 +81,8 @@ def compare(ua, ub, perms):
     gap, sd = float(matched.mean() - floor.mean()), float(floor.std())
     pooled = float(np.sqrt((matched.var() + floor.var()) / 2))
     return {"matched": round(float(matched.mean()), 4), "floor": round(float(floor.mean()), 4), "gap": round(gap, 4),
-            "floor_sd": round(sd, 4), "gap_over_floor_sd": round(gap / sd, 2) if sd > 0 else None,
-            "cohens_d": round(gap / pooled, 2) if pooled > 0 else None,
+            "floor_sd": round(sd, 4), "gap_over_floor_sd": round(gap / sd, 2) if sd > TINY else None,
+            "cohens_d": round(gap / pooled, 2) if pooled > TINY else None,
             "partner_ranked_first": round(partner_first(ua, ub), 4)}
 
 
@@ -113,7 +115,7 @@ def main():
         mu_a, mu_b = fa.mean(0), fb.mean(0)
     ca, cb = ua - mu_a, ub - mu_b
     for c, what in ((ca, "A"), (cb, "B")):
-        empty = np.linalg.norm(c, axis=1) < 1e-9
+        empty = np.linalg.norm(c, axis=1) < TINY
         if empty.any():
             sys.exit(f"centring leaves {int(empty.sum())} row(s) of {what} with no length: they equal the fitted mean, as when "
                      "every row points one way or the fit rows are a single row. Fit the mean on more rows, or drop those rows")
@@ -125,11 +127,13 @@ def main():
               "b": f"--fit-b, {len(fb)} rows" if o.fit_b else f"the compared rows, {len(b)}"}
     means = ({"shared": f"one mean over both sides' fit rows ({source['a']}; {source['b']})"} if o.shared
              else {"a": f"fitted on {source['a']}", "b": f"fitted on {source['b']}"})
+    apart = (f"{cen['gap_over_floor_sd']} floor sd apart" if cen["gap_over_floor_sd"] is not None
+             else f"a gap of {cen['gap']}, which has no size in floor sd because the floor has no spread")
     out = {"n": len(a), "dim": a.shape[1], "means": means,
            "anisotropy": an, "raw": raw, "centred": cen, "partner_first_by_chance": round(1 / len(a), 4),
            "reading": (f"Unrelated pairs score {raw['floor']} raw" + (f", {share:.0%} of the matched {raw['matched']}" if share is not None else "")
                        + f"; centred, matched {cen['matched']} against a floor of {cen['floor']}, "
-                       f"{cen['gap_over_floor_sd']} floor sd apart. Report the centred pair and the floor, not the raw matched cosine.")}
+                       f"{apart}. Report the centred pair and the floor, not the raw matched cosine.")}
     if max(an.values()) > 0.3:
         out["warning"] = "anisotropy above 0.3 on at least one side: raw cosines and raw gaps are dominated by the shared direction"
     notes = [f"{side}'s mean is fitted on {len(x)} compared rows; fit it on a train split of the same population when you have one"
