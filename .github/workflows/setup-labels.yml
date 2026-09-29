@@ -89,6 +89,19 @@ jobs:
               'awaiting-approval': {
                 color: 'FBCA04',
                 description: 'External plugin awaiting maintainer approval'
+              },
+              // Safe auto-merge and review metrics labels (see docs/maintainers/auto-merge-and-metrics.md)
+              'do-not-merge': {
+                color: 'B60205',
+                description: 'Blocks safe auto-merge until removed'
+              },
+              'auto-merge-armed': {
+                color: '0E8A16',
+                description: 'Safe auto-merge automation armed auto-merge for this PR'
+              },
+              'review-metrics': {
+                color: 'C5DEF5',
+                description: 'Weekly review operating metrics tracking issue'
               }
             };
 

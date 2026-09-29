@@ -1,0 +1,109 @@
+# Safe auto-merge policy (github/awesome-copilot#4184, phase 3).
+#
+# Evaluated by .github/workflows/auto-merge.yml via eng/auto-merge.mjs.
+# See docs/maintainers/auto-merge-and-metrics.md for the full policy.
+#
+# While `enabled` is false the workflow only evaluates pull requests and writes
+# a dry-run report to the job summary. It never arms or disarms auto-merge.
+enabled: false
+
+# Branch that auto-merge may target.
+base_branch: main
+
+# Merge method passed to enablePullRequestAutoMerge: squash, merge, or rebase.
+merge_method: squash
+
+# Check runs (or commit statuses) that must have succeeded on the PR head SHA.
+required_checks:
+  - submission-gate
+
+# Every label listed here must be present.
+required_labels:
+  - merge-risk:low
+
+# Any of these labels blocks arming and disarms auto-merge that was armed by
+# this automation.
+blocking_labels:
+  - do-not-merge
+  - requires-submitter-fixes
+  - awaiting-automation
+  - merge-risk:medium
+  - merge-risk:high
+  - needs-discussion
+  - rejected
+
+# Minimum approving reviews from users other than the author. Reviews from bots
+# never count. Any outstanding "changes requested" review blocks auto-merge.
+min_approvals: 1
+
+# All review threads must be resolved.
+require_resolved_threads: true
+
+# The PR head must contain the latest base branch commit.
+require_up_to_date: true
+
+# Label added when this automation arms auto-merge. It records ownership so the
+# automation only disarms auto-merge that it armed itself.
+armed_label: auto-merge-armed
+
+# Disarm auto-merge enabled by someone else (a maintainer) when a blocking
+# label is added. Other failed conditions never touch maintainer-armed merges.
+disarm_manual_on_blocking_label: true
+
+# Post (and update) a short status comment when auto-merge is armed/disarmed.
+comment: true
+
+# Initial allowlist: a PR must match at least one of these eligibility rules
+# in addition to every condition above.
+eligibility:
+  # PRs that only change generated output, opened by automation accounts.
+  generated_output:
+    enabled: true
+    # Logins are compared case-insensitively with any `[bot]` suffix or `app/`
+    # prefix removed.
+    authors:
+      - github-actions
+      - allcontributors
+    paths:
+      - README.md
+      - docs/README.*.md
+      - .all-contributorsrc
+      - .github/plugin/marketplace.json
+      - plugins/external.json
+
+  # Low-risk updates to existing resources from their established owners.
+  resource_owner:
+    enabled: true
+    # Only modifications of existing files qualify (no additions, deletions,
+    # or renames).
+    modified_only: true
+    # Owner sources: CODEOWNERS entries for the touched path (the catch-all `*`
+    # rule is ignored) and the resource's recorded author (plugin.json
+    # author.url / author.name, or the author of the commit that added the
+    # resource).
+    sources:
+      - codeowners
+      - recorded_author
+    # The author must already have at least this many merged PRs in the repo.
+    min_merged_prs: 1
+    # Top-level resource directories an owner update may touch.
+    resource_roots:
+      - agents
+      - instructions
+      - skills
+      - hooks
+      - workflows
+      - plugins
+      - extensions
+    # Generated files that may change alongside the resource (from
+    # `npm run build`) without needing an owner of their own.
+    generated_paths:
+      - README.md
+      - docs/README.*.md
+      - .github/plugin/marketplace.json
+    # Any change to these paths makes the PR ineligible for owner auto-merge.
+    excluded_paths:
+      - plugins/external.json
+      - .github/**
+      - eng/**
+      - CODEOWNERS

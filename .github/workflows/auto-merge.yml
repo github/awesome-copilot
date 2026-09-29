@@ -1,0 +1,99 @@
+name: Safe Auto-Merge
+
+# Arms GitHub auto-merge for allowlisted low-risk PRs once every policy
+# condition in .github/auto-merge.yml holds, and disarms it when conditions
+# later fail. Evaluation uses API metadata only: this workflow checks out the
+# base branch and never checks out or executes pull request code.
+#
+# Policy: docs/maintainers/auto-merge-and-metrics.md
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, labeled, unlabeled]
+    branches: [main]
+  check_run:
+    types: [completed]
+  schedule:
+    # Periodic sweep: picks up approvals and resolved threads (review events
+    # are not used because they run with the PR's workflow definition), label
+    # or check changes made with GITHUB_TOKEN (which do not trigger workflows),
+    # and base-branch updates.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "PR number(s), comma separated. Leave empty to sweep all candidates."
+        required: false
+        type: string
+      dry_run:
+        description: "Evaluate only; never arm or disarm auto-merge."
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auto-merge-${{ github.event.pull_request.number || github.event.check_run.head_sha || github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    name: safe-auto-merge
+    if: >-
+      github.repository_owner == 'github' &&
+      (github.event_name != 'check_run' || github.event.check_run.name == 'submission-gate')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      checks: read
+      statuses: read
+    steps:
+      - name: Checkout base branch (trusted code only)
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Evaluate safe auto-merge
+        env:
+          # A PAT or GitHub App token is recommended so that merges trigger
+          # downstream push workflows (merges made with GITHUB_TOKEN do not).
+          GITHUB_TOKEN: ${{ secrets.AUTO_MERGE_TOKEN || github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          CHECK_SHA: ${{ github.event.check_run.head_sha }}
+          INPUT_PR: ${{ inputs.pr }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          args=(--repo "$GITHUB_REPOSITORY" --json "$RUNNER_TEMP/auto-merge.json")
+          case "$EVENT_NAME" in
+            pull_request_target)
+              args+=(--pr "$PR_NUMBER")
+              ;;
+            check_run)
+              args+=(--sha "$CHECK_SHA")
+              ;;
+            workflow_dispatch)
+              if [ -n "$INPUT_PR" ]; then args+=(--pr "$INPUT_PR"); else args+=(--all); fi
+              if [ "$INPUT_DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+              ;;
+            *)
+              args+=(--all)
+              ;;
+          esac
+          node ./eng/auto-merge.mjs "${args[@]}"
