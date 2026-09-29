@@ -28,8 +28,9 @@ own within-space similarities instead.
 
 1. Save the compared rows as two `.npy` arrays of shape `(n, d)`, row `i` of A paired with row `i` of B.
 2. Choose where the means come from. The best source is a train split from the same domain, model and modality as the
-   compared rows. A mean fitted on another domain under-corrects, and the leftover direction then looks like an effect
-   of whatever differs between the domains.
+   compared rows. A mean fitted on another domain mis-centres: it can leave part of the shared direction in place,
+   remove too much of it, or add a direction of its own, and what it leaves then looks like an effect of whatever
+   differs between the domains.
 3. Run the bundled script:
 
    ```bash
@@ -55,7 +56,7 @@ own within-space similarities instead.
 ## Rules that go with the numbers
 
 - Average the signed difference across seeds or items, then take its absolute value. Averaging absolute differences
-  is biased upward, and most where the gap is small against its noise.
+  is biased upward, and the bias is greatest when the gap is small relative to its noise.
 - Give a gap with its spread and the smallest effect the test could have detected. An underpowered comparison is not
   a refutation, and the report should say which of the two it is.
 - Put the floor from the same comparison beside every result. A floor copied from another run, model or domain does

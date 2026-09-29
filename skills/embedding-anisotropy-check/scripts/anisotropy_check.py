@@ -111,8 +111,14 @@ def main():
         mu_a = mu_b = np.vstack([fa, fb]).mean(0)
     else:
         mu_a, mu_b = fa.mean(0), fb.mean(0)
+    ca, cb = ua - mu_a, ub - mu_b
+    for c, what in ((ca, "A"), (cb, "B")):
+        empty = np.linalg.norm(c, axis=1) < 1e-9
+        if empty.any():
+            sys.exit(f"centring leaves {int(empty.sum())} row(s) of {what} with no length: they equal the fitted mean, as when "
+                     "every row points one way or the fit rows are a single row. Fit the mean on more rows, or drop those rows")
     raw = compare(ua, ub, perms)
-    cen = compare(unit(ua - mu_a), unit(ub - mu_b), perms)
+    cen = compare(unit(ca), unit(cb), perms)
     an = {"a": round(anisotropy(ua), 4), "b": round(anisotropy(ub), 4)}
     share = raw["floor"] / raw["matched"] if raw["matched"] > 0 else None
     source = {"a": f"--fit-a, {len(fa)} rows" if o.fit_a else f"the compared rows, {len(a)}",
@@ -130,7 +136,7 @@ def main():
              for side, given, x in (("A", o.fit_a, a), ("B", o.fit_b, b)) if not given and len(x) < 1000]
     if notes:
         out["note"] = notes
-    print(json.dumps(out, indent=1))
+    print(json.dumps(out, indent=1, allow_nan=False))
 
 
 if __name__ == "__main__":
