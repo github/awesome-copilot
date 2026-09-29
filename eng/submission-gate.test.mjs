@@ -426,6 +426,7 @@ test("evaluateSubmission reaches approved when checks pass and approvals exist",
     permissions: { alice: "write" },
     runs: [
       run(1, "check-line-endings.yml", "success"),
+      run(90, "codespell.yml", "success"),
       run(2, "validate-readme.yml", "success"),
       run(3, "contributor-check.yml", "success"),
       run(4, "pr-duplicate-check.lock.yml", "failure"),
@@ -460,6 +461,7 @@ test("evaluateSubmission separates contribution and infrastructure failures", as
     files: [file("skills/x/SKILL.md", { status: "added" })],
     runs: [
       run(1, "check-line-endings.yml", "success"),
+      run(90, "codespell.yml", "success"),
       run(2, "validate-readme.yml", "failure"),
       run(3, "contributor-check.yml", "success"),
       run(4, "validate-skills.yml", "failure"),
@@ -498,6 +500,7 @@ test("evaluateSubmission waits for pending checks in gate mode", async () => {
   let polls = 0;
   const runs = [
     run(1, "check-line-endings.yml", null, "in_progress"),
+    run(90, "codespell.yml", "success"),
     run(3, "contributor-check.yml", "success"),
     run(4, "pr-duplicate-check.lock.yml", "success"),
     run(5, "pr-quality-signal.lock.yml", "success"),

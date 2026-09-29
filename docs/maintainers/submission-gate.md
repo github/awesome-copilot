@@ -30,6 +30,7 @@ Because a review re-runs the gate, the check turns green as soon as the last req
 | Check | Workflow | Applies when | Blocking |
 |---|---|---|---|
 | Line endings | `check-line-endings.yml` | every PR to `main` | yes |
+| Spelling | `codespell.yml` | every PR to `main` | yes |
 | Generated README consistency | `validate-readme.yml` | resources, `docs/**`, `README.md` | yes |
 | Plugin and extension validation | `validate-plugins.yml` | `plugins/**`, `extensions/**` | yes |
 | Canvas extension validation | `validate-canvas-extensions.yml` | `extensions/**` | yes |

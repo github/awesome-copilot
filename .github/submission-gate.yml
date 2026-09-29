@@ -37,10 +37,10 @@ infrastructure_steps:
   - "^Set up job$"
   - "^Complete job$"
   - "^Post "
-  - "[Cc]heckout"
+  - "(Checkout|checkout)"
   - "^Setup (Node|Python)"
   - "^Set up (Node|Python)"
-  - "[Ii]nstall (dependencies|gh-aw)"
+  - "(Install|install) (dependencies|gh-aw)"
   - "^Fetch AGT"
   - "(Upload|Download) .*artifact"
 
@@ -52,6 +52,14 @@ checks:
     required: true
     contribution_steps: ["CRLF"]
     hint: Run `bash eng/fix-line-endings.sh` and commit the result.
+
+  - id: spelling
+    title: Spelling
+    workflow: codespell.yml
+    branches: [main]
+    required: true
+    contribution_steps: ["^Check spelling with codespell$"]
+    hint: Fix the misspellings reported by codespell in the job log.
 
   - id: readme
     title: Generated README consistency
@@ -197,7 +205,7 @@ checks:
       - "plugins/**"
     required: true
     optional: true
-    contribution_steps: ["smoke", "[Mm]aterializ", "[Ii]nstall plugin"]
+    contribution_steps: ["smoke", "(Materialize|materialize|Materialization|materialization)", "(Install|install) plugin"]
     hint: See the smoke-test job log for the failing plugin or extension.
 
 commands:
