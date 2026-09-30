@@ -52,18 +52,10 @@ pools:
     team: github/awesome-copilot-content-reviewers
     reviewers: [] # TODO: add at least three reviewers for skills, agents, and instructions.
     backup: [] # TODO: add backup content reviewers.
-  workflow-security:
-    team: github/awesome-copilot-workflow-security-reviewers
-    reviewers: [] # TODO: add at least three workflow and security reviewers.
-    backup: [] # TODO: add backup workflow and security reviewers.
 
 # Intent labels (applied by .github/workflows/label-pr-intent*.yml) mapped to
 # pools. Order is priority: the first route whose label is on the PR wins.
 routes:
-  - label: workflow
-    pool: workflow-security
-  - label: hooks
-    pool: workflow-security
   - label: canvas-extension
     pool: canvas
   - label: external-plugin
@@ -75,6 +67,10 @@ routes:
   - label: agent
     pool: content
   - label: instructions
+    pool: content
+  - label: workflow
+    pool: content
+  - label: hooks
     pool: content
   - label: website-update
     pool: core-maintainers

@@ -44,10 +44,9 @@ Current routes, in priority order:
 
 | Intent label | Pool |
 |---|---|
-| `workflow`, `hooks` | `workflow-security` |
 | `canvas-extension` | `canvas` |
 | `external-plugin`, `plugin` | `plugin` |
-| `skills`, `agent`, `instructions` | `content` |
+| `skills`, `agent`, `instructions`, `workflow`, `hooks` | `content` |
 | `website-update` | `core-maintainers` |
 
 Intent labels are applied by `.github/workflows/label-pr-intent.yml` and `label-pr-intent-writer.yml`.

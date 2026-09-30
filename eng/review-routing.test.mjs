@@ -46,11 +46,11 @@ function rawConfig(overrides = {}) {
       canvas: { team: "github/canvas", reviewers: ["canvas1", "canvas2", "canvas3"], backup: ["canvasBackup"] },
       plugin: { team: "github/plugin", reviewers: ["plugin1"], backup: [] },
       content: { team: "github/content", reviewers: [], backup: [] },
-      "workflow-security": { team: "github/security", reviewers: ["sec1"], backup: ["secBackup"] },
+      automation: { team: "github/automation", reviewers: ["auto1"], backup: ["autoBackup"] },
     },
     routes: [
-      { label: "workflow", pool: "workflow-security" },
-      { label: "hooks", pool: "workflow-security" },
+      { label: "workflow", pool: "automation" },
+      { label: "hooks", pool: "automation" },
       { label: "canvas-extension", pool: "canvas" },
       { label: "plugin", pool: "plugin" },
       { label: "skills", pool: "content" },
@@ -149,7 +149,7 @@ describe("reviewer selection", () => {
     const cfg = config();
     assert.equal(selectPool(["skills", "plugin"], cfg), "plugin");
     assert.equal(selectPool(["plugin", "canvas-extension"], cfg), "canvas");
-    assert.equal(selectPool(["canvas-extension", "workflow"], cfg), "workflow-security");
+    assert.equal(selectPool(["canvas-extension", "workflow"], cfg), "automation");
     assert.equal(selectPool(["website-update"], cfg), "core-maintainers");
   });
 
@@ -195,7 +195,7 @@ describe("reviewer selection", () => {
     const cfg = config();
     const target = pr({ labels: ["plugin"], requested: ["canvas1", "core2"] });
     assert.deepEqual(coveringReviewers(target, [review("plugin1")], "plugin", cfg), ["core2", "plugin1"]);
-    assert.deepEqual(coveringReviewers(pr({ requested: ["canvas1"] }), [], "workflow-security", cfg), []);
+    assert.deepEqual(coveringReviewers(pr({ requested: ["canvas1"] }), [], "automation", cfg), []);
   });
 
   test("coveringReviewers ignores pending requests for unavailable reviewers but keeps their submitted reviews", () => {
@@ -234,12 +234,12 @@ describe("planRouting", () => {
     const stale = pr({ labels: ["workflow"] });
     assert.equal(planRouting({ pr: stale, intentLabels: ["plugin"], config: cfg, now: MONDAY }).pool, "plugin");
     assert.equal(planRouting({ pr: stale, intentLabels: [], config: cfg, now: MONDAY }).pool, "core-maintainers");
-    assert.equal(planRouting({ pr: stale, intentLabels: null, config: cfg, now: MONDAY }).pool, "workflow-security");
+    assert.equal(planRouting({ pr: stale, intentLabels: null, config: cfg, now: MONDAY }).pool, "automation");
   });
 
   test("falls back to backup, then escalation pool, then the team", () => {
     const cfg = config();
-    assert.deepEqual(planRouting({ pr: pr({ author: "sec1", labels: ["hooks"] }), config: cfg, now: MONDAY }).reviewers, ["secBackup"]);
+    assert.deepEqual(planRouting({ pr: pr({ author: "auto1", labels: ["hooks"] }), config: cfg, now: MONDAY }).reviewers, ["autoBackup"]);
     const content = planRouting({ pr: pr({ labels: ["skills"] }), config: cfg, now: MONDAY });
     assert.equal(content.source, "escalation-pool");
     assert.ok(["core1", "core2"].includes(content.reviewers[0]));
@@ -277,8 +277,8 @@ describe("planRouting", () => {
     const plan = planRouting({ pr: routed, intentLabels: ["canvas-extension", "workflow"], config: config(), now: new Date("2026-09-29T10:00:00Z") });
     assert.equal(plan.action, "route");
     assert.equal(plan.reason, "pool-changed");
-    assert.equal(plan.pool, "workflow-security");
-    assert.deepEqual(plan.reviewers, ["sec1"]);
+    assert.equal(plan.pool, "automation");
+    assert.deepEqual(plan.reviewers, ["auto1"]);
     assert.deepEqual(plan.addLabels, []);
     assert.deepEqual(plan.removeLabels, []);
     assert.equal(plan.dueDate, "2026-09-30");
