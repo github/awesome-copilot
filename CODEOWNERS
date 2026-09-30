@@ -17,10 +17,9 @@
 /agents/ @github/awesome-copilot-content-reviewers
 /instructions/ @github/awesome-copilot-content-reviewers
 /skills/ @github/awesome-copilot-content-reviewers
-/hooks/ @github/awesome-copilot-workflow-security-reviewers
-/workflows/ @github/awesome-copilot-workflow-security-reviewers
+/hooks/ @github/awesome-copilot-content-reviewers
+/workflows/ @github/awesome-copilot-content-reviewers
 /.github/ @github/awesome-copilot-core-maintainers
-/.github/workflows/ @github/awesome-copilot-core-maintainers @github/awesome-copilot-workflow-security-reviewers
 /eng/ @github/awesome-copilot-core-maintainers
 
 # Adding Dan Wahlin as the owner for the CLI for Beginners content and images
@@ -28,12 +27,12 @@
 /website/src/images/cli-for-beginners/ @DanWahlin
 
 # Agentic Workflows
-/workflows/ @github/awesome-copilot-workflow-security-reviewers @brunoborges
-/.github/workflows/validate-agentic-workflows-pr.yml @github/awesome-copilot-workflow-security-reviewers @brunoborges
+/workflows/ @brunoborges
+/.github/workflows/validate-agentic-workflows-pr.yml @brunoborges
 
 # Copilot review policy
-/.github/skills/code-review/ @github/awesome-copilot-core-maintainers @aaronpowell
-/.github/copilot-instructions.md @github/awesome-copilot-core-maintainers @aaronpowell
+/.github/skills/code-review/ @aaronpowell
+/.github/copilot-instructions.md @aaronpowell
 
 # Added via #codeowner from PR #930
 /plugins/automate-this/ @dvelton

@@ -122,8 +122,10 @@ jobs:
                 .write();
             }
 
-            core.info(`Routing targets: ${targets.map((target) => `#${target.pr}`).join(', ') || 'none'}`);
-            core.setOutput('targets', JSON.stringify(targets));
+            const limited = routing.limitTargets(targets);
+            if (limited.deferred > 0) core.warning(`${limited.deferred} PR(s) exceed the ${routing.MAX_MATRIX_TARGETS}-job matrix limit and are deferred to the next sweep.`);
+            core.info(`Routing targets: ${limited.targets.map((target) => `#${target.pr}`).join(', ') || 'none'}`);
+            core.setOutput('targets', JSON.stringify(limited.targets));
 
   route:
     needs: plan

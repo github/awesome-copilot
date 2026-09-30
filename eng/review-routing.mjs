@@ -40,6 +40,17 @@ const TEAM_PATTERN = /^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9][A-Za-z0-9._-]*$/;
 const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const DUE_LABEL_RETENTION_DAYS = 14;
 
+/** GitHub Actions allows at most 256 jobs per matrix. */
+export const MAX_MATRIX_TARGETS = 256;
+
+/**
+ * Cap sweep targets to what one matrix can run. The remainder is picked up by
+ * the next scheduled run (planning is idempotent), so nothing is lost.
+ */
+export function limitTargets(targets, max = MAX_MATRIX_TARGETS) {
+  return { targets: targets.slice(0, max), deferred: Math.max(0, targets.length - max) };
+}
+
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
@@ -347,18 +358,28 @@ export function hasHumanReview(reviews = [], author, since = null) {
   });
 }
 
+/** Logins (other than the author and bots) who submitted a non-pending review. */
+function submittedReviewers(reviews, author) {
+  return reviews
+    .filter((review) => review?.state !== "PENDING")
+    .map((review) => review?.user?.login)
+    .filter((login) => login && !isBotLogin(login) && lower(login) !== lower(author));
+}
+
 /**
  * Individuals who can satisfy a pool: its reviewers and backups, plus the
- * escalation (core) pool, who may review anything.
+ * escalation (core) pool, who may review anything. A pending request for an
+ * `unavailable` reviewer does not count; a review they already submitted does.
  */
 export function coveringReviewers(pr, reviews, poolName, config) {
   const pool = config.pools[poolName];
   const escalation = config.pools[config.escalationPool];
   const cover = new Set([...pool.reviewers, ...pool.backup, ...escalation.reviewers].map(lower));
+  const unavailable = new Set(config.unavailable.map(lower));
   const author = lower(pr.user?.login);
   const logins = [
-    ...(pr.requested_reviewers ?? []).map((reviewer) => reviewer?.login),
-    ...reviews.filter((review) => review?.state !== "PENDING").map((review) => review?.user?.login),
+    ...(pr.requested_reviewers ?? []).map((reviewer) => reviewer?.login).filter((login) => !unavailable.has(lower(login))),
+    ...submittedReviewers(reviews, author),
   ];
   const result = [];
   for (const login of logins) {
@@ -391,10 +412,11 @@ function commonSkip(pr, names, config) {
  * Choose who to request for a pool: pool reviewers, then pool backups, then
  * the escalation pool, then the pool team (unless already requested).
  */
-function pickPoolRequest(pr, poolName, config, load) {
+function pickPoolRequest(pr, poolName, config, load, alsoExclude = []) {
   const pool = config.pools[poolName];
   const escalation = config.pools[config.escalationPool];
   const exclude = exclusionSet(pr, config);
+  for (const login of alsoExclude) exclude.add(lower(login));
   const tiers = [
     ["pool", pool.reviewers],
     ["backup", pool.backup],
@@ -436,10 +458,19 @@ export function planRouting({ pr, reviews = [], load = new Map(), config, now = 
 
   if (!reviewRequested && !routed && hasHumanReview(reviews, author)) return skipped(pr, "already-reviewed", { pool: poolName });
 
-  // needs-reviewer always asks for a fresh reviewer; otherwise an individual
-  // who already covers the target pool (requested or reviewed) is enough.
-  const covering = reviewRequested ? [] : coveringReviewers(pr, reviews, poolName, config);
-  const request = covering.length > 0 ? { reviewers: [], teamReviewers: [], source: "covered" } : pickPoolRequest(pr, poolName, config, load);
+  // needs-reviewer always asks for a fresh reviewer (someone not currently
+  // requested who has not already reviewed); otherwise an individual who
+  // already covers the target pool (requested or reviewed) is enough.
+  let request;
+  if (reviewRequested) {
+    request = pickPoolRequest(pr, poolName, config, load, submittedReviewers(reviews, author));
+    // Nothing new can be requested: keep needs-reviewer and the current SLA so
+    // a later run retries once a reviewer becomes available.
+    if (!hasRequest(request)) return skipped(pr, "no-reviewer-available", { pool: poolName });
+  } else {
+    const covering = coveringReviewers(pr, reviews, poolName, config);
+    request = covering.length > 0 ? { reviewers: [], teamReviewers: [], source: "covered" } : pickPoolRequest(pr, poolName, config, load);
+  }
 
   if (routed && !reviewRequested) {
     // Already routed: only act if the target pool changed and is not covered.
@@ -508,6 +539,9 @@ export function planEscalation({ pr, reviews = [], load = new Map(), config, now
   const hasOverdue = names.has(config.labels.overdue);
   const hasEscalated = names.has(config.labels.escalated);
   const base = { prNumber: pr.number, ...milestones, routedAt };
+  // The due label only implies a business day; prefer the actual routing time
+  // (for example a weekend or holiday) for display.
+  const routedOnDisplay = routedAt ? toDateKey(routedAt) : milestones.routedOn;
 
   if (hasHumanReview(reviews, author, routedAt ?? milestones.routedOn)) {
     const removeLabels = dueLabels.map((label) => label.name);
@@ -536,7 +570,7 @@ export function planEscalation({ pr, reviews = [], load = new Map(), config, now
       COMMENT_MARKERS.escalated,
       "### 🚨 Review escalated",
       "",
-      `This pull request was routed to the **${poolName}** reviewer pool on ${milestones.routedOn} and has not received a review within ${config.sla.escalationBusinessDays} business days.`,
+      `This pull request was routed to the **${poolName}** reviewer pool on ${routedOnDisplay} and has not received a review within ${config.sla.escalationBusinessDays} business days.`,
       "",
       requested.length > 0
         ? `Escalating to the **${config.escalationPool}** pool: requested ${requested.join(", ")}.`
@@ -572,7 +606,7 @@ export function planEscalation({ pr, reviews = [], load = new Map(), config, now
       COMMENT_MARKERS.overdue,
       "### ⏰ Review overdue",
       "",
-      `This pull request was routed to the **${poolName}** reviewer pool on ${milestones.routedOn}; a first review was due by ${milestones.dueDate}.`,
+      `This pull request was routed to the **${poolName}** reviewer pool on ${routedOnDisplay}; a first review was due by ${milestones.dueDate}.`,
       "",
       currentlyRequested.length > 0 ? `Currently requested: ${currentlyRequested.map(mention).join(", ")}.` : "No individual reviewer is currently requested.",
       assignment,

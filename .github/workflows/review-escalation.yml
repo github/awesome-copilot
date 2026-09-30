@@ -60,7 +60,9 @@ jobs:
             const actionable = plans.filter((plan) => ['reviewed', 'overdue', 'escalate'].includes(plan.action));
 
             await core.summary.addRaw(routing.formatResultsSummary(actionable, { title: 'Review escalation plan', dryRun: config.dryRun })).write();
-            core.setOutput('targets', JSON.stringify(actionable.map((plan) => ({ pr: plan.prNumber }))));
+            const limited = routing.limitTargets(actionable.map((plan) => ({ pr: plan.prNumber })));
+            if (limited.deferred > 0) core.warning(`${limited.deferred} PR(s) exceed the ${routing.MAX_MATRIX_TARGETS}-job matrix limit and are deferred to the next run.`);
+            core.setOutput('targets', JSON.stringify(limited.targets));
 
   escalate:
     needs: plan

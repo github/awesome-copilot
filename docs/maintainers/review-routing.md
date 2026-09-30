@@ -11,12 +11,10 @@ The root [`CODEOWNERS`](../../CODEOWNERS) file assigns every path to a team, not
 | `*` (default) | `@github/awesome-copilot-core-maintainers` |
 | `/extensions/` | `@github/awesome-copilot-canvas-reviewers` |
 | `/plugins/` | `@github/awesome-copilot-plugin-reviewers` |
-| `/agents/`, `/instructions/`, `/skills/` | `@github/awesome-copilot-content-reviewers` |
-| `/hooks/`, `/workflows/` | `@github/awesome-copilot-workflow-security-reviewers` |
-| `/.github/`, `/eng/` | `@github/awesome-copilot-core-maintainers` |
-| `/.github/workflows/` | core maintainers and workflow/security reviewers |
+| `/agents/`, `/instructions/`, `/skills/`, `/hooks/`, `/workflows/` | `@github/awesome-copilot-content-reviewers` |
+| `/.github/` (including GitHub Actions workflows), `/eng/` | `@github/awesome-copilot-core-maintainers` |
 
-GitHub applies the **last** matching rule, so the per-resource entries at the bottom of the file override the team defaults for their paths. Those entries are added through the `#codeowner` command (`.github/workflows/codeowner-update.md`), which appends a block at the end of the file. When you edit `CODEOWNERS` by hand:
+GitHub applies the **last** matching rule, so the per-resource entries at the bottom of the file override the team defaults for their paths. Those entries are added through the `#codeowner` command (`.github/workflows/codeowner-update.md`), which only appends a block at the end of the file. The existing per-resource entries are kept as they are for now; removing them is planned as a separate cleanup. When you edit `CODEOWNERS` by hand:
 
 - Keep the `*` rule and the domain team block at the top of the file.
 - Never add an individual user to the `*` rule.
@@ -74,10 +72,10 @@ The **Review Routing** workflow (`.github/workflows/review-routing.yml`) runs wh
 For each eligible PR, routing does the following:
 
 1. Picks the pool using `routes`, falling back to `default_pool`. For runs triggered by **Label PR Intent**, that run's intent labels replace the PR's current intent labels, so stale labels can't pick the wrong pool.
-2. Checks whether the pool is already **covered**. A pool is covered when one of its reviewers or backups, or a core maintainer, is already requested or has already reviewed the PR. If the pool isn't covered, routing requests one individual from the pool, excluding the PR author, reviewers already requested, bots, and anyone listed in `unavailable`. It prefers the reviewer with the **fewest open review requests** across all open PRs. Ties rotate by PR number.
+2. Checks whether the pool is already **covered**. A pool is covered when one of its reviewers or backups, or a core maintainer, is already requested or has already reviewed the PR. If the pool isn't covered, routing requests one individual from the pool, excluding the PR author, reviewers already requested, bots, and anyone listed in `unavailable`. A pending request for someone in `unavailable` doesn't count as coverage, but a review they already submitted does. It prefers the reviewer with the **fewest open review requests** across all open PRs. Ties rotate by PR number.
 3. If the pool has no eligible individual, routing tries the pool's `backup` list, then the escalation pool's reviewers, and finally requests the pool team.
 4. Adds a `review-due:YYYY-MM-DD` label. The date is the routing day plus `first_review_business_days`, in UTC. The time the label was added marks the start of the SLA cycle.
-5. If `needs-reviewer` triggered the run, routing always requests a new reviewer. It removes `needs-reviewer`, `review-overdue`, and `review-escalated`, then removes and re-adds the due label to restart the SLA.
+5. If `needs-reviewer` triggered the run, routing always requests a new reviewer: someone who is not already requested and has not already reviewed the PR. It removes `needs-reviewer`, `review-overdue`, and `review-escalated`, then removes and re-adds the due label to restart the SLA. If no new reviewer or team can be requested, routing changes nothing, so `needs-reviewer` and the current due date stay, and the hourly sweep tries again.
 
 A PR that is already routed is checked again whenever a new commit changes its intent labels. If the new target pool isn't covered, for example because a skills PR now also touches a workflow, routing requests a reviewer from that pool. The existing due date stays the same.
 
@@ -86,7 +84,9 @@ Routing skips drafts, closed PRs, and unrouted PRs that already have a human rev
 ### Failures and concurrency
 
 - Routing requests reviewers before it changes any labels. If GitHub rejects the request, for example because a team is missing or the token lacks access, routing leaves the labels alone and fails the job. Nothing is marked as routed, so the next run or sweep tries again.
-- Each workflow first runs a read-only `plan` job that picks the target PRs. It then handles each PR in a job that uses the `review-routing-pr-<number>` concurrency group. Review Routing and Review Escalation share that group, so their read, plan, and apply steps never overlap for the same PR. These per-PR jobs run one at a time, so reviewer load stays accurate.
+- Each workflow first runs a read-only `plan` job that picks the target PRs. It then handles each PR in a job that uses the `review-routing-pr-<number>` concurrency group. Review Routing and Review Escalation share that group, so their read, plan, and apply steps never overlap for the same PR. Within one run, the per-PR jobs run one at a time, and each job re-reads reviewer load before it picks someone.
+- Load balancing across separate runs is best-effort. Two runs that route different PRs at the same moment can read the same load and pick the same reviewer. A repository-wide lock would avoid this, but GitHub cancels pending runs that wait on the same concurrency group, so routing requests could be lost. The next routing run sees the updated load.
+- A GitHub Actions matrix can hold at most 256 jobs. If a sweep finds more PRs than that, it handles the first 256, logs a warning, and leaves the rest for the next scheduled run. Planning is idempotent, so no PR is skipped permanently.
 
 ## SLA and escalation
 
@@ -124,7 +124,7 @@ The **Setup Repository Labels** workflow creates `needs-reviewer`, `review-overd
 
 The routing workflows ship with `dry_run: true` and empty reviewer lists. To turn them on:
 
-1. Create the five teams listed in `CODEOWNERS`, each with at least three members, and give each team access to the repository.
+1. Create every team referenced in `CODEOWNERS` and in the `pools` of `.github/review-routing.yml`, each with at least three members, and give each team access to the repository.
 2. Add the team members to the matching `reviewers` and `backup` lists in `.github/review-routing.yml`.
 3. Run **Setup Repository Labels**.
 4. Set `dry_run: false`.

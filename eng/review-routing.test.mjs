@@ -8,6 +8,8 @@ import {
   formatResultsSummary,
   hasHumanReview,
   isBusinessDay,
+  limitTargets,
+  MAX_MATRIX_TARGETS,
   loadReviewRoutingConfig,
   normalizeReviewRoutingConfig,
   pickReviewer,
@@ -195,6 +197,20 @@ describe("reviewer selection", () => {
     assert.deepEqual(coveringReviewers(target, [review("plugin1")], "plugin", cfg), ["core2", "plugin1"]);
     assert.deepEqual(coveringReviewers(pr({ requested: ["canvas1"] }), [], "workflow-security", cfg), []);
   });
+
+  test("coveringReviewers ignores pending requests for unavailable reviewers but keeps their submitted reviews", () => {
+    const cfg = config({ unavailable: ["plugin1"] });
+    assert.deepEqual(coveringReviewers(pr({ labels: ["plugin"], requested: ["plugin1"] }), [], "plugin", cfg), []);
+    assert.deepEqual(coveringReviewers(pr({ labels: ["plugin"] }), [review("plugin1")], "plugin", cfg), ["plugin1"]);
+  });
+
+  test("limitTargets caps matrix targets and reports the deferred count", () => {
+    const many = Array.from({ length: MAX_MATRIX_TARGETS + 5 }, (_, index) => ({ pr: index + 1 }));
+    const limited = limitTargets(many);
+    assert.equal(limited.targets.length, MAX_MATRIX_TARGETS);
+    assert.equal(limited.deferred, 5);
+    assert.deepEqual(limitTargets([{ pr: 1 }]), { targets: [{ pr: 1 }], deferred: 0 });
+  });
 });
 
 describe("planRouting", () => {
@@ -297,6 +313,29 @@ describe("planRouting", () => {
     assert.deepEqual(plan.removeLabels.sort(), ["needs-reviewer", "review-due:2026-09-10", "review-escalated", "review-overdue"]);
   });
 
+  test("needs-reviewer skips reviewers who already submitted a review", () => {
+    const plan = planRouting({
+      pr: pr({ labels: ["canvas-extension", "needs-reviewer", "review-due:2026-09-10"], requested: ["canvas1"] }),
+      reviews: [review("canvas2", "2026-09-09T00:00:00Z")],
+      config: config(),
+      now: MONDAY,
+    });
+    assert.equal(plan.action, "route");
+    assert.deepEqual(plan.reviewers, ["canvas3"]);
+  });
+
+  test("needs-reviewer with no new reviewer to request leaves labels and the SLA unchanged", () => {
+    const plan = planRouting({
+      pr: pr({ labels: ["plugin", "needs-reviewer", "review-due:2026-09-10"], requested: ["plugin1"], teams: ["plugin"] }),
+      config: config({ unavailable: ["core1", "core2"] }),
+      now: MONDAY,
+    });
+    assert.equal(plan.action, "skip");
+    assert.equal(plan.reason, "no-reviewer-available");
+    assert.equal(plan.addLabels, undefined);
+    assert.equal(plan.removeLabels, undefined);
+  });
+
   test("needs-reviewer removes and re-adds a same-date due label to mark a new SLA cycle", () => {
     const plan = planRouting({ pr: pr({ labels: ["plugin", "needs-reviewer", "review-due:2026-09-30"] }), config: config(), now: MONDAY });
     assert.deepEqual(plan.removeLabels, ["review-due:2026-09-30", "needs-reviewer"]);
@@ -379,6 +418,13 @@ describe("planEscalation", () => {
     const args = { pr: routed(), config: config(), now: new Date("2026-10-01T14:00:00Z"), routedAt: "2026-09-28T15:00:00Z" };
     assert.equal(planEscalation({ ...args, reviews: [review("canvas1", "2026-09-28T10:00:00Z")] }).action, "overdue");
     assert.equal(planEscalation({ ...args, reviews: [review("canvas1", "2026-09-28T16:00:00Z")] }).action, "reviewed");
+  });
+
+  test("comments show the actual routing date when routing happened on a non-business day", () => {
+    // Routed Saturday 2026-09-26: due Tuesday 2026-09-29, overdue Wednesday.
+    const plan = planEscalation({ pr: routed({ due: "2026-09-29" }), config: config(), now: new Date("2026-09-30T14:00:00Z"), routedAt: "2026-09-26T12:00:00Z" });
+    assert.equal(plan.action, "overdue");
+    assert.match(plan.comment, /pool on 2026-09-26;/);
   });
 
   test("ignores unrouted PRs", () => {
