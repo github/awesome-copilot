@@ -29,6 +29,12 @@ const MAX_PER_GROUP = 4;
 const MAX_PAGEFIND_HITS = 12;
 
 type ResultGroup = { category: SearchCategory; items: SearchItem[] };
+type NormalizedSearchItem = {
+  item: SearchItem;
+  title: string;
+  description: string;
+  category: string;
+};
 
 /**
  * Shared top-navigation search. A collapsed magnifier button expands into a
@@ -120,15 +126,28 @@ export function TopNavSearch({
     };
   }, [trimmed]);
 
+  const normalizedIndex = useMemo<NormalizedSearchItem[]>(
+    () =>
+      index.map((item) => ({
+        item,
+        title: item.title.toLowerCase(),
+        description: item.description.toLowerCase(),
+        category: item.category.toLowerCase(),
+      })),
+    [index],
+  );
+
   const groups = useMemo<ResultGroup[]>(() => {
     const query = trimmed.toLowerCase();
     if (query.length === 0) return [];
-    const staticMatches = index.filter(
-      (item) =>
-        item.title.toLowerCase().includes(query) ||
-        item.description.toLowerCase().includes(query) ||
-        item.category.toLowerCase().includes(query),
-    );
+    const staticMatches = normalizedIndex
+      .filter(
+        ({ title, description, category }) =>
+          title.includes(query) ||
+          description.includes(query) ||
+          category.includes(query),
+      )
+      .map(({ item }) => item);
     // Static hits win on ties: they carry curated titles and descriptions.
     const seen = new Set(staticMatches.map((item) => hrefKey(item.href)));
     const matches = [...staticMatches];
@@ -150,7 +169,7 @@ export function TopNavSearch({
       grouped.push({ category, items });
     }
     return grouped;
-  }, [trimmed, index, pagefindHits]);
+  }, [trimmed, normalizedIndex, pagefindHits]);
 
   const flatResults = useMemo(
     () => groups.flatMap((group) => group.items),
