@@ -57,7 +57,7 @@ const { item, previous, next } = Astro.props as {
 
 // External plugins are referenced, not vendored: no README exists in this
 // repository for them, so the markdown body is simply empty.
-const { markdownHtml } = item.readmeFile
+const { markdownHtml } = !item.external && item.readmeFile
   ? readResourceMarkdown(item.readmeFile)
   : { markdownHtml: "" };
 

@@ -137,6 +137,11 @@ export function AgentDetail({
         { label: item.title },
       ]}
       install={install}
+      compactInstall={
+        <Button as="a" href={vscodeUrl} variant="primary" size="small" hasArrow={false} leadingVisual={PlusIcon}>
+          Install
+        </Button>
+      }
       sidebar={
         <ResourceMeta
           kicker="Agent details"

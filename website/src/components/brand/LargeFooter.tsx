@@ -1,8 +1,9 @@
 import { MinimalFooter } from "@primer/react-brand";
+import styles from "./styles/footer.module.css";
 
 export function LargeFooter() {
   return (
-    <MinimalFooter logoHref="https://github.com" socialLinks={false}>
+    <MinimalFooter className={styles.footer} logoHref="https://github.com" socialLinks={false}>
       <MinimalFooter.Link href="https://docs.github.com/site-policy/github-terms/github-terms-of-service">
         Terms
       </MinimalFooter.Link>

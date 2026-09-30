@@ -6,7 +6,7 @@
    * below can share them:
    *   <768px      →  L/R 20px · T/B 40px
    *   768–1279px  →  L/R 91px · T/B 40px
-   *   1280–1919px →  L/R 152px · T/B 60px
+   *   1280–1919px →  L/R at least 152px, content capped at 1280px · T/B 60px
    *   ≥1920px     →  variables stop applying → native centered-1280 layout
    * (91/152/60 have no base-size token, so they are raw px.)
    */
@@ -22,7 +22,7 @@
 
 @media screen and (min-width: 80rem) and (max-width: 119.99rem) {
   .page {
-    --page-gutter: 152px;
+    --page-gutter: max(152px, calc((100% - var(--brand-breakpoint-xlarge)) / 2));
     --page-pad-block: 60px;
   }
 }
@@ -355,12 +355,13 @@
 }
 
 .cardGridItem {
+  --card-grid-inset: var(--base-size-28);
   position: relative;
   width: 100%;
   height: 100%;
   /* 28px + the Primer Card's 32px inner padding = 60px, matching the catalog
      card padding used across the rest of the site. */
-  padding: var(--base-size-28);
+  padding: var(--card-grid-inset);
   border-block-start: var(--brand-borderWidth-thin) solid
     var(--brand-color-border-muted);
 }
@@ -385,7 +386,7 @@
 .cardGridItem::before {
   content: "";
   position: absolute;
-  inset: var(--base-size-28);
+  inset: var(--card-grid-inset);
   border-radius: var(--brand-borderRadius-medium);
   pointer-events: none;
 }
@@ -396,6 +397,11 @@
 
 .resourceCard {
   min-block-size: 100%;
+}
+
+/* Override Primer's important hover underline for cards with disableAnimation. */
+.cardGridItem .resourceCard:hover :global([class*="Card__link"]) {
+  text-decoration: none !important;
 }
 
 /* Suppress the Card's built-in ring so it doesn't stack with the surface ring. */
@@ -446,6 +452,11 @@
   animation: heroRiseUp 0.6s ease-out 0.09s both;
 }
 
+.heroPrimaryAction svg {
+  --brand-color-text-default: currentColor;
+  --brand-color-text-muted: currentColor;
+}
+
 /* Hero icon, title, and description rise up from below and fade in on load, in
    a subtle stagger — matching the Agents page hero entrance. */
 @keyframes heroRiseUp {
@@ -476,24 +487,6 @@
   }
 }
 
-/* Dark-mode override for the Hero secondary CTA ("Become a contributor"): use
- * the requested solid #202020 fill instead of the default translucent white.
- * Not a token: --brand-button-secondary-bgColor-rest resolves to a
- * translucent overlay (rgba(255,255,255,0.12) in dark mode), which would
- * visually regress from the prototype's opaque fill — this hex is a
- * deliberate, verbatim match to the approved design, not an oversight. */
-:global([data-color-mode="dark"]) .heroFrameInner
-  :global([class*="Button--secondary"]) {
-  background-color: #202020;
-}
-
-/* Light-mode override for the Hero secondary CTA: requested solid #F0F0F0
- * fill, same rationale as above. */
-:global([data-color-mode="light"]) .heroFrameInner
-  :global([class*="Button--secondary"]) {
-  background-color: #f0f0f0;
-}
-
 /*
  * Lay the heading out as a row: title on the left with the count label sitting
  * just after it (not pushed to the far card edge).
@@ -503,6 +496,12 @@
   align-items: center;
   justify-content: flex-start;
   gap: var(--base-size-12);
+}
+
+.resourceIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--brand-color-text-default);
 }
 
 /* Keep the count label at full width; let the title take the remaining space. */
@@ -524,6 +523,7 @@
 }
 
 .ctaFrameInner {
+  background-color: var(--brand-CTABanner-bgColor);
   border-inline: var(--brand-borderWidth-thin) solid
     var(--brand-color-border-muted);
 }
@@ -562,22 +562,58 @@
   width: 100%;
 }
 
-/*
- * Render the Card's arrow-only CTA as a circular chevron affordance, matching
- * the reference design. The Card link still wraps the whole card, so the
- * chevron stays accessible and clickable. Colour tracks the Primer Brand Card
- * default: the arrow uses the link accent, not the green accent-primary.
- */
-.resourceCard :global([class*="Card__actionIcon--arrowOnly"]) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: var(--base-size-40);
-  block-size: var(--base-size-40);
-  overflow: hidden;
-  color: var(--brand-Link-color-accent);
-  border: var(--brand-borderWidth-thin) solid var(--brand-color-border-default);
-  border-radius: var(--brand-borderRadius-full);
+/* Outline first, then make room for the label, then fade it in without sliding.
+   On exit the label fades out before its space collapses. */
+.cardGridItem .resourceCard :global([class*="Card__action--arrowOnly"]) {
+  max-inline-size: 100%;
+  padding: var(--base-size-4);
+  column-gap: 0;
+  transition:
+    border-color 100ms ease-out,
+    background-color 100ms ease-out,
+    column-gap 280ms ease-in-out 100ms,
+    padding-inline 280ms ease-in-out 100ms;
+}
+
+.cardGridItem .resourceCard :global([class*="Card__actionLabelClip"]) {
+  flex: 0 1 auto;
+  max-inline-size: 0;
+  margin-inline: 0;
+  padding-inline: 0;
+  transform: none;
+  opacity: 0;
+  transition: opacity 100ms ease-out, max-inline-size 280ms ease-in-out 100ms;
+}
+
+.cardGridItem .resourceCard :global([class*="Card--expandableArrow"]) {
+  transition: transform 280ms ease-in-out 100ms;
+}
+
+.cardGridItem .resourceCard:is(:hover, :focus-within)
+  :global([class*="Card__action--arrowOnly"]) {
+  padding-inline-start: var(--base-size-24);
+  column-gap: var(--base-size-8);
+}
+
+.cardGridItem .resourceCard:is(:hover, :focus-within)
+  :global([class*="Card__actionLabelClip"]) {
+  max-inline-size: 18rem;
+  opacity: 1;
+  transition: max-inline-size 280ms ease-in-out 100ms, opacity 140ms ease-out 380ms;
+}
+
+@media (hover: none), (max-width: 47.99rem) {
+  .cardGridItem .resourceCard :global([class*="Card__action--arrowOnly"]) {
+    padding-inline-start: var(--base-size-24);
+    column-gap: var(--base-size-8);
+    border-color: var(--brand-color-border-default);
+  }
+
+  .cardGridItem .resourceCard :global([class*="Card__actionLabelClip"]) {
+    max-inline-size: 18rem;
+    opacity: 1;
+  }
+
 }
 
 /* Tablet nav: the full desktop nav row (tabs + search + heart + Contribute)
@@ -702,12 +738,11 @@
 }
 
 /* Two-column band: from tablet (768px) up to just below xlarge (1280px), the
-   grid renders two columns (span small:6 holds through the large breakpoint).
+   grid renders two columns (span medium:6 holds through the large breakpoint).
    Draw the vertical rule on both edges of every card and clear the top border
    on the first row (items 1 and 2). */
 @media screen and (min-width: 48rem) and (max-width: 79.99rem) {
   .cardGridItem {
-    padding: var(--base-size-28);
     border-inline: var(--brand-borderWidth-thin) solid
       var(--brand-color-border-muted);
   }
@@ -722,7 +757,6 @@
    where span drops to 4. */
 @media screen and (min-width: 80rem) {
   .cardGridItem {
-    padding: var(--base-size-28);
     border-block-start: 0;
     border-inline-end: 0;
     border-inline-start: var(--brand-borderWidth-thin) solid
@@ -744,11 +778,48 @@
   }
 }
 
+/* Reduce the nested card padding before adding columns squeezes the labels. */
+@media screen and (max-width: 89.99rem) {
+  .cardGridItem {
+    --card-grid-inset: var(--base-size-12);
+  }
+
+  .resourceCard {
+    padding: var(--base-size-16);
+  }
+}
+
+@media screen and (min-width: 48rem) and (max-width: 63.99rem) {
+  .resourceCard {
+    padding-inline: var(--base-size-8);
+  }
+}
+
+@media screen and (max-width: 47.99rem) {
+  .cardGridItem {
+    --card-grid-inset: var(--base-size-8);
+  }
+
+  .resourceCard {
+    padding: var(--base-size-12) var(--base-size-8);
+  }
+
+  .cardHeadingRow {
+    gap: var(--base-size-8);
+  }
+}
+
+@media screen and (max-width: 22.49rem) {
+  .resourceCard {
+    padding-inline: 0;
+  }
+}
+
 /*
  * Responsive gutters (below 1920px). Neutralise the native Section/Grid
  * 1280px-centered layout and inset each band's framed content by the tiered
  * --page-gutter, so the vertical gridlines track the content edge at every
- * width. At >=1920px this block drops out and the original layout returns.
+ * width. At >=1920px the native centered 1280px layout returns.
  */
 @media screen and (max-width: 119.99rem) {
   .heroFrame :global([class*="Section__container"]),

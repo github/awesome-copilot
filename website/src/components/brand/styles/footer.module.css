@@ -1,0 +1,16 @@
+.footer :global([class*="Footer__logomarks"]) a[aria-label="GitHub"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-12);
+  color: var(--brand-color-text-default);
+}
+
+/* MinimalFooter has no logo slot; retain its link and add the official mark. */
+.footer :global([class*="Footer__logomarks"]) a[aria-label="GitHub"]::before {
+  content: "";
+  inline-size: var(--base-size-32);
+  block-size: var(--base-size-32);
+  flex-shrink: 0;
+  background-color: currentColor;
+  mask: url("../../../assets/github-mark.svg") center / contain no-repeat;
+}

@@ -297,6 +297,7 @@ export function CookbookRecipe({
           text={active ? contents[active.path] : undefined}
           status={status}
           githubUrl={activeGithubUrl}
+          rawBase={rawBase}
         />
       </section>
     </DetailChassis>
@@ -312,6 +313,7 @@ function RecipeFileView({
   text,
   status,
   githubUrl,
+  rawBase,
 }: {
   active: RecipeFile | null;
   isPrimary: boolean;
@@ -321,11 +323,12 @@ function RecipeFileView({
   text?: string;
   status: "idle" | "loading" | "error";
   githubUrl: string;
+  rawBase: string;
 }) {
   const [markdown, setMarkdown] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (isPrimary || kind !== "markdown" || text === undefined) {
+    if (!active || isPrimary || kind !== "markdown" || text === undefined) {
       setMarkdown(null);
       return;
     }
@@ -338,14 +341,17 @@ function RecipeFileView({
       if (cancelled) return;
       setMarkdown(
         enhanceMarkdownA11y(
-          sanitizeHtml(marked.parse(text, { async: false }) as string),
+          sanitizeHtml(marked.parse(text, { async: false }) as string, {
+            rawBase,
+            filePath: active.path,
+          }),
         ),
       );
     });
     return () => {
       cancelled = true;
     };
-  }, [isPrimary, kind, text]);
+  }, [active?.path, isPrimary, kind, text, rawBase]);
 
   if (!active) return null;
 
