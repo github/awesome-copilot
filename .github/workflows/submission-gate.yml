@@ -10,7 +10,8 @@ name: Submission Gate
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    # `edited` covers retargeting to another base branch, which changes the applicable checks.
+    types: [opened, synchronize, reopened, ready_for_review, edited]
   pull_request_review:
     types: [submitted, edited, dismissed]
 

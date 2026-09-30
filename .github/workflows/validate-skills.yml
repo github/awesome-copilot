@@ -6,6 +6,8 @@ on:
     paths:
       - "skills/**"
       - "eng/validate-skills.mjs"
+      - "eng/yaml-parser.mjs"
+      - ".github/workflows/validate-skills.yml"
 
 permissions:
   contents: read

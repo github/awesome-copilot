@@ -321,11 +321,11 @@ export function evaluateApprovals({ tier, tiers, reviews = [], author, permissio
 
   if (policy.require_core) {
     if (coreMembers.size > 0) {
-      requirements.push("including a core or security maintainer");
-      if (!approvers.some((login) => coreMembers.has(login))) missing.push("an approval from a core or security maintainer");
+      requirements.push("including a core maintainer");
+      if (!approvers.some((login) => coreMembers.has(login))) missing.push("an approval from a core maintainer");
     } else {
       requirements.push("including a maintainer with admin or maintain permission");
-      notes.push("Core/security reviewer pools are not staffed yet; an approver with admin or maintain permission is required instead.");
+      notes.push("The core-maintainers pool is not staffed yet; an approver with admin or maintain permission is required instead.");
       if (!approvers.some((login) => MAINTAINER_PERMISSIONS.has(permissions.get(login)))) {
         missing.push("an approval from a maintainer with admin or maintain permission");
       }
@@ -859,6 +859,11 @@ export async function evaluateSubmission(github, options) {
     log(`PR head moved from ${headSha} to ${pr.head.sha} while evaluating; discarding this evaluation.`);
     return { stale: true, pr, headSha };
   }
+  // Applicable checks depend on the base branch; a retargeted PR needs a fresh evaluation.
+  if (pr.base.ref !== initialPr.base.ref) {
+    log(`PR base changed from ${initialPr.base.ref} to ${pr.base.ref} while evaluating; discarding this evaluation.`);
+    return { stale: true, pr, headSha };
+  }
   const labels = (pr.labels || []).map((label) => label.name);
   const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pullNumber, per_page: 100 });
 
@@ -916,9 +921,12 @@ export async function evaluateSubmission(github, options) {
     stale: false,
     pr,
     headSha,
+    baseRef: pr.base.ref,
     files,
     labels,
     reviewsSignature: reviewsSignature(reviews),
+    riskLabelInputs: [...(config.tiers.high?.labels || [])],
+    riskLabelSignature: riskLabelSignature(labels, config.tiers.high?.labels),
     risk,
     tierDescription: config.tiers[risk.tier]?.description || "",
     automation,
@@ -946,6 +954,17 @@ export async function syncPullRequestStatus(
   if (fresh.head.sha !== evaluation.headSha) {
     log(`PR #${issueNumber} head moved to ${fresh.head.sha}; not applying the evaluation of ${evaluation.headSha}.`);
     return { updated: false, reason: "head-changed" };
+  }
+  if (evaluation.baseRef !== undefined && fresh.base.ref !== evaluation.baseRef) {
+    log(`PR #${issueNumber} base changed to ${fresh.base.ref}; not applying the evaluation for ${evaluation.baseRef}.`);
+    return { updated: false, reason: "base-changed" };
+  }
+  if (evaluation.riskLabelSignature !== undefined) {
+    const freshLabels = (fresh.labels || []).map((label) => label.name);
+    if (riskLabelSignature(freshLabels, evaluation.riskLabelInputs) !== evaluation.riskLabelSignature) {
+      log(`PR #${issueNumber} risk labels changed during evaluation; a newer evaluation will update it.`);
+      return { updated: false, reason: "labels-changed" };
+    }
   }
   if (evaluation.reviewsSignature !== undefined) {
     const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: issueNumber, per_page: 100 });
@@ -989,8 +1008,14 @@ export async function syncPullRequestStatus(
     await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body });
   }
   log(`PR #${issueNumber}: state=${evaluation.state} risk=${evaluation.risk.tier} (+${toAdd.join(",") || "none"} -${toRemove.join(",") || "none"})`);
-  if (publishCheck) await publishGateCheck(github, { owner, repo, evaluation, detailsUrl: gateRunUrl });
+  if (publishCheck) await publishGateCheck(github, { owner, repo, evaluation, detailsUrl: gateRunUrl, log });
   return { updated: true };
+}
+
+/** Fingerprint of the labels that feed risk classification (`high.labels`, e.g. `needs-review:HIGH`). */
+export function riskLabelSignature(labels, inputs = []) {
+  const watched = new Set(inputs);
+  return [...new Set(labels)].filter((label) => watched.has(label)).sort().join(",");
 }
 
 /** Stable fingerprint of the review list, used to detect reviews that arrive mid-evaluation. */
@@ -1020,7 +1045,7 @@ export async function findImpostorGateChecks(github, { owner, repo, headSha }) {
  * Publish the required `submission-gate` check on the PR head commit. Only the trusted
  * writer calls this, so the check can't be satisfied by editing a PR-controlled workflow.
  */
-export async function publishGateCheck(github, { owner, repo, evaluation, detailsUrl = null }) {
+export async function publishGateCheck(github, { owner, repo, evaluation, detailsUrl = null, log = () => {} }) {
   const pending = evaluation.automation.pending.length > 0;
   const display = STATE_DISPLAY[evaluation.state];
   const reasons = gateFailureSummary(evaluation);
@@ -1037,12 +1062,21 @@ export async function publishGateCheck(github, { owner, repo, evaluation, detail
   if (detailsUrl) fields.details_url = detailsUrl;
 
   const runs = await listGateCheckRuns(github, { owner, repo, headSha: evaluation.headSha });
-  const ours = runs.filter((run) => run.external_id === GATE_CHECK_EXTERNAL_ID);
+  const ours = runs.filter((run) => run.external_id === GATE_CHECK_EXTERNAL_ID).sort((a, b) => b.id - a.id);
   const impostors = runs.length > ours.length;
-  // Update in place normally; when another source reports the same name, create a newer run
-  // so the writer's result is the most recent one.
+  // external_id is not proof of origin: anyone who can run a workflow with `checks: write`
+  // can set it. Correct any copy that claims success for a failing evaluation.
+  const disagreeing = evaluation.passed ? [] : ours.filter((run) => run.conclusion === "success");
+  if (disagreeing.length > 0) {
+    log(`Correcting ${disagreeing.length} \`${GATE_CHECK_NAME}\` run(s) that reported success for a failing evaluation.`);
+  }
+  // Update the newest run in place normally; when another source reports the same name,
+  // create a newer run so the writer's result is the most recent one.
   if (ours.length > 0 && !impostors) {
     await github.rest.checks.update({ owner, repo, check_run_id: ours[0].id, ...fields });
+    for (const run of disagreeing.filter((candidate) => candidate.id !== ours[0].id)) {
+      await github.rest.checks.update({ owner, repo, check_run_id: run.id, ...fields });
+    }
   } else {
     await github.rest.checks.create({
       owner,
@@ -1138,4 +1172,111 @@ export async function rerunChecks(github, { owner, repo, headSha }) {
     }
   }
   return { rerun, skipped };
+}
+
+export const PR_COMMAND_SCHEMA = "pr-command-request/v1";
+
+/**
+ * Validate the untrusted artifact uploaded by the read-only PR Commands workflow. Only the
+ * comment and PR numbers are taken from it; everything else is re-read from the API.
+ */
+export function validatePrCommandRequest(request, { workflowRunId }) {
+  const fail = (message) => {
+    throw new Error(`Invalid PR command request: ${message}`);
+  };
+  if (!request || typeof request !== "object") fail("not an object");
+  if (request.schema_version !== PR_COMMAND_SCHEMA) fail("unexpected schema_version");
+  if (!Number.isSafeInteger(request.pr_number) || request.pr_number < 1) fail("invalid pr_number");
+  if (!Number.isSafeInteger(request.comment_id) || request.comment_id < 1) fail("invalid comment_id");
+  if (String(request.run_id ?? "") !== String(workflowRunId)) fail("run_id did not match workflow_run");
+  return { prNumber: request.pr_number, commentId: request.comment_id };
+}
+
+/**
+ * Run a PR command on behalf of the trusted PR Commands Writer. Re-reads the comment, the PR,
+ * and the commenter's permission from the API, so a forged artifact can at most point at a
+ * real comment that already asked for the command.
+ */
+export async function runPrCommand(
+  github,
+  { owner, repo, prNumber, commentId, config, defaultBranch = "main", log = () => {} }
+) {
+  const { data: comment } = await github.rest.issues.getComment({ owner, repo, comment_id: commentId });
+  const issueUrlSuffix = `/repos/${owner}/${repo}/issues/${prNumber}`.toLowerCase();
+  if (!String(comment.issue_url || "").toLowerCase().endsWith(issueUrlSuffix)) {
+    throw new Error(`Comment ${commentId} does not belong to #${prNumber}`);
+  }
+  if (comment.user?.type === "Bot") return { status: "ignored", reason: "bot comment" };
+  const parsed = parsePrCommand(comment.body);
+  if (!parsed) return { status: "ignored", reason: "no supported command" };
+
+  const reactions = await github.paginate(github.rest.reactions.listForIssueComment, {
+    owner,
+    repo,
+    comment_id: commentId,
+    content: "eyes",
+    per_page: 100,
+  });
+  if (reactions.some((reaction) => reaction.user?.login === "github-actions[bot]")) {
+    return { status: "ignored", reason: "already handled" };
+  }
+
+  const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+  if (pr.state !== "open") return { status: "ignored", reason: "PR is not open" };
+  if (String(pr.base?.repo?.full_name || "").toLowerCase() !== `${owner}/${repo}`.toLowerCase()) {
+    throw new Error(`PR #${prNumber} does not target ${owner}/${repo}`);
+  }
+
+  const commenter = comment.user?.login;
+  let permission = "none";
+  try {
+    const { data } = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username: commenter });
+    permission = data.permission;
+  } catch (error) {
+    log(`Could not read permission for ${commenter}: ${error.status || error.message}`);
+  }
+  if (!canRunPrCommand({ commenter, prAuthor: pr.user?.login, permission })) {
+    return { status: "ignored", reason: `${commenter} is not the PR author or a maintainer` };
+  }
+
+  await github.rest.reactions.createForIssueComment({ owner, repo, comment_id: commentId, content: "eyes" });
+
+  const dispatch = async (workflowId, ref, inputs) => {
+    try {
+      await github.rest.actions.createWorkflowDispatch({ owner, repo, workflow_id: workflowId, ref, inputs });
+      return true;
+    } catch (error) {
+      log(`Could not dispatch ${workflowId}: ${error.status || error.message}`);
+      return false;
+    }
+  };
+  const list = (items) => items.map((item) => `\`${sanitize(item, 80)}\``).join(", ");
+
+  const lines = [];
+  if (parsed.command === "rerun-checks") {
+    const result = await rerunChecks(github, { owner, repo, headSha: pr.head.sha });
+    await dispatch("submission-gate-writer.yml", defaultBranch, { pr_number: String(pr.number) });
+    lines.push(`🔁 \`/rerun-checks\` for \`${pr.head.sha.slice(0, 7)}\``, "");
+    lines.push(result.rerun.length > 0 ? `Re-running: ${list(result.rerun)}.` : "No failed or incomplete checks to re-run.");
+    for (const skipped of result.skipped) lines.push(`- ${sanitize(skipped.name, 80)} ${sanitize(skipped.reason, 200)}.`);
+    lines.push("", "The status comment updates when the checks finish.");
+  } else {
+    const settings = config.gate.commands?.request_review || {};
+    const label = settings.label || "needs-reviewer";
+    await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: [label] });
+    const dispatched = settings.dispatch_workflow
+      ? await dispatch(settings.dispatch_workflow, settings.dispatch_ref || defaultBranch, { pr_number: String(pr.number) })
+      : false;
+    const requested = [
+      ...(pr.requested_reviewers || []).map((user) => user.login),
+      ...(pr.requested_teams || []).map((team) => team.slug),
+    ];
+    lines.push(
+      `🙋 Added \`${label}\`. ${dispatched ? "Reviewer routing is assigning a reviewer now." : "Reviewer routing picks this up on its next run."}`
+    );
+    if (requested.length > 0) lines.push("", `Already requested: ${list(requested)}.`);
+  }
+
+  await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body: lines.join("\n") });
+  return { status: "handled", command: parsed.command };
 }

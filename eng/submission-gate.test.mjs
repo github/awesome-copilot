@@ -22,6 +22,10 @@ import {
   renderStatusComment,
   rerunChecks,
   resolvePullRequestForWorkflowRun,
+  riskLabelSignature,
+  runPrCommand,
+  validatePrCommandRequest,
+  PR_COMMAND_SCHEMA,
   sanitize,
   selectApplicableChecks,
   STATUS_MARKER,
@@ -63,7 +67,16 @@ test("check path and branch filters mirror their workflow triggers", () => {
     const on = workflow.on ?? workflow[true];
     const trigger = on?.pull_request;
     assert.ok(on && Object.prototype.hasOwnProperty.call(on, "pull_request"), `${check.id}: ${check.workflow} must trigger on pull_request`);
-    assert.deepEqual([...(check.paths || [])].sort(), [...(trigger?.paths || [])].sort(), `${check.id}: paths drifted from ${check.workflow}`);
+    // A workflow without a path filter reports on every PR, so the gate may narrow where it applies.
+    if (trigger?.paths) {
+      assert.deepEqual([...(check.paths || [])].sort(), [...trigger.paths].sort(), `${check.id}: paths drifted from ${check.workflow}`);
+    }
+    if (check.paths && check.workflow !== "validate-submission-gate.yml") {
+      assert.ok(
+        check.paths.includes(`.github/workflows/${check.workflow}`),
+        `${check.id}: paths should include its own workflow file`
+      );
+    }
     assert.deepEqual(check.branches || [], trigger?.branches || [], `${check.id}: branches drifted from ${check.workflow}`);
   }
 });
@@ -132,14 +145,15 @@ test("large update or new resource is medium risk", () => {
   );
 });
 
-test("workflows, hooks, scripts, MCP config, and policy files are high risk", () => {
+test("repository workflows, scripts, MCP config, and policy files are high risk", () => {
   for (const name of [
     ".github/workflows/ci.yml",
     ".github/CODEOWNERS",
     ".github/review-routing.yml",
     ".github/risk-tiers.yml",
-    "hooks/x/hooks.json",
-    "workflows/daily.md",
+    "hooks/x/check.sh",
+    "hooks/x/check.py",
+    "plugins/p/hooks/run.ps1",
     "skills/foo/scripts/run.py",
     "skills/foo/tool.sh",
     "plugins/p/mcp.json",
@@ -148,6 +162,22 @@ test("workflows, hooks, scripts, MCP config, and policy files are high risk", ()
   ]) {
     assert.equal(classifyRisk({ files: [file(name)], tiers }).tier, "high", name);
   }
+});
+
+test("agentic workflow sources and hook metadata are content, but hook commands are high risk", () => {
+  assert.equal(classifyRisk({ files: [file("workflows/daily.md", { status: "added" })], tiers }).tier, "medium");
+  assert.equal(classifyRisk({ files: [file("hooks/x/README.md", { status: "added" })], tiers }).tier, "medium");
+  const hookCommand = classifyRisk({
+    files: [file("hooks/x/hooks.json", { status: "added", patch: '+{ "type": "command", "bash": "hooks/x/check.sh" }' })],
+    tiers,
+  });
+  assert.equal(hookCommand.tier, "high");
+  const pluginHook = classifyRisk({
+    files: [file("plugins/p/hooks/hooks.json", { patch: '+  "powershell": "run.ps1"' })],
+    tiers,
+  });
+  assert.equal(pluginHook.tier, "high");
+  assert.equal(classifyRisk({ files: [file("hooks/x/hooks.json", { patch: '+  "timeoutSec": 30' })], tiers }).tier, "medium");
 });
 
 test("capability triggers and contributor risk raise the tier to high", () => {
@@ -181,7 +211,6 @@ const routing = {
     canvas: { team: "github/canvas", reviewers: ["canvasa"], backup: [] },
     plugin: { team: "github/plugin", reviewers: [], backup: [] },
     content: { reviewers: [] },
-    "workflow-security": { reviewers: ["seca"] },
   },
 };
 
@@ -242,14 +271,13 @@ test("medium tier requires a domain reviewer when the pool is staffed", () => {
   assert.equal(noRouting.satisfied, true);
 });
 
-test("high tier requires two approvals including core or security", () => {
+test("high tier requires two approvals including a core maintainer", () => {
   const permissions = new Map([["alice", "write"], ["bob", "write"], ["corea", "write"], ["admin1", "admin"]]);
   const files = [file(".github/workflows/x.yml")];
   const base = { tier: "high", tiers, author: "author", permissions, routing, files };
   assert.equal(evaluateApprovals({ ...base, reviews: [review("corea", "APPROVED")] }).satisfied, false);
   assert.equal(evaluateApprovals({ ...base, reviews: [review("alice", "APPROVED"), review("bob", "APPROVED")] }).satisfied, false);
   assert.equal(evaluateApprovals({ ...base, reviews: [review("alice", "APPROVED"), review("corea", "APPROVED")] }).satisfied, true);
-  assert.equal(evaluateApprovals({ ...base, reviews: [review("alice", "APPROVED"), review("seca", "APPROVED")] }).satisfied, true);
 
   const fallback = { ...base, routing: null };
   assert.equal(evaluateApprovals({ ...fallback, reviews: [review("alice", "APPROVED"), review("bob", "APPROVED")] }).satisfied, false);
@@ -353,7 +381,7 @@ test("sanitize neutralizes mentions, HTML, and table breaks", () => {
 
 // --- orchestration with a fake GitHub client --------------------------------------
 
-function fakeGithub({ pr, files = [], reviews = [], runs = [], jobs = {}, checkRuns = [], comments = [], permissions = {} }) {
+function fakeGithub({ pr, files = [], reviews = [], runs = [], jobs = {}, checkRuns = [], comments = [], reactions = [], permissions = {} }) {
   const calls = [];
   const record = (name, fn) => async (params) => {
     calls.push({ name, params });
@@ -374,6 +402,7 @@ function fakeGithub({ pr, files = [], reviews = [], runs = [], jobs = {}, checkR
       }),
       reRunWorkflowFailedJobs: record("actions.reRunWorkflowFailedJobs", async () => ({})),
       reRunWorkflow: record("actions.reRunWorkflow", async () => ({})),
+      createWorkflowDispatch: record("actions.createWorkflowDispatch", async () => ({})),
     },
     checks: {
       listForRef: record("checks.listForRef", async ({ check_name }) => ({
@@ -393,6 +422,15 @@ function fakeGithub({ pr, files = [], reviews = [], runs = [], jobs = {}, checkR
       listComments: "issues.listComments",
       updateComment: record("issues.updateComment", async () => ({})),
       createComment: record("issues.createComment", async () => ({})),
+      getComment: record("issues.getComment", async ({ comment_id }) => {
+        const found = comments.find((comment) => comment.id === comment_id);
+        if (!found) throw Object.assign(new Error("Not Found"), { status: 404 });
+        return { data: found };
+      }),
+    },
+    reactions: {
+      listForIssueComment: "reactions.listForIssueComment",
+      createForIssueComment: record("reactions.createForIssueComment", async () => ({})),
     },
   };
   const pages = {
@@ -401,6 +439,7 @@ function fakeGithub({ pr, files = [], reviews = [], runs = [], jobs = {}, checkR
     "pulls.list": [pr],
     "actions.listWorkflowRunsForRepo": runs,
     "issues.listComments": comments,
+    "reactions.listForIssueComment": reactions,
   };
   return {
     calls,
@@ -766,4 +805,112 @@ test("syncPullRequestStatus does not write when the head or reviews changed", as
   });
   assert.equal(result.reason, "reviews-changed");
   assert.ok(!reviewed.calls.some((call) => /addLabels|checks\.create/.test(call.name)));
+});
+
+test("evaluation and final write are discarded when the base branch or risk labels change", async () => {
+  const github = fakeGithub({ pr: basePr, files: [file("docs/a.md")] });
+  let gets = 0;
+  github.rest.pulls.get = async ({ pull_number }) => {
+    gets += 1;
+    return { data: { ...basePr, number: pull_number, base: { ...basePr.base, ref: gets === 1 ? "main" : "staged" } } };
+  };
+  const retargeted = await evaluateSubmission(github, { owner: "github", repo: "awesome-copilot", pullNumber: 7, config, readContributorRisk: () => null });
+  assert.equal(retargeted.stale, true);
+
+  const evaluation = await evaluateSubmission(fakeGithub({ pr: basePr, files: [file("docs/a.md")] }), {
+    owner: "github", repo: "awesome-copilot", pullNumber: 7, config, finalized: true, readContributorRisk: () => null,
+  });
+  assert.equal(evaluation.baseRef, "main");
+  assert.equal(evaluation.riskLabelSignature, "");
+
+  const rebased = fakeGithub({ pr: { ...basePr, base: { ...basePr.base, ref: "staged" } } });
+  assert.equal((await syncPullRequestStatus(rebased, { owner: "github", repo: "awesome-copilot", evaluation })).reason, "base-changed");
+
+  const flagged = fakeGithub({ pr: { ...basePr, labels: [...basePr.labels, { name: "needs-review:HIGH" }] } });
+  assert.equal((await syncPullRequestStatus(flagged, { owner: "github", repo: "awesome-copilot", evaluation })).reason, "labels-changed");
+  assert.ok(!flagged.calls.some((call) => /addLabels|removeLabel|Comment|checks\./.test(call.name)));
+
+  assert.equal(riskLabelSignature(["b", "needs-review:HIGH", "a"], ["needs-review:HIGH"]), "needs-review:HIGH");
+});
+
+test("publishGateCheck corrects copies of the writer's check that claim success for a failing evaluation", async () => {
+  const older = { id: 10, name: "submission-gate", external_id: GATE_CHECK_EXTERNAL_ID, conclusion: "failure" };
+  const forged = { id: 11, name: "submission-gate", external_id: GATE_CHECK_EXTERNAL_ID, conclusion: "success" };
+  const github = fakeGithub({ pr: basePr, checkRuns: [older, forged] });
+  const evaluation = {
+    headSha: basePr.head.sha,
+    state: "review-in-progress",
+    passed: false,
+    risk: { tier: "high" },
+    automation: summarizeChecks([]),
+    approvals: { satisfied: false, missing: ["1 more approval"] },
+  };
+  const logs = [];
+  await publishGateCheck(github, { owner: "github", repo: "awesome-copilot", evaluation, log: (line) => logs.push(line) });
+  const updates = github.calls.filter((call) => call.name === "checks.update");
+  assert.deepEqual(updates.map((call) => call.params.check_run_id), [11]);
+  assert.equal(updates[0].params.conclusion, "failure");
+  assert.ok(logs.some((line) => /Correcting 1/.test(line)));
+});
+
+test("validatePrCommandRequest only accepts well-formed requests from the triggering run", () => {
+  const request = { schema_version: PR_COMMAND_SCHEMA, pr_number: 7, comment_id: 55, run_id: "123" };
+  assert.deepEqual(validatePrCommandRequest(request, { workflowRunId: 123 }), { prNumber: 7, commentId: 55 });
+  assert.throws(() => validatePrCommandRequest({ ...request, run_id: "124" }, { workflowRunId: 123 }), /run_id/);
+  assert.throws(() => validatePrCommandRequest({ ...request, pr_number: "7" }, { workflowRunId: 123 }), /pr_number/);
+  assert.throws(() => validatePrCommandRequest({ ...request, comment_id: 0 }, { workflowRunId: 123 }), /comment_id/);
+  assert.throws(() => validatePrCommandRequest({ ...request, schema_version: "x" }, { workflowRunId: 123 }), /schema_version/);
+  assert.throws(() => validatePrCommandRequest(null, { workflowRunId: 123 }), /not an object/);
+});
+
+const commandComment = (body, login = "author", extra = {}) => ({
+  id: 55,
+  body,
+  user: { login, type: "User" },
+  issue_url: "https://api.github.com/repos/github/awesome-copilot/issues/7",
+  ...extra,
+});
+const commandOptions = { owner: "github", repo: "awesome-copilot", prNumber: 7, commentId: 55, config };
+
+test("runPrCommand re-reads the comment, PR, and permission before writing", async () => {
+  const request = fakeGithub({ pr: basePr, comments: [commandComment("/request-review")] });
+  assert.deepEqual(await runPrCommand(request, commandOptions), { status: "handled", command: "request-review" });
+  assert.deepEqual(request.calls.find((call) => call.name === "issues.addLabels").params.labels, ["needs-reviewer"]);
+  const dispatched = request.calls.find((call) => call.name === "actions.createWorkflowDispatch");
+  assert.equal(dispatched.params.workflow_id, "review-routing.yml");
+  assert.deepEqual(dispatched.params.inputs, { pr_number: "7" });
+  assert.ok(request.calls.some((call) => call.name === "reactions.createForIssueComment"));
+  assert.ok(request.calls.some((call) => call.name === "issues.createComment"));
+
+  const rerun = fakeGithub({ pr: basePr, comments: [commandComment("/rerun-checks", "maint")], permissions: { maint: "maintain" } });
+  assert.equal((await runPrCommand(rerun, commandOptions)).command, "rerun-checks");
+  assert.equal(rerun.calls.find((call) => call.name === "actions.createWorkflowDispatch").params.workflow_id, "submission-gate-writer.yml");
+});
+
+test("runPrCommand ignores outsiders, closed PRs, edits, replays, and mismatched comments", async () => {
+  const writes = /addLabels|createComment|createForIssueComment|createWorkflowDispatch|reRun/;
+
+  const outsider = fakeGithub({ pr: basePr, comments: [commandComment("/rerun-checks", "stranger")] });
+  assert.equal((await runPrCommand(outsider, commandOptions)).status, "ignored");
+  assert.ok(!outsider.calls.some((call) => writes.test(call.name)));
+
+  const closed = fakeGithub({ pr: { ...basePr, state: "closed" }, comments: [commandComment("/rerun-checks")] });
+  assert.equal((await runPrCommand(closed, commandOptions)).reason, "PR is not open");
+
+  const edited = fakeGithub({ pr: basePr, comments: [commandComment("thanks!")] });
+  assert.equal((await runPrCommand(edited, commandOptions)).reason, "no supported command");
+
+  const replay = fakeGithub({
+    pr: basePr,
+    comments: [commandComment("/request-review")],
+    reactions: [{ content: "eyes", user: { login: "github-actions[bot]" } }],
+  });
+  assert.equal((await runPrCommand(replay, commandOptions)).reason, "already handled");
+  assert.ok(!replay.calls.some((call) => writes.test(call.name)));
+
+  const elsewhere = fakeGithub({
+    pr: basePr,
+    comments: [commandComment("/request-review", "author", { issue_url: "https://api.github.com/repos/github/awesome-copilot/issues/70" })],
+  });
+  await assert.rejects(runPrCommand(elsewhere, commandOptions), /does not belong/);
 });

@@ -8,7 +8,7 @@ Tracking issue: [github/awesome-copilot#4184](https://github.com/github/awesome-
 |---|---|
 | Read-only evaluation (reader) | [`.github/workflows/submission-gate.yml`](../../.github/workflows/submission-gate.yml), workflow **Submission Gate**, job `evaluate` |
 | `submission-gate` check, labels, and status comment (writer) | [`.github/workflows/submission-gate-writer.yml`](../../.github/workflows/submission-gate-writer.yml), workflow **Submission Gate Writer** |
-| PR commands | [`.github/workflows/pr-commands.yml`](../../.github/workflows/pr-commands.yml) |
+| PR commands (reader and writer) | [`.github/workflows/pr-commands.yml`](../../.github/workflows/pr-commands.yml), [`.github/workflows/pr-commands-writer.yml`](../../.github/workflows/pr-commands-writer.yml) |
 | Checks the gate waits for | [`.github/submission-gate.yml`](../../.github/submission-gate.yml) |
 | Risk tiers and approval policy | [`.github/risk-tiers.yml`](../../.github/risk-tiers.yml) |
 | Reviewer pools (Phase 1) | `.github/review-routing.yml` |
@@ -16,9 +16,9 @@ Tracking issue: [github/awesome-copilot#4184](https://github.com/github/awesome-
 
 ## How the gate works
 
-1. **Submission Gate** runs on every PR (`opened`, `synchronize`, `reopened`, `ready_for_review`) and on every review (`submitted`, `edited`, `dismissed`). It has no path filter, so it always runs. Its job is named `evaluate`, and it never fails: it is a read-only preview whose job summary shows the status table.
+1. **Submission Gate** runs on every PR (`opened`, `synchronize`, `reopened`, `ready_for_review`, and `edited`, which covers a change of base branch) and on every review (`submitted`, `edited`, `dismissed`). It has no path filter, so it always runs. Its job is named `evaluate`, and it never fails: it is a read-only preview whose job summary shows the status table.
 2. It checks out the **base commit**, not the PR, and loads its logic and policy from there. The one exception is the bootstrap PR that introduces the gate: the base has no gate yet, so the gate from the PR is used and a warning is logged.
-3. It lists the PR's changed files and picks the checks in `.github/submission-gate.yml` whose `branches` and `paths` match. These filters mirror each workflow's own `pull_request` trigger. `eng/submission-gate.test.mjs` fails if they drift apart.
+3. It lists the PR's changed files and picks the checks in `.github/submission-gate.yml` whose `branches` and `paths` match. These filters mirror each workflow's own `pull_request` trigger, and each includes the workflow file itself and the `eng/` scripts it runs, so a change to a check's implementation re-runs that check. `eng/submission-gate.test.mjs` fails if they drift apart.
 4. It polls the Actions runs for the PR head commit, every 30 seconds for up to 40 minutes. It stops early if a required check reports a contribution failure.
 5. When it starts and when it finishes, **Submission Gate Writer** runs through `workflow_run` with default-branch code. It rebuilds the evaluation from the GitHub API: it classifies the merge-risk tier, evaluates reviews against that tier's approval policy, and computes the PR state.
 6. The writer publishes the **`submission-gate` check run** on the PR head commit through the Checks API. The check is `in_progress` while checks are pending, and it **succeeds only when the state is `approved`**, meaning every required check passed and the tier's approvals are present. Otherwise it fails, and its summary lists the reasons.
@@ -27,7 +27,7 @@ Because a review re-runs the gate, the check turns green as soon as the last req
 
 The `submission-gate` check comes from the writer, not from a `pull_request` job, because a PR can edit its own `pull_request` workflows. See [Security model](#security-model). A PR therefore doesn't show `submission-gate` until the writer exists on `main`.
 
-The writer revalidates the PR head and reviews right before it writes. If the head moved or a review arrived during an evaluation, it discards that result and leaves the update to the newer run. The reader also discards its result if the head moved while it was waiting.
+The writer revalidates the PR head, base branch, reviews, and risk-raising labels (such as `needs-review:HIGH`) right before it writes. If any of them changed during an evaluation, it discards that result and leaves the update to the newer run. The reader also discards its result if the head moved while it was waiting.
 
 ### Checks
 
@@ -98,15 +98,14 @@ A PR is high risk if any of these apply:
 - **Any changed file matches a high-risk path:**
   - Review policy and automation: `.github/**` (includes workflows, `CODEOWNERS`, `.github/review-routing.yml`, `.github/risk-tiers.yml`, `.github/submission-gate.yml`), `CODEOWNERS`, `docs/CODEOWNERS`
   - Build and repository scripts: `eng/**`, `scripts/**`, `package.json`, `package-lock.json`
-  - Agentic workflows and hooks: `workflows/**`, `hooks/**`, `plugins/**/hooks/**`
   - MCP configuration: `**/mcp.json`, `**/.mcp.json`
-  - Bundled executables: `**/*.sh`, `**/*.bash`, `**/*.ps1`, `**/*.psm1`, `**/*.bat`, `**/*.cmd`, `**/*.py`, `skills/**/scripts/**`, `plugins/**/scripts/**`
+  - Bundled executables, including scripts shipped with hooks: `**/*.sh`, `**/*.bash`, `**/*.ps1`, `**/*.psm1`, `**/*.bat`, `**/*.cmd`, `**/*.py`, `skills/**/scripts/**`, `plugins/**/scripts/**`
   - External code sources: `plugins/external.json`
   - Generated `.github/plugin/marketplace.json` is excluded.
 - **An added diff line matches a capability trigger:**
   - Process execution (`child_process`, `spawn(`, `execSync(`, `eval(`, `new Function`, `node:vm`) in extensions, plugins, skills, or the website
   - Piping a downloaded script into a shell (`curl … | bash`, `irm … | iex`, `Invoke-Expression`)
-  - MCP server or hook `command` declarations in plugin, extension, or skill JSON
+  - MCP server or hook command declarations (`mcpServers`, `command`, `bash`, `powershell`) in plugin, extension, skill, or hook JSON
 - **Contributor risk is high:** the PR has the `needs-review:HIGH` label, or the contributor reputation artifact for the head commit reports `HIGH`. This signal can raise the tier but never lower it.
 - **The changes can't be fully scanned** (fail closed):
   - GitHub returned an incomplete changed-file list.
@@ -122,7 +121,7 @@ A PR is low risk if either of these applies:
 
 ### Medium
 
-Everything else, for example a new agent, skill, plugin, or canvas extension, or a larger rewrite of an existing resource.
+Everything else, for example a new agent, skill, plugin, or canvas extension, or a larger rewrite of an existing resource. Agentic workflows (`workflows/**`) and hooks (`hooks/**`) are content like any other resource and are medium unless they add a bundled script or a hook command, which makes them high.
 
 The status comment includes a collapsed "Why this tier" list with the reasons that applied.
 
@@ -132,7 +131,7 @@ The status comment includes a collapsed "Why this tier" list with the reasons th
 |---|---|
 | `merge-risk:low` | 1 approval from an owner of the changed resource: its domain pool, or the core pools for files outside every domain |
 | `merge-risk:medium` | 1 approval from a domain reviewer for the area touched |
-| `merge-risk:high` | 2 approvals, including a core or security maintainer |
+| `merge-risk:high` | 2 approvals, including a core maintainer |
 
 How approvals are counted:
 
@@ -147,15 +146,14 @@ Domain reviewers come from the Phase 1 routing file. The `domains` section of `.
 |---|---|---|
 | Canvas | `extensions/**` | `canvas` |
 | Plugin | `plugins/**` | `plugin` |
-| Content | `agents/**`, `instructions/**`, `skills/**` | `content` |
-| Workflow/security | `workflows/**`, `hooks/**`, `.github/workflows/**` | `workflow-security` |
+| Content | `agents/**`, `instructions/**`, `skills/**`, `workflows/**`, `hooks/**` | `content` |
 
-The core pools are `core-maintainers` and `workflow-security`. Members of a core pool also satisfy the domain and resource-owner requirements. Files outside every domain, such as `docs/**`, are owned by the core pools.
+The core pool is `core-maintainers`. Its members also satisfy the domain and resource-owner requirements. Files outside every domain, such as the repository's own `.github/workflows/**`, `eng/**`, review policy, and `docs/**`, are owned by the core pool.
 
 If routing isn't staffed yet, the gate falls back instead of blocking:
 
 - **`.github/review-routing.yml` missing, or the matching domain pools empty:** any approver with write access satisfies the domain or resource-owner requirement.
-- **Both core pools empty:** a high-risk PR needs one of its two approvals from a user with `admin` or `maintain` permission.
+- **`core-maintainers` pool empty:** a high-risk PR needs one of its two approvals from a user with `admin` or `maintain` permission.
 
 The status comment shows a note whenever a fallback is in effect.
 
@@ -210,16 +208,22 @@ Other details:
 
 - Runs waiting for a maintainer to approve workflows for first-time contributors (`action_required`) can't be re-run by a command; the reply says so.
 - Commands from bots, and from anyone else, are ignored silently.
-- The workflow reacts with 👀 and replies with a short summary.
+- The writer reacts with 👀 and replies with a short summary. The 👀 reaction also marks the comment as handled, so re-running the workflow doesn't repeat the command.
+
+Commands use the same reader/writer split as the gate, so they work on PRs from forks and from contributors without write access:
+
+1. **PR Commands** (`pr-commands.yml`) runs on `issue_comment` with a read-only token. If the comment is on an open PR and starts with a command, it uploads a `pr-command-request` artifact containing only the PR number, comment ID, and run ID.
+2. **PR Commands Writer** (`pr-commands-writer.yml`) runs on `workflow_run` with default-branch code and write permissions. It downloads the artifact, validates its schema and run ID, then re-reads the comment, the PR, and the commenter's permission from the API before it acts. It never trusts the comment body or author from the artifact.
 
 ## Security model
 
 - **Reader/writer split.** The reader runs in the `pull_request` context with a read-only token. It never writes labels, comments, or checks. **Submission Gate Writer** runs on `workflow_run`, hourly `schedule`, and `workflow_dispatch` with default-branch code. It rebuilds the whole evaluation from the GitHub API, so it doesn't trust artifacts from PR runs. It maps a run to a PR only when the head SHA, head repository, head branch, and base repository all match.
 - **The writer publishes the required check.** `pull_request` workflows load their YAML from the PR merge ref, so a PR could replace a `pull_request` job named `submission-gate` with one that always passes. The writer therefore publishes `submission-gate` itself through the Checks API, stamped with `external_id: submission-gate-writer`. Any other `submission-gate` check run on the head commit is treated as tampering: the PR becomes `merge-risk:high`, the gate fails with a "Gate integrity" contribution failure, and the writer publishes a newer failing run so its result is the latest.
+- **`external_id` is a marker, not proof of origin.** Any workflow with `checks: write` could create a run with the same `external_id`. Fork PRs get a read-only token and can't, but a push-triggered workflow on a same-repository branch could. On every run and on the hourly sweep, the writer overwrites any copy of its check that claims success while its own evaluation fails, and logs the correction. The durable fix is a maintainer follow-up: publish the check from a dedicated GitHub App and pin the ruleset's required check to that app, and require Code Owner review for `.github/**`.
 - **Only trusted code runs.** No workflow here executes PR code with a write token. The gate loads its logic from the base commit, except in the bootstrap case described above, which still has only a read-only token. The writer and command workflows check out the default branch and install dependencies with `npm ci --ignore-scripts`.
 - **Contributor reputation artifact.** It is used only as a raise-only signal. It must match schema `contributor-check-result/v1` and the PR head SHA.
-- **Untrusted text.** Comment bodies are read from the event payload and never interpolated into scripts. Reviewer logins, check names, and details are sanitized before they go into markdown.
-- **Tampering with other checks.** A PR can also edit the validation workflows the gate waits for. Any such edit touches `.github/**`, which makes the PR `merge-risk:high`: 2 approvals, including a core or security maintainer. The writer computes that tier from default-branch code.
+- **Untrusted text.** Comment bodies are never interpolated into scripts: the reader passes them through environment variables, and the writer re-reads them from the API. Reviewer logins, check names, and details are sanitized before they go into markdown.
+- **Tampering with other checks.** A PR can also edit the validation workflows the gate waits for. Any such edit touches `.github/**`, which makes the PR `merge-risk:high`: 2 approvals, including a core maintainer. The writer computes that tier from default-branch code.
 - **Check source.** Check runs created with `GITHUB_TOKEN` belong to the GitHub Actions app, the same app as `pull_request` jobs. Requiring `submission-gate` from GitHub Actions in the ruleset blocks other apps and commit statuses; impostor detection covers jobs in the same app.
 - **Events.** Check runs created with `GITHUB_TOKEN` don't trigger `check_run` workflows. Automation that reacts to the gate should listen for `workflow_run` on **Submission Gate Writer**.
 - **Rate limits.** The hourly writer sweep refreshes at most 60 open PRs updated in the last 30 days, so a large backlog stays within API rate limits.
@@ -231,4 +235,6 @@ These steps need repository-admin action and are not done by automation:
 - **Require `submission-gate`** in the `main` ruleset, with GitHub Actions as the source. The writer publishes this check after this change merges; until then no PR reports it.
 - **Create the new labels** by running the **Setup Repository Labels** workflow: `awaiting-automation`, `review-in-progress`, `merge-risk:*`.
 - **Staff the pools** in `.github/review-routing.yml` so the domain and core requirements stop using fallbacks.
+- **Harden the check source:** publish `submission-gate` from a dedicated GitHub App and require it from that app in the ruleset, so no other workflow can post a matching check.
+- **Require Code Owner review** for `.github/**` once Phase 1's `CODEOWNERS` lands.
 - **Fix PR Quality Signal auth:** add `copilot-requests: write` to `.github/workflows/pr-quality-signal.md` and recompile with gh-aw v0.88.8.

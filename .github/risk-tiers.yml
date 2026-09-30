@@ -29,13 +29,12 @@ high:
     - "scripts/**"
     - "package.json"
     - "package-lock.json"
-    # Agentic workflows and hooks
-    - "workflows/**"
-    - "hooks/**"
     # MCP server configuration
     - "**/mcp.json"
     - "**/.mcp.json"
-    # Bundled executable scripts
+    # Bundled executable scripts (hooks, skills, and plugins). Agentic workflow
+    # sources (`workflows/**`) and hook metadata (`hooks/**`) are content; a hook
+    # command in hooks.json is caught by the `mcp-server-command` capability.
     - "**/*.sh"
     - "**/*.bash"
     - "**/*.ps1"
@@ -45,7 +44,6 @@ high:
     - "**/*.py"
     - "skills/**/scripts/**"
     - "plugins/**/scripts/**"
-    - "plugins/**/hooks/**"
     # Plugin marketplace sources for externally hosted code
     - "plugins/external.json"
   # Generated output that lives under a high-risk path but is safe to regenerate.
@@ -62,8 +60,8 @@ high:
       pattern: "(curl|wget)[^\\n|]*\\|\\s*(sudo\\s+)?(ba|z)?sh\\b|(iwr|irm|Invoke-WebRequest|Invoke-RestMethod)[^\\n|]*\\|\\s*(iex|Invoke-Expression)|Invoke-Expression"
     - id: mcp-server-command
       description: Declares an MCP server or hook command
-      files: ["plugins/**/*.json", "extensions/**/*.json", "skills/**/*.json"]
-      pattern: "\"(mcpServers|command)\"\\s*:"
+      files: ["plugins/**/*.json", "extensions/**/*.json", "skills/**/*.json", "hooks/**/*.json"]
+      pattern: "\"(mcpServers|command|bash|powershell)\"\\s*:"
   # Files whose missing diff is acceptable: binaries GitHub never diffs, and generated
   # documentation whose sources are scanned. Other files in a capability's scope without
   # a diff (binary or too large) fail closed to high because their added lines can't be scanned.
@@ -143,13 +141,12 @@ domains:
     paths: ["plugins/**"]
     pools: ["plugin"]
   content:
-    paths: ["agents/**", "instructions/**", "skills/**"]
+    paths: ["agents/**", "instructions/**", "skills/**", "workflows/**", "hooks/**"]
     pools: ["content"]
-  workflow-security:
-    paths: ["workflows/**", "hooks/**", ".github/workflows/**"]
-    pools: ["workflow-security"]
+# Files outside every domain (repository automation such as `.github/workflows/**`,
+# `eng/**`, review policy, and docs) are owned by the core pools.
 
-# Routing pools whose members count as core or security maintainers for high-risk
-# approvals. Until those pools are staffed, users with admin or maintain permission
-# on the repository count instead.
-core_pools: ["core-maintainers", "workflow-security"]
+# Routing pools whose members count as core maintainers for high-risk approvals.
+# Until those pools are staffed, users with admin or maintain permission on the
+# repository count instead.
+core_pools: ["core-maintainers"]

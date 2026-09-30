@@ -461,8 +461,8 @@ A required check called `submission-gate` tracks your PR. A bot keeps one status
 **Risk tiers.** Each PR also gets a `merge-risk:low`, `merge-risk:medium`, or `merge-risk:high` label. The tier sets how many approvals are needed:
 
 - **Low:** docs, and small edits to existing resources.
-- **Medium:** new resources.
-- **High:** workflows, hooks, scripts, MCP config, or review policy files.
+- **Medium:** new resources, including agentic workflows and hooks.
+- **High:** bundled scripts, hook commands, MCP config, repository automation (`.github/`, `eng/`), or review policy files.
 
 **Commands.** As the PR author, you can start a comment with one of these commands:
 

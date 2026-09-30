@@ -78,6 +78,10 @@ checks:
       - "README.md"
       - "docs/**"
       - "skills/**"
+      - "eng/update-readme.mjs"
+      - "eng/generate-marketplace.mjs"
+      - "eng/validate-plugins.mjs"
+      - ".github/workflows/validate-readme.yml"
     required: true
     contribution_steps: ["^Validate plugins$", "^Update README", "^Fail workflow if files need updating$"]
     hint: Run `npm start` locally and commit the regenerated files.
@@ -101,6 +105,8 @@ checks:
     branches: [main]
     paths:
       - "extensions/**"
+      - "eng/validate-plugins.mjs"
+      - ".github/workflows/validate-canvas-extensions.yml"
     required: true
     contribution_steps: ["^Validate changed extensions$"]
     hint: Run `npm run plugin:validate` locally and fix the reported errors.
@@ -111,6 +117,7 @@ checks:
     branches: [main]
     paths:
       - "plugins/**"
+      - ".github/workflows/check-plugin-structure.yml"
     required: true
     contribution_steps: ["materialized files"]
     hint: Remove materialized or symlinked files from the plugin directory.
@@ -122,6 +129,8 @@ checks:
     paths:
       - "skills/**"
       - "eng/validate-skills.mjs"
+      - "eng/yaml-parser.mjs"
+      - ".github/workflows/validate-skills.yml"
     required: true
     contribution_steps: ["^Validate skills$"]
     hint: Run `npm run skill:validate` locally and fix the reported errors.
@@ -135,6 +144,7 @@ checks:
       - "agents/**"
       - "plugins/**/skills/**"
       - "plugins/**/agents/**"
+      - ".github/workflows/skill-check.yml"
     required: true
     failure_kind: infrastructure
 
@@ -158,6 +168,7 @@ checks:
     branches: [main]
     paths:
       - "workflows/**"
+      - ".github/workflows/validate-agentic-workflows-pr.yml"
     required: true
     contribution_steps: ["^Check for forbidden files$", "^Compile workflow files$"]
     hint: Only add `.md` sources under `workflows/` and make sure `gh aw compile --validate` passes.
@@ -173,6 +184,8 @@ checks:
       - "plugins/**"
       - "hooks/**"
       - "instructions/**"
+      - "eng/pr-risk-scan.mjs"
+      - ".github/workflows/pr-risk-scan.yml"
     required: true
     failure_kind: infrastructure
 
