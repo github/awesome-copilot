@@ -13,8 +13,12 @@ import {
   inspectExtensionFiles,
   inspectPng,
   parseEsModule,
+  isSafeExtensionId,
+  readRegularFile,
   renderMarkdownReport,
   runCanvasSmokeTest,
+  stripComments,
+  unsafeExtensionRefs,
   unsafePathReason,
 } from "./canvas-smoke-test.mjs";
 
@@ -373,4 +377,95 @@ test("removed canvas paths are validated instead of skipped", async () => {
   });
   assert.equal(cleanReport.status, "pass");
   assert.match(renderMarkdownReport(cleanReport), /removed extensions/);
+});
+
+test("stripComments keeps string, template, and regex literals that contain comment markers", () => {
+  const source = [
+    'const s = "x//y"; await import("./a.mjs");',
+    "const t = `/* ${'//'} */`; await import(\"./b.mjs\");",
+    'const r = /\\/\\*/; await import("./c.mjs");',
+    '// await import("./hidden.mjs");',
+    '/* await import("./hidden2.mjs"); */',
+    'const q = a / b; const w = c / d; await import("./d.mjs");',
+  ].join("\n");
+  const text = stripComments(source);
+  for (const name of ["a", "b", "c", "d"]) assert.match(text, new RegExp(`import\\("\\./${name}\\.mjs"\\)`));
+  assert.doesNotMatch(text, /hidden/);
+  assert.equal(text.split("\n").length, source.split("\n").length);
+});
+
+test("checkExtensionModules follows imports placed after strings containing //", () => {
+  const root = makeRepo({
+    "extensions/str/extension.mjs": 'const s = "x//y"; const w = await import("./worker.mjs");\nexport default { s, w };\n',
+    "extensions/str/worker.mjs": 'import pad from "left-pad";\nexport default pad;\n',
+  });
+  const result = checkExtensionModules(path.join(root, "extensions", "str"));
+  assert.match(result.errors.join("\n"), /worker\.mjs: import "left-pad" is not a Node\.js builtin/);
+  assert.ok(result.modules.find((entry) => entry.path === "worker.mjs").reachable);
+});
+
+test("readRegularFile and checkExtensionModules refuse symlinked files", (t) => {
+  const root = makeRepo({
+    "outside/secret.txt": "secret\n",
+    "extensions/link/extension.mjs": 'import x from "./lib.mjs";\nexport default x;\n',
+  });
+  const extensionDir = path.join(root, "extensions", "link");
+  try {
+    fs.symlinkSync(path.join(root, "outside", "secret.txt"), path.join(extensionDir, "lib.mjs"));
+    fs.symlinkSync(path.join(root, "outside", "secret.txt"), path.join(extensionDir, "package.json"));
+  } catch (error) {
+    if (["EPERM", "EACCES"].includes(error.code)) return t.skip("symlinks unavailable");
+    throw error;
+  }
+  assert.match(readRegularFile(path.join(extensionDir, "lib.mjs")).error, /symbolic link/);
+  const errors = checkExtensionModules(extensionDir).errors.join("\n");
+  assert.match(errors, /package\.json/);
+  assert.match(errors, /lib\.mjs/);
+  assert.doesNotMatch(errors, /secret/);
+});
+
+test("readRegularFile enforces the size cap and containment root", () => {
+  const root = makeRepo({ "a/big.json": "x".repeat(64), "b/ok.json": "{}" });
+  assert.match(readRegularFile(path.join(root, "a", "big.json"), { maxBytes: 10 }).error, /limit/);
+  assert.match(readRegularFile(path.join(root, "b", "ok.json"), { root: path.join(root, "a") }).error, /outside/);
+  assert.equal(readRegularFile(path.join(root, "b", "ok.json"), { root: path.join(root, "b") }).text, "{}");
+  assert.equal(readRegularFile(path.join(root, "b", "missing.json")).missing, true);
+});
+
+test("detectCanvasTargets still validates a plugin whose plugin.json was deleted", async () => {
+  const root = makeRepo({
+    "extensions/orb/extension.mjs": "export {};\n",
+    "extensions/orb/assets/preview.png": makePng(800, 400),
+  });
+  const targets = detectCanvasTargets(["plugins/orb/plugin.json"], { rootDir: root });
+  assert.deepEqual(targets.plugins, ["orb"]);
+  assert.deepEqual(targets.extensions, ["orb"]);
+  const report = await runCanvasSmokeTest({ rootDir: root, changedFiles: ["plugins/orb/plugin.json"], install: "never" });
+  assert.equal(report.status, "fail");
+});
+
+test("unsafe extension references in plugin manifests are rejected and never materialized", async () => {
+  assert.equal(isSafeExtensionId("orb"), true);
+  for (const id of ["..", "../x", "a/b", "", ".hidden"]) assert.equal(isSafeExtensionId(id), false, id);
+  const manifest = {
+    $schema: PLUGIN_SCHEMA,
+    name: "evil",
+    description: "evil",
+    version: "1.0.0",
+    extensions: { "com.github.awesome-copilot": { extensions: ["./extensions/../../x", "./extensions/ok"] } },
+  };
+  assert.deepEqual(unsafeExtensionRefs(manifest), ["./extensions/../../x"]);
+  const root = makeRepo({
+    "plugins/evil/plugin.json": manifest,
+    "extensions/ok/extension.mjs": "export {};\n",
+    "extensions/ok/assets/preview.png": makePng(800, 400),
+  });
+  const targets = detectCanvasTargets(["plugins/evil/plugin.json"], { rootDir: root });
+  assert.deepEqual(targets.plugins, ["evil"]);
+  assert.deepEqual(targets.extensions, ["ok"]);
+  const report = await runCanvasSmokeTest({ rootDir: root, changedFiles: ["plugins/evil/plugin.json"], install: "never" });
+  assert.equal(report.status, "fail");
+  const pluginErrors = report.plugins.flatMap((plugin) => plugin.errors).join("\n");
+  assert.match(pluginErrors, /\.\/extensions\/\.\.\/\.\.\/x/);
+  assert.notEqual(report.smoke.materialize.evil?.status, "pass");
 });

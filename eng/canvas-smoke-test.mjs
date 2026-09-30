@@ -76,12 +76,55 @@ function isInside(parent, child) {
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
 
-function readJson(filePath) {
+function readJson(filePath, { root } = {}) {
   try {
-    return { value: JSON.parse(fs.readFileSync(filePath, "utf8")) };
+    const read = readRegularFile(filePath, { root });
+    if (read.error) return { error: `${path.basename(filePath)} ${read.error}` };
+    return { value: JSON.parse(read.text) };
   } catch (error) {
     return { error: error.message };
   }
+}
+
+export const MAX_TEXT_FILE_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Read a file without following symlinks, refusing devices, FIFOs, oversized
+ * files, and anything that resolves outside `root`. Returns { text } or { error }.
+ */
+export function readRegularFile(filePath, { root, maxBytes = MAX_TEXT_FILE_BYTES } = {}) {
+  let stat;
+  try {
+    stat = fs.lstatSync(filePath);
+  } catch (error) {
+    return { error: `cannot be read (${error.code ?? error.message})`, missing: error.code === "ENOENT" };
+  }
+  if (stat.isSymbolicLink()) return { error: "is a symbolic link" };
+  if (!stat.isFile()) return { error: "is not a regular file" };
+  if (root && !isInside(fs.realpathSync(root), fs.realpathSync(filePath))) return { error: "resolves outside its directory" };
+  if (stat.size > maxBytes) return { error: `is ${formatBytes(stat.size)}; the limit is ${formatBytes(maxBytes)}` };
+  const fd = fs.openSync(filePath, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
+  try {
+    const buffer = Buffer.alloc(stat.size);
+    let offset = 0;
+    while (offset < stat.size) {
+      const bytesRead = fs.readSync(fd, buffer, offset, stat.size - offset, offset);
+      if (bytesRead === 0) break;
+      offset += bytesRead;
+    }
+    return { text: buffer.subarray(0, offset).toString("utf8") };
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+/** Why an extension directory cannot be inspected safely, or null. */
+function extensionDirProblem(extensionDir) {
+  const stat = fs.lstatSync(extensionDir, { throwIfNoEntry: false });
+  if (!stat) return "extension directory is missing";
+  if (stat.isSymbolicLink()) return "extension directory must not be a symbolic link";
+  if (!stat.isDirectory()) return "extension path is not a directory";
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -376,11 +419,123 @@ export function parseCommonJs(source, identifier = "module.cjs") {
   }
 }
 
-// Best-effort removal of comments so commented-out imports are not reported.
-function stripComments(source) {
-  return source
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
+const REGEX_PREFIX_CHARS = new Set("(,=:[!&|?{};+-*%<>~^".split(""));
+const REGEX_PREFIX_WORDS = new Set(["return", "typeof", "instanceof", "case", "do", "else", "in", "of", "new", "delete", "void", "throw", "yield", "await"]);
+const IDENTIFIER_CHAR = /[\w$]/;
+
+/**
+ * Blank out comments while leaving string, template, and regex literals
+ * intact, so `"a//b"` or `/\/\*x/` cannot hide the code that follows.
+ * Offsets and line breaks are preserved.
+ */
+export function stripComments(source) {
+  const n = source.length;
+  const blank = (text) => text.replace(/[^\n]/g, " ");
+  const templateStack = [];
+  let out = "";
+  let i = 0;
+  let braceDepth = 0;
+  let lastSignificant = "";
+  let lastWord = "";
+
+  const scanTemplate = (start) => {
+    let j = start;
+    while (j < n) {
+      const c = source[j];
+      if (c === "\\") { j += 2; continue; }
+      if (c === "`") { j++; out += source.slice(start, j); lastSignificant = "`"; lastWord = ""; return j; }
+      if (c === "$" && source[j + 1] === "{") {
+        j += 2;
+        templateStack.push(braceDepth);
+        braceDepth++;
+        out += source.slice(start, j);
+        lastSignificant = "{"; lastWord = "";
+        return j;
+      }
+      j++;
+    }
+    out += source.slice(start, n);
+    return n;
+  };
+
+  const regexAllowed = () => {
+    if (lastSignificant === "") return true;
+    if (IDENTIFIER_CHAR.test(lastSignificant)) return REGEX_PREFIX_WORDS.has(lastWord);
+    return REGEX_PREFIX_CHARS.has(lastSignificant);
+  };
+
+  while (i < n) {
+    const ch = source[i];
+    const next = source[i + 1];
+    if (ch === "/" && next === "/") {
+      let j = source.indexOf("\n", i);
+      if (j === -1) j = n;
+      out += blank(source.slice(i, j));
+      i = j;
+      continue;
+    }
+    if (ch === "/" && next === "*") {
+      let j = source.indexOf("*/", i + 2);
+      j = j === -1 ? n : j + 2;
+      out += blank(source.slice(i, j));
+      i = j;
+      continue;
+    }
+    if (ch === "'" || ch === '"') {
+      let j = i + 1;
+      while (j < n && source[j] !== ch && source[j] !== "\n") j += source[j] === "\\" ? 2 : 1;
+      j = Math.min(j + 1, n);
+      out += source.slice(i, j);
+      i = j;
+      lastSignificant = ch; lastWord = "";
+      continue;
+    }
+    if (ch === "`") {
+      out += ch;
+      i = scanTemplate(i + 1);
+      continue;
+    }
+    if (ch === "/" && regexAllowed()) {
+      let j = i + 1;
+      let inClass = false;
+      while (j < n && source[j] !== "\n") {
+        const c = source[j];
+        if (c === "\\") { j += 2; continue; }
+        if (inClass) { if (c === "]") inClass = false; }
+        else if (c === "[") inClass = true;
+        else if (c === "/") { j++; break; }
+        j++;
+      }
+      while (j < n && /[a-z]/i.test(source[j])) j++;
+      out += source.slice(i, j);
+      i = j;
+      lastSignificant = "a"; lastWord = "";
+      continue;
+    }
+    if (ch === "{") braceDepth++;
+    if (ch === "}") {
+      braceDepth--;
+      if (templateStack.length && templateStack[templateStack.length - 1] === braceDepth) {
+        templateStack.pop();
+        out += ch;
+        i = scanTemplate(i + 1);
+        continue;
+      }
+    }
+    if (IDENTIFIER_CHAR.test(ch)) {
+      let j = i;
+      while (j < n && IDENTIFIER_CHAR.test(source[j])) j++;
+      lastWord = source.slice(i, j);
+      lastSignificant = source[j - 1];
+      out += lastWord;
+      i = j;
+      continue;
+    }
+    if (!/\s/.test(ch)) { lastSignificant = ch; lastWord = ""; }
+    out += ch;
+    i++;
+  }
+  return out;
 }
 
 function literalCallSpecifiers(source, pattern) {
@@ -503,6 +658,11 @@ export function inspectExtensionFiles(extensionDir, { rootDir = DEFAULT_ROOT, fi
   const warnings = [];
   const inventory = [];
   const relativeExtensionDir = toPosix(path.relative(rootDir, extensionDir));
+  const dirProblem = extensionDirProblem(extensionDir);
+  if (dirProblem) {
+    errors.push(dirProblem);
+    return { errors, warnings, inventory };
+  }
   const modes = fileModes ?? gitFileModes(rootDir, relativeExtensionDir);
 
   for (const { fullPath, entry } of listFiles(extensionDir)) {
@@ -571,16 +731,26 @@ export function checkExtensionModules(extensionDir) {
   const sourceCapabilities = new Set();
   const packageJsonPath = path.join(extensionDir, "package.json");
   let packageJson = {};
-  if (fs.existsSync(packageJsonPath)) {
-    const parsed = readJson(packageJsonPath);
-    if (parsed.error) errors.push(`package.json: invalid JSON (${parsed.error})`);
+  const dirProblem = extensionDirProblem(extensionDir);
+  if (dirProblem) {
+    errors.push(dirProblem);
+    return { errors, warnings, modules: [], builtins: [], externalPackages: [], sourceCapabilities: [], packageJson };
+  }
+  if (fs.lstatSync(packageJsonPath, { throwIfNoEntry: false })) {
+    const parsed = readJson(packageJsonPath, { root: extensionDir });
+    if (parsed.error) errors.push(`package.json: invalid (${parsed.error})`);
     else packageJson = parsed.value ?? {};
   }
   const packageType = packageJson.type === "module" ? "module" : "commonjs";
 
   const entry = path.join(extensionDir, "extension.mjs");
-  if (!fs.existsSync(entry)) {
+  const entryStat = fs.lstatSync(entry, { throwIfNoEntry: false });
+  if (!entryStat) {
     errors.push("extension.mjs: entry point is missing");
+    return { errors, warnings, modules: [], builtins: [], externalPackages: [], sourceCapabilities: [], packageJson };
+  }
+  if (entryStat.isSymbolicLink() || !entryStat.isFile()) {
+    errors.push("extension.mjs: entry point must be a regular file (not a symbolic link or device)");
     return { errors, warnings, modules: [], builtins: [], externalPackages: [], sourceCapabilities: [], packageJson };
   }
 
@@ -594,8 +764,14 @@ export function checkExtensionModules(extensionDir) {
   const parsedModules = new Map();
   const parseFile = (filePath) => {
     if (parsedModules.has(filePath)) return parsedModules.get(filePath);
-    const source = fs.readFileSync(filePath, "utf8");
     const relative = toPosix(path.relative(extensionDir, filePath));
+    const read = readRegularFile(filePath, { root: extensionDir });
+    if (read.error) {
+      const record = { path: relative, esm: true, source: "", ok: false, unreadable: true, error: `file ${read.error}`, specifiers: [], dynamic: [] };
+      parsedModules.set(filePath, record);
+      return record;
+    }
+    const source = read.text;
     const esm = isModuleFile(filePath, packageType);
     const parsed = esm ? parseEsModule(source, relative) : parseCommonJs(source, relative);
     const record = { path: relative, esm, source, ...parsed, dynamic: findDynamicImportSpecifiers(source) };
@@ -610,7 +786,11 @@ export function checkExtensionModules(extensionDir) {
     if (reachable.has(filePath)) continue;
     reachable.add(filePath);
     const record = parseFile(filePath);
-    if (!record.ok) continue;
+    if (!record.ok) {
+      // Symlinked or non-regular targets are not in moduleFiles, so report them here.
+      if (record.unreadable && !moduleFiles.includes(filePath)) errors.push(`${record.path}: ${record.error}`);
+      continue;
+    }
     for (const specifier of record.specifiers) {
       const resolved = validateSpecifier(specifier, filePath, record.path, { strict: true, commonjs: !record.esm });
       if (resolved && MODULE_EXTENSIONS.has(path.extname(resolved))) queue.push(resolved);
@@ -625,14 +805,14 @@ export function checkExtensionModules(extensionDir) {
   for (const filePath of moduleFiles) {
     let record = parseFile(filePath);
     const isReachable = reachable.has(filePath);
-    if (!record.ok && !isReachable) {
+    if (!record.ok && !isReachable && !record.unreadable) {
       // Unreachable files are often browser assets served to the canvas webview,
       // so accept them if they parse in either module flavour.
       const alternate = record.esm ? parseCommonJs(record.source, record.path) : parseEsModule(record.source, record.path);
       if (alternate.ok) record = { ...record, ...alternate, esm: !record.esm, error: undefined };
     }
     if (!record.ok) {
-      errors.push(`${record.path}: syntax error — ${record.error}`);
+      errors.push(record.unreadable ? `${record.path}: ${record.error}` : `${record.path}: syntax error — ${record.error}`);
       continue;
     }
     if (!isReachable) {
@@ -771,13 +951,20 @@ export function describeCapabilities(builtins, sourceCapabilities, externalPacka
 export function checkPreview(extensionDir, { minWidth, minHeight }) {
   const previewPath = path.join(extensionDir, "assets", "preview.png");
   const result = { path: "assets/preview.png", exists: false, errors: [], warnings: [] };
-  if (!fs.existsSync(previewPath)) {
+  const dirProblem = extensionDirProblem(extensionDir);
+  if (dirProblem) {
+    result.errors.push(dirProblem === "extension directory is missing"
+      ? "assets/preview.png is missing"
+      : "assets/preview.png cannot be inspected: extension directory is not a regular directory");
+    return result;
+  }
+  const stat = fs.lstatSync(previewPath, { throwIfNoEntry: false });
+  if (!stat) {
     result.errors.push("assets/preview.png is missing");
     return result;
   }
   result.exists = true;
-  const stat = fs.lstatSync(previewPath);
-  if (stat.isSymbolicLink() || !stat.isFile()) {
+  if (stat.isSymbolicLink() || !stat.isFile() || !isInside(fs.realpathSync(extensionDir), fs.realpathSync(previewPath))) {
     result.errors.push("assets/preview.png must be a regular file");
     return result;
   }
@@ -808,8 +995,8 @@ function readPluginManifests(rootDir) {
   for (const entry of fs.readdirSync(pluginsDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const manifestPath = path.join(pluginsDir, entry.name, "plugin.json");
-    if (!fs.existsSync(manifestPath)) continue;
-    const parsed = readJson(manifestPath);
+    if (!fs.lstatSync(manifestPath, { throwIfNoEntry: false })) continue;
+    const parsed = readJson(manifestPath, { root: path.join(pluginsDir, entry.name) });
     manifests.set(entry.name, parsed.error ? { parseError: parsed.error } : parsed.value);
   }
   return manifests;
@@ -819,17 +1006,34 @@ function isExtensionDir(rootDir, name) {
   return fs.existsSync(path.join(rootDir, "extensions", name, "extension.mjs"));
 }
 
+const SAFE_EXTENSION_ID = /^[a-z0-9][a-z0-9._-]*$/i;
+
+/** A single path segment that stays inside extensions/ (no `..`, separators, or absolute paths). */
+export function isSafeExtensionId(id) {
+  return typeof id === "string" && SAFE_EXTENSION_ID.test(id) && !id.includes("..");
+}
+
+/** Extension references in a plugin manifest that are not safe single-segment IDs. */
+export function unsafeExtensionRefs(manifest) {
+  const refs = manifest?.extensions?.[AWESOME_COPILOT_NAMESPACE]?.extensions;
+  if (!Array.isArray(refs)) return [];
+  return refs.filter((ref) => typeof ref !== "string"
+    || !ref.startsWith("./extensions/")
+    || !isSafeExtensionId(ref.replace(/^\.\/extensions\//, "").replace(/\/$/, "")));
+}
+
 export function pluginExtensionIds(rootDir, pluginDir, manifest) {
   const ids = new Set();
   const refs = manifest?.extensions?.[AWESOME_COPILOT_NAMESPACE]?.extensions;
   if (Array.isArray(refs)) {
     for (const ref of refs) {
       if (typeof ref === "string" && ref.startsWith("./extensions/")) {
-        ids.add(ref.replace(/^\.\/extensions\//, "").replace(/\/$/, ""));
+        const id = ref.replace(/^\.\/extensions\//, "").replace(/\/$/, "");
+        if (isSafeExtensionId(id)) ids.add(id);
       }
     }
   }
-  if (isExtensionDir(rootDir, pluginDir)) ids.add(pluginDir);
+  if (isSafeExtensionId(pluginDir) && isExtensionDir(rootDir, pluginDir)) ids.add(pluginDir);
   return [...ids].sort();
 }
 
@@ -850,11 +1054,17 @@ export function detectCanvasTargets(changedFiles, { rootDir = DEFAULT_ROOT } = {
       // deleted, so removing the entry point cannot skip the check.
       if (fs.existsSync(path.join(rootDir, "extensions", parts[1]))) extensions.add(parts[1]);
       else removedExtensions.add(parts[1]);
-    } else if (parts[0] === "plugins" && parts.length >= 3 && manifests.has(parts[1])) {
-      const ids = pluginExtensionIds(rootDir, parts[1], manifests.get(parts[1]));
-      if (ids.length > 0) {
+    } else if (parts[0] === "plugins" && parts.length >= 3) {
+      // A deleted plugin.json leaves no manifest, but the plugin is still
+      // checked when it has a direct extension so checkPluginManifest reports it.
+      const manifest = manifests.get(parts[1]);
+      const ids = manifest ? pluginExtensionIds(rootDir, parts[1], manifest) : [];
+      const directExtension = isSafeExtensionId(parts[1]) && isExtensionDir(rootDir, parts[1]);
+      const unsafeRefs = manifest ? unsafeExtensionRefs(manifest) : [];
+      if (ids.length > 0 || directExtension || unsafeRefs.length > 0) {
         plugins.add(parts[1]);
         ids.filter((id) => isExtensionDir(rootDir, id)).forEach((id) => extensions.add(id));
+        if (directExtension) extensions.add(parts[1]);
       }
     }
   }
@@ -893,6 +1103,9 @@ function checkPluginManifest(rootDir, pluginDir, manifest) {
   }
   for (const finding of findUnsafeManifestPaths(manifest)) {
     errors.push(`plugins/${pluginDir}/plugin.json ${finding.field}: unsafe ${finding.reason} (${finding.value})`);
+  }
+  for (const ref of unsafeExtensionRefs(manifest)) {
+    errors.push(`plugins/${pluginDir}/plugin.json extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions: invalid extension reference ${JSON.stringify(ref)} (expected "./extensions/<id>" with a single safe segment)`);
   }
   const logo = manifest.extensions?.[COPILOT_NAMESPACE]?.logo;
   if (isExtensionDir(rootDir, pluginDir) && logo !== "assets/preview.png") {
@@ -980,6 +1193,10 @@ export async function runSmokeTest(pluginDirs, { rootDir = DEFAULT_ROOT, workDir
       results.materialize[pluginDir] = { status: "fail", errors: ["plugin.json is missing or invalid"] };
       continue;
     }
+    if (!isSafeExtensionId(pluginDir) || unsafeExtensionRefs(manifest).length > 0) {
+      results.materialize[pluginDir] = { status: "fail", errors: ["plugin.json has unsafe plugin or extension references; not materialized"] };
+      continue;
+    }
     copyPath(path.join(rootDir, "plugins", pluginDir), path.join(repoCopy, "plugins", pluginDir));
     const composition = manifest.extensions?.[AWESOME_COPILOT_NAMESPACE] ?? {};
     for (const field of ["agents", "hooks", "skills"]) {
@@ -990,6 +1207,7 @@ export async function runSmokeTest(pluginDirs, { rootDir = DEFAULT_ROOT, workDir
     }
     for (const id of pluginExtensionIds(rootDir, pluginDir, manifest)) {
       const source = path.join(rootDir, "extensions", id);
+      if (!isInside(path.join(rootDir, "extensions"), source)) continue;
       if (fs.existsSync(source)) copyPath(source, path.join(repoCopy, "extensions", id));
     }
     copyable.push(pluginDir);
@@ -1168,13 +1386,13 @@ export async function runCanvasSmokeTest({
     const modules = checkExtensionModules(extensionDir);
     const files = inspectExtensionFiles(extensionDir, { rootDir });
     const preview = checkPreview(extensionDir, { minWidth, minHeight });
-    const errors = [...modules.errors, ...files.errors, ...preview.errors];
+    const errors = [...new Set([...modules.errors, ...files.errors, ...preview.errors])];
     const warnings = [...modules.warnings, ...files.warnings, ...preview.warnings];
 
     for (const manifestName of ["package.json", "copilot-extension.json"]) {
       const manifestPath = path.join(extensionDir, manifestName);
-      if (!fs.existsSync(manifestPath)) continue;
-      const parsed = readJson(manifestPath);
+      if (!fs.lstatSync(manifestPath, { throwIfNoEntry: false })) continue;
+      const parsed = readJson(manifestPath, { root: extensionDir });
       if (parsed.error) {
         if (manifestName !== "package.json") errors.push(`${manifestName}: invalid JSON (${parsed.error})`);
         continue;
