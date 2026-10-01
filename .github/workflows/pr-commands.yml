@@ -1,0 +1,53 @@
+name: PR Commands
+
+# Read-only reader for contributor and maintainer commands on pull requests:
+#   /rerun-checks    re-run failed or incomplete checks and re-evaluate the submission gate
+#   /request-review  ask reviewer routing to assign a reviewer (adds `needs-reviewer`)
+# This workflow has no write access. It records which comment asked for a command and
+# uploads that as an artifact; pr-commands-writer.yml re-reads the comment, the PR, and
+# the commenter's permission from the API and performs the writes.
+# The comment body is never interpolated into scripts. See docs/maintainers/submission-gate.md.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  record-command:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.issue.state == 'open' &&
+      github.event.comment.user.type != 'Bot' &&
+      (startsWith(github.event.comment.body, '/rerun-checks') || startsWith(github.event.comment.body, '/request-review'))
+    steps:
+      - name: Record command request
+        env:
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pr-command-request"
+          node -e '
+            const fs = require("fs");
+            const request = {
+              schema_version: "pr-command-request/v1",
+              pr_number: Number(process.env.PR_NUMBER),
+              comment_id: Number(process.env.COMMENT_ID),
+              run_id: process.env.RUN_ID,
+            };
+            fs.writeFileSync(process.argv[1], JSON.stringify(request) + "\n");
+          ' "$RUNNER_TEMP/pr-command-request/request.json"
+
+      - name: Upload command request
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pr-command-request
+          path: ${{ runner.temp }}/pr-command-request/request.json
+          if-no-files-found: error
+          retention-days: 3
