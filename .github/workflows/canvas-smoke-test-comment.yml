@@ -131,7 +131,7 @@ jobs:
               per_page: 100,
             });
             const existing = comments.find((comment) =>
-              comment.user?.type === 'Bot' && comment.body?.includes(marker));
+              comment.user?.login === 'github-actions[bot]' && comment.body?.includes(marker));
 
             if (status === 'skipped' && !existing) {
               core.info('No canvas changes and no previous comment. Nothing to post.');

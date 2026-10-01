@@ -295,8 +295,16 @@ export function inspectPng(buffer) {
     } else if (type === "IDAT") {
       idat.push(data);
     } else if (type === "IEND") {
+      if (length !== 0) {
+        result.errors.push("IEND chunk has invalid length");
+        return result;
+      }
       sawEnd = true;
       offset = dataEnd + 4;
+      if (offset !== buffer.length) {
+        result.errors.push("data appears after the IEND chunk");
+        return result;
+      }
       break;
     }
     offset = dataEnd + 4;
@@ -579,6 +587,30 @@ export function findRequireSpecifiers(source) {
   return literalCallSpecifiers(source, /(?<![.\w$])require\s*\(\s*(['"])([^'"\n]+)\1\s*\)/g);
 }
 
+export function findNonLiteralRuntimeLoads(source) {
+  const text = stripComments(source, { maskLiterals: true });
+  const loads = [];
+  const patterns = [
+    {
+      label: "dynamic import",
+      call: /\bimport\s*\(/g,
+      literal: /^import\s*\(\s*(['"])\s*\1\s*\)/,
+    },
+    {
+      label: "require",
+      call: /(?<![.\w$])require\s*\(/g,
+      literal: /^require\s*\(\s*(['"])\s*\1\s*\)/,
+    },
+  ];
+  for (const { label, call, literal } of patterns) {
+    let match;
+    while ((match = call.exec(text))) {
+      if (!literal.test(text.slice(match.index))) loads.push(label);
+    }
+  }
+  return loads;
+}
+
 export function packageNameFromSpecifier(specifier) {
   const parts = specifier.split("/");
   return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
@@ -813,7 +845,14 @@ export function checkExtensionModules(extensionDir) {
     const source = read.text;
     const esm = isModuleFile(filePath, packageType);
     const parsed = esm ? parseEsModule(source, relative) : parseCommonJs(source, relative);
-    const record = { path: relative, esm, source, ...parsed, dynamic: findDynamicImportSpecifiers(source) };
+    const record = {
+      path: relative,
+      esm,
+      source,
+      ...parsed,
+      dynamic: findDynamicImportSpecifiers(source),
+      nonLiteralLoads: findNonLiteralRuntimeLoads(source),
+    };
     parsedModules.set(filePath, record);
     return record;
   };
@@ -855,6 +894,9 @@ export function checkExtensionModules(extensionDir) {
     if (!record.ok) {
       errors.push(record.unreadable ? `${record.path}: ${record.error}` : `${record.path}: syntax error — ${record.error}`);
       continue;
+    }
+    for (const load of record.nonLiteralLoads) {
+      flag(isReachable, `${record.path}: non-literal ${load} cannot be analyzed safely`);
     }
     if (!isReachable) {
       for (const specifier of record.specifiers) {

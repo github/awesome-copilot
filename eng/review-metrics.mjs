@@ -419,10 +419,39 @@ async function hydrateReviewPages(client, pullRequests) {
   return pullRequests;
 }
 
+async function hydrateIssueLabelEventPages(client, issues) {
+  for (const issue of issues) {
+    let cursor = issue.timelineItems?.pageInfo?.hasPreviousPage ? issue.timelineItems.pageInfo.startCursor : null;
+    while (cursor) {
+      const data = await client.graphql(
+        `query($id: ID!, $cursor: String) {
+          node(id: $id) {
+            ... on Issue {
+              timelineItems(last: 100, before: $cursor, itemTypes: [LABELED_EVENT]) {
+                pageInfo { hasPreviousPage startCursor }
+                nodes { ... on LabeledEvent { createdAt label { name } } }
+              }
+            }
+          }
+        }`,
+        { id: issue.id, cursor },
+      );
+      const page = data.node?.timelineItems;
+      if (!page) break;
+      issue.timelineItems.nodes.unshift(...(page.nodes ?? []));
+      cursor = page.pageInfo?.hasPreviousPage ? page.pageInfo.startCursor : null;
+    }
+  }
+  return issues;
+}
+
 const ISSUE_FIELDS = `
-  number title url createdAt
+  id number title url createdAt
   labels(first: 50) { nodes { name } }
-  timelineItems(last: 20, itemTypes: [LABELED_EVENT]) { nodes { ... on LabeledEvent { createdAt label { name } } } }
+  timelineItems(last: 100, itemTypes: [LABELED_EVENT]) {
+    pageInfo { hasPreviousPage startCursor }
+    nodes { ... on LabeledEvent { createdAt label { name } } }
+  }
 `;
 
 function normalizePr(node) {
@@ -484,7 +513,12 @@ export async function collectData(client, repository, config, { now = new Date()
   const windowPrs = windowPrNodes.map(normalizePr);
   let externalPluginIssues = [];
   if (config.external_plugin_label) {
-    externalPluginIssues = (await searchAll(client, `repo:${repo} is:issue is:open label:"${config.external_plugin_label}"`, PR_FIELDS)).map(normalizeIssue);
+    const externalPluginIssueNodes = await searchAll(
+      client,
+      `repo:${repo} is:issue is:open label:"${config.external_plugin_label}"`,
+      PR_FIELDS,
+    );
+    externalPluginIssues = (await hydrateIssueLabelEventPages(client, externalPluginIssueNodes)).map(normalizeIssue);
   }
   const workflowRuns = [];
   for (const file of config.automation_workflows) {

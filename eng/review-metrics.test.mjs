@@ -189,6 +189,56 @@ test("collectData paginates PR reviews beyond the first 100", async () => {
   assert.equal(data.windowPrs[0].reviews[100].author.login, "last");
 });
 
+test("collectData paginates external plugin issue label events", async () => {
+  let searchCalls = 0;
+  const client = {
+    graphql: async (query, variables) => {
+      if (query.includes("search(")) {
+        searchCalls++;
+        if (searchCalls <= 2) {
+          return { search: { pageInfo: { hasNextPage: false, endCursor: null }, nodes: [] } };
+        }
+        return {
+          search: {
+            pageInfo: { hasNextPage: false, endCursor: null },
+            nodes: [{
+              id: "ISSUE_1",
+              number: 42,
+              title: "Long-lived plugin",
+              url: "https://example.test/issues/42",
+              createdAt: "2024-01-01T00:00:00Z",
+              labels: { nodes: [{ name: "external-plugin" }, { name: "ready-for-review" }] },
+              timelineItems: {
+                pageInfo: { hasPreviousPage: true, startCursor: "recent-page" },
+                nodes: [{ createdAt: "2025-01-09T00:00:00Z", label: { name: "triage" } }],
+              },
+            }],
+          },
+        };
+      }
+      assert.equal(variables.id, "ISSUE_1");
+      assert.equal(variables.cursor, "recent-page");
+      return {
+        node: {
+          timelineItems: {
+            pageInfo: { hasPreviousPage: false, startCursor: null },
+            nodes: [{ createdAt: "2025-01-03T00:00:00Z", label: { name: "ready-for-review" } }],
+          },
+        },
+      };
+    },
+    request: async () => { throw new Error("request should not be called"); },
+    paginate: async () => { throw new Error("paginate should not be called"); },
+  };
+  const data = await collectData(
+    client,
+    { owner: "o", repo: "r" },
+    normalizeConfig({ automation_workflows: [], external_plugin_label: "external-plugin" }),
+    { now },
+  );
+  assert.equal(data.externalPluginIssues[0].readyAt, "2025-01-03T00:00:00Z");
+});
+
 test("handles an empty repository without errors", () => {
   const metrics = computeMetrics({}, config, { now });
   assert.equal(metrics.time_to_first_review.median_hours, null);

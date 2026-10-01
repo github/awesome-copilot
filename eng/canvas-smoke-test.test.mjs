@@ -11,6 +11,7 @@ import {
   classifySpecifier,
   detectCanvasTargets,
   findDynamicImportSpecifiers,
+  findNonLiteralRuntimeLoads,
   findRequireSpecifiers,
   findUnsafeManifestPaths,
   importsAliasTargets,
@@ -105,6 +106,18 @@ test("inspectPng rejects non-PNG, corrupted, and truncated data", () => {
   const truncated = inspectPng(makePng(8, 8, { truncate: true }));
   assert.equal(truncated.ok, false);
   assert.match(truncated.errors[0], /truncated/);
+});
+
+test("inspectPng rejects malformed IEND chunks and trailing data", () => {
+  const valid = makePng(8, 8);
+  assert.match(inspectPng(Buffer.concat([valid, Buffer.from("trailing")])).errors[0], /after the IEND/);
+
+  const iendOffset = valid.length - 12;
+  const nonEmptyIend = Buffer.concat([
+    valid.subarray(0, iendOffset),
+    chunk("IEND", Buffer.from([0])),
+  ]);
+  assert.match(inspectPng(nonEmptyIend).errors[0], /IEND chunk has invalid length/);
 });
 
 test("checkPreview enforces configurable minimum dimensions", () => {
@@ -454,6 +467,27 @@ test("dynamic import and require extraction ignores call-shaped text inside lite
     "extensions/lit/extension.mjs": 'const note = \'import("./missing.mjs")\';\nexport default { note };\n',
   });
   assert.deepEqual(checkExtensionModules(path.join(root, "extensions", "lit")).errors, []);
+});
+
+test("non-literal runtime loads are detected outside comments and literals", () => {
+  const source = [
+    'const literalImport = import("./literal.mjs");',
+    'const literalRequire = require("left-pad");',
+    'const computedImport = import("node:" + moduleName);',
+    "const computedRequire = require(moduleName);",
+    'const text = "require(hidden)";',
+    "// import(variable)",
+    "const templateImport = import(`./${name}.mjs`);",
+  ].join("\n");
+  assert.deepEqual(findNonLiteralRuntimeLoads(source), ["dynamic import", "dynamic import", "require"]);
+
+  const root = makeRepo({
+    "extensions/runtime/extension.mjs": 'const name = "fs";\nexport default import("node:" + name);\n',
+  });
+  assert.match(
+    checkExtensionModules(path.join(root, "extensions", "runtime")).errors.join("\n"),
+    /extension\.mjs: non-literal dynamic import cannot be analyzed safely/,
+  );
 });
 
 test("checkExtensionModules resolves package.json imports aliases and fails closed on unknown shapes", () => {
