@@ -93,9 +93,24 @@ describe("configuration", () => {
     assert.equal(loaded.sla.firstReviewBusinessDays, 2);
     assert.equal(loaded.sla.escalationBusinessDays, 4);
     assert.ok(loaded.pools[loaded.escalationPool]);
-    for (const label of ["canvas-extension", "plugin", "skills", "agent", "instructions", "workflow", "hooks"]) {
-      assert.ok(loaded.routes.some((route) => route.label === label), `missing route for ${label}`);
-    }
+    // Pin the routing contract: label -> pool, in priority order.
+    assert.deepEqual(
+      loaded.routes.map((route) => [route.label, route.pool]),
+      [
+        ["canvas-extension", "canvas"],
+        ["external-plugin", "plugin"],
+        ["plugin", "plugin"],
+        ["skills", "content"],
+        ["agent", "content"],
+        ["instructions", "content"],
+        ["workflow", "content"],
+        ["hooks", "content"],
+        ["website-update", "core-maintainers"],
+      ]
+    );
+    assert.deepEqual(Object.keys(loaded.pools).sort(), ["canvas", "content", "core-maintainers", "plugin"]);
+    assert.equal(loaded.defaultPool, "core-maintainers");
+    assert.equal(loaded.escalationPool, "core-maintainers");
   });
 
   test("rejects unknown pools, bad logins, and inverted SLAs", () => {

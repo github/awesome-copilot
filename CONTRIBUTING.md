@@ -438,7 +438,7 @@ Create a daily summary of open issues for the team.
 > All pull requests should target the **`main`** branch, not `staged`.
 
 > [!TIP]
-> You don't need to ping a maintainer. Pull requests are automatically routed to a reviewer pool based on what they change, and a `review-due:YYYY-MM-DD` label shows when a first review is expected. See [Review routing, ownership, and SLAs](docs/maintainers/review-routing.md).
+> You don't need to ping a maintainer. Once automatic review routing is enabled, pull requests are routed to a reviewer pool based on what they change, and a `review-due:YYYY-MM-DD` label shows when a first review is expected. Until then, routing runs in dry-run mode and maintainers assign reviewers. See [Review routing, ownership, and SLAs](docs/maintainers/review-routing.md).
 
 > [!NOTE]
 > Branch migration tracking for source/published branch changes lives in [Issue #1368](https://github.com/github/awesome-copilot/issues/1368). Phase 2 migration work stays gated until maintainers confirm external tooling rollout is complete.
