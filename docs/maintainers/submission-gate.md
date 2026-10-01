@@ -85,7 +85,7 @@ We reviewed recent runs of the agentic advisory workflows on `github/awesome-cop
 - **PR Quality Signal** (`pr-quality-signal.lock.yml`): 4 of the last 30 runs failed and 24 were skipped (fork PRs; the workflow does not opt into forks). Every failure was in the `agent` job, with `awf-reflect: models fetch returned 401`. The compiled lock authenticates Copilot inference with `secrets.COPILOT_GITHUB_TOKEN` (a PAT), which fails when that secret is missing, expired, or unlicensed. The fix is the same as `pr-duplicate-check`: add `copilot-requests: write` to the workflow permissions and recompile with gh-aw v0.88.8, the version the locks use. That recompile is a maintainer follow-up.
 - **PR Duplicate Check** (`pr-duplicate-check.lock.yml`): 27 of 30 runs succeeded. It already uses `copilot-requests: write` with the Actions token. The 2 failures were intermittent inference 401s.
 
-Both workflows only post advisory comments, so the gate lists them as `required: false` with `failure_kind: infrastructure`. They must finish or fail before the gate shows them as done, but their failures never block a PR. The comment shows a ⚠️ warning instead.
+Both workflows only post advisory comments, so the gate lists them as `required: false` with `failure_kind: infrastructure`. They never hold the gate: while they run, the comment shows them as pending (advisory), and the gate doesn't wait for them. Their failures never block a PR either; the comment shows a ⚠️ warning instead.
 
 ## Merge-risk tiers
 
@@ -152,7 +152,7 @@ The core pool is `core-maintainers`. Its members also satisfy the domain and res
 
 If routing isn't staffed yet, the gate falls back instead of blocking:
 
-- **`.github/review-routing.yml` missing, or the matching domain pools empty:** any approver with write access satisfies the domain or resource-owner requirement.
+- **`.github/review-routing.yml` missing, or the matching domain pools empty:** any approver with write access satisfies the domain or resource-owner requirement. If the file exists but can't be parsed, or `pools` isn't a mapping, the gate fails instead of falling back, so a broken edit can't relax approvals.
 - **`core-maintainers` pool empty:** a high-risk PR needs one of its two approvals from a user with `admin` or `maintain` permission.
 
 The status comment shows a note whenever a fallback is in effect.
@@ -208,7 +208,7 @@ Other details:
 
 - Runs waiting for a maintainer to approve workflows for first-time contributors (`action_required`) can't be re-run by a command; the reply says so.
 - Commands from bots, and from anyone else, are ignored silently.
-- The writer reacts with 👀 and replies with a short summary. The 👀 reaction also marks the comment as handled, so re-running the workflow doesn't repeat the command.
+- The writer reacts with 👀 when it starts, then replies with a short summary and reacts with 🚀. Only the 🚀 reaction marks the comment as handled, so re-running the workflow doesn't repeat a finished command, and a run that failed partway can be retried.
 
 Commands use the same reader/writer split as the gate, so they work on PRs from forks and from contributors without write access:
 

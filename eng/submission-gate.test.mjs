@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -935,6 +936,9 @@ test("runPrCommand re-reads the comment, PR, and permission before writing", asy
   assert.deepEqual(dispatched.params.inputs, { pr_number: "7" });
   assert.ok(request.calls.some((call) => call.name === "reactions.createForIssueComment"));
   assert.ok(request.calls.some((call) => call.name === "issues.createComment"));
+  const order = request.calls.map((call) => (call.name === "reactions.createForIssueComment" ? `reaction:${call.params.content}` : call.name));
+  assert.ok(order.indexOf("reaction:eyes") < order.indexOf("issues.addLabels"), "claim marker is written before acting");
+  assert.ok(order.indexOf("reaction:rocket") > order.indexOf("issues.createComment"), "done marker is written after the reply");
 
   const rerun = fakeGithub({ pr: basePr, comments: [commandComment("/rerun-checks", "maint")], permissions: { maint: "maintain" } });
   assert.equal((await runPrCommand(rerun, commandOptions)).command, "rerun-checks");
@@ -957,7 +961,10 @@ test("runPrCommand ignores outsiders, closed PRs, edits, replays, and mismatched
   const replay = fakeGithub({
     pr: basePr,
     comments: [commandComment("/request-review")],
-    reactions: [{ content: "eyes", user: { login: "github-actions[bot]" } }],
+    reactions: [
+      { content: "eyes", user: { login: "github-actions[bot]" } },
+      { content: "rocket", user: { login: "github-actions[bot]" } },
+    ],
   });
   assert.equal((await runPrCommand(replay, commandOptions)).reason, "already handled");
   assert.ok(!replay.calls.some((call) => writes.test(call.name)));
@@ -967,4 +974,56 @@ test("runPrCommand ignores outsiders, closed PRs, edits, replays, and mismatched
     comments: [commandComment("/request-review", "author", { issue_url: "https://api.github.com/repos/github/awesome-copilot/issues/70" })],
   });
   await assert.rejects(runPrCommand(elsewhere, commandOptions), /does not belong/);
+});
+test("runPrCommand retries a command that was claimed but never completed", async () => {
+  const claimedOnly = fakeGithub({
+    pr: basePr,
+    comments: [commandComment("/request-review")],
+    reactions: [{ content: "eyes", user: { login: "github-actions[bot]" } }],
+  });
+  assert.equal((await runPrCommand(claimedOnly, commandOptions)).status, "handled");
+
+  const failing = fakeGithub({ pr: basePr, comments: [commandComment("/request-review")] });
+  failing.rest.issues.createComment = async () => {
+    throw Object.assign(new Error("boom"), { status: 502 });
+  };
+  await assert.rejects(runPrCommand(failing, commandOptions), /boom/);
+  const reactionsWritten = failing.calls.filter((call) => call.name === "reactions.createForIssueComment").map((call) => call.params.content);
+  assert.deepEqual(reactionsWritten, ["eyes"], "a failed run leaves only the claim marker, so it can be retried");
+});
+
+test("advisory checks that are still pending do not hold the gate", () => {
+  const advisory = evaluateCheck({ id: "quality", required: false }, { found: true, status: "in_progress" });
+  const required = evaluateCheck({ id: "build" }, { found: true, status: "completed", conclusion: "success" });
+  const automation = summarizeChecks([advisory, required]);
+  assert.equal(automation.pending.length, 0);
+  assert.equal(automation.advisoryPending.length, 1);
+  const approvals = { satisfied: true, reviewers: [], changesRequestedBy: [] };
+  assert.equal(computeState({ automation, approvals }), "approved");
+
+  const requiredPending = summarizeChecks([evaluateCheck({ id: "build" }, { found: true, status: "queued" })]);
+  assert.equal(computeState({ automation: requiredPending, approvals }), "awaiting-automation");
+});
+
+test("loadGateConfig fails closed on an unparseable review-routing.yml but tolerates a missing one", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gate-config-"));
+  try {
+    fs.mkdirSync(path.join(dir, ".github"));
+    for (const name of ["submission-gate.yml", "risk-tiers.yml"]) {
+      fs.copyFileSync(path.join(repoRoot, ".github", name), path.join(dir, ".github", name));
+    }
+    assert.equal(loadGateConfig(dir).routing, null, "missing routing file falls back");
+
+    const routingPath = path.join(dir, ".github", "review-routing.yml");
+    fs.writeFileSync(routingPath, "pools: [unclosed\n");
+    assert.throws(() => loadGateConfig(dir), /review-routing\.yml could not be parsed/);
+
+    fs.writeFileSync(routingPath, "pools:\n  - core\n");
+    assert.throws(() => loadGateConfig(dir), /`pools` must be a mapping/);
+
+    fs.writeFileSync(routingPath, "- just\n- a list\n");
+    assert.throws(() => loadGateConfig(dir), /must be a mapping/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

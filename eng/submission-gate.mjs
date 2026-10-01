@@ -91,14 +91,21 @@ export function loadGateConfig(rootDir = process.cwd()) {
   if (!gate || !Array.isArray(gate.checks)) throw new Error(".github/submission-gate.yml is missing or has no checks");
   if (!tiers || !tiers.high || !tiers.medium || !tiers.low) throw new Error(".github/risk-tiers.yml is missing a tier");
 
-  let routing = null;
+  // A missing routing file is a supported fallback. A file that exists but can't be parsed must
+  // fail closed: treating it as missing would relax domain/owner approval requirements.
+  let routing;
   try {
     routing = readYamlIfExists(path.join(rootDir, ".github", "review-routing.yml"));
   } catch (error) {
-    routing = null;
-    console.warn(`Ignoring unreadable .github/review-routing.yml: ${error.message}`);
+    throw new Error(`.github/review-routing.yml could not be parsed: ${error.message}`);
   }
-  return { gate, tiers, routing };
+  if (routing !== null && routing !== undefined && (typeof routing !== "object" || Array.isArray(routing))) {
+    throw new Error(".github/review-routing.yml must be a mapping");
+  }
+  if (routing?.pools !== undefined && (typeof routing.pools !== "object" || routing.pools === null || Array.isArray(routing.pools))) {
+    throw new Error(".github/review-routing.yml `pools` must be a mapping");
+  }
+  return { gate, tiers, routing: routing ?? null };
 }
 
 function fileNames(files) {
@@ -475,7 +482,9 @@ export function summarizeChecks(results) {
   return {
     results,
     passed: results.filter((result) => result.outcome === "pass" || result.outcome === "skipped"),
-    pending: results.filter((result) => result.outcome === "pending"),
+    // Only required checks hold the gate; advisory (required: false) checks never block.
+    pending: results.filter((result) => result.outcome === "pending" && result.required),
+    advisoryPending: results.filter((result) => result.outcome === "pending" && !result.required),
     contributionFailures: failures.filter((result) => result.required && result.category === "contribution"),
     infrastructureFailures: failures.filter((result) => result.required && result.category === "infrastructure"),
     warnings: failures.filter((result) => !result.required),
@@ -530,7 +539,7 @@ export function sanitize(text, maxLength = 300) {
 function outcomeCell(result) {
   if (result.outcome === "pass") return "✅ Passed";
   if (result.outcome === "skipped") return "⏭️ Skipped";
-  if (result.outcome === "pending") return "⏳ Pending";
+  if (result.outcome === "pending") return result.required ? "⏳ Pending" : "⏳ Pending (advisory, non-blocking)";
   if (!result.required) return "⚠️ Failed (advisory, non-blocking)";
   return result.category === "contribution" ? "❌ Contribution failure" : "🔧 Infrastructure failure";
 }
@@ -859,7 +868,7 @@ export async function evaluateSubmission(github, options) {
       finalized: isFinal,
       infrastructureSteps,
     });
-    const pending = results.filter((result) => result.outcome === "pending");
+    const pending = results.filter((result) => result.outcome === "pending" && result.required);
     const blockingContribution = results.some((result) => result.required && result.category === "contribution");
     if (!wait || pending.length === 0 || blockingContribution || elapsedMs >= timeoutMs) break;
     log(`Waiting for ${pending.map((result) => result.title).join(", ")}`);
@@ -1222,6 +1231,8 @@ export async function rerunChecks(github, { owner, repo, headSha }) {
 }
 
 export const PR_COMMAND_SCHEMA = "pr-command-request/v1";
+export const COMMAND_CLAIM_REACTION = "eyes";
+export const COMMAND_DONE_REACTION = "rocket";
 
 /**
  * Validate the untrusted artifact uploaded by the read-only PR Commands workflow. Only the
@@ -1257,14 +1268,19 @@ export async function runPrCommand(
   const parsed = parsePrCommand(comment.body);
   if (!parsed) return { status: "ignored", reason: "no supported command" };
 
+  // 👀 = claimed (written before acting), 🚀 = completed (written only after the reply is posted).
+  // Only the completed marker suppresses replays, so a run that failed midway can be retried.
   const reactions = await github.paginate(github.rest.reactions.listForIssueComment, {
     owner,
     repo,
     comment_id: commentId,
-    content: "eyes",
     per_page: 100,
   });
-  if (reactions.some((reaction) => reaction.user?.login === "github-actions[bot]")) {
+  if (
+    reactions.some(
+      (reaction) => reaction.content === COMMAND_DONE_REACTION && reaction.user?.login === "github-actions[bot]"
+    )
+  ) {
     return { status: "ignored", reason: "already handled" };
   }
 
@@ -1286,7 +1302,7 @@ export async function runPrCommand(
     return { status: "ignored", reason: `${commenter} is not the PR author or a maintainer` };
   }
 
-  await github.rest.reactions.createForIssueComment({ owner, repo, comment_id: commentId, content: "eyes" });
+  await github.rest.reactions.createForIssueComment({ owner, repo, comment_id: commentId, content: COMMAND_CLAIM_REACTION });
 
   const dispatch = async (workflowId, ref, inputs) => {
     try {
@@ -1325,5 +1341,6 @@ export async function runPrCommand(
   }
 
   await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body: lines.join("\n") });
+  await github.rest.reactions.createForIssueComment({ owner, repo, comment_id: commentId, content: COMMAND_DONE_REACTION });
   return { status: "handled", command: parsed.command };
 }
