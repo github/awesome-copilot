@@ -533,6 +533,15 @@ export function stripComments(source, { maskLiterals = false } = {}) {
         continue;
       }
     }
+    if ((ch === "+" || ch === "-") && next === ch) {
+      // `x++ / y` is division, `++x / y` is not: a postfix update leaves an operand behind.
+      const postfix = !regexAllowed();
+      out += ch + next;
+      i += 2;
+      lastSignificant = postfix ? ")" : ch;
+      lastWord = "";
+      continue;
+    }
     if (IDENTIFIER_CHAR.test(ch)) {
       let j = i;
       while (j < n && IDENTIFIER_CHAR.test(source[j])) j++;
@@ -1125,16 +1134,25 @@ export function detectCanvasTargets(changedFiles, { rootDir = DEFAULT_ROOT, base
       // A deleted plugin.json leaves no manifest, but the plugin is still
       // checked when it has a direct extension so checkPluginManifest reports it.
       let manifest = manifests.get(parts[1]);
-      if (!manifest && parts[2] === "plugin.json" && baseRef) {
+      const baseIds = new Set();
+      if (parts[2] === "plugin.json" && baseRef) {
         const baseManifest = readBasePluginManifest(rootDir, baseRef, parts[1]);
-        if (baseManifest.error) {
-          baseManifestErrors.set(parts[1], baseManifest.error);
-          plugins.add(parts[1]);
-        } else {
-          manifest = baseManifest.value;
+        if (!manifest) {
+          if (baseManifest.error) {
+            baseManifestErrors.set(parts[1], baseManifest.error);
+            plugins.add(parts[1]);
+          } else {
+            manifest = baseManifest.value;
+          }
+        } else if (!baseManifest.error) {
+          // An edited manifest can drop a reference, which may leave the
+          // extension unregistered, so the base references are validated too.
+          // A missing or unparsable base copy just means there is nothing to
+          // compare against (for example a newly added manifest).
+          for (const id of pluginExtensionIds(rootDir, parts[1], baseManifest.value)) baseIds.add(id);
         }
       }
-      const ids = manifest ? pluginExtensionIds(rootDir, parts[1], manifest) : [];
+      const ids = [...new Set([...(manifest ? pluginExtensionIds(rootDir, parts[1], manifest) : []), ...baseIds])];
       const directExtension = isSafeExtensionId(parts[1]) && isExtensionDir(rootDir, parts[1]);
       const unsafeRefs = manifest ? unsafeExtensionRefs(manifest) : [];
       if (ids.length > 0 || directExtension || unsafeRefs.length > 0) {

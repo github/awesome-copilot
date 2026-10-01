@@ -94,6 +94,41 @@ jobs:
               'review-metrics': {
                 color: 'C5DEF5',
                 description: 'Weekly review operating metrics tracking issue'
+              },
+              // Submission gate labels (docs/maintainers/submission-gate.md).
+              // ready-for-review, requires-submitter-fixes, and approved are shared with intake above.
+              'awaiting-automation': {
+                color: 'FBCA04',
+                description: 'PR is waiting for automated checks to finish'
+              },
+              'review-in-progress': {
+                color: '5319E7',
+                description: 'PR checks passed and a maintainer review is in progress'
+              },
+              'merge-risk:low': {
+                color: 'C2E0C6',
+                description: 'Merge risk tier: low (docs, metadata, or small resource update)'
+              },
+              'merge-risk:medium': {
+                color: 'FEF2C0',
+                description: 'Merge risk tier: medium (new or substantially changed resource)'
+              },
+              'merge-risk:high': {
+                color: 'F9D0C4',
+                description: 'Merge risk tier: high (automation, scripts, MCP, hooks, or review policy)'
+              },
+              // Review routing labels (see .github/review-routing.yml)
+              'needs-reviewer': {
+                color: 'D4C5F9',
+                description: 'Request automated reviewer routing for this PR'
+              },
+              'review-overdue': {
+                color: 'E99695',
+                description: 'First review is past its due date; a backup reviewer was requested'
+              },
+              'review-escalated': {
+                color: 'B60205',
+                description: 'Review escalated to the core-maintainer pool'
               }
             };
 

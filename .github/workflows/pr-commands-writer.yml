@@ -1,0 +1,98 @@
+name: PR Commands Writer
+
+# Trusted writer for /rerun-checks and /request-review. Runs default-branch code after the
+# read-only PR Commands workflow completes. The artifact only names a comment and a PR;
+# the comment body, the PR state, and the commenter's permission are re-read from the API
+# before anything is written. See docs/maintainers/submission-gate.md.
+
+on:
+  workflow_run:
+    workflows: ["PR Commands"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-commands-writer-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  run-command:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: write
+      contents: read
+      issues: write
+      pull-requests: write
+    if: >-
+      github.event.workflow_run.event == 'issue_comment' &&
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Download command request
+        id: download-request
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: pr-command-request
+          path: ${{ runner.temp }}/pr-command-request
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Checkout default branch
+        if: steps.download-request.outcome == 'success'
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            eng
+            package.json
+            package-lock.json
+
+      - name: Setup Node.js
+        if: steps.download-request.outcome == 'success'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        if: steps.download-request.outcome == 'success'
+        run: npm ci --ignore-scripts
+
+      - name: Run command
+        if: steps.download-request.outcome == 'success'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const root = process.env.GITHUB_WORKSPACE;
+            const gate = await import(pathToFileURL(path.join(root, 'eng', 'submission-gate.mjs')).href);
+            const config = gate.loadGateConfig(root);
+            const { owner, repo } = context.repo;
+            const workflowRun = context.payload.workflow_run;
+
+            const requestPath = path.join(process.env.RUNNER_TEMP, 'pr-command-request', 'request.json');
+            const raw = fs.readFileSync(requestPath, 'utf8');
+            if (raw.length > 4096) throw new Error('PR command request is too large');
+            const { prNumber, commentId } = gate.validatePrCommandRequest(JSON.parse(raw), { workflowRunId: workflowRun.id });
+
+            const result = await gate.runPrCommand(github, {
+              owner,
+              repo,
+              prNumber,
+              commentId,
+              config,
+              defaultBranch: context.payload.repository?.default_branch || 'main',
+              log: (message) => core.info(message),
+            });
+            core.info(result.status === 'handled' ? `Handled /${result.command} on #${prNumber}.` : `Ignored comment ${commentId}: ${result.reason}.`);
+
+      - name: Note missing artifact
+        if: steps.download-request.outcome != 'success'
+        run: echo "No pr-command-request artifact was available; nothing to do."

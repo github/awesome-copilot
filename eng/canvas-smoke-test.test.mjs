@@ -568,6 +568,50 @@ test("deleted plugin manifest base read errors fail closed when a base ref is pr
   assert.match(report.plugins[0].errors.join("\n"), /cannot read deleted plugins\/ember\/plugin\.json from base missing-base/);
 });
 
+test("detectCanvasTargets unions base and head extension references for an edited bundle manifest", () => {
+  const manifest = (refs) => ({
+    $schema: PLUGIN_SCHEMA,
+    name: "ember",
+    description: "Ember bundle",
+    version: "1.0.0",
+    extensions: { "com.github.awesome-copilot": { extensions: refs } },
+  });
+  const root = makeRepo({
+    "extensions/daily-focus-board/extension.mjs": "export {};\n",
+    "extensions/daily-focus-board/assets/preview.png": makePng(800, 400),
+    "extensions/orb/extension.mjs": "export {};\n",
+    "extensions/orb/assets/preview.png": makePng(800, 400),
+    "plugins/ember/plugin.json": manifest(["./extensions/daily-focus-board"]),
+  });
+  git(root, ["init"]);
+  git(root, ["config", "user.email", "test@example.com"]);
+  git(root, ["config", "user.name", "Test User"]);
+  git(root, ["add", "."]);
+  git(root, ["commit", "-m", "base"]);
+  const baseRef = git(root, ["rev-parse", "HEAD"]);
+  fs.writeFileSync(
+    path.join(root, "plugins", "ember", "plugin.json"),
+    `${JSON.stringify(manifest(["./extensions/orb"]), null, 2)}\n`,
+  );
+
+  const targets = detectCanvasTargets(["plugins/ember/plugin.json"], { rootDir: root, baseRef });
+  assert.deepEqual(targets.extensions, ["daily-focus-board", "orb"]);
+  assert.deepEqual(targets.plugins, ["ember"]);
+});
+
+test("the comment stripper treats a slash after a postfix update as division", () => {
+  const source = [
+    'for (let i = 0; i < n; i++) {}',
+    'const r = x++ / y; const dep = require("left-pad");',
+    'const s = count-- / total; const dyn = import("./real.mjs");',
+    'const t = ++x / y;',
+  ].join("\n");
+  assert.deepEqual(findRequireSpecifiers(source), ["left-pad"]);
+  assert.deepEqual(findDynamicImportSpecifiers(source), ["./real.mjs"]);
+  // A prefix update still allows a regex literal to follow.
+  assert.deepEqual(findRequireSpecifiers('const re = ++i, m = /require("hidden")/;'), []);
+});
+
 test("unsafe extension references in plugin manifests are rejected and never materialized", async () => {
   assert.equal(isSafeExtensionId("orb"), true);
   for (const id of ["..", "../x", "a/b", "", ".hidden"]) assert.equal(isSafeExtensionId(id), false, id);
