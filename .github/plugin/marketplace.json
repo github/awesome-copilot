@@ -785,6 +785,27 @@
       "version": "1.0.0"
     },
     {
+      "name": "dependabot-triage",
+      "description": "Triage Dependabot alerts and recommend safe, evidence-based dependency updates.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Aaron Powell"
+      },
+      "repository": "https://github.com/aaronpowell/github-copilot-dependabot-canvas",
+      "license": "MIT",
+      "keywords": [
+        "dependabot",
+        "dependencies",
+        "security",
+        "canvas"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "aaronpowell/github-copilot-dependabot-canvas",
+        "sha": "206c4682b6f383f631b35b9a51408fb46789eac1"
+      }
+    },
+    {
       "name": "devops-oncall",
       "source": "plugins/devops-oncall",
       "description": "A focused set of prompts, instructions, and a chat mode to help triage incidents and respond quickly with DevOps tools and Azure resources.",
