@@ -1005,7 +1005,7 @@ test("advisory checks that are still pending do not hold the gate", () => {
   assert.equal(computeState({ automation: requiredPending, approvals }), "awaiting-automation");
 });
 
-test("loadGateConfig fails closed on an unparseable review-routing.yml but tolerates a missing one", () => {
+test("loadGateConfig fails closed on an unparsable review-routing.yml but tolerates a missing one", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gate-config-"));
   try {
     fs.mkdirSync(path.join(dir, ".github"));
