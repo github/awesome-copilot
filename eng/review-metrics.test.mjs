@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   businessDaysBetween,
+  collectData,
   computeMetrics,
   concentration,
   loadMetricsConfig,
@@ -131,6 +132,61 @@ test("computes automation failure rate over completed, non-cancelled runs", () =
   assert.equal(metrics.automation.failed, 2);
   assert.equal(metrics.automation.failure_rate, 0.667);
   assert.equal(metrics.automation.workflows[1].found, false);
+});
+
+test("automation API errors are reported as incomplete instead of not found", () => {
+  const data = fixture();
+  data.workflowRuns.push({ file: "error.yml", found: true, runs: [], error: "server unavailable" });
+  const metrics = computeMetrics(data, config, { now });
+  assert.equal(metrics.automation.incomplete, true);
+  assert.deepEqual(metrics.automation.errors, [{ workflow: "error.yml", error: "server unavailable" }]);
+  assert.equal(metrics.automation.runs, 3);
+  assert.equal(metrics.automation.failed, 2);
+  assert.equal(metrics.automation.failure_rate, 0.667);
+  const report = renderReport(metrics, {});
+  assert.match(report, /Failure rate: \*\*66\.7% \(incomplete\)\*\*/);
+  assert.match(report, /`error\.yml` \| – \| – \| collection error: server unavailable/);
+});
+
+test("collectData paginates PR reviews beyond the first 100", async () => {
+  const pageOneReviews = Array.from({ length: 100 }, (_, index) => maintainer(`m${index}`, "2025-01-06T01:00:00Z"));
+  const pageTwoReview = maintainer("last", "2025-01-06T02:00:00Z");
+  const client = {
+    graphql: async (query) => {
+      if (query.includes("search(")) {
+        return {
+          search: {
+            pageInfo: { hasNextPage: false, endCursor: null },
+            nodes: [{
+              id: "PR_1",
+              number: 1,
+              title: "Many reviews",
+              url: "https://example.test/pull/1",
+              createdAt: "2025-01-06T00:00:00Z",
+              mergedAt: null,
+              isDraft: false,
+              author: { login: "author", __typename: "User" },
+              labels: { nodes: [] },
+              reviews: { pageInfo: { hasNextPage: true, endCursor: "page-1" }, nodes: [...pageOneReviews] },
+              timelineItems: { nodes: [] },
+            }],
+          },
+        };
+      }
+      assert.match(query, /node\(id: \$id\)/);
+      return {
+        node: {
+          reviews: { pageInfo: { hasNextPage: false, endCursor: null }, nodes: [pageTwoReview] },
+        },
+      };
+    },
+    request: async () => { throw new Error("request should not be called"); },
+    paginate: async () => { throw new Error("paginate should not be called"); },
+  };
+  const data = await collectData(client, { owner: "o", repo: "r" }, normalizeConfig({ automation_workflows: [], external_plugin_label: "" }), { now });
+  assert.equal(data.openPrs[0].reviews.length, 101);
+  assert.equal(data.windowPrs[0].reviews.length, 101);
+  assert.equal(data.windowPrs[0].reviews[100].author.login, "last");
 });
 
 test("handles an empty repository without errors", () => {

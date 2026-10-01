@@ -233,9 +233,15 @@ export function computeMetrics(data, config, { now = new Date() } = {}) {
 
   // Automation failure rate over completed runs of the review workflows.
   const automation = [];
+  const automationErrors = [];
   let failedTotal = 0;
   let consideredTotal = 0;
   for (const workflow of data.workflowRuns ?? []) {
+    if (workflow.error) {
+      automationErrors.push({ workflow: workflow.file, error: workflow.error });
+      automation.push({ workflow: workflow.file, found: true, error: workflow.error });
+      continue;
+    }
     if (!workflow.found) {
       automation.push({ workflow: workflow.file, found: false });
       continue;
@@ -268,6 +274,8 @@ export function computeMetrics(data, config, { now = new Date() } = {}) {
       failure_rate: consideredTotal ? round(failedTotal / consideredTotal, 3) : null,
       failed: failedTotal,
       runs: consideredTotal,
+      incomplete: automationErrors.length > 0,
+      errors: automationErrors,
       workflows: automation,
     },
   };
@@ -338,10 +346,15 @@ export function renderReport(metrics, { repository, runUrl } = {}) {
 
   const automation = metrics.automation;
   lines.push("### Automation health", "");
-  lines.push(`Failure rate: **${formatPercent(automation.failure_rate)}** (${automation.failed} failed of ${automation.runs} completed runs; cancelled/skipped excluded).`, "");
+  lines.push(`Failure rate: **${formatPercent(automation.failure_rate)}${automation.incomplete ? " (incomplete)" : ""}** (${automation.failed} failed of ${automation.runs} completed runs; cancelled/skipped excluded).`, "");
+  if (automation.incomplete) lines.push("⚠️ Collection was incomplete because one or more workflow APIs returned errors; affected workflows are excluded from the denominator.", "");
   lines.push("| Workflow | Runs | Failed | Failure rate |", "|---|---:|---:|---:|");
   for (const workflow of automation.workflows) {
-    lines.push(workflow.found ? `| \`${workflow.workflow}\` | ${workflow.runs} | ${workflow.failed} | ${formatPercent(workflow.failure_rate)} |` : `| \`${workflow.workflow}\` | – | – | not found |`);
+    if (workflow.error) {
+      lines.push(`| \`${workflow.workflow}\` | – | – | collection error: ${escapeCell(workflow.error)} |`);
+    } else {
+      lines.push(workflow.found ? `| \`${workflow.workflow}\` | ${workflow.runs} | ${workflow.failed} | ${formatPercent(workflow.failure_rate)} |` : `| \`${workflow.workflow}\` | – | – | not found |`);
+    }
   }
   lines.push("", `_Generated ${metrics.generated_at}${repository ? ` for ${repository}` : ""}${runUrl ? ` by [this run](${runUrl})` : ""}. Definitions: docs/maintainers/canvas-evidence-and-metrics.md._`);
   return lines.join("\n");
@@ -352,12 +365,14 @@ export function renderReport(metrics, { repository, runUrl } = {}) {
 // ---------------------------------------------------------------------------
 
 const PR_FIELDS = `
-  number title url createdAt mergedAt isDraft state
+  id number title url createdAt mergedAt isDraft state
   author { login __typename }
   labels(first: 50) { nodes { name } }
-  reviews(first: 100) { nodes { state submittedAt authorCanPushToRepository author { login __typename } } }
+  reviews(first: 100) { pageInfo { hasNextPage endCursor } nodes { state submittedAt authorCanPushToRepository author { login __typename } } }
   timelineItems(last: 1, itemTypes: [READY_FOR_REVIEW_EVENT]) { nodes { ... on ReadyForReviewEvent { createdAt } } }
 `;
+
+const REVIEW_FIELDS = "state submittedAt authorCanPushToRepository author { login __typename }";
 
 async function searchAll(client, query, fields, maxItems = 1000) {
   const items = [];
@@ -376,6 +391,32 @@ async function searchAll(client, query, fields, maxItems = 1000) {
     cursor = data.search.pageInfo.hasNextPage ? data.search.pageInfo.endCursor : null;
   } while (cursor && items.length < maxItems);
   return items;
+}
+
+async function hydrateReviewPages(client, pullRequests) {
+  for (const pr of pullRequests) {
+    let cursor = pr.reviews?.pageInfo?.hasNextPage ? pr.reviews.pageInfo.endCursor : null;
+    while (cursor) {
+      const data = await client.graphql(
+        `query($id: ID!, $cursor: String) {
+          node(id: $id) {
+            ... on PullRequest {
+              reviews(first: 100, after: $cursor) {
+                pageInfo { hasNextPage endCursor }
+                nodes { ${REVIEW_FIELDS} }
+              }
+            }
+          }
+        }`,
+        { id: pr.id, cursor },
+      );
+      const page = data.node?.reviews;
+      if (!page) break;
+      pr.reviews.nodes.push(...(page.nodes ?? []));
+      cursor = page.pageInfo?.hasNextPage ? page.pageInfo.endCursor : null;
+    }
+  }
+  return pullRequests;
 }
 
 const ISSUE_FIELDS = `
@@ -437,8 +478,10 @@ export async function collectData(client, repository, config, { now = new Date()
   const since = new Date(new Date(now).getTime() - config.window_days * DAY_MS).toISOString();
   const sinceDate = since.slice(0, 10);
 
-  const openPrs = (await searchAll(client, `repo:${repo} is:pr is:open base:${config.base_branch}`, PR_FIELDS)).map(normalizePr);
-  const windowPrs = (await searchAll(client, `repo:${repo} is:pr base:${config.base_branch} updated:>=${sinceDate}`, PR_FIELDS)).map(normalizePr);
+  const openPrNodes = await hydrateReviewPages(client, await searchAll(client, `repo:${repo} is:pr is:open base:${config.base_branch}`, PR_FIELDS));
+  const windowPrNodes = await hydrateReviewPages(client, await searchAll(client, `repo:${repo} is:pr base:${config.base_branch} updated:>=${sinceDate}`, PR_FIELDS));
+  const openPrs = openPrNodes.map(normalizePr);
+  const windowPrs = windowPrNodes.map(normalizePr);
   let externalPluginIssues = [];
   if (config.external_plugin_label) {
     externalPluginIssues = (await searchAll(client, `repo:${repo} is:issue is:open label:"${config.external_plugin_label}"`, PR_FIELDS)).map(normalizeIssue);
@@ -449,7 +492,7 @@ export async function collectData(client, repository, config, { now = new Date()
       workflowRuns.push(await fetchWorkflowRuns(client, repository, file, since));
     } catch (error) {
       console.warn(`Could not read runs for ${file}: ${error.message}`);
-      workflowRuns.push({ file, found: false, runs: [], error: error.message });
+      workflowRuns.push({ file, found: true, runs: [], error: error.message });
     }
   }
   return { openPrs, windowPrs, externalPluginIssues, workflowRuns };

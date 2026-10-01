@@ -925,7 +925,7 @@ export function checkExtensionModules(extensionDir) {
         flag(strict, `${where} is a remote URL import`);
         return [];
       case "data":
-        warnings.push(`${where} is a data: URL import`);
+        flag(strict, `${where} is a data: URL import`);
         return [];
       default:
         flag(strict, `${where} is not a Node.js builtin, host-provided package, or declared dependency`);
@@ -946,6 +946,8 @@ export function checkExtensionModules(extensionDir) {
       flag(false, `${where} uses an unsafe ${classification.reason}`);
     } else if (classification.kind === "remote") {
       flag(false, `${where} loads remote code`);
+    } else if (classification.kind === "data") {
+      flag(false, `${where} is a data: URL import`);
     } else if (classification.kind === "undeclared") {
       flag(false, `${where} is not declared in package.json`);
     } else if (classification.kind === "internal") {
@@ -1083,15 +1085,34 @@ export function pluginExtensionIds(rootDir, pluginDir, manifest) {
   return [...ids].sort();
 }
 
+function readBasePluginManifest(rootDir, baseRef, pluginDir) {
+  if (!baseRef || !isSafeExtensionId(pluginDir)) return { error: `cannot read deleted plugins/${pluginDir}/plugin.json from base` };
+  const result = spawnSync("git", ["show", `${baseRef}:plugins/${pluginDir}/plugin.json`], {
+    cwd: rootDir,
+    encoding: "utf8",
+    maxBuffer: MAX_TEXT_FILE_BYTES,
+  });
+  if (result.status !== 0) {
+    const message = (result.stderr || result.stdout || `git show exited ${result.status}`).trim();
+    return { error: `cannot read deleted plugins/${pluginDir}/plugin.json from base ${baseRef}: ${message}` };
+  }
+  try {
+    return { value: JSON.parse(result.stdout) };
+  } catch (error) {
+    return { error: `deleted plugins/${pluginDir}/plugin.json from base ${baseRef}: invalid JSON (${error.message})` };
+  }
+}
+
 /**
  * Determine which canvas extensions and extension-bearing plugins are
  * affected by a list of changed repository paths.
  */
-export function detectCanvasTargets(changedFiles, { rootDir = DEFAULT_ROOT } = {}) {
+export function detectCanvasTargets(changedFiles, { rootDir = DEFAULT_ROOT, baseRef = "" } = {}) {
   const manifests = readPluginManifests(rootDir);
   const extensions = new Set();
   const plugins = new Set();
   const removedExtensions = new Set();
+  const baseManifestErrors = new Map();
 
   for (const file of changedFiles) {
     const parts = toPosix(file).split("/");
@@ -1103,7 +1124,16 @@ export function detectCanvasTargets(changedFiles, { rootDir = DEFAULT_ROOT } = {
     } else if (parts[0] === "plugins" && parts.length >= 3) {
       // A deleted plugin.json leaves no manifest, but the plugin is still
       // checked when it has a direct extension so checkPluginManifest reports it.
-      const manifest = manifests.get(parts[1]);
+      let manifest = manifests.get(parts[1]);
+      if (!manifest && parts[2] === "plugin.json" && baseRef) {
+        const baseManifest = readBasePluginManifest(rootDir, baseRef, parts[1]);
+        if (baseManifest.error) {
+          baseManifestErrors.set(parts[1], baseManifest.error);
+          plugins.add(parts[1]);
+        } else {
+          manifest = baseManifest.value;
+        }
+      }
       const ids = manifest ? pluginExtensionIds(rootDir, parts[1], manifest) : [];
       const directExtension = isSafeExtensionId(parts[1]) && isExtensionDir(rootDir, parts[1]);
       const unsafeRefs = manifest ? unsafeExtensionRefs(manifest) : [];
@@ -1129,6 +1159,7 @@ export function detectCanvasTargets(changedFiles, { rootDir = DEFAULT_ROOT } = {
     plugins: [...plugins].sort(),
     removedExtensions: [...removedExtensions].sort(),
     manifests,
+    baseManifestErrors,
   };
 }
 
@@ -1390,15 +1421,16 @@ export async function runCanvasSmokeTest({
   minHeight = DEFAULT_MIN_PREVIEW_HEIGHT,
   install = "auto",
   workDir,
+  baseRef = "",
 } = {}) {
   const targets = all
     ? (() => {
       const extensionIds = fs.readdirSync(path.join(rootDir, "extensions"), { withFileTypes: true })
         .filter((entry) => entry.isDirectory() && isExtensionDir(rootDir, entry.name))
         .map((entry) => entry.name);
-      return detectCanvasTargets(extensionIds.map((id) => `extensions/${id}/extension.mjs`), { rootDir });
+      return detectCanvasTargets(extensionIds.map((id) => `extensions/${id}/extension.mjs`), { rootDir, baseRef });
     })()
-    : detectCanvasTargets(changedFiles, { rootDir });
+    : detectCanvasTargets(changedFiles, { rootDir, baseRef });
 
   const report = {
     schema_version: "canvas-smoke-test/v1",
@@ -1470,6 +1502,9 @@ export async function runCanvasSmokeTest({
   for (const pluginDir of targets.plugins) {
     const manifest = targets.manifests.get(pluginDir);
     const check = checkPluginManifest(rootDir, pluginDir, manifest);
+    if (targets.baseManifestErrors.has(pluginDir)) {
+      check.errors.push(targets.baseManifestErrors.get(pluginDir));
+    }
     if (targets.removedExtensions.includes(pluginDir)) {
       check.errors.push(`plugins/${pluginDir} is the plugin for removed extension extensions/${pluginDir}; delete the plugin too or restore the extension`);
     }
@@ -1648,6 +1683,7 @@ function parseArgs(argv) {
     previewBaseUrl: process.env.CANVAS_PREVIEW_BASE_URL || "",
     runUrl: process.env.CANVAS_RUN_URL || "",
     detectOnly: false,
+    baseRef: process.env.CANVAS_BASE_REF || "",
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -1660,6 +1696,7 @@ function parseArgs(argv) {
     else if (arg === "--min-preview-height") options.minHeight = Number(next());
     else if (arg === "--preview-base-url") options.previewBaseUrl = next();
     else if (arg === "--detect-only") options.detectOnly = true;
+    else if (arg === "--base-ref") options.baseRef = next();
     else if (arg === "--help" || arg === "-h") options.help = true;
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -1670,7 +1707,7 @@ function parseArgs(argv) {
 
 const USAGE = `Usage: node eng/canvas-smoke-test.mjs [--changed-files <file>] [--all] [--output-dir <dir>]
   [--install auto|require|never] [--min-preview-width <px>] [--min-preview-height <px>]
-  [--preview-base-url <url>] [--detect-only]
+  [--preview-base-url <url>] [--base-ref <sha>] [--detect-only]
 
 Exit codes: 0 = passed or skipped, 1 = contribution failures, 2 = infrastructure error.`;
 
@@ -1685,7 +1722,7 @@ async function main() {
     : [];
 
   if (options.detectOnly) {
-    const targets = detectCanvasTargets(changedFiles);
+    const targets = detectCanvasTargets(changedFiles, { baseRef: options.baseRef });
     const canvas = targets.extensions.length > 0 || targets.plugins.length > 0 || targets.removedExtensions.length > 0;
     console.log(JSON.stringify({ canvas, extensions: targets.extensions, plugins: targets.plugins, removedExtensions: targets.removedExtensions }));
     if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `canvas=${canvas}\n`);
@@ -1698,6 +1735,7 @@ async function main() {
     minWidth: options.minWidth,
     minHeight: options.minHeight,
     install: options.install,
+    baseRef: options.baseRef,
   });
   const markdown = renderMarkdownReport(report, { previewBaseUrl: options.previewBaseUrl, runUrl: options.runUrl });
 

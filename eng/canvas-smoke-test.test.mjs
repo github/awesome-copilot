@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import zlib from "node:zlib";
 import { test } from "node:test";
 import {
@@ -67,6 +68,12 @@ function makeRepo(files) {
     fs.writeFileSync(target, typeof content === "string" || Buffer.isBuffer(content) ? content : JSON.stringify(content, null, 2));
   }
   return root;
+}
+
+function git(root, args) {
+  const result = spawnSync("git", args, { cwd: root, encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  return result.stdout.trim();
 }
 
 const PLUGIN_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
@@ -329,6 +336,7 @@ test("checkExtensionModules follows CommonJS requires and literal dynamic import
     "extensions/graph/package.json": { name: "graph", version: "1.0.0", devDependencies: { vitest: "1.0.0" } },
     "extensions/other/x.js": "module.exports = 1;\n",
   });
+
   const result = checkExtensionModules(path.join(root, "extensions", "graph"));
   const errors = result.errors.join("\n");
   assert.match(errors, /legacy\.cjs: require\("left-pad"\) is not a Node\.js builtin/);
@@ -340,6 +348,22 @@ test("checkExtensionModules follows CommonJS requires and literal dynamic import
   assert.deepEqual(result.builtins, ["child_process"]);
   assert.ok(result.modules.find((entry) => entry.path === "lib/worker.mjs").reachable);
   assert.ok(result.modules.find((entry) => entry.path === "lib/helper.js").reachable);
+});
+
+test("checkExtensionModules fails reachable data URL imports and warns for unreachable dynamic data imports", () => {
+  const root = makeRepo({
+    "extensions/data/extension.mjs": [
+      'import inline from "data:text/javascript,export default 1";',
+      'const later = await import("data:text/javascript,export default 2");',
+      "export default { inline, later };",
+    ].join("\n"),
+    "extensions/data/public/app.js": 'await import("data:text/javascript,export default 3");\n',
+  });
+  const result = checkExtensionModules(path.join(root, "extensions", "data"));
+  const errors = result.errors.join("\n");
+  assert.match(errors, /extension\.mjs: import "data:text\/javascript,export default 1" is a data: URL import/);
+  assert.match(errors, /extension\.mjs: dynamic import\("data:text\/javascript,export default 2"\) is a data: URL import/);
+  assert.match(result.warnings.join("\n"), /public\/app\.js: dynamic import\("data:text\/javascript,export default 3"\) is a data: URL import \(module is not reachable/);
 });
 
 test("removed canvas paths are validated instead of skipped", async () => {
@@ -500,6 +524,48 @@ test("detectCanvasTargets still validates a plugin whose plugin.json was deleted
   assert.deepEqual(targets.extensions, ["orb"]);
   const report = await runCanvasSmokeTest({ rootDir: root, changedFiles: ["plugins/orb/plugin.json"], install: "never" });
   assert.equal(report.status, "fail");
+});
+
+test("detectCanvasTargets uses base plugin manifests when deleted bundle manifests referenced extensions", async () => {
+  const root = makeRepo({
+    "extensions/daily-focus-board/extension.mjs": "export {};\n",
+    "extensions/daily-focus-board/assets/preview.png": makePng(800, 400),
+    "plugins/ember/plugin.json": {
+      $schema: PLUGIN_SCHEMA,
+      name: "ember",
+      description: "Ember bundle",
+      version: "1.0.0",
+      extensions: { "com.github.awesome-copilot": { extensions: ["./extensions/daily-focus-board"] } },
+    },
+  });
+  git(root, ["init"]);
+  git(root, ["config", "user.email", "test@example.com"]);
+  git(root, ["config", "user.name", "Test User"]);
+  git(root, ["add", "."]);
+  git(root, ["commit", "-m", "base"]);
+  const baseRef = git(root, ["rev-parse", "HEAD"]);
+  fs.rmSync(path.join(root, "plugins", "ember", "plugin.json"));
+
+  const targets = detectCanvasTargets(["plugins/ember/plugin.json"], { rootDir: root, baseRef });
+  assert.deepEqual(targets.extensions, ["daily-focus-board"]);
+  assert.deepEqual(targets.plugins, ["ember"]);
+
+  const report = await runCanvasSmokeTest({ rootDir: root, changedFiles: ["plugins/ember/plugin.json"], baseRef, install: "never" });
+  assert.equal(report.status, "fail");
+  assert.equal(report.extensions[0].id, "daily-focus-board");
+  assert.match(report.plugins[0].errors.join("\n"), /plugins\/ember\/plugin\.json is missing/);
+});
+
+test("deleted plugin manifest base read errors fail closed when a base ref is provided", async () => {
+  const root = makeRepo({});
+  const report = await runCanvasSmokeTest({
+    rootDir: root,
+    changedFiles: ["plugins/ember/plugin.json"],
+    baseRef: "missing-base",
+    install: "never",
+  });
+  assert.equal(report.status, "fail");
+  assert.match(report.plugins[0].errors.join("\n"), /cannot read deleted plugins\/ember\/plugin\.json from base missing-base/);
 });
 
 test("unsafe extension references in plugin manifests are rejected and never materialized", async () => {
