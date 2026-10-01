@@ -95,10 +95,16 @@ internal sealed class SourceWriter
     /// <summary>
     /// Writes a character, indenting first if it starts a line.
     /// </summary>
-    /// <param name="value">The character to write.</param>
+    /// <param name="value">The non-newline character to write. Use <see cref="WriteLine()"/> to end a line.</param>
     /// <returns>This writer, for chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is a carriage return or line feed.</exception>
     public SourceWriter Write(char value)
     {
+        if (value is '\r' or '\n')
+        {
+            throw new ArgumentException("Use WriteLine() to write a newline.", nameof(value));
+        }
+
         this.AddIndentationIfAtLineStart();
         this.builder.Append(value);
         return this;
@@ -121,8 +127,9 @@ internal sealed class SourceWriter
     /// <summary>
     /// Writes a character followed by a newline.
     /// </summary>
-    /// <param name="value">The character to write.</param>
+    /// <param name="value">The non-newline character to write. Use <see cref="WriteLine()"/> to write an empty line.</param>
     /// <returns>This writer, for chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is a carriage return or line feed.</exception>
     public SourceWriter WriteLine(char value) => this.Write(value).WriteLine();
 
     /// <summary>
