@@ -71,7 +71,9 @@ test("check path and branch filters mirror their workflow triggers", () => {
     if (trigger?.paths) {
       assert.deepEqual([...(check.paths || [])].sort(), [...trigger.paths].sort(), `${check.id}: paths drifted from ${check.workflow}`);
     }
-    if (check.paths && check.workflow !== "validate-submission-gate.yml") {
+    // validate-agentic-workflows-pr.yml rejects any `.github/**` change, so it can't trigger on its own file.
+    const selfPathExempt = ["validate-submission-gate.yml", "validate-agentic-workflows-pr.yml"];
+    if (check.paths && !selfPathExempt.includes(check.workflow)) {
       assert.ok(
         check.paths.includes(`.github/workflows/${check.workflow}`),
         `${check.id}: paths should include its own workflow file`
@@ -805,6 +807,58 @@ test("syncPullRequestStatus does not write when the head or reviews changed", as
   });
   assert.equal(result.reason, "reviews-changed");
   assert.ok(!reviewed.calls.some((call) => /addLabels|checks\.create/.test(call.name)));
+});
+
+test("syncPullRequestStatus publishes the gate check even when label or comment writes fail", async () => {
+  const evaluation = {
+    pr: basePr,
+    headSha: basePr.head.sha,
+    labels: [],
+    reviewsSignature: "",
+    risk: { tier: "low", reasons: [] },
+    automation: summarizeChecks([]),
+    approvals: { required: 1, requirement: "1 approval", approvers: [], changesRequestedBy: [], reviewers: [], missing: ["1 more approval"], notes: [], satisfied: false },
+    state: "review-in-progress",
+    passed: false,
+    reviewAssignment: { users: [], teams: [], due: null },
+  };
+  const github = fakeGithub({ pr: basePr });
+  github.rest.issues.addLabels = async () => {
+    throw Object.assign(new Error("Resource not accessible"), { status: 403 });
+  };
+  github.rest.issues.createComment = async () => {
+    throw Object.assign(new Error("Server Error"), { status: 502 });
+  };
+  await assert.rejects(
+    syncPullRequestStatus(github, { owner: "github", repo: "awesome-copilot", evaluation, publishCheck: true }),
+    /labels: Resource not accessible; status comment: Server Error/
+  );
+  assert.ok(github.calls.some((call) => call.name === "checks.create"), "check is published before label and comment writes");
+});
+
+test("a successful contributor check with an unreadable artifact fails closed", async () => {
+  const runs = [
+    run(1, "check-line-endings.yml", "success"),
+    run(90, "codespell.yml", "success"),
+    run(2, "validate-readme.yml", "success"),
+    run(3, "contributor-check.yml", "success"),
+  ];
+  const approved = { reviews: [review("alice", "APPROVED")], permissions: { alice: "write" } };
+  const options = { owner: "github", repo: "awesome-copilot", pullNumber: 7, config, finalized: true, readContributorRisk: () => null };
+
+  const lost = await evaluateSubmission(
+    fakeGithub({ pr: basePr, files: [file("docs/a.md")], runs, jobs: { 3: [{ name: "pr-check", conclusion: "success" }] }, ...approved }),
+    options
+  );
+  assert.deepEqual(lost.automation.infrastructureFailures.map((r) => r.id), ["contributor-risk-signal"]);
+  assert.equal(lost.passed, false);
+
+  const skipped = await evaluateSubmission(
+    fakeGithub({ pr: basePr, files: [file("docs/a.md")], runs, jobs: { 3: [{ name: "pr-check", conclusion: "skipped" }] }, ...approved }),
+    options
+  );
+  assert.equal(skipped.automation.infrastructureFailures.length, 0, "a skipped PR job carries no signal");
+  assert.equal(skipped.passed, true);
 });
 
 test("evaluation and final write are discarded when the base branch or risk labels change", async () => {

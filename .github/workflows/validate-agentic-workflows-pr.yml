@@ -6,7 +6,6 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "workflows/**"
-      - ".github/workflows/validate-agentic-workflows-pr.yml"
 
 permissions:
   contents: read

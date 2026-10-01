@@ -168,7 +168,6 @@ checks:
     branches: [main]
     paths:
       - "workflows/**"
-      - ".github/workflows/validate-agentic-workflows-pr.yml"
     required: true
     contribution_steps: ["^Check for forbidden files$", "^Compile workflow files$"]
     hint: Only add `.md` sources under `workflows/` and make sure `gh aw compile --validate` passes.

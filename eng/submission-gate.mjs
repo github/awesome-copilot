@@ -13,6 +13,7 @@ import * as yaml from "js-yaml";
 export const GATE_CHECK_NAME = "submission-gate";
 // external_id stamped on the check runs the trusted writer publishes.
 export const GATE_CHECK_EXTERNAL_ID = "submission-gate-writer";
+const CONTRIBUTOR_RESULT_JOB = "pr-check";
 export const GATE_WORKFLOW_FILE = "submission-gate.yml";
 export const STATUS_MARKER = "<!-- submission-gate-status -->";
 export const RISK_TIERS = ["low", "medium", "high"];
@@ -737,6 +738,19 @@ function evaluateObservations(applicable, observations, { elapsedMs, timeoutMs, 
   });
 }
 
+/** Whether a contributor-check run's PR job succeeded, so its result artifact must exist. */
+export async function contributorResultExpected(github, { owner, repo, run }) {
+  if (run?.status !== "completed" || run.conclusion !== "success") return false;
+  const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+    owner,
+    repo,
+    run_id: run.id,
+    filter: "latest",
+    per_page: 100,
+  });
+  return jobs.some((job) => job.name === CONTRIBUTOR_RESULT_JOB && job.conclusion === "success");
+}
+
 /** Download the contributor reputation artifact (raise-only signal) with the gh CLI. */
 export function readContributorRiskArtifact({ owner, repo, runId, headSha, token }) {
   if (!runId) return null;
@@ -868,10 +882,30 @@ export async function evaluateSubmission(github, options) {
   const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pullNumber, per_page: 100 });
 
   const contributorRun = latestRuns?.get("contributor-check.yml");
-  const contributorRisk =
-    contributorRun?.status === "completed"
-      ? readContributorRisk({ owner, repo, runId: contributorRun.id, headSha, token })
-      : null;
+  let contributorRisk = null;
+  if (contributorRun?.status === "completed") {
+    let expected;
+    try {
+      expected = await contributorResultExpected(github, { owner, repo, run: contributorRun });
+    } catch {
+      expected = true;
+    }
+    contributorRisk = readContributorRisk({ owner, repo, runId: contributorRun.id, headSha, token });
+    // A skipped run (bot authors) has no signal. A PR job that succeeded must have left a readable
+    // result; losing it could hide a HIGH signal, so fail closed until a later sweep reads it.
+    if (contributorRisk === null && expected) {
+      results.push({
+        id: "contributor-risk-signal",
+        title: "Contributor risk signal",
+        required: true,
+        url: contributorRun.html_url || null,
+        hint: "The hourly Submission Gate Writer sweep retries this; a maintainer can re-run the contributor check if it persists.",
+        outcome: "failure",
+        category: "infrastructure",
+        detail: "The contributor check succeeded but its result artifact was missing, unreadable, or for another commit",
+      });
+    }
+  }
 
   if (incompleteFiles) {
     results.push({
@@ -974,6 +1008,9 @@ export async function syncPullRequestStatus(
     }
   }
 
+  // Publish the authoritative check first so enforcement never waits on labels or the comment.
+  if (publishCheck) await publishGateCheck(github, { owner, repo, evaluation, detailsUrl: gateRunUrl, log });
+
   const current = new Set((fresh.labels || []).map((label) => label.name));
   // External plugin intake (external-plugin-pr-quality-gates-writer.yml) owns the shared
   // state labels on its PRs; only the risk label and comment are managed there.
@@ -983,32 +1020,42 @@ export async function syncPullRequestStatus(
 
   const toAdd = [...desired].filter((label) => !current.has(label));
   const toRemove = [...current].filter((label) => managed.has(label) && !desired.has(label));
-  if (toAdd.length > 0) await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: toAdd });
-  for (const name of toRemove) {
-    try {
-      await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name });
-    } catch (error) {
-      if (error.status !== 404) throw error;
+  const errors = [];
+  try {
+    if (toAdd.length > 0) await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: toAdd });
+    for (const name of toRemove) {
+      try {
+        await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name });
+      } catch (error) {
+        if (error.status !== 404) throw error;
+      }
     }
+  } catch (error) {
+    errors.push(`labels: ${error.message}`);
   }
 
-  const body = renderStatusComment(evaluation, { gateRunUrl });
-  const comments = await github.paginate(github.rest.issues.listComments, {
-    owner,
-    repo,
-    issue_number: issueNumber,
-    per_page: 100,
-  });
-  const existing = comments.find(
-    (comment) => comment.user?.login === "github-actions[bot]" && String(comment.body || "").includes(STATUS_MARKER)
-  );
-  if (existing) {
-    if (existing.body !== body) await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
-  } else {
-    await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body });
+  try {
+    const body = renderStatusComment(evaluation, { gateRunUrl });
+    const comments = await github.paginate(github.rest.issues.listComments, {
+      owner,
+      repo,
+      issue_number: issueNumber,
+      per_page: 100,
+    });
+    const existing = comments.find(
+      (comment) => comment.user?.login === "github-actions[bot]" && String(comment.body || "").includes(STATUS_MARKER)
+    );
+    if (existing) {
+      if (existing.body !== body) await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+    } else {
+      await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body });
+    }
+  } catch (error) {
+    errors.push(`status comment: ${error.message}`);
   }
+
   log(`PR #${issueNumber}: state=${evaluation.state} risk=${evaluation.risk.tier} (+${toAdd.join(",") || "none"} -${toRemove.join(",") || "none"})`);
-  if (publishCheck) await publishGateCheck(github, { owner, repo, evaluation, detailsUrl: gateRunUrl, log });
+  if (errors.length > 0) throw new Error(`Published the gate check but could not sync ${errors.join("; ")}`);
   return { updated: true };
 }
 
