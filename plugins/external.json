@@ -619,6 +619,27 @@
     }
   },
   {
+    "name": "dependabot-triage",
+    "description": "Triage Dependabot alerts and recommend safe, evidence-based dependency updates.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Aaron Powell"
+    },
+    "repository": "https://github.com/aaronpowell/github-copilot-dependabot-canvas",
+    "license": "MIT",
+    "keywords": [
+      "dependabot",
+      "dependencies",
+      "security",
+      "canvas"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "aaronpowell/github-copilot-dependabot-canvas",
+      "sha": "206c4682b6f383f631b35b9a51408fb46789eac1"
+    }
+  },
+  {
     "name": "dotnet",
     "description": "Common everyday C#/.NET coding skills. Expected to be useful to all .NET developers.",
     "version": "0.1.0",
