@@ -73,14 +73,9 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-agents) for guidelines on how to
 - Click the **VS Code** or **VS Code Insiders** install button for the agent you want to use
 - Download the \`*.agent.md\` file and add it to your repository
 
-**MCP Server Setup:**
-- Each agent may require one or more MCP servers to function
-- Click the MCP server to view it on the GitHub MCP registry
-- Follow the guide on how to add the MCP server to your repository
-
 **To Activate/Use:**
 - Access installed agents through the VS Code Chat interface, assign them in CCA, or through Copilot CLI (coming soon)
-- Agents will have access to tools from configured MCP servers
+- Some agents require MCP servers; check the agent file for its \`mcp-servers\` configuration
 - Follow agent-specific instructions for optimal usage`,
 
   skillsSection: `## 🎯 Agent Skills

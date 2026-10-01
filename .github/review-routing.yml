@@ -1,0 +1,85 @@
+# Review routing configuration — single source of truth for reviewer pools.
+#
+# Read by eng/review-routing.mjs from the Review Routing and Review Escalation
+# workflows. See docs/maintainers/review-routing.md for the full operating model.
+#
+# Handles are GitHub logins without the leading "@". Team values use the
+# "<org>/<team-slug>" form. Keep every pool at three or more reviewers with
+# cross-time-zone coverage before turning off dry_run.
+
+version: 1
+
+# When true, workflows only log the actions they would take (no reviewer
+# requests, labels, or comments). Set to false once the teams and pools below
+# are populated.
+dry_run: true # TODO: set to false after the reviewer pools are staffed.
+
+sla:
+  # Business days (Monday–Friday, UTC, excluding holidays) after routing by
+  # which a first review is expected. The date is shown in the review-due label.
+  first_review_business_days: 2
+  # Business days after routing before the PR escalates to the core pool.
+  escalation_business_days: 4
+  # Optional non-working days (YYYY-MM-DD, UTC) skipped by business-day math.
+  holidays: []
+
+labels:
+  needs_reviewer: needs-reviewer
+  due_prefix: "review-due:"
+  overdue: review-overdue
+  escalated: review-escalated
+
+# Pool that receives escalations and acts as the last-resort fallback.
+escalation_pool: core-maintainers
+
+# Pool used when no intent label matches a route below.
+default_pool: core-maintainers
+
+pools:
+  core-maintainers:
+    team: github/awesome-copilot-core-maintainers
+    reviewers: [] # TODO: add at least three core maintainers.
+    backup: [] # TODO: optional; escalation already targets this pool.
+  canvas:
+    team: github/awesome-copilot-canvas-reviewers
+    reviewers: [] # TODO: add at least three canvas reviewers.
+    backup: [] # TODO: add backup reviewers for canvas extensions.
+  plugin:
+    team: github/awesome-copilot-plugin-reviewers
+    reviewers: [] # TODO: add at least three plugin reviewers.
+    backup: [] # TODO: add backup reviewers for plugins.
+  content:
+    team: github/awesome-copilot-content-reviewers
+    reviewers: [] # TODO: add at least three reviewers for skills, agents, and instructions.
+    backup: [] # TODO: add backup content reviewers.
+
+# Intent labels (applied by .github/workflows/label-pr-intent*.yml) mapped to
+# pools. Order is priority: the first route whose label is on the PR wins.
+routes:
+  - label: canvas-extension
+    pool: canvas
+  - label: external-plugin
+    pool: plugin
+  - label: plugin
+    pool: plugin
+  - label: skills
+    pool: content
+  - label: agent
+    pool: content
+  - label: instructions
+    pool: content
+  - label: workflow
+    pool: content
+  - label: hooks
+    pool: content
+  - label: website-update
+    pool: core-maintainers
+
+# Reviewers temporarily unavailable (vacation, leave). They are never selected.
+unavailable: []
+
+# PR authors that are never routed (for example, automation accounts).
+skip_authors: []
+
+# PRs carrying any of these labels are not routed or escalated.
+skip_labels: []
