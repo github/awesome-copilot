@@ -168,7 +168,7 @@ export function normalizeReviewRoutingConfig(raw) {
     errors.push("skip_labels must be a list");
   }
 
-  if (raw.dry_run !== undefined && typeof raw.dry_run !== "boolean") {
+  if (typeof raw.dry_run !== "boolean") {
     errors.push("dry_run must be true or false");
   }
 
