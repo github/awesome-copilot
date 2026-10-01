@@ -673,7 +673,7 @@
     {
       "name": "crowdstrike-falcon-foundry",
       "description": "AI coding assistant skills for building CrowdStrike Falcon Foundry apps: scaffolding, deployment, and best practices for API integrations, collections, functions, UI extensions, UI pages, and workflows.",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "author": {
         "name": "CrowdStrike",
         "url": "https://www.crowdstrike.com/"
@@ -690,7 +690,8 @@
       "source": {
         "source": "github",
         "repo": "CrowdStrike/foundry-skills",
-        "sha": "d9af175fe2b86836b431ebdb7e088957e6c7820d"
+        "ref": "v1.6.0",
+        "sha": "61572f38592d47c747e2595182459781bf0bc679"
       }
     },
     {
