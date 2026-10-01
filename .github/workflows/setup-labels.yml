@@ -89,6 +89,19 @@ jobs:
               'awaiting-approval': {
                 color: 'FBCA04',
                 description: 'External plugin awaiting maintainer approval'
+              },
+              // Review routing labels (see .github/review-routing.yml)
+              'needs-reviewer': {
+                color: 'D4C5F9',
+                description: 'Request automated reviewer routing for this PR'
+              },
+              'review-overdue': {
+                color: 'E99695',
+                description: 'First review is past its due date; a backup reviewer was requested'
+              },
+              'review-escalated': {
+                color: 'B60205',
+                description: 'Review escalated to the core-maintainer pool'
               }
             };
 
