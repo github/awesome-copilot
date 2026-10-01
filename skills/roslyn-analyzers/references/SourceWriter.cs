@@ -113,7 +113,7 @@ internal sealed class SourceWriter
     /// <summary>
     /// Writes text without ending the line, indenting first if it starts a line.
     /// </summary>
-    /// <param name="text">The C# source to write. Embedded newlines start new, indented lines.</param>
+    /// <param name="text">The C# source to write. Embedded CR, LF, and CRLF newlines start new, indented lines and are normalized to CRLF.</param>
     /// <returns>This writer, for chaining.</returns>
     /// <remarks>
     /// Use this to build a line from several fragments, such as a member signature assembled in a loop.
@@ -135,7 +135,7 @@ internal sealed class SourceWriter
     /// <summary>
     /// Writes text followed by a newline.
     /// </summary>
-    /// <param name="text">The C# source to write. Each embedded line is indented.</param>
+    /// <param name="text">The C# source to write. Each embedded line is indented, and CR, LF, and CRLF newlines are normalized to CRLF.</param>
     /// <param name="disableIndentation">Whether to suppress current indentation.</param>
     /// <returns>This writer, for chaining.</returns>
     public SourceWriter WriteLine(
@@ -244,7 +244,7 @@ internal sealed class SourceWriter
             return default;
         }
 
-        int lineLength = remainingText.IndexOf('\n');
+        int lineLength = remainingText.IndexOfAny('\r', '\n');
         ReadOnlySpan<char> rest;
         if (lineLength == -1)
         {
@@ -254,13 +254,11 @@ internal sealed class SourceWriter
         }
         else
         {
-            rest = remainingText[(lineLength + 1)..];
+            int newlineLength = remainingText[lineLength] == '\r' &&
+                lineLength + 1 < remainingText.Length &&
+                remainingText[lineLength + 1] == '\n' ? 2 : 1;
+            rest = remainingText[(lineLength + newlineLength)..];
             isFinalLine = false;
-        }
-
-        if ((uint)lineLength > 0 && remainingText[lineLength - 1] == '\r')
-        {
-            lineLength--;
         }
 
         ReadOnlySpan<char> next = remainingText[..lineLength];
