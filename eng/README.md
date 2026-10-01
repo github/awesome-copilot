@@ -26,12 +26,11 @@ Generates JSON data files for the website from repository content.
 
 ## Review automation
 
-See [docs/maintainers/auto-merge-and-metrics.md](../docs/maintainers/auto-merge-and-metrics.md) for details.
+See [docs/maintainers/canvas-evidence-and-metrics.md](../docs/maintainers/canvas-evidence-and-metrics.md) for details.
 
 - `canvas-smoke-test.mjs` — static checks, preview validation, materialization, and install smoke test for canvas extensions (`canvas-smoke-test` check).
-- `auto-merge.mjs` — evaluates `.github/auto-merge.yml` and arms or disarms safe auto-merge.
 - `review-metrics.mjs` — computes weekly review operating metrics and publishes them to the tracking issue.
-- `lib/review-automation-github.mjs` — small GitHub API client shared by the scripts above (uses `GITHUB_TOKEN`, or the `gh` CLI locally).
+- `lib/review-automation-github.mjs` — small GitHub API client used by `review-metrics.mjs` (uses `GITHUB_TOKEN`, or the `gh` CLI locally).
 
 ## Contributor Tools
 

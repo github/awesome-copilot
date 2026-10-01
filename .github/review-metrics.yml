@@ -1,7 +1,7 @@
 # Weekly review operating metrics (github/awesome-copilot#4184, phase 3).
 #
 # Read by eng/review-metrics.mjs, which .github/workflows/review-metrics.yml
-# runs every Monday. See docs/maintainers/auto-merge-and-metrics.md.
+# runs every Monday. See docs/maintainers/canvas-evidence-and-metrics.md.
 
 # Days of activity summarized in each report.
 window_days: 7
@@ -42,9 +42,8 @@ automation_workflows:
   - submission-gate.yml
   - submission-gate-writer.yml
   - review-routing.yml
-  - validate-canvas-extensions.yml
+  - canvas-smoke-test.yml
   - canvas-smoke-test-comment.yml
-  - auto-merge.yml
   - pr-risk-scan.yml
   - pr-risk-scan-comment.yml
   - label-pr-intent.yml

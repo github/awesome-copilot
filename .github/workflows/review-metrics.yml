@@ -2,7 +2,7 @@ name: Review Operating Metrics
 
 # Publishes weekly review operating metrics (#4184) to a pinned tracking
 # issue labeled `review-metrics`. Reads repository data only; the sole write is
-# the tracking issue. Definitions: docs/maintainers/auto-merge-and-metrics.md
+# the tracking issue. Definitions: docs/maintainers/canvas-evidence-and-metrics.md
 
 on:
   schedule:

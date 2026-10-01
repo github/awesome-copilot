@@ -271,6 +271,10 @@ export function inspectPng(buffer) {
       return result;
     }
     if (type === "IHDR") {
+      if (header) {
+        result.errors.push("duplicate IHDR chunk");
+        return result;
+      }
       if (length !== 13) {
         result.errors.push("IHDR chunk has invalid length");
         return result;
@@ -426,11 +430,18 @@ const IDENTIFIER_CHAR = /[\w$]/;
 /**
  * Blank out comments while leaving string, template, and regex literals
  * intact, so `"a//b"` or `/\/\*x/` cannot hide the code that follows.
+ * With `maskLiterals`, literal contents are blanked too (delimiters kept), so
+ * call-shaped text inside data is not mistaken for code.
  * Offsets and line breaks are preserved.
  */
-export function stripComments(source) {
+export function stripComments(source, { maskLiterals = false } = {}) {
   const n = source.length;
   const blank = (text) => text.replace(/[^\n]/g, " ");
+  // Keep the first `open` and last `close` characters of a literal, masking the rest when asked.
+  const literal = (text, open, close) =>
+    maskLiterals && text.length > open + close
+      ? text.slice(0, open) + blank(text.slice(open, text.length - close)) + text.slice(text.length - close)
+      : text;
   const templateStack = [];
   let out = "";
   let i = 0;
@@ -443,18 +454,18 @@ export function stripComments(source) {
     while (j < n) {
       const c = source[j];
       if (c === "\\") { j += 2; continue; }
-      if (c === "`") { j++; out += source.slice(start, j); lastSignificant = "`"; lastWord = ""; return j; }
+      if (c === "`") { j++; out += literal(source.slice(start, j), 0, 1); lastSignificant = "`"; lastWord = ""; return j; }
       if (c === "$" && source[j + 1] === "{") {
         j += 2;
         templateStack.push(braceDepth);
         braceDepth++;
-        out += source.slice(start, j);
+        out += literal(source.slice(start, j), 0, 2);
         lastSignificant = "{"; lastWord = "";
         return j;
       }
       j++;
     }
-    out += source.slice(start, n);
+    out += literal(source.slice(start, n), 0, 0);
     return n;
   };
 
@@ -485,7 +496,7 @@ export function stripComments(source) {
       let j = i + 1;
       while (j < n && source[j] !== ch && source[j] !== "\n") j += source[j] === "\\" ? 2 : 1;
       j = Math.min(j + 1, n);
-      out += source.slice(i, j);
+      out += literal(source.slice(i, j), 1, source[j - 1] === ch && j - 1 > i ? 1 : 0);
       i = j;
       lastSignificant = ch; lastWord = "";
       continue;
@@ -507,7 +518,7 @@ export function stripComments(source) {
         j++;
       }
       while (j < n && /[a-z]/i.test(source[j])) j++;
-      out += source.slice(i, j);
+      out += literal(source.slice(i, j), 1, 0);
       i = j;
       lastSignificant = "a"; lastWord = "";
       continue;
@@ -541,8 +552,13 @@ export function stripComments(source) {
 function literalCallSpecifiers(source, pattern) {
   const specifiers = new Set();
   let match;
-  const text = stripComments(source);
-  while ((match = pattern.exec(text))) specifiers.add(match[2]);
+  // Match call shapes on masked text, then read each specifier from the original source at the same offsets.
+  const text = stripComments(source, { maskLiterals: true });
+  while ((match = pattern.exec(text))) {
+    const open = match.index + match[0].indexOf(match[1]);
+    const close = text.indexOf(match[1], open + 1);
+    specifiers.add(source.slice(open + 1, close));
+  }
   return [...specifiers];
 }
 
@@ -590,6 +606,20 @@ export function classifySpecifier(specifier, packageJson = {}) {
     return { kind: "dev-dependency", name };
   }
   return { kind: "undeclared", name };
+}
+
+/**
+ * Collect the string targets of a package.json "imports" entry, including
+ * every branch of a conditions object. Returns null for shapes we cannot
+ * analyze (arrays, null, or non-string leaves).
+ */
+export function importsAliasTargets(value) {
+  if (typeof value === "string") return [value];
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const targets = Object.values(value).map(importsAliasTargets);
+    return targets.includes(null) ? null : targets.flat();
+  }
+  return null;
 }
 
 function isModuleFile(filePath, packageType) {
@@ -792,13 +822,15 @@ export function checkExtensionModules(extensionDir) {
       continue;
     }
     for (const specifier of record.specifiers) {
-      const resolved = validateSpecifier(specifier, filePath, record.path, { strict: true, commonjs: !record.esm });
-      if (resolved && MODULE_EXTENSIONS.has(path.extname(resolved))) queue.push(resolved);
+      for (const resolved of validateSpecifier(specifier, filePath, record.path, { strict: true, commonjs: !record.esm })) {
+        if (MODULE_EXTENSIONS.has(path.extname(resolved))) queue.push(resolved);
+      }
     }
     // Literal dynamic imports from reachable code are reachable too.
     for (const specifier of record.dynamic) {
-      const resolved = validateSpecifier(specifier, filePath, record.path, { strict: true, dynamic: true });
-      if (resolved && MODULE_EXTENSIONS.has(path.extname(resolved))) queue.push(resolved);
+      for (const resolved of validateSpecifier(specifier, filePath, record.path, { strict: true, dynamic: true })) {
+        if (MODULE_EXTENSIONS.has(path.extname(resolved))) queue.push(resolved);
+      }
     }
   }
 
@@ -837,55 +869,67 @@ export function checkExtensionModules(extensionDir) {
     else warnings.push(`${message} (module is not reachable from extension.mjs)`);
   }
 
-  function validateSpecifier(specifier, filePath, relativePath, { strict, dynamic = false, commonjs = false }) {
+  // Returns the extension files the specifier resolves to (empty when it does not resolve to a local file).
+  function validateSpecifier(specifier, filePath, relativePath, { strict, dynamic = false, commonjs = false, viaAlias }) {
     const classification = classifySpecifier(specifier, packageJson);
+    const shown = viaAlias ? `${viaAlias}" -> "${specifier}` : specifier;
     const where = dynamic
-      ? `${relativePath}: dynamic import("${specifier}")`
-      : commonjs ? `${relativePath}: require("${specifier}")` : `${relativePath}: import "${specifier}"`;
+      ? `${relativePath}: dynamic import("${shown}")`
+      : commonjs ? `${relativePath}: require("${shown}")` : `${relativePath}: import "${shown}"`;
     switch (classification.kind) {
       case "relative": {
         const cleaned = specifier.replace(/[?#].*$/, "");
         const target = path.resolve(path.dirname(filePath), cleaned);
         if (!isInside(extensionDir, target)) {
           flag(strict, `${where} escapes the extension directory`);
-          return null;
+          return [];
         }
         const resolved = commonjs ? resolveCommonJsTarget(target) : target;
         if (!resolved || !fs.existsSync(resolved)) {
           flag(strict, `${where} references a missing file`);
-          return null;
+          return [];
         }
         if (fs.statSync(resolved).isDirectory()) {
           flag(strict, `${where} points at a directory (ES modules require a file path)`);
-          return null;
+          return [];
         }
-        return resolved;
+        return [resolved];
       }
       case "builtin":
         if (strict) builtins.add(classification.name);
-        return null;
+        return [];
       case "host":
-      case "internal":
-        return null;
+        return [];
+      case "internal": {
+        // Resolve package.json "imports" aliases through the same checks; fail closed on anything we cannot analyze.
+        const targets = viaAlias ? null : importsAliasTargets(packageJson.imports[specifier]);
+        if (!targets || targets.length === 0 || targets.some((target) => target.startsWith("#") || target.startsWith("../"))) {
+          flag(strict, `${where} uses a package.json "imports" alias that cannot be analyzed`);
+          return [];
+        }
+        const aliasBase = path.join(extensionDir, "package.json");
+        return targets.flatMap((target) =>
+          validateSpecifier(target, aliasBase, relativePath, { strict, dynamic, commonjs, viaAlias: specifier }));
+      }
       case "dependency":
         if (strict) externalPackages.add(classification.name);
-        return null;
+        return [];
       case "dev-dependency":
         if (strict) externalPackages.add(classification.name);
         flag(strict, `${where} is only declared in devDependencies; runtime imports must be in dependencies`);
-        return null;
+        return [];
       case "unsafe":
         flag(strict, `${where} uses an unsafe ${classification.reason}`);
-        return null;
+        return [];
       case "remote":
         flag(strict, `${where} is a remote URL import`);
-        return null;
+        return [];
       case "data":
         warnings.push(`${where} is a data: URL import`);
-        return null;
+        return [];
       default:
         flag(strict, `${where} is not a Node.js builtin, host-provided package, or declared dependency`);
-        return null;
+        return [];
     }
   }
 
@@ -904,6 +948,8 @@ export function checkExtensionModules(extensionDir) {
       flag(false, `${where} loads remote code`);
     } else if (classification.kind === "undeclared") {
       flag(false, `${where} is not declared in package.json`);
+    } else if (classification.kind === "internal") {
+      validateSpecifier(specifier, filePath, relativePath, { strict: false, dynamic: true });
     }
   }
 

@@ -157,7 +157,7 @@ test("config and CLI parsing", () => {
   const loaded = loadMetricsConfig();
   assert.equal(loaded.window_days, 7);
   assert.deepEqual(loaded.targets_business_days, [2, 4]);
-  assert.ok(loaded.automation_workflows.includes("validate-canvas-extensions.yml"));
+  assert.ok(loaded.automation_workflows.includes("canvas-smoke-test.yml"));
   assert.equal(loadMetricsConfig("does-not-exist.yml").tracking_issue.label, "review-metrics");
 
   const options = parseArgs(["--repo", "o/r", "--dry-run", "--now", "2025-01-10T00:00:00Z", "--window-days", "14"]);

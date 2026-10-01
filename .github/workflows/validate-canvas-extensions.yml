@@ -4,43 +4,14 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
+    paths:
+      - "extensions/**"
 
 permissions:
   contents: read
 
-concurrency:
-  group: validate-canvas-extensions-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      canvas: ${{ steps.detect.outputs.canvas }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: "22"
-
-      - name: Detect canvas changes
-        id: detect
-        env:
-          BASE_REF: ${{ github.base_ref }}
-        run: |
-          set -euo pipefail
-          git diff --name-only "origin/${BASE_REF}...HEAD" > "${RUNNER_TEMP}/changed-files.txt"
-          node ./eng/canvas-smoke-test.mjs --detect-only --changed-files "${RUNNER_TEMP}/changed-files.txt"
-
   validate:
-    needs: changes
-    if: needs.changes.outputs.canvas == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -61,101 +32,3 @@ jobs:
         run: |
           set -euo pipefail
           npm run plugin:validate
-
-  # Aggregated by submission-gate. Always reports a result: "skipped" (success)
-  # when no canvas paths changed. Runs untrusted PR content with a read-only
-  # token and no secrets; extension code is compiled but never executed.
-  canvas-smoke-test:
-    name: canvas-smoke-test
-    needs: changes
-    if: always()
-    runs-on: ubuntu-latest
-    env:
-      CANVAS: ${{ needs.changes.outputs.canvas }}
-      CHANGES_RESULT: ${{ needs.changes.result }}
-      PR_NUMBER: ${{ github.event.pull_request.number }}
-      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-      BASE_REF: ${{ github.base_ref }}
-      CANVAS_PREVIEW_MIN_WIDTH: ${{ vars.CANVAS_PREVIEW_MIN_WIDTH }}
-      CANVAS_PREVIEW_MIN_HEIGHT: ${{ vars.CANVAS_PREVIEW_MIN_HEIGHT }}
-      CANVAS_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-    steps:
-      - name: Check change detection
-        if: needs.changes.result != 'success'
-        run: |
-          echo "::error::Canvas change detection did not succeed (${CHANGES_RESULT})."
-          exit 1
-
-      - name: Report skipped
-        if: env.CANVAS != 'true'
-        run: |
-          set -euo pipefail
-          mkdir -p canvas-smoke-results
-          cat > canvas-smoke-results/report.md <<'EOF'
-          <!-- canvas-smoke-test -->
-          ## 🧩 Canvas smoke test
-
-          ⏭️ **Skipped** — no canvas extension or extension-bearing plugin paths changed.
-          EOF
-          echo '{"schema_version":"canvas-smoke-test/v1","status":"skipped"}' > canvas-smoke-results/results.json
-          echo "${PR_NUMBER}" > canvas-smoke-results/pr-number.txt
-          echo "${HEAD_SHA}" > canvas-smoke-results/head-sha.txt
-          cat canvas-smoke-results/report.md >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Checkout
-        if: env.CANVAS == 'true'
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Setup Node.js
-        if: env.CANVAS == 'true'
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: "22"
-          cache: "npm"
-
-      - name: Install dependencies
-        if: env.CANVAS == 'true'
-        run: npm ci --ignore-scripts
-
-      - name: Install GitHub Copilot CLI
-        if: env.CANVAS == 'true'
-        continue-on-error: true
-        run: npm install -g @github/copilot
-
-      - name: Run canvas smoke test
-        if: env.CANVAS == 'true'
-        run: |
-          set -uo pipefail
-          git diff --name-only "origin/${BASE_REF}...HEAD" > "${RUNNER_TEMP}/changed-files.txt"
-          export CANVAS_PREVIEW_BASE_URL="https://raw.githubusercontent.com/${HEAD_REPO}/${HEAD_SHA}/"
-          node ./eng/canvas-smoke-test.mjs \
-            --changed-files "${RUNNER_TEMP}/changed-files.txt" \
-            --install require \
-            --output-dir canvas-smoke-results > /dev/null
-          exit_code=$?
-          if [ ! -f canvas-smoke-results/report.md ]; then
-            mkdir -p canvas-smoke-results
-            printf '<!-- canvas-smoke-test -->\n## 🧩 Canvas smoke test\n\n⚠️ **Infrastructure error** — the checker crashed. See the workflow logs.\n' > canvas-smoke-results/report.md
-            echo '{"schema_version":"canvas-smoke-test/v1","status":"infra_error"}' > canvas-smoke-results/results.json
-          fi
-          echo "${PR_NUMBER}" > canvas-smoke-results/pr-number.txt
-          echo "${HEAD_SHA}" > canvas-smoke-results/head-sha.txt
-          cat canvas-smoke-results/report.md >> "$GITHUB_STEP_SUMMARY"
-          case "$exit_code" in
-            0) ;;
-            1) echo "::error::Canvas smoke test found contribution issues. See the job summary." ;;
-            *) echo "::error::Canvas smoke test hit an infrastructure error (not a contribution failure)." ;;
-          esac
-          exit "$exit_code"
-
-      - name: Upload review artifact
-        if: always() && hashFiles('canvas-smoke-results/report.md') != ''
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
-        with:
-          name: canvas-smoke-test-results
-          path: canvas-smoke-results/
-          retention-days: 7

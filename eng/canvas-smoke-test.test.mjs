@@ -9,7 +9,10 @@ import {
   checkPreview,
   classifySpecifier,
   detectCanvasTargets,
+  findDynamicImportSpecifiers,
+  findRequireSpecifiers,
   findUnsafeManifestPaths,
+  importsAliasTargets,
   inspectExtensionFiles,
   inspectPng,
   parseEsModule,
@@ -402,6 +405,61 @@ test("checkExtensionModules follows imports placed after strings containing //",
   const result = checkExtensionModules(path.join(root, "extensions", "str"));
   assert.match(result.errors.join("\n"), /worker\.mjs: import "left-pad" is not a Node\.js builtin/);
   assert.ok(result.modules.find((entry) => entry.path === "worker.mjs").reachable);
+});
+
+test("inspectPng rejects a duplicate IHDR chunk", () => {
+  const valid = makePng(4, 4);
+  const ihdr = valid.subarray(8, 8 + 25);
+  const png = Buffer.concat([valid.subarray(0, 33), ihdr, valid.subarray(33)]);
+  const result = inspectPng(png);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join("\n"), /duplicate IHDR chunk/);
+});
+
+test("dynamic import and require extraction ignores call-shaped text inside literals", () => {
+  const source = [
+    'const a = \'import("./in-single.mjs")\';',
+    'const b = "require(\\"./in-double.cjs\\")";',
+    "const c = `import(\"./in-template.mjs\") ${await import(\"./in-expr.mjs\")}`;",
+    'const d = /import\\("\\.\\/in-regex\\.mjs"\\)/;',
+    'const e = await import("./real.mjs"); const f = require("./real.cjs");',
+  ].join("\n");
+  assert.deepEqual(findDynamicImportSpecifiers(source).sort(), ["./in-expr.mjs", "./real.mjs"]);
+  assert.deepEqual(findRequireSpecifiers(source), ["./real.cjs"]);
+  const root = makeRepo({
+    "extensions/lit/extension.mjs": 'const note = \'import("./missing.mjs")\';\nexport default { note };\n',
+  });
+  assert.deepEqual(checkExtensionModules(path.join(root, "extensions", "lit")).errors, []);
+});
+
+test("checkExtensionModules resolves package.json imports aliases and fails closed on unknown shapes", () => {
+  assert.deepEqual(importsAliasTargets({ node: "./a.mjs", default: { import: "./b.mjs" } }), ["./a.mjs", "./b.mjs"]);
+  assert.equal(importsAliasTargets(["./a.mjs"]), null);
+  const root = makeRepo({
+    "extensions/alias/extension.mjs": [
+      'import ok from "#ok";',
+      'import gone from "#gone";',
+      'import pad from "#pad";',
+      'import odd from "#odd";',
+      'import up from "#up";',
+      "export default { ok, gone, pad, odd, up };",
+    ].join("\n"),
+    "extensions/alias/lib/ok.mjs": 'import pad from "left-pad";\nexport default pad;\n',
+    "extensions/alias/package.json": {
+      name: "alias",
+      version: "1.0.0",
+      type: "module",
+      imports: { "#ok": "./lib/ok.mjs", "#gone": "./lib/gone.mjs", "#pad": "left-pad", "#odd": ["./lib/ok.mjs"], "#up": "../x.mjs" },
+    },
+  });
+  const result = checkExtensionModules(path.join(root, "extensions", "alias"));
+  const errors = result.errors.join("\n");
+  assert.ok(result.modules.find((entry) => entry.path === "lib/ok.mjs").reachable);
+  assert.match(errors, /lib\/ok\.mjs: import "left-pad" is not a Node\.js builtin/);
+  assert.match(errors, /import "#gone" -> "\.\/lib\/gone\.mjs" references a missing file/);
+  assert.match(errors, /import "#pad" -> "left-pad" is not a Node\.js builtin/);
+  assert.match(errors, /import "#odd" uses a package\.json "imports" alias that cannot be analyzed/);
+  assert.match(errors, /import "#up" uses a package\.json "imports" alias that cannot be analyzed/);
 });
 
 test("readRegularFile and checkExtensionModules refuse symlinked files", (t) => {

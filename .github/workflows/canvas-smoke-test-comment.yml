@@ -1,12 +1,12 @@
 name: Canvas Smoke Test — Comment
 
 # Writer half of the canvas-smoke-test reader/writer split. The reader
-# (validate-canvas-extensions.yml) runs on untrusted PR code with a read-only
+# (canvas-smoke-test.yml) runs on untrusted PR code with a read-only
 # token; this workflow only reads its artifact and never checks out PR code.
 
 on:
   workflow_run:
-    workflows: ["Validate Canvas Extensions"]
+    workflows: ["Canvas Smoke Test"]
     types: [completed]
 
 permissions:

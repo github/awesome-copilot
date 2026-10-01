@@ -343,7 +343,7 @@ export function renderReport(metrics, { repository, runUrl } = {}) {
   for (const workflow of automation.workflows) {
     lines.push(workflow.found ? `| \`${workflow.workflow}\` | ${workflow.runs} | ${workflow.failed} | ${formatPercent(workflow.failure_rate)} |` : `| \`${workflow.workflow}\` | – | – | not found |`);
   }
-  lines.push("", `_Generated ${metrics.generated_at}${repository ? ` for ${repository}` : ""}${runUrl ? ` by [this run](${runUrl})` : ""}. Definitions: docs/maintainers/auto-merge-and-metrics.md._`);
+  lines.push("", `_Generated ${metrics.generated_at}${repository ? ` for ${repository}` : ""}${runUrl ? ` by [this run](${runUrl})` : ""}. Definitions: docs/maintainers/canvas-evidence-and-metrics.md._`);
   return lines.join("\n");
 }
 
