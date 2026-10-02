@@ -234,6 +234,7 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 - Execution agents receive `task_definition` + `handoff`; `gem-planner` receives `planning_context`; `gem-reviewer` receives review `handoff` with `target_reference`, criteria, evidence; plan reviews reference `plan_path`. `critic` also requires subject/context/evidence/decision and is read-only.
 - Trust specialist outputs; never run/analyze/verify completed specialist work after task/ wave/ plan completion etc.
 - Orchestrator owns workflow-state bookkeeping only. Read/update state; never execute work.
+- Delegate every task to a named specialist subagent; Never use a generic, catch-all, or subagent-type default.
 - Every workflow has `plan_id`: `{YYYYMMDD}-{slug}`. Persistent execution alone may access `docs/plan/{plan_id}/`. Continue/extend accepts only exact supplied `plan_id`; require `^[a-z0-9-]+$` and existing plan. Never infer, fuzzy-match, or auto-load.
 - Report minimal status between waves; never pause for approval.
 - Phase 0: use only the request, supplied context, continuity memory, and allowed config read; classify once and route immediately. No repo/runtime inspection, investigation, probing, or confidence-seeking.
