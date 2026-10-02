@@ -1,5 +1,26 @@
+# Ownership model: see docs/maintainers/review-routing.md
+#
+# - Teams own paths; no individual is the default owner. Do not add individual
+#   users to the `*` rule or to the team block below.
+# - The last matching rule wins, so per-resource owners appended at the end of
+#   this file (for example by the `#codeowner` automation) override the team
+#   defaults for their specific paths.
+# - Reviewer pools used for automatic review requests live in
+#   .github/review-routing.yml.
+
 # Default owner for everything
-* @aaronpowell
+* @github/awesome-copilot-core-maintainers
+
+# Domain reviewer teams
+/extensions/ @github/awesome-copilot-canvas-reviewers
+/plugins/ @github/awesome-copilot-plugin-reviewers
+/agents/ @github/awesome-copilot-content-reviewers
+/instructions/ @github/awesome-copilot-content-reviewers
+/skills/ @github/awesome-copilot-content-reviewers
+/hooks/ @github/awesome-copilot-content-reviewers
+/workflows/ @github/awesome-copilot-content-reviewers
+/.github/ @github/awesome-copilot-core-maintainers
+/eng/ @github/awesome-copilot-core-maintainers
 
 # Adding Dan Wahlin as the owner for the CLI for Beginners content and images
 /website/src/content/docs/learning-hub/cli-for-beginners/ @DanWahlin

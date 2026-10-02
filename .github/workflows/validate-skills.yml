@@ -1,25 +1,26 @@
-name: Validate Canvas Extensions
+name: Validate Skills
 
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened]
     paths:
-      - "extensions/**"
-      - "eng/validate-plugins.mjs"
-      - ".github/workflows/validate-canvas-extensions.yml"
+      - "skills/**"
+      - "eng/validate-skills.mjs"
+      - "eng/yaml-parser.mjs"
+      - ".github/workflows/validate-skills.yml"
 
 permissions:
   contents: read
 
 jobs:
-  validate:
+  validate-skills:
+    name: validate-skills
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -30,7 +31,5 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      - name: Validate changed extensions
-        run: |
-          set -euo pipefail
-          npm run plugin:validate
+      - name: Validate skills
+        run: npm run skill:validate
