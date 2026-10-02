@@ -45,7 +45,7 @@ Work through the steps in order. Nothing is written to disk until the draft is a
 
 Consider only what the user said, the current workspace, and paths the user provides. Do not assume any folder exists, and do not walk parent or sibling directories looking for one.
 
-1. **The user named a destination** (a path, a repository, a venue such as a gist, or "just show me"): use it, and do not move the post elsewhere because another place fits conventions better. A partial name such as "the blog" resolves against the current workspace only. If the workspace is not that blog, ask for the path.
+1. **The user named a destination** (a local path, the current workspace repository, a venue such as a gist, or "just show me"): use it, and do not move the post elsewhere because another place fits conventions better. If the user names another repository, ask for its local checkout path; do not clone or modify it remotely. A partial name such as "the blog" resolves against the current workspace only. If the workspace is not that blog, ask for the path.
 2. **The workspace is a blog or site**: take the posts folder from the generator's own configuration, and match an existing post's folder, extension, file naming, and front matter. See [references/blog-platforms.md](references/blog-platforms.md) for detection and each generator's contract.
 3. **Otherwise**: write no file. Deliver the post in chat and offer to save it to a path the user names.
 
