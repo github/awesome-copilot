@@ -14,6 +14,10 @@ on:
       - "README.md"
       - "docs/**"
       - "skills/**"
+      - "eng/update-readme.mjs"
+      - "eng/generate-marketplace.mjs"
+      - "eng/validate-plugins.mjs"
+      - ".github/workflows/validate-readme.yml"
 
 jobs:
   validate-readme:
