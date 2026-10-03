@@ -1,0 +1,5 @@
+# DAW Bridge GOD MODE 4.2 local-only dependencies
+pyflp==2.2.1
+numpy>=2.2,<3
+soundfile>=0.13,<1
+psutil>=6,<8
