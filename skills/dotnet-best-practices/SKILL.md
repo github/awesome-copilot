@@ -5,7 +5,7 @@ description: 'Ensure .NET/C# code meets best practices for the solution/project.
 
 # .NET/C# Best Practices
 
-Your task is to ensure .NET/C# code in ${selection} meets the best practices specific to this solution/project. This includes:
+Your task is to ensure the .NET/C# code in the scope you were asked about meets the best practices specific to this solution/project. This includes:
 
 ## Documentation & Structure
 
