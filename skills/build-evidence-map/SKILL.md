@@ -1,6 +1,6 @@
 ---
 name: build-evidence-map
-description: 'Build an auditable evidence map for a contested technical choice, research synthesis, proposal review, or consequential decision. Use when Copilot must preserve supporting, contradicting, qualifying, and missing evidence with exact source regions instead of collapsing disagreement into prose.'
+description: 'Build an auditable evidence map for a contested technical choice, research synthesis, proposal review, or consequential decision. Use when an agent must preserve supporting, contradicting, qualifying, and missing evidence with exact source regions instead of collapsing disagreement into prose.'
 ---
 
 # Build Evidence Map
