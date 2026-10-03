@@ -159,6 +159,83 @@
     }
   },
   {
+    "name": "azure-cost-health-check",
+    "description": "Read-only Azure cost, forecasts, budget alerts, Advisor recommendations, and AI billing analysis in a Copilot canvas.",
+    "version": "0.4.5",
+    "author": {
+      "name": "Shayne Boyer",
+      "url": "https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/reporting-get-started"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "cost-management",
+      "finops",
+      "ai-foundry",
+      "monitoring"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-cost-health-check",
+      "sha": "40f89b5b3f0f01e9262cfec3ad361cf4ebb22905"
+    }
+  },
+  {
+    "name": "azure-functions-hosted-skills",
+    "description": "Build, run, and debug Azure Functions Hosted Skills locally or invoke supported functions in an existing Function App from a Copilot canvas.",
+    "version": "0.5.5",
+    "author": {
+      "name": "paulyuk",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-functions/functions-hosted-skills"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "azure-functions",
+      "hosted-skills",
+      "automation",
+      "development",
+      "skills",
+      "event-driven"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-functions-hosted-skills",
+      "sha": "bf0bd07520d004845b727bb40932c24a6e69bb8d"
+    }
+  },
+  {
+    "name": "azure-resources-query",
+    "description": "Browse Azure resources through read-only Resource Graph queries with explicit subscription selection in a Copilot canvas.",
+    "version": "0.1.5",
+    "author": {
+      "name": "Alex Weininger",
+      "url": "https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/?msockid=1add9a5fadea65191f338d23acc864b6"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "resource-graph",
+      "arg",
+      "read-only",
+      "query"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-resources-query",
+      "sha": "bf0bd07520d004845b727bb40932c24a6e69bb8d"
+    }
+  },
+  {
     "name": "bd-skills",
     "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
     "version": "0.1.26",
@@ -261,6 +338,31 @@
       "repo": "arafattehsin/cache-stats-extension",
       "ref": "v1.0.1",
       "sha": "678c3468977889d5c50a0a5f33898b8d9638523a"
+    }
+  },
+  {
+    "name": "canvas-authoring",
+    "description": "Toolkit setup and Azure or counter starters for the host’s native `create-canvas` skill; skill-only, not a canvas extension.  Includes prebuilt packages and guidance for styles, sign in, subscriptions, telemetry, and more.",
+    "version": "0.1.1",
+    "author": {
+      "name": "Alex Weininger"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "license": "MIT",
+    "keywords": [
+      "canvas-authoring",
+      "toolkit",
+      "skills",
+      "development",
+      "azure",
+      "scaffolding",
+      "build"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "plugins/canvas-authoring",
+      "sha": "a6d394bbaa6fb1dc0151257a85cbac0de772b138"
     }
   },
   {
@@ -517,6 +619,27 @@
     }
   },
   {
+    "name": "dependabot-triage",
+    "description": "Triage Dependabot alerts and recommend safe, evidence-based dependency updates.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Aaron Powell"
+    },
+    "repository": "https://github.com/aaronpowell/github-copilot-dependabot-canvas",
+    "license": "MIT",
+    "keywords": [
+      "dependabot",
+      "dependencies",
+      "security",
+      "canvas"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "aaronpowell/github-copilot-dependabot-canvas",
+      "sha": "206c4682b6f383f631b35b9a51408fb46789eac1"
+    }
+  },
+  {
     "name": "dotnet",
     "description": "Common everyday C#/.NET coding skills. Expected to be useful to all .NET developers.",
     "version": "0.1.0",
@@ -690,7 +813,7 @@
   {
     "name": "figma",
     "description": "Plugin that includes the Figma MCP server and Skills for common workflows.",
-    "version": "2.2.96",
+    "version": "2.2.124",
     "author": {
       "name": "Figma",
       "url": "https://www.figma.com"
@@ -707,7 +830,7 @@
     "source": {
       "source": "github",
       "repo": "figma/mcp-server-guide",
-      "ref": "v2.2.96-figquery.1"
+      "ref": "v2.2.124-figquery.1"
     }
   },
   {
@@ -824,6 +947,32 @@
     }
   },
   {
+    "name": "incident-io",
+    "description": "Official incident.io plugins for AI agents: skills for working with [incident.io](https://incident.io/) — incidents, on-call, and investigations — and for authoring the operational content our platform draws on.",
+    "version": "0.18.0",
+    "author": {
+      "name": "incident.io",
+      "url": "https://incident.io"
+    },
+    "repository": "https://github.com/incident-io/skills",
+    "homepage": "https://incident.io",
+    "license": "MIT",
+    "keywords": [
+      "incident-response",
+      "on-call",
+      "investigations",
+      "runbooks",
+      "sre",
+      "devops"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "incident-io/skills",
+      "path": "plugins/incident-io",
+      "sha": "6d0bbfc9e52256fc39326b9ba6d08f16831b60ae"
+    }
+  },
+  {
     "name": "keep-the-why",
     "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
     "version": "0.17.0",
@@ -846,6 +995,31 @@
       "source": "github",
       "repo": "oliver-zehentleitner/keep-the-why",
       "ref": "v0.17.0"
+    }
+  },
+  {
+    "name": "markdstage",
+    "description": "Create, edit, present, and export Markdown slides in a GitHub Copilot Canvas.",
+    "version": "4.2.4",
+    "author": {
+      "name": "Kazuki Ota",
+      "url": "https://github.com/runceel"
+    },
+    "repository": "https://github.com/runceel/MarkdStage",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "copilot-canvas",
+      "markdown",
+      "slides",
+      "presentation"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "runceel/MarkdStage",
+      "path": ".github/plugin/markdstage",
+      "ref": "v4.2.4",
+      "sha": "34621f7217fbf2a10499c229229df4c86241095d"
     }
   },
   {
@@ -1107,9 +1281,36 @@
     }
   },
   {
+    "name": "postgres-skills",
+    "description": "Expert PostgreSQL guidance and live database tools for Postgres anywhere, including local, self-hosted, containers, on-premises, AWS, Google Cloud, Azure Database for PostgreSQL, and Azure HorizonDB. Covers indexing, vector search and RAG, JSONB, partitioning, security, replication, and knowledge graphs with connection-aware guidance.",
+    "version": "0.1.2",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://github.com/microsoft"
+    },
+    "repository": "https://github.com/microsoft/postgres-skills",
+    "homepage": "https://github.com/microsoft/postgres-skills",
+    "license": "MIT",
+    "keywords": [
+      "postgresql",
+      "database",
+      "azure",
+      "pgvector",
+      "rag",
+      "apache-age",
+      "graph"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/postgres-skills",
+      "path": "plugin",
+      "sha": "3ea7816fd1e449916b9277cc2671bc1c4c34f8c9"
+    }
+  },
+  {
     "name": "radius",
     "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "author": {
       "name": "Radius",
       "url": "https://radapp.io"
@@ -1130,14 +1331,14 @@
       "source": "github",
       "repo": "radius-project/ai-extensions",
       "path": "plugins/radius",
-      "ref": "radius@0.1.1",
-      "sha": "93c64d5c71b2cf641085045af23d52e60f458f53"
+      "ref": "radius@0.2.0",
+      "sha": "ffa3c1eb0bda0d288005162955dedc0d48b1ec30"
     }
   },
   {
     "name": "rayfin",
     "description": "Getting-started router skill for Rayfin - scaffold a new app with the Rayfin CLI, then use the version-locked skill installed in the project.",
-    "version": "0.4.0",
+    "version": "0.4.2",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1157,7 +1358,7 @@
     "source": {
       "source": "github",
       "repo": "microsoft/rayfin",
-      "ref": "plugin-v0.4.0"
+      "sha": "ed4647453c8890f874e072d669ac8b8120b9bf37"
     }
   },
   {
@@ -1474,7 +1675,7 @@
   {
     "name": "upgrade-agent",
     "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-    "version": "1.1.539",
+    "version": "1.1.612",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1493,8 +1694,8 @@
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "ref": "v1.1.539",
-      "sha": "681dbf0b0dc470f63776f44728e76bbc6acc5c45"
+      "ref": "v1.1.612",
+      "sha": "cbd0b4cb071ec69eba4c1df84c4c6224cd9c7779"
     }
   },
   {
@@ -1579,7 +1780,7 @@
   {
     "name": "winappcli",
     "description": "Windows app development, packaging, and distribution. Helps with creating Windows installers (MSIX), code signing, certificates, Windows SDK and Windows App SDK setup, package identity for Windows APIs (push notifications, background tasks, share target), appxmanifest authoring, and Microsoft Store distribution. Supports Electron, .NET, C++, Rust, Flutter, and Tauri apps.",
-    "version": "0.3.1",
+    "version": "0.7.1",
     "author": {
       "name": "Microsoft",
       "url": "https://github.com/microsoft/WinAppCli"
@@ -1602,13 +1803,14 @@
     "source": {
       "source": "github",
       "repo": "microsoft/WinAppCli",
-      "ref": "stable"
+      "path": "plugins/winapp",
+      "sha": "7c4e67e320c82600e9fb7d8786ea3a9927039b72"
     }
   },
   {
     "name": "winui",
     "description": "Agents and skills for WinUI 3 app development. Create new WinUI 3 desktop apps, convert from other frameworks (WPF, WinForms, Electron, Tauri, Flutter) to WinUI 3, or add features to existing WinUI 3 applications. Includes MSIX packaging, code signing, UI automation testing, and Windows App SDK guidance.",
-    "version": "0.6.0",
+    "version": "0.7.1",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1632,8 +1834,8 @@
       "source": "github",
       "repo": "microsoft/win-dev-skills",
       "path": "plugins/winui/agent-plugin",
-      "ref": "v0.6.0",
-      "sha": "68ae65d5c65ee87c3265a7f5abe3aaf97c7e6932"
+      "ref": "v0.7.1",
+      "sha": "2e8c902e9ba675e4c57550e066fc7e48b64c49b0"
     }
   }
 ]

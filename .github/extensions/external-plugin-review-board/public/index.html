@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="board-token" content="__BOARD_TOKEN__" />
+        <title>Plugin review board</title>
+        <link rel="stylesheet" href="/styles.css" />
+    </head>
+    <body>
+        <header class="toolbar">
+            <div class="toolbar-title">
+                <h1>Plugin review board</h1>
+                <p class="meta" id="meta">Loading…</p>
+            </div>
+            <div class="toolbar-actions">
+                <label class="search">
+                    <span class="visually-hidden">Filter cards</span>
+                    <input id="search" type="search" placeholder="Filter by #, title, author…" autocomplete="off" />
+                </label>
+                <button id="refresh" type="button" class="btn">Refresh</button>
+                <button id="review" type="button" class="btn btn-primary">Perform review</button>
+            </div>
+        </header>
+
+        <main id="board" class="board" aria-label="Submission board"></main>
+
+        <aside id="drawer" class="drawer" aria-hidden="true" aria-labelledby="drawer-title">
+            <div class="drawer-header">
+                <div class="drawer-heading">
+                    <p class="drawer-kicker" id="drawer-kicker"></p>
+                    <h2 id="drawer-title"></h2>
+                    <p class="meta" id="drawer-meta"></p>
+                </div>
+                <button type="button" class="btn btn-icon" id="drawer-close" aria-label="Close details">✕</button>
+            </div>
+            <div class="drawer-controls">
+                <label>
+                    Bucket
+                    <select id="drawer-move"></select>
+                </label>
+                <button type="button" class="btn btn-small" id="drawer-rereview">Re-review</button>
+                <a class="btn btn-small" id="drawer-link" target="_blank" rel="noopener noreferrer">Open on GitHub ↗</a>
+            </div>
+            <form class="rereview-panel" id="rereview-panel" hidden>
+                <label for="rereview-guidance" class="footer-label">What should the re-review focus on? (optional)</label>
+                <textarea
+                    id="rereview-guidance"
+                    rows="3"
+                    maxlength="4000"
+                    placeholder="e.g. They've since removed the paid tier — check whether the free path stands on its own."
+                ></textarea>
+                <p class="meta">Runs in a separate sub-session; the result lands back on this card.</p>
+                <div class="footer-actions">
+                    <button type="button" class="btn btn-small" id="rereview-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-small btn-primary" id="rereview-start">Start re-review</button>
+                </div>
+            </form>
+            <nav class="tabs" role="tablist">
+                <button type="button" role="tab" class="tab" data-tab="review" aria-selected="true">AI review</button>
+                <button type="button" role="tab" class="tab" data-tab="issue" aria-selected="false">Issue</button>
+                <button type="button" role="tab" class="tab" data-tab="comments" aria-selected="false">Comments</button>
+            </nav>
+            <section class="drawer-body" id="drawer-body" role="tabpanel"></section>
+            <footer class="drawer-footer" id="drawer-footer">
+                <label for="decision-comment" class="footer-label">Comment (required to reject, optional note when approving)</label>
+                <textarea
+                    id="decision-comment"
+                    rows="3"
+                    aria-describedby="decision-comment-hint"
+                    placeholder="Required rejection reason, or optional approval note"
+                ></textarea>
+                <p class="meta" id="decision-comment-hint">Reject requires a reason. Approve can include an optional note.</p>
+                <p class="preview" id="decision-preview"></p>
+                <div class="footer-actions">
+                    <button type="button" class="btn btn-danger" id="decision-reject">Reject</button>
+                    <button type="button" class="btn btn-success" id="decision-approve">Approve</button>
+                </div>
+            </footer>
+        </aside>
+
+        <div id="toasts" class="toasts" aria-live="polite"></div>
+        <script type="module" src="/app.js"></script>
+    </body>
+</html>

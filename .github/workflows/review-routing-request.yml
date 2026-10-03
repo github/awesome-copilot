@@ -1,0 +1,45 @@
+name: Review Routing Request
+
+# Reader half of the needs-reviewer routing flow. Runs with a read-only token
+# and only records which PR asked for a reviewer; the privileged Review Routing
+# workflow validates this artifact and performs the request.
+#
+# Labels added with GITHUB_TOKEN do not emit `labeled` events, so automation
+# should dispatch review-routing.yml directly (or rely on its scheduled sweep).
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'needs-reviewer'
+    steps:
+      - name: Record routing request
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const outDir = path.join(process.env.RUNNER_TEMP, 'review-routing-request');
+            fs.mkdirSync(outDir, { recursive: true });
+            fs.writeFileSync(path.join(outDir, 'result.json'), `${JSON.stringify({
+              schema_version: 'review-routing-request/v1',
+              event: 'pull_request',
+              pr_number: context.payload.pull_request.number,
+              head_sha: context.payload.pull_request.head.sha,
+              run_id: process.env.GITHUB_RUN_ID,
+            }, null, 2)}\n`);
+
+      - name: Upload routing request artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: review-routing-request
+          path: ${{ runner.temp }}/review-routing-request/result.json
+          if-no-files-found: error
+          retention-days: 3

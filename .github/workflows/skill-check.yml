@@ -9,6 +9,7 @@ on:
       - "agents/**"
       - "plugins/**/skills/**"
       - "plugins/**/agents/**"
+      - ".github/workflows/skill-check.yml"
 
 permissions:
   contents: read
