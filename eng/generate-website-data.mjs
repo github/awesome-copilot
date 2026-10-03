@@ -151,23 +151,49 @@ function normalizeAuthor(value) {
 }
 
 /**
- * Find the latest git-modified date for any file under a directory.
+ * Precompute the newest git-modified timestamp for each directory ancestor so
+ * repeated lookups can resolve a directory in O(1) instead of scanning the full
+ * gitDate map for each resource.
  */
-function getDirectoryLastUpdated(gitDates, relativeDirPath) {
-  const prefix = `${relativeDirPath}/`;
-  let latestDate = null;
-  let latestTime = 0;
+function buildDirectoryLastUpdatedIndex(gitDates) {
+  const directoryDates = new Map();
 
   for (const [filePath, date] of gitDates.entries()) {
-    if (!filePath.startsWith(prefix)) continue;
+    const normalizedPath = filePath.replace(/\\/g, "/");
+    const segments = normalizedPath.split("/").filter(Boolean);
+
+    if (segments.length <= 1) {
+      continue;
+    }
+
     const timestamp = Date.parse(date);
-    if (!Number.isNaN(timestamp) && timestamp > latestTime) {
-      latestTime = timestamp;
-      latestDate = date;
+    if (Number.isNaN(timestamp)) continue;
+
+    for (let i = 1; i < segments.length; i++) {
+      const directoryPath = segments.slice(0, i).join("/");
+      const previous = directoryDates.get(directoryPath);
+      if (!previous || timestamp > previous.timestamp) {
+        directoryDates.set(directoryPath, { date, timestamp });
+      }
     }
   }
 
-  return latestDate;
+  return directoryDates;
+}
+
+/**
+ * Find the latest git-modified date for any file under a directory.
+ */
+function getDirectoryLastUpdated(directoryDates, relativeDirPath) {
+  const normalizedPath = String(relativeDirPath || "").replace(/\\/g, "/");
+  const directoryPath = normalizedPath === "." ? "" : normalizedPath;
+
+  if (!directoryDates) {
+    return null;
+  }
+
+  const entry = directoryDates.get(directoryPath);
+  return entry ? entry.date : null;
 }
 
 /**
@@ -548,6 +574,7 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
     return { items: [], filters: { tags: [] } };
   }
 
+  const directoryLastUpdatedIndex = buildDirectoryLastUpdatedIndex(gitDates);
   const pluginDirs = fs
     .readdirSync(PLUGINS_DIR, { withFileTypes: true })
     .filter((d) => d.isDirectory());
@@ -634,7 +661,7 @@ function generatePluginsData(gitDates, resourceIndex = {}) {
         tags: tags,
         itemCount: items.length,
         items: items,
-        lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
+        lastUpdated: getDirectoryLastUpdated(directoryLastUpdatedIndex, relPath),
         searchText: `${pluginName} ${data.description || ""
           } ${tags.join(" ")}`.toLowerCase(),
       });
@@ -1170,6 +1197,7 @@ function generateCanvasManifest(gitDates, commitSha) {
     return { items: [], filters: { keywords: [] } };
   }
 
+  const directoryLastUpdatedIndex = buildDirectoryLastUpdatedIndex(gitDates);
   const extensionPluginOwners = readExtensionPluginOwners(PLUGINS_DIR);
   const extensionDirs = fs
     .readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
@@ -1243,7 +1271,7 @@ function generateCanvasManifest(gitDates, commitSha) {
         description: canvasDescription,
         path: relPath,
         ref: commitSha,
-        lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
+        lastUpdated: getDirectoryLastUpdated(directoryLastUpdatedIndex, relPath),
         screenshots: screenshots?.screenshots || { icon: null, gallery: null },
         imageUrl: screenshots?.imageUrl || null,
         assetPath: screenshots?.assetPath || null,
