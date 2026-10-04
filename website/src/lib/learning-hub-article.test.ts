@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { buildArticleSections } from "./learning-hub-article.ts";
+import {
+  buildArticleSections,
+  stripRedundantHeadingAnchors,
+} from "./learning-hub-article.ts";
 
 test("keeps nested headings and callouts inside details and list containers", () => {
   const details = '<details><summary>Optional</summary><h2 id="nested">Nested</h2><div><p>Nested note</p></div><p>End of details</p></details>';
@@ -32,4 +35,18 @@ test("preserves normal section IDs, callout kinds, and trailing-break behavior",
   assert.deepEqual(sections[1].blocks[1], { type: "callout", kind: "caution", html: "<p>Warning</p>" });
   assert.ok(sections[1].blocks[0].type === "html" && !sections[1].blocks[0].html.includes('id="first"'));
   assert.ok(!JSON.stringify(sections).includes("<hr>"));
+});
+
+test("removes only empty source anchors that duplicate rendered heading IDs", () => {
+  const details = '<details><summary>Optional</summary><h3 id="markdown-fallback">Markdown Fallback</h3><p>Use the fallback.</p></details>';
+  const source = `<a id="markdown-fallback"></a><a id="custom-anchor"></a>${details}`;
+  assert.equal(
+    stripRedundantHeadingAnchors(source),
+    `<a id="custom-anchor"></a>${details}`,
+  );
+});
+
+test("preserves linked anchors, custom attributes, and escaped code samples", () => {
+  const html = '<h2 id="same">Same</h2><a id="same" href="/page/">Read more</a><a id="same" class="custom"></a><pre>&lt;a id="same"&gt;&lt;/a&gt;</pre>';
+  assert.equal(stripRedundantHeadingAnchors(html), html);
 });

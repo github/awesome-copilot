@@ -118,6 +118,17 @@ export function stripLeadingH1(html: string): string {
   return html.replace(/^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*/, "");
 }
 
+/** A source anchor can duplicate the ID Astro gives the heading itself. */
+export function stripRedundantHeadingAnchors(html: string): string {
+  const headingIds = new Set(
+    Array.from(html.matchAll(/<h[1-6]\b[^>]*\bid="([^"]+)"[^>]*>/gi), (match) => match[1]),
+  );
+  return html.replace(
+    /<a\s+id="([^"]+)"\s*>\s*<\/a>/gi,
+    (anchor, id) => headingIds.has(id) ? "" : anchor,
+  );
+}
+
 /**
  * @param html Rendered article HTML.
  * @param markdown Raw markdown body, used only to recover admonition types.
