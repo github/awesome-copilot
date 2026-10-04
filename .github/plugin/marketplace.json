@@ -955,7 +955,7 @@
     {
       "name": "excel-cli",
       "description": "Windows-only Excel automation plugin that runs the latest excelcli package through npx.",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "Stefan Brönner",
         "url": "https://github.com/sbroenne"
@@ -979,14 +979,14 @@
         "source": "github",
         "repo": "sbroenne/mcp-server-excel-plugins",
         "path": "plugins/excel-cli",
-        "ref": "v2.2.0",
-        "sha": "418c9a8b2f7dfcd066989a896d04adfc8cfec081"
+        "ref": "v2.2.1",
+        "sha": "8941e5d59a068e421ddbddf40107c6f505f5acac"
       }
     },
     {
       "name": "excel-mcp",
       "description": "Windows-only Excel automation plugin that runs the latest ExcelMcp MCP server through npx.",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "Stefan Brönner",
         "url": "https://github.com/sbroenne"
@@ -1008,8 +1008,8 @@
         "source": "github",
         "repo": "sbroenne/mcp-server-excel-plugins",
         "path": "plugins/excel-mcp",
-        "ref": "v2.2.0",
-        "sha": "418c9a8b2f7dfcd066989a896d04adfc8cfec081"
+        "ref": "v2.2.1",
+        "sha": "8941e5d59a068e421ddbddf40107c6f505f5acac"
       }
     },
     {
