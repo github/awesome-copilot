@@ -149,6 +149,14 @@ const recommendedCards = [
       "Explore the GitHub Copilot app — a control center for directing multiple agents in parallel. Perfect for agent-native development and parallel work with isolated worktrees.",
   },
   {
+    id: "app-course",
+    page: "learning-hub/app-for-beginners",
+    labels: [] as string[],
+    title: "Copilot app for Beginners",
+    description:
+      "Work through eight chapters on sessions, worktrees, context, development workflows, skills, MCP, canvases, and automations. Use the course sample to practice each step.",
+  },
+  {
     id: "reference",
     page: "github-copilot-terminology-glossary",
     labels: [] as string[],

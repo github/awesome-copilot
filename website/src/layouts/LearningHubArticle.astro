@@ -42,9 +42,12 @@ const html = stripLeadingH1(
   enhanceMarkdownA11y(sanitizeHtml(entry.rendered?.html ?? "")),
 );
 const sections = buildArticleSections(html, entry.body ?? "");
+const sectionIds = new Set(
+  sections.filter((section) => section.heading !== null).map((section) => section.id),
+);
 
 const tocSections: TocSection[] = headings
-  .filter((heading) => heading.depth === 2)
+  .filter((heading) => heading.depth === 2 && sectionIds.has(heading.slug))
   .map((heading) => ({ id: heading.slug, label: stripEmoji(heading.text) }));
 
 const title = entry.data.title;

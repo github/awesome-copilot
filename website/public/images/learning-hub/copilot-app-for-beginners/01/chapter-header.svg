@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="260" viewBox="0 0 1000 260" role="img" aria-labelledby="t01 d01"><title id="t01">Chapter 01: Tour the App</title><desc id="d01">Studio-themed header for Chapter 01.</desc>
+<defs>
+<linearGradient id="bg01" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111827"/><stop offset="1" stop-color="#303674"/></linearGradient>
+<radialGradient id="gl01" cx="0.86" cy="0.16" r="0.7"><stop offset="0" stop-color="#7a7df3" stop-opacity="0.34"/><stop offset="1" stop-color="#7a7df3" stop-opacity="0"/></radialGradient>
+<clipPath id="cp01"><rect width="1000" height="260" rx="24"/></clipPath>
+</defs>
+<g clip-path="url(#cp01)">
+<rect width="1000" height="260" fill="url(#bg01)"/>
+<rect width="1000" height="260" fill="url(#gl01)"/>
+<rect width="1000" height="260" rx="24" fill="none" stroke="#c7d2fe" stroke-opacity="0.10" stroke-width="2"/>
+<path d="M28 226 L44 211 L60 194 L76 190 L92 201 L108 214 L124 219 L140 217 L156 214 L172 211 L188 205 L204 200 L220 203 L236 217 L252 232 L268 235 L284 223 L300 207 L316 200 L332 204 L348 210 L364 213 L380 216 L396 219 L412 217 L428 205 L444 193 L460 191 L476 204 L492 222 L508 230 L524 224 L540 215 L556 209 L572 208 L588 208 L604 210 L620 218 L636 228 L652 229 L668 216 L684 198 L700 190 L716 197 L732 211 L748 218 L764 218 L780 215 L796 212 L812 207 L828 201 L844 201 L860 212 L876 229 L892 236 L908 227 L924 211 L940 201 L956 202 L972 208" fill="none" stroke="#c7d2fe" stroke-opacity="0.16" stroke-width="2.5" stroke-linecap="round"/>
+<g><rect x="824" y="109" width="10" height="101" rx="5" fill="#c7d2fe" opacity="0.45"/><rect x="841" y="97" width="10" height="113" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="841" y="88" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="858" y="114" width="10" height="96" rx="5" fill="#c7d2fe" opacity="0.45"/><rect x="875" y="155" width="10" height="55" rx="5" fill="#c7d2fe" opacity="0.45"/><rect x="892" y="164" width="10" height="46" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="892" y="155" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="909" y="123" width="10" height="87" rx="5" fill="#c7d2fe" opacity="0.45"/><rect x="926" y="142" width="10" height="68" rx="5" fill="#c7d2fe" opacity="0.45"/></g>
+<rect x="58" y="82" width="6" height="108" rx="3" fill="#fbbf24"/>
+<g font-family="Helvetica, Arial, sans-serif">
+<circle cx="96" cy="74" r="6" fill="#fbbf24"/>
+<text x="112" y="80" fill="#c7d2fe" font-size="21" font-weight="700" letter-spacing="3">CHAPTER 01</text>
+<text x="84" y="146" fill="#ffffff" font-size="56" font-weight="800">Tour the App</text>
+<text x="86" y="186" fill="#c7d2fe" font-size="15" font-weight="600" letter-spacing="3" opacity="0.62">GITHUB COPILOT APP</text>
+</g>
+</g></svg>

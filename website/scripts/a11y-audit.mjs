@@ -36,6 +36,10 @@ const routes = [
   // chassis is audited in addition to the Learning Hub landing page.
   '/learning-hub/github-copilot-app/',
   '/learning-hub/cookbook/',
+  '/learning-hub/app-for-beginners/',
+  '/learning-hub/app-for-beginners/00-setup/',
+  '/learning-hub/app-for-beginners/06-canvases/',
+  '/learning-hub/app-for-beginners/07-automations/',
   // Representative dedicated detail pages (one per resource type) so the audit
   // covers the shared detail layout, sidebar, install buttons, and file browser.
   '/agent/accessibility/',
@@ -211,6 +215,7 @@ async function auditSite(browser, baseUrl) {
   for (const route of routes) {
     for (const theme of themes) {
       const url = new URL(route, baseUrl).toString();
+      await page.emulateMedia({ colorScheme: theme });
 
       // 'load' (not 'networkidle') keeps the audit robust: cards are server-rendered
       // into the initial HTML, and lazy images / search-index requests can otherwise
@@ -239,11 +244,11 @@ async function auditSite(browser, baseUrl) {
         content: '*,*::before,*::after{transition:none!important;animation:none!important;transition-duration:0s!important;animation-duration:0s!important;}',
       });
 
-      // Force both theme modes so persisted user preference logic cannot hide regressions.
-      await page.evaluate((selectedTheme) => {
-        document.documentElement.setAttribute('data-theme', selectedTheme);
-        localStorage.setItem('awesome-copilot-theme', selectedTheme);
-      }, theme);
+      // Primer's auto theme and the page bootstrap both read the OS color scheme.
+      await page.waitForFunction(
+        (selectedTheme) => document.documentElement.getAttribute('data-color-mode') === selectedTheme,
+        theme,
+      );
 
       // Let the forced theme settle (style recalc / reflow) before sampling colors.
       await page.waitForTimeout(150);
