@@ -46,7 +46,7 @@ Before you write any plumbing, check this table. Each row is something older cod
 | Hosted agent + chat + tools + approvals (**default**) | **A. AG-UI gateway over a Responses hosted agent** | ~50 lines of Python |
 | Every state pattern, local prototype, no Foundry compute | **B. In-process AG-UI** (agent runs inside the FastAPI app) | ~15 lines |
 | Background runs that keep going after disconnect, reconnect, per-user conversation lists | **C. Background-runs gateway** (custom AG-UI agent over Foundry conversations) | ~150 lines of TypeScript |
-| Multi-step plan → approve → execute, exactly-once irreversible steps | **D. Invocations hosted agent** alongside A or C | REST proxy |
+| Multi-step plan → approve → execute, irreversible steps that must not run twice | **D. Invocations hosted agent** alongside A or C | REST proxy |
 
 Code for each is in [references/wiring.md](references/wiring.md). In an existing codebase, identify the wiring before you change anything:
 - `FoundryAgent(...)` wrapped by `add_agent_framework_fastapi_endpoint` means A.

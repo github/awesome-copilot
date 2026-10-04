@@ -35,30 +35,46 @@ Handle it with `useInterrupt`. CopilotKit then resumes the run with a spec `resu
 
 ```tsx
 "use client";
+import { useState } from "react";
 import { useInterrupt } from "@copilotkit/react-core/v2";
 
 type Call = { name?: string; arguments?: Record<string, unknown> };
+type Pending = { id: string; message?: string; metadata?: unknown };
+type Resolve = (payload?: unknown, interruptId?: string) => Promise<unknown>;
+
+function ApprovalCard({ interrupt, resolve }: { interrupt: Pending; resolve: Resolve }) {
+  const [decision, setDecision] = useState<boolean>();
+  const call = (interrupt.metadata as { agent_framework?: { function_call?: Call } })
+    ?.agent_framework?.function_call;
+  const decide = (approved: boolean) => { setDecision(approved); void resolve({ approved }, interrupt.id); };
+  return (
+    <div data-testid="approval-card">
+      <p>{interrupt.message ?? "Approve this action?"}</p>
+      <pre>{call?.name} {JSON.stringify(call?.arguments)}</pre>
+      {decision === undefined ? (
+        <>
+          <button onClick={() => decide(true)}>Approve</button>
+          <button onClick={() => decide(false)}>Reject</button>
+        </>
+      ) : <p>{decision ? "Approved" : "Rejected"}</p>}
+    </div>
+  );
+}
 
 export function ApprovalUI() {
   useInterrupt({
-    render: ({ interrupt, resolve }) => {
-      const call = (interrupt?.metadata as { agent_framework?: { function_call?: Call } })
-        ?.agent_framework?.function_call;
-      return (
-        <div data-testid="approval-card">
-          <p>{interrupt?.message ?? "Approve this action?"}</p>
-          <pre>{call?.name} {JSON.stringify(call?.arguments)}</pre>
-          <button onClick={() => resolve({ approved: true })}>Approve</button>
-          <button onClick={() => resolve({ approved: false })}>Reject</button>
-        </div>
-      );
-    },
+    // One card per open interrupt, each resolved by its own id. CopilotKit resumes the run
+    // only after every open interrupt has a decision; resolve() without an id targets the first.
+    render: ({ interrupts, resolve }) => (
+      <>{interrupts.map((i) => <ApprovalCard key={i.id} interrupt={i as Pending} resolve={resolve} />)}</>
+    ),
   });
   return null;
 }
 ```
 
 - Mount `ApprovalUI` inside `CopilotKitProvider`. The card renders inside `CopilotChat` by default (`renderInChat`).
+- Parallel gated calls: with agent-framework-ag-ui 1.4.0, a hosted agent's parallel gated calls surface **one interrupt per run**. Each decision resumes the run, which then asks for the next. Nothing executes until the last decision; then approved calls run once each and rejected ones return "rejected by user". Rendering all `interrupts` keeps the UI correct if a run ever carries several.
 - The payload is a contract: `{approved: boolean}`, with `accepted` accepted as a legacy alias. Anything else does nothing, with no error. Reject with `resolve({approved: false})`, not `cancel()`. Cancelling discards the decision instead of telling the agent the call was rejected.
 - The adapter also emits a `confirm_changes` tool call for older frontends. With `useInterrupt`, don't register `useHumanInTheLoop("confirm_changes")`; hide it in your tool renderer instead (see [wiring §3](wiring.md#3-copilotkit-runtime-and-react)).
 - Render tool results with `useDefaultRenderTool` or `useRenderTool`. After approval, the hosted tool's result arrives as `TOOL_CALL_RESULT`, and nothing shows it otherwise.

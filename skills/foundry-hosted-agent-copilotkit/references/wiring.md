@@ -224,7 +224,7 @@ Passing a stored `conv_…` ID back as `threadId` continues that conversation on
 
 Version rules:
 - Install `next`, `@copilotkit/react-core`, and `@copilotkit/runtime` at `@latest`.
-- `@copilotkit/runtime` pins an exact `@ag-ui/client` version. Install that exact version: `npm i @ag-ui/client@$(npm view @copilotkit/runtime@latest 'dependencies[@ag-ui/client]')`.
+- `@copilotkit/runtime` pins an exact `@ag-ui/client` version. Read it from the installed runtime with `npm view @copilotkit/runtime@<installed version> dependencies`, then install that exact version: `npm i @ag-ui/client@<pinned version>`.
 - Keep all `@copilotkit/*` packages on one version.
 
 Names must agree in three places: the runtime `agents` key, `agentId` on `CopilotChat`/`useAgent`, and the hosted agent name the gateway is given. Use one constant.
@@ -255,12 +255,13 @@ Every call uses `?api-version=v1` and a bearer token for `https://ai.azure.com/.
 
 ## 6. Invocations workflow agent (wiring D)
 
-Use this for plan → approve → execute flows where an irreversible step must run exactly once, even across container restarts:
+Use this for plan → approve → execute flows where an irreversible step must not run twice, even across container restarts:
 - Declare `protocol: invocations` (version `2.0.0`) in `azure.yaml`.
 - In the agent, use `@multi_turn_task` from `azure.ai.agentserver.core.tasks`, with application checkpoints in `FoundryStateStore` (`azure.ai.agentserver.core.storage`).
 - Each POST to `/invocations?agent_session_id=<id>` returns 202 with an `invocation_id`. Poll `GET /invocations/{id}` for `status` and `output`.
-- Gate each irreversible step with a server-issued token (invocation ID + step index + a random value, compared with `hmac.compare_digest`). Record an at-most-once watermark before the side effect.
-- On recovery (`ctx.entry_mode == "recovered"`), the same turn is re-invoked with the same input. Resume from the next unfinished step.
+- Gate each irreversible step with a server-issued token (invocation ID + step index + a random value, compared with `hmac.compare_digest`).
+- A watermark recorded before the side effect gives **at-most-once**: a crash between the watermark and the action skips the action. For **exactly-once** effects, send a stable per-step idempotency key that the destination enforces, or commit the effect and the completion checkpoint in one transaction.
+- On recovery (`ctx.entry_mode == "recovered"`), the same turn is re-invoked with the same input. Reconcile any step that was started but not checkpointed using that idempotency key (ask the destination whether it happened) instead of treating the watermark as proof of completion.
 
 The browser reaches this agent through a server-side REST proxy that checks session ownership. It does not go through AG-UI.
 
