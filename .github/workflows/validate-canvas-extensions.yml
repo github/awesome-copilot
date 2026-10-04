@@ -6,6 +6,8 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "extensions/**"
+      - "eng/validate-plugins.mjs"
+      - ".github/workflows/validate-canvas-extensions.yml"
 
 permissions:
   contents: read

@@ -1,0 +1,52 @@
+# Certification notes template
+
+## Test environment
+
+- App: [PRODUCT_NAME]
+- Package version: [PACKAGE_VERSION]
+- Architecture: [ARCHITECTURE]
+- Minimum Windows version: [MINIMUM_WINDOWS_VERSION]
+- Required hardware: [HARDWARE_OR_NONE]
+- Required network: [NETWORK_REQUIREMENTS_OR_NONE]
+- Credentials: [NOT_REQUIRED_OR_ACCOUNT_DETAILS_PROVIDED_SEPARATELY]
+
+## Primary test flow
+
+1. Install and launch [PRODUCT_NAME].
+2. [FIRST_SETUP_STEP].
+3. [CONNECTION_OR_INPUT_STEP].
+4. [PAIRING_OR_AUTHORIZATION_STEP].
+5. Verify [PRIMARY_EXPECTED_RESULT].
+6. Verify [SECONDARY_EXPECTED_RESULT].
+
+## Windows integration
+
+- Startup behavior: [HOW_TO_ENABLE_AND_VERIFY].
+- Tray behavior: [HOW_TO_VERIFY].
+- Full-screen behavior: [HOW_TO_VERIFY_OR_NOT_APPLICABLE].
+- Notifications: [HOW_TO_VERIFY_OR_NOT_APPLICABLE].
+- Helper process: [PURPOSE_AND_EXPECTED_LIFECYCLE].
+
+## Network and firewall behavior
+
+[PORTS_PROTOCOLS_DISCOVERY_MULTICAST_FIREWALL_DETAILS_OR_NOT_APPLICABLE]
+
+## Known limitations
+
+- [PROTECTED_OR_DRM_CONTENT_LIMITATION]
+- [HARDWARE_OR_NETWORK_LIMITATION]
+- [OTHER_VERIFIED_LIMITATION]
+
+## Privacy and data
+
+[LOCAL_STORAGE_NETWORK_TRANSFER_TELEMETRY_AND_CLOUD_BEHAVIOR]
+
+## Troubleshooting
+
+- Logs: [LOG_LOCATION_OR_NOT_AVAILABLE]
+- Recovery: [RESTART_REPAIR_OR_RESET_STEPS]
+- Support: [SUPPORT_URL]
+
+## Attribution
+
+[TRADEMARK_ATTRIBUTION_AND_NON_AFFILIATION_TEXT_IF_REQUIRED]

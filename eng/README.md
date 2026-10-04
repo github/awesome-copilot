@@ -24,6 +24,14 @@ npm run plugin:generate-marketplace
 ### `generate-website-data.mjs`
 Generates JSON data files for the website from repository content.
 
+### `review-routing.mjs`
+Reviewer routing and review SLA escalation used by the Review Routing and Review Escalation workflows. Reviewer pools live in `.github/review-routing.yml`; see [docs/maintainers/review-routing.md](../docs/maintainers/review-routing.md).
+
+```bash
+node eng/review-routing.mjs validate      # validate .github/review-routing.yml
+node --test eng/review-routing.test.mjs   # unit tests
+```
+
 ## Contributor Tools
 
 - `contributor-report.mjs` — generates a markdown report of merged PRs for missing contributors (includes shared helpers).
