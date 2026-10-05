@@ -91,73 +91,6 @@ Cargo.lock
 .DS_Store
 ```
 
-### README.md
-
-```markdown
-# {Project Name}
-
-{Server description}
-
-## Installation
-
-```bash
-cargo build --release
-```
-
-## Usage
-
-### Stdio Transport
-
-```bash
-cargo run
-```
-
-### SSE Transport
-
-```bash
-cargo run --features http -- --transport sse
-```
-
-### HTTP Transport
-
-```bash
-cargo run --features http -- --transport http
-```
-
-## Configuration
-
-Configure in your MCP client (e.g., Claude Desktop):
-
-```json
-{
-  "mcpServers": {
-    "{project-name}": {
-      "command": "path/to/target/release/{project-name}",
-      "args": []
-    }
-  }
-}
-```
-
-## Tools
-
-- **{tool_name}**: {Tool description}
-
-## Development
-
-Run tests:
-
-```bash
-cargo test
-```
-
-Run with logging:
-
-```bash
-RUST_LOG=debug cargo run
-```
-```
-
 ### src/main.rs
 
 ```rust
@@ -337,37 +270,6 @@ impl ServerHandler for McpHandler {
             }
             _ => Err(ErrorData::invalid_params("Unknown resource")),
         }
-    }
-}
-```
-
-### src/state.rs
-
-```rust
-use std::sync::Arc;
-use tokio::sync::RwLock;
-
-#[derive(Clone)]
-pub struct ServerState {
-    // Add shared state here
-    counter: Arc<RwLock<i32>>,
-}
-
-impl ServerState {
-    pub fn new() -> Self {
-        Self {
-            counter: Arc::new(RwLock::new(0)),
-        }
-    }
-    
-    pub async fn increment(&self) -> i32 {
-        let mut counter = self.counter.write().await;
-        *counter += 1;
-        *counter
-    }
-    
-    pub async fn get(&self) -> i32 {
-        *self.counter.read().await
     }
 }
 ```
@@ -575,3 +477,10 @@ For Claude Desktop integration:
 ```
 
 Now generate the complete project based on the user's requirements!
+
+## Extended guide
+
+These sections are in [`references/extended-guide.md`](references/extended-guide.md); read the relevant one when the task needs it:
+
+- [File Templates: README.md](references/extended-guide.md#readmemd)
+- [File Templates: src/state.rs](references/extended-guide.md#srcstaters)

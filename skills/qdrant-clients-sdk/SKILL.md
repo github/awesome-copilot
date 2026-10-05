@@ -1,11 +1,7 @@
 ---
 name: qdrant-clients-sdk
 description: "Qdrant provides client SDKs for various programming languages, allowing easy integration with Qdrant deployments."
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
+allowed-tools: Read Grep Glob Bash
 ---
 
 # Qdrant Clients SDK

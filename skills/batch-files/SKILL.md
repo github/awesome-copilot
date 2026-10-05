@@ -33,67 +33,6 @@ cmd.exe processes each line through four stages in order:
 3. **Syntax parsing** — Lines are split into pipelines (`|`), compound commands (`&`, `&&`, `||`), and parenthesized groups `( )`.
 4. **Redirection** — `>` overwrites, `>>` appends, `<` reads input, `2>` redirects stderr, `2>&1` merges stderr into stdout, `>NUL` discards output.
 
-## Variables
-
-### Environment Variables
-
-```bat
-set _MY_VAR=Hello World
-echo %_MY_VAR%
-set _MY_VAR=
-```
-
-- `set` with no arguments lists all variables
-- `set _PREFIX` lists variables starting with `_PREFIX`
-- No spaces around `=` — `set name = val` sets variable `"name "` to `" val"`
-
-### Special Variables
-
-| Variable | Value |
-|----------|-------|
-| `%CD%` | Current directory |
-| `%DATE%` | System date (locale-dependent) |
-| `%TIME%` | System time HH:MM:SS.mm |
-| `%RANDOM%` | Pseudorandom number 0–32767 |
-| `%ERRORLEVEL%` | Exit code of last command |
-| `%USERNAME%` | Current user name |
-| `%USERPROFILE%` | Current user profile path |
-| `%TEMP%` / `%TMP%` | Temporary file directory |
-| `%PATHEXT%` | Executable extensions list |
-| `%COMSPEC%` | Path to cmd.exe |
-
-### Scoping with SETLOCAL / ENDLOCAL
-
-```bat
-setlocal
-set _LOCAL_VAR=scoped value
-endlocal
-REM _LOCAL_VAR is no longer defined here
-```
-
-To return a value from a scoped block:
-
-```bat
-endlocal & set _RESULT=%_LOCAL_VAR%
-```
-
-### Delayed Expansion
-
-Variables inside parenthesized blocks are expanded at parse time. Use delayed expansion for runtime evaluation:
-
-```bat
-setlocal EnableDelayedExpansion
-set _COUNT=0
-for /l %%i in (1,1,5) do (
-    set /a _COUNT+=1
-    echo !_COUNT!
-)
-endlocal
-```
-
-- `!VAR!` expands at execution time (delayed)
-- `%VAR%` expands at parse time (immediate)
-
 ## Control Flow
 
 ### Conditional Execution
@@ -504,20 +443,6 @@ exit /b %ERRORLEVEL%
 | Parentheses in SET /A | Escape with `^(` and `^)` inside `if` blocks, or use quotes |
 | Double percent for modulo | `set /a r=14 %% 3` in batch files |
 
-## Cross-Platform and Extended Tools
-
-When batch scripting reaches its limits, these tools extend cmd.exe capabilities:
-
-| Tool | Purpose |
-|------|---------|
-| **Cygwin** | Full POSIX environment on Windows (grep, sed, awk, ssh) |
-| **MSYS2** | Lightweight Unix tools and package manager (pacman) |
-| **WSL** | Windows Subsystem for Linux — run native Linux binaries |
-| **GnuWin32** | Individual GNU utilities as native Windows executables |
-| **PowerShell** | Modern Windows scripting with .NET integration |
-
-Use batch when you need: fast startup, simple file operations, PATH-based CLI tools, or Task Scheduler integration. Consider PowerShell or WSL for complex data processing, REST APIs, or object-oriented scripting.
-
 ## CMD Keyboard Shortcuts
 
 | Shortcut | Action |
@@ -552,3 +477,10 @@ The `assets/` folder contains starter batch file template data, but as text file
 | `executable.txt` | Standalone CLI tool with argument parsing |
 | `library.txt` | Reusable function library with CALL-able labels |
 | `task.txt` | Scheduled task / automation script |
+
+## Extended guide
+
+These sections are in [`references/extended-guide.md`](references/extended-guide.md); read the relevant one when the task needs it:
+
+- [Variables](references/extended-guide.md#variables)
+- [Cross-Platform and Extended Tools](references/extended-guide.md#cross-platform-and-extended-tools)

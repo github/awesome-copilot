@@ -3,11 +3,7 @@ name: nano-banana-pro-openrouter
 description: 'Generate or edit images via OpenRouter with the Gemini 3 Pro Image model. Use for prompt-only image generation, image edits, and multi-image compositing; supports 1K/2K/4K output.'
 metadata:
   emoji: 🍌
-  requires:
-    bins:
-      - uv
-    env:
-      - OPENROUTER_API_KEY
+  requires: '{"bins": ["uv"], "env": ["OPENROUTER_API_KEY"]}'
   primaryEnv: OPENROUTER_API_KEY
 ---
 

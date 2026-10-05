@@ -471,62 +471,10 @@ Then generate:
 - [Template Language](https://learn.microsoft.com/en-us/adaptive-cards/templating/language) - Binding syntax guide
 - [JSONPath](https://www.rfc-editor.org/rfc/rfc9535) - Path query syntax
 
-## Common Patterns
+## Extended guide
 
-### List with Images
-```json
-{
-  "type": "Container",
-  "$data": "${items}",
-  "items": [
-    {
-      "type": "ColumnSet",
-      "columns": [
-        {
-          "type": "Column",
-          "width": "auto",
-          "items": [
-            {
-              "type": "Image",
-              "url": "${thumbnailUrl}",
-              "size": "small",
-              "$when": "${thumbnailUrl != null}"
-            }
-          ]
-        },
-        {
-          "type": "Column",
-          "width": "stretch",
-          "items": [
-            {
-              "type": "TextBlock",
-              "text": "${title}",
-              "weight": "bolder",
-              "wrap": true
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
+These sections are in [`references/extended-guide.md`](references/extended-guide.md); read the relevant one when the task needs it:
 
-### Status Indicators
-```json
-{
-  "type": "TextBlock",
-  "text": "${status}",
-  "color": "${if(status == 'Completed', 'good', if(status == 'In Progress', 'attention', 'default'))}"
-}
-```
-
-### Currency Formatting
-```json
-{
-  "type": "TextBlock",
-  "text": "$${formatNumber(amount, 2)}"
-}
-```
+- [Common Patterns](references/extended-guide.md#common-patterns)
 
 ````
