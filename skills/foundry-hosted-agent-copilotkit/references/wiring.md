@@ -206,9 +206,19 @@ function ToolRows() {
 
 export default function Page() {
   const [threadId, setThreadId] = useState<string>();
+  const [error, setError] = useState<string>();
   useEffect(() => {
-    fetch("/api/thread", { method: "POST" }).then((r) => r.json()).then((d) => setThreadId(d.threadId));
+    fetch("/api/thread", { method: "POST" })
+      .then(async (r) => {
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || typeof d.threadId !== "string" || !d.threadId.startsWith("conv_")) {
+          throw new Error(d.error ?? `Could not start a conversation (HTTP ${r.status})`);
+        }
+        setThreadId(d.threadId);
+      })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
   }, []);
+  if (error) return <p role="alert">{error}</p>;
   if (!threadId) return <p>Starting conversation…</p>;
   return (
     <CopilotKitProvider runtimeUrl="/api/copilotkit">
