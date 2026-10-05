@@ -3,7 +3,7 @@ title: "Lección 1 - Instalar la aplicación GitHub Copilot"
 description: "Instala la aplicación GitHub Copilot, conecta el repositorio que has creado a partir de la plantilla, familiarízate con el espacio de trabajo y prueba un chat rápido."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-05
 ---
 
 La [**aplicación GitHub Copilot**][about-copilot-app] es una aplicación de escritorio para el desarrollo dirigido por agentes. Se basa en GitHub Copilot CLI y se integra de forma nativa con GitHub, por lo que los repositorios, las ramas y las canalizaciones de CI funcionan sin configuración adicional. Está diseñada para flujos de trabajo en los que diriges varios agentes en paralelo, cada uno en su propio espacio de trabajo aislado, en lugar de realizar todo el trabajo y automatizar las tareas repetitivas por tu cuenta. Con Node.js instalado y tu copia del proyecto preparada, el siguiente paso es instalar la aplicación y conectar ese repositorio.
@@ -41,32 +41,39 @@ Como cabe esperar, el primer paso para utilizar la aplicación GitHub Copilot es
 
 Con el proyecto conectado, dedica un momento a conocer el espacio de trabajo. La aplicación organiza todo en varias áreas de la barra lateral:
 
+- **New**: como cabe esperar, aquí puedes iniciar una nueva sesión de chat con Copilot.
+- **Pull requests**: tus solicitudes de incorporación de cambios, disponibles mediante la integración nativa con GitHub de la aplicación. Desde aquí puedes examinar y filtrar solicitudes de incorporación de cambios, comprobar el estado de CI y revisar solicitudes de incorporación de cambios, todo ello sin salir de la aplicación.
+- **Issues**: tus incidencias, disponibles del mismo modo. Desde aquí puedes examinar y filtrar incidencias e iniciar una sesión a partir de una incidencia.
+- **Automations**: tareas de agente guardadas que se ejecutan según una programación o bajo demanda. Son útiles para gestionar listas de tareas, realizar el mantenimiento periódico del proyecto o delegar otras tareas tediosas. El resumen final enlaza a ellas como siguiente paso, no como otro ejercicio del taller.
+- **Customize**: añade funcionalidades a la aplicación Copilot mediante servidores MCP, plugins, habilidades y otros componentes. Lo utilizarás para configurar MCP de Playwright.
+- **Chats**: conversaciones ligeras para preguntas y lluvias de ideas que no necesitan una rama ni un espacio de trabajo propios. Probarás una al final de esta lección.
 - **Sessions**: donde los agentes realizan su trabajo. Cada sesión se ejecuta en su propio espacio de trabajo aislado, por lo que puedes ejecutar varias a la vez sin que sus cambios entren en conflicto. Iniciarás tu primera sesión en la siguiente lección.
-- **Quick chats**: conversaciones ligeras para preguntas y lluvias de ideas que no necesitan una rama ni un espacio de trabajo propios. Probarás una al final de esta lección.
-- **My work**: tus incidencias y solicitudes de incorporación de cambios, disponibles mediante la **integración nativa con GitHub** de la aplicación. Desde aquí puedes examinar y filtrar incidencias y solicitudes de incorporación de cambios, comprobar el estado de CI, iniciar una sesión a partir de una incidencia y revisar solicitudes de incorporación de cambios, todo ello sin salir de la aplicación.
-- **Automations**: tareas de agente guardadas que se ejecutan según una programación o bajo demanda. Crearás una casi al final de este recorrido.
+
+A lo largo del taller, explorarás el espacio de trabajo.
+
+> [!TIP]
+> Si tienes dudas, pregunta a Copilot. Si no sabes cómo hacer algo o si es posible, puedes preguntarle y te ayudará a orientarte.
 
 ### Localizar la lista de trabajo pendiente inicial
 
-Como la aplicación se integra de forma nativa con GitHub, el trabajo pendiente del repositorio aparece directamente en ella. Cuando creaste el repositorio a partir de la plantilla, se generó una lista de incidencias. Vamos a comprobar que esté disponible.
+Prácticamente todos los proyectos tienen trabajo pendiente, y Tailspin Toys no es una excepción. Vamos a explorar la lista de incidencias que se generó al crear el repositorio a partir de la plantilla.
 
-1. Selecciona **My work** en la barra lateral.
-2. La plantilla ha creado ocho incidencias en tu lista de trabajo pendiente. Este módulo se centra en las tres siguientes; confirma que puedes verlas:
+1. Selecciona **Issues** en la barra lateral.
+2. Busca estas incidencias por su título en lugar de dar por hecho su número:
 
    - Allow users to filter games by category and publisher
    - Update our repository coding standards
-   - Implement pagination on the game list page
 
-3. Selecciona una incidencia para leer sus detalles. Cada incidencia también sirve como punto de partida para una sesión de agente. Más adelante iniciarás el trabajo desde estas incidencias.
+3. Selecciona una incidencia para leer sus detalles. Cada incidencia también sirve como punto de partida para una sesión de agente. Partirás de la incidencia de filtrado después de completar un primer cambio rápido.
 
 > [!NOTE]
-> La lista de elementos de **My work** se filtra automáticamente para mostrar solo los elementos de los repositorios que has añadido a la aplicación Copilot. Para ver elementos de trabajo de otros repositorios, añádelos a la aplicación.
+> Las listas de elementos de **Issues** y **Pull requests** se filtran automáticamente para mostrar solo los elementos de los repositorios que has añadido a la aplicación Copilot. Para ver elementos de trabajo de otros repositorios, añádelos a la aplicación.
 
 ## Probar un chat rápido
 
 Una buena forma de familiarizarse con la aplicación es utilizarla para conocer la *propia aplicación*, y un **chat rápido** es la herramienta adecuada. Los chats rápidos permiten formular una pregunta o plantear ideas sin crear una rama ni un árbol de trabajo, por lo que son perfectos para una consulta rápida y desechable que no requiere una sesión.
 
-1. En la barra lateral, selecciona **+** junto a **Quick chats** para abrir un chat nuevo.
+1. En la barra lateral, selecciona **+** junto a **Chats** para abrir un chat nuevo.
 2. Pregunta a la aplicación cómo funcionan sus sesiones:
 
    ```plaintext
@@ -81,10 +88,10 @@ Has instalado la aplicación GitHub Copilot, conectado el proyecto y explorado e
 
 - instalar la aplicación e iniciar sesión en GitHub.
 - añadir un proyecto desde su repositorio de GitHub.
-- familiarizarte con el espacio de trabajo y localizar la lista de trabajo pendiente inicial en **My work**.
+- familiarizarte con el espacio de trabajo y localizar la lista de trabajo pendiente inicial en **Issues**.
 - utilizar un chat rápido para formular una pregunta breve y desechable.
 
-A continuación, iniciarás tu primera sesión de agente y realizarás el primer cambio en el proyecto: mostrar una valoración por estrellas en las tarjetas de los juegos. Continúa con la [Lección 2 - Ejecutar tu primera sesión de agente][next-lesson].
+A continuación, iniciarás tu primera sesión de agente y realizarás el primer cambio en el proyecto: mostrar una valoración por estrellas en las tarjetas de los juegos. Continúa con la [Lección 2 - Añadir valoraciones por estrellas: una mejora rápida][next-lesson].
 
 ## Recursos
 
@@ -92,7 +99,6 @@ A continuación, iniciarás tu primera sesión de agente y realizarás el primer
 - [Introducción a la aplicación GitHub Copilot][getting-started]
 - [Trabajar con sesiones de agente en la aplicación GitHub Copilot][agent-sessions]
 
-[ex0]: /es-es/learning-hub/copilot-workshops/app/0-prerequisites/
 [next-lesson]: /es-es/learning-hub/copilot-workshops/app/2-add-star-rating/
 [about-copilot-app]: https://docs.github.com/copilot/concepts/agents/github-copilot-app
 [getting-started]: https://docs.github.com/copilot/how-tos/github-copilot-app/getting-started

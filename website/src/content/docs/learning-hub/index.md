@@ -16,7 +16,7 @@ New to GitHub Copilot? Start here to understand the tools available to you.
 
 **Terminal**: Looking for a guided path into GitHub Copilot from the terminal? Explore the [Copilot CLI for Beginners](cli-for-beginners/) with a text-based experience or the [YouTube video series](https://www.youtube.com/watch?v=BDxRhhs36ns&list=PL0lo9MOBetEHvO-spzKBAITkkTqv4RvNl). Ready to go further? The [Advanced GitHub Copilot CLI](advanced-copilot-cli/) course takes you into real-world brownfield work — building reusable AI infrastructure, hooks, LSP and MCP integrations, and plugins on top of a legacy multi-stack app.
 
-**Workshop**: Prefer to learn by building? Work through [Hands-on with GitHub Copilot's agents](copilot-workshops/) — a hands-on workshop with four harnesses (VS Code, Copilot CLI, Copilot app, and cloud agent) built around a shared Tailspin Toys backlog.
+**Workshops**: Prefer to learn by building? Start with [First Steps](copilot-workshops/first-steps/) to build and ship a Space Quiz in VS Code, Copilot CLI, or the Copilot app. Then explore [real-world development workshops](copilot-workshops/real-world-development/) with a shared Tailspin Toys backlog across VS Code, Copilot CLI, the Copilot app, and cloud agent.
 
 ## Fundamentals
 
