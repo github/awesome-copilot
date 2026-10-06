@@ -236,6 +236,36 @@
     }
   },
   {
+    "name": "azure-sre-agent",
+    "description": "Investigate failing Azure apps with your existing Azure SRE Agent through an interactive Copilot canvas. Review investigation threads and incident evidence, and continue investigations with explicit user approval combined with your own context and tools.",
+    "version": "0.4.1",
+    "author": {
+      "name": "Paul Yuknewicz, Deepthi Chelupati",
+      "url": "https://github.com/paulyuk/"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "homepage": "https://azure.microsoft.com/en-us/products/sre-agent/",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "sre",
+      "diagnostics",
+      "incident-management",
+      "kusto",
+      "connectors",
+      "m365",
+      "teams",
+      "data-explorer"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-sre-agent",
+      "sha": "bc8c3349df123c56eea4a957f8d63d3a4a8fd6e4"
+    }
+  },
+  {
     "name": "bd-skills",
     "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
     "version": "0.1.26",
