@@ -1,41 +1,44 @@
 ---
-title: "Manos a la obra con los agentes de GitHub Copilot"
+title: "Talleres de GitHub Copilot"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-05
+tags:
+  - workshop
 ---
 
-Las recientes ampliaciones de las capacidades de GitHub Copilot ofrecen a los desarrolladores herramientas potentes para todo el ciclo de vida del desarrollo de software (SDLC). Estas capacidades incluyen trabajar con incidencias y solicitudes de incorporación de cambios en GitHub, interactuar con servicios externos y, por supuesto, crear código. En este laboratorio se exploran estas funciones mediante casos de uso reales y consejos para aprovechar al máximo las herramientas.
-
-> [!CAUTION]
-> Como GitHub Copilot es probabilístico y no determinista, el código exacto, los archivos modificados y otros elementos pueden variar. Por este motivo, es posible que observes pequeñas diferencias entre las capturas de pantalla y los fragmentos de código del laboratorio y lo que tú ves. Es algo normal y forma parte de trabajar con este tipo de herramientas.
->
-> Si algo parece no funcionar o no se ejecuta correctamente, ¡pide ayuda a un mentor!
-
-## Elige tu entorno
-
-GitHub Copilot te acompaña allí donde trabajes. Elige el entorno que se ajuste a tu forma de desarrollar y completa sus ejercicios con el trabajo pendiente compartido de Tailspin Toys. Cada entorno comienza con su propia configuración para que puedas empezar directamente con el que elijas.
-
-### 🖥️ [VS Code](/es-es/learning-hub/copilot-workshops/vscode/)
-
-GitHub Copilot dentro de **Visual Studio Code** y GitHub Codespaces. Trabaja con el modo agente de Copilot Chat, servidores MCP y agentes personalizados sin salir del editor que ya utilizas. Es ideal si quieres integrar la asistencia de IA directamente en el IDE.
-
-### 💻 [Copilot CLI](/es-es/learning-hub/copilot-workshops/cli/)
-
-**GitHub Copilot CLI** es un asistente basado en agentes que se ejecuta en el terminal. Instálalo, conecta servidores MCP, genera código con el modo de planificación y crea tus propias skills, agentes personalizados y comandos con barra diagonal, todo desde la línea de comandos.
-
-### 🤖 [Copilot App](/es-es/learning-hub/copilot-workshops/app/)
-
-La **aplicación GitHub Copilot** es una aplicación de escritorio basada en Copilot CLI. Ejecuta sesiones de agentes en paralelo, cambia el modo de las sesiones, colabora en lienzos y gestiona incidencias y solicitudes de incorporación de cambios de GitHub de forma nativa. También incluye **Agent Merge**, que guía una solicitud de incorporación de cambios durante los cambios de base, los comentarios de revisión, las correcciones de integración continua y la combinación.
-
-### ☁️ [Copilot Cloud Agent](/es-es/learning-hub/copilot-workshops/cloud/)
-
-El **agente de Copilot en la nube** es un compañero de programación asíncrono que trabaja en segundo plano en las incidencias de GitHub. Asígnale trabajo, guíalo con agentes personalizados, supervisa el progreso desde el panel de agentes y revisa las solicitudes de incorporación de cambios que abre.
-
-## Escenario
-
-Acabas de incorporarte como desarrollador a Tailspin Toys, una empresa ficticia que ofrece financiación colectiva para juegos de mesa de temática tecnológica: ¡un mercado enorme! El trabajo pendiente del equipo ya está registrado como incidencias de GitHub para que puedas comenzar. Incluye tanto funcionalidades, como el filtrado y la paginación, como mejoras de calidad, como la accesibilidad y los estándares de programación. Trabajarás de forma iterativa para completar las tareas mientras exploras el sitio y las capacidades de Copilot.
+Elige un taller según lo que quieras aprender y el nivel de profundidad que busques. **Primeros pasos** ofrece una introducción guiada a GitHub Copilot, mientras que **Desarrollo en escenarios reales** utiliza una aplicación completa y el backlog de un equipo para practicar flujos de trabajo orientados a producción.
 
 ## Primeros pasos
 
-Elige uno de los entornos anteriores para empezar. Cada uno comienza con la configuración necesaria para que puedas ponerte manos a la obra.
+Comienza con una experiencia guiada y específica que presenta las capacidades principales de un producto de GitHub Copilot sin requerir un código base existente.
+
+### [Recorrido por la aplicación GitHub Copilot][first-steps-app]
+
+Crea un cuestionario sobre el espacio desde una carpeta vacía, publícalo en GitHub, implementa una incidencia, completa una revisión de Copilot, programa una automatización y explora un flujo de trabajo con Canvas.
+
+### [Primeros pasos con GitHub Copilot CLI][first-steps-cli]
+
+Crea el mismo cuestionario desde la terminal, revisa las diferencias, ejecuta sesiones en paralelo en árboles de trabajo, planifica antes de editar y crea, combina y delega solicitudes de incorporación de cambios sin salir del shell.
+
+### [Primeros pasos con Visual Studio Code][first-steps-vscode]
+
+Crea el cuestionario en VS Code, pruébalo en el explorador integrado, publícalo con Control de código fuente, trabaja con incidencias y solicitudes de incorporación de cambios mediante las herramientas de GitHub y delega trabajo a una sesión en la nube.
+
+## Desarrollo en escenarios reales
+
+Practica con GitHub Copilot en un ciclo de vida de desarrollo de software realista mediante la aplicación Tailspin Toys y su backlog. Elige el entorno en el que quieras trabajar y, a continuación, planifica, desarrolla, prueba, revisa y entrega cambios significativos.
+
+### [Consulta los talleres de desarrollo en escenarios reales][real-world-development]
+
+Elige entre GitHub Copilot CLI, la aplicación GitHub Copilot, el agente de GitHub Copilot en la nube o Visual Studio Code.
+
+> [!CAUTION]
+> GitHub Copilot es probabilístico y no determinista, por lo que el código exacto y los archivos modificados pueden variar respecto a los ejemplos. Es normal que haya pequeñas diferencias.
+>
+> Si algo parece no funcionar correctamente durante un taller dirigido por un instructor, pide ayuda a un mentor.
+
+[first-steps-app]: /es-es/learning-hub/copilot-workshops/first-steps/copilot-app/
+[first-steps-cli]: /es-es/learning-hub/copilot-workshops/first-steps/copilot-cli/
+[first-steps-vscode]: /es-es/learning-hub/copilot-workshops/first-steps/vscode/
+[real-world-development]: /es-es/learning-hub/copilot-workshops/real-world-development/
