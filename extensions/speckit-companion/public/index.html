@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SpecKit Companion</title>
+    <link rel="stylesheet" href="/viewer.css">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/app.js"></script>
+</head>
+<body>
+    <header class="topbar">
+        <!-- The moss mascot logo, inlined from assets/icons/moss.svg with its viewBox cropped to the creature. -->
+        <svg class="brand-mark" width="24" height="24" viewBox="2 4 28 28" aria-hidden="true" focusable="false"><defs><radialGradient id="brand-moss-body" cx="46%" cy="40%" r="66%"><stop offset="0%" stop-color="#79BB3C"/><stop offset="72%" stop-color="#69AB33"/><stop offset="100%" stop-color="#5E9A2D"/></radialGradient><radialGradient id="brand-moss-sheen" cx="44%" cy="36%" r="30%"><stop offset="0%" stop-color="#97CE4C" stop-opacity=".28"/><stop offset="100%" stop-color="#97CE4C" stop-opacity="0"/></radialGradient></defs><g><path fill="#2E4A12" d="M14.9 13.9c0-2.1.2-3.9.5-5.1c.3-.9 1.0-.9 1.3 0c.3 1.2.5 3.0.5 5.1z"/><path fill="#5E9A2C" d="M15.45 13.6c0-1.7.1-3.1.35-4.1c.1-.4.5-.4.6 0c.25 1.0.35 2.4.35 4.1z"/><g><path fill="#2E4A12" d="M16 8.8 Q14.51 5.16 10.6 4.7 Q12.09 8.34 16 8.8 Z" transform="scale(1.12) translate(-1.71 -0.94)"/><path fill="#79BE3C" d="M16 8.8 Q14.51 5.16 10.6 4.7 Q12.09 8.34 16 8.8 Z"/><line x1="16" y1="8.8" x2="13.30" y2="6.75" stroke="#2E4A12" stroke-width=".4" stroke-linecap="round" opacity=".4"/></g><g><path fill="#2E4A12" d="M16 8.8 Q17.49 5.16 21.4 4.7 Q19.91 8.34 16 8.8 Z" transform="scale(1.12) translate(-1.71 -0.94)"/><path fill="#79BE3C" d="M16 8.8 Q17.49 5.16 21.4 4.7 Q19.91 8.34 16 8.8 Z"/><line x1="16" y1="8.8" x2="18.70" y2="6.75" stroke="#2E4A12" stroke-width=".4" stroke-linecap="round" opacity=".4"/></g><circle cx="16" cy="8.8" r="1.0" fill="#2E4A12"/><circle cx="16" cy="8.8" r="0.6" fill="#5E9A2C"/></g><g fill="#2E4A12"><circle cx="19.42" cy="12.83" r="3"/><circle cx="22.24" cy="14.88" r="3"/><circle cx="23.99" cy="17.90" r="3"/><circle cx="24.35" cy="21.38" r="3"/><circle cx="23.27" cy="24.70" r="3"/><circle cx="20.94" cy="27.30" r="3"/><circle cx="17.75" cy="28.72" r="3"/><circle cx="14.25" cy="28.72" r="3"/><circle cx="11.06" cy="27.30" r="3"/><circle cx="8.73" cy="24.70" r="3"/><circle cx="7.65" cy="21.38" r="3"/><circle cx="8.01" cy="17.90" r="3"/><circle cx="9.76" cy="14.88" r="3"/><circle cx="12.58" cy="12.83" r="3"/></g><circle cx="16" cy="20.5" r="9.9" fill="#2E4A12"/><g fill="#C9DB2E"><circle cx="19.42" cy="12.83" r="2.5"/><circle cx="22.24" cy="14.88" r="2.5"/><circle cx="23.99" cy="17.90" r="2.5"/><circle cx="24.35" cy="21.38" r="2.5"/><circle cx="23.27" cy="24.70" r="2.5"/><circle cx="20.94" cy="27.30" r="2.5"/><circle cx="17.75" cy="28.72" r="2.5"/><circle cx="14.25" cy="28.72" r="2.5"/><circle cx="11.06" cy="27.30" r="2.5"/><circle cx="8.73" cy="24.70" r="2.5"/><circle cx="7.65" cy="21.38" r="2.5"/><circle cx="8.01" cy="17.90" r="2.5"/><circle cx="9.76" cy="14.88" r="2.5"/><circle cx="12.58" cy="12.83" r="2.5"/></g><circle cx="16" cy="20.5" r="9.4" fill="#C9DB2E"/><g fill="url(#brand-moss-body)"><circle cx="19.19" cy="13.33" r="2.15"/><circle cx="21.83" cy="15.25" r="2.15"/><circle cx="23.47" cy="18.07" r="2.15"/><circle cx="23.81" cy="21.32" r="2.15"/><circle cx="22.80" cy="24.42" r="2.15"/><circle cx="20.61" cy="26.85" r="2.15"/><circle cx="17.63" cy="28.18" r="2.15"/><circle cx="14.37" cy="28.18" r="2.15"/><circle cx="11.39" cy="26.85" r="2.15"/><circle cx="9.20" cy="24.43" r="2.15"/><circle cx="8.19" cy="21.32" r="2.15"/><circle cx="8.53" cy="18.07" r="2.15"/><circle cx="10.17" cy="15.25" r="2.15"/><circle cx="12.81" cy="13.33" r="2.15"/></g><circle cx="16" cy="20.5" r="8.850000000000001" fill="url(#brand-moss-body)"/><circle cx="16" cy="20.5" r="8.850000000000001" fill="url(#brand-moss-sheen)"/><g fill="#1C2A0E"><ellipse cx="13" cy="20.5" rx="1.5" ry="1.95"/><ellipse cx="19" cy="20.5" rx="1.5" ry="1.95"/><path d="M14.6 22.6c.5.8 2.3.8 2.8 0c.1-.2-.1-.4-.3-.3c-.8.6-1.4.6-2.2 0c-.2-.1-.4.1-.3.3z"/></g><circle cx="13.5" cy="19.75" r=".52" fill="#fff"/><circle cx="19.5" cy="19.75" r=".52" fill="#fff"/></svg>
+        <div class="brand">
+            <h1>SpecKit Companion</h1>
+            <p class="brand-sub" id="repo-line">Loading specs…</p>
+        </div>
+        <span class="live" id="live" data-state="connecting"><span class="live-dot" aria-hidden="true"></span><span id="live-label">Connecting</span></span>
+        <button class="btn btn-quiet" id="new-spec-toggle" type="button" aria-expanded="false" aria-controls="new-spec">New spec</button>
+        <button class="btn btn-icon" id="refresh" type="button" title="Re-read every spec folder" aria-label="Refresh">
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M13.25 8a5.25 5.25 0 1 1-1.54-3.71M13.25 2.25v3h-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+    </header>
+
+    <form class="new-spec" id="new-spec" hidden>
+        <label for="new-spec-text">Describe the feature. Specify creates the spec folder and writes <code>spec.md</code>.</label>
+        <div class="segmented new-spec-workflow" id="new-spec-workflow" role="radiogroup" aria-label="Workflow" aria-describedby="new-spec-hint"></div>
+        <p class="new-spec-hint" id="new-spec-hint"></p>
+        <div id="new-spec-install" hidden></div>
+        <div class="new-spec-row">
+            <textarea id="new-spec-text" rows="2" placeholder="Let people export their board as CSV" required></textarea>
+            <button class="btn btn-primary" type="submit">Specify</button>
+        </div>
+    </form>
+
+    <div class="layout" id="layout" data-view="board">
+        <aside class="board" aria-label="Specs">
+            <div class="board-tools">
+                <input class="search" id="search" type="search" placeholder="Search by name or number" aria-label="Search specs" autocomplete="off">
+                <div class="segmented" role="radiogroup" aria-label="Filter specs">
+                    <button type="button" role="radio" data-filter="active" aria-checked="true">Active <span class="count" id="count-active">0</span></button>
+                    <button type="button" role="radio" data-filter="done" aria-checked="false">Done <span class="count" id="count-done">0</span></button>
+                    <button type="button" role="radio" data-filter="all" aria-checked="false">All <span class="count" id="count-all">0</span></button>
+                </div>
+            </div>
+            <ul class="spec-list" id="spec-list" aria-label="Spec list"></ul>
+            <p class="list-empty" id="list-empty" hidden>No specs match.</p>
+        </aside>
+
+        <main class="detail" id="detail" tabindex="-1">
+            <div class="detail-empty" id="detail-empty">
+                <p>Pick a spec to see its pipeline, documents and history.</p>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast">
+        <div class="toast-row">
+            <p class="toast-msg" id="toast-msg" role="status" aria-live="polite"></p>
+            <div class="toast-actions" id="toast-actions"></div>
+        </div>
+        <pre class="toast-prompt" id="toast-prompt" tabindex="0" aria-label="Prompt" hidden></pre>
+        <p class="toast-file" id="toast-file" hidden></p>
+    </div>
+</body>
+</html>

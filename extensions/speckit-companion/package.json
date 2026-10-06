@@ -1,0 +1,24 @@
+{
+  "name": "speckit-companion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "SpecKit Companion spec board for the GitHub Copilot app: every spec with its specify → plan → tasks → implement pipeline, task progress and run history, live, with buttons that run the next step.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node dev.mjs ../..",
+    "build": "node build.mjs",
+    "test": "node build.mjs && node --test --import ./tests/sdk-stub/register.mjs 'tests/*.test.mjs'"
+  },
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "keywords": [
+    "speckit",
+    "spec-driven-development",
+    "specs",
+    "pipeline",
+    "canvas"
+  ]
+}
