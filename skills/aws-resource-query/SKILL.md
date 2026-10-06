@@ -19,6 +19,12 @@ Answer natural language questions about AWS resources by translating intent into
 - `aws ce get-*`
 - `aws support describe-*`
 
+These prefixes are not blanket permission to run every matching operation. Use
+the metadata queries documented below; exclude secret/parameter values and
+credential issuance such as `aws sts get-session-token` or
+`aws sts get-federation-token`. Read-only access can still disclose sensitive
+data or incur query charges; keep the scope bounded to the user's question.
+
 **NEVER** run any of the following, regardless of what the user asks:
 `create-*`, `run-*`, `start-*`, `stop-*`, `reboot-*`, `delete-*`, `terminate-*`, `put-*`, `update-*`, `modify-*`, `attach-*`, `detach-*`, `send-*`, `publish-*`, `invoke-*`, `execute-*`
 
@@ -31,11 +37,32 @@ If the user's query implies a write action, respond:
 Identify: target service(s), scope (all / filtered / specific), detail level, and region.
 
 ### Step 2: Confirm Account & Region
+
+Ask which existing profile/account and region to use when the request does not
+identify them. Being signed into the AWS Console, VS Code, or an MCP client
+does not establish an authenticated AWS CLI session. Do not silently switch
+profiles or fall back to a different account after a failed query.
+
+For a selected named profile, verify the credential context without reading or
+printing credential files:
+
 ```bash
-aws sts get-caller-identity --query '{Account:Account,UserId:UserId}'
-aws configure get region
+aws sts get-caller-identity --profile <profile> --query '{Account:Account,UserId:UserId}'
+aws configure get region --profile <profile>
 ```
-Append `--region <region>` to all commands when the user specifies one.
+
+Omit `--profile` only when the user has confirmed the default credential context.
+If identity verification fails or the returned account is unexpected, stop
+before resource discovery. Report missing/expired credentials or denied access;
+do not request access keys, secret keys, session tokens, or passwords in chat.
+Have the user establish or renew their approved CLI authentication outside this
+read-only query workflow, then repeat the identity check.
+
+If no region is configured, ask for it rather than guessing. Carry the confirmed
+`--profile <profile>` and `--region <region>` into every regional resource query;
+global-service queries still use the confirmed profile. A successful identity
+check proves authentication, not read-only IAM authorization. This skill does
+not create profiles, alter IAM, or change the user's credential configuration.
 
 ### Step 3: Execute & Format
 Run the matched read-only command(s) below and format results as a readable table. For large result sets show a count first and offer to filter further.
