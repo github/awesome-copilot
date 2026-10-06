@@ -24,6 +24,14 @@ SOFTWARE.
 
 Third-party notices: markdown.js bundles Marked (MIT) and portions of Markdown (BSD).
 
+Vendored bundle provenance: markdown.js is a minified IIFE build of Marked
+(https://github.com/markedjs/marked) exposed as the global `ChronicleMarkdown`.
+The exact upstream release was not recorded when it was vendored; verify the file
+against SHA-256 451a5c24bf87afffc6642d5d5ac0ebba17efaa7bf146a54b1c4564f9ab8a7868.
+To update, bundle a pinned `marked` release from npm with esbuild
+(`esbuild --bundle --minify --format=iife --global-name=ChronicleMarkdown`),
+then record the new version and hash here.
+
 Marked
 
 Copyright (c) 2018+, MarkedJS (https://github.com/markedjs/)

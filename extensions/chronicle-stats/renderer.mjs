@@ -244,6 +244,8 @@ body {
 .legend .lbl { color: var(--ink); }
 .legend .amt { margin-left: auto; font-variant-numeric: tabular-nums; }
 
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
 /* Hours */
 .hours { display: flex; align-items: flex-end; gap: 3px; height: 68px; }
 .hours .hbar { flex: 1; height: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; opacity: .85; transform: scaleY(.02); transform-origin: bottom; transition: transform .5s var(--ease); }
@@ -481,7 +483,8 @@ function renderHeatmap(d) {
 
   const CELL = 12, GAP = 3, LEFT = 26, TOP = 16;
   const W = LEFT + weeks*(CELL+GAP), H = TOP + 7*(CELL+GAP);
-  const s = svg("svg", { width: W, height: H, viewBox: \`0 0 \${W} \${H}\`, role: "img", "aria-label": "Activity heatmap" });
+  const s = svg("svg", { width: W, height: H, viewBox: \`0 0 \${W} \${H}\`, role: "img", "aria-label": "Activity heatmap", "aria-describedby": "heatmap-data" });
+  const srRows = [];
 
   // weekday labels
   [1,3,5].forEach(wd => {
@@ -502,6 +505,7 @@ function renderHeatmap(d) {
       const nice = cur.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"});
       const tt = rec ? \`\${rec.s} sessions, \${rec.t} turns, \${rec.u || 0} requests \\u00b7 \${nice}\` : \`No activity \\u00b7 \${nice}\`;
       const title = svg("title", {}); title.textContent = tt; rect.appendChild(title);
+      if (rec) srRows.push([nice, rec.s, rec.t, rec.u || 0]);
       rect.style.opacity = "0"; rect.style.transitionDelay = (w*8) + "ms";
       requestAnimationFrame(() => { rect.style.opacity = "1"; });
       s.appendChild(rect);
@@ -514,6 +518,14 @@ function renderHeatmap(d) {
     }
   }
   wrap.appendChild(s);
+
+  const table = el("table", "sr-only"); table.id = "heatmap-data";
+  table.appendChild(el("caption", null, srRows.length ? "Daily activity (days with activity only)" : "No activity in this range"));
+  const head = el("tr");
+  ["Day", "Sessions", "Turns", "Requests"].forEach(h => { const th = el("th", null, h); th.scope = "col"; head.appendChild(th); });
+  table.appendChild(head);
+  srRows.forEach(r => { const tr = el("tr"); r.forEach(v => tr.appendChild(el("td", null, String(v)))); table.appendChild(tr); });
+  wrap.appendChild(table);
 
   // legend
   const leg = el("div", "heat-legend");
@@ -625,6 +637,7 @@ function renderRepos(d) {
 
 function renderHours(d) {
   const wrap = $("#hours"); wrap.innerHTML = "";
+  wrap.setAttribute("role", "group"); wrap.setAttribute("aria-label", "Sessions by hour of day");
   const hours = d.hours || new Array(24).fill(0);
   const max = Math.max(...hours, 1);
   const peak = hours.indexOf(max);
@@ -632,6 +645,7 @@ function renderHours(d) {
     const b = el("div", "hbar");
     b.dataset.peak = i===peak ? "1" : "0";
     b.title = h + " session" + (h!==1?"s":"") + " at " + fmtHour(i);
+    b.setAttribute("role", "img"); b.setAttribute("aria-label", b.title);
     wrap.appendChild(b);
     requestAnimationFrame(()=>{ b.style.transform = "scaleY(" + Math.max(.02, h/max) + ")"; });
   });

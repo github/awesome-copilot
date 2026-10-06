@@ -89,7 +89,7 @@ export function createSnapshotStore({
                 !["aiu", "tokens", "requests", "sessions", "turns", "activeDays"].includes(input.metric))) {
                 throw invalid("Inspection scope must be range, model, or session.");
             }
-            return { ...shared, metric: input.metric || null, metrics: entry.stats.metrics };
+            return { ...shared, metric: input.metric || null, kpis: entry.stats.kpis, metrics: entry.stats.metrics };
         },
         create(range = "30") {
             prune();

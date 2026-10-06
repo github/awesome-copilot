@@ -2,6 +2,11 @@
 
 See your local Copilot token usage by day, model, and session, and get tips to use it more efficiently.
 
+## Requirements
+
+- GitHub Copilot app with canvas support
+- Node 22.13+ (the extension uses `node:sqlite` and will not load on older Node versions)
+
 ## Installation
 
 ```bash

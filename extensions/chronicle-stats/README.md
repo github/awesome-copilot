@@ -17,7 +17,7 @@ See your local Copilot token usage by day, model, and session, and get tips to u
 
 ## Privacy
 
-Reads your local session store read-only. Insights run through your Copilot session and are saved to `~/.copilot/extensions/chronicle-stats/artifacts/.private/`.
+Reads your local session store read-only. Insights run through your Copilot session and are saved to `~/.copilot/extensions/chronicle-stats/artifacts/.private/` by default, or `$COPILOT_HOME/extensions/chronicle-stats/artifacts/.private/` when `COPILOT_HOME` is set.
 
 ## Troubleshooting
 
