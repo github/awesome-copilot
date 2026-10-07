@@ -1138,6 +1138,12 @@
       }
     },
     {
+      "name": "foundry-hosted-agent-copilotkit",
+      "source": "plugins/foundry-hosted-agent-copilotkit",
+      "description": "Build CopilotKit + AG-UI web apps on Microsoft Foundry hosted agents (Microsoft Agent Framework): wiring, native Foundry primitives, human-in-the-loop approvals, azd deploy, and debugging — with the Microsoft Learn and Foundry MCP servers for live grounding.",
+      "version": "1.0.0"
+    },
+    {
       "name": "frontend-web-dev",
       "source": "plugins/frontend-web-dev",
       "description": "Essential prompts, instructions, and chat modes for modern frontend web development including React, Angular, Vue, TypeScript, and CSS frameworks.",
