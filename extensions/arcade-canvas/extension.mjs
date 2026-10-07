@@ -10,9 +10,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const gameRoot = path.join(__dirname, "game");
 const assetsRoot = path.join(__dirname, "assets");
 const indexPath = path.join(gameRoot, "index.html");
-const gameJsPath = path.join(gameRoot, "game.js");
-const alienOnslaughtJsPath = path.join(gameRoot, "scenes", "AlienOnslaught.js");
-const galaxyBlasterJsPath = path.join(gameRoot, "scenes", "GalaxyBlaster.js");
 
 const games = [
     { key: "cosmic-rocks", label: "Cosmic Rocks", icon: "☄️" },
@@ -20,11 +17,12 @@ const games = [
     { key: "galaxy-blaster", label: "Galaxy Blaster", icon: "🚀" },
     { key: "ninja-runner", label: "Ninja Runner", icon: "🥷" },
     { key: "defender", label: "Planet Guardian", icon: "🛡️" },
+    { key: "surface-defense", label: "Surface Defense", icon: "🎯" },
 ];
 
 const gameKeys = new Set(games.map((game) => game.key));
 const defaultGame = "ninja-runner";
-const canvasBackgroundGames = ["cosmic-rocks", "alien-onslaught", "galaxy-blaster", "defender"];
+const canvasBackgroundGames = ["cosmic-rocks", "alien-onslaught", "galaxy-blaster", "defender", "surface-defense"];
 const servers = new Map();
 
 function normalizeGameKey(value) {
@@ -96,6 +94,7 @@ async function renderIndex(entry) {
     const html = await readFile(indexPath, "utf8");
     const bootstrap = `<script>
 (() => {
+  window.__agentArcadeLayoutProfile = "canvas";
   const selectedGame = ${JSON.stringify(entry.selectedGame)};
   const games = ${JSON.stringify(games)};
   const canvasBackgroundGames = ${JSON.stringify(canvasBackgroundGames)};
@@ -220,8 +219,15 @@ async function renderIndex(entry) {
     resumeCanvas();
   }, true);
 
-  document.getElementById("game-select")?.addEventListener("change", () => {
+  document.getElementById("game-select")?.addEventListener("change", (event) => {
     markSwitchingGame();
+    fetch("/select-game", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ gameKey: event.target.value }),
+    }).then((response) => {
+      if (!response.ok) throw new Error("Could not save the selected game");
+    }).catch((error) => console.error("Game selection failed:", error));
   }, true);
 
   storeGame(selectedGame);
@@ -272,33 +278,6 @@ async function renderIndex(entry) {
     return html.replace('<script src="./hud.js"></script>', `${bootstrap}\n  <script src="./hud.js"></script>`);
 }
 
-async function renderGameJs() {
-    const js = await readFile(gameJsPath, "utf8");
-    return js
-        .replaceAll("newW > 800 && newH > 400", "newW > 320 && newH > 220")
-        .replaceAll("game && newH > 400", "game && newH > 220")
-        .replaceAll("window.innerWidth > 800 && window.innerHeight > 400", "window.innerWidth > 320 && window.innerHeight > 220");
-}
-
-async function renderAlienOnslaughtJs() {
-    const js = await readFile(alienOnslaughtJsPath, "utf8");
-    const layoutH = "Math.min(H, W * 3 / 4)";
-    const layoutY = `((H - ${layoutH}) / 2)`;
-    return js
-        .replace("this.playerY = H * 0.92;", `this.playerY = ${layoutY} + ${layoutH} * 0.95;`)
-        .replace("this.alienGridY = Math.max(H * 0.20, 120);", `this.alienGridY = Math.max(${layoutY} + ${layoutH} * 0.10, 80);`)
-        .replace("const targetShieldH = H * 0.055;", `const targetShieldH = ${layoutH} * 0.065;`)
-        .replace("SCALE = Math.min(W / 1920, H / 1080);", "SCALE = Math.max(1.25, Math.min(W / 1920, H / 1080));")
-        .replace("this.alienCellW = Math.round(W * 0.055);", "this.alienCellW = Math.round(W * 0.068);");
-}
-
-async function renderGalaxyBlasterJs() {
-    const js = await readFile(galaxyBlasterJsPath, "utf8");
-    return js
-        .replaceAll("SCALE = Math.min(CONV_X, CONV_Y);", "SCALE = Math.max(1.7, Math.min(CONV_X, CONV_Y));")
-        .replaceAll("OPPONENT_SIZE = Math.min(32 * SCALE, W / 35);", "OPPONENT_SIZE = Math.max(54, Math.min(32 * SCALE, W / 24));");
-}
-
 async function streamFile(res, filePath) {
     const fileStat = await stat(filePath).catch(() => undefined);
     if (!fileStat?.isFile()) {
@@ -324,22 +303,25 @@ async function streamFile(res, filePath) {
 async function handleSelectGame(entry, req, res) {
     let body = "";
     req.setEncoding("utf8");
-    req.on("data", (chunk) => {
+    for await (const chunk of req) {
         body += chunk;
-    });
-    req.on("end", () => {
-        let input;
-        try {
-            input = JSON.parse(body || "{}");
-        } catch {
-            res.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
-            res.end("Invalid JSON request body");
-            return;
-        }
-        entry.selectedGame = normalizeGameKey(input.gameKey);
-        broadcast(entry, "selectGame", { gameKey: entry.selectedGame });
-        sendJson(res, { selectedGame: entry.selectedGame });
-    });
+    }
+    let input;
+    try {
+        input = JSON.parse(body);
+    } catch {
+        res.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
+        res.end("Invalid JSON request body");
+        return;
+    }
+    if (!input || typeof input !== "object" || Array.isArray(input) || !gameKeys.has(input.gameKey)) {
+        res.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
+        res.end("Expected a valid gameKey");
+        return;
+    }
+    entry.selectedGame = input.gameKey;
+    broadcast(entry, "selectGame", { gameKey: entry.selectedGame });
+    sendJson(res, { selectedGame: entry.selectedGame });
 }
 
 async function handleRequest(entry, req, res) {
@@ -379,33 +361,6 @@ async function handleRequest(entry, req, res) {
                 "cache-control": "no-cache",
             });
             res.end(await renderIndex(entry));
-            return;
-        }
-
-        if (url.pathname === "/game.js" || url.pathname === "/game/game.js") {
-            res.writeHead(200, {
-                "content-type": "text/javascript; charset=utf-8",
-                "cache-control": "no-cache",
-            });
-            res.end(await renderGameJs());
-            return;
-        }
-
-        if (url.pathname === "/scenes/AlienOnslaught.js" || url.pathname === "/game/scenes/AlienOnslaught.js") {
-            res.writeHead(200, {
-                "content-type": "text/javascript; charset=utf-8",
-                "cache-control": "no-cache",
-            });
-            res.end(await renderAlienOnslaughtJs());
-            return;
-        }
-
-        if (url.pathname === "/scenes/GalaxyBlaster.js" || url.pathname === "/game/scenes/GalaxyBlaster.js") {
-            res.writeHead(200, {
-                "content-type": "text/javascript; charset=utf-8",
-                "cache-control": "no-cache",
-            });
-            res.end(await renderGalaxyBlasterJs());
             return;
         }
 
@@ -459,7 +414,7 @@ await joinSession({
         createCanvas({
             id: "arcade-canvas",
             displayName: "Agent Arcade",
-            description: "A retro arcade canvas with five mini-games for waiting while agents work.",
+            description: "A retro arcade canvas with six mini-games for waiting while agents work.",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -524,6 +479,7 @@ await joinSession({
                     entry = await startServer(ctx.instanceId, normalizeGameKey(ctx.input?.defaultGame));
                 } else if (ctx.input?.defaultGame) {
                     entry.selectedGame = normalizeGameKey(ctx.input.defaultGame);
+                    broadcast(entry, "selectGame", { gameKey: entry.selectedGame });
                 }
                 return {
                     title: "Agent Arcade",

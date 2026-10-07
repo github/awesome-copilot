@@ -70,6 +70,12 @@ Look for:
 
 Read the pages in the current Learning Hub and compare the features documented there against what you found in Step 1, with the exception of the `cli-for-beginners` section as we handle updates to that separately. Any suggested changes to those pages will be rejected.
 
+Also exclude `website/src/content/docs/learning-hub/app-for-beginners/` and
+`website/public/images/learning-hub/copilot-app-for-beginners/`. The
+`app-for-beginners-sync` workflow owns this source-faithful course mirror.
+Do not rewrite its lessons or assets from feature research, or change its
+course card and cross-links independently of that sync.
+
 Identify:
 
 - **Missing features** — new capabilities not yet documented

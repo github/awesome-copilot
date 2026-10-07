@@ -364,6 +364,12 @@ export default function GithubCopilotApp() {
             <li key={step}>{step}</li>
           ))}
         </ol>
+        <Text as="p" size="300" variant="muted">
+          For a guided course with a shared sample app, use{" "}
+          <a href={pageHref("learning-hub/app-for-beginners")}>
+            GitHub Copilot app for Beginners
+          </a>.
+        </Text>
         <div className={styles.promptGroup}>
           <span className={styles.promptLabel}>Start a session three ways</span>
           <ul className={styles.pointList}>

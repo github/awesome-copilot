@@ -1,0 +1,453 @@
+{
+  "repository": "github/copilot-app-for-beginners",
+  "sourceCommit": "61a5da6f2e73c1ca2025061a1611bc7c19b83d69",
+  "importedAt": "2026-10-04",
+  "scope": "README and chapters 00-07 only; supporting files remain upstream",
+  "files": [
+    {
+      "source": "README.md",
+      "local": "website/src/content/docs/learning-hub/app-for-beginners/index.md",
+      "sha256": "d51e408235960e04e3de2202cc3eff79508df13ab13e6e18b550b75d9ebd2236"
+    },
+    {
+      "source": "00-setup/README.md",
+      "local": "website/src/content/docs/learning-hub/app-for-beginners/00-setup.md",
+      "sha256": "5528dd89045581462b8edea768a13b710c222fd985a90f58c965cf2ff1bc7884"
+    },
+    {
+      "source": "01-tour-the-app/README.md",
+      "local": "website/src/content/docs/learning-hub/app-for-beginners/01-tour-the-app.md",
+      "sha256": "db8a720ae5c3288c471e91c8d714d231c2f3d0345c2d9181c6fb572415616ba8"
+    },
+    {
+      "source": "02-sessions-worktrees-context/README.md",
+      "local": "website/src/content/docs/learning-hub/app-for-beginners/02-sessions-worktrees-context.md",
+      "sha256": "f0fcf322a6158d51843b848db230817a2369c9c46cc678f4c628da434ac4550d"
+    },
+    {
+      "source": "03-development-workflows/README.md",
+      "local": "website/src/content/docs/learning-hub/app-for-beginners/03-development-workflows.md",
+      "sha256": "a7194bfc2d5f5d8b505b5e410246978891cb0003ea716d412faa3ae1f3000a2e"
+    },
+    {
+      "source": "04-skills-custom-agents/README.md",
+      "local": "website/src/content/docs/learning-hub/app-for-beginners/04-skills-custom-agents.md",
+      "sha256": "b2eedce909491198ade1b763e8e4baecf45182053584d7b21ce14f3981c2b790"
+    },
+    {
+      "source": "05-mcp-plugins/README.md",
+      "local": "website/src/content/docs/learning-hub/app-for-beginners/05-mcp-plugins.md",
+      "sha256": "3bbb2521f18337ee88497e819b59d89badec097e9d9b311119e0e343e92cdb2e"
+    },
+    {
+      "source": "06-canvases/README.md",
+      "local": "website/src/content/docs/learning-hub/app-for-beginners/06-canvases.md",
+      "sha256": "c7149390893d560c77d0129c49ddcc62aa3e26678a971f389dda1e40e0fed571"
+    },
+    {
+      "source": "07-automations/README.md",
+      "local": "website/src/content/docs/learning-hub/app-for-beginners/07-automations.md",
+      "sha256": "06663675c753924b74c5b53ac36faec59f3aace16abf7035882e9a3a278e3732"
+    },
+    {
+      "source": "00-setup/assets/app-add-project.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/00/app-add-project.webp",
+      "sha256": "faf03f246231fdd884fddafb11ac6a66d85621af3bf54898bda4d1731ab5a09c"
+    },
+    {
+      "source": "00-setup/assets/app-current-checkout-workspace-selector.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/00/app-current-checkout-workspace-selector.webp",
+      "sha256": "9685f68887a95d19f3784b47df7885e4337f6da6b33a50ee3dcc442e0e67def5"
+    },
+    {
+      "source": "00-setup/assets/app-sign-in.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/00/app-sign-in.webp",
+      "sha256": "484b7239d4ac73fc9f135af7f2d25dce75247de9b321e8252d26ef4cace000b5"
+    },
+    {
+      "source": "00-setup/assets/chapter-header.svg",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/00/chapter-header.svg",
+      "sha256": "bdd44893e441006cf4f8d02231a411660f7738dd575d2865cdef0fda3c61c7f2"
+    },
+    {
+      "source": "00-setup/assets/studio-setup-soundcheck.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/00/studio-setup-soundcheck.webp",
+      "sha256": "91bb5ee7bf99776fa5cc9004a82ec1d91ac5894fa8ddf9a01fd924184e33a0a8"
+    },
+    {
+      "source": "01-tour-the-app/assets/app-automations-page.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/01/app-automations-page.webp",
+      "sha256": "690be38e00a26bd80cd863799303b76397b72b644722979f8ca5c178c1824f91"
+    },
+    {
+      "source": "01-tour-the-app/assets/app-issues-page.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/01/app-issues-page.webp",
+      "sha256": "09e6cab47ef6f756dd322e396022a130cb80f3762d4b84531c1589d43641c773"
+    },
+    {
+      "source": "01-tour-the-app/assets/app-new-page.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/01/app-new-page.webp",
+      "sha256": "37be111c3c45d45c866fbbd5f739c5be906afa058d1a05f9a511b0754f3fd2b8"
+    },
+    {
+      "source": "01-tour-the-app/assets/app-pull-requests-page.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/01/app-pull-requests-page.webp",
+      "sha256": "ac5c638405ce3356265c81b474b88069c55def48e0347482c81827594e4b1959"
+    },
+    {
+      "source": "01-tour-the-app/assets/app-quick-chat.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/01/app-quick-chat.webp",
+      "sha256": "0e15d445340be969f29a92d402b9501baddae328154fc13e5defe9af473c2adb"
+    },
+    {
+      "source": "01-tour-the-app/assets/app-settings.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/01/app-settings.webp",
+      "sha256": "5bfe69fa74d53abca6e1d2a60871ef4fc6f68f5d34fad86a7cf1f1477428ba21"
+    },
+    {
+      "source": "01-tour-the-app/assets/chapter-header.svg",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/01/chapter-header.svg",
+      "sha256": "b83dc57c3f523887abcfdc0ad4e59c8d88d0a5c647f0bcbb8fde76cdda892705"
+    },
+    {
+      "source": "01-tour-the-app/assets/editor-vs-app.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/01/editor-vs-app.webp",
+      "sha256": "e320e3aa4b6ede4a46f8ebf8af046c4dd704667bc16351033d0bf85ff31a57d4"
+    },
+    {
+      "source": "01-tour-the-app/assets/producer-control-room-modes.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/01/producer-control-room-modes.webp",
+      "sha256": "e31f0eb3029b11cefb92e4f2bfb71bb6b1a80dfb5661bee7e4291a47406e016c"
+    },
+    {
+      "source": "01-tour-the-app/assets/session-mode-decision-ladder.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/01/session-mode-decision-ladder.webp",
+      "sha256": "3ca6f6fbb217b5c57dd171c50ef49146ddc1e3001061d655b788ebd62c0299bc"
+    },
+    {
+      "source": "02-sessions-worktrees-context/assets/app-book-app-empty-state-before.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/02/app-book-app-empty-state-before.webp",
+      "sha256": "d133ec59b0515e2efc614c51a6272bbf373d7a03ad93a144d46a18ddabab3863"
+    },
+    {
+      "source": "02-sessions-worktrees-context/assets/app-chronicle-standup-output.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/02/app-chronicle-standup-output.webp",
+      "sha256": "acd45a749f06d4a73c4802fedfb54eded39c48dd00788bda8777eceab33d0e60"
+    },
+    {
+      "source": "02-sessions-worktrees-context/assets/app-context-information.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/02/app-context-information.webp",
+      "sha256": "357b11a12e04ac387cda89a829ec627290433fa19c6cba1371161091cef910c8"
+    },
+    {
+      "source": "02-sessions-worktrees-context/assets/app-create-from-icon.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/02/app-create-from-icon.webp",
+      "sha256": "1fa97e5f817e6dbc98b67ea056f30dc1faf19494b5322cee5fa14a7d6004d779"
+    },
+    {
+      "source": "02-sessions-worktrees-context/assets/app-plan-from-issue.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/02/app-plan-from-issue.webp",
+      "sha256": "2edcea70d18011166b849b94d0adce2ead40c6dc664c695238023fd5a1b11db2"
+    },
+    {
+      "source": "02-sessions-worktrees-context/assets/app-where-sessions-run.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/02/app-where-sessions-run.webp",
+      "sha256": "d975962f610a3154d8da16073b0290b759177809e1146b84e901813d4a0e31bd"
+    },
+    {
+      "source": "02-sessions-worktrees-context/assets/chapter-header.svg",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/02/chapter-header.svg",
+      "sha256": "df2477c2944c8cd61de342a51487dc6c45d8de4dd11ff1bffb022e517e8ce83f"
+    },
+    {
+      "source": "02-sessions-worktrees-context/assets/one-repo-many-worktrees.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/02/one-repo-many-worktrees.webp",
+      "sha256": "cec07bef34efea5bb283b6f1db21ec4550c140800063ae3ff913427236f27b53"
+    },
+    {
+      "source": "02-sessions-worktrees-context/assets/recording-booths-worktrees.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/02/recording-booths-worktrees.webp",
+      "sha256": "f73d466f75aa9f7ea79747125e4cfe12ab5cf6400b12020e039a0c16348ae378"
+    },
+    {
+      "source": "03-development-workflows/assets/app-filter-repo.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/app-filter-repo.webp",
+      "sha256": "662c9475e25de746f1a2da38d06cc817763e923df1bc6f4d1ddd97a581378ebf"
+    },
+    {
+      "source": "03-development-workflows/assets/app-issue-new-session.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/app-issue-new-session.webp",
+      "sha256": "9a4f4f18c78431941b4ced9c118ce8226be7553af1024d3e96d1d607069f4069"
+    },
+    {
+      "source": "03-development-workflows/assets/app-issues-filtered.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/app-issues-filtered.webp",
+      "sha256": "a1f320a6041a030542e1f0b277c06eb653c136b581e76f21ec44df25bf2531af"
+    },
+    {
+      "source": "03-development-workflows/assets/app-pick-and-polish.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/app-pick-and-polish.webp",
+      "sha256": "b2b745adebd24b6a860ad89c067ed77f2d56f4fecea644a6b0e1423d23367e01"
+    },
+    {
+      "source": "03-development-workflows/assets/app-pr-failing-check.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/app-pr-failing-check.webp",
+      "sha256": "ff63d4d1214f37672e8cd691bcfd74e7a69b8913dd7ec5bea037da5a80f6282e"
+    },
+    {
+      "source": "03-development-workflows/assets/app-pr-review-comment.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/app-pr-review-comment.webp",
+      "sha256": "9157076849d05e9ccd8b8ebb8ae59d7831643f5374220b8db81b6428e169449a"
+    },
+    {
+      "source": "03-development-workflows/assets/app-workspace-panel.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/app-workspace-panel.webp",
+      "sha256": "625efb26cd5e6ac0ccbdfd91be37e81403402ccc192c4b9e9ee15cf697f1097e"
+    },
+    {
+      "source": "03-development-workflows/assets/chapter-header.svg",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/chapter-header.svg",
+      "sha256": "074a076fe803e99ab691591b2e5462d0a175364c02c89913c1c087864c12d281"
+    },
+    {
+      "source": "03-development-workflows/assets/context-layers.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/context-layers.webp",
+      "sha256": "c47a6bff672ad8545e576464135a6ee91dcc96a47dbd03495a72951a02d0ad77"
+    },
+    {
+      "source": "03-development-workflows/assets/development-loop.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/development-loop.webp",
+      "sha256": "74f9f446b0f66c018581fea936e4cbd94047a24fd99d59d53b9c827fa5f30a9f"
+    },
+    {
+      "source": "03-development-workflows/assets/human-judgment-loop.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/human-judgment-loop.webp",
+      "sha256": "558f00d2fc1430a246305a3f7b3c27891a82f4146b07862fa8f90391f3013309"
+    },
+    {
+      "source": "03-development-workflows/assets/issue-to-merged-pr.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/issue-to-merged-pr.webp",
+      "sha256": "1fbe94a1a241a601ca03bf18faa7169ebea35af3422ec993195f6647c6fba88e"
+    },
+    {
+      "source": "03-development-workflows/assets/producer-review-desk-github.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/producer-review-desk-github.webp",
+      "sha256": "a0727e0cbae67cbc427a43407ecf5c9c7984d05e4093b5764733b277badbd854"
+    },
+    {
+      "source": "03-development-workflows/assets/record-playback-retake-loop.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/03/record-playback-retake-loop.webp",
+      "sha256": "18959a58675c08410bb65b3d8f259afe850745174890c1672f1b43c3f9e3d538"
+    },
+    {
+      "source": "04-skills-custom-agents/assets/app-custom-agent-picker.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/04/app-custom-agent-picker.webp",
+      "sha256": "1d452eddfdc45b113987155a7388790b7b580280e0a4f7e1d20463a2148e492a"
+    },
+    {
+      "source": "04-skills-custom-agents/assets/app-customize-skills.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/04/app-customize-skills.webp",
+      "sha256": "a2b465332985bd21d75f4d81f63716c9b9c48e4a9638f49da471224935d97440"
+    },
+    {
+      "source": "04-skills-custom-agents/assets/chapter-header.svg",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/04/chapter-header.svg",
+      "sha256": "f8a9c306d41e7ea1eaed1fd1c5949b9cc00119b1d8b3427d4417921445c513e2"
+    },
+    {
+      "source": "04-skills-custom-agents/assets/hiring-specialists-analogy.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/04/hiring-specialists-analogy.webp",
+      "sha256": "f6ca9cb588cb2e67afb8e8eaa7b7bf43675b6c7eb8362d26c0573b338313fd23"
+    },
+    {
+      "source": "04-skills-custom-agents/assets/skill-vs-one-off-prompt.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/04/skill-vs-one-off-prompt.webp",
+      "sha256": "03b8e7dcc4a2b919026fbbe73be79cc340f7750d316c2baf4ca65e3d7371ceec"
+    },
+    {
+      "source": "04-skills-custom-agents/assets/song-chart-skills.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/04/song-chart-skills.webp",
+      "sha256": "e25c1aec1e737067af9419c75065b5777750ffdc05ec5f22ed455a276632c77d"
+    },
+    {
+      "source": "05-mcp-plugins/assets/app-context7-configuration.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/05/app-context7-configuration.webp",
+      "sha256": "4be98a4533e4dd9b6c732e04d22dfeb0e333904327f0652652576b1f6668a4d5"
+    },
+    {
+      "source": "05-mcp-plugins/assets/app-customize-mcp.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/05/app-customize-mcp.webp",
+      "sha256": "34ea5a1759de22d222a41c7fa4b2b092fa7944db9d0c545a2d4426304257d5a1"
+    },
+    {
+      "source": "05-mcp-plugins/assets/app-customize-plugins.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/05/app-customize-plugins.webp",
+      "sha256": "3b5d26c37e1b6115b1c3a024f8cc00a29fb39b4f45d4c24a4920b7c288a25374"
+    },
+    {
+      "source": "05-mcp-plugins/assets/browser-extensions-analogy.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/05/browser-extensions-analogy.webp",
+      "sha256": "5f69461884137f3576f832438c35561539f884c4f23d0452281a081ca59b2c7e"
+    },
+    {
+      "source": "05-mcp-plugins/assets/chapter-header.svg",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/05/chapter-header.svg",
+      "sha256": "6df7ed03ba52b57e3345fcc58a484f914b0735abf6cd6dbb0949d0248173d88b"
+    },
+    {
+      "source": "05-mcp-plugins/assets/extending-copilot-app.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/05/extending-copilot-app.webp",
+      "sha256": "6a1b5d9aa0f5d42aae910433e1bbe868b48cbe2e78d1c4d90f77433620b4ecf5"
+    },
+    {
+      "source": "05-mcp-plugins/assets/least-tool-principle.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/05/least-tool-principle.webp",
+      "sha256": "3602ba1e0a6fc397a1322d6d2f244c15b4cbf6a87d6706c6ee3096c42fa66ae4"
+    },
+    {
+      "source": "06-canvases/assets/app-create-canvas-command.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/app-create-canvas-command.webp",
+      "sha256": "f2b324671689b7e976129e4976f76645493760ab9dd053a722ae5a1cb09fe5fb"
+    },
+    {
+      "source": "06-canvases/assets/app-create-canvas-screenshot.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/app-create-canvas-screenshot.webp",
+      "sha256": "1d0fa56a6c514343516e48903b6da7ac3cddf79479e0b7ed4b0759e42b30a960"
+    },
+    {
+      "source": "06-canvases/assets/app-feature-workbench-baseline.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/app-feature-workbench-baseline.webp",
+      "sha256": "b8c0ecb7add411d8bd483c18190207316fc2acc6007bc83aaab9e9fbc63e9f8a"
+    },
+    {
+      "source": "06-canvases/assets/app-feature-workbench-browser-validation.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/app-feature-workbench-browser-validation.webp",
+      "sha256": "399f92ae6c45256e3e6e17e7190f4f7d3ddc54f77e9b735c4c6670ed71bd6ec7"
+    },
+    {
+      "source": "06-canvases/assets/app-feature-workbench-implement.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/app-feature-workbench-implement.webp",
+      "sha256": "d1524e0fd70566a31fc80fb6bbc0695f6313ccd7d6f669963a863de77a30f304"
+    },
+    {
+      "source": "06-canvases/assets/app-feature-workbench-plan.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/app-feature-workbench-plan.webp",
+      "sha256": "24e374fda6aa6613186d5f8800cbe47caac775904705ca309018db3c2eae6d41"
+    },
+    {
+      "source": "06-canvases/assets/app-feature-workbench-propose.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/app-feature-workbench-propose.webp",
+      "sha256": "f4aaba217ac987d4a4e446eb09cf37644463a1b1405232d703f3c169ca477a9a"
+    },
+    {
+      "source": "06-canvases/assets/app-feature-workbench-validate.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/app-feature-workbench-validate.webp",
+      "sha256": "a99311dd5d24feb9d9d5e4f1cdb0f24ffaadb07bb77ad20e63327e0963360845"
+    },
+    {
+      "source": "06-canvases/assets/app-open-repo-issues-canvas.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/app-open-repo-issues-canvas.webp",
+      "sha256": "a5aa647178d01dff1b1d7a4dbcd3fa8f561f93bced29ba328c158c284d307bcd"
+    },
+    {
+      "source": "06-canvases/assets/app-repo-issues-kanban.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/app-repo-issues-kanban.webp",
+      "sha256": "80b239e48ef97be6cf61adb233abcc20795fb2124f7600c2ec612d8441ffc0b5"
+    },
+    {
+      "source": "06-canvases/assets/arrangement-board-canvas.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/arrangement-board-canvas.webp",
+      "sha256": "cd962be24c8cc23672ef554a28ca6ff3706ad0efe9ff665a53e22f767461a2c7"
+    },
+    {
+      "source": "06-canvases/assets/chapter-header.svg",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/chapter-header.svg",
+      "sha256": "5a52ccc7b31a38e429df602416078d3f7312d900fe9b7de3e165293a951fae20"
+    },
+    {
+      "source": "06-canvases/assets/chat-vs-canvas.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/chat-vs-canvas.webp",
+      "sha256": "7c4a13adf2269a4014c00e87893ac58b219babf84ec849fbf7e9d7d1692790b4"
+    },
+    {
+      "source": "06-canvases/assets/human-agent-shared-surface.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/human-agent-shared-surface.webp",
+      "sha256": "8c6f8b8e9134c4184d14d14f7542fb4d2a0ab83497a3cd22590c3f3bd264c5ef"
+    },
+    {
+      "source": "06-canvases/assets/session-board-collaboration.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/session-board-collaboration.webp",
+      "sha256": "dda9ec5e95bb0a9c54c34198f2d752444705b57f092086f199ec483caa08ee90"
+    },
+    {
+      "source": "06-canvases/assets/session-plan-validation-board.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/06/session-plan-validation-board.webp",
+      "sha256": "8ffe6bdd6e0edb451aa75ef0036eddbd707b6ad13dde35c717e1a5f0f2412ea7"
+    },
+    {
+      "source": "07-automations/assets/app-automation-cloud-tools.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/07/app-automation-cloud-tools.webp",
+      "sha256": "ce85ab0b5d31aa2504f0bf99c81953f40defa9854efe656ec1f117fbae8369f0"
+    },
+    {
+      "source": "07-automations/assets/app-automation-new-triggers.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/07/app-automation-new-triggers.webp",
+      "sha256": "3a11995728286b50ace0873bd703fa6aae92d96b72fdb7a7cc3d2a6343489d2f"
+    },
+    {
+      "source": "07-automations/assets/app-new-automation.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/07/app-new-automation.webp",
+      "sha256": "50ef3f755b7171fe2461de4ff7704d3b46c7ac640021d8f7ecdefb56e5966692"
+    },
+    {
+      "source": "07-automations/assets/automation-trigger-to-run.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/07/automation-trigger-to-run.webp",
+      "sha256": "aabc62d20012f9f70022c9f484bb6a0eaa4f1fef155c02ed7ace1cbc07d9f7f6"
+    },
+    {
+      "source": "07-automations/assets/chapter-header.svg",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/07/chapter-header.svg",
+      "sha256": "4ccbc606689d0171d2c66b61440ec94805a78db96e772ecdbdc87521bee69c61"
+    },
+    {
+      "source": "07-automations/assets/local-vs-cloud-automations.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/07/local-vs-cloud-automations.webp",
+      "sha256": "132d8c8f23826150f94fc305933d049f3bf9145457ba6c999bb7ef171b292147"
+    },
+    {
+      "source": "07-automations/assets/manual-first-path.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/07/manual-first-path.webp",
+      "sha256": "5bc8e2a016a28e77113e35c624ab9aa8c73a46301225916f0e85d20f2b0ff83c"
+    },
+    {
+      "source": "07-automations/assets/sequencer-automation.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/07/sequencer-automation.webp",
+      "sha256": "8a0128a8d6bbf784e04d048085e1963d2b0e12bfe54546788c07d6d6fe75e6e1"
+    },
+    {
+      "source": "assets/app-github-copilot-app.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/overview/app-github-copilot-app.webp",
+      "sha256": "371d5ae374bc4afa89f2bf26258866c2e0f98cef09259cfac979520be7d0de58"
+    },
+    {
+      "source": "assets/assignment.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/overview/assignment.webp",
+      "sha256": "daffcd6429257326164f055ae3dea90d64995baf6cddcb9f7d2e88e4a708704b"
+    },
+    {
+      "source": "assets/copilot-family-comparison.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/overview/copilot-family-comparison.webp",
+      "sha256": "2ec16ee8af3c84be6a637902d13186168144a8ff0ca178059be2b3864217408c"
+    },
+    {
+      "source": "assets/github-copilot-app-for-beginners.webp",
+      "local": "website/public/images/learning-hub/copilot-app-for-beginners/overview/github-copilot-app-for-beginners.webp",
+      "sha256": "c9a9c69d6cc9fd8e33ceaee1f2c3893d239d583ab7ffe18bc8c55fe6ce987e24"
+    },
+    {
+      "source": "LICENSE",
+      "local": "website/src/content/docs/learning-hub/app-for-beginners/source-license.txt",
+      "sha256": "d593b55e21973e1e19e80dc3b55a908f474b265300f8d34c54d1b9e3a5a4a48f"
+    }
+  ]
+}

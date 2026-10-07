@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="260" viewBox="0 0 1000 260" role="img" aria-labelledby="t05 d05"><title id="t05">Chapter 05: MCP Servers and Plugins</title><desc id="d05">Studio-themed header for Chapter 05.</desc>
+<defs>
+<linearGradient id="bg05" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#312e81"/><stop offset="1" stop-color="#533fad"/></linearGradient>
+<radialGradient id="gl05" cx="0.86" cy="0.16" r="0.7"><stop offset="0" stop-color="#9c74f7" stop-opacity="0.34"/><stop offset="1" stop-color="#9c74f7" stop-opacity="0"/></radialGradient>
+<clipPath id="cp05"><rect width="1000" height="260" rx="24"/></clipPath>
+</defs>
+<g clip-path="url(#cp05)">
+<rect width="1000" height="260" fill="url(#bg05)"/>
+<rect width="1000" height="260" fill="url(#gl05)"/>
+<rect width="1000" height="260" rx="24" fill="none" stroke="#ddd6fe" stroke-opacity="0.10" stroke-width="2"/>
+<path d="M28 214 L44 231 L60 235 L76 225 L92 209 L108 201 L124 204 L140 209 L156 213 L172 216 L188 220 L204 218 L220 207 L236 193 L252 190 L268 202 L284 220 L300 229 L316 224 L332 215 L348 210 L364 208 L380 208 L396 209 L412 217 L428 228 L444 230 L460 218 L476 200 L492 191 L508 196 L524 209 L540 217 L556 218 L572 215 L588 213 L604 208 L620 201 L636 199 L652 210 L668 227 L684 236 L700 229 L716 213 L732 202 L748 202 L764 208 L780 212 L796 215 L812 219 L828 219 L844 211 L860 196 L876 189 L892 197 L908 215 L924 227 L940 227 L956 218 L972 211" fill="none" stroke="#ddd6fe" stroke-opacity="0.16" stroke-width="2.5" stroke-linecap="round"/>
+<g><rect x="824" y="145" width="10" height="65" rx="5" fill="#ddd6fe" opacity="0.45"/><rect x="841" y="141" width="10" height="69" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="841" y="132" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="858" y="91" width="10" height="119" rx="5" fill="#ddd6fe" opacity="0.45"/><rect x="875" y="86" width="10" height="124" rx="5" fill="#ddd6fe" opacity="0.45"/><rect x="892" y="84" width="10" height="126" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="892" y="75" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="909" y="128" width="10" height="82" rx="5" fill="#ddd6fe" opacity="0.45"/><rect x="926" y="163" width="10" height="47" rx="5" fill="#ddd6fe" opacity="0.45"/></g>
+<rect x="58" y="82" width="6" height="108" rx="3" fill="#fbbf24"/>
+<g font-family="Helvetica, Arial, sans-serif">
+<circle cx="96" cy="74" r="6" fill="#fbbf24"/>
+<text x="112" y="80" fill="#ddd6fe" font-size="21" font-weight="700" letter-spacing="3">CHAPTER 05</text>
+<text x="84" y="146" fill="#ffffff" font-size="44" font-weight="800">MCP Servers and Plugins</text>
+<text x="86" y="186" fill="#ddd6fe" font-size="15" font-weight="600" letter-spacing="3" opacity="0.62">GITHUB COPILOT APP</text>
+</g>
+</g></svg>

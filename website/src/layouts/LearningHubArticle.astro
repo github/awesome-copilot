@@ -14,6 +14,7 @@ import {
   buildArticleSections,
   stripEmoji,
   stripLeadingH1,
+  stripRedundantHeadingAnchors,
 } from "../lib/learning-hub-article";
 import { enhanceMarkdownA11y } from "../lib/markdown-a11y";
 import { sanitizeHtml } from "../lib/sanitize-html";
@@ -38,13 +39,16 @@ const { headings } = await render(entry);
 // Scrollable <pre>/<table> blocks in this markdown need to be made keyboard
 // focusable the same way detail-page markdown already is (see
 // lib/detail-page.ts) — Learning Hub articles were missing this pass entirely.
-const html = stripLeadingH1(
-  enhanceMarkdownA11y(sanitizeHtml(entry.rendered?.html ?? "")),
+const html = stripRedundantHeadingAnchors(
+  stripLeadingH1(enhanceMarkdownA11y(sanitizeHtml(entry.rendered?.html ?? ""))),
 );
 const sections = buildArticleSections(html, entry.body ?? "");
+const sectionIds = new Set(
+  sections.filter((section) => section.heading !== null).map((section) => section.id),
+);
 
 const tocSections: TocSection[] = headings
-  .filter((heading) => heading.depth === 2)
+  .filter((heading) => heading.depth === 2 && sectionIds.has(heading.slug))
   .map((heading) => ({ id: heading.slug, label: stripEmoji(heading.text) }));
 
 const title = entry.data.title;

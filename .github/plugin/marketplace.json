@@ -141,8 +141,8 @@
     {
       "name": "arcade-canvas",
       "source": "plugins/arcade-canvas",
-      "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
-      "version": "1.0.2"
+      "description": "Play six retro Phaser mini-games in a Copilot canvas while agents work.",
+      "version": "1.1.0"
     },
     {
       "name": "arch",
@@ -1136,6 +1136,12 @@
         "ref": "0.1.3",
         "sha": "5837a9343db97d59107d146024b1dbd858625274"
       }
+    },
+    {
+      "name": "foundry-hosted-agent-copilotkit",
+      "source": "plugins/foundry-hosted-agent-copilotkit",
+      "description": "Build CopilotKit + AG-UI web apps on Microsoft Foundry hosted agents (Microsoft Agent Framework): wiring, native Foundry primitives, human-in-the-loop approvals, azd deploy, and debugging — with the Microsoft Learn and Foundry MCP servers for live grounding.",
+      "version": "1.0.0"
     },
     {
       "name": "frontend-web-dev",
