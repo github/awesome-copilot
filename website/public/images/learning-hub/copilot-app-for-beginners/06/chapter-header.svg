@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="260" viewBox="0 0 1000 260" role="img" aria-labelledby="t06 d06"><title id="t06">Chapter 06: Canvases</title><desc id="d06">Studio-themed header for Chapter 06.</desc>
+<defs>
+<linearGradient id="bg06" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#172554"/><stop offset="1" stop-color="#335693"/></linearGradient>
+<radialGradient id="gl06" cx="0.86" cy="0.16" r="0.7"><stop offset="0" stop-color="#78b2fb" stop-opacity="0.34"/><stop offset="1" stop-color="#78b2fb" stop-opacity="0"/></radialGradient>
+<clipPath id="cp06"><rect width="1000" height="260" rx="24"/></clipPath>
+</defs>
+<g clip-path="url(#cp06)">
+<rect width="1000" height="260" fill="url(#bg06)"/>
+<rect width="1000" height="260" fill="url(#gl06)"/>
+<rect width="1000" height="260" rx="24" fill="none" stroke="#bfdbfe" stroke-opacity="0.10" stroke-width="2"/>
+<path d="M28 231 L44 234 L60 222 L76 204 L92 196 L108 200 L124 209 L140 214 L156 216 L172 216 L188 214 L204 206 L220 196 L236 194 L252 206 L268 224 L284 233 L300 227 L316 215 L332 207 L348 207 L364 209 L380 211 L396 217 L412 224 L428 225 L444 214 L460 196 L476 188 L492 196 L508 212 L524 222 L540 221 L556 216 L572 212 L588 209 L604 205 L620 205 L636 214 L652 228 L668 235 L684 226 L700 208 L716 197 L732 198 L748 207 L764 213 L780 216 L796 216 L812 216 L828 209 L844 198 L860 193 L876 202 L892 220 L908 232 L924 230 L940 218 L956 208 L972 206" fill="none" stroke="#bfdbfe" stroke-opacity="0.16" stroke-width="2.5" stroke-linecap="round"/>
+<g><rect x="824" y="140" width="10" height="70" rx="5" fill="#bfdbfe" opacity="0.45"/><rect x="841" y="113" width="10" height="97" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="841" y="104" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="858" y="76" width="10" height="134" rx="5" fill="#bfdbfe" opacity="0.45"/><rect x="875" y="85" width="10" height="125" rx="5" fill="#bfdbfe" opacity="0.45"/><rect x="892" y="142" width="10" height="68" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="892" y="133" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="909" y="132" width="10" height="78" rx="5" fill="#bfdbfe" opacity="0.45"/><rect x="926" y="160" width="10" height="50" rx="5" fill="#bfdbfe" opacity="0.45"/></g>
+<rect x="58" y="82" width="6" height="108" rx="3" fill="#fbbf24"/>
+<g font-family="Helvetica, Arial, sans-serif">
+<circle cx="96" cy="74" r="6" fill="#fbbf24"/>
+<text x="112" y="80" fill="#bfdbfe" font-size="21" font-weight="700" letter-spacing="3">CHAPTER 06</text>
+<text x="84" y="146" fill="#ffffff" font-size="56" font-weight="800">Canvases</text>
+<text x="86" y="186" fill="#bfdbfe" font-size="15" font-weight="600" letter-spacing="3" opacity="0.62">GITHUB COPILOT APP</text>
+</g>
+</g></svg>

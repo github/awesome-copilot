@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="260" viewBox="0 0 1000 260" role="img" aria-labelledby="t02 d02"><title id="t02">Chapter 02: Sessions, Worktrees, and Context</title><desc id="d02">Studio-themed header for Chapter 02.</desc>
+<defs>
+<linearGradient id="bg02" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#052e2b"/><stop offset="1" stop-color="#0b625a"/></linearGradient>
+<radialGradient id="gl02" cx="0.86" cy="0.16" r="0.7"><stop offset="0" stop-color="#37c3b3" stop-opacity="0.34"/><stop offset="1" stop-color="#37c3b3" stop-opacity="0"/></radialGradient>
+<clipPath id="cp02"><rect width="1000" height="260" rx="24"/></clipPath>
+</defs>
+<g clip-path="url(#cp02)">
+<rect width="1000" height="260" fill="url(#bg02)"/>
+<rect width="1000" height="260" fill="url(#gl02)"/>
+<rect width="1000" height="260" rx="24" fill="none" stroke="#99f6e4" stroke-opacity="0.10" stroke-width="2"/>
+<path d="M28 207 L44 191 L60 189 L76 202 L92 218 L108 224 L124 220 L140 214 L156 211 L172 207 L188 205 L204 208 L220 219 L236 232 L252 233 L268 219 L284 202 L300 195 L316 200 L332 210 L348 215 L364 216 L380 216 L396 213 L412 205 L428 196 L444 195 L460 209 L476 227 L492 234 L508 226 L524 213 L540 206 L556 206 L572 209 L588 212 L604 217 L620 224 L636 223 L652 211 L668 195 L684 188 L700 198 L716 214 L732 223 L748 222 L764 216 L780 211 L796 208 L812 205 L828 206 L844 215 L860 229 L876 234 L892 224 L908 206 L924 195 L940 198 L956 207 L972 214" fill="none" stroke="#99f6e4" stroke-opacity="0.16" stroke-width="2.5" stroke-linecap="round"/>
+<g><rect x="824" y="92" width="10" height="118" rx="5" fill="#99f6e4" opacity="0.45"/><rect x="841" y="102" width="10" height="108" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="841" y="93" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="858" y="142" width="10" height="68" rx="5" fill="#99f6e4" opacity="0.45"/><rect x="875" y="159" width="10" height="51" rx="5" fill="#99f6e4" opacity="0.45"/><rect x="892" y="158" width="10" height="52" rx="5" fill="#fbbf24" opacity="0.85"/><rect x="892" y="149" width="10" height="5" rx="2.5" fill="#fbbf24"/><rect x="909" y="130" width="10" height="80" rx="5" fill="#99f6e4" opacity="0.45"/><rect x="926" y="78" width="10" height="132" rx="5" fill="#99f6e4" opacity="0.45"/></g>
+<rect x="58" y="82" width="6" height="108" rx="3" fill="#fbbf24"/>
+<g font-family="Helvetica, Arial, sans-serif">
+<circle cx="96" cy="74" r="6" fill="#fbbf24"/>
+<text x="112" y="80" fill="#99f6e4" font-size="21" font-weight="700" letter-spacing="3">CHAPTER 02</text>
+<text x="84" y="146" fill="#ffffff" font-size="38" font-weight="800">Sessions, Worktrees, and Context</text>
+<text x="86" y="186" fill="#99f6e4" font-size="15" font-weight="600" letter-spacing="3" opacity="0.62">GITHUB COPILOT APP</text>
+</g>
+</g></svg>
