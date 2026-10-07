@@ -420,7 +420,7 @@ jobs:
           name: contributor-check-result
           path: ${{ runner.temp }}/contributor-check-result/result.json
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 90
 
       - name: Job summary
         if: always()
