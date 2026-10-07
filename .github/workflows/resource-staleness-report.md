@@ -8,6 +8,8 @@ permissions:
 tools:
   github:
     toolsets: [repos]
+checkout:
+  fetch-depth: 0
 safe-outputs:
   create-issue:
     max: 1
