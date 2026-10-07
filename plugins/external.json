@@ -236,6 +236,36 @@
     }
   },
   {
+    "name": "azure-sre-agent",
+    "description": "Investigate failing Azure apps with your existing Azure SRE Agent through an interactive Copilot canvas. Review investigation threads and incident evidence, and continue investigations with explicit user approval combined with your own context and tools.",
+    "version": "0.4.1",
+    "author": {
+      "name": "Paul Yuknewicz, Deepthi Chelupati",
+      "url": "https://github.com/paulyuk/"
+    },
+    "repository": "https://github.com/microsoft/azure-dev-tools",
+    "homepage": "https://azure.microsoft.com/en-us/products/sre-agent/",
+    "license": "MIT",
+    "keywords": [
+      "canvas",
+      "azure",
+      "sre",
+      "diagnostics",
+      "incident-management",
+      "kusto",
+      "connectors",
+      "m365",
+      "teams",
+      "data-explorer"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/azure-dev-tools",
+      "path": "canvases/azure-sre-agent",
+      "sha": "bc8c3349df123c56eea4a957f8d63d3a4a8fd6e4"
+    }
+  },
+  {
     "name": "bd-skills",
     "description": "Helps GitHub Copilot investigate mobile app telemetry, diagnose crashes, manage [bitdrift](bitdrift.ai) workflows and dashboards, integrate the Capture SDK into iOS, Android, and React Native apps, and configure User Journey monitoring. Includes four skills covering CLI operations, SDK instrumentation, documentation lookup, and user journey monitoring; live account operations require the bd CLI and [bitdrift](bitdrift.ai) account and authentication.",
     "version": "0.1.26",
@@ -525,7 +555,7 @@
   {
     "name": "crowdstrike-falcon-foundry",
     "description": "AI coding assistant skills for building CrowdStrike Falcon Foundry apps: scaffolding, deployment, and best practices for API integrations, collections, functions, UI extensions, UI pages, and workflows.",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "author": {
       "name": "CrowdStrike",
       "url": "https://www.crowdstrike.com/"
@@ -542,13 +572,14 @@
     "source": {
       "source": "github",
       "repo": "CrowdStrike/foundry-skills",
-      "sha": "d9af175fe2b86836b431ebdb7e088957e6c7820d"
+      "ref": "v1.6.0",
+      "sha": "61572f38592d47c747e2595182459781bf0bc679"
     }
   },
   {
     "name": "crowdstrike-falcon-fusion",
     "description": "AI coding assistant skills for building CrowdStrike Falcon Fusion workflows: action discovery, YAML authoring, deployment, execution monitoring, and best practices for triggers, conditions, loops, and HTTP Actions.",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "author": {
       "name": "CrowdStrike",
       "url": "https://www.crowdstrike.com"
@@ -565,8 +596,8 @@
     "source": {
       "source": "github",
       "repo": "CrowdStrike/fusion-skills",
-      "ref": "v1.2.0",
-      "sha": "3e15710a94b712473e87ce7cd7c43d026156a3f3"
+      "ref": "v1.3.0",
+      "sha": "38527dc5afa970543859c31ca5dbf69352bfaa28"
     }
   },
   {
@@ -752,8 +783,8 @@
   },
   {
     "name": "excel-cli",
-    "description": "Token-efficient native Excel automation for coding agents, with 300+ operations performed by Excel itself to preserve native workbook fidelity—including Python in Excel, VBA, Power Query, DAX/Data Model, PivotTables, charts, tables, formatting, external connections, and what-if analysis. Windows and Excel required.",
-    "version": "2.0.1",
+    "description": "Windows-only Excel automation plugin that runs the latest excelcli package through npx.",
+    "version": "2.2.1",
     "author": {
       "name": "Stefan Brönner",
       "url": "https://github.com/sbroenne"
@@ -777,14 +808,14 @@
       "source": "github",
       "repo": "sbroenne/mcp-server-excel-plugins",
       "path": "plugins/excel-cli",
-      "ref": "v2.0.1",
-      "sha": "6c33486d2c74db050259411c73b5d87dfae9499e"
+      "ref": "v2.2.1",
+      "sha": "8941e5d59a068e421ddbddf40107c6f505f5acac"
     }
   },
   {
     "name": "excel-mcp",
-    "description": "The most comprehensive native Excel automation for complex workbooks, with 300+ operations performed by Excel itself to preserve native workbook fidelity—including Python in Excel, VBA, Power Query, DAX/Data Model, PivotTables, charts, tables, formatting, external connections, and what-if analysis. Windows and Excel required.",
-    "version": "2.0.1",
+    "description": "Windows-only Excel automation plugin that runs the latest ExcelMcp MCP server through npx.",
+    "version": "2.2.1",
     "author": {
       "name": "Stefan Brönner",
       "url": "https://github.com/sbroenne"
@@ -806,8 +837,8 @@
       "source": "github",
       "repo": "sbroenne/mcp-server-excel-plugins",
       "path": "plugins/excel-mcp",
-      "ref": "v2.0.1",
-      "sha": "6c33486d2c74db050259411c73b5d87dfae9499e"
+      "ref": "v2.2.1",
+      "sha": "8941e5d59a068e421ddbddf40107c6f505f5acac"
     }
   },
   {
@@ -975,7 +1006,7 @@
   {
     "name": "keep-the-why",
     "description": "Preserves or recovers the reasoning behind a codebase — architectural decisions, rejected alternatives, workarounds, incident learnings, operational constraints, and historical context the code itself cannot explain.",
-    "version": "0.17.0",
+    "version": "0.20.0",
     "author": {
       "name": "Oliver Zehentleitner",
       "url": "https://github.com/oliver-zehentleitner"
@@ -994,13 +1025,13 @@
     "source": {
       "source": "github",
       "repo": "oliver-zehentleitner/keep-the-why",
-      "ref": "v0.17.0"
+      "ref": "v0.20.0"
     }
   },
   {
     "name": "markdstage",
     "description": "Create, edit, present, and export Markdown slides in a GitHub Copilot Canvas.",
-    "version": "4.2.4",
+    "version": "4.5.1",
     "author": {
       "name": "Kazuki Ota",
       "url": "https://github.com/runceel"
@@ -1018,8 +1049,8 @@
       "source": "github",
       "repo": "runceel/MarkdStage",
       "path": ".github/plugin/markdstage",
-      "ref": "v4.2.4",
-      "sha": "34621f7217fbf2a10499c229229df4c86241095d"
+      "ref": "v4.5.1",
+      "sha": "5dc37ba46d1e61422d2764e7ae89e0a2975f19fa"
     }
   },
   {
@@ -1310,7 +1341,7 @@
   {
     "name": "radius",
     "description": "Model, visualize, and deploy applications with Radius from the GitHub Copilot app and CLI.",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "author": {
       "name": "Radius",
       "url": "https://radapp.io"
@@ -1331,8 +1362,8 @@
       "source": "github",
       "repo": "radius-project/ai-extensions",
       "path": "plugins/radius",
-      "ref": "radius@0.2.0",
-      "sha": "ffa3c1eb0bda0d288005162955dedc0d48b1ec30"
+      "ref": "radius@0.2.1",
+      "sha": "708a3396a3f69f2ace39525a52b9fd9da92d6001"
     }
   },
   {
@@ -1675,7 +1706,7 @@
   {
     "name": "upgrade-agent",
     "description": "AI-powered upgrade assistant for upgrading and migrating applications. Helps modernize legacy code and upgrade .NET applications to current frameworks.",
-    "version": "1.1.612",
+    "version": "1.1.652",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -1694,8 +1725,8 @@
       "source": "github",
       "repo": "microsoft/upgrade-agent-plugins",
       "path": "plugins/upgrade-agent",
-      "ref": "v1.1.612",
-      "sha": "cbd0b4cb071ec69eba4c1df84c4c6224cd9c7779"
+      "ref": "v1.1.652",
+      "sha": "f2f23675833495ecee9858cb4ce7b089fe9cf491"
     }
   },
   {

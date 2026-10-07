@@ -152,13 +152,14 @@ export function AgentsCatalog({
 
   const sortedAgents = useMemo(() => {
     const copy = agents.filter((agent) => {
-      const models = modelsOf(agent);
+      const modelSet = new Set(modelsOf(agent));
+      const toolSet = new Set(agent.tools ?? []);
       const modelOk =
         filters.model.length === 0 ||
-        filters.model.some((model) => models.includes(model));
+        filters.model.some((model) => modelSet.has(model));
       const toolsOk =
         filters.tools.length === 0 ||
-        filters.tools.every((tool) => (agent.tools ?? []).includes(tool));
+        filters.tools.every((tool) => toolSet.has(tool));
       const updatedOk =
         filters.updated.length === 0 ||
         filters.updated.includes(updatedBucketOf(daysSince(agent.lastUpdated)));
