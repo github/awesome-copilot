@@ -55,6 +55,7 @@ test("loads full unified patches directly, beyond the per-file preview excerpt",
     assert.match(result.files[0].patchNote, /Full diff section loaded directly/);
     assert.equal(requests.length, 3);
     assert.ok(requests.every(({ url }) => new URL(url).hostname === "api.github.com"));
+    assert.ok(requests.every(({ url }) => new URL(url).pathname.startsWith("/repos/example/project/pulls/42")));
     assert.ok(requests.every(({ options }) => options.headers.Authorization === "Bearer test-token"));
 });
 

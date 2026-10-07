@@ -67,7 +67,7 @@ async function ghTokens(hostname) {
 function parsePrUrl(input) {
     const canonicalUrl = normalizeUrl(input);
     const parsed = new URL(canonicalUrl);
-    const [, owner, repository, pullNumber] = parsed.pathname.split("/");
+    const [, owner, repository, , pullNumber] = parsed.pathname.split("/");
     return {
         canonicalUrl,
         hostname: parsed.hostname,
