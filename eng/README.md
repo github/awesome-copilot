@@ -32,6 +32,14 @@ node eng/review-routing.mjs validate      # validate .github/review-routing.yml
 node --test eng/review-routing.test.mjs   # unit tests
 ```
 
+## Review automation
+
+See [docs/maintainers/canvas-evidence-and-metrics.md](../docs/maintainers/canvas-evidence-and-metrics.md) for details.
+
+- `canvas-smoke-test.mjs` — static checks, preview validation, materialization, and install smoke test for canvas extensions (`canvas-smoke-test` check).
+- `review-metrics.mjs` — computes weekly review operating metrics and publishes them to the tracking issue.
+- `lib/review-automation-github.mjs` — small GitHub API client used by `review-metrics.mjs` (uses `GITHUB_TOKEN`, or the `gh` CLI locally).
+
 ## Contributor Tools
 
 - `contributor-report.mjs` — generates a markdown report of merged PRs for missing contributors (includes shared helpers).
