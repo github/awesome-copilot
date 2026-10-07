@@ -2,12 +2,27 @@
 title: "GitHub Copilot app"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-05
+description: "Practice agent-driven development with the GitHub Copilot app and the Tailspin Toys workshop."
+tags:
+  - workshop
 ---
 
-The **[GitHub Copilot app](https://docs.github.com/copilot/concepts/agents/github-copilot-app)** is a desktop application built on Copilot CLI that brings agent-driven development into a single, focused workspace. It adds parallel agent sessions, switchable session modes, shared canvases, and native GitHub issue and pull request management — including **Agent Merge**, which shepherds a pull request through rebases, review feedback, CI fixes, and merge.
+The **[GitHub Copilot app](https://docs.github.com/copilot/concepts/agents/github-copilot-app)** is a desktop application built on Copilot CLI that brings agent-driven development into a single, focused workspace. It adds parallel agent sessions, switchable session modes, shared canvases, and native GitHub issue and pull request management — including **Agent Merge**, which shepherds a pull request through rebases, review feedback, continuous integration (CI) fixes, and merge.
 
-Across these lessons you'll install the app and set up your project, then get oriented in the app's workspace and the backlog the template seeded for you. You'll start with a small change — adding a star rating — then add a custom instructions standard from an issue, build a filtering feature in an isolated agent session, and verify it with a reusable skill. You'll add the Playwright MCP server to explore the feature in a real browser, then climb a ladder of merge automation that ends with **Agent Merge** landing your pull request. Finally you'll collaborate on a shared canvas and automate recurring work — a complete loop from idea to merged feature.
+The workshop follows one continuous Tailspin Toys workflow:
+
+1. Prepare the project, install the app, connect your repository, and explore its workspace and seeded backlog.
+2. Make a focused star-rating change, review it in the browser, and manually merge your first pull request (PR).
+3. Start from the filtering issue, define the approach in **Plan** mode, build it in **Autopilot** mode, then review it in **Interactive** mode.
+4. Update the repository instructions and apply them to the filtering work.
+5. Customize the existing `quality-checks` skill and use it to run the project checks.
+6. Add the Playwright Model Context Protocol (MCP) server and use it to explore filtering in a browser.
+7. Create a quality assurance (QA) custom agent and use it to review requirements, coverage, and verification evidence.
+8. Review the complete filtering change and use Agent Merge for the second PR.
+9. Use the existing Database Explorer canvas, then create and test a repository-backed triage canvas.
+
+To keep the workshop focused, you'll create two PRs: star ratings, then filtering with the instruction updates, skill update, QA profile, and tests. Start each from updated `main`. The filtering and quality workflow shares one session, worktree, and branch so you can build on your work as you explore each tool. The final canvas exercise stays in its session so you can focus on creating and testing the shared surface rather than repeating the PR workflow.
 
 ## Lessons
 
@@ -15,13 +30,15 @@ Across these lessons you'll install the app and set up your project, then get or
 |--------|-------|-------------|
 | [0. Prerequisites][ex0] | Setup | Install Node.js and create your copy of the Tailspin Toys project |
 | [1. Install the Copilot app][ex1] | Setup | Install the app, connect your project, and get oriented in the workspace |
-| [2. Running your first agent session][ex2] | First change | Start a session and ship a small change as your first pull request |
-| [3. Guiding Copilot with custom instructions][ex3] | Context | Add a documentation standard from an issue and merge it |
-| [4. Building a feature with Autopilot][ex4] | Core Feature | Use Plan and Autopilot to build filtering, then verify it with a skill |
-| [5. Testing with Playwright MCP][ex5] | External Tools | Add the Playwright MCP server and explore your feature in a browser |
-| [6. Merging with Agent Merge][ex6] | Merge | Let Agent Merge fix and land your filtering pull request |
-| [7. Planning with canvases][ex7] | Collaboration | Create a shared canvas to plan and track your work |
-| [8. Review and next steps][ex8] | Summary | Automate recurring tasks and explore what's next |
+| [2. Add star ratings: a quick win][ex2] | First change | Display existing ratings and the null fallback, then merge PR 1 |
+| [3. Agent modes: Plan and Autopilot][ex3] | Agent modes | Plan the feature from its issue, build with Autopilot, then review in Interactive mode |
+| [4. Guide Copilot with custom instructions][ex4] | Context | Explore and update instructions, then apply them to filtering |
+| [5. Customize and use a quality-checks skill][ex5] | Repeatable checks | Explore the existing skill, change its report format, and run it |
+| [6. Validate functionality with Playwright MCP][ex6] | Browser observation | Configure MCP through Customize and inspect filtering behavior |
+| [7. Create and use a QA agent][ex7] | Requirements and coverage | Create and select a specialist profile, then gather final verification evidence |
+| [8. Create and merge the feature PR][ex8] | Review and merge | Review filtering, instructions, the skill, QA profile, and tests, then use Agent Merge for the second PR |
+| [9. Explore and create canvases][ex9] | Collaboration | Use Database Explorer, then create and test a repository-backed triage canvas |
+| [10. Wrap-up and next steps][ex10] | Summary | Review the workflow, artifacts, and further resources |
 
 ## Prerequisites
 
@@ -35,23 +52,25 @@ Before attending this workshop, please ensure you have:
 > No paid plan? Verified students can get GitHub Copilot for free through [GitHub Education][callout-student-plan-education]. The **Copilot Student** plan includes the agent, MCP, code review, and Copilot CLI features this workshop uses — so you can complete every harness with it.
 
 > [!NOTE]
-> Because the Copilot app runs on your own machine rather than in a codespace, [Lesson 0][ex0] walks you through installing Node.js and creating your copy of the project before you install the app.
+> Because the Copilot app runs on your own machine rather than in a codespace, [the prerequisites exercise][ex0] walks you through installing Node.js and creating your copy of the project before you install the app.
 
 > [!NOTE]
 > If you are using Copilot Business or Copilot Enterprise, your administrator must enable the **Copilot CLI** policy before you can use the app.
 
 ## Get Started
 
-**[Start with Lesson 0: Prerequisites →][ex0]**
+**[Start with the prerequisites →][ex0]**
 
 [ex0]: /learning-hub/copilot-workshops/app/0-prerequisites/
 [ex1]: /learning-hub/copilot-workshops/app/1-install-copilot-app/
 [ex2]: /learning-hub/copilot-workshops/app/2-add-star-rating/
-[ex3]: /learning-hub/copilot-workshops/app/3-custom-instructions/
-[ex4]: /learning-hub/copilot-workshops/app/4-build-filtering/
-[ex5]: /learning-hub/copilot-workshops/app/5-mcp-playwright/
-[ex6]: /learning-hub/copilot-workshops/app/6-agent-merge/
-[ex7]: /learning-hub/copilot-workshops/app/7-canvases/
-[ex8]: /learning-hub/copilot-workshops/app/8-review/
+[ex3]: /learning-hub/copilot-workshops/app/3-agent-modes/
+[ex4]: /learning-hub/copilot-workshops/app/4-custom-instructions/
+[ex5]: /learning-hub/copilot-workshops/app/5-agent-skills/
+[ex6]: /learning-hub/copilot-workshops/app/6-mcp-playwright/
+[ex7]: /learning-hub/copilot-workshops/app/7-qa-agent/
+[ex8]: /learning-hub/copilot-workshops/app/8-create-pull-request/
+[ex9]: /learning-hub/copilot-workshops/app/9-canvases/
+[ex10]: /learning-hub/copilot-workshops/app/10-review/
 [install-git]: https://github.com/git-guides/install-git
 [callout-student-plan-education]: https://github.com/education/students
