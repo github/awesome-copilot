@@ -90,6 +90,11 @@ jobs:
                 color: 'FBCA04',
                 description: 'External plugin awaiting maintainer approval'
               },
+              // Review metrics tracking label (see docs/maintainers/canvas-evidence-and-metrics.md)
+              'review-metrics': {
+                color: 'C5DEF5',
+                description: 'Weekly review operating metrics tracking issue'
+              },
               // Submission gate labels (docs/maintainers/submission-gate.md).
               // ready-for-review, requires-submitter-fixes, and approved are shared with intake above.
               'awaiting-automation': {
