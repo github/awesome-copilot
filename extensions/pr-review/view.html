@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR Review</title>
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="client.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="brand"><h1>PR Review</h1><span class="badge">Read-only</span></div>
+    <p class="subtle">Related changes together. Questions grounded in the selected diff.</p>
+    <form id="load-form">
+      <label for="pr-url">GitHub pull request link</label>
+      <div class="input-row">
+        <input id="pr-url" type="url" required placeholder="https://github.com/owner/repo/pull/123" autocomplete="off">
+        <button id="load-button" type="submit" class="primary">Load PR</button>
+      </div>
+    </form>
+    <div id="status" role="status" aria-live="polite"></div>
+    <div id="error" role="alert" hidden></div>
+    <button id="stop-button" type="button" hidden>Stop waiting</button>
+  </header>
+  <main>
+    <section id="empty" class="empty">
+      <h2>Review by intent, not file order</h2>
+      <p>Paste a PR link. Copilot retrieves the changes and groups related implementation, tests, and configuration.</p>
+      <p>Select a group, file, or diff hunk to ask a focused question. Replies appear here and use this Copilot conversation.</p>
+      <p class="subtle">Supports github.com and enterprise *.ghe.com links. Uses your existing authorized GitHub tools. Nothing is posted to GitHub.</p>
+    </section>
+    <section id="review" hidden>
+      <div id="overview" class="card"></div>
+      <div class="workspace">
+        <nav id="groups" aria-label="Related change groups"></nav>
+        <section id="changes" aria-label="Selected changes"></section>
+      </div>
+      <section id="questions" class="card">
+        <h2>Ask Copilot</h2>
+        <p id="selection-label" class="subtle">Select a group, file, or hunk.</p>
+        <form id="ask-form">
+          <label for="question">Question about this selection</label>
+          <textarea id="question" rows="3" maxlength="8000" required placeholder="Why was this changed? What behavior could break?"></textarea>
+          <button id="ask-button" type="submit" class="primary">Ask Copilot</button>
+        </form>
+        <div id="answers" aria-live="polite"></div>
+      </section>
+    </section>
+  </main>
+  <footer>Snapshots and answers stay in this session. Group checkmarks are local notes, not GitHub approvals. Reload PR to fetch updates.</footer>
+</body>
+</html>
