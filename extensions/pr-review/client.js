@@ -61,7 +61,7 @@ function updateStatus() {
     $("ask-button").disabled = busy || !selection;
     $("pr-url").disabled = busy;
     $("stop-button").hidden = !pending;
-    $("stop-button").disabled = activeRequests > 0;
+    $("stop-button").disabled = false;
     $("load-button").textContent = state?.snapshot ? "Load / refresh PR" : "Load PR";
     const error = connectionError || localError || state?.error;
     $("error").hidden = !error;
@@ -69,7 +69,9 @@ function updateStatus() {
     if (pending) {
         const staged = pending.kind === "load" && state.expectedFileCount !== undefined
             ? ` ${state.stagedFileCount}/${state.expectedFileCount} files received.` : "";
-        $("status").textContent = `Waiting for Copilot ${pending.kind === "load" ? "to retrieve and group changes" : "to answer"}.${staged} Check chat for permission requests.`;
+        $("status").textContent = pending.kind === "load"
+            ? `Loading the full PR diff and grouping changes.${staged} Check chat for permission requests.`
+            : "Waiting for Copilot to answer. Check chat for permission requests.";
         if (state.snapshot && pending.kind === "load") $("status").textContent += " The previous snapshot remains visible.";
     } else {
         $("status").textContent = state?.snapshot

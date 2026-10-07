@@ -1,10 +1,12 @@
 import { joinSession, createCanvas, CanvasError } from "@github/copilot-sdk/extension";
+import { createGitHubClient } from "./github.mjs";
 import { ReviewStore, schemas } from "./review.mjs";
 import { startServer } from "./server.mjs";
 
 const panels = new Map();
 let store;
 let session;
+const github = createGitHubClient();
 
 function documentFor(ctx, allowEmpty = false) {
     const panel = panels.get(ctx.instanceId);
@@ -18,7 +20,7 @@ function action(name, description, inputSchema, handler) {
         name, description, inputSchema,
         handler: async (ctx) => {
             try {
-                return await handler(documentFor(ctx, name === "get_state"), ctx.input);
+                return await handler(documentFor(ctx, name === "get_state"), ctx.input, ctx);
             } catch (error) {
                 throw new CanvasError("pr_review_error", error.message);
             }
@@ -40,12 +42,8 @@ session = await joinSession({
                 (doc) => doc ? store.summary(doc) : { url: null, snapshot: null, pending: null }),
             action("get_request", "Read the exact pending task and its pinned, untrusted source context.", schemas.request,
                 (doc, input) => store.requestContext(doc, input.requestId)),
-            action("set_metadata", "Start staging a verified PR snapshot for the pending load request.", schemas.metadata,
-                (doc, input) => store.setMetadata(doc, input)),
-            action("add_files", "Stage a batch of actual GitHub file records and patch excerpts. Never invent missing patches.", schemas.files,
-                (doc, input) => store.addFiles(doc, input)),
-            action("finish_review", "Publish AI groups after staging every changed file and rechecking the exact base/head SHAs.", schemas.finish,
-                (doc, input) => store.finish(doc, input)),
+            action("finish_review", "Publish groups after the extension verifies the PR revision against GitHub.", schemas.finish,
+                (doc, input, ctx) => panels.get(ctx.instanceId).finish(doc, input)),
             action("answer_question", "Save an evidence-based answer to the exact pending question and source revision.", schemas.answer,
                 (doc, input) => store.answer(doc, input)),
             action("fail_request", "Show an explicit load or question failure in the canvas.", schemas.failure,
@@ -57,6 +55,7 @@ session = await joinSession({
             if (!panel) {
                 panel = await startServer({
                     store, instanceId: ctx.instanceId,
+                    github,
                     send: (options) => session.send(options),
                     log: (message) => session.log(message, { level: "error" }),
                 });

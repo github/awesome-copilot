@@ -27,24 +27,26 @@ function fixture(t) {
 
 function stage(store, doc) {
     const request = store.start(doc, "load");
-    store.setMetadata(doc, {
-        requestId: request.id, url, title: "Synthetic PR", author: "example",
-        headSha: head, baseSha: base, changedFileCount: files.length,
+    store.stagePullRequest(doc, request.id, {
+        metadata: {
+            url, title: "Synthetic PR", author: "example",
+            headSha: head, baseSha: base, changedFileCount: files.length,
+        },
+        files,
     });
     return request.id;
 }
 
 function finish(store, doc, requestId) {
     return store.finish(doc, {
-        requestId, confirmedHeadSha: head, confirmedBaseSha: base, summary: "Synthetic review.", groups,
-    });
+        requestId, summary: "Synthetic review.", groups,
+    }, { headSha: head, baseSha: base });
 }
 
 function published(t) {
     const fixtureData = fixture(t);
     const { store, doc } = fixtureData;
     const requestId = stage(store, doc);
-    store.addFiles(doc, { requestId, files });
     finish(store, doc, requestId);
     return fixtureData;
 }
@@ -58,32 +60,35 @@ test("URL input accepts enterprise PR links and rejects credentials and unrelate
     }
 });
 
-test("publication rejects incomplete enumeration, duplicate files, and mixed revisions", (t) => {
+test("publication rejects incomplete imports and mixed revisions", (t) => {
     const { store, doc } = fixture(t);
-    const requestId = stage(store, doc);
-    store.addFiles(doc, { requestId, files: [files[0]] });
-    assert.throws(() => finish(store, doc, requestId), /every changed file/);
-    assert.throws(() => store.addFiles(doc, { requestId, files: [files[0]] }), /Duplicate/);
-    store.addFiles(doc, { requestId, files: [files[1]] });
+    const request = store.start(doc, "load");
+    assert.throws(() => store.stagePullRequest(doc, request.id, {
+        metadata: { url, title: "Synthetic PR", author: "example", headSha: head, baseSha: base, changedFileCount: 2 },
+        files: [files[0]],
+    }), /incomplete or invalid/);
+    store.stagePullRequest(doc, request.id, {
+        metadata: { url, title: "Synthetic PR", author: "example", headSha: head, baseSha: base, changedFileCount: 2 },
+        files,
+    });
     assert.throws(() => store.finish(doc, {
-        requestId, confirmedHeadSha: "c".repeat(40), confirmedBaseSha: base, summary: "x", groups,
-    }), /changed during analysis/);
+        requestId: request.id, summary: "x", groups,
+    }, { headSha: "c".repeat(40), baseSha: base }), /changed during analysis/);
     assert.equal(doc.snapshot, null);
-    assert.equal(finish(store, doc, requestId).files, 2);
+    assert.equal(finish(store, doc, request.id).files, 2);
 });
 
 test("group coverage must be complete and exclusive", (t) => {
     const { store, doc } = fixture(t);
     const requestId = stage(store, doc);
-    store.addFiles(doc, { requestId, files });
-    const input = { requestId, confirmedHeadSha: head, confirmedBaseSha: base, summary: "x" };
-    assert.throws(() => store.finish(doc, { ...input, groups: [{ ...groups[0], files: [files[0].filename] }] }), /every changed file/i);
+    const input = { requestId, summary: "x" };
+    assert.throws(() => store.finish(doc, { ...input, groups: [{ ...groups[0], files: [files[0].filename] }] }, { headSha: head, baseSha: base }), /every changed file/i);
     assert.throws(() => store.finish(doc, {
         ...input, groups: [groups[0], { ...groups[0], id: "duplicate" }],
-    }), /multiply grouped/);
+    }, { headSha: head, baseSha: base }), /multiply grouped/);
     assert.throws(() => store.finish(doc, {
         ...input, groups: [{ ...groups[0], files: ["unknown.js"] }],
-    }), /Unknown/);
+    }, { headSha: head, baseSha: base }), /Unknown/);
 });
 
 test("scoped questions include only the selected hunk and reject stale answers", (t) => {
@@ -134,6 +139,13 @@ test("loopback UI requires token and same-origin writes, and queues real action 
     const messages = [];
     const panel = await startServer({
         store, instanceId: "test-panel",
+        github: {
+            load: async () => ({
+                metadata: { url, title: "Synthetic PR", author: "example", headSha: head, baseSha: base, changedFileCount: files.length },
+                files,
+            }),
+            revision: async () => ({ headSha: head, baseSha: base }),
+        },
         send: async (message) => { messages.push(message); },
         log: async () => {},
     });
@@ -155,16 +167,34 @@ test("loopback UI requires token and same-origin writes, and queues real action 
     assert.equal(messages[0].mode, "enqueue");
     assert.match(messages[0].prompt, /test-panel/);
     assert.match(messages[0].prompt, new RegExp(doc.pending.id));
-    assert.match(messages[0].prompt, /Never fabricate/);
+    assert.match(messages[0].prompt, /Group files by likely purpose/);
+    assert.doesNotMatch(messages[0].prompt, /patch excerpt/);
     const state = await (await fetch(panel.url + "state")).json();
     assert.equal(state.url, url);
     assert.equal(state.pending.kind, "load");
+    const requestContext = store.requestContext(doc, doc.pending.id);
+    assert.equal(requestContext.context.files.length, files.length);
+    assert.equal("patch" in requestContext.context.files[0], false);
+    assert.equal(requestContext.context.sourceNote.includes("stored locally"), true);
+    const requestId = doc.pending.id;
+    await panel.finish(doc, { requestId, summary: "Synthetic review.", groups });
+    const file = await (await fetch(`${panel.url}file?name=${encodeURIComponent(files[0].filename)}&head=${head}`)).json();
+    assert.equal(file.patch, files[0].patch);
 });
 
 test("failed queueing is visible and does not leave an indefinite pending request", async (t) => {
     const { store, doc } = fixture(t);
     const panel = await startServer({
-        store, instanceId: "failed-panel", send: async () => { throw new Error("disconnected"); }, log: async () => {},
+        store, instanceId: "failed-panel",
+        send: async () => { throw new Error("disconnected"); },
+        log: async () => {},
+        github: {
+            load: async () => ({
+                metadata: { url, title: "Synthetic PR", author: "example", headSha: head, baseSha: base, changedFileCount: files.length },
+                files,
+            }),
+            revision: async () => ({ headSha: head, baseSha: base }),
+        },
     });
     t.after(() => panel.close());
     await assert.rejects(panel.load(url), /disconnected/);
