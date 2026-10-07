@@ -24,6 +24,8 @@ The GitHub Copilot app is a desktop experience built from the ground up for agen
 
 This guide covers what the Copilot app is, its key features, and how to get started.
 
+For a guided course with a shared sample app, use [GitHub Copilot app for Beginners](/learning-hub/app-for-beginners/).
+
 ## What Is the GitHub Copilot app?
 
 The Copilot app is a standalone desktop application that serves as a control center for agentic development. Instead of managing agents through GitHub.com pull requests, issues, and CLI windows, the Copilot app brings everything into one unified interface.
