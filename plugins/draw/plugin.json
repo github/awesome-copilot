@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "draw",
+  "description": "Draw simple diagrams in a Copilot canvas: shapes, arrows that stay attached, text and a freehand pen. Copilot can read, create and edit the same drawing, tidy its layout, and export it as PNG or SVG.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Burke Holland",
+    "url": "https://github.com/burkeholland"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "architecture-diagrams",
+    "canvas",
+    "diagrams",
+    "drawing",
+    "flowcharts",
+    "whiteboard"
+  ],
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    },
+    "com.github.awesome-copilot": {
+      "extensions": [
+        "./extensions/draw"
+      ]
+    }
+  }
+}
