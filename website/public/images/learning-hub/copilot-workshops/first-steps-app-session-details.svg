@@ -1,0 +1,110 @@
+<!-- Adapted from First Steps with GitHub Copilot by James Montemagno (MIT License): https://github.com/jamesmontemagno/first-steps-with-github-copilot -->
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="600" class="art" viewBox="0 0 640 600" role="img" aria-label="The Copilot app session details panel showing path, project, agent, changes, tokens, and context usage"><title>The Copilot app session details panel showing path, project, agent, changes, tokens, and context usage</title><style>svg { --bg: #080b12; --bg-elevated: #0d111a; --surface: #121824; --surface-2: #171e2c; --border: #283043; --border-soft: #1d2636; --text: #f1f5fb; --muted: #9ca8ba; --subtle: #6d788b; --purple: #a371f7; --purple-bright: #bf8cff; --blue: #58a6ff; --cyan: #56d4dd; --green: #3fb950; --yellow: #d29922; }
+@media (prefers-color-scheme: light) { svg { --bg: #f7f8fb; --bg-elevated: #fff; --surface: #fff; --surface-2: #f1f3f8; --border: #d5dae5; --border-soft: #e7eaf0; --text: #161b26; --muted: #536071; --subtle: #727c8c; --purple: #6f42c1; --purple-bright: #8250df; --blue: #0969da; --cyan: #087e8b; --green: #1a7f37; --yellow: #9a6700; } }
+.art .plate { fill: var(--bg-elevated); stroke: var(--border); }
+.art .panel { fill: var(--surface); }
+.art .rail, .art .head { fill: var(--surface-2); }
+.art .win { fill: var(--surface-2); }
+.art .card { fill: var(--bg-elevated); stroke: var(--border-soft); stroke-width: 1; }
+.art .card.sel { fill: color-mix(in srgb, var(--purple) 16%, var(--bg-elevated)); stroke: var(--purple); }
+.art .chip { fill: var(--bg-elevated); stroke: var(--border); }
+.art .bubble { fill: color-mix(in srgb, var(--blue) 15%, var(--surface)); stroke: color-mix(in srgb, var(--blue) 40%, transparent); }
+.art .menu { fill: var(--bg-elevated); stroke: var(--purple); filter: drop-shadow(0 12px 24px rgba(0,0,0,.28)); }
+.art .input { fill: var(--surface-2); stroke: var(--border); }
+.art .tab { fill: transparent; stroke: var(--border-soft); }
+.art .tab.sel { fill: var(--bg-elevated); stroke: var(--purple); }
+.art .cta { fill: var(--purple); stroke: none; }
+.art .cta.ghost { fill: transparent; stroke: var(--purple); stroke-dasharray: 4 3; }
+.art .track { fill: var(--surface-2); }
+.art .fill { fill: var(--purple); }
+.art .fill.alt { fill: var(--blue); }
+.art .fill.warn { fill: var(--yellow); }
+.art .sw { fill: var(--purple); }
+.art .sw.alt { fill: var(--blue); }
+.art .sw.warn { fill: var(--yellow); }
+.art .diff.add { fill: color-mix(in srgb, var(--green) 16%, transparent); }
+.art .diff.del { fill: color-mix(in srgb, #f85149 16%, transparent); }
+.art .dot { fill: var(--border); }
+.art .dot.red { fill: #f85149; }
+.art .dot.amber { fill: var(--yellow); }
+.art .dot.green { fill: var(--green); }
+.art .caret { fill: var(--purple-bright); }
+.art .mark { fill: var(--surface-2); stroke: var(--border); }
+.art .markGlyph { fill: var(--text); }
+.art .send { fill: var(--purple); }
+.art .sendGlyph { stroke: #fff; stroke-width: 1.6; fill: none; stroke-linecap: round; }
+.art .stroke { fill: none; stroke: var(--muted); stroke-width: 1.2; }
+.art .col { fill: var(--surface-2); stroke: var(--border-soft); }
+.art .col.drop { fill: color-mix(in srgb, var(--purple) 10%, var(--surface-2)); stroke: var(--purple); stroke-dasharray: 5 4; }
+.art .card.ghost { fill: transparent; stroke-dasharray: 4 3; }
+.art .card.lift { filter: drop-shadow(0 10px 18px rgba(0,0,0,.3)); }
+.art .drag { fill: none; stroke: var(--purple-bright); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.art .rule { stroke: var(--border); stroke-width: 1; }
+.art .ok-stroke { fill: none; stroke: var(--green); stroke-width: 1.4; }
+.art .alt-stroke { fill: none; stroke: var(--purple-bright); stroke-width: 1.4; }
+.art .ok-fill { fill: var(--green); }
+.art .tick { fill: none; stroke: var(--bg-elevated); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.art .play { fill: none; stroke: var(--muted); stroke-width: 1.3; stroke-linejoin: round; }
+.art .chip.alt { fill: color-mix(in srgb, var(--blue) 16%, var(--bg-elevated)); stroke: color-mix(in srgb, var(--blue) 40%, transparent); }
+.art .blue { fill: var(--blue); }
+.art .lead { stroke: var(--purple); stroke-width: 1; stroke-dasharray: 3 3; }
+.art .link { fill: var(--blue); }
+.art .fill.ok { fill: var(--green); }
+.art .chip.sel { fill: color-mix(in srgb, var(--purple) 16%, var(--bg-elevated)); stroke: var(--purple); }
+.art .sparkle { fill: var(--purple-bright); }
+.art text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+.art .mono text, .art text.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.art .t-xs { font-size: 10px; }
+.art .t-sm { font-size: 12px; }
+.art .txt { fill: var(--text); }
+.art .mut { fill: var(--muted); }
+.art .accent { fill: var(--purple-bright); }
+.art .ok { fill: var(--green); }
+.art .bad { fill: #f85149; }
+.art .inv { fill: #fff; }
+</style><rect class="plate" x="0.5" y="0.5" width="639" height="599" rx="12"/>
+<text class="t-sm txt" x="170" y="30">Space Quiz build</text><text class="t-sm mut mono" x="286" y="30">· space-quiz/main</text>
+<rect class="panel" x="170" y="42" width="300" height="536" rx="10"/>
+<rect class="chip" x="186" y="56" width="52" height="22" rx="6"/><text class="t-xs accent mono" x="196" y="71">main</text>
+<text class="t-xs mut" x="246" y="71">from</text>
+<rect class="chip" x="280" y="56" width="104" height="22" rx="6"/><text class="t-xs accent mono" x="292" y="71">origin/main</text>
+<path class="rule" d="M170 90h300"/>
+<g>
+<text class="t-xs mut" x="186" y="114">Remote control</text><text class="t-xs txt" x="318" y="114">Not enabled</text>
+<text class="t-xs mut" x="186" y="140">Path</text><text class="t-xs txt mono" x="318" y="140">~/Projects/spa…</text>
+<text class="t-xs mut" x="186" y="166">Project</text><text class="t-xs txt" x="318" y="166">space-quiz</text>
+<text class="t-xs mut" x="186" y="192">Session name</text><text class="t-xs txt" x="318" y="192">Space Quiz build</text>
+<text class="t-xs mut" x="186" y="218">Session ID</text><text class="t-xs txt mono" x="318" y="218">509d8b9a-cc2e…</text>
+<text class="t-xs mut" x="186" y="244">Agent</text><text class="t-xs txt" x="318" y="244">Default</text><text class="t-xs link" x="376" y="244">Change</text>
+</g>
+<path class="rule" d="M170 260h300"/>
+<text class="t-xs mut" x="186" y="284">Changes</text><text class="t-xs ok" x="318" y="284">1 file changed</text>
+<path class="rule" d="M170 300h300"/>
+<text class="t-xs mut" x="186" y="324">Tokens</text>
+<text class="t-xs txt" x="318" y="324">↑ 6.8M</text><text class="t-xs mut" x="374" y="324">(6.8M cached)</text>
+<text class="t-xs txt" x="318" y="344">↓ 35.1K</text><text class="t-xs mut" x="374" y="344">(6.9K reasoning)</text>
+<text class="t-xs mut" x="186" y="374">Context</text>
+<text class="t-sm txt" x="186" y="396">27%</text><text class="t-xs mut" x="454" y="396" text-anchor="end">328K</text>
+<rect class="track" x="186" y="404" width="268" height="7" rx="3.5"/>
+<rect class="fill alt" x="186" y="404" width="8" height="7" rx="3.5"/>
+<rect class="fill" x="196" y="404" width="4" height="7" rx="3.5"/>
+<rect class="fill ok" x="202" y="404" width="62" height="7" rx="3.5"/>
+<text class="t-xs mut" x="186" y="434">Session spend</text><text class="t-xs txt" x="318" y="434">20.7 AI credits</text>
+<path class="rule" d="M170 450h300"/>
+<g>
+<circle class="stroke" cx="194" cy="470" r="3"/><path class="stroke" d="M188 466a9 9 0 0 0 0 8M200 466a9 9 0 0 1 0 8"/>
+<text class="t-xs mut" x="212" y="474">Enable remote control</text>
+<path class="stroke" d="M189 494l9-9 4 4-9 9h-4Z"/><text class="t-xs mut" x="212" y="498">Rename session</text>
+<path class="stroke" d="M188 510l4 6 4-12 4 10 3-4"/><text class="t-xs mut" x="212" y="522">View session insights</text>
+<path class="stroke" d="M194 542v-12M190 534l4-4 4 4M188 546h12"/><text class="t-xs mut" x="212" y="546">Share as secret gist</text>
+<rect class="stroke" x="188" y="562" width="12" height="9" rx="1.5"/><path class="stroke" d="M187 560h14"/><text class="t-xs mut" x="212" y="570">Archive session</text>
+</g>
+<g>
+<text class="t-xs accent" x="20" y="162">Which folder and</text><text class="t-xs accent" x="20" y="176">branch this really is</text>
+<path class="lead" d="M132 170h34"/>
+<text class="t-xs accent" x="490" y="392">The number to watch</text><text class="t-xs mut" x="490" y="406">As context fills, start</text><text class="t-xs mut" x="490" y="420">a fresh session</text>
+<path class="lead" d="M474 400h12"/>
+<text class="t-xs accent" x="490" y="508">More options for</text><text class="t-xs accent" x="490" y="522">the session</text>
+<path class="lead" d="M474 508h12"/>
+</g>
+</svg>

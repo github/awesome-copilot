@@ -1,41 +1,44 @@
 ---
-title: "GitHub Copilot のエージェントを実践で学ぶ"
+title: "GitHub Copilot ワークショップ"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-05
+tags:
+  - workshop
 ---
 
-GitHub Copilot に最近追加された機能は、ソフトウェア開発ライフサイクル (SDLC) 全体を通して開発者を支援する強力なツールです。GitHub の Issue や pull request を使った作業、外部サービスとの連携、そしてもちろんコードの作成も含まれます。このラボでは、実際のユースケースを通して機能を試し、ツールを最大限に活用するためのヒントを紹介します。
+学びたい内容と深さに合わせてワークショップを選びます。**はじめの一歩**では GitHub Copilot をガイドに沿って体験し、**実践的な開発**では完成したアプリケーションとチームのバックログを使って、本番環境を意識したワークフローを学びます。
+
+## はじめの一歩
+
+既存のコードベースを用意せずに、GitHub Copilot 製品の主要な機能を学べる、目的を絞ったガイド形式のワークショップです。
+
+### [GitHub Copilot app ツアー][first-steps-app]
+
+空のフォルダーから Space Quiz を作成し、GitHub への公開、Issue の実装、Copilot レビュー、オートメーションのスケジュール設定、Canvas ワークフローの体験まで進めます。
+
+### [GitHub Copilot CLI のはじめの一歩][first-steps-cli]
+
+同じ Space Quiz をターミナルから作成し、差分のレビュー、worktree での並列セッション、編集前の計画、シェルを離れずに行うプル リクエストの作成、マージ、委任まで進めます。
+
+### [Visual Studio Code のはじめの一歩][first-steps-vscode]
+
+VS Code で Space Quiz を作成し、統合ブラウザーでのテスト、ソース管理での公開、GitHub ツールを使った Issue とプル リクエストの操作、クラウド セッションへの委任まで進めます。
+
+## 実践的な開発
+
+Tailspin Toys アプリケーションとバックログを使い、現実的なソフトウェア開発ライフサイクルで GitHub Copilot を実践します。作業環境を選び、意味のある変更を計画、実装、テスト、レビュー、リリースします。
+
+### [実践的な開発ワークショップを見る][real-world-development]
+
+GitHub Copilot CLI、GitHub Copilot app、GitHub Copilot cloud agent、Visual Studio Code から選択できます。
 
 > [!CAUTION]
-> GitHub Copilot は決定論的ではなく確率的に動作するため、生成されるコードや変更されるファイルなどは毎回異なる場合があります。そのため、ラボ内のスクリーンショットやコード スニペットと、実際の結果に多少の違いが生じることがあります。これは想定される動作であり、この種のツールが持つ特性によるものです。
+> GitHub Copilot は決定論的ではなく確率的に動作するため、生成されるコードや変更されるファイルは例と異なる場合があります。多少の違いは想定される動作です。
 >
-> 何かが壊れているように見える場合や正しく動作しない場合は、メンターに相談してください。
+> 講師が進行するワークショップで正しく動作しない場合は、メンターに相談してください。
 
-## 利用環境を選ぶ
-
-GitHub Copilot は、どの環境で作業していても利用できます。希望する開発方法に合った利用環境を選び、共通の Tailspin Toys バックログに沿って演習を進めます。どの利用環境にも専用のセットアップ手順が用意されているため、選んだものからすぐに始められます。
-
-### 🖥️ [VS Code](/ja-jp/learning-hub/copilot-workshops/vscode/)
-
-**Visual Studio Code** と GitHub Codespaces 内で GitHub Copilot を使用します。普段使っているエディターを離れることなく、Copilot Chat のエージェント モード、MCP サーバー、カスタム エージェントを利用できます。AI 支援を IDE に直接組み込んで使いたい場合に最適です。
-
-### 💻 [Copilot CLI](/ja-jp/learning-hub/copilot-workshops/cli/)
-
-**GitHub Copilot CLI** は、ターミナルで動作するエージェント型アシスタントです。インストールして MCP サーバーに接続し、プラン モードでコードを生成できます。さらに、独自のスキル、カスタム エージェント、スラッシュ コマンドをすべてコマンド ラインから構築できます。
-
-### 🤖 [Copilot App](/ja-jp/learning-hub/copilot-workshops/app/)
-
-**GitHub Copilot app** は、Copilot CLI を基盤とするデスクトップ アプリケーションです。複数のエージェント セッションを並行して実行し、セッション モードの切り替え、キャンバスでの共同作業、GitHub Issue と pull request の管理をアプリ内で行えます。さらに **Agent Merge** を使用すると、リベース、レビュー フィードバックへの対応、CI の修正、マージまで、pull request の一連の作業を進められます。
-
-### ☁️ [Copilot Cloud Agent](/ja-jp/learning-hub/copilot-workshops/cloud/)
-
-**Copilot cloud agent** は、GitHub Issue の作業をバックグラウンドで進める非同期のペア プログラマーです。作業の割り当て、カスタム エージェントによる指示、エージェント ダッシュボードでの進捗確認、作成された pull request のレビューを行えます。
-
-## シナリオ
-
-架空の企業 Tailspin Toys に新しく参加した開発者として作業します。Tailspin Toys は、開発者をテーマにしたボード ゲームのクラウドファンディングを提供しています。これは巨大な市場です。チームのバックログはすでに GitHub Issue として登録されており、フィルタリングやページネーションなどの機能開発に加えて、アクセシビリティやコーディング規約などの品質改善にもすぐに取り組めます。サイトと Copilot の機能を確認しながら反復的に作業し、タスクを完了させます。
-
-## はじめる
-
-上から利用環境を選んで開始します。どの利用環境も、開発に必要なセットアップから始まります。
+[first-steps-app]: /ja-jp/learning-hub/copilot-workshops/first-steps/copilot-app/
+[first-steps-cli]: /ja-jp/learning-hub/copilot-workshops/first-steps/copilot-cli/
+[first-steps-vscode]: /ja-jp/learning-hub/copilot-workshops/first-steps/vscode/
+[real-world-development]: /ja-jp/learning-hub/copilot-workshops/real-world-development/
