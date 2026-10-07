@@ -211,7 +211,7 @@ export class ReviewStore {
 
     context(doc, selection) {
         if (!doc.snapshot) throw new Error("Load the PR before asking questions.");
-        if (!selection || !["group", "file", "hunk"].includes(selection.kind)) throw new Error("Select a group, file, or diff hunk.");
+        if (!selection || !["group", "file", "hunk", "lines"].includes(selection.kind)) throw new Error("Select a group, file, or diff lines.");
         let files;
         let group;
         if (selection.kind === "group") {
@@ -222,10 +222,20 @@ export class ReviewStore {
             const file = doc.snapshot.files.find((item) => item.filename === selection.filename);
             if (!file) throw new Error("The selected file no longer exists.");
             files = [file];
-            if (selection.kind === "hunk") {
+            if (selection.kind === "hunk" || selection.kind === "lines") {
                 const hunks = splitHunks(file.patch);
                 if (!Number.isInteger(selection.hunkIndex) || !hunks[selection.hunkIndex]) throw new Error("Invalid diff hunk.");
                 files = [{ ...file, patch: hunks[selection.hunkIndex] }];
+                if (selection.kind === "lines") {
+                    const lines = hunks[selection.hunkIndex].split("\n");
+                    if (!lines[0].startsWith("@@ ") || !Number.isInteger(selection.startLine) ||
+                        !Number.isInteger(selection.endLine) || selection.startLine < 1 ||
+                        selection.endLine < selection.startLine || selection.endLine >= lines.length) {
+                        throw new Error("Invalid selected diff lines.");
+                    }
+                    files[0].selectedLines = lines.slice(selection.startLine, selection.endLine + 1).join("\n");
+                    if (files[0].selectedLines.length > 80000) throw new Error("Selected lines exceed the context limit. Select fewer lines.");
+                }
             }
         }
         let remaining = 80000;

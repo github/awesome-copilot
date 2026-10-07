@@ -107,6 +107,22 @@ test("scoped questions include only the selected hunk and reject stale answers",
     assert.throws(() => store.context(doc, { ...selection, hunkIndex: 2 }), /Invalid diff hunk/);
 });
 
+test("selected lines come from the pinned patch without changing question text", (t) => {
+    const { store, doc } = published(t);
+    const selection = { kind: "lines", filename: files[0].filename, hunkIndex: 0, startLine: 2, endLine: 2 };
+    const request = store.start(doc, "question", selection, "Why?");
+    const result = store.requestContext(doc, request.id);
+    assert.equal(result.request.question, "Why?");
+    assert.equal(result.context.files[0].selectedLines, "+new");
+    assert.equal(result.context.files[0].patch, files[0].patch);
+    for (const invalid of [
+        { startLine: 0 }, { endLine: 3 }, { startLine: 3, endLine: 2 },
+        { startLine: 1.5 }, { hunkIndex: 10 },
+    ]) {
+        assert.throws(() => store.context(doc, { ...selection, ...invalid }), /Invalid/);
+    }
+});
+
 test("reload restores URL-owned state and view binding; unfinished work becomes an explicit error", (t) => {
     const { store, doc, root } = published(t);
     store.mark(doc, "feature", true, head);

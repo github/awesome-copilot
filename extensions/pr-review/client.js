@@ -12,6 +12,44 @@ let connectionError = "";
 let fileGeneration = 0;
 let localError = "";
 let refreshing = false;
+let selectedDiffLines = null;
+
+function captureDiffSelection() {
+    selectedDiffLines = null;
+    const highlighted = window.getSelection();
+    if (highlighted && !highlighted.isCollapsed && highlighted.rangeCount === 1) {
+        const range = highlighted.getRangeAt(0);
+        const parent = (node) => node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+        const diff = parent(range.startContainer)?.closest(".diff");
+        if (diff && diff === parent(range.endContainer)?.closest(".diff")) {
+            const rows = [...diff.querySelectorAll(".diff-line")].filter((row) =>
+                range.intersectsNode(row.querySelector(".code")));
+            if (rows.length) selectedDiffLines = {
+                filename: diff.dataset.filename,
+                hunkIndex: Number(diff.dataset.hunkIndex),
+                startLine: Number(rows[0].dataset.hunkLine),
+                endLine: Number(rows.at(-1).dataset.hunkLine),
+                lines: rows.map((row) =>
+                    `old ${row.dataset.oldLine || "-"}, new ${row.dataset.newLine || "-"}: ${row.querySelector(".code").textContent}`),
+            };
+        }
+    }
+    for (const control of document.querySelectorAll(".add-selected-lines")) {
+        control.disabled = !selectedDiffLines || control.dataset.filename !== selectedDiffLines.filename ||
+            Number(control.dataset.hunkIndex) !== selectedDiffLines.hunkIndex;
+    }
+}
+
+function addSelectedLines(filename, hunkIndex) {
+    const highlighted = selectedDiffLines;
+    if (!highlighted || highlighted.filename !== filename || highlighted.hunkIndex !== hunkIndex) {
+        throw new Error("Highlight lines within this diff hunk first.");
+    }
+    select({
+        kind: "lines", filename, hunkIndex,
+        startLine: highlighted.startLine, endLine: highlighted.endLine,
+    }, true, highlighted.lines.join("\n"));
+}
 
 function element(tag, text, className) {
     const node = document.createElement(tag);
@@ -81,16 +119,19 @@ function updateStatus() {
 }
 
 function selectionLabel(value) {
-    if (!value) return "Select a group, file, or hunk.";
+    if (!value) return "Select a group, file, or lines.";
     if (value.kind === "group") {
         return `Group: ${state.snapshot.groups.find((group) => group.id === value.groupId)?.title || value.groupId}`;
     }
+    if (value.kind === "lines") return `Selected lines: ${value.filename} (hunk ${value.hunkIndex + 1}, diff rows ${value.startLine}-${value.endLine})`;
     return `${value.kind === "hunk" ? `Hunk ${value.hunkIndex + 1}` : "File"}: ${value.filename}`;
 }
 
-function select(value, focus = true) {
+function select(value, focus = true, preview = "") {
     selection = value;
     $("selection-label").textContent = selectionLabel(value);
+    $("selected-lines").textContent = preview;
+    $("selected-lines").hidden = !preview;
     updateStatus();
     if (focus) {
         $("questions").scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -136,6 +177,7 @@ function renderGroups() {
 }
 
 function renderChanges() {
+    selectedDiffLines = null;
     fileGeneration++;
     const generation = fileGeneration;
     const group = state.snapshot.groups.find((item) => item.id === selectedGroup);
@@ -214,21 +256,31 @@ function renderDiff(container, file) {
         hunks.at(-1).push(line);
     }
     hunks.forEach((lines, hunkIndex) => {
+        const match = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(lines[0]);
+        if (!match) return;
         const hunk = element("section", undefined, "hunk");
         const header = element("div", undefined, "hunk-header");
-        const match = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(lines[0]);
-        header.append(element("code", match ? lines[0] : "Patch excerpt"),
-            button("Ask about hunk", async () => select({ kind: "hunk", filename: file.filename, hunkIndex })));
+        const addLines = button("Add selected lines", async () => addSelectedLines(file.filename, hunkIndex), "add-selected-lines");
+        addLines.disabled = true;
+        addLines.dataset.filename = file.filename;
+        addLines.dataset.hunkIndex = String(hunkIndex);
+        addLines.addEventListener("mousedown", (event) => event.preventDefault());
+        header.append(element("code", lines[0]), addLines);
         const diff = element("div", undefined, "diff");
-        let oldLine = match ? Number(match[1]) : null;
-        let newLine = match ? Number(match[2]) : null;
-        for (const line of match ? lines.slice(1) : lines) {
+        diff.dataset.filename = file.filename;
+        diff.dataset.hunkIndex = String(hunkIndex);
+        let oldLine = Number(match[1]);
+        let newLine = Number(match[2]);
+        for (const line of lines.slice(1)) {
             const add = line.startsWith("+");
             const remove = line.startsWith("-");
             const context = line.startsWith(" ");
             const row = element("div", undefined, `diff-line${add ? " addition" : remove ? " deletion" : ""}`);
             const oldNumber = (remove || context) && oldLine !== null ? String(oldLine++) : "";
             const newNumber = (add || context) && newLine !== null ? String(newLine++) : "";
+            row.dataset.oldLine = oldNumber;
+            row.dataset.newLine = newNumber;
+            row.dataset.hunkLine = String(diff.children.length + 1);
             row.append(element("span", oldNumber, "line-number"),
                 element("span", newNumber, "line-number"), element("span", line, "code"));
             diff.append(row);
@@ -313,3 +365,4 @@ themeObserver.observe(document.documentElement, { attributes: true, attributeFil
 refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, 2000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+document.addEventListener("selectionchange", captureDiffSelection);

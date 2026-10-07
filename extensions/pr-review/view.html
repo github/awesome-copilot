@@ -34,7 +34,7 @@
     <section id="empty" class="empty">
       <h2>Review by intent, not file order</h2>
       <p>Paste a PR link. The extension downloads the full diff; Copilot groups changed files from their paths and metadata.</p>
-      <p>Select a group, file, or diff hunk to ask a focused question. Replies appear here and use this Copilot conversation.</p>
+      <p>Select a group, file, or highlighted diff lines to ask a focused question. Replies appear here and use this Copilot conversation.</p>
       <p class="subtle">Supports github.com and enterprise *.ghe.com links. Uses an existing GitHub account. Nothing is posted to GitHub.</p>
     </section>
     <section id="review" hidden>
@@ -45,7 +45,8 @@
       </div>
       <section id="questions" class="card">
         <h2>Ask Copilot</h2>
-        <p id="selection-label" class="subtle">Select a group, file, or hunk.</p>
+        <p id="selection-label" class="subtle">Select a group, file, or lines.</p>
+        <pre id="selected-lines" class="selected-lines" hidden></pre>
         <form id="ask-form">
           <label for="question">Question about this selection</label>
           <textarea id="question" rows="3" maxlength="8000" required placeholder="Why was this changed? What behavior could break?"></textarea>

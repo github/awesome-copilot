@@ -15,8 +15,15 @@ credentials.
 
 Select a group to see its rationale and files. Expand a file to inspect its
 full patch, loaded on demand from the local snapshot. Use **Ask about group**,
-**Ask about file**, or **Ask about hunk**, then enter your question. Answers
+**Ask about file**, then enter your question. Answers
 appear below the question form.
+
+Highlight text within a diff hunk, then choose **Add selected lines**. The
+selected lines appear in a separate preview above the question input with
+their old/new line numbers. The question input stays unchanged. The selection
+is saved as line positions within the pinned diff hunk; Copilot receives the
+verified selected lines and the surrounding hunk as context. Choose **Ask
+Copilot** to send your question; adding lines does not send a message.
 
 The canvas uses the existing conversation and its model. It does not start
 another model client, require an API key, install dependencies, or transmit

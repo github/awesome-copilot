@@ -97,7 +97,7 @@ nav { min-width: 0; }
 .file-heading { padding: 0 12px 12px; justify-content: space-between; flex-wrap: wrap; }
 .file-note { padding: 0 12px 8px; font-size: 12px; color: var(--cp-text-muted); overflow-wrap: anywhere; }
 .hunk { border-top: 1px solid var(--cp-border); }
-.hunk-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; background: var(--cp-surface-soft); }
+.hunk-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 8px 12px; background: var(--cp-surface-soft); }
 .hunk-header code { overflow-wrap: anywhere; font-size: 11px; }
 .hunk-header button { font-size: 12px; padding: 4px 8px; }
 .diff { overflow-x: auto; max-height: 560px; }
@@ -108,6 +108,7 @@ nav { min-width: 0; }
 .deletion .code { color: var(--cp-danger); }
 #questions { margin-top: 4px; }
 #selection-label { padding: 8px 12px; border-radius: 10px; background: var(--cp-accent-soft); overflow-wrap: anywhere; }
+.selected-lines { max-height: 240px; overflow: auto; padding: 12px; border: 1px solid var(--cp-border); border-radius: 10px; background: var(--cp-surface-soft); font: 12px/1.7 Consolas, "Courier New", Courier, monospace; }
 .answer { border-top: 1px solid var(--cp-border); margin-top: 20px; padding-top: 16px; }
 .answer-context { font-size: 12px; color: var(--cp-text-muted); overflow-wrap: anywhere; }
 .answer-body { margin-top: 12px; }
