@@ -150,7 +150,7 @@ export type LearningArticleLayoutProps = {
   /**
    * Only pages that actually have a mirrored translation should offer a
    * language switch. Defaults to false; the Learning Hub article body passes
-   * true for the `copilot-workshops/app` track.
+   * true for the translated workshop landing page, app track, and First Steps.
    */
   showLanguageSelect?: boolean;
   /** Article body — a sequence of `<section id=...>` blocks (and any ProTip). */

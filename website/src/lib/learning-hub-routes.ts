@@ -38,13 +38,14 @@ export function splitLocale(id: string): { locale?: Locale; path: string } {
 export { LOCALES };
 
 /**
- * Only the `copilot-workshops/app` track currently has mirrored translations
- * under `website/src/content/docs/<locale>/…`; every other Learning Hub article,
- * workshop track, and cookbook recipe is English-only. The language selector
- * is only useful (and only correct) on pages that actually have a translation
- * to switch to, so callers gate it on this check rather than showing it site-wide.
+ * The workshop landing page, real-world app track, and First Steps tracks have
+ * mirrored translations. The language selector is only useful on pages with
+ * an actual translation, so callers gate it rather than showing it site-wide.
  */
-const TRANSLATED_PREFIX = "learning-hub/copilot-workshops/app";
+const TRANSLATED_PREFIXES = [
+  "learning-hub/copilot-workshops/app",
+  "learning-hub/copilot-workshops/first-steps",
+];
 const TRANSLATED_WORKSHOP_LANDING = "learning-hub/copilot-workshops";
 
 /** Whether the (unprefixed, English) article id has mirrored translations. */
@@ -52,8 +53,9 @@ export function hasTranslations(englishId: string): boolean {
   const normalized = normalizeLearningHubPath(englishId);
   return (
     normalized === TRANSLATED_WORKSHOP_LANDING ||
-    normalized === TRANSLATED_PREFIX ||
-    normalized.startsWith(`${TRANSLATED_PREFIX}/`)
+    TRANSLATED_PREFIXES.some(
+      (prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`),
+    )
   );
 }
 

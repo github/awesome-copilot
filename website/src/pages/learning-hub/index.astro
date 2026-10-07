@@ -16,15 +16,21 @@ const WORKSHOP_LANDING_IDS = [
   "learning-hub/cli-for-beginners/index",
   "learning-hub/copilot-workshops/index",
   "learning-hub/copilot-workshops/app/index",
+  "learning-hub/copilot-workshops/app/8-foundry-canvas/index",
   "learning-hub/copilot-workshops/cli/index",
   "learning-hub/copilot-workshops/cloud/index",
   "learning-hub/copilot-workshops/vscode/index",
-];
+  "learning-hub/copilot-workshops/first-steps/index",
+  "learning-hub/copilot-workshops/first-steps/copilot-app/index",
+  "learning-hub/copilot-workshops/first-steps/copilot-cli/index",
+  "learning-hub/copilot-workshops/first-steps/vscode/index",
+  "learning-hub/copilot-workshops/real-world-development/index",
+].map(normalizeLearningHubPath));
 const articles: LearningHubArticle[] = docs
   .filter(
     (entry) =>
       /^learning-hub\/[^/]+$/.test(entry.id) ||
-      WORKSHOP_LANDING_IDS.includes(entry.id),
+      WORKSHOP_LANDING_IDS.has(normalizeLearningHubPath(entry.id)),
   )
   .filter((entry) => entry.id !== "learning-hub/index")
   .map((entry) => ({
