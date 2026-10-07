@@ -26,6 +26,10 @@
 /website/src/content/docs/learning-hub/cli-for-beginners/ @DanWahlin
 /website/src/images/cli-for-beginners/ @DanWahlin
 
+# Copilot app for Beginners course and public images
+/website/src/content/docs/learning-hub/app-for-beginners/ @DanWahlin
+/website/public/images/learning-hub/copilot-app-for-beginners/ @DanWahlin
+
 # Agentic Workflows
 /workflows/ @brunoborges
 /.github/workflows/validate-agentic-workflows-pr.yml @brunoborges

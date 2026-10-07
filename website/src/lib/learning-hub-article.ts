@@ -52,18 +52,46 @@ function findDivEnd(html: string, start: number): number {
   return html.length;
 }
 
+const VOID_ELEMENTS = new Set([
+  "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
+  "param", "source", "track", "wbr",
+]);
+
+/** Splitting inside a details block or list would break its HTML structure. */
+function topLevelStarts(html: string, name: string): Set<number> {
+  const starts = new Set<number>();
+  const stack: string[] = [];
+  for (const match of html.matchAll(/<(\/?)([a-z][a-z\d]*)\b[^>]*>/gi)) {
+    const tag = match[2].toLowerCase();
+    if (match[1]) {
+      const index = stack.lastIndexOf(tag);
+      if (index !== -1) stack.length = index;
+    } else {
+      if (tag === name && stack.length === 0) starts.add(match.index);
+      if (!VOID_ELEMENTS.has(tag) && !match[0].endsWith("/>")) stack.push(tag);
+    }
+  }
+  return starts;
+}
+
 function splitCallouts(html: string, kinds: CalloutKind[]): ArticleBlock[] {
   const blocks: ArticleBlock[] = [];
+  const topLevelDivs = topLevelStarts(html, "div");
   const opener = /<div>/g;
   let cursor = 0;
   let match: RegExpExecArray | null;
   while ((match = opener.exec(html)) !== null) {
     const end = findDivEnd(html, match.index);
+    const kind = kinds.shift() ?? "note";
+    if (!topLevelDivs.has(match.index)) {
+      opener.lastIndex = end;
+      continue;
+    }
     const before = html.slice(cursor, match.index);
     if (before.trim()) blocks.push({ type: "html", html: before });
     blocks.push({
       type: "callout",
-      kind: kinds.shift() ?? "note",
+      kind,
       html: html.slice(match.index + "<div>".length, end - "</div>".length),
     });
     cursor = end;
@@ -90,6 +118,17 @@ export function stripLeadingH1(html: string): string {
   return html.replace(/^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*/, "");
 }
 
+/** A source anchor can duplicate the ID Astro gives the heading itself. */
+export function stripRedundantHeadingAnchors(html: string): string {
+  const headingIds = new Set(
+    Array.from(html.matchAll(/<h[1-6]\b[^>]*\bid="([^"]+)"[^>]*>/gi), (match) => match[1]),
+  );
+  return html.replace(
+    /<a\s+id="([^"]+)"\s*>\s*<\/a>/gi,
+    (anchor, id) => headingIds.has(id) ? "" : anchor,
+  );
+}
+
 /**
  * @param html Rendered article HTML.
  * @param markdown Raw markdown body, used only to recover admonition types.
@@ -106,9 +145,10 @@ export function buildArticleSections(
   // Stripping just the final one here — rather than editing every content
   // file — also protects future articles authored with the same habit.
   const trimmedHtml = html.replace(/\s*<hr\s*\/?>\s*$/i, "");
+  const topLevelHeadings = topLevelStarts(trimmedHtml, "h2");
   const headings = Array.from(
     trimmedHtml.matchAll(/<h2\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/gi),
-  );
+  ).filter((heading) => topLevelHeadings.has(heading.index));
 
   const bounds: { id: string | null; heading: string | null; from: number }[] = [
     { id: null, heading: null, from: 0 },
