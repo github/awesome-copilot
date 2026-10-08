@@ -9,7 +9,7 @@ These instructions apply to the [MCP Python SDK](https://github.com/modelcontext
 
 ## Instructions
 
-- Use **uv** for project management: `uv init mcp-server-demo` and `uv add "mcp[cli]>=2,<3"`.
+- Use **uv** for project management: `uv init --app --no-package mcp-server-demo` and `uv add "mcp[cli]>=2,<3"`.
 - Import the server class from `mcp.server`: `from mcp.server import MCPServer`.
 - Do not use `FastMCP` or `mcp.server.fastmcp`. SDK v2 removed this import path.
 - Import `Context`, `Image`, `Audio`, `Resolve`, `Elicit`, and the prompt message classes from `mcp.server.mcpserver`.
@@ -17,16 +17,17 @@ These instructions apply to the [MCP Python SDK](https://github.com/modelcontext
 - Add type hints to all parameters. The SDK makes the schemas from the type hints and validates the arguments.
 - Use Pydantic models, TypedDicts, or dataclasses for structured output.
 - A tool returns structured output when its return type is compatible.
-- For a tool that returns content blocks (`TextContent`, `Image`, `Audio`), set `structured_output=True` if you also need `structuredContent`.
 - For stdio transport, use `mcp.run()` or `mcp.run(transport="stdio")`.
 - For HTTP servers, use `mcp.run(transport="streamable-http")`, or mount `mcp.streamable_http_app()` in Starlette or FastAPI.
 - Give transport options (`host`, `port`, `json_response`, `stateless_http`, `transport_security`) to `run()`, not to `MCPServer(...)`.
 - When you mount the server, give the same options to `streamable_http_app()`. This method has no `port` option.
 - Give the server name as the first `MCPServer` argument. Give all other constructor arguments as keyword arguments.
+- Set `version` on `MCPServer`. If you do not set it, the server reports an empty version.
+- The SDK v2 types use snake_case fields, for example `read_only_hint`, `structured_content`, and `is_error`.
 - Add a `ctx: Context` parameter to a tool, resource, or prompt to get the request context.
 - Report progress with `await ctx.report_progress(progress, total, message)`.
 - Get user input with a `Resolve(fn)` parameter. Return `Elicit(message, Model)` from `fn`. This works with clients of all protocol revisions.
-- `ctx.elicit()` works only with clients of earlier revisions. It fails on a 2026-07-28 connection.
+- Do not use `ctx.elicit()`. It fails on a 2026-07-28 connection.
 - Log with the standard `logging` module. Protocol logging (`ctx.info()` and similar methods) is deprecated.
 - Do not use sampling (`ctx.session.create_message()`). It is deprecated. Call the LLM provider API directly.
 - Do not use roots (`ctx.session.list_roots()`). It is deprecated. Get paths from tool parameters or the server configuration.
@@ -34,10 +35,10 @@ These instructions apply to the [MCP Python SDK](https://github.com/modelcontext
 - Use the `Image` class to return images: `return Image(data=png_bytes, format="png")` or `return Image(path=file_path)`.
 - Define resource templates with RFC 6570 URI templates: `@mcp.resource("greeting://{name}")`.
 - Add completion support with the `@mcp.completion()` decorator.
-- Use a lifespan context manager for startup and shutdown of shared resources. The lifespan runs one time for the server.
+- Use a lifespan context manager for startup and shutdown of shared resources. For stdio and HTTP, the lifespan runs one time for the server. Each in-memory `Client(mcp)` runs it again.
 - Get the lifespan object in tools from `ctx.request_context.lifespan_context`. Use `Context[AppContext]` for a typed result.
 - Raise `ToolError` (from `mcp.server.mcpserver.exceptions`) for an error that the model must read.
-- Do not raise `MCPError` for a tool failure. The client gets a protocol error, and the model does not see the message.
+- Do not raise `MCPError` for a tool failure. The client gets a protocol error, not a tool result with `is_error`. Many hosts do not show this error to the model.
 - Send list change notifications with `await ctx.notify_tools_changed()`. Do not use `ctx.session.send_tool_list_changed()`. A 2026-07-28 connection drops it.
 - On the 2026-07-28 revision, Streamable HTTP requests have no session. `stateless_http=True` changes only how the server serves clients of earlier revisions.
 - `json_response=True` sends one JSON body for each request. In this mode, the server cannot send progress notifications during the request.
@@ -45,26 +46,20 @@ These instructions apply to the [MCP Python SDK](https://github.com/modelcontext
 - Write tests with the in-memory client: `async with Client(mcp) as client:` (`from mcp import Client`).
 - Mount more than one server in Starlette with different paths: `Mount("/path", app=mcp.streamable_http_app())`. The lifespan of the host app must enter `mcp.session_manager.run()` for each server.
 - For browser clients, configure CORS. Allow the `Mcp-*` request headers. Expose the `Mcp-Session-Id` response header.
-- For a public host name, set `transport_security=TransportSecuritySettings(allowed_hosts=[...], allowed_origins=[...])`. If you do not set it, the server accepts only localhost requests.
+- If you do not set `transport_security`, the SDK checks the `Host` and `Origin` headers only when the host is `127.0.0.1`, `localhost`, or `::1`. For all other hosts, set `transport_security=TransportSecuritySettings(allowed_hosts=[...], allowed_origins=[...])` (from `mcp.server.transport_security`).
 - For more than one worker, set `request_state_security=RequestStateSecurity(keys=[...])` on `MCPServer`.
 - Use the low-level `Server` class (from `mcp.server`) only when `MCPServer` does not give sufficient control.
 
 ## Best Practices
 
-- Add type hints to all code. They control schema generation and validation.
-- Return Pydantic models or TypedDicts for structured tool output.
 - Give each tool function one responsibility.
 - Write clear docstrings. They become the tool descriptions.
 - Use descriptive parameter names with type hints.
 - Validate inputs with Pydantic `Field` descriptions.
-- Raise `ToolError` with a clear message for errors that the model must read.
 - Use async functions for I/O-bound operations. The SDK runs sync functions on a worker thread.
-- Release resources in the lifespan context manager.
 - Log to stderr. Do not use `print()` in a stdio server, because stdout is the protocol channel.
 - Use environment variables for configuration.
-- Test tools with the in-memory `Client` before you connect an LLM.
 - Be careful when a tool gives access to the file system or the network.
-- Use structured output for machine-readable data.
 
 ## Common Patterns
 
@@ -73,7 +68,7 @@ These instructions apply to the [MCP Python SDK](https://github.com/modelcontext
 ```python
 from mcp.server import MCPServer
 
-mcp = MCPServer("My Server")
+mcp = MCPServer("My Server", version="0.1.0")
 
 @mcp.tool()
 def calculate(a: int, b: int, op: str) -> int:
@@ -91,7 +86,7 @@ if __name__ == "__main__":
 ```python
 from mcp.server import MCPServer
 
-mcp = MCPServer("My HTTP Server")
+mcp = MCPServer("My HTTP Server", version="0.1.0")
 
 @mcp.tool()
 def hello(name: str = "World") -> str:
@@ -187,7 +182,7 @@ from mcp.server.mcpserver import Context
 
 @dataclass
 class AppContext:
-    db: Database
+    db: Database  # Your database client
 
 @asynccontextmanager
 async def app_lifespan(server: MCPServer) -> AsyncIterator[AppContext]:
@@ -197,7 +192,7 @@ async def app_lifespan(server: MCPServer) -> AsyncIterator[AppContext]:
     finally:
         await db.disconnect()
 
-mcp = MCPServer("My App", lifespan=app_lifespan)
+mcp = MCPServer("My App", version="0.1.0", lifespan=app_lifespan)
 
 @mcp.tool()
 def query(sql: str, ctx: Context[AppContext]) -> str:
@@ -231,7 +226,7 @@ async def risky_operation(input: str) -> str:
     """Operation that might fail"""
     if not input:
         raise ToolError("Input must not be empty.")
-    result = await perform_operation(input)
+    result = await perform_operation(input)  # Your operation
     return f"Success: {result}"
 ```
 
@@ -242,7 +237,7 @@ import pytest
 
 from mcp import Client
 
-from server import mcp
+from server import mcp  # The HTTP Server example
 
 @pytest.mark.anyio
 async def test_hello():
