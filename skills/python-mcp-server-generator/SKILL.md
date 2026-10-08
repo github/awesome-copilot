@@ -133,19 +133,19 @@ Tell the user these commands:
 SDK v2 and the 2026-07-28 revision changed many SDK v1 patterns. Do not copy SDK v1 examples.
 
 - SDK v2 removed `FastMCP` and `mcp.server.fastmcp`. Import the server class with `from mcp.server import MCPServer`.
-- Import `Context`, `Image`, `Audio`, `Resolve`, `Elicit`, `UserMessage`, and `AssistantMessage` from `mcp.server.mcpserver`.
+- Import `Context`, `Image`, `Audio`, `Resolve`, `Elicit`, `ElicitationResult`, `AcceptedElicitation`, `Message`, `UserMessage`, and `AssistantMessage` from `mcp.server.mcpserver`.
 - Give the server name as the first `MCPServer` argument. Give all other constructor arguments as keyword arguments. Their positional order changed in SDK v2.
 - Set `version`. If you do not set it, the server reports an empty version.
 - Give the transport options (`transport`, `host`, `port`, `json_response`, `stateless_http`, `transport_security`) to `run()`, not to `MCPServer(...)`.
 - The SDK v2 types use snake_case fields, for example `read_only_hint`, `structured_content`, and `is_error`.
 - Raise `ToolError` for an error that the model must read. For other exceptions, the model gets only a generic error message.
-- Do not raise `MCPError` for a tool failure. The client gets a protocol error, and the model does not see the message.
+- Do not raise `MCPError` for a tool failure. The client gets a protocol error, not a tool result with `is_error`. Many hosts do not show this error to the model.
 - In a stdio server, stdout is the protocol channel. Do not call `print()`. Log to stderr with the `logging` module.
 - Do not use `ctx.elicit()`. It fails on a 2026-07-28 connection. For user input during a tool call, annotate a parameter with `Resolve(fn)`. Return `Elicit(message, Model)` from `fn`.
 - Send list change notifications with `await ctx.notify_tools_changed()`. A 2026-07-28 connection drops `ctx.session.send_tool_list_changed()`.
-- The lifespan runs one time, when the server starts. It does not run for each client. Read its object with `ctx.request_context.lifespan_context`.
+- For stdio and HTTP, the lifespan runs one time, when the server starts. Each in-memory `Client(mcp)` in a test runs the lifespan again. Read its object with `ctx.request_context.lifespan_context`.
 - The 2026-07-28 revision deprecates these features ([SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577)). Do not add them to a new server:
   - **Sampling** (`ctx.session.create_message()`): Call the LLM provider API directly.
   - **Protocol logging** (`ctx.log()`, `ctx.info()`, and similar methods): Use the standard `logging` module.
   - **Roots** (`ctx.session.list_roots()`): Get paths from tool parameters, resource URIs, or the server configuration.
-  - **SSE transport**: Use Streamable HTTP.
+- The 2026-07-28 revision has no SSE transport. Use Streamable HTTP.
