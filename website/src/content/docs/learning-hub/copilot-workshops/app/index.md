@@ -1,5 +1,5 @@
 ---
-title: "GitHub Copilot app"
+title: "Real-World Development with GitHub Copilot app"
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-10-05

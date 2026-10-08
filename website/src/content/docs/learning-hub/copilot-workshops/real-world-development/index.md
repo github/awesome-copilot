@@ -1,5 +1,5 @@
 ---
-title: "Real-world development"
+title: "Real-World Development with GitHub Copilot"
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-10-05
@@ -18,19 +18,19 @@ You are a new developer for Tailspin Toys, a fictional company that provides cro
 
 GitHub Copilot meets you wherever you work. Choose the environment that matches how you want to build. Each workshop starts with its own setup and uses the shared Tailspin Toys scenario.
 
-### [GitHub Copilot CLI][cli]
+### [Real-World Development with GitHub Copilot CLI][cli]
 
 Use the agentic assistant in your terminal. Work with Plan and Autopilot modes, instructions, skills, custom agents, Playwright MCP, Agent Merge, and practical slash commands.
 
-### [GitHub Copilot app][app]
+### [Real-World Development with GitHub Copilot app][app]
 
 Run parallel agent sessions, switch session modes, collaborate on canvases, and manage GitHub issues and pull requests in the desktop app.
 
-### [GitHub Copilot cloud agent][cloud]
+### [Real-World Development with GitHub Copilot cloud agent][cloud]
 
 Assign GitHub issues to an asynchronous agent, guide its work, monitor progress, and review the pull requests it opens.
 
-### [Visual Studio Code][vscode]
+### [Real-World Development with GitHub Copilot in Visual Studio Code][vscode]
 
 Use GitHub Copilot in Visual Studio Code and GitHub Codespaces. Work with Copilot Chat agent mode, MCP servers, and custom agents without leaving your editor.
 

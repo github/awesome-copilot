@@ -1,5 +1,5 @@
 ---
-title: "Copilot cloud agent"
+title: "Real-World Development with GitHub Copilot cloud agent"
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-08-03

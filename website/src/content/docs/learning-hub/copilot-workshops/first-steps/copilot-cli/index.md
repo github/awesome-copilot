@@ -1,5 +1,5 @@
 ---
-title: "GitHub Copilot CLI first steps"
+title: "First Steps with GitHub Copilot CLI"
 description: "Take a guided, terminal-first tour of GitHub Copilot CLI by building and shipping a Space Quiz."
 authors:
   - GitHub Copilot Learning Hub Team

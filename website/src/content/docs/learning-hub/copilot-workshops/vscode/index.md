@@ -1,5 +1,5 @@
 ---
-title: "VS Code"
+title: "Real-World Development with GitHub Copilot in Visual Studio Code"
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-08-03

@@ -1,5 +1,5 @@
 ---
-title: "GitHub Copilot CLI"
+title: "Real-World Development with GitHub Copilot CLI"
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-08-03
