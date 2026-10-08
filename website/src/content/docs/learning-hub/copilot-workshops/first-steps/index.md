@@ -2,7 +2,7 @@
 title: "First Steps with GitHub Copilot"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 description: "Build and ship a Space Quiz from an empty folder with guided First Steps workshops for Copilot app, Copilot CLI, and Visual Studio Code."
 tags:
   - workshop

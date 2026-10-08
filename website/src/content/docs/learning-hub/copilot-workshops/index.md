@@ -2,7 +2,7 @@
 title: "GitHub Copilot workshops"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 description: "Guided First Steps workshops and real-world development workshops for GitHub Copilot in VS Code, the terminal, the desktop app, and the cloud."
 tags:
   - workshop

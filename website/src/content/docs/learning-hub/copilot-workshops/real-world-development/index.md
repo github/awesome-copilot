@@ -2,7 +2,7 @@
 title: "Real-World Development with GitHub Copilot"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 description: "Practice GitHub Copilot across the software development lifecycle with four environments and a shared Tailspin Toys backlog."
 tags:
   - workshop

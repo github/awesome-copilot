@@ -2,7 +2,7 @@
 title: "Real-World Development with GitHub Copilot in Visual Studio Code"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-08
 ---
 
 **[GitHub Copilot Chat](https://code.visualstudio.com/docs/copilot/chat/copilot-chat)** in VS Code brings GitHub Copilot into the code editor you already use. Working in Visual Studio Code (and GitHub Codespaces), you'll drive Copilot Chat in agent mode, connect external tools through MCP, and rely on custom agents — all without leaving your IDE, where Copilot has full view of your files, terminal, and problems.
