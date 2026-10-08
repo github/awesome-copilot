@@ -3,7 +3,7 @@ title: "레슨 2 - 프로젝트 지침 작성"
 description: "/init을 실행하여 완성된 Space Quiz를 설명하는 에이전트 지침을 생성한 다음, 작업 방식에 맞게 조정합니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 디스크에 정상적으로 작동하는 퀴즈가 있으므로 실제 프로젝트를 설명하는 에이전트 지침을 생성합니다. 이후 모든 세션은 작업을 시작하기 전에 이 지침을 읽으므로, 프롬프트마다 같은 안내를 반복할 필요가 없습니다.
@@ -16,7 +16,9 @@ lastUpdated: 2026-10-05
 
 ## `/init`으로 규칙 기록하기
 
-1. 세션에서 `/init`을 실행합니다.
+`/init` 뒤에 프롬프트를 입력합니다. 명령만 보내면 `Command input required`가 표시될 수 있습니다.
+
+1. 세션에서 `/init create simple rules for the project`를 실행합니다.
 2. 생성된 지침 파일을 수락하기 전에 검토합니다.
 3. 단일 파일, 의존성 없음, 접근성, 브라우저 테스트 등 이 프로젝트에 맞는 안내만 남깁니다.
 

@@ -3,7 +3,7 @@ title: "Lección 4 - Recoger las instrucciones del proyecto"
 description: "Ejecuta /init para generar instrucciones del agente que describan el Space Quiz terminado y adáptalas a tu forma de trabajar."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Ahora que el cuestionario está creado, perfeccionado y probado, recoge cómo deben tratar este proyecto las sesiones futuras. Cada sesión lee las instrucciones del agente antes de empezar a trabajar, así que te ahorran repetir las mismas directrices en cada prompt.
@@ -16,7 +16,9 @@ En esta lección:
 
 ## Recoge las reglas con `/init`
 
-1. Ejecuta `/init` en la sesión de la aplicación.
+Incluye un prompt después de `/init`. Si envías el comando sin texto adicional, puede aparecer `Command input required`.
+
+1. Ejecuta `/init create simple rules for the project` en la sesión de la aplicación.
 2. Revisa el archivo de instrucciones del agente generado antes de aceptarlo.
 3. Redúcelo a directrices que reflejen este proyecto: un único archivo, sin dependencias, accesible y probado en el explorador.
 

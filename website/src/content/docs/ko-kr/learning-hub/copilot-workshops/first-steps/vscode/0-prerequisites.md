@@ -3,7 +3,7 @@ title: "레슨 0 - 사전 준비 및 설정"
 description: "워크숍의 사전 준비 사항을 확인하고, VS Code의 Copilot Chat을 확인하고, GitHub Pull Requests and Issues 확장을 추가하고, 모델을 선택합니다."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 편집기에서 Copilot을 사용합니다. VS Code에는 Copilot이 포함되어 있으므로 채팅을 위해 따로 설치할 필요가 없습니다. GitHub 확장을 추가한 다음 빈 폴더를 엽니다.
@@ -23,6 +23,9 @@ lastUpdated: 2026-10-05
 - 활성 Copilot 플랜. [Copilot Free 또는 유료 Copilot 플랜을 활성화합니다][copilot-plans]. 조직에서 이미 Copilot 액세스를 제공한다면 해당 계정을 사용합니다.
 - [Visual Studio Code][vscode].
 - 설치된 [Git][git]. 터미널에서 `git --version`을 실행하여 확인합니다.
+
+> [!IMPORTANT]
+> Copilot Free에는 풀 리퀘스트용 Copilot 코드 검토가 포함되지 않습니다. [레슨 8][review-lesson]에서 검토를 요청하려면 [Copilot 코드 검토 액세스][code-review]가 필요합니다. 액세스할 수 없다면 해당 레슨의 수동 검토 대안을 따릅니다.
 
 ## VS Code 설정
 
@@ -51,4 +54,6 @@ VS Code에 Copilot Chat, GitHub 확장, 빈 `space-quiz` 폴더가 준비되었�
 [git]: https://git-scm.com/downloads
 [pr-extension]: https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github
 [active-models]: https://docs.github.com/copilot/reference/copilot-billing/models-and-pricing
+[review-lesson]: /ko-kr/learning-hub/copilot-workshops/first-steps/vscode/8-review-and-merge/
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /ko-kr/learning-hub/copilot-workshops/first-steps/vscode/1-build-and-polish/
