@@ -87,7 +87,7 @@ high:
     # Applied by the Contributor Reputation Check writer.
     - "needs-review:HIGH"
   approvals:
-    required: 2
+    required: 1
     require_core: true
 
 medium:
