@@ -1,7 +1,7 @@
 ---
 name: python-mcp-server-generator
 description: 'Use this skill when the user wants to create a new Model Context Protocol (MCP) server in Python. Also use it to expose Python functions, an API, or a database to AI clients as MCP tools. The skill makes a uv project with the MCP Python SDK v2 (MCPServer), typed tools, in-memory tests, and client configuration. Do not use it for an MCP client or for a server in another language.'
-compatibility: 'Requires uv, Python 3.10 or later, and network access to install packages. The MCP Inspector also requires npx.'
+compatibility: 'Requires uv, Python 3.10 or later, and network access to install packages. The MCP Inspector also requires Node.js.'
 ---
 
 # Python MCP Server Generator
@@ -126,7 +126,7 @@ For Claude Desktop, run `uv run mcp install server.py`.
 Tell the user these commands:
 
 - `uv run server.py` starts the stdio server. The server waits for a host on stdin and prints nothing.
-- `uv run mcp dev server.py` opens the MCP Inspector. The Inspector needs `npx`.
+- `uv run mcp dev server.py` opens the MCP Inspector. The Inspector needs Node.js.
 
 ## Gotchas
 
