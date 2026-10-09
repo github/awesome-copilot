@@ -30,8 +30,9 @@ rem   0  The last response ended with TASK COMPLETE!
 rem   1  Stopped early: copilot failed, a response ended without a marker,
 rem      the log or a temporary file could not be written, or the safety cap
 rem      was reached.
-rem   2  Could not start: bad arguments, a missing plan file, or no copilot
-rem      command on PATH.
+rem   2  Could not start: bad arguments, a missing plan file, no copilot
+rem      command on PATH, or, when this file has lines that end in LF only,
+rem      no complete CRLF copy of it in the TEMP folder.
 rem
 rem Uses only CMD built-ins and System32 tools (find, findstr, timeout,
 rem where), called by full path so Unix ports earlier on PATH cannot shadow
@@ -51,29 +52,42 @@ set "_WORK="
 set "_OLD_CP="
 
 rem CMD finds goto and call labels by scanning this file, and the scan goes
-rem wrong when the file has LF line endings, as raw downloads of it do. So
-rem before any label is used, write a copy with CRLF line endings, and run
-rem the copy instead when it is exactly one byte per line larger, which also
-rem rules out a copy cut short by a full disk. _LOOP_COPILOT_CRLF passes this
-rem script's name to the copy and keeps the copy from doing the same.
+rem wrong when lines end in LF only, as in raw downloads of it. So before any
+rem label is used, count those lines: FINDSTR's $ matches only before a
+rem carriage return, so /v "$" lists exactly the lines without one. If there
+rem are any, write a copy with CRLF line endings and run that instead, once
+rem it has as many lines as this file and none without CRLF, which rules out
+rem a copy cut short by a full disk. If the copy fails that check, stop with
+rem exit code 2 rather than run this file as it is. The redirect wraps the
+rem whole pipe: on the right of a pipe in a block, a redirect into a missing
+rem folder ends CMD itself. _LOOP_COPILOT_CRLF passes this script's name to
+rem the copy and keeps the copy from doing the same.
 if defined _LOOP_COPILOT_CRLF set "_SCRIPT_NAME=%_LOOP_COPILOT_CRLF%"
 set "_CRLF_COPY=%TEMP%\loop-%_CLI%-crlf-%RANDOM%%TIME:~-2%.bat"
 set "_RUN_CRLF_COPY="
-set "_SELF_SIZE="
+set "_LF_LINES=0"
 set "_SELF_LINES="
-set "_COPY_SIZE="
-set "_CRLF_SIZE="
-if not defined _LOOP_COPILOT_CRLF (
-  type "%~f0" | "%_SYS32%\find.exe" /v "" > "%_CRLF_COPY%" 2>nul
-  for %%F in ("%~f0") do set "_SELF_SIZE=%%~zF"
-  for %%C in ("%_CRLF_COPY%") do set "_COPY_SIZE=%%~zC"
+set "_COPY_LINES="
+set "_COPY_LF_LINES="
+if not defined _LOOP_COPILOT_CRLF for /f %%N in ('^""%_SYS32%\findstr.exe" /v /r /c:"$" "%~f0" ^| "%_SYS32%\find.exe" /c /v ""^"') do set "_LF_LINES=%%N"
+if not "%_LF_LINES%"=="0" (
+  2>nul (>"%_CRLF_COPY%" (type "%~f0" | "%_SYS32%\find.exe" /v ""))
   for /f %%N in ('type "%~f0" ^| "%_SYS32%\find.exe" /c /v ""') do set "_SELF_LINES=%%N"
+  for /f %%N in ('type "%_CRLF_COPY%" 2^>nul ^| "%_SYS32%\find.exe" /c /v ""') do set "_COPY_LINES=%%N"
+  for /f %%N in ('^""%_SYS32%\findstr.exe" /v /r /c:"$" "%_CRLF_COPY%" 2^>nul ^| "%_SYS32%\find.exe" /c /v ""^"') do set "_COPY_LF_LINES=%%N"
 )
-if defined _SELF_LINES set /a "_CRLF_SIZE=_SELF_SIZE + _SELF_LINES"
-if defined _CRLF_SIZE if "%_COPY_SIZE%"=="%_CRLF_SIZE%" set "_RUN_CRLF_COPY=1"
+if not "%_LF_LINES%"=="0" if defined _SELF_LINES if "%_COPY_LINES%"=="%_SELF_LINES%" if "%_COPY_LF_LINES%"=="0" set "_RUN_CRLF_COPY=1"
 set "_LOOP_COPILOT_CRLF="
+if not "%_LF_LINES%"=="0" if not defined _RUN_CRLF_COPY (
+  del "%_CRLF_COPY%" >nul 2>&1
+  >&2 echo Error: this script has lines that end in LF only, and no complete CRLF copy of it could be written to the TEMP folder. Free space there, or save the script with CRLF line endings.
+  endlocal
+  exit /b 2
+)
 if defined _RUN_CRLF_COPY set "_LOOP_COPILOT_CRLF=%_SCRIPT_NAME%"
-if defined _RUN_CRLF_COPY call "%_CRLF_COPY%" %*
+rem %%_CRLF_COPY%% and %%* expand only in CALL's second pass, so the copy
+rem gets this script's arguments unchanged. See the copilot calls below.
+if defined _RUN_CRLF_COPY call "%%_CRLF_COPY%%" %%*
 if defined _RUN_CRLF_COPY set "_EXIT_CODE=%ERRORLEVEL%"
 del "%_CRLF_COPY%" >nul 2>&1
 if defined _RUN_CRLF_COPY (
@@ -160,11 +174,15 @@ for %%E in (out err last) do if exist "%_WORK%.%%E.txt" goto :stop_temp_failed
 rem Branch with goto, not a ( ) block, so parentheses in LOOP_COPILOT_ARGS,
 rem such as --allow-tool=shell(git:*), cannot end the block early. The CLI
 rem is an npm .cmd shim, so it must be started with call to return here.
+rem CALL expands %...% a second time and doubles quoted carets, which would
+rem change a plan path such as C:\Reports\100% done\a^b\plan.md. Written
+rem as %%name%%, the prompt and LOOP_COPILOT_ARGS expand only in that second
+rem pass, so their text reaches copilot unchanged.
 if %_RUN% gtr 1 goto :resume_run
-call "%_CLI%" -p "%_FIRST_PROMPT%" --session-id=%_SESSION_ID% -s --no-color %LOOP_COPILOT_ARGS% < nul > "%_WORK%.out.txt" 2> "%_WORK%.err.txt"
+call "%_CLI%" -p "%%_FIRST_PROMPT%%" --session-id=%_SESSION_ID% -s --no-color %%LOOP_COPILOT_ARGS%% < nul > "%_WORK%.out.txt" 2> "%_WORK%.err.txt"
 goto :show_run
 :resume_run
-call "%_CLI%" -p Y --resume=%_SESSION_ID% -s --no-color %LOOP_COPILOT_ARGS% < nul > "%_WORK%.out.txt" 2> "%_WORK%.err.txt"
+call "%_CLI%" -p Y --resume=%_SESSION_ID% -s --no-color %%LOOP_COPILOT_ARGS%% < nul > "%_WORK%.out.txt" 2> "%_WORK%.err.txt"
 :show_run
 set "_CLI_STATUS=%ERRORLEVEL%"
 for %%E in (out err) do if not exist "%_WORK%.%%E.txt" goto :stop_temp_failed
