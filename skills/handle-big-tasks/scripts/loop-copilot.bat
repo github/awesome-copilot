@@ -316,7 +316,13 @@ setlocal EnableDelayedExpansion
 set "_VALUE=!%~1!"
 if not defined _VALUE exit /b 1
 if not "!_VALUE:~5!"=="" exit /b 1
-for /f "delims=0123456789" %%A in ("!_VALUE!") do exit /b 1
+rem Remove every digit and reject anything left. FOR /F cannot do this check:
+rem it skips a line whose first character after the delimiters is ;, so it
+rem passed values such as 2;rem, which then ran rem in place of later IF
+rem commands. The x keeps _REST defined once the digits are gone.
+set "_REST=x!_VALUE!"
+for %%D in (0 1 2 3 4 5 6 7 8 9) do set "_REST=!_REST:%%D=!"
+if not "!_REST!"=="x" exit /b 1
 :to_count_strip
 if "!_VALUE:~0,1!"=="0" if not "!_VALUE!"=="0" (
   set "_VALUE=!_VALUE:~1!"
