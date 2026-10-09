@@ -11,6 +11,7 @@ import {
   classifyRisk,
   computeState,
   evaluateApprovals,
+  gateConclusion,
   evaluateCheck,
   evaluateSubmission,
   globToRegExp,
@@ -214,6 +215,7 @@ const routing = {
     canvas: { team: "github/canvas", reviewers: ["canvasa"], backup: [] },
     plugin: { team: "github/plugin", reviewers: [], backup: [] },
     content: { reviewers: [] },
+    workshops: { team: "github/workshops", reviewers: ["workshopa"], backup: [] },
   },
 };
 
@@ -255,7 +257,11 @@ test("latest review state wins and changes requested blocks", () => {
 });
 
 test("medium tier requires a domain reviewer when the pool is staffed", () => {
-  const permissions = new Map([["alice", "write"], ["canvasa", "write"]]);
+  const permissions = new Map([
+    ["alice", "write"],
+    ["canvasa", "write"],
+    ["workshopa", "write"],
+  ]);
   const files = [file("extensions/x/extension.mjs", { status: "added" })];
   const base = { tier: "medium", tiers, author: "author", permissions, routing, files };
   assert.equal(evaluateApprovals({ ...base, reviews: [review("alice", "APPROVED")] }).satisfied, false);
@@ -270,21 +276,36 @@ test("medium tier requires a domain reviewer when the pool is staffed", () => {
   assert.equal(unstaffed.satisfied, true, "falls back to any writer when the domain pool is empty");
   assert.ok(unstaffed.notes.length > 0);
 
+  const workshop = evaluateApprovals({
+    ...base,
+    files: [file("website/src/content/docs/learning-hub/copilot-workshops/lesson.md", { status: "added" })],
+    reviews: [review("workshopa", "APPROVED")],
+  });
+  assert.equal(workshop.satisfied, true);
+
   const noRouting = evaluateApprovals({ ...base, routing: null, reviews: [review("alice", "APPROVED")] });
   assert.equal(noRouting.satisfied, true);
 });
 
-test("high tier requires two approvals including a core maintainer", () => {
+test("high tier requires one approval from a core maintainer", () => {
   const permissions = new Map([["alice", "write"], ["bob", "write"], ["corea", "write"], ["admin1", "admin"]]);
   const files = [file(".github/workflows/x.yml")];
   const base = { tier: "high", tiers, author: "author", permissions, routing, files };
-  assert.equal(evaluateApprovals({ ...base, reviews: [review("corea", "APPROVED")] }).satisfied, false);
+  assert.equal(evaluateApprovals({ ...base, reviews: [review("corea", "APPROVED")] }).satisfied, true);
   assert.equal(evaluateApprovals({ ...base, reviews: [review("alice", "APPROVED"), review("bob", "APPROVED")] }).satisfied, false);
-  assert.equal(evaluateApprovals({ ...base, reviews: [review("alice", "APPROVED"), review("corea", "APPROVED")] }).satisfied, true);
 
   const fallback = { ...base, routing: null };
-  assert.equal(evaluateApprovals({ ...fallback, reviews: [review("alice", "APPROVED"), review("bob", "APPROVED")] }).satisfied, false);
-  assert.equal(evaluateApprovals({ ...fallback, reviews: [review("alice", "APPROVED"), review("admin1", "APPROVED")] }).satisfied, true);
+  assert.equal(evaluateApprovals({ ...fallback, reviews: [review("alice", "APPROVED")] }).satisfied, false);
+  assert.equal(evaluateApprovals({ ...fallback, reviews: [review("admin1", "APPROVED")] }).satisfied, true);
+});
+
+test("gateConclusion reports a PR that only awaits review as action_required", () => {
+  const clean = { contributionFailures: [], infrastructureFailures: [], pending: [] };
+  const waiting = { satisfied: false, changesRequestedBy: [] };
+  assert.equal(gateConclusion({ passed: true, automation: clean, approvals: { satisfied: true, changesRequestedBy: [] } }), "success");
+  assert.equal(gateConclusion({ passed: false, automation: clean, approvals: waiting }), "action_required");
+  assert.equal(gateConclusion({ passed: false, automation: clean, approvals: { ...waiting, changesRequestedBy: ["bob"] } }), "failure");
+  assert.equal(gateConclusion({ passed: false, automation: { ...clean, contributionFailures: [{}] }, approvals: waiting }), "failure");
 });
 
 // --- checks -------------------------------------------------------------------
@@ -904,7 +925,7 @@ test("publishGateCheck corrects copies of the writer's check that claim success 
   await publishGateCheck(github, { owner: "github", repo: "awesome-copilot", evaluation, log: (line) => logs.push(line) });
   const updates = github.calls.filter((call) => call.name === "checks.update");
   assert.deepEqual(updates.map((call) => call.params.check_run_id), [11]);
-  assert.equal(updates[0].params.conclusion, "failure");
+  assert.equal(updates[0].params.conclusion, "action_required");
   assert.ok(logs.some((line) => /Correcting 1/.test(line)));
 });
 

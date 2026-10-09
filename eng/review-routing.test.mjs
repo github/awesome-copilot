@@ -46,9 +46,11 @@ function rawConfig(overrides = {}) {
       canvas: { team: "github/canvas", reviewers: ["canvas1", "canvas2", "canvas3"], backup: ["canvasBackup"] },
       plugin: { team: "github/plugin", reviewers: ["plugin1"], backup: [] },
       content: { team: "github/content", reviewers: [], backup: [] },
+      workshops: { team: "github/workshops", reviewers: ["workshop1"], backup: [] },
       automation: { team: "github/automation", reviewers: ["auto1"], backup: ["autoBackup"] },
     },
     routes: [
+      { label: "workshops", pool: "workshops" },
       { label: "workflow", pool: "automation" },
       { label: "hooks", pool: "automation" },
       { label: "canvas-extension", pool: "canvas" },
@@ -97,6 +99,7 @@ describe("configuration", () => {
     assert.deepEqual(
       loaded.routes.map((route) => [route.label, route.pool]),
       [
+        ["workshops", "workshops"],
         ["canvas-extension", "canvas"],
         ["external-plugin", "plugin"],
         ["plugin", "plugin"],
@@ -108,7 +111,7 @@ describe("configuration", () => {
         ["website-update", "core-maintainers"],
       ]
     );
-    assert.deepEqual(Object.keys(loaded.pools).sort(), ["canvas", "content", "core-maintainers", "plugin"]);
+    assert.deepEqual(Object.keys(loaded.pools).sort(), ["canvas", "content", "core-maintainers", "plugin", "workshops"]);
     assert.equal(loaded.defaultPool, "core-maintainers");
     assert.equal(loaded.escalationPool, "core-maintainers");
   });
@@ -165,6 +168,7 @@ describe("reviewer selection", () => {
     assert.equal(selectPool(["skills", "plugin"], cfg), "plugin");
     assert.equal(selectPool(["plugin", "canvas-extension"], cfg), "canvas");
     assert.equal(selectPool(["canvas-extension", "workflow"], cfg), "automation");
+    assert.equal(selectPool(["website-update", "workshops"], cfg), "workshops");
     assert.equal(selectPool(["website-update"], cfg), "core-maintainers");
   });
 

@@ -23,6 +23,7 @@ export const INTENT_LABELS = Object.freeze([
   "new-submission",
   "plugin",
   "skills",
+  "workshops",
   "website-update",
   "workflow",
 ]);
