@@ -57,7 +57,7 @@ The loop scripts in the `scripts` folder read the last line of each response to 
 4. **Work one phase per response.** Complete that phase fully. Do not start the next phase in the same response.
 5. **Report what the phase delivered.** Summarize the changes, note anything deferred to a later phase, and report failures honestly.
 6. **Close with the correct marker.** Use `CONTINUE? Y or N` while phases remain, or `TASK COMPLETE!` once the whole task is done.
-7. **Respond to the answer.** On `Y`, begin the next phase. On `N`, stop and leave the remaining phases unstarted. Treat any other reply as feedback or a question about the current phase: address it, restate the phase plan if it changed, and close with the correct marker again.
+7. **Respond to the answer.** On `Y`, continue the current phase if it is incomplete; otherwise begin the next phase. On `N`, stop and leave the remaining work unstarted. Treat any other reply as feedback or a question about the current phase: address it, restate the phase plan if it changed, and close with the correct marker again.
 
 ## Marker Rules
 
@@ -99,7 +99,7 @@ Each loop:
 | `LOOP_MAX_ITERATIONS` | Safety cap on runs (default 50) |
 | `LOOP_COPILOT_ARGS` | Extra copilot flags separated by spaces, for example `--model <model>` or `--allow-tool=write` |
 
-- A run started with `-p` cannot stop for tool approval. Grant what the plan needs through `LOOP_COPILOT_ARGS`, such as `--allow-tool=write` and `--allow-tool=shell(git:*)`, and reserve `--allow-all-tools` for workspaces you trust.
+- A run started with `-p` cannot stop for permission prompts. Before starting the loop, approve the project folder once interactively or, in a trusted workspace, add `--allow-all-paths` through `LOOP_COPILOT_ARGS`. Grant required tools with narrow flags such as `--allow-tool=write` and `--allow-tool=shell(git:*)`; reserve `--allow-all`/`--yolo` for trusted, isolated workspaces.
 - Keep the plan file inside the project folder, or add its folder with `--add-dir`, so the agent can read it.
 - The scripts pin the session ID instead of using `--continue`, which resumes the most recent Copilot CLI session wherever it was started.
 
