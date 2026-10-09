@@ -980,7 +980,7 @@
   {
     "name": "incident-io",
     "description": "Official incident.io plugins for AI agents: skills for working with [incident.io](https://incident.io/) — incidents, on-call, and investigations — and for authoring the operational content our platform draws on.",
-    "version": "0.18.0",
+    "version": "1.20261009.666",
     "author": {
       "name": "incident.io",
       "url": "https://incident.io"
@@ -1000,7 +1000,7 @@
       "source": "github",
       "repo": "incident-io/skills",
       "path": "plugins/incident-io",
-      "sha": "6d0bbfc9e52256fc39326b9ba6d08f16831b60ae"
+      "sha": "52f1c60db6d59b2e4e6abd327d5107d3bff0f53d"
     }
   },
   {
