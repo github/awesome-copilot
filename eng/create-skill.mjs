@@ -3,6 +3,7 @@
 import fs from "fs";
 import path from "path";
 import readline from "readline";
+import { dump } from "js-yaml";
 import { SKILLS_DIR } from "./constants.mjs";
 
 const rl = readline.createInterface({
@@ -107,10 +108,12 @@ async function createSkillTemplate() {
     fs.mkdirSync(skillFolder, { recursive: true });
 
     // Create SKILL.md template
+    const frontmatter = dump(
+      { name: skillName, description },
+      { forceQuotes: true, quotingType: "'", lineWidth: -1 }
+    );
     const skillMdContent = `---
-name: ${skillName}
-description: ${description}
----
+${frontmatter}---
 
 # ${skillTitle}
 
