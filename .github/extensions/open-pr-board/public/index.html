@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="board-token" content="__BOARD_TOKEN__" />
+        <title>Open PR Board</title>
+        <link rel="stylesheet" href="/styles.css" />
+    </head>
+    <body>
+        <header class="toolbar">
+            <div>
+                <h1 id="board-title">Open pull requests</h1>
+                <p class="meta" id="board-summary">Loading…</p>
+            </div>
+            <div class="toolbar-actions">
+                <label class="search">
+                    <span class="visually-hidden">Filter pull requests</span>
+                    <input id="filter" type="search" placeholder="Filter by title, author or label" />
+                </label>
+                <button class="btn" id="refresh-button" type="button">Refresh</button>
+                <button class="btn btn-primary" id="review-button" type="button">Review pending</button>
+            </div>
+        </header>
+
+        <main class="board" id="board" aria-label="Pull request review board"></main>
+
+        <aside class="drawer" id="drawer" aria-label="Pull request details" aria-hidden="true">
+            <header class="drawer-header">
+                <div>
+                    <p class="drawer-kicker" id="drawer-kicker"></p>
+                    <h2 id="drawer-title"></h2>
+                    <p class="meta" id="drawer-meta"></p>
+                </div>
+                <button class="btn btn-icon" id="drawer-close" type="button" aria-label="Close details">✕</button>
+            </header>
+
+            <div class="pills drawer-labels" id="drawer-labels"></div>
+
+            <div class="drawer-controls">
+                <label>
+                    Bucket
+                    <select id="drawer-column"></select>
+                </label>
+                <a class="btn btn-small" id="drawer-link" target="_blank" rel="noreferrer noopener">Open on GitHub</a>
+                <button class="btn btn-small" id="rereview-toggle" type="button">Re-review…</button>
+            </div>
+
+            <section class="rereview-panel" id="rereview-panel" hidden>
+                <p class="meta">What should the re-review focus on? (optional)</p>
+                <textarea id="rereview-guidance" rows="3" maxlength="4000"></textarea>
+                <div class="footer-actions">
+                    <button class="btn btn-small" id="rereview-cancel" type="button">Cancel</button>
+                    <button class="btn btn-small btn-primary" id="rereview-start" type="button">Start re-review</button>
+                </div>
+            </section>
+
+            <nav class="tabs" role="tablist" aria-label="Pull request detail sections">
+                <button class="tab" type="button" role="tab" data-tab="review">AI review</button>
+                <button class="tab" type="button" role="tab" data-tab="description">Description</button>
+                <button class="tab" type="button" role="tab" data-tab="conversation">Conversation</button>
+                <button class="tab" type="button" role="tab" data-tab="files">Files</button>
+                <button class="tab" type="button" role="tab" data-tab="checks">Checks</button>
+            </nav>
+
+            <div class="drawer-body" id="drawer-body"></div>
+
+            <footer class="drawer-footer">
+                <label class="footer-label" for="decision-comment">Draft comment</label>
+                <textarea id="decision-comment" rows="4" placeholder="Prefilled from the AI's suggested comment."></textarea>
+                <p class="footer-note">
+                    These actions use your authenticated GitHub CLI account. Each requires a second
+                    click to confirm. Approval also enables auto-merge using a merge commit.
+                </p>
+                <div class="footer-actions">
+                    <button class="btn btn-small btn-danger" type="button" data-decision="close">Close PR</button>
+                    <button class="btn btn-small" type="button" data-decision="comment">Submit feedback</button>
+                    <button class="btn btn-small btn-warn" type="button" data-decision="request-changes">
+                        Request changes
+                    </button>
+                    <button class="btn btn-small btn-success" type="button" data-decision="approve">
+                        Approve + auto-merge
+                    </button>
+                </div>
+            </footer>
+        </aside>
+
+        <div class="toasts" id="toasts" aria-live="polite"></div>
+        <script type="module" src="/app.js"></script>
+    </body>
+</html>
