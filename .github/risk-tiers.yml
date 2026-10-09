@@ -87,7 +87,7 @@ high:
     # Applied by the Contributor Reputation Check writer.
     - "needs-review:HIGH"
   approvals:
-    required: 2
+    required: 1
     require_core: true
 
 medium:
@@ -143,6 +143,12 @@ domains:
   content:
     paths: ["agents/**", "instructions/**", "skills/**", "workflows/**", "hooks/**"]
     pools: ["content"]
+  workshops:
+    paths:
+      - "website/**/cli-for-beginners/**"
+      - "website/**/app-for-beginners/**"
+      - "website/**/copilot-workshops/**"
+    pools: ["workshops"]
 # Files outside every domain (repository automation such as `.github/workflows/**`,
 # `eng/**`, review policy, and docs) are owned by the core pools.
 

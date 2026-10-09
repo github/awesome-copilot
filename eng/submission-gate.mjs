@@ -1098,6 +1098,22 @@ export async function findImpostorGateChecks(github, { owner, repo, headSha }) {
 }
 
 /**
+ * A PR that is only waiting for a review is not broken: report `action_required`, which
+ * still blocks the required check but reads as "needs a reviewer" rather than a failure.
+ */
+export function gateConclusion(evaluation) {
+  if (evaluation.passed) return "success";
+  const { automation, approvals } = evaluation;
+  const onlyAwaitingReview =
+    automation.contributionFailures.length === 0 &&
+    automation.infrastructureFailures.length === 0 &&
+    automation.pending.length === 0 &&
+    (approvals.changesRequestedBy ?? []).length === 0 &&
+    !approvals.satisfied;
+  return onlyAwaitingReview ? "action_required" : "failure";
+}
+
+/**
  * Publish the required `submission-gate` check on the PR head commit. Only the trusted
  * writer calls this, so the check can't be satisfied by editing a PR-controlled workflow.
  */
@@ -1114,7 +1130,7 @@ export async function publishGateCheck(github, { owner, repo, evaluation, detail
   };
   const fields = pending
     ? { status: "in_progress", output }
-    : { status: "completed", conclusion: evaluation.passed ? "success" : "failure", completed_at: new Date().toISOString(), output };
+    : { status: "completed", conclusion: gateConclusion(evaluation), completed_at: new Date().toISOString(), output };
   if (detailsUrl) fields.details_url = detailsUrl;
 
   const runs = await listGateCheckRuns(github, { owner, repo, headSha: evaluation.headSha });
