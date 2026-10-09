@@ -115,7 +115,7 @@ Write `pom.xml`:
 </project>
 ```
 
-- The `mcp` artifact contains the SDK core and the Jackson 3 JSON mapper. For Jackson 2, use `mcp-core` and `mcp-json-jackson2`.
+- The `mcp` artifact contains `mcp-core` and the Jackson 3 JSON mapper `mcp-json-jackson3`.
 - `slf4j-simple` writes the SDK logs to stderr.
 - The shade plugin makes one executable JAR with all dependencies.
 
@@ -285,6 +285,7 @@ SDK 2.x changed many patterns of SDK 0.x and 1.x. Do not copy examples from earl
 
 - Use the builders that take the required fields first: `Tool.builder(name, inputSchema)`, `Resource.builder(uri, name)`, `Prompt.builder(name)`, `TextContent.builder(text)`, and `ReadResourceResult.builder(contents)`. The builders without arguments are deprecated.
 - A required field must not be `null`. A `null` value causes an `IllegalArgumentException`.
+- Tool names must have 1 to 128 characters: letters, digits, `_`, `-`, and `.`. The server builder rejects an incorrect name with an `IllegalArgumentException`. `addTool()` at runtime does not check the name.
 - `inputSchema` and `outputSchema` are `Map<String, Object>` values. The `JsonSchema` record is deprecated.
 - The server checks each schema against JSON Schema 2020-12 when you call `build()` or `addTool()`. An incorrect schema causes an `IllegalArgumentException`.
 - The SDK validates the tool arguments against `inputSchema`. It also validates `structuredContent` against `outputSchema`. If the validation fails, the client gets a tool result with `isError` set to `true`. Thus, the handler gets only valid arguments.

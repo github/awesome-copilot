@@ -113,5 +113,6 @@ The starter serves the endpoint at `/mcp`.
 
 - For WebFlux, declare a `WebFluxStreamableServerTransportProvider` bean in the same way. Its builder uses `messageEndpoint("/mcp")`, not `mcpEndpoint`.
 - Embedded Tomcat listens on all network interfaces. For a public host, add its name to `allowedHost`. Put authentication in front of the server.
+- The SDK has no authorization. For a remote server, add authorization in a servlet filter or with Spring Security.
 - `HttpServletStatelessServerTransport` makes a server without sessions. Use it with `McpServer.sync(transport)` when more than one replica must answer the requests. A stateless server cannot send requests to the client. Also set `securityValidator` on its builder.
 - For browser clients, add CORS to the servlet container. Allow the `Mcp-*` request headers. Expose the `Mcp-Session-Id` response header.

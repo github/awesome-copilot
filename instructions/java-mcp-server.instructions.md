@@ -11,7 +11,7 @@ These instructions apply to the [MCP Java SDK](https://github.com/modelcontextpr
 
 - Import the BOM `io.modelcontextprotocol.sdk:mcp-bom:2.0.1` and add the `io.modelcontextprotocol.sdk:mcp` artifact.
 - In Gradle, import the BOM with `implementation(platform("io.modelcontextprotocol.sdk:mcp-bom:2.0.1"))`. Also add `testRuntimeOnly("org.junit.platform:junit-platform-launcher")`. Without it, the `test` task fails.
-- The `mcp` artifact contains the SDK core and the Jackson 3 JSON mapper. For Jackson 2, use `mcp-core` and `mcp-json-jackson2`.
+- The `mcp` artifact contains `mcp-core` and the Jackson 3 JSON mapper `mcp-json-jackson3`.
 - Do not use code from SDK 0.x or 1.x. Read the [migration guide](https://github.com/modelcontextprotocol/java-sdk/blob/main/MIGRATION-2.0.md) when you update a server.
 - The packages are `io.modelcontextprotocol.server`, `io.modelcontextprotocol.spec`, and `io.modelcontextprotocol.json`. The protocol types are nested in `McpSchema`.
 - Make a server with `McpServer.sync(transport)` or `McpServer.async(transport)`. Set `serverInfo(name, version)` and `capabilities(...)`, and then call `build()`.
@@ -21,6 +21,7 @@ These instructions apply to the [MCP Java SDK](https://github.com/modelcontextpr
 - Register tools with `SyncToolSpecification.builder().tool(tool).callHandler((exchange, request) -> ...)`. The handler gets the arguments as a `Map` from `request.arguments()`.
 - Use the builders that take the required fields first: `Tool.builder(name, inputSchema)`, `Resource.builder(uri, name)`, `ResourceTemplate.builder(uriTemplate, name)`, `Prompt.builder(name)`, `TextContent.builder(text)`, and `ReadResourceResult.builder(contents)`. The builders without arguments are deprecated.
 - A required field must not be `null`. A `null` value causes an `IllegalArgumentException`.
+- Tool names must have 1 to 128 characters: letters, digits, `_`, `-`, and `.`. The server builder rejects an incorrect name with an `IllegalArgumentException`. `addTool()` at runtime does not check the name.
 - Give `inputSchema` and `outputSchema` as `Map<String, Object>` values. The `JsonSchema` record is deprecated.
 - The server checks each schema against JSON Schema 2020-12 when you call `build()` or `addTool()`. An incorrect schema causes an `IllegalArgumentException`.
 - The SDK validates the arguments against `inputSchema` before it calls the handler. It also validates `structuredContent` against `outputSchema`. If the validation fails, the client gets a tool result with `isError` set to `true`.
@@ -34,6 +35,7 @@ These instructions apply to the [MCP Java SDK](https://github.com/modelcontextpr
 - Define resource templates with RFC 6570 URI templates, for example `users://{id}`.
 - Report progress with `exchange.progressNotification(...)` only when `request.progressToken()` is not `null`.
 - Get user input with `exchange.createElicitation(ElicitFormRequest.builder(message, requestedSchema).build())`. First, make sure that `exchange.getClientCapabilities().elicitation()` is not `null`.
+- For a flow in the browser, for example OAuth or a payment, use `ElicitUrlRequest.builder(message, url, elicitationId)`. First, make sure that `exchange.getClientCapabilities().elicitation().url()` is not `null`. Do not send credentials in a form elicitation.
 - Do not use sampling (`exchange.createMessage()`). The revision 2026-07-28 deprecates it. Call the LLM provider API directly.
 - Do not use protocol logging (`exchange.loggingNotification()`). The revision 2026-07-28 deprecates it. Log with SLF4J.
 - Do not use roots (`exchange.listRoots()`). The revision 2026-07-28 deprecates it. Get paths from tool arguments, resource URIs, or the server configuration.
@@ -42,6 +44,7 @@ These instructions apply to the [MCP Java SDK](https://github.com/modelcontextpr
 - For a remote server, use Streamable HTTP. The SSE transports are deprecated.
 - For a servlet container, use `HttpServletStreamableServerTransportProvider`. For a server without sessions, use `HttpServletStatelessServerTransport`.
 - The HTTP transports do not check the `Host` and `Origin` headers by default. Always set `securityValidator(DefaultServerTransportSecurityValidator.builder()...build())`. This also applies to the Spring AI starters.
+- The SDK has no authorization. For a remote server, add authorization in a servlet filter or with Spring Security.
 - For Spring Boot, use the MCP starters of [Spring AI](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-overview.html) 2.0 or later, for example `spring-ai-starter-mcp-server-webmvc`. Do not use the `io.modelcontextprotocol.sdk:mcp-spring-*` artifacts.
 - In Spring AI, write tools as bean methods with `@McpTool` and `@McpToolParam` (from `org.springframework.ai.mcp.annotation`).
 - For browser clients, configure CORS. Allow the `Mcp-*` request headers. Expose the `Mcp-Session-Id` response header.
