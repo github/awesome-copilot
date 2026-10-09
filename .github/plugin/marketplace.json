@@ -2024,6 +2024,12 @@
       }
     },
     {
+      "name": "speckit-companion",
+      "source": "plugins/speckit-companion",
+      "description": "A live board of every spec in your repo, next to the chat: each spec's specify → plan → tasks → implement pipeline, its documents, task progress and run history, and a button that runs the next step. Works with stock Spec Kit and with SpecKit Companion.",
+      "version": "0.1.0"
+    },
+    {
       "name": "stripe",
       "description": "Accept payments and grow your business. Stripe's agent plugin includes best practices, upgrade guidance, and our MCP server.",
       "version": "0.1.2",
