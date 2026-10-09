@@ -1775,6 +1775,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "pr-review",
+      "source": "plugins/pr-review",
+      "description": "Review GitHub pull requests in a read-only canvas with AI-grouped changes, expandable diffs, and questions scoped to groups, files, or hunks.",
+      "version": "1.0.0"
+    },
+    {
       "name": "project-documenter",
       "source": "plugins/project-documenter",
       "description": "Generate professional project documentation with draw.io architecture diagrams and Word (.docx) output with embedded images. Automatically discovers any project's technology stack and produces Markdown, diagrams, PNG exports, and a formatted Word document.",
