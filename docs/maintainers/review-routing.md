@@ -11,11 +11,12 @@ The root [`CODEOWNERS`](../../CODEOWNERS) file assigns every path to a team, not
 | `*` (default) | `@github/awesome-copilot-core-maintainers` |
 | `/extensions/` | `@github/awesome-copilot-canvas-reviewers` |
 | `/plugins/` | `@github/awesome-copilot-plugin-reviewers` |
+| `/.github/plugin/` | `@github/awesome-copilot-plugin-reviewers` |
 | `/agents/`, `/instructions/`, `/skills/`, `/hooks/`, `/workflows/` | `@github/awesome-copilot-content-reviewers` |
 | `/.github/` (including GitHub Actions workflows), `/eng/` | `@github/awesome-copilot-core-maintainers` |
 | Copilot workshop content under `/website/` | `@github/awesome-copilot-workshop-reviewers` |
 
-GitHub applies the **last** matching rule, so the workshop entries at the bottom of the file override the default team for their paths. When you edit `CODEOWNERS` by hand:
+GitHub applies the **last** matching rule, so the workshop entries and the `/.github/plugin/` entry override broader rules for their paths. When you edit `CODEOWNERS` by hand:
 
 - Keep the `*` rule and the domain team block at the top of the file.
 - Never add an individual user to the `*` rule.

@@ -33,6 +33,7 @@ import {
   STATUS_MARKER,
   summarizeChecks,
   syncPullRequestStatus,
+  touchedDomains,
 } from "./submission-gate.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -127,6 +128,12 @@ test("documentation and generated output are low risk", () => {
     tiers,
   });
   assert.equal(result.tier, "low");
+});
+
+test("generated plugin marketplace output is owned by the plugin domain", () => {
+  assert.deepEqual(touchedDomains([file(".github/plugin/marketplace.json")], tiers.domains), [
+    { id: "plugin", pools: ["plugin"] },
+  ]);
 });
 
 test("small modification of an existing resource is low risk", () => {
