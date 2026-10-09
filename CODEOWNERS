@@ -2,9 +2,7 @@
 #
 # - Teams own paths; no individual is the default owner. Do not add individual
 #   users to the `*` rule or to the team block below.
-# - The last matching rule wins, so per-resource owners appended at the end of
-#   this file (for example by the `#codeowner` automation) override the team
-#   defaults for their specific paths.
+# - The last matching rule wins.
 # - Reviewer pools used for automatic review requests live in
 #   .github/review-routing.yml.
 
@@ -23,6 +21,6 @@
 /eng/ @github/awesome-copilot-core-maintainers
 
 # Copilot workshops
-/website/**/cli-for-beginners/ @awesome-copilot-workshop-reviewers
-/website/**/app-for-beginners/ @awesome-copilot-workshop-reviewers
-/website/**/copilot-workshops/ @awesome-copilot-workshop-reviewers
+/website/**/cli-for-beginners/ @github/awesome-copilot-workshop-reviewers
+/website/**/app-for-beginners/ @github/awesome-copilot-workshop-reviewers
+/website/**/copilot-workshops/ @github/awesome-copilot-workshop-reviewers
