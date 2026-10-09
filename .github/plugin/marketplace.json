@@ -1783,8 +1783,8 @@
     {
       "name": "python-mcp-development",
       "source": "plugins/python-mcp-development",
-      "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Python using the official SDK with FastMCP. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
+      "description": "Build Model Context Protocol (MCP) servers in Python with the official MCP Python SDK v2 (MCPServer). Includes a skill that generates a server project and an expert agent for guidance.",
+      "version": "2.0.0"
     },
     {
       "name": "radius",

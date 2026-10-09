@@ -1,6 +1,6 @@
 # Python MCP Server Development Plugin
 
-Complete toolkit for building Model Context Protocol (MCP) servers in Python using the official SDK with FastMCP. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.
+Build Model Context Protocol (MCP) servers in Python with the official MCP Python SDK v2 (MCPServer). Includes a skill that generates a server project and an expert agent for guidance.
 
 ## Installation
 
@@ -15,7 +15,7 @@ copilot plugin install python-mcp-development@awesome-copilot
 
 | Command | Description |
 |---------|-------------|
-| `/python-mcp-development:python-mcp-server-generator` | Generate a complete MCP server project in Python with tools, resources, and proper configuration |
+| `/python-mcp-development:python-mcp-server-generator` | Generate a Python MCP server project with the MCP Python SDK v2 (MCPServer), typed tools, in-memory tests, and client configuration |
 
 ### Agents
 
