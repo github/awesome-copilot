@@ -21,7 +21,7 @@
 # so a flag value can contain spaces.
 #
 # Environment:
-#   LOOP_MAX_ITERATIONS  Safety cap on copilot runs (default 50).
+#   LOOP_MAX_ITERATIONS  Safety cap on copilot runs (default 10).
 #   LOOP_COPILOT_ARGS    Extra copilot flags, split on whitespace, for example
 #                        "--allow-tool=write --model <model>". Quotes inside it
 #                        are not interpreted, so pass a value with spaces
@@ -58,7 +58,7 @@ Usage: $_SCRIPT_NAME <plan-file> [interval-minutes] [-- copilot-flag...]
   copilot-flag       Flags for every copilot run, one argument each, so a
                      value can contain spaces.
 
-Environment: LOOP_MAX_ITERATIONS (default 50), LOOP_COPILOT_ARGS
+Environment: LOOP_MAX_ITERATIONS (default 10), LOOP_COPILOT_ARGS
 Example: $_SCRIPT_NAME docs/migration-plan.md 15 -- --add-dir "/work/shared plans"
 EOF
 }
@@ -117,8 +117,10 @@ response with a last line that is exactly the full marker '${_CONTINUE_MARKER}' 
 without the quotes. Once the whole plan is done, end with a last line that is \
 exactly '${_DONE_MARKER}' without the quotes. A script reads that last line and \
 answers Y after each phase, so never shorten or format the marker. If a phase \
-is blocked on something only a person can resolve, explain the blocker and end \
-without either marker."
+needs a choice only a person can make, write it to ${_plan_file}.decisions.md \
+as the skill describes and keep working on phases that do not depend on it. If \
+nothing can proceed without a person, explain why and end without either \
+marker."
 
   printf '\n----- %s | %s loop started -----\n' "$(timestamp)" "$_CLI"
   printf 'Plan file: %s\n' "$_plan_file"
@@ -199,7 +201,7 @@ main() {
   [[ -f $_plan_file && -r $_plan_file ]] || start_error "plan file is not a readable file: $_plan_file"
   _interval=$(to_count "$_interval") ||
     start_error 'interval-minutes must be a whole number from 0 to 99999.'
-  _max_runs=$(to_count "${LOOP_MAX_ITERATIONS:-50}") && (( _max_runs > 0 )) ||
+  _max_runs=$(to_count "${LOOP_MAX_ITERATIONS:-10}") && (( _max_runs > 0 )) ||
     start_error 'LOOP_MAX_ITERATIONS must be a whole number from 1 to 99999.'
   # LOOP_COPILOT_ARGS splits on whitespace; flags after -- keep their
   # boundaries, so they are the way to pass a value with spaces.

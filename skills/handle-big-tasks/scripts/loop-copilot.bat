@@ -18,7 +18,7 @@ rem   loop-copilot.bat docs\migration-plan.md       10 minutes between runs
 rem   loop-copilot.bat docs\migration-plan.md 15    15 minutes between runs
 rem
 rem Environment:
-rem   LOOP_MAX_ITERATIONS  Safety cap on copilot runs (default 50).
+rem   LOOP_MAX_ITERATIONS  Safety cap on copilot runs (default 10).
 rem   LOOP_COPILOT_ARGS    Extra copilot flags, separated by spaces, for
 rem                        example --allow-tool=write. Quote a value that
 rem                        contains spaces; it reaches copilot as one
@@ -109,7 +109,7 @@ call :to_count _INTERVAL 0 || (
   goto :start_error
 )
 set "_MAX_RUNS=%LOOP_MAX_ITERATIONS%"
-if not defined _MAX_RUNS set "_MAX_RUNS=50"
+if not defined _MAX_RUNS set "_MAX_RUNS=10"
 call :to_count _MAX_RUNS 1 || (
   set "_MSG=Error: LOOP_MAX_ITERATIONS must be a whole number from 1 to 99999."
   goto :start_error
@@ -124,7 +124,7 @@ set "_LOG_PATH=%_PLAN_FILE%.loop.log"
   goto :start_error
 )
 
-set "_FIRST_PROMPT=Use the handle-big-tasks skill to carry out the plan in the file %_PLAN_FILE%, one phase per response. While phases remain, end every response with a last line that is exactly the full marker '%_CONTINUE_MARKER%' without the quotes. Once the whole plan is done, end with a last line that is exactly '%_DONE_MARKER%' without the quotes. A script reads that last line and answers Y after each phase, so never shorten or format the marker. If a phase is blocked on something only a person can resolve, explain the blocker and end without either marker."
+set "_FIRST_PROMPT=Use the handle-big-tasks skill to carry out the plan in the file %_PLAN_FILE%, one phase per response. While phases remain, end every response with a last line that is exactly the full marker '%_CONTINUE_MARKER%' without the quotes. Once the whole plan is done, end with a last line that is exactly '%_DONE_MARKER%' without the quotes. A script reads that last line and answers Y after each phase, so never shorten or format the marker. If a phase needs a choice only a person can make, write it to %_PLAN_FILE%.decisions.md as the skill describes and keep working on phases that do not depend on it. If nothing can proceed without a person, explain why and end without either marker."
 
 call :new_uuid
 set "_WORK=%TEMP%\loop-%_CLI%-%_SESSION_ID%"
@@ -281,7 +281,7 @@ echo(
 echo   plan-file          The plan to carry out, one phase per run.
 echo   interval-minutes   Minutes to wait between runs (default 10).
 echo(
-echo Environment: LOOP_MAX_ITERATIONS (default 50), LOOP_COPILOT_ARGS
+echo Environment: LOOP_MAX_ITERATIONS (default 10), LOOP_COPILOT_ARGS
 echo Example: %_SCRIPT_NAME% docs\migration-plan.md 15
 exit /b 0
 

@@ -27,7 +27,7 @@ Do not use this skill for small, self-contained requests that finish cleanly in 
 
 ## End-of-Response Markers
 
-The end of every response is a status signal. One of the following two markers closes each response, unless a phase is blocked on something only a person can resolve (see [Marker Rules](#marker-rules)).
+The end of every response is a status signal. One of the following two markers closes each response, unless the response stops for something only a person can resolve (see [Marker Rules](#marker-rules) and [Decisions That Need More Than Y or N](#decisions-that-need-more-than-y-or-n)).
 
 ### A Phase Is Complete, But the Task Is Not
 
@@ -57,7 +57,7 @@ The loop scripts in the `scripts` folder read the last line of each response to 
 4. **Work one phase per response.** Complete that phase fully. Do not start the next phase in the same response.
 5. **Report what the phase delivered.** Summarize the changes, note anything deferred to a later phase, and report failures honestly.
 6. **Close with the correct marker.** Use `CONTINUE? Y or N` while phases remain, or `TASK COMPLETE!` once the whole task is done.
-7. **Respond to the answer.** On `Y`, continue the current phase if it is incomplete; otherwise begin the next phase. On `N`, stop and leave the remaining work unstarted. Treat any other reply as feedback or a question about the current phase: address it, restate the phase plan if it changed, and close with the correct marker again.
+7. **Respond to the answer.** On `Y`, continue the current phase if it is incomplete; otherwise begin the next phase. On `N`, stop and leave the remaining work unstarted. A reply that answers a pending decision settles it: record the answer in the plan and take up the phases that waited on it. Treat any other reply as feedback or a question about the current phase: address it, restate the phase plan if it changed, and close with the correct marker again.
 
 ## Marker Rules
 
@@ -66,11 +66,51 @@ The loop scripts in the `scripts` folder read the last line of each response to 
 - Use at most one marker per response. Never both.
 - `TASK COMPLETE!` means the whole task is done, not just the current phase.
 - If a phase hit problems that the next run can work through, say so plainly in the summary and still close with `CONTINUE? Y or N`.
-- If a phase is blocked on something only a person can resolve, such as missing credentials or a decision outside the plan, explain the blocker and end the response without a marker. A person reading the session can reply directly, and a loop script stops instead of answering `Y`.
+- If a phase is blocked on something only a person can resolve, such as missing credentials, explain the blocker and end the response without a marker. A person reading the session can reply directly, and a loop script stops instead of answering `Y`. A choice between options follows [Decisions That Need More Than Y or N](#decisions-that-need-more-than-y-or-n) instead, which lets phases that do not depend on the choice continue.
+
+## Decisions That Need More Than Y or N
+
+Some phases reach a choice that only a person should make, such as keeping or removing a feature, or picking between two designs. `Y` cannot answer it, so present it as a short list of options instead of an open question.
+
+- Offer two to four options. Put the recommended option first, label it `(Recommended)`, and allow an Other answer.
+- In an interactive session, ask with the agent's built-in question tool if it has one, and finish the phase with the answer. Without such a tool, list the options in the response and end it without a marker.
+- A loop script cannot answer a choice, and the GitHub Copilot CLI does not offer its question tool in `-p` runs. When a loop script started the run, as its prompt says, write the decision to `<plan-file>.decisions.md` next to the plan file:
+
+  ```markdown
+  ## D1: Keep the legacy export command?
+  Waiting on it: phases 3 and 5. Tick one box or fill in Other.
+  - [ ] KEEP (Recommended): existing scripts keep working
+  - [ ] REMOVE: smaller surface, breaks scripts that call it
+  - [ ] Other:
+  ```
+
+- Keep working on the phases whose result holds for every option, including any reasonable Other answer. Revise the phase plan so those phases come first and the rest are marked as waiting on the decision. Add a note at the top of the plan file that names the decision file, the waiting phases, and the line below. Close the response with `CONTINUE? Y or N` as usual.
+- When only waiting phases remain and the decision has no answer, do no further work. Name the decision file in one sentence, then end the response with this line as plain text and no marker, which a loop script prints as it stops:
+
+  ```text
+  REVISED SCRIPT - Unique user response is required
+  ```
+
+- A `Y` from a loop script never answers a decision. While a decision is pending, read the decision file at the start of every run. Once a box is ticked or Other is filled in, record the answer in the plan, remove the note, and take up the waiting phases in order.
+- Never ask for credentials or other secrets this way. Treat them as a blocker, as described in [Marker Rules](#marker-rules).
 
 ## Loop Scripts
 
 The scripts in the `scripts` folder drive the GitHub Copilot CLI through a plan file and answer `Y` after each phase, so nobody has to wait at the keyboard between runs.
+
+### Loop Scripts or Autopilot
+
+The GitHub Copilot CLI can also run a large task unattended with `copilot --autopilot --max-autopilot-continues <count> -p "<prompt>"`, which keeps sending continuations until the agent judges the task done, a problem stops it, or the cap is reached. Choose by what the run needs:
+
+| Need | Use |
+| --- | --- |
+| One well-defined task with no review points and the fewest moving parts | Autopilot |
+| A stop after every phase at a checked marker, so each phase can be reviewed, tested, or cancelled before the next starts | Loop script |
+| A wait between phases for review, CI, or spreading usage over time | Loop script |
+| An exit code the calling script can branch on (0 complete, 1 stopped early, 2 could not start) and a log for each plan | Loop script |
+| A stop with a resume command when a phase needs a person | Loop script |
+
+### Running a Loop Script
 
 | Script | Shell |
 | --- | --- |
@@ -96,8 +136,10 @@ Each loop:
 
 | Variable | Purpose |
 | --- | --- |
-| `LOOP_MAX_ITERATIONS` | Safety cap on runs (default 50) |
+| `LOOP_MAX_ITERATIONS` | Safety cap on runs (default 10) |
 | `LOOP_COPILOT_ARGS` | Extra copilot flags separated by spaces, for example `--model <model>` or `--allow-tool=write` |
+
+Every run is a full Copilot turn that uses AI credits, whether or not anyone is watching, and the wait between runs does not stop a forgotten loop from spending them. Set `LOOP_MAX_ITERATIONS` to the number of phases plus a small margin. A loop that reaches the cap prints the command that resumes its session.
 
 The bash script splits `LOOP_COPILOT_ARGS` on spaces and does not interpret quotes, so pass a flag whose value contains spaces after `--`, where each argument reaches copilot as given. In CMD, quote the value inside `LOOP_COPILOT_ARGS`:
 
@@ -162,5 +204,6 @@ TASK COMPLETE!
 | Task finished early, before the planned final phase | Close with `TASK COMPLETE!` and explain why the remaining phases were unnecessary. |
 | Another active agent or instruction says never to pause for confirmation | Follow the user's most specific request. If the user asked to work phase by phase, use the markers. Otherwise, skip this skill and keep working. |
 | The session was reset, compacted, or resumed partway through the task | Re-read the phase plan or the document it came from, check the workspace for what already landed, restate the remaining phases, then resume at the next unfinished phase. |
+| A loop script stopped with `REVISED SCRIPT - Unique user response is required` | Open `<plan-file>.decisions.md`, tick one option or fill in Other, then start the loop again or resume the printed session and answer there. |
 | A loop script stopped because the last line was neither marker | Read the last response in `<plan-file>.loop.log`. It usually hit a blocker, wrapped the marker in formatting, or added text after it. Fix the cause, then resume with the printed command or start the loop again. |
 | Every phase reports that a tool was denied | Grant the permissions the plan needs, as described in [Loop Scripts](#loop-scripts), then start the loop again. |
