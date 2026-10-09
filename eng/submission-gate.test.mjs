@@ -214,6 +214,7 @@ const routing = {
     canvas: { team: "github/canvas", reviewers: ["canvasa"], backup: [] },
     plugin: { team: "github/plugin", reviewers: [], backup: [] },
     content: { reviewers: [] },
+    workshops: { team: "github/workshops", reviewers: ["workshopa"], backup: [] },
   },
 };
 
@@ -255,7 +256,11 @@ test("latest review state wins and changes requested blocks", () => {
 });
 
 test("medium tier requires a domain reviewer when the pool is staffed", () => {
-  const permissions = new Map([["alice", "write"], ["canvasa", "write"]]);
+  const permissions = new Map([
+    ["alice", "write"],
+    ["canvasa", "write"],
+    ["workshopa", "write"],
+  ]);
   const files = [file("extensions/x/extension.mjs", { status: "added" })];
   const base = { tier: "medium", tiers, author: "author", permissions, routing, files };
   assert.equal(evaluateApprovals({ ...base, reviews: [review("alice", "APPROVED")] }).satisfied, false);
@@ -269,6 +274,13 @@ test("medium tier requires a domain reviewer when the pool is staffed", () => {
   });
   assert.equal(unstaffed.satisfied, true, "falls back to any writer when the domain pool is empty");
   assert.ok(unstaffed.notes.length > 0);
+
+  const workshop = evaluateApprovals({
+    ...base,
+    files: [file("website/src/content/docs/learning-hub/copilot-workshops/lesson.md", { status: "added" })],
+    reviews: [review("workshopa", "APPROVED")],
+  });
+  assert.equal(workshop.satisfied, true);
 
   const noRouting = evaluateApprovals({ ...base, routing: null, reviews: [review("alice", "APPROVED")] });
   assert.equal(noRouting.satisfied, true);

@@ -36,6 +36,10 @@ jobs:
                 color: '006B75',
                 description: 'PR adds at least one new contribution'
               },
+              'workshops': {
+                color: '7057FF',
+                description: 'PR touches Copilot workshop content'
+              },
               'website-update': {
                 color: '0052CC',
                 description: 'PR touches website content or code'
