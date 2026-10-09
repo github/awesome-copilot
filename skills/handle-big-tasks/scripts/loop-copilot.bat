@@ -20,7 +20,10 @@ rem
 rem Environment:
 rem   LOOP_MAX_ITERATIONS  Safety cap on copilot runs (default 50).
 rem   LOOP_COPILOT_ARGS    Extra copilot flags, separated by spaces, for
-rem                        example --allow-tool=write
+rem                        example --allow-tool=write. Quote a value that
+rem                        contains spaces; it reaches copilot as one
+rem                        argument:
+rem                          set LOOP_COPILOT_ARGS=--add-dir "C:\work\shared plans"
 rem
 rem Exit codes:
 rem   0  The last response ended with TASK COMPLETE!

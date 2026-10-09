@@ -77,7 +77,7 @@ The scripts in the `scripts` folder drive the GitHub Copilot CLI through a plan 
 | [scripts/loop-copilot.sh](scripts/loop-copilot.sh) | bash (Linux, macOS, WSL, Git Bash) |
 | [scripts/loop-copilot.bat](scripts/loop-copilot.bat) | Windows CMD |
 
-Both take the same arguments, `<plan-file> [interval-minutes]`, and run from the project folder Copilot should work in. For a skill installed in the project's `.github/skills` folder:
+Both take `<plan-file> [interval-minutes]` and run from the project folder Copilot should work in. For a skill installed in the project's `.github/skills` folder:
 
 ```bash
 .github/skills/handle-big-tasks/scripts/loop-copilot.sh docs/migration-plan.md 15
@@ -98,6 +98,17 @@ Each loop:
 | --- | --- |
 | `LOOP_MAX_ITERATIONS` | Safety cap on runs (default 50) |
 | `LOOP_COPILOT_ARGS` | Extra copilot flags separated by spaces, for example `--model <model>` or `--allow-tool=write` |
+
+The bash script splits `LOOP_COPILOT_ARGS` on spaces and does not interpret quotes, so pass a flag whose value contains spaces after `--`, where each argument reaches copilot as given. In CMD, quote the value inside `LOOP_COPILOT_ARGS`:
+
+```bash
+.github/skills/handle-big-tasks/scripts/loop-copilot.sh docs/migration-plan.md 15 -- --add-dir "/work/shared plans"
+```
+
+```bat
+set LOOP_COPILOT_ARGS=--add-dir "C:\work\shared plans"
+.github\skills\handle-big-tasks\scripts\loop-copilot.bat docs\migration-plan.md 15
+```
 
 - A run started with `-p` cannot stop for permission prompts. Before starting the loop, approve the project folder once interactively or, in a trusted workspace, add `--allow-all-paths` through `LOOP_COPILOT_ARGS`. Grant required tools with narrow flags such as `--allow-tool=write` and `--allow-tool=shell(git:*)`; reserve `--allow-all`/`--yolo` for trusted, isolated workspaces.
 - Copilot's file-create tool cannot make folders. When a plan writes into a folder that does not exist yet, also allow `--allow-tool=shell(mkdir:*)`, or create the folder before starting the loop.
