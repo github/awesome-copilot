@@ -68,7 +68,8 @@ jobs:
                 /^skills\//
               ],
               plugin: [
-                /^plugins\//
+                /^plugins\//,
+                /^\.github\/plugin\//
               ],
               agent: [
                 /^agents\/.+\.agent\.md$/

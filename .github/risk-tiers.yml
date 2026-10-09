@@ -138,7 +138,7 @@ domains:
     paths: ["extensions/**"]
     pools: ["canvas"]
   plugin:
-    paths: ["plugins/**"]
+    paths: ["plugins/**", ".github/plugin/**"]
     pools: ["plugin"]
   content:
     paths: ["agents/**", "instructions/**", "skills/**", "workflows/**", "hooks/**"]

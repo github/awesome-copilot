@@ -24,3 +24,6 @@
 /website/**/cli-for-beginners/ @github/awesome-copilot-workshop-reviewers
 /website/**/app-for-beginners/ @github/awesome-copilot-workshop-reviewers
 /website/**/copilot-workshops/ @github/awesome-copilot-workshop-reviewers
+
+# Specific allocations
+/.github/plugin/ @github/awesome-copilot-plugin-reviewers
