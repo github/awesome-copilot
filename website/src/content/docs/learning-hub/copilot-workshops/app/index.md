@@ -1,8 +1,8 @@
 ---
-title: "GitHub Copilot app"
+title: "Real-World Development with GitHub Copilot app"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 description: "Practice agent-driven development with the GitHub Copilot app and the Tailspin Toys workshop."
 tags:
   - workshop

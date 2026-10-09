@@ -1,9 +1,9 @@
 ---
-title: "GitHub Copilot app tour"
+title: "First Steps with GitHub Copilot app"
 description: "Take a guided tour of the GitHub Copilot app by building and shipping a Space Quiz."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 tags:
   - workshop
 ---

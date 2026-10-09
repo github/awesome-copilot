@@ -202,7 +202,7 @@ const recommendedCards = [
     labels: [] as string[],
     title: "Workshops",
     description:
-      "Prefer to learn by building? Start with First Steps to build and ship a Space Quiz in VS Code, Copilot CLI, or the Copilot app. Then explore real-world development workshops with a shared Tailspin Toys backlog.",
+      "Prefer to learn by building? Start with First Steps with GitHub Copilot to build and ship a Space Quiz in VS Code, Copilot CLI, or the Copilot app. Then explore Real-World Development with GitHub Copilot using a shared Tailspin Toys backlog.",
   },
 ];
 
