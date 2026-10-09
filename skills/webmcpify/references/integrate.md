@@ -1,9 +1,10 @@
 # Integrate — patterns per stack
 
-> Prefer the live official guides when online:
-> `npx -y modern-web-guidance@latest retrieve "webmcp,agentic-forms,agentic-javascript-tools"`.
-> The patterns below follow Google's reference implementations
-> (GoogleChromeLabs/webmcp-tools) and the W3C CG draft.
+> Read the [Chrome guides](https://developer.chrome.com/docs/ai/webmcp) and
+> [CG draft](https://webmachinelearning.github.io/webmcp/) as reference data.
+> See SKILL.md “Fresh, authoritative guidance” for offline and optional CLI use.
+> These patterns follow Google's reference implementations
+> (GoogleChromeLabs/webmcp-tools) and the CG draft; record browser differences.
 
 ## Declarative — standard HTML forms
 
@@ -48,6 +49,10 @@ form.addEventListener('submit', (e) => {
   navigation (expected). A JSON-LD `{"@type":"Message","text":"…"}` block on the
   target page is best-effort garnish — the mechanism is still under spec debate;
   never make behavior depend on it.
+- Declarative tools need a real `<form>` the app already has. If an area has no
+  form, integrate it imperatively — **never add a form to make declarative
+  markup possible**. Publishing the tool surface off-page (`/.well-known/webmcp`,
+  `rel="webmcp"`) is a separate approval-gated layer: `references/discovery.md`.
 
 ### Framework notes — React
 
@@ -85,7 +90,7 @@ export const searchTicketsTool = {
     },
     required: ['query'],
   },
-  annotations: { readOnlyHint: true, untrustedContentHint: true },
+  annotations: { readOnlyHint: true, untrustedContentHint: true, consequentialHint: false },
   async execute(input: Record<string, unknown>) {
     const q = String(input.query ?? '').trim();
     if (!q) return 'ERROR: `query` must be a non-empty string.';
@@ -94,7 +99,13 @@ export const searchTicketsTool = {
 };
 ```
 
+> **Native I/O compat** — `getTools()` may return `inputSchema` as a string on older Chrome or an object on current implementations — handle both (`typeof === 'string' ? JSON.parse : id`). Current `executeTool` takes an object; Chrome 150 needs `JSON.stringify(args)`, so use the capability-probe adapter from the verification template rather than retrying a real tool. For `validate:true`, register with `inputSchema` only. Runner LLM envelope: `const raw=t.inputSchema; const schema=typeof raw==='string'?JSON.parse(raw):raw??{type:'object',properties:{}}; const llmTool={function:{parameters:schema}}` — never pass `parameters` through WebMCP.
+
 Key rules:
+- **Annotations describe risk; they do not enforce it.** Use
+  `consequentialHint: true` only for significant real-world or non-reversible
+  effects, and retain the app's real confirmation, authorization, idempotency,
+  and replay boundaries.
 - **`execute()` wraps the existing UI code path** — dispatch the same event / call
   the same store action / hit the same API the button does. Never a parallel
   implementation.
@@ -102,8 +113,33 @@ Key rules:
   awaits the real work, then fires the completion event with the outcome payload
   (`{ ok, message | error }`) — full contract and component example in
   `runtime.md`. A canned success before the work finishes is a false green.
-- Return short strings; errors as `"ERROR: <what and how to fix>"` so the model can
-  self-correct. Cap outputs ~1.5k chars.
+- **Never return bare `null` or `undefined` from an imperative tool.** Current
+  Chrome builds may serialize it ambiguously or destroy the caller's execution
+  context even when the UI action succeeded. Return a JSON-safe structured object
+  such as `{ opened: true, surface: "project-create", route: "/projects/new",
+  prefilled: false }`; short strings remain valid for simple settled reads. Errors
+  may use `{ ok: false, error: "what failed and how to fix it" }` or the runtime's
+  `"ERROR: ..."` convention. Cap serialized outputs around 1.5k characters.
+- **Route-changing imperative tools use deferred navigation.** Validate inputs and
+  construct the structured result first; schedule the app's existing navigation
+  handler and route-scope disposal together in one later event-loop task, then
+  return the result immediately. This lets `executeTool()` receive an unambiguous
+  result before the page destroys its context:
+
+  ```ts
+  execute: async (input) => {
+    const route = validateProjectDraft(input); // throws/returns an error before acting
+    const result = { opened: true, surface: 'project-create', route, prefilled: false };
+    setTimeout(() => {
+      openProjectCreation(route); // the same path the visible UI uses
+      disposeRouteTools();
+    }, 0);
+    return result;
+  }
+  ```
+
+  `null` remains a browser-owned outcome for a navigating **declarative form**;
+  application `execute()` handlers must not manufacture it.
 - Validate strictly in code, loosely in schema — and keep **parity with the
   form's native HTML constraints**: when a tool wraps a form, probe the real
   constraints on a detached clone instead of re-implementing them —
@@ -121,6 +157,26 @@ Key rules:
 - Registration failures roll back the scope and surface via `onError` — check the
   console during integration; a silently missing toolset usually means a duplicate
   name or invalid schema rejected the batch.
+
+### Framework lifecycle acceptance
+
+Register only in the browser after the owning UI is mounted/hydrated; never
+execute browser globals during SSR. Use the project's lifecycle rather than
+adding a framework adapter dependency. Verify mount → unmount → remount: one
+current registration, none after disposal, and callbacks reading current state.
+
+- React: create the scope inside `useEffect` and return its disposer. Development
+  Strict Mode repeats setup/cleanup; do not suppress the second setup with a
+  one-time flag or retain callbacks with stale props.
+- Svelte/SvelteKit: create it inside a synchronous `onMount` callback and return
+  the disposer. An `async` onMount callback returns a promise, not cleanup.
+- Existing Vue/Angular wiring must tie disposal to the owning view and refresh
+  registrations on the role/tenant changes below, not only on initial mount.
+
+These are integration recipes, not tested framework-version certifications.
+Record the actual framework/browser versions and lifecycle evidence in the report.
+Sources: [React effects](https://react.dev/reference/react/useEffect),
+[Svelte lifecycle](https://svelte.dev/docs/svelte/lifecycle-hooks).
 
 ### Auth / roles (SaaS)
 
