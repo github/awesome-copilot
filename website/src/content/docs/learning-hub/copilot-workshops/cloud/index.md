@@ -1,8 +1,8 @@
 ---
-title: "Copilot cloud agent"
+title: "Real-World Development with GitHub Copilot cloud agent"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-08
 ---
 
 **[GitHub Copilot cloud agent](https://docs.github.com/copilot/concepts/agents/cloud-agent/about-cloud-agent)** lets GitHub Copilot work asynchronously in the cloud. You assign work on GitHub, and the cloud agent picks it up in the background — exploring the repository, making changes, and opening a pull request — while you stay free to do other things.
