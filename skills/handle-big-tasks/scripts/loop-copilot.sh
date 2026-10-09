@@ -102,12 +102,6 @@ run_loop() {
   local _session_id _status _last _first_prompt _run=0
 
   _session_id=$(new_uuid)
-  _response_file=$(mktemp) || {
-    printf 'Error: could not create a temporary file.\n'
-    return 1
-  }
-  trap 'rm -f -- "$_response_file"' EXIT
-
   _first_prompt="Use the handle-big-tasks skill to carry out the plan in the \
 file ${_plan_file}, one phase per response. While phases remain, end every \
 response with a last line that is exactly the full marker '${_CONTINUE_MARKER}' \
@@ -184,6 +178,11 @@ main() {
 
   _log_file=$_plan_file.loop.log
   { : >> "$_log_file"; } 2> /dev/null || start_error "cannot write the log file: $_log_file"
+
+  # The trap lives here, not in run_loop: bash 5.1 lets an EXIT trap set in
+  # a piped subshell replace that subshell's exit status with the trap's own.
+  _response_file=$(mktemp) || start_error 'could not create a temporary file.'
+  trap 'rm -f -- "$_response_file"' EXIT
 
   run_loop 2>&1 | tee -a "$_log_file"
   exit "${PIPESTATUS[0]}"

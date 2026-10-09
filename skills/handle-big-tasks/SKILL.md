@@ -100,6 +100,7 @@ Each loop:
 | `LOOP_COPILOT_ARGS` | Extra copilot flags separated by spaces, for example `--model <model>` or `--allow-tool=write` |
 
 - A run started with `-p` cannot stop for permission prompts. Before starting the loop, approve the project folder once interactively or, in a trusted workspace, add `--allow-all-paths` through `LOOP_COPILOT_ARGS`. Grant required tools with narrow flags such as `--allow-tool=write` and `--allow-tool=shell(git:*)`; reserve `--allow-all`/`--yolo` for trusted, isolated workspaces.
+- Copilot's file-create tool cannot make folders. When a plan writes into a folder that does not exist yet, also allow `--allow-tool=shell(mkdir:*)`, or create the folder before starting the loop.
 - Keep the plan file inside the project folder, or add its folder with `--add-dir`, so the agent can read it.
 - The scripts pin the session ID instead of using `--continue`, which resumes the most recent Copilot CLI session wherever it was started.
 
