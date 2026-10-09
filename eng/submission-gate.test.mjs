@@ -11,6 +11,7 @@ import {
   classifyRisk,
   computeState,
   evaluateApprovals,
+  gateConclusion,
   evaluateCheck,
   evaluateSubmission,
   globToRegExp,
@@ -286,17 +287,25 @@ test("medium tier requires a domain reviewer when the pool is staffed", () => {
   assert.equal(noRouting.satisfied, true);
 });
 
-test("high tier requires two approvals including a core maintainer", () => {
+test("high tier requires one approval from a core maintainer", () => {
   const permissions = new Map([["alice", "write"], ["bob", "write"], ["corea", "write"], ["admin1", "admin"]]);
   const files = [file(".github/workflows/x.yml")];
   const base = { tier: "high", tiers, author: "author", permissions, routing, files };
-  assert.equal(evaluateApprovals({ ...base, reviews: [review("corea", "APPROVED")] }).satisfied, false);
+  assert.equal(evaluateApprovals({ ...base, reviews: [review("corea", "APPROVED")] }).satisfied, true);
   assert.equal(evaluateApprovals({ ...base, reviews: [review("alice", "APPROVED"), review("bob", "APPROVED")] }).satisfied, false);
-  assert.equal(evaluateApprovals({ ...base, reviews: [review("alice", "APPROVED"), review("corea", "APPROVED")] }).satisfied, true);
 
   const fallback = { ...base, routing: null };
-  assert.equal(evaluateApprovals({ ...fallback, reviews: [review("alice", "APPROVED"), review("bob", "APPROVED")] }).satisfied, false);
-  assert.equal(evaluateApprovals({ ...fallback, reviews: [review("alice", "APPROVED"), review("admin1", "APPROVED")] }).satisfied, true);
+  assert.equal(evaluateApprovals({ ...fallback, reviews: [review("alice", "APPROVED")] }).satisfied, false);
+  assert.equal(evaluateApprovals({ ...fallback, reviews: [review("admin1", "APPROVED")] }).satisfied, true);
+});
+
+test("gateConclusion reports a PR that only awaits review as action_required", () => {
+  const clean = { contributionFailures: [], infrastructureFailures: [], pending: [] };
+  const waiting = { satisfied: false, changesRequestedBy: [] };
+  assert.equal(gateConclusion({ passed: true, automation: clean, approvals: { satisfied: true, changesRequestedBy: [] } }), "success");
+  assert.equal(gateConclusion({ passed: false, automation: clean, approvals: waiting }), "action_required");
+  assert.equal(gateConclusion({ passed: false, automation: clean, approvals: { ...waiting, changesRequestedBy: ["bob"] } }), "failure");
+  assert.equal(gateConclusion({ passed: false, automation: { ...clean, contributionFailures: [{}] }, approvals: waiting }), "failure");
 });
 
 // --- checks -------------------------------------------------------------------
@@ -916,7 +925,7 @@ test("publishGateCheck corrects copies of the writer's check that claim success 
   await publishGateCheck(github, { owner: "github", repo: "awesome-copilot", evaluation, log: (line) => logs.push(line) });
   const updates = github.calls.filter((call) => call.name === "checks.update");
   assert.deepEqual(updates.map((call) => call.params.check_run_id), [11]);
-  assert.equal(updates[0].params.conclusion, "failure");
+  assert.equal(updates[0].params.conclusion, "action_required");
   assert.ok(logs.some((line) => /Correcting 1/.test(line)));
 });
 
