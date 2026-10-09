@@ -3,7 +3,7 @@ title: "第 0 课 - 先决条件与设置"
 description: "确认研讨会的先决条件，验证 VS Code 中的 Copilot Chat，添加 GitHub Pull Requests and Issues 扩展，并选择模型。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 让 Copilot 进入编辑器。VS Code 自带 Copilot，因此无需为聊天功能额外安装软件。添加 GitHub 扩展，然后打开空文件夹。
@@ -23,6 +23,9 @@ lastUpdated: 2026-10-05
 - 有效的 Copilot 计划。[启用 Copilot Free 或付费 Copilot 计划][copilot-plans]。如果组织已提供 Copilot 访问权限，使用对应账户。
 - [Visual Studio Code][vscode]。
 - 已安装 [Git][git]。在终端中运行 `git --version` 验证。
+
+> [!IMPORTANT]
+> Copilot Free 不包含针对拉取请求的 Copilot 代码审查。[第 8 课][review-lesson]中的审查请求需要 [Copilot 代码审查访问权限][code-review]。如果没有访问权限，按照该课的手动审查替代方案操作。
 
 ## 设置 VS Code
 
@@ -51,4 +54,6 @@ VS Code 已准备就绪，具备 Copilot Chat、GitHub 扩展和空的 `space-qu
 [git]: https://git-scm.com/downloads
 [pr-extension]: https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github
 [active-models]: https://docs.github.com/copilot/reference/copilot-billing/models-and-pricing
+[review-lesson]: /zh-cn/learning-hub/copilot-workshops/first-steps/vscode/8-review-and-merge/
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /zh-cn/learning-hub/copilot-workshops/first-steps/vscode/1-build-and-polish/

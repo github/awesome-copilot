@@ -3,7 +3,7 @@ title: "レッスン 0 - 前提条件とセットアップ"
 description: "ワークショップの前提条件を確認し、GitHub Copilot app をインストールして、そのワークスペースに慣れます。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Space Quiz を構築する前に、必要なものが揃っていることを確認し、GitHub Copilot app をインストールして、そのワークスペースに慣れます。
@@ -23,6 +23,9 @@ Space Quiz を構築する前に、必要なものが揃っていることを確
 - GitHub アカウント。[GitHub アカウントを作成する][github-signup]か、既存のアカウントを使用します。
 - 有効な Copilot プラン。[Copilot Free または有料の Copilot プランを有効にします][copilot-plans]。組織からすでに Copilot へのアクセスが提供されている場合は、そのアカウントを使用します。
 - macOS、Windows、Linux のいずれかを搭載したコンピューター。
+
+> [!IMPORTANT]
+> Copilot Free には、プルリクエスト向けの Copilot コードレビューは含まれません。[レッスン 8][review-lesson]でレビューを依頼するには、[Copilot コードレビューへのアクセス][code-review]が必要です。アクセスできない場合は、そのレッスンにある手動レビューの手順に従います。
 
 アプリには Git が同梱されているため、ほかにインストールするものはありません。
 
@@ -75,4 +78,6 @@ How does the GitHub Copilot app use worktrees?
 [copilot-plans]: https://github.com/features/copilot/plans
 [download-app]: https://gh.io/app
 [active-models]: https://docs.github.com/copilot/reference/copilot-billing/models-and-pricing
+[review-lesson]: /ja-jp/learning-hub/copilot-workshops/first-steps/copilot-app/8-review-loop/
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /ja-jp/learning-hub/copilot-workshops/first-steps/copilot-app/1-create-workspace/

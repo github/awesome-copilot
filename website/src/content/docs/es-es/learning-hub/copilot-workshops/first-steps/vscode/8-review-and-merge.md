@@ -3,7 +3,7 @@ title: "Lección 8 - Revisar y combinar"
 description: "Crea una solicitud de incorporación de cambios desde Source Control, solicita una revisión de código de Copilot, atiende los comentarios con las herramientas de GitHub y combínala."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Inspecciona, revisa y combina el nuevo trabajo con las herramientas de GitHub en VS Code.
@@ -16,6 +16,11 @@ En esta lección:
 - combinarás la solicitud de incorporación de cambios.
 
 ## Inspecciona, revisa y combina
+
+> [!IMPORTANT]
+> Copilot Free no incluye la revisión de código de Copilot para solicitudes de incorporación de cambios. Utiliza Copilot Student o un plan de pago de Copilot que incluya la revisión de código. Una organización también puede habilitar la revisión de código de pago en GitHub.com para miembros sin una licencia de Copilot, pero esto no concede acceso a la revisión de código en los IDE. Consulta la [disponibilidad de la revisión de código de Copilot][code-review].
+>
+> Si no tienes acceso, omite la solicitud de revisión de Copilot del paso 4. Revisa las diferencias tú mismo o pide a un compañero que las revise y continúa con los pasos restantes, atendiendo los comentarios de los revisores humanos y volviendo a probar antes de combinar.
 
 1. Abre **Source Control** para inspeccionar los archivos modificados y las diferencias antes de crear nada.
 2. Crea un commit con el nuevo trabajo utilizando de nuevo el botón **sparkle** para escribir el mensaje.
@@ -32,4 +37,5 @@ En esta lección:
 
 Has revisado y combinado una solicitud de incorporación de cambios sin salir de VS Code. Continúa con la [lección 9: Entregar la siguiente idea a una sesión en la nube][next-lesson].
 
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /es-es/learning-hub/copilot-workshops/first-steps/vscode/9-cloud-session/

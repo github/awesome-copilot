@@ -3,7 +3,7 @@ title: "Lección 0 - Requisitos previos y configuración"
 description: "Comprueba los requisitos previos del taller, instala la aplicación GitHub Copilot y familiarízate con su área de trabajo."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Antes de crear el Space Quiz, confirma que tienes lo necesario, instala la aplicación GitHub Copilot y familiarízate con su área de trabajo.
@@ -23,6 +23,9 @@ Necesitas:
 - una cuenta de GitHub. [Crea una cuenta de GitHub][github-signup] o utiliza tu cuenta existente.
 - un plan activo de Copilot. [Activa Copilot Free o un plan de pago de Copilot][copilot-plans]. Si tu organización ya te proporciona acceso a Copilot, utiliza esa cuenta.
 - un ordenador con macOS, Windows o Linux.
+
+> [!IMPORTANT]
+> Copilot Free no incluye la revisión de código de Copilot para solicitudes de incorporación de cambios. La solicitud de revisión de la [lección 8][review-lesson] requiere [acceso a la revisión de código de Copilot][code-review]. Si no tienes acceso, sigue la alternativa de revisión manual de esa lección.
 
 La aplicación incluye Git, así que no hay nada más que instalar.
 
@@ -75,4 +78,6 @@ Has comprobado los requisitos previos, instalado la aplicación, elegido un mode
 [copilot-plans]: https://github.com/features/copilot/plans
 [download-app]: https://gh.io/app
 [active-models]: https://docs.github.com/copilot/reference/copilot-billing/models-and-pricing
+[review-lesson]: /es-es/learning-hub/copilot-workshops/first-steps/copilot-app/8-review-loop/
+[code-review]: https://docs.github.com/copilot/concepts/agents/code-review
 [next-lesson]: /es-es/learning-hub/copilot-workshops/first-steps/copilot-app/1-create-workspace/

@@ -3,7 +3,7 @@ title: "Lección 2 - Recoger las instrucciones del proyecto"
 description: "Ejecuta /init en Copilot Chat para generar .github/copilot-instructions.md para Space Quiz y adáptalo."
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-10-05
+lastUpdated: 2026-10-08
 ---
 
 Con un cuestionario funcional en el área de trabajo, genera instrucciones personalizadas del repositorio que describan el proyecto real. Copilot lee estas instrucciones con cada solicitud de chat.
@@ -16,7 +16,7 @@ En esta lección:
 
 ## Recoge las reglas con `/init`
 
-1. Ejecuta `/init` en Copilot Chat.
+1. Ejecuta `/init create simple rules for the project` en Copilot Chat.
 2. Revisa el archivo `.github/copilot-instructions.md` generado antes de guardarlo.
 3. Conserva solo las directrices que correspondan a este proyecto: un único archivo, sin dependencias, accesible y probado en el explorador.
 
