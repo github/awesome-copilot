@@ -23,8 +23,9 @@
 #
 # Exit codes:
 #   0  The last response ended with TASK COMPLETE!
-#   1  Stopped early: copilot failed, a response ended without a marker, or
-#      the safety cap was reached.
+#   1  Stopped early: copilot failed, a response ended without a marker, a
+#      response could not be saved to a temporary file, or the safety cap
+#      was reached. Also used when output could not be written to the log.
 #   2  Could not start: bad arguments, a missing plan file, or no copilot
 #      command on PATH.
 
@@ -99,7 +100,7 @@ resume_hint() {
 }
 
 run_loop() {
-  local _session_id _status _last _first_prompt _run=0
+  local _session_id _statuses _last _first_prompt _run=0
 
   _session_id=$(new_uuid)
   _first_prompt="Use the handle-big-tasks skill to carry out the plan in the \
@@ -127,10 +128,17 @@ without either marker."
       "$_CLI" -p Y --resume="$_session_id" -s --no-color \
         ${_extra_args[@]+"${_extra_args[@]}"} < /dev/null | tee "$_response_file"
     fi
-    _status=${PIPESTATUS[0]}
+    # Keep tee's status too: a failed write leaves the response file
+    # incomplete, and its last line must not decide what happens next.
+    _statuses=("${PIPESTATUS[@]}")
 
-    if (( _status != 0 )); then
-      printf '\nStopping: %s exited with status %d.\n' "$_CLI" "$_status"
+    if (( _statuses[0] != 0 )); then
+      printf '\nStopping: %s exited with status %d.\n' "$_CLI" "${_statuses[0]}"
+      resume_hint "$_session_id"
+      return 1
+    fi
+    if (( _statuses[1] != 0 )); then
+      printf '\nStopping: could not save the response to %s\n' "$_response_file"
       resume_hint "$_session_id"
       return 1
     fi
@@ -160,6 +168,8 @@ without either marker."
 }
 
 main() {
+  local _statuses
+
   case ${1:-} in
     '') start_error 'missing plan file.' ;;
     -h | --help) usage; exit 0 ;;
@@ -185,7 +195,12 @@ main() {
   trap 'rm -f -- "$_response_file"' EXIT
 
   run_loop 2>&1 | tee -a "$_log_file"
-  exit "${PIPESTATUS[0]}"
+  _statuses=("${PIPESTATUS[@]}")
+  if (( _statuses[1] != 0 )); then
+    printf 'Error: could not write all output to the log file: %s\n' "$_log_file" >&2
+    (( _statuses[0] != 0 )) || exit 1
+  fi
+  exit "${_statuses[0]}"
 }
 
 main "$@"

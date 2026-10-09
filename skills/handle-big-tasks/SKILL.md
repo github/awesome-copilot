@@ -91,7 +91,7 @@ Each loop:
 
 1. Starts a new session with a fixed session ID and a prompt that names the plan file and asks for this skill and its markers.
 2. When a response ends with `CONTINUE? Y or N`, waits the interval (default 10 minutes), then answers `Y` in the same session.
-3. Exits with code 0 when a response ends with `TASK COMPLETE!`. Exits with code 1 when copilot fails, a response ends without a marker, or the safety cap of runs is reached. Exits with code 2 when it cannot start.
+3. Exits with code 0 when a response ends with `TASK COMPLETE!`. Exits with code 1 when copilot fails, a response ends without a marker, the log or a temporary file cannot be written, or the safety cap of runs is reached. Exits with code 2 when it cannot start.
 4. Prints each response and appends everything, with a timestamped separator for each run, to `<plan-file>.loop.log` next to the plan file. When it stops early, it prints the `copilot --resume` command that picks the session up by hand.
 
 | Variable | Purpose |

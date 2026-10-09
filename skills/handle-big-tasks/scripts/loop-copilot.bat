@@ -25,7 +25,8 @@ rem
 rem Exit codes:
 rem   0  The last response ended with TASK COMPLETE!
 rem   1  Stopped early: copilot failed, a response ended without a marker,
-rem      or the safety cap was reached.
+rem      the log or a temporary file could not be written, or the safety cap
+rem      was reached.
 rem   2  Could not start: bad arguments, a missing plan file, or no copilot
 rem      command on PATH.
 rem
@@ -42,23 +43,31 @@ set "_SYS32=%SystemRoot%\System32"
 set "_SCRIPT_NAME=%~nx0"
 set "_EXIT_CODE=1"
 set "_LOG_FILE="
+set "_LOG_FAILED="
 set "_WORK="
 set "_OLD_CP="
 
 rem CMD finds goto and call labels by scanning this file, and the scan goes
 rem wrong when the file has LF line endings, as raw downloads of it do. So
-rem before any label is used, write a copy with CRLF line endings and, when
-rem it differs in size, run the copy instead. _LOOP_COPILOT_CRLF passes this
+rem before any label is used, write a copy with CRLF line endings, and run
+rem the copy instead when it is exactly one byte per line larger, which also
+rem rules out a copy cut short by a full disk. _LOOP_COPILOT_CRLF passes this
 rem script's name to the copy and keeps the copy from doing the same.
 if defined _LOOP_COPILOT_CRLF set "_SCRIPT_NAME=%_LOOP_COPILOT_CRLF%"
 set "_CRLF_COPY=%TEMP%\loop-%_CLI%-crlf-%RANDOM%%TIME:~-2%.bat"
 set "_RUN_CRLF_COPY="
+set "_SELF_SIZE="
+set "_SELF_LINES="
+set "_COPY_SIZE="
+set "_CRLF_SIZE="
 if not defined _LOOP_COPILOT_CRLF (
   type "%~f0" | "%_SYS32%\find.exe" /v "" > "%_CRLF_COPY%" 2>nul
-  for %%F in ("%~f0") do for %%C in ("%_CRLF_COPY%") do (
-    if exist %%C if not "%%~zC"=="%%~zF" set "_RUN_CRLF_COPY=1"
-  )
+  for %%F in ("%~f0") do set "_SELF_SIZE=%%~zF"
+  for %%C in ("%_CRLF_COPY%") do set "_COPY_SIZE=%%~zC"
+  for /f %%N in ('type "%~f0" ^| "%_SYS32%\find.exe" /c /v ""') do set "_SELF_LINES=%%N"
 )
+if defined _SELF_LINES set /a "_CRLF_SIZE=_SELF_SIZE + _SELF_LINES"
+if defined _CRLF_SIZE if "%_COPY_SIZE%"=="%_CRLF_SIZE%" set "_RUN_CRLF_COPY=1"
 set "_LOOP_COPILOT_CRLF="
 if defined _RUN_CRLF_COPY set "_LOOP_COPILOT_CRLF=%_SCRIPT_NAME%"
 if defined _RUN_CRLF_COPY call "%_CRLF_COPY%" %*
@@ -140,6 +149,11 @@ set "_MSG="
 call :say
 set "_MSG=----- %DATE% %TIME% | run %_RUN% of %_MAX_RUNS% -----"
 call :say
+if defined _LOG_FAILED goto :stop_hint
+rem Clear the last run's files first. A redirect that fails leaves ERRORLEVEL
+rem at 0 and the old file in place, which would be read as this run's.
+del /f /q "%_WORK%.out.txt" "%_WORK%.err.txt" "%_WORK%.last.txt" >nul 2>&1
+for %%E in (out err last) do if exist "%_WORK%.%%E.txt" goto :stop_temp_failed
 rem Branch with goto, not a ( ) block, so parentheses in LOOP_COPILOT_ARGS,
 rem such as --allow-tool=shell(git:*), cannot end the block early. The CLI
 rem is an npm .cmd shim, so it must be started with call to return here.
@@ -150,13 +164,16 @@ goto :show_run
 call "%_CLI%" -p Y --resume=%_SESSION_ID% -s --no-color %LOOP_COPILOT_ARGS% < nul > "%_WORK%.out.txt" 2> "%_WORK%.err.txt"
 :show_run
 set "_CLI_STATUS=%ERRORLEVEL%"
+for %%E in (out err) do if not exist "%_WORK%.%%E.txt" goto :stop_temp_failed
+rem TYPE reports a failed write, so || catches a log that cannot be written.
 type "%_WORK%.out.txt"
->> "%_LOG_FILE%" type "%_WORK%.out.txt"
+(>> "%_LOG_FILE%" type "%_WORK%.out.txt") 2>nul || set "_LOG_FAILED=1"
 for %%F in ("%_WORK%.err.txt") do if %%~zF gtr 0 (
   type "%_WORK%.err.txt"
-  >> "%_LOG_FILE%" type "%_WORK%.err.txt"
+  (>> "%_LOG_FILE%" type "%_WORK%.err.txt") 2>nul || set "_LOG_FAILED=1"
 )
 if not "%_CLI_STATUS%"=="0" goto :stop_cli_failed
+if defined _LOG_FAILED goto :stop_hint
 
 rem Keep the last non-blank line. Delayed expansion stays off here so any
 rem ! in the response survives, and the line is only ever expanded with
@@ -164,8 +181,14 @@ rem !_LAST_LINE!, never %%_LAST_LINE%%, so its characters are never parsed.
 set "_LAST_LINE="
 for /f usebackq^ tokens^=*^ eol^= %%L in ("%_WORK%.out.txt") do set "_LAST_LINE=%%L"
 setlocal EnableDelayedExpansion
-> "!_WORK!.last.txt" echo(!_LAST_LINE!
+(> "!_WORK!.last.txt" echo(!_LAST_LINE!) 2>nul
 endlocal
+rem ECHO writes at least a line break, so an empty or missing file means the
+rem write failed.
+set "_LAST_SIZE="
+for %%F in ("%_WORK%.last.txt") do set "_LAST_SIZE=%%~zF"
+if "%_LAST_SIZE%"=="" goto :stop_temp_failed
+if "%_LAST_SIZE%"=="0" goto :stop_temp_failed
 "%_SYS32%\findstr.exe" /r /x /c:"%_DONE_MARKER% *" "%_WORK%.last.txt" >nul && goto :task_complete
 "%_SYS32%\findstr.exe" /r /x /c:"%_CONTINUE_MARKER% *" "%_WORK%.last.txt" >nul && goto :phase_complete
 goto :stop_no_marker
@@ -177,6 +200,7 @@ set "_MSG="
 call :say
 set "_MSG=Phase complete. Waiting %_INTERVAL% minute(s) before run %_NEXT_RUN%. Press Ctrl+C to stop."
 call :say
+if defined _LOG_FAILED goto :stop_hint
 call :wait_minutes
 goto :next_run
 
@@ -185,6 +209,7 @@ set "_MSG="
 call :say
 set "_MSG=Task complete after %_RUN% run(s)."
 call :say
+if defined _LOG_FAILED goto :stop_hint
 set "_EXIT_CODE=0"
 goto :finish
 
@@ -204,7 +229,14 @@ setlocal EnableDelayedExpansion
 set "_MSG=Last line: !_LAST_LINE!"
 if not defined _LAST_LINE set "_MSG=Last line: (blank)"
 call :say
-endlocal
+endlocal & set "_LOG_FAILED=%_LOG_FAILED%"
+goto :stop_hint
+
+:stop_temp_failed
+set "_MSG="
+call :say
+set "_MSG=Stopping: could not write the temporary files %_WORK%.*.txt"
+call :say
 goto :stop_hint
 
 :stop_cap
@@ -216,6 +248,10 @@ call :say
 :stop_hint
 set "_MSG=Resume the session by hand with: %_CLI% --resume=%_SESSION_ID%"
 call :say
+if defined _LOG_FAILED (
+  set "_MSG=Error: could not write the log file: %_LOG_FILE%"
+  call :say_error
+)
 
 :finish
 if defined _WORK del /q "%_WORK%.out.txt" "%_WORK%.err.txt" "%_WORK%.last.txt" >nul 2>&1
@@ -247,10 +283,23 @@ echo Example: %_SCRIPT_NAME% docs\migration-plan.md 15
 exit /b 0
 
 :say
-rem Prints _MSG and appends it to the log once logging has started.
+rem Prints _MSG and appends it to the log once logging has started. ECHO
+rem reports success even when a write fails, so the log must grow, or :say
+rem sets _LOG_FAILED and exits 1.
 setlocal EnableDelayedExpansion
 echo(!_MSG!
-if defined _LOG_FILE (>> "!_LOG_FILE!" echo(!_MSG!)
+if not defined _LOG_FILE (
+  endlocal
+  exit /b 0
+)
+set "_SIZE="
+for %%L in ("!_LOG_FILE!") do set "_SIZE=%%~zL"
+(>> "!_LOG_FILE!" echo(!_MSG!) 2>nul
+for %%L in ("!_LOG_FILE!") do if "%%~zL"=="!_SIZE!" (
+  endlocal
+  set "_LOG_FAILED=1"
+  exit /b 1
+)
 endlocal
 exit /b 0
 
