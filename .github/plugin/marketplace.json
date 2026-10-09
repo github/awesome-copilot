@@ -1298,8 +1298,8 @@
     {
       "name": "java-mcp-development",
       "source": "plugins/java-mcp-development",
-      "description": "Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration.",
-      "version": "1.0.0"
+      "description": "Build Model Context Protocol (MCP) servers in Java with the official MCP Java SDK 2.x. Includes a skill that generates a server project and an expert agent for guidance.",
+      "version": "2.0.0"
     },
     {
       "name": "java-modernization-studio",
