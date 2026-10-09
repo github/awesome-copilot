@@ -1861,11 +1861,11 @@
     {
       "name": "remotion",
       "description": "Make videos agentically.",
-      "version": "4.0.519",
+      "version": "4.0.534",
       "author": {
         "name": "Jonny Burger"
       },
-      "repository": "https://github.com/remotion-dev/agent-plugin",
+      "repository": "https://github.com/remotion-dev/cursor-plugin",
       "homepage": "https://remotion.dev/plugins",
       "license": "Remotion License",
       "keywords": [
@@ -1874,8 +1874,8 @@
       ],
       "source": {
         "source": "github",
-        "repo": "remotion-dev/agent-plugin",
-        "sha": "ef892905120340970357997f20bcb8ce9bb341da"
+        "repo": "remotion-dev/cursor-plugin",
+        "sha": "5cbbd94b74dd950aefb1505ec4a37b793a4b8778"
       }
     },
     {
