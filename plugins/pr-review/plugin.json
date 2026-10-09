@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pr-review",
+  "description": "Review GitHub pull requests in a read-only canvas with AI-grouped changes, expandable diffs, and questions scoped to groups, files, or hunks.",
+  "version": "1.0.0",
+  "keywords": [
+    "canvas",
+    "code-review",
+    "copilot-extension",
+    "pull-request",
+    "pull-request-review"
+  ],
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "extensions": {
+    "com.github.copilot": {
+      "logo": "assets/preview.png"
+    }
+  }
+}
