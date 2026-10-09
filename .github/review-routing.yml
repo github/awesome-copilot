@@ -52,10 +52,16 @@ pools:
     team: github/awesome-copilot-content-reviewers
     reviewers: [] # TODO: add at least three reviewers for skills, agents, and instructions.
     backup: [] # TODO: add backup content reviewers.
+  workshops:
+    team: github/awesome-copilot-workshop-reviewers
+    reviewers: [] # TODO: add at least three workshop reviewers.
+    backup: [] # TODO: add backup workshop reviewers.
 
 # Intent labels (applied by .github/workflows/label-pr-intent*.yml) mapped to
 # pools. Order is priority: the first route whose label is on the PR wins.
 routes:
+  - label: workshops
+    pool: workshops
   - label: canvas-extension
     pool: canvas
   - label: external-plugin
