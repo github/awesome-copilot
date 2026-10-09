@@ -29,8 +29,9 @@ rem      or the safety cap was reached.
 rem   2  Could not start: bad arguments, a missing plan file, or no copilot
 rem      command on PATH.
 rem
-rem Uses only CMD built-ins and System32 tools (findstr, timeout, where),
-rem called by full path so Unix ports earlier on PATH cannot shadow them.
+rem Uses only CMD built-ins and System32 tools (find, findstr, timeout,
+rem where), called by full path so Unix ports earlier on PATH cannot shadow
+rem them.
 rem ==========================================================================
 setlocal EnableExtensions DisableDelayedExpansion
 
@@ -43,6 +44,30 @@ set "_EXIT_CODE=1"
 set "_LOG_FILE="
 set "_WORK="
 set "_OLD_CP="
+
+rem CMD finds goto and call labels by scanning this file, and the scan goes
+rem wrong when the file has LF line endings, as raw downloads of it do. So
+rem before any label is used, write a copy with CRLF line endings and, when
+rem it differs in size, run the copy instead. _LOOP_COPILOT_CRLF passes this
+rem script's name to the copy and keeps the copy from doing the same.
+if defined _LOOP_COPILOT_CRLF set "_SCRIPT_NAME=%_LOOP_COPILOT_CRLF%"
+set "_CRLF_COPY=%TEMP%\loop-%_CLI%-crlf-%RANDOM%%TIME:~-2%.bat"
+set "_RUN_CRLF_COPY="
+if not defined _LOOP_COPILOT_CRLF (
+  type "%~f0" | "%_SYS32%\find.exe" /v "" > "%_CRLF_COPY%" 2>nul
+  for %%F in ("%~f0") do for %%C in ("%_CRLF_COPY%") do (
+    if exist %%C if not "%%~zC"=="%%~zF" set "_RUN_CRLF_COPY=1"
+  )
+)
+set "_LOOP_COPILOT_CRLF="
+if defined _RUN_CRLF_COPY set "_LOOP_COPILOT_CRLF=%_SCRIPT_NAME%"
+if defined _RUN_CRLF_COPY call "%_CRLF_COPY%" %*
+if defined _RUN_CRLF_COPY set "_EXIT_CODE=%ERRORLEVEL%"
+del "%_CRLF_COPY%" >nul 2>&1
+if defined _RUN_CRLF_COPY (
+  endlocal
+  exit /b %_EXIT_CODE%
+)
 
 if "%~1"=="" (
   set "_MSG=Error: missing plan file."
