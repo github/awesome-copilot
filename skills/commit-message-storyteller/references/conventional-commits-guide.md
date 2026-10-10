@@ -74,9 +74,9 @@ session. Added tests that verify only one session token is issued
 when multiple requests arrive in the same tick.
 ```
 
-### `chore` — Maintenance / Config
+### `build` — Build System / Dependencies
 ```
-chore(deps): upgrade eslint from v8 to v9
+build(deps): upgrade eslint from v8 to v9
 
 v8 reached end-of-life. Migrated config to flat config format required
 by v9. No rule changes — this is a tooling-only update.

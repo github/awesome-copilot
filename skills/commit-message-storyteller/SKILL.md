@@ -1,6 +1,6 @@
 ---
 name: commit-message-storyteller
-description: 'Analyzes git diffs or staged changes and generates narrative commit messages that explain WHY a change was made, not just what changed — following Conventional Commits format. Use when asked to "write a commit message", "generate a commit", "describe my changes", "what should I commit this as", "commit this", "summarize my diff", or "help me commit". Works with git diff output, staged files, or plain descriptions of changes.'
+description: 'Analyzes git diffs or staged changes and generates narrative commit messages that explain WHY a change was made, not just what changed — following Conventional Commits format. Use when asked to "write a commit message", "describe my changes", "what should I commit this as", or "summarize my diff". Works with git diff output, staged files, or plain descriptions of changes. Does not run git commit; to stage files and make the commit, use the git-commit skill.'
 ---
 
 # Commit Message Storyteller
@@ -9,7 +9,7 @@ Transforms raw git diffs and change descriptions into clear, story-driven commit
 
 ## When to Use This Skill
 
-- User says "write a commit message", "help me commit", or "generate a commit"
+- User says "write a commit message"
 - User pastes a git diff or describes code changes
 - User says "what should I commit this as?" or "summarize my diff"
 - User wants better commit history for their team or open-source project
@@ -47,7 +47,8 @@ Map the change to a Conventional Commits type using this guide:
 | `docs` | Documentation only changes |
 | `style` | Formatting, whitespace, missing semicolons (no logic change) |
 | `test` | Adding or updating tests |
-| `chore` | Build process, dependency updates, config changes |
+| `build` | Build system or dependency changes |
+| `chore` | Other maintenance that does not change source or tests |
 | `ci` | CI/CD pipeline changes |
 | `revert` | Reverting a previous commit |
 
