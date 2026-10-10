@@ -1,12 +1,12 @@
 # Conventional Commits — Quick Reference Guide
 
-Full spec: https://www.conventionalcommits.org/en/v1.0.0/
+Full spec: <https://www.conventionalcommits.org/en/v1.0.0/>
 
 ---
 
 ## Format
 
-```
+```text
 <type>(<scope>): <description>
 
 [optional body]
@@ -19,7 +19,8 @@ Full spec: https://www.conventionalcommits.org/en/v1.0.0/
 ## Type Examples
 
 ### `feat` — New Feature
-```
+
+```text
 feat(payments): add Apple Pay support for checkout flow
 
 Users in supported regions can now complete purchases using Apple Pay.
@@ -29,7 +30,8 @@ Closes #88
 ```
 
 ### `fix` — Bug Fix
-```
+
+```text
 fix(api): correct off-by-one error in pagination offset
 
 The results page was skipping the last item on every page because the
@@ -40,7 +42,8 @@ Fixes #201
 ```
 
 ### `refactor` — Code Restructure (no behavior change)
-```
+
+```text
 refactor(user-service): extract email validation into shared utility
 
 Email validation logic was duplicated across 4 modules. Extracted into
@@ -48,7 +51,8 @@ Email validation logic was duplicated across 4 modules. Extracted into
 ```
 
 ### `perf` — Performance Improvement
-```
+
+```text
 perf(dashboard): lazy-load chart components to reduce initial bundle size
 
 The dashboard was importing all chart types upfront, adding ~180KB to the
@@ -57,7 +61,8 @@ by ~40% on slow connections.
 ```
 
 ### `docs` — Documentation Only
-```
+
+```text
 docs(readme): add local development setup instructions
 
 New contributors were struggling to get the dev environment running.
@@ -66,7 +71,8 @@ the database seed command.
 ```
 
 ### `test` — Tests Added or Updated
-```
+
+```text
 test(auth): add coverage for concurrent login edge cases
 
 The login flow had no tests for simultaneous requests from the same
@@ -75,7 +81,8 @@ when multiple requests arrive in the same tick.
 ```
 
 ### `build` — Build System / Dependencies
-```
+
+```text
 build(deps): upgrade eslint from v8 to v9
 
 v8 reached end-of-life. Migrated config to flat config format required
@@ -83,7 +90,8 @@ by v9. No rule changes — this is a tooling-only update.
 ```
 
 ### `ci` — CI/CD Pipeline
-```
+
+```text
 ci: add caching for node_modules in GitHub Actions
 
 Cold CI runs were taking 4+ minutes due to repeated installs.
@@ -91,7 +99,8 @@ Adding cache restore on lockfile hash reduces this to ~90 seconds.
 ```
 
 ### `revert` — Reverting a Commit
-```
+
+```text
 revert: feat(notifications): add push notification opt-in
 
 Reverts commit a3f92bc.
@@ -105,6 +114,7 @@ Rolling back until the root cause is identified.
 ## Scope Guidelines
 
 The `scope` is optional but strongly recommended. It should be:
+
 - A short noun identifying the area of the codebase: `auth`, `api`, `dashboard`, `payments`
 - Consistent across the project (don't mix `user` and `users`)
 - Omitted if the change is truly global
@@ -115,7 +125,7 @@ The `scope` is optional but strongly recommended. It should be:
 
 Add `BREAKING CHANGE:` in the footer (or use `!` after the type):
 
-```
+```text
 feat(api)!: remove v1 endpoints
 
 All v1 REST endpoints have been removed following the 6-month deprecation
@@ -129,11 +139,13 @@ BREAKING CHANGE: /api/v1/* routes no longer exist. See migration guide at docs/v
 ## Body Writing Tips
 
 Ask yourself before writing the body:
+
 - **What was broken / missing before this change?**
 - **Why was this approach chosen over alternatives?**
 - **What will be different for users or developers after this?**
 
 Avoid:
+
 - Restating what the diff already shows ("changed the variable name")
 - Vague language ("various improvements", "miscellaneous fixes")
 - Future tense ("this will fix...") — write in present/past tense
@@ -143,7 +155,7 @@ Avoid:
 ## Commit Message Anti-Patterns
 
 | ❌ Bad | ✅ Better |
-|--------|----------|
+| -------- | ---------- |
 | `fix bug` | `fix(cart): prevent duplicate items on rapid add-to-cart clicks` |
 | `updates` | `feat(profile): allow users to update display name` |
 | `WIP` | Don't commit WIP — stash it |
