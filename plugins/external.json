@@ -1030,7 +1030,7 @@
   {
     "name": "markdstage",
     "description": "Create, edit, present, and export Markdown slides in a GitHub Copilot Canvas.",
-    "version": "4.5.1",
+    "version": "4.6.3",
     "author": {
       "name": "Kazuki Ota",
       "url": "https://github.com/runceel"
@@ -1048,8 +1048,8 @@
       "source": "github",
       "repo": "runceel/MarkdStage",
       "path": ".github/plugin/markdstage",
-      "ref": "v4.5.1",
-      "sha": "5dc37ba46d1e61422d2764e7ae89e0a2975f19fa"
+      "ref": "v4.6.3",
+      "sha": "2ee5fa20ce228a4f6aa9b105afe83ab6d2061730"
     }
   },
   {
