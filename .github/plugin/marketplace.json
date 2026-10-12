@@ -601,7 +601,7 @@
     {
       "name": "cockroachdb",
       "description": "Connect GitHub Copilot to your CockroachDB clusters: run and explore SQL through MCP, with DBA/Developer/Operator agents, CockroachDB best-practice skills, and safety hooks that block destructive statements.",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "author": {
         "name": "Cockroach Labs",
         "url": "https://github.com/cockroachdb"
@@ -620,8 +620,8 @@
       "source": {
         "source": "github",
         "repo": "cockroachdb/copilot-plugin",
-        "ref": "v0.1.4",
-        "sha": "0874b16210768d54b273c1395d9715bc8638b347"
+        "ref": "v0.1.5",
+        "sha": "010e81c747916fbec875d211b4dca6e1c1caeb46"
       }
     },
     {
