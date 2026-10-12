@@ -1289,6 +1289,12 @@
       }
     },
     {
+      "name": "invokely-statistics",
+      "source": "plugins/invokely-statistics",
+      "description": "Query official statistics through Invokely MCP and follow a source-first workflow for values, time series, comparisons, and rankings.",
+      "version": "1.0.0"
+    },
+    {
       "name": "java-development",
       "source": "plugins/java-development",
       "description": "Comprehensive collection of prompts and instructions for Java development including Spring Boot, Quarkus, testing, documentation, and best practices.",
