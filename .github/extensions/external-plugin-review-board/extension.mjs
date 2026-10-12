@@ -1,7 +1,7 @@
 // Extension: external-plugin-review-board
 // Kanban board for triaging external plugin submissions with AI review,
-// quick approve/reject, and an issue detail view. Board state is persisted to
-// ./state/board.json (gitignored) so it survives reloads and new sessions.
+// quick approve/reject, and an issue detail view. Board state is persisted under
+// session.workspacePath so writes do not change the extension fingerprint.
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,7 +18,7 @@ const PUBLIC_DIR = path.join(EXT_DIR, "public");
 const GUIDANCE_PATH = path.join(EXT_DIR, "review-guidance.md");
 const DETAIL_TTL_MS = 2 * 60 * 1000;
 
-const store = await new BoardStore(path.join(EXT_DIR, "state", "board.json"), REPO).load();
+let store;
 const servers = new Map();
 const detailCache = new Map();
 let refreshInFlight = null;
@@ -213,6 +213,7 @@ function routesFor(instanceId) {
 function wrap(fn) {
     return async (ctx) => {
         try {
+            if (!store) throw new CanvasError("not_ready", "The extension is still starting. Retry the action.");
             return await fn(ctx);
         } catch (error) {
             if (error instanceof CanvasError) throw error;
@@ -316,6 +317,7 @@ session = await joinSession({
                 },
             ],
             open: async (ctx) => {
+                if (!store) throw new CanvasError("not_ready", "The extension is still starting. Retry opening it.");
                 let entry = servers.get(ctx.instanceId);
                 if (!entry) {
                     entry = await startBoardServer({
@@ -330,6 +332,7 @@ session = await joinSession({
                             },
                         },
                     });
+
                     servers.set(ctx.instanceId, entry);
                 }
                 if (!store.state.lastRefreshedAt) {
@@ -350,3 +353,11 @@ session = await joinSession({
         }),
     ],
 });
+
+if (!session.workspacePath) {
+    throw new Error("External Plugin Review Board requires a session workspace for persistent state. Enable infinite sessions.");
+}
+store = await new BoardStore(
+    path.join(session.workspacePath, "extensions", CANVAS_ID, "state", "board.json"),
+    REPO,
+).load();

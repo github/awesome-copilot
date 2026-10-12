@@ -24,8 +24,14 @@ Open it by asking Copilot to "open the plugin review board" (canvas id `external
 
 ## State
 
-Board state lives in `state/board.json` next to this file and is gitignored. It stores the synced issue
+Board state lives in
+`<session.workspacePath>/extensions/external-plugin-review-board/state/board.json`.
+This is Copilot's session-state workspace, not the repository checkout. It stores the synced issue
 metadata, AI reviews, manual bucket overrides, and a history of decisions made from the board.
+State survives extension reloads and resuming the same session; a new session has its own board.
+Infinite sessions must be enabled to provide the workspace. Keeping writes outside the extension
+folder avoids invalidating its safety fingerprint. State previously stored in the extension folder is
+not imported; boards start fresh.
 
 ## Requirements
 
@@ -35,3 +41,8 @@ metadata, AI reviews, manual bucket overrides, and a history of decisions made f
 ## Agent actions
 
 `get_board`, `refresh`, `start_review`, `start_rereview`, `record_review`, `move_item`, `get_issue`.
+
+## Regression tests
+
+Run `node --experimental-vm-modules --test eng/board-state-storage.test.mjs` from the repository root
+to check both canvases' session-scoped persistence without accessing GitHub.
