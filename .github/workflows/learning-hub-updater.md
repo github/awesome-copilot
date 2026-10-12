@@ -27,12 +27,14 @@ safe-outputs:
     title-prefix: "[bot] "
     base-branch: main
     allowed-files:
+      - "website/src/content/docs/learning-hub/*.md"
       - "website/src/content/docs/learning-hub/**/*.md"
   push-to-pull-request-branch:
     target: "*"
     required-title-prefix: "[bot] "
     required-labels: [automated-update, copilot-updates]
     allowed-files:
+      - "website/src/content/docs/learning-hub/*.md"
       - "website/src/content/docs/learning-hub/**/*.md"
   close-pull-request:
     target: "*"
