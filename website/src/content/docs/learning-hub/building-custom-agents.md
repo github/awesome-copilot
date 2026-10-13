@@ -96,6 +96,8 @@ tools: ['codebase', 'terminal', 'github']
 ---
 ```
 
+**Agent-scoped hooks**: An agent can declare hooks that run only while that agent is active, which is useful for per-agent guardrails such as validating commands or logging. See [Automating with Hooks](../automating-with-hooks/#agent-scoped-hooks).
+
 **tools** (recommended): An array of built-in tools and MCP servers the agent can access. Common tools include:
 
 | Tool | Purpose |
