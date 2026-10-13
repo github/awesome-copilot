@@ -1,0 +1,4 @@
+openpyxl>=3.1.5,<4
+pypdfium2>=5,<6
+Pillow>=11,<13
+pywin32>=306; sys_platform == "win32"
