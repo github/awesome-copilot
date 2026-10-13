@@ -997,8 +997,8 @@
     },
     {
       "name": "excel-cli",
-      "description": "Windows-only Excel automation plugin that runs the latest excelcli package through npx.",
-      "version": "2.2.1",
+      "description": "Let your coding agent work with real Microsoft Excel workbooks from the terminal: formulas, Power Query, PivotTables, charts, and VBA. Same features as Excel MCP, usually with fewer AI tokens. Requires Windows, desktop Excel 2016 or later, and Node.js 18 or later.",
+      "version": "2.3.11",
       "author": {
         "name": "Stefan Brönner",
         "url": "https://github.com/sbroenne"
@@ -1011,25 +1011,25 @@
         "windows",
         "cli",
         "automation",
-        "scripting",
-        "batch",
+        "formulas",
         "power-query",
         "dax",
         "pivottable",
-        "ci-cd"
+        "charts",
+        "vba"
       ],
       "source": {
         "source": "github",
         "repo": "sbroenne/mcp-server-excel-plugins",
         "path": "plugins/excel-cli",
-        "ref": "v2.2.1",
-        "sha": "8941e5d59a068e421ddbddf40107c6f505f5acac"
+        "ref": "v2.3.11",
+        "sha": "0057e645ff3620206e440bd313b8b26f0be943c0"
       }
     },
     {
       "name": "excel-mcp",
-      "description": "Windows-only Excel automation plugin that runs the latest ExcelMcp MCP server through npx.",
-      "version": "2.2.1",
+      "description": "Let an AI assistant create and update Microsoft Excel workbooks: work with cells, formulas, Power Query, PivotTables, charts, and VBA in the desktop app. Requires Windows, desktop Excel 2016 or later, and Node.js 18 or later.",
+      "version": "2.3.11",
       "author": {
         "name": "Stefan Brönner",
         "url": "https://github.com/sbroenne"
@@ -1041,18 +1041,20 @@
         "excel",
         "windows",
         "mcp",
+        "automation",
+        "formulas",
         "power-query",
         "dax",
         "pivottable",
-        "vba",
-        "com-interop"
+        "charts",
+        "vba"
       ],
       "source": {
         "source": "github",
         "repo": "sbroenne/mcp-server-excel-plugins",
         "path": "plugins/excel-mcp",
-        "ref": "v2.2.1",
-        "sha": "8941e5d59a068e421ddbddf40107c6f505f5acac"
+        "ref": "v2.3.11",
+        "sha": "0057e645ff3620206e440bd313b8b26f0be943c0"
       }
     },
     {
