@@ -2461,6 +2461,36 @@
       }
     },
     {
+      "name": "windbg",
+      "description": "WinDbg diagnosis workflows for native Windows applications, services, UMDF/user-mode drivers, and kernel-mode drivers. Covers crashes, hangs, heap corruption, memory exhaustion, TTD, bugchecks, Driver Verifier, IRP lifecycle, and kernel deadlocks, with an evidence-first method and report validation.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/microsoft/WinDbg-Feedback"
+      },
+      "repository": "https://github.com/microsoft/win-dev-skills",
+      "homepage": "https://github.com/microsoft/WinDbg-Feedback",
+      "license": "MIT",
+      "keywords": [
+        "windows",
+        "windbg",
+        "debugging",
+        "crash-dump",
+        "hang",
+        "memory",
+        "drivers",
+        "kernel",
+        "umdf",
+        "ttd"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/win-dev-skills",
+        "path": "plugins/windbg",
+        "sha": "5ce74fa89c49ca353c6ab03bd5889aa519aa9e5e"
+      }
+    },
+    {
       "name": "windows-app-storage-inspector-cleanup",
       "source": "plugins/windows-app-storage-inspector-cleanup",
       "description": "Inspect Windows application storage, understand local disk usage, and safely move approved cleanup items to the Recycle Bin.",
