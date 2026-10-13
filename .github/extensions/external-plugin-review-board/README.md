@@ -21,6 +21,11 @@ Open it by asking Copilot to "open the plugin review board" (canvas id `external
 - **Details panel** shows the AI review, the rendered issue body, and all comments.
 - **Quick actions** post `/approve` (with an optional note) or `/reject <reason>` straight to the issue
   after a confirm click. The reject reason is prefilled from the AI's suggested comment.
+- **Column actions** approve, reject, or re-review every eligible item in a column, including
+  cards hidden by search. Confirmation previews each staged comment; rejection requires a reason
+  for every item. Drawer edits remain staged when switching cards in the current browser session.
+  Queued reviews, pending decisions, and completed actions are excluded. Failures are reported per
+  item without automatically retrying posted commands.
 
 ## State
 
@@ -46,3 +51,5 @@ not imported; boards start fresh.
 
 Run `node --experimental-vm-modules --test eng/board-state-storage.test.mjs` from the repository root
 to check both canvases' session-scoped persistence without accessing GitHub.
+Run `node --test eng/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
+queue exclusions, and partial failures using in-process fakes.

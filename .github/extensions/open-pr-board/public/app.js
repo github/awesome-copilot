@@ -42,6 +42,8 @@ let pendingConfirm = null;
 let detailGeneration = 0;
 let drawerOriginNumber = null;
 const decisionsInFlight = new Set();
+const stagedComments = new Map();
+let bulkBusy = false;
 
 const el = {
     title: document.getElementById("board-title"),
@@ -315,6 +317,7 @@ function renderBoard() {
                 h("span", { class: "column-name" }, column.label),
                 h("span", { class: "count" }, String(items.length)),
             ),
+            column.droppable ? renderColumnActions(column) : null,
             list,
         );
     });
@@ -337,6 +340,84 @@ function renderBoard() {
     ].join(" · ");
     el.review.textContent = pending ? `Review ${pending} pending` : "Review pending";
     el.review.disabled = pending === 0;
+}
+
+function columnItems(columnId) {
+    return board.items.filter((item) => item.column === columnId && !item.decision &&
+        item.reviewStatus !== "queued" && !decisionsInFlight.has(item.number));
+}
+
+function stagedComment(item) {
+    return stagedComments.get(item.number) ?? item.review?.suggestedComment ?? "";
+}
+
+function renderColumnActions(column) {
+    const count = columnItems(column.id).length;
+    const rejectKind = column.id === "close" ? "close" : "request-changes";
+    const actions = [["approve", "Approve + auto-merge"], [rejectKind, DECISION_LABELS[rejectKind]], ["rereview", "Re-review"]];
+    return h("div", { class: "column-actions", role: "group", "aria-label": `${column.label} bulk actions` },
+        actions.map(([kind, label]) => h("button", {
+            type: "button", class: "btn btn-small", disabled: bulkBusy || !count,
+            title: `Apply to all ${count} eligible PRs in this column, including hidden search results`,
+            onclick: () => bulkAction(column.id, kind),
+        }, `${label} all`)));
+}
+
+async function bulkAction(columnId, kind) {
+    if (bulkBusy) return;
+    const items = columnItems(columnId).map((item) => ({
+        number: item.number, headRefOid: item.headRefOid, comment: stagedComment(item),
+    }));
+    if (!items.length) return;
+    if (kind === "close" || kind === "request-changes") {
+        const missing = items.filter((item) => !item.comment.trim());
+        if (missing.length) {
+            toast(`Stage feedback for ${missing.map((item) => `#${item.number}`).join(", ")} before actioning this column.`, { error: true });
+            return;
+        }
+    }
+    const label = kind === "rereview" ? "Re-review" : DECISION_LABELS[kind];
+    const preview = items.map((item) => `#${item.number}${kind === "rereview" ? "" : `: ${item.comment || "(no comment)"}`}`).join("\n\n");
+    if (!confirm(`${label} all ${items.length} PRs in this column (including hidden search results)?\n${
+        kind === "rereview" ? "Queues AI reviews; GitHub is not changed." : kind === "approve" ?
+            "Submits approvals and enables auto-merge with a merge commit." : "Uses each PR's staged comment on GitHub."}\n\n${preview}`)) return;
+    bulkBusy = true;
+    renderBoard();
+    let completed = 0;
+    const failures = [];
+    try {
+        if (kind === "rereview") {
+            const result = await api("/api/review", { method: "POST", body: { numbers: items.map((item) => item.number) } });
+            toast(result.message);
+            return;
+        }
+        for (const item of items) {
+            try {
+                const current = columnItems(columnId).find((current) => current.number === item.number);
+                if (!current || current.headRefOid !== item.headRefOid) {
+                    throw new Error("PR moved, changed, or was already actioned; review it again.");
+                }
+                decisionsInFlight.add(item.number);
+                const result = await api("/api/decision", {
+                    method: "POST", body: { number: item.number, kind, comment: item.comment },
+                });
+                completed++;
+                if (result.warning) failures.push(`#${item.number}: ${result.warning}`);
+            } catch (error) {
+                failures.push(`#${item.number}: ${error.message}`);
+            } finally {
+                decisionsInFlight.delete(item.number);
+            }
+        }
+        toast(`${label}: ${completed}/${items.length} actions submitted.${failures.length ? ` Attention needed: ${failures.join(" ")}` : ""}`,
+            { error: failures.length > 0 });
+    } catch (error) {
+        toast(error.message, { error: true });
+    } finally {
+        bulkBusy = false;
+        renderBoard();
+        if (currentItem()) renderDrawerHeader();
+    }
 }
 
 /* ------------------------------------------------------------------ drawer */
@@ -541,7 +622,7 @@ function renderDrawerHeader() {
     el.rereviewToggle.disabled = Boolean(item.decision) || item.reviewStatus === "queued";
 
     for (const button of el.drawer.querySelectorAll("[data-decision]")) {
-        button.disabled = Boolean(item.decision) || decisionsInFlight.has(item.number);
+        button.disabled = bulkBusy || Boolean(item.decision) || decisionsInFlight.has(item.number);
         button.classList.remove("confirming");
         button.textContent = DECISION_BUTTONS[button.dataset.decision];
     }
@@ -580,7 +661,7 @@ function openDrawer(number) {
     el.drawer.setAttribute("aria-hidden", "false");
     el.rereviewPanel.hidden = true;
     if (changed) {
-        el.comment.value = item.review?.suggestedComment ?? "";
+        el.comment.value = stagedComment(item);
         detail = null;
         detailError = null;
     }
@@ -634,7 +715,7 @@ function armConfirm(button, kind) {
 
 async function submitDecision(button, kind) {
     const item = currentItem();
-    if (!item || decisionsInFlight.has(item.number)) return;
+    if (!item || bulkBusy || decisionsInFlight.has(item.number)) return;
     if (!armConfirm(button, kind)) return;
     clearTimeout(pendingConfirm.timer);
     pendingConfirm = null;
@@ -783,6 +864,13 @@ el.rereviewStart.addEventListener("click", async (event) => {
 for (const button of el.drawer.querySelectorAll("[data-decision]")) {
     button.addEventListener("click", () => submitDecision(button, button.dataset.decision));
 }
+
+el.comment.addEventListener("input", () => {
+    if (selectedNumber !== null) stagedComments.set(selectedNumber, el.comment.value);
+    clearTimeout(pendingConfirm?.timer);
+    pendingConfirm = null;
+    if (currentItem()) renderDrawerHeader();
+});
 
 function applySnapshot(snapshot) {
     board = snapshot;

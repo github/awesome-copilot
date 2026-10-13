@@ -187,14 +187,39 @@ const LIST_FIELDS = [
     "additions",
     "deletions",
     "changedFiles",
-    "statusCheckRollup",
     "reviewDecision",
     "mergeStateStatus",
 ].join(",");
 
-export async function listOpenPullRequests(repo) {
-    const out = await runGh(["pr", "list", "-R", repo, "--state", "open", "--limit", "200", "--json", LIST_FIELDS]);
-    return JSON.parse(out).map(normalizePullRequest);
+const CHECK_FETCH_CONCURRENCY = 6;
+
+async function mapWithConcurrency(items, limit, fn) {
+    const results = new Array(items.length);
+    let next = 0;
+    const worker = async () => {
+        while (next < items.length) {
+            const index = next++;
+            results[index] = await fn(items[index]);
+        }
+    };
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+    return results;
+}
+
+// statusCheckRollup is fetched per PR because requesting it in the bulk list query
+// makes GitHub's GraphQL API time out (HTTP 504) on repos with many open PRs.
+export async function listOpenPullRequests(repo, runner = runGh) {
+    const out = await runner(["pr", "list", "-R", repo, "--state", "open", "--limit", "200", "--json", LIST_FIELDS]);
+    const pullRequests = JSON.parse(out);
+    await mapWithConcurrency(pullRequests, CHECK_FETCH_CONCURRENCY, async (pr) => {
+        try {
+            const raw = await runner(["pr", "view", String(pr.number), "-R", repo, "--json", "statusCheckRollup"]);
+            pr.statusCheckRollup = JSON.parse(raw).statusCheckRollup;
+        } catch {
+            pr.statusCheckRollup = [];
+        }
+    });
+    return pullRequests.map(normalizePullRequest);
 }
 
 const FULL_JSON = ["-H", "Accept: application/vnd.github.full+json"];

@@ -238,6 +238,13 @@ h2 {
     gap: 8px;
 }
 
+.column-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 0 12px 8px;
+}
+
 .column-name::before {
     content: "";
     width: 8px;

@@ -23,6 +23,7 @@ const servers = new Map();
 const detailCache = new Map();
 let refreshInFlight = null;
 let session;
+const decisionsInFlight = new Set();
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -69,7 +70,7 @@ async function getIssue(number, { force = false } = {}) {
 
 async function startReview({ numbers, instanceId, send }) {
     const items = store.pendingReview(numbers);
-    if (!items.length) return { queued: [], message: "Nothing to review — all items already have an AI review." };
+    if (!items.length) return { queued: [], message: "Nothing to review — no eligible unreviewed items remain." };
     const queued = items.map((item) => item.number);
     const snapshots = await store.markQueued(queued);
     const prompt = buildReviewPrompt({
@@ -128,9 +129,20 @@ function stripCommand(text, command) {
 }
 
 async function postDecision({ number, kind, comment }) {
+    if (decisionsInFlight.has(number)) throw new Error(`#${number} already has a GitHub action in progress.`);
+    decisionsInFlight.add(number);
+    try {
+        return await postDecisionCommand({ number, kind, comment });
+    } finally {
+        decisionsInFlight.delete(number);
+    }
+}
+
+async function postDecisionCommand({ number, kind, comment }) {
     if (kind !== "approve" && kind !== "reject") throw new Error(`Unknown decision "${kind}".`);
     const item = store.getItem(number);
     if (item.decision) throw new Error(`#${number} was already actioned (${item.decision.kind}).`);
+    if (item.pendingDecision) throw new Error(`#${number} already has a posted command awaiting workflow confirmation. Refresh the board.`);
 
     const status = await gh.getIssueStatus(store.state.repo, number);
     if (status.state !== "OPEN") throw new Error(`#${number} is ${status.state.toLowerCase()}. Refresh the board.`);

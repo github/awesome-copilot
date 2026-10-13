@@ -6,7 +6,7 @@ import vm from "node:vm";
 import { test } from "node:test";
 import { BoardStore } from "../.github/extensions/open-pr-board/lib/state.mjs";
 import { applyDecisionOnGitHub } from "../.github/extensions/open-pr-board/lib/decisions.mjs";
-import { approveAndEnableAutoMerge } from "../.github/extensions/open-pr-board/lib/github.mjs";
+import { approveAndEnableAutoMerge, listOpenPullRequests } from "../.github/extensions/open-pr-board/lib/github.mjs";
 import { REVIEW_FIELDS_SCHEMA } from "../.github/extensions/open-pr-board/lib/review-prompt.mjs";
 
 const pr = (headRefOid = "first") => ({
@@ -57,6 +57,50 @@ test("approval and auto-merge are pinned to the reviewed commit", async () => {
   assert.deepEqual(calls[1].args, ["api", "repos/example/repo/pulls/1/reviews", "--method", "POST", "--input", "-"]);
   assert.deepEqual(JSON.parse(calls[1].options.input), { event: "APPROVE", commit_id: headRefOid, body: "Reviewed." });
   assert.deepEqual(calls[2].args, ["pr", "merge", "1", "-R", "example/repo", "--auto", "--merge", "--match-head-commit", headRefOid]);
+});
+
+test("open pull requests fetch checks with bounded concurrency, preserve order, and tolerate a failed check request", async () => {
+  const numbers = [41, 7, 23, 4, 99, 12, 68, 51];
+  let active = 0;
+  let peak = 0;
+  const requested = [];
+  const runner = async (args) => {
+    if (args[1] === "list") {
+      return JSON.stringify(numbers.map((number) => ({ number, title: `PR ${number}`, labels: [] })));
+    }
+    if (args[1] === "view") {
+      const number = Number(args[2]);
+      requested.push(number);
+      active++;
+      peak = Math.max(peak, active);
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        if (number === 23) throw new Error("check request failed");
+        return JSON.stringify({
+          statusCheckRollup: [{ name: `check-${number}`, status: "COMPLETED", conclusion: "SUCCESS" }],
+        });
+      } finally {
+        active--;
+      }
+    }
+    throw new Error(`Unexpected gh command: ${args.join(" ")}`);
+  };
+
+  const pullRequests = await listOpenPullRequests("example/repo", runner);
+
+  assert.ok(peak <= 6, "check requests should not exceed the six-request limit");
+  assert.ok(peak > 1, "check requests should run concurrently");
+  assert.deepEqual(pullRequests.map(({ number }) => number), numbers, "results should preserve list order");
+  assert.deepEqual(requested.sort((a, b) => a - b), [...numbers].sort((a, b) => a - b), "every PR should request checks");
+  for (const pullRequest of pullRequests) {
+    if (pullRequest.number === 23) {
+      assert.deepEqual(pullRequest.checks, []);
+      assert.equal(pullRequest.checksState, "none");
+    } else {
+      assert.deepEqual(pullRequest.checks.map(({ name }) => name), [`check-${pullRequest.number}`]);
+      assert.equal(pullRequest.checksState, "success");
+    }
+  }
 });
 
 test("approval refuses a missing SHA, changed head, or closed pull request without writing", async () => {

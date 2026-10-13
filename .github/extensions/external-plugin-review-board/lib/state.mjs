@@ -136,7 +136,8 @@ export class BoardStore {
     }
 
     pendingReview(numbers) {
-        const all = Object.values(this.state.items).filter((item) => !item.decision && item.reviewStatus !== "queued");
+        const all = Object.values(this.state.items).filter((item) =>
+            !item.decision && !item.pendingDecision && item.reviewStatus !== "queued");
         if (numbers?.length) {
             const wanted = new Set(numbers.map(Number));
             return all.filter((item) => wanted.has(item.number));

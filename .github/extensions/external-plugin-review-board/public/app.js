@@ -41,6 +41,8 @@ let selected = null;
 let activeTab = "review";
 const details = new Map();
 const pendingConfirm = { kind: null, timer: null };
+const stagedComments = new Map();
+let bulkBusy = false;
 
 // ---------- helpers ----------
 
@@ -144,7 +146,7 @@ function findItem(number) {
 
 function pendingReviewCount() {
     return board
-        ? board.items.filter((item) => !item.decision && item.reviewStatus !== "reviewed" && item.reviewStatus !== "queued").length
+        ? board.items.filter((item) => !item.decision && !item.pendingDecision && item.reviewStatus !== "reviewed" && item.reviewStatus !== "queued").length
         : 0;
 }
 
@@ -173,6 +175,7 @@ function renderBoard() {
             "section",
             { class: "column", dataset: { column: column.id }, "aria-label": column.title },
             h("div", { class: "column-header" }, h("span", { class: "column-name" }, column.title), h("span", { class: "count" }, items.length)),
+            column.droppable ? renderColumnActions(column) : null,
             cards,
         );
         if (column.droppable) wireDropTarget(col, column.id);
@@ -182,6 +185,77 @@ function renderBoard() {
 
     for (const col of ui.board.querySelectorAll(".column")) {
         col.querySelector(".column-cards").scrollTop = scrollPositions.get(col.dataset.column) ?? 0;
+    }
+}
+
+function columnItems(columnId) {
+    return board.items.filter((item) => item.column === columnId && !item.decision &&
+        !item.pendingDecision && item.reviewStatus !== "queued");
+}
+
+function stagedComment(item) {
+    return (stagedComments.get(item.number) ?? defaultComment(item))
+        .trim().replace(/^\/(approve|reject)\b\s*/i, "").trim();
+}
+
+function renderColumnActions(column) {
+    const count = columnItems(column.id).length;
+    return h("div", { class: "column-actions", role: "group", "aria-label": `${column.title} bulk actions` },
+        ["approve", "reject", "rereview"].map((kind) => h("button", {
+            type: "button", class: "btn btn-small", disabled: bulkBusy || !count,
+            title: `Apply to all ${count} eligible items in this column, including hidden search results`,
+            onclick: () => bulkAction(column.id, kind),
+        }, `${kind === "rereview" ? "Re-review" : kind === "approve" ? "Approve" : "Reject"} all`)));
+}
+
+async function bulkAction(columnId, kind) {
+    if (bulkBusy) return;
+    const items = columnItems(columnId).map((item) => ({
+        number: item.number, comment: stagedComment(item),
+    }));
+    if (!items.length) return;
+    if (kind === "reject") {
+        const missing = items.filter((item) => !item.comment.trim().replace(/^\/(approve|reject)\b\s*/i, "").trim());
+        if (missing.length) {
+            toast(`Stage a rejection reason for ${missing.map((item) => `#${item.number}`).join(", ")} before rejecting this column.`, { error: true });
+            return;
+        }
+    }
+    const preview = items.map((item) => `#${item.number}${kind === "rereview" ? "" : `: ${
+        kind === "approve" ? "/approve" : "/reject"} ${item.comment}`}`).join("\n\n");
+    const label = kind === "rereview" ? "Re-review" : kind === "approve" ? "Approve" : "Reject";
+    if (!confirm(`${label} all ${items.length} items in this column (including hidden search results)?\n${
+        kind === "rereview" ? "Queues AI reviews; GitHub is not changed." : "Posts each item's staged comment to GitHub."}\n\n${preview}`)) return;
+    bulkBusy = true;
+    renderBoard();
+    renderDrawer();
+    let completed = 0;
+    const failures = [];
+    try {
+        if (kind === "rereview") {
+            const result = await api("POST", "/api/review", { numbers: items.map((item) => item.number) });
+            toast(result.message);
+            return;
+        }
+        for (const item of items) {
+            try {
+                if (!columnItems(columnId).some((current) => current.number === item.number)) {
+                    throw new Error("Item moved, was queued, or was already actioned; review it again.");
+                }
+                await api("POST", "/api/decision", { ...item, kind });
+                completed++;
+            } catch (error) {
+                failures.push(`#${item.number}: ${error.message}`);
+            }
+        }
+        toast(`${label}: ${completed}/${items.length} commands posted.${failures.length ? ` Failed: ${failures.join(" ")}` : ""}`,
+            { error: failures.length > 0 });
+    } catch (error) {
+        toast(error.message, { error: true });
+    } finally {
+        bulkBusy = false;
+        renderBoard();
+        renderDrawer();
     }
 }
 
@@ -266,7 +340,7 @@ function openDrawer(number) {
     resetConfirm();
     hideRereview();
     const item = findItem(number);
-    ui.comment.value = defaultComment(item);
+    ui.comment.value = stagedComment(item);
     ui.drawer.classList.add("open");
     ui.drawer.setAttribute("aria-hidden", "false");
     renderDrawer();
@@ -320,6 +394,8 @@ function renderDrawer() {
 
     ui.drawerFooter.hidden = Boolean(item.decision);
     updatePreview();
+    ui.approve.disabled = bulkBusy || Boolean(item.pendingDecision);
+    ui.reject.disabled ||= bulkBusy || Boolean(item.pendingDecision);
     renderTab(item);
 }
 
@@ -485,11 +561,16 @@ function resetConfirm() {
     ui.approve.disabled = false;
     ui.reject.disabled = false;
     updatePreview();
+    const item = findItem(selected);
+    if (bulkBusy || item?.pendingDecision) {
+        ui.approve.disabled = true;
+        ui.reject.disabled = true;
+    }
 }
 
 async function decide(kind) {
     const item = findItem(selected);
-    if (!item) return;
+    if (!item || bulkBusy || item.pendingDecision) return;
     if (kind === "reject" && !ui.comment.value.trim().replace(/^\/(approve|reject)\b\s*/i, "")) {
         toast("Reject decisions require a reason.", { error: true });
         updatePreview();
@@ -627,6 +708,7 @@ for (const tab of ui.tabs) {
 }
 
 ui.comment.addEventListener("input", () => {
+    if (selected != null) stagedComments.set(selected, ui.comment.value);
     if (pendingConfirm.kind) resetConfirm();
     else updatePreview();
 });

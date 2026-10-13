@@ -113,10 +113,10 @@ function pendingReview(store, numbers) {
     const snapshot = store.snapshot();
     if (Array.isArray(numbers) && numbers.length) {
         const wanted = new Set(numbers.map(Number));
-        return snapshot.items.filter((item) => wanted.has(item.number) && !item.decision);
+        return snapshot.items.filter((item) => wanted.has(item.number) && !item.decision && item.reviewStatus !== "queued");
     }
     // Default pass: anything never reviewed, plus reviews invalidated by new commits.
-    return snapshot.items.filter((item) => !item.decision && (!item.review || item.reviewStale));
+    return snapshot.items.filter((item) => !item.decision && item.reviewStatus !== "queued" && (!item.review || item.reviewStale));
 }
 
 async function startReview({ store, numbers, instanceId, send }) {

@@ -21,6 +21,12 @@ authenticated `gh` CLI.
   PRs with submitted feedback or requested changes return to Unreviewed after new
   commits; the previous action remains in history.
 - **Re-review** — ask for a fresh pass on one PR with optional focus guidance.
+- **Column actions** — approve + auto-merge, request changes (close in the Close column), or
+  re-review every eligible PR, including cards hidden by search. Confirmation previews the exact
+  staged comments; requests for changes and bulk closes require feedback on every PR.
+  Drawer edits remain staged when switching cards in the current browser session. Queued and
+  actioned PRs are excluded; individual errors and partial-success warnings are surfaced without
+  automatic retries.
 - **Labels** — GitHub labels render on every card in their own colours, blended toward
   the app theme so they stay readable in both light and dark mode.
 - **Detail drawer** — AI review, description, conversation, changed files, and checks.
@@ -74,7 +80,7 @@ touching GitHub.
 The agent reads [`review-guidance.md`](./review-guidance.md), which layers PR-specific
 procedure on top of `.github/skills/code-review/SKILL.md` and
 `.github/copilot-instructions.md`. AI evidence gathering is read-only: the agent never
-edits files or runs write commands against the PR. Only an explicitly confirmed drawer
+edits files or runs write commands against the PR. Only an explicitly confirmed drawer or column
 action writes to GitHub.
 
 Review results require the exact queue token from the current review request.
@@ -84,5 +90,7 @@ Results arriving after a manual move, reset, or replacement review are rejected.
 
 Run `node --test eng/open-pr-board.test.mjs` from the repository root. GitHub writes
 are tested with injected in-process fakes, never the authenticated CLI.
+Run `node --test eng/board-bulk-actions.test.mjs` to check column confirmation, staged feedback,
+queue exclusions, and partial failures using in-process fakes.
 Run `node --experimental-vm-modules --test eng/board-state-storage.test.mjs` to check
 both canvases' session-scoped persistence without accessing GitHub.
