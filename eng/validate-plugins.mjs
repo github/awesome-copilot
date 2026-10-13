@@ -14,6 +14,28 @@ const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const AGENT_PLUGINS_SCHEMA = AGENT_PLUGIN_SCHEMA_URL;
 const COPILOT_NAMESPACE = "com.github.copilot";
 const AWESOME_COPILOT_NAMESPACE = "com.github.awesome-copilot";
+const fileExistsCache = new Map();
+const jsonFileCache = new Map();
+
+function existsCached(filePath) {
+  if (!fileExistsCache.has(filePath)) {
+    fileExistsCache.set(filePath, fs.existsSync(filePath));
+  }
+
+  return fileExistsCache.get(filePath);
+}
+
+function readJsonCached(filePath) {
+  if (!jsonFileCache.has(filePath)) {
+    try {
+      jsonFileCache.set(filePath, JSON.parse(fs.readFileSync(filePath, "utf-8")));
+    } catch (err) {
+      jsonFileCache.set(filePath, { parseError: err.message });
+    }
+  }
+
+  return jsonFileCache.get(filePath);
+}
 
 // Validation functions
 function validateName(name, folderName) {
@@ -94,15 +116,11 @@ function sortPluginEntries(entries) {
 }
 
 function parseJsonFile(filePath) {
-  try {
-    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
-  } catch (err) {
-    return { parseError: err.message };
-  }
+  return readJsonCached(filePath);
 }
 
 function getExtensionFolderNames() {
-  if (!fs.existsSync(EXTENSIONS_DIR)) {
+  if (!existsCached(EXTENSIONS_DIR)) {
     return [];
   }
 
@@ -110,7 +128,7 @@ function getExtensionFolderNames() {
     .filter((entry) => {
       if (!entry.isDirectory()) return false;
       const extensionEntryPoint = path.join(EXTENSIONS_DIR, entry.name, "extension.mjs");
-      return fs.existsSync(extensionEntryPoint);
+      return existsCached(extensionEntryPoint);
     })
     .map((entry) => entry.name)
     .sort();
@@ -160,16 +178,16 @@ function validateSpecPaths(plugin) {
       if (field === "skills") {
         const skillDir = path.join(ROOT_FOLDER, spec.repoDir, basename);
         const skillFile = path.join(skillDir, spec.repoFile);
-        if (!fs.existsSync(skillFile)) {
+        if (!existsCached(skillFile)) {
           errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] source not found: ${spec.repoDir}/${basename}/SKILL.md`);
         }
       } else {
         const srcFile = spec.repoFile
           ? path.join(ROOT_FOLDER, spec.repoDir, basename, spec.repoFile)
           : path.join(ROOT_FOLDER, spec.repoDir, basename + spec.repoSuffix);
-        if (!fs.existsSync(srcFile)) {
+        if (!existsCached(srcFile)) {
           errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] source not found`);
-        } else if (field === "hooks" && !fs.existsSync(path.join(ROOT_FOLDER, spec.repoDir, basename, "hooks.json"))) {
+        } else if (field === "hooks" && !existsCached(path.join(ROOT_FOLDER, spec.repoDir, basename, "hooks.json"))) {
           errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].${field}[${i}] source not found: ${spec.repoDir}/${basename}/hooks.json`);
         }
       }
@@ -204,7 +222,7 @@ function validateExtensionReferences(plugin, pluginDir) {
       errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions[${index}] must be a valid ./extensions/<name> path`);
       continue;
     }
-    if (!fs.existsSync(path.join(EXTENSIONS_DIR, name, "extension.mjs"))) {
+    if (!existsCached(path.join(EXTENSIONS_DIR, name, "extension.mjs"))) {
       errors.push(`extensions["${AWESOME_COPILOT_NAMESPACE}"].extensions[${index}] source not found: extensions/${name}`);
     }
   }
@@ -215,7 +233,7 @@ function validateExtensionReferences(plugin, pluginDir) {
 export function validateMcpConfig(pluginDir) {
   const errors = [];
   const legacyPath = path.join(pluginDir, ".mcp.json");
-  if (fs.existsSync(legacyPath)) {
+  if (existsCached(legacyPath)) {
     errors.push("MCP configuration must live at mcp.json in the plugin root, not .mcp.json");
   }
 
@@ -323,31 +341,31 @@ function validatePlugin(folderName) {
   const errors = [];
   let parsedPlugin = null;
   const extensionDir = path.join(EXTENSIONS_DIR, folderName);
-  const isExtensionPlugin = fs.existsSync(path.join(extensionDir, "extension.mjs"));
+  const isExtensionPlugin = existsCached(path.join(extensionDir, "extension.mjs"));
 
   // Rule 1: Must have plugin.json at the plugin root
   const pluginJsonPath = path.join(pluginDir, "plugin.json");
-  if (!fs.existsSync(pluginJsonPath)) {
+  if (!existsCached(pluginJsonPath)) {
     errors.push("missing required file: plugin.json");
     return errors;
   }
 
   // Rule 2: Must have README.md
   const readmePath = path.join(pluginDir, "README.md");
-  if (!fs.existsSync(readmePath)) {
+  if (!existsCached(readmePath)) {
     errors.push("missing required file: README.md");
   }
 
   // Parse plugin.json
   let plugin;
-  try {
-    const raw = fs.readFileSync(pluginJsonPath, "utf-8");
-    plugin = JSON.parse(raw);
-    parsedPlugin = plugin;
-  } catch (err) {
-    errors.push(`failed to parse plugin.json: ${err.message}`);
+  const parsedPluginJson = readJsonCached(pluginJsonPath);
+  if (parsedPluginJson && parsedPluginJson.parseError) {
+    errors.push(`failed to parse plugin.json: ${parsedPluginJson.parseError}`);
     return { errors, plugin: parsedPlugin };
   }
+
+  plugin = parsedPluginJson;
+  parsedPlugin = plugin;
 
   // Rule 3: $schema required
   const schemaError = validateSchema(plugin);
@@ -411,7 +429,7 @@ function validateExtensionScreenshotPath(extensionDir, pathValue, fieldName, err
 
   const normalizedPath = pathValue.replace(/^\.\/+/, "");
   const absolutePath = path.join(extensionDir, normalizedPath);
-  if (!fs.existsSync(absolutePath)) {
+  if (!existsCached(absolutePath)) {
     errors.push(`${fieldName} not found: ${normalizedPath}`);
   }
 }
@@ -422,7 +440,7 @@ export function isReusableExtensionRegistered(extensionName, pluginDirectoryName
 }
 
 export function validatePlugins() {
-  const pluginDirs = fs.existsSync(PLUGINS_DIR)
+  const pluginDirs = existsCached(PLUGINS_DIR)
     ? fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
       .filter((d) => d.isDirectory())
       .map((d) => d.name)
