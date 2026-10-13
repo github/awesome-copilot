@@ -44,6 +44,58 @@ class VisualCaptureSmokeTests(unittest.TestCase):
         workbook.close()
         return source
 
+    def test_live_hidden_sheet_requires_explicit_permission(self) -> None:
+        for state in ["hidden", "veryHidden"]:
+            with self.subTest(state=state), tempfile.TemporaryDirectory() as temp_dir:
+                root = Path(temp_dir)
+                source = root / "hidden-fixture.xlsx"
+                workbook = Workbook()
+                workbook.active.title = "Fields"
+                layout = workbook.create_sheet("Layout")
+                layout["A1"] = "Hidden fixture"
+                layout.print_area = "A1:D4"
+                layout.sheet_state = state
+                workbook.save(source)
+                workbook.close()
+                structure = inspect_workbook(source)
+                next(sheet for sheet in structure["sheets"] if sheet["name"] == "Layout")["state"] = "visible"
+                denied = root / "denied"
+                with self.assertRaisesRegex(RuntimeError, "did not complete"):
+                    capture_selected_sheets(source, structure, ["Layout"], denied)
+                manifest = json.loads((denied / "visual-evidence-manifest.json").read_text(encoding="utf-8"))
+                self.assertEqual(manifest["status"], "partial_failure")
+                self.assertIn("include_hidden=True", manifest["selected_sheets"][0]["error"])
+                self.assertEqual(list(denied.rglob("*.pdf")), [])
+                self.assertEqual(list(denied.rglob("*.png")), [])
+                self.assertEqual(manifest["source_sha256"], manifest["source_sha256_after"])
+                self.assertEqual(inspect_workbook(source)["sheets"][1]["state"], state)
+                approved = root / "approved"
+                result = capture_selected_sheets(source, structure, ["Layout"], approved, include_hidden=True)
+                self.assertEqual(result["status"], "complete")
+                verify_visual_evidence(source, approved / "visual-evidence-manifest.json", ["Layout"])
+                self.assertEqual(inspect_workbook(source)["sheets"][1]["state"], state)
+
+    def test_unlisted_artifacts_outside_sheets_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = self.create_failure_fixture(root)
+            destination = root / "evidence"
+            manifest = capture_selected_sheets(source, inspect_workbook(source), ["Layout"], destination)
+            manifest_path = destination / "visual-evidence-manifest.json"
+            pdf = destination / manifest["selected_sheets"][0]["pdf_file"]
+            image = destination / manifest["selected_sheets"][0]["pages"][0]["image_file"]
+            for relative_path in ["extra.pdf", "extra.png", "nested/extra.pdf", "nested/extra.png"]:
+                with self.subTest(path=relative_path):
+                    extra = destination / relative_path
+                    extra.parent.mkdir(parents=True, exist_ok=True)
+                    extra.write_bytes((pdf if extra.suffix == ".pdf" else image).read_bytes())
+                    try:
+                        with self.assertRaisesRegex(ValueError, "exactly match"):
+                            verify_visual_evidence(source, manifest_path, ["Layout"])
+                    finally:
+                        extra.unlink()
+                    verify_visual_evidence(source, manifest_path, ["Layout"])
+
     def test_verification_failure_is_persisted_as_error(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

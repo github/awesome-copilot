@@ -129,6 +129,10 @@ def capture_selected_sheets(
             try:
                 sheet = workbook.Worksheets(sheet_name)
                 original_visibility = sheet.Visible
+                if original_visibility != -1 and not include_hidden:
+                    raise ValueError(
+                        f"selected worksheet is hidden; confirm with include_hidden=True: {sheet_name}"
+                    )
                 original_print_area = str(sheet.PageSetup.PrintArea or "")
                 if original_visibility != -1:
                     sheet.Visible = -1
@@ -298,7 +302,11 @@ def verify_visual_evidence(
                 if image.format != "PNG" or image.width <= 0 or image.height <= 0:
                     raise ValueError("image is not a non-empty PNG")
                 image.load()
-    actual_paths = {artifact.resolve() for artifact in (root / "sheets").rglob("*") if artifact.is_file()}
+    actual_paths = {
+        artifact.resolve()
+        for artifact in root.rglob("*")
+        if artifact.is_file() and artifact.resolve() != path
+    }
     if actual_paths != artifact_paths:
         raise ValueError("artifact files do not exactly match the manifest")
     return manifest
