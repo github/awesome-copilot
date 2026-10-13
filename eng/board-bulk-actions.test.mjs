@@ -50,6 +50,7 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
     const item = (number, extra = {}) => ({
         number, column: "test", headRefOid: "first",
         review: { suggestedComment: isPR ? `Feedback ${number}` : `/reject Feedback ${number}` },
+        ...(!isPR ? { reviewEligible: true } : {}),
         ...extra,
     });
     const payload = (args) => isPR ? args[1].body : args[2];
@@ -129,15 +130,35 @@ for (const boardName of ["open-pr-board", "external-plugin-review-board"]) {
 
 test("external-plugin-review-board: pending review count excludes posted decisions", async () => {
     const ui = await createUI("external-plugin-review-board", [
-        { number: 1, reviewStatus: "unreviewed" },
-        { number: 2, reviewStatus: "unreviewed", pendingDecision: { kind: "approve" } },
+        { number: 1, reviewEligible: true, reviewStatus: "unreviewed" },
+        { number: 2, reviewEligible: true, reviewStatus: "unreviewed", pendingDecision: { kind: "approve" } },
         { number: 3, reviewStatus: "reviewed" },
         { number: 4, reviewStatus: "queued" },
         { number: 5, decision: { kind: "reject" } },
+        { number: 6, reviewEligible: false, reviewStatus: "unreviewed" },
     ]);
 
     assert.equal(ui.context.pendingReviewCount(), 1);
 });
+
+for (const kind of ["approve", "rereview"]) {
+    test(`external-plugin-review-board: bulk ${kind} excludes pending intake cards`, async () => {
+        const ui = await createUI("external-plugin-review-board", [
+            { number: 1, column: "test", reviewEligible: true },
+            { number: 2, column: "test", reviewEligible: false },
+        ]);
+
+        await ui.context.bulkAction("test", kind);
+
+        assert.equal(ui.calls.length, 1);
+        if (kind === "rereview") {
+            assert.deepEqual([...ui.calls[0][2].numbers], [1]);
+        } else {
+            assert.equal(ui.calls[0][2].number, 1);
+        }
+        assert.doesNotMatch(ui.confirmations[0], /#2/);
+    });
+}
 
 test("PR bulk close requires and posts the staged reason", async () => {
     const ui = await createUI("open-pr-board", [{ number: 1, column: "close", review: { suggestedComment: "Duplicate" } }]);

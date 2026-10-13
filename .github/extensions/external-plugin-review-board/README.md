@@ -1,7 +1,7 @@
 # External Plugin Review Board
 
-A maintainer-only Copilot canvas extension for triaging `external-plugin` submissions that are
-`ready-for-review` in github/awesome-copilot.
+A maintainer-only Copilot canvas extension for triaging active `external-plugin` submissions in
+github/awesome-copilot.
 
 Open it by asking Copilot to "open the plugin review board" (canvas id `external-plugin-review-board`).
 
@@ -16,8 +16,15 @@ Open it by asking Copilot to "open the plugin review board" (canvas id `external
 - **Re-review** (in the details panel) takes optional guidance on what to focus on, then has the agent
   spin up a separate sub-session to re-assess that one submission. The sub-session reports its result
   back and it's recorded on the card along with your guidance.
-- **Refresh** fetches open `external-plugin` + `ready-for-review` issues, adds new ones, and removes any
-  that are closed or no longer ready for review.
+- **Refresh** fetches open `external-plugin` issues in `ready-for-review`, `awaiting-review`, or
+  `requires-submitter-fixes` states. Pending intake cards stay on the board so their AI reviews,
+  manual buckets, queued re-reviews, and fast-track dismissal state are preserved. Approval and
+  first-party fast-track are unavailable until intake is ready.
+- **First-party fast-track**: cards labelled `first party` (repository owned by a Microsoft/GitHub
+  organization) skip AI review and go straight to *Accept* with a suggested `/approve`. Only submissions
+  that passed automated intake can use fast-track or be approved; pending submissions remain visible on the board.
+  Fast-track never overrides an existing review or a bucket you chose; drag a card to *Unreviewed* to opt it
+  out and have it reviewed normally. Cards show *First party* / *Third party* pills from the intake labels.
 - **Details panel** shows the AI review, the rendered issue body, and all comments.
 - **Quick actions** post `/approve` (with an optional note) or `/reject <reason>` straight to the issue
   after a confirm click. The reject reason is prefilled from the AI's suggested comment.

@@ -29,7 +29,22 @@ function runGh(args, { input } = {}) {
     });
 }
 
-export async function listReadyIssues(repo) {
+export function mapBoardIssues(issues) {
+    const boardStates = new Set(["ready-for-review", "awaiting-review", "requires-submitter-fixes"]);
+    return issues
+        .filter((issue) => (issue.labels ?? []).some((label) => boardStates.has(label.name)))
+        .map((issue) => ({
+            number: issue.number,
+            title: issue.title,
+            author: issue.author?.login ?? "unknown",
+            createdAt: issue.createdAt,
+            updatedAt: issue.updatedAt,
+            url: issue.url,
+            labels: (issue.labels ?? []).map((label) => label.name),
+        }));
+}
+
+export async function listBoardIssues(repo) {
     const out = await runGh([
         "issue",
         "list",
@@ -37,8 +52,6 @@ export async function listReadyIssues(repo) {
         repo,
         "--label",
         "external-plugin",
-        "--label",
-        "ready-for-review",
         "--state",
         "open",
         "--limit",
@@ -46,15 +59,7 @@ export async function listReadyIssues(repo) {
         "--json",
         "number,title,author,createdAt,updatedAt,labels,url",
     ]);
-    return JSON.parse(out).map((issue) => ({
-        number: issue.number,
-        title: issue.title,
-        author: issue.author?.login ?? "unknown",
-        createdAt: issue.createdAt,
-        updatedAt: issue.updatedAt,
-        url: issue.url,
-        labels: (issue.labels ?? []).map((label) => label.name),
-    }));
+    return mapBoardIssues(JSON.parse(out));
 }
 
 const FULL_JSON = ["-H", "Accept: application/vnd.github.full+json"];

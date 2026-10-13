@@ -69,3 +69,16 @@ and read the `/approve` / `/reject` comments on the most recent ones.
 - `probably-reject` — likely reject, but something specific deserves a quick maintainer look.
 - `needs-review` — genuine judgement call.
 - `accept` — fits the approval pattern.
+
+## Ownership labels
+
+Intake labels submissions by who owns the plugin repository:
+
+- `first party` — owned by a Microsoft/GitHub organization (Microsoft, GitHub, Azure, dotnet, MicrosoftDocs,
+  microsoftgraph). The board fast-tracks these straight to `accept` without an AI review. If a maintainer
+  explicitly moves one to `Unreviewed`, that opts it out of the fast-track: review it using the same procedure,
+  maintainer decision pattern, and recommendation buckets as any other submission. Assess its repo fit,
+  usefulness, duplication, and content quality on their merits; first-party ownership is not a reason to
+  recommend `accept`.
+- `third party` — owned by another organization. This is a signal only; apply the normal decision pattern.
+- No ownership label — owned by a user account (or ownership couldn't be determined).

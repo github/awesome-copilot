@@ -80,7 +80,7 @@ async function loadCanvas({ id, extensionDir, workspacePath, triggerDuringJoin =
     } else if (specifier === "./lib/github.mjs") {
       exports = {
         listOpenPullRequests: async () => [item],
-        listReadyIssues: async () => [item],
+        listBoardIssues: async () => [item],
       };
     } else {
       exports = await import(specifier.startsWith(".")

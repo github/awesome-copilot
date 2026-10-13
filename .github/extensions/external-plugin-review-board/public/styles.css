@@ -383,6 +383,16 @@ h2 {
     background: var(--red-muted);
     color: var(--red);
 }
+.pill-first-party {
+    border-color: transparent;
+    background: var(--green-muted);
+    color: var(--green);
+}
+.pill-third-party {
+    border-color: transparent;
+    background: var(--purple-muted);
+    color: var(--purple);
+}
 .pill-queued {
     border-color: transparent;
     background: var(--purple-muted);

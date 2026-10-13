@@ -253,6 +253,7 @@ The public-submission policy builds on those rules and also requires `license` p
 
 1. **Open an issue** using the external plugin issue form. Automation applies the `external-plugin` and `awaiting-review` labels.
 2. **Automated intake validation** checks that the required fields are present and correctly formatted for a GitHub-hosted plugin. Invalid submissions are labeled `requires-submitter-fixes` with a comment explaining what must be fixed before maintainer review.
+   Intake also checks the repository owner's type using the GitHub API. Organization-owned repositories receive `first party` for the `Microsoft`, `GitHub`, `Azure`, `dotnet`, `MicrosoftDocs`, or `microsoftgraph` organizations (case-insensitive), or `third party` for any other organization. User-owned repositories receive neither label. On the triage board, `first party` skips AI review and creates an `Accept` recommendation with `/approve`; this is only a triage recommendation. Submissions must still pass automated validation and quality gates, and a human maintainer must review and approve them before listing. Ownership labels are updated on each intake pass.
 3. **Automated quality gates** run after metadata validation:
    - `vally lint` against the submitted plugin path/ref/sha
    - install smoke test via Copilot CLI against an ephemeral marketplace entry generated from the submission
@@ -289,6 +290,8 @@ Maintainers are responsible for confirming that the submission:
 ##### Review cadence and label semantics
 
 - `external-plugin`: applied to every public external plugin submission and retained on approved issues so scheduled review automation can find them later
+- `first party`: the submitted repository is owned by a first-party organization (`Microsoft`, `GitHub`, `Azure`, `dotnet`, `MicrosoftDocs`, or `microsoftgraph`)
+- `third party`: the submitted repository is owned by another organization; user-owned repositories have neither ownership label
 - `awaiting-review`: initial intake state before automation finishes validating the issue
 - `ready-for-review`: the issue passed automated intake checks and is waiting on a maintainer decision
 - `requires-submitter-fixes`: automated intake found metadata or quality-gate issues; submitter updates are required before human review

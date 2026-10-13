@@ -7,8 +7,8 @@ import { BoardStore } from "../.github/extensions/external-plugin-review-board/l
 test("external-plugin-review-board excludes items with pending decisions from AI review", () => {
     const store = new BoardStore("unused", "github/awesome-copilot");
     store.state.items = {
-        "1": { number: 1, reviewStatus: "unreviewed" },
-        "2": { number: 2, reviewStatus: "unreviewed", pendingDecision: { kind: "approve" } },
+        "1": { number: 1, labels: ["ready-for-review"], reviewStatus: "unreviewed" },
+        "2": { number: 2, labels: ["ready-for-review"], reviewStatus: "unreviewed", pendingDecision: { kind: "approve" } },
         "3": { number: 3, reviewStatus: "queued" },
         "4": { number: 4, reviewStatus: "unreviewed", decision: { kind: "reject" } },
     };

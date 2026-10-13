@@ -117,7 +117,14 @@ function signalPills(item) {
             pills.push(h("span", { class: `pill pill-${level.toLowerCase()}`, title: "AGT contributor risk" }, `AGT ${level}`));
         } else if (label === "external-plugin-canvas") {
             pills.push(h("span", { class: "pill" }, "canvas"));
+        } else if (label === "first party") {
+            pills.push(h("span", { class: "pill pill-first-party", title: "Repository owned by a Microsoft/GitHub organization" }, "First party"));
+        } else if (label === "third party") {
+            pills.push(h("span", { class: "pill pill-third-party", title: "Repository owned by a third-party organization" }, "Third party"));
         }
+    }
+    if (item.review?.fastTracked && !item.decision) {
+        pills.push(h("span", { class: "pill pill-approve", title: "First-party submission fast-tracked to approval" }, "Fast-tracked"));
     }
     if (item.decision) {
         pills.push(h("span", { class: `pill pill-${item.decision.kind}` }, item.decision.kind === "approve" ? "Approved" : "Rejected"));
@@ -146,7 +153,14 @@ function findItem(number) {
 
 function pendingReviewCount() {
     return board
-        ? board.items.filter((item) => !item.decision && !item.pendingDecision && item.reviewStatus !== "reviewed" && item.reviewStatus !== "queued").length
+        ? board.items.filter(
+              (item) =>
+                  item.reviewEligible &&
+                  !item.decision &&
+                  !item.pendingDecision &&
+                  item.reviewStatus !== "reviewed" &&
+                  item.reviewStatus !== "queued",
+          ).length
         : 0;
 }
 
@@ -188,9 +202,10 @@ function renderBoard() {
     }
 }
 
-function columnItems(columnId) {
+function columnItems(columnId, kind) {
     return board.items.filter((item) => item.column === columnId && !item.decision &&
-        !item.pendingDecision && item.reviewStatus !== "queued");
+        !item.pendingDecision && item.reviewStatus !== "queued" &&
+        (kind === "reject" || item.reviewEligible));
 }
 
 function stagedComment(item) {
@@ -199,18 +214,20 @@ function stagedComment(item) {
 }
 
 function renderColumnActions(column) {
-    const count = columnItems(column.id).length;
     return h("div", { class: "column-actions", role: "group", "aria-label": `${column.title} bulk actions` },
-        ["approve", "reject", "rereview"].map((kind) => h("button", {
-            type: "button", class: "btn btn-small", disabled: bulkBusy || !count,
-            title: `Apply to all ${count} eligible items in this column, including hidden search results`,
-            onclick: () => bulkAction(column.id, kind),
-        }, `${kind === "rereview" ? "Re-review" : kind === "approve" ? "Approve" : "Reject"} all`)));
+        ["approve", "reject", "rereview"].map((kind) => {
+            const count = columnItems(column.id, kind).length;
+            return h("button", {
+                type: "button", class: "btn btn-small", disabled: bulkBusy || !count,
+                title: `Apply to all ${count} eligible items in this column, including hidden search results`,
+                onclick: () => bulkAction(column.id, kind),
+            }, `${kind === "rereview" ? "Re-review" : kind === "approve" ? "Approve" : "Reject"} all`);
+        }));
 }
 
 async function bulkAction(columnId, kind) {
     if (bulkBusy) return;
-    const items = columnItems(columnId).map((item) => ({
+    const items = columnItems(columnId, kind).map((item) => ({
         number: item.number, comment: stagedComment(item),
     }));
     if (!items.length) return;
@@ -239,7 +256,7 @@ async function bulkAction(columnId, kind) {
         }
         for (const item of items) {
             try {
-                if (!columnItems(columnId).some((current) => current.number === item.number)) {
+                if (!columnItems(columnId, kind).some((current) => current.number === item.number)) {
                     throw new Error("Item moved, was queued, or was already actioned; review it again.");
                 }
                 await api("POST", "/api/decision", { ...item, kind });
@@ -381,7 +398,8 @@ function renderDrawer() {
         .map((column) => h("option", { value: column.id, selected: column.id === item.column }, column.title));
     ui.drawerMove.replaceChildren(...options);
     ui.drawerMove.disabled = Boolean(item.decision);
-    ui.drawerRereview.disabled = Boolean(item.decision) || item.reviewStatus === "queued";
+    ui.drawerRereview.disabled = !item.reviewEligible || Boolean(item.decision) ||
+        Boolean(item.pendingDecision) || item.reviewStatus === "queued";
     if (ui.drawerRereview.disabled) hideRereview();
 
     for (const tab of ui.tabs) {
@@ -394,7 +412,7 @@ function renderDrawer() {
 
     ui.drawerFooter.hidden = Boolean(item.decision);
     updatePreview();
-    ui.approve.disabled = bulkBusy || Boolean(item.pendingDecision);
+    ui.approve.disabled = bulkBusy || !item.reviewEligible || Boolean(item.pendingDecision);
     ui.reject.disabled ||= bulkBusy || Boolean(item.pendingDecision);
     renderTab(item);
 }
@@ -467,7 +485,7 @@ function renderReview(item) {
         return wrapper;
     }
     const rows = [
-        ["Recommendation", RECOMMENDATION_LABELS[review.recommendation] + (item.manualColumn ? ` (you moved it to ${RECOMMENDATION_LABELS[item.manualColumn]})` : "")],
+        ["Recommendation", RECOMMENDATION_LABELS[review.recommendation] + (review.fastTracked ? " (first-party fast-track, no AI review)" : "") + (item.manualColumn ? ` (you moved it to ${RECOMMENDATION_LABELS[item.manualColumn]})` : "")],
         ["Plugin", review.pluginName],
         ["Repository", review.repository ? h("a", { href: `https://github.com/${review.repository}`, target: "_blank", rel: "noopener noreferrer" }, review.repository) : null],
         ["Repo facts", review.repoFacts],
@@ -566,6 +584,7 @@ function resetConfirm() {
         ui.approve.disabled = true;
         ui.reject.disabled = true;
     }
+    if (!item?.reviewEligible) ui.approve.disabled = true;
 }
 
 async function decide(kind) {
@@ -627,6 +646,7 @@ ui.refresh.addEventListener("click", () =>
             const parts = [`${result.total} open`];
             if (result.added.length) parts.push(`${result.added.length} new`);
             if (result.removed.length) parts.push(`${result.removed.length} removed`);
+            if (result.fastTracked?.length) parts.push(`${result.fastTracked.length} first-party fast-tracked`);
             toast(`Refreshed: ${parts.join(", ")}`);
             if (selected != null && activeTab !== "review") loadDetail(selected, { force: true });
         } catch (error) {
