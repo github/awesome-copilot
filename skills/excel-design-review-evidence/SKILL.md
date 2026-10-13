@@ -1,11 +1,11 @@
 ---
 name: excel-design-review-evidence
-description: 'Create traceable structural and visual review evidence for Japanese Excel graph-paper design documents (Excel houganshi), such as screen specifications and report layouts built from small cells, merged ranges, borders, and shapes. Use when cell-only extraction would lose layout meaning. Select worksheets, export PDF and PNG through desktop Excel, and verify source-to-artifact hashes. Not for OCR, design approval, ordinary spreadsheet analysis, or Markdown conversion.'
+description: 'Create traceable structural and visual review evidence for Japanese Excel graph-paper documents and similar layout-dependent spreadsheets that may exist elsewhere. Use when cell-only extraction would lose layout meaning. Select worksheets, export PDF and PNG through desktop Excel, and verify source-to-artifact hashes. Not for OCR, design approval, ordinary spreadsheet analysis, or Markdown conversion.'
 ---
 
 # Japanese Excel Graph-Paper Design Review Evidence
 
-Japanese engineering teams often use Excel as graph paper: small cells, merged ranges, borders, and drawing objects describe screens, reports, and process flows. A table of cell values cannot preserve all of that meaning. Combine workbook structure with Excel-rendered pages so a reviewer can trace what was actually captured and inspected.
+Japan has long used Excel worksheets as graph paper for screen specifications and report layouts, and many projects still follow this documentation convention. Small cells, merged ranges, borders, and drawing objects encode visual relationships that cell-value tables cannot preserve. Similar layout-dependent spreadsheet practices may exist in other countries under different names. Combine workbook structure with Excel-rendered pages so a reviewer can trace what was actually captured and inspected.
 
 This skill prepares evidence. It does not decide whether a design satisfies requirements or infer business semantics from connectors.
 
