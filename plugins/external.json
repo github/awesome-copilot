@@ -238,7 +238,7 @@
   {
     "name": "azure-sre-agent",
     "description": "Investigate failing Azure apps with your existing Azure SRE Agent through an interactive Copilot canvas. Review investigation threads and incident evidence, and continue investigations with explicit user approval combined with your own context and tools.",
-    "version": "0.4.1",
+    "version": "0.4.2",
     "author": {
       "name": "Paul Yuknewicz, Deepthi Chelupati",
       "url": "https://github.com/paulyuk/"
@@ -262,7 +262,7 @@
       "source": "github",
       "repo": "microsoft/azure-dev-tools",
       "path": "canvases/azure-sre-agent",
-      "sha": "bc8c3349df123c56eea4a957f8d63d3a4a8fd6e4"
+      "sha": "a1f00ec91e800233fe1b5d67c0814046aceac3fb"
     }
   },
   {
