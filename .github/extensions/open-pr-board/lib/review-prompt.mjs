@@ -25,7 +25,11 @@ export const REVIEW_FIELDS_SCHEMA = {
         summary: { type: "string", description: "What the pull request actually changes." },
         repoFit: { type: "string", description: "Repository fit and meaningful value for Copilot users." },
         compliance: { type: "string", description: "Deterministic checks: frontmatter, naming, README regeneration, manifests." },
-        differentiation: { type: "string", description: "How it differs from existing resources and native model capability." },
+        differentiation: {
+            type: "string",
+            description:
+                "Knowledge-uplift verdict (high / partial / none) with the specific content a capable model would not produce unprompted, plus overlap with existing resources.",
+        },
         risks: { type: "string", description: "Correctness, security, licensing, or harmful-content concerns." },
         validation: { type: "string", description: "Evidence the contributor tested or validated the change." },
         confidence: { type: "string", enum: ["low", "medium", "high"], description: "Confidence in the recommendation." },
@@ -60,6 +64,16 @@ function sharedRules(repo, guidancePath) {
         "  - `gh pr diff <number> -R " + repo + "` for the actual change (use `--name-only` first if the diff is large).",
         "  - `gh pr checks <number> -R " + repo + "` when checks are failing, to see which ones and why.",
         "Judge the submitted result, not assumptions about the tool that produced it. A title ending in 🤖🤖🤖 is a disclosure, not a defect.",
+        "",
+        knowledgeUpliftRules(),
+    ].join("\n");
+}
+
+function knowledgeUpliftRules() {
+    return [
+        "Knowledge uplift — apply the \"Knowledge uplift\" test from the code-review skill to every agent, instruction, skill, prompt, hook, or workflow the PR adds or substantially changes. It is the criterion most often under-applied, so do not skip it for well-formatted PRs:",
+        "  - Always start the `differentiation` field with the `high` / `partial` / `none` classification and the quoted lines that justify it, then note any overlap with existing resources.",
+        "  - `none` must not be `approve`: use `needs-insight`, or `close` when it is also a near-duplicate. `partial` is usually `request-changes`; name the generic sections to cut in `suggestedComment`.",
     ].join("\n");
 }
 

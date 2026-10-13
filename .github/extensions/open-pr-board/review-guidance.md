@@ -45,6 +45,10 @@ For every pull request:
   reason for `request-changes`.
 - **Duplication** — search the repo for an existing agent/instruction/skill covering the
   same ground. Near-duplicates are `needs-insight` unless the overlap is total.
+- **Knowledge uplift** — the most common way a well-formatted PR still fails. Apply the
+  "Knowledge uplift" test from `.github/skills/code-review/SKILL.md` to every content
+  resource. `none` is never `approve` (use `needs-insight`, or `close` if it is also a
+  near-duplicate); `partial` is usually `request-changes`.
 - **Provenance** — content copied from elsewhere without attribution, or obviously
   machine-generated filler with no evidence it was tested, is `needs-insight` at best.
 - **Checks and conflicts** — failing CI or a conflicting branch is `request-changes`,
@@ -57,7 +61,9 @@ For every pull request:
 - `rationale` is one sentence shown on the card. Lead with the deciding factor.
 - `summary` describes what the PR actually changes, in the reviewer's own words.
 - `repoFit`, `compliance`, `differentiation`, `risks`, and `validation` map to the
-  SKILL.md criteria — fill in the ones that mattered, leave the rest out.
+  SKILL.md criteria — fill in the ones that mattered, leave the rest out. The exception
+  is `differentiation`: always fill it for content PRs, leading with the knowledge-uplift
+  classification and its evidence.
 - `checkNext` is for the maintainer: the one thing to verify before acting.
 - `suggestedComment` is prefilled into the board's comment box, so write it as a comment
   addressed to the contributor. Be specific, name files and line numbers, and keep the
