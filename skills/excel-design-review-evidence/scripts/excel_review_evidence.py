@@ -11,6 +11,7 @@ from xml.etree import ElementTree
 from zipfile import BadZipFile, ZipFile, is_zipfile
 
 from openpyxl import load_workbook
+from openpyxl.utils import column_index_from_string
 
 
 SUPPORTED_SUFFIXES = {".xlsx", ".xlsm"}
@@ -119,6 +120,12 @@ def _inspect_sheet(worksheet) -> dict:
 
     row_dimensions = list(worksheet.row_dimensions.values())
     column_dimensions = list(worksheet.column_dimensions.values())
+    hidden_columns = set()
+    for dimension in column_dimensions:
+        if dimension.hidden:
+            first_column = dimension.min or column_index_from_string(dimension.index)
+            last_column = dimension.max or first_column
+            hidden_columns.update(range(first_column, last_column + 1))
     chart_count = len(worksheet._charts)
     image_count = len(worksheet._images)
 
@@ -137,7 +144,7 @@ def _inspect_sheet(worksheet) -> dict:
         "fit_to_width": worksheet.page_setup.fitToWidth,
         "fit_to_height": worksheet.page_setup.fitToHeight,
         "hidden_row_count": sum(1 for item in row_dimensions if item.hidden),
-        "hidden_column_count": sum(1 for item in column_dimensions if item.hidden),
+        "hidden_column_count": len(hidden_columns),
         "custom_row_height_count": sum(1 for item in row_dimensions if item.height is not None),
         "custom_column_width_count": sum(1 for item in column_dimensions if item.width is not None),
         "chart_count": chart_count,

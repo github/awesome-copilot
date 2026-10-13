@@ -76,6 +76,33 @@ class WorkbookPipelineTests(unittest.TestCase):
         self.assertIn("merged_cells", by_name["Layout"])
         self.assertNotIn("Internal notes", by_name)
 
+    def test_counts_physical_columns_in_hidden_dimension_spans(self) -> None:
+        cases = [
+            ([("A", "C", True)], 3),
+            ([("A", "C", True), ("E", "E", True), ("G", "I", False)], 4),
+            ([("A", "C", True), ("B", "D", True)], 4),
+            ([("B", "B", True)], 1),
+            ([("A", "C", False)], 0),
+        ]
+        for case_index, (spans, expected_count) in enumerate(cases):
+            with self.subTest(spans=spans):
+                path = Path(self.temp_dir.name) / f"hidden-columns-{case_index}.xlsx"
+                workbook = Workbook()
+                sheet = workbook.active
+                sheet.title = "Layout"
+                sheet["A1"] = "Synthetic layout"
+                for start, end, hidden in spans:
+                    sheet.column_dimensions.group(start, end, hidden=hidden)
+                workbook.save(path)
+                workbook.close()
+                original_hash = excel_review_evidence._sha256(path)
+                structure = inspect_workbook(path)
+                self.assertEqual(structure["sheets"][0]["hidden_column_count"], expected_count)
+                self.assertEqual(excel_review_evidence._sha256(path), original_hash)
+                targets = suggest_visual_targets(structure)
+                reasons = {reason for target in targets for reason in target["reasons"]}
+                self.assertEqual("hidden_rows_or_columns" in reasons, expected_count > 0)
+
     def test_rejects_non_workbook_input(self) -> None:
         invalid_path = Path(self.temp_dir.name) / "not-a-workbook.xlsx"
         invalid_path.write_text("not an xlsx archive", encoding="utf-8")
