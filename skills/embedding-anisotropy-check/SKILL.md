@@ -1,6 +1,6 @@
 ---
 name: embedding-anisotropy-check
-description: 'Check a cosine similarity over embeddings or transformer hidden states before reporting it. Measures the anisotropy of each side, centres by the population mean, and scores matched pairs against a permuted floor taken from the same comparison. Use when comparing one model''s embeddings across precisions, runtimes or layers, when evaluating retrieval, probes or adapters, or before calling a similarity high, two conditions in agreement, or a small gap a null.'
+description: 'Use before reporting any cosine similarity computed over embeddings or transformer hidden states, whether the agent computed the vectors or loaded them. Measures the anisotropy of each side, centres by the population mean, and scores matched pairs against a permuted floor taken from the same comparison. Use when comparing one model''s embeddings across precisions, runtimes or layers, when evaluating retrieval, probes or adapters, or before calling a similarity high, two conditions in agreement, or a small gap a null.'
 license: MIT
 compatibility: Python 3.9+ with numpy
 ---
@@ -11,6 +11,22 @@ Raw cosine between embeddings is rarely centred on zero. Most sentence encoders 
 every vector near one shared direction, so two unrelated inputs can score 0.6, 0.9 or 0.99. A matched pair at 0.9 is
 then not evidence of anything by itself, and a gap of 0.01 between two conditions can be the whole signal or none of
 it. This skill makes every such comparison carry its own floor.
+
+## How an agent reaches this skill
+
+The agent does not vectorise anything here. The skill applies at the point where the agent is about to report a cosine
+number, whoever produced the vectors:
+
+- **The agent wrote the evaluation.** A request such as "write a retrieval eval for our index" or "check that the 4-bit
+  export of this encoder still matches bf16" ends in a script that prints a mean cosine. Before the agent says
+  "0.91, the export is fine", it runs the same model's unrelated pairs through the script and reports the floor beside
+  the matched figure.
+- **The vectors already exist in the workspace.** An `embeddings.npy`, a probe or adapter evaluated on saved hidden
+  states, a vector-store dump. Asked "are these two layers encoding the same thing" or "did the fine-tune move the
+  representations", the agent loads the arrays and runs the check before answering.
+- **A claim is being written.** The agent is drafting a README, a PR description or a results table that calls a
+  similarity high, says two conditions agree, or calls a small difference a null. The number in that sentence is the
+  trigger.
 
 ## When to use this skill
 
