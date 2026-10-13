@@ -1442,6 +1442,34 @@
     }
   },
   {
+    "name": "sechelix-lite",
+    "description": "Application-security review skill for codebases and pull requests you are authorized to assess. Maps trust boundaries, keeps issues as hypotheses until evidenced, runs a separate pass that tries to refute material findings, and ends with a release verdict.",
+    "version": "4.0.0-alpha.6",
+    "author": {
+      "name": "Omar",
+      "url": "https://github.com/omarmohelal"
+    },
+    "repository": "https://github.com/omarmohelal/SecHelix",
+    "license": "Apache-2.0",
+    "keywords": [
+      "security",
+      "appsec",
+      "security-review",
+      "code-review",
+      "authorization",
+      "business-logic",
+      "supply-chain",
+      "ai-security"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "omarmohelal/SecHelix",
+      "path": "distributions/awesome-copilot",
+      "ref": "v4.0.0-alpha.6",
+      "sha": "a73be865fccf5cefcf98d4dcce2c2bf2b6afce2f"
+    }
+  },
+  {
     "name": "skills-for-copilot-studio",
     "description": "Microsoft Copilot Studio plugins for AI coding agents",
     "version": "1.0.3",
