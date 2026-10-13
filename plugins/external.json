@@ -1288,6 +1288,37 @@
     }
   },
   {
+    "name": "oddyssey",
+    "description": "Observability-Driven Development for coding agents: an OpenTelemetry instrumentation expert, a run-observation agent that measures a service through its telemetry on a local Grafana stack or a remote backend (Grafana, Datadog, Dynatrace, Azure Monitor, CloudWatch), a verification pass that replays a stored run, k6 benchmark authoring, and a committed .odd/ memory that carries the loop across runs.",
+    "version": "1.12.1",
+    "author": {
+      "name": "using-system",
+      "url": "https://github.com/using-system"
+    },
+    "repository": "https://github.com/using-system/oddyssey",
+    "homepage": "https://github.com/using-system/oddyssey#readme",
+    "license": "MIT",
+    "keywords": [
+      "observability",
+      "opentelemetry",
+      "grafana",
+      "k6",
+      "mcp",
+      "ai-agents",
+      "developer-tools",
+      "performance",
+      "telemetry",
+      "load-testing"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "using-system/oddyssey",
+      "path": "marketplace/oddyssey",
+      "ref": "v1.12.1",
+      "sha": "407c8e2248c12e112098861a9c577027708ba031"
+    }
+  },
+  {
     "name": "pm-skills",
     "description": "MCP server and 12 skills for product analysis, specification writing, strategy, narrative, and stakeholder alignment. Run competitive analyses, write zero-question specs, design metrics, and produce executive-ready documents directly from Copilot.",
     "version": "2.1.0",
