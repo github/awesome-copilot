@@ -61,16 +61,17 @@ class JacksonConfig {
 import tools.jackson.databind.ObjectMapper
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer
 import org.springframework.boot.jackson.JacksonComponent
+import tools.jackson.databind.ValueSerializer
 
 @JacksonComponent
-class CustomSerializer : JsonSerializer<MyType>() { }
+class CustomSerializer : ValueSerializer<MyType>() { }
 
 @Configuration
 class JacksonConfig {
     @Bean
     fun customizer(): JsonMapperBuilderCustomizer {
         return JsonMapperBuilderCustomizer { builder ->
-            builder.simpleDateFormat("yyyy-MM-dd")
+            builder.defaultDateFormat(SimpleDateFormat("yyyy-MM-dd"))
         }
     }
 }

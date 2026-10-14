@@ -127,12 +127,11 @@ class RestApiTest {
 
     @Test
     fun testEndpoint() {
-        val response = restTestClient.get()
+        restTestClient.get()
             .uri("/api/users")
-            .retrieve()
-            .toEntity<List<User>>()
-
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBodyList(User::class.java)
     }
 }
 ```

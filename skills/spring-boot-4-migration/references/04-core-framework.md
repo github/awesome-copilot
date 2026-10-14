@@ -13,7 +13,8 @@ Spring Boot 4.0 adds **JSpecify nullability annotations** throughout the codebas
 ```kotlin
 // Explicit nullable types may be required
 fun processUser(id: String?): User? {
-    return userRepository.findById(id) // May now be explicitly nullable
+    val nonNullId = id ?: return null // findById now requires a non-null ID
+    return userRepository.findById(nonNullId).orElse(null) // Optional<User> -> User?
 }
 
 // RestClient body() can return null

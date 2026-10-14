@@ -6,8 +6,8 @@
 
 **Security configuration (exclude fonts if needed):**
 ```kotlin
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest
-import org.springframework.boot.autoconfigure.security.StaticResourceLocation
+import org.springframework.boot.security.autoconfigure.web.StaticResourceLocation
+import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest
 
 @Configuration
 @EnableWebSecurity
@@ -207,8 +207,8 @@ class RabbitConfig {
 }
 
 // New (Spring Boot 4.0)
-import org.springframework.boot.autoconfigure.amqp.RabbitTemplateRetrySettingsCustomizer
-import org.springframework.boot.autoconfigure.amqp.RabbitListenerRetrySettingsCustomizer
+import org.springframework.boot.rabbitmq.autoconfigure.RabbitTemplateRetrySettingsCustomizer
+import org.springframework.boot.rabbitmq.autoconfigure.RabbitListenerRetrySettingsCustomizer
 
 @Configuration
 class RabbitConfig {

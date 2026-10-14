@@ -17,14 +17,17 @@ Verified: Boot 3.5.16 -> 4.1.1 with Kotlin 2.2.0 builds (Groovy and Kotlin DSL, 
 
 ### Optional Dependencies in Gradle
 
-Optional dependencies are **no longer included in uber jars by default**.
+Optional dependencies are **no longer included in uber jars by default**. Gradle has no Maven-style `optional` scope and `BootJar` has no `includeOptional` property, so control packaging through the dependency configuration instead:
 
-**build.gradle.kts (include optionals explicitly):**
 ```kotlin
-tasks.bootJar {
-    includeOptional = true // If needed
+dependencies {
+    implementation("group:artifact")   // compile and runtime classpath, packaged in the jar
+    runtimeOnly("group:artifact")      // runtime only, packaged in the jar
+    compileOnly("group:artifact")      // compile time only, not packaged
 }
 ```
+
+If a dependency that used to be optional is now missing at runtime, move it to `implementation` or `runtimeOnly`.
 
 ### Spring Retry → Spring Framework Core Retry
 
@@ -111,9 +114,11 @@ import org.elasticsearch.client.RestClientBuilder
 import org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer
 
 // New (Spring Boot 4.0)
-import co.elastic.clients.transport.rest_client.Rest5Client
-import co.elastic.clients.transport.rest_client.Rest5ClientBuilder
-import org.springframework.boot.autoconfigure.elasticsearch.Rest5ClientBuilderCustomizer
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client
+import co.elastic.clients.transport.rest5_client.low_level.Rest5ClientBuilder
+import org.springframework.boot.elasticsearch.autoconfigure.Rest5ClientBuilderCustomizer
+import org.apache.hc.client5.http.config.ConnectionConfig
+import org.apache.hc.core5.util.Timeout
 ```
 
 **Configuration:**
@@ -134,9 +139,12 @@ class ElasticsearchConfig {
     // New
     @Bean
     fun rest5ClientCustomizer(): Rest5ClientBuilderCustomizer {
-        return Rest5ClientBuilderCustomizer { builder ->
-            builder.setRequestConfigCallback { config ->
-                config.setConnectTimeout(5000)
+        return object : Rest5ClientBuilderCustomizer {
+            override fun customize(builder: Rest5ClientBuilder) {}
+
+            // Dedicated callbacks replace setRequestConfigCallback
+            override fun customize(builder: ConnectionConfig.Builder) {
+                builder.setConnectTimeout(Timeout.ofSeconds(5))
             }
         }
     }
