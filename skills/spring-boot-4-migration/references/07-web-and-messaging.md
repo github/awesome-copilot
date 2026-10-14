@@ -207,8 +207,8 @@ class RabbitConfig {
 }
 
 // New (Spring Boot 4.0)
-import org.springframework.boot.rabbitmq.autoconfigure.RabbitTemplateRetrySettingsCustomizer
-import org.springframework.boot.rabbitmq.autoconfigure.RabbitListenerRetrySettingsCustomizer
+import org.springframework.boot.amqp.autoconfigure.RabbitTemplateRetrySettingsCustomizer
+import org.springframework.boot.amqp.autoconfigure.RabbitListenerRetrySettingsCustomizer
 
 @Configuration
 class RabbitConfig {
@@ -217,7 +217,7 @@ class RabbitConfig {
     @Bean
     fun templateRetryCustomizer(): RabbitTemplateRetrySettingsCustomizer {
         return RabbitTemplateRetrySettingsCustomizer { settings ->
-            settings.maxAttempts = 5
+            settings.retryPolicySettings.maxRetries = 5L
         }
     }
 
@@ -225,9 +225,11 @@ class RabbitConfig {
     @Bean
     fun listenerRetryCustomizer(): RabbitListenerRetrySettingsCustomizer {
         return RabbitListenerRetrySettingsCustomizer { settings ->
-            settings.maxAttempts = 3
+            settings.retryPolicySettings.maxRetries = 3L
         }
     }
 }
 ```
+
+These customizers exist since Spring Boot 4.0.0 (`maxRetries` counts retries after the first attempt, unlike the old `maxAttempts`). In Spring Boot 4.2+ they moved to the `org.springframework.boot.rabbitmq.autoconfigure` package; adjust the imports when upgrading to 4.2.
 
