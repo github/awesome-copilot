@@ -131,7 +131,7 @@ dependencies {
 
 ### Kafka Streams Customizer Replacement
 
-**Deprecated `StreamBuilderFactoryBeanCustomizer` → `StreamsBuilderFactoryBeanConfigurer`:**
+**Deprecated `StreamsBuilderFactoryBeanCustomizer` → `StreamsBuilderFactoryBeanConfigurer`:**
 
 ```kotlin
 // Old (Spring Boot 3.x)
@@ -140,8 +140,8 @@ import org.springframework.boot.autoconfigure.kafka.StreamsBuilderFactoryBeanCus
 @Configuration
 class KafkaStreamsConfig {
     @Bean
-    fun streamsCustomizer(): StreamBuilderFactoryBeanCustomizer {
-        return StreamBuilderFactoryBeanCustomizer { factoryBean ->
+    fun streamsCustomizer(): StreamsBuilderFactoryBeanCustomizer {
+        return StreamsBuilderFactoryBeanCustomizer { factoryBean ->
             factoryBean.setKafkaStreamsCustomizer { streams ->
                 // Custom config
             }

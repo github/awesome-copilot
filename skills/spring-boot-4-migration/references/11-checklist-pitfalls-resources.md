@@ -39,7 +39,7 @@
 - [ ] Update package: `EnvironmentPostProcessor` → `org.springframework.boot.EnvironmentPostProcessor`
 - [ ] Update package: `EntityScan` → `org.springframework.boot.persistence.autoconfigure.EntityScan`
 - [ ] Update: `RestClient` → `Rest5Client` (Elasticsearch)
-- [ ] Update: `StreamBuilderFactoryBeanCustomizer` → `StreamsBuilderFactoryBeanConfigurer` (Kafka)
+- [ ] Update: `StreamsBuilderFactoryBeanCustomizer` → `StreamsBuilderFactoryBeanConfigurer` (Kafka)
 - [ ] Split: `RabbitRetryTemplateCustomizer` → `RabbitTemplateRetrySettingsCustomizer` / `RabbitListenerRetrySettingsCustomizer`
 - [ ] Replace: `HttpMessageConverters` → `ClientHttpMessageConvertersCustomizer` / `ServerHttpMessageConvertersCustomizer`
 - [ ] Update: `PropertyMapper` usage with `.always()` if null handling needed

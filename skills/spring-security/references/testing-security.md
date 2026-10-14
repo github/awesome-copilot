@@ -39,7 +39,7 @@ class AccountControllerTest {
 
 ## CSRF test (session/browser configuration)
 
-CSRF only applies to session-based browser applications. Test it against a separate configuration that keeps CSRF enabled (the default), never against the stateless `SecurityConfig` above:
+CSRF applies whenever the browser attaches credentials automatically (session cookies, HTTP Basic, client certificates); it does not apply to explicit bearer tokens sent in headers. Test it against a separate configuration that keeps CSRF enabled (the default), never against the stateless `SecurityConfig` above:
 
 ```java
 @Configuration
