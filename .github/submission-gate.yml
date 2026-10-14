@@ -1,0 +1,234 @@
+# Submission gate configuration.
+#
+# The submission gate aggregates the checks below on the PR head commit into one
+# required `submission-gate` check. The read-only Submission Gate workflow waits for
+# them; the trusted Submission Gate Writer publishes the check.
+# Logic lives in eng/submission-gate.mjs. See docs/maintainers/submission-gate.md.
+#
+# This file is a review-policy file: changing it places a PR in merge-risk:high.
+#
+# Check fields:
+#   id           Stable identifier used in the status comment.
+#   title        Human-readable name.
+#   workflow     Workflow file (under .github/workflows/) that reports the check.
+#                Omit and set `check_name` for checks matched by check-run name only.
+#   check_name   Match a check run by name instead of by workflow (any workflow).
+#   branches     Base branches the check runs for (mirrors the workflow trigger).
+#   paths        Path globs that make the check applicable (mirrors the workflow's
+#                `paths` filter). Omit to apply to every PR. Kept in sync with the
+#                workflow triggers by eng/submission-gate.test.mjs.
+#   required     true: failures block the gate. false: failures are shown as warnings.
+#   optional     true: skip silently when the check never reports (pluggable slot).
+#   allow_skip   true: a run its workflow skipped counts as skipped. Otherwise a skipped
+#                required check is an infrastructure failure, because it validated nothing.
+#   failure_kind auto (default): classify a failed run by its failing step.
+#                infrastructure: every failure of this check is an infrastructure failure.
+#   contribution_steps  Step-name patterns (regex) that mean the contribution failed.
+#   hint         Fix guidance shown for contribution failures.
+
+wait:
+  # Maximum time the gate polls for pending checks before reporting them as incomplete.
+  timeout_minutes: 40
+  interval_seconds: 30
+  # A check that has not appeared after this long (while everything else finished)
+  # is reported as "did not report".
+  report_grace_minutes: 8
+
+# Failed steps that match these patterns are infrastructure failures (runner, network,
+# dependency install, artifact transfer) rather than problems with the contribution.
+infrastructure_steps:
+  - "^Set up job$"
+  - "^Complete job$"
+  - "^Post "
+  - "(Checkout|checkout)"
+  - "^Setup (Node|Python)"
+  - "^Set up (Node|Python)"
+  - "(Install|install) (dependencies|gh-aw)"
+  - "^Fetch AGT"
+  - "(Upload|Download) .*artifact"
+
+checks:
+  - id: line-endings
+    title: Line endings
+    workflow: check-line-endings.yml
+    branches: [main]
+    required: true
+    contribution_steps: ["CRLF"]
+    hint: Run `bash eng/fix-line-endings.sh` and commit the result.
+
+  - id: spelling
+    title: Spelling
+    workflow: codespell.yml
+    branches: [main]
+    required: true
+    contribution_steps: ["^Check spelling with codespell$"]
+    hint: Fix the misspellings reported by codespell in the job log.
+
+  - id: readme
+    title: Generated README consistency
+    workflow: validate-readme.yml
+    branches: [main]
+    paths:
+      - "instructions/**"
+      - "prompts/**"
+      - "agents/**"
+      - "plugins/**"
+      - "workflows/**"
+      - "*.js"
+      - "README.md"
+      - "docs/**"
+      - "skills/**"
+      - "eng/update-readme.mjs"
+      - "eng/generate-marketplace.mjs"
+      - "eng/validate-plugins.mjs"
+      - ".github/workflows/validate-readme.yml"
+    required: true
+    contribution_steps: ["^Validate plugins$", "^Update README", "^Fail workflow if files need updating$"]
+    hint: Run `npm start` locally and commit the regenerated files.
+
+  - id: plugin-validation
+    title: Plugin and extension validation
+    workflow: validate-plugins.yml
+    branches: [main]
+    paths:
+      - "plugins/**"
+      - "extensions/**"
+      - "eng/validate-plugins.mjs"
+      - ".github/workflows/validate-plugins.yml"
+    required: true
+    contribution_steps: ["^Validate plugins and extensions$"]
+    hint: Run `npm run plugin:validate` locally and fix the reported errors.
+
+  - id: canvas-extension-validation
+    title: Canvas extension validation
+    workflow: validate-canvas-extensions.yml
+    branches: [main]
+    paths:
+      - "extensions/**"
+      - "eng/validate-plugins.mjs"
+      - ".github/workflows/validate-canvas-extensions.yml"
+    required: true
+    contribution_steps: ["^Validate changed extensions$"]
+    hint: Run `npm run plugin:validate` locally and fix the reported errors.
+
+  - id: plugin-structure
+    title: Plugin structure
+    workflow: check-plugin-structure.yml
+    branches: [main]
+    paths:
+      - "plugins/**"
+      - ".github/workflows/check-plugin-structure.yml"
+    required: true
+    contribution_steps: ["materialized files"]
+    hint: Remove materialized or symlinked files from the plugin directory.
+
+  - id: skill-validation
+    title: Skill validation
+    workflow: validate-skills.yml
+    branches: [main]
+    paths:
+      - "skills/**"
+      - "eng/validate-skills.mjs"
+      - "eng/yaml-parser.mjs"
+      - ".github/workflows/validate-skills.yml"
+    required: true
+    contribution_steps: ["^Validate skills$"]
+    hint: Run `npm run skill:validate` locally and fix the reported errors.
+
+  - id: skill-lint
+    title: Skill lint (vally)
+    workflow: skill-check.yml
+    branches: [main]
+    paths:
+      - "skills/**"
+      - "agents/**"
+      - "plugins/**/skills/**"
+      - "plugins/**/agents/**"
+      - ".github/workflows/skill-check.yml"
+    required: true
+    failure_kind: infrastructure
+
+  - id: submission-gate-validation
+    title: Submission gate tests
+    workflow: validate-submission-gate.yml
+    branches: [main]
+    paths:
+      - ".github/submission-gate.yml"
+      - ".github/risk-tiers.yml"
+      - ".github/workflows/**"
+      - "eng/submission-gate.mjs"
+      - "eng/submission-gate.test.mjs"
+    required: true
+    contribution_steps: ["^Test submission gate$"]
+    hint: Run `node --test eng/submission-gate.test.mjs` and keep `.github/submission-gate.yml` in sync with workflow triggers.
+
+  - id: agentic-workflow-validation
+    title: Agentic workflow validation
+    workflow: validate-agentic-workflows-pr.yml
+    branches: [main]
+    paths:
+      - "workflows/**"
+    required: true
+    contribution_steps: ["^Check for forbidden files$", "^Compile workflow files$"]
+    hint: Only add `.md` sources under `workflows/` and make sure `gh aw compile --validate` passes.
+
+  - id: risk-scan
+    title: Risk scan
+    workflow: pr-risk-scan.yml
+    branches: [main]
+    paths:
+      - "skills/**"
+      - "agents/**"
+      - "workflows/**"
+      - "plugins/**"
+      - "hooks/**"
+      - "instructions/**"
+      - "eng/pr-risk-scan.mjs"
+      - ".github/workflows/pr-risk-scan.yml"
+    required: true
+    failure_kind: infrastructure
+
+  - id: contributor-reputation
+    title: Contributor reputation
+    workflow: contributor-check.yml
+    required: true
+    # Its jobs skip for bot authors (Dependabot, github-actions, Copilot coding agent).
+    allow_skip: true
+    failure_kind: infrastructure
+
+  # AI-assisted advisory reviews. Their findings are posted as comments and never fail
+  # the run, so a failed run is always an infrastructure failure (for example the
+  # intermittent Copilot inference 401). They are non-blocking by design.
+  - id: duplicate-scan
+    title: Duplicate resource scan
+    workflow: pr-duplicate-check.lock.yml
+    required: false
+    failure_kind: infrastructure
+
+  - id: quality-signal
+    title: PR quality signal
+    workflow: pr-quality-signal.lock.yml
+    required: false
+    failure_kind: infrastructure
+
+  # Pluggable slot for the canvas/plugin materialization and install smoke test.
+  # Any workflow can satisfy it by reporting a job named `canvas-smoke-test`.
+  - id: canvas-smoke-test
+    title: Canvas/plugin smoke test
+    check_name: canvas-smoke-test
+    branches: [main]
+    paths:
+      - "extensions/**"
+      - "plugins/**"
+    required: true
+    optional: true
+    contribution_steps: ["smoke", "(Materialize|materialize|Materialization|materialization)", "(Install|install) plugin"]
+    hint: See the smoke-test job log for the failing plugin or extension.
+
+commands:
+  request_review:
+    label: needs-reviewer
+    # Reviewer routing workflow dispatched after the label is added (labels added with
+    # GITHUB_TOKEN do not trigger `labeled` workflows). Ignored if the file is absent.
+    dispatch_workflow: review-routing.yml
+    dispatch_ref: main

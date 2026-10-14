@@ -1000,6 +1000,11 @@
   border-block-start: none;
 }
 
+/* Nested heading and custom-anchor jumps must also clear the pinned hero. */
+.articleSection :global([id]) {
+  scroll-margin-top: calc(var(--app-hero-pinned, 17rem) + var(--base-size-24));
+}
+
 /* Raw markdown links inherit the UA default blue/purple otherwise, which is
    too harsh in dark mode; route them through the themed link token instead. */
 .articleSection a {

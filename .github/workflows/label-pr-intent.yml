@@ -27,6 +27,7 @@ jobs:
               'agent': true,
               'instructions': true,
               'new-submission': true,
+              'workshops': true,
               'website-update': true,
               'external-plugin': true,
               'hooks': true,
@@ -67,7 +68,8 @@ jobs:
                 /^skills\//
               ],
               plugin: [
-                /^plugins\//
+                /^plugins\//,
+                /^\.github\/plugin\//
               ],
               agent: [
                 /^agents\/.+\.agent\.md$/
@@ -77,6 +79,9 @@ jobs:
               ],
               websiteUpdate: [
                 /^website\//
+              ],
+              workshops: [
+                /^website\/(?:.*\/)?(?:cli-for-beginners|app-for-beginners|copilot-workshops)\//
               ],
               externalPlugin: [
                 /^plugins\/external\.json$/
@@ -128,6 +133,10 @@ jobs:
 
             if (filenames.some((filename) => matchesAny(filename, patterns.instructions))) {
               desiredLabels.add('instructions');
+            }
+
+            if (filenames.some((filename) => matchesAny(filename, patterns.workshops))) {
+              desiredLabels.add('workshops');
             }
 
             if (filenames.some((filename) => matchesAny(filename, patterns.websiteUpdate))) {

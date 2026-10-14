@@ -1,6 +1,6 @@
 # Self-Learning System
 
-Maintain project learning artifacts under a designated lessons/memories directory (e.g., `.github/SecurityLessons` and `.github/SecurityMemories`).
+Maintain project learning artifacts in `.github/SecurityLessons/` and `.github/SecurityMemories/`.
 
 ## When to Create
 

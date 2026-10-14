@@ -46,6 +46,7 @@ jobs:
               'agent',
               'instructions',
               'new-submission',
+              'workshops',
               'website-update',
               'external-plugin',
               'hooks',

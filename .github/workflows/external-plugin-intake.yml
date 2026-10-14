@@ -48,6 +48,22 @@ jobs:
             core.setOutput('issue-labels', JSON.stringify(labels));
             core.setOutput('should-sync', (!isApproved && !isClosedWithoutReopen) ? 'true' : 'false');
 
+      - name: Mark submission as awaiting review
+        if: steps.guard.outputs.should-sync == 'true'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+
+            await intakeState.markExternalPluginIntakeAwaitingReview({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: context.issue.number
+            });
+
       - name: Evaluate submission
         id: evaluation
         env:

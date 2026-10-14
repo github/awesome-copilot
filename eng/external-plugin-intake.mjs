@@ -75,6 +75,14 @@ const MARKETING_SIGNAL_PATTERNS = Object.freeze([
   ["trial", /\bfree\s+trial\b|\bstart\s+your\s+trial\b|\bget\s+started\s+free\b/i],
   ["checkout", /\bstripe\b|\bcheckout\b|\bsubscribe\s+now\b|\bbuy\s+now\b/i],
 ]);
+const FIRST_PARTY_ORGANIZATIONS = new Set([
+  "microsoft",
+  "github",
+  "azure",
+  "dotnet",
+  "microsoftdocs",
+  "microsoftgraph",
+]);
 const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
   ".github/plugin/plugin.json",
   ".plugin/plugin.json",
@@ -532,6 +540,11 @@ function buildRepositorySignals(repository) {
 
   return {
     status: "pass",
+    ownershipLabel: repository.owner?.type === "Organization"
+      ? FIRST_PARTY_ORGANIZATIONS.has(repository.owner.login?.toLowerCase())
+        ? "first party"
+        : "third party"
+      : null,
     age_days: ageDays,
     stars: repository.stargazers_count,
     watchers: repository.subscribers_count,
@@ -1208,6 +1221,13 @@ function buildReviewSignalsCommentSection(reviewSignals) {
     "|---|---|",
   ];
   if (repository?.status === "pass") {
+    const ownershipNote = {
+      "first party": "Organization-owned (first party: Microsoft/GitHub organization)",
+      "third party": "Organization-owned (third party)",
+    }[repository.ownershipLabel];
+    if (ownershipNote) {
+      rows.push(`| Repository owner | ${ownershipNote} |`);
+    }
     rows.push(
       `| Repository age | ${repository.age_days === undefined ? "unknown" : `${repository.age_days} day(s)`} |`,
       `| Repository activity | ${repository.signals?.length ? repository.signals.join("; ") : "no configured signal"} |`,
@@ -1346,7 +1366,7 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
     }
   }
 
-  if (parsed.plugin?.source?.repo && (parsed.plugin?.source?.ref || parsed.plugin?.source?.sha)) {
+  if (parsed.plugin?.source?.repo) {
     repositorySignals = await validateRemoteRepository(parsed.plugin.source.repo, parsed.plugin.source, errors, warnings, token);
   }
   const homepageSignals = await inspectHomepage(parsed.plugin?.homepage);

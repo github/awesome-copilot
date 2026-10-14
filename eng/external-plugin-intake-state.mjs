@@ -7,6 +7,14 @@ export const EXTERNAL_PLUGIN_INTAKE_LABELS = Object.freeze({
     color: "1D76DB",
     description: "External plugin submission includes a canvas extension",
   },
+  "first party": {
+    color: "1D76DB",
+    description: "External plugin repository is owned by a Microsoft or GitHub first-party organization",
+  },
+  "third party": {
+    color: "5319E7",
+    description: "External plugin repository is owned by another organization",
+  },
   "awaiting-review": {
     color: "FBCA04",
     description: "Submission is waiting for automated intake validation",
@@ -18,6 +26,10 @@ export const EXTERNAL_PLUGIN_INTAKE_LABELS = Object.freeze({
   "requires-submitter-fixes": {
     color: "D93F0B",
     description: "Submission has quality-gate findings that submitter must fix before maintainer review",
+  },
+  "intake-manually-overridden": {
+    color: "BFD4F2",
+    description: "Submission was manually moved to review without passing automated intake gates",
   },
   approved: {
     color: "1D76DB",
@@ -35,6 +47,7 @@ const EXTERNAL_PLUGIN_INTAKE_SYNC_LABELS = Object.freeze([
   "awaiting-review",
   "ready-for-review",
   "requires-submitter-fixes",
+  "intake-manually-overridden",
   "rejected",
 ]);
 
@@ -53,7 +66,14 @@ async function removeLabel({ github, owner, repo, issueNumber, name }) {
   }
 }
 
-export async function syncExternalPluginIntakeLabels({ github, owner, repo, issueNumber, desiredLabels }) {
+export async function syncExternalPluginIntakeLabels({
+  github,
+  owner,
+  repo,
+  issueNumber,
+  desiredLabels,
+  syncOwnershipLabels = false,
+}) {
   const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
     owner,
     repo,
@@ -63,7 +83,10 @@ export async function syncExternalPluginIntakeLabels({ github, owner, repo, issu
 
   const currentManagedLabels = currentLabels
     .map((label) => label.name)
-    .filter((name) => EXTERNAL_PLUGIN_INTAKE_SYNC_LABELS.includes(name));
+    .filter((name) =>
+      EXTERNAL_PLUGIN_INTAKE_SYNC_LABELS.includes(name) ||
+      (syncOwnershipLabels && ["first party", "third party"].includes(name))
+    );
 
   const labelsToAdd = [...desiredLabels].filter((name) => !currentManagedLabels.includes(name));
   const labelsToRemove = currentManagedLabels.filter((name) => !desiredLabels.has(name));
@@ -78,6 +101,19 @@ export async function syncExternalPluginIntakeLabels({ github, owner, repo, issu
   }
 
   for (const name of labelsToRemove) {
+    await removeLabel({ github, owner, repo, issueNumber, name });
+  }
+}
+
+export async function markExternalPluginIntakeAwaitingReview({ github, owner, repo, issueNumber }) {
+  await github.rest.issues.addLabels({
+    owner,
+    repo,
+    issue_number: issueNumber,
+    labels: ["external-plugin", "awaiting-review"],
+  });
+
+  for (const name of ["ready-for-review", "requires-submitter-fixes", "rejected"]) {
     await removeLabel({ github, owner, repo, issueNumber, name });
   }
 }
@@ -137,6 +173,10 @@ export async function applyExternalPluginIntakeEvaluation({
   if (evaluation.isCanvasPlugin) {
     desiredLabels.add("external-plugin-canvas");
   }
+  const ownershipLabel = evaluation.reviewSignals?.repository?.ownershipLabel;
+  if (ownershipLabel === "first party" || ownershipLabel === "third party") {
+    desiredLabels.add(ownershipLabel);
+  }
 
   await syncExternalPluginIntakeLabels({
     github,
@@ -144,6 +184,7 @@ export async function applyExternalPluginIntakeEvaluation({
     repo,
     issueNumber,
     desiredLabels,
+    syncOwnershipLabels: true,
   });
 
   await upsertExternalPluginIntakeComment({

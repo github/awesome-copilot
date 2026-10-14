@@ -1,53 +1,29 @@
+# Ownership model: see docs/maintainers/review-routing.md
+#
+# - Teams own paths; no individual is the default owner. Do not add individual
+#   users to the `*` rule or to the team block below.
+# - The last matching rule wins.
+# - Reviewer pools used for automatic review requests live in
+#   .github/review-routing.yml.
+
 # Default owner for everything
-* @aaronpowell
+* @github/awesome-copilot-core-maintainers
 
-# Adding Dan Wahlin as the owner for the CLI for Beginners content and images
-/website/src/content/docs/learning-hub/cli-for-beginners/ @DanWahlin
-/website/src/images/cli-for-beginners/ @DanWahlin
+# Domain reviewer teams
+/extensions/ @github/awesome-copilot-canvas-reviewers
+/plugins/ @github/awesome-copilot-plugin-reviewers
+/agents/ @github/awesome-copilot-content-reviewers
+/instructions/ @github/awesome-copilot-content-reviewers
+/skills/ @github/awesome-copilot-content-reviewers
+/hooks/ @github/awesome-copilot-content-reviewers
+/workflows/ @github/awesome-copilot-content-reviewers
+/.github/ @github/awesome-copilot-core-maintainers
+/eng/ @github/awesome-copilot-core-maintainers
 
-# Agentic Workflows
-/workflows/ @brunoborges
-/.github/workflows/validate-agentic-workflows-pr.yml @brunoborges
+# Copilot workshops
+/website/**/cli-for-beginners/ @github/awesome-copilot-workshop-reviewers
+/website/**/app-for-beginners/ @github/awesome-copilot-workshop-reviewers
+/website/**/copilot-workshops/ @github/awesome-copilot-workshop-reviewers
 
-# Copilot review policy
-/.github/skills/code-review/ @aaronpowell
-/.github/copilot-instructions.md @aaronpowell
-
-# Added via #codeowner from PR #930
-/plugins/automate-this/ @dvelton
-/skills/automate-this/ @dvelton
-
-# Added via #codeowner from PR #915
-/skills/cli-mastery/ @DUBSOpenHub
-
-# Added via #codeowner from PR #929
-/plugins/napkin/ @dvelton
-/skills/napkin/ @dvelton
-
-# Added via #codeowner from PR #888
-/skills/github-issues/ @labudis
-
-# Added via #codeowner from PR #884
-/skills/github-issues/ @labudis
-
-# Added via #codeowner from PR #889
-/skills/copilot-spaces/ @labudis
-
-# Added via #codeowner from PR #978
-/agents/doublecheck.agent.md @dvelton
-/plugins/doublecheck/ @dvelton
-/skills/doublecheck/ @dvelton
-
-# Added via #codeowner from PR #990
-/skills/issue-fields-migration/ @labudis
-
-# Added via #codeowner from PR #1009
-/skills/publish-to-pages/ @AndreaGriffiths11
-
-# Added via #codeowner from PR #1049
-/skills/codeql/ @VeVarunSharma
-/skills/dependabot/ @VeVarunSharma
-/skills/secret-scanning/ @VeVarunSharma
-
-# Added via #codeowner from PR #1118
-/agents/github-actions-node-upgrade.agent.md @joshjohanning
+# Specific allocations
+/.github/plugin/ @github/awesome-copilot-plugin-reviewers

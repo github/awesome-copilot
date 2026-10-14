@@ -567,11 +567,12 @@ test("pinned homepage dispatcher connects to the validated address and preserves
   }
 });
 
-function installMockFetch() {
+function installMockFetch({ repositoryOwner = { type: "User", login: "octo" }, repositoryStatus = 200 } = {}) {
   global.fetch = async (url) => {
     const requestUrl = String(url);
     if (requestUrl === `https://api.github.com/repos/${INTAKE_REPO}`) {
       return jsonResponse({
+        owner: repositoryOwner,
         private: false,
         archived: false,
         created_at: new Date().toISOString(),
@@ -579,7 +580,7 @@ function installMockFetch() {
         subscribers_count: 3,
         forks_count: 0,
         open_issues_count: 4,
-      });
+      }, { status: repositoryStatus });
     }
 
     if (
@@ -601,6 +602,75 @@ function installMockFetch() {
     return jsonResponse({}, { status: 404 });
   };
 }
+
+for (const [type, login, expectedLabel] of [
+  ["Organization", "github", "first party"],
+  ["Organization", "Microsoft", "first party"],
+  ["Organization", "MICROSOFT", "first party"],
+  ["Organization", "GitHub", "first party"],
+  ["Organization", "Azure", "first party"],
+  ["Organization", "azure", "first party"],
+  ["Organization", "dotnet", "first party"],
+  ["Organization", "DotNet", "first party"],
+  ["Organization", "MicrosoftDocs", "first party"],
+  ["Organization", "microsoftdocs", "first party"],
+  ["Organization", "microsoftgraph", "first party"],
+  ["Organization", "MicrosoftGraph", "first party"],
+  ["Organization", "vendor", "third party"],
+  ["Organization", "github-vendor", "third party"],
+  ["User", "microsoft", null],
+  ["User", "octo", null],
+]) {
+  test(`evaluateExternalPluginIssue classifies ${type} owner ${login}`, async () => {
+    installMockFetch({ repositoryOwner: { type, login } });
+    const result = await evaluateExternalPluginIssue({
+      issue: { body: buildIssueBody({ sha: PROVIDED_SHA }) },
+    });
+
+    assert.equal(result.valid, true);
+    assert.equal(result.reviewSignals.repository.ownershipLabel, expectedLabel);
+    const mergedResult = applyQualityGateResult(result, { overall_status: "pass" });
+    assert.equal(mergedResult.reviewSignals.repository.ownershipLabel, expectedLabel);
+    const expectedNote = {
+      "first party": "| Repository owner | Organization-owned (first party: Microsoft/GitHub organization) |",
+      "third party": "| Repository owner | Organization-owned (third party) |",
+    }[expectedLabel];
+    for (const body of [result.commentBody, mergedResult.commentBody]) {
+      if (expectedNote) {
+        assert.ok(body.includes(expectedNote), `expected ownership note in:\n${body}`);
+      } else {
+        assert.doesNotMatch(body, /Repository owner/);
+      }
+    }
+  });
+}
+
+for (const status of [404, 503]) {
+  test(`evaluateExternalPluginIssue does not classify unavailable repository metadata (${status})`, async () => {
+    installMockFetch({ repositoryStatus: status });
+    const result = await evaluateExternalPluginIssue({
+      issue: { body: buildIssueBody({ sha: PROVIDED_SHA }) },
+    });
+
+    assert.equal(result.reviewSignals.repository.ownershipLabel, undefined);
+    if (status === 404) {
+      assert.match(result.errors.join("\n"), /was not found/);
+    } else {
+      assert.match(result.warnings.join("\n"), /could not verify GitHub repository/);
+    }
+  });
+}
+
+test("evaluateExternalPluginIssue classifies ownership even when the submission has no release locator", async () => {
+  installMockFetch({ repositoryOwner: { type: "Organization", login: "github" } });
+  const result = await evaluateExternalPluginIssue({
+    issue: { body: buildIssueBody({}) },
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.reviewSignals.repository.ownershipLabel, "first party");
+  assert.match(result.commentBody, /\| Repository owner \| Organization-owned \(first party/);
+});
 
 test("evaluateExternalPluginIssue fails when ref and sha resolve to different commits", async () => {
   installMockFetch();

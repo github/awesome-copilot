@@ -47,6 +47,7 @@ jobs:
 
             const approval = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-approval.mjs')).href);
             const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
+            const reviewBoard = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, '.github', 'extensions', 'external-plugin-review-board', 'lib', 'state.mjs')).href);
             const parsedCommand = approval.parseDecisionCommand(context.payload.comment.body);
 
             core.setOutput('should-run', 'false');
@@ -85,7 +86,8 @@ jobs:
             });
 
             const fallbackName = evaluation.plugin?.name ?? `issue-${context.issue.number}`;
-            const canApprove = labelNames.has('ready-for-review') || labelNames.has('approved');
+            const canApprove = labelNames.has('approved') ||
+              reviewBoard.isReadyForApproval([...labelNames]);
             const canReject = !labelNames.has('approved');
 
             if (parsedCommand.command === 'approve' && !canApprove) {
@@ -547,6 +549,23 @@ jobs:
               return;
             }
 
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'intake-manually-overridden'
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'intake-manually-overridden',
+                color: 'BFD4F2',
+                description: 'Submission was manually moved to review without passing automated intake gates'
+              });
+            }
+
             await github.rest.reactions.createForIssueComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -562,6 +581,7 @@ jobs:
               desiredLabels: new Set([
                 'external-plugin',
                 'ready-for-review',
+                'intake-manually-overridden',
                 ...(labelNames.has('external-plugin-canvas') ? ['external-plugin-canvas'] : [])
               ])
             });

@@ -1,53 +1,60 @@
-# Troubleshooting: symptom → root cause → fix
+# Troubleshooting and upgrades
 
-All entries are live-verified failure modes with their exact signatures. HITL-specific failures are in hitl.md; this file covers everything else, by layer.
+Reproduce at the lowest failing layer first: hosted agent → gateway (`curl -N`) → CopilotKit route → browser. Match the exact error text below. HITL failures are covered in [hitl.md](hitl.md#debugging-decision-tree).
 
-## Debugging method
+## Hosted agent and azd
 
-Reproduce at the lowest possible layer before touching code:
-
-1. `curl -N -X POST <agui-endpoint> -H 'Content-Type: application/json' -d '<minimal RunAgentInput>'` — read raw AG-UI SSE events. Reproduces → frontend innocent.
-2. For hosted agents, call the bare `/responses` (or `/invocations`) endpoint directly. Reproduces → AG-UI adapter and CopilotKit innocent; the bug is in the framework/hosting layer. This technique is how the duplicate-execution bug (hitl.md) was isolated.
-3. Restart locally running agents between passes — in-memory state from a previous test makes results lie in both directions.
-
-## CopilotKit runtime / frontend
-
-| Symptom | Root cause | Fix |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| "Agent `<name>` not found" | Name drift between runtime `agents` key, `<CopilotKit agent>` prop, and hosted `agent.yaml` name; or a single-endpoint/multi-endpoint routing mismatch in the runtime config | Use one shared constant for the agent name; check the runtime's endpoint-mode options against the installed version's docs |
-| Requests to runtime sub-routes (e.g. threads) 404/405 | Route handler registered at a fixed path but the runtime version expects a catch-all route serving multiple sub-paths | Use an optional catch-all route segment (`[[...slug]]` in Next.js App Router) and export all HTTP methods the handler supports |
-| `next build` type error: `HttpAgent` missing a property (e.g. `pendingInterrupts`) | Installed `@ag-ui/client` version differs from the one `@copilotkit/runtime` was built against | Pin `@ag-ui/client` to exactly the version the installed `@copilotkit/runtime` depends on (check its package.json) |
-| Console: "Failed to execute 'fetch' on 'Window': Illegal invocation"; agent never runs | A library captured `fetch` as a bare reference and calls it with the wrong `this` (seen with CopilotKit v2 thread store + `@ag-ui/client` `HttpAgent`) | Bind fetch before any module loads, e.g. an inline script in the root layout `<head>`: `if(!window.fetch.__bound){var f=window.fetch.bind(window);f.__bound=true;window.fetch=f;}` |
-| Agent cannot see frontend tools | Known forwarding regression: registered frontend tools not included in `RunAgentInput.tools` (CopilotKit/CopilotKit#5813, 1.62.x era) | Upgrade past the fix; after ANY CopilotKit upgrade, re-test frontend-tool visibility explicitly |
-| Stop button / error handling crashes after a run error | Event-order bug appending `TEXT_MESSAGE_END` after `RUN_ERROR` (CopilotKit/CopilotKit#5812) | Track the fix version; avoid relying on post-error events |
-| Tool/approval card disappears when the run finishes | `MESSAGES_SNAPSHOT` at run end represents the turn differently than live events (e.g. multiple tool calls merged into one message; UI renders only the first) | Fix snapshot construction (one tool call per assistant message) or upgrade the UI layer; always verify post-run DOM |
-| API churn after upgrade (handler factory renamed, provider props changed) | CopilotKit moves APIs between minor versions; `useCopilotAction` is legacy | Verify names against the `.d.ts` files bundled in the installed packages, not docs or memory |
+| HTTP 424 `session_not_ready` | `main()` raised before serving `/readiness` (often missing env vars) | Check `azd ai agent monitor`; fail soft by serving a stub agent with an actionable message |
+| `RuntimeError: ... running on protocol 1.0.0, but the agent requires protocol 2.0.0` | Hosting package and the `protocols[].version` in `azure.yaml` disagree | Bump the package and `azure.yaml` in one commit |
+| `azd deploy`: `Foundry dependencies are not ready: ... FOUNDRY_PROJECT_ENDPOINT is not set` | `init` ran in a directory with an existing `azure.yaml` or env, so the project binding is incomplete (often with the wrong `AZURE_LOCATION` too) | Re-run `azd ai agent init --no-prompt -e <new-env> -p ... -d ...` in a fresh directory and check `azd env get-values`; don't `azd provision` an existing project |
+| `azd ai agent ...` reports the extension "Incompatible" | azd core is older than the extension needs | `azd update && azd extension upgrade --all` |
+| Remote build fails but local works | Meta-package `agent-framework` pulls optional extras, or unpinned pre-releases resolve differently | Depend on specific `agent-framework-*` packages; pin versions |
+| Deployed agent still runs old code | Traffic pinned to an older version | `azd ai agent show`; move traffic to the latest version |
+| 400 "Hosted agents can only be called through the agent endpoint" | Called with `agent_reference` on the project Responses endpoint | Use `.../agents/<name>/endpoint/protocols/openai/responses`, or `FoundryAgent(agent_name=...)` |
+| `ImportError` for `agent_framework.azure` / `agent-framework-azure-ai` | Superseded package | Migrate to `agent-framework-foundry` |
 
-## AG-UI / adapter layer
+## Gateway / AG-UI
 
-| Symptom | Root cause | Fix |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| 400 with "orphaned" tool-call errors when sending history | Raw AG-UI message history replayed to a Responses endpoint that manages its own history | Derive each turn's input (latest user message or approval decision); never replay the full transcript |
-| UI shows a 500 mid-run during a long-running silent tool | Proxy/gateway dropped the idle SSE connection | Emit SSE keep-alive comments (`: ping`) every ~10s from the AG-UI endpoint |
-| `useCoAgent().state` always empty | No state schema configured on the agent, no tool writes the state key — or Architecture C without state synthesis (see patterns.md) | Configure state schema + ensure a tool writes it; on a Responses bridge, confirm state synthesis exists at all |
+| 401 "audience is incorrect" | Token requested for the wrong scope | Use `https://ai.azure.com/.default` |
+| 401/403 invoking the agent | Gateway identity lacks a role on the project, or the token is from the wrong tenant | Assign Azure AI User on the project; `az login --tenant <id>` |
+| 400 mentioning `x-ms-user-isolation-key` | Header sent to a deployed agent | Remove it; identity comes from Entra |
+| Browser run fails with `INCOMPLETE_STREAM`: "Cannot send 'TOOL_CALL_END' event: No active tool call found with ID 'mcpr_...'" | Adapter closes a hosted approval id it never started | Use the gateway shim in [wiring §2](wiring.md#2-ag-ui-gateway-wiring-a) |
+| `RUN_ERROR` `APPROVAL_RESUME_REQUIRED`: "Pending interrupts require a resume entry for every interruptId" | Approval sent as a tool message only (v1-style `confirm_changes` respond) | Resolve with `useInterrupt` (it sends `resume`); in curl, add a `resume` array |
+| Approve → a second approval request instead of execution | Each run hits a new Foundry conversation | `use_service_session=True` + `service_session_id_from_thread_id=True` with `conv_…` thread IDs |
+| After an approval, every turn returns `RUN_STARTED` → `RUN_FINISHED` with nothing | Duplicate interrupt tool message reached the adapter | Gateway shim in wiring §2 |
+| `ValueError: use_service_session=True requires snapshot persistence` | Service sessions without a way to map threads to conversations | Add `service_session_id_from_thread_id=True` and use `conv_…` IDs as thread IDs ([wiring §2](wiring.md#2-ag-ui-gateway-wiring-a)) |
+| HTTP 500 `server_error` from Foundry on the first turn | Thread ID is not a Foundry conversation ID (for example, a UUID generated by CopilotKit) while `service_session_id_from_thread_id=True` | Create the conversation first (`POST .../endpoint/protocols/openai/conversations`) and pass its `conv_…` ID as `threadId` |
+| `RUN_ERROR` "No pending approval interrupt found for resume interruptId" | Gateway restarted, or a different replica received the resume | Ask again (the tool didn't run); use session affinity across replicas |
+| Tools run but the stream has no `TOOL_CALL_RESULT` events; tool rows render empty | Gateway runs on an older `agent-framework-foundry` (seen with 1.11.0; 1.13.1 works), often a global or user-site Python instead of the project venv | Run the gateway from its own venv with the latest packages; confirm with `python -m pip list` *inside* that venv |
+| Async credential errors about `aiohttp` | `azure.identity.aio` needs aiohttp | `pip install aiohttp` |
+| 400 about orphaned / unanswered tool calls | Whole AG-UI transcript replayed into `/responses` (custom gateways) | Send only the latest user message plus the conversation / service session |
+| `useAgent().agent.state` always empty | No `state_schema` on `AgentFrameworkAgent`, no tool writes state, or a custom gateway that never emits `STATE_*` | Declare the schema on the gateway wrapper; verify `STATE_SNAPSHOT` with curl |
 
-## Foundry connection / auth
+## CopilotKit / frontend
 
-| Symptom | Root cause | Fix |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| 401 "audience is incorrect" | Token requested with default `cognitiveservices.azure.com` scope | Request scope `https://ai.azure.com/.default` |
-| 403 `Microsoft.MachineLearningServices/workspaces/agents/action` despite being logged in and having the role | `az` CLI's active subscription/tenant differs from the Foundry project's (multi-tenant accounts). Role lookups under the wrong tenant even fail to resolve the assignee, mimicking missing RBAC | Compare `az account show` with the project's tenant/subscription; `az account set --subscription <correct>` or `az login --tenant <correct>`. Zero code changes — do not mistake for a package regression |
-| Deployed agent returns 400 on every call from a custom client | Client sends `x-ms-user-isolation-key`; deployed agents use Entra-derived isolation | Remove the header for deployed agents |
-| Async `DefaultAzureCredential` fails in the bridge | Missing async transport | `pip install aiohttp` |
-| First request to a freshly started local agent 404s `DeploymentNotFound` although the model deployment exists | Warm-up flake in the hosted runtime | Retry once or restart with the same env vars |
-| New `azd ai agent run` fails "Address already in use" (confusing hypercorn traceback) | Stale local hosted-agent process holds port 8088 | `ss -ltnp | grep 8088`, kill the stale process, retry |
+| "Agent `<name>` not found" | Runtime `agents` key, `agentId`, and agent name disagree | One shared constant |
+| 404 on `/api/copilotkit/info` or `/agent/.../run` | v2 runtime is multi-route but the Next.js route isn't a catch-all, or `basePath` is wrong | Use `app/api/copilotkit/[[...slug]]/route.ts` with a matching `basePath` |
+| TypeScript error: `HttpAgent` is missing a property | App's `@ag-ui/*` version differs from the one the runtime pins | Match `@ag-ui/client`/`@ag-ui/core` to `npm view @copilotkit/runtime@<v> dependencies` |
+| "Failed to execute 'fetch' on 'Window': Illegal invocation" | A library calls a captured `fetch` without its `this` | Upgrade; or pass `fetch.bind(window)` where a fetch option exists |
+| CORS errors from the browser | Browser calling the gateway directly | Browser → CopilotKit route (same origin) → gateway server-side; otherwise use an explicit CORS allowlist |
+| Hook not exported / renamed after upgrade | v1 names (`useCopilotAction`, `useCoAgent`, `CopilotKit` provider) used against `/v2` | Use v2 imports from `@copilotkit/react-core/v2`; check the bundled `.d.ts` |
+| Dev warning "The agent called the tool ... and no renderer is registered"; tool results invisible | No tool renderer registered | `useDefaultRenderTool(...)` or `useRenderTool({ name, ... })` |
+| Playwright: typed text stays in the input; no `/agent/.../run` request | Typed before hydration, or `fill()` didn't trigger the input handler | Wait for `networkidle`, `click()`, `pressSequentially(text)`, then `press("Enter")` and assert the box clears |
+| Tool call renders while streaming, then disappears | Final `MESSAGES_SNAPSHOT` differs from live events | Upgrade; test the DOM after `RUN_FINISHED` |
 
-## Python dependency traps
+## Upgrades
 
-| Symptom | Root cause | Fix |
-| --- | --- | --- |
-| Foundry remote image build fails on exotic transitive deps (wasm-related) | Depending on the `agent-framework` meta-package, which drags optional extras | Depend on `agent-framework-core` plus only the specific extras you use (e.g. `agent-framework-foundry`, `agent-framework-ag-ui`) |
-| `ImportError` in the hosted container for `mcp` | `agent_framework_foundry_hosting` imports from `mcp` but it is not pulled transitively in remote builds | Add an explicit `mcp` pin to the hosted requirements |
-| `httpx` APIs missing (`AsyncClient` gone) | Installing with prerelease resolution pulled an httpx 1.0 dev build | Pin httpx to the current stable line |
-| Hosted agent fast-fails: `RuntimeError: the hosted environment is running on protocol 1.0.0, but the agent requires protocol 2.0.0` | Hosting package's Responses protocol version disagrees with `version:` declared in `agent.yaml`/`agent.manifest.yaml` | Bump the package and BOTH manifests' protocol version together |
-| Python `@tool` "didn't run in Foundry" when invoking via the Foundry agent client | Client-side tool callables execute client-side by design; only Foundry-native tools run server-side on that path | Expected behavior — host the agent (run the loop server-side) if tools must execute there |
+Always move to the **latest** releases, and move everything together:
+
+1. **`@copilotkit/*` move in lockstep.** `react-core`, `runtime`, and any UI packages stay on one version, and `@ag-ui/*` matches the version the runtime pins.
+2. **`agent-framework-*` stay on one release line.** Upgrade `-core`, `-foundry`, `-ag-ui`, and `-foundry-hosting` together.
+3. **Protocol version and `azure.yaml` change together** (see the table above).
+4. **Workarounds have exit criteria.** Keep a list mapping each local workaround to its upstream issue. Remove a workaround only when the fix has shipped **and** the regression test passes without it.
+5. **Read what shipped.** CopilotKit release notes can be empty stubs, so diff the bundled `.d.ts` between versions.
+6. **Re-verify live:** the chat path, frontend tools reaching `RunAgentInput.tools`, approve-once / reject-zero / follow-up-zero, cards after `RUN_FINISHED`, then redeploy and repeat against the deployed agent.

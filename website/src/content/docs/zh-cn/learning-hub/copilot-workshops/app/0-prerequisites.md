@@ -3,7 +3,7 @@ title: "第 0 课 - 先决条件"
 description: "为 GitHub Copilot app 课程做好准备：为 Tailspin Toys 项目安装 Node.js，并通过模板创建自己的存储库副本。"
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-08-03
+lastUpdated: 2026-10-05
 ---
 
 GitHub Copilot app 是一款桌面应用，作为 Copilot 和 GitHub 的中央枢纽。它支持快速访问议题和拉取请求，也支持使用 GitHub Copilot 进行构建。在本研讨会中，你将在本地使用基于 Astro 构建的 Tailspin Toys 应用和 GitHub Copilot app。开始前，请先确保本地已安装 Node.js，然后再安装 Copilot app。
@@ -15,18 +15,18 @@ GitHub Copilot app 是一款桌面应用，作为 Copilot 和 GitHub 的中央�
 
 ## 安装 Node.js
 
-多节课程会要求智能体构建功能，并在本地运行 Tailspin Toys 测试套件。这需要项目唯一依赖的运行时 [**Node.js**][nodejs]。请安装 **22 或更高版本**；当前的 **LTS** 版本是稳妥的选择。
+多节课程会要求智能体构建功能，并在本地运行 Tailspin Toys 测试套件。这需要 [**Node.js**][nodejs]，它是项目唯一需要的运行时。安装当前的 **LTS** 版本。
 
 所有平台上最简单的方式都是使用官方安装程序：
 
 1. 在操作系统中使用 Windows Terminal、macOS 终端或常用工具打开终端窗口。
-2. 运行以下命令，确认已安装 Node.js 22 或更高版本：
+2. 运行以下命令，检查已安装的 Node.js 版本：
 
     ```shell
     node --version
     ```
 
-3. 如果看到 `v22` 或更高版本号，可以跳到下一节。
+3. 如果满足项目 README 和 `package.json` 中的要求，可以跳到下一节。
 
 > [!TIP]
 > 仅当尚未安装 Node 或需要更新时，才需要完成以下步骤。
@@ -41,10 +41,10 @@ GitHub Copilot app 是一款桌面应用，作为 Copilot 和 GitHub 的中央�
     node --version
     ```
 
-9. 应会看到 `v22.x.x` 或更高版本。
+9. 应显示刚安装的版本。
 
-> [!TIP]
-> 更喜欢容器？如果已安装 [**Docker**][docker]，可以使用存储库的[开发容器][dev-containers]，无需在本地安装 Node.js。开发容器已包含 Node，两种方式无需同时使用。
+> [!IMPORTANT]
+> 每个工作树还需要项目依赖项及用于 E2E 检查的 Playwright Chromium。准备工作树时，请遵循 Tailspin Toys 存储库的 README，并在批准前审查所有安装请求。
 
 ## 设置实验存储库
 
@@ -64,11 +64,16 @@ GitHub Copilot app 是一款桌面应用，作为 Copilot 和 GitHub 的中央�
 > [!NOTE]
 > 通过模板创建存储库时，系统会自动创建一组 GitHub 议题作为待办事项。整个研讨会都会使用这些议题，无需自行创建。
 
+使用工作坊模板的新副本。其中包含存储库指令、应用代码、测试、quality-checks 技能和现有画布扩展。你将在工作坊中自定义该技能，并创建 QA 智能体。如果使用旧副本，请向讲师确认其中包含所需文件。
+
 ## 总结与后续步骤
 
-准备工作已完成。你安装了 Node.js，因此可以在本机构建和测试项目；还通过模板创建了自己的 Tailspin Toys 存储库副本。
+准备工作已完成。本课中，你：
 
-接下来，你将安装 GitHub Copilot app、连接刚创建的存储库并熟悉工作区。继续学习[第 1 课 - 安装 GitHub Copilot app][next-lesson]。
+- 安装了 Node.js，以便在本机构建和测试项目。
+- 通过模板创建了自己的 Tailspin Toys 存储库副本。
+
+接下来，你将[安装 GitHub Copilot app][next-lesson]、连接刚创建的存储库并熟悉工作区。
 
 ## 资源
 
@@ -79,7 +84,5 @@ GitHub Copilot app 是一款桌面应用，作为 Copilot 和 GitHub 的中央�
 [next-lesson]: /zh-cn/learning-hub/copilot-workshops/app/1-install-copilot-app/
 [nodejs]: https://nodejs.org/
 [node-download]: https://nodejs.org/en/download
-[docker]: https://www.docker.com/products/docker-desktop/
-[dev-containers]: https://code.visualstudio.com/docs/devcontainers/containers
 [template-repository]: https://docs.github.com/repositories/creating-and-managing-repositories/creating-a-template-repository
 [about-copilot-app]: https://docs.github.com/copilot/concepts/agents/github-copilot-app

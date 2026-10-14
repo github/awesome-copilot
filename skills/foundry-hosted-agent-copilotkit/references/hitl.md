@@ -1,132 +1,111 @@
 # Human-in-the-loop approvals
 
-HITL is the highest-risk feature on this stack: it gates consequential, side-effecting actions, and the failure modes are silent (a tool running without approval, or running twice). Treat every HITL change as safety-critical and verify all three outcomes: approve executes once, reject executes zero times, follow-up turns execute zero additional times.
+HITL gates actions with side effects, and its failures are silent: a tool runs without approval, runs twice, or never runs after approval. Every HITL change must be verified three ways:
+- Approve runs the tool **once**.
+- Reject runs it **zero** times.
+- Later turns run it **zero** more times.
 
-## Wiring (Python, in-process AG-UI endpoint)
+## Pick the mechanism
+
+| Situation | Mechanism | Durable across restarts? |
+| --- | --- | --- |
+| Chat with a gated tool on a hosted agent (wiring A) | `approval_mode="always_require"` on the hosted agent's tool. The AG-UI adapter surfaces it as an AG-UI **interrupt** and forwards the decision to the hosted agent | Foundry side: yes (`FoundryFunctionApprovalStore`). The gateway's in-flight registry is not: a pending approval interrupted by a gateway restart is rejected **without running the tool**, and the user asks again |
+| In-process agent (wiring B) | Same tool flag; the adapter resolves the approval locally | **No.** A restart while an approval is pending leaves it unresolvable |
+| Multi-step plan, irreversible steps, approvals that may wait days | Invocations workflow agent with server-issued gate tokens ([wiring §6](wiring.md#6-invocations-workflow-agent-wiring-d)) | Yes (`FoundryStateStore` + `@multi_turn_task`) |
+
+## Server
 
 ```python
-from agent_framework import Agent, tool
-from agent_framework_ag_ui import AgentFrameworkAgent, add_agent_framework_fastapi_endpoint
-
 @tool(approval_mode="always_require")
-def transfer_money(from_account: str, to_account: str, amount: float) -> str:
-    """Transfer money between accounts."""
-    ...
-
-agent = Agent(name="assistant", instructions="...", client=chat_client,
-              tools=[transfer_money, check_balance])
-wrapped = AgentFrameworkAgent(agent=agent, require_confirmation=True)
-add_agent_framework_fastapi_endpoint(app, wrapped, "/")
+def transfer(from_account: str, to_account: str, amount: float) -> str: ...
 ```
 
-Both halves are required: `approval_mode="always_require"` on the tool AND `require_confirmation=True` on the wrapper. Note `approval_mode` controls *approval* only — `never_require` does not mean the tool is read-only; that's the implementer's responsibility.
+- On wiring A, the flag lives on the **hosted agent's** tool. The gateway must run as in [wiring §2](wiring.md#2-ag-ui-gateway-wiring-a): `use_service_session=True` with `service_session_id_from_thread_id=True` (thread ID = Foundry `conv_…` ID), plus the interop shim. Without conversation continuity, every approval turns into a fresh approval request.
+- `approval_mode` controls approval only. `never_require` does not make a tool read-only.
+- **.NET:** wrap the tool in `ApprovalRequiredAIFunction`. Bridge `ToolApprovalRequestContent`/`ToolApprovalResponseContent` to a client approval tool call in a `DelegatingAIAgent`, following the official AGUI `Step04_HumanInLoop` sample. Keep the call and its result **paired** in history; removing one makes Azure OpenAI return 400 "tool_calls must be followed by tool messages".
 
-**`.NET`** uses a different mechanism than Python's wrapper flag: wrap the tool in `ApprovalRequiredAIFunction`, then wrap the *agent* in a `DelegatingAIAgent` that bridges approval content to/from the `request_approval` client tool call (the pattern in the official [`Step04_HumanInLoop`](https://github.com/microsoft/agent-framework/tree/main/dotnet/samples/02-agents/AGUI/Step04_HumanInLoop) sample):
+## Frontend (CopilotKit v2)
 
-```csharp
-// Tool requires approval; wrap the agent so the UI can render an approval card.
-AITool[] tools = [new ApprovalRequiredAIFunction(AIFunctionFactory.Create(ApproveExpenseReport))];
-var baseAgent = openAIChatClient.AsAIAgent(name: "assistant", instructions: "...", tools: tools);
-var agent = new ServerFunctionApprovalAgent(baseAgent, jsonOptions.SerializerOptions);
-app.MapAGUI("/", agent);
+The gateway finishes the run with `RUN_FINISHED.outcome = {type: "interrupt", interrupts: [...]}`. Each interrupt has:
+- `id` (the hosted `mcpr_...` approval id)
+- `message` (for example, "Approve running transfer?")
+- `metadata.agent_framework.function_call` (`name`, `arguments`)
 
-internal sealed class ServerFunctionApprovalAgent(AIAgent inner, JsonSerializerOptions json)
-    : DelegatingAIAgent(inner)
-{
-    protected override async IAsyncEnumerable<AgentResponseUpdate> RunCoreStreamingAsync(...)
-    {
-        // INBOUND: convert the client's `request_approval` call + result back into a matched
-        // ToolApprovalRequestContent / ToolApprovalResponseContent pair before the inner agent
-        // runs. Leaving a raw request_approval tool_call without its paired result in history
-        // makes Azure OpenAI 400: "tool_calls must be followed by tool messages...".
-        var processed = ProcessIncomingFunctionApprovals(messages.ToList(), json);
-        await foreach (var update in InnerAgent.RunStreamingAsync(processed, ...))
-            // OUTBOUND: convert ToolApprovalRequestContent -> a `request_approval` client tool
-            // call so the frontend renders the approval card.
-            yield return ProcessOutgoingApprovalRequests(update, json);
-    }
+Handle it with `useInterrupt`. CopilotKit then resumes the run with a spec `resume` array.
+
+```tsx
+"use client";
+import { useState } from "react";
+import { useInterrupt } from "@copilotkit/react-core/v2";
+
+type Call = { name?: string; arguments?: Record<string, unknown> };
+type Pending = { id: string; message?: string; metadata?: unknown };
+type Resolve = (payload?: unknown, interruptId?: string) => Promise<unknown>;
+
+function ApprovalCard({ interrupt, resolve }: { interrupt: Pending; resolve: Resolve }) {
+  const [decision, setDecision] = useState<boolean>();
+  const call = (interrupt.metadata as { agent_framework?: { function_call?: Call } })
+    ?.agent_framework?.function_call;
+  const decide = (approved: boolean) => { setDecision(approved); void resolve({ approved }, interrupt.id); };
+  return (
+    <div data-testid="approval-card">
+      <p>{interrupt.message ?? "Approve this action?"}</p>
+      <pre>{call?.name} {JSON.stringify(call?.arguments)}</pre>
+      {decision === undefined ? (
+        <>
+          <button onClick={() => decide(true)}>Approve</button>
+          <button onClick={() => decide(false)}>Reject</button>
+        </>
+      ) : <p>{decision ? "Approved" : "Rejected"}</p>}
+    </div>
+  );
+}
+
+export function ApprovalUI() {
+  useInterrupt({
+    // One card per open interrupt, each resolved by its own id. CopilotKit resumes the run
+    // only after every open interrupt has a decision; resolve() without an id targets the first.
+    render: ({ interrupts, resolve }) => (
+      <>{interrupts.map((i) => <ApprovalCard key={i.id} interrupt={i as Pending} resolve={resolve} />)}</>
+    ),
+  });
+  return null;
 }
 ```
 
-The content type is `ToolApprovalRequestContent`/`ToolApprovalResponseContent` (not `FunctionApprovalRequestContent`), and the fix is to *convert* the approval call/result — keeping them paired — not to delete them from message history, or Azure OpenAI fails with "tool_calls must be followed by tool messages responding to each 'tool_call_id'".
+- Mount `ApprovalUI` inside `CopilotKitProvider`. The card renders inside `CopilotChat` by default (`renderInChat`).
+- Parallel gated calls: with agent-framework-ag-ui 1.4.0, a hosted agent's parallel gated calls surface **one interrupt per run**. Each decision resumes the run, which then asks for the next. Nothing executes until the last decision; then approved calls run once each and rejected ones return "rejected by user". Rendering all `interrupts` keeps the UI correct if a run ever carries several.
+- The payload is a contract: `{approved: boolean}`, with `accepted` accepted as a legacy alias. Anything else does nothing, with no error. Reject with `resolve({approved: false})`, not `cancel()`. Cancelling discards the decision instead of telling the agent the call was rejected.
+- The adapter also emits a `confirm_changes` tool call for older frontends. With `useInterrupt`, don't register `useHumanInTheLoop("confirm_changes")`; hide it in your tool renderer instead (see [wiring §3](wiring.md#3-copilotkit-runtime-and-react)).
+- Render tool results with `useDefaultRenderTool` or `useRenderTool`. After approval, the hosted tool's result arrives as `TOOL_CALL_RESULT`, and nothing shows it otherwise.
 
-## Frontend
+## Verify approvals by their effect
 
-```tsx
-useHumanInTheLoop({
-  name: "confirm_changes",           // must match what the server surfaces
-  render: ({ args, respond, status }) => (
-    <ApprovalCard
-      args={args}
-      onApprove={() => respond?.({ accepted: true })}
-      onReject={() => respond?.({ accepted: false })}
-    />
-  ),
-});
-```
+On wiring A, the approved tool runs **on the hosted agent**, out of the UI's sight. A correct-looking transcript proves nothing. Check the side effect itself: query the record, or have the tool write an observable marker. Keep this regression test permanently:
+- After one approval, send several unrelated follow-up turns in the same thread.
+- Assert the side effect happened exactly once.
 
-**The payload shape is a contract, not a framework feature.** CopilotKit's `respond(...)` accepts any JSON value; the server-side code decides what counts as "approved". Read the server's detection logic and match it exactly — a UI resolving `{ approved: true }` against a server checking for an `accepted` key fails silently: the click does nothing, no error anywhere. Whenever approval "does nothing", diff the resolved payload against the server's detection first.
+## Older versions
 
-The approval tool name the server surfaces (e.g. `confirm_changes`) must be registered via `useHumanInTheLoop` or no card ever appears.
+Before mid-2026 releases, the AG-UI adapter resolved approvals locally and never forwarded them to a hosted agent (microsoft/agent-framework#6652). Chaining `previous_response_id` through an approval-resolving response could also re-run the tool on a later turn (#6851). Both were fixed upstream: #7271, #7345, #7480, #7594.
 
-## Hosted agents: how approval actually travels
+If a codebase still contains a hand-written bridge that converts `mcp_approval_request`/`mcp_approval_response` or skips storing response IDs after approval turns, follow these steps:
+1. Upgrade to the latest `agent-framework-*` packages.
+2. Run the regression test without the workaround.
+3. Delete the workaround only if the test passes.
 
-When the agent runs as a Foundry hosted agent behind the Responses protocol, an approval-gated tool surfaces as an `mcp_approval_request` item in the Responses stream. The decision must be sent back as an `mcp_approval_response` input item; the hosted agent then re-executes the tool **server-side** on approval. Two consequences:
+The two current interop fixes in the wiring §2 shim follow the same rule.
 
-1. **The stock AG-UI adapter does not forward approvals to a remote agent** — it resolves `confirm_changes` locally, so approve appears to succeed but the gated tool never re-executes and state never changes (tracked as microsoft/agent-framework#6652, open as of mid-2026). A bridge to a hosted agent needs explicit approval-forwarding code. Symptom signature: approval card works, approve returns a normal reply, but the side effect never happens.
-2. Approve means re-execution happens out of the UI's sight. Verify by observing the *state change* (query the affected record afterwards), not by the chat transcript looking right.
+## Debugging decision tree
 
-A bridge supplies that forwarding explicitly — outbound it turns the hosted agent's `mcp_approval_request` into the frontend's approval tool call; inbound it turns the UI's `{accepted}` result back into an `mcp_approval_response` input item:
-
-```python
-# OUTBOUND: hosted agent emits mcp_approval_request -> surface it as the frontend's
-# `confirm_changes` tool call so CopilotKit's useHumanInTheLoop renders a card.
-elif item["type"] == "mcp_approval_request":
-    _PENDING_APPROVAL[thread_id] = item["id"]          # remember the request id
-    yield tool_call(APPROVAL_TOOL, {                   # APPROVAL_TOOL == "confirm_changes"
-        "function_name": item.get("name", ""),
-        "function_arguments": item.get("arguments", ""),
-    })
-
-# INBOUND (next turn): the UI's {accepted} result -> an mcp_approval_response input
-# item the hosted agent understands. The stock AG-UI adapter never does this step.
-pending = _PENDING_APPROVAL.get(thread_id)
-if pending and last_tool_result and "accepted" in last_tool_result:
-    _PENDING_APPROVAL.pop(thread_id, None)
-    turn_input = [{"type": "mcp_approval_response",
-                   "approval_request_id": pending,
-                   "approve": bool(last_tool_result["accepted"])}]
-```
-
-## The duplicate-execution hazard (read before shipping any HITL change)
-
-**Symptom:** one approval works correctly, then a LATER, unrelated turn in the same conversation silently re-executes the same gated tool — the side effect applies twice with no approval card and no visible indication.
-
-**Root cause (isolated by calling the hosted agent's bare `/responses` endpoint with curl — no AG-UI, no CopilotKit in the loop):** chaining `previous_response_id` through a response that resolved an `mcp_approval_response` makes the hosted runtime re-execute the approved tool on the next turn regardless of that turn's content. The bug lives in the agent-framework/Foundry hosting layer, not in the AG-UI adapter or CopilotKit. Tracked as microsoft/agent-framework#6851 (duplicate execution) and #6828 (related approval-state symptom); both were still open as of July 2026 — check current status before relying on framework behavior.
-
-**Mitigation for bridges using `previous_response_id` chaining:** after a turn whose input contained an `mcp_approval_response`, do NOT store that response id for chaining — let the next turn start without `previous_response_id`. This costs a sliver of conversational memory and guarantees a gated action never silently executes twice. Platform-mode conversations (Foundry `conversation` objects instead of response-id chaining) have a different mechanism — do not assume they are immune; test explicitly.
-
-```python
-# On response.completed we normally store the id to chain the next turn via
-# previous_response_id. But if THIS turn resolved an approval, do NOT store it:
-# chaining through an approval-resolving response makes the hosted runtime silently
-# re-execute the approved tool on the next, unrelated turn (agent-framework #6851).
-if approval_turn:
-    _LAST_RESPONSE.pop(thread_id, None)   # break the chain -> no duplicate exec
-else:
-    _LAST_RESPONSE[thread_id] = response_id
-```
-
-**Regression test to keep forever:** after an approve, send several unrelated follow-up turns in the same thread and assert the gated tool's side effect did not recur (e.g. a counter incremented exactly once). Remove any local mitigation only when the upstream issues are closed AND this test passes without it — never on a version bump alone.
-
-## HITL debugging decision tree
-
-Work top-down; each step has a distinct signature:
-
-1. **Approve → 400/500 "No tool output found for function call ..."** → the agent's model client is Chat Completions-based. Approval resume on hosted agents requires the Responses-protocol client (`FoundryChatClient` in MAF Python). Swap the client.
-2. **No approval card ever appears** → `useHumanInTheLoop` not registered for the surfaced tool name, or the tool is missing `approval_mode="always_require"` (it executes immediately — check server logs for the tool running).
-3. **Clicking approve does nothing, no error** → payload-shape mismatch between `respond(...)` and the server's detection (see contract above).
-4. **Approval resolves, reply streams, but state never changes** → approval was resolved locally and never reached the remote agent (#6652-class). Confirm the bridge/adapter actually forwards `mcp_approval_response`.
-5. **Works once, then a later turn double-executes** → duplicate-execution hazard above.
-6. **Card renders during the run but vanishes at `RUN_FINISHED`** → message-snapshot representation differs from live events (multi-tool-call turns lumped into one message; some UI versions render only the first tool call). Fix the snapshot construction or upgrade the UI layer; verify post-run DOM, not just mid-run.
-7. Only then suspect environment: tenant mismatch 403s, wrong token audience 401s, stale in-memory data in a locally running agent (restart `azd ai agent run` between test passes).
+Work top-down:
+1. **400/500 "No tool output found for function call"** on approve: the hosted agent uses a Chat Completions client. Switch to `FoundryChatClient`.
+2. **No approval card, browser shows `INCOMPLETE_STREAM` / "Cannot send 'TOOL_CALL_END' event: No active tool call found"**: the gateway is missing the shim from wiring §2.
+3. **No approval card, no error**: `useInterrupt` isn't mounted inside the provider, or the tool lacks `approval_mode` and ran immediately. Check `RUN_FINISHED.outcome` with curl, and the hosted agent logs with `azd ai agent monitor`.
+4. **Approve produces another approval request instead of running the tool**: the gateway isn't using `use_service_session=True`.
+5. **Click does nothing, no error**: payload mismatch (see the contract above). A gateway reply of `APPROVAL_RESUME_REQUIRED` means the client sent a tool message without a `resume` entry.
+6. **Approve runs the tool, but every later turn returns an empty run** (`RUN_STARTED` → `RUN_FINISHED` only): the duplicate interrupt tool message reached the adapter. Apply the shim from wiring §2.
+7. **Approve shows a reply, but the side effect never happened**: the decision didn't reach the hosted agent. Upgrade packages, then `curl` the gateway with the resume to see whether a `TOOL_CALL_RESULT` comes back.
+8. **Works once, then a later turn repeats the side effect**: an outdated workaround or an old package (see "Older versions").
+9. **Card visible during the run but gone after `RUN_FINISHED`**: the final `MESSAGES_SNAPSHOT` differs from the live events. Check the DOM after the run, and upgrade CopilotKit.
+10. **`RUN_ERROR` "No pending approval interrupt found for resume interruptId 'mcpr_…'"**: the gateway restarted, or the resume reached a different replica than the one that issued the approval. The tool did not run and the conversation is still usable, so ask again. With more than one replica, use session affinity. For approvals that must survive restarts, use an Invocations workflow.

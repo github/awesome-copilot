@@ -1,0 +1,76 @@
+name: Review Operating Metrics
+
+# Publishes weekly review operating metrics (#4184) to a pinned tracking
+# issue labeled `review-metrics`. Reads repository data only; the sole write is
+# the tracking issue. Definitions: docs/maintainers/canvas-evidence-and-metrics.md
+
+on:
+  schedule:
+    # Mondays 14:00 UTC, covering the previous seven days.
+    - cron: "0 14 * * 1"
+  workflow_dispatch:
+    inputs:
+      window_days:
+        description: "Days of activity to summarize"
+        required: false
+        default: "7"
+        type: string
+      dry_run:
+        description: "Only write the job summary; do not update the tracking issue"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: review-metrics
+  cancel-in-progress: false
+
+jobs:
+  metrics:
+    name: review-metrics
+    if: github.repository_owner == 'github' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Compute and publish metrics
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          METRICS_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          WINDOW_DAYS: ${{ inputs.window_days || '7' }}
+          DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+        run: |
+          set -euo pipefail
+          args=(--repo "$GITHUB_REPOSITORY" --window-days "$WINDOW_DAYS" --output-dir "$RUNNER_TEMP/review-metrics")
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          node ./eng/review-metrics.mjs "${args[@]}"
+
+      - name: Upload metrics
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: review-metrics
+          path: ${{ runner.temp }}/review-metrics
+          if-no-files-found: ignore
+          retention-days: 90

@@ -6,8 +6,9 @@ const BLOCK = 48; // logical world tile size
 const PLAYER_W = 48; // player draw size
 const PLAYER_H = 48; // player draw size
 const SPAWN_X = 600;
-// Computed dynamically so it uses the correct H after refreshDimensions()
-function getGroundY() { return H - BLOCK; }
+const WORLD_WIDTH = 1_000_000;
+const TRAILING_SCREENS = 2;
+const OWNED_EFFECT_KEYS = ['manualGlow', 'sparks', 'embers', 'warnEmbers', 'warnGlow'];
 let GROUND_Y = H - BLOCK; // will be updated in create()
 export class NinjaRunnerScene extends BaseScene {
     // Input
@@ -31,11 +32,12 @@ export class NinjaRunnerScene extends BaseScene {
     jumpBuffer = 0; // ms left where a queued jump press will fire on landing
     canDoubleJump = false;
     hasDoubleJumped = false;
-    // Animation: cycle the run frame based on distance traveled, not wall time,
-    // so step rhythm matches actual movement speed.
-    runDistance = 0;
     // Generation
     genX = 0;
+    furthestCameraX = 0;
+    terrainStartX = 0;
+    terrainDecorations;
+    worldGroups = [];
     // Groups
     groundGroup;
     brickGroup;
@@ -63,7 +65,6 @@ export class NinjaRunnerScene extends BaseScene {
     parachuteFlyingEnemies = [];
     parachuteTimer = 0;
     windSound;
-    glowSprite;
     constructor() { super('ninja-runner'); }
     get displayName() { return 'Ninja Runner'; }
     getDescription() {
@@ -89,8 +90,6 @@ export class NinjaRunnerScene extends BaseScene {
         this.load.spritesheet('player', '../assets/ninja-runner/player_strip.png', { frameWidth: 16, frameHeight: 16 });
         // Enemy spritesheet: 5 frames of 16×16
         this.load.spritesheet('enemy', '../assets/ninja-runner/enemy_strip.png', { frameWidth: 16, frameHeight: 16 });
-        // Coin animation: 4 frames of 16×16
-        this.load.spritesheet('coin_anim', '../assets/ninja-runner/coin_sheet.png', { frameWidth: 16, frameHeight: 16 });
         // Heart pickup
         this.load.spritesheet('heart_anim', '../assets/ninja-runner/heart_sheet.png', { frameWidth: 16, frameHeight: 16 });
         // Tile textures
@@ -98,12 +97,9 @@ export class NinjaRunnerScene extends BaseScene {
         this.load.image('dirt_block', '../assets/ninja-runner/dirt_block.png');
         this.load.image('brown_block', '../assets/ninja-runner/brown_block.png');
         this.load.image('qblock_img', '../assets/ninja-runner/qblock_new.png');
-        this.load.image('platform_tile', '../assets/ninja-runner/platform.png');
         this.load.image('spikes_tile', '../assets/ninja-runner/spikes.png');
         this.load.image('flag_tile', '../assets/ninja-runner/flag.png');
         this.load.image('bridge_tile', '../assets/ninja-runner/bridge.png');
-        this.load.image('impact', '../assets/ninja-runner/impact_sheet.png');
-        this.load.image('clouds', '../assets/ninja-runner/clouds.png');
         this.load.image('hill_0', '../assets/ninja-runner/hill_0.png');
         this.load.image('hill_1', '../assets/ninja-runner/hill_1.png');
         this.load.image('big_bush', '../assets/ninja-runner/big_bush.png');
@@ -122,8 +118,6 @@ export class NinjaRunnerScene extends BaseScene {
         this.load.audio('nr_bounce', '../assets/ninja-runner/sounds/SoundBounce.m4a');
         this.load.audio('nr_startlevel', '../assets/ninja-runner/sounds/SoundStartLevel.m4a');
         this.load.audio('nr_gameover', '../assets/ninja-runner/sounds/SoundGameOver.m4a');
-        this.load.audio('nr_land', '../assets/ninja-runner/sounds/SoundLand1.m4a');
-        this.load.audio('nr_flap', '../assets/ninja-runner/sounds/SoundFlapLight.m4a');
         this.load.audio('nr_warp', '../assets/ninja-runner/sounds/SoundOpenDoor.m4a');
         this.load.audio('nr_fireball', '../assets/ninja-runner/sounds/SoundShootRegular.m4a');
         this.load.audio('nr_explosion', '../assets/ninja-runner/sounds/SoundExplosionSmall.m4a');
@@ -132,11 +126,37 @@ export class NinjaRunnerScene extends BaseScene {
     }
     create() {
         this.initBase();
+        this.score = 0;
+        this.lives = 3;
+        this.isBig = false;
+        this.facingRight = true;
+        this.invincible = 1500;
+        this.shrinkTimer = 0;
+        this.stompGrace = 0;
+        this.dead = false;
+        this.deadTimer = 0;
+        this.lastSafeX = SPAWN_X;
+        this.fireCooldown = 0;
+        this.jumpKeyWasDown = false;
+        this.coyoteTime = 0;
+        this.jumpBuffer = 0;
+        this.canDoubleJump = false;
+        this.hasDoubleJumped = false;
+        this.genX = 0;
+        this.furthestCameraX = 0;
+        this.terrainStartX = 0;
+        this.gaps = [];
+        this.currentLevel = 1;
+        this.currentBiome = 0;
+        this.distanceSinceFlag = 0;
+        this.warping = false;
+        this.parachuteMode = false;
+        this.parachuteTimer = 0;
         // Recompute GROUND_Y from the actual game height (H may have been
         // refreshed after module load by refreshDimensions in game.ts)
         GROUND_Y = H - BLOCK;
         this.makeBlockTextures();
-        this.physics.world.setBounds(0, 0, 1_000_000, H);
+        this.physics.world.setBounds(0, 0, WORLD_WIDTH, H);
         this.groundGroup = this.physics.add.staticGroup();
         this.brickGroup = this.physics.add.staticGroup();
         this.qblockGroup = this.physics.add.staticGroup();
@@ -153,6 +173,14 @@ export class NinjaRunnerScene extends BaseScene {
         this.fireGroup = this.physics.add.group({ allowGravity: false });
         this.crocGroup = this.physics.add.group({ allowGravity: false });
         this.fishGroup = this.physics.add.group({ allowGravity: false });
+        this.terrainDecorations = this.add.group();
+        this.worldGroups = [
+            this.groundGroup, this.brickGroup, this.qblockGroup, this.pipeGroup,
+            this.coinGroup, this.mushroomGroup, this.heartGroup, this.fireballGroup,
+            this.enemyGroup, this.bridgeGroup, this.bounceGroup, this.flagGroup,
+            this.piranhaGroup, this.fireGroup, this.crocGroup, this.fishGroup,
+            this.terrainDecorations,
+        ];
         // Initial ground
         this.extendGround(0, W * 2);
         // Player — spritesheet frame 0 = idle
@@ -170,18 +198,6 @@ export class NinjaRunnerScene extends BaseScene {
             key: 'player_walk',
             frames: this.anims.generateFrameNumbers('player', { frames: [1, 2, 3] }),
             frameRate: 10,
-            repeat: -1,
-        });
-        this.anims.create({
-            key: 'player_idle',
-            frames: [{ key: 'player', frame: 0 }],
-            frameRate: 1,
-        });
-        // Coin spin animation
-        this.anims.create({
-            key: 'coin_spin',
-            frames: this.anims.generateFrameNumbers('coin_anim', { start: 0, end: 3 }),
-            frameRate: 8,
             repeat: -1,
         });
         // Heart pulse animation
@@ -211,7 +227,7 @@ export class NinjaRunnerScene extends BaseScene {
             repeat: -1,
         });
         // Camera
-        this.cameras.main.setBounds(0, 0, 1_000_000, H);
+        this.cameras.main.setBounds(0, 0, WORLD_WIDTH, H);
         this.cameras.main.startFollow(this.player, true, 0.15, 0.05, -W * 0.2, 0);
         this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
         // Colliders
@@ -241,7 +257,7 @@ export class NinjaRunnerScene extends BaseScene {
         this.physics.add.overlap(this.player, this.fireGroup, this.onPlayerFire, undefined, this);
         this.physics.add.overlap(this.player, this.crocGroup, this.onPlayerCroc, undefined, this);
         this.physics.add.overlap(this.player, this.fishGroup, this.onPlayerFish, undefined, this);
-        this.physics.add.collider(this.player, this.bridgeGroup, this.onPlayerBridge, undefined, this);
+        this.physics.add.collider(this.player, this.bridgeGroup);
         this.physics.add.collider(this.enemyGroup, this.bridgeGroup);
         this.physics.add.overlap(this.player, this.flagGroup, this.onPlayerFlag, undefined, this);
         this.physics.add.collider(this.player, this.bounceGroup, this.onPlayerBounce, undefined, this);
@@ -258,9 +274,8 @@ export class NinjaRunnerScene extends BaseScene {
         this.addDecorations();
         this.generateLevel(SPAWN_X + 400, W + 600);
         this.syncLivesToHUD();
+        this.syncScoreToHUD();
         this.loadHighScore();
-        this.distanceSinceFlag = 0;
-        this.currentLevel = 1;
         this.syncLevelToHUD(this.currentLevel);
         this.sfx('nr_startlevel', 0.25);
         this.startWithReadyScreen();
@@ -352,39 +367,6 @@ export class NinjaRunnerScene extends BaseScene {
         g.fillStyle(0x000000);
         g.fillRect(8, 12, 16, 3);
         g.generateTexture('piranha_1', 32, 32);
-        // Power-up glow effect
-        g.clear();
-        g.fillStyle(0xffdd00, 0.3);
-        g.fillCircle(20, 20, 20);
-        g.fillStyle(0xffff88, 0.2);
-        g.fillCircle(20, 20, 14);
-        g.generateTexture('glow', 40, 40);
-        // Individual cloud puffs (3 sizes for variety)
-        g.clear();
-        g.fillStyle(0xffffff);
-        g.fillCircle(10, 10, 8);
-        g.fillCircle(20, 8, 10);
-        g.fillCircle(32, 10, 9);
-        g.fillCircle(16, 14, 7);
-        g.fillCircle(26, 14, 8);
-        g.generateTexture('cloud_sm', 42, 22);
-        g.clear();
-        g.fillStyle(0xffffff);
-        g.fillCircle(14, 14, 12);
-        g.fillCircle(30, 10, 14);
-        g.fillCircle(48, 14, 11);
-        g.fillCircle(22, 18, 10);
-        g.fillCircle(38, 18, 12);
-        g.generateTexture('cloud_md', 60, 28);
-        g.clear();
-        g.fillStyle(0xffffff);
-        g.fillCircle(16, 16, 14);
-        g.fillCircle(36, 12, 16);
-        g.fillCircle(58, 14, 13);
-        g.fillCircle(24, 22, 12);
-        g.fillCircle(46, 20, 14);
-        g.fillCircle(70, 16, 10);
-        g.generateTexture('cloud_lg', 82, 32);
         // Green bat enemy — flies in a wave pattern
         g.clear();
         g.fillStyle(0x22aa44);
@@ -434,14 +416,6 @@ export class NinjaRunnerScene extends BaseScene {
         g.clear();
         const cw = 64, ch = 80;
         const domeBottom = 36; // y where the canopy ends
-        // Draw dome as upper half only — fill a tall ellipse then cover the bottom half
-        g.fillStyle(0xff2020);
-        g.fillEllipse(cw / 2, domeBottom, cw - 4, 56); // tall ellipse centered at rim
-        // Cover lower half so only the dome (upper half) remains
-        g.fillStyle(0x000000, 0.0);
-        // We can't erase, so draw the dome differently:
-        // Use a filled arc approach — draw overlapping circles for dome shape
-        g.clear();
         // Red canopy dome — build with filled upper-half ellipse
         // Panel 1 (red) — left
         g.fillStyle(0xff2020);
@@ -662,7 +636,7 @@ export class NinjaRunnerScene extends BaseScene {
             const tex = isSmall ? 'hill_0' : 'hill_1';
             const hh = isSmall ? 64 : 96;
             this.add.image(hx, GROUND_Y - hh / 2 + 10, tex)
-                .setDisplaySize(isSmall ? 64 : 64, hh)
+                .setDisplaySize(64, hh)
                 .setAlpha(0.12)
                 .setScrollFactor(0.3)
                 .setDepth(-2);
@@ -680,12 +654,19 @@ export class NinjaRunnerScene extends BaseScene {
         }
     }
     extendGround(fromX, toX) {
-        for (let x = Math.floor(fromX / BLOCK) * BLOCK; x < toX; x += BLOCK) {
+        // Include off-grid platforms and retain the original one-pixel tolerance.
+        const existingXs = this.groundGroup.getChildren()
+            .map((ground) => ground.x)
+            .sort((a, b) => a - b);
+        let existingIndex = 0;
+        for (let x = Math.floor(Math.max(fromX, this.terrainStartX) / BLOCK) * BLOCK; x < toX; x += BLOCK) {
             if (this.isInGap(x + BLOCK / 2))
                 continue;
-            // skip if already there
-            const exists = this.groundGroup.getChildren().some((g) => Math.abs(g.x - (x + BLOCK / 2)) < 1);
-            if (exists)
+            const centerX = x + BLOCK / 2;
+            while (existingIndex < existingXs.length && existingXs[existingIndex] <= centerX - 1) {
+                existingIndex++;
+            }
+            if (existingIndex < existingXs.length && Math.abs(existingXs[existingIndex] - centerX) < 1)
                 continue;
             const g = this.groundGroup.create(x + BLOCK / 2, GROUND_Y + BLOCK / 2, 'grass_block');
             g.setDisplaySize(BLOCK, BLOCK);
@@ -729,10 +710,12 @@ export class NinjaRunnerScene extends BaseScene {
                 const w = this.add.image(cx, startY + row * BLOCK + BLOCK / 2, 'water');
                 w.setDisplaySize(BLOCK, BLOCK);
                 w.setDepth(-1);
+                this.terrainDecorations.add(w);
             }
         }
     }
     generateLevel(lo, hi) {
+        lo = Math.max(lo, this.terrainStartX);
         let x = Math.max(lo, this.genX);
         let lastPattern = -1;
         while (x < hi) {
@@ -1081,6 +1064,7 @@ export class NinjaRunnerScene extends BaseScene {
                         const spike = this.add.image(sx + BLOCK / 2, GROUND_Y - BLOCK * 0.3, 'spikes_tile');
                         spike.setDisplaySize(BLOCK, BLOCK * 0.6);
                         spike.setDepth(2);
+                        this.terrainDecorations.add(spike);
                         const hitZone = this.fireGroup.create(sx + BLOCK / 2, GROUND_Y - BLOCK * 0.2, 'spikes_tile');
                         hitZone.setDisplaySize(BLOCK * 0.9, BLOCK * 0.4);
                         hitZone.setAlpha(0);
@@ -1241,6 +1225,7 @@ export class NinjaRunnerScene extends BaseScene {
             bush.setOrigin(0.5, 1);
             bush.setDepth(1);
             bush.setAlpha(0.8);
+            this.terrainDecorations.add(bush);
         }
         // Scatter ground-level coin trails between obstacles (skip coins near pipes)
         for (let cx = lo; cx < hi; cx += BLOCK * 8 + Math.floor(Math.random() * BLOCK * 6)) {
@@ -1292,6 +1277,7 @@ export class NinjaRunnerScene extends BaseScene {
                     const pole = this.add.image(flagX, GROUND_Y - i * BLOCK - BLOCK / 2, 'brown_block');
                     pole.setDisplaySize(BLOCK * 0.3, BLOCK);
                     pole.setDepth(1);
+                    this.terrainDecorations.add(pole);
                 }
                 const flag = this.flagGroup.create(flagX, GROUND_Y - BLOCK * 3 + BLOCK / 2, 'flag_tile');
                 flag.setDisplaySize(BLOCK, BLOCK * 1.5);
@@ -1384,6 +1370,7 @@ export class NinjaRunnerScene extends BaseScene {
             this.stompGrace -= dtMs;
         if (this.fireCooldown > 0)
             this.fireCooldown -= dtMs;
+        this.trimWorld();
         this.updatePlayerMovement(dtMs);
         if (this.player.y > H + 50) {
             this.die();
@@ -1395,7 +1382,7 @@ export class NinjaRunnerScene extends BaseScene {
         this.updatePlayerAnimation();
         const camLeft = this.cameras.main.scrollX;
         this.updateCoins(camLeft);
-        this.updateBridges(camLeft);
+        this.updateBridges();
         this.updateFireEruptions(camLeft);
         this.updatePiranhas(dtMs, camLeft);
         this.enemyGroup.getChildren().forEach(e => this.updateEnemy(e, camLeft));
@@ -1580,9 +1567,9 @@ export class NinjaRunnerScene extends BaseScene {
             this.throwFireball();
             this.fireCooldown = 200;
         }
-        const camLeft = this.cameras.main.scrollX;
-        if (this.player.x < camLeft) {
-            this.player.x = camLeft;
+        const leftLimit = Math.max(this.cameras.main.scrollX, this.terrainStartX);
+        if (this.player.x < leftLimit) {
+            this.player.x = leftLimit;
             this.player.setVelocityX(0);
         }
         if (onGround && !this.isInGap(this.player.x)) {
@@ -1625,13 +1612,6 @@ export class NinjaRunnerScene extends BaseScene {
         const walkAnim = 'player_walk';
         // Scale — always same size, glow indicates power-up
         this.player.setDisplaySize(PLAYER_W, PLAYER_H);
-        // Pulse the built-in glow FX when powered up
-        if (this.player.getData('hasGlow')) {
-            const glowFx = this.player.getData('glowFx');
-            if (glowFx) {
-                glowFx.outerStrength = this.isBig ? 2 + Math.sin(this.time.now / 200) * 1.5 : 0;
-            }
-        }
         // Ensure correct texture
         if (this.player.texture.key !== sheetKey) {
             this.player.setTexture(sheetKey, 0);
@@ -1681,14 +1661,15 @@ export class NinjaRunnerScene extends BaseScene {
         }
     }
     updateCoins(camLeft) {
-        this.coinGroup.getChildren().forEach(c => {
-            const i = Math.floor(this.time.now / 120) % 2;
-            c.setTexture(i === 0 ? 'coin0' : 'coin1');
+        const texture = Math.floor(this.time.now / 120) % 2 === 0 ? 'coin0' : 'coin1';
+        for (const c of this.coinGroup.getChildren()) {
+            if (c.texture.key !== texture)
+                c.setTexture(texture);
             if (c.x < camLeft - 100)
-                c.destroy();
-        });
+                this.destroyWorldObject(c);
+        }
     }
-    updateBridges(camLeft) {
+    updateBridges() {
         // Bridge collapse — unstable tiles start falling when player approaches
         this.bridgeGroup.getChildren().forEach((bt) => {
             if (!bt.active || !bt.getData('unstable') || bt.getData('collapsing'))
@@ -1905,24 +1886,7 @@ export class NinjaRunnerScene extends BaseScene {
                 }
             }
             if (f.x < camLeft - 200) {
-                const gl = f.getData('manualGlow');
-                if (gl)
-                    gl.destroy();
-                const sp = f.getData('sparks');
-                if (sp)
-                    sp.destroy();
-                const emb = f.getData('embers');
-                if (emb)
-                    emb.destroy();
-                const we = f.getData('warnEmbers');
-                if (we)
-                    we.destroy();
-                const wg = f.getData('warnGlow');
-                if (wg) {
-                    this.tweens.killTweensOf(wg);
-                    wg.destroy();
-                }
-                f.destroy();
+                this.destroyWorldObject(f);
             }
         });
     }
@@ -2003,19 +1967,46 @@ export class NinjaRunnerScene extends BaseScene {
             }
         });
     }
+    destroyWorldObject(object) {
+        this.tweens.killTweensOf(object);
+        for (const key of OWNED_EFFECT_KEYS) {
+            const effect = object.getData(key);
+            if (effect) {
+                this.tweens.killTweensOf(effect);
+                effect.destroy();
+            }
+        }
+        object.destroy();
+    }
+    trimWorld() {
+        this.furthestCameraX = Math.max(this.furthestCameraX, this.cameras.main.scrollX);
+        const cutoff = Math.floor(Math.max(0, this.furthestCameraX - W * TRAILING_SCREENS) / BLOCK) * BLOCK;
+        if (cutoff <= this.terrainStartX)
+            return;
+        // Advance only at tile boundaries. Returning left must not recreate deleted terrain.
+        this.terrainStartX = cutoff;
+        this.cameras.main.setBounds(cutoff, 0, WORLD_WIDTH - cutoff, H);
+        for (const group of this.worldGroups) {
+            for (const object of group.getChildren()) {
+                if (object.x + object.displayWidth <= cutoff)
+                    this.destroyWorldObject(object);
+            }
+        }
+        this.gaps = this.gaps.filter(gap => gap.end > cutoff);
+    }
     cleanupOffscreen(camLeft) {
         this.mushroomGroup.getChildren().forEach(m => {
             if (m.x < camLeft - 100 || m.y > H + 100)
-                m.destroy();
+                this.destroyWorldObject(m);
         });
         this.fireballGroup.getChildren().forEach(fb => {
             if (fb.x < camLeft - 100 || fb.x > camLeft + W + 200 || fb.y > H + 50)
-                fb.destroy();
+                this.destroyWorldObject(fb);
         });
         // Fish cleanup — destroy when scrolled offscreen
         this.fishGroup.getChildren().forEach((fish) => {
             if (fish.x < camLeft - 200)
-                fish.destroy();
+                this.destroyWorldObject(fish);
         });
     }
     updateEnemy(e, camLeft) {
@@ -2221,7 +2212,7 @@ export class NinjaRunnerScene extends BaseScene {
         }
     }
     onPlayerHeart(_player, h) {
-        h.destroy();
+        this.destroyWorldObject(h);
         this.lives++;
         this.syncLivesToHUD();
         this.addScore(2000, h.x, h.y - 10);
@@ -2395,6 +2386,8 @@ export class NinjaRunnerScene extends BaseScene {
         const deathX = Math.max(this.lastSafeX, this.cameras.main.scrollX + 200);
         // Find a safe spot — search BACKWARD first to respawn before the hazard
         const isSafe = (wx) => {
+            if (wx < this.terrainStartX)
+                return false;
             if (this.isInGap(wx))
                 return false;
             if (this.isNearObstacle(wx))
@@ -2458,9 +2451,6 @@ export class NinjaRunnerScene extends BaseScene {
             return;
         }
         this.doRespawn();
-    }
-    onPlayerBridge(_player, _tile) {
-        // Collision still needed for standing — collapse is handled by proximity in update
     }
     onPlayerBounce(_player, pad) {
         if (!this.player.body.touching.down)
@@ -2753,7 +2743,7 @@ export class NinjaRunnerScene extends BaseScene {
         // Stop wind sound
         if (this.windSound) {
             try {
-                this.windSound.stop();
+                this.windSound.destroy();
             }
             catch { }
             this.windSound = undefined;
@@ -2775,29 +2765,22 @@ export class NinjaRunnerScene extends BaseScene {
     shutdown() {
         super.shutdown();
         // Destroy all physics groups and their children
-        const groups = [
-            this.groundGroup, this.brickGroup, this.qblockGroup, this.pipeGroup,
-            this.coinGroup, this.mushroomGroup, this.heartGroup, this.fireballGroup,
-            this.enemyGroup, this.bridgeGroup, this.bounceGroup, this.flagGroup,
-            this.piranhaGroup, this.fireGroup, this.crocGroup, this.fishGroup,
-        ];
-        for (const g of groups) {
-            if (g && g.clear)
-                try {
-                    g.clear(true, true);
-                }
-                catch { }
+        for (const group of this.worldGroups) {
+            // Phaser can dispose a group before the scene's shutdown listener runs.
+            if (!group.scene)
+                continue;
+            for (const object of group.getChildren())
+                this.destroyWorldObject(object);
         }
+        this.worldGroups = [];
         // Destroy player and extra sprites
         this.destroyObj(this.player);
         this.destroyObj(this.parachuteSprite);
         this.parachuteSprite = undefined;
-        this.destroyObj(this.glowSprite);
-        this.glowSprite = undefined;
         // Stop wind sound
         if (this.windSound) {
             try {
-                this.windSound.stop();
+                this.windSound.destroy();
             }
             catch { }
             this.windSound = undefined;

@@ -6,14 +6,20 @@ import { GalaxyBlasterScene } from './scenes/GalaxyBlaster.js';
 import { CosmicRocksScene } from './scenes/CosmicRocks.js';
 import { AlienOnslaughtScene } from './scenes/AlienOnslaught.js';
 import { PlanetGuardianScene } from './scenes/PlanetGuardian.js';
+import { SurfaceDefenseScene } from './scenes/SurfaceDefense.js';
+import { runtimeLayout } from './layout.js';
 // Registry of available games
+// pointerGame: the game aims with the mouse, so click-through must stay off
+// while it is active (see __agentArcadeSetPointerGameActive in hud.js).
 const GAMES = [
     { key: 'cosmic-rocks', scene: CosmicRocksScene, label: '☄️ Cosmic Rocks' },
     { key: 'alien-onslaught', scene: AlienOnslaughtScene, label: '👾 Alien Onslaught' },
     { key: 'galaxy-blaster', scene: GalaxyBlasterScene, label: '🚀 Galaxy Blaster' },
     { key: 'ninja-runner', scene: NinjaRunnerScene, label: '🥷 Ninja Runner' },
     { key: 'defender', scene: PlanetGuardianScene, label: '🛡️ Planet Guardian' },
+    { key: 'surface-defense', scene: SurfaceDefenseScene, label: '🎯 Surface Defense', pointerGame: true },
 ];
+const isPointerGame = (key) => !!GAMES.find(g => g.key === key)?.pointerGame;
 let currentGameKey;
 try {
     // Migrate localStorage from old "galaxy-shooter" name
@@ -39,6 +45,8 @@ if (!GAMES.find(g => g.key === currentGameKey))
 let game = null;
 function initGame() {
     refreshDimensions();
+    const selectedGame = GAMES.find(g => g.key === currentGameKey);
+    const sceneOrder = [selectedGame, ...GAMES.filter(g => g !== selectedGame)];
     game = new Phaser.Game({
         type: Phaser.AUTO,
         parent: 'game',
@@ -46,7 +54,7 @@ function initGame() {
         height: H,
         transparent: true,
         backgroundColor: 'rgba(0,0,0,0)',
-        scene: GAMES.map(g => g.scene),
+        scene: sceneOrder.map(g => g.scene),
         physics: {
             default: 'arcade',
             arcade: { gravity: { y: 1800 }, debug: false },
@@ -56,14 +64,28 @@ function initGame() {
     });
     // Expose game instance for Playwright testing (no production impact)
     window.__phaserGame = game;
-    // Start the saved game (stop the default first scene if it's different)
-    if (currentGameKey !== GAMES[0].key) {
-        game.events.once('ready', () => {
-            game.scene.stop(GAMES[0].key);
-            game.scene.start(currentGameKey);
-        });
-    }
+    guardMissingAudio(game);
     setupGameSwitcher();
+    if (isPointerGame(currentGameKey)) {
+        window.__agentArcadeSetPointerGameActive?.(true);
+    }
+}
+/**
+ * Audio that fails to decode (missing codecs — e.g. WebKitGTK without the
+ * GStreamer plugin packages) never reaches the cache, and Phaser then throws
+ * "Audio key not found in cache" from sound.play()/add(). An exception inside
+ * the frame callback stops requestAnimationFrame for good and freezes the
+ * game, so hand back a silent sound for missing keys instead.
+ */
+function guardMissingAudio(game) {
+    const sm = game.sound;
+    const cache = game.cache?.audio;
+    if (!sm || !cache)
+        return;
+    const origAdd = sm.add.bind(sm);
+    sm.add = (key, config) => cache.exists(key) ? origAdd(key, config) : new Phaser.Sound.NoAudioSound(sm, key, config);
+    const origPlay = sm.play.bind(sm);
+    sm.play = (key, extra) => (cache.exists(key) ? origPlay(key, extra) : false);
 }
 function setupGameSwitcher() {
     // Expose game switcher for the HUD dropdown
@@ -106,9 +128,12 @@ function setupGameSwitcher() {
         // click-through kills mousemove events, leaving no way to detect HUD exit).
         if (ab && ab.setClickThrough)
             ab.setClickThrough(false);
+        window.__agentArcadeSetPointerGameActive?.(isPointerGame(key));
         const sel = document.getElementById('game-select');
-        if (sel)
+        if (sel) {
+            sel.value = key;
             sel.blur();
+        }
         game.canvas.focus();
     };
 }
@@ -125,20 +150,24 @@ window.addEventListener('resize', () => {
     resizeDebounce = window.setTimeout(() => {
         const newW = window.innerWidth;
         const newH = window.innerHeight;
-        if (!game && newW > 800 && newH > 400) {
+        if (!game && newW > runtimeLayout.minimumWidth && newH > runtimeLayout.minimumHeight) {
             // First time: window is now full-screen — create the game
             refreshDimensions();
             initGame();
         }
-        else if (game && newH > 400) {
+        else if (game && newH > runtimeLayout.minimumHeight) {
             // Full-screen resize (could be unpause expand or genuine resize).
             // Update dimensions and resize the canvas, but never restart the
             // scene — the resume system handles unpause, and a simple resize
             // is enough for monitor/display changes.
+            const previousW = W;
+            const previousH = H;
             refreshDimensions();
-            game.scale.resize(W, H);
+            if (W !== previousW || H !== previousH) {
+                game.scale.resize(W, H);
+            }
         }
-        // If newH <= 400 (pause shrink to HUD), skip entirely —
+        // Below the profile's minimum height (pause shrink to HUD), skip entirely —
         // keep W/H at full-screen values so the paused game state stays valid.
     }, 150);
 });
@@ -170,7 +199,7 @@ else {
 // If the window is already full-screen (e.g. Playwright tests or fast Tauri
 // init), create the game immediately since no resize event will fire.
 setTimeout(() => {
-    if (!game && window.innerWidth > 800 && window.innerHeight > 400) {
+    if (!game && window.innerWidth > runtimeLayout.minimumWidth && window.innerHeight > runtimeLayout.minimumHeight) {
         refreshDimensions();
         initGame();
     }
