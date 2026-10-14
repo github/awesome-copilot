@@ -6,9 +6,19 @@ Testing JPA repositories with real databases using Testcontainers.
 
 Testcontainers provides real database instances in Docker containers for integration testing. More reliable than H2 for production parity.
 
-## PostgreSQL Setup
+## Quickstart: `@ServiceConnection` (PostgreSQL)
 
-### Dependencies
+Check the project's versions first. Testcontainers 2.x (Spring Boot 4) and 1.x (Spring Boot 3) differ in artifact and package names:
+
+| | Testcontainers 2.x (Boot 4) | Testcontainers 1.x (Boot 3.1+) |
+|--|-----------------------------|--------------------------------|
+| PostgreSQL artifact | `testcontainers-postgresql` | `postgresql` |
+| JUnit 5 integration | `testcontainers-junit-jupiter` | `junit-jupiter` |
+| Container class | `org.testcontainers.postgresql.PostgreSQLContainer` | `org.testcontainers.containers.PostgreSQLContainer` |
+
+`@ServiceConnection` (Spring Boot 3.1+) replaces `@DynamicPropertySource` boilerplate. Versions of these artifacts are managed by the Spring Boot BOM.
+
+### Dependencies (Boot 4 / Testcontainers 2.x)
 
 ```xml
 <dependency>
@@ -21,9 +31,34 @@ Testcontainers provides real database instances in Docker containers for integra
   <artifactId>testcontainers-postgresql</artifactId>
   <scope>test</scope>
 </dependency>
+<dependency>
+  <groupId>org.testcontainers</groupId>
+  <artifactId>testcontainers-junit-jupiter</artifactId>
+  <scope>test</scope>
+</dependency>
 ```
 
-### Basic Test
+### Option A: shared configuration (recommended, reusable across tests)
+
+```java
+@TestConfiguration(proxyBeanMethods = false)
+public class TestcontainersConfiguration { // public: tests in sub-packages import it
+
+  @Bean
+  @ServiceConnection
+  PostgreSQLContainer postgresContainer() {
+    return new PostgreSQLContainer("postgres:18-alpine");
+  }
+}
+
+@SpringBootTest
+@Import(TestcontainersConfiguration.class)
+class OrderIT { }
+```
+
+Starting the app against the same container for local development: `SpringApplication.from(Application::main).with(TestcontainersConfiguration.class).run(args)`.
+
+### Option B: per-class container
 
 ```java
 @DataJpaTest
@@ -33,7 +68,7 @@ class OrderRepositoryPostgresTest {
   
   @Container
   @ServiceConnection
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18");
+  static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18");
   
   @Autowired
   private OrderRepository orderRepository;
@@ -42,6 +77,8 @@ class OrderRepositoryPostgresTest {
   private TestEntityManager entityManager;
 }
 ```
+
+Note: `Order` is a reserved word in SQL; an entity named `Order` needs `@Table(name = "orders")` or PostgreSQL fails with `syntax error at or near "order"` (verified).
 
 ## MySQL Setup
 
@@ -54,10 +91,14 @@ class OrderRepositoryPostgresTest {
 ```
 
 ```java
+import org.testcontainers.mysql.MySQLContainer; // 2.x
+
 @Container
 @ServiceConnection
-static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.4");
+static MySQLContainer mysql = new MySQLContainer("mysql:8.4");
 ```
+
+Testcontainers 1.x (Boot 3) variant: `org.testcontainers.containers.MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.4")` with the `mysql` artifact.
 
 ## Multiple Databases
 
@@ -69,30 +110,29 @@ class MultiDatabaseTest {
   
   @Container
   @ServiceConnection(name = "primary")
-  static PostgreSQLContainer<?> primaryDb = new PostgreSQLContainer<>("postgres:18");
+  static PostgreSQLContainer primaryDb = new PostgreSQLContainer("postgres:18");
   
   @Container
   @ServiceConnection(name = "analytics")
-  static PostgreSQLContainer<?> analyticsDb = new PostgreSQLContainer<>("postgres:18");
+  static PostgreSQLContainer analyticsDb = new PostgreSQLContainer("postgres:18");
 }
 ```
 
 ## Container Reuse (Speed Optimization)
 
-Add to `~/.testcontainers.properties`:
-
-```properties
-testcontainers.reuse.enable=true
-```
-
-Then enable reuse in code:
+Cross-run reuse is local-dev only. Opt in with `testcontainers.reuse.enable=true` in `~/.testcontainers.properties`. `@Container` does not give cross-run reuse because the extension stops the container after the tests. Start the container manually, without extension-managed shutdown:
 
 ```java
-@Container
 @ServiceConnection
-static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18")
+static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18")
   .withReuse(true);
+
+static {
+  postgres.start();
+}
 ```
+
+For the generic lifecycle, singleton and reuse rules, use the `java-testcontainers` skill.
 
 ## Database Initialization
 
@@ -101,7 +141,7 @@ static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18"
 ```java
 @Container
 @ServiceConnection
-static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18")
+static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18")
   .withInitScript("schema.sql");
 ```
 
@@ -115,7 +155,7 @@ class MigrationTest {
   
   @Container
   @ServiceConnection
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18");
+  static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18");
   
   @Autowired
   private Flyway flyway;
@@ -135,7 +175,7 @@ class MigrationTest {
 ```java
 @Container
 @ServiceConnection
-static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18")
+static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18")
   .withDatabaseName("testdb")
   .withUsername("testuser")
   .withPassword("testpass")
@@ -146,7 +186,7 @@ static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18"
 
 ```java
 @Container
-static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18")
+static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18")
   .waitingFor(Wait.forLogMessage(".*database system is ready.*", 1));
 ```
 
@@ -160,7 +200,7 @@ class OrderRepositoryTest {
   
   @Container
   @ServiceConnection
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18");
+  static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18");
   
   @Autowired
   private OrderRepository orderRepository;
@@ -203,7 +243,7 @@ If not using @ServiceConnection:
 class OrderServiceTest {
   
   @Container
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18");
+  static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18");
   
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) {
@@ -216,6 +256,8 @@ class OrderServiceTest {
 
 ## Supported Databases
 
+Container classes (2.x) live in `org.testcontainers.<module>` and are non-generic (e.g. `org.testcontainers.mysql.MySQLContainer`).
+
 | Database | Container Class | Maven Artifact |
 | -------- | --------------- | -------------- |
 | PostgreSQL | PostgreSQLContainer | testcontainers-postgresql |
@@ -224,6 +266,10 @@ class OrderServiceTest {
 | SQL Server | MSSQLServerContainer | testcontainers-mssqlserver |
 | Oracle | OracleContainer | testcontainers-oracle-free |
 | MongoDB | MongoDBContainer | testcontainers-mongodb |
+
+## Running `*IT` classes
+
+Integration tests named `*IT` run in Maven's Failsafe, not Surefire; see [failsafe-integration-tests.md](failsafe-integration-tests.md) or they will silently not run.
 
 ## Best Practices
 
