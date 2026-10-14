@@ -924,6 +924,10 @@ Run `/config` to open a dedicated sidebar configuration screen inside the CLI, g
 /config
 ```
 
+### The `copilot config` Subcommands
+
+Manage settings from the shell without hand-editing files. `copilot config` has subcommands to list, read, set, and remove settings, which is handy in setup scripts and dotfiles. User-level settings live in `~/.copilot/settings.json`. Inside a session, `/config` offers the same settings interactively, and settings that your organization manages through policy appear read-only or hidden.
+
 ### Sandbox Network Allow/Deny Rules
 
 `/sandbox` supports per-host network allow/deny rules that layer on top of your configured upstream proxy, instead of replacing it. This lets you permit or block specific hosts for sandboxed commands without reconfiguring your whole proxy setup — useful when a sandboxed build or test needs to reach one extra domain (like a package registry mirror) while keeping the rest of your network policy intact.
@@ -941,6 +945,7 @@ Command-line parsing is handled by a Rust-based grammar that mirrors what the CL
 This section collects settings and behaviors that **changed or were renamed** in past releases. Check here if something you configured previously stopped working, or if you're auditing an older config file — everything above describes current behavior and does not require reading this section first.
 
 - **`~/.claude/` agents and skills are not loaded.** Only `~/.claude/settings.json` is read for configuration; custom agents, skills, and commands placed in `~/.claude/` are ignored. Move them to `~/.copilot/agents/`, `~/.copilot/skills/`, `~/.agents/skills/`, or your repository's `.github/agents/` / `.github/skills/`.
+- **User settings are read only from `~/.copilot/settings.json`.** User-setting keys left in `~/.copilot/config.json` are ignored, so move them to `settings.json`.
 - **`/model` now scopes to the current session only.** Previously it changed both the session model and your global default together. Use `/config model` to change the default for future sessions.
 - **`allowDevToolCaches` was renamed to `allowDevToolAccess`.** If your settings file still sets `allowDevToolCaches`, it is silently ignored — update it to `allowDevToolAccess`.
 - **Sandbox auth settings moved from `sandbox.gitAuth`/`sandbox.ghAuth` to `sandbox.auth.git`/`sandbox.auth.gh`.** There is no automatic migration; the old keys are silently ignored, and SDK requests that still send them are rejected as invalid.
