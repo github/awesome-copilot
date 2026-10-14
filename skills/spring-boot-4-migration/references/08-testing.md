@@ -46,16 +46,19 @@ Replace `org.springframework.boot.test.mock.mockito.MockBean`/`SpyBean` with `or
 
 ### @SpringBootTest Changes
 
-`@SpringBootTest` no longer provides **MockMVC**, **WebTestClient**, or **TestRestTemplate** automatically.
+`@SpringBootTest` no longer provides **WebTestClient** or **TestRestTemplate** automatically. **MockMVC** already required `@AutoConfigureMockMvc` on Boot 3; only its package changed.
 
 #### MockMVC Configuration
 
 ```kotlin
 // Old (Spring Boot 3.x)
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 class ControllerTest {
     @Autowired
-    private lateinit var mockMvc: MockMvc // Available automatically
+    private lateinit var mockMvc: MockMvc
 }
 
 // New (Spring Boot 4.0)
@@ -63,7 +66,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc.HtmlUnit
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc // Explicit annotation required
+@AutoConfigureMockMvc // New package
 class ControllerTest {
     @Autowired
     private lateinit var mockMvc: MockMvc

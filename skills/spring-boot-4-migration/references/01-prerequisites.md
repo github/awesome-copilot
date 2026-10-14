@@ -21,7 +21,7 @@ This guide provides comprehensive GitHub Copilot instructions for upgrading Spri
 - **Spring Framework**: 7.x (managed by Spring Boot 4.0)
 - **Jakarta EE**: 11 (Servlet 6.1 baseline)
 - **GraalVM** (for native images): 25+
-- **Gradle**: 8.5+ (for Kotlin DSL and version catalog support)
+- **Gradle**: 8.14+ (required by the Spring Boot 4 Gradle plugin; also covers Kotlin DSL and version catalogs)
 - **Gradle CycloneDX Plugin**: 3.0.0+
 
 ### Verify Compatibility

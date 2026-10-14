@@ -35,16 +35,18 @@ Spring Boot 4.0 removes dependency management for **Spring Retry** (portfolio mi
 ```kotlin
 // Use built-in Spring Framework retry
 import org.springframework.core.retry.RetryTemplate
-import org.springframework.core.retry.support.RetryTemplateBuilder
+import org.springframework.core.retry.RetryPolicy
+import java.time.Duration
 
 @Configuration
 class RetryConfig {
     @Bean
     fun retryTemplate(): RetryTemplate {
-        return RetryTemplateBuilder()
-            .maxAttempts(3)
-            .fixedBackoff(1000)
+        val policy = RetryPolicy.builder()
+            .maxRetries(3)
+            .delay(Duration.ofMillis(1000))
             .build()
+        return RetryTemplate(policy)
     }
 }
 ```

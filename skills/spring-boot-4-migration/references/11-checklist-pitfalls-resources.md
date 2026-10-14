@@ -10,7 +10,7 @@
 
 ### Core Migration
 
-- [ ] Update `libs.versions.toml` with Spring Boot 4.0.0
+- [ ] Update `libs.versions.toml` with the selected current Spring Boot 4.0.x patch
 - [ ] Update Kotlin version to 2.2.0+
 - [ ] Rename starters: `spring-boot-starter-web` → `spring-boot-starter-webmvc`, etc.
 - [ ] Add technology-specific test starters (or use classic starters temporarily)
@@ -54,7 +54,7 @@
 
 ### Build Configuration
 
-- [ ] Update Gradle to 8.5+
+- [ ] Update Gradle to 8.14+
 - [ ] Update Gradle CycloneDX plugin to 3.0.0+
 - [ ] Review optional dependency inclusion in uber jars
 - [ ] Remove `loaderImplementation = CLASSIC` if present
